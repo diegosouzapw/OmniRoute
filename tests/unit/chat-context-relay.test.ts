@@ -4,7 +4,8 @@ import assert from "node:assert/strict";
 import { createChatPipelineHarness } from "../integration/_chatPipelineHarness.ts";
 
 const harness = await createChatPipelineHarness("chat-context-relay");
-const { BaseExecutor, buildRequest, combosDb, handleChat, resetStorage, waitFor } = harness;
+const { BaseExecutor, buildRequest, combosDb, handleChat, resetStorage, waitFor, toPlainHeaders } =
+  harness as any;
 const providersDb = await import("../../src/lib/db/providers.ts");
 const handoffDb = await import("../../src/lib/db/contextHandoffs.ts");
 
@@ -117,9 +118,9 @@ test("handleChat generates and injects context-relay handoffs across Codex accou
   const upstreamBodies = [];
   const summaryBodies = [];
 
-  globalThis.fetch = async (url, init = {}) => {
+  (globalThis as any).fetch = async (url: any, init: any = {}) => {
     const urlStr = String(url);
-    const headers = Object.fromEntries(new Headers(init.headers || {}).entries());
+    const headers = toPlainHeaders(init.headers);
 
     if (urlStr.includes("/backend-api/wham/usage")) {
       const authHeader = headers.authorization || headers.Authorization || "";
@@ -231,9 +232,9 @@ test("handleChat injects context-relay handoffs during live failover for Respons
   const upstreamBodies = [];
   let primaryRequestCount = 0;
 
-  globalThis.fetch = async (url, init = {}) => {
+  (globalThis as any).fetch = async (url: any, init: any = {}) => {
     const urlStr = String(url);
-    const headers = Object.fromEntries(new Headers(init.headers || {}).entries());
+    const headers = toPlainHeaders(init.headers);
     const authHeader = headers.authorization || headers.Authorization || "";
 
     if (urlStr.includes("/backend-api/wham/usage")) {

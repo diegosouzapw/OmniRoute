@@ -2,6 +2,17 @@
 
 import { useState, useEffect, useLayoutEffect, useCallback, useRef, useMemo } from "react";
 import { createPortal } from "react-dom";
+import { LlmChatCard } from "@/app/(dashboard)/dashboard/media-providers/components/LlmChatCard";
+import { ServiceKindTabs } from "@/app/(dashboard)/dashboard/media-providers/components/ServiceKindTabs";
+import { EmbeddingExampleCard } from "@/app/(dashboard)/dashboard/media-providers/components/EmbeddingExampleCard";
+import { ImageExampleCard } from "@/app/(dashboard)/dashboard/media-providers/components/ImageExampleCard";
+import { TtsExampleCard } from "@/app/(dashboard)/dashboard/media-providers/components/TtsExampleCard";
+import { SttExampleCard } from "@/app/(dashboard)/dashboard/media-providers/components/SttExampleCard";
+import { WebSearchExampleCard } from "@/app/(dashboard)/dashboard/media-providers/components/WebSearchExampleCard";
+import { WebFetchExampleCard } from "@/app/(dashboard)/dashboard/media-providers/components/WebFetchExampleCard";
+import { VideoExampleCard } from "@/app/(dashboard)/dashboard/media-providers/components/VideoExampleCard";
+import { MusicExampleCard } from "@/app/(dashboard)/dashboard/media-providers/components/MusicExampleCard";
+import type { ServiceKind } from "@/shared/constants/providers";
 import { useNotificationStore } from "@/store/notificationStore";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
@@ -23,7 +34,8 @@ import {
 } from "@/shared/components";
 import {
   LOCAL_PROVIDERS,
-  FREE_PROVIDERS,
+  NOAUTH_PROVIDERS,
+  AI_PROVIDERS,
   getProviderAlias,
   isOpenAICompatibleProvider,
   isAnthropicCompatibleProvider,
@@ -61,14 +73,24 @@ import ProviderIcon from "@/shared/components/ProviderIcon";
 import {
   getClaudeCodeCompatibleRequestDefaults as _getClaudeCodeCompatibleRequestDefaults,
   getCodexRequestDefaults as _getCodexRequestDefaults,
+  type CodexServiceTier,
 } from "@/lib/providers/requestDefaults";
 import {
-  getCodexEffectiveFastServiceTier,
-  isCodexGlobalFastServiceTierEnabled,
+  CODEX_FAST_TIER_DEFAULT_SUPPORTED_MODELS,
+  getCodexEffectiveServiceTier,
+  getCodexGlobalServiceMode,
+  resolveCodexGlobalFastServiceTier,
+  type CodexGlobalServiceMode,
 } from "@/lib/providers/codexFastTier";
 import { isClaudeExtraUsageBlockEnabled } from "@/lib/providers/claudeExtraUsage";
 import { parseExtraApiKeys } from "@/shared/utils/parseApiKeys";
+import RiskNoticeModal from "../components/RiskNoticeModal";
+import { isRiskAcknowledged, useRiskAcknowledged } from "../hooks/useRiskAcknowledged";
 import { resolveDashboardProviderInfo } from "../providerPageUtils";
+import {
+  getWebSessionCredentialRequirement,
+  type WebSessionCredentialRequirement,
+} from "./webSessionCredentials";
 
 type CompatByProtocolMap = Partial<
   Record<
@@ -140,10 +162,12 @@ function isModelHidden(
   return false;
 }
 
+type ProviderMessageTranslator = ((key: string, values?: Record<string, unknown>) => string) & {
+  has?: (key: string) => boolean;
+};
+
 function providerText(
-  t: ((key: string, values?: Record<string, unknown>) => string) & {
-    has?: (key: string) => boolean;
-  },
+  t: ProviderMessageTranslator,
   key: string,
   fallback: string,
   values?: Record<string, unknown>
@@ -158,6 +182,194 @@ function providerText(
     );
   }
   return fallback;
+}
+
+function getWebSessionCredentialLabel(
+  t: ProviderMessageTranslator,
+  requirement: WebSessionCredentialRequirement,
+  optional: boolean
+): string {
+  if (requirement.kind === "none") {
+    return providerText(t, "webNoAuthCredentialLabel", "No credential required");
+  }
+  const baseLabel =
+    requirement.kind === "token"
+      ? providerText(t, "webTokenCredentialLabel", "Web session token")
+      : t("sessionCookieLabel");
+  return optional ? `${baseLabel} (${t("optional").toLowerCase()})` : baseLabel;
+}
+
+function getWebSessionCredentialHint(
+  t: ProviderMessageTranslator,
+  requirement: WebSessionCredentialRequirement,
+  providerName: string,
+  editing: boolean
+): string | undefined {
+  if (requirement.kind === "none") return undefined;
+
+  const values = { provider: providerName, credential: requirement.credentialName };
+  if (editing) {
+    return requirement.kind === "token"
+      ? providerText(
+          t,
+          "webTokenEditHint",
+          "Leave blank to keep the current web session token. Credential: {credential}.",
+          values
+        )
+      : providerText(
+          t,
+          "webCookieEditHint",
+          "Leave blank to keep the current session cookie. Required cookie: {credential}.",
+          values
+        );
+  }
+
+  return requirement.kind === "token"
+    ? providerText(
+        t,
+        "webTokenCredentialHint",
+        "Credential: {credential}. Paste the token value from your own signed-in {provider} web session, or a DevTools HAR export if the provider supports it.",
+        values
+      )
+    : providerText(
+        t,
+        "webCookieCredentialHint",
+        "Required cookie: {credential}. Paste the Cookie header value from your own signed-in {provider} web session. Do not include the Cookie: prefix.",
+        values
+      );
+}
+
+function getWebSessionCredentialCheckLabel(
+  t: ProviderMessageTranslator,
+  requirement: WebSessionCredentialRequirement
+): string {
+  if (requirement.kind === "token") return providerText(t, "checkWebToken", "Check token");
+  return providerText(t, "checkCookie", "Check cookie");
+}
+
+function getAddCredentialModalTitle(
+  t: ProviderMessageTranslator,
+  providerName: string,
+  requirement: WebSessionCredentialRequirement | null
+): string {
+  if (!requirement) return t("addProviderApiKeyTitle", { provider: providerName });
+  if (requirement.kind === "none") {
+    return providerText(t, "addProviderConnectionTitle", "Add {provider} connection", {
+      provider: providerName,
+    });
+  }
+  if (requirement.kind === "token") {
+    return providerText(t, "addProviderWebTokenTitle", "Add {provider} web token", {
+      provider: providerName,
+    });
+  }
+  return providerText(t, "addProviderSessionCookieTitle", "Add {provider} session cookie", {
+    provider: providerName,
+  });
+}
+
+function WebSessionCredentialGuide({
+  requirement,
+  providerName,
+  t,
+}: {
+  requirement: WebSessionCredentialRequirement;
+  providerName: string;
+  t: ProviderMessageTranslator;
+}) {
+  if (requirement.kind === "none") {
+    return (
+      <div className="rounded-lg border border-emerald-500/25 bg-emerald-500/10 px-3 py-3 text-sm text-text-muted">
+        <div className="flex items-start gap-2">
+          <span className="material-symbols-outlined mt-0.5 text-[18px] text-emerald-500">
+            check_circle
+          </span>
+          <div>
+            <p className="font-medium text-text-main">
+              {providerText(t, "webNoAuthGuideTitle", "No credential required")}
+            </p>
+            <p className="mt-1">
+              {providerText(
+                t,
+                "webNoAuthGuideBody",
+                "{provider} does not need an API key or cookie. Save the connection to use its free web endpoint.",
+                { provider: providerName }
+              )}
+            </p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  const requiredCredentialKey =
+    requirement.kind === "token" ? "webTokenRequiredCredential" : "webCookieRequiredCredential";
+  const requiredCredentialFallback =
+    requirement.kind === "token" ? "Required token: {credential}" : "Required cookie: {credential}";
+
+  return (
+    <div className="rounded-lg border border-purple-500/25 bg-purple-500/10 px-3 py-3 text-sm text-text-muted">
+      <div className="flex items-start gap-2">
+        <span className="material-symbols-outlined mt-0.5 text-[18px] text-purple-500">cookie</span>
+        <div className="space-y-2">
+          <div>
+            <p className="font-medium text-text-main">
+              {providerText(t, "webSessionGuideTitle", "How to get the session credential")}
+            </p>
+            <p className="mt-1">
+              {providerText(
+                t,
+                "webSessionGuideIntro",
+                "{provider} uses a browser web session instead of an API key.",
+                { provider: providerName }
+              )}
+            </p>
+          </div>
+          <p className="font-medium text-text-main">
+            {providerText(t, requiredCredentialKey, requiredCredentialFallback, {
+              credential: requirement.credentialName,
+            })}
+          </p>
+          <ol className="list-decimal space-y-1 pl-5">
+            <li>
+              {providerText(t, "webSessionGuideStep1", "Sign in to {provider} in your browser.", {
+                provider: providerName,
+              })}
+            </li>
+            <li>
+              {providerText(
+                t,
+                "webSessionGuideStep2",
+                "Open the browser developer tools and inspect a request made by the web app."
+              )}
+            </li>
+            <li>
+              {providerText(
+                t,
+                "webSessionGuideStep3",
+                "Copy the required credential from the provider's own domain. For cookies, copy only the Cookie header value and omit Cookie:.",
+                { credential: requirement.credentialName }
+              )}
+            </li>
+            <li>
+              {providerText(
+                t,
+                "webSessionGuideStep4",
+                "Paste it here and check the connection. If it stops working, sign in again and replace it with a fresh value."
+              )}
+            </li>
+          </ol>
+          <p className="text-xs text-amber-700 dark:text-amber-300">
+            {providerText(
+              t,
+              "webSessionSecurityHint",
+              "Treat this like a password: it may access your signed-in web account until it expires or is revoked."
+            )}
+          </p>
+        </div>
+      </div>
+    </div>
+  );
 }
 
 function effectiveNormalizeForProtocol(
@@ -391,6 +603,9 @@ interface PassthroughModelsSectionProps {
   modelAliases: Record<string, string>;
   availableModels?: CompatModelRow[];
   customModels?: CompatModelRow[];
+  description: string;
+  inputLabel: string;
+  inputPlaceholder: string;
   copied?: string;
   onCopy: (text: string, key: string) => void;
   onSetAlias: (modelId: string, alias: string) => Promise<void>;
@@ -529,7 +744,7 @@ interface ConnectionRowProps {
   isClaude?: boolean;
   isCodex?: boolean;
   isGeminiCli?: boolean;
-  codexFastGlobalEnabled?: boolean;
+  codexGlobalServiceMode?: CodexGlobalServiceMode;
   isFirst: boolean;
   isLast: boolean;
   isSelected?: boolean;
@@ -670,6 +885,24 @@ const CODEX_REASONING_STRENGTH_OPTIONS = [
   { value: "xhigh", label: "XHigh" },
 ];
 
+const CODEX_ACCOUNT_SERVICE_TIER_VALUES: CodexServiceTier[] = ["default", "priority", "flex"];
+const CODEX_GLOBAL_SERVICE_MODE_VALUES: CodexGlobalServiceMode[] = [
+  "none",
+  ...CODEX_ACCOUNT_SERVICE_TIER_VALUES,
+];
+
+function getCodexServiceTierLabel(
+  t: ProviderMessageTranslator,
+  value: CodexGlobalServiceMode
+): string {
+  if (value === "none") {
+    return providerText(t, "codexServiceModeNone", "No global setting");
+  }
+  if (value === "default") return providerText(t, "codexServiceTierDefault", "Default");
+  if (value === "priority") return providerText(t, "codexServiceTierPriority", "Priority");
+  return providerText(t, "codexServiceTierFlex", "Flex");
+}
+
 function normalizeCodexLimitPolicy(policy: unknown): { use5h: boolean; useWeekly: boolean } {
   const record =
     policy && typeof policy === "object" && !Array.isArray(policy)
@@ -687,7 +920,7 @@ function normalizeCodexLimitPolicy(policy: unknown): { use5h: boolean; useWeekly
  */
 function getCodexRequestDefaults(providerSpecificData: unknown): {
   reasoningEffort: string;
-  serviceTier?: "priority";
+  serviceTier?: CodexServiceTier;
 } {
   const defaults = _getCodexRequestDefaults(providerSpecificData);
   return {
@@ -1028,6 +1261,96 @@ function ModelCompatPopover({
   );
 }
 
+// ──── ProviderPlaygroundPanel ────────────────────────────────────────────────
+// Renders a playground section on the individual provider page.
+// Shows ServiceKindTabs if the provider declares multiple kinds; falls back to
+// a single-kind panel or the LlmChatCard for standard LLM providers.
+
+const MEDIA_SERVICE_KINDS: ServiceKind[] = [
+  "embedding",
+  "image",
+  "tts",
+  "stt",
+  "webSearch",
+  "webFetch",
+  "video",
+  "music",
+];
+
+function renderKindPanel(kind: ServiceKind, providerId: string): JSX.Element | null {
+  switch (kind) {
+    case "llm":
+      return <LlmChatCard providerId={providerId} />;
+    case "embedding":
+      return <EmbeddingExampleCard providerId={providerId} />;
+    case "image":
+      return <ImageExampleCard providerId={providerId} />;
+    case "tts":
+      return <TtsExampleCard providerId={providerId} />;
+    case "stt":
+      return <SttExampleCard providerId={providerId} />;
+    case "webSearch":
+      return <WebSearchExampleCard providerId={providerId} />;
+    case "webFetch":
+      return <WebFetchExampleCard providerId={providerId} />;
+    case "video":
+      return <VideoExampleCard providerId={providerId} />;
+    case "music":
+      return <MusicExampleCard providerId={providerId} />;
+    default:
+      return null;
+  }
+}
+
+function ProviderPlaygroundPanel({ providerId }: { providerId: string }) {
+  // Resolve serviceKinds from AI_PROVIDERS.
+  // For providers without explicit serviceKinds (most LLM providers), we infer
+  // "llm" as the default.
+  const providerEntry = AI_PROVIDERS[providerId as keyof typeof AI_PROVIDERS] as
+    | (Record<string, unknown> & { serviceKinds?: string[] })
+    | undefined;
+
+  const rawKinds: string[] = providerEntry?.serviceKinds ?? [];
+
+  const ALL_VALID_KINDS = [
+    "llm",
+    "embedding",
+    "image",
+    "imageToText",
+    "tts",
+    "stt",
+    "webSearch",
+    "webFetch",
+    "video",
+    "music",
+  ] as const;
+
+  const kinds: ServiceKind[] =
+    rawKinds.length > 0
+      ? rawKinds.filter((k): k is ServiceKind => (ALL_VALID_KINDS as readonly string[]).includes(k))
+      : ["llm"];
+
+  // Filter out kinds that have no playground implementation yet
+  const playgroundableKinds = kinds.filter((k) => k !== "imageToText");
+
+  // useState must be called unconditionally (Rules of Hooks)
+  const [activeKind, setActiveKind] = useState<ServiceKind>(playgroundableKinds[0] ?? "llm");
+
+  if (playgroundableKinds.length === 0) return null;
+
+  return (
+    <div className="flex flex-col gap-3">
+      <h2 className="text-lg font-semibold">Playground</h2>
+      <ServiceKindTabs
+        kinds={playgroundableKinds}
+        activeKind={activeKind}
+        onSelect={setActiveKind}
+      />
+      {renderKindPanel(activeKind, providerId)}
+    </div>
+  );
+}
+
 export default function ProviderDetailPage() {
   const params = useParams();
   const router = useRouter();
@@ -1038,6 +1361,7 @@ export default function ProviderDetailPage() {
   const [showOAuthModal, _setShowOAuthModal] = useState(false);
   const [reauthConnection, setReauthConnection] = useState<ConnectionRowConnection | null>(null);
   const [showAddApiKeyModal, setShowAddApiKeyModal] = useState(false);
+  const [showRiskNoticeModal, setShowRiskNoticeModal] = useState(false);
   const [commandCodeAuthState, setCommandCodeAuthState] = useState<CommandCodeAuthFlowState>({
     phase: "idle",
     state: "",
@@ -1048,6 +1372,7 @@ export default function ProviderDetailPage() {
   });
   const [showEditModal, setShowEditModal] = useState(false);
   const [showEditNodeModal, setShowEditNodeModal] = useState(false);
+  const [showTutorialModal, setShowTutorialModal] = useState(false);
   const [selectedConnection, setSelectedConnection] = useState(null);
   const [retestingId, setRetestingId] = useState(null);
   const [batchTesting, setBatchTesting] = useState(false);
@@ -1109,12 +1434,22 @@ export default function ProviderDetailPage() {
   );
   const [exportingGeminiAuthId, setExportingGeminiAuthId] = useState<string | null>(null);
   const [importGeminiModalOpen, setImportGeminiModalOpen] = useState(false);
-  const [codexGlobalFastServiceTier, setCodexGlobalFastServiceTier] = useState(false);
-  const [savingCodexGlobalFastServiceTier, setSavingCodexGlobalFastServiceTier] = useState(false);
+  const [codexGlobalServiceMode, setCodexGlobalServiceMode] =
+    useState<CodexGlobalServiceMode>("none");
+  const [codexGlobalSupportedModels, setCodexGlobalSupportedModels] = useState<string[]>([
+    ...CODEX_FAST_TIER_DEFAULT_SUPPORTED_MODELS,
+  ]);
+  const [codexSettingsLoaded, setCodexSettingsLoaded] = useState(false);
+  const [codexSettingsLoadError, setCodexSettingsLoadError] = useState<string | null>(null);
+  const [savingCodexGlobalServiceMode, setSavingCodexGlobalServiceMode] = useState(false);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [batchDeleting, setBatchDeleting] = useState(false);
   const commandCodeAuthWindowRef = useRef<Window | null>(null);
   const commandCodeAuthTimerRef = useRef<number | null>(null);
+  const pendingRiskActionRef = useRef<(() => void) | null>(null);
+  const { acknowledged: riskAcknowledged, acknowledge: acknowledgeRisk } =
+    useRiskAcknowledged(providerId);
+  const codexSettingsRequestSeqRef = useRef(0);
   const isOpenAICompatible = isOpenAICompatibleProvider(providerId);
   const isCcCompatible = isClaudeCodeCompatibleProvider(providerId);
   const isCommandCode = providerId === "command-code";
@@ -1128,6 +1463,15 @@ export default function ProviderDetailPage() {
     setReauthConnection(show && connectionRow ? connectionRow : null);
   };
 
+  const codexGlobalServiceModeOptions = useMemo(
+    () =>
+      CODEX_GLOBAL_SERVICE_MODE_VALUES.map((value) => ({
+        value,
+        label: getCodexServiceTierLabel(t, value),
+      })),
+    [t]
+  );
+
   const providerInfo = resolveDashboardProviderInfo(providerId, {
     providerNode,
     compatibleLabels: {
@@ -1138,9 +1482,10 @@ export default function ProviderDetailPage() {
   });
   const providerSupportsOAuth =
     providerInfo?.toggleAuthType === "oauth" || providerInfo?.toggleAuthType === "free";
+  const subscriptionRisk = providerInfo?.subscriptionRisk === true;
   const providerSupportsPat = supportsApiKeyOnFreeProvider(providerId);
   const isOAuth = providerSupportsOAuth && !providerSupportsPat;
-  const isFreeNoAuth = FREE_PROVIDERS[providerId]?.noAuth === true;
+  const isFreeNoAuth = NOAUTH_PROVIDERS[providerId]?.noAuth === true;
   const registryModels = getModelsByProviderId(providerId);
   // Prefer synced API-discovered models when available, then merge built-ins
   // and user-managed custom models without duplicating IDs.
@@ -1398,15 +1743,44 @@ export default function ProviderDetailPage() {
     }
   }, [importingZedManual, zedManualProvider, zedManualToken, notify, fetchConnections]);
 
-  useEffect(() => {
-    if (providerId !== "codex") return;
-    fetch("/api/settings", { cache: "no-store" })
-      .then((r) => (r.ok ? r.json() : null))
-      .then((data) => {
-        setCodexGlobalFastServiceTier(isCodexGlobalFastServiceTierEnabled(data));
-      })
-      .catch(() => {});
+  const loadCodexSettings = useCallback(async () => {
+    const requestSeq = codexSettingsRequestSeqRef.current + 1;
+    codexSettingsRequestSeqRef.current = requestSeq;
+    const isCurrentRequest = () => codexSettingsRequestSeqRef.current === requestSeq;
+
+    if (providerId !== "codex") {
+      setCodexSettingsLoaded(false);
+      setCodexSettingsLoadError(null);
+      return;
+    }
+
+    setCodexSettingsLoaded(false);
+    setCodexSettingsLoadError(null);
+
+    try {
+      const response = await fetch("/api/settings", { cache: "no-store" });
+      if (!response.ok) {
+        throw new Error(`Settings request failed with HTTP ${response.status}`);
+      }
+      const data = await response.json();
+      if (!data || typeof data !== "object") {
+        throw new Error("Settings response was empty");
+      }
+      if (!isCurrentRequest()) return;
+      const resolvedCodexServiceTier = resolveCodexGlobalFastServiceTier(data);
+      setCodexGlobalServiceMode(getCodexGlobalServiceMode(data));
+      setCodexGlobalSupportedModels([...resolvedCodexServiceTier.supportedModels]);
+      setCodexSettingsLoaded(true);
+    } catch (error) {
+      if (!isCurrentRequest()) return;
+      setCodexSettingsLoaded(false);
+      setCodexSettingsLoadError(error instanceof Error ? error.message : "Failed to load settings");
+    }
   }, [providerId]);
+
+  useEffect(() => {
+    void loadCodexSettings();
+  }, [loadCodexSettings]);
 
   const loadConnProxies = useCallback(async (conns: { id?: string }[]) => {
     if (!conns.length) return;
@@ -1582,6 +1956,31 @@ export default function ProviderDetailPage() {
     }
     setShowAddApiKeyModal(true);
   }, [isOAuth]);
+
+  const gateConnectionFlow = useCallback(
+    (callback: () => void) => {
+      if (subscriptionRisk && !riskAcknowledged && !isRiskAcknowledged(providerId)) {
+        pendingRiskActionRef.current = callback;
+        setShowRiskNoticeModal(true);
+        return;
+      }
+      callback();
+    },
+    [providerId, riskAcknowledged, subscriptionRisk]
+  );
+
+  const handleConfirmRiskNotice = useCallback(() => {
+    acknowledgeRisk();
+    setShowRiskNoticeModal(false);
+    const pendingAction = pendingRiskActionRef.current;
+    pendingRiskActionRef.current = null;
+    pendingAction?.();
+  }, [acknowledgeRisk]);
+
+  const handleCancelRiskNotice = useCallback(() => {
+    pendingRiskActionRef.current = null;
+    setShowRiskNoticeModal(false);
+  }, []);
 
   const clearCommandCodeAuthTimer = useCallback(() => {
     if (commandCodeAuthTimerRef.current !== null) {
@@ -2152,29 +2551,39 @@ export default function ProviderDetailPage() {
     }
   };
 
-  const handleToggleCodexGlobalFastServiceTier = async (enabled: boolean) => {
-    if (savingCodexGlobalFastServiceTier) return;
-    setSavingCodexGlobalFastServiceTier(true);
+  const handleChangeCodexGlobalServiceMode = async (mode: CodexGlobalServiceMode) => {
+    if (savingCodexGlobalServiceMode || !codexSettingsLoaded) return;
+    setSavingCodexGlobalServiceMode(true);
+    const previousMode = codexGlobalServiceMode;
+    setCodexGlobalServiceMode(mode);
     try {
+      const tier = mode === "none" ? (previousMode !== "none" ? previousMode : undefined) : mode;
       const res = await fetch("/api/settings", {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ codexServiceTier: { enabled } }),
+        body: JSON.stringify({
+          codexServiceTier: {
+            enabled: mode !== "none",
+            ...(tier ? { tier } : {}),
+            supportedModels: codexGlobalSupportedModels,
+          },
+        }),
       });
 
       if (!res.ok) {
         const data = await res.json().catch(() => ({}));
-        notify.error(data.error || "Failed to update Codex Fast setting");
+        setCodexGlobalServiceMode(previousMode);
+        notify.error(data.error || "Failed to update Codex service mode");
         return;
       }
 
-      setCodexGlobalFastServiceTier(enabled);
-      notify.success(enabled ? "Codex Fast enabled globally" : "Codex Fast disabled globally");
+      notify.success("Codex service mode updated");
     } catch (error) {
-      console.error("Error toggling Codex Fast setting:", error);
-      notify.error("Failed to update Codex Fast setting");
+      setCodexGlobalServiceMode(previousMode);
+      console.error("Error updating Codex service mode:", error);
+      notify.error("Failed to update Codex service mode");
     } finally {
-      setSavingCodexGlobalFastServiceTier(false);
+      setSavingCodexGlobalServiceMode(false);
     }
   };
 
@@ -3135,6 +3544,21 @@ export default function ProviderDetailPage() {
     }
 
     if (providerInfo.passthroughModels) {
+      const passthroughDescription =
+        providerId === "openrouter"
+          ? t("openRouterAnyModelHint")
+          : providerId === "bedrock"
+            ? t("bedrockModelsDescription")
+            : t("passthroughModelsDescription", { provider: providerInfo?.name || providerId });
+      const passthroughInputLabel =
+        providerId === "openrouter" ? t("modelIdFromOpenRouter") : t("modelId");
+      const passthroughInputPlaceholder =
+        providerId === "openrouter"
+          ? t("openRouterModelPlaceholder")
+          : providerId === "bedrock"
+            ? t("bedrockModelPlaceholder")
+            : t("openaiCompatibleModelPlaceholder");
+
       return (
         <div>
           <div className="flex items-center gap-2 mb-4">
@@ -3158,6 +3582,9 @@ export default function ProviderDetailPage() {
             modelAliases={modelAliases}
             availableModels={syncedAvailableModels}
             customModels={modelMeta.customModels}
+            description={passthroughDescription}
+            inputLabel={passthroughInputLabel}
+            inputPlaceholder={passthroughInputPlaceholder}
             copied={copied}
             onCopy={copy}
             onSetAlias={handleSetAlias}
@@ -3362,6 +3789,15 @@ export default function ProviderDetailPage() {
                 {t("connectionCountLabel", { count: connections.length })}
               </p>
               <EmailPrivacyToggle size="md" />
+              {providerId === "adapta-web" && (
+                <button
+                  onClick={() => setShowTutorialModal(true)}
+                  className="text-sm font-medium underline underline-offset-2 opacity-70 hover:opacity-100 transition-opacity"
+                  style={{ color: providerInfo.color }}
+                >
+                  Tutorial
+                </button>
+              )}
             </div>
           </div>
         </div>
@@ -3469,7 +3905,11 @@ export default function ProviderDetailPage() {
               </p>
             </div>
             <div className="flex flex-wrap items-center gap-2">
-              <Button size="sm" icon="add" onClick={() => setShowAddApiKeyModal(true)}>
+              <Button
+                size="sm"
+                icon="add"
+                onClick={() => gateConnectionFlow(() => setShowAddApiKeyModal(true))}
+              >
                 {t("add")}
               </Button>
               <Button
@@ -3534,16 +3974,44 @@ export default function ProviderDetailPage() {
             <div className="flex min-w-0 flex-wrap items-center gap-2">
               <h2 className="text-lg font-semibold">{t("connections")}</h2>
               {providerId === "codex" && (
-                <div title={t("providerDetailFastTierTooltip")}>
-                  <Toggle
-                    size="sm"
-                    checked={codexGlobalFastServiceTier}
-                    onChange={handleToggleCodexGlobalFastServiceTier}
-                    disabled={savingCodexGlobalFastServiceTier}
-                    label={t("providerDetailFastDefaultLabel")}
-                    ariaLabel="Toggle Codex Fast default"
-                    className="rounded-lg border border-sky-500/20 bg-sky-500/5 px-2 py-1"
-                  />
+                <div
+                  className="inline-flex items-center gap-2 rounded-lg border border-sky-500/20 bg-sky-500/5 px-2 py-1 text-xs font-medium text-text-muted"
+                  title={providerText(
+                    t,
+                    "providerDetailServiceModeTooltip",
+                    "Set a global Codex service mode, or leave accounts on their individual service-tier setting."
+                  )}
+                >
+                  <span>
+                    {providerText(t, "providerDetailServiceModeLabel", "Global service mode:")}
+                  </span>
+                  <select
+                    value={codexGlobalServiceMode}
+                    onChange={(event) =>
+                      handleChangeCodexGlobalServiceMode(
+                        event.target.value as CodexGlobalServiceMode
+                      )
+                    }
+                    disabled={savingCodexGlobalServiceMode || !codexSettingsLoaded}
+                    aria-label="Global Codex service mode"
+                    className="rounded-md border border-border bg-bg px-2 py-1 text-xs text-text-main outline-none transition-colors focus:border-primary disabled:opacity-60"
+                  >
+                    {codexGlobalServiceModeOptions.map((option) => (
+                      <option key={option.value} value={option.value}>
+                        {option.label}
+                      </option>
+                    ))}
+                  </select>
+                  {codexSettingsLoadError ? (
+                    <button
+                      type="button"
+                      onClick={() => void loadCodexSettings()}
+                      className="rounded border border-sky-500/30 px-2 py-0.5 text-[11px] font-medium text-sky-600 hover:bg-sky-500/10 dark:text-sky-300"
+                      title={codexSettingsLoadError}
+                    >
+                      {providerText(t, "retry", "Retry")}
+                    </button>
+                  ) : null}
                 </div>
               )}
               {/* Provider-level proxy indicator/button */}
@@ -3605,7 +4073,7 @@ export default function ProviderDetailPage() {
                           commandCodeAuthState.phase === "polling" ||
                           commandCodeAuthState.phase === "applying"
                         }
-                        onClick={handleOpenCommandCodeConnect}
+                        onClick={() => gateConnectionFlow(handleOpenCommandCodeConnect)}
                       >
                         Connect
                       </Button>
@@ -3613,21 +4081,25 @@ export default function ProviderDetailPage() {
                         size="sm"
                         variant="secondary"
                         icon="add"
-                        onClick={() => setShowAddApiKeyModal(true)}
+                        onClick={() => gateConnectionFlow(() => setShowAddApiKeyModal(true))}
                       >
                         Manual API key
                       </Button>
                     </>
                   ) : (
                     <>
-                      <Button size="sm" icon="add" onClick={openPrimaryAddFlow}>
+                      <Button
+                        size="sm"
+                        icon="add"
+                        onClick={() => gateConnectionFlow(openPrimaryAddFlow)}
+                      >
                         {providerSupportsPat ? "Add PAT" : t("add")}
                       </Button>
                       {providerId === "qoder" && (
                         <Button
                           size="sm"
                           variant="secondary"
-                          onClick={() => setShowOAuthModal(true)}
+                          onClick={() => gateConnectionFlow(() => setShowOAuthModal(true))}
                         >
                           Experimental OAuth
                         </Button>
@@ -3637,7 +4109,7 @@ export default function ProviderDetailPage() {
                           size="sm"
                           variant="secondary"
                           icon="upload_file"
-                          onClick={() => setImportClaudeModalOpen(true)}
+                          onClick={() => gateConnectionFlow(() => setImportClaudeModalOpen(true))}
                         >
                           {typeof t.has === "function" && t.has("importClaudeAuth")
                             ? t("importClaudeAuth")
@@ -3649,7 +4121,7 @@ export default function ProviderDetailPage() {
                           size="sm"
                           variant="secondary"
                           icon="upload_file"
-                          onClick={() => setImportGeminiModalOpen(true)}
+                          onClick={() => gateConnectionFlow(() => setImportGeminiModalOpen(true))}
                         >
                           {typeof t.has === "function" && t.has("importGeminiAuth")
                             ? t("importGeminiAuth")
@@ -3661,7 +4133,11 @@ export default function ProviderDetailPage() {
                 </>
               ) : (
                 connections.length === 0 && (
-                  <Button size="sm" icon="add" onClick={() => setShowAddApiKeyModal(true)}>
+                  <Button
+                    size="sm"
+                    icon="add"
+                    onClick={() => gateConnectionFlow(() => setShowAddApiKeyModal(true))}
+                  >
                     {t("add")}
                   </Button>
                 )
@@ -3689,25 +4165,28 @@ export default function ProviderDetailPage() {
                           commandCodeAuthState.phase === "polling" ||
                           commandCodeAuthState.phase === "applying"
                         }
-                        onClick={handleOpenCommandCodeConnect}
+                        onClick={() => gateConnectionFlow(handleOpenCommandCodeConnect)}
                       >
                         Connect
                       </Button>
                       <Button
                         variant="secondary"
                         icon="add"
-                        onClick={() => setShowAddApiKeyModal(true)}
+                        onClick={() => gateConnectionFlow(() => setShowAddApiKeyModal(true))}
                       >
                         Manual API key
                       </Button>
                     </>
                   ) : (
                     <>
-                      <Button icon="add" onClick={openPrimaryAddFlow}>
+                      <Button icon="add" onClick={() => gateConnectionFlow(openPrimaryAddFlow)}>
                         {providerSupportsPat ? "Add PAT" : t("addConnection")}
                       </Button>
                       {providerId === "qoder" && (
-                        <Button variant="secondary" onClick={() => setShowOAuthModal(true)}>
+                        <Button
+                          variant="secondary"
+                          onClick={() => gateConnectionFlow(() => setShowOAuthModal(true))}
+                        >
                           Experimental OAuth
                         </Button>
                       )}
@@ -3715,7 +4194,7 @@ export default function ProviderDetailPage() {
                         <Button
                           variant="secondary"
                           icon="upload_file"
-                          onClick={() => setImportCodexModalOpen(true)}
+                          onClick={() => gateConnectionFlow(() => setImportCodexModalOpen(true))}
                         >
                           {typeof t.has === "function" && t.has("importCodexAuth")
                             ? t("importCodexAuth")
@@ -3726,7 +4205,7 @@ export default function ProviderDetailPage() {
                         <Button
                           variant="secondary"
                           icon="upload_file"
-                          onClick={() => setImportClaudeModalOpen(true)}
+                          onClick={() => gateConnectionFlow(() => setImportClaudeModalOpen(true))}
                         >
                           {typeof t.has === "function" && t.has("importClaudeAuth")
                             ? t("importClaudeAuth")
@@ -3737,7 +4216,7 @@ export default function ProviderDetailPage() {
                         <Button
                           variant="secondary"
                           icon="upload_file"
-                          onClick={() => setImportGeminiModalOpen(true)}
+                          onClick={() => gateConnectionFlow(() => setImportGeminiModalOpen(true))}
                         >
                           {typeof t.has === "function" && t.has("importGeminiAuth")
                             ? t("importGeminiAuth")
@@ -3798,7 +4277,7 @@ export default function ProviderDetailPage() {
                           connection={conn}
                           isOAuth={conn.authType === "oauth"}
                           isClaude={providerId === "claude"}
-                          codexFastGlobalEnabled={codexGlobalFastServiceTier}
+                          codexGlobalServiceMode={codexGlobalServiceMode}
                           isFirst={index === 0}
                           isLast={index === sorted.length - 1}
                           isSelected={selectedIds.has(conn.id)}
@@ -3834,7 +4313,7 @@ export default function ProviderDetailPage() {
                           onDelete={() => handleDelete(conn.id)}
                           onReauth={
                             conn.authType === "oauth"
-                              ? () => setShowOAuthModal(true, conn)
+                              ? () => gateConnectionFlow(() => setShowOAuthModal(true, conn))
                               : undefined
                           }
                           onRefreshToken={
@@ -3980,7 +4459,7 @@ export default function ProviderDetailPage() {
                                 connection={conn}
                                 isOAuth={conn.authType === "oauth"}
                                 isClaude={providerId === "claude"}
-                                codexFastGlobalEnabled={codexGlobalFastServiceTier}
+                                codexGlobalServiceMode={codexGlobalServiceMode}
                                 isFirst={gi === 0 && index === 0}
                                 isLast={
                                   gi === groupKeys.length - 1 && index === groupConns.length - 1
@@ -4021,7 +4500,7 @@ export default function ProviderDetailPage() {
                                 onDelete={() => handleDelete(conn.id)}
                                 onReauth={
                                   conn.authType === "oauth"
-                                    ? () => setShowOAuthModal(true, conn)
+                                    ? () => gateConnectionFlow(() => setShowOAuthModal(true, conn))
                                     : undefined
                                 }
                                 onRefreshToken={
@@ -4176,7 +4655,19 @@ export default function ProviderDetailPage() {
         </Card>
       )}
 
+      {/* Playground panel — rendered for providers that declare serviceKinds */}
+      <ProviderPlaygroundPanel providerId={providerId} />
+
       {/* Modals */}
+      {showRiskNoticeModal && subscriptionRisk && (
+        <RiskNoticeModal
+          variant={providerInfo.riskNoticeVariant ?? "oauth"}
+          providerId={providerId}
+          providerName={providerInfo.name}
+          onConfirm={handleConfirmRiskNotice}
+          onCancel={handleCancelRiskNotice}
+        />
+      )}
       {!isUpstreamProxyProvider &&
         (providerId === "kiro" || providerId === "amazon-q" ? (
           <KiroOAuthWrapper
@@ -4521,6 +5012,123 @@ export default function ProviderDetailPage() {
           )}
         </div>
       </Modal>
+
+      {/* Adapta Web — Tutorial Modal */}
+      {providerId === "adapta-web" && (
+        <Modal
+          isOpen={showTutorialModal}
+          onClose={() => setShowTutorialModal(false)}
+          title="Como conectar o Adapta Web"
+          size="md"
+        >
+          <div className="flex flex-col gap-5 text-sm">
+            <p className="text-text-muted">
+              O Adapta usa autenticação via Clerk. O token{" "}
+              <code className="bg-surface-2 px-1 rounded font-mono text-xs">__client</code> é um JWT
+              de longa duração que permite renovar sessões automaticamente.
+            </p>
+
+            <ol className="flex flex-col gap-4 list-none">
+              <li className="flex gap-3">
+                <span className="flex-none w-6 h-6 rounded-full bg-primary text-white text-xs font-bold flex items-center justify-center">
+                  1
+                </span>
+                <div>
+                  <p className="font-medium">Acesse o chat do Adapta</p>
+                  <p className="text-text-muted mt-0.5">
+                    Abra{" "}
+                    <a
+                      href="https://agent.adapta.one/agentic-chat"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="underline text-primary"
+                    >
+                      agent.adapta.one/agentic-chat
+                    </a>{" "}
+                    e faça login com sua conta Gold ou Business.
+                  </p>
+                </div>
+              </li>
+
+              <li className="flex gap-3">
+                <span className="flex-none w-6 h-6 rounded-full bg-primary text-white text-xs font-bold flex items-center justify-center">
+                  2
+                </span>
+                <div>
+                  <p className="font-medium">Abra o DevTools</p>
+                  <p className="text-text-muted mt-0.5">
+                    Pressione{" "}
+                    <kbd className="bg-surface-2 px-1.5 py-0.5 rounded text-xs font-mono">F12</kbd>{" "}
+                    ou{" "}
+                    <kbd className="bg-surface-2 px-1.5 py-0.5 rounded text-xs font-mono">
+                      Cmd+Option+I
+                    </kbd>{" "}
+                    para abrir as Ferramentas do Desenvolvedor.
+                  </p>
+                </div>
+              </li>
+
+              <li className="flex gap-3">
+                <span className="flex-none w-6 h-6 rounded-full bg-primary text-white text-xs font-bold flex items-center justify-center">
+                  3
+                </span>
+                <div>
+                  <p className="font-medium">Vá em Application → Cookies</p>
+                  <p className="text-text-muted mt-0.5">
+                    Na aba <strong>Application</strong> (Chrome/Edge) ou <strong>Storage</strong>{" "}
+                    (Firefox), expanda <strong>Cookies</strong> e clique em{" "}
+                    <code className="bg-surface-2 px-1 rounded font-mono text-xs">
+                      .clerk.agent.adapta.one
+                    </code>
+                    .
+                  </p>
+                </div>
+              </li>
+
+              <li className="flex gap-3">
+                <span className="flex-none w-6 h-6 rounded-full bg-primary text-white text-xs font-bold flex items-center justify-center">
+                  4
+                </span>
+                <div>
+                  <p className="font-medium">
+                    Copie o valor do cookie{" "}
+                    <code className="bg-surface-2 px-1 rounded font-mono text-xs">__client</code>
+                  </p>
+                  <p className="text-text-muted mt-0.5">
+                    Localize o cookie chamado{" "}
+                    <code className="bg-surface-2 px-1 rounded font-mono text-xs">__client</code> na
+                    lista. Clique nele e copie o conteúdo da coluna <strong>Value</strong> — começa
+                    com <code className="bg-surface-2 px-1 rounded font-mono text-xs">eyJ…</code>.
+                  </p>
+                </div>
+              </li>
+
+              <li className="flex gap-3">
+                <span className="flex-none w-6 h-6 rounded-full bg-primary text-white text-xs font-bold flex items-center justify-center">
+                  5
+                </span>
+                <div>
+                  <p className="font-medium">Cole aqui e salve</p>
+                  <p className="text-text-muted mt-0.5">
+                    Clique em <strong>Add Connection</strong>, cole o valor do{" "}
+                    <code className="bg-surface-2 px-1 rounded font-mono text-xs">__client</code> no
+                    campo de API Key e salve. O OmniRoute renovará a sessão automaticamente.
+                  </p>
+                </div>
+              </li>
+            </ol>
+
+            <div
+              className="rounded-lg p-3 text-xs text-text-muted"
+              style={{ backgroundColor: "rgba(110,58,211,0.08)", borderLeft: "3px solid #6E3AD3" }}
+            >
+              <strong>Dica:</strong> O cookie <code className="font-mono">__client</code> tem
+              validade longa (meses). Só será necessário renová-lo se você sair da conta ou o Adapta
+              invalidar a sessão.
+            </div>
+          </div>
+        </Modal>
+      )}
     </div>
   );
 }
@@ -4703,6 +5311,9 @@ function PassthroughModelsSection({
   modelAliases,
   availableModels = [],
   customModels = [],
+  description,
+  inputLabel,
+  inputPlaceholder,
   copied,
   onCopy,
   onSetAlias,
@@ -4848,13 +5459,13 @@ function PassthroughModelsSection({
 
   return (
     <div className="flex flex-col gap-4">
-      <p className="text-sm text-text-muted">{t("openRouterAnyModelHint")}</p>
+      <p className="text-sm text-text-muted">{description}</p>
 
       {/* Add new model */}
       <div className="flex items-end gap-2">
         <div className="flex-1">
           <label htmlFor="new-model-input" className="text-xs text-text-muted mb-1 block">
-            {t("modelIdFromOpenRouter")}
+            {inputLabel}
           </label>
           <input
             id="new-model-input"
@@ -4862,7 +5473,7 @@ function PassthroughModelsSection({
             value={newModel}
             onChange={(e) => setNewModel(e.target.value)}
             onKeyDown={(e) => e.key === "Enter" && handleAdd()}
-            placeholder={t("openRouterModelPlaceholder")}
+            placeholder={inputPlaceholder}
             className="w-full px-3 py-2 text-sm border border-border rounded-lg bg-background focus:outline-none focus:border-primary"
           />
         </div>
@@ -6132,7 +6743,7 @@ function ConnectionRow({
   isClaude,
   isCodex,
   isGeminiCli,
-  codexFastGlobalEnabled,
+  codexGlobalServiceMode,
   isCcCompatible,
   cliproxyapiEnabled,
   isFirst,
@@ -6262,12 +6873,50 @@ function ConnectionRow({
   const normalizedCodexPolicy = normalizeCodexLimitPolicy(codexPolicy);
   const codex5hEnabled = normalizedCodexPolicy.use5h;
   const codexWeeklyEnabled = normalizedCodexPolicy.useWeekly;
-  const codexFastEnabled = isCodex
-    ? getCodexEffectiveFastServiceTier(
+  const codexServiceTier = isCodex
+    ? getCodexEffectiveServiceTier(
         connection.providerSpecificData,
-        codexFastGlobalEnabled === true
+        codexGlobalServiceMode ?? "none"
       )
-    : false;
+    : "default";
+  const codexServiceTierIsGlobal =
+    isCodex && codexGlobalServiceMode !== undefined && codexGlobalServiceMode !== "none";
+  const codexServiceTierBadge =
+    codexServiceTier === "priority"
+      ? {
+          label: providerText(t, "codexTierFastLabel", "Fast"),
+          icon: "bolt",
+          className: "bg-sky-500/15 text-sky-500",
+          title: codexServiceTierIsGlobal
+            ? providerText(
+                t,
+                "providerDetailGlobalPriorityActive",
+                "Global Codex priority service tier is active"
+              )
+            : providerText(
+                t,
+                "providerDetailConnectionPriorityActive",
+                "Codex priority service tier is active for this connection"
+              ),
+        }
+      : codexServiceTier === "flex"
+        ? {
+            label: providerText(t, "codexTierFlexLabel", "Flex"),
+            icon: "speed",
+            className: "bg-cyan-500/15 text-cyan-500",
+            title: codexServiceTierIsGlobal
+              ? providerText(
+                  t,
+                  "providerDetailGlobalFlexActive",
+                  "Global Codex flex service tier is active"
+                )
+              : providerText(
+                  t,
+                  "providerDetailConnectionFlexActive",
+                  "Codex flex service tier is active for this connection"
+                ),
+          }
+        : null;
   const claudeBlockExtraUsageEnabled = isClaude
     ? isClaudeExtraUsageBlockEnabled("claude", connection.providerSpecificData)
     : false;
@@ -6416,17 +7065,15 @@ function ConnectionRow({
             {isCodex && (
               <>
                 <span className="text-text-muted/30 select-none">|</span>
-                {codexFastEnabled && (
+                {codexServiceTierBadge && (
                   <span
-                    className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-xs font-medium bg-sky-500/15 text-sky-500"
-                    title={
-                      codexFastGlobalEnabled
-                        ? "Global Codex fast tier is active"
-                        : "Codex fast tier is active for this connection"
-                    }
+                    className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-xs font-medium ${codexServiceTierBadge.className}`}
+                    title={codexServiceTierBadge.title}
                   >
-                    <span className="material-symbols-outlined text-[13px]">bolt</span>
-                    Fast
+                    <span className="material-symbols-outlined text-[13px]">
+                      {codexServiceTierBadge.icon}
+                    </span>
+                    {codexServiceTierBadge.label}
                   </span>
                 )}
                 <button
@@ -6845,20 +7492,21 @@ function AddApiKeyModal({
   const usesBaseUrl = isBaseUrlConfigurableProvider(provider);
   const defaultBaseUrl = getProviderBaseUrlDefault(provider);
   const isVertex = provider === "vertex" || provider === "vertex-partner";
-  const defaultRegion = "us-central1";
+  const isBedrock = provider === "bedrock";
+  const showsRegion = isVertex || isBedrock;
+  const defaultRegion = isBedrock ? "eu-west-2" : "us-central1";
   const isGlm = isGlmProvider(provider);
   const isQoder = provider === "qoder";
   const isCloudflare = provider === "cloudflare-ai";
   const localProviderMetadata = getLocalProviderMetadata(provider);
   const isLocalSelfHostedProvider = !!localProviderMetadata;
   const isGooglePse = provider === "google-pse-search";
-  const isGrokWeb = provider === "grok-web";
-  const isPerplexityWeb = provider === "perplexity-web";
-  const isBlackboxWeb = provider === "blackbox-web";
-  const isMuseSparkWeb = provider === "muse-spark-web";
-  const isDeepSeekWeb = provider === "deepseek-web";
-  const isWebSessionProvider = isGrokWeb || isPerplexityWeb || isBlackboxWeb || isMuseSparkWeb;
-  const apiKeyOptional = providerAllowsOptionalApiKey(provider);
+  const webSessionCredential = getWebSessionCredentialRequirement(provider);
+  const isNoAuthWebSessionCredential = webSessionCredential?.kind === "none";
+  const isWebSessionCredential = !!webSessionCredential && webSessionCredential.kind !== "none";
+  const providerDisplayName = providerName || provider || "";
+  const apiKeyOptional =
+    providerAllowsOptionalApiKey(provider) || Boolean(isNoAuthWebSessionCredential);
   const commandCodeAuthPhaseLabel = commandCodeAuthState
     ? {
         idle: "Ready",
@@ -6878,7 +7526,7 @@ function AddApiKeyModal({
     priority: 1,
     baseUrl: defaultBaseUrl,
     cx: "",
-    region: isVertex ? defaultRegion : "",
+    region: showsRegion ? defaultRegion : "",
     apiRegion: "international",
     validationModelId: "",
     routingTags: "",
@@ -6909,49 +7557,38 @@ function AddApiKeyModal({
   const [bulkWarnings, setBulkWarnings] = useState<string[]>([]);
   const apiCredentialLabel = isQoder
     ? t("personalAccessTokenLabel")
-    : isDeepSeekWeb
-      ? "User Token"
-      : isWebSessionProvider
-        ? t("sessionCookieLabel")
-        : apiKeyOptional
-          ? `${t("apiKeyLabel")} (${t("optional").toLowerCase()})`
-          : t("apiKeyLabel");
+    : webSessionCredential
+      ? getWebSessionCredentialLabel(t, webSessionCredential, apiKeyOptional)
+      : apiKeyOptional
+        ? `${t("apiKeyLabel")} (${t("optional").toLowerCase()})`
+        : t("apiKeyLabel");
   const apiCredentialPlaceholder = isVertex
     ? t("vertexServiceAccountPlaceholder")
-    : isDeepSeekWeb
-      ? "Paste userToken value from localStorage"
-      : isGrokWeb
-        ? t("grokWebCookiePlaceholder")
-        : isPerplexityWeb
-          ? t("perplexityWebCookiePlaceholder")
-          : isBlackboxWeb
-            ? t("blackboxWebCookiePlaceholder")
-            : isMuseSparkWeb
-              ? t("museSparkWebCookiePlaceholder")
-              : isQoder
-                ? t("qoderPatPlaceholder")
-                : apiKeyOptional
-                  ? t("optional")
-                  : undefined;
+    : isWebSessionCredential
+      ? webSessionCredential.placeholder
+      : isQoder
+        ? t("qoderPatPlaceholder")
+        : apiKeyOptional
+          ? t("optional")
+          : undefined;
   const apiCredentialHint = isQoder
     ? t("qoderPatHint")
-    : isDeepSeekWeb
-      ? "Found in browser DevTools → Application → Local Storage → chat.deepseek.com → userToken"
-      : isGrokWeb
-        ? t("grokWebCookieHint")
-        : isPerplexityWeb
-          ? t("perplexityWebCookieHint")
-          : isBlackboxWeb
-            ? t("blackboxWebCookieHint")
-            : isMuseSparkWeb
-              ? t("museSparkWebCookieHint")
-              : isLocalSelfHostedProvider
-                ? t("localProviderApiKeyOptionalHint", {
-                    provider: localProviderMetadata?.name || providerName || provider || "",
-                  })
-                : apiKeyOptional
-                  ? t("apiKeyOptionalHint")
-                  : undefined;
+    : isWebSessionCredential
+      ? getWebSessionCredentialHint(t, webSessionCredential, providerDisplayName, false)
+      : isLocalSelfHostedProvider
+        ? t("localProviderApiKeyOptionalHint", {
+            provider: localProviderMetadata?.name || providerName || provider || "",
+          })
+        : apiKeyOptional
+          ? t("apiKeyOptionalHint")
+          : undefined;
+  const credentialValidationFailedMessage = isWebSessionCredential
+    ? providerText(
+        t,
+        "webSessionCredentialValidationFailed",
+        "Session credential validation failed. Sign in again, copy a fresh credential, and try again."
+      )
+    : t("apiKeyValidationFailed");
 
   const handleValidate = async () => {
     setValidating(true);
@@ -6969,6 +7606,7 @@ function AddApiKeyModal({
           validationModelId: formData.validationModelId || undefined,
           customUserAgent: formData.customUserAgent.trim() || undefined,
           baseUrl: formData.baseUrl.trim() || undefined,
+          region: showsRegion ? formData.region.trim() || defaultRegion : undefined,
           cx: formData.cx.trim() || undefined,
         }),
       });
@@ -7016,33 +7654,36 @@ function AddApiKeyModal({
         validatedBaseUrl = checked.value;
       }
 
-      let isValid = false;
+      let isValid = Boolean(isNoAuthWebSessionCredential && !credentialInput);
       let validationError: string | null = null;
-      try {
-        setValidating(true);
-        setValidationResult(null);
-        const res = await fetch("/api/providers/validate", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            provider,
-            apiKey: credentialInput,
-            validationModelId: formData.validationModelId || undefined,
-            customUserAgent: formData.customUserAgent.trim() || undefined,
-            baseUrl: formData.baseUrl.trim() || undefined,
-            cx: formData.cx.trim() || undefined,
-          }),
-        });
-        const data = await res.json();
-        isValid = !!data.valid;
-        if (!isValid && data.error) {
-          validationError = data.error;
+      if (!isValid) {
+        try {
+          setValidating(true);
+          setValidationResult(null);
+          const res = await fetch("/api/providers/validate", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              provider,
+              apiKey: credentialInput,
+              validationModelId: formData.validationModelId || undefined,
+              customUserAgent: formData.customUserAgent.trim() || undefined,
+              baseUrl: formData.baseUrl.trim() || undefined,
+              region: showsRegion ? formData.region.trim() || defaultRegion : undefined,
+              cx: formData.cx.trim() || undefined,
+            }),
+          });
+          const data = await res.json();
+          isValid = !!data.valid;
+          if (!isValid && data.error) {
+            validationError = data.error;
+          }
+          setValidationResult(isValid ? "success" : "failed");
+        } catch {
+          setValidationResult("failed");
+        } finally {
+          setValidating(false);
         }
-        setValidationResult(isValid ? "success" : "failed");
-      } catch {
-        setValidationResult("failed");
-      } finally {
-        setValidating(false);
       }
 
       if (!isValid) {
@@ -7050,7 +7691,7 @@ function AddApiKeyModal({
           // Bypass validation block for local/optional providers when no key is provided
           console.debug("Validation failed but apiKey is optional; proceeding to save.");
         } else {
-          setSaveError(validationError || t("apiKeyValidationFailed"));
+          setSaveError(validationError || credentialValidationFailedMessage);
           return;
         }
       }
@@ -7076,8 +7717,8 @@ function AddApiKeyModal({
       }
       if (usesBaseUrl) {
         providerSpecificData.baseUrl = validatedBaseUrl;
-      } else if (isVertex) {
-        providerSpecificData.region = formData.region;
+      } else if (showsRegion) {
+        providerSpecificData.region = formData.region.trim() || defaultRegion;
       } else if (isGlm) {
         providerSpecificData.apiRegion = formData.apiRegion;
       } else if (isCloudflare && formData.accountId.trim()) {
@@ -7149,7 +7790,7 @@ function AddApiKeyModal({
   return (
     <Modal
       isOpen={isOpen}
-      title={t("addProviderApiKeyTitle", { provider: providerName || provider })}
+      title={getAddCredentialModalTitle(t, providerDisplayName, webSessionCredential)}
       onClose={onClose}
     >
       <div className="flex flex-col gap-4">
@@ -7373,31 +8014,47 @@ function AddApiKeyModal({
               onChange={(e) => setFormData({ ...formData, name: e.target.value })}
               placeholder={isQoder ? t("personalAccessTokenLabel") : t("productionKey")}
             />
-            <div className="flex gap-2">
-              <Input
-                label={apiCredentialLabel}
-                type="password"
-                value={formData.apiKey}
-                onChange={(e) => setFormData({ ...formData, apiKey: e.target.value })}
-                className="flex-1"
-                placeholder={apiCredentialPlaceholder}
-                hint={apiCredentialHint}
+            {webSessionCredential && (
+              <WebSessionCredentialGuide
+                requirement={webSessionCredential}
+                providerName={providerDisplayName}
+                t={t}
               />
-              <div className="pt-6">
-                <Button
-                  onClick={handleValidate}
-                  disabled={
-                    (!isCompatible && !apiKeyOptional && !formData.apiKey) ||
-                    (isGooglePse && !formData.cx.trim()) ||
-                    validating ||
-                    saving
-                  }
-                  variant="secondary"
-                >
-                  {validating ? t("checking") : t("check")}
-                </Button>
+            )}
+            {!isNoAuthWebSessionCredential && (
+              <div className="flex gap-2">
+                <Input
+                  label={apiCredentialLabel}
+                  type="password"
+                  value={formData.apiKey}
+                  onChange={(e) => setFormData({ ...formData, apiKey: e.target.value })}
+                  className="flex-1"
+                  placeholder={apiCredentialPlaceholder}
+                  hint={apiCredentialHint}
+                  autoComplete="off"
+                  spellCheck={false}
+                  autoCapitalize="off"
+                />
+                <div className="pt-6">
+                  <Button
+                    onClick={handleValidate}
+                    disabled={
+                      (!isCompatible && !apiKeyOptional && !formData.apiKey) ||
+                      (isGooglePse && !formData.cx.trim()) ||
+                      validating ||
+                      saving
+                    }
+                    variant="secondary"
+                  >
+                    {validating
+                      ? t("checking")
+                      : webSessionCredential
+                        ? getWebSessionCredentialCheckLabel(t, webSessionCredential)
+                        : t("check")}
+                  </Button>
+                </div>
               </div>
-            </div>
+            )}
             {isGooglePse && (
               <Input
                 label={t("searchEngineIdLabel")}
@@ -7524,7 +8181,7 @@ function AddApiKeyModal({
                 hint={getProviderBaseUrlHint(provider, t)}
               />
             )}
-            {isVertex && (
+            {showsRegion && (
               <Input
                 label={t("regionLabel")}
                 value={formData.region}
@@ -7618,9 +8275,7 @@ function previewCodexJson(json: unknown): { valid: boolean; email: string | null
     // Only reject when auth_mode is explicitly set to something other than "chatgpt".
     if (
       !doc ||
-      (doc.auth_mode !== undefined &&
-        doc.auth_mode !== null &&
-        doc.auth_mode !== "chatgpt")
+      (doc.auth_mode !== undefined && doc.auth_mode !== null && doc.auth_mode !== "chatgpt")
     )
       return { valid: false, email: null };
     const tokens =
@@ -9085,7 +9740,7 @@ function EditConnectionModal({ isOpen, connection, onSave, onClose }: EditConnec
     customUserAgent: "",
     accountId: "",
     codexReasoningEffort: "medium",
-    codexFastServiceTier: false,
+    codexServiceTier: "default" as CodexServiceTier,
     codexOpenaiStoreEnabled: false,
     consoleApiKey: "",
     ccCompatibleContext1m: false,
@@ -9124,6 +9779,8 @@ function EditConnectionModal({ isOpen, connection, onSave, onClose }: EditConnec
   const usesBaseUrl = isBaseUrlConfigurableProvider(connection?.provider);
   const defaultBaseUrl = getProviderBaseUrlDefault(connection?.provider);
   const isVertex = connection?.provider === "vertex" || connection?.provider === "vertex-partner";
+  const isBedrock = connection?.provider === "bedrock";
+  const showsRegion = isVertex || isBedrock;
   const isGlm = isGlmProvider(connection?.provider);
   const isCloudflare = connection?.provider === "cloudflare-ai";
   const isCodex = connection?.provider === "codex";
@@ -9134,16 +9791,44 @@ function EditConnectionModal({ isOpen, connection, onSave, onClose }: EditConnec
   const localProviderMetadata = getLocalProviderMetadata(connection?.provider);
   const isLocalSelfHostedProvider = !!localProviderMetadata;
   const isGooglePse = connection?.provider === "google-pse-search";
-  const apiKeyOptional = providerAllowsOptionalApiKey(connection?.provider);
+  const webSessionCredential = getWebSessionCredentialRequirement(connection?.provider);
+  const isNoAuthWebSessionCredential = webSessionCredential?.kind === "none";
+  const isWebSessionCredential = !!webSessionCredential && webSessionCredential.kind !== "none";
+  const providerDisplayName =
+    (connection?.provider ? resolveDashboardProviderInfo(connection.provider)?.name : null) ||
+    connection?.provider ||
+    "";
+  const apiKeyOptional =
+    providerAllowsOptionalApiKey(connection?.provider) || Boolean(isNoAuthWebSessionCredential);
   const isCcCompatible = isClaudeCodeCompatibleProvider(connection?.provider);
-  const defaultRegion = "us-central1";
-  const apiCredentialHint = isLocalSelfHostedProvider
-    ? t("localProviderApiKeyOptionalHint", {
-        provider: localProviderMetadata?.name || connection?.provider || "",
-      })
+  const defaultRegion = isBedrock ? "eu-west-2" : "us-central1";
+  const apiCredentialLabel = webSessionCredential
+    ? getWebSessionCredentialLabel(t, webSessionCredential, apiKeyOptional)
     : apiKeyOptional
-      ? t("apiKeyOptionalHint")
-      : t("leaveBlankKeepCurrentApiKey");
+      ? t("apiKeyOptionalLabel")
+      : t("apiKeyLabel");
+  const apiCredentialPlaceholder = isWebSessionCredential
+    ? webSessionCredential.placeholder
+    : isVertex
+      ? t("vertexServiceAccountPlaceholder")
+      : t("enterNewApiKey");
+  const apiCredentialHint = isWebSessionCredential
+    ? getWebSessionCredentialHint(t, webSessionCredential, providerDisplayName, true)
+    : isLocalSelfHostedProvider
+      ? t("localProviderApiKeyOptionalHint", {
+          provider: localProviderMetadata?.name || connection?.provider || "",
+        })
+      : apiKeyOptional
+        ? t("apiKeyOptionalHint")
+        : t("leaveBlankKeepCurrentApiKey");
+  const codexAccountServiceTierOptions = useMemo(
+    () =>
+      CODEX_ACCOUNT_SERVICE_TIER_VALUES.map((value) => ({
+        value,
+        label: getCodexServiceTierLabel(t, value),
+      })),
+    [t]
+  );
 
   useEffect(() => {
     if (isOpen && connection) {
@@ -9175,7 +9860,7 @@ function EditConnectionModal({ isOpen, connection, onSave, onClose }: EditConnec
         healthCheckInterval: connection.healthCheckInterval ?? 60,
         baseUrl: existingBaseUrl || defaultBaseUrl,
         cx: existingCx,
-        region: existingRegion || (isVertex ? defaultRegion : ""),
+        region: existingRegion || (showsRegion ? defaultRegion : ""),
         apiRegion: (connection.providerSpecificData?.apiRegion as string) || "international",
         validationModelId: (connection.providerSpecificData?.validationModelId as string) || "",
         tag: (connection.providerSpecificData?.tag as string) || "",
@@ -9187,7 +9872,7 @@ function EditConnectionModal({ isOpen, connection, onSave, onClose }: EditConnec
         customUserAgent: existingCustomUserAgent,
         accountId: existingAccountId,
         codexReasoningEffort: codexRequestDefaults.reasoningEffort,
-        codexFastServiceTier: codexRequestDefaults.serviceTier === "priority",
+        codexServiceTier: codexRequestDefaults.serviceTier ?? "default",
         codexOpenaiStoreEnabled: connection.providerSpecificData?.openaiStoreEnabled === true,
         consoleApiKey: existingConsoleApiKey,
         ccCompatibleContext1m: ccRequestDefaults.context1m,
@@ -9226,7 +9911,7 @@ function EditConnectionModal({ isOpen, connection, onSave, onClose }: EditConnec
       setValidationResult(null);
       setSaveError(null);
     }
-  }, [isOpen, connection, defaultBaseUrl, isVertex]);
+  }, [isOpen, connection, defaultBaseUrl, showsRegion, defaultRegion]);
 
   const handleTest = async () => {
     if (!connection?.provider) return;
@@ -9258,7 +9943,13 @@ function EditConnectionModal({ isOpen, connection, onSave, onClose }: EditConnec
   };
 
   const handleValidate = async () => {
-    if (!connection?.provider || (!isCompatible && !apiKeyOptional && !formData.apiKey)) return;
+    if (
+      !connection?.provider ||
+      isNoAuthWebSessionCredential ||
+      (!isCompatible && !apiKeyOptional && !formData.apiKey)
+    ) {
+      return;
+    }
     setValidating(true);
     setValidationResult(null);
     try {
@@ -9271,6 +9962,7 @@ function EditConnectionModal({ isOpen, connection, onSave, onClose }: EditConnec
           validationModelId: formData.validationModelId || undefined,
           customUserAgent: formData.customUserAgent.trim() || undefined,
           baseUrl: formData.baseUrl.trim() || undefined,
+          region: showsRegion ? formData.region.trim() || defaultRegion : undefined,
           cx: formData.cx.trim() || undefined,
         }),
       });
@@ -9352,6 +10044,7 @@ function EditConnectionModal({ isOpen, connection, onSave, onClose }: EditConnec
                 validationModelId: formData.validationModelId || undefined,
                 customUserAgent: formData.customUserAgent.trim() || undefined,
                 baseUrl: formData.baseUrl.trim() || undefined,
+                region: showsRegion ? formData.region.trim() || defaultRegion : undefined,
                 cx: formData.cx.trim() || undefined,
               }),
             });
@@ -9401,8 +10094,8 @@ function EditConnectionModal({ isOpen, connection, onSave, onClose }: EditConnec
         }
         if (usesBaseUrl) {
           updates.providerSpecificData.baseUrl = validatedBaseUrl;
-        } else if (isVertex) {
-          updates.providerSpecificData.region = formData.region;
+        } else if (showsRegion) {
+          updates.providerSpecificData.region = formData.region.trim() || defaultRegion;
         } else if (isGlm) {
           updates.providerSpecificData.apiRegion = formData.apiRegion;
         } else if (isCloudflare && formData.accountId.trim()) {
@@ -9440,7 +10133,9 @@ function EditConnectionModal({ isOpen, connection, onSave, onClose }: EditConnec
         if (isCodex) {
           updates.providerSpecificData.requestDefaults = {
             reasoningEffort: formData.codexReasoningEffort,
-            ...(formData.codexFastServiceTier ? { serviceTier: "priority" } : {}),
+            ...(formData.codexServiceTier !== "default"
+              ? { serviceTier: formData.codexServiceTier }
+              : {}),
           };
           updates.providerSpecificData.openaiStoreEnabled =
             formData.codexOpenaiStoreEnabled === true;
@@ -9517,11 +10212,21 @@ function EditConnectionModal({ isOpen, connection, onSave, onClose }: EditConnec
               onChange={(e) => setFormData({ ...formData, codexReasoningEffort: e.target.value })}
               hint={t("defaultThinkingStrengthHint")}
             />
-            <Toggle
-              checked={formData.codexFastServiceTier}
-              onChange={(checked) => setFormData({ ...formData, codexFastServiceTier: checked })}
-              label={t("codexFastServiceTierLabel")}
-              description={t("codexFastServiceTierDescription")}
+            <Select
+              label={providerText(t, "codexServiceTierLabel", "Codex service tier")}
+              value={formData.codexServiceTier}
+              options={codexAccountServiceTierOptions}
+              onChange={(event) =>
+                setFormData({
+                  ...formData,
+                  codexServiceTier: event.target.value as CodexServiceTier,
+                })
+              }
+              hint={providerText(
+                t,
+                "codexServiceTierDescription",
+                "Default uses the normal Codex tier. Priority shows as Fast; Flex uses the flex service tier when available."
+              )}
             />
             <Toggle
               checked={formData.codexOpenaiStoreEnabled}
@@ -9649,31 +10354,47 @@ function EditConnectionModal({ isOpen, connection, onSave, onClose }: EditConnec
         )}
         {!isOAuth && (
           <>
-            <div className="flex gap-2">
-              <Input
-                label={apiKeyOptional ? t("apiKeyOptionalLabel") : t("apiKeyLabel")}
-                type="password"
-                value={formData.apiKey}
-                onChange={(e) => setFormData({ ...formData, apiKey: e.target.value })}
-                placeholder={isVertex ? t("vertexServiceAccountPlaceholder") : t("enterNewApiKey")}
-                hint={apiCredentialHint}
-                className="flex-1"
+            {webSessionCredential && (
+              <WebSessionCredentialGuide
+                requirement={webSessionCredential}
+                providerName={providerDisplayName}
+                t={t}
               />
-              <div className="pt-6">
-                <Button
-                  onClick={handleValidate}
-                  disabled={
-                    (!isCompatible && !apiKeyOptional && !formData.apiKey) ||
-                    (isGooglePse && !formData.cx.trim()) ||
-                    validating ||
-                    saving
-                  }
-                  variant="secondary"
-                >
-                  {validating ? t("checking") : t("check")}
-                </Button>
+            )}
+            {!isNoAuthWebSessionCredential && (
+              <div className="flex gap-2">
+                <Input
+                  label={apiCredentialLabel}
+                  type="password"
+                  value={formData.apiKey}
+                  onChange={(e) => setFormData({ ...formData, apiKey: e.target.value })}
+                  placeholder={apiCredentialPlaceholder}
+                  hint={apiCredentialHint}
+                  className="flex-1"
+                  autoComplete="off"
+                  spellCheck={false}
+                  autoCapitalize="off"
+                />
+                <div className="pt-6">
+                  <Button
+                    onClick={handleValidate}
+                    disabled={
+                      (!isCompatible && !apiKeyOptional && !formData.apiKey) ||
+                      (isGooglePse && !formData.cx.trim()) ||
+                      validating ||
+                      saving
+                    }
+                    variant="secondary"
+                  >
+                    {validating
+                      ? t("checking")
+                      : webSessionCredential
+                        ? getWebSessionCredentialCheckLabel(t, webSessionCredential)
+                        : t("check")}
+                  </Button>
+                </div>
               </div>
-            </div>
+            )}
             {isGooglePse && (
               <Input
                 label={t("searchEngineIdLabel")}
@@ -9754,7 +10475,7 @@ function EditConnectionModal({ isOpen, connection, onSave, onClose }: EditConnec
           />
         )}
 
-        {isVertex && (
+        {showsRegion && (
           <Input
             label={t("regionLabel")}
             value={formData.region}

@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { requireManagementAuth } from "@/lib/api/requireManagementAuth";
 import { getSuite } from "@/lib/evals/evalRunner";
+import { sanitizeErrorMessage } from "@omniroute/open-sse/utils/error";
 
 export async function GET(request: Request, { params }: { params: Promise<{ suiteId: string }> }) {
   const authError = await requireManagementAuth(request);
@@ -14,6 +15,6 @@ export async function GET(request: Request, { params }: { params: Promise<{ suit
     }
     return NextResponse.json(suite);
   } catch (error) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    return NextResponse.json({ error: sanitizeErrorMessage(error) }, { status: 500 });
   }
 }

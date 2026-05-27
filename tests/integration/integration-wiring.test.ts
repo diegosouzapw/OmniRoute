@@ -211,8 +211,8 @@ describe("API Routes — export HTTP methods", () => {
 });
 
 describe("API Routes — dashboard and tool consumers", () => {
-  it.skip("keeps model-combo mapping APIs wired through routing settings", () => {
-    const settingsPage = readProjectFile("src/app/(dashboard)/dashboard/settings/page.tsx");
+  it("keeps model-combo mapping APIs wired through routing settings", () => {
+    const settingsPage = readProjectFile("src/app/(dashboard)/dashboard/settings/routing/page.tsx");
     const modelRoutingSection = readProjectFile("src/shared/components/ModelRoutingSection.tsx");
 
     assert.ok(settingsPage, "settings page should exist");
@@ -238,6 +238,7 @@ describe("API Routes — dashboard and tool consumers", () => {
     assert.ok(consoleLogger, "ConsoleLogViewer should exist");
     assert.ok(activeRequests, "ActiveRequestsPanel should exist");
     assert.match(logsPage, /RequestLoggerV2/);
+    assert.match(logsPage, /EmailPrivacyToggle/);
     assert.match(logsPage, /ProxyLogger/);
     assert.match(logsPage, /ConsoleLogViewer/);
     assert.match(logsPage, /ActiveRequestsPanel/);
@@ -245,9 +246,14 @@ describe("API Routes — dashboard and tool consumers", () => {
     assert.match(logsPage, /\/api\/logs\/export/);
     assert.match(requestLogger, /\/api\/usage\/call-logs/);
     assert.match(requestLogger, /\/api\/logs\/detail/);
+    assert.match(requestLogger, /useEmailPrivacyStore/);
+    assert.match(requestLogger, /maskAccount\(log\.account, emailsVisible\)/);
+    assert.match(requestLogger, /emailsVisible=\{emailsVisible\}/);
     assert.match(proxyLogger, /\/api\/usage\/proxy-logs/);
     assert.match(consoleLogger, /\/api\/logs\/console/);
     assert.match(activeRequests, /\/api\/logs\/active/);
+    assert.match(activeRequests, /useEmailPrivacyStore/);
+    assert.match(activeRequests, /maskAccount\(row\.account, emailsVisible\)/);
     assertRouteMethods("src/app/api/logs/active/route.ts", ["GET"]);
     assertRouteMethods("src/app/api/logs/console/route.ts", ["GET"]);
     assertRouteMethods("src/app/api/logs/detail/route.ts", ["GET", "POST"]);
@@ -339,7 +345,9 @@ describe("API Routes — T09 /v1 catalog consistency", () => {
 });
 
 describe("Dashboard Wiring — T05 payload rules", () => {
-  const settingsPageSrc = readProjectFile("src/app/(dashboard)/dashboard/settings/page.tsx");
+  const settingsPageSrc = readProjectFile(
+    "src/app/(dashboard)/dashboard/settings/advanced/page.tsx"
+  );
   const payloadRulesTabSrc = readProjectFile(
     "src/app/(dashboard)/dashboard/settings/components/PayloadRulesTab.tsx"
   );
@@ -347,8 +355,10 @@ describe("Dashboard Wiring — T05 payload rules", () => {
 
   it.skip("settings page should surface payload rules inside advanced settings", () => {
     assert.ok(settingsPageSrc, "settings page source should exist");
-    assert.match(settingsPageSrc, /import PayloadRulesTab from "\.\/components\/PayloadRulesTab"/);
-    assert.match(settingsPageSrc, /activeTab === "advanced"/);
+    assert.match(
+      settingsPageSrc,
+      /import PayloadRulesTab from "\.\.\/components\/PayloadRulesTab"/
+    );
     assert.match(settingsPageSrc, /<PayloadRulesTab\s*\/>/);
   });
 
@@ -439,13 +449,13 @@ describe("Page Integration — logs page wiring", () => {
 });
 
 describe("Page Integration — settings page wiring", () => {
-  const src = readProjectFile("src/app/(dashboard)/dashboard/settings/page.tsx");
+  const src = readProjectFile("src/app/(dashboard)/dashboard/settings/resilience/page.tsx");
   const memorySkillsTab = readProjectFile(
     "src/app/(dashboard)/dashboard/settings/components/MemorySkillsTab.tsx"
   );
 
-  it.skip("should include resilience tab in advanced settings", () => {
-    assert.ok(src, "src/app/(dashboard)/dashboard/settings/page.tsx should exist");
+  it("should include resilience tab in advanced settings", () => {
+    assert.ok(src, "src/app/(dashboard)/dashboard/settings/resilience/page.tsx should exist");
     assert.match(src, /ResilienceTab/);
   });
 
@@ -461,6 +471,23 @@ describe("Page Integration — cache page wiring", () => {
   it("should consolidate prompt cache metrics directly into cache management", () => {
     assert.ok(src, "src/app/(dashboard)/dashboard/cache/page.tsx should exist");
     assert.doesNotMatch(src, /CacheStatsCard/);
+  });
+});
+
+describe("Page Integration — cost explorer wiring", () => {
+  const costsPage = readProjectFile("src/app/(dashboard)/dashboard/costs/CostOverviewTab.tsx");
+  const costExplorerUtils = readProjectFile(
+    "src/app/(dashboard)/dashboard/costs/costExplorerUtils.ts"
+  );
+
+  it("should expose an interactive grouped Cost Explorer on the costs dashboard", () => {
+    assert.ok(costsPage, "CostOverviewTab should exist");
+    assert.ok(costExplorerUtils, "costExplorerUtils should exist");
+    assert.match(costsPage, /CostExplorerCard/);
+    assert.match(costsPage, /EXPLORER_GROUP_OPTIONS/);
+    assert.match(costsPage, /byServiceTier/);
+    assert.match(costExplorerUtils, /buildCostExplorerRows/);
+    assert.match(costExplorerUtils, /serviceTier/);
   });
 });
 

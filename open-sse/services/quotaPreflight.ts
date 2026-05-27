@@ -79,6 +79,7 @@ export function getAllProviderQuotaWindows(): Record<string, readonly string[]> 
 // 20% remaining (= 80% used) by default.
 const DEFAULT_MIN_REMAINING_PERCENT = 2;
 const DEFAULT_WARN_REMAINING_PERCENT = 20;
+const REMAINING_PERCENT_EPSILON = 1e-9;
 
 const quotaFetcherRegistry = new Map<string, QuotaFetcher>();
 
@@ -132,6 +133,13 @@ function remainingPercentFrom(percentUsed: number): number {
   return Math.max(0, (1 - percentUsed) * 100);
 }
 
+function isRemainingAtOrBelowThreshold(
+  remainingPercent: number,
+  thresholdPercent: number
+): boolean {
+  return remainingPercent <= thresholdPercent + REMAINING_PERCENT_EPSILON;
+}
+
 export async function preflightQuota(
   provider: string,
   connectionId: string,
@@ -176,7 +184,7 @@ export async function preflightQuota(
       );
       const remainingPercent = remainingPercentFrom(windowInfo.percentUsed);
 
-      if (remainingPercent <= minRemainingPercent) {
+      if (isRemainingAtOrBelowThreshold(remainingPercent, minRemainingPercent)) {
         // Track the most-depleted blocking window so the response can name it.
         if (windowInfo.percentUsed > worstUsedPercent) {
           worstUsedPercent = windowInfo.percentUsed;
@@ -186,7 +194,7 @@ export async function preflightQuota(
           worstWindow = windowName;
           worstResetAt = windowInfo.resetAt ?? null;
         }
-      } else if (remainingPercent <= warnRemainingPercent) {
+      } else if (isRemainingAtOrBelowThreshold(remainingPercent, warnRemainingPercent)) {
         console.warn(
           `[QuotaPreflight] ${provider}/${connectionId} ${windowName}: ${remainingPercent.toFixed(1)}% remaining — approaching cutoff`
         );
@@ -224,7 +232,7 @@ export async function preflightQuota(
   const { percentUsed } = quota;
   const remainingPercent = remainingPercentFrom(percentUsed);
 
-  if (remainingPercent <= minRemainingPercent) {
+  if (isRemainingAtOrBelowThreshold(remainingPercent, minRemainingPercent)) {
     console.info(
       `[QuotaPreflight] ${provider}/${connectionId}: ${remainingPercent.toFixed(1)}% remaining — switching (cutoff ${minRemainingPercent}%)`
     );
@@ -236,7 +244,7 @@ export async function preflightQuota(
     };
   }
 
-  if (remainingPercent <= warnRemainingPercent) {
+  if (isRemainingAtOrBelowThreshold(remainingPercent, warnRemainingPercent)) {
     console.warn(
       `[QuotaPreflight] ${provider}/${connectionId}: ${remainingPercent.toFixed(1)}% remaining — approaching cutoff`
     );

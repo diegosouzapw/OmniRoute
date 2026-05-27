@@ -21,6 +21,7 @@ const ROOT = process.cwd();
 const MESSAGES_DIR = path.join(ROOT, "src", "i18n", "messages");
 const DOCS_DIR = path.join(ROOT, "docs");
 const DOCS_I18N_DIR = path.join(DOCS_DIR, "i18n");
+const PLACEHOLDER_PREFIX = "__MISSING__:";
 
 const DOC_SOURCE_FILES = [
   "API_REFERENCE.md",
@@ -187,6 +188,15 @@ const LOCALE_SPECS = [
     docsName: "Български",
   },
   {
+    code: "bn",
+    googleTl: "bn",
+    label: "BN",
+    flag: "🇧🇩",
+    languageName: "বাংলা",
+    readmeName: "বাংলা",
+    docsName: "বাংলা",
+  },
+  {
     code: "da",
     googleTl: "da",
     label: "DA",
@@ -203,6 +213,24 @@ const LOCALE_SPECS = [
     languageName: "Suomi",
     readmeName: "Suomi",
     docsName: "Suomi",
+  },
+  {
+    code: "fa",
+    googleTl: "fa",
+    label: "FA",
+    flag: "🇮🇷",
+    languageName: "فارسی",
+    readmeName: "فارسی",
+    docsName: "فارسی",
+  },
+  {
+    code: "gu",
+    googleTl: "gu",
+    label: "GU",
+    flag: "🇮🇳",
+    languageName: "ગુજરાતી",
+    readmeName: "ગુજરાતી",
+    docsName: "ગુજરાતી",
   },
   {
     code: "he",
@@ -232,6 +260,15 @@ const LOCALE_SPECS = [
     docsName: "Bahasa Indonesia",
   },
   {
+    code: "in",
+    googleTl: "id",
+    label: "IN",
+    flag: "🇮🇩",
+    languageName: "Bahasa Indonesia (Alt)",
+    readmeName: "Bahasa Indonesia (Alt)",
+    docsName: "Bahasa Indonesia (Alt)",
+  },
+  {
     code: "ko",
     googleTl: "ko",
     label: "KO",
@@ -248,6 +285,15 @@ const LOCALE_SPECS = [
     languageName: "Bahasa Melayu",
     readmeName: "Bahasa Melayu",
     docsName: "Bahasa Melayu",
+  },
+  {
+    code: "mr",
+    googleTl: "mr",
+    label: "MR",
+    flag: "🇮🇳",
+    languageName: "मराठी",
+    readmeName: "मराठी",
+    docsName: "मराठी",
   },
   {
     code: "nl",
@@ -313,6 +359,33 @@ const LOCALE_SPECS = [
     docsName: "Svenska",
   },
   {
+    code: "sw",
+    googleTl: "sw",
+    label: "SW",
+    flag: "🇰🇪",
+    languageName: "Kiswahili",
+    readmeName: "Kiswahili",
+    docsName: "Kiswahili",
+  },
+  {
+    code: "ta",
+    googleTl: "ta",
+    label: "TA",
+    flag: "🇮🇳",
+    languageName: "தமிழ்",
+    readmeName: "தமிழ்",
+    docsName: "தமிழ்",
+  },
+  {
+    code: "te",
+    googleTl: "te",
+    label: "TE",
+    flag: "🇮🇳",
+    languageName: "తెలుగు",
+    readmeName: "తెలుగు",
+    docsName: "తెలుగు",
+  },
+  {
     code: "phi",
     googleTl: "tl",
     label: "PHI",
@@ -330,16 +403,40 @@ const LOCALE_SPECS = [
     readmeName: "Čeština",
     docsName: "Čeština",
   },
+  {
+    code: "ur",
+    googleTl: "ur",
+    label: "UR",
+    flag: "🇵🇰",
+    languageName: "اردو",
+    readmeName: "اردو",
+    docsName: "اردو",
+  },
 ];
 
 const EXISTING_README_CODES = new Set(["pt-BR", "es", "fr", "it", "ru", "zh-CN", "de"]);
-const RTL_LOCALES = new Set(["ar", "he"]);
+const RTL_LOCALES = new Set(["ar", "fa", "he", "ur"]);
 
 const URL_MAX_TEXT_LENGTH = 1800;
 const DELIMITER = "\n__OMNIROUTE_I18N_SEPARATOR__\n";
 const DELIMITER_REGEX = /\n\s*__OMNIROUTE_I18N_SEPARATOR__\s*\n/g;
 const TRANSLATION_CACHE = new Map();
 const REQUEST_TIMEOUT_MS = 20000;
+
+function parseMessageCoverageThreshold(args) {
+  const raw = [...args]
+    .find((arg) => arg.startsWith("--min-ui-coverage=") || arg.startsWith("--coverage-threshold="))
+    ?.split("=")[1];
+  if (raw === undefined) {
+    return null;
+  }
+
+  const threshold = Number(raw);
+  if (!Number.isFinite(threshold) || threshold < 0 || threshold > 100) {
+    throw new Error(`Invalid message coverage threshold: ${raw}`);
+  }
+  return threshold;
+}
 
 function getReadmeFileName(code) {
   return code === "en" ? "README.md" : `README.${code}.md`;
@@ -758,6 +855,8 @@ async function translateMarkdownDocument(content, targetLanguage) {
 }
 
 async function generateMessageTranslations() {
+  const args = new Set(process.argv.slice(2));
+  const coverageThreshold = parseMessageCoverageThreshold(args);
   const enPath = path.join(MESSAGES_DIR, "en.json");
   const sourceRaw = await fs.readFile(enPath, "utf8");
   const sourceJson = JSON.parse(sourceRaw);
@@ -786,20 +885,37 @@ async function generateMessageTranslations() {
         if (current === undefined || current === null) return true;
         current = current[token];
       }
-      return current === undefined || current === null || current === "";
+      return (
+        current === undefined ||
+        current === null ||
+        current === "" ||
+        (typeof current === "string" && current.startsWith(PLACEHOLDER_PREFIX))
+      );
     });
 
-    if (missingLeaves.length === 0) {
+    const leavesToTranslate = coverageThreshold
+      ? missingLeaves.slice(
+          0,
+          Math.max(
+            0,
+            Math.ceil((leaves.length * coverageThreshold) / 100) -
+              (leaves.length - missingLeaves.length)
+          )
+        )
+      : missingLeaves;
+
+    if (leavesToTranslate.length === 0) {
       console.log(`[messages] ${spec.code} is up-to-date.`);
       continue;
     }
 
-    console.log(`[messages] Translating ${missingLeaves.length} missing keys for ${spec.code}...`);
-    const sourceValues = missingLeaves.map((entry) => entry.value);
+    const scope = coverageThreshold ? `to reach ${coverageThreshold}% UI coverage` : "missing keys";
+    console.log(`[messages] Translating ${leavesToTranslate.length} ${scope} for ${spec.code}...`);
+    const sourceValues = leavesToTranslate.map((entry) => entry.value);
     const translatedValues = await translateStrings(sourceValues, spec.googleTl);
 
     translatedValues.forEach((value, index) => {
-      setByPath(targetJson, missingLeaves[index].path, value);
+      setByPath(targetJson, leavesToTranslate[index].path, value);
     });
 
     await fs.writeFile(targetPath, `${JSON.stringify(targetJson, null, 2)}\n`, "utf8");

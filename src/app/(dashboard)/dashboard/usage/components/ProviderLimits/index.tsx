@@ -6,6 +6,7 @@ import { useState, useEffect, useCallback, useMemo, useRef } from "react";
 import {
   parseQuotaData,
   formatQuotaLabel,
+  formatCountdown,
   normalizePlanTier,
   resolvePlanValue,
   calculatePercentage,
@@ -17,12 +18,9 @@ import { pickDisplayValue } from "@/shared/utils/maskEmail";
 import useEmailPrivacyStore from "@/store/emailPrivacyStore";
 import EmailPrivacyToggle from "@/shared/components/EmailPrivacyToggle";
 import QuotaCutoffModal from "./QuotaCutoffModal";
-import ProviderGroup, { buildGridTemplate } from "./ProviderGroup";
-import AccountRow from "./AccountRow";
-import { getProviderColumns, groupConnectionsByProvider } from "./providerColumns";
+import QuotaCardGrid from "./QuotaCardGrid";
 import { translateUsageOrFallback, type UsageTranslationValues } from "./i18nFallback";
 
-const LS_EXPANDED_ROWS = "omniroute:limits:expandedRows";
 const LS_PURCHASE_FILTER = "omniroute:limits:purchaseFilter";
 const LS_STATUS_FILTER = "omniroute:limits:statusFilter";
 const LS_ENV_FILTER = "omniroute:limits:envFilter";
@@ -123,6 +121,25 @@ function getSoonestResetMs(quotas: any[] | undefined): number {
   return soonest;
 }
 
+const getQuotaBarWidthClass = (pct: number) => {
+  if (pct <= 10) return "w-[10%]";
+  if (pct <= 20) return "w-1/5";
+  if (pct <= 30) return "w-[30%]";
+  if (pct <= 40) return "w-2/5";
+  if (pct <= 50) return "w-1/2";
+  if (pct <= 60) return "w-3/5";
+  if (pct <= 70) return "w-[70%]";
+  if (pct <= 80) return "w-4/5";
+  if (pct <= 90) return "w-[90%]";
+  return "w-full";
+};
+
+const getQuotaToneClasses = (pct: number) => {
+  if (pct <= QUOTA_BAR_YELLOW_THRESHOLD) return "bg-red-500 text-red-500";
+  if (pct <= QUOTA_BAR_GREEN_THRESHOLD) return "bg-yellow-500 text-yellow-500";
+  return "bg-green-500 text-green-500";
+};
+
 const STATUS_TONE: Record<
   StatusKey,
   { bar: string; text: string; bg: string; ring: string; dot: string }
@@ -192,16 +209,6 @@ export default function ProviderLimits() {
   const [initialLoading, setInitialLoading] = useState(true);
   const [tierFilter, setTierFilter] = useState("all");
 
-  const [expandedRows, setExpandedRows] = useState<Set<string>>(() => {
-    if (typeof window === "undefined") return new Set();
-    try {
-      const saved = localStorage.getItem(LS_EXPANDED_ROWS);
-      return saved ? new Set(JSON.parse(saved)) : new Set();
-    } catch {
-      return new Set();
-    }
-  });
-
   const [purchaseTypeFilter, setPurchaseTypeFilter] = useState<PurchaseTypeKey>(() => {
     if (typeof window === "undefined") return "all";
     const saved = localStorage.getItem(LS_PURCHASE_FILTER) as PurchaseTypeKey | null;
@@ -218,9 +225,6 @@ export default function ProviderLimits() {
     if (typeof window === "undefined") return "all";
     return localStorage.getItem(LS_ENV_FILTER) || "all";
   });
-
-  // Per-group bulk-refresh state; one spinner per provider key.
-  const [refreshingGroups, setRefreshingGroups] = useState<Set<string>>(new Set());
 
   const lastFetchTimeRef = useRef<Record<string, number>>({});
   const staleProbeRef = useRef<Record<string, number>>({});
@@ -418,31 +422,6 @@ export default function ProviderLimits() {
     }
   }, [applyCachedQuotaState, fetchConnections]);
 
-  // Bulk refresh all accounts inside one provider group. The per-account
-  // loading indicator is updated by each fetchQuota call; the group spinner
-  // is just a wrapper that flips while the Promise.all is in flight.
-  const refreshProviderGroup = useCallback(
-    async (providerKey: string, accountIds: string[]) => {
-      setRefreshingGroups((prev) => {
-        if (prev.has(providerKey)) return prev;
-        const next = new Set(prev);
-        next.add(providerKey);
-        return next;
-      });
-      try {
-        await Promise.all(accountIds.map((id) => fetchQuota(id, providerKey, { force: true })));
-      } finally {
-        setRefreshingGroups((prev) => {
-          if (!prev.has(providerKey)) return prev;
-          const next = new Set(prev);
-          next.delete(providerKey);
-          return next;
-        });
-      }
-    },
-    [fetchQuota]
-  );
-
   useEffect(() => {
     const init = async () => {
       setInitialLoading(true);
@@ -621,30 +600,6 @@ export default function ProviderLimits() {
     quotaData,
   ]);
 
-  // Group visible connections by provider, then resort group keys by
-  // PROVIDER_ORDER so the section sequence on the page is stable.
-  const providerGroups = useMemo(() => {
-    const groups = groupConnectionsByProvider(visibleConnections);
-    return new Map(
-      [...groups.entries()].sort(
-        ([a], [b]) => (PROVIDER_ORDER[a] || 99) - (PROVIDER_ORDER[b] || 99)
-      )
-    );
-  }, [visibleConnections]);
-
-  const toggleRow = useCallback((connectionId: string) => {
-    setExpandedRows((prev) => {
-      const next = new Set(prev);
-      next.has(connectionId) ? next.delete(connectionId) : next.add(connectionId);
-      try {
-        localStorage.setItem(LS_EXPANDED_ROWS, JSON.stringify([...next]));
-      } catch {
-        /* localStorage may be unavailable; persistence is best-effort */
-      }
-      return next;
-    });
-  }, []);
-
   const handleSetPurchaseFilter = useCallback((value: PurchaseTypeKey) => {
     setPurchaseTypeFilter(value);
     try {
@@ -671,6 +626,40 @@ export default function ProviderLimits() {
       /* ignore */
     }
   }, []);
+
+  const renderInlineQuotaSummary = (quotas: any[]) => {
+    if (!quotas || quotas.length === 0) return null;
+    return (
+      <div className="mt-1 flex flex-wrap items-center gap-1.5 text-[10px] text-text-muted">
+        {quotas.slice(0, 3).map((q, index) => {
+          const pct = q.unlimited
+            ? 100
+            : Math.round(q.remainingPercentage ?? calculatePercentage(q.used, q.total));
+          const cd = formatCountdown(q.resetAt);
+          const tone = getQuotaToneClasses(pct);
+          return (
+            <span
+              key={`${q.name || "quota"}-${q.modelKey || ""}-${index}`}
+              className="inline-flex items-center gap-1"
+              title={q.displayName || formatQuotaLabel(q.name)}
+            >
+              <span className={`tabular-nums ${tone.split(" ")[1]}`}>
+                {q.unlimited ? "∞" : `${pct}%`}
+              </span>
+              {!q.unlimited && (
+                <span className="h-1 w-14 rounded-sm bg-border/60 overflow-hidden">
+                  <span
+                    className={`block h-full ${tone.split(" ")[0]} ${getQuotaBarWidthClass(pct)}`}
+                  />
+                </span>
+              )}
+              {cd ? <span>{`⏱ ${cd}`}</span> : null}
+            </span>
+          );
+        })}
+      </div>
+    );
+  };
 
   if (initialLoading) {
     return (
@@ -872,75 +861,24 @@ export default function ProviderLimits() {
           </div>
         )}
 
-        {[...providerGroups.entries()].map(([providerKey, conns]) => {
-          // The group schema reflects the union of quotas across accounts so
-          // an account that only has a session still lines up under the
-          // session column even when its siblings also have weekly. We then
-          // resolve per-row schemas using the same column *keys* so missing
-          // windows render as em-dash cells.
-          const allQuotas = conns.flatMap((c) => quotaData[c.id]?.quotas || []);
-          const groupSchema = getProviderColumns(providerKey, allQuotas);
-          const grid = buildGridTemplate(groupSchema.columns.length);
-          const accountIds = conns.map((c) => c.id);
-          const worstGroupStatus = aggregateWorst(
-            conns.map((c) => statusByConnection[c.id] || "empty")
-          );
-
-          return (
-            <ProviderGroup
-              key={providerKey}
-              providerKey={providerKey}
-              providerLabel={PROVIDER_LABEL[providerKey] || providerKey}
-              accountCount={conns.length}
-              worstStatus={worstGroupStatus}
-              columns={groupSchema.columns}
-              overflowMax={groupSchema.overflowCount}
-              isRefreshing={refreshingGroups.has(providerKey)}
-              onRefreshGroup={() => refreshProviderGroup(providerKey, accountIds)}
-            >
-              {conns.map((conn, idx) => {
-                const rowQuotas = quotaData[conn.id]?.quotas || [];
-                const rowSchema = getProviderColumns(providerKey, rowQuotas);
-                // Align each row's column array with the group header by key.
-                // Missing windows on a row → null-quota cell; this keeps the
-                // grid columns aligned even when accounts diverge.
-                const rowColumns = groupSchema.columns.map((groupCol) => {
-                  const match = rowSchema.columns.find((c) => c.key === groupCol.key);
-                  return match || { ...groupCol, quota: null };
-                });
-                return (
-                  <AccountRow
-                    key={conn.id}
-                    connection={conn}
-                    quota={quotaData[conn.id]}
-                    loading={!!loading[conn.id]}
-                    error={errors[conn.id] || null}
-                    refreshedAt={lastRefreshedAt[conn.id]}
-                    tierMeta={tierByConnection[conn.id] || normalizePlanTier(null)}
-                    resolvedPlan={resolvedPlanByConnection[conn.id]}
-                    status={statusByConnection[conn.id] || "empty"}
-                    statusTone={STATUS_TONE[statusByConnection[conn.id] || "empty"]}
-                    columns={rowColumns}
-                    overflowCount={rowSchema.overflowCount}
-                    isExpanded={expandedRows.has(conn.id)}
-                    emailsVisible={emailsVisible}
-                    gridTemplateColumns={grid}
-                    onToggle={() => toggleRow(conn.id)}
-                    onRefresh={() => refreshProvider(conn.id, conn.provider)}
-                    onOpenCutoff={() => {
-                      const windows = (quotaData[conn.id]?.quotas || []).filter(
-                        (q: any) => q && typeof q.name === "string" && !q.isCredits
-                      );
-                      setCutoffModalWindows(windows);
-                      setCutoffModalConn(conn);
-                    }}
-                    isLast={idx === conns.length - 1}
-                  />
-                );
-              })}
-            </ProviderGroup>
-          );
-        })}
+        <QuotaCardGrid
+          connections={visibleConnections}
+          quotaData={quotaData}
+          loading={loading}
+          errors={errors}
+          lastRefreshedAt={lastRefreshedAt}
+          emailsVisible={emailsVisible}
+          providerLabels={PROVIDER_LABEL}
+          renderInlineQuotaSummary={(quota) => renderInlineQuotaSummary(quota.quotas)}
+          onRefresh={refreshProvider}
+          onOpenCutoff={(conn) => {
+            const windows = (quotaData[conn.id]?.quotas || []).filter(
+              (q: any) => q && typeof q.name === "string" && !q.isCredits
+            );
+            setCutoffModalWindows(windows);
+            setCutoffModalConn(conn);
+          }}
+        />
       </div>
 
       {cutoffModalConn && (

@@ -10,6 +10,66 @@
 import { generatePKCE, generateState } from "./utils/pkce";
 import { PROVIDERS } from "./providers/index";
 
+const GOOGLE_BROWSER_PROVIDERS = new Set(["antigravity", "gemini-cli"]);
+
+function normalizeBaseUrl(value) {
+  const trimmed = typeof value === "string" ? value.trim() : "";
+  if (!trimmed) return "";
+  return trimmed.replace(/\/+$/, "");
+}
+
+function hasCustomGoogleOAuthCredentials(providerName, env = process.env) {
+  if (providerName === "antigravity") {
+    return !!env.ANTIGRAVITY_OAUTH_CLIENT_ID?.trim();
+  }
+
+  if (providerName === "gemini-cli") {
+    return !!env.GEMINI_CLI_OAUTH_CLIENT_ID?.trim() || !!env.GEMINI_OAUTH_CLIENT_ID?.trim();
+  }
+
+  return false;
+}
+
+/**
+ * Google providers default to localhost redirects so the embedded public
+ * credentials keep working on out-of-the-box local installs. When operators
+ * provide their own Google OAuth client IDs for a remote deployment, prefer the
+ * public callback URL documented in .env.example / docs/README so the popup can
+ * navigate back to OmniRoute instead of stalling on localhost.
+ */
+export function resolveBrowserOAuthRedirectUri(
+  providerName,
+  redirectUri,
+  env = process.env
+) {
+  if (!GOOGLE_BROWSER_PROVIDERS.has(providerName)) {
+    return redirectUri;
+  }
+
+  if (!hasCustomGoogleOAuthCredentials(providerName, env)) {
+    return redirectUri;
+  }
+
+  const publicBaseUrl =
+    normalizeBaseUrl(env.NEXT_PUBLIC_BASE_URL) || normalizeBaseUrl(env.OMNIROUTE_PUBLIC_BASE_URL);
+
+  if (!publicBaseUrl) {
+    return redirectUri;
+  }
+
+  try {
+    const requested = new URL(redirectUri);
+    const isLocalhostRedirect = /^(localhost|127\.0\.0\.1)$/i.test(requested.hostname);
+    if (!isLocalhostRedirect) {
+      return redirectUri;
+    }
+  } catch {
+    return redirectUri;
+  }
+
+  return `${publicBaseUrl}/callback`;
+}
+
 /**
  * Get provider handler
  */

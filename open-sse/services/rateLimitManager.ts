@@ -51,6 +51,22 @@ function toNumber(value: unknown, fallback = 0): number {
   return Number.isFinite(parsed) ? parsed : fallback;
 }
 
+function isNodeTestRunnerChild(): boolean {
+  return typeof process.env.NODE_TEST_CONTEXT === "string";
+}
+
+function logRateLimit(...args: unknown[]): void {
+  if (!isNodeTestRunnerChild()) console.log(...args);
+}
+
+function warnRateLimit(...args: unknown[]): void {
+  if (!isNodeTestRunnerChild()) console.warn(...args);
+}
+
+function errorRateLimit(...args: unknown[]): void {
+  if (!isNodeTestRunnerChild()) console.error(...args);
+}
+
 // Store limiters keyed by "provider:connectionId" (and optionally ":model")
 const limiters = new Map<string, Bottleneck>();
 
@@ -187,7 +203,7 @@ function watchdogTick() {
     const stalledMs = now - lastDispatch;
     if (stalledMs < WEDGE_THRESHOLD_MS) continue;
 
-    console.warn(
+    warnRateLimit(
       `🚨 [RATE-LIMIT] WEDGED: ${key} queued=${counts.QUEUED} running=0 executing=0 stalled=${stalledMs}ms — force-resetting`
     );
     limiters.delete(key);
@@ -247,9 +263,18 @@ function shutdownLimiters(): void {
 
 function trackAsyncOperation<T>(promise: Promise<T>): Promise<T> {
   pendingAsyncOperations.add(promise);
-  promise.finally(() => {
-    pendingAsyncOperations.delete(promise);
-  });
+  // Do not use a fire-and-forget `.finally()` here: it creates a derived
+  // Promise that mirrors rejections from `promise`. When the caller intentionally
+  // tracks a background cleanup without awaiting it, that derived Promise can be
+  // reported as an unhandled rejection during Node's test-runner IPC teardown.
+  void promise.then(
+    () => {
+      pendingAsyncOperations.delete(promise);
+    },
+    () => {
+      pendingAsyncOperations.delete(promise);
+    }
+  );
   return promise;
 }
 
@@ -273,7 +298,7 @@ export async function initializeRateLimits() {
     updateAllLimiterSettings();
 
     if (explicitCount > 0 || autoCount > 0) {
-      console.log(
+      logRateLimit(
         `🛡️ [RATE-LIMIT] Loaded ${explicitCount} explicit + ${autoCount} auto-enabled protection(s)`
       );
     }
@@ -285,7 +310,7 @@ export async function initializeRateLimits() {
     // actually wedged.
     startRateLimitWatchdog();
   } catch (err) {
-    console.error("[RATE-LIMIT] Failed to load settings:", err.message);
+    errorRateLimit("[RATE-LIMIT] Failed to load settings:", err.message);
   }
 }
 
@@ -361,7 +386,7 @@ function getLimiter(provider, connectionId, model = null) {
     limiter.on("queued", () => {
       const counts = limiter.counts();
       if (counts.QUEUED > 0) {
-        console.log(
+        logRateLimit(
           `⏳ [RATE-LIMIT] ${key} — ${counts.QUEUED} request(s) queued, ${counts.RUNNING} running`
         );
       }
@@ -444,7 +469,7 @@ export async function withRateLimit(provider, connectionId, model, fn, signal = 
     // Surface as a clear rate-limit timeout so callers can fallback.
     if (err?.message?.includes("This job timed out")) {
       const key = getLimiterKey(provider, connectionId, model);
-      console.log(
+      logRateLimit(
         `⏰ [RATE-LIMIT] ${key} — job expired after ${Math.ceil((maxWaitMs || 0) / 1000)}s in queue, dropping`
       );
     }
@@ -519,6 +544,34 @@ function parseResetTime(value) {
   return null;
 }
 
+function toPlainHeaders(headers: unknown): Record<string, string> {
+  if (!headers) return {};
+  const plain: Record<string, string> = {};
+  const obj = headers as Record<string, unknown>;
+  if (typeof obj.forEach === "function") {
+    try {
+      (obj.forEach as (cb: (v: string, k: string) => void) => void)((v: string, k: string) => {
+        plain[k.toLowerCase()] = v;
+      });
+      return plain;
+    } catch {}
+  }
+  if (typeof obj.entries === "function") {
+    try {
+      for (const [k, v] of (obj.entries as () => Iterable<[string, string]>)()) {
+        plain[k.toLowerCase()] = v;
+      }
+      return plain;
+    } catch {}
+  }
+  try {
+    for (const [k, v] of Object.entries(obj)) {
+      plain[k.toLowerCase()] = v == null ? "" : String(v);
+    }
+  } catch {}
+  return plain;
+}
+
 /**
  * Update rate limiter based on API response headers.
  * Called after every successful or failed response from a provider.
@@ -533,14 +586,14 @@ export function updateFromHeaders(provider, connectionId, headers, status, model
   if (!enabledConnections.has(connectionId)) return;
   if (!headers) return;
 
+  const plainHeaders = toPlainHeaders(headers);
   const limiter = getLimiter(provider, connectionId, model);
   const headerMap =
     provider === "claude" || provider === "anthropic" ? ANTHROPIC_HEADERS : STANDARD_HEADERS;
 
   // Get header values (handle both Headers object and plain object)
-  const getHeader = (name) => {
-    if (typeof headers.get === "function") return headers.get(name);
-    return headers[name] || null;
+  const getHeader = (name: string) => {
+    return plainHeaders[name.toLowerCase()] || null;
   };
 
   const limit = parseInt(getHeader(headerMap.limit));
@@ -554,7 +607,7 @@ export function updateFromHeaders(provider, connectionId, headers, status, model
     const retryAfterMs = parseResetTime(retryAfterStr) || 60000; // Default 60s
     const counts = limiter.counts();
     const limiterKey = getLimiterKey(provider, connectionId, model);
-    console.log(
+    logRateLimit(
       `🚫 [RATE-LIMIT] ${provider}:${connectionId.slice(0, 8)} — 429 received, pausing for ${Math.ceil(retryAfterMs / 1000)}s, dropping ${counts.QUEUED} queued request(s)`
     );
 
@@ -569,13 +622,14 @@ export function updateFromHeaders(provider, connectionId, headers, status, model
     // Without disconnect() here, every 429 leaks a heartbeat timer until GC reclaims
     // the abandoned Bottleneck; under sustained quota pressure that is a real leak.
     limiters.delete(limiterKey);
+    lastDispatchAt.delete(limiterKey);
     trackAsyncOperation(limiter.disconnect());
     return;
   }
 
   // Handle "over limit" soft warning (Fireworks)
   if (overLimit === "yes") {
-    console.log(
+    logRateLimit(
       `⚠️ [RATE-LIMIT] ${provider}:${connectionId.slice(0, 8)} — near capacity, slowing down`
     );
     limiter.updateSettings({
@@ -599,7 +653,7 @@ export function updateFromHeaders(provider, connectionId, headers, status, model
         updates.reservoir = remaining;
         updates.reservoirRefreshAmount = limit;
         updates.reservoirRefreshInterval = resetMs;
-        console.log(
+        logRateLimit(
           `⚠️ [RATE-LIMIT] ${provider}:${connectionId.slice(0, 8)} — ${remaining}/${limit} remaining, throttling`
         );
       } else if (remaining > limit * 0.5) {
@@ -679,11 +733,11 @@ async function persistLearnedLimitsNow() {
   try {
     const { updateSettings } = await import("@/lib/db/settings");
     await updateSettings({ learnedRateLimits: JSON.stringify(learnedLimits) });
-    console.log(
+    logRateLimit(
       `💾 [RATE-LIMIT] Persisted learned limits for ${Object.keys(learnedLimits).length} provider(s)`
     );
   } catch (err) {
-    console.error("[RATE-LIMIT] Failed to persist learned limits:", err.message);
+    errorRateLimit("[RATE-LIMIT] Failed to persist learned limits:", err.message);
   }
 }
 
@@ -819,10 +873,10 @@ async function loadPersistedLimits() {
     }
 
     if (count > 0) {
-      console.log(`📥 [RATE-LIMIT] Restored ${count} learned rate limit(s) from persistence`);
+      logRateLimit(`📥 [RATE-LIMIT] Restored ${count} learned rate limit(s) from persistence`);
     }
   } catch (err) {
-    console.error("[RATE-LIMIT] Failed to load persisted limits:", err.message);
+    errorRateLimit("[RATE-LIMIT] Failed to load persisted limits:", err.message);
   }
 }
 
@@ -844,7 +898,7 @@ export function updateFromResponseBody(provider, connectionId, responseBody, sta
 
   if (retryAfterMs && retryAfterMs > 0) {
     const limiter = getLimiter(provider, connectionId, model);
-    console.log(
+    logRateLimit(
       `🚫 [RATE-LIMIT] ${provider}:${connectionId.slice(0, 8)} — body-parsed retry: ${Math.ceil(retryAfterMs / 1000)}s (${reason})`
     );
 

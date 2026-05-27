@@ -253,6 +253,30 @@ describe("OpencodeExecutor", () => {
       });
       assert.deepEqual(fetchCalls[0].options.headers, result.headers);
     });
+
+    it("routes opencode-go catalog-only models to chat completions", async () => {
+      // Register new models
+      registerModel("opencode-go", { id: "qwen3.7-max", name: "Qwen3.7 Max" });
+      registerModel("opencode-go", { id: "mimo-v2-pro", name: "MiMo-V2-Pro" });
+      registerModel("opencode-go", { id: "mimo-v2-omni", name: "MiMo-V2-Omni" });
+      registerModel("opencode-go", { id: "hy3-preview", name: "Hunyuan3 Preview" });
+
+      // qwen3.7-max
+      const qwen37 = await goExecutor.execute(createInput("qwen3.7-max"));
+      assert.equal(qwen37.url, "https://opencode.ai/zen/go/v1/chat/completions");
+
+      // mimo-v2-pro
+      const mimoPro = await goExecutor.execute(createInput("mimo-v2-pro"));
+      assert.equal(mimoPro.url, "https://opencode.ai/zen/go/v1/chat/completions");
+
+      // mimo-v2-omni
+      const mimoOmni = await goExecutor.execute(createInput("mimo-v2-omni"));
+      assert.equal(mimoOmni.url, "https://opencode.ai/zen/go/v1/chat/completions");
+
+      // hy3-preview
+      const hy3 = await goExecutor.execute(createInput("hy3-preview"));
+      assert.equal(hy3.url, "https://opencode.ai/zen/go/v1/chat/completions");
+    });
   });
 
   describe("user-agent forwarding", () => {

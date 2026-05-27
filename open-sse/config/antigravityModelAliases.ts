@@ -2,16 +2,7 @@ export const ANTIGRAVITY_PUBLIC_MODELS = Object.freeze([
   // Gemini 3.5 Flash — flagship model in Antigravity 2.0 (May 2026)
   {
     id: "gemini-3.5-flash-preview",
-    name: "Gemini 3.5 Flash (High)",
-    contextLength: 1048576,
-    maxOutputTokens: 65536,
-    supportsReasoning: true,
-    supportsVision: true,
-    toolCalling: true,
-  },
-  {
-    id: "gemini-3.5-flash-low",
-    name: "Gemini 3.5 Flash (Low)",
+    name: "Gemini 3.5 Flash",
     contextLength: 1048576,
     maxOutputTokens: 65536,
     supportsReasoning: true,
@@ -29,16 +20,7 @@ export const ANTIGRAVITY_PUBLIC_MODELS = Object.freeze([
   },
   {
     id: "gemini-3-pro-preview",
-    name: "Gemini 3.1 Pro (High)",
-    contextLength: 1048576,
-    maxOutputTokens: 65535,
-    supportsReasoning: true,
-    supportsVision: true,
-    toolCalling: true,
-  },
-  {
-    id: "gemini-3.1-pro-low",
-    name: "Gemini 3.1 Pro (Low)",
+    name: "Gemini 3.1 Pro",
     contextLength: 1048576,
     maxOutputTokens: 65535,
     supportsReasoning: true,
@@ -116,9 +98,12 @@ export const ANTIGRAVITY_PUBLIC_MODELS = Object.freeze([
   },
 ]);
 
+// The Antigravity upstream API uses plain model IDs (no -high/-low suffix).
+// The -high/-low suffix convention was speculative and caused 404 for all
+// gemini-3.x models. Only plain IDs like "gemini-2.5-flash" are proven working.
 export const ANTIGRAVITY_MODEL_ALIASES = Object.freeze({
-  "gemini-3-pro-preview": "gemini-3.1-pro-high",
-  "gemini-3.5-flash-preview": "gemini-3.5-flash-high",
+  "gemini-3-pro-preview": "gemini-3.1-pro",
+  "gemini-3.5-flash-preview": "gemini-3.5-flash",
   "gemini-3-flash-preview": "gemini-3-flash",
   "gemini-3-pro-image-preview": "gemini-3-pro-image",
   "gemini-2.5-computer-use-preview-10-2025": "rev19-uic3-1p",
@@ -132,8 +117,8 @@ export const ANTIGRAVITY_MODEL_ALIASES = Object.freeze({
 type AntigravityModelAliasMap = Record<string, string>;
 
 export const ANTIGRAVITY_REVERSE_MODEL_ALIASES: AntigravityModelAliasMap = Object.freeze({
-  "gemini-3.1-pro-high": "gemini-3-pro-preview",
-  "gemini-3.5-flash-high": "gemini-3.5-flash-preview",
+  "gemini-3.1-pro": "gemini-3-pro-preview",
+  "gemini-3.5-flash": "gemini-3.5-flash-preview",
   "gemini-3-flash-agent": "gemini-3.5-flash-preview",
   "gemini-3-flash": "gemini-3-flash-preview",
   "gemini-3-pro-image": "gemini-3-pro-image-preview",

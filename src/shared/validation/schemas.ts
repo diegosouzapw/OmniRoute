@@ -9,6 +9,7 @@ import { COMBO_CONFIG_MODES } from "@/shared/constants/comboConfigMode";
 import { providerAllowsOptionalApiKey } from "@/shared/constants/providers";
 import { HIDEABLE_SIDEBAR_ITEM_IDS } from "@/shared/constants/sidebarVisibility";
 import { isForbiddenUpstreamHeaderName } from "@/shared/constants/upstreamHeaders";
+import { MAX_TIMER_TIMEOUT_MS } from "@/shared/utils/runtimeTimeouts";
 
 function isHttpUrl(value: string): boolean {
   try {
@@ -20,7 +21,7 @@ function isHttpUrl(value: string): boolean {
 }
 
 const CODEX_REASONING_EFFORT_VALUES = new Set(["none", "low", "medium", "high", "xhigh"]);
-const REQUEST_DEFAULT_SERVICE_TIER_VALUES = new Set(["priority", "fast"]);
+const REQUEST_DEFAULT_SERVICE_TIER_VALUES = new Set(["default", "priority", "fast", "flex"]);
 
 function validateProviderSpecificData(
   data: Record<string, unknown> | undefined,
@@ -56,6 +57,19 @@ function validateProviderSpecificData(
       code: z.ZodIssueCode.custom,
       message: "providerSpecificData.cx must be a string up to 500 chars",
       path: ["cx"],
+    });
+  }
+
+  const region = data.region;
+  if (
+    region !== undefined &&
+    region !== null &&
+    (typeof region !== "string" || region.length > 64)
+  ) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: "providerSpecificData.region must be a string up to 64 chars",
+      path: ["region"],
     });
   }
 
@@ -130,7 +144,7 @@ function validateProviderSpecificData(
         ctx.addIssue({
           code: z.ZodIssueCode.custom,
           message:
-            "providerSpecificData.requestDefaults.serviceTier must be priority when provided",
+            "providerSpecificData.requestDefaults.serviceTier must be one of default, priority, fast, flex when provided",
           path: ["requestDefaults", "serviceTier"],
         });
       }
@@ -474,6 +488,28 @@ const comboModelEntry = z.union([
   comboRefStepInputSchema,
 ]);
 
+const shadowRoutingSchema = z
+  .object({
+    enabled: z.boolean().optional(),
+    targets: z.array(comboModelEntry).max(20).optional(),
+    sampleRate: z.coerce.number().min(0).max(1).optional(),
+    maxTargets: z.coerce.number().int().min(1).max(10).optional(),
+    timeoutMs: z.coerce.number().int().min(1000).max(120000).optional(),
+  })
+  .strict();
+
+const evalRoutingSchema = z
+  .object({
+    enabled: z.boolean().optional(),
+    suiteIds: z.array(z.string().trim().min(1).max(200)).max(50).optional(),
+    maxAgeHours: z.coerce.number().min(1).max(8760).optional(),
+    minCases: z.coerce.number().int().min(1).max(100000).optional(),
+    qualityWeight: z.coerce.number().min(0).max(1).optional(),
+    latencyWeight: z.coerce.number().min(0).max(1).optional(),
+    cacheTtlMs: z.coerce.number().int().min(1000).max(300000).optional(),
+  })
+  .strict();
+
 export const comboStrategySchema = z.enum(ROUTING_STRATEGY_VALUES);
 
 const scoringWeightsSchema = z
@@ -485,6 +521,10 @@ const scoringWeightsSchema = z
     taskFit: z.number().min(0).max(1),
     stability: z.number().min(0).max(1),
     tierPriority: z.number().min(0).max(1).optional().default(0.05),
+    tierAffinity: z.number().min(0).max(1).optional().default(0.05),
+    specificityMatch: z.number().min(0).max(1).optional().default(0.05),
+    contextAffinity: z.number().min(0).max(1).optional().default(0.08),
+    resetWindowAffinity: z.number().min(0).max(1).optional().default(0),
   })
   .optional();
 
@@ -515,6 +555,15 @@ const compressionModeSchema = z.enum([
 ]);
 const comboCompressionOverrideSchema = z.union([z.literal(""), compressionModeSchema]);
 
+const slaRoutingPolicySchema = z
+  .object({
+    targetP95Ms: z.coerce.number().int().positive().max(300000).optional(),
+    maxErrorRate: z.coerce.number().min(0).max(1).optional(),
+    maxCostPer1MTokens: z.coerce.number().positive().max(1000000).optional(),
+    hardConstraints: z.boolean().optional(),
+  })
+  .strict();
+
 const comboRuntimeConfigSchema = z
   .object({
     strategy: comboStrategySchema.optional(),
@@ -522,6 +571,7 @@ const comboRuntimeConfigSchema = z
     retryDelayMs: z.coerce.number().int().min(0).max(60000).optional(),
     fallbackDelayMs: z.coerce.number().int().min(0).max(60000).optional(),
     timeoutMs: z.coerce.number().int().min(1000).optional(),
+    targetTimeoutMs: z.coerce.number().int().min(0).max(MAX_TIMER_TIMEOUT_MS).optional(),
     concurrencyPerModel: z.coerce.number().int().min(1).max(20).optional(),
     queueTimeoutMs: z.coerce.number().int().min(1000).max(120000).optional(),
     healthCheckEnabled: z.boolean().optional(),
@@ -543,11 +593,25 @@ const comboRuntimeConfigSchema = z
     budgetCap: z.number().positive().optional(),
     explorationRate: z.number().min(0).max(1).optional(),
     routerStrategy: z.string().optional(),
+    slaTargetP95Ms: z.coerce.number().int().positive().max(300000).optional(),
+    slaMaxErrorRate: z.coerce.number().min(0).max(1).optional(),
+    slaMaxCostPer1MTokens: z.coerce.number().positive().max(1000000).optional(),
+    slaHardConstraints: z.boolean().optional(),
+    sla: slaRoutingPolicySchema.optional(),
     compositeTiers: compositeTiersSchema.optional(),
     resetAwareSessionWeight: z.coerce.number().min(0).max(100).optional(),
     resetAwareWeeklyWeight: z.coerce.number().min(0).max(100).optional(),
     resetAwareTieBandPercent: z.coerce.number().min(0).max(100).optional(),
     resetAwareExhaustionGuardPercent: z.coerce.number().min(0).max(100).optional(),
+    resetAwareQuotaCacheTtlMs: z.coerce.number().int().min(0).max(300_000).optional(),
+    resetAwareQuotaCacheMaxStaleMs: z.coerce.number().int().min(0).max(3_600_000).optional(),
+    resetWindowWindows: z.array(z.enum(["weekly", "session", "monthly"])).optional(),
+    resetWindowIncludeSession: z.boolean().optional(),
+    resetWindowTieBandMs: z.coerce.number().int().min(0).max(86_400_000).optional(),
+    resetWindowQuotaCacheTtlMs: z.coerce.number().int().min(0).max(300_000).optional(),
+    resetWindowQuotaCacheMaxStaleMs: z.coerce.number().int().min(0).max(3_600_000).optional(),
+    shadowRouting: shadowRoutingSchema.optional(),
+    evalRouting: evalRoutingSchema.optional(),
   })
   .strict();
 
@@ -601,7 +665,14 @@ export const updateSettingsSchema = z.object({
   bruteForceProtection: z.boolean().optional(),
   hiddenSidebarItems: z.array(z.enum(HIDEABLE_SIDEBAR_ITEM_IDS)).optional(),
   comboConfigMode: z.enum(COMBO_CONFIG_MODES).optional(),
-  codexServiceTier: z.object({ enabled: z.boolean() }).optional(),
+  codexServiceTier: z
+    .object({
+      enabled: z.boolean().optional(),
+      tier: z.enum(["default", "priority", "flex"]).optional(),
+      supportedModels: z.array(z.string().max(200)).max(200).optional(),
+    })
+    .optional(),
+  codexSessionAffinityTtlMs: z.number().int().min(0).max(86_400_000).optional(),
   // Routing settings (#134)
   fallbackStrategy: settingsFallbackStrategySchema.optional(),
   wildcardAliases: z.array(z.object({ pattern: z.string(), target: z.string() })).optional(),
@@ -1116,12 +1187,19 @@ export const updateRequireLoginSchema = z
 
 export const updateSystemPromptSchema = z
   .object({
-    prompt: z.string().max(50000).optional(),
+    prompt: z.string().max(50000).optional(), // legacy compat
+    prefixPrompt: z.string().max(50000).optional(),
+    suffixPrompt: z.string().max(50000).optional(),
     enabled: z.boolean().optional(),
   })
   .strict()
   .superRefine((value, ctx) => {
-    if (value.prompt === undefined && value.enabled === undefined) {
+    if (
+      value.prompt === undefined &&
+      value.prefixPrompt === undefined &&
+      value.suffixPrompt === undefined &&
+      value.enabled === undefined
+    ) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
         message: "No valid fields to update",
@@ -1134,7 +1212,7 @@ export const updateThinkingBudgetSchema = z
   .object({
     mode: z.enum(["passthrough", "auto", "custom", "adaptive"]).optional(),
     customBudget: z.coerce.number().int().min(0).max(131072).optional(),
-    effortLevel: z.enum(["none", "low", "medium", "high"]).optional(),
+    effortLevel: z.enum(["none", "low", "medium", "high", "xhigh", "max"]).optional(),
     baseBudget: z.coerce.number().int().min(0).max(131072).optional(),
     complexityMultiplier: z.coerce.number().min(0).optional(),
   })
@@ -1317,13 +1395,29 @@ export const testProxySchema = z.object({
   }),
 });
 
-export const createProxyRegistrySchema = z
+const inlineProxyAssignmentSchema = z
+  .object({
+    scope: z.enum(["global", "provider", "account", "combo", "key"]),
+    scopeId: z.string().trim().nullable().optional(),
+  })
+  .strict()
+  .superRefine((value, ctx) => {
+    if (value.scope !== "global" && !value.scopeId?.trim()) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "scopeId is required for non-global scope",
+        path: ["scopeId"],
+      });
+    }
+  });
+
+const proxyRegistryFieldsSchema = z
   .object({
     name: z.string().trim().min(1, "name is required").max(120),
     type: z
       .preprocess(
         (value) => (typeof value === "string" ? value.trim().toLowerCase() : value),
-        z.enum(["http", "https", "socks5"])
+        z.enum(["http", "https", "socks5", "vercel"])
       )
       .optional()
       .default("http"),
@@ -1334,17 +1428,28 @@ export const createProxyRegistrySchema = z
     region: z.string().trim().max(64).nullable().optional(),
     notes: z.string().trim().max(1000).nullable().optional(),
     status: z.enum(["active", "inactive"]).optional().default("active"),
+    source: z.enum(["manual", "oneproxy", "dashboard-custom", "vercel-relay"]).optional(),
   })
   .strict();
 
-export const updateProxyRegistrySchema = createProxyRegistrySchema.partial().extend({
-  id: z.string().trim().min(1, "id is required"),
-});
+export const createProxyRegistrySchema = proxyRegistryFieldsSchema
+  .extend({
+    assignment: inlineProxyAssignmentSchema.optional(),
+  })
+  .strict();
+
+export const updateProxyRegistrySchema = proxyRegistryFieldsSchema
+  .partial()
+  .extend({
+    id: z.string().trim().min(1, "id is required"),
+    assignment: inlineProxyAssignmentSchema.optional(),
+  })
+  .strict();
 
 export const bulkImportProxiesSchema = z
   .object({
     items: z
-      .array(createProxyRegistrySchema)
+      .array(proxyRegistryFieldsSchema)
       .min(1, "At least one proxy is required")
       .max(100, "Maximum 100 proxies per import"),
   })
@@ -1632,10 +1737,12 @@ export const updateKeyPermissionsSchema = z
   .object({
     name: z.string().trim().min(1).max(200).optional(),
     allowedModels: z.array(z.string().trim().min(1)).max(1000).optional(),
+    allowedCombos: z.array(z.string().trim().min(1).max(200)).max(500).optional(),
     allowedConnections: z.array(z.string().uuid()).max(100).optional(),
     noLog: z.boolean().optional(),
     autoResolve: z.boolean().optional(),
     isActive: z.boolean().optional(),
+    throttleDelayMs: z.number().int().min(0).max(300000).optional(),
     isBanned: z.boolean().optional(),
     expiresAt: z.string().datetime().nullable().optional(),
     maxSessions: z.number().int().min(0).max(10000).optional(),
@@ -1651,21 +1758,25 @@ export const updateKeyPermissionsSchema = z
       ])
       .optional(),
     scopes: z.array(z.string().trim().min(1).max(64)).max(16).optional(),
+    allowedEndpoints: z.array(z.string().trim().min(1).max(64)).max(20).optional(),
   })
   .superRefine((value, ctx) => {
     if (
       value.name === undefined &&
       value.allowedModels === undefined &&
+      value.allowedCombos === undefined &&
       value.allowedConnections === undefined &&
       value.noLog === undefined &&
       value.autoResolve === undefined &&
       value.isActive === undefined &&
+      value.throttleDelayMs === undefined &&
       value.isBanned === undefined &&
       value.expiresAt === undefined &&
       value.maxSessions === undefined &&
       value.accessSchedule === undefined &&
       value.rateLimits === undefined &&
-      value.scopes === undefined
+      value.scopes === undefined &&
+      value.allowedEndpoints === undefined
     ) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
@@ -1794,6 +1905,7 @@ export const providersBatchTestSchema = z
       "provider",
       "oauth",
       "free",
+      "no-auth",
       "apikey",
       "compatible",
       "all",
@@ -1827,6 +1939,7 @@ export const validateProviderApiKeySchema = z
     validationModelId: z.string().trim().optional(),
     customUserAgent: z.string().trim().max(500).optional(),
     baseUrl: z.string().trim().url().optional(),
+    region: z.string().trim().max(64).optional(),
     cx: z.string().trim().max(500).optional(),
   })
   .superRefine((data, ctx) => {
@@ -2145,4 +2258,15 @@ export const v1BatchCreateSchema = z.object({
       seconds: z.number().int().min(3600).max(2592000),
     })
     .optional(),
+});
+
+// ── Web Fetch ─────────────────────────────────────────────────────────────────
+
+export const v1WebFetchSchema = z.object({
+  url: z.string().url("url must be a valid URL (http/https)"),
+  provider: z.enum(["firecrawl", "jina-reader", "tavily-search"]).optional(),
+  format: z.enum(["markdown", "html", "links", "screenshot"]).default("markdown"),
+  depth: z.union([z.literal(0), z.literal(1), z.literal(2)]).default(0),
+  wait_for_selector: z.string().max(256).optional(),
+  include_metadata: z.boolean().default(false),
 });

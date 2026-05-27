@@ -38,23 +38,16 @@ playwright-report
 blob-report
 
 # Documentation
-# Issue #2348: The Dashboard Docs viewer reads markdown from `/app/docs` at
-# runtime. The previous `docs/*` block hid every file except openapi.yaml,
-# so the in-product help screen failed with ENOENT for every page.
-# We now keep the English markdown tree but drop the bulky assets
-# (translations, screenshots, raster diagrams) that account for ~45 MB
-# of the ~50 MB docs directory. The Docs viewer reads the default-locale
-# (English) sources at runtime, so translations are not required in the
-# container image.
+# Translations (~51 MB) are excluded — the Docs viewer reads English sources.
+# Screenshots (~1.7 MB) and SVGs (~250 KB) are needed at build time for MDX
+# image resolution (fumadocs-mdx bundles them).
+# Raster sources under docs/diagrams/ only (exported SVGs are required).
 docs/i18n/**
-docs/screenshots/**
-docs/diagrams/exported/**
 docs/diagrams/**/*.png
 docs/diagrams/**/*.jpg
 docs/diagrams/**/*.jpeg
 docs/diagrams/**/*.gif
 docs/diagrams/**/*.webp
-docs/diagrams/**/*.svg
 # Note: `*.md` matches the root only (Go filepath.Match does not cross /),
 # so nested docs/**/*.md is implicitly kept without a re-include rule.
 *.md

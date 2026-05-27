@@ -126,3 +126,38 @@ test("request log detail labels OpenAI protocol variants explicitly", () => {
   assert.notEqual(chatHtml.indexOf(">OpenAI-Chat<"), -1);
   assert.notEqual(responsesHtml.indexOf(">OpenAI-Responses<"), -1);
 });
+
+test("request log detail follows the email visibility setting for accounts", () => {
+  const props = {
+    log: {
+      status: 200,
+      method: "POST",
+      path: "/v1/responses",
+      timestamp: "2026-04-09T21:27:08.000Z",
+      duration: 2500,
+      provider: "codex",
+      sourceFormat: "openai-responses",
+      model: "gpt-5.5",
+      account: "logs.user@example.com",
+      tokens: { in: 10, out: 2 },
+    },
+    detail: {
+      account: "logs.user@example.com",
+      tokens: { in: 10, out: 2 },
+    },
+    loading: false,
+    onClose: () => {},
+    onCopy: async () => true,
+  };
+
+  const hiddenHtml = renderToStaticMarkup(
+    React.createElement(RequestLoggerDetail, { ...props, emailsVisible: false })
+  );
+  const visibleHtml = renderToStaticMarkup(
+    React.createElement(RequestLoggerDetail, { ...props, emailsVisible: true })
+  );
+
+  assert.match(hiddenHtml, /log\*{6}@\*{8}com/);
+  assert.equal(hiddenHtml.includes("logs.user@example.com"), false);
+  assert.notEqual(visibleHtml.indexOf("logs.user@example.com"), -1);
+});

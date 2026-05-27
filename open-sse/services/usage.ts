@@ -3,14 +3,6 @@
  */
 
 import { PROVIDERS } from "../config/constants.ts";
-
-// Quota / usage upstream URLs (overridable for testing or relays).
-const CROF_USAGE_URL = process.env.OMNIROUTE_CROF_USAGE_URL ?? "https://crof.ai/usage_api/";
-const GEMINI_CLI_USAGE_URL =
-  process.env.OMNIROUTE_GEMINI_CLI_USAGE_URL ??
-  "https://cloudcode-pa.googleapis.com/v1internal:loadCodeAssist";
-const CODEWHISPERER_BASE_URL =
-  process.env.OMNIROUTE_CODEWHISPERER_BASE_URL ?? "https://codewhisperer.us-east-1.amazonaws.com";
 import {
   getAntigravityFetchAvailableModelsUrls,
   ANTIGRAVITY_BASE_URLS,
@@ -42,6 +34,14 @@ import {
   extractCodeAssistOnboardTierId,
   extractCodeAssistSubscriptionTier,
 } from "./codeAssistSubscription.ts";
+
+// Quota / usage upstream URLs (overridable for testing or relays).
+const CROF_USAGE_URL = process.env.OMNIROUTE_CROF_USAGE_URL ?? "https://crof.ai/usage_api/";
+const GEMINI_CLI_USAGE_URL =
+  process.env.OMNIROUTE_GEMINI_CLI_USAGE_URL ??
+  "https://cloudcode-pa.googleapis.com/v1internal:loadCodeAssist";
+const CODEWHISPERER_BASE_URL =
+  process.env.OMNIROUTE_CODEWHISPERER_BASE_URL ?? "https://codewhisperer.us-east-1.amazonaws.com";
 
 // Antigravity API config (credentials from PROVIDERS via credential loader)
 const ANTIGRAVITY_CONFIG = {
@@ -118,6 +118,12 @@ type UsageQuota = {
   remainingPercentage?: number;
   resetAt: string | null;
   unlimited: boolean;
+  /**
+   * True when the upstream provider reported the remaining fraction. False
+   * means the API didn't include the field and the 0 value here is a sentinel,
+   * NOT a confirmed-exhausted state. Antigravity-specific.
+   */
+  fractionReported?: boolean;
   displayName?: string;
   details?: Array<{
     name: string;
@@ -1940,10 +1946,19 @@ async function getAntigravityUsage(
 
       const rawFraction = toNumber(quotaInfo.remainingFraction, -1);
       const resetAt = parseResetTime(quotaInfo.resetTime);
-      // Default to 100% when the API doesn't report a fraction
-      const remainingFraction = rawFraction < 0 ? 1 : rawFraction;
-      // Models with no resetTime and full remaining are unlimited (e.g. tab-completion models)
-      const isUnlimited = !resetAt && remainingFraction >= 1;
+      // Distinguish "upstream did not report remainingFraction" from "remaining is 0%".
+      // A schema drift in Antigravity's quota API (very plausible — internal Google product)
+      // would otherwise silently mark every model as exhausted across the dashboard.
+      const fractionReported = rawFraction >= 0;
+      if (!fractionReported) {
+        console.warn(
+          `[Antigravity] model ${modelKey} returned no remainingFraction — quota unknown`
+        );
+      }
+      const remainingFraction = fractionReported ? Math.max(0, Math.min(1, rawFraction)) : 0;
+      // Models with no resetTime AND a reported full fraction are unlimited
+      // (e.g. tab-completion models). Unreported fraction is NEVER unlimited.
+      const isUnlimited = fractionReported && !resetAt && remainingFraction >= 1;
       const remainingPercentage = remainingFraction * 100;
       const QUOTA_NORMALIZED_BASE = 1000;
       const total = QUOTA_NORMALIZED_BASE;
@@ -1956,6 +1971,7 @@ async function getAntigravityUsage(
         resetAt,
         remainingPercentage: isUnlimited ? 100 : remainingPercentage,
         unlimited: isUnlimited,
+        fractionReported,
       };
     }
 

@@ -134,6 +134,12 @@ const BFL_EDIT_MODELS = new Set([
 
 const BFL_FAILURE_STATUSES = new Set(["Error", "Failed", "Content Moderated", "Request Moderated"]);
 
+function formatImageProviderError(err) {
+  const sanitized = sanitizeErrorMessage(err);
+  const message = (sanitized || "").replace(/^Error:\s*/i, "").trim();
+  return message ? `Image provider error: ${message}` : "Image provider error";
+}
+
 const STABILITY_GENERATION_ENDPOINTS = {
   "sd3.5-large": "/v2beta/stable-image/generate/sd3",
   "sd3.5-large-turbo": "/v2beta/stable-image/generate/sd3",

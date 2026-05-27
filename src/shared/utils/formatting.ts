@@ -5,6 +5,8 @@
  * Prevents copy-paste duplication and provides a single source of truth.
  */
 
+import { maskEmail } from "./maskEmail";
+
 /**
  * Format an ISO date string to a localized time string (HH:MM:SS).
  * @param {string} isoString - ISO 8601 date string
@@ -72,15 +74,25 @@ export function maskSegment(value: string | null | undefined, start = 2, end = 2
  */
 export function maskAccount(account: string | null | undefined, emailsVisible: boolean) {
   if (!account || account === "-") return "-";
+  if (emailsVisible) return account;
   const atIdx = account.indexOf("@");
   if (atIdx > 3) {
-    if (emailsVisible) return account;
-    return account.slice(0, 3) + "***" + account.slice(atIdx);
+    return maskEmail(account);
   }
   if (account.length > 8) {
     return account.slice(0, 5) + "***";
   }
   return account;
+}
+
+export function stableAccountSuffix(account: string | null | undefined): string {
+  if (!account || account === "-") return "0000";
+  let hash = 0x811c9dc5;
+  for (let i = 0; i < account.length; i++) {
+    hash ^= account.charCodeAt(i);
+    hash = Math.imul(hash, 0x01000193) >>> 0;
+  }
+  return hash.toString(16).padStart(8, "0").slice(0, 4);
 }
 
 /**

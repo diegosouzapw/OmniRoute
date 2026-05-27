@@ -1,18 +1,24 @@
 import {
   copyFileSync,
+  createReadStream,
+  createWriteStream,
   existsSync,
   mkdirSync,
   readdirSync,
   readFileSync,
+  statSync,
   unlinkSync,
   writeFileSync,
 } from "node:fs";
 import { createCipheriv, createDecipheriv, randomBytes, scryptSync } from "node:crypto";
 import { dirname, join, extname, basename } from "node:path";
+import { Readable } from "node:stream";
+import { pipeline } from "node:stream/promises";
 import { resolveDataDir } from "../data-dir.mjs";
-import { apiFetch, isServerUp } from "../api.mjs";
+import { getBaseUrl, isServerUp } from "../api.mjs";
 import { t } from "../i18n.mjs";
 import { backupSqliteFile } from "../sqlite.mjs";
+import { CLI_TOKEN_HEADER, getCliToken } from "../utils/cliToken.mjs";
 
 function getBackupDir() {
   return join(resolveDataDir(), "backups");
@@ -125,16 +131,29 @@ function shouldExclude(fileName, patterns) {
   return patterns.some((p) => matchesGlob(fileName, p));
 }
 
-function encryptFile(srcPath, destPath, passphrase) {
+async function encryptFile(srcPath, destPath, passphrase) {
   const salt = randomBytes(16);
   const iv = randomBytes(12);
   const key = scryptSync(passphrase, salt, 32);
   const cipher = createCipheriv("aes-256-gcm", key, iv);
-  const plaintext = readFileSync(srcPath);
-  const encrypted = Buffer.concat([cipher.update(plaintext), cipher.final()]);
+  const tmpCipherPath = `${destPath}.ciphertext`;
+  await pipeline(createReadStream(srcPath), cipher, createWriteStream(tmpCipherPath));
   const authTag = cipher.getAuthTag();
   // Format: salt(16) + iv(12) + authTag(16) + ciphertext
-  writeFileSync(destPath, Buffer.concat([salt, iv, authTag, encrypted]));
+  const out = createWriteStream(destPath);
+  try {
+    await new Promise((resolve, reject) => {
+      out.write(Buffer.concat([salt, iv, authTag]), (err) => {
+        if (err) reject(err);
+        else resolve();
+      });
+    });
+    await pipeline(createReadStream(tmpCipherPath), out);
+  } finally {
+    try {
+      unlinkSync(tmpCipherPath);
+    } catch {}
+  }
 }
 
 async function promptPassphrase() {
@@ -206,11 +225,11 @@ export async function runBackupCommand(opts = {}) {
           const tmpPath = destPath.replace(/\.enc$/, "");
           await backupSqliteFile(sourcePath, tmpPath);
           if (opts.encrypt) {
-            encryptFile(tmpPath, destPath, passphrase);
+            await encryptFile(tmpPath, destPath, passphrase);
             unlinkSync(tmpPath);
           }
         } else if (opts.encrypt) {
-          encryptFile(sourcePath, destPath, passphrase);
+          await encryptFile(sourcePath, destPath, passphrase);
         } else {
           copyFileSync(sourcePath, destPath);
         }
@@ -264,18 +283,25 @@ async function _uploadBackupToCloud(backupPath, info) {
     return 1;
   }
   try {
-    // Read files locally and send as base64 — never send local path to server
-    const files = {};
-    for (const fname of readdirSync(backupPath)) {
-      files[fname] = readFileSync(join(backupPath, fname)).toString("base64");
-    }
-    const res = await apiFetch("/api/db-backups/cloud", {
-      method: "POST",
-      body: { files, info },
-      retry: false,
-      timeout: 30000,
-      acceptNotOk: true,
+    const boundary = `omniroute-backup-${Date.now().toString(36)}-${randomBytes(8).toString("hex")}`;
+    const headers = new Headers({
+      accept: "application/json",
+      "content-type": `multipart/form-data; boundary=${boundary}`,
     });
+    const apiKey = process.env.OMNIROUTE_API_KEY;
+    if (apiKey) headers.set("authorization", `Bearer ${apiKey}`);
+    const cliToken = process.env.OMNIROUTE_CLI_TOKEN ?? (await getCliToken());
+    if (cliToken) headers.set(CLI_TOKEN_HEADER, cliToken);
+
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 30000);
+    const res = await fetch(`${getBaseUrl()}/api/db-backups/cloud`, {
+      method: "POST",
+      headers,
+      body: Readable.from(createBackupMultipartStream(backupPath, info, boundary)),
+      duplex: "half",
+      signal: controller.signal,
+    }).finally(() => clearTimeout(timeout));
     if (res.ok) {
       const data = await res.json();
       console.log(t("backup.cloudUploaded", { url: data.url || "(stored)" }));
@@ -285,6 +311,26 @@ async function _uploadBackupToCloud(backupPath, info) {
   } catch {
     return 1;
   }
+}
+
+async function* createBackupMultipartStream(backupPath, info, boundary) {
+  const encoder = new TextEncoder();
+  const encode = (value) => encoder.encode(value);
+  yield encode(
+    `--${boundary}\r\nContent-Disposition: form-data; name="info"\r\nContent-Type: application/json\r\n\r\n${JSON.stringify(info)}\r\n`
+  );
+  for (const fname of readdirSync(backupPath)) {
+    const fullPath = join(backupPath, fname);
+    const stat = statSync(fullPath);
+    if (!stat.isFile()) continue;
+    const safeName = fname.replace(/["\r\n]/g, "_");
+    yield encode(
+      `--${boundary}\r\nContent-Disposition: form-data; name="files"; filename="${safeName}"\r\nContent-Type: application/octet-stream\r\n\r\n`
+    );
+    yield* createReadStream(fullPath);
+    yield encode("\r\n");
+  }
+  yield encode(`--${boundary}--\r\n`);
 }
 
 function getSchedulePath() {

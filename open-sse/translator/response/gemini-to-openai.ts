@@ -241,6 +241,40 @@ export function geminiToOpenAIResponse(chunk, state) {
     }
   }
 
+  // Grounding Metadata (Google Search)
+  const grounding = candidate.groundingMetadata || candidate.grounding_metadata;
+  if (grounding && !state.groundingProcessed) {
+    const citations = [];
+    if (grounding.groundingChunks || grounding.grounding_chunks) {
+      const chunks = grounding.groundingChunks || grounding.grounding_chunks;
+      for (const chunk of chunks) {
+        if (chunk.web) {
+          citations.push({
+            title: chunk.web.title,
+            url: chunk.web.uri,
+          });
+        }
+      }
+    }
+
+    if (citations.length > 0) {
+      results.push({
+        id: `chatcmpl-${state.messageId}`,
+        object: "chat.completion.chunk",
+        created: Math.floor(Date.now() / 1000),
+        model: state.model,
+        choices: [
+          {
+            index: 0,
+            delta: { citations },
+            finish_reason: null,
+          },
+        ],
+      });
+      state.groundingProcessed = true;
+    }
+  }
+
   // Usage metadata - extract before finish reason so we can include it
   const usageMeta = response.usageMetadata || chunk.usageMetadata;
   if (usageMeta && typeof usageMeta === "object") {

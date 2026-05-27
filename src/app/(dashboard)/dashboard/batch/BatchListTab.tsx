@@ -64,6 +64,7 @@ interface FileRecord {
 interface BatchListTabProps {
   batches: BatchRecord[];
   files: FileRecord[];
+  batchesTotal?: number;
   loading: boolean;
   onRefresh?: () => void;
 }
@@ -129,6 +130,7 @@ const ALL_STATUSES = [
 export default function BatchListTab({
   batches,
   files,
+  batchesTotal,
   loading,
   onRefresh,
 }: Readonly<BatchListTabProps>) {
@@ -199,6 +201,9 @@ export default function BatchListTab({
     <>
       {/* Filters */}
       <div className="flex flex-wrap gap-3 p-4 rounded-xl bg-[var(--color-surface)] border border-[var(--color-border)]">
+        <span className="text-sm text-[var(--color-text-muted)] self-center">
+          {batchesTotal ? `${batchesTotal} batches` : "Batches"}
+        </span>
         <input
           type="text"
           placeholder={t("batchListSearchPlaceholder")}

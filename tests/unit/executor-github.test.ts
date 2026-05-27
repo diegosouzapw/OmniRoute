@@ -283,3 +283,24 @@ test("GithubExecutor.execute preserves complete SSE responses including terminal
     globalThis.fetch = originalFetch;
   }
 });
+
+test("GithubExecutor.transformRequest strips invalid synthetic Responses reasoning ids", () => {
+  const executor = new GithubExecutor();
+  const result = executor.transformRequest(
+    "gpt-5.5",
+    {
+      input: [
+        {
+          id: "thinking_0",
+          type: "reasoning",
+          summary: [{ type: "summary_text", text: "cached reasoning" }],
+        },
+      ],
+    },
+    true,
+    {}
+  );
+
+  assert.equal(result.input[0].id, undefined);
+  assert.equal(result.input[0].type, "reasoning");
+});

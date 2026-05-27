@@ -35,16 +35,29 @@ export const PAGES = [
 export const A11Y_CHECKS = [
   {
     id: "overflow-x",
-    check: "document.body.scrollWidth <= document.body.clientWidth",
+    kind: "evaluate",
+    evaluate: () => document.body.scrollWidth <= document.documentElement.clientWidth,
+    criteria: "No horizontal overflow (scrollWidth <= clientWidth)",
     description: "No horizontal overflow",
   },
   {
     id: "touch-targets",
-    check: "min 44px touch targets on mobile",
+    kind: "manual",
+    criteria: "Minimum 44px touch targets on mobile",
     description: "Touch targets ≥ 44px",
   },
-  { id: "font-size", check: "min 16px base font on mobile", description: "Base font ≥ 16px" },
-  { id: "viewport-meta", check: "has viewport meta tag", description: "Viewport meta present" },
+  {
+    id: "font-size",
+    kind: "manual",
+    criteria: "Minimum 16px base font on mobile",
+    description: "Base font ≥ 16px",
+  },
+  {
+    id: "viewport-meta",
+    kind: "manual",
+    criteria: "Viewport meta tag is present",
+    description: "Viewport meta present",
+  },
 ];
 
 /**

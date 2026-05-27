@@ -84,6 +84,30 @@ test("runAuthzPipeline redirects unauthenticated dashboard pages to login", asyn
   assert.ok(response.headers.get("x-request-id"));
 });
 
+test("runAuthzPipeline redirects unauthenticated /home to login (#2712)", async () => {
+  await forceAuthRequired();
+
+  const response = await pipeline.runAuthzPipeline(request("http://localhost/home"), {
+    enforce: true,
+  });
+
+  assert.equal(response.status, 307);
+  assert.equal(response.headers.get("location"), "http://localhost/login");
+  assert.equal(response.headers.get("x-omniroute-route-class"), "MANAGEMENT");
+});
+
+test("runAuthzPipeline redirects unauthenticated /home/* nested paths to login (#2712)", async () => {
+  await forceAuthRequired();
+
+  const response = await pipeline.runAuthzPipeline(request("http://localhost/home/settings"), {
+    enforce: true,
+  });
+
+  assert.equal(response.status, 307);
+  assert.equal(response.headers.get("location"), "http://localhost/login");
+  assert.equal(response.headers.get("x-omniroute-route-class"), "MANAGEMENT");
+});
+
 test("runAuthzPipeline allows onboarding when login is required but no password exists", async () => {
   delete process.env.INITIAL_PASSWORD;
   await settingsDb.updateSettings({

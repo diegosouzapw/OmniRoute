@@ -4,6 +4,7 @@ import assert from "node:assert/strict";
 import { AntigravityExecutor } from "../../open-sse/executors/antigravity.ts";
 import { setCliCompatProviders } from "../../open-sse/config/cliFingerprints.ts";
 import { scrubProxyAndFingerprintHeaders } from "../../open-sse/services/antigravityHeaderScrub.ts";
+import { antigravityUserAgent } from "../../open-sse/services/antigravityHeaders.ts";
 import {
   clearAntigravityVersionCache,
   seedAntigravityVersionCache,
@@ -128,7 +129,7 @@ test("AntigravityExecutor.transformRequest normalizes model, project and content
 
   if (result instanceof Response) throw new Error("Unexpected Response from transformRequest");
   assert.equal(result.project, "project-1");
-  assert.equal(result.model, "gemini-3.1-pro-low");
+  assert.equal(result.model, "gemini-3.1-pro");
   assert.deepEqual(Object.keys(result), [
     "project",
     "requestId",
@@ -215,7 +216,7 @@ test("AntigravityExecutor.transformRequest tolerates a missing body when project
 
   if (result instanceof Response) throw new Error("Unexpected Response from transformRequest");
   assert.equal(result.project, "project-1");
-  assert.equal(result.model, "gemini-3.1-pro-low");
+  assert.equal(result.model, "gemini-3.1-pro");
   assert.ok(result.request.sessionId);
 });
 
@@ -722,10 +723,7 @@ test("AntigravityExecutor.execute applies CLI fingerprint when enabled", async (
     const headers = init?.headers as Record<string, string>;
     const parsedBody = JSON.parse(String(init?.body));
 
-    assert.match(
-      headers["User-Agent"],
-      /^Antigravity\/2026\.04\.17-test \(.+\) Chrome\/132\.0\.6834\.160 Electron\/39\.2\.3$/
-    );
+    assert.equal(headers["User-Agent"], antigravityUserAgent("2026.04.17-test"));
     assert.equal(headers["x-client-name"], "antigravity");
     assert.equal(headers["x-client-version"], "2026.04.17-test");
     assert.equal(headers["x-goog-user-project"], "project-1");

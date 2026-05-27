@@ -8,8 +8,11 @@ import {
 } from "@omniroute/open-sse/mcp-server/runtimeHeartbeat";
 import { getMcpHttpStatus } from "../../../../../open-sse/mcp-server/httpTransport";
 import { getSettings } from "@/lib/db/settings";
+import { requireManagementAuth } from "@/lib/api/requireManagementAuth";
 
-export async function GET() {
+export async function GET(request: Request) {
+  const authError = await requireManagementAuth(request);
+  if (authError) return authError;
   try {
     const [heartbeat, stats, lastCallPage, settings] = await Promise.all([
       readMcpHeartbeat(),

@@ -20,6 +20,12 @@ const listKeysRoute = await import("../../src/app/api/keys/route.ts");
 const settingsProxyRoute = await import("../../src/app/api/settings/proxy/route.ts");
 const managementProxiesRoute = await import("../../src/app/api/v1/management/proxies/route.ts");
 const embeddingsRoute = await import("../../src/app/api/v1/embeddings/route.ts");
+const audioSpeechRoute = await import("../../src/app/api/v1/audio/speech/route.ts");
+const audioTranscriptionsRoute = await import("../../src/app/api/v1/audio/transcriptions/route.ts");
+const moderationsRoute = await import("../../src/app/api/v1/moderations/route.ts");
+const rerankRoute = await import("../../src/app/api/v1/rerank/route.ts");
+const searchRoute = await import("../../src/app/api/v1/search/route.ts");
+const videosRoute = await import("../../src/app/api/v1/videos/generations/route.ts");
 
 const MACHINE_ID = "1234567890abcdef";
 
@@ -714,6 +720,83 @@ test("embeddings route surfaces missing-credentials and provider-rate-limit erro
   assert.match(missingCredentialsBody.error.message, /No credentials for embedding provider/);
   assert.equal(allRateLimited.status, 429);
   assert.match(allRateLimitedBody.error.message, /All accounts rate limited/);
+});
+
+test("v1 routes surface provider-rate-limit sentinels instead of missing credentials", async () => {
+  const validApiKey = await apiKeysDb.createApiKey("caller", MACHINE_ID);
+  const retryAt = new Date(Date.now() + 60_000).toISOString();
+  await seedOpenAIConnection({ email: "openai-limited@example.com", rateLimitedUntil: retryAt });
+  await seedOpenAIConnection({
+    email: "runway-limited@example.com",
+    provider: "runwayml",
+    rateLimitedUntil: retryAt,
+  });
+  await seedOpenAIConnection({
+    email: "cohere-limited@example.com",
+    provider: "cohere",
+    rateLimitedUntil: retryAt,
+  });
+  await seedOpenAIConnection({
+    email: "serper-limited@example.com",
+    provider: "serper-search",
+    rateLimitedUntil: retryAt,
+  });
+
+  const token = validApiKey.key;
+  const transcriptionForm = new FormData();
+  transcriptionForm.set("model", "openai/whisper-1");
+
+  const responses = [
+    await moderationsRoute.POST(
+      makeRequest("http://localhost/v1/moderations", {
+        method: "POST",
+        token,
+        body: { model: "openai/omni-moderation-latest", input: "hello" },
+      })
+    ),
+    await audioSpeechRoute.POST(
+      makeRequest("http://localhost/v1/audio/speech", {
+        method: "POST",
+        token,
+        body: { model: "openai/tts-1", input: "hello" },
+      })
+    ),
+    await audioTranscriptionsRoute.POST(
+      new Request("http://localhost/v1/audio/transcriptions", {
+        method: "POST",
+        headers: { authorization: `Bearer ${token}` },
+        body: transcriptionForm,
+      })
+    ),
+    await videosRoute.POST(
+      makeRequest("http://localhost/v1/videos/generations", {
+        method: "POST",
+        token,
+        body: { model: "runwayml/gen4.5", prompt: "a quiet wave" },
+      })
+    ),
+    await rerankRoute.POST(
+      makeRequest("http://localhost/v1/rerank", {
+        method: "POST",
+        token,
+        body: { model: "cohere/rerank-v3.5", query: "hello", documents: ["hello world"] },
+      })
+    ),
+    await searchRoute.POST(
+      makeRequest("http://localhost/v1/search", {
+        method: "POST",
+        token,
+        body: { provider: "serper-search", query: "hello", search_type: "web" },
+      })
+    ),
+  ];
+
+  for (const response of responses) {
+    const body = (await response.json()) as any;
+    assert.equal(response.status, 429);
+    assert.match(body.error.message, /All accounts rate limited/);
+    assert.ok(response.headers.get("retry-after"));
+  }
 });
 
 test("embeddings route tolerates custom-model and provider-node lookup failures", async () => {

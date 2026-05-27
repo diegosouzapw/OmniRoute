@@ -309,7 +309,7 @@ test.describe("Resilience Plan Alignment", () => {
     await expect(
       resiliencePanel.getByRole("heading", { name: "Connection Cooldown", exact: true })
     ).toBeVisible({ timeout: 15000 });
-    await expect(resiliencePanel.getByText(/Cooldown base\s*60000ms/)).toBeVisible();
+    await expect(resiliencePanel.getByText(/Base cooldown\s*60000ms/)).toBeVisible();
     await expect(resiliencePanel.getByText(/Use upstream retry hints\s*No/)).toBeVisible();
     await expect(resiliencePanel.getByText(/Max backoff steps\s*8/)).toBeVisible();
     await expect(resiliencePanel.getByText(/Rate-limit fallback/i)).toHaveCount(0);
@@ -321,12 +321,15 @@ test.describe("Resilience Plan Alignment", () => {
     await mockHealthPageApis(page);
 
     await gotoDashboardRoute(page, "/dashboard/health");
-    await expect(page.getByText("Provider Health")).toBeVisible({ timeout: 15000 });
-    await expect(page.getByText("OpenAI")).toBeVisible();
-    await expect(page.getByText("Gemini")).toBeVisible();
-    await expect(page.getByText("Groq")).toBeVisible();
-    await expect(page.getByText("Recovering", { exact: true }).first()).toBeVisible();
-    await expect(page.getByText("Down", { exact: true }).first()).toBeVisible();
+    const providerHealthRegion = page.getByRole("region", { name: "Provider health status" });
+    await expect(providerHealthRegion).toBeVisible({ timeout: 15000 });
+    await expect(providerHealthRegion.getByText("OpenAI")).toBeVisible();
+    await expect(providerHealthRegion.getByText("Gemini")).toBeVisible();
+    await expect(providerHealthRegion.getByText("Groq")).toBeVisible();
+    await expect(
+      providerHealthRegion.getByText("Recovering", { exact: true }).first()
+    ).toBeVisible();
+    await expect(providerHealthRegion.getByText("Down", { exact: true }).first()).toBeVisible();
   });
 
   test("providers page no longer requests legacy model availability data", async ({ page }) => {

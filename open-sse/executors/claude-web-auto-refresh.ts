@@ -79,8 +79,6 @@ export class ClaudeWebAutoRefreshExecutor extends ClaudeWebExecutor {
         return false;
       }
 
-      log?.warn?.("CLAUDE-WEB", "Initial connection test failed, attempting Turnstile solve");
-
       const freshCfClearance = await getCfClearanceToken();
       const updatedCreds = {
         ...credentials,

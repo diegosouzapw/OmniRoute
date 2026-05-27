@@ -31,6 +31,7 @@ import {
 import type { AutoVariant } from "@omniroute/open-sse/services/autoCombo/autoPrefix.ts";
 import * as log from "../utils/logger";
 import { checkAndRefreshToken } from "../services/tokenRefresh";
+import { createHookContext, runHooks, initPreRequestRegistry } from "@/lib/middleware/registry";
 import { deleteHandoff, getHandoff } from "@/lib/db/contextHandoffs";
 import {
   deleteSessionAccountAffinity,
@@ -199,7 +200,7 @@ export async function handleChat(request: any, clientRawRequest: any = null) {
 
   // Log request endpoint and model
   const url = new URL(request.url);
-  const modelStr = body.model;
+  let modelStr = body.model;
 
   // Count messages (support both messages[] and input[] formats)
   const msgCount = body.messages?.length || body.input?.length || 0;
@@ -294,6 +295,34 @@ export async function handleChat(request: any, clientRawRequest: any = null) {
       }
       registerKeySession(apiKeyInfo.id, sessionId);
     }
+  }
+
+  // T09 — Pre-request Middleware Hooks
+  // Execute user-defined hooks BEFORE task-aware routing and combo selection
+  initPreRequestRegistry();
+  const hookContext = createHookContext({
+    body: body as Record<string, unknown>,
+    headers: Object.fromEntries(request?.headers?.entries() || []) as Record<
+      string,
+      string | string[] | undefined
+    >,
+    model: modelStr,
+    combo: undefined,
+    apiKeyInfo: apiKeyInfo as Record<string, unknown> | undefined,
+    log,
+  });
+
+  const { context: hookCtx, response: hookResponse } = await runHooks(hookContext);
+
+  // Apply hook mutations
+  body = hookCtx.body as any;
+  if (hookCtx.model && hookCtx.model !== modelStr) {
+    modelStr = hookCtx.model;
+  }
+
+  // Short-circuit if a hook returned a direct response
+  if (hookResponse) {
+    return errorResponse(hookResponse.status, hookResponse.body as any);
   }
 
   // T05 — Task-Aware Smart Routing
@@ -409,6 +438,7 @@ export async function handleChat(request: any, clientRawRequest: any = null) {
     const checkModelAvailable = async (
       modelString: string,
       target?: {
+        allowRateLimitedConnection?: boolean;
         connectionId?: string | null;
         allowedConnectionIds?: string[] | null;
         executionKey?: string | null;
@@ -440,6 +470,7 @@ export async function handleChat(request: any, clientRawRequest: any = null) {
         resolvedModel,
         {
           sessionKey: sessionAffinityKey,
+          ...(target?.allowRateLimitedConnection ? { allowRateLimitedConnections: true } : {}),
           ...(target?.connectionId ? { forcedConnectionId: target.connectionId } : {}),
         }
       );
@@ -467,6 +498,7 @@ export async function handleChat(request: any, clientRawRequest: any = null) {
         b: any,
         m: string,
         target?: {
+          allowRateLimitedConnection?: boolean;
           connectionId?: string | null;
           executionKey?: string | null;
           stepId?: string | null;
@@ -491,6 +523,7 @@ export async function handleChat(request: any, clientRawRequest: any = null) {
             comboStepId: target?.stepId || null,
             comboExecutionKey: target?.executionKey || target?.stepId || null,
             skipUpstreamRetry: target?.failoverBeforeRetry ?? false,
+            allowRateLimitedConnection: target?.allowRateLimitedConnection === true,
             preselectedCredentials: comboPreselectedCredentials.get(
               getComboCredentialCacheKey(m, target)
             ),
@@ -622,6 +655,7 @@ async function handleSingleModelChat(
     comboStepId?: string | null;
     comboExecutionKey?: string | null;
     skipUpstreamRetry?: boolean;
+    allowRateLimitedConnection?: boolean;
     preselectedCredentials?: any;
     cachedSettings?: any;
   } = {},
@@ -782,6 +816,9 @@ async function handleSingleModelChat(
               {
                 sessionKey: runtimeOptions.sessionAffinityKey ?? runtimeOptions.sessionId ?? null,
                 excludeConnectionIds: Array.from(excludedConnectionIds),
+                ...(runtimeOptions.allowRateLimitedConnection
+                  ? { allowRateLimitedConnections: true }
+                  : {}),
                 ...(forceLiveComboTest
                   ? {
                       allowSuppressedConnections: true,

@@ -16,8 +16,13 @@ const {
   createProviderConnection,
   createApiKey,
 } = await import("../../src/lib/localDb.ts");
-const { initBatchProcessor, stopBatchProcessor } =
+const { initBatchProcessor, stopBatchProcessor, waitForAllBatches } =
   await import("../../open-sse/services/batchProcessor.ts");
+
+test.afterEach(async () => {
+  stopBatchProcessor();
+  await waitForAllBatches();
+});
 
 // Simple end-to-end check: when a batch item's upstream call succeeds, the
 // batch processor should emit an output file containing a JSONL line per item.

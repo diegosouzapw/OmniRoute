@@ -8,6 +8,7 @@ import { BatchRecord } from "@/lib/db/batches";
 
 export default function BatchFilesPage() {
   const [files, setFiles] = useState<FileRecord[]>([]);
+  const [filesTotal, setFilesTotal] = useState(0);
   const [batches, setBatches] = useState<BatchRecord[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -21,6 +22,7 @@ export default function BatchFilesPage() {
       if (filesRes.ok) {
         const data = await filesRes.json();
         setFiles((data.data || []).map(mapFileApiToRecord));
+        setFilesTotal(data.total_count || 0);
       }
       if (batchesRes.ok) {
         const data = await batchesRes.json();
@@ -38,6 +40,12 @@ export default function BatchFilesPage() {
   }, [fetchAll]);
 
   return (
-    <FilesListTab files={files} loading={loading} onRefresh={fetchAll} batches={batches} />
+    <FilesListTab
+      files={files}
+      filesTotal={filesTotal}
+      loading={loading}
+      onRefresh={fetchAll}
+      batches={batches}
+    />
   );
 }

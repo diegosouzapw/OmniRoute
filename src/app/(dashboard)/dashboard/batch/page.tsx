@@ -149,11 +149,7 @@ export default function BatchPage() {
   return (
     <div className="flex flex-col gap-6">
       {/* Toolbar */}
-      <div className="flex items-center justify-between gap-4 flex-wrap">
-        <span className="text-sm text-text-muted">
-          {batchesTotal ? `${batchesTotal} batches` : "Batches"}
-        </span>
-
+      <div className="flex items-center justify-end gap-4 flex-wrap">
         <button
           onClick={() => fetchData(false)}
           disabled={loading}
@@ -172,6 +168,7 @@ export default function BatchPage() {
         <BatchListTab
           batches={batches}
           files={files}
+          batchesTotal={batchesTotal}
           loading={loading}
           onRefresh={() => fetchData(false)}
         />

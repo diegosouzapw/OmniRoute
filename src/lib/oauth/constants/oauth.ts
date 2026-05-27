@@ -61,6 +61,16 @@ export const CODEX_CONFIG = {
     id_token_add_organizations: "true",
     codex_cli_simplified_flow: "true",
     originator: "codex_cli_rs",
+    // prompt=login forces Auth0/OpenAI to RE-AUTHENTICATE the user instead of
+    // silently reusing an existing browser session. This is THE KEY parameter
+    // that enables multi-account OAuth on the same device + same client_id:
+    // without it, OAuth flow #2 carries over session state from OAuth flow #1
+    // and Auth0 invalidates the previous account's refresh_token family as a
+    // "session takeover". With prompt=login, each OAuth flow creates an
+    // isolated session that does not trample siblings.
+    // Ported from ndycode/codex-multi-auth (auth.ts: forceNewLogin option) —
+    // the only known tool that sustains multiple Codex OAuth accounts.
+    prompt: "login",
   },
 };
 
@@ -154,6 +164,7 @@ export const ANTIGRAVITY_CONFIG = {
   tokenUrl: "https://oauth2.googleapis.com/token",
   userInfoUrl: "https://www.googleapis.com/oauth2/v1/userinfo",
   scopes: [
+    "openid",
     "https://www.googleapis.com/auth/cloud-platform",
     "https://www.googleapis.com/auth/userinfo.email",
     "https://www.googleapis.com/auth/userinfo.profile",
@@ -178,6 +189,9 @@ export const ANTIGRAVITY_CONFIG = {
 
 // OpenAI OAuth Configuration (Authorization Code Flow with PKCE)
 // Re-uses CODEX_CONFIG.clientId to avoid duplication — same provider, different originator.
+// IMPORTANT: same Auth0 backend as Codex → same multi-account session-takeover
+// risk. `prompt: "login"` is mandatory to allow multiple OpenAI Native accounts
+// on the same device. See CODEX_CONFIG above for the full explanation.
 export const OPENAI_CONFIG = {
   clientId: CODEX_CONFIG.clientId,
   authorizeUrl: "https://auth.openai.com/oauth/authorize",
@@ -187,6 +201,7 @@ export const OPENAI_CONFIG = {
   extraParams: {
     id_token_add_organizations: "true",
     originator: "openai_native",
+    prompt: "login",
   },
 };
 
@@ -244,6 +259,15 @@ export const KIRO_CONFIG = {
   socialLoginUrl: "https://prod.us-east-1.auth.desktop.kiro.dev/login",
   socialTokenUrl: "https://prod.us-east-1.auth.desktop.kiro.dev/oauth/token",
   socialRefreshUrl: "https://prod.us-east-1.auth.desktop.kiro.dev/refreshToken",
+  // Social device-code flow (Google/GitHub).
+  // `socialClientId` is a public CLI identifier — Kiro's device endpoint accepts
+  // any non-empty string and behaves like a User-Agent rather than a secret.
+  // The env override exists so operators on locked-down builds can pin a
+  // custom value if AWS ever starts enforcing this field (Hard Rule #11 spirit).
+  socialClientId: process.env.KIRO_OAUTH_CLIENT_ID || "kiro-cli",
+  socialDeviceAuthorizeUrl:
+    "https://prod.us-east-1.auth.desktop.kiro.dev/oauth/device/authorization",
+  socialDevicePollUrl: "https://prod.us-east-1.auth.desktop.kiro.dev/oauth/device/poll",
   // Auth methods
   authMethods: ["builder-id", "idc", "google", "github", "import"],
 };
@@ -274,6 +298,31 @@ export const CURSOR_CONFIG = {
     accessToken: "cursorAuth/accessToken",
     machineId: "storage.serviceMachineId",
   },
+};
+
+// Trae IDE Configuration (#2658)
+//
+// Trae is an AI-native IDE by ByteDance. Authentication is currently imported
+// token only — users sign in inside Trae and paste the resulting API token
+// here. ByteDance has not published a public OAuth client_id/secret or a CLI
+// with extractable credentials, so no automated discovery is possible yet.
+// If ByteDance ever publishes a public device-code or PKCE flow, swap
+// flowType in src/lib/oauth/providers/trae.ts and wire endpoints below.
+export const TRAE_CONFIG = {
+  apiEndpoint: "https://api.trae.ai",
+  clientType: "ide",
+  tokenStoragePaths: {
+    linux: "~/.config/Trae/User/globalStorage/state.vscdb",
+    macos: "/Users/<user>/Library/Application Support/Trae/User/globalStorage/state.vscdb",
+    windows: "%APPDATA%\\Trae\\User\\globalStorage\\state.vscdb",
+  },
+  // Chat completions path (mirrored from OpenAI-compatible providers)
+  chatEndpoint: "/v1/chat/completions",
+  // Trae website — users retrieve their token here after signing in
+  webUrl: "https://trae.ai",
+  // Token storage note for users — no automated extraction path is available
+  // because Trae does not expose a public SQLite / keychain location yet.
+  tokenNote: "Sign in to Trae IDE, then copy your API token from the account settings.",
 };
 
 // Windsurf / Devin CLI Configuration
@@ -337,4 +386,5 @@ export const PROVIDERS = {
   CLINE: "cline",
   WINDSURF: "windsurf",
   DEVIN_CLI: "devin-cli",
+  TRAE: "trae",
 };

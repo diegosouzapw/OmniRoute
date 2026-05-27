@@ -11,6 +11,35 @@ import {
 export { parseModel };
 
 /**
+ * Build a combined model alias map that merges both alias stores:
+ * 1. DB-namespace aliases (key_value WHERE namespace='modelAliases') — set via
+ *    /api/models/alias/ and seeded at startup (e.g. gemini-cli default aliases).
+ * 2. Settings-based aliases (settings.modelAliases) — set via the Settings UI and
+ *    /api/settings/model-aliases/ (stored as a JSON blob in namespace='settings').
+ *
+ * Settings-based aliases take priority so that UI configuration always wins.
+ * Without this merge, aliases configured via the Settings UI were never consulted
+ * during provider routing, causing provider inference (e.g. /^gpt-/ → openai) to
+ * silently override them (issue #2618 / #2208).
+ */
+async function getCombinedModelAliases(): Promise<Record<string, unknown>> {
+  const [dbAliases, settings] = await Promise.all([
+    getModelAliases().catch(() => ({})),
+    getCachedSettings().catch(() => ({}) as Record<string, unknown>),
+  ]);
+
+  const settingsAliases =
+    settings.modelAliases &&
+    typeof settings.modelAliases === "object" &&
+    !Array.isArray(settings.modelAliases)
+      ? (settings.modelAliases as Record<string, unknown>)
+      : {};
+
+  // Settings-based aliases win over DB-namespace aliases on key collision
+  return { ...dbAliases, ...settingsAliases };
+}
+
+/**
  * Resolve model alias from localDb
  */
 export async function resolveModelAlias(alias) {
@@ -97,7 +126,7 @@ export async function getModelInfo(modelStr) {
     try {
       const settings = await getCachedSettings();
       if (settings.stripModelPrefix === true) {
-        const strippedResult = await getModelInfoCore(parsed.model, getModelAliases);
+        const strippedResult = await getModelInfoCore(parsed.model, getCombinedModelAliases);
         return { ...strippedResult, extendedContext };
       }
     } catch {
@@ -109,7 +138,7 @@ export async function getModelInfo(modelStr) {
     return await attachCustomApiFormat(await getModelInfoCore(modelStr, null));
   }
 
-  return await attachCustomApiFormat(await getModelInfoCore(modelStr, getModelAliases));
+  return await attachCustomApiFormat(await getModelInfoCore(modelStr, getCombinedModelAliases));
 }
 
 /**

@@ -1,39 +1,33 @@
 // Provider definitions
 
-// Free Providers
-export const FREE_PROVIDERS = {
-  qoder: { id: "qoder", alias: "if", name: "Qoder AI", icon: "water_drop", color: "#6366F1" },
-  qwen: {
-    id: "qwen",
-    alias: "qw",
-    name: "Qwen Code",
-    icon: "psychology",
-    color: "#10B981",
-    deprecated: true,
-    deprecationReason:
-      "Qwen OAuth free tier was discontinued on 2026-04-15. Use 'bailian-coding-plan', 'alibaba', 'alibaba-cn', or 'openrouter' provider with API key instead.",
-  },
-  "gemini-cli": {
-    id: "gemini-cli",
-    alias: "gemini-cli",
-    name: "Gemini CLI",
-    icon: "terminal",
-    color: "#4285F4",
-    authHint:
-      "Uses Gemini CLI OAuth / Cloud Code credentials. Pro models require an eligible Google account or paid plan.",
-  },
-  kiro: { id: "kiro", alias: "kr", name: "Kiro AI", icon: "psychology_alt", color: "#FF6B35" },
-  "amazon-q": {
-    id: "amazon-q",
-    alias: "aq",
-    name: "Amazon Q",
-    icon: "cloud",
-    color: "#FF9900",
-    textIcon: "AQ",
-    website: "https://aws.amazon.com/q/developer/",
-    authHint:
-      "Uses the same AWS Builder ID or imported refresh-token flow as Kiro, but keeps Amazon Q connections separate.",
-  },
+/**
+ * Service kind — declarative tag for what a provider can do beyond basic LLM chat.
+ * Affects UI filtering and playground routing; does not influence request routing.
+ */
+export type ServiceKind =
+  | "llm"
+  | "embedding"
+  | "image"
+  | "imageToText"
+  | "tts"
+  | "stt"
+  | "webSearch"
+  | "webFetch"
+  | "video"
+  | "music";
+
+export type RiskNoticeVariant = "oauth" | "webCookie" | "deprecated" | "embedded-service";
+
+export interface ProviderRiskNoticeFields {
+  subscriptionRisk?: boolean;
+  riskNoticeVariant?: RiskNoticeVariant;
+  isEmbeddedService?: boolean;
+}
+
+export const FREE_PROVIDERS = {};
+
+// No-auth Providers
+export const NOAUTH_PROVIDERS = {
   opencode: {
     id: "opencode",
     alias: "oc",
@@ -43,6 +37,7 @@ export const FREE_PROVIDERS = {
     textIcon: "OC",
     website: "https://opencode.ai",
     noAuth: true,
+    hasFree: true,
     authHint: "No API key required — uses OpenCode's public free endpoint.",
     freeNote:
       "No API key required — public OpenCode endpoint with Kimi, GLM, Qwen, MiMo, MiniMax models.",
@@ -60,15 +55,89 @@ export function supportsApiKeyOnFreeProvider(providerId: unknown): boolean {
 
 // OAuth Providers
 export const OAUTH_PROVIDERS = {
-  claude: { id: "claude", alias: "cc", name: "Claude Code", icon: "smart_toy", color: "#D97757" },
+  qoder: {
+    id: "qoder",
+    alias: "if",
+    name: "Qoder AI",
+    icon: "water_drop",
+    color: "#6366F1",
+    subscriptionRisk: true,
+    riskNoticeVariant: "oauth",
+    hasFree: true,
+  },
+  qwen: {
+    id: "qwen",
+    alias: "qw",
+    name: "Qwen Code",
+    icon: "psychology",
+    color: "#10B981",
+    subscriptionRisk: true,
+    riskNoticeVariant: "deprecated",
+    deprecated: true,
+    deprecationReason:
+      "Qwen OAuth free tier was discontinued on 2026-04-15. Use 'bailian-coding-plan', 'alibaba', 'alibaba-cn', or 'openrouter' provider with API key instead.",
+  },
+  "gemini-cli": {
+    id: "gemini-cli",
+    alias: "gemini-cli",
+    name: "Gemini CLI",
+    icon: "terminal",
+    color: "#4285F4",
+    subscriptionRisk: true,
+    riskNoticeVariant: "deprecated",
+    hasFree: true,
+    authHint:
+      "Uses Gemini CLI OAuth / Cloud Code credentials. Pro models require an eligible Google account or paid plan.",
+  },
+  kiro: {
+    id: "kiro",
+    alias: "kr",
+    name: "Kiro AI",
+    icon: "psychology_alt",
+    color: "#FF6B35",
+    subscriptionRisk: true,
+    riskNoticeVariant: "deprecated",
+    hasFree: true,
+  },
+  "amazon-q": {
+    id: "amazon-q",
+    alias: "aq",
+    name: "Amazon Q",
+    icon: "cloud",
+    color: "#FF9900",
+    textIcon: "AQ",
+    website: "https://aws.amazon.com/q/developer/",
+    hasFree: true,
+    authHint:
+      "Uses the same AWS Builder ID or imported refresh-token flow as Kiro, but keeps Amazon Q connections separate.",
+  },
+  claude: {
+    id: "claude",
+    alias: "cc",
+    name: "Claude Code",
+    icon: "smart_toy",
+    color: "#D97757",
+    subscriptionRisk: true,
+    riskNoticeVariant: "oauth",
+  },
   antigravity: {
     id: "antigravity",
     alias: undefined,
     name: "Antigravity",
     icon: "rocket_launch",
     color: "#F59E0B",
+    subscriptionRisk: true,
+    riskNoticeVariant: "oauth",
   },
-  codex: { id: "codex", alias: "cx", name: "OpenAI Codex", icon: "code", color: "#3B82F6" },
+  codex: {
+    id: "codex",
+    alias: "cx",
+    name: "OpenAI Codex",
+    icon: "code",
+    color: "#3B82F6",
+    subscriptionRisk: true,
+    riskNoticeVariant: "oauth",
+  },
   github: { id: "github", alias: "gh", name: "GitHub Copilot", icon: "code", color: "#333333" },
   "gitlab-duo": {
     id: "gitlab-duo",
@@ -81,7 +150,15 @@ export const OAUTH_PROVIDERS = {
     authHint:
       "OAuth application with ai_features + read_user scopes. Configure GITLAB_DUO_OAUTH_CLIENT_ID and optionally GITLAB_DUO_OAUTH_CLIENT_SECRET on this OmniRoute instance.",
   },
-  cursor: { id: "cursor", alias: "cu", name: "Cursor IDE", icon: "edit_note", color: "#00D4AA" },
+  cursor: {
+    id: "cursor",
+    alias: "cu",
+    name: "Cursor IDE",
+    icon: "edit_note",
+    color: "#00D4AA",
+    subscriptionRisk: true,
+    riskNoticeVariant: "oauth",
+  },
   zed: {
     id: "zed",
     alias: "zd",
@@ -111,6 +188,8 @@ export const OAUTH_PROVIDERS = {
     icon: "psychology",
     color: "#1E40AF",
     textIcon: "KC",
+    subscriptionRisk: true,
+    riskNoticeVariant: "oauth",
   },
   kilocode: {
     id: "kilocode",
@@ -119,6 +198,8 @@ export const OAUTH_PROVIDERS = {
     icon: "code",
     color: "#FF6B35",
     textIcon: "KC",
+    subscriptionRisk: true,
+    riskNoticeVariant: "oauth",
   },
   cline: {
     id: "cline",
@@ -127,6 +208,8 @@ export const OAUTH_PROVIDERS = {
     icon: "smart_toy",
     color: "#5B9BD5",
     textIcon: "CL",
+    subscriptionRisk: true,
+    riskNoticeVariant: "oauth",
   },
   windsurf: {
     id: "windsurf",
@@ -135,6 +218,8 @@ export const OAUTH_PROVIDERS = {
     icon: "air",
     color: "#00C5A0",
     textIcon: "WS",
+    subscriptionRisk: true,
+    riskNoticeVariant: "oauth",
     authHint:
       "Sign in at windsurf.com to get your token. Visit windsurf.com/show-auth-token after logging in and paste it here, or use the device-code login flow.",
     website: "https://windsurf.com",
@@ -163,6 +248,8 @@ export const WEB_COOKIE_PROVIDERS = {
     textIcon: "CG",
     website: "https://chatgpt.com",
     authHint: "Paste your __Secure-next-auth.session-token cookie value from chatgpt.com",
+    subscriptionRisk: true,
+    riskNoticeVariant: "webCookie",
   },
   "grok-web": {
     id: "grok-web",
@@ -173,6 +260,8 @@ export const WEB_COOKIE_PROVIDERS = {
     textIcon: "GW",
     website: "https://grok.com",
     authHint: "Paste your sso= cookie value from grok.com",
+    subscriptionRisk: true,
+    riskNoticeVariant: "webCookie",
   },
   "gemini-web": {
     id: "gemini-web",
@@ -184,6 +273,8 @@ export const WEB_COOKIE_PROVIDERS = {
     website: "https://gemini.google.com",
     authHint:
       "Paste your __Secure-1PSID cookie value from gemini.google.com. Optionally add __Secure-1PSIDTS separated by semicolon.",
+    subscriptionRisk: true,
+    riskNoticeVariant: "webCookie",
   },
   "perplexity-web": {
     id: "perplexity-web",
@@ -194,6 +285,8 @@ export const WEB_COOKIE_PROVIDERS = {
     textIcon: "PW",
     website: "https://www.perplexity.ai",
     authHint: "Paste your __Secure-next-auth.session-token cookie value from perplexity.ai",
+    subscriptionRisk: true,
+    riskNoticeVariant: "webCookie",
   },
   "blackbox-web": {
     id: "blackbox-web",
@@ -205,6 +298,8 @@ export const WEB_COOKIE_PROVIDERS = {
     website: "https://app.blackbox.ai",
     authHint:
       "Paste your __Secure-authjs.session-token value or full cookie header from app.blackbox.ai",
+    subscriptionRisk: true,
+    riskNoticeVariant: "webCookie",
   },
   "muse-spark-web": {
     id: "muse-spark-web",
@@ -225,6 +320,8 @@ export const WEB_COOKIE_PROVIDERS = {
     textIcon: "CW",
     website: "https://claude.ai",
     authHint: "Paste your session cookie from claude.ai",
+    subscriptionRisk: true,
+    riskNoticeVariant: "webCookie",
   },
   "deepseek-web": {
     id: "deepseek-web",
@@ -236,6 +333,8 @@ export const WEB_COOKIE_PROVIDERS = {
     website: "https://chat.deepseek.com",
     authHint:
       "Paste your userToken from chat.deepseek.com — DevTools → Application → Local Storage → userToken",
+    subscriptionRisk: true,
+    riskNoticeVariant: "webCookie",
   },
   "copilot-web": {
     id: "copilot-web",
@@ -247,6 +346,8 @@ export const WEB_COOKIE_PROVIDERS = {
     website: "https://copilot.microsoft.com",
     authHint:
       "Paste your access_token from copilot.microsoft.com (or export a .har file from DevTools while logged in)",
+    subscriptionRisk: true,
+    riskNoticeVariant: "webCookie",
   },
   "veoaifree-web": {
     id: "veoaifree-web",
@@ -274,6 +375,28 @@ export const WEB_COOKIE_PROVIDERS = {
       "Open t3.chat in your browser, log in, then open DevTools → Application → Local Storage → https://t3.chat. " +
       "Copy the value of 'convex-session-id'. Also open DevTools → Network, copy the Cookie header from any request. " +
       "Paste both values here. See provider setup docs for a step-by-step guide.",
+  },
+  "inner-ai": {
+    id: "inner-ai",
+    alias: "in-ai",
+    name: "Inner.ai (Subscription)",
+    icon: "auto_awesome",
+    color: "#1A56DB",
+    textIcon: "IA",
+    website: "https://app.innerai.com",
+    authHint:
+      "Paste your token cookie and email separated by a space: open DevTools → Application → Cookies → .innerai.com, copy the token value, then append a space and your Inner.ai login email. Example: eyJhbG... user@example.com",
+  },
+  "adapta-web": {
+    id: "adapta-web",
+    alias: "adp-web",
+    name: "Adapta.org (Adapta One Web)",
+    icon: "auto_awesome",
+    color: "#6E3AD3",
+    textIcon: "AW",
+    website: "https://agent.adapta.one",
+    authHint:
+      "Paste your __client cookie value from .clerk.agent.adapta.one (DevTools → Application → Cookies)",
   },
 };
 
@@ -492,9 +615,9 @@ export const APIKEY_PROVIDERS = {
     textIcon: "BR",
     website: "https://aws.amazon.com/bedrock",
     authHint:
-      "Use your Amazon Bedrock API key in Authorization: Bearer <key>. OmniRoute defaults to the OpenAI-compatible bedrock-mantle endpoint in us-east-1; set a regional base URL if your account uses another region or the bedrock-runtime /openai/v1 path.",
+      "Use your Amazon Bedrock API key and configure the AWS region where your models are enabled (for example eu-west-2). OmniRoute calls Bedrock's native Converse API directly.",
     apiHint:
-      "This integration targets Amazon Bedrock's current OpenAI-compatible surface. bedrock-mantle is the default for /models and chat; advanced users can also point baseUrl to bedrock-runtime/.../openai/v1 for runtime-specific model IDs.",
+      "Native Bedrock integration: model discovery uses Bedrock foundation models and inference profiles, while chat uses the regional Bedrock Runtime Converse/ConverseStream APIs.",
     passthroughModels: true,
   },
   watsonx: {
@@ -848,6 +971,7 @@ export const APIKEY_PROVIDERS = {
     color: "#58A6FF",
     textIcon: "OC",
     website: "https://ollama.com/settings/api-keys",
+    hasFree: true,
   },
   huggingface: {
     id: "huggingface",
@@ -888,6 +1012,7 @@ export const APIKEY_PROVIDERS = {
     color: "#4285F4",
     textIcon: "VA",
     website: "https://cloud.google.com/vertex-ai",
+    hasFree: true,
     authHint: "Provide Service Account JSON or OAuth access_token",
   },
   "vertex-partner": {
@@ -2032,6 +2157,91 @@ export const APIKEY_PROVIDERS = {
     passthroughModels: true,
     authHint: "Get API key at monsterapi.ai",
   },
+  // ── Web Fetch Providers ─────────────────────────────────────────────────────
+  firecrawl: {
+    id: "firecrawl",
+    alias: "fc",
+    name: "Firecrawl",
+    icon: "language",
+    color: "#FB923C",
+    textIcon: "FC",
+    website: "https://firecrawl.dev",
+    hasFree: true,
+    notice: {
+      text: "Free tier: 500 fetches/month, no credit card needed.",
+      apiKeyUrl: "https://firecrawl.dev/app/api-keys",
+    },
+    serviceKinds: ["webFetch"],
+  },
+  "jina-reader": {
+    id: "jina-reader",
+    alias: "jr",
+    name: "Jina Reader",
+    icon: "menu_book",
+    color: "#0EA5E9",
+    textIcon: "JR",
+    website: "https://jina.ai/reader",
+    hasFree: true,
+    notice: {
+      text: "Free tier: 1M fetches/month.",
+      apiKeyUrl: "https://jina.ai/api-dashboard",
+    },
+    serviceKinds: ["webFetch"],
+  },
+  byteplus: {
+    id: "byteplus",
+    alias: "bpm",
+    name: "BytePlus ModelArk",
+    icon: "cloud",
+    color: "#2563EB",
+    textIcon: "BP",
+    website: "https://console.byteplus.com/ark",
+    hasFree: true,
+    notice: {
+      text: "Free credits for new accounts. Seed 2.0, Kimi K2 Thinking, GLM 4.7, GPT-OSS-120B available.",
+      apiKeyUrl: "https://console.byteplus.com/ark/region:ark+ap-southeast-1/apiKey",
+    },
+    serviceKinds: ["llm"],
+  },
+  bluesminds: {
+    id: "bluesminds",
+    alias: "bm",
+    name: "BluesMinds",
+    icon: "psychology",
+    color: "#3B82F6",
+    textIcon: "BM",
+    website: "https://www.bluesminds.com",
+    hasFree: true,
+    freeNote:
+      "Free daily pi credits — supports 200+ models including GPT-4o, GPT-4.1, Claude Sonnet 4.5, Gemini 2.0 Flash, DeepSeek V4, Qwen, Kimi K2",
+    apiHint:
+      "Get your API key at https://www.bluesminds.com — OpenAI-compatible endpoint at https://api.bluesminds.com/v1 with free daily credits. VIP models (Claude Opus 4.5, Gemini 2.5 Pro) consume pi credits.",
+  },
+  "freemodel-dev": {
+    id: "freemodel-dev",
+    alias: "fmd",
+    name: "FreeModel.dev",
+    icon: "auto_awesome",
+    color: "#8B5CF6",
+    textIcon: "FM",
+    website: "https://freemodel.dev",
+    hasFree: true,
+    freeNote:
+      "$300 free credits on signup — no credit card required. Access GPT-5.4 and GPT-5.5 (OpenAI's latest flagship models) through an OpenAI-compatible API.",
+    apiHint:
+      "Get $300 free API credits at https://freemodel.dev — no payment info required. OpenAI-compatible endpoint. GPT-5.4 and GPT-5.5 models available.",
+  },
+  freeaiapikey: {
+    id: "freeaiapikey",
+    alias: "faik",
+    name: "FreeAIAPIKey",
+    icon: "vpn_key",
+    color: "#F59E0B",
+    textIcon: "FK",
+    website: "https://freeaiapikey.com",
+    apiHint:
+      "Discounted API proxy for 40+ models including GPT-5, Claude Opus 4.6, Claude Sonnet 4.6, Qwen 3.5. Get your API key at https://freeaiapikey.com/dashboard. Base URL: https://freeaiapikey.com/v1.",
+  },
 };
 
 // Sub-categories within APIKEY_PROVIDERS (used by dashboard and catalog views).
@@ -2227,6 +2437,7 @@ export const LOCAL_PROVIDERS = {
     color: "#FF7043",
     textIcon: "SD",
     website: "https://github.com/AUTOMATIC1111/stable-diffusion-webui",
+    hasFree: true,
     authHint:
       "No API key required. Configure the local WebUI base URL (default: http://localhost:7860).",
     localDefault: "http://localhost:7860",
@@ -2239,6 +2450,7 @@ export const LOCAL_PROVIDERS = {
     color: "#4CAF50",
     textIcon: "CF",
     website: "https://github.com/comfyanonymous/ComfyUI",
+    hasFree: true,
     authHint:
       "No API key required. Configure the local ComfyUI base URL (default: http://localhost:8188).",
     localDefault: "http://localhost:8188",
@@ -2265,7 +2477,9 @@ export const SEARCH_PROVIDERS = {
     color: "#4285F4",
     textIcon: "SP",
     website: "https://serper.dev",
+    hasFree: true,
     authHint: "API key from serper.dev dashboard",
+    serviceKinds: ["webSearch"],
   },
   "brave-search": {
     id: "brave-search",
@@ -2275,6 +2489,7 @@ export const SEARCH_PROVIDERS = {
     color: "#FB542B",
     textIcon: "BR",
     website: "https://brave.com/search/api",
+    hasFree: true,
     authHint: "Subscription token from Brave Search API dashboard",
   },
   "exa-search": {
@@ -2285,7 +2500,9 @@ export const SEARCH_PROVIDERS = {
     color: "#1E40AF",
     textIcon: "EX",
     website: "https://exa.ai",
+    hasFree: true,
     authHint: "API key from dashboard.exa.ai",
+    serviceKinds: ["webSearch", "webFetch"],
   },
   "tavily-search": {
     id: "tavily-search",
@@ -2295,7 +2512,9 @@ export const SEARCH_PROVIDERS = {
     color: "#5B4FDB",
     textIcon: "TV",
     website: "https://tavily.com",
+    hasFree: true,
     authHint: "API key from app.tavily.com (format: tvly-...)",
+    serviceKinds: ["webSearch", "webFetch"],
   },
   "google-pse-search": {
     id: "google-pse-search",
@@ -2345,6 +2564,7 @@ export const SEARCH_PROVIDERS = {
     color: "#1A237E",
     textIcon: "SX",
     website: "https://docs.searxng.org",
+    hasFree: true,
     authHint:
       "API key is optional. Set your SearXNG base URL. Some instances may require a bearer token for access.",
   },
@@ -2457,6 +2677,21 @@ export const UPSTREAM_PROXY_PROVIDERS = {
     binaryName: "cli-proxy-api",
     githubRepo: "router-for-me/CLIProxyAPI",
   },
+  "9router": {
+    id: "9router",
+    alias: "nr",
+    name: "9router",
+    icon: "router",
+    color: "#0EA5E9",
+    textIcon: "9R",
+    website: "https://www.npmjs.com/package/9router",
+    defaultPort: 20130,
+    healthEndpoint: "/api/health",
+    npmPackage: "9router",
+    embedded: true,
+    isEmbeddedService: true,
+    riskNoticeVariant: "embedded-service" as const,
+  },
 };
 
 export const CLOUD_AGENT_PROVIDERS = {
@@ -2525,6 +2760,7 @@ export function providerAllowsOptionalApiKey(providerId: unknown): boolean {
     providerId === "petals" ||
     providerId === "pollinations" ||
     providerId === "copilot-web" ||
+    providerId === "veoaifree-web" ||
     providerId === "hackclub" ||
     providerId === "huggingchat" ||
     providerId === "gitlawb" ||
@@ -2549,6 +2785,7 @@ const BULK_API_KEY_EXCLUDED = new Set([
   "blackbox-web",
   "muse-spark-web",
   "deepseek-web",
+  "inner-ai",
   "qoder",
   "google-pse-search",
   "command-code",
@@ -2581,7 +2818,7 @@ export const SYSTEM_PROVIDERS = {
 
 // All providers (combined)
 export const AI_PROVIDERS = {
-  ...FREE_PROVIDERS,
+  ...NOAUTH_PROVIDERS,
   ...OAUTH_PROVIDERS,
   ...APIKEY_PROVIDERS,
   ...WEB_COOKIE_PROVIDERS,
@@ -2663,7 +2900,7 @@ export const USAGE_SUPPORTED_PROVIDERS = [
 // ── Zod validation at module load (Phase 7.2) ──
 import { validateProviders } from "../validation/providerSchema";
 
-validateProviders(FREE_PROVIDERS, "FREE_PROVIDERS");
+validateProviders(NOAUTH_PROVIDERS, "NOAUTH_PROVIDERS");
 validateProviders(OAUTH_PROVIDERS, "OAUTH_PROVIDERS");
 validateProviders(APIKEY_PROVIDERS, "APIKEY_PROVIDERS");
 validateProviders(WEB_COOKIE_PROVIDERS, "WEB_COOKIE_PROVIDERS");

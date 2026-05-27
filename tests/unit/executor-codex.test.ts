@@ -13,6 +13,12 @@ import {
   parseCodexQuotaHeaders,
 } from "../../open-sse/executors/codex.ts";
 import {
+  clearRememberedResponseFunctionCallsForTesting,
+  rememberResponseConversationState,
+  rememberResponseFunctionCalls,
+} from "../../open-sse/services/responsesToolCallState.ts";
+import { sanitizeReasoningEffortForProvider } from "../../open-sse/executors/base.ts";
+import {
   DEFAULT_THINKING_CONFIG,
   setThinkingBudgetConfig,
   ThinkingMode,
@@ -216,6 +222,76 @@ test("CodexExecutor.transformRequest injects default instructions, clamps reason
   assert.equal(result.stream_options, undefined);
 });
 
+// Issue #2608: gpt-5.5 models reject residual Chat Completions fields via Codex OAuth.
+// The non-passthrough path must strip ALL non-Responses-API fields using an allowlist.
+test("CodexExecutor.transformRequest non-passthrough allowlist strips all residual Chat Completions fields (#2608)", () => {
+  const executor = new CodexExecutor();
+  const body = {
+    model: "gpt-5.5",
+    messages: [{ role: "user", content: "hello" }],
+    instructions: "",
+    // All of these are Chat Completions fields that must be stripped:
+    temperature: 0.7,
+    top_p: 0.9,
+    frequency_penalty: 0.5,
+    presence_penalty: 0.3,
+    logprobs: true,
+    top_logprobs: 3,
+    n: 2,
+    seed: 42,
+    stop: ["\n"],
+    response_format: { type: "json_object" },
+    logit_bias: { "123": 1 },
+    function_call: "auto",
+    functions: [{ name: "test", parameters: {} }],
+    max_completion_tokens: 1000,
+    parallel_tool_calls: true,
+    user: "cursor-user",
+    metadata: { key: "value" },
+    stream_options: { include_usage: true },
+    safety_identifier: "safe-1",
+    suffix: "end",
+    // Custom/arbitrary fields that could be injected by middleware
+    custom_field: "should be stripped",
+    _internal_marker: true,
+  };
+
+  const result = executor.transformRequest("gpt-5.5", body, false, {
+    requestEndpointPath: "/responses",
+  });
+
+  // Allowed Responses API fields should survive
+  assert.equal(result.model, "gpt-5.5");
+  assert.ok(Array.isArray(result.input));
+  assert.equal(typeof result.instructions, "string");
+  assert.equal(result.store, false);
+  assert.equal(result.stream, true);
+
+  // All Chat Completions fields must be stripped
+  assert.equal(result.temperature, undefined, "temperature should be stripped");
+  assert.equal(result.top_p, undefined, "top_p should be stripped");
+  assert.equal(result.frequency_penalty, undefined, "frequency_penalty should be stripped");
+  assert.equal(result.presence_penalty, undefined, "presence_penalty should be stripped");
+  assert.equal(result.logprobs, undefined, "logprobs should be stripped");
+  assert.equal(result.top_logprobs, undefined, "top_logprobs should be stripped");
+  assert.equal(result.n, undefined, "n should be stripped");
+  assert.equal(result.seed, undefined, "seed should be stripped");
+  assert.equal(result.stop, undefined, "stop should be stripped");
+  assert.equal(result.response_format, undefined, "response_format should be stripped");
+  assert.equal(result.logit_bias, undefined, "logit_bias should be stripped");
+  assert.equal(result.function_call, undefined, "function_call should be stripped");
+  assert.equal(result.functions, undefined, "functions should be stripped");
+  assert.equal(result.max_completion_tokens, undefined, "max_completion_tokens should be stripped");
+  assert.equal(result.parallel_tool_calls, undefined, "parallel_tool_calls should be stripped");
+  assert.equal(result.user, undefined, "user should be stripped");
+  assert.equal(result.metadata, undefined, "metadata should be stripped");
+  assert.equal(result.stream_options, undefined, "stream_options should be stripped");
+  assert.equal(result.safety_identifier, undefined, "safety_identifier should be stripped");
+  assert.equal(result.suffix, undefined, "suffix should be stripped");
+  assert.equal(result.custom_field, undefined, "arbitrary custom fields should be stripped");
+  assert.equal(result._internal_marker, undefined, "internal markers should be stripped");
+});
+
 test("CodexExecutor.transformRequest normalizes max reasoning_effort to xhigh", () => {
   const executor = new CodexExecutor();
   const result = executor.transformRequest(
@@ -288,7 +364,19 @@ test("CodexExecutor.transformRequest preserves compact requests and native passt
   assert.equal(result.instructions, "keep this");
 });
 
-test("CodexExecutor.transformRequest preserves previous_response_id without local handling", () => {
+test("CodexExecutor.transformRequest applies flex request default service tier", () => {
+  const executor = new CodexExecutor();
+  const result = executor.transformRequest("gpt-5.5", { input: "hello" }, false, {
+    requestEndpointPath: "/responses",
+    providerSpecificData: {
+      requestDefaults: { serviceTier: "flex" },
+    },
+  });
+
+  assert.equal(result.service_tier, "flex");
+});
+
+test("CodexExecutor.transformRequest preserves store-enabled responses state when explicitly enabled", () => {
   const executor = new CodexExecutor();
   const body = {
     _nativeCodexPassthrough: true,
@@ -563,6 +651,61 @@ test("CodexExecutor.transformRequest keeps gpt-5.5 as the model and applies xhig
 
   assert.equal(result.model, "gpt-5.5");
   assert.equal(result.reasoning.effort, "xhigh");
+});
+
+test("CodexExecutor.transformRequest keeps GPT 5.3 Codex reasoning in Responses shape", () => {
+  const executor = new CodexExecutor();
+  const transformed = executor.transformRequest(
+    "gpt-5.3-codex",
+    {
+      model: "gpt-5.3-codex",
+      input: [],
+      reasoning_effort: "high",
+    },
+    true,
+    {
+      requestEndpointPath: "/responses",
+    }
+  );
+  const sanitized = sanitizeReasoningEffortForProvider(
+    transformed,
+    "codex",
+    "gpt-5.3-codex",
+    null
+  ) as Record<string, unknown>;
+  const reasoning = getRecord(sanitized.reasoning);
+
+  assert.equal(sanitized.model, "gpt-5.3-codex");
+  assert.equal(reasoning.effort, "high");
+  assert.equal(sanitized.reasoning_effort, undefined);
+});
+
+test("CodexExecutor.transformRequest keeps GPT 5.4 Mini reasoning downgrade in Responses shape", () => {
+  const executor = new CodexExecutor();
+  const transformed = executor.transformRequest(
+    "gpt-5.4-mini",
+    {
+      model: "gpt-5.4-mini",
+      input: [],
+      reasoning: { effort: "xhigh", summary: "auto" },
+    },
+    true,
+    {
+      requestEndpointPath: "/responses",
+    }
+  );
+  const sanitized = sanitizeReasoningEffortForProvider(
+    transformed,
+    "codex",
+    "gpt-5.4-mini",
+    null
+  ) as Record<string, unknown>;
+  const reasoning = getRecord(sanitized.reasoning);
+
+  assert.equal(sanitized.model, "gpt-5.4-mini");
+  assert.equal(reasoning.effort, "high");
+  assert.equal(reasoning.summary, "auto");
+  assert.equal(sanitized.reasoning_effort, undefined);
 });
 
 test("CodexExecutor.transformRequest merges Codex installation metadata", () => {

@@ -11,6 +11,7 @@ process.env.DISABLE_SQLITE_AUTO_BACKUP = "true";
 const core = await import("../../src/lib/db/core.ts");
 const databaseSettings = await import("../../src/lib/db/databaseSettings.ts");
 const databaseSettingsRoute = await import("../../src/app/api/settings/database/route.ts");
+const settingsDb = await import("../../src/lib/db/settings.ts");
 const cleanup = await import("../../src/lib/db/cleanup.ts");
 const aggregateHistory = await import("../../src/lib/usage/aggregateHistory.ts");
 
@@ -99,6 +100,23 @@ test("database settings reader supports legacy flat keys and lets nested saves w
   });
 
   assert.equal(databaseSettings.getUserDatabaseSettings().retention.callLogs, 7);
+});
+
+test("database log settings mirror the runtime pipeline toggle", async () => {
+  await settingsDb.updateSettings({ call_log_pipeline_enabled: false });
+
+  assert.equal(databaseSettings.getUserDatabaseSettings().logs.callLogPipelineEnabled, false);
+
+  databaseSettings.updateDatabaseSettings({
+    logs: {
+      ...databaseSettings.getUserDatabaseSettings().logs,
+      callLogPipelineEnabled: true,
+    },
+  });
+
+  const settings = await settingsDb.getSettings();
+  assert.equal(settings.call_log_pipeline_enabled, true);
+  assert.equal(databaseSettings.getUserDatabaseSettings().logs.callLogPipelineEnabled, true);
 });
 
 test("purgeDetailedLogs deletes request_detail_logs", async () => {

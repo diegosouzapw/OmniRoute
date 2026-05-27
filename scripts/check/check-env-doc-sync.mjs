@@ -39,6 +39,8 @@ const IGNORE_FROM_CODE = new Set([
   "PATH",
   "HOME",
   "USER",
+  "LOGNAME",
+  "XDG_CURRENT_DESKTOP",
   "PWD",
   "SHELL",
   "TERM",
@@ -49,6 +51,9 @@ const IGNORE_FROM_CODE = new Set([
   "CI",
   "GITHUB_ACTIONS",
   "RUNNER_OS",
+  // Agent environment / system execution paths.
+  "PROJECT_ROOT",
+  "ARTIFACTS_DIR",
   // OS / Node internals frequently surfaced by indirect dependencies.
   "APPDATA",
   "LOCALAPPDATA",
@@ -57,10 +62,14 @@ const IGNORE_FROM_CODE = new Set([
   "PREFIX",
   // X11 display server — set by the OS/session manager, not OmniRoute config.
   "DISPLAY",
+  // POSIX session vars surfaced by cloudflaredTunnel.ts (env passthrough).
+  "LOGNAME",
+  "XDG_CURRENT_DESKTOP",
   // Next.js / Node test runners — these are framework-managed.
   "NEXT_DIST_DIR",
   "NEXT_PHASE",
   "NEXT_RUNTIME",
+  "NODE_TEST_CONTEXT",
   "VITEST",
   // CI providers (set by the runner).
   "GITHUB_BASE_REF",
@@ -69,6 +78,8 @@ const IGNORE_FROM_CODE = new Set([
   "OMNIROUTE_DISABLE_CLI_TOKEN",
   // update-notifier opt-out for the CLI binary.
   "OMNIROUTE_NO_UPDATE_NOTIFIER",
+  // Headless CLI execution flag for Electron.
+  "OMNIROUTE_HEADLESS",
   // Platform / OS detection vars read by CLI environment helper (bin/cli/utils/environment.mjs).
   // These are external signals set by the host OS or cloud provider — not OmniRoute config.
   "CODESPACES",
@@ -101,10 +112,16 @@ const IGNORE_FROM_CODE = new Set([
   "OMNIROUTE_DOCTOR_LIVENESS_URL",
   "OMNIROUTE_PROVIDER_CATALOG_PATH",
   "OMNIROUTE_PROVIDER_TEST_MODEL",
+  // Test-only opt-out: instructs bin/omniroute.mjs to skip auto-loading the
+  // repository .env so isolation tests get a deterministic environment.
+  "OMNIROUTE_CLI_SKIP_REPO_ENV",
   // Source typo / placeholder.
   "OMNIROUT",
   // Static config alias path (the canonical var is OMNIROUTE_PAYLOAD_RULES_PATH).
   "PAYLOAD_RULES_PATH",
+  // Node.js module resolution path — OS/Node internal, not an OmniRoute config var.
+  // Referenced in resolveSpawnArgs (ninerouter) to pass bundled native modules to subprocess.
+  "NODE_PATH",
 ]);
 
 // Vars documented in ENVIRONMENT.md but intentionally absent from .env.example.
@@ -196,7 +213,7 @@ function scanCodeVars({ cwd } = {}) {
  * Diff helper.
  */
 function diff(set, against) {
-  return [...set].filter((v) => !against.has(v)).sort();
+  return [...set].filter((v) => !against.has(v)).sort((a, b) => a.localeCompare(b));
 }
 
 // ─── Programmatic entry point ──────────────────────────────────────────────

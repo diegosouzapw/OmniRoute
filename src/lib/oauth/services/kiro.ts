@@ -188,7 +188,8 @@ export class KiroService {
     // Imported social tokens (authMethod === "imported") have a registered clientId/clientSecret
     // but a Kiro-social refresh token the OIDC client can't refresh — use the social path (#2467).
     if (clientId && clientSecret && authMethod !== "imported") {
-      const endpoint = `https://oidc.${region || "us-east-1"}.amazonaws.com/token`;
+      const resolvedRegion = region || "us-east-1";
+      const endpoint = `https://oidc.${resolvedRegion}.amazonaws.com/token`;
 
       const response = await fetch(endpoint, {
         method: "POST",
@@ -204,6 +205,41 @@ export class KiroService {
       });
 
       if (!response.ok) {
+        // Client credentials may be expired or invalid (DB import, TTL, browser conflict).
+        // Re-register a fresh OIDC client and retry once before giving up (#2524).
+        console.warn("[kiro refresh] OIDC refresh failed, attempting client re-registration...");
+        try {
+          const newReg = await this.registerClient(resolvedRegion);
+          const retryRes = await fetch(endpoint, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              clientId: newReg.clientId,
+              clientSecret: newReg.clientSecret,
+              refreshToken,
+              grantType: "refresh_token",
+            }),
+          });
+
+          if (retryRes.ok) {
+            const retryData = await retryRes.json();
+            return {
+              accessToken: retryData.accessToken,
+              refreshToken: retryData.refreshToken || refreshToken,
+              expiresIn: retryData.expiresIn,
+              _newClientId: newReg.clientId,
+              _newClientSecret: newReg.clientSecret,
+              _newClientSecretExpiresAt: newReg.clientSecretExpiresAt,
+            };
+          } else {
+            const retryError = await retryRes.text();
+            throw new Error(`Token refresh retry failed after re-registration: ${retryError}`);
+          }
+        } catch (reRegErr) {
+          if (reRegErr.message?.includes("Token refresh retry failed")) throw reRegErr;
+          console.warn("[kiro refresh] Re-registration fallback failed:", reRegErr);
+        }
+
         const error = await response.text();
         throw new Error(`Token refresh failed: ${error}`);
       }

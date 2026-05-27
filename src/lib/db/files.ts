@@ -35,10 +35,10 @@ export function createFile(file: Omit<FileRecord, "id" | "createdAt">): FileReco
     createdAt,
     filename: file.filename,
     purpose: file.purpose,
-    content: file.content,
-    mimeType: file.mimeType,
-    apiKeyId: file.apiKeyId,
-    expiresAt,
+    content: file.content ?? null,
+    mimeType: file.mimeType ?? null,
+    apiKeyId: file.apiKeyId ?? null,
+    expiresAt: expiresAt ?? null,
     deletedAt: null,
   };
 
@@ -75,8 +75,9 @@ export function getFileContent(id: string): Buffer | null {
   const db = getDbInstance();
   const row = db
     .prepare("SELECT content FROM files WHERE id = ? AND deleted_at IS NULL")
-    .get(id) as { content: Buffer } | undefined;
-  return row?.content || null;
+    .get(id) as { content: Buffer | Uint8Array | string | null } | undefined;
+  if (!row?.content) return null;
+  return Buffer.isBuffer(row.content) ? row.content : Buffer.from(row.content);
 }
 
 export function listFiles(

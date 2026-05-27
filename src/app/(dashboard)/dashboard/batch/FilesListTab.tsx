@@ -52,6 +52,7 @@ interface BatchRecord {
 
 interface FilesListTabProps {
   files: FileRecord[];
+  filesTotal?: number;
   loading: boolean;
   onRefresh?: () => void;
   batches?: BatchRecord[];
@@ -81,6 +82,7 @@ function formatBytes(bytes: number): string {
 
 export default function FilesListTab({
   files,
+  filesTotal,
   loading,
   onRefresh,
   batches,
@@ -129,6 +131,9 @@ export default function FilesListTab({
     <div className="flex flex-col gap-4">
       {/* Filters */}
       <div className="flex flex-wrap gap-3 p-4 rounded-xl bg-[var(--color-surface)] border border-[var(--color-border)]">
+        <span className="text-sm text-[var(--color-text-muted)] self-center">
+          {filesTotal ? `${filesTotal} files` : "Files"}
+        </span>
         <input
           type="text"
           placeholder={t("batchFilesListSearchPlaceholder")}

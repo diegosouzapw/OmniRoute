@@ -39,6 +39,22 @@ test("sanitizeReasoningEffortForProvider: xiaomi-mimo downgrades xhigh in nested
   assert.equal((result as any).reasoning.summary, "auto", "other reasoning fields preserved");
 });
 
+test("sanitizeReasoningEffortForProvider: nested reasoning downgrade preserves Responses shape", () => {
+  const body = {
+    model: "responses-only-model",
+    reasoning: { effort: "xhigh", summary: "auto" },
+    input: [],
+  };
+  const result = sanitizeReasoningEffortForProvider(
+    body,
+    "xiaomi-mimo",
+    "responses-only-model",
+    null
+  );
+  assert.equal((result as any).reasoning.effort, "high");
+  assert.equal((result as any).reasoning_effort, undefined);
+});
+
 test("sanitizeReasoningEffortForProvider: mistral/devstral strips reasoning_effort entirely", () => {
   const log = makeLog();
   const body = {
