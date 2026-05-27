@@ -17,8 +17,9 @@ on:
         type: string
 
 permissions:
-  # Editing branch protection requires the administration scope.
-  administration: write
+  # Branch protection administration cannot be requested for GITHUB_TOKEN here.
+  # Set BRANCH_LOCK_TOKEN to a PAT or GitHub App token with repository
+  # administration write access.
   contents: read
 
 jobs:
@@ -27,12 +28,17 @@ jobs:
     steps:
       - name: Lock release/<tag> branch
         env:
-          GH_TOKEN: ${{ secrets.BRANCH_LOCK_TOKEN || secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ secrets.BRANCH_LOCK_TOKEN }}
           # release event -> github.event.release.tag_name; manual -> inputs.tag
           TAG: ${{ github.event.release.tag_name || inputs.tag }}
           REPO: ${{ github.repository }}
         run: |
           set -euo pipefail
+
+          if [ -z "${GH_TOKEN:-}" ]; then
+            echo "::error::BRANCH_LOCK_TOKEN is required and must have repository administration write access."
+            exit 1
+          fi
 
           if [ -z "${TAG}" ]; then
             echo "::error::No tag provided; cannot determine release branch."
@@ -40,16 +46,17 @@ jobs:
           fi
 
           BRANCH="release/${TAG}"
+          BRANCH_API=$(python3 -c 'from urllib.parse import quote; import os; print(quote(os.environ["BRANCH"], safe=""))')
           echo "Target branch: ${BRANCH} (repo: ${REPO})"
 
           # Skip gracefully if the release branch does not exist.
-          if ! gh api "repos/${REPO}/branches/${BRANCH}" >/dev/null 2>&1; then
+          if ! gh api "repos/${REPO}/branches/${BRANCH_API}" >/dev/null 2>&1; then
             echo "::warning::Branch ${BRANCH} not found — nothing to lock."
             exit 0
           fi
 
           echo "Applying lock_branch protection to ${BRANCH}..."
-          gh api -X PUT "repos/${REPO}/branches/${BRANCH}/protection" --input - <<'JSON'
+          gh api -X PUT "repos/${REPO}/branches/${BRANCH_API}/protection" --input - <<'JSON'
           {
             "required_status_checks": null,
             "enforce_admins": true,
@@ -61,7 +68,7 @@ jobs:
           }
           JSON
 
-          LOCKED=$(gh api "repos/${REPO}/branches/${BRANCH}/protection" \
+          LOCKED=$(gh api "repos/${REPO}/branches/${BRANCH_API}/protection" \
             --jq '.lock_branch.enabled')
           if [ "${LOCKED}" != "true" ]; then
             echo "::error::Failed to confirm lock on ${BRANCH} (lock_branch=${LOCKED})."
