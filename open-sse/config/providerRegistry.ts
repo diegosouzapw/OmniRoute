@@ -1296,9 +1296,12 @@ export const REGISTRY: Record<string, RegistryEntry> = {
       // ("Model qwen3.x-* is not supported for format oa-compat") — same
       // upstream behavior already declared for opencode-zen. Route them
       // through /messages with the Claude translator.
-      { id: "qwen3.7-max", name: "Qwen3.7 Max", targetFormat: "claude" },
-      { id: "qwen3.6-plus", name: "Qwen3.6 Plus", targetFormat: "claude" },
-      { id: "qwen3.5-plus", name: "Qwen3.5 Plus", targetFormat: "claude" },
+      // Issue #2822: These models are text-only — mark supportsVision: false
+      // so combo routing skips them when the request contains image blocks,
+      // preventing image content from reaching a vision-incapable upstream.
+      { id: "qwen3.7-max", name: "Qwen3.7 Max", targetFormat: "claude", supportsVision: false },
+      { id: "qwen3.6-plus", name: "Qwen3.6 Plus", targetFormat: "claude", supportsVision: false },
+      { id: "qwen3.5-plus", name: "Qwen3.5 Plus", targetFormat: "claude", supportsVision: false },
       { id: "hy3-preview", name: "Hunyuan3 Preview" },
       { id: "deepseek-v4-pro", name: "DeepSeek V4 Pro", supportsReasoning: true },
       { id: "deepseek-v4-flash", name: "DeepSeek V4 Flash", supportsReasoning: true },
@@ -1374,8 +1377,10 @@ export const REGISTRY: Record<string, RegistryEntry> = {
       // Issue #2292: Qwen models return Claude-format SSE bodies even
       // when hitting /chat/completions. targetFormat: "claude" routes
       // through /messages and the Claude translator.
-      { id: "qwen3.5-plus", name: "Qwen3.5 Plus", targetFormat: "claude" },
-      { id: "qwen3.6-plus", name: "Qwen3.6 Plus", targetFormat: "claude" },
+      // Issue #2822: These models are text-only — supportsVision: false
+      // ensures combo routing skips them on image-bearing requests.
+      { id: "qwen3.5-plus", name: "Qwen3.5 Plus", targetFormat: "claude", supportsVision: false },
+      { id: "qwen3.6-plus", name: "Qwen3.6 Plus", targetFormat: "claude", supportsVision: false },
 
       // ── Free Tier ──────────────────────────────────────────────
       { id: "deepseek-v4-flash-free", name: "DeepSeek V4 Flash Free", supportsReasoning: true },
