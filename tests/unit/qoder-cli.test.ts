@@ -383,3 +383,22 @@ test("validateQoderCliPat rejects 500 HTTP failures if response is Cosy app-leve
     globalThis.fetch = originalFetch;
   }
 });
+
+test("validateQoderCliPat rejects 500 HTTP failures using regex for Internal Server Error with whitespace", async () => {
+  const originalFetch = globalThis.fetch;
+  globalThis.fetch = async (url) => {
+    if (String(url).includes("/ping")) return new Response("pong", { status: 200 });
+    return new Response(
+      ' { "success"  :  false, "error": "Internal   Server    Error" } ',
+      { status: 500 }
+    );
+  };
+
+  try {
+    const result = await qoderCli.validateQoderCliPat({ apiKey: "invalid-pat" });
+    assert.equal(result.valid, false);
+    assert.match(result.error!, /Authentication failed \(HTTP 500\)/);
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+});

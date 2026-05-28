@@ -507,7 +507,7 @@ export async function validateQoderCliPat({
     if (res.status >= 500) {
       const isCosyAppError =
         /"success"\s*:\s*false/.test(errorDetail) &&
-        (/"msgCode"\s*:\s*500/.test(errorDetail) || errorDetail.includes("Internal Server Error"));
+        (/"msgCode"\s*:\s*500/.test(errorDetail) || /internal\s*server\s*error/i.test(errorDetail));
 
       if (isCosyAppError) {
         return {
