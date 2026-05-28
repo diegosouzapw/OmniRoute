@@ -231,15 +231,27 @@ function formatMessagesForPrompt(messages: MessageLike[]): string {
 }
 
 function selectMessagesForSummary(messages: MessageLike[], maxMessages: number): MessageLike[] {
-  const recentMessages = messages.slice(-maxMessages);
+  const system = messages.filter(
+    (m) => typeof m.role === "string" && (m.role === "system" || m.role === "developer")
+  );
+  const nonSystem = messages.filter(
+    (m) => typeof m.role !== "string" || (m.role !== "system" && m.role !== "developer")
+  );
+
+  const recentMessages = [...system, ...nonSystem.slice(-maxMessages)];
   let working = [...recentMessages];
 
-  while (working.length > 1) {
+  while (working.length > system.length + 1) {
     const history = formatMessagesForPrompt(working);
     if (estimateTokens(history) <= MAX_HISTORY_TOKENS_FOR_SUMMARY) {
       return working;
     }
-    working = working.slice(1);
+    working = [...system, ...working.slice(system.length + 1)];
+  }
+
+  const fallbackHistory = formatMessagesForPrompt(working);
+  if (estimateTokens(fallbackHistory) > MAX_HISTORY_TOKENS_FOR_SUMMARY) {
+    return system;
   }
 
   return working;
