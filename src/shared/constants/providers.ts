@@ -2890,6 +2890,7 @@ export const USAGE_SUPPORTED_PROVIDERS = [
   "glm-cn",
   "zai",
   "glmt",
+  "opencode-go",
   "minimax",
   "minimax-cn",
   "crof",

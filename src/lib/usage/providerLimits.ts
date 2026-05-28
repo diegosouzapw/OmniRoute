@@ -53,6 +53,7 @@ const PROVIDER_LIMITS_APIKEY_PROVIDERS = new Set([
   "glm-cn",
   "zai",
   "glmt",
+  "opencode-go",
   "minimax",
   "minimax-cn",
   "crof",
