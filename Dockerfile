@@ -43,7 +43,7 @@ ENV OMNIROUTE_USE_TURBOPACK=1
 
 COPY . ./
 RUN --mount=type=cache,target=/app/.next/cache \
-  mkdir -p /app/data && NODE_OPTIONS="--max-old-space-size=4096" npm run build -- --webpack
+  mkdir -p /app/data && npm run build
 
 # ── Runner base ────────────────────────────────────────────────────────────
 FROM base AS runner-base
