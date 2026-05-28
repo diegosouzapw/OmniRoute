@@ -14,7 +14,7 @@ export const HIDEABLE_SIDEBAR_ITEM_IDS = [
   "context-combos",
   // OmniProxy > Tools
   "cli-tools",
-  "agents",
+  "acp-agents",
   "cloud-agents",
   // OmniProxy > Integrations
   "api-endpoints",
@@ -236,10 +236,10 @@ const TOOLS_GROUP: SidebarItemGroup = {
       icon: "terminal",
     },
     {
-      id: "agents",
-      href: "/dashboard/agents",
-      i18nKey: "agents",
-      subtitleKey: "agentsSubtitle",
+      id: "acp-agents",
+      href: "/dashboard/acp-agents",
+      i18nKey: "acpAgents",
+      subtitleKey: "acpAgentsSubtitle",
       icon: "smart_toy",
     },
     {
@@ -802,7 +802,7 @@ const DEVELOPER_SHOWN: ReadonlySet<HideableSidebarItemId> = new Set([
   "context-rtk",
   "context-combos",
   "cli-tools",
-  "agents",
+  "acp-agents",
   "api-endpoints",
   "analytics",
   "analytics-combo-health",

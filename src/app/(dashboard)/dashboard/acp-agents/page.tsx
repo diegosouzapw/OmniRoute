@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
 import { Card, Button, Input } from "@/shared/components";
 import ProviderIcon from "@/shared/components/ProviderIcon";
+import { CliConceptCard, CliComparisonCard } from "@/shared/components/cli";
 import { useTranslations } from "next-intl";
 
 interface AgentInfo {
@@ -65,7 +66,7 @@ export default function AgentsPage() {
     versionCommand: "",
     spawnArgs: "",
   });
-  const t = useTranslations("agents");
+  const t = useTranslations("acpAgents");
 
   const fetchAgents = useCallback(async () => {
     try {
@@ -160,174 +161,8 @@ export default function AgentsPage() {
         </Button>
       </div>
 
-      <Card className="border-blue-500/20 bg-blue-500/5">
-        <div className="flex flex-col gap-4">
-          <div className="flex items-start justify-between gap-4 flex-wrap">
-            <div>
-              <h2 className="text-sm font-semibold text-text-main">{t("architectureTitle")}</h2>
-              <p className="text-sm text-text-muted mt-1">{t("architectureDescription")}</p>
-            </div>
-            <Link
-              href="/dashboard/cli-tools"
-              className="inline-flex items-center gap-1.5 rounded-lg border border-blue-500/20 px-3 py-1.5 text-xs text-blue-500 hover:bg-blue-500/10 transition-colors"
-            >
-              <span className="material-symbols-outlined text-[14px]">open_in_new</span>
-              {t("cliToolsRedirectCta")}
-            </Link>
-          </div>
-          <div className="flex flex-wrap items-center gap-1 text-xs">
-            <span className="rounded-full bg-primary/10 px-3 py-1 font-medium text-primary">
-              {t("flowOmniRoute")}
-            </span>
-            <span className="material-symbols-outlined text-[14px] text-text-muted">
-              arrow_forward
-            </span>
-            <span className="rounded-full bg-amber-500/10 px-3 py-1 font-medium text-amber-600 dark:text-amber-400">
-              {t("flowSpawn")}
-            </span>
-            <span className="material-symbols-outlined text-[14px] text-text-muted">
-              arrow_forward
-            </span>
-            <span className="rounded-full bg-emerald-500/10 px-3 py-1 font-medium text-emerald-600 dark:text-emerald-400">
-              {t("flowLocalBinary")}
-            </span>
-            <span className="material-symbols-outlined text-[14px] text-text-muted">
-              arrow_forward
-            </span>
-            <span className="rounded-full bg-blue-500/10 px-3 py-1 font-medium text-blue-500">
-              {t("flowExecute")}
-            </span>
-          </div>
-          <div className="rounded-lg border border-border/30 bg-surface/20 p-4">
-            <div className="flex flex-col items-stretch gap-0 md:flex-row">
-              <div className="flex flex-1 flex-col items-center p-3 text-center">
-                <div className="mb-2 flex h-10 w-10 items-center justify-center rounded-full bg-text-main/10">
-                  <span className="material-symbols-outlined text-[20px] text-text-main">
-                    devices
-                  </span>
-                </div>
-                <p className="text-xs font-semibold text-text-main">{t("flowDiagramClient")}</p>
-                <p className="mt-0.5 text-[10px] text-text-muted">{t("flowDiagramClientDesc")}</p>
-              </div>
-              <div className="flex items-center justify-center px-2 py-1 md:py-0">
-                <span className="material-symbols-outlined rotate-90 text-[20px] text-primary md:rotate-0">
-                  arrow_forward
-                </span>
-              </div>
-              <div className="flex flex-1 flex-col items-center rounded-lg border border-primary/20 bg-primary/5 p-3 text-center">
-                <div className="mb-2 flex h-10 w-10 items-center justify-center rounded-full bg-primary/10">
-                  <span className="material-symbols-outlined text-[20px] text-primary">hub</span>
-                </div>
-                <p className="text-xs font-semibold text-primary">{t("flowDiagramOmniRoute")}</p>
-                <p className="mt-0.5 text-[10px] text-text-muted">
-                  {t("flowDiagramOmniRouteDesc")}
-                </p>
-              </div>
-              <div className="flex items-center justify-center px-2 py-1 md:py-0">
-                <span className="material-symbols-outlined rotate-90 text-[20px] text-amber-500 md:rotate-0">
-                  arrow_forward
-                </span>
-              </div>
-              <div className="flex flex-1 flex-col items-center rounded-lg border border-amber-500/20 bg-amber-500/5 p-3 text-center">
-                <div className="mb-2 flex h-10 w-10 items-center justify-center rounded-full bg-amber-500/10">
-                  <span className="material-symbols-outlined text-[20px] text-amber-600 dark:text-amber-400">
-                    launch
-                  </span>
-                </div>
-                <p className="text-xs font-semibold text-amber-600 dark:text-amber-400">
-                  {t("flowDiagramSpawn")}
-                </p>
-                <p className="mt-0.5 text-[10px] text-text-muted">{t("flowDiagramSpawnDesc")}</p>
-              </div>
-              <div className="flex items-center justify-center px-2 py-1 md:py-0">
-                <span className="material-symbols-outlined rotate-90 text-[20px] text-emerald-500 md:rotate-0">
-                  arrow_forward
-                </span>
-              </div>
-              <div className="flex flex-1 flex-col items-center rounded-lg border border-emerald-500/20 bg-emerald-500/5 p-3 text-center">
-                <div className="mb-2 flex h-10 w-10 items-center justify-center rounded-full bg-emerald-500/10">
-                  <span className="material-symbols-outlined text-[20px] text-emerald-600 dark:text-emerald-400">
-                    terminal
-                  </span>
-                </div>
-                <p className="text-xs font-semibold text-emerald-600 dark:text-emerald-400">
-                  {t("flowDiagramCli")}
-                </p>
-                <p className="mt-0.5 text-[10px] text-text-muted">{t("flowDiagramCliDesc")}</p>
-              </div>
-            </div>
-          </div>
-          <div className="rounded-lg border border-blue-500/15 bg-surface/40 p-3 text-sm text-text-muted">
-            <span className="font-medium text-text-main">{t("cliToolsRedirectTitle")}</span>{" "}
-            {t("cliToolsRedirectDesc")}{" "}
-            <Link href="/dashboard/cli-tools" className="text-blue-500 hover:underline">
-              {t("openCliTools")}
-            </Link>
-            .
-          </div>
-        </div>
-      </Card>
-
-      <Card className="border-amber-500/20 bg-amber-500/5">
-        <div className="flex flex-col gap-4">
-          <div className="flex items-center gap-3">
-            <div className="rounded-lg bg-amber-500/10 p-2 text-amber-600 dark:text-amber-400">
-              <span className="material-symbols-outlined text-[20px]" aria-hidden="true">
-                compare_arrows
-              </span>
-            </div>
-            <h3 className="text-sm font-semibold text-text-main">{t("comparisonTitle")}</h3>
-          </div>
-
-          <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
-            <div className="rounded-lg border border-blue-500/20 bg-blue-500/5 p-4">
-              <div className="mb-2 flex items-center gap-2">
-                <span className="material-symbols-outlined text-[16px] text-blue-500">
-                  arrow_forward
-                </span>
-                <p className="text-xs font-semibold uppercase tracking-wide text-blue-600 dark:text-blue-400">
-                  {t("comparisonCliToolsLabel")}
-                </p>
-              </div>
-              <p className="mb-1 text-sm font-medium text-text-main">
-                {t("comparisonCliToolsTitle")}
-              </p>
-              <p className="text-xs text-text-muted">{t("comparisonCliToolsDesc")}</p>
-              <div className="mt-3 flex flex-wrap items-center gap-1.5 text-[11px] font-mono text-blue-500">
-                <span>IDE</span>
-                <span className="material-symbols-outlined text-[12px]">arrow_forward</span>
-                <span>OmniRoute</span>
-                <span className="material-symbols-outlined text-[12px]">arrow_forward</span>
-                <span>Provider API</span>
-              </div>
-            </div>
-
-            <div className="rounded-lg border border-emerald-500/20 bg-emerald-500/5 p-4">
-              <div className="mb-2 flex items-center gap-2">
-                <span className="material-symbols-outlined text-[16px] text-emerald-500">
-                  arrow_back
-                </span>
-                <p className="text-xs font-semibold uppercase tracking-wide text-emerald-600 dark:text-emerald-400">
-                  {t("comparisonAgentsLabel")}
-                </p>
-              </div>
-              <p className="mb-1 text-sm font-medium text-text-main">
-                {t("comparisonAgentsTitle")}
-              </p>
-              <p className="text-xs text-text-muted">{t("comparisonAgentsDesc")}</p>
-              <div className="mt-3 flex flex-wrap items-center gap-1.5 text-[11px] font-mono text-emerald-500">
-                <span>Client</span>
-                <span className="material-symbols-outlined text-[12px]">arrow_forward</span>
-                <span>OmniRoute</span>
-                <span className="material-symbols-outlined text-[12px]">arrow_forward</span>
-                <span>CLI Binary</span>
-              </div>
-            </div>
-          </div>
-
-          <p className="text-xs text-text-muted">{t("comparisonSummary")}</p>
-        </div>
-      </Card>
+      <CliConceptCard currentType="acp" />
+      <CliComparisonCard currentType="acp" />
 
       {/* Summary Cards */}
       {summary && (
@@ -363,10 +198,10 @@ export default function AgentsPage() {
             <h3 className="text-lg font-semibold">{t("setupGuideTitle")}</h3>
           </div>
           <Link
-            href="/dashboard/cli-tools"
+            href="/dashboard/cli-code"
             className="text-xs px-2.5 py-1.5 rounded-lg border border-border/60 hover:bg-surface/40 transition-colors"
           >
-            {t("openCliTools")}
+            {t("cliCodeRedirectCta")}
           </Link>
         </div>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
