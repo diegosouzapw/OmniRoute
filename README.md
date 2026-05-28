@@ -1,4 +1,5 @@
 [![MseeP.ai Security Assessment Badge](https://mseep.net/pr/diegosouzapw-omniroute-badge.png)](https://mseep.ai/app/diegosouzapw-omniroute)
+[![AI Slop Inside](https://sladge.net/badge.svg)](https://sladge.net)
 
 # 🚀 OmniRoute — The Free AI Gateway
 
