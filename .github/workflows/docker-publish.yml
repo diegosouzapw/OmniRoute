@@ -35,7 +35,7 @@ permissions:
 jobs:
   prepare:
     name: Resolve Docker release metadata
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     outputs:
       version: ${{ steps.version.outputs.version }}
       promote_latest: ${{ steps.version.outputs.promote_latest }}
@@ -202,7 +202,7 @@ jobs:
       - prepare
       - build
     if: needs.prepare.outputs.skip != 'true'
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     env:
       IMAGE_NAME: diegosouzapw/omniroute
       GHCR_IMAGE_NAME: ghcr.io/diegosouzapw/omniroute
