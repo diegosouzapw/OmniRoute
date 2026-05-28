@@ -69,16 +69,41 @@ function getUploadedFileName(file: Blob & { name?: unknown }): string {
   return typeof file.name === "string" && file.name.length > 0 ? file.name : "audio.wav";
 }
 
-/**
- * Re-buffer a Blob/File into a standalone File to avoid cross-realm
- * serialisation issues (Next.js 16 Server Action workaround — Blobs
- * obtained from a cached FormData may not serialise to a new FormData).
- */
-async function ensureSafeFile(file: Blob & { name?: unknown }): Promise<File> {
-  const buf = await file.arrayBuffer();
-  return new File([buf], getUploadedFileName(file), {
-    type: typeof file.type === "string" && file.type.length > 0 ? file.type : "audio/wav",
-  });
+async function buildMultipartBody(
+  file: Blob & { name?: unknown },
+  fields: Record<string, string>
+): Promise<{ body: ArrayBuffer; contentType: string }> {
+  const boundary = "----OmniRouteAudioBoundary" + Date.now().toString(36);
+  const parts: Uint8Array[] = [];
+  const encoder = new TextEncoder();
+
+  for (const [name, value] of Object.entries(fields)) {
+    parts.push(
+      encoder.encode(
+        `--${boundary}\r\nContent-Disposition: form-data; name="${name}"\r\n\r\n${value}\r\n`
+      )
+    );
+  }
+
+  const fileName = getUploadedFileName(file);
+  const fileBytes = new Uint8Array(await file.arrayBuffer());
+  parts.push(
+    encoder.encode(
+      `--${boundary}\r\nContent-Disposition: form-data; name="file"; filename="${fileName}"\r\nContent-Type: ${file.type || "application/octet-stream"}\r\n\r\n`
+    )
+  );
+  parts.push(fileBytes);
+  parts.push(encoder.encode(`\r\n--${boundary}--\r\n`));
+
+  const totalLength = parts.reduce((sum, p) => sum + p.length, 0);
+  const body = new Uint8Array(totalLength);
+  let offset = 0;
+  for (const part of parts) {
+    body.set(part, offset);
+    offset += part.length;
+  }
+
+  return { body: body.buffer, contentType: `multipart/form-data; boundary=${boundary}` };
 }
 
 /**
@@ -243,15 +268,12 @@ async function handleAssemblyAITranscription(providerConfig, file, modelId, toke
  * Multipart POST, transform response to { text }
  */
 async function handleNvidiaTranscription(providerConfig, file, modelId, token) {
-  const safeFile = await ensureSafeFile(file);
-  const upstreamForm = new FormData();
-  upstreamForm.append("file", safeFile, getUploadedFileName(file));
-  upstreamForm.append("model", modelId);
+  const { body, contentType } = await buildMultipartBody(file, { model: modelId });
 
   const res = await fetch(providerConfig.baseUrl, {
     method: "POST",
-    headers: buildAuthHeaders(providerConfig, token),
-    body: upstreamForm,
+    headers: { ...buildAuthHeaders(providerConfig, token), "Content-Type": contentType },
+    body,
   });
 
   if (!res.ok) {
@@ -362,12 +384,11 @@ async function pollKieTranscriptionResult(baseUrl, modelId, taskId, token) {
     });
 
     if (state === "success") {
-      const d = data as { data?: { response?: { text?: string }; resultText?: string; text?: string }; text?: string } | undefined;
       const text =
-        d?.data?.response?.text ||
-        d?.data?.resultText ||
-        d?.data?.text ||
-        d?.text ||
+        data?.data?.response?.text ||
+        data?.data?.resultText ||
+        data?.data?.text ||
+        data?.text ||
         "";
       return Response.json({ text }, { headers: { ...CORS_HEADERS } });
     }
@@ -460,12 +481,7 @@ export async function handleAudioTranscription({
   }
 
   // Default: OpenAI/Groq/Qwen3-compatible multipart proxy
-  const safeFile = await ensureSafeFile(file);
-  const upstreamForm = new FormData();
-  upstreamForm.append("file", safeFile, getUploadedFileName(file));
-  upstreamForm.append("model", modelId);
-
-  // Forward optional parameters
+  const extraFields: Record<string, string> = {};
   for (const key of [
     "language",
     "prompt",
@@ -475,15 +491,20 @@ export async function handleAudioTranscription({
   ]) {
     const val = formData.get(key);
     if (val !== null && val !== undefined) {
-      upstreamForm.append(key, /** @type {string} */ val);
+      extraFields[key] = String(val);
     }
   }
+
+  const { body: multipartBody, contentType: multipartCT } = await buildMultipartBody(file, {
+    model: modelId,
+    ...extraFields,
+  });
 
   try {
     const res = await fetch(providerConfig.baseUrl, {
       method: "POST",
-      headers: buildAuthHeaders(providerConfig, token),
-      body: upstreamForm,
+      headers: { ...buildAuthHeaders(providerConfig, token), "Content-Type": multipartCT },
+      body: multipartBody,
     });
 
     if (!res.ok) {
@@ -491,11 +512,11 @@ export async function handleAudioTranscription({
     }
 
     const data = await res.text();
-    const contentType = res.headers.get("content-type") || "application/json";
+    const respContentType = res.headers.get("content-type") || "application/json";
 
     return new Response(data, {
       status: 200,
-      headers: { "Content-Type": contentType },
+      headers: { "Content-Type": respContentType },
     });
   } catch (err) {
     const error = err instanceof Error ? err : new Error(String(err));
