@@ -368,3 +368,25 @@ test("context handoff DB module upserts and deletes active handoffs", () => {
   handoffDb.deleteHandoff("sess-db", "relay-combo");
   assert.equal(handoffDb.getHandoff("sess-db", "relay-combo"), null);
 });
+
+test("selectMessagesForSummary filters falsy values and preserves system/developer messages", () => {
+  const messages = [
+    null,
+    undefined,
+    { role: "system", content: "System 1" },
+    false,
+    { role: "user", content: "User 1" },
+    { role: "developer", content: "Dev 1" },
+    { role: "assistant", content: "Assistant 1" },
+    { role: "user", content: "User 2" }
+  ];
+  
+  const selected = contextHandoff.selectMessagesForSummary(messages, 2);
+  
+  assert.equal(selected.length, 4);
+  assert.equal(selected[0].role, "system");
+  assert.equal(selected[1].role, "developer");
+  assert.equal(selected[2].role, "assistant");
+  assert.equal(selected[3].role, "user");
+  assert.equal(selected[3].content, "User 2");
+});

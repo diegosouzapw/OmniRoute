@@ -230,11 +230,12 @@ function formatMessagesForPrompt(messages: MessageLike[]): string {
     .join("\n\n");
 }
 
-function selectMessagesForSummary(messages: MessageLike[], maxMessages: number): MessageLike[] {
-  const system = messages.filter(
+export function selectMessagesForSummary(messages: MessageLike[], maxMessages: number): MessageLike[] {
+  const validMessages = messages.filter((m) => m && typeof m === "object");
+  const system = validMessages.filter(
     (m) => typeof m.role === "string" && (m.role === "system" || m.role === "developer")
   );
-  const nonSystem = messages.filter(
+  const nonSystem = validMessages.filter(
     (m) => typeof m.role !== "string" || (m.role !== "system" && m.role !== "developer")
   );
 
