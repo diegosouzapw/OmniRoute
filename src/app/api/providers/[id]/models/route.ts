@@ -96,7 +96,9 @@ function toNonEmptyString(value: unknown): string | null {
 function toGeminiCliProjectId(value: unknown): string | null {
   const normalized = toNonEmptyString(value);
   if (!normalized) return null;
-  return normalized.toLowerCase() === "default-project" ? null : normalized;
+  const lower = normalized.toLowerCase();
+  if (lower === "default-project" || lower === "projects/default-project") return null;
+  return normalized;
 }
 
 function getProviderBaseUrl(providerSpecificData: unknown): string | null {

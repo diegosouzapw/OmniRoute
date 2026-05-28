@@ -357,6 +357,25 @@ test("GeminiCLIExecutor.transformRequest prefers DB projectId over default-proje
   assert.equal(transformed.project, "projects/custom-from-psd");
 });
 
+test("GeminiCLIExecutor.transformRequest ignores projects/default-project placeholders", async () => {
+  const executor = new GeminiCLIExecutor();
+
+  const transformed = await executor.transformRequest(
+    "gemini-2.5-flash",
+    {
+      project: "projects/default-project",
+      request: { contents: [{ role: "user", parts: [{ text: "Hello" }] }] },
+    },
+    true,
+    {
+      projectId: "default-project",
+      providerSpecificData: { projectId: "projects/default-project" },
+    }
+  );
+
+  assert.equal(transformed.project, undefined);
+});
+
 test("GeminiCLIExecutor.refreshCredentials exchanges refresh tokens via Google OAuth", async () => {
   const executor = new GeminiCLIExecutor();
   const originalFetch = globalThis.fetch;

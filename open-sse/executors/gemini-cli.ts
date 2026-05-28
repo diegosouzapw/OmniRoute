@@ -82,7 +82,10 @@ function resolveGeminiCliProjectId(value: unknown): string {
   if (typeof value !== "string") return "";
   const trimmed = value.trim();
   if (!trimmed) return "";
-  if (trimmed.toLowerCase() === DEFAULT_PROJECT_ID) return "";
+  const normalized = trimmed.toLowerCase();
+  if (normalized === DEFAULT_PROJECT_ID || normalized === `projects/${DEFAULT_PROJECT_ID}`) {
+    return "";
+  }
   return trimmed;
 }
 
@@ -123,8 +126,6 @@ function sleep(ms: number): Promise<void> {
 }
 
 export class GeminiCLIExecutor extends BaseExecutor {
-  private _currentModel = "unknown";
-
   constructor() {
     super("gemini-cli", PROVIDERS["gemini-cli"]);
   }
@@ -144,8 +145,7 @@ export class GeminiCLIExecutor extends BaseExecutor {
   ) {
     void clientHeaders;
 
-    // Fallback to internal tracker if model not explicitly passed (matches older interface calls)
-    const activeModel = model || this._currentModel || "unknown";
+    const activeModel = model || "unknown";
 
     const raw = getGeminiCliHeaders(
       normalizeGeminiModel(activeModel),
@@ -318,7 +318,6 @@ export class GeminiCLIExecutor extends BaseExecutor {
   }
 
   async transformRequest(model, body, stream, credentials) {
-    this._currentModel = normalizeGeminiModel(model);
     const currentModel = normalizeGeminiModel(model);
     const normalizedBody =
       shouldStripCloudCodeThinking(this.provider, currentModel) && body && typeof body === "object"

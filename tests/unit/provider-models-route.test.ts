@@ -667,6 +667,28 @@ test("provider models route prefers providerSpecificData projectId over default-
   ]);
 });
 
+test("provider models route rejects projects/default-project placeholders", async () => {
+  const connection = await seedConnection("gemini-cli", {
+    authType: "oauth",
+    accessToken: "gemini-cli-access",
+    apiKey: null,
+    projectId: "projects/default-project",
+    providerSpecificData: {
+      projectId: "default-project",
+    },
+  });
+
+  globalThis.fetch = async () => {
+    throw new Error("retrieveUserQuota should not be called for placeholder project IDs");
+  };
+
+  const response = await callRoute(connection.id);
+  const body = (await response.json()) as any;
+
+  assert.equal(response.status, 400);
+  assert.equal(body.error, "Gemini CLI project ID not available. Please reconnect OAuth.");
+});
+
 test("provider models route retries Antigravity discovery endpoints before returning remote models", async () => {
   const connection = await seedConnection("antigravity", {
     authType: "oauth",
