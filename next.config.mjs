@@ -62,6 +62,22 @@ function isNextIntlExtractorDynamicImportWarning(warning) {
   );
 }
 
+// OMNIROUTE_BUILD_PROFILE=minimal physically removes four optional privileged
+// modules (MITM cert install, Zed keychain import, Cloud Sync, 9router
+// installer) from the built bundle by aliasing them to feature-disabled stubs.
+// The resulting artifact is intended to be published as `omniroute-secure`
+// for security-sensitive environments. See docs/security/SOCKET_DEV_FINDINGS.md.
+const isMinimalBuild = process.env.OMNIROUTE_BUILD_PROFILE === "minimal";
+
+const minimalBuildAliases = isMinimalBuild
+  ? {
+      "@/mitm/cert/install": "./src/mitm/cert/install.stub.ts",
+      "@/lib/zed-oauth/keychain-reader": "./src/lib/zed-oauth/keychain-reader.stub.ts",
+      "@/lib/cloudSync": "./src/lib/cloudSync.stub.ts",
+      "@/lib/services/installers/ninerouter": "./src/lib/services/installers/ninerouter.stub.ts",
+    }
+  : {};
+
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   distDir,
@@ -71,6 +87,7 @@ const nextConfig = {
     resolveAlias: {
       // Point mitm/manager to a stub during build (native child_process/fs can't be bundled)
       "@/mitm/manager": "./src/mitm/manager.stub.ts",
+      ...minimalBuildAliases,
     },
   },
   output: "standalone",
@@ -153,11 +170,35 @@ const nextConfig = {
     // TODO: Re-enable after fixing all sub-component useTranslations scope issues
     ignoreBuildErrors: true,
   },
-  webpack(config) {
+  webpack(config, { webpack }) {
     config.ignoreWarnings = [
       ...(config.ignoreWarnings || []),
       isNextIntlExtractorDynamicImportWarning,
     ];
+
+    if (isMinimalBuild) {
+      // Mirror the turbopack.resolveAlias entries for webpack-built artifacts.
+      // NormalModuleReplacementPlugin swaps the real module for a stub before
+      // webpack resolves it, so the privileged source files are never compiled
+      // into the standalone output.
+      const replacements = [
+        [/^@\/mitm\/cert\/install$/, "./src/mitm/cert/install.stub.ts"],
+        [/^@\/lib\/zed-oauth\/keychain-reader$/, "./src/lib/zed-oauth/keychain-reader.stub.ts"],
+        [/^@\/lib\/cloudSync$/, "./src/lib/cloudSync.stub.ts"],
+        [
+          /^@\/lib\/services\/installers\/ninerouter$/,
+          "./src/lib/services/installers/ninerouter.stub.ts",
+        ],
+      ];
+      for (const [pattern, stubPath] of replacements) {
+        config.plugins.push(
+          new webpack.NormalModuleReplacementPlugin(pattern, (resource) => {
+            resource.request = stubPath;
+          })
+        );
+      }
+    }
+
     return config;
   },
   images: {

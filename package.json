@@ -70,6 +70,7 @@
     "prebuild:docs": "node scripts/docs/gen-openapi-module.mjs",
     "gen:provider-reference": "node --import tsx scripts/docs/gen-provider-reference.ts",
     "build": "node scripts/build/build-next-isolated.mjs",
+    "build:secure": "OMNIROUTE_BUILD_PROFILE=minimal node scripts/build/build-next-isolated.mjs",
     "build:cli": "node --import tsx scripts/build/prepublish.ts",
     "start": "node scripts/dev/run-next.mjs start",
     "lint": "eslint .",

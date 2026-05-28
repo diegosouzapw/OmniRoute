@@ -12,6 +12,14 @@
 - **settings:** restore settings-driven home page layout toggles and auto-refresh limits widget (#2800 — thanks @apoapostolov)
 - **modelSpecs:** register explicit model specifications and context/output caps for Moonshot, Qwen, Hunyuan, DeepSeek, MiniMax, GLM on the `opencode-go` provider (#2802 — thanks @jeferssonlemes)
 
+### 🛡️ Security
+
+- **mitm:** refactor `runElevatedPowerShell` to write the elevated payload to a per-call temp `.ps1` file (mode 0o600) and reference it via `-File` instead of `-EncodedCommand <base64utf16le>`, removing the textbook fingerprint flagged by Socket.dev (#2863 — thanks @a-dmx)
+- **cloud-sync:** require HMAC verification of the Cloud response (`X-Cloud-Sig`) when `OMNIROUTE_CLOUD_SYNC_SECRET` is set; default-off opt-in `OMNIROUTE_CLOUD_SYNC_SECRETS` flag now required to overwrite `accessToken` / `refreshToken` / `providerSpecificData` from the Cloud payload. Closes silent-credential-swap surface (#2863)
+- **providers/zed-import:** split into 2-step `discover` + `import` flow. `/import` now requires `confirmedAccounts: [{ service, account, fingerprint }]` and re-reads the keychain server-side to filter by fingerprint, so a tampered discover response cannot trick the endpoint into saving an unrelated token. `OMNIROUTE_ZED_IMPORT_LEGACY_ONE_STEP=true` preserves v3.8.5 behaviour (deprecated, removed in v3.9) (#2863)
+- **build:** add `OMNIROUTE_BUILD_PROFILE=minimal` (`npm run build:secure`) that physically removes the four sensitive modules (MITM cert install, Zed keychain reader, Cloud Sync, 9router installer) from the standalone bundle via webpack `NormalModuleReplacementPlugin` aliases. Stubs return HTTP 503 `feature-disabled` at runtime. Intended for the `omniroute-secure` artifact (#2863)
+- **docs:** add `docs/security/SOCKET_DEV_FINDINGS.md` per-finding maintainer attestation + `socket.yml` v2 config + in-source `SECURITY-AUDITOR-NOTE:` blocks at every flagged call site (#2863)
+
 ### 🔧 Bug Fixes
 
 - **opencode-go:** route Qwen3.x via Claude messages format and repair `fixMissingToolResponses` helper for Claude-shape upstreams (#2791 — thanks @jeferssonlemes)
