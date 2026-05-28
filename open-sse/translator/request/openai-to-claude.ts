@@ -1,7 +1,7 @@
 import { register } from "../registry.ts";
 import { FORMATS } from "../formats.ts";
 // CLAUDE_SYSTEM_PROMPT import removed — no longer injected unconditionally (#1966/#2130)
-import { supportsXHighEffort } from "../../config/providerModels.ts";
+import { supportsClaudeMaxEffort, supportsXHighEffort } from "../../config/providerModels.ts";
 import { adjustMaxTokens } from "../helpers/maxTokensHelper.ts";
 import { sanitizeToolId } from "../helpers/schemaCoercion.ts";
 import { DEFAULT_THINKING_CLAUDE_SIGNATURE } from "../../config/defaultThinkingSignature.ts";
@@ -453,16 +453,18 @@ export function openaiToClaudeRequest(model, body, stream) {
     // Clients like OpenCode send reasoning_effort via @ai-sdk/openai-compatible
     const requestedEffort = String(body.reasoning_effort).toLowerCase();
     const normalizedEffort =
-      requestedEffort === "xhigh" && !supportsXHighEffort("claude", model)
+      requestedEffort === "max" && !supportsClaudeMaxEffort(model)
         ? "high"
-        : requestedEffort;
-    if (normalizedEffort === "xhigh") {
+        : requestedEffort === "xhigh" && !supportsXHighEffort("claude", model)
+          ? "high"
+          : requestedEffort;
+    if (normalizedEffort === "max" || normalizedEffort === "xhigh") {
       result.thinking = {
         type: "adaptive",
       };
       result.output_config = {
         ...(result.output_config || {}),
-        effort: "xhigh",
+        effort: normalizedEffort,
       };
     } else {
       const effortBudgetMap: Record<string, number> = {

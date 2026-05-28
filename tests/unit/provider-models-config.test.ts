@@ -10,6 +10,7 @@ import {
   getModelsByProviderId,
   getProviderModels,
   isValidModel,
+  supportsClaudeMaxEffort,
 } from "../../open-sse/config/providerModels.ts";
 
 test("provider models helpers expose model lists and defaults", () => {
@@ -87,4 +88,17 @@ test("Kiro registry exposes the current CLI model lineup with context windows", 
   assert.equal(byId.has("claude-opus-4-7"), false);
   assert.equal(byId.has("claude-sonnet-4-6"), false);
   assert.equal(byId.has("claude-haiku-4-5"), false);
+});
+
+test("Claude max effort support excludes Haiku family and non-Claude IDs", () => {
+  assert.equal(supportsClaudeMaxEffort("claude-opus-4-7"), true);
+  assert.equal(supportsClaudeMaxEffort("claude-opus-4-6"), true);
+  assert.equal(supportsClaudeMaxEffort("claude-sonnet-4-6"), true);
+  assert.equal(supportsClaudeMaxEffort("claude-sonnet-4-5-20250929"), true);
+  assert.equal(supportsClaudeMaxEffort("claude-haiku-4-5-20251001"), false);
+  assert.equal(supportsClaudeMaxEffort("claude-3-5-haiku-20241022"), false);
+  assert.equal(supportsClaudeMaxEffort("anthropic/claude-haiku-4.5"), false);
+  assert.equal(supportsClaudeMaxEffort("vendor/haiku-compatible-claude-sonnet-4-6"), true);
+  assert.equal(supportsClaudeMaxEffort("gpt-5"), false);
+  assert.equal(supportsClaudeMaxEffort("claude-future-5-0"), true);
 });

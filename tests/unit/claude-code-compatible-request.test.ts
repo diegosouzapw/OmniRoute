@@ -51,10 +51,26 @@ test("Claude Code compatible effort and max token helpers cover priority fallbac
     "xhigh"
   );
   assert.equal(
+    resolveClaudeCodeCompatibleEffort({ output_config: { effort: "max" } }, null, xhighModel.id),
+    "max"
+  );
+  assert.equal(
     resolveClaudeCodeCompatibleEffort(
       { output_config: { effort: "xhigh" } },
       null,
       standardModel.id
+    ),
+    "high"
+  );
+  assert.equal(
+    resolveClaudeCodeCompatibleEffort({ output_config: { effort: "max" } }, null, standardModel.id),
+    "max"
+  );
+  assert.equal(
+    resolveClaudeCodeCompatibleEffort(
+      { output_config: { effort: "max" } },
+      null,
+      "claude-haiku-4-5-20251001"
     ),
     "high"
   );

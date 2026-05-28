@@ -59,6 +59,20 @@ export function getModelsByProviderId(providerId: string): RegistryModel[] {
   return PROVIDER_MODELS[alias] || [];
 }
 
+const CLAUDE_MODEL_PATTERN = /(?:^|[\/._-])claude(?:[._-]|$)/;
+const CLAUDE_MAX_EFFORT_UNSUPPORTED_FAMILY_PATTERNS = [/(?:^|[\/._-])haiku(?:[._-]|$)/] as const;
+
+export function supportsClaudeMaxEffort(modelId: string | null | undefined): boolean {
+  if (typeof modelId !== "string" || modelId.length === 0) return false;
+  const normalized = modelId.toLowerCase();
+  const claudeMatch = normalized.match(CLAUDE_MODEL_PATTERN);
+  if (!claudeMatch) return false;
+  const claudeScopedId = normalized.slice(claudeMatch.index ?? 0);
+  return !CLAUDE_MAX_EFFORT_UNSUPPORTED_FAMILY_PATTERNS.some((pattern) =>
+    pattern.test(claudeScopedId)
+  );
+}
+
 export function supportsXHighEffort(aliasOrId: string, modelId: string): boolean {
   const alias = PROVIDER_ID_TO_ALIAS[aliasOrId] || aliasOrId;
   const providerModels = PROVIDER_MODELS[alias] || PROVIDER_MODELS[aliasOrId];
