@@ -36,3 +36,26 @@ test("cliMitmStartSchema accepts an omitted apiKey", () => {
     assert.equal(result.data.apiKey, undefined);
   }
 });
+
+test("cliMitmStartSchema accepts and parses keyId correctly", () => {
+  const result = validateBody(cliMitmStartSchema, {
+    keyId: "api-key-id-123",
+    sudoPassword: "password",
+  });
+  assert.equal(result.success, true);
+  if (result.success) {
+    assert.equal(result.data.keyId, "api-key-id-123");
+    assert.equal(result.data.apiKey, undefined);
+  }
+});
+
+test("cliMitmStartSchema accepts null keyId", () => {
+  const result = validateBody(cliMitmStartSchema, {
+    keyId: null,
+    sudoPassword: "",
+  });
+  assert.equal(result.success, true);
+  if (result.success) {
+    assert.equal(result.data.keyId, null);
+  }
+});
