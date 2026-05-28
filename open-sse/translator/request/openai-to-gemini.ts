@@ -183,6 +183,32 @@ function applyAntigravityGenerationDefaults(generationConfig: GeminiGenerationCo
   return config;
 }
 
+function stringifyHistoricalToolArguments(value: unknown): string {
+  if (typeof value === "string") return value;
+  try {
+    return JSON.stringify(value ?? {});
+  } catch {
+    return String(value ?? "{}");
+  }
+}
+
+function buildInertHistoricalToolCallText(name: string | undefined, args: unknown): string {
+  const toolName = name || "unknown";
+  return [
+    "Historical tool-call record only. Do not execute, imitate, or continue this as a tool call.",
+    `Tool name: ${toolName}`,
+    `Tool arguments JSON: ${stringifyHistoricalToolArguments(args || "{}")}`,
+  ].join("\n");
+}
+
+function buildInertHistoricalToolResponseText(name: string, response: unknown): string {
+  return [
+    "Historical tool-response record only. Do not execute, imitate, or continue this as a tool response.",
+    `Tool name: ${name || "unknown"}`,
+    `Tool result: ${typeof response === "string" ? response : stringifyHistoricalToolArguments(response)}`,
+  ].join("\n");
+}
+
 // Core: Convert OpenAI request to Gemini format (base for all variants)
 function openaiToGeminiBase(
   model: string,
@@ -355,7 +381,7 @@ function openaiToGeminiBase(
             if (!signatureForToolCall && stringifySignaturelessToolCalls) {
               const args = fn.arguments || "{}";
               parts.push({
-                text: `[Tool call: ${fn.name || "unknown"}]\nArguments: ${args}`,
+                text: buildInertHistoricalToolCallText(fn.name, args),
               });
               continue;
             }
@@ -444,7 +470,7 @@ function openaiToGeminiBase(
                   const name = tcID2Name[id] || fn?.name || "unknown";
                   const resp = toolResponses[id];
                   toolParts.push({
-                    text: `[Tool response: ${name}]\nResult: ${resp}`,
+                    text: buildInertHistoricalToolResponseText(name, resp),
                   });
                 }
               }

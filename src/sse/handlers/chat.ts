@@ -1005,9 +1005,62 @@ async function handleSingleModelChat(
         return result.response;
       }
 
-      if (result.errorType === "stream_timeout" || result.errorType === "stream_early_eof") {
+      const isAntigravityStreamReadinessFailure =
+        provider === "antigravity" &&
+        (result.errorCode === "STREAM_READINESS_TIMEOUT" ||
+          result.errorCode === "STREAM_EARLY_EOF" ||
+          result.errorType === "stream_timeout" ||
+          result.errorType === "stream_early_eof");
+
+      if (
+        (result.errorType === "stream_timeout" || result.errorType === "stream_early_eof") &&
+        !isAntigravityStreamReadinessFailure
+      ) {
         // Stream readiness timeout is an upstream stall after an HTTP response was received,
         // not an account/quota failure. Do NOT mark the account unavailable here.
+        return result.response;
+      }
+
+      if (isAntigravityStreamReadinessFailure) {
+        const { shouldFallback, cooldownMs } = await markAccountUnavailable(
+          credentials.connectionId,
+          result.status || HTTP_STATUS.BAD_GATEWAY,
+          result.error || result.errorCode || "Antigravity stream ended before useful content",
+          provider,
+          model,
+          providerProfile
+        );
+
+        if (shouldFallback && !hasForcedConnection) {
+          log.warn(
+            "AUTH",
+            `Antigravity connection ${accountId}... produced no useful stream content, trying fallback connection`
+          );
+          if (Number.isFinite(cooldownMs) && cooldownMs > 0) {
+            lastCooldownMs = cooldownMs;
+            requestRetryLastCooldownMs = cooldownMs;
+          }
+          if (runtimeOptions.sessionAffinityKey) {
+            try {
+              const affinity = getSessionAccountAffinity(
+                runtimeOptions.sessionAffinityKey,
+                provider
+              );
+              if (affinity?.connectionId === credentials.connectionId) {
+                deleteSessionAccountAffinity(runtimeOptions.sessionAffinityKey, provider);
+              }
+            } catch {
+              // best-effort: selection also excludes this connection for the current retry.
+            }
+          }
+          excludedConnectionIds.add(credentials.connectionId);
+          lastError = result.error;
+          lastStatus = result.status;
+          requestRetryLastError = result.error;
+          requestRetryLastStatus = result.status;
+          continue;
+        }
+
         return result.response;
       }
 

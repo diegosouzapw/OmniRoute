@@ -620,7 +620,7 @@ test("OpenAI -> Antigravity wraps Gemini requests in a Cloud Code envelope", () 
   });
 });
 
-test("OpenAI -> Antigravity Gemini stringifies signature-less historical tool calls", () => {
+test("OpenAI -> Antigravity Gemini preserves signature-less historical tool calls as inert text", () => {
   const result = openaiToAntigravityRequest(
     "gemini-3.5-flash-low",
     {
@@ -662,9 +662,18 @@ test("OpenAI -> Antigravity Gemini stringifies signature-less historical tool ca
     modelTurn.parts.some(
       (part) =>
         typeof part.text === "string" &&
-        part.text.includes("[Tool call: default_api:todowrite_ide]")
+        part.text.includes("Historical tool-call record only") &&
+        part.text.includes("Tool name: default_api:todowrite_ide") &&
+        part.text.includes('Tool arguments JSON: {"todos":[]}')
     ),
-    "expected signature-less tool call to be preserved as text"
+    "expected signature-less tool call to be preserved as inert text"
+  );
+  assert.equal(
+    modelTurn.parts.some(
+      (part) => typeof part.text === "string" && part.text.includes("[Tool call:")
+    ),
+    false,
+    "signature-less historical call must not use executable textual tool-call markers"
   );
   assert.equal(
     modelTurn.parts.some((part) => part.functionCall),
@@ -678,10 +687,19 @@ test("OpenAI -> Antigravity Gemini stringifies signature-less historical tool ca
       content.parts.some(
         (part) =>
           typeof part.text === "string" &&
-          part.text.includes("[Tool response: default_api:todowrite_ide]")
+          part.text.includes("Historical tool-response record only") &&
+          part.text.includes("Tool name: default_api:todowrite_ide") &&
+          part.text.includes("Tool result: []")
       )
   );
-  assert.ok(toolTurn, "expected signature-less tool response to be preserved as text");
+  assert.ok(toolTurn, "expected signature-less tool response to be preserved as inert text");
+  assert.equal(
+    toolTurn.parts.some(
+      (part) => typeof part.text === "string" && part.text.includes("[Tool response:")
+    ),
+    false,
+    "signature-less historical response must not use executable textual tool-response markers"
+  );
   assert.equal(
     toolTurn.parts.some((part) => part.functionResponse),
     false,

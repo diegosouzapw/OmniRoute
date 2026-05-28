@@ -21,6 +21,7 @@
     "open-sse/mcp-server/schemas/",
     "open-sse/mcp-server/tools/",
     "open-sse/mcp-server/README.md",
+    "open-sse/utils/setupPolyfill.ts",
     "src/shared/contracts/",
     "src/shared/utils/nodeRuntimeSupport.ts",
     ".env.example",
