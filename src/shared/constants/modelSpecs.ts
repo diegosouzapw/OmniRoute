@@ -187,6 +187,20 @@ export const MODEL_SPECS: Record<string, ModelSpec> = {
     aliases: BEDROCK_CLAUDE_ALIASES("claude-opus-4-7", "claude-opus-4.7"),
   },
 
+  // ── Claude Opus 4.8 ─────────────────────────────────────────────
+  "claude-opus-4-8": {
+    maxOutputTokens: 128000,
+    contextWindow: 1000000,
+    // Opus 4.8 inherits Opus 4.7's adaptive thinking constraints: no fixed
+    // thinking budget requests, with effort controlled by output_config.
+    defaultThinkingBudget: 32000,
+    thinkingBudgetCap: 120000,
+    supportsThinking: true,
+    supportsTools: true,
+    supportsVision: true,
+    aliases: BEDROCK_CLAUDE_ALIASES("claude-opus-4-8", "claude-opus-4.8"),
+  },
+
   // ── Claude Sonnet 4.5 ───────────────────────────────────────────
   "claude-sonnet-4-5-20250929": {
     maxOutputTokens: 64000,

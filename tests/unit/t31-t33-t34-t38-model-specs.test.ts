@@ -49,6 +49,7 @@ test("T34: max output tokens are capped by model spec", () => {
   assert.equal(capMaxOutputTokens("gemini-3-flash", 131072), 65536);
   assert.equal(capMaxOutputTokens("gemini-3-flash"), 65536);
   assert.equal(capMaxOutputTokens("gemini-3.1-pro-high", 131072), 65535);
+  assert.equal(capMaxOutputTokens("claude-opus-4-8", 200000), 128000);
   assert.equal(capMaxOutputTokens("claude-opus-4-7", 200000), 128000);
   assert.equal(capMaxOutputTokens("anthropic.claude-sonnet-4-6", 200000), 64000);
   assert.equal(capMaxOutputTokens("eu.anthropic.claude-opus-4-6", 200000), 128000);
@@ -64,6 +65,7 @@ test("T38: modelSpecs exposes centralized helpers with alias and prefix lookup",
   assert.equal(getModelSpec("gemini-3.1-pro-preview").maxOutputTokens, 65535);
   assert.equal(getModelSpec("gemini-3.1-pro-preview-customtools").maxOutputTokens, 65535);
   assert.equal(getModelSpec("claude-opus-4-7").contextWindow, 1000000);
+  assert.equal(getModelSpec("claude-opus-4.8").maxOutputTokens, 128000);
   assert.equal(getModelSpec("claude-opus-4.7").maxOutputTokens, 128000);
   assert.equal(getModelSpec("bedrock/eu.anthropic.claude-sonnet-4-6").contextWindow, 1000000);
   assert.equal(getModelSpec("bedrock/anthropic.claude-sonnet-4-5").contextWindow, 200000);

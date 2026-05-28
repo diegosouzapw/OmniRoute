@@ -10,6 +10,7 @@ import {
   getModelsByProviderId,
   getProviderModels,
   isValidModel,
+  supportsXHighEffort,
 } from "../../open-sse/config/providerModels.ts";
 
 test("provider models helpers expose model lists and defaults", () => {
@@ -87,4 +88,15 @@ test("Kiro registry exposes the current CLI model lineup with context windows", 
   assert.equal(byId.has("claude-opus-4-7"), false);
   assert.equal(byId.has("claude-sonnet-4-6"), false);
   assert.equal(byId.has("claude-haiku-4-5"), false);
+});
+
+test("Claude xhigh effort support defaults on for new models and opts out legacy models", () => {
+  const claudeModels = new Set(getModelsByProviderId("claude").map((model) => model.id));
+
+  assert.ok(claudeModels.has("claude-opus-4-8"));
+  assert.equal(supportsXHighEffort("claude", "claude-opus-4-8"), true);
+  assert.equal(supportsXHighEffort("claude", "claude-opus-4-7"), true);
+  assert.equal(supportsXHighEffort("claude", "claude-opus-4-6"), false);
+  assert.equal(supportsXHighEffort("claude", "claude-sonnet-4-6"), false);
+  assert.equal(supportsXHighEffort("claude", "claude-future-5-0"), true);
 });
