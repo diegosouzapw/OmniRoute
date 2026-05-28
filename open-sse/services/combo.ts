@@ -3209,7 +3209,7 @@ export async function handleComboChat({
              const m = cMetrics.byTarget[targetKey] || cMetrics.byModel[modelStr];
              if (m && m.requests >= 5 && m.avgLatencyMs > config.predictiveTtftMs) {
                 log.warn("COMBO", `Predictive TTFT Circuit Breaker: skipping ${modelStr} (avg ${m.avgLatencyMs}ms > max ${config.predictiveTtftMs}ms)`);
-                return { ok: false, response: errorResponse(503, `Predictive TTFT timeout: ${m.avgLatencyMs}ms > ${config.predictiveTtftMs}ms`) };
+                return null;
              }
           }
         }
@@ -3686,7 +3686,9 @@ export async function handleComboChat({
         } finally {
           signal?.removeEventListener("abort", onClientAbort);
         }
-      })();
+      })().catch((err) => {
+        log.error("COMBO", `Speculative task error for target ${i}`, err);
+      });
 
       runningTasks.add(task);
       task.finally(() => runningTasks.delete(task));
