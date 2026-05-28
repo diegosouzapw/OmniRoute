@@ -232,6 +232,7 @@ export async function handleToolCallExecution(
   // client-native tools (Bash, Read, etc.) are not turned into Skill-not-found
   // tool_result blocks appended back into the assistant response. See #2815.
   const toolCalls = extractToolCalls(response, modelId).filter((call) => {
+    if (typeof call?.name !== "string" || !call.name) return false;
     if (resolveBuiltinHandlerName(call.name, context)) return true;
     if (context.customSkillExecutionEnabled === false) return false;
     return isRegisteredCustomSkill(call.name, context.apiKeyId);

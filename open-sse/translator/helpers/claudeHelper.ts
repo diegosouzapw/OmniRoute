@@ -69,7 +69,7 @@ export function splitMisplacedToolResults(messages: ClaudeMessage[]): ClaudeMess
 
   const recordToolUseIds = (blocks: ClaudeContentBlock[]) => {
     for (const b of blocks) {
-      if (b.type === "tool_use" && typeof b.id === "string") {
+      if (b?.type === "tool_use" && typeof b.id === "string") {
         seenToolUseIds.add(b.id);
       }
     }
@@ -81,7 +81,7 @@ export function splitMisplacedToolResults(messages: ClaudeMessage[]): ClaudeMess
       continue;
     }
 
-    const toolResults = msg.content.filter((b) => b.type === "tool_result");
+    const toolResults = msg.content.filter((b) => b?.type === "tool_result");
     if (toolResults.length === 0) {
       out.push(msg);
       recordToolUseIds(msg.content);
@@ -89,14 +89,14 @@ export function splitMisplacedToolResults(messages: ClaudeMessage[]): ClaudeMess
     }
 
     const validToolResults = toolResults.filter(
-      (b) => typeof b.tool_use_id === "string" && seenToolUseIds.has(b.tool_use_id)
+      (b) => typeof b?.tool_use_id === "string" && seenToolUseIds.has(b.tool_use_id)
     );
-    const remaining = msg.content.filter((b) => b.type !== "tool_result");
+    const remaining = msg.content.filter((b) => b?.type !== "tool_result");
 
     if (validToolResults.length > 0) {
       const prev = out[out.length - 1];
       if (prev && prev.role === "user" && Array.isArray(prev.content)) {
-        prev.content.push(...validToolResults);
+        out[out.length - 1] = { ...prev, content: [...prev.content, ...validToolResults] };
       } else {
         out.push({ role: "user", content: validToolResults });
       }
