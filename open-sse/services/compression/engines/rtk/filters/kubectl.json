@@ -1,0 +1,85 @@
+{
+  "id": "kubectl",
+  "label": "kubectl",
+  "description": "Keep kubectl errors, warnings, and resource status while stripping verbose YAML/JSON noise.",
+  "category": "cloud",
+  "priority": 78,
+  "match": {
+    "outputTypes": ["kubectl"],
+    "commands": ["^kubectl\\s+(?:get|describe|logs|apply|delete|rollout|exec|top|events?)\\b"],
+    "patterns": [
+      "NAME\\s+READY\\s+STATUS",
+      "NAME\\s+TYPE\\s+CLUSTER-IP",
+      "CrashLoopBackOff",
+      "ImagePullBackOff",
+      "ErrImagePull",
+      "FailedScheduling",
+      "OOMKilled",
+      "Error from server"
+    ]
+  },
+  "rules": {
+    "stripAnsi": true,
+    "includePatterns": [
+      "Error from server",
+      "CrashLoopBackOff",
+      "ImagePullBackOff",
+      "ErrImagePull",
+      "FailedScheduling",
+      "OOMKilled",
+      "Evicted",
+      "ContainerCannotRun",
+      "BackOff",
+      "Unhealthy",
+      "Killing",
+      "Restarting",
+      "NAME\\s+READY\\s+STATUS",
+      "NAME\\s+TYPE\\s+CLUSTER-IP",
+      "Warning\\s+",
+      "deployment\\.apps/\\S+\\s+(?:created|configured|unchanged)",
+      "service/\\S+\\s+(?:created|configured)",
+      "pod/\\S+\\s+(?:created|deleted)",
+      "rollout (?:status|history)",
+      "successfully rolled out"
+    ],
+    "dropPatterns": [
+      "^\\s*$",
+      "^\\s*creationTimestamp:",
+      "^\\s*resourceVersion:",
+      "^\\s*uid:",
+      "^\\s*managedFields:",
+      "^\\s*selfLink:",
+      "^\\s*generation:"
+    ],
+    "collapsePatterns": ["Normal\\s+", "^\\s*-\\s+lastTransitionTime:"],
+    "deduplicate": true,
+    "maxLines": 120,
+    "headLines": 20,
+    "tailLines": 60
+  },
+  "preserve": {
+    "errorPatterns": [
+      "Error from server",
+      "CrashLoopBackOff",
+      "ImagePullBackOff",
+      "OOMKilled",
+      "FailedScheduling",
+      "Evicted"
+    ],
+    "summaryPatterns": ["successfully rolled out", "deployment\\.apps/\\S+\\s+\\w+"]
+  },
+  "tests": [
+    {
+      "name": "pod listing with failure",
+      "command": "kubectl get",
+      "input": "NAME       READY   STATUS             RESTARTS   AGE\napi-7d8    1/1     Running            0          2h\nweb-2c4    0/1     CrashLoopBackOff   5          12m\ndb-9f1     1/1     Running            0          2h\n",
+      "expected": "NAME       READY   STATUS             RESTARTS   AGE\nweb-2c4    0/1     CrashLoopBackOff   5          12m"
+    },
+    {
+      "name": "rollout success",
+      "command": "kubectl rollout status",
+      "input": "Waiting for deployment \"api\" rollout to finish: 0 of 3 updated replicas are available...\nWaiting for deployment \"api\" rollout to finish: 1 of 3 updated replicas are available...\ndeployment \"api\" successfully rolled out\n",
+      "expected": "deployment \"api\" successfully rolled out"
+    }
+  ]
+}
