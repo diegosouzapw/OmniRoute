@@ -3,6 +3,7 @@ import { detectFormatFromEndpoint, getTargetFormat } from "../services/provider.
 import { injectSystemPrompt } from "../services/systemPrompt.ts";
 import { translateRequest, needsTranslation } from "../translator/index.ts";
 import { FORMATS } from "../translator/formats.ts";
+import { splitMisplacedToolResults } from "../translator/helpers/claudeHelper.ts";
 import {
   createSSETransformStreamWithLogger,
   createPassthroughStreamWithLogger,
@@ -2965,6 +2966,11 @@ export async function handleChatCore({
         return [];
       });
     }
+
+    // #2815: move stray tool_result blocks out of assistant messages.
+    payload.messages = splitMisplacedToolResults(
+      payload.messages as ClaudeMessage[]
+    ) as unknown as Record<string, unknown>[];
   };
 
   try {
@@ -3058,6 +3064,11 @@ export async function handleChatCore({
         // Only lift system/developer messages — preserves Claude Code's
         // native payload structure (documents, tool chains, thinking, etc.)
         extractSystemRoleMessages(translatedBody);
+        if (Array.isArray(translatedBody.messages)) {
+          translatedBody.messages = splitMisplacedToolResults(
+            translatedBody.messages as ClaudeMessage[]
+          ) as typeof translatedBody.messages;
+        }
       } else {
         normalizeClaudeUpstreamMessages(translatedBody, { preserveToolResultBlocks: true });
       }

@@ -1,4 +1,5 @@
 import { skillExecutor } from "./executor";
+import { skillRegistry } from "./registry";
 import { builtinSkills } from "./builtins";
 import { detectProvider } from "./injection";
 import { OMNIROUTE_WEB_SEARCH_FALLBACK_TOOL_NAME } from "@omniroute/open-sse/services/webSearchFallback.ts";
@@ -215,17 +216,25 @@ function parseArguments(args: string | Record<string, unknown>): Record<string, 
   }
 }
 
+function isRegisteredCustomSkill(toolName: string, apiKeyId: string): boolean {
+  const [name, version] = toolName.includes("@") ? toolName.split("@", 2) : [toolName, undefined];
+  const identifier = version ? `${name}@${version}` : name;
+  return skillRegistry.getSkill(identifier, apiKeyId) != null;
+}
+
 export async function handleToolCallExecution(
   response: any,
   modelId: string,
   context: ExecutionContext
 ): Promise<any> {
+  // Only intercept tool_use blocks that resolve to a builtin handler or a
+  // registered custom skill. Unknown tool names are forwarded untouched so
+  // client-native tools (Bash, Read, etc.) are not turned into Skill-not-found
+  // tool_result blocks appended back into the assistant response. See #2815.
   const toolCalls = extractToolCalls(response, modelId).filter((call) => {
-    const builtinHandlerName = resolveBuiltinHandlerName(call.name, context);
-    if (builtinHandlerName) {
-      return true;
-    }
-    return context.customSkillExecutionEnabled !== false;
+    if (resolveBuiltinHandlerName(call.name, context)) return true;
+    if (context.customSkillExecutionEnabled === false) return false;
+    return isRegisteredCustomSkill(call.name, context.apiKeyId);
   });
 
   if (toolCalls.length === 0) {

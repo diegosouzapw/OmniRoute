@@ -265,3 +265,42 @@ test("handleToolCallExecution appends Responses API function_call_output items",
     },
   ]);
 });
+
+test("handleToolCallExecution forwards unregistered client-native tool_use untouched (#2815)", async () => {
+  const original = {
+    content: [
+      { type: "tool_use", id: "tool-native", name: "Bash", input: { command: "ls" } },
+      { type: "text", text: "Calling Bash" },
+    ],
+  };
+  const result = await handleToolCallExecution(original, "claude-3-7-sonnet", executionContext);
+
+  assert.equal(result, original);
+  assert.equal(
+    (result.content as Array<{ type: string }>).some((b) => b.type === "tool_result"),
+    false
+  );
+});
+
+test("handleToolCallExecution intercepts a registered skill alongside an unregistered tool (#2815)", async () => {
+  const mixed = await handleToolCallExecution(
+    {
+      content: [
+        { type: "tool_use", id: "tool-native", name: "Bash", input: { command: "ls" } },
+        { type: "tool_use", id: "tool-skill", name: "lookup@1.0.0", input: { id: "9" } },
+      ],
+    },
+    "claude-3-7-sonnet",
+    executionContext
+  );
+
+  assert.deepEqual(mixed.content, [
+    { type: "tool_use", id: "tool-native", name: "Bash", input: { command: "ls" } },
+    { type: "tool_use", id: "tool-skill", name: "lookup@1.0.0", input: { id: "9" } },
+    {
+      type: "tool_result",
+      tool_use_id: "tool-skill",
+      content: '{"record":"resolved:9"}',
+    },
+  ]);
+});
