@@ -309,6 +309,8 @@ export const WEB_COOKIE_PROVIDERS = {
     color: "#0866FF",
     textIcon: "MS",
     website: "https://www.meta.ai",
+    hasFree: true,
+    freeNote: "Free with login — Meta AI platform with Llama models.",
     authHint: "Paste your abra_sess value or full cookie header from meta.ai",
   },
   "claude-web": {
@@ -384,6 +386,8 @@ export const WEB_COOKIE_PROVIDERS = {
     color: "#1A56DB",
     textIcon: "IA",
     website: "https://app.innerai.com",
+    subscriptionRisk: true,
+    riskNoticeVariant: "webCookie",
     authHint:
       "Paste your token cookie and email separated by a space: open DevTools → Application → Cookies → .innerai.com, copy the token value, then append a space and your Inner.ai login email. Example: eyJhbG... user@example.com",
   },
@@ -395,6 +399,8 @@ export const WEB_COOKIE_PROVIDERS = {
     color: "#6E3AD3",
     textIcon: "AW",
     website: "https://agent.adapta.one",
+    subscriptionRisk: true,
+    riskNoticeVariant: "webCookie",
     authHint:
       "Paste your __client cookie value from .clerk.agent.adapta.one (DevTools → Application → Cookies)",
   },
