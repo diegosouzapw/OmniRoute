@@ -49,7 +49,7 @@ For each discussion, extract:
 - **Category** (Announcements, General, Ideas, Q&A, Show and tell)
 - **Created** + **Last updated** (ISO date)
 - **Summary** of original post (1-2 sentences)
-- **Comment count** + **last commenter** + **last comment date**
+- **Comment count** + **last commenter** + **last comment date** — determine these by **chronological `createdAt`**, not iteration order. Comments and their nested replies must be merged into a single sorted timeline before picking the latest event (otherwise a recent top-level reply gets shadowed by an older nested reply of an earlier comment, and the discussion is misclassified).
 - **Maintainer involvement**: whether the repo owner already replied, and how many times
 - **Pending action** — derived state, see categories below
 - **Attachments**: count of screenshots / videos / pastebin links
