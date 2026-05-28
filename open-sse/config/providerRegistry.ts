@@ -3955,7 +3955,7 @@ export const REGISTRY: Record<string, RegistryEntry> = {
     alias: "nous",
     format: "openai",
     executor: "default",
-    baseUrl: "https://inference-api.nousresearch.com/v1",
+    baseUrl: "https://inference-api.nousresearch.com/v1/chat/completions",
     authType: "apikey",
     authHeader: "bearer",
     models: [
