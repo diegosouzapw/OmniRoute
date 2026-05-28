@@ -936,6 +936,45 @@ test("convertOpenAIContentToParts handles input_file file_url data URI (#2515)",
   assert.equal((inline as any).inlineData.mimeType, "application/pdf");
 });
 
+test("convertOpenAIContentToParts handles rec.image with nested {url} as base64 data URI (#2807)", () => {
+  const parts = convertOpenAIContentToParts([
+    { type: "text", text: "What's this?" },
+    { type: "image", image: { url: "data:image/png;base64,iVBORw0KGgo=" } },
+  ]);
+  const inline = parts.find((p) => (p as any).inlineData);
+  assert.ok(
+    inline,
+    "rec.image with nested {url} must produce an inlineData part (was previously silently dropped)"
+  );
+  assert.equal((inline as any).inlineData.data, "iVBORw0KGgo=");
+  assert.equal((inline as any).inlineData.mimeType, "image/png");
+});
+
+test("convertOpenAIContentToParts warns and drops remote http(s) URLs (#2807 - until async refactor)", () => {
+  const originalWarn = console.warn;
+  const warnings: string[] = [];
+  console.warn = (...args: unknown[]) => {
+    warnings.push(args.map(String).join(" "));
+  };
+  try {
+    const parts = convertOpenAIContentToParts([
+      { type: "image_url", image_url: { url: "https://example.com/cat.png" } },
+    ]);
+    const inline = parts.find((p) => (p as any).inlineData);
+    assert.equal(
+      inline,
+      undefined,
+      "remote URL still cannot be encoded into inlineData (sync function) - that's expected"
+    );
+    assert.ok(
+      warnings.some((w) => /Dropped remote image URL/i.test(w) && /example\.com\/cat\.png/.test(w)),
+      `expected a warning naming the dropped URL, got: ${JSON.stringify(warnings)}`
+    );
+  } finally {
+    console.warn = originalWarn;
+  }
+});
+
 // Regression for #2504: with credentials._signatureNamespace set, a previously-cached
 // Gemini thoughtSignature must be re-attached to the functionCall on the follow-up turn.
 test("openaiToGeminiRequest re-attaches cached thoughtSignature for FORMATS.GEMINI (#2504)", async () => {
