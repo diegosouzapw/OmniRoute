@@ -951,7 +951,6 @@ export const REGISTRY: Record<string, RegistryEntry> = {
       {
         id: "claude-opus-4.6",
         name: "Claude Opus 4.6",
-        targetFormat: "openai-responses",
         contextLength: 1000000,
         maxOutputTokens: 128000,
       },
