@@ -89,16 +89,67 @@ RUN chown -R node:node /app
 
 EXPOSE 20128
 
+# Drop to non-root before ENTRYPOINT/CMD so every derived stage (runner-cli,
+# runner-web) also runs as a non-root user unless they explicitly switch back.
+USER node
+
 # Warns if the mounted data volume has wrong ownership
 COPY --chmod=755 scripts/check-permissions.sh /tmp/check-permissions.sh
 ENTRYPOINT ["/tmp/check-permissions.sh"]
-
-USER node
 
 HEALTHCHECK --interval=30s --timeout=5s --start-period=15s --retries=3 \
   CMD ["node", "healthcheck.mjs"]
 
 CMD ["node", "dev/run-standalone.mjs"]
+
+# ── Runner Web (web-cookie providers: Gemini Web, Claude Turnstile) ───────────
+#
+#  Two image flavors:
+#    runner-base  →  omniroute:VERSION        Lean base (~500 MB). No browsers.
+#    runner-web   →  omniroute:VERSION-web    +Chromium/Playwright (~800 MB).
+#
+#  Use runner-web when you need web-cookie providers (gemini-web, claude-web,
+#  claude-turnstile). For all other providers runner-base is sufficient.
+#
+#  Build:
+#    docker build --target runner-web -t omniroute:web .
+#  Compose:
+#    build:
+#      context: .
+#      target: runner-web
+FROM runner-base AS runner-web
+
+USER root
+
+# Chromium system libs required by Playwright
+RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
+  --mount=type=cache,target=/var/lib/apt/lists,sharing=locked \
+  apt-get update \
+  && apt-get install -y --no-install-recommends \
+    libglib2.0-0 \
+    libnss3 \
+    libatk1.0-0 \
+    libatk-bridge2.0-0 \
+    libcups2 \
+    libdrm2 \
+    libxkbcommon0 \
+    libxcomposite1 \
+    libxdamage1 \
+    libxfixes3 \
+    libxrandr2 \
+    libgbm1 \
+    libasound2 \
+  && rm -rf /var/lib/apt/lists/*
+
+# Install Playwright browser binaries into a path owned by the node user.
+# PLAYWRIGHT_BROWSERS_PATH overrides the default ~/.cache/ms-playwright so the
+# browsers land under /home/node which persists across image layers and is
+# accessible to the non-root runtime user.
+ENV PLAYWRIGHT_BROWSERS_PATH=/home/node/.cache/ms-playwright
+RUN npx playwright install chromium --with-deps \
+  && chown -R node:node /home/node/.cache
+
+USER node
 
 FROM runner-base AS runner-cli
 
