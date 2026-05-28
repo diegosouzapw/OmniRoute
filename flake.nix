@@ -11,15 +11,11 @@
       let
         pkgs = nixpkgs.legacyPackages.${system};
         nodejs = pkgs.nodejs_22;
-        pnpm = pkgs.pnpm;
       in
       {
         devShells.default = pkgs.mkShell {
           buildInputs = [
             nodejs
-            pnpm
-            pkgs.typescript
-            pkgs.eslint
           ];
 
           shellHook = ''
@@ -29,7 +25,7 @@
             # Install dependencies if node_modules doesn't exist
             if [ ! -d "node_modules" ]; then
               echo "Installing dependencies..."
-              pnpm install
+              npm install
             fi
           '';
         };

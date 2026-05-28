@@ -514,11 +514,9 @@ yay -S omniroute-bin && systemctl --user enable --now omniroute.service
 ```bash
 # Using Nix flakes
 nix develop
-pnpm install
 npm run dev
 
 # Or using devbox
-devbox run npm install
 devbox run npm run dev
 ```
 

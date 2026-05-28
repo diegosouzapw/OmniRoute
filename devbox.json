@@ -5,17 +5,13 @@
   "description": "Unified AI router with 160+ providers, RTK+Caveman compression, auto fallback, MCP/A2A, desktop, PWA, and OpenAI-compatible APIs.",
   "packages": [
     "nodejs_22",
-    "pnpm",
-    "typescript",
-    "eslint"
   ],
   "shell": {
     "init_hook": [
       "echo 'Welcome to OmniRoute dev environment'",
-      "pnpm install"
     ],
     "hooks": {
-      "on_create": "pnpm install"
+      "on_create": "npm install"
     }
   }
 }
