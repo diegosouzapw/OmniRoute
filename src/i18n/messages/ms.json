@@ -7116,7 +7116,7 @@
     "colProvider": "Provider",
     "colTarget": "Target",
     "colLatency": "Latency",
-    "colPublicIp": "Public IP",
+    "colClientIp": "Client IP",
     "colTime": "Time",
     "recording": "Recording",
     "paused": "Paused",

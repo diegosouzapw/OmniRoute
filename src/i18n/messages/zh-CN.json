@@ -7119,7 +7119,7 @@
     "colProvider": "提供商",
     "colTarget": "目标",
     "colLatency": "延迟",
-    "colPublicIp": "公网 IP",
+    "colClientIp": "客户端 IP",
     "colTime": "时间",
     "recording": "记录中",
     "paused": "已暂停",
