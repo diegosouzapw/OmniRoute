@@ -976,7 +976,7 @@
     "disable": "Desativar",
     "noWebhooks": "Nenhum webhooks configurado ainda.",
     "signatureTitle": "Assinaturas de webhook",
-    "signatureDescription": "Cada entrega inclui um cabeçalho X-Webhook-Signature assinado com HMAC-SHA256 usando o segredo do webhook. Verifique a assinatura antes de confiar na carga.",
+    "signatureDescription": "Cada entrega inclui um cabeçalho X-Webhook-Signature assinado com HMAC-SHA256 usando o segredo do webhook. Verifique a assinatura antes de confiar no payload.",
     "wizard": {
       "cancel": "Cancelar",
       "step1Title": "Selecionar Integração",
@@ -990,12 +990,12 @@
     "howItWorks": {
       "step1": "Escolha um provedor de integração (ex.: Slack, Discord, webhook personalizado) e configure os detalhes da conexão.",
       "step2": "Configure os eventos do sistema para se inscrever (ex.: erros de completions, fallbacks de modelo ou limites de uso).",
-      "step3": "Verifique a configuração enviando uma carga de teste para garantir que o endpoint a receba.",
+      "step3": "Verifique a configuração enviando um payload de teste para garantir que o endpoint o receba.",
       "step4": "Proteja seu endpoint validando o cabeçalho X-Webhook-Signature HMAC-SHA256 usando o segredo do webhook.",
       "title": "Como os Webhooks Funcionam",
       "customOnly": "Aplicável apenas para integrações de endpoint personalizado.",
       "hmacRecipeTitle": "Receita de Verificação HMAC",
-      "hmacRecipe": "Para verificar cargas de webhook no Node.js, calcule o HMAC-SHA256 do corpo bruto da requisição usando sua chave secreta. Compare-o com o cabeçalho X-Webhook-Signature usando timingSafeEqual.",
+      "hmacRecipe": "Para verificar payloads de webhook no Node.js, calcule o HMAC-SHA256 do corpo bruto da requisição usando sua chave secreta. Compare-o com o cabeçalho X-Webhook-Signature usando timingSafeEqual.",
       "timeoutNote": "As entregas de webhook têm um timeout de 10 segundos.",
       "retryNote": "Entregas com falha são reenviadas até 5 vezes com backoff exponencial.",
       "docsLink": "Leia o guia completo de desenvolvimento de Webhooks",
@@ -1005,7 +1005,7 @@
     "deliveries": {
       "title": "Logs de Entrega",
       "loadFailed": "Falha ao carregar logs de entrega de webhook.",
-      "empty": "Nenhuma entrega registrada ainda. Dispare um evento ou envie uma carga de teste.",
+      "empty": "Nenhuma entrega registrada ainda. Dispare um evento ou envie um payload de teste.",
       "status": "Status",
       "event": "Evento",
       "latency": "Latência",
@@ -1020,7 +1020,7 @@
       "discord": "Discord",
       "discordDesc": "Entregue atualizações em tempo real diretamente a um servidor Discord",
       "custom": "Webhook Personalizado",
-      "customDesc": "Entregue cargas de eventos do sistema para qualquer endpoint HTTPS",
+      "customDesc": "Entregue payloads de eventos do sistema para qualquer endpoint HTTPS",
       "email": "Notificação por E-mail",
       "emailDesc": "Receba atualizações resumidas por e-mail",
       "pagerduty": "PagerDuty",
@@ -1041,7 +1041,7 @@
       "endpointUrlPlaceholder": "https://api.seudominio.com/webhook",
       "secretKey": "Chave Secreta",
       "secretKeyPlaceholder": "Digite a chave secreta ou deixe em branco para gerar automaticamente",
-      "secretKeyHint": "Usada para assinar o cabeçalho da carga para autenticação."
+      "secretKeyHint": "Usada para assinar o cabeçalho do payload para autenticação."
     },
     "discord": {
       "webhookUrl": "URL do Webhook do Discord",
