@@ -1,5 +1,5 @@
 import { PROVIDER_MODELS, PROVIDER_ID_TO_ALIAS } from "@/shared/constants/models";
-import { AI_PROVIDERS } from "@/shared/constants/providers";
+import { AI_PROVIDERS, NOAUTH_PROVIDERS } from "@/shared/constants/providers";
 import {
   getProviderConnections,
   getCombos,
@@ -345,6 +345,13 @@ export async function getUnifiedModelsResponse(
       registerConnectionKey(conn.provider, conn);
     }
 
+    // noAuth providers never create DB connection rows, so they are always active.
+    // Add their IDs and aliases unconditionally so the catalog gate does not filter them. (#2798)
+    for (const p of Object.values(NOAUTH_PROVIDERS)) {
+      activeAliases.add(p.id);
+      if ("alias" in p && typeof p.alias === "string") activeAliases.add(p.alias);
+    }
+
     const getConnectionsForProvider = (...keys: Array<string | null | undefined>) => {
       const seen = new Set<string>();
       const collected: typeof connections = [];
@@ -362,6 +369,11 @@ export async function getUnifiedModelsResponse(
     const providerSupportsModel = (providerKey: string, modelId: string) => {
       const providerId = aliasToProviderId[providerKey] || providerKey;
       const alias = providerIdToAlias[providerId] || providerKey;
+      // noAuth providers have no connection rows — treat every model as eligible. (#2798)
+      const isNoAuth = Object.values(NOAUTH_PROVIDERS).some(
+        (p) => p.id === providerId || p.id === providerKey || ("alias" in p && p.alias === alias)
+      );
+      if (isNoAuth) return true;
       return hasEligibleConnectionForModel(
         getConnectionsForProvider(providerKey, providerId, alias),
         modelId

@@ -216,6 +216,23 @@ test("Responses -> Chat passes through when background flag is unset or false (n
   }
 });
 
+test("Responses -> Chat strips safety_identifier (LobeHub #2770)", () => {
+  // LobeHub sends safety_identifier in Responses API bodies. Chat Completions rejects it
+  // with HTTP 400. The translator must strip it in the Responses-API cleanup block.
+  const result = openaiResponsesToOpenAIRequest(
+    "gpt-4o",
+    {
+      input: [{ role: "user", content: [{ type: "input_text", text: "hi" }] }],
+      safety_identifier: "sid-xyz",
+    },
+    false,
+    null
+  ) as Record<string, unknown>;
+
+  assert.equal(result.safety_identifier, undefined, "safety_identifier must be stripped before forwarding to Chat Completions");
+  assert.ok(Array.isArray(result.messages), "translation must still produce messages");
+});
+
 test("Chat -> Responses converts messages, tool calls, tool outputs, tools and pass-through params", () => {
   const result = openaiToOpenAIResponsesRequest(
     "gpt-4o",

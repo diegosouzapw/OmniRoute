@@ -21,7 +21,7 @@ export function registerServe(program) {
   program
     .command("serve", { isDefault: true })
     .description(t("serve.description"))
-    .option("--port <port>", t("serve.port"), "20128")
+    .option("--port <port>", t("serve.port"))
     .option("--no-open", t("serve.no_open"))
     .option("--daemon", t("serve.daemon"))
     .option("--log", t("serve.log"))

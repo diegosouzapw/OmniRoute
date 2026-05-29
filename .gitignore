@@ -35,6 +35,9 @@ node_modules/
 .data/
 .next-playwright/
 
+# devbox
+.devbox/
+
 # testing
 coverage/
 coverage**

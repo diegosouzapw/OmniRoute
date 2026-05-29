@@ -1494,6 +1494,15 @@ export async function getProviderCredentialsWithQuotaPreflight(
     // Otherwise the resolver would return the factory default for every
     // window, and a near-exhausted account would still be caught by the
     // normal 429 → cooldown path.
+    // Explicit per-connection opt-out always wins over global/provider defaults.
+    // isQuotaPreflightEnabled is strict-=== true (back-compat), so it returns
+    // false for both "not set" and "explicit false" — we need an explicit check
+    // here to distinguish them.
+    const legacyForceDisable =
+      (credentials as { providerSpecificData?: Record<string, unknown> })
+        .providerSpecificData?.quotaPreflightEnabled === false;
+    if (legacyForceDisable) return credentials;
+
     const hasConnectionOverrides = Object.keys(perConnectionWindowOverrides).length > 0;
     const legacyForceEnable = isQuotaPreflightEnabled(credentials);
     if (
