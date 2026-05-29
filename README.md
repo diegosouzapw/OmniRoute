@@ -403,7 +403,7 @@ claude mcp add-server omniroute --type http --url http://localhost:20128/api/mcp
 
 </div>
 
-> **Why use many token when few token do trick?** Every request passes through OmniRoute's compression pipeline **transparently** — no client changes. It stacks ideas from [RTK](https://github.com/rtk-ai/rtk) and [Caveman](https://github.com/JuliusBrussee/caveman) (⭐ 51K+).
+> **Why use many token when few token do trick?** Every request passes through OmniRoute's compression pipeline **transparently** — no client changes. It stacks ideas from [RTK](https://github.com/rtk-ai/rtk), [Caveman](https://github.com/JuliusBrussee/caveman) (⭐ 51K+), and [Troglodita](https://github.com/leninejunior/troglodita) (PT-BR).
 
 | Mode                           | Savings    | Best for                    |
 | ------------------------------ | ---------- | --------------------------- |
@@ -421,6 +421,14 @@ claude mcp add-server omniroute --type http --url http://localhost:20128/api/mcp
 > **After (19 tokens):** _"New object ref each render. Inline object prop = new ref = re-render. Wrap in useMemo."_
 >
 > **Same answer. 72% fewer tokens. Zero accuracy loss.** ✅
+
+**PT-BR example — [Troglodita](https://github.com/leninejunior/troglodita) mode:**
+
+> **Antes (42 tokens):** _"O problema é que o componente está re-renderizando porque uma nova referência de objeto está sendo criada em cada ciclo de renderização. Eu recomendaria usar useMemo."_
+>
+> **Depois (12 tokens):** _"Re-render: ref nova cada ciclo (objeto inline recriado). Usar `useMemo`."_
+>
+> **Mesma resposta. ~70% menos tokens. Precisão técnica intacta.** ✅
 
 <br/>
 
@@ -507,6 +515,17 @@ pnpm install -g omniroute && pnpm approve-builds -g && omniroute
 
 ```bash
 yay -S omniroute-bin && systemctl --user enable --now omniroute.service
+```
+
+**🔧 Nix (Flake)**
+
+```bash
+# Using Nix flakes
+nix develop
+npm run dev
+
+# Or using devbox
+devbox run npm run dev
 ```
 
 📖 [Docker Guide](docs/guides/DOCKER_GUIDE.md) — Compose profiles, Caddy HTTPS, Cloudflare tunnels.
@@ -926,6 +945,8 @@ Special thanks to **[CLIProxyAPI](https://github.com/router-for-me/CLIProxyAPI)*
 Special thanks to **[Caveman](https://github.com/JuliusBrussee/caveman)** by **[JuliusBrussee](https://github.com/JuliusBrussee)** (⭐ 51K+) — the viral "why use many token when few token do trick" project whose caveman-speak compression philosophy inspired OmniRoute's standard compression mode and 30+ filler/condensation regex rules.
 
 Special thanks to **[RTK - Rust Token Killer](https://github.com/rtk-ai/rtk)** by **[RTK AI](https://github.com/rtk-ai)** — the high-performance command-output compression project whose terminal, build, test, git, and tool-output filtering model inspired OmniRoute's RTK engine, JSON filter DSL, raw-output recovery, and stacked RTK → Caveman compression pipeline.
+
+Special thanks to **[Troglodita](https://github.com/leninejunior/troglodita)** by **[Lenine Júnior](https://github.com/leninejunior)** — the PT-BR token compression project ("por que gastar muitos tokens quando poucos resolve?") whose Portuguese-native rules power OmniRoute's pt-BR language pack: pleonasm reduction, filler removal tuned for Brazilian Portuguese grammar, and technical abbreviations for the dev BR community.
 
 <br/>
 

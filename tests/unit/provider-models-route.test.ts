@@ -640,6 +640,55 @@ test("provider models route maps Gemini CLI quota buckets into a model list", as
   ]);
 });
 
+test("provider models route prefers providerSpecificData projectId over default-project", async () => {
+  const connection = await seedConnection("gemini-cli", {
+    authType: "oauth",
+    accessToken: "gemini-cli-access",
+    apiKey: null,
+    projectId: "default-project",
+    providerSpecificData: {
+      projectId: "projects/custom-psd-456",
+    },
+  });
+
+  globalThis.fetch = async (url, init = {}) => {
+    assert.equal(String(url), "https://cloudcode-pa.googleapis.com/v1internal:retrieveUserQuota");
+    assert.equal(init.headers.Authorization, "Bearer gemini-cli-access");
+    assert.deepEqual(JSON.parse(String(init.body)), { project: "projects/custom-psd-456" });
+    return Response.json({ buckets: [{ modelId: "gemini-3.1-pro-preview" }] });
+  };
+
+  const response = await callRoute(connection.id);
+  const body = (await response.json()) as any;
+
+  assert.equal(response.status, 200);
+  assert.deepEqual(body.models, [
+    { id: "gemini-3.1-pro-preview", name: "gemini-3.1-pro-preview", owned_by: "google" },
+  ]);
+});
+
+test("provider models route rejects projects/default-project placeholders", async () => {
+  const connection = await seedConnection("gemini-cli", {
+    authType: "oauth",
+    accessToken: "gemini-cli-access",
+    apiKey: null,
+    projectId: "projects/default-project",
+    providerSpecificData: {
+      projectId: "default-project",
+    },
+  });
+
+  globalThis.fetch = async () => {
+    throw new Error("retrieveUserQuota should not be called for placeholder project IDs");
+  };
+
+  const response = await callRoute(connection.id);
+  const body = (await response.json()) as any;
+
+  assert.equal(response.status, 400);
+  assert.equal(body.error, "Gemini CLI project ID not available. Please reconnect OAuth.");
+});
+
 test("provider models route retries Antigravity discovery endpoints before returning remote models", async () => {
   const connection = await seedConnection("antigravity", {
     authType: "oauth",

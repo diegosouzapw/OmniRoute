@@ -1,0 +1,43 @@
+# Task 4: Skills Table Schema Verification
+
+## Skills Table Schema
+```
+sqlite3 ~/.omniroute/omniroute.db "PRAGMA table_info(skills);"
+
+0|id|TEXT|0||1
+1|api_key_id|TEXT|1||0
+2|name|TEXT|1||0
+3|version|TEXT|1|'1.0.0'|0
+4|description|TEXT|0||0
+5|schema|TEXT|1||0
+6|handler|TEXT|1||0
+7|enabled|INTEGER|1|1|0
+8|created_at|TEXT|1|datetime('now')|0
+9|updated_at|TEXT|1|datetime('now')|0
+10|mode|TEXT|1|'auto'|0
+11|source_provider|TEXT|0||0
+12|tags|TEXT|0||0
+13|install_count|INTEGER|1|0|0
+```
+
+## Column Verification
+
+✅ **mode** (column 10): TEXT, NOT NULL, default 'auto'
+✅ **source_provider** (column 11): TEXT, nullable
+✅ **tags** (column 12): TEXT, nullable
+✅ **install_count** (column 13): INTEGER, NOT NULL, default 0
+
+## Schema Analysis
+
+Total columns: 14
+Required columns from migration 027: mode, source_provider, tags, install_count
+Status: ALL PRESENT
+
+The skills table now has all columns needed for:
+- Skill mode selection (auto/manual)
+- Provider tracking (skillsmp/skillssh)
+- Tag-based filtering
+- Install count tracking for popularity
+
+## Migration 027 Success
+Migration `027_skill_mode_and_metadata.sql` successfully added all required columns.

@@ -3717,6 +3717,55 @@ export async function validateProviderApiKey({ provider, apiKey, providerSpecifi
     }
   }
 
+  /**
+   * Build Opengateway-style validators (xiaomi-mimo compatible).
+   * These providers share a POST /chat/completions auth check pattern and differ
+   * only in default baseUrl and test model name.
+   */
+  function buildOpengatewayValidator(
+    defaultBaseUrl: string,
+    model: string
+  ) {
+    return async ({ apiKey, providerSpecificData }: any) => {
+      try {
+        const baseUrl = normalizeBaseUrl(
+          providerSpecificData?.baseUrl || defaultBaseUrl
+        );
+        const chatUrl = `${baseUrl.replace(/\/chat\/completions$/, "")}/chat/completions`;
+        const res = await validationWrite(
+          chatUrl,
+          {
+            method: "POST",
+            headers: buildBearerHeaders(apiKey, providerSpecificData),
+            body: JSON.stringify({
+              model,
+              messages: [{ role: "user", content: "test" }],
+              max_tokens: 1,
+            }),
+          },
+          isLocal
+        );
+        if (res.status === 401 || res.status === 403) {
+          return { valid: false, error: "Invalid API key" };
+        }
+        // Any non-auth response (200, 400, 422, 429) means auth passed
+        return { valid: true, error: null };
+      } catch (error: any) {
+        return toValidationErrorResult(error);
+      }
+    };
+  }
+
+  // Same as buildOpengatewayValidator but returns an object spreadable into SPECIALTY_VALIDATORS.
+  // isLocal is captured via closure from the outer function scope.
+  function buildGitlawbValidators(
+    configs: [string, string, string][]
+  ): Record<string, ReturnType<typeof buildOpengatewayValidator>> {
+    return Object.fromEntries(
+      configs.map(([id, baseUrl, model]) => [id, buildOpengatewayValidator(baseUrl, model)])
+    );
+  }
+
   // ── Specialty provider validation ──
   const SPECIALTY_VALIDATORS = {
     jules: validateJulesProvider,
@@ -3972,6 +4021,13 @@ export async function validateProviderApiKey({ provider, apiKey, providerSpecifi
         return toValidationErrorResult(error);
       }
     },
+    // Gitlawb Opengateway — Xiaomi MiMo compatible, same /models endpoint limitation.
+    // Bypass /models probe in favor of chat/completions, matching xiaomi-mimo's pattern.
+    // Uses a factory to share validation logic across Opengateway provider variants.
+    ...buildGitlawbValidators([
+      ["gitlawb", "https://opengateway.gitlawb.com/v1/xiaomi-mimo", "mimo-v2.5-pro"],
+      ["gitlawb-gmi", "https://opengateway.gitlawb.com/v1/gmi-cloud", "XiaomiMiMo/MiMo-V2.5-Pro"],
+    ]),
     // Search providers — use factored validator
     ...Object.fromEntries(
       Object.entries(SEARCH_VALIDATOR_CONFIGS).map(([id, configFn]) => [

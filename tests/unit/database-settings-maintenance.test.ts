@@ -186,3 +186,36 @@ test("usage aggregation upserts replace recomputed totals instead of adding them
   assert.equal(hourly.total_output_tokens, 10);
   assert.equal(hourly.total_cost, 0.75);
 });
+
+test("cleanupUsageHistory rolls up and deletes old rows using the same day boundary", async () => {
+  const db = core.getDbInstance();
+  const oldTimestamp = "2024-01-01T12:00:00.000Z";
+  const recentTimestamp = new Date().toISOString();
+
+  databaseSettings.updateDatabaseSettings({
+    retention: {
+      ...databaseSettings.getUserDatabaseSettings().retention,
+      usageHistory: 30,
+    },
+  });
+
+  const insertUsage = db.prepare(
+    `INSERT INTO usage_history (provider, model, timestamp, tokens_input, tokens_output, success, latency_ms)
+     VALUES (?, ?, ?, ?, ?, ?, ?)`
+  );
+  insertUsage.run("openai", "gpt-test", oldTimestamp, 100, 40, 1, 200);
+  insertUsage.run("openai", "gpt-test", recentTimestamp, 7, 3, 1, 100);
+
+  const result = await cleanup.cleanupUsageHistory();
+
+  assert.equal(result.errors, 0);
+  assert.equal(result.deleted, 1);
+
+  const remaining = db.prepare("SELECT COUNT(*) AS count FROM usage_history").get() as CountRow;
+  assert.equal(remaining.count, 1);
+
+  const daily = db.prepare("SELECT * FROM daily_usage_summary").get() as UsageSummaryRow;
+  assert.equal(daily.total_requests, 1);
+  assert.equal(daily.total_input_tokens, 100);
+  assert.equal(daily.total_output_tokens, 40);
+});

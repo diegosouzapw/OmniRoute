@@ -24,6 +24,11 @@ test("getDefaultComboConfig returns a fresh copy of the defaults", () => {
   assert.equal(first.failoverBeforeRetry, true);
   assert.equal(first.maxSetRetries, 0);
   assert.equal(first.setRetryDelayMs, 2000);
+  assert.equal(first.zeroLatencyOptimizationsEnabled, false);
+  assert.equal(first.hedging, false);
+  assert.equal(first.fallbackCompressionMode, "lite");
+  assert.equal(first.fallbackCompressionThreshold, 1000);
+  assert.equal(first.predictiveTtftMs, 0);
   assert.equal(first.evalRouting.enabled, false);
   assert.equal(first.evalRouting.maxAgeHours, 720);
 
@@ -140,6 +145,64 @@ test("updateComboDefaultsSchema accepts arbitrarily large timeout defaults and p
   assert.equal(parsed.comboDefaults.targetTimeoutMs, 30000);
   assert.equal(parsed.providerOverrides.anthropic.timeoutMs, 5400000);
   assert.equal(parsed.providerOverrides.anthropic.targetTimeoutMs, 45000);
+});
+
+test("combo config schema accepts explicit zero-latency opt-in controls", () => {
+  const parsed = createComboSchema.parse({
+    name: "zero-latency-opt-in",
+    models: ["openai/gpt-4o-mini", "anthropic/claude-3-haiku"],
+    config: {
+      zeroLatencyOptimizationsEnabled: true,
+      hedging: true,
+      hedgeDelayMs: 250,
+      fallbackCompressionMode: "lite",
+      fallbackCompressionThreshold: 2500,
+      predictiveTtftMs: 1800,
+    },
+  });
+
+  assert.equal(parsed.config.zeroLatencyOptimizationsEnabled, true);
+  assert.equal(parsed.config.hedging, true);
+  assert.equal(parsed.config.hedgeDelayMs, 250);
+  assert.equal(parsed.config.fallbackCompressionMode, "lite");
+  assert.equal(parsed.config.fallbackCompressionThreshold, 2500);
+  assert.equal(parsed.config.predictiveTtftMs, 1800);
+});
+
+test("combo config schema rejects enabled zero-latency subfeatures without opt-in", () => {
+  const result = createComboSchema.safeParse({
+    name: "zero-latency-noop",
+    models: ["openai/gpt-4o-mini", "anthropic/claude-3-haiku"],
+    config: {
+      hedging: true,
+      fallbackCompressionMode: "lite",
+      predictiveTtftMs: 1800,
+    },
+  });
+
+  assert.equal(result.success, false);
+  assert.deepEqual(
+    result.error.issues.map((issue) => issue.path.join(".")),
+    ["config.hedging", "config.predictiveTtftMs", "config.fallbackCompressionMode"]
+  );
+});
+
+test("combo config schema allows zero-latency tuning fields when subfeatures stay disabled", () => {
+  const parsed = createComboSchema.parse({
+    name: "zero-latency-disabled-tuning",
+    models: ["openai/gpt-4o-mini", "anthropic/claude-3-haiku"],
+    config: {
+      hedgeDelayMs: 250,
+      fallbackCompressionMode: "off",
+      fallbackCompressionThreshold: 2500,
+      predictiveTtftMs: 0,
+    },
+  });
+
+  assert.equal(parsed.config.hedgeDelayMs, 250);
+  assert.equal(parsed.config.fallbackCompressionMode, "off");
+  assert.equal(parsed.config.fallbackCompressionThreshold, 2500);
+  assert.equal(parsed.config.predictiveTtftMs, 0);
 });
 
 test("resolveComboTargetTimeoutMs inherits the upstream timeout and only shortens it", () => {

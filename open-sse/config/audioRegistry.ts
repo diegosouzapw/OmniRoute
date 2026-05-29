@@ -22,7 +22,11 @@ export interface AudioProvider {
   models: AudioModel[];
 }
 
-export const AUDIO_TRANSCRIPTION_PROVIDERS: Record<string, AudioProvider> = {
+let _AUDIO_TRANSCRIPTION_PROVIDERS: Record<string, AudioProvider> | null = null;
+
+function getOrCreateTranscriptionProviders(): Record<string, AudioProvider> {
+  if (!_AUDIO_TRANSCRIPTION_PROVIDERS) {
+    _AUDIO_TRANSCRIPTION_PROVIDERS = {
   openai: {
     id: "openai",
     baseUrl: "https://api.openai.com/v1/audio/transcriptions",
@@ -145,9 +149,56 @@ export const AUDIO_TRANSCRIPTION_PROVIDERS: Record<string, AudioProvider> = {
       { id: "elevenlabs/audio-isolation", name: "ElevenLabs Audio Isolation" },
     ],
   },
-};
+  };
+}
+  return _AUDIO_TRANSCRIPTION_PROVIDERS;
+}
 
-export const AUDIO_SPEECH_PROVIDERS: Record<string, AudioProvider> = {
+export const AUDIO_TRANSCRIPTION_PROVIDERS: Record<string, AudioProvider> = new Proxy({} as Record<string, AudioProvider>, {
+  get(target, key: string) {
+    if (key in target) {
+      return target[key];
+    }
+    return getOrCreateTranscriptionProviders()[key];
+  },
+  set(target, key: string, value) {
+    target[key] = value;
+    getOrCreateTranscriptionProviders()[key] = value;
+    return true;
+  },
+  deleteProperty(target, key: string) {
+    delete target[key];
+    delete getOrCreateTranscriptionProviders()[key];
+    return true;
+  },
+  ownKeys(target) {
+    const targetKeys = Reflect.ownKeys(target);
+    const registryKeys = Reflect.ownKeys(getOrCreateTranscriptionProviders());
+    return Array.from(new Set([...targetKeys, ...registryKeys]));
+  },
+  has(target, key) {
+    return key in target || key in getOrCreateTranscriptionProviders();
+  },
+  getOwnPropertyDescriptor(target, key) {
+    if (key in target) {
+      return Reflect.getOwnPropertyDescriptor(target, key);
+    }
+    if (key in getOrCreateTranscriptionProviders()) {
+      return { configurable: true, enumerable: true, value: getOrCreateTranscriptionProviders()[key as string] };
+    }
+    return undefined;
+  },
+});
+
+export function getTranscriptionProviders(): Record<string, AudioProvider> {
+  return AUDIO_TRANSCRIPTION_PROVIDERS;
+}
+
+let _AUDIO_SPEECH_PROVIDERS: Record<string, AudioProvider> | null = null;
+
+function getOrCreateSpeechProviders(): Record<string, AudioProvider> {
+  if (!_AUDIO_SPEECH_PROVIDERS) {
+    _AUDIO_SPEECH_PROVIDERS = {
   openai: {
     id: "openai",
     baseUrl: "https://api.openai.com/v1/audio/speech",
@@ -367,22 +418,57 @@ export const AUDIO_SPEECH_PROVIDERS: Record<string, AudioProvider> = {
       { id: "mimo-v2.5-tts-voiceclone", name: "MiMo V2.5 Voice Clone" },
     ],
   },
-};
+  };
+}
+  return _AUDIO_SPEECH_PROVIDERS;
+}
 
-/**
- * Get transcription provider config by ID
- */
+export const AUDIO_SPEECH_PROVIDERS: Record<string, AudioProvider> = new Proxy({} as Record<string, AudioProvider>, {
+  get(target, key: string) {
+    if (key in target) {
+      return target[key];
+    }
+    return getOrCreateSpeechProviders()[key];
+  },
+  set(target, key: string, value) {
+    target[key] = value;
+    getOrCreateSpeechProviders()[key] = value;
+    return true;
+  },
+  deleteProperty(target, key: string) {
+    delete target[key];
+    delete getOrCreateSpeechProviders()[key];
+    return true;
+  },
+  ownKeys(target) {
+    const targetKeys = Reflect.ownKeys(target);
+    const registryKeys = Reflect.ownKeys(getOrCreateSpeechProviders());
+    return Array.from(new Set([...targetKeys, ...registryKeys]));
+  },
+  has(target, key) {
+    return key in target || key in getOrCreateSpeechProviders();
+  },
+  getOwnPropertyDescriptor(target, key) {
+    if (key in target) {
+      return Reflect.getOwnPropertyDescriptor(target, key);
+    }
+    if (key in getOrCreateSpeechProviders()) {
+      return { configurable: true, enumerable: true, value: getOrCreateSpeechProviders()[key as string] };
+    }
+    return undefined;
+  },
+});
+
+export function getSpeechProviders(): Record<string, AudioProvider> {
+  return AUDIO_SPEECH_PROVIDERS;
+}
+
 export function getTranscriptionProvider(providerId: string): AudioProvider | null {
   return AUDIO_TRANSCRIPTION_PROVIDERS[providerId] || null;
 }
-
-/**
- * Get speech provider config by ID
- */
 export function getSpeechProvider(providerId: string): AudioProvider | null {
   return AUDIO_SPEECH_PROVIDERS[providerId] || null;
 }
-
 export interface ProviderNodeRow {
   prefix: string;
   name: string;

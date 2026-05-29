@@ -1331,6 +1331,174 @@ test("handleComboChat falls through generic 400s when a later priority target su
   assert.deepEqual(calls, ["provider-a/model-a", "provider-b/model-b"]);
 });
 
+test("handleComboChat preserves fallback request bodies when zero-latency optimizations are disabled", async () => {
+  const longToolOutput = "x".repeat(2500);
+  let fallbackBody: any = null;
+
+  const result = await handleComboChat({
+    body: {
+      messages: [
+        { role: "user", content: "please inspect this output" },
+        { role: "tool", content: longToolOutput },
+      ],
+    },
+    combo: {
+      name: "zero-latency-disabled-preserves-body",
+      strategy: "priority",
+      models: ["provider-a/model-a", "provider-b/model-b"],
+      config: {
+        maxRetries: 0,
+        retryDelayMs: 1,
+        fallbackCompressionMode: "lite",
+        fallbackCompressionThreshold: 1,
+      },
+    },
+    handleSingleModel: async (requestBody: any, modelStr: any) => {
+      if (modelStr === "provider-a/model-a") {
+        return errorResponse(500, "first target failed");
+      }
+      fallbackBody = requestBody;
+      return okResponse();
+    },
+    isModelAvailable: async () => true,
+    log: createLog(),
+    settings: null,
+    relayOptions: null as any,
+    allCombos: null,
+  });
+
+  assert.equal(result.status, 200);
+  assert.equal(fallbackBody.messages[1].content, longToolOutput);
+});
+
+test("handleComboChat applies fallback compression only after explicit zero-latency opt-in", async () => {
+  const longToolOutput = "x".repeat(2500);
+  let fallbackBody: any = null;
+
+  const result = await handleComboChat({
+    body: {
+      messages: [
+        { role: "user", content: "please inspect this output" },
+        { role: "tool", content: longToolOutput },
+      ],
+    },
+    combo: {
+      name: "zero-latency-enabled-compresses-fallback",
+      strategy: "priority",
+      models: ["provider-a/model-a", "provider-b/model-b"],
+      config: {
+        maxRetries: 0,
+        retryDelayMs: 1,
+        zeroLatencyOptimizationsEnabled: true,
+        fallbackCompressionMode: "lite",
+        fallbackCompressionThreshold: 1,
+      },
+    },
+    handleSingleModel: async (requestBody: any, modelStr: any) => {
+      if (modelStr === "provider-a/model-a") {
+        return errorResponse(500, "first target failed");
+      }
+      fallbackBody = requestBody;
+      return okResponse();
+    },
+    isModelAvailable: async () => true,
+    log: createLog(),
+    settings: null,
+    relayOptions: null as any,
+    allCombos: null,
+  });
+
+  assert.equal(result.status, 200);
+  const fallbackToolContent = fallbackBody.messages[1].content;
+  assert.equal(typeof fallbackToolContent, "string");
+  assert.ok(fallbackToolContent.length < longToolOutput.length);
+  assert.match(fallbackToolContent, /truncated/i);
+});
+
+test("handleComboChat suppresses hedging unless zero-latency optimizations are enabled", async () => {
+  const calls: any[] = [];
+
+  const result = await handleComboChat({
+    body: {},
+    combo: {
+      name: "hedging-disabled-with-subfeature-set",
+      strategy: "priority",
+      models: ["model-a", "model-b"],
+      config: {
+        maxRetries: 0,
+        retryDelayMs: 1,
+        hedging: true,
+        hedgeDelayMs: 1,
+      },
+    },
+    handleSingleModel: async (_body: any, modelStr: any) => {
+      calls.push(modelStr);
+      await new Promise((resolve) => setTimeout(resolve, 20));
+      return okResponse({ choices: [{ message: { content: modelStr } }] });
+    },
+    isModelAvailable: async () => true,
+    log: createLog(),
+    settings: null,
+    relayOptions: null as any,
+    allCombos: null,
+  });
+
+  const payload = (await result.json()) as any;
+
+  assert.equal(result.status, 200);
+  assert.equal(payload.choices[0].message.content, "model-a");
+  assert.deepEqual(calls, ["model-a"]);
+});
+
+test("handleComboChat starts hedged fallback only after explicit zero-latency opt-in", async () => {
+  const calls: any[] = [];
+
+  const result = await handleComboChat({
+    body: {},
+    combo: {
+      name: "hedging-enabled-with-zero-latency",
+      strategy: "priority",
+      models: ["model-a", "model-b"],
+      config: {
+        maxRetries: 0,
+        retryDelayMs: 1,
+        zeroLatencyOptimizationsEnabled: true,
+        hedging: true,
+        hedgeDelayMs: 1,
+      },
+    },
+    handleSingleModel: async (_body: any, modelStr: any, target: any) => {
+      calls.push(modelStr);
+      if (modelStr === "model-a") {
+        await new Promise((resolve) => {
+          const timer = setTimeout(resolve, 100);
+          target?.modelAbortSignal?.addEventListener(
+            "abort",
+            () => {
+              clearTimeout(timer);
+              resolve(undefined);
+            },
+            { once: true }
+          );
+        });
+        return okResponse({ choices: [{ message: { content: "slow" } }] });
+      }
+      return okResponse({ choices: [{ message: { content: "fast" } }] });
+    },
+    isModelAvailable: async () => true,
+    log: createLog(),
+    settings: null,
+    relayOptions: null as any,
+    allCombos: null,
+  });
+
+  const payload = (await result.json()) as any;
+
+  assert.equal(result.status, 200);
+  assert.equal(payload.choices[0].message.content, "fast");
+  assert.deepEqual(calls, ["model-a", "model-b"]);
+});
+
 test("handleComboChat round-robin falls through generic 400s when a later model succeeds", async () => {
   const calls: any[] = [];
 
@@ -2035,10 +2203,7 @@ test("handleComboChat standalone lkgp strategy updates LKGP after a successful c
   // Give the async fire-and-forget LKGP update a chance to execute
   let persistedProvider: any = null;
   for (let i = 0; i < 20; i++) {
-    persistedProvider = await settingsDb.getLKGP(
-      "standalone-lkgp-save",
-      "standalone-lkgp-save"
-    );
+    persistedProvider = await settingsDb.getLKGP("standalone-lkgp-save", "standalone-lkgp-save");
     if (persistedProvider?.provider === "openai") {
       break;
     }

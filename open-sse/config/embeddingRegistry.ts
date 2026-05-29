@@ -45,7 +45,11 @@ export function buildDynamicEmbeddingProvider(node: EmbeddingProviderNodeRow): E
   };
 }
 
-export const EMBEDDING_PROVIDERS: Record<string, EmbeddingProvider> = {
+let _EMBEDDING_PROVIDERS: Record<string, EmbeddingProvider> | null = null;
+
+function getOrCreateEmbeddingProviders(): Record<string, EmbeddingProvider> {
+  if (!_EMBEDDING_PROVIDERS) {
+    _EMBEDDING_PROVIDERS = {
   cohere: {
     id: "cohere",
     baseUrl: "https://api.cohere.com/v2/embed",
@@ -233,7 +237,50 @@ export const EMBEDDING_PROVIDERS: Record<string, EmbeddingProvider> = {
       { id: "jina-colbert-v2", name: "Jina ColBERT v2", dimensions: 128 },
     ],
   },
-};
+  };
+  }
+  return _EMBEDDING_PROVIDERS;
+}
+
+export const EMBEDDING_PROVIDERS: Record<string, EmbeddingProvider> = new Proxy({} as Record<string, EmbeddingProvider>, {
+  get(target, key: string) {
+    if (key in target) {
+      return target[key];
+    }
+    return getOrCreateEmbeddingProviders()[key];
+  },
+  set(target, key: string, value) {
+    target[key] = value;
+    getOrCreateEmbeddingProviders()[key] = value;
+    return true;
+  },
+  deleteProperty(target, key: string) {
+    delete target[key];
+    delete getOrCreateEmbeddingProviders()[key];
+    return true;
+  },
+  ownKeys(target) {
+    const targetKeys = Reflect.ownKeys(target);
+    const registryKeys = Reflect.ownKeys(getOrCreateEmbeddingProviders());
+    return Array.from(new Set([...targetKeys, ...registryKeys]));
+  },
+  has(target, key) {
+    return key in target || key in getOrCreateEmbeddingProviders();
+  },
+  getOwnPropertyDescriptor(target, key) {
+    if (key in target) {
+      return Reflect.getOwnPropertyDescriptor(target, key);
+    }
+    if (key in getOrCreateEmbeddingProviders()) {
+      return { configurable: true, enumerable: true, value: getOrCreateEmbeddingProviders()[key as string] };
+    }
+    return undefined;
+  },
+});
+
+export function getEmbeddingProviders(): Record<string, EmbeddingProvider> {
+  return EMBEDDING_PROVIDERS;
+}
 
 const EMBEDDING_PROVIDER_ALIASES: Record<string, string> = {
   jina: "jina-ai",

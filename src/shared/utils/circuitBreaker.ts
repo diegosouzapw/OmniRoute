@@ -452,7 +452,28 @@ export class CircuitBreakerOpenError extends Error {
 
 // ─── Registry ─────────────────────────────────────
 
+const MAX_REGISTRY_SIZE = 500;
 const registry = new Map<string, CircuitBreaker>();
+
+const _registrySweep = setInterval(() => {
+  const now = Date.now();
+  for (const [name, breaker] of registry) {
+    const status = breaker.getStatus();
+    if (
+      status.state === STATE.CLOSED &&
+      status.failureCount === 0 &&
+      (!status.lastFailureTime || now - status.lastFailureTime > 30 * 60 * 1000)
+    ) {
+      registry.delete(name);
+      try {
+        deleteCircuitBreakerState(name);
+      } catch {}
+    }
+  }
+}, 5 * 60_000);
+if (typeof _registrySweep === "object" && "unref" in _registrySweep) {
+  (_registrySweep as { unref?: () => void }).unref?.();
+}
 
 export function getCircuitBreaker(name: string, options?: CircuitBreakerOptions): CircuitBreaker {
   if (!registry.has(name)) {

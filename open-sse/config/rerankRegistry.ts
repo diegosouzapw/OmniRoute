@@ -8,7 +8,11 @@
  * keyed by provider ID (e.g. "cohere", "together").
  */
 
-export const RERANK_PROVIDERS = {
+let _RERANK_PROVIDERS: Record<string, any> | null = null;
+
+function getOrCreateRerankProviders(): Record<string, any> {
+  if (!_RERANK_PROVIDERS) {
+    _RERANK_PROVIDERS = {
   cohere: {
     id: "cohere",
     baseUrl: "https://api.cohere.com/v2/rerank",
@@ -71,7 +75,50 @@ export const RERANK_PROVIDERS = {
       { id: "jina-reranker-m0", name: "Jina Reranker m0" },
     ],
   },
-};
+  };
+}
+  return _RERANK_PROVIDERS;
+}
+
+export const RERANK_PROVIDERS = new Proxy({} as Record<string, any>, {
+  get(target, key: string) {
+    if (key in target) {
+      return target[key];
+    }
+    return getOrCreateRerankProviders()[key];
+  },
+  set(target, key: string, value) {
+    target[key] = value;
+    getOrCreateRerankProviders()[key] = value;
+    return true;
+  },
+  deleteProperty(target, key: string) {
+    delete target[key];
+    delete getOrCreateRerankProviders()[key];
+    return true;
+  },
+  ownKeys(target) {
+    const targetKeys = Reflect.ownKeys(target);
+    const registryKeys = Reflect.ownKeys(getOrCreateRerankProviders());
+    return Array.from(new Set([...targetKeys, ...registryKeys]));
+  },
+  has(target, key) {
+    return key in target || key in getOrCreateRerankProviders();
+  },
+  getOwnPropertyDescriptor(target, key) {
+    if (key in target) {
+      return Reflect.getOwnPropertyDescriptor(target, key);
+    }
+    if (key in getOrCreateRerankProviders()) {
+      return { configurable: true, enumerable: true, value: getOrCreateRerankProviders()[key as string] };
+    }
+    return undefined;
+  },
+});
+
+export function getRerankProviders(): Record<string, any> {
+  return RERANK_PROVIDERS;
+}
 
 const RERANK_PROVIDER_ALIASES = {
   jina: "jina-ai",

@@ -39,7 +39,17 @@ if (!globalThis.__windsurfCallbackState) {
 }
 
 /** Providers that use the PKCE browser callback flow (like Codex). */
-const PKCE_CALLBACK_PROVIDERS = new Set(["codex", "windsurf", "devin-cli"]);
+const PKCE_CALLBACK_PROVIDERS = new Set(["codex"]);
+
+/**
+ * Providers whose PKCE flow has been retired but whose import-token path is
+ * still active. Returning 410 Gone on `authorize` / `start-callback-server` /
+ * `poll-callback` (instead of 400) tells callers the action is permanently
+ * gone and points them at /import-token. windsurf/devin-cli were retired
+ * 2026-05-29 because app.devin.ai/editor/signin returned 404 post-rebrand.
+ * Phase 2 will reintroduce browser login via Firebase OAuth + RegisterUser.
+ */
+const RETIRED_PKCE_PROVIDERS = new Set(["windsurf", "devin-cli"]);
 
 /** Providers that allow direct import of a raw API token (no OAuth exchange). */
 const IMPORT_TOKEN_PROVIDERS = new Set(["windsurf", "devin-cli"]);
@@ -73,6 +83,33 @@ export async function GET(
   request: Request,
   { params }: { params: Promise<{ provider: string; action: string }> }
 ) {
+  // Phase 1 hotfix (2026-05-29): retired PKCE flows return 410 Gone BEFORE auth.
+  // The action permanently does not exist for these providers regardless of who
+  // is asking — answering 401 first would mislead callers into thinking the
+  // route is gated rather than gone. See spec
+  // docs/superpowers/specs/2026-05-29-windsurf-login-fix-design.md.
+  try {
+    const earlyParams = await params;
+    if (
+      RETIRED_PKCE_PROVIDERS.has(earlyParams.provider) &&
+      (earlyParams.action === "authorize" ||
+        earlyParams.action === "start-callback-server" ||
+        earlyParams.action === "poll-callback")
+    ) {
+      return NextResponse.json(
+        {
+          error:
+            `Browser OAuth disabled for ${earlyParams.provider} — use import-token via ` +
+            `/api/oauth/${earlyParams.provider}/import-token. ` +
+            `Visit https://windsurf.com/show-auth-token to obtain a token.`,
+        },
+        { status: 410 }
+      );
+    }
+  } catch {
+    /* fall through to normal handling */
+  }
+
   const authResponse = await requireOAuthRouteAuth(request);
   if (authResponse) return authResponse;
 
@@ -242,11 +279,50 @@ export async function POST(
   request: Request,
   { params }: { params: Promise<{ provider: string; action: string }> }
 ) {
+  // Phase 1 hotfix (2026-05-29): retired PKCE flows return 410 Gone BEFORE auth.
+  // See GET handler comment.
+  try {
+    const earlyParams = await params;
+    if (
+      RETIRED_PKCE_PROVIDERS.has(earlyParams.provider) &&
+      earlyParams.action === "poll-callback"
+    ) {
+      return NextResponse.json(
+        {
+          error:
+            `Browser OAuth disabled for ${earlyParams.provider} — use import-token via ` +
+            `/api/oauth/${earlyParams.provider}/import-token. ` +
+            `Visit https://windsurf.com/show-auth-token to obtain a token.`,
+        },
+        { status: 410 }
+      );
+    }
+  } catch {
+    /* fall through to normal handling */
+  }
+
   const authResponse = await requireOAuthRouteAuth(request);
   if (authResponse) return authResponse;
 
   try {
     const { provider, action } = await params;
+
+    // Phase 1 hotfix (2026-05-29): retired PKCE flows return 410 Gone before
+    // body parsing. windsurf/devin-cli `poll-callback` is permanently retired
+    // because the upstream PKCE endpoint returns 404. Use /import-token
+    // (handled later in this same handler) for those providers instead.
+    if (RETIRED_PKCE_PROVIDERS.has(provider) && action === "poll-callback") {
+      return NextResponse.json(
+        {
+          error:
+            `Browser OAuth disabled for ${provider} — use import-token via ` +
+            `/api/oauth/${provider}/import-token. ` +
+            `Visit https://windsurf.com/show-auth-token to obtain a token.`,
+        },
+        { status: 410 }
+      );
+    }
+
     let rawBody: any = {};
     try {
       rawBody = await request.json();
@@ -601,79 +677,6 @@ export async function POST(
         console.error("OAuth exchange error:", exchangeErr);
         return NextResponse.json(
           { success: false, error: "Internal server error" },
-          { status: 500 }
-        );
-      }
-    }
-
-    if (action === "import-token") {
-      const { token, connectionId } = body;
-
-      if (!IMPORT_TOKEN_PROVIDERS.has(provider)) {
-        return NextResponse.json(
-          {
-            error: `import-token not supported for provider: ${provider}. Supported: ${[...IMPORT_TOKEN_PROVIDERS].join(", ")}`,
-          },
-          { status: 400 }
-        );
-      }
-
-      try {
-        // Map the raw token via the provider's mapTokens() — skips the HTTP exchange entirely.
-        const providerData = getProvider(provider);
-        const tokenData = providerData.mapTokens({ accessToken: token });
-
-        // Normalize: if name is missing, use email as fallback display label
-        if (!tokenData.name && (tokenData.email || tokenData.displayName)) {
-          tokenData.name = tokenData.email || tokenData.displayName;
-        }
-
-        const expiresAt = tokenData.expiresIn
-          ? new Date(Date.now() + tokenData.expiresIn * 1000).toISOString()
-          : null;
-
-        let connection: any;
-        if (tokenData.email) {
-          const existing = await getProviderConnections({ provider });
-          const match = existing.find((c: any) => {
-            if (c.id && safeEqual(connectionId, c.id)) return true;
-            if (!safeEqual(c.email, tokenData.email) || c.authType !== "oauth") return false;
-            return true;
-          });
-          const matchId = typeof match?.id === "string" ? match.id : null;
-          if (matchId) {
-            connection = await updateProviderConnection(matchId, {
-              ...tokenData,
-              expiresAt,
-              testStatus: "active",
-              isActive: true,
-            });
-          }
-        }
-        if (!connection) {
-          connection = await createProviderConnection({
-            provider,
-            authType: "oauth",
-            ...tokenData,
-            expiresAt,
-            testStatus: "active",
-          });
-        }
-
-        await syncToCloudIfEnabled();
-
-        return NextResponse.json({
-          success: true,
-          connection: {
-            id: connection.id,
-            provider: connection.provider,
-            email: connection.email,
-            displayName: connection.displayName,
-          },
-        });
-      } catch (importErr: any) {
-        return NextResponse.json(
-          { success: false, error: sanitizeErrorMessage(importErr.message) || "Import failed" },
           { status: 500 }
         );
       }

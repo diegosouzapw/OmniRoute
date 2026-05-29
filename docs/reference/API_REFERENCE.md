@@ -325,12 +325,13 @@ Response example:
 
 ### Usage & Analytics
 
-| Endpoint                    | Method | Description          |
-| --------------------------- | ------ | -------------------- |
-| `/api/usage/history`        | GET    | Usage history        |
-| `/api/usage/logs`           | GET    | Usage logs           |
-| `/api/usage/request-logs`   | GET    | Request-level logs   |
-| `/api/usage/[connectionId]` | GET    | Per-connection usage |
+| Endpoint                    | Method            | Description                       |
+| --------------------------- | ----------------- | --------------------------------- |
+| `/api/usage/history`        | GET               | Usage history                     |
+| `/api/usage/logs`           | GET               | Usage logs                        |
+| `/api/usage/request-logs`   | GET               | Request-level logs                |
+| `/api/usage/[connectionId]` | GET               | Per-connection usage              |
+| `/api/usage/token-limits`   | GET/POST/DELETE   | Per-API-key token-limit budgets   |
 
 ### Settings
 
@@ -589,6 +590,33 @@ Content-Type: application/json
 ```
 
 > **Schema notes** (`setBudgetSchema`): `apiKeyId` is required; at least one of `dailyLimitUsd`, `weeklyLimitUsd`, or `monthlyLimitUsd` must be greater than zero. Optional fields: `warningThreshold` (0–1), `resetInterval` (`daily` | `weekly` | `monthly`), `resetTime` (`HH:MM`). The legacy `{keyId, limit, period}` shape returns `400 Bad Request`.
+
+## Token Limits
+
+Per-API-key **token** budgets (distinct from the USD-based Budget above). Enforced inline on the request path: when a key's current window usage reaches its limit, requests are rejected with `429 Too Many Requests`. Limits can be scoped to a specific `model`, a `provider`, or applied `global`ly across the key; when several limits match a request, the most restrictive one wins.
+
+```bash
+# List a key's token limits (includes live window usage)
+GET /api/usage/token-limits?apiKeyId=key-123
+
+# Create or update a token limit
+POST /api/usage/token-limits
+Content-Type: application/json
+
+{
+  "apiKeyId": "key-123",
+  "scopeType": "model",
+  "scopeValue": "openai/gpt-4o",
+  "tokenLimit": 1000000,
+  "resetInterval": "monthly",
+  "enabled": true
+}
+
+# Delete a token limit by id
+DELETE /api/usage/token-limits?id=tl-abc
+```
+
+> **Schema notes** (`setTokenLimitSchema`): `apiKeyId` and `scopeType` (`model` | `provider` | `global`) are required. `scopeValue` is required unless `scopeType` is `global` (e.g. a model id for `model` scope, a provider id for `provider` scope). `tokenLimit` must be a positive integer (coerced from string). Optional: `id` (omit to create, supply to update), `resetInterval` (`daily` | `weekly` | `monthly`, default `monthly`), `resetTime` (`HH:MM`), `enabled` (default `true`). `GET` responses enrich each limit with `tokensUsed`, `remaining`, `windowStart`, `periodStartAt`, and `nextResetAt`. This is a management-class endpoint (auth enforced centrally by the authz pipeline).
 
 ## Request Processing
 

@@ -75,6 +75,7 @@ import {
 } from "./tools/advancedTools.ts";
 import { memoryTools } from "./tools/memoryTools.ts";
 import { skillTools } from "./tools/skillTools.ts";
+import { pluginTools } from "./tools/pluginTools.ts";
 import { compressionTools } from "./tools/compressionTools.ts";
 import { gamificationTools } from "./tools/gamificationTools.ts";
 import { compressMcpRegistryMetadata } from "./descriptionCompressor.ts";
@@ -102,7 +103,8 @@ const TOTAL_MCP_TOOL_COUNT =
   MCP_TOOLS.length +
   Object.keys(memoryTools).length +
   Object.keys(skillTools).length +
-  gamificationTools.length;
+  gamificationTools.length +
+  pluginTools.length;
 
 type JsonRecord = Record<string, unknown>;
 
@@ -993,6 +995,29 @@ export function createMcpServer(): McpServer {
         try {
           const parsedArgs = toolDef.inputSchema.parse(args ?? {});
           // @ts-expect-error - handler type lost through dynamic Object.values() access
+          const result = await toolDef.handler(parsedArgs);
+          return { content: [{ type: "text" as const, text: JSON.stringify(result, null, 2) }] };
+        } catch (err) {
+          const msg = err instanceof Error ? err.message : String(err);
+          return { content: [{ type: "text" as const, text: `Error: ${msg}` }], isError: true };
+        }
+      })
+    );
+  });
+
+  // ── Plugin Tools ──────────────────────────────
+  pluginTools.forEach((toolDef) => {
+    server.registerTool(
+      toolDef.name,
+      {
+        description: toolDef.description,
+        // @ts-ignore: dynamic zod access
+        inputSchema: toolDef.inputSchema,
+      },
+      withScopeEnforcement(toolDef.name, async (args) => {
+        try {
+          const parsedArgs = toolDef.inputSchema.parse(args ?? {});
+          // @ts-ignore: handler expected specific object
           const result = await toolDef.handler(parsedArgs);
           return { content: [{ type: "text" as const, text: JSON.stringify(result, null, 2) }] };
         } catch (err) {

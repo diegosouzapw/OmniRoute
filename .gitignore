@@ -34,6 +34,12 @@ node_modules/
 !.yarn/versions
 .data/
 .next-playwright/
+.agents/
+workflows/
+.omo/
+
+# devbox
+.devbox/
 
 # testing
 coverage/
@@ -182,3 +188,8 @@ scripts/i18n/_pending-keys.json
 
 # Fumadocs generated source
 .source/
+
+# AI agent local settings and configs
+.agents/
+.antigravitycli/
+.claude/

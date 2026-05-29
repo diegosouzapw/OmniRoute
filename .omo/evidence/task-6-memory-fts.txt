@@ -1,0 +1,7 @@
+memory_fts
+=== FTS5 Schema ===
+CREATE VIRTUAL TABLE memory_fts USING fts5(
+  content,
+  key,
+  content='memories'
+)

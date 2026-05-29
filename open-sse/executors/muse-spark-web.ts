@@ -758,30 +758,9 @@ function buildStreamingResponse(
 ): ReadableStream<Uint8Array> {
   const encoder = new TextEncoder();
 
-  return new ReadableStream({
-    start(controller) {
-      controller.enqueue(
-        encoder.encode(
-          sseChunk({
-            id,
-            object: "chat.completion.chunk",
-            created,
-            model,
-            system_fingerprint: null,
-            choices: [
-              {
-                index: 0,
-                delta: { role: "assistant" },
-                finish_reason: null,
-                logprobs: null,
-              },
-            ],
-          })
-        )
-      );
-
-      for (const delta of reasoningDeltas) {
-        if (!delta) continue;
+  return new ReadableStream(
+    {
+      start(controller) {
         controller.enqueue(
           encoder.encode(
             sseChunk({
@@ -793,7 +772,7 @@ function buildStreamingResponse(
               choices: [
                 {
                   index: 0,
-                  delta: { reasoning_content: delta },
+                  delta: { role: "assistant" },
                   finish_reason: null,
                   logprobs: null,
                 },
@@ -801,10 +780,53 @@ function buildStreamingResponse(
             })
           )
         );
-      }
 
-      for (const delta of deltas) {
-        if (!delta) continue;
+        for (const delta of reasoningDeltas) {
+          if (!delta) continue;
+          controller.enqueue(
+            encoder.encode(
+              sseChunk({
+                id,
+                object: "chat.completion.chunk",
+                created,
+                model,
+                system_fingerprint: null,
+                choices: [
+                  {
+                    index: 0,
+                    delta: { reasoning_content: delta },
+                    finish_reason: null,
+                    logprobs: null,
+                  },
+                ],
+              })
+            )
+          );
+        }
+
+        for (const delta of deltas) {
+          if (!delta) continue;
+          controller.enqueue(
+            encoder.encode(
+              sseChunk({
+                id,
+                object: "chat.completion.chunk",
+                created,
+                model,
+                system_fingerprint: null,
+                choices: [
+                  {
+                    index: 0,
+                    delta: { content: delta },
+                    finish_reason: null,
+                    logprobs: null,
+                  },
+                ],
+              })
+            )
+          );
+        }
+
         controller.enqueue(
           encoder.encode(
             sseChunk({
@@ -813,35 +835,16 @@ function buildStreamingResponse(
               created,
               model,
               system_fingerprint: null,
-              choices: [
-                {
-                  index: 0,
-                  delta: { content: delta },
-                  finish_reason: null,
-                  logprobs: null,
-                },
-              ],
+              choices: [{ index: 0, delta: {}, finish_reason: "stop", logprobs: null }],
             })
           )
         );
-      }
-
-      controller.enqueue(
-        encoder.encode(
-          sseChunk({
-            id,
-            object: "chat.completion.chunk",
-            created,
-            model,
-            system_fingerprint: null,
-            choices: [{ index: 0, delta: {}, finish_reason: "stop", logprobs: null }],
-          })
-        )
-      );
-      controller.enqueue(encoder.encode("data: [DONE]\n\n"));
-      controller.close();
+        controller.enqueue(encoder.encode("data: [DONE]\n\n"));
+        controller.close();
+      },
     },
-  });
+    { highWaterMark: 16384 }
+  );
 }
 
 function buildNonStreamingResponse(

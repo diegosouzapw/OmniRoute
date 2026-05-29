@@ -14,7 +14,7 @@ import { getRequestTranslator, getResponseTranslator } from "./registry.ts";
 import { bootstrapTranslatorRegistry } from "./bootstrap.ts";
 import { hasThinkingConfig, normalizeThinkingConfig } from "../services/provider.ts";
 import { applyThinkingBudget } from "../services/thinkingBudget.ts";
-import { supportsReasoning } from "../services/modelCapabilities.ts";
+import { getResolvedModelCapabilities, supportsReasoning } from "../services/modelCapabilities.ts";
 import { normalizeRoles } from "../services/roleNormalizer.ts";
 import {
   lookupReasoning,
@@ -281,11 +281,17 @@ export function translateRequest(
   // back to the API."
   const normalizedProvider = String(provider ?? "");
   const normalizedModel = String(model ?? "");
+  const resolvedCapabilities = getResolvedModelCapabilities({
+    provider: normalizedProvider,
+    model: normalizedModel,
+  });
   const isReasoner = requiresReasoningReplay({
     provider: normalizedProvider,
     model: normalizedModel,
     thinkingEnabled: hasThinkingConfig(result),
     supportsReasoning: supportsReasoning({ provider: normalizedProvider, model: normalizedModel }),
+    interleavedField: resolvedCapabilities?.interleavedField ?? null,
+    allowLegacyFallback: false,
   });
   if (isReasoner && result.messages && Array.isArray(result.messages)) {
     const canReplayReasoningOnly = isDeepSeekReplayTarget(normalizedProvider, normalizedModel);

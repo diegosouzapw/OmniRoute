@@ -59,10 +59,33 @@ export function getModelsByProviderId(providerId: string): RegistryModel[] {
   return PROVIDER_MODELS[alias] || [];
 }
 
+const CLAUDE_MODEL_PATTERN = /(?:^|[\/._-])claude(?:[._-]|$)/;
+const CLAUDE_MAX_EFFORT_UNSUPPORTED_FAMILY_PATTERNS = [/(?:^|[\/._-])haiku(?:[._-]|$)/] as const;
+
+export function supportsClaudeMaxEffort(modelId: string | null | undefined): boolean {
+  if (typeof modelId !== "string" || modelId.length === 0) return false;
+  const normalized = modelId.toLowerCase();
+  const claudeMatch = normalized.match(CLAUDE_MODEL_PATTERN);
+  if (!claudeMatch) return false;
+  const claudeScopedId = normalized.slice(claudeMatch.index ?? 0);
+  return !CLAUDE_MAX_EFFORT_UNSUPPORTED_FAMILY_PATTERNS.some((pattern) =>
+    pattern.test(claudeScopedId)
+  );
+}
+
 export function supportsXHighEffort(aliasOrId: string, modelId: string): boolean {
   const alias = PROVIDER_ID_TO_ALIAS[aliasOrId] || aliasOrId;
   const providerModels = PROVIDER_MODELS[alias] || PROVIDER_MODELS[aliasOrId];
   // Unknown provider (not in registry) — pass through unchanged.
   if (!providerModels) return true;
-  return getProviderModel(alias, modelId)?.supportsXHighEffort === true;
+  const model = getProviderModel(alias, modelId);
+
+  // Claude Code models default to supporting extra-high effort. Keep explicit
+  // false entries as the unsupported-model list so newly added Claude models do
+  // not need opt-in flags.
+  if (alias === "cc") {
+    return model?.supportsXHighEffort !== false;
+  }
+
+  return model?.supportsXHighEffort === true;
 }

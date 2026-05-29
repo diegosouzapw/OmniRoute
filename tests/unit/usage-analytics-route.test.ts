@@ -333,6 +333,75 @@ test("GET /api/usage/analytics includes cost by API key", async () => {
   assertClose(body.byApiKey[0].cost, body.summary.totalCost);
 });
 
+test("GET /api/usage/analytics does not double-count raw and aggregated rows", async () => {
+  const db = core.getDbInstance();
+  const today = new Date();
+  const todayStr = today.toISOString().split("T")[0];
+  const cutoffDate = new Date();
+  cutoffDate.setDate(cutoffDate.getDate() - 30);
+  const olderDate = new Date(cutoffDate);
+  olderDate.setDate(olderDate.getDate() - 1);
+  const olderDateStr = olderDate.toISOString().split("T")[0];
+
+  db.prepare(
+    `INSERT INTO usage_history (provider, model, connection_id, tokens_input, tokens_output, success, latency_ms, timestamp)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?)`
+  ).run("openai", "gpt-4o", "raw-current", 100, 50, 1, 200, today.toISOString());
+
+  const insertSummary = db.prepare(
+    `INSERT INTO daily_usage_summary (provider, model, date, total_requests, total_input_tokens, total_output_tokens, total_cost)
+     VALUES (?, ?, ?, ?, ?, ?, ?)`
+  );
+  insertSummary.run("openai", "gpt-4o", todayStr, 99, 9900, 9900, 0);
+  insertSummary.run("openai", "gpt-4o", olderDateStr, 1, 25, 10, 0);
+
+  const response = await analyticsRoute.GET(
+    makeRequest("http://localhost/api/usage/analytics?range=all")
+  );
+  const body = await response.json();
+
+  assert.equal(response.status, 200);
+  assert.equal(body.summary.totalRequests, 2);
+  assert.equal(body.summary.totalTokens, 185);
+});
+
+test("GET /api/usage/analytics omits global aggregates when filtering by API key", async () => {
+  const apiKey = await apiKeysDb.createApiKey("Scoped Key", "machine1234567890");
+  const db = core.getDbInstance();
+
+  db.prepare(
+    `INSERT INTO usage_history (provider, model, connection_id, api_key_id, api_key_name, tokens_input, tokens_output, success, latency_ms, timestamp)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+  ).run(
+    "openai",
+    "gpt-4o",
+    "scoped-conn",
+    apiKey.id,
+    "Scoped Key",
+    100,
+    50,
+    1,
+    200,
+    new Date().toISOString()
+  );
+
+  db.prepare(
+    `INSERT INTO daily_usage_summary (provider, model, date, total_requests, total_input_tokens, total_output_tokens, total_cost)
+     VALUES (?, ?, ?, ?, ?, ?, ?)`
+  ).run("openai", "gpt-4o", "2024-01-01", 99, 9900, 9900, 0);
+
+  const response = await analyticsRoute.GET(
+    makeRequest(`http://localhost/api/usage/analytics?range=all&apiKeyIds=${apiKey.id}`)
+  );
+  const body = await response.json();
+
+  assert.equal(response.status, 200);
+  assert.equal(body.summary.totalRequests, 1);
+  assert.equal(body.summary.totalTokens, 150);
+  assert.equal(body.byApiKey.length, 1);
+  assert.equal(body.byApiKey[0].apiKeyId, apiKey.id);
+});
+
 test("GET /api/usage/analytics groups renamed API key usage by stable ID", async () => {
   const apiKey = await apiKeysDb.createApiKey("Averyanov", "machine1234567890");
   await apiKeysDb.updateApiKeyPermissions(apiKey.id, { name: "Alexander Averyanov" });

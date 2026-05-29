@@ -1,6 +1,6 @@
 import { HTTP_STATUS, FETCH_TIMEOUT_MS } from "../config/constants.ts";
 import { applyFingerprint, isCliCompatEnabled } from "../config/cliFingerprints.ts";
-import { supportsXHighEffort } from "../config/providerModels.ts";
+import { supportsClaudeMaxEffort, supportsXHighEffort } from "../config/providerModels.ts";
 import {
   getRotatingApiKey,
   getValidApiKey,
@@ -205,8 +205,8 @@ function hasActiveClaudeThinking(body: Record<string, unknown>): boolean {
 /**
  * Sanitize reasoning_effort for providers that don't accept all values.
  *
- * The claude→openai translator emits reasoning_effort=xhigh when the client
- * sends output_config.effort=max on a Claude-shape request. Combined with
+ * The claude→openai translator may emit reasoning_effort=max/xhigh when the
+ * client sends output_config.effort=max on a Claude-shape request. Combined with
  * runtime alias remapping (e.g. claude-opus-4-6 → mimo/mimo-v2.5-pro), this
  * routes xhigh to OpenAI-shape providers that don't accept the value:
  *
@@ -217,11 +217,23 @@ function hasActiveClaudeThinking(body: Record<string, unknown>): boolean {
  * Each rejection burns a combo fallback attempt before reaching a working
  * provider. Apply provider-aware sanitation here (after transformRequest, so
  * reintroductions by per-provider transforms are also caught) before fetch.
- * Models that genuinely support xhigh (registry flag supportsXHighEffort)
- * pass through unchanged.
+ * xhigh support is registry-gated: models that genuinely support xhigh pass
+ * through unchanged, and Claude models default to xhigh support unless marked
+ * as legacy unsupported entries. max support is Claude/CC-compatible only and
+ * intentionally separate: older Opus/Sonnet models may support max even when
+ * they do not support xhigh. For OpenAI-shape providers, normalize max to
+ * xhigh when that top tier is allowed; otherwise downgrade to high.
  */
 const MISTRAL_NO_REASONING_EFFORT_PATTERN = /devstral/i;
 const GITHUB_NO_REASONING_EFFORT_PATTERN = /(claude|haiku|oswe)/i;
+
+function supportsMaxEffortForProvider(provider: string, model: string): boolean {
+  return (
+    (provider === PROVIDER_CLAUDE || isClaudeCodeCompatible(provider)) &&
+    supportsClaudeMaxEffort(model)
+  );
+}
+
 export function sanitizeReasoningEffortForProvider(
   body: unknown,
   provider: string,
@@ -240,10 +252,32 @@ export function sanitizeReasoningEffortForProvider(
   const effortStr = typeof effort === "string" ? effort.toLowerCase() : "";
   const modelStr = model || "";
 
-  if (effortStr === "xhigh" && !supportsXHighEffort(provider, modelStr)) {
+  const supportsXHigh = supportsXHighEffort(provider, modelStr);
+  const shouldDowngradeXHigh = effortStr === "xhigh" && !supportsXHigh;
+  const shouldNormalizeMaxToXHigh =
+    effortStr === "max" && !supportsMaxEffortForProvider(provider, modelStr) && supportsXHigh;
+  const shouldDowngradeMax =
+    effortStr === "max" && !supportsMaxEffortForProvider(provider, modelStr) && !supportsXHigh;
+
+  if (shouldNormalizeMaxToXHigh) {
     log?.info?.(
       "REASONING_SANITIZE",
-      `${provider}/${modelStr}: downgraded reasoning_effort xhigh → high`
+      `${provider}/${modelStr}: normalized reasoning_effort max → xhigh`
+    );
+    const next: Record<string, unknown> = { ...b };
+    if (hasTopLevelReasoningEffort) {
+      next.reasoning_effort = "xhigh";
+    }
+    if (reasoning) {
+      next.reasoning = { ...reasoning, effort: "xhigh" };
+    }
+    return next;
+  }
+
+  if (shouldDowngradeXHigh || shouldDowngradeMax) {
+    log?.info?.(
+      "REASONING_SANITIZE",
+      `${provider}/${modelStr}: downgraded reasoning_effort ${effortStr} → high`
     );
     const next: Record<string, unknown> = { ...b };
     if (hasTopLevelReasoningEffort) {
@@ -760,7 +794,7 @@ export class BaseExecutor {
           }
 
           // Per-request behavior overrides via custom client headers.
-          //   x-omniroute-effort:   low | medium | high | xhigh | off
+          //   x-omniroute-effort:   low | medium | high | xhigh | max | off
           //   x-omniroute-thinking: adaptive | off
           // A header value applies only when the corresponding body field is
           // not already set; "off" force-strips the field.
@@ -782,7 +816,10 @@ export class BaseExecutor {
               delete (tb.output_config as Record<string, unknown>).effort;
             }
             appliedEffort = "off";
-          } else if (headerEffort && ["low", "medium", "high", "xhigh"].includes(headerEffort)) {
+          } else if (
+            headerEffort &&
+            ["low", "medium", "high", "xhigh", "max"].includes(headerEffort)
+          ) {
             const oc =
               tb.output_config && typeof tb.output_config === "object"
                 ? (tb.output_config as Record<string, unknown>)

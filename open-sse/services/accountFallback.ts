@@ -86,6 +86,16 @@ const PROVIDER_FAILURE_ERROR_CODES = new Set([408, 500, 502, 503, 504]);
 const CONNECTION_FAILURE_DEDUP_MS = 5000;
 const lastConnectionFailure = new Map<string, number>();
 
+const _connectionFailureSweep = setInterval(() => {
+  const now = Date.now();
+  for (const [key, ts] of lastConnectionFailure) {
+    if (now - ts > CONNECTION_FAILURE_DEDUP_MS) lastConnectionFailure.delete(key);
+  }
+}, 60_000);
+if (typeof _connectionFailureSweep === "object" && "unref" in _connectionFailureSweep) {
+  (_connectionFailureSweep as { unref?: () => void }).unref?.();
+}
+
 // T06 (sub2api PR #1037): Signals that indicate permanent account deactivation.
 // When a 401 body contains these strings, the account is permanently dead
 // and should NOT be retried after token refresh.
@@ -113,6 +123,9 @@ export const CREDITS_EXHAUSTED_SIGNALS = [
   "credits exhausted",
   "out of credits",
   "payment required",
+  "resource has been exhausted",
+  "resource_exhausted",
+  "check quota",
 ];
 
 // T11: Signals that indicate OAuth token is invalid/expired (not permanent deactivation)

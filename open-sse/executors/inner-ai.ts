@@ -61,6 +61,12 @@ function lruSet<V>(map: Map<string, V>, key: string, value: V): void {
   }
 }
 
+// SHA-256 here derives an in-memory cache key from the session token — it is NOT
+// password-at-rest storage. The slow KDFs CWE-916 recommends (bcrypt/scrypt/Argon2)
+// are salted and non-deterministic, so they cannot be used as a stable Map key and
+// would defeat the cache entirely. CodeQL js/insufficient-password-hash flags this as
+// a false positive (dismissed); a fast cryptographic digest is the correct primitive
+// for keying an ephemeral, process-local cache.
 function tokenCacheKey(token: string): string {
   return createHash("sha256").update(token).digest("hex");
 }
@@ -531,6 +537,10 @@ async function collectContent(upstream: ReadableStream): Promise<string> {
 // ── Executor ──────────────────────────────────────────────────────────────────
 
 export class InnerAiExecutor extends BaseExecutor {
+  constructor() {
+    super("inner-ai", { id: "inner-ai", baseUrl: "https://chatapi.innerai.com" });
+  }
+
   async execute(input: ExecuteInput) {
     const { body, credentials, signal, stream: wantStream } = input;
     const bodyObj = (body || {}) as Record<string, unknown>;

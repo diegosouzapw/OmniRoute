@@ -188,7 +188,8 @@ function transformSSE(deepseekStream: ReadableStream, model: string): ReadableSt
   const thinkingModel = isThinkingModel(streamModel);
   const searchResults: DeepSeekSearchResult[] = [];
 
-  return new ReadableStream({
+  return new ReadableStream(
+    {
     async start(controller) {
       const reader = deepseekStream.getReader();
       let buffer = "";
@@ -353,7 +354,9 @@ function transformSSE(deepseekStream: ReadableStream, model: string): ReadableSt
 
       finishStream();
     },
-  });
+    },
+    { highWaterMark: 16384 }
+  );
 }
 
 async function collectSSEContent(
@@ -683,6 +686,30 @@ export class DeepSeekWebExecutor extends BaseExecutor {
 
   async execute({ model, body, stream, credentials, signal, log }: ExecuteInput) {
     const bodyObj = (body || {}) as Record<string, unknown>;
+
+    // chat.deepseek.com's web API only accepts {prompt, ref_file_ids,
+    // thinking_enabled, search_enabled} - no tools field. Silently dropping
+    // tools[] is misleading: models reply as if no tools were ever offered,
+    // causing agentic clients (OpenAI-compatible) to hallucinate "I don't
+    // have that tool". Fail fast with a clear error so callers route to the
+    // official DeepSeek API (provider: 'deepseek') or a different provider
+    // for tool-using requests. See #2848.
+    const requestedTools = bodyObj.tools;
+    if (Array.isArray(requestedTools) && requestedTools.length > 0) {
+      return {
+        response: errorResponse(
+          400,
+          "deepseek-web upstream (chat.deepseek.com) does not support function calling. " +
+            "The web interface only accepts text + thinking_enabled + search_enabled flags. " +
+            "Use provider 'deepseek' (official api.deepseek.com) for tool-using requests, " +
+            "or route through a different provider."
+        ),
+        url: COMPLETION_URL,
+        headers: {},
+        transformedBody: body,
+      };
+    }
+
     const messages = (Array.isArray(bodyObj.messages) ? bodyObj.messages : []) as Array<{
       role: string;
       content: string;

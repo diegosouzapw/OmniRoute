@@ -412,3 +412,18 @@ select option {
   background-color: var(--color-surface);
   color: var(--color-text-main);
 }
+
+/* ReactFlow Controls (zoom +/- buttons) dark mode theming */
+.react-flow__controls-button {
+  background-color: var(--color-surface);
+  border-bottom-color: var(--color-border);
+  fill: var(--color-text-main);
+}
+
+.react-flow__controls-button:hover {
+  background-color: var(--color-bg-subtle);
+}
+
+.react-flow__controls-button svg {
+  fill: var(--color-text-main);
+}

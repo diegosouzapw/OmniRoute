@@ -294,6 +294,21 @@ export async function main() {
       }
 
       try {
+        const publicDir = path.join(projectRoot, "public");
+        if (await exists(publicDir)) {
+          await fs.cp(publicDir, path.join(projectRoot, ".next", "standalone", "public"), {
+            recursive: true,
+          });
+          console.log("[build-next-isolated] Copied public/ to standalone output");
+        }
+      } catch (publicCopyErr) {
+        console.warn(
+          "[build-next-isolated] Non-fatal error copying public/:",
+          publicCopyErr?.message
+        );
+      }
+
+      try {
         await fs.cp(
           path.join(projectRoot, "docs"),
           path.join(projectRoot, ".next", "standalone", "docs"),

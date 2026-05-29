@@ -97,6 +97,7 @@ export default function ComboDefaultsTab() {
     stickyRoundRobinLimit: 3,
     resetAwareQuotaCacheTtlMs: 0,
     resetAwareQuotaCacheMaxStaleMs: 0,
+    zeroLatencyOptimizationsEnabled: false,
   });
   const [codexSessionAffinityTtlMs, setCodexSessionAffinityTtlMs] = useState(0);
   const [providerOverrides, setProviderOverrides] = useState<any>({});
@@ -552,6 +553,29 @@ export default function ComboDefaultsTab() {
               checked={comboDefaults.trackMetrics !== false}
               onChange={() =>
                 setComboDefaults((prev) => ({ ...prev, trackMetrics: !prev.trackMetrics }))
+              }
+            />
+          </div>
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="font-medium text-sm">
+                {translateOrFallback(t, "zeroLatencyOptimizations", "Zero-latency optimizations")}
+              </p>
+              <p className="text-xs text-text-muted">
+                {translateOrFallback(
+                  t,
+                  "zeroLatencyOptimizationsDesc",
+                  "Opt in to hedging, predictive TTFT skips, and proactive fallback compression. Leave off to prevent these latency features from racing targets or compressing fallback requests."
+                )}
+              </p>
+            </div>
+            <Toggle
+              checked={comboDefaults.zeroLatencyOptimizationsEnabled === true}
+              onChange={() =>
+                setComboDefaults((prev) => ({
+                  ...prev,
+                  zeroLatencyOptimizationsEnabled: prev.zeroLatencyOptimizationsEnabled !== true,
+                }))
               }
             />
           </div>

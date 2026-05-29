@@ -74,10 +74,29 @@ export function requiresReasoningReplay(params: {
   model: string;
   thinkingEnabled?: boolean;
   supportsReasoning?: boolean;
+  interleavedField?: string | null;
+  allowLegacyFallback?: boolean;
 }): boolean {
-  if (isDeepSeekReasoningModel(params)) return true;
   const normalizedProvider = params.provider.trim().toLowerCase();
   const normalizedModel = params.model.trim();
+  const normalizedInterleavedField =
+    typeof params.interleavedField === "string" ? params.interleavedField.trim().toLowerCase() : "";
+
+  // Explicit model signal from models.dev (preferred source of truth).
+  if (normalizedInterleavedField === "reasoning_content") return true;
+  if (normalizedInterleavedField === "reasoning_details") return false;
+
+  // DeepSeek legacy reasoner family has an inverse contract: do not replay.
+  if (/deepseek-reasoner/i.test(normalizedModel) || /deepseek-r1/i.test(normalizedModel)) {
+    return false;
+  }
+
+  // Explicit known contract: DeepSeek V4 thinking with tool calls requires replay.
+  if (isDeepSeekReasoningModel(params)) return true;
+
+  const useLegacyFallback = params.allowLegacyFallback !== false;
+  if (!useLegacyFallback) return false;
+
   if (REASONING_REPLAY_PROVIDERS.has(normalizedProvider)) return true;
   return REASONING_REPLAY_MODEL_PATTERNS.some((p) => p.test(normalizedModel));
 }
@@ -109,7 +128,8 @@ type ToolCallLike = {
 };
 
 const memoryCache = new Map<string, MemoryCacheEntry>();
-const MAX_MEMORY_ENTRIES = 2000;
+const MAX_MEMORY_ENTRIES = 200;
+const MAX_ENTRY_BYTES = 10000;
 const TTL_MS = 2 * 60 * 60 * 1000; // 2 hours
 
 // ──────────────── Counters ────────────────
@@ -167,6 +187,10 @@ export function cacheReasoningByKey(
   reasoning: string
 ): void {
   if (!key || !reasoning) return;
+
+  if (reasoning.length > MAX_ENTRY_BYTES) {
+    reasoning = reasoning.slice(0, MAX_ENTRY_BYTES);
+  }
 
   const now = Date.now();
 
@@ -284,15 +308,19 @@ export function lookupReasoning(toolCallId: string): string | null {
   }
   if (dbResult) {
     hits++;
+    let promotedReasoning = dbResult.reasoning;
+    if (promotedReasoning.length > MAX_ENTRY_BYTES) {
+      promotedReasoning = promotedReasoning.slice(0, MAX_ENTRY_BYTES);
+    }
     // Promote back to memory for fast subsequent lookups
     memoryCache.set(toolCallId, {
-      reasoning: dbResult.reasoning,
+      reasoning: promotedReasoning,
       provider: dbResult.provider,
       model: dbResult.model,
       expiresAt: Date.now() + TTL_MS,
       createdAt: Date.now(),
     });
-    return dbResult.reasoning;
+    return promotedReasoning;
   }
 
   // 3. Miss

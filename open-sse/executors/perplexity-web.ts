@@ -439,86 +439,33 @@ function buildStreamingResponse(
 ): ReadableStream<Uint8Array> {
   const encoder = new TextEncoder();
 
-  return new ReadableStream({
-    async start(controller) {
-      try {
-        // Initial role chunk
-        controller.enqueue(
-          encoder.encode(
-            sseChunk({
-              id: cid,
-              object: "chat.completion.chunk",
-              created,
-              model,
-              system_fingerprint: null,
-              choices: [
-                { index: 0, delta: { role: "assistant" }, finish_reason: null, logprobs: null },
-              ],
-            })
-          )
-        );
+  return new ReadableStream(
+    {
+      async start(controller) {
+        try {
+          // Initial role chunk
+          controller.enqueue(
+            encoder.encode(
+              sseChunk({
+                id: cid,
+                object: "chat.completion.chunk",
+                created,
+                model,
+                system_fingerprint: null,
+                choices: [
+                  { index: 0, delta: { role: "assistant" }, finish_reason: null, logprobs: null },
+                ],
+              })
+            )
+          );
 
-        let fullAnswer = "";
-        let respBackendUuid: string | null = null;
+          let fullAnswer = "";
+          let respBackendUuid: string | null = null;
 
-        for await (const chunk of extractContent(eventStream, signal)) {
-          if (chunk.backendUuid) respBackendUuid = chunk.backendUuid;
+          for await (const chunk of extractContent(eventStream, signal)) {
+            if (chunk.backendUuid) respBackendUuid = chunk.backendUuid;
 
-          if (chunk.error) {
-            controller.enqueue(
-              encoder.encode(
-                sseChunk({
-                  id: cid,
-                  object: "chat.completion.chunk",
-                  created,
-                  model,
-                  system_fingerprint: null,
-                  choices: [
-                    {
-                      index: 0,
-                      delta: { content: `[Error: ${chunk.error}]` },
-                      finish_reason: null,
-                      logprobs: null,
-                    },
-                  ],
-                })
-              )
-            );
-            break;
-          }
-
-          if (chunk.thinking) {
-            controller.enqueue(
-              encoder.encode(
-                sseChunk({
-                  id: cid,
-                  object: "chat.completion.chunk",
-                  created,
-                  model,
-                  system_fingerprint: null,
-                  choices: [
-                    {
-                      index: 0,
-                      delta: { reasoning_content: chunk.thinking + "\n" },
-                      finish_reason: null,
-                      logprobs: null,
-                    },
-                  ],
-                })
-              )
-            );
-            continue;
-          }
-
-          if (chunk.done) {
-            fullAnswer = chunk.answer || fullAnswer;
-            break;
-          }
-
-          let dt = chunk.delta || "";
-          if (dt) {
-            dt = cleanResponse(dt, false);
-            if (dt) {
+            if (chunk.error) {
               controller.enqueue(
                 encoder.encode(
                   sseChunk({
@@ -528,60 +475,116 @@ function buildStreamingResponse(
                     model,
                     system_fingerprint: null,
                     choices: [
-                      { index: 0, delta: { content: dt }, finish_reason: null, logprobs: null },
+                      {
+                        index: 0,
+                        delta: { content: `[Error: ${chunk.error}]` },
+                        finish_reason: null,
+                        logprobs: null,
+                      },
                     ],
                   })
                 )
               );
+              break;
             }
+
+            if (chunk.thinking) {
+              controller.enqueue(
+                encoder.encode(
+                  sseChunk({
+                    id: cid,
+                    object: "chat.completion.chunk",
+                    created,
+                    model,
+                    system_fingerprint: null,
+                    choices: [
+                      {
+                        index: 0,
+                        delta: { reasoning_content: chunk.thinking + "\n" },
+                        finish_reason: null,
+                        logprobs: null,
+                      },
+                    ],
+                  })
+                )
+              );
+              continue;
+            }
+
+            if (chunk.done) {
+              fullAnswer = chunk.answer || fullAnswer;
+              break;
+            }
+
+            let dt = chunk.delta || "";
+            if (dt) {
+              dt = cleanResponse(dt, false);
+              if (dt) {
+                controller.enqueue(
+                  encoder.encode(
+                    sseChunk({
+                      id: cid,
+                      object: "chat.completion.chunk",
+                      created,
+                      model,
+                      system_fingerprint: null,
+                      choices: [
+                        { index: 0, delta: { content: dt }, finish_reason: null, logprobs: null },
+                      ],
+                    })
+                  )
+                );
+              }
+            }
+            if (chunk.answer) fullAnswer = chunk.answer;
           }
-          if (chunk.answer) fullAnswer = chunk.answer;
-        }
 
-        // Stop chunk
-        controller.enqueue(
-          encoder.encode(
-            sseChunk({
-              id: cid,
-              object: "chat.completion.chunk",
-              created,
-              model,
-              system_fingerprint: null,
-              choices: [{ index: 0, delta: {}, finish_reason: "stop", logprobs: null }],
-            })
-          )
-        );
-        controller.enqueue(encoder.encode("data: [DONE]\n\n"));
+          // Stop chunk
+          controller.enqueue(
+            encoder.encode(
+              sseChunk({
+                id: cid,
+                object: "chat.completion.chunk",
+                created,
+                model,
+                system_fingerprint: null,
+                choices: [{ index: 0, delta: {}, finish_reason: "stop", logprobs: null }],
+              })
+            )
+          );
+          controller.enqueue(encoder.encode("data: [DONE]\n\n"));
 
-        sessionStore(history, currentMsg, cleanResponse(fullAnswer), respBackendUuid);
-      } catch (err) {
-        controller.enqueue(
-          encoder.encode(
-            sseChunk({
-              id: cid,
-              object: "chat.completion.chunk",
-              created,
-              model,
-              system_fingerprint: null,
-              choices: [
-                {
-                  index: 0,
-                  delta: {
-                    content: `[Stream error: ${err instanceof Error ? err.message : String(err)}]`,
+          sessionStore(history, currentMsg, cleanResponse(fullAnswer), respBackendUuid);
+        } catch (err) {
+          controller.enqueue(
+            encoder.encode(
+              sseChunk({
+                id: cid,
+                object: "chat.completion.chunk",
+                created,
+                model,
+                system_fingerprint: null,
+                choices: [
+                  {
+                    index: 0,
+                    delta: {
+                      content: `[Stream error: ${err instanceof Error ? err.message : String(err)}]`,
+                    },
+                    finish_reason: "stop",
+                    logprobs: null,
                   },
-                  finish_reason: "stop",
-                  logprobs: null,
-                },
-              ],
-            })
-          )
-        );
-        controller.enqueue(encoder.encode("data: [DONE]\n\n"));
-      } finally {
-        controller.close();
-      }
+                ],
+              })
+            )
+          );
+          controller.enqueue(encoder.encode("data: [DONE]\n\n"));
+        } finally {
+          try { controller.close(); } catch {}
+        }
+      },
     },
-  });
+    { highWaterMark: 16384 }
+  );
 }
 
 async function buildNonStreamingResponse(

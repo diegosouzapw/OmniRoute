@@ -1,0 +1,21 @@
+{
+  "active_plan": "/home/openclaw/projects/OmniRoute/.sisyphus/plans/deepseek-web-integration.md",
+  "started_at": "2026-05-15T23:30:00.000Z",
+  "session_ids": [
+    "ses_1d3b79a24ffejmwfbiNyIIWzb0",
+    "ses_1d37fac1effep8c5sYc2o95T9y",
+    "ses_1d37f832effesYLZN8s5nVNGyv",
+    "ses_1d37f7c28ffeE125WYb5z8co9D",
+    "ses_1d37f758affe7hYAlkECTzxViF"
+  ],
+  "plan_name": "deepseek-web-integration",
+  "worktree_path": null,
+  "session_origins": {
+    "ses_1d3b79a24ffejmwfbiNyIIWzb0": "direct",
+    "ses_1d37fac1effep8c5sYc2o95T9y": "appended",
+    "ses_1d37f832effesYLZN8s5nVNGyv": "appended",
+    "ses_1d37f7c28ffeE125WYb5z8co9D": "appended",
+    "ses_1d37f758affe7hYAlkECTzxViF": "appended"
+  },
+  "task_sessions": {}
+}

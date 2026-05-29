@@ -100,7 +100,8 @@ function transformTSSStream(upstreamStream: ReadableStream, model: string): Read
   const created = Math.floor(Date.now() / 1000);
   let emittedRole = false;
 
-  return new ReadableStream({
+  return new ReadableStream(
+    {
     async start(controller) {
       const reader = upstreamStream.getReader();
       let buffer = "";
@@ -185,7 +186,9 @@ function transformTSSStream(upstreamStream: ReadableStream, model: string): Read
 
       close();
     },
-  });
+    },
+    { highWaterMark: 16384 }
+  );
 }
 
 /**

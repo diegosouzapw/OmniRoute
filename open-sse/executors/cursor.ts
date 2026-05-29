@@ -973,20 +973,23 @@ export class CursorExecutor extends BaseExecutor {
     // Stream mode: ReadableStream that emits SSE chunks as they're decoded.
     if (stream !== false) {
       const enc = new TextEncoder();
-      const sseStream = new ReadableStream({
-        start: async (controller) => {
-          const ctx = newStreamCtx(model, (s) => controller.enqueue(enc.encode(s)));
-          try {
-            await this.driveH2(h2, ctx, mcpTools, blobStore, signal);
-            this.finalizeSseStream(ctx, body);
-            finishLifecycle(ctx, false);
-            controller.close();
-          } catch (err) {
-            finishLifecycle(ctx, true);
-            controller.error(err);
-          }
+      const sseStream = new ReadableStream(
+        {
+          start: async (controller) => {
+            const ctx = newStreamCtx(model, (s) => controller.enqueue(enc.encode(s)));
+            try {
+              await this.driveH2(h2, ctx, mcpTools, blobStore, signal);
+              this.finalizeSseStream(ctx, body);
+              finishLifecycle(ctx, false);
+              controller.close();
+            } catch (err) {
+              finishLifecycle(ctx, true);
+              controller.error(err);
+            }
+          },
         },
-      });
+        { highWaterMark: 16384 }
+      );
       return {
         response: new Response(sseStream, {
           status: 200,

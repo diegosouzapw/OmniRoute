@@ -429,9 +429,50 @@ export const importGeminiAuthSchema = z.object({
   overwriteExisting: z.boolean().optional(),
 });
 
+// ──── Antigravity CLI (`agy`) Auth Import Schema ────
+// Same source/options shape as gemini-cli; the parser handles the agy-specific token JSON.
+
+export const importAgyAuthSchema = z.object({
+  source: z.discriminatedUnion("kind", [
+    z.object({ kind: z.literal("json"), json: z.unknown() }),
+    z.object({
+      kind: z.literal("text"),
+      text: z.string().max(256 * 1024, "agy token file content exceeds 256KB"),
+    }),
+  ]),
+  name: z.string().min(1).max(200).optional(),
+  email: z.string().email("Must be a valid email").optional(),
+  overwriteExisting: z.boolean().optional(),
+});
+
+// ──── Antigravity CLI (`agy`) auto-detect local login Schema ────
+// No `source`: the route reads the token from the local agy CLI data dir on disk.
+
+export const applyLocalAgyAuthSchema = z.object({
+  name: z.string().min(1).max(200).optional(),
+  email: z.string().email("Must be a valid email").optional(),
+  overwriteExisting: z.boolean().optional(),
+});
+
 // ──── Gemini CLI Auth Import Bulk Schema ────
 
 export const importGeminiAuthBulkSchema = z.object({
+  entries: z
+    .array(
+      z.object({
+        json: z.unknown(),
+        name: z.string().min(1).max(200).optional(),
+        email: z.string().email("Must be a valid email").optional(),
+      })
+    )
+    .min(1, "At least one entry is required")
+    .max(50, "At most 50 entries per bulk import"),
+  overwriteExisting: z.boolean().optional(),
+});
+
+// ──── Antigravity CLI (`agy`) Auth Import Bulk Schema ────
+
+export const importAgyAuthBulkSchema = z.object({
   entries: z
     .array(
       z.object({
@@ -450,7 +491,7 @@ export const importGeminiAuthBulkSchema = z.object({
 export const createKeySchema = z.object({
   name: z.string().min(1, "Name is required").max(200),
   noLog: z.boolean().optional(),
-  scopes: z.array(z.string().trim().min(1).max(64)).max(16).optional(),
+  scopes: z.array(z.string().trim().min(1).max(64)).max(32).optional(),
 });
 
 export const createSyncTokenSchema = z.object({
@@ -586,6 +627,12 @@ const comboRuntimeConfigSchema = z
     failoverBeforeRetry: z.boolean().optional(),
     maxSetRetries: z.coerce.number().int().min(0).max(10).optional(),
     setRetryDelayMs: z.coerce.number().int().min(0).max(60000).optional(),
+    zeroLatencyOptimizationsEnabled: z.boolean().optional(),
+    hedging: z.boolean().optional(),
+    hedgeDelayMs: z.coerce.number().int().min(0).max(60000).optional(),
+    fallbackCompressionMode: compressionModeSchema.optional(),
+    fallbackCompressionThreshold: z.coerce.number().int().min(0).max(2_000_000).optional(),
+    predictiveTtftMs: z.coerce.number().int().min(0).max(300000).optional(),
     // Auto-Combo / LKGP Extensions
     candidatePool: z.array(z.string().min(1)).optional(),
     weights: scoringWeightsSchema.optional(),
@@ -613,7 +660,29 @@ const comboRuntimeConfigSchema = z
     shadowRouting: shadowRoutingSchema.optional(),
     evalRouting: evalRoutingSchema.optional(),
   })
-  .strict();
+  .strict()
+  .superRefine((config, ctx) => {
+    if (config.zeroLatencyOptimizationsEnabled === true) return;
+
+    const addZeroLatencyIssue = (path: string[]) => {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message:
+          "zeroLatencyOptimizationsEnabled must be true to enable zero-latency combo features",
+        path,
+      });
+    };
+
+    if (config.hedging === true) {
+      addZeroLatencyIssue(["hedging"]);
+    }
+    if (typeof config.predictiveTtftMs === "number" && config.predictiveTtftMs > 0) {
+      addZeroLatencyIssue(["predictiveTtftMs"]);
+    }
+    if (config.fallbackCompressionMode && config.fallbackCompressionMode !== "off") {
+      addZeroLatencyIssue(["fallbackCompressionMode"]);
+    }
+  });
 
 const comboNameSchema = z
   .string()
@@ -849,6 +918,34 @@ export const setBudgetSchema = z
         code: z.ZodIssueCode.custom,
         message: "At least one budget limit must be provided",
         path: ["dailyLimitUsd"],
+      });
+    }
+  });
+
+export const setTokenLimitSchema = z
+  .object({
+    id: z.string().trim().min(1).optional(),
+    apiKeyId: z.string().trim().min(1, "apiKeyId is required"),
+    scopeType: z.enum(["model", "provider", "global"]),
+    scopeValue: z.string().trim().default(""),
+    tokenLimit: z.coerce
+      .number()
+      .int("tokenLimit must be an integer")
+      .positive("tokenLimit must be greater than zero"),
+    resetInterval: z.enum(["daily", "weekly", "monthly"]).default("monthly"),
+    resetTime: z
+      .string()
+      .trim()
+      .regex(/^\d{2}:\d{2}$/, "resetTime must be in HH:MM format")
+      .optional(),
+    enabled: z.boolean().default(true),
+  })
+  .superRefine((value, ctx) => {
+    if (value.scopeType !== "global" && (!value.scopeValue || value.scopeValue.length === 0)) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "scopeValue is required unless scopeType is 'global'",
+        path: ["scopeValue"],
       });
     }
   });
@@ -1757,7 +1854,7 @@ export const updateKeyPermissionsSchema = z
         z.null(),
       ])
       .optional(),
-    scopes: z.array(z.string().trim().min(1).max(64)).max(16).optional(),
+    scopes: z.array(z.string().trim().min(1).max(64)).max(32).optional(),
     allowedEndpoints: z.array(z.string().trim().min(1).max(64)).max(20).optional(),
   })
   .superRefine((value, ctx) => {
@@ -1996,7 +2093,8 @@ export const v1betaGeminiGenerateSchema = z
   });
 
 export const cliMitmStartSchema = z.object({
-  apiKey: z.string().trim().min(1, "Missing apiKey"),
+  apiKey: z.string().trim().min(1).nullable().optional(),
+  keyId: z.string().trim().min(1).nullable().optional(),
   sudoPassword: z.string().optional(),
 });
 
@@ -2270,3 +2368,17 @@ export const v1WebFetchSchema = z.object({
   wait_for_selector: z.string().max(256).optional(),
   include_metadata: z.boolean().default(false),
 });
+
+// ── Zed Credential Import Flow ──────────────────────────────────────────────────
+
+export const confirmedAccountSchema = z.object({
+  service: z.string().min(1).max(500),
+  account: z.string().min(1).max(500),
+  fingerprint: z.string().min(1).max(100),
+});
+
+export const zedImportSchema = z.object({
+  confirmedAccounts: z.array(confirmedAccountSchema),
+});
+
+export type ConfirmedAccount = z.infer<typeof confirmedAccountSchema>;

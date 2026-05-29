@@ -36,6 +36,11 @@ export const updateSettingsSchema = z.object({
   hideEndpointNgrokTunnel: z.boolean().optional(),
   autoRefreshProviderQuota: z.boolean().optional(),
   autoRefreshProviderQuotaInterval: z.number().int().min(10).max(3600).optional(),
+  pinProviderQuotaToHome: z.boolean().optional(),
+  showQuickStartOnHome: z.boolean().optional(),
+  showProviderTopologyOnHome: z.boolean().optional(),
+  localOnlyManageScopeBypassEnabled: z.boolean().optional(),
+  localOnlyManageScopeBypassPrefixes: z.array(z.string().max(200)).optional(),
   debugMode: z.boolean().optional(),
   hiddenSidebarItems: z.array(z.enum(HIDEABLE_SIDEBAR_ITEM_IDS)).optional(),
   sidebarSectionOrder: z
@@ -316,7 +321,7 @@ export const databaseSettingsSchema = z.object(
     // Aggregation settings
     aggregation: z.object({
       enabled: z.boolean(),
-      rawDataRetentionDays: z.number().int().min(1).max(90),
+      rawDataRetentionDays: z.number().int().min(1).max(3650),
       granularity: z.literal("hourly").or(z.literal("daily")).or(z.literal("weekly")),
     }),
 

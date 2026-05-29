@@ -248,20 +248,25 @@ export class GeminiWebExecutor extends BaseExecutor {
         // Pseudo-streaming: send complete response as single SSE chunk
         // Gemini's StreamGenerate returns complete responses, not chunked streams
         const encoder = new TextEncoder();
-        const readable = new ReadableStream({
-          start(controller) {
-            controller.enqueue(
-              encoder.encode(
-                `data: ${JSON.stringify(formatStreamChunk(responseText, modelId))}\n\n`
-              )
-            );
-            controller.enqueue(
-              encoder.encode(`data: ${JSON.stringify(formatStreamChunk("", modelId, "stop"))}\n\n`)
-            );
-            controller.enqueue(encoder.encode("data: [DONE]\n\n"));
-            controller.close();
+        const readable = new ReadableStream(
+          {
+            start(controller) {
+              controller.enqueue(
+                encoder.encode(
+                  `data: ${JSON.stringify(formatStreamChunk(responseText, modelId))}\n\n`
+                )
+              );
+              controller.enqueue(
+                encoder.encode(
+                  `data: ${JSON.stringify(formatStreamChunk("", modelId, "stop"))}\n\n`
+                )
+              );
+              controller.enqueue(encoder.encode("data: [DONE]\n\n"));
+              controller.close();
+            },
           },
-        });
+          { highWaterMark: 16384 }
+        );
         return {
           response: new Response(readable, {
             status: 200,

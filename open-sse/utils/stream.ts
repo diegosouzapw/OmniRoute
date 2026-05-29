@@ -181,6 +181,198 @@ function appendBoundedText(current: string, next: string): string {
   return combined.slice(-STREAM_SUMMARY_TEXT_LIMIT);
 }
 
+function stripZeroWidth(value: unknown): unknown {
+  if (typeof value === "string") {
+    return value.replace(/[\u200B-\u200D\uFEFF]/g, "");
+  }
+  if (Array.isArray(value)) {
+    return value.map((item) => stripZeroWidth(item));
+  }
+  if (value && typeof value === "object") {
+    return Object.fromEntries(
+      Object.entries(value as Record<string, unknown>).map(([key, item]) => [
+        key,
+        stripZeroWidth(item),
+      ])
+    );
+  }
+  return value;
+}
+
+function parseTextualToolCallCandidate(
+  text: unknown
+): { kind: "complete"; name: string; args: unknown } | { kind: "partial" } | null {
+  if (typeof text !== "string") return null;
+  const normalized = text.replace(/[\u200B-\u200D\uFEFF]/g, "");
+  const toolCallIndex = normalized.lastIndexOf("[Tool call:");
+  if (toolCallIndex < 0) return null;
+  const candidate = normalized.slice(toolCallIndex);
+  const headerMatch = candidate.match(/^\[Tool call:\s*([^\]\n]+)\]\s*\nArguments:\s*/);
+  if (!headerMatch) return { kind: "partial" };
+  const name = headerMatch[1]?.trim();
+  const rawArgs = candidate.slice(headerMatch[0].length).trim();
+  if (!name || !rawArgs) return { kind: "partial" };
+  const decoders = [
+    (value: string) => value,
+    (value: string) => {
+      if (value.startsWith('"') && value.endsWith('"')) {
+        const decoded = JSON.parse(value);
+        return typeof decoded === "string" ? decoded : value;
+      }
+      return value;
+    },
+  ];
+  for (const decode of decoders) {
+    try {
+      const decoded = decode(rawArgs);
+      const parsed = JSON.parse(decoded);
+      return { kind: "complete", name, args: stripZeroWidth(parsed) };
+    } catch {}
+  }
+  return { kind: "partial" };
+}
+
+function parseTextualToolCallFromContent(text: unknown): { name: string; args: unknown } | null {
+  const candidate = parseTextualToolCallCandidate(text);
+  return candidate?.kind === "complete" ? { name: candidate.name, args: candidate.args } : null;
+}
+
+function containsTextualToolCallCandidate(text: unknown): boolean {
+  return parseTextualToolCallCandidate(text) !== null;
+}
+
+function containsMalformedTextualToolCall(text: unknown): boolean {
+  if (typeof text !== "string") return false;
+  return text.replace(/[\u200B-\u200D\uFEFF]/g, "").includes("[Tool call:");
+}
+
+function extractAllowedToolNames(body: unknown): Set<string> | null {
+  const record = asRecord(body);
+  const tools = record.tools;
+  if (!Array.isArray(tools)) return null;
+  const names = new Set<string>();
+  for (const tool of tools) {
+    if (!tool || typeof tool !== "object" || Array.isArray(tool)) continue;
+    const item = tool as JsonRecord;
+    const directName = typeof item.name === "string" ? item.name.trim() : "";
+    const fn =
+      item.function && typeof item.function === "object" && !Array.isArray(item.function)
+        ? (item.function as JsonRecord)
+        : null;
+    const functionName = typeof fn?.name === "string" ? fn.name.trim() : "";
+    const name = functionName || directName;
+    if (name) names.add(name);
+  }
+  return names.size > 0 ? names : null;
+}
+
+function collectPassthroughTextualToolCall(
+  text: string,
+  toolCalls: Map<string, ToolCall>,
+  allowedToolNames?: Set<string> | null
+): ToolCall | null {
+  const parsed = parseTextualToolCallFromContent(text);
+  if (!parsed) return null;
+  if (allowedToolNames?.size && !allowedToolNames.has(parsed.name)) return null;
+  const key = `textual:${toolCalls.size}`;
+  const toolCall: ToolCall = {
+    id: `call_${Date.now()}_${toolCalls.size}`,
+    index: toolCalls.size,
+    type: "function",
+    function: {
+      name: parsed.name,
+      arguments: JSON.stringify(parsed.args || {}),
+    },
+  };
+  toolCalls.set(key, toolCall);
+  return toolCall;
+}
+
+function toStreamingToolCallDelta(toolCall: ToolCall) {
+  return {
+    index: toolCall.index,
+    id: toolCall.id,
+    type: toolCall.type,
+    function: {
+      name: toolCall.function.name,
+      arguments: toolCall.function.arguments,
+    },
+  };
+}
+
+function toResponsesFunctionCallItem(toolCall: ToolCall) {
+  return {
+    type: "function_call",
+    id: toolCall.id || `fc_${toolCall.index}`,
+    call_id: toolCall.id || `call_${toolCall.index}`,
+    name: toolCall.function.name,
+    arguments: toolCall.function.arguments,
+    status: "completed",
+  };
+}
+
+function buildResponsesFunctionCallEvents(toolCall: ToolCall) {
+  const item = toResponsesFunctionCallItem(toolCall);
+  return [
+    {
+      type: "response.output_item.added",
+      output_index: toolCall.index,
+      item,
+    },
+    {
+      type: "response.function_call_arguments.done",
+      item_id: item.id,
+      output_index: toolCall.index,
+      arguments: toolCall.function.arguments,
+    },
+    {
+      type: "response.output_item.done",
+      output_index: toolCall.index,
+      item,
+    },
+  ];
+}
+
+function formatSSEDataEvents(events: unknown[]) {
+  return events.map((event) => `data: ${JSON.stringify(event)}\n`).join("\n");
+}
+
+function toChatCompletionChunkWithToolCall(base: JsonRecord, toolCall: ToolCall) {
+  const choice = asRecord(Array.isArray(base.choices) ? base.choices[0] : null);
+  const delta = { ...asRecord(choice.delta) };
+  delete delta.content;
+  delete delta.reasoning_content;
+  return {
+    ...base,
+    choices: [
+      {
+        ...choice,
+        index: typeof choice.index === "number" ? choice.index : 0,
+        delta: {
+          ...delta,
+          tool_calls: [toStreamingToolCallDelta(toolCall)],
+        },
+        finish_reason: null,
+      },
+    ],
+  };
+}
+
+function toResponsesCompletedWithToolCalls(parsed: JsonRecord, toolCalls: ToolCall[]) {
+  const response = asRecord(parsed.response);
+  const existingOutput = Array.isArray(response.output) ? response.output : [];
+  return {
+    ...parsed,
+    response: {
+      ...response,
+      output: [
+        ...existingOutput,
+        ...toolCalls.map((toolCall) => toResponsesFunctionCallItem(toolCall)),
+      ],
+    },
+  };
+}
+
 function toStreamFailureStatus(value: unknown): number | null {
   if (typeof value === "number" && Number.isInteger(value) && value >= 400 && value <= 599) {
     return value;
@@ -572,6 +764,7 @@ export function createSSEStream(options: StreamOptions = {}) {
   /** Passthrough: accumulate tool_calls deltas for call log responseBody */
   const passthroughToolCalls = new Map<string, ToolCall>();
   let passthroughToolCallSeq = 0;
+  const allowedToolNames = extractAllowedToolNames(body);
   let skipPassthroughEvent = false;
 
   // State for translate mode (accumulatedContent for call log response body)
@@ -592,6 +785,7 @@ export function createSSEStream(options: StreamOptions = {}) {
   // Passthrough: accumulate content and reasoning separately for call log response body
   let passthroughAccumulatedContent = "";
   let passthroughAccumulatedReasoning = "";
+  let passthroughBufferedTextualToolCallContent = "";
   // Passthrough Responses SSE: snapshots of items seen via `response.output_item.done`,
   // used to backfill `response.completed.response.output` when upstream returns it
   // empty (which happens when `store: false` — see backfillResponsesCompletedOutput).
@@ -644,6 +838,64 @@ export function createSSEStream(options: StreamOptions = {}) {
       return `${pendingPassthroughEventLine}\n${output}`;
     }
     return output;
+  };
+
+  const applyTextualToolCallStreamingGuard = (parsed: Record<string, unknown>) => {
+    const choice = Array.isArray((parsed as JsonRecord).choices)
+      ? (((parsed as JsonRecord).choices as unknown[])[0] as JsonRecord | undefined)
+      : undefined;
+    const delta = asRecord(choice?.delta);
+    let textualToolCallConverted = false;
+
+    if (typeof delta?.content === "string") {
+      const incomingContent = delta.content;
+      const bufferedCandidate = passthroughBufferedTextualToolCallContent + incomingContent;
+      if (
+        passthroughBufferedTextualToolCallContent ||
+        containsTextualToolCallCandidate(incomingContent)
+      ) {
+        const parsedCandidate = parseTextualToolCallCandidate(bufferedCandidate);
+        if (parsedCandidate?.kind === "complete") {
+          const collectedToolCall = collectPassthroughTextualToolCall(
+            bufferedCandidate,
+            passthroughToolCalls,
+            allowedToolNames
+          );
+          if (collectedToolCall) {
+            parsed = toChatCompletionChunkWithToolCall(
+              parsed as JsonRecord,
+              collectedToolCall
+            ) as typeof parsed;
+            passthroughHasToolCalls = true;
+          } else {
+            delete delta.content;
+            delete delta.reasoning_content;
+          }
+          textualToolCallConverted = true;
+          passthroughBufferedTextualToolCallContent = "";
+        } else if (parsedCandidate?.kind === "partial") {
+          passthroughBufferedTextualToolCallContent = appendBoundedText(
+            passthroughBufferedTextualToolCallContent,
+            incomingContent
+          );
+          textualToolCallConverted = true;
+          delta.content = "";
+        } else {
+          passthroughAccumulatedContent = appendBoundedText(
+            passthroughAccumulatedContent,
+            passthroughBufferedTextualToolCallContent + incomingContent
+          );
+          passthroughBufferedTextualToolCallContent = "";
+        }
+      } else {
+        passthroughAccumulatedContent = appendBoundedText(
+          passthroughAccumulatedContent,
+          incomingContent
+        );
+      }
+    }
+
+    return { parsed, textualToolCallConverted };
   };
 
   const emitSyntheticClaudeEmptyResponse = (
@@ -1047,10 +1299,57 @@ export function createSSEStream(options: StreamOptions = {}) {
                     parsed.type === "response.output_text.delta" &&
                     typeof parsed.delta === "string"
                   ) {
-                    passthroughAccumulatedContent = appendBoundedText(
-                      passthroughAccumulatedContent,
-                      parsed.delta
-                    );
+                    const incomingDelta = parsed.delta;
+                    const bufferedCandidate =
+                      passthroughBufferedTextualToolCallContent + incomingDelta;
+                    if (
+                      passthroughBufferedTextualToolCallContent ||
+                      containsTextualToolCallCandidate(incomingDelta)
+                    ) {
+                      const parsedCandidate = parseTextualToolCallCandidate(bufferedCandidate);
+                      if (parsedCandidate?.kind === "complete") {
+                        const collectedToolCall = collectPassthroughTextualToolCall(
+                          bufferedCandidate,
+                          passthroughToolCalls,
+                          allowedToolNames
+                        );
+                        if (collectedToolCall) {
+                          passthroughHasToolCalls = true;
+                          const responseToolCallEvents =
+                            buildResponsesFunctionCallEvents(collectedToolCall);
+                          output = formatSSEDataEvents(responseToolCallEvents);
+                          clientPayloadCollector.push(...responseToolCallEvents);
+                          reqLogger?.appendConvertedChunk?.(output);
+                          controller.enqueue(encoder.encode(output));
+                          injectedUsage = true;
+                        } else {
+                          output = `data: ${JSON.stringify(parsed)}
+`;
+                          injectedUsage = true;
+                        }
+                        passthroughBufferedTextualToolCallContent = "";
+                        parsed.delta = "";
+                      } else if (parsedCandidate?.kind === "partial") {
+                        passthroughBufferedTextualToolCallContent = appendBoundedText(
+                          passthroughBufferedTextualToolCallContent,
+                          incomingDelta
+                        );
+                        parsed.delta = "";
+                        output = `data: ${JSON.stringify(parsed)}\n`;
+                        injectedUsage = true;
+                      } else {
+                        passthroughAccumulatedContent = appendBoundedText(
+                          passthroughAccumulatedContent,
+                          passthroughBufferedTextualToolCallContent + incomingDelta
+                        );
+                        passthroughBufferedTextualToolCallContent = "";
+                      }
+                    } else {
+                      passthroughAccumulatedContent = appendBoundedText(
+                        passthroughAccumulatedContent,
+                        incomingDelta
+                      );
+                    }
                   }
                   if (parsed.type === "response.failed") {
                     failurePayload = normalizeStreamFailurePayload(parsed);
@@ -1170,12 +1469,19 @@ export function createSSEStream(options: StreamOptions = {}) {
                   //      upstream sent it empty (store: false) — some clients
                   //      build their tool-call list from that snapshot rather
                   //      than from per-item events.
+                  const textualToolCallBackfilled =
+                    parsed.type === "response.completed" && passthroughToolCalls.size > 0;
+                  if (textualToolCallBackfilled) {
+                    parsed = toResponsesCompletedWithToolCalls(parsed as JsonRecord, [
+                      ...passthroughToolCalls.values(),
+                    ]) as typeof parsed;
+                  }
                   const stripped = stripResponsesLifecycleEcho(parsed);
                   const backfilled = backfillResponsesCompletedOutput(
                     parsed,
                     passthroughResponsesOutputItems
                   );
-                  if (stripped || backfilled) {
+                  if (stripped || backfilled || textualToolCallBackfilled) {
                     output = `data: ${JSON.stringify(parsed)}\n`;
                     injectedUsage = true;
                   }
@@ -1228,8 +1534,7 @@ export function createSSEStream(options: StreamOptions = {}) {
                     );
                   }
                   if (restoredToolName) {
-                    output = `data: ${JSON.stringify(parsed)}
-`;
+                    output = `data: ${JSON.stringify(parsed)}\n`;
                     injectedUsage = true;
                   }
                 } else {
@@ -1251,6 +1556,7 @@ export function createSSEStream(options: StreamOptions = {}) {
                   }
 
                   const delta = parsed.choices?.[0]?.delta;
+                  let textualToolCallConverted = false;
 
                   // Extract <think> tags from streaming content
                   if (delta?.content && typeof delta.content === "string") {
@@ -1328,11 +1634,13 @@ export function createSSEStream(options: StreamOptions = {}) {
                   if (content && typeof content === "string") {
                     totalContentLength += content.length;
                   }
-                  if (typeof delta?.content === "string")
-                    passthroughAccumulatedContent = appendBoundedText(
-                      passthroughAccumulatedContent,
-                      delta.content
+                  {
+                    const guarded = applyTextualToolCallStreamingGuard(
+                      parsed as Record<string, unknown>
                     );
+                    parsed = guarded.parsed as typeof parsed;
+                    textualToolCallConverted = guarded.textualToolCallConverted;
+                  }
                   if (typeof delta?.reasoning_content === "string")
                     passthroughAccumulatedReasoning = appendBoundedText(
                       passthroughAccumulatedReasoning,
@@ -1368,6 +1676,9 @@ export function createSSEStream(options: StreamOptions = {}) {
                   } else if (isFinishChunk && usage) {
                     const buffered = addBufferToUsage(usage);
                     parsed.usage = filterUsageForFormat(buffered, FORMATS.OPENAI);
+                    output = `data: ${JSON.stringify(parsed)}\n`;
+                    injectedUsage = true;
+                  } else if (textualToolCallConverted) {
                     output = `data: ${JSON.stringify(parsed)}\n`;
                     injectedUsage = true;
                   } else if (idFixed || needsReserialization) {
@@ -1654,7 +1965,30 @@ export function createSSEStream(options: StreamOptions = {}) {
                 const u = usage as Record<string, unknown> | null;
                 const prompt = Number(u?.prompt_tokens ?? u?.input_tokens ?? 0);
                 const completion = Number(u?.completion_tokens ?? u?.output_tokens ?? 0);
-                const content = passthroughAccumulatedContent.trim() || "";
+                let content = passthroughAccumulatedContent.trim() || "";
+                const finalBufferedTextualToolCall =
+                  passthroughBufferedTextualToolCallContent.trim();
+                if (finalBufferedTextualToolCall) {
+                  if (
+                    collectPassthroughTextualToolCall(
+                      finalBufferedTextualToolCall,
+                      passthroughToolCalls,
+                      allowedToolNames
+                    )
+                  ) {
+                    passthroughHasToolCalls = true;
+                  }
+                  passthroughBufferedTextualToolCallContent = "";
+                }
+                if (
+                  content &&
+                  collectPassthroughTextualToolCall(content, passthroughToolCalls, allowedToolNames)
+                ) {
+                  passthroughHasToolCalls = true;
+                  content = "";
+                } else if (containsMalformedTextualToolCall(content)) {
+                  content = "";
+                }
                 const message: Record<string, unknown> = {
                   role: "assistant",
                   content: content || null,
@@ -1867,27 +2201,44 @@ export function createSSEStream(options: StreamOptions = {}) {
               const u = state?.usage as Record<string, unknown> | null | undefined;
               const prompt = Number(u?.prompt_tokens ?? u?.input_tokens ?? 0);
               const completion = Number(u?.completion_tokens ?? u?.output_tokens ?? 0);
-              const content = (state?.accumulatedContent ?? "").trim() || "";
+              let content = (state?.accumulatedContent ?? "").trim() || "";
+              const normalizedToolCalls: ToolCall[] = state?.toolCalls?.size
+                ? [...state.toolCalls.values()]
+                    .map(
+                      (tc: Record<string, unknown>): ToolCall => ({
+                        id: (tc.id as string) ?? null,
+                        index: (tc.index as number) ?? (tc.blockIndex as number) ?? 0,
+                        type: (tc.type as string) ?? "function",
+                        function: (tc.function as ToolCall["function"]) ?? {
+                          name: (tc.name as string) ?? "",
+                          arguments: "",
+                        },
+                      })
+                    )
+                    .sort((a, b) => a.index - b.index)
+                : [];
+              const textualToolCall = parseTextualToolCallFromContent(content);
+              if (textualToolCall) {
+                normalizedToolCalls.push({
+                  id: `call_${Date.now()}_${normalizedToolCalls.length}`,
+                  index: normalizedToolCalls.length,
+                  type: "function",
+                  function: {
+                    name: textualToolCall.name,
+                    arguments: JSON.stringify(textualToolCall.args || {}),
+                  },
+                });
+                content = "";
+              } else if (containsMalformedTextualToolCall(content)) {
+                content = "";
+              }
               const message: Record<string, unknown> = {
                 role: "assistant",
                 content: content || null,
               };
-              const hasToolCalls = state?.toolCalls?.size > 0;
+              const hasToolCalls = normalizedToolCalls.length > 0;
               if (hasToolCalls) {
-                // Normalize shape — translators may store different structures
-                message.tool_calls = [...state.toolCalls.values()]
-                  .map(
-                    (tc: Record<string, unknown>): ToolCall => ({
-                      id: (tc.id as string) ?? null,
-                      index: (tc.index as number) ?? (tc.blockIndex as number) ?? 0,
-                      type: (tc.type as string) ?? "function",
-                      function: (tc.function as ToolCall["function"]) ?? {
-                        name: (tc.name as string) ?? "",
-                        arguments: "",
-                      },
-                    })
-                  )
-                  .sort((a, b) => a.index - b.index);
+                message.tool_calls = normalizedToolCalls;
               }
               const responseBody = {
                 choices: [
@@ -1926,10 +2277,8 @@ export function createSSEStream(options: StreamOptions = {}) {
         }
       },
     },
-    // Writable side backpressure — limit buffered chunks to avoid unbounded memory
-    { highWaterMark: 16 },
-    // Readable side backpressure — limit queued output chunks
-    { highWaterMark: 16 }
+    { highWaterMark: 16384 },
+    { highWaterMark: 16384 }
   );
 }
 

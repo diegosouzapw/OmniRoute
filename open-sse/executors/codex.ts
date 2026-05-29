@@ -155,13 +155,15 @@ export interface CodexQuotaSnapshot {
  *   x-codex-5h-usage / x-codex-5h-limit / x-codex-5h-reset-at
  *   x-codex-7d-usage / x-codex-7d-limit / x-codex-7d-reset-at
  */
-export function parseCodexQuotaHeaders(headers: Headers): CodexQuotaSnapshot | null {
-  const usage5h = headers.get("x-codex-5h-usage");
-  const limit5h = headers.get("x-codex-5h-limit");
-  const resetAt5h = headers.get("x-codex-5h-reset-at");
-  const usage7d = headers.get("x-codex-7d-usage");
-  const limit7d = headers.get("x-codex-7d-limit");
-  const resetAt7d = headers.get("x-codex-7d-reset-at");
+export function parseCodexQuotaHeaders(
+  headers: Record<string, string>
+): CodexQuotaSnapshot | null {
+  const usage5h = headers["x-codex-5h-usage"] ?? null;
+  const limit5h = headers["x-codex-5h-limit"] ?? null;
+  const resetAt5h = headers["x-codex-5h-reset-at"] ?? null;
+  const usage7d = headers["x-codex-7d-usage"] ?? null;
+  const limit7d = headers["x-codex-7d-limit"] ?? null;
+  const resetAt7d = headers["x-codex-7d-reset-at"] ?? null;
 
   // Return null if none of the quota headers are present (not a quota-aware response)
   if (!usage5h && !limit5h && !resetAt5h && !usage7d && !limit7d && !resetAt7d) {

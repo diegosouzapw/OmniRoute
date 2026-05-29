@@ -1,0 +1,76 @@
+# Task 2: Add Encryption Error Handling — Final Summary
+
+## Status: ✅ COMPLETE
+
+### Deliverables Checklist
+- [x] decrypt() function has try-catch around decipher.final() call
+- [x] Error logged with context (not just message)
+- [x] Returns ciphertext unchanged on error (no crash)
+- [x] Test case verifies decrypt with invalid auth tag doesn't crash
+- [x] Evidence saved to `.sisyphus/evidence/task-2-decrypt-error.txt`
+- [x] Findings appended to `.sisyphus/notepads/fix-skills-memory-encryption/learnings.md`
+
+### Implementation Summary
+
+**File Modified:** `src/lib/db/encryption.ts` (lines 125-148)
+
+**Key Changes:**
+1. Added nested try-catch specifically around `decipher.final()` (line 132-142)
+2. Enhanced error logging with context:
+   - Error message from decipher.final()
+   - Ciphertext prefix (first 30 chars) for debugging
+   - Explanation about auth tag validation
+3. Maintained outer catch for other decryption errors
+4. Passthrough behavior: returns ciphertext unchanged on any error
+
+**Error Handling Flow:**
+```
+decrypt(ciphertext)
+  ├─ Check if encrypted (has prefix)
+  ├─ Get encryption key
+  ├─ Parse ciphertext format
+  └─ Outer try-catch
+      ├─ Create decipher
+      ├─ Inner try-catch
+      │   ├─ decipher.update()
+      │   └─ decipher.final() ← Auth tag validation happens here
+      │       └─ On error: log context + return ciphertext
+      └─ On error: log + return ciphertext
+```
+
+### Test Results
+
+All scenarios tested and verified:
+
+| Scenario | Input | Result | Status |
+|----------|-------|--------|--------|
+| Invalid auth tag | `enc:v1:0000:0000:0000` | Returns unchanged | ✅ Pass |
+| Malformed format | `enc:v1:invalid` | Returns unchanged | ✅ Pass |
+| Non-encrypted | `plaintext-value` | Returns unchanged | ✅ Pass |
+| Null input | `null` | Returns null | ✅ Pass |
+| Undefined input | `undefined` | Returns undefined | ✅ Pass |
+
+### Verification Results
+
+- ✅ TypeScript diagnostics: No errors
+- ✅ No crashes on invalid input
+- ✅ Error logging includes full context
+- ✅ Passthrough mode works correctly
+- ✅ Backward compatible with existing code
+- ✅ Consistent with encrypt() error handling pattern
+
+### Evidence Files
+
+1. `.sisyphus/evidence/task-2-decrypt-error.txt` — Detailed implementation report
+2. `.sisyphus/evidence/task-2-summary.txt` — This file
+3. `.sisyphus/notepads/fix-skills-memory-encryption/learnings.md` — Pattern documentation
+
+### Next Steps
+
+The decrypt() function is now production-ready with:
+- Robust error handling that prevents crashes
+- Detailed logging for debugging encrypted data issues
+- Graceful degradation via passthrough mode
+- Full backward compatibility
+
+No further changes needed for this task.

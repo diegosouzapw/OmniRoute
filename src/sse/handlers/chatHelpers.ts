@@ -601,7 +601,8 @@ export function safeLogEvents({
       clientRawRequest?.headers?.["x-real-ip"] ||
       clientRawRequest?.headers?.["cf-connecting-ip"] ||
       null;
-    const publicIp = rawIp ? rawIp.split(",")[0].trim() : null;
+    const rawIpValue = Array.isArray(rawIp) ? rawIp[0] : rawIp;
+    const clientIp = typeof rawIpValue === "string" ? rawIpValue.split(",")[0].trim() : null;
 
     logProxyEvent({
       status: result.success
@@ -614,7 +615,7 @@ export function safeLogEvents({
       levelId: proxyInfo?.levelId || null,
       provider,
       targetUrl: `${provider}/${model}`,
-      publicIp,
+      clientIp,
       latencyMs: proxyLatency,
       error: result.success ? null : result.error || null,
       connectionId: credentials.connectionId,

@@ -28,6 +28,16 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 const ROOT = join(__dirname, "..");
 
+// MCP stdio transport uses stdout exclusively for JSON-RPC messages.
+// Redirect console.log/warn to stderr early (before loadEnvFile and DB init)
+// so no startup output corrupts the protocol.
+if (process.argv.includes("--mcp")) {
+  const { Console } = await import("node:console");
+  const stderrConsole = new Console({ stdout: process.stderr, stderr: process.stderr });
+  console.log = stderrConsole.log.bind(stderrConsole);
+  console.warn = stderrConsole.warn.bind(stderrConsole);
+}
+
 function loadEnvFile() {
   const envPaths = [];
 

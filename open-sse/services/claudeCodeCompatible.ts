@@ -2,7 +2,7 @@ import { createHash, randomUUID } from "node:crypto";
 
 import { getStainlessTimeoutSeconds } from "@/shared/utils/runtimeTimeouts";
 import { ANTHROPIC_VERSION_HEADER } from "../config/anthropicHeaders.ts";
-import { supportsXHighEffort } from "../config/providerModels.ts";
+import { supportsClaudeMaxEffort, supportsXHighEffort } from "../config/providerModels.ts";
 import { prepareClaudeRequest } from "../translator/helpers/claudeHelper.ts";
 import { signRequestBody } from "./claudeCodeCCH.ts";
 import { remapToolNamesInRequest } from "./claudeCodeToolRemapper.ts";
@@ -51,7 +51,7 @@ const CLAUDE_CODE_COMPATIBLE_DEFAULT_SYSTEM_BLOCKS = [
     text: "You are a Claude agent, built on Anthropic's Claude Agent SDK.",
   },
 ];
-const CONTEXT_1M_SUPPORTED_MODELS = ["claude-opus-4-7", "claude-opus-4-6"];
+const CONTEXT_1M_SUPPORTED_MODELS = ["claude-opus-4-8", "claude-opus-4-7", "claude-opus-4-6"];
 export const CLAUDE_CODE_COMPATIBLE_STAINLESS_TIMEOUT_SECONDS = getStainlessTimeoutSeconds(
   process.env
 );
@@ -451,7 +451,7 @@ export function resolveClaudeCodeCompatibleEffort(
   sourceBody?: Record<string, unknown> | null,
   normalizedBody?: Record<string, unknown> | null,
   model?: string | null
-): "low" | "medium" | "high" | "xhigh" {
+): "low" | "medium" | "high" | "xhigh" | "max" {
   const raw =
     readNestedString(sourceBody, ["output_config", "effort"]) ||
     readNestedString(sourceBody, ["reasoning", "effort"]) ||
@@ -474,7 +474,7 @@ export function resolveClaudeCodeCompatibleEffort(
     return supportsClaudeXHighEffort(model) ? "xhigh" : "high";
   }
   if (normalizedEffort === "max") {
-    return supportsClaudeXHighEffort(model) ? "xhigh" : "high";
+    return supportsClaudeMaxEffort(model) ? "max" : "high";
   }
   return supportsClaudeXHighEffort(model) ? "xhigh" : "high";
 }
@@ -1102,7 +1102,7 @@ function resolveClaudeCodeCompatibleOutputConfig({
   sourceBody?: Record<string, unknown> | null;
   normalizedBody?: Record<string, unknown> | null;
   model?: string | null;
-  effort: "low" | "medium" | "high" | "xhigh";
+  effort: "low" | "medium" | "high" | "xhigh" | "max";
 }) {
   const outputConfig =
     readRecord(cloneValue(claudeBody?.output_config)) ||

@@ -74,6 +74,7 @@ interface CodexConnectionMeta {
   workspaceId?: string;
 }
 
+const MAX_CONNECTIONS = 100;
 const connectionRegistry = new Map<string, CodexConnectionMeta>();
 
 /**
@@ -84,7 +85,19 @@ const connectionRegistry = new Map<string, CodexConnectionMeta>();
  * @param meta - Access token and optional workspace ID
  */
 export function registerCodexConnection(connectionId: string, meta: CodexConnectionMeta): void {
+  if (connectionRegistry.size >= MAX_CONNECTIONS) {
+    const oldestKey = connectionRegistry.keys().next().value;
+    if (oldestKey !== undefined) {
+      quotaCache.delete(oldestKey);
+      connectionRegistry.delete(oldestKey);
+    }
+  }
   connectionRegistry.set(connectionId, meta);
+}
+
+export function unregisterCodexConnection(connectionId: string): void {
+  quotaCache.delete(connectionId);
+  connectionRegistry.delete(connectionId);
 }
 
 function getCodexConnectionMeta(

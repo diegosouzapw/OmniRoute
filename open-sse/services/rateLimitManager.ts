@@ -75,6 +75,9 @@ const enabledConnections = new Set<string>();
 
 // Store learned limits for persistence (debounced)
 const learnedLimits: Record<string, LearnedLimitEntry> = {};
+const MAX_LEARNED_LIMITS = 200;
+const INACTIVE_LIMITER_MS = 10 * 60 * 1000;
+const limiterLastUsed = new Map<string, number>();
 let persistTimer: ReturnType<typeof setTimeout> | null = null;
 const pendingAsyncOperations = new Set<Promise<unknown>>();
 const PERSIST_DEBOUNCE_MS = 60_000; // Debounce persistence to every 60s max

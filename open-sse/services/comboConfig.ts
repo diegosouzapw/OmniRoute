@@ -28,6 +28,17 @@ const DEFAULT_COMBO_CONFIG = {
   failoverBeforeRetry: true,
   maxSetRetries: 0,
   setRetryDelayMs: 2000,
+  // Zero-latency optimizations are opt-in because some modes can race targets or
+  // mutate fallback request bodies for lower tail latency.
+  zeroLatencyOptimizationsEnabled: false,
+  // Hedging (Speculative Execution) defaults
+  hedging: false,
+  hedgeDelayMs: 500,
+  // Mid-Stream Fallback Compression defaults
+  fallbackCompressionMode: "lite",
+  fallbackCompressionThreshold: 1000,
+  // Predictive TTFT Circuit Breaker defaults
+  predictiveTtftMs: 0,
   // Pipeline defaults
   pipeline_enabled: false,
   task_detection: "pattern",

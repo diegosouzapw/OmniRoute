@@ -88,12 +88,15 @@ type AntigravityCreditEntry = {
 
 function getChunkedOrFixedBody(bodyStr: string, stream: boolean): BodyInit {
   if (stream) {
-    return new ReadableStream({
-      async start(controller) {
-        controller.enqueue(new TextEncoder().encode(bodyStr));
-        controller.close();
+    return new ReadableStream(
+      {
+        async start(controller) {
+          controller.enqueue(new TextEncoder().encode(bodyStr));
+          controller.close();
+        },
       },
-    });
+      { highWaterMark: 16384 }
+    );
   }
   return bodyStr;
 }
@@ -126,9 +129,66 @@ function serializeAntigravityRequest(
 type AntigravityCollectedStream = {
   textContent: string;
   finishReason: string;
+  toolCalls: Array<{
+    id: string;
+    index: number;
+    type: "function";
+    function: { name: string; arguments: string };
+  }>;
   usage: Record<string, unknown> | null;
   remainingCredits: Array<{ creditType: string; creditAmount: string }> | null;
 };
+
+function stripZeroWidth(value: unknown): unknown {
+  if (typeof value === "string") {
+    return value.replace(/[\u200B-\u200D\uFEFF]/g, "");
+  }
+  if (Array.isArray(value)) {
+    return value.map((item) => stripZeroWidth(item));
+  }
+  if (value && typeof value === "object") {
+    return Object.fromEntries(
+      Object.entries(value as Record<string, unknown>).map(([key, item]) => [
+        key,
+        stripZeroWidth(item),
+      ])
+    );
+  }
+  return value;
+}
+
+function parseAntigravityTextualToolCall(text: unknown): { name: string; args: unknown } | null {
+  if (typeof text !== "string") return null;
+  const normalized = text.replace(/[\u200B-\u200D\uFEFF]/g, "");
+  const match = normalized.match(
+    /^[\s\S]*?\[Tool call:\s*([^\]\n]+)\]\s*\nArguments:\s*([\s\S]+?)\s*$/
+  );
+  if (!match) return null;
+  const name = match[1]?.trim();
+  const rawArgs = match[2]?.trim();
+  if (!name || !rawArgs) return null;
+  try {
+    return { name, args: stripZeroWidth(JSON.parse(rawArgs)) };
+  } catch {
+    return null;
+  }
+}
+
+function addAntigravityTextualToolCall(
+  collected: AntigravityCollectedStream,
+  parsed: { name: string; args: unknown }
+): void {
+  collected.toolCalls.push({
+    id: `${parsed.name}-${Date.now()}-${collected.toolCalls.length}`,
+    index: collected.toolCalls.length,
+    type: "function",
+    function: {
+      name: parsed.name,
+      arguments: JSON.stringify(parsed.args || {}),
+    },
+  });
+  collected.finishReason = "tool_calls";
+}
 
 type AntigravityRequestEnvelope = Record<string, unknown> & {
   project: string;
@@ -165,15 +225,22 @@ function isAntigravityPreResponseTimeout(error: unknown): boolean {
  * Key: accountId (OAuth subject / email). Value: expiry timestamp.
  * When credits hit 0 we skip the credit retry for CREDITS_EXHAUSTED_TTL_MS.
  */
+const MAX_CREDITS_EXHAUSTED_ENTRIES = 50;
 const creditsExhaustedUntil = new Map<string, number>();
 
-/**
- * Per-account GOOGLE_ONE_AI remaining credit balance cache.
- * Populated from the final SSE chunk's `remainingCredits` field after every
- * successful credit-injected request. Keyed by accountId.
- * On first access, hydrated from the DB-persisted balances so values survive restarts.
- */
-const creditBalanceCache = new Map<string, number>();
+const _creditsExhaustedSweep = setInterval(() => {
+  const now = Date.now();
+  for (const [key, until] of creditsExhaustedUntil) {
+    if (now >= until) creditsExhaustedUntil.delete(key);
+  }
+}, 60_000);
+if (typeof _creditsExhaustedSweep === "object" && "unref" in _creditsExhaustedSweep) {
+  (_creditsExhaustedSweep as { unref?: () => void }).unref?.();
+}
+
+const MAX_CREDIT_BALANCE_ENTRIES = 50;
+const CREDIT_BALANCE_TTL_MS = 5 * 60 * 1000;
+const creditBalanceCache = new Map<string, { balance: number; updatedAt: number }>();
 let creditCacheHydrated = false;
 
 function hydrateCreditCacheFromDb(): void {
@@ -182,32 +249,52 @@ function hydrateCreditCacheFromDb(): void {
   try {
     const persisted = getAllPersistedCreditBalances();
     for (const [accountId, balance] of persisted) {
-      // Only fill in accounts not already populated by a live SSE response
       if (!creditBalanceCache.has(accountId)) {
-        creditBalanceCache.set(accountId, balance);
+        creditBalanceCache.set(accountId, { balance, updatedAt: Date.now() });
       }
     }
-  } catch {
-    // DB not ready yet (build phase, etc.) — ignore silently
+  } catch {}
+}
+
+function evictStaleCreditBalanceEntries(): void {
+  const now = Date.now();
+  for (const [key, entry] of creditBalanceCache) {
+    if (now - entry.updatedAt > CREDIT_BALANCE_TTL_MS) {
+      creditBalanceCache.delete(key);
+    }
+  }
+  while (creditBalanceCache.size > MAX_CREDIT_BALANCE_ENTRIES) {
+    const oldestKey = creditBalanceCache.keys().next().value;
+    if (oldestKey !== undefined) creditBalanceCache.delete(oldestKey);
+    else break;
   }
 }
 
-/** Read the last-known GOOGLE_ONE_AI credit balance for a given account. */
+const _creditBalanceSweep = setInterval(evictStaleCreditBalanceEntries, 60_000);
+if (typeof _creditBalanceSweep === "object" && "unref" in _creditBalanceSweep) {
+  (_creditBalanceSweep as { unref?: () => void }).unref?.();
+}
+
 export function getAntigravityRemainingCredits(accountId: string): number | null {
   hydrateCreditCacheFromDb();
-  const balance = creditBalanceCache.get(accountId);
-  return balance !== undefined ? balance : null;
+  const entry = creditBalanceCache.get(accountId);
+  if (!entry) return null;
+  if (Date.now() - entry.updatedAt > CREDIT_BALANCE_TTL_MS) {
+    creditBalanceCache.delete(accountId);
+    return null;
+  }
+  return entry.balance;
 }
 
-/** Update the balance cache — called when we parse `remainingCredits` from an SSE stream. */
 export function updateAntigravityRemainingCredits(accountId: string, balance: number): void {
-  creditBalanceCache.set(accountId, balance);
-  // Persist to DB so the value survives server restarts
+  if (creditBalanceCache.size >= MAX_CREDIT_BALANCE_ENTRIES && !creditBalanceCache.has(accountId)) {
+    const oldestKey = creditBalanceCache.keys().next().value;
+    if (oldestKey !== undefined) creditBalanceCache.delete(oldestKey);
+  }
+  creditBalanceCache.set(accountId, { balance, updatedAt: Date.now() });
   try {
     persistCreditBalance(accountId, balance);
-  } catch {
-    // Non-critical — in-memory cache is the primary source
-  }
+  } catch {}
 }
 
 function isCreditsExhausted(accountId: string): boolean {
@@ -221,6 +308,21 @@ function isCreditsExhausted(accountId: string): boolean {
 }
 
 function markCreditsExhausted(accountId: string): void {
+  if (
+    creditsExhaustedUntil.size >= MAX_CREDITS_EXHAUSTED_ENTRIES &&
+    !creditsExhaustedUntil.has(accountId)
+  ) {
+    const now = Date.now();
+    for (const [key, until] of creditsExhaustedUntil) {
+      if (now >= until) {
+        creditsExhaustedUntil.delete(key);
+      }
+    }
+    if (creditsExhaustedUntil.size >= MAX_CREDITS_EXHAUSTED_ENTRIES) {
+      const oldestKey = creditsExhaustedUntil.keys().next().value;
+      if (oldestKey !== undefined) creditsExhaustedUntil.delete(oldestKey);
+    }
+  }
   creditsExhaustedUntil.set(accountId, Date.now() + CREDITS_EXHAUSTED_TTL_MS);
 }
 
@@ -236,7 +338,12 @@ function processAntigravitySSEPayload(
     if (candidate?.content?.parts) {
       for (const part of candidate.content.parts) {
         if (typeof part.text === "string" && !part.thought && !part.thoughtSignature) {
-          collected.textContent += part.text;
+          const textualToolCall = parseAntigravityTextualToolCall(part.text);
+          if (textualToolCall) {
+            addAntigravityTextualToolCall(collected, textualToolCall);
+          } else {
+            collected.textContent += part.text;
+          }
         }
       }
     }
@@ -754,6 +861,7 @@ export class AntigravityExecutor extends BaseExecutor {
       const collected: AntigravityCollectedStream = {
         textContent: "",
         finishReason: "stop",
+        toolCalls: [],
         usage: null,
         remainingCredits: null,
       };
@@ -798,8 +906,19 @@ export class AntigravityExecutor extends BaseExecutor {
         choices: [
           {
             index: 0,
-            message: { role: "assistant", content: collected.textContent },
-            finish_reason: timedOut ? "length" : collected.finishReason,
+            message:
+              collected.toolCalls.length > 0
+                ? {
+                    role: "assistant",
+                    content: collected.textContent || null,
+                    tool_calls: collected.toolCalls,
+                  }
+                : { role: "assistant", content: collected.textContent },
+            finish_reason: timedOut
+              ? "length"
+              : collected.toolCalls.length > 0
+                ? "tool_calls"
+                : collected.finishReason,
           },
         ],
         ...(collected.usage && { usage: collected.usage }),
@@ -1244,74 +1363,78 @@ export class AntigravityExecutor extends BaseExecutor {
           const decoder = new TextDecoder(); // Singleton for correct streaming decode
           const MAX_BUFFER_SIZE = 16 * 1024; // Limit to prevent OOM on large streams
 
-          const passThrough = new TransformStream({
-            transform(chunk, controller) {
-              controller.enqueue(chunk);
-              // Accumulate text to scan for remainingCredits
-              try {
-                const text = decoder.decode(chunk, { stream: true });
-                sseBuffer += text;
-                // Limit buffer size to prevent unbounded growth
-                // Truncate only after a complete newline to avoid splitting SSE lines mid-payload
-                if (sseBuffer.length > MAX_BUFFER_SIZE) {
-                  const lastNewline = sseBuffer.lastIndexOf(
-                    "\n",
-                    sseBuffer.length - MAX_BUFFER_SIZE
-                  );
-                  if (lastNewline !== -1) {
-                    sseBuffer = sseBuffer.slice(lastNewline + 1);
-                  } else {
-                    // No newline found in discard region — buffer contains an incomplete SSE line.
-                    // Discard it entirely to avoid returning malformed data; the remainingCredits
-                    // parser won't find valid data in a truncated line anyway.
-                    sseBuffer = "";
+          const passThrough = new TransformStream(
+            {
+              transform(chunk, controller) {
+                controller.enqueue(chunk);
+                // Accumulate text to scan for remainingCredits
+                try {
+                  const text = decoder.decode(chunk, { stream: true });
+                  sseBuffer += text;
+                  // Limit buffer size to prevent unbounded growth
+                  // Truncate only after a complete newline to avoid splitting SSE lines mid-payload
+                  if (sseBuffer.length > MAX_BUFFER_SIZE) {
+                    const lastNewline = sseBuffer.lastIndexOf(
+                      "\n",
+                      sseBuffer.length - MAX_BUFFER_SIZE
+                    );
+                    if (lastNewline !== -1) {
+                      sseBuffer = sseBuffer.slice(lastNewline + 1);
+                    } else {
+                      // No newline found in discard region — buffer contains an incomplete SSE line.
+                      // Discard it entirely to avoid returning malformed data; the remainingCredits
+                      // parser won't find valid data in a truncated line anyway.
+                      sseBuffer = "";
+                    }
                   }
+                } catch {
+                  /* decoding best-effort */
                 }
-              } catch {
-                /* decoding best-effort */
-              }
-            },
-            flush() {
-              // Final decode for any remaining bytes
-              try {
-                const text = decoder.decode(); // Flush pending bytes
-                sseBuffer += text;
-              } catch {
-                /* decoding best-effort */
-              }
+              },
+              flush() {
+                // Final decode for any remaining bytes
+                try {
+                  const text = decoder.decode(); // Flush pending bytes
+                  sseBuffer += text;
+                } catch {
+                  /* decoding best-effort */
+                }
 
-              // Parse the accumulated SSE data for remainingCredits
-              try {
-                const lines = sseBuffer.split("\n");
-                for (const line of lines) {
-                  const trimmed = line.trim();
-                  if (!trimmed.startsWith("data:")) continue;
-                  const payload = trimmed.slice(5).trim();
-                  if (!payload || payload === "[DONE]") continue;
-                  try {
-                    const parsed = JSON.parse(payload);
-                    if (Array.isArray(parsed?.remainingCredits)) {
-                      const googleCredit = parsed.remainingCredits.find((c: unknown) => {
-                        const credit = asRecord(c);
-                        return credit?.creditType === "GOOGLE_ONE_AI";
-                      }) as AntigravityCreditEntry | undefined;
-                      if (googleCredit) {
-                        const balance = parseInt(String(googleCredit.creditAmount ?? ""), 10);
-                        if (!isNaN(balance)) {
-                          updateAntigravityRemainingCredits(accountId, balance);
+                // Parse the accumulated SSE data for remainingCredits
+                try {
+                  const lines = sseBuffer.split("\n");
+                  for (const line of lines) {
+                    const trimmed = line.trim();
+                    if (!trimmed.startsWith("data:")) continue;
+                    const payload = trimmed.slice(5).trim();
+                    if (!payload || payload === "[DONE]") continue;
+                    try {
+                      const parsed = JSON.parse(payload);
+                      if (Array.isArray(parsed?.remainingCredits)) {
+                        const googleCredit = parsed.remainingCredits.find((c: unknown) => {
+                          const credit = asRecord(c);
+                          return credit?.creditType === "GOOGLE_ONE_AI";
+                        }) as AntigravityCreditEntry | undefined;
+                        if (googleCredit) {
+                          const balance = parseInt(String(googleCredit.creditAmount ?? ""), 10);
+                          if (!isNaN(balance)) {
+                            updateAntigravityRemainingCredits(accountId, balance);
+                          }
                         }
                       }
+                    } catch {
+                      /* skip malformed lines */
                     }
-                  } catch {
-                    /* skip malformed lines */
                   }
+                } catch {
+                  /* credits extraction is best-effort */
                 }
-              } catch {
-                /* credits extraction is best-effort */
-              }
-              sseBuffer = "";
+                sseBuffer = "";
+              },
             },
-          });
+            { highWaterMark: 16384 },
+            { highWaterMark: 16384 }
+          );
           const tappedBody = response.body.pipeThrough(passThrough);
           const tappedResponse = new Response(tappedBody, {
             status: response.status,

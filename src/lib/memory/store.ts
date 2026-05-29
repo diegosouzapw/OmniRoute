@@ -28,8 +28,8 @@ interface MemoryRow {
 }
 
 // Memory cache configuration
-const MEMORY_CACHE_TTL = 300_000; // 5 minutes
-const MEMORY_MAX_CACHE_SIZE = 10_000;
+const MEMORY_CACHE_TTL = 60_000; // 1 minute
+const MEMORY_MAX_CACHE_SIZE = 500;
 
 // Cache for recently accessed memories
 const _memoryCache = new Map<string, CacheEntry<Memory | null>>();
