@@ -6,6 +6,7 @@
  *   - `filter` param filters log lines by text.
  *   - Error responses do NOT leak stack traces (hard rule #12).
  *   - log-streamer.ts points to the correct URL (/api/cli-tools/logs).
+ *   - Non-numeric `limit` param does NOT bypass the 2000-entry cap.
  */
 
 import test from "node:test";
@@ -13,6 +14,8 @@ import assert from "node:assert/strict";
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
+
+import { updateSettings } from "../../src/lib/db/settings";
 
 const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-cli-logs-route-"));
 process.env.DATA_DIR = TEST_DATA_DIR;
@@ -36,7 +39,12 @@ const { GET } = await import(
   "../../src/app/api/cli-tools/logs/route.ts"
 );
 
-test.after(() => {
+test.before(async () => {
+  await updateSettings({ requireLogin: false });
+});
+
+test.after(async () => {
+  await updateSettings({ requireLogin: true });
   fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
   try {
     fs.unlinkSync(logPath);
@@ -45,16 +53,10 @@ test.after(() => {
   }
 });
 
-// Helper — make a request skipping auth (auth tested separately in management auth suite)
+// Helper — make a request; auth passes because requireLogin is set to false in test.before
 function makeReq(queryString = "") {
   const url = `http://localhost/api/cli-tools/logs${queryString ? `?${queryString}` : ""}`;
-  const req = new Request(url);
-  // Inject header that requireManagementAuth honours when requireLogin is off
-  Object.defineProperty(req, "headers", {
-    value: new Headers({ host: "localhost" }),
-    configurable: true,
-  });
-  return req;
+  return new Request(url);
 }
 
 test("GET /api/cli-tools/logs returns 200 with JSON array when log file exists", async () => {
@@ -108,6 +110,33 @@ test("GET /api/cli-tools/logs error response does not leak stack traces (hard ru
   assert.ok(!text.includes(" at "), "Response must not contain stack trace frames");
 
   process.env.APP_LOG_FILE_PATH = origPath;
+});
+
+test("GET /api/cli-tools/logs limit=abc does not bypass the 2000-entry cap", async () => {
+  // Write more than 2000 entries so we can verify the cap is applied
+  const manyLines: string[] = [];
+  for (let i = 0; i < 2100; i++) {
+    manyLines.push(JSON.stringify({ level: 30, msg: `entry ${i}`, component: "test", time: now }));
+  }
+  const origPath = process.env.APP_LOG_FILE_PATH;
+  const bigLogPath = path.join(logDir, "big.log");
+  fs.writeFileSync(bigLogPath, manyLines.join("\n") + "\n", "utf-8");
+  process.env.APP_LOG_FILE_PATH = bigLogPath;
+
+  try {
+    const res = await GET(makeReq("limit=abc"));
+    assert.equal(res.status, 200);
+    const body = await res.json();
+    assert.ok(Array.isArray(body), "body should be an array");
+    // Non-numeric limit must fall back to default (500), not bypass the cap with NaN
+    assert.ok(
+      body.length <= 500,
+      `Non-numeric limit=abc should fall back to default 500, got ${body.length}`
+    );
+  } finally {
+    process.env.APP_LOG_FILE_PATH = origPath;
+    fs.unlinkSync(bigLogPath);
+  }
 });
 
 test("log-streamer.ts calls /api/cli-tools/logs (correct URL, not the missing route)", async () => {

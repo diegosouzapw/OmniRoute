@@ -80,7 +80,8 @@ export async function GET(req: NextRequest) {
       .map((t) => t.trim().toLowerCase())
       .filter(Boolean);
 
-    const limit = Math.min(parseInt(searchParams.get("limit") || "500", 10), 2000);
+    const rawLimit = parseInt(searchParams.get("limit") || "500", 10);
+    const limit = Math.min(Number.isFinite(rawLimit) && rawLimit > 0 ? rawLimit : 500, 2000);
 
     const logPath = getAppLogFilePath();
 
