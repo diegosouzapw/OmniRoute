@@ -58,6 +58,63 @@ test("execute returns 400 with empty apiKey", async () => {
   assert.equal(result.response.status, 400);
 });
 
+test("execute returns 400 when client sends non-empty tools[] (chat.deepseek.com has no tool support) - issue #2848", async () => {
+  const executor = new DeepSeekWebExecutor();
+  const result = await executor.execute({
+    model: "default",
+    body: {
+      messages: [{ role: "user", content: "call my_tool" }],
+      tools: [
+        {
+          type: "function",
+          function: {
+            name: "my_tool",
+            description: "test",
+            parameters: { type: "object", properties: {} },
+          },
+        },
+      ],
+    },
+    stream: false,
+    credentials: { apiKey: "any-valid-looking-token" },
+    signal: AbortSignal.timeout(5000),
+  });
+  assert.equal(result.response.status, 400);
+  const text = await result.response.text();
+  assert.ok(
+    /does not support function calling/i.test(text),
+    `expected explanatory error body, got: ${text}`
+  );
+  assert.ok(
+    /provider 'deepseek'|api\.deepseek\.com/i.test(text),
+    `expected guidance to use official deepseek provider, got: ${text}`
+  );
+});
+
+test("execute does NOT 400 on tools[]=[] (empty array, equivalent to no tools)", async () => {
+  const executor = new DeepSeekWebExecutor();
+  const result = await executor.execute({
+    model: "default",
+    body: {
+      messages: [{ role: "user", content: "hi" }],
+      tools: [],
+    },
+    stream: false,
+    credentials: {},
+    signal: AbortSignal.timeout(5000),
+  });
+  assert.equal(
+    result.response.status,
+    400,
+    "still returns 400 but for missing userToken, NOT for tools[]"
+  );
+  const text = await result.response.text();
+  assert.ok(
+    text.includes("userToken"),
+    `expected userToken error (not tools error) for empty tools[], got: ${text}`
+  );
+});
+
 // ─── Test connection ─────────────────────────────────────────────────────
 
 test("testConnection returns false with empty credentials", async () => {

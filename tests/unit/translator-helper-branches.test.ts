@@ -257,6 +257,44 @@ test("claudeHelper validates content, ordering and request preparation branches"
     { type: "tool_use", id: "call_1", name: "lookup", input: {} },
   ]);
 
+  // splitMisplacedToolResults: a tool_result whose tool_use_id was already
+  // emitted by an earlier assistant turn is moved into the preceding user
+  // message. The trailing tool_use survives on the assistant side. (#2815)
+  const split = claudeHelper.splitMisplacedToolResults([
+    { role: "user", content: [{ type: "text", text: "q" }] },
+    { role: "assistant", content: [{ type: "tool_use", id: "call_x", name: "Read", input: {} }] },
+    {
+      role: "assistant",
+      content: [
+        { type: "tool_result", tool_use_id: "call_x", content: "ok" },
+        { type: "tool_use", id: "call_y", name: "Read", input: {} },
+      ],
+    },
+  ]);
+  assert.deepEqual(split, [
+    { role: "user", content: [{ type: "text", text: "q" }] },
+    { role: "assistant", content: [{ type: "tool_use", id: "call_x", name: "Read", input: {} }] },
+    { role: "user", content: [{ type: "tool_result", tool_use_id: "call_x", content: "ok" }] },
+    { role: "assistant", content: [{ type: "tool_use", id: "call_y", name: "Read", input: {} }] },
+  ]);
+
+  // tool_result whose id has not been seen earlier is dropped — moving it
+  // would just shift the 400 to "unexpected tool_use_id".
+  const droppedOrphan = claudeHelper.splitMisplacedToolResults([
+    { role: "user", content: [{ type: "text", text: "q" }] },
+    {
+      role: "assistant",
+      content: [
+        { type: "tool_result", tool_use_id: "self-ref", content: "Skill not found" },
+        { type: "tool_use", id: "self-ref", name: "Read", input: {} },
+      ],
+    },
+  ]);
+  assert.deepEqual(droppedOrphan, [
+    { role: "user", content: [{ type: "text", text: "q" }] },
+    { role: "assistant", content: [{ type: "tool_use", id: "self-ref", name: "Read", input: {} }] },
+  ]);
+
   const prepared = claudeHelper.prepareClaudeRequest(
     {
       system: [
@@ -489,6 +527,53 @@ test("toolCallHelper normalizes ids, links tool responses and inserts missing to
   assert.deepEqual(toolCallHelper.fixMissingToolResponses({ messages: null }), { messages: null });
 });
 
+test("fixMissingToolResponses inserts Claude tool_result block when assistant uses Claude shape", () => {
+  const fixed = toolCallHelper.fixMissingToolResponses({
+    messages: [
+      { role: "user", content: [{ type: "text", text: "do it" }] },
+      {
+        role: "assistant",
+        content: [
+          { type: "tool_use", id: "tool_a", name: "bash", input: { cmd: "ls" } },
+          { type: "tool_use", id: "tool_b", name: "bash", input: { cmd: "pwd" } },
+        ],
+      },
+      { role: "user", content: [{ type: "text", text: "continue" }] },
+    ],
+  });
+
+  assert.equal(fixed.messages.length, 4);
+  const inserted = fixed.messages[2];
+  assert.equal(inserted.role, "user");
+  assert.ok(Array.isArray(inserted.content));
+  assert.equal(inserted.content.length, 2);
+  assert.equal(inserted.content[0].type, "tool_result");
+  assert.equal(inserted.content[0].tool_use_id, "tool_a");
+  assert.equal(inserted.content[0].content, "");
+  assert.equal(inserted.content[1].tool_use_id, "tool_b");
+});
+
+test("fixMissingToolResponses keeps OpenAI role:tool when assistant uses OpenAI tool_calls", () => {
+  const fixed = toolCallHelper.fixMissingToolResponses({
+    messages: [
+      {
+        role: "assistant",
+        tool_calls: [
+          { id: "call_a", type: "function", function: { name: "lookup", arguments: "{}" } },
+          { id: "call_b", type: "function", function: { name: "search", arguments: "{}" } },
+        ],
+      },
+      { role: "user", content: "no tool result here" },
+    ],
+  });
+
+  assert.equal(fixed.messages.length, 4);
+  assert.equal(fixed.messages[1].role, "tool");
+  assert.equal(fixed.messages[1].tool_call_id, "call_a");
+  assert.equal(fixed.messages[2].role, "tool");
+  assert.equal(fixed.messages[2].tool_call_id, "call_b");
+});
+
 test("translateRequest replays cached DeepSeek reasoning messages without tool calls", () => {
   clearReasoningCacheAll();
   cacheReasoningByKey(
@@ -547,6 +632,7 @@ test("translateRequest does not replay reasoning-only messages for non-DeepSeek 
   assert.equal(result.messages[1].reasoning_content, "");
   assert.equal(getReasoningCacheServiceStats().replays, 0);
   clearReasoningCacheAll();
+});
 
   test("translateRequest injects thinking block into Claude-format messages for Kimi K2 reasoning models", () => {
     clearReasoningCacheAll();
@@ -692,4 +778,3 @@ test("translateRequest does not replay reasoning-only messages for non-DeepSeek 
 
     clearReasoningCacheAll();
   });
-});

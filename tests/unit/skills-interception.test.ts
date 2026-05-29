@@ -265,3 +265,71 @@ test("handleToolCallExecution appends Responses API function_call_output items",
     },
   ]);
 });
+
+test("handleToolCallExecution forwards unregistered client-native tool_use untouched (#2815)", async () => {
+  const original = {
+    content: [
+      { type: "tool_use", id: "tool-native", name: "Bash", input: { command: "ls" } },
+      { type: "text", text: "Calling Bash" },
+    ],
+  };
+  const result = await handleToolCallExecution(original, "claude-3-7-sonnet", executionContext);
+
+  assert.equal(result, original);
+  assert.equal(
+    (result.content as Array<{ type: string }>).some((b) => b.type === "tool_result"),
+    false
+  );
+});
+
+test("handleToolCallExecution intercepts a registered skill alongside an unregistered tool (#2815)", async () => {
+  const mixed = await handleToolCallExecution(
+    {
+      content: [
+        { type: "tool_use", id: "tool-native", name: "Bash", input: { command: "ls" } },
+        { type: "tool_use", id: "tool-skill", name: "lookup@1.0.0", input: { id: "9" } },
+      ],
+    },
+    "claude-3-7-sonnet",
+    executionContext
+  );
+
+  assert.deepEqual(mixed.content, [
+    { type: "tool_use", id: "tool-native", name: "Bash", input: { command: "ls" } },
+    { type: "tool_use", id: "tool-skill", name: "lookup@1.0.0", input: { id: "9" } },
+    {
+      type: "tool_result",
+      tool_use_id: "tool-skill",
+      content: '{"record":"resolved:9"}',
+    },
+  ]);
+});
+
+test("handleToolCallExecution loads registry from DB on cold cache (covers loadFromDatabase fix)", async () => {
+  // Skills are in the DB (registered in beforeEach) but we evict the in-memory
+  // cache to simulate a cold/fresh process. Without the loadFromDatabase() call
+  // at the top of handleToolCallExecution, isRegisteredCustomSkill() would
+  // return false (false negative) and the skill would be silently skipped.
+  skillRegistry["registeredSkills"].clear();
+  skillRegistry["versionCache"].clear();
+  skillRegistry.invalidateCache();
+
+  const result = await handleToolCallExecution(
+    {
+      content: [
+        { type: "tool_use", id: "tool-skill", name: "lookup@1.0.0", input: { id: "cold" } },
+      ],
+    },
+    "claude-3-7-sonnet",
+    executionContext
+  );
+
+  assert.deepEqual(result.content, [
+    { type: "tool_use", id: "tool-skill", name: "lookup@1.0.0", input: { id: "cold" } },
+    {
+      type: "tool_result",
+      tool_use_id: "tool-skill",
+      content: '{"record":"resolved:cold"}',
+    },
+  ]);
+});

@@ -635,9 +635,14 @@ export const REGISTRY: Record<string, RegistryEntry> = {
     },
     models: [
       {
+        id: "claude-opus-4-8",
+        name: "Claude Opus 4.8",
+        contextLength: 1000000,
+        maxOutputTokens: 128000,
+      },
+      {
         id: "claude-opus-4-7",
         name: "Claude Opus 4.7",
-        supportsXHighEffort: true,
         contextLength: 1000000,
         maxOutputTokens: 128000,
       },
@@ -951,7 +956,6 @@ export const REGISTRY: Record<string, RegistryEntry> = {
       {
         id: "claude-opus-4.6",
         name: "Claude Opus 4.6",
-        targetFormat: "openai-responses",
         contextLength: 1000000,
         maxOutputTokens: 128000,
       },
@@ -1292,9 +1296,16 @@ export const REGISTRY: Record<string, RegistryEntry> = {
       { id: "mimo-v2-omni", name: "MiMo-V2-Omni" },
       { id: "minimax-m2.7", name: "MiniMax M2.7", targetFormat: "claude" },
       { id: "minimax-m2.5", name: "MiniMax M2.5", targetFormat: "claude" },
-      { id: "qwen3.7-max", name: "Qwen3.7 Max" },
-      { id: "qwen3.6-plus", name: "Qwen3.6 Plus" },
-      { id: "qwen3.5-plus", name: "Qwen3.5 Plus" },
+      // Issue #2292: Qwen models on opencode-go reject oa-compat format
+      // ("Model qwen3.x-* is not supported for format oa-compat") — same
+      // upstream behavior already declared for opencode-zen. Route them
+      // through /messages with the Claude translator.
+      // Issue #2822: These models are text-only — mark supportsVision: false
+      // so combo routing skips them when the request contains image blocks,
+      // preventing image content from reaching a vision-incapable upstream.
+      { id: "qwen3.7-max", name: "Qwen3.7 Max", targetFormat: "claude", supportsVision: false },
+      { id: "qwen3.6-plus", name: "Qwen3.6 Plus", targetFormat: "claude", supportsVision: false },
+      { id: "qwen3.5-plus", name: "Qwen3.5 Plus", targetFormat: "claude", supportsVision: false },
       { id: "hy3-preview", name: "Hunyuan3 Preview" },
       { id: "deepseek-v4-pro", name: "DeepSeek V4 Pro", supportsReasoning: true },
       { id: "deepseek-v4-flash", name: "DeepSeek V4 Flash", supportsReasoning: true },
@@ -1370,8 +1381,10 @@ export const REGISTRY: Record<string, RegistryEntry> = {
       // Issue #2292: Qwen models return Claude-format SSE bodies even
       // when hitting /chat/completions. targetFormat: "claude" routes
       // through /messages and the Claude translator.
-      { id: "qwen3.5-plus", name: "Qwen3.5 Plus", targetFormat: "claude" },
-      { id: "qwen3.6-plus", name: "Qwen3.6 Plus", targetFormat: "claude" },
+      // Issue #2822: These models are text-only — supportsVision: false
+      // ensures combo routing skips them on image-bearing requests.
+      { id: "qwen3.5-plus", name: "Qwen3.5 Plus", targetFormat: "claude", supportsVision: false },
+      { id: "qwen3.6-plus", name: "Qwen3.6 Plus", targetFormat: "claude", supportsVision: false },
 
       // ── Free Tier ──────────────────────────────────────────────
       { id: "deepseek-v4-flash-free", name: "DeepSeek V4 Flash Free", supportsReasoning: true },
@@ -3951,7 +3964,7 @@ export const REGISTRY: Record<string, RegistryEntry> = {
     alias: "nous",
     format: "openai",
     executor: "default",
-    baseUrl: "https://inference-api.nousresearch.com/v1",
+    baseUrl: "https://inference-api.nousresearch.com/v1/chat/completions",
     authType: "apikey",
     authHeader: "bearer",
     models: [

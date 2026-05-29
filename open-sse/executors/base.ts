@@ -217,9 +217,11 @@ function hasActiveClaudeThinking(body: Record<string, unknown>): boolean {
  * Each rejection burns a combo fallback attempt before reaching a working
  * provider. Apply provider-aware sanitation here (after transformRequest, so
  * reintroductions by per-provider transforms are also caught) before fetch.
- * xhigh support is registry-gated. max support is Claude/CC-compatible only
- * and intentionally separate: older Opus/Sonnet models may support max even
- * when they do not support xhigh.
+ * xhigh support is registry-gated: models that genuinely support xhigh pass
+ * through unchanged, and Claude models default to xhigh support unless marked
+ * as legacy unsupported entries. max support is Claude/CC-compatible only and
+ * intentionally separate: older Opus/Sonnet models may support max even when
+ * they do not support xhigh.
  */
 const MISTRAL_NO_REASONING_EFFORT_PATTERN = /devstral/i;
 const GITHUB_NO_REASONING_EFFORT_PATTERN = /(claude|haiku|oswe)/i;

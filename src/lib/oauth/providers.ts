@@ -12,36 +12,61 @@ import { PROVIDERS } from "./providers/index";
 
 const GOOGLE_BROWSER_PROVIDERS = new Set(["antigravity", "gemini-cli"]);
 
-function normalizeBaseUrl(value) {
+type OAuthRedirectEnv = Record<string, string | undefined>;
+
+function hasValue(value: string | undefined): boolean {
+  return typeof value === "string" && value.trim().length > 0;
+}
+
+function firstValue(...values: Array<string | undefined>): string | undefined {
+  return values.find(hasValue);
+}
+
+function normalizeBaseUrl(value: unknown): string {
   const trimmed = typeof value === "string" ? value.trim() : "";
   if (!trimmed) return "";
   return trimmed.replace(/\/+$/, "");
 }
 
-function hasCustomGoogleOAuthCredentials(providerName, env = process.env) {
+function hasCustomGoogleOAuthCredentials(
+  providerName: string,
+  env: OAuthRedirectEnv | null | undefined = process.env
+): boolean {
   if (providerName === "antigravity") {
-    return !!env.ANTIGRAVITY_OAUTH_CLIENT_ID?.trim();
+    return (
+      hasValue(env?.ANTIGRAVITY_OAUTH_CLIENT_ID) &&
+      hasValue(env?.ANTIGRAVITY_OAUTH_CLIENT_SECRET)
+    );
   }
 
   if (providerName === "gemini-cli") {
-    return !!env.GEMINI_CLI_OAUTH_CLIENT_ID?.trim() || !!env.GEMINI_OAUTH_CLIENT_ID?.trim();
+    const clientId = firstValue(env?.GEMINI_CLI_OAUTH_CLIENT_ID, env?.GEMINI_OAUTH_CLIENT_ID);
+    const clientSecret = firstValue(
+      env?.GEMINI_CLI_OAUTH_CLIENT_SECRET,
+      env?.GEMINI_OAUTH_CLIENT_SECRET
+    );
+    return hasValue(clientId) && hasValue(clientSecret);
   }
 
   return false;
 }
 
+function isLoopbackHostname(hostname: string): boolean {
+  return /^(localhost|127\.0\.0\.1|\[::1\]|::1)$/i.test(hostname);
+}
+
 /**
- * Google providers default to localhost redirects so the embedded public
+ * Google providers default to loopback redirects so the embedded public
  * credentials keep working on out-of-the-box local installs. When operators
  * provide their own Google OAuth client IDs for a remote deployment, prefer the
  * public callback URL documented in .env.example / docs/README so the popup can
  * navigate back to OmniRoute instead of stalling on localhost.
  */
 export function resolveBrowserOAuthRedirectUri(
-  providerName,
-  redirectUri,
-  env = process.env
-) {
+  providerName: string,
+  redirectUri: string,
+  env: OAuthRedirectEnv | null | undefined = process.env
+): string {
   if (!GOOGLE_BROWSER_PROVIDERS.has(providerName)) {
     return redirectUri;
   }
@@ -59,15 +84,16 @@ export function resolveBrowserOAuthRedirectUri(
 
   try {
     const requested = new URL(redirectUri);
-    const isLocalhostRedirect = /^(localhost|127\.0\.0\.1)$/i.test(requested.hostname);
-    if (!isLocalhostRedirect) {
+    if (!isLoopbackHostname(requested.hostname)) {
       return redirectUri;
     }
+
+    const callbackPath =
+      requested.pathname && requested.pathname !== "/" ? requested.pathname : "/callback";
+    return `${publicBaseUrl}${callbackPath}${requested.search}`;
   } catch {
     return redirectUri;
   }
-
-  return `${publicBaseUrl}/callback`;
 }
 
 /**

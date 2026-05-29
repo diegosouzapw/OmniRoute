@@ -1,16 +1,19 @@
 ---
-description: Fetch all open GitHub issues, analyze bugs, resolve what's possible, triage the rest, wait for user validation, then commit and release
+description: Fetch all open GitHub issues, analyze bugs, resolve up to 30 per batch via per-issue worktrees + PRs into the release branch, triage the rest, wait for user validation
+allowed-tools: Bash, Read, Edit, Write, Grep, Glob, WebFetch, WebSearch, AskUserQuestion, Agent
 ---
 
 # /resolve-issues — Automated Issue Resolution Workflow
 
 ## Overview
 
-This workflow fetches all open issues from the project's GitHub repository, classifies them, analyzes bugs, proposes a resolution plan, waits for user validation, and ONLY THEN implements the fixes, commits, and closes the issues on the current release branch (`release/vX.Y.Z`). It does NOT merge or release automatically — the release branch is later merged via PR to main.
+This workflow fetches all open issues from the project's GitHub repository, classifies them, analyzes bugs, proposes a resolution plan, waits for user validation, and ONLY THEN implements fixes. The current `release/vX.Y.Z` branch is the integration target — each individual fix is implemented on its own short-lived `fix/<issue>-<short>` branch inside its own git worktree, merged into the release branch via PR, then the worktree and local branch are deleted. The release branch is later merged to `main` via `/generate-release`.
 
-> **BRANCH RULE**: All work MUST happen on the current `release/vX.Y.Z` branch. Never create separate `fix/` branches. If no release branch exists yet, create one first using `/generate-release` Phase 1 steps 1–5.
+> **BRANCH RULE**: The current `release/vX.Y.Z` branch is the integration target. Each fix MUST live on its own `fix/<ISSUE>-<short>` branch cut from the release branch, inside its own worktree under `.worktrees/`. After the per-issue PR is merged into the release branch, the worktree and local branch are deleted. Never commit fixes directly to the release branch. If no release branch exists yet, create one first using `/generate-release` Phase 1 steps 1–5.
 
 > **⛔ PR PROHIBITION**: If a fix is associated with a contributor's PR, you MUST merge their PR — NEVER close it and re-implement the fix yourself. See `/review-prs` workflow for the full policy. The `gh pr close` command is FORBIDDEN unless the repository owner explicitly requests it.
+
+> **🌐 REPLY LANGUAGE**: All comments posted to issues (close messages, RESPOND comments, PR descriptions visible to the reporter) MUST match the reporter's language. When in doubt, default to **English**. The reporter's language is detected from the issue body and prior comments by that author.
 
 ## Steps
 
@@ -25,39 +28,44 @@ This workflow fetches all open issues from the project's GitHub repository, clas
 
 // turbo
 
-Before doing any work, ensure you are on the current release branch:
+Before doing any work, ensure a `release/vX.Y.Z` branch exists. If you are currently on `main`, create one:
 
 ```bash
-# Check current branch
 git branch --show-current
 
 # If on main, determine next version and create the release branch
 VERSION=$(node -p "require('./package.json').version")
-NEXT=$(node -p "const [a,b,c]=('$VERSION').split('.').map(Number); c>=9?a+'.'+(b+1)+'.0':a+'.'+b+'.'+(c+1)")
+NEXT=$(node -p "const [a,b,c]=('$VERSION').split('.').map(Number); c>=999?a+'.'+(b+1)+'.0':a+'.'+b+'.'+(c+1)")
 git checkout -b release/v$NEXT
 npm version patch --no-git-tag-version
 npm install
 ```
 
+> Threshold: patches climb to `.999` before rolling. Example: `3.4.999` → `3.5.0`.
+
 If already on a `release/vX.Y.Z` branch, continue working there.
 
-### 3. Fetch All Open Issues
+### 3. Fetch All Open Issues (cap 30 per batch)
 
 // turbo-all
 
-**⚠️ CRITICAL**: The JSON output of `gh issue list` can be truncated by the tool, silently hiding issues. You MUST use the two-step approach below to guarantee **all** issues are fetched.
+**⚠️ CRITICAL**: The JSON output of `gh issue list` can be truncated by the tool, silently hiding issues. Use the two-step approach below.
 
 **Step 3a — Get Issue numbers only** (small output, never truncated):
 
 - Run: `gh issue list --repo <owner>/<repo> --state open --limit 500 --json number --jq '.[].number'`
-- This outputs one issue number per line. Count them and confirm total.
+- Count them and remember the total.
 
-**Step 3b — Fetch full metadata for each Issue** (one call per issue):
+**Step 3b — Fetch full metadata for each Issue** (parallel, validated against 3a):
 
 - For each issue number from step 3a, run:
-  `gh issue view <NUMBER> --repo <owner>/<repo> --json number,title,labels,body,comments,createdAt,author`
-- You may batch these into parallel calls (up to 4 at a time).
+  `gh issue view <NUMBER> --repo <owner>/<repo> --json number,title,labels,body,comments,createdAt,author,url`
+- Batch in parallel (8–12 concurrent calls). After completion, assert `fetched_count == count_from_3a`; if mismatch, retry the missing IDs.
 - Sort by oldest first (FIFO).
+
+**Step 3c — Cap at 30 per run**:
+
+- If more than 30 open issues qualify as bugs after step 4, ask the user (via AskUserQuestion) which subset of up to 30 to handle now. The remainder is deferred to the next run.
 
 ### 4. Classify Each Issue
 
@@ -68,99 +76,187 @@ For each issue, determine its type:
 - **Question** — Has `question` label, or is asking "how to" something
 - **Other** — Anything else
 
-Focus ONLY on **Bugs** for resolution. Feature requests and questions should be skipped with a note in the final report.
+Focus ONLY on **Bugs** for resolution. Feature requests and questions are skipped with a note in the final report.
+
+#### 4.5. PR-Linked Check (mandatory)
+
+For every bug, query linked PRs:
+
+```bash
+gh issue view <NUMBER> --repo <owner>/<repo> --json closedByPullRequestsReferences,body
+```
+
+If the issue is referenced by an **open** contributor PR (or the body links to one), do NOT plan a self-implemented fix. Mark the issue as `🤝 PR-LINKED — redirect to /review-prs` in the report and stop deeper analysis for it. **NEVER close the contributor PR.**
 
 ### 5. Deep-Read Each Bug Issue (One-by-One Analysis)
 
-**IMPORTANT**: Read each bug issue thoroughly, one at a time, before moving to the next. This is NOT a batch process — each issue needs focused attention.
+Read each bug issue thoroughly, one at a time. Each issue gets focused attention.
 
 #### 5a. Understand the Problem
 
-For each bug issue, perform the full analysis:
-
-1. **Read the entire body** — including Description, Steps to Reproduce, Expected/Actual Behavior, Error Logs, and Screenshots
-2. **Read ALL comments** — including bot triage comments (Kilo, etc.) and owner/community responses. Pay attention to:
-   - Whether someone already responded with a fix
-   - Whether a community member confirmed the issue is resolved
-   - Whether the issue was marked as duplicate by a bot. **WARNING: DO NOT blindly trust bot duplicate labels (e.g., kilo-duplicate). Bots make mistakes. You MUST read the full conversation and do your own independent analysis to determine if it is truly a duplicate or a distinct bug.**
-3. **Identify the claimed error** — extract the exact error message, status code, and provider/model involved
+1. **Read the entire body** — Description, Steps to Reproduce, Expected/Actual Behavior, Error Logs, Screenshots
+2. **Read ALL comments** — bot triage (Kilo, etc.) and owner/community responses. Look for:
+   - Someone already responded with a fix
+   - Community member confirmed it is resolved
+   - Bot duplicate flag. **DO NOT blindly trust bot labels (e.g., `kilo-duplicate`).** Re-verify independently from current source + web research.
+3. **Identify the claimed error** — exact error message, status code, provider/model, OS, Node version.
 
 #### 5b. Check Information Sufficiency
 
-Verify the issue contains enough to act on:
+Verify the issue contains:
 
 - [ ] Clear description of the problem
 - [ ] Steps to reproduce OR error logs
 - [ ] Provider/model/version information
 - [ ] Expected vs actual behavior
 
-#### 5c. Determine Issue Disposition
+**If ANY item is missing → auto-classify as `📝 RESPOND — Needs Info` and skip 5d.** Do not attempt root-cause analysis on under-specified issues.
 
-For each bug, classify into one of 5 actions:
+#### 5c. Determine Issue Disposition
 
 | Disposition                  | When to Apply                                                                                                          | Action                                                  |
 | ---------------------------- | ---------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------- |
 | **✅ CLOSE — Already Fixed** | Owner responded with fix + no user follow-up, OR community confirmed fix                                               | Close with comment citing which version fixed it        |
 | **✅ CLOSE — Duplicate**     | You have independently verified the issue is a duplicate (do NOT rely solely on bot flags) + user provides no new info | Close referencing the original issue                    |
 | **✅ CLOSE — Stale**         | We requested logs/info > 7 days ago with no reply                                                                      | Close thanking the user, invite to reopen if needed     |
-| **📝 RESPOND — Needs Info**  | Issue is real but missing critical reproduction details                                                                | Comment asking for specifics per `/issue-triage`        |
+| **📝 RESPOND — Needs Info**  | Issue is real but missing critical reproduction details (also triggered by 5b)                                         | Comment asking for specifics per `/issue-triage`        |
 | **📝 RESPOND — User Config** | Error is caused by unsupported env (Node version, wrong model path, missing API enablement)                            | Comment explaining the user-side fix                    |
+| **🤝 PR-LINKED**             | An open contributor PR already targets this issue (from step 4.5)                                                      | Redirect to `/review-prs`; do not re-implement          |
 | **🔧 FIX — Code Change**     | Root cause is confirmed in the codebase                                                                                | Research, propose solution in report, wait for approval |
 
 #### 5d. For "FIX — Code Change" Issues
 
-Before coding, perform deep source analysis to formulate a plan:
+Before coding, perform deep source analysis:
 
-1. **Search the codebase** — `grep_search` for error strings, relevant function names, affected files
-2. **Search the web** — for upstream API changes, SDK updates, or breaking changes that explain the bug
-3. **Read the full source file** — don't rely on grep snippets; understand the surrounding logic
-4. **Verify the root cause** — confirm the bug is reproducible based on the code, not just a user misconfiguration
-5. **Formulate a proposed solution** — detail the exact files and lines you will change and how you will solve it.
-6. **Create an Implementation Plan file** — write your proposed solution to `_tasks/features-vX.Y.Z/<ISSUE_NUMBER>-<short-description>.plan.md` (e.g. `_tasks/features-v3.7.6/1810-auto-restore-probe-failed-db.plan.md`) where `vX.Y.Z` is the current branch version. The plan should contain an Overview, Pre-Implementation Checklist, and detailed Implementation Steps (Files, Changes).
-7. **DO NOT modify the codebase yet** — wait for user approval on your report and plan first.
+1. **Search the codebase** — `grep`/`Grep` for error strings, function names, affected files
+2. **Search the web** — upstream API changes, SDK updates, breaking changes
+3. **Read the full source file** — don't rely on grep snippets
+4. **Verify the root cause** is in our code, not user misconfiguration
+5. **Formulate a proposed solution** — exact files/lines/logic
+6. **Create an Implementation Plan file** at `_tasks/fixes-vX.Y.Z/<ISSUE>-<short-description>.plan.md` (`vX.Y.Z` = current release branch version). Create the directory first: `mkdir -p _tasks/fixes-vX.Y.Z`. The plan contains: Overview, Reproduction Steps, Regression Test Outline, Implementation Steps (files/changes), Rollout Notes.
+7. **DO NOT modify the codebase yet** — wait for user approval.
 
 #### 5e. For "RESPOND" Issues
 
 Post a substantive comment that:
 
-- Acknowledges the specific error they reported
+- Acknowledges the specific error reported
 - Explains the likely root cause
-- Provides concrete steps to resolve (version upgrade, env var fix, model path correction)
+- Provides concrete steps (version upgrade, env var fix, model path correction)
 - Asks for follow-up info if needed
 
-**Do NOT post generic template responses.** Every comment should reference the user's specific error messages and environment.
+**No generic templates.** Every comment references the user's specific error and environment, and is written in the reporter's language (English default).
 
 ### 6. Generate Report & Wait for Validation
 
-Present a summary report to the user detailing your proposed actions. For any bugs that need fixing, explicitly explain your proposed solution (files to change and logic) and point out that it will be implemented on the release branch (`release/vX.Y.Z`) after approval.
+Present a summary report. For FIX bugs, explicitly explain the proposed solution (files to change + logic) and confirm it will land via per-issue worktree → PR → release branch after approval. Include the reporter's detected language per row so the user can verify.
 
-| Issue | Title | Status        | Proposed Action / Version                 |
-| ----- | ----- | ------------- | ----------------------------------------- |
-| #N    | Title | ✅ Close      | Already fixed / duplicate (explain why)   |
-| #N    | Title | 🔧 Propose    | Explanation of the code fix to be applied |
-| #N    | Title | 📝 Respond    | Guidance comment to be posted             |
-| #N    | Title | ❓ Needs Info | Triage comment to be posted               |
-| #N    | Title | ⏭️ Skip       | Feature request / not a bug               |
+| Issue | Title | Status         | Reply Lang | Proposed Action / Version                  |
+| ----- | ----- | -------------- | ---------- | ------------------------------------------ |
+| #N    | Title | ✅ Close       | en         | Already fixed / duplicate (explain why)    |
+| #N    | Title | 🔧 Propose     | pt-BR      | Code fix plan summary + worktree branch    |
+| #N    | Title | 📝 Respond     | en         | Guidance comment to be posted              |
+| #N    | Title | ❓ Needs Info  | en         | Triage comment to be posted                |
+| #N    | Title | 🤝 PR-Linked   | en         | Redirect to /review-prs (PR #M)            |
+| #N    | Title | ⏭️ Skip        | —          | Feature request / not a bug                |
 
 > **⚠️ IMPORTANT**: Do NOT implement code changes, commit, push, or close issues at this step.
 > Wait for the user to review the proposed fixes and respond with **OK** before proceeding.
 
-- If the user says **OK** or approves → Proceed to step 7
-- If the user requests changes → Adjust the proposed solution and present the report again
+- If the user says **OK** → Proceed to step 7
+- If the user requests changes → Adjust and re-present the report
 - If the user rejects → Revert any accidental changes and stop
 
-### 7. Implement Fixes, Run Tests & Commit (only after user approval)
+### 7. Implement Fixes via Per-Issue Worktrees + PRs (only after user approval)
 
-After the user validates and gives the OK:
+For each approved FIX issue (up to 30 per batch), repeat the following sequence. Issues can be processed sequentially or in parallel (one worktree each — never two fixes in the same worktree).
 
-1. **Implement the fixes** — modify the codebase according to the approved plan.
-2. **Run tests** — `npm run test:all` (or the specific test file) to ensure 100% pass.
-3. **Update CHANGELOG.md** with all new bug fix entries.
-4. **Commit** each fix individually on the release branch with message format: `fix: <description> (#<issue_number>)`.
-5. **Push** the release branch: `git push origin release/vX.Y.Z`.
-6. **Close resolved issues immediately**. For each issue that was marked as Fixed, run:
-   `gh issue close <NUMBER> --repo <owner>/<repo> --comment "Thank you for reporting! This issue has been fixed and will be included in the next release (vX.Y.Z)."`
-7. Likewise, close `Duplicate` issues referencing the original, close `Needs Info` if stale, and post the required comments.
-8. If the project runs automatic releases or needs a PR, proceed to run `/generate-release` workflow Phase 1 steps 7–10 (tests → commit → push → open PR to main → wait for user).
+#### 7.1. Spin up an isolated worktree on a fresh fix branch
 
-If NO fixes were committed, skip closing and source control steps and just conclude the workflow.
+```bash
+ISSUE=<NUMBER>
+SHORT=<short-kebab-desc>
+RELEASE_BRANCH=$(git -C <project_root> branch --show-current)   # release/vX.Y.Z
+WT_DIR=".worktrees/fix-${ISSUE}-${SHORT}"
+BRANCH="fix/${ISSUE}-${SHORT}"
+
+git fetch origin "$RELEASE_BRANCH"
+git worktree add "$WT_DIR" -b "$BRANCH" "origin/$RELEASE_BRANCH"
+cd "$WT_DIR"
+```
+
+#### 7.2. Write the regression test first (TDD)
+
+- Author a unit/integration test that reproduces the bug. **It must fail on the unfixed code.** Run it and confirm the failure.
+- Hard rule #8: any production change must ship with tests in the same PR. The regression test is non-negotiable.
+
+#### 7.3. Implement the fix
+
+- Apply the approved plan from `_tasks/fixes-vX.Y.Z/<ISSUE>-<short>.plan.md`.
+- Keep the diff scoped to this issue. No drive-by refactors.
+
+#### 7.4. Run the test suite
+
+- `npm run test:all` (or the appropriate suite for the touched area; the regression test MUST be included).
+- All tests must pass before commit. Also run the relevant `lint` / `typecheck` per CLAUDE.md trust-but-verify checklist.
+
+#### 7.5. Update CHANGELOG.md and commit (single commit, same diff)
+
+- Add the new bug-fix entry under the current `vX.Y.Z` section of CHANGELOG.md.
+- CHANGELOG entry + code + test go in **one** commit on the fix branch:
+
+```bash
+git add <changed files> CHANGELOG.md
+git commit -m "fix: <description> (#${ISSUE})"
+```
+
+#### 7.6. Push and open a PR into the release branch
+
+```bash
+git push -u origin "$BRANCH"
+gh pr create \
+  --base "$RELEASE_BRANCH" \
+  --head "$BRANCH" \
+  --title "fix: <description> (#${ISSUE})" \
+  --body "Closes #${ISSUE}\n\n<short summary, plan link, regression test reference>"
+```
+
+#### 7.7. Merge the PR into the release branch
+
+- Wait for CI green, then merge with the project's default merge strategy.
+- The PR title becomes the release-branch commit.
+
+#### 7.8. Clean up worktree and local branch
+
+```bash
+cd <project_root>
+git worktree remove "$WT_DIR"
+git branch -D "$BRANCH"
+```
+
+#### 7.9. Close the issue with a localized comment
+
+Match the reporter's language (English default). Template:
+
+> **EN**: Thanks for reporting! Fixed in `release/vX.Y.Z` (already merged into the active development branch — feel free to pull and test it now). It will ship in the next release (vX.Y.Z).
+>
+> **pt-BR**: Obrigado pelo report! Corrigido em `release/vX.Y.Z` (já mergeado na branch de desenvolvimento atual — pode dar pull e testar). Vai sair na próxima release (vX.Y.Z).
+
+```bash
+gh issue close "$ISSUE" --repo <owner>/<repo> --comment "<localized message above>"
+```
+
+#### 7.10. Close non-FIX dispositions
+
+After all FIX issues are merged:
+
+- `Duplicate`: close referencing the original issue (localized).
+- `Stale`: close thanking the user and inviting reopen (localized).
+- `RESPOND — Needs Info` / `RESPOND — User Config`: post the substantive comment from 5e (localized).
+- `PR-LINKED`: leave the issue open; comment redirecting to the contributor PR if not already linked.
+
+#### 7.11. Hand off to release flow (optional)
+
+If a release PR to `main` is desired now, run `/generate-release` Phase 1 steps 7–10 (tests → commit version bump → push → open PR to main → wait for user).
+
+If NO fixes were committed, skip 7.7–7.11 and just conclude the workflow.

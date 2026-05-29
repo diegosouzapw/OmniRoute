@@ -11,12 +11,15 @@ const {
 const { CLAUDE_SYSTEM_PROMPT } = await import("../../open-sse/config/constants.ts");
 const { DEFAULT_THINKING_CLAUDE_SIGNATURE } =
   await import("../../open-sse/config/defaultThinkingSignature.ts");
-const { getModelsByProviderId } = await import("../../open-sse/config/providerModels.ts");
+const { getModelsByProviderId, supportsXHighEffort } =
+  await import("../../open-sse/config/providerModels.ts");
 
 function getClaudeEffortFixtures() {
   const claudeModels = getModelsByProviderId("claude");
-  const xhighModel = claudeModels.find((model) => model.supportsXHighEffort === true);
-  const standardModel = claudeModels.find((model) => model.supportsXHighEffort === false);
+  const xhighModel = claudeModels.find((model) => supportsXHighEffort("claude", model.id));
+  const standardModel = claudeModels.find(
+    (model) => supportsXHighEffort("claude", model.id) === false
+  );
   assert.ok(xhighModel, "expected at least one Claude model with xhigh support");
   assert.ok(standardModel, "expected at least one Claude model without xhigh support");
   return { xhighModel, standardModel };
