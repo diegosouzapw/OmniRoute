@@ -3666,7 +3666,8 @@ export async function handleChatCore({
                 attempts < maxAttempts - 1
               ) {
                 const failedConnectionId = credentials?.connectionId || connectionId;
-                const retryAfterHeader = normalizeHeaders(res.response.headers)["retry-after"] ?? null;
+                const normalizedHeaders = normalizeHeaders(res.response.headers);
+                const retryAfterHeader = normalizedHeaders["retry-after"] ?? null;
                 const retryAfterMs = retryAfterHeader
                   ? Number.parseFloat(retryAfterHeader) * 1000
                   : null;
