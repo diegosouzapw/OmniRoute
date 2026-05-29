@@ -16,6 +16,14 @@ import {
 } from "./apiManagerPageUtils";
 import type { KeyStatus, KeyType } from "./apiManagerPageUtils";
 import { readActiveOnlyPreference, writeActiveOnlyPreference } from "./apiManagerPageStorage";
+import {
+  buildApiKeyCreateScopes,
+  mergeApiKeyPermissionScopes,
+} from "./apiManagerScopes";
+import {
+  SELF_ACCOUNT_QUOTA_SCOPE,
+  SELF_USAGE_SCOPE,
+} from "@/shared/constants/selfServiceScopes";
 
 // Constants for validation
 const MAX_KEY_NAME_LENGTH = 200;
@@ -130,6 +138,8 @@ export default function ApiManagerPageClient() {
   const [showAddModal, setShowAddModal] = useState(false);
   const [newKeyName, setNewKeyName] = useState("");
   const [newKeyManageEnabled, setNewKeyManageEnabled] = useState(false);
+  const [newKeySelfUsageEnabled, setNewKeySelfUsageEnabled] = useState(true);
+  const [newKeyAccountQuotaEnabled, setNewKeyAccountQuotaEnabled] = useState(false);
   const [createdKey, setCreatedKey] = useState<string | null>(null);
   const [editingKey, setEditingKey] = useState<ApiKey | null>(null);
   const [showPermissionsModal, setShowPermissionsModal] = useState(false);
@@ -351,7 +361,11 @@ export default function ApiManagerPageClient() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           name: sanitizedName,
-          scopes: newKeyManageEnabled ? ["manage"] : [],
+          scopes: buildApiKeyCreateScopes({
+            manageEnabled: newKeyManageEnabled,
+            selfUsageEnabled: newKeySelfUsageEnabled,
+            selfAccountQuotaEnabled: newKeyAccountQuotaEnabled,
+          }),
         }),
       });
       const data = await res.json();
@@ -361,6 +375,8 @@ export default function ApiManagerPageClient() {
         await fetchData();
         setNewKeyName("");
         setNewKeyManageEnabled(false);
+        setNewKeySelfUsageEnabled(true);
+        setNewKeyAccountQuotaEnabled(false);
         setShowAddModal(false);
       } else {
         setCreateError(data.error || t("failedCreateKey"));
@@ -999,6 +1015,8 @@ export default function ApiManagerPageClient() {
           setShowAddModal(false);
           setNewKeyName("");
           setNewKeyManageEnabled(false);
+          setNewKeySelfUsageEnabled(true);
+          setNewKeyAccountQuotaEnabled(false);
           setNameError(null);
           setCreateError(null);
         }}
@@ -1041,6 +1059,58 @@ export default function ApiManagerPageClient() {
               {newKeyManageEnabled ? tc("enabled") : tc("disabled")}
             </button>
           </div>
+          <div className="flex flex-col gap-3 p-3 rounded-lg border border-border bg-surface/40">
+            <div className="flex flex-col gap-1">
+              <p className="text-sm font-medium text-text-main">{t("selfServiceVisibility")}</p>
+              <p className="text-xs text-text-muted">{t("selfServiceVisibilityDesc")}</p>
+            </div>
+            <div className="flex items-start justify-between gap-3">
+              <div className="flex flex-col gap-1">
+                <p className="text-sm text-text-main">{t("ownUsageVisibility")}</p>
+                <p className="text-xs text-text-muted">{t("ownUsageVisibilityDesc")}</p>
+              </div>
+              <button
+                type="button"
+                role="switch"
+                aria-checked={newKeySelfUsageEnabled}
+                onClick={() =>
+                  setNewKeySelfUsageEnabled((prev) => {
+                    if (prev) setNewKeyAccountQuotaEnabled(false);
+                    return !prev;
+                  })
+                }
+                className={`inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-md text-xs font-semibold transition-colors shrink-0 ${
+                  newKeySelfUsageEnabled
+                    ? "bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border border-emerald-500/30"
+                    : "bg-black/5 dark:bg-white/5 text-text-muted border border-border"
+                }`}
+              >
+                <span className="material-symbols-outlined text-[14px]">query_stats</span>
+                {newKeySelfUsageEnabled ? tc("enabled") : tc("disabled")}
+              </button>
+            </div>
+            <div className="flex items-start justify-between gap-3">
+              <div className="flex flex-col gap-1">
+                <p className="text-sm text-text-main">{t("sharedAccountQuotaVisibility")}</p>
+                <p className="text-xs text-text-muted">{t("sharedAccountQuotaVisibilityDesc")}</p>
+              </div>
+              <button
+                type="button"
+                role="switch"
+                aria-checked={newKeyAccountQuotaEnabled}
+                disabled={!newKeySelfUsageEnabled}
+                onClick={() => setNewKeyAccountQuotaEnabled((prev) => !prev)}
+                className={`inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-md text-xs font-semibold transition-colors shrink-0 ${
+                  newKeyAccountQuotaEnabled
+                    ? "bg-amber-500/15 text-amber-700 dark:text-amber-300 border border-amber-500/30"
+                    : "bg-black/5 dark:bg-white/5 text-text-muted border border-border"
+                } ${!newKeySelfUsageEnabled ? "opacity-50 cursor-not-allowed" : ""}`}
+              >
+                <span className="material-symbols-outlined text-[14px]">account_balance</span>
+                {newKeyAccountQuotaEnabled ? tc("enabled") : tc("disabled")}
+              </button>
+            </div>
+          </div>
           {createError && (
             <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-red-500/10 border border-red-500/30">
               <span className="material-symbols-outlined text-red-500 text-sm">error</span>
@@ -1053,6 +1123,8 @@ export default function ApiManagerPageClient() {
                 setShowAddModal(false);
                 setNewKeyName("");
                 setNewKeyManageEnabled(false);
+                setNewKeySelfUsageEnabled(true);
+                setNewKeyAccountQuotaEnabled(false);
                 setNameError(null);
                 setCreateError(null);
               }}
@@ -1195,6 +1267,12 @@ const PermissionsModal = memo(function PermissionsModal({
   const [expiresAt, setExpiresAt] = useState(apiKey?.expiresAt ?? "");
   const [manageEnabled, setManageEnabled] = useState(
     Array.isArray(apiKey?.scopes) && apiKey.scopes.includes("manage")
+  );
+  const [selfUsageEnabled, setSelfUsageEnabled] = useState(
+    Array.isArray(apiKey?.scopes) && apiKey.scopes.includes(SELF_USAGE_SCOPE)
+  );
+  const [selfAccountQuotaEnabled, setSelfAccountQuotaEnabled] = useState(
+    Array.isArray(apiKey?.scopes) && apiKey.scopes.includes(SELF_ACCOUNT_QUOTA_SCOPE)
   );
   const [maxSessions, setMaxSessions] = useState(
     typeof apiKey?.maxSessions === "number" && apiKey.maxSessions > 0 ? apiKey.maxSessions : 0
@@ -1370,7 +1448,11 @@ const PermissionsModal = memo(function PermissionsModal({
       maxSessions,
       schedule,
       rateLimits.length > 0 ? rateLimits : null,
-      manageEnabled ? ["manage"] : [],
+      mergeApiKeyPermissionScopes(apiKey?.scopes, {
+        manageEnabled,
+        selfUsageEnabled,
+        selfAccountQuotaEnabled,
+      }),
       allowAllEndpoints ? [] : selectedEndpoints
     );
   }, [
@@ -1390,6 +1472,8 @@ const PermissionsModal = memo(function PermissionsModal({
     expiresAt,
     maxSessions,
     manageEnabled,
+    selfUsageEnabled,
+    selfAccountQuotaEnabled,
     scheduleEnabled,
     scheduleFrom,
     scheduleUntil,
@@ -1398,6 +1482,7 @@ const PermissionsModal = memo(function PermissionsModal({
     rateLimits,
     allowAllEndpoints,
     selectedEndpoints,
+    apiKey?.scopes,
     t,
   ]);
 
@@ -1841,6 +1926,48 @@ const PermissionsModal = memo(function PermissionsModal({
             <span className="material-symbols-outlined text-[14px]">admin_panel_settings</span>
             {manageEnabled ? tc("enabled") : tc("disabled")}
           </button>
+        </div>
+        {/* Self-service Visibility */}
+        <div className="flex flex-col gap-3 p-3 rounded-lg border border-border bg-surface/40">
+          <div className="flex flex-col gap-1">
+            <p className="text-sm font-medium text-text-main">{t("selfServiceVisibility")}</p>
+            <p className="text-xs text-text-muted">{t("selfServiceVisibilityDesc")}</p>
+          </div>
+          <button
+            role="switch"
+            aria-checked={selfUsageEnabled}
+            onClick={() =>
+              setSelfUsageEnabled((prev) => {
+                if (prev) setSelfAccountQuotaEnabled(false);
+                return !prev;
+              })
+            }
+            className={`inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-md text-xs font-semibold transition-colors ${
+              selfUsageEnabled
+                ? "bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border border-emerald-500/30"
+                : "bg-black/5 dark:bg-white/5 text-text-muted border border-border"
+            }`}
+          >
+            <span className="material-symbols-outlined text-[14px]">query_stats</span>
+            {t("ownUsageVisibility")} - {selfUsageEnabled ? tc("enabled") : tc("disabled")}
+          </button>
+          <p className="text-xs text-text-muted">{t("ownUsageVisibilityDesc")}</p>
+          <button
+            role="switch"
+            aria-checked={selfAccountQuotaEnabled}
+            disabled={!selfUsageEnabled}
+            onClick={() => setSelfAccountQuotaEnabled((prev) => !prev)}
+            className={`inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-md text-xs font-semibold transition-colors ${
+              selfAccountQuotaEnabled
+                ? "bg-amber-500/15 text-amber-700 dark:text-amber-300 border border-amber-500/30"
+                : "bg-black/5 dark:bg-white/5 text-text-muted border border-border"
+            } ${!selfUsageEnabled ? "opacity-50 cursor-not-allowed" : ""}`}
+          >
+            <span className="material-symbols-outlined text-[14px]">account_balance</span>
+            {t("sharedAccountQuotaVisibility")} -{" "}
+            {selfAccountQuotaEnabled ? tc("enabled") : tc("disabled")}
+          </button>
+          <p className="text-xs text-text-muted">{t("sharedAccountQuotaVisibilityDesc")}</p>
         </div>
 
         {/* Selected Models Summary (only in restrict mode) */}

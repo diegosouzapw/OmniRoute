@@ -28,7 +28,7 @@ interface ProxyLogEntry {
   levelId: string | null;
   provider: string | null;
   targetUrl: string | null;
-  publicIp: string | null;
+  clientIp: string | null;
   latencyMs: number;
   error: string | null;
   connectionId: string | null;
@@ -36,6 +36,10 @@ interface ProxyLogEntry {
   account: string | null;
   tlsFingerprint: boolean;
 }
+
+type ProxyLogInput = Partial<ProxyLogEntry> & {
+  publicIp?: string | null;
+};
 
 interface ProxyLogFilters {
   status?: string;
@@ -47,6 +51,8 @@ interface ProxyLogFilters {
 }
 
 const proxyLogs: ProxyLogEntry[] = [];
+
+// `public_ip` is the historical SQLite column name; API/UI expose the value as clientIp.
 
 // ──────────────── Startup: hydrate from DB ────────────────
 
@@ -70,7 +76,7 @@ function loadFromDb() {
         levelId: row.level_id || null,
         provider: row.provider || null,
         targetUrl: row.target_url || null,
-        publicIp: row.public_ip || null,
+        clientIp: row.public_ip || null,
         latencyMs: row.latency_ms || 0,
         error: row.error || null,
         connectionId: row.connection_id || null,
@@ -92,7 +98,7 @@ loadFromDb();
 
 // ──────────────── Log a proxy event ────────────────
 
-export function logProxyEvent(entry: Partial<ProxyLogEntry>) {
+export function logProxyEvent(entry: ProxyLogInput) {
   const log: ProxyLogEntry = {
     id: uuidv4(),
     timestamp: new Date().toISOString(),
@@ -102,7 +108,7 @@ export function logProxyEvent(entry: Partial<ProxyLogEntry>) {
     levelId: entry.levelId || null,
     provider: entry.provider || null,
     targetUrl: entry.targetUrl || null,
-    publicIp: entry.publicIp || null,
+    clientIp: entry.clientIp ?? entry.publicIp ?? null,
     latencyMs: entry.latencyMs || 0,
     error: entry.error || null,
     connectionId: entry.connectionId || null,
@@ -126,7 +132,7 @@ export function logProxyEvent(entry: Partial<ProxyLogEntry>) {
           level, level_id, provider, target_url, public_ip, latency_ms, error,
           connection_id, combo_id, account, tls_fingerprint)
         VALUES (@id, @timestamp, @status, @proxyType, @proxyHost, @proxyPort,
-          @level, @levelId, @provider, @targetUrl, @publicIp, @latencyMs, @error,
+          @level, @levelId, @provider, @targetUrl, @clientIp, @latencyMs, @error,
           @connectionId, @comboId, @account, @tlsFingerprint)`
       ).run({
         id: log.id,
@@ -139,7 +145,7 @@ export function logProxyEvent(entry: Partial<ProxyLogEntry>) {
         levelId: log.levelId,
         provider: log.provider,
         targetUrl: log.targetUrl,
-        publicIp: log.publicIp,
+        clientIp: log.clientIp,
         latencyMs: log.latencyMs,
         error: log.error,
         connectionId: log.connectionId,
@@ -191,7 +197,7 @@ export function getProxyLogs(filters: ProxyLogFilters = {}) {
         (l.proxy?.host || "").toLowerCase().includes(q) ||
         (l.provider || "").toLowerCase().includes(q) ||
         (l.targetUrl || "").toLowerCase().includes(q) ||
-        (l.publicIp || "").toLowerCase().includes(q) ||
+        (l.clientIp || "").toLowerCase().includes(q) ||
         (l.level || "").toLowerCase().includes(q) ||
         (l.error || "").toLowerCase().includes(q) ||
         (l.account || "").toLowerCase().includes(q)

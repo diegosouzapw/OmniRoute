@@ -71,16 +71,14 @@ async function withEnv<T>(entries: Record<string, string | undefined>, fn: () =>
 }
 
 test("Codex helper functions isolate rate-limit scopes and parse quota headers", () => {
-  const quota = parseCodexQuotaHeaders(
-    new Headers({
-      "x-codex-5h-usage": "100",
-      "x-codex-5h-limit": "500",
-      "x-codex-5h-reset-at": new Date(Date.now() + 60_000).toISOString(),
-      "x-codex-7d-usage": "1000",
-      "x-codex-7d-limit": "5000",
-      "x-codex-7d-reset-at": new Date(Date.now() + 120_000).toISOString(),
-    })
-  );
+  const quota = parseCodexQuotaHeaders({
+    "x-codex-5h-usage": "100",
+    "x-codex-5h-limit": "500",
+    "x-codex-5h-reset-at": new Date(Date.now() + 60_000).toISOString(),
+    "x-codex-7d-usage": "1000",
+    "x-codex-7d-limit": "5000",
+    "x-codex-7d-reset-at": new Date(Date.now() + 120_000).toISOString(),
+  });
 
   assert.equal(getCodexModelScope("codex-spark-mini"), "spark");
   assert.equal(getCodexModelScope("gpt-5.3-codex"), "codex");

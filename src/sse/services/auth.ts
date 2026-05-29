@@ -41,6 +41,7 @@ import {
   classifyProviderError,
   PROVIDER_ERROR_TYPES,
 } from "@omniroute/open-sse/services/errorClassifier.ts";
+import { looksLikeQuotaExhausted } from "@/shared/utils/classify429";
 import { getCodexModelScope } from "@omniroute/open-sse/executors/codex.ts";
 import {
   getProviderAlias,
@@ -1494,6 +1495,15 @@ export async function getProviderCredentialsWithQuotaPreflight(
     // Otherwise the resolver would return the factory default for every
     // window, and a near-exhausted account would still be caught by the
     // normal 429 → cooldown path.
+    // Explicit per-connection opt-out always wins over global/provider defaults.
+    // isQuotaPreflightEnabled is strict-=== true (back-compat), so it returns
+    // false for both "not set" and "explicit false" — we need an explicit check
+    // here to distinguish them.
+    const legacyForceDisable =
+      (credentials as { providerSpecificData?: Record<string, unknown> })
+        .providerSpecificData?.quotaPreflightEnabled === false;
+    if (legacyForceDisable) return credentials;
+
     const hasConnectionOverrides = Object.keys(perConnectionWindowOverrides).length > 0;
     const legacyForceEnable = isQuotaPreflightEnabled(credentials);
     if (
@@ -1644,8 +1654,20 @@ export async function markAccountUnavailable(
       | undefined;
 
     const isPerModelQuotaProvider = hasPerModelQuota(provider, model, connectionPassthroughModels);
-    if (isPerModelQuotaProvider && provider && model && (status === 404 || status === 429)) {
-      const reason = status === 404 ? "not_found" : "rate_limited";
+    if (
+      isPerModelQuotaProvider &&
+      provider &&
+      model &&
+      (status === 404 || status === 429 || status >= 500)
+    ) {
+      const reason =
+        status === 404
+          ? "not_found"
+          : status === 429 && looksLikeQuotaExhausted(errorText)
+            ? "quota_exhausted"
+            : status === 429
+              ? "rate_limited"
+              : "server_error";
       const lockout = recordModelLockoutFailure(
         provider,
         connectionId,

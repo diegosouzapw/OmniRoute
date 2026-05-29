@@ -34,9 +34,17 @@ import { AdaptaWebExecutor } from "./adapta-web.ts";
 import { ClaudeWebWithAutoRefresh } from "./claude-web-with-auto-refresh.ts";
 import { CopilotWebExecutor } from "./copilot-web.ts";
 import { VeoAIFreeWebExecutor } from "./veoaifree-web.ts";
+import { DuckDuckGoWebExecutor } from "./duckduckgo-web.ts";
 import { T3ChatWebExecutor } from "./t3-chat-web.ts";
 import { ClaudeWebExecutor } from "./claude-web.ts";
 import { InnerAiExecutor } from "./inner-ai.ts";
+import { HuggingChatExecutor } from "./huggingchat.ts";
+import { PhindExecutor } from "./phind.ts";
+import { PoeWebExecutor } from "./poe-web.ts";
+import { VeniceWebExecutor } from "./venice-web.ts";
+import { V0VercelWebExecutor } from "./v0-vercel-web.ts";
+import { KimiWebExecutor } from "./kimi-web.ts";
+import { DoubaoWebExecutor } from "./doubao-web.ts";
 
 const executors = {
   antigravity: new AntigravityExecutor(),
@@ -99,12 +107,26 @@ const executors = {
   copilot: new CopilotWebExecutor(), // Alias
   "veoaifree-web": new VeoAIFreeWebExecutor(),
   "veo-free": new VeoAIFreeWebExecutor(), // Alias
+  "duckduckgo-web": new DuckDuckGoWebExecutor(),
+  "ddgw": new DuckDuckGoWebExecutor(), // Alias
   "t3-web": new T3ChatWebExecutor(),
   t3chat: new T3ChatWebExecutor(), // Alias
-  "claude-web": new ClaudeWebExecutor(),
-  "cw-web": new ClaudeWebExecutor(), // Alias
   "inner-ai": new InnerAiExecutor(),
   "in-ai": new InnerAiExecutor(), // Alias
+  huggingchat: new HuggingChatExecutor(),
+  hc: new HuggingChatExecutor(), // Alias
+  phind: new PhindExecutor(),
+  ph: new PhindExecutor(), // Alias
+  "poe-web": new PoeWebExecutor(),
+  poe: new PoeWebExecutor(), // Alias
+  "venice-web": new VeniceWebExecutor(),
+  ven: new VeniceWebExecutor(), // Alias
+  "v0-vercel-web": new V0VercelWebExecutor(),
+  v0: new V0VercelWebExecutor(), // Alias
+  "kimi-web": new KimiWebExecutor(),
+  kimi: new KimiWebExecutor(), // Alias
+  "doubao-web": new DoubaoWebExecutor(),
+  db: new DoubaoWebExecutor(), // Alias
 };
 
 const defaultCache = new Map();
@@ -153,6 +175,7 @@ export { WindsurfExecutor } from "./windsurf.ts";
 export { DevinCliExecutor } from "./devin-cli.ts";
 export { CopilotWebExecutor } from "./copilot-web.ts";
 export { VeoAIFreeWebExecutor } from "./veoaifree-web.ts";
+export { DuckDuckGoWebExecutor } from "./duckduckgo-web.ts";
 export { ClaudeWebExecutor } from "./claude-web.ts";
 export { DeepSeekWebExecutor } from "./deepseek-web.ts";
 export { DeepSeekWebWithAutoRefreshExecutor } from "./deepseek-web-with-auto-refresh.ts";

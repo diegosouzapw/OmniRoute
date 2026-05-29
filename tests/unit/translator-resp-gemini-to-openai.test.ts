@@ -302,6 +302,124 @@ test("Gemini stream: reasoning, tool call, image and MAX_TOKENS finish are conve
   assert.equal(result[4].usage.completion_tokens_details.reasoning_tokens, 2);
 });
 
+test("Gemini stream: stores thoughtSignature when signature-only part precedes functionCall", async () => {
+  const { resolveGeminiThoughtSignature } =
+    await import("../../open-sse/services/geminiThoughtSignatureStore.ts");
+  const state = {
+    ...createStreamingState(),
+    signatureNamespace: "conn-antigravity-1",
+  };
+  const result = geminiToOpenAIResponse(
+    {
+      responseId: "resp-split-signature",
+      modelVersion: "gemini-3-flash-agent",
+      candidates: [
+        {
+          content: {
+            parts: [
+              { thoughtSignature: "sig-split-1" },
+              {
+                functionCall: {
+                  id: "call_split_1",
+                  name: "read_file",
+                  args: { path: "/tmp/a" },
+                },
+              },
+            ],
+          },
+          finishReason: "STOP",
+        },
+      ],
+    },
+    state
+  );
+
+  const toolCall = result.find((event: any) => event.choices?.[0]?.delta?.tool_calls)?.choices[0]
+    .delta.tool_calls[0];
+  assert.equal(toolCall.id, "call_split_1");
+  assert.equal(state.pendingThoughtSignature, null);
+  assert.equal(resolveGeminiThoughtSignature("conn-antigravity-1:call_split_1"), "sig-split-1");
+});
+
+test("Gemini stream: converts textual Tool call block to structured tool_calls", () => {
+  const state = createStreamingState();
+  const result = geminiToOpenAIResponse(
+    {
+      responseId: "resp-textual-tool",
+      modelVersion: "gemini-3.5-flash-low",
+      candidates: [
+        {
+          content: {
+            parts: [
+              {
+                text: '[Tool call: terminal]\nArguments: {"command":"sqlite3 ~/.omniroute/storage.sqlite \\"SELECT name FROM sqlite_master WHERE type=\'table\';\\""}',
+              },
+            ],
+          },
+          finishReason: "STOP",
+        },
+      ],
+    },
+    state
+  );
+
+  const toolCall = result.find((event: any) => event.choices?.[0]?.delta?.tool_calls)?.choices[0]
+    .delta.tool_calls[0];
+  assert.ok(toolCall.id.startsWith("terminal-"));
+  assert.equal(toolCall.function.name, "terminal");
+  assert.equal(
+    toolCall.function.arguments,
+    JSON.stringify({
+      command:
+        "sqlite3 ~/.omniroute/storage.sqlite \"SELECT name FROM sqlite_master WHERE type='table';\"",
+    })
+  );
+  assert.equal(
+    result.some((event: any) => event.choices?.[0]?.delta?.content?.includes("[Tool call:")),
+    false
+  );
+  assert.equal(result.at(-1).choices[0].finish_reason, "tool_calls");
+});
+
+test("Gemini stream: converts prefixed textual Tool call block with zero-width chars", () => {
+  const state = createStreamingState();
+  const result = geminiToOpenAIResponse(
+    {
+      responseId: "resp-textual-tool-prefixed",
+      modelVersion: "gemini-3.5-flash-low",
+      candidates: [
+        {
+          content: {
+            parts: [
+              {
+                text: '(empty)[Tool call: terminal]\nArguments: {"command":"sqlite3 ~/.o\u200dmniroute/storage.sqlite"}',
+              },
+            ],
+          },
+          finishReason: "STOP",
+        },
+      ],
+    },
+    state
+  );
+
+  const toolCall = result.find((event: any) => event.choices?.[0]?.delta?.tool_calls)?.choices[0]
+    .delta.tool_calls[0];
+  assert.ok(toolCall.id.startsWith("terminal-"));
+  assert.equal(toolCall.function.name, "terminal");
+  assert.equal(
+    toolCall.function.arguments,
+    JSON.stringify({
+      command: "sqlite3 ~/.omniroute/storage.sqlite",
+    })
+  );
+  assert.equal(
+    result.some((event: any) => event.choices?.[0]?.delta?.content?.includes("[Tool call:")),
+    false
+  );
+  assert.equal(result.at(-1).choices[0].finish_reason, "tool_calls");
+});
+
 test("Gemini stream: tool calls without native IDs keep deterministic fallback shape", () => {
   const state = createStreamingState();
   const result = geminiToOpenAIResponse(
@@ -375,4 +493,110 @@ test("Gemini stream: grounding metadata (citations) are extracted", () => {
 
 test("Gemini stream: null chunk is ignored", () => {
   assert.equal(geminiToOpenAIResponse(null, createStreamingState()), null);
+});
+
+test("Gemini stream: unwraps native functionCall args when emitted as JSON string", () => {
+  const state = createStreamingState();
+  const result = geminiToOpenAIResponse(
+    {
+      responseId: "resp-native-tool-json-string",
+      modelVersion: "gemini-3.5-flash-low",
+      candidates: [
+        {
+          content: {
+            parts: [
+              {
+                functionCall: {
+                  name: "terminal",
+                  args: JSON.stringify({
+                    command: 'ssh test-vps "systemctl cat omniroute.service"',
+                  }),
+                },
+              },
+            ],
+          },
+          finishReason: "STOP",
+        },
+      ],
+    },
+    state
+  );
+
+  const toolCall = result.find((event: any) => event.choices?.[0]?.delta?.tool_calls)?.choices[0]
+    .delta.tool_calls[0];
+  assert.equal(toolCall.function.name, "terminal");
+  assert.equal(
+    toolCall.function.arguments,
+    JSON.stringify({ command: 'ssh test-vps "systemctl cat omniroute.service"' })
+  );
+});
+
+test("Gemini stream: converts JSON-string encoded textual Tool call arguments", () => {
+  const state = createStreamingState();
+  const result = geminiToOpenAIResponse(
+    {
+      responseId: "resp-textual-tool-json-string",
+      modelVersion: "gemini-3.5-flash-low",
+      candidates: [
+        {
+          content: {
+            parts: [
+              {
+                text: '[Tool call: terminal]\nArguments: "{\\\"command\\\":\\\"ssh test-vps \\\\\\\"systemctl cat omniroute.service\\\\\\\"\\\"}"',
+              },
+            ],
+          },
+          finishReason: "STOP",
+        },
+      ],
+    },
+    state
+  );
+
+  const toolCall = result.find((event: any) => event.choices?.[0]?.delta?.tool_calls)?.choices[0]
+    .delta.tool_calls[0];
+  assert.ok(toolCall.id.startsWith("terminal-"));
+  assert.equal(toolCall.function.name, "terminal");
+  assert.equal(
+    toolCall.function.arguments,
+    JSON.stringify({ command: 'ssh test-vps "systemctl cat omniroute.service"' })
+  );
+  assert.equal(
+    result.some((event: any) => event.choices?.[0]?.delta?.content?.includes("[Tool call:")),
+    false
+  );
+  assert.equal(result.at(-1).choices[0].finish_reason, "tool_calls");
+});
+
+test("Gemini stream: suppresses malformed textual Tool call marker", () => {
+  const state = createStreamingState();
+  const result = geminiToOpenAIResponse(
+    {
+      responseId: "resp-textual-tool-malformed",
+      modelVersion: "gemini-3.5-flash-low",
+      candidates: [
+        {
+          content: {
+            parts: [
+              {
+                text: '[Tool call: terminal]\nArguments: {"command":"unterminated}',
+              },
+            ],
+          },
+          finishReason: "STOP",
+        },
+      ],
+    },
+    state
+  );
+
+  assert.equal(
+    result.some((event: any) => event.choices?.[0]?.delta?.content?.includes("[Tool call:")),
+    false
+  );
+  assert.equal(
+    result.some((event: any) => event.choices?.[0]?.delta?.tool_calls),
+    false
+  );
+  assert.equal(result.at(-1).choices[0].finish_reason, "stop");
 });

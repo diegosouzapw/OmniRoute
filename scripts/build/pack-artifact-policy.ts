@@ -72,6 +72,9 @@ export const PACK_ARTIFACT_ROOT_ALLOWED_EXACT_PATHS: string[] = [
   "open-sse/mcp-server/runtimeHeartbeat.ts",
   "open-sse/mcp-server/scopeEnforcement.ts",
   "open-sse/mcp-server/server.ts",
+  // Runtime polyfill eagerly imported by bin/omniroute.mjs (Node <22 compat);
+  // shipped via package.json "files", so it must be allowed in the tarball.
+  "open-sse/utils/setupPolyfill.ts",
   "package.json",
   "scripts/build/build-next-isolated.mjs",
   "scripts/check/check-supported-node-runtime.ts",

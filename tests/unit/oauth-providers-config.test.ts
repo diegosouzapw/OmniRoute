@@ -24,6 +24,7 @@ const PROVIDERS = providersModule.default;
 const { resolveBrowserOAuthRedirectUri } = oauthHelpersModule;
 const {
   ANTIGRAVITY_CONFIG,
+  AGY_CONFIG,
   CLAUDE_CONFIG,
   CLINE_CONFIG,
   CODEX_CONFIG,
@@ -51,6 +52,7 @@ const EXPECTED_PROVIDER_KEYS = [
   "codex",
   "gemini-cli",
   "antigravity",
+  "agy",
   "qoder",
   "qwen",
   "kimi-coding",
@@ -71,6 +73,7 @@ const EXPECTED_CONFIG_BY_PROVIDER = {
   codex: CODEX_CONFIG,
   "gemini-cli": GEMINI_CONFIG,
   antigravity: ANTIGRAVITY_CONFIG,
+  agy: AGY_CONFIG,
   qoder: QODER_CONFIG,
   qwen: QWEN_CONFIG,
   "kimi-coding": KIMI_CODING_CONFIG,
@@ -91,6 +94,7 @@ const REQUIRED_FIELDS_BY_PROVIDER = {
   codex: ["authorizeUrl", "tokenUrl", "scope", "clientId"],
   "gemini-cli": ["authorizeUrl", "tokenUrl", "userInfoUrl", "scopes", "clientId"],
   antigravity: ["authorizeUrl", "tokenUrl", "userInfoUrl", "scopes", "clientId"],
+  agy: ["authorizeUrl", "tokenUrl", "userInfoUrl", "scopes", "clientId"],
   qoder: ["extraParams"],
   qwen: ["deviceCodeUrl", "tokenUrl", "scope", "clientId"],
   "kimi-coding": ["deviceCodeUrl", "tokenUrl", "clientId"],

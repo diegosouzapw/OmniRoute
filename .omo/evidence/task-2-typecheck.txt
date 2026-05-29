@@ -1,0 +1,5 @@
+
+> omniroute@3.6.9 typecheck:core
+> tsc --pretty false -p tsconfig.typecheck-core.json
+
+Task 2 complete

@@ -7,10 +7,18 @@ import Button from "./Button";
 import Input from "./Input";
 import { useCopyToClipboard } from "@/shared/hooks/useCopyToClipboard";
 
-const GOOGLE_OAUTH_PROVIDERS = new Set(["antigravity", "gemini-cli"]);
+const GOOGLE_OAUTH_PROVIDERS = new Set(["antigravity", "agy", "gemini-cli"]);
 
 /** Providers that use a local callback server on a random port (PKCE browser flow). */
-const PKCE_CALLBACK_SERVER_PROVIDERS = new Set(["codex", "windsurf", "devin-cli"]);
+const PKCE_CALLBACK_SERVER_PROVIDERS = new Set(["codex"]);
+
+/**
+ * Phase 1 hotfix (2026-05-29): windsurf & devin-cli only support import-token.
+ * Their PKCE flow targeting app.devin.ai/editor/signin returned 404 post-rebrand.
+ * Phase 2 will reintroduce browser login via Firebase OAuth + RegisterUser.
+ * Spec: docs/superpowers/specs/2026-05-29-windsurf-login-fix-design.md.
+ */
+const IMPORT_TOKEN_ONLY_PROVIDERS = new Set(["windsurf", "devin-cli"]);
 
 type OAuthModalProps = {
   isOpen: boolean;
@@ -45,11 +53,16 @@ export default function OAuthModal({
   const [deviceData, setDeviceData] = useState(null);
   const [polling, setPolling] = useState(false);
   // API-key paste mode: for providers that accept a token directly (windsurf, devin-cli)
-  const [showPasteToken, setShowPasteToken] = useState(false);
+  const [showPasteToken, setShowPasteToken] = useState(
+    provider === "windsurf" || provider === "devin-cli"
+  );
   const [pasteToken, setPasteToken] = useState("");
   const [savingToken, setSavingToken] = useState(false);
 
   const supportsTokenPaste = provider === "windsurf" || provider === "devin-cli";
+  // Phase 1 hotfix (2026-05-29): windsurf/devin-cli are import-token-only.
+  // Hide the "Browser Login" tab — Phase 2 will restore it via Firebase OAuth.
+  const importTokenOnly = IMPORT_TOKEN_ONLY_PROVIDERS.has(provider);
   const popupRef = useRef(null);
   const { copied, copy } = useCopyToClipboard();
   const deviceVerificationUrl =
@@ -695,8 +708,10 @@ export default function OAuthModal({
       size="lg"
     >
       <div className="flex flex-col gap-4">
-        {/* Paste-token tab toggle (Windsurf / Devin CLI only) */}
-        {supportsTokenPaste && step !== "success" && (
+        {/* Paste-token tab toggle (Windsurf / Devin CLI only).
+            Phase 1 hotfix: when importTokenOnly is true, hide the entire toggle —
+            there is no "Browser Login" tab to switch to until Phase 2 ships. */}
+        {supportsTokenPaste && !importTokenOnly && step !== "success" && (
           <div className="flex gap-2 border-b border-border pb-3">
             <button
               className={`text-sm px-3 py-1 rounded-t ${!showPasteToken ? "font-semibold border-b-2 border-primary text-primary" : "text-text-muted"}`}

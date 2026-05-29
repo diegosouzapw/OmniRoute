@@ -129,6 +129,13 @@ export const DEFAULT_PRICING = {
 
   // Claude Code (cc)
   cc: {
+    "claude-opus-4-8": {
+      input: 5.0,
+      output: 25.0,
+      cached: 2.5,
+      reasoning: 25.0,
+      cache_creation: 5.0,
+    },
     "claude-opus-4-7": {
       input: 5.0,
       output: 25.0,
@@ -710,6 +717,9 @@ export const DEFAULT_PRICING = {
     // Common model IDs (without dates) used across providers
     // Intentional duplicates of dot-notation variants (e.g. claude-opus-4.6)
     // to cover hyphen-notation IDs (claude-opus-4-6) used by some clients
+    "claude-opus-4.8": CLAUDE_OPUS_4_PRICING,
+    "claude-opus-4-8": CLAUDE_OPUS_4_PRICING,
+    "claude-opus-4-7": CLAUDE_OPUS_4_PRICING,
     "claude-opus-4-6": CLAUDE_OPUS_46_PRICING,
     "claude-sonnet-4-6": CLAUDE_SONNET_46_PRICING,
     "claude-opus-4-5-20251101": CLAUDE_OPUS_4_PRICING,

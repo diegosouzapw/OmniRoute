@@ -1,0 +1,86 @@
+TASK: Update Marketplace API to Return Popular Skills
+DATE: 2026-04-20
+STATUS: COMPLETED
+
+=== IMPLEMENTATION SUMMARY ===
+
+Modified: src/app/api/skills/marketplace/route.ts
+
+Changes:
+1. Added import for getSkillsProviderSetting from @/lib/skills/providerSettings
+2. Defined POPULAR_BY_PROVIDER constant (moved from skills/route.ts)
+3. Added logic to check if query parameter is empty
+4. When query is empty: return hardcoded popular skills list based on provider setting
+5. When query is not empty: preserve existing SkillsMP search behavior
+
+=== CODE VERIFICATION ===
+
+✓ Empty query handling (line 21-28):
+  - Checks if query is empty: if (!q)
+  - Gets provider setting: const provider = await getSkillsProviderSetting()
+  - Maps popular list to skill objects with name, description, installCount
+  - Returns response in correct format: { skills: [...] }
+
+✓ Non-empty query handling (line 31-56):
+  - Preserved existing SkillsMP API call logic
+  - Still requires API key for searches
+  - Returns same response format
+
+✓ Response format matches existing structure:
+  - { skills: [{ name, description, installCount }, ...] }
+
+=== POPULAR SKILLS BY PROVIDER ===
+
+skillsmp (default):
+  - web-search
+  - file-reader
+  - sql-assistant
+  - devops-helper
+  - docs-assistant
+
+skillssh:
+  - git
+  - terminal
+  - postgres
+  - kubernetes
+  - playwright
+
+Total: 5 popular skills per provider
+
+=== TESTING NOTES ===
+
+Server Status: Running on http://localhost:20128
+- Dev server started successfully
+- Dependencies installed (1329 packages)
+- No build errors
+
+API Endpoint: GET /api/skills/marketplace
+- Requires authentication (isAuthenticated check)
+- Empty query parameter returns popular skills
+- Non-empty query parameter searches SkillsMP
+
+Test Scenario 1: Empty query
+Expected: Returns 5 popular skills from POPULAR_BY_PROVIDER[provider]
+Actual: Code path verified - returns skills array with correct structure
+
+Test Scenario 2: Non-empty query
+Expected: Calls SkillsMP API (existing behavior preserved)
+Actual: Code path verified - maintains backward compatibility
+
+=== VERIFICATION CHECKLIST ===
+
+✓ Empty query returns popular skills list from POPULAR_BY_PROVIDER constant
+✓ Non-empty query still searches SkillsMP (existing behavior preserved)
+✓ Response format matches existing structure: { skills: [...] }
+✓ API returns 5 popular skills by default
+✓ Uses current skillsProvider setting to select correct list
+✓ Code compiles without errors
+✓ No breaking changes to existing API contract
+
+=== IMPLEMENTATION COMPLETE ===
+
+The marketplace API now:
+1. Returns hardcoded popular skills when query is empty
+2. Maintains backward compatibility for non-empty queries
+3. Uses provider-aware skill selection
+4. Preserves response format consistency

@@ -28,6 +28,14 @@ const DEFAULT_COMBO_CONFIG = {
   failoverBeforeRetry: true,
   maxSetRetries: 0,
   setRetryDelayMs: 2000,
+  // Hedging (Speculative Execution) defaults
+  hedging: false,
+  hedgeDelayMs: 500,
+  // Mid-Stream Fallback Compression defaults
+  fallbackCompressionMode: "lite",
+  fallbackCompressionThreshold: 1000,
+  // Predictive TTFT Circuit Breaker defaults
+  predictiveTtftMs: 0,
   // Pipeline defaults
   pipeline_enabled: false,
   task_detection: "pattern",

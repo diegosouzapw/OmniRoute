@@ -35,6 +35,9 @@ node_modules/
 .data/
 .next-playwright/
 
+# devbox
+.devbox/
+
 # testing
 coverage/
 coverage**
@@ -182,3 +185,8 @@ scripts/i18n/_pending-keys.json
 
 # Fumadocs generated source
 .source/
+
+# AI agent local settings and configs
+.agents/
+.antigravitycli/
+.claude/

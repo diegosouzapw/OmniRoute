@@ -234,3 +234,105 @@ describe("DevinCli binary resolution", () => {
     }
   });
 });
+
+// ─── Phase 1 hotfix: windsurf/devin-cli import-token flow ────────────────────
+import { generateAuthData, getProvider } from "@/lib/oauth/providers";
+
+test("windsurf provider: flowType is import_token (PKCE disabled post-rebrand)", () => {
+  const provider = getProvider("windsurf");
+  assert.equal(provider.flowType, "import_token");
+});
+
+test("devin-cli provider: flowType is import_token (shares windsurf config)", () => {
+  const provider = getProvider("devin-cli");
+  assert.equal(provider.flowType, "import_token");
+});
+
+test("windsurf provider: generateAuthData returns no authUrl (PKCE flow disabled)", () => {
+  const data = generateAuthData("windsurf", "http://localhost:0/auth/callback");
+  assert.equal(data.authUrl, undefined);
+  assert.equal(data.supported, false);
+  assert.match(data.error ?? "", /import-token|disabled|app\.devin\.ai/i);
+});
+
+test("devin-cli provider: generateAuthData returns no authUrl", () => {
+  const data = generateAuthData("devin-cli", "http://localhost:0/auth/callback");
+  assert.equal(data.authUrl, undefined);
+  assert.equal(data.supported, false);
+});
+
+// ─── Phase 1 hotfix: retired PKCE actions return 410 Gone ────────────────────
+import { GET as oauthGet, POST as oauthPost } from "@/app/api/oauth/[provider]/[action]/route";
+
+test("OAuth route: GET windsurf/start-callback-server returns 410 Gone", async () => {
+  const url = "http://localhost:20128/api/oauth/windsurf/start-callback-server";
+  const request = new Request(url, { method: "GET" });
+  const response = await oauthGet(request, {
+    params: Promise.resolve({ provider: "windsurf", action: "start-callback-server" }),
+  } as never);
+  assert.equal(response.status, 410);
+  const body = await response.json();
+  assert.match(body.error, /import-token|disabled|410|show-auth-token/i);
+});
+
+test("OAuth route: GET devin-cli/authorize returns 410 Gone", async () => {
+  const url = "http://localhost:20128/api/oauth/devin-cli/authorize";
+  const request = new Request(url, { method: "GET" });
+  const response = await oauthGet(request, {
+    params: Promise.resolve({ provider: "devin-cli", action: "authorize" }),
+  } as never);
+  assert.equal(response.status, 410);
+  const body = await response.json();
+  assert.match(body.error, /import-token|disabled|410|show-auth-token/i);
+});
+
+test("OAuth route: GET windsurf/poll-callback returns 410 Gone", async () => {
+  const url = "http://localhost:20128/api/oauth/windsurf/poll-callback";
+  const request = new Request(url, { method: "GET" });
+  const response = await oauthGet(request, {
+    params: Promise.resolve({ provider: "windsurf", action: "poll-callback" }),
+  } as never);
+  assert.equal(response.status, 410);
+});
+
+test("OAuth route: POST windsurf/poll-callback returns 410 Gone", async () => {
+  const url = "http://localhost:20128/api/oauth/windsurf/poll-callback";
+  const request = new Request(url, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({}),
+  });
+  const response = await oauthPost(request, {
+    params: Promise.resolve({ provider: "windsurf", action: "poll-callback" }),
+  } as never);
+  assert.equal(response.status, 410);
+});
+
+test("OAuth route: GET codex/authorize is NOT retired (regression check)", async () => {
+  const url = "http://localhost:20128/api/oauth/codex/authorize";
+  const request = new Request(url, { method: "GET" });
+  const response = await oauthGet(request, {
+    params: Promise.resolve({ provider: "codex", action: "authorize" }),
+  } as never);
+  assert.notEqual(response.status, 410);
+});
+
+// ─── Regression: mapTokens accepts {accessToken} object, returns string accessToken ─
+// Earlier signature was `mapTokens(token: string)` which crashed the SQLite
+// bind layer when the route called `mapTokens({ accessToken })`: the object
+// got stored as accessToken and SQLite rejected it with
+//   "SQLite3 can only bind numbers, strings, bigints, buffers, and null".
+test("windsurf mapTokens: accepts object {accessToken} and returns string accessToken", () => {
+  const provider = getProvider("windsurf");
+  const mapped = provider.mapTokens({ accessToken: "sk-ws-test-token-1234567890" });
+  assert.equal(typeof mapped.accessToken, "string");
+  assert.equal(mapped.accessToken, "sk-ws-test-token-1234567890");
+  assert.equal(mapped.refreshToken, null);
+});
+
+test("devin-cli mapTokens: accepts object {accessToken} and returns string accessToken", () => {
+  const provider = getProvider("devin-cli");
+  const mapped = provider.mapTokens({ accessToken: "sk-devin-test-token-1234567890" });
+  assert.equal(typeof mapped.accessToken, "string");
+  assert.equal(mapped.accessToken, "sk-devin-test-token-1234567890");
+});

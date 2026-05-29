@@ -6,6 +6,7 @@ import { createKeySchema } from "@/shared/validation/schemas";
 import { isValidationFailure, validateBody } from "@/shared/validation/helpers";
 import { isApiKeyRevealEnabled, maskStoredApiKey } from "@/lib/apiKeyExposure";
 import { requireManagementAuth } from "@/lib/api/requireManagementAuth";
+import { normalizeSelfServiceScopesForCreate } from "@/shared/constants/selfServiceScopes";
 import * as log from "@/sse/utils/logger";
 
 function parsePagination(request: Request) {
@@ -66,7 +67,8 @@ export async function POST(request) {
 
     // Always get machineId from server
     const machineId = await getConsistentMachineId();
-    const apiKey = await createApiKey(name, machineId, scopes ?? []);
+    const normalizedScopes = normalizeSelfServiceScopesForCreate(scopes);
+    const apiKey = await createApiKey(name, machineId, normalizedScopes);
     if (noLog === true) {
       await updateApiKeyPermissions(apiKey.id, { noLog: true });
     }

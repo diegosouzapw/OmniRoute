@@ -1,4 +1,5 @@
 import { skillExecutor } from "./executor";
+import { skillRegistry } from "./registry";
 import { builtinSkills } from "./builtins";
 import { detectProvider } from "./injection";
 import { OMNIROUTE_WEB_SEARCH_FALLBACK_TOOL_NAME } from "@omniroute/open-sse/services/webSearchFallback.ts";
@@ -215,17 +216,35 @@ function parseArguments(args: string | Record<string, unknown>): Record<string, 
   }
 }
 
+function isRegisteredCustomSkill(toolName: string, apiKeyId: string): boolean {
+  const [name, version] = toolName.includes("@") ? toolName.split("@", 2) : [toolName, undefined];
+  const identifier = version ? `${name}@${version}` : name;
+  return skillRegistry.getSkill(identifier, apiKeyId) != null;
+}
+
 export async function handleToolCallExecution(
   response: any,
   modelId: string,
   context: ExecutionContext
 ): Promise<any> {
+  // Only intercept tool_use blocks that resolve to a builtin handler or a
+  // registered custom skill. Unknown tool names are forwarded untouched so
+  // client-native tools (Bash, Read, etc.) are not turned into Skill-not-found
+  // tool_result blocks appended back into the assistant response. See #2815.
+
+  // Ensure the registry cache is warm for this apiKeyId before filtering.
+  // isRegisteredCustomSkill() reads registeredSkills synchronously, so on a
+  // cold/fresh process a skill that exists only in the DB would be missed
+  // (false negative → silently skipped). Mirror the pattern used in
+  // open-sse/mcp-server/tools/skillTools.ts. loadFromDatabase() is a no-op
+  // when the cache is already warm (TTL = 60 s), so repeated calls are cheap.
+  await skillRegistry.loadFromDatabase(context.apiKeyId);
+
   const toolCalls = extractToolCalls(response, modelId).filter((call) => {
-    const builtinHandlerName = resolveBuiltinHandlerName(call.name, context);
-    if (builtinHandlerName) {
-      return true;
-    }
-    return context.customSkillExecutionEnabled !== false;
+    if (typeof call?.name !== "string" || !call.name) return false;
+    if (resolveBuiltinHandlerName(call.name, context)) return true;
+    if (context.customSkillExecutionEnabled === false) return false;
+    return isRegisteredCustomSkill(call.name, context.apiKeyId);
   });
 
   if (toolCalls.length === 0) {

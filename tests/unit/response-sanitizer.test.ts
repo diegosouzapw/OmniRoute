@@ -453,3 +453,61 @@ test("sanitize functions return non-object inputs unchanged", () => {
   assert.equal(sanitizeOpenAIResponse(null), null);
   assert.equal(sanitizeStreamingChunk("raw text"), "raw text");
 });
+
+test("sanitizeOpenAIResponse converts textual pseudo tool-call content into structured tool_calls", () => {
+  const sanitized = sanitizeOpenAIResponse({
+    id: "chatcmpl_textual_tool_call",
+    object: "chat.completion",
+    created: 1,
+    model: "MainAgent",
+    choices: [
+      {
+        index: 0,
+        finish_reason: "stop",
+        message: {
+          role: "assistant",
+          content:
+            'Проверю.\n[Tool call: terminal]\nArguments: {"command":"echo hermes_textual_toolcall_guard","timeout":10}',
+        },
+      },
+    ],
+  }) as any;
+
+  const choice = sanitized.choices[0];
+  assert.equal(choice.finish_reason, "tool_calls");
+  assert.equal(choice.message.content, null);
+  assert.equal(choice.message.tool_calls[0].type, "function");
+  assert.equal(choice.message.tool_calls[0].function.name, "terminal");
+  assert.deepEqual(JSON.parse(choice.message.tool_calls[0].function.arguments), {
+    command: "echo hermes_textual_toolcall_guard",
+    timeout: 10,
+  });
+  assert.equal(JSON.stringify(sanitized).includes("[Tool call:"), false);
+  assert.equal(JSON.stringify(sanitized).includes("Arguments:"), false);
+});
+
+test("sanitizeOpenAIResponse suppresses malformed textual pseudo tool-call content", () => {
+  const sanitized = sanitizeOpenAIResponse({
+    id: "chatcmpl_malformed_textual_tool_call",
+    object: "chat.completion",
+    created: 1,
+    model: "MainAgent",
+    choices: [
+      {
+        index: 0,
+        finish_reason: "stop",
+        message: {
+          role: "assistant",
+          content: "[Tool call: terminal]\nArguments: {not json",
+        },
+      },
+    ],
+  }) as any;
+
+  const choice = sanitized.choices[0];
+  assert.equal(choice.finish_reason, "stop");
+  assert.equal(choice.message.content, null);
+  assert.equal(choice.message.tool_calls, undefined);
+  assert.equal(JSON.stringify(sanitized).includes("[Tool call:"), false);
+  assert.equal(JSON.stringify(sanitized).includes("Arguments:"), false);
+});

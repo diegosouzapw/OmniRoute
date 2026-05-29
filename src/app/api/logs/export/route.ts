@@ -27,6 +27,10 @@ export async function GET(request: Request) {
       rows = await exportCallLogsSince(since);
     } else if (logType === "proxy-logs") {
       tableName = "proxy_logs";
+      // NOTE: raw SELECT * returns the historical `public_ip` column, NOT `clientIp`.
+      // This intentionally differs from GET /api/usage/proxy-logs which exposes the
+      // value as `clientIp`. Callers of this export endpoint should read `public_ip`.
+      // This inconsistency will be resolved in a future DB migration (#2880).
       const stmt = db.prepare(
         "SELECT * FROM proxy_logs WHERE timestamp >= @since ORDER BY timestamp DESC"
       );

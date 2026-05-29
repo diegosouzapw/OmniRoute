@@ -607,6 +607,40 @@ paths:
         "200":
           description: Provider info for frontend
 
+  /api/providers/agy-auth/import:
+    post:
+      tags: [Providers]
+      summary: Import an Antigravity CLI (agy) token file as an `agy` connection
+      responses:
+        "200":
+          description: Created or updated provider connection
+
+  /api/providers/agy-auth/import-bulk:
+    post:
+      tags: [Providers]
+      summary: Bulk-import multiple Antigravity CLI (agy) token files (up to 50)
+      responses:
+        "200":
+          description: Per-entry import results (success/failed counts)
+
+  /api/providers/agy-auth/zip-extract:
+    post:
+      tags: [Providers]
+      summary: Extract `.json` token files from an uploaded ZIP for agy bulk import
+      responses:
+        "200":
+          description: Extracted token-file entries
+
+  /api/providers/agy-auth/apply-local:
+    post:
+      tags: [Providers]
+      summary: Auto-detect and import the local Antigravity CLI (agy) login from disk
+      responses:
+        "200":
+          description: Created or updated provider connection
+        "404":
+          description: No local agy login found
+
   /api/provider-nodes:
     get:
       tags: [Provider Nodes]

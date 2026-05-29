@@ -10,7 +10,7 @@
 import { generatePKCE, generateState } from "./utils/pkce";
 import { PROVIDERS } from "./providers/index";
 
-const GOOGLE_BROWSER_PROVIDERS = new Set(["antigravity", "gemini-cli"]);
+const GOOGLE_BROWSER_PROVIDERS = new Set(["antigravity", "agy", "gemini-cli"]);
 
 type OAuthRedirectEnv = Record<string, string | undefined>;
 
@@ -32,7 +32,8 @@ function hasCustomGoogleOAuthCredentials(
   providerName: string,
   env: OAuthRedirectEnv | null | undefined = process.env
 ): boolean {
-  if (providerName === "antigravity") {
+  if (providerName === "antigravity" || providerName === "agy") {
+    // `agy` reuses the antigravity OAuth client + env overrides.
     return (
       hasValue(env?.ANTIGRAVITY_OAUTH_CLIENT_ID) &&
       hasValue(env?.ANTIGRAVITY_OAUTH_CLIENT_SECRET)
@@ -115,11 +116,36 @@ export function getProviderNames() {
 }
 
 /**
- * Generate auth data for a provider
+ * Generate auth data for a provider.
+ *
+ * Returns `{ supported: false, error }` (no `authUrl`) for providers whose
+ * browser-OAuth flow is currently disabled — e.g. windsurf / devin-cli post
+ * 2026-05 rebrand, where the legacy PKCE endpoint at app.devin.ai returns 404.
+ * Callers (UI / API route) should surface the `error` string and route the
+ * user to the import-token flow instead.
  */
 export function generateAuthData(providerName, redirectUri) {
   const provider = getProvider(providerName);
   const { codeVerifier, codeChallenge, state } = generatePKCE();
+
+  if (provider.flowType === "import_token") {
+    const error =
+      providerName === "windsurf" || providerName === "devin-cli"
+        ? "Browser login disabled — paste token from https://windsurf.com/show-auth-token instead. Phase 2 will restore Firebase OAuth via app.devin.ai successor."
+        : `Browser login is disabled for ${providerName}. Use the import-token flow instead.`;
+    return {
+      authUrl: undefined,
+      state: undefined,
+      codeVerifier: undefined,
+      codeChallenge: undefined,
+      redirectUri,
+      flowType: provider.flowType,
+      fixedPort: provider.fixedPort,
+      callbackPath: provider.callbackPath || "/callback",
+      supported: false,
+      error,
+    };
+  }
 
   let authUrl;
   if (provider.flowType === "device_code") {

@@ -8,6 +8,7 @@
 
 import { ANTIGRAVITY_BASE_URLS } from "./antigravityUpstream.ts";
 import { ANTIGRAVITY_PUBLIC_MODELS } from "./antigravityModelAliases.ts";
+import { AGY_PUBLIC_MODELS } from "./agyModels.ts";
 import {
   ANTHROPIC_BETA_API_KEY,
   ANTHROPIC_BETA_CLAUDE_OAUTH,
@@ -635,9 +636,14 @@ export const REGISTRY: Record<string, RegistryEntry> = {
     },
     models: [
       {
+        id: "claude-opus-4-8",
+        name: "Claude Opus 4.8",
+        contextLength: 1000000,
+        maxOutputTokens: 128000,
+      },
+      {
         id: "claude-opus-4-7",
         name: "Claude Opus 4.7",
-        supportsXHighEffort: true,
         contextLength: 1000000,
         maxOutputTokens: 128000,
       },
@@ -906,6 +912,34 @@ export const REGISTRY: Record<string, RegistryEntry> = {
     passthroughModels: true,
   },
 
+  // Antigravity CLI (`agy`): standalone provider that reuses the antigravity executor,
+  // format and backend (identical client_id + daily-cloudcode-pa endpoint), but ships its
+  // own model catalog (incl. Claude) and its own account pool / OAuth credential import.
+  agy: {
+    id: "agy",
+    alias: "agy",
+    format: "antigravity",
+    executor: "antigravity",
+    baseUrls: [...ANTIGRAVITY_BASE_URLS],
+    urlBuilder: (base, model, stream) => {
+      const path = stream
+        ? "/v1internal:streamGenerateContent?alt=sse"
+        : "/v1internal:generateContent";
+      return `${base}${path}`;
+    },
+    authType: "oauth",
+    authHeader: "bearer",
+    headers: getAntigravityProviderHeaders(),
+    oauth: {
+      clientIdEnv: "ANTIGRAVITY_OAUTH_CLIENT_ID",
+      clientIdDefault: resolvePublicCred("antigravity_id"),
+      clientSecretEnv: "ANTIGRAVITY_OAUTH_CLIENT_SECRET",
+      clientSecretDefault: resolvePublicCred("antigravity_alt"),
+    },
+    models: [...AGY_PUBLIC_MODELS],
+    passthroughModels: true,
+  },
+
   github: {
     id: "github",
     alias: "gh",
@@ -951,7 +985,6 @@ export const REGISTRY: Record<string, RegistryEntry> = {
       {
         id: "claude-opus-4.6",
         name: "Claude Opus 4.6",
-        targetFormat: "openai-responses",
         contextLength: 1000000,
         maxOutputTokens: 128000,
       },
@@ -1296,9 +1329,12 @@ export const REGISTRY: Record<string, RegistryEntry> = {
       // ("Model qwen3.x-* is not supported for format oa-compat") — same
       // upstream behavior already declared for opencode-zen. Route them
       // through /messages with the Claude translator.
-      { id: "qwen3.7-max", name: "Qwen3.7 Max", targetFormat: "claude" },
-      { id: "qwen3.6-plus", name: "Qwen3.6 Plus", targetFormat: "claude" },
-      { id: "qwen3.5-plus", name: "Qwen3.5 Plus", targetFormat: "claude" },
+      // Issue #2822: These models are text-only — mark supportsVision: false
+      // so combo routing skips them when the request contains image blocks,
+      // preventing image content from reaching a vision-incapable upstream.
+      { id: "qwen3.7-max", name: "Qwen3.7 Max", targetFormat: "claude", supportsVision: false },
+      { id: "qwen3.6-plus", name: "Qwen3.6 Plus", targetFormat: "claude", supportsVision: false },
+      { id: "qwen3.5-plus", name: "Qwen3.5 Plus", targetFormat: "claude", supportsVision: false },
       { id: "hy3-preview", name: "Hunyuan3 Preview" },
       { id: "deepseek-v4-pro", name: "DeepSeek V4 Pro", supportsReasoning: true },
       { id: "deepseek-v4-flash", name: "DeepSeek V4 Flash", supportsReasoning: true },
@@ -1374,8 +1410,10 @@ export const REGISTRY: Record<string, RegistryEntry> = {
       // Issue #2292: Qwen models return Claude-format SSE bodies even
       // when hitting /chat/completions. targetFormat: "claude" routes
       // through /messages and the Claude translator.
-      { id: "qwen3.5-plus", name: "Qwen3.5 Plus", targetFormat: "claude" },
-      { id: "qwen3.6-plus", name: "Qwen3.6 Plus", targetFormat: "claude" },
+      // Issue #2822: These models are text-only — supportsVision: false
+      // ensures combo routing skips them on image-bearing requests.
+      { id: "qwen3.5-plus", name: "Qwen3.5 Plus", targetFormat: "claude", supportsVision: false },
+      { id: "qwen3.6-plus", name: "Qwen3.6 Plus", targetFormat: "claude", supportsVision: false },
 
       // ── Free Tier ──────────────────────────────────────────────
       { id: "deepseek-v4-flash-free", name: "DeepSeek V4 Flash Free", supportsReasoning: true },
@@ -2335,13 +2373,17 @@ export const REGISTRY: Record<string, RegistryEntry> = {
 
   phind: {
     id: "phind",
-    alias: "phind",
+    alias: "ph",
     format: "openai",
-    executor: "default",
-    baseUrl: "https://api.phind.com/v1/chat/completions",
+    executor: "phind",
+    baseUrl: "https://www.phind.com/api/chat",
     authType: "apikey",
-    authHeader: "bearer",
-    models: [{ id: "Phind-70B", name: "Phind 70B" }],
+    authHeader: "cookie",
+    models: [
+      { id: "phind-model", name: "Phind Model (Auto)" },
+      { id: "gpt-4o", name: "GPT-4o (via Phind)" },
+      { id: "claude-3.5-sonnet", name: "Claude 3.5 Sonnet (via Phind)" },
+    ],
   },
 
   poolside: {
@@ -2379,13 +2421,18 @@ export const REGISTRY: Record<string, RegistryEntry> = {
 
   huggingchat: {
     id: "huggingchat",
-    alias: "huggingchat",
+    alias: "hc",
     format: "openai",
-    executor: "default",
-    baseUrl: "https://huggingface.co/api/chat",
+    executor: "huggingchat",
+    baseUrl: "https://huggingface.co/chat/conversation",
     authType: "apikey",
-    authHeader: "bearer",
-    models: [{ id: "meta-llama/llama-3-70b-instruct", name: "Llama 3 70B" }],
+    authHeader: "cookie",
+    models: [
+      { id: "meta-llama/Llama-3.3-70B-Instruct", name: "Llama 3.3 70B" },
+      { id: "Qwen/Qwen2.5-72B-Instruct", name: "Qwen 2.5 72B" },
+      { id: "mistralai/Mistral-Small-24B-Instruct-2501", name: "Mistral Small 24B" },
+      { id: "deepseek-ai/DeepSeek-R1", name: "DeepSeek R1" },
+    ],
   },
 
   iflytek: {
@@ -2887,6 +2934,86 @@ export const REGISTRY: Record<string, RegistryEntry> = {
       { id: "qwen3-32b", name: "Qwen3 32B (via t3.chat)", supportsReasoning: true },
       // Kimi
       { id: "kimi-k2", name: "Kimi K2 (via t3.chat)" },
+    ],
+  },
+
+  "blackbox-web": {
+    id: "blackbox-web",
+    alias: "bb-web",
+    format: "openai",
+    executor: "blackbox-web",
+    baseUrl: "https://app.blackbox.ai/api/chat",
+    authType: "apikey",
+    authHeader: "cookie",
+    models: [
+      { id: "gpt-4-turbo", name: "GPT-4 Turbo" },
+      { id: "gpt-4", name: "GPT-4" },
+      { id: "gpt-3.5-turbo", name: "GPT-3.5 Turbo" },
+      { id: "claude-3-opus", name: "Claude 3 Opus" },
+      { id: "claude-3-sonnet", name: "Claude 3 Sonnet" },
+      { id: "gemini-pro", name: "Gemini Pro" },
+    ],
+  },
+
+  "claude-web": {
+    id: "claude-web",
+    alias: "claude-web",
+    format: "openai",
+    executor: "claude-web",
+    baseUrl: "https://claude.ai/api/organizations",
+    authType: "apikey",
+    authHeader: "cookie",
+    models: [
+      { id: "claude-3-opus-20250219", name: "Claude 3 Opus (web)" },
+      { id: "claude-3-5-sonnet-20241022", name: "Claude 3.5 Sonnet (web)" },
+      { id: "claude-3-5-haiku-20241022", name: "Claude 3.5 Haiku (web)" },
+    ],
+  },
+
+  "copilot-web": {
+    id: "copilot-web",
+    alias: "copilot-web",
+    format: "openai",
+    executor: "copilot-web",
+    baseUrl: "wss://copilot.microsoft.com/c/api/chat?api-version=2",
+    authType: "apikey",
+    authHeader: "cookie",
+    models: [
+      { id: "copilot-pro", name: "Copilot Pro (web)" },
+      { id: "gpt-4-turbo", name: "GPT-4 Turbo (via Copilot)" },
+      { id: "gpt-4", name: "GPT-4 (via Copilot)" },
+    ],
+  },
+
+  "veoaifree-web": {
+    id: "veoaifree-web",
+    alias: "veo-free",
+    format: "openai",
+    executor: "veoaifree-web",
+    baseUrl: "https://veoaifree.com/wp-admin/admin-ajax.php",
+    authType: "none",
+    authHeader: "none",
+    models: [
+      { id: "veo", name: "VEO 3.1" },
+      { id: "seedance", name: "Seedance" },
+    ],
+  },
+
+  "duckduckgo-web": {
+    id: "duckduckgo-web",
+    alias: "ddgw",
+    format: "openai",
+    executor: "duckduckgo-web",
+    baseUrl: "https://duckduckgo.com/duckchat/v1/chat",
+    authType: "none",
+    authHeader: "none",
+    models: [
+      { id: "gpt-4o-mini", name: "GPT-4o Mini" },
+      { id: "gpt-5-mini", name: "GPT-5 Mini" },
+      { id: "claude-3-5-haiku-20241022", name: "Claude 3.5 Haiku" },
+      { id: "llama-4-scout", name: "Llama 4 Scout" },
+      { id: "mistral-small-2501", name: "Mistral Small" },
+      { id: "o3-mini", name: "O3 Mini" },
     ],
   },
 
@@ -3785,6 +3912,34 @@ export const REGISTRY: Record<string, RegistryEntry> = {
     models: CHAT_OPENAI_COMPAT_MODELS.venice,
   },
 
+  "kimi-web": {
+    id: "kimi-web",
+    alias: "kimi",
+    format: "openai",
+    executor: "kimi-web",
+    baseUrl: "https://kimi.moonshot.cn/api/chat",
+    authType: "apikey",
+    authHeader: "cookie",
+    models: [
+      { id: "kimi-default", name: "Kimi Default" },
+      { id: "kimi-128k", name: "Kimi 128K (Long Context)" },
+    ],
+  },
+
+  "doubao-web": {
+    id: "doubao-web",
+    alias: "db",
+    format: "openai",
+    executor: "doubao-web",
+    baseUrl: "https://www.doubao.com/api/chat",
+    authType: "apikey",
+    authHeader: "cookie",
+    models: [
+      { id: "doubao-default", name: "Doubao Default" },
+      { id: "doubao-pro", name: "Doubao Pro" },
+    ],
+  },
+
   codestral: {
     id: "codestral",
     alias: "codestral",
@@ -3955,7 +4110,7 @@ export const REGISTRY: Record<string, RegistryEntry> = {
     alias: "nous",
     format: "openai",
     executor: "default",
-    baseUrl: "https://inference-api.nousresearch.com/v1",
+    baseUrl: "https://inference-api.nousresearch.com/v1/chat/completions",
     authType: "apikey",
     authHeader: "bearer",
     models: [

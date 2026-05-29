@@ -2344,3 +2344,211 @@ test("llama-cpp is classified as a self-hosted chat provider", async () => {
   assert.equal(isLocalProvider("llama-cpp"), true);
   assert.equal(providerAllowsOptionalApiKey("llama-cpp"), true);
 });
+
+// ─── Gitlawb Opengateway specialty validators ──────────────────────────────
+
+test("gitlawb validator: accepts valid API key via chat/completions probe", async () => {
+  const calls: any[] = [];
+  globalThis.fetch = async (url, init = {}) => {
+    calls.push({ url: String(url), headers: init.headers || {}, body: init.body });
+    assert.equal(String(url), "https://opengateway.gitlawb.com/v1/xiaomi-mimo/chat/completions");
+    assert.equal((init.headers as Record<string, string>).Authorization, "Bearer glb-valid-key");
+    const body = JSON.parse(String(init.body));
+    assert.equal(body.model, "mimo-v2.5-pro");
+    assert.equal(body.messages[0].content, "test");
+    assert.equal(body.max_tokens, 1);
+    return new Response(JSON.stringify({ choices: [{ message: { content: "ok" } }] }), {
+      status: 200,
+    });
+  };
+
+  const result = await validateProviderApiKey({ provider: "gitlawb", apiKey: "glb-valid-key" });
+  assert.equal(result.valid, true);
+  assert.equal(calls.length, 1);
+});
+
+test("gitlawb validator: 400/422/429 treated as auth success", async () => {
+  for (const status of [400, 422, 429]) {
+    globalThis.fetch = async (url) => {
+      assert.equal(
+        String(url),
+        "https://opengateway.gitlawb.com/v1/xiaomi-mimo/chat/completions"
+      );
+      return new Response(JSON.stringify({ error: "bad request" }), { status });
+    };
+    const result = await validateProviderApiKey({ provider: "gitlawb", apiKey: "glb-key" });
+    assert.equal(result.valid, true, `status ${status} should pass auth`);
+    assert.equal(result.error, null, `status ${status} should not return error`);
+  }
+});
+
+test("gitlawb validator: rejects invalid API key (401)", async () => {
+  globalThis.fetch = async (url) => {
+    assert.equal(
+      String(url),
+      "https://opengateway.gitlawb.com/v1/xiaomi-mimo/chat/completions"
+    );
+    return new Response(JSON.stringify({ error: "unauthorized" }), { status: 401 });
+  };
+
+  const result = await validateProviderApiKey({ provider: "gitlawb", apiKey: "glb-bad-key" });
+  assert.equal(result.valid, false);
+  assert.equal(result.error, "Invalid API key");
+});
+
+test("gitlawb validator: rejects invalid API key (403)", async () => {
+  globalThis.fetch = async (url) => {
+    assert.equal(
+      String(url),
+      "https://opengateway.gitlawb.com/v1/xiaomi-mimo/chat/completions"
+    );
+    return new Response(JSON.stringify({ error: "forbidden" }), { status: 403 });
+  };
+
+  const result = await validateProviderApiKey({ provider: "gitlawb", apiKey: "glb-bad-key" });
+  assert.equal(result.valid, false);
+  assert.equal(result.error, "Invalid API key");
+});
+
+test("gitlawb validator: surfaces network failures", async () => {
+  globalThis.fetch = async () => {
+    throw new Error("gitlawb opengateway offline");
+  };
+
+  const result = await validateProviderApiKey({ provider: "gitlawb", apiKey: "glb-key" });
+  assert.equal(result.valid, false);
+  assert.match(result.error || "", /gitlawb opengateway offline/i);
+});
+
+test("gitlawb validator: accepts custom baseUrl override", async () => {
+  globalThis.fetch = async (url, init = {}) => {
+    assert.equal(
+      String(url),
+      "https://custom-gateway.example.com/v1/xiaomi-mimo/chat/completions"
+    );
+    assert.equal((init.headers as Record<string, string>).Authorization, "Bearer glb-key");
+    return new Response(JSON.stringify({ choices: [{ message: { content: "ok" } }] }), {
+      status: 200,
+    });
+  };
+
+  const result = await validateProviderApiKey({
+    provider: "gitlawb",
+    apiKey: "glb-key",
+    providerSpecificData: {
+      baseUrl: "https://custom-gateway.example.com/v1/xiaomi-mimo",
+    },
+  });
+  assert.equal(result.valid, true);
+});
+
+// ─── Gitlawb-GMI (GMI Cloud) ─────────────────────────────────────────────
+
+test("gitlawb-gmi validator: accepts valid API key via chat/completions probe", async () => {
+  const calls: any[] = [];
+  globalThis.fetch = async (url, init = {}) => {
+    calls.push({ url: String(url), headers: init.headers || {} });
+    assert.equal(String(url), "https://opengateway.gitlawb.com/v1/gmi-cloud/chat/completions");
+    assert.equal((init.headers as Record<string, string>).Authorization, "Bearer glb-gmi-valid-key");
+    const body = JSON.parse(String(init.body));
+    assert.equal(body.model, "XiaomiMiMo/MiMo-V2.5-Pro");
+    assert.equal(body.messages[0].content, "test");
+    assert.equal(body.max_tokens, 1);
+    return new Response(JSON.stringify({ choices: [{ message: { content: "ok" } }] }), {
+      status: 200,
+    });
+  };
+
+  const result = await validateProviderApiKey({
+    provider: "gitlawb-gmi",
+    apiKey: "glb-gmi-valid-key",
+  });
+  assert.equal(result.valid, true);
+  assert.equal(calls.length, 1);
+});
+
+test("gitlawb-gmi validator: accepts 400/422/429 as auth success", async () => {
+  for (const status of [400, 422, 429]) {
+    globalThis.fetch = async (url) => {
+      assert.equal(
+        String(url),
+        "https://opengateway.gitlawb.com/v1/gmi-cloud/chat/completions"
+      );
+      return new Response(JSON.stringify({ error: "bad request" }), { status });
+    };
+    const result = await validateProviderApiKey({
+      provider: "gitlawb-gmi",
+      apiKey: "glb-gmi-key",
+    });
+    assert.equal(result.valid, true, `status ${status} should pass auth`);
+  }
+});
+
+test("gitlawb-gmi validator: rejects invalid API key (401)", async () => {
+  globalThis.fetch = async (url) => {
+    assert.equal(
+      String(url),
+      "https://opengateway.gitlawb.com/v1/gmi-cloud/chat/completions"
+    );
+    return new Response(JSON.stringify({ error: "unauthorized" }), { status: 401 });
+  };
+
+  const result = await validateProviderApiKey({
+    provider: "gitlawb-gmi",
+    apiKey: "glb-gmi-bad-key",
+  });
+  assert.equal(result.valid, false);
+  assert.equal(result.error, "Invalid API key");
+});
+
+test("gitlawb-gmi validator: rejects invalid API key (403)", async () => {
+  globalThis.fetch = async (url) => {
+    assert.equal(
+      String(url),
+      "https://opengateway.gitlawb.com/v1/gmi-cloud/chat/completions"
+    );
+    return new Response(JSON.stringify({ error: "forbidden" }), { status: 403 });
+  };
+
+  const result = await validateProviderApiKey({
+    provider: "gitlawb-gmi",
+    apiKey: "glb-gmi-bad-key",
+  });
+  assert.equal(result.valid, false);
+  assert.equal(result.error, "Invalid API key");
+});
+
+test("gitlawb-gmi validator: surfaces network failures", async () => {
+  globalThis.fetch = async () => {
+    throw new Error("gitlawb-gmi opengateway offline");
+  };
+
+  const result = await validateProviderApiKey({
+    provider: "gitlawb-gmi",
+    apiKey: "glb-gmi-key",
+  });
+  assert.equal(result.valid, false);
+  assert.match(result.error || "", /gitlawb-gmi opengateway offline/i);
+});
+
+test("gitlawb-gmi validator: accepts custom baseUrl override", async () => {
+  globalThis.fetch = async (url, init = {}) => {
+    assert.equal(
+      String(url),
+      "https://custom-gateway.example.com/v1/gmi-cloud/chat/completions"
+    );
+    assert.equal((init.headers as Record<string, string>).Authorization, "Bearer glb-gmi-key");
+    return new Response(JSON.stringify({ choices: [{ message: { content: "ok" } }] }), {
+      status: 200,
+    });
+  };
+
+  const result = await validateProviderApiKey({
+    provider: "gitlawb-gmi",
+    apiKey: "glb-gmi-key",
+    providerSpecificData: {
+      baseUrl: "https://custom-gateway.example.com/v1/gmi-cloud",
+    },
+  });
+  assert.equal(result.valid, true);
+});
