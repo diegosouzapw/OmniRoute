@@ -47,9 +47,12 @@ export function seedWindowUsageFromHistory(limit: TokenLimit, now = Date.now()):
   const lowerBound = new Date(periodStartAt).toISOString();
   const db = getDbInstance();
 
+  // Canonical billable total = input + output + reasoning. tokens_cache_read and
+  // tokens_cache_creation are a BREAKDOWN already inside tokens_input (see migration
+  // 012_fix_token_input_cache_tokens.sql) — summing them again would double-count.
+  // This must mirror computeBillableTokens() in chatCore.ts.
   const tokenSum = `COALESCE(SUM(
       COALESCE(tokens_input, 0) + COALESCE(tokens_output, 0)
-      + COALESCE(tokens_cache_read, 0) + COALESCE(tokens_cache_creation, 0)
       + COALESCE(tokens_reasoning, 0)
     ), 0) AS total`;
 
@@ -109,10 +112,17 @@ export function getCurrentWindowUsage(
   // DB point-read (authoritative for the window).
   let dbUsage = getWindowUsage(limit, now);
 
-  // Cold window: no counter row yet → seed from usage_history.
+  // Cold window: no counter row yet → seed from usage_history and PERSIST the
+  // seed to the counter row so a subsequent recordTokenUsage increment does not
+  // forget the existing historical usage in this window (force-fresh read then
+  // first record must accumulate on top of history, not restart from 0).
   if (dbUsage === 0 && (!cached || cached.windowStart !== windowStart)) {
     const seeded = seedWindowUsageFromHistory(limit, now);
-    if (seeded > 0) dbUsage = seeded;
+    if (seeded > 0) {
+      // UPSERT creates the row at `seeded`; safe because there is no row yet
+      // (dbUsage === 0). Returns the new authoritative total.
+      dbUsage = incrementWindowTokens(limit.id, windowStart, seeded);
+    }
   }
 
   cache.set(limit.id, { windowStart, tokensUsed: dbUsage, syncedAt: now });
@@ -291,6 +301,15 @@ export function recordTokenUsage(
               priorRow && typeof priorRow.tokens_used === "number" ? priorRow.tokens_used : 0;
             if (prevTokens > 0) {
               logTokenLimitReset(limit.id, prevTokens, windowStart);
+            }
+
+            // Cold window with no counter row: seed from usage_history so the
+            // running total reflects prior usage already recorded in this window
+            // before applying the new delta. Synchronous (better-sqlite3) — safe
+            // inside this transaction. Mirrors getCurrentWindowUsage seed-on-miss.
+            const seeded = seedWindowUsageFromHistory(limit, now);
+            if (seeded > 0) {
+              incrementWindowTokens(limit.id, windowStart, seeded);
             }
           }
 

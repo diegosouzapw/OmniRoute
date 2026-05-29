@@ -49,13 +49,26 @@ function insertUsage(
   model: string,
   tokensInput: number,
   tokensOutput: number,
-  ts: string
+  ts: string,
+  extra: { cacheRead?: number; cacheCreation?: number; reasoning?: number } = {}
 ) {
   const db = core.getDbInstance();
   db.prepare(
-    `INSERT INTO usage_history (provider, model, api_key_id, tokens_input, tokens_output, success, timestamp)
-     VALUES (?, ?, ?, ?, ?, 1, ?)`
-  ).run(provider, model, apiKeyId, tokensInput, tokensOutput, ts);
+    `INSERT INTO usage_history
+       (provider, model, api_key_id, tokens_input, tokens_output,
+        tokens_cache_read, tokens_cache_creation, tokens_reasoning, success, timestamp)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, 1, ?)`
+  ).run(
+    provider,
+    model,
+    apiKeyId,
+    tokensInput,
+    tokensOutput,
+    extra.cacheRead ?? 0,
+    extra.cacheCreation ?? 0,
+    extra.reasoning ?? 0,
+    ts
+  );
 }
 
 test.beforeEach(async () => {
@@ -144,7 +157,7 @@ test("seed-on-miss equals usage_history SUM for the active window", async () => 
   assert.equal(counter.seedWindowUsageFromHistory(limit, NOW_JAN), expected);
 });
 
-test("getCurrentWindowUsage seeds from history when no counter row exists", async () => {
+test("getCurrentWindowUsage seeds from history and PERSISTS the seed (FIX 3)", async () => {
   const limit = tokenLimits.upsertTokenLimit({
     apiKeyId: "k2b",
     scopeType: "model",
@@ -156,15 +169,62 @@ test("getCurrentWindowUsage seeds from history when no counter row exists", asyn
   insertUsage("k2b", "openai", "gpt-4o", 200, 100, new Date(Date.UTC(2026, 0, 12)).toISOString());
   const seeded = 300;
   assert.equal(counter.seedWindowUsageFromHistory(limit, NOW_JAN), seeded);
-  assert.equal(counter.getCurrentWindowUsage(limit, NOW_JAN, true), seeded);
 
-  // A subsequent increment reflects DB + increment on a forceFresh read.
+  // FIX 3: a force-fresh read on a cold window now PERSISTS the seed to the
+  // counter row (previously the seed was read-only and DB usage stayed 0).
+  assert.equal(counter.getCurrentWindowUsage(limit, NOW_JAN, true), seeded);
+  assert.equal(tokenLimits.getWindowUsage(limit, NOW_JAN), seeded);
+
+  // A subsequent increment accumulates ON TOP of the persisted seed — the prior
+  // historical usage is NOT forgotten.
   const { windowStart } = tokenLimits.resetWindowIfElapsed(limit, NOW_JAN);
-  // NOTE: the counter row did not yet exist (seed is read-only), so DB usage is 0;
-  // incrementing creates it. Authoritative read = increment only (seed is not persisted).
   tokenLimits.incrementWindowTokens(limit.id, windowStart, 25);
-  assert.equal(tokenLimits.getWindowUsage(limit, NOW_JAN), 25);
-  assert.equal(counter.getCurrentWindowUsage(limit, NOW_JAN, true), 25);
+  assert.equal(tokenLimits.getWindowUsage(limit, NOW_JAN), seeded + 25);
+  assert.equal(counter.getCurrentWindowUsage(limit, NOW_JAN, true), seeded + 25);
+});
+
+test("seed total excludes cache tokens (no double-count) (FIX 2)", async () => {
+  const limit = tokenLimits.upsertTokenLimit({
+    apiKeyId: "k2c",
+    scopeType: "model",
+    scopeValue: "claude-sonnet",
+    tokenLimit: 100000,
+    resetInterval: "monthly",
+  });
+
+  // tokens_input ALREADY INCLUDES cache_read + cache_creation (these columns are a
+  // breakdown, per migration 012). Billable = input + output + reasoning ONLY.
+  insertUsage("k2c", "anthropic", "claude-sonnet", 500, 200, new Date(Date.UTC(2026, 0, 12)).toISOString(), {
+    cacheRead: 300,
+    cacheCreation: 100,
+    reasoning: 40,
+  });
+
+  // 500 + 200 + 40 = 740. Must NOT add cacheRead/cacheCreation again (would be 1140).
+  assert.equal(counter.seedWindowUsageFromHistory(limit, NOW_JAN), 740);
+});
+
+test("cold-window recordTokenUsage seeds from history before increment (FIX 4)", async () => {
+  // recordTokenUsage uses Date.now() internally; insert history in the current window.
+  const limit = tokenLimits.upsertTokenLimit({
+    apiKeyId: "k2d",
+    scopeType: "model",
+    scopeValue: "gpt-4o",
+    tokenLimit: 1000000,
+    resetInterval: "monthly",
+  });
+
+  // Prior historical usage in this window, but NO counter row yet (cold window).
+  insertUsage("k2d", "openai", "gpt-4o", 400, 100, new Date().toISOString());
+  assert.equal(tokenLimits.getWindowUsage(limit, Date.now()), 0); // no counter row yet
+
+  // First record on the cold window must seed (500) then add the delta (50) = 550,
+  // NOT restart from 0 (which would yield 50).
+  counter.recordTokenUsage("k2d", "openai", "gpt-4o", 50);
+  await flush();
+  await flush();
+
+  assert.equal(tokenLimits.getWindowUsage(limit, Date.now()), 550);
 });
 
 test("most-restrictive breach wins when model and provider both match", async () => {

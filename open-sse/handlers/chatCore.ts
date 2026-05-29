@@ -90,8 +90,6 @@ import {
   formatUsageLog,
   getLoggedInputTokens,
   getLoggedOutputTokens,
-  getPromptCacheReadTokens,
-  getPromptCacheCreationTokens,
   getReasoningTokens,
 } from "@/lib/usage/tokenAccounting";
 import { recordCost } from "@/domain/costRules";
@@ -839,13 +837,11 @@ function createAbortError(signal: AbortSignal): Error {
 /** Billable token total — mirrors the columns persisted by saveRequestUsage so the
  *  live token-limit counter stays consistent with usage_history seed-on-miss. */
 function computeBillableTokens(usage: unknown): number {
-  return (
-    getLoggedInputTokens(usage) +
-    getLoggedOutputTokens(usage) +
-    getPromptCacheReadTokens(usage) +
-    getPromptCacheCreationTokens(usage) +
-    getReasoningTokens(usage)
-  );
+  // Cache read/creation tokens are a BREAKDOWN already contained inside
+  // getLoggedInputTokens (prompt_tokens / input_tokens). Adding them here would
+  // double-count. Canonical billable total = input + output + reasoning, matching
+  // the columns persisted by saveRequestUsage and seedWindowUsageFromHistory.
+  return getLoggedInputTokens(usage) + getLoggedOutputTokens(usage) + getReasoningTokens(usage);
 }
 
 function getExecutorTimeoutMs(executor: unknown): number {
@@ -3912,9 +3908,17 @@ export async function handleChatCore({
           tokenBreach.scopeType === "global"
             ? "account"
             : `${tokenBreach.scopeType} "${tokenBreach.scopeValue}"`;
+        // FIX 6: clear the pending request marker before the early return so we do
+        // not leak a phantom pending request (start was tracked at line ~1847).
+        trackPendingRequest(model, provider, connectionId, false);
+        // FIX 5: tag this as a per-API-key token-limit breach (errorCode
+        // TOKEN_LIMIT_EXCEEDED) so the combo loop can distinguish it from an
+        // upstream 429 and NOT cool shared accounts / retry it transiently.
         return createErrorResult(
           HTTP_STATUS.RATE_LIMITED,
-          `Token limit exceeded for ${scopeLabel}: ${tokenBreach.tokensUsed}/${tokenBreach.limitValue} tokens used in the current window. Please try again later.`
+          `Token limit exceeded for ${scopeLabel}: ${tokenBreach.tokensUsed}/${tokenBreach.limitValue} tokens used in the current window. Please try again later.`,
+          null,
+          "TOKEN_LIMIT_EXCEEDED"
         );
       }
     } catch (err) {

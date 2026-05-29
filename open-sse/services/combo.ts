@@ -448,6 +448,20 @@ function isStreamReadinessFailureErrorBody(errorBody: unknown): boolean {
   return code === "STREAM_READINESS_TIMEOUT" || code === "STREAM_EARLY_EOF";
 }
 
+/**
+ * A local per-API-key token-limit breach surfaces as a 429 tagged with
+ * errorCode "TOKEN_LIMIT_EXCEEDED" (see chatCore.ts Tier 2 early return). This
+ * is NOT an upstream rate limit, so the combo loop must not cool the shared
+ * account/provider, must not add it to transientRateLimitedProviders, and must
+ * not retry it transiently — it propagates to the client as a terminal 429.
+ */
+function isTokenLimitBreachErrorBody(errorBody: unknown): boolean {
+  if (!errorBody || typeof errorBody !== "object") return false;
+  const error = (errorBody as Record<string, unknown>).error;
+  if (!error || typeof error !== "object") return false;
+  return (error as Record<string, unknown>).code === "TOKEN_LIMIT_EXCEEDED";
+}
+
 function toRecordedTarget(target: ResolvedComboTarget) {
   return {
     executionKey: target.executionKey,
@@ -3457,6 +3471,10 @@ export async function handleComboChat({
           (result.status === 502 || result.status === 504) &&
           isStreamReadinessFailureErrorBody(errorBody);
 
+        // FIX 5: a local per-API-key token-limit 429 must not cool shared accounts.
+        const isTokenLimitBreach =
+          result.status === 429 && isTokenLimitBreachErrorBody(errorBody);
+
         // Fix #1681: Status 499 means client disconnected — stop combo loop immediately.
         // There is no point trying fallback models when nobody is listening.
         if (result.status === 499) {
@@ -3510,7 +3528,12 @@ export async function handleComboChat({
             "COMBO",
             `Provider ${provider} quota exhausted — marking for skip on remaining targets (#1731)`
           );
-        } else if (result.status === 429 && provider && provider !== "unknown") {
+        } else if (
+          result.status === 429 &&
+          !isTokenLimitBreach &&
+          provider &&
+          provider !== "unknown"
+        ) {
           transientRateLimitedProviders.add(provider);
         }
 
@@ -3532,9 +3555,12 @@ export async function handleComboChat({
           recordProviderFailure(provider, log, target.connectionId, profile);
         }
 
-        // Check if this is a transient error worth retrying on same model
+        // Check if this is a transient error worth retrying on same model.
+        // A token-limit 429 is terminal for the client — never retry it.
         const isTransient =
-          !isStreamReadinessFailure && [408, 429, 500, 502, 503, 504].includes(result.status);
+          !isStreamReadinessFailure &&
+          !isTokenLimitBreach &&
+          [408, 429, 500, 502, 503, 504].includes(result.status);
         if (retry < maxRetries && isTransient && !providerExhausted) {
           continue; // Retry same model
         }
@@ -3907,6 +3933,10 @@ async function handleRoundRobinCombo({
           (result.status === 502 || result.status === 504) &&
           isStreamReadinessFailureErrorBody(errorBody);
 
+        // FIX 5: a local per-API-key token-limit 429 must not cool shared accounts.
+        const isTokenLimitBreach =
+          result.status === 429 && isTokenLimitBreachErrorBody(errorBody);
+
         // Round-robin uses the same target-level fallback rule as other combo
         // strategies: non-ok target responses fall through to the next target.
         // Classification stays here only to support cooldown/semaphore pacing,
@@ -3949,13 +3979,19 @@ async function handleRoundRobinCombo({
         if (providerExhausted) {
           exhaustedProviders.add(provider);
           log.info("COMBO-RR", `Provider ${provider} quota exhausted — marking for skip (#1731)`);
-        } else if (result.status === 429 && provider && provider !== "unknown") {
+        } else if (
+          result.status === 429 &&
+          !isTokenLimitBreach &&
+          provider &&
+          provider !== "unknown"
+        ) {
           transientRateLimitedProviders.add(provider);
         }
 
         // Transient errors → mark in semaphore so round-robin stops stampeding this target.
         if (
           !isStreamReadinessFailure &&
+          !isTokenLimitBreach &&
           TRANSIENT_FOR_SEMAPHORE.includes(result.status) &&
           cooldownMs > 0
         ) {
@@ -3970,9 +4006,12 @@ async function handleRoundRobinCombo({
           );
         }
 
-        // Transient error → retry same model
+        // Transient error → retry same model.
+        // A token-limit 429 is terminal for the client — never retry it.
         const isTransient =
-          !isStreamReadinessFailure && [408, 429, 500, 502, 503, 504].includes(result.status);
+          !isStreamReadinessFailure &&
+          !isTokenLimitBreach &&
+          [408, 429, 500, 502, 503, 504].includes(result.status);
         if (retry < maxRetries && isTransient && !providerExhausted) {
           continue;
         }
