@@ -62,7 +62,7 @@
   "homepage": "https://omniroute.online",
   "scripts": {
     "dev": "node scripts/run-next.mjs dev",
-    "build": "node scripts/build-next-isolated.mjs",
+    "build": "node scripts/build/build-next-isolated.mjs",
     "build:cli": "node --import tsx/esm scripts/prepublish.ts",
     "start": "node scripts/run-next.mjs start",
     "lint": "eslint .",
