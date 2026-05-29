@@ -38,6 +38,7 @@ import {
   extractCodeAssistOnboardTierId,
   extractCodeAssistSubscriptionTier,
 } from "./codeAssistSubscription.ts";
+import { sanitizeErrorMessage } from "../utils/error.ts";
 
 // Quota / usage upstream URLs (overridable for testing or relays).
 const CROF_USAGE_URL = process.env.OMNIROUTE_CROF_USAGE_URL ?? "https://crof.ai/usage_api/";
@@ -939,7 +940,7 @@ async function getOpencodeUsage(connectionId: string, apiKey: string) {
       limitReached,
     };
   } catch (error) {
-    return { message: `OpenCode error: ${(error as Error).message}` };
+    return { message: `OpenCode error: ${sanitizeErrorMessage(error)}` };
   }
 }
 
@@ -2724,4 +2725,5 @@ export const __testing = {
   extractCodeAssistOnboardTierId,
   getMiniMaxPlanLabel,
   inferMiniMaxPlanLabelFromTotals,
+  getOpencodeUsage,
 };
