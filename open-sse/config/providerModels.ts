@@ -64,5 +64,14 @@ export function supportsXHighEffort(aliasOrId: string, modelId: string): boolean
   const providerModels = PROVIDER_MODELS[alias] || PROVIDER_MODELS[aliasOrId];
   // Unknown provider (not in registry) — pass through unchanged.
   if (!providerModels) return true;
-  return getProviderModel(alias, modelId)?.supportsXHighEffort === true;
+  const model = getProviderModel(alias, modelId);
+
+  // Claude Code models default to supporting extra-high effort. Keep explicit
+  // false entries as the unsupported-model list so newly added Claude models do
+  // not need opt-in flags.
+  if (alias === "cc") {
+    return model?.supportsXHighEffort !== false;
+  }
+
+  return model?.supportsXHighEffort === true;
 }

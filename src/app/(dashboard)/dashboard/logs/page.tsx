@@ -2,7 +2,7 @@
 
 import { useState, useRef, useEffect } from "react";
 import { useSearchParams } from "next/navigation";
-import { RequestLoggerV2, ProxyLogger, SegmentedControl } from "@/shared/components";
+import { ConfirmModal, RequestLoggerV2, ProxyLogger, SegmentedControl } from "@/shared/components";
 import ConsoleLogViewer from "@/shared/components/ConsoleLogViewer";
 import EmailPrivacyToggle from "@/shared/components/EmailPrivacyToggle";
 import ActiveRequestsPanel from "@/shared/components/ActiveRequestsPanel";
@@ -31,6 +31,10 @@ export default function LogsPage() {
   );
   const [showExport, setShowExport] = useState(false);
   const [exporting, setExporting] = useState(false);
+  const [showCleanHistory, setShowCleanHistory] = useState(false);
+  const [cleaningHistory, setCleaningHistory] = useState(false);
+  const [cleanHistoryStatus, setCleanHistoryStatus] = useState<string | null>(null);
+  const [requestLogKey, setRequestLogKey] = useState(0);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const t = useTranslations("logs");
 
@@ -73,6 +77,36 @@ export default function LogsPage() {
     }
   }
 
+  async function handleCleanHistory() {
+    setCleaningHistory(true);
+    setShowCleanHistory(false);
+    setCleanHistoryStatus(null);
+    try {
+      const res = await fetch("/api/settings/purge-logs", { method: "POST" });
+      const data = await res.json().catch(() => null);
+
+      if (!res.ok) {
+        throw new Error(data?.error || "Failed to clean log history.");
+      }
+
+      const deleted = typeof data?.deleted === "number" ? data.deleted : 0;
+      const deletedArtifacts = typeof data?.deletedArtifacts === "number" ? data.deletedArtifacts : 0;
+      setRequestLogKey((key) => key + 1);
+      setCleanHistoryStatus(
+        deleted || deletedArtifacts
+          ? `Cleaned ${deleted} log entr${deleted === 1 ? "y" : "ies"} and ${deletedArtifacts} artifact${
+              deletedArtifacts === 1 ? "" : "s"
+            }.`
+          : "No expired log history needed cleanup."
+      );
+    } catch (err) {
+      console.error("Failed to clean log history", err);
+      setCleanHistoryStatus(err instanceof Error ? err.message : "Failed to clean log history.");
+    } finally {
+      setCleaningHistory(false);
+    }
+  }
+
   return (
     <div className="flex flex-col gap-6">
       <div className="flex items-center justify-between gap-4 flex-wrap">
@@ -89,6 +123,32 @@ export default function LogsPage() {
 
         <div className="flex items-center gap-2">
           <EmailPrivacyToggle size="md" />
+
+          <button
+            id="clean-log-history-btn"
+            onClick={() => setShowCleanHistory(true)}
+            disabled={cleaningHistory}
+            className="flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-lg
+              border border-red-500/30 bg-red-500/10 text-red-200 hover:bg-red-500/20
+              hover:border-red-400/50 transition-all duration-200
+              disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            <svg
+              width="16"
+              height="16"
+              viewBox="0 0 16 16"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="1.5"
+            >
+              <path
+                d="M6 2h4m-5 2h6m-7 0h8m-1 0-.5 9a1 1 0 0 1-1 1h-3a1 1 0 0 1-1-1L5 4m2 3v4m2-4v4"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+            </svg>
+            Clean history
+          </button>
 
           <div className="relative" ref={dropdownRef}>
             <button
@@ -148,15 +208,32 @@ export default function LogsPage() {
         </div>
       </div>
 
+      {cleanHistoryStatus && (
+        <div className="rounded-lg border border-[var(--border,#333)] bg-[var(--card-bg,#1e1e2e)] px-4 py-3 text-sm text-[var(--text-secondary,#aaa)]">
+          {cleanHistoryStatus}
+        </div>
+      )}
+
       {activeTab === "request-logs" && (
         <div className="flex flex-col gap-6">
           <ActiveRequestsPanel />
-          <RequestLoggerV2 />
+          <RequestLoggerV2 key={requestLogKey} />
         </div>
       )}
       {activeTab === "proxy-logs" && <ProxyLogger />}
       {activeTab === "audit-logs" && <AuditLogTab />}
       {activeTab === "console" && <ConsoleLogViewer />}
+
+      <ConfirmModal
+        isOpen={showCleanHistory}
+        onClose={() => setShowCleanHistory(false)}
+        onConfirm={handleCleanHistory}
+        title="Clean log history?"
+        message="This clears expired log history and prunes related artifacts using the current retention policy. The live page will refresh after cleanup."
+        confirmText="Clean history"
+        cancelText="Cancel"
+        loading={cleaningHistory}
+      />
     </div>
   );
 }

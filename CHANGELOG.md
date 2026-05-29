@@ -9,6 +9,56 @@
 ### Known Inconsistency
 
 - **log-export:** `GET /api/logs/export?type=proxy-logs` returns raw SQLite rows whose IP field is still named `public_ip` (the historical column name). This differs from the `clientIp` field exposed by `GET /api/usage/proxy-logs`. The two endpoints are intentionally inconsistent for now and will be aligned in a future migration (#2880).
+### 🔧 Bug Fixes
+
+- **fix(usage):** add opencode-go / opencode / opencode-zen quota fetcher so the provider limits page surfaces $12/5h, $30/wk, $60/mo windows alongside other quota-aware providers ([#2852](https://github.com/diegosouzapw/OmniRoute/issues/2852) — thanks @apoapostolov)
+
+---
+
+## [3.8.6-patch] — 2026-05-27
+
+### 🔧 Bug Fixes
+
+- **fix(cli):** replace `cli-table3` dependency with a ~50-line hand-rolled ASCII formatter to resolve Node 24 / ESM interop breakage and remove tourniquet `package.json` overrides pinning `ansi-regex@^5`, `strip-ansi@^6`, `string-width@^4` ([#2752])
+
+---
+
+## [3.8.6] — 2026-05-27
+
+### ✨ New Features
+
+- **logs:** add clean log history action button to Logs page dashboard (#2799 — thanks @apoapostolov)
+- **settings:** restore settings-driven home page layout toggles and auto-refresh limits widget (#2800 — thanks @apoapostolov)
+- **modelSpecs:** register explicit model specifications and context/output caps for Moonshot, Qwen, Hunyuan, DeepSeek, MiniMax, GLM on the `opencode-go` provider (#2802 — thanks @jeferssonlemes)
+
+### 🔧 Bug Fixes
+
+- **fix(opencode-go,opencode-zen):** mark qwen3.7-max / 3.6-plus / 3.5-plus as supportsVision:false to stop forwarding image blocks to vision-incapable upstream models ([#2822])
+- **nous-research:** append /chat/completions to provider baseUrl so DefaultExecutor's default URL builder hits the correct endpoint instead of returning 404 ([#2826])
+- **fix(quota):** honor explicit per-connection `quotaPreflightEnabled: false` even when the provider has global window defaults — adds early-return guard before the AND-of-negations gate in auth.ts ([#2831])
+- **api:** include noAuth providers (opencode, etc.) in `/v1/models` active aliases so their models surface without a DB connection row (#2798)
+- **opencode-go:** route Qwen3.x via Claude messages format and repair `fixMissingToolResponses` helper for Claude-shape upstreams (#2791 — thanks @jeferssonlemes)
+- **validation:** register missing validation helper checks for web-cookie providers (`claude-web`, `gemini-web`, `copilot-web`, `t3-web`) (#2793 — thanks @oyi77)
+- **docker:** check and warn if `/app/data` is not writable in the Docker entrypoint script to fail fast with helpful host instructions (#2795 — thanks @hartmark)
+- **oauth:** repair native Google loopback callback flow and support remote callbacks via state matching on 127.0.0.1 (#2796 — thanks @akarray)
+- **combo:** resolve custom `openai-compatible-responses-*` provider targets correctly when called via combo name — combo steps storing the internal UUID-prefixed provider id now match the provider node by id as well as by prefix, fixing 503 errors for users with custom providers used inside combos (#2778)
+- **combos:** fix combo handling so transient 429 rate limit errors do not poison or persist the rate limited state for the same-provider connection (#2800 — thanks @apoapostolov)
+- **gemini:** translate signature-less Gemini thinking model tool calls to text parts to prevent `400 "missing thought_signature"` errors (#2801 — thanks @herjarsa)
+- **translator:** strip `safety_identifier` from `/v1/responses` body before forwarding to Chat Completions upstream; fixes LobeHub-originated `400` errors (#2770)
+- **warning-cleanup:** relax node engine constraint to `>=22.0.0` and clean dependencies (keeping `marked-terminal` to prevent TUI REPL crash) (#2792 — thanks @oyi77)
+- **translator:** silently drop `tool_search` built-in tool type instead of returning 400 — newer Codex clients send `tool_search` as a Responses API built-in with no Chat Completions equivalent (#2766)
+- **usage:** un-invert GitHub Copilot Free / limited plan quota — `limited_user_quotas` is the *remaining* count, not used, so the dashboard now shows 100% when the quota is untouched and 0% when fully exhausted (#2876 — thanks @androw)
+- **fix(cli):** register openclaw in the CLI tool-detector so it appears in `omniroute status` alongside its existing API and config support ([#2833](https://github.com/diegosouzapw/OmniRoute/issues/2833))
+
+### 🧹 Chores
+
+- **gitignore:** ignore `.claude/settings.local.json` so per-user Claude Code permissions never get committed by accident
+- **release:** version bump and metadata sync (package.json, package-lock.json, electron, open-sse, openapi.yaml)
+
+### 🏆 Hall of Contributors
+
+A special thanks to everyone who contributed code, reviews, and tests for this release:
+@akarray, @androw, @apoapostolov, @hartmark, @herjarsa, @jeferssonlemes, @oyi77
 
 ---
 

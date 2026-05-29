@@ -6,7 +6,11 @@ type JsonRecord = Record<string, unknown>;
  * Mirrors the binary-side gate observed in claude-code v2.1.145 (KT() check):
  * only the latest Opus tiers can request the priority service path.
  */
-export const CLAUDE_FAST_MODE_DEFAULT_MODELS = ["claude-opus-4-7", "claude-opus-4-6"] as const;
+export const CLAUDE_FAST_MODE_DEFAULT_MODELS = [
+  "claude-opus-4-8",
+  "claude-opus-4-7",
+  "claude-opus-4-6",
+] as const;
 
 function asRecord(value: unknown): JsonRecord {
   return value && typeof value === "object" && !Array.isArray(value) ? (value as JsonRecord) : {};
@@ -39,7 +43,7 @@ export function isClaudeFastModeEnabled(settings: unknown): boolean {
 
 /**
  * Returns the configured supported-model list, defaulting to the conservative
- * Opus 4-7 / 4-6 pair (matches the binary KT() gate).
+ * Opus 4-8 / 4-7 / 4-6 set.
  */
 export function getClaudeFastModeSupportedModels(settings: unknown): string[] {
   const record = asRecord(settings);
@@ -51,7 +55,7 @@ export function getClaudeFastModeSupportedModels(settings: unknown): string[] {
 
 /**
  * True when the toggle is on AND the model id prefix-matches a supported model.
- * Prefix matching tolerates dated suffixes (e.g. claude-opus-4-7-20260201).
+ * Prefix matching tolerates dated suffixes (e.g. claude-opus-4-8-20260528).
  */
 export function shouldRequestClaudeFastMode(
   settings: unknown,

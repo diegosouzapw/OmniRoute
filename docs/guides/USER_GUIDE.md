@@ -578,7 +578,7 @@ For the full environment variable reference, see the [README](../README.md).
 
 > The list below is curated from `open-sse/config/providerRegistry.ts` for v3.8.0. Cloud catalogs (Gemini, OpenRouter, etc.) are synced dynamically — for the full live catalog open **Dashboard → Providers → [provider] → Available Models** or call `GET /api/models/catalog`.
 
-**Claude Code (`cc/`)** — Pro/Max OAuth: `cc/claude-opus-4-7`, `cc/claude-opus-4-6`, `cc/claude-opus-4-5-20251101`, `cc/claude-sonnet-4-6`, `cc/claude-sonnet-4-5-20250929`, `cc/claude-haiku-4-5-20251001`
+**Claude Code (`cc/`)** — Pro/Max OAuth: `cc/claude-opus-4-8`, `cc/claude-opus-4-7`, `cc/claude-opus-4-6`, `cc/claude-opus-4-5-20251101`, `cc/claude-sonnet-4-6`, `cc/claude-sonnet-4-5-20250929`, `cc/claude-haiku-4-5-20251001`
 
 **Codex (`cx/`)** — Plus/Pro OAuth: `cx/gpt-5.5` (+ effort tiers: `gpt-5.5-xhigh`, `gpt-5.5-high`, `gpt-5.5-medium`, `gpt-5.5-low`), `cx/gpt-5.4`, `cx/gpt-5.4-mini`, `cx/gpt-5.3-codex`, `cx/gpt-5.3-codex-spark`, `cx/gpt-5.2`
 
@@ -626,7 +626,7 @@ For the full environment variable reference, see the [README](../README.md).
 
 **Other compatible providers** (selected): `cohere`, `databricks`, `snowflake`, `together`, `vertex`, `alibaba`, `alibaba-cn`, `bedrock` (via `aws-bedrock`), `azure-ai`, `openrouter` (passthrough catalog), `siliconflow`, `hyperbolic`, `huggingface`, `featherless-ai`, `cloudflare-ai`, `scaleway`, `deepinfra`, `vercel-ai-gateway`, `bazaarlink`, `friendliai`, `nous-research`, `reka`, `volcengine`, `ai21`, `gigachat`. Each maintains its own model list in `providerRegistry.ts` and can be auto-synced when the provider exposes a `/models` endpoint.
 
-**Note on model IDs:** OmniRoute uses provider-native IDs (`claude-opus-4-7`, `gpt-5.5`, `glm-5.1`, `MiniMax-M2.7`, `kimi-k2.5`, `grok-4.20-0309-reasoning`). Some IDs include dotted versions because that is how the upstream API expects them. If a model is not listed above, run `omniroute models --search <term>` or hit `GET /api/models/catalog` to confirm availability.
+**Note on model IDs:** OmniRoute uses provider-native IDs (`claude-opus-4-8`, `gpt-5.5`, `glm-5.1`, `MiniMax-M2.7`, `kimi-k2.5`, `grok-4.20-0309-reasoning`). Some IDs include dotted versions because that is how the upstream API expects them. If a model is not listed above, run `omniroute models --search <term>` or hit `GET /api/models/catalog` to confirm availability.
 
 </details>
 

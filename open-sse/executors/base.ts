@@ -217,8 +217,8 @@ function hasActiveClaudeThinking(body: Record<string, unknown>): boolean {
  * Each rejection burns a combo fallback attempt before reaching a working
  * provider. Apply provider-aware sanitation here (after transformRequest, so
  * reintroductions by per-provider transforms are also caught) before fetch.
- * Models that genuinely support xhigh (registry flag supportsXHighEffort)
- * pass through unchanged.
+ * Models that genuinely support xhigh pass through unchanged. Claude models
+ * default to xhigh support unless they are marked as legacy unsupported entries.
  */
 const MISTRAL_NO_REASONING_EFFORT_PATTERN = /devstral/i;
 const GITHUB_NO_REASONING_EFFORT_PATTERN = /(claude|haiku|oswe)/i;

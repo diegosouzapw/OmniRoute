@@ -101,8 +101,8 @@ test("sanitizeReasoningEffortForProvider: mistral/devstral preserves reasoning w
 });
 
 test("sanitizeReasoningEffortForProvider: codex with xhigh passes through unchanged when model supports it", () => {
-  // codex/gpt-5.5-xhigh and related Claude opus models are flagged
-  // supportsXHighEffort:true in providerRegistry. They must not be downgraded.
+  // codex/gpt-5.5-xhigh is flagged supportsXHighEffort:true in providerRegistry.
+  // Claude Opus 4.7+ models default to xhigh support unless explicitly opted out.
   const body = {
     model: "gpt-5.5-xhigh",
     reasoning_effort: "xhigh",
