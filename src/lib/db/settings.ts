@@ -99,6 +99,8 @@ export async function getSettings() {
     hideEndpointCloudflaredTunnel: false,
     hideEndpointTailscaleFunnel: false,
     hideEndpointNgrokTunnel: false,
+    autoRefreshProviderQuota: false,
+    autoRefreshProviderQuotaInterval: 180,
     comboConfigMode: "guided",
     codexServiceTier: { enabled: false },
     claudeFastMode: { enabled: false, supportedModels: ["claude-opus-4-7", "claude-opus-4-6"] },

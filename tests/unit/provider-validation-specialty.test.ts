@@ -2033,6 +2033,309 @@ test("validateCommandCodeProvider rejects auth failures and provider outages", a
   });
 });
 
+// ─── claude-web validator ────────────────────────────────────────────────────
+
+const { __setTlsFetchOverrideForTesting: __setClaudeTlsFetchOverride } =
+  await import("../../open-sse/services/claudeTlsClient.ts");
+
+function makeClaudeTlsResponse(status: number, body: string, headers: Record<string, string> = {}): any {
+  const h = new Headers();
+  for (const [k, v] of Object.entries(headers)) h.set(k, v);
+  return { status, ok: status >= 200 && status < 300, headers: h, text: body, body: null };
+}
+
+test("claude-web validator: 200 from /api/organizations → valid", async () => {
+  let captured: { url: string; opts: any } | null = null;
+  __setClaudeTlsFetchOverride(async (url, opts) => {
+    captured = { url, opts };
+    return makeClaudeTlsResponse(200, JSON.stringify({ orgs: [] }));
+  });
+
+  const result = await validateProviderApiKey({
+    provider: "claude-web",
+    apiKey: "sessionKey=sk-ant-sid02-test-session-key",
+  });
+
+  assert.equal(result.valid, true);
+  assert.equal(result.error, null);
+  assert.equal(captured?.url, "https://claude.ai/api/organizations");
+  assert.match((captured?.opts.headers as Record<string, string>).Cookie || "", /sessionKey=sk-ant-sid02-test-session-key/);
+  __setClaudeTlsFetchOverride(null);
+});
+
+test("claude-web validator: full cookie blob passes through verbatim", async () => {
+  let capturedCookie = "";
+  __setClaudeTlsFetchOverride(async (_url, opts) => {
+    capturedCookie = (opts.headers as Record<string, string>).Cookie || "";
+    return makeClaudeTlsResponse(200, JSON.stringify({ orgs: [] }));
+  });
+
+  const blob =
+    "__cf_bm=abc123; sessionKey=sk-ant-sid02-test; intercom-device-id-lupk8zyo=xyz; __stripe_mid=stripe123";
+  await validateProviderApiKey({ provider: "claude-web", apiKey: blob });
+  assert.equal(capturedCookie, blob);
+  __setClaudeTlsFetchOverride(null);
+});
+
+test("claude-web validator: 401 → invalid session cookie", async () => {
+  __setClaudeTlsFetchOverride(async () =>
+    makeClaudeTlsResponse(401, JSON.stringify({ error: "unauthorized" }))
+  );
+
+  const result = await validateProviderApiKey({
+    provider: "claude-web",
+    apiKey: "sessionKey=expired-key",
+  });
+
+  assert.equal(result.valid, false);
+  assert.match(result.error || "", /Invalid or expired session cookie/i);
+  __setClaudeTlsFetchOverride(null);
+});
+
+test("claude-web validator: 429 → valid (rate limited means auth passed)", async () => {
+  __setClaudeTlsFetchOverride(async () =>
+    makeClaudeTlsResponse(429, JSON.stringify({ error: "rate limited" }))
+  );
+
+  const result = await validateProviderApiKey({
+    provider: "claude-web",
+    apiKey: "sessionKey=sk-ant-sid02-good-key",
+  });
+
+  assert.equal(result.valid, true);
+  __setClaudeTlsFetchOverride(null);
+});
+
+test("claude-web validator: 500 → Claude.ai unavailable", async () => {
+  __setClaudeTlsFetchOverride(async () =>
+    makeClaudeTlsResponse(500, "internal server error")
+  );
+
+  const result = await validateProviderApiKey({
+    provider: "claude-web",
+    apiKey: "sessionKey=sk-ant-sid02-any-key",
+  });
+
+  assert.equal(result.valid, false);
+  assert.match(result.error || "", /Claude\.ai unavailable \(500\)/i);
+  __setClaudeTlsFetchOverride(null);
+});
+
+test("claude-web validator: TLS client unavailable → clear error", async () => {
+  const { TlsClientUnavailableError } = await import("../../open-sse/services/claudeTlsClient.ts");
+  __setClaudeTlsFetchOverride(async () => {
+    throw new TlsClientUnavailableError("tls-client-node not installed");
+  });
+
+  const result = await validateProviderApiKey({
+    provider: "claude-web",
+    apiKey: "sessionKey=sk-ant-sid02-any-key",
+  });
+
+  assert.equal(result.valid, false);
+  assert.match(result.error || "", /tls-client-node not installed/i);
+  __setClaudeTlsFetchOverride(null);
+});
+
+test("claude-web validator: bare sessionKey value gets prefixed", async () => {
+  let capturedCookie = "";
+  __setClaudeTlsFetchOverride(async (_url, opts) => {
+    capturedCookie = (opts.headers as Record<string, string>).Cookie || "";
+    return makeClaudeTlsResponse(200, JSON.stringify({ orgs: [] }));
+  });
+
+  await validateProviderApiKey({
+    provider: "claude-web",
+    apiKey: "sk-ant-sid02-bare-value",
+  });
+  assert.equal(capturedCookie, "sessionKey=sk-ant-sid02-bare-value");
+  __setClaudeTlsFetchOverride(null);
+});
+
+// ─── gemini-web validator ────────────────────────────────────────────────────
+
+test("gemini-web validator: 200 from gemini.google.com → valid", async () => {
+  globalThis.fetch = async (url, init = {}) => {
+    const target = String(url);
+    const headers = init.headers || {};
+    if (target.includes("gemini.google.com/app")) {
+      assert.match((headers as Record<string, string>).Cookie || "", /__Secure-1PSID=eyJPSID/);
+      return new Response("ok", { status: 200 });
+    }
+    throw new Error(`unexpected fetch: ${target}`);
+  };
+
+  const result = await validateProviderApiKey({
+    provider: "gemini-web",
+    apiKey: "__Secure-1PSID=eyJPSID",
+  });
+
+  assert.equal(result.valid, true);
+  assert.equal(result.error, null);
+});
+
+test("gemini-web validator: bare value gets __Secure-1PSID prefix", async () => {
+  let capturedCookie = "";
+  globalThis.fetch = async (url, init = {}) => {
+    if (String(url).includes("gemini.google.com")) {
+      capturedCookie = ((init.headers as Record<string, string>) || {}).Cookie || "";
+      return new Response("ok", { status: 200 });
+    }
+    throw new Error(`unexpected fetch: ${String(url)}`);
+  };
+
+  await validateProviderApiKey({ provider: "gemini-web", apiKey: "eyJbarevalue" });
+  assert.equal(capturedCookie, "__Secure-1PSID=eyJbarevalue");
+});
+
+test("gemini-web validator: 401 → invalid cookie", async () => {
+  globalThis.fetch = async () => new Response("unauthorized", { status: 401 });
+
+  const result = await validateProviderApiKey({
+    provider: "gemini-web",
+    apiKey: "__Secure-1PSID=expired",
+  });
+
+  assert.equal(result.valid, false);
+  assert.match(result.error || "", /Invalid or expired __Secure-1PSID/i);
+});
+
+test("gemini-web validator: 500 → unavailable", async () => {
+  globalThis.fetch = async () => new Response("down", { status: 500 });
+
+  const result = await validateProviderApiKey({
+    provider: "gemini-web",
+    apiKey: "__Secure-1PSID=eyJany",
+  });
+
+  assert.equal(result.valid, false);
+  assert.match(result.error || "", /Gemini validation failed \(500\)/i);
+});
+
+// ─── copilot-web validator ───────────────────────────────────────────────────
+
+test("copilot-web validator: valid access_token → 200", async () => {
+  globalThis.fetch = async (url, init = {}) => {
+    const target = String(url);
+    if (target.includes("copilot.microsoft.com/c/api/conversations")) {
+      assert.match(
+        ((init.headers as Record<string, string>) || {}).Authorization || "",
+        /Bearer eyJhbGci/
+      );
+      return new Response(JSON.stringify({ conversations: [] }), { status: 200 });
+    }
+    throw new Error(`unexpected fetch: ${target}`);
+  };
+
+  const result = await validateProviderApiKey({
+    provider: "copilot-web",
+    apiKey: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.test",
+  });
+
+  assert.equal(result.valid, true);
+  assert.equal(result.error, null);
+});
+
+test("copilot-web validator: cookie with access_token= is extracted", async () => {
+  let capturedAuth = "";
+  globalThis.fetch = async (url, init = {}) => {
+    if (String(url).includes("copilot.microsoft.com")) {
+      capturedAuth = ((init.headers as Record<string, string>) || {}).Authorization || "";
+      return new Response(JSON.stringify({}), { status: 200 });
+    }
+    throw new Error(`unexpected fetch: ${String(url)}`);
+  };
+
+  await validateProviderApiKey({
+    provider: "copilot-web",
+    apiKey: "access_token=eyJhbGciOiJIUzI1NiJ9.payload.sig; other_cookie=foo",
+  });
+  assert.equal(capturedAuth, "Bearer eyJhbGciOiJIUzI1NiJ9.payload.sig");
+});
+
+test("copilot-web validator: 401 → invalid token", async () => {
+  globalThis.fetch = async () => new Response("unauthorized", { status: 401 });
+
+  const result = await validateProviderApiKey({
+    provider: "copilot-web",
+    apiKey: "bad-token",
+  });
+
+  assert.equal(result.valid, false);
+  assert.match(result.error || "", /Invalid or expired access_token/i);
+});
+
+test("copilot-web validator: 500 → unavailable", async () => {
+  globalThis.fetch = async () => new Response("down", { status: 500 });
+
+  const result = await validateProviderApiKey({
+    provider: "copilot-web",
+    apiKey: "any-token",
+  });
+
+  assert.equal(result.valid, false);
+  assert.match(result.error || "", /Copilot unavailable \(500\)/i);
+});
+
+test("copilot-web validator: empty input → paste prompt", async () => {
+  globalThis.fetch = async () => {
+    throw new Error("should not fetch");
+  };
+
+  const result = await validateProviderApiKey({ provider: "copilot-web", apiKey: "" });
+
+  assert.equal(result.valid, false);
+  assert.match(result.error || "", /Paste your access_token/i);
+});
+
+// ─── t3-web validator ────────────────────────────────────────────────────────
+
+test("t3-web validator: valid cookies → valid", async () => {
+  globalThis.fetch = async (url, init = {}) => {
+    if (String(url).includes("t3.chat")) {
+      return new Response("ok", { status: 200 });
+    }
+    throw new Error(`unexpected fetch: ${String(url)}`);
+  };
+
+  const result = await validateProviderApiKey({
+    provider: "t3-web",
+    apiKey: "cookies=__session=abc123; convexSessionId=def456",
+  });
+
+  assert.equal(result.valid, true);
+  assert.equal(result.error, null);
+});
+
+test("t3-web validator: 500 → unavailable", async () => {
+  globalThis.fetch = async () => new Response("down", { status: 500 });
+
+  const result = await validateProviderApiKey({
+    provider: "t3-web",
+    apiKey: "cookies=__session=abc",
+  });
+
+  assert.equal(result.valid, false);
+  assert.match(result.error || "", /t3\.chat unavailable \(500\)/i);
+});
+
+test("t3-web validator: valid cookies → passes through", async () => {
+  globalThis.fetch = async (url, init = {}) => {
+    if (String(url).includes("t3.chat")) {
+      return new Response("ok", { status: 200 });
+    }
+    throw new Error(`unexpected fetch: ${String(url)}`);
+  };
+
+  const result = await validateProviderApiKey({
+    provider: "t3-web",
+    apiKey: "__session=abc123; convex-session-id=def456",
+  });
+
+  assert.equal(result.valid, true);
+  assert.equal(result.error, null);
+});
+
 test("llama-cpp is classified as a self-hosted chat provider", async () => {
   const { isSelfHostedChatProvider, isLocalProvider, providerAllowsOptionalApiKey } =
     await import("../../src/shared/constants/providers.ts");

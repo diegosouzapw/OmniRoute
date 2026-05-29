@@ -523,7 +523,10 @@ export function openaiToGeminiRequest(
   model: string,
   body: Record<string, unknown>,
   stream: boolean,
-  credentials: Record<string, unknown> | null = null
+  credentials: Record<string, unknown> | null = null,
+  options: {
+    signaturelessToolCallMode?: "native" | "text";
+  } = {}
 ) {
   // Thread the signature namespace so a thinking model's thoughtSignature (cached on the
   // response turn under `<connectionId>:<toolCallId>`) is found and re-attached to the
@@ -533,7 +536,10 @@ export function openaiToGeminiRequest(
     credentials && typeof credentials._signatureNamespace === "string"
       ? credentials._signatureNamespace
       : null;
-  return openaiToGeminiBase(model, body, stream, { signatureNamespace });
+  return openaiToGeminiBase(model, body, stream, {
+    signatureNamespace,
+    signaturelessToolCallMode: options.signaturelessToolCallMode,
+  });
 }
 
 // OpenAI -> Gemini CLI (Cloud Code Assist)
@@ -695,7 +701,15 @@ export function openaiToAntigravityRequest(model, body, stream, credentials = nu
 }
 
 // Register
-register(FORMATS.OPENAI, FORMATS.GEMINI, openaiToGeminiRequest, null);
+register(
+  FORMATS.OPENAI,
+  FORMATS.GEMINI,
+  (model, body, stream = false, credentials = null) =>
+    openaiToGeminiRequest(model, body, stream, credentials, {
+      signaturelessToolCallMode: "text",
+    }),
+  null
+);
 register(
   FORMATS.OPENAI,
   FORMATS.GEMINI_CLI,

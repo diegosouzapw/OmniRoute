@@ -9,7 +9,7 @@ Automatically bump the project version, generate CHANGELOG entries from git hist
 > **VERSION RULE: Always use PATCH bumps (3.x.y → 3.x.y+1)**
 > NEVER use `npm version minor` or `npm version major`.
 > Always use: `npm version patch --no-git-tag-version`
-> The threshold rule: when `y` reaches 10, bump to `3.(x+1).0` — e.g. `3.4.10` → `3.5.0`.
+> The threshold rule: when `y` reaches 1000, bump to `3.(x+1).0` — e.g. `3.4.999` → `3.5.0`.
 
 ---
 

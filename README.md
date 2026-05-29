@@ -509,6 +509,17 @@ pnpm install -g omniroute && pnpm approve-builds -g && omniroute
 yay -S omniroute-bin && systemctl --user enable --now omniroute.service
 ```
 
+**🔧 Nix (Flake)**
+
+```bash
+# Using Nix flakes
+nix develop
+npm run dev
+
+# Or using devbox
+devbox run npm run dev
+```
+
 📖 [Docker Guide](docs/guides/DOCKER_GUIDE.md) — Compose profiles, Caddy HTTPS, Cloudflare tunnels.
 
 </details>
@@ -939,7 +950,7 @@ MIT License - see [LICENSE](LICENSE) for details.
 
 **[⬆ Back to top](#-omniroute)** · Built with ❤️ for the open-source AI community.
 
-<sub>OmniRoute v3.8.2 · Node ≥22.22.2 · MIT License · <a href="https://omniroute.online">omniroute.online</a></sub>
+<sub>OmniRoute v3.8.6 · Node ≥22.22.2 · MIT License · <a href="https://omniroute.online">omniroute.online</a></sub>
 
 </div>
 <!-- GitHub Discussions enabled for community Q&A -->

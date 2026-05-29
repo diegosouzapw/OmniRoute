@@ -1148,6 +1148,10 @@ async function handleSingleModelChat(
       // Daily quota lockout overrides subsequent rate_limited lockout, ensuring lockout until tomorrow 0:00
       let dailyQuotaExhausted = false;
       const errorStr = String(result.error || "");
+      const failureKind =
+        result.status === 429
+          ? classify429FromError({ status: result.status, message: errorStr })
+          : undefined;
       if (result.status === 429 && isDailyQuotaExhausted(errorStr)) {
         // Parse which model is quota-limited
         const match = errorStr.match(/today's quota for model ([^,]+)/);
@@ -1182,10 +1186,6 @@ async function handleSingleModelChat(
       // quotaCache as exhausted for 5 minutes while usage quota may still be available.
       if (!dailyQuotaExhausted) {
         const passthroughModels = credentials.providerSpecificData?.passthroughModels;
-        const failureKind =
-          result.status === 429
-            ? classify429FromError({ status: result.status, message: errorStr })
-            : undefined;
         if (
           result.status === 429 &&
           shouldMarkAccountExhaustedFrom429(provider, model, passthroughModels, failureKind)
@@ -1212,7 +1212,11 @@ async function handleSingleModelChat(
             result.error,
             provider,
             model,
-            providerProfile
+            providerProfile,
+            {
+              persistUnavailableState:
+                !(isCombo && result.status === 429 && (failureKind === "rate_limit" || failureKind === "transient")),
+            }
           );
 
       if (shouldFallback) {

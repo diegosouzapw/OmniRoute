@@ -62,7 +62,7 @@ git branch --show-current
 # If on main, determine next version and create the release branch
 VERSION=$(node -p "require('./package.json').version")
 # Bump patch: e.g. 3.3.11 → 3.3.12
-NEXT=$(node -p "const [a,b,c]=('$VERSION').split('.').map(Number); c>=9?a+'.'+(b+1)+'.0':a+'.'+b+'.'+(c+1)")
+NEXT=$(node -p "const [a,b,c]=('$VERSION').split('.').map(Number); c>=999?a+'.'+(b+1)+'.0':a+'.'+b+'.'+(c+1)")
 git checkout -b release/v$NEXT
 npm version patch --no-git-tag-version
 npm install

@@ -251,7 +251,7 @@ describe("Server Readiness Logic", () => {
       let reloaded = false;
       const mainWindow = {
         isDestroyed: () => false,
-        loadURL: () => {
+        loadURL: (_url?: string) => {
           reloaded = true;
         },
       };
@@ -364,12 +364,52 @@ describe("Platform-Conditional Window Options", () => {
 
 // ─── SQLite Credential Inspection Tests ─────────────────────
 
+// Mock node:sqlite for older Node.js versions where it's not built-in
+let DatabaseSync;
+try {
+  DatabaseSync = require("node:sqlite").DatabaseSync;
+} catch {
+  const Database = require("better-sqlite3");
+  class MockDatabaseSync {
+    db: any;
+    constructor(dbPath, options) {
+      const dbOpts: any = {};
+      if (options && typeof options.readOnly === "boolean") {
+        dbOpts.readonly = options.readOnly;
+      }
+      this.db = new Database(dbPath, dbOpts);
+    }
+    exec(sql) {
+      return this.db.exec(sql);
+    }
+    prepare(sql) {
+      const stmt = this.db.prepare(sql);
+      return {
+        run: (...args) => stmt.run(...args),
+        get: (...args) => stmt.get(...args),
+      };
+    }
+    close() {
+      return this.db.close();
+    }
+  }
+  DatabaseSync = MockDatabaseSync;
+
+  const Module = require("node:module");
+  const originalRequire = Module.prototype.require;
+  Module.prototype.require = function (id) {
+    if (id === "node:sqlite") {
+      return { DatabaseSync: MockDatabaseSync };
+    }
+    return originalRequire.apply(this, arguments);
+  };
+}
+
 describe("Electron SQLite credential inspection", () => {
   const {
     hasEncryptedCredentials,
     openNodeSqliteReadOnly,
   } = require("../../electron/sqlite-inspection.js");
-  const { DatabaseSync } = require("node:sqlite");
 
   function withTempDb(fn) {
     const dir = mkdtempSync(join(tmpdir(), "omniroute-electron-db-"));

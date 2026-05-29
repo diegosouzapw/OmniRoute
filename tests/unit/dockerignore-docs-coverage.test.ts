@@ -25,7 +25,7 @@ const DOCKERIGNORE = path.resolve(REPO_ROOT, ".dockerignore");
 const REQUIRED_DOCS = [
   "docs/README.md",
   "docs/PROVIDERS.md",
-  "docs/AUTO-COMBO.md",
+  "docs/routing/AUTO-COMBO.md",
   "docs/guides/SETUP_GUIDE.md",
   "docs/guides/TROUBLESHOOTING.md",
   "docs/reference/API_REFERENCE.md",
