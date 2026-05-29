@@ -1558,7 +1558,10 @@ export async function markAccountUnavailable(
   errorText: string,
   provider: string | null = null,
   model: string | null = null,
-  providerProfile = null
+  providerProfile = null,
+  options: {
+    persistUnavailableState?: boolean;
+  } = {}
 ) {
   const currentMutex = markMutexes.get(connectionId) || Promise.resolve();
   let resolveMutex: (() => void) | undefined;
@@ -1782,8 +1785,13 @@ export async function markAccountUnavailable(
       lastErrorAt: new Date().toISOString(),
       backoffLevel: newBackoffLevel ?? backoffLevel,
     };
+    const persistUnavailableState = options.persistUnavailableState !== false;
 
-    if (cooldownMs > 0) {
+    if (!persistUnavailableState) {
+      await updateProviderConnection(connectionId, {
+        ...baseUpdate,
+      });
+    } else if (cooldownMs > 0) {
       await updateProviderConnection(connectionId, {
         ...baseUpdate,
         rateLimitedUntil: getUnavailableUntil(cooldownMs),

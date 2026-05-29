@@ -22,6 +22,7 @@ import { getNodeRuntimeSupport, getNodeRuntimeWarning } from "./nodeRuntimeSuppo
 // TypeScript conventions) resolve correctly. The build never emits .js for
 // src/lib/cli-helper/, so tsx handles the .ts → .js resolution at runtime.
 await import("tsx/esm");
+await import("../open-sse/utils/setupPolyfill.ts");
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);

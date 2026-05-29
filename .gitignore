@@ -15,6 +15,7 @@ memory-bank/
 .claude/scheduled_tasks/
 .claude/sessions/
 .claude/state.json
+.claude/settings.local.json
 
 # Root-level underscore-prefixed directories (private/draft — never commit)
 /_*/

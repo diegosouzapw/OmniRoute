@@ -4,6 +4,17 @@
 
 ---
 
+## [3.8.6] — 2026-05-27
+
+### 🧹 Chores
+
+- **gitignore:** ignore `.claude/settings.local.json` so per-user Claude Code permissions never get committed by accident
+- **release:** version bump and metadata sync (package.json, package-lock.json, electron, open-sse, openapi.yaml)
+
+> v3.8.6 is a maintenance/scaffolding patch. All feature and bug-fix work from the post-v3.8.5 cycle (44 commits — community PRs #2777, #2782–#2787, #2789, #2790, plus internal hotfixes) was already integrated into v3.8.5 and is documented under that section.
+
+---
+
 ## [3.8.5] — 2026-05-26
 
 ### 🔒 Security

@@ -1292,9 +1292,13 @@ export const REGISTRY: Record<string, RegistryEntry> = {
       { id: "mimo-v2-omni", name: "MiMo-V2-Omni" },
       { id: "minimax-m2.7", name: "MiniMax M2.7", targetFormat: "claude" },
       { id: "minimax-m2.5", name: "MiniMax M2.5", targetFormat: "claude" },
-      { id: "qwen3.7-max", name: "Qwen3.7 Max" },
-      { id: "qwen3.6-plus", name: "Qwen3.6 Plus" },
-      { id: "qwen3.5-plus", name: "Qwen3.5 Plus" },
+      // Issue #2292: Qwen models on opencode-go reject oa-compat format
+      // ("Model qwen3.x-* is not supported for format oa-compat") — same
+      // upstream behavior already declared for opencode-zen. Route them
+      // through /messages with the Claude translator.
+      { id: "qwen3.7-max", name: "Qwen3.7 Max", targetFormat: "claude" },
+      { id: "qwen3.6-plus", name: "Qwen3.6 Plus", targetFormat: "claude" },
+      { id: "qwen3.5-plus", name: "Qwen3.5 Plus", targetFormat: "claude" },
       { id: "hy3-preview", name: "Hunyuan3 Preview" },
       { id: "deepseek-v4-pro", name: "DeepSeek V4 Pro", supportsReasoning: true },
       { id: "deepseek-v4-flash", name: "DeepSeek V4 Flash", supportsReasoning: true },

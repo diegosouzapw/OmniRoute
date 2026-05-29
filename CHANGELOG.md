@@ -4,6 +4,36 @@
 
 ---
 
+## [3.8.6] — 2026-05-27
+
+### ✨ New Features
+
+- **logs:** add clean log history action button to Logs page dashboard (#2799 — thanks @apoapostolov)
+- **settings:** restore settings-driven home page layout toggles and auto-refresh limits widget (#2800 — thanks @apoapostolov)
+- **modelSpecs:** register explicit model specifications and context/output caps for Moonshot, Qwen, Hunyuan, DeepSeek, MiniMax, GLM on the `opencode-go` provider (#2802 — thanks @jeferssonlemes)
+
+### 🔧 Bug Fixes
+
+- **opencode-go:** route Qwen3.x via Claude messages format and repair `fixMissingToolResponses` helper for Claude-shape upstreams (#2791 — thanks @jeferssonlemes)
+- **validation:** register missing validation helper checks for web-cookie providers (`claude-web`, `gemini-web`, `copilot-web`, `t3-web`) (#2793 — thanks @oyi77)
+- **docker:** check and warn if `/app/data` is not writable in the Docker entrypoint script to fail fast with helpful host instructions (#2795 — thanks @hartmark)
+- **oauth:** repair native Google loopback callback flow and support remote callbacks via state matching on 127.0.0.1 (#2796 — thanks @akarray)
+- **combos:** fix combo handling so transient 429 rate limit errors do not poison or persist the rate limited state for the same-provider connection (#2800 — thanks @apoapostolov)
+- **gemini:** translate signature-less Gemini thinking model tool calls to text parts to prevent `400 "missing thought_signature"` errors (#2801 — thanks @herjarsa)
+- **warning-cleanup:** relax node engine constraint to `>=22.0.0` and clean dependencies (keeping `marked-terminal` to prevent TUI REPL crash) (#2792 — thanks @oyi77)
+
+### 🧹 Chores
+
+- **gitignore:** ignore `.claude/settings.local.json` so per-user Claude Code permissions never get committed by accident
+- **release:** version bump and metadata sync (package.json, package-lock.json, electron, open-sse, openapi.yaml)
+
+### 🏆 Hall of Contributors
+
+A special thanks to everyone who contributed code, reviews, and tests for this release:
+@akarray, @apoapostolov, @hartmark, @herjarsa, @jeferssonlemes, @oyi77
+
+---
+
 ## [3.8.5] — 2026-05-27
 
 ### ✨ New Features
