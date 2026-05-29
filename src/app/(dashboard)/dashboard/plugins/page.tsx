@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { Card, Button, EmptyState } from "@/shared/components";
 import { useNotificationStore } from "@/store/notificationStore";
+import { useTranslations } from "next-intl";
 
 interface PluginInfo {
   name: string;
@@ -16,6 +17,7 @@ interface PluginInfo {
 
 export default function PluginsPage() {
   const { addNotification } = useNotificationStore();
+  const t = useTranslations("plugins");
   const [plugins, setPlugins] = useState<PluginInfo[]>([]);
   const [loading, setLoading] = useState(true);
   const [scanning, setScanning] = useState(false);
@@ -43,11 +45,11 @@ export default function PluginsPage() {
     try {
       const res = await fetch("/api/plugins/scan", { method: "POST" });
       if (res.ok) {
-        addNotification({ type: "success", message: "Plugin scan complete" });
+        addNotification({ type: "success", message: t("pluginScanComplete") });
         await fetchPlugins();
       }
     } catch {
-      addNotification({ type: "error", message: "Plugin scan failed" });
+      addNotification({ type: "error", message: t("pluginScanFailed") });
     } finally {
       setScanning(false);
     }
@@ -58,44 +60,44 @@ export default function PluginsPage() {
     try {
       const res = await fetch(`/api/plugins/${name}/${endpoint}`, { method: "POST" });
       if (res.ok) {
-        addNotification({ type: "success", message: `${name} ${enable ? "activated" : "deactivated"}` });
+        addNotification({ type: "success", message: enable ? t("activated", { name }) : t("deactivated", { name }) });
         await fetchPlugins();
       }
     } catch {
-      addNotification({ type: "error", message: `Failed to ${enable ? "activate" : "deactivate"} ${name}` });
+      addNotification({ type: "error", message: enable ? t("activateFailed", { name }) : t("deactivateFailed", { name }) });
     }
   };
 
   const handleUninstall = async (name: string) => {
-    if (!confirm(`Uninstall plugin "${name}"?`)) return;
+    if (!confirm(t("uninstallConfirm", { name }))) return;
     try {
       const res = await fetch(`/api/plugins/${name}`, { method: "DELETE" });
       if (res.ok) {
-        addNotification({ type: "success", message: `${name} uninstalled` });
+        addNotification({ type: "success", message: t("uninstalled", { name }) });
         await fetchPlugins();
       }
     } catch {
-      addNotification({ type: "error", message: `Failed to uninstall ${name}` });
+      addNotification({ type: "error", message: t("uninstallFailed", { name }) });
     }
   };
 
   if (loading) {
-    return <div className="p-6">Loading plugins...</div>;
+    return <div className="p-6">{t("loading")}</div>;
   }
 
   return (
     <div className="space-y-6 p-6">
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold">Plugins</h1>
+        <h1 className="text-2xl font-bold">{t("title")}</h1>
         <Button onClick={handleScan} disabled={scanning}>
-          {scanning ? "Scanning..." : "Scan for Plugins"}
+          {scanning ? t("scanning") : t("scanForPlugins")}
         </Button>
       </div>
 
       {plugins.length === 0 ? (
         <EmptyState
-          title="No plugins installed"
-          description="Place plugin directories in ~/.omniroute/plugins/ and click Scan."
+          title={t("noPlugins")}
+          description={t("noPluginsDescription")}
         />
       ) : (
         <div className="grid gap-4">
@@ -125,13 +127,13 @@ export default function PluginsPage() {
                     variant={plugin.enabled ? "secondary" : "primary"}
                     onClick={() => handleToggle(plugin.name, !plugin.enabled)}
                   >
-                    {plugin.enabled ? "Deactivate" : "Activate"}
+                    {plugin.enabled ? t("deactivate") : t("activate")}
                   </Button>
                   <Button
                     variant="danger"
                     onClick={() => handleUninstall(plugin.name)}
                   >
-                    Uninstall
+                    {t("uninstall")}
                   </Button>
                 </div>
               </div>

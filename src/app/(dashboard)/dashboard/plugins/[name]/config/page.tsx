@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback, use } from "react";
 import { Card, Button } from "@/shared/components";
 import { useNotificationStore } from "@/store/notificationStore";
+import { useTranslations } from "next-intl";
 
 interface ConfigField {
   type: string;
@@ -26,6 +27,7 @@ export default function PluginConfigPage({
 }) {
   const { name } = use(params);
   const { addNotification } = useNotificationStore();
+  const t = useTranslations("plugins");
   const [plugin, setPlugin] = useState<PluginConfig | null>(null);
   const [config, setConfig] = useState<Record<string, unknown>>({});
   const [loading, setLoading] = useState(true);
@@ -59,12 +61,12 @@ export default function PluginConfigPage({
         body: JSON.stringify({ config }),
       });
       if (res.ok) {
-        addNotification({ type: "success", message: "Configuration saved" });
+        addNotification({ type: "success", message: t("configurationSaved") });
       } else {
-        addNotification({ type: "error", message: "Failed to save configuration" });
+        addNotification({ type: "error", message: t("saveConfigurationFailed") });
       }
     } catch {
-      addNotification({ type: "error", message: "Failed to save configuration" });
+      addNotification({ type: "error", message: t("saveConfigurationFailed") });
     } finally {
       setSaving(false);
     }
@@ -74,18 +76,18 @@ export default function PluginConfigPage({
     setConfig((prev) => ({ ...prev, [key]: value }));
   };
 
-  if (loading) return <div className="p-6">Loading...</div>;
-  if (!plugin) return <div className="p-6">Plugin not found</div>;
+  if (loading) return <div className="p-6">{t("loading")}</div>;
+  if (!plugin) return <div className="p-6">{t("pluginNotFound")}</div>;
 
   const schemaKeys = Object.keys(plugin.configSchema || {});
 
   return (
     <div className="space-y-6 p-6">
-      <h1 className="text-2xl font-bold">Configure: {name}</h1>
+      <h1 className="text-2xl font-bold">{t("configure", { name })}</h1>
 
       {schemaKeys.length === 0 ? (
         <Card className="p-4">
-          <p className="text-gray-500">This plugin has no configurable settings.</p>
+          <p className="text-gray-500">{t("noConfigSettings")}</p>
         </Card>
       ) : (
         <Card className="space-y-4 p-4">
@@ -143,7 +145,7 @@ export default function PluginConfigPage({
             );
           })}
           <Button onClick={handleSave} disabled={saving}>
-            {saving ? "Saving..." : "Save Configuration"}
+            {saving ? t("saving") : t("saveConfiguration")}
           </Button>
         </Card>
       )}
