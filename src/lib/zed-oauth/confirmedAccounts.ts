@@ -7,30 +7,20 @@
  */
 import type { ZedCredential } from "./keychain-reader";
 import { fingerprintZedCredential } from "./credentialFingerprint";
-
-export interface ConfirmedAccount {
-  service: string;
-  account: string;
-  fingerprint: string;
-}
+import {
+  confirmedAccountSchema,
+  zedImportSchema,
+  type ConfirmedAccount,
+} from "@/shared/validation/schemas";
 
 export function isConfirmedAccount(value: unknown): value is ConfirmedAccount {
-  if (!value || typeof value !== "object") return false;
-  const record = value as Record<string, unknown>;
-  return (
-    typeof record.service === "string" &&
-    typeof record.account === "string" &&
-    typeof record.fingerprint === "string" &&
-    record.fingerprint.length > 0
-  );
+  return confirmedAccountSchema.safeParse(value).success;
 }
 
 export function parseConfirmedAccounts(body: unknown): ConfirmedAccount[] | null {
-  if (!body || typeof body !== "object") return null;
-  const list = (body as Record<string, unknown>).confirmedAccounts;
-  if (!Array.isArray(list)) return null;
-  if (!list.every(isConfirmedAccount)) return null;
-  return list as ConfirmedAccount[];
+  const result = zedImportSchema.safeParse(body);
+  if (!result.success) return null;
+  return result.data.confirmedAccounts;
 }
 
 export function filterCredentialsByConfirmation(

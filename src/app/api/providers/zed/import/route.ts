@@ -65,7 +65,7 @@ export async function POST(request: Request): Promise<NextResponse<ImportRespons
 
   const confirmed = parseConfirmedAccounts(body);
 
-  if (!LEGACY_ONE_STEP_ENABLED && (!confirmed || confirmed.length === 0)) {
+  if (!LEGACY_ONE_STEP_ENABLED && confirmed === null) {
     return NextResponse.json(
       {
         success: false,
@@ -117,7 +117,7 @@ export async function POST(request: Request): Promise<NextResponse<ImportRespons
     // behaviour) but log a warning so operators know they're on the wide-open
     // path.
     let toImport = importable;
-    if (confirmed && confirmed.length > 0) {
+    if (confirmed !== null) {
       toImport = filterCredentialsByConfirmation(importable, confirmed);
     } else if (LEGACY_ONE_STEP_ENABLED) {
       console.warn(

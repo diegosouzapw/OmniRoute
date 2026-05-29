@@ -2270,3 +2270,17 @@ export const v1WebFetchSchema = z.object({
   wait_for_selector: z.string().max(256).optional(),
   include_metadata: z.boolean().default(false),
 });
+
+// ── Zed Credential Import Flow ──────────────────────────────────────────────────
+
+export const confirmedAccountSchema = z.object({
+  service: z.string().min(1).max(500),
+  account: z.string().min(1).max(500),
+  fingerprint: z.string().min(1).max(100),
+});
+
+export const zedImportSchema = z.object({
+  confirmedAccounts: z.array(confirmedAccountSchema),
+});
+
+export type ConfirmedAccount = z.infer<typeof confirmedAccountSchema>;

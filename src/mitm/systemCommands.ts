@@ -163,8 +163,7 @@ export async function runElevatedPowerShell(script: string): Promise<string> {
     return await runPowerShell(buildElevatedScriptWrapper(scriptPath));
   } finally {
     try {
-      fs.unlinkSync(scriptPath);
-      fs.rmdirSync(tempDir);
+      fs.rmSync(tempDir, { recursive: true, force: true });
     } catch {
       // Best-effort cleanup: leftover files in $TMPDIR are owned by the local
       // user and the OS cleans them on next reboot.
@@ -189,8 +188,7 @@ export async function _runElevatedPowerShellForTest(
     return await runner(buildElevatedScriptWrapper(scriptPath), scriptPath);
   } finally {
     try {
-      fs.unlinkSync(scriptPath);
-      fs.rmdirSync(tempDir);
+      fs.rmSync(tempDir, { recursive: true, force: true });
     } catch {
       // Best-effort cleanup.
     }
