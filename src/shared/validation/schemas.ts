@@ -853,6 +853,34 @@ export const setBudgetSchema = z
     }
   });
 
+export const setTokenLimitSchema = z
+  .object({
+    id: z.string().trim().min(1).optional(),
+    apiKeyId: z.string().trim().min(1, "apiKeyId is required"),
+    scopeType: z.enum(["model", "provider", "global"]),
+    scopeValue: z.string().trim().default(""),
+    tokenLimit: z.coerce
+      .number()
+      .int("tokenLimit must be an integer")
+      .positive("tokenLimit must be greater than zero"),
+    resetInterval: z.enum(["daily", "weekly", "monthly"]).default("monthly"),
+    resetTime: z
+      .string()
+      .trim()
+      .regex(/^\d{2}:\d{2}$/, "resetTime must be in HH:MM format")
+      .optional(),
+    enabled: z.boolean().default(true),
+  })
+  .superRefine((value, ctx) => {
+    if (value.scopeType !== "global" && (!value.scopeValue || value.scopeValue.length === 0)) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "scopeValue is required unless scopeType is 'global'",
+        path: ["scopeValue"],
+      });
+    }
+  });
+
 export const policyActionSchema = z
   .object({
     action: z.enum(["unlock"]),

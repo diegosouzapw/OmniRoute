@@ -508,3 +508,22 @@ export {
 } from "./db/freeProxies";
 
 export type { FreeProxyRecord, FreeProxyStats } from "./db/freeProxies";
+
+export {
+  // Per-API-Key Token Limits (migration 073)
+  upsertTokenLimit,
+  listTokenLimits,
+  getTokenLimitsForRequest,
+  deleteTokenLimit,
+  getWindowUsage,
+  incrementWindowTokens,
+  resetWindowIfElapsed,
+  logTokenLimitReset,
+} from "./db/tokenLimits";
+
+export type {
+  TokenLimit,
+  TokenLimitScopeType,
+  UpsertTokenLimitInput,
+  TokenWindowState,
+} from "./db/tokenLimits";
