@@ -117,7 +117,7 @@ export async function loadPlugin(
     });
   } catch (err: any) {
     log.error("loader.vm_error", { name: manifest.name, error: err.message });
-    throw new Error(`Failed to load plugin '${manifest.name}': ${err.message}`);
+    throw new Error(`Failed to load plugin '${manifest.name}': VM execution error`);
   }
 
   // Extract exports

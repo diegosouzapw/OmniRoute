@@ -8,12 +8,11 @@
  */
 
 import { mkdir, cp, rm } from "fs/promises";
-import { join, dirname } from "path";
+import { join, dirname, resolve } from "path";
 import { randomUUID } from "crypto";
 import { logger } from "../../../open-sse/utils/logger.ts";
 import { getDefaultPluginDir, scanPluginDir } from "./scanner";
 import { loadPlugin, type LoadedPlugin } from "./loader";
-import { registerPlugin, unregisterPlugin } from "./index";
 import { registerHook, unregisterHooks } from "./hooks";
 import {
   insertPlugin,
@@ -49,6 +48,12 @@ class PluginManager {
    * Copies to plugin dir, validates manifest, registers in DB.
    */
   async install(sourceDir: string): Promise<PluginRow> {
+    // Path traversal guard: validate name doesn't contain path traversal sequences
+    const resolvedSource = resolve(sourceDir);
+    if (resolvedSource.includes("\0") || resolvedSource.includes("..")) {
+      throw new Error("Invalid source directory: contains path traversal sequences");
+    }
+
     const { plugins, errors } = await scanPluginDir(sourceDir);
     if (plugins.length === 0) {
       throw new Error(
@@ -58,6 +63,11 @@ class PluginManager {
 
     const discovered = plugins[0];
     const { name, manifest, pluginDir: srcDir } = discovered;
+
+    // Path traversal guard: validate plugin name
+    if (name.includes("..") || name.includes("/") || name.includes("\\") || name.includes("\0")) {
+      throw new Error(`Invalid plugin name '${name}': contains path traversal characters`);
+    }
 
     // Check if already installed
     if (pluginExists(name)) {
@@ -147,7 +157,6 @@ class PluginManager {
   async deactivate(name: string): Promise<void> {
     const loaded = this.loadedPlugins.get(name);
     if (loaded) {
-      unregisterPlugin(name);
       unregisterHooks(name);
       loaded.cleanup();
       this.loadedPlugins.delete(name);

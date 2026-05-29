@@ -62,8 +62,13 @@ export const pluginTools = [
       name: z.string().describe("Plugin name (kebab-case)"),
     }),
     handler: async (args: { name: string }) => {
-      await pluginManager.activate(args.name);
-      return { success: true, message: `Plugin '${args.name}' activated` };
+      try {
+        await pluginManager.activate(args.name);
+        return { success: true, message: `Plugin '${args.name}' activated` };
+      } catch (err: unknown) {
+        const msg = err instanceof Error ? err.message : "Unknown error";
+        return { success: false, error: msg.replace(/\/[^\s]+/g, "[path]") };
+      }
     },
   },
 
@@ -74,8 +79,13 @@ export const pluginTools = [
       name: z.string().describe("Plugin name (kebab-case)"),
     }),
     handler: async (args: { name: string }) => {
-      await pluginManager.deactivate(args.name);
-      return { success: true, message: `Plugin '${args.name}' deactivated` };
+      try {
+        await pluginManager.deactivate(args.name);
+        return { success: true, message: `Plugin '${args.name}' deactivated` };
+      } catch (err: unknown) {
+        const msg = err instanceof Error ? err.message : "Unknown error";
+        return { success: false, error: msg.replace(/\/[^\s]+/g, "[path]") };
+      }
     },
   },
 
@@ -86,8 +96,13 @@ export const pluginTools = [
       name: z.string().describe("Plugin name (kebab-case)"),
     }),
     handler: async (args: { name: string }) => {
-      await pluginManager.uninstall(args.name);
-      return { success: true, message: `Plugin '${args.name}' uninstalled` };
+      try {
+        await pluginManager.uninstall(args.name);
+        return { success: true, message: `Plugin '${args.name}' uninstalled` };
+      } catch (err: unknown) {
+        const msg = err instanceof Error ? err.message : "Unknown error";
+        return { success: false, error: msg.replace(/\/[^\s]+/g, "[path]") };
+      }
     },
   },
 
@@ -103,7 +118,7 @@ export const pluginTools = [
     }),
     handler: async (args: { name: string; config?: Record<string, unknown> }) => {
       const plugin = getPluginByName(args.name);
-      if (!plugin) throw new Error(`Plugin '${args.name}' not found`);
+      if (!plugin) return { success: false, error: "Plugin not found" };
 
       if (args.config) {
         const current = JSON.parse(plugin.config || "{}");
