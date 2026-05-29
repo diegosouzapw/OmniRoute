@@ -257,6 +257,44 @@ test("claudeHelper validates content, ordering and request preparation branches"
     { type: "tool_use", id: "call_1", name: "lookup", input: {} },
   ]);
 
+  // splitMisplacedToolResults: a tool_result whose tool_use_id was already
+  // emitted by an earlier assistant turn is moved into the preceding user
+  // message. The trailing tool_use survives on the assistant side. (#2815)
+  const split = claudeHelper.splitMisplacedToolResults([
+    { role: "user", content: [{ type: "text", text: "q" }] },
+    { role: "assistant", content: [{ type: "tool_use", id: "call_x", name: "Read", input: {} }] },
+    {
+      role: "assistant",
+      content: [
+        { type: "tool_result", tool_use_id: "call_x", content: "ok" },
+        { type: "tool_use", id: "call_y", name: "Read", input: {} },
+      ],
+    },
+  ]);
+  assert.deepEqual(split, [
+    { role: "user", content: [{ type: "text", text: "q" }] },
+    { role: "assistant", content: [{ type: "tool_use", id: "call_x", name: "Read", input: {} }] },
+    { role: "user", content: [{ type: "tool_result", tool_use_id: "call_x", content: "ok" }] },
+    { role: "assistant", content: [{ type: "tool_use", id: "call_y", name: "Read", input: {} }] },
+  ]);
+
+  // tool_result whose id has not been seen earlier is dropped — moving it
+  // would just shift the 400 to "unexpected tool_use_id".
+  const droppedOrphan = claudeHelper.splitMisplacedToolResults([
+    { role: "user", content: [{ type: "text", text: "q" }] },
+    {
+      role: "assistant",
+      content: [
+        { type: "tool_result", tool_use_id: "self-ref", content: "Skill not found" },
+        { type: "tool_use", id: "self-ref", name: "Read", input: {} },
+      ],
+    },
+  ]);
+  assert.deepEqual(droppedOrphan, [
+    { role: "user", content: [{ type: "text", text: "q" }] },
+    { role: "assistant", content: [{ type: "tool_use", id: "self-ref", name: "Read", input: {} }] },
+  ]);
+
   const prepared = claudeHelper.prepareClaudeRequest(
     {
       system: [

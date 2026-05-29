@@ -1996,7 +1996,8 @@ export const v1betaGeminiGenerateSchema = z
   });
 
 export const cliMitmStartSchema = z.object({
-  apiKey: z.string().trim().min(1, "Missing apiKey"),
+  apiKey: z.string().trim().min(1).nullable().optional(),
+  keyId: z.string().trim().min(1).nullable().optional(),
   sudoPassword: z.string().optional(),
 });
 

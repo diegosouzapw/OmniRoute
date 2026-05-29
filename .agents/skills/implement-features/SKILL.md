@@ -15,22 +15,27 @@ A **5-phase** workflow that systematically harvests feature requests from GitHub
 - Approval gates (Phase 3 and Phase 4 → 5) are hard stops. Present the report/plan in the final response and do not move to implementation phases until the user explicitly approves.
 - Keep harvest/research bounded enough to produce the approval report quickly; do not start implementation while still in report phases.
 - The trust-but-verify audit in Phase 5.2 is mandatory before any commit — full lint + typecheck + cycles + build + coverage, plus a real `git diff` review for out-of-scope changes.
+- Phase 1.7 stale-reclaim (15-day rule) is opt-in per run: only execute when the user asks for a "reclaim pass" or when the harvest report explicitly flags eligible IN FLIGHT / NEEDS DETAIL items.
 
 **Output directory structure:**
 
 ```
 _ideia/
-├── viable/                  # Features approved for implementation
-│   ├── need_details/        # ❓ Good idea but waiting for author clarification (issues stay OPEN)
-│   │   └── 1015-warp-terminal-mitm.md
-│   ├── 1046-native-playground.md           # ✅ Ready — researched and planned
+├── viable/                  # ✅ Approved, awaiting implementation
+│   ├── 1046-native-playground.md
 │   └── 1046-native-playground.requirements.md
-├── implemented/             # 🚧 Implemented but PR not yet merged to main (transient)
+├── implemented/             # ✅ Implemented but release PR not yet merged to main (transient)
 │   └── 1046-native-playground.md
-├── defer/                   # ⏭️ Good ideas deferred for future cycles (issues CLOSED after Phase 3 approval)
+├── need_details/            # ❓ Issue OPEN — awaiting author clarification (permanent archive)
+│   └── 1015-warp-terminal-mitm.md
+├── defer/                   # ⏭️ Issue CLOSED — good idea, deferred for future cycles (permanent)
 │   └── 1041-smart-auto-combos.md
-└── notfit/                  # ❌ Out of scope / already exists (issues CLOSED after Phase 3 approval)
-    └── 945-telegram-integration.md
+├── notfit/                  # ❌ Issue CLOSED — out of scope (permanent)
+│   └── 945-telegram-integration.md
+├── exists/                  # 🔁 Issue CLOSED — feature already shipped (permanent, kept separate from notfit)
+│   └── 812-rate-limit-dashboard.md
+└── in_flight/               # 🚧 Issue OPEN — third-party PR already addresses it (permanent until reclaim or merge)
+    └── 988-batch-export.md
 
 _tasks/features-vX.Y.Z/   # Implementation plans (per-release)
 └── 1046-native-playground.plan.md
@@ -39,8 +44,8 @@ _tasks/features-vX.Y.Z/   # Implementation plans (per-release)
 > **LIFECYCLE RULE:**
 > - `viable/` files are **MOVED** to `implemented/` once code lands on the release branch.
 > - `implemented/` files are **DELETED** only after the release PR is merged to `main`.
-> - This preserves recovery context if implementation fails partially (build green but i18n missing, etc).
-> - Files in `defer/` and `notfit/` remain as permanent reference.
+> - All other buckets — `need_details/`, `defer/`, `notfit/`, `exists/`, `in_flight/` — are **permanent archives**. Even when the upstream issue is CLOSED, the local file stays. Future cycles can revisit any of them (Phase 1.7 stale-reclaim turns `in_flight/` and `need_details/` back into VIABLE after 15 days of upstream inactivity).
+> - This preserves recovery context if implementation fails partially AND lets us re-evaluate old decisions when the project matures.
 
 > **BRANCH RULE**: All implementation work MUST happen on the current `release/vX.Y.Z` branch. Never create separate `feat/` branches. If no release branch exists yet, delegate creation to `/generate-release` (see Phase 1.2) — do NOT reimplement bump logic here.
 
@@ -196,7 +201,7 @@ For each issue number, check whether an open PR or branch already targets it:
 
 ```bash
 # Open PRs that link the issue
-gh pr list --repo <owner>/<repo> --state open --search "linked:#<NUMBER>" --json number,title,headRefName
+gh pr list --repo <owner>/<repo> --state open --search "linked:#<NUMBER>" --json number,title,headRefName,updatedAt,author
 
 # Local branches that mention the issue number
 git branch -a | grep -E "(^|/)(feat|fix|refactor)/.*-?<NUMBER>(-|$)" || true
@@ -204,9 +209,73 @@ git branch -a | grep -E "(^|/)(feat|fix|refactor)/.*-?<NUMBER>(-|$)" || true
 
 If a PR or branch already exists:
 
-- Mark the idea file with `> ⚠️ In-flight: PR #<PR_NUMBER> / branch <name>` near the top.
+- Mark the idea file with `> ⚠️ In-flight: PR #<PR_NUMBER> by @<author> / branch <name> (last activity <date>)` near the top.
 - **Skip Phase 2 research and Phase 4 planning** for this feature — the implementation is already in motion.
 - In the Phase 3 report, list it under a separate "🚧 Already in progress" bucket; do NOT count it as VIABLE for implementation.
+- The idea file will be moved to `_ideia/in_flight/` in Phase 2.5.2 (it stays there permanently, but Phase 1.7 may reclaim it later).
+
+### 1.7 Stale Reclaim (15-day rule)
+
+Some issues sit in `in_flight/` or `need_details/` forever — third-party PRs go cold, authors disappear, the world moves on. This phase reclaims them when they go quiet.
+
+**Trigger conditions** (run for each issue currently in `_ideia/in_flight/` or `_ideia/need_details/`):
+
+```bash
+# For IN FLIGHT — last activity on the linked PR (commit OR comment)
+gh pr view <PR_NUMBER> --repo <owner>/<repo> --json updatedAt,commits,comments \
+  --jq '[.updatedAt, (.commits[-1].committedDate // ""), (.comments[-1].createdAt // "")] | max'
+
+# For NEEDS DETAIL — last activity from the issue author (any comment by them)
+gh issue view <NUMBER> --repo <owner>/<repo> --json comments,author \
+  --jq '.author.login as $a | [.comments[] | select(.author.login == $a) | .createdAt] | max // (.createdAt)'
+```
+
+Compute the gap in days between the timestamp above and today.
+
+**Reclaim rule:**
+
+| Bucket          | Trigger                                                            | Action                                                                                              |
+| --------------- | ------------------------------------------------------------------ | --------------------------------------------------------------------------------------------------- |
+| 🚧 IN FLIGHT    | ≥15 days since last PR activity (commit OR comment by PR author)   | Post **intent-to-take-over comment** (template below), wait **48h**, then reclaim if no response    |
+| ❓ NEEDS DETAIL | ≥15 days since last comment by the issue author                    | Post **gentle nudge** (template below), wait **48h**, then reclaim as VIABLE if no response         |
+
+**Intent-to-take-over comment (🚧 IN FLIGHT path)** — translate to `reply_lang`:
+
+```markdown
+Hi @<pr_author> and @<issue_author>! 👋
+
+This PR (#<PR>) addressing issue #<NUMBER> hasn't had updates in <N> days. We'd love to ship this feature in our next release.
+
+**Plan:** if there are no updates in the next **48 hours**, our team will take over the work and merge it as part of `release/vX.Y.Z`. The original PR will be referenced and authorship preserved in the commit trailer.
+
+If you're still working on it, just drop a comment here and we'll hold off. Thanks for the contribution either way! 🙏
+```
+
+**Gentle nudge (❓ NEEDS DETAIL path)** — translate to `reply_lang`:
+
+```markdown
+Hi @<author>! 👋
+
+It's been <N> days since we asked for more details on this feature request. We'd still love to move forward.
+
+**Plan:** if we don't hear back in the next **48 hours**, we'll proceed with our best interpretation of the original request and add it to our backlog for implementation. We'll tag you on the implementation PR so you can review before it ships.
+
+If you still want to provide the details, just reply here — we'll wait. 🙏
+```
+
+**Reclaim execution** (only after the 48h grace period, with no new author/PR-author activity):
+
+1. Move the idea file to `_ideia/viable/` (preserve any prior content + add a `> ♻️ Reclaimed on <date> after 15-day inactivity` banner near the top).
+2. If it was IN FLIGHT and a research file does not yet exist, run Phase 2 (Research) for it now.
+3. Otherwise create the requirements file based on the existing content + a quick research pass.
+4. Add a `viable_origin: stale_reclaim` line to the front-matter so the Phase 3 report can flag it.
+5. In Phase 5 (commit / PR), include a commit trailer crediting the original PR author if applicable:
+   ```
+   Originally-proposed-by: @<pr_author> in #<original_pr_number>
+   ```
+   (This is NOT `Co-Authored-By` — hard rule #16 still applies. It is a free-form trailer that preserves credit without GitHub re-attributing the commit.)
+
+> **Why 15 days + 48h grace?** Long enough that the original contributor has truly moved on; short enough that the feature still ships in the same release cycle. Grace period is documented in `feedback_issue_triage_independence` so we don't default to "trust prior triage" — we verify the silence is real.
 
 ---
 
@@ -364,11 +433,15 @@ For each researched feature, create a requirements file alongside its idea file:
 
 ```bash
 mkdir -p <project_root>/_ideia/viable
-mkdir -p <project_root>/_ideia/viable/need_details
 mkdir -p <project_root>/_ideia/implemented
+mkdir -p <project_root>/_ideia/need_details
 mkdir -p <project_root>/_ideia/defer
 mkdir -p <project_root>/_ideia/notfit
+mkdir -p <project_root>/_ideia/exists
+mkdir -p <project_root>/_ideia/in_flight
 ```
+
+> **Permanent archives**: `need_details/`, `defer/`, `notfit/`, `exists/`, `in_flight/`. Even after the upstream issue is closed, the local file stays — future cycles may revisit.
 
 ### 2.5.2 Move Idea Files to Category Subdirectories
 
@@ -379,19 +452,23 @@ After classification, move EVERY idea file to its correct subdirectory (still lo
 mv _ideia/<NUMBER>-*.md _ideia/viable/
 mv _ideia/<NUMBER>-*.requirements.md _ideia/viable/
 
-# ❓ NEEDS DETAIL — viable but waiting for author response
-mv _ideia/<NUMBER>-*.md _ideia/viable/need_details/
+# ❓ NEEDS DETAIL — viable but waiting for author response (issue stays OPEN)
+mv _ideia/<NUMBER>-*.md _ideia/need_details/
 
-# ⏭️ DEFER — move idea files only
+# ⏭️ DEFER — issue will be CLOSED but file is kept permanently for future re-evaluation
 mv _ideia/<NUMBER>-*.md _ideia/defer/
 
-# ❌ NOT FIT & 🔁 ALREADY EXISTS — move idea files only
+# ❌ NOT FIT — issue will be CLOSED but file is kept permanently
 mv _ideia/<NUMBER>-*.md _ideia/notfit/
 
-# 🚧 IN FLIGHT — leave in _ideia/ root with a top-of-file banner; do NOT touch the PR/branch
+# 🔁 ALREADY EXISTS — issue will be CLOSED but file is kept permanently (separate bucket from NOT FIT)
+mv _ideia/<NUMBER>-*.md _ideia/exists/
+
+# 🚧 IN FLIGHT — issue stays OPEN, third-party PR is handling it; file kept permanently for Phase 1.7 stale-reclaim
+mv _ideia/<NUMBER>-*.md _ideia/in_flight/
 ```
 
-No idea files should remain in `_ideia/` root after this step except `🚧 IN FLIGHT` entries.
+No idea files should remain in `_ideia/` root after this step.
 
 ---
 
@@ -405,14 +482,15 @@ Present a structured report containing:
 
 #### 3.1a — Feature Summary Table
 
-| #   | Issue | Title | Verdict         | Local Location                | Planned GitHub Action            |
-| --- | ----- | ----- | --------------- | ----------------------------- | -------------------------------- |
-| 1   | #N    | Title | ✅ VIABLE       | `_ideia/viable/`              | Comment + keep OPEN              |
-| 2   | #N    | Title | ⏭️ DEFER        | `_ideia/defer/`               | Comment + CLOSE                  |
-| 3   | #N    | Title | ❌ NOT FIT      | `_ideia/notfit/`              | Comment + CLOSE                  |
-| 4   | #N    | Title | 🔁 EXISTS       | `_ideia/notfit/`              | Comment with location + CLOSE    |
-| 5   | #N    | Title | ❓ NEEDS DETAIL | `_ideia/viable/need_details/` | Comment with questions + OPEN    |
-| 6   | #N    | Title | 🚧 IN FLIGHT    | `_ideia/` (banner)            | None — PR #M already handles it  |
+| #   | Issue | Title | Verdict           | Local Location          | Planned GitHub Action                  |
+| --- | ----- | ----- | ----------------- | ----------------------- | -------------------------------------- |
+| 1   | #N    | Title | ✅ VIABLE         | `_ideia/viable/`        | Comment + keep OPEN                    |
+| 2   | #N    | Title | ⏭️ DEFER          | `_ideia/defer/`         | Comment + CLOSE                        |
+| 3   | #N    | Title | ❌ NOT FIT        | `_ideia/notfit/`        | Comment + CLOSE                        |
+| 4   | #N    | Title | 🔁 EXISTS         | `_ideia/exists/`        | Comment with location + CLOSE          |
+| 5   | #N    | Title | ❓ NEEDS DETAIL   | `_ideia/need_details/`  | Comment with questions + keep OPEN     |
+| 6   | #N    | Title | 🚧 IN FLIGHT      | `_ideia/in_flight/`     | None — PR #M handles it                |
+| 7   | #N    | Title | ♻️ RECLAIMED      | `_ideia/viable/`        | Intent comment posted in Phase 1.7     |
 
 #### 3.1b — Viable Features Detail
 
@@ -799,22 +877,23 @@ rm _ideia/implemented/<NUMBER>-*.md
 
 Present a final summary report to the user:
 
-| Issue | Title | Verdict         | Action                                             | Commit    |
-| ----- | ----- | --------------- | -------------------------------------------------- | --------- |
-| #N    | Title | ✅ Implemented  | Issue closed, idea file in `_ideia/implemented/`   | `abc1234` |
-| #N    | Title | ⏭️ Deferred     | Issue closed + saved in `_ideia/defer/`            | —         |
-| #N    | Title | ❌ Not Fit      | Issue closed + saved in `_ideia/notfit/`           | —         |
-| #N    | Title | 🔁 Exists       | Issue closed + saved in `_ideia/notfit/`           | —         |
-| #N    | Title | ❓ Needs Detail | Issue OPEN, moved to `_ideia/viable/need_details/` | —         |
-| #N    | Title | 🚧 In Flight    | Untouched — tracked by PR #M                       | —         |
+| Issue | Title | Verdict          | Action                                                          | Commit    |
+| ----- | ----- | ---------------- | --------------------------------------------------------------- | --------- |
+| #N    | Title | ✅ Implemented   | Issue closed, idea file in `_ideia/implemented/` (until merge)  | `abc1234` |
+| #N    | Title | ♻️ Reclaimed     | Was IN FLIGHT / NEEDS DETAIL, reclaimed after 15d → implemented | `abc1234` |
+| #N    | Title | ⏭️ Deferred      | Issue closed + permanent archive in `_ideia/defer/`             | —         |
+| #N    | Title | ❌ Not Fit       | Issue closed + permanent archive in `_ideia/notfit/`            | —         |
+| #N    | Title | 🔁 Exists        | Issue closed + permanent archive in `_ideia/exists/`            | —         |
+| #N    | Title | ❓ Needs Detail  | Issue OPEN, archive in `_ideia/need_details/`                   | —         |
+| #N    | Title | 🚧 In Flight     | Issue OPEN, archive in `_ideia/in_flight/`, tracked by PR #M    | —         |
 
 Include:
 
 - Total features harvested
-- Total ideas cataloged (`viable/need_details/` + `defer/` + `notfit/`)
+- Total ideas archived per bucket (`need_details/` / `defer/` / `notfit/` / `exists/` / `in_flight/`)
 - Total features implemented (idea files in `_ideia/implemented/`, awaiting post-merge cleanup)
-- Total features deferred
+- Total reclaimed via Phase 1.7 (stale 15-day rule)
 - Total issues closed
-- Total issues left open (NEEDS DETAIL + VIABLE-pending-implementation + IN FLIGHT)
+- Total issues left open (NEEDS DETAIL + VIABLE-pending + IN FLIGHT)
 - Audit results: lint / typecheck / cycles / build / coverage (pass-count per phase)
 - Languages used in posted comments (e.g. "3× pt-BR, 5× en, 1× es")

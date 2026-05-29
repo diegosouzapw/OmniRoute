@@ -1,0 +1,98 @@
+{
+  "id": "gh",
+  "label": "GitHub CLI",
+  "description": "Keep GitHub CLI command results, errors, and PR/issue summaries while stripping pagination noise. Skips `gh api` and `--json` invocations (structured output that would be corrupted by line filtering).",
+  "category": "cloud",
+  "priority": 70,
+  "match": {
+    "outputTypes": ["gh"],
+    "commands": [
+      "^gh\\s+(?:pr|issue|repo|run|workflow|release|auth|browse|gist|secret|label|search|status)(?!.*--json)\\b"
+    ],
+    "patterns": [
+      "^https?://github\\.com/",
+      "Created pull request",
+      "Created issue",
+      "✓\\s+Logged in",
+      "X\\s+\\S+",
+      "GraphQL error",
+      "HTTP \\d{3}:"
+    ]
+  },
+  "rules": {
+    "stripAnsi": true,
+    "includePatterns": [
+      "^https?://github\\.com/",
+      "Creat(?:ed|ing) pull request",
+      "Creat(?:ed|ing) issue",
+      "Merged pull request",
+      "Closed (?:pull request|issue)",
+      "Reopened",
+      "✓\\s+",
+      "X\\s+\\S+",
+      "FAIL",
+      "GraphQL error",
+      "HTTP \\d{3}:",
+      "error:",
+      "not found",
+      "must be authenticated",
+      "rate limit",
+      "completed\\s+\\w+",
+      "queued\\s+\\w+",
+      "in_progress\\s+\\w+",
+      "#\\d+\\s+\\S"
+    ],
+    "dropPatterns": [
+      "^\\s*$",
+      "^Showing \\d+ of \\d+",
+      "^For more information on output formatting"
+    ],
+    "collapsePatterns": [],
+    "deduplicate": false,
+    "maxLines": 80,
+    "headLines": 20,
+    "tailLines": 40
+  },
+  "preserve": {
+    "errorPatterns": [
+      "GraphQL error",
+      "HTTP \\d{3}:",
+      "error:",
+      "not found",
+      "must be authenticated",
+      "rate limit"
+    ],
+    "summaryPatterns": [
+      "Creat(?:ed|ing) pull request",
+      "Creat(?:ed|ing) issue",
+      "Merged pull request",
+      "^https?://github\\.com/"
+    ]
+  },
+  "tests": [
+    {
+      "name": "pr create",
+      "command": "gh pr create",
+      "input": "\nCreating pull request for feat/foo into main in owner/repo\n\nhttps://github.com/owner/repo/pull/123\n",
+      "expected": "Creating pull request for feat/foo into main in owner/repo\nhttps://github.com/owner/repo/pull/123"
+    },
+    {
+      "name": "auth error",
+      "command": "gh pr list",
+      "input": "error: must be authenticated to use this command\n",
+      "expected": "error: must be authenticated to use this command"
+    },
+    {
+      "name": "skips gh api (structured JSON output)",
+      "command": "gh api repos/owner/repo/pulls/1",
+      "input": "{\n  \"number\": 1,\n  \"title\": \"feat: x\",\n  \"user\": { \"login\": \"alice\" }\n}\n",
+      "expected": "{\n  \"number\": 1,\n  \"title\": \"feat: x\",\n  \"user\": { \"login\": \"alice\" }\n}"
+    },
+    {
+      "name": "skips --json output (would corrupt structured data)",
+      "command": "gh pr list --json number,title",
+      "input": "[\n  { \"number\": 1, \"title\": \"feat: x\" },\n  { \"number\": 2, \"title\": \"fix: y\" }\n]\n",
+      "expected": "[\n  { \"number\": 1, \"title\": \"feat: x\" },\n  { \"number\": 2, \"title\": \"fix: y\" }\n]"
+    }
+  ]
+}

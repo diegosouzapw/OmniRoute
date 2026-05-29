@@ -90,8 +90,13 @@ export async function getModelInfo(modelStr) {
     const prefixToCheck = parsed.providerAlias || parsed.provider;
 
     // Check OpenAI Compatible nodes
+    // Match by node.prefix (user-defined alias) OR node.id (internal UUID id stored by
+    // combo steps), so that combo targets using the internal node id still resolve
+    // correctly (#2778).
     const openaiNodes = await getProviderNodes({ type: "openai-compatible" });
-    const matchedOpenAI = openaiNodes.find((node) => node.prefix === prefixToCheck);
+    const matchedOpenAI = openaiNodes.find(
+      (node) => node.prefix === prefixToCheck || node.id === prefixToCheck
+    );
     if (matchedOpenAI) {
       const apiFormat = await lookupCustomModelApiFormat(
         matchedOpenAI.id as string,
@@ -107,7 +112,9 @@ export async function getModelInfo(modelStr) {
 
     // Check Anthropic Compatible nodes
     const anthropicNodes = await getProviderNodes({ type: "anthropic-compatible" });
-    const matchedAnthropic = anthropicNodes.find((node) => node.prefix === prefixToCheck);
+    const matchedAnthropic = anthropicNodes.find(
+      (node) => node.prefix === prefixToCheck || node.id === prefixToCheck
+    );
     if (matchedAnthropic) {
       const apiFormat = await lookupCustomModelApiFormat(
         matchedAnthropic.id as string,

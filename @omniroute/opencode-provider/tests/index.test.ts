@@ -388,6 +388,7 @@ test("createOmniRouteComboConfig includes optional fields when supplied", () => 
 
 test("OMNIROUTE_DEFAULT_OPENCODE_MODELS includes cc/ prefixed models", () => {
   const defaults = [...OMNIROUTE_DEFAULT_OPENCODE_MODELS];
+  assert.ok(defaults.includes("cc/claude-opus-4-8"));
   assert.ok(
     defaults.some((m) => m.startsWith("cc/")),
     "should have cc/ prefixed models"
@@ -413,9 +414,10 @@ test("createOmniRouteProvider emits limit.context on default model entries", () 
     baseURL: "http://localhost:20128",
     apiKey: "sk_omniroute",
   });
-  const entry = provider.models["cc/claude-opus-4-7"];
+  const entry = provider.models["cc/claude-opus-4-8"];
   assert.ok(entry.limit, "model entry should have a limit field");
-  assert.equal(entry.limit!.context, 200_000);
+  assert.equal(entry.limit!.context, 1_000_000);
+  assert.equal(provider.models["cc/claude-opus-4-7"].limit!.context, 1_000_000);
 });
 
 test("createOmniRouteProvider omits limit.context for unknown model ids", () => {
@@ -480,8 +482,8 @@ test("createOmniRouteProvider emits default capability flags inline with the mod
     baseURL: "http://localhost:20128",
     apiKey: "sk_omniroute",
   });
-  const entry = provider.models["cc/claude-opus-4-7"];
-  assert.equal(entry.name, "cc/claude-opus-4-7");
+  const entry = provider.models["cc/claude-opus-4-8"];
+  assert.equal(entry.name, "cc/claude-opus-4-8");
   assert.equal(entry.attachment, true);
   assert.equal(entry.reasoning, true);
   assert.equal(entry.temperature, true);

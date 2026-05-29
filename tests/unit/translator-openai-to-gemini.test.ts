@@ -47,22 +47,31 @@ function getFunctionDeclarationParameters(parameters: unknown) {
 }
 
 test("OpenAI -> Gemini helper converts text, images and files into Gemini parts", () => {
-  const parts = convertOpenAIContentToParts([
-    { type: "text", text: "Hello" },
-    { type: "image_url", image_url: { url: "data:image/png;base64,abc" } },
-    { type: "file_url", file_url: { url: "data:application/pdf;base64,Zm9v" } },
-    { type: "document", document: { url: "data:text/plain;base64,YmFy" } },
-    { type: "image_url", image_url: { url: "https://example.com/skip.png" } },
-    { type: "file_url", file_url: { url: "not-a-data-url" } },
-  ]);
+  // Suppress warn emitted for the remote https://example.com/skip.png URL in the
+  // fixture below — that warn is expected and tested separately. Suppressing here
+  // keeps stderr clean so CI does not flag spurious output.
+  const originalWarn = console.warn;
+  console.warn = () => {};
+  try {
+    const parts = convertOpenAIContentToParts([
+      { type: "text", text: "Hello" },
+      { type: "image_url", image_url: { url: "data:image/png;base64,abc" } },
+      { type: "file_url", file_url: { url: "data:application/pdf;base64,Zm9v" } },
+      { type: "document", document: { url: "data:text/plain;base64,YmFy" } },
+      { type: "image_url", image_url: { url: "https://example.com/skip.png" } },
+      { type: "file_url", file_url: { url: "not-a-data-url" } },
+    ]);
 
-  assert.deepEqual(parts, [
-    { text: "Hello" },
-    { inlineData: { mimeType: "image/png", data: "abc" } },
-    { inlineData: { mimeType: "application/pdf", data: "Zm9v" } },
-    { inlineData: { mimeType: "text/plain", data: "YmFy" } },
-  ]);
-  assert.deepEqual(convertOpenAIContentToParts("raw text"), [{ text: "raw text" }]);
+    assert.deepEqual(parts, [
+      { text: "Hello" },
+      { inlineData: { mimeType: "image/png", data: "abc" } },
+      { inlineData: { mimeType: "application/pdf", data: "Zm9v" } },
+      { inlineData: { mimeType: "text/plain", data: "YmFy" } },
+    ]);
+    assert.deepEqual(convertOpenAIContentToParts("raw text"), [{ text: "raw text" }]);
+  } finally {
+    console.warn = originalWarn;
+  }
 });
 
 test("OpenAI -> Gemini helper cleans complex JSON Schema structures for Gemini compatibility", () => {
@@ -934,6 +943,75 @@ test("convertOpenAIContentToParts handles input_file file_url data URI (#2515)",
   assert.ok(inline, "input_file with file_url data URI must produce an inlineData part");
   assert.equal((inline as any).inlineData.data, "QUJD");
   assert.equal((inline as any).inlineData.mimeType, "application/pdf");
+});
+
+test("convertOpenAIContentToParts handles rec.image with nested {url} as base64 data URI (#2807)", () => {
+  const parts = convertOpenAIContentToParts([
+    { type: "text", text: "What's this?" },
+    { type: "image", image: { url: "data:image/png;base64,iVBORw0KGgo=" } },
+  ]);
+  const inline = parts.find((p) => (p as any).inlineData);
+  assert.ok(
+    inline,
+    "rec.image with nested {url} must produce an inlineData part (was previously silently dropped)"
+  );
+  assert.equal((inline as any).inlineData.data, "iVBORw0KGgo=");
+  assert.equal((inline as any).inlineData.mimeType, "image/png");
+});
+
+test("convertOpenAIContentToParts warns and drops remote http(s) URLs (#2807 - until async refactor)", () => {
+  const originalWarn = console.warn;
+  const warnings: string[] = [];
+  console.warn = (...args: unknown[]) => {
+    warnings.push(args.map(String).join(" "));
+  };
+  try {
+    const parts = convertOpenAIContentToParts([
+      { type: "image_url", image_url: { url: "https://example.com/cat.png" } },
+    ]);
+    const inline = parts.find((p) => (p as any).inlineData);
+    assert.equal(
+      inline,
+      undefined,
+      "remote URL still cannot be encoded into inlineData (sync function) - that's expected"
+    );
+    assert.ok(
+      warnings.some((w) => /Dropped remote image URL/i.test(w) && /example\.com\/cat\.png/.test(w)),
+      `expected a warning naming the dropped URL, got: ${JSON.stringify(warnings)}`
+    );
+  } finally {
+    console.warn = originalWarn;
+  }
+});
+
+test("convertOpenAIContentToParts warns and drops rec.image remote http(s) URLs (#2807)", () => {
+  // rec.image is the alternative content shape emitted by MCP tool wrappers and
+  // LangChain shim layers. Remote URLs in this shape must also hit the warn-and-drop
+  // branch rather than being silently ignored.
+  const originalWarn = console.warn;
+  const warnings: string[] = [];
+  console.warn = (...args: unknown[]) => {
+    warnings.push(args.map(String).join(" "));
+  };
+  try {
+    const parts = convertOpenAIContentToParts([
+      { type: "image", image: { url: "https://example.com/remote.png" } },
+    ]);
+    const inline = parts.find((p) => (p as any).inlineData);
+    assert.equal(
+      inline,
+      undefined,
+      "rec.image remote URL must not produce an inlineData part (sync function cannot fetch)"
+    );
+    assert.ok(
+      warnings.some(
+        (w) => /Dropped remote image URL/i.test(w) && /example\.com\/remote\.png/.test(w)
+      ),
+      `expected a warning naming the dropped rec.image URL, got: ${JSON.stringify(warnings)}`
+    );
+  } finally {
+    console.warn = originalWarn;
+  }
 });
 
 // Regression for #2504: with credentials._signatureNamespace set, a previously-cached
