@@ -33,14 +33,6 @@
 
 ---
 
-## [3.8.6-patch] — 2026-05-27
-
-### 🔧 Bug Fixes
-
-- **fix(cli):** replace `cli-table3` dependency with a ~50-line hand-rolled ASCII formatter to resolve Node 24 / ESM interop breakage and remove tourniquet `package.json` overrides pinning `ansi-regex@^5`, `strip-ansi@^6`, `string-width@^4` ([#2752])
-
----
-
 ## [3.8.6] — 2026-05-27
 
 ### ✨ New Features
@@ -52,6 +44,7 @@
 ### 🔧 Bug Fixes
 
 - **cli:** restore `omniroute logs` command — create missing `/api/cli-tools/logs` route that `log-streamer.ts` was calling, returning filtered pino log entries with `follow` and `filter` query-param support (#2756)
+- **cli:** replace `cli-table3` dependency with a ~50-line hand-rolled ASCII formatter to resolve Node 24 / ESM interop breakage and remove tourniquet `package.json` overrides pinning `ansi-regex@^5`, `strip-ansi@^6`, `string-width@^4` (#2752)
 - **fix(opencode-go,opencode-zen):** mark qwen3.7-max / 3.6-plus / 3.5-plus as supportsVision:false to stop forwarding image blocks to vision-incapable upstream models ([#2822])
 - **nous-research:** append /chat/completions to provider baseUrl so DefaultExecutor's default URL builder hits the correct endpoint instead of returning 404 ([#2826])
 - **fix(quota):** honor explicit per-connection `quotaPreflightEnabled: false` even when the provider has global window defaults — adds early-return guard before the AND-of-negations gate in auth.ts ([#2831])

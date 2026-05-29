@@ -4120,7 +4120,7 @@ export async function handleChatCore({
     // which path executed so we don't double-fire (race-prone) or skip (regression).
     let persistFnRan = false;
     const persistFn = onCredentialsRefreshed
-      ? async (refreshResult: any) => {
+      ? async (refreshResult: Record<string, unknown>) => {
           persistFnRan = true;
           // Mutate the shared credentials object so subsequent executor calls
           // in this request see the new tokens. Runs INSIDE the mutex.
