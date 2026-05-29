@@ -4217,7 +4217,21 @@
     "webNoAuthGuideBody": "{provider} ला API की किंवा कुकीची आवश्यकता नाही. विनामूल्य वेब एंडपॉइंट वापरण्यासाठी कनेक्शन जतन करा.",
     "webSessionCredentialValidationFailed": "सत्र क्रेडेंशियल प्रमाणीकरण अयशस्वी झाले. पुन्हा साइन इन करा, नवीन क्रेडेंशियल कॉपी करा आणि पुन्हा प्रयत्न करा.",
     "checkCookie": "कुकी तपासा",
-    "checkWebToken": "टोकन तपासा"
+    "checkWebToken": "टोकन तपासा",
+    "huggingchatLabel": "HuggingChat (Free)",
+    "huggingchatDesc": "Free LLM chat via huggingface.co/chat",
+    "phindLabel": "Phind (Free)",
+    "phindDesc": "Free dev-focused AI chat",
+    "poeWebLabel": "Poe Web",
+    "poeWebDesc": "Multi-model chat via poe.com",
+    "veniceWebLabel": "Venice Web",
+    "veniceWebDesc": "Privacy-focused AI chat",
+    "v0VercelWebLabel": "v0 Vercel Web",
+    "v0VercelWebDesc": "AI code generation via v0.dev",
+    "kimiWebLabel": "Kimi Web",
+    "kimiWebDesc": "Chinese market AI chat via kimi.moonshot.cn",
+    "doubaoWebLabel": "Doubao Web",
+    "doubaoWebDesc": "ByteDance AI chat via doubao.com"
   },
   "settings": {
     "title": "Settings",

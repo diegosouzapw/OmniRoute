@@ -4217,7 +4217,21 @@
     "webNoAuthGuideBody": "{provider} এর একটি API কী বা কুকির প্রয়োজন নেই৷ এর বিনামূল্যের ওয়েব এন্ডপয়েন্ট ব্যবহার করতে সংযোগটি সংরক্ষণ করুন।",
     "webSessionCredentialValidationFailed": "সেশন শংসাপত্রের বৈধতা ব্যর্থ হয়েছে৷ আবার সাইন ইন করুন, একটি নতুন শংসাপত্র অনুলিপি করুন এবং আবার চেষ্টা করুন৷",
     "checkCookie": "কুকি চেক করুন",
-    "checkWebToken": "টোকেন চেক করুন"
+    "checkWebToken": "টোকেন চেক করুন",
+    "huggingchatLabel": "HuggingChat (Free)",
+    "huggingchatDesc": "Free LLM chat via huggingface.co/chat",
+    "phindLabel": "Phind (Free)",
+    "phindDesc": "Free dev-focused AI chat",
+    "poeWebLabel": "Poe Web",
+    "poeWebDesc": "Multi-model chat via poe.com",
+    "veniceWebLabel": "Venice Web",
+    "veniceWebDesc": "Privacy-focused AI chat",
+    "v0VercelWebLabel": "v0 Vercel Web",
+    "v0VercelWebDesc": "AI code generation via v0.dev",
+    "kimiWebLabel": "Kimi Web",
+    "kimiWebDesc": "Chinese market AI chat via kimi.moonshot.cn",
+    "doubaoWebLabel": "Doubao Web",
+    "doubaoWebDesc": "ByteDance AI chat via doubao.com"
   },
   "settings": {
     "title": "Settings",

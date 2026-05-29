@@ -4217,7 +4217,21 @@
     "webNoAuthGuideBody": "{provider}కి API కీ లేదా కుక్కీ అవసరం లేదు. దాని ఉచిత వెబ్ ఎండ్ పాయింట్‌ని ఉపయోగించడానికి కనెక్షన్‌ని సేవ్ చేయండి.",
     "webSessionCredentialValidationFailed": "సెషన్ క్రెడెన్షియల్ ధ్రువీకరణ విఫలమైంది. మళ్లీ సైన్ ఇన్ చేసి, తాజా ఆధారాలను కాపీ చేసి, మళ్లీ ప్రయత్నించండి.",
     "checkCookie": "కుక్కీని తనిఖీ చేయండి",
-    "checkWebToken": "టోకెన్‌ని తనిఖీ చేయండి"
+    "checkWebToken": "టోకెన్‌ని తనిఖీ చేయండి",
+    "huggingchatLabel": "HuggingChat (Free)",
+    "huggingchatDesc": "Free LLM chat via huggingface.co/chat",
+    "phindLabel": "Phind (Free)",
+    "phindDesc": "Free dev-focused AI chat",
+    "poeWebLabel": "Poe Web",
+    "poeWebDesc": "Multi-model chat via poe.com",
+    "veniceWebLabel": "Venice Web",
+    "veniceWebDesc": "Privacy-focused AI chat",
+    "v0VercelWebLabel": "v0 Vercel Web",
+    "v0VercelWebDesc": "AI code generation via v0.dev",
+    "kimiWebLabel": "Kimi Web",
+    "kimiWebDesc": "Chinese market AI chat via kimi.moonshot.cn",
+    "doubaoWebLabel": "Doubao Web",
+    "doubaoWebDesc": "ByteDance AI chat via doubao.com"
   },
   "settings": {
     "title": "Settings",

@@ -4217,7 +4217,21 @@
     "webNoAuthGuideBody": "{provider}க்கு API விசை அல்லது குக்கீ தேவையில்லை. இலவச இணைய இறுதிப் புள்ளியைப் பயன்படுத்த இணைப்பைச் சேமிக்கவும்.",
     "webSessionCredentialValidationFailed": "அமர்வு நற்சான்றிதழ் சரிபார்ப்பு தோல்வியடைந்தது. மீண்டும் உள்நுழைந்து, புதிய நற்சான்றிதழை நகலெடுத்து, மீண்டும் முயற்சிக்கவும்.",
     "checkCookie": "குக்கீயை சரிபார்க்கவும்",
-    "checkWebToken": "டோக்கனை சரிபார்க்கவும்"
+    "checkWebToken": "டோக்கனை சரிபார்க்கவும்",
+    "huggingchatLabel": "HuggingChat (Free)",
+    "huggingchatDesc": "Free LLM chat via huggingface.co/chat",
+    "phindLabel": "Phind (Free)",
+    "phindDesc": "Free dev-focused AI chat",
+    "poeWebLabel": "Poe Web",
+    "poeWebDesc": "Multi-model chat via poe.com",
+    "veniceWebLabel": "Venice Web",
+    "veniceWebDesc": "Privacy-focused AI chat",
+    "v0VercelWebLabel": "v0 Vercel Web",
+    "v0VercelWebDesc": "AI code generation via v0.dev",
+    "kimiWebLabel": "Kimi Web",
+    "kimiWebDesc": "Chinese market AI chat via kimi.moonshot.cn",
+    "doubaoWebLabel": "Doubao Web",
+    "doubaoWebDesc": "ByteDance AI chat via doubao.com"
   },
   "settings": {
     "title": "Settings",

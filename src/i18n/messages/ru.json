@@ -4217,7 +4217,21 @@
     "webNoAuthGuideBody": "{provider} не требует ключа API или файла cookie. Сохраните соединение, чтобы использовать его бесплатную конечную веб-точку.",
     "webSessionCredentialValidationFailed": "Проверка учетных данных сеанса не удалась. Войдите еще раз, скопируйте новые учетные данные и повторите попытку.",
     "checkCookie": "Проверить куки",
-    "checkWebToken": "Проверить токен"
+    "checkWebToken": "Проверить токен",
+    "huggingchatLabel": "HuggingChat (Free)",
+    "huggingchatDesc": "Free LLM chat via huggingface.co/chat",
+    "phindLabel": "Phind (Free)",
+    "phindDesc": "Free dev-focused AI chat",
+    "poeWebLabel": "Poe Web",
+    "poeWebDesc": "Multi-model chat via poe.com",
+    "veniceWebLabel": "Venice Web",
+    "veniceWebDesc": "Privacy-focused AI chat",
+    "v0VercelWebLabel": "v0 Vercel Web",
+    "v0VercelWebDesc": "AI code generation via v0.dev",
+    "kimiWebLabel": "Kimi Web",
+    "kimiWebDesc": "Chinese market AI chat via kimi.moonshot.cn",
+    "doubaoWebLabel": "Doubao Web",
+    "doubaoWebDesc": "ByteDance AI chat via doubao.com"
   },
   "settings": {
     "title": "Настройки",

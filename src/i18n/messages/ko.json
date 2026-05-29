@@ -4217,7 +4217,21 @@
     "webNoAuthGuideBody": "{provider}에는 API 키나 쿠키가 필요하지 않습니다. 무료 웹 엔드포인트를 사용하려면 연결을 저장하세요.",
     "webSessionCredentialValidationFailed": "세션 자격 증명 유효성 검사에 실패했습니다. 다시 로그인하고 새로운 자격 증명을 복사한 후 다시 시도하세요.",
     "checkCookie": "쿠키 확인",
-    "checkWebToken": "토큰 확인"
+    "checkWebToken": "토큰 확인",
+    "huggingchatLabel": "HuggingChat (Free)",
+    "huggingchatDesc": "Free LLM chat via huggingface.co/chat",
+    "phindLabel": "Phind (Free)",
+    "phindDesc": "Free dev-focused AI chat",
+    "poeWebLabel": "Poe Web",
+    "poeWebDesc": "Multi-model chat via poe.com",
+    "veniceWebLabel": "Venice Web",
+    "veniceWebDesc": "Privacy-focused AI chat",
+    "v0VercelWebLabel": "v0 Vercel Web",
+    "v0VercelWebDesc": "AI code generation via v0.dev",
+    "kimiWebLabel": "Kimi Web",
+    "kimiWebDesc": "Chinese market AI chat via kimi.moonshot.cn",
+    "doubaoWebLabel": "Doubao Web",
+    "doubaoWebDesc": "ByteDance AI chat via doubao.com"
   },
   "settings": {
     "title": "설정",

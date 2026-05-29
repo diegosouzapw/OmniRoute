@@ -347,9 +347,9 @@
     "keyCreatedNote": "Copie e armazene esta chave agora — ela não será mostrada novamente.",
     "done": "Pronto",
     "savePermissions": "Salvar Permissões",
-    "endpointRestrictions": "__MISSING__:Allowed Endpoints",
-    "allEndpointsAllowed": "__MISSING__:This key can access all API endpoints.",
-    "endpointsRestricted": "__MISSING__:Restricted to {count} endpoint{count, plural, one {} other {s}}.",
+    "endpointRestrictions": "Endpoints Permitidos",
+    "allEndpointsAllowed": "Esta chave pode acessar todos os endpoints de API.",
+    "endpointsRestricted": "Restrito a {count} endpoint{count, plural, one {} other {s}}.",
     "autoResolve": "Auto-Resolve",
     "autoResolveDesc": "Resolve automaticamente nomes ambíguos de modelo para o provedor nativo desta API key.",
     "keyActive": "Chave Ativa",
@@ -437,10 +437,7 @@
     "filterTypeRestricted": "Restrita",
     "shownOf": "{shown} de {total} exibidas",
     "emptyFilterTitle": "Nenhuma chave corresponde aos filtros",
-    "emptyFilterClear": "Limpar filtros",
-    "endpointRestrictions": "Endpoints Permitidos",
-    "allEndpointsAllowed": "Esta chave pode acessar todos os endpoints de API.",
-    "endpointsRestricted": "Restrito a {count} endpoint{count, plural, one {} other {s}}."
+    "emptyFilterClear": "Limpar filtros"
   },
   "auditLog": {
     "title": "Log de Auditoria",
@@ -4733,7 +4730,21 @@
     "webNoAuthGuideBody": "{provider} não precisa de chave de API ou cookie. Salve a conexão para usar seu endpoint web gratuito.",
     "webSessionCredentialValidationFailed": "Falha na validação da credencial da sessão. Faça login novamente, copie uma nova credencial e tente novamente.",
     "checkCookie": "Verifique o cookie",
-    "checkWebToken": "Verifique o token"
+    "checkWebToken": "Verifique o token",
+    "huggingchatLabel": "HuggingChat (Free)",
+    "huggingchatDesc": "Free LLM chat via huggingface.co/chat",
+    "phindLabel": "Phind (Free)",
+    "phindDesc": "Free dev-focused AI chat",
+    "poeWebLabel": "Poe Web",
+    "poeWebDesc": "Multi-model chat via poe.com",
+    "veniceWebLabel": "Venice Web",
+    "veniceWebDesc": "Privacy-focused AI chat",
+    "v0VercelWebLabel": "v0 Vercel Web",
+    "v0VercelWebDesc": "AI code generation via v0.dev",
+    "kimiWebLabel": "Kimi Web",
+    "kimiWebDesc": "Chinese market AI chat via kimi.moonshot.cn",
+    "doubaoWebLabel": "Doubao Web",
+    "doubaoWebDesc": "ByteDance AI chat via doubao.com"
   },
   "proxyConfigModal": {
     "levelGlobal": "Globais",

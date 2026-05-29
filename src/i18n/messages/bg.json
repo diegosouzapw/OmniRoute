@@ -4217,7 +4217,21 @@
     "webNoAuthGuideBody": "{provider} не се нуждае от API ключ или бисквитка. Запазете връзката, за да използвате нейната безплатна уеб крайна точка.",
     "webSessionCredentialValidationFailed": "Потвърждаването на идентификационните данни на сесията не бе успешно. Влезте отново, копирайте нови идентификационни данни и опитайте отново.",
     "checkCookie": "Проверете бисквитката",
-    "checkWebToken": "Чек токен"
+    "checkWebToken": "Чек токен",
+    "huggingchatLabel": "HuggingChat (Free)",
+    "huggingchatDesc": "Free LLM chat via huggingface.co/chat",
+    "phindLabel": "Phind (Free)",
+    "phindDesc": "Free dev-focused AI chat",
+    "poeWebLabel": "Poe Web",
+    "poeWebDesc": "Multi-model chat via poe.com",
+    "veniceWebLabel": "Venice Web",
+    "veniceWebDesc": "Privacy-focused AI chat",
+    "v0VercelWebLabel": "v0 Vercel Web",
+    "v0VercelWebDesc": "AI code generation via v0.dev",
+    "kimiWebLabel": "Kimi Web",
+    "kimiWebDesc": "Chinese market AI chat via kimi.moonshot.cn",
+    "doubaoWebLabel": "Doubao Web",
+    "doubaoWebDesc": "ByteDance AI chat via doubao.com"
   },
   "settings": {
     "title": "Настройки",
