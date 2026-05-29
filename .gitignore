@@ -15,6 +15,7 @@ memory-bank/
 .claude/scheduled_tasks/
 .claude/sessions/
 .claude/state.json
+.claude/settings.local.json
 
 # Root-level underscore-prefixed directories (private/draft — never commit)
 /_*/
@@ -33,6 +34,9 @@ node_modules/
 !.yarn/versions
 .data/
 .next-playwright/
+
+# devbox
+.devbox/
 
 # testing
 coverage/
@@ -181,3 +185,8 @@ scripts/i18n/_pending-keys.json
 
 # Fumadocs generated source
 .source/
+
+# AI agent local settings and configs
+.agents/
+.antigravitycli/
+.claude/

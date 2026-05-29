@@ -429,9 +429,50 @@ export const importGeminiAuthSchema = z.object({
   overwriteExisting: z.boolean().optional(),
 });
 
+// ──── Antigravity CLI (`agy`) Auth Import Schema ────
+// Same source/options shape as gemini-cli; the parser handles the agy-specific token JSON.
+
+export const importAgyAuthSchema = z.object({
+  source: z.discriminatedUnion("kind", [
+    z.object({ kind: z.literal("json"), json: z.unknown() }),
+    z.object({
+      kind: z.literal("text"),
+      text: z.string().max(256 * 1024, "agy token file content exceeds 256KB"),
+    }),
+  ]),
+  name: z.string().min(1).max(200).optional(),
+  email: z.string().email("Must be a valid email").optional(),
+  overwriteExisting: z.boolean().optional(),
+});
+
+// ──── Antigravity CLI (`agy`) auto-detect local login Schema ────
+// No `source`: the route reads the token from the local agy CLI data dir on disk.
+
+export const applyLocalAgyAuthSchema = z.object({
+  name: z.string().min(1).max(200).optional(),
+  email: z.string().email("Must be a valid email").optional(),
+  overwriteExisting: z.boolean().optional(),
+});
+
 // ──── Gemini CLI Auth Import Bulk Schema ────
 
 export const importGeminiAuthBulkSchema = z.object({
+  entries: z
+    .array(
+      z.object({
+        json: z.unknown(),
+        name: z.string().min(1).max(200).optional(),
+        email: z.string().email("Must be a valid email").optional(),
+      })
+    )
+    .min(1, "At least one entry is required")
+    .max(50, "At most 50 entries per bulk import"),
+  overwriteExisting: z.boolean().optional(),
+});
+
+// ──── Antigravity CLI (`agy`) Auth Import Bulk Schema ────
+
+export const importAgyAuthBulkSchema = z.object({
   entries: z
     .array(
       z.object({
@@ -849,6 +890,34 @@ export const setBudgetSchema = z
         code: z.ZodIssueCode.custom,
         message: "At least one budget limit must be provided",
         path: ["dailyLimitUsd"],
+      });
+    }
+  });
+
+export const setTokenLimitSchema = z
+  .object({
+    id: z.string().trim().min(1).optional(),
+    apiKeyId: z.string().trim().min(1, "apiKeyId is required"),
+    scopeType: z.enum(["model", "provider", "global"]),
+    scopeValue: z.string().trim().default(""),
+    tokenLimit: z.coerce
+      .number()
+      .int("tokenLimit must be an integer")
+      .positive("tokenLimit must be greater than zero"),
+    resetInterval: z.enum(["daily", "weekly", "monthly"]).default("monthly"),
+    resetTime: z
+      .string()
+      .trim()
+      .regex(/^\d{2}:\d{2}$/, "resetTime must be in HH:MM format")
+      .optional(),
+    enabled: z.boolean().default(true),
+  })
+  .superRefine((value, ctx) => {
+    if (value.scopeType !== "global" && (!value.scopeValue || value.scopeValue.length === 0)) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "scopeValue is required unless scopeType is 'global'",
+        path: ["scopeValue"],
       });
     }
   });
@@ -1996,7 +2065,8 @@ export const v1betaGeminiGenerateSchema = z
   });
 
 export const cliMitmStartSchema = z.object({
-  apiKey: z.string().trim().min(1, "Missing apiKey"),
+  apiKey: z.string().trim().min(1).nullable().optional(),
+  keyId: z.string().trim().min(1).nullable().optional(),
   sudoPassword: z.string().optional(),
 });
 
@@ -2270,3 +2340,17 @@ export const v1WebFetchSchema = z.object({
   wait_for_selector: z.string().max(256).optional(),
   include_metadata: z.boolean().default(false),
 });
+
+// ── Zed Credential Import Flow ──────────────────────────────────────────────────
+
+export const confirmedAccountSchema = z.object({
+  service: z.string().min(1).max(500),
+  account: z.string().min(1).max(500),
+  fingerprint: z.string().min(1).max(100),
+});
+
+export const zedImportSchema = z.object({
+  confirmedAccounts: z.array(confirmedAccountSchema),
+});
+
+export type ConfirmedAccount = z.infer<typeof confirmedAccountSchema>;

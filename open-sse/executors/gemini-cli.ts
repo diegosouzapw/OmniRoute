@@ -78,6 +78,17 @@ function extractProjectId(payload: unknown): string {
   return "";
 }
 
+function resolveGeminiCliProjectId(value: unknown): string {
+  if (typeof value !== "string") return "";
+  const trimmed = value.trim();
+  if (!trimmed) return "";
+  const normalized = trimmed.toLowerCase();
+  if (normalized === DEFAULT_PROJECT_ID || normalized === `projects/${DEFAULT_PROJECT_ID}`) {
+    return "";
+  }
+  return trimmed;
+}
+
 function extractDefaultTierId(payload: unknown): string {
   if (!payload || typeof payload !== "object") return DEFAULT_ONBOARD_TIER;
   const tiers = Array.isArray((payload as LoadCodeAssistResponse).allowedTiers)
@@ -134,8 +145,7 @@ export class GeminiCLIExecutor extends BaseExecutor {
   ) {
     void clientHeaders;
 
-    // Fallback to internal tracker if model not explicitly passed (matches older interface calls)
-    const activeModel = model || this._currentModel || "unknown";
+    const activeModel = model || "unknown";
 
     const raw = getGeminiCliHeaders(
       normalizeGeminiModel(activeModel),
@@ -182,7 +192,7 @@ export class GeminiCLIExecutor extends BaseExecutor {
         const controller = new AbortController();
         const timeoutId = setTimeout(() => controller.abort(), ONBOARD_TIMEOUT_MS);
 
-        let response;
+        let response: Response;
         try {
           response = await fetch(ONBOARD_USER_URL, {
             method: "POST",
@@ -203,7 +213,7 @@ export class GeminiCLIExecutor extends BaseExecutor {
           }
 
           if (payload?.done === true) {
-            return DEFAULT_PROJECT_ID;
+            return null;
           }
         } else {
           console.warn(
@@ -254,7 +264,7 @@ export class GeminiCLIExecutor extends BaseExecutor {
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), LOAD_CODE_ASSIST_TIMEOUT_MS);
 
-      let response;
+      let response: Response;
       try {
         response = await fetch(LOAD_CODE_ASSIST_URL, {
           method: "POST",
@@ -276,7 +286,7 @@ export class GeminiCLIExecutor extends BaseExecutor {
       }
 
       const data = (await response.json()) as LoadCodeAssistResponse;
-      let projectId = extractProjectId(data);
+      let projectId = resolveGeminiCliProjectId(extractProjectId(data));
 
       if (!projectId) {
         console.warn(
@@ -323,10 +333,12 @@ export class GeminiCLIExecutor extends BaseExecutor {
         ? cloneGeminiCliRecord(bodyRecord.request as Record<string, any>)
         : {};
 
+    const providerSpecificData = credentials.providerSpecificData as Record<string, unknown>;
     const storedProject =
-      bodyRecord.project ||
-      credentials.projectId ||
-      (credentials.providerSpecificData as Record<string, unknown>)?.projectId;
+      resolveGeminiCliProjectId(providerSpecificData?.projectId) ||
+      resolveGeminiCliProjectId(credentials.projectId) ||
+      resolveGeminiCliProjectId(bodyRecord.project) ||
+      "";
 
     const envelope: Record<string, any> = {
       model: currentModel,
@@ -351,7 +363,7 @@ export class GeminiCLIExecutor extends BaseExecutor {
     // stored project IDs can go stale. Keep the stored value as a fallback.
     if (credentials.accessToken) {
       const freshProject = await this.refreshProject(credentials.accessToken, currentModel);
-      if (freshProject) {
+      if (resolveGeminiCliProjectId(freshProject)) {
         envelope.project = freshProject;
       }
     }

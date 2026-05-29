@@ -1,5 +1,29 @@
 import test from "node:test";
 import assert from "node:assert/strict";
+import fs from "node:fs";
+import os from "node:os";
+import path from "node:path";
+
+const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-services-hardening-"));
+const ORIGINAL_DATA_DIR = process.env.DATA_DIR;
+process.env.DATA_DIR = TEST_DATA_DIR;
+
+if (!process.env.API_KEY_SECRET) {
+  process.env.API_KEY_SECRET = "test-services-hardening-secret-" + Date.now();
+}
+
+test.after(() => {
+  if (ORIGINAL_DATA_DIR === undefined) {
+    delete process.env.DATA_DIR;
+  } else {
+    process.env.DATA_DIR = ORIGINAL_DATA_DIR;
+  }
+  try {
+    fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+  } catch {
+    // Best effort cleanup
+  }
+});
 
 const signatureStore = await import("../../open-sse/services/geminiThoughtSignatureStore.ts");
 const modelCapabilities = await import("../../open-sse/services/modelCapabilities.ts");

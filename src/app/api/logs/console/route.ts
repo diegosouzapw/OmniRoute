@@ -69,7 +69,8 @@ export async function GET(req: NextRequest) {
   try {
     const { searchParams } = new URL(req.url);
     const levelFilter = searchParams.get("level") || "all";
-    const limit = Math.min(parseInt(searchParams.get("limit") || "500", 10), 2000);
+    const rawLimit = parseInt(searchParams.get("limit") || "500", 10);
+    const limit = Math.min(Number.isFinite(rawLimit) && rawLimit > 0 ? rawLimit : 500, 2000);
     const componentFilter = searchParams.get("component") || "";
 
     const logPath = getLogFilePath();

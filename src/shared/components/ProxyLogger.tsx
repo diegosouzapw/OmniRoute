@@ -67,7 +67,7 @@ export default function ProxyLogger() {
       { key: "provider", label: t("colProvider") },
       { key: "target", label: t("colTarget") },
       { key: "latency", label: t("colLatency") },
-      { key: "ip", label: t("colPublicIp") },
+      { key: "ip", label: t("colClientIp") },
       { key: "time", label: t("colTime") },
     ],
     [t]
@@ -435,7 +435,7 @@ export default function ProxyLogger() {
                   )}
                   {visibleColumns.ip && (
                     <th className="px-3 py-2.5 font-semibold text-text-muted uppercase tracking-wider text-[10px]">
-                      {t("colPublicIp")}
+                      {t("colClientIp")}
                     </th>
                   )}
                   {visibleColumns.time && (
@@ -552,7 +552,7 @@ export default function ProxyLogger() {
                       )}
                       {visibleColumns.ip && (
                         <td className="px-3 py-2 font-mono text-[11px] text-emerald-400">
-                          {log.publicIp || "—"}
+                          {log.clientIp || "—"}
                         </td>
                       )}
                       {visibleColumns.time && (

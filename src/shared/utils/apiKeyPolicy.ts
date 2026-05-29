@@ -12,6 +12,7 @@ import { extractApiKey } from "@/sse/services/auth";
 import { getApiKeyMetadata, getComboByName, isModelAllowedForKey } from "@/lib/localDb";
 import { resolveComboForModel } from "@/lib/db/modelComboMappings";
 import { checkBudget } from "@/domain/costRules";
+import { checkTokenLimits } from "@omniroute/open-sse/services/tokenLimitCounter.ts";
 import { errorResponse } from "@omniroute/open-sse/utils/error.ts";
 import { HTTP_STATUS } from "@omniroute/open-sse/config/constants.ts";
 import * as log from "@/sse/utils/logger";
@@ -390,6 +391,39 @@ export async function enforceApiKeyPolicy(
         apiKey,
         apiKeyInfo,
         rejection: errorResponse(HTTP_STATUS.SERVICE_UNAVAILABLE, "Budget policy unavailable"),
+      };
+    }
+  }
+
+  // ── Check 4.5: Per-model / per-provider token limits (Tier 1) ──
+  if (apiKeyInfo.id) {
+    try {
+      const breach = checkTokenLimits(apiKeyInfo.id, undefined, modelStr ?? undefined);
+      if (breach) {
+        const scopeLabel =
+          breach.scopeType === "global"
+            ? "account"
+            : `${breach.scopeType} "${breach.scopeValue}"`;
+        return {
+          apiKey,
+          apiKeyInfo,
+          rejection: errorResponse(
+            HTTP_STATUS.RATE_LIMITED,
+            `Token limit exceeded for ${scopeLabel}: ${breach.tokensUsed}/${breach.limitValue} tokens used in the current window. Please try again later.`
+          ),
+        };
+      }
+    } catch (error) {
+      // Fail-closed: token-limit backend error should block the request,
+      // consistent with the budget check above.
+      log.error("API_POLICY", "Token limit check failed. Request blocked.", { error });
+      return {
+        apiKey,
+        apiKeyInfo,
+        rejection: errorResponse(
+          HTTP_STATUS.SERVICE_UNAVAILABLE,
+          "Token limit policy unavailable"
+        ),
       };
     }
   }

@@ -112,7 +112,60 @@ function applyMcpToolNameRewrite(body: Record<string, unknown>): Map<string, str
   return reverseMap;
 }
 
-function resolveCliproxyapiBaseUrl(): string {
+// Cached URL from settings (loaded once, invalidated on settings change via clearCliproxyapiUrlCache)
+let _cachedSettingsUrl: { url: string; ts: number } | null = null;
+const URL_CACHE_TTL_MS = 60_000;
+
+export function clearCliproxyapiUrlCache() {
+  _cachedSettingsUrl = null;
+}
+
+// Pre-load settings URL at module init so the sync path has a cache hit.
+// This runs once when the executor module is first imported.
+(async () => {
+  try {
+    const { getSettings } = await import("@/lib/db/settings");
+    const settings = await getSettings();
+    if (typeof settings.cliproxyapi_url === "string" && settings.cliproxyapi_url.trim()) {
+      _cachedSettingsUrl = { url: settings.cliproxyapi_url.trim(), ts: Date.now() };
+    }
+  } catch { /* env vars will be used as fallback */ }
+})();
+
+/**
+ * Resolve CLIProxyAPI base URL. Priority:
+ *   1. Settings table `cliproxyapi_url` (set via UI)
+ *   2. Environment variables CLIPROXYAPI_HOST / CLIPROXYAPI_PORT
+ *   3. Defaults (127.0.0.1:8317)
+ */
+async function resolveCliproxyapiBaseUrl(): Promise<string> {
+  // Check settings cache first
+  if (_cachedSettingsUrl && Date.now() - _cachedSettingsUrl.ts < URL_CACHE_TTL_MS) {
+    return _cachedSettingsUrl.url;
+  }
+
+  try {
+    const { getSettings } = await import("@/lib/db/settings");
+    const settings = await getSettings();
+    if (typeof settings.cliproxyapi_url === "string" && settings.cliproxyapi_url.trim()) {
+      const url = settings.cliproxyapi_url.trim();
+      _cachedSettingsUrl = { url, ts: Date.now() };
+      return url;
+    }
+  } catch { /* fall through to env vars */ }
+
+  const host = process.env.CLIPROXYAPI_HOST || DEFAULT_HOST;
+  const port = parseInt(process.env.CLIPROXYAPI_PORT || String(DEFAULT_PORT), 10);
+  const url = `http://${host}:${port}`;
+  _cachedSettingsUrl = { url, ts: Date.now() };
+  return url;
+}
+
+// Sync wrapper for backward compatibility (health checks, tests)
+function resolveCliproxyapiBaseUrlSync(): string {
+  if (_cachedSettingsUrl && Date.now() - _cachedSettingsUrl.ts < URL_CACHE_TTL_MS) {
+    return _cachedSettingsUrl.url;
+  }
   const host = process.env.CLIPROXYAPI_HOST || DEFAULT_HOST;
   const port = parseInt(process.env.CLIPROXYAPI_PORT || String(DEFAULT_PORT), 10);
   return `http://${host}:${port}`;
@@ -134,7 +187,7 @@ export class CliproxyapiExecutor extends BaseExecutor {
   private readonly upstreamBaseUrl: string;
 
   constructor(baseUrl?: string) {
-    const effectiveBase = baseUrl ?? resolveCliproxyapiBaseUrl();
+    const effectiveBase = baseUrl ?? resolveCliproxyapiBaseUrlSync();
     super("cliproxyapi", {
       id: "cliproxyapi",
       baseUrl: effectiveBase + "/v1/chat/completions",
@@ -300,8 +353,11 @@ export class CliproxyapiExecutor extends BaseExecutor {
     log?: any;
     upstreamExtraHeaders?: Record<string, string> | null;
   }) {
+    // Resolve URL dynamically so settings table cliproxyapi_url is respected.
+    // Uses 60s cache to avoid DB reads on every request.
+    const baseUrl = await resolveCliproxyapiBaseUrl();
     const endpoint = this.selectEndpoint(input.body);
-    const url = `${this.upstreamBaseUrl}${endpoint}`;
+    const url = `${baseUrl}${endpoint}`;
     const shape = endpoint === "/v1/messages" ? "anthropic" : "openai";
     const headers = this.buildHeaders(input.credentials, input.stream);
     const transformedBody = this.transformRequest(
@@ -355,7 +411,8 @@ export class CliproxyapiExecutor extends BaseExecutor {
   async healthCheck(): Promise<{ ok: boolean; latencyMs: number; error?: string }> {
     const start = Date.now();
     try {
-      const res = await fetch(`${this.upstreamBaseUrl}/v1/models`, {
+      const baseUrl = await resolveCliproxyapiBaseUrl();
+      const res = await fetch(`${baseUrl}/v1/models`, {
         signal: AbortSignal.timeout(HEALTH_CHECK_TIMEOUT_MS),
       });
       return {

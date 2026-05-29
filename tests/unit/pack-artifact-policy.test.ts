@@ -56,6 +56,15 @@ test("findUnexpectedArtifactPaths flags app pack files outside the allowlist", (
   assert.deepEqual(unexpectedPaths, ["app/scripts/build/prepublish.mjs", "docs/extra.md"]);
 });
 
+test("setupPolyfill.ts is allowed in the tarball (bin/omniroute.mjs imports it at startup)", () => {
+  const unexpectedPaths = findUnexpectedArtifactPaths(["open-sse/utils/setupPolyfill.ts"], {
+    exactPaths: PACK_ARTIFACT_ALLOWED_EXACT_PATHS,
+    prefixPaths: PACK_ARTIFACT_ALLOWED_PATH_PREFIXES,
+  });
+
+  assert.deepEqual(unexpectedPaths, []);
+});
+
 test("findMissingArtifactPaths flags missing root runtime files in the tarball", () => {
   const missingPaths = findMissingArtifactPaths(
     [

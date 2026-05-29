@@ -74,10 +74,29 @@ export function requiresReasoningReplay(params: {
   model: string;
   thinkingEnabled?: boolean;
   supportsReasoning?: boolean;
+  interleavedField?: string | null;
+  allowLegacyFallback?: boolean;
 }): boolean {
-  if (isDeepSeekReasoningModel(params)) return true;
   const normalizedProvider = params.provider.trim().toLowerCase();
   const normalizedModel = params.model.trim();
+  const normalizedInterleavedField =
+    typeof params.interleavedField === "string" ? params.interleavedField.trim().toLowerCase() : "";
+
+  // Explicit model signal from models.dev (preferred source of truth).
+  if (normalizedInterleavedField === "reasoning_content") return true;
+  if (normalizedInterleavedField === "reasoning_details") return false;
+
+  // DeepSeek legacy reasoner family has an inverse contract: do not replay.
+  if (/deepseek-reasoner/i.test(normalizedModel) || /deepseek-r1/i.test(normalizedModel)) {
+    return false;
+  }
+
+  // Explicit known contract: DeepSeek V4 thinking with tool calls requires replay.
+  if (isDeepSeekReasoningModel(params)) return true;
+
+  const useLegacyFallback = params.allowLegacyFallback !== false;
+  if (!useLegacyFallback) return false;
+
   if (REASONING_REPLAY_PROVIDERS.has(normalizedProvider)) return true;
   return REASONING_REPLAY_MODEL_PATTERNS.some((p) => p.test(normalizedModel));
 }

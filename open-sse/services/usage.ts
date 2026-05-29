@@ -14,6 +14,10 @@ import { safePercentage } from "@/shared/utils/formatting";
 import { fetchBailianQuota, type BailianTripleWindowQuota } from "./bailianQuotaFetcher.ts";
 import { fetchDeepseekQuota, type DeepseekQuota } from "./deepseekQuotaFetcher.ts";
 import {
+  fetchOpencodeQuota,
+  type OpencodeTripleWindowQuota,
+} from "./opencodeQuotaFetcher.ts";
+import {
   applyAntigravityClientProfileHeaders,
   getAntigravityBootstrapHeaders,
   getAntigravityClientProfile,
@@ -34,6 +38,7 @@ import {
   extractCodeAssistOnboardTierId,
   extractCodeAssistSubscriptionTier,
 } from "./codeAssistSubscription.ts";
+import { sanitizeErrorMessage } from "../utils/error.ts";
 
 // Quota / usage upstream URLs (overridable for testing or relays).
 const CROF_USAGE_URL = process.env.OMNIROUTE_CROF_USAGE_URL ?? "https://crof.ai/usage_api/";
@@ -82,6 +87,16 @@ const KIMI_CONFIG = {
 const NANOGPT_CONFIG = {
   usageUrl: "https://nano-gpt.com/api/subscription/v1/usage",
 };
+
+const OPENCODE_GO_QUOTA_URL =
+  process.env.OMNIROUTE_OPENCODE_GO_QUOTA_URL ?? "https://api.z.ai/api/monitor/usage/quota/limit";
+const OPENCODE_GO_QUOTA_TOTALS = {
+  session: 12,
+  weekly: 30,
+  mcp_monthly: 60,
+} as const;
+const OPENCODE_GO_QUOTA_ORDER = ["session", "weekly", "mcp_monthly"] as const;
+type OpenCodeGoQuotaName = (typeof OPENCODE_GO_QUOTA_ORDER)[number];
 
 // Cursor dashboard usage API config
 // The endpoint that powers https://cursor.com/dashboard/spending. Validates the WorkOS
@@ -193,6 +208,76 @@ function getGlmQuotaDisplayName(quotaName: string): string {
   return quotaName;
 }
 
+function getOpenCodeGoTokenQuotaName(
+  limit: JsonRecord,
+  existingQuotas: Record<string, UsageQuota>
+): "session" | "weekly" {
+  const unit = toNumber(limit.unit, 0);
+  const number = toNumber(limit.number, 0);
+
+  if (unit === 3 && number === 5) return "session";
+  if (unit === 6 && number === 1) return "weekly";
+  if ((unit === 4 && number === 7) || (unit === 3 && number >= 24 * 7)) return "weekly";
+
+  return existingQuotas.session ? "weekly" : "session";
+}
+
+function getOpenCodeGoQuotaDisplayName(quotaName: OpenCodeGoQuotaName): string {
+  if (quotaName === "session") return "5-hour rolling";
+  if (quotaName === "weekly") return "Weekly";
+  return "Monthly";
+}
+
+function normalizeOpenCodeGoQuotaToken(apiKey: string): string {
+  return apiKey.trim().replace(/^Bearer\s+/i, "");
+}
+
+function buildOpenCodeGoDollarQuota(
+  quotaName: OpenCodeGoQuotaName,
+  percentage: unknown,
+  resetAt: string | null,
+  usedOverride?: unknown,
+  details?: UsageQuota["details"]
+): UsageQuota {
+  const total = OPENCODE_GO_QUOTA_TOTALS[quotaName];
+  const percentUsed = toPercentage(percentage);
+  const rawUsed = toNumber(usedOverride, Number.NaN);
+  const used = roundCurrency(
+    Number.isFinite(rawUsed) ? Math.max(0, Math.min(total, rawUsed)) : (total * percentUsed) / 100
+  );
+  const remaining = roundCurrency(Math.max(0, total - used));
+  const remainingPercentage =
+    total > 0
+      ? clampPercentage(Math.round((remaining / total) * 100))
+      : clampPercentage(100 - percentUsed);
+
+  return {
+    used,
+    total,
+    remaining,
+    remainingPercentage,
+    resetAt,
+    unlimited: false,
+    displayName: getOpenCodeGoQuotaDisplayName(quotaName),
+    currency: "USD",
+    details,
+  };
+}
+
+function orderOpenCodeGoQuotas(quotas: Record<string, UsageQuota>): Record<string, UsageQuota> {
+  const ordered: Record<string, UsageQuota> = {};
+
+  for (const key of OPENCODE_GO_QUOTA_ORDER) {
+    if (quotas[key]) ordered[key] = quotas[key];
+  }
+
+  for (const [key, quota] of Object.entries(quotas)) {
+    if (!ordered[key]) ordered[key] = quota;
+  }
+
+  return ordered;
+}
+
 function getFieldValue(source: unknown, snakeKey: string, camelKey: string): unknown {
   const obj = toRecord(source);
   return obj[snakeKey] ?? obj[camelKey] ?? null;
@@ -200,6 +285,10 @@ function getFieldValue(source: unknown, snakeKey: string, camelKey: string): unk
 
 function clampPercentage(value: number): number {
   return Math.max(0, Math.min(100, value));
+}
+
+function roundCurrency(value: number): number {
+  return Math.round(value * 100) / 100;
 }
 
 function toDisplayLabel(value: string): string {
@@ -783,6 +872,98 @@ async function getGlmUsage(apiKey: string, providerSpecificData?: Record<string,
   return { plan, quotas: orderGlmQuotas(quotas) };
 }
 
+async function getOpenCodeGoUsage(apiKey: string) {
+  const token = normalizeOpenCodeGoQuotaToken(apiKey);
+
+  if (!token) {
+    return { message: "API key not available. Add an OpenCode Go API key to view usage." };
+  }
+
+  const res = await fetch(OPENCODE_GO_QUOTA_URL, {
+    headers: {
+      Authorization: token,
+      "Accept-Language": "en-US,en",
+      "Content-Type": "application/json",
+      Accept: "application/json",
+    },
+  });
+
+  if (!res.ok) {
+    if (res.status === 401 || res.status === 403) throw new Error("Invalid OpenCode Go API key");
+    throw new Error(`OpenCode Go quota API error (${res.status})`);
+  }
+
+  const json = await res.json();
+  const code = toNumber(json.code, 200);
+  if (code === 401 || code === 403 || json.success === false) {
+    throw new Error("Invalid OpenCode Go API key");
+  }
+
+  const data = toRecord(json.data);
+  const limits: unknown[] = Array.isArray(data.limits) ? data.limits : [];
+  const quotas: Record<string, UsageQuota> = {};
+
+  for (const limit of limits) {
+    const src = toRecord(limit);
+    const type = String(src.type || "").toUpperCase();
+    const resetAt = parseResetTime(src.nextResetTime);
+
+    if (type === "TOKENS_LIMIT" || type === "TOKEN_LIMIT") {
+      const quotaName = getOpenCodeGoTokenQuotaName(src, quotas);
+
+      quotas[quotaName] = buildOpenCodeGoDollarQuota(
+        quotaName,
+        src.percentage,
+        resetAt,
+        undefined,
+        Array.isArray(src.models)
+          ? (src.models as unknown[]).map((model) => {
+              const modelInfo = toRecord(model);
+              return {
+                name: String(modelInfo.model || modelInfo.modelCode || "usage"),
+                used: toNumber(modelInfo.percentage, 0),
+              };
+            })
+          : undefined
+      );
+      continue;
+    }
+
+    if (type === "TIME_LIMIT" || type === "TIME_USAGE_LIMIT") {
+      quotas.mcp_monthly = buildOpenCodeGoDollarQuota(
+        "mcp_monthly",
+        src.percentage,
+        resetAt,
+        src.currentValue,
+        Array.isArray(src.usageDetails)
+          ? src.usageDetails.map((item) => {
+              const detail = toRecord(item);
+              return {
+                name: String(detail.modelCode || detail.name || "usage"),
+                used: toNumber(detail.usage, 0),
+              };
+            })
+          : undefined
+      );
+    }
+  }
+
+  const levelRaw =
+    typeof data.planName === "string"
+      ? data.planName
+      : typeof data.level === "string"
+        ? data.level
+        : "";
+  const planLabel = toTitleCase(levelRaw.replace(/\s*plan$/i, ""));
+  const plan = planLabel
+    ? /^opencode\s+go\b/i.test(planLabel)
+      ? planLabel
+      : `OpenCode Go ${planLabel}`
+    : null;
+
+  return { plan, quotas: orderOpenCodeGoQuotas(quotas) };
+}
+
 /**
  * Bailian (Alibaba Coding Plan) Usage
  * Fetches triple-window quota (5h, weekly, monthly) and returns worst-case.
@@ -867,6 +1048,75 @@ async function getDeepseekUsage(connectionId: string, apiKey: string) {
     };
   } catch (error) {
     return { message: `DeepSeek error: ${(error as Error).message}` };
+  }
+}
+
+/**
+ * OpenCode Go / OpenCode / OpenCode Zen Usage
+ * Delegates to the dedicated opencodeQuotaFetcher and shapes the result into
+ * the standard `{ plan, quotas }` usage response expected by the limits page.
+ *
+ * Three rolling windows are surfaced: $12/5h, $30/wk, $60/mo.
+ */
+async function getOpencodeUsage(connectionId: string, apiKey: string) {
+  if (!apiKey) {
+    return { message: "OpenCode API key not available. Add a key to view usage." };
+  }
+
+  try {
+    const quota = (await fetchOpencodeQuota(connectionId, { apiKey })) as OpencodeTripleWindowQuota | null;
+
+    if (!quota) {
+      return { message: "OpenCode connected. Unable to fetch quota data." };
+    }
+
+    const { window5h, windowWeekly, windowMonthly, limitReached } = quota;
+
+    const quotas: Record<string, UsageQuota> = {};
+
+    // $12 / 5-hour rolling window
+    quotas["window_5h"] = {
+      used: window5h.percentUsed * 12,
+      total: 12,
+      remaining: (1 - window5h.percentUsed) * 12,
+      remainingPercentage: (1 - window5h.percentUsed) * 100,
+      resetAt: window5h.resetAt,
+      unlimited: false,
+      displayName: "$12 / 5-hour",
+      currency: "USD",
+    };
+
+    // $30 / weekly window
+    quotas["window_weekly"] = {
+      used: windowWeekly.percentUsed * 30,
+      total: 30,
+      remaining: (1 - windowWeekly.percentUsed) * 30,
+      remainingPercentage: (1 - windowWeekly.percentUsed) * 100,
+      resetAt: windowWeekly.resetAt,
+      unlimited: false,
+      displayName: "$30 / week",
+      currency: "USD",
+    };
+
+    // $60 / monthly window
+    quotas["window_monthly"] = {
+      used: windowMonthly.percentUsed * 60,
+      total: 60,
+      remaining: (1 - windowMonthly.percentUsed) * 60,
+      remainingPercentage: (1 - windowMonthly.percentUsed) * 100,
+      resetAt: windowMonthly.resetAt,
+      unlimited: false,
+      displayName: "$60 / month",
+      currency: "USD",
+    };
+
+    return {
+      plan: "OpenCode Go",
+      quotas,
+      limitReached,
+    };
+  } catch (error) {
+    return { message: `OpenCode error: ${sanitizeErrorMessage(error)}` };
   }
 }
 
@@ -1110,12 +1360,16 @@ export const USAGE_FETCHER_PROVIDERS = [
   "glm-cn",
   "zai",
   "glmt",
+  "opencode-go",
   "minimax",
   "minimax-cn",
   "crof",
   "bailian-coding-plan",
   "nanogpt",
   "deepseek",
+  "opencode-go",
+  "opencode",
+  "opencode-zen",
 ] as const;
 
 export type UsageFetcherProvider = (typeof USAGE_FETCHER_PROVIDERS)[number];
@@ -1161,6 +1415,8 @@ export async function getUsageForProvider(
         ...(providerSpecificData || {}),
         ...(provider === "glm-cn" ? { apiRegion: "china" } : {}),
       });
+    case "opencode-go":
+      return await getOpenCodeGoUsage(apiKey || "");
     case "minimax":
     case "minimax-cn":
       return await getMiniMaxUsage(apiKey || "", provider);
@@ -1172,6 +1428,10 @@ export async function getUsageForProvider(
       return await getNanoGptUsage(apiKey || "");
     case "deepseek":
       return await getDeepseekUsage(id || "", apiKey || "");
+    case "opencode-go":
+    case "opencode":
+    case "opencode-zen":
+      return await getOpencodeUsage(id || "", apiKey || "");
     default:
       return { message: `Usage API not implemented for ${provider}` };
   }
@@ -1261,9 +1521,17 @@ async function getGitHubUsage(accessToken?: string, providerSpecificData?: JsonR
         quotas,
       };
     } else if (dataRecord.monthly_quotas || dataRecord.limited_user_quotas) {
-      // Free/limited plan format
+      // Free/limited plan format. NOTE (#2876): the upstream field
+      // `limited_user_quotas[name]` is the *remaining* count for the month
+      // (it counts down toward 0 and resets on `limited_user_reset_date`),
+      // NOT the used count. The pre-3.8.6 implementation inverted this and
+      // showed "0% when not used / 100% when fully used" on the dashboard.
+      // Confirmed against three independent upstream parsers:
+      //   - robinebers/openusage  docs/providers/copilot.md (Free Tier table)
+      //   - raycast/extensions    agent-usage/src/copilot/fetcher.ts (inline comment)
+      //   - looplj/axonhub        frontend/src/components/quota-badges.tsx
       const monthlyQuotas = toRecord(dataRecord.monthly_quotas);
-      const usedQuotas = toRecord(dataRecord.limited_user_quotas);
+      const remainingQuotas = toRecord(dataRecord.limited_user_quotas);
       const resetDate = getFieldValue(
         dataRecord,
         "limited_user_reset_date",
@@ -1274,14 +1542,18 @@ async function getGitHubUsage(accessToken?: string, providerSpecificData?: JsonR
 
       const addLimitedQuota = (name: string) => {
         const total = toNumber(getFieldValue(monthlyQuotas, name, name), 0);
-        const used = Math.max(0, toNumber(getFieldValue(usedQuotas, name, name), 0));
         if (total <= 0) return null;
-        const clampedUsed = Math.min(used, total);
+        const remainingRaw = Math.max(
+          0,
+          toNumber(getFieldValue(remainingQuotas, name, name), 0)
+        );
+        const remaining = Math.min(remainingRaw, total);
+        const used = Math.max(total - remaining, 0);
         quotas[name] = {
-          used: clampedUsed,
+          used,
           total,
-          remaining: Math.max(total - clampedUsed, 0),
-          remainingPercentage: clampPercentage(((total - clampedUsed) / total) * 100),
+          remaining,
+          remainingPercentage: clampPercentage((remaining / total) * 100),
           unlimited: false,
           resetAt,
         };
@@ -2644,4 +2916,5 @@ export const __testing = {
   extractCodeAssistOnboardTierId,
   getMiniMaxPlanLabel,
   inferMiniMaxPlanLabelFromTotals,
+  getOpencodeUsage,
 };

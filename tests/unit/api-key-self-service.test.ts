@@ -3,7 +3,7 @@ import assert from "node:assert/strict";
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { DatabaseSync } from "node:sqlite";
+import DatabaseSync from "better-sqlite3";
 
 import { SELF_ACCOUNT_QUOTA_SCOPE, SELF_USAGE_SCOPE } from "../../src/shared/constants/selfServiceScopes.ts";
 import { buildApiKeySelfServiceStatus } from "../../src/lib/usage/apiKeySelfService.ts";
@@ -11,7 +11,7 @@ import { buildApiKeySelfServiceStatus } from "../../src/lib/usage/apiKeySelfServ
 const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..");
 const migrationPath = path.join(
   repoRoot,
-  "src/lib/db/migrations/073_api_key_self_service_usage_scopes.sql"
+  "src/lib/db/migrations/075_api_key_self_service_usage_scopes.sql"
 );
 
 test("self-service scope migration backfills own usage once and preserves explicit account quota opt-in", () => {

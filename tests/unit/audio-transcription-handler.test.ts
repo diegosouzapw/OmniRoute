@@ -39,14 +39,10 @@ test("handleAudioTranscription proxies OpenAI-compatible multipart requests and 
   let captured;
 
   globalThis.fetch = async (url, options = {}) => {
-    const upstreamEntries = Array.from(options.body.entries());
     captured = {
       url: String(url),
       headers: options.headers,
-      entries: upstreamEntries.map(([key, value]) => [
-        key,
-        value instanceof File ? { name: value.name, type: value.type } : value,
-      ]),
+      body: options.body,
     };
 
     return new Response(JSON.stringify({ text: "hello" }), {
@@ -73,15 +69,24 @@ test("handleAudioTranscription proxies OpenAI-compatible multipart requests and 
     assert.equal(response.status, 200);
     assert.equal(captured.url, "https://api.openai.com/v1/audio/transcriptions");
     assert.equal(captured.headers.Authorization, "Bearer openai-key");
-    assert.deepEqual(captured.entries, [
-      ["file", { name: "clip.webm", type: "audio/webm" }],
-      ["model", "whisper-1"],
-      ["language", "pt"],
-      ["prompt", "meeting"],
-      ["response_format", "verbose_json"],
-      ["temperature", "0.1"],
-      ["timestamp_granularities[]", "word"],
-    ]);
+    assert.ok(captured.body instanceof Uint8Array);
+    assert.match(captured.headers["Content-Type"], /^multipart\/form-data; boundary=/);
+
+    const bodyText = new TextDecoder().decode(captured.body);
+    assert.ok(bodyText.includes('name="model"'));
+    assert.ok(bodyText.includes("whisper-1"));
+    assert.ok(bodyText.includes('name="language"'));
+    assert.ok(bodyText.includes("pt"));
+    assert.ok(bodyText.includes('name="prompt"'));
+    assert.ok(bodyText.includes("meeting"));
+    assert.ok(bodyText.includes('name="response_format"'));
+    assert.ok(bodyText.includes("verbose_json"));
+    assert.ok(bodyText.includes('name="temperature"'));
+    assert.ok(bodyText.includes("0.1"));
+    assert.ok(bodyText.includes('name="timestamp_granularities[]"'));
+    assert.ok(bodyText.includes("word"));
+    assert.ok(bodyText.includes('name="file"'));
+    assert.ok(bodyText.includes('filename="clip.webm"'));
     assert.deepEqual(await response.json(), { text: "hello" });
   } finally {
     globalThis.fetch = originalFetch;
@@ -171,10 +176,7 @@ test("handleAudioTranscription normalizes Nvidia responses to text", async () =>
   globalThis.fetch = async (_url, options = {}) => {
     captured = {
       headers: options.headers,
-      entries: Array.from(options.body.entries()).map(([key, value]) => [
-        key,
-        value instanceof File ? { name: value.name, type: value.type } : value,
-      ]),
+      body: options.body,
     };
 
     return new Response(JSON.stringify({ transcript: "nvidia text" }), {
@@ -198,10 +200,14 @@ test("handleAudioTranscription normalizes Nvidia responses to text", async () =>
       });
 
       assert.equal(captured.headers.Authorization, "Bearer nvidia-key");
-      assert.deepEqual(captured.entries, [
-        ["file", { name: "clip.wav", type: "audio/wav" }],
-        ["model", upstreamModel],
-      ]);
+      assert.ok(captured.body instanceof Uint8Array);
+      assert.match(captured.headers["Content-Type"], /^multipart\/form-data; boundary=/);
+
+      const bodyText = new TextDecoder().decode(captured.body);
+      assert.ok(bodyText.includes('name="file"'));
+      assert.ok(bodyText.includes('filename="clip.wav"'));
+      assert.ok(bodyText.includes('name="model"'));
+      assert.ok(bodyText.includes(upstreamModel));
       assert.deepEqual(await response.json(), { text: "nvidia text" });
     }
   } finally {
@@ -461,4 +467,59 @@ test("handleAudioTranscription returns a 500 when upstream fetch throws", async 
   } finally {
     globalThis.fetch = originalFetch;
   }
+});
+
+test("buildMultipartBody produces valid multipart with correct boundary", async () => {
+  const { buildMultipartBody } = await import("../../open-sse/handlers/audioTranscription.ts");
+  const file = new File([Buffer.from("hello")], "audio.wav", { type: "audio/wav" });
+  const { body, contentType } = await buildMultipartBody(file, {
+    model: "whisper-1",
+    language: "en",
+  });
+
+  assert.ok(body instanceof Uint8Array);
+  assert.match(contentType, /^multipart\/form-data; boundary=/);
+
+  const boundary = contentType.split("boundary=")[1];
+  const bodyText = new TextDecoder().decode(body);
+
+  assert.ok(bodyText.startsWith("--" + boundary));
+  assert.ok(bodyText.endsWith("--" + boundary + "--\r\n"));
+  assert.ok(bodyText.includes('name="model"'));
+  assert.ok(bodyText.includes("whisper-1"));
+  assert.ok(bodyText.includes('name="language"'));
+  assert.ok(bodyText.includes("en"));
+  assert.ok(bodyText.includes('name="file"'));
+  assert.ok(bodyText.includes('filename="audio.wav"'));
+  assert.ok(bodyText.includes("Content-Type: audio/wav"));
+  assert.ok(bodyText.includes("hello"));
+});
+
+test("buildMultipartBody sanitizes filename with quotes and newlines", async () => {
+  const { buildMultipartBody } = await import("../../open-sse/handlers/audioTranscription.ts");
+  const rawName = 'bad"name\r\n.wav';
+  const file = new File([Buffer.from("x")], rawName, { type: "audio/wav" });
+  const { body } = await buildMultipartBody(file, { model: "test" });
+
+  const bodyText = new TextDecoder().decode(body);
+  assert.ok(bodyText.includes('filename="bad_name__.wav"'));
+  assert.ok(!bodyText.includes(rawName));
+});
+
+test("buildMultipartBody defaults to audio.wav for unnamed files", async () => {
+  const { buildMultipartBody } = await import("../../open-sse/handlers/audioTranscription.ts");
+  const file = new File([Buffer.from("x")], "", { type: "audio/wav" });
+  const { body } = await buildMultipartBody(file, { model: "test" });
+
+  const bodyText = new TextDecoder().decode(body);
+  assert.ok(bodyText.includes('filename="audio.wav"'));
+});
+
+test("buildMultipartBody uses application/octet-stream for unknown MIME types", async () => {
+  const { buildMultipartBody } = await import("../../open-sse/handlers/audioTranscription.ts");
+  const file = new File([Buffer.from("x")], "data.bin", { type: "" });
+  const { body } = await buildMultipartBody(file, { model: "test" });
+
+  const bodyText = new TextDecoder().decode(body);
+  assert.ok(bodyText.includes("Content-Type: application/octet-stream"));
 });
