@@ -750,6 +750,31 @@ export async function deleteSyncedAvailableModelsForProvider(providerId: string)
   return Number(result.changes || 0);
 }
 
+/**
+ * Prune stale synced available models for a provider, keeping only the specified allowed connection IDs.
+ * Returns the number of keys deleted.
+ */
+export async function pruneStaleSyncedAvailableModelsForProvider(
+  providerId: string,
+  allowedConnectionIds: string[]
+): Promise<number> {
+  const db = getDbInstance();
+  if (allowedConnectionIds.length === 0) {
+    return deleteSyncedAvailableModelsForProvider(providerId);
+  }
+  const placeholders = allowedConnectionIds.map(() => "?").join(",");
+  const keyPrefix = `${providerId}:`;
+  const allowedKeys = allowedConnectionIds.map((id) => `${providerId}:${id}`);
+  const result = db
+    .prepare(
+      `DELETE FROM key_value WHERE namespace = 'syncedAvailableModels' AND key LIKE ? AND key NOT IN (${placeholders})`
+    )
+    .run(`${keyPrefix}%`, ...allowedKeys);
+  backupDbFile("pre-write");
+  return Number(result.changes || 0);
+}
+
+
 export async function updateCustomModel(
   providerId: string,
   modelId: string,
