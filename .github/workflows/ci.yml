@@ -324,7 +324,7 @@ jobs:
           cache: npm
       - run: npm ci
       - name: Download all shard coverage
-        uses: actions/download-artifact@v7
+        uses: actions/download-artifact@v8
         with:
           pattern: coverage-shard-*
           path: coverage-shards/
