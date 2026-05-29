@@ -353,6 +353,7 @@ detection above).
 | `OMNIROUTE_BOOTSTRAPPED`                        | `false`     | `src/app/(dashboard)/dashboard/page.tsx`                    | Set `true` by bootstrap script after initial setup. Controls setup wizard visibility.                                         |
 | `OMNIROUTE_ALLOW_BODY_PROJECT_OVERRIDE`         | `0`         | `open-sse/executors/antigravity.ts`                         | Escape hatch: allow request body to override the Antigravity project field.                                                   |
 | `ANTIGRAVITY_CREDITS`                           | _(unset)_   | `open-sse/services/antigravityCredits.ts`                   | Override Antigravity's advertised remaining credits (testing / forced values).                                                |
+| `AGY_TOKEN_FILE`                                | `~/.gemini/antigravity-cli/antigravity-oauth-token` | `src/app/api/providers/agy-auth/apply-local/route.ts`       | Override the Antigravity CLI (agy) token-file path for the auto-detect local login import.                                    |
 
 ### OAuth CLI Bridge (Internal)
 

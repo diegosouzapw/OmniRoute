@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+### ✨ New Features
+
+- **agy:** add the **Antigravity CLI (`agy`)** as a standalone OAuth provider next to `gemini-cli`/`antigravity`. It reuses the antigravity inference backend (identical Google client, `daily-cloudcode-pa.googleapis.com`) but ships its own model catalog — notably the Claude models the backend exposes (`claude-opus-4-6-thinking`, `claude-sonnet-4-6`) — its own account pool, and connection methods: import the `agy` CLI token file (paste/upload), auto-detect a local CLI login (`~/.gemini/antigravity-cli/antigravity-oauth-token`), browser OAuth, and bulk/ZIP import. New routes: `POST /api/providers/agy-auth/{import,import-bulk,zip-extract,apply-local}`.
+
 ### Breaking Changes
 
 - **proxy-logs:** `GET /api/usage/proxy-logs` now returns `clientIp` instead of `publicIp` for each log entry. External consumers reading `log.publicIp` must update to `log.clientIp`. The underlying SQLite column (`public_ip`) is unchanged, so callers that query the database directly are unaffected (#2880 — thanks @rdself).

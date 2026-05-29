@@ -10,7 +10,7 @@
 import { generatePKCE, generateState } from "./utils/pkce";
 import { PROVIDERS } from "./providers/index";
 
-const GOOGLE_BROWSER_PROVIDERS = new Set(["antigravity", "gemini-cli"]);
+const GOOGLE_BROWSER_PROVIDERS = new Set(["antigravity", "agy", "gemini-cli"]);
 
 type OAuthRedirectEnv = Record<string, string | undefined>;
 
@@ -32,7 +32,8 @@ function hasCustomGoogleOAuthCredentials(
   providerName: string,
   env: OAuthRedirectEnv | null | undefined = process.env
 ): boolean {
-  if (providerName === "antigravity") {
+  if (providerName === "antigravity" || providerName === "agy") {
+    // `agy` reuses the antigravity OAuth client + env overrides.
     return (
       hasValue(env?.ANTIGRAVITY_OAUTH_CLIENT_ID) &&
       hasValue(env?.ANTIGRAVITY_OAUTH_CLIENT_SECRET)

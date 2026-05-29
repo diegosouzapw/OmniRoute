@@ -7,7 +7,7 @@ import Button from "./Button";
 import Input from "./Input";
 import { useCopyToClipboard } from "@/shared/hooks/useCopyToClipboard";
 
-const GOOGLE_OAUTH_PROVIDERS = new Set(["antigravity", "gemini-cli"]);
+const GOOGLE_OAUTH_PROVIDERS = new Set(["antigravity", "agy", "gemini-cli"]);
 
 /** Providers that use a local callback server on a random port (PKCE browser flow). */
 const PKCE_CALLBACK_SERVER_PROVIDERS = new Set(["codex", "windsurf", "devin-cli"]);

@@ -89,6 +89,20 @@ export const OAUTH_PROVIDERS = {
     authHint:
       "Uses Gemini CLI OAuth / Cloud Code credentials. Pro models require an eligible Google account or paid plan.",
   },
+  agy: {
+    id: "agy",
+    alias: "agy",
+    name: "Antigravity CLI",
+    icon: "terminal",
+    color: "#F59E0B",
+    textIcon: "AGY",
+    website: "https://antigravity.google",
+    subscriptionRisk: true,
+    riskNoticeVariant: "oauth",
+    hasFree: true,
+    authHint:
+      "Import your Antigravity CLI (`agy`) login (paste/upload its token file), auto-detect a local CLI login, or sign in with Google. Shares the Antigravity backend (incl. Claude models).",
+  },
   kiro: {
     id: "kiro",
     alias: "kr",
@@ -2878,6 +2892,7 @@ export const ID_TO_ALIAS = Object.values(AI_PROVIDERS).reduce<Record<string, str
 // Providers that support usage/quota API
 export const USAGE_SUPPORTED_PROVIDERS = [
   "antigravity",
+  "agy",
   "gemini-cli",
   "kiro",
   "amazon-q",

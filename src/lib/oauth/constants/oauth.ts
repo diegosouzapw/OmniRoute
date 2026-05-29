@@ -187,6 +187,34 @@ export const ANTIGRAVITY_CONFIG = {
   loadCodeAssistClientMetadata: getAntigravityLoadCodeAssistClientMetadata(),
 };
 
+// Antigravity CLI (`agy`) OAuth Configuration.
+// `agy` is the standalone Antigravity CLI; it authenticates against the EXACT same Google
+// consumer-OAuth client as ANTIGRAVITY_CONFIG (the client_id was verified byte-for-byte
+// identical: 1071006060591-tmhssin2h21lcre235vtolojh4g403ep). It reuses the antigravity
+// public credentials and Code Assist endpoints — no new embedded secret — and the same
+// loopback-redirect browser flow (popup locally; paste-the-callback-URL on remote/headless),
+// so the entire existing antigravity OAuth UI machinery applies unchanged.
+export const AGY_CONFIG = {
+  clientId: resolvePublicCred("antigravity_id", "ANTIGRAVITY_OAUTH_CLIENT_ID"),
+  clientSecret: resolvePublicCred("antigravity_alt", "ANTIGRAVITY_OAUTH_CLIENT_SECRET"),
+  authorizeUrl: "https://accounts.google.com/o/oauth2/v2/auth",
+  tokenUrl: "https://oauth2.googleapis.com/token",
+  userInfoUrl: "https://www.googleapis.com/oauth2/v1/userinfo",
+  scopes: [...ANTIGRAVITY_CONFIG.scopes],
+  // Reuse the antigravity Code Assist endpoints (identical backend).
+  apiEndpoint: ANTIGRAVITY_CONFIG.apiEndpoint,
+  apiVersion: ANTIGRAVITY_CONFIG.apiVersion,
+  loadCodeAssistEndpoints: [...ANTIGRAVITY_CONFIG.loadCodeAssistEndpoints],
+  onboardUserEndpoints: [...ANTIGRAVITY_CONFIG.onboardUserEndpoints],
+  fetchAvailableModelsEndpoints: [...ANTIGRAVITY_CONFIG.fetchAvailableModelsEndpoints],
+  loadCodeAssistEndpoint: ANTIGRAVITY_CONFIG.loadCodeAssistEndpoint,
+  onboardUserEndpoint: ANTIGRAVITY_CONFIG.onboardUserEndpoint,
+  fetchAvailableModelsEndpoint: ANTIGRAVITY_CONFIG.fetchAvailableModelsEndpoint,
+  loadCodeAssistUserAgent: ANTIGRAVITY_CONFIG.loadCodeAssistUserAgent,
+  loadCodeAssistApiClient: ANTIGRAVITY_CONFIG.loadCodeAssistApiClient,
+  loadCodeAssistClientMetadata: ANTIGRAVITY_CONFIG.loadCodeAssistClientMetadata,
+};
+
 // OpenAI OAuth Configuration (Authorization Code Flow with PKCE)
 // Re-uses CODEX_CONFIG.clientId to avoid duplication — same provider, different originator.
 // IMPORTANT: same Auth0 backend as Codex → same multi-account session-takeover
@@ -375,6 +403,7 @@ export const PROVIDERS = {
   QWEN: "qwen",
   QODER: "qoder",
   ANTIGRAVITY: "antigravity",
+  AGY: "agy",
   KIMI_CODING: "kimi-coding",
   OPENAI: "openai",
   GITHUB: "github",

@@ -8,6 +8,7 @@
 
 import { ANTIGRAVITY_BASE_URLS } from "./antigravityUpstream.ts";
 import { ANTIGRAVITY_PUBLIC_MODELS } from "./antigravityModelAliases.ts";
+import { AGY_PUBLIC_MODELS } from "./agyModels.ts";
 import {
   ANTHROPIC_BETA_API_KEY,
   ANTHROPIC_BETA_CLAUDE_OAUTH,
@@ -908,6 +909,34 @@ export const REGISTRY: Record<string, RegistryEntry> = {
       clientSecretDefault: resolvePublicCred("antigravity_alt"),
     },
     models: [...ANTIGRAVITY_PUBLIC_MODELS],
+    passthroughModels: true,
+  },
+
+  // Antigravity CLI (`agy`): standalone provider that reuses the antigravity executor,
+  // format and backend (identical client_id + daily-cloudcode-pa endpoint), but ships its
+  // own model catalog (incl. Claude) and its own account pool / OAuth credential import.
+  agy: {
+    id: "agy",
+    alias: "agy",
+    format: "antigravity",
+    executor: "antigravity",
+    baseUrls: [...ANTIGRAVITY_BASE_URLS],
+    urlBuilder: (base, model, stream) => {
+      const path = stream
+        ? "/v1internal:streamGenerateContent?alt=sse"
+        : "/v1internal:generateContent";
+      return `${base}${path}`;
+    },
+    authType: "oauth",
+    authHeader: "bearer",
+    headers: getAntigravityProviderHeaders(),
+    oauth: {
+      clientIdEnv: "ANTIGRAVITY_OAUTH_CLIENT_ID",
+      clientIdDefault: resolvePublicCred("antigravity_id"),
+      clientSecretEnv: "ANTIGRAVITY_OAUTH_CLIENT_SECRET",
+      clientSecretDefault: resolvePublicCred("antigravity_alt"),
+    },
+    models: [...AGY_PUBLIC_MODELS],
     passthroughModels: true,
   },
 
