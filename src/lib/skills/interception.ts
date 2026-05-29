@@ -231,6 +231,15 @@ export async function handleToolCallExecution(
   // registered custom skill. Unknown tool names are forwarded untouched so
   // client-native tools (Bash, Read, etc.) are not turned into Skill-not-found
   // tool_result blocks appended back into the assistant response. See #2815.
+
+  // Ensure the registry cache is warm for this apiKeyId before filtering.
+  // isRegisteredCustomSkill() reads registeredSkills synchronously, so on a
+  // cold/fresh process a skill that exists only in the DB would be missed
+  // (false negative → silently skipped). Mirror the pattern used in
+  // open-sse/mcp-server/tools/skillTools.ts. loadFromDatabase() is a no-op
+  // when the cache is already warm (TTL = 60 s), so repeated calls are cheap.
+  await skillRegistry.loadFromDatabase(context.apiKeyId);
+
   const toolCalls = extractToolCalls(response, modelId).filter((call) => {
     if (typeof call?.name !== "string" || !call.name) return false;
     if (resolveBuiltinHandlerName(call.name, context)) return true;

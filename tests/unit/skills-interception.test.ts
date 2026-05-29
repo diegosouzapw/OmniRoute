@@ -304,3 +304,32 @@ test("handleToolCallExecution intercepts a registered skill alongside an unregis
     },
   ]);
 });
+
+test("handleToolCallExecution loads registry from DB on cold cache (covers loadFromDatabase fix)", async () => {
+  // Skills are in the DB (registered in beforeEach) but we evict the in-memory
+  // cache to simulate a cold/fresh process. Without the loadFromDatabase() call
+  // at the top of handleToolCallExecution, isRegisteredCustomSkill() would
+  // return false (false negative) and the skill would be silently skipped.
+  skillRegistry["registeredSkills"].clear();
+  skillRegistry["versionCache"].clear();
+  skillRegistry.invalidateCache();
+
+  const result = await handleToolCallExecution(
+    {
+      content: [
+        { type: "tool_use", id: "tool-skill", name: "lookup@1.0.0", input: { id: "cold" } },
+      ],
+    },
+    "claude-3-7-sonnet",
+    executionContext
+  );
+
+  assert.deepEqual(result.content, [
+    { type: "tool_use", id: "tool-skill", name: "lookup@1.0.0", input: { id: "cold" } },
+    {
+      type: "tool_result",
+      tool_use_id: "tool-skill",
+      content: '{"record":"resolved:cold"}',
+    },
+  ]);
+});
