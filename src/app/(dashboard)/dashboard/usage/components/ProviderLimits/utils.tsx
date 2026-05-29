@@ -246,6 +246,7 @@ export function parseQuotaData(provider, data) {
       case "glm":
       case "glm-cn":
       case "glmt":
+      case "opencode-go":
         if (data.quotas) {
           Object.entries(data.quotas).forEach(([name, quota]: [string, any]) => {
             normalizedQuotas.push(
@@ -403,7 +404,12 @@ export function parseQuotaData(provider, data) {
     });
   }
 
-  if (providerId === "glm" || providerId === "glm-cn" || providerId === "glmt") {
+  if (
+    providerId === "glm" ||
+    providerId === "glm-cn" ||
+    providerId === "glmt" ||
+    providerId === "opencode-go"
+  ) {
     normalizedQuotas.sort((a, b) => {
       const orderA = GLM_QUOTA_ORDER[a.name] ?? 99;
       const orderB = GLM_QUOTA_ORDER[b.name] ?? 99;

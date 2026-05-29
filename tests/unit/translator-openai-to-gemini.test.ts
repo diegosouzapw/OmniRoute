@@ -47,22 +47,31 @@ function getFunctionDeclarationParameters(parameters: unknown) {
 }
 
 test("OpenAI -> Gemini helper converts text, images and files into Gemini parts", () => {
-  const parts = convertOpenAIContentToParts([
-    { type: "text", text: "Hello" },
-    { type: "image_url", image_url: { url: "data:image/png;base64,abc" } },
-    { type: "file_url", file_url: { url: "data:application/pdf;base64,Zm9v" } },
-    { type: "document", document: { url: "data:text/plain;base64,YmFy" } },
-    { type: "image_url", image_url: { url: "https://example.com/skip.png" } },
-    { type: "file_url", file_url: { url: "not-a-data-url" } },
-  ]);
+  // Suppress warn emitted for the remote https://example.com/skip.png URL in the
+  // fixture below — that warn is expected and tested separately. Suppressing here
+  // keeps stderr clean so CI does not flag spurious output.
+  const originalWarn = console.warn;
+  console.warn = () => {};
+  try {
+    const parts = convertOpenAIContentToParts([
+      { type: "text", text: "Hello" },
+      { type: "image_url", image_url: { url: "data:image/png;base64,abc" } },
+      { type: "file_url", file_url: { url: "data:application/pdf;base64,Zm9v" } },
+      { type: "document", document: { url: "data:text/plain;base64,YmFy" } },
+      { type: "image_url", image_url: { url: "https://example.com/skip.png" } },
+      { type: "file_url", file_url: { url: "not-a-data-url" } },
+    ]);
 
-  assert.deepEqual(parts, [
-    { text: "Hello" },
-    { inlineData: { mimeType: "image/png", data: "abc" } },
-    { inlineData: { mimeType: "application/pdf", data: "Zm9v" } },
-    { inlineData: { mimeType: "text/plain", data: "YmFy" } },
-  ]);
-  assert.deepEqual(convertOpenAIContentToParts("raw text"), [{ text: "raw text" }]);
+    assert.deepEqual(parts, [
+      { text: "Hello" },
+      { inlineData: { mimeType: "image/png", data: "abc" } },
+      { inlineData: { mimeType: "application/pdf", data: "Zm9v" } },
+      { inlineData: { mimeType: "text/plain", data: "YmFy" } },
+    ]);
+    assert.deepEqual(convertOpenAIContentToParts("raw text"), [{ text: "raw text" }]);
+  } finally {
+    console.warn = originalWarn;
+  }
 });
 
 test("OpenAI -> Gemini helper cleans complex JSON Schema structures for Gemini compatibility", () => {
@@ -620,7 +629,7 @@ test("OpenAI -> Antigravity wraps Gemini requests in a Cloud Code envelope", () 
   });
 });
 
-test("OpenAI -> Antigravity Gemini stringifies signature-less historical tool calls", () => {
+test("OpenAI -> Antigravity Gemini preserves signature-less historical tool calls as inert text", () => {
   const result = openaiToAntigravityRequest(
     "gemini-3.5-flash-low",
     {
@@ -662,9 +671,18 @@ test("OpenAI -> Antigravity Gemini stringifies signature-less historical tool ca
     modelTurn.parts.some(
       (part) =>
         typeof part.text === "string" &&
-        part.text.includes("[Tool call: default_api:todowrite_ide]")
+        part.text.includes("Historical tool-call record only") &&
+        part.text.includes("Tool name: default_api:todowrite_ide") &&
+        part.text.includes('Tool arguments JSON: {"todos":[]}')
     ),
-    "expected signature-less tool call to be preserved as text"
+    "expected signature-less tool call to be preserved as inert text"
+  );
+  assert.equal(
+    modelTurn.parts.some(
+      (part) => typeof part.text === "string" && part.text.includes("[Tool call:")
+    ),
+    false,
+    "signature-less historical call must not use executable textual tool-call markers"
   );
   assert.equal(
     modelTurn.parts.some((part) => part.functionCall),
@@ -678,14 +696,79 @@ test("OpenAI -> Antigravity Gemini stringifies signature-less historical tool ca
       content.parts.some(
         (part) =>
           typeof part.text === "string" &&
-          part.text.includes("[Tool response: default_api:todowrite_ide]")
+          part.text.includes("Historical tool-response record only") &&
+          part.text.includes("Tool name: default_api:todowrite_ide") &&
+          part.text.includes("Tool result: []")
       )
   );
-  assert.ok(toolTurn, "expected signature-less tool response to be preserved as text");
+  assert.ok(toolTurn, "expected signature-less tool response to be preserved as inert text");
+  assert.equal(
+    toolTurn.parts.some(
+      (part) => typeof part.text === "string" && part.text.includes("[Tool response:")
+    ),
+    false,
+    "signature-less historical response must not use executable textual tool-response markers"
+  );
   assert.equal(
     toolTurn.parts.some((part) => part.functionResponse),
     false,
     "signature-less historical response must not be emitted as native functionResponse"
+  );
+});
+
+test("OpenAI -> Antigravity preserves multiple signature-less historical tool responses as text", () => {
+  const result = openaiToAntigravityRequest(
+    "gemini-3.5-flash-low",
+    {
+      messages: [
+        { role: "user", content: "Inspect OmniRoute config" },
+        {
+          role: "assistant",
+          tool_calls: [
+            {
+              id: "call_missing_db",
+              type: "function",
+              function: { name: "terminal", arguments: '{"command":"cat data/db.json"}' },
+            },
+            {
+              id: "call_list_dir",
+              type: "function",
+              function: { name: "terminal", arguments: '{"command":"ls ~/.omniroute"}' },
+            },
+          ],
+        },
+        { role: "tool", tool_call_id: "call_missing_db", content: "data/db.json: No such file" },
+        { role: "tool", tool_call_id: "call_list_dir", content: "storage.sqlite" },
+      ],
+      tools: [
+        {
+          type: "function",
+          function: {
+            name: "terminal",
+            parameters: { type: "object", properties: {} },
+          },
+        },
+      ],
+    },
+    false,
+    { projectId: "proj-antigravity-gemini" } as any
+  );
+
+  const text = JSON.stringify(result.request.contents);
+  assert.ok(text.includes("Historical tool-call record only"), "expected signature-less calls as text");
+  assert.ok(text.includes("Tool name: terminal"), "expected signature-less calls as text");
+  assert.ok(
+    text.includes("data/db.json: No such file"),
+    "expected first signature-less tool response as text"
+  );
+  assert.ok(
+    text.includes("storage.sqlite"),
+    "expected second signature-less tool response as text"
+  );
+  assert.equal(
+    result.request.contents.some((content) => content.parts.some((part) => part.functionResponse)),
+    false,
+    "signature-less historical responses must not be emitted as native functionResponse"
   );
 });
 
@@ -934,6 +1017,75 @@ test("convertOpenAIContentToParts handles input_file file_url data URI (#2515)",
   assert.ok(inline, "input_file with file_url data URI must produce an inlineData part");
   assert.equal((inline as any).inlineData.data, "QUJD");
   assert.equal((inline as any).inlineData.mimeType, "application/pdf");
+});
+
+test("convertOpenAIContentToParts handles rec.image with nested {url} as base64 data URI (#2807)", () => {
+  const parts = convertOpenAIContentToParts([
+    { type: "text", text: "What's this?" },
+    { type: "image", image: { url: "data:image/png;base64,iVBORw0KGgo=" } },
+  ]);
+  const inline = parts.find((p) => (p as any).inlineData);
+  assert.ok(
+    inline,
+    "rec.image with nested {url} must produce an inlineData part (was previously silently dropped)"
+  );
+  assert.equal((inline as any).inlineData.data, "iVBORw0KGgo=");
+  assert.equal((inline as any).inlineData.mimeType, "image/png");
+});
+
+test("convertOpenAIContentToParts warns and drops remote http(s) URLs (#2807 - until async refactor)", () => {
+  const originalWarn = console.warn;
+  const warnings: string[] = [];
+  console.warn = (...args: unknown[]) => {
+    warnings.push(args.map(String).join(" "));
+  };
+  try {
+    const parts = convertOpenAIContentToParts([
+      { type: "image_url", image_url: { url: "https://example.com/cat.png" } },
+    ]);
+    const inline = parts.find((p) => (p as any).inlineData);
+    assert.equal(
+      inline,
+      undefined,
+      "remote URL still cannot be encoded into inlineData (sync function) - that's expected"
+    );
+    assert.ok(
+      warnings.some((w) => /Dropped remote image URL/i.test(w) && /example\.com\/cat\.png/.test(w)),
+      `expected a warning naming the dropped URL, got: ${JSON.stringify(warnings)}`
+    );
+  } finally {
+    console.warn = originalWarn;
+  }
+});
+
+test("convertOpenAIContentToParts warns and drops rec.image remote http(s) URLs (#2807)", () => {
+  // rec.image is the alternative content shape emitted by MCP tool wrappers and
+  // LangChain shim layers. Remote URLs in this shape must also hit the warn-and-drop
+  // branch rather than being silently ignored.
+  const originalWarn = console.warn;
+  const warnings: string[] = [];
+  console.warn = (...args: unknown[]) => {
+    warnings.push(args.map(String).join(" "));
+  };
+  try {
+    const parts = convertOpenAIContentToParts([
+      { type: "image", image: { url: "https://example.com/remote.png" } },
+    ]);
+    const inline = parts.find((p) => (p as any).inlineData);
+    assert.equal(
+      inline,
+      undefined,
+      "rec.image remote URL must not produce an inlineData part (sync function cannot fetch)"
+    );
+    assert.ok(
+      warnings.some(
+        (w) => /Dropped remote image URL/i.test(w) && /example\.com\/remote\.png/.test(w)
+      ),
+      `expected a warning naming the dropped rec.image URL, got: ${JSON.stringify(warnings)}`
+    );
+  } finally {
+    console.warn = originalWarn;
+  }
 });
 
 // Regression for #2504: with credentials._signatureNamespace set, a previously-cached

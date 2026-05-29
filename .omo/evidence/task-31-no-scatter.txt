@@ -1,0 +1,47 @@
+Task 31: Verify all DB settings consolidated (no scatter)
+==========================================================
+
+VERIFICATION RESULTS:
+
+1. CacheSettingsTab.tsx Status:
+   ✓ DELETED - File not found at src/app/(dashboard)/dashboard/settings/components/CacheSettingsTab.tsx
+
+2. Database Settings Consolidation:
+   ✓ All cache settings moved to SystemStorageTab.tsx:
+     - semanticCacheEnabled
+     - semanticCacheMaxSize
+     - semanticCacheTTL
+     - promptCacheEnabled
+     - promptCacheStrategy
+     - alwaysPreserveClientCache
+
+3. Retention Settings:
+   ✓ All retention settings in SystemStorageTab:
+     - quotaSnapshots (default: 7 days)
+     - rawDataRetentionDays (default: 7 days)
+     - memoryRetentionDays (default: 30 days)
+     - Log retention policies
+     - Backup retention policies
+
+4. Logs Settings:
+   ✓ All log settings in SystemStorageTab:
+     - detailed_logs_enabled
+     - call_log_pipeline_enabled
+     - maxDetailSizeKb
+     - ringBufferSize
+
+5. No Scattered Settings Found:
+   ✓ Grep search for database settings outside SystemStorageTab returned only:
+     - API route implementations (expected)
+     - Test files (expected)
+     - No UI tabs with scattered settings
+
+6. Database Persistence:
+   ✓ All settings persisted in key_value table:
+     - quotaSnapshots: 3
+     - rawDataRetentionDays: 7
+     - memoryRetentionDays: 30
+     - detailed_logs_enabled: 0
+     - call_log_pipeline_enabled: 0
+
+CONCLUSION: ✓ PASS - All database-related settings consolidated into SystemStorageTab

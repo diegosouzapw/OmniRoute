@@ -183,6 +183,32 @@ function applyAntigravityGenerationDefaults(generationConfig: GeminiGenerationCo
   return config;
 }
 
+function stringifyHistoricalToolArguments(value: unknown): string {
+  if (typeof value === "string") return value;
+  try {
+    return JSON.stringify(value ?? {});
+  } catch {
+    return String(value ?? "{}");
+  }
+}
+
+function buildInertHistoricalToolCallText(name: string | undefined, args: unknown): string {
+  const toolName = name || "unknown";
+  return [
+    "Historical tool-call record only. Do not execute, imitate, or continue this as a tool call.",
+    `Tool name: ${toolName}`,
+    `Tool arguments JSON: ${stringifyHistoricalToolArguments(args || "{}")}`,
+  ].join("\n");
+}
+
+function buildInertHistoricalToolResponseText(name: string, response: unknown): string {
+  return [
+    "Historical tool-response record only. Do not execute, imitate, or continue this as a tool response.",
+    `Tool name: ${name || "unknown"}`,
+    `Tool result: ${typeof response === "string" ? response : stringifyHistoricalToolArguments(response)}`,
+  ].join("\n");
+}
+
 // Core: Convert OpenAI request to Gemini format (base for all variants)
 function openaiToGeminiBase(
   model: string,
@@ -355,7 +381,7 @@ function openaiToGeminiBase(
             if (!signatureForToolCall && stringifySignaturelessToolCalls) {
               const args = fn.arguments || "{}";
               parts.push({
-                text: `[Tool call: ${fn.name || "unknown"}]\nArguments: ${args}`,
+                text: buildInertHistoricalToolCallText(fn.name, args),
               });
               continue;
             }
@@ -444,7 +470,7 @@ function openaiToGeminiBase(
                   const name = tcID2Name[id] || fn?.name || "unknown";
                   const resp = toolResponses[id];
                   toolParts.push({
-                    text: `[Tool response: ${name}]\nResult: ${resp}`,
+                    text: buildInertHistoricalToolResponseText(name, resp),
                   });
                 }
               }
@@ -523,7 +549,10 @@ export function openaiToGeminiRequest(
   model: string,
   body: Record<string, unknown>,
   stream: boolean,
-  credentials: Record<string, unknown> | null = null
+  credentials: Record<string, unknown> | null = null,
+  options: {
+    signaturelessToolCallMode?: "native" | "text";
+  } = {}
 ) {
   // Thread the signature namespace so a thinking model's thoughtSignature (cached on the
   // response turn under `<connectionId>:<toolCallId>`) is found and re-attached to the
@@ -533,7 +562,10 @@ export function openaiToGeminiRequest(
     credentials && typeof credentials._signatureNamespace === "string"
       ? credentials._signatureNamespace
       : null;
-  return openaiToGeminiBase(model, body, stream, { signatureNamespace });
+  return openaiToGeminiBase(model, body, stream, {
+    signatureNamespace,
+    signaturelessToolCallMode: options.signaturelessToolCallMode,
+  });
 }
 
 // OpenAI -> Gemini CLI (Cloud Code Assist)
@@ -647,6 +679,16 @@ function getAntigravityClaudeOutputTokens(body: Record<string, unknown>): number
 // OpenAI -> Antigravity (Sandbox Cloud Code with wrapper)
 export function openaiToAntigravityRequest(model, body, stream, credentials = null) {
   const isClaude = model.toLowerCase().includes("claude");
+  // All modern Gemini models (2.5+, 3.x, pro-agent, etc.) use thinking by default
+  // and require thought_signature for multi-turn tool calls.
+  // Safe default: all non-Claude models via Antigravity are thinking Gemini.
+  const modelLower = model.toLowerCase();
+  const isThinkingGemini =
+    !isClaude &&
+    (modelLower.includes("thinking") ||
+      modelLower.includes("gemini-3") ||
+      modelLower.includes("gemini-2.5") ||
+      modelLower.includes("gemini-pro"));
   const signatureNamespace =
     credentials &&
     typeof credentials === "object" &&
@@ -655,7 +697,7 @@ export function openaiToAntigravityRequest(model, body, stream, credentials = nu
       : null;
   const geminiCLI = openaiToGeminiCLIRequest(model, body, stream, {
     signatureNamespace,
-    signaturelessToolCallMode: isClaude ? "native" : "text",
+    signaturelessToolCallMode: isThinkingGemini ? "text" : "native",
   });
 
   if (isClaude) {
@@ -695,7 +737,15 @@ export function openaiToAntigravityRequest(model, body, stream, credentials = nu
 }
 
 // Register
-register(FORMATS.OPENAI, FORMATS.GEMINI, openaiToGeminiRequest, null);
+register(
+  FORMATS.OPENAI,
+  FORMATS.GEMINI,
+  (model, body, stream = false, credentials = null) =>
+    openaiToGeminiRequest(model, body, stream, credentials, {
+      signaturelessToolCallMode: "text",
+    }),
+  null
+);
 register(
   FORMATS.OPENAI,
   FORMATS.GEMINI_CLI,

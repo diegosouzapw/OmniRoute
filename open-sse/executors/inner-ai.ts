@@ -537,6 +537,10 @@ async function collectContent(upstream: ReadableStream): Promise<string> {
 // ── Executor ──────────────────────────────────────────────────────────────────
 
 export class InnerAiExecutor extends BaseExecutor {
+  constructor() {
+    super("inner-ai", { id: "inner-ai", baseUrl: "https://chatapi.innerai.com" });
+  }
+
   async execute(input: ExecuteInput) {
     const { body, credentials, signal, stream: wantStream } = input;
     const bodyObj = (body || {}) as Record<string, unknown>;

@@ -230,16 +230,36 @@ function formatMessagesForPrompt(messages: MessageLike[]): string {
     .join("\n\n");
 }
 
-function selectMessagesForSummary(messages: MessageLike[], maxMessages: number): MessageLike[] {
-  const recentMessages = messages.slice(-maxMessages);
+export function selectMessagesForSummary(messages: MessageLike[], maxMessages: number): MessageLike[] {
+  const validMessages = messages.filter((m) => m && typeof m === "object");
+  const system = validMessages.filter(
+    (m) => typeof m.role === "string" && (m.role === "system" || m.role === "developer")
+  );
+  const nonSystem = validMessages.filter(
+    (m) => typeof m.role !== "string" || (m.role !== "system" && m.role !== "developer")
+  );
+
+  const recentMessages = [...system, ...nonSystem.slice(-maxMessages)];
   let working = [...recentMessages];
 
-  while (working.length > 1) {
+  while (working.length > system.length + 1) {
     const history = formatMessagesForPrompt(working);
     if (estimateTokens(history) <= MAX_HISTORY_TOKENS_FOR_SUMMARY) {
       return working;
     }
-    working = working.slice(1);
+    working = [...system, ...working.slice(system.length + 1)];
+  }
+
+  const fallbackHistory = formatMessagesForPrompt(working);
+  if (estimateTokens(fallbackHistory) > MAX_HISTORY_TOKENS_FOR_SUMMARY) {
+    // If there are system messages, return them so the caller can still produce context.
+    // If there are no system messages (system=[]), fall back to the single most-recent
+    // non-system message rather than returning [] which would silently drop the handoff.
+    if (system.length > 0) {
+      return system;
+    }
+    const lastNonSystem = nonSystem[nonSystem.length - 1];
+    return lastNonSystem ? [lastNonSystem] : [];
   }
 
   return working;

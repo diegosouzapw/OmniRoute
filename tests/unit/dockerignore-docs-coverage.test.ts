@@ -25,7 +25,7 @@ const DOCKERIGNORE = path.resolve(REPO_ROOT, ".dockerignore");
 const REQUIRED_DOCS = [
   "docs/README.md",
   "docs/PROVIDERS.md",
-  "docs/AUTO-COMBO.md",
+  "docs/routing/AUTO-COMBO.md",
   "docs/guides/SETUP_GUIDE.md",
   "docs/guides/TROUBLESHOOTING.md",
   "docs/reference/API_REFERENCE.md",
@@ -154,7 +154,7 @@ test("#2348 .dockerignore keeps every doc the in-product viewer needs", () => {
 
 test("#2348 .dockerignore still excludes the heavy i18n tree", () => {
   const parsed = parseDockerignore(fs.readFileSync(DOCKERIGNORE, "utf8"));
-  const heavy = "docs/i18n/pt-BR/docs/AUTO-COMBO.md";
+  const heavy = "docs/i18n/pt-BR/docs/routing/AUTO-COMBO.md";
   assert.ok(
     isIgnored(heavy, parsed),
     `${heavy} should be excluded from Docker context but is not — image size will balloon`

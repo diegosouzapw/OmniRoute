@@ -124,6 +124,356 @@ test("createSSEStream passthrough normalizes tool-call finishes and reports the 
   assert.equal(onCompletePayload.clientPayload._streamed, true);
 });
 
+test("createSSEStream passthrough converts textual tool-call content into structured call log tool_calls", async () => {
+  let onCompletePayload = null;
+  const toolArgs = JSON.stringify({
+    command: 'sqlite3 /root/.o\u200dmniroute/omniroute.db ".tables"',
+  });
+  const toolText = `[Tool call: terminal]\nArguments: ${toolArgs}`;
+
+  const text = await readTransformed(
+    [
+      `data: ${JSON.stringify({
+        id: "chatcmpl_textual_tool",
+        object: "chat.completion.chunk",
+        created: 1,
+        model: "antigravity/gemini-3.5-flash-low",
+        choices: [{ index: 0, delta: { role: "assistant", content: toolText } }],
+      })}\n\n`,
+      `data: ${JSON.stringify({
+        id: "chatcmpl_textual_tool",
+        object: "chat.completion.chunk",
+        created: 1,
+        model: "antigravity/gemini-3.5-flash-low",
+        choices: [{ index: 0, delta: {}, finish_reason: "stop" }],
+      })}\n\n`,
+    ],
+    {
+      mode: "passthrough",
+      sourceFormat: FORMATS.OPENAI,
+      provider: "antigravity",
+      model: "antigravity/gemini-3.5-flash-low",
+      body: {
+        messages: [{ role: "user", content: "inspect db" }],
+      },
+      onComplete(payload) {
+        onCompletePayload = payload;
+      },
+    }
+  );
+
+  assert.equal(onCompletePayload.status, 200);
+  assert.match(text, /"tool_calls":\[/);
+  assert.match(text, /"name":"terminal"/);
+  assert.doesNotMatch(text, /"content":"\[Tool call: terminal/);
+  const choice = onCompletePayload.responseBody.choices[0];
+  assert.equal(choice.finish_reason, "tool_calls");
+  assert.equal(choice.message.content, null);
+  assert.equal(choice.message.tool_calls[0].function.name, "terminal");
+  assert.deepEqual(JSON.parse(choice.message.tool_calls[0].function.arguments), {
+    command: 'sqlite3 /root/.omniroute/omniroute.db ".tables"',
+  });
+  assert.doesNotMatch(text, /\[Tool call: terminal\]/);
+});
+
+test("createSSEStream passthrough converts split textual tool-call content at completion", async () => {
+  let onCompletePayload = null;
+  const splitToolArgs = JSON.stringify({
+    command: 'sqlite3 ~/.o\u200dmniroute/o\u200dmniroute.db ".tables"',
+  });
+  const chunks = ["[Tool call: terminal]\n", `Arguments: ${splitToolArgs}`];
+
+  const text = await readTransformed(
+    [
+      `data: ${JSON.stringify({
+        id: "chatcmpl_split_textual_tool",
+        object: "chat.completion.chunk",
+        created: 1,
+        model: "antigravity/gemini-3.5-flash-low",
+        choices: [{ index: 0, delta: { role: "assistant", content: chunks[0] } }],
+      })}\n\n`,
+      `data: ${JSON.stringify({
+        id: "chatcmpl_split_textual_tool",
+        object: "chat.completion.chunk",
+        created: 1,
+        model: "antigravity/gemini-3.5-flash-low",
+        choices: [{ index: 0, delta: { content: chunks[1] } }],
+      })}\n\n`,
+      `data: ${JSON.stringify({
+        id: "chatcmpl_split_textual_tool",
+        object: "chat.completion.chunk",
+        created: 1,
+        model: "antigravity/gemini-3.5-flash-low",
+        choices: [{ index: 0, delta: {}, finish_reason: "stop" }],
+      })}\n\n`,
+    ],
+    {
+      mode: "passthrough",
+      sourceFormat: FORMATS.OPENAI,
+      provider: "antigravity",
+      model: "antigravity/gemini-3.5-flash-low",
+      body: { messages: [{ role: "user", content: "inspect db" }] },
+      onComplete(payload) {
+        onCompletePayload = payload;
+      },
+    }
+  );
+
+  assert.match(text, /"tool_calls":\[/);
+  assert.match(text, /"name":"terminal"/);
+  assert.doesNotMatch(text, /"content":"\[Tool call: terminal/);
+  const choice = onCompletePayload.responseBody.choices[0];
+  assert.equal(choice.finish_reason, "tool_calls");
+  assert.equal(choice.message.content, null);
+  assert.equal(choice.message.tool_calls[0].function.name, "terminal");
+  assert.deepEqual(JSON.parse(choice.message.tool_calls[0].function.arguments), {
+    command: 'sqlite3 ~/.omniroute/omniroute.db ".tables"',
+  });
+  assert.doesNotMatch(text, /\[Tool call: terminal\]/);
+});
+
+test("createSSEStream passthrough buffers fragmented textual tool-call JSON before emitting", async () => {
+  let onCompletePayload = null;
+  const text = await readTransformed(
+    [
+      `data: ${JSON.stringify({
+        id: "chatcmpl_fragmented_live_shape",
+        object: "chat.completion.chunk",
+        created: 1,
+        model: "MainAgent",
+        choices: [
+          {
+            index: 0,
+            delta: { role: "assistant", content: '[Tool call: terminal]\nArguments: {"' },
+          },
+        ],
+      })}\n\n`,
+      `data: ${JSON.stringify({
+        id: "chatcmpl_fragmented_live_shape",
+        object: "chat.completion.chunk",
+        created: 1,
+        model: "MainAgent",
+        choices: [
+          {
+            index: 0,
+            delta: { content: 'command":"echo live_shape","timeout":10}' },
+          },
+        ],
+      })}\n\n`,
+      `data: ${JSON.stringify({
+        id: "chatcmpl_fragmented_live_shape",
+        object: "chat.completion.chunk",
+        created: 1,
+        model: "MainAgent",
+        choices: [{ index: 0, delta: {}, finish_reason: "stop" }],
+      })}\n\n`,
+    ],
+    {
+      mode: "passthrough",
+      sourceFormat: FORMATS.OPENAI,
+      provider: "omniroute",
+      model: "MainAgent",
+      body: { messages: [{ role: "user", content: "inspect" }] },
+      onComplete(payload) {
+        onCompletePayload = payload;
+      },
+    }
+  );
+
+  assert.doesNotMatch(text, /\[Tool call:/);
+  assert.doesNotMatch(text, /Arguments:/);
+  assert.match(text, /"tool_calls":\[/);
+  assert.match(text, /"finish_reason":"tool_calls"/);
+  const choice = onCompletePayload.responseBody.choices[0];
+  assert.equal(choice.finish_reason, "tool_calls");
+  assert.equal(choice.message.content, null);
+  assert.equal(choice.message.tool_calls[0].function.name, "terminal");
+  assert.deepEqual(JSON.parse(choice.message.tool_calls[0].function.arguments), {
+    command: "echo live_shape",
+    timeout: 10,
+  });
+});
+
+test("createSSEStream passthrough suppresses trailing prose plus textual tool call", async () => {
+  let onCompletePayload = null;
+  const toolArgs = JSON.stringify({
+    command: "echo should_not_leak",
+    timeout: 10,
+  });
+  const toolText = `Вот оно! Статические файлы Next.js отдают 404. Чанки не найдены.\n\n[Tool call: terminal]\nArguments: ${toolArgs}`;
+
+  const text = await readTransformed(
+    [
+      `data: ${JSON.stringify({
+        id: "chatcmpl_trailing_textual_tool",
+        object: "chat.completion.chunk",
+        created: 1,
+        model: "MainAgent",
+        choices: [{ index: 0, delta: { role: "assistant", content: toolText } }],
+      })}\n\n`,
+      `data: ${JSON.stringify({
+        id: "chatcmpl_trailing_textual_tool",
+        object: "chat.completion.chunk",
+        created: 1,
+        model: "MainAgent",
+        choices: [{ index: 0, delta: {}, finish_reason: "stop" }],
+      })}\n\n`,
+    ],
+    {
+      mode: "passthrough",
+      sourceFormat: FORMATS.OPENAI,
+      provider: "omniroute",
+      model: "MainAgent",
+      body: { messages: [{ role: "user", content: "inspect static files" }] },
+      onComplete(payload) {
+        onCompletePayload = payload;
+      },
+    }
+  );
+
+  assert.equal(onCompletePayload.status, 200);
+  const choice = onCompletePayload.responseBody.choices[0];
+  assert.equal(choice.finish_reason, "tool_calls");
+  assert.equal(choice.message.content, null);
+  assert.equal(choice.message.tool_calls[0].function.name, "terminal");
+  assert.deepEqual(JSON.parse(choice.message.tool_calls[0].function.arguments), {
+    command: "echo should_not_leak",
+    timeout: 10,
+  });
+  assert.doesNotMatch(text, /\[Tool call: terminal\]/);
+  assert.doesNotMatch(text, /Arguments:/);
+  assert.doesNotMatch(JSON.stringify(onCompletePayload.responseBody), /\[Tool call: terminal\]/);
+  assert.doesNotMatch(JSON.stringify(onCompletePayload.responseBody), /Arguments:/);
+});
+
+test("createSSEStream passthrough suppresses textual tool calls for unknown tools", async () => {
+  let onCompletePayload = null;
+  const toolText = `[Tool call: search_files_ide]
+Arguments: {"path":"/opt/OmniRoute/src","target":"files"}`;
+
+  const text = await readTransformed(
+    [
+      `data: ${JSON.stringify({
+        id: "chatcmpl_unknown_textual_tool",
+        object: "chat.completion.chunk",
+        created: 1,
+        model: "antigravity/gemini-3.5-flash-low",
+        choices: [{ index: 0, delta: { role: "assistant", content: toolText } }],
+      })}\n\n`,
+      `data: ${JSON.stringify({
+        id: "chatcmpl_unknown_textual_tool",
+        object: "chat.completion.chunk",
+        created: 1,
+        model: "antigravity/gemini-3.5-flash-low",
+        choices: [{ index: 0, delta: {}, finish_reason: "stop" }],
+      })}\n\n`,
+    ],
+    {
+      mode: "passthrough",
+      sourceFormat: FORMATS.OPENAI,
+      provider: "antigravity",
+      model: "antigravity/gemini-3.5-flash-low",
+      body: {
+        messages: [{ role: "user", content: "inspect files" }],
+        tools: [
+          { type: "function", function: { name: "search_files", parameters: { type: "object" } } },
+        ],
+      },
+      onComplete(payload) {
+        onCompletePayload = payload;
+      },
+    }
+  );
+
+  const choice = onCompletePayload.responseBody.choices[0];
+  assert.equal(choice.finish_reason, "stop");
+  assert.equal(choice.message.content, null);
+  assert.equal(choice.message.tool_calls, undefined);
+  assert.doesNotMatch(text, /search_files_ide/);
+  assert.doesNotMatch(JSON.stringify(onCompletePayload.responseBody), /search_files_ide/);
+});
+
+test("createSSEStream passthrough suppresses malformed textual tool-call content", async () => {
+  let onCompletePayload = null;
+  const malformedToolText = `(empty)[Tool call: terminal]\nArguments: {"command":"sqlite3 /opt/O\u200dmniRoute/data/o\u200dmniroute.`;
+
+  const text = await readTransformed(
+    [
+      `data: ${JSON.stringify({
+        id: "chatcmpl_malformed_textual_tool",
+        object: "chat.completion.chunk",
+        created: 1,
+        model: "antigravity/gemini-3.5-flash-low",
+        choices: [{ index: 0, delta: { role: "assistant", content: malformedToolText } }],
+      })}\n\n`,
+      `data: ${JSON.stringify({
+        id: "chatcmpl_malformed_textual_tool",
+        object: "chat.completion.chunk",
+        created: 1,
+        model: "antigravity/gemini-3.5-flash-low",
+        choices: [{ index: 0, delta: {}, finish_reason: "stop" }],
+      })}\n\n`,
+    ],
+    {
+      mode: "passthrough",
+      sourceFormat: FORMATS.OPENAI,
+      provider: "antigravity",
+      model: "antigravity/gemini-3.5-flash-low",
+      body: { messages: [{ role: "user", content: "inspect db" }] },
+      onComplete(payload) {
+        onCompletePayload = payload;
+      },
+    }
+  );
+
+  const choice = onCompletePayload.responseBody.choices[0];
+  assert.equal(choice.finish_reason, "stop");
+  assert.equal(choice.message.content, null);
+  assert.equal(choice.message.tool_calls, undefined);
+  assert.doesNotMatch(text, /\[Tool call: terminal\]/);
+  assert.doesNotMatch(JSON.stringify(onCompletePayload.responseBody), /\[Tool call: terminal\]/);
+});
+
+test("createSSEStream suppresses malformed compact textual tool-call content", async () => {
+  let onCompletePayload = null;
+
+  const text = await readTransformed(
+    [
+      `data: ${JSON.stringify({
+        candidates: [
+          {
+            content: {
+              parts: [
+                {
+                  text: "[Tool call: search_files_ide{file_glob:*combos*.ts,path:/opt/OmniRoute,target:files}]",
+                },
+              ],
+            },
+          },
+        ],
+      })}\n\n`,
+      `data: ${JSON.stringify({ candidates: [{ finishReason: "STOP" }] })}\n\n`,
+    ],
+    {
+      mode: "translate",
+      targetFormat: FORMATS.ANTIGRAVITY,
+      sourceFormat: FORMATS.OPENAI,
+      provider: "antigravity",
+      model: "antigravity/gemini-3.5-flash-low",
+      body: { messages: [{ role: "user", content: "inspect files" }] },
+      onComplete(payload) {
+        onCompletePayload = payload;
+      },
+    }
+  );
+
+  const choice = onCompletePayload.responseBody.choices[0];
+  assert.equal(choice.finish_reason, "stop");
+  assert.equal(choice.message.content, null);
+  assert.equal(choice.message.tool_calls, undefined);
+  assert.doesNotMatch(JSON.stringify(onCompletePayload.responseBody), /\[Tool call:/);
+});
+
 test("createSSEStream passthrough flushes a buffered final line without a trailing newline", async () => {
   const text = await readTransformed(
     [
@@ -203,6 +553,62 @@ test("createSSEStream translate mode converts Claude SSE into OpenAI chunks and 
   assert.equal(onCompletePayload.responseBody.choices[0].message.content, "Hello Claude");
   assert.equal(onCompletePayload.responseBody.usage.completion_tokens, 4);
   assert.equal(onCompletePayload.responseBody.usage.total_tokens, 4);
+});
+
+test("createSSEStream Responses passthrough converts textual tool-call deltas before streaming", async () => {
+  let onCompletePayload = null;
+  const toolText = `[Tool call: terminal]
+Arguments: {"command":"systemctl status omniroute"}`;
+  const text = await readTransformed(
+    [
+      `data: ${JSON.stringify({
+        type: "response.output_text.delta",
+        delta: toolText,
+      })}
+
+`,
+      `data: ${JSON.stringify({
+        type: "response.completed",
+        response: {
+          id: "resp_textual_tool",
+          object: "response",
+          model: "antigravity/gemini-3.5-flash-low",
+          status: "completed",
+          output: [],
+          usage: { input_tokens: 10, output_tokens: 4, total_tokens: 14 },
+        },
+      })}
+
+`,
+    ],
+    {
+      mode: "passthrough",
+      sourceFormat: FORMATS.OPENAI_RESPONSES,
+      clientResponseFormat: FORMATS.OPENAI_RESPONSES,
+      provider: "antigravity",
+      model: "antigravity/gemini-3.5-flash-low",
+      body: {
+        input: "check service",
+        tools: [{ type: "function", name: "terminal", parameters: { type: "object" } }],
+      },
+      onComplete(payload) {
+        onCompletePayload = payload;
+      },
+    }
+  );
+
+  assert.doesNotMatch(text, /\[Tool call: terminal\]/);
+  assert.doesNotMatch(text, /Arguments:/);
+  assert.match(text, /response.output_item.added/);
+  assert.match(text, /response.function_call_arguments.done/);
+  assert.match(text, /"name":"terminal"/);
+  assert.equal(onCompletePayload.responseBody.choices[0].finish_reason, "tool_calls");
+  assert.equal(onCompletePayload.responseBody.choices[0].message.content, null);
+  assert.equal(
+    onCompletePayload.responseBody.choices[0].message.tool_calls[0].function.name,
+    "terminal"
+  );
+  assert.doesNotMatch(JSON.stringify(onCompletePayload.clientPayload), /\[Tool call: terminal\]/);
 });
 
 test("createSSEStream passthrough preserves Responses API events and completion summaries", async () => {

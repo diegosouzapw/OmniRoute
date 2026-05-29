@@ -327,6 +327,7 @@ test("handleComboChat runs shadow targets without changing the primary response 
   const metrics = getComboMetrics("shadow-routing-priority");
 
   assert.equal(result.ok, true);
+  calls.sort((a, b) => a.trafficType.localeCompare(b.trafficType));
   assert.deepEqual(calls, [
     { modelStr: "openai/gpt-4o-mini", trafficType: "production", stream: true },
     { modelStr: "anthropic/claude-3-haiku", trafficType: "shadow", stream: false },
@@ -2032,12 +2033,17 @@ test("handleComboChat standalone lkgp strategy updates LKGP after a successful c
   });
 
   // Give the async fire-and-forget LKGP update a chance to execute
-  await new Promise((resolve) => setTimeout(resolve, 10));
-
-  const persistedProvider = await settingsDb.getLKGP(
-    "standalone-lkgp-save",
-    "standalone-lkgp-save"
-  );
+  let persistedProvider: any = null;
+  for (let i = 0; i < 20; i++) {
+    persistedProvider = await settingsDb.getLKGP(
+      "standalone-lkgp-save",
+      "standalone-lkgp-save"
+    );
+    if (persistedProvider?.provider === "openai") {
+      break;
+    }
+    await new Promise((resolve) => setTimeout(resolve, 10));
+  }
 
   assert.equal(result.ok, true);
   // getLKGP now returns LKGPRecord | null — source: src/lib/db/settings.ts getLKGP()

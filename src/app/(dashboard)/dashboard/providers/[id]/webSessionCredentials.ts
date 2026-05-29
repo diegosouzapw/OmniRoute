@@ -93,6 +93,54 @@ export const WEB_SESSION_CREDENTIAL_REQUIREMENTS = {
     placeholder: "token_value user@example.com",
     acceptsFullCookieHeader: false,
   },
+  "duckduckgo-web": {
+    kind: "none",
+    credentialName: "",
+    placeholder: "",
+    acceptsFullCookieHeader: false,
+  },
+  huggingchat: {
+    kind: "cookie",
+    credentialName: "hf-chat",
+    placeholder: "hf-chat=... or full Cookie header from huggingface.co",
+    acceptsFullCookieHeader: true,
+  },
+  phind: {
+    kind: "cookie",
+    credentialName: "phind_session",
+    placeholder: "phind_session=... or full Cookie header from phind.com",
+    acceptsFullCookieHeader: true,
+  },
+  "poe-web": {
+    kind: "cookie",
+    credentialName: "p-b",
+    placeholder: "p-b=... or full Cookie header from poe.com",
+    acceptsFullCookieHeader: true,
+  },
+  "venice-web": {
+    kind: "cookie",
+    credentialName: "session",
+    placeholder: "session=... or full Cookie header from venice.ai",
+    acceptsFullCookieHeader: true,
+  },
+  "v0-vercel-web": {
+    kind: "cookie",
+    credentialName: "__vercel_session",
+    placeholder: "__vercel_session=... or full Cookie header from v0.dev",
+    acceptsFullCookieHeader: true,
+  },
+  "kimi-web": {
+    kind: "cookie",
+    credentialName: "session",
+    placeholder: "session=... or full Cookie header from kimi.moonshot.cn",
+    acceptsFullCookieHeader: true,
+  },
+  "doubao-web": {
+    kind: "cookie",
+    credentialName: "session",
+    placeholder: "session=... or full Cookie header from doubao.com",
+    acceptsFullCookieHeader: true,
+  },
 } satisfies Record<keyof typeof WEB_COOKIE_PROVIDERS, WebSessionCredentialRequirement>;
 
 export function getWebSessionCredentialRequirement(

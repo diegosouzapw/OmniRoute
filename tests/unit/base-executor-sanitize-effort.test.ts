@@ -28,6 +28,65 @@ test("sanitizeReasoningEffortForProvider: xiaomi-mimo downgrades xhigh → high"
   );
 });
 
+test("sanitizeReasoningEffortForProvider: xiaomi-mimo downgrades max → high", () => {
+  const log = makeLog();
+  const body = {
+    model: "mimo-v2.5-pro",
+    reasoning_effort: "max",
+    messages: [{ role: "user", content: "hi" }],
+  };
+  const result = sanitizeReasoningEffortForProvider(body, "xiaomi-mimo", "mimo-v2.5-pro", log);
+  assert.equal((result as any).reasoning_effort, "high");
+  assert.ok(
+    log.messages.some(([tag, m]) => tag === "REASONING_SANITIZE" && /max → high/.test(m)),
+    "logs the downgrade"
+  );
+});
+
+test("sanitizeReasoningEffortForProvider: claude preserves max for Opus/Sonnet and downgrades Haiku", () => {
+  const sonnetBody = {
+    model: "claude-sonnet-4-6",
+    reasoning_effort: "max",
+    messages: [{ role: "user", content: "hi" }],
+  };
+  const sonnetResult = sanitizeReasoningEffortForProvider(
+    sonnetBody,
+    "claude",
+    "claude-sonnet-4-6",
+    null
+  );
+  assert.equal(sonnetResult, sonnetBody);
+  assert.equal((sonnetResult as any).reasoning_effort, "max");
+
+  const opusBody = {
+    model: "claude-opus-4-6",
+    reasoning: { effort: "max", summary: "auto" },
+    input: [],
+  };
+  const opusResult = sanitizeReasoningEffortForProvider(
+    opusBody,
+    "anthropic-compatible-cc-test",
+    "claude-opus-4-6",
+    null
+  );
+  assert.equal(opusResult, opusBody);
+  assert.equal((opusResult as any).reasoning.effort, "max");
+
+  const haikuBody = {
+    model: "claude-haiku-4-5-20251001",
+    reasoning_effort: "max",
+    messages: [{ role: "user", content: "hi" }],
+  };
+  const haikuResult = sanitizeReasoningEffortForProvider(
+    haikuBody,
+    "claude",
+    "claude-haiku-4-5-20251001",
+    null
+  );
+  assert.notEqual(haikuResult, haikuBody);
+  assert.equal((haikuResult as any).reasoning_effort, "high");
+});
+
 test("sanitizeReasoningEffortForProvider: xiaomi-mimo downgrades xhigh in nested reasoning.effort", () => {
   const body = {
     model: "mimo-v2.5-pro",
@@ -101,8 +160,8 @@ test("sanitizeReasoningEffortForProvider: mistral/devstral preserves reasoning w
 });
 
 test("sanitizeReasoningEffortForProvider: codex with xhigh passes through unchanged when model supports it", () => {
-  // codex/gpt-5.5-xhigh and related Claude opus models are flagged
-  // supportsXHighEffort:true in providerRegistry. They must not be downgraded.
+  // codex/gpt-5.5-xhigh is flagged supportsXHighEffort:true in providerRegistry.
+  // Claude Opus 4.7+ models default to xhigh support unless explicitly opted out.
   const body = {
     model: "gpt-5.5-xhigh",
     reasoning_effort: "xhigh",

@@ -75,6 +75,7 @@ import { getSessionConnection } from "./sessionManager.ts";
 import { orderTargetsByEvalScores } from "./evalRouting.ts";
 import { generateRoutingHints } from "./manifestAdapter";
 import type { RoutingHint } from "./manifestAdapter";
+import type { CompressionMode } from "./compression/types.ts";
 import { getModelContextLimit } from "../../src/lib/modelCapabilities";
 import { getProviderConnections } from "../../src/lib/db/providers";
 import {
@@ -446,6 +447,20 @@ function isStreamReadinessFailureErrorBody(errorBody: unknown): boolean {
   if (!error || typeof error !== "object") return false;
   const code = (error as Record<string, unknown>).code;
   return code === "STREAM_READINESS_TIMEOUT" || code === "STREAM_EARLY_EOF";
+}
+
+/**
+ * A local per-API-key token-limit breach surfaces as a 429 tagged with
+ * errorCode "TOKEN_LIMIT_EXCEEDED" (see chatCore.ts Tier 2 early return). This
+ * is NOT an upstream rate limit, so the combo loop must not cool the shared
+ * account/provider, must not add it to transientRateLimitedProviders, and must
+ * not retry it transiently — it propagates to the client as a terminal 429.
+ */
+function isTokenLimitBreachErrorBody(errorBody: unknown): boolean {
+  if (!errorBody || typeof errorBody !== "object") return false;
+  const error = (errorBody as Record<string, unknown>).error;
+  if (!error || typeof error !== "object") return false;
+  return (error as Record<string, unknown>).code === "TOKEN_LIMIT_EXCEEDED";
 }
 
 function toRecordedTarget(target: ResolvedComboTarget) {
@@ -2646,6 +2661,15 @@ export async function handleComboChat({
       ...(target ?? {}),
       modelAbortSignal: timeoutController.signal,
     };
+    if (target?.modelAbortSignal) {
+      if (target.modelAbortSignal.aborted) {
+        timeoutController.abort(new Error("hedge-cancelled"));
+      } else {
+        target.modelAbortSignal.addEventListener("abort", () => {
+          timeoutController.abort(new Error("hedge-cancelled"));
+        });
+      }
+    }
     try {
       return await Promise.race([
         handleSingleModelWrapped(b, modelStr, targetWithSignal).catch((err) => {
@@ -3132,7 +3156,13 @@ export async function handleComboChat({
     let fallbackCount = 0;
     let recordedAttempts = 0;
 
-    for (let i = 0; i < orderedTargets.length; i++) {
+    let globalResolve: ((res: Response) => void) | null = null;
+    const globalPromise = new Promise<Response>((res) => { globalResolve = res; });
+    const runningTasks = new Set<Promise<void>>();
+    let anySuccess = false;
+    const abortControllers = new Map<number, AbortController>();
+
+    const executeTarget = async (i: number): Promise<{ ok: boolean; response?: Response } | null> => {
       const target = orderedTargets[i];
       const modelStr = target.modelStr;
       const provider = target.provider;
@@ -3140,8 +3170,8 @@ export async function handleComboChat({
       const allowRateLimitedConnection =
         Boolean(provider && provider !== "unknown") && transientRateLimitedProviders.has(provider);
       const targetForAttempt = allowRateLimitedConnection
-        ? { ...target, allowRateLimitedConnection: true }
-        : target;
+        ? { ...target, allowRateLimitedConnection: true, modelAbortSignal: abortControllers.get(i)!.signal }
+        : { ...target, modelAbortSignal: abortControllers.get(i)!.signal };
 
       // #1731: Skip targets from a provider that already signaled full quota exhaustion this request.
       if (provider && exhaustedProviders.has(provider)) {
@@ -3150,7 +3180,7 @@ export async function handleComboChat({
           `Skipping ${modelStr} — provider ${provider} marked exhausted this request (#1731)`
         );
         if (i > 0) fallbackCount++;
-        continue;
+        return null;
       }
 
       // Pre-check: skip models where no credentials are available (excluded, rate-limited, or unavailable)
@@ -3159,7 +3189,7 @@ export async function handleComboChat({
         if (!available) {
           log.info("COMBO", `Skipping ${modelStr} — no credentials available or model excluded`);
           if (i > 0) fallbackCount++;
-          continue;
+        return null;
         }
       }
 
@@ -3170,7 +3200,7 @@ export async function handleComboChat({
         if (gateResult.allowed === false) {
           logCredentialSkip(log, modelStr, gateResult.reason || "Credential gate blocked");
           if (i > 0) fallbackCount++;
-          continue;
+        return null;
         }
       }
 
@@ -3179,7 +3209,7 @@ export async function handleComboChat({
         // Fix #1681: Bail out immediately if the client has disconnected
         if (signal?.aborted) {
           log.info("COMBO", `Client disconnected — aborting combo loop before model ${modelStr}`);
-          return errorResponse(499, "Client disconnected");
+          return { ok: false, response: errorResponse(499, "Client disconnected") };
         }
         globalAttempts++;
         if (globalAttempts > MAX_GLOBAL_ATTEMPTS) {
@@ -3187,8 +3217,22 @@ export async function handleComboChat({
             "COMBO",
             `Maximum combo attempts (${MAX_GLOBAL_ATTEMPTS}) exceeded across all targets and fallbacks. Terminating loop to prevent runaway background requests.`
           );
-          return errorResponse(503, "Maximum combo retry limit reached");
+          return { ok: false, response: errorResponse(503, "Maximum combo retry limit reached") };
         }
+
+        // Predictive TTFT Circuit Breaker (skip slow models)
+        if (config.predictiveTtftMs && config.predictiveTtftMs > 0 && retry === 0) {
+          const cMetrics = getComboMetrics(combo.name);
+          if (cMetrics) {
+             const targetKey = orderedTargets[i].executionKey || modelStr;
+             const m = cMetrics.byTarget[targetKey] || cMetrics.byModel[modelStr];
+             if (m && m.requests >= 5 && m.avgLatencyMs > config.predictiveTtftMs) {
+                log.warn("COMBO", `Predictive TTFT Circuit Breaker: skipping ${modelStr} (avg ${m.avgLatencyMs}ms > max ${config.predictiveTtftMs}ms)`);
+                return null;
+             }
+          }
+        }
+
         if (retry > 0) {
           log.info(
             "COMBO",
@@ -3207,7 +3251,7 @@ export async function handleComboChat({
           });
           if (signal?.aborted) {
             log.info("COMBO", `Client disconnected during retry delay — aborting`);
-            return errorResponse(499, "Client disconnected");
+            return { ok: false, response: errorResponse(499, "Client disconnected") };
           }
         }
 
@@ -3224,7 +3268,23 @@ export async function handleComboChat({
           strategy,
         });
 
-        let attemptBody = body;
+        // Deep clone the body to ensure context preservation and prevent mutations
+        // from affecting other targets in the combo
+        let attemptBody = JSON.parse(JSON.stringify(body));
+
+        // Proactive Context Compression for fallbacks (Zero-Latency optimization)
+        if (i > 0 && config.fallbackCompressionMode && config.fallbackCompressionMode !== "off") {
+          const { estimateTokens } = await import("./contextManager.ts");
+          const estimatedTokens = estimateTokens(JSON.stringify(attemptBody));
+          if (estimatedTokens > (config.fallbackCompressionThreshold ?? 1000)) {
+            const { applyCompression } = await import("./compression/strategySelector.ts");
+            const compressionResult = applyCompression(attemptBody, config.fallbackCompressionMode as CompressionMode, { model: modelStr });
+            if (compressionResult.compressed) {
+              log.info("COMBO", `Proactive fallback compression applied (${config.fallbackCompressionMode}): ${estimatedTokens} -> ${compressionResult.stats?.compressedTokens} tokens`);
+              attemptBody = compressionResult.body;
+            }
+          }
+        }
 
         // Universal handoff: inject existing handoff if model changed
         if (
@@ -3236,7 +3296,7 @@ export async function handleComboChat({
           if (lastModel && lastModel !== modelStr) {
             const existingHandoff = getHandoff(relayOptions.sessionId, combo.name);
             attemptBody = injectUniversalHandoffBody(
-              body,
+              attemptBody, // Use the cloned body to maintain isolation
               lastModel,
               modelStr,
               `Model routing: ${lastModel} → ${modelStr}`,
@@ -3278,7 +3338,7 @@ export async function handleComboChat({
               error: `Quality: ${quality.reason}`,
               latencyMs: Date.now() - startTime,
             });
-            break; // move to next model
+            return null;
           }
           const latencyMs = Date.now() - startTime;
           emit("combo.target.succeeded", {
@@ -3411,7 +3471,7 @@ export async function handleComboChat({
             })();
           }
 
-          return quality.clonedResponse ?? result;
+          return { ok: true, response: quality.clonedResponse ?? result };
         }
 
         // Extract error info from response
@@ -3461,6 +3521,10 @@ export async function handleComboChat({
           (result.status === 502 || result.status === 504) &&
           isStreamReadinessFailureErrorBody(errorBody);
 
+        // FIX 5: a local per-API-key token-limit 429 must not cool shared accounts.
+        const isTokenLimitBreach =
+          result.status === 429 && isTokenLimitBreachErrorBody(errorBody);
+
         // Fix #1681: Status 499 means client disconnected — stop combo loop immediately.
         // There is no point trying fallback models when nobody is listening.
         if (result.status === 499) {
@@ -3473,7 +3537,10 @@ export async function handleComboChat({
             target: toRecordedTarget(target),
           });
           recordedAttempts++;
-          return result;
+          // executeTarget must return the {ok,response} contract — a raw Response
+          // here makes the speculative loop's res.ok/res.response checks both miss,
+          // so the combo would wrongly fall through to the next model after a 499.
+          return { ok: false, response: result };
         }
 
         // Combo fallback is target-level orchestration: a non-ok target response is
@@ -3514,8 +3581,46 @@ export async function handleComboChat({
             "COMBO",
             `Provider ${provider} quota exhausted — marking for skip on remaining targets (#1731)`
           );
-        } else if (result.status === 429 && provider && provider !== "unknown") {
+        } else if (
+          result.status === 429 &&
+          !isTokenLimitBreach &&
+          provider &&
+          provider !== "unknown"
+        ) {
           transientRateLimitedProviders.add(provider);
+        }
+
+        // #2101: Prevent infinite fallback loops with 400 Bad Request errors that indicate
+        // request-body-specific issues (context overflow, malformed request, model access denied).
+        // These errors are unlikely to be resolved by trying different target models since
+        // the same problematic request body would be sent to all targets.
+        if (
+          result.status === 400 &&
+          fallbackResult.shouldFallback &&
+          (fallbackResult.reason === RateLimitReason.MODEL_CAPACITY ||
+            errorText.toLowerCase().includes('context') ||
+            errorText.toLowerCase().includes('malformed') ||
+            errorText.toLowerCase().includes('invalid') ||
+            errorText.toLowerCase().includes('bad request'))
+        ) {
+          log.warn(
+            "COMBO",
+            `400 Bad Request with body-specific error detected on ${modelStr} — skipping fallback to other targets to prevent infinite loop`
+          );
+          // Record the failure and break to avoid trying other targets with the same bad request
+          recordComboRequest(combo.name, modelStr, {
+            success: false,
+            latencyMs: Date.now() - startTime,
+            fallbackCount,
+            strategy,
+            target: toRecordedTarget(target),
+          });
+          recordedAttempts++;
+          lastError = errorText || String(result.status);
+          if (!lastStatus) lastStatus = result.status;
+          if (i > 0) fallbackCount++;
+          log.warn("COMBO", `Model ${modelStr} failed with body-specific error, stopping combo`);
+          break; // Break out of the target loop to avoid trying other models
         }
 
         // Trigger shared provider circuit breaker for 5xx errors and connection failures.
@@ -3536,9 +3641,12 @@ export async function handleComboChat({
           recordProviderFailure(provider, log, target.connectionId, profile);
         }
 
-        // Check if this is a transient error worth retrying on same model
+        // Check if this is a transient error worth retrying on same model.
+        // A token-limit 429 is terminal for the client — never retry it.
         const isTransient =
-          !isStreamReadinessFailure && [408, 429, 500, 502, 503, 504].includes(result.status);
+          !isStreamReadinessFailure &&
+          !isTokenLimitBreach &&
+          [408, 429, 500, 502, 503, 504].includes(result.status);
         if (retry < maxRetries && isTransient && !providerExhausted) {
           continue; // Retry same model
         }
@@ -3576,12 +3684,69 @@ export async function handleComboChat({
           });
           if (signal?.aborted) {
             log.info("COMBO", `Client disconnected during fallback wait — aborting`);
-            return errorResponse(499, "Client disconnected");
+            return { ok: false, response: errorResponse(499, "Client disconnected") };
           }
         }
 
-        break; // Move to next model
+        return null;
       }
+      return null;
+    };
+
+    for (let i = 0; i < orderedTargets.length; i++) {
+      if (anySuccess) break;
+      
+      const abortController = new AbortController();
+      abortControllers.set(i, abortController);
+      const onClientAbort = () => abortController.abort();
+      signal?.addEventListener("abort", onClientAbort);
+
+      const task = (async () => {
+        try {
+          const res = await executeTarget(i);
+          if (res && !anySuccess) {
+            if (res.ok) {
+              anySuccess = true;
+              globalResolve!(res.response!);
+              for (const [idx, ac] of abortControllers.entries()) {
+                if (idx !== i) ac.abort();
+              }
+            } else if (res.response) {
+              // Fatal error, abort combo
+              anySuccess = true;
+              globalResolve!(res.response);
+            }
+          }
+        } finally {
+          signal?.removeEventListener("abort", onClientAbort);
+        }
+      })().catch((err) => {
+        const logError = log.error ?? log.warn;
+        logError("COMBO", `Speculative task error for target ${i}`, err);
+      });
+
+      runningTasks.add(task);
+      task.finally(() => runningTasks.delete(task));
+
+      if (config.hedging && i + 1 < orderedTargets.length) {
+        const hedgeDelay = resolveDelayMs(config.hedgeDelayMs, 500);
+        let timeoutResolve: () => void;
+        const timeoutPromise = new Promise<void>((r) => {
+          timeoutResolve = r;
+          setTimeout(r, hedgeDelay);
+        });
+        await Promise.race([task, globalPromise, timeoutPromise]);
+      } else {
+        await Promise.race([task, globalPromise]);
+      }
+    }
+
+    if (!anySuccess && runningTasks.size > 0) {
+      await Promise.race([globalPromise, Promise.all([...runningTasks])]);
+    }
+
+    if (anySuccess) {
+      return await globalPromise;
     }
 
     // All models failed in this set try
@@ -3911,6 +4076,10 @@ async function handleRoundRobinCombo({
           (result.status === 502 || result.status === 504) &&
           isStreamReadinessFailureErrorBody(errorBody);
 
+        // FIX 5: a local per-API-key token-limit 429 must not cool shared accounts.
+        const isTokenLimitBreach =
+          result.status === 429 && isTokenLimitBreachErrorBody(errorBody);
+
         // Round-robin uses the same target-level fallback rule as other combo
         // strategies: non-ok target responses fall through to the next target.
         // Classification stays here only to support cooldown/semaphore pacing,
@@ -3953,13 +4122,19 @@ async function handleRoundRobinCombo({
         if (providerExhausted) {
           exhaustedProviders.add(provider);
           log.info("COMBO-RR", `Provider ${provider} quota exhausted — marking for skip (#1731)`);
-        } else if (result.status === 429 && provider && provider !== "unknown") {
+        } else if (
+          result.status === 429 &&
+          !isTokenLimitBreach &&
+          provider &&
+          provider !== "unknown"
+        ) {
           transientRateLimitedProviders.add(provider);
         }
 
         // Transient errors → mark in semaphore so round-robin stops stampeding this target.
         if (
           !isStreamReadinessFailure &&
+          !isTokenLimitBreach &&
           TRANSIENT_FOR_SEMAPHORE.includes(result.status) &&
           cooldownMs > 0
         ) {
@@ -3974,9 +4149,12 @@ async function handleRoundRobinCombo({
           );
         }
 
-        // Transient error → retry same model
+        // Transient error → retry same model.
+        // A token-limit 429 is terminal for the client — never retry it.
         const isTransient =
-          !isStreamReadinessFailure && [408, 429, 500, 502, 503, 504].includes(result.status);
+          !isStreamReadinessFailure &&
+          !isTokenLimitBreach &&
+          [408, 429, 500, 502, 503, 504].includes(result.status);
         if (retry < maxRetries && isTransient && !providerExhausted) {
           continue;
         }

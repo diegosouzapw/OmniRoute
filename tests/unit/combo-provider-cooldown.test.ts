@@ -1,6 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 
+import { normalizeHeaders } from "../../open-sse/utils/headers.ts";
 import { createChatPipelineHarness } from "../integration/_chatPipelineHarness.ts";
 
 const harness = await createChatPipelineHarness("combo-provider-cooldown");
@@ -13,33 +14,6 @@ const {
   seedConnection,
   settingsDb,
 } = harness;
-
-function toPlainHeaders(headers) {
-  if (!headers) return {};
-  const plain = {};
-  if (typeof headers.forEach === "function") {
-    try {
-      headers.forEach((value, key) => {
-        plain[key.toLowerCase()] = value;
-      });
-      return plain;
-    } catch (e) {}
-  }
-  if (typeof headers.entries === "function") {
-    try {
-      for (const [key, value] of headers.entries()) {
-        plain[key.toLowerCase()] = value;
-      }
-      return plain;
-    } catch (e) {}
-  }
-  try {
-    for (const [key, value] of Object.entries(headers)) {
-      plain[key.toLowerCase()] = value == null ? "" : String(value);
-    }
-  } catch (e) {}
-  return plain;
-}
 
 test.beforeEach(async () => {
   await resetStorage();
@@ -76,7 +50,7 @@ test("combo failover skips the cooled provider target on the next request", asyn
   let claudeCalls = 0;
 
   globalThis.fetch = async (_url, init = {}) => {
-    const headers = toPlainHeaders(init.headers);
+    const headers = normalizeHeaders(init.headers);
     const authHeader = headers.authorization ?? headers.Authorization;
     const apiKeyHeader = headers["x-api-key"] ?? headers["X-Api-Key"];
 
