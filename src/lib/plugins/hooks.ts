@@ -13,7 +13,16 @@ const log = logger("PLUGIN_HOOKS");
 
 // ── Types ──
 
-export type HookHandler = (payload: unknown) => void | Promise<void>;
+export type BlockingHookResult = {
+  blocked?: boolean;
+  response?: unknown;
+  body?: unknown;
+  metadata?: Record<string, unknown>;
+};
+
+export type HookHandler = (
+  payload: unknown
+) => void | Promise<void> | BlockingHookResult | Promise<BlockingHookResult>;
 
 export interface HookRegistration {
   pluginName: string;
@@ -115,6 +124,123 @@ export async function emitHook(event: string, payload: unknown): Promise<void> {
       });
     }
   }
+}
+
+/**
+ * Emit a blocking event — fire handlers with body/metadata chaining.
+ * Returns blocking result from the first handler that blocks, or merged body/metadata.
+ * Used for onRequest and onResponse where plugins can modify or block the request.
+ */
+export async function emitHookBlocking(
+  event: string,
+  payload: unknown
+): Promise<{
+  blocked?: boolean;
+  response?: unknown;
+  body?: unknown;
+  metadata?: Record<string, unknown>;
+}> {
+  const list = hooks.get(event) || [];
+  const ctx = (payload || {}) as Record<string, unknown>;
+  let mergedBody: unknown = ctx.body;
+  let mergedMetadata: Record<string, unknown> = (ctx.metadata as Record<string, unknown>) || {};
+
+  for (const reg of list.sort((a, b) => a.priority - b.priority)) {
+    try {
+      const result = await reg.handler(payload);
+      if (result && typeof result === "object") {
+        if ("body" in result) mergedBody = (result as Record<string, unknown>).body;
+        if ("metadata" in result)
+          mergedMetadata = {
+            ...mergedMetadata,
+            ...(((result as Record<string, unknown>).metadata as Record<string, unknown>) || {}),
+          };
+        if ("blocked" in result && (result as BlockingHookResult).blocked) {
+          return {
+            ...result,
+            body: (result as BlockingHookResult).body ?? mergedBody,
+            metadata: { ...mergedMetadata, ...((result as BlockingHookResult).metadata || {}) },
+          };
+        }
+      }
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : String(err);
+      log.error("hook.blocking_handler_error", {
+        event,
+        pluginName: reg.pluginName,
+        error: message,
+      });
+    }
+  }
+  return { body: mergedBody, metadata: mergedMetadata };
+}
+
+// ── Lifecycle wrappers (for chatCore.ts convenience) ──
+
+export interface PluginContext {
+  requestId: string;
+  body: unknown;
+  model: string;
+  provider: string;
+  apiKeyInfo?: unknown;
+  metadata: Record<string, unknown>;
+}
+
+export interface PluginResult {
+  blocked?: boolean;
+  response?: unknown;
+  body?: unknown;
+  metadata?: Record<string, unknown>;
+}
+
+// ── Plugin interface (for loader/manager compatibility) ──
+
+export interface Plugin {
+  name: string;
+  priority?: number;
+  enabled?: boolean;
+  onRequest?: (ctx: PluginContext) => Promise<PluginResult | void> | PluginResult | void;
+  onResponse?: (ctx: PluginContext, response: unknown) => Promise<unknown | void> | unknown | void;
+  onError?: (ctx: PluginContext, error: Error) => Promise<unknown | void> | unknown | void;
+}
+
+/**
+ * Run onRequest hooks — blocking. Plugins can modify body/metadata or block with 403.
+ */
+export async function runOnRequest(ctx: PluginContext): Promise<PluginResult> {
+  return emitHookBlocking("onRequest", ctx);
+}
+
+/**
+ * Run onResponse hooks — chains response through plugins. Each plugin can modify the response.
+ */
+export async function runOnResponse(ctx: PluginContext, response: unknown): Promise<unknown> {
+  let currentResponse = response;
+  const list = hooks.get("onResponse") || [];
+  for (const reg of list.sort((a, b) => a.priority - b.priority)) {
+    try {
+      const result = await reg.handler({ ...ctx, response: currentResponse });
+      if (
+        result !== undefined &&
+        result !== null &&
+        typeof result === "object" &&
+        "response" in result
+      ) {
+        currentResponse = (result as { response: unknown }).response;
+      }
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : String(err);
+      log.error("hook.response_handler_error", { pluginName: reg.pluginName, error: message });
+    }
+  }
+  return currentResponse;
+}
+
+/**
+ * Run onError hooks — fire-and-forget notification.
+ */
+export async function runOnError(ctx: PluginContext, error: Error): Promise<void> {
+  await emitHook("onError", { ...ctx, error });
 }
 
 /**

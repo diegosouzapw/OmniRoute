@@ -1279,7 +1279,7 @@ export async function handleChatCore({
 
   // ── Plugin onRequest hook ──
   try {
-    const { runOnRequest } = await import("@/lib/plugins/index");
+    const { runOnRequest } = await import("@/lib/plugins/hooks");
     const pluginCtx = {
       requestId: traceId,
       body,
@@ -1311,8 +1311,8 @@ export async function handleChatCore({
             ),
       };
     }
-    if (pluginResult?.ctx && "body" in pluginResult.ctx) {
-      body = (pluginResult.ctx as Record<string, unknown>).body;
+    if (pluginResult?.body !== undefined) {
+      body = pluginResult.body;
     }
   } catch (pluginErr) {
     log?.debug?.(
@@ -2811,7 +2811,7 @@ export async function handleChatCore({
   } catch (error) {
     // ── Plugin onError hook ──
     try {
-      const { runOnError } = await import("@/lib/plugins/index");
+      const { runOnError } = await import("@/lib/plugins/hooks");
       await runOnError(
         { requestId: traceId, body, model, provider, apiKeyInfo, metadata: {} },
         error instanceof Error ? error : new Error(String(error))
@@ -4803,6 +4803,20 @@ export async function handleChatCore({
       shape: shapeForClientFormat(clientResponseFormat),
     })
   );
+
+  // ── Plugin onResponse hook ──
+  try {
+    const { runOnResponse } = await import("@/lib/plugins/hooks");
+    await runOnResponse(
+      { requestId: traceId, body, model, provider, apiKeyInfo, metadata: {} },
+      { stream: finalStream, headers: responseHeaders }
+    );
+  } catch (pluginErr) {
+    log?.debug?.(
+      "PLUGIN",
+      `onResponse hook error (non-fatal): ${pluginErr instanceof Error ? pluginErr.message : String(pluginErr)}`
+    );
+  }
 
   return {
     success: true,

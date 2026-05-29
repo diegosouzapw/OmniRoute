@@ -116,10 +116,7 @@ class PluginManager {
     try {
       const loaded = await loadPlugin(entryPoint, manifest);
 
-      // Register hooks with the existing plugin system
-      registerPlugin(loaded.plugin);
-
-      // Register custom hooks from manifest
+      // Register hooks from manifest via registerHook
       const hookNames = [
         manifest.hooks.onRequest && "onRequest",
         manifest.hooks.onResponse && "onResponse",
