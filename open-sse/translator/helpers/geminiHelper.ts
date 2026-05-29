@@ -180,8 +180,17 @@ export function convertOpenAIContentToParts(content: unknown): JsonRecord[] {
           // function async, which is a breaking change for sync callers (#2807).
           // Until that refactor lands, warn loudly instead of silently dropping
           // so users can see WHY their vision request failed.
+          // Strip query string before logging to avoid leaking auth tokens
+          // (signed URLs, SAS tokens, etc.) embedded in query parameters.
+          let safeUrl: string;
+          try {
+            const parsed = new URL(fileData);
+            safeUrl = parsed.origin + parsed.pathname;
+          } catch {
+            safeUrl = fileData.split("?")[0];
+          }
           console.warn(
-            `[geminiHelper] Dropped remote image URL (Gemini inlineData requires base64): ${fileData.slice(0, 80)}...` +
+            `[geminiHelper] Dropped remote image URL (Gemini inlineData requires base64): ${safeUrl}` +
               ` - encode the image as a data: URI client-side until #2807 async fetch lands.`
           );
         }
