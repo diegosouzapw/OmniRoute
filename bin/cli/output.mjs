@@ -43,15 +43,46 @@ function formatCell(v, col) {
 const CYAN = "\x1b[36m";
 const RESET = "\x1b[0m";
 
-/** Truncate a string to `max` chars, appending "…" if trimmed. */
+/** Strip ANSI escape sequences so we can measure the visible width of a string. */
+const stripAnsi = (s) => s.replace(/\x1b\[[\d;]*m/g, "");
+
+/** Truncate a string to `max` visible chars, appending "…" if trimmed.
+ *  ANSI escape codes are excluded from the width count and never split. */
 function truncateCell(str, max) {
-  if (str.length <= max) return str;
-  return str.slice(0, max - 1) + "…";
+  const visible = stripAnsi(str);
+  if (visible.length <= max) return str;
+  // Rebuild the string char-by-char, counting only visible chars, stopping at max-1.
+  let count = 0;
+  let result = "";
+  let i = 0;
+  while (i < str.length) {
+    // Detect an ANSI escape sequence starting at position i.
+    if (str[i] === "\x1b" && str[i + 1] === "[") {
+      const end = str.indexOf("m", i + 2);
+      if (end !== -1) {
+        // Include the full escape sequence without counting it as visible width.
+        result += str.slice(i, end + 1);
+        i = end + 1;
+        continue;
+      }
+    }
+    if (count >= max - 1) break;
+    result += str[i];
+    count++;
+    i++;
+  }
+  // Ensure the reset code is always appended so ANSI color never bleeds.
+  if (str.includes("\x1b[")) {
+    result += RESET;
+  }
+  return result + "…";
 }
 
-/** Pad a string to exactly `width` chars (left-aligned). */
+/** Pad a string to exactly `width` visible chars (left-aligned).
+ *  ANSI escape codes are excluded from the padding calculation. */
 function padCell(str, width) {
-  return str + " ".repeat(Math.max(0, width - str.length));
+  const visible = stripAnsi(str);
+  return str + " ".repeat(Math.max(0, width - visible.length));
 }
 
 function renderTable(rows, schema, opts = {}) {
@@ -62,10 +93,13 @@ function renderTable(rows, schema, opts = {}) {
   const cols = schema || inferSchema(rows[0]);
   const quiet = opts.quiet === true;
 
-  // Compute column widths: max(header.length, max cell length), capped by explicit c.width.
+  // Compute column widths: max(header.length, max visible cell length), capped by explicit c.width.
   const colWidths = cols.map((c) => {
     const headerLen = c.header.length;
-    const maxData = rows.reduce((m, row) => Math.max(m, formatCell(row[c.key], c).length), 0);
+    const maxData = rows.reduce(
+      (m, row) => Math.max(m, stripAnsi(formatCell(row[c.key], c)).length),
+      0,
+    );
     const natural = Math.max(headerLen, maxData);
     return c.width ? Math.max(c.width, 1) : natural;
   });

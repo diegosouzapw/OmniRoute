@@ -106,3 +106,29 @@ test("renderTable: column separator characters present", async () => {
   const hasSeparator = out.includes("|") || out.includes("│");
   assert.ok(hasSeparator, `expected column separator in output, got: ${out}`);
 });
+
+test("renderTable: ANSI-wrapped formatter value does not bleed — reset code always present", async () => {
+  const { emit } = await import("../../bin/cli/output.mjs");
+  // Formatter wraps each value in green ANSI codes.
+  const GREEN = "\x1b[32m";
+  const RESET_CODE = "\x1b[0m";
+  const schema = [
+    {
+      key: "status",
+      header: "Status",
+      // Column width (4) is smaller than the raw ANSI string length (e.g. "\x1b[32mok\x1b[0m" = 12 bytes)
+      // but the visible content "ok" is only 2 chars — no truncation needed.
+      // We use a longer visible value to force truncation and verify the reset is preserved.
+      width: 4,
+      formatter: (v: string) => `${GREEN}${v}${RESET_CODE}`,
+    },
+  ];
+  // "active" (6 visible chars) exceeds the column width of 4, triggering truncation.
+  const out = captureStdout(() => emit([{ status: "active" }], { output: "table" }, schema));
+
+  // The rendered output must always contain the ANSI reset code — never a bleed.
+  assert.ok(
+    out.includes(RESET_CODE),
+    `expected ANSI reset code (\\x1b[0m) in output to prevent color bleed, got: ${JSON.stringify(out)}`,
+  );
+});
