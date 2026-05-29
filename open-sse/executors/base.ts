@@ -773,7 +773,7 @@ export class BaseExecutor {
           }
 
           // Per-request behavior overrides via custom client headers.
-          //   x-omniroute-effort:   low | medium | high | xhigh | off
+          //   x-omniroute-effort:   low | medium | high | xhigh | max | off
           //   x-omniroute-thinking: adaptive | off
           // A header value applies only when the corresponding body field is
           // not already set; "off" force-strips the field.
@@ -795,7 +795,7 @@ export class BaseExecutor {
               delete (tb.output_config as Record<string, unknown>).effort;
             }
             appliedEffort = "off";
-          } else if (headerEffort && ["low", "medium", "high", "xhigh"].includes(headerEffort)) {
+          } else if (headerEffort && ["low", "medium", "high", "xhigh", "max"].includes(headerEffort)) {
             const oc =
               tb.output_config && typeof tb.output_config === "object"
                 ? (tb.output_config as Record<string, unknown>)
