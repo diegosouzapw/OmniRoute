@@ -311,8 +311,16 @@ export async function PATCH(request: Request) {
       // Get all distinct active provider IDs so each one gets its own
       // upstream_proxy_config row. chatCore reads per-provider config
       // (e.g. getUpstreamProxyConfig("anthropic")), not a single global row.
+      // Embedded service IDs are not real routing targets and must be skipped.
+      const EMBEDDED_SERVICE_IDS = new Set(["cliproxyapi", "9router"]);
       const activeConnections = await getProviderConnections({ isActive: true });
-      const activeProviderIds = [...new Set(activeConnections.map((c: Record<string, unknown>) => c.provider as string))];
+      const activeProviderIds = [
+        ...new Set(
+          activeConnections
+            .map((c: Record<string, unknown>) => c.provider as string)
+            .filter((id: string) => !EMBEDDED_SERVICE_IDS.has(id))
+        ),
+      ];
 
       for (const providerId of activeProviderIds) {
         await upsertUpstreamProxyConfig({
@@ -323,7 +331,10 @@ export async function PATCH(request: Request) {
         });
       }
 
-      // Also update the legacy "cliproxyapi" row for back-compat
+      // Update the "cliproxyapi" sentinel row used by GET /api/settings to
+      // retrieve cliproxyapi_model_mapping. This row is NOT used for routing
+      // (chatCore reads per-real-provider rows above); it exists solely as
+      // storage for the global model-mapping blob.
       await upsertUpstreamProxyConfig({
         providerId: "cliproxyapi",
         mode,
