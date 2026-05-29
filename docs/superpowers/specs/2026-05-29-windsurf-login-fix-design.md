@@ -40,7 +40,7 @@ Akibatnya user tidak bisa login ke Windsurf via OmniRoute. Provider effectively 
 ```
 
 Konstanta publik yang harus di-embed (extracted from Windsurf extension.js, public Firebase Web key — bukan secret):
-- `FIREBASE_API_KEY = "AIzaSyDsOl-1XpT5err0Tcnx8FFod1H8gVGIycY"`
+- `FIREBASE_API_KEY = "<REDACTED-public-firebase-web-key>"`
 - `GOOGLE_CLIENT_ID = "957777847521-egrk5uakal87pjkqctk89fe7b7qtd1dq.apps.googleusercontent.com"`
 - `REGISTER_SERVER = "https://register.windsurf.com"`
 
@@ -189,7 +189,7 @@ Restore browser-based login automation. User klik tombol Google/GitHub/Microsoft
 | File | Change |
 |---|---|
 | `src/lib/oauth/constants/oauth.ts` | Add `WINDSURF_FIREBASE_CONFIG` block: `firebaseApiKey` via `resolvePublicCred("windsurf_fb", "WINDSURF_FIREBASE_API_KEY")`, `googleClientId` via `resolvePublicCred("windsurf_google", "WINDSURF_GOOGLE_CLIENT_ID")`, `registerUrl: "https://register.windsurf.com"`, `firebaseAuthUrl`, `firebaseTokenUrl`, OAuth redirect uri `https://windsurf.com/login`. |
-| `open-sse/utils/publicCreds.ts` | Add embedded defaults: `windsurf_fb: "AIzaSyDsOl-1XpT5err0Tcnx8FFod1H8gVGIycY"`, `windsurf_google: "957777847521-egrk5uakal87pjkqctk89fe7b7qtd1dq.apps.googleusercontent.com"`. Both are public Web keys/client_ids — non-sensitive but must follow rule #11 pattern. |
+| `open-sse/utils/publicCreds.ts` | Add embedded defaults: `windsurf_fb: "<REDACTED-public-firebase-web-key>"`, `windsurf_google: "957777847521-egrk5uakal87pjkqctk89fe7b7qtd1dq.apps.googleusercontent.com"`. Both are public Web keys/client_ids — non-sensitive but must follow rule #11 pattern. |
 | `src/lib/oauth/providers/index.ts` | Register `"windsurf-firebase"` provider entry. |
 | `src/lib/db/migrations/<NNN>_windsurf_firebase.sql` | Add columns to `connections`: `firebase_refresh_token TEXT NULL` (encrypted), `firebase_expires_at INTEGER NULL`. Idempotent (`IF NOT EXISTS` pattern). |
 | `src/lib/db/connections.ts` | Update CRUD to handle new optional columns. Encrypt/decrypt via existing `connectionEncryption` helpers. |
