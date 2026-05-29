@@ -376,11 +376,13 @@ export async function GET(request: Request) {
     if (sinceIso) {
       // Use date comparison on the summary's date column (YYYY-MM-DD).
       const sinceDate = sinceIso.split("T")[0];
-      aggConditions.push(`date >= '${sinceDate}'`);
+      aggConditions.push("date >= @sinceDate");
+      params.sinceDate = sinceDate;
     }
     if (untilIso) {
       const untilDate = untilIso.split("T")[0];
-      aggConditions.push(`date <= '${untilDate}'`);
+      aggConditions.push("date <= @untilDate");
+      params.untilDate = untilDate;
     }
     const aggWhere = aggConditions.length > 0 ? `WHERE ${aggConditions.join(" AND ")}` : "";
 
@@ -1228,7 +1230,9 @@ export async function GET(request: Request) {
 
         const presetAggConds: string[] = [];
         if (presetSinceIso) {
-          presetAggConds.push(`date >= '${presetSinceIso.split("T")[0]}'`);
+          const presetSinceDate = presetSinceIso.split("T")[0];
+          presetAggConds.push("date >= @presetSinceDate");
+          presetParams.presetSinceDate = presetSinceDate;
         }
         const presetAggWhere =
           presetAggConds.length > 0 ? `WHERE ${presetAggConds.join(" AND ")}` : "";
