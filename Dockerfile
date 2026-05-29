@@ -121,33 +121,18 @@ FROM runner-base AS runner-web
 
 USER root
 
-# Chromium system libs required by Playwright
-RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
-  --mount=type=cache,target=/var/lib/apt/lists,sharing=locked \
-  apt-get update \
-  && apt-get install -y --no-install-recommends \
-    libglib2.0-0 \
-    libnss3 \
-    libatk1.0-0 \
-    libatk-bridge2.0-0 \
-    libcups2 \
-    libdrm2 \
-    libxkbcommon0 \
-    libxcomposite1 \
-    libxdamage1 \
-    libxfixes3 \
-    libxrandr2 \
-    libgbm1 \
-    libasound2 \
-  && rm -rf /var/lib/apt/lists/*
-
-# Install Playwright browser binaries into a path owned by the node user.
+# Install Playwright browser binaries + OS dependencies under root, then hand
+# ownership of the browsers cache to the node user.
 # PLAYWRIGHT_BROWSERS_PATH overrides the default ~/.cache/ms-playwright so the
 # browsers land under /home/node which persists across image layers and is
 # accessible to the non-root runtime user.
 ENV PLAYWRIGHT_BROWSERS_PATH=/home/node/.cache/ms-playwright
-RUN npx playwright install chromium --with-deps \
-  && chown -R node:node /home/node/.cache
+RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
+  --mount=type=cache,target=/var/lib/apt/lists,sharing=locked \
+  apt-get update \
+  && npx playwright install chromium --with-deps \
+  && chown -R node:node /home/node/.cache \
+  && rm -rf /var/lib/apt/lists/*
 
 USER node
 
