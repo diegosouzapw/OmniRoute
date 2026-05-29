@@ -252,7 +252,14 @@ export function selectMessagesForSummary(messages: MessageLike[], maxMessages: n
 
   const fallbackHistory = formatMessagesForPrompt(working);
   if (estimateTokens(fallbackHistory) > MAX_HISTORY_TOKENS_FOR_SUMMARY) {
-    return system;
+    // If there are system messages, return them so the caller can still produce context.
+    // If there are no system messages (system=[]), fall back to the single most-recent
+    // non-system message rather than returning [] which would silently drop the handoff.
+    if (system.length > 0) {
+      return system;
+    }
+    const lastNonSystem = nonSystem[nonSystem.length - 1];
+    return lastNonSystem ? [lastNonSystem] : [];
   }
 
   return working;
