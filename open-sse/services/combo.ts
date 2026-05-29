@@ -3580,15 +3580,17 @@ export async function handleComboChat({
           rawError && typeof rawError === "object"
             ? {
                 // Upstream JSON may carry a numeric `code`/`type` (e.g. {"code":40001}).
-                // Coerce-by-guard instead of an `as string` lie so downstream string
-                // ops (.toLowerCase, .startsWith) can never crash. Same class as #2463.
+                // Coerce to string if present instead of discarding, so downstream string
+                // ops (.toLowerCase, .startsWith) can run safely without type crashes.
                 code:
-                  typeof (rawError as Record<string, unknown>).code === "string"
-                    ? ((rawError as Record<string, unknown>).code as string)
+                  (rawError as Record<string, unknown>).code !== undefined &&
+                  (rawError as Record<string, unknown>).code !== null
+                    ? String((rawError as Record<string, unknown>).code)
                     : undefined,
                 type:
-                  typeof (rawError as Record<string, unknown>).type === "string"
-                    ? ((rawError as Record<string, unknown>).type as string)
+                  (rawError as Record<string, unknown>).type !== undefined &&
+                  (rawError as Record<string, unknown>).type !== null
+                    ? String((rawError as Record<string, unknown>).type)
                     : undefined,
               }
             : undefined;
@@ -4125,15 +4127,17 @@ async function handleRoundRobinCombo({
           rawError && typeof rawError === "object"
             ? {
                 // Upstream JSON may carry a numeric `code`/`type` (e.g. {"code":40001}).
-                // Coerce-by-guard instead of an `as string` lie so downstream string
-                // ops (.toLowerCase, .startsWith) can never crash. Same class as #2463.
+                // Coerce to string if present instead of discarding, so downstream string
+                // ops (.toLowerCase, .startsWith) can run safely without type crashes.
                 code:
-                  typeof (rawError as Record<string, unknown>).code === "string"
-                    ? ((rawError as Record<string, unknown>).code as string)
+                  (rawError as Record<string, unknown>).code !== undefined &&
+                  (rawError as Record<string, unknown>).code !== null
+                    ? String((rawError as Record<string, unknown>).code)
                     : undefined,
                 type:
-                  typeof (rawError as Record<string, unknown>).type === "string"
-                    ? ((rawError as Record<string, unknown>).type as string)
+                  (rawError as Record<string, unknown>).type !== undefined &&
+                  (rawError as Record<string, unknown>).type !== null
+                    ? String((rawError as Record<string, unknown>).type)
                     : undefined,
               }
             : undefined;
