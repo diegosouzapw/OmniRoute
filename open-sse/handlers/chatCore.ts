@@ -3313,10 +3313,16 @@ export async function handleChatCore({
   // Update model in body — use resolved alias so the provider gets the correct model ID (#472)
   // Strip provider/alias prefix if it exactly matches the routing prefix so upstream receives the raw model name (#1261)
   let finalModelToUpstream = effectiveModel;
-  if (finalModelToUpstream.startsWith(`${provider}/`)) {
-    finalModelToUpstream = finalModelToUpstream.slice(provider.length + 1);
-  } else if (alias && finalModelToUpstream.startsWith(`${alias}/`)) {
-    finalModelToUpstream = finalModelToUpstream.slice(alias.length + 1);
+  // Defense-in-depth: only string-strip when effectiveModel is actually a string.
+  // The API guards `model` via Zod (z.string()), but internal callers could pass a
+  // non-string and a bare `.startsWith` would crash with `startsWith is not a
+  // function` (same class as #2359 / #2463). Mirrors 9router's `?.startsWith?.()`.
+  if (typeof finalModelToUpstream === "string") {
+    if (finalModelToUpstream.startsWith(`${provider}/`)) {
+      finalModelToUpstream = finalModelToUpstream.slice(provider.length + 1);
+    } else if (alias && finalModelToUpstream.startsWith(`${alias}/`)) {
+      finalModelToUpstream = finalModelToUpstream.slice(alias.length + 1);
+    }
   }
   translatedBody.model = finalModelToUpstream;
 

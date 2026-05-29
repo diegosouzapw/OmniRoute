@@ -3579,8 +3579,17 @@ export async function handleComboChat({
         const structuredError =
           rawError && typeof rawError === "object"
             ? {
-                code: (rawError as Record<string, unknown>).code as string,
-                type: (rawError as Record<string, unknown>).type as string,
+                // Upstream JSON may carry a numeric `code`/`type` (e.g. {"code":40001}).
+                // Coerce-by-guard instead of an `as string` lie so downstream string
+                // ops (.toLowerCase, .startsWith) can never crash. Same class as #2463.
+                code:
+                  typeof (rawError as Record<string, unknown>).code === "string"
+                    ? ((rawError as Record<string, unknown>).code as string)
+                    : undefined,
+                type:
+                  typeof (rawError as Record<string, unknown>).type === "string"
+                    ? ((rawError as Record<string, unknown>).type as string)
+                    : undefined,
               }
             : undefined;
         const fallbackResult = checkFallbackError(
@@ -4115,8 +4124,17 @@ async function handleRoundRobinCombo({
         const structuredError =
           rawError && typeof rawError === "object"
             ? {
-                code: (rawError as Record<string, unknown>).code as string,
-                type: (rawError as Record<string, unknown>).type as string,
+                // Upstream JSON may carry a numeric `code`/`type` (e.g. {"code":40001}).
+                // Coerce-by-guard instead of an `as string` lie so downstream string
+                // ops (.toLowerCase, .startsWith) can never crash. Same class as #2463.
+                code:
+                  typeof (rawError as Record<string, unknown>).code === "string"
+                    ? ((rawError as Record<string, unknown>).code as string)
+                    : undefined,
+                type:
+                  typeof (rawError as Record<string, unknown>).type === "string"
+                    ? ((rawError as Record<string, unknown>).type as string)
+                    : undefined,
               }
             : undefined;
         const fallbackResult = checkFallbackError(

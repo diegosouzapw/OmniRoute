@@ -287,7 +287,11 @@ export function resolveCanonicalProviderModel(
  * Supports [1m] suffix for extended 1M context window (e.g. "claude-sonnet-4-6[1m]")
  */
 export function parseModel(modelStr: string | null | undefined): ParsedModel {
-  if (!modelStr) {
+  // Guard truthy non-strings (object/number/array), not just falsy values — a
+  // malformed combo `modelStr` or providerSpecificData saved as an object would
+  // otherwise reach `cleanStr.endsWith("[1m]")` and crash with
+  // `endsWith is not a function`. Same class as #2359 / #2463.
+  if (!modelStr || typeof modelStr !== "string") {
     return {
       provider: null,
       model: null,

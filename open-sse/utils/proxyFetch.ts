@@ -317,7 +317,7 @@ async function patchedFetch(
           msg.includes("fetch failed") ||
           errCode === "ECONNREFUSED" ||
           msg.includes("ECONNREFUSED") ||
-          (errCode !== undefined && errCode.startsWith("UND_ERR")) ||
+          (typeof errCode === "string" && errCode.startsWith("UND_ERR")) ||
           msg.includes("UND_ERR")
         ) {
           if (attempt === 0 && maxAttempts > 1) {
