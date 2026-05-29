@@ -14,6 +14,10 @@ import { safePercentage } from "@/shared/utils/formatting";
 import { fetchBailianQuota, type BailianTripleWindowQuota } from "./bailianQuotaFetcher.ts";
 import { fetchDeepseekQuota, type DeepseekQuota } from "./deepseekQuotaFetcher.ts";
 import {
+  fetchOpencodeQuota,
+  type OpencodeTripleWindowQuota,
+} from "./opencodeQuotaFetcher.ts";
+import {
   applyAntigravityClientProfileHeaders,
   getAntigravityBootstrapHeaders,
   getAntigravityClientProfile,
@@ -34,6 +38,7 @@ import {
   extractCodeAssistOnboardTierId,
   extractCodeAssistSubscriptionTier,
 } from "./codeAssistSubscription.ts";
+import { sanitizeErrorMessage } from "../utils/error.ts";
 
 // Quota / usage upstream URLs (overridable for testing or relays).
 const CROF_USAGE_URL = process.env.OMNIROUTE_CROF_USAGE_URL ?? "https://crof.ai/usage_api/";
@@ -871,6 +876,75 @@ async function getDeepseekUsage(connectionId: string, apiKey: string) {
 }
 
 /**
+ * OpenCode Go / OpenCode / OpenCode Zen Usage
+ * Delegates to the dedicated opencodeQuotaFetcher and shapes the result into
+ * the standard `{ plan, quotas }` usage response expected by the limits page.
+ *
+ * Three rolling windows are surfaced: $12/5h, $30/wk, $60/mo.
+ */
+async function getOpencodeUsage(connectionId: string, apiKey: string) {
+  if (!apiKey) {
+    return { message: "OpenCode API key not available. Add a key to view usage." };
+  }
+
+  try {
+    const quota = (await fetchOpencodeQuota(connectionId, { apiKey })) as OpencodeTripleWindowQuota | null;
+
+    if (!quota) {
+      return { message: "OpenCode connected. Unable to fetch quota data." };
+    }
+
+    const { window5h, windowWeekly, windowMonthly, limitReached } = quota;
+
+    const quotas: Record<string, UsageQuota> = {};
+
+    // $12 / 5-hour rolling window
+    quotas["window_5h"] = {
+      used: window5h.percentUsed * 12,
+      total: 12,
+      remaining: (1 - window5h.percentUsed) * 12,
+      remainingPercentage: (1 - window5h.percentUsed) * 100,
+      resetAt: window5h.resetAt,
+      unlimited: false,
+      displayName: "$12 / 5-hour",
+      currency: "USD",
+    };
+
+    // $30 / weekly window
+    quotas["window_weekly"] = {
+      used: windowWeekly.percentUsed * 30,
+      total: 30,
+      remaining: (1 - windowWeekly.percentUsed) * 30,
+      remainingPercentage: (1 - windowWeekly.percentUsed) * 100,
+      resetAt: windowWeekly.resetAt,
+      unlimited: false,
+      displayName: "$30 / week",
+      currency: "USD",
+    };
+
+    // $60 / monthly window
+    quotas["window_monthly"] = {
+      used: windowMonthly.percentUsed * 60,
+      total: 60,
+      remaining: (1 - windowMonthly.percentUsed) * 60,
+      remainingPercentage: (1 - windowMonthly.percentUsed) * 100,
+      resetAt: windowMonthly.resetAt,
+      unlimited: false,
+      displayName: "$60 / month",
+      currency: "USD",
+    };
+
+    return {
+      plan: "OpenCode Go",
+      quotas,
+      limitReached,
+    };
+  } catch (error) {
+    return { message: `OpenCode error: ${sanitizeErrorMessage(error)}` };
+  }
+}
+
+/**
  * NanoGPT Usage
  * Fetches subscription-level quota from the NanoGPT API.
  * Returns daily/weekly token limits and daily image limits for PRO accounts.
@@ -1116,6 +1190,9 @@ export const USAGE_FETCHER_PROVIDERS = [
   "bailian-coding-plan",
   "nanogpt",
   "deepseek",
+  "opencode-go",
+  "opencode",
+  "opencode-zen",
 ] as const;
 
 export type UsageFetcherProvider = (typeof USAGE_FETCHER_PROVIDERS)[number];
@@ -1172,6 +1249,10 @@ export async function getUsageForProvider(
       return await getNanoGptUsage(apiKey || "");
     case "deepseek":
       return await getDeepseekUsage(id || "", apiKey || "");
+    case "opencode-go":
+    case "opencode":
+    case "opencode-zen":
+      return await getOpencodeUsage(id || "", apiKey || "");
     default:
       return { message: `Usage API not implemented for ${provider}` };
   }
@@ -1261,9 +1342,17 @@ async function getGitHubUsage(accessToken?: string, providerSpecificData?: JsonR
         quotas,
       };
     } else if (dataRecord.monthly_quotas || dataRecord.limited_user_quotas) {
-      // Free/limited plan format
+      // Free/limited plan format. NOTE (#2876): the upstream field
+      // `limited_user_quotas[name]` is the *remaining* count for the month
+      // (it counts down toward 0 and resets on `limited_user_reset_date`),
+      // NOT the used count. The pre-3.8.6 implementation inverted this and
+      // showed "0% when not used / 100% when fully used" on the dashboard.
+      // Confirmed against three independent upstream parsers:
+      //   - robinebers/openusage  docs/providers/copilot.md (Free Tier table)
+      //   - raycast/extensions    agent-usage/src/copilot/fetcher.ts (inline comment)
+      //   - looplj/axonhub        frontend/src/components/quota-badges.tsx
       const monthlyQuotas = toRecord(dataRecord.monthly_quotas);
-      const usedQuotas = toRecord(dataRecord.limited_user_quotas);
+      const remainingQuotas = toRecord(dataRecord.limited_user_quotas);
       const resetDate = getFieldValue(
         dataRecord,
         "limited_user_reset_date",
@@ -1274,14 +1363,18 @@ async function getGitHubUsage(accessToken?: string, providerSpecificData?: JsonR
 
       const addLimitedQuota = (name: string) => {
         const total = toNumber(getFieldValue(monthlyQuotas, name, name), 0);
-        const used = Math.max(0, toNumber(getFieldValue(usedQuotas, name, name), 0));
         if (total <= 0) return null;
-        const clampedUsed = Math.min(used, total);
+        const remainingRaw = Math.max(
+          0,
+          toNumber(getFieldValue(remainingQuotas, name, name), 0)
+        );
+        const remaining = Math.min(remainingRaw, total);
+        const used = Math.max(total - remaining, 0);
         quotas[name] = {
-          used: clampedUsed,
+          used,
           total,
-          remaining: Math.max(total - clampedUsed, 0),
-          remainingPercentage: clampPercentage(((total - clampedUsed) / total) * 100),
+          remaining,
+          remainingPercentage: clampPercentage((remaining / total) * 100),
           unlimited: false,
           resetAt,
         };
@@ -2644,4 +2737,5 @@ export const __testing = {
   extractCodeAssistOnboardTierId,
   getMiniMaxPlanLabel,
   inferMiniMaxPlanLabelFromTotals,
+  getOpencodeUsage,
 };

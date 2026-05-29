@@ -236,11 +236,13 @@ test("v1 models catalog keeps only visible combos when no providers are active",
   const body = (await response.json()) as any;
 
   assert.equal(response.status, 200);
-  assert.deepEqual(
-    body.data.map((item) => item.id),
-    [visible.name]
-  );
-  assert.equal(body.data[0].context_length, 32000);
+  // The visible combo must be present (noAuth provider models may also appear — that is correct
+  // behavior after the fix for Issue #2798, so we check membership rather than exact equality).
+  const ids = body.data.map((item) => item.id);
+  assert.ok(ids.includes(visible.name), "visible combo must appear");
+  const visibleCombo = body.data.find((item) => item.id === visible.name);
+  assert.ok(visibleCombo, "visible combo entry must exist");
+  assert.equal(visibleCombo.context_length, 32000);
   assert.equal(
     body.data.some((item) => item.id === hidden.name),
     false
@@ -1336,4 +1338,23 @@ test("v1 models catalog prefers manual combo context_length over auto-calculated
   assert.equal(response.status, 200);
   assert.ok(comboModel);
   assert.equal(comboModel.context_length, 64000, "manual context_length should override auto-calc");
+});
+
+// Regression test for Issue #2798: noAuth providers (opencode/oc) have no DB connection rows
+// but their models must still appear in /v1/models.
+test("v1 models catalog includes noAuth provider models when no DB connections exist (#2798)", async () => {
+  // No connections seeded — empty DB, simulating a fresh install with no credentials added.
+  const response = await v1ModelsCatalog.getUnifiedModelsResponse(
+    new Request("http://localhost/api/v1/models")
+  );
+  const body = (await response.json()) as any;
+  const ids: string[] = body.data.map((item: any) => item.id);
+
+  assert.equal(response.status, 200);
+  // opencode (noAuth) models must surface even with zero connection rows.
+  // The registry defines models under alias "oc" (e.g. "oc/big-pickle").
+  assert.ok(
+    ids.some((id) => id.startsWith("oc/") || id.startsWith("opencode/")),
+    `Expected at least one oc/* or opencode/* model in /v1/models but got none. IDs sample: ${ids.slice(0, 10).join(", ")}`
+  );
 });

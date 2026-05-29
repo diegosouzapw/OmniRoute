@@ -89,6 +89,7 @@ import {
 import { registerBailianCodingPlanQuotaFetcher } from "@omniroute/open-sse/services/bailianQuotaFetcher.ts";
 import { registerCrofUsageFetcher } from "@omniroute/open-sse/services/crofUsageFetcher.ts";
 import { registerDeepseekQuotaFetcher } from "@omniroute/open-sse/services/deepseekQuotaFetcher.ts";
+import { registerOpencodeQuotaFetcher } from "@omniroute/open-sse/services/opencodeQuotaFetcher.ts";
 import { registerGenericQuotaFetchers } from "@omniroute/open-sse/services/genericQuotaFetcher.ts";
 import {
   getCooldownAwareRetryDecision,
@@ -111,6 +112,11 @@ registerCrofUsageFetcher();
 // Register DeepSeek balance quota fetcher.
 // Hooks into quotaPreflight + quotaMonitor so combos can switch accounts before balance is exhausted.
 registerDeepseekQuotaFetcher();
+
+// Register OpenCode quota fetcher (opencode-go / opencode / opencode-zen).
+// Surfaces the $12/5h, $30/wk, $60/mo windows in the limits page and enables
+// quota-aware preflight switching between connections. (#2852)
+registerOpencodeQuotaFetcher();
 
 // Register the generic quota fetcher for every other provider that has a
 // usage implementation in usage.ts but no bespoke preflight fetcher. This is

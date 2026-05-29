@@ -216,6 +216,23 @@ test("Responses -> Chat passes through when background flag is unset or false (n
   }
 });
 
+test("Responses -> Chat strips safety_identifier (LobeHub #2770)", () => {
+  // LobeHub sends safety_identifier in Responses API bodies. Chat Completions rejects it
+  // with HTTP 400. The translator must strip it in the Responses-API cleanup block.
+  const result = openaiResponsesToOpenAIRequest(
+    "gpt-4o",
+    {
+      input: [{ role: "user", content: [{ type: "input_text", text: "hi" }] }],
+      safety_identifier: "sid-xyz",
+    },
+    false,
+    null
+  ) as Record<string, unknown>;
+
+  assert.equal(result.safety_identifier, undefined, "safety_identifier must be stripped before forwarding to Chat Completions");
+  assert.ok(Array.isArray(result.messages), "translation must still produce messages");
+});
+
 test("Chat -> Responses converts messages, tool calls, tool outputs, tools and pass-through params", () => {
   const result = openaiToOpenAIResponsesRequest(
     "gpt-4o",
@@ -678,4 +695,55 @@ test("Responses -> Chat: unknown tool type still throws unsupported_feature (no 
       ),
     (error: any) => error.statusCode === 400 && error.errorType === "unsupported_feature"
   );
+});
+
+// --- Issue #2766: tool_search built-in should be silently dropped ---
+
+test("Responses -> Chat: tool_search does not throw (issue #2766)", () => {
+  // Codex newer clients send tool_search as a Responses API built-in.
+  // OmniRoute must not return 400 — it should silently drop the tool_search entry.
+  assert.doesNotThrow(() =>
+    openaiResponsesToOpenAIRequest(
+      "gpt-4o",
+      {
+        input: [{ role: "user", content: [{ type: "input_text", text: "search" }] }],
+        tools: [{ type: "tool_search", name: "search" }],
+      },
+      false,
+      null
+    )
+  );
+});
+
+test("Responses -> Chat: tool_search is stripped from output tools array (issue #2766)", () => {
+  // Codex clients send tool_search alongside function tools. tool_search has no
+  // Chat Completions equivalent and must be dropped; function tools must remain.
+  const result = openaiResponsesToOpenAIRequest(
+    "gpt-4o",
+    {
+      input: [{ role: "user", content: [{ type: "input_text", text: "hello" }] }],
+      tools: [
+        { type: "tool_search", name: "search" },
+        {
+          type: "function",
+          name: "foo",
+          description: "A function",
+          parameters: { type: "object" },
+        },
+      ],
+    },
+    false,
+    null
+  ) as Record<string, unknown>;
+
+  const tools = result.tools as any[];
+  assert.ok(Array.isArray(tools), "tools array must be present");
+  assert.equal(
+    tools.some((t) => t.type === "tool_search"),
+    false,
+    "tool_search must be stripped from output"
+  );
+  assert.equal(tools.length, 1, "only the function tool must remain");
+  assert.equal(tools[0].type, "function");
+  assert.equal(tools[0].function.name, "foo");
 });

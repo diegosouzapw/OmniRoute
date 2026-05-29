@@ -4,6 +4,7 @@ import { detectFormatFromEndpoint, getTargetFormat } from "../services/provider.
 import { injectSystemPrompt } from "../services/systemPrompt.ts";
 import { translateRequest, needsTranslation } from "../translator/index.ts";
 import { FORMATS } from "../translator/formats.ts";
+import { splitMisplacedToolResults } from "../translator/helpers/claudeHelper.ts";
 import {
   createSSETransformStreamWithLogger,
   createPassthroughStreamWithLogger,
@@ -2966,6 +2967,11 @@ export async function handleChatCore({
         return [];
       });
     }
+
+    // #2815: move stray tool_result blocks out of assistant messages.
+    payload.messages = splitMisplacedToolResults(
+      payload.messages as ClaudeMessage[]
+    ) as unknown as Record<string, unknown>[];
   };
 
   try {
@@ -3059,6 +3065,11 @@ export async function handleChatCore({
         // Only lift system/developer messages — preserves Claude Code's
         // native payload structure (documents, tool chains, thinking, etc.)
         extractSystemRoleMessages(translatedBody);
+        if (Array.isArray(translatedBody.messages)) {
+          translatedBody.messages = splitMisplacedToolResults(
+            translatedBody.messages as ClaudeMessage[]
+          ) as typeof translatedBody.messages;
+        }
       } else {
         normalizeClaudeUpstreamMessages(translatedBody, { preserveToolResultBlocks: true });
       }
@@ -3323,7 +3334,20 @@ export async function handleChatCore({
     // mode === "fallback": try native first, retry via CLIProxyAPI on specific failures
     const nativeExec = getExecutor(prov);
     const proxyExec = getExecutor("cliproxyapi");
-    const isRetryableStatus = (s: number) => s >= 500 || s === 429 || s === 0;
+
+    // Read custom fallback codes from settings. Default: 5xx + 429 + network errors.
+    let fallbackCodes: number[] = [429, 500, 502, 503, 504];
+    try {
+      const allSettings = await getCachedSettings();
+      if (typeof allSettings.cliproxyapi_fallback_codes === "string" && allSettings.cliproxyapi_fallback_codes.trim()) {
+        const parsed = allSettings.cliproxyapi_fallback_codes
+          .split(",")
+          .map((s: string) => parseInt(s.trim(), 10))
+          .filter((n: number) => !isNaN(n));
+        if (parsed.length > 0) fallbackCodes = parsed;
+      }
+    } catch { /* use defaults */ }
+    const isRetryableStatus = (s: number) => fallbackCodes.includes(s) || s === 0;
 
     const wrapper = Object.create(nativeExec);
     wrapper.execute = async (input: {
