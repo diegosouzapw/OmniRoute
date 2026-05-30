@@ -111,6 +111,8 @@ export interface RegistryEntry {
   passthroughModels?: boolean;
   /** Default context window for all models in this provider (can be overridden per-model) */
   defaultContextLength?: number;
+  /** Optional session pool config for rate limit management */
+  poolConfig?: Record<string, unknown>;
 }
 
 interface LegacyProvider {
@@ -4097,6 +4099,15 @@ export const REGISTRY: Record<string, RegistryEntry> = {
     modelsUrl: "https://api.llm7.io/v1/models",
     authType: "apikey",
     authHeader: "bearer",
+    poolConfig: {
+      minSessions: 1,
+      maxSessions: 3,
+      cooldownBase: 2000,
+      cooldownMax: 5000,
+      cooldownJitter: 100,
+      requestTimeout: 30000,
+      requestJitter: 50,
+    },
     models: [
       { id: "gpt-4o-mini-2024-07-18", name: "GPT-4o mini (LLM7)" },
       { id: "gpt-4.1-nano-2025-04-14", name: "GPT-4.1 nano (LLM7)" },

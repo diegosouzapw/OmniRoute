@@ -29,6 +29,8 @@ import { buildOciChatUrl } from "../config/oci.ts";
 import { buildSapChatUrl, getSapResourceGroup } from "../config/sap.ts";
 import { buildMaritalkChatUrl } from "../config/maritalk.ts";
 
+import type { PoolConfig } from "../services/sessionPool/types.ts";
+
 function normalizeBaseUrl(baseUrl) {
   return (baseUrl || "").trim().replace(/\/$/, "");
 }
@@ -103,6 +105,10 @@ function normalizeOpenAIChatUrl(baseUrl) {
 export class DefaultExecutor extends BaseExecutor {
   constructor(provider) {
     super(provider, PROVIDERS[provider] || PROVIDERS.openai);
+    const registryEntry = getRegistryEntry(provider);
+    if (registryEntry?.poolConfig) {
+      this.poolConfig = registryEntry.poolConfig as PoolConfig;
+    }
   }
 
   buildUrl(model, stream, urlIndex = 0, credentials = null) {
