@@ -516,6 +516,20 @@ export const WEB_COOKIE_PROVIDERS = {
     subscriptionRisk: true,
     riskNoticeVariant: "webCookie",
   },
+  "qwen-web": {
+    id: "qwen-web",
+    alias: "qw",
+    name: "Qwen Web (Free)",
+    icon: "auto_awesome",
+    color: "#10B981",
+    textIcon: "QW",
+    website: "https://chat.qwen.ai",
+    hasFree: true,
+    freeNote: "Free — Qwen models via chat.qwen.ai with login token. No subscription required.",
+    authHint:
+      "Open chat.qwen.ai, log in, then open DevTools → Application → Local Storage → " +
+      'copy the "token" value (or use tongyi_sso_ticket cookie as Bearer token).',
+  },
 };
 
 // API Key Providers

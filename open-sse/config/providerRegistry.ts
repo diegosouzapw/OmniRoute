@@ -3940,6 +3940,26 @@ export const REGISTRY: Record<string, RegistryEntry> = {
     ],
   },
 
+  "qwen-web": {
+    id: "qwen-web",
+    alias: "qw",
+    format: "openai",
+    executor: "qwen-web",
+    baseUrl: "https://chat.qwen.ai/api/chat/completions",
+    authType: "apikey",
+    authHeader: "bearer",
+    models: [
+      { id: "qwen-plus", name: "Qwen Plus" },
+      { id: "qwen-max", name: "Qwen Max" },
+      { id: "qwen-turbo", name: "Qwen Turbo" },
+      { id: "qwen3-plus", name: "Qwen3 Plus" },
+      { id: "qwen3-max", name: "Qwen3 Max" },
+      { id: "qwen3-flash", name: "Qwen3 Flash" },
+      { id: "qwen3-coder-plus", name: "Qwen3 Coder Plus" },
+      { id: "qwen3-coder-flash", name: "Qwen3 Coder Flash" },
+    ],
+  },
+
   codestral: {
     id: "codestral",
     alias: "codestral",

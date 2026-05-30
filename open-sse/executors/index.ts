@@ -45,6 +45,7 @@ import { VeniceWebExecutor } from "./venice-web.ts";
 import { V0VercelWebExecutor } from "./v0-vercel-web.ts";
 import { KimiWebExecutor } from "./kimi-web.ts";
 import { DoubaoWebExecutor } from "./doubao-web.ts";
+import { QwenWebExecutor } from "./qwen-web.ts";
 
 const executors = {
   antigravity: new AntigravityExecutor(),
@@ -127,6 +128,8 @@ const executors = {
   kimi: new KimiWebExecutor(), // Alias
   "doubao-web": new DoubaoWebExecutor(),
   db: new DoubaoWebExecutor(), // Alias
+  "qwen-web": new QwenWebExecutor(),
+  qw: new QwenWebExecutor(), // Alias
 };
 
 const defaultCache = new Map();
@@ -182,3 +185,4 @@ export { DeepSeekWebWithAutoRefreshExecutor } from "./deepseek-web-with-auto-ref
 export { AdaptaWebExecutor } from "./adapta-web.ts";
 export { T3ChatWebExecutor } from "./t3-chat-web.ts";
 export { InnerAiExecutor } from "./inner-ai.ts";
+export { QwenWebExecutor } from "./qwen-web.ts";
