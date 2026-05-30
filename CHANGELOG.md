@@ -2,6 +2,14 @@
 
 ## [Unreleased]
 
+### ✨ New Features
+
+- **notion:** add Notion as an MCP context source — 6 tools (`notion_search`, `notion_list_databases`, `notion_get_database`, `notion_query_database`, `notion_read`, `notion_append_blocks`) scoped under `read:notion` / `write:notion`, with dashboard "Context Sources" tab, settings API, and token persistence in `key_value` table (#2959)
+
+### 🔧 Bug Fixes
+
+- **mcp:** move `enforceScopes` guard before `MCP_TOOL_MAP` lookup, add inline `scopes` parameter to `withScopeEnforcement()`, and declare scopes on all 24 dynamic tool definitions (memory, skills, plugins, gamification, compression) to fix scope enforcement for dynamic MCP tool groups (#2958)
+
 ---
 
 ## [3.8.7] — 2026-05-29
