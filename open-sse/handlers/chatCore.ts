@@ -294,24 +294,20 @@ const MAX_LOG_BODY_CHARS = 8 * 1024; // 8KB cap for logged request/response bodi
 function truncateForLog(value: unknown): Record<string, unknown> | null | undefined {
   if (value === null || value === undefined) return value as null | undefined;
   if (typeof value !== "object") return value as unknown as Record<string, unknown>;
-  try {
-    const json = JSON.stringify(value);
-    if (json.length <= MAX_LOG_BODY_CHARS) return value as Record<string, unknown>;
-    // Object is too large — return a summary instead of a deep clone
-    const obj = value as Record<string, unknown>;
-    const summary: Record<string, unknown> = {
-      _truncated: true,
-      _originalBytes: json.length,
-    };
-    if (typeof obj.model === "string") summary.model = obj.model;
-    if (typeof obj.provider === "string") summary.provider = obj.provider;
-    if (Array.isArray(obj.messages)) summary.messageCount = obj.messages.length;
-    if (Array.isArray(obj.contents)) summary.contentCount = obj.contents.length;
-    if (typeof obj.stream === "boolean") summary.stream = obj.stream;
-    return summary;
-  } catch {
-    return value as Record<string, unknown>;
-  }
+  const estimatedSize = estimateSizeFast(value);
+  if (estimatedSize <= MAX_LOG_BODY_CHARS) return value as Record<string, unknown>;
+  // Object is too large — return a summary instead of a deep clone
+  const obj = value as Record<string, unknown>;
+  const summary: Record<string, unknown> = {
+    _truncated: true,
+    _originalBytes: estimatedSize,
+  };
+  if (typeof obj.model === "string") summary.model = obj.model;
+  if (typeof obj.provider === "string") summary.provider = obj.provider;
+  if (Array.isArray(obj.messages)) summary.messageCount = obj.messages.length;
+  if (Array.isArray(obj.contents)) summary.contentCount = obj.contents.length;
+  if (typeof obj.stream === "boolean") summary.stream = obj.stream;
+  return summary;
 }
 
 function extractMemoryTextFromResponse(
