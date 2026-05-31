@@ -1312,14 +1312,9 @@ const _REGISTRY_EAGER: Record<string, RegistryEntry> = {
     defaultContextLength: 200000,
     models: [
       { id: "big-pickle", name: "Big Pickle" },
-      { id: "minimax-m2.5-free", name: "MiniMax M2.5 Free", contextLength: 204800 },
-      { id: "ling-2.6-1t-free", name: "Ling 2.6 Free", contextLength: 262000 },
-      {
-        id: "trinity-large-preview-free",
-        name: "Trinity Large Preview Free",
-        contextLength: 131000,
-      },
+      { id: "deepseek-v4-flash-free", name: "DeepSeek V4 Flash Free", supportsReasoning: true },
       { id: "nemotron-3-super-free", name: "Nemotron 3 Super Free", contextLength: 1000000 },
+      { id: "qwen3.6-plus-free", name: "Qwen3.6 Plus Free", targetFormat: "claude", supportsVision: false, contextLength: 200000, },
     ],
   },
 
