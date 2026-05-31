@@ -88,8 +88,8 @@ Applied to: `system` blocks, all `messages[].content`, and `tools[].description`
 
 For third-party Anthropic relays that only accept "real Claude Code" traffic:
 
-- `CLAUDE_CODE_COMPATIBLE_USER_AGENT = "claude-cli/2.1.146 (external, sdk-cli)"`
-- `CLAUDE_CODE_COMPATIBLE_STAINLESS_PACKAGE_VERSION = "0.81.0"`
+- `CLAUDE_CODE_COMPATIBLE_USER_AGENT = "claude-cli/2.1.158 (external, sdk-cli)"`
+- `CLAUDE_CODE_COMPATIBLE_STAINLESS_PACKAGE_VERSION = "0.94.0"`
 - `CLAUDE_CODE_COMPATIBLE_STAINLESS_RUNTIME_VERSION = "v24.3.0"`
 - `anthropic-beta = "claude-code-20250219,interleaved-thinking-2025-05-14,effort-2025-11-24"`
 - `CONTEXT_1M_BETA_HEADER = "context-1m-2025-08-07"` (Opus/Sonnet 4.x family)
@@ -212,7 +212,7 @@ All MITM endpoints require management auth (`requireCliToolsAuth`). The sudo pas
 
 | Variable                 | Default                                       |
 | ------------------------ | --------------------------------------------- |
-| `CLAUDE_USER_AGENT`      | `claude-cli/2.1.146 (external, cli)`          |
+| `CLAUDE_USER_AGENT`      | `claude-cli/2.1.158 (external, cli)`          |
 | `CODEX_USER_AGENT`       | `codex-cli/0.132.0 (Windows 10.0.26200; x64)` |
 | `GITHUB_USER_AGENT`      | `GitHubCopilotChat/0.45.1`                    |
 | `ANTIGRAVITY_USER_AGENT` | `antigravity/2.0.1 darwin/arm64`              |
