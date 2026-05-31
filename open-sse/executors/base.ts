@@ -3,6 +3,8 @@ import { applyFingerprint, isCliCompatEnabled } from "../config/cliFingerprints.
 import { supportsClaudeMaxEffort, supportsXHighEffort } from "../config/providerModels.ts";
 import type { PoolConfig } from "../services/sessionPool/types.ts";
 import type { Session } from "../services/sessionPool/session.ts";
+import { SessionPool } from "../services/sessionPool/sessionPool.ts";
+import { PoolRegistry } from "../services/sessionPool/poolRegistry.ts";
 import {
   getRotatingApiKey,
   getValidApiKey,
@@ -336,11 +338,9 @@ export class BaseExecutor {
     return this.provider;
   }
 
-  protected getPool(): import("../services/sessionPool/sessionPool.ts").SessionPool | null {
+  protected getPool(): SessionPool | null {
     if (!this.poolConfig) return null;
     if (!this._pool) {
-      const { SessionPool } = require("../services/sessionPool/sessionPool.ts");
-      const { PoolRegistry } = require("../services/sessionPool/poolRegistry.ts");
       const pool = new SessionPool(this.provider, this.poolConfig);
       pool.warmUp(this.poolConfig.minSessions).catch(() => {});
       PoolRegistry.register(this.provider, pool);

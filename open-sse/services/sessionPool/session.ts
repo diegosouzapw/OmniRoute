@@ -34,7 +34,7 @@ export class Session {
     private readonly cooldownMax: number,
     private readonly cooldownJitter: number,
   ) {
-    this.id = `sess-${fingerprint.id}-${Date.now().toString(36)}`;
+    this.id = `sess-${fingerprint.id}-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`;
     this.fingerprint = fingerprint;
     this.createdAt = Date.now();
   }

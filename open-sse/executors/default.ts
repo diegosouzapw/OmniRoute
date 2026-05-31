@@ -548,6 +548,47 @@ export class DefaultExecutor extends BaseExecutor {
     }
     return super.needsRefresh(credentials);
   }
+
+  async execute(input) {
+    const pool = this.getPool();
+    if (!pool) return super.execute(input);
+
+    const session = pool.acquire();
+    if (session) {
+      input.upstreamExtraHeaders = {
+        ...session.buildHeaders(),
+        ...input.upstreamExtraHeaders,
+      };
+    }
+
+    let result;
+    try {
+      result = await super.execute(input);
+    } catch (err) {
+      if (session) {
+        pool.reportCooldown(session);
+        session.release();
+      }
+      throw err;
+    }
+
+    if (session) {
+      try {
+        const status = result.response.status;
+        if (status === 429) {
+          pool.reportCooldown(session);
+        } else if (status >= 500) {
+          pool.reportDead(session);
+        } else {
+          pool.reportSuccess(session);
+        }
+      } finally {
+        session.release();
+      }
+    }
+
+    return result;
+  }
 }
 
 export default DefaultExecutor;

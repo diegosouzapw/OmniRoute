@@ -80,7 +80,6 @@ export class PollinationsExecutor extends BaseExecutor {
           pool.reportDead(session);
         } else {
           pool.reportSuccess(session);
-          pool.totalRequests++;
         }
       } finally {
         session.release();
