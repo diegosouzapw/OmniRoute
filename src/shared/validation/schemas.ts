@@ -1866,6 +1866,7 @@ export const updateKeyPermissionsSchema = z
       .optional(),
     scopes: z.array(z.string().trim().min(1).max(64)).max(32).optional(),
     allowedEndpoints: z.array(z.string().trim().min(1).max(64)).max(20).optional(),
+    disableNonPublicModels: z.boolean().optional(),
   })
   .superRefine((value, ctx) => {
     if (

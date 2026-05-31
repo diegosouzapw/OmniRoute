@@ -78,6 +78,7 @@ export async function PATCH(request, { params }) {
       accessSchedule,
       rateLimits,
       scopes,
+      disableNonPublicModels,
     } = validation.data;
 
     const payload: Parameters<typeof updateApiKeyPermissions>[1] = {};
@@ -95,6 +96,7 @@ export async function PATCH(request, { params }) {
     if (accessSchedule !== undefined) payload.accessSchedule = accessSchedule;
     if (rateLimits !== undefined) payload.rateLimits = rateLimits;
     if (scopes !== undefined) payload.scopes = scopes;
+    if (disableNonPublicModels !== undefined) payload.disableNonPublicModels = disableNonPublicModels;
 
     const updated = await updateApiKeyPermissions(id, payload);
     if (!updated) {
@@ -120,6 +122,7 @@ export async function PATCH(request, { params }) {
       ...(accessSchedule !== undefined && { accessSchedule }),
       ...(rateLimits !== undefined && { rateLimits }),
       ...(scopes !== undefined && { scopes }),
+      ...(disableNonPublicModels !== undefined && { disableNonPublicModels }),
     });
   } catch (error) {
     log.error("keys", "Error updating key permissions", error);

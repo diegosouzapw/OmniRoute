@@ -60,6 +60,7 @@ interface ApiKeyMetadata {
   isBanned: boolean;
   keyHash: string | null;
   allowedEndpoints: string[];
+  disableNonPublicModels: boolean;
 }
 
 interface ApiKeyRow extends JsonRecord {
@@ -121,6 +122,7 @@ interface ApiKeyView extends JsonRecord {
   isBanned?: boolean;
   expiresAt?: string | null;
   allowedEndpoints: string[];
+  disableNonPublicModels: boolean;
 }
 
 // LRU cache for API key validation (valid keys only)
@@ -156,6 +158,7 @@ const API_KEY_COLUMN_FALLBACKS = [
   { name: "is_banned", definition: "is_banned INTEGER NOT NULL DEFAULT 0" },
   { name: "key_hash", definition: "key_hash TEXT" },
   { name: "allowed_endpoints", definition: "allowed_endpoints TEXT" },
+  { name: "disable_non_public_models", definition: "disable_non_public_models INTEGER NOT NULL DEFAULT 0" },
 ] as const;
 
 // Cache for model permission checks
@@ -355,7 +358,7 @@ function getPreparedStatements(db: ApiKeysDbLike): ApiKeysStatements {
       "SELECT id, expires_at, revoked_at, is_active, is_banned FROM api_keys WHERE key = ? OR key_hash = ?"
     );
     _stmtGetKeyMetadata = db.prepare<ApiKeyRow>(
-      "SELECT id, name, machine_id, allowed_models, allowed_combos, allowed_connections, no_log, auto_resolve, is_active, access_schedule, max_requests_per_day, max_requests_per_minute, throttle_delay_ms, max_sessions, revoked_at, expires_at, ip_allowlist, scopes, rate_limits, is_banned, key_hash, allowed_endpoints FROM api_keys WHERE key = ? OR key_hash = ?"
+      "SELECT id, name, machine_id, allowed_models, allowed_combos, allowed_connections, no_log, auto_resolve, is_active, access_schedule, max_requests_per_day, max_requests_per_minute, throttle_delay_ms, max_sessions, revoked_at, expires_at, ip_allowlist, scopes, rate_limits, is_banned, key_hash, allowed_endpoints, disable_non_public_models FROM api_keys WHERE key = ? OR key_hash = ?"
     );
     _stmtInsertKey = db.prepare(
       "INSERT INTO api_keys (id, name, key, machine_id, allowed_models, no_log, created_at, key_prefix, key_hash, scopes) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
@@ -401,6 +404,7 @@ export async function getApiKeys() {
     camelRow.isBanned = parseIsBanned(camelRow.isBanned);
     camelRow.scopes = parseStringList((camelRow as JsonRecord).scopes);
     camelRow.allowedEndpoints = parseStringList((camelRow as JsonRecord).allowedEndpoints);
+    camelRow.disableNonPublicModels = parseDisableNonPublicModels((camelRow as JsonRecord).disableNonPublicModels);
     if (typeof camelRow.id === "string" && camelRow.id.length > 0) {
       setNoLog(camelRow.id, camelRow.noLog === true);
     }
@@ -425,6 +429,7 @@ export async function getApiKeyById(id: string) {
   camelRow.isBanned = parseIsBanned(camelRow.isBanned);
   camelRow.scopes = parseStringList((camelRow as JsonRecord).scopes);
   camelRow.allowedEndpoints = parseStringList((camelRow as JsonRecord).allowedEndpoints);
+  camelRow.disableNonPublicModels = parseDisableNonPublicModels((camelRow as JsonRecord).disableNonPublicModels);
   if (typeof camelRow.id === "string" && camelRow.id.length > 0) {
     setNoLog(camelRow.id, camelRow.noLog === true);
   }
@@ -457,6 +462,10 @@ function parseNoLog(value: unknown): boolean {
 }
 
 function parseAutoResolve(value: unknown): boolean {
+  return value === true || value === 1 || value === "1";
+}
+
+function parseDisableNonPublicModels(value: unknown): boolean {
   return value === true || value === 1 || value === "1";
 }
 
@@ -661,6 +670,7 @@ export async function updateApiKeyPermissions(
         maxSessions?: number | null;
         scopes?: string[] | null;
         allowedEndpoints?: string[] | null;
+        disableNonPublicModels?: boolean;
       }
 ) {
   const db = getDbInstance() as ApiKeysDbLike;
@@ -687,6 +697,7 @@ export async function updateApiKeyPermissions(
           maxSessions: (update as { maxSessions?: number | null }).maxSessions,
           scopes: (update as { scopes?: string[] | null }).scopes,
           allowedEndpoints: (update as { allowedEndpoints?: string[] | null }).allowedEndpoints,
+          disableNonPublicModels: (update as { disableNonPublicModels?: boolean }).disableNonPublicModels,
         };
 
   if (
@@ -706,7 +717,8 @@ export async function updateApiKeyPermissions(
     normalized.expiresAt === undefined &&
     (normalized as Record<string, unknown>).maxSessions === undefined &&
     (normalized as Record<string, unknown>).scopes === undefined &&
-    (normalized as Record<string, unknown>).allowedEndpoints === undefined
+    (normalized as Record<string, unknown>).allowedEndpoints === undefined &&
+    normalized.disableNonPublicModels === undefined
   ) {
     return false;
   }
@@ -730,6 +742,7 @@ export async function updateApiKeyPermissions(
     maxSessions?: number;
     expiresAt?: string | null;
     scopes?: string;
+    disableNonPublicModels?: number;
   } = { id };
 
   if (normalized.name !== undefined) {
@@ -805,6 +818,11 @@ export async function updateApiKeyPermissions(
   if (normalized.expiresAt !== undefined) {
     updates.push("expires_at = @expiresAt");
     params.expiresAt = normalized.expiresAt;
+  }
+
+  if (normalized.disableNonPublicModels !== undefined) {
+    updates.push("disable_non_public_models = @disableNonPublicModels");
+    params.disableNonPublicModels = normalized.disableNonPublicModels ? 1 : 0;
   }
 
   const maxSessionsUpdate = (normalized as Record<string, unknown>).maxSessions;
@@ -1171,6 +1189,7 @@ export async function getApiKeyMetadata(
       keyHash: null,
       scopes: ["manage"],
       allowedEndpoints: [],
+      disableNonPublicModels: false,
     };
   }
 
@@ -1228,6 +1247,7 @@ export async function getApiKeyMetadata(
     allowedEndpoints: parseStringList(
       (record as JsonRecord).allowed_endpoints ?? (record as JsonRecord).allowedEndpoints
     ),
+    disableNonPublicModels: parseDisableNonPublicModels(record.disable_non_public_models ?? record.disableNonPublicModels),
   };
 
   if (!metadata.id) {
@@ -1272,7 +1292,29 @@ export async function isModelAllowedForKey(
   // SECURITY: Key not found in database = deny access (invalid/non-existent key)
   if (!metadata) return false;
 
-  const { allowedModels } = metadata;
+  const { allowedModels, disableNonPublicModels } = metadata;
+
+  // Check disableNonPublicModels flag
+  if (disableNonPublicModels) {
+    const { resolveModelAlias } = await import("@omniroute/open-sse/services/modelDeprecation.ts");
+    const { getSyncedAvailableModelsByConnection, getCustomModels, getModelIsHidden } = await import("@/lib/db/models");
+    
+    const resolvedModelId = resolveModelAlias(modelId);
+    const effectiveModelId = resolvedModelId || modelId;
+    
+    const providerId = effectiveModelId.split("/")[0];
+    const shortModelId = effectiveModelId.split("/").slice(1).join("/");
+    const syncedModelsByConnection = await getSyncedAvailableModelsByConnection(providerId);
+    const customModels = await getCustomModels(providerId);
+    
+    // Combine synced and custom models
+    const allDiscoveredModels = Object.values(syncedModelsByConnection).flat().concat(customModels);
+    const discovered = allDiscoveredModels.some((m) => m.id === shortModelId);
+    if (!discovered) return false;
+    
+    const isPublic = !getModelIsHidden(providerId, shortModelId);
+    if (!isPublic) return false;
+  }
 
   // Empty array means all models allowed
   if (!allowedModels || allowedModels.length === 0) {
