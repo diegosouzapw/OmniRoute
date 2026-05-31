@@ -7,14 +7,13 @@
  * @module plugins/manager
  */
 
-import { mkdir, cp, rm } from "fs/promises";
-import { join, dirname, resolve } from "path";
+import { mkdir, cp, rm, realpath, readFile } from "fs/promises";
+import { join, dirname } from "path";
 import { randomUUID } from "crypto";
 import { logger } from "../../../open-sse/utils/logger.ts";
 import { getDefaultPluginDir, scanPluginDir } from "./scanner";
 import { loadPlugin, type LoadedPlugin } from "./loader";
 import { registerHook, unregisterHooks } from "./hooks";
-import { startWatching, stopWatching, stopAllWatchers } from "./watcher";
 import {
   insertPlugin,
   getPluginByName,
@@ -27,33 +26,6 @@ import {
 import type { PluginManifestWithDefaults } from "./manifest";
 
 const log = logger("PLUGIN_MANAGER");
-
-/** Extract enabled hook names from a manifest's hooks object. */
-function extractHookNames(hooks: { onRequest?: unknown; onResponse?: unknown; onError?: unknown }): string[] {
-  const isEnabled = (v: unknown): boolean => {
-    if (typeof v === "boolean") return v;
-    if (typeof v === "object" && v !== null && "enabled" in v) return (v as { enabled?: boolean }).enabled ?? true;
-    return false;
-  };
-  return [
-    isEnabled(hooks.onRequest) && "onRequest",
-    isEnabled(hooks.onResponse) && "onResponse",
-    isEnabled(hooks.onError) && "onError",
-  ].filter(Boolean) as string[];
-}
-
-/** Parse semver string to [major, minor, patch]. */
-function parseSemver(v: string): [number, number, number] {
-  const parts = v.split(".").map(Number);
-  return [parts[0] ?? 0, parts[1] ?? 0, parts[2] ?? 0];
-}
-
-/** Compare two semver strings. Returns >0 if a>b, <0 if a<b, 0 if equal. */
-function compareSemver(a: string, b: string): number {
-  const [a0, a1, a2] = parseSemver(a);
-  const [b0, b1, b2] = parseSemver(b);
-  return (a0 - b0) * 10000 + (a1 - b1) * 100 + (a2 - b2);
-}
 
 class PluginManager {
   private static instance: PluginManager;
@@ -76,13 +48,36 @@ class PluginManager {
    * Copies to plugin dir, validates manifest, registers in DB.
    */
   async install(sourceDir: string): Promise<PluginRow> {
-    // Path traversal guard: validate name doesn't contain path traversal sequences
-    const resolvedSource = resolve(sourceDir);
-    if (resolvedSource.includes("\0")) {
-      throw new Error("Invalid source directory: contains path traversal sequences");
-    }
+    // Check if sourceDir itself contains plugin.json (direct plugin dir)
+    const { safeValidateManifest } = await import("./manifest");
+    const { readFile: readFileFs } = await import("fs/promises");
+    let directPlugin: {
+      name: string;
+      manifest: any;
+      pluginDir: string;
+      entryPoint: string;
+    } | null = null;
 
-    const { plugins, errors } = await scanPluginDir(sourceDir);
+    try {
+      const manifestPath = join(sourceDir, "plugin.json");
+      const raw = await readFileFs(manifestPath, "utf-8");
+      const parsed = JSON.parse(raw);
+      const result = safeValidateManifest(parsed);
+      if (result.success) {
+        const entryPoint = join(sourceDir, result.data.main);
+        directPlugin = {
+          name: result.data.name,
+          manifest: result.data,
+          pluginDir: sourceDir,
+          entryPoint,
+        };
+      }
+    } catch {}
+
+    const { plugins, errors } = directPlugin
+      ? { plugins: [directPlugin], errors: [] }
+      : await scanPluginDir(sourceDir);
+
     if (plugins.length === 0) {
       throw new Error(
         `No valid plugin found in ${sourceDir}: ${errors.map((e) => e.error).join(", ")}`
@@ -92,28 +87,9 @@ class PluginManager {
     const discovered = plugins[0];
     const { name, manifest, pluginDir: srcDir } = discovered;
 
-    // Path traversal guard: validate plugin name
-    if (name.includes("..") || name.includes("/") || name.includes("\\") || name.includes("\0")) {
-      throw new Error(`Invalid plugin name '${name}': contains path traversal characters`);
-    }
-
-    // Check if already installed — allow upgrade if source version is newer
+    // Check if already installed
     if (pluginExists(name)) {
-      const existing = getPluginByName(name)!;
-      if (compareSemver(manifest.version, existing.version) <= 0) {
-        throw new Error(
-          `Plugin '${name}' is already installed (v${existing.version}). Source version v${manifest.version} is not newer.`
-        );
-      }
-      // Upgrade path: deactivate old, delete old files, continue with install
-      if (existing.status === "active") {
-        await this.deactivate(name);
-      }
-      try {
-        await rm(existing.pluginDir, { recursive: true, force: true });
-      } catch {}
-      dbDeletePlugin(name);
-      log.info("manager.upgrading", { name, from: existing.version, to: manifest.version });
+      throw new Error(`Plugin '${name}' is already installed`);
     }
 
     // Copy to plugin directory
@@ -134,7 +110,11 @@ class PluginManager {
       tags: manifest.tags,
       manifest: manifest as unknown as Record<string, unknown>,
       configSchema: manifest.configSchema as unknown as Record<string, unknown>,
-      hooks: extractHookNames(manifest.hooks),
+      hooks: [
+        manifest.hooks.onRequest && "onRequest",
+        manifest.hooks.onResponse && "onResponse",
+        manifest.hooks.onError && "onError",
+      ].filter(Boolean) as string[],
       permissions: manifest.requires.permissions,
       pluginDir: destDir,
       enabled: manifest.enabledByDefault,
@@ -159,31 +139,37 @@ class PluginManager {
     if (row.status === "active") return;
 
     const manifest = JSON.parse(row.manifest) as PluginManifestWithDefaults;
+
+    // Path traversal guard: use realpath to resolve symlinks
     const entryPoint = join(row.pluginDir, manifest.main);
+    let resolvedPluginDir: string;
+    try {
+      resolvedPluginDir = await realpath(row.pluginDir);
+    } catch {
+      throw new Error(`Plugin directory '${row.pluginDir}' does not exist`);
+    }
+    const resolvedEntry = await realpath(entryPoint).catch(() => null);
+    if (
+      !resolvedEntry ||
+      (!resolvedEntry.startsWith(resolvedPluginDir + "/") && resolvedEntry !== resolvedPluginDir)
+    ) {
+      throw new Error(`Plugin '${name}' entry point escapes plugin directory`);
+    }
 
     try {
       const loaded = await loadPlugin(entryPoint, manifest);
 
-      // Register hooks from manifest via registerHook
-      const hookNames = extractHookNames(manifest.hooks);
-
+      // Register hooks individually via registerHook
+      const hookNames = ["onRequest", "onResponse", "onError"] as const;
       for (const hookName of hookNames) {
-        const handler = loaded.plugin[hookName as keyof typeof loaded.plugin];
+        const handler = loaded.plugin[hookName];
         if (typeof handler === "function") {
-          const hookConfig = manifest.hooks[hookName as keyof typeof manifest.hooks];
-          const priority = typeof hookConfig === "object" && hookConfig !== null ? hookConfig.priority ?? 100 : 100;
-          registerHook(hookName, name, handler as (payload: unknown) => void | Promise<void>, priority);
+          registerHook(hookName, name, handler as (payload: unknown) => void | Promise<void>);
         }
       }
 
       this.loadedPlugins.set(name, loaded);
       updatePluginStatus(name, "active");
-
-      // Start file watcher for hot-reload
-      const row = getPluginByName(name);
-      if (row?.pluginDir) {
-        startWatching(row.pluginDir, name, (n) => this.reload(n));
-      }
 
       log.info("manager.activated", { name });
     } catch (err: any) {
@@ -197,10 +183,6 @@ class PluginManager {
    * Deactivate a plugin — unregister hooks, update DB.
    */
   async deactivate(name: string): Promise<void> {
-    // Stop file watcher
-    const row = getPluginByName(name);
-    if (row?.pluginDir) stopWatching(row.pluginDir);
-
     const loaded = this.loadedPlugins.get(name);
     if (loaded) {
       unregisterHooks(name);
@@ -210,20 +192,6 @@ class PluginManager {
 
     updatePluginStatus(name, "inactive");
     log.info("manager.deactivated", { name });
-  }
-
-  /**
-   * Reload a plugin — deactivate then re-activate.
-   */
-  async reload(name: string): Promise<void> {
-    const row = getPluginByName(name);
-    if (!row) throw new Error(`Plugin '${name}' not found`);
-
-    if (row.status === "active") {
-      await this.deactivate(name);
-    }
-    await this.activate(name);
-    log.info("manager.reloaded", { name });
   }
 
   /**
@@ -251,48 +219,6 @@ class PluginManager {
   }
 
   /**
-   * Upgrade a plugin to a newer version from a source directory.
-   * Validates version is newer, then reinstalls.
-   */
-  async upgrade(sourceDir: string): Promise<PluginRow> {
-    const resolvedSource = resolve(sourceDir);
-    if (resolvedSource.includes("\0")) {
-      throw new Error("Invalid source directory: contains path traversal sequences");
-    }
-
-    const { plugins, errors } = await scanPluginDir(sourceDir);
-    if (plugins.length === 0) {
-      throw new Error(`No valid plugin found in ${sourceDir}: ${errors.map((e) => e.error).join(", ")}`);
-    }
-
-    const discovered = plugins[0];
-    const { name, manifest } = discovered;
-
-    const existing = getPluginByName(name);
-    if (!existing) {
-      throw new Error(`Plugin '${name}' is not installed — use install() instead`);
-    }
-
-    if (compareSemver(manifest.version, existing.version) <= 0) {
-      throw new Error(
-        `Source version v${manifest.version} is not newer than installed v${existing.version}`
-      );
-    }
-
-    // Deactivate if active, delete old files and DB row
-    if (existing.status === "active") {
-      await this.deactivate(name);
-    }
-    try {
-      await rm(existing.pluginDir, { recursive: true, force: true });
-    } catch {}
-    dbDeletePlugin(name);
-
-    // Reinstall (this.install handles DB insert + copy)
-    return this.install(sourceDir);
-  }
-
-  /**
    * Scan plugin directory and sync with DB.
    * Discovers new plugins and marks missing ones.
    */
@@ -315,7 +241,11 @@ class PluginManager {
             tags: discovered.manifest.tags,
             manifest: discovered.manifest as unknown as Record<string, unknown>,
             configSchema: discovered.manifest.configSchema as unknown as Record<string, unknown>,
-            hooks: extractHookNames(discovered.manifest.hooks),
+            hooks: [
+              discovered.manifest.hooks.onRequest && "onRequest",
+              discovered.manifest.hooks.onResponse && "onResponse",
+              discovered.manifest.hooks.onError && "onError",
+            ].filter(Boolean) as string[],
             permissions: discovered.manifest.requires.permissions,
             pluginDir: discovered.pluginDir,
             enabled: discovered.manifest.enabledByDefault,

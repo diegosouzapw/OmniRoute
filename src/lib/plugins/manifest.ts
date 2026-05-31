@@ -35,20 +35,10 @@ export type ConfigField = z.infer<typeof ConfigFieldSchema>;
 
 // ── Hooks ──
 
-const HookConfigSchema = z.union([
-  z.boolean(),
-  z.object({
-    enabled: z.boolean().optional(),
-    priority: z.number().optional(),
-  }),
-]);
-
 export const HooksSchema = z.object({
-  onRequest: HookConfigSchema.optional(),
-  onResponse: HookConfigSchema.optional(),
-  onError: HookConfigSchema.optional(),
-  onBeforeInstall: z.boolean().optional(),
-  onAfterInstall: z.boolean().optional(),
+  onRequest: z.boolean().optional(),
+  onResponse: z.boolean().optional(),
+  onError: z.boolean().optional(),
 });
 
 // ── Requires ──
@@ -56,9 +46,6 @@ export const HooksSchema = z.object({
 export const RequiresSchema = z.object({
   omniroute: z.string().optional(),
   permissions: z.array(PermissionSchema).optional(),
-  memoryLimitMb: z.number().min(32).max(1024).optional(),
-  plugins: z.array(z.string()).optional(),
-  sandboxLevel: z.number().min(0).max(3).optional(),
 });
 
 // ── Full manifest ──
@@ -87,31 +74,16 @@ export type PluginManifest = z.infer<typeof PluginManifestSchema>;
 
 // ── Defaults applied after parsing ──
 
-export interface HookConfig {
-  enabled: boolean;
-  priority: number;
-}
-
 export interface PluginManifestWithDefaults extends PluginManifest {
   license: string;
   main: string;
   source: "local" | "marketplace";
   tags: string[];
-  requires: { omniroute?: string; permissions: Permission[]; memoryLimitMb?: number; plugins?: string[]; sandboxLevel?: number };
-  hooks: { onRequest: HookConfig; onResponse: HookConfig; onError: HookConfig; onBeforeInstall: boolean; onAfterInstall: boolean };
+  requires: { omniroute?: string; permissions: Permission[] };
+  hooks: { onRequest: boolean; onResponse: boolean; onError: boolean };
   skills: ManifestSkill[];
   enabledByDefault: boolean;
   configSchema: Record<string, ConfigField>;
-  integrity?: string;
-}
-
-function normalizeHook(value: unknown): HookConfig {
-  if (typeof value === "boolean") return { enabled: value, priority: 100 };
-  if (typeof value === "object" && value !== null) {
-    const obj = value as { enabled?: boolean; priority?: number };
-    return { enabled: obj.enabled ?? true, priority: obj.priority ?? 100 };
-  }
-  return { enabled: false, priority: 100 };
 }
 
 export function applyDefaults(manifest: PluginManifest): PluginManifestWithDefaults {
@@ -124,55 +96,16 @@ export function applyDefaults(manifest: PluginManifest): PluginManifestWithDefau
     requires: {
       omniroute: manifest.requires?.omniroute,
       permissions: manifest.requires?.permissions ?? [],
-      memoryLimitMb: manifest.requires?.memoryLimitMb,
-      plugins: manifest.requires?.plugins,
-      sandboxLevel: manifest.requires?.sandboxLevel,
     },
     hooks: {
-      onRequest: normalizeHook(manifest.hooks?.onRequest),
-      onResponse: normalizeHook(manifest.hooks?.onResponse),
-      onError: normalizeHook(manifest.hooks?.onError),
-      onBeforeInstall: manifest.hooks?.onBeforeInstall ?? false,
-      onAfterInstall: manifest.hooks?.onAfterInstall ?? false,
+      onRequest: manifest.hooks?.onRequest ?? false,
+      onResponse: manifest.hooks?.onResponse ?? false,
+      onError: manifest.hooks?.onError ?? false,
     },
     skills: manifest.skills ?? [],
     enabledByDefault: manifest.enabledByDefault ?? false,
     configSchema: manifest.configSchema ?? {},
   };
-}
-
-// ── Config validation ──
-
-export function validatePluginConfig(
-  config: Record<string, unknown>,
-  schema: Record<string, ConfigField>
-): { valid: true } | { valid: false; errors: string[] } {
-  if (Object.keys(schema).length === 0) return { valid: true };
-  const errors: string[] = [];
-  for (const [key, value] of Object.entries(config)) {
-    const field = schema[key];
-    if (!field) {
-      errors.push(`Unknown config key: '${key}'`);
-      continue;
-    }
-    if (field.type === "number" && typeof value !== "number") {
-      errors.push(`Config '${key}' must be a number, got ${typeof value}`);
-    }
-    if (field.type === "string" && typeof value !== "string") {
-      errors.push(`Config '${key}' must be a string, got ${typeof value}`);
-    }
-    if (field.type === "boolean" && typeof value !== "boolean") {
-      errors.push(`Config '${key}' must be a boolean, got ${typeof value}`);
-    }
-    if (field.type === "number" && typeof value === "number") {
-      if (field.min !== undefined && value < field.min) errors.push(`Config '${key}' must be >= ${field.min}`);
-      if (field.max !== undefined && value > field.max) errors.push(`Config '${key}' must be <= ${field.max}`);
-    }
-    if (field.type === "select" && field.enum && !field.enum.includes(String(value))) {
-      errors.push(`Config '${key}' must be one of: ${field.enum.join(", ")}`);
-    }
-  }
-  return errors.length === 0 ? { valid: true } : { valid: false, errors };
 }
 
 // ── Validation ──

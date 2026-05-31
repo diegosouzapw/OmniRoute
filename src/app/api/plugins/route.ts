@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { CORS_HEADERS, handleCorsOptions } from "@/shared/utils/cors";
 import { listPlugins } from "@/lib/db/plugins";
 import { pluginManager } from "@/lib/plugins/manager";
+import { requireManagementAuth } from "@/lib/api/requireManagementAuth";
 import { z } from "zod";
 
 export async function OPTIONS() {
@@ -12,6 +13,8 @@ export async function OPTIONS() {
  * GET /api/plugins — List all installed plugins
  */
 export async function GET(request: NextRequest) {
+  const authError = await requireManagementAuth(request);
+  if (authError) return authError;
   const url = new URL(request.url);
   const status = url.searchParams.get("status") as any;
 
@@ -27,6 +30,8 @@ export async function GET(request: NextRequest) {
  * POST /api/plugins — Install a plugin from a local path
  */
 export async function POST(request: NextRequest) {
+  const authError = await requireManagementAuth(request);
+  if (authError) return authError;
   const body = await request.json();
   const schema = z.object({
     path: z.string().min(1),

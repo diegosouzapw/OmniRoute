@@ -118,7 +118,11 @@ export function insertPlugin(input: PluginCreateInput): PluginRow {
   );
 
   log.info("plugin.inserted", { id: input.id, name: input.name });
-  return getPluginByName(input.name)!;
+  const plugin = getPluginByName(input.name);
+  if (!plugin) {
+    throw new Error(`Failed to retrieve plugin '${input.name}' after insertion`);
+  }
+  return plugin;
 }
 
 export function getPluginById(id: string): PluginRow | null {
@@ -188,66 +192,4 @@ export function pluginExists(name: string): boolean {
   const db = getDbInstance();
   const row = db.prepare("SELECT 1 FROM plugins WHERE name = ?").get(name);
   return !!row;
-}
-
-// ── Plugin Analytics ──
-
-export function recordPluginExecution(
-  pluginName: string,
-  hook: string,
-  durationMs: number,
-  success: boolean,
-  errorMessage?: string
-): void {
-  const db = getDbInstance();
-  db.prepare(
-    "INSERT INTO plugin_analytics (plugin_name, hook, duration_ms, success, error_message) VALUES (?, ?, ?, ?, ?)"
-  ).run(pluginName, hook, durationMs, success ? 1 : 0, errorMessage ?? null);
-}
-
-export function getPluginAnalytics(
-  pluginName: string,
-  limit = 100
-): Array<{
-  id: number;
-  pluginName: string;
-  hook: string;
-  durationMs: number;
-  success: boolean;
-  errorMessage: string | null;
-  createdAt: string;
-}> {
-  const db = getDbInstance();
-  const rows = db
-    .prepare("SELECT * FROM plugin_analytics WHERE plugin_name = ? ORDER BY created_at DESC LIMIT ?")
-    .all(pluginName, limit) as any[];
-  return rows.map((r) => ({
-    id: r.id,
-    pluginName: r.plugin_name,
-    hook: r.hook,
-    durationMs: r.duration_ms,
-    success: r.success === 1,
-    errorMessage: r.error_message,
-    createdAt: r.created_at,
-  }));
-}
-
-export function getPluginAnalyticsSummary(pluginName: string): {
-  totalCalls: number;
-  successCount: number;
-  failureCount: number;
-  avgDurationMs: number;
-} {
-  const db = getDbInstance();
-  const row = db
-    .prepare(
-      "SELECT COUNT(*) as total, SUM(success) as successes, AVG(duration_ms) as avg_dur FROM plugin_analytics WHERE plugin_name = ?"
-    )
-    .get(pluginName) as any;
-  return {
-    totalCalls: row?.total ?? 0,
-    successCount: row?.successes ?? 0,
-    failureCount: (row?.total ?? 0) - (row?.successes ?? 0),
-    avgDurationMs: Math.round(row?.avg_dur ?? 0),
-  };
 }

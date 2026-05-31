@@ -162,7 +162,9 @@ export {
   listProxies,
   getProxyById,
   createProxy,
+  createProxyAndAssign,
   updateProxy,
+  updateProxyAndAssign,
   upsertProxy,
   deleteProxyById,
   getProxyAssignments,
@@ -282,7 +284,10 @@ export {
   disableWebhooksWithHighFailures,
 } from "./db/webhooks";
 
-export type { Webhook } from "./db/webhooks";
+export type { Webhook, WebhookKind } from "./db/webhooks";
+
+export { insertDelivery, getDeliveries } from "./db/webhookDeliveries";
+export type { WebhookDelivery } from "./db/webhookDeliveries";
 
 export {
   saveQuotaSnapshot,
@@ -304,6 +309,8 @@ export {
   updateToolHealth,
   updateToolVersion,
   setToolStatus,
+  getServiceRow,
+  updateServiceField,
 } from "./db/versionManager";
 
 export {
@@ -385,6 +392,141 @@ export {
   startSessionAccountAffinityCleanup,
   stopSessionAccountAffinityCleanupForTests,
 } from "./db/sessionAccountAffinity";
+
+export {
+  // Gamification & Leaderboard
+  updateScore,
+  getRank,
+  getTopN,
+  addXp,
+  getXp,
+  updateLevel,
+  unlockBadge,
+  getBadges,
+  getBadgeDefinitions,
+  transferTokens,
+  getBalance,
+  getHistory,
+  createInviteToken,
+  getInviteByCode,
+  redeemInvite,
+  revokeInvite,
+  connectServer,
+  disconnectServer,
+  listServers,
+} from "./db/gamification";
+
+export type {
+  LeaderboardRow,
+  UserLevelRow,
+  BadgeDefinition,
+  UserBadge,
+  XpAuditLogEntry,
+  TokenLedgerEntry,
+  InviteToken,
+  CommunityServer,
+} from "./db/gamification";
+
+export * from "./db/featureFlags";
+
+export {
+  upsertHandoff,
+  getHandoff,
+  deleteHandoff,
+  cleanupExpiredHandoffs,
+  hasActiveHandoff,
+  recordSessionModelUsage,
+  getLastSessionModel,
+} from "./db/contextHandoffs";
+
+export type { HandoffPayload } from "./db/contextHandoffs";
+
+export {
+  getAllMiddlewareHooks,
+  getEnabledMiddlewareHooks,
+  getComboMiddlewareHooks,
+  getMiddlewareHook,
+  createMiddlewareHook,
+  updateMiddlewareHook,
+  deleteMiddlewareHook,
+  recordHookExecution,
+  insertHookLog,
+  getHookLogs,
+  cleanupHookLogs,
+} from "./db/middleware";
+
+export {
+  getAllKeyGroups,
+  getKeyGroup,
+  getKeyGroupWithPermissions,
+  createKeyGroup,
+  updateKeyGroup,
+  deleteKeyGroup,
+  getGroupPermissions,
+  addGroupPermission,
+  removeGroupPermission,
+  clearGroupPermissions,
+  getGroupMembers,
+  getKeyGroupsForApiKey,
+  addKeyToGroup,
+  removeKeyFromGroup,
+  checkKeyModelAccess,
+} from "./db/apiKeyGroups";
+
+export {
+  createRelayToken,
+  getRelayTokens,
+  getRelayToken,
+  getRelayTokenByHash,
+  updateRelayToken,
+  deleteRelayToken,
+  toggleRelayToken,
+  checkRateLimit,
+  recordRelayUsage,
+  getRelayUsage,
+  getRelayLogs,
+} from "./db/relayProxies";
+
+export type {
+  RelayToken,
+  RelayTokenRow,
+  RelayLogRow,
+  CreateRelayTokenInput,
+  RelayTokenWithSecret,
+} from "./db/relayProxies";
+
+export {
+  upsertFreeProxy,
+  listFreeProxies,
+  listFreeProxiesBySource,
+  getFreeProxyById,
+  markFreeProxyInPool,
+  promoteFreeProxyToPool,
+  deleteFreeProxy,
+  clearFreeProxiesBySource,
+  getFreeProxyStats,
+} from "./db/freeProxies";
+
+export type { FreeProxyRecord, FreeProxyStats } from "./db/freeProxies";
+
+export {
+  // Per-API-Key Token Limits (migration 073)
+  upsertTokenLimit,
+  listTokenLimits,
+  getTokenLimitsForRequest,
+  deleteTokenLimit,
+  getWindowUsage,
+  incrementWindowTokens,
+  resetWindowIfElapsed,
+  logTokenLimitReset,
+} from "./db/tokenLimits";
+
+export type {
+  TokenLimit,
+  TokenLimitScopeType,
+  UpsertTokenLimitInput,
+  TokenWindowState,
+} from "./db/tokenLimits";
 
 export {
   insertPlugin,

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { CORS_HEADERS, handleCorsOptions } from "@/shared/utils/cors";
 import { getPluginByName } from "@/lib/db/plugins";
 import { pluginManager } from "@/lib/plugins/manager";
+import { requireManagementAuth } from "@/lib/api/requireManagementAuth";
 
 export async function OPTIONS() {
   return handleCorsOptions();
@@ -10,10 +11,9 @@ export async function OPTIONS() {
 /**
  * GET /api/plugins/[name] — Get plugin details
  */
-export async function GET(
-  _request: NextRequest,
-  { params }: { params: Promise<{ name: string }> }
-) {
+export async function GET(request: NextRequest, { params }: { params: Promise<{ name: string }> }) {
+  const authError = await requireManagementAuth(request);
+  if (authError) return authError;
   const { name } = await params;
   const plugin = getPluginByName(name);
 
@@ -57,9 +57,11 @@ export async function GET(
  * DELETE /api/plugins/[name] — Uninstall a plugin
  */
 export async function DELETE(
-  _request: NextRequest,
+  request: NextRequest,
   { params }: { params: Promise<{ name: string }> }
 ) {
+  const authError = await requireManagementAuth(request);
+  if (authError) return authError;
   const { name } = await params;
 
   try {

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { CORS_HEADERS, handleCorsOptions } from "@/shared/utils/cors";
 import { pluginManager } from "@/lib/plugins/manager";
+import { requireManagementAuth } from "@/lib/api/requireManagementAuth";
 
 export async function OPTIONS() {
   return handleCorsOptions();
@@ -10,9 +11,11 @@ export async function OPTIONS() {
  * POST /api/plugins/[name]/deactivate — Deactivate a plugin
  */
 export async function POST(
-  _request: NextRequest,
+  request: NextRequest,
   { params }: { params: Promise<{ name: string }> }
 ) {
+  const authError = await requireManagementAuth(request);
+  if (authError) return authError;
   const { name } = await params;
 
   try {
