@@ -160,6 +160,30 @@ export async function GET(request: Request) {
       return Response.json({ level, id, proxy });
     }
 
+    if (level === "provider" && id) {
+      const assignments = await getProxyAssignments({ scope: "provider" });
+      const assignment = assignments.find((entry) => entry.scopeId === id);
+      if (assignment?.proxyId) {
+        const proxyData = await getProxyById(assignment.proxyId, { includeSecrets: true });
+        if (proxyData) {
+          return Response.json({
+            level,
+            id,
+            proxy: {
+              type: proxyData.type,
+              host: proxyData.host,
+              port: proxyData.port,
+              username: proxyData.username,
+              password: proxyData.password,
+            },
+          });
+        }
+      }
+
+      const proxy = await getProxyForLevel(level, id);
+      return Response.json({ level, id, proxy });
+    }
+
     if (level) {
       const proxy = await getProxyForLevel(level, id);
       return Response.json({ level, id, proxy });
@@ -167,6 +191,24 @@ export async function GET(request: Request) {
 
     // Get full config
     const config = await getProxyConfig();
+    const providerAssignments = await getProxyAssignments({ scope: "provider" });
+    if (providerAssignments.length > 0) {
+      config.providers = { ...(config.providers || {}) };
+      for (const assignment of providerAssignments) {
+        if (!assignment.scopeId || !assignment.proxyId) {
+          continue;
+        }
+        const proxyData = await getProxyById(assignment.proxyId, { includeSecrets: true });
+        if (!proxyData) continue;
+        config.providers[assignment.scopeId] = {
+          type: proxyData.type,
+          host: proxyData.host,
+          port: proxyData.port,
+          username: proxyData.username,
+          password: proxyData.password,
+        };
+      }
+    }
     return Response.json(config);
   } catch (error) {
     return createErrorResponseFromUnknown(error, "Failed to load proxy config");
