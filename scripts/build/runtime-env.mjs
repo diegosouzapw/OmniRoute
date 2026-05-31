@@ -8,9 +8,9 @@ export function parsePort(value, fallback) {
 /**
  * Resolve the V8 heap ceiling (MB) for the server process from
  * `OMNIROUTE_MEMORY_MB`, mirroring `omniroute serve`. Clamped to [64, 16384];
- * invalid/unset → fallback (512). The Docker image bakes
- * NODE_OPTIONS=--max-old-space-size=256, which OOMs under load / large DBs
- * (#2939) — the standalone launcher uses this to override that cap.
+ * invalid/unset → fallback (512). The standalone launcher uses this so
+ * OMNIROUTE_MEMORY_MB can override the Docker image's NODE_OPTIONS fallback
+ * without clobbering any other runtime flags (#2939).
  * @param {string | number | undefined | null} value
  * @param {number} [fallback]
  */

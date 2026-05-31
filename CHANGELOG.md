@@ -84,7 +84,7 @@
   (previously only the request-log viewer resolved it). (#2968)
 - **docker:** the standalone launcher (Docker `CMD`) now honors
   `OMNIROUTE_MEMORY_MB` (default 512, clamped [64, 16384]) and overrides the
-  baked `--max-old-space-size=256`, fixing random OOM crashes under load / with
+  image `NODE_OPTIONS` fallback, fixing random OOM crashes under load / with
   large SQLite DBs. Previously only `omniroute serve` honored the knob. (#2939)
 - **docker:** add a `web` compose profile (`omniroute-web`, target `runner-web`,
   image `omniroute:web`) so web-cookie providers (gemini-web, claude-web,

@@ -1,9 +1,9 @@
 /**
- * Issue #2939 — random OOM in Docker. The image bakes
- * NODE_OPTIONS=--max-old-space-size=256, and the standalone launcher
- * (`scripts/dev/run-standalone.mjs`, the Docker CMD) did not honor
- * OMNIROUTE_MEMORY_MB, so the server child inherited the 256 MB cap and OOMed
- * under load / large SQLite DBs.
+ * Issue #2939 — random OOM in Docker. The standalone launcher
+ * (`scripts/dev/run-standalone.mjs`, the Docker CMD) must honor
+ * OMNIROUTE_MEMORY_MB instead of relying only on the image-level NODE_OPTIONS
+ * fallback, so Docker users can raise the server heap under load / large
+ * SQLite DBs.
  *
  * `resolveMaxOldSpaceMb` is the shared heap-ceiling resolver the launcher now
  * uses (mirroring `omniroute serve`): OMNIROUTE_MEMORY_MB clamped to [64, 16384],
