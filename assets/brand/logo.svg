@@ -1,0 +1,46 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512" role="img" aria-label="OmniRoute">
+  <title>OmniRoute</title>
+  <desc>AI-coded vector app mark: a central routing hub fanning a single inbound stream out to many destination nodes — an AI gateway/router. Hand-authored paths.</desc>
+  <defs>
+    <linearGradient id="or-flow" x1="120" y1="256" x2="392" y2="256" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#22D3EE"/>
+      <stop offset="1" stop-color="#6366F1"/>
+    </linearGradient>
+    <radialGradient id="or-hub" cx="0.5" cy="0.4" r="0.7">
+      <stop offset="0" stop-color="#A5B4FC"/>
+      <stop offset="1" stop-color="#4F46E5"/>
+    </radialGradient>
+    <linearGradient id="or-node" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#34D399"/>
+      <stop offset="1" stop-color="#10B981"/>
+    </linearGradient>
+  </defs>
+
+  <!-- App tile -->
+  <rect x="24" y="24" width="464" height="464" rx="108" ry="108" fill="#0B1020"/>
+  <rect x="24" y="24" width="464" height="464" rx="108" ry="108" fill="none" stroke="#1E2A4A" stroke-width="2"/>
+
+  <!-- Routing fan-out paths: one source (left) routed to three destinations (right) -->
+  <g fill="none" stroke="url(#or-flow)" stroke-width="16" stroke-linecap="round">
+    <path d="M 132 256 H 232"/>
+    <path d="M 256 256 C 320 256 320 152 384 152"/>
+    <path d="M 256 256 H 384"/>
+    <path d="M 256 256 C 320 256 320 360 384 360"/>
+  </g>
+
+  <!-- Source node (inbound) -->
+  <circle cx="132" cy="256" r="30" fill="url(#or-hub)"/>
+
+  <!-- Central routing hub -->
+  <circle cx="256" cy="256" r="44" fill="url(#or-hub)"/>
+  <circle cx="256" cy="256" r="44" fill="none" stroke="#C7D2FE" stroke-width="4"/>
+  <!-- Hub directional chevron = active routing -->
+  <path d="M 244 234 L 272 256 L 244 278" fill="none" stroke="#0B1020" stroke-width="14" stroke-linecap="round" stroke-linejoin="round"/>
+
+  <!-- Destination nodes -->
+  <g fill="url(#or-node)">
+    <circle cx="384" cy="152" r="26"/>
+    <circle cx="384" cy="256" r="26"/>
+    <circle cx="384" cy="360" r="26"/>
+  </g>
+</svg>
