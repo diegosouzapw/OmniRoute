@@ -11,7 +11,6 @@ const ANTHROPIC_BETA_BASE = Object.freeze([
   "structured-outputs-2025-12-15",
   "fast-mode-2026-02-01",
   "redact-thinking-2026-02-12",
-  "mid-conversation-system-2026-04-07",
   "token-efficient-tools-2026-03-28",
   "advisor-tool-2026-03-01",
   "extended-cache-ttl-2025-04-11",
