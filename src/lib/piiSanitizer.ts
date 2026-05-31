@@ -13,9 +13,14 @@
 
 // ── Configuration ──
 
-const isEnabled = () => process.env.PII_RESPONSE_SANITIZATION === "true";
-const getMode = (): "redact" | "warn" | "block" =>
-  (process.env.PII_RESPONSE_SANITIZATION_MODE as "redact" | "warn" | "block") || "redact";
+import { isFeatureFlagEnabled, resolveFeatureFlag } from "@/shared/utils/featureFlags";
+
+const isEnabled = () => isFeatureFlagEnabled("PII_RESPONSE_SANITIZATION");
+const getMode = (): "redact" | "warn" | "block" => {
+  const value = resolveFeatureFlag("PII_RESPONSE_SANITIZATION_MODE");
+  if (value === "false" || value === "") return "redact";
+  return (value as "redact" | "warn" | "block") || "redact";
+};
 
 // ── PII Patterns ──
 
