@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>OmniRoute</title>
+    <style>
+      html, body { margin: 0; height: 100%; background: #0b0e14; color: #e6e6e6;
+        font: 15px/1.5 system-ui, sans-serif; display: grid; place-items: center; }
+      .card { text-align: center; max-width: 28rem; padding: 2rem; }
+      code { background: #1b2030; padding: 2px 6px; border-radius: 4px; }
+    </style>
+  </head>
+  <body>
+    <div class="card">
+      <h1>OmniRoute</h1>
+      <p>Waiting for the dev server at <code id="u"></code>.</p>
+      <p>Start it, then this native window reloads with HMR.</p>
+    </div>
+    <script>
+      const url = (window.__RENDERER_URL__) || "http://localhost:3000";
+      document.getElementById("u").textContent = url;
+      (function poll() {
+        fetch(url, { mode: "no-cors" })
+          .then(() => { location.href = url; })
+          .catch(() => setTimeout(poll, 1000));
+      })();
+    </script>
+  </body>
+</html>

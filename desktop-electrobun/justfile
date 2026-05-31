@@ -1,0 +1,17 @@
+# OmniRoute desktop shell
+set dotenv-load
+
+dev:
+  bun dev
+
+build:
+  bun run build
+
+release:
+  bun run build:release
+
+install:
+  bun install
+
+typecheck:
+  bun run typecheck
