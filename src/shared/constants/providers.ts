@@ -427,6 +427,7 @@ export const WEB_COOKIE_PROVIDERS = {
     textIcon: "DDG",
     website: "https://duckduckgo.com/duckchat",
     hasFree: true,
+    noAuth: true,
     freeNote: "Free — anonymous access to multiple AI models via DuckDuckGo.",
     authHint: "No credentials required — DuckDuckGo AI Chat is anonymous and free.",
   },
@@ -2878,6 +2879,7 @@ export function providerAllowsOptionalApiKey(providerId: unknown): boolean {
     providerId === "petals" ||
     providerId === "pollinations" ||
     providerId === "copilot-web" ||
+    providerId === "duckduckgo-web" ||
     providerId === "veoaifree-web" ||
     providerId === "hackclub" ||
     providerId === "huggingchat" ||

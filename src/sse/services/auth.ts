@@ -47,6 +47,7 @@ import {
   getProviderAlias,
   resolveProviderId,
   NOAUTH_PROVIDERS,
+  WEB_COOKIE_PROVIDERS,
 } from "@/shared/constants/providers";
 import { isModelExcludedByConnection } from "@/domain/connectionModelRules";
 import * as log from "../utils/logger";
@@ -825,9 +826,11 @@ export async function getProviderCredentials(
     // No-auth providers (e.g. opencode) need no DB connection — return synthetic credentials
     // so the executor receives a valid credentials object without auth headers being added.
     const resolvedId = resolveProviderId(provider);
-    if (
-      (NOAUTH_PROVIDERS as Record<string, { noAuth?: boolean } | undefined>)[resolvedId]?.noAuth
-    ) {
+    const providerMaps: Record<string, { noAuth?: boolean } | undefined>[] = [
+      NOAUTH_PROVIDERS as Record<string, { noAuth?: boolean } | undefined>,
+      WEB_COOKIE_PROVIDERS as Record<string, { noAuth?: boolean } | undefined>,
+    ];
+    if (providerMaps.some((map) => map[resolvedId]?.noAuth)) {
       return {
         apiKey: null,
         accessToken: null,
