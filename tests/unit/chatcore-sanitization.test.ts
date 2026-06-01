@@ -102,9 +102,15 @@ async function invokeChatCore({
 } = {}) {
   const originalFetch = globalThis.fetch;
   const calls = [];
+  const nextcloudJsonOnlyClient = /nextcloud\s+openai\/localai\s+integration/i.test(userAgent);
+  const jsonStreamDefault = apiKeyInfo?.streamDefaultMode === "json";
   const resolvedStream =
     body?.stream === true ||
-    (body?.stream === undefined && String(accept).toLowerCase().includes("text/event-stream"));
+    (body?.stream === undefined && String(accept).toLowerCase().includes("text/event-stream")) ||
+    (body?.stream === undefined &&
+      !nextcloudJsonOnlyClient &&
+      !jsonStreamDefault &&
+      !String(accept).includes("json"));
 
   globalThis.fetch = async (url, init = {}) => {
     const parsedBody = init.body ? JSON.parse(String(init.body)) : null;
@@ -128,7 +134,7 @@ async function invokeChatCore({
       clientRawRequest: {
         endpoint,
         body: structuredClone(body),
-        headers: new Headers({ accept }),
+        headers: new Headers({ accept, "user-agent": userAgent }),
       },
       apiKeyInfo,
       userAgent,
@@ -506,6 +512,45 @@ test("chatCore resolves stream mode from body.stream and Accept header", async (
   assert.equal(explicitFalse.call.headers.Accept, "application/json");
   assert.equal(acceptDriven.call.headers.Accept, "text/event-stream");
   assert.equal(jsonDefault.call.headers.Accept, "application/json");
+});
+
+test("chatCore treats Nextcloud OpenAI integration requests as non-streaming by default", async () => {
+  const nextcloudDefault = await invokeChatCore({
+    accept: "*/*",
+    userAgent: "Nextcloud OpenAI/LocalAI integration",
+    body: { model: "gpt-4o-mini", messages: [{ role: "user", content: "hello" }] },
+  });
+  const nextcloudExplicitStream = await invokeChatCore({
+    accept: "application/json",
+    userAgent: "Nextcloud OpenAI/LocalAI integration",
+    body: { model: "gpt-4o-mini", stream: true, messages: [{ role: "user", content: "hello" }] },
+  });
+
+  assert.equal(nextcloudDefault.call.headers.Accept, "application/json");
+  assert.equal(nextcloudDefault.result.response.headers.get("content-type"), "application/json");
+  assert.equal(nextcloudExplicitStream.call.headers.Accept, "text/event-stream");
+});
+
+test("chatCore honors API key JSON stream-default compatibility mode", async () => {
+  const jsonCompatibleDefault = await invokeChatCore({
+    accept: "*/*",
+    userAgent: "generic-openai-client",
+    apiKeyInfo: { id: "json-stream-default-key", streamDefaultMode: "json" },
+    body: { model: "gpt-4o-mini", messages: [{ role: "user", content: "hello" }] },
+  });
+  const explicitSse = await invokeChatCore({
+    accept: "text/event-stream",
+    userAgent: "generic-openai-client",
+    apiKeyInfo: { id: "json-stream-default-key", streamDefaultMode: "json" },
+    body: { model: "gpt-4o-mini", messages: [{ role: "user", content: "hello" }] },
+  });
+
+  assert.equal(jsonCompatibleDefault.call.headers.Accept, "application/json");
+  assert.equal(
+    jsonCompatibleDefault.result.response.headers.get("content-type"),
+    "application/json"
+  );
+  assert.equal(explicitSse.call.headers.Accept, "text/event-stream");
 });
 
 test("chatCore injects memories when enabled and memories are found", async () => {

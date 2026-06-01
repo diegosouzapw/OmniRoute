@@ -291,6 +291,22 @@ test("settings proxy route covers full config, resolve, validation, delete and g
   const fullConfig = await settingsProxyRoute.GET(
     new Request("http://localhost/api/settings/proxy")
   );
+
+  const registryProviderProxy = await localDb.createProxy({
+    name: "Registry Provider Proxy",
+    type: "http",
+    host: "registry-provider.local",
+    port: 8080,
+    source: "dashboard-custom",
+  });
+  await localDb.assignProxyToScope("provider", "anthropic", registryProviderProxy.id);
+  const registryProviderGet = await settingsProxyRoute.GET(
+    new Request("http://localhost/api/settings/proxy?level=provider&id=anthropic")
+  );
+  const fullConfigWithRegistryProvider = await settingsProxyRoute.GET(
+    new Request("http://localhost/api/settings/proxy")
+  );
+
   const deleted = await settingsProxyRoute.DELETE(
     new Request("http://localhost/api/settings/proxy?level=provider&id=openai", {
       method: "DELETE",
@@ -310,6 +326,8 @@ test("settings proxy route covers full config, resolve, validation, delete and g
   const providerGetBody = (await providerGet.json()) as any;
   const resolveBody = (await resolveGet.json()) as any;
   const fullConfigBody = (await fullConfig.json()) as any;
+  const registryProviderGetBody = (await registryProviderGet.json()) as any;
+  const fullConfigWithRegistryProviderBody = (await fullConfigWithRegistryProvider.json()) as any;
   const deletedBody = (await deleted.json()) as any;
   const resolveAfterDeleteBody = (await resolveAfterDelete.json()) as any;
   const missingLevelBody = (await missingLevel.json()) as any;
@@ -329,6 +347,13 @@ test("settings proxy route covers full config, resolve, validation, delete and g
   assert.equal(resolveBody.proxy.host, "provider.local");
   assert.equal(fullConfig.status, 200);
   assert.equal(fullConfigBody.global.host, "global.local");
+  assert.equal(registryProviderGet.status, 200);
+  assert.equal(registryProviderGetBody.proxy.host, "registry-provider.local");
+  assert.equal(fullConfigWithRegistryProvider.status, 200);
+  assert.equal(
+    fullConfigWithRegistryProviderBody.providers.anthropic.host,
+    "registry-provider.local"
+  );
   assert.equal(deleted.status, 200);
   assert.equal(Object.prototype.hasOwnProperty.call(deletedBody.providers, "openai"), false);
   assert.equal(resolveAfterDelete.status, 200);

@@ -1323,6 +1323,18 @@ export function checkFallbackError(
       };
     }
 
+    // #2929: A route-restriction 403 (e.g. Fireworks Fire Pass keys returning
+    // "Fire Pass API keys are not authorized for this route." on the /models
+    // endpoint) means the key is valid but lacks access to THIS route — it still
+    // serves chat. It must NOT cool down the connection or be classified as an
+    // auth error, otherwise a single model-listing 403 marks the key unavailable.
+    if (
+      status === HTTP_STATUS.FORBIDDEN &&
+      errorStr.toLowerCase().includes("not authorized for this route")
+    ) {
+      return { shouldFallback: false, cooldownMs: 0, reason: RateLimitReason.UNKNOWN };
+    }
+
     if (
       status === HTTP_STATUS.FORBIDDEN &&
       provider &&

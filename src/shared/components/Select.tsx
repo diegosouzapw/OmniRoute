@@ -30,6 +30,7 @@ export default function Select({
   className,
   selectClassName,
   id: externalId,
+  children,
   ...props
 }: SelectProps) {
   const generatedId = useId();
@@ -71,14 +72,18 @@ export default function Select({
           )}
           {...props}
         >
-          <option value="" disabled className="bg-surface text-text-muted">
-            {placeholder}
-          </option>
-          {options.map((option) => (
-            <option key={option.value} value={option.value} className="bg-surface text-text-main">
-              {option.label}
+          {!children && placeholder && (
+            <option value="" disabled className="bg-surface text-text-muted">
+              {placeholder}
             </option>
-          ))}
+          )}
+          {!children &&
+            options.map((option) => (
+              <option key={option.value} value={option.value} className="bg-surface text-text-main">
+                {option.label}
+              </option>
+            ))}
+          {children}
         </select>
         <div
           className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none text-text-muted"
