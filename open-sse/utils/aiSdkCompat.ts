@@ -2,6 +2,28 @@
  * AI SDK compatibility helpers (T26).
  */
 
+export type StreamDefaultMode = "legacy" | "json";
+
+export interface ResolveStreamFlagOptions {
+  userAgent?: unknown;
+  streamDefaultMode?: unknown;
+}
+
+function normalizeResolveStreamFlagOptions(optionsOrUserAgent?: unknown): ResolveStreamFlagOptions {
+  if (
+    optionsOrUserAgent &&
+    typeof optionsOrUserAgent === "object" &&
+    !Array.isArray(optionsOrUserAgent)
+  ) {
+    return optionsOrUserAgent as ResolveStreamFlagOptions;
+  }
+  return { userAgent: optionsOrUserAgent };
+}
+
+export function normalizeStreamDefaultMode(value: unknown): StreamDefaultMode {
+  return value === "json" ? "json" : "legacy";
+}
+
 /**
  * Detects when a client explicitly prefers JSON (non-SSE) responses.
  */
@@ -29,26 +51,51 @@ export function clientWantsJsonResponse(acceptHeader: unknown): boolean {
 export function resolveStreamFlag(
   bodyStream: unknown,
   acceptHeader: unknown,
-  sourceFormat?: string
+  sourceFormat?: string,
+  optionsOrUserAgent?: unknown
 ): boolean {
   // Explicit body value always wins
   if (bodyStream === true) return true;
   if (bodyStream === false) return false;
+
+  const options = normalizeResolveStreamFlagOptions(optionsOrUserAgent);
+  const streamDefaultMode = normalizeStreamDefaultMode(options.streamDefaultMode);
+
+  const acceptsEventStream =
+    typeof acceptHeader === "string" && /text\/event-stream/i.test(acceptHeader);
 
   // Anthropic Messages API spec: stream defaults to false when body omits it.
   // Only honor an explicit text/event-stream Accept header as a streaming opt-in
   // for /v1/messages — otherwise default to non-stream so upstream JSON responses
   // are surfaced correctly instead of triggering stream_early_eof.
   if (sourceFormat === "claude") {
-    if (typeof acceptHeader === "string" && /text\/event-stream/i.test(acceptHeader)) {
-      return true;
-    }
+    if (acceptsEventStream) return true;
+    return false;
+  }
+
+  // Nextcloud's OpenAI/LocalAI integration sends synchronous JSON requests and
+  // does not set `stream: false`. With a wildcard/empty Accept header, the legacy
+  // OmniRoute fallback would force SSE upstream and fail JSON-only providers as
+  // STREAM_EARLY_EOF before Nextcloud could receive a response.
+  if (isKnownJsonOnlyClient(options.userAgent) && !acceptsEventStream) {
+    return false;
+  }
+
+  // Per-key compatibility mode for synchronous OpenAI-compatible clients that
+  // omit `stream`. This preserves legacy behavior by default while allowing an
+  // API key to use the OpenAI-compatible JSON default unless SSE is explicit.
+  if (streamDefaultMode === "json" && !acceptsEventStream) {
     return false;
   }
 
   // No explicit stream param — preserve OmniRoute's streaming default unless
   // the client explicitly asks for JSON and does not also accept SSE.
   return !clientWantsJsonResponse(acceptHeader);
+}
+
+export function isKnownJsonOnlyClient(userAgent: unknown): boolean {
+  if (typeof userAgent !== "string") return false;
+  return /nextcloud\s+openai\/localai\s+integration/i.test(userAgent);
 }
 
 /**

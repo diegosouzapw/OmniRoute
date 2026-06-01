@@ -71,6 +71,8 @@ const IGNORE_FROM_CODE = new Set([
   "NEXT_RUNTIME",
   "NODE_TEST_CONTEXT",
   "VITEST",
+  // Instruction snippet shown to users (Traffic Inspector HttpProxySnippetCard) — not OmniRoute config.
+  "NODE_TLS_REJECT_UNAUTHORIZED",
   // CI providers (set by the runner).
   "GITHUB_BASE_REF",
   "GITHUB_BASE_SHA",

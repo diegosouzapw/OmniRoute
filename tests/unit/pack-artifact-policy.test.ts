@@ -80,6 +80,7 @@ test("findMissingArtifactPaths flags missing root runtime files in the tarball",
   assert.deepEqual(missingPaths, [
     "app/open-sse/services/compression/engines/rtk/filters/generic-output.json",
     "app/open-sse/services/compression/rules/en/filler.json",
+    "app/peer-stamp.mjs",
     "app/responses-ws-proxy.mjs",
     "app/server-ws.mjs",
     "bin/cli/program.mjs",

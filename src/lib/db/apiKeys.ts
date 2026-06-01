@@ -42,6 +42,7 @@ interface ApiKeyMetadata {
   allowedModels: string[];
   allowedCombos: string[];
   allowedConnections: string[];
+  allowedQuotas: string[];
   noLog: boolean;
   autoResolve: boolean;
   isActive: boolean;
@@ -60,6 +61,7 @@ interface ApiKeyMetadata {
   isBanned: boolean;
   keyHash: string | null;
   allowedEndpoints: string[];
+  streamDefaultMode: "legacy" | "json";
 }
 
 interface ApiKeyRow extends JsonRecord {
@@ -74,6 +76,8 @@ interface ApiKeyRow extends JsonRecord {
   allowedCombos?: unknown;
   allowed_connections?: unknown;
   allowedConnections?: unknown;
+  allowed_quotas?: unknown;
+  allowedQuotas?: unknown;
   no_log?: unknown;
   noLog?: unknown;
   auto_resolve?: unknown;
@@ -84,6 +88,8 @@ interface ApiKeyRow extends JsonRecord {
   accessSchedule?: unknown;
   rate_limits?: unknown;
   rateLimits?: unknown;
+  stream_default_mode?: unknown;
+  streamDefaultMode?: unknown;
 }
 
 interface StatementLike<TRow = unknown> {
@@ -111,6 +117,7 @@ interface ApiKeyView extends JsonRecord {
   allowedModels: string[];
   allowedCombos: string[];
   allowedConnections: string[];
+  allowedQuotas: string[];
   noLog: boolean;
   autoResolve: boolean;
   isActive: boolean;
@@ -121,6 +128,7 @@ interface ApiKeyView extends JsonRecord {
   isBanned?: boolean;
   expiresAt?: string | null;
   allowedEndpoints: string[];
+  streamDefaultMode: "legacy" | "json";
 }
 
 // LRU cache for API key validation (valid keys only)
@@ -156,6 +164,8 @@ const API_KEY_COLUMN_FALLBACKS = [
   { name: "is_banned", definition: "is_banned INTEGER NOT NULL DEFAULT 0" },
   { name: "key_hash", definition: "key_hash TEXT" },
   { name: "allowed_endpoints", definition: "allowed_endpoints TEXT" },
+  { name: "allowed_quotas", definition: "allowed_quotas TEXT NOT NULL DEFAULT '[]'" },
+  { name: "stream_default_mode", definition: "stream_default_mode TEXT NOT NULL DEFAULT 'legacy'" },
 ] as const;
 
 // Cache for model permission checks
@@ -355,7 +365,7 @@ function getPreparedStatements(db: ApiKeysDbLike): ApiKeysStatements {
       "SELECT id, expires_at, revoked_at, is_active, is_banned FROM api_keys WHERE key = ? OR key_hash = ?"
     );
     _stmtGetKeyMetadata = db.prepare<ApiKeyRow>(
-      "SELECT id, name, machine_id, allowed_models, allowed_combos, allowed_connections, no_log, auto_resolve, is_active, access_schedule, max_requests_per_day, max_requests_per_minute, throttle_delay_ms, max_sessions, revoked_at, expires_at, ip_allowlist, scopes, rate_limits, is_banned, key_hash, allowed_endpoints FROM api_keys WHERE key = ? OR key_hash = ?"
+      "SELECT id, name, machine_id, allowed_models, allowed_combos, allowed_connections, allowed_quotas, no_log, auto_resolve, is_active, access_schedule, max_requests_per_day, max_requests_per_minute, throttle_delay_ms, max_sessions, revoked_at, expires_at, ip_allowlist, scopes, rate_limits, is_banned, key_hash, allowed_endpoints, stream_default_mode FROM api_keys WHERE key = ? OR key_hash = ?"
     );
     _stmtInsertKey = db.prepare(
       "INSERT INTO api_keys (id, name, key, machine_id, allowed_models, no_log, created_at, key_prefix, key_hash, scopes) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
@@ -393,6 +403,7 @@ export async function getApiKeys() {
     camelRow.allowedModels = parseAllowedModels(camelRow.allowedModels);
     camelRow.allowedCombos = parseAllowedCombos(camelRow.allowedCombos);
     camelRow.allowedConnections = parseAllowedConnections(camelRow.allowedConnections);
+    camelRow.allowedQuotas = parseAllowedQuotas((camelRow as JsonRecord).allowedQuotas);
     camelRow.noLog = parseNoLog(camelRow.noLog);
     camelRow.autoResolve = parseAutoResolve(camelRow.autoResolve);
     camelRow.isActive = parseIsActive(camelRow.isActive);
@@ -401,6 +412,7 @@ export async function getApiKeys() {
     camelRow.isBanned = parseIsBanned(camelRow.isBanned);
     camelRow.scopes = parseStringList((camelRow as JsonRecord).scopes);
     camelRow.allowedEndpoints = parseStringList((camelRow as JsonRecord).allowedEndpoints);
+    camelRow.streamDefaultMode = parseStreamDefaultMode((camelRow as JsonRecord).streamDefaultMode);
     if (typeof camelRow.id === "string" && camelRow.id.length > 0) {
       setNoLog(camelRow.id, camelRow.noLog === true);
     }
@@ -417,6 +429,7 @@ export async function getApiKeyById(id: string) {
   camelRow.allowedModels = parseAllowedModels(camelRow.allowedModels);
   camelRow.allowedCombos = parseAllowedCombos(camelRow.allowedCombos);
   camelRow.allowedConnections = parseAllowedConnections(camelRow.allowedConnections);
+  camelRow.allowedQuotas = parseAllowedQuotas((camelRow as JsonRecord).allowedQuotas);
   camelRow.noLog = parseNoLog(camelRow.noLog);
   camelRow.autoResolve = parseAutoResolve(camelRow.autoResolve);
   camelRow.isActive = parseIsActive(camelRow.isActive);
@@ -425,6 +438,7 @@ export async function getApiKeyById(id: string) {
   camelRow.isBanned = parseIsBanned(camelRow.isBanned);
   camelRow.scopes = parseStringList((camelRow as JsonRecord).scopes);
   camelRow.allowedEndpoints = parseStringList((camelRow as JsonRecord).allowedEndpoints);
+  camelRow.streamDefaultMode = parseStreamDefaultMode((camelRow as JsonRecord).streamDefaultMode);
   if (typeof camelRow.id === "string" && camelRow.id.length > 0) {
     setNoLog(camelRow.id, camelRow.noLog === true);
   }
@@ -530,6 +544,23 @@ function parseAllowedConnections(value: unknown): string[] {
   }
 }
 
+/**
+ * Helper function to safely parse allowed_quotas JSON
+ */
+function parseAllowedQuotas(value: unknown): string[] {
+  if (!value || typeof value !== "string" || value.trim() === "") {
+    return [];
+  }
+  try {
+    const parsed = JSON.parse(value);
+    return Array.isArray(parsed)
+      ? parsed.filter((entry): entry is string => typeof entry === "string")
+      : [];
+  } catch {
+    return [];
+  }
+}
+
 function parseStringList(value: unknown): string[] {
   if (!value || typeof value !== "string" || value.trim() === "") return [];
   try {
@@ -550,6 +581,10 @@ function parseNullableTimestamp(value: unknown): string | null {
 
 function parseIsBanned(value: unknown): boolean {
   return value === 1 || value === "1" || value === true;
+}
+
+function parseStreamDefaultMode(value: unknown): "legacy" | "json" {
+  return value === "json" ? "json" : "legacy";
 }
 
 async function hashKey(key: string): Promise<string> {
@@ -647,6 +682,7 @@ export async function updateApiKeyPermissions(
         allowedModels?: string[];
         allowedCombos?: string[];
         allowedConnections?: string[];
+        allowedQuotas?: string[];
         noLog?: boolean;
         autoResolve?: boolean;
         isActive?: boolean;
@@ -661,6 +697,7 @@ export async function updateApiKeyPermissions(
         maxSessions?: number | null;
         scopes?: string[] | null;
         allowedEndpoints?: string[] | null;
+        streamDefaultMode?: "legacy" | "json" | null;
       }
 ) {
   const db = getDbInstance() as ApiKeysDbLike;
@@ -674,6 +711,7 @@ export async function updateApiKeyPermissions(
           allowedModels: update.allowedModels,
           allowedCombos: update.allowedCombos,
           allowedConnections: update.allowedConnections,
+          allowedQuotas: (update as { allowedQuotas?: string[] }).allowedQuotas,
           noLog: update.noLog,
           autoResolve: update.autoResolve,
           isActive: update.isActive,
@@ -687,6 +725,8 @@ export async function updateApiKeyPermissions(
           maxSessions: (update as { maxSessions?: number | null }).maxSessions,
           scopes: (update as { scopes?: string[] | null }).scopes,
           allowedEndpoints: (update as { allowedEndpoints?: string[] | null }).allowedEndpoints,
+          streamDefaultMode: (update as { streamDefaultMode?: "legacy" | "json" | null })
+            .streamDefaultMode,
         };
 
   if (
@@ -694,6 +734,7 @@ export async function updateApiKeyPermissions(
     normalized.allowedModels === undefined &&
     normalized.allowedCombos === undefined &&
     normalized.allowedConnections === undefined &&
+    (normalized as Record<string, unknown>).allowedQuotas === undefined &&
     normalized.noLog === undefined &&
     normalized.autoResolve === undefined &&
     normalized.isActive === undefined &&
@@ -706,7 +747,8 @@ export async function updateApiKeyPermissions(
     normalized.expiresAt === undefined &&
     (normalized as Record<string, unknown>).maxSessions === undefined &&
     (normalized as Record<string, unknown>).scopes === undefined &&
-    (normalized as Record<string, unknown>).allowedEndpoints === undefined
+    (normalized as Record<string, unknown>).allowedEndpoints === undefined &&
+    (normalized as Record<string, unknown>).streamDefaultMode === undefined
   ) {
     return false;
   }
@@ -718,6 +760,7 @@ export async function updateApiKeyPermissions(
     allowedModels?: string;
     allowedCombos?: string;
     allowedConnections?: string;
+    allowedQuotas?: string;
     noLog?: number;
     autoResolve?: number;
     isActive?: number;
@@ -730,6 +773,7 @@ export async function updateApiKeyPermissions(
     maxSessions?: number;
     expiresAt?: string | null;
     scopes?: string;
+    streamDefaultMode?: "legacy" | "json";
   } = { id };
 
   if (normalized.name !== undefined) {
@@ -753,6 +797,16 @@ export async function updateApiKeyPermissions(
     // Empty array means all connections are allowed
     updates.push("allowed_connections = @allowedConnections");
     params.allowedConnections = JSON.stringify(normalized.allowedConnections || []);
+  }
+
+  const allowedQuotasUpdate = (normalized as Record<string, unknown>).allowedQuotas;
+  if (allowedQuotasUpdate !== undefined) {
+    // Empty array means no quota-pool restriction; non-empty restricts to listed pools
+    updates.push("allowed_quotas = @allowedQuotas");
+    const nextQuotas: string[] = Array.isArray(allowedQuotasUpdate)
+      ? (allowedQuotasUpdate as unknown[]).filter((s): s is string => typeof s === "string")
+      : [];
+    params.allowedQuotas = JSON.stringify(nextQuotas);
   }
 
   if (normalized.noLog !== undefined) {
@@ -817,11 +871,15 @@ export async function updateApiKeyPermissions(
   if (allowedEndpointsUpdate !== undefined) {
     updates.push("allowed_endpoints = @allowedEndpoints");
     const nextEndpoints: string[] = Array.isArray(allowedEndpointsUpdate)
-      ? (allowedEndpointsUpdate as unknown[]).filter(
-          (s): s is string => typeof s === "string"
-        )
+      ? (allowedEndpointsUpdate as unknown[]).filter((s): s is string => typeof s === "string")
       : [];
     (params as Record<string, unknown>).allowedEndpoints = JSON.stringify(nextEndpoints);
+  }
+
+  const streamDefaultModeUpdate = (normalized as Record<string, unknown>).streamDefaultMode;
+  if (streamDefaultModeUpdate !== undefined) {
+    updates.push("stream_default_mode = @streamDefaultMode");
+    params.streamDefaultMode = parseStreamDefaultMode(streamDefaultModeUpdate);
   }
 
   const scopesUpdate = (normalized as Record<string, unknown>).scopes;
@@ -1155,6 +1213,7 @@ export async function getApiKeyMetadata(
       allowedModels: [],
       allowedCombos: [],
       allowedConnections: [],
+      allowedQuotas: [],
       noLog: false,
       autoResolve: true,
       isActive: true,
@@ -1171,6 +1230,7 @@ export async function getApiKeyMetadata(
       keyHash: null,
       scopes: ["manage"],
       allowedEndpoints: [],
+      streamDefaultMode: "legacy",
     };
   }
 
@@ -1208,6 +1268,9 @@ export async function getApiKeyMetadata(
     allowedConnections: parseAllowedConnections(
       record.allowed_connections ?? record.allowedConnections
     ),
+    allowedQuotas: parseAllowedQuotas(
+      (record as JsonRecord).allowed_quotas ?? (record as JsonRecord).allowedQuotas
+    ),
     noLog: parseNoLog(record.no_log ?? record.noLog),
     autoResolve: parseAutoResolve(record.auto_resolve ?? record.autoResolve),
     isActive: parseIsActive(record.is_active ?? record.isActive),
@@ -1227,6 +1290,9 @@ export async function getApiKeyMetadata(
     keyHash: (record.key_hash ?? (record as JsonRecord).keyHash) as string | null,
     allowedEndpoints: parseStringList(
       (record as JsonRecord).allowed_endpoints ?? (record as JsonRecord).allowedEndpoints
+    ),
+    streamDefaultMode: parseStreamDefaultMode(
+      (record as JsonRecord).stream_default_mode ?? (record as JsonRecord).streamDefaultMode
     ),
   };
 
