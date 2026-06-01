@@ -16,7 +16,7 @@
 import { isFeatureFlagEnabled, resolveFeatureFlag } from "@/shared/utils/featureFlags";
 
 const isEnabled = () => isFeatureFlagEnabled("PII_RESPONSE_SANITIZATION");
-const VALID_MODES = ["redact", "warn", "block", "false"] as const;
+const VALID_MODES = ["redact", "warn", "block", "off"] as const;
 type PiiMode = typeof VALID_MODES[number];
 
 const getMode = (): PiiMode => {

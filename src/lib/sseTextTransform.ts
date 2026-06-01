@@ -50,8 +50,8 @@ export function createSseTextTransform(
           let matched = false;
           
           const isStopSignal = 
-            (json.choices && json.choices.some((c: any) => c.finish_reason)) ||
-            (json.candidates && json.candidates.some((c: any) => c.finishReason)) ||
+            (json.choices && Array.isArray(json.choices) && json.choices.some((c: any) => c.finish_reason)) ||
+            (json.candidates && Array.isArray(json.candidates) && json.candidates.some((c: any) => c.finishReason)) ||
             (json.type === "content_block_stop") ||
             (json.type === "message_stop") ||
             (json.type === "message_delta" && json.delta?.stop_reason) ||
@@ -132,13 +132,17 @@ export function createSseTextTransform(
           if (err?.message?.startsWith("[PII]")) {
             throw err;
           }
-          // JSON parsing failed. Check if it looks like JSON that failed to parse.
-          if (trimmedSegment.startsWith("{") || trimmedSegment.startsWith("[")) {
-            console.warn("[SSE-TRANSFORM] Dropping malformed JSON chunk to prevent syntax injection:", trimmedSegment.slice(0, 100));
+          if (err instanceof SyntaxError) {
+            // JSON parsing failed. Check if it looks like JSON that failed to parse.
+            if (trimmedSegment.startsWith("{") || trimmedSegment.startsWith("[")) {
+              console.warn("[SSE-TRANSFORM] Dropping malformed JSON chunk to prevent syntax injection:", trimmedSegment.slice(0, 100));
+            } else {
+              // Treat segment as raw text delta (fail-open)
+              const processed = processor(segment, "content");
+              controller.enqueue(encoder.encode(prefix + processed + "\n"));
+            }
           } else {
-            // Treat segment as raw text delta (fail-open)
-            const processed = processor(segment, "content");
-            controller.enqueue(encoder.encode(prefix + processed + "\n"));
+            throw err;
           }
         }
       } else {
@@ -163,12 +167,15 @@ export function createSseTextTransform(
         for (const line of lines) {
           handleLine(line, controller);
         }
-      } catch (err) {
-        const context = typeof chunk === "string" 
-          ? chunk.slice(0, 200) 
-          : chunk instanceof Uint8Array 
-            ? new TextDecoder().decode(chunk.slice(0, 200)) 
-            : String(chunk).slice(0, 200);
+      } catch (err: any) {
+        let context = "[REDACTED_DUE_TO_PII]";
+        if (!err?.message?.startsWith("[PII]")) {
+          context = typeof chunk === "string" 
+            ? chunk.slice(0, 200) 
+            : chunk instanceof Uint8Array 
+              ? new TextDecoder().decode(chunk.slice(0, 200)) 
+              : String(chunk).slice(0, 200);
+        }
         console.error("[SSE-TRANSFORM] Error in transform:", err, "chunk:", context);
         lineBuffer = "";
         errored = true;
