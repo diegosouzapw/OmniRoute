@@ -1,6 +1,14 @@
 /**
  * Plugin Metrics DB module — per-plugin hook execution tracking.
  *
+ * STATUS: The `plugin_metrics` table (migration 090) is a reserved aggregate table.
+ * `recordPluginMetric` is currently NOT called from any production code path — the
+ * per-execution row store is `plugin_analytics` (migration 091, read by the
+ * `plugin_executions` MCP tool). `plugin_metrics` is intended for future aggregate
+ * rollups (e.g. bumping per-(plugin, event) counters from `recordPluginExecution`),
+ * but that write path has not been wired yet. Do NOT remove the migration — it is
+ * harmless and reserves the schema for the planned rollup feature.
+ *
  * @module db/pluginMetrics
  */
 

@@ -8,6 +8,7 @@ import { z } from "zod";
 import { resolve, normalize, isAbsolute } from "path";
 import { listPlugins, getPluginByName, updatePluginConfig } from "../../../src/lib/db/plugins";
 import { pluginManager } from "../../../src/lib/plugins/manager";
+import { validatePluginConfig, type ConfigField } from "../../../src/lib/plugins/manifest";
 
 /**
  * Validate a path is safe for plugin installation.
@@ -153,6 +154,17 @@ export const pluginTools = [
       if (args.config) {
         const current = JSON.parse(plugin.config || "{}");
         const merged = { ...current, ...args.config };
+
+        // Validate merged config against configSchema if the plugin declares one
+        const rawSchema = JSON.parse(plugin.configSchema || "{}") as Record<string, ConfigField>;
+        if (Object.keys(rawSchema).length > 0) {
+          const validation = validatePluginConfig(merged, rawSchema);
+          if (!validation.valid) {
+            // Return a generic message — do NOT leak raw field-level detail externally
+            return { success: false, error: "Config validation failed: one or more values are invalid" };
+          }
+        }
+
         updatePluginConfig(args.name, merged);
         return { success: true, config: merged };
       }
@@ -166,7 +178,7 @@ export const pluginTools = [
 
   {
     name: "plugin_executions",
-    description: "View plugin execution metrics (from plugin_metrics table).",
+    description: "View plugin execution metrics (from plugin_analytics table).",
     scopes: ["read:plugins"],
     inputSchema: z.object({
       name: z.string().optional().describe("Filter by plugin name"),

@@ -266,6 +266,85 @@ test("plugin_configure: returns error for nonexistent plugin", async () => {
   assert.ok(result.error.includes("not found"));
 });
 
+// ── IMPORTANT-7: plugin_configure validates config against configSchema ──
+
+test("plugin_configure: rejects config with wrong type (number instead of string)", async () => {
+  // writeTestPlugin produces a plugin with configSchema: { apiUrl: string, maxRetries: number, ... }
+  const { sourceDir, name } = writeTestPlugin({ name: "config-invalid-type" });
+  activeSourceDirs.push(sourceDir);
+  const { pluginManager } = await import("../../src/lib/plugins/manager.ts");
+  await pluginManager.install(sourceDir);
+
+  const tool = getTool("plugin_configure");
+  // apiUrl expects a string — passing a number should fail validation
+  const result = await tool.handler({ name, config: { apiUrl: 12345 } });
+  assert.equal(result.success, false, "should fail validation for wrong type");
+  assert.ok(
+    result.error && result.error.includes("validation failed"),
+    `expected 'validation failed' in error, got: ${result.error}`
+  );
+
+  await pluginManager.uninstall(name);
+});
+
+test("plugin_configure: rejects config with out-of-range number", async () => {
+  const { sourceDir, name } = writeTestPlugin({ name: "config-invalid-range" });
+  activeSourceDirs.push(sourceDir);
+  const { pluginManager } = await import("../../src/lib/plugins/manager.ts");
+  await pluginManager.install(sourceDir);
+
+  const tool = getTool("plugin_configure");
+  // maxRetries has min:1, max:10 — 999 should fail
+  const result = await tool.handler({ name, config: { maxRetries: 999 } });
+  assert.equal(result.success, false, "should fail validation for out-of-range number");
+  assert.ok(result.error && result.error.includes("validation failed"));
+
+  await pluginManager.uninstall(name);
+});
+
+test("plugin_configure: accepts valid config matching schema", async () => {
+  const { sourceDir, name } = writeTestPlugin({ name: "config-valid" });
+  activeSourceDirs.push(sourceDir);
+  const { pluginManager } = await import("../../src/lib/plugins/manager.ts");
+  await pluginManager.install(sourceDir);
+
+  const tool = getTool("plugin_configure");
+  const result = await tool.handler({ name, config: { apiUrl: "https://ok.example.com", maxRetries: 5 } });
+  assert.equal(result.success, true, "should succeed for valid config");
+  assert.equal(result.config.apiUrl, "https://ok.example.com");
+
+  await pluginManager.uninstall(name);
+});
+
+test("plugin_configure: allows any config when plugin has no configSchema", async () => {
+  // A plugin with no configSchema should accept any config values
+  const { sourceDir, name } = writeTestPlugin({ name: "config-no-schema", onRequest: false });
+  activeSourceDirs.push(sourceDir);
+
+  // Overwrite plugin.json without configSchema
+  const pluginDir = sourceDir + "/" + name;
+  const fs = await import("node:fs");
+  const path = await import("node:path");
+  fs.writeFileSync(path.join(pluginDir, "plugin.json"), JSON.stringify({
+    name,
+    version: "1.0.0",
+    main: "index.js",
+    hooks: { onRequest: false, onResponse: false, onError: false },
+    requires: { permissions: [] },
+    // no configSchema
+  }));
+
+  const { pluginManager } = await import("../../src/lib/plugins/manager.ts");
+  await pluginManager.install(sourceDir);
+
+  const tool = getTool("plugin_configure");
+  const result = await tool.handler({ name, config: { anything: "goes", foo: 42 } });
+  // No schema → validation skipped → should succeed
+  assert.equal(result.success, true, "should accept any config when no schema is declared");
+
+  await pluginManager.uninstall(name);
+});
+
 // ── plugin_scan ──
 
 test("plugin_scan: returns discovery result", async () => {
