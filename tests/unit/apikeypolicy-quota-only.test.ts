@@ -31,8 +31,8 @@ process.env.API_KEY_SECRET = process.env.API_KEY_SECRET || "quota-only-test-secr
 const coreDb = await import("../../src/lib/db/core.ts");
 const apiKeysDb = await import("../../src/lib/db/apiKeys.ts");
 const poolsDb = await import("../../src/lib/db/quotaPools.ts");
-const providersDb = await import("../../src/lib/db/providers.ts");
 const groupsDb = await import("../../src/lib/db/quotaGroups.ts");
+const providersDb = await import("../../src/lib/db/providers.ts");
 const rateLimiter = await import("../../src/shared/utils/rateLimiter.ts");
 const { quotaModelName } = await import("../../src/lib/quota/quotaModelNaming.ts");
 

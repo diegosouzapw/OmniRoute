@@ -12,17 +12,15 @@ test("costs section exists in SIDEBAR_SECTIONS", () => {
   assert.ok(section, "costs section must exist");
 });
 
-test("costs section has exactly 4 items in the correct order (C2 retired costs-quota-plans)", () => {
+test("costs section has exactly 3 items in the correct order", () => {
   const section = findSection("costs");
   assert.ok(section, "costs section must exist");
 
   const items = sidebarVisibility.getSectionItems(section);
-  // F3 created 4 items; F9 added costs-quota-plans as the 5th; Phase C2 retired
-  // the standalone Plans screen (unified into the pool wizard) → back to 4.
-  assert.equal(items.length, 4, "costs section must have 4 items after C2");
+  assert.equal(items.length, 3, "costs section must have 3 items");
 
   const itemIds = items.map((i) => i.id);
-  assert.deepEqual(itemIds, ["costs", "costs-pricing", "costs-budget", "costs-quota-share"]);
+  assert.deepEqual(itemIds, ["costs", "costs-pricing", "costs-budget"]);
 });
 
 test("costs section items have correct hrefs", () => {
@@ -36,7 +34,6 @@ test("costs section items have correct hrefs", () => {
     { id: "costs", href: "/dashboard/costs" },
     { id: "costs-pricing", href: "/dashboard/costs/pricing" },
     { id: "costs-budget", href: "/dashboard/costs/budget" },
-    { id: "costs-quota-share", href: "/dashboard/costs/quota-share" },
   ]);
 });
 

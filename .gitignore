@@ -4,6 +4,12 @@
 .omnivscodeagent/
 omnirouteCloud/
 omnirouteSite/
+_cache/
+_ideia/
+_mono_repo/
+_references/
+_tasks/
+
 
 # Memory Bank and Cursor rules (local-only AI agent context)
 memory-bank/
