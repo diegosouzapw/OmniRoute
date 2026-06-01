@@ -1,4 +1,4 @@
--- 028_skill_mode_and_metadata.sql
+-- 092_skill_mode_and_metadata.sql
 -- Adds per-skill mode metadata and indexing for provider/filter UX.
 
 ALTER TABLE skills ADD COLUMN mode TEXT NOT NULL DEFAULT 'auto';

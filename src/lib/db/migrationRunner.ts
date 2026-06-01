@@ -119,6 +119,12 @@ const RENAMED_MIGRATION_COMPATIBILITY = [
   },
   {
     fromVersion: "028",
+    fromName: "skill_mode_and_metadata",
+    toVersion: "092",
+    toName: "skill_mode_and_metadata",
+  },
+  {
+    fromVersion: "028",
     fromName: "provider_connection_max_concurrent",
     toVersion: "029",
     toName: "provider_connection_max_concurrent",
@@ -390,7 +396,7 @@ function isSchemaAlreadyApplied(
     case "026":
       return hasColumn(db, "call_logs", "cache_source");
     case "027":
-      return hasColumn(db, "skills", "mode");
+      return hasTable(db, "saas_customers") && hasTable(db, "saas_customer_api_keys");
     case "028":
       return hasTable(db, "batches") && hasTable(db, "files");
     case "029":
@@ -467,6 +473,15 @@ function isSchemaAlreadyApplied(
       // was dropped on integration; this canonical migration creates the table
       // that recordPluginExecution()/getPluginAnalytics() rely on.
       return hasTable(db, "plugin_analytics");
+    case "092":
+      // Retroactive guard for skill-mode metadata renumbered from 028 to avoid
+      // colliding with 028_create_files_and_batches.
+      return (
+        hasColumn(db, "skills", "mode") &&
+        hasColumn(db, "skills", "source_provider") &&
+        hasColumn(db, "skills", "tags") &&
+        hasColumn(db, "skills", "install_count")
+      );
     default:
       return false;
   }

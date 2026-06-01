@@ -39,6 +39,7 @@ test("primary sidebar items place limits after cache", () => {
     [
       "endpoints",
       "api-manager",
+      "customers",
       "providers",
       "embedded-services",
       "combos",
