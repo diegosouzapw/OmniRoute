@@ -153,7 +153,6 @@
     "axios": "^1.16.1",
     "bcryptjs": "^3.0.3",
     "bottleneck": "^2.19.5",
-    "cloakbrowser": "^0.3.31",
     "commander": "^14.0.3",
     "csv-stringify": "^6.7.0",
     "express": "^5.2.1",

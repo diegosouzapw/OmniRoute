@@ -1,4 +1,4 @@
-import { BaseExecutor, setUserAgentHeader } from "./base.ts";
+import { BaseExecutor, setUserAgentHeader, type ExecuteInput } from "./base.ts";
 import { PROVIDERS, OAUTH_ENDPOINTS } from "../config/constants.ts";
 import { getAccessToken } from "../services/tokenRefresh.ts";
 import {
@@ -549,7 +549,7 @@ export class DefaultExecutor extends BaseExecutor {
     return super.needsRefresh(credentials);
   }
 
-  async execute(input) {
+  async execute(input: ExecuteInput) {
     const pool = this.getPool();
     if (!pool) return super.execute(input);
 
@@ -574,7 +574,7 @@ export class DefaultExecutor extends BaseExecutor {
 
     if (session) {
       try {
-        const status = result.response.status;
+        const status = result?.response?.status;
         if (status === 429) {
           pool.reportCooldown(session);
         } else if (status >= 500) {
