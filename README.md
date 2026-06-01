@@ -11,7 +11,7 @@
 **Plug Claude Code, Codex, Cursor, Cline, Copilot & Antigravity into FREE Claude / GPT / Gemini. Auto-fallback.**
 <br/>
 
-**RTK + Caveman compression saves 15–95% tokens. Never hit limits.**
+**RTK + Caveman compression saves 15–95% tokens. Never hit limits..**
 
 <br/>
 
