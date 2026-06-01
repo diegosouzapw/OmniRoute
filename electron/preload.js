@@ -49,10 +49,9 @@ function installMacDragRegion() {
       .omniroute-electron-drag-region {
         position: fixed;
         top: 0;
-        left: 50%;
-        width: clamp(120px, 40vw, 360px);
+        left: 96px;
+        right: 180px;
         height: 46px;
-        transform: translateX(-50%);
         z-index: 9999;
       }
     `;
@@ -66,7 +65,9 @@ function installMacDragRegion() {
     document.body.appendChild(dragRegion);
 
     const syncDragFallback = () => {
-      dragRegion.hidden = Boolean(document.querySelector("header"));
+      const hasHeader = Boolean(document.querySelector("header"));
+      dragRegion.hidden = hasHeader;
+      if (hasHeader) observer.disconnect();
     };
     const previousObserver = window[MAC_DRAG_OBSERVER_KEY];
     if (previousObserver) previousObserver.disconnect();
@@ -74,6 +75,7 @@ function installMacDragRegion() {
     const observer = new MutationObserver(syncDragFallback);
     observer.observe(document.body, { childList: true, subtree: true });
     window[MAC_DRAG_OBSERVER_KEY] = observer;
+    window.setTimeout(() => observer.disconnect(), 5000);
     window.addEventListener("pagehide", () => observer.disconnect(), { once: true });
     syncDragFallback();
   };

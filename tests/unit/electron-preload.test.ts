@@ -200,7 +200,8 @@ describe("macOS Drag Region", () => {
 
   it("should use a moderate fallback layer", () => {
     assert.match(preloadSource, /z-index: 9999/);
-    assert.match(preloadSource, /width: clamp\(120px, 40vw, 360px\)/);
+    assert.match(preloadSource, /left: 96px/);
+    assert.match(preloadSource, /right: 180px/);
     assert.ok(!preloadSource.includes("2147483647"));
   });
 
@@ -214,6 +215,11 @@ describe("macOS Drag Region", () => {
     assert.ok(!preloadSource.includes(":is("));
     assert.ok(!preloadSource.includes(":has("));
     assert.match(preloadSource, /new MutationObserver\(syncDragFallback\)/);
+  });
+
+  it("should stop observing after the real header appears", () => {
+    assert.match(preloadSource, /if \(hasHeader\) observer\.disconnect\(\)/);
+    assert.match(preloadSource, /setTimeout\(\(\) => observer\.disconnect\(\), 5000\)/);
   });
 });
 
