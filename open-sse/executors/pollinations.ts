@@ -1,11 +1,12 @@
 import { BaseExecutor } from "./base.ts";
 import { PROVIDERS } from "../config/constants.ts";
-import { SessionPool, PoolRegistry } from "../services/sessionPool/index.ts";
+import { DEFAULT_POOL_CONFIG } from "../services/sessionPool/types.ts";
 import type { ExecuteInput } from "./base.ts";
 
 export class PollinationsExecutor extends BaseExecutor {
   constructor() {
     super("pollinations", PROVIDERS["pollinations"] || { format: "openai" });
+    this.poolConfig = DEFAULT_POOL_CONFIG;
   }
 
   buildUrl(_model: string, _stream: boolean, urlIndex = 0, _credentials = null): string {
@@ -50,7 +51,15 @@ export class PollinationsExecutor extends BaseExecutor {
     }
 
     const pool = this.getPool();
-    const session = pool ? pool.acquire() : null;
+
+    // Use acquireBlocking for anonymous requests to wait for available session
+    let session;
+    try {
+      session = pool ? await pool.acquireBlocking(10_000) : null;
+    } catch {
+      // Pool exhausted — fall through to direct request without fingerprint
+      session = null;
+    }
 
     if (session) {
       const fpHeaders = session.buildHeaders();
@@ -66,23 +75,20 @@ export class PollinationsExecutor extends BaseExecutor {
     } catch (err) {
       if (session && pool) {
         pool.reportCooldown(session);
-        session.release();
       }
       throw err;
+    } finally {
+      session?.release();
     }
 
     if (session && pool) {
-      try {
-        const status = result.response.status;
-        if (status === 429) {
-          pool.reportCooldown(session);
-        } else if (status >= 500) {
-          pool.reportDead(session);
-        } else {
-          pool.reportSuccess(session);
-        }
-      } finally {
-        session.release();
+      const status = result.response.status;
+      if (status === 429) {
+        pool.reportCooldown(session);
+      } else if (status >= 500) {
+        pool.reportDead(session);
+      } else {
+        pool.reportSuccess(session);
       }
     }
 
