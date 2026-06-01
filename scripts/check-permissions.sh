@@ -11,7 +11,7 @@ fi
 if [ -d "/app/data" ] && [ ! -w "/app/data" ]; then
     echo "WARNING: /app/data is not writable by the current user (UID $(id -u))."
     echo "Run this on the Docker host to fix:"
-    echo "  sudo chown -R $(id -u):$(id -g) ./data"
+  echo "  sudo chown -R $(id -u):$(id -g) /app/data"
     echo "  chmod -R u+rwX ./data"
 fi
 
