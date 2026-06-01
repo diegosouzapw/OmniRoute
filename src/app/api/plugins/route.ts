@@ -12,14 +12,22 @@ export async function OPTIONS() {
 /**
  * GET /api/plugins — List all installed plugins
  */
+const StatusSchema = z.enum(["installed", "active", "inactive", "error"]).optional();
+
 export async function GET(request: NextRequest) {
   const authError = await requireManagementAuth(request);
   if (authError) return authError;
   const url = new URL(request.url);
-  const status = url.searchParams.get("status") as any;
+  const statusResult = StatusSchema.safeParse(url.searchParams.get("status"));
+  if (!statusResult.success) {
+    return NextResponse.json(
+      { error: "Invalid status value", details: statusResult.error.issues },
+      { status: 400, headers: CORS_HEADERS }
+    );
+  }
 
   try {
-    const plugins = listPlugins(status || undefined);
+    const plugins = listPlugins(statusResult.data || undefined);
     return NextResponse.json({ plugins: plugins.map(formatPlugin) }, { headers: CORS_HEADERS });
   } catch (err: any) {
     return NextResponse.json({ error: err.message }, { status: 500, headers: CORS_HEADERS });
@@ -34,7 +42,10 @@ export async function POST(request: NextRequest) {
   if (authError) return authError;
   const body = await request.json();
   const schema = z.object({
-    path: z.string().min(1),
+    path: z.string().min(1).regex(/^\/[^]*$/, "Path must be absolute").refine(
+      (p) => !p.includes("\0") && !p.includes(".."),
+      "Path must not contain traversal patterns or null bytes"
+    ),
   });
 
   const parsed = schema.safeParse(body);

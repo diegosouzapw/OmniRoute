@@ -5,8 +5,31 @@
  */
 
 import { z } from "zod";
+import { resolve, normalize, isAbsolute } from "path";
 import { listPlugins, getPluginByName, updatePluginConfig } from "../../../src/lib/db/plugins";
 import { pluginManager } from "../../../src/lib/plugins/manager";
+
+/**
+ * Validate a path is safe for plugin installation.
+ * Prevents directory traversal and null byte injection.
+ */
+function validatePluginPath(path: string): string {
+  // Reject null bytes
+  if (path.includes("\0")) {
+    throw new Error("Invalid path: contains null bytes");
+  }
+  // Must be absolute
+  if (!isAbsolute(path)) {
+    throw new Error("Path must be absolute");
+  }
+  // Normalize and resolve to prevent traversal
+  const normalized = normalize(resolve(path));
+  // Reject paths with traversal patterns
+  if (normalized.includes("..") || normalized.includes("~")) {
+    throw new Error("Invalid path: directory traversal detected");
+  }
+  return normalized;
+}
 
 export const pluginTools = [
   {
@@ -45,7 +68,8 @@ export const pluginTools = [
       path: z.string().describe("Absolute path to the plugin directory containing plugin.json"),
     }),
     handler: async (args: { path: string }) => {
-      const plugin = await pluginManager.install(args.path);
+      const safePath = validatePluginPath(args.path);
+      const plugin = await pluginManager.install(safePath);
       return {
         success: true,
         plugin: {
