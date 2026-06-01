@@ -348,9 +348,19 @@ export const TRAE_CONFIG = {
   chatEndpoint: "/v1/chat/completions",
   // Trae website — users retrieve their token here after signing in
   webUrl: "https://trae.ai",
-  // Token storage note for users — no automated extraction path is available
-  // because Trae does not expose a public SQLite / keychain location yet.
-  tokenNote: "Sign in to Trae IDE, then copy your API token from the account settings.",
+  // SOLO remote agent base — the executor's real upstream. Also set as the
+  // provider registry baseUrl, which is the source of truth at request time.
+  soloApiEndpoint: "https://core-normal.trae.ai/api/remote/v1",
+  // SOLO model catalogue endpoint (relative to soloApiEndpoint).
+  modelsEndpoint: "/models?functions=solo_agent_remote,solo_work_remote",
+  // Authorization scheme: `Authorization: Cloud-IDE-JWT <token>` (RS256).
+  authScheme: "Cloud-IDE-JWT",
+  // Observed Cloud-IDE-JWT lifetime — drives default expiry hints.
+  tokenLifetimeDays: 14,
+  // Token storage note — solo.trae.ai exposes no public SQLite/keychain path,
+  // so the token is captured via the /authorize flow or pasted manually.
+  tokenNote:
+    "Authorize via trae.ai in the popup, or sign in to solo.trae.ai and paste the Cloud-IDE-JWT from the Authorization header (~14-day lifetime).",
 };
 
 // Windsurf / Devin CLI Configuration

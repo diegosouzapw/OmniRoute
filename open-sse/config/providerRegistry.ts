@@ -56,6 +56,13 @@ export interface RegistryModel {
   unsupportedParams?: readonly string[];
   /** Maximum context window in tokens */
   contextLength?: number;
+  /**
+   * Interleaved-reasoning signal, mirroring models.dev's `interleaved_field`.
+   * Set to "reasoning_content" for models whose upstream runs DeepSeek thinking
+   * mode (e.g. OpenCode `big-pickle`) so follow-up/tool-use turns replay
+   * reasoning_content instead of failing with a DeepSeek 400 (#2900).
+   */
+  interleavedField?: string;
 }
 
 // Reasoning models reject temperature, top_p, penalties, logprobs, n.
@@ -111,6 +118,8 @@ export interface RegistryEntry {
   passthroughModels?: boolean;
   /** Default context window for all models in this provider (can be overridden per-model) */
   defaultContextLength?: number;
+  /** Optional session pool config for rate limit management */
+  poolConfig?: Record<string, unknown>;
 }
 
 interface LegacyProvider {
@@ -580,7 +589,7 @@ function mapStainlessArch() {
 
 // ── Registry ──────────────────────────────────────────────────────────────
 
-export const REGISTRY: Record<string, RegistryEntry> = {
+const _REGISTRY_EAGER: Record<string, RegistryEntry> = {
   // ─── OAuth Providers ───────────────────────────────────────────────────
   kie: {
     id: "kie",
@@ -976,9 +985,10 @@ export const REGISTRY: Record<string, RegistryEntry> = {
         maxOutputTokens: 64000,
       },
       {
+        // #2911: GitHub Copilot's Responses API does not serve Claude/Gemini —
+        // route them via chat/completions (provider default) like claude-opus-4.6.
         id: "claude-opus-4-5-20251101",
         name: "Claude Opus 4.5 (Full ID)",
-        targetFormat: "openai-responses",
         contextLength: 200000,
         maxOutputTokens: 64000,
       },
@@ -989,14 +999,15 @@ export const REGISTRY: Record<string, RegistryEntry> = {
         maxOutputTokens: 128000,
       },
       {
+        // #2911: Claude on Copilot must use chat/completions, not the Responses API.
         id: "claude-opus-4.7",
         name: "Claude Opus 4.7",
-        targetFormat: "openai-responses",
         contextLength: 1000000,
         maxOutputTokens: 128000,
       },
-      { id: "gemini-3.1-pro-preview", name: "Gemini 3.1 Pro", targetFormat: "openai-responses" },
-      { id: "gemini-3-flash-preview", name: "Gemini 3 Flash", targetFormat: "openai-responses" },
+      // #2911: Gemini on Copilot must use chat/completions, not the Responses API.
+      { id: "gemini-3.1-pro-preview", name: "Gemini 3.1 Pro" },
+      { id: "gemini-3-flash-preview", name: "Gemini 3 Flash" },
       { id: "oswe-vscode-prime", name: "Raptor Mini", targetFormat: "openai-responses" },
       //{ id: "?", name: "Goldeneye" },
     ],
@@ -1118,6 +1129,27 @@ export const REGISTRY: Record<string, RegistryEntry> = {
     models: [
       { id: "claude-sonnet-4-6", name: "Claude Sonnet 4.6 (GitLab Duo)" },
       { id: "claude-haiku-4-5", name: "Claude Haiku 4.5 (GitLab Duo)" },
+    ],
+  },
+
+  trae: {
+    id: "trae",
+    alias: "tr",
+    format: "openai",
+    executor: "trae",
+    baseUrl: "https://core-normal.trae.ai/api/remote/v1",
+    authType: "oauth",
+    authHeader: "bearer",
+    defaultContextLength: 272000,
+    models: [
+      { id: "auto", name: "Auto (Code · Server Picks)" },
+      { id: "work", name: "Work (Auto · fast)" },
+      { id: "gemini-3.1-pro", name: "Gemini 3.1 Pro" },
+      { id: "gemini-3-flash-solo", name: "Gemini 3 Flash" },
+      { id: "minimax-m2.7", name: "MiniMax M2.7" },
+      { id: "kimi-k2.5", name: "Kimi K2.5" },
+      { id: "gpt-5.4", name: "GPT 5.4" },
+      { id: "gpt-5.2", name: "GPT 5.2" },
     ],
   },
 
@@ -1290,7 +1322,11 @@ export const REGISTRY: Record<string, RegistryEntry> = {
     passthroughModels: true,
     defaultContextLength: 200000,
     models: [
-      { id: "big-pickle", name: "Big Pickle" },
+      // #2900: big-pickle's upstream runs DeepSeek thinking mode — declare the
+      // interleaved reasoning_content contract so follow-up/tool-use turns replay
+      // it (otherwise DeepSeek returns 400 "reasoning_content ... must be passed back").
+      { id: "big-pickle", name: "Big Pickle", supportsReasoning: true, interleavedField: "reasoning_content" },
+      { id: "deepseek-v4-flash-free", name: "DeepSeek V4 Flash Free", supportsReasoning: true },
       { id: "minimax-m2.5-free", name: "MiniMax M2.5 Free", contextLength: 204800 },
       { id: "ling-2.6-1t-free", name: "Ling 2.6 Free", contextLength: 262000 },
       {
@@ -1299,6 +1335,7 @@ export const REGISTRY: Record<string, RegistryEntry> = {
         contextLength: 131000,
       },
       { id: "nemotron-3-super-free", name: "Nemotron 3 Super Free", contextLength: 1000000 },
+      { id: "qwen3.6-plus-free", name: "Qwen3.6 Plus Free", targetFormat: "claude", supportsVision: false, contextLength: 200000, },
     ],
   },
 
@@ -1357,7 +1394,10 @@ export const REGISTRY: Record<string, RegistryEntry> = {
     passthroughModels: true,
     models: [
       // ── Chat / Coding ──────────────────────────────────────────
-      { id: "big-pickle", name: "Big Pickle" },
+      // #2900: big-pickle's upstream runs DeepSeek thinking mode — declare the
+      // interleaved reasoning_content contract so follow-up/tool-use turns replay
+      // it (otherwise DeepSeek returns 400 "reasoning_content ... must be passed back").
+      { id: "big-pickle", name: "Big Pickle", supportsReasoning: true, interleavedField: "reasoning_content" },
       { id: "gpt-5-nano", name: "GPT 5 Nano", contextLength: 400000 },
       { id: "gpt-5", name: "GPT 5" },
       { id: "gpt-5-codex", name: "GPT 5 Codex" },
@@ -3424,13 +3464,11 @@ export const REGISTRY: Record<string, RegistryEntry> = {
     alias: "pol",
     format: "openai",
     executor: "pollinations",
-    // Primary endpoint is text.pollinations.ai. gen.pollinations.ai is the current
-    // OpenAI-compatible fallback used when the primary edge is rate-limited or unavailable.
-    baseUrl: "https://text.pollinations.ai/openai/chat/completions",
-    baseUrls: [
-      "https://text.pollinations.ai/openai/chat/completions",
-      "https://gen.pollinations.ai/v1/chat/completions",
-    ],
+    // #2987: Pollinations retired the legacy text.pollinations.ai host (it now
+    // returns 404 "This is our legacy API"). The current OpenAI-compatible gateway
+    // is gen.pollinations.ai/v1, so route there as the primary endpoint.
+    baseUrl: "https://gen.pollinations.ai/v1/chat/completions",
+    baseUrls: ["https://gen.pollinations.ai/v1/chat/completions"],
     authType: "apikey",
     authHeader: "bearer",
     models: [
@@ -3940,6 +3978,26 @@ export const REGISTRY: Record<string, RegistryEntry> = {
     ],
   },
 
+  "qwen-web": {
+    id: "qwen-web",
+    alias: "qw",
+    format: "openai",
+    executor: "qwen-web",
+    baseUrl: "https://chat.qwen.ai/api/chat/completions",
+    authType: "apikey",
+    authHeader: "bearer",
+    models: [
+      { id: "qwen-plus", name: "Qwen Plus" },
+      { id: "qwen-max", name: "Qwen Max" },
+      { id: "qwen-turbo", name: "Qwen Turbo" },
+      { id: "qwen3-plus", name: "Qwen3 Plus" },
+      { id: "qwen3-max", name: "Qwen3 Max" },
+      { id: "qwen3-flash", name: "Qwen3 Flash" },
+      { id: "qwen3-coder-plus", name: "Qwen3 Coder Plus" },
+      { id: "qwen3-coder-flash", name: "Qwen3 Coder Flash" },
+    ],
+  },
+
   codestral: {
     id: "codestral",
     alias: "codestral",
@@ -4077,6 +4135,15 @@ export const REGISTRY: Record<string, RegistryEntry> = {
     modelsUrl: "https://api.llm7.io/v1/models",
     authType: "apikey",
     authHeader: "bearer",
+    poolConfig: {
+      minSessions: 1,
+      maxSessions: 3,
+      cooldownBase: 2000,
+      cooldownMax: 5000,
+      cooldownJitter: 100,
+      requestTimeout: 30000,
+      requestJitter: 50,
+    },
     models: [
       { id: "gpt-4o-mini-2024-07-18", name: "GPT-4o mini (LLM7)" },
       { id: "gpt-4.1-nano-2025-04-14", name: "GPT-4.1 nano (LLM7)" },
@@ -4227,12 +4294,14 @@ export const REGISTRY: Record<string, RegistryEntry> = {
   },
 };
 
+export const REGISTRY: Record<string, RegistryEntry> = _REGISTRY_EAGER;
+
 // ── Generator Functions ───────────────────────────────────────────────────
 
 /** Generate legacy PROVIDERS object shape for constants.js backward compatibility */
 export function generateLegacyProviders(): Record<string, LegacyProvider> {
   const providers: Record<string, LegacyProvider> = {};
-  for (const [id, entry] of Object.entries(REGISTRY)) {
+  for (const [id, entry] of Object.entries(_REGISTRY_EAGER)) {
     const p: LegacyProvider = { format: entry.format };
 
     // URL(s)
@@ -4286,7 +4355,7 @@ export function generateLegacyProviders(): Record<string, LegacyProvider> {
 /** Generate PROVIDER_MODELS map (alias → model list) */
 export function generateModels(): Record<string, RegistryModel[]> {
   const models: Record<string, RegistryModel[]> = {};
-  for (const entry of Object.values(REGISTRY)) {
+  for (const entry of Object.values(_REGISTRY_EAGER)) {
     if (entry.models && entry.models.length > 0) {
       const key = entry.alias || entry.id;
       // If alias already exists, don't overwrite (first wins)
@@ -4301,7 +4370,7 @@ export function generateModels(): Record<string, RegistryModel[]> {
 /** Generate PROVIDER_ID_TO_ALIAS map */
 export function generateAliasMap(): Record<string, string> {
   const map: Record<string, string> = {};
-  for (const entry of Object.values(REGISTRY)) {
+  for (const entry of Object.values(_REGISTRY_EAGER)) {
     map[entry.id] = entry.alias || entry.id;
   }
   return map;
@@ -4343,33 +4412,40 @@ export function isLocalProvider(baseUrl?: string | null): boolean {
 }
 
 /** Set of provider IDs with passthroughModels enabled — 404s are model-specific, not account-level. */
-const _passthroughProviderIds: Set<string> | null = (() => {
+let _passthroughProviderIds: Set<string> | null = null;
+function ensurePassthroughProviderIds(): Set<string> {
+  if (_passthroughProviderIds) return _passthroughProviderIds;
   try {
     const ids = new Set<string>();
-    for (const entry of Object.values(REGISTRY)) {
+    for (const entry of Object.values(_REGISTRY_EAGER)) {
       if (entry.passthroughModels) ids.add(entry.id);
     }
-    return ids;
+    _passthroughProviderIds = ids;
   } catch {
-    return null;
+    _passthroughProviderIds = new Set<string>();
   }
-})();
-
+  return _passthroughProviderIds;
+}
 export function getPassthroughProviders(): Set<string> {
-  return _passthroughProviderIds ?? new Set<string>();
+  return ensurePassthroughProviderIds();
 }
 
 // ── Registry Lookup Helpers ───────────────────────────────────────────────
 
 const _byAlias = new Map<string, RegistryEntry>();
-for (const entry of Object.values(REGISTRY)) {
-  if (entry.alias && entry.alias !== entry.id) {
-    _byAlias.set(entry.alias, entry);
+let _byAliasPopulated = false;
+function ensureByAliasPopulated(): void {
+  if (_byAliasPopulated) return;
+  _byAliasPopulated = true;
+  for (const entry of Object.values(_REGISTRY_EAGER)) {
+    if (entry.alias && entry.alias !== entry.id) {
+      _byAlias.set(entry.alias, entry);
+    }
   }
 }
-
 /** Get registry entry by provider ID or alias */
 export function getRegistryEntry(provider: string): RegistryEntry | null {
+  ensureByAliasPopulated();
   return REGISTRY[provider] || _byAlias.get(provider) || null;
 }
 
@@ -4381,10 +4457,15 @@ export function getRegisteredProviders(): string[] {
 // Precomputed map: modelId → unsupportedParams (O(1) lookup instead of O(N×M) scan).
 // Built once at module load from all registry entries.
 const _unsupportedParamsMap = new Map<string, readonly string[]>();
-for (const entry of Object.values(REGISTRY)) {
-  for (const model of entry.models) {
-    if (model.unsupportedParams && !_unsupportedParamsMap.has(model.id)) {
-      _unsupportedParamsMap.set(model.id, model.unsupportedParams);
+let _unsupportedParamsPopulated = false;
+function ensureUnsupportedParamsPopulated(): void {
+  if (_unsupportedParamsPopulated) return;
+  _unsupportedParamsPopulated = true;
+  for (const entry of Object.values(_REGISTRY_EAGER)) {
+    for (const model of entry.models) {
+      if (model.unsupportedParams && !_unsupportedParamsMap.has(model.id)) {
+        _unsupportedParamsMap.set(model.id, model.unsupportedParams);
+      }
     }
   }
 }
@@ -4396,6 +4477,7 @@ for (const entry of Object.values(REGISTRY)) {
  * Returns empty array if no restrictions are defined.
  */
 export function getUnsupportedParams(provider: string, modelId: string): readonly string[] {
+  ensureUnsupportedParamsPopulated();
   // 1. Check current provider's registry (exact match)
   const entry = getRegistryEntry(provider);
   const modelEntry = entry?.models.find((m) => m.id === modelId);

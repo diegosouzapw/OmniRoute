@@ -193,7 +193,7 @@ export const OAUTH_PROVIDERS = {
     textIcon: "TR",
     website: "https://trae.ai",
     authHint:
-      "Trae is an AI-native IDE by ByteDance. Sign in inside Trae and paste your API token or use OAuth device flow here.",
+      "Trae is an AI-native IDE by ByteDance (SOLO remote agent). Authorize via trae.ai in the popup, or sign in at solo.trae.ai and paste the Cloud-IDE-JWT (sent as 'Authorization: Cloud-IDE-JWT <token>', ~14-day lifetime) as the access token; web_id/biz_user_id/user_unique_id/scope/tenant/region propagate via providerSpecificData. No headless refresh for pasted tokens — re-paste on expiry.",
   },
   "kimi-coding": {
     id: "kimi-coding",
@@ -427,6 +427,7 @@ export const WEB_COOKIE_PROVIDERS = {
     textIcon: "DDG",
     website: "https://duckduckgo.com/duckchat",
     hasFree: true,
+    noAuth: true,
     freeNote: "Free — anonymous access to multiple AI models via DuckDuckGo.",
     authHint: "No credentials required — DuckDuckGo AI Chat is anonymous and free.",
   },
@@ -515,6 +516,20 @@ export const WEB_COOKIE_PROVIDERS = {
     authHint: "Paste your session cookie from doubao.com (DevTools → Application → Cookies)",
     subscriptionRisk: true,
     riskNoticeVariant: "webCookie",
+  },
+  "qwen-web": {
+    id: "qwen-web",
+    alias: "qw",
+    name: "Qwen Web (Free)",
+    icon: "auto_awesome",
+    color: "#10B981",
+    textIcon: "QW",
+    website: "https://chat.qwen.ai",
+    hasFree: true,
+    freeNote: "Free — Qwen models via chat.qwen.ai with login token. No subscription required.",
+    authHint:
+      "Open chat.qwen.ai, log in, then open DevTools → Application → Local Storage → " +
+      'copy the "token" value (or use tongyi_sso_ticket cookie as Bearer token).',
   },
 };
 
@@ -2878,6 +2893,7 @@ export function providerAllowsOptionalApiKey(providerId: unknown): boolean {
     providerId === "petals" ||
     providerId === "pollinations" ||
     providerId === "copilot-web" ||
+    providerId === "duckduckgo-web" ||
     providerId === "veoaifree-web" ||
     providerId === "hackclub" ||
     providerId === "huggingchat" ||
@@ -2988,17 +3004,19 @@ function getOrCreateIdToAlias(): Record<string, string> {
 }
 
 export function getProviderById(id: string) {
-  return (NOAUTH_PROVIDERS as Record<string, any>)[id]
-    ?? (OAUTH_PROVIDERS as Record<string, any>)[id]
-    ?? (APIKEY_PROVIDERS as Record<string, any>)[id]
-    ?? (WEB_COOKIE_PROVIDERS as Record<string, any>)[id]
-    ?? (LOCAL_PROVIDERS as Record<string, any>)[id]
-    ?? (SEARCH_PROVIDERS as Record<string, any>)[id]
-    ?? (AUDIO_ONLY_PROVIDERS as Record<string, any>)[id]
-    ?? (UPSTREAM_PROXY_PROVIDERS as Record<string, any>)[id]
-    ?? (CLOUD_AGENT_PROVIDERS as Record<string, any>)[id]
-    ?? (SYSTEM_PROVIDERS as Record<string, any>)[id]
-    ?? undefined;
+  return (
+    (NOAUTH_PROVIDERS as Record<string, any>)[id] ??
+    (OAUTH_PROVIDERS as Record<string, any>)[id] ??
+    (APIKEY_PROVIDERS as Record<string, any>)[id] ??
+    (WEB_COOKIE_PROVIDERS as Record<string, any>)[id] ??
+    (LOCAL_PROVIDERS as Record<string, any>)[id] ??
+    (SEARCH_PROVIDERS as Record<string, any>)[id] ??
+    (AUDIO_ONLY_PROVIDERS as Record<string, any>)[id] ??
+    (UPSTREAM_PROXY_PROVIDERS as Record<string, any>)[id] ??
+    (CLOUD_AGENT_PROVIDERS as Record<string, any>)[id] ??
+    (SYSTEM_PROVIDERS as Record<string, any>)[id] ??
+    undefined
+  );
 }
 
 export const AI_PROVIDERS = new Proxy({} as Record<string, any>, {
@@ -3021,7 +3039,8 @@ export const AI_PROVIDERS = new Proxy({} as Record<string, any>, {
   },
 });
 
-export type AiProviderId = keyof typeof NOAUTH_PROVIDERS
+export type AiProviderId =
+  | keyof typeof NOAUTH_PROVIDERS
   | keyof typeof OAUTH_PROVIDERS
   | keyof typeof APIKEY_PROVIDERS
   | keyof typeof WEB_COOKIE_PROVIDERS
@@ -3032,7 +3051,8 @@ export type AiProviderId = keyof typeof NOAUTH_PROVIDERS
   | keyof typeof CLOUD_AGENT_PROVIDERS
   | keyof typeof SYSTEM_PROVIDERS;
 
-export type AiProviderDefinition = (typeof NOAUTH_PROVIDERS)[keyof typeof NOAUTH_PROVIDERS]
+export type AiProviderDefinition =
+  | (typeof NOAUTH_PROVIDERS)[keyof typeof NOAUTH_PROVIDERS]
   | (typeof OAUTH_PROVIDERS)[keyof typeof OAUTH_PROVIDERS]
   | (typeof APIKEY_PROVIDERS)[keyof typeof APIKEY_PROVIDERS]
   | (typeof WEB_COOKIE_PROVIDERS)[keyof typeof WEB_COOKIE_PROVIDERS]

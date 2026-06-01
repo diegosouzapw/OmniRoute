@@ -4,6 +4,7 @@ import { PROVIDERS, OAUTH_ENDPOINTS } from "../config/constants.ts";
 import { getGitHubCopilotRefreshHeaders } from "../config/providerHeaderProfiles.ts";
 import { pbkdf2Sync } from "node:crypto";
 import { runWithProxyContext } from "../utils/proxyFetch.ts";
+import { serializeRefresh } from "./refreshSerializer.ts";
 import { WINDSURF_CONFIG } from "@/lib/oauth/constants/oauth";
 import { buildGitLabOAuthEndpoints, resolveGitLabOAuthBaseUrl } from "@/lib/oauth/gitlab";
 
@@ -1500,7 +1501,9 @@ export async function getAccessToken(
   // the legacy `connectionId`-less path would silently swallow the callback,
   // leaving DB rows out of sync with rotated tokens (Codex/OpenAI). We still
   // resolve the promise to all waiters with the refreshed credentials.
-  const refreshPromise = _getAccessTokenInternal(provider, credentials, log, proxyConfig)
+  const refreshPromise = serializeRefresh(provider, () =>
+    _getAccessTokenInternal(provider, credentials, log, proxyConfig)
+  )
     .then(async (result) => {
       if (result?.accessToken && effectiveOnPersist) {
         try {
@@ -1604,7 +1607,12 @@ async function _getAccessTokenWithStalenessCheck(provider, credentials, log, pro
   }
 
   const oldRefreshToken = credentials.refreshToken;
-  const result = await _getAccessTokenInternal(provider, credentials, log, proxyConfig);
+  // Front 1: serialize the network refresh across all connections of the same
+  // rotation group (e.g. Codex+openai share one Auth0 client) so two sibling
+  // accounts never refresh concurrently and trip Auth0 family revocation.
+  const result = await serializeRefresh(provider, () =>
+    _getAccessTokenInternal(provider, credentials, log, proxyConfig)
+  );
 
   // Record the rotation so subsequent stale callers can be redirected to the
   // new tokens without re-hitting upstream (which would trigger Auth0 family

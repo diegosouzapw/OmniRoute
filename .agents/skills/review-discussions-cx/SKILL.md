@@ -32,11 +32,15 @@ This workflow reads all open GitHub Discussions, generates a categorized summary
 - Run: `git -C <project_root> remote get-url origin` to extract `owner/repo`.
 - Parse owner and repo name from the URL (https or ssh form).
 
-### 2. Fetch All Open Discussions (single GraphQL query)
+### 2. Fetch All Open Discussions (paginated GraphQL)
 
-Single `gh api graphql` call — return everything needed for triage. Critical fields: `id` (node ID, **not** the visible `number`), `number`, `title`, `url`, `createdAt`, `updatedAt`, `author.login`, `category.name`, `body`, `answerChosenAt`, plus nested `comments(first: 50) { totalCount, nodes { id, author.login, body, createdAt, replies(first: 20) { nodes { author.login, body, createdAt } } } }`.
+GraphQL caps each `discussions` query at 50 nodes — repos with more than 50 open discussions **must paginate**. Loop with `first: 50, after: $cursor` until `pageInfo.hasNextPage` is `false`. Skipping pagination silently drops the older half of the backlog, which is exactly where most stale-candidates and unanswered follow-ups live (regression observed 2026-05-28: page-1-only fetch missed 5 follow-ups and 4 stale candidates ranging from 23d to 56d).
 
-Persist the raw JSON to `/tmp/discussions-<repo>-<date>.json` so re-runs in the same session avoid a re-fetch. Build an `id → number` map for the post phase — the GraphQL `addDiscussionComment` mutation requires the node ID, not the number.
+Each page request must return the **same field set** — easy mistake is to fetch page 2 without `body` (because the cursor query was hand-edited). Define one query string with `body` on both the discussion and every comment/reply, and reuse it across pages.
+
+Critical fields per discussion: `id` (node ID, **not** the visible `number`), `number`, `title`, `url`, `createdAt`, `updatedAt`, `author.login`, `category.name`, `body`, `answerChosenAt`, `labels(first: 10) { nodes { name } }`, plus nested `comments(first: 50) { totalCount, nodes { id, author.login, body, createdAt, replies(first: 20) { nodes { author.login, body, createdAt } } } }`. Must also include `pageInfo { hasNextPage endCursor }` on the discussions connection.
+
+Persist the **merged** result (all pages concatenated) to `/tmp/discussions-<repo>-<date>.json` so re-runs in the same session avoid a re-fetch. Build an `id → number` map for the post phase — the GraphQL `addDiscussionComment` mutation requires the node ID, not the number.
 
 Capture **image attachments** present in body or comments (`<img src="...">` or markdown `![...](...)`). Surface their count in the per-discussion summary (e.g., `📷 3 screenshots`) so the user can decide if visual context matters before approving a draft.
 

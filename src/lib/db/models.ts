@@ -355,7 +355,11 @@ export async function addCustomModel(
     | "audio-transcriptions"
     | "audio-speech"
     | "images-generations" = "chat-completions",
-  supportedEndpoints: string[] = ["chat"]
+  supportedEndpoints: string[] = ["chat"],
+  // #2905: optional per-model wire format override (e.g. "claude" for an
+  // opencode-go custom model). When unset, routing falls back to the provider
+  // default format.
+  targetFormat?: string
 ) {
   const db = getDbInstance();
   const row = db
@@ -373,6 +377,7 @@ export async function addCustomModel(
     source,
     apiFormat,
     supportedEndpoints,
+    ...(targetFormat ? { targetFormat } : {}),
   };
   models.push(model);
   db.prepare(
@@ -398,6 +403,7 @@ export async function replaceCustomModels(
     outputTokenLimit?: number;
     description?: string;
     supportsThinking?: boolean;
+    targetFormat?: string;
   }>,
   { allowEmpty = false }: { allowEmpty?: boolean } = {}
 ) {
@@ -427,6 +433,12 @@ export async function replaceCustomModels(
       source: m.source || "auto-sync",
       apiFormat: m.apiFormat || (prev as any)?.apiFormat || "chat-completions",
       supportedEndpoints: m.supportedEndpoints || (prev as any)?.supportedEndpoints || ["chat"],
+      // #2905: preserve a per-model targetFormat override (new value wins, else prev).
+      ...(m.targetFormat
+        ? { targetFormat: m.targetFormat }
+        : (prev as any)?.targetFormat
+          ? { targetFormat: (prev as any).targetFormat }
+          : {}),
       // Preserve metadata from provider API (or previous sync)
       ...(m.inputTokenLimit != null
         ? { inputTokenLimit: m.inputTokenLimit }
@@ -815,6 +827,7 @@ export async function updateCustomModel(
     ...current,
     ...(updates.modelName !== undefined ? { name: updates.modelName || current.name } : {}),
     ...(updates.apiFormat !== undefined ? { apiFormat: updates.apiFormat } : {}),
+    ...(updates.targetFormat !== undefined ? { targetFormat: updates.targetFormat } : {}),
     ...(updates.supportedEndpoints !== undefined
       ? { supportedEndpoints: updates.supportedEndpoints }
       : {}),

@@ -1821,6 +1821,28 @@ const _antigravityAvailableModelsInflight = new Map<string, Promise<unknown>>();
 const _antigravityCreditProbeCache = new Map<string, { data: number | null; fetchedAt: number }>();
 const _antigravityCreditProbeInflight = new Map<string, Promise<number | null>>();
 
+// ── Proactive TTL purging for module-level caches ──────────────────────────
+// All 4 data caches only evict on read (passive TTL). This interval proactively
+// purges stale entries so keys accessed once and never again don't leak memory.
+// The 2 inflight Maps (availableModelsInflight, creditProbeInflight) self-clean
+// when the Promise resolves/rejects, so they are NOT touched here.
+const _usageCacheCleanupTimer = setInterval(() => {
+  const now = Date.now();
+  for (const [key, entry] of _geminiCliSubCache) {
+    if (now - entry.fetchedAt > GEMINI_CLI_CACHE_TTL_MS) _geminiCliSubCache.delete(key);
+  }
+  for (const [key, entry] of _antigravitySubCache) {
+    if (now - entry.fetchedAt > ANTIGRAVITY_CACHE_TTL_MS) _antigravitySubCache.delete(key);
+  }
+  for (const [key, entry] of _antigravityAvailableModelsCache) {
+    if (now - entry.fetchedAt > ANTIGRAVITY_MODELS_CACHE_TTL_MS) _antigravityAvailableModelsCache.delete(key);
+  }
+  for (const [key, entry] of _antigravityCreditProbeCache) {
+    if (now - entry.fetchedAt > ANTIGRAVITY_CREDIT_PROBE_TTL_MS) _antigravityCreditProbeCache.delete(key);
+  }
+}, 5 * 60 * 1000); // every 5 minutes
+_usageCacheCleanupTimer.unref?.(); // Don't prevent process exit
+
 interface AntigravityUsageOptions {
   forceRefresh?: boolean;
 }
@@ -2917,4 +2939,17 @@ export const __testing = {
   getMiniMaxPlanLabel,
   inferMiniMaxPlanLabelFromTotals,
   getOpencodeUsage,
+  getClaudePlanLabel,
+  createQuotaFromUsage,
+  getMiniMaxQuotaResetAt,
+  isMiniMaxTextQuotaModel,
+  getMiniMaxSessionTotal,
+  getMiniMaxWeeklyTotal,
+  createMiniMaxQuotaFromCount,
+  getMiniMaxAuthErrorMessage,
+  getMiniMaxErrorSummary,
+  mapCodeAssistSubscriptionToPlanLabel,
+  mapCodeAssistTierIdToLabel,
+  mapSubscriptionTierStringToPlanLabel,
+  toDisplayLabel,
 };

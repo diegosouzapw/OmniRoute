@@ -82,18 +82,24 @@ test("runMemorySearch envia q e type na query", async () => {
 
   globalThis.fetch = origFetch;
   assert.ok(capturedUrl.includes("q=react") && capturedUrl.includes("hooks"));
-  assert.ok(capturedUrl.includes("type=project"));
+  // Plan 21 / D17: legacy 'project' is remapped to canonical 'factual' by
+  // applyLegacyTypeMap in the CLI before reaching the backend.
+  assert.ok(capturedUrl.includes("type=factual"));
+  assert.ok(!capturedUrl.includes("type=project"));
   assert.ok(capturedUrl.includes("limit=10"));
 });
 
 test("runMemoryAdd envia POST com content e type", async () => {
+  // Plan 21 / D17: legacy 'user' type is mapped to canonical 'factual'.
   let capturedUrl = "";
   let capturedInit: any = null;
   const origFetch = globalThis.fetch;
   globalThis.fetch = ((url: string, init: any) => {
     capturedUrl = url;
     capturedInit = init;
-    return Promise.resolve(makeResp({ id: "mem_new", type: "user", content: "test content" }));
+    return Promise.resolve(
+      makeResp({ id: "mem_new", type: "factual", content: "test content" })
+    );
   }) as any;
 
   const { runMemoryAdd } = await import("../../bin/cli/commands/memory.mjs");
@@ -106,7 +112,8 @@ test("runMemoryAdd envia POST com content e type", async () => {
   assert.equal(capturedInit?.method, "POST");
   const body = JSON.parse(capturedInit?.body);
   assert.equal(body.content, "test content");
-  assert.equal(body.type, "user");
+  // Legacy 'user' is remapped to canonical 'factual' by CLI (plan 21 / D17).
+  assert.equal(body.type, "factual");
 });
 
 test("runMemoryList retorna items sem q", async () => {
@@ -173,5 +180,8 @@ test("runMemoryClear --yes envia DELETE com filtro de type", async () => {
   globalThis.fetch = origFetch;
   assert.ok(capturedUrl.includes("/api/memory"));
   assert.equal(capturedInit?.method, "DELETE");
-  assert.ok(capturedUrl.includes("type=project"));
+  // Plan 21 / D17: legacy 'project' is remapped to canonical 'factual' by
+  // applyLegacyTypeMap in the CLI before reaching the backend.
+  assert.ok(capturedUrl.includes("type=factual"));
+  assert.ok(!capturedUrl.includes("type=project"));
 });
