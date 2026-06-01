@@ -1,35 +1,40 @@
 import { NextRequest, NextResponse } from "next/server";
-import { z } from "zod";
 import { isAuthenticated } from "@/shared/utils/apiAuth";
-import { isValidationFailure, validateBody } from "@/shared/validation/helpers";
+import { validateBody, isValidationFailure } from "@/shared/validation/helpers";
+import { QdrantSearchSchema } from "@/shared/schemas/qdrant";
 import { searchSemanticMemory } from "@/lib/memory/qdrant";
-
-const schema = z
-  .object({
-    query: z.string().min(1),
-    topK: z.number().int().min(1).max(20).optional(),
-  })
-  .strict();
+import { sanitizeErrorMessage } from "@omniroute/open-sse/utils/error.ts";
 
 export async function POST(request: NextRequest) {
   if (!(await isAuthenticated(request))) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
+  let rawBody: unknown;
   try {
-    let rawBody: unknown;
-    try {
-      rawBody = await request.json();
-    } catch {
-      return NextResponse.json({ error: "Invalid JSON body" }, { status: 400 });
-    }
+    rawBody = await request.json();
+  } catch {
+    return NextResponse.json(
+      { error: { message: "Invalid JSON body", details: [] } },
+      { status: 400 },
+    );
+  }
 
-    const validation = validateBody(schema, rawBody);
-    if (isValidationFailure(validation)) return validation.response;
+  const validation = validateBody(QdrantSearchSchema, rawBody);
+  if (isValidationFailure(validation)) {
+    return NextResponse.json(validation.error, { status: 400 });
+  }
 
-    const result = await searchSemanticMemory(validation.data.query, validation.data.topK ?? 5);
-    return NextResponse.json(result);
-  } catch (error) {
-    return NextResponse.json({ ok: false, latencyMs: 0, error: String(error) }, { status: 500 });
+  const { query, topK } = validation.data;
+
+  try {
+    const result = await searchSemanticMemory(query, topK);
+    return NextResponse.json({
+      ok: result.ok,
+      results: result.results ?? [],
+    });
+  } catch (err: unknown) {
+    const message = sanitizeErrorMessage(err instanceof Error ? err.message : String(err));
+    return NextResponse.json({ error: { message } }, { status: 500 });
   }
 }

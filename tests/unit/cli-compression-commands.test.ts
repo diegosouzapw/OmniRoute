@@ -19,7 +19,7 @@ async function captureStdout(fn: () => Promise<void>): Promise<string> {
   const chunks: string[] = [];
   const orig = process.stdout.write.bind(process.stdout);
   process.stdout.write = (c: string | Uint8Array) => {
-    chunks.push(typeof c === "string" ? c : c.toString());
+    if (typeof c === "string") chunks.push(c);
     return true;
   };
   try {
@@ -163,4 +163,88 @@ test("compression.mjs pode ser importado sem erro", async () => {
   assert.equal(typeof mod.runCompressionStatus, "function");
   assert.equal(typeof mod.runCompressionEngineSet, "function");
   assert.equal(typeof mod.runCompressionPreview, "function");
+});
+
+// #2688 — when /api/mcp/tools/call returns 404, the CLI must fall back to
+// direct REST endpoints (no MCP tool surface required on minimal builds).
+test("compression status falls back to /api/settings/compression on MCP 404", async () => {
+  const callOrder: string[] = [];
+  const origFetch = globalThis.fetch;
+  globalThis.fetch = ((url: string) => {
+    callOrder.push(url);
+    if (url.includes("/api/mcp/tools/call")) {
+      return Promise.resolve(makeResp({ error: "not mounted" }, 404));
+    }
+    if (url.includes("/api/settings/compression")) {
+      return Promise.resolve(makeResp({ engine: "caveman", enabled: true }));
+    }
+    if (url.includes("/api/context/combos")) {
+      return Promise.resolve(makeResp({ combos: [{ id: "c1", name: "x" }] }));
+    }
+    if (url.includes("/api/context/analytics")) {
+      return Promise.resolve(makeResp({ savings: 12 }));
+    }
+    return Promise.resolve(makeResp({}, 404));
+  }) as any;
+
+  const { runCompressionStatus } = await import("../../bin/cli/commands/compression.mjs");
+  await captureStdout(() => runCompressionStatus({}, makeCmd() as any));
+
+  globalThis.fetch = origFetch;
+  assert.ok(
+    callOrder.some((u) => u.includes("/api/mcp/tools/call")),
+    "should attempt MCP first"
+  );
+  assert.ok(
+    callOrder.some((u) => u.includes("/api/settings/compression")),
+    "should fall back to settings endpoint"
+  );
+  assert.ok(
+    callOrder.some((u) => u.includes("/api/context/combos")),
+    "should fall back to combos endpoint"
+  );
+});
+
+test("compression engine set normalizes hybrid → stacked alias", async () => {
+  let captured: any = null;
+  const origFetch = globalThis.fetch;
+  globalThis.fetch = ((_url: string, opts: any) => {
+    if (opts?.body) captured = JSON.parse(opts.body);
+    return Promise.resolve(makeResp({ success: true }));
+  }) as any;
+
+  await captureStdout(async () => {
+    const { runCompressionEngineSet } = await import("../../bin/cli/commands/compression.mjs");
+    await runCompressionEngineSet("hybrid", {}, makeCmd() as any);
+  });
+
+  globalThis.fetch = origFetch;
+  assert.equal(captured?.arguments?.engine, "stacked");
+});
+
+test("compression engine set falls back to PUT /api/settings/compression on MCP 404", async () => {
+  const calls: Array<{ url: string; method?: string; body?: any }> = [];
+  const origFetch = globalThis.fetch;
+  globalThis.fetch = ((url: string, opts: any) => {
+    calls.push({
+      url,
+      method: opts?.method,
+      body: opts?.body ? JSON.parse(opts.body) : undefined,
+    });
+    if (url.includes("/api/mcp/tools/call")) {
+      return Promise.resolve(makeResp({ error: "not mounted" }, 404));
+    }
+    return Promise.resolve(makeResp({ ok: true }));
+  }) as any;
+
+  await captureStdout(async () => {
+    const { runCompressionEngineSet } = await import("../../bin/cli/commands/compression.mjs");
+    await runCompressionEngineSet("rtk", {}, makeCmd() as any);
+  });
+
+  globalThis.fetch = origFetch;
+  const restCall = calls.find((c) => c.url.includes("/api/settings/compression"));
+  assert.ok(restCall, "should fall back to PUT /api/settings/compression");
+  assert.equal(restCall?.method, "PUT");
+  assert.equal(restCall?.body?.engine, "rtk");
 });

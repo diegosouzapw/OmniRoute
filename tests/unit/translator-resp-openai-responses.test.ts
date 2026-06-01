@@ -242,6 +242,99 @@ test("Responses -> OpenAI: empty-name tool call is deferred until output_item.do
   );
 });
 
+test("Responses -> OpenAI: preserves non-Read JSON-string tool arguments", () => {
+  const state = {};
+  openaiResponsesToOpenAIResponse(
+    {
+      type: "response.output_item.added",
+      item: { type: "function_call", call_id: "call_note", name: "save_note" },
+    },
+    state
+  );
+  const done = openaiResponsesToOpenAIResponse(
+    {
+      type: "response.output_item.done",
+      item: {
+        type: "function_call",
+        call_id: "call_note",
+        name: "save_note",
+        arguments: '{"text":"","tags":[]}',
+      },
+    },
+    state
+  );
+
+  assert.equal(done.choices[0].delta.tool_calls[0].function.arguments, '{"text":"","tags":[]}');
+});
+
+test("Responses -> OpenAI: preserves falsy JSON-string tool arguments while cleaning", () => {
+  const state = {};
+  openaiResponsesToOpenAIResponse(
+    {
+      type: "response.output_item.added",
+      item: { type: "function_call", call_id: "call_flag", name: "set_flag" },
+    },
+    state
+  );
+  const done = openaiResponsesToOpenAIResponse(
+    {
+      type: "response.output_item.done",
+      item: { type: "function_call", call_id: "call_flag", name: "set_flag", arguments: "false" },
+    },
+    state
+  );
+
+  assert.equal(done.choices[0].delta.tool_calls[0].function.arguments, "false");
+});
+
+test("Responses -> OpenAI: preserves non-object Read JSON-string arguments", () => {
+  const state = {};
+  openaiResponsesToOpenAIResponse(
+    {
+      type: "response.output_item.added",
+      item: { type: "function_call", call_id: "call_read", name: "Read" },
+    },
+    state
+  );
+  const done = openaiResponsesToOpenAIResponse(
+    {
+      type: "response.output_item.done",
+      item: { type: "function_call", call_id: "call_read", name: "Read", arguments: "null" },
+    },
+    state
+  );
+
+  assert.equal(done.choices[0].delta.tool_calls[0].function.arguments, "null");
+});
+
+test("Responses -> OpenAI: strips empty optional args from JSON-string output_item.done arguments", () => {
+  const state = {};
+  openaiResponsesToOpenAIResponse(
+    {
+      type: "response.output_item.added",
+      item: { type: "function_call", call_id: "call_read", name: "Read" },
+    },
+    state
+  );
+  const done = openaiResponsesToOpenAIResponse(
+    {
+      type: "response.output_item.done",
+      item: {
+        type: "function_call",
+        call_id: "call_read",
+        name: "Read",
+        arguments: '{"file_path":"/etc/hosts","offset":1,"limit":5,"pages":"","empty":[]}',
+      },
+    },
+    state
+  );
+
+  assert.equal(
+    done.choices[0].delta.tool_calls[0].function.arguments,
+    JSON.stringify({ file_path: "/etc/hosts", offset: 1, limit: 5 })
+  );
+});
+
 test("Responses -> OpenAI: tool-call delta, reasoning delta and completed usage are normalized", () => {
   const state = {};
   const added = openaiResponsesToOpenAIResponse(

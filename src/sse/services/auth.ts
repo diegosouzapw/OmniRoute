@@ -41,11 +41,13 @@ import {
   classifyProviderError,
   PROVIDER_ERROR_TYPES,
 } from "@omniroute/open-sse/services/errorClassifier.ts";
+import { looksLikeQuotaExhausted } from "@/shared/utils/classify429";
 import { getCodexModelScope } from "@omniroute/open-sse/executors/codex.ts";
 import {
   getProviderAlias,
   resolveProviderId,
   NOAUTH_PROVIDERS,
+  WEB_COOKIE_PROVIDERS,
 } from "@/shared/constants/providers";
 import { isModelExcludedByConnection } from "@/domain/connectionModelRules";
 import * as log from "../utils/logger";
@@ -94,10 +96,12 @@ interface RecoverableConnectionState {
 
 interface CredentialSelectionOptions {
   allowSuppressedConnections?: boolean;
+  allowRateLimitedConnections?: boolean;
   bypassQuotaPolicy?: boolean;
   forcedConnectionId?: string | null;
   excludeConnectionIds?: string[] | null;
   sessionKey?: string | null;
+  sessionAffinityTtlMs?: number | null;
 }
 
 interface CooldownInspectionState {
@@ -644,15 +648,16 @@ function compareLruConnections(a: ProviderConnectionView, b: ProviderConnectionV
 async function selectSessionAffinityConnection(
   provider: string,
   sessionKey: string | null | undefined,
-  connections: ProviderConnectionView[]
+  connections: ProviderConnectionView[],
+  ttlMs = 0
 ): Promise<ProviderConnectionView | null> {
-  if (!sessionKey || connections.length === 0) return null;
+  if (!sessionKey || connections.length === 0 || ttlMs <= 0) return null;
 
-  const existing = getSessionAccountAffinity(sessionKey, provider);
+  const existing = getSessionAccountAffinity(sessionKey, provider, ttlMs);
   if (existing) {
     const connection = connections.find((candidate) => candidate.id === existing.connectionId);
     if (connection) {
-      touchSessionAccountAffinity(sessionKey, provider);
+      touchSessionAccountAffinity(sessionKey, provider, Date.now(), ttlMs);
       await updateProviderConnection(connection.id, {
         lastUsedAt: new Date().toISOString(),
         consecutiveUseCount: (connection.consecutiveUseCount || 0) + 1,
@@ -677,7 +682,7 @@ async function selectSessionAffinityConnection(
   const connection = [...connections].sort(compareLruConnections)[0] ?? null;
   if (!connection) return null;
 
-  upsertSessionAccountAffinity(sessionKey, provider, connection.id);
+  upsertSessionAccountAffinity(sessionKey, provider, connection.id, Date.now(), ttlMs);
   await updateProviderConnection(connection.id, {
     lastUsedAt: new Date().toISOString(),
     consecutiveUseCount: 1,
@@ -743,8 +748,35 @@ function buildQuotaPreflightRateLimitedResult(
   };
 }
 
-// Mutex to prevent race conditions during account selection
-let selectionMutex = Promise.resolve();
+// Provider-scoped mutexes prevent race conditions during account selection without
+// serializing unrelated providers behind a single global lock.
+const selectionMutexes = new Map<string, Promise<void>>();
+
+function getSelectionMutexKey(provider: string, options: CredentialSelectionOptions): string {
+  return [
+    resolveProviderId(provider) || provider,
+    options.forcedConnectionId ? `forced:${options.forcedConnectionId}` : "pool",
+  ].join(":");
+}
+
+function createSelectionLock(key: string) {
+  const currentMutex = selectionMutexes.get(key) || Promise.resolve();
+  let resolveMutex: (() => void) | undefined;
+  const nextMutex = new Promise<void>((resolve) => {
+    resolveMutex = resolve;
+  });
+  selectionMutexes.set(key, nextMutex);
+
+  return {
+    wait: currentMutex,
+    release: () => {
+      resolveMutex?.();
+      if (selectionMutexes.get(key) === nextMutex) {
+        selectionMutexes.delete(key);
+      }
+    },
+  };
+}
 
 // ─── Anti-Thundering Herd: per-connection mutex for markAccountUnavailable ───
 // Prevents multiple concurrent requests from marking the same connection
@@ -752,7 +784,7 @@ let selectionMutex = Promise.resolve();
 const markMutexes = new Map<string, Promise<void>>();
 
 // Strict-Random shuffle deck moved to src/shared/utils/shuffleDeck.ts
-// auth.ts uses getNextFromDeckSync (already inside selectionMutex).
+// auth.ts uses getNextFromDeckSync inside the provider-scoped selection mutex.
 // Re-export for backwards compat with existing test imports.
 export { fisherYatesShuffle, getNextFromDeckSync as getNextFromDeck };
 
@@ -786,22 +818,19 @@ export async function getProviderCredentials(
   requestedModel: string | null = null,
   options: CredentialSelectionOptions = {}
 ) {
-  // Acquire mutex to prevent race conditions
-  const currentMutex = selectionMutex;
-  let resolveMutex: (() => void) | undefined;
-  selectionMutex = new Promise((resolve) => {
-    resolveMutex = resolve;
-  });
+  const selectionLock = createSelectionLock(getSelectionMutexKey(provider, options));
 
   try {
-    await currentMutex;
+    await selectionLock.wait;
 
     // No-auth providers (e.g. opencode) need no DB connection — return synthetic credentials
     // so the executor receives a valid credentials object without auth headers being added.
     const resolvedId = resolveProviderId(provider);
-    if (
-      (NOAUTH_PROVIDERS as Record<string, { noAuth?: boolean } | undefined>)[resolvedId]?.noAuth
-    ) {
+    const providerMaps: Record<string, { noAuth?: boolean } | undefined>[] = [
+      NOAUTH_PROVIDERS as Record<string, { noAuth?: boolean } | undefined>,
+      WEB_COOKIE_PROVIDERS as Record<string, { noAuth?: boolean } | undefined>,
+    ];
+    if (providerMaps.some((map) => map[resolvedId]?.noAuth)) {
       return {
         apiKey: null,
         accessToken: null,
@@ -822,6 +851,8 @@ export async function getProviderCredentials(
     }
 
     const allowSuppressedConnections = options.allowSuppressedConnections === true;
+    const allowRateLimitedConnections =
+      allowSuppressedConnections || options.allowRateLimitedConnections === true;
     const bypassQuotaPolicy = options.bypassQuotaPolicy === true;
     const forcedConnectionId =
       typeof options.forcedConnectionId === "string" && options.forcedConnectionId.trim().length > 0
@@ -915,6 +946,31 @@ export async function getProviderCredentials(
           };
         }
       }
+      // #2962: opencode-zen exposes the public, signup-free OpenCode Zen endpoint
+      // (https://opencode.ai/zen/v1). With no usable API-key connection, fall back
+      // to anonymous (no-auth) access — the free tier — instead of erroring with
+      // "No credentials". This is what the Playground/combos hit when selecting an
+      // OpenCode free model. A configured, active key is still selected above; a
+      // rate-limited/terminal key returns its own signal before reaching here.
+      if (resolvedId === "opencode-zen") {
+        return {
+          apiKey: null,
+          accessToken: null,
+          refreshToken: null,
+          expiresAt: null,
+          projectId: null,
+          copilotToken: null,
+          providerSpecificData: {},
+          connectionId: "noauth",
+          testStatus: "active",
+          lastError: null,
+          lastErrorType: null,
+          lastErrorSource: null,
+          errorCode: null,
+          rateLimitedUntil: null,
+          maxConcurrent: null,
+        };
+      }
       log.warn("AUTH", `No credentials for ${provider}`);
       return null;
     }
@@ -949,7 +1005,7 @@ export async function getProviderCredentials(
         return false;
       }
       if (!allowSuppressedConnections) {
-        if (isAccountUnavailable(c.rateLimitedUntil)) return false;
+        if (!allowRateLimitedConnections && isAccountUnavailable(c.rateLimitedUntil)) return false;
         if (isTerminalConnectionStatus(c)) return false;
         if (provider === "codex" && isCodexScopeUnavailable(c, requestedModel)) return false;
         // Per-model lockout: if this specific model is locked on this connection, skip it
@@ -1174,12 +1230,23 @@ export async function getProviderCredentials(
 
     const settings = await getSettings();
     const strategy = settings.fallbackStrategy || "fill-first";
+    const sessionAffinityTtlMs =
+      provider === "codex"
+        ? Number.isFinite(Number(options.sessionAffinityTtlMs)) &&
+          Number(options.sessionAffinityTtlMs) > 0
+          ? Number(options.sessionAffinityTtlMs)
+          : Number.isFinite(Number(settings.codexSessionAffinityTtlMs)) &&
+              Number(settings.codexSessionAffinityTtlMs) > 0
+            ? Number(settings.codexSessionAffinityTtlMs)
+            : 0
+        : 0;
 
     let connection;
     const affinityConnection = await selectSessionAffinityConnection(
       provider,
       options.sessionKey,
-      orderedConnections
+      orderedConnections,
+      sessionAffinityTtlMs
     );
     if (affinityConnection) {
       connection = affinityConnection;
@@ -1363,7 +1430,7 @@ export async function getProviderCredentials(
       quotaWindowThresholds: connection.quotaWindowThresholds ?? null,
     };
   } finally {
-    if (resolveMutex) resolveMutex();
+    selectionLock.release();
   }
 }
 
@@ -1456,6 +1523,15 @@ export async function getProviderCredentialsWithQuotaPreflight(
     // Otherwise the resolver would return the factory default for every
     // window, and a near-exhausted account would still be caught by the
     // normal 429 → cooldown path.
+    // Explicit per-connection opt-out always wins over global/provider defaults.
+    // isQuotaPreflightEnabled is strict-=== true (back-compat), so it returns
+    // false for both "not set" and "explicit false" — we need an explicit check
+    // here to distinguish them.
+    const legacyForceDisable =
+      (credentials as { providerSpecificData?: Record<string, unknown> })
+        .providerSpecificData?.quotaPreflightEnabled === false;
+    if (legacyForceDisable) return credentials;
+
     const hasConnectionOverrides = Object.keys(perConnectionWindowOverrides).length > 0;
     const legacyForceEnable = isQuotaPreflightEnabled(credentials);
     if (
@@ -1520,7 +1596,10 @@ export async function markAccountUnavailable(
   errorText: string,
   provider: string | null = null,
   model: string | null = null,
-  providerProfile = null
+  providerProfile = null,
+  options: {
+    persistUnavailableState?: boolean;
+  } = {}
 ) {
   const currentMutex = markMutexes.get(connectionId) || Promise.resolve();
   let resolveMutex: (() => void) | undefined;
@@ -1596,41 +1675,6 @@ export async function markAccountUnavailable(
       effectiveProviderProfile
     );
 
-    // Invalid JSON payload from upstream is often model/endpoint-specific, not account-wide.
-    // Avoid cooling down the whole connection so fallback can try sibling models immediately.
-    const normalizedErrorText =
-      typeof errorText === "string" ? errorText.trim().toLowerCase() : String(errorText || "");
-    if (
-      status === 502 &&
-      provider &&
-      model &&
-      normalizedErrorText.includes("invalid json response from provider")
-    ) {
-      const fallbackCooldown = effectiveProviderProfile?.transientCooldown ?? COOLDOWN_MS.transient;
-      const lockout = recordModelLockoutFailure(
-        provider,
-        connectionId,
-        model,
-        "invalid_json_payload",
-        status,
-        fallbackCooldown,
-        effectiveProviderProfile
-      );
-      updateProviderConnection(connectionId, {
-        lastErrorType: "invalid_json_payload",
-        lastError: `Model ${model} invalid_json_payload`,
-        lastErrorAt: new Date().toISOString(),
-        errorCode: status,
-      }).catch(() => {});
-      log.info(
-        "AUTH",
-        `Model-only lockout for ${provider}:${model} — 502 invalid_json_payload ${Math.ceil(
-          lockout.cooldownMs / 1000
-        )}s (connection stays active)`
-      );
-      return { shouldFallback: true, cooldownMs: lockout.cooldownMs };
-    }
-
     // Read passthroughModels from connection config (user-configured per-model quota)
     const connProviderSpecificData = (conn?.providerSpecificData as Record<string, unknown>) || {};
     const connectionPassthroughModels = connProviderSpecificData.passthroughModels as
@@ -1645,7 +1689,13 @@ export async function markAccountUnavailable(
       (status === 404 || status === 429 || status >= 500)
     ) {
       const reason =
-        status === 404 ? "not_found" : status === 429 ? "rate_limited" : "server_error";
+        status === 404
+          ? "not_found"
+          : status === 429 && looksLikeQuotaExhausted(errorText)
+            ? "quota_exhausted"
+            : status === 429
+              ? "rate_limited"
+              : "server_error";
       const lockout = recordModelLockoutFailure(
         provider,
         connectionId,
@@ -1785,8 +1835,13 @@ export async function markAccountUnavailable(
       lastErrorAt: new Date().toISOString(),
       backoffLevel: newBackoffLevel ?? backoffLevel,
     };
+    const persistUnavailableState = options.persistUnavailableState !== false;
 
-    if (cooldownMs > 0) {
+    if (!persistUnavailableState) {
+      await updateProviderConnection(connectionId, {
+        ...baseUpdate,
+      });
+    } else if (cooldownMs > 0) {
       await updateProviderConnection(connectionId, {
         ...baseUpdate,
         rateLimitedUntil: getUnavailableUntil(cooldownMs),

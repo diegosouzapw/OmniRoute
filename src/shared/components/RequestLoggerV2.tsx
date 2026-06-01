@@ -15,47 +15,16 @@ import {
   formatDuration,
   maskSegment,
   maskAccount,
+  stableAccountSuffix,
   formatApiKeyLabel,
 } from "@/shared/utils/formatting";
+import { getProviderDisplayLabel } from "@/shared/utils/providerDisplayLabel";
 import useEmailPrivacyStore from "@/store/emailPrivacyStore";
 
 // Number of call-log rows fetched per page. The viewer grows its window by this
 // amount on "Load more" / infinite scroll so users can browse past the first
 // page (previously hardcoded to a single 300-row window). See #2565.
 const PAGE_SIZE = 300;
-
-/**
- * Get a friendly display label for compatible providers.
- * Converts long IDs like "openai-compatible-chat-02669115-2545-4896-b003-cb4dac09d441"
- * to readable labels. If providerNodes are available, uses user-defined name;
- * otherwise falls back to "OAI-Compat".
- */
-function getProviderDisplayLabel(provider: string, providerNodes?: any[]): string {
-  if (!provider) return "-";
-  if (provider.startsWith("openai-compatible-") || provider.startsWith("anthropic-compatible-")) {
-    // Try to find user-defined name from provider nodes
-    if (providerNodes?.length) {
-      const matchedNode = providerNodes.find(
-        (node) => node.id === provider || node.prefix === provider
-      );
-      if (matchedNode?.name) return matchedNode.name;
-    }
-    // Fallback to generic labels
-    if (provider.startsWith("openai-compatible-")) {
-      const suffix = provider.replace("openai-compatible-", "");
-      const parts = suffix.split("-");
-      if (parts.length > 1 && parts[1]?.length >= 8) return `OAI-COMPAT`;
-      return `OAI: ${suffix.slice(0, 16).toUpperCase()}`;
-    }
-    if (provider.startsWith("anthropic-compatible-")) {
-      const suffix = provider.replace("anthropic-compatible-", "");
-      const parts = suffix.split("-");
-      if (parts.length > 1 && parts[1]?.length >= 8) return `ANT-COMPAT`;
-      return `ANT: ${suffix.slice(0, 16).toUpperCase()}`;
-    }
-  }
-  return null; // Not a compatible provider, use default PROVIDER_COLORS
-}
 
 function getLogTotalTokens(log) {
   return (log?.tokens?.in || 0) + (log?.tokens?.out || 0);
@@ -466,7 +435,7 @@ export default function RequestLoggerV2() {
           <option value="">{t("allAccounts")}</option>
           {uniqueAccounts.map((a) => (
             <option key={a} value={a}>
-              {a}
+              {emailsVisible ? a : `${maskAccount(a, false)} · #${stableAccountSuffix(a)}`}
             </option>
           ))}
         </select>
@@ -732,6 +701,7 @@ export default function RequestLoggerV2() {
                   const isError = log.status >= 400;
                   const cacheSourceMeta = getCacheSourceMeta(log.cacheSource);
                   const isSemanticCache = cacheSourceMeta.key === "semantic";
+                  const accountLabel = maskAccount(log.account, emailsVisible);
 
                   return (
                     <tr
@@ -812,9 +782,9 @@ export default function RequestLoggerV2() {
                       {visibleColumns.account && (
                         <td
                           className="px-3 py-2 text-text-muted truncate max-w-[120px]"
-                          title={log.account}
+                          title={accountLabel}
                         >
-                          {maskAccount(log.account, emailsVisible)}
+                          {accountLabel}
                         </td>
                       )}
                       {visibleColumns.apiKey && (
@@ -929,6 +899,7 @@ export default function RequestLoggerV2() {
           detail={detailData}
           loading={detailLoading}
           debugEnabled={detailLoggingEnabled}
+          emailsVisible={emailsVisible}
           onClose={closeDetail}
           onCopy={copyToClipboard}
         />

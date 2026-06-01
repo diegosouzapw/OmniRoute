@@ -163,8 +163,8 @@ export async function createSqlJsAdapter(filePath: string): Promise<SqliteAdapte
       if (options?.simple) {
         return rows.values?.[0]?.[0] ?? null;
       }
-      return (rows.values ?? []).map((row) =>
-        Object.fromEntries(rows.columns.map((col, i) => [col, row[i]]))
+      return (rows.values ?? []).map((row: unknown[]) =>
+        Object.fromEntries(rows.columns.map((col: string, i: number) => [col, row[i]]))
       );
     },
 

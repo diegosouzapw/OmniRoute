@@ -43,14 +43,17 @@ export type CursorSession = {
   pendingToolCalls: Map<string, { execMsgId: number; execId: string; toolName: string }>;
   state: "running" | "awaiting_tool_result" | "closed";
   lastActivityTs: number;
+  idleTimer?: ReturnType<typeof setTimeout>;
 };
 
 export class CursorSessionManager {
   private sessions = new Map<string, CursorSession>();
   private idleTtlMs: number;
+  private maxSessions: number;
 
-  constructor(opts: { idleTtlMs?: number } = {}) {
+  constructor(opts: { idleTtlMs?: number; maxSessions?: number } = {}) {
     this.idleTtlMs = opts.idleTtlMs ?? DEFAULT_IDLE_TTL_MS;
+    this.maxSessions = opts.maxSessions ?? 100;
   }
 
   /**
@@ -63,6 +66,7 @@ export class CursorSessionManager {
     const session = this.sessions.get(conversationId);
     if (!session) return undefined;
     if (session.state !== "awaiting_tool_result") return undefined;
+    this.clearIdleTimer(session);
     session.state = "running";
     session.lastActivityTs = Date.now();
     return session;
@@ -90,6 +94,8 @@ export class CursorSessionManager {
       lastActivityTs: Date.now(),
     };
     this.sessions.set(conversationId, session);
+    this.attachCloseHandlers(session);
+    this.enforceMaxSessions();
     return session;
   }
 
@@ -103,13 +109,16 @@ export class CursorSessionManager {
     session.lastActivityTs = Date.now();
     if (finalState === "awaiting_tool_result") {
       session.state = "awaiting_tool_result";
+      this.armIdleTimer(session);
       return;
     }
     this.close(session);
   }
 
   close(session: CursorSession): void {
+    if (session.state === "closed") return;
     session.state = "closed";
+    this.clearIdleTimer(session);
     try {
       session.h2Req.close();
     } catch {}
@@ -149,6 +158,35 @@ export class CursorSessionManager {
         this.close(session);
       }
     }
+  }
+
+  private armIdleTimer(session: CursorSession): void {
+    this.clearIdleTimer(session);
+    session.idleTimer = setTimeout(() => this.close(session), this.idleTtlMs);
+    session.idleTimer.unref?.();
+  }
+
+  private clearIdleTimer(session: CursorSession): void {
+    if (session.idleTimer) {
+      clearTimeout(session.idleTimer);
+      session.idleTimer = undefined;
+    }
+  }
+
+  private attachCloseHandlers(session: CursorSession): void {
+    const closeSession = () => this.close(session);
+    session.h2Req.once?.("close", closeSession);
+    session.h2Req.once?.("error", closeSession);
+    session.h2Client.once?.("close", closeSession);
+    session.h2Client.once?.("error", closeSession);
+  }
+
+  private enforceMaxSessions(): void {
+    if (this.sessions.size <= this.maxSessions) return;
+    const oldest = Array.from(this.sessions.values()).sort(
+      (a, b) => a.lastActivityTs - b.lastActivityTs
+    )[0];
+    if (oldest) this.close(oldest);
   }
 
   // ─── Test / introspection helpers ────────────────────────────────────────

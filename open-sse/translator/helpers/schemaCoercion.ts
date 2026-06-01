@@ -232,3 +232,156 @@ export function injectEmptyReasoningContentForToolCalls(
     return { ...message, reasoning_content: "" };
   });
 }
+
+/**
+ * Anthropic's first-party Messages API strictly validates tool `input_schema`
+ * against JSON Schema draft 2020-12. IDE/SDK agent harnesses that deep-truncate
+ * their schemas emit invalid constructs — most commonly an array keyword
+ * (`enum`, `required`, …) replaced by a placeholder string such as
+ * `"[MaxDepth]"`, or an index-keyed object (`{"0":"a","1":"b"}`) where an array
+ * is expected. Anthropic rejects these with
+ * `tools.N.custom.input_schema: JSON schema is invalid` (surfaced as a
+ * misleading `400 out of extra usage` placeholder when streaming). Non-Anthropic
+ * targets (OpenAI/Codex) tolerate them, which is why the same request succeeds
+ * on a fallback provider. This sanitizer coerces or drops the invalid
+ * constructs so legitimate native-Claude-OAuth traffic is not spuriously
+ * rejected. See Spec E (Claude Code OAuth wire compatibility).
+ */
+const SCHEMA_PLACEHOLDER_PATTERN = /^\[(?:MaxDepth|Truncated|Circular|Object|Array)\]$/;
+const ARRAY_SCHEMA_KEYS = ["enum", "required", "anyOf", "oneOf", "allOf", "prefixItems"];
+const SCHEMA_ARRAY_OF_SCHEMAS = new Set(["anyOf", "oneOf", "allOf", "prefixItems"]);
+const SCHEMA_SLOT_KEYS = [
+  "items",
+  "additionalProperties",
+  "propertyNames",
+  "contains",
+  "not",
+  "if",
+  "then",
+  "else",
+  "unevaluatedProperties",
+  "additionalItems",
+];
+
+function coerceIndexedObjectToArray(value: unknown): unknown[] | null {
+  if (Array.isArray(value)) return value;
+  if (isPlainObject(value)) {
+    const keys = Object.keys(value);
+    if (keys.length > 0 && keys.every((key, index) => String(index) === key)) {
+      return keys.map((key) => value[key]);
+    }
+  }
+  return null;
+}
+
+function isSchemaPlaceholder(value: unknown): boolean {
+  return typeof value === "string" && SCHEMA_PLACEHOLDER_PATTERN.test(value.trim());
+}
+
+export function stripInvalidSchemaConstructs(schema: unknown): unknown {
+  if (Array.isArray(schema)) {
+    return schema.map((entry) => stripInvalidSchemaConstructs(entry));
+  }
+  if (!isPlainObject(schema)) {
+    return isSchemaPlaceholder(schema) ? {} : schema;
+  }
+
+  const result: JsonRecord = {};
+  for (const [key, value] of Object.entries(schema)) {
+    // Coerce string-encoded numeric constraints (e.g. minimum: "5") to numbers —
+    // Anthropic rejects the string form. Done here so the Claude sanitizer covers
+    // every slot this function recurses into (incl. contains / propertyNames /
+    // additionalItems, which coerceSchemaNumericFields does not visit).
+    if ((NUMERIC_SCHEMA_FIELDS as readonly string[]).includes(key)) {
+      result[key] = coerceNumericString(value);
+      continue;
+    }
+    if (ARRAY_SCHEMA_KEYS.includes(key)) {
+      const array = coerceIndexedObjectToArray(value);
+      if (array === null) continue; // drop invalid non-array keyword (e.g. enum: "[MaxDepth]")
+      result[key] = SCHEMA_ARRAY_OF_SCHEMAS.has(key)
+        ? array.map((entry) => stripInvalidSchemaConstructs(entry))
+        : array;
+      continue;
+    }
+    if (SCHEMA_SLOT_KEYS.includes(key)) {
+      // Boolean schemas are valid in JSON Schema (e.g. `additionalProperties: false`
+      // locks down the object); coercing to {} would silently allow extras and
+      // invite the model to hallucinate arguments. Only placeholder strings
+      // (e.g. "[MaxDepth]") get replaced with the permissive {}.
+      if (isPlainObject(value) || Array.isArray(value)) {
+        result[key] = stripInvalidSchemaConstructs(value);
+      } else if (typeof value === "boolean") {
+        result[key] = value;
+      } else if (isSchemaPlaceholder(value)) {
+        result[key] = {};
+      } else {
+        result[key] = value;
+      }
+      continue;
+    }
+    if (key === "const") {
+      if (isSchemaPlaceholder(value)) continue;
+      result[key] = value;
+      continue;
+    }
+    if (key === "properties" && isPlainObject(value)) {
+      const properties: JsonRecord = {};
+      for (const [propName, propSchema] of Object.entries(value)) {
+        // Same boolean-preservation rule as SCHEMA_SLOT_KEYS above:
+        // `{ properties: { onlyAdminCanSet: false } }` is a valid permission
+        // gate and must not be silently turned into the permissive {}.
+        if (isPlainObject(propSchema) || Array.isArray(propSchema)) {
+          properties[propName] = stripInvalidSchemaConstructs(propSchema);
+        } else if (typeof propSchema === "boolean") {
+          properties[propName] = propSchema;
+        } else if (isSchemaPlaceholder(propSchema)) {
+          properties[propName] = {};
+        } else {
+          properties[propName] = propSchema;
+        }
+      }
+      result[key] = properties;
+      continue;
+    }
+    if (
+      (key === "$defs" ||
+        key === "definitions" ||
+        key === "patternProperties" ||
+        key === "dependentSchemas") &&
+      isPlainObject(value)
+    ) {
+      const defs: JsonRecord = {};
+      for (const [defName, defSchema] of Object.entries(value)) {
+        defs[defName] = stripInvalidSchemaConstructs(defSchema);
+      }
+      result[key] = defs;
+      continue;
+    }
+    // Placeholders are only coerced to {} in subschema-expecting positions
+    // (handled in the branches above). A placeholder in a scalar annotation
+    // keyword (description / title / pattern / format) must stay scalar —
+    // turning it into {} is itself invalid draft-2020-12 and would re-trigger
+    // the very 400 this sanitizer prevents.
+    result[key] =
+      isPlainObject(value) || Array.isArray(value) ? stripInvalidSchemaConstructs(value) : value;
+  }
+  return result;
+}
+
+export function sanitizeClaudeToolSchema(schema: unknown): unknown {
+  // stripInvalidSchemaConstructs now also coerces numeric-string constraints, so
+  // it is the single pass for the Claude path. We deliberately do NOT compose
+  // coerceSchemaNumericFields: it strips the valid `default` keyword (Fix #1782,
+  // a translator concern) which on the native / passthrough surface would
+  // silently alter tool schemas that were previously forwarded verbatim.
+  return stripInvalidSchemaConstructs(schema);
+}
+
+export function sanitizeClaudeToolSchemas(tools: unknown): unknown {
+  if (!Array.isArray(tools)) return tools;
+  return tools.map((tool) => {
+    if (!isPlainObject(tool) || tool.input_schema === undefined) return tool;
+    return { ...tool, input_schema: sanitizeClaudeToolSchema(tool.input_schema) };
+  });
+}

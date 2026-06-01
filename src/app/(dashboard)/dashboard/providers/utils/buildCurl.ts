@@ -54,7 +54,7 @@ export function buildCurl({ endpoint, method = "POST", headers, body }: CurlOpti
 
   // Remove trailing backslash from last non-URL line
   const last = lines.length - 1;
-  lines[last - 1] = lines[last - 1].replace(/ \\$/, " \\");
+  lines[last - 1] = lines[last - 1].replace(/ \\$/, "");
 
   return lines.join("\n");
 }

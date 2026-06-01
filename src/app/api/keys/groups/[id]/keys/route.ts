@@ -1,7 +1,13 @@
 import { NextResponse } from "next/server";
+import { z } from "zod";
 import { addKeyToGroup, removeKeyFromGroup, getGroupMembers, getKeyGroup } from "@/lib/localDb";
+import { isValidationFailure, validateBody } from "@/shared/validation/helpers";
 
 type RouteParams = { params: Promise<{ id: string }> };
+
+const addKeyToGroupSchema = z.object({
+  keyId: z.string().trim().min(1, "keyId is required"),
+});
 
 /**
  * GET /api/keys/groups/[id]/keys — List API keys in a group
@@ -28,11 +34,12 @@ export async function POST(request: Request, { params }: RouteParams) {
     const group = getKeyGroup(id);
     if (!group) return NextResponse.json({ error: "Group not found" }, { status: 404 });
 
-    const body = await request.json();
-    if (!body.keyId) {
-      return NextResponse.json({ error: "keyId is required" }, { status: 400 });
+    const rawBody = await request.json();
+    const validation = validateBody(addKeyToGroupSchema, rawBody);
+    if (isValidationFailure(validation)) {
+      return NextResponse.json({ error: validation.error }, { status: 400 });
     }
-    const added = addKeyToGroup(body.keyId, id);
+    const added = addKeyToGroup(validation.data.keyId, id);
     if (!added) {
       return NextResponse.json({ error: "Failed to add key" }, { status: 500 });
     }

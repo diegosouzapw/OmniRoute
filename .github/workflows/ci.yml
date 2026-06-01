@@ -191,14 +191,14 @@ jobs:
         run: xvfb-run -a npm run electron:smoke:packaged
 
   test-unit:
-    name: Unit Tests (${{ matrix.shard }}/4)
+    name: Unit Tests (${{ matrix.shard }}/8)
     runs-on: ubuntu-latest
     timeout-minutes: 15
     needs: build
     strategy:
       fail-fast: false
       matrix:
-        shard: [1, 2, 3, 4]
+        shard: [1, 2, 3, 4, 5, 6, 7, 8]
     env:
       JWT_SECRET: ci-test-secret-with-sufficient-length-for-validation
       API_KEY_SECRET: ci-test-api-key-secret-long
@@ -211,7 +211,7 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npm run check:node-runtime
-      - run: node --import tsx --test --test-force-exit --test-concurrency=4 --test-shard=${{ matrix.shard }}/4 tests/unit/*.test.ts
+      - run: node --max-old-space-size=4096 --import tsx --test --test-force-exit --test-concurrency=4 --test-shard=${{ matrix.shard }}/8 tests/unit/*.test.ts
 
   node-24-compat:
     name: Node 24 Compatibility (${{ matrix.shard }}/2)
@@ -262,14 +262,14 @@ jobs:
       - run: node --import tsx --test --test-force-exit --test-concurrency=4 --test-shard=${{ matrix.shard }}/2 tests/unit/*.test.ts
 
   test-coverage-shard:
-    name: Coverage Shard (${{ matrix.shard }}/4)
+    name: Coverage Shard (${{ matrix.shard }}/8)
     runs-on: ubuntu-latest
     timeout-minutes: 25
     needs: build
     strategy:
       fail-fast: false
       matrix:
-        shard: [1, 2, 3, 4]
+        shard: [1, 2, 3, 4, 5, 6, 7, 8]
     env:
       JWT_SECRET: ci-test-secret-with-sufficient-length-for-validation
       API_KEY_SECRET: ci-test-api-key-secret-long
@@ -282,22 +282,30 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npm run check:node-runtime
-      - name: Run c8 over shard ${{ matrix.shard }}/4
+      - name: Run c8 over shard ${{ matrix.shard }}/8
         run: |
+          rm -rf coverage-shard coverage-shard-report
+          # `--temp-directory` (writable via NODE_V8_COVERAGE) is what the merge
+          # job reads with `c8 report --temp-directory ...`. Using `--output-dir`
+          # only produces the final json *report* and leaves the raw v8 files in
+          # `coverage/tmp`, so uploading `coverage-shard/` was empty. Pin the temp
+          # dir so the raw coverage files live there and the artifact upload picks
+          # them up regardless of `--test-force-exit` timing.
           npx c8 \
+            --temp-directory=coverage-shard \
+            --reports-dir=coverage-shard-report \
             --reporter=json \
-            --output-dir=coverage-shard \
             --exclude=tests/** \
             --exclude=**/*.test.* \
-            node --import tsx --test --test-force-exit --test-concurrency=4 \
-              --test-shard=${{ matrix.shard }}/4 tests/unit/*.test.ts
+            node --max-old-space-size=4096 --import tsx --test --test-force-exit --test-concurrency=4 \
+              --test-shard=${{ matrix.shard }}/8 tests/unit/*.test.ts
       - name: Upload raw shard coverage
         if: always()
         uses: actions/upload-artifact@v7
         with:
           name: coverage-shard-${{ matrix.shard }}
-          path: coverage-shard/
-          if-no-files-found: warn
+          path: coverage-shard/*.json
+          if-no-files-found: error
 
   test-coverage:
     name: Coverage
@@ -316,7 +324,7 @@ jobs:
           cache: npm
       - run: npm ci
       - name: Download all shard coverage
-        uses: actions/download-artifact@v7
+        uses: actions/download-artifact@v8
         with:
           pattern: coverage-shard-*
           path: coverage-shards/
@@ -324,6 +332,11 @@ jobs:
       - name: Merge + report + gate
         run: |
           mkdir -p coverage
+          if [ ! -d coverage-shards ] || ! find coverage-shards -maxdepth 1 -type f -name '*.json' | grep -q .; then
+            echo "::error::No raw coverage shard data was downloaded."
+            find . -maxdepth 3 -type f | sort
+            exit 1
+          fi
           npx c8 report \
             --temp-directory coverage-shards \
             --reports-dir coverage \

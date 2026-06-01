@@ -1,12 +1,20 @@
 import { NextResponse } from "next/server";
+import { z } from "zod";
 import {
   addGroupPermission,
   removeGroupPermission,
   getGroupPermissions,
   getKeyGroup,
 } from "@/lib/localDb";
+import { isValidationFailure, validateBody } from "@/shared/validation/helpers";
 
 type RouteParams = { params: Promise<{ id: string }> };
+
+const addGroupPermissionSchema = z.object({
+  modelPattern: z.string().trim().min(1, "modelPattern is required"),
+  accessType: z.enum(["allow", "deny"]),
+  provider: z.string().trim().min(1).optional(),
+});
 
 /**
  * GET /api/keys/groups/[id]/permissions — List permissions for a group
@@ -34,18 +42,18 @@ export async function POST(request: Request, { params }: RouteParams) {
     const group = getKeyGroup(id);
     if (!group) return NextResponse.json({ error: "Group not found" }, { status: 404 });
 
-    const body = await request.json();
-    if (!body.modelPattern || !body.accessType) {
-      return NextResponse.json(
-        { error: "modelPattern and accessType are required" },
-        { status: 400 }
-      );
-    }
-    if (body.accessType !== "allow" && body.accessType !== "deny") {
-      return NextResponse.json({ error: "accessType must be 'allow' or 'deny'" }, { status: 400 });
+    const rawBody = await request.json();
+    const validation = validateBody(addGroupPermissionSchema, rawBody);
+    if (isValidationFailure(validation)) {
+      return NextResponse.json({ error: validation.error }, { status: 400 });
     }
 
-    const permission = addGroupPermission(id, body.modelPattern, body.accessType, body.provider);
+    const permission = addGroupPermission(
+      id,
+      validation.data.modelPattern,
+      validation.data.accessType,
+      validation.data.provider
+    );
     return NextResponse.json({ permission }, { status: 201 });
   } catch (error) {
     return NextResponse.json({ error: "Failed to add permission" }, { status: 500 });

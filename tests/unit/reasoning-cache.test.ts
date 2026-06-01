@@ -13,6 +13,7 @@ import { join } from "node:path";
 import { tmpdir } from "node:os";
 
 process.env.DATA_DIR = mkdtempSync(join(tmpdir(), "omniroute-reasoning-"));
+process.env.API_KEY_SECRET = process.env.API_KEY_SECRET || "reasoning-cache-test-secret";
 
 // ──────────── Direct service import ────────────
 
@@ -37,7 +38,35 @@ import { ensureToolCallIds } from "../../open-sse/translator/helpers/toolCallHel
 import { getDbInstance } from "../../src/lib/db/core.ts";
 import { getReasoningCache, setReasoningCache } from "../../src/lib/db/reasoningCache.ts";
 import { DELETE, GET } from "../../src/app/api/cache/reasoning/route.ts";
+import { createApiKey } from "../../src/lib/db/apiKeys.ts";
 import { updateSettings } from "../../src/lib/db/settings";
+import {
+  clearModelsDevCapabilities,
+  saveModelsDevCapabilities,
+} from "../../src/lib/modelsDevSync.ts";
+
+function buildCapability(overrides = {}) {
+  return {
+    tool_call: null,
+    reasoning: null,
+    attachment: null,
+    structured_output: null,
+    temperature: null,
+    modalities_input: "[]",
+    modalities_output: "[]",
+    knowledge_cutoff: null,
+    release_date: null,
+    last_updated: null,
+    status: null,
+    family: null,
+    open_weights: null,
+    limit_context: null,
+    limit_input: null,
+    limit_output: null,
+    interleaved_field: null,
+    ...overrides,
+  };
+}
 
 before(async () => {
   await updateSettings({ requireLogin: false });
@@ -399,21 +428,21 @@ describe("Reasoning Replay Cache — Provider Detection", () => {
     assert.equal(requiresReasoningReplay({ provider: "opencode-go", model: "some-model" }), true);
   });
 
-  it("should detect siliconflow as requiring replay", () => {
-    assert.equal(requiresReasoningReplay({ provider: "siliconflow", model: "deepseek-r1" }), true);
+  it("should not replay legacy deepseek-r1 even under replay providers", () => {
+    assert.equal(requiresReasoningReplay({ provider: "siliconflow", model: "deepseek-r1" }), false);
   });
 
-  it("should detect deepseek-r1 model pattern", () => {
+  it("should not replay deepseek-r1 model pattern", () => {
     assert.equal(
       requiresReasoningReplay({ provider: "unknown-provider", model: "deepseek-r1" }),
-      true
+      false
     );
   });
 
   it("should detect deepseek-reasoner model pattern", () => {
     assert.equal(
       requiresReasoningReplay({ provider: "unknown-provider", model: "deepseek-reasoner" }),
-      true
+      false
     );
   });
 
@@ -506,10 +535,12 @@ describe("Reasoning Replay Cache — Provider Detection", () => {
 describe("Reasoning Replay Cache — Translator Replay", () => {
   before(() => {
     clearReasoningCacheAll();
+    clearModelsDevCapabilities();
   });
 
   after(() => {
     clearReasoningCacheAll();
+    clearModelsDevCapabilities();
   });
 
   function translateWithToolHistory(provider: string, model: string, callId: string) {
@@ -538,6 +569,16 @@ describe("Reasoning Replay Cache — Translator Replay", () => {
 
   it("should inject cached reasoning for DeepSeek instead of empty fallback", () => {
     clearReasoningCacheAll();
+    clearModelsDevCapabilities();
+    saveModelsDevCapabilities({
+      deepseek: {
+        "deepseek-reasoner": buildCapability({
+          interleaved_field: "reasoning_content",
+          reasoning: true,
+          tool_call: true,
+        }),
+      },
+    });
     cacheReasoning("call_translate_ds", "deepseek", "deepseek-reasoner", "DeepSeek cached plan");
 
     const translated = translateWithToolHistory(
@@ -552,6 +593,16 @@ describe("Reasoning Replay Cache — Translator Replay", () => {
 
   it("should preserve client-provided reasoning content", () => {
     clearReasoningCacheAll();
+    clearModelsDevCapabilities();
+    saveModelsDevCapabilities({
+      deepseek: {
+        "deepseek-reasoner": buildCapability({
+          interleaved_field: "reasoning_content",
+          reasoning: true,
+          tool_call: true,
+        }),
+      },
+    });
     cacheReasoning("call_preserve", "deepseek", "deepseek-reasoner", "Cached reasoning");
 
     const translated = translateRequest(
@@ -586,6 +637,23 @@ describe("Reasoning Replay Cache — Translator Replay", () => {
 
   it("should inject cached reasoning for Qwen and GLM thinking models", () => {
     clearReasoningCacheAll();
+    clearModelsDevCapabilities();
+    saveModelsDevCapabilities({
+      qwen: {
+        "qwen3-thinking-235b": buildCapability({
+          interleaved_field: "reasoning_content",
+          reasoning: true,
+          tool_call: true,
+        }),
+      },
+      glm: {
+        "glm-5-thinking": buildCapability({
+          interleaved_field: "reasoning_content",
+          reasoning: true,
+          tool_call: true,
+        }),
+      },
+    });
     cacheReasoning("call_qwen_think", "qwen", "qwen3-thinking-235b", "Qwen cached plan");
     cacheReasoning("call_glm_think", "glm", "glm-5-thinking", "GLM cached plan");
 
@@ -599,6 +667,7 @@ describe("Reasoning Replay Cache — Translator Replay", () => {
 
   it("should not inject reasoning_content for generic non-reasoning providers", () => {
     clearReasoningCacheAll();
+    clearModelsDevCapabilities();
     cacheReasoning("call_openai", "openai", "gpt-4o", "Should not replay");
 
     const translated = translateWithToolHistory("openai", "gpt-4o", "call_openai");
@@ -609,6 +678,16 @@ describe("Reasoning Replay Cache — Translator Replay", () => {
 
   it("should support the full capture then replay flow", () => {
     clearReasoningCacheAll();
+    clearModelsDevCapabilities();
+    saveModelsDevCapabilities({
+      deepseek: {
+        "deepseek-reasoner": buildCapability({
+          interleaved_field: "reasoning_content",
+          reasoning: true,
+          tool_call: true,
+        }),
+      },
+    });
 
     const captured = cacheReasoningFromAssistantMessage(
       {
@@ -626,23 +705,87 @@ describe("Reasoning Replay Cache — Translator Replay", () => {
     assert.equal(translated.messages[1].reasoning_content, "Full flow cached plan");
     assert.equal(getReasoningCacheServiceStats().replays, 1);
   });
+
+  it("should strip reasoning_content when model has no interleaved replay signal", () => {
+    clearReasoningCacheAll();
+    clearModelsDevCapabilities();
+
+    const translated = translateRequest(
+      FORMATS.OPENAI,
+      FORMATS.OPENAI,
+      "deepseek-reasoner",
+      {
+        messages: [
+          { role: "user", content: "hello" },
+          {
+            role: "assistant",
+            content: "ok",
+            reasoning_content: "should be stripped",
+          },
+        ],
+      },
+      false,
+      null,
+      "deepseek"
+    );
+
+    assert.equal(translated.messages[1].reasoning_content, undefined);
+  });
+
+  it("should not inject reasoning_content when interleaved field is reasoning_details", () => {
+    clearReasoningCacheAll();
+    clearModelsDevCapabilities();
+    saveModelsDevCapabilities({
+      testprovider: {
+        "test-reasoning-details": buildCapability({
+          interleaved_field: "reasoning_details",
+          reasoning: true,
+          tool_call: true,
+        }),
+      },
+    });
+    cacheReasoning("call_details", "testprovider", "test-reasoning-details", "cached");
+
+    const translated = translateWithToolHistory(
+      "testprovider",
+      "test-reasoning-details",
+      "call_details"
+    );
+
+    assert.equal(translated.messages[1].reasoning_content, undefined);
+  });
 });
 
 describe("Reasoning Replay Cache — API Route", () => {
+  let managementApiKey: string;
+
   before(() => {
     clearReasoningCacheAll();
+  });
+
+  before(async () => {
+    const created = await createApiKey("reasoning-cache-route-test", "machine-reasoning", [
+      "manage",
+    ]);
+    managementApiKey = created.key;
   });
 
   after(() => {
     clearReasoningCacheAll();
   });
 
+  function authedRequest(url: string): Request {
+    return new Request(url, {
+      headers: { authorization: `Bearer ${managementApiKey}` },
+    });
+  }
+
   it("should return stats and entries from GET", async () => {
     clearReasoningCacheAll();
     cacheReasoning("call_api_get", "deepseek", "deepseek-reasoner", "API visible reasoning");
 
     const response = await GET(
-      new Request("http://localhost/api/cache/reasoning?provider=deepseek") as never
+      authedRequest("http://localhost/api/cache/reasoning?provider=deepseek") as never
     );
     const body = await response.json();
 
@@ -658,7 +801,7 @@ describe("Reasoning Replay Cache — API Route", () => {
     cacheReasoning("call_api_delete_2", "deepseek", "deepseek-reasoner", "Keep API");
 
     const response = await DELETE(
-      new Request("http://localhost/api/cache/reasoning?toolCallId=call_api_delete_1") as never
+      authedRequest("http://localhost/api/cache/reasoning?toolCallId=call_api_delete_1") as never
     );
     const body = await response.json();
 
@@ -675,7 +818,7 @@ describe("Reasoning Replay Cache — API Route", () => {
     cacheReasoning("call_api_provider_kimi", "kimi", "kimi-k2.5", "Keep provider");
 
     const response = await DELETE(
-      new Request("http://localhost/api/cache/reasoning?provider=deepseek") as never
+      authedRequest("http://localhost/api/cache/reasoning?provider=deepseek") as never
     );
     const body = await response.json();
 

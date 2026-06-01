@@ -32,6 +32,13 @@ export const updateSettingsSchema = z.object({
   hideEndpointCloudflaredTunnel: z.boolean().optional(),
   hideEndpointTailscaleFunnel: z.boolean().optional(),
   hideEndpointNgrokTunnel: z.boolean().optional(),
+  autoRefreshProviderQuota: z.boolean().optional(),
+  autoRefreshProviderQuotaInterval: z.number().int().min(10).max(3600).optional(),
+  pinProviderQuotaToHome: z.boolean().optional(),
+  showQuickStartOnHome: z.boolean().optional(),
+  showProviderTopologyOnHome: z.boolean().optional(),
+  localOnlyManageScopeBypassEnabled: z.boolean().optional(),
+  localOnlyManageScopeBypassPrefixes: z.array(z.string().max(200)).optional(),
   debugMode: z.boolean().optional(),
   hiddenSidebarItems: z.array(z.enum(HIDEABLE_SIDEBAR_ITEM_IDS)).optional(),
   sidebarSectionOrder: z
@@ -59,6 +66,7 @@ export const updateSettingsSchema = z.object({
       supportedModels: z.array(z.string().max(200)).max(200).optional(),
     })
     .optional(),
+  codexSessionAffinityTtlMs: z.number().int().min(0).max(86_400_000).optional(),
   // Routing settings (#134)
   fallbackStrategy: z.enum(ACCOUNT_FALLBACK_STRATEGY_VALUES).optional(),
   wildcardAliases: z.array(z.object({ pattern: z.string(), target: z.string() })).optional(),
@@ -263,6 +271,12 @@ export const updateSettingsSchema = z.object({
   autoRoutingDefaultVariant: z
     .enum(["lkgp", "coding", "fast", "cheap", "offline", "smart"])
     .optional(),
+  // CLIProxyAPI connection settings
+  cliproxyapi_fallback_enabled: z.boolean().optional(),
+  cliproxyapi_url: z.string().url().max(500).optional(),
+  cliproxyapi_fallback_codes: z.string().max(200).optional(),
+  // CLIProxyAPI model mapping (Record<string, string>)
+  cliproxyapi_model_mapping: z.record(z.string(), z.string()).optional(),
 });
 
 export const databaseSettingsSchema = z.object(
@@ -311,7 +325,7 @@ export const databaseSettingsSchema = z.object(
     // Aggregation settings
     aggregation: z.object({
       enabled: z.boolean(),
-      rawDataRetentionDays: z.number().int().min(1).max(90),
+      rawDataRetentionDays: z.number().int().min(1).max(3650),
       granularity: z.literal("hourly").or(z.literal("daily")).or(z.literal("weekly")),
     }),
 

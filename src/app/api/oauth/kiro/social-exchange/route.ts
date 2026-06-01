@@ -6,8 +6,7 @@ import { getConsistentMachineId } from "@/shared/utils/machineId";
 import { syncToCloud } from "@/lib/cloudSync";
 import { isAuthRequired, isAuthenticated } from "@/shared/utils/apiAuth";
 import { validateBody, isValidationFailure } from "@/shared/validation/helpers";
-
-const KIRO_AUTH_SERVICE = "https://prod.us-east-1.auth.desktop.kiro.dev";
+import { KIRO_CONFIG } from "@/lib/oauth/constants/oauth";
 
 const socialExchangeSchema = z.object({
   deviceCode: z.string().min(1, "Missing deviceCode or provider"),
@@ -50,10 +49,10 @@ export async function POST(request: Request) {
   try {
     const { deviceCode, provider } = validation.data;
 
-    const response = await fetch(`${KIRO_AUTH_SERVICE}/oauth/device/poll`, {
+    const response = await fetch(KIRO_CONFIG.socialDevicePollUrl, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ deviceCode, clientId: "kiro-cli" }),
+      body: JSON.stringify({ deviceCode, clientId: KIRO_CONFIG.socialClientId }),
     });
 
     const data = await response.json();

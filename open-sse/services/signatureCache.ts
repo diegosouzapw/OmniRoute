@@ -32,8 +32,8 @@ const DEFAULT_SIGNATURES = [
 ];
 
 // Max entries per cache layer to prevent unbounded growth
-const MAX_ENTRIES_PER_LAYER = 500;
-const MAX_PATTERNS_PER_KEY = 50;
+const MAX_ENTRIES_PER_LAYER = 100;
+const MAX_PATTERNS_PER_KEY = 20;
 
 /**
  * Get all matching signatures for a given context.

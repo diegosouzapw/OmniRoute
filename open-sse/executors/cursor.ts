@@ -49,12 +49,14 @@ import { cursorSessionManager, type CursorSession } from "../services/cursorSess
 import crypto from "crypto";
 import * as fs from "node:fs";
 import * as zlib from "node:zlib";
+import { promisify } from "node:util";
 
 // Reject reason text aligned with kaitranntt/CLIProxyAPIPlus — proven to
 // keep cursor's model from retrying the same built-in tool indefinitely.
 // The model adapts and either answers from context or uses declared MCP tools.
 const BUILTIN_TOOL_REJECT_REASON =
   "Tool not available in this environment. Use the MCP tools provided instead.";
+const gunzipAsync = promisify(zlib.gunzip);
 
 /**
  * Build the ExecClientMessage frame that responds to a built-in tool request.
@@ -697,6 +699,8 @@ export class CursorExecutor extends BaseExecutor {
     let buf: Buffer = h2.initialBytes.length > 0 ? h2.initialBytes : Buffer.alloc(0);
 
     return new Promise((resolve, reject) => {
+      let scanning = false;
+      let settled = false;
       // Phase 8: safety timeout. If neither turn_ended, kv_after_text, nor
       // server-end fires within CURSOR_STREAM_TIMEOUT_MS, abort the stream
       // so a stuck upstream doesn't keep the response open indefinitely.
@@ -712,18 +716,24 @@ export class CursorExecutor extends BaseExecutor {
           fs.appendFileSync(process.env.CURSOR_DUMP_FILE, chunk);
         }
         buf = buf.length === 0 ? Buffer.from(chunk) : Buffer.concat([buf, chunk]);
-        tryScan();
+        void tryScan();
       };
       const onEnd = () => {
+        if (settled) return;
+        settled = true;
         if (!ctx.endReason) ctx.endReason = "server_end";
         detachListeners();
         resolve();
       };
       const onErr = (err: Error) => {
+        if (settled) return;
+        settled = true;
         teardown();
         reject(err);
       };
       const onAbort = () => {
+        if (settled) return;
+        settled = true;
         teardown();
         reject(new Error("aborted"));
       };
@@ -750,32 +760,51 @@ export class CursorExecutor extends BaseExecutor {
 
       if (signal) signal.addEventListener("abort", onAbort);
 
-      const tryScan = () => {
-        let pos = 0;
-        while (pos + 5 <= buf.length) {
-          const length = buf.readUInt32BE(pos + 1);
-          if (pos + 5 + length > buf.length) break; // partial frame; wait
-          const flag = buf[pos];
-          const raw = buf.subarray(pos + 5, pos + 5 + length);
-          // Per-frame error isolation: if gunzip or processFrame throws on
-          // one frame, log and skip past it instead of getting stuck on
-          // the same offset and hanging until the safety timer fires.
-          try {
-            const payload = flag & 0x1 ? zlib.gunzipSync(raw) : raw;
-            processFrame(payload, ctx, ackedExecIds, { h2Req: h2.req, mcpTools, blobStore });
-          } catch (err) {
-            debugLog("[cursor-agent] frame decode failed at pos", pos, ":", (err as Error).message);
+      const hasCompleteFrame = () => buf.length >= 5 && buf.length >= 5 + buf.readUInt32BE(1);
+
+      const tryScan = async () => {
+        if (scanning || settled) return;
+        scanning = true;
+        try {
+          let pos = 0;
+          while (!settled && pos + 5 <= buf.length) {
+            const length = buf.readUInt32BE(pos + 1);
+            if (pos + 5 + length > buf.length) break; // partial frame; wait
+            const flag = buf[pos];
+            const raw = buf.subarray(pos + 5, pos + 5 + length);
+            // Per-frame error isolation: if gunzip or processFrame throws on
+            // one frame, log and skip past it instead of getting stuck on
+            // the same offset and hanging until the safety timer fires.
+            try {
+              const payload = flag & 0x1 ? await gunzipAsync(raw) : raw;
+              if (settled) return;
+              processFrame(payload, ctx, ackedExecIds, { h2Req: h2.req, mcpTools, blobStore });
+            } catch (err) {
+              debugLog(
+                "[cursor-agent] frame decode failed at pos",
+                pos,
+                ":",
+                (err as Error).message
+              );
+            }
+            pos += 5 + length;
+            if (ctx.endReason) {
+              buf = buf.subarray(pos);
+              settled = true;
+              detachListeners();
+              resolve();
+              return;
+            }
           }
-          pos += 5 + length;
-          if (ctx.endReason) {
-            buf = buf.subarray(pos);
-            detachListeners();
-            resolve();
-            return;
-          }
+          // Splice off processed bytes so the buffer stays bounded.
+          if (pos > 0) buf = buf.subarray(pos);
+        } finally {
+          scanning = false;
         }
-        // Splice off processed bytes so the buffer stays bounded.
-        if (pos > 0) buf = buf.subarray(pos);
+
+        if (!settled && hasCompleteFrame()) {
+          void tryScan();
+        }
       };
 
       h2.req.on("data", onData);
@@ -783,7 +812,7 @@ export class CursorExecutor extends BaseExecutor {
       h2.req.on("error", onErr);
 
       // Process any bytes already buffered from openH2.
-      tryScan();
+      void tryScan();
     });
   }
 
@@ -944,20 +973,23 @@ export class CursorExecutor extends BaseExecutor {
     // Stream mode: ReadableStream that emits SSE chunks as they're decoded.
     if (stream !== false) {
       const enc = new TextEncoder();
-      const sseStream = new ReadableStream({
-        start: async (controller) => {
-          const ctx = newStreamCtx(model, (s) => controller.enqueue(enc.encode(s)));
-          try {
-            await this.driveH2(h2, ctx, mcpTools, blobStore, signal);
-            this.finalizeSseStream(ctx, body);
-            finishLifecycle(ctx, false);
-            controller.close();
-          } catch (err) {
-            finishLifecycle(ctx, true);
-            controller.error(err);
-          }
+      const sseStream = new ReadableStream(
+        {
+          start: async (controller) => {
+            const ctx = newStreamCtx(model, (s) => controller.enqueue(enc.encode(s)));
+            try {
+              await this.driveH2(h2, ctx, mcpTools, blobStore, signal);
+              this.finalizeSseStream(ctx, body);
+              finishLifecycle(ctx, false);
+              controller.close();
+            } catch (err) {
+              finishLifecycle(ctx, true);
+              controller.error(err);
+            }
+          },
         },
-      });
+        { highWaterMark: 16384 }
+      );
       return {
         response: new Response(sseStream, {
           status: 200,

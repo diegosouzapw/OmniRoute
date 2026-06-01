@@ -18,11 +18,11 @@ import {
   getPromptCacheCreationTokensOrNull,
   getReasoningTokensOrNull,
 } from "./tokenAccounting";
-import { isNoLog } from "../compliance";
+import { isNoLog } from "../compliance/noLog";
 import { sanitizePII } from "../piiSanitizer";
 import { protectPayloadForLog, parseStoredPayload } from "../logPayloads";
 import { getCallLogMaxEntries, getCallLogRetentionDays, getCallLogsTableMaxRows } from "../logEnv";
-import { pickMaskedDisplayValue } from "@/shared/utils/maskEmail";
+import { pickDisplayValue } from "@/shared/utils/maskEmail";
 import {
   CALL_LOGS_DIR,
   cleanupEmptyCallLogDirs,
@@ -78,7 +78,10 @@ type CallLogSummaryRow = {
   has_pipeline_details: number | null;
   request_summary: string | null;
   provider_node_prefix?: string | null;
+  resolved_account?: string | null;
 };
+
+const RESOLVED_ACCOUNT_SQL = "COALESCE(NULLIF(pc.name, ''), NULLIF(pc.email, ''), cl.account)";
 
 type LegacyInlineRow = {
   request_body: string | null;
@@ -230,8 +233,9 @@ async function resolveAccountName(connectionId: string | null | undefined) {
     const connections = await getProviderConnections();
     const conn = connections.find((item) => item.id === connectionId);
     if (conn) {
-      account = pickMaskedDisplayValue(
+      account = pickDisplayValue(
         [toStringOrNull(conn.name), toStringOrNull(conn.email)],
+        true,
         account
       );
     }
@@ -545,7 +549,7 @@ function mapSummaryRow(row: CallLogSummaryRow) {
     model: row.model,
     requestedModel: applyNodePrefix(row.requested_model, provider, nodePrefix),
     provider,
-    account: row.account,
+    account: row.resolved_account || row.account,
     connectionId: row.connection_id,
     duration: toNumber(row.duration),
     tokens: {
@@ -788,9 +792,11 @@ export async function getCallLogs(filter: any = {}) {
   const db = getDbInstance();
   let sql = `
     SELECT cl.*,
-      pn.prefix AS provider_node_prefix
+      pn.prefix AS provider_node_prefix,
+      ${RESOLVED_ACCOUNT_SQL} AS resolved_account
     FROM call_logs cl
     LEFT JOIN provider_nodes pn ON pn.id = cl.provider
+    LEFT JOIN provider_connections pc ON pc.id = cl.connection_id
   `;
   const conditions: string[] = [];
   const params: Record<string, unknown> = {};
@@ -818,7 +824,7 @@ export async function getCallLogs(filter: any = {}) {
     params.providerQ = `%${filter.provider}%`;
   }
   if (filter.account) {
-    conditions.push("cl.account LIKE @accountQ");
+    conditions.push(`(cl.account LIKE @accountQ OR ${RESOLVED_ACCOUNT_SQL} LIKE @accountQ)`);
     params.accountQ = `%${filter.account}%`;
   }
   if (filter.apiKey) {
@@ -828,9 +834,18 @@ export async function getCallLogs(filter: any = {}) {
   if (filter.combo) {
     conditions.push("cl.combo_name IS NOT NULL");
   }
+  if (filter.since) {
+    conditions.push("cl.timestamp >= @since");
+    params.since = filter.since instanceof Date ? filter.since.toISOString() : String(filter.since);
+  }
+  if (filter.until) {
+    conditions.push("cl.timestamp <= @until");
+    params.until = filter.until instanceof Date ? filter.until.toISOString() : String(filter.until);
+  }
   if (filter.search) {
     conditions.push(`(
       cl.model LIKE @searchQ OR cl.path LIKE @searchQ OR cl.account LIKE @searchQ OR
+      ${RESOLVED_ACCOUNT_SQL} LIKE @searchQ OR
       cl.requested_model LIKE @searchQ OR cl.provider LIKE @searchQ OR
       cl.api_key_name LIKE @searchQ OR cl.api_key_id LIKE @searchQ OR
       cl.combo_name LIKE @searchQ OR CAST(cl.status AS TEXT) LIKE @searchQ
@@ -859,9 +874,11 @@ export async function getCallLogById(id: string) {
   const row = db
     .prepare(
       `SELECT cl.*,
-        pn.prefix AS provider_node_prefix
+        pn.prefix AS provider_node_prefix,
+        ${RESOLVED_ACCOUNT_SQL} AS resolved_account
        FROM call_logs cl
        LEFT JOIN provider_nodes pn ON pn.id = cl.provider
+       LEFT JOIN provider_connections pc ON pc.id = cl.connection_id
        WHERE cl.id = ?`
     )
     .get(id) as CallLogSummaryRow | undefined;

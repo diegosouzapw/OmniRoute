@@ -3,28 +3,9 @@
 import Link from "next/link";
 import { useTranslations } from "next-intl";
 
-export type MediaKind =
-  | "embedding"
-  | "image"
-  | "imageToText"
-  | "tts"
-  | "stt"
-  | "webSearch"
-  | "webFetch"
-  | "video"
-  | "music";
+import { MEDIA_KINDS, type MediaKind } from "./mediaKinds";
 
-export const MEDIA_KINDS: MediaKind[] = [
-  "embedding",
-  "image",
-  "imageToText",
-  "tts",
-  "stt",
-  "webSearch",
-  "webFetch",
-  "video",
-  "music",
-];
+export { MEDIA_KINDS, type MediaKind };
 
 interface MediaProviderKindNavProps {
   activeKind: MediaKind;

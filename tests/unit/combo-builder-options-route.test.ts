@@ -194,6 +194,30 @@ test("combo builder options route aggregates providers, connections, models and 
   );
 });
 
+test("combo builder options route includes no-auth provider (opencode) even without provider_connections rows", async () => {
+  // No connections seeded — opencode has noAuth: true and never gets a provider_connections row.
+  const response = await route.GET();
+  const body = (await response.json()) as any;
+
+  assert.equal(response.status, 200);
+  assert.ok(Array.isArray(body.providers), "providers should be an array");
+
+  const opencode = body.providers.find((p: any) => p.providerId === "opencode");
+  assert.ok(opencode, "opencode should appear in combo builder options even without connections");
+  assert.equal(opencode.connectionCount, 0, "opencode should have 0 connections");
+  assert.equal(opencode.activeConnectionCount, 0, "opencode should have 0 active connections");
+  assert.ok(opencode.models.length > 0, "opencode should expose its built-in models");
+  // Spot-check a known built-in model from providerRegistry.ts
+  assert.ok(
+    opencode.models.some((m: any) => m.id === "big-pickle"),
+    "big-pickle should be among opencode models"
+  );
+  // #2901: no-auth opencode routes under its alias "oc/" (the bare "opencode/"
+  // prefix misroutes to the opencode-zen api-key tier via ALIAS_TO_PROVIDER_ID).
+  assert.equal(opencode.models[0].qualifiedModel.startsWith("oc/"), true);
+  assert.equal(opencode.source, "system", "opencode should have source=system");
+});
+
 test("combo builder options route exposes compatible provider nodes with node metadata", async () => {
   await providersDb.createProviderNode({
     id: "openai-compatible-demo",

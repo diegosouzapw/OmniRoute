@@ -69,7 +69,7 @@ test("combo routes requests by exact combo name", async () => {
   assert.equal(response.status, 200);
   assert.equal(fetchCalls.length, 1);
   assert.match(fetchCalls[0].url, /\/chat\/completions$/);
-  assert.equal(fetchCalls[0].headers.Authorization, "Bearer sk-openai-combo-exact");
+  assert.equal(fetchCalls[0].headers.authorization, "Bearer sk-openai-combo-exact");
   assert.equal(json.choices[0].message.content, "Exact combo route");
 });
 
@@ -210,9 +210,9 @@ test("priority combo can repeat the same provider/model with different fixed acc
   let firstAttemptHeader = null;
   globalThis.fetch = async (_url, init = {}) => {
     const headers = toPlainHeaders(init.headers);
-    authHeaders.push(headers.Authorization);
+    authHeaders.push(headers.authorization);
     if (!firstAttemptHeader) {
-      firstAttemptHeader = headers.Authorization;
+      firstAttemptHeader = headers.authorization;
       return new Response(JSON.stringify({ error: { message: "first account down" } }), {
         status: 503,
         headers: { "Content-Type": "application/json" },
@@ -301,7 +301,7 @@ test("model combo mappings route explicit model ids through the configured combo
 
   assert.equal(response.status, 200);
   assert.equal(fetchCalls.length, 1);
-  assert.equal(fetchCalls[0].headers.Authorization, "Bearer sk-openai-mapped");
+  assert.equal(fetchCalls[0].headers.authorization, "Bearer sk-openai-mapped");
   assert.equal(json.choices[0].message.content, "Mapped combo route");
 });
 

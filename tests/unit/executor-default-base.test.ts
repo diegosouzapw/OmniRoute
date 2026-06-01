@@ -11,7 +11,6 @@ import {
 } from "../../open-sse/executors/base.ts";
 import { DefaultExecutor } from "../../open-sse/executors/default.ts";
 import { PROVIDERS } from "../../open-sse/config/constants.ts";
-import { BEDROCK_DEFAULT_BASE_URL } from "../../open-sse/config/bedrock.ts";
 import {
   CLAUDE_CODE_COMPATIBLE_ANTHROPIC_VERSION,
   CLAUDE_CODE_COMPATIBLE_DEFAULT_CHAT_PATH,
@@ -185,6 +184,7 @@ test("DefaultExecutor.buildUrl normalizes configurable chat-openai-compat base U
   const maritalk = new DefaultExecutor("maritalk");
   const snowflake = new DefaultExecutor("snowflake");
   const gigachat = new DefaultExecutor("gigachat");
+  const siliconflow = new DefaultExecutor("siliconflow");
 
   assert.equal(
     bailian.buildUrl("qwen3-coder-plus", true, 0, {
@@ -273,6 +273,16 @@ test("DefaultExecutor.buildUrl normalizes configurable chat-openai-compat base U
       providerSpecificData: { baseUrl: "https://gigachat.devices.sberbank.ru/api/v1" },
     }),
     "https://gigachat.devices.sberbank.ru/api/v1/chat/completions"
+  );
+  assert.equal(
+    siliconflow.buildUrl("deepseek-ai/DeepSeek-V3.2", true),
+    "https://api.siliconflow.com/v1/chat/completions"
+  );
+  assert.equal(
+    siliconflow.buildUrl("deepseek-ai/DeepSeek-V3.2", true, 0, {
+      providerSpecificData: { baseUrl: "https://api.siliconflow.cn/v1" },
+    }),
+    "https://api.siliconflow.cn/v1/chat/completions"
   );
 });
 

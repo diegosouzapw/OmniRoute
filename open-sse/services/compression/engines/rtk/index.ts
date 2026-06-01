@@ -316,13 +316,11 @@ export function processRtkText(
     }
   }
 
-  if (config.intensity !== "minimal") {
-    const deduped = deduplicateRepeatedLines(result, { threshold: config.deduplicateThreshold });
-    if (deduped.collapsed > 0) {
-      result = deduped.text;
-      techniquesUsed.push("rtk-dedup");
-      rulesApplied.push("rtk:dedup");
-    }
+  const deduped = deduplicateRepeatedLines(result, { threshold: config.deduplicateThreshold });
+  if (deduped.collapsed > 0) {
+    result = deduped.text;
+    techniquesUsed.push("rtk-dedup");
+    rulesApplied.push("rtk:dedup");
   }
 
   const truncated = smartTruncate(result, {
@@ -437,7 +435,14 @@ export function applyRtkCompression(
   options: { config?: Partial<RtkConfig>; stepConfig?: Record<string, unknown> } = {}
 ): CompressionResult {
   const start = performance.now();
-  const config = mergeRtkConfig(options.config, options.stepConfig);
+  const stepConfig =
+    options.stepConfig && options.stepConfig.enabled === undefined
+      ? { enabled: true, ...options.stepConfig }
+      : options.stepConfig;
+  const explicitConfig = options.config && Object.keys(options.config).length > 0;
+  const baseConfig =
+    !explicitConfig && !stepConfig ? { enabled: true } : (options.config ?? {});
+  const config = mergeRtkConfig(baseConfig, stepConfig);
   if (!config.enabled) return { body, compressed: false, stats: null };
 
   const adapter = adaptBodyForCompression(body);

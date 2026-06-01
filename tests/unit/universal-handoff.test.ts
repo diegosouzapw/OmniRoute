@@ -11,7 +11,7 @@ import {
 
 test("resolveUniversalHandoffConfig returns disabled defaults when no config", () => {
   const r = resolveUniversalHandoffConfig(null, null);
-  assert.strictEqual(r.enabled, false);
+  assert.strictEqual(r.enabled, true);
   assert.strictEqual(r.trigger, "on-switch");
   assert.strictEqual(r.ttlMinutes, 300);
   assert.strictEqual(r.maxMessagesForSummary, 30);

@@ -1326,188 +1326,191 @@ function buildStreamingResponse(
 ): ReadableStream<Uint8Array> {
   const encoder = new TextEncoder();
 
-  return new ReadableStream({
-    async start(controller) {
-      try {
-        // Initial role chunk
-        controller.enqueue(
-          encoder.encode(
-            sseChunk({
-              id: cid,
-              object: "chat.completion.chunk",
-              created,
-              model,
-              system_fingerprint: null,
-              choices: [
-                { index: 0, delta: { role: "assistant" }, finish_reason: null, logprobs: null },
-              ],
-            })
-          )
-        );
+  return new ReadableStream(
+    {
+      async start(controller) {
+        try {
+          // Initial role chunk
+          controller.enqueue(
+            encoder.encode(
+              sseChunk({
+                id: cid,
+                object: "chat.completion.chunk",
+                created,
+                model,
+                system_fingerprint: null,
+                choices: [
+                  { index: 0, delta: { role: "assistant" }, finish_reason: null, logprobs: null },
+                ],
+              })
+            )
+          );
 
-        let fp = "";
-        let buffered = "";
+          let fp = "";
+          let buffered = "";
 
-        for await (const chunk of extractContent(
-          eventStream,
-          isThinkingModel,
-          toolRegistry,
-          signal,
-          true
-        )) {
-          if (chunk.fingerprint) fp = chunk.fingerprint;
+          for await (const chunk of extractContent(
+            eventStream,
+            isThinkingModel,
+            toolRegistry,
+            signal,
+            true
+          )) {
+            if (chunk.fingerprint) fp = chunk.fingerprint;
 
-          if (chunk.error) {
-            controller.enqueue(
-              encoder.encode(
-                sseChunk({
-                  id: cid,
-                  object: "chat.completion.chunk",
-                  created,
-                  model,
-                  system_fingerprint: fp || null,
-                  choices: [
-                    {
-                      index: 0,
-                      delta: { content: `[Error: ${chunk.error}]` },
-                      finish_reason: null,
-                      logprobs: null,
-                    },
-                  ],
-                })
-              )
-            );
-            break;
-          }
+            if (chunk.error) {
+              controller.enqueue(
+                encoder.encode(
+                  sseChunk({
+                    id: cid,
+                    object: "chat.completion.chunk",
+                    created,
+                    model,
+                    system_fingerprint: fp || null,
+                    choices: [
+                      {
+                        index: 0,
+                        delta: { content: `[Error: ${chunk.error}]` },
+                        finish_reason: null,
+                        logprobs: null,
+                      },
+                    ],
+                  })
+                )
+              );
+              break;
+            }
 
-          if (chunk.thinking) {
-            controller.enqueue(
-              encoder.encode(
-                sseChunk({
-                  id: cid,
-                  object: "chat.completion.chunk",
-                  created,
-                  model,
-                  system_fingerprint: fp || null,
-                  choices: [
-                    {
-                      index: 0,
-                      delta: { reasoning_content: chunk.thinking },
-                      finish_reason: null,
-                      logprobs: null,
-                    },
-                  ],
-                })
-              )
-            );
-            continue;
-          }
+            if (chunk.thinking) {
+              controller.enqueue(
+                encoder.encode(
+                  sseChunk({
+                    id: cid,
+                    object: "chat.completion.chunk",
+                    created,
+                    model,
+                    system_fingerprint: fp || null,
+                    choices: [
+                      {
+                        index: 0,
+                        delta: { reasoning_content: chunk.thinking },
+                        finish_reason: null,
+                        logprobs: null,
+                      },
+                    ],
+                  })
+                )
+              );
+              continue;
+            }
 
-          if (chunk.toolCalls) {
-            enqueueStreamingToolCalls(controller, encoder, {
-              id: cid,
-              created,
-              model,
-              fingerprint: fp,
-              toolCalls: chunk.toolCalls,
-            });
-            return;
-          }
-
-          if (chunk.done) break;
-
-          if (chunk.fullMessage) {
-            const toolCalls = parseClientToolCallMarkup(chunk.fullMessage, toolRegistry);
-            if (toolCalls) {
+            if (chunk.toolCalls) {
               enqueueStreamingToolCalls(controller, encoder, {
                 id: cid,
                 created,
                 model,
                 fingerprint: fp,
-                toolCalls,
+                toolCalls: chunk.toolCalls,
               });
               return;
             }
-          }
 
-          if (chunk.delta) {
-            buffered += chunk.delta;
-            const toolCalls = parseClientToolCallMarkup(buffered, toolRegistry);
-            if (toolCalls) {
-              enqueueStreamingToolCalls(controller, encoder, {
-                id: cid,
-                created,
-                model,
-                fingerprint: fp,
-                toolCalls,
-              });
-              return;
-            }
-            if (hasOpenToolCallMarkup(buffered)) continue;
-            controller.enqueue(
-              encoder.encode(
-                sseChunk({
+            if (chunk.done) break;
+
+            if (chunk.fullMessage) {
+              const toolCalls = parseClientToolCallMarkup(chunk.fullMessage, toolRegistry);
+              if (toolCalls) {
+                enqueueStreamingToolCalls(controller, encoder, {
                   id: cid,
-                  object: "chat.completion.chunk",
                   created,
                   model,
-                  system_fingerprint: fp || null,
-                  choices: [
-                    {
-                      index: 0,
-                      delta: { content: chunk.delta },
-                      finish_reason: null,
-                      logprobs: null,
-                    },
-                  ],
-                })
-              )
-            );
-          }
-        }
+                  fingerprint: fp,
+                  toolCalls,
+                });
+                return;
+              }
+            }
 
-        // Stop chunk
-        controller.enqueue(
-          encoder.encode(
-            sseChunk({
-              id: cid,
-              object: "chat.completion.chunk",
-              created,
-              model,
-              system_fingerprint: fp || null,
-              choices: [{ index: 0, delta: {}, finish_reason: "stop", logprobs: null }],
-            })
-          )
-        );
-        controller.enqueue(encoder.encode("data: [DONE]\n\n"));
-      } catch (err) {
-        controller.enqueue(
-          encoder.encode(
-            sseChunk({
-              id: cid,
-              object: "chat.completion.chunk",
-              created,
-              model,
-              system_fingerprint: null,
-              choices: [
-                {
-                  index: 0,
-                  delta: {
-                    content: `[Stream error: ${err instanceof Error ? err.message : String(err)}]`,
+            if (chunk.delta) {
+              buffered += chunk.delta;
+              const toolCalls = parseClientToolCallMarkup(buffered, toolRegistry);
+              if (toolCalls) {
+                enqueueStreamingToolCalls(controller, encoder, {
+                  id: cid,
+                  created,
+                  model,
+                  fingerprint: fp,
+                  toolCalls,
+                });
+                return;
+              }
+              if (hasOpenToolCallMarkup(buffered)) continue;
+              controller.enqueue(
+                encoder.encode(
+                  sseChunk({
+                    id: cid,
+                    object: "chat.completion.chunk",
+                    created,
+                    model,
+                    system_fingerprint: fp || null,
+                    choices: [
+                      {
+                        index: 0,
+                        delta: { content: chunk.delta },
+                        finish_reason: null,
+                        logprobs: null,
+                      },
+                    ],
+                  })
+                )
+              );
+            }
+          }
+
+          // Stop chunk
+          controller.enqueue(
+            encoder.encode(
+              sseChunk({
+                id: cid,
+                object: "chat.completion.chunk",
+                created,
+                model,
+                system_fingerprint: fp || null,
+                choices: [{ index: 0, delta: {}, finish_reason: "stop", logprobs: null }],
+              })
+            )
+          );
+          controller.enqueue(encoder.encode("data: [DONE]\n\n"));
+        } catch (err) {
+          controller.enqueue(
+            encoder.encode(
+              sseChunk({
+                id: cid,
+                object: "chat.completion.chunk",
+                created,
+                model,
+                system_fingerprint: null,
+                choices: [
+                  {
+                    index: 0,
+                    delta: {
+                      content: `[Stream error: ${err instanceof Error ? err.message : String(err)}]`,
+                    },
+                    finish_reason: "stop",
+                    logprobs: null,
                   },
-                  finish_reason: "stop",
-                  logprobs: null,
-                },
-              ],
-            })
-          )
-        );
-        controller.enqueue(encoder.encode("data: [DONE]\n\n"));
-      } finally {
-        controller.close();
-      }
+                ],
+              })
+            )
+          );
+          controller.enqueue(encoder.encode("data: [DONE]\n\n"));
+        } finally {
+          try { controller.close(); } catch {}
+        }
+      },
     },
-  });
+    { highWaterMark: 16384 }
+  );
 }
 
 async function buildNonStreamingResponse(

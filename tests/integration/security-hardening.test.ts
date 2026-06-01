@@ -165,7 +165,7 @@ test("callLogs.ts wires no-log and PII sanitization before persistence", () => {
   const content = readIfExists("src/lib/usage/callLogs.ts");
   assert.ok(content, "src/lib/usage/callLogs.ts should exist");
   assert.ok(
-    content.includes('from "../compliance"'),
+    content.includes('from "../compliance"') || content.includes('from "../compliance/noLog"'),
     "callLogs.ts should import compliance module"
   );
   assert.ok(content.includes('from "../piiSanitizer"'), "callLogs.ts should import piiSanitizer");

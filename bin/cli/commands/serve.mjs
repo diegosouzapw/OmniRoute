@@ -21,7 +21,7 @@ export function registerServe(program) {
   program
     .command("serve", { isDefault: true })
     .description(t("serve.description"))
-    .option("--port <port>", t("serve.port"), "20128")
+    .option("--port <port>", t("serve.port"))
     .option("--no-open", t("serve.no_open"))
     .option("--daemon", t("serve.daemon"))
     .option("--log", t("serve.log"))
@@ -269,7 +269,7 @@ async function runWithSupervisor(
   });
 
   if (!showLog) {
-    waitForServer(dashboardPort, 20000).then(async (up) => {
+    waitForServer(dashboardPort, 60000).then(async (up) => {
       if (up) {
         if (useTray) await maybeStartTray(dashboardPort, apiPort, supervisor);
         onReady(dashboardPort, apiPort, noOpen);

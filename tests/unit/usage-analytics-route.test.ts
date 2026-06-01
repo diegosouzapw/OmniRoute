@@ -161,19 +161,63 @@ test("GET /api/usage/analytics applies Codex Fast tier multipliers and exposes t
     `INSERT INTO usage_history (provider, model, connection_id, tokens_input, tokens_output, success, latency_ms, service_tier, timestamp)
      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`
   ).run("codex", "gpt-5.5", "codex-standard", 1000, 500, 1, 250, "standard", timestamp);
+  db.prepare(
+    `INSERT INTO usage_history (provider, model, connection_id, tokens_input, tokens_output, success, latency_ms, service_tier, timestamp)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`
+  ).run("codex", "gpt-5.5", "codex-flex", 1000, 500, 1, 250, "flex", timestamp);
+
+  const response = await analyticsRoute.GET(
+    makeRequest("http://localhost/api/usage/analytics?presets=1d")
+  );
+  const body = await response.json();
+
+  assert.equal(response.status, 200);
+  assertClose(body.summary.totalCost, 0.08);
+  assert.equal(body.summary.fastRequests, 1);
+  assert.equal(body.summary.flexRequests, 1);
+  assert.equal(body.summary.standardRequests, 1);
+  assertClose(body.summary.fastCost, 0.05);
+  assertClose(body.summary.flexCost, 0.01);
+  assertClose(body.summary.flexSavings, 0.01);
+  assert.equal(body.summary.flexUsageSavingsTokens, 750);
+  assertClose(body.summary.standardCost, 0.02);
+  assert.equal(body.byServiceTier.length, 3);
+  assert.deepEqual(
+    body.byServiceTier.map((tier: { serviceTier: string }) => tier.serviceTier),
+    ["priority", "flex", "standard"]
+  );
+  const flexTier = body.byServiceTier.find(
+    (tier: { serviceTier: string }) => tier.serviceTier === "flex"
+  );
+  assert.equal(flexTier.label, "flex");
+  assertClose(flexTier.savings, 0.01);
+  assert.equal(flexTier.usageSavingsTokens, 750);
+  assertClose(body.byProvider[0].cost, 0.08);
+  assertClose(body.byModel[0].cost, 0.08);
+  assertClose(body.presetSummaries["1d"].totalCost, 0.08);
+});
+
+test("GET /api/usage/analytics does not report flex savings for non-Codex providers", async () => {
+  const db = core.getDbInstance();
+  db.prepare(
+    `INSERT INTO usage_history (provider, model, connection_id, tokens_input, tokens_output, success, latency_ms, service_tier, timestamp)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`
+  ).run("openai", "gpt-4o", "openai-flex", 1000, 500, 1, 250, "flex", new Date().toISOString());
 
   const response = await analyticsRoute.GET(makeRequest("http://localhost/api/usage/analytics"));
   const body = await response.json();
 
   assert.equal(response.status, 200);
-  assertClose(body.summary.totalCost, 0.07);
-  assert.equal(body.summary.fastRequests, 1);
-  assert.equal(body.summary.standardRequests, 1);
-  assertClose(body.summary.fastCost, 0.05);
-  assertClose(body.summary.standardCost, 0.02);
-  assert.equal(body.byServiceTier.length, 2);
-  assertClose(body.byProvider[0].cost, 0.07);
-  assertClose(body.byModel[0].cost, 0.07);
+  assertClose(body.summary.totalCost, 0.0075);
+  assert.equal(body.summary.flexRequests, 1);
+  assertClose(body.summary.flexCost, 0.0075);
+  assertClose(body.summary.flexSavings, 0);
+  assert.equal(body.summary.flexUsageSavingsTokens, 0);
+  const flexTier = body.byServiceTier.find(
+    (tier: { serviceTier: string }) => tier.serviceTier === "flex"
+  );
+  assertClose(flexTier.savings, 0);
+  assert.equal(flexTier.usageSavingsTokens, 0);
 });
 
 test("GET /api/usage/analytics applies Codex GPT-5.4 Fast multiplier", async () => {
@@ -287,6 +331,75 @@ test("GET /api/usage/analytics includes cost by API key", async () => {
   assert.equal(body.byApiKey[0].apiKeyId, "test-key");
   assert.equal(body.byApiKey[0].apiKeyName, "Primary Key");
   assertClose(body.byApiKey[0].cost, body.summary.totalCost);
+});
+
+test("GET /api/usage/analytics does not double-count raw and aggregated rows", async () => {
+  const db = core.getDbInstance();
+  const today = new Date();
+  const todayStr = today.toISOString().split("T")[0];
+  const cutoffDate = new Date();
+  cutoffDate.setDate(cutoffDate.getDate() - 30);
+  const olderDate = new Date(cutoffDate);
+  olderDate.setDate(olderDate.getDate() - 1);
+  const olderDateStr = olderDate.toISOString().split("T")[0];
+
+  db.prepare(
+    `INSERT INTO usage_history (provider, model, connection_id, tokens_input, tokens_output, success, latency_ms, timestamp)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?)`
+  ).run("openai", "gpt-4o", "raw-current", 100, 50, 1, 200, today.toISOString());
+
+  const insertSummary = db.prepare(
+    `INSERT INTO daily_usage_summary (provider, model, date, total_requests, total_input_tokens, total_output_tokens, total_cost)
+     VALUES (?, ?, ?, ?, ?, ?, ?)`
+  );
+  insertSummary.run("openai", "gpt-4o", todayStr, 99, 9900, 9900, 0);
+  insertSummary.run("openai", "gpt-4o", olderDateStr, 1, 25, 10, 0);
+
+  const response = await analyticsRoute.GET(
+    makeRequest("http://localhost/api/usage/analytics?range=all")
+  );
+  const body = await response.json();
+
+  assert.equal(response.status, 200);
+  assert.equal(body.summary.totalRequests, 2);
+  assert.equal(body.summary.totalTokens, 185);
+});
+
+test("GET /api/usage/analytics omits global aggregates when filtering by API key", async () => {
+  const apiKey = await apiKeysDb.createApiKey("Scoped Key", "machine1234567890");
+  const db = core.getDbInstance();
+
+  db.prepare(
+    `INSERT INTO usage_history (provider, model, connection_id, api_key_id, api_key_name, tokens_input, tokens_output, success, latency_ms, timestamp)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+  ).run(
+    "openai",
+    "gpt-4o",
+    "scoped-conn",
+    apiKey.id,
+    "Scoped Key",
+    100,
+    50,
+    1,
+    200,
+    new Date().toISOString()
+  );
+
+  db.prepare(
+    `INSERT INTO daily_usage_summary (provider, model, date, total_requests, total_input_tokens, total_output_tokens, total_cost)
+     VALUES (?, ?, ?, ?, ?, ?, ?)`
+  ).run("openai", "gpt-4o", "2024-01-01", 99, 9900, 9900, 0);
+
+  const response = await analyticsRoute.GET(
+    makeRequest(`http://localhost/api/usage/analytics?range=all&apiKeyIds=${apiKey.id}`)
+  );
+  const body = await response.json();
+
+  assert.equal(response.status, 200);
+  assert.equal(body.summary.totalRequests, 1);
+  assert.equal(body.summary.totalTokens, 150);
+  assert.equal(body.byApiKey.length, 1);
+  assert.equal(body.byApiKey[0].apiKeyId, apiKey.id);
 });
 
 test("GET /api/usage/analytics groups renamed API key usage by stable ID", async () => {

@@ -1,5 +1,6 @@
 import { getDbInstance, rowToCamel, objToSnake } from "./core";
 import { v4 as uuidv4 } from "uuid";
+import { DEFAULT_BATCH_EXPIRATION_SECONDS } from "@/shared/constants/batch";
 
 export interface FileRecord {
   id: string;
@@ -10,79 +11,59 @@ export interface FileRecord {
   content?: Buffer | null;
   mimeType?: string | null;
   apiKeyId?: string | null;
-  status?: string | null;
   expiresAt?: number | null;
   deletedAt?: number | null;
 }
 
 const FILE_METADATA_COLUMNS =
-  "id, bytes, created_at, filename, purpose, mime_type, api_key_id, status, expires_at, deleted_at";
-
-let filesSchemaEnsured = false;
-
-function ensureFilesSchema() {
-  if (filesSchemaEnsured) return;
-  const db = getDbInstance();
-  db.exec(`
-    CREATE TABLE IF NOT EXISTS files (
-      id TEXT PRIMARY KEY,
-      bytes INTEGER NOT NULL DEFAULT 0,
-      created_at INTEGER NOT NULL DEFAULT (strftime('%s','now')),
-      filename TEXT NOT NULL DEFAULT '',
-      purpose TEXT NOT NULL DEFAULT 'assistants',
-      content BLOB,
-      mime_type TEXT,
-      api_key_id TEXT,
-      status TEXT DEFAULT 'validating',
-      expires_at INTEGER,
-      deleted_at INTEGER
-    );
-    CREATE INDEX IF NOT EXISTS idx_files_api_key_id ON files(api_key_id);
-    CREATE INDEX IF NOT EXISTS idx_files_created_at ON files(created_at);
-    CREATE INDEX IF NOT EXISTS idx_files_deleted_at ON files(deleted_at);
-  `);
-
-  const tableInfo = db.prepare("PRAGMA table_info(files)").all() as Array<{ name: string }>;
-  const existing = new Set(tableInfo.map((c) => c.name));
-  const addColumn = (name: string, sqlTypeAndDefault: string) => {
-    if (!existing.has(name)) {
-      db.exec(`ALTER TABLE files ADD COLUMN ${name} ${sqlTypeAndDefault}`);
-    }
-  };
-
-  addColumn("bytes", "INTEGER NOT NULL DEFAULT 0");
-  addColumn("created_at", "INTEGER NOT NULL DEFAULT (strftime('%s','now'))");
-  addColumn("filename", "TEXT NOT NULL DEFAULT ''");
-  addColumn("purpose", "TEXT NOT NULL DEFAULT 'assistants'");
-  addColumn("content", "BLOB");
-  addColumn("mime_type", "TEXT");
-  addColumn("api_key_id", "TEXT");
-  addColumn("status", "TEXT DEFAULT 'validating'");
-  addColumn("expires_at", "INTEGER");
-  addColumn("deleted_at", "INTEGER");
-
-  filesSchemaEnsured = true;
-}
+  "id, bytes, created_at, filename, purpose, mime_type, api_key_id, expires_at, deleted_at";
 
 export function createFile(file: Omit<FileRecord, "id" | "createdAt">): FileRecord {
-  ensureFilesSchema();
   const db = getDbInstance();
   const id = "file-" + uuidv4().replaceAll("-", "").substring(0, 24);
   const createdAt = Math.floor(Date.now() / 1000);
-  const record = { ...file, id, createdAt };
 
-  const snakeRecord = objToSnake(record) as any;
-  const keys = Object.keys(snakeRecord);
-  const values = Object.values(snakeRecord);
-  const placeholders = keys.map(() => "?").join(", ");
+  let expiresAt = file.expiresAt;
+  if (expiresAt === undefined && file.purpose === "batch") {
+    // Default: batch files expire after 30 days
+    expiresAt = createdAt + DEFAULT_BATCH_EXPIRATION_SECONDS;
+  }
 
-  db.prepare(`INSERT INTO files (${keys.join(", ")}) VALUES (${placeholders})`).run(...values);
+  const record: FileRecord = {
+    id,
+    bytes: file.bytes,
+    createdAt,
+    filename: file.filename,
+    purpose: file.purpose,
+    content: file.content ?? null,
+    mimeType: file.mimeType ?? null,
+    apiKeyId: file.apiKeyId ?? null,
+    expiresAt: expiresAt ?? null,
+    deletedAt: null,
+  };
+
+  db.prepare(
+    `
+    INSERT INTO files (id, bytes, created_at, filename, purpose, content, mime_type, api_key_id, expires_at, deleted_at)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+  `
+  ).run(
+    record.id,
+    record.bytes,
+    record.createdAt,
+    record.filename,
+    record.purpose,
+    record.content,
+    record.mimeType,
+    record.apiKeyId,
+    record.expiresAt,
+    record.deletedAt
+  );
 
   return record;
 }
 
 export function getFile(id: string): FileRecord | null {
-  ensureFilesSchema();
   const db = getDbInstance();
   const row = db
     .prepare(`SELECT ${FILE_METADATA_COLUMNS} FROM files WHERE id = ? AND deleted_at IS NULL`)
@@ -91,12 +72,12 @@ export function getFile(id: string): FileRecord | null {
 }
 
 export function getFileContent(id: string): Buffer | null {
-  ensureFilesSchema();
   const db = getDbInstance();
   const row = db
     .prepare("SELECT content FROM files WHERE id = ? AND deleted_at IS NULL")
-    .get(id) as { content: Buffer } | undefined;
-  return row?.content || null;
+    .get(id) as { content: Buffer | Uint8Array | string | null } | undefined;
+  if (!row?.content) return null;
+  return Buffer.isBuffer(row.content) ? row.content : Buffer.from(row.content);
 }
 
 export function listFiles(
@@ -108,7 +89,6 @@ export function listFiles(
     order?: "asc" | "desc";
   } = {}
 ): FileRecord[] {
-  ensureFilesSchema();
   const db = getDbInstance();
   const { apiKeyId, purpose, limit = 20, after, order = "desc" } = options;
 
@@ -147,13 +127,10 @@ export function listFiles(
 }
 
 export function countFiles(options: { apiKeyId?: string; purpose?: string } = {}): number {
-  ensureFilesSchema();
   const db = getDbInstance();
   const { apiKeyId, purpose } = options;
-
   let query = "SELECT COUNT(*) as c FROM files WHERE deleted_at IS NULL";
-  const params: Array<string> = [];
-
+  const params: any[] = [];
   if (apiKeyId) {
     query += " AND api_key_id = ?";
     params.push(apiKeyId);
@@ -162,33 +139,29 @@ export function countFiles(options: { apiKeyId?: string; purpose?: string } = {}
     query += " AND purpose = ?";
     params.push(purpose);
   }
-
-  const row = db.prepare(query).get(...params) as { c?: number } | undefined;
-  return Number(row?.c || 0);
-}
-
-export function updateFileStatus(id: string, status: string): boolean {
-  ensureFilesSchema();
-  const db = getDbInstance();
-  const result = db.prepare("UPDATE files SET status = ? WHERE id = ?").run(status, id);
-  return result.changes > 0;
+  const row = db.prepare(query).get(...params) as { c: number } | undefined;
+  return row ? Number(row.c) : 0;
 }
 
 export function formatFileResponse(file: FileRecord) {
+  // Ensure numeric date fields are valid numbers to avoid NaN in API responses
+  const createdAt =
+    typeof file.createdAt === "number" && Number.isFinite(file.createdAt) ? file.createdAt : 0;
+  const expiresAt =
+    typeof file.expiresAt === "number" && Number.isFinite(file.expiresAt) ? file.expiresAt : null;
+
   return {
     id: file.id,
     bytes: file.bytes,
-    created_at: file.createdAt,
+    created_at: createdAt,
     filename: file.filename,
     object: "file",
     purpose: file.purpose,
-    status: file.status || "validating",
-    expires_at: file.expiresAt || null,
+    expires_at: expiresAt,
   };
 }
 
 export function deleteFile(id: string): boolean {
-  ensureFilesSchema();
   const db = getDbInstance();
   const result = db
     .prepare("UPDATE files SET deleted_at = ?, content = NULL WHERE id = ?")

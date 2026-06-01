@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { isAuthenticated } from "@/shared/utils/apiAuth";
-import { getMemorySettings } from "@/lib/memory/settings";
 import { cleanupSemanticMemoryPoints } from "@/lib/memory/qdrant";
+import { getMemorySettings } from "@/lib/memory/settings";
+import { sanitizeErrorMessage } from "@omniroute/open-sse/utils/error.ts";
 
 export async function POST(request: NextRequest) {
   if (!(await isAuthenticated(request))) {
@@ -9,13 +10,17 @@ export async function POST(request: NextRequest) {
   }
 
   try {
-    // reuse the existing retention policy from Memory settings
     const memorySettings = await getMemorySettings();
-    const retentionDays = memorySettings.retentionDays;
-
-    const result = await cleanupSemanticMemoryPoints({ retentionDays });
-    return NextResponse.json({ ...result, retentionDays });
-  } catch (error) {
-    return NextResponse.json({ ok: false, deletedCount: 0, error: String(error) }, { status: 500 });
+    const result = await cleanupSemanticMemoryPoints({
+      retentionDays: memorySettings.retentionDays,
+    });
+    return NextResponse.json({
+      ok: result.ok,
+      deletedCount: result.deletedCount,
+      retentionDays: memorySettings.retentionDays,
+    });
+  } catch (err: unknown) {
+    const message = sanitizeErrorMessage(err instanceof Error ? err.message : String(err));
+    return NextResponse.json({ error: { message } }, { status: 500 });
   }
 }

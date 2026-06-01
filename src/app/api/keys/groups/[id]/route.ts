@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { z } from "zod";
 import {
   getKeyGroupWithPermissions,
   updateKeyGroup,
@@ -9,8 +10,17 @@ import {
   addKeyToGroup,
   removeKeyFromGroup,
 } from "@/lib/localDb";
+import { isValidationFailure, validateBody } from "@/shared/validation/helpers";
 
 type RouteParams = { params: Promise<{ id: string }> };
+
+const updateKeyGroupSchema = z
+  .object({
+    name: z.string().trim().min(1, "name cannot be empty").optional(),
+    description: z.string().optional(),
+    isActive: z.boolean().optional(),
+  })
+  .refine((value) => Object.keys(value).length > 0, "At least one update field is required");
 
 /**
  * GET /api/keys/groups/[id] — Get group details with permissions and members
@@ -35,13 +45,13 @@ export async function GET(request: Request, { params }: RouteParams) {
 export async function PUT(request: Request, { params }: RouteParams) {
   try {
     const { id } = await params;
-    const body = await request.json();
-    const updates: { name?: string; description?: string; isActive?: boolean } = {};
-    if (body.name !== undefined) updates.name = body.name;
-    if (body.description !== undefined) updates.description = body.description;
-    if (body.isActive !== undefined) updates.isActive = body.isActive;
+    const rawBody = await request.json();
+    const validation = validateBody(updateKeyGroupSchema, rawBody);
+    if (isValidationFailure(validation)) {
+      return NextResponse.json({ error: validation.error }, { status: 400 });
+    }
 
-    const group = updateKeyGroup(id, updates);
+    const group = updateKeyGroup(id, validation.data);
     if (!group) {
       return NextResponse.json({ error: "Group not found" }, { status: 404 });
     }

@@ -125,8 +125,13 @@ export interface BatchRecord {
 export function createBatch(
   batch: Omit<
     BatchRecord,
-    "id" | "createdAt" | "requestCountsTotal" | "requestCountsCompleted" | "requestCountsFailed"
-  >
+    | "id"
+    | "createdAt"
+    | "requestCountsTotal"
+    | "requestCountsCompleted"
+    | "requestCountsFailed"
+    | "status"
+  > & { status?: BatchRecord["status"] }
 ): BatchRecord {
   ensureBatchesSchema();
   const db = getDbInstance();

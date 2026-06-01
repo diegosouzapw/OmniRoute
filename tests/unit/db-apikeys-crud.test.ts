@@ -62,6 +62,7 @@ test("createApiKey requires machineId and returns a persisted key with defaults"
   assert.equal(byId.autoResolve, false);
   assert.equal(byId.isActive, true);
   assert.equal(byId.maxSessions, 0);
+  assert.equal(byId.streamDefaultMode, "legacy");
 });
 
 test("updateApiKeyPermissions persists settings, schedule and rate limits", async () => {
@@ -77,6 +78,7 @@ test("updateApiKeyPermissions persists settings, schedule and rate limits", asyn
   const updated = await apiKeysDb.updateApiKeyPermissions(created.id, {
     name: "Scoped Key v2",
     allowedModels: ["openai/*", "anthropic/claude-*"],
+    allowedCombos: ["fast-chat", "combo/reasoning"],
     allowedConnections: ["550e8400-e29b-41d4-a716-446655440000"],
     noLog: true,
     autoResolve: true,
@@ -84,7 +86,9 @@ test("updateApiKeyPermissions persists settings, schedule and rate limits", asyn
     accessSchedule: schedule,
     maxRequestsPerDay: 1000,
     maxRequestsPerMinute: 15,
+    throttleDelayMs: 250,
     maxSessions: -3,
+    streamDefaultMode: "json",
   });
   const row = await apiKeysDb.getApiKeyById(created.id);
   const metadata = await apiKeysDb.getApiKeyMetadata(created.key);
@@ -92,6 +96,7 @@ test("updateApiKeyPermissions persists settings, schedule and rate limits", asyn
   assert.equal(updated, true);
   assert.equal(row.name, "Scoped Key v2");
   assert.deepEqual(row.allowedModels, ["openai/*", "anthropic/claude-*"]);
+  assert.deepEqual(row.allowedCombos, ["fast-chat", "combo/reasoning"]);
   assert.deepEqual(row.allowedConnections, ["550e8400-e29b-41d4-a716-446655440000"]);
   assert.equal(row.noLog, true);
   assert.equal(row.autoResolve, true);
@@ -99,7 +104,10 @@ test("updateApiKeyPermissions persists settings, schedule and rate limits", asyn
   assert.deepEqual(row.accessSchedule, schedule);
   assert.equal(metadata.maxRequestsPerDay, 1000);
   assert.equal(metadata.maxRequestsPerMinute, 15);
+  assert.equal(metadata.throttleDelayMs, 250);
   assert.equal(metadata.maxSessions, 0);
+  assert.equal(row.streamDefaultMode, "json");
+  assert.equal(metadata.streamDefaultMode, "json");
 });
 
 test("validateApiKey and deleteApiKey stay consistent after cache invalidation", async () => {

@@ -1,15 +1,30 @@
 import { NextResponse } from "next/server";
+import { z } from "zod";
 import {
   clearModelUnavailability,
   getAvailabilityReport,
   resetAllAvailability,
 } from "@/domain/modelAvailability";
+import { requireManagementAuth } from "@/lib/api/requireManagementAuth";
+import { validateBody } from "@/shared/validation/helpers";
+import { sanitizeErrorMessage } from "@omniroute/open-sse/utils/error";
+
+const deleteCooldownSchema = z
+  .object({
+    provider: z.string().optional(),
+    model: z.string().optional(),
+    all: z.boolean().optional(),
+  })
+  .passthrough();
 
 function getErrorMessage(error: unknown, fallback: string): string {
-  return error instanceof Error && error.message ? error.message : fallback;
+  return sanitizeErrorMessage(error) || fallback;
 }
 
-export async function GET() {
+export async function GET(request: Request) {
+  const authError = await requireManagementAuth(request);
+  if (authError) return authError;
+
   try {
     const items = getAvailabilityReport().sort((a, b) => b.remainingMs - a.remainingMs);
     return NextResponse.json({ items });
@@ -23,12 +38,16 @@ export async function GET() {
 }
 
 export async function DELETE(request: Request) {
+  const authError = await requireManagementAuth(request);
+  if (authError) return authError;
+
   try {
-    const body = (await request.json().catch(() => ({}))) as {
-      provider?: string;
-      model?: string;
-      all?: boolean;
-    };
+    const rawBody = await request.json().catch(() => ({}));
+    const validation = validateBody(deleteCooldownSchema, rawBody);
+    if (!validation.success) {
+      return NextResponse.json({ error: validation.error }, { status: 400 });
+    }
+    const body = validation.data;
 
     if (body.all) {
       resetAllAvailability();

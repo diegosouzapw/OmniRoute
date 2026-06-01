@@ -40,6 +40,7 @@ const TOOLS = [
   { id: "continue", name: "Continue", configPath: "~/.continue/config.yaml" },
   { id: "hermes", name: "Hermes", configPath: "~/.hermes/config.yaml" },
   { id: "hermes-agent", name: "Hermes Agent", configPath: "~/.hermes/config.yaml" },
+  { id: "openclaw", name: "OpenClaw", configPath: "~/.openclaw/openclaw.json" },
 ] as const;
 
 const BINARY_NAMES: Record<string, string> = {
@@ -51,6 +52,7 @@ const BINARY_NAMES: Record<string, string> = {
   continue: "continue",
   hermes: "hermes",
   "hermes-agent": "hermes",
+  openclaw: "openclaw",
 };
 
 function expandHome(p: string): string {

@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef } from "react";
 import Modal from "./Modal";
 import Button from "./Button";
+import { copyToClipboard } from "@/shared/utils/clipboard";
 
 type KiroSocialOAuthModalProps = {
   isOpen: boolean;
@@ -133,7 +134,7 @@ export default function KiroSocialOAuthModal({
                     {authUrl.length > 80 ? authUrl.slice(0, 80) + "..." : authUrl}
                   </a>
                   <button
-                    onClick={() => navigator.clipboard.writeText(authUrl)}
+                    onClick={() => copyToClipboard(authUrl)}
                     className="shrink-0 p-1 rounded hover:bg-sidebar"
                     title="Copy link"
                   >

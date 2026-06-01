@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useState, useEffect, useCallback } from "react";
 import Button from "@/shared/components/Button";
 import Card from "@/shared/components/Card";
@@ -317,9 +318,9 @@ export default function ComboPlaygroundClient() {
           <div className="p-8 text-center">
             <p className="text-text-muted">
               No combos configured yet.{" "}
-              <a href="/dashboard/combos" className="text-primary hover:underline">
+              <Link href="/dashboard/combos" className="text-primary hover:underline">
                 Create one first
-              </a>
+              </Link>
               .
             </p>
           </div>

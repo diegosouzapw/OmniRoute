@@ -18,13 +18,16 @@ import { DEFAULT_BATCH_EXPIRATION_SECONDS } from "@/shared/constants/batch";
 let isProcessing: boolean = false;
 let pollInterval: NodeJS.Timeout | null = null;
 const activeProcesses = new Set<Promise<void>>();
+const activeBatches = new Set<string>();
 const DEFAULT_BATCH_WINDOW_SECONDS: number = 24 * 60 * 60;
 const BATCH_RETRY_DURATION_MS: number =
-  parseInt(process.env.BATCH_RETRY_DURATION_MS ?? "", 10) || 24 * 60 * 60 * 1_000;
+  Number.parseInt(process.env.BATCH_RETRY_DURATION_MS ?? "", 10) || 24 * 60 * 60 * 1_000;
 const BATCH_BACKOFF_BASE_MS: number =
-  parseInt(process.env.BATCH_BACKOFF_BASE_MS ?? "", 10) || 5_000;
+  Number.parseInt(process.env.BATCH_BACKOFF_BASE_MS ?? "", 10) || 5_000;
 const BATCH_BACKOFF_MAX_MS: number =
-  parseInt(process.env.BATCH_BACKOFF_MAX_MS ?? "", 10) || 3_600_000;
+  Number.parseInt(process.env.BATCH_BACKOFF_MAX_MS ?? "", 10) || 3_600_000;
+const BATCH_MAX_CONCURRENT: number =
+  Number.parseInt(process.env.BATCH_MAX_CONCURRENT ?? "", 10) || 1;
 
 interface BatchRequestItem {
   body: Record<string, unknown>;
@@ -37,10 +40,6 @@ interface BatchRequestItem {
 export function initBatchProcessor() {
   if (pollInterval) return pollInterval;
   console.log("[BATCH] Initializing batch processor polling...");
-
-  // Fail any batches that were in_progress when the server last shut down —
-  // we cannot safely resume mid-batch without re-processing from scratch.
-  recoverOrphanedBatches();
 
   pollInterval = setInterval(async (): Promise<void> => {
     if (isProcessing) return;
@@ -64,46 +63,53 @@ export function stopBatchProcessor(): void {
   }
 }
 
-/**
- * Mark any in_progress/finalizing batches as failed on startup.
- * These were orphaned by a server crash or restart and cannot be safely resumed.
- */
-function recoverOrphanedBatches(): void {
-  try {
-    const pending = getPendingBatches();
-    for (const batch of pending) {
-      if (batch.status === "in_progress" || batch.status === "finalizing") {
-        const interruptedPhase =
-          batch.status === "finalizing" ? "during finalization" : "while processing requests";
-        console.warn(
-          `[BATCH] Failing orphaned ${batch.status} batch ${batch.id} (server restarted)`
-        );
+export async function processPendingBatches(): Promise<void> {
+  const pending = getPendingBatches();
+
+  // Phase 1: Stale recovery — in_progress/finalizing batches not in activeBatches
+  // are from a previous session; reset them to validating so they get picked up fresh
+  for (const batch of pending) {
+    if (batch.status === "in_progress" || batch.status === "finalizing") {
+      if (!activeBatches.has(batch.id)) {
+        console.log(`[BATCH] Recovering stale batch ${batch.id} (${batch.status}) → validating`);
+
+        if (batch.outputFileId) {
+          deleteFile(batch.outputFileId);
+        }
+        if (batch.errorFileId) {
+          deleteFile(batch.errorFileId);
+        }
+
         updateBatch(batch.id, {
-          status: "failed",
-          failedAt: Math.floor(Date.now() / 1000),
-          errors: [
-            {
-              message: `Batch interrupted ${interruptedPhase} by server restart and cannot be resumed`,
-            },
-          ],
+          status: "validating",
+          inProgressAt: null,
+          finalizingAt: null,
+          outputFileId: null,
+          errorFileId: null,
+          requestCountsCompleted: 0,
+          requestCountsFailed: 0,
         });
       }
     }
-  } catch (err) {
-    console.error("[BATCH] Orphan recovery error:", err);
   }
-}
 
-export async function processPendingBatches(): Promise<void> {
-  const pending = getPendingBatches();
-  for (const batch of pending) {
+  // Phase 2: Process actions respecting concurrency limit
+  const remaining = getPendingBatches(); // re-fetch after recovery updates
+  let activeCount = activeBatches.size;
+
+  for (const batch of remaining) {
     if (batch.status === "validating") {
+      if (activeCount >= BATCH_MAX_CONCURRENT) {
+        console.log(
+          `[BATCH] Concurrency limit ${BATCH_MAX_CONCURRENT} reached, deferring batch ${batch.id}`
+        );
+        continue;
+      }
+      activeCount++;
       await startBatch(batch);
     } else if (batch.status === "cancelling") {
       await cancelBatch(batch);
     }
-    // in_progress/finalizing batches are either actively being worked by the current process
-    // or will be failed by recoverOrphanedBatches() on the next startup.
   }
 
   // Cleanup task: delete files for batches completed more than completionWindow ago
@@ -285,6 +291,8 @@ async function startBatch(batch: any): Promise<void> {
       requestCountsTotal: total,
     });
 
+    activeBatches.add(batch.id);
+
     // Fire-and-forget: process items in the background so the poll loop isn't blocked.
     // isProcessing prevents a second poll tick from overlapping.
     const p = processBatchItems(batch, parsedItems.items).catch((err) => {
@@ -292,7 +300,10 @@ async function startBatch(batch: any): Promise<void> {
       failBatch(batch.id, String(err));
     });
     activeProcesses.add(p);
-    p.finally(() => activeProcesses.delete(p));
+    p.finally(() => {
+      activeProcesses.delete(p);
+      activeBatches.delete(batch.id);
+    });
   } catch (err) {
     console.error(`[BATCH] Error starting batch ${batch.id}:`, err);
     failBatch(batch.id, err instanceof Error ? err.message : String(err));
@@ -792,6 +803,7 @@ function failBatch(batchId: string, reason: string): void {
     failedAt: Math.floor(Date.now() / 1000),
     errors: [{ message: reason }],
   });
+  activeBatches.delete(batchId);
 }
 
 export async function waitForAllBatches(): Promise<void> {
@@ -803,6 +815,13 @@ export function getCachedHeaders(): { headers: Headers | null; timestamp: number
   return { headers: prevHeaders, timestamp: prevHeadersTimestamp };
 }
 export function resetCachedHeaders(): void {
+  prevHeaders = null;
+  prevHeadersTimestamp = 0;
+}
+export function resetBatchProcessorState(): void {
+  activeBatches.clear();
+  activeProcesses.clear();
+  isProcessing = false;
   prevHeaders = null;
   prevHeadersTimestamp = 0;
 }

@@ -6,7 +6,7 @@
  */
 
 import { execSync } from "node:child_process";
-import { createCombo, getAllCombos, updateCombo } from "@/lib/db/combos";
+import { createCombo, getCombos, updateCombo } from "@/lib/db/combos";
 import { getProviderConnections } from "@/lib/db/providers";
 import { createApiKey, revokeApiKey, getApiKeys } from "@/lib/db/apiKeys";
 import {
@@ -110,7 +110,7 @@ export const COPILOT_TOOLS: CopilotTool[] = [
     description: "List all configured combos with their strategy and target count",
     parameters: [],
     handler: async () => {
-      const combos = await getAllCombos();
+      const combos = await getCombos();
       if (!combos || combos.length === 0)
         return "No combos configured. Create one with createCombo.";
       let output = `**${combos.length} combo(s) configured**\n\n`;

@@ -356,6 +356,7 @@ test("provider models route returns the local catalog for embedding and rerank p
   assert.equal(voyageBody.source, "local_catalog");
   assert.ok(voyageBody.models.some((model) => model.id === "voyage-4-large"));
   assert.ok(voyageBody.models.some((model) => model.id === "voyage-code-3"));
+  assert.ok(voyageBody.models.some((model) => model.id === "voyage-4-lite"));
 
   assert.equal(jinaResponse.status, 200);
   assert.equal(jinaBody.provider, "jina-ai");
@@ -637,6 +638,55 @@ test("provider models route maps Gemini CLI quota buckets into a model list", as
     { id: "gemini-3-pro-preview", name: "gemini-3-pro-preview", owned_by: "google" },
     { id: "gemini-3-flash", name: "gemini-3-flash", owned_by: "google" },
   ]);
+});
+
+test("provider models route prefers providerSpecificData projectId over default-project", async () => {
+  const connection = await seedConnection("gemini-cli", {
+    authType: "oauth",
+    accessToken: "gemini-cli-access",
+    apiKey: null,
+    projectId: "default-project",
+    providerSpecificData: {
+      projectId: "projects/custom-psd-456",
+    },
+  });
+
+  globalThis.fetch = async (url, init = {}) => {
+    assert.equal(String(url), "https://cloudcode-pa.googleapis.com/v1internal:retrieveUserQuota");
+    assert.equal(init.headers.Authorization, "Bearer gemini-cli-access");
+    assert.deepEqual(JSON.parse(String(init.body)), { project: "projects/custom-psd-456" });
+    return Response.json({ buckets: [{ modelId: "gemini-3.1-pro-preview" }] });
+  };
+
+  const response = await callRoute(connection.id);
+  const body = (await response.json()) as any;
+
+  assert.equal(response.status, 200);
+  assert.deepEqual(body.models, [
+    { id: "gemini-3.1-pro-preview", name: "gemini-3.1-pro-preview", owned_by: "google" },
+  ]);
+});
+
+test("provider models route rejects projects/default-project placeholders", async () => {
+  const connection = await seedConnection("gemini-cli", {
+    authType: "oauth",
+    accessToken: "gemini-cli-access",
+    apiKey: null,
+    projectId: "projects/default-project",
+    providerSpecificData: {
+      projectId: "default-project",
+    },
+  });
+
+  globalThis.fetch = async () => {
+    throw new Error("retrieveUserQuota should not be called for placeholder project IDs");
+  };
+
+  const response = await callRoute(connection.id);
+  const body = (await response.json()) as any;
+
+  assert.equal(response.status, 400);
+  assert.equal(body.error, "Gemini CLI project ID not available. Please reconnect OAuth.");
 });
 
 test("provider models route retries Antigravity discovery endpoints before returning remote models", async () => {
@@ -1109,25 +1159,58 @@ test("provider models route discovers Azure OpenAI deployments from the resource
   ]);
 });
 
-test("provider models route discovers Bedrock mantle models from the OpenAI-compatible models endpoint", async () => {
+test("provider models route discovers native Bedrock foundation models and inference profiles", async () => {
   const connection = await seedConnection("bedrock", {
     apiKey: "bedrock-key",
     providerSpecificData: {
-      baseUrl: "https://bedrock-mantle.us-east-1.api.aws",
+      region: "eu-west-2",
     },
   });
+  const seenUrls: string[] = [];
 
   globalThis.fetch = async (url, init = {}) => {
-    assert.equal(String(url), "https://bedrock-mantle.us-east-1.api.aws/v1/models");
+    const target = String(url);
+    seenUrls.push(target);
     assert.equal(init.method, "GET");
     assert.equal(init.headers.Authorization, "Bearer bedrock-key");
 
-    return Response.json({
-      data: [
-        { id: "openai.gpt-oss-120b", display_name: "OpenAI GPT-OSS 120B" },
-        { id: "mistral.mistral-large-3-675b-instruct" },
-      ],
-    });
+    if (
+      target === "https://bedrock.eu-west-2.amazonaws.com/foundation-models?byOutputModality=TEXT"
+    ) {
+      return Response.json({
+        modelSummaries: [
+          {
+            modelId: "anthropic.claude-sonnet-4-6",
+            modelName: "Claude Sonnet 4.6",
+            providerName: "Anthropic",
+            inputModalities: ["TEXT", "IMAGE"],
+            outputModalities: ["TEXT"],
+            responseStreamingSupported: true,
+          },
+        ],
+      });
+    }
+
+    if (
+      target ===
+      "https://bedrock.eu-west-2.amazonaws.com/inference-profiles?maxResults=100&typeEquals=SYSTEM_DEFINED"
+    ) {
+      return Response.json({
+        inferenceProfileSummaries: [
+          {
+            inferenceProfileId: "eu.anthropic.claude-sonnet-4-6",
+            inferenceProfileName: "EU Claude Sonnet 4.6",
+            models: [
+              {
+                modelArn: "arn:aws:bedrock:eu-west-2::foundation-model/anthropic.claude-sonnet-4-6",
+              },
+            ],
+          },
+        ],
+      });
+    }
+
+    throw new Error("unexpected fetch: " + target);
   };
 
   const response = await callRoute(connection.id);
@@ -1136,16 +1219,29 @@ test("provider models route discovers Bedrock mantle models from the OpenAI-comp
   assert.equal(response.status, 200);
   assert.equal(body.provider, "bedrock");
   assert.equal(body.source, "api");
+  assert.deepEqual(seenUrls, [
+    "https://bedrock.eu-west-2.amazonaws.com/foundation-models?byOutputModality=TEXT",
+    "https://bedrock.eu-west-2.amazonaws.com/inference-profiles?maxResults=100&typeEquals=SYSTEM_DEFINED",
+  ]);
   assert.deepEqual(body.models, [
     {
-      id: "openai.gpt-oss-120b",
-      name: "OpenAI GPT-OSS 120B",
-      owned_by: "bedrock",
+      id: "anthropic.claude-sonnet-4-6",
+      name: "Claude Sonnet 4.6",
+      owned_by: "Anthropic",
+      source: "foundation",
+      supportsStreaming: true,
+      supportsVision: true,
+      inputTokenLimit: 1000000,
+      outputTokenLimit: 64000,
     },
     {
-      id: "mistral.mistral-large-3-675b-instruct",
-      name: "mistral.mistral-large-3-675b-instruct",
+      id: "eu.anthropic.claude-sonnet-4-6",
+      name: "EU Claude Sonnet 4.6",
       owned_by: "bedrock",
+      source: "inference_profile",
+      supportsStreaming: true,
+      inputTokenLimit: 1000000,
+      outputTokenLimit: 64000,
     },
   ]);
 });

@@ -16,11 +16,12 @@ export type ServiceKind =
   | "video"
   | "music";
 
-export type RiskNoticeVariant = "oauth" | "webCookie" | "deprecated";
+export type RiskNoticeVariant = "oauth" | "webCookie" | "deprecated" | "embedded-service";
 
 export interface ProviderRiskNoticeFields {
   subscriptionRisk?: boolean;
   riskNoticeVariant?: RiskNoticeVariant;
+  isEmbeddedService?: boolean;
 }
 
 export const FREE_PROVIDERS = {};
@@ -87,6 +88,20 @@ export const OAUTH_PROVIDERS = {
     hasFree: true,
     authHint:
       "Uses Gemini CLI OAuth / Cloud Code credentials. Pro models require an eligible Google account or paid plan.",
+  },
+  agy: {
+    id: "agy",
+    alias: "agy",
+    name: "Antigravity CLI",
+    icon: "terminal",
+    color: "#F59E0B",
+    textIcon: "AGY",
+    website: "https://antigravity.google",
+    subscriptionRisk: true,
+    riskNoticeVariant: "oauth",
+    hasFree: true,
+    authHint:
+      "Import your Antigravity CLI (`agy`) login (paste/upload its token file), auto-detect a local CLI login, or sign in with Google. Shares the Antigravity backend (incl. Claude models).",
   },
   kiro: {
     id: "kiro",
@@ -178,7 +193,7 @@ export const OAUTH_PROVIDERS = {
     textIcon: "TR",
     website: "https://trae.ai",
     authHint:
-      "Trae is an AI-native IDE by ByteDance. Sign in inside Trae and paste your API token or use OAuth device flow here.",
+      "Trae is an AI-native IDE by ByteDance (SOLO remote agent). Authorize via trae.ai in the popup, or sign in at solo.trae.ai and paste the Cloud-IDE-JWT (sent as 'Authorization: Cloud-IDE-JWT <token>', ~14-day lifetime) as the access token; web_id/biz_user_id/user_unique_id/scope/tenant/region propagate via providerSpecificData. No headless refresh for pasted tokens — re-paste on expiry.",
   },
   "kimi-coding": {
     id: "kimi-coding",
@@ -308,6 +323,8 @@ export const WEB_COOKIE_PROVIDERS = {
     color: "#0866FF",
     textIcon: "MS",
     website: "https://www.meta.ai",
+    hasFree: true,
+    freeNote: "Free with login — Meta AI platform with Llama models.",
     authHint: "Paste your abra_sess value or full cookie header from meta.ai",
   },
   "claude-web": {
@@ -375,6 +392,19 @@ export const WEB_COOKIE_PROVIDERS = {
       "Copy the value of 'convex-session-id'. Also open DevTools → Network, copy the Cookie header from any request. " +
       "Paste both values here. See provider setup docs for a step-by-step guide.",
   },
+  "inner-ai": {
+    id: "inner-ai",
+    alias: "in-ai",
+    name: "Inner.ai (Subscription)",
+    icon: "auto_awesome",
+    color: "#1A56DB",
+    textIcon: "IA",
+    website: "https://app.innerai.com",
+    subscriptionRisk: true,
+    riskNoticeVariant: "webCookie",
+    authHint:
+      "Paste your token cookie and email separated by a space: open DevTools → Application → Cookies → .innerai.com, copy the token value, then append a space and your Inner.ai login email. Example: eyJhbG... user@example.com",
+  },
   "adapta-web": {
     id: "adapta-web",
     alias: "adp-web",
@@ -383,8 +413,123 @@ export const WEB_COOKIE_PROVIDERS = {
     color: "#6E3AD3",
     textIcon: "AW",
     website: "https://agent.adapta.one",
+    subscriptionRisk: true,
+    riskNoticeVariant: "webCookie",
     authHint:
       "Paste your __client cookie value from .clerk.agent.adapta.one (DevTools → Application → Cookies)",
+  },
+  "duckduckgo-web": {
+    id: "duckduckgo-web",
+    alias: "ddgw",
+    name: "DuckDuckGo AI Chat",
+    icon: "auto_awesome",
+    color: "#DE5833",
+    textIcon: "DDG",
+    website: "https://duckduckgo.com/duckchat",
+    hasFree: true,
+    noAuth: true,
+    freeNote: "Free — anonymous access to multiple AI models via DuckDuckGo.",
+    authHint: "No credentials required — DuckDuckGo AI Chat is anonymous and free.",
+  },
+  huggingchat: {
+    id: "huggingchat",
+    alias: "hc",
+    name: "HuggingChat (Free)",
+    icon: "auto_awesome",
+    color: "#FFD21E",
+    textIcon: "HC",
+    website: "https://huggingface.co/chat",
+    hasFree: true,
+    freeNote: "Free LLM chat — no subscription required. Rate limits apply.",
+    authHint:
+      "Paste your hf-chat cookie value from huggingface.co/chat (DevTools → Application → Cookies → hf-chat). Optional — works without auth for basic use.",
+    riskNoticeVariant: "webCookie",
+  },
+  phind: {
+    id: "phind",
+    alias: "ph",
+    name: "Phind (Free)",
+    icon: "auto_awesome",
+    color: "#000000",
+    textIcon: "PH",
+    website: "https://www.phind.com",
+    hasFree: true,
+    freeNote: "Free dev-focused AI chat with code search. Rate limits apply.",
+    authHint:
+      "Paste your session cookie from phind.com (DevTools → Application → Cookies). Optional — works with free tier.",
+    riskNoticeVariant: "webCookie",
+  },
+  "poe-web": {
+    id: "poe-web",
+    alias: "poe",
+    name: "Poe Web (Subscription)",
+    icon: "auto_awesome",
+    color: "#6C3AED",
+    textIcon: "PW",
+    website: "https://poe.com",
+    authHint: "Paste your p-b cookie value from poe.com (DevTools → Application → Cookies → p-b)",
+    subscriptionRisk: true,
+    riskNoticeVariant: "webCookie",
+  },
+  "venice-web": {
+    id: "venice-web",
+    alias: "ven",
+    name: "Venice Web (Privacy)",
+    icon: "auto_awesome",
+    color: "#22C55E",
+    textIcon: "VW",
+    website: "https://venice.ai",
+    authHint: "Paste your session cookie from venice.ai (DevTools → Application → Cookies)",
+    riskNoticeVariant: "webCookie",
+  },
+  "v0-vercel-web": {
+    id: "v0-vercel-web",
+    alias: "v0",
+    name: "v0 Vercel Web (Code Gen)",
+    icon: "auto_awesome",
+    color: "#000000",
+    textIcon: "V0",
+    website: "https://v0.dev",
+    authHint: "Paste your session cookie from v0.dev (DevTools → Application → Cookies)",
+    riskNoticeVariant: "webCookie",
+  },
+  "kimi-web": {
+    id: "kimi-web",
+    alias: "kimi",
+    name: "Kimi Web (Moonshot AI)",
+    icon: "auto_awesome",
+    color: "#2563EB",
+    textIcon: "KW",
+    website: "https://kimi.moonshot.cn",
+    authHint: "Paste your session cookie from kimi.moonshot.cn (DevTools → Application → Cookies)",
+    subscriptionRisk: true,
+    riskNoticeVariant: "webCookie",
+  },
+  "doubao-web": {
+    id: "doubao-web",
+    alias: "db",
+    name: "Doubao Web (ByteDance)",
+    icon: "auto_awesome",
+    color: "#3B82F6",
+    textIcon: "DW",
+    website: "https://www.doubao.com",
+    authHint: "Paste your session cookie from doubao.com (DevTools → Application → Cookies)",
+    subscriptionRisk: true,
+    riskNoticeVariant: "webCookie",
+  },
+  "qwen-web": {
+    id: "qwen-web",
+    alias: "qw",
+    name: "Qwen Web (Free)",
+    icon: "auto_awesome",
+    color: "#10B981",
+    textIcon: "QW",
+    website: "https://chat.qwen.ai",
+    hasFree: true,
+    freeNote: "Free — Qwen models via chat.qwen.ai with login token. No subscription required.",
+    authHint:
+      "Open chat.qwen.ai, log in, then open DevTools → Application → Local Storage → " +
+      'copy the "token" value (or use tongyi_sso_ticket cookie as Bearer token).',
   },
 };
 
@@ -603,9 +748,9 @@ export const APIKEY_PROVIDERS = {
     textIcon: "BR",
     website: "https://aws.amazon.com/bedrock",
     authHint:
-      "Use your Amazon Bedrock API key in Authorization: Bearer <key>. OmniRoute defaults to the OpenAI-compatible bedrock-mantle endpoint in us-east-1; set a regional base URL if your account uses another region or the bedrock-runtime /openai/v1 path.",
+      "Use your Amazon Bedrock API key and configure the AWS region where your models are enabled (for example eu-west-2). OmniRoute calls Bedrock's native Converse API directly.",
     apiHint:
-      "This integration targets Amazon Bedrock's current OpenAI-compatible surface. bedrock-mantle is the default for /models and chat; advanced users can also point baseUrl to bedrock-runtime/.../openai/v1 for runtime-specific model IDs.",
+      "Native Bedrock integration: model discovery uses Bedrock foundation models and inference profiles, while chat uses the regional Bedrock Runtime Converse/ConverseStream APIs.",
     passthroughModels: true,
   },
   watsonx: {
@@ -2191,6 +2336,45 @@ export const APIKEY_PROVIDERS = {
     },
     serviceKinds: ["llm"],
   },
+  bluesminds: {
+    id: "bluesminds",
+    alias: "bm",
+    name: "BluesMinds",
+    icon: "psychology",
+    color: "#3B82F6",
+    textIcon: "BM",
+    website: "https://www.bluesminds.com",
+    hasFree: true,
+    freeNote:
+      "Free daily pi credits — supports 200+ models including GPT-4o, GPT-4.1, Claude Sonnet 4.5, Gemini 2.0 Flash, DeepSeek V4, Qwen, Kimi K2",
+    apiHint:
+      "Get your API key at https://www.bluesminds.com — OpenAI-compatible endpoint at https://api.bluesminds.com/v1 with free daily credits. VIP models (Claude Opus 4.5, Gemini 2.5 Pro) consume pi credits.",
+  },
+  "freemodel-dev": {
+    id: "freemodel-dev",
+    alias: "fmd",
+    name: "FreeModel.dev",
+    icon: "auto_awesome",
+    color: "#8B5CF6",
+    textIcon: "FM",
+    website: "https://freemodel.dev",
+    hasFree: true,
+    freeNote:
+      "$300 free credits on signup — no credit card required. Access GPT-5.4 and GPT-5.5 (OpenAI's latest flagship models) through an OpenAI-compatible API.",
+    apiHint:
+      "Get $300 free API credits at https://freemodel.dev — no payment info required. OpenAI-compatible endpoint. GPT-5.4 and GPT-5.5 models available.",
+  },
+  freeaiapikey: {
+    id: "freeaiapikey",
+    alias: "faik",
+    name: "FreeAIAPIKey",
+    icon: "vpn_key",
+    color: "#F59E0B",
+    textIcon: "FK",
+    website: "https://freeaiapikey.com",
+    apiHint:
+      "Discounted API proxy for 40+ models including GPT-5, Claude Opus 4.6, Claude Sonnet 4.6, Qwen 3.5. Get your API key at https://freeaiapikey.com/dashboard. Base URL: https://freeaiapikey.com/v1.",
+  },
 };
 
 // Sub-categories within APIKEY_PROVIDERS (used by dashboard and catalog views).
@@ -2626,6 +2810,21 @@ export const UPSTREAM_PROXY_PROVIDERS = {
     binaryName: "cli-proxy-api",
     githubRepo: "router-for-me/CLIProxyAPI",
   },
+  "9router": {
+    id: "9router",
+    alias: "nr",
+    name: "9router",
+    icon: "router",
+    color: "#0EA5E9",
+    textIcon: "9R",
+    website: "https://www.npmjs.com/package/9router",
+    defaultPort: 20130,
+    healthEndpoint: "/api/health",
+    npmPackage: "9router",
+    embedded: true,
+    isEmbeddedService: true,
+    riskNoticeVariant: "embedded-service" as const,
+  },
 };
 
 export const CLOUD_AGENT_PROVIDERS = {
@@ -2694,6 +2893,8 @@ export function providerAllowsOptionalApiKey(providerId: unknown): boolean {
     providerId === "petals" ||
     providerId === "pollinations" ||
     providerId === "copilot-web" ||
+    providerId === "duckduckgo-web" ||
+    providerId === "veoaifree-web" ||
     providerId === "hackclub" ||
     providerId === "huggingchat" ||
     providerId === "gitlawb" ||
@@ -2718,6 +2919,7 @@ const BULK_API_KEY_EXCLUDED = new Set([
   "blackbox-web",
   "muse-spark-web",
   "deepseek-web",
+  "inner-ai",
   "qoder",
   "google-pse-search",
   "command-code",
@@ -2748,22 +2950,118 @@ export const SYSTEM_PROVIDERS = {
   },
 };
 
-// All providers (combined)
-export const AI_PROVIDERS = {
-  ...NOAUTH_PROVIDERS,
-  ...OAUTH_PROVIDERS,
-  ...APIKEY_PROVIDERS,
-  ...WEB_COOKIE_PROVIDERS,
-  ...LOCAL_PROVIDERS,
-  ...SEARCH_PROVIDERS,
-  ...AUDIO_ONLY_PROVIDERS,
-  ...UPSTREAM_PROXY_PROVIDERS,
-  ...CLOUD_AGENT_PROVIDERS,
-  ...SYSTEM_PROVIDERS, // <-- system providers included
-};
+const _PROVIDER_SECTIONS = [
+  NOAUTH_PROVIDERS,
+  OAUTH_PROVIDERS,
+  APIKEY_PROVIDERS,
+  WEB_COOKIE_PROVIDERS,
+  LOCAL_PROVIDERS,
+  SEARCH_PROVIDERS,
+  AUDIO_ONLY_PROVIDERS,
+  UPSTREAM_PROXY_PROVIDERS,
+  CLOUD_AGENT_PROVIDERS,
+  SYSTEM_PROVIDERS,
+] as const;
 
-export type AiProviderId = keyof typeof AI_PROVIDERS;
-export type AiProviderDefinition = (typeof AI_PROVIDERS)[AiProviderId];
+let _aiProviders: Record<string, any> | null = null;
+
+function getOrCreateAiProviders(): Record<string, any> {
+  if (!_aiProviders) {
+    _aiProviders = {};
+    for (const section of _PROVIDER_SECTIONS) {
+      Object.assign(_aiProviders, section);
+    }
+  }
+  return _aiProviders;
+}
+
+let _ALIAS_TO_ID: Record<string, string> | null = null;
+
+function getOrCreateAliasToId(): Record<string, string> {
+  if (!_ALIAS_TO_ID) {
+    _ALIAS_TO_ID = {};
+    for (const section of _PROVIDER_SECTIONS) {
+      for (const p of Object.values(section)) {
+        if ((p as any).alias) _ALIAS_TO_ID[(p as any).alias] = (p as any).id;
+      }
+    }
+  }
+  return _ALIAS_TO_ID;
+}
+
+let _ID_TO_ALIAS: Record<string, string> | null = null;
+
+function getOrCreateIdToAlias(): Record<string, string> {
+  if (!_ID_TO_ALIAS) {
+    _ID_TO_ALIAS = {};
+    for (const section of _PROVIDER_SECTIONS) {
+      for (const p of Object.values(section)) {
+        _ID_TO_ALIAS[(p as any).id] = (p as any).alias || (p as any).id;
+      }
+    }
+  }
+  return _ID_TO_ALIAS;
+}
+
+export function getProviderById(id: string) {
+  return (
+    (NOAUTH_PROVIDERS as Record<string, any>)[id] ??
+    (OAUTH_PROVIDERS as Record<string, any>)[id] ??
+    (APIKEY_PROVIDERS as Record<string, any>)[id] ??
+    (WEB_COOKIE_PROVIDERS as Record<string, any>)[id] ??
+    (LOCAL_PROVIDERS as Record<string, any>)[id] ??
+    (SEARCH_PROVIDERS as Record<string, any>)[id] ??
+    (AUDIO_ONLY_PROVIDERS as Record<string, any>)[id] ??
+    (UPSTREAM_PROXY_PROVIDERS as Record<string, any>)[id] ??
+    (CLOUD_AGENT_PROVIDERS as Record<string, any>)[id] ??
+    (SYSTEM_PROVIDERS as Record<string, any>)[id] ??
+    undefined
+  );
+}
+
+export const AI_PROVIDERS = new Proxy({} as Record<string, any>, {
+  get(_, key) {
+    if (key === "then") return undefined;
+    return typeof key === "string" ? getOrCreateAiProviders()[key] : undefined;
+  },
+  ownKeys() {
+    return Reflect.ownKeys(getOrCreateAiProviders());
+  },
+  has(_, key) {
+    return key in getOrCreateAiProviders();
+  },
+  getOwnPropertyDescriptor(_, key) {
+    const obj = getOrCreateAiProviders();
+    if (typeof key === "string" && key in obj) {
+      return { configurable: true, enumerable: true, value: obj[key] };
+    }
+    return undefined;
+  },
+});
+
+export type AiProviderId =
+  | keyof typeof NOAUTH_PROVIDERS
+  | keyof typeof OAUTH_PROVIDERS
+  | keyof typeof APIKEY_PROVIDERS
+  | keyof typeof WEB_COOKIE_PROVIDERS
+  | keyof typeof LOCAL_PROVIDERS
+  | keyof typeof SEARCH_PROVIDERS
+  | keyof typeof AUDIO_ONLY_PROVIDERS
+  | keyof typeof UPSTREAM_PROXY_PROVIDERS
+  | keyof typeof CLOUD_AGENT_PROVIDERS
+  | keyof typeof SYSTEM_PROVIDERS;
+
+export type AiProviderDefinition =
+  | (typeof NOAUTH_PROVIDERS)[keyof typeof NOAUTH_PROVIDERS]
+  | (typeof OAUTH_PROVIDERS)[keyof typeof OAUTH_PROVIDERS]
+  | (typeof APIKEY_PROVIDERS)[keyof typeof APIKEY_PROVIDERS]
+  | (typeof WEB_COOKIE_PROVIDERS)[keyof typeof WEB_COOKIE_PROVIDERS]
+  | (typeof LOCAL_PROVIDERS)[keyof typeof LOCAL_PROVIDERS]
+  | (typeof SEARCH_PROVIDERS)[keyof typeof SEARCH_PROVIDERS]
+  | (typeof AUDIO_ONLY_PROVIDERS)[keyof typeof AUDIO_ONLY_PROVIDERS]
+  | (typeof UPSTREAM_PROXY_PROVIDERS)[keyof typeof UPSTREAM_PROXY_PROVIDERS]
+  | (typeof CLOUD_AGENT_PROVIDERS)[keyof typeof CLOUD_AGENT_PROVIDERS]
+  | (typeof SYSTEM_PROVIDERS)[keyof typeof SYSTEM_PROVIDERS];
 
 // Auth methods
 export const AUTH_METHODS = {
@@ -2771,11 +3069,12 @@ export const AUTH_METHODS = {
   apikey: { id: "apikey", name: "API Key", icon: "key" },
 };
 
-// Helper: Get provider by alias
 export function getProviderByAlias(alias: string): AiProviderDefinition | null {
-  for (const provider of Object.values(AI_PROVIDERS)) {
-    if (provider.alias === alias || provider.id === alias) {
-      return provider;
+  for (const section of _PROVIDER_SECTIONS) {
+    for (const provider of Object.values(section)) {
+      if (provider.alias === alias || provider.id === alias) {
+        return provider as AiProviderDefinition;
+      }
     }
   }
   return null;
@@ -2787,29 +3086,53 @@ export function resolveProviderId(aliasOrId: string): string {
   return provider?.id || aliasOrId;
 }
 
-// Helper: Get alias from provider ID
 export function getProviderAlias(providerId: string): string {
-  const provider = Object.prototype.hasOwnProperty.call(AI_PROVIDERS, providerId)
-    ? AI_PROVIDERS[providerId as AiProviderId]
-    : undefined;
+  const provider = getProviderById(providerId);
   return provider?.alias || providerId;
 }
 
-// Alias to ID mapping (for quick lookup)
-export const ALIAS_TO_ID = Object.values(AI_PROVIDERS).reduce<Record<string, string>>((acc, p) => {
-  if (p.alias) acc[p.alias] = p.id;
-  return acc;
-}, {});
+export const ALIAS_TO_ID = new Proxy({} as Record<string, string>, {
+  get(_, key) {
+    return typeof key === "string" ? getOrCreateAliasToId()[key] : undefined;
+  },
+  ownKeys() {
+    return Reflect.ownKeys(getOrCreateAliasToId());
+  },
+  has(_, key) {
+    return key in getOrCreateAliasToId();
+  },
+  getOwnPropertyDescriptor(_, key) {
+    const obj = getOrCreateAliasToId();
+    if (typeof key === "string" && key in obj) {
+      return { configurable: true, enumerable: true, value: obj[key] };
+    }
+    return undefined;
+  },
+});
 
-// ID to Alias mapping
-export const ID_TO_ALIAS = Object.values(AI_PROVIDERS).reduce<Record<string, string>>((acc, p) => {
-  acc[p.id] = p.alias || p.id;
-  return acc;
-}, {});
+export const ID_TO_ALIAS = new Proxy({} as Record<string, string>, {
+  get(_, key) {
+    return typeof key === "string" ? getOrCreateIdToAlias()[key] : undefined;
+  },
+  ownKeys() {
+    return Reflect.ownKeys(getOrCreateIdToAlias());
+  },
+  has(_, key) {
+    return key in getOrCreateIdToAlias();
+  },
+  getOwnPropertyDescriptor(_, key) {
+    const obj = getOrCreateIdToAlias();
+    if (typeof key === "string" && key in obj) {
+      return { configurable: true, enumerable: true, value: obj[key] };
+    }
+    return undefined;
+  },
+});
 
 // Providers that support usage/quota API
 export const USAGE_SUPPORTED_PROVIDERS = [
   "antigravity",
+  "agy",
   "gemini-cli",
   "kiro",
   "amazon-q",
@@ -2822,6 +3145,7 @@ export const USAGE_SUPPORTED_PROVIDERS = [
   "glm-cn",
   "zai",
   "glmt",
+  "opencode-go",
   "minimax",
   "minimax-cn",
   "crof",

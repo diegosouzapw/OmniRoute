@@ -286,13 +286,15 @@ test("handleResponsesCore propagates upstream failures from chatCore unchanged",
 });
 
 test("handleResponsesCore rejects invalid Responses API input that cannot be translated", async () => {
+  // After #2695 the web_search family is allowed; use file_search to keep this
+  // assertion exercising the "untranslatable tool type" path.
   await assert.rejects(
     () =>
       handleResponsesCore({
         body: {
           model: "gpt-4o-mini",
           input: "hello",
-          tools: [{ type: "web_search_preview" }],
+          tools: [{ type: "file_search" }],
         },
         modelInfo: { provider: "openai", model: "gpt-4o-mini", extendedContext: false },
         credentials: { apiKey: "sk-test", providerSpecificData: {} },
@@ -303,8 +305,7 @@ test("handleResponsesCore rejects invalid Responses API input that cannot be tra
         connectionId: null,
       }),
     (error) =>
-      error instanceof Error &&
-      error.message.includes("web_search_preview tool type is not supported")
+      error instanceof Error && error.message.includes("file_search tool type is not supported")
   );
 });
 

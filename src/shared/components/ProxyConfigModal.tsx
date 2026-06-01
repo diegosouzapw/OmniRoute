@@ -300,6 +300,7 @@ export default function ProxyConfigModal({
       const scope = getAssignmentScope(level);
       const scopeId = getAssignmentScopeId(level, levelId);
       let res;
+      let payload = null;
       if (mode === "saved") {
         res = await fetch("/api/settings/proxies/assignments", {
           method: "PUT",
@@ -331,6 +332,7 @@ export default function ProxyConfigModal({
           notes: DASHBOARD_CUSTOM_PROXY_NOTES,
         };
         const createPayload: Record<string, unknown> = { ...proxy };
+        const assignmentPayload = { scope, scopeId };
 
         if (username !== "***" && normalizedUsername) {
           createPayload.username = normalizedUsername;
@@ -358,6 +360,7 @@ export default function ProxyConfigModal({
           const updatePayload: Record<string, unknown> = {
             id: safeExistingProxyId,
             ...proxy,
+            assignment: assignmentPayload,
           };
           if (username !== "***") {
             updatePayload.username = normalizedUsername;
@@ -374,11 +377,12 @@ export default function ProxyConfigModal({
           res = await fetch("/api/settings/proxies", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(createPayload),
+            body: JSON.stringify({ ...createPayload, assignment: assignmentPayload }),
           });
         }
 
-        const registryPayload = await readJson(res);
+        payload = await readJson(res);
+        const registryPayload = payload;
         if (!res.ok) {
           setFormError(registryPayload?.error?.message || t("errorSaveProxy"));
           return;
@@ -389,31 +393,17 @@ export default function ProxyConfigModal({
           setFormError(t("errorSaveProxy"));
           return;
         }
-
-        res = await fetch("/api/settings/proxies/assignments", {
-          method: "PUT",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            scope,
-            scopeId,
-            proxyId: registryProxyId,
-          }),
-        });
-
-        if (res.ok) {
-          const clearParams = new URLSearchParams({ level });
-          if (levelId) clearParams.set("id", levelId);
-          await fetch(`/api/settings/proxy?${clearParams.toString()}`, { method: "DELETE" });
-        }
       }
-      const payload = await readJson(res);
+      if (!payload) {
+        payload = await readJson(res);
+      }
       if (!res.ok) {
         setFormError(payload?.error?.message || t("errorSaveProxy"));
         return;
       }
       setHasOwnProxy(true);
       if (mode === "custom") {
-        setSelectedProxyId(payload?.assignment?.proxyId || selectedProxyId || "");
+        setSelectedProxyId(payload?.assignment?.proxyId || payload?.id || selectedProxyId || "");
       }
       onSaved?.();
       onClose();

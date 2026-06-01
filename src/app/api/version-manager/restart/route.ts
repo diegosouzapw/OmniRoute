@@ -1,10 +1,14 @@
 "use server";
 
 import { NextResponse } from "next/server";
-import { restartTool } from "@/lib/versionManager";
+import { getServiceRow } from "@/lib/db/versionManager";
+import { getOrInitSupervisor } from "@/app/api/services/cliproxy/_lib";
 import { versionManagerToolSchema } from "@/shared/validation/schemas";
 import { isValidationFailure, validateBody } from "@/shared/validation/helpers";
 import { requireManagementAuth } from "@/lib/api/requireManagementAuth";
+import { sanitizeErrorMessage } from "@omniroute/open-sse/utils/error";
+
+const SUPERVISOR_TOOLS = new Set(["cliproxy", "cliproxyapi"]);
 
 export async function POST(request: Request) {
   const authError = await requireManagementAuth(request);
@@ -22,12 +26,26 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: validation.error }, { status: 400 });
   }
 
+  const { tool } = validation.data;
+
+  if (!SUPERVISOR_TOOLS.has(tool)) {
+    return NextResponse.json({ error: `Unknown tool: ${tool}` }, { status: 400 });
+  }
+
   try {
-    const { tool } = validation.data;
-    const result = await restartTool(tool);
-    return NextResponse.json({ success: true, ...result });
+    const row = await getServiceRow("cliproxy");
+    if (!row || row.status === "not_installed") {
+      return NextResponse.json({ error: "CLIProxyAPI is not installed." }, { status: 409 });
+    }
+
+    const sup = await getOrInitSupervisor();
+    const status = await sup.restart();
+    // Preserve legacy response shape: { success: true, pid, port }
+    return NextResponse.json({ success: true, pid: status.pid, port: status.port });
   } catch (error) {
-    const message = error instanceof Error ? error.message : "Failed to restart";
+    const message = sanitizeErrorMessage(
+      error instanceof Error ? error.message : "Failed to restart"
+    );
     console.error("[version-manager] restart error:", message);
     return NextResponse.json({ error: message }, { status: 500 });
   }

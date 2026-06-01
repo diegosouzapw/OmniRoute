@@ -59,7 +59,7 @@ test.describe("Bailian Coding Plan Provider", () => {
     });
 
     await gotoDashboardRoute(page, "/dashboard/providers/bailian-coding-plan");
-    await page.waitForLoadState("networkidle");
+    await page.waitForLoadState("domcontentloaded");
 
     // Dismiss any pre-existing dialog/overlay that may appear on page load
     const preExistingDialog = page.getByRole("dialog").first();
@@ -170,7 +170,7 @@ test.describe("Bailian Coding Plan Provider", () => {
     });
 
     await gotoDashboardRoute(page, "/dashboard/providers/bailian-coding-plan");
-    await page.waitForLoadState("networkidle");
+    await page.waitForLoadState("domcontentloaded");
 
     // Dismiss any pre-existing dialog/overlay that may appear on page load
     const preExistingDialog = page.getByRole("dialog").first();

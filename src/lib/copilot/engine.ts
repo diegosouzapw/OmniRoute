@@ -35,7 +35,10 @@ function getKnowledgeResponse(query: string): string | null {
   const q = query.toLowerCase();
 
   // Architecture questions
-  if (/architecture|arquitectura|pipeline|request.*flow|request.*path/.test(q)) {
+  if (
+    /architecture|arquitectura|pipeline/.test(q) ||
+    (q.includes("request") && (q.includes("flow") || q.includes("path")))
+  ) {
     return `## OmniRoute Architecture
 
 The request pipeline flows through:

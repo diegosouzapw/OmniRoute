@@ -3,6 +3,8 @@ import assert from "node:assert/strict";
 
 const { claudeToOpenAIRequest } =
   await import("../../open-sse/translator/request/claude-to-openai.ts");
+const { translateRequest } = await import("../../open-sse/translator/index.ts");
+const { FORMATS } = await import("../../open-sse/translator/formats.ts");
 
 test("Claude -> OpenAI maps system blocks, parameters, tool declarations and tool choice", () => {
   const result = claudeToOpenAIRequest(
@@ -49,6 +51,136 @@ test("Claude -> OpenAI maps system blocks, parameters, tool declarations and too
   assert.deepEqual(result.tool_choice, {
     type: "function",
     function: { name: "weather" },
+  });
+});
+
+
+
+test("Claude -> OpenAI maps Claude server WebSearch to native Responses web_search", () => {
+  const result = claudeToOpenAIRequest(
+    "gpt-5.5",
+    {
+      messages: [{ role: "user", content: "Search docs" }],
+      tools: [
+        {
+          type: "web_search_20250305",
+          name: "web_search",
+          allowed_domains: ["docs.anthropic.com", "", 123, { domain: "bad.example" }],
+          blocked_domains: ["spam.example", false],
+          max_uses: 8,
+          user_location: { type: "approximate", country: "US" },
+        },
+      ],
+      tool_choice: { type: "tool", name: "web_search" },
+    },
+    true,
+    { _targetFormat: FORMATS.OPENAI_RESPONSES }
+  );
+
+  assert.deepEqual(result.tools, [
+    {
+      type: "web_search",
+      filters: {
+        allowed_domains: ["docs.anthropic.com"],
+        blocked_domains: ["spam.example"],
+      },
+      user_location: { type: "approximate", country: "US" },
+    },
+  ]);
+  assert.deepEqual(result.tool_choice, { type: "web_search" });
+});
+
+test("translateRequest maps Claude server WebSearch natively only for Responses targets", () => {
+  const body = {
+    messages: [{ role: "user", content: "Search docs" }],
+    tools: [{ type: "web_search_20250305", name: "web_search" }],
+    tool_choice: { type: "tool", name: "web_search" },
+  };
+
+  const responses = translateRequest(
+    FORMATS.CLAUDE,
+    FORMATS.OPENAI_RESPONSES,
+    "gpt-5.5",
+    structuredClone(body),
+    true
+  );
+  assert.deepEqual(responses.tools, [{ type: "web_search" }]);
+  assert.deepEqual(responses.tool_choice, { type: "web_search" });
+
+  const chat = translateRequest(
+    FORMATS.CLAUDE,
+    FORMATS.OPENAI,
+    "gpt-4o",
+    structuredClone(body),
+    true
+  );
+  assert.deepEqual(chat.tools, [
+    {
+      type: "function",
+      function: {
+        name: "web_search",
+        description: "",
+        parameters: { type: "object", properties: {} },
+      },
+    },
+  ]);
+  assert.deepEqual(chat.tool_choice, {
+    type: "function",
+    function: { name: "web_search" },
+  });
+});
+
+test("Claude -> OpenAI skips invalid tool payloads without crashing", () => {
+  const result = claudeToOpenAIRequest(
+    "gpt-4o",
+    {
+      messages: [{ role: "user", content: "hi" }],
+      tools: [null, "bad", 42, [], { name: "", input_schema: { type: "object" } }, { name: "ok" }],
+    },
+    false
+  );
+
+  assert.deepEqual(result.tools, [
+    {
+      type: "function",
+      function: {
+        name: "ok",
+        description: "",
+        parameters: { type: "object", properties: {} },
+      },
+    },
+  ]);
+});
+
+test("Claude -> OpenAI leaves ordinary web_search function tools as functions", () => {
+  const result = claudeToOpenAIRequest(
+    "gpt-4o",
+    {
+      messages: [{ role: "user", content: "Search docs" }],
+      tools: [
+        {
+          type: "custom",
+          name: "web_search",
+          description: "User-defined search function",
+          input_schema: { type: "object", properties: { query: { type: "string" } } },
+        },
+      ],
+      tool_choice: { type: "tool", name: "web_search" },
+    },
+    false
+  );
+
+  assert.deepEqual(result.tools[0], {
+    type: "function",
+    function: {
+      name: "web_search",
+      description: "User-defined search function",
+      parameters: { type: "object", properties: { query: { type: "string" } } },
+    },
+  });
+  assert.deepEqual(result.tool_choice, {
+    type: "function",
+    function: { name: "web_search" },
   });
 });
 

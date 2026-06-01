@@ -37,18 +37,24 @@ test-results
 playwright-report
 blob-report
 
-# Documentation (only the OpenAPI spec is needed at runtime)
-docs/*
-!docs/reference/
-!docs/reference/openapi.yaml
+# Documentation
+# Translations (~51 MB) are excluded — the Docs viewer reads English sources.
+# Screenshots (~1.7 MB) and SVGs (~250 KB) are needed at build time for MDX
+# image resolution (fumadocs-mdx bundles them).
+# Raster sources under docs/diagrams/ only (exported SVGs are required).
+docs/i18n/**
+docs/diagrams/**/*.png
+docs/diagrams/**/*.jpg
+docs/diagrams/**/*.jpeg
+docs/diagrams/**/*.gif
+docs/diagrams/**/*.webp
+# Note: `*.md` matches the root only (Go filepath.Match does not cross /),
+# so nested docs/**/*.md is implicitly kept without a re-include rule.
 *.md
 !README.md
 
 # Electron (separate build)
 electron
-
-# Customer landing/client site (separate build)
-site
 
 # VS Code extension (separate project)
 vscode-extension

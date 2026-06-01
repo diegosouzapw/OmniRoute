@@ -162,7 +162,9 @@ export {
   listProxies,
   getProxyById,
   createProxy,
+  createProxyAndAssign,
   updateProxy,
+  updateProxyAndAssign,
   upsertProxy,
   deleteProxyById,
   getProxyAssignments,
@@ -232,48 +234,6 @@ export type {
 } from "./db/registeredKeys";
 
 export {
-  ensureSaasSchema,
-  activateSaasCustomerBilling,
-  addSaasCustomerCredits,
-  createSaasBillingEvent,
-  deactivateSaasCustomerApiKeys,
-  deleteSaasCustomer,
-  deleteSaasPlan,
-  getSaasBillingEventByExternalReference,
-  getSaasBillingEventByPaymentId,
-  getSaasCustomerByEmail,
-  listSaasPlans,
-  listSaasBillingEvents,
-  upsertSaasPlan,
-  listSaasCustomers,
-  getSaasCustomerById,
-  createSaasCustomer,
-  setSaasCustomerPassword,
-  updateSaasCustomer,
-  updateSaasBillingEvent,
-  linkApiKeyToSaasCustomer,
-  updateSaasCustomerApiKey,
-  getSaasPolicyForApiKeyId,
-  getSaasUsageForCustomer,
-  isAllowedBySaasPattern,
-  verifySaasCustomerPassword,
-} from "./db/saas";
-
-export type {
-  SaasBillingEvent,
-  SaasBillingEventKind,
-  SaasBillingEventStatus,
-  SaasPlan,
-  SaasCustomer,
-  SaasCustomerApiKey,
-  SaasCustomerStatus,
-  SaasBillingStatus,
-  SaasPortalAuthResult,
-  SaasUsageSummary,
-  SaasPolicyContext,
-} from "./db/saas";
-
-export {
   // Model-Combo Mappings (#563)
   getModelComboMappings,
   getModelComboMappingById,
@@ -324,7 +284,10 @@ export {
   disableWebhooksWithHighFailures,
 } from "./db/webhooks";
 
-export type { Webhook } from "./db/webhooks";
+export type { Webhook, WebhookKind } from "./db/webhooks";
+
+export { insertDelivery, getDeliveries } from "./db/webhookDeliveries";
+export type { WebhookDelivery } from "./db/webhookDeliveries";
 
 export {
   saveQuotaSnapshot,
@@ -346,6 +309,8 @@ export {
   updateToolHealth,
   updateToolVersion,
   setToolStatus,
+  getServiceRow,
+  updateServiceField,
 } from "./db/versionManager";
 
 export {
@@ -529,3 +494,112 @@ export type {
   CreateRelayTokenInput,
   RelayTokenWithSecret,
 } from "./db/relayProxies";
+
+export {
+  upsertFreeProxy,
+  listFreeProxies,
+  listFreeProxiesBySource,
+  getFreeProxyById,
+  markFreeProxyInPool,
+  promoteFreeProxyToPool,
+  deleteFreeProxy,
+  clearFreeProxiesBySource,
+  getFreeProxyStats,
+} from "./db/freeProxies";
+
+export type { FreeProxyRecord, FreeProxyStats } from "./db/freeProxies";
+
+export {
+  listPlaygroundPresets,
+  getPlaygroundPreset,
+  createPlaygroundPreset,
+  updatePlaygroundPreset,
+  deletePlaygroundPreset,
+} from "./db/playgroundPresets";
+
+export type { PlaygroundPresetListItem } from "./db/playgroundPresets";
+// Plan 21 — Memory Engine Redesign
+export {
+  getMemoryVecMeta,
+  setMemoryVecMeta,
+  markMemoryNeedsReindex,
+  markAllMemoriesNeedReindex,
+  getMemoryReindexQueue,
+  countMemoryReindexPending,
+} from "./db/memoryVec";
+
+export type { MemoryVecMeta } from "./db/memoryVec";
+// T-A-F2: AgentBridge state/mappings/bypass + Inspector custom hosts/sessions
+export * from "./db/agentBridgeState";
+export * from "./db/agentBridgeMappings";
+export * from "./db/agentBridgeBypass";
+export * from "./db/inspectorCustomHosts";
+export * from "./db/inspectorSessions";
+// Quota Sharing — Group B (planos 16+22)
+export {
+  listPools,
+  getPool,
+  getPoolsByGroup,
+  createPool,
+  updatePool,
+  deletePool,
+  upsertAllocations,
+  listAllocationsForApiKey,
+} from "./db/quotaPools";
+
+export {
+  // Quota Groups (B2)
+  createGroup,
+  getGroup,
+  getGroupName,
+  listGroups,
+  renameGroup,
+  deleteGroup,
+} from "./db/quotaGroups";
+
+export type { QuotaGroup } from "./db/quotaGroups";
+export {
+  getBucket,
+  incrementBucket,
+  getPair,
+  sumPoolDimension,
+  gcOlderThan as gcQuotaConsumption,
+} from "./db/quotaConsumption";
+export {
+  getPlan as getProviderPlan,
+  listPlans as listProviderPlans,
+  upsertPlan as upsertProviderPlan,
+  deletePlan as deleteProviderPlan,
+} from "./db/providerPlans";
+
+export {
+  // Per-API-Key Token Limits (migration 073)
+  upsertTokenLimit,
+  listTokenLimits,
+  getTokenLimitsForRequest,
+  deleteTokenLimit,
+  getWindowUsage,
+  incrementWindowTokens,
+  resetWindowIfElapsed,
+  logTokenLimitReset,
+} from "./db/tokenLimits";
+
+export type {
+  TokenLimit,
+  TokenLimitScopeType,
+  UpsertTokenLimitInput,
+  TokenWindowState,
+} from "./db/tokenLimits";
+
+export {
+  insertPlugin,
+  getPluginById,
+  getPluginByName,
+  listPlugins,
+  updatePluginStatus,
+  updatePluginConfig,
+  deletePlugin,
+  pluginExists,
+} from "./db/plugins";
+
+export type { PluginRow, PluginCreateInput } from "./db/plugins";

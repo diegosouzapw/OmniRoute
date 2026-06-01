@@ -3,6 +3,7 @@ import assert from "node:assert/strict";
 
 const {
   clientWantsJsonResponse,
+  isKnownJsonOnlyClient,
   resolveStreamFlag,
   resolveExplicitStreamAlias,
   hasExplicitNoStreamParam,
@@ -79,6 +80,28 @@ test("T26: non-claude sourceFormat preserves pre-#2325 streaming default", () =>
   // Omitting sourceFormat reproduces the legacy two-arg behavior exactly
   assert.equal(resolveStreamFlag(undefined, undefined), true);
   assert.equal(resolveStreamFlag(undefined, "application/json"), false);
+});
+
+test("T26: Nextcloud OpenAI integration defaults to non-streaming JSON", () => {
+  const ua = "Nextcloud OpenAI/LocalAI integration";
+
+  assert.equal(isKnownJsonOnlyClient(ua), true);
+  assert.equal(resolveStreamFlag(undefined, undefined, "openai", ua), false);
+  assert.equal(resolveStreamFlag(undefined, "*/*", "openai", ua), false);
+  assert.equal(resolveStreamFlag(undefined, "application/json", "openai", ua), false);
+  assert.equal(resolveStreamFlag(undefined, "text/event-stream", "openai", ua), true);
+  assert.equal(resolveStreamFlag(true, "application/json", "openai", ua), true);
+});
+
+test("T26: per-key JSON stream default keeps omitted stream non-streaming", () => {
+  const options = { streamDefaultMode: "json", userAgent: "generic-openai-client" };
+
+  assert.equal(resolveStreamFlag(undefined, undefined, "openai", options), false);
+  assert.equal(resolveStreamFlag(undefined, "*/*", "openai", options), false);
+  assert.equal(resolveStreamFlag(undefined, "application/json", "openai", options), false);
+  assert.equal(resolveStreamFlag(undefined, "text/event-stream", "openai", options), true);
+  assert.equal(resolveStreamFlag(true, "application/json", "openai", options), true);
+  assert.equal(resolveStreamFlag(false, "text/event-stream", "openai", options), false);
 });
 
 test("T26: explicit non-stream aliases are detected", () => {

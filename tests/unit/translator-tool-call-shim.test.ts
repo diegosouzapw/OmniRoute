@@ -12,7 +12,8 @@ const { coerceToArray } = __test as { coerceToArray: (v: unknown) => unknown[] }
 
 // -------- Helper-level tests --------
 
-test("hasToolCallShim: returns true for submit_pr_review only", () => {
+test("hasToolCallShim: returns true for registered shims", () => {
+  assert.equal(hasToolCallShim("Read"), true);
   assert.equal(hasToolCallShim("submit_pr_review"), true);
   assert.equal(hasToolCallShim("some_other_tool"), false);
   assert.equal(hasToolCallShim(""), false);
@@ -52,6 +53,26 @@ test("coerceToArray: unparseable string -> []", () => {
 test("coerceToArray: stringified non-array -> []", () => {
   assert.deepEqual(coerceToArray('{"a":1}'), []);
   assert.deepEqual(coerceToArray('"a string"'), []);
+});
+
+test("applyToolCallShimToBuffer: Read removes empty pages but preserves valid ranges", () => {
+  const withEmptyPages = JSON.parse(
+    applyToolCallShimToBuffer(
+      "Read",
+      JSON.stringify({ file_path: "/etc/hosts", offset: 1, limit: 5, pages: "" })
+    )
+  );
+  assert.deepEqual(withEmptyPages, { file_path: "/etc/hosts", offset: 1, limit: 5 });
+
+  const withEmptyArrayPages = JSON.parse(
+    applyToolCallShimToBuffer("Read", JSON.stringify({ file_path: "/tmp/a.pdf", pages: [] }))
+  );
+  assert.deepEqual(withEmptyArrayPages, { file_path: "/tmp/a.pdf" });
+
+  const withValidPages = JSON.parse(
+    applyToolCallShimToBuffer("Read", JSON.stringify({ file_path: "/tmp/a.pdf", pages: "1-5" }))
+  );
+  assert.deepEqual(withValidPages, { file_path: "/tmp/a.pdf", pages: "1-5" });
 });
 
 test("applyToolCallShimToBuffer: submit_pr_review with valid arrays preserved", () => {
@@ -146,6 +167,59 @@ function streamChunks(chunks: any[], state: any): any[] {
   }
   return all;
 }
+
+test("streaming: Read suppresses raw pages delta and emits cleaned input at finish", () => {
+  const state = freshState();
+  const chunks = [
+    {
+      id: "chatcmpl-read",
+      model: "codex/gpt-5.5-high",
+      choices: [
+        {
+          delta: {
+            tool_calls: [
+              {
+                index: 0,
+                id: "call_read",
+                function: { name: "Read", arguments: "" },
+              },
+            ],
+          },
+        },
+      ],
+    },
+    {
+      choices: [
+        {
+          delta: {
+            tool_calls: [
+              {
+                index: 0,
+                function: {
+                  arguments: '{"file_path":"/etc/hosts","offset":1,"limit":5,"pages":""}',
+                },
+              },
+            ],
+          },
+        },
+      ],
+    },
+    { choices: [{ delta: {}, finish_reason: "tool_calls" }] },
+  ];
+
+  const events = streamChunks(chunks, state);
+  const inputDeltas = events.filter(
+    (e) => e.type === "content_block_delta" && e.delta?.type === "input_json_delta"
+  );
+
+  assert.equal(inputDeltas.length, 1, "expected exactly one cleaned Read delta");
+  assert.equal(inputDeltas[0].delta.partial_json.includes('"pages"'), false);
+  assert.deepEqual(JSON.parse(inputDeltas[0].delta.partial_json), {
+    file_path: "/etc/hosts",
+    offset: 1,
+    limit: 5,
+  });
+});
 
 test("streaming: submit_pr_review with missing arrays gets corrective delta at finish", () => {
   const state = freshState();

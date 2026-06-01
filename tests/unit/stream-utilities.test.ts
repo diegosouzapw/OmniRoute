@@ -133,6 +133,48 @@ test("createPassthroughStreamWithLogger synthesizes reasoning summary events fro
   assert.match(result, /event: response\.output_item\.done/);
 });
 
+test("createPassthroughStreamWithLogger shows a placeholder for encrypted reasoning items", async () => {
+  const transform = createPassthroughStreamWithLogger(
+    "codex",
+    null,
+    null,
+    "gpt-5.5-low",
+    null,
+    null,
+    null,
+    null,
+    null,
+    "openai-responses"
+  );
+
+  const writer = transform.writable.getWriter();
+  await writer.write(
+    new TextEncoder().encode(
+      [
+        "event: response.output_item.done",
+        'data: {"type":"response.output_item.done","response_id":"resp_reasoning_2","output_index":0,"item":{"id":"rs_resp_reasoning_2_0","type":"reasoning","encrypted_content":"enc_opaque_state"}}',
+        "",
+      ].join("\n")
+    )
+  );
+  await writer.close();
+
+  const reader = transform.readable.getReader();
+  const decoder = new TextDecoder();
+  let result = "";
+
+  while (true) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    result += decoder.decode(value);
+  }
+
+  assert.match(result, /event: response\.reasoning_summary_text\.delta/);
+  assert.match(result, /Codex is reasoning/);
+  assert.match(result, /"summary":\[\{"type":"summary_text","text":"Codex is reasoning/);
+  assert.match(result, /event: response\.output_item\.done/);
+});
+
 test("createPassthroughStreamWithLogger backfills completed output from function_call arguments events", async () => {
   const transform = createPassthroughStreamWithLogger(
     "codex",

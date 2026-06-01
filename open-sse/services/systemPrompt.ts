@@ -1,39 +1,88 @@
 /**
- * System Prompt Injection — Phase 10
+ * System Prompt Injection — Phase 10.1
  *
- * Injects a global system prompt into all requests at proxy level.
+ * Injects TWO global system prompts into all requests at proxy level:
+ *   - prefixPrompt: prepended BEFORE existing system/agent content
+ *   - suffixPrompt: appended AFTER existing system/agent content
+ *
+ * This gives the user full control over instruction priority (#2468):
+ *   prefix → agent/provider instructions → suffix (highest recency priority)
+ *
+ * Uses globalThis to share config across Turbopack module instances (#2470).
  */
 
-// In-memory config
-let _config = {
-  enabled: false,
-  prompt: "",
-};
+const GLOBAL_KEY = "__omniroute_systemPrompt_config__";
+
+interface SystemPromptConfig {
+  enabled: boolean;
+  prefixPrompt: string;
+  suffixPrompt: string;
+  prompt: string;
+}
+
+// Typed accessor for globalThis storage — avoids `as any` casts (#2470)
+const _store = globalThis as unknown as Record<string, SystemPromptConfig | undefined>;
+
+function getConfig(): SystemPromptConfig {
+  if (!_store[GLOBAL_KEY]) {
+    _store[GLOBAL_KEY] = {
+      enabled: false,
+      prefixPrompt: "",
+      suffixPrompt: "",
+      prompt: "",
+    };
+  }
+  return _store[GLOBAL_KEY]!;
+}
+
+function setConfig(cfg: SystemPromptConfig): void {
+  _store[GLOBAL_KEY] = cfg;
+}
 
 /**
- * Set system prompt config
+ * Set system prompt config (supports legacy `prompt` field for migration)
  */
-export function setSystemPromptConfig(config) {
-  _config = { ..._config, ...config };
+export function setSystemPromptConfig(config: Partial<SystemPromptConfig>) {
+  const current = getConfig();
+  const base = { ...current };
+  if ("prefixPrompt" in config || "suffixPrompt" in config) {
+    base.prompt = "";
+  }
+  const merged = { ...base, ...config };
+  if (merged.prompt && !merged.suffixPrompt && !("suffixPrompt" in config)) {
+    merged.suffixPrompt = merged.prompt;
+  }
+  setConfig(merged);
 }
 
 /**
  * Get system prompt config
  */
 export function getSystemPromptConfig() {
-  return { ..._config };
+  const cfg = getConfig();
+  return {
+    enabled: cfg.enabled,
+    prefixPrompt: cfg.prefixPrompt,
+    suffixPrompt: cfg.suffixPrompt,
+  };
 }
 
 /**
- * Inject system prompt into request body.
+ * Inject system prompts into request body.
+ *
+ * prefixPrompt is prepended before existing system content.
+ * suffixPrompt is appended after existing system content.
+ * This ensures: prefix → agent instructions → suffix (#2468).
  *
  * @param {object} body - Request body
- * @param {string} [promptText] - Override prompt text
  * @returns {object} Modified body
  */
-export function injectSystemPrompt(body, promptText = null) {
-  const text = promptText || _config.prompt;
-  if (!text || !_config.enabled) return body;
+export function injectSystemPrompt(body) {
+  const cfg = getConfig();
+  if (!cfg.enabled) return body;
+  const prefix = cfg.prefixPrompt || "";
+  const suffix = cfg.suffixPrompt || "";
+  if (!prefix && !suffix) return body;
   if (!body || typeof body !== "object") return body;
   if (body._skipSystemPrompt) return body;
 
@@ -44,24 +93,40 @@ export function injectSystemPrompt(body, promptText = null) {
     const sysIdx = result.messages.findIndex((m) => m.role === "system" || m.role === "developer");
     result.messages = [...result.messages];
     if (sysIdx >= 0) {
-      // Append after existing system content so the global prompt is the FINAL
-      // instruction — provider/agent system blocks (Kiro, OpenCode, Hermes, etc.)
-      // are injected into the system message later, and recency bias means the
-      // user's global prompt must come after them to take priority (#2468).
       const msg = { ...result.messages[sysIdx] };
-      msg.content = (msg.content || "") + "\n\n" + text;
+      if (Array.isArray(msg.content)) {
+        const content = [...msg.content];
+        if (prefix) content.unshift({ type: "text", text: prefix });
+        if (suffix) content.push({ type: "text", text: suffix });
+        msg.content = content;
+      } else {
+        let content = msg.content || "";
+        if (prefix) content = prefix + "\n\n" + content;
+        if (suffix) content = content + "\n\n" + suffix;
+        msg.content = content;
+      }
       result.messages[sysIdx] = msg;
     } else {
-      result.messages = [{ role: "system", content: text }, ...result.messages];
+      // No existing system message — combine both into one
+      const combined = [prefix, suffix].filter(Boolean).join("\n\n");
+      if (combined) {
+        result.messages = [{ role: "system", content: combined }, ...result.messages];
+      }
     }
   }
 
-  // Claude format (system field) — append for the same reason as above (#2468).
+  // Claude format (system field)
   if (result.system !== undefined) {
     if (typeof result.system === "string") {
-      result.system = result.system + "\n\n" + text;
+      let sys = result.system;
+      if (prefix) sys = prefix + "\n\n" + sys;
+      if (suffix) sys = sys + "\n\n" + suffix;
+      result.system = sys;
     } else if (Array.isArray(result.system)) {
-      result.system = [...result.system, { type: "text", text }];
+      let arr = [...result.system];
+      if (prefix) arr = [{ type: "text", text: prefix }, ...arr];
+      if (suffix) arr = [...arr, { type: "text", text: suffix }];
+      result.system = arr;
     }
   }
 

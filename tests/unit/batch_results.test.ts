@@ -16,8 +16,13 @@ const {
   createProviderConnection,
   createApiKey,
 } = await import("../../src/lib/localDb.ts");
-const { initBatchProcessor, stopBatchProcessor } =
+const { initBatchProcessor, stopBatchProcessor, waitForAllBatches, processPendingBatches } =
   await import("../../open-sse/services/batchProcessor.ts");
+
+test.afterEach(async () => {
+  stopBatchProcessor();
+  await waitForAllBatches();
+});
 
 // Simple end-to-end check: when a batch item's upstream call succeeds, the
 // batch processor should emit an output file containing a JSONL line per item.
@@ -25,7 +30,7 @@ const { initBatchProcessor, stopBatchProcessor } =
 test("Batch processor produces output file for successful items", async () => {
   const originalFetch = globalThis.fetch;
   // Mock upstream provider to always return a successful embedding response
-  globalThis.fetch = async (url, options) => {
+  globalThis.fetch = (async (url, options) => {
     return new Response(
       JSON.stringify({
         object: "list",
@@ -34,7 +39,7 @@ test("Batch processor produces output file for successful items", async () => {
       }),
       { status: 200, headers: { "Content-Type": "application/json" } }
     );
-  };
+  }) as any;
 
   // Prevent open-sse/utils/proxyFetch.ts from replacing globalThis.fetch
   // when it is dynamically imported via the route handler chain.
@@ -82,6 +87,7 @@ test("Batch processor produces output file for successful items", async () => {
     });
 
     initBatchProcessor();
+    await processPendingBatches();
 
     let maxAttempts = 30;
     let currentBatch = getBatch(batch.id);

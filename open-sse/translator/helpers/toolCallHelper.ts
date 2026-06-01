@@ -118,7 +118,9 @@ export function hasToolResults(msg, toolCallIds) {
   return false;
 }
 
-// Fix missing tool responses - insert empty tool_result if assistant has tool_use but next message has no tool_result
+// Fix missing tool responses - insert empty tool_result if assistant has tool_use but next message has no tool_result.
+// Inserts in the same shape as the opening assistant message: OpenAI tool_calls → role:"tool";
+// Claude tool_use blocks → role:"user" with tool_result content blocks.
 export function fixMissingToolResponses(body) {
   if (!body.messages || !Array.isArray(body.messages)) return body;
 
@@ -136,13 +138,23 @@ export function fixMissingToolResponses(body) {
 
     // Check if next message has tool_result
     if (nextMsg && !hasToolResults(nextMsg, toolCallIds)) {
-      // Insert tool responses for each tool_call
-      for (const id of toolCallIds) {
-        // OpenAI format: role = "tool"
+      const hasOpenAIToolCalls = Array.isArray(msg.tool_calls) && msg.tool_calls.length > 0;
+      if (hasOpenAIToolCalls) {
+        for (const id of toolCallIds) {
+          newMessages.push({
+            role: "tool",
+            tool_call_id: id,
+            content: "",
+          });
+        }
+      } else {
         newMessages.push({
-          role: "tool",
-          tool_call_id: id,
-          content: "",
+          role: "user",
+          content: toolCallIds.map((id) => ({
+            type: "tool_result",
+            tool_use_id: id,
+            content: "",
+          })),
         });
       }
     }

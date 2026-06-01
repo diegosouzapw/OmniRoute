@@ -18,6 +18,7 @@ import { getMachineId } from "@/shared/utils/machine";
 import { USAGE_SUPPORTED_PROVIDERS } from "@/shared/constants/providers";
 import { getExecutor } from "@omniroute/open-sse/executors/index.ts";
 import { getUsageForProvider } from "@omniroute/open-sse/services/usage.ts";
+import { rotationGroupFor } from "@omniroute/open-sse/services/refreshSerializer.ts";
 import {
   extractCodeAssistOnboardTierId,
   extractCodeAssistSubscriptionTier,
@@ -53,6 +54,7 @@ const PROVIDER_LIMITS_APIKEY_PROVIDERS = new Set([
   "glm-cn",
   "zai",
   "glmt",
+  "opencode-go",
   "minimax",
   "minimax-cn",
   "crof",
@@ -109,9 +111,20 @@ async function syncToCloudIfEnabled() {
   }
 }
 
-async function refreshAndUpdateCredentials(connection: ProviderConnectionLike) {
+export async function refreshAndUpdateCredentials(connection: ProviderConnectionLike) {
+  // Rotating-refresh providers (Codex/OpenAI share one Auth0 client_id, etc.)
+  // mint a single-use refresh_token on every refresh. The quota-sync path runs
+  // many connections concurrently; refreshing sibling accounts in parallel makes
+  // Auth0 revoke the whole token family (openai/codex#9648) and kills every
+  // account but the last. Never proactively refresh them here — reuse the current
+  // access_token for the quota fetch and let the reactive, serialized 401 path
+  // handle genuine expiry during real requests.
+  if (rotationGroupFor(connection.provider) !== null) {
+    return { connection, refreshed: false };
+  }
   const executor = getExecutor(connection.provider);
   const credentials = {
+    connectionId: connection.id,
     accessToken: connection.accessToken,
     refreshToken: connection.refreshToken,
     expiresAt: connection.tokenExpiresAt || connection.expiresAt || null,
@@ -185,6 +198,19 @@ function isNetworkFailureMessage(message: unknown): boolean {
     message.includes("Proxy unreachable") ||
     message.includes("UND_ERR_CONNECT_TIMEOUT")
   );
+}
+
+function isAccountScopedProxyResolution(proxyInfo: unknown): boolean {
+  if (!isRecord(proxyInfo)) return false;
+  if (!proxyInfo.proxy) return false;
+  return proxyInfo.level === "key" || proxyInfo.level === "account";
+}
+
+function shouldFailClosedForProviderLimitsProxy(
+  connection: ProviderConnectionLike,
+  proxyInfo: unknown
+): boolean {
+  return connection.authType === "oauth" && isAccountScopedProxyResolution(proxyInfo);
 }
 
 async function syncExpiredStatusIfNeeded(connection: ProviderConnectionLike, usage: JsonRecord) {
@@ -385,6 +411,7 @@ async function fetchLiveProviderLimitsWithOptions(
 
   let result: { usage: JsonRecord };
   const proxyConfig = proxyInfo?.proxy || null;
+  const failClosedOnProxyFailure = shouldFailClosedForProviderLimitsProxy(connection, proxyInfo);
 
   try {
     result = await fetchUsageWithContext(proxyConfig);
@@ -396,6 +423,14 @@ async function fetchLiveProviderLimitsWithOptions(
       error?.cause?.code === "ECONNREFUSED";
 
     if (proxyConfig && isThrownNetworkError) {
+      if (failClosedOnProxyFailure) {
+        console.warn(
+          `[ProviderLimits] Account-scoped ${connection.provider} proxy fetch failed for ${connectionId}; failing closed without direct retry:`,
+          error?.message
+        );
+        throw error;
+      }
+
       console.warn(
         `[ProviderLimits] Proxy fetch threw for ${connectionId}, retrying without proxy:`,
         error?.message
@@ -407,6 +442,18 @@ async function fetchLiveProviderLimitsWithOptions(
   }
 
   if (proxyConfig && isNetworkFailureMessage(result.usage?.message)) {
+    if (failClosedOnProxyFailure) {
+      const message =
+        typeof result.usage.message === "string"
+          ? result.usage.message
+          : "Provider-limits proxy request failed";
+      console.warn(
+        `[ProviderLimits] Account-scoped ${connection.provider} proxy usage failed for ${connectionId}; failing closed without direct retry:`,
+        message
+      );
+      throw withStatus(new Error(message), 503);
+    }
+
     console.warn(
       `[ProviderLimits] Proxy usage returned network error for ${connectionId}, retrying without proxy:`,
       result.usage.message

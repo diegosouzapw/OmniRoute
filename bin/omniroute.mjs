@@ -15,6 +15,14 @@ import { join, dirname } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import { homedir, platform } from "node:os";
 import updateNotifier from "update-notifier";
+import { isNativeBinaryCompatible } from "../scripts/build/native-binary-compat.mjs";
+import { getNodeRuntimeSupport, getNodeRuntimeWarning } from "./nodeRuntimeSupport.mjs";
+
+// Register tsx so dynamic imports of .ts source files (referenced as .js per
+// TypeScript conventions) resolve correctly. The build never emits .js for
+// src/lib/cli-helper/, so tsx handles the .ts → .js resolution at runtime.
+await import("tsx/esm");
+await import("../open-sse/utils/setupPolyfill.ts");
 
 // Register tsx so dynamic imports of .ts source files (referenced as .js per
 // TypeScript conventions) resolve correctly. The build never emits .js for
@@ -24,6 +32,16 @@ await import("tsx/esm");
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 const ROOT = join(__dirname, "..");
+
+// MCP stdio transport uses stdout exclusively for JSON-RPC messages.
+// Redirect console.log/warn to stderr early (before loadEnvFile and DB init)
+// so no startup output corrupts the protocol.
+if (process.argv.includes("--mcp")) {
+  const { Console } = await import("node:console");
+  const stderrConsole = new Console({ stdout: process.stderr, stderr: process.stderr });
+  console.log = stderrConsole.log.bind(stderrConsole);
+  console.warn = stderrConsole.warn.bind(stderrConsole);
+}
 
 function loadEnvFile() {
   const envPaths = [];
@@ -43,7 +61,11 @@ function loadEnvFile() {
   }
 
   envPaths.push(join(process.cwd(), ".env"));
-  envPaths.push(join(ROOT, ".env"));
+  // Skip the repo-checkout .env when explicitly requested (used by isolation tests
+  // that need a deterministic environment without the development repo's defaults).
+  if (process.env.OMNIROUTE_CLI_SKIP_REPO_ENV !== "1") {
+    envPaths.push(join(ROOT, ".env"));
+  }
 
   for (const envPath of envPaths) {
     try {

@@ -368,3 +368,55 @@ test("context handoff DB module upserts and deletes active handoffs", () => {
   handoffDb.deleteHandoff("sess-db", "relay-combo");
   assert.equal(handoffDb.getHandoff("sess-db", "relay-combo"), null);
 });
+
+test("selectMessagesForSummary filters falsy values and preserves system/developer messages", () => {
+  const messages: (contextHandoff.MessageLike | null | undefined | false)[] = [
+    null,
+    undefined,
+    { role: "system", content: "System 1" },
+    false,
+    { role: "user", content: "User 1" },
+    { role: "developer", content: "Dev 1" },
+    { role: "assistant", content: "Assistant 1" },
+    { role: "user", content: "User 2" },
+  ];
+
+  const selected = contextHandoff.selectMessagesForSummary(
+    messages as contextHandoff.MessageLike[],
+    2
+  );
+  
+  assert.equal(selected.length, 4);
+  assert.equal(selected[0].role, "system");
+  assert.equal(selected[1].role, "developer");
+  assert.equal(selected[2].role, "assistant");
+  assert.equal(selected[3].role, "user");
+  assert.equal(selected[3].content, "User 2");
+});
+
+test("selectMessagesForSummary with no system messages and oversized single remaining message still produces non-empty selection", () => {
+  // Build a single very large non-system message that exceeds MAX_HISTORY_TOKENS_FOR_SUMMARY
+  // (token estimator is ~4 chars/token, so 8000 tokens ≈ 32000 chars).
+  const hugeContent = "x".repeat(40000);
+  const messages: contextHandoff.MessageLike[] = [
+    { role: "user", content: "first message" },
+    { role: "assistant", content: hugeContent },
+  ];
+
+  const selected = contextHandoff.selectMessagesForSummary(messages, 10);
+
+  // The function must return at least one message rather than [] so the handoff is not silently dropped.
+  assert.ok(selected.length > 0, "expected at least one message to be selected");
+
+  // formatMessagesForPrompt on the result must produce a non-empty string
+  // (guards the regression: previously returned [] → empty historyText → handoff skipped).
+  const historyText = selected
+    .map((m, i) => {
+      const role = typeof m.role === "string" ? m.role : "unknown";
+      const content = typeof m.content === "string" ? m.content.trim() : "";
+      return content ? `[${i + 1}] ${role.toUpperCase()}:\n${content}` : "";
+    })
+    .filter(Boolean)
+    .join("\n\n");
+  assert.ok(historyText.length > 0, "historyText must be non-empty so the handoff is generated");
+});

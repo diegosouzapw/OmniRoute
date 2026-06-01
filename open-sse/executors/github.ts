@@ -5,6 +5,7 @@ import {
   getGitHubCopilotChatHeaders,
   getGitHubCopilotRefreshHeaders,
 } from "../config/providerHeaderProfiles.ts";
+import { sanitizeResponsesInputItems } from "../services/responsesInputSanitizer.ts";
 
 export class GithubExecutor extends BaseExecutor {
   constructor() {
@@ -68,6 +69,10 @@ export class GithubExecutor extends BaseExecutor {
 
     const sourceBody = body && typeof body === "object" ? body : {};
     const modifiedBody = { ...sourceBody };
+
+    if (Array.isArray(sourceBody.input)) {
+      modifiedBody.input = sanitizeResponsesInputItems(sourceBody.input, false);
+    }
 
     if (Array.isArray(sourceBody.messages)) {
       modifiedBody.messages = sourceBody.messages.map((msg) => {

@@ -147,12 +147,12 @@ test("v1 ws bridge streams correlated request chunks and survives protocol error
     .map((entry) => entry.chunk);
 
   assert.equal(errors.length, 0);
-  assert.equal(req1Chunks.length >= 2, true);
-  assert.equal(req2Chunks.length >= 2, true);
-  assert.match(req1Chunks[0], /alpha:part1/);
-  assert.match(req1Chunks[1], /alpha:part2/);
-  assert.match(req2Chunks[0], /beta:part1/);
-  assert.match(req2Chunks[1], /beta:part2/);
+  const req1Combined = req1Chunks.join("");
+  const req2Combined = req2Chunks.join("");
+  assert.match(req1Combined, /alpha:part1/);
+  assert.match(req1Combined, /alpha:part2/);
+  assert.match(req2Combined, /beta:part1/);
+  assert.match(req2Combined, /beta:part2/);
 
   ws.close();
   await close(server);

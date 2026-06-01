@@ -1,33 +1,62 @@
 import { timingSafeEqual } from "node:crypto";
 import { isModelSyncInternalRequest } from "../../../shared/services/modelSyncScheduler";
 import { isAuthRequired, isDashboardSessionAuthenticated } from "../../../shared/utils/apiAuth";
-import { getMachineTokenSync } from "../../../lib/machineToken";
+import { getLegacyCliTokenSync, getMachineTokenSync } from "../../../lib/machineToken";
 import type { AuthOutcome, PolicyContext, RoutePolicy } from "../context";
 import { allow, reject } from "../context";
 import { extractApiKey, isValidApiKey } from "../../../sse/services/auth";
 import { getApiKeyMetadata } from "../../../lib/db/apiKeys";
 import { hasManageScope } from "../../../lib/api/requireManagementAuth";
-import { CLI_TOKEN_HEADER } from "../headers";
+import { CLI_TOKEN_HEADER, PEER_IP_HEADER } from "../headers";
+import { resolveStampedPeer } from "../peerStamp";
 import {
   isAlwaysProtectedPath,
   isLocalOnlyBypassableByManageScope,
   isLocalOnlyPath,
   isLoopbackHost,
+  isPrivateLanHost,
 } from "../routeGuard";
 
 const MODEL_SYNC_MANAGEMENT_PATH = /^\/api\/providers\/[^/]+\/(sync-models|models)$/;
 
-function isLoopbackRequest(headers: Headers): boolean {
-  return isLoopbackHost(headers.get("host"));
+function requestPeerAddress(ctx: PolicyContext): string | null {
+  // The Next middleware runtime exposes no socket/.ip, so the only trustworthy
+  // locality signal is the token-stamped PEER_IP_HEADER our custom server writes
+  // from the real TCP peer (scripts/dev/peer-stamp.mjs). We NEVER read the Host
+  // header here — it is client-controlled and spoofable. Absent/forged stamp →
+  // null → isLoopbackRequest/isPrivateLanRequest return false → fail closed.
+  const stamped = resolveStampedPeer(
+    ctx.request.headers?.get?.(PEER_IP_HEADER) ?? null,
+    process.env.OMNIROUTE_PEER_STAMP_TOKEN
+  );
+  if (stamped) return stamped;
+  // Non-middleware callers (tests / direct Node) may carry a real socket peer.
+  return ctx.request.ip ?? ctx.request.socket?.remoteAddress ?? null;
 }
 
-function hasValidCliToken(headers: Headers): boolean {
-  if (!isLoopbackRequest(headers)) return false;
+function isLoopbackRequest(ctx: PolicyContext): boolean {
+  const peerAddress = requestPeerAddress(ctx);
+  return peerAddress ? isLoopbackHost(peerAddress) : false;
+}
+
+// Owner-authorized (2026-05-30): allow LOCAL_ONLY *paths* from a trusted private
+// LAN, based on the real socket peer IP (not spoofable). Does NOT relax the
+// CLI-token gate, which stays strictly loopback.
+function isPrivateLanRequest(ctx: PolicyContext): boolean {
+  const peerAddress = requestPeerAddress(ctx);
+  return peerAddress ? isPrivateLanHost(peerAddress) : false;
+}
+
+function hasValidCliToken(ctx: PolicyContext): boolean {
+  if (!isLoopbackRequest(ctx)) return false;
+  const headers = ctx.request.headers;
   const provided = headers.get(CLI_TOKEN_HEADER);
   if (!provided) return false;
-  const expected = getMachineTokenSync();
-  if (expected === "" || provided.length !== expected.length) return false;
-  return timingSafeEqual(Buffer.from(provided), Buffer.from(expected));
+  const expectedTokens = [getMachineTokenSync(), getLegacyCliTokenSync()].filter(Boolean);
+  return expectedTokens.some((expected) => {
+    if (provided.length !== expected.length) return false;
+    return timingSafeEqual(Buffer.from(provided), Buffer.from(expected));
+  });
 }
 
 function hasBearerToken(headers: Headers): boolean {
@@ -62,7 +91,7 @@ export const managementPolicy: RoutePolicy = {
     //
     // Anonymous (no Bearer / invalid key / wrong scope / no session) requests
     // still hit the same 403 LOCAL_ONLY they did before.
-    if (isLocalOnlyPath(path) && !isLoopbackRequest(ctx.request.headers)) {
+    if (isLocalOnlyPath(path) && !isLoopbackRequest(ctx) && !isPrivateLanRequest(ctx)) {
       if (isLocalOnlyBypassableByManageScope(path)) {
         const apiKey = extractApiKey(ctx.request as unknown as Request);
         if (apiKey) {
@@ -118,7 +147,7 @@ export const managementPolicy: RoutePolicy = {
       return allow({ kind: "management_key", id: "model-sync", label: "internal-model-sync" });
     }
 
-    if (hasValidCliToken(ctx.request.headers)) {
+    if (hasValidCliToken(ctx)) {
       return allow({ kind: "management_key", id: "cli", label: "local-cli-token" });
     }
 

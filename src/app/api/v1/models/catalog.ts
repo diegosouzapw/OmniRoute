@@ -1,5 +1,5 @@
 import { PROVIDER_MODELS, PROVIDER_ID_TO_ALIAS } from "@/shared/constants/models";
-import { AI_PROVIDERS } from "@/shared/constants/providers";
+import { AI_PROVIDERS, NOAUTH_PROVIDERS } from "@/shared/constants/providers";
 import {
   getProviderConnections,
   getCombos,
@@ -345,6 +345,13 @@ export async function getUnifiedModelsResponse(
       registerConnectionKey(conn.provider, conn);
     }
 
+    // noAuth providers never create DB connection rows, so they are always active.
+    // Add their IDs and aliases unconditionally so the catalog gate does not filter them. (#2798)
+    for (const p of Object.values(NOAUTH_PROVIDERS)) {
+      activeAliases.add(p.id);
+      if ("alias" in p && typeof p.alias === "string") activeAliases.add(p.alias);
+    }
+
     const getConnectionsForProvider = (...keys: Array<string | null | undefined>) => {
       const seen = new Set<string>();
       const collected: typeof connections = [];
@@ -362,6 +369,11 @@ export async function getUnifiedModelsResponse(
     const providerSupportsModel = (providerKey: string, modelId: string) => {
       const providerId = aliasToProviderId[providerKey] || providerKey;
       const alias = providerIdToAlias[providerId] || providerKey;
+      // noAuth providers have no connection rows — treat every model as eligible. (#2798)
+      const isNoAuth = Object.values(NOAUTH_PROVIDERS).some(
+        (p) => p.id === providerId || p.id === providerKey || ("alias" in p && p.alias === alias)
+      );
+      if (isNoAuth) return true;
       return hasEligibleConnectionForModel(
         getConnectionsForProvider(providerKey, providerId, alias),
         modelId
@@ -742,6 +754,9 @@ export async function getUnifiedModelsResponse(
             ...(apiFormat !== "chat-completions" ? { api_format: apiFormat } : {}),
             ...(modelType === "audio" ? { subtype: "transcription" } : {}),
             ...(sm.inputTokenLimit ? { context_length: sm.inputTokenLimit } : {}),
+            ...(typeof sm.outputTokenLimit === "number"
+              ? { max_output_tokens: sm.outputTokenLimit }
+              : {}),
             ...(endpoints.length > 1 || !endpoints.includes("chat")
               ? { supported_endpoints: endpoints }
               : {}),
@@ -776,6 +791,9 @@ export async function getUnifiedModelsResponse(
               type: "audio",
               subtype: "speech",
               ...(sm.inputTokenLimit ? { context_length: sm.inputTokenLimit } : {}),
+              ...(typeof sm.outputTokenLimit === "number"
+                ? { max_output_tokens: sm.outputTokenLimit }
+                : {}),
               ...(endpoints.length > 1 || !endpoints.includes("chat")
                 ? { supported_endpoints: endpoints }
                 : {}),
@@ -1036,6 +1054,9 @@ export async function getUnifiedModelsResponse(
             ...(typeof model.inputTokenLimit === "number"
               ? { context_length: model.inputTokenLimit }
               : {}),
+            ...(typeof (model as any).outputTokenLimit === "number"
+              ? { max_output_tokens: (model as any).outputTokenLimit }
+              : {}),
             ...(visionFields || {}),
           });
 
@@ -1060,6 +1081,9 @@ export async function getUnifiedModelsResponse(
               ...(modelType ? { type: modelType } : {}),
               ...(typeof model.inputTokenLimit === "number"
                 ? { context_length: model.inputTokenLimit }
+                : {}),
+              ...(typeof (model as any).outputTokenLimit === "number"
+                ? { max_output_tokens: (model as any).outputTokenLimit }
                 : {}),
               ...(providerVisionFields || {}),
             });
@@ -1114,20 +1138,31 @@ export async function getUnifiedModelsResponse(
     const apiKey = extractBearer(request.headers);
     let finalModels = models;
     if (apiKey) {
-      const { isModelAllowedForKey } = await import("@/lib/db/apiKeys");
+      const { isModelAllowedForKey, getApiKeyMetadata } = await import("@/lib/db/apiKeys");
 
-      const filtered = [];
-      for (const m of models) {
-        // m.id is the full identifier (e.g. openai/gpt-4o), m.root is the raw model string
-        // check either one as the config could use either patterns
-        if (
-          (await isModelAllowedForKey(apiKey, m.id)) ||
-          (await isModelAllowedForKey(apiKey, m.root))
-        ) {
-          filtered.push(m);
+      // Quota-exclusive keys (allowedQuotas non-empty): show only the
+      // quotaShared-* virtual models for the key's assigned pools (Phase B3).
+      // This takes precedence over the normal allowedModels filter.
+      const keyMeta = await getApiKeyMetadata(apiKey);
+      if (keyMeta && keyMeta.allowedQuotas && keyMeta.allowedQuotas.length > 0) {
+        const { resolveQuotaKeyScope } = await import("@/lib/quota/quotaKey");
+        const { filterModelsToQuotaPools } = await import("@/lib/quota/quotaCombos");
+        const scope = await resolveQuotaKeyScope(keyMeta.allowedQuotas);
+        finalModels = filterModelsToQuotaPools(models, scope.poolSlugs);
+      } else {
+        const filtered = [];
+        for (const m of models) {
+          // m.id is the full identifier (e.g. openai/gpt-4o), m.root is the raw model string
+          // check either one as the config could use either patterns
+          if (
+            (await isModelAllowedForKey(apiKey, m.id)) ||
+            (await isModelAllowedForKey(apiKey, m.root))
+          ) {
+            filtered.push(m);
+          }
         }
+        finalModels = filtered;
       }
-      finalModels = filtered;
     }
 
     const getDefaultContextFallback = (model: any): number | undefined => {

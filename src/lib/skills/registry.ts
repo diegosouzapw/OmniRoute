@@ -11,6 +11,8 @@ class SkillRegistry {
   private registeredSkills: Map<string, Skill> = new Map();
   private versionCache: Map<string, Map<string, Skill>> = new Map();
   private lastLoaded: number = 0;
+  private loadedAll: boolean = false;
+  private loadedApiKeyIds: Set<string> = new Set();
   private readonly cacheTTL: number = 60_000; // 60 seconds
   private pendingLoad: Promise<void> | null = null; // dedupes concurrent cache fills
 
@@ -29,6 +31,28 @@ class SkillRegistry {
 
   invalidateCache(): void {
     this.lastLoaded = 0;
+    this.loadedAll = false;
+    this.loadedApiKeyIds.clear();
+  }
+
+  private cacheKey(skill: Pick<Skill, "apiKeyId" | "name" | "version">): string {
+    return `${skill.apiKeyId}:${skill.name}@${skill.version}`;
+  }
+
+  private cacheSkill(skill: Skill): void {
+    this.registeredSkills.set(this.cacheKey(skill), skill);
+    this.updateVersionCache(skill);
+  }
+
+  private removeCachedSkills(predicate: (skill: Skill) => boolean): void {
+    const affectedNames = new Set<string>();
+    for (const [key, skill] of this.registeredSkills.entries()) {
+      if (predicate(skill)) {
+        affectedNames.add(skill.name);
+        this.registeredSkills.delete(key);
+      }
+    }
+    affectedNames.forEach((name) => this.rebuildVersionCache(name));
   }
 
   async register(skillData: {
@@ -95,8 +119,7 @@ class SkillRegistry {
       updatedAt: now,
     };
 
-    this.registeredSkills.set(`${parsed.name}@${parsed.version}`, skill);
-    this.updateVersionCache(skill);
+    this.cacheSkill(skill);
     this.invalidateCache();
 
     return skill;
@@ -106,11 +129,15 @@ class SkillRegistry {
     const db = getDbInstance();
 
     if (version) {
-      const key = `${name}@${version}`;
-      const skill = this.registeredSkills.get(key);
+      const skill = Array.from(this.registeredSkills.values()).find(
+        (candidate) =>
+          candidate.name === name &&
+          candidate.version === version &&
+          (!apiKeyId || candidate.apiKeyId === apiKeyId)
+      );
       if (skill && (!apiKeyId || skill.apiKeyId === apiKeyId)) {
         db.prepare("DELETE FROM skills WHERE id = ?").run(skill.id);
-        this.registeredSkills.delete(key);
+        this.registeredSkills.delete(this.cacheKey(skill));
         this.rebuildVersionCache(name);
         this.invalidateCache();
         return true;
@@ -121,11 +148,9 @@ class SkillRegistry {
         .run(name, apiKeyId || null, apiKeyId || null);
 
       if (deleted.changes > 0) {
-        const keysToDelete = Array.from(this.registeredSkills.entries())
-          .filter(([, skill]) => skill.name === name && (!apiKeyId || skill.apiKeyId === apiKeyId))
-          .map(([key]) => key);
-        keysToDelete.forEach((k) => this.registeredSkills.delete(k));
-        this.rebuildVersionCache(name);
+        this.removeCachedSkills(
+          (skill) => skill.name === name && (!apiKeyId || skill.apiKeyId === apiKeyId)
+        );
         this.invalidateCache();
         return true;
       }
@@ -161,18 +186,33 @@ class SkillRegistry {
     return Array.from(this.registeredSkills.values());
   }
 
-  getSkill(name: string, _apiKeyId?: string): Skill | undefined {
-    return this.registeredSkills.get(name);
+  getSkill(identifier: string, apiKeyId?: string): Skill | undefined {
+    const matchesScope = (skill: Skill) => !apiKeyId || skill.apiKeyId === apiKeyId;
+    const skills = Array.from(this.registeredSkills.values()).filter(matchesScope);
+
+    const byId = skills.find((skill) => skill.id === identifier);
+    if (byId) return byId;
+
+    const [name, version] = identifier.includes("@")
+      ? identifier.split("@", 2)
+      : [identifier, undefined];
+    if (version) {
+      return skills.find((skill) => skill.name === name && skill.version === version);
+    }
+
+    return skills
+      .filter((skill) => skill.name === identifier)
+      .sort((a, b) => this.compareVersions(b.version, a.version))[0];
   }
 
-  getSkillVersions(name: string): Skill[] {
-    const cached = this.versionCache.get(name);
-    if (!cached) return [];
-    return Array.from(cached.values()).sort((a, b) => this.compareVersions(b.version, a.version));
+  getSkillVersions(name: string, apiKeyId?: string): Skill[] {
+    return Array.from(this.registeredSkills.values())
+      .filter((skill) => skill.name === name && (!apiKeyId || skill.apiKeyId === apiKeyId))
+      .sort((a, b) => this.compareVersions(b.version, a.version));
   }
 
-  resolveVersion(name: string, constraint: string, _apiKeyId?: string): Skill | undefined {
-    const versions = this.getSkillVersions(name);
+  resolveVersion(name: string, constraint: string, apiKeyId?: string): Skill | undefined {
+    const versions = this.getSkillVersions(name, apiKeyId);
     if (versions.length === 0) return undefined;
 
     const operator = constraint.charAt(0);
@@ -255,7 +295,10 @@ class SkillRegistry {
       await this.pendingLoad;
       return;
     }
-    if (!this.isCacheStale()) return;
+    const cacheHasScope = apiKeyId
+      ? this.loadedAll || this.loadedApiKeyIds.has(apiKeyId)
+      : this.loadedAll;
+    if (cacheHasScope && !this.isCacheStale()) return;
 
     this.pendingLoad = (async () => {
       try {
@@ -264,6 +307,13 @@ class SkillRegistry {
         const rows = apiKeyId
           ? db.prepare("SELECT * FROM skills WHERE api_key_id = ?").all(apiKeyId)
           : db.prepare("SELECT * FROM skills").all();
+
+        if (apiKeyId) {
+          this.removeCachedSkills((skill) => skill.apiKeyId === apiKeyId);
+        } else {
+          this.registeredSkills.clear();
+          this.versionCache.clear();
+        }
 
         for (const row of rows as any[]) {
           const tags = (() => {
@@ -297,8 +347,13 @@ class SkillRegistry {
             createdAt: new Date(row.created_at),
             updatedAt: new Date(row.updated_at),
           };
-          this.registeredSkills.set(`${skill.name}@${skill.version}`, skill);
-          this.updateVersionCache(skill);
+          this.cacheSkill(skill);
+        }
+        if (apiKeyId) {
+          this.loadedApiKeyIds.add(apiKeyId);
+        } else {
+          this.loadedAll = true;
+          this.loadedApiKeyIds.clear();
         }
         this.lastLoaded = Date.now();
       } catch (err: any) {
@@ -313,6 +368,30 @@ class SkillRegistry {
     } finally {
       this.pendingLoad = null;
     }
+  }
+
+  async setEnabledById(id: string, apiKeyId: string, enabled: boolean): Promise<Skill | undefined> {
+    const db = getDbInstance();
+    const now = new Date();
+    const updated = db
+      .prepare(
+        "UPDATE skills SET enabled = ?, mode = ?, updated_at = ? WHERE id = ? AND api_key_id = ?"
+      )
+      .run(enabled ? 1 : 0, enabled ? "on" : "off", now.toISOString(), id, apiKeyId);
+
+    if (updated.changes === 0) return undefined;
+
+    const skill = this.getSkill(id, apiKeyId);
+    if (skill) {
+      const mode: Skill["mode"] = enabled ? "on" : "off";
+      const updatedSkill: Skill = { ...skill, enabled, mode, updatedAt: now };
+      this.cacheSkill(updatedSkill);
+      return updatedSkill;
+    }
+
+    this.invalidateCache();
+    await this.loadFromDatabase(apiKeyId);
+    return this.getSkill(id, apiKeyId);
   }
 }
 

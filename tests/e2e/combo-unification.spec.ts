@@ -137,7 +137,6 @@ test.describe("Combo Unification", () => {
 
   test("combos page exposes strategy tabs and intelligent panel", async ({ page }) => {
     await gotoDashboardRoute(page, "/dashboard/combos?filter=intelligent");
-    await page.waitForLoadState("networkidle");
 
     await expect(
       page
@@ -159,7 +158,6 @@ test.describe("Combo Unification", () => {
 
   test("sidebar no longer shows auto combo entry", async ({ page }) => {
     await gotoDashboardRoute(page, "/dashboard/combos");
-    await page.waitForLoadState("networkidle");
 
     const sidebar = page.locator("aside, nav").first();
     await expect(sidebar.getByText("Combos", { exact: true })).toBeVisible();
@@ -168,7 +166,6 @@ test.describe("Combo Unification", () => {
 
   test("builder shows intelligent step when auto strategy is selected", async ({ page }) => {
     await gotoDashboardRoute(page, "/dashboard/combos");
-    await page.waitForLoadState("networkidle");
 
     await page.getByRole("button", { name: /create combo/i }).click();
     await page.getByLabel(/combo name/i).waitFor({ state: "visible" });

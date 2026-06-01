@@ -104,6 +104,59 @@ test("getProviderCredentials reports rate limiting when only inactive suppressed
   assert.match(String(result.retryAfterHuman), /reset after/i);
 });
 
+test("codex session account affinity is opt-in and honors TTL", async () => {
+  const affinityDb = await import("../../src/lib/db/sessionAccountAffinity.ts");
+  await settingsDb.updateSettings({ fallbackStrategy: "least-used" });
+  await seedConnection("codex", { name: "codex-affinity-a", priority: 1 });
+  await seedConnection("codex", { name: "codex-affinity-b", priority: 2 });
+
+  const withoutAffinityA = await auth.getProviderCredentials("codex", null, null, "gpt-5", {
+    sessionKey: "session-without-affinity",
+  });
+  const withoutAffinityB = await auth.getProviderCredentials("codex", null, null, "gpt-5", {
+    sessionKey: "session-without-affinity",
+  });
+
+  assert.equal(typeof withoutAffinityA.connectionId, "string");
+  assert.equal(typeof withoutAffinityB.connectionId, "string");
+  assert.equal(
+    affinityDb.getSessionAccountAffinity("session-without-affinity", "codex", 60_000),
+    null
+  );
+
+  await settingsDb.updateSettings({ codexSessionAffinityTtlMs: 60_000 });
+
+  const withAffinityA = await auth.getProviderCredentials("codex", null, null, "gpt-5", {
+    sessionKey: "session-with-affinity",
+  });
+  const withAffinityB = await auth.getProviderCredentials("codex", null, null, "gpt-5", {
+    sessionKey: "session-with-affinity",
+  });
+
+  assert.equal(withAffinityB.connectionId, withAffinityA.connectionId);
+  assert.equal(
+    affinityDb.getSessionAccountAffinity("session-with-affinity", "codex", 60_000)?.connectionId,
+    withAffinityA.connectionId
+  );
+});
+
+test("session account affinity expires when TTL has passed", async () => {
+  const affinityDb = await import("../../src/lib/db/sessionAccountAffinity.ts");
+  const now = Date.now();
+
+  affinityDb.upsertSessionAccountAffinity("expiring-session", "codex", "conn-a", now, 1000);
+
+  assert.equal(
+    affinityDb.getSessionAccountAffinity("expiring-session", "codex", 1000, now + 500)
+      ?.connectionId,
+    "conn-a"
+  );
+  assert.equal(
+    affinityDb.getSessionAccountAffinity("expiring-session", "codex", 1000, now + 1001),
+    null
+  );
+});
+
 test("getProviderCredentials returns last error metadata when active accounts are all rate limited", async () => {
   const retryAfter = futureIso();
   await seedConnection("openai", {
@@ -311,8 +364,64 @@ test("getProviderCredentialsWithQuotaPreflight invokes the fetcher when an overr
   assert.equal(fetcherCalls, 1, "fetcher should have been invoked exactly once");
 });
 
+test("getProviderCredentialsWithQuotaPreflight: explicit quotaPreflightEnabled:false bypasses preflight even when provider has global window defaults (#2831)", async () => {
+  // Regression: when a provider has providerWindowDefaults set AND a connection
+  // carries quotaWindowThresholds, the AND-of-negations gate in auth.ts would
+  // proceed to preflight even if the connection explicitly opted out with
+  // providerSpecificData.quotaPreflightEnabled === false.
+  const conn = await seedConnection("github", {
+    name: "github-explicit-opt-out",
+    apiKey: "ghp-opt-out-test",
+    providerSpecificData: { quotaPreflightEnabled: false },
+  });
+  // Give the connection per-window overrides (simulates a user-configured
+  // threshold) — this is the field that previously caused the gate to keep going.
+  await (await import("../../src/lib/db/providers.ts")).updateProviderConnection(conn.id, {
+    quotaWindowThresholds: { primary: 50 },
+  });
+
+  // Seed provider-level window defaults so providerHasDefaults === true.
+  await settingsDb.updateSettings({
+    resilienceSettings: {
+      quotaPreflight: {
+        defaultThresholdPercent: 2,
+        warnThresholdPercent: 20,
+        providerWindowDefaults: { github: { primary: 10 } },
+      },
+    },
+  });
+
+  const quotaPreflight = await import("../../open-sse/services/quotaPreflight.ts");
+  let fetcherCalls = 0;
+  quotaPreflight.registerQuotaFetcher("github", async () => {
+    fetcherCalls++;
+    // Return a quota that would block if preflight actually ran.
+    return { used: 98, total: 100, percentUsed: 0.98 };
+  });
+
+  const selected = await auth.getProviderCredentialsWithQuotaPreflight("github");
+
+  assert.equal(
+    fetcherCalls,
+    0,
+    "fetcher must NOT run when connection explicitly opts out with quotaPreflightEnabled: false"
+  );
+  assert.equal(
+    (selected as any).connectionId,
+    conn.id,
+    "opted-out connection must be returned directly without being blocked by preflight"
+  );
+
+  // Cleanup: reset settings so subsequent tests see factory defaults.
+  await settingsDb.updateSettings({ resilienceSettings: {} });
+});
+
 test("getProviderCredentials keeps separate codex affinity per session", async () => {
-  await settingsDb.updateSettings({ fallbackStrategy: "round-robin", stickyRoundRobinLimit: 10 });
+  await settingsDb.updateSettings({
+    fallbackStrategy: "round-robin",
+    stickyRoundRobinLimit: 10,
+    codexSessionAffinityTtlMs: 60_000,
+  });
   const first = await seedConnection("codex", {
     name: "codex-affinity-a",
     lastUsedAt: new Date(Date.now() - 20_000).toISOString(),
@@ -342,7 +451,11 @@ test("getProviderCredentials keeps separate codex affinity per session", async (
 });
 
 test("getProviderCredentials rebinds codex session when affinity connection is excluded", async () => {
-  await settingsDb.updateSettings({ fallbackStrategy: "round-robin", stickyRoundRobinLimit: 10 });
+  await settingsDb.updateSettings({
+    fallbackStrategy: "round-robin",
+    stickyRoundRobinLimit: 10,
+    codexSessionAffinityTtlMs: 60_000,
+  });
   const first = await seedConnection("codex", {
     name: "codex-affinity-excluded-a",
     lastUsedAt: new Date(Date.now() - 20_000).toISOString(),
@@ -546,6 +659,22 @@ test("getProviderCredentials retains rate-limited accounts when allowSuppressedC
   assert.equal(blocked.allRateLimited, true);
   assert.equal(bypassed.connectionId, connection.id);
 });
+
+test("getProviderCredentials retains rate-limited accounts when allowRateLimitedConnections is enabled", async () => {
+  const connection = await seedConnection("openai", {
+    name: "allow-rate-limit-option",
+    rateLimitedUntil: futureIso(),
+  });
+
+  const blocked = await auth.getProviderCredentials("openai");
+  const bypassed = await auth.getProviderCredentials("openai", null, null, null, {
+    allowRateLimitedConnections: true,
+  });
+
+  assert.equal(blocked.allRateLimited, true);
+  assert.equal(bypassed.connectionId, connection.id);
+});
+
 
 test("getProviderCredentials retains terminal accounts for combo live tests", async () => {
   const connection = await seedConnection("openai", {

@@ -33,7 +33,7 @@ const PROXY_RESOLUTION_CACHE_MAX_ENTRIES = 100;
 let proxyConfigGeneration = 0;
 const proxyResolutionCache = new Map<string, ProxyResolutionCacheEntry>();
 
-function bumpProxyConfigGeneration() {
+export function bumpProxyConfigGeneration() {
   proxyConfigGeneration++;
   proxyResolutionCache.clear();
 }
@@ -86,6 +86,9 @@ export async function getSettings() {
     tailscaleEnabled: false,
     tailscaleUrl: "",
     stickyRoundRobinLimit: 3,
+    requestRetry: 3,
+    maxRetryIntervalSec: 30,
+    antigravitySignatureCacheMode: "enabled",
     requireLogin: true,
     mcpEnabled: false,
     a2aEnabled: false,
@@ -96,18 +99,17 @@ export async function getSettings() {
     hideEndpointCloudflaredTunnel: false,
     hideEndpointTailscaleFunnel: false,
     hideEndpointNgrokTunnel: false,
+    autoRefreshProviderQuota: false,
+    autoRefreshProviderQuotaInterval: 180,
     comboConfigMode: "guided",
     codexServiceTier: { enabled: false },
-    claudeFastMode: { enabled: false, supportedModels: ["claude-opus-4-7", "claude-opus-4-6"] },
+    claudeFastMode: {
+      enabled: false,
+      supportedModels: ["claude-opus-4-8", "claude-opus-4-7", "claude-opus-4-6"],
+    },
+    codexSessionAffinityTtlMs: 0,
     alwaysPreserveClientCache: "auto",
     idempotencyWindowMs: 5000,
-    globalRandomRoutingEnabled: false,
-    globalRandomRoutingMode: "strict",
-    globalRandomRoutingPool: [],
-    globalRandomRoutingProviders: [],
-    globalRandomRoutingBlockedModels: [],
-    globalRandomRoutingExcludeCombos: true,
-    globalRandomRoutingWeights: {},
     wsAuth: false,
     maxBodySizeMb: requestBodyLimitMbFromEnv(process.env.MAX_BODY_SIZE_BYTES),
     debugMode: true,
@@ -157,7 +159,19 @@ export async function updateSettings(updates: Record<string, unknown>) {
   tx();
   backupDbFile("pre-write");
   invalidateDbCache("settings"); // Bust the read cache immediately
-  return getSettings();
+  const nextSettings = await getSettings();
+
+  try {
+    const { applyRuntimeSettings } = await import("@/lib/config/runtimeSettings");
+    await applyRuntimeSettings(nextSettings, { source: "settings:update" });
+  } catch (error) {
+    console.warn(
+      "[HOT_RELOAD] Failed to apply runtime settings after update:",
+      error instanceof Error ? error.message : error
+    );
+  }
+
+  return nextSettings;
 }
 
 export async function isCloudEnabled() {
@@ -471,23 +485,8 @@ function resolveProviderAliasOrId(providerOrAlias: string): string {
 }
 
 function getComboModelProvider(modelEntry: unknown): string | null {
-  const record = toRecord(modelEntry);
-  if (typeof record.provider === "string") {
-    return resolveProviderAliasOrId(record.provider);
-  }
-
-  const modelValue =
-    typeof modelEntry === "string"
-      ? modelEntry
-      : typeof record.model === "string"
-        ? record.model
-        : null;
-
-  if (!modelValue) return null;
-
-  const [providerOrAlias] = modelValue.split("/", 1);
-  if (!providerOrAlias) return null;
-  return resolveProviderAliasOrId(providerOrAlias);
+  const providerOrAlias = getComboEntryProvider(modelEntry);
+  return providerOrAlias ? resolveProviderAliasOrId(providerOrAlias) : null;
 }
 
 function migrateProxyEntry(value: unknown): JsonRecord | null {
@@ -768,19 +767,21 @@ export async function getCacheMetrics() {
         `
       SELECT
         provider,
-        COUNT(*) as requests,
-        SUM(tokens_input) as inputTokens,
+        COUNT(*) as totalRequests,
+        SUM(CASE WHEN tokens_cache_read > 0 OR tokens_cache_creation > 0 THEN 1 ELSE 0 END) as cachedRequests,
+        SUM(CASE WHEN tokens_cache_read > 0 OR tokens_cache_creation > 0 THEN tokens_input ELSE 0 END) as inputTokens,
         SUM(tokens_cache_read) as cachedTokens,
         SUM(tokens_cache_creation) as cacheCreationTokens
       FROM usage_history
-      WHERE (tokens_cache_read > 0 OR tokens_cache_creation > 0)
-        AND provider IS NOT NULL
+      WHERE provider IS NOT NULL
       GROUP BY provider
+      HAVING cachedRequests > 0
     `
       )
       .all() as Array<{
       provider: string;
-      requests: number;
+      totalRequests: number;
+      cachedRequests: number;
       inputTokens: number | null;
       cachedTokens: number | null;
       cacheCreationTokens: number | null;
@@ -822,6 +823,8 @@ export async function getCacheMetrics() {
       string,
       {
         requests: number;
+        totalRequests: number;
+        cachedRequests: number;
         inputTokens: number;
         cachedTokens: number;
         cacheCreationTokens: number;
@@ -829,7 +832,9 @@ export async function getCacheMetrics() {
     > = {};
     for (const row of byProviderRows) {
       byProvider[row.provider] = {
-        requests: row.requests,
+        requests: row.cachedRequests,
+        totalRequests: row.totalRequests,
+        cachedRequests: row.cachedRequests,
         inputTokens: row.inputTokens || 0,
         cachedTokens: row.cachedTokens || 0,
         cacheCreationTokens: row.cacheCreationTokens || 0,

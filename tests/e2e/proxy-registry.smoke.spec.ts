@@ -172,7 +172,9 @@ test.describe("Proxy Registry smoke flow", () => {
       });
     });
 
-    await gotoDashboardRoute(page, "/dashboard/system/proxy");
+    // The proxy registry now lives under the "Proxy Pool" sub-tab of the proxy
+    // settings page; navigate directly to it so the heading renders.
+    await gotoDashboardRoute(page, "/dashboard/system/proxy?tab=proxy-pool");
 
     await expect(page.getByRole("heading", { name: "Proxy Registry" })).toBeVisible();
 

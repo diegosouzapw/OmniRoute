@@ -13,7 +13,7 @@ function scopeCheck(
   apiKeyId: string | null
 ): boolean {
   if (isSessionAuth) return true;
-  if (recordApiKeyId === null || recordApiKeyId === undefined) return true;
+  if (recordApiKeyId === null || recordApiKeyId === undefined) return apiKeyId !== null;
   return recordApiKeyId === apiKeyId;
 }
 
@@ -28,10 +28,10 @@ test("scopeCheck — session auth always passes", () => {
   assert.strictEqual(scopeCheck(true, undefined, null), true);
 });
 
-test("scopeCheck — null record ApiKeyId always passes", () => {
-  assert.strictEqual(scopeCheck(false, null, null), true);
+test("scopeCheck — null record ApiKeyId requires an authenticated API key", () => {
+  assert.strictEqual(scopeCheck(false, null, null), false);
   assert.strictEqual(scopeCheck(false, null, "any-key"), true);
-  assert.strictEqual(scopeCheck(false, undefined, null), true);
+  assert.strictEqual(scopeCheck(false, undefined, null), false);
   assert.strictEqual(scopeCheck(false, undefined, "any-key"), true);
 });
 
