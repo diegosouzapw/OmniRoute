@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { CORS_HEADERS, handleCorsOptions } from "@/shared/utils/cors";
+import { buildErrorBody } from "@omniroute/open-sse/utils/error";
 import { listPlugins } from "@/lib/db/plugins";
 import { pluginManager } from "@/lib/plugins/manager";
 import { requireManagementAuth } from "@/lib/api/requireManagementAuth";
@@ -29,8 +30,12 @@ export async function GET(request: NextRequest) {
   try {
     const plugins = listPlugins(statusResult.data || undefined);
     return NextResponse.json({ plugins: plugins.map(formatPlugin) }, { headers: CORS_HEADERS });
-  } catch (err: any) {
-    return NextResponse.json({ error: err.message }, { status: 500, headers: CORS_HEADERS });
+  } catch (err: unknown) {
+    console.error("[plugins] Failed to list plugins:", err);
+    return NextResponse.json(buildErrorBody(500, "Failed to list plugins"), {
+      status: 500,
+      headers: CORS_HEADERS,
+    });
   }
 }
 
@@ -62,8 +67,12 @@ export async function POST(request: NextRequest) {
       { plugin: formatPlugin(plugin) },
       { status: 201, headers: CORS_HEADERS }
     );
-  } catch (err: any) {
-    return NextResponse.json({ error: err.message }, { status: 400, headers: CORS_HEADERS });
+  } catch (err: unknown) {
+    console.error("[plugins] Failed to install plugin:", err);
+    return NextResponse.json(buildErrorBody(400, "Failed to install plugin"), {
+      status: 400,
+      headers: CORS_HEADERS,
+    });
   }
 }
 
