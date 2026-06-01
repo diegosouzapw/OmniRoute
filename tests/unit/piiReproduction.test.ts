@@ -98,7 +98,11 @@ test("PII Reproduction Tests", async (t) => {
     await pipeA;
 
     const outputA = chunksA.map(c => new TextDecoder().decode(c)).join("");
-    assert.ok(typeof outputA === "string", "Scenario A produced output");
+    // Bug (fixed by #3021): raw-text SSE was being wrapped in an OpenAI JSON envelope on flush.
+    // After the fix, raw text passes through as raw text — the envelope must NOT appear.
+    assert.ok(!outputA.includes('{"choices":'), "Scenario A: raw text must NOT be wrapped in a JSON choices envelope");
+    // The content must still be present in the output (not silently dropped)
+    assert.ok(outputA.includes("Hello world") || outputA.length > "data: \n".length, "Scenario A: raw text content must not be silently dropped");
 
     // Scenario B: Non-standard JSON stream — use pipeTo
     const transformB = createPiiSseTransform({ windowSize: 10 });
@@ -113,6 +117,9 @@ test("PII Reproduction Tests", async (t) => {
     await pipeB;
 
     const outputB = chunksB.map(c => new TextDecoder().decode(c)).join("");
-    assert.ok(typeof outputB === "string", "Scenario B produced output");
+    // Bug (fixed by #3021): buffered content was permanently lost when the stop signal had no string fields.
+    // After the fix, the content is emitted (possibly split across chunks due to the PII window).
+    // Verify the content is present — "H" from first window emit + "ello world" from flush.
+    assert.ok(outputB.includes('"H"') && outputB.includes("ello world"), "Scenario B: buffered content must not be lost — expect window-split output containing both parts");
   });
 });

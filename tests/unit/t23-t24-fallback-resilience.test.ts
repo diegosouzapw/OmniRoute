@@ -76,9 +76,11 @@ test("T24: combo awaits short 503 cooldown before falling through to next model"
   });
 
   assert.equal(result.ok, true);
-  // With mock handler, circuit breaker has no cooldown → no wait log emitted
-  // Test verifies combo falls through to second model after 503 failures
-  assert.ok(result.ok, "combo succeeded via fallback model");
+  // checkFallbackError returns COOLDOWN_MS.transient (5000ms) for a plain 503.
+  // fallbackDelayMs=2000, cooldownMs=5000 ≤ MAX_FALLBACK_WAIT_MS(5000) → fallbackWaitMs=2000ms.
+  // The combo MUST emit a debug log before waiting, proving the wait behavior is wired.
+  const waitLog = log.entries.find((e) => e.msg.includes("Waiting") && e.msg.includes("fallback"));
+  assert.ok(waitLog, "combo must emit a debug wait-before-fallback log for short 503 cooldowns");
 });
 
 test("T24: combo skips wait when 503 cooldown is long (>5s)", async () => {
