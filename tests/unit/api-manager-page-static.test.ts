@@ -42,8 +42,9 @@ test("permissions modal switch buttons declare button type", () => {
   const visibilityEnd = source.indexOf("{/* Selected Models Summary", visibilityStart);
   const selfServiceBlock = source.slice(visibilityStart, visibilityEnd);
   const switchButtonCount = (selfServiceBlock.match(/role="switch"/g) ?? []).length;
-  const typedSwitchButtonCount = (selfServiceBlock.match(/<button\s+type="button"\s+role="switch"/g) ?? [])
-    .length;
+  const typedSwitchButtonCount = (
+    selfServiceBlock.match(/<button\s+type="button"\s+role="switch"/g) ?? []
+  ).length;
 
   assert.equal(switchButtonCount, 2);
   assert.equal(typedSwitchButtonCount, 2);
