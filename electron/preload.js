@@ -13,6 +13,7 @@ const { contextBridge, ipcRenderer } = require("electron");
 
 const MAC_DRAG_STYLE_ID = "omniroute-electron-drag-region-style";
 const MAC_DRAG_FALLBACK_ID = "omniroute-electron-drag-region";
+const MAC_DRAG_OBSERVER_KEY = "__omnirouteMacDragRegionObserver";
 
 function installMacDragRegion() {
   if (process.platform !== "darwin") return;
@@ -33,30 +34,25 @@ function installMacDragRegion() {
         user-select: none;
       }
 
-      header :is(
-        a,
-        button,
-        input,
-        select,
-        textarea,
-        [role="button"],
-        [role="link"],
-        [tabindex]:not([tabindex="-1"])
-      ) {
+      header a,
+      header button,
+      header input,
+      header select,
+      header textarea,
+      header [role="button"],
+      header [role="link"],
+      header [tabindex]:not([tabindex="-1"]) {
         app-region: no-drag;
         -webkit-app-region: no-drag;
-      }
-
-      body:has(header) .omniroute-electron-drag-region {
-        display: none;
       }
 
       .omniroute-electron-drag-region {
         position: fixed;
         top: 0;
-        left: 96px;
-        right: 180px;
+        left: 50%;
+        width: clamp(120px, 40vw, 360px);
         height: 46px;
+        transform: translateX(-50%);
         z-index: 9999;
       }
     `;
@@ -68,6 +64,18 @@ function installMacDragRegion() {
 
     document.head.appendChild(style);
     document.body.appendChild(dragRegion);
+
+    const syncDragFallback = () => {
+      dragRegion.hidden = Boolean(document.querySelector("header"));
+    };
+    const previousObserver = window[MAC_DRAG_OBSERVER_KEY];
+    if (previousObserver) previousObserver.disconnect();
+
+    const observer = new MutationObserver(syncDragFallback);
+    observer.observe(document.body, { childList: true, subtree: true });
+    window[MAC_DRAG_OBSERVER_KEY] = observer;
+    window.addEventListener("pagehide", () => observer.disconnect(), { once: true });
+    syncDragFallback();
   };
 
   if (document.readyState === "loading") {

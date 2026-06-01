@@ -188,7 +188,7 @@ describe("Preload Listener Disposer Pattern", () => {
 describe("macOS Drag Region", () => {
   it("should make the real header draggable when available", () => {
     assert.match(preloadSource, /header,\s*\.omniroute-electron-drag-region/);
-    assert.match(preloadSource, /body:has\(header\) \.omniroute-electron-drag-region/);
+    assert.match(preloadSource, /document\.querySelector\("header"\)/);
   });
 
   it("should preserve pointer events on header controls", () => {
@@ -200,6 +200,7 @@ describe("macOS Drag Region", () => {
 
   it("should use a moderate fallback layer", () => {
     assert.match(preloadSource, /z-index: 9999/);
+    assert.match(preloadSource, /width: clamp\(120px, 40vw, 360px\)/);
     assert.ok(!preloadSource.includes("2147483647"));
   });
 
@@ -207,6 +208,12 @@ describe("macOS Drag Region", () => {
     assert.match(preloadSource, /if \(!document\.head \|\| !document\.body\) return/);
     assert.match(preloadSource, /getElementById\(MAC_DRAG_STYLE_ID\)\?\.remove\(\)/);
     assert.match(preloadSource, /getElementById\(MAC_DRAG_FALLBACK_ID\)\?\.remove\(\)/);
+  });
+
+  it("should avoid modern CSS pseudo-classes for drag selectors", () => {
+    assert.ok(!preloadSource.includes(":is("));
+    assert.ok(!preloadSource.includes(":has("));
+    assert.match(preloadSource, /new MutationObserver\(syncDragFallback\)/);
   });
 });
 
