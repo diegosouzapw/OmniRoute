@@ -1,5 +1,29 @@
 export type FieldCategory = "content" | "reasoning" | "toolArgs" | "partialJson";
 
+export function getFieldCategory(key: string): FieldCategory {
+  if (key === "reasoning" || key === "thinking" || key === "reasoning_content") {
+    return "reasoning";
+  }
+  if (key === "arguments") {
+    return "toolArgs";
+  }
+  if (key === "partial_json") {
+    return "partialJson";
+  }
+  return "content";
+}
+
+export function checkIfStopSignal(json: any): boolean {
+  if (!json || typeof json !== "object") return false;
+  if (json.choices && Array.isArray(json.choices) && json.choices.some((c: any) => c.finish_reason)) return true;
+  if (json.candidates && Array.isArray(json.candidates) && json.candidates.some((c: any) => c.finishReason)) return true;
+  if (json.type === "content_block_stop") return true;
+  if (json.type === "message_stop") return true;
+  if (json.type === "message_delta" && json.delta?.stop_reason) return true;
+  if (["response.done", "response.completed", "response.cancelled", "response.failed"].includes(json.type)) return true;
+  return false;
+}
+
 export function createSseTextTransform(
   processor: (text: string, field: FieldCategory, isStopSignal?: boolean, index?: string | number) => string,
   onFlush?: (lastJson: any, isJsonStream?: boolean, lastContentJson?: any) => any,
@@ -49,13 +73,7 @@ export function createSseTextTransform(
           
           let matched = false;
           
-          const isStopSignal = 
-            (json.choices && Array.isArray(json.choices) && json.choices.some((c: any) => c.finish_reason)) ||
-            (json.candidates && Array.isArray(json.candidates) && json.candidates.some((c: any) => c.finishReason)) ||
-            (json.type === "content_block_stop") ||
-            (json.type === "message_stop") ||
-            (json.type === "message_delta" && json.delta?.stop_reason) ||
-            ["response.done", "response.completed", "response.cancelled", "response.failed"].includes(json.type);
+          const isStopSignal = checkIfStopSignal(json);
 
           const METADATA_KEYS = [
             "id", "model", "object", "created", "finish_reason", "finishReason",
@@ -90,15 +108,7 @@ export function createSseTextTransform(
               }
               if (typeof obj[key] === "string") {
                 const val = obj[key];
-                // Determine FieldCategory
-                let field: FieldCategory = "content";
-                if (key === "reasoning" || key === "thinking" || key === "reasoning_content") {
-                  field = "reasoning";
-                } else if (key === "arguments") {
-                  field = "toolArgs";
-                } else if (key === "partial_json") {
-                  field = "partialJson";
-                }
+                const field: FieldCategory = getFieldCategory(key);
                 obj[key] = processor(val, field, isStopSignal, compositeKey);
                 matched = true;
               } else if (typeof obj[key] === "object") {
@@ -170,11 +180,13 @@ export function createSseTextTransform(
       } catch (err: any) {
         let context = "[REDACTED_DUE_TO_PII]";
         if (!err?.message?.startsWith("[PII]")) {
-          context = typeof chunk === "string" 
-            ? chunk.slice(0, 200) 
-            : chunk instanceof Uint8Array 
-              ? new TextDecoder().decode(chunk.slice(0, 200)) 
-              : String(chunk).slice(0, 200);
+          if (typeof chunk === "string") {
+            context = chunk.slice(0, 200);
+          } else if (chunk instanceof Uint8Array) {
+            context = new TextDecoder().decode(chunk.slice(0, 200));
+          } else {
+            context = String(chunk).slice(0, 200);
+          }
         }
         console.error("[SSE-TRANSFORM] Error in transform:", err, "chunk:", context);
         lineBuffer = "";

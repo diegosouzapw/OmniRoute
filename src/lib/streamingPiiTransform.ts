@@ -1,4 +1,4 @@
-import { createSseTextTransform, FieldCategory } from "./sseTextTransform";
+import { createSseTextTransform, FieldCategory, getFieldCategory } from "./sseTextTransform";
 import { sanitizePII } from "./piiSanitizer";
 
 export interface PiiTransformOptions {
@@ -23,9 +23,11 @@ export function createPiiSseTransform(options?: PiiTransformOptions): TransformS
     return buf;
   };
 
-  const W = (options?.windowSize && process.env.PII_TEST_BYPASS_MIN_WINDOW === "true")
-    ? options.windowSize
-    : Math.max(200, options?.windowSize ?? (parseInt(process.env.PII_WINDOW_SIZE || "", 10) || 200));
+  let windowSize = Math.max(200, options?.windowSize ?? (parseInt(process.env.PII_WINDOW_SIZE || "", 10) || 200));
+  if (options?.windowSize && process.env.PII_TEST_BYPASS_MIN_WINDOW === "true") {
+    windowSize = options.windowSize;
+  }
+  const W = windowSize;
 
   const processor = (text: string, field: FieldCategory, isStopSignal = false, index: string | number = "0_0"): string => {
     const buffers = getBuffers(index);
@@ -277,14 +279,7 @@ export function createPiiSseTransform(options?: PiiTransformOptions): TransformS
           continue;
         }
         if (typeof obj[key] === "string") {
-          let field: FieldCategory = "content";
-          if (key === "reasoning" || key === "thinking" || key === "reasoning_content") {
-            field = "reasoning";
-          } else if (key === "arguments") {
-            field = "toolArgs";
-          } else if (key === "partial_json") {
-            field = "partialJson";
-          }
+          const field: FieldCategory = getFieldCategory(key);
           const choiceBuf = getBuffers(compositeKey);
           if (choiceBuf[field]) {
             obj[key] = (obj[key] || "") + choiceBuf[field];
