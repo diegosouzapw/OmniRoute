@@ -126,6 +126,8 @@ export const CREDITS_EXHAUSTED_SIGNALS = [
   "resource has been exhausted",
   "resource_exhausted",
   "check quota",
+  "free tier",
+  "free tier of the model has been exhausted",
 ];
 
 // T11: Signals that indicate OAuth token is invalid/expired (not permanent deactivation)
