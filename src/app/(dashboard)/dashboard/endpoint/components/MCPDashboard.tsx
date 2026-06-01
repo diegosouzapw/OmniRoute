@@ -11,6 +11,7 @@ type McpStatusResponse = {
   online: boolean;
   enabled: boolean;
   transport: McpTransport;
+  scopesEnforced?: boolean;
   heartbeatPath: string;
   heartbeat: {
     pid: number;
@@ -424,7 +425,7 @@ export default function McpDashboardPage() {
               <p>
                 {t("scopesEnforced")}:{" "}
                 <span className="font-semibold">
-                  {status?.heartbeat?.scopesEnforced ? t("yes") : t("no")}
+                  {(status?.scopesEnforced ?? status?.heartbeat?.scopesEnforced) ? t("yes") : t("no")}
                 </span>
               </p>
               <p>

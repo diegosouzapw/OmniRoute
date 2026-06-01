@@ -38,6 +38,8 @@ export async function GET(request: Request) {
         ? mcpEnabled && stdioOnline
         : isMcpHttpTransportReady(mcpEnabled, mcpTransport);
 
+    const scopesEnforced = process.env.OMNIROUTE_MCP_ENFORCE_SCOPES === "true";
+
     const lastCall = lastCallPage.entries[0] || null;
     const now = Date.now();
     const lastHeartbeatAtMs = heartbeat ? new Date(heartbeat.lastHeartbeatAt).getTime() : null;
@@ -56,6 +58,7 @@ export async function GET(request: Request) {
       online,
       enabled: mcpEnabled,
       transport: mcpTransport,
+      scopesEnforced,
       heartbeatPath: resolveMcpHeartbeatPath(),
       heartbeat: heartbeat
         ? {
