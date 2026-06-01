@@ -1604,7 +1604,7 @@ export async function handleChatCore({
   // ── Plugin onRequest hook ──
   // Dynamic import cached by Node.js after first call — minimal overhead
   try {
-    const { runOnRequest } = await import("@/lib/plugins/index");
+    const { runOnRequest } = await import("@/lib/plugins/hooks");
     const pluginCtx = {
       requestId: traceId,
       body,
@@ -1636,8 +1636,11 @@ export async function handleChatCore({
             ),
       };
     }
-    if (pluginResult?.ctx && "body" in pluginResult.ctx) {
-      body = (pluginResult.ctx as unknown as Record<string, unknown>).body;
+    if (pluginResult?.body) {
+      body = pluginResult.body;
+    }
+    if (pluginResult?.metadata) {
+      Object.assign(pluginCtx.metadata, pluginResult.metadata);
     }
   } catch (pluginErr) {
     log?.debug?.(
@@ -3417,7 +3420,7 @@ export async function handleChatCore({
   } catch (error) {
     // ── Plugin onError hook ──
     try {
-      const { runOnError } = await import("@/lib/plugins/index");
+      const { runOnError } = await import("@/lib/plugins/hooks");
       await runOnError(
         { requestId: traceId, body, model, provider, apiKeyInfo, metadata: {} },
         error instanceof Error ? error : new Error(String(error))
@@ -5840,7 +5843,7 @@ export async function handleChatCore({
 
   // ── Plugin onResponse hook (fire-and-forget) ──
   try {
-    const { runOnResponse } = await import("@/lib/plugins/index");
+    const { runOnResponse } = await import("@/lib/plugins/hooks");
     runOnResponse(
       { requestId: traceId, body, model, provider, apiKeyInfo, metadata: {} },
       { status: 200 }
