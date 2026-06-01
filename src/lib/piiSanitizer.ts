@@ -22,7 +22,7 @@ type PiiMode = typeof VALID_MODES[number];
 const getMode = (): PiiMode => {
   const value = resolveFeatureFlag("PII_RESPONSE_SANITIZATION_MODE");
   if (value === "" || value === undefined || value === null) return "redact";
-  if (value === false || value === "false") return "off";
+  if (value === "false") return "off";
   if ((VALID_MODES as readonly any[]).includes(value)) return value as PiiMode;
   console.error(`[PII] Invalid PII_RESPONSE_SANITIZATION_MODE: "${value}", defaulting to "redact"`);
   return "redact";
