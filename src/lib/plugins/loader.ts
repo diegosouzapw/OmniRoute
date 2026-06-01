@@ -100,11 +100,31 @@ export async function loadPlugin(
   }
 
   const permissions = manifest.requires.permissions;
-  const hostId = randomUUID();
-  // .mjs extension forces ESM execution
-  const hostScriptPath = join(tmpdir(), `omniroute-plugin-host-${hostId}.mjs`);
 
-  await writeFile(hostScriptPath, PLUGIN_HOST_SCRIPT, "utf-8");
+  // IMPORTANT-6: Write the host script with O_EXCL (wx flag) so the open fails if
+  // anything already exists at that path, defeating symlink/pre-create races (TOCTOU).
+  // mode 0o600 ensures no other OS user can read or replace the script.
+  // On EEXIST collision (astronomically unlikely with UUID but theoretically possible),
+  // retry once with a fresh UUID.
+  let hostScriptPath: string;
+  {
+    // .mjs extension forces ESM execution regardless of package.json type field
+    const tryWrite = async (id: string): Promise<string> => {
+      const p = join(tmpdir(), `omniroute-plugin-host-${id}.mjs`);
+      await writeFile(p, PLUGIN_HOST_SCRIPT, { encoding: "utf-8", mode: 0o600, flag: "wx" });
+      return p;
+    };
+    try {
+      hostScriptPath = await tryWrite(randomUUID());
+    } catch (err: unknown) {
+      // EEXIST on a UUID path is a collision — retry once with a fresh UUID.
+      if (err instanceof Error && (err as NodeJS.ErrnoException).code === "EEXIST") {
+        hostScriptPath = await tryWrite(randomUUID());
+      } else {
+        throw err;
+      }
+    }
+  }
 
   const env: Record<string, string> = {
     ...getFilteredEnv(permissions),
