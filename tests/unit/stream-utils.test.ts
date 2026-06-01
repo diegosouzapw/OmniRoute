@@ -660,7 +660,9 @@ test("createSSEStream passthrough drops leaked empty chat bootstrap chunks for R
         object: "chat.completion.chunk",
         created: 1,
         model: "gpt-5.4",
-        choices: [{ index: 0, delta: { role: "assistant", content: "" }, finish_reason: null }],
+        choices: [
+          { index: 0, delta: { role: "assistant", content: null, refusal: null }, finish_reason: null },
+        ],
       })}\n\n`,
       `event: response.created\ndata: ${JSON.stringify({
         type: "response.created",

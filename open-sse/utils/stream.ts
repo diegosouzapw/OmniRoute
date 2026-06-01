@@ -1259,6 +1259,15 @@ export function createSSEStream(options: StreamOptions = {}) {
                 // bootstrap chunk (assistant role + empty content) before emitting proper
                 // `response.*` events. That chunk is invalid on /v1/responses and breaks strict
                 // clients like OpenCode, so drop it only for Responses-native consumers.
+                const hasActiveDeltaValue = (value: unknown): boolean => {
+                  if (typeof value === "string") return value.length > 0;
+                  if (Array.isArray(value)) return value.some((entry) => hasActiveDeltaValue(entry));
+                  if (value && typeof value === "object") {
+                    return Object.values(value).some((entry) => hasActiveDeltaValue(entry));
+                  }
+                  return value !== null && value !== undefined;
+                };
+
                 const isEmptyAssistantBootstrapChunkForResponsesClient =
                   clientExpectsResponsesStream &&
                   parsed?.object === "chat.completion.chunk" &&
@@ -1272,12 +1281,13 @@ export function createSSEStream(options: StreamOptions = {}) {
                         : null;
 
                     if (!delta || delta.role !== "assistant") return false;
-                    if (!(delta.content === "" || delta.content === undefined)) return false;
+                    if (hasActiveDeltaValue(delta.content)) return false;
                     if (candidate.finish_reason !== null && candidate.finish_reason !== undefined) {
                       return false;
                     }
 
-                    return Object.keys(delta).every((key) => key === "role" || key === "content");
+                    const { role: _role, content: _content, ...restDelta } = delta;
+                    return !hasActiveDeltaValue(restDelta);
                   });
 
                 if (isEmptyAssistantBootstrapChunkForResponsesClient) {
