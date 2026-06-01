@@ -11,6 +11,48 @@
 
 const { contextBridge, ipcRenderer } = require("electron");
 
+function installMacDragRegion() {
+  if (process.platform !== "darwin") return;
+
+  const style = document.createElement("style");
+  style.textContent = `
+    .omniroute-electron-drag-region {
+      position: fixed;
+      top: 0;
+      left: 96px;
+      right: 180px;
+      height: 46px;
+      z-index: 2147483647;
+      app-region: drag;
+      -webkit-app-region: drag;
+      user-select: none;
+      pointer-events: auto;
+    }
+
+    .omniroute-electron-drag-region * {
+      app-region: no-drag;
+      -webkit-app-region: no-drag;
+    }
+  `;
+
+  const dragRegion = document.createElement("div");
+  dragRegion.className = "omniroute-electron-drag-region";
+  dragRegion.setAttribute("aria-hidden", "true");
+
+  const attach = () => {
+    document.head.appendChild(style);
+    document.body.appendChild(dragRegion);
+  };
+
+  if (document.readyState === "loading") {
+    window.addEventListener("DOMContentLoaded", attach, { once: true });
+  } else {
+    attach();
+  }
+}
+
+installMacDragRegion();
+
 // ── Channel Whitelist ──────────────────────────────────────
 const VALID_CHANNELS = {
   invoke: [
