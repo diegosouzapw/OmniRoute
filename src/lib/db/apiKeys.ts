@@ -9,6 +9,12 @@ import { backupDbFile } from "./backup";
 import { registerDbStateResetter } from "./stateReset";
 import { getKeyGroupsForApiKey, checkKeyModelAccess } from "./apiKeyGroups";
 import { setNoLog } from "../compliance/noLog";
+import { resolveModelAlias } from "@omniroute/open-sse/services/modelDeprecation.ts";
+import {
+  getSyncedAvailableModelsByConnection,
+  getCustomModels,
+  getModelIsHidden,
+} from "./models";
 
 // ──────────────── Performance Optimizations ────────────────
 
@@ -1365,9 +1371,6 @@ export async function isModelAllowedForKey(
 
   // Check disableNonPublicModels flag
   if (disableNonPublicModels) {
-    const { resolveModelAlias } = await import("@omniroute/open-sse/services/modelDeprecation.ts");
-    const { getSyncedAvailableModelsByConnection, getCustomModels, getModelIsHidden } = await import("@/lib/db/models");
-    
     const resolvedModelId = resolveModelAlias(modelId);
     const effectiveModelId = resolvedModelId || modelId;
     
