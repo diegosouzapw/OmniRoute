@@ -140,7 +140,26 @@ export function createSseTextTransform(
           }
 
           if (!matched) {
-            console.warn("[SSE-TRANSFORM] Unrecognized SSE JSON format, passing through unprocessed. Keys:", Object.keys(json).slice(0, 5).join(", "));
+            const deepSanitizeKnownKeys = (obj: any) => {
+              if (!obj || typeof obj !== "object") return;
+              for (const key of Object.keys(obj)) {
+                if (typeof obj[key] === "string" && ["text", "content", "arguments", "reasoning"].includes(key)) {
+                  // Map the key to a valid FieldCategory. Default to "content".
+                  let field: "content" | "reasoning" | "toolArgs" | "partialJson" = "content";
+                  if (key === "reasoning") field = "reasoning";
+                  if (key === "arguments") field = "toolArgs";
+                  obj[key] = processor(obj[key], field, isStopSignal);
+                  matched = true;
+                } else if (typeof obj[key] === "object") {
+                  deepSanitizeKnownKeys(obj[key]);
+                }
+              }
+            };
+            deepSanitizeKnownKeys(json);
+            
+            if (!matched) {
+              console.warn("[SSE-TRANSFORM] Unrecognized SSE JSON format, passing through unprocessed. Keys:", Object.keys(json).slice(0, 5).join(", "));
+            }
           }
 
           if (isStopSignal && onFlush && !flushed) {
@@ -156,10 +175,18 @@ export function createSseTextTransform(
 
           lastJson = json;
           controller.enqueue(encoder.encode(prefix + JSON.stringify(json) + "\n"));
-        } catch {
-          // JSON parsing failed, treat segment as raw text delta (fail-open)
-          const processed = processor(segment, "content");
-          controller.enqueue(encoder.encode(prefix + processed + "\n"));
+        } catch (err: any) {
+          if (err?.message?.startsWith("[PII]")) {
+            throw err;
+          }
+          // JSON parsing failed. Check if it looks like JSON that failed to parse.
+          if (trimmedSegment.startsWith("{") || trimmedSegment.startsWith("[")) {
+            console.warn("[SSE-TRANSFORM] Dropping malformed JSON chunk to prevent syntax injection:", trimmedSegment.slice(0, 100));
+          } else {
+            // Treat segment as raw text delta (fail-open)
+            const processed = processor(segment, "content");
+            controller.enqueue(encoder.encode(prefix + processed + "\n"));
+          }
         }
       } else {
         // Starts with data: but not JSON, process as raw text

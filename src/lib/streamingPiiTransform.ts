@@ -16,7 +16,7 @@ export function createPiiSseTransform(options?: PiiTransformOptions): TransformS
 
   const processor = (text: string, field: FieldCategory, isStopSignal = false): string => {
     buffers[field] += text;
-    const sanitized = sanitizePIIChunk(buffers[field]);
+    const sanitized = sanitizePIIChunk(buffers[field], isStopSignal);
     let emitLength = isStopSignal ? sanitized.length : Math.max(0, sanitized.length - W);
     
     // Prevent slicing in the middle of a UTF-16 surrogate pair (e.g. emojis)
@@ -34,6 +34,14 @@ export function createPiiSseTransform(options?: PiiTransformOptions): TransformS
   };
 
   const onFlush = (lastJson: any): any => {
+    // Force final redaction on anything left in the buffers
+    for (const key of Object.keys(buffers)) {
+      const field = key as FieldCategory;
+      if (buffers[field]) {
+        buffers[field] = sanitizePIIChunk(buffers[field], true);
+      }
+    }
+
     let hasRemaining = false;
     for (const key of Object.keys(buffers)) {
       if (buffers[key as FieldCategory].length > 0) {
@@ -148,7 +156,11 @@ export function createPiiSseTransform(options?: PiiTransformOptions): TransformS
           buffers.content = "";
         }
         if (buffers.reasoning) buffers.reasoning = "";
-        if (buffers.toolArgs) buffers.toolArgs = "";
+        if (buffers.toolArgs) {
+          if (obj.item && typeof obj.item === "object") obj.item.arguments = buffers.toolArgs;
+          else if (typeof obj.arguments === "string" || !obj.arguments) obj.arguments = buffers.toolArgs;
+          buffers.toolArgs = "";
+        }
         if (buffers.partialJson) buffers.partialJson = "";
       }
     };

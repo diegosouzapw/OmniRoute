@@ -72,6 +72,74 @@ test("Adversarial Tests", async (t) => {
       }
     } catch (err: any) {
       assert.match(err.message, /Blocked response/);
+    } finally {
+      delete process.env.PII_RESPONSE_SANITIZATION_MODE;
+      delete process.env.PII_RESPONSE_SANITIZATION;
     }
+  });
+  await t.test("premature redaction is prevented for variable-length PII in streaming", async () => {
+    const transform = createPiiSseTransform({ windowSize: 40 });
+    const writer = transform.writable.getWriter();
+    const chunks: string[] = [];
+    const reader = transform.readable.getReader();
+
+    const readPromise = (async () => {
+      while (true) {
+        const { value, done } = await reader.read();
+        if (done) break;
+        chunks.push(new TextDecoder().decode(value));
+      }
+    })();
+
+    const encoder = new TextEncoder();
+    // Simulate API key being sent in two chunks
+    // Prefix "sk_" + 20 chars matches the regex. Total = 23 chars.
+    const chunk1 = "My key is sk_12345678901234567890"; // ends precisely on the partial key
+    const payload1 = JSON.stringify({ choices: [{ delta: { content: chunk1 } }] });
+    await writer.write(encoder.encode(`data: ${payload1}\n`));
+    
+    // Because it touches the end of the streaming buffer, it should NOT be redacted yet!
+    // Wait for the rest
+    const chunk2 = "12345";
+    const payload2 = JSON.stringify({ choices: [{ delta: { content: chunk2 } }] });
+    await writer.write(encoder.encode(`data: ${payload2}\n`));
+    
+    await writer.write(encoder.encode("data: [DONE]\n"));
+    await writer.close();
+    await readPromise;
+
+    const fullOutput = chunks.join("");
+    // It should be redacted exactly once as [API_KEY_REDACTED]
+    assert.ok(fullOutput.includes("[API_KEY_REDACTED]"));
+    // It should NOT leak "12345" at the end of the redaction tag!
+    assert.ok(!fullOutput.includes("[API_KEY_REDACTED]12345"));
+  });
+
+  await t.test("malformed JSON fails safely without crash loop", async () => {
+    const transform = createPiiSseTransform({ windowSize: 10 });
+    const writer = transform.writable.getWriter();
+    const chunks: string[] = [];
+    const reader = transform.readable.getReader();
+
+    const readPromise = (async () => {
+      while (true) {
+        const { value, done } = await reader.read();
+        if (done) break;
+        chunks.push(new TextDecoder().decode(value));
+      }
+    })();
+
+    const encoder = new TextEncoder();
+    // Valid JSON
+    await writer.write(encoder.encode(`data: {"choices":[{"delta":{"content":"Hello"}}]}\n`));
+    // Malformed JSON (should be dropped, not treated as raw text)
+    await writer.write(encoder.encode(`data: {"choices":[{"delta":{"content":"BAD_SYNTAX\n`));
+    await writer.write(encoder.encode("data: [DONE]\n"));
+    await writer.close();
+    await readPromise;
+
+    const fullOutput = chunks.join("");
+    assert.ok(fullOutput.includes("Hello"));
+    assert.ok(!fullOutput.includes("BAD_SYNTAX")); // Raw JSON syntax from the malformed chunk shouldn't leak
   });
 });

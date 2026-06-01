@@ -39,7 +39,7 @@ interface PIIPattern {
 const PII_PATTERNS: PIIPattern[] = [
   {
     name: "email",
-    regex: /\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b/g,
+    regex: /\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}\b/g,
     replacement: "[EMAIL_REDACTED]",
     severity: "medium",
   },
@@ -114,7 +114,7 @@ export interface SanitizeResult {
 /**
  * Scan and optionally redact PII from LLM response text.
  */
-export function sanitizePII(text: string): SanitizeResult {
+export function sanitizePII(text: string, isStreaming = false): SanitizeResult {
   if (!isEnabled() || !text || typeof text !== "string") {
     return { text, detections: [], redacted: false };
   }
@@ -136,7 +136,13 @@ export function sanitizePII(text: string): SanitizeResult {
 
       if (mode === "redact") {
         pattern.regex.lastIndex = 0;
-        sanitized = sanitized.replace(pattern.regex, pattern.replacement);
+        sanitized = sanitized.replace(pattern.regex, (match, offset) => {
+          if (isStreaming && offset + match.length === text.length) {
+            // Prevent premature redaction of variable-length PII touching the end of the streaming buffer
+            return match;
+          }
+          return pattern.replacement;
+        });
       }
     }
   }
@@ -161,9 +167,10 @@ export function sanitizePII(text: string): SanitizeResult {
 /**
  * Sanitize a streaming chunk (text content only).
  */
-export function sanitizePIIChunk(chunk: string): string {
+export function sanitizePIIChunk(chunk: string, isStopSignal = false): string {
   if (!isEnabled()) return chunk;
-  const { text } = sanitizePII(chunk);
+  // If it's a stop signal, we are flushing the final chunk, so we shouldn't treat it as a partial streaming buffer (force redaction)
+  const { text } = sanitizePII(chunk, !isStopSignal);
   return text;
 }
 

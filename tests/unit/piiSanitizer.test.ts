@@ -24,7 +24,7 @@ test("sanitizePII checks resolveFeatureFlag, not process.env", async (t) => {
     console.log("Subtest 1 - isFeatureFlagEnabled:", isFeatureFlagEnabled("PII_RESPONSE_SANITIZATION"));
 
     const input = "my email is test@example.com";
-    const result = sanitizePIIChunk(input);
+    const result = sanitizePIIChunk(input, true);
     assert.equal(result, input);
   });
 
@@ -41,7 +41,7 @@ test("sanitizePII checks resolveFeatureFlag, not process.env", async (t) => {
     console.log("Subtest 2 - isFeatureFlagEnabled:", isFeatureFlagEnabled("PII_RESPONSE_SANITIZATION"));
 
     const input = "my email is test@example.com";
-    const result = sanitizePIIChunk(input);
+    const result = sanitizePIIChunk(input, true);
     assert.ok(result.includes("[EMAIL_REDACTED]"));
   });
 
@@ -65,7 +65,7 @@ test("getMode returns redact for invalid flag values", async () => {
 
   const { sanitizePIIChunk } = await import("@/lib/piiSanitizer");
   const input = "my email is test@example.com";
-  const result = sanitizePIIChunk(input);
+  const result = sanitizePIIChunk(input, true);
 
   assert.ok(result.includes("[EMAIL_REDACTED]"),
     "invalid mode should fall back to redact, not silently pass PII through");
