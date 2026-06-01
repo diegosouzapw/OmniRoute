@@ -7,8 +7,8 @@
  * @module plugins/manager
  */
 
-import { mkdir, cp, rm, realpath, readFile } from "fs/promises";
-import { join, dirname } from "path";
+import { mkdir, cp, rm, rename, realpath, readFile } from "fs/promises";
+import { join, dirname, resolve, sep } from "path";
 import { randomUUID } from "crypto";
 import { logger } from "../../../open-sse/utils/logger.ts";
 import { getDefaultPluginDir, scanPluginDir } from "./scanner";
@@ -41,6 +41,42 @@ function compareSemver(a: string, b: string): number {
   return aPat - bPat;
 }
 
+// ── SECURITY: CRITICAL-2 ────────────────────────────────────────────────────
+/**
+ * Assert that `target` is strictly contained within `pluginRoot`.
+ * Prevents a tampered/legacy DB `pluginDir` from causing deletion of an
+ * arbitrary filesystem path when passed to `rm({ recursive: true })`.
+ *
+ * Throws immediately if `target` resolves outside `pluginRoot`.
+ */
+function assertWithinPluginDir(pluginRoot: string, target: string): void {
+  const root = resolve(pluginRoot);
+  const t = resolve(target);
+  if (t !== root && !t.startsWith(root + sep)) {
+    throw new Error(
+      `Refusing to delete a path outside the plugin directory: "${t}" is not under "${root}"`
+    );
+  }
+}
+
+// ── SECURITY: CRITICAL-3 (shared) ──────────────────────────────────────────
+/**
+ * Assert that `entryPoint` is strictly within `destDir`.
+ * Called at install/upgrade time to reject `manifest.main` values like
+ * `"../../evil.js"` before the plugin is ever persisted to DB.
+ *
+ * Throws if the resolved entryPoint escapes `destDir`.
+ */
+function assertEntryPointWithinDest(destDir: string, entryPoint: string): void {
+  const root = resolve(destDir);
+  const ep = resolve(entryPoint);
+  if (!ep.startsWith(root + sep)) {
+    throw new Error(
+      `Plugin manifest.main resolves outside plugin directory: "${ep}" escapes "${root}"`
+    );
+  }
+}
+
 class PluginManager {
   private static instance: PluginManager;
   private loadedPlugins: Map<string, LoadedPlugin> = new Map();
@@ -59,7 +95,8 @@ class PluginManager {
 
   /**
    * Install a plugin from a source directory.
-   * Copies to plugin dir, validates manifest, registers in DB.
+   * Copies to a staging dir first, validates manifest.main containment, then
+   * atomically renames into place. Cleans up staging dir on any failure.
    */
   async install(sourceDir: string): Promise<PluginRow> {
     // Check if sourceDir itself contains plugin.json (direct plugin dir)
@@ -113,12 +150,26 @@ class PluginManager {
       );
     }
 
-    // Copy to plugin directory
+    // CRITICAL-3: Copy to staging dir first, validate, then rename atomically.
     const destDir = join(this.pluginDir, name);
+    const stagingDir = `${destDir}.staging-${randomUUID()}`;
     await mkdir(dirname(destDir), { recursive: true });
-    await cp(srcDir, destDir, { recursive: true });
+    await cp(srcDir, stagingDir, { recursive: true });
 
-    // Register in DB
+    try {
+      // CRITICAL-3: Validate manifest.main is within the staging dir before persisting.
+      const entryPoint = join(stagingDir, manifest.main || "index.js");
+      assertEntryPointWithinDest(stagingDir, entryPoint);
+
+      // Atomic: rename staging → final dest
+      await rename(stagingDir, destDir);
+    } catch (err) {
+      // Cleanup staging dir so no half-installed directory is left behind.
+      await rm(stagingDir, { recursive: true, force: true }).catch(() => {});
+      throw err;
+    }
+
+    // Register in DB (destDir is now in place)
     const row = insertPlugin({
       id: randomUUID(),
       name,
@@ -155,6 +206,9 @@ class PluginManager {
    * Upgrade an installed plugin to a newer version from sourceDir.
    * Preserves nothing (clean reinstall); config is reset to defaults.
    * Throws if the plugin is not installed or the source version is not strictly newer.
+   *
+   * Atomically: copy to staging → validate → rm old (containment-checked) → rename staging.
+   * On any failure after staging copy, staging is cleaned up and old install is left intact.
    */
   async upgrade(sourceDir: string): Promise<PluginRow> {
     // Scan source to get new manifest
@@ -202,23 +256,40 @@ class PluginManager {
 
     log.info("manager.upgrading", { name, from: existing.version, to: manifest.version });
 
-    // Deactivate if active, uninstall, then reinstall fresh
+    // Deactivate if active before touching files
     if (existing.status === "active") {
       await this.deactivate(name);
     }
 
-    // Remove DB record and old files (delegate to uninstall internals)
-    try {
-      await rm(existing.pluginDir, { recursive: true, force: true });
-    } catch (err: any) {
-      log.warn("manager.upgrade_dir_error", { name, error: err.message });
-    }
-    dbDeletePlugin(name);
-
-    // Fresh install
+    // CRITICAL-3: Copy to staging dir first, validate manifest.main, then swap atomically.
     const destDir = join(this.pluginDir, name);
+    const stagingDir = `${destDir}.staging-${randomUUID()}`;
     await mkdir(dirname(destDir), { recursive: true });
-    await cp(discovered.pluginDir, destDir, { recursive: true });
+    await cp(discovered.pluginDir, stagingDir, { recursive: true });
+
+    try {
+      // CRITICAL-3: Validate manifest.main is within staging before we destroy old version.
+      const entryPoint = join(stagingDir, manifest.main || "index.js");
+      assertEntryPointWithinDest(stagingDir, entryPoint);
+
+      // CRITICAL-2: Assert old install dir is within pluginDir before deleting it.
+      assertWithinPluginDir(this.pluginDir, existing.pluginDir);
+
+      // Only now remove old dir (after staging succeeded and was validated).
+      try {
+        await rm(existing.pluginDir, { recursive: true, force: true });
+      } catch (err: any) {
+        log.warn("manager.upgrade_dir_error", { name, error: err.message });
+      }
+      dbDeletePlugin(name);
+
+      // Atomic rename staging → final dest
+      await rename(stagingDir, destDir);
+    } catch (err) {
+      // Cleanup staging, leave old install intact.
+      await rm(stagingDir, { recursive: true, force: true }).catch(() => {});
+      throw err;
+    }
 
     const row = insertPlugin({
       id: randomUUID(),
@@ -316,7 +387,7 @@ class PluginManager {
   }
 
   /**
-   * Uninstall a plugin — deactivate, delete directory, remove from DB.
+   * Uninstall a plugin — deactivate, delete directory (containment-checked), remove from DB.
    */
   async uninstall(name: string): Promise<void> {
     const row = getPluginByName(name);
@@ -326,6 +397,11 @@ class PluginManager {
     if (row.status === "active") {
       await this.deactivate(name);
     }
+
+    // CRITICAL-2: Assert the pluginDir from DB is within our managed pluginDir root
+    // before issuing a recursive delete. Prevents a tampered/legacy DB value from
+    // causing deletion of an arbitrary path on the filesystem.
+    assertWithinPluginDir(this.pluginDir, row.pluginDir);
 
     // Delete plugin directory
     try {
