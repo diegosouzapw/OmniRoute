@@ -141,6 +141,12 @@ export const WEB_SESSION_CREDENTIAL_REQUIREMENTS = {
     placeholder: "session=... or full Cookie header from doubao.com",
     acceptsFullCookieHeader: true,
   },
+  "qwen-web": {
+    kind: "token",
+    credentialName: "token",
+    placeholder: "Paste your Qwen token from chat.qwen.ai (Local Storage → token)",
+    acceptsFullCookieHeader: false,
+  },
 } satisfies Record<keyof typeof WEB_COOKIE_PROVIDERS, WebSessionCredentialRequirement>;
 
 export function getWebSessionCredentialRequirement(

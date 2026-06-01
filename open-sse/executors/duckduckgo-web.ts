@@ -26,6 +26,16 @@ const FAKE_HEADERS: Record<string, string> = {
  * VQD tokens are per-request; no caching or cleanup needed.
  */
 export class DuckDuckGoWebExecutor extends BaseExecutor {
+  protected poolConfig = {
+    minSessions: 2,
+    maxSessions: 5,
+    cooldownBase: 1000,
+    cooldownMax: 10000,
+    cooldownJitter: 500,
+    requestTimeout: 30000,
+    requestJitter: 50,
+  };
+
   constructor() {
     super("duckduckgo-web", { baseUrl: DUCKDUCKGO_BASE });
   }

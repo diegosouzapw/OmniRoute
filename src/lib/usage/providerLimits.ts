@@ -18,6 +18,7 @@ import { getMachineId } from "@/shared/utils/machine";
 import { USAGE_SUPPORTED_PROVIDERS } from "@/shared/constants/providers";
 import { getExecutor } from "@omniroute/open-sse/executors/index.ts";
 import { getUsageForProvider } from "@omniroute/open-sse/services/usage.ts";
+import { rotationGroupFor } from "@omniroute/open-sse/services/refreshSerializer.ts";
 import {
   extractCodeAssistOnboardTierId,
   extractCodeAssistSubscriptionTier,
@@ -110,9 +111,20 @@ async function syncToCloudIfEnabled() {
   }
 }
 
-async function refreshAndUpdateCredentials(connection: ProviderConnectionLike) {
+export async function refreshAndUpdateCredentials(connection: ProviderConnectionLike) {
+  // Rotating-refresh providers (Codex/OpenAI share one Auth0 client_id, etc.)
+  // mint a single-use refresh_token on every refresh. The quota-sync path runs
+  // many connections concurrently; refreshing sibling accounts in parallel makes
+  // Auth0 revoke the whole token family (openai/codex#9648) and kills every
+  // account but the last. Never proactively refresh them here — reuse the current
+  // access_token for the quota fetch and let the reactive, serialized 401 path
+  // handle genuine expiry during real requests.
+  if (rotationGroupFor(connection.provider) !== null) {
+    return { connection, refreshed: false };
+  }
   const executor = getExecutor(connection.provider);
   const credentials = {
+    connectionId: connection.id,
     accessToken: connection.accessToken,
     refreshToken: connection.refreshToken,
     expiresAt: connection.tokenExpiresAt || connection.expiresAt || null,

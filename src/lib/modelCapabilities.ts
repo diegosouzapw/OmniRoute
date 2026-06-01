@@ -281,7 +281,11 @@ export function getResolvedModelCapabilities(input: CapabilityInput): ResolvedMo
     lastUpdated: synced?.last_updated ?? null,
     modalitiesInput,
     modalitiesOutput,
-    interleavedField: synced?.interleaved_field ?? null,
+    interleavedField:
+      synced?.interleaved_field ??
+      (typeof registryModel?.interleavedField === "string"
+        ? registryModel.interleavedField
+        : null),
   };
 }
 

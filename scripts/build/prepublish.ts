@@ -202,13 +202,19 @@ cpSync(standaloneDir, APP_DIR, { recursive: true });
 
 const standaloneWsSrc = join(ROOT, "scripts", "dev", "standalone-server-ws.mjs");
 const responsesWsProxySrc = join(ROOT, "scripts", "dev", "responses-ws-proxy.mjs");
-if (existsSync(standaloneWsSrc) && existsSync(responsesWsProxySrc)) {
+const peerStampSrc = join(ROOT, "scripts", "dev", "peer-stamp.mjs");
+if (existsSync(standaloneWsSrc) && existsSync(responsesWsProxySrc) && existsSync(peerStampSrc)) {
   console.log("  📋 Adding Responses WebSocket standalone wrapper...");
   cpSync(standaloneWsSrc, join(APP_DIR, "server-ws.mjs"));
   writeFileSync(
     join(APP_DIR, "responses-ws-proxy.mjs"),
     'export * from "../scripts/dev/responses-ws-proxy.mjs";\n'
   );
+  // server-ws.mjs imports ./peer-stamp.mjs (the trusted peer-IP stamp helper
+  // the authz middleware relies on). It is self-contained (node builtins only),
+  // so copy it directly alongside server-ws.mjs. Without this the wrapper throws
+  // ERR_MODULE_NOT_FOUND on boot and the server falls back to no peer stamp.
+  cpSync(peerStampSrc, join(APP_DIR, "peer-stamp.mjs"));
 }
 
 // ── Next.js Turbopack Standalone Tracer Fix ───────────────
