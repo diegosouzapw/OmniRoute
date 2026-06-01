@@ -6,10 +6,11 @@ export interface PiiTransformOptions {
 }
 
 export function createPiiSseTransform(options?: PiiTransformOptions): TransformStream {
-  const choiceBuffers = new Map<number, Record<FieldCategory, string>>();
+  const choiceBuffers = new Map<string, Record<FieldCategory, string>>();
 
-  const getBuffers = (index: number): Record<FieldCategory, string> => {
-    let buf = choiceBuffers.get(index);
+  const getBuffers = (index: string | number): Record<FieldCategory, string> => {
+    const key = String(index);
+    let buf = choiceBuffers.get(key);
     if (!buf) {
       buf = {
         content: "",
@@ -26,7 +27,7 @@ export function createPiiSseTransform(options?: PiiTransformOptions): TransformS
     ? options.windowSize
     : Math.max(200, options?.windowSize ?? (parseInt(process.env.PII_WINDOW_SIZE || "", 10) || 200));
 
-  const processor = (text: string, field: FieldCategory, isStopSignal = false, index = 0): string => {
+  const processor = (text: string, field: FieldCategory, isStopSignal = false, index: string | number = "0_0"): string => {
     const buffers = getBuffers(index);
     buffers[field] += text;
     const { text: sanitized, endMatchIndex } = sanitizePII(buffers[field], !isStopSignal);
@@ -75,7 +76,7 @@ export function createPiiSseTransform(options?: PiiTransformOptions): TransformS
     }
 
     if (!lastJson) {
-      const buffers = getBuffers(0);
+      const buffers = getBuffers("0_0");
       if (buffers.content) {
         const remaining = buffers.content;
         buffers.content = "";
@@ -109,7 +110,7 @@ export function createPiiSseTransform(options?: PiiTransformOptions): TransformS
 
     // 1. Claude format
     if (typeof lastJson.type === "string" && (lastJson.type.startsWith("message") || lastJson.type.startsWith("content_block"))) {
-      const buffers = getBuffers(0);
+      const buffers = getBuffers("0_0");
       const delta: any = { type: "text_delta" };
       let hasDelta = false;
       if (buffers.content) {
@@ -141,15 +142,22 @@ export function createPiiSseTransform(options?: PiiTransformOptions): TransformS
     if (lastJson.choices && Array.isArray(lastJson.choices)) {
       const finalJson = JSON.parse(JSON.stringify(lastJson));
       const presentIndexes = new Set(finalJson.choices.map((c: any) => c.index).filter((idx: any) => typeof idx === "number"));
-      for (const [choiceIdx, choiceBuf] of choiceBuffers.entries()) {
+      for (const [compositeKey, choiceBuf] of choiceBuffers.entries()) {
+        const choiceIdx = parseInt(compositeKey.split("_")[0] || "0", 10);
         if (!presentIndexes.has(choiceIdx) && (choiceBuf.content || choiceBuf.reasoning || choiceBuf.toolArgs)) {
           finalJson.choices.push({ index: choiceIdx, delta: {} });
+          presentIndexes.add(choiceIdx);
         }
       }
 
       for (const choice of finalJson.choices) {
         const choiceIdx = typeof choice.index === "number" ? choice.index : 0;
-        const choiceBuf = getBuffers(choiceIdx);
+        
+        // Find if we have tool buffers for this choice
+        const toolEntries = Array.from(choiceBuffers.entries())
+          .filter(([key]) => key.startsWith(`${choiceIdx}_`) && key !== `${choiceIdx}_0`);
+        
+        const choiceBuf = getBuffers(`${choiceIdx}_0`);
         if (!choice.delta) choice.delta = {};
         const delta = choice.delta;
         
@@ -165,17 +173,29 @@ export function createPiiSseTransform(options?: PiiTransformOptions): TransformS
         } else {
           delete delta.reasoning_content;
         }
-        if (choiceBuf.toolArgs) {
-          delta.tool_calls = [
-            {
-              function: {
-                arguments: choiceBuf.toolArgs
-              }
+        if (choiceBuf.toolArgs || toolEntries.length > 0) {
+          if (!choice.delta.tool_calls) choice.delta.tool_calls = [];
+          
+          if (choiceBuf.toolArgs) {
+            choice.delta.tool_calls.push({
+              index: 0,
+              function: { arguments: choiceBuf.toolArgs }
+            });
+            choiceBuf.toolArgs = "";
+          }
+
+          for (const [key, buf] of toolEntries) {
+            if (buf.toolArgs) {
+              const toolIdx = parseInt(key.split("_")[1] || "0", 10);
+              choice.delta.tool_calls.push({
+                index: toolIdx,
+                function: { arguments: buf.toolArgs }
+              });
+              buf.toolArgs = "";
             }
-          ];
-          choiceBuf.toolArgs = "";
+          }
         } else {
-          delete delta.tool_calls;
+          delete choice.delta.tool_calls;
         }
       }
       return finalJson;
@@ -185,7 +205,7 @@ export function createPiiSseTransform(options?: PiiTransformOptions): TransformS
     if (typeof lastJson.type === "string" && lastJson.type.startsWith("response.")) {
       const finalJson = JSON.parse(JSON.stringify(lastJson));
       const idx = typeof finalJson.output_index === "number" ? finalJson.output_index : 0;
-      const buffers = getBuffers(idx);
+      const buffers = getBuffers(`${idx}_0`);
       if (buffers.content) {
         finalJson.delta = buffers.content;
         buffers.content = "";
@@ -204,7 +224,7 @@ export function createPiiSseTransform(options?: PiiTransformOptions): TransformS
       const finalJson = JSON.parse(JSON.stringify(lastJson));
       for (const cand of finalJson.candidates) {
         const idx = typeof cand.index === "number" ? cand.index : 0;
-        const buffers = getBuffers(idx);
+        const buffers = getBuffers(`${idx}_0`);
         if (!cand.content) cand.content = {};
         cand.content.parts = [];
         
@@ -234,13 +254,23 @@ export function createPiiSseTransform(options?: PiiTransformOptions): TransformS
     };
     clearDeltas(finalJson);
 
-    const populateRemaining = (obj: any, currentIndex = 0) => {
+    const populateRemaining = (obj: any, currentChoiceIdx = 0, currentToolIdx = 0) => {
       if (!obj || typeof obj !== "object") return;
       
-      let idx = currentIndex;
+      let choiceIdx = currentChoiceIdx;
+      let toolIdx = currentToolIdx;
+      
       if (typeof obj.index === "number") {
-        idx = obj.index;
+        if (obj.delta || obj.message || obj.finish_reason) {
+          choiceIdx = obj.index;
+        } else if (obj.function || obj.id || obj.type === "function") {
+          toolIdx = obj.index;
+        } else {
+          choiceIdx = obj.index;
+        }
       }
+      
+      const compositeKey = `${choiceIdx}_${toolIdx}`;
 
       for (const key of Object.keys(obj)) {
         if (METADATA_KEYS.includes(key)) {
@@ -255,18 +285,18 @@ export function createPiiSseTransform(options?: PiiTransformOptions): TransformS
           } else if (key === "partial_json") {
             field = "partialJson";
           }
-          const choiceBuf = getBuffers(idx);
+          const choiceBuf = getBuffers(compositeKey);
           if (choiceBuf[field]) {
             obj[key] = (obj[key] || "") + choiceBuf[field];
             choiceBuf[field] = "";
           }
         } else if (typeof obj[key] === "object") {
-          populateRemaining(obj[key], idx);
+          populateRemaining(obj[key], choiceIdx, toolIdx);
         }
       }
     };
 
-    populateRemaining(finalJson);
+    populateRemaining(finalJson, 0, 0);
     
     // Clear all buffers
     for (const buffers of choiceBuffers.values()) {

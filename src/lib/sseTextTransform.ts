@@ -1,7 +1,7 @@
 export type FieldCategory = "content" | "reasoning" | "toolArgs" | "partialJson";
 
 export function createSseTextTransform(
-  processor: (text: string, field: FieldCategory, isStopSignal?: boolean, index?: number) => string,
+  processor: (text: string, field: FieldCategory, isStopSignal?: boolean, index?: string | number) => string,
   onFlush?: (lastJson: any, isJsonStream?: boolean, lastContentJson?: any) => any,
   onCancel?: () => void,
 ): TransformStream {
@@ -66,13 +66,23 @@ export function createSseTextTransform(
           ];
 
           // Recursively sanitize all string properties (except system metadata)
-          const sanitizeObject = (obj: any, currentIndex = 0) => {
+          const sanitizeObject = (obj: any, currentChoiceIdx = 0, currentToolIdx = 0) => {
             if (!obj || typeof obj !== "object") return;
 
-            let idx = currentIndex;
+            let choiceIdx = currentChoiceIdx;
+            let toolIdx = currentToolIdx;
+
             if (typeof obj.index === "number") {
-              idx = obj.index;
+              if (obj.delta || obj.message || obj.finish_reason) {
+                choiceIdx = obj.index;
+              } else if (obj.function || obj.id || obj.type === "function") {
+                toolIdx = obj.index;
+              } else {
+                choiceIdx = obj.index;
+              }
             }
+
+            const compositeKey = `${choiceIdx}_${toolIdx}`;
 
             for (const key of Object.keys(obj)) {
               if (METADATA_KEYS.includes(key)) {
@@ -89,15 +99,15 @@ export function createSseTextTransform(
                 } else if (key === "partial_json") {
                   field = "partialJson";
                 }
-                obj[key] = processor(val, field, isStopSignal, idx);
+                obj[key] = processor(val, field, isStopSignal, compositeKey);
                 matched = true;
               } else if (typeof obj[key] === "object") {
-                sanitizeObject(obj[key], idx);
+                sanitizeObject(obj[key], choiceIdx, toolIdx);
               }
             }
           };
 
-          sanitizeObject(json, 0);
+          sanitizeObject(json, 0, 0);
 
           if (!matched) {
             console.warn("[SSE-TRANSFORM] No string fields sanitized in SSE JSON chunk. Keys:", Object.keys(json).slice(0, 5).join(", "));
