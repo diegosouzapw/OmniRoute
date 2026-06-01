@@ -68,6 +68,19 @@ export const PluginManifestSchema = z.object({
   skills: z.array(ManifestSkillSchema).optional(),
   enabledByDefault: z.boolean().optional(),
   configSchema: z.record(z.string(), ConfigFieldSchema).optional(),
+  /**
+   * OPT-IN tamper-detection: `sha256-<base64>` of the plugin's entry file.
+   *
+   * NOT a security boundary — loopback-only routing and exec opt-in are the real
+   * boundaries. Local-operator plugins without `integrity` are fully allowed (trust
+   * is implicit for locally installed code). When this field IS present, the loader
+   * verifies the entry file hash at load time and refuses to activate on mismatch.
+   *
+   * Format: `sha256-<base64url>` (same as SRI / W3C Subresource Integrity).
+   * Generate with: `node -e "const {createHash}=require('crypto'),{readFileSync}=require('fs');
+   *   console.log('sha256-'+createHash('sha256').update(readFileSync('index.js')).digest('base64'))"`
+   */
+  integrity: z.string().optional(),
 });
 
 export type PluginManifest = z.infer<typeof PluginManifestSchema>;
