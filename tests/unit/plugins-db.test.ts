@@ -1,7 +1,8 @@
-import { describe, it } from "node:test";
+import { describe, it, beforeEach } from "node:test";
 import assert from "node:assert/strict";
 
 const mod = await import("../../src/lib/db/plugins.ts");
+const { getDbInstance } = await import("../../src/lib/db/core.ts");
 
 const makeInput = (overrides = {}) => ({
   id: `plugin-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
@@ -14,6 +15,14 @@ const makeInput = (overrides = {}) => ({
 });
 
 describe("plugins DB module", () => {
+  beforeEach(() => {
+    // The `plugins` table is created by migration 076 (run on getDbInstance);
+    // rely on the real migration rather than creating the table inline, so a
+    // missing/renumbered migration fails here instead of being masked.
+    const db = getDbInstance();
+    db.exec("DELETE FROM plugins");
+  });
+
   describe("insertPlugin / getPluginByName / listPlugins", () => {
     it("inserts and retrieves a plugin", () => {
       const input = makeInput();

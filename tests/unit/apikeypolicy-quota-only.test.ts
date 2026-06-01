@@ -99,7 +99,10 @@ test.after(async () => {
 // ---------------------------------------------------------------------------
 
 test("quota-only key requesting its quotaShared-* virtual model is allowed", async () => {
-  // Pool name "Times" → slug "times"; provider "codex"
+  // Create a group named "Times" so resolveQuotaKeyScope returns the GROUP slug "times".
+  // quotaGroupSlug("Times") === "times", matching quotaModelName("Times", ...) → qtSd/times/...
+  const group = groupsDb.createGroup("Times");
+
   const conn = await providersDb.createProviderConnection({
     provider: "codex",
     authType: "apikey",
@@ -109,8 +112,7 @@ test("quota-only key requesting its quotaShared-* virtual model is allowed", asy
   const connId = (conn as Record<string, unknown>).id as string;
   assert.ok(connId);
 
-  // Create group "Times" so resolveQuotaKeyScope returns group slug "times"
-  const group = groupsDb.createGroup("Times");
+  // Assign pool to the "Times" group so resolveQuotaKeyScope picks up the group slug.
   const pool = poolsDb.createPool({ connectionId: connId, name: "Times", groupId: group.id });
 
   const created = await apiKeysDb.createApiKey("Quota-B4 Key Allowed", "machine-b4-allowed");
@@ -135,6 +137,7 @@ test("quota-only key requesting its quotaShared-* virtual model is allowed", asy
 });
 
 test("quota-only key requesting raw model name is rejected 403 QUOTA_ONLY", async () => {
+  const group = groupsDb.createGroup("Times");
   const conn = await providersDb.createProviderConnection({
     provider: "codex",
     authType: "apikey",
@@ -142,7 +145,7 @@ test("quota-only key requesting raw model name is rejected 403 QUOTA_ONLY", asyn
     apiKey: "sk-codex-b4-raw",
   });
   const connId = (conn as Record<string, unknown>).id as string;
-  const pool = poolsDb.createPool({ connectionId: connId, name: "Times" });
+  const pool = poolsDb.createPool({ connectionId: connId, name: "Times", groupId: group.id });
 
   const created = await apiKeysDb.createApiKey("Quota-B4 Key Raw Reject", "machine-b4-raw");
   await apiKeysDb.updateApiKeyPermissions(created.id, {
@@ -168,6 +171,7 @@ test("quota-only key requesting raw model name is rejected 403 QUOTA_ONLY", asyn
 });
 
 test("quota-only key requesting a quotaShared-* model from a different pool is rejected 403 QUOTA_ONLY", async () => {
+  const group = groupsDb.createGroup("Times");
   const conn = await providersDb.createProviderConnection({
     provider: "codex",
     authType: "apikey",
@@ -175,7 +179,7 @@ test("quota-only key requesting a quotaShared-* model from a different pool is r
     apiKey: "sk-codex-b4-otherpool",
   });
   const connId = (conn as Record<string, unknown>).id as string;
-  const pool = poolsDb.createPool({ connectionId: connId, name: "Times" });
+  const pool = poolsDb.createPool({ connectionId: connId, name: "Times", groupId: group.id });
 
   const created = await apiKeysDb.createApiKey("Quota-B4 Key Other Pool", "machine-b4-other");
   await apiKeysDb.updateApiKeyPermissions(created.id, {

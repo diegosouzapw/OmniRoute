@@ -80,6 +80,7 @@ export interface ApiKeyMetadata {
   maxSessions?: number | null;
   rateLimits?: RateLimitRule[] | null;
   allowedEndpoints?: string[];
+  disableNonPublicModels?: boolean;
 }
 
 /**
@@ -406,13 +407,21 @@ export async function enforceApiKeyPolicy(
   }
 
   const hasModelRestrictions =
-    !isQuotaExclusive && apiKeyInfo.allowedModels && apiKeyInfo.allowedModels.length > 0;
+    !isQuotaExclusive &&
+    ((apiKeyInfo.allowedModels && apiKeyInfo.allowedModels.length > 0) ||
+      (apiKeyInfo as { disableNonPublicModels?: boolean }).disableNonPublicModels === true);
 
   if (!requestedComboName && modelStr && hasModelRestrictions) {
-    try {
-      requestedComboName = await resolveRequestedComboName(modelStr);
-    } catch {
-      requestedComboName = null;
+    // Short-circuit: auto/* and qtSd/* are combo-routed (not catalog models).
+    // They must never be evaluated by the published-model gate.
+    if (modelStr.startsWith("auto/") || modelStr.startsWith("qtSd/")) {
+      requestedComboName = modelStr; // non-null sentinel — skips the published-model check
+    } else {
+      try {
+        requestedComboName = await resolveRequestedComboName(modelStr);
+      } catch {
+        requestedComboName = null;
+      }
     }
   }
 

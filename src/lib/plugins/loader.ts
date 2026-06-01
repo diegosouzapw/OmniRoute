@@ -9,10 +9,10 @@
  */
 
 import { spawn } from "child_process";
-import { writeFile, rm } from "fs/promises";
+import { writeFile, rm, readFile } from "fs/promises";
 import { join } from "path";
 import { tmpdir } from "os";
-import { randomUUID } from "crypto";
+import { randomUUID, createHash } from "crypto";
 import { logger } from "../../../open-sse/utils/logger.ts";
 import type { PluginManifestWithDefaults, Permission } from "./manifest";
 import type { Plugin, PluginContext, PluginResult } from "./index";
@@ -21,6 +21,15 @@ const log = logger("PLUGIN_LOADER");
 
 const DEFAULT_HOOK_TIMEOUT = 10_000;
 const SIGKILL_GRACE_MS = 3_000;
+
+/**
+ * Compute a `sha256-<base64>` integrity hash of the given source string.
+ * Matches the SRI (Subresource Integrity) format: `sha256-<base64>`.
+ */
+export function computeIntegrity(source: string): string {
+  const hash = createHash("sha256").update(source, "utf-8").digest("base64");
+  return `sha256-${hash}`;
+}
 
 export interface LoadedPlugin {
   name: string;
@@ -70,12 +79,52 @@ export async function loadPlugin(
   entryPoint: string,
   manifest: PluginManifestWithDefaults
 ): Promise<LoadedPlugin> {
-  const permissions = manifest.requires.permissions;
-  const hostId = randomUUID();
-  // .mjs extension forces ESM execution
-  const hostScriptPath = join(tmpdir(), `omniroute-plugin-host-${hostId}.mjs`);
+  // Integrity check: if the manifest declares an integrity field, verify the entry point.
+  // Missing integrity is OK for backward compatibility; mismatched integrity is a fatal error.
+  const integrityField = (manifest as unknown as Record<string, unknown>).integrity;
+  if (typeof integrityField === "string" && integrityField.length > 0) {
+    let source: string;
+    try {
+      source = await readFile(entryPoint, "utf-8");
+    } catch (err: unknown) {
+      throw new Error(
+        `Plugin '${manifest.name}' integrity check failed: cannot read entry point — ${err instanceof Error ? err.message : String(err)}`
+      );
+    }
+    const actual = computeIntegrity(source);
+    if (actual !== integrityField) {
+      throw new Error(
+        `Plugin '${manifest.name}' integrity mismatch: expected ${integrityField}, got ${actual}`
+      );
+    }
+  }
 
-  await writeFile(hostScriptPath, PLUGIN_HOST_SCRIPT, "utf-8");
+  const permissions = manifest.requires.permissions;
+
+  // IMPORTANT-6: Write the host script with O_EXCL (wx flag) so the open fails if
+  // anything already exists at that path, defeating symlink/pre-create races (TOCTOU).
+  // mode 0o600 ensures no other OS user can read or replace the script.
+  // On EEXIST collision (astronomically unlikely with UUID but theoretically possible),
+  // retry once with a fresh UUID.
+  let hostScriptPath: string;
+  {
+    // .mjs extension forces ESM execution regardless of package.json type field
+    const tryWrite = async (id: string): Promise<string> => {
+      const p = join(tmpdir(), `omniroute-plugin-host-${id}.mjs`);
+      await writeFile(p, PLUGIN_HOST_SCRIPT, { encoding: "utf-8", mode: 0o600, flag: "wx" });
+      return p;
+    };
+    try {
+      hostScriptPath = await tryWrite(randomUUID());
+    } catch (err: unknown) {
+      // EEXIST on a UUID path is a collision — retry once with a fresh UUID.
+      if (err instanceof Error && (err as NodeJS.ErrnoException).code === "EEXIST") {
+        hostScriptPath = await tryWrite(randomUUID());
+      } else {
+        throw err;
+      }
+    }
+  }
 
   const env: Record<string, string> = {
     ...getFilteredEnv(permissions),
@@ -159,50 +208,61 @@ export async function loadPlugin(
     });
   };
 
-  // Build Plugin interface
+  // Build Plugin interface — only register hooks declared in the manifest.
   const plugin: Plugin = {
     name: manifest.name,
     priority: 100,
     enabled: true,
   };
 
-  plugin.onRequest = async (ctx: PluginContext): Promise<PluginResult | void> => {
-    try {
-      const result = await callHook("onRequest", ctx);
-      return result as PluginResult | void;
-    } catch (err: unknown) {
-      log.error("plugin.onRequest_error", {
-        name: manifest.name,
-        error: err instanceof Error ? err.message : String(err),
-      });
-    }
-  };
+  const registeredHooks: string[] = [];
 
-  plugin.onResponse = async (ctx: PluginContext, response: unknown): Promise<unknown | void> => {
-    try {
-      return await callHook("onResponse", { ctx, response });
-    } catch (err: unknown) {
-      log.error("plugin.onResponse_error", {
-        name: manifest.name,
-        error: err instanceof Error ? err.message : String(err),
-      });
-    }
-  };
+  if (manifest.hooks.onRequest) {
+    plugin.onRequest = async (ctx: PluginContext): Promise<PluginResult | void> => {
+      try {
+        const result = await callHook("onRequest", ctx);
+        return result as PluginResult | void;
+      } catch (err: unknown) {
+        log.error("plugin.onRequest_error", {
+          name: manifest.name,
+          error: err instanceof Error ? err.message : String(err),
+        });
+      }
+    };
+    registeredHooks.push("onRequest");
+  }
 
-  plugin.onError = async (ctx: PluginContext, error: Error): Promise<unknown | void> => {
-    try {
-      return await callHook("onError", { ctx, error: error.message });
-    } catch (err: unknown) {
-      log.error("plugin.onError_error", {
-        name: manifest.name,
-        error: err instanceof Error ? err.message : String(err),
-      });
-    }
-  };
+  if (manifest.hooks.onResponse) {
+    plugin.onResponse = async (ctx: PluginContext, response: unknown): Promise<unknown | void> => {
+      try {
+        return await callHook("onResponse", { ctx, response });
+      } catch (err: unknown) {
+        log.error("plugin.onResponse_error", {
+          name: manifest.name,
+          error: err instanceof Error ? err.message : String(err),
+        });
+      }
+    };
+    registeredHooks.push("onResponse");
+  }
+
+  if (manifest.hooks.onError) {
+    plugin.onError = async (ctx: PluginContext, error: Error): Promise<unknown | void> => {
+      try {
+        return await callHook("onError", { ctx, error: error.message });
+      } catch (err: unknown) {
+        log.error("plugin.onError_error", {
+          name: manifest.name,
+          error: err instanceof Error ? err.message : String(err),
+        });
+      }
+    };
+    registeredHooks.push("onError");
+  }
 
   log.info("loader.loaded", {
     name: manifest.name,
-    hooks: ["onRequest", "onResponse", "onError"],
+    hooks: registeredHooks,
     pid: child.pid,
   });
 

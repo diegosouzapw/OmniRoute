@@ -33,6 +33,8 @@ export const LOCAL_ONLY_API_PREFIXES: ReadonlyArray<string> = [
   "/api/copilot/", // unauthenticated LLM driver — CLI-only by default; admins can opt-in to remote access via manage-scope bypass
   "/api/tools/agent-bridge/", // AgentBridge: spawns MITM server + DNS edits (Hard Rules #15 + #17)
   "/api/tools/traffic-inspector/", // Traffic Inspector: http-proxy listener + system proxy (Hard Rules #15 + #17)
+  "/api/plugins/", // plugins: load/execute via worker_threads + child_process (Hard Rules #15 + #17)
+  "/api/plugins", // bare path: GET list + POST install also trigger plugin loading
 ];
 
 /**
@@ -55,6 +57,7 @@ export const SPAWN_CAPABLE_PREFIXES: ReadonlyArray<string> = [
   "/api/services/", // T-10: can run npm install + spawn node processes
   "/api/tools/agent-bridge/", // start/stop MITM server + DNS edits (Hard Rules #15 + #17)
   "/api/tools/traffic-inspector/", // http-proxy listener + system proxy (Hard Rules #15 + #17)
+  "/api/plugins/", // plugins: load/execute via worker_threads + child_process (Hard Rules #15 + #17)
 ];
 
 /**

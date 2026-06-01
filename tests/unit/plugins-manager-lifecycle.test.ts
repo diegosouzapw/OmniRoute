@@ -6,6 +6,7 @@ import { tmpdir } from "node:os";
 
 const mod = await import("../../src/lib/plugins/manager.ts");
 const db = await import("../../src/lib/db/plugins.ts");
+const { getDbInstance } = await import("../../src/lib/db/core.ts");
 
 function makeTmpPlugin(name: string, manifest: Record<string, unknown> = {}) {
   const tmp = mkdtempSync(join(tmpdir(), "mgr-test-"));
@@ -30,6 +31,10 @@ describe("pluginManager lifecycle", () => {
   const testPlugins: string[] = [];
 
   beforeEach(() => {
+    // Ensure migrations ran (creates the `plugins` table via migration 076)
+    // before any lifecycle call touches it — uses the real migration, not an
+    // inline CREATE TABLE, so a missing/renumbered migration fails loudly.
+    getDbInstance();
     // Clean up test plugins
     for (const name of testPlugins) {
       try { db.deletePlugin(name); } catch {}
