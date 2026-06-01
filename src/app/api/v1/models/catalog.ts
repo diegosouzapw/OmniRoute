@@ -1138,20 +1138,31 @@ export async function getUnifiedModelsResponse(
     const apiKey = extractBearer(request.headers);
     let finalModels = models;
     if (apiKey) {
-      const { isModelAllowedForKey } = await import("@/lib/db/apiKeys");
+      const { isModelAllowedForKey, getApiKeyMetadata } = await import("@/lib/db/apiKeys");
 
-      const filtered = [];
-      for (const m of models) {
-        // m.id is the full identifier (e.g. openai/gpt-4o), m.root is the raw model string
-        // check either one as the config could use either patterns
-        if (
-          (await isModelAllowedForKey(apiKey, m.id)) ||
-          (await isModelAllowedForKey(apiKey, m.root))
-        ) {
-          filtered.push(m);
+      // Quota-exclusive keys (allowedQuotas non-empty): show only the
+      // quotaShared-* virtual models for the key's assigned pools (Phase B3).
+      // This takes precedence over the normal allowedModels filter.
+      const keyMeta = await getApiKeyMetadata(apiKey);
+      if (keyMeta && keyMeta.allowedQuotas && keyMeta.allowedQuotas.length > 0) {
+        const { resolveQuotaKeyScope } = await import("@/lib/quota/quotaKey");
+        const { filterModelsToQuotaPools } = await import("@/lib/quota/quotaCombos");
+        const scope = await resolveQuotaKeyScope(keyMeta.allowedQuotas);
+        finalModels = filterModelsToQuotaPools(models, scope.poolSlugs);
+      } else {
+        const filtered = [];
+        for (const m of models) {
+          // m.id is the full identifier (e.g. openai/gpt-4o), m.root is the raw model string
+          // check either one as the config could use either patterns
+          if (
+            (await isModelAllowedForKey(apiKey, m.id)) ||
+            (await isModelAllowedForKey(apiKey, m.root))
+          ) {
+            filtered.push(m);
+          }
         }
+        finalModels = filtered;
       }
-      finalModels = filtered;
     }
 
     const getDefaultContextFallback = (model: any): number | undefined => {

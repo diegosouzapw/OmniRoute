@@ -1628,6 +1628,19 @@ export default function ProviderDetailPage() {
     }
   }, [providerId, isSearchProvider]);
 
+  const fetchProxyConfig = useCallback(async () => {
+    try {
+      const res = await fetch("/api/settings/proxy", { cache: "no-store" });
+      if (res.ok) {
+        setProxyConfig(await res.json());
+      } else {
+        setProxyConfig(null);
+      }
+    } catch {
+      // Proxy indicators are best-effort.
+    }
+  }, []);
+
   const fetchConnections = useCallback(async () => {
     try {
       const [connectionsRes, nodesRes] = await Promise.all([
@@ -1689,11 +1702,8 @@ export default function ProviderDetailPage() {
     fetchConnections();
     fetchAliases();
     // Load proxy config for visual indicators (provider-level button)
-    fetch("/api/settings/proxy")
-      .then((r) => (r.ok ? r.json() : null))
-      .then((c) => setProxyConfig(c))
-      .catch(() => {});
-  }, [fetchConnections, fetchAliases]);
+    void fetchProxyConfig();
+  }, [fetchConnections, fetchAliases, fetchProxyConfig]);
 
   const handleZedImport = useCallback(async () => {
     if (importingZed) return;
@@ -4605,7 +4615,7 @@ export default function ProviderDetailPage() {
             </div>
             <div className="flex flex-wrap gap-2">
               <Link
-                href="/dashboard/cli-tools"
+                href="/dashboard/cli-code"
                 className="inline-flex items-center gap-2 rounded-lg border border-border px-3 py-2 text-sm text-text-main hover:border-primary/40 hover:text-text-primary transition-colors"
               >
                 <span className="material-symbols-outlined text-base">terminal</span>
@@ -4930,7 +4940,10 @@ export default function ProviderDetailPage() {
           level={proxyTarget.level}
           levelId={proxyTarget.id}
           levelLabel={proxyTarget.label}
-          onSaved={() => void loadConnProxies(connections)}
+          onSaved={() => {
+            void fetchProxyConfig();
+            void loadConnProxies(connections);
+          }}
         />
       )}
       {/* Import Progress Modal */}

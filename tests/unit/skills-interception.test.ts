@@ -215,9 +215,10 @@ test("handleToolCallExecution appends OpenAI tool results and leaves empty respo
   assert.equal(await handleToolCallExecution(untouched, "gpt-4.1", executionContext), untouched);
 });
 
-test("handleToolCallExecution appends Anthropic tool_result blocks", async () => {
+test("handleToolCallExecution returns Anthropic skill results as text", async () => {
   const anthropicResponse = await handleToolCallExecution(
     {
+      stop_reason: "tool_use",
       content: [{ type: "tool_use", id: "tool-1", name: "lookup@1.0.0", input: { id: "77" } }],
     },
     "claude-3-7-sonnet",
@@ -225,13 +226,17 @@ test("handleToolCallExecution appends Anthropic tool_result blocks", async () =>
   );
 
   assert.deepEqual(anthropicResponse.content, [
-    { type: "tool_use", id: "tool-1", name: "lookup@1.0.0", input: { id: "77" } },
     {
-      type: "tool_result",
-      tool_use_id: "tool-1",
-      content: '{"record":"resolved:77"}',
+      type: "text",
+      text: '[Skill result: lookup@1.0.0]\n{"record":"resolved:77"}',
     },
   ]);
+  assert.equal(
+    anthropicResponse.content.some((b: { type: string }) => b.type === "tool_result"),
+    false
+  );
+  assert.equal(anthropicResponse.stop_reason, "end_turn");
+  assert.equal(anthropicResponse.stop_sequence, null);
 });
 
 test("handleToolCallExecution appends Responses API function_call_output items", async () => {
@@ -285,6 +290,7 @@ test("handleToolCallExecution forwards unregistered client-native tool_use untou
 test("handleToolCallExecution intercepts a registered skill alongside an unregistered tool (#2815)", async () => {
   const mixed = await handleToolCallExecution(
     {
+      stop_reason: "tool_use",
       content: [
         { type: "tool_use", id: "tool-native", name: "Bash", input: { command: "ls" } },
         { type: "tool_use", id: "tool-skill", name: "lookup@1.0.0", input: { id: "9" } },
@@ -295,14 +301,14 @@ test("handleToolCallExecution intercepts a registered skill alongside an unregis
   );
 
   assert.deepEqual(mixed.content, [
-    { type: "tool_use", id: "tool-native", name: "Bash", input: { command: "ls" } },
-    { type: "tool_use", id: "tool-skill", name: "lookup@1.0.0", input: { id: "9" } },
     {
-      type: "tool_result",
-      tool_use_id: "tool-skill",
-      content: '{"record":"resolved:9"}',
+      type: "text",
+      text: '[Skill result: lookup@1.0.0]\n{"record":"resolved:9"}',
     },
+    { type: "tool_use", id: "tool-native", name: "Bash", input: { command: "ls" } },
   ]);
+  assert.equal(mixed.content.some((b: { type: string }) => b.type === "tool_result"), false);
+  assert.equal(mixed.stop_reason, "tool_use");
 });
 
 test("handleToolCallExecution loads registry from DB on cold cache (covers loadFromDatabase fix)", async () => {
@@ -316,6 +322,7 @@ test("handleToolCallExecution loads registry from DB on cold cache (covers loadF
 
   const result = await handleToolCallExecution(
     {
+      stop_reason: "tool_use",
       content: [
         { type: "tool_use", id: "tool-skill", name: "lookup@1.0.0", input: { id: "cold" } },
       ],
@@ -325,11 +332,12 @@ test("handleToolCallExecution loads registry from DB on cold cache (covers loadF
   );
 
   assert.deepEqual(result.content, [
-    { type: "tool_use", id: "tool-skill", name: "lookup@1.0.0", input: { id: "cold" } },
     {
-      type: "tool_result",
-      tool_use_id: "tool-skill",
-      content: '{"record":"resolved:cold"}',
+      type: "text",
+      text: '[Skill result: lookup@1.0.0]\n{"record":"resolved:cold"}',
     },
   ]);
+  assert.equal(result.content.some((b: { type: string }) => b.type === "tool_result"), false);
+  assert.equal(result.stop_reason, "end_turn");
+  assert.equal(result.stop_sequence, null);
 });

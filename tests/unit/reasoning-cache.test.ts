@@ -13,6 +13,7 @@ import { join } from "node:path";
 import { tmpdir } from "node:os";
 
 process.env.DATA_DIR = mkdtempSync(join(tmpdir(), "omniroute-reasoning-"));
+process.env.API_KEY_SECRET = process.env.API_KEY_SECRET || "reasoning-cache-test-secret";
 
 // ──────────── Direct service import ────────────
 
@@ -37,6 +38,7 @@ import { ensureToolCallIds } from "../../open-sse/translator/helpers/toolCallHel
 import { getDbInstance } from "../../src/lib/db/core.ts";
 import { getReasoningCache, setReasoningCache } from "../../src/lib/db/reasoningCache.ts";
 import { DELETE, GET } from "../../src/app/api/cache/reasoning/route.ts";
+import { createApiKey } from "../../src/lib/db/apiKeys.ts";
 import { updateSettings } from "../../src/lib/db/settings";
 import {
   clearModelsDevCapabilities,
@@ -755,20 +757,35 @@ describe("Reasoning Replay Cache — Translator Replay", () => {
 });
 
 describe("Reasoning Replay Cache — API Route", () => {
+  let managementApiKey: string;
+
   before(() => {
     clearReasoningCacheAll();
+  });
+
+  before(async () => {
+    const created = await createApiKey("reasoning-cache-route-test", "machine-reasoning", [
+      "manage",
+    ]);
+    managementApiKey = created.key;
   });
 
   after(() => {
     clearReasoningCacheAll();
   });
 
+  function authedRequest(url: string): Request {
+    return new Request(url, {
+      headers: { authorization: `Bearer ${managementApiKey}` },
+    });
+  }
+
   it("should return stats and entries from GET", async () => {
     clearReasoningCacheAll();
     cacheReasoning("call_api_get", "deepseek", "deepseek-reasoner", "API visible reasoning");
 
     const response = await GET(
-      new Request("http://localhost/api/cache/reasoning?provider=deepseek") as never
+      authedRequest("http://localhost/api/cache/reasoning?provider=deepseek") as never
     );
     const body = await response.json();
 
@@ -784,7 +801,7 @@ describe("Reasoning Replay Cache — API Route", () => {
     cacheReasoning("call_api_delete_2", "deepseek", "deepseek-reasoner", "Keep API");
 
     const response = await DELETE(
-      new Request("http://localhost/api/cache/reasoning?toolCallId=call_api_delete_1") as never
+      authedRequest("http://localhost/api/cache/reasoning?toolCallId=call_api_delete_1") as never
     );
     const body = await response.json();
 
@@ -801,7 +818,7 @@ describe("Reasoning Replay Cache — API Route", () => {
     cacheReasoning("call_api_provider_kimi", "kimi", "kimi-k2.5", "Keep provider");
 
     const response = await DELETE(
-      new Request("http://localhost/api/cache/reasoning?provider=deepseek") as never
+      authedRequest("http://localhost/api/cache/reasoning?provider=deepseek") as never
     );
     const body = await response.json();
 

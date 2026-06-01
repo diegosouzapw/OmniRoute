@@ -212,7 +212,9 @@ test("combo builder options route includes no-auth provider (opencode) even with
     opencode.models.some((m: any) => m.id === "big-pickle"),
     "big-pickle should be among opencode models"
   );
-  assert.equal(opencode.models[0].qualifiedModel.startsWith("opencode/"), true);
+  // #2901: no-auth opencode routes under its alias "oc/" (the bare "opencode/"
+  // prefix misroutes to the opencode-zen api-key tier via ALIAS_TO_PROVIDER_ID).
+  assert.equal(opencode.models[0].qualifiedModel.startsWith("oc/"), true);
   assert.equal(opencode.source, "system", "opencode should have source=system");
 });
 

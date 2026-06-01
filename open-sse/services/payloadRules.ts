@@ -215,9 +215,34 @@ export function clearPayloadRulesConfigOverride() {
   runtimeOverride = null;
 }
 
+// #2986: Read the DB-persisted payload rules (the source of truth, written by
+// the Settings UI via updateSettings). Used as the fallback when no in-memory
+// runtimeOverride is set — e.g. a fresh process before the startup
+// applyRuntimeSettings hook ran, or a separate module instance in the
+// standalone Next.js build — so saved rules survive a server restart instead of
+// silently reverting to the (usually empty) file config.
+async function loadPayloadRulesFromSettings(): Promise<PayloadRulesConfig | null> {
+  try {
+    const { getCachedSettings } = await import("@/lib/localDb");
+    const settings = (await getCachedSettings()) as { payloadRules?: unknown };
+    const raw = settings?.payloadRules;
+    if (raw === null || raw === undefined) return null;
+    return normalizePayloadRulesConfig(raw);
+  } catch {
+    return null;
+  }
+}
+
 export async function getPayloadRulesConfig(options: { forceRefresh?: boolean } = {}) {
   if (runtimeOverride) {
     return clonePayloadRulesConfig(runtimeOverride);
+  }
+
+  // #2986: prefer the DB-persisted rules over the file config so a saved
+  // configuration survives a restart even when the in-memory override is absent.
+  const dbConfig = await loadPayloadRulesFromSettings();
+  if (dbConfig) {
+    return clonePayloadRulesConfig(dbConfig);
   }
 
   await refreshPayloadRulesFileCache(options.forceRefresh === true);

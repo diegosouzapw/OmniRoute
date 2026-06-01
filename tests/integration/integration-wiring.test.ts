@@ -242,7 +242,7 @@ describe("API Routes — dashboard and tool consumers", () => {
     assert.match(logsPage, /ProxyLogger/);
     assert.match(logsPage, /ConsoleLogViewer/);
     assert.match(logsPage, /ActiveRequestsPanel/);
-    assert.match(logsPage, /AuditLogTab/);
+    // AuditLogTab removed: audit moved to its own /dashboard/audit page (#2859).
     assert.match(logsPage, /\/api\/logs\/export/);
     assert.match(requestLogger, /\/api\/usage\/call-logs/);
     assert.match(requestLogger, /\/api\/logs\/detail/);
