@@ -51,7 +51,7 @@ export function createPiiSseTransform(options?: PiiTransformOptions): TransformS
     return toEmit;
   };
 
-  const onFlush = (lastJson: any): any => {
+  const onFlush = (lastJson: any, isJsonStream = false, lastContentJson: any = null): any => {
     // Force final redaction on all buffers
     for (const [index, buffers] of choiceBuffers.entries()) {
       for (const key of Object.keys(buffers)) {
@@ -80,16 +80,20 @@ export function createPiiSseTransform(options?: PiiTransformOptions): TransformS
         const remaining = buffers.content;
         buffers.content = "";
         
-        // Wrap in a safe default OpenAI format to prevent client-side SDK crashes
-        return {
-          choices: [
-            {
-              delta: {
-                content: remaining
+        if (isJsonStream) {
+          // Wrap in a safe default OpenAI format to prevent client-side SDK crashes
+          return {
+            choices: [
+              {
+                delta: {
+                  content: remaining
+                }
               }
-            }
-          ]
-        };
+            ]
+          };
+        } else {
+          return remaining;
+        }
       }
       return null;
     }
@@ -213,7 +217,8 @@ export function createPiiSseTransform(options?: PiiTransformOptions): TransformS
     }
 
     // 5. Generic fallback
-    const finalJson = JSON.parse(JSON.stringify(lastJson));
+    const templateJson = lastContentJson || lastJson;
+    const finalJson = JSON.parse(JSON.stringify(templateJson));
     const clearDeltas = (obj: any) => {
       if (!obj || typeof obj !== "object") return;
       for (const key of Object.keys(obj)) {

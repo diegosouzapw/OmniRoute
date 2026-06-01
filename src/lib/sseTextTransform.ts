@@ -2,7 +2,7 @@ export type FieldCategory = "content" | "reasoning" | "toolArgs" | "partialJson"
 
 export function createSseTextTransform(
   processor: (text: string, field: FieldCategory, isStopSignal?: boolean, index?: number) => string,
-  onFlush?: (lastJson: any) => any,
+  onFlush?: (lastJson: any, isJsonStream?: boolean, lastContentJson?: any) => any,
   onCancel?: () => void,
 ): TransformStream {
   const encoder = new TextEncoder();
@@ -10,6 +10,8 @@ export function createSseTextTransform(
   let lineBuffer = "";
   let lastPrefix = "data: ";
   let lastJson: any = null;
+  let lastContentJson: any = null;
+  let isJsonStream = false;
   let flushed = false;
   let errored = false;
 
@@ -27,7 +29,7 @@ export function createSseTextTransform(
       const segment = line.startsWith("data: ") ? line.slice(6) : line.slice(5);
       if (segment === "[DONE]") {
         if (onFlush) {
-          const flushedValue = onFlush(lastJson);
+          const flushedValue = onFlush(lastJson, isJsonStream, lastContentJson);
           if (flushedValue) {
             const prefix = lastPrefix || "data: ";
             const payload = typeof flushedValue === "string" ? flushedValue : JSON.stringify(flushedValue);
@@ -43,6 +45,7 @@ export function createSseTextTransform(
       if (trimmedSegment.startsWith("{") || trimmedSegment.startsWith("[")) {
         try {
           const json = JSON.parse(trimmedSegment);
+          isJsonStream = true;
           
           let matched = false;
           
@@ -98,10 +101,12 @@ export function createSseTextTransform(
 
           if (!matched) {
             console.warn("[SSE-TRANSFORM] No string fields sanitized in SSE JSON chunk. Keys:", Object.keys(json).slice(0, 5).join(", "));
+          } else {
+            lastContentJson = json;
           }
 
           if (isStopSignal && onFlush && !flushed) {
-            const flushedValue = onFlush(lastJson || json); // Use json as fallback just in case
+            const flushedValue = onFlush(lastJson || json, isJsonStream, lastContentJson || lastJson || json); // Use json as fallback just in case
             if (flushedValue) {
               const prefix = lastPrefix || "data: ";
               const payload = typeof flushedValue === "string" ? flushedValue : JSON.stringify(flushedValue);
@@ -168,7 +173,7 @@ export function createSseTextTransform(
           handleLine(remaining, controller);
         }
         if (onFlush && !flushed) {
-          const flushedValue = onFlush(lastJson);
+          const flushedValue = onFlush(lastJson, isJsonStream, lastContentJson);
           if (flushedValue) {
             const prefix = lastPrefix || "data: ";
             const payload = typeof flushedValue === "string" ? flushedValue : JSON.stringify(flushedValue);

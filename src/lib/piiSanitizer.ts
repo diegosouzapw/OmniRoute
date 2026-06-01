@@ -63,7 +63,7 @@ const PII_PATTERNS: PIIPattern[] = [
   },
   {
     name: "phone_br",
-    regex: /(?<=^|[^A-Za-z0-9])(?:\+?55[-.\s]?)?\(?\d{2}\)?[-.\s]?\d{4,5}[-.\s]?\d{4}(?=$|[^A-Za-z0-9])/g,
+    regex: /(?<=^|[^A-Za-z0-9])(?:\+?55[-.\s]?)?\(?\d{2}\)?[-.\s]?(?:9\d{4}|[2-5]\d{3})[-.\s]?\d{4}(?=$|[^A-Za-z0-9])/g,
     replacement: "[PHONE_REDACTED]",
     severity: "medium",
   },
@@ -87,7 +87,7 @@ const PII_PATTERNS: PIIPattern[] = [
   },
   {
     name: "ipv6_address",
-    regex: /(?<=^|[^A-Za-z0-9])(?:[0-9a-fA-F]{1,4}:){1,7}(?:[0-9a-fA-F]{1,4}|:)|::(?:[0-9a-fA-F]{1,4}:){0,7}[0-9a-fA-F]{1,4}(?=$|[^A-Za-z0-9])/g,
+    regex: /(?<=^|[^A-Za-z0-9])(?:(?:[0-9a-fA-F]{1,4}:){1,7}(?:[0-9a-fA-F]{1,4}|:)|::(?:[0-9a-fA-F]{1,4}:){0,7}[0-9a-fA-F]{1,4})(?=$|[^A-Za-z0-9])/g,
     replacement: "[IP_REDACTED]",
     severity: "low",
   },
@@ -130,13 +130,25 @@ export function sanitizePII(text: string, isStreaming = false): SanitizeResult {
   const detections: SanitizeResult["detections"] = [];
 
   // Build a map of clean character index to original character index.
-  // We strip \u200B and \uFEFF always, but we also ignore ZWJ/ZWNJ (\u200D/\u200C) during matching
-  // to ensure regex patterns can be detected even when obfuscated.
+  // Ignore zero-width and invisible formatting characters to prevent obfuscation bypasses.
+  const IGNORED_CHARS = new Set([
+    "\u200B", // Zero Width Space
+    "\u200C", // Zero Width Non-Joiner
+    "\u200D", // Zero Width Joiner
+    "\u200E", // Left-to-Right Mark
+    "\u200F", // Right-to-Left Mark
+    "\uFEFF", // Byte Order Mark
+    "\u2060", // Word Joiner
+    "\u00AD", // Soft Hyphen
+    // Bidirectional formatting controls
+    "\u202A", "\u202B", "\u202C", "\u202D", "\u202E",
+    "\u2066", "\u2067", "\u2068", "\u2069"
+  ]);
   const cleanToOrig: number[] = [];
   let cleanText = "";
   for (let i = 0; i < text.length; i++) {
     const char = text[i];
-    if (char === "\u200B" || char === "\u200C" || char === "\u200D" || char === "\uFEFF") {
+    if (IGNORED_CHARS.has(char)) {
       // Obfuscator / joiner, ignore in clean text
     } else {
       cleanToOrig.push(i);
@@ -163,10 +175,25 @@ export function sanitizePII(text: string, isStreaming = false): SanitizeResult {
       const start = cleanToOrig[cleanStart];
       const end = cleanToOrig[cleanEnd];
 
+      // Perform checksum validation to minimize false positives
+      if (pattern.name === "credit_card" && !isValidLuhn(match[0].replace(/[-\s]/g, ""))) {
+        continue;
+      }
+      if (pattern.name === "cpf" && !isValidCPF(match[0])) {
+        continue;
+      }
+      if (pattern.name === "cnpj" && !isValidCNPJ(match[0])) {
+        continue;
+      }
+
       if (isStreaming && cleanEnd === cleanText.length) {
-        // Prevent premature redaction of variable-length PII touching the end of the streaming buffer
-        if (endMatchIndex === undefined || start < endMatchIndex) {
-          endMatchIndex = start;
+        // Prevent premature redaction of variable-length PII touching the end of the streaming buffer.
+        // Clamp maximum match length to 100 to prevent infinite buffer accumulation (OOM).
+        const matchLength = cleanEnd - cleanStart;
+        if (matchLength < 100) {
+          if (endMatchIndex === undefined || start < endMatchIndex) {
+            endMatchIndex = start;
+          }
         }
       } else {
         ranges.push({
@@ -304,4 +331,76 @@ export function sanitizePIIResponse(response: any): any {
       throw new Error(`[PII] Blocked response due to sanitization failure: ${err.message}`);
     }
   }
+}
+
+// ── Checksum Validation Helpers ──
+
+function isValidLuhn(digits: string): boolean {
+  let sum = 0;
+  let shouldDouble = false;
+  for (let i = digits.length - 1; i >= 0; i--) {
+    let digit = parseInt(digits[i], 10);
+    if (shouldDouble) {
+      digit *= 2;
+      if (digit > 9) digit -= 9;
+    }
+    sum += digit;
+    shouldDouble = !shouldDouble;
+  }
+  return sum % 10 === 0;
+}
+
+function isValidCPF(cpf: string): boolean {
+  const digits = cpf.replace(/\D/g, "");
+  if (digits.length !== 11) return false;
+  if (/^(\d)\1{10}$/.test(digits)) return false;
+
+  let sum = 0;
+  for (let i = 0; i < 9; i++) {
+    sum += parseInt(digits[i], 10) * (10 - i);
+  }
+  let rev = 11 - (sum % 11);
+  if (rev === 10 || rev === 11) rev = 0;
+  if (rev !== parseInt(digits[9], 10)) return false;
+
+  sum = 0;
+  for (let i = 0; i < 10; i++) {
+    sum += parseInt(digits[i], 10) * (11 - i);
+  }
+  rev = 11 - (sum % 11);
+  if (rev === 10 || rev === 11) rev = 0;
+  if (rev !== parseInt(digits[10], 10)) return false;
+
+  return true;
+}
+
+function isValidCNPJ(cnpj: string): boolean {
+  const digits = cnpj.replace(/\D/g, "");
+  if (digits.length !== 14) return false;
+  if (/^(\d)\1{13}$/.test(digits)) return false;
+
+  let size = 12;
+  let numbers = digits.substring(0, size);
+  const tempDigits = digits.substring(size);
+  let sum = 0;
+  let pos = size - 7;
+  for (let i = size; i >= 1; i--) {
+    sum += parseInt(numbers.charAt(size - i), 10) * pos--;
+    if (pos < 2) pos = 9;
+  }
+  let result = sum % 11 < 2 ? 0 : 11 - (sum % 11);
+  if (result !== parseInt(tempDigits.charAt(0), 10)) return false;
+
+  size = 13;
+  numbers = digits.substring(0, size);
+  sum = 0;
+  pos = size - 7;
+  for (let i = size; i >= 1; i--) {
+    sum += parseInt(numbers.charAt(size - i), 10) * pos--;
+    if (pos < 2) pos = 9;
+  }
+  result = sum % 11 < 2 ? 0 : 11 - (sum % 11);
+  if (result !== parseInt(tempDigits.charAt(1), 10)) return false;
+
+  return true;
 }
