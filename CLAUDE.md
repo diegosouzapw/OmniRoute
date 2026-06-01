@@ -47,7 +47,7 @@ For full test matrix, see `CONTRIBUTING.md` → "Running Tests". For deep archit
 | Services      | `open-sse/services/`    | Combo routing, rate limits, caching, etc                           |
 | Database      | `src/lib/db/`           | SQLite domain modules (45+ files, 55 migrations)                   |
 | Domain/Policy | `src/domain/`           | Policy engine, cost rules, fallback logic                          |
-| MCP Server    | `open-sse/mcp-server/`  | 37 tools (30 base + 3 memory + 4 skills), 3 transports, ~13 scopes |
+| MCP Server    | `open-sse/mcp-server/`  | 43 tools (30 base + 3 memory + 4 skills + 6 notion), 3 transports, ~13 scopes |
 | A2A Server    | `src/lib/a2a/`          | JSON-RPC 2.0 agent protocol                                        |
 | Skills        | `src/lib/skills/`       | Extensible skill framework                                         |
 | Memory        | `src/lib/memory/`       | Persistent conversational memory                                   |

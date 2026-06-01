@@ -5,6 +5,7 @@ import { QoderExecutor } from "./qoder.ts";
 import { KiroExecutor } from "./kiro.ts";
 import { CodexExecutor } from "./codex.ts";
 import { CursorExecutor } from "./cursor.ts";
+import { TraeExecutor } from "./trae.ts";
 import { DefaultExecutor } from "./default.ts";
 import { BedrockExecutor } from "./bedrock.ts";
 import { GlmExecutor } from "./glm.ts";
@@ -45,6 +46,7 @@ import { VeniceWebExecutor } from "./venice-web.ts";
 import { V0VercelWebExecutor } from "./v0-vercel-web.ts";
 import { KimiWebExecutor } from "./kimi-web.ts";
 import { DoubaoWebExecutor } from "./doubao-web.ts";
+import { QwenWebExecutor } from "./qwen-web.ts";
 
 const executors = {
   antigravity: new AntigravityExecutor(),
@@ -57,6 +59,7 @@ const executors = {
   bedrock: new BedrockExecutor(),
   codex: new CodexExecutor(),
   cursor: new CursorExecutor(),
+  trae: new TraeExecutor(),
   glm: new GlmExecutor("glm"),
   "glm-cn": new GlmExecutor("glm-cn"),
   glmt: new GlmExecutor("glmt"),
@@ -109,7 +112,7 @@ const executors = {
   "veoaifree-web": new VeoAIFreeWebExecutor(),
   "veo-free": new VeoAIFreeWebExecutor(), // Alias
   "duckduckgo-web": new DuckDuckGoWebExecutor(),
-  "ddgw": new DuckDuckGoWebExecutor(), // Alias
+  ddgw: new DuckDuckGoWebExecutor(), // Alias
   "t3-web": new T3ChatWebExecutor(),
   t3chat: new T3ChatWebExecutor(), // Alias
   "inner-ai": new InnerAiExecutor(),
@@ -128,6 +131,8 @@ const executors = {
   kimi: new KimiWebExecutor(), // Alias
   "doubao-web": new DoubaoWebExecutor(),
   db: new DoubaoWebExecutor(), // Alias
+  "qwen-web": new QwenWebExecutor(),
+  qw: new QwenWebExecutor(), // Alias
 };
 
 const defaultCache = new Map();
@@ -150,6 +155,7 @@ export { QoderExecutor } from "./qoder.ts";
 export { KiroExecutor } from "./kiro.ts";
 export { CodexExecutor } from "./codex.ts";
 export { CursorExecutor } from "./cursor.ts";
+export { TraeExecutor } from "./trae.ts";
 export { DefaultExecutor } from "./default.ts";
 export { BedrockExecutor } from "./bedrock.ts";
 export { GlmExecutor } from "./glm.ts";
@@ -183,3 +189,4 @@ export { DeepSeekWebWithAutoRefreshExecutor } from "./deepseek-web-with-auto-ref
 export { AdaptaWebExecutor } from "./adapta-web.ts";
 export { T3ChatWebExecutor } from "./t3-chat-web.ts";
 export { InnerAiExecutor } from "./inner-ai.ts";
+export { QwenWebExecutor } from "./qwen-web.ts";

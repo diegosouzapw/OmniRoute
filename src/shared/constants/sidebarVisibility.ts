@@ -13,9 +13,12 @@ export const HIDEABLE_SIDEBAR_ITEM_IDS = [
   "context-rtk",
   "context-combos",
   // OmniProxy > Tools
-  "cli-tools",
-  "agents",
+  "cli-code",
+  "cli-agents",
+  "acp-agents",
   "cloud-agents",
+  "agent-bridge",
+  "traffic-inspector",
   // OmniProxy > Integrations
   "api-endpoints",
   "webhooks",
@@ -33,13 +36,14 @@ export const HIDEABLE_SIDEBAR_ITEM_IDS = [
   "analytics-search",
   "analytics-evals",
   // Monitoring — flat
+  "activity",
   "logs",
   "logs-proxy",
   "logs-console",
   "logs-activity",
   "health",
   "runtime",
-  // Monitoring > Costs Parameters
+  // Costs section
   "costs-pricing",
   "costs-budget",
   "costs-quota-share",
@@ -89,6 +93,7 @@ export type SidebarSectionId =
   | "home"
   | "omni-proxy"
   | "analytics"
+  | "costs"
   | "monitoring"
   | "devtools"
   | "agentic-features"
@@ -190,6 +195,13 @@ const OMNI_PROXY_ITEMS: readonly SidebarItemDefinition[] = [
     subtitleKey: "providerQuotaSubtitle",
     icon: "tune",
   },
+  {
+    id: "costs-quota-share",
+    href: "/dashboard/costs/quota-share",
+    i18nKey: "costsQuotaShare",
+    subtitleKey: "costsQuotaShareSubtitle",
+    icon: "pie_chart",
+  },
 ];
 
 const COMPRESSION_CONTEXT_GROUP: SidebarItemGroup = {
@@ -229,18 +241,25 @@ const TOOLS_GROUP: SidebarItemGroup = {
   titleFallback: "Tools",
   items: [
     {
-      id: "cli-tools",
-      href: "/dashboard/cli-tools",
-      i18nKey: "cliTools",
-      subtitleKey: "cliToolsSubtitle",
+      id: "cli-code",
+      href: "/dashboard/cli-code",
+      i18nKey: "cliCode",
+      subtitleKey: "cliCodeSubtitle",
       icon: "terminal",
     },
     {
-      id: "agents",
-      href: "/dashboard/agents",
-      i18nKey: "agents",
-      subtitleKey: "agentsSubtitle",
+      id: "cli-agents",
+      href: "/dashboard/cli-agents",
+      i18nKey: "cliAgents",
+      subtitleKey: "cliAgentsSubtitle",
       icon: "smart_toy",
+    },
+    {
+      id: "acp-agents",
+      href: "/dashboard/acp-agents",
+      i18nKey: "acpAgents",
+      subtitleKey: "acpAgentsSubtitle",
+      icon: "device_hub",
     },
     {
       id: "cloud-agents",
@@ -248,6 +267,20 @@ const TOOLS_GROUP: SidebarItemGroup = {
       i18nKey: "cloudAgents",
       subtitleKey: "cloudAgentsSubtitle",
       icon: "cloud",
+    },
+    {
+      id: "agent-bridge",
+      href: "/dashboard/tools/agent-bridge",
+      i18nKey: "agentBridge",
+      subtitleKey: "agentBridgeSubtitle",
+      icon: "link",
+    },
+    {
+      id: "traffic-inspector",
+      href: "/dashboard/tools/traffic-inspector",
+      i18nKey: "trafficInspector",
+      subtitleKey: "trafficInspectorSubtitle",
+      icon: "network_check",
     },
   ],
 };
@@ -314,13 +347,6 @@ const ANALYTICS_ITEMS: readonly SidebarItemDefinition[] = [
     icon: "bar_chart",
   },
   {
-    id: "costs",
-    href: "/dashboard/costs",
-    i18nKey: "costs",
-    subtitleKey: "costsSubtitle",
-    icon: "account_balance_wallet",
-  },
-  {
     id: "cache",
     href: "/dashboard/cache",
     i18nKey: "cache",
@@ -352,78 +378,90 @@ const ANALYTICS_ITEMS: readonly SidebarItemDefinition[] = [
 
 const MONITORING_ITEMS: readonly SidebarItemDefinition[] = [
   {
-    id: "logs",
-    href: "/dashboard/logs",
-    i18nKey: "logs",
-    subtitleKey: "logsSubtitle",
-    icon: "description",
-  },
-  {
-    id: "logs-proxy",
-    href: "/dashboard/logs/proxy",
-    i18nKey: "logsProxy",
-    subtitleKey: "logsProxySubtitle",
-    icon: "lan",
-  },
-  {
-    id: "logs-console",
-    href: "/dashboard/logs/console",
-    i18nKey: "consoleLogs",
-    subtitleKey: "consoleLogsSubtitle",
-    icon: "terminal",
-  },
-  {
-    id: "logs-activity",
-    href: "/dashboard/logs/activity",
-    i18nKey: "logsActivity",
-    subtitleKey: "logsActivitySubtitle",
-    icon: "history",
-  },
-  {
-    id: "health",
-    href: "/dashboard/health",
-    i18nKey: "health",
-    subtitleKey: "healthSubtitle",
-    icon: "health_and_safety",
-  },
-  {
-    id: "runtime",
-    href: "/dashboard/runtime",
-    i18nKey: "runtime",
-    subtitleKey: "runtimeSubtitle",
-    icon: "bolt",
+    id: "activity",
+    href: "/dashboard/activity",
+    i18nKey: "activity",
+    subtitleKey: "activitySubtitle",
+    icon: "timeline",
   },
 ];
 
-const COSTS_PARAMS_GROUP: SidebarItemGroup = {
+const LOGS_GROUP: SidebarItemGroup = {
   type: "group",
-  id: "costs-parameters",
-  titleKey: "costsParametersGroup",
-  titleFallback: "Costs Parameters",
+  id: "logs",
+  titleKey: "logsGroup",
+  titleFallback: "Logs",
   items: [
     {
-      id: "costs-pricing",
-      href: "/dashboard/costs/pricing",
-      i18nKey: "costsPricing",
-      subtitleKey: "costsPricingSubtitle",
-      icon: "price_change",
+      id: "logs",
+      href: "/dashboard/logs",
+      i18nKey: "logs",
+      subtitleKey: "logsSubtitle",
+      icon: "description",
     },
     {
-      id: "costs-budget",
-      href: "/dashboard/costs/budget",
-      i18nKey: "costsBudget",
-      subtitleKey: "costsBudgetSubtitle",
-      icon: "savings",
+      id: "logs-proxy",
+      href: "/dashboard/logs/proxy",
+      i18nKey: "logsProxy",
+      subtitleKey: "logsProxySubtitle",
+      icon: "lan",
     },
     {
-      id: "costs-quota-share",
-      href: "/dashboard/costs/quota-share",
-      i18nKey: "costsQuotaShare",
-      subtitleKey: "costsQuotaShareSubtitle",
-      icon: "pie_chart",
+      id: "logs-console",
+      href: "/dashboard/logs/console",
+      i18nKey: "consoleLogs",
+      subtitleKey: "consoleLogsSubtitle",
+      icon: "terminal",
     },
   ],
 };
+
+const SYSTEM_GROUP: SidebarItemGroup = {
+  type: "group",
+  id: "system",
+  titleKey: "systemGroup",
+  titleFallback: "System",
+  items: [
+    {
+      id: "health",
+      href: "/dashboard/health",
+      i18nKey: "health",
+      subtitleKey: "healthSubtitle",
+      icon: "health_and_safety",
+    },
+    {
+      id: "runtime",
+      href: "/dashboard/runtime",
+      i18nKey: "runtime",
+      subtitleKey: "runtimeSubtitle",
+      icon: "bolt",
+    },
+  ],
+};
+
+const COSTS_ITEMS: readonly SidebarItemDefinition[] = [
+  {
+    id: "costs",
+    href: "/dashboard/costs",
+    i18nKey: "costsOverview",
+    subtitleKey: "costsOverviewSubtitle",
+    icon: "account_balance_wallet",
+  },
+  {
+    id: "costs-pricing",
+    href: "/dashboard/costs/pricing",
+    i18nKey: "costsPricing",
+    subtitleKey: "costsPricingSubtitle",
+    icon: "price_change",
+  },
+  {
+    id: "costs-budget",
+    href: "/dashboard/costs/budget",
+    i18nKey: "costsBudget",
+    subtitleKey: "costsBudgetSubtitle",
+    icon: "savings",
+  },
+];
 
 const AUDIT_GROUP: SidebarItemGroup = {
   type: "group",
@@ -504,18 +542,18 @@ const AGENTIC_FEATURES_ITEMS: readonly SidebarSectionChild[] = [
     icon: "psychology",
   },
   {
-    id: "skills",
-    href: "/dashboard/skills",
-    i18nKey: "omniSkills",
-    subtitleKey: "omniSkillsSubtitle",
-    icon: "auto_fix_high",
-  },
-  {
     id: "agent-skills",
     href: "/dashboard/agent-skills",
     i18nKey: "agentSkills",
     subtitleKey: "agentSkillsSubtitle",
     icon: "share",
+  },
+  {
+    id: "skills",
+    href: "/dashboard/omni-skills",
+    i18nKey: "omniSkills",
+    subtitleKey: "omniSkillsSubtitle",
+    icon: "auto_fix_high",
   },
   MCP_GROUP,
   {
@@ -719,10 +757,16 @@ export const SIDEBAR_SECTIONS: readonly SidebarSectionDefinition[] = [
     children: ANALYTICS_ITEMS,
   },
   {
+    id: "costs",
+    titleKey: "costsSection",
+    titleFallback: "Costs",
+    children: COSTS_ITEMS,
+  },
+  {
     id: "monitoring",
     titleKey: "monitoringSection",
     titleFallback: "Monitoring",
-    children: [...MONITORING_ITEMS, COSTS_PARAMS_GROUP, AUDIT_GROUP],
+    children: [...MONITORING_ITEMS, LOGS_GROUP, AUDIT_GROUP, SYSTEM_GROUP],
   },
   {
     id: "devtools",
@@ -801,8 +845,9 @@ const DEVELOPER_SHOWN: ReadonlySet<HideableSidebarItemId> = new Set([
   "context-caveman",
   "context-rtk",
   "context-combos",
-  "cli-tools",
-  "agents",
+  "cli-code",
+  "cli-agents",
+  "acp-agents",
   "api-endpoints",
   "analytics",
   "analytics-combo-health",
@@ -842,7 +887,7 @@ const ADMIN_SHOWN: ReadonlySet<HideableSidebarItemId> = new Set([
   "costs-quota-share",
   "cache",
   "logs",
-  "logs-activity",
+  "activity",
   "health",
   "runtime",
   "audit",

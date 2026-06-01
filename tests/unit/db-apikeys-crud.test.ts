@@ -62,6 +62,7 @@ test("createApiKey requires machineId and returns a persisted key with defaults"
   assert.equal(byId.autoResolve, false);
   assert.equal(byId.isActive, true);
   assert.equal(byId.maxSessions, 0);
+  assert.equal(byId.streamDefaultMode, "legacy");
 });
 
 test("updateApiKeyPermissions persists settings, schedule and rate limits", async () => {
@@ -87,6 +88,7 @@ test("updateApiKeyPermissions persists settings, schedule and rate limits", asyn
     maxRequestsPerMinute: 15,
     throttleDelayMs: 250,
     maxSessions: -3,
+    streamDefaultMode: "json",
   });
   const row = await apiKeysDb.getApiKeyById(created.id);
   const metadata = await apiKeysDb.getApiKeyMetadata(created.key);
@@ -104,6 +106,8 @@ test("updateApiKeyPermissions persists settings, schedule and rate limits", asyn
   assert.equal(metadata.maxRequestsPerMinute, 15);
   assert.equal(metadata.throttleDelayMs, 250);
   assert.equal(metadata.maxSessions, 0);
+  assert.equal(row.streamDefaultMode, "json");
+  assert.equal(metadata.streamDefaultMode, "json");
 });
 
 test("validateApiKey and deleteApiKey stay consistent after cache invalidation", async () => {

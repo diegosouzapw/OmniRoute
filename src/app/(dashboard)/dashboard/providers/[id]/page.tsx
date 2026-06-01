@@ -27,6 +27,7 @@ import {
   OAuthModal,
   KiroOAuthWrapper,
   CursorAuthModal,
+  TraeAuthModal,
   Toggle,
   Select,
   ProxyConfigModal,
@@ -788,6 +789,7 @@ interface AddApiKeyModalProps {
   isOpen: boolean;
   provider?: string;
   providerName?: string;
+  initialBaseUrl?: string;
   isCompatible?: boolean;
   isAnthropic?: boolean;
   isCcCompatible?: boolean;
@@ -820,6 +822,11 @@ type CommandCodeAuthFlowState = {
   expiresAt: string | null;
   message?: string;
 };
+
+const SILICONFLOW_ENDPOINTS = [
+  { id: "siliconflow", label: "Global", baseUrl: "https://api.siliconflow.com/v1" },
+  { id: "siliconflow-cn", label: "China", baseUrl: "https://api.siliconflow.cn/v1" },
+] as const;
 
 interface EditConnectionModalConnection {
   id?: string;
@@ -1361,6 +1368,8 @@ export default function ProviderDetailPage() {
   const [showOAuthModal, _setShowOAuthModal] = useState(false);
   const [reauthConnection, setReauthConnection] = useState<ConnectionRowConnection | null>(null);
   const [showAddApiKeyModal, setShowAddApiKeyModal] = useState(false);
+  const [showSiliconFlowEndpointModal, setShowSiliconFlowEndpointModal] = useState(false);
+  const [siliconFlowInitialBaseUrl, setSiliconFlowInitialBaseUrl] = useState<string | undefined>();
   const [showRiskNoticeModal, setShowRiskNoticeModal] = useState(false);
   const [commandCodeAuthState, setCommandCodeAuthState] = useState<CommandCodeAuthFlowState>({
     phase: "idle",
@@ -1619,6 +1628,19 @@ export default function ProviderDetailPage() {
     }
   }, [providerId, isSearchProvider]);
 
+  const fetchProxyConfig = useCallback(async () => {
+    try {
+      const res = await fetch("/api/settings/proxy", { cache: "no-store" });
+      if (res.ok) {
+        setProxyConfig(await res.json());
+      } else {
+        setProxyConfig(null);
+      }
+    } catch {
+      // Proxy indicators are best-effort.
+    }
+  }, []);
+
   const fetchConnections = useCallback(async () => {
     try {
       const [connectionsRes, nodesRes] = await Promise.all([
@@ -1680,11 +1702,8 @@ export default function ProviderDetailPage() {
     fetchConnections();
     fetchAliases();
     // Load proxy config for visual indicators (provider-level button)
-    fetch("/api/settings/proxy")
-      .then((r) => (r.ok ? r.json() : null))
-      .then((c) => setProxyConfig(c))
-      .catch(() => {});
-  }, [fetchConnections, fetchAliases]);
+    void fetchProxyConfig();
+  }, [fetchConnections, fetchAliases, fetchProxyConfig]);
 
   const handleZedImport = useCallback(async () => {
     if (importingZed) return;
@@ -1949,13 +1968,21 @@ export default function ProviderDetailPage() {
     setShowOAuthModal(false);
   }, [fetchConnections]);
 
+  const openApiKeyAddFlow = useCallback(() => {
+    if (providerId === "siliconflow") {
+      setShowSiliconFlowEndpointModal(true);
+      return;
+    }
+    setShowAddApiKeyModal(true);
+  }, [providerId]);
+
   const openPrimaryAddFlow = useCallback(() => {
     if (isOAuth) {
       setShowOAuthModal(true);
       return;
     }
-    setShowAddApiKeyModal(true);
-  }, [isOAuth]);
+    openApiKeyAddFlow();
+  }, [isOAuth, openApiKeyAddFlow]);
 
   const gateConnectionFlow = useCallback(
     (callback: () => void) => {
@@ -1998,6 +2025,7 @@ export default function ProviderDetailPage() {
 
   const handleCloseAddApiKeyModal = useCallback(() => {
     clearCommandCodeAuthTimer();
+    setSiliconFlowInitialBaseUrl(undefined);
     commandCodeAuthWindowRef.current?.close?.();
     commandCodeAuthWindowRef.current = null;
     setCommandCodeAuthState({
@@ -2245,6 +2273,7 @@ export default function ProviderDetailPage() {
         const newConnection = connectionData?.connection;
         await fetchConnections();
         setShowAddApiKeyModal(false);
+        setSiliconFlowInitialBaseUrl(undefined);
 
         // For Gemini: show progress dialog and sync models from endpoint
         if (providerId === "gemini" && newConnection?.id) {
@@ -3905,11 +3934,7 @@ export default function ProviderDetailPage() {
               </p>
             </div>
             <div className="flex flex-wrap items-center gap-2">
-              <Button
-                size="sm"
-                icon="add"
-                onClick={() => gateConnectionFlow(() => setShowAddApiKeyModal(true))}
-              >
+              <Button size="sm" icon="add" onClick={() => gateConnectionFlow(openApiKeyAddFlow)}>
                 {t("add")}
               </Button>
               <Button
@@ -4081,7 +4106,7 @@ export default function ProviderDetailPage() {
                         size="sm"
                         variant="secondary"
                         icon="add"
-                        onClick={() => gateConnectionFlow(() => setShowAddApiKeyModal(true))}
+                        onClick={() => gateConnectionFlow(openApiKeyAddFlow)}
                       >
                         Manual API key
                       </Button>
@@ -4133,11 +4158,7 @@ export default function ProviderDetailPage() {
                 </>
               ) : (
                 connections.length === 0 && (
-                  <Button
-                    size="sm"
-                    icon="add"
-                    onClick={() => gateConnectionFlow(() => setShowAddApiKeyModal(true))}
-                  >
+                  <Button size="sm" icon="add" onClick={() => gateConnectionFlow(openApiKeyAddFlow)}>
                     {t("add")}
                   </Button>
                 )
@@ -4172,7 +4193,7 @@ export default function ProviderDetailPage() {
                       <Button
                         variant="secondary"
                         icon="add"
-                        onClick={() => gateConnectionFlow(() => setShowAddApiKeyModal(true))}
+                        onClick={() => gateConnectionFlow(openApiKeyAddFlow)}
                       >
                         Manual API key
                       </Button>
@@ -4594,7 +4615,7 @@ export default function ProviderDetailPage() {
             </div>
             <div className="flex flex-wrap gap-2">
               <Link
-                href="/dashboard/cli-tools"
+                href="/dashboard/cli-code"
                 className="inline-flex items-center gap-2 rounded-lg border border-border px-3 py-2 text-sm text-text-main hover:border-primary/40 hover:text-text-primary transition-colors"
               >
                 <span className="material-symbols-outlined text-base">terminal</span>
@@ -4688,6 +4709,15 @@ export default function ProviderDetailPage() {
               setShowOAuthModal(false);
             }}
           />
+        ) : providerId === "trae" ? (
+          <TraeAuthModal
+            isOpen={showOAuthModal}
+            reauthConnection={reauthConnection}
+            onSuccess={handleOAuthSuccess}
+            onClose={() => {
+              setShowOAuthModal(false);
+            }}
+          />
         ) : (
           <OAuthModal
             isOpen={showOAuthModal}
@@ -4700,11 +4730,26 @@ export default function ProviderDetailPage() {
             }}
           />
         ))}
+      {providerId === "siliconflow" && (
+        <SiliconFlowEndpointModal
+          isOpen={showSiliconFlowEndpointModal}
+          onSelect={(baseUrl) => {
+            setSiliconFlowInitialBaseUrl(baseUrl);
+            setShowSiliconFlowEndpointModal(false);
+            setShowAddApiKeyModal(true);
+          }}
+          onClose={() => {
+            setShowSiliconFlowEndpointModal(false);
+            setSiliconFlowInitialBaseUrl(undefined);
+          }}
+        />
+      )}
       {!isUpstreamProxyProvider && (
         <AddApiKeyModal
           isOpen={showAddApiKeyModal}
           provider={providerId}
           providerName={providerInfo.name}
+          initialBaseUrl={siliconFlowInitialBaseUrl}
           isCompatible={isCompatible}
           isAnthropic={isAnthropicProtocolCompatible}
           isCcCompatible={isCcCompatible}
@@ -4895,7 +4940,10 @@ export default function ProviderDetailPage() {
           level={proxyTarget.level}
           levelId={proxyTarget.id}
           levelLabel={proxyTarget.label}
-          onSaved={() => void loadConnProxies(connections)}
+          onSaved={() => {
+            void fetchProxyConfig();
+            void loadConnProxies(connections);
+          }}
         />
       )}
       {/* Import Progress Modal */}
@@ -7295,6 +7343,7 @@ const CONFIGURABLE_BASE_URL_PROVIDERS = new Set([
   "azure-ai",
   "bailian-coding-plan",
   "xiaomi-mimo",
+  "siliconflow",
   "heroku",
   "databricks",
   "snowflake",
@@ -7307,6 +7356,7 @@ const DEFAULT_PROVIDER_BASE_URLS: Record<string, string> = {
   "azure-ai": "https://example-resource.services.ai.azure.com/openai/v1",
   "bailian-coding-plan": "https://coding-intl.dashscope.aliyuncs.com/apps/anthropic/v1",
   "xiaomi-mimo": "https://token-plan-sgp.xiaomimimo.com/v1",
+  siliconflow: "https://api.siliconflow.com/v1",
   "searxng-search": "http://localhost:8888/search",
   petals: "https://chat.petals.dev/api/v1/generate",
 };
@@ -7372,6 +7422,8 @@ function getProviderBaseUrlPlaceholder(providerId?: string | null) {
     case "bailian-coding-plan":
     case "xiaomi-mimo":
       return getProviderBaseUrlDefault(providerId);
+    case "siliconflow":
+      return "https://api.siliconflow.cn/v1";
     case "heroku":
       return "https://us.inference.heroku.com";
     case "databricks":
@@ -7475,10 +7527,60 @@ function extractCommandCodeCredentialInput(value: string): string {
   return trimmed;
 }
 
+function SiliconFlowEndpointModal({
+  isOpen,
+  onSelect,
+  onClose,
+}: {
+  isOpen: boolean;
+  onSelect: (baseUrl: string) => void;
+  onClose: () => void;
+}) {
+  const t = useTranslations("providers");
+
+  return (
+    <Modal
+      isOpen={isOpen}
+      title={providerText(t, "connectSiliconFlow", "Connect SiliconFlow")}
+      onClose={onClose}
+      size="lg"
+    >
+      <div className="space-y-3">
+        <p className="text-sm text-text-muted mb-4">
+          {providerText(t, "chooseSiliconFlowEndpoint", "Choose your SiliconFlow endpoint:")}
+        </p>
+        {SILICONFLOW_ENDPOINTS.map((endpoint) => (
+          <button
+            key={endpoint.id}
+            type="button"
+            onClick={() => onSelect(endpoint.baseUrl)}
+            className="w-full p-4 text-left border border-border rounded-lg hover:bg-sidebar transition-colors"
+          >
+            <div className="flex items-start gap-3">
+              <span className="material-symbols-outlined text-primary mt-0.5">public</span>
+              <div className="flex-1">
+                <h3 className="font-semibold mb-1">
+                  {providerText(
+                    t,
+                    endpoint.id === "siliconflow" ? "endpointGlobal" : "endpointChina",
+                    endpoint.label
+                  )}
+                </h3>
+                <p className="text-sm text-text-muted font-mono">{endpoint.baseUrl}</p>
+              </div>
+            </div>
+          </button>
+        ))}
+      </div>
+    </Modal>
+  );
+}
+
 function AddApiKeyModal({
   isOpen,
   provider,
   providerName,
+  initialBaseUrl,
   isCompatible,
   isAnthropic,
   isCcCompatible,
@@ -7524,7 +7626,7 @@ function AddApiKeyModal({
     name: "",
     apiKey: "",
     priority: 1,
-    baseUrl: defaultBaseUrl,
+    baseUrl: initialBaseUrl || defaultBaseUrl,
     cx: "",
     region: showsRegion ? defaultRegion : "",
     apiRegion: "international",
@@ -7543,6 +7645,17 @@ function AddApiKeyModal({
   const [saveError, setSaveError] = useState<string | null>(null);
   const [showAdvanced, setShowAdvanced] = useState(false);
   const [copiedCommandCodeField, setCopiedCommandCodeField] = useState<string | null>(null);
+  const wasOpenRef = useRef(false);
+
+  useEffect(() => {
+    const wasOpen = wasOpenRef.current;
+    wasOpenRef.current = isOpen;
+    if (!isOpen || wasOpen) return;
+    setFormData((current) => ({
+      ...current,
+      baseUrl: initialBaseUrl || defaultBaseUrl,
+    }));
+  }, [defaultBaseUrl, initialBaseUrl, isOpen]);
 
   const bulkSupported = supportsBulkApiKey(provider);
   const [mode, setMode] = useState<"single" | "bulk">("single");
@@ -7757,6 +7870,16 @@ function AddApiKeyModal({
     setSaveError(null);
 
     try {
+      let providerSpecificData: Record<string, unknown> | undefined;
+      if (usesBaseUrl) {
+        const checked = normalizeAndValidateHttpBaseUrl(formData.baseUrl, defaultBaseUrl);
+        if (checked.error) {
+          setSaveError(checked.error);
+          return;
+        }
+        providerSpecificData = { baseUrl: checked.value };
+      }
+
       const res = await fetch("/api/providers/bulk", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -7764,6 +7887,7 @@ function AddApiKeyModal({
           provider,
           entries: parsed.entries.map((e) => ({ name: e.name, apiKey: e.apiKey })),
           priority: formData.priority || 1,
+          providerSpecificData,
           validateKeys: bulkValidateKeys,
         }),
       });

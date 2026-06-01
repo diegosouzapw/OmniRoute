@@ -96,6 +96,10 @@ import {
   resolveCooldownAwareRetrySettings,
   waitForCooldownAwareRetry,
 } from "../services/cooldownAwareRetry";
+import {
+  constrainConnectionsToQuota,
+  resolveQuotaKeyScope,
+} from "../../lib/quota/quotaKey";
 
 registerCodexQuotaFetcher();
 
@@ -465,10 +469,19 @@ export async function handleChat(request: any, clientRawRequest: any = null) {
       const resolvedModel = modelInfo.model || modelString;
       const hasForcedConnection =
         typeof target?.connectionId === "string" && target.connectionId.trim().length > 0;
-      const allowedConnections = intersectAllowedConnectionIds(
+      let allowedConnections = intersectAllowedConnectionIds(
         apiKeyInfo?.allowedConnections ?? null,
         target?.allowedConnectionIds ?? null
       );
+
+      // A4: quota-exclusive keys must only use the pool's connection(s).
+      if (apiKeyInfo?.allowedQuotas && apiKeyInfo.allowedQuotas.length > 0) {
+        const quotaScope = await resolveQuotaKeyScope(apiKeyInfo.allowedQuotas);
+        allowedConnections = constrainConnectionsToQuota(
+          allowedConnections ?? [],
+          quotaScope.connectionIds
+        );
+      }
 
       if (Array.isArray(allowedConnections) && allowedConnections.length === 0) {
         return false;
@@ -748,10 +761,20 @@ async function handleSingleModelChat(
   const hasForcedConnection =
     typeof runtimeOptions.forcedConnectionId === "string" &&
     runtimeOptions.forcedConnectionId.trim().length > 0;
-  const effectiveAllowedConnections = intersectAllowedConnectionIds(
+  let effectiveAllowedConnections = intersectAllowedConnectionIds(
     apiKeyInfo?.allowedConnections ?? null,
     runtimeOptions.allowedConnectionIds ?? null
   );
+
+  // A4: quota-exclusive keys must only use the pool's connection(s).
+  if (apiKeyInfo?.allowedQuotas && apiKeyInfo.allowedQuotas.length > 0) {
+    const quotaScope = await resolveQuotaKeyScope(apiKeyInfo.allowedQuotas);
+    effectiveAllowedConnections = constrainConnectionsToQuota(
+      effectiveAllowedConnections ?? [],
+      quotaScope.connectionIds
+    );
+  }
+
   const bypassReason = forceLiveComboTest
     ? "combo live test"
     : hasForcedConnection

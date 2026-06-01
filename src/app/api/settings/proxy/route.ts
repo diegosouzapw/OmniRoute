@@ -160,6 +160,30 @@ export async function GET(request: Request) {
       return Response.json({ level, id, proxy });
     }
 
+    if (level === "provider" && id) {
+      const assignments = await getProxyAssignments({ scope: "provider" });
+      const assignment = assignments.find((entry) => entry.scopeId === id);
+      if (assignment?.proxyId) {
+        const proxyData = await getProxyById(assignment.proxyId, { includeSecrets: true });
+        if (proxyData) {
+          return Response.json({
+            level,
+            id,
+            proxy: {
+              type: proxyData.type,
+              host: proxyData.host,
+              port: proxyData.port,
+              username: proxyData.username,
+              password: proxyData.password,
+            },
+          });
+        }
+      }
+
+      const proxy = await getProxyForLevel(level, id);
+      return Response.json({ level, id, proxy });
+    }
+
     if (level) {
       const proxy = await getProxyForLevel(level, id);
       return Response.json({ level, id, proxy });
@@ -167,6 +191,31 @@ export async function GET(request: Request) {
 
     // Get full config
     const config = await getProxyConfig();
+    const providerAssignments = await getProxyAssignments({ scope: "provider" });
+    if (providerAssignments.length > 0) {
+      config.providers = { ...(config.providers || {}) };
+      const providerProxyResults = await Promise.all(
+        providerAssignments.map(async (assignment) => {
+          if (!assignment.scopeId || !assignment.proxyId) {
+            return null;
+          }
+          const proxyData = await getProxyById(assignment.proxyId, { includeSecrets: true });
+          if (!proxyData) return null;
+          return { scopeId: assignment.scopeId, proxyData };
+        })
+      );
+
+      for (const result of providerProxyResults) {
+        if (!result) continue;
+        config.providers[result.scopeId] = {
+          type: result.proxyData.type,
+          host: result.proxyData.host,
+          port: result.proxyData.port,
+          username: result.proxyData.username,
+          password: result.proxyData.password,
+        };
+      }
+    }
     return Response.json(config);
   } catch (error) {
     return createErrorResponseFromUnknown(error, "Failed to load proxy config");

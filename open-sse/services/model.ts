@@ -112,7 +112,16 @@ for (const [aliasOrId, models] of Object.entries(PROVIDER_MODELS)) {
   }
 }
 const KNOWN_MODEL_IDS = new Set(MODEL_TO_PROVIDERS.keys());
-const CODEX_PREFERRED_UNPREFIXED_MODELS = new Set(["gpt-5.5"]);
+// #2877(B): include the effort-suffixed variants so a bare `gpt-5.5-xhigh`
+// (and -high/-medium/-low) infers the codex provider instead of falling through
+// the `/^gpt-/` → openai fallback (which 500s for codex-only credentials).
+const CODEX_PREFERRED_UNPREFIXED_MODELS = new Set([
+  "gpt-5.5",
+  "gpt-5.5-xhigh",
+  "gpt-5.5-high",
+  "gpt-5.5-medium",
+  "gpt-5.5-low",
+]);
 const CODEX_PREFERRED_UNPREFIXED_MODEL_ALIASES = new Map([["gpt-5.5", "gpt-5.5-medium"]]);
 export const CODEX_NATIVE_UNPREFIXED_MODELS = new Set(["codex-auto-review"]);
 

@@ -83,6 +83,7 @@ export async function POST(request) {
         id: apiKey.id,
         machineId: apiKey.machineId,
         noLog: noLog === true,
+        streamDefaultMode: "legacy",
       },
       { status: 201 }
     );

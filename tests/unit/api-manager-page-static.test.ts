@@ -9,6 +9,16 @@ const pagePath = path.join(
   repoRoot,
   "src/app/(dashboard)/dashboard/api-manager/ApiManagerPageClient.tsx"
 );
+const messagesDir = path.join(repoRoot, "src/i18n/messages");
+
+const selfServiceScopeMessageKeys = [
+  "selfServiceVisibility",
+  "selfServiceVisibilityDesc",
+  "ownUsageVisibility",
+  "ownUsageVisibilityDesc",
+  "sharedAccountQuotaVisibility",
+  "sharedAccountQuotaVisibilityDesc",
+];
 
 function readApiManagerPage() {
   return fs.readFileSync(pagePath, "utf8");
@@ -32,9 +42,29 @@ test("permissions modal switch buttons declare button type", () => {
   const visibilityEnd = source.indexOf("{/* Selected Models Summary", visibilityStart);
   const selfServiceBlock = source.slice(visibilityStart, visibilityEnd);
   const switchButtonCount = (selfServiceBlock.match(/role="switch"/g) ?? []).length;
-  const typedSwitchButtonCount = (selfServiceBlock.match(/<button\s+type="button"\s+role="switch"/g) ?? [])
-    .length;
+  const typedSwitchButtonCount = (
+    selfServiceBlock.match(/<button\s+type="button"\s+role="switch"/g) ?? []
+  ).length;
 
   assert.equal(switchButtonCount, 2);
   assert.equal(typedSwitchButtonCount, 2);
+});
+
+test("self-service API key scope labels do not expose missing placeholders", () => {
+  const messageFiles = fs.readdirSync(messagesDir).filter((file) => file.endsWith(".json"));
+
+  for (const file of messageFiles) {
+    const messages = JSON.parse(fs.readFileSync(path.join(messagesDir, file), "utf8"));
+
+    for (const key of selfServiceScopeMessageKeys) {
+      const value = messages.apiManager?.[key];
+
+      assert.equal(typeof value, "string", `${file}: apiManager.${key} should exist`);
+      assert.ok(value.length > 0, `${file}: apiManager.${key} should not be empty`);
+      assert.ok(
+        !value.startsWith("__MISSING__:"),
+        `${file}: apiManager.${key} should not expose a missing placeholder`
+      );
+    }
+  }
 });
