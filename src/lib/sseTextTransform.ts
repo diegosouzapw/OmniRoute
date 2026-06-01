@@ -27,10 +27,19 @@ export function checkIfStopSignal(json: any): boolean {
   return false;
 }
 
+export function checkIfSnapshot(json: any): boolean {
+  if (!json || typeof json !== "object") return false;
+  if (typeof json.type === "string") {
+    const t = json.type;
+    if (t.endsWith(".done") || t.endsWith(".completed") || STOP_EVENT_TYPES.has(t)) return true;
+  }
+  return false;
+}
+
 const fallbackDecoder = new TextDecoder();
 
 export function createSseTextTransform(
-  processor: (text: string, field: FieldCategory, isStopSignal?: boolean, index?: string | number) => string,
+  processor: (text: string, field: FieldCategory, isStopSignal?: boolean, index?: string | number, isSnapshot?: boolean) => string,
   onFlush?: (lastJson: any, isJsonStream?: boolean, lastContentJson?: any) => any,
   onCancel?: () => void,
 ): TransformStream {
@@ -57,7 +66,7 @@ export function createSseTextTransform(
       lastPrefix = prefix;
       const segment = line.startsWith("data: ") ? line.slice(6) : line.slice(5);
       if (segment === "[DONE]") {
-        if (onFlush) {
+        if (onFlush && !flushed) {
           const flushedValue = onFlush(lastJson, isJsonStream, lastContentJson);
           if (flushedValue) {
             const prefix = lastPrefix || "data: ";
@@ -79,6 +88,7 @@ export function createSseTextTransform(
           let matched = false;
           
           const isStopSignal = checkIfStopSignal(json);
+          const isSnapshot = checkIfSnapshot(json);
 
           const METADATA_KEYS = [
             "id", "model", "object", "created", "finish_reason", "finishReason",
@@ -114,7 +124,7 @@ export function createSseTextTransform(
               if (typeof obj[key] === "string") {
                 const val = obj[key];
                 const field: FieldCategory = getFieldCategory(key);
-                obj[key] = processor(val, field, isStopSignal, compositeKey);
+                obj[key] = processor(val, field, isStopSignal, compositeKey, isSnapshot);
                 matched = true;
               } else if (typeof obj[key] === "object") {
                 sanitizeObject(obj[key], choiceIdx, toolIdx);

@@ -1,5 +1,5 @@
-import { createSseTextTransform } from "./src/lib/sseTextTransform";
-import { FEATURE_FLAG_DEFINITIONS } from "./src/shared/constants/featureFlagDefinitions";
+import { createSseTextTransform } from "../../src/lib/sseTextTransform";
+import { FEATURE_FLAG_DEFINITIONS } from "../../src/shared/constants/featureFlagDefinitions";
 
 async function runTests() {
   console.log("=== Testing THEORY-001 ===");

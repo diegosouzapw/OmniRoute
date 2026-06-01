@@ -184,14 +184,14 @@ test("Adversarial Tests", async (t) => {
     assert.ok(fullOutput.includes('"type":"message_stop"'));
   });
 
-  await t.test("VULN-002: small windowSize is clamped to 80 in production (without bypass env)", async () => {
+  await t.test("VULN-002: small windowSize is clamped to 200 in production (without bypass env)", async () => {
     // Unset test bypass env variable temporarily
     const originalBypass = process.env.PII_TEST_BYPASS_MIN_WINDOW;
     delete process.env.PII_TEST_BYPASS_MIN_WINDOW;
     try {
       const transform = createPiiSseTransform({ windowSize: 10 });
-      // W should be 80.
-      // If we stream "hello world", length is 11, since W is 80, emitLength should be 0.
+      // W should be 200.
+      // If we stream "hello world", length is 11, since W is 200, emitLength should be 0.
       // So nothing should be emitted before stop signal or close.
       const writer = transform.writable.getWriter();
       const reader = transform.readable.getReader();
@@ -211,7 +211,7 @@ test("Adversarial Tests", async (t) => {
       await readPromise;
       
       const chunkText = chunks[0];
-      // Since it's < 80 and windowSize is clamped to 80, the output chunk received before close is metadata-only or empty content
+      // Since it's < 200 and windowSize is clamped to 200, the output chunk received before close is metadata-only or empty content
       assert.ok(chunkText.includes('"content":""') || !chunkText.includes("hello world"));
     } finally {
       process.env.PII_TEST_BYPASS_MIN_WINDOW = originalBypass;

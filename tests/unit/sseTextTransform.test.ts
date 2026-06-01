@@ -223,3 +223,22 @@ test("recursive scanning sanitizes multiple nested format fields (no format bypa
   assert.equal(callCount, 2, "processor should be called for each string property recursively");
 });
 
+test("Responses API snapshot text is identified as snapshot and bypasses delta buffering", async () => {
+  let isSnapshotReceived = false;
+  const transform = createSseTextTransform(
+    (text, field, isStopSignal, index, isSnapshot) => {
+      if (isSnapshot) {
+        isSnapshotReceived = true;
+      }
+      return text.toUpperCase();
+    }
+  );
+
+  const output = await testTransform(transform, [
+    `data: {"type":"response.output_text.done","text":"hello snapshot"}\n\n`
+  ]);
+
+  assert.ok(isSnapshotReceived, "should identify done event as snapshot");
+  assert.ok(output.includes("HELLO SNAPSHOT"), "output should contain sanitized snapshot text");
+});
+

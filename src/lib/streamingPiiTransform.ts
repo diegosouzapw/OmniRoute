@@ -29,7 +29,16 @@ export function createPiiSseTransform(options?: PiiTransformOptions): TransformS
   }
   const W = windowSize;
 
-  const processor = (text: string, field: FieldCategory, isStopSignal = false, index: string | number = "0_0"): string => {
+  const processor = (
+    text: string,
+    field: FieldCategory,
+    isStopSignal = false,
+    index: string | number = "0_0",
+    isSnapshot = false
+  ): string => {
+    if (isSnapshot) {
+      return sanitizePII(text).text;
+    }
     const buffers = getBuffers(index);
     buffers[field] += text;
     const { text: sanitized, endMatchIndex } = sanitizePII(buffers[field], !isStopSignal);
