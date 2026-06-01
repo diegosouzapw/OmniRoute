@@ -1,15 +1,22 @@
 import { describe, it, beforeEach, afterEach } from "node:test";
 import assert from "node:assert";
-import { mkdirSync, writeFileSync, rmSync } from "fs";
+import { mkdirSync, writeFileSync, rmSync, mkdtempSync } from "fs";
 import { join } from "path";
 import { tmpdir } from "os";
-import { runPluginDoctor } from "../../src/lib/plugins/doctor.ts";
+
+// Isolate to a temp DB so doctor's db check doesn't hit the production DB.
+const TEST_DATA_DIR = mkdtempSync(join(tmpdir(), "omniroute-doctor-"));
+process.env.DATA_DIR = TEST_DATA_DIR;
+
+const { resetDbInstance } = await import("../../src/lib/db/core.ts");
+const { runPluginDoctor } = await import("../../src/lib/plugins/doctor.ts");
 
 describe("runPluginDoctor", () => {
   const testDir = join(tmpdir(), `doctor-test-${Date.now()}`);
   const pluginDir = join(testDir, "test-plugin");
 
   beforeEach(() => {
+    resetDbInstance();
     mkdirSync(pluginDir, { recursive: true });
   });
 

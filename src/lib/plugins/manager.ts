@@ -19,6 +19,7 @@ import {
   getPluginByName,
   listPlugins as dbListPlugins,
   updatePluginStatus,
+  updatePluginConfig,
   deletePlugin as dbDeletePlugin,
   pluginExists,
   type PluginRow,
@@ -26,6 +27,19 @@ import {
 import type { PluginManifestWithDefaults } from "./manifest";
 
 const log = logger("PLUGIN_MANAGER");
+
+/**
+ * Compare two semver strings. Returns positive if a > b, negative if a < b, 0 if equal.
+ * Only handles simple MAJOR.MINOR.PATCH — no pre-release tags.
+ */
+function compareSemver(a: string, b: string): number {
+  const parse = (v: string) => v.split(".").map(Number);
+  const [aMaj, aMin, aPat] = parse(a);
+  const [bMaj, bMin, bPat] = parse(b);
+  if (aMaj !== bMaj) return aMaj - bMaj;
+  if (aMin !== bMin) return aMin - bMin;
+  return aPat - bPat;
+}
 
 class PluginManager {
   private static instance: PluginManager;
@@ -87,9 +101,16 @@ class PluginManager {
     const discovered = plugins[0];
     const { name, manifest, pluginDir: srcDir } = discovered;
 
-    // Check if already installed
+    // If already installed, auto-upgrade when source is strictly newer; reject otherwise.
     if (pluginExists(name)) {
-      throw new Error(`Plugin '${name}' is already installed`);
+      const existing = getPluginByName(name)!;
+      if (compareSemver(manifest.version, existing.version) > 0) {
+        // Source is newer — delegate to upgrade()
+        return this.upgrade(sourceDir);
+      }
+      throw new Error(
+        `Plugin '${name}' is already installed (${existing.version}) and source version ${manifest.version} is not newer`
+      );
     }
 
     // Copy to plugin directory
@@ -123,6 +144,106 @@ class PluginManager {
     log.info("manager.installed", { name, version: manifest.version });
 
     // Auto-activate if enabledByDefault
+    if (manifest.enabledByDefault) {
+      await this.activate(name);
+    }
+
+    return row;
+  }
+
+  /**
+   * Upgrade an installed plugin to a newer version from sourceDir.
+   * Preserves nothing (clean reinstall); config is reset to defaults.
+   * Throws if the plugin is not installed or the source version is not strictly newer.
+   */
+  async upgrade(sourceDir: string): Promise<PluginRow> {
+    // Scan source to get new manifest
+    const { safeValidateManifest } = await import("./manifest");
+    const { readFile: readFileFs } = await import("fs/promises");
+
+    let discovered: { name: string; manifest: any; pluginDir: string } | null = null;
+
+    // Try direct plugin dir first
+    try {
+      const manifestPath = join(sourceDir, "plugin.json");
+      const raw = await readFileFs(manifestPath, "utf-8");
+      const parsed = JSON.parse(raw);
+      const result = safeValidateManifest(parsed);
+      if (result.success) {
+        discovered = { name: result.data.name, manifest: result.data, pluginDir: sourceDir };
+      }
+    } catch {}
+
+    if (!discovered) {
+      const { plugins, errors } = await scanPluginDir(sourceDir);
+      if (plugins.length === 0) {
+        throw new Error(
+          `No valid plugin found in ${sourceDir}: ${errors.map((e) => e.error).join(", ")}`
+        );
+      }
+      discovered = plugins[0];
+    }
+
+    const { name, manifest } = discovered;
+
+    // Must be already installed
+    if (!pluginExists(name)) {
+      throw new Error(`Plugin '${name}' is not installed — use install() instead`);
+    }
+
+    const existing = getPluginByName(name)!;
+
+    // Source must be strictly newer
+    if (compareSemver(manifest.version, existing.version) <= 0) {
+      throw new Error(
+        `Plugin '${name}' upgrade rejected: source version ${manifest.version} is not newer than installed ${existing.version}`
+      );
+    }
+
+    log.info("manager.upgrading", { name, from: existing.version, to: manifest.version });
+
+    // Deactivate if active, uninstall, then reinstall fresh
+    if (existing.status === "active") {
+      await this.deactivate(name);
+    }
+
+    // Remove DB record and old files (delegate to uninstall internals)
+    try {
+      await rm(existing.pluginDir, { recursive: true, force: true });
+    } catch (err: any) {
+      log.warn("manager.upgrade_dir_error", { name, error: err.message });
+    }
+    dbDeletePlugin(name);
+
+    // Fresh install
+    const destDir = join(this.pluginDir, name);
+    await mkdir(dirname(destDir), { recursive: true });
+    await cp(discovered.pluginDir, destDir, { recursive: true });
+
+    const row = insertPlugin({
+      id: randomUUID(),
+      name,
+      version: manifest.version,
+      description: manifest.description,
+      author: manifest.author,
+      license: manifest.license,
+      main: manifest.main,
+      source: manifest.source,
+      tags: manifest.tags,
+      manifest: manifest as unknown as Record<string, unknown>,
+      configSchema: manifest.configSchema as unknown as Record<string, unknown>,
+      hooks: [
+        manifest.hooks.onRequest && "onRequest",
+        manifest.hooks.onResponse && "onResponse",
+        manifest.hooks.onError && "onError",
+      ].filter(Boolean) as string[],
+      permissions: manifest.requires.permissions,
+      pluginDir: destDir,
+      enabled: manifest.enabledByDefault,
+    });
+
+    log.info("manager.upgraded", { name, version: manifest.version });
+
     if (manifest.enabledByDefault) {
       await this.activate(name);
     }

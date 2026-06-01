@@ -127,3 +127,58 @@ export function safeValidateManifest(
     errors: result.error.issues.map((i) => `${i.path.join(".")}: ${i.message}`),
   };
 }
+
+// ── Config validation ──
+
+export type ValidatePluginConfigResult =
+  | { valid: true }
+  | { valid: false; errors: string[] };
+
+/**
+ * Validate a config object against a ConfigField schema map.
+ * Only provided keys are validated — missing keys are fine (use defaults).
+ */
+export function validatePluginConfig(
+  config: Record<string, unknown>,
+  schema: Record<string, ConfigField>
+): ValidatePluginConfigResult {
+  const errors: string[] = [];
+
+  // If schema is empty, allow anything
+  const hasSchema = Object.keys(schema).length > 0;
+  if (!hasSchema) return { valid: true };
+
+  for (const [key, value] of Object.entries(config)) {
+    const field = schema[key];
+    if (!field) {
+      errors.push(`Unknown config key: ${key}`);
+      continue;
+    }
+
+    switch (field.type) {
+      case "string":
+        if (typeof value !== "string") errors.push(`${key} must be a string`);
+        break;
+      case "number":
+        if (typeof value !== "number") {
+          errors.push(`${key} must be a number`);
+        } else {
+          if (field.min !== undefined && value < field.min)
+            errors.push(`${key} must be >= ${field.min}`);
+          if (field.max !== undefined && value > field.max)
+            errors.push(`${key} must be <= ${field.max}`);
+        }
+        break;
+      case "boolean":
+        if (typeof value !== "boolean") errors.push(`${key} must be a boolean`);
+        break;
+      case "select":
+        if (!field.enum || !field.enum.includes(value as string))
+          errors.push(`${key} must be one of: ${(field.enum ?? []).join(", ")}`);
+        break;
+    }
+  }
+
+  if (errors.length > 0) return { valid: false, errors };
+  return { valid: true };
+}

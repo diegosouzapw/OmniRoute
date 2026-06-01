@@ -4,24 +4,25 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 
-import { scanPluginDir } from "../../src/lib/plugins/scanner.ts";
-import type { LoadedPlugin } from "../../src/lib/plugins/loader.ts";
-import { pluginManager } from "../../src/lib/plugins/manager.ts";
-import {
+// ── Temp dirs ──
+// IMPORTANT: DATA_DIR must be set BEFORE importing any module that imports core.ts,
+// because core.ts evaluates DATA_DIR at module load time. All imports of DB-touching
+// modules must be dynamic (after this line) to ensure the temp DB is used.
+const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-plugins-edge-"));
+process.env.DATA_DIR = TEST_DATA_DIR;
+
+const core = await import("../../src/lib/db/core.ts");
+const dbPlugins = await import("../../src/lib/db/plugins.ts");
+const { scanPluginDir } = await import("../../src/lib/plugins/scanner.ts");
+const { pluginManager } = await import("../../src/lib/plugins/manager.ts");
+const {
   registerHook,
   unregisterHooks,
   emitHook,
   emitHookBlocking,
   resetHooks,
   getHooks,
-} from "../../src/lib/plugins/hooks.ts";
-
-// ── Temp dirs ──
-const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-plugins-edge-"));
-process.env.DATA_DIR = TEST_DATA_DIR;
-
-const core = await import("../../src/lib/db/core.ts");
-const dbPlugins = await import("../../src/lib/db/plugins.ts");
+} = await import("../../src/lib/plugins/hooks.ts");
 
 const activeSourceDirs: string[] = [];
 
@@ -79,9 +80,18 @@ function writeTestPlugin(opts: {
 
 test.beforeEach(() => {
   core.resetDbInstance();
-  // Clean all existing plugins to prevent UNIQUE constraint failures
-  for (const p of dbPlugins.listPlugins()) {
-    dbPlugins.deletePlugin(p.name);
+  // Clean all existing plugins to prevent UNIQUE constraint failures.
+  // Wrapped in try-catch: when running alongside other test files that load core
+  // before DATA_DIR is set, the SQLITE_FILE may point to the production DB which
+  // may not have the plugins table yet (migration 076 renumbered). The cleanup
+  // is redundant anyway — resetDbInstance() already invalidates the instance,
+  // and rmSync/mkdirSync below gives us a fresh DATA_DIR for next getDbInstance().
+  try {
+    for (const p of dbPlugins.listPlugins()) {
+      dbPlugins.deletePlugin(p.name);
+    }
+  } catch {
+    // Production DB may not have the plugins table — ignore; fresh DB created below.
   }
   resetHooks();
   fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });

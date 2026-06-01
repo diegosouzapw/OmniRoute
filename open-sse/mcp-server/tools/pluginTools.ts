@@ -89,8 +89,13 @@ export const pluginTools = [
       name: z.string().describe("Plugin name (kebab-case)"),
     }),
     handler: async (args: { name: string }) => {
-      await pluginManager.activate(args.name);
-      return { success: true, message: `Plugin '${args.name}' activated` };
+      try {
+        await pluginManager.activate(args.name);
+        return { success: true, message: `Plugin '${args.name}' activated` };
+      } catch (err: unknown) {
+        const msg = err instanceof Error ? err.message : String(err);
+        return { success: false, error: msg };
+      }
     },
   },
 
@@ -102,8 +107,13 @@ export const pluginTools = [
       name: z.string().describe("Plugin name (kebab-case)"),
     }),
     handler: async (args: { name: string }) => {
-      await pluginManager.deactivate(args.name);
-      return { success: true, message: `Plugin '${args.name}' deactivated` };
+      try {
+        await pluginManager.deactivate(args.name);
+        return { success: true, message: `Plugin '${args.name}' deactivated` };
+      } catch (err: unknown) {
+        const msg = err instanceof Error ? err.message : String(err);
+        return { success: false, error: msg };
+      }
     },
   },
 
@@ -115,8 +125,13 @@ export const pluginTools = [
       name: z.string().describe("Plugin name (kebab-case)"),
     }),
     handler: async (args: { name: string }) => {
-      await pluginManager.uninstall(args.name);
-      return { success: true, message: `Plugin '${args.name}' uninstalled` };
+      try {
+        await pluginManager.uninstall(args.name);
+        return { success: true, message: `Plugin '${args.name}' uninstalled` };
+      } catch (err: unknown) {
+        const msg = err instanceof Error ? err.message : String(err);
+        return { success: false, error: msg };
+      }
     },
   },
 
@@ -133,7 +148,7 @@ export const pluginTools = [
     }),
     handler: async (args: { name: string; config?: Record<string, unknown> }) => {
       const plugin = getPluginByName(args.name);
-      if (!plugin) throw new Error(`Plugin '${args.name}' not found`);
+      if (!plugin) return { success: false, error: `Plugin '${args.name}' not found` };
 
       if (args.config) {
         const current = JSON.parse(plugin.config || "{}");
@@ -151,17 +166,25 @@ export const pluginTools = [
 
   {
     name: "plugin_executions",
-    description: "View plugin execution history (from skill_executions table).",
+    description: "View plugin execution metrics (from plugin_metrics table).",
     scopes: ["read:plugins"],
     inputSchema: z.object({
       name: z.string().optional().describe("Filter by plugin name"),
       limit: z.number().min(1).max(100).default(20).describe("Max results to return"),
     }),
     handler: async (args: { name?: string; limit?: number }) => {
-      // Plugin executions are tracked via the skills system
-      const { skillExecutor } = await import("../../../src/lib/skills/executor");
-      const executions = skillExecutor.listExecutions(undefined, args.limit || 20);
-      return { executions };
+      const { getPluginAnalytics, getPluginAnalyticsSummary } = await import(
+        "../../../src/lib/db/plugins"
+      );
+      const limit = args.limit || 20;
+      if (args.name) {
+        const rows = getPluginAnalytics(args.name).slice(0, limit);
+        return { metrics: rows };
+      }
+      // No name filter: return all plugins' summaries
+      const allPlugins = listPlugins();
+      const metrics = allPlugins.slice(0, limit).map((p) => getPluginAnalyticsSummary(p.name));
+      return { metrics };
     },
   },
 

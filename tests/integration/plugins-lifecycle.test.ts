@@ -43,9 +43,10 @@ function writeTestPlugin(opts?: { name?: string; onRequest?: boolean; enabledByD
 
   fs.writeFileSync(path.join(pluginDir, "plugin.json"), JSON.stringify(manifest, null, 2));
 
-  // Plugin exports an onRequest handler that mutates the context metadata
+  // Plugin exports an onRequest handler that returns metadata (child-process isolation means
+  // the handler cannot mutate the parent's ctx object directly — it must return the result).
   const indexJs = onRequest
-    ? `module.exports.onRequest = function(ctx) { ctx.metadata = ctx.metadata || {}; ctx.metadata.hookCalled = true; };`
+    ? `module.exports.onRequest = function(ctx) { return { metadata: { hookCalled: true } }; };`
     : `module.exports = {};`;
 
   fs.writeFileSync(path.join(pluginDir, "index.js"), indexJs);
@@ -167,12 +168,14 @@ test("activate: plugin handler fires on hook emit", async () => {
   await pluginManager.install(sourceDir);
   await pluginManager.activate(name);
 
-  // Fire the onRequest hook with a PluginContext-like payload
+  // Fire the onRequest hook with a PluginContext-like payload.
+  // Plugins run in isolated child processes and cannot mutate the parent's object
+  // in-place — use emitHookBlocking and inspect the returned merged metadata.
   const payload = { requestId: "test-req", body: {}, model: "test", metadata: {} };
-  await hooks.emitHook("onRequest", payload);
+  const result = await hooks.emitHookBlocking("onRequest", payload);
 
-  // The handler sets metadata.hookCalled = true on the payload
-  assert.deepEqual((payload as Record<string, unknown>).metadata, { hookCalled: true });
+  // The handler sets metadata.hookCalled = true; it is returned in the merged result.
+  assert.deepEqual((result as Record<string, unknown>).metadata, { hookCalled: true });
 
   await pluginManager.uninstall(name);
 });
@@ -239,16 +242,18 @@ test("deactivate: hook no longer fires after deactivation", async () => {
   await pluginManager.install(sourceDir);
   await pluginManager.activate(name);
 
+  // Verify hook fires while active (use emitHookBlocking — child-process isolation
+  // means plugins cannot mutate the parent's in-memory payload object in-place).
   const payload = { requestId: "req-1", body: {}, model: "test", metadata: {} };
-  await hooks.emitHook("onRequest", payload);
-  assert.deepEqual((payload as Record<string, unknown>).metadata, { hookCalled: true });
+  const result1 = await hooks.emitHookBlocking("onRequest", payload);
+  assert.deepEqual((result1 as Record<string, unknown>).metadata, { hookCalled: true });
 
   await pluginManager.deactivate(name);
 
-  // Fire again — metadata should remain unchanged (handler not called)
+  // After deactivation, hook is unregistered — emitHookBlocking returns empty metadata.
   const payload2 = { requestId: "req-2", body: {}, model: "test", metadata: {} };
-  await hooks.emitHook("onRequest", payload2);
-  assert.deepEqual((payload2 as Record<string, unknown>).metadata, {});
+  const result2 = await hooks.emitHookBlocking("onRequest", payload2);
+  assert.deepEqual((result2 as Record<string, unknown>).metadata, {});
 
   await pluginManager.uninstall(name);
 });
@@ -319,11 +324,12 @@ test("full lifecycle: install -> activate -> hook fires -> deactivate -> uninsta
   assert.equal(afterActivate!.status, "active");
   assert.ok(hooks.getHooks("onRequest").find((r) => r.pluginName === name), "hook registered");
 
-  // 3. Fire hook
+  // 3. Fire hook (use emitHookBlocking — child-process isolation means plugins cannot
+  //    mutate the parent's in-memory payload object; check the returned merged result).
   const payload = { requestId: "lifecycle-req", body: {}, model: "test", metadata: {} };
-  await hooks.emitHook("onRequest", payload);
+  const hookResult = await hooks.emitHookBlocking("onRequest", payload);
   assert.deepEqual(
-    (payload as Record<string, unknown>).metadata,
+    (hookResult as Record<string, unknown>).metadata,
     { hookCalled: true },
     "hook handler executed"
   );
