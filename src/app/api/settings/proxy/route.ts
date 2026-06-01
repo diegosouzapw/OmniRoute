@@ -59,7 +59,13 @@ function toApiRouteError(error: unknown): ApiRouteError {
   return new Error("Unexpected error") as ApiRouteError;
 }
 
-function getRegistryScopeForLevel(level: string) {
+function getRegistryScopeForLevel(
+  level: string
+): "global" | "provider" | "combo" | "account" | undefined {
+  if (!Object.prototype.hasOwnProperty.call(PROXY_LEVEL_TO_REGISTRY_SCOPE, level)) {
+    return undefined;
+  }
+
   return PROXY_LEVEL_TO_REGISTRY_SCOPE[
     level as keyof typeof PROXY_LEVEL_TO_REGISTRY_SCOPE
   ];
