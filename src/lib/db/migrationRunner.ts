@@ -454,6 +454,10 @@ function isSchemaAlreadyApplied(
       // The table + column are already present when group_id exists on
       // quota_pools (ensures the backfill UPDATE also ran).
       return hasTable(db, "quota_groups") && hasColumn(db, "quota_pools", "group_id");
+    case "089":
+      // disable_non_public_models column (PR #3017, renumbered 077 → 089 to avoid
+      // collision with 077_api_key_stream_default_mode on merge into v3.8.8).
+      return hasColumn(db, "api_keys", "disable_non_public_models");
     default:
       return false;
   }

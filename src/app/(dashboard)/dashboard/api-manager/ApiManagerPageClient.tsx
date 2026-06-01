@@ -101,6 +101,7 @@ interface ApiKey {
   scopes?: string[];
   allowedEndpoints?: string[];
   streamDefaultMode?: StreamDefaultMode;
+  disableNonPublicModels?: boolean;
   createdAt: string;
 }
 
@@ -516,7 +517,8 @@ export default function ApiManagerPageClient() {
     rateLimits: Array<{ limit: number; window: number }> | null,
     scopes: string[],
     allowedEndpoints: string[],
-    streamDefaultMode: StreamDefaultMode
+    streamDefaultMode: StreamDefaultMode,
+    disableNonPublicModels: boolean
   ) => {
     if (!editingKey || !editingKey.id) return;
 
@@ -578,6 +580,7 @@ export default function ApiManagerPageClient() {
           scopes,
           allowedEndpoints,
           streamDefaultMode,
+          disableNonPublicModels,
         }),
       });
 
@@ -1285,7 +1288,8 @@ const PermissionsModal = memo(function PermissionsModal({
     rateLimits: Array<{ limit: number; window: number }> | null,
     scopes: string[],
     allowedEndpoints: string[],
-    streamDefaultMode: StreamDefaultMode
+    streamDefaultMode: StreamDefaultMode,
+    disableNonPublicModels: boolean
   ) => void;
 }) {
   const t = useTranslations("apiManager");
@@ -1354,6 +1358,9 @@ const PermissionsModal = memo(function PermissionsModal({
   const initialEndpoints = Array.isArray(apiKey?.allowedEndpoints) ? apiKey.allowedEndpoints : [];
   const [selectedEndpoints, setSelectedEndpoints] = useState<string[]>(initialEndpoints);
   const [allowAllEndpoints, setAllowAllEndpoints] = useState(initialEndpoints.length === 0);
+  const [disableNonPublicModels, setDisableNonPublicModels] = useState(
+    apiKey?.disableNonPublicModels === true
+  );
 
   // Memoize callbacks to prevent child re-renders
   const handleToggleModel = useCallback(
@@ -1504,7 +1511,8 @@ const PermissionsModal = memo(function PermissionsModal({
         selfAccountQuotaEnabled,
       }),
       allowAllEndpoints ? [] : selectedEndpoints,
-      streamDefaultMode
+      streamDefaultMode,
+      disableNonPublicModels
     );
   }, [
     onSave,
@@ -1534,6 +1542,7 @@ const PermissionsModal = memo(function PermissionsModal({
     allowAllEndpoints,
     selectedEndpoints,
     streamDefaultMode,
+    disableNonPublicModels,
     apiKey?.scopes,
     t,
   ]);
@@ -2055,6 +2064,30 @@ const PermissionsModal = memo(function PermissionsModal({
             {selfAccountQuotaEnabled ? tc("enabled") : tc("disabled")}
           </button>
           <p className="text-xs text-text-muted">{t("sharedAccountQuotaVisibilityDesc")}</p>
+        </div>
+
+        {/* Disable Non-Public Models Toggle */}
+        <div className="flex items-start justify-between gap-3 p-3 rounded-lg border border-border bg-surface/40">
+          <div className="flex flex-col gap-1">
+            <p className="text-sm font-medium text-text-main">{t("disableNonPublicModels")}</p>
+            <p className="text-xs text-text-muted">{t("disableNonPublicModelsDesc")}</p>
+          </div>
+          <button
+            type="button"
+            role="switch"
+            aria-checked={disableNonPublicModels}
+            onClick={() => setDisableNonPublicModels((prev) => !prev)}
+            className={`inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-md text-xs font-semibold transition-colors ${
+              disableNonPublicModels
+                ? "bg-amber-500/15 text-amber-700 dark:text-amber-300 border border-amber-500/30"
+                : "bg-black/5 dark:bg-white/5 text-text-muted border border-border"
+            }`}
+          >
+            <span className="material-symbols-outlined text-[14px]">
+              {disableNonPublicModels ? "shield_lock" : "shield"}
+            </span>
+            {disableNonPublicModels ? tc("yes") : tc("no")}
+          </button>
         </div>
 
         {/* Selected Models Summary (only in restrict mode) */}

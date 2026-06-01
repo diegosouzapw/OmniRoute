@@ -80,6 +80,7 @@ export interface ApiKeyMetadata {
   maxSessions?: number | null;
   rateLimits?: RateLimitRule[] | null;
   allowedEndpoints?: string[];
+  disableNonPublicModels?: boolean;
 }
 
 /**
@@ -406,7 +407,9 @@ export async function enforceApiKeyPolicy(
   }
 
   const hasModelRestrictions =
-    !isQuotaExclusive && apiKeyInfo.allowedModels && apiKeyInfo.allowedModels.length > 0;
+    !isQuotaExclusive &&
+    ((apiKeyInfo.allowedModels && apiKeyInfo.allowedModels.length > 0) ||
+      (apiKeyInfo as { disableNonPublicModels?: boolean }).disableNonPublicModels === true);
 
   if (!requestedComboName && modelStr && hasModelRestrictions) {
     try {

@@ -1762,7 +1762,9 @@
     "filterTypeRestricted": "Restricted",
     "shownOf": "{shown} of {total} shown",
     "emptyFilterTitle": "No keys match your filters",
-    "emptyFilterClear": "Clear filters"
+    "emptyFilterClear": "Clear filters",
+    "disableNonPublicModels": "Disable Non-Public Models",
+    "disableNonPublicModelsDesc": "Reject requests for models that are not discovered or not marked as public in the provider catalog"
   },
   "auditLog": {
     "title": "Audit Log",
