@@ -73,8 +73,8 @@ await test("scheduleRecordConsumption — no pool for key → silent no-op (no c
     fakeLog
   );
 
-  // Wait for the next tick + async work
-  await new Promise((resolve) => setTimeout(resolve, 50));
+  // Wait for setImmediate callback + recordConsumption promise to settle
+  await new Promise((resolve) => setTimeout(resolve, 500));
 
   // No uncaught error. warnCalls may or may not have items depending on whether
   // recordConsumption threw (which depends on DB availability).
