@@ -13,7 +13,6 @@ if [ -d "/app/data" ] && [ ! -w "/app/data" ]; then
     echo "Run this on the Docker host to fix:"
     echo "  sudo chown -R 1000:1000 ./data"
     echo "  chmod -R u+rwX ./data"
-    exit 1
 fi
 
 exec "$@"
