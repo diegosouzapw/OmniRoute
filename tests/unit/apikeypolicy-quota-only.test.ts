@@ -109,7 +109,9 @@ test("quota-only key requesting its quotaShared-* virtual model is allowed", asy
   const connId = (conn as Record<string, unknown>).id as string;
   assert.ok(connId);
 
-  const pool = poolsDb.createPool({ connectionId: connId, name: "Times" });
+  // Create group "Times" so resolveQuotaKeyScope returns group slug "times"
+  const group = groupsDb.createGroup("Times");
+  const pool = poolsDb.createPool({ connectionId: connId, name: "Times", groupId: group.id });
 
   const created = await apiKeysDb.createApiKey("Quota-B4 Key Allowed", "machine-b4-allowed");
   await apiKeysDb.updateApiKeyPermissions(created.id, {
