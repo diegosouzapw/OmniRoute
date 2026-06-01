@@ -1,17 +1,20 @@
 export type FieldCategory = "content" | "reasoning" | "toolArgs" | "partialJson";
 
+const CATEGORY_MAP: Record<string, FieldCategory> = {
+  reasoning: "reasoning",
+  thinking: "reasoning",
+  reasoning_content: "reasoning",
+  arguments: "toolArgs",
+  partial_json: "partialJson"
+};
+
 export function getFieldCategory(key: string): FieldCategory {
-  if (key === "reasoning" || key === "thinking" || key === "reasoning_content") {
-    return "reasoning";
-  }
-  if (key === "arguments") {
-    return "toolArgs";
-  }
-  if (key === "partial_json") {
-    return "partialJson";
-  }
-  return "content";
+  return CATEGORY_MAP[key] || "content";
 }
+
+const STOP_EVENT_TYPES = new Set([
+  "response.done", "response.completed", "response.cancelled", "response.failed"
+]);
 
 export function checkIfStopSignal(json: any): boolean {
   if (!json || typeof json !== "object") return false;
@@ -20,9 +23,11 @@ export function checkIfStopSignal(json: any): boolean {
   if (json.type === "content_block_stop") return true;
   if (json.type === "message_stop") return true;
   if (json.type === "message_delta" && json.delta?.stop_reason) return true;
-  if (["response.done", "response.completed", "response.cancelled", "response.failed"].includes(json.type)) return true;
+  if (STOP_EVENT_TYPES.has(json.type)) return true;
   return false;
 }
+
+const fallbackDecoder = new TextDecoder();
 
 export function createSseTextTransform(
   processor: (text: string, field: FieldCategory, isStopSignal?: boolean, index?: string | number) => string,
@@ -183,7 +188,7 @@ export function createSseTextTransform(
           if (typeof chunk === "string") {
             context = chunk.slice(0, 200);
           } else if (chunk instanceof Uint8Array) {
-            context = new TextDecoder().decode(chunk.slice(0, 200));
+            context = fallbackDecoder.decode(chunk.slice(0, 200));
           } else {
             context = String(chunk).slice(0, 200);
           }
