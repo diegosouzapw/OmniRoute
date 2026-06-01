@@ -200,6 +200,19 @@ function isNetworkFailureMessage(message: unknown): boolean {
   );
 }
 
+function isAccountScopedProxyResolution(proxyInfo: unknown): boolean {
+  if (!isRecord(proxyInfo)) return false;
+  if (!proxyInfo.proxy) return false;
+  return proxyInfo.level === "key" || proxyInfo.level === "account";
+}
+
+function shouldFailClosedForProviderLimitsProxy(
+  connection: ProviderConnectionLike,
+  proxyInfo: unknown
+): boolean {
+  return connection.authType === "oauth" && isAccountScopedProxyResolution(proxyInfo);
+}
+
 async function syncExpiredStatusIfNeeded(connection: ProviderConnectionLike, usage: JsonRecord) {
   const errorMessage = typeof usage.message === "string" ? usage.message.toLowerCase() : "";
   const isAuthError =
@@ -398,6 +411,7 @@ async function fetchLiveProviderLimitsWithOptions(
 
   let result: { usage: JsonRecord };
   const proxyConfig = proxyInfo?.proxy || null;
+  const failClosedOnProxyFailure = shouldFailClosedForProviderLimitsProxy(connection, proxyInfo);
 
   try {
     result = await fetchUsageWithContext(proxyConfig);
@@ -409,6 +423,14 @@ async function fetchLiveProviderLimitsWithOptions(
       error?.cause?.code === "ECONNREFUSED";
 
     if (proxyConfig && isThrownNetworkError) {
+      if (failClosedOnProxyFailure) {
+        console.warn(
+          `[ProviderLimits] Account-scoped ${connection.provider} proxy fetch failed for ${connectionId}; failing closed without direct retry:`,
+          error?.message
+        );
+        throw error;
+      }
+
       console.warn(
         `[ProviderLimits] Proxy fetch threw for ${connectionId}, retrying without proxy:`,
         error?.message
@@ -420,6 +442,18 @@ async function fetchLiveProviderLimitsWithOptions(
   }
 
   if (proxyConfig && isNetworkFailureMessage(result.usage?.message)) {
+    if (failClosedOnProxyFailure) {
+      const message =
+        typeof result.usage.message === "string"
+          ? result.usage.message
+          : "Provider-limits proxy request failed";
+      console.warn(
+        `[ProviderLimits] Account-scoped ${connection.provider} proxy usage failed for ${connectionId}; failing closed without direct retry:`,
+        message
+      );
+      throw withStatus(new Error(message), 503);
+    }
+
     console.warn(
       `[ProviderLimits] Proxy usage returned network error for ${connectionId}, retrying without proxy:`,
       result.usage.message
