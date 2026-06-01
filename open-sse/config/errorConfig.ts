@@ -143,7 +143,7 @@ export const ERROR_RULES: ErrorRule[] = [
   },
   {
     id: "free_tier_exhausted",
-    text: "free tier",
+    text: "free tier of the model has been exhausted",
     backoff: true,
     reason: "quota_exhausted",
   },
