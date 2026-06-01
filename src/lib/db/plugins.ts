@@ -154,6 +154,9 @@ export function updatePluginStatus(
   const now = new Date().toISOString();
   const activatedAt = status === "active" ? now : null;
 
+  // `activated_at` records the most-recent activation timestamp and is intentionally
+  // preserved on deactivation via COALESCE (activatedAt is null when status != "active").
+  // Callers should treat it as "last activated at", not "currently active since".
   const result = db
     .prepare(
       `UPDATE plugins SET status = ?, enabled = ?, error_message = ?,

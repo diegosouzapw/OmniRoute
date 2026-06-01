@@ -31,9 +31,23 @@ const log = logger("PLUGIN_MANAGER");
 /**
  * Compare two semver strings. Returns positive if a > b, negative if a < b, 0 if equal.
  * Only handles simple MAJOR.MINOR.PATCH — no pre-release tags.
+ *
+ * NaN-safe: strips a `-prerelease` suffix before parsing so a legacy DB value like
+ * `1.0.0-beta` doesn't produce NaN comparisons and silently compare equal to `1.0.0`.
+ * Non-numeric segments (after stripping) are coerced to 0.
+ *
+ * Exported for unit testing only — prefer pluginManager methods for production use.
  */
-function compareSemver(a: string, b: string): number {
-  const parse = (v: string) => v.split(".").map(Number);
+export function compareSemver(a: string, b: string): number {
+  // Strip optional pre-release suffix (e.g. "-beta", "-rc.1") before parsing
+  const stripPreRelease = (v: string) => v.replace(/-.*$/, "");
+  const parse = (v: string) =>
+    stripPreRelease(v)
+      .split(".")
+      .map((s) => {
+        const n = Number(s);
+        return Number.isNaN(n) ? 0 : n;
+      });
   const [aMaj, aMin, aPat] = parse(a);
   const [bMaj, bMin, bPat] = parse(b);
   if (aMaj !== bMaj) return aMaj - bMaj;

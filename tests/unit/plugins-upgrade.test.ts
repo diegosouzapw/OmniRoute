@@ -11,7 +11,7 @@ process.env.DATA_DIR = TEST_DATA_DIR;
 const core = await import("../../src/lib/db/core.ts");
 const dbPlugins = await import("../../src/lib/db/plugins.ts");
 const hooks = await import("../../src/lib/plugins/hooks.ts");
-const { pluginManager } = await import("../../src/lib/plugins/manager.ts");
+const { pluginManager, compareSemver } = await import("../../src/lib/plugins/manager.ts");
 
 // ── Fixture ──
 
@@ -214,4 +214,30 @@ test("upgrade with patch version bump", async () => {
   assert.equal(result.version, "1.0.1");
 
   await pluginManager.uninstall("patch-bump");
+});
+
+// ── MINOR-10: compareSemver NaN-safe with pre-release suffixes ──
+
+test("compareSemver: valid semver compares correctly", () => {
+  assert.ok(compareSemver("2.0.0", "1.0.0") > 0, "2.0.0 > 1.0.0");
+  assert.ok(compareSemver("1.0.0", "2.0.0") < 0, "1.0.0 < 2.0.0");
+  assert.equal(compareSemver("1.0.0", "1.0.0"), 0, "1.0.0 == 1.0.0");
+  assert.ok(compareSemver("1.1.0", "1.0.0") > 0, "1.1.0 > 1.0.0");
+  assert.ok(compareSemver("1.0.1", "1.0.0") > 0, "1.0.1 > 1.0.0");
+});
+
+test("compareSemver: pre-release suffix strips cleanly (no NaN)", () => {
+  // 1.0.0-beta should compare as 1.0.0 (< 1.0.1, not silently equal)
+  assert.ok(compareSemver("1.0.1", "1.0.0-beta") > 0, "1.0.1 > 1.0.0-beta (treated as 1.0.0)");
+  assert.ok(compareSemver("1.0.0-beta", "0.9.0") > 0, "1.0.0-beta > 0.9.0");
+  // Both pre-release: treated as equal numeric parts
+  assert.equal(compareSemver("1.0.0-beta", "1.0.0-rc.1"), 0, "1.0.0-beta == 1.0.0-rc.1 (both strip to 1.0.0)");
+});
+
+test("compareSemver: NaN segments coerce to 0, result is not NaN", () => {
+  // Pathological value from a legacy DB — must not produce NaN
+  const result = compareSemver("1.0.0-beta", "1.0.0");
+  assert.ok(!Number.isNaN(result), `compareSemver should never return NaN, got ${result}`);
+  // 1.0.0-beta strips to 1.0.0 → equal to 1.0.0
+  assert.equal(result, 0, "1.0.0-beta treated as 1.0.0 should equal 1.0.0");
 });
