@@ -410,6 +410,10 @@ function createTray() {
   try {
     icon = nativeImage.createFromPath(iconPath);
     if (icon.isEmpty()) icon = nativeImage.createEmpty();
+    if (process.platform === "darwin" && !icon.isEmpty()) {
+      icon = icon.resize({ width: 20, height: 20 });
+      icon.setTemplateImage(true);
+    }
   } catch {
     icon = nativeImage.createEmpty();
   }

@@ -12,7 +12,7 @@ lastUpdated: 2026-05-30
 
 ![MCP tool inventory (43 tools by category)](../diagrams/exported/mcp-tools-43.svg)
 
-> Source: [diagrams/mcp-tools-43.mmd](../diagrams/mcp-tools-43.mmd) (update from `mcp-tools-37` when regenerating)
+> Source: [diagrams/mcp-tools-43.mmd](../diagrams/mcp-tools-43.mmd) (regenerate via `npm run docs:render-diagrams`).
 
 ## Installation
 
@@ -203,6 +203,18 @@ curl -X DELETE http://localhost:20128/api/settings/notion
 | `omniroute_notion_read`           | `read:notion` | Read a page or block by ID with its content                                           |
 | `omniroute_notion_append_blocks`  | `write:notion`| Append children blocks to a parent block (max 100 per request)                        |
 
+## Agent Skill Catalog Tools (3)
+
+Defined in `open-sse/mcp-server/tools/agentSkillTools.ts`. Backed by `src/lib/agentSkills/catalog`. These tools expose the 42-entry Agent Skills documentation catalog to MCP clients and external agents. Scope: `read:catalog`.
+
+| Tool                               | Scopes         | Description                                                                                                      |
+| :--------------------------------- | :------------- | :--------------------------------------------------------------------------------------------------------------- |
+| `omniroute_agent_skills_list`      | `read:catalog` | List all 42 agent skills with optional `category` (api\|cli) and `area` filters; returns metadata + coverage     |
+| `omniroute_agent_skills_get`       | `read:catalog` | Get full metadata + SKILL.md content for a single skill by canonical `id`                                        |
+| `omniroute_agent_skills_coverage`  | `read:catalog` | Coverage stats: how many of the 22 API and 20 CLI skills have SKILL.md files on the filesystem vs catalog totals |
+
+See [AGENT-SKILLS.md](./AGENT-SKILLS.md) for the full catalog and how external agents consume it.
+
 ## Related Frameworks (v3.8.0)
 
 The MCP tool inventory above (43 tools = 30 core + 3 memory + 4 skills + 6 notion) is intentionally
@@ -282,6 +294,7 @@ MCP tools are authenticated through API key scopes. Scope enforcement is central
 | `read:skills`         | `skills_list`, `skills_executions`                                                                                |
 | `write:skills`        | `skills_enable`                                                                                                   |
 | `execute:skills`      | `skills_execute`                                                                                                  |
+| `read:catalog`        | `agent_skills_list`, `agent_skills_get`, `agent_skills_coverage`                                                  |
 
 Wildcard scopes are supported: `read:*` grants all read-scopes, `*` grants full access.
 

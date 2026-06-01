@@ -70,6 +70,18 @@ export const FEATURE_FLAG_DEFINITIONS: FeatureFlagDefinition[] = [
     warningLevel: "info",
   },
   {
+    key: "PII_RESPONSE_SANITIZATION_MODE",
+    label: "PII Response Sanitization Mode",
+    description: "Mode for PII response sanitization: redact (replace PII), warn (log only), block (reject), off (disable)",
+    descriptionI18nKey: "featureFlagPiiResponseSanitizationModeDescription",
+    category: "security",
+    defaultValue: "redact",
+    type: "enum",
+    enumValues: ["redact", "warn", "block", "off"],
+    requiresRestart: false,
+    warningLevel: "info",
+  },
+  {
     key: "OUTBOUND_SSRF_GUARD_ENABLED",
     label: "SSRF Guard",
     description: "Block outbound requests to private/internal IP ranges",

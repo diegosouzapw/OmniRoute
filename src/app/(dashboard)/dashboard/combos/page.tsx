@@ -726,7 +726,7 @@ export default function CombosPage() {
       const metricsData = await metricsRes.json();
       const nodesData = nodesRes.ok ? await nodesRes.json() : { nodes: [] };
 
-      if (combosRes.ok) setCombos(combosData.combos || []);
+      if (combosRes.ok) setCombos((combosData.combos || []).filter((c) => !c.isHidden));
       if (providersRes.ok) {
         const active = (providersData.connections || []).filter(
           (c) => c.testStatus === "active" || c.testStatus === "success"

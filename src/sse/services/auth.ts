@@ -47,6 +47,7 @@ import {
   getProviderAlias,
   resolveProviderId,
   NOAUTH_PROVIDERS,
+  WEB_COOKIE_PROVIDERS,
 } from "@/shared/constants/providers";
 import { isModelExcludedByConnection } from "@/domain/connectionModelRules";
 import * as log from "../utils/logger";
@@ -825,9 +826,11 @@ export async function getProviderCredentials(
     // No-auth providers (e.g. opencode) need no DB connection — return synthetic credentials
     // so the executor receives a valid credentials object without auth headers being added.
     const resolvedId = resolveProviderId(provider);
-    if (
-      (NOAUTH_PROVIDERS as Record<string, { noAuth?: boolean } | undefined>)[resolvedId]?.noAuth
-    ) {
+    const providerMaps: Record<string, { noAuth?: boolean } | undefined>[] = [
+      NOAUTH_PROVIDERS as Record<string, { noAuth?: boolean } | undefined>,
+      WEB_COOKIE_PROVIDERS as Record<string, { noAuth?: boolean } | undefined>,
+    ];
+    if (providerMaps.some((map) => map[resolvedId]?.noAuth)) {
       return {
         apiKey: null,
         accessToken: null,
@@ -942,6 +945,31 @@ export async function getProviderCredentials(
             expiredStatus: dominantStatus,
           };
         }
+      }
+      // #2962: opencode-zen exposes the public, signup-free OpenCode Zen endpoint
+      // (https://opencode.ai/zen/v1). With no usable API-key connection, fall back
+      // to anonymous (no-auth) access — the free tier — instead of erroring with
+      // "No credentials". This is what the Playground/combos hit when selecting an
+      // OpenCode free model. A configured, active key is still selected above; a
+      // rate-limited/terminal key returns its own signal before reaching here.
+      if (resolvedId === "opencode-zen") {
+        return {
+          apiKey: null,
+          accessToken: null,
+          refreshToken: null,
+          expiresAt: null,
+          projectId: null,
+          copilotToken: null,
+          providerSpecificData: {},
+          connectionId: "noauth",
+          testStatus: "active",
+          lastError: null,
+          lastErrorType: null,
+          lastErrorSource: null,
+          errorCode: null,
+          rateLimitedUntil: null,
+          maxConcurrent: null,
+        };
       }
       log.warn("AUTH", `No credentials for ${provider}`);
       return null;

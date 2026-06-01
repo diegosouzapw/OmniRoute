@@ -149,6 +149,7 @@ const nextConfig = {
     "koffi",
     "tough-cookie",
     "@ngrok/ngrok",
+    "@huggingface/transformers",
     "child_process",
     "fs",
     "path",
@@ -259,6 +260,12 @@ const nextConfig = {
 
   async redirects() {
     return [
+      // Dashboard routes
+      {
+        source: "/dashboard/skills",
+        destination: "/dashboard/omni-skills",
+        permanent: true,
+      },
       // Architecture
       {
         source: "/docs/architecture",
@@ -419,6 +426,19 @@ const nextConfig = {
       {
         source: "/docs/vm-deployment-guide",
         destination: "/docs/ops/vm-deployment-guide",
+        permanent: true,
+      },
+      // CLI Pages — Plano 14 (F9)
+      { source: "/dashboard/cli-tools", destination: "/dashboard/cli-code", permanent: true },
+      {
+        source: "/dashboard/cli-tools/:path*",
+        destination: "/dashboard/cli-code/:path*",
+        permanent: true,
+      },
+      { source: "/dashboard/agents", destination: "/dashboard/acp-agents", permanent: true },
+      {
+        source: "/dashboard/agents/:path*",
+        destination: "/dashboard/acp-agents/:path*",
         permanent: true,
       },
     ];

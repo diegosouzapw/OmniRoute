@@ -34,7 +34,9 @@ const _mcpSessionSweep = setInterval(() => {
   const now = Date.now();
   for (const [sessionId, session] of _streamableSessions) {
     if (now - session.lastActivityAt > MCP_SESSION_IDLE_MS) {
-      try { closeStreamableSession(sessionId); } catch {}
+      try {
+        closeStreamableSession(sessionId);
+      } catch {}
     }
   }
 }, 60_000);
@@ -254,6 +256,13 @@ export function getMcpHttpStatus(): {
     startedAt,
     uptime: startedAt ? `${Math.floor((Date.now() - startedAt) / 1000)}s` : null,
   };
+}
+
+export function isMcpHttpTransportReady(
+  enabled: boolean,
+  transport: string | null | undefined
+): boolean {
+  return enabled && (transport === "sse" || transport === "streamable-http");
 }
 
 export function shutdownMcpHttp(): void {
