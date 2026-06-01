@@ -108,6 +108,7 @@ export function registerHook(
 
 /**
  * Unregister all handlers for a plugin.
+ * Also evicts the plugin's rate-limit state so uninstalled plugins don't leak memory.
  */
 export function unregisterHooks(pluginName: string): void {
   for (const [event, list] of hooks.entries()) {
@@ -118,6 +119,8 @@ export function unregisterHooks(pluginName: string): void {
       log.info("hook.unregistered", { event, pluginName, removed: before - filtered.length });
     }
   }
+  // Evict rate-limit state so uninstalled plugins don't accumulate entries
+  rateLimitMap.delete(pluginName);
 }
 
 /**
@@ -181,6 +184,11 @@ export async function emitHookBlocking(
   let mergedMetadata: Record<string, unknown> = (ctx.metadata as Record<string, unknown>) || {};
 
   for (const reg of list) {
+    // Mirror emitHook: rate-limit the hot blocking path too
+    if (isRateLimited(reg.pluginName)) {
+      log.warn("hook.blocking_rate_limited", { event, pluginName: reg.pluginName });
+      continue;
+    }
     try {
       const result = await reg.handler(payload);
       if (result && typeof result === "object") {
