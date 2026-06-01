@@ -4,6 +4,8 @@
 
 ### Added
 
+- **Plugins framework** (`src/lib/plugins/`, `/api/plugins/*`, `/dashboard/plugins`) — hooks + registry unification, plugin SDK (`definePlugin`), worker-thread sandbox, per-plugin hook rate limiting, SHA-256 integrity verification, semver-gated upgrade, and execution analytics. Plugin routes are loopback-only (`isLocalOnlyPath`) and `child_process` exec is opt-in via `OMNIROUTE_PLUGINS_ALLOW_EXEC`. (#2913 — thanks @oyi77)
+- **API key option: disable non-published models** — a per-key flag restricting the key to discovered, public models (combos / `auto/*` / `qtSd/*` routing still allowed). (#3017 — thanks @androw)
 - **SessionPool — modular & provider-agnostic** (`open-sse/services/sessionPool/`) — pooled
   cookie/session manager with round-robin fingerprint rotation (distinct fingerprint per pooled
   session), per-session cooldown/backoff, and a provider-agnostic `webExecutorWrapper`. Adds pool
