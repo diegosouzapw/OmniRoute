@@ -73,6 +73,16 @@ export class DuckDuckGoWebExecutor extends BaseExecutor {
       );
     }
 
+    // Acquire session from pool for fingerprint rotation
+    const pool = this.getPool();
+    let session;
+    try {
+      session = pool ? await pool.acquireBlocking(10_000) : null;
+    } catch {
+      session = null;
+    }
+    const sessionHeaders = session ? session.buildHeaders() : {};
+
     try {
       const controller = new AbortController();
       const timeout = setTimeout(() => controller.abort(), FETCH_TIMEOUT_MS);
@@ -88,6 +98,8 @@ export class DuckDuckGoWebExecutor extends BaseExecutor {
         );
       }
 
+      const sessionHeaders = session ? session.buildHeaders() : {};
+
       const vqdToken = await this.acquireVqdHash(mergedSignal);
       if (!vqdToken) {
         clearTimeout(timeout);
@@ -101,6 +113,7 @@ export class DuckDuckGoWebExecutor extends BaseExecutor {
         method: "POST",
         headers: {
           ...FAKE_HEADERS,
+          ...sessionHeaders,
           "Content-Type": "application/json",
           "x-vqd-hash-1": vqdToken,
         },
