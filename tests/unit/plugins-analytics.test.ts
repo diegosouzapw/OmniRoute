@@ -9,18 +9,10 @@ import { getDbInstance } from "../../src/lib/db/core.ts";
 
 describe("plugin analytics", () => {
   beforeEach(() => {
+    // The plugin_analytics table is created by migration 091 (run on getDbInstance);
+    // this test relies on that migration rather than creating the table inline, so a
+    // missing/renumbered migration would fail here instead of being masked.
     const db = getDbInstance();
-    db.exec(`
-      CREATE TABLE IF NOT EXISTS plugin_analytics (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        plugin_name TEXT NOT NULL,
-        hook TEXT NOT NULL,
-        duration_ms INTEGER NOT NULL DEFAULT 0,
-        success INTEGER NOT NULL DEFAULT 1,
-        error_message TEXT,
-        created_at TEXT NOT NULL DEFAULT (datetime('now'))
-      )
-    `);
     db.exec("DELETE FROM plugin_analytics");
   });
 

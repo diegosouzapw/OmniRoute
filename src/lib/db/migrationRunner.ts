@@ -462,6 +462,11 @@ function isSchemaAlreadyApplied(
       // plugin_metrics table (PR #2913, renumbered 077 → 090 to avoid
       // collision with 077_api_key_stream_default_mode on merge into v3.8.8).
       return hasTable(db, "plugin_metrics");
+    case "091":
+      // plugin_analytics table (PR #2913). The PR's stray db/migrations version
+      // was dropped on integration; this canonical migration creates the table
+      // that recordPluginExecution()/getPluginAnalytics() rely on.
+      return hasTable(db, "plugin_analytics");
     default:
       return false;
   }
