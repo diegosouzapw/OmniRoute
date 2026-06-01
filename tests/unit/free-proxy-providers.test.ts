@@ -45,7 +45,7 @@ test("getProvider returns the correct provider by id", () => {
 });
 
 test("getProvider returns undefined for unknown id", () => {
-  const p = getProvider("unknown" as any);
+  const p = getProvider("unknown" as Parameters<typeof getProvider>[0]);
   assert.equal(p, undefined);
 });
 
@@ -152,6 +152,63 @@ test("ProxiflyProvider.sync returns disabled error when not enabled", async () =
   assert.ok(result.errors.some((e) => e.includes("disabled")));
 
   process.env.FREE_PROXY_PROXIFLY_ENABLED = original ?? "";
+});
+
+test("ProxiflyProvider.sync fetches proxies in API-sized batches", async () => {
+  await reset();
+  const originalEnabled = process.env.FREE_PROXY_PROXIFLY_ENABLED;
+  const originalQuantity = process.env.FREE_PROXY_PROXIFLY_QUANTITY;
+  const originalFetch = globalThis.fetch;
+
+  const requestedQuantities: string[] = [];
+  process.env.FREE_PROXY_PROXIFLY_ENABLED = "true";
+  process.env.FREE_PROXY_PROXIFLY_QUANTITY = "25";
+
+  globalThis.fetch = (async (input: RequestInfo | URL, _init?: RequestInit) => {
+    const url = new URL(String(input));
+    requestedQuantities.push(url.searchParams.get("quantity") || "");
+    assert.equal(url.searchParams.get("format"), "json");
+    assert.equal(url.searchParams.get("protocol"), "http");
+    assert.equal(url.searchParams.get("anonymity"), "elite");
+
+    const quantity = Number(url.searchParams.get("quantity"));
+    const batchIndex = requestedQuantities.length - 1;
+    const body = Array.from({ length: quantity }, (_, index) => ({
+      ip: `42.${batchIndex}.${index + 1}.1`,
+      port: 8000 + index,
+      protocol: "http",
+      anonymity: "elite",
+      score: 50 + index,
+      geolocation: { country: "US" },
+    }));
+    if (batchIndex === 0) {
+      body[0] = null as unknown as (typeof body)[number];
+    }
+
+    return new Response(JSON.stringify(body), {
+      status: 200,
+      headers: { "content-type": "application/json" },
+    });
+  }) as typeof fetch;
+
+  try {
+    const p = getProvider("proxifly")!;
+    const result = await p.sync();
+
+    assert.deepEqual(requestedQuantities, ["20", "5"]);
+    assert.equal(result.fetched, 24);
+    assert.equal(result.added, 24);
+    assert.equal(result.updated, 0);
+    assert.deepEqual(result.errors, []);
+
+    const items = await p.list({ limit: 30 });
+    assert.equal(items.length, 24);
+    assert.ok(items.every((item) => item.source === "proxifly"));
+  } finally {
+    globalThis.fetch = originalFetch;
+    process.env.FREE_PROXY_PROXIFLY_ENABLED = originalEnabled ?? "";
+    process.env.FREE_PROXY_PROXIFLY_QUANTITY = originalQuantity ?? "";
+  }
 });
 
 // ── IplocateProvider ──────────────────────────────────────────────────────────

@@ -436,7 +436,20 @@ const CODEX_HOSTED_TOOL_TYPES: ReadonlySet<string> = new Set([
   "local_shell",
 ]);
 
-function normalizeCodexTools(body: Record<string, unknown>): void {
+// #2980: a free-plan Codex account (workspacePlanType === "free", from the OAuth
+// id_token) cannot run the server-side `image_generation` hosted tool. The Codex
+// CLI injects it into every Responses request regardless of plan, so it must be
+// dropped for free-plan accounts (mirrors CLIProxyAPI's isCodexFreePlanAuth).
+export function isCodexFreePlan(providerSpecificData: unknown): boolean {
+  if (!providerSpecificData || typeof providerSpecificData !== "object") return false;
+  const plan = (providerSpecificData as { workspacePlanType?: unknown }).workspacePlanType;
+  return typeof plan === "string" && plan.trim().toLowerCase() === "free";
+}
+
+export function normalizeCodexTools(
+  body: Record<string, unknown>,
+  options?: { dropImageGeneration?: boolean }
+): void {
   if (!Array.isArray(body.tools)) return;
 
   const validToolNames = new Set<string>();
@@ -470,6 +483,11 @@ function normalizeCodexTools(body: Record<string, unknown>): void {
         return false;
       }
       if (CODEX_HOSTED_TOOL_TYPES.has(toolType)) {
+        // #2980: drop the CLI-injected image_generation tool for free-plan
+        // accounts, which can't run it server-side (upstream 400 otherwise).
+        if (toolType === "image_generation" && options?.dropImageGeneration === true) {
+          return false;
+        }
         return true;
       }
       console.debug(`[Codex] dropping unknown hosted tool type: ${toolType}`);
@@ -1242,7 +1260,9 @@ export class CodexExecutor extends BaseExecutor {
     // Codex Responses only supports function tools with non-empty names.
     // Cursor may include custom tools (e.g. ApplyPatch) that work locally but are
     // invalid upstream, and translation bugs can leave orphaned/empty tool_choice names.
-    normalizeCodexTools(body);
+    normalizeCodexTools(body, {
+      dropImageGeneration: isCodexFreePlan(credentials?.providerSpecificData),
+    });
 
     // Strip stored response item references (rs_, resp_, msg_ IDs) from input.
     // The /codex/responses endpoint does not persist responses even with store=true,

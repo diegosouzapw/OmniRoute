@@ -652,6 +652,71 @@ test("createSSEStream passthrough preserves Responses API events and completion 
   assert.equal(onCompletePayload.providerPayload.summary.object, "response");
 });
 
+test("createSSEStream passthrough drops leaked empty chat bootstrap chunks for Responses clients", async () => {
+  const text = await readTransformed(
+    [
+      `data: ${JSON.stringify({
+        id: "chatcmpl-dummy",
+        object: "chat.completion.chunk",
+        created: 1,
+        model: "gpt-5.4",
+        choices: [
+          { index: 0, delta: { role: "assistant", content: null, refusal: null }, finish_reason: null },
+        ],
+      })}\n\n`,
+      `event: response.created\ndata: ${JSON.stringify({
+        type: "response.created",
+        response: {
+          id: "resp_1",
+          object: "response",
+          model: "gpt-5.4",
+          status: "in_progress",
+          output: [],
+        },
+      })}\n\n`,
+      `event: response.in_progress\ndata: ${JSON.stringify({
+        type: "response.in_progress",
+        response: {
+          id: "resp_1",
+          object: "response",
+          model: "gpt-5.4",
+          status: "in_progress",
+          output: [],
+        },
+      })}\n\n`,
+      `data: ${JSON.stringify({
+        type: "response.output_text.delta",
+        delta: "OK",
+      })}\n\n`,
+      `data: ${JSON.stringify({
+        type: "response.completed",
+        response: {
+          id: "resp_1",
+          object: "response",
+          model: "gpt-5.4",
+          status: "completed",
+          output: [],
+          usage: { input_tokens: 2, output_tokens: 1, total_tokens: 3 },
+        },
+      })}\n\n`,
+      `data: [DONE]\n\n`,
+    ],
+    {
+      mode: "passthrough",
+      sourceFormat: FORMATS.OPENAI_RESPONSES,
+      clientResponseFormat: FORMATS.OPENAI_RESPONSES,
+      provider: "openai",
+      model: "gpt-5.4",
+      body: { input: "hello" },
+    }
+  );
+
+  assert.doesNotMatch(text, /chatcmpl-dummy/);
+  assert.match(text, /response\.created/);
+  assert.match(text, /response\.output_text\.delta/);
+  assert.match(text, /"delta":"OK"/);
+});
+
 test("buildStreamSummaryFromEvents falls back to response.output_text.delta when completed output is empty", () => {
   const summary = buildStreamSummaryFromEvents(
     [

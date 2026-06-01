@@ -91,3 +91,21 @@ test("OMNIROUTE_DISABLE_CLI_TOKEN desabilita auth (estrutura verificada)", async
   const src = readFileSync(join(dir, "../../src/lib/middleware/cliTokenAuth.ts"), "utf8");
   assert.ok(src.includes("OMNIROUTE_DISABLE_CLI_TOKEN"));
 });
+
+test("cliTokenAuth must NOT derive loopback from the spoofable Host header", async () => {
+  const { readFileSync } = await import("node:fs");
+  const { join, dirname } = await import("node:path");
+  const { fileURLToPath } = await import("node:url");
+  const dir = dirname(fileURLToPath(import.meta.url));
+  const src = readFileSync(join(dir, "../../src/lib/middleware/cliTokenAuth.ts"), "utf8");
+  // Regression guard: a remote caller with a stolen CLI token could send
+  // Host: 127.0.0.1 if locality came from new URL(request.url).hostname.
+  assert.ok(
+    !/isLoopback\(\s*new URL\(request\.url\)\.hostname/.test(src),
+    "must not call isLoopback(new URL(request.url).hostname)"
+  );
+  assert.ok(
+    src.includes("AUTHZ_HEADER_PEER_LOCALITY"),
+    "must trust the middleware-stamped locality verdict instead"
+  );
+});

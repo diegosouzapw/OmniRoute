@@ -8,6 +8,7 @@ const { VeniceWebExecutor } = await import("../../open-sse/executors/venice-web.
 const { V0VercelWebExecutor } = await import("../../open-sse/executors/v0-vercel-web.ts");
 const { KimiWebExecutor } = await import("../../open-sse/executors/kimi-web.ts");
 const { DoubaoWebExecutor } = await import("../../open-sse/executors/doubao-web.ts");
+const { QwenWebExecutor } = await import("../../open-sse/executors/qwen-web.ts");
 const { getExecutor, hasSpecializedExecutor } = await import("../../open-sse/executors/index.ts");
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
@@ -173,6 +174,22 @@ test("Kimi Web sets correct provider", () => {
 test("Doubao Web sets correct provider", () => {
   const executor = new DoubaoWebExecutor();
   assert.equal(executor.getProvider(), "doubao-web");
+});
+
+// ── Registration Tests (Qwen Web) ────────────────────────────────────────────
+
+test("Qwen Web executor is registered", () => {
+  assert.ok(hasSpecializedExecutor("qwen-web"));
+  assert.ok(hasSpecializedExecutor("qw"));
+  const executor = getExecutor("qwen-web");
+  assert.ok(executor instanceof QwenWebExecutor);
+});
+
+// ── Constructor Tests (Qwen Web) ─────────────────────────────────────────────
+
+test("Qwen Web sets correct provider", () => {
+  const executor = new QwenWebExecutor();
+  assert.equal(executor.getProvider(), "qwen-web");
 });
 
 // ── HuggingChat Execution Tests ──────────────────────────────────────────────

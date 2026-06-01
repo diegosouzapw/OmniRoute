@@ -225,6 +225,26 @@ export async function syncStandaloneExtraModules(
       destRelative: path.join("dev", "run-standalone.mjs"),
     },
     {
+      // WS-aware wrapper that run-standalone.mjs prefers over bare server.js.
+      // It installs the trusted peer-IP stamp the authz middleware needs to
+      // allow loopback/LAN access to LOCAL_ONLY routes; without it the Docker
+      // container fails closed (every LOCAL_ONLY request 403s). Imports
+      // peer-stamp.mjs + responses-ws-proxy.mjs, so all three are co-located.
+      label: "WS/peer-stamp standalone server wrapper",
+      sourcePath: path.join(rootDir, "scripts", "dev", "standalone-server-ws.mjs"),
+      destRelative: "server-ws.mjs",
+    },
+    {
+      label: "peer-stamp helper (server-ws.mjs dependency)",
+      sourcePath: path.join(rootDir, "scripts", "dev", "peer-stamp.mjs"),
+      destRelative: "peer-stamp.mjs",
+    },
+    {
+      label: "responses-ws-proxy (server-ws.mjs dependency)",
+      sourcePath: path.join(rootDir, "scripts", "dev", "responses-ws-proxy.mjs"),
+      destRelative: "responses-ws-proxy.mjs",
+    },
+    {
       label: "runtime-env script",
       sourcePath: path.join(rootDir, "scripts", "build", "runtime-env.mjs"),
       destRelative: path.join("build", "runtime-env.mjs"),

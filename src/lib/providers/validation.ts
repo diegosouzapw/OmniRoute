@@ -382,8 +382,19 @@ async function validateOpenAILikeProvider({
       return { valid: true, error: null };
     }
 
-    if (response.status === 401 || response.status === 403) {
+    if (response.status === 401) {
       return { valid: false, error: "Invalid API key" };
+    }
+
+    // #2929: A 403 on the models endpoint is not always a bad key. Some providers
+    // (e.g. Fireworks Fire Pass `fpk_*` keys) return "...not authorized for this
+    // route." on /models while still serving chat. Fall through to the chat probe
+    // for such route-restriction 403s instead of declaring the key invalid.
+    if (response.status === 403) {
+      const forbiddenBody = await response.text().catch(() => "");
+      if (!/not authorized for this route/i.test(forbiddenBody)) {
+        return { valid: false, error: "Invalid API key" };
+      }
     }
 
     const chatUrl = resolveChatUrl(provider, baseUrl, providerSpecificData);

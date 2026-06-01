@@ -4,12 +4,14 @@
 #
 #  Profiles:
 #    base  → minimal image, no CLI tools
+#    web   → runner-web (+Chromium/Playwright) for web-cookie providers
 #    cli   → CLIs installed inside the container (portable)
 #    host  → runner-base + host-mounted CLI binaries (Linux-first)
 #    cliproxyapi → CLIProxyAPI sidecar on port 8317
 #
 #  Usage:
 #    docker compose --profile base up -d
+#    docker compose --profile web up -d   # gemini-web / claude-web / claude-turnstile
 #    docker compose --profile cli up -d
 #    docker compose --profile host up -d
 #    docker compose --profile cliproxyapi up -d
@@ -68,6 +70,23 @@ services:
       - "${API_PORT:-20129}:${API_PORT:-20129}"
     profiles:
       - base
+
+  # ── Profile: web (runner-web + Chromium/Playwright) ────────────────
+  # Required for web-cookie providers (gemini-web, claude-web, claude-turnstile).
+  # The default `base` image ships without Chromium, so those providers fail
+  # with "Executable doesn't exist at .../ms-playwright/chromium..." (#2832).
+  omniroute-web:
+    <<: *common
+    container_name: omniroute
+    build:
+      context: .
+      target: runner-web
+    image: omniroute:web
+    ports:
+      - "${DASHBOARD_PORT:-${PORT:-20128}}:${DASHBOARD_PORT:-${PORT:-20128}}"
+      - "${API_PORT:-20129}:${API_PORT:-20129}"
+    profiles:
+      - web
 
   # ── Profile: cli (CLIs installed inside container) ─────────────────
   omniroute-cli:
