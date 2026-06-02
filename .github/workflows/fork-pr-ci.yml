@@ -1,0 +1,36 @@
+name: Fork PR Checks
+
+on:
+  pull_request:
+    branches: ["*"]
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    name: Lint, Typecheck, and Tests
+    if: github.repository == 'dangeReis/OmniRoute'
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: "22"
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Typecheck
+        run: npm run typecheck:core
+
+      - name: Run targeted PII tests
+        run: node --import tsx/esm --test tests/unit/piiReproduction.test.ts tests/unit/streamingPiiTransform.test.ts
