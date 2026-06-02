@@ -1,5 +1,9 @@
-import { enrichModelForVscode, getVscodeModelsCatalogResponse } from "@/app/api/v1/vscode/[token]/models/route";
-import { expandVscodeServiceTierModels } from "@/app/api/v1/vscode/[token]/serviceTierVariants";
+import {
+  enrichModelForVscode,
+  expandVscodeRawModels,
+  getVscodeModelsCatalogResponse,
+} from "@/app/api/v1/vscode/[token]/models/route";
+import { withPathTokenApiKey } from "@/app/api/v1/vscode/[token]/tokenizedRequest";
 
 export async function OPTIONS() {
   return new Response(null, {
@@ -10,8 +14,13 @@ export async function OPTIONS() {
   });
 }
 
-export async function GET(request: Request) {
-  const catalog = await getVscodeModelsCatalogResponse(request);
+export async function GET(
+  request: Request,
+  { params }: { params?: Promise<{ token: string }> | { token: string } } = {}
+) {
+  const resolvedParams = params ? await params : undefined;
+  const authorizedRequest = withPathTokenApiKey(request, resolvedParams?.token);
+  const catalog = await getVscodeModelsCatalogResponse(authorizedRequest);
   if (catalog.status < 200 || catalog.status >= 300 || !Array.isArray(catalog.body.data)) {
     return Response.json(catalog.body, {
       status: catalog.status,
@@ -22,8 +31,8 @@ export async function GET(request: Request) {
   return Response.json(
     {
       ...catalog.body,
-      data: expandVscodeServiceTierModels(catalog.body.data).map((model) =>
-        enrichModelForVscode(model, request, { preserveNativeId: true })
+      data: expandVscodeRawModels(catalog.body.data).map((model) =>
+        enrichModelForVscode(model, authorizedRequest, { preserveNativeId: true })
       ),
     },
     {

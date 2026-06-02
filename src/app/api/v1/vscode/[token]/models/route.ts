@@ -5,6 +5,8 @@ import {
 	buildReasoningConfigSchema,
 	buildSupportedReasoningEfforts,
 	getDefaultReasoningEffort,
+	getCatalogModelName,
+	formatReasoningEffortLabel,
 	getReasoningEffortValues,
 	getReasoningVariantBaseModelId,
 	type VscodeCatalogModel,
@@ -12,10 +14,13 @@ import {
 } from "@/app/api/v1/vscode/[token]/reasoningMetadata";
 import {
 	getVscodeModelDisplayName,
+	resolveVscodeModelMetadata,
 	getVscodeModelGroupingKey,
 } from "@/app/api/v1/vscode/[token]/modelPresentation";
+import { withPathTokenApiKey } from "@/app/api/v1/vscode/[token]/tokenizedRequest";
 import {
 	expandVscodeServiceTierModels,
+	getVscodeServiceTierVariantSuffix,
 	getVscodeServiceTierVariantModelId,
 	parseVscodeServiceTierVariantModelId,
 } from "@/app/api/v1/vscode/[token]/serviceTierVariants";
@@ -62,6 +67,9 @@ type EnrichModelForVscodeOptions = {
 };
 
 function isUsableChatModel(model: CatalogModelEntry) {
+	if (typeof model.owned_by === "string" && model.owned_by.trim().toLowerCase() === "combo") {
+		return false;
+	}
 	if (typeof model.parent === "string" && model.parent.length > 0) return false;
 	if (typeof model.type === "string" && model.type !== "chat") return false;
 	if (typeof model.api_format === "string" && model.api_format !== "chat-completions") {
@@ -115,6 +123,42 @@ function getVscodeImportFamily(model: CatalogModelEntry, canonicalFamily?: strin
 		: undefined;
 }
 
+export function getVscodeRawModelDisplayName(model: CatalogModelEntry) {
+	const actualModelId = (model.id || model.name || model.root || "").trim();
+	const canonicalMetadata = resolveVscodeModelMetadata(model);
+	const baseDisplayName = canonicalMetadata?.displayName || model.name || model.id || model.root || "unknown";
+	const providerKey = canonicalMetadata?.providerAlias || canonicalMetadata?.provider || "";
+	const providerPrefix = providerKey === "codex" || providerKey === "cx"
+		? "Codex"
+		: providerKey === "github" || providerKey === "gh"
+			? "GitHub"
+			: canonicalMetadata?.providerLabel || null;
+	const prefixedDisplayName = providerPrefix && !baseDisplayName.toLowerCase().includes(providerPrefix.toLowerCase())
+		? `${providerPrefix} ${baseDisplayName}`.trim()
+		: baseDisplayName;
+	const { serviceTier } = parseVscodeServiceTierVariantModelId(actualModelId);
+	const reasoningEffortValues = getReasoningEffortValues(model as VscodeCatalogModel);
+	const selectedReasoningEffort = reasoningEffortValues
+		? getDefaultReasoningEffort(model as VscodeCatalogModel, reasoningEffortValues)
+		: undefined;
+
+	const suffixes: string[] = [];
+	if (selectedReasoningEffort && selectedReasoningEffort !== "none") {
+		suffixes.push(formatReasoningEffortLabel(selectedReasoningEffort));
+	}
+	if (serviceTier) {
+		suffixes.push(getVscodeServiceTierVariantSuffix(serviceTier));
+	}
+	if (suffixes.length === 0) {
+		return prefixedDisplayName;
+	}
+	if (suffixes.length === 1) {
+		return `${prefixedDisplayName} (${suffixes[0]})`;
+	}
+	const [first, ...rest] = suffixes;
+	return `${prefixedDisplayName} (${first}) ${rest.map((suffix) => `(${suffix})`).join(" ")}`;
+}
+
 export function enrichModelForVscode(
 	model: CatalogModelEntry,
 	request: Request,
@@ -160,7 +204,9 @@ export function enrichModelForVscode(
 
 	return {
 		...presentationModel,
-		name: getVscodeModelDisplayName(presentationModel),
+		name: options.preserveNativeId
+			? getVscodeRawModelDisplayName(presentationModel)
+			: getVscodeModelDisplayName(presentationModel),
 		url: reasoningEffortValues
 			? `${tokenBaseUrl}/responses#models.ai.azure.com`
 			: `${tokenBaseUrl}/chat/completions#models.ai.azure.com`,
@@ -188,31 +234,68 @@ export async function OPTIONS() {
 }
 
 export function expandVscodeRawModels(models: CatalogModelEntry[]) {
-	return expandVscodeServiceTierModels(
-		models.map((model) => {
-			const rawModelId = (model.id || model.name || model.root || "").trim();
-			if (!rawModelId) {
-				return model;
+	const normalizedModels = models.map((model) => {
+		const rawModelId = (model.id || model.name || model.root || "").trim();
+		if (!rawModelId) {
+			return model;
+		}
+
+		const tierParsedModel = parseVscodeServiceTierVariantModelId(rawModelId);
+		const normalizedBaseModelId = getReasoningVariantBaseModelId(tierParsedModel.baseModelId);
+		const normalizedModelId = tierParsedModel.serviceTier
+			? getVscodeServiceTierVariantModelId(normalizedBaseModelId, tierParsedModel.serviceTier)
+			: normalizedBaseModelId;
+
+		if (normalizedModelId === rawModelId) {
+			return model;
+		}
+
+		return {
+			...model,
+			...(model.id ? { id: normalizedModelId } : {}),
+			...(model.name ? { name: normalizedModelId } : {}),
+			...(model.root ? { root: normalizedModelId } : {}),
+		};
+	});
+
+	const tierExpandedModels = expandVscodeServiceTierModels(normalizedModels);
+	const expandedModels: CatalogModelEntry[] = [];
+
+	for (const model of tierExpandedModels) {
+		expandedModels.push(model);
+
+		const reasoningEffortValues = getReasoningEffortValues(model as VscodeCatalogModel);
+		if (!reasoningEffortValues || reasoningEffortValues.length === 0) {
+			continue;
+		}
+
+		const rawModelId = (model.id || model.name || model.root || "").trim();
+		if (!rawModelId) {
+			continue;
+		}
+
+		const parsedTierModel = parseVscodeServiceTierVariantModelId(rawModelId);
+		const baseReasoningModelId = getReasoningVariantBaseModelId(parsedTierModel.baseModelId);
+
+		for (const reasoningEffort of reasoningEffortValues) {
+			if (reasoningEffort === "none") {
+				continue;
 			}
 
-			const tierParsedModel = parseVscodeServiceTierVariantModelId(rawModelId);
-			const normalizedBaseModelId = getReasoningVariantBaseModelId(tierParsedModel.baseModelId);
-			const normalizedModelId = tierParsedModel.serviceTier
-				? getVscodeServiceTierVariantModelId(normalizedBaseModelId, tierParsedModel.serviceTier)
-				: normalizedBaseModelId;
-
-			if (normalizedModelId === rawModelId) {
-				return model;
-			}
-
-			return {
+			const reasoningBaseModelId = `${baseReasoningModelId}-${reasoningEffort}`;
+			const reasoningVariantModelId = parsedTierModel.serviceTier
+				? getVscodeServiceTierVariantModelId(reasoningBaseModelId, parsedTierModel.serviceTier)
+				: reasoningBaseModelId;
+			expandedModels.push({
 				...model,
-				...(model.id ? { id: normalizedModelId } : {}),
-				...(model.name ? { name: normalizedModelId } : {}),
-				...(model.root ? { root: normalizedModelId } : {}),
-			};
-		})
-	);
+				...(model.id ? { id: reasoningVariantModelId } : {}),
+				...(model.name ? { name: reasoningVariantModelId } : {}),
+				...(model.root ? { root: reasoningVariantModelId } : {}),
+			});
+		}
+	}
+
+	return expandedModels;
 }
 
 export async function getVscodeModelsCatalogResponse(
@@ -223,12 +306,20 @@ export async function getVscodeModelsCatalogResponse(
 	return {
 		status: response.status,
 		headers: Object.fromEntries(response.headers.entries()),
-		body,
+		body: {
+			...body,
+			data: Array.isArray(body.data) ? body.data.filter(isUsableChatModel) : body.data,
+		},
 	};
 }
 
-export async function GET(request: Request) {
-	const catalog = await getVscodeModelsCatalogResponse(request);
+export async function GET(
+	request: Request,
+	{ params }: { params?: Promise<{ token: string }> | { token: string } } = {}
+) {
+	const resolvedParams = params ? await params : undefined;
+	const authorizedRequest = withPathTokenApiKey(request, resolvedParams?.token);
+	const catalog = await getVscodeModelsCatalogResponse(authorizedRequest);
 	const body = catalog.body;
 
 	if (catalog.status < 200 || catalog.status >= 300 || !Array.isArray(body.data)) {
@@ -285,7 +376,7 @@ export async function GET(request: Request) {
 				data: orderedGroupKeys
 					.map((groupKey) => groupedModels.get(groupKey))
 					.filter(Boolean)
-					.map((model) => enrichModelForVscode(model as CatalogModelEntry, request)),
+					.map((model) => enrichModelForVscode(model as CatalogModelEntry, authorizedRequest)),
 			};
 		})(),
 		{

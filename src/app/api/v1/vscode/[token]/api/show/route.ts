@@ -15,12 +15,16 @@ import {
   parseVscodeServiceTierVariantModelId,
 } from "@/app/api/v1/vscode/[token]/serviceTierVariants";
 import { getFamilyFirstModelCandidates, getFamilyFirstPublishedModelId } from "@/app/api/v1/vscode/[token]/familyFirstModelIds";
+import { withPathTokenApiKey } from "@/app/api/v1/vscode/[token]/tokenizedRequest";
 
 type OpenAiCatalogModel = {
   id?: string;
   name?: string;
   root?: string;
+  parent?: string | null;
   owned_by?: string;
+  type?: string;
+  api_format?: string;
   context_length?: number;
   max_output_tokens?: number;
   capabilities?: Record<string, boolean>;
@@ -28,6 +32,35 @@ type OpenAiCatalogModel = {
   output_modalities?: string[];
   supported_endpoints?: string[];
 };
+
+function isUsableChatModel(model: OpenAiCatalogModel) {
+  if (typeof model.owned_by === "string" && model.owned_by.trim().toLowerCase() === "combo") {
+    return false;
+  }
+  if (typeof model.parent === "string" && model.parent.length > 0) return false;
+  if (typeof model.type === "string" && model.type !== "chat") return false;
+
+  const apiFormat = typeof model.api_format === "string" ? model.api_format : "chat-completions";
+  if (apiFormat !== "chat-completions") return false;
+
+  if (
+    Array.isArray(model.supported_endpoints) &&
+    model.supported_endpoints.length > 0 &&
+    !model.supported_endpoints.includes("chat")
+  ) {
+    return false;
+  }
+
+  if (
+    Array.isArray(model.output_modalities) &&
+    model.output_modalities.length > 0 &&
+    !model.output_modalities.includes("text")
+  ) {
+    return false;
+  }
+
+  return true;
+}
 
 function getCatalogModelId(model: OpenAiCatalogModel) {
   return model.id || model.name || model.root || "unknown";
@@ -225,7 +258,12 @@ export async function OPTIONS() {
   return handleCorsOptions();
 }
 
-export async function POST(request: Request) {
+export async function POST(
+  request: Request,
+  { params }: { params?: Promise<{ token: string }> | { token: string } } = {}
+) {
+  const resolvedParams = params ? await params : undefined;
+  const authorizedRequest = withPathTokenApiKey(request, resolvedParams?.token);
   const payload = await request
     .clone()
     .json()
@@ -246,7 +284,7 @@ export async function POST(request: Request) {
     );
   }
 
-  const catalogResponse = await getUnifiedModelsResponse(request, {
+  const catalogResponse = await getUnifiedModelsResponse(authorizedRequest, {
     "Content-Type": "application/json",
     ...CORS_HEADERS,
   });
@@ -262,7 +300,7 @@ export async function POST(request: Request) {
   }
 
   const expandedModels = Array.isArray(catalogBody.data)
-    ? expandVscodeServiceTierModels(catalogBody.data)
+    ? expandVscodeServiceTierModels(catalogBody.data.filter(isUsableChatModel))
     : [];
 
   const model = Array.isArray(expandedModels)

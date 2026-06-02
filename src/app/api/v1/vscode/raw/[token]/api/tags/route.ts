@@ -10,10 +10,9 @@ import {
 	inferSelectedReasoningEffort,
 	type VscodeCatalogModel,
 } from "@/app/api/v1/vscode/[token]/reasoningMetadata";
-import {
-	expandVscodeServiceTierModels,
-	parseVscodeServiceTierVariantModelId,
-} from "@/app/api/v1/vscode/[token]/serviceTierVariants";
+import { expandVscodeRawModels } from "@/app/api/v1/vscode/[token]/models/route";
+import { withPathTokenApiKey } from "@/app/api/v1/vscode/[token]/tokenizedRequest";
+import { parseVscodeServiceTierVariantModelId } from "@/app/api/v1/vscode/[token]/serviceTierVariants";
 import { getFamilyFirstPublishedModelId } from "@/app/api/v1/vscode/[token]/familyFirstModelIds";
 
 type OpenAiCatalogModel = {
@@ -61,6 +60,9 @@ async function selectPreferredModels(models: OpenAiCatalogModel[]) {
 }
 
 function isUsableChatModel(model: OpenAiCatalogModel) {
+	if (typeof model.owned_by === "string" && model.owned_by.trim().toLowerCase() === "combo") {
+		return false;
+	}
 	if (typeof model.parent === "string" && model.parent.length > 0) return false;
 	if (typeof model.type === "string" && model.type !== "chat") return false;
 
@@ -173,8 +175,13 @@ export async function OPTIONS() {
 	return handleCorsOptions();
 }
 
-export async function GET(request: Request) {
-	const response = await getUnifiedModelsResponse(request, {
+export async function GET(
+	request: Request,
+	{ params }: { params?: Promise<{ token: string }> | { token: string } } = {}
+) {
+	const resolvedParams = params ? await params : undefined;
+	const authorizedRequest = withPathTokenApiKey(request, resolvedParams?.token);
+	const response = await getUnifiedModelsResponse(authorizedRequest, {
 		"Content-Type": "application/json",
 		...CORS_HEADERS,
 	});
@@ -190,7 +197,7 @@ export async function GET(request: Request) {
 	}
 
 	const usableModels = Array.isArray(body.data) ? body.data.filter(isUsableChatModel) : [];
-	const preferredModels = expandVscodeServiceTierModels(await selectPreferredModels(usableModels));
+	const preferredModels = expandVscodeRawModels(await selectPreferredModels(usableModels));
 	const models = preferredModels.map(toOllamaTagModel);
 
 	return Response.json(

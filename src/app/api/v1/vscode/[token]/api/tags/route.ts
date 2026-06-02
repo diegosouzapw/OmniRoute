@@ -18,6 +18,7 @@ import {
 	parseVscodeServiceTierVariantModelId,
 } from "@/app/api/v1/vscode/[token]/serviceTierVariants";
 import { getFamilyFirstPublishedModelId } from "@/app/api/v1/vscode/[token]/familyFirstModelIds";
+import { withPathTokenApiKey } from "@/app/api/v1/vscode/[token]/tokenizedRequest";
 
 type OpenAiCatalogModel = {
 	id?: string;
@@ -64,6 +65,9 @@ async function selectPreferredModels(models: OpenAiCatalogModel[]) {
 }
 
 function isUsableChatModel(model: OpenAiCatalogModel) {
+	if (typeof model.owned_by === "string" && model.owned_by.trim().toLowerCase() === "combo") {
+		return false;
+	}
 	if (typeof model.parent === "string" && model.parent.length > 0) return false;
 	if (typeof model.type === "string" && model.type !== "chat") return false;
 
@@ -213,8 +217,13 @@ export async function OPTIONS() {
 	return handleCorsOptions();
 }
 
-export async function GET(request: Request) {
-	const response = await getUnifiedModelsResponse(request, {
+export async function GET(
+	request: Request,
+	{ params }: { params?: Promise<{ token: string }> | { token: string } } = {}
+) {
+	const resolvedParams = params ? await params : undefined;
+	const authorizedRequest = withPathTokenApiKey(request, resolvedParams?.token);
+	const response = await getUnifiedModelsResponse(authorizedRequest, {
 		"Content-Type": "application/json",
 		...CORS_HEADERS,
 	});
