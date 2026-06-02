@@ -15,6 +15,8 @@ export function deepMergeFallback(
   source: Record<string, unknown>
 ): Record<string, unknown> {
   for (const [key, sourceValue] of Object.entries(source)) {
+    // Guard against prototype pollution from a crafted locale message tree.
+    if (key === "__proto__" || key === "constructor" || key === "prototype") continue;
     const targetValue = target[key];
     if (
       sourceValue !== null &&

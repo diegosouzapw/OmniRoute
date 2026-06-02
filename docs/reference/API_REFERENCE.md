@@ -243,6 +243,29 @@ Validates a WebSocket upgrade handshake and returns the wire protocol example me
 
 **Auth:** Bearer API key during handshake.
 
+### Responses API over WebSocket (codex only)
+
+```bash
+# Same host:port as the HTTP API (default 20128); upgrade the connection:
+wscat -c "ws://localhost:20128/v1/responses?api_key=<OMNIROUTE_API_KEY>"
+# (or: -H "Authorization: Bearer <OMNIROUTE_API_KEY>")
+
+# First frame MUST be response.create:
+{ "type": "response.create", "model": "gpt-5.5", "input": [ { "role": "user", "content": "hi" } ] }
+```
+
+A Responses-API-over-WebSocket proxy is wired **exclusively to `codex`** (ChatGPT
+backend). It listens on the same port as the API/dashboard at paths `/v1/responses`,
+`/responses`, and `/api/v1/responses`. On the first `response.create` frame it
+authenticates + prepares via the internal `codex-responses-ws` bridge, selects a
+codex OAuth connection, and tunnels to `wss://chatgpt.com/backend-api/codex/responses`
+via the `wreq-js` transport. **Non-codex models are rejected** (`codex_ws_provider_required`).
+For quota-share routing use `model: "qtSd/<group>/codex/<model>"`. Implemented in
+`app/server-ws.mjs` + `scripts/dev/responses-ws-proxy.mjs` + `src/app/api/internal/codex-responses-ws/route.ts`.
+
+**Auth:** Bearer API key during handshake. The bundled HTTP server (`server-ws.mjs`)
+must be the active entrypoint (it is, by default, when `app/server-ws.mjs` exists).
+
 ---
 
 ## Quotas & Issues Reporting

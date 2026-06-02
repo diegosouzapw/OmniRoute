@@ -18,6 +18,9 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import { mock } from "node:test";
 
+// Ensure pending async operations resolve before test runner exits
+test.after(() => new Promise((resolve) => setTimeout(resolve, 100)));
+
 // ---------------------------------------------------------------------------
 // Shared test fixtures
 // ---------------------------------------------------------------------------

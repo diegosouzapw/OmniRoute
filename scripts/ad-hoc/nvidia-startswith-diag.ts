@@ -166,7 +166,8 @@ async function partC() {
 async function main() {
   line("");
   line("NVIDIA NIM — diagnóstico `startsWith is not a function`");
-  show("NVIDIA_API_KEY presente", KEY ? `sim (${KEY.slice(0, 6)}…)` : "não");
+  // Never echo any portion of the key (js/clear-text-logging) — presence only.
+  show("NVIDIA_API_KEY presente", KEY ? "sim" : "não");
   show("BASE_URL", BASE_URL);
   show("MODEL", MODEL);
   line("");

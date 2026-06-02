@@ -27,8 +27,8 @@ test("costs section does not include costs-quota-plans item (retired)", () => {
   assert.ok(!ids.includes("costs-quota-plans"), "costs section must NOT include costs-quota-plans");
 });
 
-test("costs section still contains costs-quota-share", () => {
+test("costs section does NOT contain costs-quota-share (removed from section, kept in HIDEABLE list)", () => {
   const items = sectionItems("costs");
   const ids = items.map((i) => i.id);
-  assert.ok(ids.includes("costs-quota-share"), "costs section must still include costs-quota-share");
+  assert.ok(!ids.includes("costs-quota-share"), "costs-quota-share was removed from section children");
 });

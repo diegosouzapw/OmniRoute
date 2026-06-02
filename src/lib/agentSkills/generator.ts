@@ -48,9 +48,13 @@ function serializeFrontmatter(fm: { name: string; description: string }): string
   // Use block scalar for description if it contains colons, quotes, or newlines
   const needsQuote = (v: string): boolean => /[:\n"']/.test(v) || v.startsWith(" ");
 
-  const nameStr = needsQuote(fm.name) ? `"${fm.name.replace(/"/g, '\\"')}"` : fm.name;
+  // Escape order matters for double-quoted YAML scalars: backslash FIRST (so the
+  // escapes we add below are not themselves re-escaped), then the double-quote,
+  // then collapse real newlines into the \n escape sequence.
+  const escDq = (v: string): string => v.replace(/\\/g, "\\\\").replace(/"/g, '\\"');
+  const nameStr = needsQuote(fm.name) ? `"${escDq(fm.name)}"` : fm.name;
   const descStr = needsQuote(fm.description)
-    ? `"${fm.description.replace(/"/g, '\\"').replace(/\n/g, "\\n")}"`
+    ? `"${escDq(fm.description).replace(/\n/g, "\\n")}"`
     : fm.description;
 
   return `---\nname: ${nameStr}\ndescription: ${descStr}\n---\n`;
@@ -363,3 +367,7 @@ export async function generateAgentSkills(opts: GeneratorOptions): Promise<Gener
 
   return report;
 }
+
+// Exported for unit testing only — keep the internal helpers reachable without
+// widening the public surface.
+export const __testing = { serializeFrontmatter };

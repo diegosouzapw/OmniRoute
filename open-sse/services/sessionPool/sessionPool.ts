@@ -300,14 +300,27 @@ export class SessionPool {
     }
   }
 
-  /** Remove dead sessions (call periodically for reclamation */
-  pruneDeadSessions(): void {
+  /** Remove dead sessions and idle sessions older than maxIdleMs */
+  pruneDeadSessions(maxIdleMs = 300_000): void {
+    const now = Date.now();
     const before = this.sessions.length;
-    this.sessions = this.sessions.filter((s) => s.status !== "dead");
+    this.sessions = this.sessions.filter((s) => {
+      if (s.status === "dead") return false;
+      // Prune idle sessions older than maxIdleMs (default 5min)
+      if (s.inflight === 0 && s.lastUsedAt > 0 && now - s.lastUsedAt > maxIdleMs) return false;
+      return true;
+    });
 
-    // If we pruned sessions, report
+    // If we pruned sessions, ensure minimum
     if (this.sessions.length < before && this.sessions.length < this.config.minSessions) {
       this.ensureMinSessions();
     }
+  }
+
+  /** Start periodic pruning (every 60s) */
+  startAutoPrune(intervalMs = 60_000): ReturnType<typeof setInterval> {
+    const timer = setInterval(() => this.pruneDeadSessions(), intervalMs);
+    timer.unref();
+    return timer;
   }
 }

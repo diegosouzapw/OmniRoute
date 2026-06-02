@@ -417,7 +417,7 @@ export class ClaudeWebExecutor extends BaseExecutor {
         return false;
       }
 
-      const cookieHeader = normalizeClaudeSessionCookie(rawCookie);
+      const cookieHeader = await normalizeClaudeSessionCookieWithAutoRefresh(rawCookie, { allowAutoSolve: false });
       const deviceId = (credentials as any)?.deviceId as string | undefined;
 
       return await verifyCookieValidity(cookieHeader, deviceId, signal);
@@ -479,7 +479,7 @@ export class ClaudeWebExecutor extends BaseExecutor {
         };
       }
 
-      const cookieHeader = normalizeClaudeSessionCookie(rawCookie);
+      const cookieHeader = await normalizeClaudeSessionCookieWithAutoRefresh(rawCookie, { log });
       const deviceId = (credentials as any)?.deviceId as string | undefined;
 
       // Transform request to Claude format

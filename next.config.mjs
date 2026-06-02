@@ -141,6 +141,11 @@ const nextConfig = {
     "thread-stream",
     "pino-abstract-transport",
     "better-sqlite3",
+    // sqlite-vec ships a native vec0.so loaded at runtime via createRequire().
+    // Turbopack otherwise tries to bundle the .so and fails with "Unknown module
+    // type"; externalizing it keeps the require at runtime (like better-sqlite3).
+    // See issue #3066.
+    "sqlite-vec",
     "node-machine-id",
     "keytar",
     "wreq-js",

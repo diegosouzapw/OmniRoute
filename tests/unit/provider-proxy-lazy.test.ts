@@ -16,9 +16,13 @@ const {
   AUDIO_ONLY_PROVIDERS,
 } = await import("../../src/shared/constants/providers.ts");
 
-const { IMAGE_PROVIDERS, getImageProviders } = await import(
+const { IMAGE_PROVIDERS, getImageProvider } = await import(
   "../../open-sse/config/imageRegistry.ts"
 );
+
+function getImageProviders() {
+  return IMAGE_PROVIDERS;
+}
 
 const ALL_SECTIONS = [
   FREE_PROVIDERS,

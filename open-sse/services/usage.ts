@@ -1951,7 +1951,10 @@ function mapSubscriptionTierStringToPlanLabel(tierText: string): string | null {
   if (upper.includes("PLUS")) return "Plus";
   if (upper.includes("LITE")) return "Lite";
   if (upper.includes("INDIVIDUAL") || upper.includes("FREE")) return "Free";
-  const normalizedId = upper.replace(/\s*\(RESTRICTED\)\s*$/i, "").trim();
+  // Strip a trailing "(RESTRICTED)" marker. Match the fixed literal anywhere then
+  // trim, instead of /\s*\(RESTRICTED\)\s*$/ whose overlapping \s* runs backtrack
+  // polynomially on whitespace-heavy upstream input (js/polynomial-redos).
+  const normalizedId = upper.replace(/\(RESTRICTED\)/i, "").trim();
   if (normalizedId) {
     const mapped = mapCodeAssistTierIdToLabel(normalizedId);
     if (mapped) return mapped;

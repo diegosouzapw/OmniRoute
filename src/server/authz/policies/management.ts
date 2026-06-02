@@ -1,4 +1,4 @@
-import { timingSafeEqual } from "node:crypto";
+import { createHash, timingSafeEqual } from "node:crypto";
 import { isModelSyncInternalRequest } from "../../../shared/services/modelSyncScheduler";
 import { isAuthRequired, isDashboardSessionAuthenticated } from "../../../shared/utils/apiAuth";
 import { getLegacyCliTokenSync, getMachineTokenSync } from "../../../lib/machineToken";
@@ -69,10 +69,37 @@ function isInternalModelSyncRequest(ctx: PolicyContext): boolean {
   return isModelSyncInternalRequest(ctx.request);
 }
 
+const WS_BRIDGE_INTERNAL_PATH = "/api/internal/codex-responses-ws";
+const WS_BRIDGE_SECRET_HEADER = "x-omniroute-ws-bridge-secret";
+
+// The in-process codex Responses-over-WebSocket proxy authenticates its internal
+// authenticate/prepare calls with a per-process, unguessable secret minted by
+// server-ws.mjs (OMNIROUTE_WS_BRIDGE_SECRET). Without this carve-out the MANAGEMENT
+// classification 401s that loopback call, which then leaks chunked/security headers
+// back onto the upgrade socket. The internal route re-validates the secret timing-safe
+// (bridgeSecretMatches), so this is the same trust boundary, surfaced one layer up.
+function isValidWsBridgeRequest(ctx: PolicyContext): boolean {
+  if (ctx.classification.normalizedPath !== WS_BRIDGE_INTERNAL_PATH) return false;
+  const expected = process.env.OMNIROUTE_WS_BRIDGE_SECRET || "";
+  if (!expected) return false;
+  const provided = ctx.request.headers?.get?.(WS_BRIDGE_SECRET_HEADER) ?? "";
+  if (!provided) return false;
+  const expectedHash = createHash("sha256").update(expected).digest();
+  const providedHash = createHash("sha256").update(provided).digest();
+  return timingSafeEqual(expectedHash, providedHash);
+}
+
 export const managementPolicy: RoutePolicy = {
   routeClass: "MANAGEMENT",
   async evaluate(ctx: PolicyContext): Promise<AuthOutcome> {
     const path = ctx.classification.normalizedPath;
+
+    // Codex Responses-over-WS bridge: honor the per-process bridge secret before
+    // the loopback/auth gates so the proxy's internal calls aren't 401'd (which
+    // would corrupt the WS upgrade response). The internal route re-checks it.
+    if (isValidWsBridgeRequest(ctx)) {
+      return allow({ kind: "management_key", id: "ws-bridge", label: "codex-ws-bridge-secret" });
+    }
 
     // Tier 1: local-only gate — block spawn-capable routes from non-loopback.
     //

@@ -2334,16 +2334,6 @@ const _REGISTRY_EAGER: Record<string, RegistryEntry> = {
     models: [{ id: "auto", name: "Auto" }],
   },
 
-  lepton: {
-    id: "lepton",
-    alias: "lepton",
-    format: "openai",
-    executor: "default",
-    baseUrl: "https://api.lepton.ai/v1/chat/completions",
-    authType: "apikey",
-    authHeader: "bearer",
-    models: [{ id: "llama-3.1-8b", name: "Llama 3.1 8B" }],
-  },
 
   kluster: {
     id: "kluster",
@@ -2378,16 +2368,6 @@ const _REGISTRY_EAGER: Record<string, RegistryEntry> = {
     models: [{ id: "liquid-lfm-40b", name: "Liquid LFM 40B" }],
   },
 
-  nomic: {
-    id: "nomic",
-    alias: "nomic",
-    format: "openai",
-    executor: "default",
-    baseUrl: "https://api.nomic.ai/v1/chat/completions",
-    authType: "apikey",
-    authHeader: "bearer",
-    models: [{ id: "nomic-embed-text-v1.5", name: "Nomic Embed Text" }],
-  },
 
   monsterapi: {
     id: "monsterapi",
@@ -2426,16 +2406,6 @@ const _REGISTRY_EAGER: Record<string, RegistryEntry> = {
     ],
   },
 
-  poolside: {
-    id: "poolside",
-    alias: "poolside",
-    format: "openai",
-    executor: "default",
-    baseUrl: "https://api.poolside.ai/v1/chat/completions",
-    authType: "apikey",
-    authHeader: "bearer",
-    models: [{ id: "poolside-model", name: "Poolside Model" }],
-  },
 
   chutes: {
     id: "chutes",
@@ -2653,35 +2623,6 @@ const _REGISTRY_EAGER: Record<string, RegistryEntry> = {
       { id: "gpt-4.1", name: "GPT-4.1" },
       { id: "gemini-3.1-pro-preview", name: "Gemini 3.1 Pro" },
       { id: "gemini-3-flash-preview", name: "Gemini 3 Flash" },
-    ],
-  },
-  enally: {
-    id: "enally",
-    alias: "enly",
-    format: "openai",
-    executor: "default",
-    baseUrl: "https://ai.enally.in",
-    authType: "apikey",
-    authHeader: "X-API-Key",
-    models: [
-      { id: "default", name: "Default Model" },
-      { id: "chat", name: "Chat Model" },
-      { id: "reasoning", name: "Reasoning Model" },
-      { id: "multimodal", name: "Multimodal Model" },
-    ],
-  },
-  freetheai: {
-    id: "freetheai",
-    alias: "fta",
-    format: "openai",
-    executor: "default",
-    baseUrl: "https://api.freetheai.xyz/v1/chat/completions",
-    authType: "apikey",
-    authHeader: "bearer",
-    models: [
-      { id: "free-fast", name: "Free Fast (Low Latency)" },
-      { id: "free-smart", name: "Free Smart (Reasoning)" },
-      { id: "free", name: "Free (Max Uptime)" },
     ],
   },
   xai: {
@@ -3631,42 +3572,6 @@ const _REGISTRY_EAGER: Record<string, RegistryEntry> = {
     ],
   },
 
-  replicate: {
-    id: "replicate",
-    alias: "rep",
-    format: "openai",
-    executor: "default",
-    baseUrl: "https://openai-proxy.replicate.com/v1/chat/completions",
-    modelsUrl: "https://openai-proxy.replicate.com/v1/models",
-    authType: "apikey",
-    authHeader: "Authorization",
-    authPrefix: "Bearer",
-    passthroughModels: true,
-    defaultContextLength: 128000,
-    models: [
-      {
-        id: "meta/meta-llama-3.1-405b-instruct",
-        name: "Llama 3.1 405B Instruct (Free)",
-        contextLength: 128000,
-      },
-      {
-        id: "meta/meta-llama-3.1-70b-instruct",
-        name: "Llama 3.1 70B Instruct (Free)",
-        contextLength: 128000,
-      },
-      {
-        id: "mistralai/mixtral-8x7b-instruct-v0.1",
-        name: "Mixtral 8x7B Instruct (Free)",
-        contextLength: 32768,
-      },
-      {
-        id: "deepseek-ai/deepseek-r1",
-        name: "DeepSeek R1 (Free)",
-        contextLength: 65536,
-        supportsReasoning: true,
-      },
-    ],
-  },
 
   hackclub: {
     id: "hackclub",

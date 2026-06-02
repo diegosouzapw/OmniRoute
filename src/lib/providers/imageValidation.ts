@@ -12,10 +12,6 @@ const IMAGE_PROVIDER_VALIDATION_ENDPOINTS: Record<
   string,
   { baseUrl?: string; path: string; method?: string }
 > = {
-  nanobanana: {
-    baseUrl: "https://api.nanobananaapi.ai",
-    path: "/api/v1/common/credit",
-  },
   "fal-ai": {
     baseUrl: "https://api.fal.ai",
     path: "/v1/models?limit=1",

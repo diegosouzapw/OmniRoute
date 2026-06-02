@@ -1,4 +1,5 @@
 import { CORS_HEADERS } from "../utils/cors.ts";
+import { HEAP_PRESSURE_THRESHOLD_MB } from "../utils/heapPressure.ts";
 import { normalizeHeaders } from "../utils/headers.ts";
 import { detectFormatFromEndpoint, getTargetFormat } from "../services/provider.ts";
 import { injectSystemPrompt } from "../services/systemPrompt.ts";
@@ -233,8 +234,10 @@ const MEMORY_EXTRACTION_TEXT_LIMIT = 64 * 1024;
 
 // ── Global memory pressure guard ────────────────────────────────────────
 // Prevents OOM by rejecting new requests when V8 heap exceeds threshold.
-// Self-healing: no counters to leak, no cleanup needed.
-const HEAP_PRESSURE_THRESHOLD_MB = parseInt(process.env.HEAP_PRESSURE_THRESHOLD_MB || "200", 10);
+// Self-healing: no counters to leak, no cleanup needed. The threshold
+// auto-calibrates to 85% of the actual V8 heap ceiling (see heapPressure.ts) so
+// it tracks --max-old-space-size across 1GB/2GB/large VPS instead of a fixed
+// 200MB that sat below the app's own ~260MB baseline and rejected every request.
 
 function capMemoryExtractionText(value: string): string {
   if (value.length <= MEMORY_EXTRACTION_TEXT_LIMIT) return value;
@@ -1604,7 +1607,7 @@ export async function handleChatCore({
   // ── Plugin onRequest hook ──
   // Dynamic import cached by Node.js after first call — minimal overhead
   try {
-    const { runOnRequest } = await import("@/lib/plugins/index");
+    const { runOnRequest } = await import("@/lib/plugins/hooks");
     const pluginCtx = {
       requestId: traceId,
       body,
@@ -1636,8 +1639,11 @@ export async function handleChatCore({
             ),
       };
     }
-    if (pluginResult?.ctx && "body" in pluginResult.ctx) {
-      body = (pluginResult.ctx as unknown as Record<string, unknown>).body;
+    if (pluginResult?.body) {
+      body = pluginResult.body;
+    }
+    if (pluginResult?.metadata) {
+      Object.assign(pluginCtx.metadata, pluginResult.metadata);
     }
   } catch (pluginErr) {
     log?.debug?.(
@@ -3417,7 +3423,7 @@ export async function handleChatCore({
   } catch (error) {
     // ── Plugin onError hook ──
     try {
-      const { runOnError } = await import("@/lib/plugins/index");
+      const { runOnError } = await import("@/lib/plugins/hooks");
       await runOnError(
         { requestId: traceId, body, model, provider, apiKeyInfo, metadata: {} },
         error instanceof Error ? error : new Error(String(error))
@@ -5836,6 +5842,17 @@ export async function handleChatCore({
     } catch (_) {
       /* gamification optional */
     }
+  }
+
+  // ── Plugin onResponse hook (fire-and-forget) ──
+  try {
+    const { runOnResponse } = await import("@/lib/plugins/hooks");
+    runOnResponse(
+      { requestId: traceId, body, model, provider, apiKeyInfo, metadata: {} },
+      { status: 200 }
+    ).catch(() => {});
+  } catch (_) {
+    /* plugin onResponse optional */
   }
 
   return {

@@ -1,7 +1,6 @@
 import { randomUUID, createHash } from "crypto";
 import {
   getProviderConnections,
-  getProviderNodes,
   validateApiKey,
   updateProviderConnection,
   getSettings,
@@ -45,7 +44,6 @@ import {
 import { looksLikeQuotaExhausted } from "@/shared/utils/classify429";
 import { getCodexModelScope } from "@omniroute/open-sse/executors/codex.ts";
 import {
-  getProviderById,
   getProviderAlias,
   resolveProviderId,
   NOAUTH_PROVIDERS,
@@ -698,6 +696,14 @@ async function selectSessionAffinityConnection(
   return connection;
 }
 
+/**
+ * Sentinel connection id used for the synthetic credentials of no-auth /
+ * keyless providers (opencode / opencode-zen). It is NOT a real DB row, so it
+ * cannot carry cooldown state — the account-fallback loop must be able to
+ * exclude it (#3061), otherwise it gets re-selected forever.
+ */
+const SYNTHETIC_NOAUTH_CONNECTION_ID = "noauth";
+
 function normalizeExcludedConnectionIds(
   excludeConnectionId: string | null,
   extraExcludedConnectionIds: string[] | null | undefined
@@ -793,7 +799,7 @@ export { fisherYatesShuffle, getNextFromDeckSync as getNextFromDeck };
 /**
  * Resolve provider aliases (e.g., nvidia -> nvidia_nim) for DB lookup
  */
-async function getProviderSearchPool(provider: string): Promise<string[]> {
+function getProviderSearchPool(provider: string): string[] {
   const canonicalProvider = resolveProviderId(provider);
   const canonicalAlias = getProviderAlias(canonicalProvider);
 
@@ -804,34 +810,7 @@ async function getProviderSearchPool(provider: string): Promise<string[]> {
     return ["nvidia_nim", "nvidia"];
   }
 
-  const searchPool = new Set([provider, canonicalProvider, canonicalAlias].filter(Boolean));
-
-  // Built-in providers already resolve through static ids/aliases. Only
-  // compatible/custom providers need provider_nodes expansion back to the
-  // generated internal connection ids.
-  if (getProviderById(canonicalProvider)) {
-    return Array.from(searchPool);
-  }
-
-  // Custom provider nodes are referenced by user-facing prefixes in combos
-  // (for example "78code/gpt-5.4"), but live credentials are stored under
-  // internal provider ids like openai-compatible-responses-<uuid>.
-  try {
-    const providerNodes = await getProviderNodes();
-    for (const node of Array.isArray(providerNodes) ? providerNodes : []) {
-      const nodeRecord = asRecord(node);
-      const nodePrefix = typeof nodeRecord.prefix === "string" ? nodeRecord.prefix.trim() : "";
-      const nodeId = typeof nodeRecord.id === "string" ? nodeRecord.id.trim() : "";
-      if (!nodePrefix || !nodeId) continue;
-      if (nodePrefix === provider || nodePrefix === canonicalProvider || nodePrefix === canonicalAlias) {
-        searchPool.add(nodeId);
-      }
-    }
-  } catch {
-    // Best-effort alias expansion only.
-  }
-
-  return Array.from(searchPool);
+  return Array.from(new Set([provider, canonicalProvider, canonicalAlias].filter(Boolean)));
 }
 
 /**
@@ -860,6 +839,19 @@ export async function getProviderCredentials(
       WEB_COOKIE_PROVIDERS as Record<string, { noAuth?: boolean } | undefined>,
     ];
     if (providerMaps.some((map) => map[resolvedId]?.noAuth)) {
+      // #3061: there is only one synthetic "noauth" connection for a no-auth
+      // provider. If the caller already tried and excluded it (account-fallback
+      // after a persistent upstream error), do NOT hand it back — that would let
+      // the chat fallback loop re-select "noauth" forever (no real DB row → no
+      // cooldown to brake it), writing logs every iteration until the disk fills.
+      // Returning null here lets the handler stop after a single attempt.
+      const excludedForNoAuth = normalizeExcludedConnectionIds(
+        excludeConnectionId,
+        options.excludeConnectionIds
+      );
+      if (excludedForNoAuth.has(SYNTHETIC_NOAUTH_CONNECTION_ID)) {
+        return null;
+      }
       return {
         apiKey: null,
         accessToken: null,
@@ -868,7 +860,7 @@ export async function getProviderCredentials(
         projectId: null,
         copilotToken: null,
         providerSpecificData: {},
-        connectionId: "noauth",
+        connectionId: SYNTHETIC_NOAUTH_CONNECTION_ID,
         testStatus: "active",
         lastError: null,
         lastErrorType: null,
@@ -893,7 +885,7 @@ export async function getProviderCredentials(
     );
 
     // Fix #922: Check for aliases (nvidia/nvidia_nim) to ensure credentials are found
-    const providersToSearch = await getProviderSearchPool(provider);
+    const providersToSearch = getProviderSearchPool(provider);
     const connectionResults = await Promise.all(
       providersToSearch.map((p) => getProviderConnections({ provider: p, isActive: true }))
     );
@@ -982,6 +974,12 @@ export async function getProviderCredentials(
       // OpenCode free model. A configured, active key is still selected above; a
       // rate-limited/terminal key returns its own signal before reaching here.
       if (resolvedId === "opencode-zen") {
+        // #3061: same loop guard as the NOAUTH_PROVIDERS path above — once the
+        // single synthetic "noauth" connection has been excluded by the chat
+        // fallback loop, return null instead of re-handing it back forever.
+        if (excludedConnectionIds.has(SYNTHETIC_NOAUTH_CONNECTION_ID)) {
+          return null;
+        }
         return {
           apiKey: null,
           accessToken: null,
@@ -990,7 +988,7 @@ export async function getProviderCredentials(
           projectId: null,
           copilotToken: null,
           providerSpecificData: {},
-          connectionId: "noauth",
+          connectionId: SYNTHETIC_NOAUTH_CONNECTION_ID,
           testStatus: "active",
           lastError: null,
           lastErrorType: null,

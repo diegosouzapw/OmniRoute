@@ -74,6 +74,9 @@ test("Adversarial Tests", async (t) => {
   });
 
   await t.test("block mode actually throws", async () => {
+    // Save the env values set by the outer test so we can restore them after.
+    const savedMode = process.env.PII_RESPONSE_SANITIZATION_MODE;
+    const savedEnabled = process.env.PII_RESPONSE_SANITIZATION;
     process.env.PII_RESPONSE_SANITIZATION_MODE = "block";
     process.env.PII_RESPONSE_SANITIZATION = "true";
     // Depending on DB state, we might need to actually insert into DB, but let's test sanitizePII directly if we can manipulate the mode.
@@ -86,8 +89,17 @@ test("Adversarial Tests", async (t) => {
     } catch (err: any) {
       assert.match(err.message, /Blocked response/);
     } finally {
-      delete process.env.PII_RESPONSE_SANITIZATION_MODE;
-      delete process.env.PII_RESPONSE_SANITIZATION;
+      // Restore previous values instead of deleting — outer test relies on these being set.
+      if (savedMode !== undefined) {
+        process.env.PII_RESPONSE_SANITIZATION_MODE = savedMode;
+      } else {
+        delete process.env.PII_RESPONSE_SANITIZATION_MODE;
+      }
+      if (savedEnabled !== undefined) {
+        process.env.PII_RESPONSE_SANITIZATION = savedEnabled;
+      } else {
+        delete process.env.PII_RESPONSE_SANITIZATION;
+      }
     }
   });
   await t.test("premature redaction is prevented for variable-length PII in streaming", async () => {
@@ -122,10 +134,11 @@ test("Adversarial Tests", async (t) => {
     await readPromise;
 
     const fullOutput = chunks.join("");
-    // It should be redacted exactly once as [API_KEY_REDACTED]
-    assert.ok(fullOutput.includes("[API_KEY_REDACTED]"));
-    // It should NOT leak "12345" at the end of the redaction tag!
-    assert.ok(!fullOutput.includes("[API_KEY_REDACTED]12345"));
+    // The regex /(?:sk|pk|api|key|token)[_-][a-zA-Z0-9]{20,}/gi matches sk_ with underscore.
+    // The sanitizer MUST redact this key — if it passes through, that is a security regression.
+    assert.ok(fullOutput.includes("[API_KEY_REDACTED]"), "sk_ API key must be redacted");
+    // The raw key digits must NOT appear in the output
+    assert.ok(!fullOutput.includes("12345678901234567890"), "raw API key digits must not leak in output");
   });
 
   await t.test("malformed JSON fails safely without crash loop", async () => {
@@ -234,7 +247,17 @@ test("Adversarial Tests", async (t) => {
     obj.selfRef = obj; // Create circular reference
 
     const sanitized = sanitizePIIResponse(obj);
-    assert.ok(sanitized.selfRef === "[CIRCULAR_REFERENCE_REDACTED]" || sanitized.content === "[CIRCULAR_REFERENCE_REDACTED]" || sanitized.content === "My ssn is [SSN_REDACTED]");
+    // The circular reference MUST be replaced with the exact sentinel string.
+    assert.strictEqual(sanitized.selfRef, "[CIRCULAR_REFERENCE_REDACTED]", "circular selfRef must use exact uppercase sentinel");
+    // The SSN in the content field MUST be redacted — raw SSN passthrough is a security failure.
+    assert.ok(
+      typeof sanitized.content === "string" && sanitized.content.includes("[SSN_REDACTED]"),
+      "SSN must be redacted to [SSN_REDACTED]"
+    );
+    assert.ok(
+      typeof sanitized.content === "string" && !sanitized.content.includes("123-45-6789"),
+      "raw SSN must not appear in sanitized output"
+    );
   });
 
   await t.test("VULN-001 (Finding 1): top-level metadata like system_fingerprint is not corrupted/injected", async () => {
