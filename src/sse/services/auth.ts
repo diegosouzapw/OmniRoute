@@ -1941,6 +1941,18 @@ function readNonEmptyUrlToken(request: AuthRequestLike): string | null {
       if (decodedSegment.length > 0) return decodedSegment;
     }
 
+    if (segments[0] === "api" && segments[1] === "v1" && segments[2] === "vscode") {
+      if (segments[3] && segments[3] !== "raw" && segments[3] !== "combos") {
+        const decodedSegment = decodeURIComponent(segments[3]).trim();
+        if (decodedSegment.length > 0) return decodedSegment;
+      }
+
+      if ((segments[3] === "raw" || segments[3] === "combos") && segments[4]) {
+        const decodedSegment = decodeURIComponent(segments[4]).trim();
+        if (decodedSegment.length > 0) return decodedSegment;
+      }
+    }
+
     for (const key of ["apiKey", "api_key", "key", "token"]) {
       const token = url.searchParams.get(key)?.trim();
       if (token) return token;
