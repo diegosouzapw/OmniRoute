@@ -219,6 +219,10 @@ export function createSseTextTransform(
         currentEventLine = line;
         pendingEventLine = line;
       } else {
+        if (pendingEventLine) {
+          controller.enqueue(encoder.encode(pendingEventLine + "\n"));
+          pendingEventLine = "";
+        }
         controller.enqueue(encoder.encode(line + "\n"));
       }
     }

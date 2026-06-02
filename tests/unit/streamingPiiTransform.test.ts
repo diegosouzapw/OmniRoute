@@ -396,6 +396,15 @@ test("verify keep-alive event preservation (no-data event)", async () => {
   assert.ok(output.includes("event: keep-alive"), "keep-alive event should be preserved");
 });
 
+test("verify event line flushed before other non-data lines (e.g. id, retry)", async () => {
+  const transform = (createPiiSseTransform as any)({ windowSize: 0 });
+
+  const inputLines = "event: foo\nid: 123\ndata: bar\n\n";
+  const output = await testTransform(transform, [inputLines]);
+
+  assert.ok(output.includes("event: foo\nid: 123\ndata: bar"), "event line must be flushed before non-data lines like id");
+});
+
 test.after(async () => {
   if (originalEnv !== undefined) {
     process.env.PII_RESPONSE_SANITIZATION = originalEnv;
