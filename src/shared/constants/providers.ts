@@ -585,30 +585,6 @@ export const APIKEY_PROVIDERS = {
       "55 free tier models including Grok-3, Claude 3.7, Qwen3, Kimi-K2, Gemini 2.5 Flash, DeepSeek-V3",
     apiHint:
       "Get your API key from https://panel.api.airforce — OpenAI-compatible endpoint at https://api.airforce/v1",
-    capabilities: { embeddings: false },
-  },
-  astraflow: {
-    id: "astraflow",
-    alias: "astraflow",
-    name: "Astraflow (UCloud Global)",
-    icon: "cloud",
-    color: "#0052D9",
-    textIcon: "AF",
-    passthroughModels: true,
-    website: "https://astraflow.ucloud-global.com",
-    apiHint:
-      "Astraflow by UCloud — OpenAI-compatible platform supporting 200+ models (global endpoint). Get your API key at https://astraflow.ucloud-global.com",
-  },
-  "astraflow-cn": {
-    id: "astraflow-cn",
-    alias: "astraflow-cn",
-    name: "Astraflow (UCloud China)",
-    icon: "cloud",
-    color: "#0052D9",
-    textIcon: "AFC",
-    passthroughModels: true,
-    website: "https://astraflow.ucloud.cn",
-    apiHint:
       "Astraflow by UCloud — OpenAI-compatible platform supporting 200+ models (China endpoint). Get your API key at https://astraflow.ucloud.cn",
   },
   qianfan: {
