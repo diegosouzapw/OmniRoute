@@ -441,3 +441,9 @@ When parsing streaming LLM responses (e.g. Responses API), check if a chunk repr
 
 ### 3. Database Handles in Tests
 Ensure that any unit tests that trigger database migrations or establish SQLite connections call `resetDbInstance()` and properly clean up/close all DB handles in a `test.after(...)` hook. Failure to release database connection handles will cause Node's native test runner to hang indefinitely.
+
+### 4. Custom SSE Event Names Preservation
+When flushing buffered or partial data in a `TransformStream` (e.g., in `sseTextTransform`), ensure the tracked event name/header (e.g., `event: response.output_text.delta`) is prepended to the flushed chunk if it was the last seen event type. Otherwise, flushed data chunks revert to the default `message` event type, breaking custom listeners.
+
+### 5. IPv6 Pattern Boundaries
+To prevent matching a sub-slice of a longer invalid sequence of hex segments separated by colons, the IPv6 regex must assert segment boundaries using lookbehind `(?<=^|[^A-Za-z0-9:])` and lookahead `(?!:[0-9a-fA-F:])` to ensure that no adjacent colon segments exist outside the matched address scope.

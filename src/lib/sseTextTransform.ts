@@ -52,6 +52,7 @@ export function createSseTextTransform(
   let isJsonStream = false;
   let flushed = false;
   let errored = false;
+  let lastEventLine = "";
 
   const handleLine = (line: string, controller: TransformStreamDefaultController) => {
     const trimmed = line.trim();
@@ -71,7 +72,10 @@ export function createSseTextTransform(
           if (flushedValue) {
             const prefix = lastPrefix || "data: ";
             const payload = typeof flushedValue === "string" ? flushedValue : JSON.stringify(flushedValue);
-            controller.enqueue(encoder.encode(prefix + payload + "\n"));
+            if (lastEventLine) {
+              controller.enqueue(encoder.encode(lastEventLine + "\n"));
+            }
+            controller.enqueue(encoder.encode(prefix + payload + "\n\n"));
           }
           flushed = true;
         }
@@ -146,7 +150,10 @@ export function createSseTextTransform(
               const prefix = lastPrefix || "data: ";
               const payload = typeof flushedValue === "string" ? flushedValue : JSON.stringify(flushedValue);
               // Only enqueue if the flushed value actually has content (onFlush usually returns null if buffer is empty now)
-              controller.enqueue(encoder.encode(prefix + payload + "\n"));
+              if (lastEventLine) {
+                controller.enqueue(encoder.encode(lastEventLine + "\n"));
+              }
+              controller.enqueue(encoder.encode(prefix + payload + "\n\n"));
             }
             flushed = true;
           }
@@ -177,6 +184,9 @@ export function createSseTextTransform(
       }
     } else {
       // Non-data line, pass through (e.g. event: content_block_delta)
+      if (line.startsWith("event:")) {
+        lastEventLine = line;
+      }
       controller.enqueue(encoder.encode(line + "\n"));
     }
   };
@@ -221,7 +231,10 @@ export function createSseTextTransform(
           if (flushedValue) {
             const prefix = lastPrefix || "data: ";
             const payload = typeof flushedValue === "string" ? flushedValue : JSON.stringify(flushedValue);
-            controller.enqueue(encoder.encode(prefix + payload + "\n"));
+            if (lastEventLine) {
+              controller.enqueue(encoder.encode(lastEventLine + "\n"));
+            }
+            controller.enqueue(encoder.encode(prefix + payload + "\n\n"));
           }
         }
       } catch (err) {
