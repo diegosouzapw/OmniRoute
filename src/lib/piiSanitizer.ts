@@ -22,7 +22,7 @@ type PiiMode = typeof VALID_MODES[number];
 const getMode = (): PiiMode => {
   const value = resolveFeatureFlag("PII_RESPONSE_SANITIZATION_MODE");
   if (value === "" || value === undefined || value === null) return "redact";
-  if (value === "false") return "off";
+  if (String(value) === "false") return "off";
   if ((VALID_MODES as readonly any[]).includes(value)) return value as PiiMode;
   console.error(`[PII] Invalid PII_RESPONSE_SANITIZATION_MODE: "${value}", defaulting to "redact"`);
   return "redact";
@@ -88,7 +88,7 @@ const PII_PATTERNS: PIIPattern[] = [
   },
   {
     name: "ipv6_address",
-    regex: /(?<=^|[^A-Za-z0-9])(?:[0-9a-fA-F]{1,4}:){7}[0-9a-fA-F]{1,4}(?=$|[^A-Za-z0-9])/g,
+    regex: /(?<=^|[^A-Za-z0-9:])(?:[0-9a-fA-F]{1,4}(?::[0-9a-fA-F]{1,4}){7}|(?:[0-9a-fA-F]{1,4}:){1,7}:|::(?:[0-9a-fA-F]{1,4}:){0,6}[0-9a-fA-F]{1,4}|::|[0-9a-fA-F]{1,4}::(?:[0-9a-fA-F]{1,4}:){0,5}[0-9a-fA-F]{1,4}|(?:[0-9a-fA-F]{1,4}:){2}:(?:[0-9a-fA-F]{1,4}:){0,4}[0-9a-fA-F]{1,4}|(?:[0-9a-fA-F]{1,4}:){3}:(?:[0-9a-fA-F]{1,4}:){0,3}[0-9a-fA-F]{1,4}|(?:[0-9a-fA-F]{1,4}:){4}:(?:[0-9a-fA-F]{1,4}:){0,2}[0-9a-fA-F]{1,4}|(?:[0-9a-fA-F]{1,4}:){5}:(?:[0-9a-fA-F]{1,4}:){0,1}[0-9a-fA-F]{1,4}|(?:[0-9a-fA-F]{1,4}:){6}:[0-9a-fA-F]{1,4})(?=$|[^A-Za-z0-9])(?!:[0-9a-fA-F:])/g,
     replacement: "[IP_REDACTED]",
     severity: "low",
   },
