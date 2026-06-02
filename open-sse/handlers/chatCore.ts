@@ -1,4 +1,5 @@
 import { CORS_HEADERS } from "../utils/cors.ts";
+import { HEAP_PRESSURE_THRESHOLD_MB } from "../utils/heapPressure.ts";
 import { normalizeHeaders } from "../utils/headers.ts";
 import { detectFormatFromEndpoint, getTargetFormat } from "../services/provider.ts";
 import { injectSystemPrompt } from "../services/systemPrompt.ts";
@@ -233,8 +234,10 @@ const MEMORY_EXTRACTION_TEXT_LIMIT = 64 * 1024;
 
 // ── Global memory pressure guard ────────────────────────────────────────
 // Prevents OOM by rejecting new requests when V8 heap exceeds threshold.
-// Self-healing: no counters to leak, no cleanup needed.
-const HEAP_PRESSURE_THRESHOLD_MB = parseInt(process.env.HEAP_PRESSURE_THRESHOLD_MB || "200", 10);
+// Self-healing: no counters to leak, no cleanup needed. The threshold
+// auto-calibrates to 85% of the actual V8 heap ceiling (see heapPressure.ts) so
+// it tracks --max-old-space-size across 1GB/2GB/large VPS instead of a fixed
+// 200MB that sat below the app's own ~260MB baseline and rejected every request.
 
 function capMemoryExtractionText(value: string): string {
   if (value.length <= MEMORY_EXTRACTION_TEXT_LIMIT) return value;
