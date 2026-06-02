@@ -1,3 +1,6 @@
+> **Work state:** ACTIVE · **Progress:** `███████░░░ 70%`
+> Full TS AI gateway (smart routing/fallback to free+low-cost models); upstream fork, routing flagship · updated 2026-06-02
+
 [![MseeP.ai Security Assessment Badge](https://mseep.net/pr/diegosouzapw-omniroute-badge.png)](https://mseep.ai/app/diegosouzapw-omniroute)
 [![AI Slop Inside](https://sladge.net/badge.svg)](https://sladge.net)
 
