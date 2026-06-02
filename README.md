@@ -1,5 +1,5 @@
 > **Work state:** ACTIVE · **Progress:** `███████░░░ 70%`
-> Full TS AI gateway (smart routing/fallback to free+low-cost models); upstream fork, routing flagship · updated 2026-06-02
+> **CANONICAL routing framework for the Phenotype org** (per [ADR-001](docs/ADR-001-canonical-routing.md)) — OpenAI-compatible AI gateway: smart routing, load-balancing, retries, multi-provider fallback. Other routers converge here; consume this surface, do not hand-roll. · updated 2026-06-02
 
 [![MseeP.ai Security Assessment Badge](https://mseep.net/pr/diegosouzapw-omniroute-badge.png)](https://mseep.ai/app/diegosouzapw-omniroute)
 [![AI Slop Inside](https://sladge.net/badge.svg)](https://sladge.net)
