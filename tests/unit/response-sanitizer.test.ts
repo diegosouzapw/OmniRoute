@@ -364,6 +364,50 @@ test("sanitizeStreamingChunk preserves Copilot reasoning_text deltas", () => {
   assert.equal((sanitized as any).choices[0].delta.reasoning_text, "copilot reasoning");
 });
 
+test("sanitizeStreamingChunk strips commentary content from Responses completed events", () => {
+  const sanitized = sanitizeStreamingChunk({
+    type: "response.completed",
+    response: {
+      id: "resp_1",
+      object: "response",
+      model: "gpt-5.1-codex",
+      status: "completed",
+      output_text: "hiddenshown",
+      output: [
+        {
+          id: "msg_1",
+          type: "message",
+          role: "assistant",
+          content: [
+            { type: "output_text", text: "hidden", phase: "commentary" },
+            { type: "output_text", text: "shown", phase: "final_answer" },
+          ],
+        },
+      ],
+    },
+  });
+
+  assert.equal((sanitized as any).response.output[0].content.length, 1);
+  assert.equal((sanitized as any).response.output[0].content[0].text, "shown");
+  assert.equal((sanitized as any).response.output_text, "shown");
+});
+
+test("sanitizeStreamingChunk marks internal Responses output_item events for omission", () => {
+  const sanitized = sanitizeStreamingChunk({
+    type: "response.output_item.done",
+    item: {
+      id: "msg_internal",
+      type: "message",
+      role: "assistant",
+      phase: "commentary",
+      content: [{ type: "output_text", text: "hidden" }],
+    },
+  });
+
+  assert.equal((sanitized as any).__omniroute_omit_streaming_chunk, true);
+  assert.equal("item" in (sanitized as any), false);
+});
+
 test("sanitizeOpenAIResponse preserves reasoning_content when tool_calls are present", () => {
   // Bug fix: Kimi and other thinking-enabled providers require reasoning_content
   // on assistant messages that contain tool_calls. The sanitizer was stripping

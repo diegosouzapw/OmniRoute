@@ -27,6 +27,8 @@ const ALLOWED_RESPONSES_USAGE_FIELDS = new Set([
 
 type JsonRecord = Record<string, unknown>;
 
+export const OMIT_STREAMING_CHUNK_MARKER = "__omniroute_omit_streaming_chunk";
+
 const DEEPSEEK_V4_SANITIZER_MODEL_PATTERN = /deepseek[-/]v4/i;
 
 function isDeepSeekV4Model(model: unknown): boolean {
@@ -520,6 +522,140 @@ function normalizeResponsesId(id: unknown): string {
   return `resp_${id}`;
 }
 
+function sanitizeResponsesStreamingOutputItem(item: unknown): JsonRecord | null {
+  const itemRecord = toRecord(item);
+  if (!itemRecord) return null;
+
+  const type = toString(itemRecord.type) || "message";
+
+  if (type === "message") {
+    const role = toString(itemRecord.role) || "assistant";
+    const phase = toString(itemRecord.phase);
+    if (role === "assistant" && phase === "commentary") {
+      return null;
+    }
+
+    const content = sanitizeResponsesMessageContent(itemRecord.content).filter((part) => {
+      const partRecord = toRecord(part);
+      const partPhase = partRecord ? toString(partRecord.phase) : undefined;
+      return partPhase !== "commentary";
+    });
+
+    if (role === "assistant" && content.length === 0) {
+      return null;
+    }
+
+    return {
+      ...itemRecord,
+      type: "message",
+      role,
+      content,
+    };
+  }
+
+  if (type === "reasoning") {
+    const summary = Array.isArray(itemRecord.summary)
+      ? itemRecord.summary
+          .map((part) => {
+            const partRecord = toRecord(part);
+            if (!partRecord) return null;
+            return {
+              ...partRecord,
+              type: toString(partRecord.type) || "summary_text",
+              text: collapseExcessiveNewlines(toString(partRecord.text) || ""),
+            };
+          })
+          .filter((part): part is JsonRecord => part !== null)
+      : [];
+
+    return {
+      ...itemRecord,
+      type: "reasoning",
+      summary,
+    };
+  }
+
+  if (type === "function_call") {
+    return {
+      ...itemRecord,
+      type: "function_call",
+      arguments:
+        typeof itemRecord.arguments === "string"
+          ? itemRecord.arguments
+          : JSON.stringify(itemRecord.arguments || {}),
+    };
+  }
+
+  if (type === "function_call_output") {
+    return {
+      ...itemRecord,
+      type: "function_call_output",
+      output:
+        typeof itemRecord.output === "string"
+          ? collapseExcessiveNewlines(itemRecord.output)
+          : JSON.stringify(itemRecord.output ?? ""),
+    };
+  }
+
+  return { ...itemRecord };
+}
+
+function sanitizeResponsesStreamingOutput(output: unknown): JsonRecord[] {
+  if (!Array.isArray(output)) return [];
+
+  return output
+    .map((item) => sanitizeResponsesStreamingOutputItem(item))
+    .filter((item): item is JsonRecord => item !== null);
+}
+
+function sanitizeResponsesStreamingEvent(parsedRecord: JsonRecord): JsonRecord {
+  const sanitized: JsonRecord = { ...parsedRecord };
+  const eventType = toString(parsedRecord.type) || "";
+
+  if (parsedRecord.item !== undefined) {
+    const sanitizedItem = sanitizeResponsesStreamingOutputItem(parsedRecord.item);
+    if (sanitizedItem) {
+      sanitized.item = sanitizedItem;
+    } else {
+      delete sanitized.item;
+      if (eventType === "response.output_item.added" || eventType === "response.output_item.done") {
+        sanitized[OMIT_STREAMING_CHUNK_MARKER] = true;
+      }
+    }
+  }
+
+  if (Array.isArray(parsedRecord.output)) {
+    const output = sanitizeResponsesStreamingOutput(parsedRecord.output);
+    sanitized.output = output;
+    const outputText = extractResponsesOutputText(output);
+    if (outputText.length > 0) {
+      sanitized.output_text = outputText;
+    } else {
+      delete sanitized.output_text;
+    }
+  }
+
+  const responseRecord = toRecord(parsedRecord.response);
+  if (responseRecord) {
+    const responseOutput = Array.isArray(responseRecord.output)
+      ? sanitizeResponsesStreamingOutput(responseRecord.output)
+      : undefined;
+    const sanitizedResponse: JsonRecord = {
+      ...responseRecord,
+      ...(responseOutput ? { output: responseOutput } : {}),
+    };
+    const responseOutputText = responseOutput ? extractResponsesOutputText(responseOutput) : "";
+    if (responseOutputText.length > 0) {
+      sanitizedResponse.output_text = responseOutputText;
+    } else {
+      delete sanitizedResponse.output_text;
+    }
+    sanitized.response = sanitizedResponse;
+  }
+
+  return sanitized;
+}
+
 function sanitizeResponsesOutput(output: unknown): JsonRecord[] {
   if (!Array.isArray(output)) return [];
 
@@ -751,6 +887,11 @@ function convertOpenAIResponseToResponses(openaiResponse: JsonRecord): JsonRecor
 export function sanitizeStreamingChunk(parsed: unknown): unknown {
   const parsedRecord = toRecord(parsed);
   if (!parsedRecord) return parsed;
+
+  const eventType = toString(parsedRecord.type) || "";
+  if (eventType.startsWith("response.") || parsedRecord.object === "response") {
+    return sanitizeResponsesStreamingEvent(parsedRecord);
+  }
 
   // Build sanitized chunk
   const sanitized: JsonRecord = {};
