@@ -2512,7 +2512,18 @@ function ComboFormModal({ isOpen, combo, onClose, onSave, activeProviders, combo
   };
 
   const handleAddModel = (model) => {
-    const nextEntry = { model: model.value, weight: 0 };
+    const qualifiedModel = typeof model?.value === "string" ? model.value : "";
+    const parsedModel = parseQualifiedModel(qualifiedModel);
+    const resolvedProviderId =
+      (typeof model?.providerId === "string" && model.providerId.trim()) ||
+      resolveComboBuilderProviderId(parsedModel?.providerId, builderProviders) ||
+      parsedModel?.providerId ||
+      null;
+    const nextEntry = {
+      model: qualifiedModel,
+      ...(resolvedProviderId ? { providerId: resolvedProviderId } : {}),
+      weight: 0,
+    };
     if (hasExactModelStepDuplicate(models, nextEntry)) {
       setBuilderError(
         getI18nOrFallback(
