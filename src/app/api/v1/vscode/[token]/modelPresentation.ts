@@ -8,8 +8,7 @@ import {
   parseVscodeServiceTierVariantModelId,
   supportsVscodeServiceTierVariants,
 } from "@/app/api/v1/vscode/[token]/serviceTierVariants";
-import { getReasoningVariantBaseModelId } from "@/app/api/v1/vscode/[token]/reasoningMetadata";
-
+import { getReasoningVariantBaseModelId } from "@/app/api/v1/vscode/[token]/reasoningMetadata";import { resolveFamilyFirstPublishedModelId } from "@/app/api/v1/vscode/[token]/familyFirstModelIds";
 type VscodeCatalogModel = {
   id?: string;
   name?: string;
@@ -58,7 +57,8 @@ function prefixDisplayName(displayName: string, providerPrefix: string | null) {
 
 export function resolveVscodeModelMetadata(model: VscodeCatalogModel) {
   const rawModelId = model.id || model.root || model.name || "";
-  const parsedTierModel = parseVscodeServiceTierVariantModelId(rawModelId);
+  const normalizedModelId = resolveFamilyFirstPublishedModelId(rawModelId);
+  const parsedTierModel = parseVscodeServiceTierVariantModelId(normalizedModelId);
   const canonicalBaseModelId = getReasoningVariantBaseModelId(parsedTierModel.baseModelId);
   const parsed = parseModel(canonicalBaseModelId, "");
   const provider = parsed.provider || model.owned_by || undefined;
