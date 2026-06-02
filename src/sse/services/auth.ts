@@ -1,6 +1,7 @@
 import { randomUUID, createHash } from "crypto";
 import {
   getProviderConnections,
+  getProviderNodes,
   validateApiKey,
   updateProviderConnection,
   getSettings,
@@ -44,6 +45,7 @@ import {
 import { looksLikeQuotaExhausted } from "@/shared/utils/classify429";
 import { getCodexModelScope } from "@omniroute/open-sse/executors/codex.ts";
 import {
+  getProviderById,
   getProviderAlias,
   resolveProviderId,
   NOAUTH_PROVIDERS,
@@ -799,7 +801,7 @@ export { fisherYatesShuffle, getNextFromDeckSync as getNextFromDeck };
 /**
  * Resolve provider aliases (e.g., nvidia -> nvidia_nim) for DB lookup
  */
-function getProviderSearchPool(provider: string): string[] {
+async function getProviderSearchPool(provider: string): Promise<string[]> {
   const canonicalProvider = resolveProviderId(provider);
   const canonicalAlias = getProviderAlias(canonicalProvider);
 
@@ -810,7 +812,34 @@ function getProviderSearchPool(provider: string): string[] {
     return ["nvidia_nim", "nvidia"];
   }
 
-  return Array.from(new Set([provider, canonicalProvider, canonicalAlias].filter(Boolean)));
+  const searchPool = new Set([provider, canonicalProvider, canonicalAlias].filter(Boolean));
+
+  // Built-in providers already resolve through static ids/aliases. Only
+  // compatible/custom providers need provider_nodes expansion back to the
+  // generated internal connection ids. (#3058)
+  if (getProviderById(canonicalProvider)) {
+    return Array.from(searchPool);
+  }
+
+  // Custom provider nodes are referenced by user-facing prefixes in combos
+  // (for example "78code/gpt-5.4"), but live credentials are stored under
+  // internal provider ids like openai-compatible-responses-<uuid>.
+  try {
+    const providerNodes = await getProviderNodes();
+    for (const node of Array.isArray(providerNodes) ? providerNodes : []) {
+      const nodeRecord = asRecord(node);
+      const nodePrefix = typeof nodeRecord.prefix === "string" ? nodeRecord.prefix.trim() : "";
+      const nodeId = typeof nodeRecord.id === "string" ? nodeRecord.id.trim() : "";
+      if (!nodePrefix || !nodeId) continue;
+      if (nodePrefix === provider || nodePrefix === canonicalProvider || nodePrefix === canonicalAlias) {
+        searchPool.add(nodeId);
+      }
+    }
+  } catch {
+    // Best-effort alias expansion only.
+  }
+
+  return Array.from(searchPool);
 }
 
 /**
@@ -885,7 +914,7 @@ export async function getProviderCredentials(
     );
 
     // Fix #922: Check for aliases (nvidia/nvidia_nim) to ensure credentials are found
-    const providersToSearch = getProviderSearchPool(provider);
+    const providersToSearch = await getProviderSearchPool(provider);
     const connectionResults = await Promise.all(
       providersToSearch.map((p) => getProviderConnections({ provider: p, isActive: true }))
     );
