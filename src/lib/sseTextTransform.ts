@@ -107,10 +107,6 @@ export function createSseTextTransform(
           const isStopSignal = checkIfStopSignal(json);
           const isSnapshot = checkIfSnapshot(json);
 
-          if (!isStopSignal && !isSnapshot) {
-            lastEventLine = currentEventLine;
-          }
-
           const METADATA_KEYS = [
             "id", "model", "object", "created", "finish_reason", "finishReason",
             "role", "type", "index", "stop_reason", "stop_sequence",
@@ -173,6 +169,10 @@ export function createSseTextTransform(
               controller.enqueue(encoder.encode(prefix + payload + "\n\n"));
             }
             flushed = true;
+          }
+
+          if (!isStopSignal && !isSnapshot) {
+            lastEventLine = currentEventLine;
           }
 
           lastJson = json;
