@@ -45,6 +45,7 @@ import {
 import { looksLikeQuotaExhausted } from "@/shared/utils/classify429";
 import { getCodexModelScope } from "@omniroute/open-sse/executors/codex.ts";
 import {
+  getProviderById,
   getProviderAlias,
   resolveProviderId,
   NOAUTH_PROVIDERS,
@@ -804,6 +805,13 @@ async function getProviderSearchPool(provider: string): Promise<string[]> {
   }
 
   const searchPool = new Set([provider, canonicalProvider, canonicalAlias].filter(Boolean));
+
+  // Built-in providers already resolve through static ids/aliases. Only
+  // compatible/custom providers need provider_nodes expansion back to the
+  // generated internal connection ids.
+  if (getProviderById(canonicalProvider)) {
+    return Array.from(searchPool);
+  }
 
   // Custom provider nodes are referenced by user-facing prefixes in combos
   // (for example "78code/gpt-5.4"), but live credentials are stored under

@@ -2515,8 +2515,9 @@ function ComboFormModal({ isOpen, combo, onClose, onSave, activeProviders, combo
     const qualifiedModel = typeof model?.value === "string" ? model.value : "";
     const parsedModel = parseQualifiedModel(qualifiedModel);
     const resolvedProviderId =
-      (typeof model?.providerId === "string" && model.providerId.trim()) ||
+      resolveComboBuilderProviderId(model?.providerId, builderProviders) ||
       resolveComboBuilderProviderId(parsedModel?.providerId, builderProviders) ||
+      (typeof model?.providerId === "string" && model.providerId.trim()) ||
       parsedModel?.providerId ||
       null;
     const nextEntry = {
