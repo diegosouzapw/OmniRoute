@@ -69,7 +69,6 @@ import {
   buildRunwayHeaders,
   normalizeRunwayBaseUrl,
 } from "@omniroute/open-sse/config/runway.ts";
-import { PETALS_DEFAULT_MODEL, normalizePetalsBaseUrl } from "@omniroute/open-sse/config/petals.ts";
 import {
   buildMaritalkChatUrl,
   buildMaritalkModelsUrl,
@@ -959,10 +958,6 @@ async function validateAssemblyAIProvider({ apiKey, providerSpecificData = {} }:
   } catch (error: any) {
     return toValidationErrorResult(error);
   }
-}
-
-async function validateNanoBananaProvider({ apiKey, providerSpecificData = {} }: any) {
-  return validateImageProviderApiKey({ provider: "nanobanana", apiKey, providerSpecificData });
 }
 
 async function validateElevenLabsProvider({ apiKey, providerSpecificData = {} }: any) {
@@ -2011,67 +2006,6 @@ async function validateRunwayProvider({ apiKey, providerSpecificData = {} }: any
   }
 
   return { valid: false, error: "Connection failed while testing Runway" };
-}
-
-async function validatePetalsProvider({ apiKey, providerSpecificData = {} }: any) {
-  const url = normalizePetalsBaseUrl(providerSpecificData.baseUrl);
-  const modelId =
-    typeof providerSpecificData.validationModelId === "string" &&
-    providerSpecificData.validationModelId.trim()
-      ? providerSpecificData.validationModelId.trim()
-      : PETALS_DEFAULT_MODEL;
-  const headers: Record<string, string> = {
-    "Content-Type": "application/x-www-form-urlencoded",
-  };
-  if (apiKey) {
-    headers.Authorization = `Bearer ${apiKey}`;
-  }
-
-  const body = new URLSearchParams({
-    model: modelId,
-    inputs: "test",
-    max_new_tokens: "1",
-  });
-
-  try {
-    const response = await validationWrite(url, {
-      method: "POST",
-      headers,
-      body: body.toString(),
-    });
-
-    if (response.ok) {
-      const payload = (await response.json().catch(() => ({}))) as Record<string, unknown>;
-      if (payload.ok === false) {
-        return {
-          valid: false,
-          error: "Petals API rejected validation request",
-        };
-      }
-      return { valid: true, error: null, method: "petals_generate" };
-    }
-
-    if (response.status === 401 || response.status === 403) {
-      return { valid: false, error: "Invalid API key" };
-    }
-
-    if (response.status === 429) {
-      return {
-        valid: true,
-        error: null,
-        method: "petals_generate",
-        warning: "Rate limited, but endpoint is reachable",
-      };
-    }
-
-    if (response.status >= 500) {
-      return { valid: false, error: `Provider unavailable (${response.status})` };
-    }
-  } catch (error: any) {
-    return toValidationErrorResult(error);
-  }
-
-  return { valid: false, error: "Connection failed while testing Petals" };
 }
 
 async function validateNousResearchProvider({ apiKey, providerSpecificData = {} }: any) {
@@ -3785,7 +3719,6 @@ export async function validateProviderApiKey({ provider, apiKey, providerSpecifi
     "command-code": validateCommandCodeProvider,
     deepgram: validateDeepgramProvider,
     assemblyai: validateAssemblyAIProvider,
-    nanobanana: validateNanoBananaProvider,
     "fal-ai": ({ apiKey, providerSpecificData }: any) =>
       validateImageProviderApiKey({ provider: "fal-ai", apiKey, providerSpecificData }),
     "stability-ai": ({ apiKey, providerSpecificData }: any) =>
@@ -3818,7 +3751,6 @@ export async function validateProviderApiKey({ provider, apiKey, providerSpecifi
         isLocal,
       }),
     "nous-research": validateNousResearchProvider,
-    petals: validatePetalsProvider,
     poe: validatePoeProvider,
     clarifai: validateClarifaiProvider,
     reka: validateRekaProvider,
@@ -3955,37 +3887,6 @@ export async function validateProviderApiKey({ provider, apiKey, providerSpecifi
             headers: buildBearerHeaders(apiKey, providerSpecificData),
             body: JSON.stringify({
               model: modelId,
-              messages: [{ role: "user", content: "test" }],
-              max_tokens: 1,
-            }),
-          },
-          isLocal
-        );
-        if (res.status === 401 || res.status === 403) {
-          return { valid: false, error: "Invalid API key" };
-        }
-        // Any non-auth response (200, 400, 422, 429) means auth passed
-        return { valid: true, error: null };
-      } catch (error: any) {
-        return toValidationErrorResult(error);
-      }
-    },
-    // Poolside (#2723) — API has no /v1/models endpoint and returns 401 from
-    // unknown routes, which the generic /models probe misreads as "invalid API key".
-    // Validate via direct chat/completions probe with a minimal body.
-    poolside: async ({ apiKey, providerSpecificData }: any) => {
-      try {
-        const baseUrl = normalizeBaseUrl(
-          providerSpecificData?.baseUrl || "https://api.poolside.ai/v1"
-        );
-        const chatUrl = `${baseUrl.replace(/\/chat\/completions$/, "")}/chat/completions`;
-        const res = await validationWrite(
-          chatUrl,
-          {
-            method: "POST",
-            headers: buildBearerHeaders(apiKey, providerSpecificData),
-            body: JSON.stringify({
-              model: "poolside-model",
               messages: [{ role: "user", content: "test" }],
               max_tokens: 1,
             }),
