@@ -65,6 +65,7 @@ function tierPreferencesForName(name: string): Record<TierName, number> {
 }
 
 const SCORE_EPSILON = 1e-4;
+const CLEAR_WINNER_THRESHOLD = 0.1;
 
 class ScoreTierRotator {
   private readonly tierCounters = new Map<TierName, number>();
@@ -79,6 +80,11 @@ class ScoreTierRotator {
     if (candidates.length === 1) return candidates[0];
 
     const tiers = groupIntoTiers(candidates);
+    const best = candidates[0].score;
+    const worst = candidates[candidates.length - 1].score;
+    if (tiers.top.length > 0 && (best - worst) >= CLEAR_WINNER_THRESHOLD) {
+      return this.pickFromPool(tiers.top);
+    }
     const prefs = tierPreferencesForName(this.comboName);
     const chosen = chooseTierWeighted(tiers, prefs, (pool) => this.pickFromPool(pool), () =>
       this.advance(tiers, prefs, candidates)
@@ -143,13 +149,18 @@ function chooseTierWeighted(
   pickFromPool: (pool: ScoredProvider[]) => ScoredProvider,
   fallback: () => ScoredProvider
 ): ScoredProvider {
-  const total = prefs.top + prefs.mid + prefs.rest;
+  const active = {
+    top: tiers.top.length > 0 ? prefs.top : 0,
+    mid: tiers.mid.length > 0 ? prefs.mid : 0,
+    rest: tiers.rest.length > 0 ? prefs.rest : 0,
+  };
+  const total = active.top + active.mid + active.rest;
   if (total <= 0) return fallback();
   const r = Math.random() * total;
   let acc = 0;
-  if ((acc += prefs.top) >= r && tiers.top.length > 0) return pickFromPool(tiers.top);
-  if ((acc += prefs.mid) >= r && tiers.mid.length > 0) return pickFromPool(tiers.mid);
-  if (tiers.rest.length > 0) return pickFromPool(tiers.rest);
+  if (active.top > 0 && (acc += active.top) >= r) return pickFromPool(tiers.top);
+  if (active.mid > 0 && (acc += active.mid) >= r) return pickFromPool(tiers.mid);
+  if (active.rest > 0) return pickFromPool(tiers.rest);
   return fallback();
 }
 
@@ -265,11 +276,12 @@ export function selectProvider(
 
   // Budget cap enforcement
   if (config.budgetCap) {
+    const costMap = new Map<string, number>();
+    for (const c of candidates) {
+      costMap.set(`${c.provider}\0${c.model}`, c.costPer1MTokens);
+    }
     const estimatedCostFor = (s: ScoredProvider) => {
-      const c = candidates.find(
-        (cand) => cand.provider === s.provider && cand.model === s.model
-      );
-      const cost = c?.costPer1MTokens ?? 0;
+      const cost = costMap.get(`${s.provider}\0${s.model}`) ?? 0;
       return (cost / 1_000_000) * 1000;
     };
     if (estimatedCostFor(selected) > config.budgetCap) {

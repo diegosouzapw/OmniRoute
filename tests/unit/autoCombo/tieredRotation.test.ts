@@ -5,7 +5,7 @@
  */
 
 import { describe, it, expect, beforeEach, afterEach } from "vitest";
-import { selectProvider, type AutoComboConfig } from "../engine";
+import { selectProvider, type AutoComboConfig } from "../../../open-sse/services/autoCombo/engine";
 import {
   calculateFactors,
   calculateScore,
@@ -13,9 +13,9 @@ import {
   scorePool,
   type ProviderCandidate,
   type ScoredProvider,
-} from "../scoring";
-import { getTaskFitness } from "../taskFitness";
-import { resetDiversity } from "../providerDiversity";
+} from "../../../open-sse/services/autoCombo/scoring";
+import { getTaskFitness } from "../../../open-sse/services/autoCombo/taskFitness";
+import { resetDiversity } from "../../../open-sse/services/autoCombo/providerDiversity";
 
 function makeCandidate(overrides: Partial<ProviderCandidate>): ProviderCandidate {
   return {

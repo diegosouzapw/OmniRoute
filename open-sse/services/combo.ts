@@ -2273,7 +2273,7 @@ async function buildAutoCandidates(
       continue;
     }
     const connectionIds = providerConnections
-      .map((c) => (typeof c.id === "string" ? c.id : null))
+      .map((c) => (c && typeof c === "object" && typeof c.id === "string" ? c.id : null))
       .filter((id): id is string => id !== null);
     if (connectionIds.length === 0) {
       expandedTargets.push(target);
