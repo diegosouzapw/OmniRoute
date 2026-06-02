@@ -104,6 +104,31 @@ test("verifyAuth falls back to bearer API key validation after a bad JWT", async
   assert.equal(result, null);
 });
 
+test("verifyAuth accepts API keys supplied via query string on client-facing routes", async () => {
+  const key = await apiKeysDb.createApiKey("query-auth", "machine1234567890");
+
+  const result = await apiAuth.verifyAuth({
+    cookies: {
+      get() {
+        return undefined;
+      },
+    },
+    headers: new Headers(),
+    url: `https://example.com/api/v1/models?token=${encodeURIComponent(key.key)}`,
+  });
+
+  assert.equal(result, null);
+});
+
+test("isAuthenticated accepts API keys embedded in vscode path aliases", async () => {
+  const key = await apiKeysDb.createApiKey("path-auth", "machine1234567890");
+  const request = new Request(`https://example.com/api/v1/vscode/${encodeURIComponent(key.key)}/models`);
+
+  const result = await apiAuth.isAuthenticated(request);
+
+  assert.equal(result, true);
+});
+
 test("verifyAuth rejects bearer API keys on management routes", async () => {
   const key = await apiKeysDb.createApiKey("integration", "machine1234567890");
   const result = await apiAuth.verifyAuth({

@@ -6,25 +6,32 @@
 #  Keeps the app running while you continue developing locally.
 #
 #  Usage:
-#    docker compose -f docker-compose.prod.yml up -d --build
+#    docker compose -f docker-compose.prod.yml up -d
 #    docker compose -f docker-compose.prod.yml down
 #    docker compose -f docker-compose.prod.yml logs -f
 #
-#  Image flavors (two Dockerfile stages):
-#    runner-base (default / omniroute:prod)
-#      Lean image — no Playwright/Chromium. Suitable for all providers
-#      except web-cookie ones (gemini-web, claude-web, claude-turnstile).
-#
-#    runner-web (omniroute:prod-web) — opt-in, ~300 MB extra
-#      Includes Playwright + Chromium system libs. Required for web-cookie
-#      providers. To use this flavor, override the build target:
-#
-#        omniroute-prod:
-#          build:
-#            context: .
-#            target: runner-web
-#          image: omniroute:prod-web
+#  Optional env override:
+#    docker compose --env-file .env -f docker-compose.prod.yml up -d
 # ──────────────────────────────────────────────────────────────────────
+name: omniroute-prod
+
+networks:
+  omniroute-prod:
+    name: "${NETWORK:-omniroute-prod}"
+    driver: bridge
+    #ipam:
+        #config:
+            #- subnet: 172.27.0.0/24
+
+volumes:
+  redis-prod-data:
+    name: redis-prod-data
+  omniroute:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: ${OMNIROUTE_DATA_MOUNT:-${PWD}/data}
 
 services:
   # ── Redis (Rate Limiter Backend) ──────────────────────────────────
@@ -35,6 +42,8 @@ services:
     volumes:
       - redis-prod-data:/data
     command: redis-server --save 60 1 --loglevel warning
+    networks:
+      - omniroute-prod
     healthcheck:
       test: ["CMD", "redis-cli", "ping"]
       interval: 10s
@@ -42,17 +51,14 @@ services:
       retries: 3
 
   omniroute-prod:
+    env_file: .env
+    image: diegosouzapw/omniroute:latest
     container_name: omniroute-prod
     depends_on:
       redis:
         condition: service_healthy
-    build:
-      context: .
-      target: runner-cli
-    image: omniroute:prod
     restart: unless-stopped
     stop_grace_period: 40s
-    env_file: .env
     environment:
       - NODE_ENV=production
       - PORT=${PORT:-20128}
@@ -65,16 +71,12 @@ services:
       - "${PROD_DASHBOARD_PORT:-20130}:${DASHBOARD_PORT:-${PORT:-20128}}"
       - "${PROD_API_PORT:-20131}:${API_PORT:-20129}"
     volumes:
-      - omniroute-prod-data:/app/data
+      - omniroute:/app/data
+    networks:
+      - omniroute-prod
     healthcheck:
       test: ["CMD", "node", "healthcheck.mjs"]
       interval: 30s
       timeout: 5s
       retries: 3
       start_period: 15s
-
-volumes:
-  omniroute-prod-data:
-    name: omniroute-prod-data
-  redis-prod-data:
-    name: redis-prod-data

@@ -4119,6 +4119,18 @@ export default function ProviderDetailPage() {
                           Experimental OAuth
                         </Button>
                       )}
+                      {providerId === "codex" && (
+                        <Button
+                          size="sm"
+                          variant="secondary"
+                          icon="upload_file"
+                          onClick={() => gateConnectionFlow(() => setImportCodexModalOpen(true))}
+                        >
+                          {typeof t.has === "function" && t.has("importCodexAuth")
+                            ? t("importCodexAuth")
+                            : "Import auth"}
+                        </Button>
+                      )}
                       {providerId === "claude" && (
                         <Button
                           size="sm"
@@ -4388,6 +4400,18 @@ export default function ProviderDetailPage() {
                     </div>
                   </>
                 );
+                      {providerId === "codex" && (
+                        <Button
+                          size="sm"
+                          variant="secondary"
+                          icon="upload_file"
+                          onClick={() => gateConnectionFlow(() => setImportCodexModalOpen(true))}
+                        >
+                          {typeof t.has === "function" && t.has("importCodexAuth")
+                            ? t("importCodexAuth")
+                            : "Import auth"}
+                        </Button>
+                      )}
               }
 
               // Build ordered tag groups: untagged first, then alphabetically

@@ -579,6 +579,16 @@ describe("Page Integration — provider test results privacy", () => {
     assert.match(providerDetailSrc, /isUpstreamProxyProvider/);
     assert.match(providerDetailSrc, /Managed via Upstream Proxy Settings/);
   });
+
+  it("should expose Codex auth import in the populated connections toolbar", () => {
+    assert.ok(
+      providerDetailSrc,
+      "src/app/(dashboard)/dashboard/providers/[id]/page.tsx should exist"
+    );
+    assert.match(providerDetailSrc, /providerId === "codex"/);
+    assert.match(providerDetailSrc, /setImportCodexModalOpen\(true\)/);
+    assert.match(providerDetailSrc, /importCodexAuth/);
+  });
 });
 
 describe("Page Integration — legacy provider create route retirement", () => {

@@ -272,6 +272,7 @@ export function enrichCatalogModelEntry<T extends JsonRecord>(
   if (!metadata) return entry;
 
   const nextEntry: JsonRecord = { ...entry };
+  const existingName = asNonEmptyString(entry.name);
   const capabilityFields = {
     ...(typeof metadata.capabilities.vision === "boolean"
       ? { vision: metadata.capabilities.vision }
@@ -330,6 +331,9 @@ export function enrichCatalogModelEntry<T extends JsonRecord>(
   if (metadata.metadata.lastUpdated) nextEntry.last_updated = metadata.metadata.lastUpdated;
   if (typeof metadata.metadata.openWeights === "boolean") {
     nextEntry.open_weights = metadata.metadata.openWeights;
+  }
+  if (!existingName && metadata.displayName) {
+    nextEntry.name = metadata.displayName;
   }
 
   return nextEntry as T;

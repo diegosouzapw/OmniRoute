@@ -1,0 +1,1 @@
+export { POST, OPTIONS } from "@/app/api/v1/vscode/raw/[token]/chat/completions/route";

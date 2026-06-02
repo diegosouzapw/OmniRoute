@@ -15,7 +15,6 @@ memory-bank/
 .claude/scheduled_tasks/
 .claude/sessions/
 .claude/state.json
-.claude/settings.local.json
 
 # Root-level underscore-prefixed directories (private/draft — never commit)
 /_*/
@@ -34,12 +33,6 @@ node_modules/
 !.yarn/versions
 .data/
 .next-playwright/
-.agents/
-workflows/
-.omo/
-
-# devbox
-.devbox/
 
 # testing
 coverage/
@@ -188,8 +181,10 @@ scripts/i18n/_pending-keys.json
 
 # Fumadocs generated source
 .source/
-
-# AI agent local settings and configs
-.agents/
-.antigravitycli/
-.claude/
+.data-dev/
+config/apache/omni.neuraltalk.com.br.http.conf
+config/apache/omni.neuraltalk.com.br.vhost_ssl.conf
+apache.http-proxy.md
+server-access.md
+docs/ops/deploy/neuraltalk-omni-production.md
+.local-data/

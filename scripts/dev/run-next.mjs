@@ -10,6 +10,21 @@ import { createOmnirouteWsBridge } from "./v1-ws-bridge.mjs";
 import { createResponsesWsProxy } from "./responses-ws-proxy.mjs";
 import { randomUUID } from "node:crypto";
 
+const mode = process.argv[2] === "start" ? "start" : "dev";
+const dev = mode === "dev";
+
+function canUseDataDir(dataDir) {
+  if (!dataDir) return false;
+
+  try {
+    fs.mkdirSync(dataDir, { recursive: true });
+    fs.accessSync(dataDir, fs.constants.W_OK);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
 // Pre-read DATA_DIR from local .env before bootstrap resolves paths
 if (!process.env.DATA_DIR) {
   try {
@@ -19,6 +34,16 @@ if (!process.env.DATA_DIR) {
   } catch {
     /* .env ausente ou ilegível — ok, bootstrap usa o padrão */
   }
+}
+
+if (dev && process.env.DATA_DIR && !canUseDataDir(process.env.DATA_DIR)) {
+  const fallbackDataDir = path.join(process.cwd(), ".local-data");
+  fs.mkdirSync(fallbackDataDir, { recursive: true });
+  console.warn(
+    `[dev] DATA_DIR '${process.env.DATA_DIR}' is not writable in local mode. ` +
+      `Falling back to '${fallbackDataDir}'.`
+  );
+  process.env.DATA_DIR = fallbackDataDir;
 }
 
 // Add check for conflicting app/ directory (Issue #1206)
@@ -31,9 +56,6 @@ if (fs.existsSync(rootAppDir) && fs.statSync(rootAppDir).isDirectory()) {
   console.error("Please rename or delete the root 'app/' directory before starting OmniRoute.\n");
   process.exit(1);
 }
-
-const mode = process.argv[2] === "start" ? "start" : "dev";
-const dev = mode === "dev";
 
 const bootstrappedEnv = bootstrapEnv();
 const runtimePorts = resolveRuntimePorts(bootstrappedEnv);

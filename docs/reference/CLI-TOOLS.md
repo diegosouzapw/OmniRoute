@@ -295,6 +295,47 @@ Restart VS Code after editing.
 
 ---
 
+#### VS Code Insiders (`chatLanguageModels.json`)
+
+Use this when VS Code Insiders is configured for custom endpoint models and you want OmniRoute to work without a custom header field.
+
+**Recommended location:**
+
+- Linux: `~/.config/Code - Insiders/User/chatLanguageModels.json`
+- Windows: `%APPDATA%/Code - Insiders/User/chatLanguageModels.json`
+
+**Example using the tokenized OmniRoute alias:**
+
+```json
+[
+  {
+    "vendor": "customendpoint",
+    "id": "auto",
+    "name": "OmniRoute Auto",
+    "family": "gpt-4",
+    "version": "1.0.0",
+    "url": "http://localhost:20128/api/v1/vscode/sk-your-omniroute-key/chat/completions",
+    "modelsUrl": "http://localhost:20128/api/v1/vscode/sk-your-omniroute-key/models",
+    "requestFormat": "openai-chat-completions",
+    "contextWindow": 256000,
+    "maxOutputTokens": 32768,
+    "auth": {
+      "type": "none"
+    }
+  }
+]
+```
+
+**Notes:**
+
+- Replace `sk-your-omniroute-key` with an API key created in OmniRoute.
+- The `url` field should point to `/api/v1/vscode/{token}/chat/completions`.
+- The `modelsUrl` field should point to `/api/v1/vscode/{token}/models`.
+- Prefer the normal `/v1` + Bearer header flow when the client supports custom headers.
+- URL-embedded tokens are a compatibility fallback and may appear in editor logs or proxy history.
+
+---
+
 #### Kiro CLI (Amazon)
 
 ```bash
@@ -597,6 +638,19 @@ omniroute completion                   # Generate shell completion
 | `/v1/images/generations`   | Image generation              | GPT-Image, Flux, etc.       |
 | `/v1/audio/speech`         | Text-to-speech                | ElevenLabs, OpenAI TTS      |
 | `/v1/audio/transcriptions` | Speech-to-text                | Deepgram, AssemblyAI        |
+
+Ready-to-paste examples with a tokenized OmniRoute URL:
+
+```txt
+Token example: sk-a3ab3c080beaee3a-69f4a4-070d71af
+
+Standard OpenAI base: http://localhost:20128/v1
+VS Code models: http://localhost:20128/api/v1/vscode/sk-a3ab3c080beaee3a-69f4a4-070d71af/models
+VS Code chat: http://localhost:20128/api/v1/vscode/sk-a3ab3c080beaee3a-69f4a4-070d71af/chat/completions
+VS Code responses: http://localhost:20128/api/v1/vscode/sk-a3ab3c080beaee3a-69f4a4-070d71af/responses
+Ollama tags: http://localhost:20128/api/v1/vscode/sk-a3ab3c080beaee3a-69f4a4-070d71af/api/tags
+Ollama chat: http://localhost:20128/api/v1/vscode/sk-a3ab3c080beaee3a-69f4a4-070d71af/api/chat
+```
 
 ---
 

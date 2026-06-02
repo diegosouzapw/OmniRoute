@@ -42,6 +42,15 @@ export const MODEL_SPECS: Record<string, ModelSpec> = {
     supportsVision: true,
   },
 
+  "gpt-5.4": {
+    maxOutputTokens: 131072,
+    contextWindow: 409600,
+    supportsThinking: true,
+    supportsTools: true,
+    supportsVision: true,
+    aliases: ["openai/gpt-5.4"],
+  },
+
   // ── GPT-4o family ──────────────────────────────────────────────
   "gpt-4o-mini": {
     maxOutputTokens: 16384,
