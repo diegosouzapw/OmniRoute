@@ -4953,7 +4953,7 @@
     "proxyFreePoolEmpty": "No proxies found. Click Sync All to fetch from sources.",
     "close": "Close",
     "cancel": "Cancel",
-    "globalLabel": "Global"
+    "globalLabel": "Global",
     "configure": "Configure",
     "globalSystemPrompt": "Global System Prompt",
     "saved": "Saved",
