@@ -37,6 +37,55 @@ const CLAUDE_USER_AGENT =
 // Session cookie constants
 const CLAUDE_SESSION_COOKIE_NAME = "sessionKey";
 
+/**
+ * Read the Claude Web session cookie from the credentials object.
+ *
+ * Lookup order (most-specific first):
+ *   1. `credentials.cookie` — direct field (programmatic / older callers)
+ *   2. `credentials.apiKey` — what the dashboard form posts (the
+ *      connection row's `api_key` column stores the cookie string after
+ *      encryption; `getProviderCredentials()` decrypts and surfaces it
+ *      back as `apiKey`)
+ *   3. `credentials.providerSpecificData.cookie` — escape hatch for
+ *      callers that route the cookie through the per-provider metadata
+ *
+ * Without the apiKey fallback, the executor could never see a real
+ * cookie through the standard /api/v1/chat/completions path — the
+ * dashboard posts the cookie in the connection's `apiKey` field, but
+ * this executor was historically reading `cookie` only.
+ */
+function readClaudeWebCookie(credentials: unknown): string {
+  if (!credentials || typeof credentials !== "object") return "";
+  const c = credentials as Record<string, unknown>;
+  const direct = typeof c.cookie === "string" ? c.cookie : "";
+  if (direct.trim()) return direct;
+  const apiKey = typeof c.apiKey === "string" ? c.apiKey : "";
+  if (apiKey.trim()) return apiKey;
+  const psd = c.providerSpecificData;
+  if (psd && typeof psd === "object") {
+    const nested = (psd as Record<string, unknown>).cookie;
+    if (typeof nested === "string" && nested.trim()) return nested;
+  }
+  return "";
+}
+
+/**
+ * Read the optional Claude Web device ID from the credentials object.
+ * Mirrors `readClaudeWebCookie` so callers can use the same priority
+ * chain (direct → apiKey → providerSpecificData).
+ */
+function readClaudeWebDeviceId(credentials: unknown): string | undefined {
+  if (!credentials || typeof credentials !== "object") return undefined;
+  const c = credentials as Record<string, unknown>;
+  if (typeof c.deviceId === "string" && c.deviceId.trim()) return c.deviceId;
+  const psd = c.providerSpecificData;
+  if (psd && typeof psd === "object") {
+    const nested = (psd as Record<string, unknown>).deviceId;
+    if (typeof nested === "string" && nested.trim()) return nested;
+  }
+  return undefined;
+}
+
 // Default model when not specified
 const DEFAULT_CLAUDE_MODEL = "claude-sonnet-4-6";
 
@@ -402,13 +451,13 @@ export class ClaudeWebExecutor extends BaseExecutor {
     signal?: AbortSignal
   ): Promise<boolean> {
     try {
-      const rawCookie = String((credentials as any)?.cookie || "");
+      const rawCookie = readClaudeWebCookie(credentials);
       if (!rawCookie.trim()) {
         return false;
       }
 
       const cookieHeader = await normalizeClaudeSessionCookieWithAutoRefresh(rawCookie, { allowAutoSolve: false });
-      const deviceId = (credentials as any)?.deviceId as string | undefined;
+      const deviceId = readClaudeWebDeviceId(credentials);
 
       return await verifyCookieValidity(cookieHeader, deviceId, signal);
     } catch (error) {
@@ -446,7 +495,7 @@ export class ClaudeWebExecutor extends BaseExecutor {
         };
       }
 
-      const rawCookie = String((credentials as any)?.cookie || "");
+      const rawCookie = readClaudeWebCookie(credentials);
       if (!rawCookie.trim()) {
         const errorResp = new Response(
           JSON.stringify({
@@ -473,7 +522,7 @@ export class ClaudeWebExecutor extends BaseExecutor {
         allowAutoSolve: true,
         log,
       });
-      const deviceId = (credentials as any)?.deviceId as string | undefined;
+      const deviceId = readClaudeWebDeviceId(credentials);
 
       // Transform request to Claude format
       let claudePayload: ClaudeWebRequestPayload;
