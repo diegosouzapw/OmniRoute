@@ -55,7 +55,7 @@ export function sortProviderEntriesByName<TProvider>(
   return [...entries].sort((a, b) => {
     const nameCompare = compareTr(getProviderSortLabel(a), getProviderSortLabel(b));
     if (nameCompare !== 0) return nameCompare;
-    return compareTr(a.providerId, b.providerId);
+    return a.providerId.localeCompare(b.providerId); // teknik sıralama: ASCII kasıtlı
   });
 }
 
