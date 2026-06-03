@@ -23,6 +23,12 @@ type UpdateProxyConfigInput = z.infer<typeof updateProxyConfigSchema>;
 type ProxyConfigInput = NonNullable<UpdateProxyConfigInput["proxy"]>;
 type ProxyMapInput = Record<string, ProxyConfigInput | null>;
 type ApiRouteError = Error & { status?: number; type?: string };
+const PROXY_LEVEL_TO_REGISTRY_SCOPE = {
+  global: "global",
+  provider: "provider",
+  combo: "combo",
+  key: "account",
+} as const;
 
 function isSocks5Enabled() {
   return process.env.ENABLE_SOCKS5_PROXY === "true";
@@ -51,6 +57,41 @@ function toApiRouteError(error: unknown): ApiRouteError {
     return error as ApiRouteError;
   }
   return new Error("Unexpected error") as ApiRouteError;
+}
+
+function getRegistryScopeForLevel(
+  level: string
+): "global" | "provider" | "combo" | "account" | undefined {
+  if (!Object.prototype.hasOwnProperty.call(PROXY_LEVEL_TO_REGISTRY_SCOPE, level)) {
+    return undefined;
+  }
+
+  return PROXY_LEVEL_TO_REGISTRY_SCOPE[
+    level as keyof typeof PROXY_LEVEL_TO_REGISTRY_SCOPE
+  ];
+}
+
+async function getRegistryProxyForLevel(level: string, id: string | null) {
+  const scope = getRegistryScopeForLevel(level);
+  if (!scope) return null;
+  if (scope !== "global" && !id) return null;
+
+  const assignments = await getProxyAssignments({ scope });
+  const assignment =
+    scope === "global" ? assignments[0] : assignments.find((entry) => entry.scopeId === id);
+  if (!assignment?.proxyId) return null;
+
+  return getProxyById(assignment.proxyId, { includeSecrets: true });
+}
+
+function toProxyConfig(proxyData: NonNullable<Awaited<ReturnType<typeof getProxyById>>>) {
+  return {
+    type: proxyData.type,
+    host: proxyData.host,
+    port: proxyData.port,
+    username: proxyData.username,
+    password: proxyData.password,
+  };
 }
 
 function normalizeAndValidateProxy(
@@ -136,55 +177,16 @@ export async function GET(request: Request) {
       return Response.json(result);
     }
 
-    // Get proxy for a specific level - check Proxy Registry first
-    if (level === "global") {
-      const assignments = await getProxyAssignments({ scope: "global" });
-      if (assignments.length > 0 && assignments[0].proxyId) {
-        const proxyData = await getProxyById(assignments[0].proxyId, { includeSecrets: true });
-        if (proxyData) {
-          return Response.json({
-            level: "global",
-            id: null,
-            proxy: {
-              type: proxyData.type,
-              host: proxyData.host,
-              port: proxyData.port,
-              username: proxyData.username,
-              password: proxyData.password,
-            },
-          });
-        }
-      }
-      // Fallback to old system
-      const proxy = await getProxyForLevel(level, id);
-      return Response.json({ level, id, proxy });
-    }
-
-    if (level === "provider" && id) {
-      const assignments = await getProxyAssignments({ scope: "provider" });
-      const assignment = assignments.find((entry) => entry.scopeId === id);
-      if (assignment?.proxyId) {
-        const proxyData = await getProxyById(assignment.proxyId, { includeSecrets: true });
-        if (proxyData) {
-          return Response.json({
-            level,
-            id,
-            proxy: {
-              type: proxyData.type,
-              host: proxyData.host,
-              port: proxyData.port,
-              username: proxyData.username,
-              password: proxyData.password,
-            },
-          });
-        }
-      }
-
-      const proxy = await getProxyForLevel(level, id);
-      return Response.json({ level, id, proxy });
-    }
-
     if (level) {
+      const proxyData = await getRegistryProxyForLevel(level, id);
+      if (proxyData) {
+        return Response.json({
+          level,
+          id: level === "global" ? null : id,
+          proxy: toProxyConfig(proxyData),
+        });
+      }
+
       const proxy = await getProxyForLevel(level, id);
       return Response.json({ level, id, proxy });
     }
@@ -207,13 +209,7 @@ export async function GET(request: Request) {
 
       for (const result of providerProxyResults) {
         if (!result) continue;
-        config.providers[result.scopeId] = {
-          type: result.proxyData.type,
-          host: result.proxyData.host,
-          port: result.proxyData.port,
-          username: result.proxyData.username,
-          password: result.proxyData.password,
-        };
+        config.providers[result.scopeId] = toProxyConfig(result.proxyData);
       }
     }
     return Response.json(config);

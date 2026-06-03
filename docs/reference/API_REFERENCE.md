@@ -243,6 +243,67 @@ Validates a WebSocket upgrade handshake and returns the wire protocol example me
 
 **Auth:** Bearer API key during handshake.
 
+### Responses API over WebSocket (codex only)
+
+```bash
+# Same host:port as the HTTP API (default 20128); upgrade the connection:
+wscat -c "ws://localhost:20128/v1/responses?api_key=<OMNIROUTE_API_KEY>"
+# (or: -H "Authorization: Bearer <OMNIROUTE_API_KEY>")
+
+# First frame MUST be response.create:
+{ "type": "response.create", "model": "gpt-5.5", "input": [ { "role": "user", "content": "hi" } ] }
+```
+
+A Responses-API-over-WebSocket proxy is wired **exclusively to `codex`** (ChatGPT
+backend). It listens on the same port as the API/dashboard at paths `/v1/responses`,
+`/responses`, and `/api/v1/responses`. On the first `response.create` frame it
+authenticates + prepares via the internal `codex-responses-ws` bridge, selects a
+codex OAuth connection, and tunnels to `wss://chatgpt.com/backend-api/codex/responses`
+via the `wreq-js` transport. **Non-codex models are rejected** (`codex_ws_provider_required`).
+For quota-share routing use `model: "qtSd/<group>/codex/<model>"`. Implemented in
+`app/server-ws.mjs` + `scripts/dev/responses-ws-proxy.mjs` + `src/app/api/internal/codex-responses-ws/route.ts`.
+
+**Auth:** Bearer API key during handshake. The bundled HTTP server (`server-ws.mjs`)
+must be the active entrypoint (it is, by default, when `app/server-ws.mjs` exists).
+
+#### Model id: use the bare ChatGPT id (no `codex/` prefix)
+
+The OpenAI **Codex CLI** validates the model name client-side when
+`supports_websockets = true` and **rejects provider-prefixed ids** like
+`codex/gpt-5.5` (`The 'codex/gpt-5.5' model is not supported when using Codex with
+a ChatGPT account`). Send the **bare** id (e.g. `gpt-5.5`). OmniRoute's bridge is
+codex-only, so it re-resolves a bare id as a codex model
+(`resolveCodexWsModelInfo`) before tunneling upstream — even though a bare
+`gpt-5.5` would otherwise route to another provider over HTTP.
+
+#### Configuring the OpenAI Codex CLI
+
+Point the Codex CLI at OmniRoute by adding a custom provider with WebSocket
+support to `~/.codex/config.toml` (use a separate `CODEX_HOME` to avoid touching
+an existing config):
+
+```toml
+model = "gpt-5.5"                 # bare id — NOT "codex/gpt-5.5"
+model_provider = "omniroute"
+
+[model_providers.omniroute]
+name = "OmniRoute (WS)"
+base_url = "http://localhost:20128/v1"   # no trailing slash; the WS URL is derived (use https/wss in production)
+wire_api = "responses"                    # only supported value since Feb 2026
+supports_websockets = true                # enables the Responses-over-WS transport
+env_key = "OMNIROUTE_API_KEY"             # holds the OmniRoute API key (Bearer)
+```
+
+```bash
+export OMNIROUTE_API_KEY=sk-...           # an OmniRoute API key (any key if REQUIRE_API_KEY=false)
+codex exec "Responda apenas: PONG"
+```
+
+The CLI upgrades `base_url + /responses` to a WebSocket and OmniRoute tunnels it
+to the selected codex OAuth connection. Validated end-to-end against the local
+server: ChatGPT returns `codex.rate_limits` + `response.created` and streams the
+completion.
+
 ---
 
 ## Quotas & Issues Reporting

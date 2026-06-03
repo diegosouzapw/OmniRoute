@@ -69,6 +69,8 @@ export interface PoolWizardProps {
   editPool?: QuotaPool;
   /** Whether the pool being edited is currently exclusive. Used to pre-fill the exclusive checkbox in edit mode. */
   editPoolExclusive?: boolean;
+  /** connectionId → name of the pool it already belongs to, for the "already used" hint. */
+  connectionPoolName?: Record<string, string>;
 }
 
 // ────────────────────────────────────────────────────────────────────────────
@@ -176,6 +178,7 @@ export default function PoolWizard({
   selectedGroupId: initialGroupId = "group-demo",
   editPool,
   editPoolExclusive,
+  connectionPoolName = {},
 }: PoolWizardProps) {
   const t = useTranslations("quotaShare");
   const tPlans = useTranslations("quotaPlans");
@@ -305,6 +308,18 @@ export default function PoolWizard({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open, editPool, initialGroupId]);
 
+  // Keep the group <select> on a real, selectable option: if the inherited page
+  // filter was "all" (or an unknown id), snap to the first real group once groups
+  // load. Prevents persisting groupId="all" (which renders under no group → B1).
+  useEffect(() => {
+    if (!open || editPool) return;
+    if (groups.length === 0) return;
+    if (groupId === "all" || !groups.some((g) => g.id === groupId)) {
+      setGroupId(groups[0].id);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open, editPool, groups]);
+
   // ── Step 2 — dimension editors ────────────────────────────────────────────
 
   const addDimension = () => {
@@ -409,6 +424,13 @@ export default function PoolWizard({
     setSaving(true);
     setError(null);
 
+    // Never persist the "all" filter sentinel (or an unknown id) as a real group.
+    // Fall back to the first real group — the seed "group-demo" always exists (migration 088).
+    const resolvedGroupId =
+      groupId && groupId !== "all" && groups.some((g) => g.id === groupId)
+        ? groupId
+        : (groups[0]?.id ?? "group-demo");
+
     try {
       if (!editPool) {
         // ── Create mode: POST → optional PUT → PATCH ──────────────────────
@@ -422,7 +444,7 @@ export default function PoolWizard({
             connectionIds,
             name: effectivePoolName,
             allocations: [],
-            groupId,
+            groupId: resolvedGroupId,
           }),
         });
         if (!createRes.ok) {
@@ -471,7 +493,7 @@ export default function PoolWizard({
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             name: effectivePoolName,
-            groupId,
+            groupId: resolvedGroupId,
             connectionIds,
             allocations,
             exclusive,
@@ -589,6 +611,7 @@ export default function PoolWizard({
                       />
                       <span className="text-sm truncate">
                         {connLabel(c)} {t("alreadyUsedSuffix")}
+                        {connectionPoolName[c.id] ? ` — ${connectionPoolName[c.id]}` : ""}
                       </span>
                     </label>
                   ))}

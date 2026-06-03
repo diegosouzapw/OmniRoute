@@ -454,6 +454,19 @@ function isSchemaAlreadyApplied(
       // The table + column are already present when group_id exists on
       // quota_pools (ensures the backfill UPDATE also ran).
       return hasTable(db, "quota_groups") && hasColumn(db, "quota_pools", "group_id");
+    case "089":
+      // disable_non_public_models column (PR #3017, renumbered 077 → 089 to avoid
+      // collision with 077_api_key_stream_default_mode on merge into v3.8.8).
+      return hasColumn(db, "api_keys", "disable_non_public_models");
+    case "090":
+      // plugin_metrics table (PR #2913, renumbered 077 → 090 to avoid
+      // collision with 077_api_key_stream_default_mode on merge into v3.8.8).
+      return hasTable(db, "plugin_metrics");
+    case "091":
+      // plugin_analytics table (PR #2913). The PR's stray db/migrations version
+      // was dropped on integration; this canonical migration creates the table
+      // that recordPluginExecution()/getPluginAnalytics() rely on.
+      return hasTable(db, "plugin_analytics");
     default:
       return false;
   }

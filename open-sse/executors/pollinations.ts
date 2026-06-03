@@ -1,11 +1,12 @@
 import { BaseExecutor } from "./base.ts";
 import { PROVIDERS } from "../config/constants.ts";
-import { SessionPool, PoolRegistry } from "../services/sessionPool/index.ts";
+import { DEFAULT_POOL_CONFIG } from "../services/sessionPool/types.ts";
 import type { ExecuteInput } from "./base.ts";
 
 export class PollinationsExecutor extends BaseExecutor {
   constructor() {
     super("pollinations", PROVIDERS["pollinations"] || { format: "openai" });
+    this.poolConfig = DEFAULT_POOL_CONFIG;
   }
 
   buildUrl(_model: string, _stream: boolean, urlIndex = 0, _credentials = null): string {
@@ -50,7 +51,15 @@ export class PollinationsExecutor extends BaseExecutor {
     }
 
     const pool = this.getPool();
-    const session = pool ? pool.acquire() : null;
+
+    // Use acquireBlocking for anonymous requests to wait for available session
+    let session;
+    try {
+      session = pool ? await pool.acquireBlocking(10_000) : null;
+    } catch {
+      // Pool exhausted — fall through to direct request without fingerprint
+      session = null;
+    }
 
     if (session) {
       const fpHeaders = session.buildHeaders();
@@ -60,19 +69,10 @@ export class PollinationsExecutor extends BaseExecutor {
       };
     }
 
-    let result;
     try {
-      result = await super.execute(input);
-    } catch (err) {
-      if (session && pool) {
-        pool.reportCooldown(session);
-        session.release();
-      }
-      throw err;
-    }
+      const result = await super.execute(input);
 
-    if (session && pool) {
-      try {
+      if (session && pool) {
         const status = result.response.status;
         if (status === 429) {
           pool.reportCooldown(session);
@@ -81,12 +81,17 @@ export class PollinationsExecutor extends BaseExecutor {
         } else {
           pool.reportSuccess(session);
         }
-      } finally {
-        session.release();
       }
-    }
 
-    return result;
+      return result;
+    } catch (err) {
+      if (session && pool) {
+        pool.reportCooldown(session);
+      }
+      throw err;
+    } finally {
+      session?.release();
+    }
   }
 }
 

@@ -1762,7 +1762,13 @@
     "filterTypeRestricted": "Restricted",
     "shownOf": "{shown} of {total} shown",
     "emptyFilterTitle": "No keys match your filters",
-    "emptyFilterClear": "Clear filters"
+    "emptyFilterClear": "Clear filters",
+    "disableNonPublicModels": "Disable Non-Public Models",
+    "disableNonPublicModelsDesc": "Reject requests for models that are not discovered or not marked as public in the provider catalog",
+    "normalKeysSection": "Normal keys",
+    "quotaKeysSection": "Quota keys",
+    "quotaPill": "QUOTA",
+    "quotaModeOnly": "qtSd-only"
   },
   "auditLog": {
     "title": "Audit Log",
@@ -4611,7 +4617,21 @@
     "webNoAuthGuideBody": "{provider} does not need an API key or cookie. Save the connection to use its free web endpoint.",
     "webSessionCredentialValidationFailed": "Session credential validation failed. Sign in again, copy a fresh credential, and try again.",
     "checkCookie": "Check cookie",
-    "checkWebToken": "Check token"
+    "checkWebToken": "Check token",
+    "huggingchatLabel": "HuggingChat (Free)",
+    "huggingchatDesc": "Free LLM chat via huggingface.co/chat",
+    "phindLabel": "Phind (Free)",
+    "phindDesc": "Free dev-focused AI chat",
+    "poeWebLabel": "Poe Web",
+    "poeWebDesc": "Multi-model chat via poe.com",
+    "veniceWebLabel": "Venice Web",
+    "veniceWebDesc": "Privacy-focused AI chat",
+    "v0VercelWebLabel": "v0 Vercel Web",
+    "v0VercelWebDesc": "AI code generation via v0.dev",
+    "kimiWebLabel": "Kimi Web",
+    "kimiWebDesc": "Chinese market AI chat via kimi.moonshot.cn",
+    "doubaoWebLabel": "Doubao Web",
+    "doubaoWebDesc": "ByteDance AI chat via doubao.com"
   },
   "settings": {
     "title": "Settings",
@@ -7918,7 +7938,20 @@
     "endpointsHint": "Call these virtual models with any allocated key — routing + quota are handled per group.",
     "previewForKey": "Preview for key",
     "previewKeyNone": "(all endpoints)",
-    "endpointsBaseUrl": "Base URL"
+    "endpointsBaseUrl": "Base URL",
+    "endpointsCollapse": "Collapse",
+    "endpointsExpand": "Expand",
+    "endpointsAnthropicNote": "Anthropic-native",
+    "endpointsResponsesNote": "OpenAI Responses — codex/github",
+    "endpointsWsNote": "WebSocket — codex only",
+    "betaTitle": "Beta",
+    "betaText": "Quota Share is functional but bugs are expected. Found one? Please report it.",
+    "betaReportLink": "Report an issue",
+    "deleteGroup": "Delete group",
+    "deleteGroupConfirm": "Delete this group? Its pools must be reassigned or removed first.",
+    "deleteGroupHasPools": "This group still has pools — reassign or delete them first.",
+    "ungroupedTitle": "Ungrouped",
+    "ungroupedHint": "These pools are not assigned to a known group. Edit a pool to move it into a real group."
   },
   "plugins": {
     "title": "Plugins",

@@ -297,3 +297,22 @@ describe("extractCodeAssistSubscriptionTier", () => {
     assert.equal(__testing.extractCodeAssistSubscriptionTier({}), null);
   });
 });
+
+/* ------------------------------------------------------------------ */
+/*  mapSubscriptionTierStringToPlanLabel — (RESTRICTED) strip + ReDoS  */
+/* ------------------------------------------------------------------ */
+describe("mapSubscriptionTierStringToPlanLabel", () => {
+  it("resolves a code-assist tier id via the normalized-id path after stripping (RESTRICTED)", () => {
+    // These reach the `normalizedId` branch (no early includes() match) and only
+    // resolve to a label once the "(RESTRICTED)" suffix is stripped + trimmed.
+    assert.equal(__testing.mapSubscriptionTierStringToPlanLabel("GOOGLE_ONE (RESTRICTED)"), "Pro");
+    assert.equal(__testing.mapSubscriptionTierStringToPlanLabel("LEGACY (RESTRICTED)"), "Free");
+  });
+
+  it("does not hang on whitespace-heavy input (js/polynomial-redos guard)", () => {
+    const start = process.hrtime.bigint();
+    __testing.mapSubscriptionTierStringToPlanLabel(" ".repeat(100000) + "(");
+    const ms = Number(process.hrtime.bigint() - start) / 1e6;
+    assert.ok(ms < 500, `tier mapping took ${ms.toFixed(1)}ms on whitespace-heavy input — possible ReDoS`);
+  });
+});

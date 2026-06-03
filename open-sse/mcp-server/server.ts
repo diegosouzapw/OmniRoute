@@ -965,7 +965,7 @@ export function createMcpServer(): McpServer {
   );
 
   // ── Memory Tools ──────────────────────────────
-  Object.values(memoryTools).forEach((toolDef: any) => {
+  Object.values(memoryTools).forEach((toolDef) => {
     server.registerTool(
       toolDef.name,
       {
@@ -978,6 +978,7 @@ export function createMcpServer(): McpServer {
         async (args) => {
           try {
             const parsedArgs = toolDef.inputSchema.parse(args ?? {});
+            // @ts-expect-error - handler type lost through dynamic Object.values() access
             const result = await toolDef.handler(parsedArgs);
             return { content: [{ type: "text" as const, text: JSON.stringify(result, null, 2) }] };
           } catch (err) {
@@ -991,7 +992,7 @@ export function createMcpServer(): McpServer {
   });
 
   // ── Skill Tools ──────────────────────────────
-  Object.values(skillTools).forEach((toolDef: any) => {
+  Object.values(skillTools).forEach((toolDef) => {
     server.registerTool(
       toolDef.name,
       {
@@ -1004,6 +1005,7 @@ export function createMcpServer(): McpServer {
         async (args) => {
           try {
             const parsedArgs = toolDef.inputSchema.parse(args ?? {});
+            // @ts-expect-error - handler type lost through dynamic Object.values() access
             const result = await toolDef.handler(parsedArgs);
             return { content: [{ type: "text" as const, text: JSON.stringify(result, null, 2) }] };
           } catch (err) {
@@ -1067,7 +1069,7 @@ export function createMcpServer(): McpServer {
   });
 
   // ── Compression Tools ─────────────────────────
-  Object.values(compressionTools).forEach((toolDef: any) => {
+  Object.values(compressionTools).forEach((toolDef) => {
     server.registerTool(
       toolDef.name,
       {
@@ -1080,6 +1082,7 @@ export function createMcpServer(): McpServer {
         async (args) => {
           try {
             const parsedArgs = toolDef.inputSchema.parse(args ?? {});
+            // @ts-expect-error - handler type lost through dynamic Object.values() access
             const result = await toolDef.handler(parsedArgs);
             return { content: [{ type: "text" as const, text: JSON.stringify(result, null, 2) }] };
           } catch (err) {

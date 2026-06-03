@@ -41,7 +41,11 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 
-// ── DB harness (same pattern as quota-pool-connections.test.ts) ──────────────
+// ── DB harness ───────────────────────────────────────────────────────────────
+// Use a stable per-file temp dir so DATA_DIR is set ONCE before any module
+// load. Never delete the SQLite file between tests — under --test-concurrency=4
+// modules are cached across files and SQLITE_FILE is frozen at first import.
+// Wipe test data via SQL DELETEs instead to avoid cross-file path corruption.
 const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-quota-multiprovider-"));
 process.env.DATA_DIR = TEST_DATA_DIR;
 
@@ -56,37 +60,64 @@ const { isQuotaModelName, parseQuotaModelName, quotaModelName } = await import(
 );
 const { PROVIDER_MODELS } = await import("../../open-sse/config/providerModels.ts");
 
+// Trigger migration once at module load so the schema is ready for the first
+// beforeEach without a slow per-test full migration run.
+core.getDbInstance();
+
 // ---------------------------------------------------------------------------
 // Lifecycle
 // ---------------------------------------------------------------------------
 
-async function resetStorage() {
-  core.resetDbInstance();
-  for (let attempt = 0; attempt < 10; attempt++) {
-    try {
-      if (fs.existsSync(TEST_DATA_DIR)) {
-        fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
-      }
-      break;
-    } catch (error: unknown) {
-      const err = error as NodeJS.ErrnoException;
-      if ((err?.code === "EBUSY" || err?.code === "EPERM") && attempt < 9) {
-        await new Promise((resolve) => setTimeout(resolve, 50 * (attempt + 1)));
-      } else {
-        throw error;
-      }
-    }
+// Tables touched by this test suite.  Cleared via SQL between tests to avoid
+// the slow per-test full-migration race that fires under --test-force-exit
+// with high concurrency (the rmSync approach also corrupts the module-level
+// SQLITE_FILE pointer shared across concurrent test files).
+const CLEAR_TABLES = [
+  "quota_pool_connections",
+  "quota_allocations",
+  "quota_pools",
+  "provider_connections",
+  "combos",
+];
+
+function resetStorage() {
+  const db = core.getDbInstance();
+  for (const table of CLEAR_TABLES) {
+    db.prepare(`DELETE FROM ${table}`).run();
   }
-  fs.mkdirSync(TEST_DATA_DIR, { recursive: true });
+  // Re-seed the default quota group removed by the cascading delete on quota_pools.
+  db.prepare(
+    "INSERT OR IGNORE INTO quota_groups (id, name) VALUES ('group-demo', 'GroupDemo')"
+  ).run();
 }
 
-test.beforeEach(async () => {
-  await resetStorage();
+/**
+ * Drain all pending microtasks and one round of macrotasks so that any
+ * fire-and-forget `syncQuotaCombosGuarded` calls dispatched by createPool /
+ * updatePool have a chance to run to completion before the next assertion.
+ *
+ * `setImmediate` fires AFTER all currently-queued microtasks (Promises), so a
+ * single `await new Promise(r => setImmediate(r))` is not a sleep — it is a
+ * deliberate synchronisation point that lets pending async work finish without
+ * introducing an arbitrary wall-clock delay.
+ */
+async function flushPendingSyncs(): Promise<void> {
+  for (let i = 0; i < 5; i++) {
+    await new Promise<void>((r) => setImmediate(r));
+  }
+}
+
+test.beforeEach(() => {
+  resetStorage();
 });
 
-test.after(async () => {
+test.after(() => {
   core.resetDbInstance();
-  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+  try {
+    fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+  } catch {
+    // best-effort cleanup
+  }
 });
 
 // ---------------------------------------------------------------------------
@@ -340,16 +371,23 @@ test("D2.5: syncQuotaCombos — 2-connection same-provider pool creates one comb
     connectionIds: [idA, idB],
   });
 
-  // Wait for the fire-and-forget sync triggered by createPool to settle,
-  // then call syncQuotaCombos explicitly (idempotent).
+  // Drain the fire-and-forget syncQuotaCombosGuarded dispatched by createPool
+  // before calling the explicit sync, so the explicit sync is the last writer.
+  await flushPendingSyncs();
+
+  // syncQuotaCombos is idempotent; the explicit call ensures the combo reflects
+  // the current pool state (2 connections) even if the FF already ran.
   await syncQuotaCombos(pool.id);
+  // Drain any background syncs before asserting.
+  await flushPendingSyncs();
 
   const quotaCombos = await listQuotaCombos();
   const comboMap = new Map(quotaCombos.map((c) => [c.name, c]));
 
   // ── Verify PROVIDER_A combos exist with N-step fill-first ─────────────────
   for (const modelId of modelsA) {
-    const expectedName = quotaModelName(pool.name, PROVIDER_A, modelId);
+    // Combos are named with the GROUP name ("GroupDemo", from group-demo), not pool name.
+    const expectedName = quotaModelName("GroupDemo", PROVIDER_A, modelId);
     const combo = comboMap.get(expectedName);
     assert.ok(combo, `Missing combo for ${PROVIDER_A}/${modelId}: ${expectedName}`);
 
@@ -418,7 +456,12 @@ test("D2.6: syncQuotaCombos — after removing connB from same-provider pool, re
     connectionIds: [idA, idB],
   });
 
+  // Drain the fire-and-forget syncQuotaCombosGuarded dispatched by createPool.
+  await flushPendingSyncs();
+
   await syncQuotaCombos(pool.id);
+  // Drain any background syncs before asserting initial state.
+  await flushPendingSyncs();
 
   // Verify we have PROVIDER_A combos with 2 steps before the update.
   const before = await listQuotaCombos();
@@ -439,18 +482,25 @@ test("D2.6: syncQuotaCombos — after removing connB from same-provider pool, re
   // Remove connB from the pool — now only connA remains.
   poolsDb.updatePool(pool.id, { connectionIds: [idA] });
 
+  // Drain the fire-and-forget from updatePool so it cannot overwrite the
+  // 1-step result that the following explicit sync will produce.
+  await flushPendingSyncs();
+
   // Re-sync.
   await syncQuotaCombos(pool.id);
+  // Final drain: ensure no stale background sync can revert to 2 steps.
+  await flushPendingSyncs();
 
   const after = await listQuotaCombos();
 
   // connA's combos must still be present (same names).
+  // Combos are named with the GROUP name ("GroupDemo", from group-demo), not pool name.
   const afterProviders = new Set(
     after.map((c) => parseQuotaModelName(c.name)?.provider).filter(Boolean)
   );
   assert.ok(afterProviders.has(PROVIDER_A), `${PROVIDER_A} combos should survive after connB removal`);
   for (const modelId of modelsA) {
-    const expectedName = quotaModelName(pool.name, PROVIDER_A, modelId);
+    const expectedName = quotaModelName("GroupDemo", PROVIDER_A, modelId);
     const found = after.find((c) => c.name === expectedName);
     assert.ok(found, `Combo for ${PROVIDER_A}/${modelId} should survive after connB removal`);
   }
