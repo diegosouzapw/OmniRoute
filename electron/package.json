@@ -57,7 +57,7 @@
     ],
     "extraResources": [
       {
-        "from": "../.next/electron-standalone",
+        "from": "../.build/electron-standalone",
         "to": "app",
         "filter": [
           "**/*",
@@ -65,7 +65,7 @@
         ]
       },
       {
-        "from": "../.next/electron-standalone/node_modules",
+        "from": "../.build/electron-standalone/node_modules",
         "to": "app/node_modules",
         "filter": [
           "**/*"

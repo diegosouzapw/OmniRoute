@@ -439,6 +439,40 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
       );
     }
 
+    const modelSource = toNonEmptyString(modelsData.source)?.toLowerCase() || "unknown";
+    const modelWarning = toNonEmptyString(modelsData.warning);
+    if (modelSource === "local_catalog") {
+      const responseError =
+        modelWarning || "Remote model discovery failed; local catalog fallback not synced";
+      await saveCallLog({
+        method: "GET",
+        path: `/api/providers/${id}/models`,
+        status: 502,
+        model: "model-sync",
+        provider: logProvider,
+        sourceFormat: "-",
+        connectionId: id,
+        duration,
+        error: responseError,
+        requestType: "model-sync",
+        responseBody: {
+          source: modelSource,
+          warning: modelWarning,
+          provider: logProvider,
+          channel: channelLabel,
+        },
+      });
+
+      return NextResponse.json(
+        {
+          error: responseError,
+          source: modelSource,
+          ...(modelWarning ? { warning: modelWarning } : {}),
+        },
+        { status: 502 }
+      );
+    }
+
     const fetchedModels = modelsData.models || [];
     const {
       previousModels,

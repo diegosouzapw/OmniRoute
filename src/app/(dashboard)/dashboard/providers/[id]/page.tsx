@@ -3006,7 +3006,11 @@ export default function ProviderDetailPage() {
   const handleImportModels = async () => {
     if (importingModels) return;
     const activeConnection = connections.find((conn) => conn.isActive !== false);
-    if (!activeConnection) return;
+    // #3047 — no-auth providers (e.g. OpenCode Free) have no connection rows;
+    // fall back to the provider id so the models route can serve the public
+    // catalog instead of the button silently doing nothing.
+    if (!activeConnection && !isFreeNoAuth) return;
+    const importTargetId = activeConnection?.id ?? providerId;
 
     setImportingModels(true);
     setShowImportModal(true);
@@ -3021,7 +3025,7 @@ export default function ProviderDetailPage() {
     });
 
     try {
-      const res = await fetch(`/api/providers/${activeConnection.id}/models?refresh=true`);
+      const res = await fetch(`/api/providers/${importTargetId}/models?refresh=true`);
       const data = await res.json();
       if (!res.ok) {
         setImportProgress((prev) => ({

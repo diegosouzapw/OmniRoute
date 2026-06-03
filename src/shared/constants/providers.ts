@@ -299,7 +299,8 @@ export const WEB_COOKIE_PROVIDERS = {
     color: "#1DA1F2",
     textIcon: "GW",
     website: "https://grok.com",
-    authHint: "Paste your sso= cookie value from grok.com",
+    authHint:
+      "Paste the full grok.com cookie line from DevTools → Application → Cookies. Include both `sso` and `sso-rw` (e.g. `sso=...; sso-rw=...`) — Grok's anti-bot rejects `sso` on its own.",
     subscriptionRisk: true,
     riskNoticeVariant: "webCookie",
   },

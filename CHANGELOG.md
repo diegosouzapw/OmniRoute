@@ -16,6 +16,37 @@
 
 _Development cycle in progress — entries are added as work merges into `release/v3.8.9` and finalized by the release flow._
 
+### ✨ New Features
+
+- **Obsidian context source — 24 MCP tools** (`read:obsidian` / `write:obsidian`) — search, read, write, and bidirectional sync against a local Obsidian vault via the [Local REST API community plugin](https://github.com/obsidianmd/obsidian-local-rest-api). Dashboard "Context Sources" tab, settings API, DB config. (#3077 — thanks @branben)
+
+### 🔧 Bug Fixes
+
+- **sse:** stop 502'ing streaming requests when a "reasoning" openai-compatible upstream ignores `stream:true` and returns a complete `application/json` body — the streaming readiness check only recognized SSE `data:` frames, so such a JSON body (even with valid `content`/`reasoning_content`) produced a spurious `STREAM_EARLY_EOF`. OmniRoute now detects a non-SSE JSON upstream body on the streaming path and synthesizes an equivalent OpenAI SSE stream (`synthesizeOpenAiSseFromJson`), preserving content + reasoning_content. ([#3089](https://github.com/diegosouzapw/OmniRoute/issues/3089))
+- **cache:** serve semantic-cache hits as SSE for streaming clients — a cache hit returned `application/json` regardless of the `stream` flag, so OpenAI-compatible streaming clients lost `reasoning_content` (and got a non-stream body) on cached responses. Stream requests now SSE-wrap the cached completion. ([#2952](https://github.com/diegosouzapw/OmniRoute/issues/2952))
+- **i18n:** fill the missing Chinese (zh-CN) and Russian (ru) UI translations — both locales were missing 9 entire sections (`quotaPlans`, `activity`, `agentBridge`, `trafficInspector`, `cliCommon`, `cliCode`, `cliAgents`, `acpAgents`, `agentSkills`, ~823 keys each) added after the last translation sweep, so those buttons/labels rendered in English. Both catalogs are now at full key parity with `en.json` (8025 keys). ([#3026](https://github.com/diegosouzapw/OmniRoute/issues/3026), [#3067](https://github.com/diegosouzapw/OmniRoute/issues/3067))
+- **dashboard:** fix "Ambiguous model" error in the provider Playground for vendor-namespaced models — the Playground only prefixed models without a `/`, so ids like `moonshotai/kimi-k2.6` or `nvidia/zyphra/zamba2-7b-instruct` (NVIDIA NIM) were sent bare and rejected when the same id exists under multiple providers. The Playground now always qualifies the selected model with its `providerId/` prefix (without double-prefixing). ([#3050](https://github.com/diegosouzapw/OmniRoute/issues/3050))
+- **db:** stop accepting duplicate API keys for the same provider — `createProviderConnection` now dedups by the decrypted key value (not just by name), so re-adding the same key under a different/blank name updates the existing connection instead of inserting a second row. Whitespace-only differences also dedup. ([#3023](https://github.com/diegosouzapw/OmniRoute/issues/3023))
+- **dashboard:** "Import from /models" now works for no-auth providers (e.g. OpenCode Free) — the button used to silently no-op because no-auth providers have no connection row, so `handleImportModels` returned early and the models route 404'd. The route now serves the provider's model catalog when called with a no-auth provider id, and the dashboard falls back to the provider id when there is no connection. ([#3047](https://github.com/diegosouzapw/OmniRoute/issues/3047))
+- **providers:** forward Grok's paired `sso-rw` cookie for grok-web — both the executor and the connection validator now send `sso=…; sso-rw=…` (via the new `buildGrokCookieHeader` helper) when the pasted blob carries `sso-rw`, fixing the `403` _"Request rejected by anti-bot rules"_ that Grok returns for `sso` alone. The add-account hint now asks for the full cookie line. ([#3063](https://github.com/diegosouzapw/OmniRoute/issues/3063))
+- **providers:** fix claude-web persistent 403 — `execute()` was calling the synchronous `normalizeClaudeSessionCookie()` which never injects `cf_clearance`; changed to async `normalizeClaudeSessionCookieWithAutoRefresh()` with `allowAutoSolve:true`. Also removes dead executor `claude-web-auto-refresh.ts` and correctly reclassifies `duckduckgo-web` and `veoaifree-web` as `NOAUTH_PROVIDERS`. (#3090 — thanks @oyi77)
+- **autoCombo:** rotate across all provider connections, never waste capacity — `buildAutoCandidates` now expands each provider into one candidate per active connection (e.g. 43 Cerebras keys → 43 candidates). Adds `ScoreTierRotator` with per-combo round-robin state, combo-name-aware tier preferences (smart/fast/cheap/coding), `connectionDensity` factor (weight 0.05), and budget-cap degradation using the rotator. (#3078 — thanks @oyi77)
+- **providers:** fix SiliconFlow model sync from configured endpoint — routes model discovery through `providerSpecificData.baseUrl` so CN (`api.siliconflow.cn`) vs Global endpoint selection is respected, and prevents `/sync-models` from treating `source: "local_catalog"` fallback responses as successful remote syncs. (#3094 — thanks @xz-dev)
+- **resilience:** a per-model subscription/permission `403` from a passthrough provider (e.g. Ollama Cloud `deepseek-v4-pro` → _"this model requires a subscription"_) now locks out **only that model** instead of cooling down the whole connection — the free models on the same key keep serving, and repeated paid-model 403s no longer escalate a connection-wide backoff. Generalizes the grok-web 403 precedent to all `hasPerModelQuota` providers; terminal/credential 403s (banned/deactivated key) still deactivate the connection. ([#3027](https://github.com/diegosouzapw/OmniRoute/issues/3027))
+- **cache:** preserve client-side `cache_control` breakpoints for Xiaomi MiMo — added `xiaomi-mimo` to the prompt-caching provider allowlist so Claude Code (via cc-switch) cache hints are no longer stripped by the OpenAI-format translator, restoring cache hits. ([#3088](https://github.com/diegosouzapw/OmniRoute/issues/3088))
+
+### 🔧 Build
+
+- **build-output-isolation:** unified standalone assembly into one shared `assembleStandalone` module; isolated build output into `.build/` (intermediates, gitignored) and `dist/` (shippable bundle, gitignored), replacing the old repo-root `app/` and `.next/` directories; dropped the duplicate `next build` that prepublish previously ran; added `build:release` script for a clean rebuild with a `dist/BUILD_SHA` HEAD sentinel that guards against deploying stale bundles. **Operators using custom `app/` paths:** the published bundle directory on the VPS image (`/usr/lib/node_modules/omniroute/app/`) is unchanged — only the in-repo build output path moved. Update any local scripts that reference the repo-local `app/` build output to `dist/` instead.
+
+### 📦 Dependencies
+
+- **electron:** bump to 42.3.2 (crash fix desktopCapturer, Chromium 148.0.7778.218, ThinLTO perf) (#3083)
+- **electron-updater:** bump to 6.8.8 (security: harden auto-update flow against path traversal and env var intercepts) (#3084)
+- **electron-builder:** bump to 26.14.0 (security hardening, pure-JS blockmap/icon migration) (#3082)
+- **dev deps:** bump eslint-config-next 16.2.7, lint-staged 17.0.7, typescript-eslint 8.60.1, vitest 4.1.8 (#3086)
+- **prod deps:** bump next 16.2.7, react/react-dom 19.2.7, tsx 4.22.4, ws 8.21.0, parse5 8.0.1, commander 15.0.0, and 15 other packages (#3085)
+
 ---
 
 ## [3.8.8] — 2026-06-03
