@@ -64,13 +64,24 @@ test("getKnownPlan('') returns null", () => {
   assert.equal(getKnownPlan(""), null);
 });
 
-test("knownProviders() returns exactly 6 entries", () => {
-  assert.equal(knownProviders().length, 6);
+test("knownProviders() returns exactly 10 entries", () => {
+  assert.equal(knownProviders().length, 10);
 });
 
-test("knownProviders() includes codex/glm/minimax/bailian/kimi/alibaba", () => {
+test("knownProviders() includes the full registry set", () => {
   const list = knownProviders() as readonly string[];
-  for (const p of ["codex", "glm", "minimax", "bailian", "kimi", "alibaba"]) {
+  for (const p of [
+    "codex",
+    "claude",
+    "glm",
+    "minimax",
+    "deepseek",
+    "bailian",
+    "kimi",
+    "kimi-coding",
+    "xiaomi-mimo",
+    "alibaba",
+  ]) {
     assert.ok(list.includes(p), `missing ${p}`);
   }
 });

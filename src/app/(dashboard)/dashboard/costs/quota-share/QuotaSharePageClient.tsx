@@ -251,6 +251,25 @@ export default function QuotaSharePageClient() {
     setRenaming(false);
   }, [selectedGroupId, groups, fetchGroups, t]);
 
+  // Delete the selected group. The API blocks deletion while the group still has
+  // pools (HTTP 409) and protects the seed "group-demo"; surface both to the user.
+  const handleDeleteGroup = useCallback(async () => {
+    if (selectedGroupId === "all" || selectedGroupId === "group-demo") return;
+    if (!confirm(t("deleteGroupConfirm"))) return;
+    try {
+      const res = await fetch(`/api/quota/groups/${selectedGroupId}`, { method: "DELETE" });
+      if (res.ok) {
+        setSelectedGroupId("all");
+        await fetchGroups();
+        await mutate();
+      } else if (res.status === 409) {
+        alert(t("deleteGroupHasPools"));
+      }
+    } catch {
+      // fail open
+    }
+  }, [selectedGroupId, fetchGroups, mutate, t]);
+
   // ── Derived ──────────────────────────────────────────────────────────────
 
   const keyLabels = useMemo(() => {
@@ -273,6 +292,29 @@ export default function QuotaSharePageClient() {
     (connectionId: string) => connections.find((c) => c.id === connectionId)?.provider || "unknown",
     [connections]
   );
+
+  // connectionId → name of the pool it already belongs to (all members, not just
+  // primary). Feeds the wizard's "already used" hint so the one-connection-per-pool
+  // rule is explicit instead of silently disabling a checkbox.
+  const connectionPoolName = useMemo(() => {
+    const map: Record<string, string> = {};
+    for (const p of pools) {
+      const name = (p as unknown as { name?: string }).name ?? p.id.slice(0, 8);
+      for (const cid of p.connectionIds ?? [p.connectionId]) {
+        if (!(cid in map)) map[cid] = name;
+      }
+    }
+    return map;
+  }, [pools]);
+
+  // Pools whose groupId matches no loaded group (e.g. legacy pools saved with the
+  // "all" sentinel). Surfaced in an "Ungrouped" bucket so they stay editable/deletable.
+  const orphanPools = useMemo(() => {
+    const known = new Set(groups.map((g) => g.id));
+    return pools.filter(
+      (p) => !known.has((p as unknown as { groupId?: string }).groupId ?? "group-demo")
+    );
+  }, [pools, groups]);
 
   const aggregate = usePoolsUsageAggregate(pools);
 
@@ -354,6 +396,23 @@ export default function QuotaSharePageClient() {
         </div>
       </div>
 
+      {/* Beta banner — scoped to this page only */}
+      <div className="flex items-center gap-2 rounded-lg border border-amber-500/40 bg-amber-500/10 px-3 py-2 text-[12px] text-amber-700 dark:text-amber-200">
+        <span className="material-symbols-outlined text-[16px] text-amber-500 shrink-0">science</span>
+        <span className="flex-1">
+          <span className="font-semibold">{t("betaTitle")}</span> — {t("betaText")}
+        </span>
+        <a
+          href="https://github.com/diegosouzapw/OmniRoute/issues/new?labels=quota-share,beta&title=%5Bquota-share%5D%20"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="shrink-0 inline-flex items-center gap-1 font-medium text-amber-600 dark:text-amber-300 hover:underline"
+        >
+          <span className="material-symbols-outlined text-[14px]">bug_report</span>
+          {t("betaReportLink")}
+        </a>
+      </div>
+
       {/* Group bar */}
       <div className="flex items-center gap-2 flex-wrap rounded-lg border border-border/40 bg-bg-subtle/20 px-3 py-2">
         <span className="text-[11px] uppercase tracking-wide text-text-muted font-semibold shrink-0">
@@ -421,6 +480,16 @@ export default function QuotaSharePageClient() {
           >
             <span className="material-symbols-outlined text-[14px]">edit</span>
             {t("renameGroup")}
+          </button>
+        )}
+        {selectedGroupId !== "all" && selectedGroupId !== "group-demo" && (
+          <button
+            type="button"
+            onClick={() => void handleDeleteGroup()}
+            className="flex items-center gap-1 text-xs text-text-muted hover:text-red-400 transition-colors"
+          >
+            <span className="material-symbols-outlined text-[14px]">delete</span>
+            {t("deleteGroup")}
           </button>
         )}
       </div>
@@ -531,6 +600,38 @@ export default function QuotaSharePageClient() {
               );
             })
           )}
+
+          {/* Ungrouped bucket — pools whose group no longer matches (e.g. legacy
+              "all" sentinel). Keeps them visible + editable + deletable. */}
+          {selectedGroupId === "all" && orphanPools.length > 0 && (
+            <div className="flex flex-col gap-3">
+              <div className="flex items-center gap-2">
+                <span className="material-symbols-outlined text-[16px] text-amber-400">
+                  folder_off
+                </span>
+                <span className="text-sm font-semibold text-text-main">{t("ungroupedTitle")}</span>
+                <span className="text-[11px] text-text-muted">({orphanPools.length})</span>
+              </div>
+              <p className="text-[11px] text-amber-400/80">{t("ungroupedHint")}</p>
+              <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3">
+                {orphanPools.map((pool) => (
+                  <PoolCardWithUsage
+                    key={pool.id}
+                    pool={pool}
+                    keyLabels={keyLabels}
+                    connectionLabel={connLabel(pool.connectionId)}
+                    provider={connProvider(pool.connectionId)}
+                    providers={[
+                      ...new Set((pool.connectionIds ?? [pool.connectionId]).map(connProvider)),
+                    ]}
+                    connectionIds={pool.connectionIds ?? [pool.connectionId]}
+                    onEdit={() => setEditing(pool)}
+                    onRemove={() => void handleRemovePool(pool.id)}
+                  />
+                ))}
+              </div>
+            </div>
+          )}
         </>
       )}
 
@@ -542,7 +643,8 @@ export default function QuotaSharePageClient() {
         connections={connections}
         apiKeys={apiKeys}
         plans={plans}
-        existingPoolConnectionIds={new Set(pools.map((p) => p.connectionId))}
+        existingPoolConnectionIds={new Set(pools.flatMap((p) => p.connectionIds ?? [p.connectionId]))}
+        connectionPoolName={connectionPoolName}
         groups={groups}
         selectedGroupId={selectedGroupId}
       />
@@ -560,7 +662,14 @@ export default function QuotaSharePageClient() {
         connections={connections}
         apiKeys={apiKeys}
         plans={plans}
-        existingPoolConnectionIds={new Set(pools.filter((p) => p.id !== editing?.id).map((p) => p.connectionId))}
+        existingPoolConnectionIds={
+          new Set(
+            pools
+              .filter((p) => p.id !== editing?.id)
+              .flatMap((p) => p.connectionIds ?? [p.connectionId])
+          )
+        }
+        connectionPoolName={connectionPoolName}
         groups={groups}
         selectedGroupId={selectedGroupId}
       />

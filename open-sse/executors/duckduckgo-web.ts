@@ -73,6 +73,16 @@ export class DuckDuckGoWebExecutor extends BaseExecutor {
       );
     }
 
+    // Acquire session from pool for fingerprint rotation
+    const pool = this.getPool();
+    let session;
+    try {
+      session = pool ? await pool.acquireBlocking(10_000) : null;
+    } catch {
+      session = null;
+    }
+    const sessionHeaders = session ? session.buildHeaders() : {};
+
     try {
       const controller = new AbortController();
       const timeout = setTimeout(() => controller.abort(), FETCH_TIMEOUT_MS);
@@ -101,6 +111,7 @@ export class DuckDuckGoWebExecutor extends BaseExecutor {
         method: "POST",
         headers: {
           ...FAKE_HEADERS,
+          ...sessionHeaders,
           "Content-Type": "application/json",
           "x-vqd-hash-1": vqdToken,
         },
@@ -115,6 +126,7 @@ export class DuckDuckGoWebExecutor extends BaseExecutor {
       clearTimeout(timeout);
 
       if (chatResponse.status === 429) {
+        if (pool && session) pool.reportCooldown(session);
         return new Response(
           JSON.stringify({ error: { message: "DuckDuckGo rate limited" } }),
           { status: 429, headers: { "Content-Type": "application/json" } }
@@ -148,14 +160,32 @@ export class DuckDuckGoWebExecutor extends BaseExecutor {
       }
 
       if (chatResponse.status >= 500) {
+        if (pool && session) pool.reportDead(session);
         return new Response(
           JSON.stringify({ error: { message: "Upstream error" } }),
           { status: 502, headers: { "Content-Type": "application/json" } }
         );
       }
 
-      return this.processResponse(chatResponse, stream !== false);
+      const result = this.processResponse(chatResponse, stream !== false);
+
+      // Report pool status based on response
+      if (pool && session) {
+        if (chatResponse.status === 429) {
+          pool.reportCooldown(session);
+        } else if (chatResponse.status >= 500) {
+          pool.reportDead(session);
+        } else {
+          pool.reportSuccess(session);
+        }
+      }
+
+      return result;
     } catch (error) {
+      if (pool && session) {
+        pool.reportCooldown(session);
+      }
+
       if (error instanceof DOMException && error.name === "AbortError") {
         return new Response(
           JSON.stringify({ error: { message: "Request cancelled" } }),
@@ -167,6 +197,8 @@ export class DuckDuckGoWebExecutor extends BaseExecutor {
         JSON.stringify({ error: { message: error instanceof Error ? error.message : "Unknown error" } }),
         { status: 500, headers: { "Content-Type": "application/json" } }
       );
+    } finally {
+      session?.release();
     }
   }
 

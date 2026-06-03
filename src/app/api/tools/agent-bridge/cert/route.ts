@@ -3,6 +3,7 @@
  * POST /api/tools/agent-bridge/cert   — trust (install) the cert
  * LOCAL_ONLY: registered in routeGuard.ts
  */
+import { z } from "zod";
 import { installCert, checkCertInstalled } from "@/mitm/cert/install";
 import { resolveMitmDataDir } from "@/mitm/dataDir";
 import { getCachedPassword } from "@/mitm/manager";
@@ -10,6 +11,12 @@ import path from "path";
 import fs from "fs";
 import { sanitizeErrorMessage } from "@omniroute/open-sse/utils/error";
 import { createErrorResponse } from "@/lib/api/errorResponse";
+
+// Exported for unit testing. Next.js only treats GET/POST/etc. as route
+// handlers; additional named exports are ignored by the App Router.
+export const CertTrustBodySchema = z.object({
+  sudoPassword: z.string().optional(),
+});
 
 function certPath(): string {
   return path.join(resolveMitmDataDir(), "mitm", "server.crt");
@@ -28,9 +35,10 @@ export async function GET(): Promise<Response> {
 }
 
 export async function POST(request: Request): Promise<Response> {
-  const raw = await request.json().catch(() => ({})) as Record<string, unknown>;
+  const raw = await request.json().catch(() => ({}));
+  const parsed = CertTrustBodySchema.safeParse(raw);
   const sudoPassword =
-    typeof raw.sudoPassword === "string" ? raw.sudoPassword : (getCachedPassword() ?? "");
+    (parsed.success ? parsed.data.sudoPassword : undefined) ?? getCachedPassword() ?? "";
 
   try {
     const crtPath = certPath();

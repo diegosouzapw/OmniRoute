@@ -109,8 +109,30 @@ test.describe("Playground Compare Tab", () => {
     await expect(compareTab).toBeVisible({ timeout: 15000 });
     await compareTab.click();
 
-    // Cancel all (abort all) button should be visible in Compare tab
+    // Wait for CompareTab to finish loading (it's a dynamic import with ssr: false).
+    // The "Add model column" button is always rendered once the component mounts and
+    // provides a reliable hydration signal before we check the Run/Cancel toolbar.
+    await expect(page.getByRole("button", { name: /add model/i })).toBeVisible({
+      timeout: 10000,
+    });
+
+    // The toolbar shows "Run all" when idle and "Cancel all" when streaming —
+    // they are mutually exclusive. Verify the toolbar control is always present
+    // by checking that exactly one of the two buttons is visible.
+    // (CompareTab.tsx renders <button aria-label="Run all columns"> or
+    // <button aria-label="Cancel all streams"> based on isAnyStreaming state.)
+    const runAllButton = page.getByRole("button", { name: /run all/i });
     const cancelButton = page.getByRole("button", { name: /cancel all|abort/i });
-    await expect(cancelButton).toBeVisible({ timeout: 10000 });
+    // Use expect().toBeVisible() instead of isVisible() — the latter does not wait
+    // in Playwright 1.50+ (timeout option is deprecated/ignored on locator.isVisible).
+    const hasRunAll = await expect(runAllButton)
+      .toBeVisible({ timeout: 5000 })
+      .then(() => true)
+      .catch(() => false);
+    const hasCancel = await expect(cancelButton)
+      .toBeVisible({ timeout: 1000 })
+      .then(() => true)
+      .catch(() => false);
+    expect(hasRunAll || hasCancel).toBe(true);
   });
 });

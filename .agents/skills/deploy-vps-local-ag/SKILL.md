@@ -30,7 +30,7 @@ scp omniroute-*.tgz root@192.168.0.15:/tmp/
 ```
 
 ```bash
-ssh root@192.168.0.15 "npm install -g /tmp/omniroute-*.tgz --ignore-scripts && cd /usr/lib/node_modules/omniroute/app && npm rebuild better-sqlite3 && pm2 delete omniroute 2>/dev/null; pm2 start /root/.omniroute/ecosystem.config.cjs --update-env && pm2 save && echo '✅ Local done'"
+ssh root@192.168.0.15 "npm install -g /tmp/omniroute-*.tgz --ignore-scripts --legacy-peer-deps && cd /usr/lib/node_modules/omniroute/app && npm rebuild better-sqlite3 && (pm2 delete omniroute 2>/dev/null || true) && pm2 start /root/.omniroute/ecosystem.config.cjs --update-env && pm2 save && echo '✅ Local done'"
 ```
 
 ### 3. Verify the deployment

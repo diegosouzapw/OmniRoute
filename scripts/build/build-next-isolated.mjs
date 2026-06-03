@@ -269,6 +269,28 @@ export async function syncStandaloneExtraModules(
       sourcePath: path.join(rootDir, "node_modules", "playwright-core"),
       destRelative: path.join("node_modules", "playwright-core"),
     },
+    {
+      label: "sqlite-vec wrapper (vector memory — loaded at runtime via createRequire)",
+      sourcePath: path.join(rootDir, "node_modules", "sqlite-vec"),
+      destRelative: path.join("node_modules", "sqlite-vec"),
+    },
+    // sqlite-vec's native vec0.so lives in a platform-specific package resolved at
+    // runtime via require.resolve(). Next.js does NOT trace it into the standalone
+    // (the externalized wrapper is copied, but its optional platform dep is missed —
+    // Next.js #88844), so without this the bundled/Docker build silently degrades
+    // vector search to FTS5: the wrapper loads but getLoadablePath() throws
+    // MODULE_NOT_FOUND. Copy whichever platform package npm actually installed. See #3066.
+    ...[
+      "sqlite-vec-linux-x64",
+      "sqlite-vec-linux-arm64",
+      "sqlite-vec-darwin-x64",
+      "sqlite-vec-darwin-arm64",
+      "sqlite-vec-windows-x64",
+    ].map((pkg) => ({
+      label: pkg,
+      sourcePath: path.join(rootDir, "node_modules", pkg),
+      destRelative: path.join("node_modules", pkg),
+    })),
   ];
 
   let changed = false;

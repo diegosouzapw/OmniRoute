@@ -31,10 +31,6 @@ const STATIC_MODEL_PROVIDERS: Record<string, () => Array<{ id: string; name: str
     { id: "universal-3-pro", name: "Universal 3 Pro (Transcription)" },
     { id: "universal-2", name: "Universal 2 (Transcription)" },
   ],
-  nanobanana: () => [
-    { id: "nanobanana-flash", name: "NanoBanana Flash (Gemini 2.5 Flash)" },
-    { id: "nanobanana-pro", name: "NanoBanana Pro (Gemini 3 Pro)" },
-  ],
   antigravity: () => ANTIGRAVITY_PUBLIC_MODELS.map((model) => ({ ...model })),
   claude: () => [
     { id: "claude-opus-4-8", name: "Claude Opus 4.8" },

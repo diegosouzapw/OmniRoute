@@ -149,7 +149,14 @@ export function toMemoryRetrievalConfig(
   // Plan 21 FAIL #1 fix: forward the last user message as `query` so that
   // semantic / hybrid strategies actually exercise the vector store in the
   // chat hot path (chatCore.ts), not only in the Playground.
-  if (extra.query && extra.query.trim().length > 0) {
+  //
+  // BUT only for query-driven strategies. The "recent" strategy (mapped to the
+  // internal "exact" path) is recency-based: it must return the most recent
+  // memories regardless of the current prompt. Forwarding a query there makes
+  // retrieveMemories apply relevance filtering (score > 0), which silently
+  // drops recent memories whose text doesn't overlap the prompt — breaking the
+  // "recent" contract. So skip query forwarding when strategy === "recent".
+  if (extra.query && extra.query.trim().length > 0 && settings.strategy !== "recent") {
     config.query = extra.query.trim();
   }
 

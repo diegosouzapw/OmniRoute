@@ -43,6 +43,7 @@ test("primary sidebar items place limits after cache", () => {
       "embedded-services",
       "combos",
       "quota",
+      "costs-quota-share",
       "context-caveman",
       "context-rtk",
       "context-combos",

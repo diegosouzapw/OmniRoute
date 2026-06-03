@@ -31,6 +31,7 @@ process.env.API_KEY_SECRET = process.env.API_KEY_SECRET || "quota-only-test-secr
 const coreDb = await import("../../src/lib/db/core.ts");
 const apiKeysDb = await import("../../src/lib/db/apiKeys.ts");
 const poolsDb = await import("../../src/lib/db/quotaPools.ts");
+const groupsDb = await import("../../src/lib/db/quotaGroups.ts");
 const providersDb = await import("../../src/lib/db/providers.ts");
 const rateLimiter = await import("../../src/shared/utils/rateLimiter.ts");
 const { quotaModelName } = await import("../../src/lib/quota/quotaModelNaming.ts");
@@ -98,7 +99,10 @@ test.after(async () => {
 // ---------------------------------------------------------------------------
 
 test("quota-only key requesting its quotaShared-* virtual model is allowed", async () => {
-  // Pool name "Times" → slug "times"; provider "codex"
+  // Create a group named "Times" so resolveQuotaKeyScope returns the GROUP slug "times".
+  // quotaGroupSlug("Times") === "times", matching quotaModelName("Times", ...) → qtSd/times/...
+  const group = groupsDb.createGroup("Times");
+
   const conn = await providersDb.createProviderConnection({
     provider: "codex",
     authType: "apikey",
@@ -108,7 +112,8 @@ test("quota-only key requesting its quotaShared-* virtual model is allowed", asy
   const connId = (conn as Record<string, unknown>).id as string;
   assert.ok(connId);
 
-  const pool = poolsDb.createPool({ connectionId: connId, name: "Times" });
+  // Assign pool to the "Times" group so resolveQuotaKeyScope picks up the group slug.
+  const pool = poolsDb.createPool({ connectionId: connId, name: "Times", groupId: group.id });
 
   const created = await apiKeysDb.createApiKey("Quota-B4 Key Allowed", "machine-b4-allowed");
   await apiKeysDb.updateApiKeyPermissions(created.id, {
@@ -132,6 +137,7 @@ test("quota-only key requesting its quotaShared-* virtual model is allowed", asy
 });
 
 test("quota-only key requesting raw model name is rejected 403 QUOTA_ONLY", async () => {
+  const group = groupsDb.createGroup("Times");
   const conn = await providersDb.createProviderConnection({
     provider: "codex",
     authType: "apikey",
@@ -139,7 +145,7 @@ test("quota-only key requesting raw model name is rejected 403 QUOTA_ONLY", asyn
     apiKey: "sk-codex-b4-raw",
   });
   const connId = (conn as Record<string, unknown>).id as string;
-  const pool = poolsDb.createPool({ connectionId: connId, name: "Times" });
+  const pool = poolsDb.createPool({ connectionId: connId, name: "Times", groupId: group.id });
 
   const created = await apiKeysDb.createApiKey("Quota-B4 Key Raw Reject", "machine-b4-raw");
   await apiKeysDb.updateApiKeyPermissions(created.id, {
@@ -165,6 +171,7 @@ test("quota-only key requesting raw model name is rejected 403 QUOTA_ONLY", asyn
 });
 
 test("quota-only key requesting a quotaShared-* model from a different pool is rejected 403 QUOTA_ONLY", async () => {
+  const group = groupsDb.createGroup("Times");
   const conn = await providersDb.createProviderConnection({
     provider: "codex",
     authType: "apikey",
@@ -172,7 +179,7 @@ test("quota-only key requesting a quotaShared-* model from a different pool is r
     apiKey: "sk-codex-b4-otherpool",
   });
   const connId = (conn as Record<string, unknown>).id as string;
-  const pool = poolsDb.createPool({ connectionId: connId, name: "Times" });
+  const pool = poolsDb.createPool({ connectionId: connId, name: "Times", groupId: group.id });
 
   const created = await apiKeysDb.createApiKey("Quota-B4 Key Other Pool", "machine-b4-other");
   await apiKeysDb.updateApiKeyPermissions(created.id, {
@@ -227,6 +234,26 @@ test("key with empty allowedQuotas is subject to normal model restriction checks
   // The code for this case comes from errorConfig (403 → "insufficient_quota")
   // rather than QUOTA_ONLY — confirming paths are separate
   assert.notEqual(body.error.code, "QUOTA_ONLY", "normal key rejection must NOT use QUOTA_ONLY code");
+});
+
+test("non-quota key (empty allowedQuotas) requesting a qtSd model is rejected 403 QUOTA_NOT_ALLOCATED", async () => {
+  // A normal key with NO quota allocation must NOT route through a shared quota pool.
+  const created = await apiKeysDb.createApiKey("Normal Key No Quota", "machine-b4-noalloc");
+  // (no allowedQuotas set → empty array)
+
+  const policy = await loadPolicy("b4-quota-noalloc");
+  const qtSdModel = quotaModelName("AnyGroup", "codex", "gpt-5.5");
+
+  const blocked = await policy.enforceApiKeyPolicy(makeRequest(created.key), qtSdModel);
+  assert.ok(blocked.rejection, "non-quota key must be blocked from qtSd models");
+  assert.equal(blocked.rejection.status, 403);
+  const body = await readBody(blocked.rejection);
+  assert.equal(body.error.code, "QUOTA_NOT_ALLOCATED", "must use QUOTA_NOT_ALLOCATED code");
+  assert.match(body.error.message, /quota-pool allocation/);
+
+  // Sanity: the same key can still use a normal (non-qtSd) model freely.
+  const allowed = await policy.enforceApiKeyPolicy(makeRequest(created.key), "openai/gpt-4.1");
+  assert.equal(allowed.rejection, null, "non-quota key still uses normal models freely");
 });
 
 test("quota-only key whose allowedQuotas references a non-existent pool is rejected 403 QUOTA_ONLY (fail-closed)", async () => {

@@ -64,11 +64,17 @@ test.describe("Group B — Activity Feed", () => {
       .first();
     await expect(heading).toBeVisible({ timeout: 15000 });
 
-    // Timeline container or empty state should be present
-    const timeline = page.locator(
-      "[data-testid='activity-feed'], [data-testid='activity-empty-state'], .activity-feed, ul[role='list']"
+    // ActivityFeed renders <div role="status"> (empty state) or a
+    // <div class="divide-y..."> with a nested <ul class="divide-y..."> (entries).
+    // Match those feed-specific shapes (plus the legacy testids). Deliberately
+    // NOT matching a generic container like `div.rounded-xl`, which exists on
+    // many pages (incl. the /login card) and would let the test pass even when
+    // the dashboard redirected to login without rendering the feed.
+    const feedContainer = page.locator(
+      "[data-testid='activity-feed'], [data-testid='activity-empty-state']," +
+      " .activity-feed, [role='status'], [role='list'], ul.divide-y, div.divide-y"
     );
-    await expect(timeline.first()).toBeVisible({ timeout: 15000 });
+    await expect(feedContainer.first()).toBeVisible({ timeout: 15000 });
   });
 
   test("activity page does not show raw error stack traces", async ({ page }) => {

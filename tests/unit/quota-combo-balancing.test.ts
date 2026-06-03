@@ -14,6 +14,11 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 
+// ── DB harness ───────────────────────────────────────────────────────────────
+// Use a stable per-file temp dir so DATA_DIR is set ONCE before any module
+// load. Never delete the SQLite file between tests — under --test-concurrency=4
+// modules are cached across files and SQLITE_FILE is frozen at first import.
+// Wipe test data via SQL DELETEs instead to avoid cross-file path corruption.
 const TEST_DATA_DIR = fs.mkdtempSync(
   path.join(os.tmpdir(), "omniroute-quota-combo-balancing-")
 );
@@ -29,37 +34,64 @@ const { isQuotaModelName, quotaModelName } = await import(
 );
 const { PROVIDER_MODELS } = await import("../../open-sse/config/providerModels.ts");
 
+// Trigger migration once at module load so the schema is ready for the first
+// beforeEach without a slow per-test full migration run.
+core.getDbInstance();
+
 // ---------------------------------------------------------------------------
 // Lifecycle
 // ---------------------------------------------------------------------------
 
-async function resetStorage() {
-  core.resetDbInstance();
-  for (let attempt = 0; attempt < 10; attempt++) {
-    try {
-      if (fs.existsSync(TEST_DATA_DIR)) {
-        fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
-      }
-      break;
-    } catch (error: unknown) {
-      const err = error as NodeJS.ErrnoException;
-      if ((err?.code === "EBUSY" || err?.code === "EPERM") && attempt < 9) {
-        await new Promise((resolve) => setTimeout(resolve, 50 * (attempt + 1)));
-      } else {
-        throw error;
-      }
-    }
+// Tables touched by this test suite.  Cleared via SQL between tests to avoid
+// the slow per-test full-migration race that fires under --test-force-exit
+// with high concurrency (the rmSync approach also corrupts the module-level
+// SQLITE_FILE pointer shared across concurrent test files).
+const CLEAR_TABLES = [
+  "quota_pool_connections",
+  "quota_allocations",
+  "quota_pools",
+  "provider_connections",
+  "combos",
+];
+
+function resetStorage() {
+  const db = core.getDbInstance();
+  for (const table of CLEAR_TABLES) {
+    db.prepare(`DELETE FROM ${table}`).run();
   }
-  fs.mkdirSync(TEST_DATA_DIR, { recursive: true });
+  // Re-seed the default quota group removed by the cascading delete on quota_pools.
+  db.prepare(
+    "INSERT OR IGNORE INTO quota_groups (id, name) VALUES ('group-demo', 'GroupDemo')"
+  ).run();
 }
 
-test.beforeEach(async () => {
-  await resetStorage();
+/**
+ * Drain all pending microtasks and one round of macrotasks so that any
+ * fire-and-forget `syncQuotaCombosGuarded` calls dispatched by createPool /
+ * updatePool have a chance to run to completion before the next assertion.
+ *
+ * `setImmediate` fires AFTER all currently-queued microtasks (Promises), so a
+ * single `await new Promise(r => setImmediate(r))` is not a sleep — it is a
+ * deliberate synchronisation point that lets pending async work finish without
+ * introducing an arbitrary wall-clock delay.
+ */
+async function flushPendingSyncs(): Promise<void> {
+  for (let i = 0; i < 5; i++) {
+    await new Promise<void>((r) => setImmediate(r));
+  }
+}
+
+test.beforeEach(() => {
+  resetStorage();
 });
 
-test.after(async () => {
+test.after(() => {
   core.resetDbInstance();
-  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+  try {
+    fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+  } catch {
+    // best-effort cleanup
+  }
 });
 
 // ---------------------------------------------------------------------------
@@ -283,8 +315,14 @@ test("B4: syncQuotaCombos — after removing one connection from pool, re-sync c
     connectionIds: [idA, (connB as Record<string, unknown>).id as string],
   });
 
+  // Drain the fire-and-forget syncQuotaCombosGuarded dispatched by createPool
+  // before calling the explicit sync, so the initial explicit sync is the last writer.
+  await flushPendingSyncs();
+
   // Initial sync: 2 steps.
   await syncQuotaCombos(pool.id);
+  // Drain any background syncs before asserting.
+  await flushPendingSyncs();
   const initial = await listQuotaCombos();
   for (const c of initial) {
     assert.equal(c.models.length, 2, `initial: combo "${c.name}" should have 2 steps`);
@@ -293,8 +331,14 @@ test("B4: syncQuotaCombos — after removing one connection from pool, re-sync c
   // Remove connB — pool now has only connA.
   poolsDb.updatePool(pool.id, { connectionIds: [idA] });
 
+  // Drain the fire-and-forget from updatePool so it cannot overwrite the
+  // 1-step result that the following explicit sync will produce.
+  await flushPendingSyncs();
+
   // Re-sync: should collapse to 1 step.
   await syncQuotaCombos(pool.id);
+  // Final drain: ensure no stale background sync can revert to 2 steps.
+  await flushPendingSyncs();
   const after = await listQuotaCombos();
 
   assert.equal(after.length, initial.length, "combo count should be unchanged after connB removal");

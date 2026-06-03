@@ -18,6 +18,7 @@ export interface ScoringFactors {
   specificityMatch: number;
   contextAffinity: number;
   resetWindowAffinity: number;
+  connectionDensity: number;
 }
 
 export interface ScoringWeights {
@@ -32,20 +33,22 @@ export interface ScoringWeights {
   specificityMatch: number;
   contextAffinity: number;
   resetWindowAffinity: number;
+  connectionDensity: number;
 }
 
 export const DEFAULT_WEIGHTS: ScoringWeights = {
-  quota: 0.16,
+  quota: 0.15,
   health: 0.2,
-  costInv: 0.16,
+  costInv: 0.15,
   latencyInv: 0.12,
   taskFit: 0.08,
   stability: 0.05,
   tierPriority: 0.05,
   tierAffinity: 0.05,
   specificityMatch: 0.05,
-  contextAffinity: 0.08,
+  contextAffinity: 0.05,
   resetWindowAffinity: 0,
+  connectionDensity: 0.05,
 };
 
 export interface ProviderCandidate {
@@ -66,6 +69,8 @@ export interface ProviderCandidate {
   contextAffinity?: number;
   /** Score [0..1] for quota reset-window preference; sooner selected reset windows score higher. */
   resetWindowAffinity?: number;
+  connectionPoolSize?: number;
+  connectionId?: string;
 }
 
 export interface ScoredProvider {
@@ -73,6 +78,7 @@ export interface ScoredProvider {
   model: string;
   score: number;
   factors: ScoringFactors;
+  connectionId?: string;
 }
 
 /**
@@ -91,7 +97,8 @@ export function calculateScore(factors: ScoringFactors, weights: ScoringWeights)
     (weights.tierAffinity ?? 0) * factors.tierAffinity +
     (weights.specificityMatch ?? 0) * factors.specificityMatch +
     (weights.contextAffinity ?? 0) * factors.contextAffinity +
-    (weights.resetWindowAffinity ?? 0) * factors.resetWindowAffinity
+    (weights.resetWindowAffinity ?? 0) * factors.resetWindowAffinity +
+    (weights.connectionDensity ?? 0) * factors.connectionDensity
   );
 }
 
@@ -186,6 +193,7 @@ export function calculateFactors(
     specificityMatch: calculateSpecificityMatch(candidate, manifestHint),
     contextAffinity: candidate.contextAffinity ?? 0.5,
     resetWindowAffinity: candidate.resetWindowAffinity ?? 0.5,
+    connectionDensity: Math.min(1, Math.max(0, ((candidate.connectionPoolSize ?? 1) - 1) / 10)),
   };
 }
 
@@ -204,6 +212,7 @@ export function scorePool(
         model: candidate.model,
         score: calculateScore(factors, weights),
         factors,
+        connectionId: candidate.connectionId,
       };
     })
     .sort((a, b) => b.score - a.score);

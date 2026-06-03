@@ -154,6 +154,9 @@ export function updatePluginStatus(
   const now = new Date().toISOString();
   const activatedAt = status === "active" ? now : null;
 
+  // `activated_at` records the most-recent activation timestamp and is intentionally
+  // preserved on deactivation via COALESCE (activatedAt is null when status != "active").
+  // Callers should treat it as "last activated at", not "currently active since".
   const result = db
     .prepare(
       `UPDATE plugins SET status = ?, enabled = ?, error_message = ?,
@@ -192,4 +195,86 @@ export function pluginExists(name: string): boolean {
   const db = getDbInstance();
   const row = db.prepare("SELECT 1 FROM plugins WHERE name = ?").get(name);
   return !!row;
+}
+
+// ── Analytics ──
+
+export interface PluginExecutionRow {
+  pluginName: string;
+  hook: string;
+  durationMs: number;
+  success: boolean;
+  errorMessage: string | null;
+  createdAt: string;
+}
+
+export interface PluginAnalyticsSummary {
+  totalCalls: number;
+  successCount: number;
+  failureCount: number;
+  avgDurationMs: number;
+}
+
+/**
+ * Record a single plugin execution in plugin_analytics.
+ */
+export function recordPluginExecution(
+  pluginName: string,
+  hook: string,
+  durationMs: number,
+  success: boolean,
+  errorMessage?: string
+): void {
+  const db = getDbInstance();
+  db.prepare(
+    `INSERT INTO plugin_analytics (plugin_name, hook, duration_ms, success, error_message)
+     VALUES (?, ?, ?, ?, ?)`
+  ).run(pluginName, hook, durationMs, success ? 1 : 0, errorMessage ?? null);
+}
+
+/**
+ * Return execution rows for a given plugin (most recent first).
+ */
+export function getPluginAnalytics(pluginName: string): PluginExecutionRow[] {
+  const db = getDbInstance();
+  const rows = db
+    .prepare(
+      `SELECT plugin_name, hook, duration_ms, success, error_message, created_at
+       FROM plugin_analytics
+       WHERE plugin_name = ?
+       ORDER BY created_at DESC`
+    )
+    .all(pluginName) as any[];
+  return rows.map((r) => ({
+    pluginName: r.plugin_name,
+    hook: r.hook,
+    durationMs: r.duration_ms,
+    success: r.success === 1,
+    errorMessage: r.error_message,
+    createdAt: r.created_at,
+  }));
+}
+
+/**
+ * Return aggregate stats for a given plugin.
+ */
+export function getPluginAnalyticsSummary(pluginName: string): PluginAnalyticsSummary {
+  const db = getDbInstance();
+  const row = db
+    .prepare(
+      `SELECT
+         COUNT(*) AS total,
+         SUM(CASE WHEN success = 1 THEN 1 ELSE 0 END) AS successes,
+         SUM(CASE WHEN success = 0 THEN 1 ELSE 0 END) AS failures,
+         AVG(duration_ms) AS avg_duration
+       FROM plugin_analytics
+       WHERE plugin_name = ?`
+    )
+    .get(pluginName) as any;
+  return {
+    totalCalls: row?.total ?? 0,
+    successCount: row?.successes ?? 0,
+    failureCount: row?.failures ?? 0,
+    avgDurationMs: row?.avg_duration ?? 0,
+  };
 }

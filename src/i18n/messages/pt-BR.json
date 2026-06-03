@@ -437,7 +437,11 @@
     "filterTypeRestricted": "Restrita",
     "shownOf": "{shown} de {total} exibidas",
     "emptyFilterTitle": "Nenhuma chave corresponde aos filtros",
-    "emptyFilterClear": "Limpar filtros"
+    "emptyFilterClear": "Limpar filtros",
+    "normalKeysSection": "Chaves normais",
+    "quotaKeysSection": "Chaves de cota",
+    "quotaPill": "QUOTA",
+    "quotaModeOnly": "só-qtSd"
   },
   "auditLog": {
     "title": "Log de Auditoria",
@@ -5423,7 +5427,20 @@
     "endpointsHint": "Chame estes modelos virtuais com qualquer chave alocada — roteamento + cota são tratados por grupo.",
     "previewForKey": "Pré-visualizar p/ chave",
     "previewKeyNone": "(todos os endpoints)",
-    "endpointsBaseUrl": "URL base"
+    "endpointsBaseUrl": "URL base",
+    "endpointsCollapse": "Recolher",
+    "endpointsExpand": "Expandir",
+    "endpointsAnthropicNote": "nativo Anthropic",
+    "endpointsResponsesNote": "OpenAI Responses — codex/github",
+    "endpointsWsNote": "WebSocket — somente codex",
+    "betaTitle": "Beta",
+    "betaText": "O Quota Share está funcional, mas bugs são esperados. Encontrou um? Reporte, por favor.",
+    "betaReportLink": "Abrir uma issue",
+    "deleteGroup": "Excluir grupo",
+    "deleteGroupConfirm": "Excluir este grupo? Os pools dele precisam ser reatribuídos ou removidos antes.",
+    "deleteGroupHasPools": "Este grupo ainda tem pools — reatribua ou exclua-os primeiro.",
+    "ungroupedTitle": "Sem grupo",
+    "ungroupedHint": "Estes pools não estão atribuídos a um grupo conhecido. Edite um pool para movê-lo para um grupo real."
   },
   "requestLogger": {
     "recording": "Recording",

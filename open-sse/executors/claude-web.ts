@@ -22,8 +22,7 @@
 import { BaseExecutor, mergeAbortSignals, type ExecuteInput } from "./base.ts";
 import { FETCH_TIMEOUT_MS } from "../config/constants.ts";
 import { tlsFetchClaude } from "../services/claudeTlsClient.ts";
-import { createAutoRefreshMiddleware, refreshCookie } from "../services/claudeWebAutoRefresh.ts";
-import { getCfClearanceToken, getCacheStatus } from "../services/claudeTurnstileSolver.ts";
+import { getCfClearanceToken } from "../services/claudeTurnstileSolver.ts";
 import { normalizeSessionCookieHeader } from "@/lib/providers/webCookieAuth";
 import { randomUUID } from "crypto";
 import { sanitizeErrorMessage } from "../utils/error.ts";
@@ -44,16 +43,6 @@ const DEFAULT_CLAUDE_MODEL = "claude-sonnet-4-6";
 // ─── Types ──────────────────────────────────────────────────────────────────
 /**
  * Extended credentials to include organization and conversation context
- */
-interface ClaudeWebCredentials {
-  cookie: string;
-  deviceId?: string;
-  orgId?: string;
-  conversationId?: string;
-}
-
-/**
- * Full request payload matching real Claude Web API format
  */
 interface ClaudeWebRequestPayload {
   prompt: string;
@@ -175,7 +164,8 @@ async function normalizeClaudeSessionCookieWithAutoRefresh(
       options?.log?.info?.("CLAUDE-WEB", "cf_clearance injected successfully");
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error);
-      // Continue anyway - request might fail, but that's OK
+      options?.log?.warn?.("CLAUDE-WEB", `cf_clearance injection failed: ${message}`);
+      // Continue anyway - the retry wrapper will handle 403
     }
   }
 
@@ -417,7 +407,7 @@ export class ClaudeWebExecutor extends BaseExecutor {
         return false;
       }
 
-      const cookieHeader = normalizeClaudeSessionCookie(rawCookie);
+      const cookieHeader = await normalizeClaudeSessionCookieWithAutoRefresh(rawCookie, { allowAutoSolve: false });
       const deviceId = (credentials as any)?.deviceId as string | undefined;
 
       return await verifyCookieValidity(cookieHeader, deviceId, signal);
@@ -429,7 +419,7 @@ export class ClaudeWebExecutor extends BaseExecutor {
   /**
    * Get user's organization ID from session
    */
-  async execute({ model, body, stream, credentials, signal, log }: ExecuteInput) {
+  async execute({ model, body, stream: _stream, credentials, signal, log }: ExecuteInput) {
     const bodyObj = (body || {}) as Record<string, unknown>;
 
     try {
@@ -479,7 +469,10 @@ export class ClaudeWebExecutor extends BaseExecutor {
         };
       }
 
-      const cookieHeader = normalizeClaudeSessionCookie(rawCookie);
+      const cookieHeader = await normalizeClaudeSessionCookieWithAutoRefresh(rawCookie, {
+        allowAutoSolve: true,
+        log,
+      });
       const deviceId = (credentials as any)?.deviceId as string | undefined;
 
       // Transform request to Claude format
@@ -542,7 +535,7 @@ export class ClaudeWebExecutor extends BaseExecutor {
 
       log?.debug?.("CLAUDE-WEB", `Making request to ${completionUrl}`);
 
-      // Inject cf_clearance before calling tlsFetchClaude
+      // cf_clearance is already injected via normalizeClaudeSessionCookieWithAutoRefresh above
 
       const fetchResponse = await tlsFetchClaude(completionUrl, {
         method: "POST",

@@ -1,18 +1,39 @@
 # Changelog
 
-## [Unreleased] — Group A: AgentBridge + Traffic Inspector (planos 11+12)
+## [Unreleased]
+
+### ✨ New Features
+
+- **notion:** add Notion as an MCP context source — 6 tools (`notion_search`, `notion_list_databases`, `notion_get_database`, `notion_query_database`, `notion_read`, `notion_append_blocks`) scoped under `read:notion` / `write:notion`, with dashboard "Context Sources" tab, settings API, and token persistence in `key_value` table (#2959)
+
+### 🔧 Bug Fixes
+
+- **mcp:** move `enforceScopes` guard before `MCP_TOOL_MAP` lookup, add inline `scopes` parameter to `withScopeEnforcement()`, and declare scopes on all 24 dynamic tool definitions (memory, skills, plugins, gamification, compression) to fix scope enforcement for dynamic MCP tool groups (#2958)
+
+---
+
+## [3.8.9] — Unreleased
+
+_Development cycle in progress — entries are added as work merges into `release/v3.8.9` and finalized by the release flow._
+
+---
+
+## [3.8.8] — 2026-06-03
 
 ### Added
 
+- **Plugins framework** (`src/lib/plugins/`, `/api/plugins/*`, `/dashboard/plugins`) — hooks + registry unification, plugin SDK (`definePlugin`), worker-thread sandbox, per-plugin hook rate limiting, SHA-256 integrity verification, semver-gated upgrade, and execution analytics. Plugin routes are loopback-only (`isLocalOnlyPath`) and `child_process` exec is opt-in via `OMNIROUTE_PLUGINS_ALLOW_EXEC`. (#2913 / #3041 — thanks @oyi77)
+- **Plugin system: response-hook wiring + startup load + example plugin** — wires the plugin `onResponse` hook into the chat success path, loads active plugins on server startup so they survive restarts (`pluginManager.loadAll()` in `server-init`), and ships a `welcome-banner` example plugin (`examples/plugins/`) plus a comprehensive plugin test suite. (#3045 — thanks @oyi77)
+- **API key option: disable non-published models** — a per-key flag restricting the key to discovered, public models (combos / `auto/*` / `qtSd/*` routing still allowed). (#3017 — thanks @androw)
 - **SessionPool — modular & provider-agnostic** (`open-sse/services/sessionPool/`) — pooled
   cookie/session manager with round-robin fingerprint rotation (distinct fingerprint per pooled
   session), per-session cooldown/backoff, and a provider-agnostic `webExecutorWrapper`. Adds pool
-  support for DuckDuckGo Web and LLM7 providers and an MCP `poolTools` toolset. (#2954 — thanks @oyi77)
+  support for DuckDuckGo Web and LLM7 providers and an MCP `poolTools` toolset. (#2954 / #2978 — thanks @oyi77)
 - **AgentBridge** (`/dashboard/tools/agent-bridge`) — MITM proxy consolidating 9 IDE agents
   (Antigravity, Kiro, GitHub Copilot, OpenAI Codex, Cursor IDE, Zed Industries, Claude Code,
   Open Code, Trae stub) with server card, per-agent setup wizard, model mapping table,
   bypass list, upstream CA cert support, and redirect from legacy `/dashboard/system/mitm-proxy`.
-  See `docs/frameworks/AGENTBRIDGE.md`.
+  See `docs/frameworks/AGENTBRIDGE.md`. (#2858 — thanks @diegosouzapw)
 - **Traffic Inspector** (`/dashboard/tools/traffic-inspector`) — LLM-aware HTTPS debugger with
   4 capture modes (AgentBridge hook, Custom Hosts DNS, HTTP_PROXY :8080, System-wide proxy),
   DevTools split UI, 7 detail tabs (Conversation, Headers, Request, Response, Timing, LLM Details,
@@ -46,10 +67,17 @@
 - **Documentation** — `docs/frameworks/AGENTBRIDGE.md` and `docs/frameworks/TRAFFIC_INSPECTOR.md`;
   `docs/architecture/REPOSITORY_MAP.md` updated; `docs/reference/openapi.yaml` updated with
   ~28 new routes and 20+ new schemas.
-- **i18n:** translate Ukrainian (uk-UA) menu and UI strings (#2981 — thanks @Lion-killer)
+- **i18n:** translate Ukrainian (uk-UA) menu and UI strings, plus complete uk-UA UI coverage (#2981 / #2988 — thanks @Lion-killer)
 - **providers:** add SiliconFlow endpoint selector (#2975 — thanks @xz-dev)
 - **oauth:** add Trae SOLO provider (work/code modes) (#2964 — thanks @S0yora)
 - **providers:** add Qwen Web (chat.qwen.ai) web-cookie provider (#2947 — thanks @oyi77)
+- **Quota Share Engine — multi-provider quota pools** — Monitoring/Costs reorg plus a Quota Share Engine: group selector, grouped pool cards, exclusive-quota API keys (`allowedQuotas`), `quotaShared-*` routing models via combos, a 3-step pool wizard (legacy Plans page retired), endpoint + key preview, and full pool editing. Adds quota-pool DB migrations. (#2859 / #3022 / #3032 — thanks @diegosouzapw)
+- **Dashboard page redesigns (Nav Restructure)** — agent-skills + omni-skills with a dynamic 42-skill catalog and MCP/A2A discovery (#2827); CLI Code's + CLI Agents + ACP Agents pages (#2839); translator friendly redesign, 5 tabs → 2 (#2847); functional `/batch` + `/batch/files` redesign (#2849); Playground Studio + Search Tools Studio (#2869); memory engine redesign — sqlite-vec + hybrid RRF + Studio UI (#2873). (thanks @diegosouzapw)
+- **notion:** add Notion as an MCP context source — 6 tools (`notion_search`, `notion_list_databases`, `notion_get_database`, `notion_query_database`, `notion_read`, `notion_append_blocks`) scoped under `read:notion` / `write:notion`, with dashboard "Context Sources" tab, settings API, and token persistence in `key_value` table (#2959 — thanks @branben)
+- **Per-API-key stream default mode** — a per-key setting that forces JSON or SSE as the default response shape (migration `077_api_key_stream_default_mode`), so integrations that expect non-streaming JSON work without client changes. (thanks @JxnLexn)
+- **Codex Responses-over-WebSocket** — opt-out flag `OMNIROUTE_CODEX_WS_ENABLED` (default ON) upgrading Codex Responses traffic to a WebSocket bridge with a clean handshake and bridge-secret auth; the Quota Share endpoints card now surfaces the Responses + codex-WS endpoints. (thanks @diegosouzapw)
+- **Xiaomi MiMo usage tracking** — self-reported usage accounting for Xiaomi MiMo plus a monthly cap preset; DeepSeek USD preset and a Claude plan preset (percent 5h + weekly) seeded into the plan registry. (thanks @diegosouzapw)
+- **API Manager: Normal vs Quota key sections** — the API keys screen now splits keys into Normal and Quota sections in a compact 2-table layout, and the Quota Share screen gains a beta banner, live per-account upstream quota, and a real-time Codex quota view backed by the cascade-safe serialized refresh. (thanks @diegosouzapw)
 
 ### Changed
 
@@ -63,6 +91,26 @@
 
 ### Fixed
 
+- **memory:** the `recent` retrieval strategy no longer drops recent memories whose
+  text doesn't overlap the current prompt. It was internally mapped to the `exact`
+  path, which relevance-filtered by the forwarded prompt (`score > 0`), so
+  recency-based injection silently returned nothing for unrelated prompts. The
+  prompt is no longer forwarded for `recent` (semantic/hybrid still use it for
+  vector search).
+- **combo:** custom-provider credential lookup now expands `provider_nodes` prefixes
+  (e.g. `78code/gpt-5.4`) to the generated internal connection ids during account
+  selection, so combos targeting compatible/custom providers resolve their live
+  credentials instead of failing to find a connection. (#3058)
+- **build:** Docker image build (`docker compose --profile cli build`, which runs
+  `next build` with Turbopack) no longer errors. Two Turbopack-only failures were
+  fixed: `sqlite-vec` is now externalized so Turbopack stops trying to bundle its
+  native `vec0.so` ("Unknown module type"), and `manager.stub.ts` now exports
+  `getAllAgentsStatus` (statically imported by `/api/tools/agent-bridge/state` — the
+  missing export aborted the build). The webpack-based VM build was unaffected, which
+  is why the deploy validated while the Docker build errored. The sqlite-vec native
+  binary is also now bundled into the standalone output, so vector/semantic memory keeps
+  working in the container instead of silently degrading to FTS5 keyword search.
+  (#3066 — thanks @freefrank)
 - **codex/providers:** `POST /api/providers/[id]/refresh` (the manual/auto "refresh
   token" endpoint) no longer rotates rotating-refresh providers (Codex/OpenAI share
   one Auth0 `client_id`). This was the last unguarded proactive-refresh entry point:
@@ -203,102 +251,67 @@
 - **claude:** strip empty Read pages tool input (#2937 — thanks @makcimbx)
 - **dashboard:** improve self-service provider quota visibility (#2931 — thanks @guanbear)
 - **antigravity:** avoid visible signatureless tool history (#2927 — thanks @dhaern)
+- **sse/web-search:** bypass the web-search fallback on a Claude → Claude passthrough so native Claude requests aren't rewritten (#2960 — thanks @terence71-glitch)
+- **oom:** prevent per-request memory accumulation (~256MB heap growth) (#2973 — thanks @soyelmismo)
+- **perf/proxy:** parallelize provider proxy overlay lookups (#2984 — thanks @terence71-glitch)
+- **privacy/PII:** resolve the PII feature flag correctly and fix PII response sanitization in streaming SSE requests (#3021 — thanks @dangeReis)
+- **electron:** improve macOS window chrome (#3029 — thanks @bobbyunknown)
+- **i18n:** fix missing API key scope translations (#3031 — thanks @guanbear)
+- **stream/responses:** drop a leaked chat bootstrap chunk for Responses-API clients (#3035 — thanks @CitrusIce)
+- **docker:** warn-only on the `/app/data` permission check instead of `exit 1`, so a non-writable bind mount no longer kills the container at boot (#3036 — thanks @wussh)
+- **mcp:** resolve streamable-HTTP transport readiness reporting an offline status (#3037 — thanks @Chewji9875)
+- **dashboard:** use a lightweight ping endpoint for the MaintenanceBanner (fixes #3040) (#3043 — thanks @herjarsa)
+- **test:** resolve pre-existing test failures — env sync, PII, quota, sidebar (#3039 — thanks @oyi77)
+- **docs/mcp:** regenerate the mcp-tools diagram for 43 tools and fix the tool count (#3028 — thanks @diegosouzapw)
+- **mcp:** move `enforceScopes` guard before `MCP_TOOL_MAP` lookup, add inline `scopes` parameter to `withScopeEnforcement()`, and declare scopes on all 24 dynamic tool definitions (memory, skills, plugins, gamification, compression) to fix scope enforcement for dynamic MCP tool groups (#2958 — thanks @branben)
+- **sse/chatCore:** the heap-pressure guard now auto-calibrates its threshold to 85%
+  of the live V8 heap ceiling (floor 400 MB) instead of a fixed 200 MB that sat below
+  the app's ~260 MB baseline and returned `503 Service temporarily unavailable due to
+  resource pressure` for every request once the heap warmed up. It now tracks
+  `--max-old-space-size` across 1 GB / 2 GB / large VPS; `HEAP_PRESSURE_THRESHOLD_MB`
+  still overrides. (#3052)
+- **proxy:** fail closed for OAuth usage-account proxies (#3051 — thanks @terence71-glitch)
+- **proxy:** resolve registry proxy assignments for combo and key levels (#3048 — thanks @terence71-glitch)
+- **providers/web:** wire the session pool for fingerprint rotation on Pollinations / DuckDuckGo (#3049 — thanks @oyi77)
+- **providers/claude-web:** add `cf_clearance` cookie support and session-pool fingerprint rotation for Pollinations / DuckDuckGo (#3046 — thanks @oyi77)
+- **usage:** handle MiniMax coding-plan percent quotas (`general`/percent dimension) so MiniMax coding plans report remaining quota correctly. (thanks @diegosouzapw)
+- **home:** pass `providerId` to the quota widget icons so provider brand icons resolve on the home dashboard (#3064 — thanks @xz-dev)
+- **quota:** block `qtSd/*` models for keys with no quota-pool allocation (enforcement Check 2.9), and never flag rotating-refresh providers (Codex/OpenAI) as expired during the quota sync (#3030). (thanks @diegosouzapw)
 
-### ✨ New Features
+### 🏆 Contributors
 
-- **notion:** add Notion as an MCP context source — 6 tools (`notion_search`, `notion_list_databases`, `notion_get_database`, `notion_query_database`, `notion_read`, `notion_append_blocks`) scoped under `read:notion` / `write:notion`, with dashboard "Context Sources" tab, settings API, and token persistence in `key_value` table (#2959)
+A special thanks to everyone who contributed to this release — 746 commits since `v3.8.7`:
 
-### 🔧 Bug Fixes
+| Contributor | PRs / Contribution |
+| --- | --- |
+| [@diegosouzapw](https://github.com/diegosouzapw) | maintainer — AgentBridge, Traffic Inspector, Quota Share Engine, Nav Restructure, Plugins integration, releases & upstream ports |
+| [@oyi77](https://github.com/oyi77) | #2913, #2947, #2954, #2978, #3015, #3018, #3039, #3041, #3045, #3046, #3049 |
+| [@terence71-glitch](https://github.com/terence71-glitch) | #2956, #2960, #2963, #2984, #3000, #3006, #3012, #3048, #3051 |
+| [@soyelmismo](https://github.com/soyelmismo) | #2951, #2965, #2973 |
+| [@branben](https://github.com/branben) | #2958, #2959 |
+| [@makcimbx](https://github.com/makcimbx) | #2937, #2938 |
+| [@guanbear](https://github.com/guanbear) | #2931, #3031 |
+| [@Lion-killer](https://github.com/Lion-killer) | #2981, #2988 |
+| [@JxnLexn](https://github.com/JxnLexn) | per-API-key stream default mode |
+| [@androw](https://github.com/androw) | #3017 |
+| [@xz-dev](https://github.com/xz-dev) | #2975, #3064 |
+| [@S0yora](https://github.com/S0yora) | #2964 |
+| [@NekoMonci12](https://github.com/NekoMonci12) | #3008 |
+| [@Tentoxa](https://github.com/Tentoxa) | #3010 |
+| [@ReqX](https://github.com/ReqX) | #2957 |
+| [@NomenAK](https://github.com/NomenAK) | #2943 |
+| [@charithharshana](https://github.com/charithharshana) | #2940 |
+| [@dhaern](https://github.com/dhaern) | #2927 |
+| [@dangeReis](https://github.com/dangeReis) | #3021 |
+| [@bobbyunknown](https://github.com/bobbyunknown) | #3029 |
+| [@CitrusIce](https://github.com/CitrusIce) | #3035, #3058 |
+| [@wussh](https://github.com/wussh) | #3036 |
+| [@Chewji9875](https://github.com/Chewji9875) | #3037 |
+| [@herjarsa](https://github.com/herjarsa) | #3043 |
+| [@freefrank](https://github.com/freefrank) | #3066 (reported the Docker build failure) |
 
-- **mcp:** move `enforceScopes` guard before `MCP_TOOL_MAP` lookup, add inline `scopes` parameter to `withScopeEnforcement()`, and declare scopes on all 24 dynamic tool definitions (memory, skills, plugins, gamification, compression) to fix scope enforcement for dynamic MCP tool groups (#2958)
-
-### ✨ New Features
-
-- **notion:** add Notion as an MCP context source — 6 tools (`notion_search`, `notion_list_databases`, `notion_get_database`, `notion_query_database`, `notion_read`, `notion_append_blocks`) scoped under `read:notion` / `write:notion`, with dashboard "Context Sources" tab, settings API, and token persistence in `key_value` table (#2959)
-
-### 🔧 Bug Fixes
-
-- **mcp:** move `enforceScopes` guard before `MCP_TOOL_MAP` lookup, add inline `scopes` parameter to `withScopeEnforcement()`, and declare scopes on all 24 dynamic tool definitions (memory, skills, plugins, gamification, compression) to fix scope enforcement for dynamic MCP tool groups (#2958)
-
-### ✨ New Features
-
-- **notion:** add Notion as an MCP context source — 6 tools (`notion_search`, `notion_list_databases`, `notion_get_database`, `notion_query_database`, `notion_read`, `notion_append_blocks`) scoped under `read:notion` / `write:notion`, with dashboard "Context Sources" tab, settings API, and token persistence in `key_value` table (#2959)
-
-### 🔧 Bug Fixes
-
-- **mcp:** move `enforceScopes` guard before `MCP_TOOL_MAP` lookup, add inline `scopes` parameter to `withScopeEnforcement()`, and declare scopes on all 24 dynamic tool definitions (memory, skills, plugins, gamification, compression) to fix scope enforcement for dynamic MCP tool groups (#2958)
-
-### ✨ New Features
-
-- **notion:** add Notion as an MCP context source — 6 tools (`notion_search`, `notion_list_databases`, `notion_get_database`, `notion_query_database`, `notion_read`, `notion_append_blocks`) scoped under `read:notion` / `write:notion`, with dashboard "Context Sources" tab, settings API, and token persistence in `key_value` table (#2959)
-
-### 🔧 Bug Fixes
-
-- **mcp:** move `enforceScopes` guard before `MCP_TOOL_MAP` lookup, add inline `scopes` parameter to `withScopeEnforcement()`, and declare scopes on all 24 dynamic tool definitions (memory, skills, plugins, gamification, compression) to fix scope enforcement for dynamic MCP tool groups (#2958)
-
-### ✨ New Features
-
-- **notion:** add Notion as an MCP context source — 6 tools (`notion_search`, `notion_list_databases`, `notion_get_database`, `notion_query_database`, `notion_read`, `notion_append_blocks`) scoped under `read:notion` / `write:notion`, with dashboard "Context Sources" tab, settings API, and token persistence in `key_value` table (#2959)
-
-### 🔧 Bug Fixes
-
-- **mcp:** move `enforceScopes` guard before `MCP_TOOL_MAP` lookup, add inline `scopes` parameter to `withScopeEnforcement()`, and declare scopes on all 24 dynamic tool definitions (memory, skills, plugins, gamification, compression) to fix scope enforcement for dynamic MCP tool groups (#2958)
-
-### ✨ New Features
-
-- **notion:** add Notion as an MCP context source — 6 tools (`notion_search`, `notion_list_databases`, `notion_get_database`, `notion_query_database`, `notion_read`, `notion_append_blocks`) scoped under `read:notion` / `write:notion`, with dashboard "Context Sources" tab, settings API, and token persistence in `key_value` table (#2959)
-
-### 🔧 Bug Fixes
-
-- **mcp:** move `enforceScopes` guard before `MCP_TOOL_MAP` lookup, add inline `scopes` parameter to `withScopeEnforcement()`, and declare scopes on all 24 dynamic tool definitions (memory, skills, plugins, gamification, compression) to fix scope enforcement for dynamic MCP tool groups (#2958)
-
-### ✨ New Features
-
-- **notion:** add Notion as an MCP context source — 6 tools (`notion_search`, `notion_list_databases`, `notion_get_database`, `notion_query_database`, `notion_read`, `notion_append_blocks`) scoped under `read:notion` / `write:notion`, with dashboard "Context Sources" tab, settings API, and token persistence in `key_value` table (#2959)
-
-### 🔧 Bug Fixes
-
-- **mcp:** move `enforceScopes` guard before `MCP_TOOL_MAP` lookup, add inline `scopes` parameter to `withScopeEnforcement()`, and declare scopes on all 24 dynamic tool definitions (memory, skills, plugins, gamification, compression) to fix scope enforcement for dynamic MCP tool groups (#2958)
-
-### ✨ New Features
-
-- **notion:** add Notion as an MCP context source — 6 tools (`notion_search`, `notion_list_databases`, `notion_get_database`, `notion_query_database`, `notion_read`, `notion_append_blocks`) scoped under `read:notion` / `write:notion`, with dashboard "Context Sources" tab, settings API, and token persistence in `key_value` table (#2959)
-
-### 🔧 Bug Fixes
-
-- **mcp:** move `enforceScopes` guard before `MCP_TOOL_MAP` lookup, add inline `scopes` parameter to `withScopeEnforcement()`, and declare scopes on all 24 dynamic tool definitions (memory, skills, plugins, gamification, compression) to fix scope enforcement for dynamic MCP tool groups (#2958)
-
-### ✨ New Features
-
-- **notion:** add Notion as an MCP context source — 6 tools (`notion_search`, `notion_list_databases`, `notion_get_database`, `notion_query_database`, `notion_read`, `notion_append_blocks`) scoped under `read:notion` / `write:notion`, with dashboard "Context Sources" tab, settings API, and token persistence in `key_value` table (#2959)
-
-### 🔧 Bug Fixes
-
-- **mcp:** move `enforceScopes` guard before `MCP_TOOL_MAP` lookup, add inline `scopes` parameter to `withScopeEnforcement()`, and declare scopes on all 24 dynamic tool definitions (memory, skills, plugins, gamification, compression) to fix scope enforcement for dynamic MCP tool groups (#2958)
-
-### ✨ New Features
-
-- **notion:** add Notion as an MCP context source — 6 tools (`notion_search`, `notion_list_databases`, `notion_get_database`, `notion_query_database`, `notion_read`, `notion_append_blocks`) scoped under `read:notion` / `write:notion`, with dashboard "Context Sources" tab, settings API, and token persistence in `key_value` table (#2959)
-
-### 🔧 Bug Fixes
-
-- **mcp:** move `enforceScopes` guard before `MCP_TOOL_MAP` lookup, add inline `scopes` parameter to `withScopeEnforcement()`, and declare scopes on all 24 dynamic tool definitions (memory, skills, plugins, gamification, compression) to fix scope enforcement for dynamic MCP tool groups (#2958)
-
-### ✨ New Features
-
-- **notion:** add Notion as an MCP context source — 6 tools (`notion_search`, `notion_list_databases`, `notion_get_database`, `notion_query_database`, `notion_read`, `notion_append_blocks`) scoped under `read:notion` / `write:notion`, with dashboard "Context Sources" tab, settings API, and token persistence in `key_value` table (#2959)
-
-### 🔧 Bug Fixes
-
-- **mcp:** move `enforceScopes` guard before `MCP_TOOL_MAP` lookup, add inline `scopes` parameter to `withScopeEnforcement()`, and declare scopes on all 24 dynamic tool definitions (memory, skills, plugins, gamification, compression) to fix scope enforcement for dynamic MCP tool groups (#2958)
-
-### ✨ New Features
-
-- **notion:** add Notion as an MCP context source — 6 tools (`notion_search`, `notion_list_databases`, `notion_get_database`, `notion_query_database`, `notion_read`, `notion_append_blocks`) scoped under `read:notion` / `write:notion`, with dashboard "Context Sources" tab, settings API, and token persistence in `key_value` table (#2959)
-
-### 🔧 Bug Fixes
-
-- **mcp:** move `enforceScopes` guard before `MCP_TOOL_MAP` lookup, add inline `scopes` parameter to `withScopeEnforcement()`, and declare scopes on all 24 dynamic tool definitions (memory, skills, plugins, gamification, compression) to fix scope enforcement for dynamic MCP tool groups (#2958)
+A special thanks to everyone who contributed code, reviews, and tests for this release:
+@androw, @bobbyunknown, @branben, @charithharshana, @Chewji9875, @CitrusIce, @dangeReis, @dhaern, @diegosouzapw, @freefrank, @guanbear, @herjarsa, @JxnLexn, @Lion-killer, @makcimbx, @NekoMonci12, @NomenAK, @oyi77, @ReqX, @S0yora, @soyelmismo, @Tentoxa, @terence71-glitch, @wussh, @xz-dev
 
 ---
 

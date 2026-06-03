@@ -9,10 +9,10 @@ import assert from "node:assert/strict";
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
+import { createManagementSessionHeaders } from "../helpers/managementSession.ts";
 
 const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-audit-level-filter-"));
 process.env.DATA_DIR = TEST_DATA_DIR;
-// No REQUIRE_API_KEY — auth is bypassed in this test env
 
 const core = await import("../../src/lib/db/core.ts");
 const compliance = await import("../../src/lib/compliance/index.ts");
@@ -24,8 +24,12 @@ function resetDb() {
   fs.mkdirSync(TEST_DATA_DIR, { recursive: true });
 }
 
-function makeRequest(url: string): Request {
-  return new Request(url);
+// The compliance audit-log route requires management auth (requireManagementAuth).
+// Attach a signed dashboard-session cookie so the request passes auth — in CI,
+// INITIAL_PASSWORD seeds a dashboard password, which makes auth required.
+async function makeRequest(url: string): Promise<Request> {
+  const headers = await createManagementSessionHeaders();
+  return new Request(url, { headers: Object.fromEntries(headers.entries()) });
 }
 
 test.beforeEach(() => {
@@ -39,31 +43,31 @@ test.after(() => {
 
 /**
  * Seed 5 audit entries:
- * - 2 with HIGH_LEVEL_ACTIONS (provider.added, combo.created)
+ * - 2 with HIGH_LEVEL_ACTIONS (provider.credentials.created, quota.pool.created)
  * - 3 with arbitrary non-high actions
  */
 function seedEntries() {
   compliance.initAuditLog();
 
   compliance.logAuditEvent({
-    action: "provider.added",
+    action: "provider.credentials.created",
     actor: "admin",
     target: "openai-conn-1",
     status: "success",
     createdAt: "2026-05-27T10:00:00.000Z",
   });
   compliance.logAuditEvent({
-    action: "combo.created",
+    action: "quota.pool.created",
     actor: "admin",
-    target: "my-combo",
+    target: "my-pool",
     status: "success",
     createdAt: "2026-05-27T10:01:00.000Z",
   });
   compliance.logAuditEvent({
-    action: "provider.validation.ssrf_blocked",
+    action: "debug.probe",
     actor: "system",
     target: "provider-node",
-    status: "blocked",
+    status: "success",
     createdAt: "2026-05-27T10:02:00.000Z",
   });
   compliance.logAuditEvent({
@@ -84,7 +88,7 @@ test("GET /api/compliance/audit-log (no level) returns all 5 entries", async () 
   seedEntries();
 
   const res = await auditRoute.GET(
-    makeRequest("http://localhost/api/compliance/audit-log?limit=100")
+    await makeRequest("http://localhost/api/compliance/audit-log?limit=100")
   );
 
   assert.equal(res.status, 200);
@@ -97,7 +101,7 @@ test("GET /api/compliance/audit-log?level=all returns all 5 entries", async () =
   seedEntries();
 
   const res = await auditRoute.GET(
-    makeRequest("http://localhost/api/compliance/audit-log?level=all&limit=100")
+    await makeRequest("http://localhost/api/compliance/audit-log?level=all&limit=100")
   );
 
   assert.equal(res.status, 200);
@@ -110,7 +114,7 @@ test("GET /api/compliance/audit-log?level=high returns only 2 HIGH_LEVEL entries
   seedEntries();
 
   const res = await auditRoute.GET(
-    makeRequest("http://localhost/api/compliance/audit-log?level=high&limit=100")
+    await makeRequest("http://localhost/api/compliance/audit-log?level=high&limit=100")
   );
 
   assert.equal(res.status, 200);
@@ -119,14 +123,14 @@ test("GET /api/compliance/audit-log?level=high returns only 2 HIGH_LEVEL entries
   assert.equal(body.length, 2, `Expected 2 high-level entries, got ${body.length}`);
 
   const actions = body.map((e) => e.action).sort();
-  assert.deepEqual(actions, ["combo.created", "provider.added"]);
+  assert.deepEqual(actions, ["provider.credentials.created", "quota.pool.created"]);
 });
 
 test("GET /api/compliance/audit-log?level=high x-total-count reflects filtered COUNT", async () => {
   seedEntries();
 
   const res = await auditRoute.GET(
-    makeRequest("http://localhost/api/compliance/audit-log?level=high&limit=100")
+    await makeRequest("http://localhost/api/compliance/audit-log?level=high&limit=100")
   );
 
   assert.equal(res.status, 200);
@@ -143,7 +147,7 @@ test("GET /api/compliance/audit-log error path does not leak stack trace (Hard R
   let caught = false;
   try {
     // Construct a URL that will cause URL parsing to throw
-    const badReq = makeRequest("not-a-url");
+    const badReq = await makeRequest("not-a-url");
     await auditRoute.GET(badReq);
   } catch {
     caught = true;
@@ -163,7 +167,7 @@ test("GET /api/compliance/audit-log error path does not leak stack trace (Hard R
 
   // Real test: ensure a normal response body is not a stack trace
   const res = await auditRoute.GET(
-    makeRequest("http://localhost/api/compliance/audit-log?level=high")
+    await makeRequest("http://localhost/api/compliance/audit-log?level=high")
   );
   const text = await res.text();
   assert.doesNotMatch(
@@ -177,7 +181,7 @@ test("GET /api/compliance/audit-log?level=high with limit=1 returns correct pagi
   seedEntries();
 
   const res = await auditRoute.GET(
-    makeRequest("http://localhost/api/compliance/audit-log?level=high&limit=1&offset=0")
+    await makeRequest("http://localhost/api/compliance/audit-log?level=high&limit=1&offset=0")
   );
 
   assert.equal(res.status, 200);

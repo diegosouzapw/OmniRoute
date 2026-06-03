@@ -69,12 +69,6 @@ export const WEB_SESSION_CREDENTIAL_REQUIREMENTS = {
     placeholder: "access_token=... or a DevTools HAR export",
     acceptsFullCookieHeader: false,
   },
-  "veoaifree-web": {
-    kind: "none",
-    credentialName: "",
-    placeholder: "",
-    acceptsFullCookieHeader: false,
-  },
   "t3-web": {
     kind: "cookie",
     credentialName: "convex-session-id + Cookie header",
@@ -91,12 +85,6 @@ export const WEB_SESSION_CREDENTIAL_REQUIREMENTS = {
     kind: "cookie",
     credentialName: "token + email",
     placeholder: "token_value user@example.com",
-    acceptsFullCookieHeader: false,
-  },
-  "duckduckgo-web": {
-    kind: "none",
-    credentialName: "",
-    placeholder: "",
     acceptsFullCookieHeader: false,
   },
   huggingchat: {
