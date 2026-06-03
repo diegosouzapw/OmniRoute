@@ -28,7 +28,7 @@
     "electron-updater": "^6.8.6"
   },
   "devDependencies": {
-    "electron": "^42.2.0",
+    "electron": "^42.3.2",
     "electron-builder": "^26.11.1"
   },
   "overrides": {
