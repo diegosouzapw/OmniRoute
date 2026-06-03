@@ -9,6 +9,30 @@ import type { ExecuteInput } from "./base.ts";
 import { ClaudeWebExecutor } from "./claude-web.ts";
 import { getCfClearanceToken, getCacheStatus } from "../services/claudeTurnstileSolver.ts";
 
+/**
+ * Read the Claude Web session cookie from the credentials object passed
+ * to the auto-refresh wrapper. Mirrors the priority chain in
+ * `ClaudeWebExecutor.readClaudeWebCookie` (cookie → apiKey →
+ * providerSpecificData.cookie) so the wrapper can see the same value
+ * the inner executor sees — without this, the wrapper would re-read
+ * `credentials.cookie` only and the dashboard's `apiKey`-posted
+ * cookies would never reach the Turnstile solver.
+ */
+function readClaudeWebCookieForAutoRefresh(credentials: unknown): string {
+  if (!credentials || typeof credentials !== "object") return "";
+  const c = credentials as Record<string, unknown>;
+  const direct = typeof c.cookie === "string" ? c.cookie : "";
+  if (direct.trim()) return direct;
+  const apiKey = typeof c.apiKey === "string" ? c.apiKey : "";
+  if (apiKey.trim()) return apiKey;
+  const psd = c.providerSpecificData;
+  if (psd && typeof psd === "object") {
+    const nested = (psd as Record<string, unknown>).cookie;
+    if (typeof nested === "string" && nested.trim()) return nested;
+  }
+  return "";
+}
+
 class ClaudeWebWithAutoRefresh extends ClaudeWebExecutor {
   private retryCount = 0;
   private maxRetries = 2;
@@ -54,15 +78,13 @@ class ClaudeWebWithAutoRefresh extends ClaudeWebExecutor {
         const freshCfClearance = await getCfClearanceToken({ force: shouldForce });
 
         // Update credentials
-        const rawCookie = String((credentials as any)?.cookie || "");
+        const rawCookie = readClaudeWebCookieForAutoRefresh(credentials);
         const hasCfClearance = rawCookie.includes("cf_clearance=");
 
         let newCookie: string;
         if (hasCfClearance) {
-          // Replace existing cf_clearance
           newCookie = rawCookie.replace(/cf_clearance=[^;]+/, `cf_clearance=${freshCfClearance}`);
         } else {
-          // Append new cf_clearance
           newCookie = `${rawCookie}; cf_clearance=${freshCfClearance}`;
         }
 
@@ -93,12 +115,10 @@ class ClaudeWebWithAutoRefresh extends ClaudeWebExecutor {
     signal?: AbortSignal
   ): Promise<boolean> {
     try {
-      // Try basic connection first
       const basicTest = await super.testConnection(credentials, signal);
       if (basicTest) return true;
 
-      // Try with fresh cf_clearance
-      const rawCookie = String((credentials as any)?.cookie || "");
+      const rawCookie = readClaudeWebCookieForAutoRefresh(credentials);
       if (!rawCookie.trim()) return false;
 
       const freshCfClearance = await getCfClearanceToken();
