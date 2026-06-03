@@ -47,7 +47,7 @@ For full test matrix, see `CONTRIBUTING.md` → "Running Tests". For deep archit
 | Services      | `open-sse/services/`    | Combo routing, rate limits, caching, etc                           |
 | Database      | `src/lib/db/`           | SQLite domain modules (45+ files, 55 migrations)                   |
 | Domain/Policy | `src/domain/`           | Policy engine, cost rules, fallback logic                          |
-| MCP Server    | `open-sse/mcp-server/`  | 37 tools (30 base + 3 memory + 4 skills), 3 transports, ~13 scopes |
+| MCP Server    | `open-sse/mcp-server/`  | 43 tools (30 base + 3 memory + 4 skills + 6 notion), 3 transports, ~13 scopes |
 | A2A Server    | `src/lib/a2a/`          | JSON-RPC 2.0 agent protocol                                        |
 | Skills        | `src/lib/skills/`       | Extensible skill framework                                         |
 | Memory        | `src/lib/memory/`       | Persistent conversational memory                                   |
@@ -428,3 +428,16 @@ git push -u origin feat/your-feature
 15. Never expose routes that spawn child processes (`/api/mcp/`, `/api/cli-tools/runtime/`) without `isLocalOnlyPath()` classification in `src/server/authz/routeGuard.ts`. Loopback enforcement happens unconditionally before any auth check — leaked JWT via tunnel cannot trigger process spawning. See `docs/security/ROUTE_GUARD_TIERS.md`.
 16. Never include `Co-Authored-By` trailers that credit an AI assistant, LLM, or automation account (e.g. names containing "Claude", "GPT", "Copilot", "Bot"; emails at `anthropic.com` / `openai.com` / bot-owned `noreply.github.com` addresses). Such trailers route attribution to the bot account on GitHub, hiding the real author (`diegosouzapw`) in PR history. Human collaborators — including upstream PR authors and issue reporters being ported into OmniRoute — MAY and SHOULD be credited with standard `Co-authored-by: Name <email>` trailers; the upstream-port workflows (`/port-upstream-features`, `/port-upstream-issues`) depend on this.
 17. Never expose routes under `/api/services/` or `/dashboard/providers/services/*/embed/` without `isLocalOnlyPath()` classification in `src/server/authz/routeGuard.ts`. These routes can spawn child processes (`npm install`, `node`). Loopback enforcement happens unconditionally before any auth check — a leaked JWT via tunnel cannot trigger process spawning. See `docs/security/ROUTE_GUARD_TIERS.md`.
+
+---
+
+## PII & Stream Sanitization Learnings
+
+### 1. Regex Security (ReDoS)
+All regex patterns matching variable-length strings (e.g. IPv6 address, credit cards) must use strictly bounded, non-overlapping sequences (e.g., limit occurrences with bounded ranges `{1,7}`) to prevent catastrophic backtracking when processing untrusted inputs.
+
+### 2. SSE Snapshot Handling
+When parsing streaming LLM responses (e.g. Responses API), check if a chunk represents a final snapshot (`done` or `completed` events). Snapshot text must be sanitized directly as a standalone string (bypassing rolling delta buffers) to prevent text duplication at the end of the stream.
+
+### 3. Database Handles in Tests
+Ensure that any unit tests that trigger database migrations or establish SQLite connections call `resetDbInstance()` and properly clean up/close all DB handles in a `test.after(...)` hook. Failure to release database connection handles will cause Node's native test runner to hang indefinitely.

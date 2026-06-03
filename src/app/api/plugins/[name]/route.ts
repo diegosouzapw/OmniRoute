@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { CORS_HEADERS, handleCorsOptions } from "@/shared/utils/cors";
+import { buildErrorBody } from "@omniroute/open-sse/utils/error";
 import { getPluginByName } from "@/lib/db/plugins";
 import { pluginManager } from "@/lib/plugins/manager";
 import { requireManagementAuth } from "@/lib/api/requireManagementAuth";
@@ -70,7 +71,11 @@ export async function DELETE(
       { success: true, message: `Plugin '${name}' uninstalled` },
       { headers: CORS_HEADERS }
     );
-  } catch (err: any) {
-    return NextResponse.json({ error: err.message }, { status: 400, headers: CORS_HEADERS });
+  } catch (err: unknown) {
+    console.error("[plugins] Failed to uninstall plugin:", err);
+    return NextResponse.json(buildErrorBody(400, "Failed to uninstall plugin"), {
+      status: 400,
+      headers: CORS_HEADERS,
+    });
   }
 }

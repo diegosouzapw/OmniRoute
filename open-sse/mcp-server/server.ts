@@ -75,6 +75,7 @@ import {
 } from "./tools/advancedTools.ts";
 import { memoryTools } from "./tools/memoryTools.ts";
 import { skillTools } from "./tools/skillTools.ts";
+import { agentSkillTools } from "./tools/agentSkillTools.ts";
 import { pluginTools } from "./tools/pluginTools.ts";
 import { compressionTools } from "./tools/compressionTools.ts";
 import { gamificationTools } from "./tools/gamificationTools.ts";
@@ -107,6 +108,7 @@ const TOTAL_MCP_TOOL_COUNT =
   MCP_TOOLS.length +
   Object.keys(memoryTools).length +
   Object.keys(skillTools).length +
+  Object.keys(agentSkillTools).length +
   gamificationTools.length +
   pluginTools.length +
   notionTools.length;
@@ -1127,7 +1129,7 @@ export function createMcpServer(): McpServer {
   );
 
   // ── Memory Tools ──────────────────────────────
-  Object.values(memoryTools).forEach((toolDef: any) => {
+  Object.values(memoryTools).forEach((toolDef) => {
     server.registerTool(
       toolDef.name,
       {
@@ -1154,7 +1156,7 @@ export function createMcpServer(): McpServer {
   });
 
   // ── Skill Tools ──────────────────────────────
-  Object.values(skillTools).forEach((toolDef: any) => {
+  Object.values(skillTools).forEach((toolDef) => {
     server.registerTool(
       toolDef.name,
       {
@@ -1177,6 +1179,29 @@ export function createMcpServer(): McpServer {
         },
         toolDef.scopes
       )
+    );
+  });
+
+  // ── Agent Skill Tools ─────────────────────────
+  Object.values(agentSkillTools).forEach((toolDef) => {
+    server.registerTool(
+      toolDef.name,
+      {
+        description: toolDef.description,
+        // @ts-ignore: dynamic zod access
+        inputSchema: toolDef.inputSchema,
+      },
+      withScopeEnforcement(toolDef.name, async (args) => {
+        try {
+          const parsedArgs = toolDef.inputSchema.parse(args ?? {});
+          // @ts-expect-error - handler type lost through dynamic Object.values() access
+          const result = await toolDef.handler(parsedArgs);
+          return { content: [{ type: "text" as const, text: JSON.stringify(result, null, 2) }] };
+        } catch (err) {
+          const msg = err instanceof Error ? err.message : String(err);
+          return { content: [{ type: "text" as const, text: `Error: ${msg}` }], isError: true };
+        }
+      })
     );
   });
 
@@ -1208,7 +1233,7 @@ export function createMcpServer(): McpServer {
   });
 
   // ── Compression Tools ─────────────────────────
-  Object.values(compressionTools).forEach((toolDef: any) => {
+  Object.values(compressionTools).forEach((toolDef) => {
     server.registerTool(
       toolDef.name,
       {

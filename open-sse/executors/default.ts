@@ -1,4 +1,4 @@
-import { BaseExecutor, setUserAgentHeader } from "./base.ts";
+import { BaseExecutor, setUserAgentHeader, type ExecuteInput } from "./base.ts";
 import { PROVIDERS, OAUTH_ENDPOINTS } from "../config/constants.ts";
 import { getAccessToken } from "../services/tokenRefresh.ts";
 import {
@@ -28,6 +28,8 @@ import { buildWatsonxChatUrl } from "../config/watsonx.ts";
 import { buildOciChatUrl } from "../config/oci.ts";
 import { buildSapChatUrl, getSapResourceGroup } from "../config/sap.ts";
 import { buildMaritalkChatUrl } from "../config/maritalk.ts";
+
+import type { PoolConfig } from "../services/sessionPool/types.ts";
 
 function normalizeBaseUrl(baseUrl) {
   return (baseUrl || "").trim().replace(/\/$/, "");
@@ -103,6 +105,10 @@ function normalizeOpenAIChatUrl(baseUrl) {
 export class DefaultExecutor extends BaseExecutor {
   constructor(provider) {
     super(provider, PROVIDERS[provider] || PROVIDERS.openai);
+    const registryEntry = getRegistryEntry(provider);
+    if (registryEntry?.poolConfig) {
+      this.poolConfig = registryEntry.poolConfig as PoolConfig;
+    }
   }
 
   buildUrl(model, stream, urlIndex = 0, credentials = null) {
@@ -545,6 +551,47 @@ export class DefaultExecutor extends BaseExecutor {
       if (!credentials.expiresAt) return false;
     }
     return super.needsRefresh(credentials);
+  }
+
+  async execute(input: ExecuteInput) {
+    const pool = this.getPool();
+    if (!pool) return super.execute(input);
+
+    const session = pool.acquire();
+    if (session) {
+      input.upstreamExtraHeaders = {
+        ...session.buildHeaders(),
+        ...input.upstreamExtraHeaders,
+      };
+    }
+
+    let result;
+    try {
+      result = await super.execute(input);
+    } catch (err) {
+      if (session) {
+        pool.reportCooldown(session);
+        session.release();
+      }
+      throw err;
+    }
+
+    if (session) {
+      try {
+        const status = result?.response?.status;
+        if (status === 429) {
+          pool.reportCooldown(session);
+        } else if (status >= 500) {
+          pool.reportDead(session);
+        } else {
+          pool.reportSuccess(session);
+        }
+      } finally {
+        session.release();
+      }
+    }
+
+    return result;
   }
 }
 

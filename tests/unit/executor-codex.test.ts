@@ -117,6 +117,36 @@ test("Codex helper functions isolate rate-limit scopes and parse quota headers",
   assert.ok(getCodexResetTime(quota) >= new Date(quota.resetAt7d).getTime());
 });
 
+test("isCodexResponsesWebSocketRequired: OMNIROUTE_CODEX_WS_ENABLED=false forces HTTP even with codexTransport=websocket", () => {
+  // Transport available + per-connection opt-in would normally enable WS…
+  __setCodexWebSocketTransportForTesting(
+    () =>
+      ({
+        send() {},
+        close() {},
+        onmessage: null,
+        onopen: null,
+        onerror: null,
+        onclose: null,
+      }) as unknown as ReturnType<typeof Object>
+  );
+  const prev = process.env.OMNIROUTE_CODEX_WS_ENABLED;
+  process.env.OMNIROUTE_CODEX_WS_ENABLED = "false";
+  try {
+    // …but the global kill-switch (default ON) overrides it to false.
+    assert.equal(
+      isCodexResponsesWebSocketRequired("gpt-5.5-xhigh", {
+        providerSpecificData: { codexTransport: "websocket" },
+      }),
+      false
+    );
+  } finally {
+    if (prev === undefined) delete process.env.OMNIROUTE_CODEX_WS_ENABLED;
+    else process.env.OMNIROUTE_CODEX_WS_ENABLED = prev;
+    __setCodexWebSocketTransportForTesting(undefined);
+  }
+});
+
 test("CodexExecutor.buildUrl honors /responses subpaths and compact mode", () => {
   const executor = new CodexExecutor();
 

@@ -150,16 +150,47 @@ export function decodeClientFrames(
   };
 }
 
-function writeHttpError(socket, status, body, headers = {}) {
+const WRITE_ERROR_RESERVED_HEADERS = new Set([
+  // Framing — must never collide with our Content-Length default.
+  "transfer-encoding",
+  "content-length",
+  "content-type",
+  "connection",
+  "keep-alive",
+  // Next pipeline / security headers are meaningless on a raw JSON error socket
+  // and must not leak from a forwarded internal-fetch response.
+  "content-security-policy",
+  "x-frame-options",
+  "x-content-type-options",
+  "referrer-policy",
+  "permissions-policy",
+  "strict-transport-security",
+  "x-omniroute-route-class",
+  "x-request-id",
+  "date",
+]);
+
+export function writeHttpError(socket, status, body, headers = {}) {
   if (!socket.writable || socket.destroyed) return;
 
   const bodyBuffer = Buffer.from(body || "", "utf8");
   const statusText = STATUS_CODES[status] || "Error";
+  // Strip any caller-supplied framing / duplicate-prone headers (case-insensitive)
+  // so our Content-Length/Connection/Content-Type defaults always win. Forwarding
+  // an upstream fetch's chunked Transfer-Encoding here would collide with
+  // Content-Length ("Transfer-Encoding can't be present with Content-Length") and
+  // break the client's HTTP parser on a raw upgrade socket.
+  const safeHeaders = {};
+  for (const [name, value] of Object.entries(headers || {})) {
+    if (!WRITE_ERROR_RESERVED_HEADERS.has(String(name).toLowerCase())) {
+      safeHeaders[name] = value;
+    }
+  }
   const responseHeaders = {
     Connection: "close",
     "Content-Length": String(bodyBuffer.length),
     "Content-Type": "application/json; charset=utf-8",
-    ...headers,
+    ...safeHeaders,
   };
 
   const head = [
@@ -637,12 +668,11 @@ export function createResponsesWsProxy({
           headers: getAuthHeaders(req.url || pathname, req.headers),
         });
         if (!auth.ok) {
-          writeHttpError(
-            socket,
-            auth.status,
-            auth.text || "{}",
-            Object.fromEntries(auth.headers.entries())
-          );
+          // Do NOT forward the internal fetch's response headers onto the raw
+          // upgrade socket — they carry chunked transfer-encoding + Next security
+          // headers that collide with writeHttpError's Content-Length framing.
+          // The sanitized JSON body alone is enough for the client.
+          writeHttpError(socket, auth.status, auth.text || "{}");
           return true;
         }
 

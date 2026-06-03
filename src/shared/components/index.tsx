@@ -39,5 +39,7 @@ export { default as CollapsibleSection } from "./CollapsibleSection";
 export { default as InfoTooltip } from "./InfoTooltip";
 export { default as PresetSlider } from "./PresetSlider";
 
+export { SkillsConceptCard } from "./SkillsConceptCard";
+
 // Layouts
 export * from "./layouts";

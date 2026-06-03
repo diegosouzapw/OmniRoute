@@ -225,6 +225,26 @@ export async function syncStandaloneExtraModules(
       destRelative: path.join("dev", "run-standalone.mjs"),
     },
     {
+      // WS-aware wrapper that run-standalone.mjs prefers over bare server.js.
+      // It installs the trusted peer-IP stamp the authz middleware needs to
+      // allow loopback/LAN access to LOCAL_ONLY routes; without it the Docker
+      // container fails closed (every LOCAL_ONLY request 403s). Imports
+      // peer-stamp.mjs + responses-ws-proxy.mjs, so all three are co-located.
+      label: "WS/peer-stamp standalone server wrapper",
+      sourcePath: path.join(rootDir, "scripts", "dev", "standalone-server-ws.mjs"),
+      destRelative: "server-ws.mjs",
+    },
+    {
+      label: "peer-stamp helper (server-ws.mjs dependency)",
+      sourcePath: path.join(rootDir, "scripts", "dev", "peer-stamp.mjs"),
+      destRelative: "peer-stamp.mjs",
+    },
+    {
+      label: "responses-ws-proxy (server-ws.mjs dependency)",
+      sourcePath: path.join(rootDir, "scripts", "dev", "responses-ws-proxy.mjs"),
+      destRelative: "responses-ws-proxy.mjs",
+    },
+    {
       label: "runtime-env script",
       sourcePath: path.join(rootDir, "scripts", "build", "runtime-env.mjs"),
       destRelative: path.join("build", "runtime-env.mjs"),
@@ -249,6 +269,28 @@ export async function syncStandaloneExtraModules(
       sourcePath: path.join(rootDir, "node_modules", "playwright-core"),
       destRelative: path.join("node_modules", "playwright-core"),
     },
+    {
+      label: "sqlite-vec wrapper (vector memory — loaded at runtime via createRequire)",
+      sourcePath: path.join(rootDir, "node_modules", "sqlite-vec"),
+      destRelative: path.join("node_modules", "sqlite-vec"),
+    },
+    // sqlite-vec's native vec0.so lives in a platform-specific package resolved at
+    // runtime via require.resolve(). Next.js does NOT trace it into the standalone
+    // (the externalized wrapper is copied, but its optional platform dep is missed —
+    // Next.js #88844), so without this the bundled/Docker build silently degrades
+    // vector search to FTS5: the wrapper loads but getLoadablePath() throws
+    // MODULE_NOT_FOUND. Copy whichever platform package npm actually installed. See #3066.
+    ...[
+      "sqlite-vec-linux-x64",
+      "sqlite-vec-linux-arm64",
+      "sqlite-vec-darwin-x64",
+      "sqlite-vec-darwin-arm64",
+      "sqlite-vec-windows-x64",
+    ].map((pkg) => ({
+      label: pkg,
+      sourcePath: path.join(rootDir, "node_modules", pkg),
+      destRelative: path.join("node_modules", pkg),
+    })),
   ];
 
   let changed = false;

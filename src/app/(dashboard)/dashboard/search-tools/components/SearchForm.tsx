@@ -1,14 +1,22 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import { useTranslations } from "next-intl";
 import { Button, Select } from "@/shared/components";
+import type { SearchProviderCatalogItem } from "@/shared/schemas/searchTools";
 
 interface SearchProvider {
   id: string;
   name: string;
   status: "active" | "no_credentials";
   cost_per_query: number;
+}
+
+/** Extended provider info from the catalog (optional — shown if catalogProviders is supplied). */
+interface SearchFormExtendedProps {
+  /** If supplied, shows cost + quota + status badges next to the provider dropdown. */
+  catalogProviders?: SearchProviderCatalogItem[];
 }
 
 export interface SearchFormData {
@@ -24,14 +32,14 @@ export interface SearchFormData {
   safe_search?: string;
 }
 
-interface SearchFormProps {
+interface SearchFormProps extends SearchFormExtendedProps {
   onSearch: (data: SearchFormData) => void;
   loading: boolean;
   onCancel: () => void;
   providers: SearchProvider[];
 }
 
-export default function SearchForm({ onSearch, loading, onCancel, providers }: SearchFormProps) {
+export default function SearchForm({ onSearch, loading, onCancel, providers, catalogProviders }: SearchFormProps) {
   const t = useTranslations("search");
   const tc = useTranslations("common");
   const [query, setQuery] = useState("");
@@ -50,6 +58,9 @@ export default function SearchForm({ onSearch, loading, onCancel, providers }: S
 
   const activeProviders = providers.filter((p) => p.status === "active");
   const noProviders = activeProviders.length === 0;
+
+  // Look up catalog metadata for the currently selected provider
+  const catalogInfo = catalogProviders?.find((cp) => cp.id === provider) ?? null;
 
   const handleSubmit = () => {
     const data: SearchFormData = {
@@ -113,7 +124,7 @@ export default function SearchForm({ onSearch, loading, onCancel, providers }: S
             </label>
             <Select
               value={provider}
-              onChange={(e: any) => setProvider(e.target.value)}
+              onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setProvider(e.target.value)}
               options={[
                 { value: "auto", label: t("providerAuto") },
                 ...activeProviders.map((p) => ({
@@ -123,6 +134,52 @@ export default function SearchForm({ onSearch, loading, onCancel, providers }: S
               ]}
               className="w-full"
             />
+            {/* Catalog metadata badge (F8 — provider cost/quota/status) */}
+            {catalogInfo && (
+              <div className="mt-1 flex flex-wrap gap-x-2 text-[10px] text-text-muted">
+                <span>
+                  <span className="font-medium text-text-main">
+                    ${catalogInfo.costPerQuery.toFixed(4)}
+                  </span>
+                  /query
+                </span>
+                {catalogInfo.freeMonthlyQuota > 0 && (
+                  <span>
+                    Free{" "}
+                    <span className="font-medium text-text-main">
+                      {catalogInfo.freeMonthlyQuota >= 1000
+                        ? `${(catalogInfo.freeMonthlyQuota / 1000).toFixed(0)}k`
+                        : catalogInfo.freeMonthlyQuota}
+                    </span>
+                    /mo
+                  </span>
+                )}
+                <span
+                  className={
+                    catalogInfo.status === "configured"
+                      ? "text-success"
+                      : catalogInfo.status === "rate_limited"
+                        ? "text-warning"
+                        : "text-text-muted"
+                  }
+                  data-testid="provider-status-badge"
+                >
+                  {catalogInfo.status === "configured"
+                    ? "● ok"
+                    : catalogInfo.status === "rate_limited"
+                      ? "● limited"
+                      : "● missing"}
+                </span>
+                {catalogInfo.status === "missing" && (
+                  <Link
+                    href={catalogInfo.configureHref}
+                    className="text-accent hover:underline"
+                  >
+                    Configure →
+                  </Link>
+                )}
+              </div>
+            )}
           </div>
           <div className="flex-1">
             <label className="block text-[10px] text-text-muted uppercase tracking-wider mb-1">

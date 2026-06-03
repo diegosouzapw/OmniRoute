@@ -96,7 +96,8 @@ export async function POST(request) {
     if (isValidationFailure(validation)) {
       return Response.json({ error: validation.error }, { status: 400 });
     }
-    const { provider, modelId, modelName, source, apiFormat, supportedEndpoints } = validation.data;
+    const { provider, modelId, modelName, source, apiFormat, supportedEndpoints, targetFormat } =
+      validation.data;
 
     const model = await addCustomModel(
       provider,
@@ -104,7 +105,8 @@ export async function POST(request) {
       modelName,
       source || "manual",
       apiFormat,
-      supportedEndpoints
+      supportedEndpoints,
+      targetFormat
     );
     return Response.json({ model });
   } catch (error) {
@@ -150,6 +152,7 @@ export async function PUT(request) {
       modelName,
       apiFormat,
       supportedEndpoints,
+      targetFormat,
       normalizeToolCallId,
       preserveOpenAIDeveloperRole,
       upstreamHeaders,
@@ -161,6 +164,7 @@ export async function PUT(request) {
     if ("modelName" in raw) updates.modelName = modelName;
     if ("apiFormat" in raw) updates.apiFormat = apiFormat;
     if ("supportedEndpoints" in raw) updates.supportedEndpoints = supportedEndpoints;
+    if ("targetFormat" in raw) updates.targetFormat = targetFormat;
     if ("normalizeToolCallId" in raw) updates.normalizeToolCallId = normalizeToolCallId;
     if ("preserveOpenAIDeveloperRole" in raw)
       updates.preserveOpenAIDeveloperRole = preserveOpenAIDeveloperRole;
