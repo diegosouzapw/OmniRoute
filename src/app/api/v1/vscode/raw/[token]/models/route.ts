@@ -2,7 +2,7 @@ import {
   enrichModelForVscode,
   expandVscodeRawModels,
   getVscodeModelsCatalogResponse,
-} from "@/app/api/v1/vscode/raw/[token]/models/route";
+} from "@/app/api/v1/vscode/[token]/models/route";
 import { withPathTokenApiKey } from "@/app/api/v1/vscode/raw/[token]/tokenizedRequest";
 
 export async function OPTIONS() {

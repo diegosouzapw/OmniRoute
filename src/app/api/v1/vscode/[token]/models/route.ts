@@ -137,7 +137,7 @@ export function getVscodeRawModelDisplayName(model: CatalogModelEntry) {
 	const baseDisplayName = getVscodeModelDisplayName({
 		...model,
 		id: displayBaseModelId,
-		name: canonicalMetadata?.displayName || model.name,
+		name: displayBaseModelId,
 		root: displayBaseModelId,
 	}).replace(/\s+\(Default\)$/u, "");
 	const providerKey = canonicalMetadata?.providerAlias || canonicalMetadata?.provider || "";
@@ -152,7 +152,7 @@ export function getVscodeRawModelDisplayName(model: CatalogModelEntry) {
 	const { serviceTier } = parseVscodeServiceTierVariantModelId(actualModelId);
 	const reasoningEffortValues = getReasoningEffortValues(model as VscodeCatalogModel);
 	const selectedReasoningEffort = reasoningEffortValues
-		? getDefaultReasoningEffort(model as VscodeCatalogModel, reasoningEffortValues)
+		? getCatalogModelName(model as VscodeCatalogModel).match(/-(xhigh|high|medium|low|none)$/i)?.[1]?.toLowerCase()
 		: undefined;
 
 	const suffixes: string[] = [];

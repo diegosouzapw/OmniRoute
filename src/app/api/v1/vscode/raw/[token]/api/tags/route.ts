@@ -2,6 +2,7 @@ import { getUnifiedModelsResponse } from "@/app/api/v1/models/catalog";
 import { getProviderConnections } from "@/lib/db/providers";
 import { getCanonicalModelMetadata } from "@/lib/modelMetadataRegistry";
 import { CORS_HEADERS, handleCorsOptions } from "@/shared/utils/cors";
+import { expandVscodeRawModels } from "@/app/api/v1/vscode/[token]/models/route";
 import {
 	buildReasoningConfigSchema,
 	buildSupportedReasoningEfforts,
@@ -11,13 +12,7 @@ import {
 	inferSelectedReasoningEffort,
 	type VscodeCatalogModel,
 } from "@/app/api/v1/vscode/raw/[token]/reasoningMetadata";
-import { getVscodeModelGroupingKey } from "@/app/api/v1/vscode/raw/[token]/modelPresentation";
-import {
-	expandVscodeServiceTierModels,
-	getVscodeServiceTierVariantModelId,
-	parseVscodeServiceTierVariantModelId,
-} from "@/app/api/v1/vscode/raw/[token]/serviceTierVariants";
-import { getFamilyFirstPublishedModelId } from "@/app/api/v1/vscode/raw/[token]/familyFirstModelIds";
+import { parseVscodeServiceTierVariantModelId } from "@/app/api/v1/vscode/raw/[token]/serviceTierVariants";
 import { withPathTokenApiKey } from "@/app/api/v1/vscode/raw/[token]/tokenizedRequest";
 
 type OpenAiCatalogModel = {
@@ -119,7 +114,7 @@ function toOllamaTagModel(model: OpenAiCatalogModel) {
 		model: model.root || model.id || model.name || null,
 	});
 	const family = getOllamaModelFamily(model, canonicalMetadata?.metadata.family || null);
-	const modelId = getFamilyFirstPublishedModelId(actualModelId, family);
+	const modelId = actualModelId;
 	const contextLength = typeof model.context_length === "number" ? model.context_length : 0;
 	const reasoningEffortValues = getReasoningEffortValues(model as VscodeCatalogModel);
 	const selectedReasoningEffort = reasoningEffortValues
@@ -176,43 +171,6 @@ function toOllamaTagModel(model: OpenAiCatalogModel) {
 	};
 }
 
-function filterCanonicalTagModels(models: OpenAiCatalogModel[]) {
-	const allModelIds = new Set(models.map((model) => (model.id || model.root || model.name || "").trim()).filter(Boolean));
-	const groupedModels = new Map<string, OpenAiCatalogModel>();
-	const orderedGroupKeys: string[] = [];
-
-	for (const model of models) {
-		const modelId = (model.id || model.root || model.name || "").trim();
-		if (!modelId) continue;
-
-		const tierParsedModel = parseVscodeServiceTierVariantModelId(modelId);
-		const baseModelId = getReasoningVariantBaseModelId(tierParsedModel.baseModelId);
-		const canonicalModelId = tierParsedModel.serviceTier
-			? getVscodeServiceTierVariantModelId(baseModelId, tierParsedModel.serviceTier)
-			: baseModelId;
-		if (canonicalModelId !== modelId && allModelIds.has(canonicalModelId)) {
-			continue;
-		}
-
-		const groupKey = tierParsedModel.serviceTier
-			? canonicalModelId
-			: getVscodeModelGroupingKey(model) || canonicalModelId;
-		const current = groupedModels.get(groupKey);
-		if (!current) {
-			groupedModels.set(groupKey, model);
-			orderedGroupKeys.push(groupKey);
-			continue;
-		}
-
-		const currentId = (current.id || current.root || current.name || "").trim();
-		if (currentId !== groupKey && modelId === canonicalModelId) {
-			groupedModels.set(groupKey, model);
-		}
-	}
-
-	return orderedGroupKeys.map((groupKey) => groupedModels.get(groupKey)).filter(Boolean) as OpenAiCatalogModel[];
-}
-
 export async function OPTIONS() {
 	return handleCorsOptions();
 }
@@ -239,9 +197,7 @@ export async function GET(
 	}
 
 	const usableModels = Array.isArray(body.data) ? body.data.filter(isUsableChatModel) : [];
-	const preferredModels = filterCanonicalTagModels(
-		expandVscodeServiceTierModels(await selectPreferredModels(usableModels))
-	);
+	const preferredModels = expandVscodeRawModels(await selectPreferredModels(usableModels));
 	const models = preferredModels.map(toOllamaTagModel);
 
 	return Response.json(

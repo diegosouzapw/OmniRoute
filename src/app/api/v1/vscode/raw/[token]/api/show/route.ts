@@ -1,6 +1,8 @@
 import { getUnifiedModelsResponse } from "@/app/api/v1/models/catalog";
+import { getVscodeRawModelDisplayName } from "@/app/api/v1/vscode/[token]/models/route";
 import { getCanonicalModelMetadata } from "@/lib/modelMetadataRegistry";
 import { CORS_HEADERS, handleCorsOptions } from "@/shared/utils/cors";
+import { expandVscodeRawModels } from "@/app/api/v1/vscode/[token]/models/route";
 import {
   buildReasoningConfigSchema,
   buildSupportedReasoningEfforts,
@@ -9,12 +11,8 @@ import {
   inferSelectedReasoningEffort,
   type VscodeCatalogModel,
 } from "@/app/api/v1/vscode/raw/[token]/reasoningMetadata";
-import { getVscodeModelDisplayName } from "@/app/api/v1/vscode/raw/[token]/modelPresentation";
-import {
-  expandVscodeServiceTierModels,
-  parseVscodeServiceTierVariantModelId,
-} from "@/app/api/v1/vscode/raw/[token]/serviceTierVariants";
-import { getFamilyFirstModelCandidates, getFamilyFirstPublishedModelId } from "@/app/api/v1/vscode/raw/[token]/familyFirstModelIds";
+import { parseVscodeServiceTierVariantModelId } from "@/app/api/v1/vscode/raw/[token]/serviceTierVariants";
+import { getFamilyFirstModelCandidates } from "@/app/api/v1/vscode/raw/[token]/familyFirstModelIds";
 import { withPathTokenApiKey } from "@/app/api/v1/vscode/raw/[token]/tokenizedRequest";
 
 type OpenAiCatalogModel = {
@@ -131,13 +129,13 @@ function buildCapabilities(model: OpenAiCatalogModel): string[] {
 
 function buildShowPayload(model: OpenAiCatalogModel, responseModelId?: string) {
   const actualModelId = getCatalogModelId(model);
-  const displayName = getVscodeModelDisplayName(model);
+  const displayName = getVscodeRawModelDisplayName(model);
   const canonicalMetadata = getCanonicalModelMetadata({
     provider: model.owned_by || null,
     model: model.root || model.id || model.name || null,
   });
   const family = getOllamaModelFamily(model, canonicalMetadata?.metadata.family || null);
-  const modelId = responseModelId || getFamilyFirstPublishedModelId(actualModelId, family);
+  const modelId = responseModelId || actualModelId;
   const architectureSource =
     normalizeArchitectureSource(
       canonicalMetadata?.providerAlias || canonicalMetadata?.provider || model.owned_by || family || "model"
@@ -300,7 +298,7 @@ export async function POST(
   }
 
   const expandedModels = Array.isArray(catalogBody.data)
-    ? expandVscodeServiceTierModels(catalogBody.data.filter(isUsableChatModel))
+    ? expandVscodeRawModels(catalogBody.data.filter(isUsableChatModel))
     : [];
 
   const model = Array.isArray(expandedModels)
@@ -321,7 +319,7 @@ export async function POST(
     );
   }
 
-  return Response.json(buildShowPayload(model, requestedName), {
+  return Response.json(buildShowPayload(model), {
     headers: {
       ...CORS_HEADERS,
     },
