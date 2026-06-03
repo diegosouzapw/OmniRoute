@@ -20,6 +20,11 @@ import {
 } from "@/shared/utils/formatting";
 import { getProviderDisplayLabel } from "@/shared/utils/providerDisplayLabel";
 import useEmailPrivacyStore from "@/store/emailPrivacyStore";
+import {
+  computeLogsSignature,
+  resolveInitialVisibility,
+  shouldAutoRefresh,
+} from "./requestLoggerSignature";
 
 // Number of call-log rows fetched per page. The viewer grows its window by this
 // amount on "Load more" / infinite scroll so users can browse past the first
@@ -120,7 +125,7 @@ export default function RequestLoggerV2() {
   const scrollContainerRef = useRef(null);
   const loadMoreSentinelRef = useRef(null);
   const [providerNodes, setProviderNodes] = useState([]);
-  const visibleRef = useRef(true);
+  const visibleRef = useRef(resolveInitialVisibility());
 
   // Column visibility with localStorage persistence
   const [visibleColumns, setVisibleColumns] = useState(() => {
@@ -164,10 +169,10 @@ export default function RequestLoggerV2() {
           const data = await res.json();
           // If the server returned a full window, more rows may exist beyond it.
           setHasMore(Array.isArray(data) && data.length >= limit);
-          // Skip re-render if data hasn't changed (#1369 GPU perf)
-          // Lightweight check: map key fields to detect additions, deletions, or status/duration updates
-          const arr = Array.isArray(data) ? data : [];
-          const sig = arr.map((l: any) => l.id + ":" + l.status + ":" + l.duration + ":" + (l.tokens?.out || 0)).join("|");
+          // Skip re-render if data hasn't changed (#1369 GPU perf). The signature
+          // captures id + status + duration + tokens_out so in-progress updates
+          // still re-render while identical snapshots are skipped.
+          const sig = computeLogsSignature(data);
           if (sig !== logsSignatureRef.current) {
             logsSignatureRef.current = sig;
             setLogs(data);
@@ -215,7 +220,7 @@ export default function RequestLoggerV2() {
     const onVisibility = () => {
       const isVisible = document.visibilityState === "visible";
       visibleRef.current = isVisible;
-      if (isVisible && recording && limit <= PAGE_SIZE) {
+      if (isVisible && shouldAutoRefresh(recording, limit, PAGE_SIZE)) {
         fetchLogs(false);
       }
     };
@@ -225,7 +230,7 @@ export default function RequestLoggerV2() {
 
   useEffect(() => {
     if (intervalRef.current) clearInterval(intervalRef.current);
-    if (recording && limit <= PAGE_SIZE) {
+    if (shouldAutoRefresh(recording, limit, PAGE_SIZE)) {
       intervalRef.current = setInterval(() => {
         if (visibleRef.current) fetchLogs(false);
       }, POLL_INTERVAL_MS);
