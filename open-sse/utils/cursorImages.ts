@@ -21,8 +21,11 @@
  */
 
 import crypto from "node:crypto";
+import dns from "node:dns";
+import { isIP } from "node:net";
 import {
   parseAndValidatePublicUrl,
+  isPrivateHost,
   OutboundUrlGuardError,
 } from "@/shared/network/outboundUrlGuard";
 import type { EncodedImage } from "./cursorAgentProtobuf.ts";
@@ -126,6 +129,42 @@ function validatePublicImageUrl(url: string): URL {
   }
 }
 
+/**
+ * Throw if any of the resolved addresses falls in a private / link-local /
+ * loopback / CGNAT / metadata range. Exported for unit testing the IP gate
+ * without going through DNS.
+ */
+export function assertResolvedAddressesPublic(addresses: string[]): void {
+  for (const addr of addresses) {
+    if (isPrivateHost(addr)) {
+      throw new CursorImageError("Image URL points to a blocked address.");
+    }
+  }
+}
+
+/**
+ * Defence-in-depth against DNS-rebinding SSRF: `parseAndValidatePublicUrl`
+ * only checks the hostname *string*, so a public-looking host that resolves to
+ * a private/metadata IP would otherwise be fetched. Resolve the host and
+ * reject if ANY answer is private. IP literals are skipped (already validated
+ * by the guard above). This narrows — but doesn't fully eliminate — the
+ * TOCTOU window between our resolution and fetch's own; a connection-time IP
+ * filter (e.g. ssrf-req-filter) on the shared outbound guard would close it
+ * for every caller.
+ */
+async function assertHostnameResolvesPublic(hostname: string): Promise<void> {
+  const bare =
+    hostname.startsWith("[") && hostname.endsWith("]") ? hostname.slice(1, -1) : hostname;
+  if (isIP(bare)) return; // IP literal — already checked by the URL guard.
+  let resolved: Array<{ address: string }>;
+  try {
+    resolved = await dns.promises.lookup(bare, { all: true });
+  } catch {
+    throw new CursorImageError("Image URL host could not be resolved.");
+  }
+  assertResolvedAddressesPublic(resolved.map((r) => r.address));
+}
+
 async function fetchImageBytes(url: string): Promise<{ data: Buffer; mimeType: string }> {
   // Follow redirects MANUALLY and re-validate every hop through the SSRF guard.
   // `fetch` follows redirects by default, so validating only the initial URL
@@ -134,6 +173,8 @@ async function fetchImageBytes(url: string): Promise<{ data: Buffer; mimeType: s
   let currentUrl = url;
   for (let hop = 0; hop <= MAX_IMAGE_REDIRECTS; hop++) {
     const parsed = validatePublicImageUrl(currentUrl);
+    // Resolve + IP-check the host (DNS-rebinding defence) before connecting.
+    await assertHostnameResolvesPublic(parsed.hostname);
 
     const controller = new AbortController();
     const timer = setTimeout(() => controller.abort(), IMAGE_FETCH_TIMEOUT_MS);

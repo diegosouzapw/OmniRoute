@@ -5,14 +5,20 @@ import {
   encodeAgentRunRequest,
   type EncodedImage,
 } from "../../open-sse/utils/cursorAgentProtobuf";
+import dns from "node:dns";
 import {
   resolveCursorImages,
   extractImageUrls,
+  assertResolvedAddressesPublic,
   CursorImageError,
   MAX_CURSOR_IMAGE_BYTES,
   MAX_CURSOR_IMAGES,
 } from "../../open-sse/utils/cursorImages";
 import { CursorExecutor } from "../../open-sse/executors/cursor";
+
+// A public IP for mocking DNS so the redirect tests (which use non-resolvable
+// example hostnames) pass the DNS-rebinding gate.
+const PUBLIC_IP = [{ address: "93.184.216.34", family: 4 }];
 
 // ─── Minimal protobuf field walker (test-only) ──────────────────────────────
 // Mirrors the production decoder enough to assert field layout without exposing
@@ -257,10 +263,37 @@ test("resolveCursorImages accepts an uppercase DATA: scheme (RFC 2397 case-insen
   assert.equal(out[0].mimeType, "image/png");
 });
 
-test("resolveCursorImages re-validates redirects: a 30x to a private host is blocked (SSRF)", async () => {
+test("assertResolvedAddressesPublic blocks private/metadata IPs, allows public", () => {
+  for (const ip of ["127.0.0.1", "10.0.0.1", "169.254.169.254", "192.168.1.1", "::1", "fd00::1"]) {
+    assert.throws(() => assertResolvedAddressesPublic([ip]), CursorImageError, `should block ${ip}`);
+  }
+  assert.doesNotThrow(() => assertResolvedAddressesPublic(["93.184.216.34", "1.1.1.1"]));
+  // A single private answer among public ones still blocks (DNS-rebinding).
+  assert.throws(() => assertResolvedAddressesPublic(["8.8.8.8", "127.0.0.1"]), CursorImageError);
+});
+
+test("resolveCursorImages blocks DNS rebinding (public host resolving to a private IP)", async (t) => {
+  t.mock.method(dns.promises, "lookup", async () => [{ address: "127.0.0.1", family: 4 }]);
+  const realFetch = globalThis.fetch;
+  // fetch should never be reached — the DNS gate blocks first.
+  globalThis.fetch = async () => {
+    throw new Error("fetch must not run for a rebinding host");
+  };
+  try {
+    await assert.rejects(
+      () => resolveCursorImages(["https://rebind.attacker.example/a.png"]),
+      (e) => e instanceof CursorImageError && /blocked address/i.test((e as Error).message)
+    );
+  } finally {
+    globalThis.fetch = realFetch;
+  }
+});
+
+test("resolveCursorImages re-validates redirects: a 30x to a private host is blocked (SSRF)", async (t) => {
   // fetch() follows redirects by default; the resolver uses redirect:"manual"
   // and re-validates each hop. A public URL that 302s to 127.0.0.1 must be
   // blocked, not followed.
+  t.mock.method(dns.promises, "lookup", async () => PUBLIC_IP);
   const realFetch = globalThis.fetch;
   globalThis.fetch = async () =>
     new Response(null, { status: 302, headers: { location: "http://127.0.0.1/secret.png" } });
@@ -274,7 +307,8 @@ test("resolveCursorImages re-validates redirects: a 30x to a private host is blo
   }
 });
 
-test("resolveCursorImages follows a redirect to another public host and reads the image", async () => {
+test("resolveCursorImages follows a redirect to another public host and reads the image", async (t) => {
+  t.mock.method(dns.promises, "lookup", async () => PUBLIC_IP);
   const png = Buffer.from([137, 80, 78, 71, 13, 10, 26, 10]);
   const realFetch = globalThis.fetch;
   let call = 0;
@@ -301,7 +335,8 @@ test("resolveCursorImages follows a redirect to another public host and reads th
   }
 });
 
-test("resolveCursorImages rejects an over-long redirect chain", async () => {
+test("resolveCursorImages rejects an over-long redirect chain", async (t) => {
+  t.mock.method(dns.promises, "lookup", async () => PUBLIC_IP);
   const realFetch = globalThis.fetch;
   globalThis.fetch = async () =>
     new Response(null, {
