@@ -1,5 +1,10 @@
 import { BaseExecutor, type ExecuteInput } from "./base.ts";
 import { solveDeepSeekPowAsync } from "../lib/deepseek-pow.ts";
+import {
+  serializeToolsToPrompt,
+  parseToolCallsFromText,
+  type OpenAIToolCall,
+} from "../translator/webTools.ts";
 
 export const DEEPSEEK_WEB_BASE = "https://chat.deepseek.com";
 const DEEPSEEK_API_BASE = `${DEEPSEEK_WEB_BASE}/api`;
@@ -687,6 +692,108 @@ async function getPowChallenge(
   return bizData.challenge as PowChallenge;
 }
 
+// ── Tool-call response builder (#2820) ──────────────────────────────────
+
+/**
+ * Build the executor result for a tool-translated reply. Emits OpenAI `tool_calls`
+ * with `finish_reason: "tool_calls"` when tool calls were parsed, otherwise plain
+ * content. Supports both streaming (synthetic SSE) and non-streaming clients.
+ */
+function buildToolAwareResult(opts: {
+  stream: boolean;
+  clientModel: string;
+  content: string;
+  reasoningContent?: string;
+  toolCalls: OpenAIToolCall[] | null;
+  reqHeaders: Record<string, string>;
+  requestPayload: unknown;
+}) {
+  const { stream, clientModel, content, reasoningContent, toolCalls, reqHeaders, requestPayload } =
+    opts;
+  const hasCalls = !!toolCalls && toolCalls.length > 0;
+  const finishReason = hasCalls ? "tool_calls" : "stop";
+  const id = `chatcmpl-${Date.now()}`;
+  const created = Math.floor(Date.now() / 1000);
+
+  if (stream) {
+    const encoder = new TextEncoder();
+    const emit = (
+      controller: ReadableStreamDefaultController,
+      delta: object,
+      finish: string | null
+    ) => {
+      controller.enqueue(
+        encoder.encode(
+          `data: ${JSON.stringify({
+            id,
+            object: "chat.completion.chunk",
+            created,
+            model: clientModel,
+            choices: [{ index: 0, delta, finish_reason: finish }],
+          })}\n\n`
+        )
+      );
+    };
+    const sse = new ReadableStream({
+      start(controller) {
+        emit(controller, { role: "assistant", content: "" }, null);
+        if (hasCalls) {
+          emit(
+            controller,
+            {
+              tool_calls: toolCalls!.map((tc, i) => ({
+                index: i,
+                id: tc.id,
+                type: "function",
+                function: { name: tc.function.name, arguments: tc.function.arguments },
+              })),
+            },
+            null
+          );
+        } else if (content) {
+          emit(controller, { content }, null);
+        }
+        emit(controller, {}, finishReason);
+        controller.enqueue(encoder.encode("data: [DONE]\n\n"));
+        controller.close();
+      },
+    });
+    return {
+      response: new Response(sse, {
+        status: 200,
+        headers: { "Content-Type": "text/event-stream", "Cache-Control": "no-cache" },
+      }),
+      url: COMPLETION_URL,
+      headers: reqHeaders,
+      transformedBody: requestPayload,
+    };
+  }
+
+  const message: Record<string, unknown> = { role: "assistant", content: content || "" };
+  if (reasoningContent) message.reasoning_content = reasoningContent;
+  if (hasCalls) {
+    message.tool_calls = toolCalls;
+    if (!content) message.content = null;
+  }
+  const openaiResponse = {
+    id,
+    object: "chat.completion",
+    created,
+    model: clientModel,
+    choices: [{ index: 0, message, finish_reason: finishReason }],
+    usage: { prompt_tokens: 0, completion_tokens: 0, total_tokens: 0 },
+  };
+  return {
+    response: new Response(JSON.stringify(openaiResponse), {
+      status: 200,
+      headers: { "Content-Type": "application/json" },
+    }),
+    url: COMPLETION_URL,
+    headers: reqHeaders,
+    transformedBody: requestPayload,
+  };
+}
+
 // ── Executor ─────────────────────────────────────────────────────────────
 
 export class DeepSeekWebExecutor extends BaseExecutor {
@@ -712,32 +819,21 @@ export class DeepSeekWebExecutor extends BaseExecutor {
     const bodyObj = (body || {}) as Record<string, unknown>;
 
     // chat.deepseek.com's web API only accepts {prompt, ref_file_ids,
-    // thinking_enabled, search_enabled} - no tools field. Silently dropping
-    // tools[] is misleading: models reply as if no tools were ever offered,
-    // causing agentic clients (OpenAI-compatible) to hallucinate "I don't
-    // have that tool". Fail fast with a clear error so callers route to the
-    // official DeepSeek API (provider: 'deepseek') or a different provider
-    // for tool-using requests. See #2848.
+    // thinking_enabled, search_enabled} - no native tools field. Instead of failing
+    // tool-using requests, translate them (#2820): serialize the OpenAI tools[] into a
+    // <tool>...</tool> prompt contract on the way in, and parse the model's text reply
+    // back into OpenAI tool_calls on the way out.
     const requestedTools = bodyObj.tools;
-    if (Array.isArray(requestedTools) && requestedTools.length > 0) {
-      return {
-        response: errorResponse(
-          400,
-          "deepseek-web upstream (chat.deepseek.com) does not support function calling. " +
-            "The web interface only accepts text + thinking_enabled + search_enabled flags. " +
-            "Use provider 'deepseek' (official api.deepseek.com) for tool-using requests, " +
-            "or route through a different provider."
-        ),
-        url: COMPLETION_URL,
-        headers: {},
-        transformedBody: body,
-      };
-    }
+    const hasTools = Array.isArray(requestedTools) && requestedTools.length > 0;
+    const toolSystemPrompt = hasTools ? serializeToolsToPrompt(requestedTools) : "";
 
     const messages = (Array.isArray(bodyObj.messages) ? bodyObj.messages : []) as Array<{
       role: string;
       content: string;
     }>;
+    const promptMessages = toolSystemPrompt
+      ? [{ role: "system", content: toolSystemPrompt }, ...messages]
+      : messages;
     const rawCreds = credentials as unknown as Record<string, unknown>;
 
     const userToken = extractUserToken(rawCreds);
@@ -771,7 +867,7 @@ export class DeepSeekWebExecutor extends BaseExecutor {
       const accessToken = await acquireAccessToken(userToken, signal, log);
       log?.info?.("DEEPSEEK-WEB", `Token acquired in ${Date.now() - t0}ms`);
 
-      const prompt = messagesToPrompt(messages, historyWindow);
+      const prompt = messagesToPrompt(promptMessages, historyWindow);
       const refFileIds = Array.isArray(bodyObj.ref_file_ids) ? bodyObj.ref_file_ids : [];
       log?.info?.(
         "DEEPSEEK-WEB",
@@ -926,6 +1022,27 @@ export class DeepSeekWebExecutor extends BaseExecutor {
         : () => deleteSessionOnDeepSeek(accessToken, sessionId);
 
       const clientModel = typeof model === "string" && model.trim() ? model.trim() : "deepseek-web";
+
+      // Tool-call translation: buffer the full reply and parse <tool> blocks into
+      // OpenAI tool_calls. Buffering (even for stream clients) is acceptable because
+      // tool invocations are short and need the complete block to parse. (#2820)
+      if (hasTools) {
+        const { content, reasoningContent } = await collectSSEContent(resp.body!, clientModel);
+        await cleanupFn();
+        const { content: cleanedContent, toolCalls } = parseToolCallsFromText(
+          content,
+          `call-${Date.now()}`
+        );
+        return buildToolAwareResult({
+          stream: stream !== false,
+          clientModel,
+          content: cleanedContent,
+          reasoningContent,
+          toolCalls,
+          reqHeaders,
+          requestPayload,
+        });
+      }
 
       if (stream !== false) {
         const openaiStream = transformSSE(resp.body!, clientModel);
