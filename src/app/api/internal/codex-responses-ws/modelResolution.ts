@@ -46,3 +46,38 @@ export async function resolveCodexWsModelInfo(
   const codexInfo = await resolve(`codex/${requestedModel}`);
   return codexInfo?.provider === "codex" ? codexInfo : info;
 }
+
+/**
+ * Resolve a model ID for the HTTP Responses path, applying codex preference
+ * for bare ChatGPT-style model IDs (those without a provider prefix).
+ *
+ * When the Codex CLI falls back from WebSocket to HTTP (#15492), it sends bare
+ * model IDs like "gpt-5.5" to /v1/responses. Without this resolution, OmniRoute
+ * routes them to openrouter/openai instead of the configured codex OAuth
+ * connections, producing "No credentials for provider: openrouter".
+ *
+ * @param requestedModel the model id from the Responses API request body
+ * @param resolve a getModelInfo-style resolver
+ * @returns { model, changed } — model is the (possibly rewritten) id;
+ *          changed=true means a codex/ prefix was applied.
+ */
+export async function resolveResponsesApiModel(
+  requestedModel: string,
+  resolve: ModelResolver
+): Promise<{ model: string; changed: boolean }> {
+  if (!requestedModel || requestedModel.includes("/")) {
+    return { model: requestedModel, changed: false };
+  }
+
+  try {
+    const resolved = await resolveCodexWsModelInfo(requestedModel, resolve);
+    if (resolved?.provider !== "codex") {
+      return { model: requestedModel, changed: false };
+    }
+
+    const prefixed = `codex/${resolved.model || requestedModel}`;
+    return { model: prefixed, changed: true };
+  } catch {
+    return { model: requestedModel, changed: false };
+  }
+}
