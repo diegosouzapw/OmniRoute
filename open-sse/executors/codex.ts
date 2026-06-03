@@ -156,9 +156,7 @@ export interface CodexQuotaSnapshot {
  *   x-codex-5h-usage / x-codex-5h-limit / x-codex-5h-reset-at
  *   x-codex-7d-usage / x-codex-7d-limit / x-codex-7d-reset-at
  */
-export function parseCodexQuotaHeaders(
-  headers: Record<string, string>
-): CodexQuotaSnapshot | null {
+export function parseCodexQuotaHeaders(headers: Record<string, string>): CodexQuotaSnapshot | null {
   const usage5h = headers["x-codex-5h-usage"] ?? null;
   const limit5h = headers["x-codex-5h-limit"] ?? null;
   const resetAt5h = headers["x-codex-5h-reset-at"] ?? null;
@@ -426,6 +424,7 @@ function repairMissingCodexFunctionCallOutputs(body: Record<string, unknown>): v
 // `{ type: "namespace", name: "mcp__atlassian__", tools: [...] }` for MCP tool groups.
 // Keep them through `normalizeCodexTools` so upstream can execute them.
 const CODEX_HOSTED_TOOL_TYPES: ReadonlySet<string> = new Set([
+  "tool_search",
   "image_generation",
   "web_search",
   "web_search_preview",
@@ -449,7 +448,7 @@ export function isCodexFreePlan(providerSpecificData: unknown): boolean {
 
 export function normalizeCodexTools(
   body: Record<string, unknown>,
-  options?: { dropImageGeneration?: boolean }
+  options?: { dropImageGeneration?: boolean; preserveCustomTools?: boolean }
 ): void {
   if (!Array.isArray(body.tools)) return;
 
@@ -474,6 +473,18 @@ export function normalizeCodexTools(
           }
         }
       }
+      return true;
+    }
+
+    // Native Codex clients send Responses API custom tools such as apply_patch as:
+    // { type: "custom", name, format }. Preserve those only on native passthrough;
+    // translated/non-native requests can still contain provider-specific "custom"
+    // shapes that the Codex backend would reject.
+    if (toolType === "custom" && options?.preserveCustomTools === true) {
+      const name = typeof tool.name === "string" ? tool.name.trim().slice(0, 128) : "";
+      if (!name) return false;
+      tool.name = name;
+      validToolNames.add(name);
       return true;
     }
 
@@ -533,6 +544,12 @@ export function normalizeCodexTools(
             !Array.isArray(functionObject.parameters)
           ? functionObject.parameters
           : { type: "object", properties: {} };
+    const strict =
+      typeof tool.strict === "boolean"
+        ? tool.strict
+        : typeof functionObject?.strict === "boolean"
+          ? functionObject.strict
+          : undefined;
 
     // Rewrite in-place to Responses format
     for (const key of Object.keys(tool)) {
@@ -542,6 +559,7 @@ export function normalizeCodexTools(
     tool.name = name.slice(0, 128);
     if (description) tool.description = description;
     tool.parameters = parameters;
+    if (strict !== undefined) tool.strict = strict;
 
     validToolNames.add(name);
     return true;
@@ -1216,7 +1234,9 @@ export class CodexExecutor extends BaseExecutor {
     }
 
     if (Array.isArray(body.input)) {
-      body.input = sanitizeResponsesInputItems(body.input, false);
+      body.input = sanitizeResponsesInputItems(body.input, false, {
+        dropInternalAssistantMessages: !nativeCodexPassthrough,
+      });
     }
     repairMissingCodexFunctionCallOutputs(body);
 
@@ -1284,6 +1304,7 @@ export class CodexExecutor extends BaseExecutor {
     // invalid upstream, and translation bugs can leave orphaned/empty tool_choice names.
     normalizeCodexTools(body, {
       dropImageGeneration: isCodexFreePlan(credentials?.providerSpecificData),
+      preserveCustomTools: nativeCodexPassthrough,
     });
 
     // Strip stored response item references (rs_, resp_, msg_ IDs) from input.

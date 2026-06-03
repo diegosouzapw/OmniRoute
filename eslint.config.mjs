@@ -38,11 +38,13 @@ const eslintConfig = [
   // Global ignores — keep ESLint scoped to source files only
   {
     ignores: [
-      // Next.js build output
+      // Next.js build output (distDir now .build/next; keep .next for legacy)
       ".next/**",
+      ".build/**",
       "src/.next/**",
       "out/**",
       "build/**",
+      "dist/**",
       "coverage/**",
       "next-env.d.ts",
       // Scripts and binaries
@@ -65,12 +67,9 @@ const eslintConfig = [
       // Playwright test output
       "playwright-report/**",
       "test-results/**",
-      // Subdirectory .next build output (app/ subdir)
+      // Legacy app/ and QA backup dirs (renamed to dist/ in Layer 1)
       "app/**",
-      "app/.next/**",
-      "app/bin/**",
       "app.__qa_backup/**",
-      "app/app.__qa_backup/**",
       // CLI package copy directory
       "clipr/**",
     ],

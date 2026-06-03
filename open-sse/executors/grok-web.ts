@@ -19,7 +19,7 @@ import {
   type ExecuteInput,
 } from "./base.ts";
 import { FETCH_TIMEOUT_MS } from "../config/constants.ts";
-import { extractCookieValue } from "@/lib/providers/webCookieAuth";
+import { buildGrokCookieHeader } from "@/lib/providers/webCookieAuth";
 
 // ─── Constants ──────────────────────────────────────────────────────────────
 
@@ -1739,11 +1739,12 @@ export class GrokWebExecutor extends BaseExecutor {
       traceparent: `00-${traceId}-${spanId}-00`,
     };
 
-    // Cookie auth — accepts a bare value, "sso=<value>", or a full
-    // DevTools cookie blob; we extract the sso pair and ignore the rest.
+    // Cookie auth — accepts a bare value, "sso=<value>", or a full DevTools
+    // cookie blob. Forwards both `sso` and (when present) the paired `sso-rw`
+    // write cookie, which Grok's anti-bot now requires (#3063).
     if (credentials.apiKey) {
-      const token = extractCookieValue(credentials.apiKey, "sso");
-      if (token) headers["Cookie"] = `sso=${token}`;
+      const cookieHeader = buildGrokCookieHeader(credentials.apiKey);
+      if (cookieHeader) headers["Cookie"] = cookieHeader;
     }
 
     // Apply upstream extra headers
