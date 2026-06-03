@@ -403,11 +403,29 @@ test("vscode tokenized raw models route exposes provider-native ids without fami
   assert.ok(!importedIds.has("gpt-5.4__provider_cx"));
   assert.ok(!importedIds.has("gpt-5.4__provider_cx__tier_priority"));
   assert.ok(!importedIds.has("gpt-5.4__provider_cx__tier_flex"));
-  assert.deepEqual(defaultModel.supportsReasoningEffort, ["none", "low", "medium", "high", "xhigh"]);
-  assert.equal(
-    defaultModel.url,
-    `http://localhost/api/v1/vscode/raw/${encodeURIComponent(key.key)}/responses#models.ai.azure.com`
-  );
+  assert.equal(defaultModel.object, "model");
+  assert.equal(typeof defaultModel.created, "number");
+  assert.equal(defaultModel.owned_by, "codex");
+  assert.equal(defaultModel.name, "Codex GPT 5.4");
+  assert.equal(typeof defaultModel.context_length, "number");
+  assert.equal(typeof defaultModel.max_output_tokens, "number");
+  assert.equal(typeof defaultModel.max_input_tokens, "number");
+  assert.deepEqual(defaultModel.capabilities, {
+    vision: true,
+    tool_calling: true,
+    reasoning: true,
+    thinking: true,
+  });
+  assert.equal(defaultModel.url, undefined);
+  assert.equal(defaultModel.toolCalling, undefined);
+  assert.equal(defaultModel.vision, undefined);
+  assert.equal(defaultModel.family, undefined);
+  assert.equal(defaultModel.supportsReasoningEffort, undefined);
+  assert.equal(defaultModel.supportedReasoningEfforts, undefined);
+  assert.equal(defaultModel.defaultReasoningEffort, undefined);
+  assert.equal(defaultModel.configurationSchema, undefined);
+  assert.equal(defaultModel.configSchema, undefined);
+  assert.equal(defaultModel.maxInputTokens, undefined);
 
   const lowModel = (body.data || []).find((entry: any) => entry.id === "cx/gpt-5.4-low");
   const mediumModel = (body.data || []).find((entry: any) => entry.id === "cx/gpt-5.4-medium");
@@ -435,6 +453,24 @@ test("vscode tokenized raw models route exposes provider-native ids without fami
   assert.equal(lowFastModel.name, "Codex GPT 5.4 (Low) (Fast)");
   assert.equal(mediumFastModel.name, "Codex GPT 5.4 (Medium) (Fast)");
   assert.equal(highFastModel.name, "Codex GPT 5.4 (High) (Fast)");
+  assert.equal(defaultModel.url, undefined);
+  assert.equal(defaultModel.toolCalling, undefined);
+  assert.equal(defaultModel.vision, undefined);
+  assert.equal(defaultModel.family, undefined);
+  assert.equal(defaultModel.supportsReasoningEffort, undefined);
+  assert.equal(defaultModel.supportedReasoningEfforts, undefined);
+  assert.equal(defaultModel.defaultReasoningEffort, undefined);
+  assert.equal(defaultModel.configurationSchema, undefined);
+  assert.equal(defaultModel.configSchema, undefined);
+  assert.equal(defaultModel.maxInputTokens, undefined);
+  assert.equal(typeof defaultModel.max_output_tokens, "number");
+  assert.equal(typeof defaultModel.max_input_tokens, "number");
+  assert.deepEqual(defaultModel.capabilities, {
+    vision: true,
+    tool_calling: true,
+    reasoning: true,
+    thinking: true,
+  });
 });
 
 test("vscode tokenized raw root route mirrors the raw models catalog", async () => {
