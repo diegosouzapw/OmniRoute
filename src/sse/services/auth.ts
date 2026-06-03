@@ -1808,6 +1808,43 @@ export async function markAccountUnavailable(
       return { shouldFallback: true, cooldownMs: lockout.cooldownMs };
     }
 
+    // #3027: per-model-quota / passthrough providers multiplex many upstream models
+    // behind one connection, so a model/permission-scoped 403 (e.g. ollama-cloud
+    // "this model requires a subscription, upgrade for access" on a paid model) must
+    // lock out ONLY that model — not cool down the whole connection, which would knock
+    // out the free models on the same key. Terminal whole-key 403s keep their
+    // connection-level path: account deactivated / banned (permanent), credits
+    // exhausted (QUOTA_EXHAUSTED), and project-route errors are excluded here.
+    const isTerminalOrRoute403 =
+      result.permanent === true ||
+      providerErrorType === PROVIDER_ERROR_TYPES.ACCOUNT_DEACTIVATED ||
+      providerErrorType === PROVIDER_ERROR_TYPES.QUOTA_EXHAUSTED ||
+      providerErrorType === PROVIDER_ERROR_TYPES.PROJECT_ROUTE_ERROR;
+    if (isPerModelQuotaProvider && provider && model && status === 403 && !isTerminalOrRoute403) {
+      const lockout = recordModelLockoutFailure(
+        provider,
+        connectionId,
+        model,
+        "forbidden",
+        status,
+        fallbackResult.baseCooldownMs ??
+          effectiveProviderProfile?.baseCooldownMs ??
+          COOLDOWN_MS.serviceUnavailable,
+        effectiveProviderProfile
+      );
+      updateProviderConnection(connectionId, {
+        lastErrorType: "forbidden",
+        lastError: `Model ${model} forbidden`,
+        lastErrorAt: new Date().toISOString(),
+        errorCode: status,
+      }).catch(() => {});
+      log.info(
+        "AUTH",
+        `Model-only lockout for ${provider}:${model} — 403 forbidden ${Math.ceil(lockout.cooldownMs / 1000)}s (per-model-quota, connection stays active)`
+      );
+      return { shouldFallback: true, cooldownMs: lockout.cooldownMs };
+    }
+
     const terminalStatus = resolveTerminalConnectionStatus(
       status,
       result as { permanent?: boolean; creditsExhausted?: boolean },
