@@ -555,3 +555,57 @@ test("sanitizeOpenAIResponse suppresses malformed textual pseudo tool-call conte
   assert.equal(JSON.stringify(sanitized).includes("[Tool call:"), false);
   assert.equal(JSON.stringify(sanitized).includes("Arguments:"), false);
 });
+
+test("sanitizeOpenAIResponse strips leaked internal to=functions tool envelopes from assistant text", () => {
+  const sanitized = sanitizeOpenAIResponse({
+    id: "chatcmpl_internal_tool_envelope",
+    object: "chat.completion",
+    created: 1,
+    model: "MainAgent",
+    choices: [
+      {
+        index: 0,
+        finish_reason: "stop",
+        message: {
+          role: "assistant",
+          content:
+            'Vou verificar agora.\n\nto=functions.run_in_terminal  tokenjson\n{"command":"pwd","explanation":"Teste","goal":"Teste","mode":"sync","isBackground":false,"timeout":120000}\n\nResumo final.',
+        },
+      },
+    ],
+  }) as any;
+
+  const message = sanitized.choices[0].message;
+  assert.equal(message.content, "Vou verificar agora.\n\nResumo final.");
+  assert.equal(JSON.stringify(sanitized).includes("to=functions.run_in_terminal"), false);
+  assert.equal(JSON.stringify(sanitized).includes('"command":"pwd"'), false);
+});
+
+test("sanitizeResponsesApiResponse strips leaked multi_tool_use envelopes from Responses output_text", () => {
+  const sanitized = sanitizeResponsesApiResponse({
+    id: "resp_internal_tool_envelope",
+    object: "response",
+    created_at: 1,
+    model: "gpt-5.1-codex",
+    status: "completed",
+    output: [
+      {
+        id: "msg_1",
+        type: "message",
+        role: "assistant",
+        content: [
+          {
+            type: "output_text",
+            text: 'Antes.\n\nto=multi_tool_use.parallel  junkjson\n{"tool_uses":[{"recipient_name":"functions.read_file","parameters":{"filePath":"/tmp/a","startLine":1,"endLine":10}}]}\n\nDepois.',
+            annotations: [],
+          },
+        ],
+      },
+    ],
+  }) as any;
+
+  assert.equal(sanitized.output[0].content[0].text, "Antes.\n\nDepois.");
+  assert.equal(sanitized.output_text, "Antes.\n\nDepois.");
+  assert.equal(JSON.stringify(sanitized).includes("to=multi_tool_use.parallel"), false);
+  assert.equal(JSON.stringify(sanitized).includes("recipient_name"), false);
+});

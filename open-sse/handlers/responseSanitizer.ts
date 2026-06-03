@@ -64,9 +64,84 @@ function stripZeroWidthValue(value: unknown): unknown {
   return value;
 }
 
+function findBalancedJsonEnd(text: string, startIndex: number): number {
+  if (startIndex < 0 || startIndex >= text.length || text[startIndex] !== "{") return -1;
+
+  let depth = 0;
+  let inString = false;
+  let escaped = false;
+
+  for (let index = startIndex; index < text.length; index += 1) {
+    const char = text[index];
+
+    if (inString) {
+      if (escaped) {
+        escaped = false;
+        continue;
+      }
+      if (char === "\\") {
+        escaped = true;
+        continue;
+      }
+      if (char === '"') {
+        inString = false;
+      }
+      continue;
+    }
+
+    if (char === '"') {
+      inString = true;
+      continue;
+    }
+
+    if (char === "{") {
+      depth += 1;
+      continue;
+    }
+
+    if (char === "}") {
+      depth -= 1;
+      if (depth === 0) return index;
+    }
+  }
+
+  return -1;
+}
+
+function stripInternalToolEnvelopeText(content: string): string {
+  let sanitized = stripZeroWidthText(content);
+  const markerRegex = /to=(?:functions\.[A-Za-z0-9_.-]+|multi_tool_use\.[A-Za-z0-9_.-]+|[A-Za-z_][A-Za-z0-9_]*)/g;
+
+  while (true) {
+    const match = markerRegex.exec(sanitized);
+    if (!match || match.index < 0) break;
+
+    const searchWindowEnd = Math.min(sanitized.length, match.index + 1200);
+    const jsonStart = sanitized.indexOf("{", match.index);
+    if (jsonStart < 0 || jsonStart >= searchWindowEnd) {
+      sanitized = `${sanitized.slice(0, match.index)}${sanitized.slice(match.index + match[0].length)}`;
+      markerRegex.lastIndex = 0;
+      continue;
+    }
+
+    const jsonEnd = findBalancedJsonEnd(sanitized, jsonStart);
+    if (jsonEnd < 0) {
+      sanitized = sanitized.slice(0, match.index);
+      break;
+    }
+
+    const prefix = sanitized.slice(0, match.index).replace(/[ \t]+$/g, "");
+    const suffix = sanitized.slice(jsonEnd + 1).replace(/^[ \t]+/g, "");
+    sanitized = `${prefix}${suffix}`;
+    markerRegex.lastIndex = 0;
+  }
+
+  return sanitized.replace(/\n{3,}/g, "\n\n").trim();
+}
+
 function parseTextualToolCallContent(content: unknown): { name: string; args: unknown } | null {
   if (typeof content !== "string") return null;
-  const normalized = stripZeroWidthText(content);
+  const normalized = stripInternalToolEnvelopeText(content);
   const toolCallIndex = normalized.lastIndexOf("[Tool call:");
   if (toolCallIndex < 0) return null;
   const candidate = normalized.slice(toolCallIndex);
@@ -95,7 +170,7 @@ function parseTextualToolCallContent(content: unknown): { name: string; args: un
 }
 
 function containsTextualToolCallContent(content: unknown): boolean {
-  return typeof content === "string" && stripZeroWidthText(content).includes("[Tool call:");
+  return typeof content === "string" && stripInternalToolEnvelopeText(content).includes("[Tool call:");
 }
 
 function hasVisibleMessageContent(content: unknown): boolean {
@@ -299,7 +374,9 @@ function sanitizeMessage(msg: unknown, isDeepSeekV4 = false): unknown {
 
   // Handle content — extract <think> tags
   if (typeof msgRecord.content === "string") {
-    const { content, thinking } = extractThinkingFromContent(msgRecord.content);
+    const { content, thinking } = extractThinkingFromContent(
+      stripInternalToolEnvelopeText(msgRecord.content)
+    );
     sanitized.content = collapseExcessiveNewlines(content);
 
     // Set reasoning_content from <think> tags (if not already set)
@@ -734,7 +811,7 @@ function sanitizeResponsesMessageContent(content: unknown): JsonRecord[] {
     return [
       {
         type: "output_text",
-        text: collapseExcessiveNewlines(content),
+        text: collapseExcessiveNewlines(stripInternalToolEnvelopeText(content)),
         annotations: [],
       },
     ];
@@ -749,7 +826,7 @@ function sanitizeResponsesMessageContent(content: unknown): JsonRecord[] {
         if (typeof part === "string") {
           return {
             type: "output_text",
-            text: collapseExcessiveNewlines(part),
+            text: collapseExcessiveNewlines(stripInternalToolEnvelopeText(part)),
             annotations: [],
           };
         }
@@ -765,7 +842,9 @@ function sanitizeResponsesMessageContent(content: unknown): JsonRecord[] {
         return {
           ...partRecord,
           type: "output_text",
-          text: collapseExcessiveNewlines(toString(partRecord.text) || ""),
+          text: collapseExcessiveNewlines(
+            stripInternalToolEnvelopeText(toString(partRecord.text) || "")
+          ),
           annotations: Array.isArray(partRecord.annotations) ? partRecord.annotations : [],
         };
       }
