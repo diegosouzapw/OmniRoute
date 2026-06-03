@@ -426,6 +426,7 @@ function repairMissingCodexFunctionCallOutputs(body: Record<string, unknown>): v
 // `{ type: "namespace", name: "mcp__atlassian__", tools: [...] }` for MCP tool groups.
 // Keep them through `normalizeCodexTools` so upstream can execute them.
 const CODEX_HOSTED_TOOL_TYPES: ReadonlySet<string> = new Set([
+  "tool_search",
   "image_generation",
   "web_search",
   "web_search_preview",

@@ -973,6 +973,7 @@ test("CodexExecutor.transformRequest preserves namespace MCP tools and hosted to
           ],
         },
         { type: "image_generation", output_format: "png" },
+        { type: "tool_search" },
         { type: "web_search" },
         { type: "unknown_hosted_tool" },
       ],
@@ -983,7 +984,13 @@ test("CodexExecutor.transformRequest preserves namespace MCP tools and hosted to
   );
 
   const types = (result.tools as Array<Record<string, unknown>>).map((tool) => tool.type);
-  assert.deepEqual(types, ["function", "namespace", "image_generation", "web_search"]);
+  assert.deepEqual(types, [
+    "function",
+    "namespace",
+    "image_generation",
+    "tool_search",
+    "web_search",
+  ]);
 
   const namespaceTool = (result.tools as Array<Record<string, unknown>>).find(
     (tool) => tool.type === "namespace"
