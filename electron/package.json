@@ -25,7 +25,7 @@
     "pack": "npm run prepare:bundle && electron-builder --dir"
   },
   "dependencies": {
-    "electron-updater": "^6.8.6"
+    "electron-updater": "^6.8.8"
   },
   "devDependencies": {
     "electron": "^42.2.0",
