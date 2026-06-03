@@ -27,7 +27,11 @@ import {
   safeOutboundFetch,
 } from "@/shared/network/safeOutboundFetch";
 import { getProviderOutboundGuard } from "@/shared/network/outboundUrlGuard";
-import { extractCookieValue, normalizeSessionCookieHeader } from "@/lib/providers/webCookieAuth";
+import {
+  buildGrokCookieHeader,
+  extractCookieValue,
+  normalizeSessionCookieHeader,
+} from "@/lib/providers/webCookieAuth";
 import { buildJulesApiUrl } from "@/lib/cloudAgent/julesApi.ts";
 import { getGigachatAccessToken } from "@omniroute/open-sse/services/gigachatAuth.ts";
 import { validateQoderCliPat } from "@omniroute/open-sse/services/qoderCli.ts";
@@ -2764,7 +2768,7 @@ async function validateGrokWebProvider({ apiKey, providerSpecificData = {} }: an
             "sentry-environment=production,sentry-release=d6add6fb0460641fd482d767a335ef72b9b6abb8,sentry-public_key=b311e0f2690c81f25e2c4cf6d4f7ce1c",
           "Cache-Control": "no-cache",
           "Content-Type": "application/json",
-          Cookie: `sso=${token}`,
+          Cookie: buildGrokCookieHeader(apiKey),
           Origin: "https://grok.com",
           Pragma: "no-cache",
           Referer: "https://grok.com/",

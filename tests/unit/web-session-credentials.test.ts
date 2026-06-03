@@ -33,12 +33,8 @@ test("web session credential metadata identifies cookie, token, and no-auth prov
     placeholder: "userToken=... or paste raw userToken",
     acceptsFullCookieHeader: false,
   });
-  assert.deepEqual(webSessionCredentials.getWebSessionCredentialRequirement("veoaifree-web"), {
-    kind: "none",
-    credentialName: "",
-    placeholder: "",
-    acceptsFullCookieHeader: false,
-  });
+  // veoaifree-web is now a NOAUTH provider — not in WEB_SESSION_CREDENTIAL_REQUIREMENTS
+  assert.equal(webSessionCredentials.getWebSessionCredentialRequirement("veoaifree-web"), null);
   assert.deepEqual(webSessionCredentials.getWebSessionCredentialRequirement("t3-web"), {
     kind: "cookie",
     credentialName: "convex-session-id + Cookie header",
