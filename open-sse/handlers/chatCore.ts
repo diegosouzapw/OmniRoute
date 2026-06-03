@@ -2104,7 +2104,7 @@ export async function handleChatCore({
       model,
       requestedModel,
       provider,
-      connectionId,
+      connectionId: connectionId || credentials?.connectionId || undefined,
       duration: Date.now() - startTime,
       tokens: tokens || {},
       requestBody: cloneBoundedChatLogPayload(
