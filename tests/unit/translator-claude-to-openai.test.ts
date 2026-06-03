@@ -120,7 +120,7 @@ test("translateRequest maps Claude server WebSearch natively only for Responses 
       function: {
         name: "web_search",
         description: "",
-        parameters: { type: "object", properties: {} },
+        parameters: { type: "object", properties: {}, additionalProperties: true },
       },
     },
   ]);
