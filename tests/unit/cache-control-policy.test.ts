@@ -38,6 +38,10 @@ describe("Cache Control Policy", () => {
       assert.equal(providerSupportsCaching("anthropic"), true);
       assert.equal(providerSupportsCaching("zai"), true);
       assert.equal(providerSupportsCaching("qwen"), true);
+      assert.equal(providerSupportsCaching("deepseek"), true);
+      // #3088 — Xiaomi MiMo supports prompt caching; cache_control breakpoints
+      // sent by Claude Code (via cc-switch) must be preserved, not stripped.
+      assert.equal(providerSupportsCaching("xiaomi-mimo"), true);
     });
 
     test("rejects non-caching providers", () => {
@@ -51,6 +55,20 @@ describe("Cache Control Policy", () => {
     test("is case-insensitive", () => {
       assert.equal(providerSupportsCaching("Claude"), true);
       assert.equal(providerSupportsCaching("ANTHROPIC"), true);
+      assert.equal(providerSupportsCaching("Xiaomi-MiMo"), true);
+    });
+
+    // #3088 — regression: a Claude Code client routed to xiaomi-mimo must keep
+    // its client-side cache_control breakpoints so Xiaomi's API sees cache hints.
+    test("preserves client cache_control for xiaomi-mimo single model", () => {
+      assert.equal(
+        shouldPreserveCacheControl({
+          userAgent: "claude-cli/2.1.113 (external, sdk-cli)",
+          isCombo: false,
+          targetProvider: "xiaomi-mimo",
+        }),
+        true
+      );
     });
   });
 

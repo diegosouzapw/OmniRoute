@@ -16,6 +16,10 @@
 
 _Development cycle in progress — entries are added as work merges into `release/v3.8.9` and finalized by the release flow._
 
+### 🔧 Bug Fixes
+
+- **cache:** preserve client-side `cache_control` breakpoints for Xiaomi MiMo — added `xiaomi-mimo` to the prompt-caching provider allowlist so Claude Code (via cc-switch) cache hints are no longer stripped by the OpenAI-format translator, restoring cache hits. ([#3088](https://github.com/diegosouzapw/OmniRoute/issues/3088))
+
 ---
 
 ## [3.8.8] — 2026-06-03
