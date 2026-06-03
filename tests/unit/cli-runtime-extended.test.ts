@@ -227,7 +227,8 @@ test("getCliRuntimeStatus still healthchecks Windows .cmd wrappers through shell
   assert.equal(status.installed, true);
   assert.equal(status.runnable, true);
   assert.equal(status.reason, null);
-  assert.equal(spawnCalls[0].command, scriptPath);
+  const expectedCommand = /\s/.test(scriptPath) ? `"${scriptPath}"` : scriptPath;
+  assert.equal(spawnCalls[0].command, expectedCommand);
   assert.deepEqual(spawnCalls[0].args, ["--version"]);
   assert.equal(spawnCalls[0].options.shell, true);
 });
