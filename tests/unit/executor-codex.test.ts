@@ -450,7 +450,7 @@ test("CodexExecutor.transformRequest strips store from compact requests even whe
   assert.equal(result.instructions, "keep this");
 });
 
-test("CodexExecutor.transformRequest strips raw internal assistant commentary without dropping useful Responses items", () => {
+test("CodexExecutor.transformRequest preserves native assistant commentary history", () => {
   const executor = new CodexExecutor();
   const body = {
     _nativeCodexPassthrough: true,
@@ -508,7 +508,7 @@ test("CodexExecutor.transformRequest strips raw internal assistant commentary wi
 
   assert.equal(
     result.input.some((item) => JSON.stringify(item).includes("Need maybe inspect tool output")),
-    false
+    true
   );
   assert.equal(
     result.input.some((item) => JSON.stringify(item).includes("Visible final assistant answer")),
@@ -536,6 +536,46 @@ test("CodexExecutor.transformRequest strips raw internal assistant commentary wi
   );
   assert.equal(
     result.input.some((item) => item.type === "function_call_output"),
+    true
+  );
+});
+
+test("CodexExecutor.transformRequest still strips assistant commentary outside native passthrough", () => {
+  const executor = new CodexExecutor();
+  const result = executor.transformRequest(
+    "gpt-5.5-low",
+    {
+      input: [
+        {
+          type: "message",
+          role: "user",
+          content: [{ type: "input_text", text: "Continue." }],
+        },
+        {
+          type: "message",
+          role: "assistant",
+          phase: "commentary",
+          content: [{ type: "output_text", text: "Internal progress note." }],
+        },
+        {
+          type: "message",
+          role: "assistant",
+          phase: "final_answer",
+          content: [{ type: "output_text", text: "Visible final answer." }],
+        },
+      ],
+      stream: false,
+    },
+    false,
+    { requestEndpointPath: "/responses" }
+  );
+
+  assert.equal(
+    result.input.some((item) => JSON.stringify(item).includes("Internal progress note")),
+    false
+  );
+  assert.equal(
+    result.input.some((item) => JSON.stringify(item).includes("Visible final answer")),
     true
   );
 });
@@ -587,7 +627,7 @@ test("CodexExecutor.transformRequest inserts missing function_call_output items"
   });
 });
 
-test("CodexExecutor.transformRequest strips internal assistant commentary before mapping messages to input", () => {
+test("CodexExecutor.transformRequest preserves native assistant commentary before mapping messages to input", () => {
   const executor = new CodexExecutor();
   const result = executor.transformRequest(
     "gpt-5.5-low",
@@ -614,7 +654,7 @@ test("CodexExecutor.transformRequest strips internal assistant commentary before
 
   assert.equal(
     result.input.some((item) => JSON.stringify(item).includes("Need maybe update PR body")),
-    false
+    true
   );
   assert.equal(
     result.input.some((item) => JSON.stringify(item).includes("Visible final assistant answer")),

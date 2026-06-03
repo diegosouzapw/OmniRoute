@@ -156,9 +156,7 @@ export interface CodexQuotaSnapshot {
  *   x-codex-5h-usage / x-codex-5h-limit / x-codex-5h-reset-at
  *   x-codex-7d-usage / x-codex-7d-limit / x-codex-7d-reset-at
  */
-export function parseCodexQuotaHeaders(
-  headers: Record<string, string>
-): CodexQuotaSnapshot | null {
+export function parseCodexQuotaHeaders(headers: Record<string, string>): CodexQuotaSnapshot | null {
   const usage5h = headers["x-codex-5h-usage"] ?? null;
   const limit5h = headers["x-codex-5h-limit"] ?? null;
   const resetAt5h = headers["x-codex-5h-reset-at"] ?? null;
@@ -1236,7 +1234,9 @@ export class CodexExecutor extends BaseExecutor {
     }
 
     if (Array.isArray(body.input)) {
-      body.input = sanitizeResponsesInputItems(body.input, false);
+      body.input = sanitizeResponsesInputItems(body.input, false, {
+        dropInternalAssistantMessages: !nativeCodexPassthrough,
+      });
     }
     repairMissingCodexFunctionCallOutputs(body);
 
