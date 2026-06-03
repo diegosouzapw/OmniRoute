@@ -22,6 +22,8 @@ A canonical routing project is needed.
 
 **OmniRoute is the canonical routing project for the Phenotype org.**
 
+> **Routing-substrate clarification (2026-06-03, dom-services-routing):** "rebuild around bifrost" = the canonical Phenotype routing substrate = **Tokn `tokenledger::routing`** (hexagonal: pareto_router/ports/adapters) for Rust, and **OmniRoute** itself for the LLM-proxy/runtime surface. The old `phenoRouterMonitor/crates/bifrost-routing` prototype is a DEPRECATED stub (no Cargo.toml) and is NOT the referent. `KooshaPari/bifrost` is a vendored maximhq fork, NON-peer.
+
 OmniRoute is a hard fork of `diegosouzapw/OmniRoute` (tracked via `upstream` remote).
 Rather than archiving, it is undergoing a ground-up rebuild of the routing core around:
 
