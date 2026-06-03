@@ -62,6 +62,12 @@ type VscodeModelsCatalogResponse = {
 	body: { data?: CatalogModelEntry[]; [key: string]: unknown };
 };
 
+const VSCODE_CATALOG_CACHE_HEADERS = {
+	"Cache-Control": "no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0",
+	Pragma: "no-cache",
+	Expires: "0",
+} as const;
+
 type EnrichModelForVscodeOptions = {
 	preserveNativeId?: boolean;
 };
@@ -126,7 +132,14 @@ function getVscodeImportFamily(model: CatalogModelEntry, canonicalFamily?: strin
 export function getVscodeRawModelDisplayName(model: CatalogModelEntry) {
 	const actualModelId = (model.id || model.name || model.root || "").trim();
 	const canonicalMetadata = resolveVscodeModelMetadata(model);
-	const baseDisplayName = canonicalMetadata?.displayName || model.name || model.id || model.root || "unknown";
+	const { baseModelId } = parseVscodeServiceTierVariantModelId(actualModelId);
+	const displayBaseModelId = getReasoningVariantBaseModelId(baseModelId);
+	const baseDisplayName = getVscodeModelDisplayName({
+		...model,
+		id: displayBaseModelId,
+		name: canonicalMetadata?.displayName || model.name,
+		root: displayBaseModelId,
+	}).replace(/\s+\(Default\)$/u, "");
 	const providerKey = canonicalMetadata?.providerAlias || canonicalMetadata?.provider || "";
 	const providerPrefix = providerKey === "codex" || providerKey === "cx"
 		? "Codex"
@@ -295,7 +308,18 @@ export function expandVscodeRawModels(models: CatalogModelEntry[]) {
 		}
 	}
 
-	return expandedModels;
+	const uniqueModels = new Map<string, CatalogModelEntry>();
+
+	for (const model of expandedModels) {
+		const uniqueKey = (model.id || model.name || model.root || "").trim();
+		if (!uniqueKey || uniqueModels.has(uniqueKey)) {
+			continue;
+		}
+
+		uniqueModels.set(uniqueKey, model);
+	}
+
+	return Array.from(uniqueModels.values());
 }
 
 export async function getVscodeModelsCatalogResponse(
@@ -305,7 +329,10 @@ export async function getVscodeModelsCatalogResponse(
 	const body = (await response.json()) as { data?: CatalogModelEntry[] };
 	return {
 		status: response.status,
-		headers: Object.fromEntries(response.headers.entries()),
+		headers: {
+			...Object.fromEntries(response.headers.entries()),
+			...VSCODE_CATALOG_CACHE_HEADERS,
+		},
 		body: {
 			...body,
 			data: Array.isArray(body.data) ? body.data.filter(isUsableChatModel) : body.data,

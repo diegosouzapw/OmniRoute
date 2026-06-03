@@ -26,6 +26,10 @@ const vscodeTagsRoute = await import("../../src/app/api/v1/vscode/[token]/api/ta
 const vscodeV1ChatCompletionsRoute = await import(
   "../../src/app/api/v1/vscode/[token]/v1/chat/completions/route.ts"
 );
+const vscodeChatCompletionsRoute = await import(
+  "../../src/app/api/v1/vscode/[token]/chat/completions/route.ts"
+);
+const vscodeResponsesRoute = await import("../../src/app/api/v1/vscode/[token]/responses/route.ts");
 const serviceTierVariants = await import("../../src/app/api/v1/vscode/[token]/serviceTierVariants.ts");
 const combosDb = await import("../../src/lib/db/combos.ts");
 
@@ -395,6 +399,7 @@ test("vscode tokenized raw models route exposes provider-native ids without fami
   assert.ok(defaultModel, "missing cx/gpt-5.4 in raw VS Code models route");
   assert.ok(fastModel, "missing cx/gpt-5.4__tier_priority in raw VS Code models route");
   assert.ok(flexModel, "missing cx/gpt-5.4__tier_flex in raw VS Code models route");
+  assert.equal(importedIds.size, (body.data || []).length, "raw VS Code models route should not duplicate model ids");
   assert.ok(!importedIds.has("gpt-5.4__provider_cx"));
   assert.ok(!importedIds.has("gpt-5.4__provider_cx__tier_priority"));
   assert.ok(!importedIds.has("gpt-5.4__provider_cx__tier_flex"));
@@ -1050,6 +1055,60 @@ test("vscode tokenized chat routes rewrite family-first ids back to the codex pr
 
   assert.equal(payload.model, "cx/gpt-5.4");
   assert.equal(payload.service_tier, "priority");
+});
+
+test("vscode tokenized /chat/completions route applies the path token and codex tier rewrite", async () => {
+  await settingsDb.updateSettings({
+    requireLogin: true,
+    password: "hashed-password",
+    requireAuthForModels: true,
+  });
+  const key = await apiKeysDb.createApiKey("vscode-chat-completions-route", "machine-vscode-chat-completions-route");
+
+  const response = await vscodeChatCompletionsRoute.POST(
+    new Request(`http://localhost/api/v1/vscode/${encodeURIComponent(key.key)}/chat/completions`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        model: "gpt-5.4__provider_cx__tier_priority",
+        messages: [{ role: "user", content: "hi" }],
+        max_tokens: 1,
+        stream: false,
+      }),
+    })
+  );
+  const body = (await response.json()) as any;
+
+  assert.equal(response.status, 400);
+  assert.equal(body.error?.code, "bad_request");
+  assert.equal(body.error?.message, "No credentials for provider: codex");
+});
+
+test("vscode tokenized /responses route applies the path token and codex tier rewrite", async () => {
+  await settingsDb.updateSettings({
+    requireLogin: true,
+    password: "hashed-password",
+    requireAuthForModels: true,
+  });
+  const key = await apiKeysDb.createApiKey("vscode-responses-route", "machine-vscode-responses-route");
+
+  const response = await vscodeResponsesRoute.POST(
+    new Request(`http://localhost/api/v1/vscode/${encodeURIComponent(key.key)}/responses`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        model: "gpt-5.4__provider_cx__tier_priority",
+        input: [{ role: "user", content: [{ type: "input_text", text: "hi" }] }],
+        max_output_tokens: 1,
+        stream: false,
+      }),
+    })
+  );
+  const body = (await response.json()) as any;
+
+  assert.equal(response.status, 400);
+  assert.equal(body.error?.code, "bad_request");
+  assert.equal(body.error?.message, "No credentials for provider: codex");
 });
 
 test("vscode tokenized api/show route preserves the selected reasoning effort for codex variants", async () => {
