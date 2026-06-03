@@ -1003,6 +1003,76 @@ test("CodexExecutor.transformRequest preserves namespace MCP tools and hosted to
   assert.deepEqual(result.tool_choice, { type: "function", name: "jira_get_issue" });
 });
 
+test("CodexExecutor.transformRequest preserves native Codex custom tools", () => {
+  const executor = new CodexExecutor();
+  const result = executor.transformRequest(
+    "gpt-5.5",
+    {
+      _nativeCodexPassthrough: true,
+      model: "gpt-5.5",
+      input: [],
+      tools: [
+        {
+          type: "custom",
+          name: "apply_patch",
+          description: "Use the apply_patch tool to edit files.",
+          format: {
+            type: "grammar",
+            syntax: "lark",
+            definition: "start: /.+/",
+          },
+        },
+        {
+          type: "function",
+          name: "exec_command",
+          description: "Runs a command.",
+          parameters: { type: "object", properties: {} },
+          strict: false,
+        },
+      ],
+    },
+    true,
+    { requestEndpointPath: "/responses" }
+  );
+
+  const tools = result.tools as Array<Record<string, unknown>>;
+  assert.equal(tools.length, 2);
+  assert.deepEqual(tools[0], {
+    type: "custom",
+    name: "apply_patch",
+    description: "Use the apply_patch tool to edit files.",
+    format: {
+      type: "grammar",
+      syntax: "lark",
+      definition: "start: /.+/",
+    },
+  });
+  assert.equal(tools[1].strict, false);
+});
+
+test("CodexExecutor.transformRequest still drops custom tools outside native passthrough", () => {
+  const executor = new CodexExecutor();
+  const result = executor.transformRequest(
+    "gpt-5.5",
+    {
+      model: "gpt-5.5",
+      input: [],
+      tools: [
+        { type: "custom", name: "apply_patch", format: { type: "grammar" } },
+        { type: "function", name: "exec_command", parameters: { type: "object" } },
+      ],
+    },
+    true,
+    { requestEndpointPath: "/responses" }
+  );
+
+  const tools = result.tools as Array<Record<string, unknown>>;
+  assert.deepEqual(
+    tools.map((tool) => tool.name),
+    ["exec_command"]
+  );
+});
+
 test("CodexExecutor maps Codex websocket error events to response.failed SSE", () => {
   const raw = JSON.stringify({
     type: "error",
