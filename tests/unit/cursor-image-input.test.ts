@@ -249,6 +249,75 @@ test("resolveCursorImages rejects too many images", async () => {
   );
 });
 
+test("resolveCursorImages accepts an uppercase DATA: scheme (RFC 2397 case-insensitive)", async () => {
+  const png = Buffer.from([137, 80, 78, 71]);
+  const out = await resolveCursorImages([`DATA:image/png;base64,${png.toString("base64")}`]);
+  assert.equal(out.length, 1);
+  assert.deepEqual(out[0].data, png);
+  assert.equal(out[0].mimeType, "image/png");
+});
+
+test("resolveCursorImages re-validates redirects: a 30x to a private host is blocked (SSRF)", async () => {
+  // fetch() follows redirects by default; the resolver uses redirect:"manual"
+  // and re-validates each hop. A public URL that 302s to 127.0.0.1 must be
+  // blocked, not followed.
+  const realFetch = globalThis.fetch;
+  globalThis.fetch = async () =>
+    new Response(null, { status: 302, headers: { location: "http://127.0.0.1/secret.png" } });
+  try {
+    await assert.rejects(
+      () => resolveCursorImages(["https://public.example/a.png"]),
+      (e) => e instanceof CursorImageError && /blocked address/i.test((e as Error).message)
+    );
+  } finally {
+    globalThis.fetch = realFetch;
+  }
+});
+
+test("resolveCursorImages follows a redirect to another public host and reads the image", async () => {
+  const png = Buffer.from([137, 80, 78, 71, 13, 10, 26, 10]);
+  const realFetch = globalThis.fetch;
+  let call = 0;
+  globalThis.fetch = async () => {
+    call++;
+    if (call === 1) {
+      return new Response(null, {
+        status: 302,
+        headers: { location: "https://cdn.public.example/a.png" },
+      });
+    }
+    return new Response(new Uint8Array(png), {
+      status: 200,
+      headers: { "content-type": "image/png" },
+    });
+  };
+  try {
+    const out = await resolveCursorImages(["https://public.example/a.png"]);
+    assert.equal(out.length, 1);
+    assert.deepEqual(out[0].data, png);
+    assert.equal(out[0].mimeType, "image/png");
+  } finally {
+    globalThis.fetch = realFetch;
+  }
+});
+
+test("resolveCursorImages rejects an over-long redirect chain", async () => {
+  const realFetch = globalThis.fetch;
+  globalThis.fetch = async () =>
+    new Response(null, {
+      status: 302,
+      headers: { location: "https://public.example/loop.png" },
+    });
+  try {
+    await assert.rejects(
+      () => resolveCursorImages(["https://public.example/start.png"]),
+      (e) => e instanceof CursorImageError && /too many redirects/i.test((e as Error).message)
+    );
+  } finally {
+    globalThis.fetch = realFetch;
+  }
+});
+
 // ─── Executor-level error body (response path, hard rule #12) ───────────────
 
 test("executor returns a sanitized 400 for an oversized image", async () => {

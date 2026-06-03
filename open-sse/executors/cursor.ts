@@ -263,8 +263,13 @@ const debugLog = (...args: unknown[]) => {
 
 // Phase 8: max wall-clock time before we give up on the upstream and abort
 // the stream. Cursor's longest-observed plain chat takes ~90s; tool-using
-// turns can be longer. Five minutes is generous but bounded.
-const CURSOR_STREAM_TIMEOUT_MS = parseInt(process.env.CURSOR_STREAM_TIMEOUT_MS || "300000", 10);
+// turns can be longer. Five minutes is generous but bounded. A malformed env
+// value (NaN / non-positive) falls back to the default rather than breaking
+// setTimeout.
+const CURSOR_STREAM_TIMEOUT_MS = (() => {
+  const parsed = parseInt(process.env.CURSOR_STREAM_TIMEOUT_MS || "300000", 10);
+  return Number.isInteger(parsed) && parsed > 0 ? parsed : 300000;
+})();
 
 // Upper bound on a single Connect-RPC frame. The 4-byte length prefix can
 // declare up to 4 GiB; a corrupt or hostile upstream could send a huge length

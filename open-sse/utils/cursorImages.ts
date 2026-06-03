@@ -37,8 +37,16 @@ export const MAX_CURSOR_IMAGE_BYTES = 1024 * 1024;
 // above any realistic vision prompt.
 export const MAX_CURSOR_IMAGES = 12;
 
-// Wall-clock cap for a single remote image fetch.
-const IMAGE_FETCH_TIMEOUT_MS = parseInt(process.env.CURSOR_IMAGE_FETCH_TIMEOUT_MS || "15000", 10);
+// Wall-clock cap for a single remote image fetch. A malformed env value
+// (NaN / non-positive) falls back to the default rather than breaking setTimeout.
+const IMAGE_FETCH_TIMEOUT_MS = (() => {
+  const parsed = parseInt(process.env.CURSOR_IMAGE_FETCH_TIMEOUT_MS || "15000", 10);
+  return Number.isInteger(parsed) && parsed > 0 ? parsed : 15000;
+})();
+
+// Bound on how many redirects fetchImageBytes will follow (each re-validated
+// against the SSRF guard before the next hop).
+const MAX_IMAGE_REDIRECTS = 3;
 
 /**
  * A 400-class error carrying a clean, non-sensitive message. The executor
@@ -73,6 +81,13 @@ function decodeDataUrl(url: string): { data: Buffer; mimeType: string } {
     throw new CursorImageError("Image data URL must be base64-encoded.");
   }
 
+  // Reject on the raw payload length BEFORE the regex/normalize pass, so an
+  // arbitrarily large data URL can't burn CPU on the whitespace strip. Base64
+  // expands ~4:3, so 2x the byte cap is a safe upper bound on the encoded text.
+  if (payload.length > MAX_CURSOR_IMAGE_BYTES * 2) {
+    throw new CursorImageError("Image input is too large (max 1 MiB). Resize and retry.");
+  }
+
   const normalized = payload.replace(/\s/g, "");
   // Cheap pre-check: 4 base64 chars -> 3 bytes. Reject obviously oversized
   // payloads before allocating the decode buffer.
@@ -94,14 +109,13 @@ function decodeDataUrl(url: string): { data: Buffer; mimeType: string } {
   return { data, mimeType };
 }
 
-async function fetchImageBytes(url: string): Promise<{ data: Buffer; mimeType: string }> {
-  let parsed: URL;
+// Validate a URL through the SSRF guard, mapping guard errors to clean,
+// non-sensitive CursorImageErrors (no URL echoed back).
+function validatePublicImageUrl(url: string): URL {
   try {
-    parsed = parseAndValidatePublicUrl(url);
+    return parseAndValidatePublicUrl(url);
   } catch (err) {
     if (err instanceof OutboundUrlGuardError) {
-      // Map both invalid-scheme and blocked-private into a clean 400 without
-      // echoing the (possibly sensitive) URL back to the caller.
       throw new CursorImageError(
         err.code === "OUTBOUND_URL_INVALID"
           ? "Image URL is invalid or uses an unsupported scheme."
@@ -110,75 +124,128 @@ async function fetchImageBytes(url: string): Promise<{ data: Buffer; mimeType: s
     }
     throw new CursorImageError("Image URL is invalid.");
   }
+}
 
-  const controller = new AbortController();
-  const timer = setTimeout(() => controller.abort(), IMAGE_FETCH_TIMEOUT_MS);
-  let response: Response;
-  try {
-    response = await fetch(parsed.toString(), { method: "GET", signal: controller.signal });
-  } catch {
-    clearTimeout(timer);
-    throw new CursorImageError("Could not fetch the image URL.");
+async function fetchImageBytes(url: string): Promise<{ data: Buffer; mimeType: string }> {
+  // Follow redirects MANUALLY and re-validate every hop through the SSRF guard.
+  // `fetch` follows redirects by default, so validating only the initial URL
+  // would let a public host 30x-redirect to a private/link-local address and
+  // bypass the guard. Each Location is resolved + re-checked before we fetch it.
+  let currentUrl = url;
+  for (let hop = 0; hop <= MAX_IMAGE_REDIRECTS; hop++) {
+    const parsed = validatePublicImageUrl(currentUrl);
+
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), IMAGE_FETCH_TIMEOUT_MS);
+    let response: Response;
+    try {
+      response = await fetch(parsed.toString(), {
+        method: "GET",
+        signal: controller.signal,
+        redirect: "manual",
+      });
+    } catch {
+      clearTimeout(timer);
+      throw new CursorImageError("Could not fetch the image URL.");
+    }
+    try {
+      // Manual redirect: resolve Location against the current URL and loop so
+      // the next hop is re-validated by the SSRF guard.
+      if (response.status >= 300 && response.status < 400) {
+        const location = response.headers.get("location");
+        if (!location) {
+          throw new CursorImageError("Image URL redirect is missing a destination.");
+        }
+        try {
+          currentUrl = new URL(location, parsed.toString()).toString();
+        } catch {
+          throw new CursorImageError("Image URL redirect destination is invalid.");
+        }
+        continue;
+      }
+
+      if (!response.ok) {
+        throw new CursorImageError(`Could not fetch the image URL (status ${response.status}).`);
+      }
+      const contentType = (response.headers.get("content-type") || "").toLowerCase();
+      const mimeType = contentType.split(";")[0].trim();
+      if (!mimeType.startsWith("image/")) {
+        throw new CursorImageError("Image URL did not return an image content type.");
+      }
+      // Reject early on an oversized Content-Length, then still cap during read
+      // (the header is advisory / may be absent).
+      const declaredLen = Number(response.headers.get("content-length") || "0");
+      if (Number.isFinite(declaredLen) && declaredLen > MAX_CURSOR_IMAGE_BYTES) {
+        throw new CursorImageError("Image input is too large (max 1 MiB). Resize and retry.");
+      }
+      const data = await readCapped(response, MAX_CURSOR_IMAGE_BYTES);
+      return { data, mimeType };
+    } finally {
+      clearTimeout(timer);
+    }
   }
-  try {
-    if (!response.ok) {
-      throw new CursorImageError(`Could not fetch the image URL (status ${response.status}).`);
-    }
-    const contentType = (response.headers.get("content-type") || "").toLowerCase();
-    const mimeType = contentType.split(";")[0].trim();
-    if (!mimeType.startsWith("image/")) {
-      throw new CursorImageError("Image URL did not return an image content type.");
-    }
-    // Reject early on an oversized Content-Length, then still cap during read
-    // (the header is advisory / may be absent).
-    const declaredLen = Number(response.headers.get("content-length") || "0");
-    if (Number.isFinite(declaredLen) && declaredLen > MAX_CURSOR_IMAGE_BYTES) {
-      throw new CursorImageError("Image input is too large (max 1 MiB). Resize and retry.");
-    }
-    const data = await readCapped(response, MAX_CURSOR_IMAGE_BYTES);
-    return { data, mimeType };
-  } finally {
-    clearTimeout(timer);
-  }
+  throw new CursorImageError("Image URL has too many redirects.");
 }
 
 /**
  * Read a fetch Response body into a Buffer, aborting as soon as the
- * accumulated size exceeds `cap`. Falls back to arrayBuffer() (still
- * cap-checked) when the body isn't a readable stream.
+ * accumulated size exceeds `cap`. Consumes the body incrementally — as an
+ * async iterable (Node Readable streams and Web Streams both support this) or
+ * via a web ReadableStream reader — so an oversized body is rejected mid-read
+ * rather than fully buffered. The uncapped arrayBuffer() path is only a last
+ * resort for exotic body shapes, and is still cap-checked afterwards.
  */
 async function readCapped(response: Response, cap: number): Promise<Buffer> {
-  const body = response.body;
-  if (!body || typeof body.getReader !== "function") {
-    const buf = Buffer.from(await response.arrayBuffer());
-    if (buf.length > cap) {
-      throw new CursorImageError("Image input is too large (max 1 MiB). Resize and retry.");
-    }
-    return buf;
+  const body = response.body as
+    | (AsyncIterable<Uint8Array> & { getReader?: () => ReadableStreamDefaultReader<Uint8Array> })
+    | null;
+  if (!body) {
+    return Buffer.alloc(0);
   }
-  const reader = body.getReader();
+
   const chunks: Buffer[] = [];
   let total = 0;
-  try {
-    for (;;) {
-      const { done, value } = await reader.read();
-      if (done) break;
-      if (value) {
-        total += value.byteLength;
-        if (total > cap) {
-          throw new CursorImageError("Image input is too large (max 1 MiB). Resize and retry.");
-        }
-        chunks.push(Buffer.from(value));
+  const pushCapped = (chunk: Uint8Array) => {
+    total += chunk.byteLength;
+    if (total > cap) {
+      throw new CursorImageError("Image input is too large (max 1 MiB). Resize and retry.");
+    }
+    chunks.push(Buffer.from(chunk));
+  };
+
+  // Preferred: async iteration (works for Node Readable + Web Streams).
+  if (typeof (body as { [Symbol.asyncIterator]?: unknown })[Symbol.asyncIterator] === "function") {
+    for await (const chunk of body) {
+      pushCapped(chunk as Uint8Array);
+    }
+    return Buffer.concat(chunks, total);
+  }
+
+  // Fallback: web ReadableStream reader.
+  if (typeof body.getReader === "function") {
+    const reader = body.getReader();
+    try {
+      for (;;) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        if (value) pushCapped(value);
+      }
+    } finally {
+      try {
+        await reader.cancel();
+      } catch {
+        /* already closed */
       }
     }
-  } finally {
-    try {
-      await reader.cancel();
-    } catch {
-      /* already closed */
-    }
+    return Buffer.concat(chunks, total);
   }
-  return Buffer.concat(chunks, total);
+
+  // Last resort: buffer then cap-check (only exotic non-stream bodies).
+  const buf = Buffer.from(await response.arrayBuffer());
+  if (buf.length > cap) {
+    throw new CursorImageError("Image input is too large (max 1 MiB). Resize and retry.");
+  }
+  return buf;
 }
 
 /**
@@ -198,7 +265,9 @@ export async function resolveCursorImages(imageUrls: string[]): Promise<EncodedI
     if (typeof url !== "string" || !url) {
       throw new CursorImageError("Image URL is missing.");
     }
-    const { data, mimeType } = url.startsWith("data:")
+    // The data: scheme is case-insensitive (RFC 2397); match it that way but
+    // pass the original (un-lowercased) url so the base64 payload is preserved.
+    const { data, mimeType } = url.toLowerCase().startsWith("data:")
       ? decodeDataUrl(url)
       : await fetchImageBytes(url);
     if (!data.length) {
