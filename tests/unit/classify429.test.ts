@@ -58,6 +58,12 @@ test("classify429: Antigravity quota patterns do not over-match plain rate limit
     classify429({ status: 429, body: "Rate limit exceeded. Try again in 30s." }),
     "rate_limit"
   );
+  // A bare "quota reached" in a transient per-minute limit must NOT be locked as
+  // quota_exhausted — only the specific "individual quota reached" wording is.
+  assert.equal(
+    classify429({ status: 429, body: "Request quota reached, retry in 60s." }),
+    "rate_limit"
+  );
 });
 
 test("classify429: 429 with quota keyword in nested object body returns 'quota_exhausted'", () => {
