@@ -375,7 +375,8 @@ function parseApiError(raw: any, statusCode: number): { message: string; isCrede
     `Request failed (${statusCode})`;
 
   const isCredentials =
-    typeof msg === "string" && // eslint-disable-next-line no-restricted-syntax -- teknik string kontrolü, kullanıcı metni araması değil
+    typeof msg === "string" &&
+    // eslint-disable-next-line no-restricted-syntax -- teknik string kontrolü, kullanıcı metni araması değil
     (msg.toLowerCase().includes("no credentials") ||
       // eslint-disable-next-line no-restricted-syntax -- teknik string kontrolü, kullanıcı metni araması değil
       msg.toLowerCase().includes("invalid api key") ||

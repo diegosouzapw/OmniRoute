@@ -7,7 +7,7 @@ import {
   type ResolvedProviderCatalogEntry,
   type StaticProviderCatalogCategory,
 } from "@/lib/providers/catalog";
-import { compareTr } from "@/shared/utils/turkishText";
+import { compareTr, matchesSearch } from "@/shared/utils/turkishText";
 
 export interface ProviderStatsSnapshot {
   total?: number;
@@ -118,12 +118,12 @@ export function filterConfiguredProviderEntries<TProvider>(
   }
 
   if (searchQuery && searchQuery.trim()) {
-    const query = searchQuery.trim().toLowerCase();
     filtered = filtered.filter((entry) => {
       const provider = entry.provider as Record<string, unknown>;
-      const name = String(provider.name || "").toLowerCase();
-      const id = entry.providerId.toLowerCase();
-      return name.includes(query) || id.includes(query);
+      return (
+        matchesSearch(String(provider.name || ""), searchQuery) ||
+        matchesSearch(entry.providerId, searchQuery)
+      );
     });
   }
 
