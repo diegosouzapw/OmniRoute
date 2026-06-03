@@ -45,6 +45,13 @@ const QUOTA_PATTERNS: ReadonlyArray<RegExp> = [
   /plan.*limit/i,
   /resource.*exhaust/i,
   /check.*quota/i,
+  // Antigravity / Cloud Code quota exhaustion ("Individual quota reached.
+  // Contact your administrator to enable overages. Resets in 164h27m24s.").
+  // None of the patterns above match it, so the 429 was misclassified as a
+  // transient rate-limit and locked for only ~5s instead of the real window.
+  /individual quota reached/i,
+  /quota reached/i,
+  /enable overages/i,
 ];
 
 /**

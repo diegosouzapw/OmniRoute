@@ -915,8 +915,17 @@ export function parseRetryFromErrorText(errorText: unknown): number | null {
   if (!match) {
     // Also try the variant without "reset after": "will reset after XhYmZs"
     const altMatch = errorText.match(/will reset after (\d+h)?(\d+m)?(\d+s)?/i);
-    if (!altMatch) return null;
-    return computeDurationMs(altMatch);
+    if (altMatch && (altMatch[1] || altMatch[2] || altMatch[3])) {
+      return computeDurationMs(altMatch);
+    }
+
+    // Antigravity / Cloud Code phrasing: "Resets in 164h27m24s".
+    const resetsInMatch = errorText.match(/resets? in (\d+h)?(\d+m)?(\d+s)?/i);
+    if (resetsInMatch && (resetsInMatch[1] || resetsInMatch[2] || resetsInMatch[3])) {
+      return computeDurationMs(resetsInMatch);
+    }
+
+    return null;
   }
 
   return computeDurationMs(match);
@@ -960,6 +969,13 @@ export function classifyErrorText(errorText: unknown): RateLimitReasonValue {
     lower.includes("quota has been exceeded") ||
     lower.includes("hour quota") ||
     lower.includes("billing") ||
+    // Antigravity / Cloud Code: "Individual quota reached. Contact your
+    // administrator to enable overages. Resets in 164h27m24s." The reset window
+    // is parsed by parseRetryFromErrorText("Resets in …") so the model is locked
+    // until the real reset instead of a generic ~5s rate-limit backoff.
+    lower.includes("individual quota reached") ||
+    lower.includes("quota reached") ||
+    lower.includes("enable overages") ||
     // Issue #2321: Anthropic OAuth (Claude Code Pro/Team) 429 bodies surface
     // the subscription quota with phrases that contain neither "quota" nor
     // "billing". Without these patterns the error was classified as a
