@@ -227,10 +227,23 @@ test("getCliRuntimeStatus still healthchecks Windows .cmd wrappers through shell
   assert.equal(status.installed, true);
   assert.equal(status.runnable, true);
   assert.equal(status.reason, null);
-  const expectedCommand = /\s/.test(scriptPath) ? `"${scriptPath}"` : scriptPath;
-  assert.equal(spawnCalls[0].command, expectedCommand);
+  // The command is passed to spawn unquoted — Node quotes it for cmd.exe when
+  // shell:true. We must NOT manually interpolate quotes (hard rule #13).
+  assert.equal(spawnCalls[0].command, scriptPath);
   assert.deepEqual(spawnCalls[0].args, ["--version"]);
   assert.equal(spawnCalls[0].options.shell, true);
+});
+
+test("shouldUseShellForCommand never uses the shell on non-Windows platforms", async () => {
+  if (process.platform === "win32") return;
+  const cliRuntime = await importFresh("should-use-shell-posix");
+  for (const cmd of ["/usr/bin/claude", "/opt/My App/claude.exe", "tool.cmd", "x.bat"]) {
+    assert.equal(
+      cliRuntime.shouldUseShellForCommand(cmd),
+      false,
+      `expected no shell on POSIX for: ${cmd}`
+    );
+  }
 });
 
 test("getCliRuntimeStatus discovers binaries from CLI_EXTRA_PATHS during PATH lookup", async () => {

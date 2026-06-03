@@ -261,7 +261,7 @@ const parseBoolean = (value: unknown, defaultValue = true) => {
   return !FALSE_VALUES.has(String(value).trim().toLowerCase());
 };
 
-const shouldUseShellForCommand = (command: string): boolean => {
+export const shouldUseShellForCommand = (command: string): boolean => {
   if (!isWindows()) return false;
 
   // Windows npm CLI wrappers are usually .cmd/.bat files and require cmd.exe.
@@ -296,8 +296,11 @@ const runProcess = (
     let timedOut = false;
     let settled = false;
 
-    const spawnCommand = useShell && isWindows() && /\s/.test(command) && !command.startsWith('"') ? `"${command}"` : command;
-    const child = spawn(spawnCommand, args, {
+    // Do NOT string-interpolate the path into a quoted shell command (hard rule
+    // #13). When useShell is false (.exe and all non-Windows), spawn passes
+    // `command` as a raw argv[0] and the OS loader handles spaces. When useShell
+    // is true (.cmd/.bat on Windows), Node quotes the command for cmd.exe itself.
+    const child = spawn(command, args, {
       env,
       stdio: ["ignore", "pipe", "pipe"],
       // On Windows, npm installs CLI wrappers as .cmd/.bat scripts. Those still
