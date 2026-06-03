@@ -10,6 +10,93 @@
 import { generatePKCE, generateState } from "./utils/pkce";
 import { PROVIDERS } from "./providers/index";
 
+const GOOGLE_BROWSER_PROVIDERS = new Set(["antigravity", "agy", "gemini-cli"]);
+
+type OAuthRedirectEnv = Record<string, string | undefined>;
+
+function hasValue(value: string | undefined): boolean {
+  return typeof value === "string" && value.trim().length > 0;
+}
+
+function firstValue(...values: Array<string | undefined>): string | undefined {
+  return values.find(hasValue);
+}
+
+function normalizeBaseUrl(value: unknown): string {
+  const trimmed = typeof value === "string" ? value.trim() : "";
+  if (!trimmed) return "";
+  return trimmed.replace(/\/+$/, "");
+}
+
+function hasCustomGoogleOAuthCredentials(
+  providerName: string,
+  env: OAuthRedirectEnv | null | undefined = process.env
+): boolean {
+  if (providerName === "antigravity" || providerName === "agy") {
+    // `agy` reuses the antigravity OAuth client + env overrides.
+    return (
+      hasValue(env?.ANTIGRAVITY_OAUTH_CLIENT_ID) &&
+      hasValue(env?.ANTIGRAVITY_OAUTH_CLIENT_SECRET)
+    );
+  }
+
+  if (providerName === "gemini-cli") {
+    const clientId = firstValue(env?.GEMINI_CLI_OAUTH_CLIENT_ID, env?.GEMINI_OAUTH_CLIENT_ID);
+    const clientSecret = firstValue(
+      env?.GEMINI_CLI_OAUTH_CLIENT_SECRET,
+      env?.GEMINI_OAUTH_CLIENT_SECRET
+    );
+    return hasValue(clientId) && hasValue(clientSecret);
+  }
+
+  return false;
+}
+
+function isLoopbackHostname(hostname: string): boolean {
+  return /^(localhost|127\.0\.0\.1|\[::1\]|::1)$/i.test(hostname);
+}
+
+/**
+ * Google providers default to loopback redirects so the embedded public
+ * credentials keep working on out-of-the-box local installs. When operators
+ * provide their own Google OAuth client IDs for a remote deployment, prefer the
+ * public callback URL documented in .env.example / docs/README so the popup can
+ * navigate back to OmniRoute instead of stalling on localhost.
+ */
+export function resolveBrowserOAuthRedirectUri(
+  providerName: string,
+  redirectUri: string,
+  env: OAuthRedirectEnv | null | undefined = process.env
+): string {
+  if (!GOOGLE_BROWSER_PROVIDERS.has(providerName)) {
+    return redirectUri;
+  }
+
+  if (!hasCustomGoogleOAuthCredentials(providerName, env)) {
+    return redirectUri;
+  }
+
+  const publicBaseUrl =
+    normalizeBaseUrl(env.NEXT_PUBLIC_BASE_URL) || normalizeBaseUrl(env.OMNIROUTE_PUBLIC_BASE_URL);
+
+  if (!publicBaseUrl) {
+    return redirectUri;
+  }
+
+  try {
+    const requested = new URL(redirectUri);
+    if (!isLoopbackHostname(requested.hostname)) {
+      return redirectUri;
+    }
+
+    const callbackPath =
+      requested.pathname && requested.pathname !== "/" ? requested.pathname : "/callback";
+    return `${publicBaseUrl}${callbackPath}${requested.search}`;
+  } catch {
+    return redirectUri;
+  }
+}
+
 /**
  * Get provider handler
  */
@@ -29,11 +116,36 @@ export function getProviderNames() {
 }
 
 /**
- * Generate auth data for a provider
+ * Generate auth data for a provider.
+ *
+ * Returns `{ supported: false, error }` (no `authUrl`) for providers whose
+ * browser-OAuth flow is currently disabled — e.g. windsurf / devin-cli post
+ * 2026-05 rebrand, where the legacy PKCE endpoint at app.devin.ai returns 404.
+ * Callers (UI / API route) should surface the `error` string and route the
+ * user to the import-token flow instead.
  */
 export function generateAuthData(providerName, redirectUri) {
   const provider = getProvider(providerName);
   const { codeVerifier, codeChallenge, state } = generatePKCE();
+
+  if (provider.flowType === "import_token") {
+    const error =
+      providerName === "windsurf" || providerName === "devin-cli"
+        ? "Browser login disabled — paste token from https://windsurf.com/show-auth-token instead. Phase 2 will restore Firebase OAuth via app.devin.ai successor."
+        : `Browser login is disabled for ${providerName}. Use the import-token flow instead.`;
+    return {
+      authUrl: undefined,
+      state: undefined,
+      codeVerifier: undefined,
+      codeChallenge: undefined,
+      redirectUri,
+      flowType: provider.flowType,
+      fixedPort: provider.fixedPort,
+      callbackPath: provider.callbackPath || "/callback",
+      supported: false,
+      error,
+    };
+  }
 
   let authUrl;
   if (provider.flowType === "device_code") {

@@ -4,7 +4,13 @@
  * All domain modules import `getDbInstance` and helpers from here.
  */
 
-import Database from "better-sqlite3";
+import type { SqliteAdapter } from "./adapters/types";
+import {
+  tryOpenSync,
+  getSqlJsAdapter,
+  preInitSqlJs,
+  openDatabaseAsync,
+} from "./adapters/driverFactory";
 import path from "path";
 import fs from "fs";
 import { resolveDataDir, getLegacyDotDataDir } from "../dataPaths";
@@ -19,7 +25,7 @@ import {
 import { migrateLegacyEncryptedString } from "./encryption";
 import { invalidateDbCache } from "./readCache";
 
-type SqliteDatabase = import("better-sqlite3").Database;
+type SqliteDatabase = SqliteAdapter;
 type JsonRecord = Record<string, unknown>;
 type CheckpointMode = "PASSIVE" | "FULL" | "RESTART" | "TRUNCATE";
 type PreservedTableSnapshot = {
@@ -61,7 +67,12 @@ export const SQLITE_FILE = isCloud ? null : path.join(DATA_DIR, "storage.sqlite"
 const JSON_DB_FILE = isCloud ? null : path.join(DATA_DIR, "db.json");
 export const DB_BACKUPS_DIR = isCloud ? null : path.join(DATA_DIR, "db_backups");
 const DEFAULT_CRITICAL_TABLE_ROW_LIMIT = 10_000;
-const SKIP_PRESERVE_NAMESPACES = new Set(["syncedAvailableModels", "providerLimitsCache", "lkgp"]);
+const SKIP_PRESERVE_NAMESPACES = new Set([
+  "syncedAvailableModels",
+  "providerLimitsCache",
+  "lkgp",
+  "gemini_thought_signatures",
+]);
 const CRITICAL_DB_TABLES: CriticalTableSpec[] = [
   {
     table: "key_value",
@@ -112,32 +123,19 @@ function getErrorCode(error: unknown): string | undefined {
   return typeof code === "string" ? code : undefined;
 }
 
-function createNativeSqliteLoadError(error: unknown): Error {
-  const message = error instanceof Error ? error.message : String(error);
-  const detail =
-    `better-sqlite3 native binding failed to load for Node.js ${process.version}. ` +
-    "This usually happens after switching Node.js versions without rebuilding native modules. " +
-    "Run `npm rebuild better-sqlite3` in the OmniRoute project and start again. " +
-    `Original error: ${message}`;
-  const wrapped = new Error(detail) as Error & { cause?: unknown; code?: string };
-  wrapped.name = "NativeSqliteLoadError";
-  wrapped.cause = error;
-  wrapped.code = getErrorCode(error) || "ERR_DLOPEN_FAILED";
-  return wrapped;
-}
+function openSqliteDatabase(sqliteFile: string, options?: Record<string, unknown>): SqliteDatabase {
+  const adapter = tryOpenSync(sqliteFile, options);
+  if (adapter) return adapter;
 
-function openSqliteDatabase(
-  sqliteFile: string,
-  options?: ConstructorParameters<typeof Database>[1]
-): SqliteDatabase {
-  try {
-    return new Database(sqliteFile, options);
-  } catch (error: unknown) {
-    if (isNativeSqliteLoadError(error)) {
-      throw createNativeSqliteLoadError(error);
-    }
-    throw error;
-  }
+  const sqlJs = getSqlJsAdapter(sqliteFile);
+  if (sqlJs) return sqlJs;
+
+  throw new Error(
+    `[DB] Nenhum driver SQLite disponível para '${sqliteFile}'. ` +
+      "Chame ensureDbInitialized() no startup. " +
+      "Drivers testados: better-sqlite3 (falhou), node:sqlite (indisponível). " +
+      "sql.js WASM ainda não foi pré-inicializado."
+  );
 }
 
 // Ensure data directory exists — with fallback for restricted home directories (#133)
@@ -483,7 +481,7 @@ export function cleanNulls(obj: unknown): JsonRecord {
 // Module-level `let` resets on every webpack recompile, causing connection leaks.
 
 declare global {
-  var __omnirouteDb: import("better-sqlite3").Database | undefined;
+  var __omnirouteDb: SqliteAdapter | undefined;
 }
 
 function getDb(): SqliteDatabase | null {
@@ -569,6 +567,11 @@ function ensureUsageHistoryColumns(db: SqliteDatabase) {
       console.log("[DB] Added usage_history.service_tier column");
     }
     db.exec("CREATE INDEX IF NOT EXISTS idx_uh_service_tier ON usage_history(service_tier)");
+    if (!columnNames.has("combo_strategy")) {
+      db.exec("ALTER TABLE usage_history ADD COLUMN combo_strategy TEXT DEFAULT 'direct'");
+      console.log("[DB] Added usage_history.combo_strategy column");
+    }
+    db.exec("CREATE INDEX IF NOT EXISTS idx_uh_combo_strategy ON usage_history(combo_strategy)");
   } catch (error: unknown) {
     const message = error instanceof Error ? error.message : String(error);
     console.warn("[DB] Failed to verify usage_history schema:", message);
@@ -1111,6 +1114,7 @@ function startDbHealthCheckScheduler(db: SqliteDatabase) {
       if (!db.open) return;
       runDbHealthCheck(db, {
         autoRepair: true,
+        skipIntegrityCheck: process.env.OMNIROUTE_SKIP_DB_HEALTHCHECK === "1",
         expectedSchemaVersion: "1",
         createBackupBeforeRepair: () => createHealthCheckBackup(db),
       });
@@ -1181,30 +1185,6 @@ export function getDbInstance(): SqliteDatabase {
   let failedProbePath: string | null = null;
   let failedProbeMessage: string | null = null;
 
-  if (fs.existsSync(sqliteFile)) {
-    preservedCriticalState = captureCriticalDbState(sqliteFile);
-    if (preservedCriticalState.captureSucceeded) {
-      if (preservedCriticalState.preservedTables.length > 0) {
-        console.log(
-          `[DB] Preserved critical DB state before potential recreation: ${summarizePreservedTables(
-            preservedCriticalState.preservedTables
-          )}`
-        );
-      }
-      if (preservedCriticalState.skippedTables.length > 0) {
-        console.warn(
-          `[DB] Critical DB tables skipped during preservation: ${summarizeSkippedTables(
-            preservedCriticalState.skippedTables
-          )}`
-        );
-      }
-    } else if (preservedCriticalState.captureError) {
-      console.warn(
-        `[DB] Could not preserve critical DB state before recreation: ${preservedCriticalState.captureError}`
-      );
-    }
-  }
-
   // Track whether the DB file is brand new (fresh DATA_DIR / Docker volume).
   // This is needed so the migration runner skips the mass-migration safety abort
   // that would otherwise trigger because heuristic seeding marks some migrations
@@ -1271,6 +1251,7 @@ export function getDbInstance(): SqliteDatabase {
       if (isNativeSqliteLoadError(e) || message.includes("could not be found")) {
         throw e;
       }
+  preservedCriticalState = captureCriticalDbState(sqliteFile);
 
       // SAFETY: Never delete the database — rename to backup so data can be recovered.
       // The old code would silently destroy all user data on any probe failure.
@@ -1306,6 +1287,7 @@ export function getDbInstance(): SqliteDatabase {
   db.pragma("journal_mode = WAL");
   db.pragma("busy_timeout = 5000");
   db.pragma("synchronous = NORMAL");
+  db.pragma("cache_size = -2048");
   db.exec(SCHEMA_SQL);
   ensureProviderConnectionsColumns(db);
   ensureUsageHistoryColumns(db);
@@ -1363,9 +1345,14 @@ export function getDbInstance(): SqliteDatabase {
   );
   versionStmt.run();
   if (shouldRunStartupDbHealthCheck()) {
+    const skipIntegrityCheck = process.env.OMNIROUTE_SKIP_DB_HEALTHCHECK === "1";
+    if (skipIntegrityCheck) {
+      console.log("[DB] Health check skipped (OMNIROUTE_SKIP_DB_HEALTHCHECK=1)");
+    }
     runDbHealthCheck(db, {
       autoRepair: true,
       expectedSchemaVersion: "1",
+      skipIntegrityCheck,
       createBackupBeforeRepair: () => createHealthCheckBackup(db),
     });
   }
@@ -1383,6 +1370,20 @@ export function getDbInstance(): SqliteDatabase {
   startDbHealthCheckScheduler(db);
   console.log(`[DB] SQLite database ready: ${sqliteFile}`);
   return db;
+}
+
+/**
+ * Lightweight liveness probe — runs `SELECT 1` against the singleton DB.
+ * Returns `true` if the database is reachable, `false` on any error.
+ * Intended for use by the `/api/health/ping` route (Hard Rule #5: no raw SQL in routes).
+ */
+export function pingDb(): boolean {
+  try {
+    const result = getDbInstance().prepare("SELECT 1 AS ok").get() as { ok: number } | undefined;
+    return result?.ok === 1;
+  } catch {
+    return false;
+  }
 }
 
 export function closeDbInstance(options?: { checkpointMode?: CheckpointMode | null }): boolean {
@@ -1447,20 +1448,25 @@ export function getDriverInfo(): DbDriverInfo | null {
 export async function ensureDbInitialized(): Promise<void> {
   if (getDb()) return;
 
-  try {
-    const runtimeModule = await import("../../../bin/cli/runtime/sqliteRuntime.mjs" as any);
-    const { driver, source } = await runtimeModule.loadSqliteRuntime();
-    setDriverInfo({ source, kind: driver.kind as string });
-    if ((driver.kind as string) !== "better-sqlite3") {
-      console.warn(
-        `[DB] better-sqlite3 unavailable (resolved via ${source}/${driver.kind}). ` +
-          `OmniRoute may fall back to read-only or limited functionality.`
-      );
-    }
-  } catch {
-    // Runtime loader unavailable (CLI context only) — DB init falls through to normal path.
+  // Cloud/build: getDbInstance() cria in-memory, sem necessidade de pré-init
+  if (isCloud || isBuildPhase || !SQLITE_FILE) {
+    getDbInstance();
+    return;
   }
 
+  // Tenta drivers síncronos primeiro
+  const sync = tryOpenSync(SQLITE_FILE);
+  if (sync) {
+    // Drivers síncronos disponíveis — fechar o probe, getDbInstance() vai abrir com setup completo
+    sync.close();
+    getDbInstance();
+    return;
+  }
+
+  // Nenhum driver síncrono — pré-inicializar sql.js (WASM, async)
+  console.warn("[DB] Pré-inicializando sql.js WASM (drivers síncronos indisponíveis)...");
+  await preInitSqlJs(SQLITE_FILE);
+  // Agora getSqlJsAdapter() retornará o adapter, e getDbInstance() vai usá-lo
   getDbInstance();
 }
 

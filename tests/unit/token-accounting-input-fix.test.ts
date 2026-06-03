@@ -1,51 +1,15 @@
 /**
  * Unit tests for getLoggedInputTokens fix — Anthropic / anthropic-compatible-cc
  *
- * The bug: Claude streaming sets prompt_tokens = input_tokens (non-cached only).
- * Fix: extractUsage in usageTracking.ts now sums input + cache_read + cache_creation
- * into prompt_tokens, consistent with the non-streaming extractor.
- *
- * getLoggedInputTokens itself also has a safety-net: when raw `input_tokens`
- * is present (e.g. from a raw API response), it adds cache tokens too.
+ * getLoggedInputTokens has a safety-net: when raw `input_tokens` is present
+ * (e.g. from a raw API response), it adds cache tokens too. When both
+ * `prompt_tokens` and `input_tokens` are present, `prompt_tokens` wins because
+ * stream translators keep `input_tokens` as a compatibility alias.
  */
 
 import { describe, it } from "node:test";
 import assert from "node:assert/strict";
-
-// ── Inline the fixed logic from tokenAccounting.ts ──────────────────────
-
-function asRecord(value) {
-  return value && typeof value === "object" && !Array.isArray(value) ? value : {};
-}
-
-function toFiniteNumber(value) {
-  if (typeof value === "number" && Number.isFinite(value)) return value;
-  if (typeof value === "string" && value.trim().length > 0) {
-    const parsed = Number(value);
-    return Number.isFinite(parsed) ? parsed : 0;
-  }
-  return 0;
-}
-
-function getLoggedInputTokens(tokens) {
-  const tokenRecord = asRecord(tokens);
-
-  if (tokenRecord.input !== undefined && tokenRecord.input !== null) {
-    return toFiniteNumber(tokenRecord.input);
-  }
-
-  if (tokenRecord.input_tokens !== undefined && tokenRecord.input_tokens !== null) {
-    return (
-      toFiniteNumber(tokenRecord.input_tokens) +
-      toFiniteNumber(tokenRecord.cache_read_input_tokens) +
-      toFiniteNumber(tokenRecord.cache_creation_input_tokens)
-    );
-  }
-
-  // prompt_tokens from translator/extractor already includes cache tokens
-  const promptTokens = toFiniteNumber(tokenRecord.prompt_tokens);
-  return promptTokens;
-}
+import { getLoggedInputTokens } from "../../src/lib/usage/tokenAccounting.ts";
 
 // ── Tests ────────────────────────────────────────────────────────────────
 
@@ -93,6 +57,17 @@ describe("getLoggedInputTokens — input fix for Anthropic streaming", () => {
       cache_creation_input_tokens: 113613,
     };
     assert.equal(getLoggedInputTokens(tokens), 113616);
+  });
+
+  it("translated Claude stream usage: prompt_tokens wins over compatibility input_tokens", () => {
+    const tokens = {
+      prompt_tokens: 600_000,
+      input_tokens: 600_000,
+      completion_tokens: 1_000,
+      output_tokens: 1_000,
+      cache_read_input_tokens: 600_000,
+    };
+    assert.equal(getLoggedInputTokens(tokens), 600_000);
   });
 
   it("OpenAI format: prompt_tokens=1000, no cache top-level fields → 1000", () => {

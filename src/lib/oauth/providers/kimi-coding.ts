@@ -120,5 +120,16 @@ export const kimiCoding = {
     expiresIn: tokens.expires_in,
     tokenType: tokens.token_type,
     scope: tokens.scope,
+    // Persist the device identity at login so refreshes use the SAME deviceId
+    // the device-code grant was issued against. Without this, tokenRefresh.ts
+    // falls back to pbkdf2(refresh_token, ...) — and Kimi rotates refresh_tokens
+    // per refresh, so the derived id changes every cycle and the anti-bot
+    // pipeline treats each refresh as a new device.
+    providerSpecificData: {
+      deviceId: getKimiDeviceId(),
+      deviceName: sanitizeHeaderValue(hostname()),
+      deviceModel: sanitizeHeaderValue(getDeviceModel()),
+      osVersion: sanitizeHeaderValue(osVersion()),
+    },
   }),
 };

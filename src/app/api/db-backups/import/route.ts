@@ -6,6 +6,9 @@ import os from "os";
 import { getDbInstance, resetDbInstance, SQLITE_FILE } from "@/lib/db/core";
 import { backupDbFile } from "@/lib/db/backup";
 import { isAuthRequired, isAuthenticated } from "@/shared/utils/apiAuth";
+import { getSettings } from "@/lib/db/settings";
+import { setSystemPromptConfig } from "@omniroute/open-sse/services/systemPrompt.ts";
+import { sanitizeErrorMessage } from "@omniroute/open-sse/utils/error";
 
 const MAX_UPLOAD_SIZE = 100 * 1024 * 1024; // 100 MB
 
@@ -115,7 +118,10 @@ export async function POST(request: Request) {
       testDb = null;
     } catch (e) {
       if (testDb) testDb.close();
-      return NextResponse.json({ error: `Invalid database file: ${e.message}` }, { status: 400 });
+      return NextResponse.json(
+        { error: `Invalid database file: ${sanitizeErrorMessage(e)}` },
+        { status: 400 }
+      );
     }
 
     // Create pre-import backup
@@ -154,6 +160,17 @@ export async function POST(request: Request) {
       `[DB] Imported database from upload: ${connCount} connections, ${nodeCount} nodes, ${comboCount} combos, ${keyCount} API keys`
     );
 
+    // The DB was replaced wholesale — re-hydrate the in-memory Global System Prompt so it
+    // reflects the imported settings without requiring a restart (#2470).
+    try {
+      const importedSettings = await getSettings();
+      if (importedSettings.systemPrompt) {
+        setSystemPromptConfig(importedSettings.systemPrompt);
+      }
+    } catch {
+      // non-fatal: import succeeded; system prompt will hydrate on next restart
+    }
+
     return NextResponse.json({
       imported: true,
       filename: fileName,
@@ -164,7 +181,7 @@ export async function POST(request: Request) {
     });
   } catch (error) {
     console.error("[API] Error importing database:", error);
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    return NextResponse.json({ error: sanitizeErrorMessage(error) }, { status: 500 });
   } finally {
     // Cleanup temp file
     if (tmpPath && fs.existsSync(tmpPath)) {

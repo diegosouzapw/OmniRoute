@@ -54,7 +54,7 @@ export async function runStatusCommand(opts = {}) {
 
   if (isVerbose || !isJson) {
     try {
-      const { detectAllTools } = await import("../../../src/lib/cli-helper/tool-detector.js");
+      const { detectAllTools } = await import("../../../src/lib/cli-helper/tool-detector.ts");
       const tools = await detectAllTools();
       status.tools = tools.map((t) => ({
         id: t.id,

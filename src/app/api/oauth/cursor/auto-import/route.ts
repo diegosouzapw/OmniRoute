@@ -2,7 +2,6 @@ import { NextResponse } from "next/server";
 import { homedir } from "os";
 import { join } from "path";
 import { readFile } from "fs/promises";
-import Database from "better-sqlite3";
 import { isAuthRequired, isAuthenticated } from "@/shared/utils/apiAuth";
 
 /**
@@ -31,13 +30,13 @@ async function tryAgentAuth(): Promise<{
 /**
  * Try to read credentials from Cursor IDE's state.vscdb
  */
-function tryIdeAuth(): {
+async function tryIdeAuth(): Promise<{
   found: boolean;
   accessToken?: string;
   machineId?: string;
   source?: string;
   error?: string;
-} {
+}> {
   const platform = process.platform;
   let dbPath;
 
@@ -53,7 +52,9 @@ function tryIdeAuth(): {
 
   let db;
   try {
-    db = new Database(dbPath, { readonly: true, fileMustExist: true });
+    const { tryOpenSync } = await import("@/lib/db/adapters/driverFactory");
+    db = tryOpenSync(dbPath, { readonly: true, fileMustExist: true });
+    if (!db) return { found: false, error: "Cursor IDE database driver unavailable" };
   } catch {
     return { found: false, error: "Cursor IDE database not found" };
   }
@@ -108,7 +109,7 @@ export async function GET(request: Request) {
 
   try {
     // Try Cursor IDE first (has both accessToken and machineId)
-    const ideResult = tryIdeAuth();
+    const ideResult = await tryIdeAuth();
     if (ideResult.found) {
       return NextResponse.json({
         found: true,

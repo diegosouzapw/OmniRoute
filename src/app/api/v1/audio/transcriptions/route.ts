@@ -12,6 +12,10 @@ import { errorResponse } from "@omniroute/open-sse/utils/error.ts";
 import { HTTP_STATUS } from "@omniroute/open-sse/config/constants.ts";
 import { enforceApiKeyPolicy } from "@/shared/utils/apiKeyPolicy";
 import { getProviderNodes } from "@/lib/localDb";
+import {
+  isAllRateLimitedCredentials,
+  rateLimitedProviderResponse,
+} from "@/app/api/v1/_shared/rateLimit";
 
 /**
  * Handle CORS preflight
@@ -91,6 +95,9 @@ export async function POST(request) {
     credentials = await getProviderCredentials(provider);
     if (!credentials) {
       return errorResponse(HTTP_STATUS.BAD_REQUEST, `No credentials for provider: ${provider}`);
+    }
+    if (isAllRateLimitedCredentials(credentials)) {
+      return rateLimitedProviderResponse(provider, credentials);
     }
   }
 

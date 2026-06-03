@@ -27,6 +27,8 @@ process.env.API_KEY_SECRET = process.env.API_KEY_SECRET || "task-607-api-key-sec
 
 const coreDb = await import("../../src/lib/db/core.ts");
 const apiKeysDb = await import("../../src/lib/db/apiKeys.ts");
+const combosDb = await import("../../src/lib/db/combos.ts");
+const modelComboMappingsDb = await import("../../src/lib/db/modelComboMappings.ts");
 const costRules = await import("../../src/domain/costRules.ts");
 const rateLimiter = await import("../../src/shared/utils/rateLimiter.ts");
 
@@ -89,6 +91,7 @@ function getCurrentUtcDay() {
 }
 
 test.beforeEach(async () => {
+  delete process.env.DEFAULT_RATE_LIMIT_PER_DAY;
   await resetStorage();
 });
 
@@ -465,15 +468,114 @@ test("enforceApiKeyPolicy does not rate-limit unrestricted keys by default", asy
   const unrestrictedKey = await createKeyWithPolicy({ allowedModels: ["openai/*"] });
   const policy = await loadPolicy("default-no-request-limit");
 
-  // 5 calls is enough to prove no rate-limit fires; 1005 DB-backed iterations
-  // were flagged as unnecessary overhead in code review.
-  for (let i = 0; i < 5; i += 1) {
+  for (let i = 0; i < 1005; i += 1) {
     const result = await policy.enforceApiKeyPolicy(
       makePolicyRequest(unrestrictedKey.key),
       "openai/gpt-4.1"
     );
     assert.equal(result.rejection, null);
   }
+});
+
+test("enforceApiKeyPolicy enforces explicit env fallback request limits", async () => {
+  process.env.DEFAULT_RATE_LIMIT_PER_DAY = "1";
+  const unrestrictedKey = await createKeyWithPolicy({ allowedModels: ["openai/*"] });
+  const policy = await loadPolicy("env-request-limit");
+
+  const first = await policy.enforceApiKeyPolicy(
+    makePolicyRequest(unrestrictedKey.key),
+    "openai/gpt-4.1"
+  );
+  assert.equal(first.rejection, null);
+
+  const second = await policy.enforceApiKeyPolicy(
+    makePolicyRequest(unrestrictedKey.key),
+    "openai/gpt-4.1"
+  );
+  assert.equal(second.rejection.status, 429);
+  assert.match(await readErrorMessage(second.rejection), /Request limit exceeded/);
+});
+
+test("enforceApiKeyPolicy enforces custom multi-window rate limits", async () => {
+  const limitedKey = await createKeyWithPolicy({
+    allowedModels: ["openai/*"],
+    rateLimits: [{ limit: 1, window: 60 }],
+  });
+  const policy = await loadPolicy("custom-request-limits");
+
+  const first = await policy.enforceApiKeyPolicy(
+    makePolicyRequest(limitedKey.key),
+    "openai/gpt-4.1"
+  );
+  assert.equal(first.rejection, null);
+
+  const second = await policy.enforceApiKeyPolicy(
+    makePolicyRequest(limitedKey.key),
+    "openai/gpt-4.1"
+  );
+  assert.equal(second.rejection.status, 429);
+  assert.match(await readErrorMessage(second.rejection), /Request limit exceeded/);
+});
+
+test("enforceApiKeyPolicy enforces combo allowlists separately from model allowlists", async () => {
+  const allowedKey = await createKeyWithPolicy({
+    allowedModels: ["openai/*"],
+    allowedCombos: ["fast-chat", "mapped-chat"],
+  });
+  const blockedKey = await createKeyWithPolicy({
+    allowedCombos: ["slow-chat"],
+  });
+  await combosDb.createCombo({
+    name: "fast-chat",
+    strategy: "priority",
+    models: ["anthropic/claude-3-5-sonnet"],
+  });
+  await combosDb.createCombo({
+    name: "mapped-chat",
+    strategy: "priority",
+    models: ["openai/gpt-4.1"],
+  });
+  const mappedCombo = await combosDb.getComboByName("mapped-chat");
+  assert.ok(mappedCombo?.id);
+  await modelComboMappingsDb.createModelComboMapping({
+    pattern: "mapped-model-*",
+    comboId: mappedCombo.id as string,
+  });
+  const policy = await loadPolicy("combo-access");
+
+  const allowed = await policy.enforceApiKeyPolicy(
+    makePolicyRequest(allowedKey.key),
+    "combo/fast-chat"
+  );
+  assert.equal(allowed.rejection, null);
+
+  const blocked = await policy.enforceApiKeyPolicy(
+    makePolicyRequest(blockedKey.key),
+    "combo/fast-chat"
+  );
+  assert.equal(blocked.rejection.status, 403);
+  assert.match(await readErrorMessage(blocked.rejection), /Combo "fast-chat" is not allowed/);
+
+  const mapped = await policy.enforceApiKeyPolicy(
+    makePolicyRequest(allowedKey.key),
+    "mapped-model-1"
+  );
+  assert.equal(mapped.rejection, null);
+});
+
+test("enforceApiKeyPolicy applies configured throttle delay", async () => {
+  const delayedKey = await createKeyWithPolicy({ throttleDelayMs: 25 });
+  const policy = await loadPolicy("throttle-delay");
+
+  const startedAt = Date.now();
+  const result = await policy.enforceApiKeyPolicy(
+    makePolicyRequest(delayedKey.key),
+    "openai/gpt-4.1"
+  );
+
+  assert.equal(result.rejection, null);
+  assert.equal(result.apiKeyInfo.throttleDelayMs, 25);
+  assert.ok(Date.now() - startedAt >= 20);
 });
 
 test("enforceApiKeyPolicy enforces request-per-minute limits and returns success when allowed", async () => {

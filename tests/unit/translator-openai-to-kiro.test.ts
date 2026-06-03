@@ -584,3 +584,334 @@ test("OpenAI -> Kiro includes origin on all history user messages", () => {
   // Note: last user message becomes currentMessage, not history
   assert.equal(history.length, 2);
 });
+
+// ── Defeito 1: status hardcoded como "success" ──────────────────────────────
+
+test("OpenAI -> Kiro maps tool_result is_error:true to status:'error'", () => {
+  const result = buildKiroPayload(
+    "claude-sonnet-4",
+    {
+      messages: [
+        { role: "user", content: "Run a tool" },
+        {
+          role: "assistant",
+          content: [{ type: "tool_use", id: "call_err", name: "bash", input: { cmd: "fail" } }],
+        },
+        {
+          role: "user",
+          content: [
+            {
+              type: "tool_result",
+              tool_use_id: "call_err",
+              is_error: true,
+              content: [{ type: "text", text: "Command not found" }],
+            },
+          ],
+        },
+        { role: "user", content: "What happened?" },
+      ],
+    },
+    false,
+    null
+  );
+
+  const ctx = result.conversationState.currentMessage.userInputMessage.userInputMessageContext as {
+    toolResults?: Array<{ toolUseId: string; status: string; content: Array<{ text: string }> }>;
+  };
+  assert.ok(ctx?.toolResults, "toolResults should be present");
+  const errorResult = ctx.toolResults!.find((tr) => tr.toolUseId === "call_err");
+  assert.ok(errorResult, "tool result for call_err should exist");
+  assert.equal(errorResult!.status, "error", "is_error:true must map to status:'error'");
+  assert.equal(errorResult!.content[0].text, "Command not found");
+});
+
+test("OpenAI -> Kiro maps tool_result is_error:false to status:'success'", () => {
+  const result = buildKiroPayload(
+    "claude-sonnet-4",
+    {
+      messages: [
+        { role: "user", content: "Run a tool" },
+        {
+          role: "assistant",
+          content: [{ type: "tool_use", id: "call_ok", name: "bash", input: { cmd: "echo hi" } }],
+        },
+        {
+          role: "user",
+          content: [
+            {
+              type: "tool_result",
+              tool_use_id: "call_ok",
+              is_error: false,
+              content: [{ type: "text", text: "hi" }],
+            },
+          ],
+        },
+        { role: "user", content: "Done" },
+      ],
+    },
+    false,
+    null
+  );
+
+  const ctx = result.conversationState.currentMessage.userInputMessage.userInputMessageContext as {
+    toolResults?: Array<{ toolUseId: string; status: string }>;
+  };
+  const okResult = ctx?.toolResults?.find((tr) => tr.toolUseId === "call_ok");
+  assert.ok(okResult, "tool result for call_ok should exist");
+  assert.equal(okResult!.status, "success");
+});
+
+// ── Defeito 2: conteúdo não-texto colapsa para string vazia ─────────────────
+
+test("OpenAI -> Kiro serializes image tool_result content to non-empty text", () => {
+  const result = buildKiroPayload(
+    "claude-sonnet-4",
+    {
+      messages: [
+        { role: "user", content: "Analyze image" },
+        {
+          role: "assistant",
+          content: [{ type: "tool_use", id: "call_img", name: "capture_screen", input: {} }],
+        },
+        {
+          role: "user",
+          content: [
+            {
+              type: "tool_result",
+              tool_use_id: "call_img",
+              content: [
+                {
+                  type: "image",
+                  source: { type: "base64", media_type: "image/png", data: "abc123" },
+                },
+              ],
+            },
+          ],
+        },
+        { role: "user", content: "What do you see?" },
+      ],
+    },
+    false,
+    null
+  );
+
+  const ctx = result.conversationState.currentMessage.userInputMessage.userInputMessageContext as {
+    toolResults?: Array<{ toolUseId: string; content: Array<{ text: string }> }>;
+  };
+  const imgResult = ctx?.toolResults?.find((tr) => tr.toolUseId === "call_img");
+  assert.ok(imgResult, "tool result should exist");
+  const text = imgResult!.content[0].text;
+  assert.ok(text && text.length > 0, `text must not be empty for image content, got: '${text}'`);
+});
+
+test("OpenAI -> Kiro serializes JSON-object tool_result content to non-empty text", () => {
+  const result = buildKiroPayload(
+    "claude-sonnet-4",
+    {
+      messages: [
+        { role: "user", content: "Search files" },
+        {
+          role: "assistant",
+          content: [
+            { type: "tool_use", id: "call_json", name: "list_files", input: { path: "/tmp" } },
+          ],
+        },
+        {
+          role: "user",
+          content: [
+            {
+              type: "tool_result",
+              tool_use_id: "call_json",
+              content: [{ type: "json", data: { files: ["a.txt", "b.ts"] } }],
+            },
+          ],
+        },
+        { role: "user", content: "Thanks" },
+      ],
+    },
+    false,
+    null
+  );
+
+  const ctx = result.conversationState.currentMessage.userInputMessage.userInputMessageContext as {
+    toolResults?: Array<{ toolUseId: string; content: Array<{ text: string }> }>;
+  };
+  const jsonResult = ctx?.toolResults?.find((tr) => tr.toolUseId === "call_json");
+  assert.ok(jsonResult, "tool result should exist");
+  const text = jsonResult!.content[0].text;
+  assert.ok(text && text.length > 0, `text must be non-empty, got: '${text}'`);
+});
+
+test("OpenAI -> Kiro uses placeholder text when tool_result content is empty array", () => {
+  const result = buildKiroPayload(
+    "claude-sonnet-4",
+    {
+      messages: [
+        { role: "user", content: "Do something" },
+        {
+          role: "assistant",
+          content: [{ type: "tool_use", id: "call_empty", name: "no_output_tool", input: {} }],
+        },
+        {
+          role: "user",
+          content: [
+            {
+              type: "tool_result",
+              tool_use_id: "call_empty",
+              content: [],
+            },
+          ],
+        },
+        { role: "user", content: "Continue" },
+      ],
+    },
+    false,
+    null
+  );
+
+  const ctx = result.conversationState.currentMessage.userInputMessage.userInputMessageContext as {
+    toolResults?: Array<{ toolUseId: string; content: Array<{ text: string }> }>;
+  };
+  const emptyResult = ctx?.toolResults?.find((tr) => tr.toolUseId === "call_empty");
+  assert.ok(emptyResult, "tool result should exist");
+  const text = emptyResult!.content[0].text;
+  assert.ok(text && text.length > 0, `placeholder text must be non-empty, got: '${text}'`);
+});
+
+// ── Defeito 3: instabilidade do toolUseId ───────────────────────────────────
+
+test("OpenAI -> Kiro toolUseId round-trips between tool_use and tool_result in 2-turn conversation", () => {
+  // Regressão para issue #2446: conversa 2 turnos (tool_use → tool_result → follow-up)
+  const result = buildKiroPayload(
+    "claude-sonnet-4",
+    {
+      messages: [
+        { role: "user", content: "Create a folder on the desktop" },
+        {
+          role: "assistant",
+          content: [
+            {
+              type: "tool_use",
+              id: "toolu_01abc",
+              name: "bash",
+              input: { cmd: "mkdir ~/Desktop/new_folder" },
+            },
+          ],
+        },
+        {
+          role: "user",
+          content: [
+            {
+              type: "tool_result",
+              tool_use_id: "toolu_01abc",
+              is_error: false,
+              content: [{ type: "text", text: "" }],
+            },
+          ],
+        },
+        { role: "user", content: "Done! What next?" },
+      ],
+    },
+    false,
+    null
+  );
+
+  const historyAssistant = (result.conversationState.history as any[]).find(
+    (h) => h.assistantResponseMessage?.toolUses
+  );
+  assert.ok(historyAssistant, "assistant turn with toolUses must be in history");
+  const toolUse = historyAssistant.assistantResponseMessage.toolUses[0];
+  assert.equal(toolUse.toolUseId, "toolu_01abc", "toolUseId must be preserved from tool_use.id");
+
+  const ctx = result.conversationState.currentMessage.userInputMessage.userInputMessageContext as {
+    toolResults?: Array<{ toolUseId: string; status: string }>;
+  };
+  assert.ok(ctx?.toolResults, "toolResults must be present in currentMessage context");
+  const tr = ctx.toolResults!.find((r) => r.toolUseId === "toolu_01abc");
+  assert.ok(tr, "toolResult must reference the same toolUseId 'toolu_01abc'");
+  assert.equal(tr!.status, "success");
+});
+
+test("OpenAI -> Kiro generates stable non-random toolUseId when tool_call has no id", () => {
+  const makePayload = () =>
+    buildKiroPayload(
+      "claude-sonnet-4",
+      {
+        messages: [
+          { role: "user", content: "Start" },
+          {
+            role: "assistant",
+            tool_calls: [
+              {
+                type: "function",
+                function: { name: "read_file", arguments: '{"path":"/tmp/x"}' },
+              },
+            ],
+          },
+          { role: "user", content: "Continue" },
+        ],
+      },
+      false,
+      null
+    );
+
+  const id1 = (makePayload().conversationState.history as any[]).find(
+    (h) => h.assistantResponseMessage?.toolUses
+  )?.assistantResponseMessage?.toolUses?.[0]?.toolUseId;
+
+  const id2 = (makePayload().conversationState.history as any[]).find(
+    (h) => h.assistantResponseMessage?.toolUses
+  )?.assistantResponseMessage?.toolUses?.[0]?.toolUseId;
+
+  assert.ok(id1, "toolUseId must be set even when id is absent");
+  assert.equal(id1, id2, "toolUseId must be deterministic (same input → same id)");
+});
+
+// Regression for #2446: an OpenAI-style `role:"tool"` message carrying NON-string
+// (structured / array) content must not collapse to `content:[{ text: "" }]` —
+// CodeWhisperer rejects an empty toolResult with 400 "Improperly formed request".
+test("OpenAI -> Kiro serializes non-string role:tool content to non-empty text (#2446)", () => {
+  const result = buildKiroPayload(
+    "claude-sonnet-4",
+    {
+      messages: [
+        { role: "user", content: "list the files" },
+        {
+          role: "assistant",
+          tool_calls: [
+            {
+              id: "call_mem",
+              type: "function",
+              function: { name: "read_memory", arguments: "{}" },
+            },
+          ],
+        },
+        {
+          role: "tool",
+          tool_call_id: "call_mem",
+          content: [
+            { type: "text", text: "entry A" },
+            { type: "text", text: "entry B" },
+          ],
+        },
+        { role: "user", content: "thanks" },
+      ],
+    },
+    true,
+    null
+  );
+
+  const cs = result.conversationState as any;
+  const contexts = [
+    cs.currentMessage?.userInputMessage?.userInputMessageContext,
+    ...(cs.history as any[]).map((h) => h.userInputMessage?.userInputMessageContext),
+  ];
+  const toolResults = contexts
+    .map((c) => c?.toolResults)
+    .find((tr) => Array.isArray(tr) && tr.some((r: any) => r.toolUseId === "call_mem"));
+  assert.ok(toolResults, "tool role must produce a toolResult");
+  const result0 = toolResults.find((r: any) => r.toolUseId === "call_mem");
+  const text = result0.content[0].text as string;
+  assert.notEqual(text, "", "non-string tool content must not collapse to empty string");
+  assert.match(text, /entry A/, "serialized content preserves the structured text blocks");
+});

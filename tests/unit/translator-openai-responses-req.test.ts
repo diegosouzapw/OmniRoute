@@ -110,20 +110,39 @@ test("Responses -> Chat filters orphan tool outputs and supports role-based mess
   });
 });
 
-test("Responses -> Chat rejects unsupported built-in tools", () => {
+test("Responses -> Chat rejects unsupported built-in tools (non-web_search)", () => {
+  // file_search and code_interpreter are Responses-API-only tools with no Chat Completions
+  // equivalent and are not in the web_search family — they must still throw 400.
   assert.throws(
     () =>
       openaiResponsesToOpenAIRequest(
         "gpt-4o",
         {
           input: [],
-          tools: [{ type: "web_search_preview", name: "search" }],
+          tools: [{ type: "file_search", name: "search" }],
         },
         false,
         null
       ),
     (error: any) => error.statusCode === 400 && error.errorType === "unsupported_feature"
   );
+});
+
+test("Responses -> Chat passes through web_search_preview tool (web_search family)", () => {
+  // web_search_preview is OpenAI's Responses API server tool; it matches ^web_search and
+  // is preserved as-is rather than rejected with 400.
+  const result = openaiResponsesToOpenAIRequest(
+    "gpt-4o",
+    {
+      input: [],
+      tools: [{ type: "web_search_preview", name: "search" }],
+    },
+    false,
+    null
+  ) as Record<string, unknown>;
+
+  assert.ok(Array.isArray(result.tools), "tools array must be present");
+  assert.equal((result.tools as any[])[0].type, "web_search_preview");
 });
 
 test("Responses -> Chat strips background flag and degrades to synchronous execution", () => {
@@ -195,6 +214,23 @@ test("Responses -> Chat passes through when background flag is unset or false (n
   } finally {
     console.warn = originalWarn;
   }
+});
+
+test("Responses -> Chat strips safety_identifier (LobeHub #2770)", () => {
+  // LobeHub sends safety_identifier in Responses API bodies. Chat Completions rejects it
+  // with HTTP 400. The translator must strip it in the Responses-API cleanup block.
+  const result = openaiResponsesToOpenAIRequest(
+    "gpt-4o",
+    {
+      input: [{ role: "user", content: [{ type: "input_text", text: "hi" }] }],
+      safety_identifier: "sid-xyz",
+    },
+    false,
+    null
+  ) as Record<string, unknown>;
+
+  assert.equal(result.safety_identifier, undefined, "safety_identifier must be stripped before forwarding to Chat Completions");
+  assert.ok(Array.isArray(result.messages), "translation must still produce messages");
 });
 
 test("Chat -> Responses converts messages, tool calls, tool outputs, tools and pass-through params", () => {
@@ -499,4 +535,347 @@ test("Chat -> Responses prefers max_completion_tokens over max_tokens when both 
   (assert as any).equal((result as any).max_output_tokens, 4096);
   assert.equal((result as any).max_tokens, undefined);
   assert.equal((result as any).max_completion_tokens, undefined);
+});
+
+test("Responses -> Chat drops `reasoning` and does not synthesize reasoning_effort without Copilot marker", () => {
+  const result = openaiResponsesToOpenAIRequest(
+    "claude-opus-4-7",
+    {
+      input: [{ role: "user", content: [{ type: "input_text", text: "hi" }] }],
+      reasoning: { effort: "high" },
+    },
+    true,
+    null
+  ) as Record<string, unknown>;
+
+  assert.equal(result.reasoning, undefined);
+  assert.equal(result.reasoning_effort, undefined);
+});
+
+test("Responses -> Chat promotes reasoning.effort to reasoning_effort when _copilotClient is set", () => {
+  const result = openaiResponsesToOpenAIRequest(
+    "claude-opus-4-7",
+    {
+      input: [{ role: "user", content: [{ type: "input_text", text: "hi" }] }],
+      reasoning: { effort: "high" },
+    },
+    true,
+    { _copilotClient: true }
+  ) as Record<string, unknown>;
+
+  assert.equal(result.reasoning, undefined);
+  assert.equal(result.reasoning_effort, "high");
+});
+
+test("Responses -> Chat normalizes Copilot reasoning.effort=max to xhigh", () => {
+  const result = openaiResponsesToOpenAIRequest(
+    "claude-opus-4-7",
+    {
+      input: [{ role: "user", content: [{ type: "input_text", text: "hi" }] }],
+      reasoning: { effort: "max" },
+    },
+    true,
+    { _copilotClient: true }
+  ) as Record<string, unknown>;
+
+  assert.equal(result.reasoning_effort, "xhigh");
+});
+
+test("Responses -> Chat keeps an explicit reasoning_effort over reasoning.effort when _copilotClient is set", () => {
+  const result = openaiResponsesToOpenAIRequest(
+    "claude-opus-4-7",
+    {
+      input: [{ role: "user", content: [{ type: "input_text", text: "hi" }] }],
+      reasoning: { effort: "low" },
+      reasoning_effort: "high",
+    },
+    true,
+    { _copilotClient: true }
+  ) as Record<string, unknown>;
+
+  assert.equal(result.reasoning_effort, "high");
+});
+
+test("Responses -> Chat ignores Copilot marker when reasoning field is absent", () => {
+  const result = openaiResponsesToOpenAIRequest(
+    "claude-opus-4-7",
+    { input: [{ role: "user", content: [{ type: "input_text", text: "hi" }] }] },
+    true,
+    { _copilotClient: true }
+  ) as Record<string, unknown>;
+
+  assert.equal(result.reasoning_effort, undefined);
+});
+
+// --- Issue #2695: web_search tool types (Anthropic versioned names) ---
+
+test("Responses -> Chat: web_search_20250305 tool does not throw (issue #2695)", () => {
+  // Claude Code sends the Anthropic versioned tool name; must NOT reject with 400.
+  assert.doesNotThrow(() =>
+    openaiResponsesToOpenAIRequest(
+      "gpt-4o",
+      {
+        input: [{ role: "user", content: [{ type: "input_text", text: "search" }] }],
+        tools: [{ type: "web_search_20250305" }],
+      },
+      false,
+      null
+    )
+  );
+});
+
+test("Responses -> Chat: web_search_20250305 tool is preserved in output tools array", () => {
+  const result = openaiResponsesToOpenAIRequest(
+    "gpt-4o",
+    {
+      input: [{ role: "user", content: [{ type: "input_text", text: "search" }] }],
+      tools: [{ type: "web_search_20250305" }],
+    },
+    false,
+    null
+  ) as Record<string, unknown>;
+
+  const tools = result.tools as any[];
+  assert.ok(Array.isArray(tools), "tools array must be present");
+  assert.equal(tools.length, 1, "one tool must be present");
+  // Original versioned name is preserved so Anthropic-compatible upstreams receive what they expect.
+  assert.equal(tools[0].type, "web_search_20250305");
+});
+
+test("Responses -> Chat: plain web_search tool does not throw", () => {
+  assert.doesNotThrow(() =>
+    openaiResponsesToOpenAIRequest(
+      "gpt-4o",
+      {
+        input: [{ role: "user", content: [{ type: "input_text", text: "search" }] }],
+        tools: [{ type: "web_search" }],
+      },
+      false,
+      null
+    )
+  );
+});
+
+test("Responses -> Chat: function tool still translates correctly (no regression)", () => {
+  const result = openaiResponsesToOpenAIRequest(
+    "gpt-4o",
+    {
+      input: [{ role: "user", content: [{ type: "input_text", text: "hello" }] }],
+      tools: [
+        {
+          type: "function",
+          name: "my_func",
+          description: "does stuff",
+          parameters: { type: "object" },
+        },
+      ],
+    },
+    false,
+    null
+  ) as Record<string, unknown>;
+
+  const tools = result.tools as any[];
+  assert.ok(Array.isArray(tools), "tools array must be present");
+  assert.equal(tools[0].type, "function");
+  assert.ok(tools[0].function, "function tool must have .function property");
+  assert.equal(tools[0].function.name, "my_func");
+});
+
+test("Responses -> Chat: unknown tool type still throws unsupported_feature (no regression)", () => {
+  assert.throws(
+    () =>
+      openaiResponsesToOpenAIRequest(
+        "gpt-4o",
+        {
+          input: [],
+          tools: [{ type: "unknown_tool_xyz" }],
+        },
+        false,
+        null
+      ),
+    (error: any) => error.statusCode === 400 && error.errorType === "unsupported_feature"
+  );
+});
+
+// --- Issue #2766: tool_search built-in should be silently dropped ---
+
+test("Responses -> Chat: tool_search does not throw (issue #2766)", () => {
+  // Codex newer clients send tool_search as a Responses API built-in.
+  // OmniRoute must not return 400 — it should silently drop the tool_search entry.
+  assert.doesNotThrow(() =>
+    openaiResponsesToOpenAIRequest(
+      "gpt-4o",
+      {
+        input: [{ role: "user", content: [{ type: "input_text", text: "search" }] }],
+        tools: [{ type: "tool_search", name: "search" }],
+      },
+      false,
+      null
+    )
+  );
+});
+
+test("Responses -> Chat: tool_search is stripped from output tools array (issue #2766)", () => {
+  // Codex clients send tool_search alongside function tools. tool_search has no
+  // Chat Completions equivalent and must be dropped; function tools must remain.
+  const result = openaiResponsesToOpenAIRequest(
+    "gpt-4o",
+    {
+      input: [{ role: "user", content: [{ type: "input_text", text: "hello" }] }],
+      tools: [
+        { type: "tool_search", name: "search" },
+        {
+          type: "function",
+          name: "foo",
+          description: "A function",
+          parameters: { type: "object" },
+        },
+      ],
+    },
+    false,
+    null
+  ) as Record<string, unknown>;
+
+  const tools = result.tools as any[];
+  assert.ok(Array.isArray(tools), "tools array must be present");
+  assert.equal(
+    tools.some((t) => t.type === "tool_search"),
+    false,
+    "tool_search must be stripped from output"
+  );
+  assert.equal(tools.length, 1, "only the function tool must remain");
+  assert.equal(tools[0].type, "function");
+  assert.equal(tools[0].function.name, "foo");
+});
+
+// --- Issue #2950: image_generation built-in should be silently dropped ---
+
+test("Responses -> Chat: image_generation does not throw (issue #2950)", () => {
+  // Codex Desktop injects an image_generation hosted tool into every Responses
+  // request, even text-only ones. It has no Chat Completions equivalent and must
+  // be dropped silently, not rejected with 400.
+  assert.doesNotThrow(() =>
+    openaiResponsesToOpenAIRequest(
+      "gpt-4o",
+      {
+        input: [{ role: "user", content: [{ type: "input_text", text: "hi" }] }],
+        tools: [{ type: "image_generation", output_format: "png" }],
+      },
+      false,
+      null
+    )
+  );
+});
+
+test("Responses -> Chat: image_generation is stripped from output tools array (issue #2950)", () => {
+  const result = openaiResponsesToOpenAIRequest(
+    "gpt-4o",
+    {
+      input: [{ role: "user", content: [{ type: "input_text", text: "hello" }] }],
+      tools: [
+        { type: "image_generation", output_format: "png" },
+        {
+          type: "function",
+          name: "foo",
+          description: "A function",
+          parameters: { type: "object" },
+        },
+      ],
+    },
+    false,
+    null
+  ) as Record<string, unknown>;
+
+  const tools = result.tools as any[];
+  assert.ok(Array.isArray(tools), "tools array must be present");
+  assert.equal(
+    tools.some((t) => t.type === "image_generation"),
+    false,
+    "image_generation must be stripped from output"
+  );
+  assert.equal(tools.length, 1, "only the function tool must remain");
+  assert.equal(tools[0].type, "function");
+  assert.equal(tools[0].function.name, "foo");
+});
+
+// --- Issue #2893: orphaned tool results from empty/missing call_id ---
+
+test("Responses -> Chat: function_call with empty call_id is dropped together with its output (issue #2893)", () => {
+  // Codex can emit a function_call without a usable call_id; its
+  // function_call_output then becomes an orphan tool message that the upstream
+  // rejects ("role 'tool' must be a response to a preceding message with
+  // 'tool_calls'"). Both must be dropped.
+  const result = openaiResponsesToOpenAIRequest(
+    "gpt-4o",
+    {
+      input: [
+        { type: "message", role: "user", content: [{ type: "input_text", text: "hi" }] },
+        { type: "function_call", name: "read", call_id: "", arguments: "{}" },
+        { type: "function_call_output", call_id: "", output: "result" },
+      ],
+    },
+    false,
+    null
+  ) as Record<string, unknown>;
+
+  const messages = result.messages as any[];
+  // No orphan tool message.
+  assert.equal(
+    messages.some((m) => m.role === "tool"),
+    false,
+    "tool result with empty tool_call_id must be dropped"
+  );
+  // No dangling assistant tool_call with an empty id.
+  const danglingEmptyId = messages.some(
+    (m) =>
+      m.role === "assistant" &&
+      Array.isArray(m.tool_calls) &&
+      m.tool_calls.some((tc: any) => !tc.id)
+  );
+  assert.equal(danglingEmptyId, false, "assistant tool_call with empty id must be dropped");
+});
+
+test("Responses -> Chat: function_call with empty name leaves no orphan tool output (issue #2893)", () => {
+  const result = openaiResponsesToOpenAIRequest(
+    "gpt-4o",
+    {
+      input: [
+        { type: "function_call", name: "", call_id: "c-orphan", arguments: "{}" },
+        { type: "function_call_output", call_id: "c-orphan", output: "result" },
+      ],
+    },
+    false,
+    null
+  ) as Record<string, unknown>;
+
+  const messages = result.messages as any[];
+  assert.equal(
+    messages.some((m) => m.role === "tool"),
+    false,
+    "an output whose function_call was skipped (empty name) must not survive as an orphan"
+  );
+});
+
+test("Responses -> Chat: a valid function_call/output pair is preserved (issue #2893 regression)", () => {
+  const result = openaiResponsesToOpenAIRequest(
+    "gpt-4o",
+    {
+      input: [
+        { type: "function_call", name: "read", call_id: "c1", arguments: "{}" },
+        { type: "function_call_output", call_id: "c1", output: "result" },
+      ],
+    },
+    false,
+    null
+  ) as Record<string, unknown>;
+
+  const messages = result.messages as any[];
+  const assistant = messages.find(
+    (m) => m.role === "assistant" && Array.isArray(m.tool_calls)
+  );
+  assert.ok(assistant, "assistant message with tool_calls must be present");
+  assert.equal(assistant.tool_calls[0].id, "c1");
+  const toolMsg = messages.find((m) => m.role === "tool");
+  assert.ok(toolMsg, "matching tool result must be preserved");
+  assert.equal(toolMsg.tool_call_id, "c1");
 });

@@ -1,12 +1,17 @@
 import {
   BaseExecutor,
   mergeUpstreamExtraHeaders,
+  setUserAgentHeader,
   type ExecuteInput,
   type ProviderCredentials,
 } from "./base.ts";
 import { PROVIDERS } from "../config/constants.ts";
-import { getQoderDashscopeCompatHeaders } from "../config/providerHeaderProfiles.ts";
+import {
+  getQoderDashscopeCompatHeaders,
+  QODER_DEFAULT_USER_AGENT,
+} from "../config/providerHeaderProfiles.ts";
 import { sanitizeQwenThinkingToolChoice } from "../services/qwenThinking.ts";
+import { buildCosyHeadersForValidation } from "../services/qoderCli.ts";
 
 function getAuthToken(credentials: ProviderCredentials): string {
   if (typeof credentials.apiKey === "string" && credentials.apiKey.trim()) {
@@ -27,6 +32,17 @@ function getAuthToken(credentials: ProviderCredentials): string {
 export class QoderExecutor extends BaseExecutor {
   constructor() {
     super("qoder", PROVIDERS.qoder);
+  }
+
+  buildHeaders(
+    credentials: ProviderCredentials,
+    stream = true,
+    clientHeaders?: Record<string, string> | null,
+    model?: string
+  ): Record<string, string> {
+    const headers = super.buildHeaders(credentials, stream, clientHeaders, model);
+    setUserAgentHeader(headers, QODER_DEFAULT_USER_AGENT);
+    return headers;
   }
 
   transformRequest(model: string, body: unknown): Record<string, unknown> {
@@ -61,20 +77,24 @@ export class QoderExecutor extends BaseExecutor {
 
     const resolvedModel = model || "qwen3-coder-plus";
 
-    // Check if it's a model-alias matching QwenCode
+    // Detect token type: PAT (Personal Access Token) starts with "pt-"
+    const isPatToken = token.startsWith("pt-");
+
     let mappedModel = resolvedModel;
-    if (resolvedModel === "qwen3.5-plus" || resolvedModel === "qwen3.6-plus") {
-      mappedModel = "coder-model"; // Translate alias to what DashScope compatible endpoint accepts via QwenCode tokens
-    } else if (resolvedModel === "vision-model") {
-      mappedModel = "qwen3-vl-plus";
+    let endpointUrl: string;
+
+    if (isPatToken) {
+      endpointUrl = "https://api.qoder.com/v1/chat/completions";
+    } else {
+      if (resolvedModel === "qwen3.5-plus" || resolvedModel === "qwen3.6-plus") {
+        mappedModel = "coder-model";
+      } else if (resolvedModel === "vision-model") {
+        mappedModel = "qwen3-vl-plus";
+      }
+      endpointUrl = "https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions";
     }
 
-    // Determine the resource URL: Qwen CLI tokens usually target portal.qwen.ai natively,
-    // but the DashScope compatible endpoint works out of the box when authtype is set.
-    // If the token was mapped to a custom `resource_url`, we should use it. Otherwise default to dashscope Aliyun.
-    let endpointUrl = "https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions";
-
-    // We allow setting custom API base via credentials
+    // Check for custom API base via credentials (overrides the default)
     let credentialsApiBase: unknown;
     if (typeof credentials === "object" && credentials !== null) {
       const credsObj = credentials as Record<string, unknown>;
@@ -90,7 +110,7 @@ export class QoderExecutor extends BaseExecutor {
     const headers: Record<string, string> = {
       "Content-Type": "application/json",
       Authorization: `Bearer ${token}`,
-      ...getQoderDashscopeCompatHeaders(),
+      ...(isPatToken ? {} : getQoderDashscopeCompatHeaders()),
     };
 
     mergeUpstreamExtraHeaders(headers, upstreamExtraHeaders);
@@ -100,14 +120,77 @@ export class QoderExecutor extends BaseExecutor {
     const bodyStr = JSON.stringify(payload);
 
     try {
-      const response = await fetch(endpointUrl, {
+      let response = await fetch(endpointUrl, {
         method: "POST",
         headers,
         body: bodyStr,
         signal,
       });
 
-      const newHeaders = new Headers(response.headers);
+      // PAT tokens (pt-*) are not accepted as Bearer tokens by api.qoder.com/v1/chat/completions.
+      // They return 401 TOKEN_INVALID. Fallback to Cosy auth against api1.qoder.sh.
+      if (!response.ok && response.status === 401 && isPatToken) {
+        const cosyHeaders = buildCosyHeadersForValidation(bodyStr, token);
+        const cosyEndpoint =
+          "https://api1.qoder.sh/algo/api/v2/service/pro/sse/agent_chat_generation?AgentId=agent_common";
+        const cosyRes = await fetch(cosyEndpoint, {
+          method: "POST",
+          headers: cosyHeaders,
+          body: bodyStr,
+          signal,
+        });
+
+        if (cosyRes.ok || cosyRes.status === 200) {
+          // Cosy SSE response - read full body and parse
+          const rawText = await cosyRes.text();
+          const lines = rawText.split("\n").filter((l) => l.startsWith("data: "));
+          let fullContent = "";
+          for (const line of lines) {
+            try {
+              const jsonData = JSON.parse(line.slice(6));
+              const { extractTextFromQoderEnvelope } = await import("../services/qoderCli.ts");
+              const chunkText = extractTextFromQoderEnvelope(jsonData);
+              if (chunkText) fullContent += chunkText;
+            } catch {
+              // skip unparseable chunks
+            }
+          }
+          const { buildQoderCompletionPayload } = await import("../services/qoderCli.ts");
+          const cosyPayload = buildQoderCompletionPayload({
+            model: mappedModel || resolvedModel,
+            text: fullContent,
+          });
+          return {
+            response: new Response(JSON.stringify(cosyPayload), {
+              status: 200,
+              headers: { "Content-Type": "application/json" },
+            }),
+            url: cosyEndpoint,
+            headers: cosyHeaders,
+            transformedBody: payload,
+          };
+        }
+
+        // Cosy also failed - return the original 401 error
+        let errText = await cosyRes.text();
+        return {
+          response: new Response(
+            JSON.stringify({
+              error: {
+                message:
+                  `Qoder API (Cosy) failed with status ${cosyRes.status}: ${errText}. Your PAT token may not be valid for the chat API.` +
+                  " Try using an OAuth token or a different auth method.",
+                type: "authentication_error",
+                code: "token_invalid",
+              },
+            }),
+            { status: 401, headers: { "Content-Type": "application/json" } }
+          ),
+          url: cosyEndpoint,
+          headers: cosyHeaders,
+          transformedBody: payload,
+        };
+      }
 
       if (!response.ok) {
         let errText = await response.text();
@@ -127,6 +210,7 @@ export class QoderExecutor extends BaseExecutor {
         };
       }
 
+      const newHeaders = new Headers(response.headers);
       return {
         response: new Response(response.body, {
           status: response.status,

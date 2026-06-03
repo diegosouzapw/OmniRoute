@@ -52,11 +52,29 @@ function insertMemoryRow({
   ).run(id, apiKeyId, sessionId, type, key, content, metadata, createdAt, updatedAt, expiresAt);
 }
 
+/**
+ * Drain pending setImmediate callbacks scheduled by store.createMemory/updateMemory
+ * (which fire-and-forget the vector upsert). Without this, the test runner may end
+ * before the async tasks resolve, causing "asynchronous activity after test ended"
+ * errors when the upsert later tries to touch the DB we already tore down.
+ */
+async function drainSetImmediate(rounds = 3): Promise<void> {
+  for (let i = 0; i < rounds; i++) {
+    await new Promise((resolve) => setImmediate(resolve));
+  }
+}
+
 test.beforeEach(async () => {
   await resetStorage();
 });
 
+test.afterEach(async () => {
+  // Allow vector upsert fire-and-forget to settle before the next test resets DATA_DIR.
+  await drainSetImmediate();
+});
+
 test.after(async () => {
+  await drainSetImmediate();
   core.resetDbInstance();
   fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
 });
@@ -349,4 +367,15 @@ test("listMemories page parameter defaults to page 1 when omitted with limit", a
     ["pg-2"]
   );
   assert.equal(defaultPage.total, 2);
+});
+
+test("getMemoryTokensUsed sums estimated tokens, optionally scoped to an api key", async () => {
+  // Token estimate is floor((LENGTH(content) + 3) / 4) per row (SQLite integer math).
+  insertMemoryRow({ id: "tok-1", apiKeyId: "key-a", content: "aaaa" }); // (4+3)/4 = 1
+  insertMemoryRow({ id: "tok-2", apiKeyId: "key-b", content: "aaaaaaaa" }); // (8+3)/4 = 2
+
+  assert.equal(store.getMemoryTokensUsed("key-a"), 1);
+  assert.equal(store.getMemoryTokensUsed("key-b"), 2);
+  assert.equal(store.getMemoryTokensUsed(), 3); // all memories
+  assert.equal(store.getMemoryTokensUsed("missing-key"), 0);
 });

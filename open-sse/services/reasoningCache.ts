@@ -74,10 +74,29 @@ export function requiresReasoningReplay(params: {
   model: string;
   thinkingEnabled?: boolean;
   supportsReasoning?: boolean;
+  interleavedField?: string | null;
+  allowLegacyFallback?: boolean;
 }): boolean {
-  if (isDeepSeekReasoningModel(params)) return true;
   const normalizedProvider = params.provider.trim().toLowerCase();
   const normalizedModel = params.model.trim();
+  const normalizedInterleavedField =
+    typeof params.interleavedField === "string" ? params.interleavedField.trim().toLowerCase() : "";
+
+  // Explicit model signal from models.dev (preferred source of truth).
+  if (normalizedInterleavedField === "reasoning_content") return true;
+  if (normalizedInterleavedField === "reasoning_details") return false;
+
+  // DeepSeek legacy reasoner family has an inverse contract: do not replay.
+  if (/deepseek-reasoner/i.test(normalizedModel) || /deepseek-r1/i.test(normalizedModel)) {
+    return false;
+  }
+
+  // Explicit known contract: DeepSeek V4 thinking with tool calls requires replay.
+  if (isDeepSeekReasoningModel(params)) return true;
+
+  const useLegacyFallback = params.allowLegacyFallback !== false;
+  if (!useLegacyFallback) return false;
+
   if (REASONING_REPLAY_PROVIDERS.has(normalizedProvider)) return true;
   return REASONING_REPLAY_MODEL_PATTERNS.some((p) => p.test(normalizedModel));
 }
@@ -109,7 +128,8 @@ type ToolCallLike = {
 };
 
 const memoryCache = new Map<string, MemoryCacheEntry>();
-const MAX_MEMORY_ENTRIES = 2000;
+const MAX_MEMORY_ENTRIES = 200;
+const MAX_ENTRY_BYTES = 10000;
 const TTL_MS = 2 * 60 * 60 * 1000; // 2 hours
 
 // ──────────────── Counters ────────────────
@@ -167,6 +187,10 @@ export function cacheReasoningByKey(
   reasoning: string
 ): void {
   if (!key || !reasoning) return;
+
+  if (reasoning.length > MAX_ENTRY_BYTES) {
+    reasoning = reasoning.slice(0, MAX_ENTRY_BYTES);
+  }
 
   const now = Date.now();
 
@@ -284,15 +308,19 @@ export function lookupReasoning(toolCallId: string): string | null {
   }
   if (dbResult) {
     hits++;
+    let promotedReasoning = dbResult.reasoning;
+    if (promotedReasoning.length > MAX_ENTRY_BYTES) {
+      promotedReasoning = promotedReasoning.slice(0, MAX_ENTRY_BYTES);
+    }
     // Promote back to memory for fast subsequent lookups
     memoryCache.set(toolCallId, {
-      reasoning: dbResult.reasoning,
+      reasoning: promotedReasoning,
       provider: dbResult.provider,
       model: dbResult.model,
       expiresAt: Date.now() + TTL_MS,
       createdAt: Date.now(),
     });
-    return dbResult.reasoning;
+    return promotedReasoning;
   }
 
   // 3. Miss
@@ -433,3 +461,53 @@ export function cleanupReasoningCache(): number {
     return 0;
   }
 }
+
+// ──────────────── Auto-start periodic cleanup ────────────────
+//
+// server-init.ts was supposed to start the cleanup job, but that module is
+// never imported anywhere (it is stranded/dead code).  As a result, the
+// reasoning_cache SQLite table accumulates expired entries indefinitely.
+//
+// Fix: start the periodic cleanup directly from this module so it runs
+// regardless of how the server boots.  On first import we run one
+// immediate sweep, then schedule a 30-minute interval.
+//
+// See: src/lib/jobs/reasoningCacheCleanupJob.ts (the original job module,
+// which also remains valid if server-init.ts ever gets wired in).
+
+const DEFAULT_CLEANUP_INTERVAL_MS = 30 * 60 * 1000; // 30 min
+
+function getCleanupIntervalMs(): number {
+  const raw = process.env.OMNIROUTE_REASONING_CACHE_CLEANUP_INTERVAL_MS;
+  const parsed = raw ? Number(raw) : Number.NaN;
+  return Number.isFinite(parsed) && parsed >= 60_000 ? parsed : DEFAULT_CLEANUP_INTERVAL_MS;
+}
+
+function startAutoCleanup(): void {
+  // Run once immediately on boot
+  try {
+    const deleted = cleanupReasoningCache();
+    if (deleted > 0) {
+      console.log(`[ReasoningCache] boot cleanup removed ${deleted} expired entries`);
+    }
+  } catch (error) {
+    console.error("[ReasoningCache] boot cleanup failed:", error);
+  }
+
+  // Schedule periodic cleanup
+  const timer = setInterval(() => {
+    try {
+      const deleted = cleanupReasoningCache();
+      if (deleted > 0) {
+        console.log(`[ReasoningCache] periodic cleanup removed ${deleted} expired entries`);
+      }
+    } catch (error) {
+      console.error("[ReasoningCache] periodic cleanup failed:", error);
+    }
+  }, getCleanupIntervalMs());
+
+  timer.unref?.();
+}
+
+// Start on module load — every consumer of reasoning cache benefits.
+startAutoCleanup();

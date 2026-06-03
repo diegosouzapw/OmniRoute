@@ -1,7 +1,7 @@
 import { register } from "../registry.ts";
 import { FORMATS } from "../formats.ts";
 // CLAUDE_SYSTEM_PROMPT import removed — no longer injected unconditionally (#1966/#2130)
-import { supportsXHighEffort } from "../../config/providerModels.ts";
+import { supportsClaudeMaxEffort, supportsXHighEffort } from "../../config/providerModels.ts";
 import { adjustMaxTokens } from "../helpers/maxTokensHelper.ts";
 import { sanitizeToolId } from "../helpers/schemaCoercion.ts";
 import { DEFAULT_THINKING_CLAUDE_SIGNATURE } from "../../config/defaultThinkingSignature.ts";
@@ -11,6 +11,24 @@ import { capMaxOutputTokens } from "../../../src/lib/modelCapabilities.ts";
 // Can be disabled per-request via body._disableToolPrefix = true
 export const CLAUDE_OAUTH_TOOL_PREFIX = "proxy_";
 const CLAUDE_TOOL_CHOICE_REQUIRED = "an" + "y";
+const COPILOT_REASONING_SUMMARY_MARKER = "_omnirouteCopilotReasoningSummary";
+
+function wantsCopilotSummarizedThinking(body: Record<string, unknown> | null | undefined): boolean {
+  return body?.[COPILOT_REASONING_SUMMARY_MARKER] === "summarized";
+}
+
+function applyCopilotSummarizedThinkingDisplay(
+  thinking: Record<string, unknown> | undefined,
+  body: Record<string, unknown> | null | undefined
+): Record<string, unknown> | undefined {
+  if (!thinking || !wantsCopilotSummarizedThinking(body) || thinking.type === "disabled") {
+    return thinking;
+  }
+  return {
+    ...thinking,
+    display: "summarized",
+  };
+}
 
 // Anthropic constraints for the thinking + max_tokens contract:
 //   - thinking.budget_tokens must be >= 1024 when thinking is enabled
@@ -206,16 +224,20 @@ export function openaiToClaudeRequest(model, body, stream) {
 
   if (body.messages && Array.isArray(body.messages)) {
     // Extract system messages (T15: handle both string and array content)
+    // Also treat "developer" role as system — OpenAI Responses API uses developer role
+    // for system-level instructions, and it must reach the Claude system field, not become an assistant turn.
     for (const msg of body.messages) {
-      if (msg.role === "system") {
+      if (msg.role === "system" || msg.role === "developer") {
         systemParts.push(
           typeof msg.content === "string" ? msg.content : normalizeContentToString(msg.content)
         );
       }
     }
 
-    // Filter out system messages for separate processing
-    const nonSystemMessages = body.messages.filter((m) => m.role !== "system");
+    // Filter out system/developer messages for separate processing
+    const nonSystemMessages = body.messages.filter(
+      (m) => m.role !== "system" && m.role !== "developer"
+    );
 
     // Process messages with merging logic
     // CRITICAL: tool_result must be in separate message immediately after tool_use
@@ -431,16 +453,18 @@ export function openaiToClaudeRequest(model, body, stream) {
     // Clients like OpenCode send reasoning_effort via @ai-sdk/openai-compatible
     const requestedEffort = String(body.reasoning_effort).toLowerCase();
     const normalizedEffort =
-      requestedEffort === "xhigh" && !supportsXHighEffort("claude", model)
+      requestedEffort === "max" && !supportsClaudeMaxEffort(model)
         ? "high"
-        : requestedEffort;
-    if (normalizedEffort === "xhigh") {
+        : requestedEffort === "xhigh" && !supportsXHighEffort("claude", model)
+          ? "high"
+          : requestedEffort;
+    if (normalizedEffort === "max" || normalizedEffort === "xhigh") {
       result.thinking = {
         type: "adaptive",
       };
       result.output_config = {
         ...(result.output_config || {}),
-        effort: "xhigh",
+        effort: normalizedEffort,
       };
     } else {
       const effortBudgetMap: Record<string, number> = {
@@ -469,8 +493,10 @@ export function openaiToClaudeRequest(model, body, stream) {
   if (fitted.thinking === undefined) {
     delete result.thinking;
   } else {
-    result.thinking = fitted.thinking;
+    result.thinking = applyCopilotSummarizedThinkingDisplay(fitted.thinking, body);
   }
+
+  delete result[COPILOT_REASONING_SUMMARY_MARKER];
 
   // Attach toolNameMap to result for response translation
   if (toolNameMap.size > 0) {

@@ -1,30 +1,33 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import Link from "next/link";
 import { Button, Card, Toggle } from "@/shared/components";
 import { useTheme } from "@/shared/hooks/useTheme";
 import useThemeStore, { COLOR_THEMES } from "@/store/themeStore";
 import { cn } from "@/shared/utils/cn";
 import { useTranslations } from "next-intl";
+import { useIsElectron } from "@/shared/hooks/useElectron";
 import {
   COMBO_CONFIG_MODE_SETTING_KEY,
   normalizeComboConfigMode,
   type ComboConfigMode,
 } from "@/shared/constants/comboConfigMode";
-import {
-  HIDDEN_SIDEBAR_ITEMS_SETTING_KEY,
-  SIDEBAR_SECTIONS,
-  SIDEBAR_SETTINGS_UPDATED_EVENT,
-  getSectionItems,
-  normalizeHiddenSidebarItems,
-  type HideableSidebarItemId,
-} from "@/shared/constants/sidebarVisibility";
+import { PIN_PROVIDER_QUOTA_TO_HOME_KEY } from "@/shared/constants/homeWidgets";
 
 export default function AppearanceTab() {
   const { theme, setTheme, isDark } = useTheme();
   const { colorTheme, customColor, setColorTheme, setCustomColorTheme } = useThemeStore();
   const t = useTranslations("settings");
-  const tSidebar = useTranslations("sidebar");
+
+  const isElectron = useIsElectron();
+  const [autostartEnabled, setAutostartEnabled] = useState(false);
+
+  useEffect(() => {
+    if (isElectron && window.electronAPI) {
+      window.electronAPI.getAutostartStatus().then(setAutostartEnabled).catch(console.error);
+    }
+  }, [isElectron]);
   const [settings, setSettings] = useState<Record<string, any>>({});
   const [loading, setLoading] = useState(true);
   const [uploadError, setUploadError] = useState<string | null>(null);
@@ -32,10 +35,13 @@ export default function AppearanceTab() {
   const isValidHex = /^#([0-9a-fA-F]{6})$/.test(
     customThemeColor.startsWith("#") ? customThemeColor : `#${customThemeColor}`
   );
-  const hiddenSidebarItems = normalizeHiddenSidebarItems(
-    settings[HIDDEN_SIDEBAR_ITEMS_SETTING_KEY]
-  );
-  const hiddenSidebarSet = new Set(hiddenSidebarItems);
+  const pinProviderQuotaToHome = settings.pinProviderQuotaToHome === true;
+  const showQuickStartOnHome = settings.showQuickStartOnHome !== false;
+  const showProviderTopologyOnHome = settings.showProviderTopologyOnHome !== false;
+  const autoRefreshProviderQuota = settings.autoRefreshProviderQuota === true;
+  const autoRefreshProviderQuotaInterval = Number.isFinite(settings.autoRefreshProviderQuotaInterval)
+    ? Number(settings.autoRefreshProviderQuotaInterval)
+    : 180;
   const comboConfigMode = normalizeComboConfigMode(settings[COMBO_CONFIG_MODE_SETTING_KEY]);
   const showCloudflaredTunnel = settings.hideEndpointCloudflaredTunnel !== true;
   const showTailscaleFunnel = settings.hideEndpointTailscaleFunnel !== true;
@@ -43,8 +49,6 @@ export default function AppearanceTab() {
 
   const getSettingsLabel = (key: string, fallback: string) =>
     typeof t.has === "function" && t.has(key) ? t(key) : fallback;
-  const getSidebarLabel = (key: string, fallback: string) =>
-    typeof tSidebar.has === "function" && tSidebar.has(key) ? tSidebar(key) : fallback;
 
   useEffect(() => {
     const unsubscribe = useThemeStore.subscribe((state) => {
@@ -70,12 +74,7 @@ export default function AppearanceTab() {
         return res.json();
       })
       .then((data) => {
-        setSettings({
-          ...data,
-          [HIDDEN_SIDEBAR_ITEMS_SETTING_KEY]: normalizeHiddenSidebarItems(
-            data[HIDDEN_SIDEBAR_ITEMS_SETTING_KEY]
-          ),
-        });
+        setSettings(data);
         setLoading(false);
       })
       .catch(() => setLoading(false));
@@ -89,18 +88,7 @@ export default function AppearanceTab() {
         body: JSON.stringify({ [key]: value }),
       });
       if (res.ok) {
-        setSettings((prev) => ({
-          ...prev,
-          [key]:
-            key === HIDDEN_SIDEBAR_ITEMS_SETTING_KEY ? normalizeHiddenSidebarItems(value) : value,
-        }));
-        if (typeof window !== "undefined") {
-          window.dispatchEvent(
-            new CustomEvent(SIDEBAR_SETTINGS_UPDATED_EVENT, {
-              detail: { [key]: value },
-            })
-          );
-        }
+        setSettings((prev) => ({ ...prev, [key]: value }));
       }
     } catch (err) {
       console.error("Failed to update", key, err);
@@ -143,22 +131,9 @@ export default function AppearanceTab() {
     },
   ];
 
-  const showDebug = settings.debugMode === true;
-  const sidebarSections = SIDEBAR_SECTIONS.filter(
-    (section) => section.visibility !== "debug" || showDebug
-  ).map((section) => ({
-    ...section,
-    title: getSidebarLabel(section.titleKey, section.titleFallback),
-    items: getSectionItems(section).map((item) => ({ ...item, label: tSidebar(item.i18nKey) })),
-  }));
-
-  const toggleSidebarItem = (itemId: HideableSidebarItemId) => {
-    const nextHiddenItems = hiddenSidebarSet.has(itemId)
-      ? hiddenSidebarItems.filter((id) => id !== itemId)
-      : [...hiddenSidebarItems, itemId];
-
-    updateSetting(HIDDEN_SIDEBAR_ITEMS_SETTING_KEY, nextHiddenItems);
-  };
+  const quotaRefreshInterval = Number.isFinite(autoRefreshProviderQuotaInterval)
+    ? Math.min(3600, Math.max(10, Math.floor(autoRefreshProviderQuotaInterval)))
+    : 180;
 
   return (
     <Card>
@@ -204,6 +179,82 @@ export default function AppearanceTab() {
                 <span>{themeOptionLabels[option] || option}</span>
               </button>
             ))}
+          </div>
+        </div>
+
+        <div className="pt-4 border-t border-border">
+          <div className="mb-3">
+            <p className="font-medium">
+              {getSettingsLabel("homePinProviderQuotaToHome", "Pin Information to Home Page")}
+            </p>
+            <p className="text-sm text-text-muted">
+              Choose which sections to pin to the top of the Home page.
+            </p>
+          </div>
+
+          <div className="rounded-lg border border-border bg-surface/40 overflow-hidden">
+            <div className="divide-y divide-border/70">
+              <div className="flex items-start justify-between gap-4 px-4 py-3">
+                <div>
+                  <p className="font-medium">
+                    {getSettingsLabel("homeProviderQuotaLimits", "Provider Quota Limits")}
+                  </p>
+                  <p className="text-sm text-text-muted">
+                    {getSettingsLabel(
+                      "homeProviderQuotaLimitsDesc",
+                      "Pin the Provider Quota status container (with Refresh All button) to the top of the Home page."
+                    )}
+                  </p>
+                </div>
+                <Toggle
+                  checked={pinProviderQuotaToHome}
+                  onChange={async (checked) => {
+                    await updateSetting(PIN_PROVIDER_QUOTA_TO_HOME_KEY, checked);
+                  }}
+                  disabled={loading}
+                />
+              </div>
+
+              <div className="flex items-start justify-between gap-4 px-4 py-3">
+                <div>
+                  <p className="font-medium">{getSettingsLabel("homeQuickStart", "Quick Start")}</p>
+                  <p className="text-sm text-text-muted">
+                    {getSettingsLabel(
+                      "homeQuickStartDesc",
+                      "Show the Quick Start panel on the Home page."
+                    )}
+                  </p>
+                </div>
+                <Toggle
+                  checked={showQuickStartOnHome}
+                  onChange={async (checked) => {
+                    await updateSetting("showQuickStartOnHome", checked);
+                  }}
+                  disabled={loading}
+                />
+              </div>
+
+              <div className="flex items-start justify-between gap-4 px-4 py-3">
+                <div>
+                  <p className="font-medium">
+                    {getSettingsLabel("homeProviderTopology", "Provider Topology")}
+                  </p>
+                  <p className="text-sm text-text-muted">
+                    {getSettingsLabel(
+                      "homeProviderTopologyDesc",
+                      "Show the Provider Topology on the Home page."
+                    )}
+                  </p>
+                </div>
+                <Toggle
+                  checked={showProviderTopologyOnHome}
+                  onChange={async (checked) => {
+                    await updateSetting("showProviderTopologyOnHome", checked);
+                  }}
+                  disabled={loading}
+                />
+              </div>
+            </div>
           </div>
         </div>
 
@@ -387,49 +438,93 @@ export default function AppearanceTab() {
 
         <div className="pt-4 border-t border-border">
           <div className="mb-3">
-            <p className="font-medium">{t("sidebarVisibilityToggle")}</p>
+            <p className="font-medium">
+              {getSettingsLabel("providerQuotaAutoRefresh", "Provider Quota auto refresh")}
+            </p>
             <p className="text-sm text-text-muted">
               {getSettingsLabel(
-                "sidebarVisibilityDesc",
-                "Hide any sidebar navigation entry to reduce visual clutter without disabling any features"
+                "providerQuotaAutoRefreshDesc",
+                "Refresh the Provider Limits view automatically while it stays open."
               )}
             </p>
           </div>
 
-          <div className="flex flex-col gap-4">
-            {sidebarSections.map((section) => (
-              <div key={section.id} className="rounded-lg border border-border bg-surface/40">
-                <div className="px-4 py-3 border-b border-border/70">
-                  <p className="text-xs font-semibold uppercase tracking-wider text-text-muted/70">
-                    {section.title}
-                  </p>
-                </div>
-
-                <div className="divide-y divide-border/70">
-                  {section.items.map((item) => (
-                    <div
-                      key={item.id}
-                      className="flex items-center justify-between gap-4 px-4 py-3"
-                    >
-                      <p className="font-medium">{item.label}</p>
-                      <Toggle
-                        checked={!hiddenSidebarSet.has(item.id)}
-                        onChange={() => toggleSidebarItem(item.id)}
-                        disabled={loading}
-                      />
-                    </div>
-                  ))}
-                </div>
+          <div className="rounded-lg border border-border bg-surface/40 divide-y divide-border/70">
+            <div className="flex items-center justify-between gap-4 px-4 py-3">
+              <div>
+                <p className="font-medium">
+                  {getSettingsLabel("providerQuotaAutoRefreshToggle", "Automatic refresh")}
+                </p>
+                <p className="text-sm text-text-muted">
+                  {getSettingsLabel(
+                    "providerQuotaAutoRefreshToggleDesc",
+                    "Refresh the quota view every few minutes while the page is visible."
+                  )}
+                </p>
               </div>
-            ))}
-          </div>
+              <Toggle
+                checked={autoRefreshProviderQuota}
+                onChange={async (checked) => {
+                  if (checked && !settings.autoRefreshProviderQuotaInterval) {
+                    await updateSetting("autoRefreshProviderQuotaInterval", 180);
+                  }
+                  await updateSetting("autoRefreshProviderQuota", checked);
+                }}
+                disabled={loading}
+              />
+            </div>
 
-          <p className="mt-3 text-xs text-text-muted">
-            {getSettingsLabel(
-              "sidebarVisibilityHint",
-              "Any sidebar section is hidden automatically when all of its entries are hidden"
-            )}
-          </p>
+            <div className="flex items-center justify-between gap-4 px-4 py-3">
+              <div>
+                <p className="font-medium">
+                  {getSettingsLabel("providerQuotaAutoRefreshInterval", "Refresh interval")}
+                </p>
+                <p className="text-sm text-text-muted">
+                  {getSettingsLabel(
+                    "providerQuotaAutoRefreshIntervalDesc",
+                    "How often the quota view should refresh, in seconds."
+                  )}
+                </p>
+              </div>
+              <div className="flex items-center gap-2">
+                <input
+                  type="number"
+                  min={10}
+                  max={3600}
+                  step={10}
+                  value={quotaRefreshInterval}
+                  onChange={async (e) => {
+                    const next = Math.min(3600, Math.max(10, Number(e.target.value) || 180));
+                    await updateSetting("autoRefreshProviderQuotaInterval", next);
+                  }}
+                  disabled={loading || !autoRefreshProviderQuota}
+                  className="h-10 w-28 px-3 rounded-lg bg-surface border border-border text-sm text-text-main focus:outline-none focus:border-primary disabled:opacity-50"
+                />
+                <span className="text-xs text-text-muted">seconds</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div className="pt-4 border-t border-border">
+          <div className="flex items-center justify-between gap-4">
+            <div>
+              <p className="font-medium">{t("sidebarVisibilityToggle")}</p>
+              <p className="text-sm text-text-muted">
+                {getSettingsLabel(
+                  "sidebarCustomizeLink",
+                  "Customize which items appear in the sidebar, their order, and apply role presets."
+                )}
+              </p>
+            </div>
+            <Link
+              href="/dashboard/settings/sidebar"
+              className="shrink-0 flex items-center gap-1.5 px-3 py-1.5 text-sm rounded-md border border-border hover:bg-surface/80 hover:border-primary/40 transition-colors text-text-main"
+            >
+              <span className="material-symbols-outlined text-[16px]">view_sidebar</span>
+              {getSettingsLabel("sidebarCustomizeLinkBtn", "Customize")}
+            </Link>
+          </div>
         </div>
 
         <div className="pt-4 border-t border-border">
@@ -664,6 +759,30 @@ export default function AppearanceTab() {
                 </div>
               )}
             </div>
+
+            {isElectron && (
+              <div className="flex items-center justify-between pt-4 border-t border-border">
+                <div>
+                  <p className="font-medium">Start on Login</p>
+                  <p className="text-xs text-text-muted mt-0.5">
+                    Automatically launch OmniRoute on system startup and run silently in the
+                    background tray.
+                  </p>
+                </div>
+                <Toggle
+                  checked={autostartEnabled}
+                  onChange={async (checked) => {
+                    if (checked) {
+                      const success = await window.electronAPI?.enableAutostart();
+                      if (success) setAutostartEnabled(true);
+                    } else {
+                      const success = await window.electronAPI?.disableAutostart();
+                      if (success) setAutostartEnabled(false);
+                    }
+                  }}
+                />
+              </div>
+            )}
           </div>
         </div>
       </div>

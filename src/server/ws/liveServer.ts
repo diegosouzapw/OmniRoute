@@ -1,0 +1,393 @@
+/**
+ * Live Dashboard WebSocket Server
+ *
+ * Separate process (runs alongside Next.js on port 20129).
+ * Forwards EventBus events to subscribed dashboard clients.
+ *
+ * Protocol:
+ *   Client → Server: { type: "subscribe", channels: ["requests", "combo"] }
+ *   Server → Client: { type: "event", channel: "requests", event: "request.started", data: {...} }
+ *   Client → Server: { type: "ping" }
+ *   Server → Client: { type: "pong" }
+ *   Server → Client: { type: "welcome", version, sessionId, channels, backlog }
+ *   Server → Client: { type: "error", code, message }
+ */
+
+import { WebSocketServer, WebSocket } from "ws";
+import { createServer } from "http";
+import { randomUUID } from "crypto";
+
+// ── Types ─────────────────────────────────────────────────────────────────
+
+import type { WsClientMessage, WsServerMessage, WsAuthResult } from "./types";
+
+import { emit, on, onAny, getEventHistory, type HistoryEntry } from "@/lib/events/eventBus";
+
+import type { DashboardEventName, DashboardEventMap, DashboardChannel } from "@/lib/events/types";
+
+import { CHANNEL_EVENTS, getChannelForEvent } from "@/lib/events/types";
+
+// ── Config ────────────────────────────────────────────────────────────────
+
+const DEFAULT_PORT = 20129;
+// Loopback by default. Opt-in to LAN exposure via LIVE_WS_HOST=0.0.0.0 — the
+// caller is then responsible for fronting it with a TLS terminator + origin
+// allow-list. Mirrors the route guard "local-only by default" posture.
+const DEFAULT_HOST = "127.0.0.1";
+const HEARTBEAT_INTERVAL_MS = 15_000;
+const HEARTBEAT_TIMEOUT_MS = 35_000;
+const MAX_CLIENTS = 500;
+const MAX_EVENTS_PER_SECOND = 100;
+
+/**
+ * Origins allowed to open a WebSocket. Defaults to the loopback dashboard
+ * origins; admins can extend via LIVE_WS_ALLOWED_ORIGINS (comma-separated).
+ *
+ * WS does not honour CORS — a malicious page on origin X can otherwise open
+ * a WebSocket to our server and ride the user's API key (if it lives in a
+ * cookie or is reachable through the page). Browsers DO send the Origin
+ * header on the WS upgrade, so checking it server-side is the standard
+ * mitigation. Non-browser clients (CLI, MCP) omit Origin, which we accept.
+ */
+function buildAllowedOrigins(): Set<string> {
+  const base = [`http://127.0.0.1:20128`, `http://localhost:20128`, `http://[::1]:20128`];
+  const extra = (process.env.LIVE_WS_ALLOWED_ORIGINS || "")
+    .split(",")
+    .map((s) => s.trim())
+    .filter(Boolean);
+  return new Set([...base, ...extra]);
+}
+
+const ALLOWED_ORIGINS = buildAllowedOrigins();
+
+function isOriginAllowed(origin: string | undefined): boolean {
+  // Non-browser client (curl, native ws, MCP) — Origin header is omitted by
+  // spec. Allow only when the upstream listener is bound to loopback; if the
+  // operator opted into LAN exposure we require an explicit Origin.
+  if (!origin) {
+    const host = process.env.LIVE_WS_HOST || DEFAULT_HOST;
+    return host === "127.0.0.1" || host === "::1" || host === "localhost";
+  }
+  return ALLOWED_ORIGINS.has(origin);
+}
+
+// ── Client State ──────────────────────────────────────────────────────────
+
+interface ClientState {
+  ws: WebSocket;
+  sessionId: string;
+  subscribedChannels: Set<DashboardChannel>;
+  lastActivity: number;
+  /** Per-second rate limit counter */
+  eventCounter: number;
+  eventCounterReset: number;
+  /** Current IP for rate limiting */
+  remoteAddress: string;
+}
+
+const clients = new Map<string, ClientState>();
+let eventHistoryBacklog: HistoryEntry[] = [];
+const BACKLOG_MAX = 500;
+
+// ── Auth ──────────────────────────────────────────────────────────────────
+
+async function authorizeConnection(request: import("http").IncomingMessage): Promise<WsAuthResult> {
+  const sessionId = randomUUID().slice(0, 8);
+
+  // Token MUST come from the Authorization header (or X-Live-WS-Token).
+  // Query-string tokens leak into access logs, browser history, and Referer
+  // headers — a single screenshot of the URL bar exposes the API key.
+  const token = extractBearerToken(request) || extractAltTokenHeader(request);
+
+  if (!token) {
+    return { authorized: false, sessionId, error: "Missing token" };
+  }
+
+  try {
+    // Validate API key via the existing auth system
+    const { extractApiKey, isValidApiKey } = await import("../services/auth");
+    const apiKey = extractApiKey({ headers: { authorization: `Bearer ${token}` } } as any);
+
+    if (!apiKey || !isValidApiKey(apiKey)) {
+      return { authorized: false, sessionId, error: "Invalid API key" };
+    }
+
+    return { authorized: true, sessionId };
+  } catch {
+    return { authorized: false, sessionId, error: "Auth system unavailable" };
+  }
+}
+
+function extractAltTokenHeader(request: import("http").IncomingMessage): string | null {
+  const raw = request.headers["x-live-ws-token"];
+  if (Array.isArray(raw)) return raw[0] || null;
+  return typeof raw === "string" ? raw : null;
+}
+
+function extractBearerToken(request: import("http").IncomingMessage): string | null {
+  const auth = request.headers["authorization"];
+  if (!auth || typeof auth !== "string") return null;
+  const match = auth.match(/^Bearer\s+(.+)$/i);
+  return match?.[1] || null;
+}
+
+// ── Protocol Handler ──────────────────────────────────────────────────────
+
+function handleMessage(clientId: string, raw: string): void {
+  const client = clients.get(clientId);
+  if (!client) return;
+
+  // Rate limiting
+  const now = Date.now();
+  if (now - client.eventCounterReset > 1000) {
+    client.eventCounter = 0;
+    client.eventCounterReset = now;
+  }
+  client.eventCounter++;
+  if (client.eventCounter > MAX_EVENTS_PER_SECOND) {
+    sendTo(client.ws, { type: "error", code: "RATE_LIMITED", message: "Too many messages" });
+    return;
+  }
+
+  let msg: WsClientMessage;
+  try {
+    msg = JSON.parse(raw);
+  } catch {
+    sendTo(client.ws, { type: "error", code: "PARSE_ERROR", message: "Invalid JSON" });
+    return;
+  }
+
+  client.lastActivity = now;
+
+  switch (msg.type) {
+    case "subscribe": {
+      client.subscribedChannels = new Set(msg.channels);
+
+      // Send buffered events that match subscribed channels
+      const relevantHistory = eventHistoryBacklog.filter((h) => {
+        const ch = getChannelForEvent(h.event as DashboardEventName);
+        return ch && msg.channels.includes(ch);
+      });
+
+      sendTo(client.ws, {
+        type: "welcome",
+        version: "1.0.0",
+        sessionId: client.sessionId,
+        serverTime: now,
+        channels: msg.channels,
+        backlog: relevantHistory.length,
+        data: relevantHistory.map((h) => ({
+          event: h.event,
+          channel: getChannelForEvent(h.event as DashboardEventName),
+          data: h.payload,
+          timestamp: h.timestamp,
+        })),
+      } as any);
+      break;
+    }
+
+    case "ping":
+      sendTo(client.ws, { type: "pong" } as WsServerMessage);
+      break;
+  }
+}
+
+// ── Send ──────────────────────────────────────────────────────────────────
+
+function sendTo(ws: WebSocket, msg: WsServerMessage | Record<string, unknown>): void {
+  if (ws.readyState === WebSocket.OPEN) {
+    ws.send(JSON.stringify(msg));
+  }
+}
+
+// ── Event Bus → WebSocket Bridge ──────────────────────────────────────────
+
+function subscribeToEventBus(): () => void {
+  return onAny((event: DashboardEventName, payload: unknown) => {
+    const channel = getChannelForEvent(event);
+    if (!channel) return;
+
+    // Store in backlog
+    eventHistoryBacklog.push({ event, payload, timestamp: Date.now() });
+    if (eventHistoryBacklog.length > BACKLOG_MAX) {
+      eventHistoryBacklog.shift();
+    }
+
+    // Forward to subscribed clients
+    const msg: WsEventMessage = {
+      type: "event",
+      channel,
+      event,
+      data: payload,
+    };
+
+    for (const [clientId, client] of clients) {
+      if (client.ws.readyState !== WebSocket.OPEN) {
+        clients.delete(clientId);
+        continue;
+      }
+      if (client.subscribedChannels.has(channel)) {
+        sendTo(client.ws, msg);
+      }
+    }
+  });
+}
+
+// ── Heartbeat ─────────────────────────────────────────────────────────────
+
+function startHeartbeat(server: WebSocketServer): void {
+  const interval = setInterval(() => {
+    const now = Date.now();
+    for (const [clientId, client] of clients) {
+      if (client.ws.readyState !== WebSocket.OPEN) {
+        clients.delete(clientId);
+        continue;
+      }
+      // Check heartbeat timeout
+      if (now - client.lastActivity > HEARTBEAT_TIMEOUT_MS) {
+        client.ws.terminate();
+        clients.delete(clientId);
+        continue;
+      }
+      // Send ping
+      sendTo(client.ws, { type: "pong" } as WsServerMessage);
+    }
+  }, HEARTBEAT_INTERVAL_MS);
+
+  server.on("close", () => clearInterval(interval));
+}
+
+// ── Server Start ──────────────────────────────────────────────────────────
+
+/**
+ * Start the live dashboard WebSocket server.
+ *
+ * Bound to 127.0.0.1 by default. Set LIVE_WS_HOST=0.0.0.0 to expose on the
+ * LAN — the caller is then responsible for fronting it with TLS + an Origin
+ * allow-list via LIVE_WS_ALLOWED_ORIGINS.
+ */
+export async function startLiveDashboardServer(
+  port = DEFAULT_PORT,
+  host = DEFAULT_HOST
+): Promise<import("http").Server> {
+  const server = createServer();
+  const wss = new WebSocketServer({ server });
+
+  // Subscribe to EventBus
+  const unsubscribe = subscribeToEventBus();
+
+  wss.on("connection", async (ws, request) => {
+    // Origin check — browsers always send Origin on the WS upgrade; reject
+    // unknown origins to stop drive-by cross-origin WebSocket from a victim
+    // page. Non-browser clients (CLI / MCP) omit Origin and are accepted
+    // only when bound to loopback (see isOriginAllowed).
+    const origin = request.headers["origin"];
+    const originStr = Array.isArray(origin) ? origin[0] : origin;
+    if (!isOriginAllowed(originStr)) {
+      sendTo(ws, { type: "error", code: "FORBIDDEN_ORIGIN", message: "Origin not allowed" });
+      ws.close(4003, "Forbidden origin");
+      return;
+    }
+
+    // Enforce max clients
+    if (clients.size >= MAX_CLIENTS) {
+      sendTo(ws, { type: "error", code: "SERVER_FULL", message: "Max clients reached" });
+      ws.close(1013, "Server full");
+      return;
+    }
+
+    // Authorize
+    const auth = await authorizeConnection(request);
+    if (!auth.authorized) {
+      sendTo(ws, { type: "error", code: "UNAUTHORIZED", message: auth.error || "Unauthorized" });
+      ws.close(4001, "Unauthorized");
+      return;
+    }
+
+    const clientId = auth.sessionId;
+    const client: ClientState = {
+      ws,
+      sessionId: clientId,
+      subscribedChannels: new Set(),
+      lastActivity: Date.now(),
+      eventCounter: 0,
+      eventCounterReset: Date.now(),
+      remoteAddress: request.socket?.remoteAddress || "unknown",
+    };
+
+    clients.set(clientId, client);
+
+    // Constant format string + %s args — keeps clientId / remoteAddress out
+    // of the format slot so a malicious value cannot forge log lines via
+    // injected format specifiers (CWE-134).
+    console.log(
+      "[LiveWS] Client connected: %s (%s) [%d total]",
+      clientId,
+      client.remoteAddress,
+      clients.size
+    );
+
+    // Handle messages
+    ws.on("message", (data) => {
+      handleMessage(clientId, data.toString());
+    });
+
+    // Handle close
+    ws.on("close", () => {
+      clients.delete(clientId);
+      console.log("[LiveWS] Client disconnected: %s [%d remaining]", clientId, clients.size);
+    });
+
+    // Handle errors
+    ws.on("error", (err) => {
+      console.error("[LiveWS] Client error %s: %s", clientId, err.message);
+      clients.delete(clientId);
+    });
+  });
+
+  // Heartbeat
+  startHeartbeat(wss);
+
+  // Cleanup on close
+  wss.on("close", () => {
+    unsubscribe();
+    clients.clear();
+  });
+
+  return new Promise((resolve) => {
+    server.listen(port, host, () => {
+      console.log("[LiveWS] Dashboard WebSocket server listening on %s:%d", host, port);
+      resolve(server);
+    });
+  });
+}
+
+// ── Auto-start on import (opt-in) ────────────────────────────────────────
+//
+// Default: OFF. The live dashboard WebSocket is an opt-in feature — operators
+// who want it must set OMNIROUTE_ENABLE_LIVE_WS=1 (or "true"). This avoids
+// silently opening a network listener on every Next.js boot.
+//
+// Build/test environments never auto-start regardless of the flag.
+
+function isBuildOrTest(): boolean {
+  return (
+    process.env.NEXT_PHASE === "phase-production-build" ||
+    process.env.NODE_ENV === "test" ||
+    process.env.VITEST !== undefined ||
+    process.argv.some((arg) => arg.includes("test"))
+  );
+}
+
+function isLiveWsEnabled(): boolean {
+  const v = process.env.OMNIROUTE_ENABLE_LIVE_WS;
+  return v === "1" || v === "true";
+}
+
+if (!isBuildOrTest() && isLiveWsEnabled()) {
+  const port = parseInt(process.env.LIVE_WS_PORT || String(DEFAULT_PORT), 10);
+  const host = process.env.LIVE_WS_HOST || DEFAULT_HOST;
+  startLiveDashboardServer(port, host).catch((err) => {
+    console.error("[LiveWS] Failed to start: %s", err instanceof Error ? err.message : String(err));
+  });
+}

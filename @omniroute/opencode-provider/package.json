@@ -46,15 +46,15 @@
   },
   "homepage": "https://github.com/diegosouzapw/OmniRoute/tree/main/%40omniroute/opencode-provider#readme",
   "engines": {
-    "node": ">=20.20.2"
+    "node": ">=22.22.3"
   },
   "publishConfig": {
     "access": "public"
   },
   "devDependencies": {
-    "@types/node": "^20.19.41",
-    "tsup": "^8.5.0",
-    "tsx": "^4.20.0",
-    "typescript": "^5.9.0"
+    "@types/node": "^22.19.19",
+    "tsup": "^8.5.1",
+    "tsx": "^4.22.3",
+    "typescript": "^5.9.3"
   }
 }

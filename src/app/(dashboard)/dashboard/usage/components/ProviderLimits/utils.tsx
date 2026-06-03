@@ -45,13 +45,29 @@ function toRecord(value: unknown): Record<string, unknown> {
     : {};
 }
 
+function isClaudeOrganizationTypeLabel(value: string) {
+  return /^default_claude(?:_ai)?$/i.test(value.trim());
+}
+
 function normalizePlanCandidate(value: unknown) {
   if (typeof value !== "string") return null;
   const trimmed = value.trim();
   if (!trimmed) return null;
   if (trimmed.toLowerCase() === "unknown") return null;
   if (PROVIDER_PLAN_FALLBACKS.has(trimmed.toLowerCase())) return null;
+  if (isClaudeOrganizationTypeLabel(trimmed)) return null;
   return trimmed;
+}
+
+function escapeRegExpToken(token: string): string {
+  return token.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
+/** Match tier tokens as whole words (avoids MINIMAX → Max, APPROVE → Pro, etc.). */
+function hasTierToken(upper: string, token: string): boolean {
+  const escaped = escapeRegExpToken(token.toUpperCase());
+  const pattern = new RegExp(`(?:^|[^A-Z])${escaped}(?:[^A-Z]|$)`);
+  return pattern.test(upper);
 }
 
 function toTitleCaseWords(value: string) {
@@ -230,6 +246,7 @@ export function parseQuotaData(provider, data) {
       case "glm":
       case "glm-cn":
       case "glmt":
+      case "opencode-go":
         if (data.quotas) {
           Object.entries(data.quotas).forEach(([name, quota]: [string, any]) => {
             normalizedQuotas.push(
@@ -387,7 +404,12 @@ export function parseQuotaData(provider, data) {
     });
   }
 
-  if (providerId === "glm" || providerId === "glm-cn" || providerId === "glmt") {
+  if (
+    providerId === "glm" ||
+    providerId === "glm-cn" ||
+    providerId === "glmt" ||
+    providerId === "opencode-go"
+  ) {
     normalizedQuotas.sort((a, b) => {
       const orderA = GLM_QUOTA_ORDER[a.name] ?? 99;
       const orderB = GLM_QUOTA_ORDER[b.name] ?? 99;
@@ -404,24 +426,30 @@ export function parseQuotaData(provider, data) {
  */
 export function resolvePlanValue(plan, providerSpecificData) {
   const psd = toRecord(providerSpecificData);
-  const candidates = [
-    plan,
+  const livePlan = normalizePlanCandidate(plan);
+  const persistedCandidates = [
     psd.workspacePlanType,
     psd.plan,
+    psd.subscriptionTier,
     psd.subscription,
     psd.tier,
     psd.accountTier,
     // Claude OAuth bootstrap: rate_limit_tier has the Max 5x/20x multiplier.
     psd.organizationRateLimitTier,
+    psd.rateLimitTier,
     psd.organizationType,
   ];
 
-  for (const candidate of candidates) {
+  if (livePlan && normalizePlanTier(livePlan).key !== "free") {
+    return livePlan;
+  }
+
+  for (const candidate of persistedCandidates) {
     const normalized = normalizePlanCandidate(candidate);
     if (normalized) return normalized;
   }
 
-  return null;
+  return livePlan || null;
 }
 
 /**
@@ -443,7 +471,7 @@ export function normalizePlanTier(plan) {
 
   // Match Anthropic bootstrap strings (claude_max, default_claude_max_20x, etc.)
   // before the generic PRO/TEAM checks so underscored values don't fall through.
-  const claudeMatch = upper.match(/CLAUDE_(MAX|PRO|TEAM|ENTERPRISE|FREE)(?:_(\d+X))?/);
+  const claudeMatch = upper.match(/(?:DEFAULT_)?CLAUDE_(MAX|PRO|TEAM|ENTERPRISE|FREE)(?:_(\d+X))?/);
   if (claudeMatch) {
     const family = claudeMatch[1];
     const multiplier = claudeMatch[2] ? ` ${claudeMatch[2].toLowerCase()}` : "";
@@ -489,19 +517,23 @@ export function normalizePlanTier(plan) {
     return { key: "ultra", label: "Ultra", variant: "success", rank: 4, raw };
   }
 
-  if (upper.includes("MAX")) {
+  if (hasTierToken(upper, "MAX")) {
     return { key: "ultra", label: "Max", variant: "success", rank: 4, raw };
   }
 
-  if (upper.includes("PRO") || upper.includes("PREMIUM")) {
+  if (hasTierToken(upper, "PRO") || hasTierToken(upper, "PREMIUM")) {
     return { key: "pro", label: "Pro", variant: "success", rank: 3, raw };
   }
 
-  if (upper.includes("LITE") || upper.includes("LIGHT")) {
+  if (hasTierToken(upper, "STARTER")) {
+    return { key: "lite", label: "Starter", variant: "primary", rank: 2, raw };
+  }
+
+  if (hasTierToken(upper, "LITE") || hasTierToken(upper, "LIGHT")) {
     return { key: "lite", label: "Lite", variant: "primary", rank: 2, raw };
   }
 
-  if (upper.includes("PLUS") || upper.includes("PAID")) {
+  if (hasTierToken(upper, "PLUS") || hasTierToken(upper, "PAID")) {
     return { key: "plus", label: "Plus", variant: "success", rank: 2, raw };
   }
 
@@ -521,4 +553,107 @@ export function normalizePlanTier(plan) {
     .join(" ");
 
   return { key: "unknown", label: titleCased || "Unknown", variant: "default", rank: 0, raw };
+}
+
+// === Card Grid Helpers (T7) =================================================
+
+export const STATUS_EMOJI = {
+  critical: "🔴",
+  alert: "🟡",
+  ok: "🟢",
+  empty: "⚪",
+} as const;
+
+export type CardStatus = keyof typeof STATUS_EMOJI;
+
+const QUOTA_BAR_GREEN_THRESHOLD = 50;
+const QUOTA_BAR_YELLOW_THRESHOLD = 20;
+
+function quotaRemainingPercent(q: any): number {
+  if (q?.unlimited) return 100;
+  if (q?.remainingPercentage !== undefined) return Number(q.remainingPercentage);
+  return calculatePercentage(q?.used, q?.total);
+}
+
+function quotaStatus(q: any): "critical" | "alert" | "ok" {
+  const pct = quotaRemainingPercent(q);
+  if (pct <= QUOTA_BAR_YELLOW_THRESHOLD) return "critical";
+  if (pct <= QUOTA_BAR_GREEN_THRESHOLD) return "alert";
+  return "ok";
+}
+
+export function worstStatus(quotas: any[] | undefined): CardStatus {
+  if (!quotas || quotas.length === 0) return "empty";
+  let worst: "ok" | "alert" = "ok";
+  for (const q of quotas) {
+    const s = quotaStatus(q);
+    if (s === "critical") return "critical";
+    if (s === "alert" && worst === "ok") worst = "alert";
+  }
+  return worst;
+}
+
+const STATUS_ORDER: Record<"critical" | "alert" | "ok", number> = {
+  critical: 0,
+  alert: 1,
+  ok: 2,
+};
+
+export function topQuotas(quotas: any[], n = 3): any[] {
+  return [...quotas.filter(Boolean)]
+    .sort((a, b) => {
+      const sa = STATUS_ORDER[quotaStatus(a)];
+      const sb = STATUS_ORDER[quotaStatus(b)];
+      if (sa !== sb) return sa - sb;
+      return quotaRemainingPercent(a) - quotaRemainingPercent(b);
+    })
+    .slice(0, n);
+}
+
+export function getBarColor(remainingPercentage: number): {
+  bar: string;
+  text: string;
+  bg: string;
+} {
+  if (remainingPercentage > QUOTA_BAR_GREEN_THRESHOLD) {
+    return { bar: "#22c55e", text: "#22c55e", bg: "rgba(34,197,94,0.12)" };
+  }
+  if (remainingPercentage > QUOTA_BAR_YELLOW_THRESHOLD) {
+    return { bar: "#eab308", text: "#eab308", bg: "rgba(234,179,8,0.12)" };
+  }
+  return { bar: "#ef4444", text: "#ef4444", bg: "rgba(239,68,68,0.12)" };
+}
+
+export function formatCountdown(resetAt: string | null | undefined): string | null {
+  if (!resetAt) return null;
+  try {
+    const diff = new Date(resetAt).getTime() - Date.now();
+    if (diff <= 0) return null;
+    const h = Math.floor(diff / 3_600_000);
+    const m = Math.floor((diff % 3_600_000) / 60_000);
+    if (h >= 24) {
+      const d = Math.floor(h / 24);
+      return `${d}d ${h % 24}h ${m}m`;
+    }
+    return `${h}h ${m}m`;
+  } catch {
+    return null;
+  }
+}
+
+export function getNextResetSummary(quotas: any[] | undefined): string | null {
+  if (!quotas || quotas.length === 0) return null;
+  const now = Date.now();
+  let soonest = Number.POSITIVE_INFINITY;
+  let soonestIso: string | null = null;
+  for (const q of quotas) {
+    if (!q?.resetAt) continue;
+    const ts = new Date(q.resetAt).getTime();
+    if (!Number.isFinite(ts) || ts <= now) continue;
+    if (ts < soonest) {
+      soonest = ts;
+      soonestIso = typeof q.resetAt === "string" ? q.resetAt : new Date(ts).toISOString();
+    }
+  }
+  return soonestIso ? formatCountdown(soonestIso) : null;
 }

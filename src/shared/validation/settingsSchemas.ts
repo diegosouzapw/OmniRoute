@@ -8,7 +8,7 @@
 import { z } from "zod";
 import { COMBO_CONFIG_MODES } from "@/shared/constants/comboConfigMode";
 import { MAX_REQUEST_BODY_LIMIT_MB, MIN_REQUEST_BODY_LIMIT_MB } from "@/shared/constants/bodySize";
-import { HIDEABLE_SIDEBAR_ITEM_IDS } from "@/shared/constants/sidebarVisibility";
+import { HIDEABLE_SIDEBAR_ITEM_IDS, SIDEBAR_SECTIONS } from "@/shared/constants/sidebarVisibility";
 import { ACCOUNT_FALLBACK_STRATEGY_VALUES } from "@/shared/constants/routingStrategies";
 
 const signatureCacheModeValues = ["enabled", "bypass", "bypass-strict"] as const;
@@ -34,10 +34,41 @@ export const updateSettingsSchema = z.object({
   hideEndpointCloudflaredTunnel: z.boolean().optional(),
   hideEndpointTailscaleFunnel: z.boolean().optional(),
   hideEndpointNgrokTunnel: z.boolean().optional(),
+  autoRefreshProviderQuota: z.boolean().optional(),
+  autoRefreshProviderQuotaInterval: z.number().int().min(10).max(3600).optional(),
+  pinProviderQuotaToHome: z.boolean().optional(),
+  showQuickStartOnHome: z.boolean().optional(),
+  showProviderTopologyOnHome: z.boolean().optional(),
+  localOnlyManageScopeBypassEnabled: z.boolean().optional(),
+  localOnlyManageScopeBypassPrefixes: z.array(z.string().max(200)).optional(),
   debugMode: z.boolean().optional(),
   hiddenSidebarItems: z.array(z.enum(HIDEABLE_SIDEBAR_ITEM_IDS)).optional(),
+  sidebarSectionOrder: z
+    .array(z.enum(SIDEBAR_SECTIONS.map((s) => s.id) as [string, ...string[]]))
+    .optional(),
+  sidebarItemOrder: z.record(z.string(), z.array(z.string().max(100))).optional(),
+  sidebarActivePreset: z.enum(["all", "minimal", "developer", "admin"]).nullable().optional(),
   comboConfigMode: z.enum(COMBO_CONFIG_MODES).optional(),
-  codexServiceTier: z.object({ enabled: z.boolean() }).optional(),
+  codexServiceTier: z
+    .object({
+      enabled: z.boolean().optional(),
+      tier: z.enum(["default", "priority", "flex"]).optional(),
+      supportedModels: z.array(z.string().max(200)).max(200).optional(),
+    })
+    .optional(),
+  // Claude Fast Mode: opt-in toggle that asks a paired CLIProxyAPI build
+  // (claude-fastmode-spoof) to rewrite SDK-shaped entrypoints so requests can
+  // reach Anthropic Fast Mode (speed:"fast"). Default off; only the listed
+  // Opus models are gated by the Anthropic binary KT() check. Schema is
+  // intentionally permissive on supportedModels so additional eligible model
+  // ids can be enabled without a schema bump.
+  claudeFastMode: z
+    .object({
+      enabled: z.boolean().optional(),
+      supportedModels: z.array(z.string().max(200)).max(200).optional(),
+    })
+    .optional(),
+  codexSessionAffinityTtlMs: z.number().int().min(0).max(86_400_000).optional(),
   // Routing settings (#134)
   fallbackStrategy: z.enum(ACCOUNT_FALLBACK_STRATEGY_VALUES).optional(),
   wildcardAliases: z.array(z.object({ pattern: z.string(), target: z.string() })).optional(),
@@ -236,6 +267,12 @@ export const updateSettingsSchema = z.object({
   autoRoutingDefaultVariant: z
     .enum(["lkgp", "coding", "fast", "cheap", "offline", "smart"])
     .optional(),
+  // CLIProxyAPI connection settings
+  cliproxyapi_fallback_enabled: z.boolean().optional(),
+  cliproxyapi_url: z.string().url().max(500).optional(),
+  cliproxyapi_fallback_codes: z.string().max(200).optional(),
+  // CLIProxyAPI model mapping (Record<string, string>)
+  cliproxyapi_model_mapping: z.record(z.string(), z.string()).optional(),
 });
 
 export const databaseSettingsSchema = z.object(
@@ -284,7 +321,7 @@ export const databaseSettingsSchema = z.object(
     // Aggregation settings
     aggregation: z.object({
       enabled: z.boolean(),
-      rawDataRetentionDays: z.number().int().min(1).max(90),
+      rawDataRetentionDays: z.number().int().min(1).max(3650),
       granularity: z.literal("hourly").or(z.literal("daily")).or(z.literal("weekly")),
     }),
 
@@ -308,3 +345,8 @@ export const databaseSettingsSchema = z.object(
 );
 
 export type DatabaseSettingsSchema = z.infer<typeof databaseSettingsSchema>;
+
+export const featureFlagUpdateSchema = z.object({
+  key: z.string().min(1),
+  value: z.string().optional(),
+});

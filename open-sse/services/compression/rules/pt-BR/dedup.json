@@ -1,0 +1,51 @@
+{
+  "language": "pt-BR",
+  "category": "dedup",
+  "rules": [
+    {
+      "name": "pt_repeated_context",
+      "pattern": "\\b(?:como falamos antes|como mencionamos|como vimos anteriormente|conforme discutido|como já expliquei)\\b[,.]?\\s*",
+      "replacement": "Ver acima. ",
+      "context": "all",
+      "category": "dedup",
+      "minIntensity": "lite",
+      "description": "References to earlier discussion"
+    },
+    {
+      "name": "pt_repeated_question",
+      "pattern": "\\b(?:mesma pergunta de antes|já perguntei isso|é a mesma dúvida|repito a pergunta)\\b[,.]?\\s*",
+      "replacement": "[mesma pergunta] ",
+      "context": "user",
+      "category": "dedup",
+      "minIntensity": "lite",
+      "description": "Repeated question markers"
+    },
+    {
+      "name": "pt_reestablished_context",
+      "pattern": "\\b(?:voltando ao código acima|voltando ao que falamos|retomando o assunto|voltando ao ponto)\\b[,.]?\\s*",
+      "replacement": "Re: ",
+      "context": "all",
+      "category": "dedup",
+      "minIntensity": "lite",
+      "description": "Context re-establishment"
+    },
+    {
+      "name": "pt_summary",
+      "pattern": "\\b(?:resumindo o que discutimos|pra resumir|em resumo|resumidamente|recapitulando)\\b[,.]?\\s*",
+      "replacement": "Resumo: ",
+      "context": "assistant",
+      "category": "dedup",
+      "minIntensity": "lite",
+      "description": "Summary framing"
+    },
+    {
+      "name": "pt_reiteration",
+      "pattern": "\\b(?:como eu disse|como mencionei|reitero que|repito que|novamente)\\b[,.]?\\s*",
+      "replacement": "",
+      "context": "all",
+      "category": "dedup",
+      "minIntensity": "lite",
+      "description": "Self-reiteration markers — content already in context"
+    }
+  ]
+}

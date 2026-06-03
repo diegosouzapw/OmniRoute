@@ -1,99 +1,156 @@
+import { createHash } from "crypto";
+
 import { getDbInstance } from "./core";
 
-export interface SessionAccountAffinity {
-  sessionKey: string;
-  provider: string;
+type SessionAccountAffinityRecord = {
   connectionId: string;
-  createdAt: number;
-  lastSeenAt: number;
+  createdAt: string;
+  lastUsedAt: string;
+  expiresAt: string;
+};
+
+const NAMESPACE = "session_account_affinity";
+const CLEANUP_INTERVAL_MS = 5 * 60_000;
+
+let cleanupTimer: ReturnType<typeof setInterval> | null = null;
+
+function normalizePositiveTtl(ttlMs: number | null | undefined): number {
+  return Number.isFinite(ttlMs) && Number(ttlMs) > 0 ? Number(ttlMs) : 0;
 }
 
-interface SessionAccountAffinityRow {
-  session_key: string;
-  provider: string;
-  connection_id: string;
-  created_at: number;
-  last_seen_at: number;
+function affinityKey(sessionKey: string, provider: string): string {
+  const hash = createHash("sha256").update(`${provider}:${sessionKey}`).digest("hex");
+  return `${provider}:${hash}`;
 }
 
-const DEFAULT_TTL_MS = 30 * 60 * 1000;
-const CLEANUP_INTERVAL_MS = 5 * 60 * 1000;
+function isoFromMs(ms: number): string {
+  return new Date(ms).toISOString();
+}
 
-let cleanupTimer: NodeJS.Timeout | null = null;
+function parseRecord(value: unknown): SessionAccountAffinityRecord | null {
+  if (typeof value !== "string") return null;
+  try {
+    const parsed = JSON.parse(value) as Partial<SessionAccountAffinityRecord>;
+    if (typeof parsed.connectionId !== "string" || parsed.connectionId.trim().length === 0) {
+      return null;
+    }
+    if (typeof parsed.expiresAt !== "string" || Number.isNaN(Date.parse(parsed.expiresAt))) {
+      return null;
+    }
+    return {
+      connectionId: parsed.connectionId,
+      createdAt:
+        typeof parsed.createdAt === "string" && !Number.isNaN(Date.parse(parsed.createdAt))
+          ? parsed.createdAt
+          : parsed.expiresAt,
+      lastUsedAt:
+        typeof parsed.lastUsedAt === "string" && !Number.isNaN(Date.parse(parsed.lastUsedAt))
+          ? parsed.lastUsedAt
+          : parsed.expiresAt,
+      expiresAt: parsed.expiresAt,
+    };
+  } catch {
+    return null;
+  }
+}
 
-function rowToAffinity(row: SessionAccountAffinityRow): SessionAccountAffinity {
-  return {
-    sessionKey: row.session_key,
-    provider: row.provider,
-    connectionId: row.connection_id,
-    createdAt: row.created_at,
-    lastSeenAt: row.last_seen_at,
-  };
+function deleteAffinityKey(key: string): void {
+  getDbInstance()
+    .prepare("DELETE FROM key_value WHERE namespace = ? AND key = ?")
+    .run(NAMESPACE, key);
 }
 
 export function getSessionAccountAffinity(
   sessionKey: string,
-  provider: string
-): SessionAccountAffinity | null {
-  const db = getDbInstance();
-  const row = db
-    .prepare(
-      `SELECT session_key, provider, connection_id, created_at, last_seen_at
-       FROM session_account_affinity
-       WHERE session_key = ? AND provider = ?`
-    )
-    .get(sessionKey, provider) as SessionAccountAffinityRow | undefined;
-  return row ? rowToAffinity(row) : null;
+  provider: string,
+  ttlMs = 0,
+  now: number = Date.now()
+): SessionAccountAffinityRecord | null {
+  if (!sessionKey || !provider || normalizePositiveTtl(ttlMs) <= 0) return null;
+
+  const key = affinityKey(sessionKey, provider);
+  const row = getDbInstance()
+    .prepare("SELECT value FROM key_value WHERE namespace = ? AND key = ?")
+    .get(NAMESPACE, key) as { value?: unknown } | undefined;
+  const record = parseRecord(row?.value);
+  if (!record) return null;
+
+  if (Date.parse(record.expiresAt) <= now) {
+    deleteAffinityKey(key);
+    return null;
+  }
+
+  return record;
 }
 
 export function upsertSessionAccountAffinity(
   sessionKey: string,
   provider: string,
   connectionId: string,
-  now: number = Date.now()
+  now: number = Date.now(),
+  ttlMs = 0
 ): void {
-  const db = getDbInstance();
-  db.prepare(
-    `INSERT INTO session_account_affinity
-       (session_key, provider, connection_id, created_at, last_seen_at)
-     VALUES (?, ?, ?, ?, ?)
-     ON CONFLICT(session_key, provider) DO UPDATE SET
-       connection_id = excluded.connection_id,
-       last_seen_at = excluded.last_seen_at`
-  ).run(sessionKey, provider, connectionId, now, now);
+  const normalizedTtlMs = normalizePositiveTtl(ttlMs);
+  if (!sessionKey || !provider || !connectionId || normalizedTtlMs <= 0) return;
+
+  const key = affinityKey(sessionKey, provider);
+  const existing = getSessionAccountAffinity(sessionKey, provider, normalizedTtlMs, now);
+  const timestamp = isoFromMs(now);
+  const record: SessionAccountAffinityRecord = {
+    connectionId,
+    createdAt: existing?.createdAt ?? timestamp,
+    lastUsedAt: timestamp,
+    expiresAt: isoFromMs(now + normalizedTtlMs),
+  };
+
+  getDbInstance()
+    .prepare("INSERT OR REPLACE INTO key_value (namespace, key, value) VALUES (?, ?, ?)")
+    .run(NAMESPACE, key, JSON.stringify(record));
 }
 
 export function touchSessionAccountAffinity(
   sessionKey: string,
   provider: string,
-  now: number = Date.now()
+  now: number = Date.now(),
+  ttlMs = 0
 ): void {
-  const db = getDbInstance();
-  db.prepare(
-    `UPDATE session_account_affinity
-     SET last_seen_at = ?
-     WHERE session_key = ? AND provider = ?`
-  ).run(now, sessionKey, provider);
+  const normalizedTtlMs = normalizePositiveTtl(ttlMs);
+  if (normalizedTtlMs <= 0) return;
+
+  const existing = getSessionAccountAffinity(sessionKey, provider, normalizedTtlMs, now);
+  if (!existing) return;
+
+  upsertSessionAccountAffinity(sessionKey, provider, existing.connectionId, now, normalizedTtlMs);
 }
 
 export function deleteSessionAccountAffinity(sessionKey: string, provider: string): void {
-  const db = getDbInstance();
-  db.prepare("DELETE FROM session_account_affinity WHERE session_key = ? AND provider = ?").run(
-    sessionKey,
-    provider
-  );
+  if (!sessionKey || !provider) return;
+  deleteAffinityKey(affinityKey(sessionKey, provider));
 }
 
 export function cleanupStaleSessionAccountAffinities(
-  ttlMs: number = DEFAULT_TTL_MS,
+  _ttlMs: number = 30 * 60 * 1000,
   now: number = Date.now()
 ): number {
   const db = getDbInstance();
-  const cutoff = now - ttlMs;
-  const result = db
-    .prepare("DELETE FROM session_account_affinity WHERE last_seen_at < ?")
-    .run(cutoff);
-  return Number(result.changes || 0);
+  const rows = db
+    .prepare("SELECT key, value FROM key_value WHERE namespace = ?")
+    .all(NAMESPACE) as Array<{ key?: unknown; value?: unknown }>;
+  let deleted = 0;
+
+  const tx = db.transaction(() => {
+    for (const row of rows) {
+      if (typeof row.key !== "string") continue;
+      const record = parseRecord(row.value);
+      if (!record || Date.parse(record.expiresAt) <= now) {
+        db.prepare("DELETE FROM key_value WHERE namespace = ? AND key = ?").run(NAMESPACE, row.key);
+        deleted++;
+      }
+    }
+  });
+
+  tx();
+  return deleted;
 }
 
 export function startSessionAccountAffinityCleanup(): void {
@@ -112,7 +169,7 @@ export function startSessionAccountAffinityCleanup(): void {
       console.warn("[SESSION_AFFINITY] Periodic cleanup failed:", error);
     }
   }, CLEANUP_INTERVAL_MS);
-  cleanupTimer.unref?.();
+  if (typeof cleanupTimer === "object" && "unref" in cleanupTimer) cleanupTimer.unref?.();
 }
 
 export function stopSessionAccountAffinityCleanupForTests(): void {

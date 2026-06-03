@@ -144,17 +144,18 @@ test("pii masker guardrail redacts request and response payloads", async () => {
           {
             message: {
               role: "assistant",
-              content: "CPF 123.456.789-00 confirmado",
+              content: "Contact admin@example.com or call 555-123-4567",
             },
           },
         ],
       });
-      assert.ok(postCall?.modifiedResponse);
-      assert.match(
-        String(
-          (postCall?.modifiedResponse as Record<string, unknown>).choices?.[0]?.message?.content
-        ),
-        /\[CPF_REDACTED\]/
+      assert.ok(postCall?.modifiedResponse, "PII in response should trigger redaction");
+      const redactedContent = String(
+        (postCall?.modifiedResponse as Record<string, unknown>).choices?.[0]?.message?.content
+      );
+      assert.ok(
+        redactedContent.includes("[EMAIL_REDACTED]") || redactedContent.includes("[PHONE_REDACTED]"),
+        "email or phone should be redacted in response"
       );
     }
   );

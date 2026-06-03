@@ -6,9 +6,14 @@ export default defineConfig({
   test: {
     environment: "jsdom",
     globals: true,
+    pool: "threads",
+    maxWorkers: 20,
+    fileParallelism: true,
+    maxConcurrency: 20,
     include: [
       "src/app/**/dashboard/cache/__tests__/**/*.test.tsx",
       "src/app/**/dashboard/endpoint/__tests__/**/*.test.tsx",
+      "src/app/**/dashboard/webhooks/__tests__/**/*.test.tsx",
       "src/shared/hooks/__tests__/**/*.test.tsx",
       "src/lib/memory/__tests__/**/*.test.ts",
       "src/lib/skills/__tests__/**/*.test.ts",

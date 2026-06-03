@@ -1,6 +1,6 @@
 ---
 title: "OmniRoute — Deployment Guide on VM with Cloudflare"
-version: 3.8.0
+version: 3.8.2
 lastUpdated: 2026-05-13
 ---
 

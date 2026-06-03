@@ -3,7 +3,7 @@
 ## Project
 
 Unified AI proxy/router — route any LLM through one endpoint. Multi-provider support
-with **160+ providers** (OpenAI, Anthropic, Gemini, DeepSeek, Groq, xAI, Mistral, Fireworks,
+with **212 providers** (OpenAI, Anthropic, Gemini, DeepSeek, Groq, xAI, Mistral, Fireworks,
 Cohere, NVIDIA, Cerebras, Pollinations, Puter, Cloudflare AI, HuggingFace, DeepInfra,
 SambaNova, Meta Llama API, Moonshot AI, AI21 Labs, Databricks, Snowflake, and many more)
 with **MCP Server** (37 tools), **A2A v0.3 Protocol**, and **Electron desktop app**.
@@ -23,19 +23,32 @@ with **MCP Server** (37 tools), **A2A v0.3 Protocol**, and **Electron desktop ap
 
 ## Build, Lint, and Test Commands
 
-| Command                             | Description                       |
-| ----------------------------------- | --------------------------------- |
-| `npm run dev`                       | Start Next.js dev server          |
-| `npm run build`                     | Production build (isolated)       |
-| `npm run start`                     | Run production build              |
-| `npm run build:cli`                 | Build CLI package                 |
-| `npm run lint`                      | ESLint on all source files        |
-| `npm run typecheck:core`            | TypeScript core type checking     |
-| `npm run typecheck:noimplicit:core` | Strict checking (no implicit any) |
-| `npm run check`                     | Run lint + test                   |
-| `npm run check:cycles`              | Check for circular dependencies   |
-| `npm run electron:dev`              | Run Electron app in dev mode      |
-| `npm run electron:build`            | Build Electron app for current OS |
+| Command                             | Description                                                      |
+| ----------------------------------- | ---------------------------------------------------------------- |
+| `npm run dev`                       | Start Next.js dev server                                         |
+| `npm run build`                     | Production build: `next build` → `.build/next/` + assemble `dist/` |
+| `npm run build:release`             | Clean rebuild + HEAD sentinel (`dist/BUILD_SHA`) — use for deploy |
+| `npm run start`                     | Run production build                                             |
+| `npm run build:cli`                 | Build CLI package                                                |
+| `npm run lint`                      | ESLint on all source files                                       |
+| `npm run typecheck:core`            | TypeScript core type checking                                    |
+| `npm run typecheck:noimplicit:core` | Strict checking (no implicit any)                                |
+| `npm run check`                     | Run lint + test                                                  |
+| `npm run check:cycles`              | Check for circular dependencies                                  |
+| `npm run electron:dev`              | Run Electron app in dev mode                                     |
+| `npm run electron:build`            | Build Electron app for current OS                                |
+
+**Build output layout:**
+
+| Directory | Purpose                                             | Gitignored |
+| --------- | --------------------------------------------------- | ---------- |
+| `src/`    | Application source (TypeScript / TSX)               | No         |
+| `.build/` | Build intermediates (`distDir = .build/next`)       | Yes        |
+| `dist/`   | Shippable bundle assembled by `assembleStandalone`  | Yes        |
+
+The pipeline is a single `next build` pass — intermediates land in `.build/next/`, the
+assembled bundle in `dist/`. VPS deploys rsync `dist/` into the remote
+`/usr/lib/node_modules/omniroute/app/` directory (VPS image path is unchanged).
 
 ### Running Tests
 
@@ -504,6 +517,24 @@ For any non-trivial change, read the matching deep-dive first:
 | Tunnels                              | [`docs/ops/TUNNELS_GUIDE.md`](docs/ops/TUNNELS_GUIDE.md)                                                                            |
 | Electron desktop                     | [`docs/guides/ELECTRON_GUIDE.md`](docs/guides/ELECTRON_GUIDE.md)                                                                    |
 | Release flow                         | [`docs/ops/RELEASE_CHECKLIST.md`](docs/ops/RELEASE_CHECKLIST.md)                                                                    |
+
+---
+
+## Fork / Upstream Workflow
+
+This repository is a fork of `diegosouzapw/OmniRoute`. Keep fork-only operational
+changes (for example GHCR image publishing, personal deployment workflows, or local
+automation) out of upstream contribution PRs.
+
+When preparing a PR for upstream, always start the work branch from `upstream/main`,
+not from this fork's `main`:
+
+```bash
+git fetch upstream
+git switch -c <branch-name> upstream/main
+```
+
+Only cherry-pick or reapply the changes intended for the upstream PR.
 
 ---
 

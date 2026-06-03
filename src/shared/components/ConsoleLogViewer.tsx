@@ -119,8 +119,23 @@ export default function ConsoleLogViewer() {
     }
   };
 
-  const getText = (entry: LogEntry) => entry.msg || entry.message || "";
-  const getComponent = (entry: LogEntry) => entry.component || entry.module || "";
+  const stringifyValue = (value: unknown) => {
+    if (value === undefined || value === null) return "";
+    if (typeof value === "string") return value;
+    if (typeof value === "number" || typeof value === "boolean" || typeof value === "bigint") {
+      return String(value);
+    }
+
+    try {
+      return JSON.stringify(value);
+    } catch {
+      return String(value);
+    }
+  };
+
+  const getText = (entry: LogEntry) => stringifyValue(entry.msg || entry.message || "");
+  const getComponent = (entry: LogEntry) => stringifyValue(entry.component || entry.module || "");
+  const getCorrelationId = (entry: LogEntry) => stringifyValue(entry.correlationId);
 
   // Apply text search filter
   const filteredLogs = searchText
@@ -243,11 +258,12 @@ export default function ConsoleLogViewer() {
             </div>
           ) : (
             filteredLogs.map((entry, idx) => {
-              const level = (entry.level || "info").toLowerCase();
+              const level = stringifyValue(entry.level || "info").toLowerCase();
               const colorClass = LEVEL_COLORS[level] || LEVEL_COLORS.info;
               const bgClass = LEVEL_BG[level] || "";
               const comp = getComponent(entry);
               const msg = getText(entry);
+              const correlationId = getCorrelationId(entry);
 
               return (
                 <div
@@ -275,10 +291,8 @@ export default function ConsoleLogViewer() {
                   <span className="text-[#c9d1d9] flex-1 break-all">
                     {msg}
                     {/* Extra meta */}
-                    {entry.correlationId && (
-                      <span className="text-[#484f58] ml-2">
-                        cid:{entry.correlationId.slice(0, 8)}
-                      </span>
+                    {correlationId && (
+                      <span className="text-[#484f58] ml-2">cid:{correlationId.slice(0, 8)}</span>
                     )}
                   </span>
 

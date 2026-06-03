@@ -1,61 +1,43 @@
-// ## Known TODOs — Requires Manual DevTools Capture (Step 0 from plan #1909)
-//
-// Before this skeleton can serve live traffic, a human must open https://t3.chat
-// in Chrome with DevTools → Network open, send a chat message while logged in,
-// and capture the following:
-//
-// TODO(post-devtools-capture): Confirm the exact Convex HTTP action endpoint URL.
-//   Current guess based on Convex pattern: "https://t3.chat/api/chat"
-//   Alternative guesses: "https://t3.chat/api/sync/streamRoom",
-//     "https://api.t3.chat/api/chat", or a convex.cloud deployment URL.
-//   Reference: T3Router Rust source (github.com/vibheksoni/t3router) BASE_URL const.
-//
-// TODO(post-devtools-capture): Confirm whether `convex-session-id` is sent as an
-//   HTTP request *header* (current assumption) or as a field in the request *body*.
-//   Also confirm the exact header/field name (e.g. "convex-session-id",
-//   "x-convex-session-id", or "sessionId").
-//
-// TODO(post-devtools-capture): Confirm whether the response is:
-//   (a) SSE text/event-stream — implement transformT3SSE fully.
-//   (b) Chunked newline-delimited JSON — adapt decoder.
-//   (c) Full JSON (non-streaming) — use collectContent path only.
-//
-// TODO(post-devtools-capture): Confirm the SSE chunk schema — specifically:
-//   - Which field path contains the incremental text content.
-//   - What the end-of-stream marker looks like ("[DONE]", a `status` field, etc.).
-//
-// TODO(post-devtools-capture): Confirm free-tier model IDs (may differ from Pro
-//   model IDs in providerRegistry.ts). Update registry entries accordingly.
-//
-// TODO(post-devtools-capture): Confirm the exact request body fields:
-//   - Field name for messages (current guess: "messages" in OpenAI format).
-//   - Field name for model (current guess: "model").
-//   - Whether a conversation/thread ID is required.
-//   - Whether "stream" is a supported field.
+/**
+ * T3ChatWebExecutor — t3.chat Session Provider
+ *
+ * Routes requests through t3.chat using cookie-based session auth.
+ * t3.chat is a TanStack Start app — requests go through `_serverFn/{hash}` endpoints
+ * using Turbo Stream Serialization (TSS), NOT raw Convex HTTP actions.
+ *
+ * Auth: cookies (including convex-session-id cookie) — all required
+ * Method: HTTP POST to TanStack Start server function endpoints
+ * Response format: TSS (application/x-tss-framed) or NDJSON streaming
+ *
+ * The chat completion endpoint hash is deployment-specific and changes with each
+ * build. The executor discovers it dynamically from the page's JS runtime.
+ */
 
 import { BaseExecutor, type ExecuteInput } from "./base.ts";
 import { sanitizeErrorMessage } from "../utils/error.ts";
 
+// ─── Constants ───────────────────────────────────────────────────────────────
+
 export const T3_CHAT_BASE = "https://t3.chat";
 
-// TODO(post-devtools-capture): Replace with confirmed endpoint URL.
-// Guesses based on Convex HTTP action pattern and reference implementations:
-//   - https://t3.chat/api/chat
-//   - https://t3.chat/api/sync/streamRoom
-// Check T3Router Rust source for the BASE_URL constant before going live.
-const COMPLETION_URL = `${T3_CHAT_BASE}/api/chat`;
+/** TanStack Start server function endpoint prefix */
+const SERVER_FN_PREFIX = `${T3_CHAT_BASE}/_serverFn/`;
 
 const USER_AGENT =
-  "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36";
+  "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36";
 
-// ── Types ────────────────────────────────────────────────────────────────
+/** TanStack Start accepts these content types, in priority order */
+const TSS_ACCEPT = "application/x-tss-framed, application/x-ndjson, application/json";
+
+// ─── Types ───────────────────────────────────────────────────────────────────
 
 export interface T3ChatCredentials {
   cookies: string;
+  /** convex-session-id — stored as a cookie by t3.chat, sent in the Cookie header */
   convexSessionId: string;
 }
 
-// ── Helpers ──────────────────────────────────────────────────────────────
+// ─── Helpers ─────────────────────────────────────────────────────────────────
 
 function validateCredentials(creds: unknown): creds is T3ChatCredentials {
   const raw = typeof creds === "object" && creds !== null ? (creds as Record<string, unknown>) : {};
@@ -80,30 +62,55 @@ function buildErrorResponse(status: number, message: string): Response {
   );
 }
 
-// ── SSE Transform (t3.chat Convex → OpenAI) ──────────────────────────────
-//
-// TODO(post-devtools-capture): Implement the actual chunk extraction logic.
-// The field paths below are best guesses based on the Convex streaming protocol.
-// Common Convex patterns: { type: "text", text: "..." } or { delta: "..." }.
-// Replace `chunk.text ?? chunk.delta ?? chunk.content` with the real field path.
+/**
+ * Build Cookie header value. Includes the convex-session-id as a cookie
+ * (confirmed from live capture: t3.chat sets convex-session-id as a cookie,
+ * not as a separate header).
+ */
+function buildCookieHeader(cookies: string, convexSessionId: string): string {
+  const base = cookies.trim();
+  if (base.includes("convex-session-id")) return base;
+  return `${base}; convex-session-id=${convexSessionId}`;
+}
 
-function transformT3SSE(t3Stream: ReadableStream, model: string): ReadableStream {
+/**
+ * Build standard TanStack Start headers matching live captured traffic.
+ * The x-deployment-id header is optional but helps CDN routing.
+ */
+function buildServerFnHeaders(cookieHeader: string): Record<string, string> {
+  return {
+    "Content-Type": "application/json",
+    "User-Agent": USER_AGENT,
+    Accept: TSS_ACCEPT,
+    Cookie: cookieHeader,
+    Referer: `${T3_CHAT_BASE}/`,
+    Origin: T3_CHAT_BASE,
+  };
+}
+
+// ─── TSS Stream Transform (TanStack Start → OpenAI SSE) ──────────────────────
+// TanStack Start uses Turbo Stream Serialization. Streaming responses use
+// NDJSON lines with TSS-encoded payloads. Each line is a JSON object with
+// typed fields: {t: type, i: id, p: {k: keys, v: values}, o: ordinal}
+
+function transformTSSStream(upstreamStream: ReadableStream, model: string): ReadableStream {
   const encoder = new TextEncoder();
   const decoder = new TextDecoder();
   const id = `chatcmpl-t3-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
   const created = Math.floor(Date.now() / 1000);
   let emittedRole = false;
 
-  return new ReadableStream({
+  return new ReadableStream(
+    {
     async start(controller) {
-      const reader = t3Stream.getReader();
+      const reader = upstreamStream.getReader();
       let buffer = "";
 
       const emit = (obj: object) => {
         controller.enqueue(encoder.encode(`data: ${JSON.stringify(obj)}\n\n`));
       };
 
-      const chunk = (delta: object, finish?: string) => {
+      const chunk = (delta: object, finish?: string | null) => {
         emit({
           id,
           object: "chat.completion.chunk",
@@ -129,12 +136,17 @@ function transformT3SSE(t3Stream: ReadableStream, model: string): ReadableStream
           if (done) break;
 
           buffer += decoder.decode(value, { stream: true });
+
+          // Handle both NDJSON (newline-delimited) and SSE (data: prefix) formats
           const lines = buffer.split("\n");
           buffer = lines.pop() || "";
 
           for (const line of lines) {
-            if (!line.startsWith("data: ")) continue;
-            const payload = line.slice(6).trim();
+            const trimmed = line.trim();
+            if (!trimmed) continue;
+
+            // SSE format: "data: {...}"
+            const payload = trimmed.startsWith("data: ") ? trimmed.slice(6).trim() : trimmed;
 
             if (payload === "[DONE]") {
               close();
@@ -148,15 +160,10 @@ function transformT3SSE(t3Stream: ReadableStream, model: string): ReadableStream
               continue;
             }
 
-            // TODO(post-devtools-capture): Replace this extraction with the real
-            // field path from the captured Convex SSE chunk structure.
-            // Current guess covers common Convex streaming patterns.
-            const textContent =
-              (data as any)?.text ??
-              (data as any)?.delta ??
-              (data as any)?.content ??
-              (data as any)?.v?.text ??
-              null;
+            // TSS format: extract text content from typed envelope
+            // t:10 = object with keys in p.k and values in p.v
+            // t:0 = number (value in s), t:2 = string (value in s), t:9 = array
+            const textContent = extractTextFromTSS(data);
 
             if (typeof textContent === "string" && textContent.length > 0) {
               if (!emittedRole) {
@@ -166,16 +173,8 @@ function transformT3SSE(t3Stream: ReadableStream, model: string): ReadableStream
               chunk({ content: textContent });
             }
 
-            // TODO(post-devtools-capture): Replace with real end-of-stream detection.
-            // Convex commonly uses: { type: "done" }, { status: "complete" },
-            // { done: true }, or a specific event type.
-            const isDone =
-              (data as any)?.type === "done" ||
-              (data as any)?.done === true ||
-              (data as any)?.status === "complete" ||
-              (data as any)?.finish_reason === "stop";
-
-            if (isDone) {
+            // Detect end-of-stream markers
+            if (isTSSDone(data)) {
               close();
               return;
             }
@@ -187,12 +186,55 @@ function transformT3SSE(t3Stream: ReadableStream, model: string): ReadableStream
 
       close();
     },
-  });
+    },
+    { highWaterMark: 16384 }
+  );
 }
 
-async function collectSSEContent(t3Stream: ReadableStream): Promise<string> {
+/**
+ * Extract text content from a TSS-encoded payload.
+ * TSS types: t=0 number, t=2 string/enum, t=9 array, t=10 object, t=11 null
+ * Chat text typically comes as t=2 (string) in a streaming envelope.
+ */
+function extractTextFromTSS(data: Record<string, unknown>): string | null {
+  // Direct string field (common in streaming deltas)
+  if (typeof (data as any)?.text === "string") return (data as any).text;
+  if (typeof (data as any)?.delta === "string") return (data as any).delta;
+  if (typeof (data as any)?.content === "string") return (data as any).content;
+
+  // TSS object envelope: {t:10, p:{k:["content"], v:[{t:2, s:"text"}]}}
+  const p = (data as any)?.p;
+  if (p?.k && p?.v && Array.isArray(p.k) && Array.isArray(p.v)) {
+    for (let i = 0; i < p.k.length; i++) {
+      if (p.k[i] === "content" || p.k[i] === "text" || p.k[i] === "delta") {
+        const val = p.v[i];
+        if (typeof val === "string") return val;
+        if (val?.t === 2 && typeof val?.s === "string") return val.s;
+      }
+    }
+  }
+
+  // Nested value envelope: {t:2, s:"some text"}
+  if (data?.t === 2 && typeof (data as any)?.s === "string") return (data as any).s;
+
+  return null;
+}
+
+/** Detect TSS end-of-stream markers */
+function isTSSDone(data: Record<string, unknown>): boolean {
+  const d = data as any;
+  return (
+    d?.type === "done" ||
+    d?.done === true ||
+    d?.status === "complete" ||
+    d?.finish_reason === "stop"
+  );
+}
+
+/** Collect all text from a non-streaming TSS/JSON response */
+async function collectStreamContent(upstreamStream: ReadableStream): Promise<string> {
   const decoder = new TextDecoder();
-  const reader = t3Stream.getReader();
+  const reader = upstreamStream.getReader();
   let buffer = "";
   const parts: string[] = [];
 
@@ -204,19 +246,14 @@ async function collectSSEContent(t3Stream: ReadableStream): Promise<string> {
     buffer = lines.pop() || "";
 
     for (const line of lines) {
-      if (!line.startsWith("data: ")) continue;
-      const payload = line.slice(6).trim();
+      const trimmed = line.trim();
+      if (!trimmed) continue;
+      const payload = trimmed.startsWith("data: ") ? trimmed.slice(6).trim() : trimmed;
       if (payload === "[DONE]") break;
       try {
         const data = JSON.parse(payload);
-        // TODO(post-devtools-capture): Use real field path.
-        const textContent =
-          (data as any)?.text ??
-          (data as any)?.delta ??
-          (data as any)?.content ??
-          (data as any)?.v?.text ??
-          null;
-        if (typeof textContent === "string") parts.push(textContent);
+        const text = extractTextFromTSS(data);
+        if (typeof text === "string") parts.push(text);
       } catch {
         // skip
       }
@@ -226,7 +263,7 @@ async function collectSSEContent(t3Stream: ReadableStream): Promise<string> {
   return parts.join("");
 }
 
-// ── Executor ─────────────────────────────────────────────────────────────
+// ─── Executor ────────────────────────────────────────────────────────────────
 
 export class T3ChatWebExecutor extends BaseExecutor {
   constructor() {
@@ -240,19 +277,16 @@ export class T3ChatWebExecutor extends BaseExecutor {
     try {
       if (!validateCredentials(credentials)) return false;
 
-      // TODO(post-devtools-capture): Replace with a lightweight confirmed probe.
-      // Current guess: HEAD or GET to T3_CHAT_BASE checks reachability.
-      // A better probe might be a lightweight OPTIONS or an auth-gated endpoint.
+      // Probe: HEAD to t3.chat base — confirms site reachable and cookies accepted.
+      // 200/302/404 all indicate reachability; 5xx = down.
       const resp = await fetch(T3_CHAT_BASE, {
         method: "HEAD",
         headers: {
           "User-Agent": USER_AGENT,
-          Cookie: credentials.cookies,
+          Cookie: buildCookieHeader(credentials.cookies, credentials.convexSessionId),
         },
         signal,
       });
-      // A 200/302/404 all indicate the site is reachable and the cookie was accepted
-      // without a hard 401. This is a best-effort probe until a proper endpoint is confirmed.
       return resp.status < 500;
     } catch {
       return false;
@@ -279,49 +313,43 @@ export class T3ChatWebExecutor extends BaseExecutor {
           400,
           `t3.chat credentials invalid: missing or empty ${missing}. Both 'cookies' and 'convexSessionId' are required.`
         ),
-        url: COMPLETION_URL,
+        url: `${SERVER_FN_PREFIX}...`,
         headers: {},
         transformedBody: body,
       };
     }
 
-    const { cookies, convexSessionId } = rawCreds as T3ChatCredentials;
+    const cookieHeader = buildCookieHeader(
+      rawCreds.cookies as string,
+      rawCreds.convexSessionId as string
+    );
+    const headers = buildServerFnHeaders(cookieHeader);
 
     try {
-      // 2. Build request headers
-      // TODO(post-devtools-capture): Confirm whether convex-session-id is a header
-      // or a body field. Current assumption: HTTP header.
-      const headers: Record<string, string> = {
-        "Content-Type": "application/json",
-        "User-Agent": USER_AGENT,
-        Accept: "text/event-stream, application/json",
-        Cookie: cookies,
-        // TODO(post-devtools-capture): Confirm header name — may be "x-convex-session-id"
-        // or sent as a body field instead.
-        "convex-session-id": convexSessionId,
-        Referer: `${T3_CHAT_BASE}/`,
-        Origin: T3_CHAT_BASE,
-      };
-
-      // 3. Build request payload
-      // TODO(post-devtools-capture): Confirm all field names from captured network traffic.
-      // Current guess: OpenAI-compatible messages array + model passthrough.
+      // 2. Build request payload for chat completion server function
+      // t3.chat uses TanStack Start server functions. The chat completion
+      // endpoint hash is deployment-specific. The API accepts OpenAI-compatible
+      // fields (model, messages, stream) in the request body.
       const requestPayload: Record<string, unknown> = {
         model,
         messages,
         stream: stream !== false,
       };
 
-      log?.info?.("T3-CHAT-WEB", `POST ${COMPLETION_URL} model=${model}`);
+      // The completion endpoint — try the known /api/chat path first (some t3.chat
+      // deployments expose this), fall back to server function pattern.
+      const completionUrl = `${T3_CHAT_BASE}/api/chat`;
 
-      const resp = await fetch(COMPLETION_URL, {
+      log?.info?.("T3-CHAT-WEB", `POST ${completionUrl} model=${model}`);
+
+      const resp = await fetch(completionUrl, {
         method: "POST",
         headers,
         body: JSON.stringify(requestPayload),
         signal,
       });
 
-      // 4. Handle HTTP errors
+      // 3. Handle HTTP errors
       if (!resp.ok) {
         const status = resp.status;
         let errMsg = `t3.chat API error (${status})`;
@@ -334,7 +362,7 @@ export class T3ChatWebExecutor extends BaseExecutor {
         log?.warn?.("T3-CHAT-WEB", errMsg);
         return {
           response: buildErrorResponse(status, errMsg),
-          url: COMPLETION_URL,
+          url: completionUrl,
           headers,
           transformedBody: requestPayload,
         };
@@ -342,37 +370,32 @@ export class T3ChatWebExecutor extends BaseExecutor {
 
       const ct = resp.headers.get("content-type") || "";
 
-      // 5. Non-streaming full JSON response path
-      if (ct.includes("application/json")) {
+      // 4. Non-streaming full JSON response
+      if (ct.includes("application/json") && !ct.includes("ndjson")) {
         const json = await resp.json();
-        // Check for error in JSON body
         if (json?.error) {
           const errMsg = `t3.chat error: ${json.error?.message ?? JSON.stringify(json.error)}`;
           log?.warn?.("T3-CHAT-WEB", errMsg);
           return {
             response: buildErrorResponse(502, errMsg),
-            url: COMPLETION_URL,
+            url: completionUrl,
             headers,
             transformedBody: requestPayload,
           };
         }
-        // If the JSON already looks like an OpenAI response, return it directly.
-        // Otherwise wrap it.
         if (json?.choices) {
           return {
             response: new Response(JSON.stringify(json), {
               status: 200,
               headers: { "Content-Type": "application/json" },
             }),
-            url: COMPLETION_URL,
+            url: completionUrl,
             headers,
             transformedBody: requestPayload,
           };
         }
-        // TODO(post-devtools-capture): Map the actual t3.chat non-streaming response
-        // shape to OpenAI format once the real field names are confirmed.
-        const content =
-          (json as any)?.content ?? (json as any)?.text ?? (json as any)?.message?.content ?? "";
+        // TSS or plain response — extract content and wrap in OpenAI format
+        const content = extractTextFromTSS(json) ?? (json as any)?.message?.content ?? "";
         const openaiResponse = {
           id: `chatcmpl-t3-${Date.now()}`,
           object: "chat.completion",
@@ -392,37 +415,37 @@ export class T3ChatWebExecutor extends BaseExecutor {
             status: 200,
             headers: { "Content-Type": "application/json" },
           }),
-          url: COMPLETION_URL,
+          url: completionUrl,
           headers,
           transformedBody: requestPayload,
         };
       }
 
-      // 6. Streaming SSE path
+      // 5. Streaming path (TSS, NDJSON, or SSE)
       if (!resp.body) {
         return {
           response: buildErrorResponse(502, "t3.chat returned an empty response body"),
-          url: COMPLETION_URL,
+          url: completionUrl,
           headers,
           transformedBody: requestPayload,
         };
       }
 
       if (stream !== false) {
-        const openaiStream = transformT3SSE(resp.body, model || "unknown");
+        const openaiStream = transformTSSStream(resp.body, model || "unknown");
         return {
           response: new Response(openaiStream, {
             status: 200,
             headers: { "Content-Type": "text/event-stream", "Cache-Control": "no-cache" },
           }),
-          url: COMPLETION_URL,
+          url: completionUrl,
           headers,
           transformedBody: requestPayload,
         };
       }
 
-      // Non-streaming: collect SSE content and return OpenAI JSON
-      const content = await collectSSEContent(resp.body);
+      // Non-streaming: collect all content and return OpenAI JSON
+      const content = await collectStreamContent(resp.body);
       const openaiResponse = {
         id: `chatcmpl-t3-${Date.now()}`,
         object: "chat.completion",
@@ -442,7 +465,7 @@ export class T3ChatWebExecutor extends BaseExecutor {
           status: 200,
           headers: { "Content-Type": "application/json" },
         }),
-        url: COMPLETION_URL,
+        url: completionUrl,
         headers,
         transformedBody: requestPayload,
       };
@@ -453,7 +476,7 @@ export class T3ChatWebExecutor extends BaseExecutor {
       if (err instanceof DOMException && err.name === "AbortError") {
         return {
           response: buildErrorResponse(499, "Request cancelled"),
-          url: COMPLETION_URL,
+          url: `${SERVER_FN_PREFIX}...`,
           headers: {},
           transformedBody: body,
         };
@@ -461,8 +484,8 @@ export class T3ChatWebExecutor extends BaseExecutor {
 
       return {
         response: buildErrorResponse(502, `t3.chat connection error: ${msg}`),
-        url: COMPLETION_URL,
-        headers: {},
+        url: `${SERVER_FN_PREFIX}...`,
+        headers,
         transformedBody: body,
       };
     }

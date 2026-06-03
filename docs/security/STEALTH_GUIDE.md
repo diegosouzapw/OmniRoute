@@ -1,6 +1,6 @@
 ---
 title: "Stealth Guide"
-version: 3.8.0
+version: 3.8.2
 lastUpdated: 2026-05-13
 ---
 
@@ -88,10 +88,10 @@ Applied to: `system` blocks, all `messages[].content`, and `tools[].description`
 
 For third-party Anthropic relays that only accept "real Claude Code" traffic:
 
-- `CLAUDE_CODE_COMPATIBLE_USER_AGENT = "claude-cli/2.1.137 (external, sdk-cli)"`
-- `CLAUDE_CODE_COMPATIBLE_STAINLESS_PACKAGE_VERSION = "0.81.0"`
+- `CLAUDE_CODE_COMPATIBLE_USER_AGENT = "claude-cli/2.1.158 (external, sdk-cli)"`
+- `CLAUDE_CODE_COMPATIBLE_STAINLESS_PACKAGE_VERSION = "0.94.0"`
 - `CLAUDE_CODE_COMPATIBLE_STAINLESS_RUNTIME_VERSION = "v24.3.0"`
-- `anthropic-beta = "claude-code-20250219,interleaved-thinking-2025-05-14,effort-2025-11-24"`
+- `anthropic-beta = "claude-code-20250219,interleaved-thinking-2025-05-14,effort-2025-11-24,redact-thinking-2026-02-12"`
 - `CONTEXT_1M_BETA_HEADER = "context-1m-2025-08-07"` (Opus/Sonnet 4.x family)
 - Default path: `/v1/messages?beta=true`
 
@@ -212,10 +212,10 @@ All MITM endpoints require management auth (`requireCliToolsAuth`). The sudo pas
 
 | Variable                 | Default                                       |
 | ------------------------ | --------------------------------------------- |
-| `CLAUDE_USER_AGENT`      | `claude-cli/2.1.143 (external, cli)`          |
-| `CODEX_USER_AGENT`       | `codex-cli/0.131.0 (Windows 10.0.26200; x64)` |
+| `CLAUDE_USER_AGENT`      | `claude-cli/2.1.158 (external, cli)`          |
+| `CODEX_USER_AGENT`       | `codex-cli/0.132.0 (Windows 10.0.26200; x64)` |
 | `GITHUB_USER_AGENT`      | `GitHubCopilotChat/0.45.1`                    |
-| `ANTIGRAVITY_USER_AGENT` | `antigravity/1.23.2 darwin/arm64`             |
+| `ANTIGRAVITY_USER_AGENT` | `antigravity/2.0.1 darwin/arm64`              |
 | `KIRO_USER_AGENT`        | `AWS-SDK-JS/3.0.0 kiro-ide/1.0.0`             |
 | `QODER_USER_AGENT`       | `Qoder-Cli`                                   |
 | `QWEN_USER_AGENT`        | `QwenCode/0.15.9 (linux; x64)`                |

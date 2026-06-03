@@ -4,27 +4,75 @@
   "rules": [
     {
       "name": "pt_purpose",
-      "pattern": "\\b(?:a fim de|com o objetivo de|para poder)\\b\\s*",
+      "pattern": "\\b(?:a fim de|com o objetivo de|para poder|com a finalidade de|com o intuito de)\\b\\s*",
       "replacement": "para ",
       "context": "all",
       "category": "structural",
-      "minIntensity": "lite"
+      "minIntensity": "lite",
+      "description": "Verbose purpose connectors → 'para'"
     },
     {
       "name": "pt_connectors",
-      "pattern": "\\b(?:alem disso|além disso|adicionalmente|outrossim)\\b\\s*",
+      "pattern": "\\b(?:alem disso|além disso|adicionalmente|outrossim|não obstante|por outro lado)\\b[,]?\\s*",
       "replacement": "também ",
       "context": "all",
       "category": "structural",
-      "minIntensity": "lite"
+      "minIntensity": "lite",
+      "description": "Verbose additive connectors"
     },
     {
       "name": "pt_emphasis",
-      "pattern": "\\b(?:muito|realmente|extremamente|bastante)\\s+(?=[a-záéíóúâêôãõç])",
+      "pattern": "\\b(?:muito|realmente|extremamente|bastante|totalmente|completamente|absolutamente)\\s+(?=[a-záéíóúâêôãõç])",
       "replacement": "",
       "context": "all",
       "category": "structural",
-      "minIntensity": "lite"
+      "minIntensity": "lite",
+      "description": "Intensity adverbs before adjectives — rarely add precision"
+    },
+    {
+      "name": "pt_passive_voice",
+      "pattern": "\\b(?:é necessário que|é preciso que|é importante que|é fundamental que|é essencial que)\\b\\s*",
+      "replacement": "Deve ",
+      "context": "all",
+      "category": "structural",
+      "minIntensity": "full",
+      "description": "Impersonal passive constructions → direct imperative"
+    },
+    {
+      "name": "pt_causality_verbose",
+      "pattern": "\\b(?:isso acontece porque|isso ocorre porque|isso se deve ao fato de que|a causa disso é que)\\b\\s*",
+      "replacement": "Causa: ",
+      "context": "assistant",
+      "category": "structural",
+      "minIntensity": "full",
+      "description": "Verbose causality explanation → diagnostic label"
+    },
+    {
+      "name": "pt_consequence",
+      "pattern": "\\b(?:como consequência|como resultado|por conta disso|em decorrência disso|por causa disso)\\b[,]?\\s*",
+      "replacement": "→ ",
+      "context": "all",
+      "category": "structural",
+      "minIntensity": "full",
+      "description": "Consequence connectors → arrow notation (troglodita style)"
+    },
+    {
+      "name": "pt_comparison_verbose",
+      "pattern": "\\b(?:em comparação com|quando comparado com|se compararmos com|diferente de)\\b\\s*",
+      "replacement": "vs ",
+      "context": "all",
+      "category": "structural",
+      "minIntensity": "full",
+      "description": "Verbose comparisons → compact 'vs'"
+    },
+    {
+      "name": "pt_conclusion",
+      "pattern": "\\b(?:sendo assim|portanto|dessa forma|desse modo|consequentemente|em suma|resumindo)\\b[,]?\\s*",
+      "replacement": "∴ ",
+      "context": "all",
+      "category": "structural",
+      "minIntensity": "full",
+      "description": "Conclusion connectors → therefore symbol"
     }
   ]
 }

@@ -15,42 +15,16 @@ import {
   formatDuration,
   maskSegment,
   maskAccount,
+  stableAccountSuffix,
   formatApiKeyLabel,
 } from "@/shared/utils/formatting";
+import { getProviderDisplayLabel } from "@/shared/utils/providerDisplayLabel";
 import useEmailPrivacyStore from "@/store/emailPrivacyStore";
 
-/**
- * Get a friendly display label for compatible providers.
- * Converts long IDs like "openai-compatible-chat-02669115-2545-4896-b003-cb4dac09d441"
- * to readable labels. If providerNodes are available, uses user-defined name;
- * otherwise falls back to "OAI-Compat".
- */
-function getProviderDisplayLabel(provider: string, providerNodes?: any[]): string {
-  if (!provider) return "-";
-  if (provider.startsWith("openai-compatible-") || provider.startsWith("anthropic-compatible-")) {
-    // Try to find user-defined name from provider nodes
-    if (providerNodes?.length) {
-      const matchedNode = providerNodes.find(
-        (node) => node.id === provider || node.prefix === provider
-      );
-      if (matchedNode?.name) return matchedNode.name;
-    }
-    // Fallback to generic labels
-    if (provider.startsWith("openai-compatible-")) {
-      const suffix = provider.replace("openai-compatible-", "");
-      const parts = suffix.split("-");
-      if (parts.length > 1 && parts[1]?.length >= 8) return `OAI-COMPAT`;
-      return `OAI: ${suffix.slice(0, 16).toUpperCase()}`;
-    }
-    if (provider.startsWith("anthropic-compatible-")) {
-      const suffix = provider.replace("anthropic-compatible-", "");
-      const parts = suffix.split("-");
-      if (parts.length > 1 && parts[1]?.length >= 8) return `ANT-COMPAT`;
-      return `ANT: ${suffix.slice(0, 16).toUpperCase()}`;
-    }
-  }
-  return null; // Not a compatible provider, use default PROVIDER_COLORS
-}
+// Number of call-log rows fetched per page. The viewer grows its window by this
+// amount on "Load more" / infinite scroll so users can browse past the first
+// page (previously hardcoded to a single 300-row window). See #2565.
+const PAGE_SIZE = 300;
 
 function getLogTotalTokens(log) {
   return (log?.tokens?.in || 0) + (log?.tokens?.out || 0);
@@ -134,9 +108,13 @@ export default function RequestLoggerV2() {
   const [detailData, setDetailData] = useState(null);
   const [detailLoggingEnabled, setDetailLoggingEnabled] = useState(false);
   const [detailLoggingLoading, setDetailLoggingLoading] = useState(false);
+  const [limit, setLimit] = useState(PAGE_SIZE);
+  const [hasMore, setHasMore] = useState(false);
   const intervalRef = useRef(null);
   const hasLoadedRef = useRef(false);
   const logsSignatureRef = useRef("");
+  const scrollContainerRef = useRef(null);
+  const loadMoreSentinelRef = useRef(null);
   const [providerNodes, setProviderNodes] = useState([]);
 
   // Column visibility with localStorage persistence
@@ -174,11 +152,13 @@ export default function RequestLoggerV2() {
         if (selectedProvider) params.set("provider", selectedProvider);
         if (selectedAccount) params.set("account", selectedAccount);
         if (selectedApiKey) params.set("apiKey", selectedApiKey);
-        params.set("limit", "300");
+        params.set("limit", String(limit));
 
         const res = await fetch(`/api/usage/call-logs?${params}`);
         if (res.ok) {
           const data = await res.json();
+          // If the server returned a full window, more rows may exist beyond it.
+          setHasMore(Array.isArray(data) && data.length >= limit);
           // Skip re-render if data hasn't changed (#1369 GPU perf)
           const sig = JSON.stringify(data.map?.((l: any) => l.id) ?? []);
           if (sig !== logsSignatureRef.current) {
@@ -192,7 +172,7 @@ export default function RequestLoggerV2() {
         if (showLoading) setLoading(false);
       }
     },
-    [search, activeFilter, selectedModel, selectedAccount, selectedProvider, selectedApiKey]
+    [search, activeFilter, selectedModel, selectedAccount, selectedProvider, selectedApiKey, limit]
   );
 
   useEffect(() => {
@@ -232,6 +212,32 @@ export default function RequestLoggerV2() {
       if (intervalRef.current) clearInterval(intervalRef.current);
     };
   }, [recording, fetchLogs]);
+
+  // Reset the window back to the first page whenever the active filters change,
+  // so switching filters doesn't keep fetching a large expanded window.
+  useEffect(() => {
+    setLimit(PAGE_SIZE);
+  }, [search, activeFilter, selectedModel, selectedAccount, selectedProvider, selectedApiKey]);
+
+  const loadMore = useCallback(() => {
+    setLimit((prev) => prev + PAGE_SIZE);
+  }, []);
+
+  // Infinite scroll: grow the window when the sentinel near the bottom of the
+  // scroll container becomes visible.
+  useEffect(() => {
+    const sentinel = loadMoreSentinelRef.current;
+    const root = scrollContainerRef.current;
+    if (!sentinel || !hasMore) return;
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0]?.isIntersecting && !loading) loadMore();
+      },
+      { root, rootMargin: "200px" }
+    );
+    observer.observe(sentinel);
+    return () => observer.disconnect();
+  }, [hasMore, loading, loadMore]);
 
   const filteredLogs = useMemo(() => {
     if (activeFilter === "combo") return logs.filter((l) => l.comboName);
@@ -429,7 +435,7 @@ export default function RequestLoggerV2() {
           <option value="">{t("allAccounts")}</option>
           {uniqueAccounts.map((a) => (
             <option key={a} value={a}>
-              {a}
+              {emailsVisible ? a : `${maskAccount(a, false)} · #${stableAccountSuffix(a)}`}
             </option>
           ))}
         </select>
@@ -588,7 +594,10 @@ export default function RequestLoggerV2() {
 
       {/* Table */}
       <Card className="overflow-hidden bg-black/5 dark:bg-black/20">
-        <div className="p-0 overflow-x-auto max-h-[calc(100vh-320px)] overflow-y-auto">
+        <div
+          ref={scrollContainerRef}
+          className="p-0 overflow-x-auto max-h-[calc(100vh-320px)] overflow-y-auto"
+        >
           {loading && logs.length === 0 ? (
             <div className="p-8 text-center text-text-muted">{t("loadingLogs")}</div>
           ) : logs.length === 0 ? (
@@ -692,6 +701,7 @@ export default function RequestLoggerV2() {
                   const isError = log.status >= 400;
                   const cacheSourceMeta = getCacheSourceMeta(log.cacheSource);
                   const isSemanticCache = cacheSourceMeta.key === "semantic";
+                  const accountLabel = maskAccount(log.account, emailsVisible);
 
                   return (
                     <tr
@@ -772,9 +782,9 @@ export default function RequestLoggerV2() {
                       {visibleColumns.account && (
                         <td
                           className="px-3 py-2 text-text-muted truncate max-w-[120px]"
-                          title={log.account}
+                          title={accountLabel}
                         >
-                          {maskAccount(log.account, emailsVisible)}
+                          {accountLabel}
                         </td>
                       )}
                       {visibleColumns.apiKey && (
@@ -856,6 +866,21 @@ export default function RequestLoggerV2() {
               </tbody>
             </table>
           )}
+
+          {hasMore && sortedLogs.length > 0 && (
+            <div
+              ref={loadMoreSentinelRef}
+              className="flex justify-center py-3 border-t border-border/30"
+            >
+              <button
+                type="button"
+                onClick={loadMore}
+                className="px-4 py-1.5 text-xs rounded-md border border-border bg-bg-subtle hover:bg-bg-muted text-text-muted transition-colors"
+              >
+                {loading ? t("loadingMore") : t("loadMore")}
+              </button>
+            </div>
+          )}
         </div>
       </Card>
 
@@ -874,6 +899,7 @@ export default function RequestLoggerV2() {
           detail={detailData}
           loading={detailLoading}
           debugEnabled={detailLoggingEnabled}
+          emailsVisible={emailsVisible}
           onClose={closeDetail}
           onCopy={copyToClipboard}
         />

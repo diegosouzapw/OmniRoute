@@ -384,3 +384,150 @@ test("handleComboChat context-relay treats explicit empty handoffProviders as di
   assert.equal(usageCalls, 0);
   assert.equal(handoffDb.getHandoff(sessionId, "relay-empty-providers"), null);
 });
+
+test("getLastSessionModel uses latest id as deterministic tie-breaker", async () => {
+  const sessionId = "sess-model-history-tie";
+  const comboName = "relay-model-history-tie";
+
+  handoffDb.recordSessionModelUsage(sessionId, comboName, "openai/old", "openai");
+  handoffDb.recordSessionModelUsage(sessionId, comboName, "anthropic/new", "anthropic");
+
+  core
+    .getDbInstance()
+    .prepare(
+      `UPDATE session_model_history
+       SET used_at = ?
+       WHERE session_id = ? AND combo_name = ?`
+    )
+    .run("2026-05-26 12:00:00", sessionId, comboName);
+
+  assert.equal(handoffDb.getLastSessionModel(sessionId, comboName), "anthropic/new");
+});
+
+test("handleComboChat universal handoff does not accumulate injected handoffs across fallback targets", async () => {
+  const sessionId = "sess-universal-no-mutate";
+  const comboName = "universal-no-mutate";
+
+  handoffDb.recordSessionModelUsage(sessionId, comboName, "openai/previous", "openai");
+  handoffDb.upsertHandoff({
+    sessionId,
+    comboName,
+    fromAccount: "universal:openai/previous",
+    summary: "Previous model summary",
+    keyDecisions: ["keep context"],
+    taskProgress: "fallback pending",
+    activeEntities: ["combo.ts"],
+    messageCount: 1,
+    model: "openai/previous",
+    lastModel: "openai/previous",
+    warningThresholdPct: 0,
+    generatedAt: new Date().toISOString(),
+    expiresAt: new Date(Date.now() + 60_000).toISOString(),
+  });
+
+  const calls = [];
+
+  const result = await handleComboChat({
+    body: {
+      messages: [{ role: "user", content: "Continue" }],
+    },
+    combo: {
+      name: comboName,
+      strategy: "priority",
+      models: ["openai/failed", "anthropic/fallback"],
+      config: { maxRetries: 0 },
+      universalHandoff: { enabled: true },
+    },
+    handleSingleModel: async (body, modelStr) => {
+      calls.push({ modelStr, body });
+      if (modelStr === "openai/failed") {
+        return new Response(JSON.stringify({ error: { message: "fail" } }), {
+          status: 503,
+          headers: { "content-type": "application/json" },
+        });
+      }
+      return okResponse();
+    },
+    isModelAvailable: async () => true,
+    log: createLog(),
+    settings: null,
+    allCombos: null,
+    relayOptions: { sessionId },
+  });
+
+  assert.equal(result.ok, true);
+
+  const fallbackBody = calls.find((call) => call.modelStr === "anthropic/fallback")?.body;
+  const handoffMessages = (fallbackBody.messages || []).filter(
+    (message) =>
+      typeof message?.content === "string" && message.content.includes("<context_handoff>")
+  );
+
+  assert.equal(handoffMessages.length, 1);
+  assert.match(handoffMessages[0].content, /openai\/previous/);
+  assert.match(handoffMessages[0].content, /anthropic\/fallback/);
+  assert.doesNotMatch(handoffMessages[0].content, /openai\/failed/);
+});
+
+test("handleComboChat universal handoff detects model switch before recording current model", async () => {
+  const sessionId = "sess-universal-switch";
+  const comboName = "universal-switch";
+
+  handoffDb.recordSessionModelUsage(sessionId, comboName, "openai/previous", "openai");
+  core
+    .getDbInstance()
+    .prepare(
+      `UPDATE session_model_history
+       SET used_at = ?
+       WHERE session_id = ? AND combo_name = ?`
+    )
+    .run("2000-01-01 00:00:00", sessionId, comboName);
+
+  let summaryCalls = 0;
+
+  const result = await handleComboChat({
+    body: {
+      messages: [{ role: "user", content: "Continue on a new model" }],
+    },
+    combo: {
+      name: comboName,
+      strategy: "priority",
+      models: ["anthropic/current"],
+      config: { maxRetries: 0 },
+      universalHandoff: { enabled: true },
+    },
+    handleSingleModel: async (body) => {
+      if (body._omnirouteInternalRequest === "universal-handoff") {
+        summaryCalls += 1;
+        return okResponse({
+          choices: [
+            {
+              message: {
+                content: JSON.stringify({
+                  summary: "Generated universal handoff",
+                  keyDecisions: ["read previous before recording current"],
+                  taskProgress: "switch detected",
+                  activeEntities: ["open-sse/services/combo.ts"],
+                }),
+              },
+            },
+          ],
+        });
+      }
+
+      return okResponse();
+    },
+    isModelAvailable: async () => true,
+    log: createLog(),
+    settings: null,
+    allCombos: null,
+    relayOptions: { sessionId },
+  });
+
+  const saved = await waitFor(() => handoffDb.getHandoff(sessionId, comboName));
+
+  assert.equal(result.ok, true);
+  assert.equal(summaryCalls, 1);
+  assert.ok(saved);
+  assert.equal(saved.lastModel, "openai/previous");
+});

@@ -84,10 +84,15 @@ for (const { file, removed, added } of allPairs) {
   for (const m of removed.matchAll(ATTR_RE)) candidates.push(m[1]);
 
   // Direct strings without surrounding markup (rare)
-  const stripped = removed
-    .replace(/<[^<>]+>/g, "")
-    .replace(/\bt\([^)]*\)/g, "")
-    .trim();
+  // Apply tag removal repeatedly until stable to prevent incomplete sanitization
+  // (e.g. "<scr<script>ipt>" collapsing into "<script>" after a single pass)
+  let stripped = removed;
+  let prev;
+  do {
+    prev = stripped;
+    stripped = stripped.replace(/<[^<>]+>/g, "");
+  } while (stripped !== prev);
+  stripped = stripped.replace(/\bt\([^)]*\)/g, "").trim();
   if (stripped && /[A-Za-z]/.test(stripped)) candidates.push(stripped);
 
   // For each tKey in added, try to align with the candidate at the same index.

@@ -99,6 +99,48 @@ test("scorecard keeps only the latest run per suite and target scope", () => {
   assert.equal(scorecard.overallPassRate, 75);
 });
 
+test("routing eval run query returns recent model runs for requested targets", () => {
+  evalsDb.saveEvalRun({
+    suiteId: "routing-quality",
+    suiteName: "Routing Quality",
+    target: { type: "model", id: "openai/good", label: "Model: openai/good" },
+    summary: { total: 4, passed: 4, failed: 0, passRate: 100 },
+    avgLatencyMs: 100,
+    results: [],
+    createdAt: "2026-04-23T10:00:00.000Z",
+  });
+  evalsDb.saveEvalRun({
+    suiteId: "routing-quality",
+    suiteName: "Routing Quality",
+    target: { type: "combo", id: "openai/good", label: "Combo: openai/good" },
+    summary: { total: 4, passed: 1, failed: 3, passRate: 25 },
+    avgLatencyMs: 500,
+    results: [],
+    createdAt: "2026-04-23T10:30:00.000Z",
+  });
+  evalsDb.saveEvalRun({
+    suiteId: "other-suite",
+    suiteName: "Other Suite",
+    target: { type: "model", id: "openai/good", label: "Model: openai/good" },
+    summary: { total: 4, passed: 2, failed: 2, passRate: 50 },
+    avgLatencyMs: 200,
+    results: [],
+    createdAt: "2026-04-23T11:00:00.000Z",
+  });
+
+  const runs = evalsDb.listModelEvalRunsForRouting({
+    targetIds: ["openai/good", "openai/missing"],
+    suiteIds: ["routing-quality"],
+    maxAgeHours: 24 * 365 * 10,
+    limit: 10,
+  });
+
+  assert.equal(runs.length, 1);
+  assert.equal(runs[0].target.type, "model");
+  assert.equal(runs[0].target.id, "openai/good");
+  assert.equal(runs[0].suiteId, "routing-quality");
+});
+
 test("custom eval suites persist cases and support update/delete", () => {
   const created = evalsDb.saveCustomEvalSuite({
     name: "Support Regression",

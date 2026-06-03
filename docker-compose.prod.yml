@@ -9,6 +9,21 @@
 #    docker compose -f docker-compose.prod.yml up -d --build
 #    docker compose -f docker-compose.prod.yml down
 #    docker compose -f docker-compose.prod.yml logs -f
+#
+#  Image flavors (two Dockerfile stages):
+#    runner-base (default / omniroute:prod)
+#      Lean image — no Playwright/Chromium. Suitable for all providers
+#      except web-cookie ones (gemini-web, claude-web, claude-turnstile).
+#
+#    runner-web (omniroute:prod-web) — opt-in, ~300 MB extra
+#      Includes Playwright + Chromium system libs. Required for web-cookie
+#      providers. To use this flavor, override the build target:
+#
+#        omniroute-prod:
+#          build:
+#            context: .
+#            target: runner-web
+#          image: omniroute:prod-web
 # ──────────────────────────────────────────────────────────────────────
 
 services:

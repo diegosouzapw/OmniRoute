@@ -7,10 +7,8 @@ import {
   getGitHubCopilotInternalUserHeaders,
   getKiroServiceHeaders,
 } from "@omniroute/open-sse/config/providerHeaderProfiles.ts";
-import {
-  getAntigravityHeaders,
-  antigravityUserAgent,
-} from "@omniroute/open-sse/services/antigravityHeaders.ts";
+import { applyAntigravityClientProfileHeaders } from "@omniroute/open-sse/services/antigravityClientProfile.ts";
+import { getAntigravityHeaders } from "@omniroute/open-sse/services/antigravityHeaders.ts";
 import {
   getAntigravityFetchAvailableModelsUrls,
   ANTIGRAVITY_BASE_URLS,
@@ -21,12 +19,9 @@ import {
 } from "@omniroute/open-sse/executors/antigravity.ts";
 import { getCreditsMode } from "@omniroute/open-sse/services/antigravityCredits.ts";
 import {
-  deriveAntigravityMachineId,
   generateAntigravityRequestId,
   getAntigravitySessionId,
-  getAntigravityVscodeSessionId,
 } from "@omniroute/open-sse/services/antigravityIdentity.ts";
-import { getCachedAntigravityVersion } from "@omniroute/open-sse/services/antigravityVersion.ts";
 
 /**
  * Get usage data for a provider connection
@@ -182,7 +177,8 @@ async function getGeminiUsage(accessToken) {
 async function probeAntigravityCreditBalance(
   accessToken: string,
   accountId: string,
-  projectId?: string | null
+  projectId?: string | null,
+  providerSpecificData: Record<string, unknown> = {}
 ): Promise<number | null> {
   try {
     if (!projectId) return null; // Can't call streamGenerateContent without a projectId
@@ -205,17 +201,16 @@ async function probeAntigravityCreditBalance(
       },
     };
 
-    const headers = {
+    const headers: Record<string, string> = {
       "Content-Type": "application/json",
       Authorization: `Bearer ${accessToken}`,
-      "User-Agent": antigravityUserAgent(),
-      "x-client-name": "antigravity",
-      "x-client-version": getCachedAntigravityVersion(),
-      "x-machine-id": deriveAntigravityMachineId({ connectionId: accountId, projectId }),
-      "x-vscode-sessionid": getAntigravityVscodeSessionId(),
-      "x-goog-user-project": projectId,
       Accept: "text/event-stream",
     };
+    applyAntigravityClientProfileHeaders(
+      headers,
+      { connectionId: accountId, projectId, providerSpecificData },
+      body
+    );
 
     const res = await fetch(url, {
       method: "POST",
@@ -286,7 +281,12 @@ async function getAntigravityUsage(
     // If no cached balance and credits mode is enabled, fire a minimal probe
     const creditsMode = getCreditsMode();
     if (creditBalance === null && creditsMode !== "off") {
-      creditBalance = await probeAntigravityCreditBalance(accessToken, accountId, projectId);
+      creditBalance = await probeAntigravityCreditBalance(
+        accessToken,
+        accountId,
+        projectId,
+        providerSpecificData
+      );
     }
 
     // fetchAvailableModels — resolves project from token, no projectId needed
@@ -348,9 +348,13 @@ async function getAntigravityUsage(
       if (info.isInternal) continue;
       const quotaInfo = (info.quotaInfo as Record<string, unknown>) ?? {};
 
-      if ("remainingFraction" in quotaInfo) {
+      // Process models with any quota metadata (exhausted models may have only resetTime, active models have remainingFraction, credit-based models have empty quotaInfo)
+      if (Object.keys(quotaInfo).length > 0) {
+        // Default to 0 when remainingFraction is undefined/null/invalid, clamp to valid range [0, 1]
         const fraction =
-          typeof quotaInfo.remainingFraction === "number" ? quotaInfo.remainingFraction : 1;
+          typeof quotaInfo.remainingFraction === "number"
+            ? Math.max(0, Math.min(1, quotaInfo.remainingFraction))
+            : 0;
         const resetTime = typeof quotaInfo.resetTime === "string" ? quotaInfo.resetTime : null;
         modelQuotas[modelId] = {
           remaining: Math.round(fraction * 100),
@@ -360,7 +364,7 @@ async function getAntigravityUsage(
         quotaModelsTotal++;
         if (fraction > 0) quotaModelsAvailable++;
       }
-      // Credit-based models have no remainingFraction — their availability is
+      // Credit-based models have empty quotaInfo — their availability is
       // tracked via the GOOGLE_ONE_AI credit balance cached from SSE responses.
     }
 

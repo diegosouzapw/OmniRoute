@@ -18,12 +18,15 @@ const { invalidateCacheControlSettingsCache } =
 const { clearCache, getCachedResponse, generateSignature } =
   await import("../../src/lib/semanticCache.ts");
 const { clearIdempotency } = await import("../../src/lib/idempotencyLayer.ts");
+const { getPendingRequests, clearPendingRequests } =
+  await import("../../src/lib/usage/usageHistory.ts");
 const { clearInflight } = await import("../../open-sse/services/requestDedup.ts");
 const {
   buildAccountSemaphoreKey,
   getStats: getAccountSemaphoreStats,
   resetAll: resetAccountSemaphores,
 } = await import("../../open-sse/services/accountSemaphore.ts");
+const { getExecutor } = await import("../../open-sse/executors/index.ts");
 const { clearModelLock, isModelLocked } =
   await import("../../open-sse/services/accountFallback.ts");
 const { saveModelsDevCapabilities, clearModelsDevCapabilities } =
@@ -368,6 +371,7 @@ async function invokeChatCore({
 test.afterEach(async () => {
   globalThis.fetch = originalFetch;
   restorePipelineCaptureEnv();
+  clearPendingRequests();
   resetAccountSemaphores();
   await waitForAsyncSideEffects();
   await resetStorage();
@@ -376,10 +380,71 @@ test.afterEach(async () => {
 test.after(async () => {
   globalThis.fetch = originalFetch;
   restorePipelineCaptureEnv();
+  clearPendingRequests();
   resetAccountSemaphores();
   await waitForAsyncSideEffects();
   await resetStorage();
   fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+});
+
+test("chatCore times out upstream execution before provider response headers", async () => {
+  const executor = getExecutor("openai");
+  const originalGetTimeoutMs = executor.getTimeoutMs?.bind(executor);
+  executor.getTimeoutMs = () => 200;
+
+  const connectionId = "upstream-start-timeout";
+  const body = {
+    model: "gpt-4o-mini",
+    stream: false,
+    messages: [{ role: "user", content: "never returns" }],
+  };
+  const fetchSignals: AbortSignal[] = [];
+  const upstreamBodies: any[] = [];
+  globalThis.fetch = async (_url, init = {}) => {
+    if (init.signal instanceof AbortSignal) fetchSignals.push(init.signal);
+    if (init.body) upstreamBodies.push(JSON.parse(String(init.body)));
+    return new Promise(() => {});
+  };
+
+  try {
+    const invocation = handleChatCore({
+      body: structuredClone(body),
+      modelInfo: { provider: "openai", model: "gpt-4o-mini", extendedContext: false },
+      credentials: {
+        apiKey: "sk-test",
+        providerSpecificData: {},
+      },
+      log: noopLog(),
+      clientRawRequest: {
+        endpoint: "/v1/chat/completions",
+        body: structuredClone(body),
+        headers: new Headers({ accept: "application/json" }),
+      },
+      connectionId,
+      userAgent: "unit-test",
+    } as any);
+
+    const pendingDetail = (await waitFor(
+      () =>
+        Object.values(getPendingRequests().details[connectionId] || {}).find(
+          (detail: any) => detail?.providerRequest
+        )
+    )) as any;
+    assert.equal(pendingDetail?.providerRequest?.model, "gpt-4o-mini");
+    assert.deepEqual(pendingDetail?.providerRequest?.messages, body.messages);
+    const result = await invocation;
+    await waitForAsyncSideEffects();
+
+    assert.equal(upstreamBodies[0]?.model, "gpt-4o-mini");
+    assert.deepEqual(upstreamBodies[0]?.messages, body.messages);
+    assert.equal(result.success, false);
+    assert.equal(result.status, 504);
+    assert.equal(fetchSignals[0]?.aborted, true);
+    assert.equal(getPendingRequests().details[connectionId], undefined);
+  } finally {
+    if (originalGetTimeoutMs) executor.getTimeoutMs = originalGetTimeoutMs;
+    globalThis.fetch = originalFetch;
+  }
 });
 
 test("chatCore can disable pipeline stream chunk capture through environment", async () => {
@@ -606,7 +671,12 @@ test("chatCore builds Claude Code-compatible upstream requests for CC providers"
   assert.equal(call.body.messages[0].content[0].text, "Ping");
 });
 
-test("chatCore preserves native Claude Code messages for native Claude OAuth passthrough", async () => {
+// Fix #2468: normalizeClaudeUpstreamMessages() now runs on the pure Claude passthrough
+// path too. It extracts role:"system" messages into the top-level system parameter,
+// strips empty text blocks, converts inline document blocks (no url/data) to text, and
+// drops unknown block types (e.g. future_block). tool_result blocks are preserved via
+// preserveToolResultBlocks:true.
+test("chatCore normalizes native Claude Code messages for native Claude OAuth passthrough", async () => {
   const clientMessages = [
     {
       role: "system",
@@ -650,17 +720,32 @@ test("chatCore preserves native Claude Code messages for native Claude OAuth pas
 
   assert.equal(result.success, true);
   assert.equal(call.body.model, "claude-sonnet-4-6");
-  assert.deepEqual(call.body.messages, clientMessages);
+
+  // After normalization: role:"system" msg extracted → top-level system (3 msgs remain, not 4)
+  assert.equal(call.body.messages.length, 3);
+
+  // system-role block appended to top-level system array
   assert.equal(
     call.body.system.some(
       (block: { text?: string }) => block.text === "system-message-that-should-stay-in-messages"
     ),
-    false
+    true
   );
-  assert.equal(call.body.messages[1].content[0].text, "");
-  assert.equal(call.body.messages[1].content[2].type, "document");
-  assert.equal(call.body.messages[1].content[3].type, "future_block");
-  assert.equal(call.body.messages[3].content[0].type, "tool_result");
+
+  // user msg[0] (was clientMessages[1]): empty text, document and future_block are preserved
+  // since it is a semantic passthrough request
+  assert.equal(call.body.messages[0].content.length, 4);
+  assert.equal(call.body.messages[0].content[0].type, "text");
+  assert.equal(call.body.messages[0].content[0].text, "");
+  assert.equal(call.body.messages[0].content[1].text, "Run pwd");
+  assert.equal(call.body.messages[0].content[2].type, "document");
+  assert.equal(call.body.messages[0].content[3].type, "future_block");
+
+  // assistant msg[1] (was clientMessages[2]): tool_use unchanged
+  assert.equal(call.body.messages[1].content[0].type, "tool_use");
+
+  // user msg[2] (was clientMessages[3]): tool_result preserved (preserveToolResultBlocks:true)
+  assert.equal(call.body.messages[2].content[0].type, "tool_result");
 });
 
 test("chatCore keeps Claude normalization for non-Claude-Code Claude passthrough", async () => {
@@ -701,7 +786,10 @@ test("chatCore keeps Claude normalization for non-Claude-Code Claude passthrough
   ]);
 });
 
-test("chatCore preserves native Claude Code messages before CC-compatible relay transforms", async () => {
+// Fix #2468: normalizeClaudeUpstreamMessages() runs on the CC-compatible bridge path too
+// (preserveClaudeMessages=true). Same normalization: system-role → top-level system,
+// empty text stripped, document→text, future_block dropped, tool_result preserved.
+test("chatCore normalizes native Claude Code messages before CC-compatible relay transforms", async () => {
   const clientMessages = [
     {
       role: "system",
@@ -752,7 +840,11 @@ test("chatCore preserves native Claude Code messages before CC-compatible relay 
   assert.equal(result.success, true);
   assert.match(call.url, /\/v1\/messages\?beta=true$/);
   assert.equal(call.body.stream, true);
-  assert.deepEqual(call.body.messages, clientMessages);
+
+  // After normalization: role:"system" msg extracted → top-level system (3 msgs remain, not 4)
+  assert.equal(call.body.messages.length, 3);
+
+  // CC bridge prepends its own system block; extracted system block is appended after it
   assert.equal(
     call.body.system[0].text,
     "You are a Claude agent, built on Anthropic's Claude Agent SDK."
@@ -761,12 +853,23 @@ test("chatCore preserves native Claude Code messages before CC-compatible relay 
     call.body.system.some(
       (block: { text?: string }) => block.text === "system-message-remains-in-source-history"
     ),
-    false
+    true
   );
-  assert.equal(call.body.messages[1].content[0].text, "");
-  assert.equal(call.body.messages[1].content[2].type, "document");
-  assert.equal(call.body.messages[1].content[3].type, "future_block");
-  assert.equal(call.body.messages[3].content[0].type, "tool_result");
+
+  // user msg[0] (was clientMessages[1]): empty text, document and future_block are preserved
+  // since it is a semantic passthrough request
+  assert.equal(call.body.messages[0].content.length, 4);
+  assert.equal(call.body.messages[0].content[0].type, "text");
+  assert.equal(call.body.messages[0].content[0].text, "");
+  assert.equal(call.body.messages[0].content[1].text, "Inspect project");
+  assert.equal(call.body.messages[0].content[2].type, "document");
+  assert.equal(call.body.messages[0].content[3].type, "future_block");
+
+  // assistant msg[1] (was clientMessages[2]): tool_use unchanged
+  assert.equal(call.body.messages[1].content[0].type, "tool_use");
+
+  // user msg[2] (was clientMessages[3]): tool_result preserved (preserveToolResultBlocks:true)
+  assert.equal(call.body.messages[2].content[0].type, "tool_result");
 });
 
 test("chatCore preserves cache_control automatically for Claude Code single-model requests", async () => {

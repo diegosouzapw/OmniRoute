@@ -1,6 +1,6 @@
 ---
 title: "Release Checklist"
-version: 3.8.0
+version: 3.8.2
 lastUpdated: 2026-05-13
 ---
 
@@ -147,11 +147,38 @@ If `electron/` changed:
 - [ ] `electron/package.json` version matches root `package.json`
 - [ ] Auto-update channel pointer updated if releasing to `stable`
 
+### Build Layout
+
+The repository uses three distinct output directories — never mix them up:
+
+| Directory     | Purpose                                                       | Tracked? |
+| ------------- | ------------------------------------------------------------- | -------- |
+| `src/`        | Application source (TypeScript / TSX)                         | Yes      |
+| `.build/`     | Build intermediates — `next build` output (`distDir`)         | No (gitignored) |
+| `dist/`       | Shippable npm bundle — assembled by `assembleStandalone`      | No (gitignored) |
+
+> **Operator note:** the remote VPS image directory remains `/usr/lib/node_modules/omniroute/app/`.
+> Only the **in-repo** build output moved (`app/` → `dist/`). The deploy skills rsync
+> `dist/` contents into the remote `app/` dir — no VPS path changes required.
+
+**Single-build flow:**
+
+```
+npm run build:release
+  └─ rm -rf .build dist          (clean)
+  └─ next build → .build/next/   (intermediates)
+  └─ assembleStandalone          (copies standalone + static + public + natives → dist/)
+  └─ writes dist/BUILD_SHA       (HEAD sentinel)
+```
+
+Do NOT run `npm run build` followed by a separate `npm run build:cli` for deploy — use
+`npm run build:release` which does a clean rebuild + sentinel in one command.
+
 ### Artifact Validation
 
-- [ ] `npm run build:cli` succeeds
+- [ ] `npm run build:release` succeeds and `dist/BUILD_SHA` == `git rev-parse --short HEAD`
 - [ ] `npm run check:pack-artifact` clean — no `app.__qa_backup`, `scripts/scratch`, `package-lock.json`, or other local residue
-- [ ] `npm run build` produces a working standalone Next.js bundle
+- [ ] `dist/server.js` exists after build
 
 ### Tagging & Release
 
@@ -169,10 +196,14 @@ If `electron/` changed:
 
 ### Deploy
 
+Deploy skills use the light rsync flow — no `npm pack`, no `npm i -g`:
+
 - [ ] Use deploy skill that matches target:
   - `/deploy-vps-local-cc` — local VPS (192.168.0.15)
   - `/deploy-vps-akamai-cc` — Akamai VPS (69.164.221.35)
   - `/deploy-vps-both-cc` — both
+- [ ] Before deploying, confirm `dist/BUILD_SHA` == `git rev-parse --short HEAD`
+- [ ] Build must run where `node_modules` is real (main checkout or `npm ci`'d worktree — NOT a symlinked worktree)
 - [ ] Smoke test deployed instance:
   - Open `/dashboard/health` → check version string matches release
   - Run a `/v1/chat/completions` request against a known provider
@@ -187,6 +218,44 @@ If `electron/` changed:
 - [ ] Update GitHub Discussions / Discord with release announcement
 - [ ] Open milestone for next version
 - [ ] If critical: pin discussion or post in `news.json` for in-app banner
+
+## Embedded Services smoke (v3.8.4+)
+
+Before shipping any release that includes embedded services changes, verify:
+
+### Fresh-DB boot (catches migration collisions — added after v3.8.4 hotfix)
+
+- [ ] `DATA_DIR=$(mktemp -d) npm start &` — wait 10 s for boot
+- [ ] `curl -s http://127.0.0.1:20128/api/services/9router/status | jq '.tool'` returns `"9router"` (NOT 404, NOT 500). Confirms migration `071_services.sql` applied + row seeded.
+- [ ] `sqlite3 $DATA_DIR/storage.sqlite "PRAGMA table_info(version_manager);" | grep -E "provider_expose|logs_buffer_path|last_sync_at"` returns 3 rows.
+- [ ] `sqlite3 $DATA_DIR/storage.sqlite "PRAGMA table_info(webhooks);" | grep -E "kind|metadata_encrypted"` returns 2 rows (validates `070_webhooks_kind_metadata.sql` applied).
+- [ ] `node --import tsx/esm --test tests/unit/db/no-migration-collisions.test.ts` passes — guards against future collisions.
+
+### 9Router
+
+- [ ] `POST /api/services/9router/install` returns 200 with `installedVersion` in under 2 min
+- [ ] `POST /api/services/9router/start` returns 200 and `state: "running"` in under 30 s
+- [ ] `GET /api/services/9router/status` reports `health: "healthy"`
+- [ ] `POST /v1/chat/completions` with `"model": "9router/auto/..."` returns 200 (end-to-end routing through 9Router)
+- [ ] `GET /dashboard/providers/services/9router/embed/dashboard` renders the 9Router native UI inside the proxy (no direct `127.0.0.1:port` iframe)
+- [ ] `POST /api/services/9router/rotate-key` returns `{ keyRotated: true }` and service restarts cleanly
+- [ ] `POST /api/services/9router/stop` returns 200 and `state: "stopped"`
+- [ ] `GET /api/services/9router/logs?tail=50` returns SSE stream with `snapshot` event containing recent lines
+- [ ] Install in environment without `npm` in PATH returns 500 with a friendly (non-stack-trace) error message
+
+### CLIProxyAPI
+
+- [ ] `POST /api/services/cliproxy/install` returns 200 in under 2 min
+- [ ] `POST /api/services/cliproxy/start` returns 200 and `state: "running"` in under 30 s
+- [ ] `GET /api/services/cliproxy/status` reports `health: "healthy"`
+- [ ] `POST /api/services/cliproxy/stop` returns 200 and `state: "stopped"`
+- [ ] `GET /api/services/cliproxy/logs?tail=50` returns SSE stream
+
+### Security regression
+
+- [ ] `curl -H "X-Forwarded-For: 1.2.3.4" http://localhost:20128/api/services/9router/start` returns `403 LOCAL_ONLY`
+- [ ] `curl -H "X-Forwarded-For: 1.2.3.4" http://localhost:20128/api/services/cliproxy/start` returns `403 LOCAL_ONLY`
+- [ ] Error responses from `/api/services/*` do not contain `err.stack` or absolute file paths
 
 ## v3.8.0+ checks
 

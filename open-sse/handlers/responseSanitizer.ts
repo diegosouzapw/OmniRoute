@@ -46,6 +46,56 @@ function toNumber(value: unknown): number | undefined {
   return typeof value === "number" && Number.isFinite(value) ? value : undefined;
 }
 
+function stripZeroWidthText(value: string): string {
+  return value.replace(/[\u200B-\u200D\uFEFF]/g, "");
+}
+
+function stripZeroWidthValue(value: unknown): unknown {
+  if (typeof value === "string") return stripZeroWidthText(value);
+  if (Array.isArray(value)) return value.map((item) => stripZeroWidthValue(item));
+  const record = toRecord(value);
+  if (record) {
+    return Object.fromEntries(
+      Object.entries(record).map(([key, item]) => [key, stripZeroWidthValue(item)])
+    );
+  }
+  return value;
+}
+
+function parseTextualToolCallContent(content: unknown): { name: string; args: unknown } | null {
+  if (typeof content !== "string") return null;
+  const normalized = stripZeroWidthText(content);
+  const toolCallIndex = normalized.lastIndexOf("[Tool call:");
+  if (toolCallIndex < 0) return null;
+  const candidate = normalized.slice(toolCallIndex);
+  const headerMatch = candidate.match(/^\[Tool call:\s*([^\]\n]+)\]\s*\nArguments:\s*/);
+  if (!headerMatch) return null;
+  const name = headerMatch[1]?.trim();
+  const rawArgs = candidate.slice(headerMatch[0].length).trim();
+  if (!name || !rawArgs) return null;
+  const decoders = [
+    (value: string) => value,
+    (value: string) => {
+      if (value.startsWith('"') && value.endsWith('"')) {
+        const decoded = JSON.parse(value);
+        return typeof decoded === "string" ? decoded : value;
+      }
+      return value;
+    },
+  ];
+  for (const decode of decoders) {
+    try {
+      const decoded = decode(rawArgs);
+      return { name, args: stripZeroWidthValue(JSON.parse(decoded)) };
+    } catch {}
+  }
+  return null;
+}
+
+function containsTextualToolCallContent(content: unknown): boolean {
+  return typeof content === "string" && stripZeroWidthText(content).includes("[Tool call:");
+}
+
 function hasVisibleMessageContent(content: unknown): boolean {
   if (typeof content === "string") {
     return content.trim().length > 0;
@@ -127,9 +177,19 @@ export function sanitizeOpenAIResponse(body: unknown): unknown {
 
   // Sanitize choices
   if (Array.isArray(bodyRecord.choices)) {
-    sanitized.choices = bodyRecord.choices.map((choice, idx) =>
-      sanitizeChoice(choice, idx, isDeepSeekV4)
-    );
+    sanitized.choices = bodyRecord.choices.map((choice, idx) => {
+      const sanitizedChoice = sanitizeChoice(choice, idx, isDeepSeekV4);
+      const message = toRecord(sanitizedChoice.message);
+      if (
+        message &&
+        Array.isArray(message.tool_calls) &&
+        message.tool_calls.length > 0 &&
+        sanitizedChoice.finish_reason !== "tool_calls"
+      ) {
+        sanitizedChoice.finish_reason = "tool_calls";
+      }
+      return sanitizedChoice;
+    });
   } else {
     sanitized.choices = [];
   }
@@ -302,6 +362,23 @@ function sanitizeMessage(msg: unknown, isDeepSeekV4 = false): unknown {
     !isDeepSeekV4
   ) {
     delete sanitized.reasoning_content;
+  }
+
+  const textualToolCall = parseTextualToolCallContent(sanitized.content);
+  if (textualToolCall && !msgRecord.tool_calls) {
+    sanitized.content = null;
+    sanitized.tool_calls = [
+      {
+        id: `call_${Date.now()}_0`,
+        type: "function",
+        function: {
+          name: textualToolCall.name,
+          arguments: JSON.stringify(textualToolCall.args || {}),
+        },
+      },
+    ];
+  } else if (containsTextualToolCallContent(sanitized.content) && !msgRecord.tool_calls) {
+    sanitized.content = null;
   }
 
   // Preserve tool_calls

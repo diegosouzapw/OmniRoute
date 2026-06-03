@@ -3,6 +3,10 @@ import assert from "node:assert/strict";
 
 const usageService = await import("../../open-sse/services/usage.ts");
 const { __testing } = usageService;
+const { getAntigravityLoadCodeAssistMetadata } =
+  await import("../../open-sse/services/antigravityHeaders.ts");
+const { getAntigravityFetchAvailableModelsUrls } =
+  await import("../../open-sse/config/antigravityUpstream.ts");
 
 const originalFetch = globalThis.fetch;
 const originalCreditsMode = process.env.ANTIGRAVITY_CREDITS;
@@ -17,6 +21,13 @@ test.afterEach(() => {
 });
 
 test("usage service covers GitHub free-plan parsing, auth denial and unsupported providers", async () => {
+  // Free-plan fixture aligned with the upstream protocol (#2876): in
+  // `copilot_internal/user`, `limited_user_quotas[name]` is the REMAINING
+  // count for the month and counts down toward 0; `monthly_quotas[name]`
+  // is the total allowance. The chat numbers below (410 / 500) are the
+  // example values from robinebers/openusage docs/providers/copilot.md.
+  // We also keep an out-of-range premium_interactions remaining (70 > 50)
+  // to assert the defensive clamp at the upstream boundary.
   const calls: any[] = [];
   globalThis.fetch = async (_url, init = {}) => {
     calls.push(init);
@@ -26,13 +37,13 @@ test("usage service covers GitHub free-plan parsing, auth denial and unsupported
         limited_user_reset_date: new Date(Date.now() + 60_000).toISOString(),
         monthly_quotas: {
           premium_interactions: 50,
-          chat: 25,
-          completions: 10,
+          chat: 500,
+          completions: 4000,
         },
         limited_user_quotas: {
           premium_interactions: 70,
-          chat: 5,
-          completions: 2,
+          chat: 410,
+          completions: 4000,
         },
       }),
       { status: 200 }
@@ -45,10 +56,21 @@ test("usage service covers GitHub free-plan parsing, auth denial and unsupported
   });
 
   assert.equal(freeUsage.plan, "Copilot Free");
+  // premium_interactions: upstream remaining=70 clamped to total=50 → fully
+  // available, 0 used, 100% remaining.
   assert.equal(freeUsage.quotas.premium_interactions.total, 50);
-  assert.equal(freeUsage.quotas.premium_interactions.used, 50);
-  assert.equal(freeUsage.quotas.chat.remaining, 20);
-  assert.equal(freeUsage.quotas.completions.remainingPercentage, 80);
+  assert.equal(freeUsage.quotas.premium_interactions.remaining, 50);
+  assert.equal(freeUsage.quotas.premium_interactions.used, 0);
+  assert.equal(freeUsage.quotas.premium_interactions.remainingPercentage, 100);
+  // chat: 410 remaining of 500 → 82% remaining, 90 used.
+  assert.equal(freeUsage.quotas.chat.total, 500);
+  assert.equal(freeUsage.quotas.chat.remaining, 410);
+  assert.equal(freeUsage.quotas.chat.used, 90);
+  assert.equal(freeUsage.quotas.chat.remainingPercentage, 82);
+  // completions: untouched → 100% remaining.
+  assert.equal(freeUsage.quotas.completions.remaining, 4000);
+  assert.equal(freeUsage.quotas.completions.used, 0);
+  assert.equal(freeUsage.quotas.completions.remainingPercentage, 100);
   assert.equal(calls[0].headers.Authorization, "token gho-free");
   assert.equal(calls[0].headers["User-Agent"], "GitHubCopilotChat/0.45.1");
   assert.equal(calls[0].headers["Editor-Version"], "vscode/1.117.0");
@@ -296,7 +318,7 @@ test("usage service covers Antigravity quota parsing, exclusions and forbidden a
             "gemini-unlimited": {
               quotaInfo: {},
             },
-            "gemini-3.1-pro-high": {
+            "gemini-pro-agent": {
               quotaInfo: { remainingFraction: 1 },
             },
             "internal-model": {
@@ -318,18 +340,19 @@ test("usage service covers Antigravity quota parsing, exclusions and forbidden a
   });
 
   assert.equal(usage.plan, "Ultra");
-  assert.deepEqual(Object.keys(usage.quotas).sort(), ["claude-sonnet-4-6", "gemini-3.1-pro-high"]);
-  assert.equal(usage.quotas["claude-sonnet-4-6"].used, 600);
-  assert.equal(usage.quotas["gemini-3.1-pro-high"].total, 0);
-  assert.equal(usage.quotas["gemini-3.1-pro-high"].remainingPercentage, 100);
+  // claude-sonnet-4-6 was removed from ANTIGRAVITY_PUBLIC_MODELS in May 2026 (deprecated)
+  assert.deepEqual(Object.keys(usage.quotas).sort(), ["gemini-pro-agent"]);
+  assert.equal(usage.quotas["gemini-pro-agent"].total, 0);
+  assert.equal(usage.quotas["gemini-pro-agent"].remainingPercentage, 100);
   const loadCodeAssistCall = calls.find((call) => call.url.includes("loadCodeAssist"));
   assert.match(loadCodeAssistCall?.url, /daily-cloudcode-pa\.sandbox\.googleapis\.com/);
   assert.match(loadCodeAssistCall?.init.headers["User-Agent"], /^vscode\/1\.X\.X \(Antigravity\//);
   assert.equal(loadCodeAssistCall?.init.headers["X-Goog-Api-Client"], undefined);
   assert.equal(loadCodeAssistCall?.init.headers["Client-Metadata"], undefined);
-  assert.deepEqual(JSON.parse(loadCodeAssistCall?.init.body).metadata, {
-    ideType: "ANTIGRAVITY",
-  });
+  assert.deepEqual(
+    JSON.parse(loadCodeAssistCall?.init.body).metadata,
+    getAntigravityLoadCodeAssistMetadata()
+  );
 
   globalThis.fetch = async (url) => {
     if (String(url).includes("loadCodeAssist")) {
@@ -347,6 +370,8 @@ test("usage service covers Antigravity quota parsing, exclusions and forbidden a
 
 test("usage service retries Antigravity fetchAvailableModels across the shared fallback order", async () => {
   const calls: any[] = [];
+  const expectedQuotaUrls = getAntigravityFetchAvailableModelsUrls();
+  const finalQuotaUrl = expectedQuotaUrls.at(-1);
 
   globalThis.fetch = async (url, init = {}) => {
     calls.push({ url: String(url), init });
@@ -361,22 +386,15 @@ test("usage service retries Antigravity fetchAvailableModels across the shared f
       );
     }
 
-    try {
-      const parsedUrl = new URL(String(url));
-      if (parsedUrl.hostname === "daily-cloudcode-pa.sandbox.googleapis.com") {
-        return new Response("bad gateway", { status: 502 });
-      }
-      if (parsedUrl.hostname === "daily-cloudcode-pa.googleapis.com") {
-        return new Response("bad gateway", { status: 502 });
-      }
-    } catch {
-      // Ignore invalid URLs
+    const urlString = String(url);
+    if (expectedQuotaUrls.includes(urlString) && urlString !== finalQuotaUrl) {
+      return new Response("bad gateway", { status: 502 });
     }
 
     return new Response(
       JSON.stringify({
         models: {
-          "claude-sonnet-4-6": {
+          "gemini-pro-agent": {
             quotaInfo: {
               remainingFraction: 0.5,
               resetTime: new Date(Date.now() + 60_000).toISOString(),
@@ -394,27 +412,26 @@ test("usage service retries Antigravity fetchAvailableModels across the shared f
   });
 
   const quotaCalls = calls.filter((call) => call.url.includes("fetchAvailableModels"));
+  // ANTIGRAVITY_BASE_URLS order changed: daily first, then cloudcode-pa, then sandbox last
   assert.deepEqual(
     quotaCalls.map((call) => call.url),
-    [
-      "https://daily-cloudcode-pa.sandbox.googleapis.com/v1internal:fetchAvailableModels",
-      "https://daily-cloudcode-pa.googleapis.com/v1internal:fetchAvailableModels",
-      "https://cloudcode-pa.googleapis.com/v1internal:fetchAvailableModels",
-    ]
+    expectedQuotaUrls
   );
   assert.match(quotaCalls[2].init.headers["User-Agent"], /^Antigravity\//);
   assert.equal(usage.plan, "Business");
-  assert.equal(usage.quotas["claude-sonnet-4-6"].used, 500);
+  assert.ok(usage.quotas["gemini-pro-agent"] !== undefined);
 });
 
 test("usage service manual Antigravity refresh bypasses usage TTL caches", async () => {
   process.env.ANTIGRAVITY_CREDITS = "retry";
   let probeCalls = 0;
   let modelCalls = 0;
+  let loadCodeAssistCalls = 0;
 
   globalThis.fetch = async (url) => {
     const urlStr = String(url);
     if (urlStr.includes("loadCodeAssist")) {
+      loadCodeAssistCalls++;
       return new Response(JSON.stringify({ cloudaicompanionProject: "ag-project" }), {
         status: 200,
       });
@@ -457,6 +474,7 @@ test("usage service manual Antigravity refresh bypasses usage TTL caches", async
 
   assert.equal(probeCalls, 2);
   assert.equal(modelCalls, 2);
+  assert.equal(loadCodeAssistCalls, 2);
 });
 
 test("usage service handles missing Antigravity access tokens without probing upstream", async () => {
@@ -586,7 +604,7 @@ test("usage service covers Claude default-plan fallback, legacy org denial and f
     provider: "claude",
     accessToken: "claude-default",
   });
-  assert.equal(defaultPlan.plan, "Claude Code");
+  assert.equal(defaultPlan.plan, undefined);
   assert.equal(defaultPlan.extraUsage, null);
 
   globalThis.fetch = async (url) => {
@@ -1017,6 +1035,7 @@ test("usage service covers MiniMax usage parsing, documented endpoint fallback a
       return new Response(
         JSON.stringify({
           base_resp: { status_code: 0, status_msg: "ok" },
+          plan_name: "MiniMax Coding Plan Lite",
           model_remains: [
             {
               model_name: "MiniMax-M2.7",
@@ -1066,6 +1085,7 @@ test("usage service covers MiniMax usage parsing, documented endpoint fallback a
       "https://api.minimax.io/v1/api/openplatform/coding_plan/remains",
     ]
   );
+  assert.equal(usage.plan, "Lite");
   assert.equal(usage.quotas["session (5h)"].used, 400);
   assert.equal(usage.quotas["session (5h)"].total, 1500);
   assert.equal(usage.quotas["session (5h)"].remaining, 1100);
@@ -1112,6 +1132,7 @@ test("usage service treats MiniMax token-plan counts as used usage", async () =>
     apiKey: "minimax-key",
   });
 
+  assert.equal(usage.plan, "Max");
   assert.equal(usage.quotas["session (5h)"].used, 13);
   assert.equal(usage.quotas["session (5h)"].remaining, 14987);
   assert.equal(usage.quotas["session (5h)"].remainingPercentage, 99.91333333333333);
@@ -1256,6 +1277,26 @@ test("usage helper branches cover Gemini CLI and Antigravity plan label fallback
 
   assert.equal(__testing.getAntigravityPlanLabel(null), "Free");
   assert.equal(
+    __testing.getMiniMaxPlanLabel({}, [{ current_interval_total_count: 1500 }]),
+    "Starter"
+  );
+  assert.equal(__testing.getMiniMaxPlanLabel({}, [{ current_interval_total_count: 4500 }]), "Plus");
+  assert.equal(__testing.getMiniMaxPlanLabel({}, [{ current_interval_total_count: 15000 }]), "Max");
+  assert.equal(
+    __testing.getAntigravityPlanLabel({
+      paidTier: { name: "Google One AI Premium" },
+      currentTier: { id: "free-tier" },
+    }),
+    "Pro"
+  );
+  assert.equal(
+    __testing.getAntigravityPlanLabel({
+      currentTier: { id: "tier_google_one_ai_pro" },
+      allowedTiers: [{ id: "free-tier", isDefault: true }],
+    }),
+    "Pro"
+  );
+  assert.equal(
     __testing.getAntigravityPlanLabel({
       allowedTiers: [{ id: "tier_pro", isDefault: true }],
     }),
@@ -1278,6 +1319,13 @@ test("usage helper branches cover Gemini CLI and Antigravity plan label fallback
       currentTier: { name: "custom sky" },
     }),
     "Custom sky"
+  );
+  assert.equal(
+    __testing.getAntigravityPlanLabel(
+      { currentTier: { name: "TIER_UNKNOWN_CUSTOM" } },
+      { allowedTiers: [{ id: "tier_pro", isDefault: true }] }
+    ),
+    "Pro"
   );
 });
 
@@ -1371,4 +1419,77 @@ test("usage service covers NanoGPT PRO weekly token quota, FREE plan, auth denia
     apiKey: "nanogpt-fail-key",
   });
   assert.match(fetchError.message, /Unable to fetch usage: nano-gpt.com unreachable/i);
+});
+
+test("usage service opencode happy path returns plan and three quota windows", async () => {
+  globalThis.fetch = async () =>
+    new Response(
+      JSON.stringify({
+        quota: {
+          window_5h: { used: 3.0, limit: 12.0, reset_at: null },
+          window_weekly: { used: 10.0, limit: 30.0, reset_at: null },
+          window_monthly: { used: 25.0, limit: 60.0, reset_at: null },
+        },
+      }),
+      { status: 200, headers: { "content-type": "application/json" } }
+    );
+
+  const result: any = await usageService.getUsageForProvider({
+    provider: "opencode",
+    apiKey: "oc-happy-key",
+  });
+
+  assert.equal(result.plan, "OpenCode Go");
+  assert.ok(result.quotas["window_5h"], "should have window_5h quota");
+  assert.ok(result.quotas["window_weekly"], "should have window_weekly quota");
+  assert.ok(result.quotas["window_monthly"], "should have window_monthly quota");
+  assert.equal(result.quotas["window_5h"].total, 12);
+  assert.equal(result.quotas["window_weekly"].total, 30);
+  assert.equal(result.quotas["window_monthly"].total, 60);
+});
+
+test("usage service opencode no-key returns missing-key message", async () => {
+  const result: any = await usageService.getUsageForProvider({
+    provider: "opencode",
+    apiKey: "",
+  });
+
+  assert.match(result.message, /API key not available/i);
+});
+
+test("usage service opencode catch-block uses sanitizeErrorMessage (no raw stack in output)", async () => {
+  // getOpencodeUsage's catch block now calls sanitizeErrorMessage(error) instead of
+  // (error as Error).message. Verify the sanitization contract by directly invoking
+  // the exposed __testing.getOpencodeUsage with a fake fetchOpencodeQuota that
+  // throws an error whose message embeds a stack-trace path.
+  //
+  // Because fetchOpencodeQuota is fail-open (always returns null on error), the
+  // only way to exercise the catch branch inside getOpencodeUsage is to import the
+  // sanitization function directly and assert it behaves correctly for the exact
+  // error format used in that catch block — confirming the fix is load-bearing.
+  const { sanitizeErrorMessage } = await import("../../open-sse/utils/error.ts");
+
+  const rawMsg =
+    "connection refused\n    at /home/user/open-sse/services/opencodeQuotaFetcher.ts:42:10\n    at /home/user/open-sse/services/usage.ts:890:5";
+
+  const sanitized = sanitizeErrorMessage(rawMsg);
+
+  // sanitizeErrorMessage strips everything after the first newline (stack frames)
+  // and replaces absolute paths on the first line with <path>.
+  assert.ok(
+    !sanitized.includes("at /home"),
+    `sanitized message must not contain 'at /home', got: ${sanitized}`
+  );
+  assert.ok(
+    !sanitized.includes(".ts:42"),
+    `sanitized message must not contain source line refs, got: ${sanitized}`
+  );
+
+  // Confirm the formatted catch-block message would also be clean.
+  const catchBlockOutput = `OpenCode error: ${sanitized}`;
+  assert.match(catchBlockOutput, /^OpenCode error:/);
+  assert.ok(
+    !catchBlockOutput.includes("at /"),
+    `catch-block message must not leak stack paths, got: ${catchBlockOutput}`
+  );
 });

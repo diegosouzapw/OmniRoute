@@ -13,25 +13,11 @@ const { CLI_TOOL_IDS } = await import("../../src/shared/services/cliRuntime.ts")
 const { applyFingerprint, isCliCompatEnabled, setCliCompatProviders } =
   await import("../../open-sse/config/cliFingerprints.ts");
 
-test("Amp CLI is registered as a guide-based CLI tool with shorthand mapping guidance", () => {
-  const amp = CLI_TOOLS.amp;
-  assert.ok(amp);
-  assert.equal(amp.configType, "guide");
-  assert.equal(amp.defaultCommand, "amp");
-  assert.deepEqual(amp.modelAliases, ["g25p", "g25f", "cs45", "g54"]);
-
-  const notesText = (amp.notes || [])
-    .map((note) => note?.text || "")
-    .join(" ")
-    .toLowerCase();
-
-  assert.match(notesText, /shorthand/);
-  assert.match(notesText, /g25p/);
-  assert.match(notesText, /claude-sonnet-4-5-20250929/);
-});
-
-test("Amp CLI is discoverable in runtime tooling but excluded from provider fingerprint toggles", () => {
-  assert.ok(CLI_TOOL_IDS.includes("amp"));
+test("Amp CLI was removed from CLI_TOOLS per plan 14 D17 (MITM backlog plan 11)", () => {
+  // amp (Sourcegraph) removed from CLI_TOOLS in plan 14 because it has a closed ecosystem
+  // and does not support a generic custom base URL. Cross-ref: plan 11 MITM backlog.
+  assert.equal((CLI_TOOLS as Record<string, unknown>).amp, undefined);
+  // amp may still appear in cliRuntime.ts (runtime detection catalog — separate from UI catalog)
   assert.equal(CLI_COMPAT_PROVIDER_IDS.includes("amp"), false);
 });
 
@@ -101,12 +87,12 @@ test("CLI fingerprint preserves Codex executor User-Agent and maps legacy Copilo
     "codex",
     {
       Authorization: "Bearer token",
-      "User-Agent": "codex-cli/0.131.0 (Windows 10.0.26200; x64)",
+      "User-Agent": "codex-cli/0.132.0 (Windows 10.0.26200; x64)",
     },
     { model: "gpt-5.5", messages: [], stream: true }
   );
 
-  assert.equal(codex.headers["User-Agent"], "codex-cli/0.131.0 (Windows 10.0.26200; x64)");
+  assert.equal(codex.headers["User-Agent"], "codex-cli/0.132.0 (Windows 10.0.26200; x64)");
   assert.deepEqual(Object.keys(JSON.parse(codex.bodyString)), ["model", "stream", "messages"]);
 
   const copilot = applyFingerprint(

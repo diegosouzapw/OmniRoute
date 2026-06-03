@@ -1,6 +1,6 @@
-import { BaseExecutor } from "./base.ts";
+import { BaseExecutor, mergeUpstreamExtraHeaders, mergeAbortSignals } from "./base.ts";
 import { randomUUID } from "crypto";
-import { PROVIDERS, OAUTH_ENDPOINTS } from "../config/constants.ts";
+import { PROVIDERS, OAUTH_ENDPOINTS, FETCH_TIMEOUT_MS } from "../config/constants.ts";
 import { getGeminiCliHeaders } from "../services/geminiCliHeaders.ts";
 import { scrubProxyAndFingerprintHeaders } from "../services/antigravityHeaderScrub.ts";
 import { obfuscateSensitiveWords } from "../services/antigravityObfuscation.ts";
@@ -78,6 +78,17 @@ function extractProjectId(payload: unknown): string {
   return "";
 }
 
+function resolveGeminiCliProjectId(value: unknown): string {
+  if (typeof value !== "string") return "";
+  const trimmed = value.trim();
+  if (!trimmed) return "";
+  const normalized = trimmed.toLowerCase();
+  if (normalized === DEFAULT_PROJECT_ID || normalized === `projects/${DEFAULT_PROJECT_ID}`) {
+    return "";
+  }
+  return trimmed;
+}
+
 function extractDefaultTierId(payload: unknown): string {
   if (!payload || typeof payload !== "object") return DEFAULT_ONBOARD_TIER;
   const tiers = Array.isArray((payload as LoadCodeAssistResponse).allowedTiers)
@@ -134,8 +145,7 @@ export class GeminiCLIExecutor extends BaseExecutor {
   ) {
     void clientHeaders;
 
-    // Fallback to internal tracker if model not explicitly passed (matches older interface calls)
-    const activeModel = model || this._currentModel || "unknown";
+    const activeModel = model || "unknown";
 
     const raw = getGeminiCliHeaders(
       normalizeGeminiModel(activeModel),
@@ -182,7 +192,7 @@ export class GeminiCLIExecutor extends BaseExecutor {
         const controller = new AbortController();
         const timeoutId = setTimeout(() => controller.abort(), ONBOARD_TIMEOUT_MS);
 
-        let response;
+        let response: Response;
         try {
           response = await fetch(ONBOARD_USER_URL, {
             method: "POST",
@@ -203,7 +213,7 @@ export class GeminiCLIExecutor extends BaseExecutor {
           }
 
           if (payload?.done === true) {
-            return DEFAULT_PROJECT_ID;
+            return null;
           }
         } else {
           console.warn(
@@ -254,7 +264,7 @@ export class GeminiCLIExecutor extends BaseExecutor {
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), LOAD_CODE_ASSIST_TIMEOUT_MS);
 
-      let response;
+      let response: Response;
       try {
         response = await fetch(LOAD_CODE_ASSIST_URL, {
           method: "POST",
@@ -276,7 +286,7 @@ export class GeminiCLIExecutor extends BaseExecutor {
       }
 
       const data = (await response.json()) as LoadCodeAssistResponse;
-      let projectId = extractProjectId(data);
+      let projectId = resolveGeminiCliProjectId(extractProjectId(data));
 
       if (!projectId) {
         console.warn(
@@ -323,15 +333,15 @@ export class GeminiCLIExecutor extends BaseExecutor {
         ? cloneGeminiCliRecord(bodyRecord.request as Record<string, any>)
         : {};
 
+    const providerSpecificData = credentials.providerSpecificData as Record<string, unknown>;
     const storedProject =
-      bodyRecord.project ||
-      credentials.projectId ||
-      (credentials.providerSpecificData as Record<string, unknown>)?.projectId ||
+      resolveGeminiCliProjectId(providerSpecificData?.projectId) ||
+      resolveGeminiCliProjectId(credentials.projectId) ||
+      resolveGeminiCliProjectId(bodyRecord.project) ||
       "";
 
     const envelope: Record<string, any> = {
       model: currentModel,
-      project: storedProject,
       user_prompt_id: bodyRecord.user_prompt_id || generateGeminiCliRequestId(),
       request: {
         ...requestRecord,
@@ -339,8 +349,12 @@ export class GeminiCLIExecutor extends BaseExecutor {
       },
     };
 
+    if (typeof storedProject === "string" ? storedProject.trim() : storedProject) {
+      envelope.project = storedProject;
+    }
+
     for (const [key, value] of Object.entries(bodyRecord)) {
-      if (!(key in envelope) && key !== "request") {
+      if (!(key in envelope) && key !== "request" && key !== "project") {
         envelope[key] = value;
       }
     }
@@ -349,7 +363,7 @@ export class GeminiCLIExecutor extends BaseExecutor {
     // stored project IDs can go stale. Keep the stored value as a fallback.
     if (credentials.accessToken) {
       const freshProject = await this.refreshProject(credentials.accessToken, currentModel);
-      if (freshProject) {
+      if (resolveGeminiCliProjectId(freshProject)) {
         envelope.project = freshProject;
       }
     }
@@ -372,6 +386,97 @@ export class GeminiCLIExecutor extends BaseExecutor {
     return envelope;
   }
 
+  async execute({
+    model,
+    body,
+    stream,
+    credentials,
+    signal,
+    log,
+    upstreamExtraHeaders,
+  }: ExecuteInput) {
+    const fallbackCount = this.getFallbackCount();
+    let lastError = null;
+    let lastStatus = 0;
+    const MAX_AUTO_RETRIES = 3;
+    const retryAttemptsByUrl: Record<number, number> = {};
+
+    for (let urlIndex = 0; urlIndex < fallbackCount; urlIndex++) {
+      const url = this.buildUrl(model, stream, urlIndex);
+      const headers = this.buildHeaders(credentials, stream, null, model);
+      mergeUpstreamExtraHeaders(headers, upstreamExtraHeaders);
+
+      const transformed = await this.transformRequest(model, body, stream, credentials);
+      if (transformed instanceof Response) {
+        return { response: transformed, url, headers, transformedBody: body };
+      }
+      const transformedBody = transformed;
+
+      if (!retryAttemptsByUrl[urlIndex]) {
+        retryAttemptsByUrl[urlIndex] = 0;
+      }
+
+      try {
+        log?.debug?.(
+          "TELEMETRY",
+          `[Gemini CLI] Execute - URL: ${url}, Model: ${model}, Retry: ${retryAttemptsByUrl[urlIndex]}`
+        );
+
+        const timeoutSignal = AbortSignal.timeout(FETCH_TIMEOUT_MS);
+        const mergedSignal = signal ? mergeAbortSignals(signal, timeoutSignal) : timeoutSignal;
+        const response = await fetch(url, {
+          method: "POST",
+          headers,
+          body: JSON.stringify(transformedBody),
+          signal: mergedSignal,
+        });
+
+        if (!response.ok) {
+          log?.warn?.(
+            "TELEMETRY",
+            `[Gemini CLI] Error Response - URL: ${url}, Status: ${response.status}`
+          );
+
+          let retryMs: number | null = null;
+          if (response.status === 429 || response.status === 503) {
+            try {
+              const errorBody = await response.clone().text();
+              retryMs = this.parseRetryFromErrorMessage(errorBody);
+            } catch {
+              /* ignore parse error */
+            }
+
+            if ((!retryMs || retryMs <= 60000) && retryAttemptsByUrl[urlIndex] < MAX_AUTO_RETRIES) {
+              retryAttemptsByUrl[urlIndex]++;
+              const backoffMs =
+                retryMs || Math.min(1000 * 2 ** retryAttemptsByUrl[urlIndex], 30000);
+              log?.debug?.(
+                "RETRY",
+                `Gemini CLI 429 retry ${retryAttemptsByUrl[urlIndex]} after ${backoffMs}ms`
+              );
+              await sleep(backoffMs);
+              urlIndex--;
+              continue;
+            }
+          }
+        }
+
+        if (this.shouldRetry(response.status, urlIndex)) {
+          lastStatus = response.status;
+          continue;
+        }
+
+        return { response, url, headers, transformedBody };
+      } catch (error) {
+        lastError = error;
+        if (urlIndex + 1 < fallbackCount) continue;
+        throw error;
+      }
+    }
+
+    throw lastError || new Error(`All ${fallbackCount} URLs failed with status ${lastStatus}`);
+  }
+
   async refreshCredentials(credentials, log) {
     if (!credentials.refreshToken) return null;
 
@@ -390,21 +495,59 @@ export class GeminiCLIExecutor extends BaseExecutor {
         }),
       });
 
-      if (!response.ok) return null;
+      if (!response.ok) {
+        const errorText = await response.text().catch(() => "");
+        log?.error?.("TOKEN", "Gemini CLI refresh failed", {
+          status: response.status,
+          error: errorText.slice(0, 200),
+        });
+        // Match refreshGoogleToken's pattern: invalid_grant means the refresh
+        // token was revoked / replaced — surface as unrecoverable so the caller
+        // marks the account expired instead of retrying forever with a dead token.
+        try {
+          const errorBody = JSON.parse(errorText);
+          if (errorBody?.error === "invalid_grant") {
+            return { error: "unrecoverable_refresh_error", code: "invalid_grant" } as never;
+          }
+        } catch {
+          // not JSON — fall through
+        }
+        return null;
+      }
 
       const tokens = await response.json();
       log?.info?.("TOKEN", "Gemini CLI refreshed");
 
-      return {
+      const refreshed: Record<string, unknown> = {
         accessToken: tokens.access_token,
         refreshToken: tokens.refresh_token || credentials.refreshToken,
         expiresIn: tokens.expires_in,
         projectId: credentials.projectId,
       };
+      if (credentials.providerSpecificData !== undefined) {
+        refreshed.providerSpecificData = credentials.providerSpecificData;
+      }
+      return refreshed as never;
     } catch (error) {
       log?.error?.("TOKEN", `Gemini CLI refresh error: ${error.message}`);
       return null;
     }
+  }
+
+  // Parse retry time from Gemini error message body
+  // Format: "Your quota will reset after 2h7m23s"
+  parseRetryFromErrorMessage(errorMessage: unknown): number | null {
+    if (!errorMessage || typeof errorMessage !== "string") return null;
+
+    const match = errorMessage.match(/reset (?:after|in) (\d+h)?(\d+m)?(\d+s)?/i);
+    if (!match) return null;
+
+    let totalMs = 0;
+    if (match[1]) totalMs += parseInt(match[1]) * 3600 * 1000;
+    if (match[2]) totalMs += parseInt(match[2]) * 60 * 1000;
+    if (match[3]) totalMs += parseInt(match[3]) * 1000;
+
+    return totalMs || 2_000;
   }
 }
 

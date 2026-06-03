@@ -1,9 +1,10 @@
 import createNextIntlPlugin from "next-intl/plugin";
+import { createMDX } from "fumadocs-mdx/next";
 import { dirname } from "node:path";
 import { fileURLToPath } from "node:url";
 
 const withNextIntl = createNextIntlPlugin("./src/i18n/request.ts");
-const distDir = process.env.NEXT_DIST_DIR || ".next";
+const distDir = process.env.NEXT_DIST_DIR || ".build/next";
 const projectRoot = dirname(fileURLToPath(import.meta.url));
 const scriptSrc =
   process.env.NODE_ENV === "development"
@@ -61,6 +62,22 @@ function isNextIntlExtractorDynamicImportWarning(warning) {
   );
 }
 
+// OMNIROUTE_BUILD_PROFILE=minimal physically removes four optional privileged
+// modules (MITM cert install, Zed keychain import, Cloud Sync, 9router
+// installer) from the built bundle by aliasing them to feature-disabled stubs.
+// The resulting artifact is intended to be published as `omniroute-secure`
+// for security-sensitive environments. See docs/security/SOCKET_DEV_FINDINGS.md.
+const isMinimalBuild = process.env.OMNIROUTE_BUILD_PROFILE === "minimal";
+
+const minimalBuildAliases = isMinimalBuild
+  ? {
+      "@/mitm/cert/install": "./src/mitm/cert/install.stub.ts",
+      "@/lib/zed-oauth/keychain-reader": "./src/lib/zed-oauth/keychain-reader.stub.ts",
+      "@/lib/cloudSync": "./src/lib/cloudSync.stub.ts",
+      "@/lib/services/installers/ninerouter": "./src/lib/services/installers/ninerouter.stub.ts",
+    }
+  : {};
+
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   distDir,
@@ -70,6 +87,7 @@ const nextConfig = {
     resolveAlias: {
       // Point mitm/manager to a stub during build (native child_process/fs can't be bundled)
       "@/mitm/manager": "./src/mitm/manager.stub.ts",
+      ...minimalBuildAliases,
     },
   },
   output: "standalone",
@@ -96,6 +114,8 @@ const nextConfig = {
       "./src/mitm/server.cjs",
       "./open-sse/services/compression/engines/rtk/filters/**/*.json",
       "./open-sse/services/compression/rules/**/*.json",
+      "./open-sse/lib/sha3_wasm_bg.wasm",
+      "./open-sse/lib/deepseek-pow-solver.cjs",
     ],
   },
   outputFileTracingExcludes: {
@@ -121,7 +141,11 @@ const nextConfig = {
     "thread-stream",
     "pino-abstract-transport",
     "better-sqlite3",
-    "sql.js",
+    // sqlite-vec ships a native vec0.so loaded at runtime via createRequire().
+    // Turbopack otherwise tries to bundle the .so and fails with "Unknown module
+    // type"; externalizing it keeps the require at runtime (like better-sqlite3).
+    // See issue #3066.
+    "sqlite-vec",
     "node-machine-id",
     "keytar",
     "wreq-js",
@@ -130,6 +154,7 @@ const nextConfig = {
     "koffi",
     "tough-cookie",
     "@ngrok/ngrok",
+    "@huggingface/transformers",
     "child_process",
     "fs",
     "path",
@@ -144,17 +169,78 @@ const nextConfig = {
     "util",
     "process",
   ],
-  transpilePackages: ["@omniroute/open-sse", "@lobehub/icons"],
+  transpilePackages: ["@omniroute/open-sse", "@lobehub/icons", "fumadocs-ui", "fumadocs-core"],
   allowedDevOrigins: ["localhost", "127.0.0.1", "192.168.0.250"],
   typescript: {
     // TODO: Re-enable after fixing all sub-component useTranslations scope issues
     ignoreBuildErrors: true,
   },
-  webpack(config) {
+  webpack(config, { webpack }) {
     config.ignoreWarnings = [
       ...(config.ignoreWarnings || []),
       isNextIntlExtractorDynamicImportWarning,
     ];
+    config.optimization = config.optimization || {};
+    config.optimization.splitChunks = {
+      ...config.optimization.splitChunks,
+      cacheGroups: {
+        ...(config.optimization.splitChunks?.cacheGroups || {}),
+        recharts: {
+          test: /[\\/]node_modules[\\/]recharts[\\/]/,
+          name: "vendor-recharts",
+          chunks: "all",
+          priority: 20,
+        },
+        lobeIcons: {
+          test: /[\\/]node_modules[\\/]@lobehub[\\/]icons[\\/]/,
+          name: "vendor-lobe-icons",
+          chunks: "all",
+          priority: 20,
+        },
+        monaco: {
+          test: /[\\/]node_modules[\\/]monaco-editor[\\/]/,
+          name: "vendor-monaco",
+          chunks: "all",
+          priority: 20,
+        },
+        xyflow: {
+          test: /[\\/]node_modules[\\/]@xyflow[\\/]/,
+          name: "vendor-xyflow",
+          chunks: "all",
+          priority: 20,
+        },
+        mermaid: {
+          test: /[\\/]node_modules[\\/]mermaid[\\/]/,
+          name: "vendor-mermaid",
+          chunks: "all",
+          priority: 20,
+        },
+      },
+    };
+
+    if (isMinimalBuild) {
+      // Mirror the turbopack.resolveAlias entries for webpack-built artifacts.
+      // NormalModuleReplacementPlugin swaps the real module for a stub before
+      // webpack resolves it, so the privileged source files are never compiled
+      // into the standalone output.
+      const replacements = [
+        [/^@\/mitm\/cert\/install$/, "./src/mitm/cert/install.stub.ts"],
+        [/^@\/lib\/zed-oauth\/keychain-reader$/, "./src/lib/zed-oauth/keychain-reader.stub.ts"],
+        [/^@\/lib\/cloudSync$/, "./src/lib/cloudSync.stub.ts"],
+        [
+          /^@\/lib\/services\/installers\/ninerouter$/,
+          "./src/lib/services/installers/ninerouter.stub.ts",
+        ],
+      ];
+      for (const [pattern, stubPath] of replacements) {
+        config.plugins.push(
+          new webpack.NormalModuleReplacementPlugin(pattern, (resource) => {
+            resource.request = stubPath;
+          })
+        );
+      }
+    }
+
     return config;
   },
   images: {
@@ -166,6 +252,199 @@ const nextConfig = {
       {
         source: "/:path*",
         headers: securityHeaders,
+      },
+      // G-10: allow OmniRoute's own dashboard to embed the 9Router UI via our reverse proxy.
+      // `frame-ancestors 'self'` overrides the global `frame-ancestors 'none'` only for this
+      // path. The route is already LOCAL_ONLY (routeGuard.ts) so remote origins cannot reach it.
+      {
+        source: "/dashboard/providers/services/:name/embed/:path*",
+        headers: [{ key: "Content-Security-Policy", value: "frame-ancestors 'self'" }],
+      },
+    ];
+  },
+
+  async redirects() {
+    return [
+      // Dashboard routes
+      {
+        source: "/dashboard/skills",
+        destination: "/dashboard/omni-skills",
+        permanent: true,
+      },
+      // Architecture
+      {
+        source: "/docs/architecture",
+        destination: "/docs/architecture/architecture",
+        permanent: true,
+      },
+      {
+        source: "/docs/authz-guide",
+        destination: "/docs/architecture/authz-guide",
+        permanent: true,
+      },
+      {
+        source: "/docs/codebase-documentation",
+        destination: "/docs/architecture/codebase-documentation",
+        permanent: true,
+      },
+      {
+        source: "/docs/repository-map",
+        destination: "/docs/architecture/repository-map",
+        permanent: true,
+      },
+      {
+        source: "/docs/resilience-guide",
+        destination: "/docs/architecture/resilience-guide",
+        permanent: true,
+      },
+      // Guides
+      { source: "/docs/docker-guide", destination: "/docs/guides/docker-guide", permanent: true },
+      {
+        source: "/docs/electron-guide",
+        destination: "/docs/guides/electron-guide",
+        permanent: true,
+      },
+      { source: "/docs/features", destination: "/docs/guides/features", permanent: true },
+      { source: "/docs/i18n", destination: "/docs/guides/i18n", permanent: true },
+      { source: "/docs/kiro-setup", destination: "/docs/guides/kiro-setup", permanent: true },
+      { source: "/docs/pwa-guide", destination: "/docs/guides/pwa-guide", permanent: true },
+      { source: "/docs/setup-guide", destination: "/docs/guides/setup-guide", permanent: true },
+      { source: "/docs/termux-guide", destination: "/docs/guides/termux-guide", permanent: true },
+      {
+        source: "/docs/troubleshooting",
+        destination: "/docs/guides/troubleshooting",
+        permanent: true,
+      },
+      { source: "/docs/uninstall", destination: "/docs/guides/uninstall", permanent: true },
+      { source: "/docs/user-guide", destination: "/docs/guides/user-guide", permanent: true },
+      // Reference
+      {
+        source: "/docs/api-reference",
+        destination: "/docs/reference/api-reference",
+        permanent: true,
+      },
+      { source: "/docs/cli-tools", destination: "/docs/reference/cli-tools", permanent: true },
+      { source: "/docs/environment", destination: "/docs/reference/environment", permanent: true },
+      { source: "/docs/free-tiers", destination: "/docs/reference/free-tiers", permanent: true },
+      {
+        source: "/docs/provider-reference",
+        destination: "/docs/reference/provider-reference",
+        permanent: true,
+      },
+      // Frameworks
+      { source: "/docs/a2a-server", destination: "/docs/frameworks/a2a-server", permanent: true },
+      {
+        source: "/docs/agent-protocols-guide",
+        destination: "/docs/frameworks/agent-protocols-guide",
+        permanent: true,
+      },
+      { source: "/docs/cloud-agent", destination: "/docs/frameworks/cloud-agent", permanent: true },
+      { source: "/docs/evals", destination: "/docs/frameworks/evals", permanent: true },
+      {
+        source: "/docs/gamification",
+        destination: "/docs/frameworks/gamification",
+        permanent: true,
+      },
+      { source: "/docs/mcp-server", destination: "/docs/frameworks/mcp-server", permanent: true },
+      { source: "/docs/memory", destination: "/docs/frameworks/memory", permanent: true },
+      { source: "/docs/opencode", destination: "/docs/frameworks/opencode", permanent: true },
+      { source: "/docs/skills", destination: "/docs/frameworks/skills", permanent: true },
+      { source: "/docs/webhooks", destination: "/docs/frameworks/webhooks", permanent: true },
+      // Routing
+      { source: "/docs/auto-combo", destination: "/docs/routing/auto-combo", permanent: true },
+      {
+        source: "/docs/reasoning-replay",
+        destination: "/docs/routing/reasoning-replay",
+        permanent: true,
+      },
+      // Security
+      { source: "/docs/cli-token", destination: "/docs/security/cli-token", permanent: true },
+      {
+        source: "/docs/cli-token-auth",
+        destination: "/docs/security/cli-token-auth",
+        permanent: true,
+      },
+      { source: "/docs/compliance", destination: "/docs/security/compliance", permanent: true },
+      {
+        source: "/docs/error-sanitization",
+        destination: "/docs/security/error-sanitization",
+        permanent: true,
+      },
+      { source: "/docs/guardrails", destination: "/docs/security/guardrails", permanent: true },
+      { source: "/docs/public-creds", destination: "/docs/security/public-creds", permanent: true },
+      {
+        source: "/docs/route-guard-tiers",
+        destination: "/docs/security/route-guard-tiers",
+        permanent: true,
+      },
+      {
+        source: "/docs/stealth-guide",
+        destination: "/docs/security/stealth-guide",
+        permanent: true,
+      },
+      // Compression
+      {
+        source: "/docs/compression-engines",
+        destination: "/docs/compression/compression-engines",
+        permanent: true,
+      },
+      {
+        source: "/docs/compression-guide",
+        destination: "/docs/compression/compression-guide",
+        permanent: true,
+      },
+      {
+        source: "/docs/compression-language-packs",
+        destination: "/docs/compression/compression-language-packs",
+        permanent: true,
+      },
+      {
+        source: "/docs/compression-rules-format",
+        destination: "/docs/compression/compression-rules-format",
+        permanent: true,
+      },
+      {
+        source: "/docs/rtk-compression",
+        destination: "/docs/compression/rtk-compression",
+        permanent: true,
+      },
+      // Ops
+      { source: "/docs/coverage-plan", destination: "/docs/ops/coverage-plan", permanent: true },
+      {
+        source: "/docs/e2e-dashboard-shakedown-v3.8.0",
+        destination: "/docs/ops/e2e-dashboard-shakedown-v3.8.0",
+        permanent: true,
+      },
+      {
+        source: "/docs/fly-io-deployment-guide",
+        destination: "/docs/ops/fly-io-deployment-guide",
+        permanent: true,
+      },
+      { source: "/docs/proxy-guide", destination: "/docs/ops/proxy-guide", permanent: true },
+      {
+        source: "/docs/release-checklist",
+        destination: "/docs/ops/release-checklist",
+        permanent: true,
+      },
+      { source: "/docs/sqlite-runtime", destination: "/docs/ops/sqlite-runtime", permanent: true },
+      { source: "/docs/tunnels-guide", destination: "/docs/ops/tunnels-guide", permanent: true },
+      {
+        source: "/docs/vm-deployment-guide",
+        destination: "/docs/ops/vm-deployment-guide",
+        permanent: true,
+      },
+      // CLI Pages — Plano 14 (F9)
+      { source: "/dashboard/cli-tools", destination: "/dashboard/cli-code", permanent: true },
+      {
+        source: "/dashboard/cli-tools/:path*",
+        destination: "/dashboard/cli-code/:path*",
+        permanent: true,
+      },
+      { source: "/dashboard/agents", destination: "/dashboard/acp-agents", permanent: true },
+      {
+        source: "/dashboard/agents/:path*",
+        destination: "/dashboard/acp-agents/:path*",
+        permanent: true,
       },
     ];
   },
@@ -220,4 +499,6 @@ const nextConfig = {
   },
 };
 
-export default withNextIntl(nextConfig);
+const withMDX = createMDX();
+
+export default withMDX(withNextIntl(nextConfig));

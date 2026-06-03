@@ -14,6 +14,7 @@
  */
 
 import { BaseExecutor, type ExecuteInput } from "./base.ts";
+import { sanitizeErrorMessage } from "../utils/error.ts";
 
 // ─── Constants ──────────────────────────────────────────────────────────────
 
@@ -130,7 +131,7 @@ export class GeminiWebExecutor extends BaseExecutor {
   }
 
   async execute(input: ExecuteInput) {
-    const { model, body, stream, credentials } = input;
+    const { model, body, stream, credentials, signal } = input;
     const requestBody = body as GeminiRequestBody;
 
     const cookie = credentials.apiKey || "";
@@ -163,9 +164,18 @@ export class GeminiWebExecutor extends BaseExecutor {
     }
 
     let browser: any = null;
+    let abortBrowser: (() => void) | null = null;
     try {
+      if (signal?.aborted) {
+        throw signal.reason instanceof Error ? signal.reason : new Error("Request aborted");
+      }
       const { chromium } = await import("playwright");
       browser = await chromium.launch({ headless: true });
+      abortBrowser = () => {
+        void browser?.close().catch(() => {});
+      };
+      signal?.addEventListener("abort", abortBrowser, { once: true });
+
       const context = await browser.newContext({ userAgent: GEMINI_USER_AGENT });
 
       // Parse cookies — strips attributes like Path, Domain, Expires
@@ -200,6 +210,9 @@ export class GeminiWebExecutor extends BaseExecutor {
       });
 
       await page.goto(GEMINI_URL, { waitUntil: "domcontentloaded", timeout: 20000 });
+      if (signal?.aborted) {
+        throw signal.reason instanceof Error ? signal.reason : new Error("Request aborted");
+      }
       await page.waitForTimeout(3000);
 
       // Type and send message
@@ -213,6 +226,9 @@ export class GeminiWebExecutor extends BaseExecutor {
 
       // Wait for response or timeout
       await Promise.race([responsePromise, page.waitForTimeout(30000)]);
+      if (signal?.aborted) {
+        throw signal.reason instanceof Error ? signal.reason : new Error("Request aborted");
+      }
 
       if (!responseText) {
         return {
@@ -232,20 +248,25 @@ export class GeminiWebExecutor extends BaseExecutor {
         // Pseudo-streaming: send complete response as single SSE chunk
         // Gemini's StreamGenerate returns complete responses, not chunked streams
         const encoder = new TextEncoder();
-        const readable = new ReadableStream({
-          start(controller) {
-            controller.enqueue(
-              encoder.encode(
-                `data: ${JSON.stringify(formatStreamChunk(responseText, modelId))}\n\n`
-              )
-            );
-            controller.enqueue(
-              encoder.encode(`data: ${JSON.stringify(formatStreamChunk("", modelId, "stop"))}\n\n`)
-            );
-            controller.enqueue(encoder.encode("data: [DONE]\n\n"));
-            controller.close();
+        const readable = new ReadableStream(
+          {
+            start(controller) {
+              controller.enqueue(
+                encoder.encode(
+                  `data: ${JSON.stringify(formatStreamChunk(responseText, modelId))}\n\n`
+                )
+              );
+              controller.enqueue(
+                encoder.encode(
+                  `data: ${JSON.stringify(formatStreamChunk("", modelId, "stop"))}\n\n`
+                )
+              );
+              controller.enqueue(encoder.encode("data: [DONE]\n\n"));
+              controller.close();
+            },
           },
-        });
+          { highWaterMark: 16384 }
+        );
         return {
           response: new Response(readable, {
             status: 200,
@@ -273,7 +294,9 @@ export class GeminiWebExecutor extends BaseExecutor {
     } catch (error) {
       return {
         response: new Response(
-          JSON.stringify({ error: error instanceof Error ? error.message : "Unknown error" }),
+          JSON.stringify({
+            error: sanitizeErrorMessage(error instanceof Error ? error.message : "Unknown error"),
+          }),
           { status: 500, headers: { "Content-Type": "application/json" } }
         ),
         url: GEMINI_URL,
@@ -281,6 +304,7 @@ export class GeminiWebExecutor extends BaseExecutor {
         transformedBody: body,
       };
     } finally {
+      if (abortBrowser) signal?.removeEventListener("abort", abortBrowser);
       // Always close browser to prevent resource leaks
       if (browser) {
         try {

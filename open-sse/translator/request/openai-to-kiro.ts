@@ -78,6 +78,41 @@ function normalizeKiroToolSchema(schema: unknown): Record<string, unknown> {
   return result;
 }
 
+function serializeToolResultContent(content: unknown): string {
+  if (typeof content === "string") {
+    return content || "(no output)";
+  }
+  if (!Array.isArray(content)) {
+    if (content !== null && content !== undefined) {
+      try {
+        return JSON.stringify(content);
+      } catch {
+        return "(no output)";
+      }
+    }
+    return "(no output)";
+  }
+  const parts: string[] = [];
+  for (const block of content as Array<Record<string, unknown>>) {
+    if (!block || typeof block !== "object") continue;
+    if (block.type === "text" && typeof block.text === "string") {
+      if (block.text) parts.push(block.text);
+    } else if (block.type === "image" || block.type === "image_url") {
+      const src = block.source as Record<string, unknown> | undefined;
+      const mediaType = src?.media_type ?? block.media_type ?? "image";
+      parts.push(`[image: ${mediaType}]`);
+    } else {
+      try {
+        const str = JSON.stringify(block);
+        if (str && str !== "{}") parts.push(str);
+      } catch {
+        // skip unserializable block
+      }
+    }
+  }
+  return parts.join("\n") || "(no output)";
+}
+
 /**
  * Convert OpenAI messages to Kiro format
  * Rules: system/tool/user -> user role, merge consecutive same roles
@@ -237,15 +272,10 @@ function convertMessages(messages, tools, model) {
         const toolResultBlocks = msg.content.filter((c) => c.type === "tool_result");
         if (toolResultBlocks.length > 0) {
           toolResultBlocks.forEach((block) => {
-            const text = Array.isArray(block.content)
-              ? block.content.map((c) => c.text || "").join("\n")
-              : typeof block.content === "string"
-                ? block.content
-                : "";
-
+            const text = serializeToolResultContent(block.content);
             pendingToolResults.push({
               toolUseId: block.tool_use_id,
-              status: "success",
+              status: block.is_error ? "error" : "success",
               content: [{ text: text }],
             });
           });
@@ -254,7 +284,11 @@ function convertMessages(messages, tools, model) {
 
       // Handle tool role (from normalized)
       if (msg.role === "tool") {
-        const toolContent = typeof msg.content === "string" ? msg.content : "";
+        // Reuse the shared serializer so non-string content (arrays, structured/JSON
+        // blocks, images) is never collapsed to an empty string. CodeWhisperer rejects a
+        // toolResult whose content is [{ text: "" }] with 400 "Improperly formed request"
+        // — the same failure mode that hit the Anthropic tool_result path (issue #2446).
+        const toolContent = serializeToolResultContent(msg.content);
         pendingToolResults.push({
           toolUseId: msg.tool_call_id,
           status: "success",
@@ -300,16 +334,20 @@ function convertMessages(messages, tools, model) {
 
         const lastMsg = history[history.length - 1];
         if (lastMsg?.assistantResponseMessage) {
-          lastMsg.assistantResponseMessage.toolUses = toolUses.map((tc) => {
+          const NAMESPACE_KIRO_TOOLUSE = "a1b2c3d4-e5f6-7890-abcd-ef1234567890";
+          lastMsg.assistantResponseMessage.toolUses = toolUses.map((tc, idx) => {
             if (tc.function) {
+              const stableId =
+                tc.id || uuidv5(`${tc.function.name}:${idx}`, NAMESPACE_KIRO_TOOLUSE);
               return {
-                toolUseId: tc.id || uuidv4(),
+                toolUseId: stableId,
                 name: tc.function.name,
                 input: parseToolInput(tc.function.arguments),
               };
             } else {
+              const stableId = tc.id || uuidv5(`${tc.name}:${idx}`, NAMESPACE_KIRO_TOOLUSE);
               return {
-                toolUseId: tc.id || uuidv4(),
+                toolUseId: stableId,
                 name: tc.name,
                 input: parseToolInput(tc.input),
               };
@@ -708,8 +746,33 @@ export function buildKiroPayload(model, body, stream, credentials) {
   // upstream Kiro/AWS conversation context, leaking prior state across
   // sessions. See conversionMessages() above for the `__synthetic` marker.
   const NAMESPACE_KIRO = "34f7193f-561d-4050-bc84-9547d953d6bf";
+
+  // Priority 1: Extract first user message from pre-compression body (passed by chatCore before
+  // compressContext runs). This keeps conversationId stable even when compression alters content.
+  // Priority 2: Deterministic hash from first user message in translated history (fallback).
+  const preCompressionBody = credentials?._preCompressionBody as
+    | Record<string, unknown>
+    | null
+    | undefined;
+  const preCompressionMessages = Array.isArray(preCompressionBody?.messages)
+    ? preCompressionBody.messages
+    : null;
+  const preCompressionFirstUser = preCompressionMessages?.find(
+    (m: Record<string, unknown>) => m.role === "user"
+  );
+  const seedFromPreCompression = preCompressionFirstUser
+    ? typeof preCompressionFirstUser.content === "string"
+      ? preCompressionFirstUser.content
+      : Array.isArray(preCompressionFirstUser.content)
+        ? (preCompressionFirstUser.content as Array<{ type: string; text?: string }>)
+            .filter((b) => b.type === "text")
+            .map((b) => b.text || "")
+            .join(" ")
+        : ""
+    : "";
   const firstRealUserTurn = history.find((h) => h?.userInputMessage?.content && !h.__synthetic);
-  const firstContent = firstRealUserTurn?.userInputMessage?.content || finalContent;
+  const firstContent =
+    seedFromPreCompression || firstRealUserTurn?.userInputMessage?.content || finalContent;
 
   // Use uuidv5 with the hash of the system prompt / first message to maintain AWS Builder ID context cache
   payload.conversationState.conversationId = uuidv5(

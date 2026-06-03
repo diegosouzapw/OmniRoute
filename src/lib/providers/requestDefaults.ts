@@ -20,6 +20,14 @@ function normalizeString(value: unknown): string | undefined {
   return normalized || undefined;
 }
 
+const BEDROCK_REGION_PATTERN = /^[a-z]{2}(?:-gov)?-[a-z]+-\d+$/i;
+
+function normalizeAwsRegion(value: unknown): string | undefined {
+  const normalized = normalizeString(value);
+  if (!normalized || !BEDROCK_REGION_PATTERN.test(normalized)) return undefined;
+  return normalized;
+}
+
 function hasNonEmptyString(value: unknown): boolean {
   return typeof value === "string" && value.trim().length > 0;
 }
@@ -38,10 +46,13 @@ export function normalizeCodexReasoningEffort(value: unknown): CodexReasoningEff
   return normalized as CodexReasoningEffort;
 }
 
-export function normalizeCodexServiceTier(value: unknown): "priority" | undefined {
+export type CodexServiceTier = "default" | "priority" | "flex";
+
+export function normalizeCodexServiceTier(value: unknown): CodexServiceTier | undefined {
   const normalized = normalizeString(value);
   if (!normalized) return undefined;
   if (normalized === "fast" || normalized === "priority") return "priority";
+  if (normalized === "default" || normalized === "flex") return normalized;
   return undefined;
 }
 
@@ -114,6 +125,15 @@ export function normalizeProviderSpecificData(
 
   if ("autoFetchModels" in normalized && typeof normalized.autoFetchModels !== "boolean") {
     delete normalized.autoFetchModels;
+  }
+
+  if (provider === "bedrock" && "region" in normalized) {
+    const region = normalizeAwsRegion(normalized.region);
+    if (region) {
+      normalized.region = region;
+    } else {
+      delete normalized.region;
+    }
   }
 
   if ("tag" in normalized) {
@@ -219,7 +239,7 @@ export function getProviderRequestDefaults(
 
 export function getCodexRequestDefaults(providerSpecificData: unknown): {
   reasoningEffort?: CodexReasoningEffort;
-  serviceTier?: "priority";
+  serviceTier?: CodexServiceTier;
 } {
   const defaults = getProviderRequestDefaults("codex", providerSpecificData);
   const reasoningEffort = normalizeCodexReasoningEffort(defaults.reasoningEffort);

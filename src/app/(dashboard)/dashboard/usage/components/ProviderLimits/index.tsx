@@ -5,62 +5,68 @@ import { useTranslations } from "next-intl";
 import { useState, useEffect, useCallback, useMemo, useRef } from "react";
 import {
   parseQuotaData,
-  calculatePercentage,
   formatQuotaLabel,
+  formatCountdown,
   normalizePlanTier,
   resolvePlanValue,
+  calculatePercentage,
 } from "./utils";
 import Card from "@/shared/components/Card";
-import Badge from "@/shared/components/Badge";
 import { CardSkeleton } from "@/shared/components/Loading";
 import { USAGE_SUPPORTED_PROVIDERS } from "@/shared/constants/providers";
-import { pickMaskedDisplayValue, pickDisplayValue } from "@/shared/utils/maskEmail";
+import { pickDisplayValue } from "@/shared/utils/maskEmail";
 import useEmailPrivacyStore from "@/store/emailPrivacyStore";
 import EmailPrivacyToggle from "@/shared/components/EmailPrivacyToggle";
-import ProviderIcon from "@/shared/components/ProviderIcon";
-import { compareTr } from "@/shared/utils/turkishText";
 import QuotaCutoffModal from "./QuotaCutoffModal";
+import QuotaCardGrid from "./QuotaCardGrid";
 import { translateUsageOrFallback, type UsageTranslationValues } from "./i18nFallback";
+import { compareTr } from "@/shared/utils/turkishText";
 
-const LS_GROUP_BY = "omniroute:limits:groupBy";
-const LS_EXPANDED_GROUPS = "omniroute:limits:expandedGroups";
-const LS_EXPANDED_ROWS = "omniroute:limits:expandedRows";
 const LS_PURCHASE_FILTER = "omniroute:limits:purchaseFilter";
 const LS_STATUS_FILTER = "omniroute:limits:statusFilter";
+const LS_ENV_FILTER = "omniroute:limits:envFilter";
 
-const MIN_FETCH_INTERVAL_MS = 30000; // Debounce per-connection fetches
+const MIN_FETCH_INTERVAL_MS = 30000;
 const QUOTA_BAR_GREEN_THRESHOLD = 50;
 const QUOTA_BAR_YELLOW_THRESHOLD = 20;
-const LIMITS_GRID_TEMPLATE_COLUMNS = "minmax(220px,260px) minmax(240px,1fr) 104px 76px 56px";
 
-// Provider display config
-const PROVIDER_CONFIG = {
-  antigravity: { label: "Antigravity", color: "#F59E0B" },
-  "gemini-cli": { label: "Gemini CLI", color: "#4285F4" },
-  github: { label: "GitHub Copilot", color: "#333" },
-  kiro: { label: "Kiro AI", color: "#FF6B35" },
-  "amazon-q": { label: "Amazon Q", color: "#FF9900" },
-  codex: { label: "OpenAI Codex", color: "#10A37F" },
-  claude: { label: "Claude Code", color: "#D97757" },
-  glm: { label: "GLM (Z.AI)", color: "#4A90D9" },
-  zai: { label: "Z.AI", color: "#2563EB" },
-  glmt: { label: "GLM Thinking", color: "#2563EB" },
-  "kimi-coding": { label: "Kimi Coding", color: "#1E3A8A" },
-  minimax: { label: "MiniMax", color: "#7C3AED" },
-  "minimax-cn": { label: "MiniMax CN", color: "#DC2626" },
-  nanogpt: { label: "NanoGPT", color: "#4F46E5" },
-  deepseek: { label: "DeepSeek", color: "#4D6BFE" },
+// Display label per known provider; the icon is resolved by ProviderIcon.
+const PROVIDER_LABEL: Record<string, string> = {
+  antigravity: "Antigravity",
+  "gemini-cli": "Gemini CLI",
+  github: "GitHub Copilot",
+  kiro: "Kiro AI",
+  "amazon-q": "Amazon Q",
+  codex: "OpenAI Codex",
+  claude: "Claude Code",
+  glm: "GLM (Z.AI)",
+  zai: "Z.AI",
+  glmt: "GLM Thinking",
+  "opencode-go": "OpenCode Go",
+  "kimi-coding": "Kimi Coding",
+  minimax: "MiniMax",
+  "minimax-cn": "MiniMax CN",
+  nanogpt: "NanoGPT",
+  deepseek: "DeepSeek",
 };
 
-// Currency symbol mapping
-const CURRENCY_SYMBOLS: Record<string, string> = {
-  USD: "$",
-  CNY: "¥",
-  EUR: "€",
-  GBP: "£",
-  JPY: "¥",
-  KRW: "₩",
-  INR: "₹",
+// Group ordering — single source of truth for "where does Codex sit
+// relative to Antigravity on the page".
+const PROVIDER_ORDER: Record<string, number> = {
+  antigravity: 1,
+  "gemini-cli": 2,
+  github: 3,
+  codex: 4,
+  claude: 5,
+  kiro: 6,
+  glm: 7,
+  zai: 8,
+  glmt: 9,
+  "opencode-go": 10,
+  "kimi-coding": 11,
+  minimax: 12,
+  "minimax-cn": 13,
+  nanogpt: 14,
 };
 
 const TIER_FILTERS = [
@@ -71,7 +77,7 @@ const TIER_FILTERS = [
   { key: "ultra", labelKey: "tierUltra" },
   { key: "pro", labelKey: "tierPro" },
   { key: "plus", labelKey: "tierPlus" },
-  { key: "lite", label: "Lite" },
+  { key: "lite", labelKey: "tierLite" },
   { key: "free", labelKey: "tierFree" },
   { key: "unknown", labelKey: "tierUnknown" },
 ];
@@ -86,8 +92,6 @@ const PURCHASE_TYPES: Array<{ key: PurchaseTypeKey; labelKey: string; fallback: 
   { key: "apikey", labelKey: "purchaseApiKey", fallback: "API Key" },
 ];
 
-// Classify a connection into a purchase-type bucket. Free/unknown tiers on
-// OAuth are treated as "oauth-free"; all other OAuth as "oauth-sub".
 function getPurchaseType(authType: string | undefined, tierKey: string): PurchaseTypeKey {
   if (authType === "apikey") return "apikey";
   if (authType === "oauth") {
@@ -97,9 +101,6 @@ function getPurchaseType(authType: string | undefined, tierKey: string): Purchas
   return "oauth-free";
 }
 
-// Worst-case status across a connection's quotas. "empty" only when there are
-// no quota windows at all (covers credit-only providers via the isCredits
-// branch separately).
 function getWorstStatus(quotas: any[] | undefined): StatusKey {
   if (!quotas || quotas.length === 0) return "empty";
   let worst: "ok" | "alert" = "ok";
@@ -111,8 +112,6 @@ function getWorstStatus(quotas: any[] | undefined): StatusKey {
   return worst;
 }
 
-// Soonest upcoming reset timestamp across a connection's quotas. Used to
-// sort "expiring first". Returns Infinity when nothing is scheduled.
 function getSoonestResetMs(quotas: any[] | undefined): number {
   if (!quotas || quotas.length === 0) return Number.POSITIVE_INFINITY;
   const now = Date.now();
@@ -124,6 +123,25 @@ function getSoonestResetMs(quotas: any[] | undefined): number {
   }
   return soonest;
 }
+
+const getQuotaBarWidthClass = (pct: number) => {
+  if (pct <= 10) return "w-[10%]";
+  if (pct <= 20) return "w-1/5";
+  if (pct <= 30) return "w-[30%]";
+  if (pct <= 40) return "w-2/5";
+  if (pct <= 50) return "w-1/2";
+  if (pct <= 60) return "w-3/5";
+  if (pct <= 70) return "w-[70%]";
+  if (pct <= 80) return "w-4/5";
+  if (pct <= 90) return "w-[90%]";
+  return "w-full";
+};
+
+const getQuotaToneClasses = (pct: number) => {
+  if (pct <= QUOTA_BAR_YELLOW_THRESHOLD) return "bg-red-500 text-red-500";
+  if (pct <= QUOTA_BAR_GREEN_THRESHOLD) return "bg-yellow-500 text-yellow-500";
+  return "bg-green-500 text-green-500";
+};
 
 const STATUS_TONE: Record<
   StatusKey,
@@ -166,48 +184,33 @@ const STATUS_TONE: Record<
   },
 };
 
-// Get bar color based on remaining percentage
-function getBarColor(remainingPercentage) {
-  if (remainingPercentage > QUOTA_BAR_GREEN_THRESHOLD) {
-    return { bar: "#22c55e", text: "#22c55e", bg: "rgba(34,197,94,0.12)" };
+// Worst aggregate across a list of statuses — drives the group header dot.
+function aggregateWorst(statuses: StatusKey[]): "critical" | "alert" | "ok" | "empty" {
+  let worst: "ok" | "alert" | "empty" = "empty";
+  for (const s of statuses) {
+    if (s === "critical") return "critical";
+    if (s === "alert" && worst !== "alert") worst = "alert";
+    if (s === "ok" && worst === "empty") worst = "ok";
   }
-  if (remainingPercentage > QUOTA_BAR_YELLOW_THRESHOLD) {
-    return { bar: "#eab308", text: "#eab308", bg: "rgba(234,179,8,0.12)" };
-  }
-  return { bar: "#ef4444", text: "#ef4444", bg: "rgba(239,68,68,0.12)" };
+  return worst;
 }
 
-// Short label for a quota-window key, used in the inline cutoff summary
-// ("session:90% · weekly:80%"). Unknown keys fall back to the key itself,
-// shortened to keep the button compact.
-function shortWindowLabel(key: string): string {
-  const map: Record<string, string> = {
-    session: "5h",
-    weekly: "7d",
-    code_review: "review",
-  };
-  return map[key] || (key.length > 8 ? `${key.slice(0, 7)}…` : key);
+function formatAutoRefreshCountdown(ms: number): string {
+  const totalSeconds = Math.max(0, Math.ceil(ms / 1000));
+  const minutes = Math.floor(totalSeconds / 60);
+  const seconds = totalSeconds % 60;
+  return `${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`;
 }
 
-// Format countdown
-function formatCountdown(resetAt) {
-  if (!resetAt) return null;
-  try {
-    const diff = (new Date(resetAt) as any) - (new Date() as any);
-    if (diff <= 0) return null;
-    const h = Math.floor(diff / 3600000);
-    const m = Math.floor((diff % 3600000) / 60000);
-    if (h >= 24) {
-      const d = Math.floor(h / 24);
-      return `${d}d ${h % 24}h`;
-    }
-    return `${h}h ${m}m`;
-  } catch {
-    return null;
-  }
+interface ProviderLimitsProps {
+  showFilters?: boolean;
+  autoRefreshInterval?: number;
 }
 
-export default function ProviderLimits() {
+export default function ProviderLimits({
+  showFilters = true,
+  autoRefreshInterval = 0,
+}: ProviderLimitsProps) {
   const t = useTranslations("usage");
   const tr = useCallback(
     (key: string, fallback: string, values?: UsageTranslationValues) =>
@@ -215,38 +218,15 @@ export default function ProviderLimits() {
     [t]
   );
   const emailsVisible = useEmailPrivacyStore((s) => s.emailsVisible);
-  const [connections, setConnections] = useState([]);
-  const [quotaData, setQuotaData] = useState({});
-  const [loading, setLoading] = useState({});
-  const [errors, setErrors] = useState({});
+  const [connections, setConnections] = useState<any[]>([]);
+  const [quotaData, setQuotaData] = useState<Record<string, any>>({});
+  const [loading, setLoading] = useState<Record<string, boolean>>({});
+  const [errors, setErrors] = useState<Record<string, string | null>>({});
   const [lastRefreshedAt, setLastRefreshedAt] = useState<Record<string, string>>({});
   const [refreshingAll, setRefreshingAll] = useState(false);
   const [initialLoading, setInitialLoading] = useState(true);
   const [tierFilter, setTierFilter] = useState("all");
-  const [groupBy, setGroupBy] = useState<"none" | "environment">(() => {
-    if (typeof window === "undefined") return "none";
-    const saved = localStorage.getItem(LS_GROUP_BY);
-    if (saved === "environment" || saved === "none") return saved;
-    return "none";
-  });
-  const [expandedGroups, setExpandedGroups] = useState<Set<string>>(() => {
-    if (typeof window === "undefined") return new Set();
-    try {
-      const saved = localStorage.getItem(LS_EXPANDED_GROUPS);
-      return saved ? new Set(JSON.parse(saved)) : new Set();
-    } catch {
-      return new Set();
-    }
-  });
-  const [expandedRows, setExpandedRows] = useState<Set<string>>(() => {
-    if (typeof window === "undefined") return new Set();
-    try {
-      const saved = localStorage.getItem(LS_EXPANDED_ROWS);
-      return saved ? new Set(JSON.parse(saved)) : new Set();
-    } catch {
-      return new Set();
-    }
-  });
+
   const [purchaseTypeFilter, setPurchaseTypeFilter] = useState<PurchaseTypeKey>(() => {
     if (typeof window === "undefined") return "all";
     const saved = localStorage.getItem(LS_PURCHASE_FILTER) as PurchaseTypeKey | null;
@@ -259,14 +239,16 @@ export default function ProviderLimits() {
       return saved;
     return "all";
   });
+  const [envFilter, setEnvFilter] = useState<string>(() => {
+    if (typeof window === "undefined") return "all";
+    return localStorage.getItem(LS_ENV_FILTER) || "all";
+  });
 
-  const lastFetchTimeRef = useRef({});
-  const staleProbeRef = useRef({});
-  // Cutoff modal state: connection being edited, the window list captured at
-  // open time (from quotaData), and the resilience-settings defaults the
-  // modal renders as placeholders. Kept as separate slices instead of
-  // mutating the connection object — the window list is UI state, not part
-  // of the domain.
+  const lastFetchTimeRef = useRef<Record<string, number>>({});
+  const staleProbeRef = useRef<Record<string, number>>({});
+  const lastRefreshAllAtRef = useRef<number>(Date.now());
+  const autoRefreshIntervalMs = autoRefreshInterval > 0 ? autoRefreshInterval * 1000 : 0;
+  const [autoRefreshClock, setAutoRefreshClock] = useState(() => Date.now());
   const [cutoffModalConn, setCutoffModalConn] = useState<any | null>(null);
   const [cutoffModalWindows, setCutoffModalWindows] = useState<any[]>([]);
   const [providerWindowDefaults, setProviderWindowDefaults] = useState<
@@ -274,9 +256,6 @@ export default function ProviderLimits() {
   >({});
   const [globalThresholdDefault, setGlobalThresholdDefault] = useState<number>(98);
 
-  // Load the resilience-settings defaults once. The endpoint also returns a
-  // per-provider window registry but we ignore it here — the modal uses the
-  // connection's live quota cache for window discovery instead.
   useEffect(() => {
     let alive = true;
     fetch("/api/providers/quota-windows")
@@ -327,29 +306,32 @@ export default function ProviderLimits() {
     }
   }, []);
 
-  const applyCachedQuotaState = useCallback((connectionList, caches) => {
-    const nextQuotaData = {};
-    const nextLastRefreshedAt = {};
+  const applyCachedQuotaState = useCallback(
+    (connectionList: any[], caches: Record<string, any>) => {
+      const nextQuotaData: Record<string, any> = {};
+      const nextLastRefreshedAt: Record<string, string> = {};
 
-    for (const conn of connectionList) {
-      const cached = caches?.[conn.id];
-      if (!cached) continue;
+      for (const conn of connectionList) {
+        const cached = caches?.[conn.id];
+        if (!cached) continue;
 
-      nextQuotaData[conn.id] = {
-        quotas: parseQuotaData(conn.provider, cached),
-        plan: cached.plan || null,
-        message: cached.message || null,
-        raw: cached,
-      };
+        nextQuotaData[conn.id] = {
+          quotas: parseQuotaData(conn.provider, cached),
+          plan: cached.plan || null,
+          message: cached.message || null,
+          raw: cached,
+        };
 
-      if (cached.fetchedAt) {
-        nextLastRefreshedAt[conn.id] = cached.fetchedAt;
+        if (cached.fetchedAt) {
+          nextLastRefreshedAt[conn.id] = cached.fetchedAt;
+        }
       }
-    }
 
-    setQuotaData(nextQuotaData);
-    setLastRefreshedAt(nextLastRefreshedAt);
-  }, []);
+      setQuotaData(nextQuotaData);
+      setLastRefreshedAt(nextLastRefreshedAt);
+    },
+    []
+  );
 
   const fetchCachedProviderLimits = useCallback(async () => {
     try {
@@ -363,13 +345,12 @@ export default function ProviderLimits() {
   }, []);
 
   const fetchQuota = useCallback(
-    async (connectionId, provider, options: { force?: boolean } = {}) => {
+    async (connectionId: string, provider: string, options: { force?: boolean } = {}) => {
       const force = options?.force === true;
-      // Debounce: skip if last fetch was < MIN_FETCH_INTERVAL_MS ago
       const now = Date.now();
       const lastFetch = lastFetchTimeRef.current[connectionId] || 0;
       if (!force && now - lastFetch < MIN_FETCH_INTERVAL_MS) {
-        return; // Skip, data is still fresh
+        return;
       }
       lastFetchTimeRef.current[connectionId] = now;
 
@@ -393,9 +374,7 @@ export default function ProviderLimits() {
         const data = await response.json();
         const parsedQuotas = parseQuotaData(provider, data);
 
-        // T13: If resetAt already passed but provider still returned stale cumulative usage,
-        // display 0 immediately and trigger a background probe to refresh snapshot.
-        const hasStaleAfterReset = parsedQuotas.some((q) => q?.staleAfterReset === true);
+        const hasStaleAfterReset = parsedQuotas.some((q: any) => q?.staleAfterReset === true);
         if (hasStaleAfterReset) {
           const lastProbeAt = staleProbeRef.current[connectionId] || 0;
           if (Date.now() - lastProbeAt >= MIN_FETCH_INTERVAL_MS) {
@@ -420,7 +399,7 @@ export default function ProviderLimits() {
           ...prev,
           [connectionId]: new Date().toISOString(),
         }));
-      } catch (error) {
+      } catch (error: any) {
         setErrors((prev) => ({
           ...prev,
           [connectionId]: error.message || "Failed to fetch quota",
@@ -433,7 +412,7 @@ export default function ProviderLimits() {
   );
 
   const refreshProvider = useCallback(
-    async (connectionId, provider) => {
+    async (connectionId: string, provider: string) => {
       await fetchQuota(connectionId, provider, { force: true });
     },
     [fetchQuota]
@@ -443,6 +422,9 @@ export default function ProviderLimits() {
   const refreshAll = useCallback(async () => {
     if (refreshingAllRef.current) return;
     refreshingAllRef.current = true;
+    const now = Date.now();
+    lastRefreshAllAtRef.current = now;
+    setAutoRefreshClock(now);
     setRefreshingAll(true);
     try {
       const response = await fetch("/api/usage/provider-limits", { method: "POST" });
@@ -463,6 +445,33 @@ export default function ProviderLimits() {
       setRefreshingAll(false);
     }
   }, [applyCachedQuotaState, fetchConnections]);
+
+  useEffect(() => {
+    if (autoRefreshIntervalMs <= 0) return;
+
+    const tick = () => setAutoRefreshClock(Date.now());
+    tick();
+
+    const timer = window.setInterval(tick, 1000);
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === "visible") tick();
+    };
+
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+    return () => {
+      window.clearInterval(timer);
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+    };
+  }, [autoRefreshIntervalMs]);
+
+  useEffect(() => {
+    if (autoRefreshIntervalMs <= 0) return;
+    if (document.visibilityState !== "visible") return;
+    if (refreshingAllRef.current) return;
+    if (autoRefreshClock - lastRefreshAllAtRef.current >= autoRefreshIntervalMs) {
+      void refreshAll();
+    }
+  }, [autoRefreshClock, autoRefreshIntervalMs, refreshAll]);
 
   useEffect(() => {
     const init = async () => {
@@ -490,28 +499,13 @@ export default function ProviderLimits() {
   );
 
   const sortedConnections = useMemo(() => {
-    const priority = {
-      antigravity: 1,
-      "gemini-cli": 2,
-      github: 3,
-      codex: 4,
-      claude: 5,
-      kiro: 6,
-      glm: 7,
-      zai: 8,
-      glmt: 9,
-      "kimi-coding": 10,
-      minimax: 11,
-      "minimax-cn": 12,
-      nanogpt: 13,
-    };
     return [...filteredConnections].sort(
-      (a, b) => (priority[a.provider] || 9) - (priority[b.provider] || 9)
+      (a, b) => (PROVIDER_ORDER[a.provider] || 99) - (PROVIDER_ORDER[b.provider] || 99)
     );
   }, [filteredConnections]);
 
   const resolvedPlanByConnection = useMemo(() => {
-    const out = {};
+    const out: Record<string, string | null> = {};
     for (const conn of sortedConnections) {
       out[conn.id] = resolvePlanValue(quotaData[conn.id]?.plan, conn.providerSpecificData);
     }
@@ -519,7 +513,7 @@ export default function ProviderLimits() {
   }, [sortedConnections, quotaData]);
 
   const tierByConnection = useMemo(() => {
-    const out = {};
+    const out: Record<string, ReturnType<typeof normalizePlanTier>> = {};
     for (const conn of sortedConnections) {
       out[conn.id] = normalizePlanTier(resolvedPlanByConnection[conn.id]);
     }
@@ -527,7 +521,7 @@ export default function ProviderLimits() {
   }, [sortedConnections, resolvedPlanByConnection]);
 
   const tierCounts = useMemo(() => {
-    const counts = {
+    const counts: Record<string, number> = {
       all: sortedConnections.length,
       enterprise: 0,
       team: 0,
@@ -592,9 +586,27 @@ export default function ProviderLimits() {
     return counts;
   }, [sortedConnections, statusByConnection]);
 
-  // Apply tier + purchase-type + status filters together, then sort with
-  // "expiring first" so critical accounts surface at the top regardless of
-  // alphabetical/priority ordering.
+  // Unique env tags from connections.providerSpecificData.tag — drives the
+  // env chip filter. If no tag is set on any connection, the row hides.
+  const envTags = useMemo(() => {
+    const tags = new Set<string>();
+    for (const conn of sortedConnections) {
+      const tag = (conn.providerSpecificData?.tag as string | undefined)?.trim();
+      if (tag) tags.add(tag);
+    }
+    return [...tags].sort((a, b) => compareTr(a, b));
+  }, [sortedConnections]);
+
+  const envCounts = useMemo(() => {
+    const counts: Record<string, number> = { all: sortedConnections.length };
+    for (const conn of sortedConnections) {
+      const tag = (conn.providerSpecificData?.tag as string | undefined)?.trim() || "";
+      if (!tag) continue;
+      counts[tag] = (counts[tag] || 0) + 1;
+    }
+    return counts;
+  }, [sortedConnections]);
+
   const visibleConnections = useMemo(() => {
     const filtered = sortedConnections.filter((conn) => {
       const tierKey = tierByConnection[conn.id]?.key || "unknown";
@@ -602,10 +614,16 @@ export default function ProviderLimits() {
       if (purchaseTypeFilter !== "all" && purchaseTypeByConnection[conn.id] !== purchaseTypeFilter)
         return false;
       if (statusFilter !== "all" && statusByConnection[conn.id] !== statusFilter) return false;
+      if (envFilter !== "all") {
+        const tag = (conn.providerSpecificData?.tag as string | undefined)?.trim() || "";
+        if (tag !== envFilter) return false;
+      }
       return true;
     });
 
-    // Sort: critical → alert → ok → empty; within tier, soonest reset first.
+    // Inside each group we still want "critical first, then alert, then ok,
+    // then empty; tiebreak by soonest reset". Provider order between groups
+    // is enforced separately via PROVIDER_ORDER.
     const statusRank: Record<StatusKey, number> = {
       critical: 0,
       alert: 1,
@@ -629,56 +647,28 @@ export default function ProviderLimits() {
     purchaseTypeByConnection,
     statusFilter,
     statusByConnection,
+    envFilter,
     quotaData,
   ]);
 
-  const groupedConnections = useMemo(() => {
-    if (groupBy !== "environment") return null;
-    const groups = new Map();
+  // Auto-fetch LIVE quota on open for visible connections that have no cached
+  // quota yet (e.g. a Codex account whose access_token expired — its per-connection
+  // live fetch refreshes the token serialized/cascade-safe and surfaces real quota).
+  // Scoped to what's on screen and to the entries actually missing data (the ones
+  // that already have cache render instantly and are not re-fetched), and runs once
+  // per page open so it never loops on the quotaData it writes.
+  const autoLiveFetchedRef = useRef(false);
+  useEffect(() => {
+    if (initialLoading || autoLiveFetchedRef.current || visibleConnections.length === 0) return;
+    autoLiveFetchedRef.current = true;
     for (const conn of visibleConnections) {
-      const key = (conn.providerSpecificData?.tag as string | undefined)?.trim() || t("ungrouped");
-      if (!groups.has(key)) groups.set(key, []);
-      groups.get(key).push(conn);
-    }
-
-    // Convert to sorted array based on tag string (ungrouped at the end)
-    const sortedGroups = new Map(
-      [...groups.entries()].sort(([a], [b]) => {
-        if (a === t("ungrouped")) return 1;
-        if (b === t("ungrouped")) return -1;
-        return compareTr(a, b);
-      })
-    );
-
-    return sortedGroups;
-  }, [groupBy, visibleConnections, t]);
-
-  const handleSetGroupBy = (value: "none" | "environment") => {
-    setGroupBy(value);
-    localStorage.setItem(LS_GROUP_BY, value);
-  };
-
-  const toggleGroup = (groupName: string) => {
-    setExpandedGroups((prev) => {
-      const next = new Set(prev);
-      next.has(groupName) ? next.delete(groupName) : next.add(groupName);
-      localStorage.setItem(LS_EXPANDED_GROUPS, JSON.stringify([...next]));
-      return next;
-    });
-  };
-
-  const toggleRow = useCallback((connectionId: string) => {
-    setExpandedRows((prev) => {
-      const next = new Set(prev);
-      next.has(connectionId) ? next.delete(connectionId) : next.add(connectionId);
-      try {
-        localStorage.setItem(LS_EXPANDED_ROWS, JSON.stringify([...next]));
-      } catch {
-        /* localStorage may be unavailable; persistence is best-effort */
+      const cached = quotaData[conn.id];
+      const hasQuota = Array.isArray(cached?.quotas) && cached.quotas.length > 0;
+      if (!hasQuota) {
+        void fetchQuota(conn.id, conn.provider, { force: true }).catch(() => {});
       }
-      return next;
-    });
-  }, []);
+    }
+  }, [initialLoading, visibleConnections, quotaData, fetchQuota]);
 
   const handleSetPurchaseFilter = useCallback((value: PurchaseTypeKey) => {
     setPurchaseTypeFilter(value);
@@ -698,27 +688,48 @@ export default function ProviderLimits() {
     }
   }, []);
 
-  // Default inteligente: se não há preferência salva e há connections com grupo, abre em Por Ambiente
-  useEffect(() => {
-    if (typeof window === "undefined") return;
-    const hasSaved = localStorage.getItem(LS_GROUP_BY) !== null;
-    if (
-      !hasSaved &&
-      connections.some((c) => (c.providerSpecificData?.tag as string | undefined)?.trim())
-    ) {
-      setGroupBy("environment");
+  const handleSetEnvFilter = useCallback((value: string) => {
+    setEnvFilter(value);
+    try {
+      localStorage.setItem(LS_ENV_FILTER, value);
+    } catch {
+      /* ignore */
     }
-  }, [connections]);
+  }, []);
 
-  // Quando entra em modo environment pela primeira vez sem estado salvo, abre todos os grupos
-  useEffect(() => {
-    if (groupBy !== "environment" || !groupedConnections) return;
-    if (expandedGroups.size === 0) {
-      const allGroups = new Set([...groupedConnections.keys()]);
-      setExpandedGroups(allGroups);
-      localStorage.setItem(LS_EXPANDED_GROUPS, JSON.stringify([...allGroups]));
-    }
-  }, [groupBy, groupedConnections]); // eslint-disable-line react-hooks/exhaustive-deps
+  const renderInlineQuotaSummary = (quotas: any[]) => {
+    if (!quotas || quotas.length === 0) return null;
+    return (
+      <div className="mt-1 flex flex-wrap items-center gap-1.5 text-[10px] text-text-muted">
+        {quotas.slice(0, 3).map((q, index) => {
+          const pct = q.unlimited
+            ? 100
+            : Math.round(q.remainingPercentage ?? calculatePercentage(q.used, q.total));
+          const cd = formatCountdown(q.resetAt);
+          const tone = getQuotaToneClasses(pct);
+          return (
+            <span
+              key={`${q.name || "quota"}-${q.modelKey || ""}-${index}`}
+              className="inline-flex items-center gap-1"
+              title={q.displayName || formatQuotaLabel(q.name)}
+            >
+              <span className={`tabular-nums ${tone.split(" ")[1]}`}>
+                {q.unlimited ? "∞" : `${pct}%`}
+              </span>
+              {!q.unlimited && (
+                <span className="h-1 w-14 rounded-sm bg-border/60 overflow-hidden">
+                  <span
+                    className={`block h-full ${tone.split(" ")[0]} ${getQuotaBarWidthClass(pct)}`}
+                  />
+                </span>
+              )}
+              {cd ? <span>{`⏱ ${cd}`}</span> : null}
+            </span>
+          );
+        })}
+      </div>
+    );
+  };
 
   if (initialLoading) {
     return (
@@ -757,641 +768,169 @@ export default function ProviderLimits() {
           <EmailPrivacyToggle />
         </div>
 
-        <div className="flex items-center gap-2">
-          {/* Group by toggle */}
-          <div className="flex rounded-lg border border-border overflow-hidden">
-            <button
-              onClick={() => handleSetGroupBy("none")}
-              className="px-2.5 py-1.5 text-[12px] font-medium cursor-pointer border-none"
-              style={{
-                background: groupBy === "none" ? "var(--color-bg-subtle)" : "transparent",
-                color: groupBy === "none" ? "var(--color-text-main)" : "var(--color-text-muted)",
-              }}
-            >
-              {t("viewFlat")}
-            </button>
-            <button
-              onClick={() => handleSetGroupBy("environment")}
-              className="px-2.5 py-1.5 text-[12px] font-medium cursor-pointer border-none"
-              style={{
-                background: groupBy === "environment" ? "var(--color-bg-subtle)" : "transparent",
-                color:
-                  groupBy === "environment" ? "var(--color-text-main)" : "var(--color-text-muted)",
-                borderLeft: "1px solid var(--color-border)",
-              }}
-            >
-              {t("viewByEnvironment")}
-            </button>
+        <button
+          onClick={refreshAll}
+          disabled={refreshingAll}
+          className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg bg-bg-subtle border border-border text-text-main text-[13px] disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+          title={autoRefreshIntervalMs > 0 ? tr("autoRefreshing", "Auto-refreshing") : t("refreshAll")}
+        >
+          <span
+            className={`material-symbols-outlined text-[16px] ${refreshingAll ? "animate-spin" : ""}`}
+          >
+            {autoRefreshIntervalMs > 0 ? "schedule" : "refresh"}
+          </span>
+          {refreshingAll
+            ? tr("refreshing", "Refreshing")
+            : autoRefreshIntervalMs > 0
+              ? `${tr("autoRefreshing", "Auto-refreshing")} ${formatAutoRefreshCountdown(
+                  Math.max(0, autoRefreshIntervalMs - (autoRefreshClock - lastRefreshAllAtRef.current))
+                )}`
+              : t("refreshAll")}
+        </button>
+      </div>
+
+      {showFilters && (
+        <>
+          {/* Summary stats — clickable status filter */}
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+            {(["all", "critical", "alert", "ok"] as StatusKey[]).map((key) => {
+              const tone = STATUS_TONE[key];
+              const labelMap: Record<string, string> = {
+                all: tr("statTotal", "Total"),
+                critical: tr("statCritical", "Critical"),
+                alert: tr("statAlert", "Alert"),
+                ok: tr("statHealthy", "Healthy"),
+              };
+              const active = statusFilter === key;
+              const count = statusCounts[key] || 0;
+              return (
+                <button
+                  key={key}
+                  type="button"
+                  onClick={() => handleSetStatusFilter(key)}
+                  className="text-left rounded-lg px-3 py-2.5 border transition-colors cursor-pointer"
+                  style={{
+                    background: active ? tone.bg : "var(--color-surface)",
+                    borderColor: active ? tone.ring : "var(--color-border)",
+                  }}
+                >
+                  <div className="flex items-center justify-between">
+                    <span className="text-[11px] uppercase tracking-wider font-semibold text-text-muted">
+                      {labelMap[key]}
+                    </span>
+                    {key !== "all" && (
+                      <span
+                        className="w-1.5 h-1.5 rounded-full"
+                        style={{ background: tone.dot }}
+                        aria-hidden
+                      />
+                    )}
+                  </div>
+                  <div
+                    className="mt-0.5 text-2xl font-bold tabular-nums"
+                    style={{ color: key === "all" ? "var(--color-text-main)" : tone.text }}
+                  >
+                    {count}
+                  </div>
+                </button>
+              );
+            })}
           </div>
 
-          <button
-            onClick={refreshAll}
-            disabled={refreshingAll}
-            className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg bg-bg-subtle border border-border text-text-main text-[13px] disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
-          >
-            <span
-              className={`material-symbols-outlined text-[16px] ${refreshingAll ? "animate-spin" : ""}`}
-            >
-              refresh
+          {/* Purchase Type filter */}
+          <div className="flex items-center gap-2 flex-wrap">
+            <span className="text-[11px] uppercase tracking-wider text-text-muted font-semibold mr-1">
+              {tr("filterPurchaseTypeLabel", "Type")}
             </span>
-            {t("refreshAll")}
-          </button>
-        </div>
-      </div>
-
-      {/* Summary Stats — clickable filters by status */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-        {(["all", "critical", "alert", "ok"] as StatusKey[]).map((key) => {
-          const tone = STATUS_TONE[key];
-          const labelMap: Record<string, string> = {
-            all: tr("statTotal", "Total"),
-            critical: tr("statCritical", "Crítico"),
-            alert: tr("statAlert", "Alerta"),
-            ok: tr("statHealthy", "Saudável"),
-          };
-          const active = statusFilter === key;
-          const count = statusCounts[key] || 0;
-          return (
-            <button
-              key={key}
-              type="button"
-              onClick={() => handleSetStatusFilter(key)}
-              className="text-left rounded-lg px-3 py-2.5 border transition-colors cursor-pointer"
-              style={{
-                background: active ? tone.bg : "var(--color-surface)",
-                borderColor: active ? tone.ring : "var(--color-border)",
-              }}
-            >
-              <div className="flex items-center justify-between">
-                <span className="text-[11px] uppercase tracking-wider font-semibold text-text-muted">
-                  {labelMap[key]}
-                </span>
-                {key !== "all" && (
-                  <span
-                    className="w-1.5 h-1.5 rounded-full"
-                    style={{ background: tone.dot }}
-                    aria-hidden
-                  />
-                )}
-              </div>
-              <div
-                className="mt-0.5 text-2xl font-bold tabular-nums"
-                style={{ color: key === "all" ? "var(--color-text-main)" : tone.text }}
-              >
-                {count}
-              </div>
-            </button>
-          );
-        })}
-      </div>
-
-      {/* Purchase Type Filter */}
-      <div className="flex items-center gap-2 flex-wrap">
-        <span className="text-[11px] uppercase tracking-wider text-text-muted font-semibold mr-1">
-          {tr("filterPurchaseTypeLabel", "Tipo")}
-        </span>
-        {PURCHASE_TYPES.map((type) => {
-          const count = purchaseTypeCounts[type.key] || 0;
-          if (type.key !== "all" && count === 0) return null;
-          const active = purchaseTypeFilter === type.key;
-          return (
-            <button
-              key={type.key}
-              onClick={() => handleSetPurchaseFilter(type.key)}
-              className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold cursor-pointer"
-              style={{
-                border: active
-                  ? "1px solid var(--color-primary, #E54D5E)"
-                  : "1px solid var(--color-border)",
-                background: active ? "rgba(229,77,94,0.1)" : "transparent",
-                color: active ? "var(--color-primary, #E54D5E)" : "var(--color-text-muted)",
-              }}
-            >
-              <span>{tr(type.labelKey, type.fallback)}</span>
-              <span className="opacity-85">{count}</span>
-            </button>
-          );
-        })}
-      </div>
-
-      {/* Tier Filters */}
-      <div className="flex items-center gap-2 flex-wrap">
-        <span className="text-[11px] uppercase tracking-wider text-text-muted font-semibold mr-1">
-          {tr("filterTierLabel", "Tier")}
-        </span>
-        {TIER_FILTERS.map((tier) => {
-          if (tier.key !== "all" && !tierCounts[tier.key]) return null;
-          const active = tierFilter === tier.key;
-          return (
-            <button
-              key={tier.key}
-              onClick={() => setTierFilter(tier.key)}
-              className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold cursor-pointer"
-              style={{
-                border: active
-                  ? "1px solid var(--color-primary, #E54D5E)"
-                  : "1px solid var(--color-border)",
-                background: active ? "rgba(229,77,94,0.1)" : "transparent",
-                color: active ? "var(--color-primary, #E54D5E)" : "var(--color-text-muted)",
-              }}
-            >
-              <span>{tier.label || t(tier.labelKey)}</span>
-              <span className="opacity-85">{tierCounts[tier.key] || 0}</span>
-            </button>
-          );
-        })}
-      </div>
-
-      {/* Account rows — expandable */}
-      <div className="rounded-xl border border-border overflow-hidden bg-surface">
-        {(() => {
-          // Compact "chip" representation of a quota for the collapsed row.
-          // Keeps the row visually predictable regardless of how many quotas
-          // a provider exposes (DeepSeek 1 chip vs Antigravity 3 chips).
-          const renderQuotaChips = (quotas: any[]) => {
-            const MAX = 5;
-            const visible = quotas.slice(0, MAX);
-            const extras = quotas.length - visible.length;
-            return (
-              <div className="flex items-center gap-1.5 flex-wrap min-w-0">
-                {visible.map((q, i) => {
-                  if (q.isCredits) {
-                    const colors = getBarColor(q.remainingPercentage ?? 0);
-                    const sym = CURRENCY_SYMBOLS[q.currency] ?? q.currency ?? "";
-                    const amount = (q.creditCount ?? q.remaining ?? 0).toLocaleString(undefined, {
-                      minimumFractionDigits: 2,
-                      maximumFractionDigits: 2,
-                    });
-                    return (
-                      <span
-                        key={i}
-                        className="inline-flex items-center gap-1 text-[11px] font-semibold py-0.5 px-2 rounded tabular-nums"
-                        style={{ background: colors.bg, color: colors.text }}
-                        title={`${formatQuotaLabel(q.name)} balance`}
-                      >
-                        🪙 {sym}
-                        {amount}
-                      </span>
-                    );
-                  }
-                  const pctRaw = q.unlimited
-                    ? 100
-                    : (q.remainingPercentage ?? calculatePercentage(q.used, q.total));
-                  const pct = Math.round(pctRaw);
-                  const colors = getBarColor(pct);
-                  const shortName = q.displayName || formatQuotaLabel(q.name);
-                  return (
-                    <span
-                      key={i}
-                      className="inline-flex items-center gap-1 text-[11px] font-semibold py-0.5 px-2 rounded tabular-nums"
-                      style={{ background: colors.bg, color: colors.text }}
-                      title={`${shortName} — ${pct}% remaining`}
-                    >
-                      <span className="opacity-80 font-medium">{shortName}</span>
-                      <span>{pct}%</span>
-                    </span>
-                  );
-                })}
-                {extras > 0 && (
-                  <span className="text-[11px] text-text-muted font-medium">+{extras}</span>
-                )}
-              </div>
-            );
-          };
-
-          // Full quota bar for the expanded panel: large, with countdown and
-          // a status badge. Reused for credits via a branch on isCredits.
-          const renderQuotaDetail = (q: any, i: number) => {
-            if (q.isCredits) {
-              const colors = getBarColor(q.remainingPercentage ?? 0);
-              const sym = CURRENCY_SYMBOLS[q.currency] ?? q.currency ?? "";
-              const amount = (q.creditCount ?? q.remaining ?? 0).toLocaleString(undefined, {
-                minimumFractionDigits: 2,
-                maximumFractionDigits: 2,
-              });
+            {PURCHASE_TYPES.map((type) => {
+              const count = purchaseTypeCounts[type.key] || 0;
+              if (type.key !== "all" && count === 0) return null;
+              const active = purchaseTypeFilter === type.key;
               return (
-                <div
-                  key={i}
-                  className="rounded-md border border-border bg-bg/40 px-3 py-2.5 flex items-center justify-between gap-3"
-                >
-                  <div className="flex items-center gap-2 min-w-0">
-                    <span
-                      className="material-symbols-outlined text-[18px]"
-                      style={{ color: colors.text }}
-                    >
-                      paid
-                    </span>
-                    <div className="min-w-0">
-                      <div className="text-[12px] font-semibold text-text-main">
-                        {formatQuotaLabel(q.name) || tr("creditsLabel", "Credits")}
-                      </div>
-                      <div className="text-[10px] text-text-muted">
-                        {tr("creditBalanceHint", "Saldo restante")}
-                      </div>
-                    </div>
-                  </div>
-                  <div
-                    className="text-[16px] font-bold tabular-nums"
-                    style={{ color: colors.text }}
-                  >
-                    {sym}
-                    {amount}
-                  </div>
-                </div>
-              );
-            }
-            const pctRaw = q.unlimited
-              ? 100
-              : (q.remainingPercentage ?? calculatePercentage(q.used, q.total));
-            const pct = Math.round(pctRaw);
-            const colors = getBarColor(pct);
-            const cd = formatCountdown(q.resetAt);
-            const shortName = q.displayName || formatQuotaLabel(q.name);
-            const staleAfterReset = q.staleAfterReset === true;
-            const usedNum = Number(q.used || 0);
-            const totalNum = Number(q.total || 0);
-            const showUsage = totalNum > 0 && !q.unlimited;
-            return (
-              <div key={i} className="rounded-md border border-border bg-bg/40 px-3 py-2.5">
-                <div className="flex items-center justify-between gap-3 mb-1.5">
-                  <div className="flex items-center gap-2 min-w-0">
-                    <span
-                      className="text-[12px] font-semibold py-0.5 px-2 rounded"
-                      style={{ background: colors.bg, color: colors.text }}
-                      title={q.modelKey || q.name}
-                    >
-                      {shortName}
-                    </span>
-                    {q.unlimited && (
-                      <span className="text-[10px] text-text-muted">
-                        {tr("unlimitedLabel", "Unlimited")}
-                      </span>
-                    )}
-                    {showUsage && (
-                      <span className="text-[10px] text-text-muted tabular-nums">
-                        {usedNum.toLocaleString()} / {totalNum.toLocaleString()}
-                      </span>
-                    )}
-                  </div>
-                  <div className="flex items-center gap-2 shrink-0">
-                    {staleAfterReset ? (
-                      <span className="text-[10px] text-text-muted">
-                        ⟳ {tr("refreshing", "Refreshing")}
-                      </span>
-                    ) : cd ? (
-                      <span className="text-[10px] text-text-muted">
-                        ⏱ {tr("resetsIn", "reset em")} {cd}
-                      </span>
-                    ) : null}
-                    <span
-                      className="text-[13px] font-bold tabular-nums min-w-[40px] text-right"
-                      style={{ color: colors.text }}
-                    >
-                      {pct}%
-                    </span>
-                  </div>
-                </div>
-                <div className="h-2 rounded-sm bg-black/[0.06] dark:bg-white/[0.06] overflow-hidden">
-                  <div
-                    className="h-full rounded-sm transition-[width] duration-300 ease-out"
-                    style={{ width: `${Math.min(pct, 100)}%`, background: colors.bar }}
-                  />
-                </div>
-              </div>
-            );
-          };
-
-          const renderRow = (conn, isLast) => {
-            const quota = quotaData[conn.id];
-            const isLoading = loading[conn.id];
-            const error = errors[conn.id];
-            const config = PROVIDER_CONFIG[conn.provider] || {
-              label: conn.provider,
-              color: "#666",
-            };
-            const tierMeta = tierByConnection[conn.id] || normalizePlanTier(null);
-            const resolvedPlan = resolvedPlanByConnection[conn.id];
-            const refreshedAt = lastRefreshedAt[conn.id];
-            const isExpanded = expandedRows.has(conn.id);
-            const status = statusByConnection[conn.id] || "empty";
-            const statusTone = STATUS_TONE[status];
-
-            const overrides = (conn.quotaWindowThresholds || null) as Record<string, number> | null;
-            const hasOverrides = overrides && Object.keys(overrides).length > 0;
-            const connectionWindows = (quota?.quotas || []).filter(
-              (q: any) => q && typeof q.name === "string" && !q.isCredits
-            );
-            const connectionHasWindows = connectionWindows.length > 0;
-            let cutoffLabel: string = tr("quotaCutoffsButtonDefault", "Default");
-            if (hasOverrides && overrides) {
-              const entries = Object.entries(overrides);
-              const visible = entries
-                .slice(0, 2)
-                .map(([k, v]) => `${shortWindowLabel(k)}:${v}%`)
-                .join(" · ");
-              cutoffLabel = entries.length > 2 ? `${visible} +${entries.length - 2}` : visible;
-            }
-
-            return (
-              <div
-                key={conn.id}
-                style={{
-                  borderBottom: !isLast || isExpanded ? "1px solid var(--color-border)" : "none",
-                }}
-              >
-                {/* Collapsed row — clickable to expand. Uses div+role=button
-                    because the row hosts other interactive controls (cutoff
-                    button, refresh, etc.) which would be invalid HTML nested
-                    inside a real <button>. */}
-                <div
-                  role="button"
-                  tabIndex={0}
-                  onClick={() => toggleRow(conn.id)}
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter" || e.key === " ") {
-                      e.preventDefault();
-                      toggleRow(conn.id);
-                    }
-                  }}
-                  className="w-full text-left items-center px-3 py-3 transition-[background] duration-150 hover:bg-black/[0.03] dark:hover:bg-white/[0.02] cursor-pointer"
-                  style={{
-                    display: "grid",
-                    gridTemplateColumns:
-                      "28px minmax(220px,280px) minmax(160px,1fr) 96px 110px 36px",
-                    gap: "8px",
-                    borderLeft: `3px solid ${status === "all" || status === "empty" ? "transparent" : statusTone.dot}`,
-                  }}
-                  aria-expanded={isExpanded}
-                >
-                  {/* Chevron + status dot */}
-                  <div className="flex justify-center">
-                    <span className="material-symbols-outlined text-[18px] text-text-muted">
-                      {isExpanded ? "expand_less" : "expand_more"}
-                    </span>
-                  </div>
-
-                  {/* Account Info */}
-                  <div className="flex items-center gap-2.5 min-w-0">
-                    <div className="w-8 h-8 rounded-lg flex items-center justify-center overflow-hidden shrink-0">
-                      <ProviderIcon
-                        providerId={conn.provider}
-                        size={32}
-                        type="color"
-                        className="object-contain"
-                      />
-                    </div>
-                    <div className="min-w-0">
-                      <div className="text-[13px] font-semibold text-text-main truncate">
-                        {pickDisplayValue(
-                          [conn.name, conn.displayName, conn.email],
-                          emailsVisible,
-                          config.label
-                        )}
-                      </div>
-                      <div className="flex items-center gap-1.5 mt-0.5 min-h-5">
-                        <span
-                          title={
-                            resolvedPlan
-                              ? t("rawPlanWithValue", { plan: resolvedPlan })
-                              : t("noPlanFromProvider")
-                          }
-                          className="inline-flex items-center shrink-0"
-                        >
-                          <Badge
-                            variant={tierMeta.variant}
-                            size="sm"
-                            dot
-                            className="h-5 leading-none"
-                          >
-                            {tierMeta.label}
-                          </Badge>
-                        </span>
-                        <span className="text-[11px] leading-none text-text-muted">
-                          {config.label}
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Compact quota chips */}
-                  <div className="min-w-0 pr-2">
-                    {isLoading ? (
-                      <div className="flex items-center gap-1.5 text-text-muted text-xs">
-                        <span className="material-symbols-outlined animate-spin text-[14px]">
-                          progress_activity
-                        </span>
-                        {t("loadingQuotas")}
-                      </div>
-                    ) : error ? (
-                      <div className="flex items-center gap-1.5 text-xs text-red-500">
-                        <span className="material-symbols-outlined text-[14px]">error</span>
-                        <span className="overflow-hidden text-ellipsis whitespace-nowrap max-w-[300px]">
-                          {error}
-                        </span>
-                      </div>
-                    ) : quota?.message && (!quota.quotas || quota.quotas.length === 0) ? (
-                      <div className="text-xs text-text-muted italic">{quota.message}</div>
-                    ) : quota?.quotas?.length > 0 ? (
-                      renderQuotaChips(quota.quotas)
-                    ) : (
-                      <div className="text-xs text-text-muted italic">{t("noQuotaData")}</div>
-                    )}
-                  </div>
-
-                  {/* Last Refreshed */}
-                  <div className="text-center text-[11px]">
-                    {(() => {
-                      const stale = quota?.stale;
-                      const displayTime = stale?.since || refreshedAt;
-                      if (!displayTime) return <span className="text-text-muted">-</span>;
-                      const formatted = new Date(displayTime).toLocaleTimeString([], {
-                        hour: "2-digit",
-                        minute: "2-digit",
-                        second: "2-digit",
-                        hour12: false,
-                      });
-                      if (stale) {
-                        return (
-                          <span
-                            className="text-amber-500"
-                            title={t("staleQuotaTooltip")}
-                            aria-label={t("staleQuotaTooltip")}
-                          >
-                            {formatted}
-                          </span>
-                        );
-                      }
-                      return <span className="text-text-muted">{formatted}</span>;
-                    })()}
-                  </div>
-
-                  {/* Cutoff button — opens modal; stop propagation so row doesn't toggle */}
-                  <div className="flex justify-center items-center">
-                    <span
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        if (!connectionHasWindows) return;
-                        setCutoffModalWindows(connectionWindows);
-                        setCutoffModalConn(conn);
-                      }}
-                      role="button"
-                      tabIndex={connectionHasWindows ? 0 : -1}
-                      onKeyDown={(e) => {
-                        if (e.key === "Enter" || e.key === " ") {
-                          e.preventDefault();
-                          e.stopPropagation();
-                          if (!connectionHasWindows) return;
-                          setCutoffModalWindows(connectionWindows);
-                          setCutoffModalConn(conn);
-                        }
-                      }}
-                      title={
-                        connectionHasWindows
-                          ? tr(
-                              "quotaCutoffsButtonHelp",
-                              "Edit minimum remaining quota cutoffs for this account."
-                            )
-                          : tr(
-                              "quotaCutoffsButtonDisabled",
-                              "No quota windows are available for this account yet."
-                            )
-                      }
-                      className={`block w-full max-w-[100px] truncate text-center px-2 py-1 rounded-md border text-[11px] font-medium tabular-nums transition-colors ${
-                        !connectionHasWindows ? "opacity-40 cursor-not-allowed" : "cursor-pointer"
-                      } ${
-                        hasOverrides
-                          ? "border-primary/40 text-primary bg-primary/5"
-                          : "border-border text-text-muted hover:bg-black/[0.04] dark:hover:bg-white/[0.04]"
-                      }`}
-                    >
-                      {cutoffLabel}
-                    </span>
-                  </div>
-
-                  {/* Refresh — stop propagation */}
-                  <div className="flex justify-center gap-0.5">
-                    <span
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        if (isLoading) return;
-                        refreshProvider(conn.id, conn.provider);
-                      }}
-                      role="button"
-                      tabIndex={isLoading ? -1 : 0}
-                      onKeyDown={(e) => {
-                        if (e.key === "Enter" || e.key === " ") {
-                          e.preventDefault();
-                          e.stopPropagation();
-                          if (isLoading) return;
-                          refreshProvider(conn.id, conn.provider);
-                        }
-                      }}
-                      title={t("refreshQuota")}
-                      className={`p-1 rounded-md flex items-center justify-center transition-opacity duration-150 ${
-                        isLoading
-                          ? "cursor-not-allowed opacity-30"
-                          : "cursor-pointer opacity-60 hover:opacity-100"
-                      }`}
-                    >
-                      <span
-                        className={`material-symbols-outlined text-[16px] text-text-muted ${isLoading ? "animate-spin" : ""}`}
-                      >
-                        refresh
-                      </span>
-                    </span>
-                  </div>
-                </div>
-
-                {/* Expanded panel */}
-                {isExpanded && (
-                  <div className="px-12 py-3 bg-bg-subtle/30 border-t border-border space-y-2">
-                    {isLoading ? (
-                      <div className="text-xs text-text-muted flex items-center gap-1.5">
-                        <span className="material-symbols-outlined animate-spin text-[14px]">
-                          progress_activity
-                        </span>
-                        {t("loadingQuotas")}
-                      </div>
-                    ) : error ? (
-                      <div className="text-xs text-red-500 flex items-start gap-1.5">
-                        <span className="material-symbols-outlined text-[14px]">error</span>
-                        <span>{error}</span>
-                      </div>
-                    ) : quota?.quotas?.length > 0 ? (
-                      <>
-                        {quota.quotas.map((q: any, i: number) => renderQuotaDetail(q, i))}
-                        <div className="flex items-center justify-end gap-2 pt-1">
-                          <button
-                            type="button"
-                            disabled={!connectionHasWindows}
-                            onClick={() => {
-                              setCutoffModalWindows(connectionWindows);
-                              setCutoffModalConn(conn);
-                            }}
-                            className="inline-flex items-center gap-1.5 text-[12px] font-medium px-3 py-1.5 rounded-md border border-border bg-bg-subtle hover:bg-black/[0.04] dark:hover:bg-white/[0.04] disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
-                          >
-                            <span className="material-symbols-outlined text-[14px]">tune</span>
-                            {tr("editCutoffs", "Editar Cutoffs")}
-                          </button>
-                          <button
-                            type="button"
-                            disabled={isLoading}
-                            onClick={() => refreshProvider(conn.id, conn.provider)}
-                            className="inline-flex items-center gap-1.5 text-[12px] font-medium px-3 py-1.5 rounded-md border border-border bg-bg-subtle hover:bg-black/[0.04] dark:hover:bg-white/[0.04] disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
-                          >
-                            <span
-                              className={`material-symbols-outlined text-[14px] ${isLoading ? "animate-spin" : ""}`}
-                            >
-                              refresh
-                            </span>
-                            {tr("forceRefresh", "Refresh agora")}
-                          </button>
-                        </div>
-                      </>
-                    ) : (
-                      <div className="text-xs text-text-muted italic">{t("noQuotaData")}</div>
-                    )}
-                  </div>
-                )}
-              </div>
-            );
-          };
-
-          if (groupedConnections) {
-            const entries = [...groupedConnections.entries()];
-            return entries.map(([groupName, conns]) => (
-              <div key={groupName} className="border border-border rounded-lg overflow-hidden mb-2">
                 <button
-                  onClick={() => toggleGroup(groupName)}
-                  className="w-full flex items-center gap-2 px-4 py-2.5 bg-bg-subtle hover:bg-black/[0.04] dark:hover:bg-white/[0.05] transition-colors text-left border-none cursor-pointer"
+                  key={type.key}
+                  onClick={() => handleSetPurchaseFilter(type.key)}
+                  className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold cursor-pointer"
+                  style={{
+                    border: active
+                      ? "1px solid var(--color-primary, #E54D5E)"
+                      : "1px solid var(--color-border)",
+                    background: active ? "rgba(229,77,94,0.1)" : "transparent",
+                    color: active ? "var(--color-primary, #E54D5E)" : "var(--color-text-muted)",
+                  }}
                 >
-                  <span className="material-symbols-outlined text-[16px] text-text-muted">
-                    {expandedGroups.has(groupName) ? "expand_less" : "expand_more"}
-                  </span>
-                  <span className="material-symbols-outlined text-[16px] text-text-muted">
-                    folder
-                  </span>
-                  <span className="text-[12px] font-semibold text-text-main uppercase tracking-wider flex-1">
-                    {groupName}
-                  </span>
-                  <span className="text-[11px] text-text-muted bg-black/[0.04] dark:bg-white/[0.06] px-2 py-0.5 rounded-full">
-                    {conns.length}
-                  </span>
+                  <span>{tr(type.labelKey, type.fallback)}</span>
+                  <span className="opacity-85">{count}</span>
                 </button>
-                {expandedGroups.has(groupName) && (
-                  <div>{conns.map((conn, idx) => renderRow(conn, idx === conns.length - 1))}</div>
-                )}
-              </div>
-            ));
-          }
+              );
+            })}
+          </div>
 
-          return visibleConnections.map((conn, idx) =>
-            renderRow(conn, idx === visibleConnections.length - 1)
-          );
-        })()}
+          {/* Tier filter */}
+          <div className="flex items-center gap-2 flex-wrap">
+            <span className="text-[11px] uppercase tracking-wider text-text-muted font-semibold mr-1">
+              {tr("filterTierLabel", "Tier")}
+            </span>
+            {TIER_FILTERS.map((tier) => {
+              if (tier.key !== "all" && !tierCounts[tier.key]) return null;
+              const active = tierFilter === tier.key;
+              return (
+                <button
+                  key={tier.key}
+                  onClick={() => setTierFilter(tier.key)}
+                  className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold cursor-pointer"
+                  style={{
+                    border: active
+                      ? "1px solid var(--color-primary, #E54D5E)"
+                      : "1px solid var(--color-border)",
+                    background: active ? "rgba(229,77,94,0.1)" : "transparent",
+                    color: active ? "var(--color-primary, #E54D5E)" : "var(--color-text-muted)",
+                  }}
+                >
+                  <span>{tier.label || t(tier.labelKey!)}</span>
+                  <span className="opacity-85">{tierCounts[tier.key] || 0}</span>
+                </button>
+              );
+            })}
+          </div>
 
+          {/* Env filter — only renders when at least one connection has a tag */}
+          {envTags.length > 0 && (
+            <div className="flex items-center gap-2 flex-wrap">
+              <span className="text-[11px] uppercase tracking-wider text-text-muted font-semibold mr-1">
+                {tr("filterEnvLabel", "Env")}
+              </span>
+              {(["all", ...envTags] as string[]).map((tag) => {
+                const count = envCounts[tag] || 0;
+                const active = envFilter === tag;
+                const label = tag === "all" ? tr("filterEnvAll", "All") : tag;
+                return (
+                  <button
+                    key={tag}
+                    onClick={() => handleSetEnvFilter(tag)}
+                    className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold cursor-pointer"
+                    style={{
+                      border: active
+                        ? "1px solid var(--color-primary, #E54D5E)"
+                        : "1px solid var(--color-border)",
+                      background: active ? "rgba(229,77,94,0.1)" : "transparent",
+                      color: active ? "var(--color-primary, #E54D5E)" : "var(--color-text-muted)",
+                    }}
+                  >
+                    <span>{label}</span>
+                    <span className="opacity-85">{count}</span>
+                  </button>
+                );
+              })}
+            </div>
+          )}
+        </>
+      )}
+
+      {/* Provider groups */}
+      <div className="flex flex-col gap-3">
         {visibleConnections.length === 0 && (
-          <div className="py-6 px-4 text-center text-text-muted text-[13px]">
+          <div className="py-6 px-4 text-center text-text-muted text-[13px] rounded-lg border border-border bg-surface">
             {t("noAccountsForTierFilter")}{" "}
             <strong>
               {(() => {
@@ -1402,6 +941,25 @@ export default function ProviderLimits() {
             .
           </div>
         )}
+
+        <QuotaCardGrid
+          connections={visibleConnections}
+          quotaData={quotaData}
+          loading={loading}
+          errors={errors}
+          lastRefreshedAt={lastRefreshedAt}
+          emailsVisible={emailsVisible}
+          providerLabels={PROVIDER_LABEL}
+          renderInlineQuotaSummary={(quota) => renderInlineQuotaSummary(quota.quotas)}
+          onRefresh={refreshProvider}
+          onOpenCutoff={(conn) => {
+            const windows = (quotaData[conn.id]?.quotas || []).filter(
+              (q: any) => q && typeof q.name === "string" && !q.isCredits
+            );
+            setCutoffModalWindows(windows);
+            setCutoffModalConn(conn);
+          }}
+        />
       </div>
 
       {cutoffModalConn && (
@@ -1428,8 +986,6 @@ export default function ProviderLimits() {
           globalDefaultPercent={globalThresholdDefault}
           onSave={async (patch) => {
             await saveQuotaWindowThresholds(cutoffModalConn.id, patch);
-            // Reflect the new state in the modal-open connection ref so the
-            // button summary updates without closing/reopening.
             setCutoffModalConn((prev: any) => {
               if (!prev) return prev;
               if (patch === null) return { ...prev, quotaWindowThresholds: null };

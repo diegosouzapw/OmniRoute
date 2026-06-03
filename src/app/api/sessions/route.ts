@@ -4,6 +4,7 @@ import {
   getActiveSessionCount,
   getAllActiveSessionCountsByKey,
 } from "@omniroute/open-sse/services/sessionManager.ts";
+import { sanitizeErrorMessage } from "@omniroute/open-sse/utils/error";
 
 export async function GET() {
   try {
@@ -12,6 +13,6 @@ export async function GET() {
     const byApiKey = getAllActiveSessionCountsByKey();
     return NextResponse.json({ count, sessions, byApiKey });
   } catch (error) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    return NextResponse.json({ error: sanitizeErrorMessage(error) }, { status: 500 });
   }
 }

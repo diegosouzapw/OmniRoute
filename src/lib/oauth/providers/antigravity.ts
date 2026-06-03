@@ -4,11 +4,26 @@ import {
   getAntigravityHeaders,
   getAntigravityLoadCodeAssistMetadata,
 } from "@omniroute/open-sse/services/antigravityHeaders.ts";
+import { extractCodeAssistOnboardTierId } from "@omniroute/open-sse/services/codeAssistSubscription.ts";
+
+async function fetchFirstOk(endpoints: string[], init: RequestInit) {
+  let lastError: unknown = null;
+  for (const endpoint of endpoints) {
+    try {
+      const response = await fetch(endpoint, init);
+      if (response.ok) return response;
+      lastError = new Error(`${response.status} ${await response.text()}`);
+    } catch (error) {
+      lastError = error;
+    }
+  }
+  throw lastError || new Error("No Antigravity endpoints configured");
+}
 
 export const antigravity = {
   config: ANTIGRAVITY_CONFIG,
-  flowType: "authorization_code",
-  buildAuthUrl: (config, redirectUri, state) => {
+  flowType: "authorization_code_pkce",
+  buildAuthUrl: (config, redirectUri, state, codeChallenge) => {
     const params = new URLSearchParams({
       client_id: config.clientId,
       response_type: "code",
@@ -18,9 +33,13 @@ export const antigravity = {
       access_type: "offline",
       prompt: "consent",
     });
+    if (codeChallenge) {
+      params.set("code_challenge", codeChallenge);
+      params.set("code_challenge_method", "S256");
+    }
     return `${config.authorizeUrl}?${params.toString()}`;
   },
-  exchangeToken: async (config, code, redirectUri) => {
+  exchangeToken: async (config, code, redirectUri, codeVerifier) => {
     const bodyParams: Record<string, string> = {
       grant_type: "authorization_code",
       client_id: config.clientId,
@@ -30,6 +49,10 @@ export const antigravity = {
 
     if (config.clientSecret) {
       bodyParams.client_secret = config.clientSecret;
+    }
+
+    if (codeVerifier) {
+      bodyParams.code_verifier = codeVerifier;
     }
 
     const response = await fetch(config.tokenUrl, {
@@ -61,23 +84,14 @@ export const antigravity = {
     let projectId = "";
     let tierId = "legacy-tier";
     try {
-      const loadRes = await fetch(ANTIGRAVITY_CONFIG.loadCodeAssistEndpoint, {
+      const loadRes = await fetchFirstOk(ANTIGRAVITY_CONFIG.loadCodeAssistEndpoints, {
         method: "POST",
         headers,
         body: JSON.stringify({ metadata }),
       });
-      if (loadRes.ok) {
-        const data = await loadRes.json();
-        projectId = data.cloudaicompanionProject?.id || data.cloudaicompanionProject || "";
-        if (Array.isArray(data.allowedTiers)) {
-          for (const tier of data.allowedTiers) {
-            if (tier.isDefault && tier.id) {
-              tierId = tier.id.trim();
-              break;
-            }
-          }
-        }
-      }
+      const data = await loadRes.json();
+      projectId = data.cloudaicompanionProject?.id || data.cloudaicompanionProject || "";
+      tierId = extractCodeAssistOnboardTierId(data);
     } catch (e) {
       console.log("Failed to load code assist:", e);
     }
@@ -85,23 +99,19 @@ export const antigravity = {
     if (projectId) {
       try {
         for (let i = 0; i < 10; i++) {
-          const onboardRes = await fetch(ANTIGRAVITY_CONFIG.onboardUserEndpoint, {
+          const onboardRes = await fetchFirstOk(ANTIGRAVITY_CONFIG.onboardUserEndpoints, {
             method: "POST",
             headers,
-            body: JSON.stringify({ tierId, metadata, cloudaicompanionProject: projectId }),
+            body: JSON.stringify({ tier_id: tierId, metadata }),
           });
-          if (onboardRes.ok) {
-            const result = await onboardRes.json();
-            if (result.done === true) {
-              if (result.response?.cloudaicompanionProject) {
-                const respProject = result.response.cloudaicompanionProject;
-                projectId =
-                  typeof respProject === "string"
-                    ? respProject.trim()
-                    : respProject.id || projectId;
-              }
-              break;
+          const result = await onboardRes.json();
+          if (result.done === true) {
+            if (result.response?.cloudaicompanionProject) {
+              const respProject = result.response.cloudaicompanionProject;
+              projectId =
+                typeof respProject === "string" ? respProject.trim() : respProject.id || projectId;
             }
+            break;
           }
           await new Promise((resolve) => setTimeout(resolve, 5000));
         }
@@ -110,7 +120,7 @@ export const antigravity = {
       }
     }
 
-    return { userInfo, projectId };
+    return { userInfo, projectId, tierId };
   },
   mapTokens: (tokens, extra) => ({
     accessToken: tokens.access_token,
@@ -119,5 +129,9 @@ export const antigravity = {
     scope: tokens.scope,
     email: extra?.userInfo?.email,
     projectId: extra?.projectId,
+    providerSpecificData: {
+      projectId: extra?.projectId,
+      tier: extra?.tierId,
+    },
   }),
 };

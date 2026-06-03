@@ -30,6 +30,13 @@ import { createCipheriv, createDecipheriv, randomBytes, scryptSync, createHash }
 const ALGORITHM = "aes-256-gcm";
 const IV_LENGTH = 16;
 const KEY_LENGTH = 32;
+/**
+ * GCM authentication tag length, in bytes. Pinned to the full 16-byte tag
+ * produced by `cipher.getAuthTag()`. Passing `authTagLength` to
+ * `createDecipheriv` rejects truncated authentication tags up front, closing
+ * the GCM tag-truncation forgery vector (Semgrep gcm-no-tag-length).
+ */
+const AUTH_TAG_LENGTH = 16;
 const PREFIX = "enc:v1:";
 const STATIC_SALT = "omniroute-field-encryption-v1";
 
@@ -167,7 +174,9 @@ export function decrypt(ciphertext: string | null | undefined): string | null | 
     try {
       const iv = Buffer.from(ivHex, "hex");
       const authTag = Buffer.from(authTagHex, "hex");
-      const decipher = createDecipheriv(ALGORITHM, candidateKey, iv);
+      const decipher = createDecipheriv(ALGORITHM, candidateKey, iv, {
+        authTagLength: AUTH_TAG_LENGTH,
+      });
       decipher.setAuthTag(authTag);
 
       let decrypted = decipher.update(encryptedHex, "hex", "utf8");
@@ -295,7 +304,9 @@ export function migrateLegacyEncryptedString(ciphertext: string | null | undefin
 
   const tryDecryptWithKey = (key: Buffer): string | null => {
     try {
-      const decipher = createDecipheriv(ALGORITHM, key, iv);
+      const decipher = createDecipheriv(ALGORITHM, key, iv, {
+        authTagLength: AUTH_TAG_LENGTH,
+      });
       decipher.setAuthTag(authTag);
       let decrypted = decipher.update(encrypted, undefined, "utf8");
       decrypted += decipher.final("utf8");

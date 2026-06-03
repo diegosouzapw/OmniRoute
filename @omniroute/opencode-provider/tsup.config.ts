@@ -8,7 +8,7 @@ export default defineConfig({
   sourcemap: false,
   splitting: false,
   treeshake: true,
-  target: "node20",
+  target: "node22",
   outDir: "dist",
   minify: false,
 });

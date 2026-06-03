@@ -128,16 +128,14 @@ export function convertOpenAIContentToParts(content: unknown): JsonRecord[] {
           continue;
         }
 
-        // 3. Handle raw data strings (e.g. {"type": "file", "data": "JVBER...", "mime_type": "..."})
+        // 3. Handle raw data strings (e.g. {"type": "file", "data": "JVBER...", "mime_type": "..."}).
+        //    Also accept the Responses-API shape {"type":"input_file","file_data":"JVBER...","filename":...}
+        //    so PDFs sent as `input_file` reach Gemini instead of being silently dropped (#2515).
         const file = toRecord(rec.file);
         const doc = toRecord(rec.document);
-        const rawDataStr = rec.data || file?.data || doc?.data;
+        const rawDataStr = rec.data || rec.file_data || file?.data || doc?.data;
         const mimeTypeFallback =
-          rec.mime_type ||
-          rec.media_type ||
-          file?.mime_type ||
-          doc?.mime_type ||
-          "application/octet-stream";
+          rec.mime_type || rec.media_type || file?.mime_type || doc?.mime_type || "application/pdf";
         if (typeof rawDataStr === "string" && !rawDataStr.startsWith("http")) {
           const rawData = rawDataStr.replace(/^data:[a-zA-Z0-9/+-]+;base64,/, "");
           parts.push({
@@ -151,10 +149,20 @@ export function convertOpenAIContentToParts(content: unknown): JsonRecord[] {
 
         // 4. Standard OpenAI Data URIs
         const imageUrl = toRecord(rec.image_url);
+        const imageObj = toRecord(rec.image);
         const fileUrl = toRecord(rec.file_url);
         const fileObj = toRecord(rec.file);
         const docObj = toRecord(rec.document);
-        const fileData = imageUrl?.url || fileUrl?.url || fileObj?.url || docObj?.url;
+        // `file_url` is a top-level string on the Responses-API input_file shape (#2515).
+        // `rec.image` (with nested {url}) is emitted by some MCP tool wrappers and
+        // translation layers as an alternative to `rec.image_url` (#2807).
+        const fileData =
+          (typeof rec.file_url === "string" ? rec.file_url : undefined) ||
+          imageUrl?.url ||
+          imageObj?.url ||
+          fileUrl?.url ||
+          fileObj?.url ||
+          docObj?.url;
         if (typeof fileData === "string" && fileData.startsWith("data:")) {
           const commaIndex = fileData.indexOf(",");
           if (commaIndex !== -1) {
@@ -166,6 +174,25 @@ export function convertOpenAIContentToParts(content: unknown): JsonRecord[] {
               inlineData: { mimeType, data },
             });
           }
+        } else if (typeof fileData === "string" && /^https?:\/\//i.test(fileData)) {
+          // Remote URLs cannot be passed directly to Gemini's inlineData (which
+          // requires base64). Fetching + encoding would require making this
+          // function async, which is a breaking change for sync callers (#2807).
+          // Until that refactor lands, warn loudly instead of silently dropping
+          // so users can see WHY their vision request failed.
+          // Strip query string before logging to avoid leaking auth tokens
+          // (signed URLs, SAS tokens, etc.) embedded in query parameters.
+          let safeUrl: string;
+          try {
+            const parsed = new URL(fileData);
+            safeUrl = parsed.origin + parsed.pathname;
+          } catch {
+            safeUrl = fileData.split("?")[0];
+          }
+          console.warn(
+            `[geminiHelper] Dropped remote image URL (Gemini inlineData requires base64): ${safeUrl}` +
+              ` - encode the image as a data: URI client-side until #2807 async fetch lands.`
+          );
         }
       }
     }

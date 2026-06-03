@@ -11,6 +11,16 @@ import { register } from "../registry.ts";
 
 type JsonRecord = Record<string, unknown>;
 const RESPONSES_STORE_MARKER = "_omnirouteResponsesStore";
+const COPILOT_REASONING_SUMMARY_MARKER = "_omnirouteCopilotReasoningSummary";
+
+// Forward-compatible regex: matches web_search, web_search_20250305, and any future versioned names.
+const WEB_SEARCH_TOOL_TYPES = /^web_search/;
+// tool_search is a Responses API built-in sent by newer Codex clients; it has no Chat Completions
+// equivalent and must be silently dropped (not rejected with 400).
+const TOOL_SEARCH_TOOL_TYPES = /^tool_search/;
+// image_generation is a Responses API hosted tool that Codex Desktop injects into every request
+// (even text-only ones); it has no Chat Completions equivalent and must be silently dropped (#2950).
+const IMAGE_GENERATION_TOOL_TYPES = /^image_generation/;
 
 function toRecord(value: unknown): JsonRecord {
   return value && typeof value === "object" && !Array.isArray(value) ? (value as JsonRecord) : {};
@@ -27,6 +37,11 @@ function toString(value: unknown, fallback = ""): string {
 function normalizeResponsesReasoningEffort(value: unknown): string {
   const effort = toString(value).toLowerCase();
   return effort === "max" ? "xhigh" : effort;
+}
+
+function shouldRequestClaudeSummarizedThinking(value: unknown): boolean {
+  const summary = toString(value).toLowerCase();
+  return !!summary && summary !== "off" && summary !== "none" && summary !== "disabled";
 }
 
 function unsupportedFeature(message: string): Error & { statusCode: number; errorType: string } {
@@ -61,13 +76,19 @@ export function openaiResponsesToOpenAIRequest(
       const tool = toRecord(toolValue);
       const toolType = toString(tool.type);
       // Allow: function tools, tools already in Chat format (have .function property), CLI subagent tools,
-      // and namespace tools (MCP tool groups used by Codex/OpenAI Responses API).
+      // namespace tools (MCP tool groups used by Codex/OpenAI Responses API), and web_search server tools
+      // (Anthropic versioned: web_search_20250305, web_search_20250101, etc. — or plain web_search).
+      // tool_search is a Responses API built-in sent by newer Codex clients; silently skip it here
+      // (it will be filtered out during tools conversion below).
       if (
         toolType &&
         toolType !== "function" &&
         toolType !== "custom" &&
         toolType !== "command" &&
         toolType !== "namespace" &&
+        !WEB_SEARCH_TOOL_TYPES.test(toolType) &&
+        !TOOL_SEARCH_TOOL_TYPES.test(toolType) &&
+        !IMAGE_GENERATION_TOOL_TYPES.test(toolType) &&
         !tool.function
       ) {
         throw unsupportedFeature(
@@ -176,6 +197,13 @@ export function openaiResponsesToOpenAIRequest(
       if (!fnName) {
         continue;
       }
+      // #2893: Skip tool calls with an empty call_id — they can never be matched
+      // to their function_call_output, so the upstream rejects the orphaned tool
+      // result with "Messages with role 'tool' must be a response to a preceding
+      // message with 'tool_calls'". Dropping the unmatched pair avoids the 400.
+      if (!toString(item.call_id).trim()) {
+        continue;
+      }
 
       // Start or append assistant message with tool_calls
       if (!currentAssistantMsg) {
@@ -246,19 +274,36 @@ export function openaiResponsesToOpenAIRequest(
 
   // Convert tools format
   if (Array.isArray(root.tools)) {
-    result.tools = root.tools.map((toolValue) => {
-      const tool = toRecord(toolValue);
-      if (tool.function) return toolValue;
-      return {
-        type: "function",
-        function: {
-          name: toString(tool.name),
-          description: toString(tool.description),
-          parameters: tool.parameters,
-          strict: tool.strict,
-        },
-      };
-    });
+    result.tools = root.tools
+      .filter((toolValue) => {
+        const tool = toRecord(toolValue);
+        const toolType = toString(tool.type);
+        // tool_search (#2766) and image_generation (#2950) are Responses API built-ins
+        // with no Chat Completions equivalent; drop them silently.
+        return (
+          !TOOL_SEARCH_TOOL_TYPES.test(toolType) && !IMAGE_GENERATION_TOOL_TYPES.test(toolType)
+        );
+      })
+      .map((toolValue) => {
+        const tool = toRecord(toolValue);
+        if (tool.function) return toolValue;
+        const toolType = toString(tool.type);
+        // Pass web_search server tools through with their original type (versioned or plain).
+        // These have no Chat Completions equivalent; preserve as-is so upstreams that understand
+        // Anthropic-style web_search_YYYYMMDD naming receive the exact name they expect.
+        if (WEB_SEARCH_TOOL_TYPES.test(toolType)) {
+          return toolValue;
+        }
+        return {
+          type: "function",
+          function: {
+            name: toString(tool.name),
+            description: toString(tool.description),
+            parameters: tool.parameters,
+            strict: tool.strict,
+          },
+        };
+      });
   }
 
   // Filter orphaned tool results (no matching tool_call in assistant messages)
@@ -273,8 +318,11 @@ export function openaiResponsesToOpenAIRequest(
   }
   result.messages = messages.filter((m) => {
     const rec = toRecord(m);
-    if (rec.role === "tool" && rec.tool_call_id) {
-      return allToolCallIds.has(String(rec.tool_call_id));
+    // #2893: drop ANY tool result whose tool_call_id has no matching tool_call —
+    // including empty/missing ids (the previous `&& rec.tool_call_id` guard let
+    // empty-id orphans slip through and triggered an upstream 400).
+    if (rec.role === "tool") {
+      return allToolCallIds.has(String(rec.tool_call_id ?? ""));
     }
     return true;
   });
@@ -307,7 +355,29 @@ export function openaiResponsesToOpenAIRequest(
     result[RESPONSES_STORE_MARKER] = root.store;
   }
   delete result.store;
+
+  // Copilot-only: promote Responses `reasoning.{effort,summary}` to Chat fields
+  // so the downstream openai-to-claude translator can enable extended thinking.
+  // Gated by the UA marker from translateRequest; other clients see `reasoning` dropped.
+  if (
+    credentialRecord._copilotClient === true &&
+    root.reasoning &&
+    typeof root.reasoning === "object" &&
+    !Array.isArray(root.reasoning)
+  ) {
+    const reasoningRec = toRecord(root.reasoning);
+    const effort = toString(reasoningRec.effort);
+    if (effort && result.reasoning_effort === undefined) {
+      result.reasoning_effort = normalizeResponsesReasoningEffort(effort);
+    }
+    if (shouldRequestClaudeSummarizedThinking(reasoningRec.summary)) {
+      result[COPILOT_REASONING_SUMMARY_MARKER] = "summarized";
+    }
+  }
   delete result.reasoning;
+  // Strip Responses-API-only fields that Chat Completions rejects with 400.
+  // safety_identifier is sent by LobeHub and has no Chat Completions equivalent (#2770).
+  delete result.safety_identifier;
 
   return result;
 }
@@ -377,13 +447,21 @@ export function openaiToOpenAIResponsesRequest(
                   }
                   return imgResult;
                 }
-                if (contentItem.type === "file") {
-                  const file = toRecord(contentItem.file);
+                if (contentItem.type === "file" || contentItem.type === "document") {
+                  // Accept both the OpenAI `file` shape and the Gemini-style `document` shape,
+                  // and map the bare `data`/`url` fields too, so a PDF reaches Codex/Responses
+                  // regardless of which content-part name the client used (#2515).
+                  const file = toRecord(
+                    contentItem.type === "document" ? contentItem.document : contentItem.file
+                  );
                   const fileResult: JsonRecord = { type: "input_file" };
                   if (file.file_data !== undefined) fileResult.file_data = file.file_data;
+                  else if (file.data !== undefined) fileResult.file_data = file.data;
                   if (file.file_id !== undefined) fileResult.file_id = file.file_id;
                   if (file.file_url !== undefined) fileResult.file_url = file.file_url;
+                  else if (file.url !== undefined) fileResult.file_url = file.url;
                   if (file.filename !== undefined) fileResult.filename = file.filename;
+                  else if (file.name !== undefined) fileResult.filename = file.name;
                   return fileResult;
                 }
                 return contentValue;

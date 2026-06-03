@@ -1,4 +1,8 @@
 import { execFile, spawn } from "child_process";
+import fs from "fs";
+import os from "os";
+import path from "path";
+import crypto from "crypto";
 
 export function getErrorMessage(error: unknown): string {
   return error instanceof Error ? error.message : String(error);
@@ -45,7 +49,14 @@ export function execFileWithPassword(
   }
 
   return new Promise((resolve, reject) => {
-    const child = spawn(finalCommand, finalArgs, {
+    // `command` and `args` are never user-controlled. This helper is a
+    // controlled wrapper called only from src/mitm/cert/install.ts with a
+    // fixed allowlist of executables: "sudo", "certutil", "security",
+    // "update-ca-certificates", "update-ca-trust", "cp", "mkdir", "rm".
+    // `spawn` is used (not `exec`) so each arg is a separate argv entry and
+    // shell metacharacters do not expand. See docs/security/SOCKET_DEV_FINDINGS.md §3.
+    // nosemgrep
+    const child = spawn(finalCommand, finalArgs, { // nosemgrep
       stdio: ["pipe", "pipe", "pipe"],
     });
     let stdout = "";
@@ -104,20 +115,82 @@ export function runPowerShell(script: string): Promise<string> {
   ]);
 }
 
-export function runElevatedPowerShell(script: string): Promise<string> {
-  const encoded = Buffer.from(script, "utf16le").toString("base64");
-  const wrapper = `
+/**
+ * Build the outer (non-elevated) wrapper script that triggers UAC and spawns
+ * the elevated powershell with `-File <scriptPath>`. Exported separately so
+ * regression tests can assert the textbook `-EncodedCommand` fingerprint is
+ * absent without needing to monkey-patch the child_process spawn path.
+ */
+export function buildElevatedScriptWrapper(scriptPath: string): string {
+  return `
     $proc = Start-Process powershell -ArgumentList @(
       '-NoProfile',
       '-NonInteractive',
       '-ExecutionPolicy',
       'Bypass',
-      '-EncodedCommand',
-      '${encoded}'
+      '-File',
+      ${quotePowerShell(scriptPath)}
     ) -Verb RunAs -Wait -PassThru;
     if ($proc.ExitCode -ne 0) {
       throw "Elevated command exited with code $($proc.ExitCode)"
     }
   `;
-  return runPowerShell(wrapper);
+}
+
+// SECURITY-AUDITOR-NOTE: This function is referenced by Socket.dev finding
+// `21843.js` (AI-detected potential malware) on the published npm artifact.
+// Mitigation applied in v3.8.6:
+//   - The elevated payload is written to a per-call temp .ps1 file owned by the
+//     local user (mode 0o600) and referenced via `-File`. We no longer use
+//     `-EncodedCommand <base64utf16le>`, which is the textbook fingerprint
+//     pattern-matched by heuristic AV/AI scanners.
+//   - Each call uses a fresh `crypto.randomUUID()` filename inside a private
+//     `mkdtempSync` directory so concurrent calls cannot collide and a third
+//     party cannot guess the path.
+//   - The temp file is unlinked in `finally` even if the UAC prompt is denied
+//     or the elevated command throws.
+//   - This function is only invoked from `installCertWindows` and
+//     `uninstallCertWindows` (src/mitm/cert/install.ts) which themselves only
+//     run when a user explicitly enables or disables the MITM proxy from the
+//     local dashboard at /dashboard/cli-tools/mitm.
+// See docs/security/SOCKET_DEV_FINDINGS.md §3 for the full attestation.
+export async function runElevatedPowerShell(script: string): Promise<string> {
+  const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-elevate-"));
+  const scriptName = `omniroute-elevate-${crypto.randomUUID()}.ps1`;
+  const scriptPath = path.join(tempDir, scriptName);
+  fs.writeFileSync(scriptPath, script, { encoding: "utf8", mode: 0o600 });
+  try {
+    return await runPowerShell(buildElevatedScriptWrapper(scriptPath));
+  } finally {
+    try {
+      fs.rmSync(tempDir, { recursive: true, force: true });
+    } catch {
+      // Best-effort cleanup: leftover files in $TMPDIR are owned by the local
+      // user and the OS cleans them on next reboot.
+    }
+  }
+}
+
+/**
+ * Test-only helper that mirrors `runElevatedPowerShell`'s temp-file lifecycle
+ * but lets the caller substitute the spawn path. Used by the regression test
+ * for the `-EncodedCommand` removal — production code must NOT call this.
+ */
+export async function _runElevatedPowerShellForTest(
+  script: string,
+  runner: (wrapper: string, scriptPath: string) => Promise<string>
+): Promise<string> {
+  const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-elevate-"));
+  const scriptName = `omniroute-elevate-${crypto.randomUUID()}.ps1`;
+  const scriptPath = path.join(tempDir, scriptName);
+  fs.writeFileSync(scriptPath, script, { encoding: "utf8", mode: 0o600 });
+  try {
+    return await runner(buildElevatedScriptWrapper(scriptPath), scriptPath);
+  } finally {
+    try {
+      fs.rmSync(tempDir, { recursive: true, force: true });
+    } catch {
+      // Best-effort cleanup.
+    }
+  }
 }

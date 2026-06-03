@@ -30,6 +30,12 @@ function ask(question) {
   return new Promise((resolve) => rl.question(question, resolve));
 }
 
+function exitWithError(message) {
+  console.error(message);
+  rl.close();
+  process.exit(1);
+}
+
 console.log("\n🔑 OmniRoute — Password Reset\n");
 
 async function main() {
@@ -51,17 +57,13 @@ async function main() {
   const password = await ask("Enter new password (min 8 chars): ");
 
   if (!password || password.length < 8) {
-    console.error("\n❌ Password must be at least 8 characters.\n");
-    rl.close();
-    process.exit(1);
+    exitWithError("\n❌ Password must be at least 8 characters.\n");
   }
 
   const confirm = await ask("Confirm new password: ");
 
   if (password !== confirm) {
-    console.error("\n❌ Passwords do not match.\n");
-    rl.close();
-    process.exit(1);
+    exitWithError("\n❌ Passwords do not match.\n");
   }
 
   await resetManagementPassword(password, DB_PATH);

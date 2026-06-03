@@ -3,6 +3,9 @@ import { createCipheriv, createDecipheriv, randomBytes, scryptSync } from "node:
 const ALGORITHM = "aes-256-gcm";
 const IV_LENGTH = 16;
 const KEY_LENGTH = 32;
+// Full 16-byte GCM tag produced by cipher.getAuthTag(). Pinning authTagLength on
+// decrypt rejects truncated tags, closing the GCM tag-truncation forgery vector.
+const AUTH_TAG_LENGTH = 16;
 const PREFIX = "enc:v1:";
 // Keep this salt in sync with the app-side field encryption format so credentials written by
 // CLI setup remain decryptable by the dashboard/server and vice versa.
@@ -53,7 +56,9 @@ export function decryptCredential(value) {
   }
 
   const [ivHex, encryptedHex, authTagHex] = parts;
-  const decipher = createDecipheriv(ALGORITHM, key, Buffer.from(ivHex, "hex"));
+  const decipher = createDecipheriv(ALGORITHM, key, Buffer.from(ivHex, "hex"), {
+    authTagLength: AUTH_TAG_LENGTH,
+  });
   decipher.setAuthTag(Buffer.from(authTagHex, "hex"));
 
   let decrypted = decipher.update(encryptedHex, "hex", "utf8");

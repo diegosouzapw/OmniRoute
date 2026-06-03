@@ -1,5 +1,29 @@
 import test from "node:test";
 import assert from "node:assert/strict";
+import fs from "node:fs";
+import os from "node:os";
+import path from "node:path";
+
+const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-services-hardening-"));
+const ORIGINAL_DATA_DIR = process.env.DATA_DIR;
+process.env.DATA_DIR = TEST_DATA_DIR;
+
+if (!process.env.API_KEY_SECRET) {
+  process.env.API_KEY_SECRET = "test-services-hardening-secret-" + Date.now();
+}
+
+test.after(() => {
+  if (ORIGINAL_DATA_DIR === undefined) {
+    delete process.env.DATA_DIR;
+  } else {
+    process.env.DATA_DIR = ORIGINAL_DATA_DIR;
+  }
+  try {
+    fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+  } catch {
+    // Best effort cleanup
+  }
+});
 
 const signatureStore = await import("../../open-sse/services/geminiThoughtSignatureStore.ts");
 const modelCapabilities = await import("../../open-sse/services/modelCapabilities.ts");
@@ -36,7 +60,7 @@ test.afterEach(() => {
   comboMetrics.resetAllComboMetrics();
 });
 
-test("gemini thought signature store handles invalid input, TTL expiry and max-size pruning", () => {
+test("gemini thought signature store handles invalid input, memory TTL and max-size pruning", () => {
   signatureStore.storeGeminiThoughtSignature("", "sig");
   signatureStore.storeGeminiThoughtSignature("call-empty", "");
   assert.equal(signatureStore.getGeminiThoughtSignature(""), null);
@@ -49,7 +73,8 @@ test("gemini thought signature store handles invalid input, TTL expiry and max-s
   assert.equal(signatureStore.getGeminiThoughtSignature("call-live"), "sig-live");
 
   now += 60 * 60 * 1000 + 1;
-  assert.equal(signatureStore.getGeminiThoughtSignature("call-live"), null);
+  assert.equal(signatureStore.getGeminiThoughtSignatureMemorySizeForTests(), 0);
+  assert.equal(signatureStore.getGeminiThoughtSignature("call-live"), "sig-live");
 
   now = 10_000;
   for (let index = 0; index < 1002; index++) {
@@ -57,7 +82,8 @@ test("gemini thought signature store handles invalid input, TTL expiry and max-s
     now += 1;
   }
 
-  assert.equal(signatureStore.getGeminiThoughtSignature("call-0"), null);
+  assert.equal(signatureStore.getGeminiThoughtSignatureMemorySizeForTests(), 1000);
+  assert.equal(signatureStore.getGeminiThoughtSignature("call-0"), "sig-0");
   assert.equal(signatureStore.getGeminiThoughtSignature("call-1001"), "sig-1001");
 });
 
@@ -167,7 +193,9 @@ test("rate limit semaphore covers immediate acquire, timeout, cooldown drain and
 
   release();
   release();
-  assert.equal(rateLimitSemaphore.getStats()["model-a"].running, 0);
+  // #2903 (perf-ram) prunes idle gates when they reach zero running/queued, so the
+  // entry may be absent here — assert "no running slots" without assuming it persists.
+  assert.equal(rateLimitSemaphore.getStats()["model-a"]?.running ?? 0, 0);
 
   const heldRelease = await rateLimitSemaphore.acquire("model-b", { maxConcurrency: 1 });
   const timeoutPromise = rateLimitSemaphore.acquire("model-b", {
@@ -188,7 +216,7 @@ test("rate limit semaphore covers immediate acquire, timeout, cooldown drain and
   assert.equal(rateLimitSemaphore.getStats()["model-c"].queued, 1);
   const secondRelease = await secondPromise;
   secondRelease();
-  assert.equal(rateLimitSemaphore.getStats()["model-c"].queued, 0);
+  assert.equal(rateLimitSemaphore.getStats()["model-c"]?.queued ?? 0, 0);
 
   const blockingRelease = await rateLimitSemaphore.acquire("model-d", { maxConcurrency: 1 });
   const queuedPromise = rateLimitSemaphore.acquire("model-d", {
@@ -203,8 +231,19 @@ test("rate limit semaphore covers immediate acquire, timeout, cooldown drain and
 test("combo metrics cover empty reads, intent tracking, per-model stats and resets", () => {
   assert.equal(comboMetrics.getComboMetrics("missing"), null);
 
+  comboMetrics.recordComboShadowRequest("shadow-only", "openai/shadow", {
+    success: true,
+    latencyMs: 40,
+  });
+  const shadowOnlyMetrics = comboMetrics.getComboMetrics("shadow-only");
+  assert.equal(shadowOnlyMetrics.productionTraffic, false);
+  assert.equal(shadowOnlyMetrics.totalRequests, 0);
+  assert.equal(shadowOnlyMetrics.shadow.totalRequests, 1);
+  comboMetrics.resetComboMetrics("shadow-only");
+
   comboMetrics.recordComboIntent("idle", "chat");
   const idleMetrics = comboMetrics.getComboMetrics("idle");
+  assert.equal(idleMetrics.productionTraffic, false);
   assert.equal(idleMetrics.avgLatencyMs, 0);
   assert.equal(idleMetrics.successRate, 0);
   assert.equal(idleMetrics.fallbackRate, 0);
@@ -246,6 +285,7 @@ test("combo metrics cover empty reads, intent tracking, per-model stats and rese
   });
 
   const writer = comboMetrics.getComboMetrics("writer");
+  assert.equal(writer.productionTraffic, true);
   assert.equal(writer.strategy, "least-used");
   assert.equal(writer.totalRequests, 3);
   assert.equal(writer.totalSuccesses, 2);
@@ -352,11 +392,11 @@ test("model helpers cover malformed input, alias maps, wildcard aliases, ambigui
     model: "gemini-custom",
     extendedContext: false,
   });
-  assert.deepEqual(await modelService.getModelInfoCore("made-up-model", {}), {
-    provider: "openai",
-    model: "made-up-model",
-    extendedContext: false,
-  });
+  const unknownModel = await modelService.getModelInfoCore("made-up-model", {});
+  assert.equal(unknownModel.provider, null);
+  assert.equal(unknownModel.errorType, "model_not_found");
+  assert.ok(unknownModel.errorMessage.includes("made-up-model"));
+  assert.ok(unknownModel.errorMessage.includes("provider/model prefix"));
 });
 
 test("error classifier covers empty-content helpers, context overflow and remaining error classes", () => {

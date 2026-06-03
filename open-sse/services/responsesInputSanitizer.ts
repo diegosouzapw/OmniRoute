@@ -1,5 +1,14 @@
 type JsonRecord = Record<string, unknown>;
+type SanitizeResponsesInputOptions = {
+  dropInternalAssistantMessages?: boolean;
+};
 const INTERNAL_ASSISTANT_PHASES = new Set(["commentary"]);
+const SERVER_ITEM_ID_PREFIX_BY_TYPE: Record<string, string> = {
+  function_call: "fc_",
+  message: "msg_",
+  reasoning: "rs_",
+};
+const SERVER_ITEM_ID_PATTERN = /^(fc|msg|rs|resp)_/;
 
 function toRecord(value: unknown): JsonRecord | null {
   return value && typeof value === "object" && !Array.isArray(value) ? (value as JsonRecord) : null;
@@ -30,30 +39,53 @@ function sanitizeFunctionName(name: string): string {
   return name.replace(/[^a-zA-Z0-9_-]/g, "_").slice(0, 128);
 }
 
-function truncateInputItemName(item: unknown): unknown {
-  const record = toRecord(item);
-  if (!record) return item;
-  if (
-    (record.type === "function_call" || record.type === "function_call_output") &&
-    typeof record.name === "string" &&
-    !/^[a-zA-Z0-9_-]{1,128}$/.test(record.name)
-  ) {
-    return { ...record, name: sanitizeFunctionName(record.name) };
-  }
-  return item;
+function sanitizeInputItemId(record: JsonRecord): JsonRecord {
+  if (typeof record.id !== "string") return record;
+
+  const type = typeof record.type === "string" ? record.type : "";
+  const expectedPrefix = SERVER_ITEM_ID_PREFIX_BY_TYPE[type];
+  const hasExpectedPrefix = expectedPrefix
+    ? record.id.startsWith(expectedPrefix)
+    : SERVER_ITEM_ID_PATTERN.test(record.id);
+
+  if (hasExpectedPrefix) return record;
+
+  const next = { ...record };
+  delete next.id;
+  return next;
 }
 
-export function sanitizeResponsesInputItems(items: readonly unknown[], clone = true): unknown[] {
+function sanitizeInputItem(item: unknown): unknown {
+  const record = toRecord(item);
+  if (!record) return item;
+
+  let next = sanitizeInputItemId(record);
+  if (
+    (next.type === "function_call" || next.type === "function_call_output") &&
+    typeof next.name === "string" &&
+    !/^[a-zA-Z0-9_-]{1,128}$/.test(next.name)
+  ) {
+    next = { ...next, name: sanitizeFunctionName(next.name) };
+  }
+  return next;
+}
+
+export function sanitizeResponsesInputItems(
+  items: readonly unknown[],
+  clone = true,
+  options: SanitizeResponsesInputOptions = {}
+): unknown[] {
+  const dropInternalAssistantMessages = options.dropInternalAssistantMessages ?? true;
   const sanitized: unknown[] = [];
 
   for (const item of items) {
     const record = toRecord(item);
-    if (record && isInternalAssistantMessage(record)) {
+    if (dropInternalAssistantMessages && record && isInternalAssistantMessage(record)) {
       continue;
     }
 
     const cloned = clone ? structuredClone(item) : item;
-    sanitized.push(truncateInputItemName(cloned));
+    sanitized.push(sanitizeInputItem(cloned));
   }
 
   return sanitized;

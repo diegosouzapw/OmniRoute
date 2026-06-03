@@ -24,6 +24,13 @@ test("matchesSearch: İstanbul'u 'istanbul' sorgusuyla bulur", () => {
   assert.equal(matchesSearch("İstanbul", "istanbul"), true);
 });
 
+test("matchesSearch: Latin 'Istanbul' sorgusu (noktasız I) dotted İ metnini bulur", () => {
+  // Real-world: data has the dotted Turkish İ, the user types a Latin capital I
+  // (no dot) from a non-Turkish keyboard. Both must fold to "istanbul".
+  assert.equal(matchesSearch("İstanbul", "Istanbul"), true);
+  assert.equal(matchesSearch("Istanbul", "İstanbul"), true);
+});
+
 test("matchesSearch: aksan-duyarsız (Şarj İstasyonu ↔ 'sarj')", () => {
   assert.equal(matchesSearch("Şarj İstasyonu", "sarj"), true);
 });

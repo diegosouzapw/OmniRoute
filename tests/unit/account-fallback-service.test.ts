@@ -33,6 +33,26 @@ const {
 
 const { selectAccount } = accountSelector;
 
+/** Build a full ProviderProfile from partial overrides (test helper). */
+function makeProfile(overrides: Record<string, unknown> = {}): any {
+  return {
+    baseCooldownMs: 125,
+    useUpstreamRetryHints: false,
+    maxBackoffSteps: 3,
+    failureThreshold: 60,
+    resetTimeoutMs: 5000,
+    transientCooldown: 125,
+    rateLimitCooldown: 125,
+    maxBackoffLevel: 3,
+    circuitBreakerThreshold: 60,
+    circuitBreakerReset: 5000,
+    providerFailureThreshold: 5,
+    providerFailureWindowMs: 300000,
+    providerCooldownMs: 60000,
+    ...overrides,
+  };
+}
+
 function withMockedNow(now, fn) {
   const originalNow = Date.now;
   Date.now = () => now;
@@ -58,12 +78,83 @@ test("parseRetryFromErrorText parses both compact reset formats", () => {
   assert.equal(parseRetryFromErrorText("No reset metadata"), null);
 });
 
+test("parseRetryFromErrorText parses Antigravity 'Resets in XhYmZs' phrasing", () => {
+  assert.equal(
+    parseRetryFromErrorText(
+      "Individual quota reached. Contact your administrator to enable overages. " +
+        "Resets in 164h27m24s."
+    ),
+    (164 * 3600 + 27 * 60 + 24) * 1000
+  );
+  assert.equal(parseRetryFromErrorText("Resets in 2h7m23s"), 7_643_000);
+  assert.equal(parseRetryFromErrorText("Reset in 45m"), 2_700_000);
+});
+
+test("parseRetryFromErrorText caps extreme reset windows at 30 days", () => {
+  const thirtyDaysMs = 30 * 24 * 60 * 60 * 1000;
+  // 100 days → capped to 30
+  assert.equal(parseRetryFromErrorText("Resets in 2400h"), thirtyDaysMs);
+  // Absurd value → capped
+  assert.equal(parseRetryFromErrorText("Resets in 999999h"), thirtyDaysMs);
+});
+
+test("checkFallbackError locks Antigravity quota-reached 429 for the full reset window", () => {
+  const message =
+    "Individual quota reached. Contact your administrator to enable overages. " +
+    "Resets in 164h27m24s.";
+  const result = checkFallbackError(
+    429,
+    message,
+    0,
+    "gemini-3-flash-agent",
+    "antigravity",
+    null,
+    makeProfile()
+  );
+
+  assert.equal(result.shouldFallback, true);
+  assert.equal(result.reason, RateLimitReason.QUOTA_EXHAUSTED);
+  assert.equal(result.usedUpstreamRetryHint, true);
+  // Full parsed window (≈164.46h), under the 30-day cap — not the generic ~5s rate-limit backoff.
+  assert.equal(result.cooldownMs, (164 * 3600 + 27 * 60 + 24) * 1000);
+});
+
+test("recordModelLockoutFailure honors a multi-day exactCooldownMs (under 30-day cap)", () => {
+  const provider = "antigravity";
+  const connectionId = "conn-quota-window";
+  const model = "gemini-3-flash-agent";
+  const exactCooldownMs = (164 * 3600 + 27 * 60 + 24) * 1000;
+
+  clearModelLock(provider, connectionId, model);
+  const lockout = recordModelLockoutFailure(
+    provider,
+    connectionId,
+    model,
+    "quota_exhausted",
+    429,
+    0,
+    makeProfile(),
+    { exactCooldownMs }
+  );
+
+  assert.equal(lockout.cooldownMs, exactCooldownMs);
+  assert.equal(isModelLocked(provider, connectionId, model), true);
+  clearModelLock(provider, connectionId, model);
+});
+
 test("checkFallbackError marks deactivated accounts as permanent auth failures", () => {
   const result = checkFallbackError(401, "This account has been deactivated");
   assert.equal(result.shouldFallback, true);
   assert.equal(result.reason, RateLimitReason.AUTH_ERROR);
   assert.equal(result.permanent, true);
   assert.ok(result.cooldownMs >= 300 * 24 * 60 * 60 * 1000);
+});
+
+test("checkFallbackError classifies 'free tier of the model has been exhausted' as quota exhausted", () => {
+  const result = checkFallbackError(429, "free tier of the model has been exhausted");
+  assert.equal(result.shouldFallback, true);
+  assert.equal(result.reason, RateLimitReason.QUOTA_EXHAUSTED);
+  assert.equal(result.creditsExhausted, true);
 });
 
 test("checkFallbackError treats non-429 exhausted credits as long quota cooldowns", () => {
@@ -75,13 +166,15 @@ test("checkFallbackError treats non-429 exhausted credits as long quota cooldown
 });
 
 test("checkFallbackError keeps API-key 429 exhausted-credit text on the resilience cooldown path", () => {
-  const result = checkFallbackError(429, "credit_balance_too_low", 0, null, "openai", null, {
-    baseCooldownMs: 125,
-    useUpstreamRetryHints: false,
-    maxBackoffSteps: 3,
-    failureThreshold: 60,
-    resetTimeoutMs: 5000,
-  });
+  const result = checkFallbackError(
+    429,
+    "credit_balance_too_low",
+    0,
+    null,
+    "openai",
+    null,
+    makeProfile()
+  );
 
   assert.equal(result.shouldFallback, true);
   assert.equal(result.reason, RateLimitReason.RATE_LIMIT_EXCEEDED);
@@ -90,13 +183,15 @@ test("checkFallbackError keeps API-key 429 exhausted-credit text on the resilien
 });
 
 test("checkFallbackError preserves OAuth 429 exhausted-credit semantics", () => {
-  const result = checkFallbackError(429, "credit_balance_too_low", 0, null, "codex", null, {
-    baseCooldownMs: 125,
-    useUpstreamRetryHints: false,
-    maxBackoffSteps: 3,
-    failureThreshold: 60,
-    resetTimeoutMs: 5000,
-  });
+  const result = checkFallbackError(
+    429,
+    "credit_balance_too_low",
+    0,
+    null,
+    "codex",
+    null,
+    makeProfile()
+  );
 
   assert.equal(result.shouldFallback, true);
   assert.equal(result.reason, RateLimitReason.QUOTA_EXHAUSTED);
@@ -105,13 +200,7 @@ test("checkFallbackError preserves OAuth 429 exhausted-credit semantics", () => 
 });
 
 test("checkFallbackError keeps API-key 429 quota text on the status-based resilience path", () => {
-  const result = checkFallbackError(429, "quota exceeded", 0, null, "openai", null, {
-    baseCooldownMs: 125,
-    useUpstreamRetryHints: false,
-    maxBackoffSteps: 3,
-    failureThreshold: 60,
-    resetTimeoutMs: 5000,
-  });
+  const result = checkFallbackError(429, "quota exceeded", 0, null, "openai", null, makeProfile());
 
   assert.equal(result.shouldFallback, true);
   assert.equal(result.reason, RateLimitReason.RATE_LIMIT_EXCEEDED);
@@ -153,6 +242,33 @@ test("checkFallbackError keeps generic 400 client errors terminal", () => {
   });
 });
 
+test("checkFallbackError treats a genuine 400 model-access error as combo fallback", () => {
+  const result = checkFallbackError(400, "The model `foo` does not exist or is not available");
+  assert.equal(result.shouldFallback, true);
+  assert.equal(result.reason, RateLimitReason.MODEL_CAPACITY);
+});
+
+test("checkFallbackError does NOT treat a bad-credential 400 as model-access fallback", () => {
+  // Phrased so it would otherwise match MODEL_ACCESS_DENIED_PATTERNS ("...api key
+  // ... model"), but the bad-credential signal must keep it terminal so the real
+  // auth error surfaces instead of silently exhausting every combo target.
+  const result = checkFallbackError(400, "Invalid API key provided for model gpt-4o");
+  assert.deepEqual(result, {
+    shouldFallback: false,
+    cooldownMs: 0,
+    reason: RateLimitReason.UNKNOWN,
+  });
+});
+
+test("checkFallbackError still honors structured model_not_found even with credential-like text", () => {
+  // Structured codes are authoritative and unaffected by the credential guard.
+  const result = checkFallbackError(400, "unauthorized-ish blob", 0, null, "openai", null, null, {
+    code: "model_not_found",
+  });
+  assert.equal(result.shouldFallback, true);
+  assert.equal(result.reason, RateLimitReason.MODEL_CAPACITY);
+});
+
 test("filterAvailableAccounts skips exclusion and active cooldowns but keeps recovered ones", () => {
   withMockedNow(1_700_000_000_000, () => {
     const accounts = [
@@ -173,9 +289,9 @@ test("filterAvailableAccounts skips exclusion and active cooldowns but keeps rec
 test("getEarliestRateLimitedUntil returns the shortest future cooldown and formatRetryAfter humanizes it", () => {
   withMockedNow(1_700_000_000_000, () => {
     const earliest = getEarliestRateLimitedUntil([
-      { id: "expired", rateLimitedUntil: new Date(Date.now() - 5_000).toISOString() },
-      { id: "later", rateLimitedUntil: new Date(Date.now() + 90_000).toISOString() },
-      { id: "earliest", rateLimitedUntil: new Date(Date.now() + 30_000).toISOString() },
+      { rateLimitedUntil: new Date(Date.now() - 5_000).toISOString() },
+      { rateLimitedUntil: new Date(Date.now() + 90_000).toISOString() },
+      { rateLimitedUntil: new Date(Date.now() + 30_000).toISOString() },
     ]);
 
     assert.equal(earliest, new Date(Date.now() + 30_000).toISOString());
@@ -351,13 +467,11 @@ test("recordModelLockoutFailure uses provider profile cooldowns, backoff, and re
   try {
     const compatibleProvider = "openai-compatible-custom-node";
     const compatibleModel = "custom-model-a";
-    const profile = {
-      baseCooldownMs: 125,
-      useUpstreamRetryHints: false,
+    const profile = makeProfile({
       maxBackoffSteps: 2,
-      failureThreshold: 60,
+      maxBackoffLevel: 2,
       resetTimeoutMs: 500,
-    };
+    });
 
     const first = recordModelLockoutFailure(
       compatibleProvider,
@@ -603,13 +717,15 @@ test("checkFallbackError locks model until tomorrow for non-429 daily quota exha
 });
 
 test("checkFallbackError routes API-key 429 'try again tomorrow' through resilience cooldown", () => {
-  const result = checkFallbackError(429, "Please try again tomorrow", 0, null, "openai", null, {
-    baseCooldownMs: 125,
-    useUpstreamRetryHints: false,
-    maxBackoffSteps: 3,
-    failureThreshold: 60,
-    resetTimeoutMs: 5000,
-  });
+  const result = checkFallbackError(
+    429,
+    "Please try again tomorrow",
+    0,
+    null,
+    "openai",
+    null,
+    makeProfile()
+  );
   assert.equal(result.shouldFallback, true);
   assert.equal(result.dailyQuotaExhausted, undefined);
   assert.equal(result.cooldownMs, 125);
@@ -623,13 +739,7 @@ test("checkFallbackError routes API-key 429 'daily quota' text through resilienc
     null,
     "openai",
     null,
-    {
-      baseCooldownMs: 125,
-      useUpstreamRetryHints: false,
-      maxBackoffSteps: 3,
-      failureThreshold: 60,
-      resetTimeoutMs: 5000,
-    }
+    makeProfile()
   );
   assert.equal(result.shouldFallback, true);
   assert.equal(result.dailyQuotaExhausted, undefined);
@@ -644,13 +754,7 @@ test("checkFallbackError preserves OAuth 429 daily quota semantics", () => {
     null,
     "codex",
     null,
-    {
-      baseCooldownMs: 125,
-      useUpstreamRetryHints: false,
-      maxBackoffSteps: 3,
-      failureThreshold: 60,
-      resetTimeoutMs: 5000,
-    }
+    makeProfile()
   );
 
   assert.equal(result.shouldFallback, true);
@@ -676,13 +780,7 @@ test("recordModelLockoutFailure sets cooldown until tomorrow 0:00 for quota_exha
     // Clear any existing state
     clearModelLock(provider, connectionId, model);
 
-    const profile = {
-      baseCooldownMs: 125,
-      useUpstreamRetryHints: false,
-      maxBackoffSteps: 3,
-      failureThreshold: 60,
-      resetTimeoutMs: 5000,
-    };
+    const profile = makeProfile();
 
     // Calculate milliseconds until tomorrow 00:00 local time
     const tomorrow = new Date(now);
@@ -742,13 +840,11 @@ test("recordModelLockoutFailure uses regular backoff for non-quota reasons", () 
 
     clearModelLock(provider, connectionId, model);
 
-    const profile = {
+    const profile = makeProfile({
       baseCooldownMs: 5000,
-      useUpstreamRetryHints: false,
-      maxBackoffSteps: 3,
-      failureThreshold: 60,
-      resetTimeoutMs: 5000,
-    };
+      transientCooldown: 5000,
+      rateLimitCooldown: 5000,
+    });
 
     // Record failure with rate_limited reason (not quota_exhausted)
     const result = recordModelLockoutFailure(
@@ -828,4 +924,179 @@ test("classifyErrorText handles hour quota messages", () => {
   assert.equal(classifyErrorText("Your hour quota is exceeded"), RateLimitReason.QUOTA_EXHAUSTED);
   assert.equal(classifyErrorText("hour quota has been exceeded"), RateLimitReason.QUOTA_EXHAUSTED);
   assert.equal(classifyErrorText("quota has been exceeded"), RateLimitReason.QUOTA_EXHAUSTED);
+});
+
+// ─── Model Access Denied (structured error codes + regex fallback) ─────
+
+test("checkFallbackError detects model access denied via structured error code (OpenAI)", () => {
+  const result = checkFallbackError(
+    400,
+    "The model `gpt-5` does not exist",
+    0,
+    null,
+    "openai",
+    null,
+    null,
+    { code: "model_not_found", type: null }
+  );
+  assert.equal(result.shouldFallback, true);
+  assert.equal(result.cooldownMs, 0);
+  assert.equal(result.reason, RateLimitReason.MODEL_CAPACITY);
+});
+
+test("checkFallbackError detects model access denied via structured error type (Anthropic not_found_error)", () => {
+  const result = checkFallbackError(
+    400,
+    "model: claude-sonnet-4-7-20260515",
+    0,
+    null,
+    "anthropic",
+    null,
+    null,
+    { code: null, type: "not_found_error" }
+  );
+  assert.equal(result.shouldFallback, true);
+  assert.equal(result.cooldownMs, 0);
+  assert.equal(result.reason, RateLimitReason.MODEL_CAPACITY);
+});
+
+test("checkFallbackError detects model access denied via structured error type (Anthropic permission_error) when the message confirms the model", () => {
+  const result = checkFallbackError(
+    400,
+    "you do not have access to the requested model",
+    0,
+    null,
+    "anthropic",
+    null,
+    null,
+    { code: null, type: "permission_error" }
+  );
+  assert.equal(result.shouldFallback, true);
+  assert.equal(result.cooldownMs, 0);
+  assert.equal(result.reason, RateLimitReason.MODEL_CAPACITY);
+});
+
+test("checkFallbackError does NOT fallback on a permission_error that is a key/feature scope issue (not model access)", () => {
+  // permission_error is ambiguous on Anthropic — also raised for API-key scope,
+  // org restrictions and feature gating. Without a model-related message it must
+  // surface the real error instead of silently exhausting every combo target.
+  const result = checkFallbackError(
+    400,
+    "Your API key does not have permission to use the Message Batches API",
+    0,
+    null,
+    "anthropic",
+    null,
+    null,
+    { code: null, type: "permission_error" }
+  );
+  assert.equal(result.shouldFallback, false);
+});
+
+test("checkFallbackError detects model access denied via regex fallback (invalid model)", () => {
+  const result = checkFallbackError(
+    400,
+    "Invalid model: gpt-5-turbo",
+    0,
+    null,
+    "some-provider",
+    null,
+    null
+  );
+  assert.equal(result.shouldFallback, true);
+  assert.equal(result.cooldownMs, 0);
+  assert.equal(result.reason, RateLimitReason.MODEL_CAPACITY);
+});
+
+test("checkFallbackError does NOT fallback on generic 400 without model access denied", () => {
+  const result = checkFallbackError(400, "bad request payload", 0, null, "openai", null, null);
+  assert.equal(result.shouldFallback, false);
+});
+
+test("checkFallbackError ignores structured error with unrelated code on 400", () => {
+  const result = checkFallbackError(400, "something went wrong", 0, null, "openai", null, null, {
+    code: "invalid_api_key",
+    type: null,
+  });
+  // "invalid_api_key" is not in MODEL_ACCESS_DENIED_CODES,
+  // no MODEL_ACCESS_DENIED_PATTERNS match either → shouldFallback: false
+  assert.equal(result.shouldFallback, false);
+});
+
+// ─── G-02: X-Omni-Fallback-Hint: connection_cooldown ─────────────────────────
+// When 9router executor signals a supervisor-not-running 503, checkFallbackError
+// must return 5s cooldown with skipProviderBreaker:true — not trip the circuit breaker.
+
+test("G-02: X-Omni-Fallback-Hint connection_cooldown on 503 returns 5s cooldown + skipProviderBreaker", () => {
+  const headers = new Headers({ "X-Omni-Fallback-Hint": "connection_cooldown" });
+  const result = checkFallbackError(
+    503,
+    "9router is not running (state: stopped)",
+    0,
+    null,
+    "9router",
+    headers
+  );
+  assert.equal(result.shouldFallback, true);
+  assert.equal(result.cooldownMs, 5_000);
+  assert.equal(result.skipProviderBreaker, true);
+  assert.equal(result.newBackoffLevel, 0);
+  assert.equal(result.reason, "service_not_running");
+});
+
+test("G-02: X-Omni-Fallback-Hint connection_cooldown header lookup is case-insensitive (lowercase header key)", () => {
+  // Headers object normalises keys to lowercase — test the plain-object path
+  const headers: Record<string, string> = { "x-omni-fallback-hint": "connection_cooldown" };
+  const result = checkFallbackError(
+    503,
+    "9router is not running (state: stopped)",
+    0,
+    null,
+    "9router",
+    headers
+  );
+  assert.equal(result.skipProviderBreaker, true);
+  assert.equal(result.cooldownMs, 5_000);
+});
+
+test("G-02: hint header is ignored for non-503 status codes", () => {
+  const headers = new Headers({ "X-Omni-Fallback-Hint": "connection_cooldown" });
+  // 502 should NOT trigger the hint path even if the header is present
+  const result = checkFallbackError(502, "bad gateway", 0, null, "9router", headers);
+  assert.equal(result.skipProviderBreaker, undefined); // normal path, no skip flag
+});
+
+test("G-02: 503 without hint header follows normal circuit-breaker path", () => {
+  // A plain 503 from a real upstream must still feed the circuit breaker
+  const result = checkFallbackError(503, "service unavailable", 0, null, "openai", null);
+  assert.equal(result.skipProviderBreaker, undefined);
+  assert.ok(result.cooldownMs > 0);
+});
+
+test("G-02: five consecutive 503 service_not_running do NOT trip provider circuit breaker (flag)", () => {
+  // Verify that every call returns skipProviderBreaker:true so callers can skip recordProviderFailure
+  const headers = new Headers({ "X-Omni-Fallback-Hint": "connection_cooldown" });
+  for (let i = 0; i < 5; i++) {
+    const result = checkFallbackError(
+      503,
+      "9router is not running (state: stopped)",
+      0,
+      null,
+      "9router",
+      headers
+    );
+    assert.equal(
+      result.skipProviderBreaker,
+      true,
+      `call ${i + 1} should have skipProviderBreaker:true`
+    );
+  }
+  // Verify the circuit breaker for 9router is NOT open after those 5 calls
+  const { isProviderInCooldown, clearProviderFailure } = accountFallback;
+  assert.equal(
+    isProviderInCooldown("9router"),
+    false,
+    "9router circuit breaker must remain closed"
+  );
+  clearProviderFailure("9router"); // cleanup
 });

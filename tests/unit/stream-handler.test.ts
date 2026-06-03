@@ -59,7 +59,7 @@ test("createDisconnectAwareStream converts upstream errors into SSE error chunks
 });
 
 test("createDisconnectAwareStream emits Responses API failure events for Responses clients", async () => {
-  const upstreamError = Object.assign(new Error("responses stream died"), { statusCode: 503 });
+  const upstreamError = Object.assign(new Error("responses stream\ndied"), { statusCode: 503 });
   const transformStream = {
     readable: new ReadableStream({
       start(controller) {
@@ -83,12 +83,43 @@ test("createDisconnectAwareStream emits Responses API failure events for Respons
 
   assert.match(text, /event: response\.failed/);
   assert.match(text, /"type":"response\.failed"/);
-  assert.match(text, /"message":"responses stream died"/);
+  assert.match(text, /"message":"responses stream\\ndied"/);
   assert.match(text, /"type":"server_error"/);
   assert.match(text, /"code":"server_error"/);
   assert.doesNotMatch(text, /chat\.completion\.chunk/);
   assert.doesNotMatch(text, /"finish_reason":"error"/);
   assert.doesNotMatch(text, /\[DONE\]/);
+});
+
+test("createDisconnectAwareStream keeps newlines escaped inside SSE data fields", async () => {
+  const upstreamError = Object.assign(new Error("line one\nline two\rline three"), {
+    statusCode: 400,
+  });
+  const transformStream = {
+    readable: new ReadableStream({
+      start(controller) {
+        controller.error(upstreamError);
+      },
+    }),
+    writable: {
+      getWriter() {
+        return {
+          abort() {},
+        };
+      },
+    },
+  };
+
+  const stream = createDisconnectAwareStream(
+    transformStream,
+    createStreamController({ clientResponseFormat: FORMATS.OPENAI_RESPONSES })
+  );
+  const text = await readStreamText(stream);
+
+  assert.match(text, /^event: response\.failed\ndata: \{"type":"response\.failed"/);
+  assert.match(text, /"message":"line one\\nline two\\rline three"/);
+  assert.doesNotMatch(text, /^line two/m);
+  assert.doesNotMatch(text, /^line three/m);
 });
 
 test("createDisconnectAwareStream treats legacy OpenAI response format alias as Responses", async () => {
@@ -154,6 +185,36 @@ test("createDisconnectAwareStream emits Claude SSE errors for Claude clients", a
   assert.doesNotMatch(text, /chat\.completion\.chunk/);
   assert.doesNotMatch(text, /"finish_reason":"error"/);
   assert.doesNotMatch(text, /\[DONE\]/);
+});
+
+test("createDisconnectAwareStream keeps newlines escaped for Claude SSE errors", async () => {
+  const upstreamError = Object.assign(new Error("claude line one\nclaude line two"), {
+    statusCode: 502,
+  });
+  const transformStream = {
+    readable: new ReadableStream({
+      start(controller) {
+        controller.error(upstreamError);
+      },
+    }),
+    writable: {
+      getWriter() {
+        return {
+          abort() {},
+        };
+      },
+    },
+  };
+
+  const stream = createDisconnectAwareStream(
+    transformStream,
+    createStreamController({ clientResponseFormat: FORMATS.CLAUDE })
+  );
+  const text = await readStreamText(stream);
+
+  assert.match(text, /^event: error\ndata: \{"type":"error"/);
+  assert.match(text, /"message":"claude line one\\nclaude line two"/);
+  assert.doesNotMatch(text, /^claude line two/m);
 });
 
 test("createDisconnectAwareStream cancel propagates disconnect reason and aborts the writer", async () => {

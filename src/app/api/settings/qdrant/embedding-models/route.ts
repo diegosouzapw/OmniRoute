@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { isAuthenticated } from "@/shared/utils/apiAuth";
 import { AI_MODELS } from "@/shared/constants/models";
 import { getProviderConnections } from "@/lib/db/providers";
+import { sanitizeErrorMessage } from "@omniroute/open-sse/utils/error.ts";
 
 type EmbeddingModelOption = {
   value: string;
@@ -88,6 +89,7 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json({ models: options });
   } catch (error) {
-    return NextResponse.json({ error: String(error), models: [] }, { status: 500 });
+    const message = sanitizeErrorMessage(error instanceof Error ? error.message : String(error));
+    return NextResponse.json({ error: { message }, models: [] }, { status: 500 });
   }
 }

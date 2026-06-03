@@ -28,6 +28,17 @@ function coerceToArray(v: unknown): unknown[] {
 }
 
 const TOOL_SHIMS: Record<string, ShimFn> = {
+  // Claude Code Read accepts `pages` only for PDFs and rejects an empty string.
+  // Some non-Anthropic models emit optional `pages: ""` for ordinary files.
+  // Buffer and emit one cleaned JSON delta so the client never sees the bad field.
+  Read: (input) => {
+    if (typeof input !== "object" || input === null || Array.isArray(input)) return input;
+    const patched = { ...(input as Record<string, unknown>) };
+    if (patched.pages === "" || (Array.isArray(patched.pages) && patched.pages.length === 0)) {
+      delete patched.pages;
+    }
+    return patched;
+  },
   submit_pr_review: (input) => {
     if (typeof input !== "object" || input === null || Array.isArray(input)) return input;
     const patched = { ...(input as Record<string, unknown>) };

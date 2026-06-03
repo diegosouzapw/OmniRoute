@@ -1,7 +1,9 @@
 // @ts-nocheck
+import "./setupPolyfill.ts";
 import { AsyncLocalStorage } from "node:async_hooks";
 import { fetch as undiciFetch } from "undici";
 import {
+  buildVercelRelayHeaders,
   createProxyDispatcher,
   getDefaultDispatcher,
   normalizeProxyUrl,
@@ -86,16 +88,29 @@ function noProxyMatch(targetUrl) {
 
     if (!patternHost) return false;
 
-    // Support wildcard matching (e.g. 192.168.* or *.local)
+    // Support wildcard matching (e.g. 192.168.* or *.local).
+    // Uses a linear glob scan instead of dynamic RegExp to avoid ReDoS.
     if (patternHost.includes("*")) {
-      const regexStr =
-        "^" +
-        patternHost
-          .split("*")
-          .map((s) => s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"))
-          .join(".*") +
-        "$";
-      if (new RegExp(regexStr).test(hostname)) return true;
+      const parts = patternHost.split("*");
+      let pos = 0;
+      let ok = hostname.startsWith(parts[0]);
+      if (ok) {
+        pos = parts[0].length;
+        for (let i = 1; i < parts.length && ok; i++) {
+          const seg = parts[i];
+          if (i === parts.length - 1) {
+            ok = seg === "" || (hostname.endsWith(seg) && hostname.length - seg.length >= pos);
+          } else {
+            const idx = seg ? hostname.indexOf(seg, pos) : pos;
+            if (idx === -1) {
+              ok = false;
+            } else {
+              pos = idx + seg.length;
+            }
+          }
+        }
+      }
+      if (ok) return true;
     }
 
     if (patternHost.startsWith(".")) {
@@ -184,7 +199,10 @@ export async function runWithProxyContext(proxyConfig, fn) {
 
   // T14: Proxy Fast-Fail
   // Perform a short TCP reachability check before issuing upstream requests.
-  if (resolvedProxyUrl) {
+  // Skip for vercel-relay type: proxyConfigToUrl returns "https://<host>" which is the
+  // relay endpoint itself, not a proxy — the actual routing is handled via relay headers.
+  const isVercelRelay = (effectiveProxyConfig as { type?: string })?.type === "vercel";
+  if (resolvedProxyUrl && !isVercelRelay) {
     const reachable = await isProxyReachable(resolvedProxyUrl);
     if (!reachable) {
       const proxyLabel = proxyUrlForLogs(resolvedProxyUrl);
@@ -299,7 +317,7 @@ async function patchedFetch(
           msg.includes("fetch failed") ||
           errCode === "ECONNREFUSED" ||
           msg.includes("ECONNREFUSED") ||
-          (errCode !== undefined && errCode.startsWith("UND_ERR")) ||
+          (typeof errCode === "string" && errCode.startsWith("UND_ERR")) ||
           msg.includes("UND_ERR")
         ) {
           if (attempt === 0 && maxAttempts > 1) {
@@ -320,6 +338,38 @@ async function patchedFetch(
     }
     // Should not be reached, but satisfy TypeScript control-flow.
     throw lastDispatcherError;
+  }
+
+  // Vercel Relay: instead of routing through an HTTP proxy dispatcher, we send
+  // relay headers to the Vercel edge function which forwards the request upstream.
+  const contextProxy = proxyContext.getStore();
+  if (
+    contextProxy &&
+    typeof contextProxy === "object" &&
+    (contextProxy as { type?: string }).type === "vercel"
+  ) {
+    const vc = contextProxy as { host?: string; relayAuth?: string };
+    if (!vc.relayAuth) {
+      // Generic message without internal labels — this throw can bubble up to
+      // catch blocks that put error.message in response bodies (combo per-model
+      // timeout, executor catch-all). Don't leak "[ProxyFetch]" diagnostics.
+      throw new Error("Vercel relay configuration error: missing relayAuth");
+    }
+    const targetUrl = getTargetUrl(input);
+    const relayHeaders = buildVercelRelayHeaders(targetUrl, vc.relayAuth);
+    const mergedHeaders = new Headers(options?.headers);
+    for (const [k, v] of Object.entries(relayHeaders)) mergedHeaders.set(k, v);
+    // Pass host through proxyUrlForLogs so the same redaction policy applies
+    // to relay routing logs (the rest of this module already follows that rule).
+    const hostForLogs = proxyUrlForLogs(vc.host ? `https://${vc.host}` : "");
+    if (process.env.OMNIROUTE_PROXY_FETCH_DEBUG === "true") {
+      console.debug(`[ProxyFetch] Routing via Vercel relay: ${hostForLogs}`);
+    }
+    return await originalFetch(`https://${vc.host}`, {
+      ...options,
+      headers: mergedHeaders,
+      duplex: "half",
+    });
   }
 
   try {

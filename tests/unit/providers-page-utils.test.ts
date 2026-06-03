@@ -15,14 +15,17 @@ test("merged OAuth providers keep free-tier providers in the OAuth section", () 
     return { total: authType === "free" ? 1 : 0 };
   };
 
+  const mockOauthProviders = { claude: { name: "Claude" } };
+  const mockFreeProviders = { "gemini-cli": { name: "Gemini CLI" } };
+
   const entries = providerPageUtils.buildMergedOAuthProviderEntries(
-    providers.OAUTH_PROVIDERS,
-    providers.FREE_PROVIDERS,
+    mockOauthProviders,
+    mockFreeProviders,
     getProviderStats
   );
 
-  const oauthIds = Object.keys(providers.OAUTH_PROVIDERS);
-  const freeIds = Object.keys(providers.FREE_PROVIDERS);
+  const oauthIds = Object.keys(mockOauthProviders);
+  const freeIds = Object.keys(mockFreeProviders);
 
   assert.deepEqual(
     entries.slice(0, oauthIds.length).map((entry) => entry.providerId),
@@ -34,6 +37,7 @@ test("merged OAuth providers keep free-tier providers in the OAuth section", () 
   );
 
   const freeEntry = entries.find((entry) => entry.providerId === freeIds[0]);
+  assert.ok(freeEntry, "Should find the free entry");
   assert.equal(freeEntry.displayAuthType, "oauth");
   assert.equal(freeEntry.toggleAuthType, "free");
   assert.equal(
@@ -245,7 +249,6 @@ test("static catalog entries resolve local, search, audio, web-cookie and upstre
   const clarifaiProvider = providerPageUtils.resolveDashboardProviderInfo("clarifai");
   const empowerProvider = providerPageUtils.resolveDashboardProviderInfo("empower");
   const nousProvider = providerPageUtils.resolveDashboardProviderInfo("nous-research");
-  const petalsProvider = providerPageUtils.resolveDashboardProviderInfo("petals");
   const poeProvider = providerPageUtils.resolveDashboardProviderInfo("poe");
   const azureOpenAiProvider = providerPageUtils.resolveDashboardProviderInfo("azure-openai");
   const azureAiProvider = providerPageUtils.resolveDashboardProviderInfo("azure-ai");
@@ -263,8 +266,8 @@ test("static catalog entries resolve local, search, audio, web-cookie and upstre
   const museSparkWebProvider = providerPageUtils.resolveDashboardProviderInfo("muse-spark-web");
   const upstreamProvider = providerPageUtils.resolveDashboardProviderInfo("cliproxyapi");
 
-  assert.equal(freeProvider?.category, "free");
-  assert.equal(freeProvider?.name, providers.FREE_PROVIDERS["amazon-q"].name);
+  assert.equal(freeProvider?.category, "oauth");
+  assert.equal(freeProvider?.name, providers.OAUTH_PROVIDERS["amazon-q"].name);
 
   assert.equal(localProvider?.category, "local");
   assert.equal(localProvider?.name, providers.LOCAL_PROVIDERS.sdwebui.name);
@@ -299,8 +302,6 @@ test("static catalog entries resolve local, search, audio, web-cookie and upstre
   assert.equal(empowerProvider?.name, providers.APIKEY_PROVIDERS.empower.name);
   assert.equal(nousProvider?.category, "apikey");
   assert.equal(nousProvider?.name, providers.APIKEY_PROVIDERS["nous-research"].name);
-  assert.equal(petalsProvider?.category, "apikey");
-  assert.equal(petalsProvider?.name, providers.APIKEY_PROVIDERS.petals.name);
   assert.equal(poeProvider?.category, "apikey");
   assert.equal(poeProvider?.name, providers.APIKEY_PROVIDERS.poe.name);
   assert.equal(azureOpenAiProvider?.category, "apikey");
@@ -359,7 +360,6 @@ test("managed provider connection ids include supported static categories and ex
   assert.equal(providerCatalog.isManagedProviderConnectionId("clarifai"), true);
   assert.equal(providerCatalog.isManagedProviderConnectionId("empower"), true);
   assert.equal(providerCatalog.isManagedProviderConnectionId("nous-research"), true);
-  assert.equal(providerCatalog.isManagedProviderConnectionId("petals"), true);
   assert.equal(providerCatalog.isManagedProviderConnectionId("poe"), true);
   assert.equal(providerCatalog.isManagedProviderConnectionId("azure-openai"), true);
   assert.equal(providerCatalog.isManagedProviderConnectionId("azure-ai"), true);
@@ -387,6 +387,9 @@ test("managed provider connection ids include supported static categories and ex
   assert.equal(providerCatalog.isManagedProviderConnectionId("youcom-search"), true);
   assert.equal(providerCatalog.isManagedProviderConnectionId("cliproxyapi"), false);
   assert.equal(providerCatalog.isManagedProviderConnectionId("claude"), false);
+  assert.equal(providerCatalog.isManagedProviderConnectionId("jules"), true);
+  assert.equal(providerCatalog.isManagedProviderConnectionId("devin"), true);
+  assert.equal(providerCatalog.isManagedProviderConnectionId("codex-cloud"), true);
 });
 
 test("grok-web taxonomy stays web-cookie only and does not leak into api-key entries", () => {
@@ -417,7 +420,6 @@ test("grok-web taxonomy stays web-cookie only and does not leak into api-key ent
   assert.equal("clarifai" in providers.APIKEY_PROVIDERS, true);
   assert.equal("empower" in providers.APIKEY_PROVIDERS, true);
   assert.equal("nous-research" in providers.APIKEY_PROVIDERS, true);
-  assert.equal("petals" in providers.APIKEY_PROVIDERS, true);
   assert.equal("poe" in providers.APIKEY_PROVIDERS, true);
   assert.equal("azure-ai" in providers.APIKEY_PROVIDERS, true);
   assert.equal("bedrock" in providers.APIKEY_PROVIDERS, true);
@@ -503,10 +505,6 @@ test("grok-web taxonomy stays web-cookie only and does not leak into api-key ent
   );
   assert.equal(
     apiKeyEntries.some((entry) => entry.providerId === "nous-research"),
-    true
-  );
-  assert.equal(
-    apiKeyEntries.some((entry) => entry.providerId === "petals"),
     true
   );
   assert.equal(

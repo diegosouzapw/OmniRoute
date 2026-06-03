@@ -2,7 +2,7 @@ import { createHash, randomUUID } from "node:crypto";
 
 import { getStainlessTimeoutSeconds } from "@/shared/utils/runtimeTimeouts";
 import { ANTHROPIC_VERSION_HEADER } from "../config/anthropicHeaders.ts";
-import { supportsXHighEffort } from "../config/providerModels.ts";
+import { supportsClaudeMaxEffort, supportsXHighEffort } from "../config/providerModels.ts";
 import { prepareClaudeRequest } from "../translator/helpers/claudeHelper.ts";
 import { signRequestBody } from "./claudeCodeCCH.ts";
 import { remapToolNamesInRequest } from "./claudeCodeToolRemapper.ts";
@@ -38,25 +38,21 @@ export const CLAUDE_CODE_COMPATIBLE_ANTHROPIC_BETA = [
   "claude-code-20250219",
   "interleaved-thinking-2025-05-14",
   "effort-2025-11-24",
+  "redact-thinking-2026-02-12",
 ].join(",");
-export const CLAUDE_CODE_COMPATIBLE_VERSION = "2.1.137";
-export const CLAUDE_CODE_COMPATIBLE_USER_AGENT = "claude-cli/2.1.137 (external, sdk-cli)";
-export const CLAUDE_CODE_COMPATIBLE_STAINLESS_PACKAGE_VERSION = "0.81.0";
+export const CLAUDE_CODE_COMPATIBLE_VERSION = "2.1.158";
+export const CLAUDE_CODE_COMPATIBLE_USER_AGENT = "claude-cli/2.1.158 (external, sdk-cli)";
+export const CLAUDE_CODE_COMPATIBLE_STAINLESS_PACKAGE_VERSION = "0.94.0";
 export const CLAUDE_CODE_COMPATIBLE_STAINLESS_RUNTIME_VERSION = "v24.3.0";
 export const CONTEXT_1M_BETA_HEADER = "context-1m-2025-08-07";
+const COPILOT_REASONING_SUMMARY_MARKER = "_omnirouteCopilotReasoningSummary";
 const CLAUDE_CODE_COMPATIBLE_DEFAULT_SYSTEM_BLOCKS = [
   {
     type: "text",
     text: "You are a Claude agent, built on Anthropic's Claude Agent SDK.",
   },
 ];
-const CONTEXT_1M_SUPPORTED_MODELS = [
-  "claude-opus-4-7",
-  "claude-opus-4-6",
-  "claude-sonnet-4-6",
-  "claude-sonnet-4-5",
-  "claude-sonnet-4",
-];
+const CONTEXT_1M_SUPPORTED_MODELS = ["claude-opus-4-8", "claude-opus-4-7", "claude-opus-4-6"];
 export const CLAUDE_CODE_COMPATIBLE_STAINLESS_TIMEOUT_SECONDS = getStainlessTimeoutSeconds(
   process.env
 );
@@ -456,7 +452,7 @@ export function resolveClaudeCodeCompatibleEffort(
   sourceBody?: Record<string, unknown> | null,
   normalizedBody?: Record<string, unknown> | null,
   model?: string | null
-): "low" | "medium" | "high" | "xhigh" {
+): "low" | "medium" | "high" | "xhigh" | "max" {
   const raw =
     readNestedString(sourceBody, ["output_config", "effort"]) ||
     readNestedString(sourceBody, ["reasoning", "effort"]) ||
@@ -479,7 +475,7 @@ export function resolveClaudeCodeCompatibleEffort(
     return supportsClaudeXHighEffort(model) ? "xhigh" : "high";
   }
   if (normalizedEffort === "max") {
-    return supportsClaudeXHighEffort(model) ? "xhigh" : "high";
+    return supportsClaudeMaxEffort(model) ? "max" : "high";
   }
   return supportsClaudeXHighEffort(model) ? "xhigh" : "high";
 }
@@ -639,7 +635,12 @@ function cloneClaudeCodeCompatibleMessagesFromClaude(
   preserveCacheControl: boolean
 ) {
   const cloned = Array.isArray(messages)
-    ? messages.map((message) => cloneValue(message) as MessageLike)
+    ? messages
+        .map((message) => cloneValue(message) as MessageLike)
+        .filter((message) => {
+          const role = String(message?.role || "").toLowerCase();
+          return role !== "system" && role !== "developer";
+        })
     : [];
 
   if (!preserveCacheControl) {
@@ -832,11 +833,22 @@ function prepareClaudeCodeCompatibleBody(
 }
 
 function prepareClaudeCodeCompatibleSemanticBody(claudeBody: Record<string, unknown>) {
+  const rawMessages = Array.isArray(claudeBody.messages)
+    ? (claudeBody.messages as MessageLike[])
+    : [];
+
+  const systemBlocks = normalizeClaudeSystemInput(claudeBody.system);
+  const systemFromMessages = extractCustomSystemBlocks(rawMessages);
+  const mergedSystem = [...systemBlocks, ...systemFromMessages];
+
+  const normalizedMessages = rawMessages.filter((message) => {
+    const role = String(message?.role || "").toLowerCase();
+    return role !== "system" && role !== "developer";
+  });
+
   const prepared: Record<string, unknown> = {
-    system: normalizeClaudeSystemInput(claudeBody.system),
-    messages: Array.isArray(claudeBody.messages)
-      ? (claudeBody.messages as Array<Record<string, unknown>>)
-      : [],
+    system: mergedSystem,
+    messages: normalizedMessages,
     tools: normalizeClaudeToolInput(claudeBody.tools),
     thinking: (readRecord(cloneValue(claudeBody.thinking)) || null) as Record<
       string,
@@ -1053,11 +1065,30 @@ function resolveClaudeCodeCompatibleThinking({
     readRecord(cloneValue(normalizedBody?.thinking));
 
   if (thinking) {
-    return thinking;
+    return applyClaudeCodeCompatibleThinkingDisplay(thinking, normalizedBody);
   }
 
+  return applyClaudeCodeCompatibleThinkingDisplay(
+    {
+      type: "adaptive",
+    },
+    normalizedBody
+  );
+}
+
+function applyClaudeCodeCompatibleThinkingDisplay(
+  thinking: Record<string, unknown>,
+  normalizedBody?: Record<string, unknown> | null
+) {
+  if (
+    normalizedBody?.[COPILOT_REASONING_SUMMARY_MARKER] !== "summarized" ||
+    thinking.type === "disabled"
+  ) {
+    return thinking;
+  }
   return {
-    type: "adaptive",
+    ...thinking,
+    display: "summarized",
   };
 }
 
@@ -1072,7 +1103,7 @@ function resolveClaudeCodeCompatibleOutputConfig({
   sourceBody?: Record<string, unknown> | null;
   normalizedBody?: Record<string, unknown> | null;
   model?: string | null;
-  effort: "low" | "medium" | "high" | "xhigh";
+  effort: "low" | "medium" | "high" | "xhigh" | "max";
 }) {
   const outputConfig =
     readRecord(cloneValue(claudeBody?.output_config)) ||

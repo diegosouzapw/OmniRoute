@@ -1,15 +1,15 @@
 ---
 title: "Free Tiers"
-version: 3.8.0
+version: 3.8.2
 lastUpdated: 2026-05-13
 ---
 
 # Free Tiers
 
-> **Last consolidated:** 2026-05-13 — OmniRoute v3.8.0
+> **Last consolidated:** 2026-05-13 — OmniRoute v3.8.2
 > **Source of truth:** `src/shared/constants/providers.ts` (`FREE_PROVIDERS`, `OAUTH_PROVIDERS`, and `APIKEY_PROVIDERS` entries flagged with `hasFree: true` + `freeNote`)
 
-This page lists providers with usable free tiers shipped in OmniRoute v3.8.0. The data is derived from the provider catalog. If a provider does not appear here, it either has no free tier in the catalog or its `hasFree` flag is `false`.
+This page lists providers with usable free tiers shipped in OmniRoute v3.8.2. The data is derived from the provider catalog. If a provider does not appear here, it either has no free tier in the catalog or its `hasFree` flag is `false`.
 
 Add credentials from the dashboard (`/dashboard/providers/new`) — OmniRoute reads keys from the database, not from per-provider environment variables. The only env vars that influence provider behavior are listed in the [Environment Variables](#environment-variables) section.
 
@@ -156,7 +156,7 @@ Check Command Code's website for the current free-tier policy.
 
 ## Environment variables
 
-OmniRoute v3.8.0 does **not** read provider API keys from environment variables (with one exception below). Keys are stored in the encrypted SQLite database and configured from the dashboard. The env vars listed here are the only ones that affect free-tier behavior:
+OmniRoute v3.8.2 does **not** read provider API keys from environment variables (with one exception below). Keys are stored in the encrypted SQLite database and configured from the dashboard. The env vars listed here are the only ones that affect free-tier behavior:
 
 ```bash
 # Windsurf / Devin CLI — Firebase Web API key used by the Secure Token

@@ -1,13 +1,20 @@
 import crypto, { randomUUID } from "crypto";
 import {
   BaseExecutor,
+  mergeAbortSignals,
   mergeUpstreamExtraHeaders,
   type ExecuteInput,
   type ExecutorLog,
   type ProviderCredentials,
 } from "./base.ts";
 import { applyFingerprint, isCliCompatEnabled } from "../config/cliFingerprints.ts";
-import { PROVIDERS, OAUTH_ENDPOINTS, HTTP_STATUS } from "../config/constants.ts";
+import {
+  PROVIDERS,
+  OAUTH_ENDPOINTS,
+  HTTP_STATUS,
+  STREAM_READINESS_TIMEOUT_MS,
+  ANTIGRAVITY_PRE_RESPONSE_TIMEOUT_CODE,
+} from "../config/constants.ts";
 import { scrubProxyAndFingerprintHeaders } from "../services/antigravityHeaderScrub.ts";
 import {
   antigravityNativeOAuthUserAgent,
@@ -23,10 +30,8 @@ import {
 } from "../services/antigravityCredits.ts";
 import { persistCreditBalance, getAllPersistedCreditBalances } from "@/lib/db/creditBalance";
 import { obfuscateSensitiveWords } from "../services/antigravityObfuscation.ts";
-import {
-  getCachedAntigravityVersion,
-  resolveAntigravityVersion,
-} from "../services/antigravityVersion.ts";
+import { resolveAntigravityVersion } from "../services/antigravityVersion.ts";
+import { ensureAntigravityProjectAssigned } from "../services/antigravityProjectBootstrap.ts";
 import { resolveAntigravityModelId } from "../config/antigravityModelAliases.ts";
 import { cloakAntigravityToolPayload } from "../config/toolCloaking.ts";
 import {
@@ -35,18 +40,22 @@ import {
 } from "../services/cloudCodeThinking.ts";
 import { buildGeminiTools } from "../translator/helpers/geminiToolsSanitizer.ts";
 import {
-  deriveAntigravityMachineId,
+  applyAntigravityClientProfileHeaders,
+  removeHeaderCaseInsensitive,
+} from "../services/antigravityClientProfile.ts";
+import {
   generateAntigravityRequestId,
   getAntigravityEnvelopeUserAgent,
   getAntigravitySessionId,
-  getAntigravityVscodeSessionId,
 } from "../services/antigravityIdentity.ts";
 
 const MAX_RETRY_AFTER_MS = 60_000;
 const LONG_RETRY_THRESHOLD_MS = 60_000;
 const CREDITS_EXHAUSTED_TTL_MS = 5 * 60 * 60 * 1000; // 5 hours
-
-const BARE_PRO_IDS = new Set(["gemini-3.1-pro"]);
+// The upstream API uses plain model IDs (no -high/-low suffix).
+// Tier suffixes were speculative and caused 404 for gemini-3.x models.
+// Only keep models that are live-proven via streamGenerateContent.
+const BARE_PRO_IDS: Set<string> = new Set();
 
 interface AntigravityContent {
   role: string;
@@ -79,12 +88,15 @@ type AntigravityCreditEntry = {
 
 function getChunkedOrFixedBody(bodyStr: string, stream: boolean): BodyInit {
   if (stream) {
-    return new ReadableStream({
-      async start(controller) {
-        controller.enqueue(new TextEncoder().encode(bodyStr));
-        controller.close();
+    return new ReadableStream(
+      {
+        async start(controller) {
+          controller.enqueue(new TextEncoder().encode(bodyStr));
+          controller.close();
+        },
       },
-    });
+      { highWaterMark: 16384 }
+    );
   }
   return bodyStr;
 }
@@ -117,9 +129,66 @@ function serializeAntigravityRequest(
 type AntigravityCollectedStream = {
   textContent: string;
   finishReason: string;
+  toolCalls: Array<{
+    id: string;
+    index: number;
+    type: "function";
+    function: { name: string; arguments: string };
+  }>;
   usage: Record<string, unknown> | null;
   remainingCredits: Array<{ creditType: string; creditAmount: string }> | null;
 };
+
+function stripZeroWidth(value: unknown): unknown {
+  if (typeof value === "string") {
+    return value.replace(/[\u200B-\u200D\uFEFF]/g, "");
+  }
+  if (Array.isArray(value)) {
+    return value.map((item) => stripZeroWidth(item));
+  }
+  if (value && typeof value === "object") {
+    return Object.fromEntries(
+      Object.entries(value as Record<string, unknown>).map(([key, item]) => [
+        key,
+        stripZeroWidth(item),
+      ])
+    );
+  }
+  return value;
+}
+
+function parseAntigravityTextualToolCall(text: unknown): { name: string; args: unknown } | null {
+  if (typeof text !== "string") return null;
+  const normalized = text.replace(/[\u200B-\u200D\uFEFF]/g, "");
+  const match = normalized.match(
+    /^[\s\S]*?\[Tool call:\s*([^\]\n]+)\]\s*\nArguments:\s*([\s\S]+?)\s*$/
+  );
+  if (!match) return null;
+  const name = match[1]?.trim();
+  const rawArgs = match[2]?.trim();
+  if (!name || !rawArgs) return null;
+  try {
+    return { name, args: stripZeroWidth(JSON.parse(rawArgs)) };
+  } catch {
+    return null;
+  }
+}
+
+function addAntigravityTextualToolCall(
+  collected: AntigravityCollectedStream,
+  parsed: { name: string; args: unknown }
+): void {
+  collected.toolCalls.push({
+    id: `${parsed.name}-${Date.now()}-${collected.toolCalls.length}`,
+    index: collected.toolCalls.length,
+    type: "function",
+    function: {
+      name: parsed.name,
+      arguments: JSON.stringify(parsed.args || {}),
+    },
+  });
+  collected.finishReason = "tool_calls";
+}
 
 type AntigravityRequestEnvelope = Record<string, unknown> & {
   project: string;
@@ -131,20 +200,47 @@ type AntigravityRequestEnvelope = Record<string, unknown> & {
   enabledCreditTypes?: string[];
 };
 
+class AntigravityPreResponseTimeoutError extends Error {
+  code = ANTIGRAVITY_PRE_RESPONSE_TIMEOUT_CODE;
+  status = HTTP_STATUS.GATEWAY_TIMEOUT;
+
+  constructor(timeoutMs: number, url: string) {
+    super(`Antigravity upstream did not return response headers within ${timeoutMs}ms: ${url}`);
+    this.name = "TimeoutError";
+  }
+}
+
+function getAbortErrorCode(error: unknown): string | null {
+  if (!error || typeof error !== "object") return null;
+  const value = (error as { code?: unknown }).code;
+  return typeof value === "string" ? value : null;
+}
+
+function isAntigravityPreResponseTimeout(error: unknown): boolean {
+  return getAbortErrorCode(error) === ANTIGRAVITY_PRE_RESPONSE_TIMEOUT_CODE;
+}
+
 /**
  * Per-account GOOGLE_ONE_AI credits-exhausted tracker.
  * Key: accountId (OAuth subject / email). Value: expiry timestamp.
  * When credits hit 0 we skip the credit retry for CREDITS_EXHAUSTED_TTL_MS.
  */
+const MAX_CREDITS_EXHAUSTED_ENTRIES = 50;
 const creditsExhaustedUntil = new Map<string, number>();
 
-/**
- * Per-account GOOGLE_ONE_AI remaining credit balance cache.
- * Populated from the final SSE chunk's `remainingCredits` field after every
- * successful credit-injected request. Keyed by accountId.
- * On first access, hydrated from the DB-persisted balances so values survive restarts.
- */
-const creditBalanceCache = new Map<string, number>();
+const _creditsExhaustedSweep = setInterval(() => {
+  const now = Date.now();
+  for (const [key, until] of creditsExhaustedUntil) {
+    if (now >= until) creditsExhaustedUntil.delete(key);
+  }
+}, 60_000);
+if (typeof _creditsExhaustedSweep === "object" && "unref" in _creditsExhaustedSweep) {
+  (_creditsExhaustedSweep as { unref?: () => void }).unref?.();
+}
+
+const MAX_CREDIT_BALANCE_ENTRIES = 50;
+const CREDIT_BALANCE_TTL_MS = 5 * 60 * 1000;
+const creditBalanceCache = new Map<string, { balance: number; updatedAt: number }>();
 let creditCacheHydrated = false;
 
 function hydrateCreditCacheFromDb(): void {
@@ -153,32 +249,52 @@ function hydrateCreditCacheFromDb(): void {
   try {
     const persisted = getAllPersistedCreditBalances();
     for (const [accountId, balance] of persisted) {
-      // Only fill in accounts not already populated by a live SSE response
       if (!creditBalanceCache.has(accountId)) {
-        creditBalanceCache.set(accountId, balance);
+        creditBalanceCache.set(accountId, { balance, updatedAt: Date.now() });
       }
     }
-  } catch {
-    // DB not ready yet (build phase, etc.) — ignore silently
+  } catch {}
+}
+
+function evictStaleCreditBalanceEntries(): void {
+  const now = Date.now();
+  for (const [key, entry] of creditBalanceCache) {
+    if (now - entry.updatedAt > CREDIT_BALANCE_TTL_MS) {
+      creditBalanceCache.delete(key);
+    }
+  }
+  while (creditBalanceCache.size > MAX_CREDIT_BALANCE_ENTRIES) {
+    const oldestKey = creditBalanceCache.keys().next().value;
+    if (oldestKey !== undefined) creditBalanceCache.delete(oldestKey);
+    else break;
   }
 }
 
-/** Read the last-known GOOGLE_ONE_AI credit balance for a given account. */
+const _creditBalanceSweep = setInterval(evictStaleCreditBalanceEntries, 60_000);
+if (typeof _creditBalanceSweep === "object" && "unref" in _creditBalanceSweep) {
+  (_creditBalanceSweep as { unref?: () => void }).unref?.();
+}
+
 export function getAntigravityRemainingCredits(accountId: string): number | null {
   hydrateCreditCacheFromDb();
-  const balance = creditBalanceCache.get(accountId);
-  return balance !== undefined ? balance : null;
+  const entry = creditBalanceCache.get(accountId);
+  if (!entry) return null;
+  if (Date.now() - entry.updatedAt > CREDIT_BALANCE_TTL_MS) {
+    creditBalanceCache.delete(accountId);
+    return null;
+  }
+  return entry.balance;
 }
 
-/** Update the balance cache — called when we parse `remainingCredits` from an SSE stream. */
 export function updateAntigravityRemainingCredits(accountId: string, balance: number): void {
-  creditBalanceCache.set(accountId, balance);
-  // Persist to DB so the value survives server restarts
+  if (creditBalanceCache.size >= MAX_CREDIT_BALANCE_ENTRIES && !creditBalanceCache.has(accountId)) {
+    const oldestKey = creditBalanceCache.keys().next().value;
+    if (oldestKey !== undefined) creditBalanceCache.delete(oldestKey);
+  }
+  creditBalanceCache.set(accountId, { balance, updatedAt: Date.now() });
   try {
     persistCreditBalance(accountId, balance);
-  } catch {
-    // Non-critical — in-memory cache is the primary source
-  }
+  } catch {}
 }
 
 function isCreditsExhausted(accountId: string): boolean {
@@ -192,6 +308,21 @@ function isCreditsExhausted(accountId: string): boolean {
 }
 
 function markCreditsExhausted(accountId: string): void {
+  if (
+    creditsExhaustedUntil.size >= MAX_CREDITS_EXHAUSTED_ENTRIES &&
+    !creditsExhaustedUntil.has(accountId)
+  ) {
+    const now = Date.now();
+    for (const [key, until] of creditsExhaustedUntil) {
+      if (now >= until) {
+        creditsExhaustedUntil.delete(key);
+      }
+    }
+    if (creditsExhaustedUntil.size >= MAX_CREDITS_EXHAUSTED_ENTRIES) {
+      const oldestKey = creditsExhaustedUntil.keys().next().value;
+      if (oldestKey !== undefined) creditsExhaustedUntil.delete(oldestKey);
+    }
+  }
   creditsExhaustedUntil.set(accountId, Date.now() + CREDITS_EXHAUSTED_TTL_MS);
 }
 
@@ -207,7 +338,12 @@ function processAntigravitySSEPayload(
     if (candidate?.content?.parts) {
       for (const part of candidate.content.parts) {
         if (typeof part.text === "string" && !part.thought && !part.thoughtSignature) {
-          collected.textContent += part.text;
+          const textualToolCall = parseAntigravityTextualToolCall(part.text);
+          if (textualToolCall) {
+            addAntigravityTextualToolCall(collected, textualToolCall);
+          } else {
+            collected.textContent += part.text;
+          }
         }
       }
     }
@@ -295,40 +431,6 @@ function attachToolNameMap<T>(payload: T, toolNameMap: Map<string, string> | nul
 function getRequestTargetModel(body: Record<string, unknown>): string {
   const target = body.model;
   return typeof target === "string" && target.length > 0 ? target : "unknown";
-}
-
-function getProjectHeaderValue(body: unknown): string | null {
-  const project =
-    body && typeof body === "object" ? (body as Record<string, unknown>).project : null;
-  if (typeof project !== "string" || project.trim().length === 0) return null;
-  if (project === "test-project" || project === "project-id") return null;
-  return project;
-}
-
-function applyAntigravityRuntimeHeaders(
-  headers: Record<string, string>,
-  credentials: Record<string, unknown> | null | undefined,
-  body: unknown
-): void {
-  headers["User-Agent"] = antigravityUserAgent();
-  headers["x-client-name"] = "antigravity";
-  headers["x-client-version"] = getCachedAntigravityVersion();
-  headers["x-machine-id"] = deriveAntigravityMachineId(credentials);
-  headers["x-vscode-sessionid"] = getAntigravityVscodeSessionId();
-
-  const project = getProjectHeaderValue(body);
-  if (project) {
-    headers["x-goog-user-project"] = project;
-  }
-}
-
-function removeHeaderCaseInsensitive(headers: Record<string, string>, name: string): void {
-  const lowerName = name.toLowerCase();
-  for (const key of Object.keys(headers)) {
-    if (key.toLowerCase() === lowerName) {
-      delete headers[key];
-    }
-  }
 }
 
 function applyAntigravityGenerationDefaults(request: Record<string, unknown>): void {
@@ -428,15 +530,15 @@ export class AntigravityExecutor extends BaseExecutor {
     return scrubProxyAndFingerprintHeaders(raw);
   }
 
-  transformRequest(
+  async transformRequest(
     model: string,
     body: unknown,
     _stream: boolean,
     credentials: AntigravityCredentials
-  ): AntigravityRequestEnvelope | Response {
-    // TODO: Consider removing project override like gemini-cli.ts — stored projectId
-    // can become stale for Cloud Code accounts, causing 403 "has not been used in project X".
-    // Antigravity accounts may have more stable project IDs, but the risk exists.
+  ): Promise<AntigravityRequestEnvelope | Response> {
+    // Project ID resolution: prefer OAuth-stored projectId over incoming body.project
+    // to avoid stale/wrong client-side values causing 404/403 from Cloud Code endpoints.
+    // Opt-in escape hatch: set OMNIROUTER_ALLOW_BODY_PROJECT_OVERRIDE=1.
     const normalizeProjectId = (value: unknown): string | null => {
       if (typeof value !== "string") return null;
       const trimmedValue = value.trim();
@@ -453,16 +555,28 @@ export class AntigravityExecutor extends BaseExecutor {
     // Default: prefer OAuth-stored projectId over incoming body.project to avoid
     // stale/wrong client-side values causing 404/403 from Cloud Code endpoints.
     // Opt-in escape hatch: set OMNIROUTE_ALLOW_BODY_PROJECT_OVERRIDE=1.
-    const projectId =
+    let projectId =
       allowBodyProjectOverride && bodyProjectId
         ? bodyProjectId
         : credentialsProjectId || providerSpecificProjectId || bodyProjectId;
+
+    // Auto-discover a missing projectId via loadCodeAssist before failing (#2334/#2541).
+    // A freshly re-added Antigravity account can have an empty stored projectId even when
+    // its Google account already owns a Cloud Code project (the OAuth-time loadCodeAssist
+    // returned empty/transiently failed). Mirror gemini-cli.ts's bootstrap to recover it
+    // here — the helper memoizes per access-token, so this is a one-time round-trip.
+    if (!projectId && credentials?.accessToken) {
+      const discovered = await ensureAntigravityProjectAssigned(credentials.accessToken);
+      if (discovered) projectId = discovered;
+    }
 
     if (!projectId) {
       // (#489) Return a structured error instead of throwing — gives the client a clear signal
       // to show a "Reconnect OAuth" prompt rather than an opaque "Internal Server Error".
       const errorMsg =
-        "Missing Google projectId for Antigravity account. Please reconnect OAuth in Providers → Antigravity so OmniRoute can fetch your Cloud Code project.";
+        "Missing Google projectId for Antigravity account. Auto-discovery via loadCodeAssist " +
+        "found no Cloud Code project. Please reconnect OAuth in Providers → Antigravity (and " +
+        "ensure the Google account has completed Gemini Code Assist onboarding).";
       const errorBody = {
         error: {
           message: errorMsg,
@@ -475,6 +589,24 @@ export class AntigravityExecutor extends BaseExecutor {
         headers: { "Content-Type": "application/json" },
       });
       // Returning a Response object signals the executor to stop and forward it
+      return resp as unknown as never;
+    }
+
+    // Validate projectId is non-empty and not just whitespace
+    const trimmedProjectId = typeof projectId === "string" ? projectId.trim() : projectId;
+    if (!trimmedProjectId) {
+      const resp = new Response(
+        JSON.stringify({
+          error: {
+            message:
+              "Invalid (empty) Google projectId for Antigravity account. " +
+              "Please reconnect OAuth in Providers → Antigravity.",
+            type: "oauth_missing_project_id",
+            code: "missing_project_id",
+          },
+        }),
+        { status: 422, headers: { "Content-Type": "application/json" } }
+      );
       return resp as unknown as never;
     }
 
@@ -590,6 +722,15 @@ export class AntigravityExecutor extends BaseExecutor {
     if (!credentials.refreshToken) return null;
 
     try {
+      const bodyParams: Record<string, string> = {
+        grant_type: "refresh_token",
+        refresh_token: credentials.refreshToken,
+      };
+      // Only include non-empty client_id/client_secret — Google OAuth rejects
+      // empty params which raw URLSearchParams produces (buildFormParams semantics).
+      if (this.config.clientId) bodyParams.client_id = this.config.clientId;
+      if (this.config.clientSecret) bodyParams.client_secret = this.config.clientSecret;
+
       const response = await fetch(OAUTH_ENDPOINTS.google.token, {
         method: "POST",
         headers: {
@@ -597,15 +738,22 @@ export class AntigravityExecutor extends BaseExecutor {
           Accept: "application/json",
           "User-Agent": antigravityNativeOAuthUserAgent(),
         },
-        body: new URLSearchParams({
-          grant_type: "refresh_token",
-          refresh_token: credentials.refreshToken || "",
-          client_id: this.config.clientId || "",
-          client_secret: this.config.clientSecret || "",
-        }),
+        body: new URLSearchParams(bodyParams),
       });
 
-      if (!response.ok) return null;
+      if (!response.ok) {
+        // Detect unrecoverable token (invalid_grant = revoked / expired refresh token)
+        try {
+          const errorBody = (await response.json()) as Record<string, unknown>;
+          if (errorBody.error === "invalid_grant") {
+            log?.error?.("TOKEN", "Antigravity refresh token revoked. Re-authentication required.");
+            return { error: "unrecoverable_refresh_error" } as unknown as AntigravityCredentials;
+          }
+        } catch {
+          // not JSON — fall through
+        }
+        return null;
+      }
 
       const tokens = (await response.json()) as Record<string, unknown>;
       log?.info?.("TOKEN", "Antigravity refreshed");
@@ -618,6 +766,9 @@ export class AntigravityExecutor extends BaseExecutor {
             : credentials.refreshToken,
         expiresIn: typeof tokens.expires_in === "number" ? tokens.expires_in : undefined,
         projectId: credentials.projectId,
+        // Preserve providerSpecificData so a projectId stored there survives the refresh
+        // (the onCredentialsRefreshed DB write) instead of being dropped → 422 (#2480).
+        providerSpecificData: credentials.providerSpecificData,
       };
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error);
@@ -710,6 +861,7 @@ export class AntigravityExecutor extends BaseExecutor {
       const collected: AntigravityCollectedStream = {
         textContent: "",
         finishReason: "stop",
+        toolCalls: [],
         usage: null,
         remainingCredits: null,
       };
@@ -754,8 +906,19 @@ export class AntigravityExecutor extends BaseExecutor {
         choices: [
           {
             index: 0,
-            message: { role: "assistant", content: collected.textContent },
-            finish_reason: timedOut ? "length" : collected.finishReason,
+            message:
+              collected.toolCalls.length > 0
+                ? {
+                    role: "assistant",
+                    content: collected.textContent || null,
+                    tool_calls: collected.toolCalls,
+                  }
+                : { role: "assistant", content: collected.textContent },
+            finish_reason: timedOut
+              ? "length"
+              : collected.toolCalls.length > 0
+                ? "tool_calls"
+                : collected.finishReason,
           },
         ],
         ...(collected.usage && { usage: collected.usage }),
@@ -809,6 +972,44 @@ export class AntigravityExecutor extends BaseExecutor {
     const creditsMode = getCreditsMode();
     const useCreditsFirst = shouldUseCreditsFirst(credentials?.accessToken || "", creditsMode);
 
+    const fetchWithReadinessTimeout = async (
+      url: string,
+      init: RequestInit,
+      timeoutMs = STREAM_READINESS_TIMEOUT_MS
+    ): Promise<Response> => {
+      const boundedTimeoutMs = Math.max(0, Math.floor(timeoutMs));
+      if (boundedTimeoutMs <= 0) {
+        return fetch(url, init);
+      }
+
+      const timeoutController = new AbortController();
+      let timeoutId: ReturnType<typeof setTimeout> | null = setTimeout(() => {
+        timeoutController.abort(new AntigravityPreResponseTimeoutError(boundedTimeoutMs, url));
+      }, boundedTimeoutMs);
+
+      const existingSignal = init.signal instanceof AbortSignal ? init.signal : null;
+      const combinedSignal = existingSignal
+        ? mergeAbortSignals(existingSignal, timeoutController.signal)
+        : timeoutController.signal;
+
+      try {
+        return await fetch(url, { ...init, signal: combinedSignal });
+      } catch (error) {
+        if (
+          timeoutController.signal.aborted &&
+          isAntigravityPreResponseTimeout(timeoutController.signal.reason)
+        ) {
+          throw timeoutController.signal.reason;
+        }
+        throw error;
+      } finally {
+        if (timeoutId) {
+          clearTimeout(timeoutId);
+          timeoutId = null;
+        }
+      }
+    };
+
     for (let urlIndex = 0; urlIndex < fallbackCount; urlIndex++) {
       const url = this.buildUrl(model, upstreamStream, urlIndex);
       const headers = this.buildHeaders(credentials, upstreamStream);
@@ -827,8 +1028,6 @@ export class AntigravityExecutor extends BaseExecutor {
         transformedBody = cloaked.body;
         requestToolNameMap = cloaked.toolNameMap;
       }
-
-      applyAntigravityRuntimeHeaders(headers, credentials, transformedBody);
 
       // Credits-first: inject GOOGLE_ONE_AI upfront so we never try the normal
       // quota path. If credits are exhausted / disabled shouldUseCreditsFirst()
@@ -850,6 +1049,11 @@ export class AntigravityExecutor extends BaseExecutor {
           transformedBody
         );
         let finalHeaders = serializedRequest.headers;
+        const clientProfile = applyAntigravityClientProfileHeaders(
+          finalHeaders,
+          credentials,
+          transformedBody
+        );
 
         log?.debug?.(
           "TELEMETRY",
@@ -874,13 +1078,14 @@ export class AntigravityExecutor extends BaseExecutor {
               userAgent: envelope.userAgent,
               requestType: envelope.requestType,
               enabledCreditTypes: envelope.enabledCreditTypes,
+              clientProfile,
               sessionId: requestInner?.sessionId,
               generationConfig: requestInner?.generationConfig,
             })
           );
         }
 
-        let response = await fetch(url, {
+        let response = await fetchWithReadinessTimeout(url, {
           method: "POST",
           headers: finalHeaders,
           body: getChunkedOrFixedBody(serializedRequest.bodyString, stream),
@@ -892,7 +1097,7 @@ export class AntigravityExecutor extends BaseExecutor {
           const retryHeaders = { ...finalHeaders };
           removeHeaderCaseInsensitive(retryHeaders, "x-goog-user-project");
           log?.debug?.("RETRY", "403 with x-goog-user-project, retrying once without it");
-          response = await fetch(url, {
+          response = await fetchWithReadinessTimeout(url, {
             method: "POST",
             headers: retryHeaders,
             body: getChunkedOrFixedBody(serializedRequest.bodyString, stream),
@@ -962,7 +1167,7 @@ export class AntigravityExecutor extends BaseExecutor {
                 );
                 const finalCreditsHeaders = serializedCreditsRequest.headers;
                 try {
-                  const creditsResp = await fetch(url, {
+                  const creditsResp = await fetchWithReadinessTimeout(url, {
                     method: "POST",
                     headers: finalCreditsHeaders,
                     body: getChunkedOrFixedBody(serializedCreditsRequest.bodyString, stream),
@@ -1033,11 +1238,21 @@ export class AntigravityExecutor extends BaseExecutor {
             }
           }
 
-          if (retryMs && retryMs <= LONG_RETRY_THRESHOLD_MS) {
+          // Bounded short-retry: a non-null retryAfterMs ≤ 60s covers nearly every
+          // 429 (decide429 returns 2s/5s/60s defaults), so this branch MUST share the
+          // per-URL attempt counter. Without the bound a persistent 429 loops forever
+          // on the same endpoint/account (urlIndex-- cancels the loop's urlIndex++) and
+          // never returns the 429 to the account-fallback layer in chat.ts.
+          if (
+            retryMs &&
+            retryMs <= LONG_RETRY_THRESHOLD_MS &&
+            retryAttemptsByUrl[urlIndex] < MAX_AUTO_RETRIES
+          ) {
+            retryAttemptsByUrl[urlIndex]++;
             const effectiveRetryMs = Math.min(retryMs, MAX_RETRY_AFTER_MS);
             log?.debug?.(
               "RETRY",
-              `${response.status} with Retry-After: ${Math.ceil(effectiveRetryMs / 1000)}s, waiting...`
+              `${response.status} retry ${retryAttemptsByUrl[urlIndex]}/${MAX_AUTO_RETRIES} with Retry-After: ${Math.ceil(effectiveRetryMs / 1000)}s, waiting...`
             );
             await new Promise((resolve) => setTimeout(resolve, effectiveRetryMs));
             urlIndex--;
@@ -1158,74 +1373,78 @@ export class AntigravityExecutor extends BaseExecutor {
           const decoder = new TextDecoder(); // Singleton for correct streaming decode
           const MAX_BUFFER_SIZE = 16 * 1024; // Limit to prevent OOM on large streams
 
-          const passThrough = new TransformStream({
-            transform(chunk, controller) {
-              controller.enqueue(chunk);
-              // Accumulate text to scan for remainingCredits
-              try {
-                const text = decoder.decode(chunk, { stream: true });
-                sseBuffer += text;
-                // Limit buffer size to prevent unbounded growth
-                // Truncate only after a complete newline to avoid splitting SSE lines mid-payload
-                if (sseBuffer.length > MAX_BUFFER_SIZE) {
-                  const lastNewline = sseBuffer.lastIndexOf(
-                    "\n",
-                    sseBuffer.length - MAX_BUFFER_SIZE
-                  );
-                  if (lastNewline !== -1) {
-                    sseBuffer = sseBuffer.slice(lastNewline + 1);
-                  } else {
-                    // No newline found in discard region — buffer contains an incomplete SSE line.
-                    // Discard it entirely to avoid returning malformed data; the remainingCredits
-                    // parser won't find valid data in a truncated line anyway.
-                    sseBuffer = "";
+          const passThrough = new TransformStream(
+            {
+              transform(chunk, controller) {
+                controller.enqueue(chunk);
+                // Accumulate text to scan for remainingCredits
+                try {
+                  const text = decoder.decode(chunk, { stream: true });
+                  sseBuffer += text;
+                  // Limit buffer size to prevent unbounded growth
+                  // Truncate only after a complete newline to avoid splitting SSE lines mid-payload
+                  if (sseBuffer.length > MAX_BUFFER_SIZE) {
+                    const lastNewline = sseBuffer.lastIndexOf(
+                      "\n",
+                      sseBuffer.length - MAX_BUFFER_SIZE
+                    );
+                    if (lastNewline !== -1) {
+                      sseBuffer = sseBuffer.slice(lastNewline + 1);
+                    } else {
+                      // No newline found in discard region — buffer contains an incomplete SSE line.
+                      // Discard it entirely to avoid returning malformed data; the remainingCredits
+                      // parser won't find valid data in a truncated line anyway.
+                      sseBuffer = "";
+                    }
                   }
+                } catch {
+                  /* decoding best-effort */
                 }
-              } catch {
-                /* decoding best-effort */
-              }
-            },
-            flush() {
-              // Final decode for any remaining bytes
-              try {
-                const text = decoder.decode(); // Flush pending bytes
-                sseBuffer += text;
-              } catch {
-                /* decoding best-effort */
-              }
+              },
+              flush() {
+                // Final decode for any remaining bytes
+                try {
+                  const text = decoder.decode(); // Flush pending bytes
+                  sseBuffer += text;
+                } catch {
+                  /* decoding best-effort */
+                }
 
-              // Parse the accumulated SSE data for remainingCredits
-              try {
-                const lines = sseBuffer.split("\n");
-                for (const line of lines) {
-                  const trimmed = line.trim();
-                  if (!trimmed.startsWith("data:")) continue;
-                  const payload = trimmed.slice(5).trim();
-                  if (!payload || payload === "[DONE]") continue;
-                  try {
-                    const parsed = JSON.parse(payload);
-                    if (Array.isArray(parsed?.remainingCredits)) {
-                      const googleCredit = parsed.remainingCredits.find((c: unknown) => {
-                        const credit = asRecord(c);
-                        return credit?.creditType === "GOOGLE_ONE_AI";
-                      }) as AntigravityCreditEntry | undefined;
-                      if (googleCredit) {
-                        const balance = parseInt(String(googleCredit.creditAmount ?? ""), 10);
-                        if (!isNaN(balance)) {
-                          updateAntigravityRemainingCredits(accountId, balance);
+                // Parse the accumulated SSE data for remainingCredits
+                try {
+                  const lines = sseBuffer.split("\n");
+                  for (const line of lines) {
+                    const trimmed = line.trim();
+                    if (!trimmed.startsWith("data:")) continue;
+                    const payload = trimmed.slice(5).trim();
+                    if (!payload || payload === "[DONE]") continue;
+                    try {
+                      const parsed = JSON.parse(payload);
+                      if (Array.isArray(parsed?.remainingCredits)) {
+                        const googleCredit = parsed.remainingCredits.find((c: unknown) => {
+                          const credit = asRecord(c);
+                          return credit?.creditType === "GOOGLE_ONE_AI";
+                        }) as AntigravityCreditEntry | undefined;
+                        if (googleCredit) {
+                          const balance = parseInt(String(googleCredit.creditAmount ?? ""), 10);
+                          if (!isNaN(balance)) {
+                            updateAntigravityRemainingCredits(accountId, balance);
+                          }
                         }
                       }
+                    } catch {
+                      /* skip malformed lines */
                     }
-                  } catch {
-                    /* skip malformed lines */
                   }
+                } catch {
+                  /* credits extraction is best-effort */
                 }
-              } catch {
-                /* credits extraction is best-effort */
-              }
-              sseBuffer = "";
+                sseBuffer = "";
+              },
             },
-          });
+            { highWaterMark: 16384 },
+            { highWaterMark: 16384 }
+          );
           const tappedBody = response.body.pipeThrough(passThrough);
           const tappedResponse = new Response(tappedBody, {
             status: response.status,

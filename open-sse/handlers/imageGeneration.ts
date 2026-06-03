@@ -18,13 +18,8 @@ import { randomUUID } from "crypto";
 
 import { getImageProvider, parseImageModel } from "../config/imageRegistry.ts";
 import { HTTP_STATUS } from "../config/constants.ts";
-import { antigravityUserAgent } from "../services/antigravityHeaders.ts";
-import {
-  deriveAntigravityMachineId,
-  getAntigravityEnvelopeUserAgent,
-  getAntigravityVscodeSessionId,
-} from "../services/antigravityIdentity.ts";
-import { getCachedAntigravityVersion } from "../services/antigravityVersion.ts";
+import { applyAntigravityClientProfileHeaders } from "../services/antigravityClientProfile.ts";
+import { getAntigravityEnvelopeUserAgent } from "../services/antigravityIdentity.ts";
 import { kieExecutor } from "../executors/kie.ts";
 import { mapImageSize } from "../translator/image/sizeMapper.ts";
 import { getCodexClientVersion, getCodexUserAgent } from "../config/codexClient.ts";
@@ -46,6 +41,7 @@ import {
   extractComfyOutputFiles,
 } from "../utils/comfyuiClient.ts";
 import { fetchRemoteImage } from "@/shared/network/remoteImageFetch";
+import { FetchTimeoutError, fetchWithTimeout, getConfiguredTimeout } from "@/shared/utils/fetchTimeout";
 import { sanitizeErrorMessage, sanitizeUpstreamDetails } from "../utils/error.ts";
 
 interface KieImageOptions {
@@ -138,6 +134,12 @@ const BFL_EDIT_MODELS = new Set([
 ]);
 
 const BFL_FAILURE_STATUSES = new Set(["Error", "Failed", "Content Moderated", "Request Moderated"]);
+
+function formatImageProviderError(err) {
+  const sanitized = sanitizeErrorMessage(err);
+  const message = (sanitized || "").replace(/^Error:\s*/i, "").trim();
+  return message ? `Image provider error: ${message}` : "Image provider error";
+}
 
 const STABILITY_GENERATION_ENDPOINTS = {
   "sd3.5-large": "/v2beta/stable-image/generate/sd3",
@@ -699,13 +701,9 @@ async function handleGeminiImageGeneration({ model, providerConfig, body, creden
   const headers = {
     "Content-Type": "application/json",
     Authorization: `Bearer ${token}`,
-    "User-Agent": antigravityUserAgent(),
-    "x-client-name": "antigravity",
-    "x-client-version": getCachedAntigravityVersion(),
-    "x-machine-id": deriveAntigravityMachineId(credentialRecord),
-    "x-vscode-sessionid": getAntigravityVscodeSessionId(),
-    "x-goog-user-project": projectId,
   };
+  applyAntigravityClientProfileHeaders(headers, credentialRecord, antigravityBody);
+  delete headers["x-goog-user-project"];
 
   if (log) {
     const promptPreview = promptText.slice(0, 60);
@@ -716,24 +714,11 @@ async function handleGeminiImageGeneration({ model, providerConfig, body, creden
   }
 
   try {
-    let response = await fetch(url, {
+    const response = await fetch(url, {
       method: "POST",
       headers,
       body: JSON.stringify(antigravityBody),
     });
-
-    if (response.status === HTTP_STATUS.FORBIDDEN && headers["x-goog-user-project"]) {
-      const retryHeaders = { ...headers };
-      delete retryHeaders["x-goog-user-project"];
-      if (log) {
-        log.info("IMAGE", "antigravity image 403 with x-goog-user-project; retrying without it");
-      }
-      response = await fetch(url, {
-        method: "POST",
-        headers: retryHeaders,
-        body: JSON.stringify(antigravityBody),
-      });
-    }
 
     if (!response.ok) {
       const errorText = await response.text();
@@ -2215,7 +2200,7 @@ async function handleCodexImageGeneration({
   if (log && requestedCount > 1) {
     log.warn(
       "IMAGE",
-      `Codex hosted image_generation returns one image per call; requested n=${requestedCount} will run sequentially`
+      `Codex hosted image_generation returns one image per call; requested n=${requestedCount} will fan out in parallel`
     );
   }
 
@@ -2284,8 +2269,7 @@ async function handleCodexImageGeneration({
     );
   }
 
-  const collected: Array<{ b64_json: string; revised_prompt?: string }> = [];
-  for (let i = 0; i < requestedCount; i++) {
+  const fetchOneImage = async () => {
     let response: Response;
     try {
       response = await fetch(providerConfig.baseUrl, {
@@ -2295,44 +2279,64 @@ async function handleCodexImageGeneration({
       });
     } catch (err) {
       if (log) log.error("IMAGE", `${provider} fetch error: ${(err as Error).message}`);
-      return saveImageErrorResult({
-        provider,
-        model,
-        status: 502,
-        startTime,
-        error: `Image provider error: ${(err as Error).message}`,
-        requestBody: upstreamBody,
-      });
+      return {
+        ok: false as const,
+        error: {
+          provider,
+          model,
+          status: 502,
+          startTime,
+          error: `Image provider error: ${(err as Error).message}`,
+          requestBody: upstreamBody,
+        },
+      };
     }
 
     if (!response.ok) {
       const errorText = await response.text();
       if (log)
         log.error("IMAGE", `${provider} error ${response.status}: ${errorText.slice(0, 200)}`);
-      return saveImageErrorResult({
-        provider,
-        model,
-        status: response.status,
-        startTime,
-        error: errorText,
-        requestBody: upstreamBody,
-      });
+      return {
+        ok: false as const,
+        error: {
+          provider,
+          model,
+          status: response.status,
+          startTime,
+          error: errorText,
+          requestBody: upstreamBody,
+        },
+      };
     }
 
     const rawSSE = await response.text();
     const items = extractImageGenerationCalls(rawSSE);
     if (items.length === 0) {
-      return saveImageErrorResult({
-        provider,
-        model,
-        status: 502,
-        startTime,
-        error:
-          "Codex completed without producing an image_generation_call — the model may have declined the tool",
-        requestBody: upstreamBody,
-      });
+      return {
+        ok: false as const,
+        error: {
+          provider,
+          model,
+          status: 502,
+          startTime,
+          error:
+            "Codex completed without producing an image_generation_call — the model may have declined the tool",
+          requestBody: upstreamBody,
+        },
+      };
     }
-    for (const item of items) {
+
+    return { ok: true as const, items };
+  };
+
+  const imageResults = await Promise.all(
+    Array.from({ length: requestedCount }, () => fetchOneImage())
+  );
+
+  const collected: Array<{ b64_json: string; revised_prompt?: string }> = [];
+  for (const imageResult of imageResults) {
+    if (!imageResult.ok) return saveImageErrorResult(imageResult.error);
+    for (const item of imageResult.items) {
       collected.push({
         b64_json: item.b64,
         ...(item.revisedPrompt ? { revised_prompt: item.revisedPrompt } : {}),
@@ -2411,11 +2415,33 @@ function saveImageErrorResult({ provider, model, status, startTime, error, reque
  */
 async function fetchImageEndpoint(url, headers, body, provider, log) {
   try {
-    const response = await fetch(url, {
-      method: "POST",
-      headers,
-      body,
-    });
+    let response;
+    try {
+      response = await fetchWithTimeout(url, {
+        method: "POST",
+        headers,
+        body,
+        timeoutMs: getConfiguredTimeout(),
+      });
+    } catch (err: unknown) {
+      const isAbortError =
+        typeof err === "object" &&
+        err !== null &&
+        "name" in err &&
+        (err as { name?: unknown }).name === "AbortError";
+      if (err instanceof FetchTimeoutError || isAbortError) {
+        const message = err instanceof Error ? err.message : String(err);
+        if (log) {
+          log.error("IMAGE", `${provider} fetch error: ${message}`);
+        }
+        return {
+          success: false,
+          status: 504,
+          error: `Image provider error: ${sanitizeErrorMessage(message || err)}`,
+        };
+      }
+      throw err;
+    }
 
     if (!response.ok) {
       const errorText = await response.text();
@@ -2439,14 +2465,15 @@ async function fetchImageEndpoint(url, headers, body, provider, log) {
         data: data.data || [],
       },
     };
-  } catch (err) {
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : String(err);
     if (log) {
-      log.error("IMAGE", `${provider} fetch error: ${err.message}`);
+      log.error("IMAGE", `${provider} fetch error: ${message}`);
     }
     return {
       success: false,
       status: 502,
-      error: `Image provider error: ${sanitizeErrorMessage((err as Error).message || err)}`,
+      error: `Image provider error: ${sanitizeErrorMessage(message || err)}`,
     };
   }
 }

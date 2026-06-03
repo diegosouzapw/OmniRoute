@@ -111,13 +111,6 @@ test("providers route accepts managed local, audio, web-cookie and search provid
       },
     },
     {
-      provider: "petals",
-      body: {
-        provider: "petals",
-        name: "Petals Public Endpoint",
-      },
-    },
-    {
       provider: "poe",
       body: {
         provider: "poe",
@@ -409,6 +402,14 @@ test("providers route accepts managed local, audio, web-cookie and search provid
         providerSpecificData: {
           baseUrl: "http://localhost:8888/search",
         },
+      },
+    },
+    {
+      provider: "jules",
+      body: {
+        provider: "jules",
+        apiKey: "jules-test-key",
+        name: "Jules API",
       },
     },
   ];

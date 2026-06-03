@@ -1,17 +1,37 @@
-import { describe, it, beforeEach, afterEach } from "node:test";
+import { describe, it, beforeEach, afterEach, after } from "node:test";
 import assert from "node:assert";
-import {
-  createFile,
-  deleteFile,
-  listFiles,
-  createBatch,
-  getBatch,
-  updateBatch,
-} from "@/lib/localDb";
-import { getDbInstance } from "@/lib/db/core";
+import fs from "node:fs";
+import os from "node:os";
+import path from "node:path";
+
+const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-file-deletion-"));
+const ORIGINAL_DATA_DIR = process.env.DATA_DIR;
+process.env.DATA_DIR = TEST_DATA_DIR;
+
+const { createFile, deleteFile, listFiles, createBatch, getBatch, updateBatch } =
+  await import("@/lib/localDb");
+const { getDbInstance, resetDbInstance } = await import("@/lib/db/core");
+
+after(() => {
+  resetDbInstance();
+  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+  if (ORIGINAL_DATA_DIR === undefined) {
+    delete process.env.DATA_DIR;
+  } else {
+    process.env.DATA_DIR = ORIGINAL_DATA_DIR;
+  }
+});
 
 describe("File Deletion API", () => {
   let testFileId: string;
+
+  afterEach(() => {
+    // Ensure cleanup
+    const file = listFiles({ limit: 100 }).find((f) => f.filename === "test-delete-file.txt");
+    if (file && !file.deletedAt) {
+      deleteFile(file.id);
+    }
+  });
 
   beforeEach(() => {
     const file = createFile({
@@ -22,14 +42,6 @@ describe("File Deletion API", () => {
       mimeType: "text/plain",
     });
     testFileId = file.id;
-  });
-
-  afterEach(() => {
-    // Ensure cleanup
-    const file = listFiles({ limit: 100 }).find((f) => f.filename === "test-delete-file.txt");
-    if (file && !file.deletedAt) {
-      deleteFile(file.id);
-    }
   });
 
   it("should delete a file successfully", () => {

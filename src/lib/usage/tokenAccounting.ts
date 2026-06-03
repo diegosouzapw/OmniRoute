@@ -48,6 +48,13 @@ export function getLoggedInputTokens(tokens: unknown): number {
     return toFiniteNumber(tokenRecord.input);
   }
 
+  // Prefer prompt_tokens when present: translators normalize provider-specific
+  // usage into OpenAI shape there, and may keep input_tokens for compatibility.
+  // Treating that input_tokens as raw Claude usage would add cache tokens again.
+  if (tokenRecord.prompt_tokens !== undefined && tokenRecord.prompt_tokens !== null) {
+    return toFiniteNumber(tokenRecord.prompt_tokens);
+  }
+
   if (tokenRecord.input_tokens !== undefined && tokenRecord.input_tokens !== null) {
     // Anthropic / anthropic-compatible-cc streaming: input_tokens is only the
     // non-cached portion.  The cache counters sit as separate top-level fields
@@ -60,13 +67,7 @@ export function getLoggedInputTokens(tokens: unknown): number {
     );
   }
 
-  // prompt_tokens from translator/extractor already includes cache tokens:
-  //   - OpenAI format: prompt_tokens inherently includes cached
-  //   - Claude non-streaming: extractUsageFromResponse sums input + cache_read + cache_creation
-  //   - Claude streaming: extractUsage (after fix) sums input + cache_read + cache_creation
-  // Do NOT add cache fields here — would double-count.
-  const promptTokens = toFiniteNumber(tokenRecord.prompt_tokens);
-  return promptTokens;
+  return 0;
 }
 
 export function getLoggedOutputTokens(tokens: unknown): number {

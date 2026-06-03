@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect, useCallback } from "react";
+import { useTranslations } from "next-intl";
 
 interface CustomRangePickerProps {
   start: string;
@@ -65,6 +66,7 @@ export default function CustomRangePicker({
   onApply,
   onClose,
 }: CustomRangePickerProps) {
+  const t = useTranslations("analytics");
   const [localStart, setLocalStart] = useState(toLocalDatetime(start) || "");
   const [localEnd, setLocalEnd] = useState(toLocalDatetime(end) || "");
   const ref = useRef<HTMLDivElement>(null);
@@ -104,12 +106,12 @@ export default function CustomRangePicker({
   const isValid = localStart && localEnd && new Date(localStart) <= new Date(localEnd);
 
   const presets = [
-    { key: "today", label: "Today" },
-    { key: "yesterday", label: "Yesterday" },
-    { key: "last3d", label: "Last 3 days" },
-    { key: "thisWeek", label: "This week" },
-    { key: "last14d", label: "Last 14 days" },
-    { key: "thisMonth", label: "This month" },
+    { key: "today", label: t("rangeToday") },
+    { key: "yesterday", label: t("rangeYesterday") },
+    { key: "last3d", label: t("rangeLast3Days") },
+    { key: "thisWeek", label: t("rangeThisWeek") },
+    { key: "last14d", label: t("rangeLast14Days") },
+    { key: "thisMonth", label: t("rangeThisMonth") },
   ];
 
   return (
@@ -121,7 +123,7 @@ export default function CustomRangePicker({
       {/* Quick presets */}
       <div className="mb-3">
         <p className="text-[10px] font-semibold uppercase tracking-wider text-text-muted mb-1.5">
-          Quick Select
+          {t("rangeQuickSelect")}
         </p>
         <div className="flex flex-wrap gap-1">
           {presets.map((p) => (
@@ -143,7 +145,7 @@ export default function CustomRangePicker({
       <div className="flex flex-col gap-2.5">
         <div>
           <label className="text-[10px] font-semibold uppercase tracking-wider text-text-muted mb-1 block">
-            Start
+            {t("rangeStart")}
           </label>
           <input
             type="datetime-local"
@@ -154,7 +156,7 @@ export default function CustomRangePicker({
         </div>
         <div>
           <label className="text-[10px] font-semibold uppercase tracking-wider text-text-muted mb-1 block">
-            End
+            {t("rangeEnd")}
           </label>
           <input
             type="datetime-local"
@@ -167,7 +169,7 @@ export default function CustomRangePicker({
 
       {/* Validation hint */}
       {localStart && localEnd && !isValid && (
-        <p className="mt-1.5 text-[11px] text-error">Start must be before end</p>
+        <p className="mt-1.5 text-[11px] text-error">{t("rangeErrorInvalid")}</p>
       )}
 
       {/* Actions */}
@@ -177,7 +179,7 @@ export default function CustomRangePicker({
           onClick={onClose}
           className="rounded-lg px-3 py-1.5 text-xs font-medium text-text-muted hover:text-text-main transition-colors"
         >
-          Cancel
+          {t("rangeCancel")}
         </button>
         <button
           type="button"
@@ -185,7 +187,7 @@ export default function CustomRangePicker({
           onClick={handleApply}
           className="rounded-lg bg-primary px-4 py-1.5 text-xs font-semibold text-white shadow-sm transition-colors hover:bg-primary-hover disabled:opacity-40 disabled:cursor-not-allowed"
         >
-          Apply
+          {t("rangeApply")}
         </button>
       </div>
     </div>

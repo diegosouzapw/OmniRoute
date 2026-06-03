@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect, useMemo, useCallback } from "react";
+import { useTranslations } from "next-intl";
 
 interface ApiKeyInfo {
   id: string;
@@ -23,6 +24,7 @@ export default function ApiKeyFilterDropdown({
   selected,
   onChange,
 }: ApiKeyFilterDropdownProps) {
+  const t = useTranslations("analytics");
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState("");
   const ref = useRef<HTMLDivElement>(null);
@@ -76,13 +78,13 @@ export default function ApiKeyFilterDropdown({
   }, [onChange]);
 
   const buttonLabel = useMemo(() => {
-    if (isAllSelected) return "All Keys";
+    if (isAllSelected) return t("filterAllKeys");
     if (selected.length === 1) {
       const key = available.find((k) => k.id === selected[0]);
-      return key ? maskKeyName(key.name) : "1 key";
+      return key ? maskKeyName(key.name) : t("filterOneKey");
     }
-    return `${selected.length} keys`;
-  }, [isAllSelected, selected, available]);
+    return t("filterMultipleKeys", { count: selected.length });
+  }, [isAllSelected, selected, available, t]);
 
   if (available.length === 0) return null;
 
@@ -120,7 +122,7 @@ export default function ApiKeyFilterDropdown({
                 type="text"
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
-                placeholder="Search keys…"
+                placeholder={t("filterSearchKeys")}
                 className="w-full rounded-md border border-border/30 bg-black/[0.03] px-2.5 py-1.5 text-xs text-text-main placeholder:text-text-muted focus:outline-none focus:border-primary dark:bg-white/[0.03]"
                 autoFocus
               />
@@ -149,7 +151,7 @@ export default function ApiKeyFilterDropdown({
                   <span className="material-symbols-outlined text-[12px]">check</span>
                 )}
               </span>
-              All Keys
+              {t("filterAllKeys")}
               <span className="ml-auto text-[10px] text-text-muted font-normal">
                 {available.length}
               </span>
@@ -191,7 +193,9 @@ export default function ApiKeyFilterDropdown({
             })}
 
             {filtered.length === 0 && (
-              <p className="px-2.5 py-3 text-center text-[11px] text-text-muted">No keys match</p>
+              <p className="px-2.5 py-3 text-center text-[11px] text-text-muted">
+                {t("filterNoKeysMatch")}
+              </p>
             )}
           </div>
         </div>
