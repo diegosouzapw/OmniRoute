@@ -54,17 +54,20 @@ ssh root@192.168.0.15 "cp -a /usr/lib/node_modules/omniroute/app /usr/lib/node_m
 wait
 ```
 
-### 3. Rsync `dist/` → remote `app/` on both VPSs
+### 3. Stop the processes, then rsync `dist/` → remote `app/` on both VPSs
 
-The VPS image directory is still named `app/`; we ship the **contents** of our local `dist/`:
+The VPS image directory is still named `app/`; we ship the **contents** of our local `dist/`. **Stop both running processes FIRST** so `rsync --delete` never removes chunk files out from under a live server — that race produces the transient `[Shutdown] Cannot find module ./chunks/NNNNN.js` seen mid-deploy:
 
 // turbo-all
 
 ```bash
+ssh root@69.164.221.35 "pm2 stop omniroute" & ssh root@192.168.0.15 "pm2 stop omniroute" & wait
 rsync -az --delete /home/diegosouzapw/dev/proxys/OmniRoute/dist/ root@69.164.221.35:/usr/lib/node_modules/omniroute/app/ && rsync -az --delete /home/diegosouzapw/dev/proxys/OmniRoute/dist/ root@192.168.0.15:/usr/lib/node_modules/omniroute/app/
 ```
 
-### 4. Restart + health check on both VPSs
+### 4. Start + health check on both VPSs
+
+`pm2 restart` on a stopped app starts it again with a clean module graph:
 
 ```bash
 ssh root@69.164.221.35 "pm2 restart omniroute --update-env && pm2 save"
