@@ -159,7 +159,11 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npm run check:node-runtime
+      # build:cli runs a clean build into .build/next and assembles dist/
+      # For release builds prefer: npm run build:release (clean rebuild + HEAD sentinel)
       - run: npm run build:cli
+      - name: Assert dist/server.js exists
+        run: test -f dist/server.js || (echo "dist/server.js missing — build:cli did not assemble correctly" && exit 1)
       - run: npm run check:pack-artifact
 
   electron-package-smoke:

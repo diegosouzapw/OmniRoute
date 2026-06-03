@@ -2243,8 +2243,53 @@ async function buildAutoCandidates(
     // keep empty stats — auto-combo will use runtime + bootstrap signals
   }
 
+  const uniqueProviders = Array.from(
+    new Set(
+      targets.map((target) => target.provider || parseModel(target.modelStr).provider || "unknown")
+    )
+  );
+  const connectionPoolCounts = new Map<string, number>();
+  const connectionsByProvider = new Map<string, Array<Record<string, unknown>>>();
+  await Promise.all(
+    uniqueProviders.map(async (provider) => {
+      try {
+        const connections = await getProviderConnections({ provider, isActive: true });
+        const active = Array.isArray(connections) ? connections : [];
+        connectionPoolCounts.set(provider, active.length);
+        connectionsByProvider.set(provider, active);
+      } catch {
+        connectionPoolCounts.set(provider, 0);
+        connectionsByProvider.set(provider, []);
+      }
+    })
+  );
+
+  const expandedTargets: ResolvedComboTarget[] = [];
+  for (const target of targets) {
+    const provider = target.provider || parseModel(target.modelStr).provider || "unknown";
+    const providerConnections = connectionsByProvider.get(provider) || [];
+    if (target.connectionId) {
+      expandedTargets.push(target);
+      continue;
+    }
+    const connectionIds = providerConnections
+      .map((c) => (c && typeof c === "object" && typeof c.id === "string" ? c.id : null))
+      .filter((id): id is string => id !== null);
+    if (connectionIds.length === 0) {
+      expandedTargets.push(target);
+      continue;
+    }
+    for (const connectionId of connectionIds) {
+      expandedTargets.push({
+        ...target,
+        connectionId,
+        executionKey: `${target.executionKey}@${connectionId}`,
+      });
+    }
+  }
+
   const candidates = await Promise.all(
-    targets.map(async (target) => {
+    expandedTargets.map(async (target) => {
       const modelStr = target.modelStr;
       const parsed = parseModel(modelStr);
       const provider = target.provider || parsed.provider || parsed.providerAlias || "unknown";
@@ -2343,6 +2388,8 @@ async function buildAutoCandidates(
         quotaResetIntervalSecs: 86400,
         contextAffinity,
         resetWindowAffinity,
+        connectionPoolSize: connectionPoolCounts.get(provider) ?? 1,
+        connectionId: target.connectionId ?? undefined,
       };
     })
   );

@@ -4,15 +4,16 @@ import { existsSync } from "node:fs";
 import { join } from "node:path";
 
 /**
- * Detect whether the current install tree contains the published standalone app bundle.
- * Source checkouts should not create `app/` during postinstall because Next.js would
- * mis-detect it as a competing App Router root and serve 404s for the real `src/app` routes.
+ * Detect whether the current install tree contains the published standalone bundle.
+ * Checks for dist/server.js (Layer 1: renamed from app/server.js).
+ * Source checkouts will not have dist/ so postinstall skips platform-specific
+ * native repairs (which only apply to the shipped pre-built bundle).
  *
  * @param {string} rootDir
  * @returns {boolean}
  */
 export function hasStandaloneAppBundle(rootDir) {
-  return existsSync(join(rootDir, "app", "server.js"));
+  return existsSync(join(rootDir, "dist", "server.js"));
 }
 
 /**
