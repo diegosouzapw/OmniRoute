@@ -1,6 +1,8 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import fs from "node:fs";
+import http from "node:http";
+import net from "node:net";
 import os from "node:os";
 import path from "node:path";
 
@@ -10,6 +12,7 @@ process.env.API_KEY_SECRET = "test-api-key-secret";
 
 const core = await import("../../src/lib/db/core.ts");
 const providersDb = await import("../../src/lib/db/providers.ts");
+const settingsDb = await import("../../src/lib/db/settings.ts");
 const tokenRefresh = await import("../../src/sse/services/tokenRefresh.ts");
 const { PROVIDERS, OAUTH_ENDPOINTS } = await import("../../open-sse/config/constants.ts");
 
@@ -43,6 +46,104 @@ async function withMockedNow(now, fn) {
     return await fn();
   } finally {
     Date.now = originalNow;
+  }
+}
+
+async function withHttpServer(handler, fn) {
+  const server = http.createServer(handler);
+
+  await new Promise((resolve, reject) => {
+    server.once("error", reject);
+    server.listen(0, "127.0.0.1", resolve);
+  });
+
+  const address = server.address();
+  assert.ok(address && typeof address === "object");
+
+  try {
+    return await fn({
+      host: "127.0.0.1",
+      port: address.port,
+      url: `http://127.0.0.1:${address.port}`,
+    });
+  } finally {
+    await new Promise((resolve, reject) => {
+      server.close((error) => {
+        if (error) reject(error);
+        else resolve();
+      });
+    });
+  }
+}
+
+async function withConnectProxyServer(fn, options = {}) {
+  const connectRequests = [];
+  const server = http.createServer((_req, res) => {
+    res.writeHead(501);
+    res.end("CONNECT only");
+  });
+
+  server.on("connect", (req, clientSocket, head) => {
+    connectRequests.push(String(req.url || ""));
+    const [host, portText] = String(req.url || "").split(":");
+    const targetHost = options.targetHost || host;
+    const targetPort = Number(options.targetPort || portText || 80);
+    const upstreamSocket = net.connect(targetPort, targetHost, () => {
+      clientSocket.write("HTTP/1.1 200 Connection Established\r\n\r\n");
+      if (head && head.length > 0) {
+        upstreamSocket.write(head);
+      }
+      upstreamSocket.pipe(clientSocket);
+      clientSocket.pipe(upstreamSocket);
+    });
+
+    const closeSockets = () => {
+      upstreamSocket.destroy();
+      clientSocket.destroy();
+    };
+
+    upstreamSocket.on("error", closeSockets);
+    clientSocket.on("error", closeSockets);
+  });
+
+  await new Promise((resolve, reject) => {
+    server.once("error", reject);
+    server.listen(0, "127.0.0.1", resolve);
+  });
+
+  const address = server.address();
+  assert.ok(address && typeof address === "object");
+
+  try {
+    return await fn({
+      host: "127.0.0.1",
+      port: address.port,
+      url: `http://127.0.0.1:${address.port}`,
+      connectRequests,
+    });
+  } finally {
+    await new Promise((resolve, reject) => {
+      server.close((error) => {
+        if (error) reject(error);
+        else resolve();
+      });
+    });
+  }
+}
+
+async function withPatchedProvider(providerId, config, fn) {
+  const hadOwnConfig = Object.prototype.hasOwnProperty.call(PROVIDERS, providerId);
+  const previousConfig = hadOwnConfig ? PROVIDERS[providerId] : undefined;
+  PROVIDERS[providerId] = config;
+
+  try {
+    return await fn();
+  } finally {
+    if (hadOwnConfig) {
+      PROVIDERS[providerId] = previousConfig;
+    } else {
+      delete PROVIDERS[providerId];
+    }
   }
 }
 
@@ -204,6 +305,132 @@ test("updateProviderCredentials persists rotated tokens and returns false for mi
   assert.equal(stored.expiresAt, stored.tokenExpiresAt);
   assert.deepEqual(stored.providerSpecificData, { tenant: "team-a" });
   assert.equal(missing, false);
+});
+
+test("OAuth refresh prefers connection proxy over provider proxy", async () => {
+  const providerId = "custom-oauth-connection-proxy";
+  const refreshRequests = [];
+
+  await withHttpServer(
+    (req, res) => {
+      refreshRequests.push({ method: req.method, url: req.url });
+      res.writeHead(200, { "content-type": "application/json" });
+      res.end(
+        JSON.stringify({
+          access_token: "connection-proxy-access",
+          refresh_token: "connection-proxy-refresh",
+          expires_in: 1800,
+        })
+      );
+    },
+    async (tokenServer) => {
+      await withConnectProxyServer(
+        async (accountProxy) => {
+          await withPatchedProvider(
+            providerId,
+            {
+              tokenUrl: `http://oauth-refresh.example.test:${tokenServer.port}/token`,
+              clientId: "connection-proxy-client-id",
+              clientSecret: "connection-proxy-client-secret",
+            },
+            async () => {
+              const connection = await providersDb.createProviderConnection({
+                provider: providerId,
+                authType: "oauth",
+                name: "Connection Proxy OAuth",
+                accessToken: "old-access",
+                refreshToken: "refresh-via-account-proxy",
+              });
+
+              try {
+                await settingsDb.setProxyForLevel("provider", providerId, {
+                  type: "http",
+                  host: "provider-proxy.invalid",
+                  port: 8080,
+                });
+                await settingsDb.setProxyForLevel("key", (connection as any).id, {
+                  type: "http",
+                  host: accountProxy.host,
+                  port: accountProxy.port,
+                });
+
+                const result = await tokenRefresh.getAccessToken(providerId, {
+                  connectionId: (connection as any).id,
+                  refreshToken: "refresh-via-account-proxy",
+                });
+
+                assert.equal(result.accessToken, "connection-proxy-access");
+                assert.equal(refreshRequests.length, 1);
+                assert.deepEqual(refreshRequests[0], { method: "POST", url: "/token" });
+                assert.deepEqual(accountProxy.connectRequests, [
+                  `oauth-refresh.example.test:${tokenServer.port}`,
+                ]);
+              } finally {
+                await settingsDb.deleteProxyForLevel("provider", providerId);
+                await settingsDb.deleteProxyForLevel("key", (connection as any).id);
+              }
+            }
+          );
+        },
+        { targetHost: tokenServer.host, targetPort: tokenServer.port }
+      );
+    }
+  );
+});
+
+test("provider-specific refresh helper accepts connection proxy context", async () => {
+  const refreshRequests = [];
+
+  await withHttpServer(
+    (req, res) => {
+      refreshRequests.push({ method: req.method, url: req.url });
+      res.writeHead(200, { "content-type": "application/json" });
+      res.end(
+        JSON.stringify({
+          access_token: "claude-connection-proxy-access",
+          refresh_token: "claude-connection-proxy-refresh",
+          expires_in: 1200,
+        })
+      );
+    },
+    async (tokenServer) => {
+      await withConnectProxyServer(async (accountProxy) => {
+        const originalAnthropicTokenUrl = OAUTH_ENDPOINTS.anthropic.token;
+        OAUTH_ENDPOINTS.anthropic.token = `${tokenServer.url}/token`;
+        let connectionId: string | undefined;
+        try {
+          const connection = await providersDb.createProviderConnection({
+            provider: "claude",
+            authType: "oauth",
+            name: "Claude Connection Proxy OAuth",
+            accessToken: "old-access",
+            refreshToken: "refresh-claude-via-account-proxy",
+          });
+          connectionId = (connection as any).id;
+
+          await settingsDb.setProxyForLevel("key", connectionId, {
+            type: "http",
+            host: accountProxy.host,
+            port: accountProxy.port,
+          });
+
+          const result = await tokenRefresh.refreshClaudeOAuthToken(
+            "refresh-claude-via-account-proxy",
+            { connectionId }
+          );
+
+          assert.equal(result.accessToken, "claude-connection-proxy-access");
+          assert.equal(refreshRequests.length, 1);
+          assert.deepEqual(refreshRequests[0], { method: "POST", url: "/token" });
+        } finally {
+          if (connectionId) {
+            await settingsDb.deleteProxyForLevel("key", connectionId);
+          }
+          OAUTH_ENDPOINTS.anthropic.token = originalAnthropicTokenUrl;
+        }
+      });
+    }
+  );
 });
 
 test("checkAndRefreshToken refreshes expiring OAuth access tokens and updates the connection", async () => {

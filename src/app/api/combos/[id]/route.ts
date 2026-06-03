@@ -15,6 +15,8 @@ import { validateComboDAG } from "@omniroute/open-sse/services/combo.ts";
 import { updateComboSchema } from "@/shared/validation/schemas";
 import { isValidationFailure, validateBody } from "@/shared/validation/helpers";
 import { requireManagementAuth } from "@/lib/api/requireManagementAuth";
+import { buildErrorBody } from "@omniroute/open-sse/utils/error";
+import { QUOTA_MODEL_PREFIX } from "@/lib/quota/quotaModelNaming";
 
 // GET /api/combos/[id] - Get combo by ID
 export async function GET(request, { params }) {
@@ -65,6 +67,15 @@ export async function PUT(request, { params }) {
     const currentCombo = await getComboById(id);
     if (!currentCombo) {
       return NextResponse.json({ error: "Combo not found" }, { status: 404 });
+    }
+    if (currentCombo.name.startsWith(QUOTA_MODEL_PREFIX)) {
+      return NextResponse.json(
+        buildErrorBody(
+          409,
+          "This combo is managed by Quota Share and cannot be edited here. Manage it from the Quota Share page."
+        ),
+        { status: 409 }
+      );
     }
     const allCombos = await getCombos();
 
@@ -146,6 +157,19 @@ export async function DELETE(request, { params }) {
 
   try {
     const { id } = await params;
+    const existingCombo = await getComboById(id);
+    if (!existingCombo) {
+      return NextResponse.json({ error: "Combo not found" }, { status: 404 });
+    }
+    if (existingCombo.name.startsWith(QUOTA_MODEL_PREFIX)) {
+      return NextResponse.json(
+        buildErrorBody(
+          409,
+          "This combo is managed by Quota Share and cannot be deleted here. Manage it from the Quota Share page."
+        ),
+        { status: 409 }
+      );
+    }
     const success = await deleteCombo(id);
 
     if (!success) {

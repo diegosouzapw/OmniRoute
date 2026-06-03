@@ -24,7 +24,7 @@ interface LogEntry {
 }
 
 export default function CompressionLogTab() {
-  const t = useTranslations("settings");
+  const t = useTranslations("logs");
   const [logs, setLogs] = useState<LogEntry[]>([]);
   const [loading, setLoading] = useState(true);
 

@@ -149,3 +149,28 @@ test("#2778 matching logic: node with prefix=flymux and id=UUID-id still matches
   assert.ok(matchByPrefixOrId !== undefined, "Alias-based match must still work after the fix");
   assert.strictEqual(matchByPrefixOrId?.id, FAKE_UUID_NODE_ID);
 });
+
+test("custom provider auth lookup search pool maps alias prefixes to internal provider ids", async () => {
+  const authSrc = fs.readFileSync(path.resolve(__dirname, "../../src/sse/services/auth.ts"), "utf8");
+
+  assert.match(
+    authSrc,
+    /async function getProviderSearchPool\(provider: string\): Promise<string\[]>/,
+    "getProviderSearchPool should be async so it can expand custom provider aliases via provider_nodes"
+  );
+  assert.match(
+    authSrc,
+    /getProviderNodes\(/,
+    "auth lookup should read provider_nodes to map custom prefixes like 78code/micu back to internal provider ids"
+  );
+  assert.match(
+    authSrc,
+    /nodePrefix === provider \|\| nodePrefix === canonicalProvider \|\| nodePrefix === canonicalAlias/,
+    "auth lookup should match provider node prefixes against the requested alias/canonical provider values"
+  );
+  assert.match(
+    authSrc,
+    /searchPool\.add\(nodeId\)/,
+    "auth lookup should add the matched custom provider node id into the credential search pool"
+  );
+});

@@ -1,6 +1,10 @@
 import { HTTP_STATUS, FETCH_TIMEOUT_MS } from "../config/constants.ts";
 import { applyFingerprint, isCliCompatEnabled } from "../config/cliFingerprints.ts";
 import { supportsClaudeMaxEffort, supportsXHighEffort } from "../config/providerModels.ts";
+import type { PoolConfig } from "../services/sessionPool/types.ts";
+import type { Session } from "../services/sessionPool/session.ts";
+import { SessionPool } from "../services/sessionPool/sessionPool.ts";
+import { PoolRegistry } from "../services/sessionPool/poolRegistry.ts";
 import {
   getRotatingApiKey,
   getValidApiKey,
@@ -321,6 +325,10 @@ export class BaseExecutor {
   provider: string;
   config: ProviderConfig;
 
+  // Session pool support — subclasses can set poolConfig to opt in
+  protected poolConfig?: PoolConfig;
+  private _pool: import("../services/sessionPool/sessionPool.ts").SessionPool | null = null;
+
   constructor(provider: string, config: ProviderConfig) {
     this.provider = provider;
     this.config = config;
@@ -328,6 +336,22 @@ export class BaseExecutor {
 
   getProvider() {
     return this.provider;
+  }
+
+  protected getPool(): SessionPool | null {
+    if (!this.poolConfig) return null;
+    if (!this._pool) {
+      const pool = new SessionPool(this.provider, this.poolConfig);
+      pool.warmUp(this.poolConfig.minSessions).catch(() => {});
+      PoolRegistry.register(this.provider, pool);
+      this._pool = pool;
+    }
+    return this._pool;
+  }
+
+  protected buildPoolHeaders(session: Session | null): Record<string, string> {
+    if (!session) return {};
+    return session.buildHeaders();
   }
 
   getBaseUrls() {

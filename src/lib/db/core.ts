@@ -1372,6 +1372,20 @@ export function getDbInstance(): SqliteDatabase {
   return db;
 }
 
+/**
+ * Lightweight liveness probe — runs `SELECT 1` against the singleton DB.
+ * Returns `true` if the database is reachable, `false` on any error.
+ * Intended for use by the `/api/health/ping` route (Hard Rule #5: no raw SQL in routes).
+ */
+export function pingDb(): boolean {
+  try {
+    const result = getDbInstance().prepare("SELECT 1 AS ok").get() as { ok: number } | undefined;
+    return result?.ok === 1;
+  } catch {
+    return false;
+  }
+}
+
 export function closeDbInstance(options?: { checkpointMode?: CheckpointMode | null }): boolean {
   clearDbHealthCheckScheduler();
   const db = getDb();

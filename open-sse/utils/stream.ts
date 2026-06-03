@@ -1255,6 +1255,45 @@ export function createSSEStream(options: StreamOptions = {}) {
               try {
                 let parsed = JSON.parse(trimmed.slice(5).trim());
 
+                // Some upstream Responses-compatible providers leak an initial Chat Completions
+                // bootstrap chunk (assistant role + empty content) before emitting proper
+                // `response.*` events. That chunk is invalid on /v1/responses and breaks strict
+                // clients like OpenCode, so drop it only for Responses-native consumers.
+                const hasActiveDeltaValue = (value: unknown): boolean => {
+                  if (typeof value === "string") return value.length > 0;
+                  if (Array.isArray(value)) return value.some((entry) => hasActiveDeltaValue(entry));
+                  if (value && typeof value === "object") {
+                    return Object.values(value).some((entry) => hasActiveDeltaValue(entry));
+                  }
+                  return value !== null && value !== undefined;
+                };
+
+                const isEmptyAssistantBootstrapChunkForResponsesClient =
+                  clientExpectsResponsesStream &&
+                  parsed?.object === "chat.completion.chunk" &&
+                  Array.isArray(parsed?.choices) &&
+                  parsed.choices.length > 0 &&
+                  parsed.choices.every((choice) => {
+                    const candidate = choice && typeof choice === "object" ? choice : {};
+                    const delta =
+                      candidate.delta && typeof candidate.delta === "object"
+                        ? candidate.delta
+                        : null;
+
+                    if (!delta || delta.role !== "assistant") return false;
+                    if (hasActiveDeltaValue(delta.content)) return false;
+                    if (candidate.finish_reason !== null && candidate.finish_reason !== undefined) {
+                      return false;
+                    }
+
+                    const { role: _role, content: _content, ...restDelta } = delta;
+                    return !hasActiveDeltaValue(restDelta);
+                  });
+
+                if (isEmptyAssistantBootstrapChunkForResponsesClient) {
+                  continue;
+                }
+
                 // Detect Responses SSE payloads (have a `type` field like "response.created",
                 // "response.output_item.added", etc.) and skip Chat Completions-specific
                 // sanitization to avoid corrupting the stream for Responses-native clients.
@@ -2275,6 +2314,9 @@ export function createSSEStream(options: StreamOptions = {}) {
         } catch (error) {
           console.log(`[STREAM] Error in flush (${model || "unknown"}):`, error.message || error);
         }
+      },
+      cancel(reason) {
+        clearIdleTimer();
       },
     },
     { highWaterMark: 16384 },

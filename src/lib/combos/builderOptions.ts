@@ -618,6 +618,17 @@ export async function getComboBuilderOptions(): Promise<ComboBuilderOptionsPaylo
       }
     }
 
+    // #2901: no-auth providers must route under their alias (e.g. "oc"), not
+    // their id — "opencode/<model>" misroutes to the opencode-zen api-key tier
+    // (manual ALIAS_TO_PROVIDER_ID override), while "oc/<model>" resolves to the
+    // no-auth "opencode" provider. Rewrite qualifiedModel to the alias prefix.
+    const routingPrefix = noAuthProvider.alias || providerId;
+    if (routingPrefix !== providerId) {
+      for (const opt of modelMap.values()) {
+        opt.qualifiedModel = `${routingPrefix}/${opt.id}`;
+      }
+    }
+
     const displayName = (providerEntryName(providerId) ||
       getProviderDisplayName(providerId, null) ||
       providerId) as string;

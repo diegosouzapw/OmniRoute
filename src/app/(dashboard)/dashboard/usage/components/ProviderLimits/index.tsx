@@ -650,6 +650,25 @@ export default function ProviderLimits({
     quotaData,
   ]);
 
+  // Auto-fetch LIVE quota on open for visible connections that have no cached
+  // quota yet (e.g. a Codex account whose access_token expired — its per-connection
+  // live fetch refreshes the token serialized/cascade-safe and surfaces real quota).
+  // Scoped to what's on screen and to the entries actually missing data (the ones
+  // that already have cache render instantly and are not re-fetched), and runs once
+  // per page open so it never loops on the quotaData it writes.
+  const autoLiveFetchedRef = useRef(false);
+  useEffect(() => {
+    if (initialLoading || autoLiveFetchedRef.current || visibleConnections.length === 0) return;
+    autoLiveFetchedRef.current = true;
+    for (const conn of visibleConnections) {
+      const cached = quotaData[conn.id];
+      const hasQuota = Array.isArray(cached?.quotas) && cached.quotas.length > 0;
+      if (!hasQuota) {
+        void fetchQuota(conn.id, conn.provider, { force: true }).catch(() => {});
+      }
+    }
+  }, [initialLoading, visibleConnections, quotaData, fetchQuota]);
+
   const handleSetPurchaseFilter = useCallback((value: PurchaseTypeKey) => {
     setPurchaseTypeFilter(value);
     try {

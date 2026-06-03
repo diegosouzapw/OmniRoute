@@ -141,6 +141,12 @@ export const ERROR_RULES: ErrorRule[] = [
     backoff: true,
     reason: "quota_exhausted",
   },
+  {
+    id: "free_tier_exhausted",
+    text: "free tier of the model has been exhausted",
+    backoff: true,
+    reason: "quota_exhausted",
+  },
   { id: "capacity", text: "capacity", backoff: true, reason: "model_capacity" },
   { id: "overloaded", text: "overloaded", backoff: true, reason: "model_capacity" },
   { id: "status_401", status: 401, cooldownMs: 0, reason: "auth_error" },

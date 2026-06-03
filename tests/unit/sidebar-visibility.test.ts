@@ -14,23 +14,20 @@ function sectionItems(sectionId: string) {
   return sidebarVisibility.getSectionItems(section);
 }
 
-test("system sidebar items place logs before health", () => {
+test("system sidebar items: monitoring has activity at top then logs/audit/system groups", () => {
   const items = sectionItems("monitoring");
   assert.deepEqual(
     items.map((item) => item.id),
     [
+      "activity",
       "logs",
       "logs-proxy",
       "logs-console",
-      "logs-activity",
-      "health",
-      "runtime",
-      "costs-pricing",
-      "costs-budget",
-      "costs-quota-share",
       "audit",
       "audit-mcp",
       "audit-a2a",
+      "health",
+      "runtime",
     ]
   );
 });
@@ -46,12 +43,16 @@ test("primary sidebar items place limits after cache", () => {
       "embedded-services",
       "combos",
       "quota",
+      "costs-quota-share",
       "context-caveman",
       "context-rtk",
       "context-combos",
-      "cli-tools",
-      "agents",
+      "cli-code",
+      "cli-agents",
+      "acp-agents",
       "cloud-agents",
+      "agent-bridge",
+      "traffic-inspector",
       "api-endpoints",
       "webhooks",
       "proxy",
@@ -61,7 +62,7 @@ test("primary sidebar items place limits after cache", () => {
 
 test("context sidebar section sits between primary and cli", () => {
   const sectionIds = sidebarVisibility.SIDEBAR_SECTIONS.map((section) => section.id);
-  assert.deepEqual(sectionIds.slice(0, 3), ["home", "omni-proxy", "analytics"]);
+  assert.deepEqual(sectionIds.slice(0, 4), ["home", "omni-proxy", "analytics", "costs"]);
 
   const items = sectionItems("omni-proxy");
   assert.deepEqual(

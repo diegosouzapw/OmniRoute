@@ -1,17 +1,39 @@
 ---
 title: "Skills Framework"
-version: 3.8.2
-lastUpdated: 2026-05-13
+version: 3.8.6
+lastUpdated: 2026-05-28
 ---
 
 # Skills Framework
 
 > **Source of truth:** `src/lib/skills/` and `src/app/api/skills/`
-> **Last updated:** 2026-05-13 — v3.8.0
+> **Last updated:** 2026-05-28 — v3.8.6
 
 OmniRoute exposes an extensible Skills framework that lets language models (and operators) compose reusable capabilities — from filesystem reads and HTTP requests to sandboxed code execution and curated marketplace skills.
 
 A skill is a versioned, schema-defined unit of work. OmniRoute can inject skills as tool definitions into outbound requests, intercept tool calls coming back from the model, run the matching handler, and feed the result back to the model so the conversation can continue. The model never sees the implementation — only the tool interface.
+
+---
+
+## Agent Skills vs Omni Skills
+
+OmniRoute has two distinct but complementary skill systems:
+
+| Dimension | **Omni Skills** (this doc) | **Agent Skills** |
+| :--- | :--- | :--- |
+| Purpose | LLM tool injection + sandboxed execution | SKILL.md catalog for external agents to discover and consume |
+| Source of truth | `src/lib/skills/` + marketplace | `src/lib/agentSkills/` + `skills/` directory |
+| Runtime mode | Injected into outbound requests, executed on tool-call events | Static markdown catalog + REST/MCP/A2A discovery endpoints |
+| Who uses it | OmniRoute itself (combo routing, inbound LLM calls) | External agents, MCP clients, A2A orchestrators |
+| Count | Variable (marketplace-driven) | 42 canonical entries (22 API + 20 CLI) |
+| Format | `SkillDefinition` with tool schema + handler | `SKILL.md` frontmatter + markdown body |
+| Discovery | `/api/skills/*` REST + `omniroute_skills_*` MCP tools | `/api/agent-skills/*` REST + `omniroute_agent_skills_*` MCP tools + A2A `list-capabilities` |
+
+**Omni Skills** are the execution engine — they define what OmniRoute *can do* when an LLM invokes a tool.
+
+**Agent Skills** are the documentation catalog — they explain to external agents *how to use* OmniRoute's REST API and CLI, with structured SKILL.md files that can be fed directly into agent prompts.
+
+For the Agent Skills catalog, generator, MCP tools, and A2A skill, see [docs/frameworks/AGENT-SKILLS.md](./AGENT-SKILLS.md).
 
 ---
 

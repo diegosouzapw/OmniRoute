@@ -188,6 +188,52 @@ const CLI_TOOLS: Record<string, any> = {
       settings: ".gemini/settings.json",
     },
   },
+  // ── Plan 14 — new "custom" configType tools ───────────────────────────────
+  forge: {
+    defaultCommand: "forge",
+    envBinKey: "CLI_FORGE_BIN",
+    requiresBinary: true,
+    healthcheckTimeoutMs: 8000,
+    paths: {
+      config: ".forge/config.toml",
+    },
+  },
+  jcode: {
+    defaultCommand: "jcode",
+    envBinKey: "CLI_JCODE_BIN",
+    requiresBinary: true,
+    healthcheckTimeoutMs: 8000,
+    paths: {
+      config: ".jcode/config.json",
+    },
+  },
+  "deepseek-tui": {
+    defaultCommand: "deepseek-tui",
+    envBinKey: "CLI_DEEPSEEK_TUI_BIN",
+    requiresBinary: true,
+    healthcheckTimeoutMs: 8000,
+    paths: {
+      config: ".config/deepseek-tui/config.toml",
+    },
+  },
+  smelt: {
+    defaultCommand: "smelt",
+    envBinKey: "CLI_SMELT_BIN",
+    requiresBinary: true,
+    healthcheckTimeoutMs: 8000,
+    paths: {
+      config: ".smelt/config.json",
+    },
+  },
+  pi: {
+    defaultCommand: "pi",
+    envBinKey: "CLI_PI_BIN",
+    requiresBinary: true,
+    healthcheckTimeoutMs: 8000,
+    paths: {
+      config: ".pi/config.json",
+    },
+  },
 };
 
 const isWindows = () => process.platform === "win32";

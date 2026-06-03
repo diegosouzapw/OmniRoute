@@ -13,11 +13,13 @@ import { getApiKeyMetadata, getComboByName, isModelAllowedForKey } from "@/lib/l
 import { resolveComboForModel } from "@/lib/db/modelComboMappings";
 import { checkBudget } from "@/domain/costRules";
 import { checkTokenLimits } from "@omniroute/open-sse/services/tokenLimitCounter.ts";
-import { errorResponse } from "@omniroute/open-sse/utils/error.ts";
+import { errorResponse, buildErrorBody } from "@omniroute/open-sse/utils/error.ts";
 import { HTTP_STATUS } from "@omniroute/open-sse/config/constants.ts";
 import * as log from "@/sse/utils/logger";
 import { checkRateLimit, RateLimitRule } from "./rateLimiter";
 import { resolveEndpointCategory } from "@/shared/constants/endpointCategories";
+import { resolveQuotaKeyScope } from "@/lib/quota/quotaKey";
+import { isQuotaModelName, parseQuotaModelName } from "@/lib/quota/quotaModelNaming";
 
 // Default to no per-key request cap. API keys can still opt into explicit
 // limits via Settings/API Manager, while provider/account quota controls remain
@@ -63,6 +65,7 @@ export interface ApiKeyMetadata {
   allowedModels?: string[];
   allowedCombos?: string[];
   allowedConnections?: string[];
+  allowedQuotas?: string[];
   noLog?: boolean;
   autoResolve?: boolean;
   budget?: number;
@@ -77,6 +80,7 @@ export interface ApiKeyMetadata {
   maxSessions?: number | null;
   rateLimits?: RateLimitRule[] | null;
   allowedEndpoints?: string[];
+  disableNonPublicModels?: boolean;
 }
 
 /**
@@ -317,9 +321,92 @@ export async function enforceApiKeyPolicy(
     }
   }
 
-  // ── Check 3: Model restriction ──
+  // ── Check 2.9: qtSd models require a quota-pool allocation ──
+  //
+  // quotaShared-* (qtSd/<group>/<provider>/<model>) virtual models are pool-gated:
+  // a key that is NOT allocated to any quota pool (empty allowedQuotas) must not be
+  // able to call them — otherwise an ordinary key could route through someone
+  // else's shared quota. Only allocated keys (allowedQuotas non-empty, further
+  // validated against their pool scope in Check 3 below) may use qtSd models.
+  if (
+    modelStr &&
+    isQuotaModelName(modelStr) &&
+    !(Array.isArray(apiKeyInfo.allowedQuotas) && apiKeyInfo.allowedQuotas.length > 0)
+  ) {
+    const notAllocatedBody = buildErrorBody(
+      HTTP_STATUS.FORBIDDEN,
+      `Model "${modelStr}" requires a quota-pool allocation; this API key is not allocated to any quota pool`
+    );
+    notAllocatedBody.error.code = "QUOTA_NOT_ALLOCATED";
+    return {
+      apiKey,
+      apiKeyInfo,
+      rejection: new Response(JSON.stringify(notAllocatedBody), {
+        status: HTTP_STATUS.FORBIDDEN,
+        headers: { "Content-Type": "application/json" },
+      }),
+    };
+  }
+
+  // ── Check 3: Quota-exclusive enforcement (Phase B4) ──
+  //
+  // When a key has allowedQuotas its access is governed exclusively by the
+  // quotaShared-* virtual models of its pools — raw model names are rejected,
+  // and quotaShared-* names belonging to OTHER pools are also rejected.
+  // Normal allowedModels/allowedCombos checks are skipped for these keys.
+  if (modelStr && apiKeyInfo.allowedQuotas && apiKeyInfo.allowedQuotas.length > 0) {
+    try {
+      const scope = await resolveQuotaKeyScope(apiKeyInfo.allowedQuotas);
+      let quotaRejectionMsg: string | null = null;
+
+      if (isQuotaModelName(modelStr)) {
+        // Virtual quota model — must belong to one of this key's pools AND its provider must be in scope.
+        const parsed = parseQuotaModelName(modelStr);
+        const allowed =
+          parsed !== null &&
+          scope.poolSlugs.length > 0 &&
+          scope.poolSlugs.includes(parsed.groupSlug) &&
+          scope.providers.includes(parsed.provider);
+        if (!allowed) {
+          quotaRejectionMsg = `Model "${modelStr}" is not in this key's quota pools`;
+        }
+      } else {
+        // Raw (non-quotaShared) model name — always rejected for quota-exclusive keys.
+        quotaRejectionMsg = `This quota-exclusive API key may only use quotaShared-* models`;
+      }
+
+      if (quotaRejectionMsg !== null) {
+        const quotaBody = buildErrorBody(HTTP_STATUS.FORBIDDEN, quotaRejectionMsg);
+        quotaBody.error.code = "QUOTA_ONLY";
+        return {
+          apiKey,
+          apiKeyInfo,
+          rejection: new Response(JSON.stringify(quotaBody), {
+            status: HTTP_STATUS.FORBIDDEN,
+            headers: { "Content-Type": "application/json" },
+          }),
+        };
+      }
+      // Model is an in-scope quotaShared-* name — skip allowedModels/allowedCombos.
+      // Continue to budget / rate-limit checks below.
+    } catch (error) {
+      log.error("API_POLICY", "Quota scope check failed. Request blocked.", { error });
+      return {
+        apiKey,
+        apiKeyInfo,
+        rejection: errorResponse(
+          HTTP_STATUS.SERVICE_UNAVAILABLE,
+          "API key quota policy unavailable"
+        ),
+      };
+    }
+  }
+
+  // ── Check 4: Model restriction (skipped when allowedQuotas governs access) ──
   let requestedComboName: string | null = null;
-  if (modelStr && apiKeyInfo.allowedCombos && apiKeyInfo.allowedCombos.length > 0) {
+  const isQuotaExclusive =
+    Boolean(apiKeyInfo.allowedQuotas) && (apiKeyInfo.allowedQuotas as string[]).length > 0;
+  if (!isQuotaExclusive && modelStr && apiKeyInfo.allowedCombos && apiKeyInfo.allowedCombos.length > 0) {
     try {
       const comboAccess = await isComboAllowedForKey(apiKeyInfo.allowedCombos, modelStr);
       requestedComboName = comboAccess.comboName;
@@ -346,13 +433,22 @@ export async function enforceApiKeyPolicy(
     }
   }
 
-  const hasModelRestrictions = apiKeyInfo.allowedModels && apiKeyInfo.allowedModels.length > 0;
+  const hasModelRestrictions =
+    !isQuotaExclusive &&
+    ((apiKeyInfo.allowedModels && apiKeyInfo.allowedModels.length > 0) ||
+      (apiKeyInfo as { disableNonPublicModels?: boolean }).disableNonPublicModels === true);
 
   if (!requestedComboName && modelStr && hasModelRestrictions) {
-    try {
-      requestedComboName = await resolveRequestedComboName(modelStr);
-    } catch {
-      requestedComboName = null;
+    // Short-circuit: auto/* and qtSd/* are combo-routed (not catalog models).
+    // They must never be evaluated by the published-model gate.
+    if (modelStr.startsWith("auto/") || modelStr.startsWith("qtSd/")) {
+      requestedComboName = modelStr; // non-null sentinel — skips the published-model check
+    } else {
+      try {
+        requestedComboName = await resolveRequestedComboName(modelStr);
+      } catch {
+        requestedComboName = null;
+      }
     }
   }
 

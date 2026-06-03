@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { getProviderConnectionById, updateProviderConnection } from "@/lib/db/providers";
 import { getAccessToken, updateProviderCredentials } from "@/sse/services/tokenRefresh";
+import { rotationGroupFor } from "@omniroute/open-sse/services/refreshSerializer.ts";
 
 type RefreshResult = {
   accessToken?: string;
@@ -44,6 +45,33 @@ export async function POST(_request: Request, { params }: { params: Promise<{ id
     }
 
     const provider = connection.provider;
+
+    // Codex multi-account family-revocation cascade guard.
+    // Rotating-refresh providers (Codex/OpenAI share one Auth0 client_id, etc.)
+    // mint a single-use refresh_token on every refresh. This endpoint is invoked
+    // per-connection by the dashboard (incl. an OLD cached frontend that bulk-
+    // refreshes every expiring connection on a page load); rotating several
+    // sibling accounts makes Auth0 revoke the whole token family
+    // (openai/codex#9648), killing every account but the last. Never proactively
+    // rotate a rotating provider here — the access_token is reused as-is and
+    // genuine expiry is handled by the reactive, serialized 401 path on the next
+    // real request. This was the last unguarded proactive-refresh entry point
+    // (refreshAndUpdateCredentials and the connection-test route are already
+    // guarded). Non-rotating providers keep refreshing on demand below.
+    if (rotationGroupFor(provider) !== null) {
+      return NextResponse.json({
+        success: true,
+        skipped: true,
+        connectionId: id,
+        provider,
+        message:
+          "Rotating-refresh provider: the token refreshes automatically on the next request. " +
+          "Manual/bulk refresh is intentionally skipped to avoid Auth0 token-family revocation.",
+        expiresAt: connection.tokenExpiresAt || connection.expiresAt || null,
+        refreshedAt: new Date().toISOString(),
+      });
+    }
+
     const credentials = {
       connectionId: id,
       accessToken: connection.accessToken,

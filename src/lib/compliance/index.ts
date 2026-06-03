@@ -19,6 +19,7 @@ import {
   getProxyLogsTableMaxRows,
 } from "../logEnv";
 import { generateRequestId, getRequestId } from "@/shared/utils/requestId";
+import { HIGH_LEVEL_ACTIONS } from "@/lib/audit/highLevelActions";
 
 /** @returns {SqliteAdapter | null} */
 function getDb() {
@@ -53,6 +54,8 @@ type AuditLogFilter = {
   to?: string;
   limit?: number;
   offset?: number;
+  /** When "high", restricts results to HIGH_LEVEL_ACTIONS only (B7). */
+  levelFilter?: "high";
 };
 
 type AuditLogRow = Record<string, unknown> & {
@@ -250,6 +253,14 @@ function buildAuditLogQuery(filter: AuditLogFilter = {}): AuditLogQuery {
   if (filter.to) {
     conditions.push("datetime(timestamp) <= datetime(?)");
     params.push(filter.to);
+  }
+
+  // B7: level=high filter — restrict to HIGH_LEVEL_ACTIONS via parameterized IN clause
+  if (filter.levelFilter === "high" && HIGH_LEVEL_ACTIONS.length > 0) {
+    const placeholders = HIGH_LEVEL_ACTIONS.map(() => "?").join(", ");
+    conditions.push(`action IN (${placeholders})`);
+    // HIGH_LEVEL_ACTIONS is readonly — create a mutable copy for spread
+    params.push(...Array.from(HIGH_LEVEL_ACTIONS));
   }
 
   return {

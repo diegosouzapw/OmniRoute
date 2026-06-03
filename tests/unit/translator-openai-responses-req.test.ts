@@ -747,3 +747,135 @@ test("Responses -> Chat: tool_search is stripped from output tools array (issue 
   assert.equal(tools[0].type, "function");
   assert.equal(tools[0].function.name, "foo");
 });
+
+// --- Issue #2950: image_generation built-in should be silently dropped ---
+
+test("Responses -> Chat: image_generation does not throw (issue #2950)", () => {
+  // Codex Desktop injects an image_generation hosted tool into every Responses
+  // request, even text-only ones. It has no Chat Completions equivalent and must
+  // be dropped silently, not rejected with 400.
+  assert.doesNotThrow(() =>
+    openaiResponsesToOpenAIRequest(
+      "gpt-4o",
+      {
+        input: [{ role: "user", content: [{ type: "input_text", text: "hi" }] }],
+        tools: [{ type: "image_generation", output_format: "png" }],
+      },
+      false,
+      null
+    )
+  );
+});
+
+test("Responses -> Chat: image_generation is stripped from output tools array (issue #2950)", () => {
+  const result = openaiResponsesToOpenAIRequest(
+    "gpt-4o",
+    {
+      input: [{ role: "user", content: [{ type: "input_text", text: "hello" }] }],
+      tools: [
+        { type: "image_generation", output_format: "png" },
+        {
+          type: "function",
+          name: "foo",
+          description: "A function",
+          parameters: { type: "object" },
+        },
+      ],
+    },
+    false,
+    null
+  ) as Record<string, unknown>;
+
+  const tools = result.tools as any[];
+  assert.ok(Array.isArray(tools), "tools array must be present");
+  assert.equal(
+    tools.some((t) => t.type === "image_generation"),
+    false,
+    "image_generation must be stripped from output"
+  );
+  assert.equal(tools.length, 1, "only the function tool must remain");
+  assert.equal(tools[0].type, "function");
+  assert.equal(tools[0].function.name, "foo");
+});
+
+// --- Issue #2893: orphaned tool results from empty/missing call_id ---
+
+test("Responses -> Chat: function_call with empty call_id is dropped together with its output (issue #2893)", () => {
+  // Codex can emit a function_call without a usable call_id; its
+  // function_call_output then becomes an orphan tool message that the upstream
+  // rejects ("role 'tool' must be a response to a preceding message with
+  // 'tool_calls'"). Both must be dropped.
+  const result = openaiResponsesToOpenAIRequest(
+    "gpt-4o",
+    {
+      input: [
+        { type: "message", role: "user", content: [{ type: "input_text", text: "hi" }] },
+        { type: "function_call", name: "read", call_id: "", arguments: "{}" },
+        { type: "function_call_output", call_id: "", output: "result" },
+      ],
+    },
+    false,
+    null
+  ) as Record<string, unknown>;
+
+  const messages = result.messages as any[];
+  // No orphan tool message.
+  assert.equal(
+    messages.some((m) => m.role === "tool"),
+    false,
+    "tool result with empty tool_call_id must be dropped"
+  );
+  // No dangling assistant tool_call with an empty id.
+  const danglingEmptyId = messages.some(
+    (m) =>
+      m.role === "assistant" &&
+      Array.isArray(m.tool_calls) &&
+      m.tool_calls.some((tc: any) => !tc.id)
+  );
+  assert.equal(danglingEmptyId, false, "assistant tool_call with empty id must be dropped");
+});
+
+test("Responses -> Chat: function_call with empty name leaves no orphan tool output (issue #2893)", () => {
+  const result = openaiResponsesToOpenAIRequest(
+    "gpt-4o",
+    {
+      input: [
+        { type: "function_call", name: "", call_id: "c-orphan", arguments: "{}" },
+        { type: "function_call_output", call_id: "c-orphan", output: "result" },
+      ],
+    },
+    false,
+    null
+  ) as Record<string, unknown>;
+
+  const messages = result.messages as any[];
+  assert.equal(
+    messages.some((m) => m.role === "tool"),
+    false,
+    "an output whose function_call was skipped (empty name) must not survive as an orphan"
+  );
+});
+
+test("Responses -> Chat: a valid function_call/output pair is preserved (issue #2893 regression)", () => {
+  const result = openaiResponsesToOpenAIRequest(
+    "gpt-4o",
+    {
+      input: [
+        { type: "function_call", name: "read", call_id: "c1", arguments: "{}" },
+        { type: "function_call_output", call_id: "c1", output: "result" },
+      ],
+    },
+    false,
+    null
+  ) as Record<string, unknown>;
+
+  const messages = result.messages as any[];
+  const assistant = messages.find(
+    (m) => m.role === "assistant" && Array.isArray(m.tool_calls)
+  );
+  assert.ok(assistant, "assistant message with tool_calls must be present");
+  assert.equal(assistant.tool_calls[0].id, "c1");
+  const toolMsg = messages.find((m) => m.role === "tool");
+  assert.ok(toolMsg, "matching tool result must be preserved");
+  assert.equal(toolMsg.tool_call_id, "c1");
+});
