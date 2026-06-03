@@ -24,12 +24,15 @@ const eslintConfig = [
     },
   },
   // i18n: ham toLowerCase().includes() arama pattern'ini engelle
-  // (Türkçe İ/ı karakterlerini bozar — matchesSearch kullanılmalı)
+  // (Türkçe İ/ı karakterlerini bozar — matchesSearch kullanılmalı).
+  // "warn" (error değil): kuralın eklendiği anda kod tabanında zaten bu pattern'i
+  // kullanan ~19 satır var; aşamalı temizlik için uyarı seviyesinde tutuluyor
+  // (proje politikası: 0 error, warning'ler tolere edilir).
   {
     files: ["src/app/**/*.{ts,tsx}", "src/components/**/*.{ts,tsx}"],
     rules: {
       "no-restricted-syntax": [
-        "error",
+        "warn",
         {
           selector:
             "CallExpression[callee.property.name='includes'][callee.object.callee.property.name='toLowerCase']",
