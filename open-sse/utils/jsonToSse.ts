@@ -49,21 +49,26 @@ export function synthesizeOpenAiSseFromJson(jsonText: string): string {
     const index = typeof choice.index === "number" ? choice.index : fallbackIndex;
     const message = isRecord(choice.message) ? choice.message : {};
 
-    // First chunk carries role + whatever the message produced (content,
-    // reasoning_content, tool_calls). Putting them in one delta is valid and
-    // keeps downstream translation simple.
-    const delta: JsonRecord = { role: typeof message.role === "string" ? message.role : "assistant" };
-    if (typeof message.content === "string" && message.content.length > 0) {
-      delta.content = message.content;
-    }
+    // Emit role, reasoning_content, content and tool_calls as SEPARATE sequential
+    // deltas — the same shape a real reasoning model streams (reasoning first,
+    // then content). Combining them in one delta caused the openai→openai
+    // translator to re-split and DUPLICATE reasoning_content across chunks
+    // (#3089 follow-up); separate deltas pass through cleanly with no duplication.
+    const role = typeof message.role === "string" ? message.role : "assistant";
+    const emitDelta = (delta: JsonRecord) => {
+      out += sseEvent({ ...base, choices: [{ index, delta, finish_reason: null }] });
+    };
+
+    emitDelta({ role });
     if (typeof message.reasoning_content === "string" && message.reasoning_content.length > 0) {
-      delta.reasoning_content = message.reasoning_content;
+      emitDelta({ reasoning_content: message.reasoning_content });
+    }
+    if (typeof message.content === "string" && message.content.length > 0) {
+      emitDelta({ content: message.content });
     }
     if (Array.isArray(message.tool_calls) && message.tool_calls.length > 0) {
-      delta.tool_calls = message.tool_calls;
+      emitDelta({ tool_calls: message.tool_calls });
     }
-
-    out += sseEvent({ ...base, choices: [{ index, delta, finish_reason: null }] });
 
     const finishReason =
       typeof choice.finish_reason === "string" && choice.finish_reason ? choice.finish_reason : "stop";

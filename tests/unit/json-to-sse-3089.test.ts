@@ -37,14 +37,26 @@ describe("synthesizeOpenAiSseFromJson (#3089)", () => {
     assert.ok(sse.startsWith("data: "), "must be SSE");
     assert.equal(chunks[chunks.length - 1], "[DONE]", "must terminate with [DONE]");
 
-    const first = JSON.parse(chunks[0]);
-    assert.equal(first.object, "chat.completion.chunk");
-    assert.equal(first.model, "mock-reasoner");
-    assert.equal(first.choices[0].delta.role, "assistant");
-    assert.equal(first.choices[0].delta.content, "HI there");
-    assert.equal(first.choices[0].delta.reasoning_content, "thinking...");
+    const events = chunks.filter((c) => c !== "[DONE]").map((c) => JSON.parse(c));
+    const deltas = events.map((e) => e.choices[0].delta);
 
-    const finishChunk = JSON.parse(chunks[1]);
+    assert.equal(events[0].object, "chat.completion.chunk");
+    assert.equal(events[0].model, "mock-reasoner");
+    assert.equal(deltas[0].role, "assistant", "first delta announces the role");
+
+    // #3089 follow-up: reasoning_content and content are emitted as SEPARATE
+    // deltas, each EXACTLY ONCE (no duplication), with reasoning before content.
+    const reasoningDeltas = deltas.filter((d) => d.reasoning_content !== undefined);
+    const contentDeltas = deltas.filter((d) => d.content !== undefined);
+    assert.equal(reasoningDeltas.length, 1, "reasoning_content must appear exactly once");
+    assert.equal(contentDeltas.length, 1, "content must appear exactly once");
+    assert.equal(reasoningDeltas[0].reasoning_content, "thinking...");
+    assert.equal(contentDeltas[0].content, "HI there");
+    const reasoningIdx = deltas.findIndex((d) => d.reasoning_content !== undefined);
+    const contentIdx = deltas.findIndex((d) => d.content !== undefined);
+    assert.ok(reasoningIdx < contentIdx, "reasoning_content delta precedes content delta");
+
+    const finishChunk = events[events.length - 1];
     assert.equal(finishChunk.choices[0].finish_reason, "stop");
     assert.deepEqual(finishChunk.usage, { prompt_tokens: 7, completion_tokens: 3, total_tokens: 10 });
   });
@@ -53,9 +65,11 @@ describe("synthesizeOpenAiSseFromJson (#3089)", () => {
     const sse = synthesizeOpenAiSseFromJson(
       JSON.stringify({ choices: [{ message: { role: "assistant", content: "ok" } }] })
     );
-    const first = JSON.parse(parseDataChunks(sse)[0]);
-    assert.equal(first.choices[0].delta.content, "ok");
-    assert.equal("reasoning_content" in first.choices[0].delta, false);
+    const deltas = parseDataChunks(sse)
+      .filter((c) => c !== "[DONE]")
+      .map((c) => JSON.parse(c).choices[0].delta);
+    assert.equal(deltas.filter((d) => d.content === "ok").length, 1);
+    assert.equal(deltas.some((d) => d.reasoning_content !== undefined), false);
   });
 
   test("forwards tool_calls in the delta", () => {
@@ -72,8 +86,12 @@ describe("synthesizeOpenAiSseFromJson (#3089)", () => {
         ],
       })
     );
-    const first = JSON.parse(parseDataChunks(sse)[0]);
-    assert.equal(first.choices[0].delta.tool_calls[0].id, "t1");
+    const deltas = parseDataChunks(sse)
+      .filter((c) => c !== "[DONE]")
+      .map((c) => JSON.parse(c).choices[0].delta);
+    const toolDelta = deltas.find((d) => Array.isArray(d.tool_calls));
+    assert.ok(toolDelta, "a delta must carry tool_calls");
+    assert.equal(toolDelta.tool_calls[0].id, "t1");
   });
 
   test("returns empty string for non-completion JSON / invalid JSON", () => {
