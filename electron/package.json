@@ -29,7 +29,7 @@
   },
   "devDependencies": {
     "electron": "^42.2.0",
-    "electron-builder": "^26.11.1"
+    "electron-builder": "^26.14.0"
   },
   "overrides": {
     "@xmldom/xmldom": "^0.9.10",
