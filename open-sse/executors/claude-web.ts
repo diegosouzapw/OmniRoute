@@ -646,12 +646,91 @@ export class ClaudeWebExecutor extends BaseExecutor {
           };
         }
 
-        const errorText = fetchResponse.text || "";
+        // Read the upstream body. `tlsFetchClaude` writes non-SSE error
+        // bodies (Cloudflare challenge pages, HTML rate-limit responses,
+        // Anthropic JSON errors) into `body`, not `text` — `text` is only
+        // populated for non-streaming requests. Reading the wrong field
+        // here produced the cryptic "[403]: Claude Web API error: " with
+        // no diagnostic info. The earlier code did exactly that and made
+        // 403 from Cloudflare look indistinguishable from a real Claude
+        // rejection.
+        //
+        // `body` may be a ReadableStream (SSE path) even when status is
+        // non-2xx — drain a small prefix so we can classify the failure
+        // (Cloudflare challenge vs upstream JSON) without buffering the
+        // whole response. If the read fails or times out, fall back to an
+        // empty string and let the generic error message stand.
+        let errorText = "";
+        let cfMitigated: string | null = null;
+        try {
+          if (fetchResponse.body) {
+            const reader = fetchResponse.body.getReader();
+            const decoder = new TextDecoder();
+            const chunks: Uint8Array[] = [];
+            let total = 0;
+            const maxBytes = 2048; // enough to identify a Cloudflare challenge
+            while (total < maxBytes) {
+              const { value, done } = await reader.read();
+              if (done || !value) break;
+              chunks.push(value);
+              total += value.byteLength;
+            }
+            // Release the reader so the underlying tls-client connection
+            // can be reused for the next request. Without cancel() the
+            // connection can hang on a still-open stream.
+            try {
+              reader.releaseLock();
+            } catch {
+              /* already released */
+            }
+            errorText = decoder.decode(
+              chunks.length === 1 ? chunks[0] : await new Blob(chunks).arrayBuffer().then((b) => new Uint8Array(b))
+            );
+          } else if (fetchResponse.text) {
+            errorText = fetchResponse.text;
+          }
+        } catch {
+          errorText = "";
+        }
+
+        // Surface Cloudflare challenge pages as a distinct, actionable
+        // error so dashboards / logs don't show an empty "Claude Web API
+        // error:" body. The most common cause is a sandbox / data-center
+        // IP that Cloudflare has flagged; the cf_clearance cookie bound
+        // to a different IP won't pass the challenge.
+        cfMitigated = fetchResponse.headers.get("cf-mitigated");
+        const isCloudflareChallenge =
+          fetchResponse.status === 403 &&
+          (cfMitigated === "challenge" ||
+            /<title>\s*Just a moment/i.test(errorText) ||
+            /<title>\s*Attention Required/i.test(errorText));
+
+        let errorMessage: string;
+        if (isCloudflareChallenge) {
+          errorMessage =
+            "Claude Web returned a Cloudflare bot-management challenge " +
+            `(cf-mitigated=${cfMitigated ?? "challenge"}). ` +
+            "The sandbox / VPS IP appears to be flagged; the cf_clearance " +
+            "cookie pasted from a residential IP won't pass. Probe from a " +
+            "residential network, or use the official Anthropic API " +
+            "(provider: 'claude') instead.";
+        } else {
+          // Trim the body to keep the error message compact but still
+          // useful — most real Claude errors are short JSON; Cloudflare
+          // HTML bodies are caught above.
+          const trimmed = errorText.trim().slice(0, 500);
+          errorMessage = trimmed
+            ? `Claude Web API error (${fetchResponse.status}): ${trimmed}`
+            : `Claude Web API error (${fetchResponse.status}) with no response body`;
+        }
+
         const errorResp = new Response(
           JSON.stringify({
             error: {
-              message: `Claude Web API error: ${errorText}`,
-              type: "api_error",
+              message: errorMessage,
+              type: isCloudflareChallenge ? "cloudflare_challenge" : "api_error",
+              code: isCloudflareChallenge ? "cf_mitigated_challenge" : `HTTP_${fetchResponse.status}`,
+              ...(cfMitigated ? { cfMitigated } : {}),
             },
           }),
           {
