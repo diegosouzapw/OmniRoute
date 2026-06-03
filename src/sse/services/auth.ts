@@ -1815,6 +1815,46 @@ export async function markAccountUnavailable(
     );
     const cooldownMs = terminalStatus ? 0 : rawCooldownMs;
 
+    // ── #3027: per-model subscription/permission 403 → model-only lockout ──
+    // Passthrough / per-model-quota providers (e.g. ollama-cloud with
+    // passthroughModels:true) multiplex many upstream models behind one key.
+    // A scoped 403 like "this model requires a subscription, upgrade for access"
+    // is about the paid model, not the key — cooling the whole connection would
+    // knock out the free models on the same key too and escalate backoff
+    // (#3001/#3027). This generalizes the grok-web 403 precedent above to every
+    // hasPerModelQuota provider. Terminal/credential 403s (banned/deactivated
+    // key, credits exhausted) are excluded here because
+    // resolveTerminalConnectionStatus() returns a non-null status for them, so
+    // they keep their existing connection-level cooldown/deactivation path.
+    if (isPerModelQuotaProvider && status === 403 && provider && model && !terminalStatus) {
+      const lockout = recordModelLockoutFailure(
+        provider,
+        connectionId,
+        model,
+        "forbidden",
+        status,
+        fallbackResult.baseCooldownMs ??
+          effectiveProviderProfile?.baseCooldownMs ??
+          COOLDOWN_MS.serviceUnavailable,
+        effectiveProviderProfile,
+        {
+          exactCooldownMs:
+            fallbackResult.usedUpstreamRetryHint === true ? fallbackResult.cooldownMs : null,
+        }
+      );
+      updateProviderConnection(connectionId, {
+        lastErrorType: "forbidden",
+        lastError: `Model ${model} forbidden (per-model access/subscription)`,
+        lastErrorAt: new Date().toISOString(),
+        errorCode: status,
+      }).catch(() => {});
+      log.info(
+        "AUTH",
+        `Model-only lockout for ${provider}:${model} — 403 forbidden ${Math.ceil(lockout.cooldownMs / 1000)}s (per-model quota provider, connection stays active)`
+      );
+      return { shouldFallback: true, cooldownMs: lockout.cooldownMs };
+    }
+
     // ── 404 model-only lockout: connection stays active ──
     // For local providers (detected by URL), a 404 means the specific model
     // doesn't exist or isn't available for this account — it should NOT lock

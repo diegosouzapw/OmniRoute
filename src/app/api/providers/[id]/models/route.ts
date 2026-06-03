@@ -4,6 +4,7 @@ import {
   isAnthropicCompatibleProvider,
   isOpenAICompatibleProvider,
   isSelfHostedChatProvider,
+  NOAUTH_PROVIDERS,
 } from "@/shared/constants/providers";
 import { getRegistryEntry } from "@omniroute/open-sse/config/providerRegistry.ts";
 import { getModelsByProviderId } from "@/shared/constants/models";
@@ -126,7 +127,14 @@ function isLocalOpenAIStyleProvider(provider: string): boolean {
   return isSelfHostedChatProvider(provider);
 }
 
-const NAMED_OPENAI_STYLE_PROVIDERS = new Set(["modal", "reka", "empower", "nous-research", "poe"]);
+const NAMED_OPENAI_STYLE_PROVIDERS = new Set([
+  "modal",
+  "reka",
+  "empower",
+  "nous-research",
+  "poe",
+  "siliconflow",
+]);
 
 function isNamedOpenAIStyleProvider(provider: string): boolean {
   return NAMED_OPENAI_STYLE_PROVIDERS.has(provider);
@@ -738,6 +746,28 @@ export async function GET(
     const connection = await getProviderConnectionById(id);
 
     if (!connection) {
+      // #3047 — no-auth providers (e.g. OpenCode Free) have no connection rows,
+      // so the "Import from /models" button had no connection id to fetch from
+      // and silently no-op'd. When the route is called with a no-auth provider
+      // id, serve that provider's registry/static model catalog so the import
+      // flow can populate the custom model list.
+      const isNoAuthProvider =
+        (NOAUTH_PROVIDERS as Record<string, { noAuth?: boolean }>)[id]?.noAuth === true;
+      if (isNoAuthProvider) {
+        const catalog = mergeLocalCatalogModels(
+          getModelsByProviderId(id) || [],
+          getStaticModelsForProvider(id) || []
+        ).map((model) => ({ id: model.id, name: model.name || model.id }));
+        const visible = excludeHidden
+          ? catalog.filter((m) => !getModelIsHidden(id, m.id))
+          : catalog;
+        return NextResponse.json({
+          provider: id,
+          connectionId: id,
+          models: visible,
+          source: "local_catalog",
+        });
+      }
       return NextResponse.json({ error: "Connection not found" }, { status: 404 });
     }
 
@@ -1965,8 +1995,6 @@ export async function GET(
         source: "local_catalog",
       });
     }
-
-
 
     const localCatalog = mergeLocalCatalogModels(registryCatalogModels, specialtyCatalogModels);
     if (!config && localCatalog.length > 0) {

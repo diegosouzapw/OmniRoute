@@ -1,8 +1,12 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 
-const { extractCookieValue, normalizeSessionCookieHeader, stripCookieInputPrefix } =
-  await import("../../src/lib/providers/webCookieAuth.ts");
+const {
+  extractCookieValue,
+  normalizeSessionCookieHeader,
+  stripCookieInputPrefix,
+  buildGrokCookieHeader,
+} = await import("../../src/lib/providers/webCookieAuth.ts");
 
 test("stripCookieInputPrefix removes 'cookie:' and 'bearer ' prefixes", () => {
   assert.equal(stripCookieInputPrefix("Cookie: sso=abc"), "sso=abc");
@@ -54,4 +58,32 @@ test("extractCookieValue: empty input returns empty string", () => {
 test("extractCookieValue: cookie name with regex metacharacters is escaped", () => {
   const blob = "foo=1; my.cookie+name=hello; bar=2;";
   assert.equal(extractCookieValue(blob, "my.cookie+name"), "hello");
+});
+
+// #3063 — Grok now requires the paired `sso-rw` write cookie alongside `sso`.
+test("buildGrokCookieHeader: bare sso value emits only sso (no phantom sso-rw)", () => {
+  assert.equal(buildGrokCookieHeader("eyJ0eXAi.abc.def"), "sso=eyJ0eXAi.abc.def");
+});
+
+test("buildGrokCookieHeader: single sso= pair emits only sso", () => {
+  assert.equal(buildGrokCookieHeader("sso=eyJ0eXAi.abc"), "sso=eyJ0eXAi.abc");
+});
+
+test("buildGrokCookieHeader: full cookie blob forwards both sso and sso-rw", () => {
+  const blob = "cf_clearance=zzz; sso=AAA.bbb; sso-rw=CCC.ddd; other=1";
+  assert.equal(buildGrokCookieHeader(blob), "sso=AAA.bbb; sso-rw=CCC.ddd");
+});
+
+test("buildGrokCookieHeader: order-independent — sso-rw before sso in the blob", () => {
+  const blob = "sso-rw=CCC.ddd; sso=AAA.bbb";
+  assert.equal(buildGrokCookieHeader(blob), "sso=AAA.bbb; sso-rw=CCC.ddd");
+});
+
+test("buildGrokCookieHeader: blob with sso but no sso-rw emits only sso", () => {
+  assert.equal(buildGrokCookieHeader("foo=1; sso=AAA.bbb; bar=2"), "sso=AAA.bbb");
+});
+
+test("buildGrokCookieHeader: blob without sso returns empty string", () => {
+  assert.equal(buildGrokCookieHeader("foo=1; sso-rw=CCC.ddd; bar=2"), "");
+  assert.equal(buildGrokCookieHeader(""), "");
 });

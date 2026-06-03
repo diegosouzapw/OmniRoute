@@ -13,6 +13,7 @@ import {
   withBodyTimeout,
 } from "../utils/stream.ts";
 import { ensureStreamReadiness } from "../utils/streamReadiness.ts";
+import { synthesizeOpenAiSseFromJson } from "../utils/jsonToSse.ts";
 import { resolveStreamReadinessTimeout } from "../utils/streamReadinessPolicy.ts";
 import { createStreamController, pipeWithDisconnect } from "../utils/streamHandler.ts";
 import { createSseHeartbeatTransform, shapeForClientFormat } from "../utils/sseHeartbeat.ts";
@@ -2290,20 +2291,28 @@ export async function handleChatCore({
         cacheSource: "semantic",
       });
       trackPendingRequest(model, provider, connectionId, false);
+      // #2952 — when the client requested a stream, serve the cached completion
+      // as an SSE stream (not a raw JSON body) so content + reasoning_content
+      // arrive in the streaming shape the client expects. Cache hits previously
+      // returned application/json regardless of the stream flag, which made
+      // OpenAI-compatible streaming clients lose reasoning_content. Non-OpenAI
+      // shapes (no `choices`) yield "" and fall back to the JSON body unchanged.
+      const cachedSse = stream ? synthesizeOpenAiSseFromJson(JSON.stringify(cached)) : "";
+      const cacheHitMetaHeaders = buildOmniRouteResponseMetaHeaders({
+        provider,
+        model,
+        cacheHit: true,
+        latencyMs: Date.now() - startTime,
+        usage: cachedUsage,
+        costUsd: cachedCost,
+      });
       return {
         success: true,
-        response: new Response(JSON.stringify(cached), {
+        response: new Response(cachedSse || JSON.stringify(cached), {
           headers: {
-            "Content-Type": "application/json",
+            "Content-Type": cachedSse ? "text/event-stream" : "application/json",
             [OMNIROUTE_RESPONSE_HEADERS.cache]: "HIT",
-            ...buildOmniRouteResponseMetaHeaders({
-              provider,
-              model,
-              cacheHit: true,
-              latencyMs: Date.now() - startTime,
-              usage: cachedUsage,
-              costUsd: cachedCost,
-            }),
+            ...cacheHitMetaHeaders,
           },
         }),
       };
@@ -5481,6 +5490,47 @@ export async function handleChatCore({
   }
 
   // Streaming response
+  // #3089 — some "reasoning" openai-compatible upstreams ignore a stream:true
+  // request and return a complete application/json chat-completion body instead
+  // of an SSE stream. The readiness check below only recognizes SSE `data:`
+  // frames, so that body produced a spurious STREAM_EARLY_EOF / HTTP 502 even
+  // though it carried valid content/reasoning_content. Detect a JSON (non-SSE)
+  // upstream body and synthesize an equivalent OpenAI SSE stream so the
+  // streaming pipeline (and the client) get a valid stream.
+  {
+    const upstreamContentType = (providerResponse.headers.get("content-type") || "").toLowerCase();
+    const isNonSseJsonBody =
+      !!providerResponse.body &&
+      upstreamContentType.includes("application/json") &&
+      !upstreamContentType.includes("text/event-stream") &&
+      !upstreamContentType.includes("application/x-ndjson");
+    if (isNonSseJsonBody) {
+      const jsonText = await withBodyTimeout<string>(providerResponse.text());
+      const synthesizedSse = synthesizeOpenAiSseFromJson(jsonText);
+      const rebuiltHeaders = new Headers(providerResponse.headers);
+      rebuiltHeaders.delete("content-length");
+      if (synthesizedSse) {
+        log?.debug?.(
+          "STREAM",
+          `Upstream returned application/json on a streaming request — converting to SSE (${provider}/${model})`
+        );
+        rebuiltHeaders.set("content-type", "text/event-stream");
+        providerResponse = new Response(synthesizedSse, {
+          status: providerResponse.status,
+          statusText: providerResponse.statusText,
+          headers: rebuiltHeaders,
+        });
+      } else {
+        // Not a convertible chat-completion JSON — rebuild the consumed body so
+        // the existing readiness/error path still runs unchanged.
+        providerResponse = new Response(jsonText, {
+          status: providerResponse.status,
+          statusText: providerResponse.statusText,
+          headers: rebuiltHeaders,
+        });
+      }
+    }
+  }
   const streamReadinessPolicy = resolveStreamReadinessTimeout({
     baseTimeoutMs: STREAM_READINESS_TIMEOUT_MS,
     provider,
