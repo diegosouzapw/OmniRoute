@@ -65,7 +65,7 @@ function computeEffectiveWeight(
 // Level A.1 — 2 allocations, BOTH weight=0, budget/2 consumed → ALLOWED (just under)
 // ---------------------------------------------------------------------------
 
-await test("equal-split: 2 allocs both weight=0, consumed < budget/2 → ALLOWED", () => {
+test("equal-split: 2 allocs both weight=0, consumed < budget/2 → ALLOWED", () => {
   // Pool: 2 keys, both weight=0 → effectiveWeight = 50 each
   const poolAllocations = [
     { weight: 0 },
@@ -95,7 +95,7 @@ await test("equal-split: 2 allocs both weight=0, consumed < budget/2 → ALLOWED
 // Level A.2 — 2 allocations, BOTH weight=0, consumed AT budget/2 → BLOCKED
 // ---------------------------------------------------------------------------
 
-await test("equal-split: 2 allocs both weight=0, consumed >= budget/2 → BLOCKED (hard policy strict)", () => {
+test("equal-split: 2 allocs both weight=0, consumed >= budget/2 → BLOCKED (hard policy strict)", () => {
   const poolAllocations = [{ weight: 0 }, { weight: 0 }];
   const effectiveWeight = computeEffectiveWeight(0, poolAllocations); // 50
   const fairShareAmount = (effectiveWeight / 100) * BUDGET; // 500
@@ -120,7 +120,7 @@ await test("equal-split: 2 allocs both weight=0, consumed >= budget/2 → BLOCKE
 // Level A.3 — With weight=0, fairShare is NOT 0 (old broken behavior)
 // ---------------------------------------------------------------------------
 
-await test("equal-split: without fix, weight=0 gives fairShare=0 → everything BLOCKS", () => {
+test("equal-split: without fix, weight=0 gives fairShare=0 → everything BLOCKS", () => {
   // Demonstrate the old broken behavior: weight=0 → fairShare=0 → any consumption blocks
   const oldWeight = 0; // original un-fixed weight
   const consumed = 1; // minimal consumption
@@ -145,7 +145,7 @@ await test("equal-split: without fix, weight=0 gives fairShare=0 → everything 
 // Level A.4 — effectiveWeight: 0-weight pool with N=3 → each gets 100/3
 // ---------------------------------------------------------------------------
 
-await test("equal-split: 3 allocs all weight=0 → effectiveWeight = 100/3 ≈ 33.33", () => {
+test("equal-split: 3 allocs all weight=0 → effectiveWeight = 100/3 ≈ 33.33", () => {
   const poolAllocations = [{ weight: 0 }, { weight: 0 }, { weight: 0 }];
   const effectiveWeight = computeEffectiveWeight(0, poolAllocations);
   assert.ok(
@@ -158,7 +158,7 @@ await test("equal-split: 3 allocs all weight=0 → effectiveWeight = 100/3 ≈ 3
 // Level B — explicit non-zero weights: 70/30 → originals are preserved
 // ---------------------------------------------------------------------------
 
-await test("equal-split: explicit 70/30 weights → originals used (no equal-split override)", () => {
+test("equal-split: explicit 70/30 weights → originals used (no equal-split override)", () => {
   // Key A has weight=70, key B has weight=30; pool total = 100 > 0 → use original
   const poolAllocations = [{ weight: 70 }, { weight: 30 }];
 
@@ -192,7 +192,7 @@ await test("equal-split: explicit 70/30 weights → originals used (no equal-spl
 // Level B.2 — mixed weights (some 0, some non-zero): total > 0 → originals used
 // ---------------------------------------------------------------------------
 
-await test("equal-split: mixed weights (50, 0) → total=50>0, original weights preserved", () => {
+test("equal-split: mixed weights (50, 0) → total=50>0, original weights preserved", () => {
   const poolAllocations = [{ weight: 50 }, { weight: 0 }];
   const effectiveWeightForZeroKey = computeEffectiveWeight(0, poolAllocations);
 
@@ -208,7 +208,7 @@ await test("equal-split: mixed weights (50, 0) → total=50>0, original weights 
 // Level C — enforceQuotaShare fail-open (no DB) still resolves (B16 intact)
 // ---------------------------------------------------------------------------
 
-await test("equal-split: enforceQuotaShare fail-open path → allow (B16 semantics intact)", async () => {
+test("equal-split: enforceQuotaShare fail-open path → allow (B16 semantics intact)", async () => {
   const { enforceQuotaShare } = await import("../../src/lib/quota/enforce.ts");
 
   const result = await enforceQuotaShare({

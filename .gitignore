@@ -31,38 +31,16 @@ docs/new-features/
 
 # dependencies
 node_modules/
-/.pnp
-.pnp.*
-.yarn/*
-!.yarn/patches
-!.yarn/plugins
-!.yarn/releases
-!.yarn/versions
-.data/
-.next-playwright/
-.agents/
-workflows/
-.omo/
-
-# devbox
-.devbox/
-
-# testing
-coverage/
-coverage**
-
-# next.js
-.next/
-/out/
-
-# production
-/build
-/app
-cloud/*
-
-# misc
+dist/
+*.map
 .DS_Store
-*.pem
+
+# Obsidian sync plugin — committed for community distribution
+!obsidian-plugin/
+obsidian-plugin/node_modules/
+
+# Serena AI assistant config (local-only tool, not project code)
+.serena/
 
 # debug
 npm-debug.log*

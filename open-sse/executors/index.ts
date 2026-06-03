@@ -26,7 +26,6 @@ import { AzureOpenAIExecutor } from "./azure-openai.ts";
 import { CommandCodeExecutor } from "./commandCode.ts";
 import { GitlabExecutor } from "./gitlab.ts";
 import { NlpCloudExecutor } from "./nlpcloud.ts";
-import { PetalsExecutor } from "./petals.ts";
 import { WindsurfExecutor } from "./windsurf.ts";
 import { DevinCliExecutor } from "./devin-cli.ts";
 import { DeepSeekWebExecutor } from "./deepseek-web.ts";
@@ -70,7 +69,6 @@ const executors = {
   gitlab: new GitlabExecutor(),
   "gitlab-duo": new GitlabExecutor("gitlab-duo"),
   nlpcloud: new NlpCloudExecutor(),
-  petals: new PetalsExecutor(),
   pollinations: new PollinationsExecutor(),
   pol: new PollinationsExecutor(), // Alias
   "cloudflare-ai": new CloudflareAIExecutor(),
@@ -177,7 +175,6 @@ export { AzureOpenAIExecutor } from "./azure-openai.ts";
 export { CommandCodeExecutor } from "./commandCode.ts";
 export { GitlabExecutor } from "./gitlab.ts";
 export { NlpCloudExecutor } from "./nlpcloud.ts";
-export { PetalsExecutor } from "./petals.ts";
 export { WindsurfExecutor } from "./windsurf.ts";
 export { DevinCliExecutor } from "./devin-cli.ts";
 export { CopilotWebExecutor } from "./copilot-web.ts";

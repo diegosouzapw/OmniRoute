@@ -67,7 +67,7 @@ function makeDim(effectiveLimit: number, globalUsedPercent = 0.7) {
 }
 
 // --- 1-account baseline: consumption > L → BLOCK ---
-await test("summed-budget: single-account (limit=L), consumption > L → BLOCK (fair-share)", () => {
+test("summed-budget: single-account (limit=L), consumption > L → BLOCK (fair-share)", () => {
   const effectiveLimit = PLAN_LIMIT * 1; // 1000
   const fairShare = (ALLOC.weight / 100) * effectiveLimit; // 500
 
@@ -93,7 +93,7 @@ await test("summed-budget: single-account (limit=L), consumption > L → BLOCK (
 });
 
 // --- 2-account summed budget: same consumption → ALLOW ---
-await test("summed-budget: 2-account pool (limit=2L), same consumption > L but < 2L → ALLOW", () => {
+test("summed-budget: 2-account pool (limit=2L), same consumption > L but < 2L → ALLOW", () => {
   const effectiveLimit = PLAN_LIMIT * 2; // 2000
   const fairShare = (ALLOC.weight / 100) * effectiveLimit; // 1000
 
@@ -132,7 +132,7 @@ await test("summed-budget: 2-account pool (limit=2L), same consumption > L but <
 });
 
 // --- Confirm the same consumption=600 BLOCKS with 1-account pool ---
-await test("summed-budget: 1-account (limit=L), consumption=600 > fair-share(500) → BLOCK", () => {
+test("summed-budget: 1-account (limit=L), consumption=600 > fair-share(500) → BLOCK", () => {
   const effectiveLimit = PLAN_LIMIT * 1; // 1000
   const fairShare = (ALLOC.weight / 100) * effectiveLimit; // 500
   const CONSUMPTION_BETWEEN = 600;
@@ -164,7 +164,7 @@ await test("summed-budget: 1-account (limit=L), consumption=600 > fair-share(500
 // that accountCount scaling produces the correct limit in the snapshot.
 // ---------------------------------------------------------------------------
 
-await test("summed-budget: dimensionsInfo.limit = planLimit × accountCount for N-connection pool", () => {
+test("summed-budget: dimensionsInfo.limit = planLimit × accountCount for N-connection pool", () => {
   const planDimensions = [
     { unit: "tokens" as const, window: "hourly" as const, limit: PLAN_LIMIT },
   ];
@@ -225,7 +225,7 @@ await test("summed-budget: dimensionsInfo.limit = planLimit × accountCount for 
 // preserved with the new accountCount code path.
 // ---------------------------------------------------------------------------
 
-await test("summed-budget: enforceQuotaShare fail-open (no DB) → allow, B16 semantics intact", async () => {
+test("summed-budget: enforceQuotaShare fail-open (no DB) → allow, B16 semantics intact", async () => {
   const { enforceQuotaShare } = await import("../../src/lib/quota/enforce.ts");
 
   const result = await enforceQuotaShare({

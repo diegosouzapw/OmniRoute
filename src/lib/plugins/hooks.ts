@@ -47,6 +47,36 @@ export const BUILTIN_EVENTS = [
 
 export type BuiltinEvent = (typeof BUILTIN_EVENTS)[number];
 
+// ── Rate limiting ──
+
+const RATE_LIMIT_MAX = 100; // max calls per plugin per window
+const RATE_LIMIT_WINDOW_MS = 1000; // 1 second window
+
+interface RateLimitState {
+  count: number;
+  windowStart: number;
+}
+
+const rateLimitMap: Map<string, RateLimitState> = new Map();
+
+function isRateLimited(pluginName: string): boolean {
+  const now = Date.now();
+  const key = pluginName;
+  const state = rateLimitMap.get(key);
+
+  if (!state || now - state.windowStart >= RATE_LIMIT_WINDOW_MS) {
+    // New window
+    rateLimitMap.set(key, { count: 1, windowStart: now });
+    return false;
+  }
+
+  state.count++;
+  if (state.count > RATE_LIMIT_MAX) {
+    return true;
+  }
+  return false;
+}
+
 // ── Registry ──
 
 const hooks: Map<string, HookRegistration[]> = new Map();
@@ -78,6 +108,7 @@ export function registerHook(
 
 /**
  * Unregister all handlers for a plugin.
+ * Also evicts the plugin's rate-limit state so uninstalled plugins don't leak memory.
  */
 export function unregisterHooks(pluginName: string): void {
   for (const [event, list] of hooks.entries()) {
@@ -88,6 +119,8 @@ export function unregisterHooks(pluginName: string): void {
       log.info("hook.unregistered", { event, pluginName, removed: before - filtered.length });
     }
   }
+  // Evict rate-limit state so uninstalled plugins don't accumulate entries
+  rateLimitMap.delete(pluginName);
 }
 
 /**
@@ -107,12 +140,17 @@ export function unregisterHook(event: string, pluginName: string): void {
 /**
  * Emit an event — fire all registered handlers.
  * Handler errors are logged but don't block other handlers.
+ * Rate-limited per plugin: max 100 calls per second.
  */
 export async function emitHook(event: string, payload: unknown): Promise<void> {
   const list = hooks.get(event);
   if (!list || list.length === 0) return;
 
   for (const reg of list) {
+    if (isRateLimited(reg.pluginName)) {
+      log.warn("hook.rate_limited", { event, pluginName: reg.pluginName });
+      continue;
+    }
     try {
       await reg.handler(payload);
     } catch (err: unknown) {
@@ -146,6 +184,11 @@ export async function emitHookBlocking(
   let mergedMetadata: Record<string, unknown> = (ctx.metadata as Record<string, unknown>) || {};
 
   for (const reg of list) {
+    // Mirror emitHook: rate-limit the hot blocking path too
+    if (isRateLimited(reg.pluginName)) {
+      log.warn("hook.blocking_rate_limited", { event, pluginName: reg.pluginName });
+      continue;
+    }
     try {
       const result = await reg.handler(payload);
       if (result && typeof result === "object") {
@@ -258,8 +301,9 @@ export function getActiveEvents(): string[] {
 }
 
 /**
- * Reset all hooks (for testing).
+ * Reset all hooks and rate limit state (for testing).
  */
 export function resetHooks(): void {
   hooks.clear();
+  rateLimitMap.clear();
 }

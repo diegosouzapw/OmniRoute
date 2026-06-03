@@ -698,6 +698,14 @@ async function selectSessionAffinityConnection(
   return connection;
 }
 
+/**
+ * Sentinel connection id used for the synthetic credentials of no-auth /
+ * keyless providers (opencode / opencode-zen). It is NOT a real DB row, so it
+ * cannot carry cooldown state — the account-fallback loop must be able to
+ * exclude it (#3061), otherwise it gets re-selected forever.
+ */
+const SYNTHETIC_NOAUTH_CONNECTION_ID = "noauth";
+
 function normalizeExcludedConnectionIds(
   excludeConnectionId: string | null,
   extraExcludedConnectionIds: string[] | null | undefined
@@ -762,7 +770,7 @@ function getSelectionMutexKey(provider: string, options: CredentialSelectionOpti
 }
 
 function createSelectionLock(key: string) {
-  const currentMutex = selectionMutexes.get(key) || Promise.resolve();
+  const currentMutex = selectionMutexes.get(key) ?? Promise.resolve();
   let resolveMutex: (() => void) | undefined;
   const nextMutex = new Promise<void>((resolve) => {
     resolveMutex = resolve;
@@ -808,7 +816,7 @@ async function getProviderSearchPool(provider: string): Promise<string[]> {
 
   // Built-in providers already resolve through static ids/aliases. Only
   // compatible/custom providers need provider_nodes expansion back to the
-  // generated internal connection ids.
+  // generated internal connection ids. (#3058)
   if (getProviderById(canonicalProvider)) {
     return Array.from(searchPool);
   }
@@ -860,6 +868,19 @@ export async function getProviderCredentials(
       WEB_COOKIE_PROVIDERS as Record<string, { noAuth?: boolean } | undefined>,
     ];
     if (providerMaps.some((map) => map[resolvedId]?.noAuth)) {
+      // #3061: there is only one synthetic "noauth" connection for a no-auth
+      // provider. If the caller already tried and excluded it (account-fallback
+      // after a persistent upstream error), do NOT hand it back — that would let
+      // the chat fallback loop re-select "noauth" forever (no real DB row → no
+      // cooldown to brake it), writing logs every iteration until the disk fills.
+      // Returning null here lets the handler stop after a single attempt.
+      const excludedForNoAuth = normalizeExcludedConnectionIds(
+        excludeConnectionId,
+        options.excludeConnectionIds
+      );
+      if (excludedForNoAuth.has(SYNTHETIC_NOAUTH_CONNECTION_ID)) {
+        return null;
+      }
       return {
         apiKey: null,
         accessToken: null,
@@ -868,7 +889,7 @@ export async function getProviderCredentials(
         projectId: null,
         copilotToken: null,
         providerSpecificData: {},
-        connectionId: "noauth",
+        connectionId: SYNTHETIC_NOAUTH_CONNECTION_ID,
         testStatus: "active",
         lastError: null,
         lastErrorType: null,
@@ -982,6 +1003,12 @@ export async function getProviderCredentials(
       // OpenCode free model. A configured, active key is still selected above; a
       // rate-limited/terminal key returns its own signal before reaching here.
       if (resolvedId === "opencode-zen") {
+        // #3061: same loop guard as the NOAUTH_PROVIDERS path above — once the
+        // single synthetic "noauth" connection has been excluded by the chat
+        // fallback loop, return null instead of re-handing it back forever.
+        if (excludedConnectionIds.has(SYNTHETIC_NOAUTH_CONNECTION_ID)) {
+          return null;
+        }
         return {
           apiKey: null,
           accessToken: null,
@@ -990,7 +1017,7 @@ export async function getProviderCredentials(
           projectId: null,
           copilotToken: null,
           providerSpecificData: {},
-          connectionId: "noauth",
+          connectionId: SYNTHETIC_NOAUTH_CONNECTION_ID,
           testStatus: "active",
           lastError: null,
           lastErrorType: null,

@@ -15,7 +15,7 @@ import os from "node:os";
 
 // ── Dynamic imports (tsx/esm resolves TS imports) ────────────────────────────
 
-const { generateAgentSkills, buildSkillMarkdown } = await import(
+const { generateAgentSkills, buildSkillMarkdown, __testing } = await import(
   "../../src/lib/agentSkills/generator.ts"
 );
 
@@ -536,4 +536,26 @@ test("report has all required fields with correct types", async () => {
   } finally {
     rmTmpDir(tmpDir);
   }
+});
+
+// ── serializeFrontmatter escaping (js/incomplete-sanitization regression) ──────
+
+test("serializeFrontmatter escapes backslashes before quotes → valid round-trippable YAML", async () => {
+  const { parse } = await import("yaml");
+  const fm = {
+    name: 'name with "quote"',
+    description: 'line1\nline2: path C:\\Users\\x with "q" and trailing \\',
+  };
+  const block = __testing.serializeFrontmatter(fm);
+  // Strip the --- fences and parse the inner YAML; broken escaping (e.g. an
+  // unescaped trailing backslash that escapes the closing quote) would throw or
+  // corrupt the value here.
+  const inner = block.replace(/^---\n/, "").replace(/---\n?$/, "");
+  const parsed = parse(inner) as { name: string; description: string };
+  assert.equal(parsed.name, fm.name, "name must round-trip through YAML unchanged");
+  assert.equal(
+    parsed.description,
+    fm.description,
+    "description with backslashes + quotes + newline must round-trip exactly"
+  );
 });

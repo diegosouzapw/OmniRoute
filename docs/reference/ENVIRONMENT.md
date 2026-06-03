@@ -332,6 +332,7 @@ detection above).
 | `OMNIROUTE_HTTP_TIMEOUT_MS` | `30000`    | `bin/cli/api.mjs`                       | Per-attempt HTTP timeout (ms) for CLI → server requests.                                                                        |
 | `OMNIROUTE_VERBOSE`         | `0`        | `bin/cli/api.mjs`                       | Set to `1` to print retry/backoff diagnostics to stderr during CLI commands.                                                    |
 | `OMNIROUTE_PLUGIN_PATH`     | _(unset)_  | `bin/cli/plugins.mjs`                   | Custom directory for CLI plugin discovery (`omniroute-cmd-*` packages). Defaults to `~/.omniroute/plugins/` when unset.         |
+| `OMNIROUTE_PLUGINS_ALLOW_EXEC` | `0`     | `src/lib/plugins/pluginWorker.ts`       | Set to `1` to allow plugins to request the `exec` permission (spawn child processes from the worker sandbox). Local operator only. |
 
 ---
 

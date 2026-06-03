@@ -186,7 +186,7 @@ export const FEATURE_FLAG_DEFINITIONS: FeatureFlagDefinition[] = [
     warningLevel: "info",
   },
 
-  // ──────────────── Runtime (5) ────────────────
+  // ──────────────── Runtime (7) ────────────────
   {
     key: "OMNIROUTE_MCP_ENFORCE_SCOPES",
     label: "MCP Enforce Scopes",
@@ -252,6 +252,18 @@ export const FEATURE_FLAG_DEFINITIONS: FeatureFlagDefinition[] = [
     defaultValue: "true",
     type: "boolean",
     requiresRestart: true,
+    warningLevel: "info",
+  },
+  {
+    key: "OMNIROUTE_CODEX_WS_ENABLED",
+    label: "Codex Responses WebSocket",
+    description:
+      "Allow Codex to use the Responses-over-WebSocket transport (the codex CLI WS endpoint and codexTransport=websocket). When off, Codex falls back to HTTP Responses.",
+    descriptionI18nKey: "featureFlagOmnirouteCodexWsEnabledDescription",
+    category: "runtime",
+    defaultValue: "true",
+    type: "boolean",
+    requiresRestart: false,
     warningLevel: "info",
   },
 

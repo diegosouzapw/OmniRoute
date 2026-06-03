@@ -237,3 +237,26 @@ test("realistic i18n: locale invalid → DEFAULT_LOCALE applies; merge still wor
   assert.equal(common.cancel, "Cancel", "missing key filled from EN");
   assert.deepEqual(messages.extra, { key: "Extra EN" }, "missing namespace filled from EN");
 });
+
+// ---------------------------------------------------------------------------
+// 8. Prototype-pollution guard (js/prototype-pollution-utility regression)
+// ---------------------------------------------------------------------------
+
+test("deepMergeFallback: ignores __proto__ / constructor / prototype keys (no prototype pollution)", () => {
+  const target: Record<string, unknown> = {};
+  // JSON.parse produces a real own-enumerable __proto__ key (an object literal would
+  // not), so Object.entries iterates it — exactly the attack vector the guard blocks.
+  const malicious = JSON.parse(
+    '{"__proto__":{"polluted":"yes"},"constructor":{"bad":1},"safe":"ok"}'
+  ) as Record<string, unknown>;
+
+  deepMergeFallback(target, malicious);
+
+  assert.equal(
+    ({} as Record<string, unknown>).polluted,
+    undefined,
+    "Object.prototype must not be polluted"
+  );
+  assert.equal((target as Record<string, unknown>).polluted, undefined);
+  assert.equal(target.safe, "ok", "legitimate keys still merge through");
+});

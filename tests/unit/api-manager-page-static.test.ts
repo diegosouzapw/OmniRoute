@@ -46,8 +46,12 @@ test("permissions modal switch buttons declare button type", () => {
     selfServiceBlock.match(/<button\s+type="button"\s+role="switch"/g) ?? []
   ).length;
 
-  assert.equal(switchButtonCount, 2);
-  assert.equal(typedSwitchButtonCount, 2);
+  // Self-service Visibility block has 3 switches: own-usage visibility,
+  // shared-account quota visibility, and disable-non-public-models (#3041).
+  // The invariant is that every switch declares type="button"
+  // (typedSwitchButtonCount === switchButtonCount) to avoid implicit submit.
+  assert.equal(switchButtonCount, 3);
+  assert.equal(typedSwitchButtonCount, 3);
 });
 
 test("self-service API key scope labels do not expose missing placeholders", () => {
