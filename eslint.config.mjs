@@ -23,6 +23,22 @@ const eslintConfig = [
       ],
     },
   },
+  // i18n: ham toLowerCase().includes() arama pattern'ini engelle
+  // (Türkçe İ/ı karakterlerini bozar — matchesSearch kullanılmalı)
+  {
+    files: ["src/app/**/*.{ts,tsx}", "src/components/**/*.{ts,tsx}"],
+    rules: {
+      "no-restricted-syntax": [
+        "error",
+        {
+          selector:
+            "CallExpression[callee.property.name='includes'][callee.object.callee.property.name='toLowerCase']",
+          message:
+            "Türkçe-güvenli arama için matchesSearch() kullan (@/shared/utils/turkishText). Ham toLowerCase().includes() İ/ı karakterlerini bozar.",
+        },
+      ],
+    },
+  },
   // Relaxed rules for open-sse and tests (incremental adoption)
   {
     files: ["open-sse/**/*.ts", "tests/**/*.mjs", "tests/**/*.ts"],

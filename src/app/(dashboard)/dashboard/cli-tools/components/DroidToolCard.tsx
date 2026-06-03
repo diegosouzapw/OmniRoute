@@ -259,6 +259,7 @@ export default function DroidToolCard({
     };
 
     const platform = typeof navigator !== "undefined" && navigator.platform;
+    // eslint-disable-next-line no-restricted-syntax -- teknik string kontrolü, kullanıcı metni araması değil
     const isWindows = platform?.toLowerCase().includes("win");
     const settingsPath = isWindows
       ? "%USERPROFILE%\\.factory\\settings.json"
