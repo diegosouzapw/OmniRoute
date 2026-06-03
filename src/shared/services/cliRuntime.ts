@@ -296,7 +296,7 @@ const runProcess = (
     let timedOut = false;
     let settled = false;
 
-    const spawnCommand = useShell && isWindows() && /\s/.test(command) ? `"${command}"` : command;
+    const spawnCommand = useShell && isWindows() && /\s/.test(command) && !command.startsWith('"') ? `"${command}"` : command;
     const child = spawn(spawnCommand, args, {
       env,
       stdio: ["ignore", "pipe", "pipe"],
