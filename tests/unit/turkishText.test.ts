@@ -47,3 +47,22 @@ test("compareTr: ı, i'den önce gelir (Türkçe)", () => {
 test("compareTr: sayısal-duyarlı (item2 < item10)", () => {
   assert.equal(compareTr("item2", "item10") < 0, true);
 });
+
+test("normalizeForSearch: null/undefined boş string döner", () => {
+  assert.equal(normalizeForSearch(null), "");
+  assert.equal(normalizeForSearch(undefined), "");
+});
+
+test("normalizeForSearch: yalnızca boşluk → boş string", () => {
+  assert.equal(normalizeForSearch("   "), "");
+});
+
+test("matchesSearch: yalnızca boşluk sorgusu her şeyi eşler", () => {
+  assert.equal(matchesSearch("herhangi", "   "), true);
+});
+
+test("compareTr: null/undefined argümanları güvenli (?? '' guard)", () => {
+  assert.equal(compareTr(null, "a") < 0, true);
+  assert.equal(compareTr("a", null) > 0, true);
+  assert.equal(compareTr(null, undefined), 0);
+});

@@ -24,6 +24,7 @@ const TR_FOLD: Readonly<Record<string, string>> = {
 /**
  * Aksan-duyarsız, Türkçe-güvenli arama anahtarı üretir.
  * `"İstanbul"` ve `"istanbul"` → `"istanbul"`; `"Şarj"` → `"sarj"`.
+ * Baştaki ve sondaki boşluklar kırpılır.
  */
 export function normalizeForSearch(input: string | null | undefined): string {
   if (!input) return "";
@@ -54,6 +55,11 @@ const trCollator = new Intl.Collator("tr", {
 /**
  * Kullanıcı-görünür listeler için Türkçe alfabe + sayısal-duyarlı
  * karşılaştırma. `Array.prototype.sort` ile doğrudan kullanılabilir.
+ *
+ * `sensitivity: "base"` kullanıldığından aksan/büyük-küçük harf varyantları
+ * sıralama açısından eşit sayılır — örneğin `"Şehir"` ile `"şehir"` berabere
+ * gelir. Bu karşılaştırıcı görsel liste sıralaması içindir, kesin
+ * aksan-farklılaştırmalı sıralama için değil.
  */
 export function compareTr(a: string | null | undefined, b: string | null | undefined): number {
   return trCollator.compare(a ?? "", b ?? "");
