@@ -2,7 +2,7 @@ import fs from "node:fs";
 import path from "node:path";
 import type { RequestPipelinePayloads } from "@omniroute/open-sse/utils/requestLogger.ts";
 import { resolveDataDir } from "../dataPaths";
-import { getCallLogPipelineMaxSizeBytes } from "../logEnv";
+import { getCallLogPipelineMaxSizeBytes, isChatDebugFileEnabled } from "../logEnv";
 
 const isCloud = typeof globalThis.caches === "object" && globalThis.caches !== null;
 const isBuildPhase = process.env.NEXT_PHASE === "phase-production-build";
@@ -19,7 +19,7 @@ const STREAM_CHUNKS_OMITTED_FOR_SIZE_LIMIT =
 export type CallLogDetailState = "none" | "ready" | "missing" | "corrupt" | "legacy-inline";
 
 export type CallLogArtifact = {
-  schemaVersion: 4;
+  schemaVersion: 5;
   summary: {
     id: string;
     timestamp: string;
@@ -38,6 +38,7 @@ export type CallLogArtifact = {
       cacheRead: number | null;
       cacheWrite: number | null;
       reasoning: number | null;
+      compressed: number | null;
     };
     requestType: string | null;
     sourceFormat: string | null;
@@ -150,6 +151,11 @@ function serializeFinalSizeLimitFallback(artifact: CallLogArtifact, maxBytes: nu
 }
 
 function serializeArtifactForStorage(artifact: CallLogArtifact): string {
+  // Debug mode: write full untruncated payload
+  if (isChatDebugFileEnabled()) {
+    return JSON.stringify(artifact, null, 2);
+  }
+
   const maxBytes = getArtifactMaxBytes(artifact);
   const serialized = JSON.stringify(artifact, null, 2);
   if (Buffer.byteLength(serialized) <= maxBytes) {

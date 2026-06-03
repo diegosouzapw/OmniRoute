@@ -161,6 +161,12 @@ export async function updateCombo(id: string, data: JsonRecord) {
     sortOrder,
     updatedAt: new Date().toISOString(),
   };
+  // Remove fields explicitly set to null (for deletion support)
+  for (const key of Object.keys(data)) {
+    if (data[key] === null) {
+      delete merged[key];
+    }
+  }
   const currentName = typeof current.name === "string" ? current.name : "";
   const nextName =
     typeof merged["name"] === "string" && merged["name"].trim().length > 0
@@ -253,4 +259,16 @@ export async function deleteCombo(id: string) {
   if (result.changes === 0) return false;
   backupDbFile("pre-write");
   return true;
+}
+
+export async function deleteComboByName(name: string) {
+  const combo = await getComboByName(name);
+  if (!combo || typeof combo.id !== "string") return false;
+  return deleteCombo(combo.id);
+}
+
+export function setActiveCombo(name: string, db = getDbInstance()) {
+  db.prepare(
+    "INSERT OR REPLACE INTO key_value (namespace, key, value) VALUES ('settings', 'activeCombo', ?)"
+  ).run(JSON.stringify(name));
 }

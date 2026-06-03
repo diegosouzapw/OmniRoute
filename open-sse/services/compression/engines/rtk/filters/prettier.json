@@ -1,0 +1,40 @@
+{
+  "id": "prettier",
+  "label": "Prettier",
+  "description": "Keep files that would be changed and final summary.",
+  "category": "build",
+  "priority": 79,
+  "match": {
+    "outputTypes": [],
+    "commands": ["^prettier\\b", "^npx\\s+prettier\\b"],
+    "patterns": ["\\[warn\\]", "All matched files use Prettier"]
+  },
+  "rules": {
+    "stripAnsi": true,
+    "matchOutput": [
+      {
+        "pattern": "All matched files use Prettier",
+        "message": "prettier: ok"
+      }
+    ],
+    "dropPatterns": ["^\\s*$"],
+    "includePatterns": ["\\[warn\\]", "Code style issues", "All matched files"],
+    "collapsePatterns": [],
+    "deduplicate": true,
+    "maxLines": 80,
+    "headLines": 20,
+    "tailLines": 30
+  },
+  "preserve": {
+    "errorPatterns": ["\\[error\\]", "Code style issues"],
+    "summaryPatterns": ["All matched files"]
+  },
+  "tests": [
+    {
+      "name": "inline sample",
+      "command": "prettier",
+      "input": "[warn] src/a.ts\n[warn] Code style issues found in the above file. Forgot to run Prettier?\n",
+      "expected": "[warn] src/a.ts\n[warn] Code style issues found in the above file. Forgot to run Prettier?"
+    }
+  ]
+}

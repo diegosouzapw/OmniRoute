@@ -1,0 +1,42 @@
+{
+  "id": "docker-logs",
+  "label": "Docker Logs",
+  "description": "Keep warnings/errors and recent Docker log context.",
+  "category": "docker",
+  "priority": 84,
+  "match": {
+    "outputTypes": ["docker-logs"],
+    "commands": ["^docker\\s+(?:compose\\s+)?logs\\b"],
+    "patterns": ["\\b(?:ERROR|WARN|INFO)\\b", "^Attaching to "]
+  },
+  "rules": {
+    "stripAnsi": true,
+    "dropPatterns": ["^Attaching to ", "^\\s*$"],
+    "includePatterns": [
+      "ERROR",
+      "WARN",
+      "Exception",
+      "Traceback",
+      "failed",
+      "listening",
+      "started"
+    ],
+    "collapsePatterns": ["INFO"],
+    "deduplicate": true,
+    "maxLines": 120,
+    "headLines": 20,
+    "tailLines": 60
+  },
+  "preserve": {
+    "errorPatterns": ["ERROR", "Exception", "failed"],
+    "summaryPatterns": ["started", "listening"]
+  },
+  "tests": [
+    {
+      "name": "inline sample",
+      "command": "docker (?:compose )?logs",
+      "input": "Attaching to api\nINFO started\nINFO started\nERROR failed to connect\n",
+      "expected": "INFO started\nERROR failed to connect"
+    }
+  ]
+}

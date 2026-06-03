@@ -10,6 +10,7 @@
  */
 
 import { getDbInstance } from "../db/core";
+import type { SqliteAdapter } from "@/lib/db/adapters/types";
 import { getClientIpFromRequest } from "../ipUtils";
 import {
   getAppLogRetentionDays,
@@ -18,9 +19,9 @@ import {
   getProxyLogsTableMaxRows,
 } from "../logEnv";
 import { generateRequestId, getRequestId } from "@/shared/utils/requestId";
-import { deleteCallLogsBefore, trimCallLogsToMaxRows } from "../usage/callLogs";
+import { HIGH_LEVEL_ACTIONS } from "@/lib/audit/highLevelActions";
 
-/** @returns {import("better-sqlite3").Database | null} */
+/** @returns {SqliteAdapter | null} */
 function getDb() {
   try {
     return getDbInstance();
@@ -53,15 +54,49 @@ type AuditLogFilter = {
   to?: string;
   limit?: number;
   offset?: number;
+  /** When "high", restricts results to HIGH_LEVEL_ACTIONS only (B7). */
+  levelFilter?: "high";
 };
 
 type AuditLogRow = Record<string, unknown> & {
+  id?: number | null;
+  action?: string | null;
+  actor?: string | null;
+  target?: string | null;
+  status?: string | null;
   details?: string | null;
   metadata?: string | null;
   ip_address?: string | null;
   resource_type?: string | null;
   request_id?: string | null;
   timestamp?: string | null;
+};
+
+/**
+ * Public shape of a normalized audit-log entry returned by `getAuditLog` /
+ * `normalizeAuditLogRow`. Includes the column-level fields callers (and
+ * tests) reach into directly — `action`, `actor`, `target`, `id`, `status`,
+ * `timestamp` — alongside the derived/parsed fields. The
+ * `Record<string, unknown>` intersection preserves the existing behaviour of
+ * spreading any extra DB columns (e.g. schema additions) without losing
+ * compile-time access to the known ones.
+ */
+export type AuditLogEntry = Record<string, unknown> & {
+  id?: number | null;
+  action?: string | null;
+  actor?: string | null;
+  target?: string | null;
+  status: string | null;
+  timestamp: string;
+  createdAt: string;
+  details: unknown;
+  metadata: unknown;
+  ip_address: string | null;
+  ip: string | null;
+  resource_type: string | null;
+  resourceType: string | null;
+  request_id: string | null;
+  requestId: string | null;
 };
 
 const AUDIT_LOG_REQUIRED_COLUMNS: Record<string, string> = {
@@ -145,7 +180,7 @@ function parseAuditValue(value: unknown): unknown {
   }
 }
 
-function ensureAuditLogSchema(db: import("better-sqlite3").Database) {
+function ensureAuditLogSchema(db: SqliteAdapter) {
   db.exec(`
     CREATE TABLE IF NOT EXISTS audit_log (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -220,13 +255,21 @@ function buildAuditLogQuery(filter: AuditLogFilter = {}): AuditLogQuery {
     params.push(filter.to);
   }
 
+  // B7: level=high filter — restrict to HIGH_LEVEL_ACTIONS via parameterized IN clause
+  if (filter.levelFilter === "high" && HIGH_LEVEL_ACTIONS.length > 0) {
+    const placeholders = HIGH_LEVEL_ACTIONS.map(() => "?").join(", ");
+    conditions.push(`action IN (${placeholders})`);
+    // HIGH_LEVEL_ACTIONS is readonly — create a mutable copy for spread
+    params.push(...Array.from(HIGH_LEVEL_ACTIONS));
+  }
+
   return {
     where: conditions.length > 0 ? `WHERE ${conditions.join(" AND ")}` : "",
     params,
   };
 }
 
-function normalizeAuditLogRow(row: AuditLogRow) {
+function normalizeAuditLogRow(row: AuditLogRow): AuditLogEntry {
   const details = parseAuditValue(row.details);
   const metadata = parseAuditValue(row.metadata);
   const resourceType = typeof row.resource_type === "string" ? row.resource_type : null;
@@ -348,7 +391,7 @@ export function logAuditEvent(entry: {
  * @param {number} [filter.offset=0] - Pagination offset
  * @returns {Array<{ id: number, timestamp: string, action: string, actor: string, target: string, details: any, ip_address: string }>}
  */
-export function getAuditLog(filter: AuditLogFilter = {}) {
+export function getAuditLog(filter: AuditLogFilter = {}): AuditLogEntry[] {
   const db = getDb();
   if (!db) return [];
 
@@ -380,90 +423,10 @@ export function countAuditLog(filter: AuditLogFilter = {}) {
 }
 
 // ─── No-Log Opt-Out ────────────────
-
-/** @type {Set<string>} API key IDs with logging disabled */
-const noLogKeys = new Set();
-const noLogDbCache = new Map<string, { value: boolean; timestamp: number }>();
-let noLogColumnVerified = false;
-let hasNoLogColumn = false;
-const NO_LOG_CACHE_TTL_MS = 30_000;
-const noLogIdsFromEnv = (process.env.NO_LOG_API_KEY_IDS || "")
-  .split(",")
-  .map((value) => value.trim())
-  .filter(Boolean);
-for (const id of noLogIdsFromEnv) {
-  noLogKeys.add(id);
-}
-
-/**
- * Set whether an API key opts out of request logging.
- *
- * @param {string} apiKeyId
- * @param {boolean} noLog
- */
-export function setNoLog(apiKeyId: string, noLog: boolean) {
-  if (noLog) {
-    noLogKeys.add(apiKeyId);
-  } else {
-    noLogKeys.delete(apiKeyId);
-  }
-  noLogDbCache.set(apiKeyId, { value: noLog, timestamp: Date.now() });
-}
-
-function ensureNoLogColumn(db: import("better-sqlite3").Database) {
-  if (noLogColumnVerified) {
-    return hasNoLogColumn;
-  }
-
-  try {
-    const columns = db.prepare("PRAGMA table_info(api_keys)").all() as Array<{ name: string }>;
-    hasNoLogColumn = columns.some((column) => column.name === "no_log");
-  } catch {
-    hasNoLogColumn = false;
-  }
-
-  noLogColumnVerified = true;
-  return hasNoLogColumn;
-}
-
-function readNoLogFromDb(apiKeyId: string): boolean {
-  const db = getDb();
-  if (!db || !apiKeyId) return false;
-  if (!ensureNoLogColumn(db)) return false;
-
-  const cached = noLogDbCache.get(apiKeyId);
-  if (cached && Date.now() - cached.timestamp < NO_LOG_CACHE_TTL_MS) {
-    return cached.value;
-  }
-
-  try {
-    const row = db.prepare("SELECT no_log FROM api_keys WHERE id = ?").get(apiKeyId) as
-      | { no_log?: number }
-      | undefined;
-    const value = Boolean(row && Number(row.no_log) === 1);
-    noLogDbCache.set(apiKeyId, { value, timestamp: Date.now() });
-    return value;
-  } catch {
-    return false;
-  }
-}
-
-/**
- * Check if an API key has opted out of logging.
- *
- * @param {string} apiKeyId
- * @returns {boolean}
- */
-export function isNoLog(apiKeyId: string) {
-  if (!apiKeyId) return false;
-  if (noLogKeys.has(apiKeyId)) return true;
-
-  const persistedNoLog = readNoLogFromDb(apiKeyId);
-  if (persistedNoLog) {
-    noLogKeys.add(apiKeyId);
-  }
-  return persistedNoLog;
-}
+// Moved to ./noLog.ts to break the callLogs → compliance → callLogs ESM cycle
+// that deadlocks the bundled MCP server under Node.js 24 (#2650). Re-exported
+// here so downstream callers that import from "../compliance" keep working.
+export { isNoLog, setNoLog } from "./noLog";
 
 // ─── Log Retention / Cleanup ────────────────
 
@@ -496,7 +459,7 @@ export function getRetentionDays() {
  *   proxyLogsMaxRows: number
  * }}
  */
-export function cleanupExpiredLogs() {
+export async function cleanupExpiredLogs() {
   const db = getDb();
   const appRetentionDays = getAppLogRetentionDays();
   const callRetentionDays = getCallLogRetentionDays();
@@ -540,6 +503,7 @@ export function cleanupExpiredLogs() {
   }
 
   try {
+    const { deleteCallLogsBefore } = await import("../usage/callLogs");
     const r2 = deleteCallLogsBefore(callCutoff);
     deletedCallLogs = r2.deletedRows;
   } catch {
@@ -578,6 +542,7 @@ export function cleanupExpiredLogs() {
   const BATCH_SIZE = 5000;
   if (callLogsMaxRows > 0) {
     try {
+      const { trimCallLogsToMaxRows } = await import("../usage/callLogs");
       const trimmed = trimCallLogsToMaxRows(callLogsMaxRows);
       trimmedCallLogs = trimmed.deletedRows;
     } catch {

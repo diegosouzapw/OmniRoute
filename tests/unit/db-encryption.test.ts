@@ -1,5 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
+import { createCipheriv, createHash, randomBytes, scryptSync } from "node:crypto";
 import path from "node:path";
 import { pathToFileURL } from "node:url";
 
@@ -8,6 +9,16 @@ const ORIGINAL_STORAGE_KEY = process.env.STORAGE_ENCRYPTION_KEY;
 async function importFresh(modulePath) {
   const url = pathToFileURL(path.resolve(modulePath)).href;
   return import(`${url}?test=${Date.now()}-${Math.random().toString(16).slice(2)}`);
+}
+
+function encryptWithLegacyDynamicSalt(secret: string, plaintext: string): string {
+  const key = scryptSync(secret, createHash("sha256").update(secret).digest().slice(0, 16), 32);
+  const iv = randomBytes(16);
+  const cipher = createCipheriv("aes-256-gcm", key, iv);
+  let encrypted = cipher.update(plaintext, "utf8", "hex");
+  encrypted += cipher.final("hex");
+  const authTag = cipher.getAuthTag().toString("hex");
+  return `enc:v1:${iv.toString("hex")}:${encrypted}:${authTag}`;
 }
 
 test.after(() => {
@@ -41,6 +52,21 @@ test("encrypt/decrypt round-trip uses the expected serialized format", async () 
   assert.match(encrypted, /^enc:v1:[0-9a-f]+:[0-9a-f]+:[0-9a-f]+$/);
   assert.equal(decrypted, "hello world");
   assert.equal(encryption.encrypt(encrypted), encrypted);
+});
+
+test("decrypt rejects a truncated GCM authentication tag (authTagLength pinned to 16 bytes)", async () => {
+  process.env.STORAGE_ENCRYPTION_KEY = "task-304-secret-authtag";
+  const encryption = await importFresh("src/lib/db/encryption.ts");
+
+  const encrypted = encryption.encrypt("forge-me");
+  assert.equal(encryption.decrypt(encrypted), "forge-me");
+
+  // Truncate the trailing auth tag to 1 byte (2 hex chars). With authTagLength
+  // pinned to 16 bytes on createDecipheriv, Node rejects the short tag instead
+  // of verifying a weakened tag, so decrypt must fail closed (null).
+  const [prefix, version, ivHex, encryptedHex] = encrypted.split(":");
+  const truncated = `${prefix}:${version}:${ivHex}:${encryptedHex}:ab`;
+  assert.equal(encryption.decrypt(truncated), null);
 });
 
 test("connection field helpers encrypt and decrypt all supported credential fields", async () => {
@@ -78,4 +104,21 @@ test("decrypt returns null when the value is malformed or the key is wrong", asy
   // This prevents sending encrypted tokens to APIs
   assert.equal(secondModule.decrypt(encrypted), null);
   assert.equal(secondModule.decrypt("enc:v1:not-valid"), null);
+});
+
+test("legacy encryption migration parses ciphertext in canonical payload order", async () => {
+  process.env.STORAGE_ENCRYPTION_KEY = "task-304-legacy-secret";
+  const encryption = await importFresh("src/lib/db/encryption.ts");
+  const legacyCiphertext = encryptWithLegacyDynamicSalt(
+    process.env.STORAGE_ENCRYPTION_KEY,
+    "legacy-provider-token"
+  );
+
+  assert.equal(encryption.decrypt(legacyCiphertext), null);
+
+  const migrated = encryption.migrateLegacyEncryptedString(legacyCiphertext);
+
+  assert.equal(migrated.updated, true);
+  assert.match(migrated.value, /^enc:v1:/);
+  assert.equal(encryption.decrypt(migrated.value), "legacy-provider-token");
 });

@@ -2,6 +2,7 @@ import {
   getAllProviderLimitsCache,
   getProviderConnectionById,
   getProviderConnections,
+  getProviderLimitsCache,
   getSettings,
   resolveProxyForConnection,
   setProviderLimitsCache,
@@ -17,6 +18,11 @@ import { getMachineId } from "@/shared/utils/machine";
 import { USAGE_SUPPORTED_PROVIDERS } from "@/shared/constants/providers";
 import { getExecutor } from "@omniroute/open-sse/executors/index.ts";
 import { getUsageForProvider } from "@omniroute/open-sse/services/usage.ts";
+import { rotationGroupFor, serializeRefresh } from "@omniroute/open-sse/services/refreshSerializer.ts";
+import {
+  extractCodeAssistOnboardTierId,
+  extractCodeAssistSubscriptionTier,
+} from "@omniroute/open-sse/services/codeAssistSubscription.ts";
 import { runWithProxyContext } from "@omniroute/open-sse/utils/proxyFetch.ts";
 
 type JsonRecord = Record<string, unknown>;
@@ -43,7 +49,19 @@ interface ProviderConnectionLike {
   backoffLevel?: number;
 }
 
-const PROVIDER_LIMITS_APIKEY_PROVIDERS = new Set(["glm", "glmt", "minimax", "minimax-cn", "crof", "nanogpt"]);
+const PROVIDER_LIMITS_APIKEY_PROVIDERS = new Set([
+  "glm",
+  "glm-cn",
+  "zai",
+  "glmt",
+  "opencode-go",
+  "minimax",
+  "minimax-cn",
+  "crof",
+  "nanogpt",
+  "deepseek",
+  "xiaomi-mimo",
+]);
 const DEFAULT_PROVIDER_LIMITS_SYNC_INTERVAL_MINUTES = 70;
 const PROVIDER_LIMITS_AUTO_SYNC_SETTING_KEY = "provider_limits_auto_sync_last_run";
 
@@ -94,9 +112,37 @@ async function syncToCloudIfEnabled() {
   }
 }
 
-async function refreshAndUpdateCredentials(connection: ProviderConnectionLike) {
+/**
+ * Whether the quota path may refresh this provider's token. Exported for testing.
+ *
+ * Rotating-refresh providers (Codex/OpenAI share one Auth0 client_id, etc.) mint a
+ * single-use refresh_token on every refresh. The BULK quota-sync path runs many
+ * connections concurrently; refreshing sibling accounts in parallel makes Auth0
+ * revoke the whole token family (openai/codex#9648) and kills every account but
+ * the last (#3019). So the bulk path never refreshes rotating providers
+ * (`allowRotatingRefresh` falsy). The on-demand, per-connection path opts in and
+ * is made safe by `serializeRefresh` (one token mint at a time per rotation group,
+ * so even N concurrent per-account requests can never refresh siblings in
+ * parallel). Non-rotating providers are always eligible.
+ */
+export function shouldAttemptRotatingRefresh(
+  provider: string,
+  allowRotatingRefresh: boolean | undefined
+): boolean {
+  if (rotationGroupFor(provider) === null) return true;
+  return allowRotatingRefresh === true;
+}
+
+export async function refreshAndUpdateCredentials(
+  connection: ProviderConnectionLike,
+  opts: { allowRotatingRefresh?: boolean } = {}
+) {
+  if (!shouldAttemptRotatingRefresh(connection.provider, opts.allowRotatingRefresh)) {
+    return { connection, refreshed: false };
+  }
   const executor = getExecutor(connection.provider);
   const credentials = {
+    connectionId: connection.id,
     accessToken: connection.accessToken,
     refreshToken: connection.refreshToken,
     expiresAt: connection.tokenExpiresAt || connection.expiresAt || null,
@@ -109,7 +155,11 @@ async function refreshAndUpdateCredentials(connection: ProviderConnectionLike) {
     return { connection, refreshed: false };
   }
 
-  const refreshResult = await executor.refreshCredentials(credentials, console);
+  // Serialize the actual token mint per rotation group so two sibling accounts
+  // never hit Auth0 concurrently (passthrough for non-rotating providers).
+  const refreshResult = await serializeRefresh(connection.provider, () =>
+    executor.refreshCredentials(credentials, console)
+  );
 
   if (!refreshResult) {
     if (connection.provider === "github" && connection.accessToken) {
@@ -172,15 +222,56 @@ function isNetworkFailureMessage(message: unknown): boolean {
   );
 }
 
-async function syncExpiredStatusIfNeeded(connection: ProviderConnectionLike, usage: JsonRecord) {
-  const errorMessage = typeof usage.message === "string" ? usage.message.toLowerCase() : "";
-  const isAuthError =
-    errorMessage.includes("token expired") ||
-    errorMessage.includes("access denied") ||
-    errorMessage.includes("re-authenticate") ||
-    errorMessage.includes("unauthorized");
+function isAccountScopedProxyResolution(proxyInfo: unknown): boolean {
+  if (!isRecord(proxyInfo)) return false;
+  if (!proxyInfo.proxy) return false;
+  return proxyInfo.level === "key" || proxyInfo.level === "account";
+}
 
-  if (!isAuthError || connection.testStatus === "expired") {
+function shouldFailClosedForProviderLimitsProxy(
+  connection: ProviderConnectionLike,
+  proxyInfo: unknown
+): boolean {
+  return connection.authType === "oauth" && isAccountScopedProxyResolution(proxyInfo);
+}
+
+/**
+ * Decide whether the quota-sync path should flag a connection `expired` from an
+ * auth-style usage error. Exported for unit testing.
+ *
+ * Rotating-refresh providers (Codex/OpenAI/Claude/etc. — see refreshSerializer's
+ * ROTATION_LOCK_GROUP) have their access_token deliberately NOT proactively
+ * refreshed in this quota path (#3019, to avoid the Auth0 family-revocation
+ * cascade). So a "token expired" from the quota fetch is a recoverable
+ * false-negative: the credential is still valid (its `expires_at` is in the
+ * future) and the reactive, serialized 401 path refreshes the access_token on
+ * next use. Flagging it `expired` hides a healthy account from the quota page
+ * (observed: freshly-added Codex accounts flagged expired while a providers-page
+ * refresh turns them green). So never mark a rotating provider expired from the
+ * quota sync — leave its status to the reactive path / connection test.
+ */
+export function quotaPathShouldMarkExpired(
+  provider: string,
+  usageMessage: unknown,
+  currentTestStatus: string | null | undefined
+): boolean {
+  if (currentTestStatus === "expired") return false;
+
+  const message = typeof usageMessage === "string" ? usageMessage.toLowerCase() : "";
+  const isAuthError =
+    message.includes("token expired") ||
+    message.includes("access denied") ||
+    message.includes("re-authenticate") ||
+    message.includes("unauthorized");
+  if (!isAuthError) return false;
+
+  if (rotationGroupFor(provider) !== null) return false;
+
+  return true;
+}
+
+async function syncExpiredStatusIfNeeded(connection: ProviderConnectionLike, usage: JsonRecord) {
+  if (!quotaPathShouldMarkExpired(connection.provider, usage.message, connection.testStatus)) {
     return;
   }
 
@@ -206,6 +297,81 @@ async function syncClaudeExtraUsageStateIfNeeded(
   return {
     ...connection,
     ...update,
+  };
+}
+
+/** Persist Antigravity tier from live loadCodeAssist on quota refresh (not only OAuth). */
+async function syncAntigravitySubscriptionIfNeeded(
+  connection: ProviderConnectionLike,
+  usage: JsonRecord
+): Promise<ProviderConnectionLike> {
+  if (connection.provider !== "antigravity") return connection;
+
+  const subscriptionInfo = usage.subscriptionInfo;
+  if (!subscriptionInfo) return connection;
+
+  const psd = (connection.providerSpecificData || {}) as JsonRecord;
+  const nextPsd: JsonRecord = { ...psd };
+  let changed = false;
+
+  const tierId = extractCodeAssistOnboardTierId(subscriptionInfo);
+  if (tierId && tierId !== "legacy-tier" && psd.tier !== tierId) {
+    nextPsd.tier = tierId;
+    changed = true;
+  }
+
+  const subscriptionTier = extractCodeAssistSubscriptionTier(subscriptionInfo);
+  if (subscriptionTier && psd.subscriptionTier !== subscriptionTier) {
+    nextPsd.subscriptionTier = subscriptionTier;
+    changed = true;
+  }
+
+  const plan = typeof usage.plan === "string" ? usage.plan.trim() : "";
+  if (plan && psd.plan !== plan) {
+    nextPsd.plan = plan;
+    changed = true;
+  }
+
+  if (!changed) return connection;
+
+  await updateProviderConnection(connection.id, { providerSpecificData: nextPsd });
+  return { ...connection, providerSpecificData: nextPsd };
+}
+
+/** Persist refreshed Claude bootstrap fields into psd; writes only on diff. */
+async function syncClaudeBootstrapIfNeeded(
+  connection: ProviderConnectionLike,
+  usage: JsonRecord
+): Promise<ProviderConnectionLike> {
+  if (connection.provider !== "claude") return connection;
+  const bootstrap = usage?.bootstrap as Record<string, string | null> | null | undefined;
+  if (!bootstrap || typeof bootstrap !== "object") return connection;
+
+  const psd = (connection.providerSpecificData || {}) as JsonRecord;
+  const mapping: Array<[keyof typeof bootstrap, string]> = [
+    ["account_uuid", "accountUUID"],
+    ["organization_uuid", "organizationUUID"],
+    ["organization_name", "organizationName"],
+    ["organization_type", "organizationType"],
+    ["organization_rate_limit_tier", "organizationRateLimitTier"],
+  ];
+
+  const nextPsd: JsonRecord = { ...psd };
+  let changed = false;
+  for (const [bsKey, psdKey] of mapping) {
+    const next = bootstrap[bsKey];
+    if (typeof next === "string" && next.length > 0 && psd[psdKey] !== next) {
+      nextPsd[psdKey] = next;
+      changed = true;
+    }
+  }
+
+  if (!changed) return connection;
+
+  await updateProviderConnection(connection.id, { providerSpecificData: nextPsd });
+  return {
+    ...connection,
+    providerSpecificData: nextPsd,
   };
 }
 
@@ -245,12 +411,14 @@ export async function fetchLiveProviderLimits(connectionId: string): Promise<{
 
 async function fetchLiveProviderLimitsWithOptions(
   connectionId: string,
-  options: { forceRefresh?: boolean } = {}
+  options: { forceRefresh?: boolean; allowRotatingRefresh?: boolean } = {}
 ): Promise<{
   connection: ProviderConnectionLike;
   usage: JsonRecord;
 }> {
-  let connection = (await getProviderConnectionById(connectionId)) as ProviderConnectionLike | null;
+  let connection = (await getProviderConnectionById(
+    connectionId
+  )) as unknown as ProviderConnectionLike | null;
   if (!connection) {
     throw withStatus(new Error("Connection not found"), 404);
   }
@@ -266,6 +434,8 @@ async function fetchLiveProviderLimitsWithOptions(
     }
     await syncExpiredStatusIfNeeded(connection, usage);
     connection = await syncClaudeExtraUsageStateIfNeeded(connection, usage);
+    connection = await syncClaudeBootstrapIfNeeded(connection, usage);
+    connection = await syncAntigravitySubscriptionIfNeeded(connection, usage);
     return { connection, usage };
   }
 
@@ -276,7 +446,9 @@ async function fetchLiveProviderLimitsWithOptions(
       let conn = connection as ProviderConnectionLike;
       let wasRefreshed = false;
 
-      const result = await refreshAndUpdateCredentials(conn);
+      const result = await refreshAndUpdateCredentials(conn, {
+        allowRotatingRefresh: options.allowRotatingRefresh,
+      });
       conn = result.connection;
       wasRefreshed = result.refreshed;
 
@@ -291,6 +463,7 @@ async function fetchLiveProviderLimitsWithOptions(
 
   let result: { usage: JsonRecord };
   const proxyConfig = proxyInfo?.proxy || null;
+  const failClosedOnProxyFailure = shouldFailClosedForProviderLimitsProxy(connection, proxyInfo);
 
   try {
     result = await fetchUsageWithContext(proxyConfig);
@@ -302,8 +475,19 @@ async function fetchLiveProviderLimitsWithOptions(
       error?.cause?.code === "ECONNREFUSED";
 
     if (proxyConfig && isThrownNetworkError) {
+      if (failClosedOnProxyFailure) {
+        console.warn(
+          "[ProviderLimits] Account-scoped %s proxy fetch failed for %s; failing closed without direct retry:",
+          connection.provider,
+          connectionId,
+          error?.message
+        );
+        throw error;
+      }
+
       console.warn(
-        `[ProviderLimits] Proxy fetch threw for ${connectionId}, retrying without proxy:`,
+        "[ProviderLimits] Proxy fetch threw for %s, retrying without proxy:",
+        connectionId,
         error?.message
       );
       result = await fetchUsageWithContext(null);
@@ -313,8 +497,23 @@ async function fetchLiveProviderLimitsWithOptions(
   }
 
   if (proxyConfig && isNetworkFailureMessage(result.usage?.message)) {
+    if (failClosedOnProxyFailure) {
+      const message =
+        typeof result.usage.message === "string"
+          ? result.usage.message
+          : "Provider-limits proxy request failed";
+      console.warn(
+        "[ProviderLimits] Account-scoped %s proxy usage failed for %s; failing closed without direct retry:",
+        connection.provider,
+        connectionId,
+        message
+      );
+      throw withStatus(new Error(message), 503);
+    }
+
     console.warn(
-      `[ProviderLimits] Proxy usage returned network error for ${connectionId}, retrying without proxy:`,
+      "[ProviderLimits] Proxy usage returned network error for %s, retrying without proxy:",
+      connectionId,
       result.usage.message
     );
     result = await fetchUsageWithContext(null);
@@ -325,6 +524,8 @@ async function fetchLiveProviderLimitsWithOptions(
   }
   await syncExpiredStatusIfNeeded(connection, result.usage);
   connection = await syncClaudeExtraUsageStateIfNeeded(connection, result.usage);
+  connection = await syncClaudeBootstrapIfNeeded(connection, result.usage);
+  connection = await syncAntigravitySubscriptionIfNeeded(connection, result.usage);
 
   return {
     connection,
@@ -334,7 +535,8 @@ async function fetchLiveProviderLimitsWithOptions(
 
 export async function fetchAndPersistProviderLimits(
   connectionId: string,
-  source: SyncSource = "manual"
+  source: SyncSource = "manual",
+  opts: { allowRotatingRefresh?: boolean } = {}
 ): Promise<{
   connection: ProviderConnectionLike;
   usage: JsonRecord;
@@ -342,10 +544,35 @@ export async function fetchAndPersistProviderLimits(
 }> {
   const { connection, usage } = await fetchLiveProviderLimitsWithOptions(connectionId, {
     forceRefresh: source === "manual",
+    allowRotatingRefresh: opts.allowRotatingRefresh,
   });
-  const cache = toProviderLimitsCacheEntry(usage, source);
-  setProviderLimitsCache(connectionId, cache);
-  return { connection, usage, cache };
+  const newCache = toProviderLimitsCacheEntry(usage, source);
+
+  // Don't persist error-only entries (429 etc.) — would wipe prior good cache.
+  // Serve the prior entry instead; only successful fetches update the cache.
+  const fetchFailed = !newCache.quotas && newCache.message;
+  if (fetchFailed) {
+    const previous = getProviderLimitsCache(connectionId);
+    if (previous?.quotas && Object.keys(previous.quotas).length > 0) {
+      // utils.tsx parseQuotaData ignores `quotas` if `message` is set — drop
+      // the message so the prior quotas render; surface staleness via _stale.
+      const staleUsage: JsonRecord = {
+        ...usage,
+        quotas: previous.quotas,
+        plan: previous.plan ?? usage.plan ?? null,
+        message: null,
+        _stale: true,
+        _staleSince: previous.fetchedAt,
+        _staleReason: newCache.message,
+      };
+      return { connection, usage: staleUsage, cache: previous };
+    }
+    // No prior cache; pass the error response through without persisting it.
+    return { connection, usage, cache: newCache };
+  }
+
+  setProviderLimitsCache(connectionId, newCache);
+  return { connection, usage, cache: newCache };
 }
 
 export async function syncAllProviderLimits(
@@ -362,7 +589,7 @@ export async function syncAllProviderLimits(
 }> {
   const { source = "manual", concurrency = 5 } = options;
   const connections = (
-    (await getProviderConnections({ isActive: true })) as ProviderConnectionLike[]
+    (await getProviderConnections({ isActive: true })) as unknown as ProviderConnectionLike[]
   ).filter(isSupportedUsageConnection);
   const cacheEntries: Array<{ connectionId: string; entry: ProviderLimitsCacheEntry }> = [];
   const caches: Record<string, ProviderLimitsCacheEntry> = {};
@@ -385,11 +612,19 @@ export async function syncAllProviderLimits(
       if (!connectionId) return;
 
       if (result.status === "fulfilled") {
-        cacheEntries.push({
-          connectionId: result.value.connectionId,
-          entry: result.value.cache,
-        });
-        caches[result.value.connectionId] = result.value.cache;
+        const { cache } = result.value;
+        // Don't persist error-only entries; show prior cache or pass through.
+        if (!cache.quotas && cache.message) {
+          const previous = getProviderLimitsCache(connectionId);
+          if (previous?.quotas && Object.keys(previous.quotas).length > 0) {
+            caches[connectionId] = previous;
+          } else {
+            caches[connectionId] = cache;
+          }
+          return;
+        }
+        cacheEntries.push({ connectionId, entry: cache });
+        caches[connectionId] = cache;
         return;
       }
 

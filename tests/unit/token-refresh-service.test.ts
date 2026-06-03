@@ -24,6 +24,7 @@ const {
   getAllAccessTokens,
   isProviderBlocked,
   getCircuitBreakerStatus,
+  getConnectionRefreshMutexStatus,
   refreshWithRetry,
 } = tokenRefresh;
 
@@ -293,7 +294,12 @@ test("refreshKimiCodingToken adds provider-specific headers and fields", async (
       });
     },
     async () => {
-      const result = await refreshKimiCodingToken("kimi-refresh", log);
+      // Pass providerSpecificData with a stable deviceId (second positional arg after signature change)
+      const result = await refreshKimiCodingToken(
+        "kimi-refresh",
+        { deviceId: "test-stable-device" },
+        log
+      );
       assert.deepEqual(result, {
         accessToken: "kimi-access",
         refreshToken: "kimi-refresh-next",
@@ -305,9 +311,18 @@ test("refreshKimiCodingToken adds provider-specific headers and fields", async (
   );
 
   assert.equal(calls[0].url, PROVIDERS["kimi-coding"].refreshUrl);
-  assert.equal(calls[0].options.headers["X-Msh-Platform"], "omniroute");
-  assert.equal(calls[0].options.headers["X-Msh-Version"], "2.1.2");
-  assert.match(calls[0].options.headers["X-Msh-Device-Id"], /^kimi-refresh-/);
+  // Platform is now "kimi_cli" (matching the real Kimi CLI fingerprint)
+  assert.equal(calls[0].options.headers["X-Msh-Platform"], "kimi_cli");
+  // Version comes from KIMI_CLI_VERSION env or default "1.36.0"
+  assert.ok(calls[0].options.headers["X-Msh-Version"], "X-Msh-Version must be set");
+  // Device-Id must NOT be an ephemeral "kimi-refresh-<timestamp>" value
+  assert.ok(
+    calls[0].options.headers["X-Msh-Device-Id"] &&
+      !calls[0].options.headers["X-Msh-Device-Id"].startsWith("kimi-refresh-"),
+    "X-Msh-Device-Id must be stable (not ephemeral kimi-refresh-<timestamp>)"
+  );
+  // When providerSpecificData.deviceId is provided, it should be used directly
+  assert.equal(calls[0].options.headers["X-Msh-Device-Id"], "test-stable-device");
   assert.match(bodyToString(calls[0].options.body), /grant_type=refresh_token/);
 });
 
@@ -402,7 +417,8 @@ test("refreshQwenToken surfaces invalid_request as unrecoverable", async () => {
     async () => textResponse(JSON.stringify({ error: "invalid_request" }), 400),
     async () => {
       const result = await refreshQwenToken("qwen-refresh", log);
-      assert.deepEqual(result, { error: "invalid_request" });
+      // Normalized to unrecoverable_refresh_error sentinel (Fix 4)
+      assert.deepEqual(result, { error: "unrecoverable_refresh_error", code: "invalid_request" });
     }
   );
 });
@@ -532,6 +548,101 @@ test("refreshKiroToken falls back to the social-auth refresh endpoint", async ()
   assert.deepEqual(JSON.parse(calls[0].options.body), {
     refreshToken: "kiro-refresh",
   });
+});
+
+// Issue #2328 — once a social-auth token has clientId/clientSecret stored
+// (because it was imported after v3.8.0), refreshKiroToken must use the AWS OIDC
+// endpoint, not the shared social-auth endpoint, even though authMethod is "google".
+test("refreshKiroToken uses AWS OIDC path for social-auth token when clientId is present (#2328)", async () => {
+  const log = createLog();
+  const calls: any[] = [];
+
+  await withMockedFetch(
+    async (url, options = {}) => {
+      calls.push({ url, options });
+      return jsonResponse({
+        accessToken: "kiro-isolated-access",
+        refreshToken: "kiro-isolated-refresh-next",
+        expiresIn: 900,
+      });
+    },
+    async () => {
+      const result = await refreshKiroToken(
+        "kiro-social-refresh",
+        {
+          authMethod: "google",
+          clientId: "isolated-client-id",
+          clientSecret: "isolated-client-secret",
+          region: "us-east-1",
+        },
+        log
+      );
+
+      assert.deepEqual(result, {
+        accessToken: "kiro-isolated-access",
+        refreshToken: "kiro-isolated-refresh-next",
+        expiresIn: 900,
+      });
+    }
+  );
+
+  // Must call the AWS OIDC endpoint — not the shared social-auth tokenUrl
+  assert.ok(
+    calls[0].url.includes("oidc.us-east-1.amazonaws.com/token"),
+    `expected AWS OIDC endpoint but got ${calls[0].url}`
+  );
+  assert.notEqual(
+    calls[0].url,
+    PROVIDERS.kiro.tokenUrl,
+    "should not call the shared social-auth endpoint when clientId is set"
+  );
+  assert.deepEqual(JSON.parse(calls[0].options.body), {
+    clientId: "isolated-client-id",
+    clientSecret: "isolated-client-secret",
+    refreshToken: "kiro-social-refresh",
+    grantType: "refresh_token",
+  });
+});
+
+// Issue #2467 — an IMPORTED social token (authMethod === "imported") carries a
+// freshly-registered clientId/clientSecret, but its refresh token is Kiro-social-issued
+// and the isolated OIDC client cannot refresh it. It must use the social-auth endpoint,
+// NOT AWS OIDC (which is what #2328 enabled for authMethod "google").
+test("refreshKiroToken uses social-auth path for imported token even with clientId (#2467)", async () => {
+  const log = createLog();
+  const calls: any[] = [];
+
+  await withMockedFetch(
+    async (url, options = {}) => {
+      calls.push({ url, options });
+      return jsonResponse({
+        accessToken: "kiro-imported-access",
+        refreshToken: "kiro-imported-refresh-next",
+        expiresIn: 1100,
+      });
+    },
+    async () => {
+      const result = await refreshKiroToken(
+        "kiro-imported-refresh",
+        {
+          authMethod: "imported",
+          clientId: "isolated-client-id",
+          clientSecret: "isolated-client-secret",
+          region: "us-east-1",
+        },
+        log
+      );
+      assert.equal(result.accessToken, "kiro-imported-access");
+    }
+  );
+
+  // Must call the shared social-auth tokenUrl — NOT the AWS OIDC endpoint.
+  assert.equal(
+    calls[0].url,
+    PROVIDERS.kiro.tokenUrl,
+    `expected social-auth endpoint but got ${calls[0].url}`
+  );
+  assert.ok(!calls[0].url.includes("oidc."), "imported token must not use AWS OIDC");
 });
 
 test("refreshQoderToken uses basic auth once qoder oauth settings are configured", async () => {
@@ -906,4 +1017,305 @@ test("isProviderBlocked clears expired circuit-breaker entries once cooldown pas
     assert.equal(isProviderBlocked(provider), false);
     assert.equal(getCircuitBreakerStatus()[provider], undefined);
   });
+});
+
+// ─── Per-connection mutex tests ────────────────────────────────────────────────
+
+test("getAccessToken per-connection mutex: 5 concurrent callers fire exactly one upstream call", async () => {
+  const log = createLog();
+  let upstreamCallCount = 0;
+
+  await withPatchedProperties(
+    PROVIDERS,
+    { "custom-oauth-conn-mutex": { tokenUrl: "https://auth.example.com/token" } },
+    async () => {
+      await withMockedFetch(
+        async () => {
+          upstreamCallCount++;
+          // Simulate 50ms upstream latency so all 5 callers are concurrent
+          await new Promise((r) => setTimeout(r, 50));
+          return jsonResponse({
+            access_token: "new-access-token",
+            refresh_token: "new-refresh-token",
+            expires_in: 3600,
+          });
+        },
+        async () => {
+          const credentials = {
+            connectionId: "conn-abc-123",
+            refreshToken: "old-refresh-token",
+          };
+
+          const results = await Promise.all([
+            getAccessToken("custom-oauth-conn-mutex", { ...credentials }, log),
+            getAccessToken("custom-oauth-conn-mutex", { ...credentials }, log),
+            getAccessToken("custom-oauth-conn-mutex", { ...credentials }, log),
+            getAccessToken("custom-oauth-conn-mutex", { ...credentials }, log),
+            getAccessToken("custom-oauth-conn-mutex", { ...credentials }, log),
+          ]);
+
+          assert.equal(upstreamCallCount, 1, "upstream called exactly once");
+          for (const result of results) {
+            assert.equal(result?.accessToken, "new-access-token", "all callers got same token");
+            assert.equal(result?.refreshToken, "new-refresh-token");
+          }
+          // All results are the same object reference (shared promise)
+          assert.strictEqual(results[0], results[1]);
+          assert.strictEqual(results[1], results[4]);
+        }
+      );
+    }
+  );
+});
+
+test("getAccessToken per-connection mutex: logs concurrent refresh with waiter count", async () => {
+  const log = createLog();
+
+  await withPatchedProperties(
+    PROVIDERS,
+    { "custom-oauth-conn-mutex": { tokenUrl: "https://auth.example.com/token" } },
+    async () => {
+      await withMockedFetch(
+        async () => {
+          await new Promise((r) => setTimeout(r, 20));
+          return jsonResponse({ access_token: "tok", refresh_token: "rtok", expires_in: 600 });
+        },
+        async () => {
+          const credentials = { connectionId: "conn-log-test", refreshToken: "rt" };
+          await Promise.all([
+            getAccessToken("custom-oauth-conn-mutex", { ...credentials }, log),
+            getAccessToken("custom-oauth-conn-mutex", { ...credentials }, log),
+            getAccessToken("custom-oauth-conn-mutex", { ...credentials }, log),
+          ]);
+
+          const concurrentLogs = log.entries.filter(
+            (e) =>
+              e.level === "info" &&
+              e.message === "Concurrent refresh detected — sharing in-flight refresh"
+          );
+          assert.ok(concurrentLogs.length >= 1, "logged at least one concurrent refresh event");
+          assert.ok(
+            concurrentLogs.some((e) => e.meta?.connectionId === "conn-log-test"),
+            "log includes connectionId"
+          );
+          assert.ok(
+            concurrentLogs.some((e) => typeof e.meta?.waiters === "number" && e.meta.waiters >= 1),
+            "log includes waiter count"
+          );
+        }
+      );
+    }
+  );
+});
+
+test("getAccessToken per-connection mutex: failed refresh propagates null to all waiters (idempotent error)", async () => {
+  const log = createLog();
+
+  await withPatchedProperties(
+    PROVIDERS,
+    { "custom-oauth-conn-mutex": { tokenUrl: "https://auth.example.com/token" } },
+    async () => {
+      await withMockedFetch(
+        async () => {
+          await new Promise((r) => setTimeout(r, 20));
+          // 400 response causes refreshAccessToken to return null
+          return new Response("bad_request", { status: 400 });
+        },
+        async () => {
+          const credentials = { connectionId: "conn-fail-test", refreshToken: "expired-rt" };
+          const results = await Promise.all([
+            getAccessToken("custom-oauth-conn-mutex", { ...credentials }, log),
+            getAccessToken("custom-oauth-conn-mutex", { ...credentials }, log),
+            getAccessToken("custom-oauth-conn-mutex", { ...credentials }, log),
+          ]);
+
+          for (const result of results) {
+            assert.equal(result, null, "failed refresh returns null to all waiters");
+          }
+          // Mutex cleaned up after failure
+          assert.equal(
+            getConnectionRefreshMutexStatus()["conn-fail-test"],
+            undefined,
+            "mutex entry removed after failure"
+          );
+        }
+      );
+    }
+  );
+});
+
+test("getAccessToken per-connection mutex: different connections run independently", async () => {
+  const log = createLog();
+  let upstreamCallCount = 0;
+
+  await withPatchedProperties(
+    PROVIDERS,
+    { "custom-oauth-conn-mutex": { tokenUrl: "https://auth.example.com/token" } },
+    async () => {
+      await withMockedFetch(
+        async () => {
+          upstreamCallCount++;
+          await new Promise((r) => setTimeout(r, 20));
+          return jsonResponse({
+            access_token: `access-${upstreamCallCount}`,
+            refresh_token: `refresh-${upstreamCallCount}`,
+            expires_in: 600,
+          });
+        },
+        async () => {
+          const [groupA, groupB] = await Promise.all([
+            Promise.all([
+              getAccessToken(
+                "custom-oauth-conn-mutex",
+                { connectionId: "conn-A", refreshToken: "rt-a" },
+                log
+              ),
+              getAccessToken(
+                "custom-oauth-conn-mutex",
+                { connectionId: "conn-A", refreshToken: "rt-a" },
+                log
+              ),
+            ]),
+            Promise.all([
+              getAccessToken(
+                "custom-oauth-conn-mutex",
+                { connectionId: "conn-B", refreshToken: "rt-b" },
+                log
+              ),
+              getAccessToken(
+                "custom-oauth-conn-mutex",
+                { connectionId: "conn-B", refreshToken: "rt-b" },
+                log
+              ),
+            ]),
+          ]);
+
+          assert.equal(upstreamCallCount, 2, "one upstream call per distinct connection");
+          assert.strictEqual(groupA[0], groupA[1], "conn-A callers share same result");
+          assert.strictEqual(groupB[0], groupB[1], "conn-B callers share same result");
+          assert.notStrictEqual(groupA[0], groupB[0], "conn-A and conn-B got different results");
+        }
+      );
+    }
+  );
+});
+
+test("getAccessToken per-connection mutex: mutex cleared after success, next call re-fires upstream", async () => {
+  const log = createLog();
+  let upstreamCallCount = 0;
+
+  // The rotation map (added for the codex-multi-auth pattern) is process-wide
+  // and intentionally redirects a stale-token caller to the cached rotated
+  // tokens. Clear it BEFORE and BETWEEN calls so this test exercises the
+  // lower-level mutex semantics it was designed for.
+  tokenRefresh._clearTokenRotationMap();
+
+  await withPatchedProperties(
+    PROVIDERS,
+    { "custom-oauth-conn-mutex": { tokenUrl: "https://auth.example.com/token" } },
+    async () => {
+      await withMockedFetch(
+        async () => {
+          upstreamCallCount++;
+          return jsonResponse({
+            access_token: `access-${upstreamCallCount}`,
+            refresh_token: `refresh-${upstreamCallCount}`,
+            expires_in: 600,
+          });
+        },
+        async () => {
+          const credentials = { connectionId: "conn-refire", refreshToken: "rt" };
+
+          const first = await getAccessToken("custom-oauth-conn-mutex", { ...credentials }, log);
+          tokenRefresh._clearTokenRotationMap();
+          const second = await getAccessToken("custom-oauth-conn-mutex", { ...credentials }, log);
+
+          assert.equal(upstreamCallCount, 2, "each sequential call fires upstream once");
+          assert.equal(first?.accessToken, "access-1");
+          assert.equal(second?.accessToken, "access-2");
+        }
+      );
+    }
+  );
+});
+
+// ─── Unrecoverable error bail-out tests ──────────────────────────────────────
+
+test("refreshWithRetry bails immediately on unrecoverable error without retrying", async () => {
+  const provider = `bail-unrecoverable-${Date.now()}`;
+  const log = createLog();
+  let callCount = 0;
+
+  const result = await refreshWithRetry(
+    async () => {
+      callCount++;
+      return { error: "unrecoverable_refresh_error", code: "http_400" };
+    },
+    3,
+    log,
+    provider
+  );
+
+  assert.equal(callCount, 1, "should only call refreshFn once (no retries)");
+  assert.deepEqual(result, { error: "unrecoverable_refresh_error", code: "http_400" });
+  const warnMessages = log.entries.filter((e) => e.level === "warn").map((e) => e.message);
+  assert.ok(
+    warnMessages.some((m) => String(m).includes("Unrecoverable")),
+    "should log an unrecoverable warning"
+  );
+});
+
+test("refreshWithRetry bails immediately on invalid_grant error without retrying", async () => {
+  const provider = `bail-invalid-grant-${Date.now()}`;
+  const log = createLog();
+  let callCount = 0;
+
+  const result = await refreshWithRetry(
+    async () => {
+      callCount++;
+      return { error: "invalid_grant", code: "http_400" };
+    },
+    3,
+    log,
+    provider
+  );
+
+  assert.equal(callCount, 1, "should only call refreshFn once (no retries)");
+  assert.deepEqual(result, { error: "invalid_grant", code: "http_400" });
+});
+
+test("refreshClaudeOAuthToken returns error object for invalid_grant (expired refresh token)", async () => {
+  const log = createLog();
+
+  await withMockedFetch(
+    async () =>
+      new Response(JSON.stringify({ error: "invalid_grant", error_description: "Token expired" }), {
+        status: 400,
+        headers: { "Content-Type": "application/json" },
+      }),
+    async () => {
+      const result = await refreshClaudeOAuthToken("expired-token", log);
+      assert.ok(result && typeof result === "object", "should return error object, not null");
+      // Normalized to unrecoverable_refresh_error sentinel (Fix 6)
+      assert.equal((result as any).error, "unrecoverable_refresh_error");
+      assert.equal((result as any).code, "invalid_grant");
+      assert.ok(isUnrecoverableRefreshError(result), "should be detected as unrecoverable");
+    }
+  );
+});
+
+test("refreshClaudeOAuthToken returns null for transient server errors (not unrecoverable)", async () => {
+  const log = createLog();
+
+  await withMockedFetch(
+    async () =>
+      new Response(JSON.stringify({ error: "server_error" }), {
+        status: 503,
+        headers: { "Content-Type": "application/json" },
+      }),
+    async () => {
+      const result = await refreshClaudeOAuthToken("some-token", log);
+      assert.equal(result, null, "transient server errors should return null (retryable)");
+    }
+  );
 });

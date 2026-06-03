@@ -1,5 +1,8 @@
 import { NextResponse } from "next/server";
+import { requireManagementAuth } from "@/lib/api/requireManagementAuth";
+import { getApiKeys } from "@/lib/db/apiKeys";
 import { getDbInstance } from "@/lib/db/core";
+import { getUserDatabaseSettings } from "@/lib/db/databaseSettings";
 
 function getRangeStartIso(range: string): string | null {
   const end = new Date();
@@ -30,18 +33,18 @@ function getRangeStartIso(range: string): string | null {
   return start.toISOString();
 }
 
-function shortModelName(model: string | null): string {
-  if (!model) return "-";
-  const parts = model.split(/[/:-]/);
-  return parts[parts.length - 1] || model;
-}
-
 const WEEKDAY_LABELS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 
 type PricingByProvider = Record<string, Record<string, Record<string, unknown>>>;
 type ComputeCostFromPricing = (
   pricing: Record<string, unknown> | null | undefined,
-  tokens: Record<string, number | undefined> | null | undefined
+  tokens: Record<string, number | undefined> | null | undefined,
+  options?: Record<string, unknown>
+) => number;
+type GetCodexFastCostMultiplier = (
+  provider: string | null | undefined,
+  model: string | null | undefined,
+  serviceTier: string | null | undefined
 ) => number;
 
 function toNumber(value: unknown): number {
@@ -61,49 +64,227 @@ function roundCost(value: number): number {
   return Math.round(value * 1_000_000) / 1_000_000;
 }
 
+function normalizeServiceTier(value: unknown): "standard" | "priority" | "flex" {
+  const tier = typeof value === "string" ? value.trim().toLowerCase() : "";
+  if (tier === "priority" || tier === "fast") return "priority";
+  if (tier === "flex") return "flex";
+  return "standard";
+}
+
+function getServiceTierLabelId(serviceTier: string): string {
+  return normalizeServiceTier(serviceTier);
+}
+
 function appendWhereCondition(whereClause: string, condition: string): string {
   return whereClause ? `${whereClause} AND (${condition})` : `WHERE (${condition})`;
 }
 
+function findKeyInsensitive(obj: Record<string, any> | undefined | null, key: string): any {
+  if (!obj || !key) return undefined;
+  return obj[key.toLowerCase()];
+}
+
+function uniqueValues(values: Array<string | null | undefined>): string[] {
+  const seen = new Set<string>();
+  const result: string[] = [];
+  for (const value of values) {
+    const normalized = typeof value === "string" ? value.trim().toLowerCase() : "";
+    if (!normalized || seen.has(normalized)) continue;
+    seen.add(normalized);
+    result.push(normalized);
+  }
+  return result;
+}
+
+function makeApiKeyUsageGroup(apiKeyId: string, fallbackName: string): string {
+  return apiKeyId ? `id:${apiKeyId}` : `name:${fallbackName}`;
+}
+
+function addApiKeyAlias(target: Set<string>, value: unknown): void {
+  if (typeof value !== "string") return;
+  const trimmed = value.trim();
+  if (trimmed) target.add(trimmed);
+}
+
+function stripCodexEffortSuffix(model: string): string {
+  return model.replace(/-(?:xhigh|high|medium|low|none)$/i, "");
+}
+
+function getPricingModelCandidates(
+  model: string,
+  normalizeModelName: (model: string) => string
+): string[] {
+  const normalizedModel = normalizeModelName(model);
+  const lowerModel = model.toLowerCase();
+  const lowerNormalized = normalizedModel.toLowerCase();
+  const hyphenModel = lowerModel.replace(/\./g, "-");
+  const hyphenNormalized = lowerNormalized.replace(/\./g, "-");
+  const effortBaseModel = stripCodexEffortSuffix(lowerNormalized);
+
+  return uniqueValues([
+    lowerModel,
+    lowerNormalized,
+    hyphenModel,
+    hyphenNormalized,
+    effortBaseModel,
+    effortBaseModel.replace(/\./g, "-"),
+    lowerNormalized === "codex-auto-review" ? "gpt-5.5" : null,
+  ]);
+}
+
 function resolveModelPricing(
   pricingByProvider: PricingByProvider,
-  provider: string,
+  providerAliasMap: Record<string, string>,
+  providerRaw: string,
   model: string,
   normalizeModelName: (model: string) => string
 ): Record<string, unknown> | null {
-  const providerPricing = pricingByProvider[provider];
-  if (!providerPricing) return null;
+  const pLower = (providerRaw || "").toLowerCase();
 
-  const normalizedModel = normalizeModelName(model);
-  const shortModel = shortModelName(model);
-  return (
-    providerPricing[model] ||
-    providerPricing[normalizedModel] ||
-    providerPricing[shortModel] ||
-    null
-  );
+  let providerPricing = findKeyInsensitive(pricingByProvider, pLower);
+
+  if (!providerPricing) {
+    // providerAliasMap maps ID -> ALIAS. So if pLower is "codex", alias is "cx".
+    const alias = providerAliasMap[pLower];
+    if (alias) {
+      providerPricing = findKeyInsensitive(pricingByProvider, alias);
+    }
+  }
+
+  if (!providerPricing) {
+    // In case pLower was ALIAS and we want to try the ID (reverse search values)
+    for (const [id, alias] of Object.entries(providerAliasMap)) {
+      if (alias.toLowerCase() === pLower) {
+        providerPricing = findKeyInsensitive(pricingByProvider, id);
+        if (providerPricing) break;
+      }
+    }
+  }
+
+  if (!providerPricing) {
+    const np = pLower.replace(/-cn$/, "");
+    if (np && np !== pLower) {
+      providerPricing = findKeyInsensitive(pricingByProvider, np);
+    }
+  }
+
+  // Hardcoded known fallbacks
+  if (!providerPricing) {
+    if (pLower === "antigravity") providerPricing = findKeyInsensitive(pricingByProvider, "ag");
+  }
+
+  const modelCandidates = getPricingModelCandidates(model, normalizeModelName);
+
+  const tryFind = (prov: Record<string, unknown> | null | undefined) => {
+    if (!prov || typeof prov !== "object") return null;
+    for (const candidate of modelCandidates) {
+      const pricing = findKeyInsensitive(prov as Record<string, unknown>, candidate);
+      if (pricing) return pricing;
+    }
+    return null;
+  };
+
+  let pricing = providerPricing ? tryFind(providerPricing) : null;
+
+  if (!pricing) {
+    // Global fallback: search all providers for this exact model (helps with aliases)
+    for (const prov of Object.values(pricingByProvider)) {
+      const found = tryFind(prov as Record<string, unknown>);
+      if (found) {
+        pricing = found;
+        break;
+      }
+    }
+  }
+
+  // Last resort fallback for historical usage (e.g. "gpt-4" missing, matches "gpt-4.1" or first available)
+  if (!pricing && providerPricing && typeof providerPricing === "object") {
+    for (const [key, val] of Object.entries(providerPricing as Record<string, unknown>)) {
+      const lm = model.toLowerCase();
+      if (key.includes(lm) || lm.includes(key)) {
+        pricing = val;
+        break;
+      }
+    }
+    if (!pricing) {
+      const keys = Object.keys(providerPricing as Record<string, unknown>);
+      if (keys.length > 0) pricing = (providerPricing as Record<string, unknown>)[keys[0]];
+    }
+  }
+
+  return pricing as Record<string, unknown> | null;
 }
 
 function computeUsageRowCost(
   row: Record<string, unknown>,
   pricingByProvider: PricingByProvider,
+  providerAliasMap: Record<string, string>,
   normalizeModelName: (model: string) => string,
   computeCostFromPricing: ComputeCostFromPricing
 ): number {
   const provider = toStringValue(row.provider);
   const model = toStringValue(row.model);
   if (!provider || !model) return 0;
+  const serviceTier = normalizeServiceTier(row.serviceTier ?? row.service_tier);
 
-  const pricing = resolveModelPricing(pricingByProvider, provider, model, normalizeModelName);
+  const pricing = resolveModelPricing(
+    pricingByProvider,
+    providerAliasMap,
+    provider,
+    model,
+    normalizeModelName
+  );
   if (!pricing) return 0;
 
-  return computeCostFromPricing(pricing, {
-    input: toNumber(row.promptTokens),
-    output: toNumber(row.completionTokens),
-    cacheRead: toNumber(row.cacheReadTokens),
-    cacheCreation: toNumber(row.cacheCreationTokens),
-    reasoning: toNumber(row.reasoningTokens),
-  });
+  return computeCostFromPricing(
+    pricing,
+    {
+      input: toNumber(row.promptTokens),
+      output: toNumber(row.completionTokens),
+      cacheRead: toNumber(row.cacheReadTokens),
+      cacheCreation: toNumber(row.cacheCreationTokens),
+      reasoning: toNumber(row.reasoningTokens),
+    },
+    {
+      provider,
+      model,
+      serviceTier,
+    }
+  );
+}
+
+function computeUsageRowStandardCost(
+  row: Record<string, unknown>,
+  pricingByProvider: PricingByProvider,
+  providerAliasMap: Record<string, string>,
+  normalizeModelName: (model: string) => string,
+  computeCostFromPricing: ComputeCostFromPricing
+): number {
+  return computeUsageRowCost(
+    { ...row, serviceTier: "standard", service_tier: "standard" },
+    pricingByProvider,
+    providerAliasMap,
+    normalizeModelName,
+    computeCostFromPricing
+  );
+}
+
+function computeUsageSavingsTokens(
+  row: Record<string, unknown>,
+  serviceTier: string,
+  getCodexFastCostMultiplier: GetCodexFastCostMultiplier
+): number {
+  const provider = toStringValue(row.provider);
+  const model = toStringValue(row.model);
+  const totalTokens = toNumber(row.totalTokens);
+  if (!provider || !model || totalTokens <= 0) return 0;
+
+  const standardMultiplier = getCodexFastCostMultiplier(provider, model, "standard");
+  if (standardMultiplier <= 0) return 0;
+
+  const actualMultiplier = getCodexFastCostMultiplier(provider, model, serviceTier);
+  const savingsRatio = Math.max(0, (standardMultiplier - actualMultiplier) / standardMultiplier);
+  return totalTokens * savingsRatio;
 }
 
 function formatUtcDate(date: Date): string {
@@ -123,6 +304,9 @@ function computeActivityStreak(activityMap: Record<string, number>): number {
 }
 
 export async function GET(request: Request) {
+  const authError = await requireManagementAuth(request);
+  if (authError) return authError;
+
   try {
     const { searchParams } = new URL(request.url);
     const range = searchParams.get("range") || "30d";
@@ -136,6 +320,21 @@ export async function GET(request: Request) {
     const presetsParam = searchParams.get("presets");
 
     const db = getDbInstance();
+    const apiKeys = await getApiKeys();
+    const currentApiKeyNames = new Map<string, string>();
+    for (const apiKey of apiKeys) {
+      if (typeof apiKey.id === "string" && typeof apiKey.name === "string") {
+        currentApiKeyNames.set(apiKey.id, apiKey.name);
+      }
+    }
+
+    // Compute the raw-data cutoff: rows older than this may have been rolled up to
+    // daily_usage_summary and deleted from usage_history.
+    const dbSettings = getUserDatabaseSettings();
+    const rawRetentionDays = dbSettings.aggregation?.rawDataRetentionDays ?? 30;
+    const rawCutoff = new Date();
+    rawCutoff.setDate(rawCutoff.getDate() - rawRetentionDays);
+    const rawCutoffIso = rawCutoff.toISOString();
 
     const conditions = [];
     const params: Record<string, string> = {};
@@ -161,11 +360,118 @@ export async function GET(request: Request) {
 
     const whereClause = conditions.length > 0 ? `WHERE ${conditions.join(" AND ")}` : "";
 
+    // Build a UNION data source that merges recent raw rows with aggregated history.
+    // daily_usage_summary rows are included only when the query window extends before
+    // rawCutoffIso. They are gated off entirely when an api_key filter is active:
+    // daily_usage_summary does not store api_key/connection, so including it under a
+    // key filter would leak other keys' aggregated usage. With a key filter we serve
+    // only raw rows (older key-scoped data beyond retention is intentionally unavailable).
+    const rawCutoffDate = rawCutoffIso.split("T")[0];
+    const needsAggregated = (!sinceIso || sinceIso < rawCutoffDate) && apiKeyIds.length === 0;
+
+    // Raw leg: when aggregated rows are also included, lower-bound the raw leg at the
+    // raw cutoff so the two legs never overlap (prevents double-counting).
+    const rawConditions: string[] = [];
+    if (needsAggregated) {
+      rawConditions.push("timestamp >= @rawCutoff");
+      params.rawCutoff = rawCutoffDate;
+    } else if (sinceIso) {
+      rawConditions.push("timestamp >= @since");
+    }
+    if (untilIso) rawConditions.push("timestamp <= @until");
+    if (apiKeyWhere) rawConditions.push(apiKeyWhere);
+    const rawWhere = rawConditions.length > 0 ? `WHERE ${rawConditions.join(" AND ")}` : "";
+
+    // Aggregated rows span the requested window but strictly before the raw cutoff,
+    // so they never overlap the raw leg above (no api_key filter — see note above).
+    const aggConditions: string[] = [];
+    if (sinceIso) {
+      // Use date comparison on the summary's date column (YYYY-MM-DD).
+      const sinceDate = sinceIso.split("T")[0];
+      aggConditions.push("date >= @sinceDate");
+      params.sinceDate = sinceDate;
+    }
+    if (untilIso) {
+      const untilDate = untilIso.split("T")[0];
+      aggConditions.push("date <= @untilDate");
+      params.untilDate = untilDate;
+    }
+    aggConditions.push("date < @rawCutoffDate");
+    params.rawCutoffDate = rawCutoffDate;
+    const aggWhere = aggConditions.length > 0 ? `WHERE ${aggConditions.join(" AND ")}` : "";
+
+    // Unified source CTE: columns aligned to usage_history shape needed by analytics queries.
+    // Fields not available in daily_usage_summary default to 0/NULL.
+    const unifiedSource = needsAggregated
+      ? `(
+          SELECT
+            timestamp,
+            provider,
+            model,
+            tokens_input,
+            tokens_output,
+            tokens_cache_read,
+            tokens_cache_creation,
+            tokens_reasoning,
+            service_tier,
+            success,
+            latency_ms,
+            connection_id,
+            api_key_id,
+            api_key_name
+          FROM usage_history
+          ${rawWhere}
+          UNION ALL
+          SELECT
+            date || 'T12:00:00.000Z' as timestamp,
+            provider,
+            model,
+            total_input_tokens as tokens_input,
+            total_output_tokens as tokens_output,
+            0 as tokens_cache_read,
+            0 as tokens_cache_creation,
+            0 as tokens_reasoning,
+            'standard' as service_tier,
+            1 as success,
+            0 as latency_ms,
+            NULL as connection_id,
+            NULL as api_key_id,
+            NULL as api_key_name
+          FROM daily_usage_summary
+          ${aggWhere}
+         )`
+      : `(SELECT
+            timestamp, provider, model,
+            tokens_input, tokens_output,
+            tokens_cache_read, tokens_cache_creation, tokens_reasoning,
+            service_tier, success, latency_ms,
+            connection_id, api_key_id, api_key_name
+          FROM usage_history
+          ${whereClause}
+         )`;
+
+    // When using the unified source the WHERE filters are already embedded inside.
+    // For the original whereClause-based queries that still reference usage_history directly
+    // (e.g. fallbackRow, accountRows) we keep them as-is since they need joins or
+    // columns only present in usage_history.
+    const unifiedWhere = ""; // no additional WHERE needed — filters embedded in unifiedSource
+
     // Fetch pricing data for cost calculation (no rows loaded)
     const { getPricing } = await import("@/lib/db/settings");
-    const pricingByProvider = (await getPricing()) as PricingByProvider;
-    const { computeCostFromPricing, normalizeModelName } =
+    const rawPricingByProvider = (await getPricing()) as PricingByProvider;
+
+    // Pre-process pricing data to lowercase keys for O(1) lookups
+    const pricingByProvider: PricingByProvider = {};
+    for (const [providerKey, providerVal] of Object.entries(rawPricingByProvider || {})) {
+      const lowerProvider = {};
+      for (const [modelKey, modelVal] of Object.entries(providerVal || {})) {
+        (lowerProvider as any)[modelKey.toLowerCase()] = modelVal;
+      }
+      pricingByProvider[providerKey.toLowerCase()] = lowerProvider;
+    }
+    const { computeCostFromPricing, getCodexFastCostMultiplier, normalizeModelName } =
       await import("@/lib/usage/costCalculator");
+    const { PROVIDER_ID_TO_ALIAS } = await import("@omniroute/open-sse/config/providerModels");
 
     const summaryRow = db
       .prepare(
@@ -177,13 +483,13 @@ export async function GET(request: Request) {
           COALESCE(SUM(tokens_input + tokens_output), 0) as totalTokens,
           COUNT(DISTINCT model) as uniqueModels,
           COUNT(DISTINCT connection_id) as uniqueAccounts,
-          COUNT(DISTINCT api_key_id) as uniqueApiKeys,
+          COUNT(DISTINCT COALESCE(NULLIF(api_key_id, ''), NULLIF(api_key_name, ''))) as uniqueApiKeys,
           COALESCE(SUM(CASE WHEN success = 1 THEN 1 ELSE 0 END), 0) as successfulRequests,
           COALESCE(AVG(latency_ms), 0) as avgLatencyMs,
           COALESCE(MIN(timestamp), '') as firstRequest,
           COALESCE(MAX(timestamp), '') as lastRequest
-        FROM usage_history
-        ${whereClause}
+        FROM ${unifiedSource} AS _u
+        ${unifiedWhere}
       `
       )
       .get(params) as Record<string, unknown>;
@@ -197,8 +503,8 @@ export async function GET(request: Request) {
           COALESCE(SUM(tokens_input), 0) as promptTokens,
           COALESCE(SUM(tokens_output), 0) as completionTokens,
           COALESCE(SUM(tokens_input + tokens_output), 0) as totalTokens
-        FROM usage_history
-        ${whereClause}
+        FROM ${unifiedSource} AS _u
+        ${unifiedWhere}
         GROUP BY DATE(timestamp)
         ORDER BY date ASC
       `
@@ -210,16 +516,17 @@ export async function GET(request: Request) {
         `
         SELECT
           DATE(timestamp) as date,
-          provider,
-          model,
+          LOWER(provider) as provider,
+          LOWER(model) as model,
+          COALESCE(NULLIF(service_tier, ''), 'standard') as serviceTier,
           COALESCE(SUM(tokens_input), 0) as promptTokens,
           COALESCE(SUM(tokens_output), 0) as completionTokens,
           COALESCE(SUM(tokens_cache_read), 0) as cacheReadTokens,
           COALESCE(SUM(tokens_cache_creation), 0) as cacheCreationTokens,
           COALESCE(SUM(tokens_reasoning), 0) as reasoningTokens
-        FROM usage_history
-        ${whereClause}
-        GROUP BY DATE(timestamp), provider, model
+        FROM ${unifiedSource} AS _u
+        ${unifiedWhere}
+        GROUP BY DATE(timestamp), LOWER(provider), LOWER(model), serviceTier
         ORDER BY date ASC
       `
       )
@@ -263,8 +570,9 @@ export async function GET(request: Request) {
       .prepare(
         `
         SELECT
-          model,
-          provider,
+          LOWER(model) as model,
+          LOWER(provider) as provider,
+          COALESCE(NULLIF(service_tier, ''), 'standard') as serviceTier,
           COUNT(*) as requests,
           COALESCE(SUM(tokens_input), 0) as promptTokens,
           COALESCE(SUM(tokens_output), 0) as completionTokens,
@@ -275,11 +583,10 @@ export async function GET(request: Request) {
           COALESCE(AVG(latency_ms), 0) as avgLatencyMs,
           COALESCE(SUM(CASE WHEN success = 1 THEN 1 ELSE 0 END), 0) as successfulRequests,
           COALESCE(MAX(timestamp), '') as lastUsed
-        FROM usage_history
-        ${whereClause}
-        GROUP BY model, provider
+        FROM ${unifiedSource} AS _u
+        ${unifiedWhere}
+        GROUP BY LOWER(model), LOWER(provider), serviceTier
         ORDER BY requests DESC
-        LIMIT 50
       `
       )
       .all(params) as Array<Record<string, unknown>>;
@@ -288,16 +595,17 @@ export async function GET(request: Request) {
       .prepare(
         `
         SELECT
-          provider,
-          model,
+          LOWER(provider) as provider,
+          LOWER(model) as model,
+          COALESCE(NULLIF(service_tier, ''), 'standard') as serviceTier,
           COALESCE(SUM(tokens_input), 0) as promptTokens,
           COALESCE(SUM(tokens_output), 0) as completionTokens,
           COALESCE(SUM(tokens_cache_read), 0) as cacheReadTokens,
           COALESCE(SUM(tokens_cache_creation), 0) as cacheCreationTokens,
           COALESCE(SUM(tokens_reasoning), 0) as reasoningTokens
-        FROM usage_history
-        ${whereClause}
-        GROUP BY provider, model
+        FROM ${unifiedSource} AS _u
+        ${unifiedWhere}
+        GROUP BY LOWER(provider), LOWER(model), serviceTier
       `
       )
       .all(params) as Array<Record<string, unknown>>;
@@ -306,16 +614,16 @@ export async function GET(request: Request) {
       .prepare(
         `
         SELECT
-          provider,
+          LOWER(provider) as provider,
           COUNT(*) as requests,
           COALESCE(SUM(tokens_input), 0) as promptTokens,
           COALESCE(SUM(tokens_output), 0) as completionTokens,
           COALESCE(SUM(tokens_input + tokens_output), 0) as totalTokens,
           COALESCE(AVG(latency_ms), 0) as avgLatencyMs,
           COALESCE(SUM(CASE WHEN success = 1 THEN 1 ELSE 0 END), 0) as successfulRequests
-        FROM usage_history
-        ${whereClause}
-        GROUP BY provider
+        FROM ${unifiedSource} AS _u
+        ${unifiedWhere}
+        GROUP BY LOWER(provider)
         ORDER BY requests DESC
       `
       )
@@ -325,17 +633,19 @@ export async function GET(request: Request) {
       .prepare(
         `
         SELECT
-          connection_id as account,
-          provider,
-          model,
-          COALESCE(SUM(tokens_input), 0) as promptTokens,
-          COALESCE(SUM(tokens_output), 0) as completionTokens,
-          COALESCE(SUM(tokens_cache_read), 0) as cacheReadTokens,
-          COALESCE(SUM(tokens_cache_creation), 0) as cacheCreationTokens,
-          COALESCE(SUM(tokens_reasoning), 0) as reasoningTokens
+          COALESCE(NULLIF(c.display_name, ''), NULLIF(c.email, ''), NULLIF(c.name, ''), usage_history.connection_id, 'unknown') as account,
+          LOWER(usage_history.provider) as provider,
+          LOWER(usage_history.model) as model,
+          COALESCE(NULLIF(usage_history.service_tier, ''), 'standard') as serviceTier,
+          COALESCE(SUM(usage_history.tokens_input), 0) as promptTokens,
+          COALESCE(SUM(usage_history.tokens_output), 0) as completionTokens,
+          COALESCE(SUM(usage_history.tokens_cache_read), 0) as cacheReadTokens,
+          COALESCE(SUM(usage_history.tokens_cache_creation), 0) as cacheCreationTokens,
+          COALESCE(SUM(usage_history.tokens_reasoning), 0) as reasoningTokens
         FROM usage_history
-        ${whereClause}
-        GROUP BY connection_id, provider, model
+        LEFT JOIN provider_connections c ON c.id = usage_history.connection_id
+        ${whereClause.replace(/timestamp/g, "usage_history.timestamp").replace(/api_key_/g, "usage_history.api_key_")}
+        GROUP BY account, LOWER(usage_history.provider), LOWER(usage_history.model), serviceTier
       `
       )
       .all(params) as Array<Record<string, unknown>>;
@@ -344,31 +654,36 @@ export async function GET(request: Request) {
       .prepare(
         `
         SELECT
-          connection_id as account,
-          COUNT(*) as requests,
-          COALESCE(SUM(tokens_input), 0) as promptTokens,
-          COALESCE(SUM(tokens_output), 0) as completionTokens,
-          COALESCE(SUM(tokens_input + tokens_output), 0) as totalTokens,
-          COALESCE(AVG(latency_ms), 0) as avgLatencyMs,
-          COALESCE(MAX(timestamp), '') as lastUsed
+          COALESCE(NULLIF(c.display_name, ''), NULLIF(c.email, ''), NULLIF(c.name, ''), usage_history.connection_id, 'unknown') as account,
+          COUNT(usage_history.id) as requests,
+          COALESCE(SUM(usage_history.tokens_input), 0) as promptTokens,
+          COALESCE(SUM(usage_history.tokens_output), 0) as completionTokens,
+          COALESCE(SUM(usage_history.tokens_input + usage_history.tokens_output), 0) as totalTokens,
+          COALESCE(AVG(usage_history.latency_ms), 0) as avgLatencyMs,
+          COALESCE(MAX(usage_history.timestamp), '') as lastUsed
         FROM usage_history
-        ${whereClause}
-        GROUP BY connection_id
+        LEFT JOIN provider_connections c ON c.id = usage_history.connection_id
+        ${whereClause.replace(/timestamp/g, "usage_history.timestamp").replace(/api_key_/g, "usage_history.api_key_")}
+        GROUP BY account
         ORDER BY requests DESC
         LIMIT 50
       `
       )
       .all(params) as Array<Record<string, unknown>>;
 
-    const apiKeyWhereClause = whereClause;
+    const apiKeyWhereClause = appendWhereCondition(
+      whereClause,
+      "(api_key_id IS NOT NULL AND api_key_id != '') OR (api_key_name IS NOT NULL AND api_key_name != '')"
+    );
     const apiKeyRows = db
       .prepare(
         `
         SELECT
-          api_key_id as apiKeyId,
-          COALESCE(NULLIF(api_key_name, ''), NULLIF(api_key_id, ''), 'Unknown API key') as apiKeyName,
-          provider,
-          model,
+          NULLIF(api_key_id, '') as apiKeyId,
+          COALESCE(NULLIF(api_key_id, ''), NULLIF(api_key_name, ''), 'unknown') as apiKeyGroupKey,
+          LOWER(provider) as provider,
+          LOWER(model) as model,
+          COALESCE(NULLIF(service_tier, ''), 'standard') as serviceTier,
           COUNT(*) as requests,
           COALESCE(SUM(tokens_input), 0) as promptTokens,
           COALESCE(SUM(tokens_output), 0) as completionTokens,
@@ -378,10 +693,63 @@ export async function GET(request: Request) {
           COALESCE(SUM(tokens_input + tokens_output), 0) as totalTokens
         FROM usage_history
         ${apiKeyWhereClause}
-        GROUP BY api_key_id, api_key_name, provider, model
+        GROUP BY COALESCE(NULLIF(api_key_id, ''), NULLIF(api_key_name, ''), 'unknown'), NULLIF(api_key_id, ''), LOWER(provider), LOWER(model), serviceTier
       `
       )
       .all(params) as Array<Record<string, unknown>>;
+
+    const serviceTierRows = db
+      .prepare(
+        `
+        SELECT
+          COALESCE(NULLIF(service_tier, ''), 'standard') as serviceTier,
+          LOWER(provider) as provider,
+          LOWER(model) as model,
+          COALESCE(NULLIF(service_tier, ''), 'standard') as serviceTier,
+          COUNT(*) as requests,
+          COALESCE(SUM(tokens_input), 0) as promptTokens,
+          COALESCE(SUM(tokens_output), 0) as completionTokens,
+          COALESCE(SUM(tokens_cache_read), 0) as cacheReadTokens,
+          COALESCE(SUM(tokens_cache_creation), 0) as cacheCreationTokens,
+          COALESCE(SUM(tokens_reasoning), 0) as reasoningTokens,
+          COALESCE(SUM(tokens_input + tokens_output), 0) as totalTokens
+        FROM ${unifiedSource} AS _u
+        ${unifiedWhere}
+        GROUP BY serviceTier, LOWER(provider), LOWER(model)
+      `
+      )
+      .all(params) as Array<Record<string, unknown>>;
+
+    const apiKeyMetadataRows = db
+      .prepare(
+        `
+        SELECT
+          NULLIF(api_key_id, '') as apiKeyId,
+          NULLIF(api_key_name, '') as apiKeyName,
+          COALESCE(NULLIF(api_key_id, ''), NULLIF(api_key_name, ''), 'unknown') as apiKeyGroupKey,
+          MAX(timestamp) as lastUsed
+        FROM usage_history
+        ${apiKeyWhereClause}
+        GROUP BY NULLIF(api_key_id, ''), NULLIF(api_key_name, '')
+        ORDER BY lastUsed DESC
+      `
+      )
+      .all(params) as Array<Record<string, unknown>>;
+
+    const apiKeyMetadata = new Map<string, { latestName: string; aliases: Set<string> }>();
+    for (const row of apiKeyMetadataRows) {
+      const apiKeyId = toStringValue(row.apiKeyId);
+      const apiKeyGroupKey = toStringValue(row.apiKeyGroupKey, "unknown");
+      const groupKey = makeApiKeyUsageGroup(apiKeyId, apiKeyGroupKey);
+      const existing = apiKeyMetadata.get(groupKey) || {
+        latestName: "",
+        aliases: new Set<string>(),
+      };
+      const apiKeyName = toStringValue(row.apiKeyName);
+      if (!existing.latestName && apiKeyName) existing.latestName = apiKeyName;
+      addApiKeyAlias(existing.aliases, apiKeyName);
+      apiKeyMetadata.set(groupKey, existing);
+    }
 
     const weeklyRows = db
       .prepare(
@@ -397,8 +765,8 @@ export async function GET(request: Request) {
             strftime('%w', timestamp) as dayOfWeek,
             COUNT(*) as requests,
             COALESCE(SUM(tokens_input + tokens_output), 0) as totalTokens
-          FROM usage_history
-          ${whereClause}
+          FROM ${unifiedSource} AS _u
+          ${unifiedWhere}
           GROUP BY DATE(timestamp), strftime('%w', timestamp)
         )
         GROUP BY dayOfWeek
@@ -411,13 +779,23 @@ export async function GET(request: Request) {
       .prepare(
         `
         SELECT
-          COUNT(*) as total,
-          SUM(CASE WHEN requested_model IS NOT NULL AND requested_model != '' THEN 1 ELSE 0 END) as with_requested,
+          SUM(CASE WHEN (combo_name IS NULL OR combo_name = '') THEN 1 ELSE 0 END) as total,
+          SUM(CASE WHEN requested_model IS NOT NULL AND requested_model != '' AND (combo_name IS NULL OR combo_name = '') THEN 1 ELSE 0 END) as with_requested,
           SUM(CASE
-            WHEN requested_model IS NOT NULL
+            WHEN (combo_name IS NULL OR combo_name = '')
+             AND requested_model IS NOT NULL
              AND requested_model != ''
              AND model IS NOT NULL
-             AND requested_model != model
+             AND model != ''
+            THEN 1 ELSE 0 END
+          ) as fallback_eligible,
+          SUM(CASE
+            WHEN (combo_name IS NULL OR combo_name = '')
+             AND requested_model IS NOT NULL
+             AND requested_model != ''
+             AND model IS NOT NULL
+             AND model != ''
+             AND LOWER(CASE WHEN instr(requested_model, '/') > 0 THEN substr(requested_model, instr(requested_model, '/') + 1) ELSE requested_model END) != LOWER(model)
             THEN 1 ELSE 0 END
           ) as fallbacks
         FROM call_logs
@@ -450,11 +828,21 @@ export async function GET(request: Request) {
       firstRequest: summaryRow?.firstRequest || "",
       lastRequest: summaryRow?.lastRequest || "",
       fallbackCount: Number(fallbackRow?.fallbacks || 0),
+      fastRequests: 0,
+      standardRequests: 0,
+      flexRequests: 0,
+      fastCost: 0,
+      standardCost: 0,
+      flexCost: 0,
+      flexSavings: 0,
+      flexUsageSavingsTokens: 0,
+      fastRequestSharePct: 0,
       fallbackRatePct:
-        Number(fallbackRow?.with_requested || 0) > 0
+        Number(fallbackRow?.fallback_eligible || 0) > 0
           ? Number(
               (
-                (Number(fallbackRow?.fallbacks || 0) / Number(fallbackRow?.with_requested || 1)) *
+                (Number(fallbackRow?.fallbacks || 0) /
+                  Number(fallbackRow?.fallback_eligible || 1)) *
                 100
               ).toFixed(2)
             )
@@ -471,17 +859,31 @@ export async function GET(request: Request) {
       streak: 0,
     };
 
+    const dailyByModelMap: Record<string, Record<string, number>> = {};
+    const allModels = new Set<string>();
+
     const dailyCostByDate = new Map<string, number>();
     for (const row of dailyCostRows) {
       const date = toStringValue(row.date);
       if (!date) continue;
+
+      // Calculate costs
       const cost = computeUsageRowCost(
         row,
         pricingByProvider,
+        PROVIDER_ID_TO_ALIAS,
         normalizeModelName,
         computeCostFromPricing
       );
       dailyCostByDate.set(date, (dailyCostByDate.get(date) || 0) + cost);
+
+      // Group tokens by model for the day
+      const model = normalizeModelName(row.model as string);
+      const tokens = Number(row.promptTokens) + Number(row.completionTokens);
+
+      if (!dailyByModelMap[date]) dailyByModelMap[date] = {};
+      dailyByModelMap[date][model] = (dailyByModelMap[date][model] || 0) + tokens;
+      allModels.add(model);
     }
 
     const dailyTrend = dailyRows.map((row) => ({
@@ -499,37 +901,71 @@ export async function GET(request: Request) {
     }
     summary.streak = computeActivityStreak(activityMap);
 
-    const byModel = modelRows.map((row) => {
+    const modelMap = new Map<string, Record<string, unknown>>();
+    for (const row of modelRows) {
       const model = row.model as string;
       const provider = row.provider as string;
-      const short = shortModelName(model);
-      const tokens = {
-        input: Number(row.promptTokens) || 0,
-        output: Number(row.completionTokens) || 0,
-      };
+      const short = normalizeModelName(model);
       const cost = computeUsageRowCost(
         row,
         pricingByProvider,
+        PROVIDER_ID_TO_ALIAS,
         normalizeModelName,
         computeCostFromPricing
       );
-      return {
+      const key = `${provider}::${model}`;
+      const existing = modelMap.get(key) || {
         model: short,
         provider,
         rawModel: model,
+        requests: 0,
+        promptTokens: 0,
+        completionTokens: 0,
+        totalTokens: 0,
+        latencyWeightedTotal: 0,
+        successfulRequests: 0,
+        lastUsed: "",
+        cost: 0,
+      };
+      const requests = Number(row.requests) || 0;
+      existing.requests = Number(existing.requests || 0) + requests;
+      existing.promptTokens = Number(existing.promptTokens || 0) + Number(row.promptTokens || 0);
+      existing.completionTokens =
+        Number(existing.completionTokens || 0) + Number(row.completionTokens || 0);
+      existing.totalTokens = Number(existing.totalTokens || 0) + Number(row.totalTokens || 0);
+      existing.latencyWeightedTotal =
+        Number(existing.latencyWeightedTotal || 0) + Number(row.avgLatencyMs || 0) * requests;
+      existing.successfulRequests =
+        Number(existing.successfulRequests || 0) + Number(row.successfulRequests || 0);
+      if (!existing.lastUsed || String(row.lastUsed || "") > String(existing.lastUsed || "")) {
+        existing.lastUsed = row.lastUsed;
+      }
+      existing.cost = Number(existing.cost || 0) + cost;
+      modelMap.set(key, existing);
+    }
+
+    const byModel = Array.from(modelMap.values())
+      .map((row) => ({
+        model: row.model,
+        provider: row.provider,
+        rawModel: row.rawModel,
         requests: Number(row.requests),
-        promptTokens: tokens.input,
-        completionTokens: tokens.output,
+        promptTokens: Number(row.promptTokens),
+        completionTokens: Number(row.completionTokens),
         totalTokens: Number(row.totalTokens),
-        avgLatencyMs: Math.round(Number(row.avgLatencyMs)),
+        avgLatencyMs:
+          Number(row.requests) > 0
+            ? Math.round(Number(row.latencyWeightedTotal || 0) / Number(row.requests))
+            : 0,
         successRatePct:
           Number(row.requests) > 0
-            ? Number((Number(row.successfulRequests) / Number(row.requests)) * 100).toFixed(2)
+            ? Number((Number(row.successfulRequests || 0) / Number(row.requests)) * 100).toFixed(2)
             : 0,
         lastUsed: row.lastUsed,
-        cost: roundCost(cost),
-      };
-    });
+        cost: roundCost(Number(row.cost || 0)),
+      }))
+      .sort((left, right) => Number(right.requests) - Number(left.requests))
+      .slice(0, 50);
 
     const totalCost = Array.from(dailyCostByDate.values()).reduce((sum, cost) => sum + cost, 0);
     summary.totalCost = roundCost(totalCost);
@@ -541,6 +977,7 @@ export async function GET(request: Request) {
       const cost = computeUsageRowCost(
         row,
         pricingByProvider,
+        PROVIDER_ID_TO_ALIAS,
         normalizeModelName,
         computeCostFromPricing
       );
@@ -567,6 +1004,7 @@ export async function GET(request: Request) {
       const cost = computeUsageRowCost(
         row,
         pricingByProvider,
+        PROVIDER_ID_TO_ALIAS,
         normalizeModelName,
         computeCostFromPricing
       );
@@ -590,6 +1028,7 @@ export async function GET(request: Request) {
         apiKey: string;
         apiKeyId: string | null;
         apiKeyName: string;
+        historicalApiKeyNames: string[];
         requests: number;
         promptTokens: number;
         completionTokens: number;
@@ -599,12 +1038,20 @@ export async function GET(request: Request) {
     >();
     for (const row of apiKeyRows) {
       const apiKeyId = toStringValue(row.apiKeyId);
-      const apiKeyName = toStringValue(row.apiKeyName, apiKeyId || "Unknown API key");
-      const key = `${apiKeyId || "unknown"}::${apiKeyName}`;
+      const apiKeyGroupKey = toStringValue(row.apiKeyGroupKey, "unknown");
+      const key = makeApiKeyUsageGroup(apiKeyId, apiKeyGroupKey);
+      const metadata = apiKeyMetadata.get(key);
+      const apiKeyName =
+        (apiKeyId ? currentApiKeyNames.get(apiKeyId) : undefined) ||
+        metadata?.latestName ||
+        apiKeyId ||
+        apiKeyGroupKey ||
+        "Unknown API key";
       const existing = apiKeyMap.get(key) || {
         apiKey: apiKeyId && apiKeyName !== apiKeyId ? `${apiKeyName} (${apiKeyId})` : apiKeyName,
         apiKeyId: apiKeyId || null,
         apiKeyName,
+        historicalApiKeyNames: Array.from(metadata?.aliases || []),
         requests: 0,
         promptTokens: 0,
         completionTokens: 0,
@@ -619,6 +1066,7 @@ export async function GET(request: Request) {
       existing.cost += computeUsageRowCost(
         row,
         pricingByProvider,
+        PROVIDER_ID_TO_ALIAS,
         normalizeModelName,
         computeCostFromPricing
       );
@@ -627,6 +1075,89 @@ export async function GET(request: Request) {
     const byApiKey = Array.from(apiKeyMap.values())
       .map((row) => ({ ...row, cost: roundCost(row.cost) }))
       .sort((left, right) => right.cost - left.cost);
+
+    const serviceTierMap = new Map<
+      string,
+      {
+        serviceTier: "standard" | "priority" | "flex";
+        label: string;
+        requests: number;
+        promptTokens: number;
+        completionTokens: number;
+        totalTokens: number;
+        cost: number;
+        savings: number;
+        usageSavingsTokens: number;
+      }
+    >();
+    for (const row of serviceTierRows) {
+      const serviceTier = normalizeServiceTier(row.serviceTier);
+      const existing = serviceTierMap.get(serviceTier) || {
+        serviceTier,
+        label: getServiceTierLabelId(serviceTier),
+        requests: 0,
+        promptTokens: 0,
+        completionTokens: 0,
+        totalTokens: 0,
+        cost: 0,
+        savings: 0,
+        usageSavingsTokens: 0,
+      };
+      existing.requests += Number(row.requests || 0);
+      existing.promptTokens += Number(row.promptTokens || 0);
+      existing.completionTokens += Number(row.completionTokens || 0);
+      existing.totalTokens += Number(row.totalTokens || 0);
+      const actualCost = computeUsageRowCost(
+        row,
+        pricingByProvider,
+        PROVIDER_ID_TO_ALIAS,
+        normalizeModelName,
+        computeCostFromPricing
+      );
+      existing.cost += actualCost;
+      if (serviceTier === "flex") {
+        const standardCost = computeUsageRowStandardCost(
+          row,
+          pricingByProvider,
+          PROVIDER_ID_TO_ALIAS,
+          normalizeModelName,
+          computeCostFromPricing
+        );
+        existing.savings += Math.max(0, standardCost - actualCost);
+        existing.usageSavingsTokens += computeUsageSavingsTokens(
+          row,
+          serviceTier,
+          getCodexFastCostMultiplier
+        );
+      }
+      serviceTierMap.set(serviceTier, existing);
+    }
+    const byServiceTier = Array.from(serviceTierMap.values())
+      .map((row) => ({
+        ...row,
+        cost: roundCost(row.cost),
+        savings: roundCost(row.savings),
+        usageSavingsTokens: Math.round(row.usageSavingsTokens),
+      }))
+      .sort((left, right) => {
+        const order = { priority: 0, flex: 1, standard: 2 } as const;
+        return order[left.serviceTier] - order[right.serviceTier];
+      });
+    const fastTier = serviceTierMap.get("priority");
+    const flexTier = serviceTierMap.get("flex");
+    const standardTier = serviceTierMap.get("standard");
+    summary.fastRequests = fastTier?.requests || 0;
+    summary.fastCost = roundCost(fastTier?.cost || 0);
+    summary.flexRequests = flexTier?.requests || 0;
+    summary.flexCost = roundCost(flexTier?.cost || 0);
+    summary.flexSavings = roundCost(flexTier?.savings || 0);
+    summary.flexUsageSavingsTokens = Math.round(flexTier?.usageSavingsTokens || 0);
+    summary.standardRequests = standardTier?.requests || 0;
+    summary.standardCost = roundCost(standardTier?.cost || 0);
+    summary.fastRequestSharePct =
+      summary.totalRequests > 0
+        ? Number(((Number(summary.fastRequests) / Number(summary.totalRequests)) * 100).toFixed(2))
+        : 0;
 
     const weeklyTokens = [0, 0, 0, 0, 0, 0, 0];
     const weeklyCounts = [0, 0, 0, 0, 0, 0, 0];
@@ -650,6 +1181,11 @@ export async function GET(request: Request) {
       }
     }
 
+    const dailyByModel = Object.keys(dailyByModelMap)
+      .sort()
+      .map((date) => ({ date, ...dailyByModelMap[date] }));
+    const modelNames = Array.from(allModels);
+
     const analytics = {
       summary,
       dailyTrend,
@@ -658,9 +1194,12 @@ export async function GET(request: Request) {
       byProvider,
       byApiKey,
       byAccount,
+      byServiceTier,
       weeklyPattern,
       weeklyTokens,
       weeklyCounts,
+      dailyByModel,
+      modelNames,
       range,
     } as any;
 
@@ -681,34 +1220,81 @@ export async function GET(request: Request) {
         }
 
         const presetSinceIso = getRangeStartIso(presetRange);
-        const presetConditions = [];
         const presetParams: Record<string, string> = {};
-        if (presetSinceIso) {
-          presetConditions.push("timestamp >= @presetSince");
+
+        // Build unified source for preset cost queries (same UNION logic as main query).
+        // Aggregated rows are gated off when an api_key filter is active (leakage) and
+        // bounded strictly before the raw cutoff (overlap / double-count) — see main query.
+        const presetNeedsAggregated =
+          (!presetSinceIso || presetSinceIso < rawCutoffDate) && apiKeyIds.length === 0;
+
+        const presetRawConds: string[] = [];
+        if (presetNeedsAggregated) {
+          presetRawConds.push("timestamp >= @presetRawCutoff");
+          presetParams.presetRawCutoff = rawCutoffDate;
+        } else if (presetSinceIso) {
+          presetRawConds.push("timestamp >= @presetSince");
           presetParams.presetSince = presetSinceIso;
         }
         if (apiKeyWhere) {
-          presetConditions.push(apiKeyWhere);
+          presetRawConds.push(apiKeyWhere);
           Object.assign(presetParams, params);
         }
+        const presetRawWhere =
+          presetRawConds.length > 0 ? `WHERE ${presetRawConds.join(" AND ")}` : "";
 
-        const presetWhere =
-          presetConditions.length > 0 ? `WHERE ${presetConditions.join(" AND ")}` : "";
+        const presetAggConds: string[] = [];
+        if (presetSinceIso) {
+          const presetSinceDate = presetSinceIso.split("T")[0];
+          presetAggConds.push("date >= @presetSinceDate");
+          presetParams.presetSinceDate = presetSinceDate;
+        }
+        presetAggConds.push("date < @presetRawCutoffDate");
+        presetParams.presetRawCutoffDate = rawCutoffDate;
+        const presetAggWhere =
+          presetAggConds.length > 0 ? `WHERE ${presetAggConds.join(" AND ")}` : "";
+
+        const presetUnifiedSource = presetNeedsAggregated
+          ? `(
+              SELECT timestamp, provider, model, service_tier,
+                tokens_input, tokens_output,
+                tokens_cache_read, tokens_cache_creation, tokens_reasoning
+              FROM usage_history
+              ${presetRawWhere}
+              UNION ALL
+              SELECT
+                date || 'T12:00:00.000Z' as timestamp,
+                provider, model,
+                'standard' as service_tier,
+                total_input_tokens as tokens_input,
+                total_output_tokens as tokens_output,
+                0 as tokens_cache_read,
+                0 as tokens_cache_creation,
+                0 as tokens_reasoning
+              FROM daily_usage_summary
+              ${presetAggWhere}
+            )`
+          : `(SELECT timestamp, provider, model, service_tier,
+                tokens_input, tokens_output,
+                tokens_cache_read, tokens_cache_creation, tokens_reasoning
+              FROM usage_history
+              ${presetRawWhere}
+            )`;
 
         const presetModelRows = db
           .prepare(
             `
             SELECT
-              model,
-              provider,
+              LOWER(model) as model,
+              LOWER(provider) as provider,
+              COALESCE(NULLIF(service_tier, ''), 'standard') as serviceTier,
               COALESCE(SUM(tokens_input), 0) as promptTokens,
               COALESCE(SUM(tokens_output), 0) as completionTokens,
               COALESCE(SUM(tokens_cache_read), 0) as cacheReadTokens,
               COALESCE(SUM(tokens_cache_creation), 0) as cacheCreationTokens,
               COALESCE(SUM(tokens_reasoning), 0) as reasoningTokens
-            FROM usage_history
-            ${presetWhere}
-            GROUP BY model, provider
+            FROM ${presetUnifiedSource} AS _pu
+            GROUP BY LOWER(model), LOWER(provider), serviceTier
           `
           )
           .all(presetParams) as Array<Record<string, unknown>>;
@@ -718,6 +1304,7 @@ export async function GET(request: Request) {
           presetTotalCost += computeUsageRowCost(
             row,
             pricingByProvider,
+            PROVIDER_ID_TO_ALIAS,
             normalizeModelName,
             computeCostFromPricing
           );

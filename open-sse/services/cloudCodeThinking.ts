@@ -29,11 +29,14 @@ function stripGeminiThinkingConfig(value: unknown): unknown {
 export function shouldStripCloudCodeThinking(provider: string, model: string): boolean {
   if (!provider || !model) return false;
   const normalizedModel = normalizeCloudCodeModel(model);
+  if (CLOUD_CODE_REASONING_UNSUPPORTED_PATTERNS.some((pattern) => pattern.test(normalizedModel))) {
+    return true;
+  }
   const spec = getModelSpec(normalizedModel);
   if (typeof spec?.supportsThinking === "boolean") {
     return !spec.supportsThinking;
   }
-  return CLOUD_CODE_REASONING_UNSUPPORTED_PATTERNS.some((pattern) => pattern.test(normalizedModel));
+  return false;
 }
 
 /**
@@ -54,6 +57,10 @@ export function stripCloudCodeThinkingConfig(
 
   if (isRecord(next.request)) {
     const request = { ...next.request };
+    delete request.reasoning_effort;
+    delete request.reasoning;
+    delete request.thinking;
+
     if ("generationConfig" in request) {
       request.generationConfig = stripGeminiThinkingConfig(request.generationConfig);
     }

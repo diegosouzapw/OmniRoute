@@ -11,7 +11,6 @@ import {
 } from "../../open-sse/executors/base.ts";
 import { DefaultExecutor } from "../../open-sse/executors/default.ts";
 import { PROVIDERS } from "../../open-sse/config/constants.ts";
-import { BEDROCK_DEFAULT_BASE_URL } from "../../open-sse/config/bedrock.ts";
 import {
   CLAUDE_CODE_COMPATIBLE_ANTHROPIC_VERSION,
   CLAUDE_CODE_COMPATIBLE_DEFAULT_CHAT_PATH,
@@ -96,6 +95,20 @@ test("DefaultExecutor.buildUrl handles Gemini, Claude and Qwen variants", () => 
   );
 });
 
+test("DefaultExecutor.buildUrl uses full chat endpoints for hosted OpenAI-compatible providers", () => {
+  const bazaarlink = new DefaultExecutor("bazaarlink");
+  const completions = new DefaultExecutor("completions");
+
+  assert.equal(
+    bazaarlink.buildUrl("auto:free", true),
+    "https://bazaarlink.ai/api/v1/chat/completions"
+  );
+  assert.equal(
+    completions.buildUrl("gpt-4.1", true),
+    "https://completions.me/api/v1/chat/completions"
+  );
+});
+
 test("DefaultExecutor.buildUrl handles openai-compatible and anthropic-compatible providers", () => {
   const openAICompat = new DefaultExecutor("openai-compatible-test");
   const openAIResponsesCompat = new DefaultExecutor("openai-compatible-responses-test");
@@ -171,6 +184,7 @@ test("DefaultExecutor.buildUrl normalizes configurable chat-openai-compat base U
   const maritalk = new DefaultExecutor("maritalk");
   const snowflake = new DefaultExecutor("snowflake");
   const gigachat = new DefaultExecutor("gigachat");
+  const siliconflow = new DefaultExecutor("siliconflow");
 
   assert.equal(
     bailian.buildUrl("qwen3-coder-plus", true, 0, {
@@ -178,7 +192,7 @@ test("DefaultExecutor.buildUrl normalizes configurable chat-openai-compat base U
         baseUrl: "https://coding-intl.dashscope.aliyuncs.com/apps/anthropic/v1",
       },
     }),
-    "https://coding-intl.dashscope.aliyuncs.com/apps/anthropic/v1/messages?beta=true"
+    "https://coding-intl.dashscope.aliyuncs.com/apps/anthropic/v1/messages"
   );
   assert.equal(
     heroku.buildUrl("claude-4-sonnet", true, 0, {
@@ -259,6 +273,16 @@ test("DefaultExecutor.buildUrl normalizes configurable chat-openai-compat base U
       providerSpecificData: { baseUrl: "https://gigachat.devices.sberbank.ru/api/v1" },
     }),
     "https://gigachat.devices.sberbank.ru/api/v1/chat/completions"
+  );
+  assert.equal(
+    siliconflow.buildUrl("deepseek-ai/DeepSeek-V3.2", true),
+    "https://api.siliconflow.com/v1/chat/completions"
+  );
+  assert.equal(
+    siliconflow.buildUrl("deepseek-ai/DeepSeek-V3.2", true, 0, {
+      providerSpecificData: { baseUrl: "https://api.siliconflow.cn/v1" },
+    }),
+    "https://api.siliconflow.cn/v1/chat/completions"
   );
 });
 
@@ -555,7 +579,7 @@ test("DefaultExecutor.execute uses CC-compatible connection defaults to append 1
 
   assert.equal(calls[0].headers["anthropic-beta"].includes(CONTEXT_1M_BETA_HEADER), false);
   assert.equal(calls[1].headers["anthropic-beta"].includes(CONTEXT_1M_BETA_HEADER), true);
-  assert.equal(calls[2].headers["anthropic-beta"], CONTEXT_1M_BETA_HEADER);
+  assert.equal(calls[2].headers["anthropic-beta"], undefined);
 });
 
 test("DefaultExecutor.execute only injects adaptive thinking defaults for Claude models that support x-high effort", async () => {
@@ -613,6 +637,28 @@ test("DefaultExecutor.execute only injects adaptive thinking defaults for Claude
       },
       extendedContext: false,
     });
+
+    await claude.execute({
+      model: "claude-sonnet-4-6",
+      body: {
+        model: "claude-sonnet-4-6",
+        messages: [{ role: "user", content: "hi" }],
+        max_tokens: 1,
+        thinking: { type: "disabled" },
+      },
+      stream: false,
+      credentials: {
+        apiKey: "cc-key",
+        providerSpecificData: {
+          ccSessionId: "session-1",
+        },
+      },
+      clientHeaders: {
+        "x-app": "cli",
+        "user-agent": "claude-cli/2.1.116 (external, cli)",
+      },
+      extendedContext: false,
+    });
   } finally {
     globalThis.fetch = originalFetch;
   }
@@ -626,6 +672,9 @@ test("DefaultExecutor.execute only injects adaptive thinking defaults for Claude
   assert.equal((requestBodies[1] as any).thinking, undefined);
   assert.equal((requestBodies[1] as any).context_management, undefined);
   assert.equal((requestBodies[1] as any).output_config, undefined);
+
+  assert.deepEqual((requestBodies[2] as any).thinking, { type: "disabled" });
+  assert.equal((requestBodies[2] as any).context_management, undefined);
 });
 
 test("DefaultExecutor.transformRequest injects OpenAI stream usage and preserves model ids with slashes", () => {

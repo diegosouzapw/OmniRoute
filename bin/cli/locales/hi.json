@@ -1,0 +1,29 @@
+{
+  "common": {
+    "error": "त्रुटि: {message}",
+    "serverOffline": "OmniRoute सर्वर ऑफलाइन है। शुरू करें: omniroute serve",
+    "authRequired": "प्रमाणीकरण आवश्यक है। OMNIROUTE_API_KEY सेट करें या चलाएं: omniroute setup",
+    "rateLimited": "अनुरोध सीमा पार हो गई। {seconds}s बाद पुनः प्रयास करें।",
+    "timeout": "{ms}ms के बाद अनुरोध समय समाप्त हुआ।",
+    "success": "पूर्ण।",
+    "yes": "हाँ",
+    "no": "नहीं",
+    "confirm": "क्या आप सुनिश्चित हैं? (हाँ/नहीं)",
+    "dryRun": "[अनुकरण] करेगा: {action}",
+    "cancelled": "रद्द किया गया।",
+    "jsonOpt": "JSON के रूप में आउटपुट",
+    "yesOpt": "पुष्टि छोड़ें"
+  },
+  "program": {
+    "description": "OmniRoute — ऑटो फॉलबैक के साथ स्मार्ट AI राउटर",
+    "version": "संस्करण प्रिंट करें और बाहर निकलें",
+    "output": "आउटपुट प्रारूप (table, json, jsonl, csv)",
+    "quiet": "गैर-आवश्यक आउटपुट दबाएं",
+    "no_color": "रंगीन आउटपुट अक्षम करें",
+    "timeout": "HTTP अनुरोध टाइमआउट मिलीसेकंड में",
+    "api_key": "OmniRoute सर्वर के लिए API कुंजी",
+    "base_url": "OmniRoute सर्वर का बेस URL",
+    "context": "इस कमांड के लिए सर्वर संदर्भ/प्रोफ़ाइल",
+    "lang": "CLI प्रदर्शन भाषा सेट करें (OMNIROUTE_LANG को ओवरराइड करता है)"
+  }
+}

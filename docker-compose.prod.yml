@@ -9,11 +9,43 @@
 #    docker compose -f docker-compose.prod.yml up -d --build
 #    docker compose -f docker-compose.prod.yml down
 #    docker compose -f docker-compose.prod.yml logs -f
+#
+#  Image flavors (two Dockerfile stages):
+#    runner-base (default / omniroute:prod)
+#      Lean image — no Playwright/Chromium. Suitable for all providers
+#      except web-cookie ones (gemini-web, claude-web, claude-turnstile).
+#
+#    runner-web (omniroute:prod-web) — opt-in, ~300 MB extra
+#      Includes Playwright + Chromium system libs. Required for web-cookie
+#      providers. To use this flavor, override the build target:
+#
+#        omniroute-prod:
+#          build:
+#            context: .
+#            target: runner-web
+#          image: omniroute:prod-web
 # ──────────────────────────────────────────────────────────────────────
 
 services:
+  # ── Redis (Rate Limiter Backend) ──────────────────────────────────
+  redis:
+    image: redis:8.6.2-alpine
+    container_name: omniroute-redis-prod
+    restart: unless-stopped
+    volumes:
+      - redis-prod-data:/data
+    command: redis-server --save 60 1 --loglevel warning
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+
   omniroute-prod:
     container_name: omniroute-prod
+    depends_on:
+      redis:
+        condition: service_healthy
     build:
       context: .
       target: runner-cli
@@ -44,3 +76,5 @@ services:
 volumes:
   omniroute-prod-data:
     name: omniroute-prod-data
+  redis-prod-data:
+    name: redis-prod-data

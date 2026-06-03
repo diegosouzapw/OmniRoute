@@ -1,0 +1,6 @@
+make[1]: Entering directory '/repo'
+gcc -O2 -c src/main.c
+gcc -O2 -c src/main.c
+src/main.c:12:3: error: expected ';' before 'return'
+make[1]: Leaving directory '/repo'
+make: *** [Makefile:12: build] Error 2

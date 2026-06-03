@@ -87,3 +87,43 @@ test("provider schemas reject non-boolean requestDefaults.context1m values", () 
   assert.equal(created.success, false);
   assert.equal(updated.success, false);
 });
+
+test("provider schemas accept Codex default priority and flex service tiers", () => {
+  for (const serviceTier of ["default", "priority", "fast", "flex"]) {
+    const created = createProviderSchema.safeParse({
+      provider: "codex",
+      apiKey: "token",
+      name: "Codex",
+      providerSpecificData: {
+        requestDefaults: { serviceTier },
+      },
+    });
+    const updated = updateProviderConnectionSchema.safeParse({
+      providerSpecificData: {
+        requestDefaults: { serviceTier },
+      },
+    });
+
+    assert.equal(created.success, true, serviceTier);
+    assert.equal(updated.success, true, serviceTier);
+  }
+});
+
+test("provider schemas reject unknown Codex service tiers", () => {
+  const created = createProviderSchema.safeParse({
+    provider: "codex",
+    apiKey: "token",
+    name: "Codex",
+    providerSpecificData: {
+      requestDefaults: { serviceTier: "turbo" },
+    },
+  });
+  const updated = updateProviderConnectionSchema.safeParse({
+    providerSpecificData: {
+      requestDefaults: { serviceTier: "turbo" },
+    },
+  });
+
+  assert.equal(created.success, false);
+  assert.equal(updated.success, false);
+});

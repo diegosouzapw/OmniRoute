@@ -1,4 +1,5 @@
 import { CORS_HEADERS } from "../utils/cors.ts";
+import { Buffer } from "node:buffer";
 /**
  * Audio Transcription Handler
  *
@@ -19,6 +20,7 @@ import {
   type AudioProvider,
 } from "../config/audioRegistry.ts";
 import { buildAuthHeaders } from "../config/registryUtils.ts";
+import { kieExecutor } from "../executors/kie.ts";
 import { errorResponse } from "../utils/error.ts";
 
 type TranscriptionCredentials = {
@@ -65,6 +67,45 @@ function isValidPathSegment(segment: string): boolean {
 
 function getUploadedFileName(file: Blob & { name?: unknown }): string {
   return typeof file.name === "string" && file.name.length > 0 ? file.name : "audio.wav";
+}
+
+export async function buildMultipartBody(
+  file: Blob & { name?: unknown },
+  fields: Record<string, string>
+): Promise<{ body: Uint8Array; contentType: string }> {
+  const boundary = "----OmniRouteAudioBoundary" + Date.now().toString(36);
+  const parts: Uint8Array[] = [];
+  const encoder = new TextEncoder();
+
+  for (const [name, value] of Object.entries(fields)) {
+    parts.push(
+      encoder.encode(
+        `--${boundary}\r\nContent-Disposition: form-data; name="${name}"\r\n\r\n${value}\r\n`
+      )
+    );
+  }
+
+  const fileName = getUploadedFileName(file)
+    .replace(/["]/g, "_")
+    .replace(/[\r\n]/g, "_");
+  const fileBytes = new Uint8Array(await file.arrayBuffer());
+  parts.push(
+    encoder.encode(
+      `--${boundary}\r\nContent-Disposition: form-data; name="file"; filename="${fileName}"\r\nContent-Type: ${file.type || "application/octet-stream"}\r\n\r\n`
+    )
+  );
+  parts.push(fileBytes);
+  parts.push(encoder.encode(`\r\n--${boundary}--\r\n`));
+
+  const totalLength = parts.reduce((sum, p) => sum + p.length, 0);
+  const body = new Uint8Array(totalLength);
+  let offset = 0;
+  for (const part of parts) {
+    body.set(part, offset);
+    offset += part.length;
+  }
+
+  return { body, contentType: "multipart/form-data; boundary=" + boundary };
 }
 
 /**
@@ -229,14 +270,12 @@ async function handleAssemblyAITranscription(providerConfig, file, modelId, toke
  * Multipart POST, transform response to { text }
  */
 async function handleNvidiaTranscription(providerConfig, file, modelId, token) {
-  const upstreamForm = new FormData();
-  upstreamForm.append("file", file, getUploadedFileName(file));
-  upstreamForm.append("model", modelId);
+  const { body, contentType } = await buildMultipartBody(file, { model: modelId });
 
   const res = await fetch(providerConfig.baseUrl, {
     method: "POST",
-    headers: buildAuthHeaders(providerConfig, token),
-    body: upstreamForm,
+    headers: { ...buildAuthHeaders(providerConfig, token), "Content-Type": contentType },
+    body,
   });
 
   if (!res.ok) {
@@ -279,6 +318,94 @@ async function handleHuggingFaceTranscription(providerConfig, file, modelId, tok
   const text = data.text || "";
 
   return Response.json({ text }, { headers: { ...CORS_HEADERS } });
+}
+
+/**
+ * Handle Kie.ai transcription
+ */
+async function handleKieAudioTranscription(providerConfig, file, modelId, token) {
+  const baseUrl = providerConfig.baseUrl.replace(/\/$/, "");
+  const fileBuffer = await file.arrayBuffer();
+  const fileBase64 = Buffer.from(fileBuffer).toString("base64");
+  let data;
+  try {
+    data = await kieExecutor.createTask({
+      baseUrl,
+      token,
+      payload: {
+        model: modelId,
+        input: {
+          file_name: getUploadedFileName(file),
+          file_base64: fileBase64,
+        },
+      },
+    });
+  } catch (err: unknown) {
+    const status =
+      typeof err === "object" && err !== null && "status" in err
+        ? Number((err as { status?: unknown }).status) || 502
+        : 502;
+    return Response.json(
+      {
+        error: {
+          message: err instanceof Error ? err.message : "Kie transcription createTask failed",
+          code: status,
+        },
+      },
+      {
+        status,
+        headers: { ...CORS_HEADERS },
+      }
+    );
+  }
+  const taskId = data?.data?.taskId || data?.taskId;
+
+  if (taskId) {
+    return pollKieTranscriptionResult(baseUrl, modelId, taskId, token);
+  }
+
+  return Response.json(
+    { text: data?.data?.text || data?.text || "" },
+    { headers: { ...CORS_HEADERS } }
+  );
+}
+
+/**
+ * Internal polling for Kie.ai async transcription tasks
+ */
+async function pollKieTranscriptionResult(baseUrl, modelId, taskId, token) {
+  void modelId;
+  const statusUrl = kieExecutor.getTaskStatusUrl(baseUrl);
+  try {
+    const { data, state } = await kieExecutor.pollTask({
+      statusUrl,
+      taskId: String(taskId),
+      token,
+      timeoutMs: 120000,
+      pollIntervalMs: 2000,
+    });
+
+    if (state === "success") {
+      const text =
+        data?.data?.response?.text ||
+        data?.data?.resultText ||
+        data?.data?.text ||
+        data?.text ||
+        "";
+      return Response.json({ text }, { headers: { ...CORS_HEADERS } });
+    }
+  } catch (err: unknown) {
+    const status =
+      typeof err === "object" && err !== null && "status" in err
+        ? Number((err as { status?: unknown }).status) || 504
+        : 504;
+    return errorResponse(
+      status,
+      err instanceof Error ? err.message : "Kie transcription generation timed out or failed"
+    );
+  }
+
+  return errorResponse(504, "Kie transcription generation timed out or failed");
 }
 
 /**
@@ -351,12 +478,12 @@ export async function handleAudioTranscription({
     return handleHuggingFaceTranscription(providerConfig, file, modelId, token);
   }
 
-  // Default: OpenAI/Groq/Qwen3-compatible multipart proxy
-  const upstreamForm = new FormData();
-  upstreamForm.append("file", file, getUploadedFileName(file));
-  upstreamForm.append("model", modelId);
+  if (providerConfig.format === "kie-audio") {
+    return handleKieAudioTranscription(providerConfig, file, modelId, token);
+  }
 
-  // Forward optional parameters
+  // Default: OpenAI/Groq/Qwen3-compatible multipart proxy
+  const extraFields: Record<string, string> = {};
   for (const key of [
     "language",
     "prompt",
@@ -366,15 +493,20 @@ export async function handleAudioTranscription({
   ]) {
     const val = formData.get(key);
     if (val !== null && val !== undefined) {
-      upstreamForm.append(key, /** @type {string} */ val);
+      extraFields[key] = String(val);
     }
   }
+
+  const { body: multipartBody, contentType: multipartCT } = await buildMultipartBody(file, {
+    model: modelId,
+    ...extraFields,
+  });
 
   try {
     const res = await fetch(providerConfig.baseUrl, {
       method: "POST",
-      headers: buildAuthHeaders(providerConfig, token),
-      body: upstreamForm,
+      headers: { ...buildAuthHeaders(providerConfig, token), "Content-Type": multipartCT },
+      body: multipartBody,
     });
 
     if (!res.ok) {
@@ -382,11 +514,11 @@ export async function handleAudioTranscription({
     }
 
     const data = await res.text();
-    const contentType = res.headers.get("content-type") || "application/json";
+    const respContentType = res.headers.get("content-type") || "application/json";
 
     return new Response(data, {
       status: 200,
-      headers: { "Content-Type": contentType },
+      headers: { "Content-Type": respContentType },
     });
   } catch (err) {
     const error = err instanceof Error ? err : new Error(String(err));

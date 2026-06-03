@@ -184,9 +184,12 @@ export class KiroService {
   async refreshToken(refreshToken: string, providerSpecificData: any = {}) {
     const { authMethod, clientId, clientSecret, region } = providerSpecificData;
 
-    // AWS SSO OIDC refresh (Builder ID or IDC)
-    if (clientId && clientSecret) {
-      const endpoint = `https://oidc.${region || "us-east-1"}.amazonaws.com/token`;
+    // AWS SSO OIDC refresh (Builder ID or IDC).
+    // Imported social tokens (authMethod === "imported") have a registered clientId/clientSecret
+    // but a Kiro-social refresh token the OIDC client can't refresh — use the social path (#2467).
+    if (clientId && clientSecret && authMethod !== "imported") {
+      const resolvedRegion = region || "us-east-1";
+      const endpoint = `https://oidc.${resolvedRegion}.amazonaws.com/token`;
 
       const response = await fetch(endpoint, {
         method: "POST",
@@ -202,6 +205,41 @@ export class KiroService {
       });
 
       if (!response.ok) {
+        // Client credentials may be expired or invalid (DB import, TTL, browser conflict).
+        // Re-register a fresh OIDC client and retry once before giving up (#2524).
+        console.warn("[kiro refresh] OIDC refresh failed, attempting client re-registration...");
+        try {
+          const newReg = await this.registerClient(resolvedRegion);
+          const retryRes = await fetch(endpoint, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              clientId: newReg.clientId,
+              clientSecret: newReg.clientSecret,
+              refreshToken,
+              grantType: "refresh_token",
+            }),
+          });
+
+          if (retryRes.ok) {
+            const retryData = await retryRes.json();
+            return {
+              accessToken: retryData.accessToken,
+              refreshToken: retryData.refreshToken || refreshToken,
+              expiresIn: retryData.expiresIn,
+              _newClientId: newReg.clientId,
+              _newClientSecret: newReg.clientSecret,
+              _newClientSecretExpiresAt: newReg.clientSecretExpiresAt,
+            };
+          } else {
+            const retryError = await retryRes.text();
+            throw new Error(`Token refresh retry failed after re-registration: ${retryError}`);
+          }
+        } catch (reRegErr) {
+          if (reRegErr.message?.includes("Token refresh retry failed")) throw reRegErr;
+          console.warn("[kiro refresh] Re-registration fallback failed:", reRegErr);
+        }
+
         const error = await response.text();
         throw new Error(`Token refresh failed: ${error}`);
       }
@@ -240,27 +278,47 @@ export class KiroService {
   }
 
   /**
-   * Validate and import refresh token
+   * Validate and import refresh token.
+   * Registers a dedicated OIDC client so this connection has an isolated refresh session.
+   * If registerClient() fails (network issue, OIDC service down), the import still
+   * succeeds and the connection falls back to the shared social-auth refresh path.
    */
-  async validateImportToken(refreshToken: string) {
+  async validateImportToken(refreshToken: string, region: string = "us-east-1") {
     // Validate token format
     if (!refreshToken.startsWith("aorAAAAAG")) {
       throw new Error("Invalid token format. Token should start with aorAAAAAG...");
     }
 
     // Try to refresh to validate
+    let result: Awaited<ReturnType<typeof this.refreshToken>>;
     try {
-      const result = await this.refreshToken(refreshToken);
-      return {
-        accessToken: result.accessToken,
-        refreshToken: result.refreshToken || refreshToken,
-        profileArn: result.profileArn,
-        expiresIn: result.expiresIn,
-        authMethod: "imported",
-      };
+      result = await this.refreshToken(refreshToken);
     } catch (error: any) {
       throw new Error(`Token validation failed: ${error.message}`);
     }
+
+    // Register an independent OIDC client for this connection so multiple accounts
+    // do not share a single Kiro backend session (issue #2328).
+    let clientId: string | undefined;
+    let clientSecret: string | undefined;
+    let clientSecretExpiresAt: number | undefined;
+    try {
+      const registration = await this.registerClient(region);
+      clientId = registration.clientId;
+      clientSecret = registration.clientSecret;
+      clientSecretExpiresAt = registration.clientSecretExpiresAt;
+    } catch (err: any) {
+      console.warn("[kiro import] registerClient failed, continuing without isolated client:", err);
+    }
+
+    return {
+      accessToken: result.accessToken,
+      refreshToken: result.refreshToken || refreshToken,
+      profileArn: result.profileArn,
+      expiresIn: result.expiresIn,
+      authMethod: "imported",
+      ...(clientId ? { clientId, clientSecret, clientSecretExpiresAt } : {}),
+    };
   }
 
   /**

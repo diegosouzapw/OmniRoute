@@ -1,6 +1,9 @@
 import { FORMATS } from "./formats.ts";
 import { ensureToolCallIds, fixMissingToolResponses } from "./helpers/toolCallHelper.ts";
-import { prepareClaudeRequest } from "./helpers/claudeHelper.ts";
+import {
+  NON_ANTHROPIC_THINKING_PLACEHOLDER,
+  prepareClaudeRequest,
+} from "./helpers/claudeHelper.ts";
 import { filterToOpenAIFormat } from "./helpers/openaiHelper.ts";
 import {
   coerceToolSchemas,
@@ -9,8 +12,9 @@ import {
 } from "./helpers/schemaCoercion.ts";
 import { getRequestTranslator, getResponseTranslator } from "./registry.ts";
 import { bootstrapTranslatorRegistry } from "./bootstrap.ts";
-import { normalizeThinkingConfig } from "../services/provider.ts";
+import { hasThinkingConfig, normalizeThinkingConfig } from "../services/provider.ts";
 import { applyThinkingBudget } from "../services/thinkingBudget.ts";
+import { getResolvedModelCapabilities, supportsReasoning } from "../services/modelCapabilities.ts";
 import { normalizeRoles } from "../services/roleNormalizer.ts";
 import {
   lookupReasoning,
@@ -76,6 +80,43 @@ function normalizeOpenAIResponsesRequest(body) {
   return normalized;
 }
 
+function getReasoningCacheRequestId(body: Record<string, unknown> | null | undefined): string {
+  if (!body || typeof body !== "object") return "";
+
+  const requestId =
+    body._reasoningCacheRequestId ??
+    body.reasoningCacheRequestId ??
+    body.request_id ??
+    body.requestId;
+  return typeof requestId === "string" ? requestId.trim() : "";
+}
+
+function getAssistantMessageCacheKey(
+  body: Record<string, unknown> | null | undefined,
+  messageIndex: number
+): string {
+  const requestId = getReasoningCacheRequestId(body);
+  return requestId ? `request:${requestId}:message:${messageIndex}` : "";
+}
+
+function hasNonEmptyReasoningContent(message: Record<string, unknown>): boolean {
+  return typeof message.reasoning_content === "string" && message.reasoning_content.length > 0;
+}
+
+function hasReasoningContentField(message: Record<string, unknown>): boolean {
+  return Object.prototype.hasOwnProperty.call(message, "reasoning_content");
+}
+
+function isDeepSeekReplayTarget(provider: unknown, model: unknown): boolean {
+  const normalizedProvider = String(provider ?? "")
+    .trim()
+    .toLowerCase();
+  const normalizedModel = String(model ?? "")
+    .trim()
+    .toLowerCase();
+  return normalizedProvider === "deepseek" || /(^|\/)deepseek/i.test(normalizedModel);
+}
+
 /** @param options.normalizeToolCallId - When true, use 9-char tool call ids (e.g. Mistral); when false, leave ids as-is */
 /** @param options.preserveDeveloperRole - undefined/true: keep developer for OpenAI format (default); false: map to system */
 /** @param options.preserveCacheControl - When true, preserve client-side cache_control markers (for Claude Code, etc.) */
@@ -93,6 +134,11 @@ export function translateRequest(
     normalizeToolCallId?: boolean;
     preserveDeveloperRole?: boolean;
     preserveCacheControl?: boolean;
+    signatureNamespace?: string | null;
+    preCompressionBody?: Record<string, unknown> | null;
+    /** UA-detected GitHub Copilot client. Forwarded to translators via the
+     *  transient `_copilotClient` credential flag (see openai-responses → openai). */
+    copilotClient?: boolean;
   }
 ) {
   let result = body;
@@ -136,7 +182,17 @@ export function translateRequest(
       if (sourceFormat !== FORMATS.OPENAI) {
         const toOpenAI = getRequestTranslator(sourceFormat, FORMATS.OPENAI);
         if (toOpenAI) {
-          result = toOpenAI(model, result, stream, credentials);
+          // Forward Copilot UA marker to source→openai translators only.
+          const hasTargetHint = targetFormat != null;
+          const step1Credentials =
+            options?.copilotClient || hasTargetHint
+              ? {
+                  ...(credentials && typeof credentials === "object" ? credentials : {}),
+                  ...(options?.copilotClient ? { _copilotClient: true } : {}),
+                  ...(hasTargetHint ? { _targetFormat: targetFormat } : {}),
+                }
+              : credentials;
+          result = toOpenAI(model, result, stream, step1Credentials);
           // Log OpenAI intermediate format
           reqLogger?.logOpenAIRequest?.(result);
         }
@@ -146,7 +202,19 @@ export function translateRequest(
       if (targetFormat !== FORMATS.OPENAI) {
         const fromOpenAI = getRequestTranslator(FORMATS.OPENAI, targetFormat);
         if (fromOpenAI) {
-          result = fromOpenAI(model, result, stream, credentials);
+          const hasNs = options?.signatureNamespace != null;
+          const hasPreCompression = options?.preCompressionBody != null;
+          const hasCopilot = options?.copilotClient === true;
+          const translationCredentials =
+            hasNs || hasPreCompression || hasCopilot
+              ? {
+                  ...(credentials && typeof credentials === "object" ? credentials : {}),
+                  ...(hasNs ? { _signatureNamespace: options.signatureNamespace } : {}),
+                  ...(hasPreCompression ? { _preCompressionBody: options.preCompressionBody } : {}),
+                  ...(hasCopilot ? { _copilotClient: true } : {}),
+                }
+              : credentials;
+          result = fromOpenAI(model, result, stream, translationCredentials);
         }
       }
     }
@@ -197,7 +265,7 @@ export function translateRequest(
   }
 
   if (targetFormat === FORMATS.OPENAI && result.messages && Array.isArray(result.messages)) {
-    result.messages = injectEmptyReasoningContentForToolCalls(result.messages, provider);
+    result.messages = injectEmptyReasoningContentForToolCalls(result.messages, provider, model);
   }
 
   // Ensure unique tool_call ids on final payload (translators may have introduced duplicates)
@@ -214,30 +282,97 @@ export function translateRequest(
   // clients omit it from the conversation history. Without this, DeepSeek V4
   // returns 400: "The reasoning_content in the thinking mode must be passed
   // back to the API."
-  const isReasoner = requiresReasoningReplay(String(provider ?? ""), String(model ?? ""));
+  const normalizedProvider = String(provider ?? "");
+  const normalizedModel = String(model ?? "");
+  const resolvedCapabilities = getResolvedModelCapabilities({
+    provider: normalizedProvider,
+    model: normalizedModel,
+  });
+  const isReasoner = requiresReasoningReplay({
+    provider: normalizedProvider,
+    model: normalizedModel,
+    thinkingEnabled: hasThinkingConfig(result),
+    supportsReasoning: supportsReasoning({ provider: normalizedProvider, model: normalizedModel }),
+    interleavedField: resolvedCapabilities?.interleavedField ?? null,
+    allowLegacyFallback: false,
+  });
   if (isReasoner && result.messages && Array.isArray(result.messages)) {
-    for (const msg of result.messages) {
-      if (msg.role === "assistant" && Array.isArray(msg.tool_calls) && msg.tool_calls.length > 0) {
-        // Skip if client already provided real reasoning_content
-        if (typeof msg.reasoning_content === "string" && msg.reasoning_content.length > 0) {
-          continue;
-        }
+    const canReplayReasoningOnly = isDeepSeekReplayTarget(normalizedProvider, normalizedModel);
 
-        // Try cache lookup using first tool_call ID
-        const firstToolId = msg.tool_calls[0]?.id;
-        if (firstToolId) {
-          const cached = lookupReasoning(firstToolId);
+    for (const [messageIndex, msg] of result.messages.entries()) {
+      if (msg.role !== "assistant") continue;
+
+      // Detect tool calls in either format
+      const hasToolCalls = Array.isArray(msg.tool_calls) && msg.tool_calls.length > 0;
+      // Claude format: tool_use lives in content[] blocks, not msg.tool_calls
+      const hasToolUseBlocks =
+        !hasToolCalls &&
+        Array.isArray(msg.content) &&
+        msg.content.some((b) => b?.type === "tool_use");
+
+      const shouldReplayReasoningOnly =
+        !hasToolCalls &&
+        !hasToolUseBlocks &&
+        canReplayReasoningOnly &&
+        hasReasoningContentField(msg);
+
+      if (!hasToolCalls && !hasToolUseBlocks && !shouldReplayReasoningOnly) continue;
+
+      if (hasToolUseBlocks) {
+        // ── Claude-format message ──
+        // Has tool_use blocks but no thinking block yet.
+        // Reasoning models (Kimi K2, etc.) require a thinking block before tool_use
+        // on multi-turn or they regenerate the same tool call infinitely.
+        const hasThinkingBlock = msg.content.some(
+          (b) => b?.type === "thinking" || b?.type === "redacted_thinking"
+        );
+        if (hasThinkingBlock) continue;
+
+        const toolUseBlocks = msg.content.filter((b) => b?.type === "tool_use");
+        const firstToolUseId = toolUseBlocks[0]?.id;
+        const firstToolUseIdx = msg.content.findIndex((b) => b?.type === "tool_use");
+
+        // Try reasoning cache first
+        if (firstToolUseId) {
+          const cached = lookupReasoning(firstToolUseId);
           if (cached) {
-            msg.reasoning_content = cached;
+            msg.content.splice(firstToolUseIdx, 0, {
+              type: "thinking",
+              thinking: cached,
+            });
             recordReplay();
             continue;
           }
         }
+        // Fallback: inject placeholder (must be non-empty for kimi-coding)
+        msg.content.splice(firstToolUseIdx, 0, {
+          type: "thinking",
+          thinking: NON_ANTHROPIC_THINKING_PLACEHOLDER,
+        });
+        continue;
+      }
 
-        // Legacy fallback — empty string (works for older DeepSeek versions)
-        if (msg.reasoning_content === undefined) {
-          msg.reasoning_content = "";
+      // ── OpenAI-format message ──
+      // Skip if client already provided real reasoning_content
+      if (hasNonEmptyReasoningContent(msg)) {
+        continue;
+      }
+
+      const cacheKey = hasToolCalls
+        ? msg.tool_calls[0]?.id
+        : getAssistantMessageCacheKey(result, 0);
+      if (cacheKey) {
+        const cached = lookupReasoning(cacheKey);
+        if (cached) {
+          msg.reasoning_content = cached;
+          recordReplay();
+          continue;
         }
+      }
+
+      // Legacy fallback — empty string (works for older DeepSeek versions)
+      if (hasToolCalls && msg.reasoning_content === undefined) {
+        msg.reasoning_content = "";
       }
     }
   } else if (

@@ -428,11 +428,7 @@ export default function CachePage() {
 
   return (
     <div className="flex flex-col gap-6">
-      <div className="flex items-start justify-between gap-4">
-        <div>
-          <h1 className="text-xl font-semibold">{t("title")}</h1>
-          <p className="mt-0.5 text-sm text-text-muted">{t("description")}</p>
-        </div>
+      <div className="flex justify-end">
         <Button
           variant="secondary"
           icon="refresh"
@@ -485,7 +481,7 @@ export default function CachePage() {
       </div>
 
       {loading && (
-        <div className="grid grid-cols-1 gap-6" aria-busy="true" aria-label="Loading cache">
+        <div className="grid grid-cols-1 gap-6" aria-busy="true" aria-label={t("loadingCacheAria")}>
           <div className="h-96 rounded-3xl bg-surface-raised animate-pulse" />
         </div>
       )}

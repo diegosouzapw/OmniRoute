@@ -1,0 +1,43 @@
+{
+  "id": "systemctl-status",
+  "label": "systemctl status",
+  "description": "Preserve unit status, active state, and journal errors.",
+  "category": "infra",
+  "priority": 77,
+  "match": {
+    "outputTypes": [],
+    "commands": ["^systemctl\\s+status\\b"],
+    "patterns": ["Loaded:", "Active:", "Main PID:"]
+  },
+  "rules": {
+    "stripAnsi": true,
+    "includePatterns": [
+      "Loaded:",
+      "Active:",
+      "Main PID:",
+      "CGroup:",
+      "error",
+      "failed",
+      "Started",
+      "Stopped"
+    ],
+    "dropPatterns": ["^\\s*$"],
+    "collapsePatterns": ["^\\s+Docs:"],
+    "deduplicate": true,
+    "maxLines": 100,
+    "headLines": 30,
+    "tailLines": 40
+  },
+  "preserve": {
+    "errorPatterns": ["failed", "error"],
+    "summaryPatterns": ["Active:", "Loaded:"]
+  },
+  "tests": [
+    {
+      "name": "inline sample",
+      "command": "systemctl status",
+      "input": "Loaded: loaded (/etc/systemd/system/app.service)\nActive: failed (Result: exit-code)\nMain PID: 123\nMay 1 app[123]: error boot failed\n",
+      "expected": "Loaded: loaded (/etc/systemd/system/app.service)\nActive: failed (Result: exit-code)\nMain PID: 123\nMay 1 app[123]: error boot failed"
+    }
+  ]
+}

@@ -1,6 +1,7 @@
 "use client";
 
 import React from "react";
+import { useTranslations } from "next-intl";
 import { Card } from "@/shared/components";
 
 interface CachePerformanceProps {
@@ -68,6 +69,7 @@ export default function CachePerformance({
   onRetry,
   stats,
 }: CachePerformanceProps) {
+  const t = useTranslations("cache");
   // Parse hitRate string (e.g. "85.0%") to number for the bar
   const hitRateNum = hitRate ? parseFloat(hitRate) : 0;
 
@@ -76,7 +78,7 @@ export default function CachePerformance({
       <div data-testid="cache-performance" className="p-5 flex flex-col gap-4">
         {/* Header */}
         <div className="flex items-center justify-between">
-          <h2 className="font-medium text-sm">Performance</h2>
+          <h2 className="font-medium text-sm">{t("performanceTitle")}</h2>
         </div>
 
         {/* Error state */}
@@ -87,9 +89,9 @@ export default function CachePerformance({
               <button
                 onClick={onRetry}
                 className="self-start text-xs px-3 py-1.5 rounded bg-surface border border-border/50 hover:bg-surface/80 transition-colors"
-                aria-label="Retry"
+                aria-label={t("cachePerformanceRetry")}
               >
-                Retry
+                {t("retry")}
               </button>
             )}
           </div>
@@ -117,21 +119,23 @@ export default function CachePerformance({
         {!loading && !error && stats !== null && (
           <>
             {/* Hit rate bar */}
-            {hitRate !== undefined && <HitRateBar hitRate={hitRateNum} label="Hit Rate" />}
+            {hitRate !== undefined && (
+              <HitRateBar hitRate={hitRateNum} label={t("cachePerformanceHitRate")} />
+            )}
 
             {/* Hit / Miss / Total breakdown */}
             <div className="grid grid-cols-3 gap-4 pt-3 border-t border-border/30 text-center">
               <div>
                 <div className="text-lg font-semibold tabular-nums text-green-500">{hits}</div>
-                <div className="text-xs text-text-muted mt-0.5">Hits</div>
+                <div className="text-xs text-text-muted mt-0.5">{t("hits")}</div>
               </div>
               <div>
                 <div className="text-lg font-semibold tabular-nums text-red-400">{misses}</div>
-                <div className="text-xs text-text-muted mt-0.5">Misses</div>
+                <div className="text-xs text-text-muted mt-0.5">{t("misses")}</div>
               </div>
               <div>
                 <div className="text-lg font-semibold tabular-nums">{totalRequests}</div>
-                <div className="text-xs text-text-muted mt-0.5">Total</div>
+                <div className="text-xs text-text-muted mt-0.5">{t("total")}</div>
               </div>
             </div>
 
@@ -141,13 +145,17 @@ export default function CachePerformance({
                 {avgLatencyMs !== undefined && (
                   <div>
                     <div className="text-lg font-semibold tabular-nums">{avgLatencyMs}</div>
-                    <div className="text-xs text-text-muted mt-0.5">Avg Latency (ms)</div>
+                    <div className="text-xs text-text-muted mt-0.5">
+                      {t("cachePerformanceAvgLatency")}
+                    </div>
                   </div>
                 )}
                 {p95LatencyMs !== undefined && (
                   <div>
                     <div className="text-lg font-semibold tabular-nums">{p95LatencyMs}</div>
-                    <div className="text-xs text-text-muted mt-0.5">P95 Latency (ms)</div>
+                    <div className="text-xs text-text-muted mt-0.5">
+                      {t("cachePerformanceP95Latency")}
+                    </div>
                   </div>
                 )}
               </div>

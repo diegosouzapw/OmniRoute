@@ -34,24 +34,69 @@ const REASONING_REPLAY_PROVIDERS = new Set([
   "sambanova",
   "fireworks",
   "together",
+  // Xiaomi MiMo enforces the same "pass back reasoning_content on subsequent
+  // turns" contract as DeepSeek/Kimi-thinking. Without replay the upstream
+  // 400s with "Param Incorrect: The reasoning_content in the thinking mode
+  // must be passed back to the API."
+  "xiaomi-mimo",
 ]);
 
 const REASONING_REPLAY_MODEL_PATTERNS = [
   /deepseek-r1/i,
   /deepseek-reasoner/i,
   /deepseek-chat/i,
+  /deepseek[-/]v4[-.](flash|pro)/i,
   /kimi-k2/i,
   /qwq/i,
   /qwen.*think/i,
   /glm.*think/i,
+  // MiMo (Xiaomi) thinking models — defensive match if a wildcard route
+  // assigns a non-`xiaomi-mimo` provider ID to a mimo-* model alias.
+  /^mimo[-.]?v\d/i,
 ];
+
+const DEEPSEEK_V4_MODEL_PATTERN = /deepseek[-/]v4[-.](flash|pro)/i;
+
+export function isDeepSeekReasoningModel(params: {
+  provider: string;
+  model: string;
+  thinkingEnabled?: boolean;
+}): boolean {
+  if (params.thinkingEnabled !== true) return false;
+  return DEEPSEEK_V4_MODEL_PATTERN.test(params.model);
+}
 
 /**
  * Check if a provider/model combination requires reasoning replay.
  */
-export function requiresReasoningReplay(provider: string, model: string): boolean {
-  const normalizedProvider = provider.trim().toLowerCase();
-  const normalizedModel = model.trim();
+export function requiresReasoningReplay(params: {
+  provider: string;
+  model: string;
+  thinkingEnabled?: boolean;
+  supportsReasoning?: boolean;
+  interleavedField?: string | null;
+  allowLegacyFallback?: boolean;
+}): boolean {
+  const normalizedProvider = params.provider.trim().toLowerCase();
+  const normalizedModel = params.model.trim();
+  const normalizedInterleavedField =
+    typeof params.interleavedField === "string" ? params.interleavedField.trim().toLowerCase() : "";
+
+  // Explicit model signal from models.dev (preferred source of truth).
+  if (normalizedInterleavedField === "reasoning_content") return true;
+  if (normalizedInterleavedField === "reasoning_details") return false;
+
+  // DeepSeek legacy reasoner family has an inverse contract: do not replay.
+  if (/deepseek-reasoner/i.test(normalizedModel) || /deepseek-r1/i.test(normalizedModel)) {
+    return false;
+  }
+
+  // Explicit known contract: DeepSeek V4 thinking with tool calls requires replay.
+  if (isDeepSeekReasoningModel(params)) return true;
+
+  const useLegacyFallback = params.allowLegacyFallback !== false;
+  if (!useLegacyFallback) return false;
+
   if (REASONING_REPLAY_PROVIDERS.has(normalizedProvider)) return true;
   return REASONING_REPLAY_MODEL_PATTERNS.some((p) => p.test(normalizedModel));
 }
@@ -73,12 +118,18 @@ type AssistantMessageLike = {
   reasoning?: unknown;
 };
 
+type AssistantMessageCacheContext = {
+  requestId?: string;
+  messageIndex?: number;
+};
+
 type ToolCallLike = {
   id?: unknown;
 };
 
 const memoryCache = new Map<string, MemoryCacheEntry>();
-const MAX_MEMORY_ENTRIES = 2000;
+const MAX_MEMORY_ENTRIES = 200;
+const MAX_ENTRY_BYTES = 10000;
 const TTL_MS = 2 * 60 * 60 * 1000; // 2 hours
 
 // ──────────────── Counters ────────────────
@@ -117,7 +168,7 @@ function purgeExpiredMemory(): void {
 }
 
 /**
- * Cache a reasoning_content string for one or more tool_call IDs.
+ * Cache a reasoning_content string for one tool_call ID.
  * Writes to memory and best-effort DB persistence.
  */
 export function cacheReasoning(
@@ -126,7 +177,20 @@ export function cacheReasoning(
   model: string,
   reasoning: string
 ): void {
-  if (!toolCallId || !reasoning) return;
+  cacheReasoningByKey(toolCallId, provider, model, reasoning);
+}
+
+export function cacheReasoningByKey(
+  key: string,
+  provider: string,
+  model: string,
+  reasoning: string
+): void {
+  if (!key || !reasoning) return;
+
+  if (reasoning.length > MAX_ENTRY_BYTES) {
+    reasoning = reasoning.slice(0, MAX_ENTRY_BYTES);
+  }
 
   const now = Date.now();
 
@@ -134,7 +198,7 @@ export function cacheReasoning(
   if (memoryCache.size >= MAX_MEMORY_ENTRIES) {
     evictOldest();
   }
-  memoryCache.set(toolCallId, {
+  memoryCache.set(key, {
     reasoning,
     provider,
     model,
@@ -143,10 +207,14 @@ export function cacheReasoning(
   });
 
   try {
-    setReasoningCache(toolCallId, provider, model, reasoning, TTL_MS);
+    setReasoningCache(key, provider, model, reasoning, TTL_MS);
   } catch {
     // DB persistence failure is non-fatal; memory cache still serves the hot path.
   }
+}
+
+function buildAssistantMessageCacheKey(requestId: string, messageIndex: number): string {
+  return `request:${requestId}:message:${messageIndex}`;
 }
 
 /**
@@ -164,15 +232,16 @@ export function cacheReasoningBatch(
 }
 
 /**
- * Capture reasoning_content from an assistant message with tool calls.
- * Returns the number of tool_call IDs cached.
+ * Capture reasoning_content from an assistant message.
+ * Returns the number of cache keys written.
  */
 export function cacheReasoningFromAssistantMessage(
   message: AssistantMessageLike | null | undefined,
   provider: string,
-  model: string
+  model: string,
+  context?: AssistantMessageCacheContext
 ): number {
-  if (!message || message.role !== "assistant" || !Array.isArray(message.tool_calls)) {
+  if (!message || message.role !== "assistant") {
     return 0;
   }
 
@@ -184,10 +253,26 @@ export function cacheReasoningFromAssistantMessage(
         : "";
   if (!reasoning) return 0;
 
-  const toolCallIds = (message.tool_calls as ToolCallLike[])
-    .map((toolCall) => (typeof toolCall.id === "string" ? toolCall.id : ""))
-    .filter((id) => id.length > 0);
-  if (toolCallIds.length === 0) return 0;
+  const toolCallIds = Array.isArray(message.tool_calls)
+    ? (message.tool_calls as ToolCallLike[])
+        .map((toolCall) => (typeof toolCall.id === "string" ? toolCall.id : ""))
+        .filter((id) => id.length > 0)
+    : [];
+  if (toolCallIds.length === 0) {
+    const requestId = context?.requestId?.trim();
+    const messageIndex = context?.messageIndex;
+    if (!requestId || typeof messageIndex !== "number" || !Number.isInteger(messageIndex)) {
+      return 0;
+    }
+
+    cacheReasoningByKey(
+      buildAssistantMessageCacheKey(requestId, messageIndex),
+      provider,
+      model,
+      reasoning
+    );
+    return 1;
+  }
 
   cacheReasoningBatch(toolCallIds, provider, model, reasoning);
   return toolCallIds.length;
@@ -223,15 +308,19 @@ export function lookupReasoning(toolCallId: string): string | null {
   }
   if (dbResult) {
     hits++;
+    let promotedReasoning = dbResult.reasoning;
+    if (promotedReasoning.length > MAX_ENTRY_BYTES) {
+      promotedReasoning = promotedReasoning.slice(0, MAX_ENTRY_BYTES);
+    }
     // Promote back to memory for fast subsequent lookups
     memoryCache.set(toolCallId, {
-      reasoning: dbResult.reasoning,
+      reasoning: promotedReasoning,
       provider: dbResult.provider,
       model: dbResult.model,
       expiresAt: Date.now() + TTL_MS,
       createdAt: Date.now(),
     });
-    return dbResult.reasoning;
+    return promotedReasoning;
   }
 
   // 3. Miss
@@ -372,3 +461,53 @@ export function cleanupReasoningCache(): number {
     return 0;
   }
 }
+
+// ──────────────── Auto-start periodic cleanup ────────────────
+//
+// server-init.ts was supposed to start the cleanup job, but that module is
+// never imported anywhere (it is stranded/dead code).  As a result, the
+// reasoning_cache SQLite table accumulates expired entries indefinitely.
+//
+// Fix: start the periodic cleanup directly from this module so it runs
+// regardless of how the server boots.  On first import we run one
+// immediate sweep, then schedule a 30-minute interval.
+//
+// See: src/lib/jobs/reasoningCacheCleanupJob.ts (the original job module,
+// which also remains valid if server-init.ts ever gets wired in).
+
+const DEFAULT_CLEANUP_INTERVAL_MS = 30 * 60 * 1000; // 30 min
+
+function getCleanupIntervalMs(): number {
+  const raw = process.env.OMNIROUTE_REASONING_CACHE_CLEANUP_INTERVAL_MS;
+  const parsed = raw ? Number(raw) : Number.NaN;
+  return Number.isFinite(parsed) && parsed >= 60_000 ? parsed : DEFAULT_CLEANUP_INTERVAL_MS;
+}
+
+function startAutoCleanup(): void {
+  // Run once immediately on boot
+  try {
+    const deleted = cleanupReasoningCache();
+    if (deleted > 0) {
+      console.log(`[ReasoningCache] boot cleanup removed ${deleted} expired entries`);
+    }
+  } catch (error) {
+    console.error("[ReasoningCache] boot cleanup failed:", error);
+  }
+
+  // Schedule periodic cleanup
+  const timer = setInterval(() => {
+    try {
+      const deleted = cleanupReasoningCache();
+      if (deleted > 0) {
+        console.log(`[ReasoningCache] periodic cleanup removed ${deleted} expired entries`);
+      }
+    } catch (error) {
+      console.error("[ReasoningCache] periodic cleanup failed:", error);
+    }
+  }, getCleanupIntervalMs());
+
+  timer.unref?.();
+}
+
+// Start on module load — every consumer of reasoning cache benefits.
+startAutoCleanup();

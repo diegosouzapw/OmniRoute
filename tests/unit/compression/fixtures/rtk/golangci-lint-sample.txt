@@ -1,0 +1,5 @@
+pkg/router/router.go:10:2: SA4006: this value of err is never used (staticcheck)
+pkg/main.go:22:1: File is not `gofmt`-ed (gofmt)
+2 issues:
+* staticcheck: 1
+* gofmt: 1

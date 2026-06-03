@@ -15,7 +15,7 @@ function getI18nOrFallback(t: any, key: string, fallback: string) {
   return fallback;
 }
 
-function toProviderOptions(activeProviders: any[] = []) {
+function toProviderOptions(activeProviders: any[] = [], candidatePool: string[] = []) {
   const uniqueProviders = new Map<string, { id: string; label: string; connectionCount: number }>();
 
   activeProviders.forEach((provider) => {
@@ -41,6 +41,16 @@ function toProviderOptions(activeProviders: any[] = []) {
     });
   });
 
+  candidatePool.forEach((poolId) => {
+    if (!uniqueProviders.has(poolId)) {
+      uniqueProviders.set(poolId, {
+        id: poolId,
+        label: `${poolId} (Offline/Deleted)`,
+        connectionCount: 0,
+      });
+    }
+  });
+
   return [...uniqueProviders.values()].sort((a, b) => a.label.localeCompare(b.label));
 }
 
@@ -56,7 +66,11 @@ export default function BuilderIntelligentStep({
   activeProviders: any[];
 }) {
   const normalizedConfig = normalizeIntelligentRoutingConfig(config);
-  const providerOptions = useMemo(() => toProviderOptions(activeProviders), [activeProviders]);
+  const isSlaAwareStrategy = ["sla-aware", "sla"].includes(normalizedConfig.routerStrategy);
+  const providerOptions = useMemo(
+    () => toProviderOptions(activeProviders, normalizedConfig.candidatePool),
+    [activeProviders, normalizedConfig.candidatePool]
+  );
 
   const updateConfig = (patch: Record<string, unknown>) => {
     onChange({
@@ -64,7 +78,7 @@ export default function BuilderIntelligentStep({
       ...patch,
       weights: {
         ...normalizedConfig.weights,
-        ...(patch.weights || {}),
+        ...((patch.weights as Record<string, number>) || {}),
       },
     });
   };
@@ -194,6 +208,99 @@ export default function BuilderIntelligentStep({
         </Card.Section>
       </div>
 
+      {isSlaAwareStrategy && (
+        <Card.Section>
+          <div className="flex items-start justify-between gap-3">
+            <div>
+              <p className="text-xs font-semibold text-text-main">
+                {getI18nOrFallback(t, "slaRoutingTitle", "SLA targets")}
+              </p>
+              <p className="text-[11px] text-text-muted mt-1">
+                {getI18nOrFallback(
+                  t,
+                  "slaRoutingHint",
+                  "Prefer providers that satisfy p95 latency, error-rate and optional cost targets."
+                )}
+              </p>
+            </div>
+            <span className="inline-flex items-center gap-1 rounded-full bg-emerald-500/10 px-2 py-1 text-[10px] font-semibold uppercase tracking-wide text-emerald-600 dark:text-emerald-300">
+              <span className="material-symbols-outlined text-[12px]">verified</span>
+              SLA
+            </span>
+          </div>
+
+          <div className="mt-3 grid grid-cols-1 md:grid-cols-3 gap-3">
+            <label className="text-xs font-semibold text-text-main block">
+              {getI18nOrFallback(t, "slaTargetP95Label", "Target p95 latency (ms)")}
+              <input
+                type="number"
+                min="1"
+                step="100"
+                value={normalizedConfig.slaTargetP95Ms ?? ""}
+                placeholder="2000"
+                onChange={(event) =>
+                  updateConfig({
+                    slaTargetP95Ms: event.target.value ? Number(event.target.value) : undefined,
+                  })
+                }
+                className="mt-2 w-full text-xs py-2 px-2 rounded border border-black/10 dark:border-white/10 bg-transparent focus:border-primary focus:outline-none"
+              />
+            </label>
+
+            <label className="text-xs font-semibold text-text-main block">
+              {getI18nOrFallback(t, "slaMaxErrorRateLabel", "Max error rate")}
+              <input
+                type="number"
+                min="0"
+                max="1"
+                step="0.01"
+                value={normalizedConfig.slaMaxErrorRate ?? ""}
+                placeholder="0.05"
+                onChange={(event) =>
+                  updateConfig({
+                    slaMaxErrorRate: event.target.value ? Number(event.target.value) : undefined,
+                  })
+                }
+                className="mt-2 w-full text-xs py-2 px-2 rounded border border-black/10 dark:border-white/10 bg-transparent focus:border-primary focus:outline-none"
+              />
+            </label>
+
+            <label className="text-xs font-semibold text-text-main block">
+              {getI18nOrFallback(t, "slaMaxCostLabel", "Max cost ($ / 1M tokens)")}
+              <input
+                type="number"
+                min="0"
+                step="0.001"
+                value={normalizedConfig.slaMaxCostPer1MTokens ?? ""}
+                placeholder={getI18nOrFallback(t, "slaMaxCostPlaceholder", "No limit")}
+                onChange={(event) =>
+                  updateConfig({
+                    slaMaxCostPer1MTokens: event.target.value
+                      ? Number(event.target.value)
+                      : undefined,
+                  })
+                }
+                className="mt-2 w-full text-xs py-2 px-2 rounded border border-black/10 dark:border-white/10 bg-transparent focus:border-primary focus:outline-none"
+              />
+            </label>
+          </div>
+
+          <label className="mt-3 flex items-center gap-2 text-xs text-text-main">
+            <input
+              type="checkbox"
+              checked={normalizedConfig.slaHardConstraints}
+              onChange={(event) => updateConfig({ slaHardConstraints: event.target.checked })}
+              className="accent-primary"
+            />
+            {getI18nOrFallback(
+              t,
+              "slaHardConstraintsLabel",
+              "Prefer strict SLA-compliant candidates before soft scoring."
+            )}
+          </label>
+        </Card.Section>
+      )}
+
       <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
         <Card.Section>
           <label className="text-xs font-semibold text-text-main block">
@@ -237,7 +344,7 @@ export default function BuilderIntelligentStep({
         </Card.Section>
       </div>
 
-      <details className="rounded-lg border border-black/8 dark:border-white/8 bg-black/[0.02] dark:bg-white/[0.02] p-3">
+      <details className="rounded-lg border border-black/8 dark:border-white/8 bg-black/2 dark:bg-white/2 p-3">
         <summary className="cursor-pointer text-xs font-semibold text-text-main">
           {getI18nOrFallback(t, "advancedWeightsTitle", "Advanced: Scoring Weights")}
         </summary>

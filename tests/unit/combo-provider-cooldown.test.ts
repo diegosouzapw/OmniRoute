@@ -1,6 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 
+import { normalizeHeaders } from "../../open-sse/utils/headers.ts";
 import { createChatPipelineHarness } from "../integration/_chatPipelineHarness.ts";
 
 const harness = await createChatPipelineHarness("combo-provider-cooldown");
@@ -13,14 +14,6 @@ const {
   seedConnection,
   settingsDb,
 } = harness;
-
-function toPlainHeaders(headers) {
-  if (!headers) return {};
-  if (headers instanceof Headers) return Object.fromEntries(headers.entries());
-  return Object.fromEntries(
-    Object.entries(headers).map(([key, value]) => [key, value == null ? "" : String(value)])
-  );
-}
 
 test.beforeEach(async () => {
   await resetStorage();
@@ -49,14 +42,15 @@ test("combo failover skips the cooled provider target on the next request", asyn
     name: "provider-cooldown-combo",
     strategy: "priority",
     config: { maxRetries: 0, retryDelayMs: 0 },
-    models: ["openai/gpt-4o-mini", "claude/claude-3-5-sonnet-20241022"],
+    // openai/gpt-4o-mini is now ambiguous (multi-provider); use o3-mini which resolves unambiguously to openai
+    models: ["openai/o3-mini", "claude/claude-3-5-sonnet-20241022"],
   });
 
   let openaiCalls = 0;
   let claudeCalls = 0;
 
   globalThis.fetch = async (_url, init = {}) => {
-    const headers = toPlainHeaders(init.headers);
+    const headers = normalizeHeaders(init.headers);
     const authHeader = headers.authorization ?? headers.Authorization;
     const apiKeyHeader = headers["x-api-key"] ?? headers["X-Api-Key"];
 

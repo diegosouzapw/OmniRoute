@@ -1,11 +1,10 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import { useTranslations } from "next-intl";
-import dynamic from "next/dynamic";
 import { Badge } from "@/shared/components";
-
-const Editor = dynamic(() => import("@monaco-editor/react"), { ssr: false });
+import Editor from "@/shared/components/MonacoEditor";
 
 interface SearchResult {
   title: string;
@@ -40,6 +39,8 @@ interface ResultsPanelProps {
   error: string;
   statusCode: number;
   duration: number;
+  /** If true, shows a CTA to configure providers in the empty state */
+  noProvidersConfigured?: boolean;
 }
 
 function formatBytes(bytes: number): string {
@@ -54,6 +55,7 @@ export default function ResultsPanel({
   error,
   statusCode,
   duration,
+  noProvidersConfigured,
 }: ResultsPanelProps) {
   const t = useTranslations("search");
   const [showJson, setShowJson] = useState(false);
@@ -213,8 +215,28 @@ export default function ResultsPanel({
         </div>
       )}
 
-      {!loading && !error && !response && (
-        <div className="flex items-center justify-center py-20 text-text-muted text-sm">
+      {!loading && !error && !response && noProvidersConfigured && (
+        <div
+          className="flex flex-col items-center justify-center py-20 text-center"
+          data-testid="no-providers-cta"
+        >
+          <span className="text-2xl mb-3" aria-hidden="true">🔌</span>
+          <p className="text-sm text-text-muted mb-2">Nenhum provider de search ativo</p>
+          <Link
+            href="/dashboard/providers"
+            className="text-accent text-sm hover:underline font-medium"
+            data-testid="configure-providers-link"
+          >
+            Configurar mais providers →
+          </Link>
+        </div>
+      )}
+
+      {!loading && !error && !response && !noProvidersConfigured && (
+        <div
+          className="flex items-center justify-center py-20 text-text-muted text-sm"
+          data-testid="empty-state"
+        >
           {t("emptyState")}
         </div>
       )}

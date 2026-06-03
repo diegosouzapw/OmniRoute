@@ -1,5 +1,5 @@
 import { PROVIDER_MODELS, PROVIDER_ID_TO_ALIAS } from "@/shared/constants/models";
-import { AI_PROVIDERS } from "@/shared/constants/providers";
+import { AI_PROVIDERS, NOAUTH_PROVIDERS } from "@/shared/constants/providers";
 import {
   getProviderConnections,
   getCombos,
@@ -8,23 +8,41 @@ import {
   getProviderNodes,
   getModelIsHidden,
 } from "@/lib/localDb";
-import { getAllEmbeddingModels } from "@omniroute/open-sse/config/embeddingRegistry.ts";
-import { getAllImageModels } from "@omniroute/open-sse/config/imageRegistry.ts";
-import { getAllRerankModels } from "@omniroute/open-sse/config/rerankRegistry.ts";
-import { getAllAudioModels } from "@omniroute/open-sse/config/audioRegistry.ts";
-import { getAllModerationModels } from "@omniroute/open-sse/config/moderationRegistry.ts";
-import { getAllVideoModels } from "@omniroute/open-sse/config/videoRegistry.ts";
-import { getAllMusicModels } from "@omniroute/open-sse/config/musicRegistry.ts";
-import { REGISTRY } from "@omniroute/open-sse/config/providerRegistry.ts";
-import { getAllSyncedAvailableModels } from "@/lib/db/models";
+import { getAllEmbeddingModels } from "@omniroute/open-sse/config/embeddingRegistry";
+import { getAllImageModels } from "@omniroute/open-sse/config/imageRegistry";
+import { getAllRerankModels } from "@omniroute/open-sse/config/rerankRegistry";
+import { getAllAudioModels } from "@omniroute/open-sse/config/audioRegistry";
+import { getAllModerationModels } from "@omniroute/open-sse/config/moderationRegistry";
+import { getAllVideoModels } from "@omniroute/open-sse/config/videoRegistry";
+import { getAllMusicModels } from "@omniroute/open-sse/config/musicRegistry";
+import { REGISTRY } from "@omniroute/open-sse/config/providerRegistry";
+import { CODEX_NATIVE_UNPREFIXED_MODELS } from "@omniroute/open-sse/services/model";
+import { resolveNestedComboTargets } from "@omniroute/open-sse/services/combo";
+import { getAllSyncedAvailableModels, type SyncedAvailableModel } from "@/lib/db/models";
 import { getCompatibleFallbackModels } from "@/lib/providers/managedAvailableModels";
 import { hasEligibleConnectionForModel } from "@/domain/connectionModelRules";
 import {
   INTERNAL_PROXY_ERROR,
   enrichCatalogModelEntry,
+  getCanonicalModelMetadata,
   getCatalogDiagnosticsHeaders,
 } from "@/lib/modelMetadataRegistry";
+import { getSyncedCapability } from "@/lib/modelsDevSync";
+import { getModelSpec } from "@/shared/constants/modelSpecs";
 import { isAuthRequired, isDashboardSessionAuthenticated } from "@/shared/utils/apiAuth";
+import { parseModel } from "@omniroute/open-sse/services/model";
+import { getTokenLimit } from "@omniroute/open-sse/services/contextManager";
+import type { ComboModelStep } from "@/lib/combos/steps";
+
+interface CustomModelEntry {
+  id?: string;
+  name?: string;
+  source?: string;
+  apiFormat?: string;
+  supportedEndpoints?: string[];
+  inputTokenLimit?: number;
+  isHidden?: boolean;
+}
 
 const FALLBACK_ALIAS_TO_PROVIDER = {
   ag: "antigravity",
@@ -39,6 +57,50 @@ const FALLBACK_ALIAS_TO_PROVIDER = {
   kr: "kiro",
   qw: "qwen",
 };
+
+type ComboCatalogTarget = {
+  modelStr?: string;
+  provider?: string | null;
+};
+
+type ComboTargetCatalogMetadata = {
+  contextLength?: number;
+  maxInputTokens?: number;
+  maxOutputTokens?: number;
+  inputModalities?: string[];
+  outputModalities?: string[];
+  capabilities: Record<string, boolean>;
+};
+
+function isPositiveFiniteNumber(value: unknown): value is number {
+  return typeof value === "number" && Number.isFinite(value) && value > 0;
+}
+
+function parseJsonStringArray(value: unknown): string[] {
+  if (typeof value !== "string" || value.trim().length === 0) return [];
+  try {
+    const parsed = JSON.parse(value);
+    return Array.isArray(parsed)
+      ? parsed.filter((entry): entry is string => typeof entry === "string" && entry.length > 0)
+      : [];
+  } catch {
+    return [];
+  }
+}
+
+function intersectStringArrays(arrays: string[][]): string[] {
+  if (arrays.length === 0 || arrays.some((values) => values.length === 0)) return [];
+  const [first, ...rest] = arrays;
+  return first.filter((value, index) => {
+    if (first.indexOf(value) !== index) return false;
+    return rest.every((values) => values.includes(value));
+  });
+}
+
+function minKnownNumber(values: Array<number | undefined>): number | undefined {
+  if (values.length === 0 || !values.every(isPositiveFiniteNumber)) return undefined;
+  return Math.min(...values);
+}
 
 const VISION_MODEL_KEYWORDS = [
   "gpt-4o",
@@ -64,8 +126,8 @@ const VISION_MODEL_KEYWORDS = [
   "glm-4.5v",
   "vision",
   "multimodal",
+  "kimi",
 ];
-
 function isVisionModelId(modelId: string): boolean {
   const normalized = String(modelId || "").toLowerCase();
   if (!normalized) return false;
@@ -210,6 +272,12 @@ export async function getUnifiedModelsResponse(
     if (authRejection) return authRejection;
 
     const { aliasToProviderId, providerIdToAlias } = buildAliasMaps();
+    const resolveCanonicalProviderId = (aliasOrProviderId: string, fallbackProviderId?: string) =>
+      aliasToProviderId[aliasOrProviderId] ||
+      (fallbackProviderId ? aliasToProviderId[fallbackProviderId] : undefined) ||
+      FALLBACK_ALIAS_TO_PROVIDER[aliasOrProviderId] ||
+      fallbackProviderId ||
+      aliasOrProviderId;
 
     // Issue #96: Allow blocking specific providers from the models list
     const blockedProviders: Set<string> = new Set(
@@ -277,6 +345,13 @@ export async function getUnifiedModelsResponse(
       registerConnectionKey(conn.provider, conn);
     }
 
+    // noAuth providers never create DB connection rows, so they are always active.
+    // Add their IDs and aliases unconditionally so the catalog gate does not filter them. (#2798)
+    for (const p of Object.values(NOAUTH_PROVIDERS)) {
+      activeAliases.add(p.id);
+      if ("alias" in p && typeof p.alias === "string") activeAliases.add(p.alias);
+    }
+
     const getConnectionsForProvider = (...keys: Array<string | null | undefined>) => {
       const seen = new Set<string>();
       const collected: typeof connections = [];
@@ -294,10 +369,221 @@ export async function getUnifiedModelsResponse(
     const providerSupportsModel = (providerKey: string, modelId: string) => {
       const providerId = aliasToProviderId[providerKey] || providerKey;
       const alias = providerIdToAlias[providerId] || providerKey;
+      // noAuth providers have no connection rows — treat every model as eligible. (#2798)
+      const isNoAuth = Object.values(NOAUTH_PROVIDERS).some(
+        (p) => p.id === providerId || p.id === providerKey || ("alias" in p && p.alias === alias)
+      );
+      if (isNoAuth) return true;
       return hasEligibleConnectionForModel(
         getConnectionsForProvider(providerKey, providerId, alias),
         modelId
       );
+    };
+
+    const getRegistryModel = (providerId: string, modelId: string) => {
+      const alias = providerIdToAlias[providerId] || PROVIDER_ID_TO_ALIAS[providerId] || providerId;
+      const providerModels = PROVIDER_MODELS[alias] || PROVIDER_MODELS[providerId] || [];
+      return providerModels.find((model) => model?.id === modelId) || null;
+    };
+
+    const getProviderPrefixes = (providerId: string, rawProvider: string) => {
+      const prefixes = new Set<string>([providerId, rawProvider, providerIdToAlias[providerId]]);
+      for (const [alias, mappedProviderId] of Object.entries(aliasToProviderId)) {
+        if (mappedProviderId === providerId) prefixes.add(alias);
+      }
+      return [...prefixes].filter(
+        (prefix): prefix is string => typeof prefix === "string" && prefix.length > 0
+      );
+    };
+
+    const getComboTargetModelId = (target: ComboCatalogTarget) => {
+      const rawProvider = typeof target.provider === "string" ? target.provider.trim() : "";
+      const modelStr = typeof target.modelStr === "string" ? target.modelStr.trim() : "";
+      if (!rawProvider || rawProvider === "unknown" || !modelStr) return null;
+
+      const providerId = resolveCanonicalProviderId(rawProvider);
+      if (!providerId || providerId === "unknown") return null;
+
+      for (const prefix of getProviderPrefixes(providerId, rawProvider)) {
+        const prefixWithSlash = `${prefix}/`;
+        if (modelStr.startsWith(prefixWithSlash)) {
+          const modelId = modelStr.slice(prefixWithSlash.length).trim();
+          return modelId ? { providerId, modelId } : null;
+        }
+      }
+
+      return { providerId, modelId: modelStr };
+    };
+
+    const getComboTargetCatalogMetadata = (
+      target: ComboCatalogTarget
+    ): ComboTargetCatalogMetadata | null => {
+      const targetModel = getComboTargetModelId(target);
+      if (!targetModel) return null;
+
+      const canonical = getCanonicalModelMetadata({
+        provider: targetModel.providerId,
+        model: targetModel.modelId,
+      });
+      if (!canonical) return null;
+
+      const source = canonical.metadata.source;
+      if (!source.providerRegistry && !source.staticSpec && !source.syncedCapability) return null;
+
+      const providerId = canonical.provider || targetModel.providerId;
+      const modelId = canonical.model || targetModel.modelId;
+      const synced = getSyncedCapability(providerId, modelId);
+      const spec = getModelSpec(modelId);
+      const registryModel = getRegistryModel(providerId, modelId);
+      const syncedInputModalities = parseJsonStringArray(synced?.modalities_input);
+      const syncedOutputModalities = parseJsonStringArray(synced?.modalities_output);
+
+      const syncedContext = isPositiveFiniteNumber(synced?.limit_context)
+        ? synced.limit_context
+        : undefined;
+      const registryContext = isPositiveFiniteNumber(registryModel?.contextLength)
+        ? registryModel.contextLength
+        : undefined;
+      const specContext = isPositiveFiniteNumber(spec?.contextWindow)
+        ? spec.contextWindow
+        : undefined;
+      const contextLength = syncedContext ?? registryContext ?? specContext;
+      const maxInputTokens = isPositiveFiniteNumber(synced?.limit_input)
+        ? synced.limit_input
+        : contextLength;
+      const maxOutputTokens = isPositiveFiniteNumber(synced?.limit_output)
+        ? synced.limit_output
+        : isPositiveFiniteNumber(spec?.maxOutputTokens)
+          ? spec.maxOutputTokens
+          : undefined;
+
+      const syncedVision =
+        typeof synced?.attachment === "boolean"
+          ? synced.attachment
+          : syncedInputModalities.length > 0 || syncedOutputModalities.length > 0
+            ? [...syncedInputModalities, ...syncedOutputModalities].some((entry) =>
+                entry.toLowerCase().includes("image")
+              )
+            : undefined;
+      const registryVision =
+        typeof registryModel?.supportsVision === "boolean"
+          ? registryModel.supportsVision
+          : undefined;
+      const specVision =
+        typeof spec?.supportsVision === "boolean" ? spec.supportsVision : undefined;
+      const knownVision = syncedVision ?? registryVision ?? specVision;
+
+      const inputModalities =
+        syncedInputModalities.length > 0
+          ? syncedInputModalities
+          : knownVision === true
+            ? ["text", "image"]
+            : undefined;
+      const outputModalities =
+        syncedOutputModalities.length > 0
+          ? syncedOutputModalities
+          : knownVision === true
+            ? ["text"]
+            : undefined;
+
+      const capabilities: Record<string, boolean> = {};
+      if (typeof synced?.tool_call === "boolean") {
+        capabilities.tool_calling = synced.tool_call;
+      } else if (typeof registryModel?.toolCalling === "boolean") {
+        capabilities.tool_calling = registryModel.toolCalling;
+      } else if (typeof spec?.supportsTools === "boolean") {
+        capabilities.tool_calling = spec.supportsTools;
+      }
+      if (typeof synced?.reasoning === "boolean") {
+        capabilities.reasoning = synced.reasoning;
+      } else if (typeof registryModel?.supportsReasoning === "boolean") {
+        capabilities.reasoning = registryModel.supportsReasoning;
+      } else if (typeof spec?.supportsThinking === "boolean") {
+        capabilities.reasoning = spec.supportsThinking;
+      }
+      if (typeof knownVision === "boolean") capabilities.vision = knownVision;
+      if (typeof synced?.attachment === "boolean") capabilities.attachment = synced.attachment;
+      if (typeof synced?.structured_output === "boolean") {
+        capabilities.structured_output = synced.structured_output;
+      }
+      if (typeof synced?.temperature === "boolean") capabilities.temperature = synced.temperature;
+      if (typeof synced?.reasoning === "boolean") {
+        capabilities.thinking = synced.reasoning;
+      } else if (typeof spec?.supportsThinking === "boolean") {
+        capabilities.thinking = spec.supportsThinking;
+      }
+
+      return {
+        ...(contextLength ? { contextLength } : {}),
+        ...(maxInputTokens ? { maxInputTokens } : {}),
+        ...(maxOutputTokens ? { maxOutputTokens } : {}),
+        ...(inputModalities && inputModalities.length > 0 ? { inputModalities } : {}),
+        ...(outputModalities && outputModalities.length > 0 ? { outputModalities } : {}),
+        capabilities,
+      };
+    };
+
+    const buildComboCatalogMetadata = (combo: Record<string, any>, allCombos: any[]) => {
+      const explicitContextLength = isPositiveFiniteNumber(combo.context_length)
+        ? combo.context_length
+        : undefined;
+
+      const baseMetadata = explicitContextLength ? { context_length: explicitContextLength } : {};
+      const targets = resolveNestedComboTargets(combo, allCombos) as ComboCatalogTarget[];
+      if (targets.length === 0) return baseMetadata;
+
+      const targetMetadata = targets.map((target) => getComboTargetCatalogMetadata(target));
+      if (targetMetadata.some((metadata) => metadata === null)) return baseMetadata;
+
+      const knownMetadata = targetMetadata as ComboTargetCatalogMetadata[];
+      const contextLength =
+        explicitContextLength ??
+        minKnownNumber(knownMetadata.map((metadata) => metadata.contextLength));
+      const maxInputTokens = minKnownNumber(
+        knownMetadata.map((metadata) => metadata.maxInputTokens)
+      );
+      const maxOutputTokens = minKnownNumber(
+        knownMetadata.map((metadata) => metadata.maxOutputTokens)
+      );
+
+      const inputModalities = knownMetadata.every(
+        (metadata) => Array.isArray(metadata.inputModalities) && metadata.inputModalities.length > 0
+      )
+        ? intersectStringArrays(knownMetadata.map((metadata) => metadata.inputModalities || []))
+        : [];
+      const outputModalities = knownMetadata.every(
+        (metadata) =>
+          Array.isArray(metadata.outputModalities) && metadata.outputModalities.length > 0
+      )
+        ? intersectStringArrays(knownMetadata.map((metadata) => metadata.outputModalities || []))
+        : [];
+
+      const capabilities: Record<string, boolean> = {};
+      for (const key of [
+        "tool_calling",
+        "reasoning",
+        "vision",
+        "attachment",
+        "structured_output",
+        "temperature",
+        "thinking",
+      ]) {
+        const values = knownMetadata.map((metadata) => metadata.capabilities[key]);
+        if (values.every((value): value is boolean => typeof value === "boolean")) {
+          const [first] = values;
+          if (values.every((value) => value === first)) capabilities[key] = first;
+        }
+      }
+
+      return {
+        ...baseMetadata,
+        ...(contextLength ? { context_length: contextLength } : {}),
+        ...(maxInputTokens ? { max_input_tokens: maxInputTokens } : {}),
+        ...(maxOutputTokens ? { max_output_tokens: maxOutputTokens } : {}),
+        ...(inputModalities.length > 0 ? { input_modalities: inputModalities } : {}),
+        ...(outputModalities.length > 0 ? { output_modalities: outputModalities } : {}),
+        ...(Object.keys(capabilities).length > 0 ? { capabilities } : {}),
+      };
     };
 
     // Collect models from active providers (or all if none active)
@@ -307,6 +593,9 @@ export async function getUnifiedModelsResponse(
     // Add combos first (they appear at the top) — only active ones
     for (const combo of combos) {
       if (combo.isActive === false || combo.isHidden === true) continue;
+      if (typeof combo.name !== "string" || combo.name.length === 0) continue;
+      const comboMetadata = buildComboCatalogMetadata(combo, combos);
+
       models.push({
         id: combo.name,
         object: "model",
@@ -315,14 +604,30 @@ export async function getUnifiedModelsResponse(
         permission: [],
         root: combo.name,
         parent: null,
-        ...(combo.context_length ? { context_length: combo.context_length } : {}),
+        ...comboMetadata,
       });
     }
+
+    // Resolve synced available models (from auto-sync) — used to skip static
+    // PROVIDER_MODELS entries for providers that have a live, API-fresh list.
+    let syncedModelsByProvider: Record<string, SyncedAvailableModel[]> = {};
+    try {
+      syncedModelsByProvider = await getAllSyncedAvailableModels();
+    } catch (e) {
+      // DB unavailable — log and fall through; static models remain as defaults.
+      console.log("[catalog] Could not fetch synced available models:", e);
+    }
+    const providersWithSyncedModels = new Set(
+      Object.keys(syncedModelsByProvider).filter((pid) => {
+        const models = syncedModelsByProvider[pid];
+        return Array.isArray(models) && models.length > 0;
+      })
+    );
 
     // Add provider models (chat)
     for (const [alias, providerModels] of Object.entries(PROVIDER_MODELS)) {
       const providerId = aliasToProviderId[alias] || alias;
-      const canonicalProviderId = FALLBACK_ALIAS_TO_PROVIDER[alias] || providerId;
+      const canonicalProviderId = resolveCanonicalProviderId(alias, providerId);
 
       // Skip blocked providers (Issue #96)
       if (blockedProviders.has(alias) || blockedProviders.has(canonicalProviderId)) continue;
@@ -332,9 +637,9 @@ export async function getUnifiedModelsResponse(
         continue;
       }
 
-      // Get default context length from registry (provider-level default)
-      const registryEntry = REGISTRY[alias] || REGISTRY[canonicalProviderId];
-      const defaultContextLength = registryEntry?.defaultContextLength;
+      // Skip static models for providers that have synced available models
+      // (auto-sync provides the authoritative, up-to-date list from the API).
+      if (providersWithSyncedModels.has(canonicalProviderId)) continue;
 
       for (const model of providerModels) {
         if (!providerSupportsModel(canonicalProviderId, model.id)) continue;
@@ -343,8 +648,6 @@ export async function getUnifiedModelsResponse(
 
         const visionFields =
           getVisionCapabilityFields(aliasId) || getVisionCapabilityFields(model.id);
-        // Model-level context length overrides provider default
-        const contextLength = model.contextLength || defaultContextLength;
 
         models.push({
           id: aliasId,
@@ -354,7 +657,6 @@ export async function getUnifiedModelsResponse(
           permission: [],
           root: model.id,
           parent: null,
-          ...(contextLength ? { context_length: contextLength } : {}),
           ...(visionFields || {}),
         });
 
@@ -372,22 +674,50 @@ export async function getUnifiedModelsResponse(
             permission: [],
             root: model.id,
             parent: aliasId,
-            ...(contextLength ? { context_length: contextLength } : {}),
             ...(providerVisionFields || {}),
           });
         }
       }
     }
 
+    for (const modelId of CODEX_NATIVE_UNPREFIXED_MODELS) {
+      if (!providerSupportsModel("codex", modelId)) continue;
+      if (getModelIsHidden("codex", modelId)) continue;
+
+      const alias = providerIdToAlias.codex || "cx";
+      const aliasId = `${alias}/${modelId}`;
+      const providerIdModel = `codex/${modelId}`;
+      const entries = [
+        { id: aliasId, parent: null },
+        { id: providerIdModel, parent: aliasId },
+        { id: modelId, parent: providerIdModel },
+      ];
+
+      for (const entry of entries) {
+        if (models.some((existingModel) => existingModel.id === entry.id)) continue;
+        models.push({
+          id: entry.id,
+          object: "model",
+          created: timestamp,
+          owned_by: "codex",
+          permission: [],
+          root: modelId,
+          parent: entry.parent,
+        });
+      }
+    }
+
     try {
-      const syncedModelsByProvider = await getAllSyncedAvailableModels();
+      // Data already loaded above into syncedModelsByProvider; the try block
+      // here protects the for-loop / model processing from unexpected errors.
       for (const [providerId, syncedModels] of Object.entries(syncedModelsByProvider)) {
         if (!Array.isArray(syncedModels) || syncedModels.length === 0) continue;
         if (blockedProviders.has(providerId)) continue;
+        if (providerId === "reka") continue;
 
         const prefix = providerIdToPrefix[providerId];
         const alias = prefix || providerIdToAlias[providerId] || providerId;
-        const canonicalProviderId = FALLBACK_ALIAS_TO_PROVIDER[alias] || providerId;
+        const canonicalProviderId = resolveCanonicalProviderId(alias, providerId);
         const parentProviderType = nodeIdToProviderType[providerId];
 
         if (
@@ -403,16 +733,30 @@ export async function getUnifiedModelsResponse(
           if (!providerSupportsModel(canonicalProviderId, sm.id)) continue;
           if (getModelIsHidden(providerId, sm.id)) continue;
 
-          const aliasId = `${alias}/${sm.id}`;
+          // Strip modelIdPrefix (e.g. "accounts/fireworks/models/") from display ID
+          // so synced model IDs match the short IDs from static registry.
+          const registryEntry = REGISTRY[providerId];
+          const displayModelId =
+            registryEntry?.modelIdPrefix && sm.id.startsWith(registryEntry.modelIdPrefix)
+              ? sm.id.slice(registryEntry.modelIdPrefix.length)
+              : sm.id;
+
+          const aliasId = `${alias}/${displayModelId}`;
           const endpoints = Array.isArray(sm.supportedEndpoints) ? sm.supportedEndpoints : ["chat"];
+          const apiFormat = typeof sm.apiFormat === "string" ? sm.apiFormat : "chat-completions";
           let modelType: string | undefined;
           if (endpoints.includes("embeddings")) modelType = "embedding";
+          else if (endpoints.includes("rerank")) modelType = "rerank";
           else if (endpoints.includes("images")) modelType = "image";
           else if (endpoints.includes("audio")) modelType = "audio";
           const syncedFields = {
             ...(modelType ? { type: modelType } : {}),
+            ...(apiFormat !== "chat-completions" ? { api_format: apiFormat } : {}),
             ...(modelType === "audio" ? { subtype: "transcription" } : {}),
             ...(sm.inputTokenLimit ? { context_length: sm.inputTokenLimit } : {}),
+            ...(typeof sm.outputTokenLimit === "number"
+              ? { max_output_tokens: sm.outputTokenLimit }
+              : {}),
             ...(endpoints.length > 1 || !endpoints.includes("chat")
               ? { supported_endpoints: endpoints }
               : {}),
@@ -447,6 +791,9 @@ export async function getUnifiedModelsResponse(
               type: "audio",
               subtype: "speech",
               ...(sm.inputTokenLimit ? { context_length: sm.inputTokenLimit } : {}),
+              ...(typeof sm.outputTokenLimit === "number"
+                ? { max_output_tokens: sm.outputTokenLimit }
+                : {}),
               ...(endpoints.length > 1 || !endpoints.includes("chat")
                 ? { supported_endpoints: endpoints }
                 : {}),
@@ -454,7 +801,7 @@ export async function getUnifiedModelsResponse(
           }
 
           if (canonicalProviderId !== alias && !prefix) {
-            const providerPrefixedId = `${canonicalProviderId}/${sm.id}`;
+            const providerPrefixedId = `${canonicalProviderId}/${displayModelId}`;
             if (!models.some((model) => model.id === providerPrefixedId)) {
               models.push({
                 id: providerPrefixedId,
@@ -478,7 +825,7 @@ export async function getUnifiedModelsResponse(
     const isProviderActive = (provider: string) => {
       if (activeAliases.size === 0) return false; // No active connections = show nothing
       const alias = providerIdToAlias[provider] || provider;
-      const canonicalProviderId = FALLBACK_ALIAS_TO_PROVIDER[alias] || provider;
+      const canonicalProviderId = resolveCanonicalProviderId(alias, provider);
 
       // FIX #1752: Ensure blocked providers are not returned for non-chat models
       if (
@@ -492,16 +839,38 @@ export async function getUnifiedModelsResponse(
       return activeAliases.has(alias) || activeAliases.has(provider);
     };
 
+    const hasEquivalentSpecialtyModel = (
+      providerId: string,
+      rawModelId: string,
+      type: string,
+      scopedModelId: string
+    ) =>
+      models.some((model: any) => {
+        if (model?.id === scopedModelId) return true;
+        if (model?.owned_by !== providerId || model?.type !== type) return false;
+        const existingRoot =
+          typeof model?.root === "string"
+            ? model.root
+            : typeof model?.id === "string"
+              ? model.id.split("/").pop()
+              : null;
+        return existingRoot === rawModelId;
+      });
+
     // Add embedding models (filtered by active providers)
     for (const embModel of getAllEmbeddingModels()) {
       if (!isProviderActive(embModel.provider)) continue;
       const rawModelId = embModel.id.split("/").pop() || embModel.id;
       if (!providerSupportsModel(embModel.provider, rawModelId)) continue;
+      if (hasEquivalentSpecialtyModel(embModel.provider, rawModelId, "embedding", embModel.id)) {
+        continue;
+      }
       models.push({
         id: embModel.id,
         object: "model",
         created: timestamp,
         owned_by: embModel.provider,
+        root: rawModelId,
         type: "embedding",
         dimensions: embModel.dimensions,
       });
@@ -530,11 +899,15 @@ export async function getUnifiedModelsResponse(
       if (!isProviderActive(rerankModel.provider)) continue;
       const rawModelId = rerankModel.id.split("/").pop() || rerankModel.id;
       if (!providerSupportsModel(rerankModel.provider, rawModelId)) continue;
+      if (hasEquivalentSpecialtyModel(rerankModel.provider, rawModelId, "rerank", rerankModel.id)) {
+        continue;
+      }
       models.push({
         id: rerankModel.id,
         object: "model",
         created: timestamp,
         owned_by: rerankModel.provider,
+        root: rawModelId,
         type: "rerank",
       });
     }
@@ -602,16 +975,17 @@ export async function getUnifiedModelsResponse(
       for (const [providerId, rawProviderCustomModels] of Object.entries(customModelsMap)) {
         // Skip Gemini — handled by syncedAvailableModels above
         if (providerId === "gemini") continue;
-        const providerCustomModels = Array.isArray(rawProviderCustomModels)
+        if (providerId === "reka") continue;
+        const providerCustomModels: CustomModelEntry[] = Array.isArray(rawProviderCustomModels)
           ? rawProviderCustomModels.filter(
-              (model): model is Record<string, unknown> =>
+              (model): model is CustomModelEntry =>
                 !!model && typeof model === "object" && !Array.isArray(model)
             )
           : [];
         // For compatible providers, use the prefix from provider nodes
         const prefix = providerIdToPrefix[providerId];
         const alias = prefix || providerIdToAlias[providerId] || providerId;
-        const canonicalProviderId = FALLBACK_ALIAS_TO_PROVIDER[alias] || providerId;
+        const canonicalProviderId = resolveCanonicalProviderId(alias, providerId);
 
         // Only include if provider is active — check alias, canonical ID, raw providerId,
         // or the parent provider type (for compatible providers whose node ID is a UUID)
@@ -649,8 +1023,15 @@ export async function getUnifiedModelsResponse(
             typeof model.apiFormat === "string" ? model.apiFormat : "chat-completions";
           let modelType: string | undefined;
           if (endpoints.includes("embeddings")) modelType = "embedding";
+          else if (endpoints.includes("rerank")) modelType = "rerank";
           else if (endpoints.includes("images")) modelType = "image";
           else if (endpoints.includes("audio")) modelType = "audio";
+          if (
+            modelType &&
+            hasEquivalentSpecialtyModel(canonicalProviderId, modelId, modelType, aliasId)
+          ) {
+            continue;
+          }
           const visionFields =
             modelType === "chat"
               ? getVisionCapabilityFields(aliasId) || getVisionCapabilityFields(modelId)
@@ -670,8 +1051,11 @@ export async function getUnifiedModelsResponse(
             ...(endpoints.length > 1 || !endpoints.includes("chat")
               ? { supported_endpoints: endpoints }
               : {}),
-            ...(typeof (model as any).inputTokenLimit === "number"
-              ? { context_length: (model as any).inputTokenLimit }
+            ...(typeof model.inputTokenLimit === "number"
+              ? { context_length: model.inputTokenLimit }
+              : {}),
+            ...(typeof (model as any).outputTokenLimit === "number"
+              ? { max_output_tokens: (model as any).outputTokenLimit }
               : {}),
             ...(visionFields || {}),
           });
@@ -695,8 +1079,11 @@ export async function getUnifiedModelsResponse(
               parent: aliasId,
               custom: true,
               ...(modelType ? { type: modelType } : {}),
-              ...(typeof (model as any).inputTokenLimit === "number"
-                ? { context_length: (model as any).inputTokenLimit }
+              ...(typeof model.inputTokenLimit === "number"
+                ? { context_length: model.inputTokenLimit }
+                : {}),
+              ...(typeof (model as any).outputTokenLimit === "number"
+                ? { max_output_tokens: (model as any).outputTokenLimit }
                 : {}),
               ...(providerVisionFields || {}),
             });
@@ -731,9 +1118,7 @@ export async function getUnifiedModelsResponse(
         const visionFields =
           getVisionCapabilityFields(aliasId) || getVisionCapabilityFields(modelId);
         const contextLength =
-          typeof (model as any).contextLength === "number"
-            ? (model as any).contextLength
-            : undefined;
+          typeof model.contextLength === "number" ? model.contextLength : undefined;
 
         models.push({
           id: aliasId,
@@ -753,23 +1138,58 @@ export async function getUnifiedModelsResponse(
     const apiKey = extractBearer(request.headers);
     let finalModels = models;
     if (apiKey) {
-      const { isModelAllowedForKey } = await import("@/lib/db/apiKeys");
+      const { isModelAllowedForKey, getApiKeyMetadata } = await import("@/lib/db/apiKeys");
 
-      const filtered = [];
-      for (const m of models) {
-        // m.id is the full identifier (e.g. openai/gpt-4o), m.root is the raw model string
-        // check either one as the config could use either patterns
-        if (
-          (await isModelAllowedForKey(apiKey, m.id)) ||
-          (await isModelAllowedForKey(apiKey, m.root))
-        ) {
-          filtered.push(m);
+      // Quota-exclusive keys (allowedQuotas non-empty): show only the
+      // quotaShared-* virtual models for the key's assigned pools (Phase B3).
+      // This takes precedence over the normal allowedModels filter.
+      const keyMeta = await getApiKeyMetadata(apiKey);
+      if (keyMeta && keyMeta.allowedQuotas && keyMeta.allowedQuotas.length > 0) {
+        const { resolveQuotaKeyScope } = await import("@/lib/quota/quotaKey");
+        const { filterModelsToQuotaPools } = await import("@/lib/quota/quotaCombos");
+        const scope = await resolveQuotaKeyScope(keyMeta.allowedQuotas);
+        finalModels = filterModelsToQuotaPools(models, scope.poolSlugs);
+      } else {
+        const filtered = [];
+        for (const m of models) {
+          // m.id is the full identifier (e.g. openai/gpt-4o), m.root is the raw model string
+          // check either one as the config could use either patterns
+          if (
+            (await isModelAllowedForKey(apiKey, m.id)) ||
+            (await isModelAllowedForKey(apiKey, m.root))
+          ) {
+            filtered.push(m);
+          }
         }
+        finalModels = filtered;
       }
-      finalModels = filtered;
     }
 
-    const enrichedModels = finalModels.map((model) => enrichCatalogModelEntry(model));
+    const getDefaultContextFallback = (model: any): number | undefined => {
+      if (typeof model.context_length === "number") return undefined;
+      if (model.owned_by === "combo") return undefined;
+      if (model.type && model.type !== "chat") return undefined;
+
+      const provider = typeof model.owned_by === "string" ? model.owned_by : null;
+      if (!provider) return undefined;
+      const canonicalId = aliasToProviderId[provider] || provider;
+
+      const registryFallback = REGISTRY[canonicalId]?.defaultContextLength;
+      if (registryFallback) return registryFallback;
+
+      const modelId =
+        model.root || (typeof model.id === "string" ? model.id.split("/").pop() : undefined);
+      return modelId ? getTokenLimit(canonicalId, modelId) : getTokenLimit(canonicalId);
+    };
+
+    const enrichedModels = finalModels.map((model) => {
+      if (model.owned_by === "combo") return model;
+      const enriched = enrichCatalogModelEntry(model);
+      const fallbackContextLength = getDefaultContextFallback(enriched);
+      return fallbackContextLength
+        ? { ...enriched, context_length: fallbackContextLength }
+        : enriched;
+    });
 
     return Response.json(
       {
@@ -788,7 +1208,7 @@ export async function getUnifiedModelsResponse(
     return Response.json(
       {
         error: {
-          message: (error as any).message,
+          message: error instanceof Error ? error.message : String(error),
           type: "server_error",
           code: INTERNAL_PROXY_ERROR,
         },

@@ -24,7 +24,11 @@ export default function MaintenanceBanner() {
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort("Health check timeout"), 8000);
       try {
-        const res = await fetch("/api/monitoring/health", {
+        // Use lightweight liveness probe (single SELECT 1) instead of the
+        // heavy /api/monitoring/health observability endpoint. The heavy
+        // endpoint can exceed the 8s client timeout under normal load
+        // (e.g. Logs page 3s polling), causing false-positive banners.
+        const res = await fetch("/api/health/ping", {
           signal: controller.signal,
           cache: "no-store",
         });

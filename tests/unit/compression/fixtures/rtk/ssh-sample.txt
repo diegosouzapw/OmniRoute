@@ -1,0 +1,3 @@
+debug1: Connecting to app.example.test [10.0.0.10] port 22.
+Welcome to Ubuntu 24.04 LTS
+Permission denied (publickey).

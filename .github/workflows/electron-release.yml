@@ -104,6 +104,7 @@ jobs:
       - name: Build Next.js standalone
         env:
           JWT_SECRET: ci-build-secret-with-sufficient-length-for-validation
+          NODE_OPTIONS: "--max_old_space_size=6144"
         run: npm run build
 
       - name: Sync version in electron/package.json

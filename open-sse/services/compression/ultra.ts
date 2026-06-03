@@ -1,6 +1,7 @@
 import { pruneByScore } from "./ultraHeuristic.ts";
 import { DEFAULT_ULTRA_CONFIG } from "./types.ts";
 import type { UltraConfig, CompressionStats, CompressionMode } from "./types.ts";
+import { extractTextContent, mapTextContent, type ChatMessageLike } from "./messageContent.ts";
 
 const COMPRESSED_PREFIX = "[COMPRESSED:";
 
@@ -21,26 +22,7 @@ export interface UltraCompressResult {
   stats: CompressionStats;
 }
 
-type Message = { role: string; content?: string | unknown[]; [key: string]: unknown };
-
-function extractText(content: string | unknown[] | undefined): string {
-  if (!content) return "";
-  if (typeof content === "string") return content;
-  return (content as Array<{ type?: string; text?: string }>)
-    .filter((b) => b.type === "text" && b.text)
-    .map((b) => b.text as string)
-    .join("\n");
-}
-
-function applyTextToContent(
-  original: string | unknown[] | undefined,
-  compressed: string
-): string | unknown[] {
-  if (!original || typeof original === "string") return compressed;
-  return (original as Array<{ type?: string; text?: string; [k: string]: unknown }>).map((b) =>
-    b.type === "text" ? { ...b, text: compressed } : b
-  );
-}
+type Message = ChatMessageLike;
 
 export function ultraCompress(
   messages: Message[],
@@ -57,21 +39,26 @@ export function ultraCompress(
   let compressedChars = 0;
 
   const compressed = messages.map((msg) => {
-    const text = extractText(msg.content);
+    if (effectiveConfig.preserveSystemPrompt !== false && msg.role === "system") return msg;
+    const text = extractTextContent(msg.content);
     if (!text) return msg;
     if (text.startsWith(COMPRESSED_PREFIX)) return msg;
     if (maxTokensPerMessage > 0 && Math.ceil(text.length / 4) <= maxTokensPerMessage) {
       return msg;
     }
 
-    originalChars += text.length;
-    const pruned = pruneByScore(text, compressionRate, minScoreThreshold);
-    compressedChars += pruned.length;
-
-    return {
-      ...msg,
-      content: applyTextToContent(msg.content, pruned),
-    };
+    let messageOriginalChars = 0;
+    let messageCompressedChars = 0;
+    const next = mapTextContent(msg, (textPart) => {
+      if (!textPart || textPart.startsWith(COMPRESSED_PREFIX)) return textPart;
+      messageOriginalChars += textPart.length;
+      const pruned = pruneByScore(textPart, compressionRate, minScoreThreshold);
+      messageCompressedChars += pruned.length;
+      return pruned;
+    }) as Message;
+    originalChars += messageOriginalChars;
+    compressedChars += messageCompressedChars;
+    return next;
   });
 
   const originalTokens = Math.ceil(originalChars / 4);

@@ -1,0 +1,41 @@
+{
+  "id": "test-go",
+  "label": "Go Test",
+  "description": "Keep failing Go tests and package summaries.",
+  "category": "test",
+  "priority": 90,
+  "match": {
+    "outputTypes": ["test-go"],
+    "commands": ["^go\\s+test\\b"],
+    "patterns": ["^--- FAIL:", "^(?:ok|FAIL)\\s+"]
+  },
+  "rules": {
+    "stripAnsi": true,
+    "includePatterns": [
+      "^--- FAIL:",
+      "^FAIL",
+      "^ok\\s+",
+      "^panic:",
+      "^\\s+.*_test\\.go:\\d+",
+      "^\\s*Error"
+    ],
+    "dropPatterns": ["^\\s*$"],
+    "collapsePatterns": ["^=== RUN"],
+    "deduplicate": true,
+    "maxLines": 160,
+    "headLines": 35,
+    "tailLines": 60
+  },
+  "preserve": {
+    "errorPatterns": ["^--- FAIL:", "^panic:", "^FAIL"],
+    "summaryPatterns": ["^ok\\s+", "^FAIL\\s+"]
+  },
+  "tests": [
+    {
+      "name": "inline sample",
+      "command": "go test",
+      "input": "=== RUN TestA\n--- FAIL: TestA (0.00s)\n    a_test.go:1: boom\nFAIL\t./pkg\t0.1s\n",
+      "expected": "--- FAIL: TestA (0.00s)\n    a_test.go:1: boom\nFAIL\t./pkg\t0.1s"
+    }
+  ]
+}

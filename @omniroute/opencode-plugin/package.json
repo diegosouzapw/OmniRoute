@@ -1,0 +1,73 @@
+{
+  "name": "@omniroute/opencode-plugin",
+  "version": "0.1.0",
+  "description": "OpenCode plugin for the OmniRoute AI Gateway. Drives dynamic model discovery, /connect auth flow, and multi-instance OmniRoute providers via the official @opencode-ai/plugin contract.",
+  "type": "module",
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": {
+        "types": "./dist/index.d.ts",
+        "default": "./dist/index.js"
+      },
+      "require": {
+        "types": "./dist/index.d.cts",
+        "default": "./dist/index.cjs"
+      }
+    }
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
+  "scripts": {
+    "build": "tsup",
+    "clean": "rm -rf dist",
+    "test": "node --import tsx/esm --test tests/scaffold.test.ts tests/auth.test.ts tests/options-schema.test.ts tests/multi-instance.test.ts tests/fetch-interceptor.test.ts tests/provider.test.ts tests/gemini-sanitize.test.ts tests/combos.test.ts tests/config-shim.test.ts tests/features.test.ts tests/usable-combo.test.ts tests/disk-snapshot-perms.test.ts",
+    "prepublishOnly": "npm run clean && npm run build && npm test"
+  },
+  "keywords": [
+    "omniroute",
+    "opencode",
+    "opencode-plugin",
+    "ai-sdk",
+    "openai-compatible",
+    "provider",
+    "gemini",
+    "combos",
+    "mcp"
+  ],
+  "author": "OmniRoute contributors",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/diegosouzapw/OmniRoute.git",
+    "directory": "@omniroute/opencode-plugin"
+  },
+  "bugs": {
+    "url": "https://github.com/diegosouzapw/OmniRoute/issues"
+  },
+  "homepage": "https://github.com/diegosouzapw/OmniRoute/tree/main/%40omniroute/opencode-plugin#readme",
+  "engines": {
+    "node": ">=22.22.3"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "peerDependencies": {
+    "@opencode-ai/plugin": "*"
+  },
+  "dependencies": {
+    "zod": "^4.4.3"
+  },
+  "devDependencies": {
+    "@opencode-ai/plugin": "^1.15.6",
+    "@types/node": "^22.19.19",
+    "tsup": "^8.5.1",
+    "tsx": "^4.22.3",
+    "typescript": "^5.9.3"
+  }
+}

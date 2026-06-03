@@ -128,7 +128,7 @@ export function compressContext(
 
   let messages = [...body.messages];
   let currentTokens = estimateTokens(JSON.stringify(messages));
-  const stats = { original: currentTokens, layers: [] };
+  const stats = { original: currentTokens, layers: [] as { name: string; tokens: number }[] };
 
   // Already fits
   if (currentTokens <= targetTokens) {
@@ -266,6 +266,11 @@ function purifyHistory(messages: Record<string, unknown>[], targetTokens: number
   while (keep > 2) {
     let candidate = [...system, ...nonSystem.slice(-keep)];
     candidate = fixToolPairs(candidate);
+    candidate = fixToolAdjacency(candidate);
+    // Re-run pair fix: fixToolAdjacency may have stripped tool_use blocks, leaving
+    // orphan tool_results that Claude rejects ("tool_result without preceding tool_use").
+    candidate = fixToolPairs(candidate);
+    candidate = stripTrailingAssistantOrphanToolUse(candidate);
     const tokens = estimateTokens(JSON.stringify(candidate));
     if (tokens <= targetTokens) break;
     keep = Math.max(2, Math.floor(keep * 0.7)); // Drop 30% each iteration
@@ -273,6 +278,11 @@ function purifyHistory(messages: Record<string, unknown>[], targetTokens: number
 
   let result = [...system, ...nonSystem.slice(-keep)];
   result = fixToolPairs(result);
+  result = fixToolAdjacency(result);
+  // Re-run pair fix to drop any tool_result whose matching tool_use was removed by
+  // fixToolAdjacency (discussion #2410 — orphan tool_result -> upstream 400).
+  result = fixToolPairs(result);
+  result = stripTrailingAssistantOrphanToolUse(result);
 
   // Add summary of dropped messages
   if (keep < nonSystem.length) {
@@ -297,7 +307,7 @@ function purifyHistory(messages: Record<string, unknown>[], targetTokens: number
  *   - OpenAI: "Invalid message format"
  *   - Gemini: "Function response without function call"
  */
-function fixToolPairs(messages: Record<string, unknown>[]) {
+export function fixToolPairs(messages: Record<string, unknown>[]) {
   // Pass 1: Collect all tool_result IDs from user/tool messages
   const toolResultIds = new Set();
   for (const msg of messages) {
@@ -399,4 +409,149 @@ function fixToolPairs(messages: Record<string, unknown>[]) {
       return msg;
     })
     .filter(Boolean) as Record<string, unknown>[];
+}
+
+/**
+ * Adjacency guard: Claude requires `tool_result` in the IMMEDIATELY NEXT
+ * message after `tool_use`, not just somewhere later in the array.
+ *
+ * `fixToolPairs` checks global ID presence but not adjacency. This function
+ * runs after `fixToolPairs` and removes `tool_use` blocks from assistant
+ * messages where the next message does not contain a matching `tool_result`.
+ */
+export function fixToolAdjacency(messages: Record<string, unknown>[]): Record<string, unknown>[] {
+  if (messages.length <= 1) return messages;
+
+  const result: Record<string, unknown>[] = [];
+
+  for (let i = 0; i < messages.length; i++) {
+    const msg = messages[i];
+    const nextMsg = messages[i + 1];
+
+    if (msg.role !== "assistant" || !nextMsg) {
+      result.push(msg);
+      continue;
+    }
+
+    // Collect tool_result IDs from the NEXT message only
+    const nextToolResultIds = new Set<string>();
+    if (nextMsg.role === "tool" && nextMsg.tool_call_id) {
+      nextToolResultIds.add(String(nextMsg.tool_call_id));
+    }
+    if (nextMsg.role === "user" && Array.isArray(nextMsg.content)) {
+      for (const block of nextMsg.content as Record<string, unknown>[]) {
+        if (block.type === "tool_result" && block.tool_use_id) {
+          nextToolResultIds.add(String(block.tool_use_id));
+        }
+      }
+    }
+
+    let modified = false;
+    const newMsg: Record<string, unknown> = { ...msg };
+
+    // Filter tool_use blocks in content array (Claude format)
+    if (Array.isArray(newMsg.content)) {
+      const filteredContent = (newMsg.content as Record<string, unknown>[]).filter(
+        (block) => block.type !== "tool_use" || !block.id || nextToolResultIds.has(String(block.id))
+      );
+      if (filteredContent.length !== (newMsg.content as unknown[]).length) {
+        newMsg.content = filteredContent;
+        modified = true;
+      }
+    }
+
+    // Filter tool_calls array (OpenAI format) — independently of content
+    if (Array.isArray(newMsg.tool_calls)) {
+      const filteredToolCalls = (newMsg.tool_calls as Record<string, unknown>[]).filter(
+        (tc: Record<string, unknown>) => !tc.id || nextToolResultIds.has(String(tc.id))
+      );
+      if (filteredToolCalls.length !== (newMsg.tool_calls as unknown[]).length) {
+        newMsg.tool_calls = filteredToolCalls;
+        modified = true;
+      }
+    }
+
+    if (modified) {
+      // Drop assistant message if it became empty
+      const hasContent =
+        typeof newMsg.content === "string"
+          ? (newMsg.content as string).trim().length > 0
+          : Array.isArray(newMsg.content) && (newMsg.content as unknown[]).length > 0;
+      const hasToolCalls = Array.isArray(newMsg.tool_calls) && newMsg.tool_calls.length > 0;
+      if (!hasContent && !hasToolCalls) continue;
+      result.push(newMsg);
+    } else {
+      result.push(msg);
+    }
+  }
+
+  return result;
+}
+
+/**
+ * Upstream-send guard: after `fixToolPairs`, strip a trailing assistant
+ * message whose only/remaining content is an orphan `tool_use` block.
+ *
+ * `fixToolPairs` intentionally preserves a final-message `tool_use` because
+ * during context pruning the client is still waiting on the matching
+ * `tool_result` — dropping it there would lose state. But on the
+ * upstream-send path the request body must end on a user turn; a trailing
+ * `assistant(tool_use)` triggers the same Anthropic 400 the guard is
+ * trying to prevent:
+ *   messages.N: `tool_use` ids were found without `tool_result` blocks
+ *   immediately after: toolu_...
+ *
+ * Behavior:
+ *  - If the last message is `assistant` and contains any `tool_use` block,
+ *    those blocks are removed.
+ *  - If removal leaves the message with no content / tool_calls at all, the
+ *    message itself is dropped.
+ *  - Idempotent on clean histories (trailing user, trailing assistant with
+ *    only text/thinking, etc.).
+ */
+export function stripTrailingAssistantOrphanToolUse(
+  messages: Record<string, unknown>[]
+): Record<string, unknown>[] {
+  if (!Array.isArray(messages) || messages.length === 0) return messages;
+
+  const lastIdx = messages.length - 1;
+  const last = messages[lastIdx];
+  if (!last || last.role !== "assistant") return messages;
+
+  let modified = false;
+  const newLast: Record<string, unknown> = { ...last };
+
+  if (Array.isArray(newLast.tool_calls)) {
+    const filteredCalls = (newLast.tool_calls as Record<string, unknown>[]).filter(
+      () => false // remove all trailing tool_calls (none can be paired by definition)
+    );
+    if (filteredCalls.length !== (newLast.tool_calls as unknown[]).length) {
+      newLast.tool_calls = filteredCalls;
+      modified = true;
+    }
+  }
+
+  if (Array.isArray(newLast.content)) {
+    const filteredContent = (newLast.content as Record<string, unknown>[]).filter(
+      (block) => block.type !== "tool_use"
+    );
+    if (filteredContent.length !== (newLast.content as unknown[]).length) {
+      newLast.content = filteredContent;
+      modified = true;
+    }
+  }
+
+  if (!modified) return messages;
+
+  // If the last message is now empty, drop it.
+  const hasContent =
+    typeof newLast.content === "string"
+      ? (newLast.content as string).trim().length > 0
+      : Array.isArray(newLast.content) && (newLast.content as unknown[]).length > 0;
+  const hasToolCalls =
+    Array.isArray(newLast.tool_calls) && (newLast.tool_calls as unknown[]).length > 0;
+
+  const result = messages.slice(0, lastIdx);
+  if (hasContent || hasToolCalls) result.push(newLast);
+  return result;
 }

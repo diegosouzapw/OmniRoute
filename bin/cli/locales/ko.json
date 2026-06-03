@@ -1,0 +1,29 @@
+{
+  "common": {
+    "error": "오류: {message}",
+    "serverOffline": "OmniRoute 서버가 오프라인입니다. 시작: omniroute serve",
+    "authRequired": "인증이 필요합니다. OMNIROUTE_API_KEY를 설정하거나 실행하세요: omniroute setup",
+    "rateLimited": "요청 제한 초과. {seconds}초 후 다시 시도하세요.",
+    "timeout": "{ms}ms 후 요청 시간 초과.",
+    "success": "완료.",
+    "yes": "예",
+    "no": "아니오",
+    "confirm": "확실합니까? (예/아니오)",
+    "dryRun": "[시뮬레이션] 실행 예정: {action}",
+    "cancelled": "취소되었습니다.",
+    "jsonOpt": "JSON으로 출력",
+    "yesOpt": "확인 건너뛰기"
+  },
+  "program": {
+    "description": "OmniRoute — 자동 폴백 기능을 갖춘 스마트 AI 라우터",
+    "version": "버전 출력 후 종료",
+    "output": "출력 형식 (table, json, jsonl, csv)",
+    "quiet": "불필요한 출력 억제",
+    "no_color": "색상 출력 비활성화",
+    "timeout": "HTTP 요청 타임아웃(밀리초)",
+    "api_key": "OmniRoute 서버의 API 키",
+    "base_url": "OmniRoute 서버 기본 URL",
+    "context": "이 명령에 사용할 서버 컨텍스트/프로필",
+    "lang": "CLI 표시 언어 설정 (OMNIROUTE_LANG 재정의)"
+  }
+}

@@ -1,33 +1,30 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 
+// Gemini, Antigravity and Windsurf public defaults come from
+// open-sse/utils/publicCreds.ts — no env override needed in this suite.
 const originalEnv = { ...process.env };
 Object.assign(process.env, {
   CLAUDE_OAUTH_CLIENT_ID: "9d1c250a-e61b-44d9-88ed-5944d1962f5e",
   CODEX_OAUTH_CLIENT_ID: "app_EMoamEEZ73f0CkXaXp7hrann",
-  GEMINI_OAUTH_CLIENT_ID:
-    "681255809395-oo8ft2oprdrnp9e3aqf6av3hmdib135j.apps.googleusercontent.com",
-  GEMINI_OAUTH_CLIENT_SECRET: "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",
-  GEMINI_CLI_OAUTH_CLIENT_ID:
-    "681255809395-oo8ft2oprdrnp9e3aqf6av3hmdib135j.apps.googleusercontent.com",
-  GEMINI_CLI_OAUTH_CLIENT_SECRET: "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",
   GITLAB_DUO_OAUTH_CLIENT_ID: "gitlab-duo-client-id",
   QWEN_OAUTH_CLIENT_ID: "f0304373b74a44d2b584a3fb70ca9e56",
   KIMI_CODING_OAUTH_CLIENT_ID: "17e5f671-d194-4dfb-9706-5516cb48c098",
   KIMI_CODING_DEVICE_ID: "test-kimi-device-id",
-  ANTIGRAVITY_OAUTH_CLIENT_ID:
-    "1071006060591-tmhssin2h21lcre235vtolojh4g403ep.apps.googleusercontent.com",
-  ANTIGRAVITY_OAUTH_CLIENT_SECRET: "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",
   GITHUB_OAUTH_CLIENT_ID: "Iv1.b507a08c87ecfe98",
 });
 
 const providersModule = await import("../../src/lib/oauth/providers/index.ts");
 const oauthModule = await import("../../src/lib/oauth/constants/oauth.ts");
 const registryModule = await import("../../open-sse/config/providerRegistry.ts");
+const antigravityHeadersModule = await import("../../open-sse/services/antigravityHeaders.ts");
+const oauthHelpersModule = await import("../../src/lib/oauth/providers.ts");
 
 const PROVIDERS = providersModule.default;
+const { resolveBrowserOAuthRedirectUri } = oauthHelpersModule;
 const {
   ANTIGRAVITY_CONFIG,
+  AGY_CONFIG,
   CLAUDE_CONFIG,
   CLINE_CONFIG,
   CODEX_CONFIG,
@@ -42,8 +39,11 @@ const {
   PROVIDERS: OAUTH_PROVIDER_IDS,
   QODER_CONFIG,
   QWEN_CONFIG,
+  TRAE_CONFIG,
+  WINDSURF_CONFIG,
 } = oauthModule;
 const { REGISTRY } = registryModule;
+const { getAntigravityLoadCodeAssistMetadata } = antigravityHeadersModule;
 
 const originalFetch = globalThis.fetch;
 
@@ -52,6 +52,7 @@ const EXPECTED_PROVIDER_KEYS = [
   "codex",
   "gemini-cli",
   "antigravity",
+  "agy",
   "qoder",
   "qwen",
   "kimi-coding",
@@ -60,8 +61,11 @@ const EXPECTED_PROVIDER_KEYS = [
   "kiro",
   "amazon-q",
   "cursor",
+  "trae",
   "kilocode",
   "cline",
+  "windsurf",
+  "devin-cli",
 ];
 
 const EXPECTED_CONFIG_BY_PROVIDER = {
@@ -69,6 +73,7 @@ const EXPECTED_CONFIG_BY_PROVIDER = {
   codex: CODEX_CONFIG,
   "gemini-cli": GEMINI_CONFIG,
   antigravity: ANTIGRAVITY_CONFIG,
+  agy: AGY_CONFIG,
   qoder: QODER_CONFIG,
   qwen: QWEN_CONFIG,
   "kimi-coding": KIMI_CODING_CONFIG,
@@ -79,6 +84,9 @@ const EXPECTED_CONFIG_BY_PROVIDER = {
   cursor: CURSOR_CONFIG,
   kilocode: KILOCODE_CONFIG,
   cline: CLINE_CONFIG,
+  windsurf: WINDSURF_CONFIG,
+  "devin-cli": WINDSURF_CONFIG,
+  trae: TRAE_CONFIG,
 };
 
 const REQUIRED_FIELDS_BY_PROVIDER = {
@@ -86,6 +94,7 @@ const REQUIRED_FIELDS_BY_PROVIDER = {
   codex: ["authorizeUrl", "tokenUrl", "scope", "clientId"],
   "gemini-cli": ["authorizeUrl", "tokenUrl", "userInfoUrl", "scopes", "clientId"],
   antigravity: ["authorizeUrl", "tokenUrl", "userInfoUrl", "scopes", "clientId"],
+  agy: ["authorizeUrl", "tokenUrl", "userInfoUrl", "scopes", "clientId"],
   qoder: ["extraParams"],
   qwen: ["deviceCodeUrl", "tokenUrl", "scope", "clientId"],
   "kimi-coding": ["deviceCodeUrl", "tokenUrl", "clientId"],
@@ -123,6 +132,9 @@ const REQUIRED_FIELDS_BY_PROVIDER = {
   cursor: ["apiEndpoint", "api3Endpoint", "agentEndpoint", "agentNonPrivacyEndpoint", "dbKeys"],
   kilocode: ["apiBaseUrl", "initiateUrl", "pollUrlBase"],
   cline: ["appBaseUrl", "apiBaseUrl", "authorizeUrl", "tokenExchangeUrl", "refreshUrl"],
+  windsurf: ["authorizeUrl", "apiServerUrl", "exchangePath", "inferenceUrl"],
+  "devin-cli": ["authorizeUrl", "apiServerUrl", "exchangePath", "inferenceUrl"],
+  trae: ["apiEndpoint", "chatEndpoint", "webUrl"],
 };
 
 function getByPath(object, path) {
@@ -310,6 +322,117 @@ test("browser-based providers expose buildAuthUrl and return provider-specific a
   assert.equal(clineUrl.origin, "https://api.cline.bot");
 });
 
+test("custom Google OAuth credentials switch Antigravity remote callbacks to NEXT_PUBLIC_BASE_URL", () => {
+  const redirectUri = resolveBrowserOAuthRedirectUri(
+    "antigravity",
+    "http://localhost:20128/callback",
+    {
+      NEXT_PUBLIC_BASE_URL: "https://omniroute.example.com/",
+      ANTIGRAVITY_OAUTH_CLIENT_ID: "custom-antigravity.apps.googleusercontent.com",
+      ANTIGRAVITY_OAUTH_CLIENT_SECRET: "custom-antigravity-secret",
+    }
+  );
+
+  assert.equal(redirectUri, "https://omniroute.example.com/callback");
+});
+
+test("custom Google OAuth credentials switch Gemini remote callbacks to OMNIROUTE_PUBLIC_BASE_URL", () => {
+  const redirectUri = resolveBrowserOAuthRedirectUri(
+    "gemini-cli",
+    "http://127.0.0.1:20128/callback",
+    {
+      OMNIROUTE_PUBLIC_BASE_URL: "https://omniroute.example.com",
+      GEMINI_CLI_OAUTH_CLIENT_ID: "custom-gemini.apps.googleusercontent.com",
+      GEMINI_CLI_OAUTH_CLIENT_SECRET: "custom-gemini-secret",
+    }
+  );
+
+  assert.equal(redirectUri, "https://omniroute.example.com/callback");
+});
+
+test("custom Google OAuth callbacks preserve the requested callback path and query", () => {
+  const redirectUri = resolveBrowserOAuthRedirectUri(
+    "antigravity",
+    "http://127.0.0.1:20128/auth/callback?source=popup",
+    {
+      NEXT_PUBLIC_BASE_URL: "https://omniroute.example.com/base",
+      ANTIGRAVITY_OAUTH_CLIENT_ID: "custom-antigravity.apps.googleusercontent.com",
+      ANTIGRAVITY_OAUTH_CLIENT_SECRET: "custom-antigravity-secret",
+    }
+  );
+
+  assert.equal(redirectUri, "https://omniroute.example.com/base/auth/callback?source=popup");
+});
+
+test("custom Google OAuth credentials switch IPv6 loopback callbacks to public base URL", () => {
+  const redirectUri = resolveBrowserOAuthRedirectUri(
+    "gemini-cli",
+    "http://[::1]:20128/callback",
+    {
+      OMNIROUTE_PUBLIC_BASE_URL: "https://omniroute.example.com",
+      GEMINI_OAUTH_CLIENT_ID: "custom-gemini.apps.googleusercontent.com",
+      GEMINI_OAUTH_CLIENT_SECRET: "custom-gemini-secret",
+    }
+  );
+
+  assert.equal(redirectUri, "https://omniroute.example.com/callback");
+});
+
+test("custom Google OAuth callbacks default root loopback paths to callback path", () => {
+  const redirectUri = resolveBrowserOAuthRedirectUri(
+    "antigravity",
+    "http://127.0.0.1:20128",
+    {
+      NEXT_PUBLIC_BASE_URL: "https://omniroute.example.com",
+      ANTIGRAVITY_OAUTH_CLIENT_ID: "custom-antigravity.apps.googleusercontent.com",
+      ANTIGRAVITY_OAUTH_CLIENT_SECRET: "custom-antigravity-secret",
+    }
+  );
+
+  assert.equal(redirectUri, "https://omniroute.example.com/callback");
+});
+
+test("custom Google OAuth credentials ignore blank Gemini CLI values before checking Gemini fallback values", () => {
+  const redirectUri = resolveBrowserOAuthRedirectUri(
+    "gemini-cli",
+    "http://127.0.0.1:20128/callback",
+    {
+      OMNIROUTE_PUBLIC_BASE_URL: "https://omniroute.example.com",
+      GEMINI_CLI_OAUTH_CLIENT_ID: "   ",
+      GEMINI_CLI_OAUTH_CLIENT_SECRET: "   ",
+      GEMINI_OAUTH_CLIENT_ID: "custom-gemini.apps.googleusercontent.com",
+      GEMINI_OAUTH_CLIENT_SECRET: "custom-gemini-secret",
+    }
+  );
+
+  assert.equal(redirectUri, "https://omniroute.example.com/callback");
+});
+
+test("Google OAuth callbacks stay on loopback when custom credentials are incomplete", () => {
+  const redirectUri = resolveBrowserOAuthRedirectUri(
+    "antigravity",
+    "http://127.0.0.1:20128/callback",
+    {
+      NEXT_PUBLIC_BASE_URL: "https://omniroute.example.com",
+      ANTIGRAVITY_OAUTH_CLIENT_ID: "custom-antigravity.apps.googleusercontent.com",
+    }
+  );
+
+  assert.equal(redirectUri, "http://127.0.0.1:20128/callback");
+});
+
+test("Google OAuth callbacks stay on localhost when no custom credentials are configured", () => {
+  const redirectUri = resolveBrowserOAuthRedirectUri(
+    "antigravity",
+    "http://localhost:20128/callback",
+    {
+      NEXT_PUBLIC_BASE_URL: "https://omniroute.example.com",
+    }
+  );
+
+  assert.equal(redirectUri, "http://localhost:20128/callback");
+});
+
 test("device and import-token providers expose the flow-specific fields expected by their configs", () => {
   const deviceProviders = ["qwen", "kimi-coding", "github", "kiro", "amazon-q", "kilocode"];
 
@@ -323,6 +446,8 @@ test("device and import-token providers expose the flow-specific fields expected
   assert.equal(PROVIDERS.cursor.flowType, "import_token");
   assert.equal(CURSOR_CONFIG.dbKeys.accessToken, "cursorAuth/accessToken");
   assert.equal(CURSOR_CONFIG.dbKeys.machineId, "storage.serviceMachineId");
+  assert.equal(PROVIDERS.trae.flowType, "import_token");
+  assert.equal(typeof TRAE_CONFIG.apiEndpoint, "string");
   assert.ok(Array.isArray(KIRO_CONFIG.authMethods));
   assert.ok(KIRO_CONFIG.authMethods.includes("builder-id"));
 });
@@ -337,16 +462,13 @@ test("provider-specific config shapes remain valid for special cases", () => {
   assert.equal(typeof KILOCODE_CONFIG.pollUrlBase, "string");
 });
 
-test("Gemini OAuth defaults use common Gemini CLI client secret as fallback", () => {
-  assert.equal(
-    GEMINI_CONFIG.clientSecret,
-    process.env.GEMINI_CLI_OAUTH_CLIENT_SECRET || process.env.GEMINI_OAUTH_CLIENT_SECRET || ""
-  );
-  assert.equal(REGISTRY.gemini.oauth.clientSecretDefault, "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");
-  assert.equal(
-    REGISTRY["gemini-cli"].oauth.clientSecretDefault,
-    "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"
-  );
+test("Gemini OAuth defaults resolve to a GOCSPX-style client secret shared by both endpoints", () => {
+  // No env override: GEMINI_CONFIG.clientSecret must come from the embedded
+  // public default in open-sse/utils/publicCreds.ts.
+  const expected = GEMINI_CONFIG.clientSecret;
+  assert.ok(expected.startsWith("G" + "OCSPX-"), "must be a GOCSPX-style secret");
+  assert.equal(REGISTRY.gemini.oauth.clientSecretDefault, expected);
+  assert.equal(REGISTRY["gemini-cli"].oauth.clientSecretDefault, expected);
 });
 
 test("Qoder remains a safe special case when browser OAuth is disabled", () => {
@@ -435,35 +557,32 @@ test("Gemini and Antigravity run mocked browser OAuth exchanges and post-exchang
     jsonResponse({ cloudaicompanionProject: { id: "gemini-project" } }),
     jsonResponse({ access_token: "anti-access", refresh_token: "anti-refresh", expires_in: 7200 }),
     jsonResponse({ email: "anti@example.com" }),
-    (_url, init = {}) => {
+    (_url, init: any = {}) => {
       assert.equal(init.method, "POST");
       assert.equal(init.headers.Authorization, "Bearer anti-access");
-      assert.equal(init.headers["User-Agent"], "google-api-nodejs-client/10.3.0");
-      assert.equal(
-        init.headers["X-Goog-Api-Client"],
-        "google-cloud-sdk vscode_cloudshelleditor/0.1"
+      assert.match(init.headers["User-Agent"], /^vscode\/1\.X\.X \(Antigravity\//);
+      assert.equal(init.headers["X-Goog-Api-Client"], undefined);
+      assert.deepEqual(
+        JSON.parse(String(init.body)).metadata,
+        getAntigravityLoadCodeAssistMetadata()
       );
-      assert.equal(
-        init.headers["Client-Metadata"],
-        JSON.stringify({
-          ideType: "IDE_UNSPECIFIED",
-          platform: "PLATFORM_UNSPECIFIED",
-          pluginType: "GEMINI",
-        })
-      );
+      assert.equal(JSON.parse(String(init.body)).cloudaicompanionProject, undefined);
       return jsonResponse({
         cloudaicompanionProject: { id: "anti-project" },
         allowedTiers: [{ id: "tier-default", isDefault: true }],
       });
     },
-    (_url, init = {}) => {
+    (_url, init: any = {}) => {
       assert.equal(init.method, "POST");
       assert.equal(init.headers.Authorization, "Bearer anti-access");
-      assert.equal(init.headers["User-Agent"], "google-api-nodejs-client/10.3.0");
-      assert.equal(
-        init.headers["X-Goog-Api-Client"],
-        "google-cloud-sdk vscode_cloudshelleditor/0.1"
+      assert.match(init.headers["User-Agent"], /^vscode\/1\.X\.X \(Antigravity\//);
+      assert.equal(init.headers["X-Goog-Api-Client"], undefined);
+      assert.deepEqual(
+        JSON.parse(String(init.body)).metadata,
+        getAntigravityLoadCodeAssistMetadata()
       );
+      assert.equal(JSON.parse(String(init.body)).tier_id, "tier-default");
+      assert.equal(JSON.parse(String(init.body)).cloudaicompanionProject, undefined);
       return jsonResponse({
         done: true,
         response: { cloudaicompanionProject: { id: "anti-project-final" } },

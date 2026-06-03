@@ -1,6 +1,6 @@
 // Re-export from open-sse with localDb integration
 import { getModelAliases, getComboByName, getProviderNodes, getCustomModels } from "@/lib/localDb";
-import { getSettings } from "@/lib/localDb";
+import { getCachedSettings } from "@/lib/localDb";
 import { getComboStepTarget } from "@/lib/combos/steps";
 import {
   parseModel,
@@ -11,6 +11,35 @@ import {
 export { parseModel };
 
 /**
+ * Build a combined model alias map that merges both alias stores:
+ * 1. DB-namespace aliases (key_value WHERE namespace='modelAliases') — set via
+ *    /api/models/alias/ and seeded at startup (e.g. gemini-cli default aliases).
+ * 2. Settings-based aliases (settings.modelAliases) — set via the Settings UI and
+ *    /api/settings/model-aliases/ (stored as a JSON blob in namespace='settings').
+ *
+ * Settings-based aliases take priority so that UI configuration always wins.
+ * Without this merge, aliases configured via the Settings UI were never consulted
+ * during provider routing, causing provider inference (e.g. /^gpt-/ → openai) to
+ * silently override them (issue #2618 / #2208).
+ */
+async function getCombinedModelAliases(): Promise<Record<string, unknown>> {
+  const [dbAliases, settings] = await Promise.all([
+    getModelAliases().catch(() => ({})),
+    getCachedSettings().catch(() => ({}) as Record<string, unknown>),
+  ]);
+
+  const settingsAliases =
+    settings.modelAliases &&
+    typeof settings.modelAliases === "object" &&
+    !Array.isArray(settings.modelAliases)
+      ? (settings.modelAliases as Record<string, unknown>)
+      : {};
+
+  // Settings-based aliases win over DB-namespace aliases on key collision
+  return { ...dbAliases, ...settingsAliases };
+}
+
+/**
  * Resolve model alias from localDb
  */
 export async function resolveModelAlias(alias) {
@@ -19,20 +48,25 @@ export async function resolveModelAlias(alias) {
 }
 
 /**
- * Look up the apiFormat for a custom model from the DB.
- * Returns "responses" if the model is configured for the Responses API, otherwise undefined.
+ * Look up custom-model metadata from the DB in a single read:
+ *  - apiFormat: "responses" when the model is configured for the Responses API.
+ *  - targetFormat: the optional per-model wire format override (#2905).
  */
-async function lookupCustomModelApiFormat(
+async function lookupCustomModelMeta(
   providerId: string,
   modelId: string
-): Promise<string | undefined> {
+): Promise<{ apiFormat?: string; targetFormat?: string }> {
   try {
     const models = await getCustomModels(providerId);
-    if (!Array.isArray(models)) return undefined;
+    if (!Array.isArray(models)) return {};
     const match = models.find((m: any) => m.id === modelId);
-    return match?.apiFormat === "responses" ? "responses" : undefined;
+    if (!match) return {};
+    return {
+      apiFormat: match.apiFormat === "responses" ? "responses" : undefined,
+      targetFormat: typeof match.targetFormat === "string" ? match.targetFormat : undefined,
+    };
   } catch {
-    return undefined;
+    return {};
   }
 }
 
@@ -43,16 +77,37 @@ export async function getModelInfo(modelStr) {
   const parsed = parseModel(modelStr);
   const { extendedContext } = parsed;
 
+  const attachCustomApiFormat = async (info: any) => {
+    if (!info?.provider || !info?.model) return info;
+    const { apiFormat, targetFormat } = await lookupCustomModelMeta(
+      String(info.provider),
+      String(info.model)
+    );
+    if (apiFormat || targetFormat) {
+      return {
+        ...info,
+        ...(apiFormat && { apiFormat }),
+        ...(targetFormat && { targetFormat }),
+      };
+    }
+    return info;
+  };
+
   // Check custom provider nodes first (for both alias and non-alias formats)
   if (parsed.providerAlias || parsed.provider) {
     // Ensure prefixToCheck is always a concise identifier, not a full model string
     const prefixToCheck = parsed.providerAlias || parsed.provider;
 
     // Check OpenAI Compatible nodes
+    // Match by node.prefix (user-defined alias) OR node.id (internal UUID id stored by
+    // combo steps), so that combo targets using the internal node id still resolve
+    // correctly (#2778).
     const openaiNodes = await getProviderNodes({ type: "openai-compatible" });
-    const matchedOpenAI = openaiNodes.find((node) => node.prefix === prefixToCheck);
+    const matchedOpenAI = openaiNodes.find(
+      (node) => node.prefix === prefixToCheck || node.id === prefixToCheck
+    );
     if (matchedOpenAI) {
-      const apiFormat = await lookupCustomModelApiFormat(
+      const { apiFormat, targetFormat } = await lookupCustomModelMeta(
         matchedOpenAI.id as string,
         parsed.model as string
       );
@@ -61,14 +116,17 @@ export async function getModelInfo(modelStr) {
         model: parsed.model,
         extendedContext,
         ...(apiFormat && { apiFormat }),
+        ...(targetFormat && { targetFormat }),
       };
     }
 
     // Check Anthropic Compatible nodes
     const anthropicNodes = await getProviderNodes({ type: "anthropic-compatible" });
-    const matchedAnthropic = anthropicNodes.find((node) => node.prefix === prefixToCheck);
+    const matchedAnthropic = anthropicNodes.find(
+      (node) => node.prefix === prefixToCheck || node.id === prefixToCheck
+    );
     if (matchedAnthropic) {
-      const apiFormat = await lookupCustomModelApiFormat(
+      const { apiFormat, targetFormat } = await lookupCustomModelMeta(
         matchedAnthropic.id as string,
         parsed.model as string
       );
@@ -77,15 +135,16 @@ export async function getModelInfo(modelStr) {
         model: parsed.model,
         extendedContext,
         ...(apiFormat && { apiFormat }),
+        ...(targetFormat && { targetFormat }),
       };
     }
 
     // stripModelPrefix: if enabled, strip provider prefix and re-resolve
     // the bare model name using existing heuristics (claude-* → anthropic, etc.)
     try {
-      const settings = await getSettings();
+      const settings = await getCachedSettings();
       if (settings.stripModelPrefix === true) {
-        const strippedResult = await getModelInfoCore(parsed.model, getModelAliases);
+        const strippedResult = await getModelInfoCore(parsed.model, getCombinedModelAliases);
         return { ...strippedResult, extendedContext };
       }
     } catch {
@@ -94,10 +153,10 @@ export async function getModelInfo(modelStr) {
   }
 
   if (!parsed.isAlias) {
-    return getModelInfoCore(modelStr, null);
+    return await attachCustomApiFormat(await getModelInfoCore(modelStr, null));
   }
 
-  return getModelInfoCore(modelStr, getModelAliases);
+  return await attachCustomApiFormat(await getModelInfoCore(modelStr, getCombinedModelAliases));
 }
 
 /**

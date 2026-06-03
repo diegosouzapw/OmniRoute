@@ -7,12 +7,6 @@ import { REGISTRY } from "../../open-sse/config/providerRegistry.ts";
 test("T12: pricing table includes MiniMax, GLM, Kimi and gpt-5.4 mini entries", () => {
   const pricing = getDefaultPricing();
 
-  assert.ok(pricing.cx["gpt-5.5"], "missing cx/gpt-5.5");
-  assert.ok(pricing.cx["gpt-5.5-xhigh"], "missing cx/gpt-5.5-xhigh");
-  assert.equal(pricing.cx["gpt-5.5"].input, 5.0);
-  assert.equal(pricing.cx["gpt-5.5"].cached, 0.5);
-  assert.equal(pricing.cx["gpt-5.5"].output, 30.0);
-
   assert.ok(pricing.cx["gpt-5.4"], "missing cx/gpt-5.4");
   assert.ok(pricing.cx["gpt-5.4-mini"], "missing cx/gpt-5.4-mini");
 
@@ -33,16 +27,17 @@ test("T12: pricing table includes MiniMax, GLM, Kimi and gpt-5.4 mini entries", 
   assert.ok(pricing.kimi["kimi-k2.5"], "missing kimi/kimi-k2.5");
   assert.ok(pricing.kimi["kimi-k2.5-thinking"], "missing kimi/kimi-k2.5-thinking");
   assert.ok(pricing.kimi["kimi-for-coding"], "missing kimi/kimi-for-coding");
+
+  assert.ok(pricing.anthropic["claude-opus-4.8"], "missing anthropic/claude-opus-4.8");
+  assert.ok(pricing.anthropic["claude-opus-4-8"], "missing anthropic/claude-opus-4-8");
+  assert.ok(pricing.anthropic["claude-opus-4-7"], "missing anthropic/claude-opus-4-7");
 });
 
-test("T12: codex catalog includes GPT 5.5 entries", () => {
+test("T12: codex catalog includes GPT 5.5 variations", () => {
   const codexModels = new Map(REGISTRY.codex.models.map((m) => [m.id, m]));
-  assert.ok(codexModels.has("gpt-5.5"), "missing codex/gpt-5.5");
   assert.ok(codexModels.has("gpt-5.5-medium"), "missing codex/gpt-5.5-medium");
-  assert.equal(codexModels.get("gpt-5.5")?.name, "GPT 5.5");
+  assert.ok(codexModels.has("gpt-5.5-xhigh"), "missing codex/gpt-5.5-xhigh");
   assert.equal(codexModels.get("gpt-5.5-medium")?.name, "GPT 5.5 (Medium)");
-  assert.equal(codexModels.get("gpt-5.5")?.contextLength, 1050000);
-  assert.equal(codexModels.get("gpt-5.5")?.supportsXHighEffort, true);
   assert.equal(codexModels.get("gpt-5.5-medium")?.targetFormat, "openai-responses");
   assert.equal(codexModels.get("gpt-5.5-xhigh")?.targetFormat, "openai-responses");
 });

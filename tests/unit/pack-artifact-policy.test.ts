@@ -10,18 +10,24 @@ import {
   findMissingArtifactPaths,
   findUnexpectedArtifactPaths,
   normalizeArtifactPath,
-} from "../../scripts/pack-artifact-policy.ts";
+} from "../../scripts/build/pack-artifact-policy.ts";
 
 test("normalizeArtifactPath normalizes slashes and leading relative markers", () => {
   assert.equal(
-    normalizeArtifactPath("./app\\scripts\\scratch\\test.js"),
-    "app/scripts/scratch/test.js"
+    normalizeArtifactPath("./app\\scripts\\ad-hoc\\test.js"),
+    "app/scripts/ad-hoc/test.js"
   );
 });
 
 test("findUnexpectedArtifactPaths flags staged app files outside the allowlist", () => {
   const unexpectedPaths = findUnexpectedArtifactPaths(
-    ["package-lock.json", "scripts/sync-env.mjs", "server.js"],
+    [
+      "open-sse/services/compression/engines/rtk/filters/generic-output.json",
+      "open-sse/services/compression/rules/en/filler.json",
+      "package-lock.json",
+      "scripts/dev/sync-env.mjs",
+      "server.js",
+    ],
     {
       exactPaths: APP_STAGING_ALLOWED_EXACT_PATHS,
       prefixPaths: APP_STAGING_ALLOWED_PATH_PREFIXES,
@@ -33,14 +39,30 @@ test("findUnexpectedArtifactPaths flags staged app files outside the allowlist",
 
 test("findUnexpectedArtifactPaths flags app pack files outside the allowlist", () => {
   const unexpectedPaths = findUnexpectedArtifactPaths(
-    ["app/server.js", "app/scripts/sync-env.mjs", "app/scripts/prepublish.mjs", "docs/extra.md"],
+    [
+      "app/open-sse/services/compression/engines/rtk/filters/generic-output.json",
+      "app/open-sse/services/compression/rules/en/filler.json",
+      "app/server.js",
+      "app/scripts/dev/sync-env.mjs",
+      "app/scripts/build/prepublish.mjs",
+      "docs/extra.md",
+    ],
     {
       exactPaths: PACK_ARTIFACT_ALLOWED_EXACT_PATHS,
       prefixPaths: PACK_ARTIFACT_ALLOWED_PATH_PREFIXES,
     }
   );
 
-  assert.deepEqual(unexpectedPaths, ["app/scripts/prepublish.mjs", "docs/extra.md"]);
+  assert.deepEqual(unexpectedPaths, ["app/scripts/build/prepublish.mjs", "docs/extra.md"]);
+});
+
+test("setupPolyfill.ts is allowed in the tarball (bin/omniroute.mjs imports it at startup)", () => {
+  const unexpectedPaths = findUnexpectedArtifactPaths(["open-sse/utils/setupPolyfill.ts"], {
+    exactPaths: PACK_ARTIFACT_ALLOWED_EXACT_PATHS,
+    prefixPaths: PACK_ARTIFACT_ALLOWED_PATH_PREFIXES,
+  });
+
+  assert.deepEqual(unexpectedPaths, []);
 });
 
 test("findMissingArtifactPaths flags missing root runtime files in the tarball", () => {
@@ -49,18 +71,22 @@ test("findMissingArtifactPaths flags missing root runtime files in the tarball",
       "app/server.js",
       "bin/omniroute.mjs",
       "package.json",
-      "scripts/postinstall.mjs",
-      "scripts/postinstallSupport.mjs",
+      "scripts/build/postinstall.mjs",
+      "scripts/build/postinstallSupport.mjs",
     ],
     PACK_ARTIFACT_REQUIRED_PATHS
   );
 
   assert.deepEqual(missingPaths, [
+    "app/open-sse/services/compression/engines/rtk/filters/generic-output.json",
+    "app/open-sse/services/compression/rules/en/filler.json",
+    "app/peer-stamp.mjs",
     "app/responses-ws-proxy.mjs",
     "app/server-ws.mjs",
+    "bin/cli/program.mjs",
     "bin/mcp-server.mjs",
     "bin/nodeRuntimeSupport.mjs",
-    "scripts/native-binary-compat.mjs",
+    "scripts/build/native-binary-compat.mjs",
     "src/shared/utils/nodeRuntimeSupport.ts",
   ]);
 });

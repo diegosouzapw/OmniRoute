@@ -99,24 +99,26 @@ export function resolveCallerScopeContext(
 export function evaluateToolScopes(
   toolName: string,
   callerScopes: readonly string[],
-  enforceScopes: boolean
+  enforceScopes: boolean,
+  inlineScopes?: readonly string[]
 ): ScopeCheckResult {
-  const toolDef = MCP_TOOL_MAP[toolName];
-  if (!toolDef) {
+  const provided = normalizeScopeList(callerScopes);
+
+  if (!enforceScopes) {
+    return { allowed: true, required: [], provided, missing: [] };
+  }
+
+  const toolScopes = inlineScopes ?? MCP_TOOL_MAP[toolName]?.scopes;
+  const required = Array.isArray(toolScopes) ? Array.from(toolScopes) : [];
+
+  if (required.length === 0) {
     return {
       allowed: false,
       required: [],
-      provided: Array.from(callerScopes),
+      provided,
       missing: [],
       reason: "tool_definition_missing",
     };
-  }
-
-  const required = Array.isArray(toolDef.scopes) ? Array.from(toolDef.scopes) : [];
-  const provided = normalizeScopeList(callerScopes);
-
-  if (!enforceScopes || required.length === 0) {
-    return { allowed: true, required, provided, missing: [] };
   }
 
   const missing = required.filter(

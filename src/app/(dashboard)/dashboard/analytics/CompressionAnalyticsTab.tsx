@@ -8,6 +8,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useTranslations } from "next-intl";
 
 interface CompressionAnalyticsSummary {
   totalRequests: number;
@@ -17,6 +18,17 @@ interface CompressionAnalyticsSummary {
   byMode: Record<string, { count: number; tokensSaved: number; avgSavingsPct: number }>;
   byProvider: Record<string, { count: number; tokensSaved: number }>;
   last24h: Array<{ hour: string; count: number; tokensSaved: number }>;
+  validationFallbacks: number;
+  realUsage: {
+    requestsWithReceipts: number;
+    promptTokens: number;
+    completionTokens: number;
+    totalTokens: number;
+    cacheReadTokens: number;
+    cacheWriteTokens: number;
+    estimatedUsdSaved: number;
+    bySource: Record<string, number>;
+  };
 }
 
 function StatCard({
@@ -105,6 +117,7 @@ function ProviderBar({
 }
 
 export default function CompressionAnalyticsTab() {
+  const t = useTranslations("analytics");
   const [stats, setStats] = useState<CompressionAnalyticsSummary | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -178,20 +191,85 @@ export default function CompressionAnalyticsTab() {
       </div>
 
       {/* KPI Cards */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 md:grid-cols-6 gap-4">
         <StatCard
           icon="compress"
-          label="Total Requests"
+          label={t("compressionAnalyticsTotalRequests")}
           value={stats.totalRequests.toLocaleString()}
         />
         <StatCard
           icon="token"
-          label="Tokens Saved"
+          label={t("compressionAnalyticsTokensSaved")}
           value={stats.totalTokensSaved.toLocaleString()}
         />
-        <StatCard icon="percent" label="Avg Savings" value={`${stats.avgSavingsPct}%`} />
-        <StatCard icon="timer" label="Avg Duration" value={`${stats.avgDurationMs}ms`} />
+        <StatCard
+          icon="percent"
+          label={t("compressionAnalyticsAvgSavings")}
+          value={`${stats.avgSavingsPct}%`}
+        />
+        <StatCard
+          icon="timer"
+          label={t("compressionAnalyticsAvgDuration")}
+          value={`${stats.avgDurationMs}ms`}
+        />
+        <StatCard
+          icon="receipt_long"
+          label={t("compressionAnalyticsReceipts")}
+          value={stats.realUsage.requestsWithReceipts.toLocaleString()}
+          sub={`${stats.realUsage.totalTokens.toLocaleString()} real tokens`}
+        />
+        <StatCard
+          icon="verified"
+          label={t("compressionAnalyticsFallbacks")}
+          value={stats.validationFallbacks.toLocaleString()}
+          sub="validation restores"
+        />
       </div>
+
+      {stats.realUsage.requestsWithReceipts > 0 && (
+        <div className="card p-5">
+          <h3 className="font-semibold text-text mb-4 flex items-center gap-2">
+            <span className="material-symbols-outlined text-primary text-[20px]">receipt_long</span>
+            Real Usage Receipts
+          </h3>
+          <div className="grid grid-cols-1 md:grid-cols-5 gap-4 text-sm">
+            <div>
+              <div className="text-text-muted">{t("compressionAnalyticsPromptTokens")}</div>
+              <div className="text-lg font-semibold text-text">
+                {stats.realUsage.promptTokens.toLocaleString()}
+              </div>
+            </div>
+            <div>
+              <div className="text-text-muted">{t("compressionAnalyticsCompletionTokens")}</div>
+              <div className="text-lg font-semibold text-text">
+                {stats.realUsage.completionTokens.toLocaleString()}
+              </div>
+            </div>
+            <div>
+              <div className="text-text-muted">{t("compressionAnalyticsTotalTokens")}</div>
+              <div className="text-lg font-semibold text-text">
+                {stats.realUsage.totalTokens.toLocaleString()}
+              </div>
+            </div>
+            <div>
+              <div className="text-text-muted">{t("compressionAnalyticsCacheTokens")}</div>
+              <div className="text-lg font-semibold text-text">
+                {(
+                  (stats.realUsage.cacheReadTokens ?? 0) + (stats.realUsage.cacheWriteTokens ?? 0)
+                ).toLocaleString()}
+              </div>
+            </div>
+            <div>
+              <div className="text-text-muted">Sources</div>
+              <div className="text-lg font-semibold text-text">
+                {Object.entries(stats.realUsage.bySource)
+                  .map(([source, count]) => `${source}: ${count}`)
+                  .join(", ")}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Mode Breakdown */}
       {modes.length > 0 && (
@@ -277,7 +355,7 @@ export default function CompressionAnalyticsTab() {
           <span className="material-symbols-outlined text-[48px] mb-3 block text-primary opacity-50">
             compress
           </span>
-          <p className="font-medium text-text">No compression data yet</p>
+          <p className="font-medium text-text">{t("compressionAnalyticsNoDataYet")}</p>
           <p className="text-sm mt-1">
             Use <code className="bg-bg-muted px-1 rounded">POST /v1/chat/completions</code> with
             compression configuration to start tracking compression analytics.
@@ -290,8 +368,8 @@ export default function CompressionAnalyticsTab() {
         <span className="material-symbols-outlined text-[16px] text-blue-500 mt-0.5">info</span>
         <span>
           <strong>Compression analytics:</strong> Token savings tracked per mode (off, lite,
-          standard, aggressive, ultra) and provider. Hover over charts for details. Use the time
-          selector to view different time periods.
+          standard, aggressive, ultra, RTK, stacked), engine, compression combo, and provider. Hover
+          over charts for details. Use the time selector to view different time periods.
         </span>
       </div>
     </div>

@@ -17,9 +17,9 @@ import {
 } from "../../open-sse/handlers/sseParser.ts";
 
 test("getModelInfoCore resolves unique non-openai unprefixed model", async () => {
-  const info = await getModelInfoCore("claude-haiku-4-5-20251001", {});
+  const info = await getModelInfoCore("claude-sonnet-4-5-20250929", {});
   assert.equal(info.provider, "claude");
-  assert.equal(info.model, "claude-haiku-4-5-20251001");
+  assert.equal(info.model, "claude-sonnet-4-5-20250929");
 });
 
 test("getModelInfoCore keeps openai fallback for gpt-4o", async () => {
@@ -28,20 +28,20 @@ test("getModelInfoCore keeps openai fallback for gpt-4o", async () => {
   assert.equal(info.model, "gpt-4o");
 });
 
-test("getModelInfoCore resolves codex-auto-review to codex", async () => {
+test("getModelInfoCore routes native codex-auto-review to codex", async () => {
   const info = await getModelInfoCore("codex-auto-review", {});
   assert.equal(info.provider, "codex");
   assert.equal(info.model, "codex-auto-review");
 });
 
-test("getModelInfoCore resolves gpt-5.5 to codex", async () => {
+test("getModelInfoCore keeps unprefixed gpt-5.5 on the OpenAI fallback", async () => {
   const info = await getModelInfoCore("gpt-5.5", {});
-  assert.equal(info.provider, "codex");
+  assert.equal(info.provider, "openai");
   assert.equal(info.model, "gpt-5.5");
 });
 
-test("getModelInfoCore keeps explicit gpt-5.5-medium separate from gpt-5.5", async () => {
-  const info = await getModelInfoCore("gpt-5.5-medium", {});
+test("getModelInfoCore keeps explicit cx/gpt-5.5-medium separate from gpt-5.5", async () => {
+  const info = await getModelInfoCore("cx/gpt-5.5-medium", {});
   assert.equal(info.provider, "codex");
   assert.equal(info.model, "gpt-5.5-medium");
 });
@@ -52,15 +52,15 @@ test("getModelInfoCore resolves explicit gpt-5.5 Codex model", async () => {
   assert.equal(info.model, "gpt-5.5");
 });
 
-test("getModelInfoCore resolves gpt-5.5 to codex", async () => {
+test("getModelInfoCore keeps duplicate unprefixed gpt-5.5 checks on OpenAI", async () => {
   const info = await getModelInfoCore("gpt-5.5", {});
-  assert.equal(info.provider, "codex");
+  assert.equal(info.provider, "openai");
   assert.equal(info.model, "gpt-5.5");
 });
 
-test("getModelInfoCore resolves gpt-5.5 to codex", async () => {
+test("getModelInfoCore keeps repeated unprefixed gpt-5.5 checks on OpenAI", async () => {
   const info = await getModelInfoCore("gpt-5.5", {});
-  assert.equal(info.provider, "codex");
+  assert.equal(info.provider, "openai");
   assert.equal(info.model, "gpt-5.5");
 });
 
@@ -185,8 +185,7 @@ test("Claude native messages can be round-tripped through OpenAI into Claude OAu
       content: [{ type: "text", text: "reply with OK only" }],
     },
   ]);
-  assert.ok(Array.isArray(translated.system));
-  assert.equal(translated.system[0]?.text?.includes("You are Claude Code"), true);
+  assert.equal(translated.system, undefined);
 });
 
 test("CodexExecutor maps fast service tier to priority", () => {
@@ -316,6 +315,25 @@ test("CodexExecutor preserves native responses payloads for Codex passthrough", 
   assert.equal(transformed.reasoning.effort, "high");
   assert.equal(transformed.reasoning_effort, undefined);
   assert.ok(!("_nativeCodexPassthrough" in transformed));
+});
+
+test("CodexExecutor gives model reasoning suffix precedence over client defaults", () => {
+  const executor = new CodexExecutor();
+  const transformed = executor.transformRequest(
+    "gpt-5.5-xhigh",
+    {
+      model: "gpt-5.5-xhigh",
+      input: [],
+      reasoning: { effort: "medium", summary: "auto" },
+      reasoning_effort: "low",
+    },
+    true,
+    {}
+  );
+
+  assert.equal(transformed.model, "gpt-5.5");
+  assert.deepEqual(transformed.reasoning, { effort: "xhigh", summary: "auto" });
+  assert.equal(transformed.reasoning_effort, undefined);
 });
 
 test("CodexExecutor strips streaming fields for compact passthrough", () => {

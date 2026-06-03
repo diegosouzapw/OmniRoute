@@ -365,10 +365,13 @@ export function extractUsage(chunk) {
       completion_tokens: chunk.usage.completion_tokens ?? chunk.usage.output_tokens ?? 0,
       cached_tokens:
         chunk.usage.prompt_tokens_details?.cached_tokens ??
-        chunk.usage.input_tokens_details?.cached_tokens,
+        chunk.usage.input_tokens_details?.cached_tokens ??
+        chunk.usage.prompt_cache_hit_tokens ??
+        chunk.usage.cached_tokens,
       reasoning_tokens:
         chunk.usage.completion_tokens_details?.reasoning_tokens ??
-        chunk.usage.output_tokens_details?.reasoning_tokens,
+        chunk.usage.output_tokens_details?.reasoning_tokens ??
+        chunk.usage.reasoning_tokens,
     });
   }
 

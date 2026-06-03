@@ -1,0 +1,35 @@
+{
+  "id": "uv-sync",
+  "label": "uv sync",
+  "description": "Compact uv sync/install output.",
+  "category": "package",
+  "priority": 72,
+  "match": {
+    "outputTypes": [],
+    "commands": ["^uv\\s+sync\\b", "^uv\\s+pip\\s+install\\b"],
+    "patterns": ["Resolved \\d+ packages?", "Prepared \\d+ packages?"]
+  },
+  "rules": {
+    "stripAnsi": true,
+    "dropPatterns": ["^Resolved ", "^Prepared ", "^Installed ", "^ \\+", "^\\s*$"],
+    "includePatterns": ["error", "failed", "Installed", "Uninstalled", "Resolved"],
+    "collapsePatterns": [],
+    "deduplicate": true,
+    "maxLines": 100,
+    "headLines": 25,
+    "tailLines": 35,
+    "onEmpty": "uv: ok"
+  },
+  "preserve": {
+    "errorPatterns": ["error", "failed"],
+    "summaryPatterns": ["Installed", "Resolved"]
+  },
+  "tests": [
+    {
+      "name": "inline sample",
+      "command": "uv sync",
+      "input": "Resolved 10 packages in 1ms\nInstalled 10 packages in 2ms\n",
+      "expected": "uv: ok"
+    }
+  ]
+}

@@ -11,11 +11,6 @@ const core = await import("../../src/lib/db/core.ts");
 const { handleChatCore } = await import("../../open-sse/handlers/chatCore.ts");
 const { handleComboChat } = await import("../../open-sse/services/combo.ts");
 const { CodexExecutor } = await import("../../open-sse/executors/codex.ts");
-const {
-  clearRememberedResponseFunctionCallsForTesting,
-  getRememberedResponseConversationItems,
-  rememberResponseFunctionCalls,
-} = await import("../../open-sse/services/responsesToolCallState.ts");
 
 const originalFetch = globalThis.fetch;
 
@@ -31,6 +26,17 @@ function noopLog() {
 function createComboLog() {
   const entries = [];
   return {
+    info: (tag, msg) => entries.push({ level: "info", tag, msg }),
+    warn: (tag, msg) => entries.push({ level: "warn", tag, msg }),
+    error: (tag, msg) => entries.push({ level: "error", tag, msg }),
+    entries,
+  };
+}
+
+function createCaptureLog() {
+  const entries = [];
+  return {
+    debug: (tag, msg) => entries.push({ level: "debug", tag, msg }),
     info: (tag, msg) => entries.push({ level: "info", tag, msg }),
     warn: (tag, msg) => entries.push({ level: "warn", tag, msg }),
     error: (tag, msg) => entries.push({ level: "error", tag, msg }),
@@ -147,6 +153,7 @@ async function invokeChatCore({
   endpoint = "/v1/chat/completions",
   accept = "application/json",
   responseFactory,
+  log = noopLog(),
 } = {}) {
   const calls = [];
 
@@ -175,7 +182,7 @@ async function invokeChatCore({
         accessToken: "codex-token",
         providerSpecificData: {},
       },
-      log: noopLog(),
+      log,
       clientRawRequest: {
         endpoint,
         body: structuredClone(body),
@@ -192,85 +199,13 @@ async function invokeChatCore({
 
 test.beforeEach(async () => {
   globalThis.fetch = originalFetch;
-  clearRememberedResponseFunctionCallsForTesting();
   await resetStorage();
 });
 
 test.after(async () => {
   globalThis.fetch = originalFetch;
-  clearRememberedResponseFunctionCallsForTesting();
   await resetStorage();
   fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
-});
-
-test("chatCore remembers Codex Responses conversation state from transformed body, not raw client input", async () => {
-  rememberResponseFunctionCalls("resp_prev_tool_123", [
-    {
-      type: "function_call",
-      call_id: "call_tool_123",
-      name: "workspace_read_file",
-      arguments: '{"path":"README.md"}',
-    },
-  ]);
-
-  const { result } = await invokeChatCore({
-    endpoint: "/v1/responses",
-    accept: "text/event-stream",
-    provider: "codex",
-    model: "gpt-5.5-low",
-    body: {
-      model: "gpt-5.5-low",
-      previous_response_id: "resp_prev_tool_123",
-      input: [
-        {
-          type: "function_call_output",
-          call_id: "call_tool_123",
-          output: '{"ok":true}',
-        },
-      ],
-    },
-    responseFactory: () =>
-      new Response(
-        [
-          "event: response.created",
-          'data: {"type":"response.created","response":{"id":"resp_current_456","model":"gpt-5.5-low","status":"in_progress","output":[]}}',
-          "",
-          "event: response.completed",
-          'data: {"type":"response.completed","response":{"id":"resp_current_456","object":"response","model":"gpt-5.5-low","status":"completed","output":[{"type":"message","role":"assistant","content":[{"type":"output_text","text":"done"}]}],"usage":{"input_tokens":6,"output_tokens":1}}}',
-          "",
-          "data: [DONE]",
-          "",
-        ].join("\n"),
-        {
-          status: 200,
-          headers: { "Content-Type": "text/event-stream" },
-        }
-      ),
-  });
-
-  assert.equal(result.success, true);
-  await result.response.text();
-  await waitForAsyncSideEffects();
-
-  const rememberedItems = getRememberedResponseConversationItems("resp_current_456");
-  const rememberedFunctionCall = rememberedItems.find(
-    (item) => item && typeof item === "object" && item.type === "function_call"
-  );
-  const rememberedFunctionCallOutput = rememberedItems.find(
-    (item) => item && typeof item === "object" && item.type === "function_call_output"
-  );
-
-  assert.deepEqual(rememberedFunctionCall, {
-    type: "function_call",
-    call_id: "call_tool_123",
-    name: "workspace_read_file",
-    arguments: '{"path":"README.md"}',
-  });
-  assert.deepEqual(rememberedFunctionCallOutput, {
-    type: "function_call_output",
-    call_id: "call_tool_123",
-    output: '{"ok":true}',
-  });
 });
 
 test("CodexExecutor.transformRequest clones the request body before forcing stream=true", () => {
@@ -313,6 +248,44 @@ test("chatCore converts Responses-style SSE fallback into JSON when stream=false
   assert.ok(payload.usage.total_tokens >= 7);
   assert.ok(payload.usage.prompt_tokens > 0);
   assert.ok(payload.usage.completion_tokens > 0);
+});
+
+test("chatCore buffers expected Codex upstream SSE without warning for stream=false clients", async () => {
+  const log = createCaptureLog();
+  const { result, call } = await invokeChatCore({
+    body: {
+      model: "gpt-5.3-codex",
+      stream: false,
+      messages: [{ role: "user", content: "Qual a capital do Brasil?" }],
+    },
+    provider: "codex",
+    model: "gpt-5.3-codex",
+    responseFactory: () => buildResponsesSse("Brasilia"),
+    log,
+  });
+
+  const payload = (await result.response.json()) as any;
+
+  assert.equal(result.success, true);
+  assert.equal(call.headers.Accept || call.headers.accept, "text/event-stream");
+  assert.equal(call.body.stream, true);
+  assert.equal(payload.choices[0].message.content, "Brasilia");
+  assert.equal(
+    log.entries.some(
+      (entry) =>
+        entry.level === "warn" &&
+        String(entry.msg).includes("Unexpected SSE response for non-streaming request")
+    ),
+    false
+  );
+  assert.equal(
+    log.entries.some(
+      (entry) =>
+        entry.level === "debug" &&
+        String(entry.msg).includes("Buffering upstream SSE response for non-streaming client")
+    ),
+    true
+  );
 });
 
 test("chatCore converts Responses-style NDJSON fallback into JSON when stream=false", async () => {

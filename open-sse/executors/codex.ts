@@ -1,9 +1,12 @@
 import { getCodexRequestDefaults } from "@/lib/providers/requestDefaults";
+import { isFeatureFlagEnabled } from "@/shared/utils/featureFlags";
 import {
   BaseExecutor,
   mergeUpstreamExtraHeaders,
   setUserAgentHeader,
+  type ExecutorLog,
   type ExecuteInput,
+  type ProviderCredentials,
 } from "./base.ts";
 import {
   CODEX_CHAT_DEFAULT_INSTRUCTIONS,
@@ -19,13 +22,10 @@ import {
   applyCodexClientIdentityHeaders,
   applyCodexClientMetadata,
   createCodexClientIdentity,
+  type CodexClientIdentity,
 } from "../config/codexIdentity.ts";
 import { getAccessToken } from "../services/tokenRefresh.ts";
-import {
-  getRememberedFunctionCallsByIds,
-  getRememberedResponseConversationItems,
-  getRememberedResponseFunctionCalls,
-} from "../services/responsesToolCallState.ts";
+import { sanitizeResponsesInputItems } from "../services/responsesInputSanitizer.ts";
 import { getThinkingBudgetConfig, ThinkingMode } from "../services/thinkingBudget.ts";
 import { CORS_HEADERS } from "../utils/cors.ts";
 import { createRequire } from "module";
@@ -45,6 +45,11 @@ type WreqWebSocket = {
   onclose: (() => void) | null;
 };
 type WebsocketFn = (url: string, opts?: Record<string, unknown>) => Promise<WreqWebSocket>;
+type ResponsesMessageInput = {
+  role?: unknown;
+  phase?: unknown;
+  content?: unknown;
+};
 
 let _websocketFn: WebsocketFn | null = null;
 let _wreqChecked = false;
@@ -58,6 +63,7 @@ function getCodexWebSocketTransport(): WebsocketFn | null {
     const mod = _wreqRequire("wreq-js") as { websocket?: WebsocketFn };
     _websocketFn = typeof mod.websocket === "function" ? mod.websocket : null;
   } catch {
+    console.warn("[codex] wreq-js import failed, websocket disabled");
     _websocketFn = null;
   }
   return _websocketFn;
@@ -150,13 +156,15 @@ export interface CodexQuotaSnapshot {
  *   x-codex-5h-usage / x-codex-5h-limit / x-codex-5h-reset-at
  *   x-codex-7d-usage / x-codex-7d-limit / x-codex-7d-reset-at
  */
-export function parseCodexQuotaHeaders(headers: Headers): CodexQuotaSnapshot | null {
-  const usage5h = headers.get("x-codex-5h-usage");
-  const limit5h = headers.get("x-codex-5h-limit");
-  const resetAt5h = headers.get("x-codex-5h-reset-at");
-  const usage7d = headers.get("x-codex-7d-usage");
-  const limit7d = headers.get("x-codex-7d-limit");
-  const resetAt7d = headers.get("x-codex-7d-reset-at");
+export function parseCodexQuotaHeaders(
+  headers: Record<string, string>
+): CodexQuotaSnapshot | null {
+  const usage5h = headers["x-codex-5h-usage"] ?? null;
+  const limit5h = headers["x-codex-5h-limit"] ?? null;
+  const resetAt5h = headers["x-codex-5h-reset-at"] ?? null;
+  const usage7d = headers["x-codex-7d-usage"] ?? null;
+  const limit7d = headers["x-codex-7d-limit"] ?? null;
+  const resetAt7d = headers["x-codex-7d-reset-at"] ?? null;
 
   // Return null if none of the quota headers are present (not a quota-aware response)
   if (!usage5h && !limit5h && !resetAt5h && !usage7d && !limit7d && !resetAt7d) {
@@ -300,23 +308,6 @@ function convertSystemToDeveloperRole(body: Record<string, unknown>): void {
   }
 }
 
-function buildRecoveredToolContextMessage(
-  droppedItems: Array<Record<string, unknown>>
-): Record<string, unknown> {
-  return {
-    type: "message",
-    role: "user",
-    content: [
-      {
-        type: "input_text",
-        text:
-          "Recovered tool context from the previous turn. Continue using this context instead of calling the same tools again unless you must.\n" +
-          JSON.stringify(droppedItems),
-      },
-    ],
-  };
-}
-
 /**
  * Strip server-generated item IDs from the input array.
  *
@@ -333,153 +324,8 @@ function buildRecoveredToolContextMessage(
  *   3. Strips the "id" field from any object in input whose id matches a
  *      server-generated prefix (rs_, fc_, resp_, msg_) — so the content is
  *      preserved but the backend won't try to look it up
- *   4. Expands locally remembered conversation snapshots for stateful follow-ups
- *      when the upstream backend rejects previous_response_id
- *   5. Falls back to rehydrating missing function_call items if only the older
- *      tool-call state is available
- *   6. Filters orphaned function_call/function_call_output items when one side
- *      of the tool exchange is still missing after local replay/fallback repair
  */
 function stripStoredItemReferences(body: Record<string, unknown>): void {
-  const hasInput = Array.isArray(body.input) && body.input.length > 0;
-  const inputItems = Array.isArray(body.input) ? body.input : [];
-  const previousResponseId =
-    typeof body.previous_response_id === "string" ? body.previous_response_id : "";
-  const rememberedConversationItems =
-    hasInput && previousResponseId
-      ? getRememberedResponseConversationItems(previousResponseId)
-      : [];
-
-  if (rememberedConversationItems.length > 0) {
-    body.input = [...rememberedConversationItems, ...inputItems];
-  }
-  const inputFunctionCallIds = new Set<string>();
-  const inputFunctionCallOutputIds = new Set<string>();
-
-  for (const item of Array.isArray(body.input) ? body.input : []) {
-    if (!item || typeof item !== "object" || Array.isArray(item)) continue;
-    const record = item as Record<string, unknown>;
-    const type = typeof record.type === "string" ? record.type : "";
-    const callId = typeof record.call_id === "string" ? record.call_id : "";
-    if (!callId) continue;
-    if (type === "function_call") {
-      inputFunctionCallIds.add(callId);
-      continue;
-    }
-    if (type === "function_call_output") {
-      inputFunctionCallOutputIds.add(callId);
-    }
-  }
-
-  const missingFunctionCallIds = [...inputFunctionCallOutputIds].filter(
-    (callId) => !inputFunctionCallIds.has(callId)
-  );
-
-  if (hasInput && previousResponseId && missingFunctionCallIds.length > 0) {
-    const rememberedFunctionCalls = getRememberedResponseFunctionCalls(previousResponseId);
-    const globallyRememberedFunctionCalls = getRememberedFunctionCallsByIds(missingFunctionCallIds);
-    const injectedFunctionCalls = [...rememberedFunctionCalls, ...globallyRememberedFunctionCalls]
-      .filter((functionCall) => missingFunctionCallIds.includes(functionCall.call_id))
-      .filter((functionCall) => !inputFunctionCallIds.has(functionCall.call_id))
-      .filter(
-        (functionCall, index, allFunctionCalls) =>
-          allFunctionCalls.findIndex((candidate) => candidate.call_id === functionCall.call_id) ===
-          index
-      )
-      .map((functionCall) => ({
-        type: "function_call",
-        call_id: functionCall.call_id,
-        name: functionCall.name,
-        arguments: functionCall.arguments,
-      }));
-
-    if (injectedFunctionCalls.length > 0) {
-      body.input = [...injectedFunctionCalls, ...inputItems];
-      for (const functionCall of injectedFunctionCalls) {
-        inputFunctionCallIds.add(functionCall.call_id);
-      }
-    }
-  }
-
-  const finalFunctionCallIds = new Set<string>();
-  const finalFunctionCallOutputIds = new Set<string>();
-  if (Array.isArray(body.input)) {
-    for (const item of body.input) {
-      if (!item || typeof item !== "object" || Array.isArray(item)) continue;
-      const record = item as Record<string, unknown>;
-      const type = typeof record.type === "string" ? record.type : "";
-      const callId = typeof record.call_id === "string" ? record.call_id : "";
-      if (!callId) continue;
-      if (type === "function_call") {
-        finalFunctionCallIds.add(callId);
-        continue;
-      }
-      if (type === "function_call_output") {
-        finalFunctionCallOutputIds.add(callId);
-      }
-    }
-  }
-
-  const droppedOrphanFunctionCallIds: string[] = [];
-  const droppedOrphanFunctionCallOutputIds: string[] = [];
-  const droppedOrphanItems: Array<Record<string, unknown>> = [];
-  if (Array.isArray(body.input)) {
-    body.input = body.input.filter((item) => {
-      if (!item || typeof item !== "object" || Array.isArray(item)) {
-        return true;
-      }
-
-      const record = item as Record<string, unknown>;
-      const callId = typeof record.call_id === "string" ? record.call_id : "";
-      if (!callId) {
-        return true;
-      }
-
-      if (record.type === "function_call") {
-        if (finalFunctionCallOutputIds.has(callId)) {
-          return true;
-        }
-
-        droppedOrphanFunctionCallIds.push(callId);
-        droppedOrphanItems.push({ ...record });
-        return false;
-      }
-
-      if (record.type === "function_call_output") {
-        if (finalFunctionCallIds.has(callId)) {
-          return true;
-        }
-
-        droppedOrphanFunctionCallOutputIds.push(callId);
-        droppedOrphanItems.push({ ...record });
-        return false;
-      }
-
-      return true;
-    });
-  }
-
-  if (droppedOrphanFunctionCallIds.length > 0) {
-    console.warn(
-      `[Codex] stripStoredItemReferences: dropped ${droppedOrphanFunctionCallIds.length} orphan function_call item(s): ${droppedOrphanFunctionCallIds.join(", ")}`
-    );
-  }
-
-  if (droppedOrphanFunctionCallOutputIds.length > 0) {
-    console.warn(
-      `[Codex] stripStoredItemReferences: dropped ${droppedOrphanFunctionCallOutputIds.length} orphan function_call_output item(s): ${droppedOrphanFunctionCallOutputIds.join(", ")}`
-    );
-  }
-
-  if (Array.isArray(body.input) && body.input.length === 0 && droppedOrphanItems.length > 0) {
-    body.input = [buildRecoveredToolContextMessage(droppedOrphanItems)];
-    console.warn(
-      `[Codex] stripStoredItemReferences: synthesized recovery message from ${droppedOrphanItems.length} dropped orphan tool item(s)`
-    );
-  }
-
-  // Codex rejects previous_response_id for passthrough requests.
-  delete body.previous_response_id;
   if (Array.isArray(body.input) && body.input.length === 0) {
     body.input = [
       {
@@ -534,6 +380,46 @@ function stripStoredItemReferences(body: Record<string, unknown>): void {
   }
 }
 
+function repairMissingCodexFunctionCallOutputs(body: Record<string, unknown>): void {
+  if (!Array.isArray(body.input)) return;
+
+  const existingOutputIds = new Set<string>();
+  for (const item of body.input) {
+    if (!item || typeof item !== "object" || Array.isArray(item)) continue;
+    const record = item as Record<string, unknown>;
+    if (record.type !== "function_call_output") continue;
+    if (typeof record.call_id === "string" && record.call_id.trim()) {
+      existingOutputIds.add(record.call_id.trim());
+    }
+  }
+
+  const repaired: unknown[] = [];
+  let insertedCount = 0;
+  for (const item of body.input) {
+    repaired.push(item);
+    if (!item || typeof item !== "object" || Array.isArray(item)) continue;
+    const record = item as Record<string, unknown>;
+    if (record.type !== "function_call") continue;
+    const callId = typeof record.call_id === "string" ? record.call_id.trim() : "";
+    if (!callId || existingOutputIds.has(callId)) continue;
+
+    repaired.push({
+      type: "function_call_output",
+      call_id: callId,
+      output: "",
+    });
+    existingOutputIds.add(callId);
+    insertedCount++;
+  }
+
+  if (insertedCount > 0) {
+    body.input = repaired;
+    console.debug(
+      `[Codex] repairMissingCodexFunctionCallOutputs: inserted ${insertedCount} empty function_call_output item(s)`
+    );
+  }
+}
+
 // Responses-API hosted tool types that OpenAI/Codex executes server-side.
 // These arrive shaped as `{ type, ...params }` with no `function` object and no `name` —
 // e.g. Codex CLI injects `{ type: "image_generation", output_format: "png" }` or
@@ -551,7 +437,20 @@ const CODEX_HOSTED_TOOL_TYPES: ReadonlySet<string> = new Set([
   "local_shell",
 ]);
 
-function normalizeCodexTools(body: Record<string, unknown>): void {
+// #2980: a free-plan Codex account (workspacePlanType === "free", from the OAuth
+// id_token) cannot run the server-side `image_generation` hosted tool. The Codex
+// CLI injects it into every Responses request regardless of plan, so it must be
+// dropped for free-plan accounts (mirrors CLIProxyAPI's isCodexFreePlanAuth).
+export function isCodexFreePlan(providerSpecificData: unknown): boolean {
+  if (!providerSpecificData || typeof providerSpecificData !== "object") return false;
+  const plan = (providerSpecificData as { workspacePlanType?: unknown }).workspacePlanType;
+  return typeof plan === "string" && plan.trim().toLowerCase() === "free";
+}
+
+export function normalizeCodexTools(
+  body: Record<string, unknown>,
+  options?: { dropImageGeneration?: boolean }
+): void {
   if (!Array.isArray(body.tools)) return;
 
   const validToolNames = new Set<string>();
@@ -570,7 +469,7 @@ function normalizeCodexTools(body: Record<string, unknown>): void {
         for (const st of tool.tools as unknown[]) {
           if (st && typeof st === "object" && !Array.isArray(st)) {
             const subTool = st as Record<string, unknown>;
-            const name = typeof subTool.name === "string" ? subTool.name.trim() : "";
+            const name = typeof subTool.name === "string" ? subTool.name.trim().slice(0, 128) : "";
             if (name) validToolNames.add(name);
           }
         }
@@ -585,6 +484,11 @@ function normalizeCodexTools(body: Record<string, unknown>): void {
         return false;
       }
       if (CODEX_HOSTED_TOOL_TYPES.has(toolType)) {
+        // #2980: drop the CLI-injected image_generation tool for free-plan
+        // accounts, which can't run it server-side (upstream 400 otherwise).
+        if (toolType === "image_generation" && options?.dropImageGeneration === true) {
+          return false;
+        }
         return true;
       }
       console.debug(`[Codex] dropping unknown hosted tool type: ${toolType}`);
@@ -604,6 +508,40 @@ function normalizeCodexTools(body: Record<string, unknown>): void {
     if (!name) {
       return false;
     }
+
+    // Codex Responses API requires function tools in flat Responses format:
+    // { type: "function", name, description, parameters }
+    // Some clients/translators send Chat Completions shape:
+    // { type: "function", function: { name, description, parameters } }
+    // which upstream rejects with "Missing required parameter: tools[0].name".
+    // Flatten the nested `function` wrapper into top-level fields (#1914).
+    const functionObject =
+      tool.function && typeof tool.function === "object" && !Array.isArray(tool.function)
+        ? (tool.function as Record<string, unknown>)
+        : null;
+    const description =
+      typeof tool.description === "string"
+        ? tool.description
+        : typeof functionObject?.description === "string"
+          ? functionObject.description
+          : "";
+    const parameters =
+      tool.parameters && typeof tool.parameters === "object" && !Array.isArray(tool.parameters)
+        ? tool.parameters
+        : functionObject?.parameters &&
+            typeof functionObject.parameters === "object" &&
+            !Array.isArray(functionObject.parameters)
+          ? functionObject.parameters
+          : { type: "object", properties: {} };
+
+    // Rewrite in-place to Responses format
+    for (const key of Object.keys(tool)) {
+      delete tool[key];
+    }
+    tool.type = "function";
+    tool.name = name.slice(0, 128);
+    if (description) tool.description = description;
+    tool.parameters = parameters;
 
     validToolNames.add(name);
     return true;
@@ -702,7 +640,24 @@ function consumeResponsesStoreMarker(body: Record<string, unknown>): unknown {
   return marker;
 }
 
+/**
+ * Global Codex WebSocket kill-switch (feature flag OMNIROUTE_CODEX_WS_ENABLED,
+ * default ON). Fail-open: if the flag store is unreachable (e.g. DB not yet
+ * ready), treat as enabled so codex routing is never broken by the read itself.
+ */
+function isCodexWsGloballyEnabled(): boolean {
+  try {
+    return isFeatureFlagEnabled("OMNIROUTE_CODEX_WS_ENABLED");
+  } catch {
+    return true;
+  }
+}
+
 export function isCodexResponsesWebSocketRequired(_model: string, credentials: unknown): boolean {
+  // Global kill-switch (default ON). When disabled, Codex never uses the WS
+  // transport — even per-connection codexTransport=websocket falls back to the
+  // HTTP Responses SSE endpoint.
+  if (!isCodexWsGloballyEnabled()) return false;
   // OmniRoute is an HTTP→SSE gateway — WebSocket transport is unnecessary and
   // breaks when upstream requests go through an HTTP proxy (403 on WS upgrade).
   // Default to the standard HTTP Responses SSE endpoint for all Codex models.
@@ -801,6 +756,7 @@ export function encodeResponseSseEvent(raw: string): { sse: string; terminal: bo
       terminal = eventType === "response.completed" || eventType === "response.failed";
     }
   } catch {
+    console.warn("[codex] SSE payload parse failed, using raw payload");
     // Keep message as the generic SSE event for non-JSON upstream payloads.
   }
 
@@ -808,9 +764,13 @@ export function encodeResponseSseEvent(raw: string): { sse: string; terminal: bo
 }
 
 function toWebSocketUrl(url: string): string {
-  if (url.startsWith("wss://") || url.startsWith("ws://")) return url;
-  if (url.startsWith("https://")) return `wss://${url.slice("https://".length)}`;
-  if (url.startsWith("http://")) return `ws://${url.slice("http://".length)}`;
+  // Symmetric scheme map that PRESERVES the caller's transport choice by
+  // rewriting only the leading scheme: https→secure WS (production, e.g.
+  // chatgpt.com), http→plain WS (local/dev only). Not a hardcoded cleartext
+  // endpoint — the production codex upstream is the secure CODEX_RESPONSES_WS_URL.
+  if (/^wss?:\/\//.test(url)) return url;
+  if (url.startsWith("https:")) return url.replace(/^https:/, "wss:");
+  if (url.startsWith("http:")) return url.replace(/^http:/, "ws:");
   return CODEX_RESPONSES_WS_URL;
 }
 
@@ -906,6 +866,7 @@ export class CodexExecutor extends BaseExecutor {
       try {
         ws?.close(1000, reason);
       } catch {
+        console.warn("[codex] closeUpstream: socket close race ignored");
         // ignore close races
       }
     };
@@ -939,12 +900,14 @@ export class CodexExecutor extends BaseExecutor {
         try {
           controller.enqueue(encoder.encode("data: [DONE]\n\n"));
         } catch {
+          console.warn("[codex] finishStream: failed to enqueue [DONE]");
           // The downstream may already have gone away.
         }
       }
       try {
         controller.close();
       } catch {
+        console.warn("[codex] finishStream: failed to close controller");
         // The controller may already be closed.
       }
     };
@@ -1048,7 +1011,12 @@ export class CodexExecutor extends BaseExecutor {
     };
   }
 
-  buildUrl(model, stream, urlIndex = 0, credentials = null) {
+  buildUrl(
+    model: string,
+    stream: boolean,
+    urlIndex = 0,
+    credentials: ProviderCredentials | null = null
+  ) {
     void model;
     void stream;
     void urlIndex;
@@ -1070,7 +1038,7 @@ export class CodexExecutor extends BaseExecutor {
    * Always request event-stream from upstream, even when client requested stream=false.
    * Includes chatgpt-account-id header for strict workspace binding.
    */
-  buildHeaders(credentials, stream = true) {
+  buildHeaders(credentials: ProviderCredentials, stream = true) {
     const isCompactRequest = isCompactResponsesEndpoint(credentials?.requestEndpointPath);
     const headers = super.buildHeaders(credentials, isCompactRequest ? false : true);
     headers.Version = getCodexClientVersion();
@@ -1078,10 +1046,13 @@ export class CodexExecutor extends BaseExecutor {
 
     // Add workspace binding header if workspaceId is persisted
     const workspaceId = credentials?.providerSpecificData?.workspaceId;
-    if (workspaceId) {
+    if (typeof workspaceId === "string" && workspaceId) {
       headers["chatgpt-account-id"] = workspaceId;
     }
-    const clientIdentity = credentials?.providerSpecificData?.codexClientIdentity;
+    const clientIdentity = credentials?.providerSpecificData?.codexClientIdentity as
+      | CodexClientIdentity
+      | null
+      | undefined;
 
     // Originator header — identifies the client type to the Codex backend.
     // Ref: openai/codex login/src/auth/default_client.rs DEFAULT_ORIGINATOR = "codex_cli_rs"
@@ -1108,7 +1079,7 @@ export class CodexExecutor extends BaseExecutor {
    * Ref: openai/codex core/src/client.rs line 853
    */
   private getPromptCacheSessionId(
-    credentials,
+    credentials: ProviderCredentials | null | undefined,
     body: Record<string, unknown> | null
   ): string | null {
     const promptCacheKey = normalizeCodexSessionId(body?.prompt_cache_key);
@@ -1133,17 +1104,27 @@ export class CodexExecutor extends BaseExecutor {
    * have expired or become invalid. chatCore.ts calls this on 401; previously the
    * base class returned null causing the request to fail instead of refreshing.
    */
-  async refreshCredentials(credentials, log) {
+  async refreshCredentials(credentials: ProviderCredentials, log?: ExecutorLog | null) {
     if (!credentials?.refreshToken) {
       log?.warn?.("TOKEN_REFRESH", "Codex: no refresh token available, re-authentication required");
       return null;
     }
     const result = await getAccessToken("codex", credentials, log);
-    if (!result || result.error) {
+    if (!result) {
+      log?.warn?.("TOKEN_REFRESH", "Codex: token refresh failed — re-authentication required");
+      return null;
+    }
+    if (result.error) {
       log?.warn?.(
         "TOKEN_REFRESH",
-        `Codex: token refresh failed${result?.error ? ` (${result.error})` : ""} — re-authentication required`
+        `Codex: token refresh failed (${result.error}) — re-authentication required`
       );
+      // Return null (not the error-only object): base.ts spreads any truthy
+      // result onto activeCredentials and persists it via onCredentialsRefreshed.
+      // Spreading `{ error }` would keep the stale/expired accessToken in place
+      // and write garbage to the connection. Returning null leaves the original
+      // credentials untouched so the upstream 401/403 drives the proper
+      // re-auth / mark-expired path instead.
       return null;
     }
     return result;
@@ -1152,11 +1133,19 @@ export class CodexExecutor extends BaseExecutor {
   /**
    * Transform request before sending - inject default instructions if missing
    */
-  transformRequest(model, body, stream, credentials) {
+  transformRequest(
+    model: string,
+    bodyInput: unknown,
+    stream: boolean,
+    credentials: ProviderCredentials
+  ) {
+    void stream;
     // Do not mutate the caller's payload in place. Combo quality checks and
     // other post-execute paths still inspect the original request body.
-    body =
-      body && typeof body === "object" ? structuredClone(body) : ({} as Record<string, unknown>);
+    const body: Record<string, unknown> =
+      bodyInput && typeof bodyInput === "object"
+        ? structuredClone(bodyInput as Record<string, unknown>)
+        : {};
 
     const nativeCodexPassthrough = body?._nativeCodexPassthrough === true;
     const isCompactRequest = isCompactResponsesEndpoint(credentials?.requestEndpointPath);
@@ -1185,20 +1174,51 @@ export class CodexExecutor extends BaseExecutor {
     // Issue #1832 & #1853: Map messages to input for clients like Cursor 5.5 that use responses/compact but send messages instead of input.
     // This MUST run before convertSystemToDeveloperRole and stripStoredItemReferences.
     if (!body.input && Array.isArray(body.messages)) {
-      body.input = body.messages.map((msg: any) => ({
+      body.input = body.messages.map((msg: ResponsesMessageInput) => ({
         type: "message",
         role: typeof msg.role === "string" ? msg.role : "user",
+        ...(typeof msg.phase === "string" ? { phase: msg.phase } : {}),
         content:
           typeof msg.content === "string"
             ? [{ type: "input_text", text: msg.content }]
             : Array.isArray(msg.content)
-              ? msg.content.map((c: any) => {
-                  if (c && c.type === "text") return { type: "input_text", text: c.text };
-                  return c;
+              ? msg.content.map((contentPart: unknown) => {
+                  if (
+                    contentPart &&
+                    typeof contentPart === "object" &&
+                    !Array.isArray(contentPart) &&
+                    (contentPart as Record<string, unknown>).type === "text"
+                  ) {
+                    return {
+                      type: "input_text",
+                      text: (contentPart as Record<string, unknown>).text,
+                    };
+                  }
+                  return contentPart;
                 })
               : [],
       }));
+    } else if (!body.input && typeof body.prompt === "string" && body.prompt.trim()) {
+      // Issue #1872: Cursor occasionally passes the request as `prompt` instead of `messages`.
+      body.input = [
+        {
+          type: "message",
+          role: "user",
+          content: [{ type: "input_text", text: body.prompt }],
+        },
+      ];
+    } else if (!body.input && Array.isArray(body.prompt)) {
+      body.input = body.prompt.map((p: unknown) => ({
+        type: "message",
+        role: "user",
+        content: [{ type: "input_text", text: typeof p === "string" ? p : JSON.stringify(p) }],
+      }));
     }
+
+    if (Array.isArray(body.input)) {
+      body.input = sanitizeResponsesInputItems(body.input, false);
+    }
+    repairMissingCodexFunctionCallOutputs(body);
 
     // ── Cache-aware system prompt handling (both paths) ──
     //
@@ -1262,7 +1282,9 @@ export class CodexExecutor extends BaseExecutor {
     // Codex Responses only supports function tools with non-empty names.
     // Cursor may include custom tools (e.g. ApplyPatch) that work locally but are
     // invalid upstream, and translation bugs can leave orphaned/empty tool_choice names.
-    normalizeCodexTools(body);
+    normalizeCodexTools(body, {
+      dropImageGeneration: isCodexFreePlan(credentials?.providerSpecificData),
+    });
 
     // Strip stored response item references (rs_, resp_, msg_ IDs) from input.
     // The /codex/responses endpoint does not persist responses even with store=true,
@@ -1280,32 +1302,31 @@ export class CodexExecutor extends BaseExecutor {
     if (splitModel.effort) {
       modelEffort = splitModel.effort;
       body.model = splitModel.baseModel;
-      cleanModel = body.model;
+      cleanModel = splitModel.baseModel;
     }
 
-    const explicitReasoning = normalizeEffortValue(body?.reasoning?.effort);
+    const reasoningRecord =
+      body.reasoning && typeof body.reasoning === "object" && !Array.isArray(body.reasoning)
+        ? (body.reasoning as Record<string, unknown>)
+        : null;
+    const explicitReasoning = normalizeEffortValue(reasoningRecord?.effort);
     const requestReasoningEffort = normalizeEffortValue(body.reasoning_effort);
     const fallbackReasoningEffort = allowConnectionReasoningDefaults
       ? requestDefaults.reasoningEffort || "medium"
       : undefined;
+    // Issue #2331: model suffix aliases (for example gpt-5.5-xhigh) represent an
+    // explicit model selection, so they must override client-injected defaults such
+    // as OpenCode's automatic reasoning.effort=medium for GPT-5-family requests.
     const rawEffort =
-      explicitReasoning || requestReasoningEffort || modelEffort || fallbackReasoningEffort;
+      modelEffort || explicitReasoning || requestReasoningEffort || fallbackReasoningEffort;
 
-    if (explicitReasoning) {
+    if (rawEffort) {
       body.reasoning = {
-        ...(body.reasoning && typeof body.reasoning === "object" ? body.reasoning : {}),
-        effort: clampEffort(cleanModel, explicitReasoning),
-      };
-    } else if (rawEffort) {
-      body.reasoning = {
-        ...(body.reasoning && typeof body.reasoning === "object" ? body.reasoning : {}),
+        ...(reasoningRecord || {}),
         effort: clampEffort(cleanModel, rawEffort),
       };
     }
     delete body.reasoning_effort;
-
-    // previous_response_id is expanded into a self-contained local replay when
-    // input is present because Codex rejects that parameter upstream.
 
     // Remove unsupported token limit parameters BEFORE the passthrough return.
     // Codex API rejects both max_tokens and max_output_tokens regardless of
@@ -1331,7 +1352,13 @@ export class CodexExecutor extends BaseExecutor {
       }
     }
     if (!isCompactRequest) {
-      applyCodexClientMetadata(body, credentials?.providerSpecificData?.codexClientIdentity);
+      applyCodexClientMetadata(
+        body,
+        credentials?.providerSpecificData?.codexClientIdentity as
+          | CodexClientIdentity
+          | null
+          | undefined
+      );
     }
 
     // Delete session_id and conversation_id from the body.
@@ -1344,21 +1371,35 @@ export class CodexExecutor extends BaseExecutor {
       return body;
     }
 
-    // Remove unsupported parameters for Codex API
-    delete body.temperature;
-    delete body.top_p;
-    delete body.frequency_penalty;
-    delete body.presence_penalty;
-    delete body.logprobs;
-    delete body.top_logprobs;
-    delete body.n;
-    delete body.seed;
-    // max_tokens and max_output_tokens already deleted above (before passthrough return)
-    delete body.user; // Cursor sends this but Codex doesn't support it
-    delete body.prompt_cache_retention; // Cursor sends this but Codex doesn't support it
-    delete body.metadata; // Cursor sends this but Codex doesn't support it
-    delete body.stream_options; // Cursor sends this but Codex doesn't support it
-    delete body.safety_identifier; // Droid CLI sends this but Codex doesn't support it
+    // Issue #2608: Use an allowlist of known Responses API fields instead of a
+    // denylist of Chat Completions fields. The denylist approach missed fields
+    // like `stop`, `response_format`, `logit_bias`, `function_call`, `functions`,
+    // `max_completion_tokens`, and `parallel_tool_calls` — causing gpt-5.5 to
+    // reject with "routing_unsupported" (400). An allowlist is future-proof:
+    // any unknown field from Chat Completions (or other formats) is stripped.
+    const RESPONSES_API_ALLOWLIST = new Set([
+      "model",
+      "input",
+      "instructions",
+      "tools",
+      "tool_choice",
+      "stream",
+      "store",
+      "reasoning",
+      "service_tier",
+      "include",
+      "previous_response_id",
+      "prompt_cache_key",
+      "client_metadata",
+      // Internal markers used by OmniRoute pipeline
+      "_omnirouteResponsesStore",
+    ]);
+
+    for (const key of Object.keys(body)) {
+      if (!RESPONSES_API_ALLOWLIST.has(key)) {
+        delete body[key];
+      }
+    }
 
     return body;
   }

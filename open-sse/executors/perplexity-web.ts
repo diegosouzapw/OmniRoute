@@ -7,11 +7,19 @@
  */
 
 import { BaseExecutor, type ExecuteInput } from "./base.ts";
+import {
+  tlsFetchPerplexity,
+  isCloudflareChallenge,
+  TlsClientUnavailableError,
+  type TlsFetchResult,
+} from "../services/perplexityTlsClient.ts";
 
 const PPLX_SSE_ENDPOINT = "https://www.perplexity.ai/rest/sse/perplexity_ask";
 const PPLX_API_VERSION = "client-1.11.0";
+// Firefox 148 — must match the `firefox_148` TLS profile used by perplexityTlsClient.
+// A mismatched UA vs TLS fingerprint is itself a Cloudflare bot signal (issue #2459).
 const PPLX_USER_AGENT =
-  "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36";
+  "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:148.0) Gecko/20100101 Firefox/148.0";
 
 const MODEL_MAP: Record<string, [string, string]> = {
   "pplx-auto": ["concise", "pplx_pro"],
@@ -431,86 +439,33 @@ function buildStreamingResponse(
 ): ReadableStream<Uint8Array> {
   const encoder = new TextEncoder();
 
-  return new ReadableStream({
-    async start(controller) {
-      try {
-        // Initial role chunk
-        controller.enqueue(
-          encoder.encode(
-            sseChunk({
-              id: cid,
-              object: "chat.completion.chunk",
-              created,
-              model,
-              system_fingerprint: null,
-              choices: [
-                { index: 0, delta: { role: "assistant" }, finish_reason: null, logprobs: null },
-              ],
-            })
-          )
-        );
+  return new ReadableStream(
+    {
+      async start(controller) {
+        try {
+          // Initial role chunk
+          controller.enqueue(
+            encoder.encode(
+              sseChunk({
+                id: cid,
+                object: "chat.completion.chunk",
+                created,
+                model,
+                system_fingerprint: null,
+                choices: [
+                  { index: 0, delta: { role: "assistant" }, finish_reason: null, logprobs: null },
+                ],
+              })
+            )
+          );
 
-        let fullAnswer = "";
-        let respBackendUuid: string | null = null;
+          let fullAnswer = "";
+          let respBackendUuid: string | null = null;
 
-        for await (const chunk of extractContent(eventStream, signal)) {
-          if (chunk.backendUuid) respBackendUuid = chunk.backendUuid;
+          for await (const chunk of extractContent(eventStream, signal)) {
+            if (chunk.backendUuid) respBackendUuid = chunk.backendUuid;
 
-          if (chunk.error) {
-            controller.enqueue(
-              encoder.encode(
-                sseChunk({
-                  id: cid,
-                  object: "chat.completion.chunk",
-                  created,
-                  model,
-                  system_fingerprint: null,
-                  choices: [
-                    {
-                      index: 0,
-                      delta: { content: `[Error: ${chunk.error}]` },
-                      finish_reason: null,
-                      logprobs: null,
-                    },
-                  ],
-                })
-              )
-            );
-            break;
-          }
-
-          if (chunk.thinking) {
-            controller.enqueue(
-              encoder.encode(
-                sseChunk({
-                  id: cid,
-                  object: "chat.completion.chunk",
-                  created,
-                  model,
-                  system_fingerprint: null,
-                  choices: [
-                    {
-                      index: 0,
-                      delta: { reasoning_content: chunk.thinking + "\n" },
-                      finish_reason: null,
-                      logprobs: null,
-                    },
-                  ],
-                })
-              )
-            );
-            continue;
-          }
-
-          if (chunk.done) {
-            fullAnswer = chunk.answer || fullAnswer;
-            break;
-          }
-
-          let dt = chunk.delta || "";
-          if (dt) {
-            dt = cleanResponse(dt, false);
-            if (dt) {
+            if (chunk.error) {
               controller.enqueue(
                 encoder.encode(
                   sseChunk({
@@ -520,60 +475,116 @@ function buildStreamingResponse(
                     model,
                     system_fingerprint: null,
                     choices: [
-                      { index: 0, delta: { content: dt }, finish_reason: null, logprobs: null },
+                      {
+                        index: 0,
+                        delta: { content: `[Error: ${chunk.error}]` },
+                        finish_reason: null,
+                        logprobs: null,
+                      },
                     ],
                   })
                 )
               );
+              break;
             }
+
+            if (chunk.thinking) {
+              controller.enqueue(
+                encoder.encode(
+                  sseChunk({
+                    id: cid,
+                    object: "chat.completion.chunk",
+                    created,
+                    model,
+                    system_fingerprint: null,
+                    choices: [
+                      {
+                        index: 0,
+                        delta: { reasoning_content: chunk.thinking + "\n" },
+                        finish_reason: null,
+                        logprobs: null,
+                      },
+                    ],
+                  })
+                )
+              );
+              continue;
+            }
+
+            if (chunk.done) {
+              fullAnswer = chunk.answer || fullAnswer;
+              break;
+            }
+
+            let dt = chunk.delta || "";
+            if (dt) {
+              dt = cleanResponse(dt, false);
+              if (dt) {
+                controller.enqueue(
+                  encoder.encode(
+                    sseChunk({
+                      id: cid,
+                      object: "chat.completion.chunk",
+                      created,
+                      model,
+                      system_fingerprint: null,
+                      choices: [
+                        { index: 0, delta: { content: dt }, finish_reason: null, logprobs: null },
+                      ],
+                    })
+                  )
+                );
+              }
+            }
+            if (chunk.answer) fullAnswer = chunk.answer;
           }
-          if (chunk.answer) fullAnswer = chunk.answer;
-        }
 
-        // Stop chunk
-        controller.enqueue(
-          encoder.encode(
-            sseChunk({
-              id: cid,
-              object: "chat.completion.chunk",
-              created,
-              model,
-              system_fingerprint: null,
-              choices: [{ index: 0, delta: {}, finish_reason: "stop", logprobs: null }],
-            })
-          )
-        );
-        controller.enqueue(encoder.encode("data: [DONE]\n\n"));
+          // Stop chunk
+          controller.enqueue(
+            encoder.encode(
+              sseChunk({
+                id: cid,
+                object: "chat.completion.chunk",
+                created,
+                model,
+                system_fingerprint: null,
+                choices: [{ index: 0, delta: {}, finish_reason: "stop", logprobs: null }],
+              })
+            )
+          );
+          controller.enqueue(encoder.encode("data: [DONE]\n\n"));
 
-        sessionStore(history, currentMsg, cleanResponse(fullAnswer), respBackendUuid);
-      } catch (err) {
-        controller.enqueue(
-          encoder.encode(
-            sseChunk({
-              id: cid,
-              object: "chat.completion.chunk",
-              created,
-              model,
-              system_fingerprint: null,
-              choices: [
-                {
-                  index: 0,
-                  delta: {
-                    content: `[Stream error: ${err instanceof Error ? err.message : String(err)}]`,
+          sessionStore(history, currentMsg, cleanResponse(fullAnswer), respBackendUuid);
+        } catch (err) {
+          controller.enqueue(
+            encoder.encode(
+              sseChunk({
+                id: cid,
+                object: "chat.completion.chunk",
+                created,
+                model,
+                system_fingerprint: null,
+                choices: [
+                  {
+                    index: 0,
+                    delta: {
+                      content: `[Stream error: ${err instanceof Error ? err.message : String(err)}]`,
+                    },
+                    finish_reason: "stop",
+                    logprobs: null,
                   },
-                  finish_reason: "stop",
-                  logprobs: null,
-                },
-              ],
-            })
-          )
-        );
-        controller.enqueue(encoder.encode("data: [DONE]\n\n"));
-      } finally {
-        controller.close();
-      }
+                ],
+              })
+            )
+          );
+          controller.enqueue(encoder.encode("data: [DONE]\n\n"));
+        } finally {
+          try { controller.close(); } catch {}
+        }
+      },
     },
-  });
+    { highWaterMark: 16384 }
+  );
 }
 
 async function buildNonStreamingResponse(
@@ -721,23 +732,29 @@ export class PerplexityWebExecutor extends BaseExecutor {
       `Query to ${model} (pref=${modelPref}, mode=${pplxMode}), len=${query.length}`
     );
 
-    // Fetch from Perplexity
-    const fetchOptions: RequestInit = {
-      method: "POST",
-      headers,
-      body: JSON.stringify(pplxBody),
-    };
-    if (signal) fetchOptions.signal = signal;
-
-    let response: Response;
+    // Fetch from Perplexity through the Firefox-fingerprinted TLS client.
+    // Perplexity sits behind Cloudflare Enterprise which pins JA3/JA4 to a real
+    // browser handshake; Node's fetch() is challenged with a 403 page from
+    // VPS/datacenter IPs even with a valid cookie (issue #2459).
+    let response: TlsFetchResult;
     try {
-      response = await fetch(PPLX_SSE_ENDPOINT, fetchOptions);
+      response = await tlsFetchPerplexity(PPLX_SSE_ENDPOINT, {
+        method: "POST",
+        headers,
+        body: JSON.stringify(pplxBody),
+        signal: signal ?? null,
+        stream: true,
+        streamEofSymbol: "[DONE]",
+      });
     } catch (err) {
+      const isTlsUnavail = err instanceof TlsClientUnavailableError;
       log?.error?.("PPLX-WEB", `Fetch failed: ${err instanceof Error ? err.message : String(err)}`);
       const errResp = new Response(
         JSON.stringify({
           error: {
-            message: `Perplexity connection failed: ${err instanceof Error ? err.message : String(err)}`,
+            message: isTlsUnavail
+              ? `Perplexity TLS client unavailable: ${(err as Error).message}`
+              : `Perplexity connection failed: ${err instanceof Error ? err.message : String(err)}`,
             type: "upstream_error",
           },
         }),
@@ -746,12 +763,20 @@ export class PerplexityWebExecutor extends BaseExecutor {
       return { response: errResp, url: PPLX_SSE_ENDPOINT, headers, transformedBody: pplxBody };
     }
 
-    if (!response.ok) {
+    if (response.status !== 200 || (!response.body && !response.text)) {
       const status = response.status;
       let errMsg = `Perplexity returned HTTP ${status}`;
       if (status === 401 || status === 403) {
-        errMsg =
-          "Perplexity auth failed — session cookie may be expired. Re-paste your __Secure-next-auth.session-token.";
+        if (isCloudflareChallenge(response.text)) {
+          errMsg =
+            "Cloudflare blocked the request — Perplexity's edge rejected this server's TLS fingerprint " +
+            "(common on VPS/datacenter IPs). Ensure tls-client-node is installed with its native binary, " +
+            "or route perplexity-web through a residential proxy.";
+          log?.error?.("PPLX-WEB", "Cloudflare challenge detected — TLS bypass failed");
+        } else {
+          errMsg =
+            "Perplexity auth failed — session cookie may be expired. Re-paste your __Secure-next-auth.session-token.";
+        }
       } else if (status === 429) {
         errMsg = "Perplexity rate limited. Wait a moment and retry.";
       }

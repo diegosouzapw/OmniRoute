@@ -1,6 +1,8 @@
 # OmniRoute MCP Server
 
-> **Model Context Protocol server** that exposes OmniRoute's gateway intelligence as **16 tools** for AI agents.
+> **Model Context Protocol server** that exposes OmniRoute's gateway intelligence as **37 tools** for AI agents.
+>
+> **Source of truth for the full tool catalog and REST surface:** [`docs/frameworks/MCP-SERVER.md`](../../docs/MCP-SERVER.md). This README focuses on architecture, configuration, and integration examples; the catalog below is a summary subset.
 
 The MCP Server allows any AI agent (Claude Desktop, Cursor, VS Code Copilot, custom agents) to **monitor, control, and optimize** the OmniRoute AI gateway programmatically.
 
@@ -18,8 +20,9 @@ The MCP Server allows any AI agent (Claude Desktop, Cursor, VS Code Copilot, cus
 ┌──────────────────────────────────────────────────────────────────┐
 │                      OmniRoute MCP Server                        │
 │  ┌──────────────┐  ┌─────────────────┐  ┌────────────────────┐  │
-│  │ Scope        │  │  16 MCP Tools   │  │   Audit Logger     │  │
-│  │ Enforcement  │──│  (Phase 1 + 2)  │──│   (SHA-256/SQLite) │  │
+│  │ Scope        │  │  37 MCP Tools   │  │   Audit Logger     │  │
+│  │ Enforcement  │──│ (core + memory  │──│   (SHA-256/SQLite) │  │
+│  │              │  │  + skills + …)  │  │                    │  │
 │  └──────────────┘  └────────┬────────┘  └────────────────────┘  │
 └─────────────────────────────┼────────────────────────────────────┘
                               │  HTTP (internal)
@@ -59,7 +62,7 @@ Add to your MCP client configuration:
   "mcpServers": {
     "omniroute": {
       "command": "node",
-      "args": ["path/to/9router/open-sse/mcp-server/server.ts"],
+      "args": ["path/to/omniroute/open-sse/mcp-server/server.ts"],
       "env": {
         "OMNIROUTE_BASE_URL": "http://localhost:20128",
         "OMNIROUTE_API_KEY": "your-key"
@@ -145,12 +148,20 @@ omniroute --mcp
 
 ### Cache and Compression Tools
 
-| #   | Tool                              | Scopes              | Description                                                                  |
-| --- | --------------------------------- | ------------------- | ---------------------------------------------------------------------------- |
-| 21  | `omniroute_cache_stats`           | `read:cache`        | Semantic cache, prompt-cache, and idempotency statistics                     |
-| 22  | `omniroute_cache_flush`           | `write:cache`       | Flush cache entries globally or by signature/model                           |
-| 23  | `omniroute_compression_status`    | `read:compression`  | Compression settings, analytics summary, and provider-aware cache statistics |
-| 24  | `omniroute_compression_configure` | `write:compression` | Configure compression mode and trigger thresholds at runtime                 |
+| #   | Tool                                | Scopes              | Description                                                                  |
+| --- | ----------------------------------- | ------------------- | ---------------------------------------------------------------------------- |
+| 21  | `omniroute_cache_stats`             | `read:cache`        | Semantic cache, prompt-cache, and idempotency statistics                     |
+| 22  | `omniroute_cache_flush`             | `write:cache`       | Flush cache entries globally or by signature/model                           |
+| 23  | `omniroute_compression_status`      | `read:compression`  | Compression settings, analytics summary, and provider-aware cache statistics |
+| 24  | `omniroute_compression_configure`   | `write:compression` | Configure compression mode and trigger thresholds at runtime                 |
+| 25  | `omniroute_set_compression_engine`  | `write:compression` | Set Caveman, RTK, or stacked compression mode and pipeline                   |
+| 26  | `omniroute_list_compression_combos` | `read:compression`  | List named compression combos and routing assignments                        |
+| 27  | `omniroute_compression_combo_stats` | `read:compression`  | Read analytics grouped by compression combo and engine                       |
+
+MCP listable metadata descriptions are compressed at registration/list time when description
+compression is enabled. `omniroute_compression_status` exposes those savings separately as
+`analytics.mcpDescriptionCompression` with `source: "mcp_metadata_estimate"`, so clients do not
+mistake metadata shrink estimates for provider token receipts.
 
 ---
 
@@ -540,12 +551,12 @@ The MCP server supports **fine-grained scope enforcement** for multi-tenant envi
 | `read:usage`          | `cost_report`, `explain_route`, `get_session_snapshot`                                         |
 | `read:models`         | `list_models_catalog`                                                                          |
 | `read:cache`          | `cache_stats`                                                                                  |
-| `read:compression`    | `compression_status`                                                                           |
+| `read:compression`    | `compression_status`, `list_compression_combos`, `compression_combo_stats`                     |
 | `write:combos`        | `switch_combo`                                                                                 |
 | `write:budget`        | `set_budget_guard`                                                                             |
 | `write:resilience`    | `set_resilience_profile`                                                                       |
 | `write:cache`         | `cache_flush`                                                                                  |
-| `write:compression`   | `compression_configure`                                                                        |
+| `write:compression`   | `compression_configure`, `set_compression_engine`                                              |
 | `execute:completions` | `route_request`, `test_combo`                                                                  |
 
 **Wildcard scopes:** Use `read:*` to grant all read scopes, or `*` for full access.
@@ -581,7 +592,7 @@ mcp-server/
 ├── audit.ts               # SQLite audit logger (SHA-256 input hashing)
 ├── scopeEnforcement.ts    # Fine-grained scope enforcement
 ├── schemas/
-│   ├── tools.ts           # Zod schemas for all 16 tools (input/output/scopes)
+│   ├── tools.ts           # Zod schemas for core, cache, compression, and proxy tools
 │   ├── a2a.ts             # A2A protocol types (Agent Card, Task, JSON-RPC)
 │   ├── audit.ts           # Audit & routing decision types + hash helpers
 │   └── index.ts           # Schema barrel export

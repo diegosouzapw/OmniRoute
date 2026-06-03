@@ -1,0 +1,40 @@
+{
+  "id": "git-status",
+  "label": "Git Status",
+  "description": "Keep branch, staged/unstaged headings, and changed file lines.",
+  "category": "git",
+  "priority": 95,
+  "match": {
+    "outputTypes": ["git-status"],
+    "commands": ["^git\\s+status\\b"],
+    "patterns": ["^On branch ", "^Changes (?:not staged|to be committed)", "^Untracked files:"]
+  },
+  "rules": {
+    "includePatterns": [
+      "^On branch ",
+      "^Your branch ",
+      "^Changes ",
+      "^Untracked files:",
+      "^\\s*(modified|new file|deleted|renamed|both modified):",
+      "^\\s*[MADRCU?!]{1,2}\\s+"
+    ],
+    "dropPatterns": ["^\\s*$", "^\\s*\\(use .*\\)$"],
+    "collapsePatterns": [],
+    "deduplicate": false,
+    "maxLines": 80,
+    "headLines": 12,
+    "tailLines": 20
+  },
+  "preserve": {
+    "errorPatterns": ["^Changes ", "^Untracked files:"],
+    "summaryPatterns": []
+  },
+  "tests": [
+    {
+      "name": "inline sample",
+      "command": "git status",
+      "input": "On branch main\nChanges not staged for commit:\n  (use \"git add\" to update)\n\tmodified: src/app.ts\nnothing added to commit\n",
+      "expected": "On branch main\nChanges not staged for commit:\n\tmodified: src/app.ts"
+    }
+  ]
+}

@@ -22,6 +22,12 @@ export function normalizeModelName(model: string): string {
   return parts[parts.length - 1];
 }
 
+export type CostCalculationOptions = {
+  provider?: string | null;
+  model?: string | null;
+  serviceTier?: string | null;
+};
+
 function toNumber(value: unknown, fallback = 0): number {
   if (typeof value === "number" && Number.isFinite(value)) return value;
   if (typeof value === "string" && value.trim().length > 0) {
@@ -29,6 +35,38 @@ function toNumber(value: unknown, fallback = 0): number {
     return Number.isFinite(parsed) ? parsed : fallback;
   }
   return fallback;
+}
+
+function normalizeServiceTier(value: unknown): string {
+  return typeof value === "string" ? value.trim().toLowerCase() : "";
+}
+
+function stripCodexEffortSuffix(model: string): string {
+  return model.replace(/-(?:xhigh|high|medium|low|none)$/i, "");
+}
+
+export function getCodexFastCostMultiplier(
+  provider: string | null | undefined,
+  model: string | null | undefined,
+  serviceTier: string | null | undefined
+): number {
+  const providerKey = normalizeServiceTier(provider);
+  const tier = normalizeServiceTier(serviceTier);
+  if (providerKey !== "codex" && providerKey !== "cx") {
+    return 1;
+  }
+
+  // OpenAI Flex Processing is billed at a 50% token discount, like Batch,
+  // while still using the Responses API with service_tier="flex".
+  if (tier === "flex") return 0.5;
+
+  if (tier !== "priority" && tier !== "fast") return 1;
+
+  const modelKey = stripCodexEffortSuffix(normalizeModelName(String(model || "")).toLowerCase());
+  const compactModelKey = modelKey.replace(/-/g, "");
+  if (modelKey === "gpt-5.5" || compactModelKey === "gpt5.5") return 2.5;
+  if (modelKey === "gpt-5.4" || compactModelKey === "gpt5.4") return 2;
+  return 1;
 }
 
 /**
@@ -45,7 +83,8 @@ function toNumber(value: unknown, fallback = 0): number {
  */
 export function computeCostFromPricing(
   pricing: Record<string, unknown> | null | undefined,
-  tokens: Record<string, number | undefined> | null | undefined
+  tokens: Record<string, number | undefined> | null | undefined,
+  options: CostCalculationOptions = {}
 ): number {
   if (!pricing || !tokens) return 0;
   const inputPrice = toNumber(pricing.input, 0);
@@ -58,7 +97,12 @@ export function computeCostFromPricing(
   const inputTokens = tokens.input ?? tokens.prompt_tokens ?? tokens.input_tokens ?? 0;
   const cachedTokens =
     tokens.cacheRead ?? tokens.cached_tokens ?? tokens.cache_read_input_tokens ?? 0;
-  const nonCachedInput = Math.max(0, inputTokens - cachedTokens);
+  const cacheCreationTokens = tokens.cacheCreation ?? tokens.cache_creation_input_tokens ?? 0;
+
+  // prompt_tokens from extractors already includes cache_read + cache_creation,
+  // so we must subtract BOTH cache types to avoid pricing cache at the full
+  // input rate in addition to their dedicated cache_* rates below.
+  const nonCachedInput = Math.max(0, inputTokens - cachedTokens - cacheCreationTokens);
   cost += nonCachedInput * (inputPrice / 1_000_000);
   if (cachedTokens > 0) cost += cachedTokens * (cachedPrice / 1_000_000);
 
@@ -68,16 +112,16 @@ export function computeCostFromPricing(
   const reasoningTokens = tokens.reasoning ?? tokens.reasoning_tokens ?? 0;
   if (reasoningTokens > 0) cost += reasoningTokens * (reasoningPrice / 1_000_000);
 
-  const cacheCreationTokens = tokens.cacheCreation ?? tokens.cache_creation_input_tokens ?? 0;
   if (cacheCreationTokens > 0) cost += cacheCreationTokens * (cacheCreationPrice / 1_000_000);
 
-  return cost;
+  return cost * getCodexFastCostMultiplier(options.provider, options.model, options.serviceTier);
 }
 
 export async function calculateCost(
   provider: string,
   model: string,
-  tokens: Record<string, number | undefined> | null | undefined
+  tokens: Record<string, number | undefined> | null | undefined,
+  options: CostCalculationOptions = {}
 ): Promise<number> {
   if (!tokens || !provider || !model) return 0;
 
@@ -91,6 +135,13 @@ export async function calculateCost(
       if (normalized !== model) {
         pricing = await getPricingForModel(provider, normalized);
       }
+      const providerKey = normalizeServiceTier(provider);
+      if (!pricing && (providerKey === "codex" || providerKey === "cx")) {
+        const effortlessModel = stripCodexEffortSuffix(normalized);
+        if (effortlessModel !== normalized) {
+          pricing = await getPricingForModel(provider, effortlessModel);
+        }
+      }
     }
     if (!pricing) return 0;
 
@@ -98,7 +149,11 @@ export async function calculateCost(
       pricing && typeof pricing === "object" && !Array.isArray(pricing)
         ? (pricing as Record<string, unknown>)
         : {};
-    return computeCostFromPricing(pricingRecord, tokens);
+    return computeCostFromPricing(pricingRecord, tokens, {
+      provider,
+      model,
+      ...options,
+    });
   } catch (error) {
     console.error("Error calculating cost:", error);
     return 0;

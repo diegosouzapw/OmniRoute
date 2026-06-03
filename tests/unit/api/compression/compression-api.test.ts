@@ -7,7 +7,15 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
 describe("Compression Settings API Schema Validation", () => {
-  const compressionModeValues = ["off", "lite", "standard", "aggressive", "ultra"];
+  const compressionModeValues = [
+    "off",
+    "lite",
+    "standard",
+    "aggressive",
+    "ultra",
+    "rtk",
+    "stacked",
+  ];
 
   it("should validate all compression mode values", () => {
     assert.deepStrictEqual(compressionModeValues, [
@@ -16,6 +24,8 @@ describe("Compression Settings API Schema Validation", () => {
       "standard",
       "aggressive",
       "ultra",
+      "rtk",
+      "stacked",
     ]);
   });
 

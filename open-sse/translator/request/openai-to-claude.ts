@@ -1,15 +1,114 @@
 import { register } from "../registry.ts";
 import { FORMATS } from "../formats.ts";
-import { CLAUDE_SYSTEM_PROMPT } from "../../config/constants.ts";
-import { supportsXHighEffort } from "../../config/providerModels.ts";
+// CLAUDE_SYSTEM_PROMPT import removed — no longer injected unconditionally (#1966/#2130)
+import { supportsClaudeMaxEffort, supportsXHighEffort } from "../../config/providerModels.ts";
 import { adjustMaxTokens } from "../helpers/maxTokensHelper.ts";
 import { sanitizeToolId } from "../helpers/schemaCoercion.ts";
 import { DEFAULT_THINKING_CLAUDE_SIGNATURE } from "../../config/defaultThinkingSignature.ts";
+import { capMaxOutputTokens } from "../../../src/lib/modelCapabilities.ts";
 
 // Prefix for Claude OAuth tool names to avoid conflicts
 // Can be disabled per-request via body._disableToolPrefix = true
 export const CLAUDE_OAUTH_TOOL_PREFIX = "proxy_";
 const CLAUDE_TOOL_CHOICE_REQUIRED = "an" + "y";
+const COPILOT_REASONING_SUMMARY_MARKER = "_omnirouteCopilotReasoningSummary";
+
+function wantsCopilotSummarizedThinking(body: Record<string, unknown> | null | undefined): boolean {
+  return body?.[COPILOT_REASONING_SUMMARY_MARKER] === "summarized";
+}
+
+function applyCopilotSummarizedThinkingDisplay(
+  thinking: Record<string, unknown> | undefined,
+  body: Record<string, unknown> | null | undefined
+): Record<string, unknown> | undefined {
+  if (!thinking || !wantsCopilotSummarizedThinking(body) || thinking.type === "disabled") {
+    return thinking;
+  }
+  return {
+    ...thinking,
+    display: "summarized",
+  };
+}
+
+// Anthropic constraints for the thinking + max_tokens contract:
+//   - thinking.budget_tokens must be >= 1024 when thinking is enabled
+//   - max_tokens must be > thinking.budget_tokens (covers thinking + response)
+//   - max_tokens must be <= model output cap (e.g. 128000 for Opus 4.7)
+const MIN_CLAUDE_THINKING_BUDGET = 1024;
+const MIN_RESPONSE_ROOM = 1024;
+const FALLBACK_OUTPUT_CAP = 128000;
+
+function safeCapMaxOutputTokens(model: string): number {
+  try {
+    const cap = capMaxOutputTokens(model);
+    return typeof cap === "number" && cap > 0 ? cap : FALLBACK_OUTPUT_CAP;
+  } catch {
+    return FALLBACK_OUTPUT_CAP;
+  }
+}
+
+/**
+ * Fit Claude thinking budget within the model's max output cap.
+ *
+ * Replaces the previous unconditional `max_tokens = budget + 8192` inflation,
+ * which could exceed the model output cap (e.g. Opus 4.7's 128000 ceiling) and
+ * trigger HTTP 400 from Anthropic ("max_tokens > 128000").
+ *
+ * Strategy (preserves caller intent up to the model cap):
+ *   - Preserve caller's max_tokens as response room (floored to MIN_RESPONSE_ROOM)
+ *   - Target max_tokens = responseRoom + requestedBudget, capped at modelCap
+ *   - fittedBudget = max_tokens - responseRoom (the thinking budget actually used)
+ *   - If the cap squeezes fittedBudget below the Anthropic minimum, retry with
+ *     responseRoom shrunk to MIN_RESPONSE_ROOM; if still below MIN, disable
+ *     thinking entirely (cap too tight for any reasoning).
+ *
+ * Worked example (real-world Opus 4.7 case that previously 400'd):
+ *   caller max_tokens = 32000, reasoning_effort=high → budget = 131072,
+ *   model cap = 128000.
+ *   responseRoom = max(32000, 1024) = 32000
+ *   target       = min(32000 + 131072, 128000) = 128000
+ *   fittedBudget = 128000 - 32000 = 96000  (>= 1024, OK)
+ *   → max_tokens=128000, budget_tokens=96000 (vs. the old buggy 139264 / 131072).
+ */
+export function fitThinkingToMaxTokens(
+  model: string,
+  callerMaxTokens: number,
+  thinking: Record<string, unknown> | undefined
+): { maxTokens: number; thinking: Record<string, unknown> | undefined } {
+  const modelCap = safeCapMaxOutputTokens(model);
+  const requestedBudget = Number(thinking?.budget_tokens) || 0;
+
+  // No budgeted thinking — just cap max_tokens to the model output ceiling.
+  if (!thinking || requestedBudget <= 0) {
+    return {
+      maxTokens: Math.min(Math.max(callerMaxTokens, 1), modelCap),
+      thinking,
+    };
+  }
+
+  let responseRoom = Math.max(callerMaxTokens, MIN_RESPONSE_ROOM);
+  let target = Math.min(responseRoom + requestedBudget, modelCap);
+  let fittedBudget = target - responseRoom;
+
+  // If the cap squeezed thinking below Anthropic's floor, try shrinking
+  // response room to MIN_RESPONSE_ROOM to recover budget.
+  if (fittedBudget < MIN_CLAUDE_THINKING_BUDGET && responseRoom > MIN_RESPONSE_ROOM) {
+    responseRoom = MIN_RESPONSE_ROOM;
+    target = Math.min(responseRoom + requestedBudget, modelCap);
+    fittedBudget = target - responseRoom;
+  }
+
+  // Cap too tight for any thinking — disable rather than send an invalid request.
+  if (fittedBudget < MIN_CLAUDE_THINKING_BUDGET) {
+    return { maxTokens: modelCap, thinking: undefined };
+  }
+
+  const adjustedThinking: Record<string, unknown> = { ...thinking };
+  if (fittedBudget < requestedBudget) {
+    adjustedThinking.budget_tokens = fittedBudget;
+  }
+  return { maxTokens: target, thinking: adjustedThinking };
+}
 
 type ClaudeContentBlock = Record<string, unknown>;
 type ClaudeMessage = {
@@ -125,16 +224,20 @@ export function openaiToClaudeRequest(model, body, stream) {
 
   if (body.messages && Array.isArray(body.messages)) {
     // Extract system messages (T15: handle both string and array content)
+    // Also treat "developer" role as system — OpenAI Responses API uses developer role
+    // for system-level instructions, and it must reach the Claude system field, not become an assistant turn.
     for (const msg of body.messages) {
-      if (msg.role === "system") {
+      if (msg.role === "system" || msg.role === "developer") {
         systemParts.push(
           typeof msg.content === "string" ? msg.content : normalizeContentToString(msg.content)
         );
       }
     }
 
-    // Filter out system messages for separate processing
-    const nonSystemMessages = body.messages.filter((m) => m.role !== "system");
+    // Filter out system/developer messages for separate processing
+    const nonSystemMessages = body.messages.filter(
+      (m) => m.role !== "system" && m.role !== "developer"
+    );
 
     // Process messages with merging logic
     // CRITICAL: tool_result must be in separate message immediately after tool_use
@@ -280,8 +383,8 @@ export function openaiToClaudeRequest(model, body, stream) {
     // Filter out tools with empty names (would cause Claude 400 error)
     result.tools = result.tools.filter((tool) => tool.name && tool.name?.trim());
 
-    // Add cache_control to last tool that doesn't have defer_loading
-    // Tools with defer_loading=true cannot have cache_control (API rejects it)
+    // Cache breakpoint on the last non-defer-loading tool — Anthropic
+    // rejects cache_control on defer_loading tools.
     for (let i = result.tools.length - 1; i >= 0; i--) {
       if (!result.tools[i].defer_loading) {
         result.tools[i].cache_control = { type: "ephemeral", ttl: "1h" };
@@ -312,17 +415,30 @@ export function openaiToClaudeRequest(model, body, stream) {
     }
   }
 
-  // System with Claude Code prompt and cache_control
-  const claudeCodePrompt = { type: "text", text: CLAUDE_SYSTEM_PROMPT };
-
+  // System messages and cache_control
+  // Fix #2130: Preserve body.system when present (Claude Code sends system as native
+  // Anthropic array through the /chat/completions endpoint). Without this, the system
+  // prompt is silently dropped when no role="system" messages exist in body.messages.
   if (systemParts.length > 0) {
     const systemText = systemParts.join("\n");
-    result.system = [
-      claudeCodePrompt,
-      { type: "text", text: systemText, cache_control: { type: "ephemeral", ttl: "1h" } },
-    ];
-  } else {
-    result.system = [claudeCodePrompt];
+    const systemBlock = {
+      type: "text",
+      text: systemText,
+      cache_control: { type: "ephemeral", ttl: "1h" },
+    };
+    // Merge with existing body.system if present
+    if (Array.isArray(body.system)) {
+      result.system = [...body.system, systemBlock];
+    } else if (typeof body.system === "string" && body.system.length > 0) {
+      result.system = [{ type: "text", text: body.system }, systemBlock];
+    } else {
+      result.system = [systemBlock];
+    }
+  } else if (body.system) {
+    // No role="system" messages, but body.system exists — pass through as-is
+    result.system = Array.isArray(body.system)
+      ? body.system
+      : [{ type: "text", text: String(body.system) }];
   }
 
   // Thinking configuration
@@ -337,16 +453,18 @@ export function openaiToClaudeRequest(model, body, stream) {
     // Clients like OpenCode send reasoning_effort via @ai-sdk/openai-compatible
     const requestedEffort = String(body.reasoning_effort).toLowerCase();
     const normalizedEffort =
-      requestedEffort === "xhigh" && !supportsXHighEffort("claude", model)
+      requestedEffort === "max" && !supportsClaudeMaxEffort(model)
         ? "high"
-        : requestedEffort;
-    if (normalizedEffort === "xhigh") {
+        : requestedEffort === "xhigh" && !supportsXHighEffort("claude", model)
+          ? "high"
+          : requestedEffort;
+    if (normalizedEffort === "max" || normalizedEffort === "xhigh") {
       result.thinking = {
         type: "adaptive",
       };
       result.output_config = {
         ...(result.output_config || {}),
-        effort: "xhigh",
+        effort: normalizedEffort,
       };
     } else {
       const effortBudgetMap: Record<string, number> = {
@@ -361,19 +479,24 @@ export function openaiToClaudeRequest(model, body, stream) {
           type: "enabled",
           budget_tokens: budget,
         };
-        // Claude requires max_tokens > budget_tokens
-        if (result.max_tokens <= budget) {
-          result.max_tokens = budget + 8192;
-        }
       }
     }
   }
 
-  // Ensure max_tokens > budget_tokens for all thinking configurations (#627)
-  const budgetTokens = Number(result.thinking?.budget_tokens) || 0;
-  if (budgetTokens > 0 && result.max_tokens <= budgetTokens) {
-    result.max_tokens = budgetTokens + 8192;
+  // Fit thinking budget within the model's output cap and ensure
+  // max_tokens > budget_tokens for all thinking configurations (#627).
+  // Replaces the previous unconditional `budget + 8192` inflation, which
+  // could exceed model caps (e.g. Opus 4.7's 128000 ceiling) and trigger
+  // HTTP 400 from Anthropic.
+  const fitted = fitThinkingToMaxTokens(model, Number(result.max_tokens) || 0, result.thinking);
+  result.max_tokens = fitted.maxTokens;
+  if (fitted.thinking === undefined) {
+    delete result.thinking;
+  } else {
+    result.thinking = applyCopilotSummarizedThinkingDisplay(fitted.thinking, body);
   }
+
+  delete result[COPILOT_REASONING_SUMMARY_MARKER];
 
   // Attach toolNameMap to result for response translation
   if (toolNameMap.size > 0) {
@@ -548,19 +671,27 @@ function tryParseJSON(str) {
   }
 }
 
+function stripCacheControl(value: unknown): unknown {
+  if (Array.isArray(value)) {
+    return value.map((item) => stripCacheControl(item));
+  }
+  if (!value || typeof value !== "object") {
+    return value;
+  }
+
+  const cleaned: Record<string, unknown> = {};
+  for (const [key, child] of Object.entries(value as Record<string, unknown>)) {
+    if (key === "cache_control") continue;
+    cleaned[key] = stripCacheControl(child);
+  }
+  return cleaned;
+}
+
 // OpenAI -> Claude format for Antigravity (without system prompt modifications)
 function openaiToClaudeRequestForAntigravity(model, body, stream) {
-  const result = openaiToClaudeRequest(model, body, stream);
-
-  // Remove Claude Code system prompt, keep only user's system messages
-  if (result.system && Array.isArray(result.system)) {
-    result.system = result.system.filter(
-      (block) => !block.text || !block.text.includes("You are Claude Code")
-    );
-    if (result.system.length === 0) {
-      delete result.system;
-    }
-  }
+  const result = stripCacheControl(openaiToClaudeRequest(model, body, stream)) as ReturnType<
+    typeof openaiToClaudeRequest
+  >;
 
   // Strip prefix from tool names for Antigravity (doesn't use Claude OAuth)
   if (result.tools && Array.isArray(result.tools)) {

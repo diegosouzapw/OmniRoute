@@ -1,0 +1,17 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "name": "omniroute",
+  "version": "3.8.2",
+  "description": "Unified AI router with 160+ providers, RTK+Caveman compression, auto fallback, MCP/A2A, desktop, PWA, and OpenAI-compatible APIs.",
+  "packages": [
+    "nodejs_22",
+  ],
+  "shell": {
+    "init_hook": [
+      "echo 'Welcome to OmniRoute dev environment'",
+    ],
+    "hooks": {
+      "on_create": "npm install"
+    }
+  }
+}

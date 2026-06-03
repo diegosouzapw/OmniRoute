@@ -1,4 +1,8 @@
 import { FORMATS } from "../translator/formats.ts";
+import {
+  buildGeminiThoughtSignatureKey,
+  storeGeminiThoughtSignature,
+} from "../services/geminiThoughtSignatureStore.ts";
 
 type JsonRecord = Record<string, unknown>;
 
@@ -18,6 +22,63 @@ function toNumber(value: unknown, fallback = 0): number {
         ? Number(value)
         : Number.NaN;
   return Number.isFinite(parsed) ? parsed : fallback;
+}
+
+function firstPositiveNumber(...values: unknown[]): number {
+  for (const value of values) {
+    const parsed = toNumber(value, 0);
+    if (parsed > 0) {
+      return parsed;
+    }
+  }
+  return 0;
+}
+
+function normalizeToolCallArgs(args: unknown): unknown {
+  if (typeof args !== "string") return args;
+  const trimmed = args.trim();
+  if (!trimmed || !(trimmed.startsWith("{") || trimmed.startsWith("["))) return args;
+  try {
+    return JSON.parse(trimmed);
+  } catch {
+    return args;
+  }
+}
+
+function parseTextualToolCall(text: unknown): { name: string; args: unknown } | null {
+  if (typeof text !== "string") return null;
+
+  // Gemini/Antigravity sometimes imitates the request-side fallback with small
+  // variations, e.g. a leading "(empty)" marker or zero-width chars inserted
+  // into argument strings. Normalize those variants before parsing so the
+  // response is still surfaced as a structured OpenAI tool call.
+  const normalized = text.replace(/[\u200B-\u200D\uFEFF]/g, "");
+  const match = normalized.match(
+    /^[\s\S]*?\[Tool call:\s*([^\]\n]+)\]\s*\nArguments:\s*([\s\S]+?)\s*$/
+  );
+  if (!match) return null;
+  const name = match[1]?.trim();
+  const rawArgs = match[2]?.trim();
+  if (!name || !rawArgs) return null;
+  try {
+    let args = JSON.parse(rawArgs);
+    if (typeof args === "string") {
+      const trimmed = args.trim();
+      if (trimmed.startsWith("{") || trimmed.startsWith("[")) {
+        args = JSON.parse(trimmed);
+      }
+    }
+    if (args && typeof args === "object" && !Array.isArray(args)) {
+      return { name, args };
+    }
+  } catch {}
+  return null;
+}
+
+function containsTextualToolCallMarker(text: unknown): boolean {
+  return (
+    typeof text === "string" && text.replace(/[\u200B-\u200D\uFEFF]/g, "").includes("[Tool call:")
+  );
 }
 
 function extractMessageOutputText(item: JsonRecord): string {
@@ -195,28 +256,45 @@ export function translateNonStreamingResponse(
     if (Object.keys(usage).length > 0) {
       const inputTokens = toNumber(usage.input_tokens, 0);
       const outputTokens = toNumber(usage.output_tokens, 0);
+      const inputTokensDetails = toRecord(usage.input_tokens_details);
+      const outputTokensDetails = toRecord(usage.output_tokens_details);
+      const promptTokensDetails = toRecord(usage.prompt_tokens_details);
+      const completionTokensDetails = toRecord(usage.completion_tokens_details);
+      const cachedInputTokens = firstPositiveNumber(
+        inputTokensDetails.cached_tokens,
+        promptTokensDetails.cached_tokens,
+        usage.cache_read_input_tokens
+      );
+      const cacheCreationInputTokens = firstPositiveNumber(
+        inputTokensDetails.cache_creation_tokens,
+        promptTokensDetails.cache_creation_tokens,
+        usage.cache_creation_input_tokens
+      );
+      const reasoningTokens = firstPositiveNumber(
+        outputTokensDetails.reasoning_tokens,
+        completionTokensDetails.reasoning_tokens,
+        usage.reasoning_tokens
+      );
+
       result.usage = {
         prompt_tokens: inputTokens,
         completion_tokens: outputTokens,
         total_tokens: inputTokens + outputTokens,
       };
 
-      if (toNumber(usage.reasoning_tokens, 0) > 0) {
+      if (reasoningTokens > 0) {
         (result.usage as JsonRecord).completion_tokens_details = {
-          reasoning_tokens: toNumber(usage.reasoning_tokens, 0),
+          reasoning_tokens: reasoningTokens,
         };
       }
-      if (
-        toNumber(usage.cache_read_input_tokens, 0) > 0 ||
-        toNumber(usage.cache_creation_input_tokens, 0) > 0
-      ) {
+      if (cachedInputTokens > 0 || cacheCreationInputTokens > 0) {
         (result.usage as JsonRecord).prompt_tokens_details = {};
         const promptDetails = (result.usage as JsonRecord).prompt_tokens_details as JsonRecord;
-        if (toNumber(usage.cache_read_input_tokens, 0) > 0) {
-          promptDetails.cached_tokens = toNumber(usage.cache_read_input_tokens, 0);
+        if (cachedInputTokens > 0) {
+          promptDetails.cached_tokens = cachedInputTokens;
         }
-        if (toNumber(usage.cache_creation_input_tokens, 0) > 0) {
-          promptDetails.cache_creation_tokens = toNumber(usage.cache_creation_input_tokens, 0);
+        if (cacheCreationInputTokens > 0) {
+          promptDetails.cache_creation_tokens = cacheCreationInputTokens;
         }
       }
     }
@@ -251,6 +329,7 @@ export function translateNonStreamingResponse(
               const contentParts: JsonRecord[] = [];
               const toolCalls: JsonRecord[] = [];
               let reasoningContent = "";
+              let pendingThoughtSignature = "";
 
               if (Array.isArray(content.parts)) {
                 for (const part of content.parts) {
@@ -260,9 +339,31 @@ export function translateNonStreamingResponse(
                     continue;
                   }
 
+                  // Capture thoughtSignature from thinking parts (Gemini thinking models)
+                  // so it can be stored alongside any subsequent functionCall part.
+                  const partThoughtSig = toString(
+                    partObj.thoughtSignature ?? partObj.thought_signature
+                  );
+                  if (partThoughtSig) {
+                    pendingThoughtSignature = partThoughtSig;
+                  }
+
                   if (typeof partObj.text === "string") {
-                    textContent += partObj.text;
-                    contentParts.push({ type: "text", text: partObj.text });
+                    const textualToolCall = parseTextualToolCall(partObj.text);
+                    if (textualToolCall) {
+                      const toolCallId = `call_${toString(textualToolCall.name, "unknown")}_${Date.now()}_${toolCalls.length}`;
+                      toolCalls.push({
+                        id: toolCallId,
+                        type: "function",
+                        function: {
+                          name: textualToolCall.name,
+                          arguments: JSON.stringify(textualToolCall.args || {}),
+                        },
+                      });
+                    } else if (!containsTextualToolCallMarker(partObj.text)) {
+                      textContent += partObj.text;
+                      contentParts.push({ type: "text", text: partObj.text });
+                    }
                   }
 
                   const inlineData = toRecord(partObj.inlineData ?? partObj.inline_data);
@@ -282,15 +383,27 @@ export function translateNonStreamingResponse(
                     const rawName = toString(fn.name);
                     const restoredName = toolNameMap?.get(rawName) ?? rawName;
                     const nativeId = toString(fn.id);
+                    const toolCallId =
+                      nativeId.length > 0
+                        ? nativeId
+                        : `call_${toString(restoredName, "unknown")}_${Date.now()}_${toolCalls.length}`;
+
+                    // Persist the thought signature so openai-to-gemini can
+                    // resolve it on the next turn. Use the part-level field
+                    // (part.thoughtSignature) and fall back to any signature
+                    // captured from an earlier thinking-only part.
+                    const sig = partThoughtSig || pendingThoughtSignature;
+                    if (sig) {
+                      const sigKey = buildGeminiThoughtSignatureKey(null, toolCallId);
+                      storeGeminiThoughtSignature(sigKey, sig);
+                    }
+
                     toolCalls.push({
-                      id:
-                        nativeId.length > 0
-                          ? nativeId
-                          : `call_${toString(restoredName, "unknown")}_${Date.now()}_${toolCalls.length}`,
+                      id: toolCallId,
                       type: "function",
                       function: {
                         name: restoredName,
-                        arguments: JSON.stringify(fn.args || {}),
+                        arguments: JSON.stringify(normalizeToolCallArgs(fn.args || {})),
                       },
                     });
                   }

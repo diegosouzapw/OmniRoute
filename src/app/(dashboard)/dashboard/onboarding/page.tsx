@@ -3,9 +3,11 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
+import { useDisplayBaseUrl } from "@/shared/hooks";
+import { TierTour } from "./steps/TierTour";
 
-const STEP_IDS = ["welcome", "security", "provider", "test", "done"];
-const STEP_ICONS = ["waving_hand", "lock", "dns", "play_circle", "check_circle"];
+const STEP_IDS = ["welcome", "tiers", "security", "provider", "test", "done"];
+const STEP_ICONS = ["waving_hand", "layers", "lock", "dns", "play_circle", "check_circle"];
 
 const COMMON_PROVIDERS = [
   { id: "openai", name: "OpenAI", color: "#10A37F" },
@@ -20,14 +22,16 @@ export default function OnboardingWizard() {
   const router = useRouter();
   const t = useTranslations("onboarding");
   const tc = useTranslations("common");
+  const baseUrl = useDisplayBaseUrl();
   const [step, setStep] = useState(0);
   const [loading, setLoading] = useState(true);
-  const [apiEndpoint, setApiEndpoint] = useState("http://localhost:20128/api/v1");
+  const [apiEndpoint, setApiEndpoint] = useState(`${baseUrl}/api/v1`);
 
   // Security step state
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [skipSecurity, setSkipSecurity] = useState(false);
+  const [capsLockOn, setCapsLockOn] = useState(false);
 
   // Provider step state
   const [selectedProvider, setSelectedProvider] = useState(null);
@@ -299,6 +303,9 @@ export default function OnboardingWizard() {
               </div>
             )}
 
+            {/* Tiers */}
+            {currentStep.id === "tiers" && <TierTour />}
+
             {/* Security */}
             {currentStep.id === "security" && (
               <div className="space-y-4">
@@ -319,6 +326,8 @@ export default function OnboardingWizard() {
                       placeholder={t("enterPassword")}
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
+                      onKeyDown={(e) => setCapsLockOn(e.getModifierState("CapsLock"))}
+                      onKeyUp={(e) => setCapsLockOn(e.getModifierState("CapsLock"))}
                       className="w-full px-4 py-2.5 bg-white/[0.04] border border-white/10 rounded-lg text-text-main text-sm placeholder:text-text-muted/50 focus:outline-none focus:ring-2 focus:ring-primary/40"
                     />
                     <input
@@ -326,8 +335,18 @@ export default function OnboardingWizard() {
                       placeholder={t("confirmPasswordPlaceholder")}
                       value={confirmPassword}
                       onChange={(e) => setConfirmPassword(e.target.value)}
+                      onKeyDown={(e) => setCapsLockOn(e.getModifierState("CapsLock"))}
+                      onKeyUp={(e) => setCapsLockOn(e.getModifierState("CapsLock"))}
                       className="w-full px-4 py-2.5 bg-white/[0.04] border border-white/10 rounded-lg text-text-main text-sm placeholder:text-text-muted/50 focus:outline-none focus:ring-2 focus:ring-primary/40"
                     />
+                    {capsLockOn && (
+                      <p className="text-xs text-amber-500 dark:text-amber-400 flex items-center gap-1 animate-in fade-in duration-200">
+                        <span className="material-symbols-outlined text-[14px]" aria-hidden="true">
+                          keyboard_capslock
+                        </span>
+                        Caps Lock is on
+                      </p>
+                    )}
                     {password && confirmPassword && password !== confirmPassword && (
                       <p className="text-xs text-red-400">{t("passwordsMismatch")}</p>
                     )}
@@ -461,6 +480,14 @@ export default function OnboardingWizard() {
                   className="px-6 py-2.5 bg-primary rounded-lg text-white font-medium text-sm hover:bg-primary/90 transition-colors cursor-pointer"
                 >
                   {t("getStarted")}
+                </button>
+              )}
+              {currentStep.id === "tiers" && (
+                <button
+                  onClick={handleNext}
+                  className="px-6 py-2.5 bg-primary rounded-lg text-white font-medium text-sm hover:bg-primary/90 transition-colors cursor-pointer"
+                >
+                  {t("continue")}
                 </button>
               )}
               {currentStep.id === "security" && (

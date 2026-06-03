@@ -7,9 +7,13 @@ import { NextResponse } from "next/server";
 import fs from "fs";
 import path from "path";
 import yaml from "js-yaml";
+import { sanitizeErrorMessage } from "@omniroute/open-sse/utils/error";
 
 let cachedSpec: { data: any; mtime: number } | null = null;
 const OPENAPI_SPEC_CANDIDATES = [
+  path.join(/* turbopackIgnore: true */ process.cwd(), "docs", "reference", "openapi.yaml"),
+  path.join(/* turbopackIgnore: true */ process.cwd(), "app", "docs", "reference", "openapi.yaml"),
+  // Legacy locations kept as fallback for old standalone bundles.
   path.join(/* turbopackIgnore: true */ process.cwd(), "docs", "openapi.yaml"),
   path.join(/* turbopackIgnore: true */ process.cwd(), "app", "docs", "openapi.yaml"),
 ];
@@ -64,6 +68,9 @@ export async function GET() {
             parameters: spec.parameters || [],
             requestBody: spec.requestBody ? true : false,
             responses: Object.keys(spec.responses || {}),
+            loopbackOnly: spec["x-loopback-only"] === true,
+            alwaysProtected: spec["x-always-protected"] === true,
+            internal: spec["x-internal"] === true,
           });
         }
       }
@@ -74,7 +81,7 @@ export async function GET() {
     return NextResponse.json(catalog);
   } catch (error: any) {
     return NextResponse.json(
-      { error: error.message || "Failed to parse OpenAPI spec" },
+      { error: sanitizeErrorMessage(error) || "Failed to parse OpenAPI spec" },
       { status: 500 }
     );
   }

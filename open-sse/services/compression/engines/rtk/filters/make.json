@@ -1,0 +1,38 @@
+{
+  "id": "make",
+  "label": "Make",
+  "description": "Strip make directory chatter and empty lines.",
+  "category": "build",
+  "priority": 78,
+  "match": {
+    "outputTypes": [],
+    "commands": ["^make\\b"],
+    "patterns": ["make\\[\\d+\\]: (?:Entering|Leaving) directory"]
+  },
+  "rules": {
+    "stripAnsi": true,
+    "dropPatterns": [
+      "^make\\[\\d+\\]: (?:Entering|Leaving) directory",
+      "^\\s*$",
+      "Nothing to be done for"
+    ],
+    "collapsePatterns": ["^(?:cc|gcc|clang|g\\+\\+)\\b"],
+    "deduplicate": true,
+    "maxLines": 120,
+    "headLines": 30,
+    "tailLines": 40,
+    "onEmpty": "make: ok"
+  },
+  "preserve": {
+    "errorPatterns": ["error:", "failed", "\\*\\*\\*"],
+    "summaryPatterns": ["built", "linking"]
+  },
+  "tests": [
+    {
+      "name": "inline sample",
+      "command": "make",
+      "input": "make[1]: Entering directory '/repo'\ngcc -O2 foo.c\nmake[1]: Leaving directory '/repo'\n",
+      "expected": "gcc -O2 foo.c"
+    }
+  ]
+}

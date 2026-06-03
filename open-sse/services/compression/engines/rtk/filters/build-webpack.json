@@ -1,0 +1,34 @@
+{
+  "id": "build-webpack",
+  "label": "Webpack Build",
+  "description": "Keep webpack errors/warnings and compilation summary.",
+  "category": "build",
+  "priority": 84,
+  "match": {
+    "outputTypes": ["build-webpack"],
+    "commands": ["^webpack\\b", "^npx\\s+webpack\\b"],
+    "patterns": ["webpack \\d", "compiled (?:successfully|with)"]
+  },
+  "rules": {
+    "stripAnsi": true,
+    "includePatterns": ["ERROR in", "WARNING in", "compiled ", "asset ", "Entrypoint"],
+    "dropPatterns": ["^\\s*$", "^cacheable modules"],
+    "collapsePatterns": ["^asset "],
+    "deduplicate": true,
+    "maxLines": 140,
+    "headLines": 35,
+    "tailLines": 50
+  },
+  "preserve": {
+    "errorPatterns": ["ERROR in"],
+    "summaryPatterns": ["compiled "]
+  },
+  "tests": [
+    {
+      "name": "inline sample",
+      "command": "webpack",
+      "input": "asset main.js 10 KiB\nERROR in ./src/a.ts\ncompiled with 1 error\n",
+      "expected": "asset main.js 10 KiB\nERROR in ./src/a.ts\ncompiled with 1 error"
+    }
+  ]
+}

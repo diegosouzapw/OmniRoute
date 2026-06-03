@@ -3,7 +3,10 @@
 import { useState, useEffect } from "react";
 import { Card, Button, Input, Toggle } from "@/shared/components";
 import { cn } from "@/shared/utils/cn";
-import { ROUTING_STRATEGIES } from "@/shared/constants/routingStrategies";
+import {
+  ROUTING_STRATEGIES,
+  SETTINGS_FALLBACK_STRATEGY_VALUES,
+} from "@/shared/constants/routingStrategies";
 import { useTranslations } from "next-intl";
 
 const STRATEGY_LABEL_FALLBACKS: Record<string, string> = {
@@ -15,6 +18,32 @@ const LEGACY_COMBO_RESILIENCE_KEYS = new Set([
   "healthCheckEnabled",
   "healthCheckTimeoutMs",
 ]);
+const ACCOUNT_FALLBACK_STRATEGIES = new Set<string>(SETTINGS_FALLBACK_STRATEGY_VALUES);
+const MS_PER_SECOND = 1000;
+
+function msToSeconds(value: unknown): number {
+  const ms = Number(value);
+  if (!Number.isFinite(ms) || ms <= 0) return 0;
+  return Math.round(ms / MS_PER_SECOND);
+}
+
+function msToOptionalSecondsInput(value: unknown): string {
+  const ms = Number(value);
+  if (!Number.isFinite(ms) || ms <= 0) return "";
+  return String(Math.round(ms / MS_PER_SECOND));
+}
+
+function secondsInputToMs(value: string, maxSeconds: number): number {
+  const seconds = Number(value);
+  if (!Number.isFinite(seconds) || seconds <= 0) return 0;
+  return Math.min(maxSeconds, Math.round(seconds)) * MS_PER_SECOND;
+}
+
+function secondsInputToOptionalMs(value: string, maxSeconds = 86400): number | undefined {
+  const seconds = Number(value);
+  if (!Number.isFinite(seconds) || seconds <= 0) return undefined;
+  return Math.min(maxSeconds, Math.round(seconds)) * MS_PER_SECOND;
+}
 
 function translateOrFallback(
   t: ReturnType<typeof useTranslations>,
@@ -44,6 +73,17 @@ function sanitizeProviderOverrides(overrides?: Record<string, any> | null) {
   );
 }
 
+function toGlobalRoutingPatch(strategy: string | undefined, stickyRoundRobinLimit?: number) {
+  const patch: Record<string, unknown> = {};
+  if (strategy && ACCOUNT_FALLBACK_STRATEGIES.has(strategy)) {
+    patch.fallbackStrategy = strategy;
+  }
+  if (strategy === "round-robin" && stickyRoundRobinLimit !== undefined) {
+    patch.stickyRoundRobinLimit = stickyRoundRobinLimit;
+  }
+  return patch;
+}
+
 export default function ComboDefaultsTab() {
   const [comboDefaults, setComboDefaults] = useState<any>({
     strategy: "priority",
@@ -55,7 +95,11 @@ export default function ComboDefaultsTab() {
     handoffModel: "",
     maxMessagesForSummary: 30,
     stickyRoundRobinLimit: 3,
+    resetAwareQuotaCacheTtlMs: 0,
+    resetAwareQuotaCacheMaxStaleMs: 0,
+    zeroLatencyOptimizationsEnabled: false,
   });
+  const [codexSessionAffinityTtlMs, setCodexSessionAffinityTtlMs] = useState(0);
   const [providerOverrides, setProviderOverrides] = useState<any>({});
   const [newOverrideProvider, setNewOverrideProvider] = useState("");
   const [saving, setSaving] = useState(false);
@@ -90,7 +134,7 @@ export default function ComboDefaultsTab() {
           ...prev,
           ...sanitizeComboRuntimeConfig(comboData.comboDefaults),
           strategy:
-            settingsData.fallbackStrategy ?? comboData.comboDefaults?.strategy ?? prev.strategy,
+            comboData.comboDefaults?.strategy ?? settingsData.fallbackStrategy ?? prev.strategy,
           stickyRoundRobinLimit:
             settingsData.stickyRoundRobinLimit ??
             comboData.comboDefaults?.stickyRoundRobinLimit ??
@@ -99,6 +143,11 @@ export default function ComboDefaultsTab() {
         if (comboData.providerOverrides) {
           setProviderOverrides(sanitizeProviderOverrides(comboData.providerOverrides));
         }
+        setCodexSessionAffinityTtlMs(
+          Number.isFinite(Number(settingsData.codexSessionAffinityTtlMs))
+            ? Number(settingsData.codexSessionAffinityTtlMs)
+            : 0
+        );
       })
       .catch((err) => console.error("Failed to fetch combo defaults:", err));
   }, []);
@@ -109,8 +158,7 @@ export default function ComboDefaultsTab() {
   };
 
   const syncGlobalRoutingSettings = async (patch: Record<string, unknown>) => {
-    const keys = Object.keys(patch);
-    if (keys.length === 0) return true;
+    if (Object.keys(patch).length === 0) return;
 
     const res = await fetch("/api/settings", {
       method: "PATCH",
@@ -121,21 +169,16 @@ export default function ComboDefaultsTab() {
     if (!res.ok) {
       throw new Error("Failed to sync global routing settings");
     }
-
-    return true;
   };
 
   const saveComboDefaults = async () => {
     setSaving(true);
     try {
       const { stickyRoundRobinLimit, ...comboDefaultsPayload } = comboDefaults;
-      const settingsPatch: Record<string, unknown> = {};
-      if (comboDefaults.strategy) {
-        settingsPatch.fallbackStrategy = comboDefaults.strategy;
-      }
-      if (comboDefaults.strategy === "round-robin" && stickyRoundRobinLimit !== undefined) {
-        settingsPatch.stickyRoundRobinLimit = stickyRoundRobinLimit;
-      }
+      const settingsPatch = {
+        ...toGlobalRoutingPatch(comboDefaults.strategy, stickyRoundRobinLimit),
+        codexSessionAffinityTtlMs,
+      };
 
       const comboDefaultsRes = await fetch("/api/settings/combo-defaults", {
         method: "PATCH",
@@ -243,7 +286,7 @@ export default function ComboDefaultsTab() {
                 onClick={async () => {
                   setComboDefaults((prev) => ({ ...prev, strategy: s.value }));
                   try {
-                    await syncGlobalRoutingSettings({ fallbackStrategy: s.value });
+                    await syncGlobalRoutingSettings(toGlobalRoutingPatch(s.value));
                   } catch (error) {
                     console.error("Failed to sync fallback strategy:", error);
                     showStatus("error", t("errorOccurred"));
@@ -309,6 +352,99 @@ export default function ComboDefaultsTab() {
               className="text-sm"
             />
           ))}
+          <Input
+            label={translateOrFallback(t, "targetTimeout", "Target timeout (seconds)")}
+            type="number"
+            min={1}
+            max={86400}
+            step={1}
+            value={msToOptionalSecondsInput(comboDefaults.targetTimeoutMs)}
+            placeholder={translateOrFallback(t, "inheritRequestTimeout", "Inherit request timeout")}
+            onChange={(e) =>
+              setComboDefaults((prev) => ({
+                ...prev,
+                targetTimeoutMs: secondsInputToOptionalMs(e.target.value),
+              }))
+            }
+            className="text-sm"
+          />
+        </div>
+        <p className="text-xs text-text-muted">
+          {translateOrFallback(
+            t,
+            "targetTimeoutHint",
+            "Combo targets inherit the current request timeout by default. Set a lower value here only when you want faster fallback."
+          )}
+        </p>
+
+        <div className="grid grid-cols-1 gap-3 pt-3 border-t border-border/50">
+          <div>
+            <p className="font-medium text-sm">
+              {translateOrFallback(t, "codexSessionAffinityTitle", "Codex session affinity")}
+            </p>
+            <p className="text-xs text-text-muted">
+              {translateOrFallback(
+                t,
+                "codexSessionAffinityDesc",
+                "Keeps one Codex conversation on the same account for this many seconds. 0 disables it."
+              )}
+            </p>
+          </div>
+          <Input
+            label={translateOrFallback(t, "codexSessionAffinityTtl", "Affinity TTL (seconds)")}
+            type="number"
+            min={0}
+            max={86400}
+            step={60}
+            value={msToSeconds(codexSessionAffinityTtlMs)}
+            onChange={(e) => setCodexSessionAffinityTtlMs(secondsInputToMs(e.target.value, 86400))}
+            className="text-sm"
+          />
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-3 pt-3 border-t border-border/50">
+          <div className="md:col-span-2">
+            <p className="font-medium text-sm">
+              {translateOrFallback(t, "resetAwareQuotaCacheTitle", "Reset-aware quota cache")}
+            </p>
+            <p className="text-xs text-text-muted">
+              {translateOrFallback(
+                t,
+                "resetAwareQuotaCacheDesc",
+                "Caches quota telemetry for reset-aware ordering only. Quota preflight still protects requests. 0/0 keeps live fetching."
+              )}
+            </p>
+          </div>
+          <Input
+            label={translateOrFallback(t, "resetAwareQuotaCacheTtl", "Fresh TTL (seconds)")}
+            type="number"
+            min={0}
+            max={300}
+            step={5}
+            value={msToSeconds(comboDefaults.resetAwareQuotaCacheTtlMs)}
+            onChange={(e) =>
+              setComboDefaults((prev) => ({
+                ...prev,
+                resetAwareQuotaCacheTtlMs: secondsInputToMs(e.target.value, 300),
+              }))
+            }
+            className="text-sm"
+          />
+          <Input
+            label={translateOrFallback(t, "resetAwareQuotaCacheMaxStale", "Max stale (seconds)")}
+            type="number"
+            min={0}
+            max={3600}
+            step={30}
+            value={msToSeconds(comboDefaults.resetAwareQuotaCacheMaxStaleMs)}
+            onChange={(e) =>
+              setComboDefaults((prev) => ({
+                ...prev,
+                resetAwareQuotaCacheMaxStaleMs: secondsInputToMs(e.target.value, 3600),
+              }))
+            }
+            className="text-sm"
+          />
         </div>
 
         {/* Round-Robin specific */}
@@ -417,6 +553,29 @@ export default function ComboDefaultsTab() {
               checked={comboDefaults.trackMetrics !== false}
               onChange={() =>
                 setComboDefaults((prev) => ({ ...prev, trackMetrics: !prev.trackMetrics }))
+              }
+            />
+          </div>
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="font-medium text-sm">
+                {translateOrFallback(t, "zeroLatencyOptimizations", "Zero-latency optimizations")}
+              </p>
+              <p className="text-xs text-text-muted">
+                {translateOrFallback(
+                  t,
+                  "zeroLatencyOptimizationsDesc",
+                  "Opt in to hedging, predictive TTFT skips, and proactive fallback compression. Leave off to prevent these latency features from racing targets or compressing fallback requests."
+                )}
+              </p>
+            </div>
+            <Toggle
+              checked={comboDefaults.zeroLatencyOptimizationsEnabled === true}
+              onChange={() =>
+                setComboDefaults((prev) => ({
+                  ...prev,
+                  zeroLatencyOptimizationsEnabled: prev.zeroLatencyOptimizationsEnabled !== true,
+                }))
               }
             />
           </div>

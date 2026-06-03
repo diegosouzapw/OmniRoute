@@ -8,6 +8,7 @@ import { requireManagementAuth } from "@/lib/api/requireManagementAuth";
 import { resolveApiKey } from "@/shared/services/apiKeyResolver";
 import { resolveMitmDataDir } from "@/mitm/dataDir";
 import { KIRO_MITM_PROFILE } from "@/mitm/targets/kiro";
+import { ANTIGRAVITY_MITM_PROFILE } from "@/mitm/targets/antigravity";
 
 type MitmTargetRoute = {
   id: string;
@@ -70,14 +71,18 @@ function getKeyPath() {
 }
 
 function defaultTargets(port = DEFAULT_PORT): MitmTargetRoute[] {
+  const allHosts = [
+    ANTIGRAVITY_MITM_PROFILE.targetHost,
+    ...(ANTIGRAVITY_MITM_PROFILE.additionalHosts || []),
+  ];
   return [
     {
-      id: "antigravity",
-      name: "Antigravity",
-      targetHost: "daily-cloudcode-pa.googleapis.com",
-      targetPort: 443,
+      id: ANTIGRAVITY_MITM_PROFILE.id,
+      name: ANTIGRAVITY_MITM_PROFILE.name,
+      targetHost: allHosts.join(", "),
+      targetPort: ANTIGRAVITY_MITM_PROFILE.targetPort,
       localPort: port,
-      endpoints: [":generateContent", ":streamGenerateContent"],
+      endpoints: ANTIGRAVITY_MITM_PROFILE.apiEndpoints,
       enabled: true,
     },
     {
@@ -137,7 +142,7 @@ function readStats(): MitmStats {
 }
 
 async function buildMitmResponse() {
-  const { getMitmStatus, getCachedPassword } = await import("@/mitm/manager");
+  const { getMitmStatus, getCachedPassword } = await import("@/mitm/manager.runtime");
   const status = await getMitmStatus();
   const config = readConfig();
   const stats = readStats();
@@ -204,13 +209,15 @@ export async function PUT(request: Request) {
 
     if (typeof parsed.data.enabled === "boolean") {
       const { getCachedPassword, setCachedPassword, startMitm, stopMitm } =
-        await import("@/mitm/manager");
+        await import("@/mitm/manager.runtime");
+      const { isRoot } = await import("@/mitm/systemCommands");
       const isWin = process.platform === "win32";
+      const isRootUser = !isWin && isRoot();
       const sudoPassword = parsed.data.sudoPassword || getCachedPassword() || "";
 
       if (parsed.data.enabled) {
         const apiKey = await resolveApiKey(parsed.data.keyId || null, parsed.data.apiKey || null);
-        if (!apiKey || (!isWin && !sudoPassword)) {
+        if (!apiKey || (!isWin && !isRootUser && !sudoPassword)) {
           return NextResponse.json(
             { error: isWin ? "Missing apiKey" : "Missing apiKey or sudoPassword" },
             { status: 400 }
@@ -219,7 +226,7 @@ export async function PUT(request: Request) {
         await startMitm(apiKey, sudoPassword, { port: config.port });
         if (!isWin) setCachedPassword(sudoPassword);
       } else {
-        if (!isWin && !sudoPassword) {
+        if (!isWin && !isRootUser && !sudoPassword) {
           return NextResponse.json({ error: "Missing sudoPassword" }, { status: 400 });
         }
         await stopMitm(sudoPassword);
@@ -245,7 +252,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: parsed.error.flatten() }, { status: 400 });
     }
 
-    const { getMitmStatus } = await import("@/mitm/manager");
+    const { getMitmStatus } = await import("@/mitm/manager.runtime");
     const status = await getMitmStatus();
     if (status.running) {
       return NextResponse.json(

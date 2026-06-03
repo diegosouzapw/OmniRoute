@@ -23,7 +23,10 @@ import {
 } from "../../open-sse/services/claudeCodeFingerprint.ts";
 
 // ── Tool remapper ─────────────────────────────────────────────────────────────
-import { remapToolNamesInRequest } from "../../open-sse/services/claudeCodeToolRemapper.ts";
+import {
+  remapToolNamesInRequest,
+  remapToolNamesInResponse,
+} from "../../open-sse/services/claudeCodeToolRemapper.ts";
 
 // ── Constraints ───────────────────────────────────────────────────────────────
 import {
@@ -165,11 +168,77 @@ describe("remapToolNamesInRequest", () => {
     assert.ok(Array.isArray(body.tools), "tools array must still be present after remap");
   });
 
+  it("tracks remapped tool names without leaking helper fields into the wire payload", () => {
+    const body = {
+      tools: [
+        { name: "bash", description: "Run bash commands" },
+        { name: "glob", description: "Search files" },
+      ],
+      tool_choice: { type: "tool", name: "glob" },
+      messages: [
+        {
+          role: "assistant",
+          content: [{ type: "tool_use", name: "read", input: { file_path: "README.md" } }],
+        },
+      ],
+    };
+
+    remapToolNamesInRequest(body);
+
+    const mappedBody = body as Record<string, unknown> & {
+      _toolNameMap?: Map<string, string>;
+      _claudeCodeRequiresLowercaseToolNames?: boolean;
+    };
+
+    // remapToolNamesInRequest remaps in-place and stores _toolNameMap as non-enumerable.
+    assert.equal(body.tools[0].name, "Bash");
+    assert.equal(body.tools[1].name, "Glob");
+    assert.equal(body.tool_choice.name, "Glob");
+    assert.equal(body.messages[0].content[0].name, "Read");
+    assert.equal(mappedBody._claudeCodeRequiresLowercaseToolNames, undefined);
+
+    const wirePayload = JSON.stringify(body);
+    assert.equal(wirePayload.includes("_toolNameMap"), false);
+    assert.equal(wirePayload.includes("_claudeCodeRequiresLowercaseToolNames"), false);
+    assert.match(wirePayload, /"name":"Bash"/);
+    assert.match(wirePayload, /"name":"Glob"/);
+  });
+
+  it("remaps known tools and does not throw with extra unknown fields on body", () => {
+    // Verify unrelated extra properties do not interfere with remapping and no error is thrown.
+    const body: Record<string, unknown> = {
+      tools: [{ name: "bash", description: "Run bash commands" }],
+      messages: [],
+      _someExtraField: "irrelevant",
+    };
+
+    assert.doesNotThrow(() => remapToolNamesInRequest(body));
+
+    // Known tool names are still remapped in-place
+    assert.equal((body.tools as Array<Record<string, unknown>>)[0].name, "Bash");
+    // Extra fields are left intact (not stripped, not used for map lookup)
+    assert.equal(body._someExtraField, "irrelevant");
+    // _toolNameMap is non-enumerable and will not leak through Object.keys/JSON.stringify.
+    assert.equal(Object.keys(body).includes("_toolNameMap"), false);
+  });
+
   it("handles body without tools without throwing", () => {
     const body = { messages: [{ role: "user", content: "hello" }] };
     assert.doesNotThrow(() => remapToolNamesInRequest(body));
   });
   // Note: remapToolNamesInRequest requires a non-null body (callers always provide one)
+});
+
+describe("remapToolNamesInResponse", () => {
+  it("restores TitleCase tool names to lowercase via REVERSE_MAP when forceLowercase=true", () => {
+    // remapToolNamesInResponse(text, forceLowercase) — 2 args only; uses hardcoded REVERSE_MAP
+    const text = 'data: {"name":"Bash","other":{"name": "Glob"}}\n\n';
+    const restored = remapToolNamesInResponse(text, true);
+
+    assert.match(restored, /"name":"bash"/);
+    assert.match(restored, /"name": "glob"/);
+    assert.equal(remapToolNamesInResponse(text, false), text);
+  });
 });
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -197,6 +266,7 @@ describe("disableThinkingIfToolChoiceForced", () => {
   it("removes thinking when tool_choice forces a specific tool", () => {
     const body = {
       thinking: { type: "enabled", budget_tokens: 1000 },
+      context_management: { edits: [{ type: "clear_thinking_20251015", keep: "all" }] },
       tool_choice: { type: "tool", name: "Bash" },
       tools: [{ name: "Bash" }],
     };
@@ -207,6 +277,7 @@ describe("disableThinkingIfToolChoiceForced", () => {
       !thinkingType || thinkingType === "disabled" || thinkingType === "none",
       "thinking must be disabled when tool_choice forces a specific tool"
     );
+    assert.equal(body.context_management, undefined);
   });
 
   it("does not modify thinking when tool_choice is auto", () => {

@@ -415,8 +415,9 @@ describe("db/versionManager (module coverage)", () => {
     assert.deepEqual(updated.configOverrides, { port: 8317, host: "127.0.0.1" });
 
     const status = await versionManagerDb.getVersionManagerStatus();
-    assert.equal(status.length, 1);
-    assert.equal(status[0].tool, "cliproxyapi");
+    const cliproxy = status.find((row) => row.tool === "cliproxyapi");
+    assert.ok(cliproxy, "expected cliproxyapi entry in status listing");
+    assert.equal(cliproxy.tool, "cliproxyapi");
   });
 
   it("parses invalid config overrides defensively and returns null for missing updates", async () => {

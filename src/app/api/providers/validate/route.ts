@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { requireManagementAuth } from "@/lib/api/requireManagementAuth";
 import { getAuditRequestContext, logAuditEvent } from "@/lib/compliance/index";
 import { getProviderNodeById } from "@/models";
 import {
@@ -24,6 +25,9 @@ function sanitizeAuditUrl(url: string | null | undefined) {
 
 // POST /api/providers/validate - Validate API key with provider
 export async function POST(request) {
+  const authError = await requireManagementAuth(request);
+  if (authError) return authError;
+
   const auditContext = getAuditRequestContext(request);
   let rawBody;
   try {
@@ -51,6 +55,7 @@ export async function POST(request) {
       validationModelId,
       customUserAgent,
       baseUrl: bodyBaseUrl,
+      region,
       cx,
     } = validation.data;
 
@@ -60,6 +65,9 @@ export async function POST(request) {
     }
     if (bodyBaseUrl) {
       providerSpecificData.baseUrl = bodyBaseUrl;
+    }
+    if (region) {
+      providerSpecificData.region = region;
     }
     if (cx) {
       providerSpecificData.cx = cx;

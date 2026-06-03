@@ -1,0 +1,422 @@
+#!/usr/bin/env node
+
+import fs from "node:fs/promises";
+import os from "node:os";
+import path from "node:path";
+import { spawn } from "node:child_process";
+import { pathToFileURL } from "node:url";
+
+/**
+ * This repository contains a legacy `app/` snapshot (packaging/runtime artifacts)
+ * alongside the active Next.js source in `src/app/`. Next.js route discovery scans
+ * both and fails the build on legacy files. We temporarily move the legacy folder
+ * out of the project root during `next build`, then restore it in all outcomes.
+ */
+
+const projectRoot = process.cwd();
+const backupRoot = path.join(os.tmpdir(), `omniroute-build-isolated-${process.pid}-${Date.now()}`);
+
+export function getTransientBuildPaths(rootDir = projectRoot, env = process.env) {
+  const paths = [
+    {
+      label: "legacy app snapshot",
+      sourcePath: path.join(rootDir, "app"),
+      backupPath: path.join(backupRoot, "app"),
+    },
+    {
+      label: "local Wine prefix",
+      sourcePath: path.join(rootDir, ".tmp", "wine32"),
+      backupPath: path.join(backupRoot, "wine32"),
+    },
+  ];
+
+  if (env.OMNIROUTE_BUILD_MOVE_TASKS === "1") {
+    paths.push({
+      label: "task planning workspace",
+      sourcePath: path.join(rootDir, "_tasks"),
+      backupPath: path.join(backupRoot, "_tasks"),
+    });
+  }
+
+  return paths;
+}
+
+async function exists(targetPath) {
+  try {
+    await fs.access(targetPath);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+export async function movePath(sourcePath, destinationPath, fsImpl = fs) {
+  const mkdir = typeof fsImpl.mkdir === "function" ? fsImpl.mkdir.bind(fsImpl) : fs.mkdir.bind(fs);
+  await mkdir(path.dirname(destinationPath), { recursive: true });
+
+  try {
+    await fsImpl.rename(sourcePath, destinationPath);
+  } catch (error) {
+    if (error?.code !== "EXDEV") {
+      throw error;
+    }
+
+    console.warn(
+      `[build-next-isolated] EXDEV while moving ${sourcePath} -> ${destinationPath}; falling back to copy/remove`
+    );
+    await fsImpl.cp(sourcePath, destinationPath, {
+      recursive: true,
+      preserveTimestamps: true,
+      force: false,
+      errorOnExist: true,
+    });
+    await fsImpl.rm(sourcePath, { recursive: true, force: true });
+  }
+}
+
+function runNextBuild() {
+  return new Promise((resolve) => {
+    const nextBin = path.join(projectRoot, "node_modules", "next", "dist", "bin", "next");
+    const child = spawn(process.execPath, [nextBin, "build", resolveNextBuildBundlerFlag()], {
+      cwd: projectRoot,
+      stdio: "inherit",
+      env: resolveNextBuildEnv(process.env),
+    });
+
+    const forward = (signal) => {
+      if (!child.killed) child.kill(signal);
+    };
+
+    process.on("SIGINT", forward);
+    process.on("SIGTERM", forward);
+
+    child.on("exit", (code, signal) => {
+      process.off("SIGINT", forward);
+      process.off("SIGTERM", forward);
+      if (signal) {
+        resolve({ code: 1, signal });
+        return;
+      }
+      resolve({ code: code ?? 1, signal: null });
+    });
+  });
+}
+
+export function resolveNextBuildBundlerFlag(baseEnv = process.env) {
+  return baseEnv.OMNIROUTE_USE_TURBOPACK === "1" ? "--turbopack" : "--webpack";
+}
+
+export function resolveNextBuildEnv(baseEnv = process.env) {
+  return {
+    ...baseEnv,
+    NEXT_PRIVATE_BUILD_WORKER: baseEnv.NEXT_PRIVATE_BUILD_WORKER || "0",
+  };
+}
+
+async function resetStandaloneOutput(rootDir = projectRoot, fsImpl = fs) {
+  const standaloneRoot = path.join(rootDir, ".next", "standalone");
+  if (!(await exists(standaloneRoot))) return;
+
+  const staleStandaloneBackup = path.join(backupRoot, "standalone-stale");
+
+  await movePath(standaloneRoot, staleStandaloneBackup, fsImpl);
+  console.log("[build-next-isolated] Moved stale standalone output out of the build path");
+}
+
+export async function pruneStandaloneArtifacts(rootDir = projectRoot, fsImpl = fs) {
+  const standaloneRoot = path.join(rootDir, ".next", "standalone");
+  const pruneTargets = [path.join(standaloneRoot, "_tasks")];
+
+  for (const targetPath of pruneTargets) {
+    if (!(await exists(targetPath))) continue;
+    await fsImpl.rm(targetPath, { recursive: true, force: true });
+    console.log(
+      `[build-next-isolated] Pruned standalone artifact: ${path.relative(rootDir, targetPath)}`
+    );
+  }
+}
+
+export async function syncStandaloneNativeAssets(
+  rootDir = projectRoot,
+  fsImpl = fs,
+  log = console
+) {
+  const nativeAssetDirs = [
+    {
+      label: "wreq-js native runtime",
+      sourcePath: path.join(rootDir, "node_modules", "wreq-js", "rust"),
+      destinationPath: path.join(rootDir, ".next", "standalone", "node_modules", "wreq-js", "rust"),
+    },
+    {
+      label: "better-sqlite3 native binary",
+      sourcePath: path.join(rootDir, "node_modules", "better-sqlite3", "build"),
+      destinationPath: path.join(
+        rootDir,
+        ".next",
+        "standalone",
+        "node_modules",
+        "better-sqlite3",
+        "build"
+      ),
+    },
+  ];
+
+  let changed = false;
+
+  for (const entry of nativeAssetDirs) {
+    if (!(await exists(entry.sourcePath))) continue;
+
+    await fsImpl.mkdir(path.dirname(entry.destinationPath), { recursive: true });
+    await fsImpl.cp(entry.sourcePath, entry.destinationPath, {
+      recursive: true,
+      force: true,
+    });
+    log.log(
+      `[build-next-isolated] Copied native standalone asset: ${path.relative(
+        rootDir,
+        entry.destinationPath
+      )}`
+    );
+    changed = true;
+  }
+
+  return changed;
+}
+
+export async function syncStandaloneExtraModules(
+  rootDir = projectRoot,
+  fsImpl = fs,
+  log = console
+) {
+  const entries = [
+    {
+      label: "@swc/helpers",
+      sourcePath: path.join(rootDir, "node_modules", "@swc", "helpers"),
+      destRelative: path.join("node_modules", "@swc", "helpers"),
+    },
+    {
+      label: "pino-abstract-transport",
+      sourcePath: path.join(rootDir, "node_modules", "pino-abstract-transport"),
+      destRelative: path.join("node_modules", "pino-abstract-transport"),
+    },
+    {
+      label: "pino-pretty",
+      sourcePath: path.join(rootDir, "node_modules", "pino-pretty"),
+      destRelative: path.join("node_modules", "pino-pretty"),
+    },
+    {
+      label: "split2",
+      sourcePath: path.join(rootDir, "node_modules", "split2"),
+      destRelative: path.join("node_modules", "split2"),
+    },
+    {
+      label: "migrations",
+      sourcePath: path.join(rootDir, "src", "lib", "db", "migrations"),
+      destRelative: "migrations",
+    },
+    {
+      label: "MITM server",
+      sourcePath: path.join(rootDir, "src", "mitm", "server.cjs"),
+      destRelative: path.join("src", "mitm", "server.cjs"),
+    },
+    {
+      label: "run-standalone script",
+      sourcePath: path.join(rootDir, "scripts", "dev", "run-standalone.mjs"),
+      destRelative: path.join("dev", "run-standalone.mjs"),
+    },
+    {
+      // WS-aware wrapper that run-standalone.mjs prefers over bare server.js.
+      // It installs the trusted peer-IP stamp the authz middleware needs to
+      // allow loopback/LAN access to LOCAL_ONLY routes; without it the Docker
+      // container fails closed (every LOCAL_ONLY request 403s). Imports
+      // peer-stamp.mjs + responses-ws-proxy.mjs, so all three are co-located.
+      label: "WS/peer-stamp standalone server wrapper",
+      sourcePath: path.join(rootDir, "scripts", "dev", "standalone-server-ws.mjs"),
+      destRelative: "server-ws.mjs",
+    },
+    {
+      label: "peer-stamp helper (server-ws.mjs dependency)",
+      sourcePath: path.join(rootDir, "scripts", "dev", "peer-stamp.mjs"),
+      destRelative: "peer-stamp.mjs",
+    },
+    {
+      label: "responses-ws-proxy (server-ws.mjs dependency)",
+      sourcePath: path.join(rootDir, "scripts", "dev", "responses-ws-proxy.mjs"),
+      destRelative: "responses-ws-proxy.mjs",
+    },
+    {
+      label: "runtime-env script",
+      sourcePath: path.join(rootDir, "scripts", "build", "runtime-env.mjs"),
+      destRelative: path.join("build", "runtime-env.mjs"),
+    },
+    {
+      label: "bootstrap-env script",
+      sourcePath: path.join(rootDir, "scripts", "build", "bootstrap-env.mjs"),
+      destRelative: path.join("build", "bootstrap-env.mjs"),
+    },
+    {
+      label: "healthcheck script",
+      sourcePath: path.join(rootDir, "scripts", "dev", "healthcheck.mjs"),
+      destRelative: "healthcheck.mjs",
+    },
+    {
+      label: "public directory",
+      sourcePath: path.join(rootDir, "public"),
+      destRelative: "public",
+    },
+    {
+      label: "playwright-core (dynamic import by gemini-web executor)",
+      sourcePath: path.join(rootDir, "node_modules", "playwright-core"),
+      destRelative: path.join("node_modules", "playwright-core"),
+    },
+    {
+      label: "sqlite-vec wrapper (vector memory — loaded at runtime via createRequire)",
+      sourcePath: path.join(rootDir, "node_modules", "sqlite-vec"),
+      destRelative: path.join("node_modules", "sqlite-vec"),
+    },
+    // sqlite-vec's native vec0.so lives in a platform-specific package resolved at
+    // runtime via require.resolve(). Next.js does NOT trace it into the standalone
+    // (the externalized wrapper is copied, but its optional platform dep is missed —
+    // Next.js #88844), so without this the bundled/Docker build silently degrades
+    // vector search to FTS5: the wrapper loads but getLoadablePath() throws
+    // MODULE_NOT_FOUND. Copy whichever platform package npm actually installed. See #3066.
+    ...[
+      "sqlite-vec-linux-x64",
+      "sqlite-vec-linux-arm64",
+      "sqlite-vec-darwin-x64",
+      "sqlite-vec-darwin-arm64",
+      "sqlite-vec-windows-x64",
+    ].map((pkg) => ({
+      label: pkg,
+      sourcePath: path.join(rootDir, "node_modules", pkg),
+      destRelative: path.join("node_modules", pkg),
+    })),
+  ];
+
+  let changed = false;
+  const standaloneRoot = path.join(rootDir, ".next", "standalone");
+
+  for (const entry of entries) {
+    if (!(await exists(entry.sourcePath))) continue;
+
+    const destPath = path.join(standaloneRoot, entry.destRelative);
+    await fsImpl.mkdir(path.dirname(destPath), { recursive: true });
+    await fsImpl.cp(entry.sourcePath, destPath, { recursive: true, force: true });
+    log.log(`[build-next-isolated] Synced standalone module: ${entry.label}`);
+    changed = true;
+  }
+
+  return changed;
+}
+
+export async function main() {
+  const movedPaths = [];
+  const transientBuildPaths = getTransientBuildPaths();
+
+  try {
+    for (const entry of transientBuildPaths) {
+      if (!(await exists(entry.sourcePath))) continue;
+      await movePath(entry.sourcePath, entry.backupPath);
+      movedPaths.push(entry);
+    }
+
+    await resetStandaloneOutput(projectRoot);
+
+    const result = await runNextBuild();
+    if (result.code === 0 && (await exists(path.join(projectRoot, ".next", "standalone")))) {
+      console.log("[build-next-isolated] Copying static assets for standalone server...");
+      try {
+        await fs.cp(
+          path.join(projectRoot, ".next", "static"),
+          path.join(projectRoot, ".next", "standalone", ".next", "static"),
+          { recursive: true }
+        );
+      } catch (copyErr) {
+        console.warn("[build-next-isolated] Non-fatal error copying static assets:", copyErr);
+      }
+
+      try {
+        const publicDir = path.join(projectRoot, "public");
+        if (await exists(publicDir)) {
+          await fs.cp(publicDir, path.join(projectRoot, ".next", "standalone", "public"), {
+            recursive: true,
+          });
+          console.log("[build-next-isolated] Copied public/ to standalone output");
+        }
+      } catch (publicCopyErr) {
+        console.warn(
+          "[build-next-isolated] Non-fatal error copying public/:",
+          publicCopyErr?.message
+        );
+      }
+
+      try {
+        await fs.cp(
+          path.join(projectRoot, "docs"),
+          path.join(projectRoot, ".next", "standalone", "docs"),
+          { recursive: true }
+        );
+        console.log("[build-next-isolated] Copied docs/ to standalone output");
+      } catch (docsCopyErr) {
+        console.warn("[build-next-isolated] Non-fatal error copying docs/:", docsCopyErr?.message);
+      }
+
+      try {
+        await pruneStandaloneArtifacts(projectRoot);
+      } catch (pruneErr) {
+        console.warn(
+          "[build-next-isolated] Non-fatal error pruning standalone artifacts:",
+          pruneErr
+        );
+      }
+
+      try {
+        await syncStandaloneNativeAssets(projectRoot);
+      } catch (nativeAssetErr) {
+        console.warn(
+          "[build-next-isolated] Non-fatal error copying native standalone assets:",
+          nativeAssetErr
+        );
+      }
+
+      try {
+        await syncStandaloneExtraModules(projectRoot);
+      } catch (extraModuleErr) {
+        console.warn(
+          "[build-next-isolated] Non-fatal error syncing extra modules:",
+          extraModuleErr
+        );
+      }
+    }
+    process.exitCode = result.code;
+  } catch (error) {
+    console.error("[build-next-isolated] Build failed:", error);
+    process.exitCode = 1;
+  } finally {
+    while (movedPaths.length > 0) {
+      const entry = movedPaths.pop();
+      if (!entry) continue;
+      try {
+        await movePath(entry.backupPath, entry.sourcePath);
+      } catch (restoreError) {
+        console.error(
+          `[build-next-isolated] Failed to restore ${entry.label} from ${entry.backupPath}:`,
+          restoreError
+        );
+        process.exitCode = 1;
+      }
+    }
+
+    try {
+      await fs.rm(backupRoot, { recursive: true, force: true });
+    } catch (cleanupError) {
+      console.warn("[build-next-isolated] Failed to clean temporary backup root:", cleanupError);
+    }
+  }
+}
+
+const entryScript = process.argv[1] ? pathToFileURL(process.argv[1]).href : null;
+
+if (entryScript === import.meta.url) {
+  await main();
+}

@@ -24,6 +24,8 @@ type PendingRequestMetadata = {
   clientRequest?: unknown;
   providerRequest?: unknown;
   providerUrl?: string | null;
+  stage?: string | null;
+  stageUpdatedAt?: number | null;
 };
 type PendingRequestDetail = {
   model: string;
@@ -34,6 +36,8 @@ type PendingRequestDetail = {
   clientRequest?: unknown;
   providerRequest?: unknown;
   providerUrl?: string | null;
+  stage?: string | null;
+  stageUpdatedAt?: number | null;
 };
 
 function asRecord(value: unknown): JsonRecord {
@@ -42,6 +46,13 @@ function asRecord(value: unknown): JsonRecord {
 
 function toStringOrNull(value: unknown): string | null {
   return typeof value === "string" && value.trim().length > 0 ? value : null;
+}
+
+function normalizeServiceTier(value: unknown): string {
+  const tier = typeof value === "string" ? value.trim().toLowerCase() : "";
+  if (tier === "priority" || tier === "fast") return "priority";
+  if (tier === "flex") return "flex";
+  return "standard";
 }
 
 function toNumber(value: unknown): number {
@@ -118,6 +129,16 @@ function normalizePendingMetadata(metadata?: PendingRequestMetadata): PendingReq
   }
   if (metadata.providerUrl !== undefined) {
     normalized.providerUrl = toStringOrNull(metadata.providerUrl) || null;
+  }
+  if (metadata.stage !== undefined) {
+    normalized.stage = toStringOrNull(metadata.stage) || null;
+    normalized.stageUpdatedAt = Date.now();
+  }
+  if (metadata.stageUpdatedAt !== undefined) {
+    normalized.stageUpdatedAt =
+      typeof metadata.stageUpdatedAt === "number" && Number.isFinite(metadata.stageUpdatedAt)
+        ? metadata.stageUpdatedAt
+        : null;
   }
   if (metadata.clientRequest !== undefined) {
     normalized.clientRequest = truncatePendingPreview(protectPayloadForLog(metadata.clientRequest));
@@ -299,6 +320,7 @@ export async function getUsageDb(sinceIso?: string | null, limit?: number, curso
       connectionId: toStringOrNull(r.connection_id),
       apiKeyId: toStringOrNull(r.api_key_id),
       apiKeyName: toStringOrNull(r.api_key_name),
+      serviceTier: normalizeServiceTier(r.service_tier),
       tokens: {
         input: toNumber(r.tokens_input),
         output: toNumber(r.tokens_output),
@@ -332,13 +354,14 @@ export async function saveRequestUsage(entry: any) {
   try {
     const db = getDbInstance();
     const timestamp = entry.timestamp || new Date().toISOString();
+    const serviceTier = normalizeServiceTier(entry.serviceTier ?? entry.service_tier);
 
     db.prepare(
       `
       INSERT INTO usage_history (provider, model, connection_id, api_key_id, api_key_name,
         tokens_input, tokens_output, tokens_cache_read, tokens_cache_creation, tokens_reasoning,
-        status, success, latency_ms, ttft_ms, error_code, timestamp)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        service_tier, status, success, latency_ms, ttft_ms, error_code, combo_strategy, timestamp)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `
     ).run(
       entry.provider || null,
@@ -351,6 +374,7 @@ export async function saveRequestUsage(entry: any) {
       getPromptCacheReadTokens(entry.tokens),
       getPromptCacheCreationTokens(entry.tokens),
       getReasoningTokens(entry.tokens),
+      serviceTier,
       entry.status || null,
       entry.success === false ? 0 : 1,
       Number.isFinite(Number(entry.latencyMs)) ? Number(entry.latencyMs) : 0,
@@ -360,6 +384,7 @@ export async function saveRequestUsage(entry: any) {
           ? Number(entry.latencyMs)
           : 0,
       entry.errorCode || null,
+      entry.comboStrategy || entry.combo_strategy || null,
       timestamp
     );
   } catch (error) {
@@ -409,6 +434,7 @@ export async function getUsageHistory(filter: any = {}) {
       connectionId: toStringOrNull(r.connection_id),
       apiKeyId: toStringOrNull(r.api_key_id),
       apiKeyName: toStringOrNull(r.api_key_name),
+      serviceTier: normalizeServiceTier(r.service_tier),
       tokens: {
         input: toNumber(r.tokens_input),
         output: toNumber(r.tokens_output),

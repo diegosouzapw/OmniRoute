@@ -10,18 +10,6 @@ async function loadNextConfig(label) {
   return import(`${pathToFileURL(modulePath).href}?case=${label}-${Date.now()}`);
 }
 
-function runExternalResolver(resolver, request) {
-  return new Promise((resolve, reject) => {
-    resolver({ request }, (error, result) => {
-      if (error) {
-        reject(error);
-        return;
-      }
-      resolve(result);
-    });
-  });
-}
-
 test.afterEach(() => {
   if (originalNextDistDir === undefined) {
     delete process.env.NEXT_DIST_DIR;
@@ -43,7 +31,12 @@ test("next config exposes standalone build settings and canonical rewrites", asy
   assert.equal(nextConfig.distDir, ".next-task607");
   assert.equal(nextConfig.output, "standalone");
   assert.equal(nextConfig.images.unoptimized, true);
-  assert.deepEqual(nextConfig.transpilePackages, ["@omniroute/open-sse", "@lobehub/icons"]);
+  assert.deepEqual(nextConfig.transpilePackages, [
+    "@omniroute/open-sse",
+    "@lobehub/icons",
+    "fumadocs-ui",
+    "fumadocs-core",
+  ]);
   assert.equal(headers[0].source, "/:path*");
   assert.match(securityHeaders["Content-Security-Policy"], /default-src 'self'/);
   assert.match(securityHeaders["Content-Security-Policy"], /frame-ancestors 'none'/);
@@ -70,57 +63,172 @@ test("next config exposes standalone build settings and canonical rewrites", asy
   ]);
 });
 
-test("next config webpack server branch ignores thread-stream tests and normalizes externals", async () => {
-  const { default: nextConfig } = await loadNextConfig("webpack-server");
+test("next config declares Turbopack aliases, runtime assets and server externals", async () => {
+  const { default: nextConfig } = await loadNextConfig("runtime-assets");
+  const serverExternalPackages = new Set(nextConfig.serverExternalPackages);
+  const tracingIncludes = nextConfig.outputFileTracingIncludes["/*"];
+  const tracingExcludes = nextConfig.outputFileTracingExcludes["/*"];
 
-  class IgnorePlugin {
-    constructor(options) {
-      this.options = options;
+  assert.equal(nextConfig.turbopack.root, process.cwd());
+  assert.equal(nextConfig.turbopack.resolveAlias["@/mitm/manager"], "./src/mitm/manager.stub.ts");
+  assert.equal(nextConfig.outputFileTracingRoot, process.cwd());
+  assert.ok(tracingIncludes.includes("./src/lib/db/migrations/**/*"));
+  assert.ok(
+    tracingIncludes.includes("./open-sse/services/compression/engines/rtk/filters/**/*.json")
+  );
+  assert.ok(tracingIncludes.includes("./open-sse/services/compression/rules/**/*.json"));
+  assert.ok(tracingExcludes.includes("./_tasks/**/*"));
+  assert.ok(tracingExcludes.includes("./tests/**/*"));
+
+  for (const packageName of [
+    "thread-stream",
+    "better-sqlite3",
+    // sqlite-vec ships a native vec0.so loaded at runtime; without externalizing it
+    // the Turbopack build fails with "Unknown module type" on the .so (issue #3066).
+    "sqlite-vec",
+    "wreq-js",
+    "fs",
+    "path",
+    "child_process",
+    "crypto",
+    "net",
+    "tls",
+  ]) {
+    assert.ok(serverExternalPackages.has(packageName), `${packageName} should be externalized`);
+  }
+});
+
+// ── manager.stub.ts must cover every static @/mitm/manager import (issue #3066) ──
+//
+// next.config aliases `@/mitm/manager` → `manager.stub.ts` for the Turbopack build
+// (Docker uses Turbopack; the VM/webpack build uses the real module, which is why the
+// VM validated while Docker's `npm run build` errored). Any route that statically
+// imports a name the stub doesn't export breaks the Turbopack build with
+// "Export X doesn't exist in target module". This guard fails on that drift — it is
+// what would have caught the missing getAllAgentsStatus export in #3066.
+
+test("manager.stub.ts exports every name statically imported from @/mitm/manager", async () => {
+  const fs = await import("node:fs");
+  const srcDir = path.join(process.cwd(), "src");
+
+  // Collect value names imported via `... from "@/mitm/manager"` across ALL of src/ —
+  // not just src/app: src/lib/tailscaleTunnel.ts imports from it and is pulled into
+  // routes transitively, so a src/app-only scan would miss that surface. NOT
+  // manager.runtime (loaded via dynamic import(), resolves to the real module at
+  // runtime). Inline `type` imports are erased at build time and need no stub export.
+  const collectImports = (dir: string, acc: Set<string>): void => {
+    for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
+      const full = path.join(dir, entry.name);
+      if (entry.isDirectory()) {
+        collectImports(full, acc);
+        continue;
+      }
+      if (!/\.(ts|tsx)$/.test(entry.name)) continue;
+      const src = fs.readFileSync(full, "utf-8");
+      const re = /import\s*\{([^}]*)\}\s*from\s*["']@\/mitm\/manager["']/g;
+      let m: RegExpExecArray | null;
+      while ((m = re.exec(src)) !== null) {
+        for (const raw of m[1].split(",")) {
+          const token = raw.trim();
+          if (!token || /^type\s/.test(token)) continue; // type-only import: no runtime export needed
+          const name = token.split(/\s+as\s+/)[0].trim();
+          if (name) acc.add(name);
+        }
+      }
+    }
+  };
+
+  const imported = new Set<string>();
+  collectImports(srcDir, imported);
+
+  // Sanity: the guard is meaningless if the scan finds nothing to check. Kept generic
+  // (>= 1 import) rather than asserting a specific symbol, so the test stays valid if any
+  // single agent-bridge/traffic-inspector route is later renamed or removed.
+  assert.ok(imported.size > 0, "expected at least one static @/mitm/manager import in src/");
+
+  const stubSrc = fs.readFileSync(
+    path.join(process.cwd(), "src", "mitm", "manager.stub.ts"),
+    "utf-8"
+  );
+  // Collect stub exports from both declaration forms and named re-export blocks so the
+  // guard doesn't false-positive if the stub later uses `export class` / `export { … }`.
+  const stubExports = new Set<string>();
+  for (const m of stubSrc.matchAll(
+    /export\s+(?:const|let|var|class|function|async\s+function)\s+([A-Za-z0-9_]+)/g
+  )) {
+    stubExports.add(m[1]);
+  }
+  for (const m of stubSrc.matchAll(/export\s*\{([^}]*)\}/g)) {
+    for (const part of m[1].split(",")) {
+      const exported = part.trim().split(/\s+as\s+/).pop()?.trim(); // `x as y` exports y
+      if (exported) stubExports.add(exported);
     }
   }
 
-  const config = {
-    context: process.cwd(),
-    plugins: [],
-    resolve: { fallback: {} },
-    externals: [],
-  };
-
-  nextConfig.webpack(config, { isServer: true, webpack: { IgnorePlugin } });
-
-  assert.equal(config.plugins.length, 1);
-  assert.match(String(config.plugins[0].options.resourceRegExp), /test/);
-  assert.match(String(config.plugins[0].options.contextRegExp), /thread-stream/);
-
-  const resolver = config.externals.at(-1);
-  assert.equal(await runExternalResolver(resolver, "fs"), "commonjs fs");
-  assert.equal(
-    await runExternalResolver(resolver, "better-sqlite3-90e2652d1716b047"),
-    "commonjs better-sqlite3"
+  const missing = [...imported].filter((name) => !stubExports.has(name));
+  assert.deepEqual(
+    missing,
+    [],
+    `manager.stub.ts is missing exports statically imported by routes: ${missing.join(", ")}`
   );
-  assert.equal(await runExternalResolver(resolver, "left-pad"), undefined);
 });
 
-test("next config webpack client branch disables Node builtins in browser bundles", async () => {
-  const { default: nextConfig } = await loadNextConfig("webpack-client");
-  const config = {
+test("next-intl webpack hook preserves caller config and filters known extractor warnings", async () => {
+  const { default: nextConfig } = await loadNextConfig("webpack-pass-through");
+  const config: any = {
     context: process.cwd(),
     plugins: [],
     externals: [],
+    ignoreWarnings: [],
     resolve: { fallback: { http: true } },
   };
 
-  nextConfig.webpack(config, { isServer: false, webpack: { IgnorePlugin: class {} } });
+  nextConfig.webpack(config, {
+    isServer: false,
+    defaultLoaders: { babel: {} } as any,
+    webpack: {
+      IgnorePlugin: class {
+        options: any;
 
-  assert.deepEqual(config.resolve.fallback, {
-    http: true,
-    fs: false,
-    path: false,
-    child_process: false,
-    net: false,
-    tls: false,
-    crypto: false,
-    process: false,
-    os: false,
+        constructor(options) {
+          this.options = options;
+        }
+      },
+    },
   });
+
+  assert.deepEqual(config.plugins, []);
+  assert.deepEqual(config.externals, []);
+  assert.deepEqual(config.resolve.fallback, { http: true });
+  assert.equal(config.ignoreWarnings.length, 1);
+  assert.equal(
+    config.ignoreWarnings[0]({
+      message:
+        "Parsing of /repo/node_modules/next-intl/dist/esm/production/extractor/format/index.js for build dependencies failed at 'import(t)'.",
+      module: {
+        resource: "/repo/node_modules/next-intl/dist/esm/production/extractor/format/index.js",
+      },
+    }),
+    true
+  );
+  assert.equal(
+    config.ignoreWarnings[0]({
+      message:
+        "Parsing of /repo/node_modules/next-intl/dist/esm/production/extractor/format/index.js for build dependencies failed at 'import(t)'.",
+    }),
+    false
+  );
+  assert.equal(
+    config.ignoreWarnings[0]({
+      message: "Critical dependency: the request of a dependency is an expression",
+      module: {
+        resource: "/repo/node_modules/next-intl/dist/esm/production/extractor/format/index.js",
+      },
+    }),
+    true
+  );
+  assert.equal(
+    config.ignoreWarnings[0]({ message: "Critical dependency: request is expression" }),
+    false
+  );
 });

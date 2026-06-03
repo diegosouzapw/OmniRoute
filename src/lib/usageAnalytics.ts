@@ -76,6 +76,13 @@ function shortModelName(model: string) {
   return parts[parts.length - 1] || model;
 }
 
+function getApiKeyAnalyticsKey(
+  apiKeyId: string | null | undefined,
+  apiKeyName: string | null | undefined
+) {
+  return apiKeyId ? `id:${apiKeyId}` : `name:${apiKeyName || "unknown"}`;
+}
+
 /**
  * Compute all analytics data from usage history
  * @param {Array} history - Array of usage entries
@@ -184,7 +191,7 @@ export async function computeAnalytics(
     if (entry.model) summary.uniqueModels.add(modelShort);
     if (entry.connectionId) summary.uniqueAccounts.add(entry.connectionId);
     if (entry.apiKeyId || entry.apiKeyName) {
-      summary.uniqueApiKeys.add(entry.apiKeyId || entry.apiKeyName);
+      summary.uniqueApiKeys.add(getApiKeyAnalyticsKey(entry.apiKeyId, entry.apiKeyName));
     }
 
     // Daily trend
@@ -260,12 +267,14 @@ export async function computeAnalytics(
     // By API key
     if (entry.apiKeyId || entry.apiKeyName) {
       const keyName = entry.apiKeyName || entry.apiKeyId || "unknown";
+      const key = getApiKeyAnalyticsKey(entry.apiKeyId, entry.apiKeyName);
       const keyLabel = entry.apiKeyId ? `${keyName} (${entry.apiKeyId})` : keyName;
-      if (!byApiKeyMap[keyLabel]) {
-        byApiKeyMap[keyLabel] = {
+      if (!byApiKeyMap[key]) {
+        byApiKeyMap[key] = {
           apiKey: keyLabel,
           apiKeyId: entry.apiKeyId || null,
           apiKeyName: keyName,
+          historicalApiKeyNames: [],
           requests: 0,
           promptTokens: 0,
           completionTokens: 0,
@@ -273,11 +282,14 @@ export async function computeAnalytics(
           cost: 0,
         };
       }
-      byApiKeyMap[keyLabel].requests++;
-      byApiKeyMap[keyLabel].promptTokens += pt;
-      byApiKeyMap[keyLabel].completionTokens += ct;
-      byApiKeyMap[keyLabel].totalTokens += totalTkns;
-      byApiKeyMap[keyLabel].cost += cost;
+      if (entry.apiKeyName && !byApiKeyMap[key].historicalApiKeyNames.includes(entry.apiKeyName)) {
+        byApiKeyMap[key].historicalApiKeyNames.push(entry.apiKeyName);
+      }
+      byApiKeyMap[key].requests++;
+      byApiKeyMap[key].promptTokens += pt;
+      byApiKeyMap[key].completionTokens += ct;
+      byApiKeyMap[key].totalTokens += totalTkns;
+      byApiKeyMap[key].cost += cost;
     }
   }
 

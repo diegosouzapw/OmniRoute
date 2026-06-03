@@ -9,6 +9,8 @@ export const config = {
   matcher: [
     "/",
     "/dashboard/:path*",
+    "/home",
+    "/home/:path*",
     "/api/:path*",
     "/v1/:path*",
     "/v1",

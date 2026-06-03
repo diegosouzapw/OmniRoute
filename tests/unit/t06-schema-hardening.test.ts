@@ -12,6 +12,7 @@ import {
   pricingSyncRequestSchema,
   updateTaskRoutingSchema,
   taskRoutingActionSchema,
+  codexProfileIdSchema,
 } from "../../src/shared/validation/schemas.ts";
 
 test("translatorDetectSchema rejects empty body object", () => {
@@ -161,4 +162,33 @@ test("taskRoutingActionSchema accepts detect action with object body", () => {
     },
   });
   assert.equal(validation.success, true);
+});
+
+test("codexProfileIdSchema accepts a normal slug profileId", () => {
+  const validation = validateBody(codexProfileIdSchema, { profileId: "my-work-profile_2" });
+  assert.equal(validation.success, true);
+});
+
+test("codexProfileIdSchema rejects path-traversal profileId (escape PROFILES_DIR)", () => {
+  // profileId is interpolated into `<PROFILES_DIR>/<id>.json` and used for
+  // fs.readFile / fs.unlink. A `..` segment or path separator must be rejected
+  // at validation so the request cannot read or delete files outside the dir.
+  for (const evil of [
+    "../../../../etc/passwd",
+    "..\\..\\windows\\system32\\config",
+    "foo/bar",
+    "/etc/shadow",
+    "..",
+    ".",
+    "with space",
+    "a$(whoami)",
+  ]) {
+    const validation = validateBody(codexProfileIdSchema, { profileId: evil });
+    assert.equal(validation.success, false, `expected rejection for profileId="${evil}"`);
+  }
+});
+
+test("codexProfileIdSchema rejects empty/whitespace profileId", () => {
+  assert.equal(validateBody(codexProfileIdSchema, { profileId: "" }).success, false);
+  assert.equal(validateBody(codexProfileIdSchema, { profileId: "   " }).success, false);
 });

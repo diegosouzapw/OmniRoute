@@ -7,6 +7,7 @@ import {
 } from "@/shared/constants/providers";
 import { getRegistryEntry } from "@omniroute/open-sse/config/providerRegistry.ts";
 import { getModelsByProviderId } from "@/shared/constants/models";
+import { getStaticModelsForProvider, type LocalCatalogModel } from "@/lib/providers/staticModels";
 import {
   getProviderConnectionById,
   getModelIsHidden,
@@ -19,18 +20,29 @@ import {
   safeOutboundFetch,
 } from "@/shared/network/safeOutboundFetch";
 import { getProviderOutboundGuard } from "@/shared/network/outboundUrlGuard";
+import { sanitizeErrorMessage } from "@omniroute/open-sse/utils/error";
 import { getStaticQoderModels } from "@omniroute/open-sse/services/qoderCli.ts";
 import { getAntigravityHeaders } from "@omniroute/open-sse/services/antigravityHeaders.ts";
-import { getAntigravityModelsDiscoveryUrls } from "@omniroute/open-sse/config/antigravityUpstream.ts";
-import { getGlmModelsUrl } from "@omniroute/open-sse/config/glmProvider.ts";
+import { ensureAntigravityProjectAssigned } from "@omniroute/open-sse/services/antigravityProjectBootstrap.ts";
+import {
+  getAntigravityModelsDiscoveryUrls,
+  getAntigravityFetchAvailableModelsUrls,
+} from "@omniroute/open-sse/config/antigravityUpstream.ts";
+import {
+  buildGlmCodingHeaders,
+  buildGlmModelsUrl,
+} from "@omniroute/open-sse/config/glmProvider.ts";
 import { getImageProvider } from "@omniroute/open-sse/config/imageRegistry.ts";
 import { getVideoProvider } from "@omniroute/open-sse/config/videoRegistry.ts";
 import { resolveAntigravityVersion } from "@omniroute/open-sse/services/antigravityVersion.ts";
 import {
+  discoverBedrockNativeModels,
+  isBedrockNativeApiError,
+} from "@omniroute/open-sse/services/bedrock.ts";
+import {
   AZURE_AI_DEFAULT_BASE_URL,
   buildAzureAiModelsUrl,
 } from "@omniroute/open-sse/config/azureAi.ts";
-import { normalizeBedrockBaseUrl } from "@omniroute/open-sse/config/bedrock.ts";
 import {
   DATAROBOT_DEFAULT_BASE_URL,
   buildDataRobotCatalogUrl,
@@ -47,11 +59,11 @@ import {
   buildWatsonxModelsUrl,
 } from "@omniroute/open-sse/config/watsonx.ts";
 import {
-  ANTIGRAVITY_PUBLIC_MODELS,
   getClientVisibleAntigravityModelName,
   isUserCallableAntigravityModelId,
   toClientAntigravityModelId,
 } from "@omniroute/open-sse/config/antigravityModelAliases.ts";
+import { normalizeAntigravityClientProfile } from "@/shared/constants/antigravityClientProfile";
 import { getEmbeddingProvider } from "@omniroute/open-sse/config/embeddingRegistry.ts";
 import { getRerankProvider } from "@omniroute/open-sse/config/rerankRegistry.ts";
 import {
@@ -63,10 +75,9 @@ import {
   isAutoFetchModelsEnabled,
   persistDiscoveredModels,
 } from "@/lib/providerModels/modelDiscovery";
+import { fetchCursorAgentModels } from "@/lib/providerModels/cursorAgent";
 
 type JsonRecord = Record<string, unknown>;
-type LocalCatalogModel = { id: string; name?: string };
-
 const antigravityDiscoveryInflight = new Map<
   string,
   Promise<Array<{ id: string; name: string }>>
@@ -80,6 +91,14 @@ function toNonEmptyString(value: unknown): string | null {
   if (typeof value !== "string") return null;
   const trimmed = value.trim();
   return trimmed.length > 0 ? trimmed : null;
+}
+
+function toGeminiCliProjectId(value: unknown): string | null {
+  const normalized = toNonEmptyString(value);
+  if (!normalized) return null;
+  const lower = normalized.toLowerCase();
+  if (lower === "default-project" || lower === "projects/default-project") return null;
+  return normalized;
 }
 
 function getProviderBaseUrl(providerSpecificData: unknown): string | null {
@@ -107,14 +126,7 @@ function isLocalOpenAIStyleProvider(provider: string): boolean {
   return isSelfHostedChatProvider(provider);
 }
 
-const NAMED_OPENAI_STYLE_PROVIDERS = new Set([
-  "bedrock",
-  "modal",
-  "reka",
-  "empower",
-  "nous-research",
-  "poe",
-]);
+const NAMED_OPENAI_STYLE_PROVIDERS = new Set(["modal", "reka", "empower", "nous-research", "poe"]);
 
 function isNamedOpenAIStyleProvider(provider: string): boolean {
   return NAMED_OPENAI_STYLE_PROVIDERS.has(provider);
@@ -212,16 +224,26 @@ function mapAntigravityModelForClient(model: { id: string; name: string }): {
 async function fetchAntigravityDiscoveryModelsCached(
   accessToken: string,
   connectionId: string,
-  proxy: unknown
+  proxy: unknown,
+  providerSpecificData?: unknown
 ): Promise<Array<{ id: string; name: string }>> {
-  const cacheKey = `${connectionId}:${accessToken.substring(0, 16)}`;
+  const profile = normalizeAntigravityClientProfile(asRecord(providerSpecificData).clientProfile);
+  const cacheKey = `${connectionId}:${accessToken.substring(0, 16)}:${profile}`;
   const inflight = antigravityDiscoveryInflight.get(cacheKey);
   if (inflight) return inflight;
 
   const promise = (async () => {
     await resolveAntigravityVersion();
+    await ensureAntigravityProjectAssigned(
+      accessToken,
+      fetch,
+      normalizeAntigravityClientProfile(asRecord(providerSpecificData).clientProfile)
+    );
 
-    for (const discoveryUrl of getAntigravityModelsDiscoveryUrls()) {
+    for (const discoveryUrl of [
+      ...getAntigravityFetchAvailableModelsUrls(),
+      ...getAntigravityModelsDiscoveryUrls(),
+    ]) {
       try {
         const response = await safeOutboundFetch(discoveryUrl, {
           ...SAFE_OUTBOUND_FETCH_PRESETS.modelsDiscovery,
@@ -350,117 +372,6 @@ const KIMI_CODING_MODELS_CONFIG: ProviderModelsConfigEntry = {
   parseResponse: (data) => data.data || data.models || [],
 };
 
-// Providers that return hardcoded models (no remote /models API)
-const STATIC_MODEL_PROVIDERS: Record<string, () => Array<{ id: string; name: string }>> = {
-  deepgram: () => [
-    { id: "nova-3", name: "Nova 3 (Transcription)" },
-    { id: "nova-2", name: "Nova 2 (Transcription)" },
-    { id: "whisper-large", name: "Whisper Large (Transcription)" },
-    { id: "aura-asteria-en", name: "Aura Asteria EN (TTS)" },
-    { id: "aura-luna-en", name: "Aura Luna EN (TTS)" },
-    { id: "aura-stella-en", name: "Aura Stella EN (TTS)" },
-  ],
-  assemblyai: () => [
-    { id: "universal-3-pro", name: "Universal 3 Pro (Transcription)" },
-    { id: "universal-2", name: "Universal 2 (Transcription)" },
-  ],
-  nanobanana: () => [
-    { id: "nanobanana-flash", name: "NanoBanana Flash (Gemini 2.5 Flash)" },
-    { id: "nanobanana-pro", name: "NanoBanana Pro (Gemini 3 Pro)" },
-  ],
-  antigravity: () => ANTIGRAVITY_PUBLIC_MODELS.map((model) => ({ ...model })),
-  claude: () => [
-    { id: "claude-opus-4-7", name: "Claude Opus 4.7" },
-    { id: "claude-opus-4-6", name: "Claude Opus 4.6" },
-    { id: "claude-sonnet-4-6", name: "Claude Sonnet 4.6" },
-    { id: "claude-opus-4-5-20251101", name: "Claude Opus 4.5 (2025-11-01)" },
-    { id: "claude-sonnet-4-5-20250929", name: "Claude Sonnet 4.5 (2025-09-29)" },
-    { id: "claude-haiku-4-5-20251001", name: "Claude Haiku 4.5 (2025-10-01)" },
-  ],
-  perplexity: () => [
-    { id: "sonar", name: "Sonar (Fast Search)" },
-    { id: "sonar-pro", name: "Sonar Pro (Advanced Search)" },
-    { id: "sonar-reasoning", name: "Sonar Reasoning (CoT + Search)" },
-    { id: "sonar-reasoning-pro", name: "Sonar Reasoning Pro (Advanced CoT + Search)" },
-    { id: "sonar-deep-research", name: "Sonar Deep Research (Expert Analysis)" },
-  ],
-  "bailian-coding-plan": () => [
-    { id: "qwen3.5-plus", name: "Qwen3.5 Plus" },
-    { id: "qwen3-max-2026-01-23", name: "Qwen3 Max (2026-01-23)" },
-    { id: "qwen3-coder-next", name: "Qwen3 Coder Next" },
-    { id: "qwen3-coder-plus", name: "Qwen3 Coder Plus" },
-    { id: "MiniMax-M2.5", name: "MiniMax M2.5" },
-    { id: "glm-5", name: "GLM 5" },
-    { id: "glm-4.7", name: "GLM 4.7" },
-    { id: "kimi-k2.5", name: "Kimi K2.5" },
-  ],
-  gitlab: () => [{ id: "gitlab-duo-code-suggestions", name: "GitLab Duo Code Suggestions" }],
-  nlpcloud: () =>
-    getModelsByProviderId("nlpcloud").map((model) => ({
-      id: model.id,
-      name: model.name || model.id,
-    })),
-  qoder: () => getStaticQoderModels(),
-};
-
-/**
- * Get static models for a provider (if available).
- * Exported for testing purposes.
- * @param provider - Provider ID
- * @returns Array of models or undefined if provider doesn't use static models
- */
-export function getStaticModelsForProvider(
-  provider: string
-): Array<{ id: string; name: string }> | undefined {
-  const staticModelsFn = STATIC_MODEL_PROVIDERS[provider];
-  if (staticModelsFn) {
-    return staticModelsFn();
-  }
-
-  const specialtyModels: Array<{ id: string; name: string }> = [];
-  const appendModels = (models: Array<{ id: string; name?: string }>) => {
-    for (const model of models) {
-      if (specialtyModels.some((existing) => existing.id === model.id)) continue;
-      specialtyModels.push({
-        id: model.id,
-        name: model.name || model.id,
-      });
-    }
-  };
-
-  const embeddingProvider = getEmbeddingProvider(provider);
-  if (embeddingProvider) {
-    appendModels(embeddingProvider.models);
-  }
-
-  const rerankProvider = getRerankProvider(provider);
-  if (rerankProvider) {
-    appendModels(rerankProvider.models);
-  }
-
-  const imageProvider = getImageProvider(provider);
-  if (imageProvider) {
-    appendModels(imageProvider.models);
-  }
-
-  const videoProvider = getVideoProvider(provider);
-  if (videoProvider) {
-    appendModels(videoProvider.models);
-  }
-
-  const speechProvider = getSpeechProvider(provider);
-  if (speechProvider) {
-    appendModels(speechProvider.models);
-  }
-
-  const transcriptionProvider = getTranscriptionProvider(provider);
-  if (transcriptionProvider) {
-    appendModels(transcriptionProvider.models);
-  }
-
-  return specialtyModels.length > 0 ? specialtyModels : undefined;
-}
-
 // Provider models endpoints configuration
 const PROVIDER_MODELS_CONFIG: Record<string, ProviderModelsConfigEntry> = {
   claude: {
@@ -524,6 +435,14 @@ const PROVIDER_MODELS_CONFIG: Record<string, ProviderModelsConfigEntry> = {
     },
   },
   // gemini-cli handled via retrieveUserQuota (see GET handler)
+  huggingface: {
+    url: "https://router.huggingface.co/v1/models",
+    method: "GET",
+    headers: { "Content-Type": "application/json" },
+    authHeader: "Authorization",
+    authPrefix: "Bearer ",
+    parseResponse: (data) => normalizeOpenAiLikeModelsResponse(data, "huggingface"),
+  },
   qwen: {
     url: "https://dashscope-intl.aliyuncs.com/compatible-mode/v1/models",
     method: "GET",
@@ -782,6 +701,22 @@ const PROVIDER_MODELS_CONFIG: Record<string, ProviderModelsConfigEntry> = {
     authPrefix: "Bearer ",
     parseResponse: (data) => data.data || data.models || [],
   },
+  gitlawb: {
+    url: "https://opengateway.gitlawb.com/v1/xiaomi-mimo/models",
+    method: "GET",
+    headers: { "Content-Type": "application/json" },
+    authHeader: "Authorization",
+    authPrefix: "Bearer ",
+    parseResponse: (data) => data.data || data.models || [],
+  },
+  "gitlawb-gmi": {
+    url: "https://opengateway.gitlawb.com/v1/gmi-cloud/models",
+    method: "GET",
+    headers: { "Content-Type": "application/json" },
+    authHeader: "Authorization",
+    authPrefix: "Bearer ",
+    parseResponse: (data) => data.data || data.models || [],
+  },
 };
 
 /**
@@ -837,6 +772,16 @@ export async function GET(
       return localCatalog.map((model) => ({
         id: model.id,
         name: model.name || model.id,
+        ...((model as Record<string, unknown>).apiFormat
+          ? { apiFormat: (model as Record<string, unknown>).apiFormat as string | undefined }
+          : {}),
+        ...((model as Record<string, unknown>).supportedEndpoints
+          ? {
+              supportedEndpoints: (model as Record<string, unknown>).supportedEndpoints as
+                | string[]
+                | undefined,
+            }
+          : {}),
         ...(registryCatalogModels.length > 0 ? { owned_by: provider } : {}),
       }));
     };
@@ -883,7 +828,7 @@ export async function GET(
       }
     ) => {
       const status = getSafeOutboundFetchErrorStatus(error);
-      if (status === 400) return null;
+      if (status === 400 || status === 503 || status === 504) return null;
       return buildDiscoveryFallbackResponse(warnings);
     };
 
@@ -910,7 +855,7 @@ export async function GET(
       });
     };
 
-    const buildApiDiscoveryResponse = async (models: any[]) => {
+    const buildApiDiscoveryResponse = async (models: any[], warning?: string) => {
       const discoveredModels = await persistDiscoveredModels(provider, connectionId, models);
       if (discoveredModels.length > 0) {
         return buildResponse({
@@ -918,6 +863,7 @@ export async function GET(
           connectionId,
           models,
           source: "api",
+          ...(warning ? { warning } : {}),
         });
       }
 
@@ -933,6 +879,93 @@ export async function GET(
         source: "api",
       });
     };
+
+    if (provider === "reka") {
+      const localCatalog = buildLocalCatalogResponse();
+      if (localCatalog) return localCatalog;
+    }
+
+    if (provider === "bedrock") {
+      const cachedResponse = maybeReturnCachedDiscovery();
+      if (cachedResponse) return cachedResponse;
+
+      const autoFetchDisabledResponse = maybeReturnAutoFetchDisabled();
+      if (autoFetchDisabledResponse) return autoFetchDisabledResponse;
+
+      const token = apiKey || accessToken;
+      if (!token) {
+        const fallback = buildDiscoveryFallbackResponse({
+          cacheWarning: "No token configured — using cached catalog",
+          localWarning: "No token configured — using local catalog",
+        });
+        if (fallback) return fallback;
+        return NextResponse.json(
+          {
+            error:
+              "No API key configured for this provider. Please add an API key in the provider settings.",
+          },
+          { status: 400 }
+        );
+      }
+
+      try {
+        const discovery = await discoverBedrockNativeModels({
+          apiKey: token,
+          providerSpecificData: connection.providerSpecificData,
+          fetcher: (url, init) =>
+            safeOutboundFetch(url, {
+              ...SAFE_OUTBOUND_FETCH_PRESETS.modelsDiscovery,
+              guard: getProviderOutboundGuard(),
+              proxyConfig: proxy,
+              ...init,
+            }),
+        });
+        const models = discovery.models.map((model) => ({
+          id: model.id,
+          name: model.name || model.id,
+          owned_by: model.provider || "bedrock",
+          source: model.source,
+          ...(model.supportsStreaming !== undefined
+            ? { supportsStreaming: model.supportsStreaming }
+            : {}),
+          ...(model.supportsVision !== undefined ? { supportsVision: model.supportsVision } : {}),
+          ...(typeof model.inputTokenLimit === "number"
+            ? { inputTokenLimit: model.inputTokenLimit }
+            : {}),
+          ...(typeof model.outputTokenLimit === "number"
+            ? { outputTokenLimit: model.outputTokenLimit }
+            : {}),
+        }));
+        return buildApiDiscoveryResponse(models, discovery.warnings[0]);
+      } catch (error) {
+        const status = isBedrockNativeApiError(error)
+          ? error.status
+          : getSafeOutboundFetchErrorStatus(error);
+        if (status === 401 || status === 403) {
+          const fallback = buildDiscoveryFallbackResponse({
+            cacheWarning: `Auth failed (${status}) — using cached catalog`,
+            localWarning: `Auth failed (${status}) — using local catalog`,
+          });
+          if (fallback) return fallback;
+          return NextResponse.json({ error: `Auth failed: ${status}` }, { status });
+        }
+        if (status === 400) {
+          return NextResponse.json(
+            { error: "Invalid Bedrock region or models request" },
+            { status }
+          );
+        }
+        const fallback = buildDiscoveryFallbackResponse({
+          cacheWarning: "Bedrock models API unavailable — using cached catalog",
+          localWarning: "Bedrock models API unavailable — using local catalog",
+        });
+        if (fallback) return fallback;
+        if (status) {
+          return NextResponse.json({ error: `Bedrock models API failed: ${status}` }, { status });
+        }
+        throw error;
+      }
+    }
 
     if (
       isOpenAICompatibleProvider(provider) ||
@@ -952,8 +985,7 @@ export async function GET(
       const rawBaseUrl =
         getProviderBaseUrl(connection.providerSpecificData) ||
         (typeof registryEntry?.baseUrl === "string" ? registryEntry.baseUrl : null);
-      const baseUrl =
-        provider === "bedrock" && rawBaseUrl ? normalizeBedrockBaseUrl(rawBaseUrl) : rawBaseUrl;
+      const baseUrl = rawBaseUrl;
       if (!baseUrl) {
         const fallback = buildDiscoveryFallbackResponse({
           cacheWarning: "Base URL unavailable — using cached catalog",
@@ -1501,44 +1533,209 @@ export async function GET(
       return buildResponse({
         provider,
         connectionId,
-        models: STATIC_MODEL_PROVIDERS.claude(),
+        models: getStaticModelsForProvider("claude") || [],
       });
     }
 
-    if (provider === "glm" || provider === "glmt") {
+    if (provider === "cursor") {
       const cachedResponse = maybeReturnCachedDiscovery();
       if (cachedResponse) return cachedResponse;
 
       const autoFetchDisabledResponse = maybeReturnAutoFetchDisabled();
       if (autoFetchDisabledResponse) return autoFetchDisabledResponse;
 
-      const url = getGlmModelsUrl(connection.providerSpecificData);
-      const token = apiKey || accessToken;
-
-      let response: Response;
       try {
-        response = await safeOutboundFetch(url, {
-          ...SAFE_OUTBOUND_FETCH_PRESETS.modelsDiscovery,
-          guard: getProviderOutboundGuard(),
-          proxyConfig: proxy,
-          method: "GET",
-          headers: {
-            "Content-Type": "application/json",
-            ...(token ? { Authorization: `Bearer ${token}` } : {}),
-          },
+        const models = await fetchCursorAgentModels();
+        return buildApiDiscoveryResponse(models);
+      } catch (err) {
+        const message = err instanceof Error ? err.message : String(err);
+        console.log("[models] cursor-agent fetch failed:", message);
+        const fallback = buildDiscoveryFallbackResponse({
+          cacheWarning: `cursor-agent unavailable (${message}) — using cached catalog`,
+          localWarning: `cursor-agent unavailable (${message}) — using local catalog`,
         });
+        if (fallback) return fallback;
+        return NextResponse.json(
+          { error: `Failed to fetch Cursor models: ${message}` },
+          { status: 502 }
+        );
+      }
+    }
+
+    if (provider === "inner-ai") {
+      const cachedResponse = maybeReturnCachedDiscovery();
+      if (cachedResponse) return cachedResponse;
+
+      const autoFetchDisabledResponse = maybeReturnAutoFetchDisabled();
+      if (autoFetchDisabledResponse) return autoFetchDisabledResponse;
+
+      try {
+        // Parse "TOKEN EMAIL" credential format
+        const raw = apiKey.trim();
+        const eqIdx = raw.indexOf("=");
+        const stripped = eqIdx > 0 && !raw.startsWith("eyJ") ? raw.slice(eqIdx + 1).trim() : raw;
+        const lastSpace = stripped.lastIndexOf(" ");
+        let innerAiToken = stripped;
+        let innerAiEmail = "";
+        if (lastSpace > 0) {
+          const possibleEmail = stripped.slice(lastSpace + 1).trim();
+          if (possibleEmail.includes("@")) {
+            innerAiToken = stripped.slice(0, lastSpace).trim();
+            innerAiEmail = possibleEmail;
+          }
+        }
+
+        // Decode device_id from JWT payload
+        let innerAiDeviceId = "";
+        try {
+          const parts = innerAiToken.split(".");
+          if (parts.length >= 2) {
+            const b64 = parts[1].replace(/-/g, "+").replace(/_/g, "/");
+            const payload = JSON.parse(Buffer.from(b64, "base64").toString("utf8"));
+            innerAiDeviceId = String(
+              payload?.device_id ??
+                payload?.deviceId ??
+                payload?.["device-id"] ??
+                payload?.did ??
+                ""
+            ).trim();
+          }
+        } catch {
+          /* ignore */
+        }
+
+        const innerAiHeaders: Record<string, string> = {
+          "USER-TOKEN": innerAiToken,
+          "User-Agent":
+            "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36",
+          Origin: "https://app.innerai.com",
+          Referer: "https://app.innerai.com/",
+        };
+        if (innerAiEmail) innerAiHeaders["USER-EMAIL"] = innerAiEmail;
+        if (innerAiDeviceId) innerAiHeaders["DEVICE-ID"] = innerAiDeviceId;
+
+        const modelsResp = await safeOutboundFetch(
+          "https://platformapi.innerai.com/api/v1/ai_models",
+          { headers: innerAiHeaders },
+          getProviderOutboundGuard(provider)
+        );
+        if (!modelsResp.ok) {
+          throw new Error(`Inner.ai models API returned HTTP ${modelsResp.status}`);
+        }
+
+        const modelsBody = await modelsResp.json().catch(() => null);
+        const rawModels: Array<Record<string, unknown>> = Array.isArray(modelsBody?.ai_models)
+          ? modelsBody.ai_models
+          : Array.isArray(modelsBody)
+            ? modelsBody
+            : [];
+
+        // Filter: enabled, available, text/chat category only.
+        // Use ai_model_categories[].unique_identifier === "text" when available;
+        // fall back to llm_model name heuristic for models without categories.
+        const nonTextPattern =
+          /image|video|audio|img|vid|sound|music|voice|tts|stt|track|clip|avatar|cartoon|flux|stable.diff|recraft|ideogram|leonardo|magnific|bria|seedream|luma|kling|pika|veo|wan-|heygen|did-|vidu|pixverse|sora-|gen-[0-9]|playground|gemini-fal|gamma|lyria|clothes|whisper/i;
+        const textModels = rawModels.filter((m) => {
+          if (m.enable === false || m.unavailable_api) return false;
+          if (typeof m.llm_model !== "string") return false;
+          const cats = Array.isArray(m.ai_model_categories) ? m.ai_model_categories : null;
+          if (cats && cats.length > 0) {
+            return cats.some(
+              (c: Record<string, unknown>) =>
+                String(c.unique_identifier ?? c.name ?? "").toLowerCase() === "text"
+            );
+          }
+          // No categories field — fall back to name heuristic
+          return !nonTextPattern.test(m.llm_model as string);
+        });
+
+        const models = textModels.map((m) => ({
+          id: String(m.llm_model),
+          name: String(m.name || m.llm_model),
+        }));
+
+        return buildApiDiscoveryResponse(models);
+      } catch (err) {
+        const message = err instanceof Error ? err.message : String(err);
+        const fallback = buildDiscoveryFallbackResponse({
+          cacheWarning: `Inner.ai models unavailable (${message}) — using cached catalog`,
+          localWarning: `Inner.ai models unavailable (${message}) — using local catalog`,
+        });
+        if (fallback) return fallback;
+        return NextResponse.json(
+          { error: `Failed to fetch Inner.ai models: ${message}` },
+          { status: 502 }
+        );
+      }
+    }
+
+    if (provider === "glm" || provider === "glm-cn" || provider === "glmt") {
+      const cachedResponse = maybeReturnCachedDiscovery();
+      if (cachedResponse) return cachedResponse;
+
+      const autoFetchDisabledResponse = maybeReturnAutoFetchDisabled();
+      if (autoFetchDisabledResponse) return autoFetchDisabledResponse;
+
+      const token = apiKey || accessToken;
+      const glmProviderSpecificData = {
+        ...asRecord(connection.providerSpecificData),
+        ...(provider === "glm-cn" ? { apiRegion: "china" } : {}),
+      };
+      const discoveredTargets = [
+        {
+          transport: "openai" as const,
+          url: buildGlmModelsUrl(glmProviderSpecificData, "openai"),
+        },
+        {
+          transport: "anthropic" as const,
+          url: buildGlmModelsUrl(glmProviderSpecificData, "anthropic"),
+        },
+      ];
+      const discoveryTargets = discoveredTargets.filter(
+        (target, index, all) => all.findIndex((other) => other.url === target.url) === index
+      );
+
+      let response: Response | null = null;
+      try {
+        for (const target of discoveryTargets) {
+          response = await safeOutboundFetch(target.url, {
+            ...SAFE_OUTBOUND_FETCH_PRESETS.modelsDiscovery,
+            guard: getProviderOutboundGuard(),
+            proxyConfig: proxy,
+            method: "GET",
+            headers:
+              target.transport === "openai"
+                ? token
+                  ? buildGlmCodingHeaders(token, false)
+                  : { "Content-Type": "application/json", Accept: "application/json" }
+                : {
+                    "Content-Type": "application/json",
+                    Accept: "application/json",
+                    ...(token ? { "x-api-key": token } : {}),
+                    "anthropic-version": "2023-06-01",
+                  },
+          });
+          if (response.ok) break;
+          if (response.status === 401 || response.status === 403) break;
+        }
       } catch (error) {
         const fallback = buildDiscoveryErrorFallbackResponse(error);
         if (fallback) return fallback;
         throw error;
       }
 
-      if (!response.ok) {
+      if (!response?.ok) {
+        if (response?.status === 401 || response?.status === 403) {
+          return NextResponse.json(
+            { error: `Failed to fetch models: ${response.status}` },
+            { status: response.status }
+          );
+        }
         const fallback = buildDiscoveryFallbackResponse();
         if (fallback) return fallback;
         return NextResponse.json(
-          { error: `Failed to fetch models: ${response.status}` },
-          { status: response.status }
+          { error: `Failed to fetch models: ${response?.status || 502}` },
+          { status: response?.status || 502 }
         );
       }
 
@@ -1565,7 +1762,10 @@ export async function GET(
       }
 
       const psd = asRecord(connection.providerSpecificData);
-      const projectId = connection.projectId || psd.projectId || null;
+      const projectId =
+        toGeminiCliProjectId(psd.projectId) ||
+        toGeminiCliProjectId(psd.project) ||
+        toGeminiCliProjectId(connection.projectId);
 
       if (!projectId) {
         return NextResponse.json(
@@ -1592,7 +1792,10 @@ export async function GET(
 
         if (!quotaRes.ok) {
           const errText = await quotaRes.text();
-          console.log(`[models] Gemini CLI quota fetch failed (${quotaRes.status}):`, errText);
+          console.log("[models] Gemini CLI quota fetch failed", {
+            status: quotaRes.status,
+            errText,
+          });
           const fallback = buildDiscoveryFallbackResponse();
           if (fallback) return fallback;
           return NextResponse.json(
@@ -1629,7 +1832,7 @@ export async function GET(
       const autoFetchDisabledResponse = maybeReturnAutoFetchDisabled();
       if (autoFetchDisabledResponse) return autoFetchDisabledResponse;
 
-      const staticModels = STATIC_MODEL_PROVIDERS.antigravity();
+      const staticModels = getStaticModelsForProvider("antigravity") || [];
 
       if (!accessToken) {
         const fallback = buildDiscoveryFallbackResponse({
@@ -1649,7 +1852,8 @@ export async function GET(
       const remoteModels = await fetchAntigravityDiscoveryModelsCached(
         accessToken,
         connectionId,
-        proxy
+        proxy,
+        connection.providerSpecificData
       );
       if (remoteModels.length > 0) {
         return buildApiDiscoveryResponse(remoteModels);
@@ -1726,7 +1930,7 @@ export async function GET(
 
       if (!response.ok) {
         const errorText = await response.text();
-        console.log(`Error fetching models from ${provider}:`, errorText);
+        console.log("Error fetching models from provider", { provider, errorText });
         const fallback = buildDiscoveryFallbackResponse();
         if (fallback) return fallback;
         return NextResponse.json(
@@ -1762,6 +1966,8 @@ export async function GET(
       });
     }
 
+
+
     const localCatalog = mergeLocalCatalogModels(registryCatalogModels, specialtyCatalogModels);
     if (!config && localCatalog.length > 0) {
       return buildResponse({
@@ -1770,6 +1976,16 @@ export async function GET(
         models: localCatalog.map((m) => ({
           id: m.id,
           name: m.name || m.id,
+          ...((m as Record<string, unknown>).apiFormat
+            ? { apiFormat: (m as Record<string, unknown>).apiFormat as string | undefined }
+            : {}),
+          ...((m as Record<string, unknown>).supportedEndpoints
+            ? {
+                supportedEndpoints: (m as Record<string, unknown>).supportedEndpoints as
+                  | string[]
+                  | undefined,
+              }
+            : {}),
           ...(registryCatalogModels.length > 0 ? { owned_by: provider } : {}),
         })),
         source: "local_catalog",
@@ -1867,7 +2083,7 @@ export async function GET(
 
       if (!response.ok) {
         const errorText = await response.text();
-        console.log(`Error fetching models from ${provider}:`, errorText);
+        console.log("Error fetching models from provider", { provider, errorText });
         const fallback = buildDiscoveryFallbackResponse();
         if (fallback) return fallback;
         return NextResponse.json(
@@ -1902,7 +2118,7 @@ export async function GET(
     return buildApiDiscoveryResponse(allModels);
   } catch (error) {
     if (error instanceof SafeOutboundFetchError && error.code === "URL_GUARD_BLOCKED") {
-      return NextResponse.json({ error: error.message }, { status: 400 });
+      return NextResponse.json({ error: sanitizeErrorMessage(error.message) }, { status: 400 });
     }
 
     const status = getSafeOutboundFetchErrorStatus(error);

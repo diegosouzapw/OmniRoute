@@ -1,14 +1,28 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 
-const { validateProviderApiKey, validateClaudeCodeCompatibleProvider } =
-  await import("../../src/lib/providers/validation.ts");
+const {
+  validateProviderApiKey,
+  validateClaudeCodeCompatibleProvider,
+  validateCommandCodeProvider,
+} = await import("../../src/lib/providers/validation.ts");
+
+const { __setTlsFetchOverrideForTesting: __setPplxTlsFetchOverride } =
+  await import("../../open-sse/services/perplexityTlsClient.ts");
 
 const originalFetch = globalThis.fetch;
 
 test.afterEach(() => {
   globalThis.fetch = originalFetch;
+  __setPplxTlsFetchOverride(null);
 });
+
+function toPlainHeaders(headers: any) {
+  if (headers instanceof Headers) return Object.fromEntries(headers.entries());
+  return Object.fromEntries(
+    Object.entries(headers || {}).map(([key, value]) => [key, String(value)])
+  );
+}
 
 function metaAiSseText(content: string, streamingState = "DONE") {
   return `event: next
@@ -34,7 +48,7 @@ data:
 `;
 }
 
-test("specialty provider validators cover Deepgram, AssemblyAI, NanoBanana, ElevenLabs and Inworld branches", async () => {
+test("specialty provider validators cover Deepgram, AssemblyAI, ElevenLabs and Inworld branches", async () => {
   globalThis.fetch = async (url, init = {}) => {
     const target = String(url);
     const headers = init.headers || {};
@@ -46,9 +60,6 @@ test("specialty provider validators cover Deepgram, AssemblyAI, NanoBanana, Elev
     if (target.match(/assemblyai/i)) {
       assert.equal(headers.Authorization, "aa-key");
       return new Response(JSON.stringify({ error: "unauthorized" }), { status: 403 });
-    }
-    if (target.match(/nanobanana/i)) {
-      return new Response(JSON.stringify({ error: "unauthorized" }), { status: 401 });
     }
     if (target.match(/elevenlabs/i)) {
       return new Response(JSON.stringify({ voices: [] }), { status: 200 });
@@ -62,15 +73,47 @@ test("specialty provider validators cover Deepgram, AssemblyAI, NanoBanana, Elev
 
   const deepgram = await validateProviderApiKey({ provider: "deepgram", apiKey: "dg-key" });
   const assembly = await validateProviderApiKey({ provider: "assemblyai", apiKey: "aa-key" });
-  const banana = await validateProviderApiKey({ provider: "nanobanana", apiKey: "nb-key" });
   const eleven = await validateProviderApiKey({ provider: "elevenlabs", apiKey: "el-key" });
   const inworld = await validateProviderApiKey({ provider: "inworld", apiKey: "iw-key" });
 
   assert.equal(deepgram.valid, true);
   assert.equal(assembly.error, "Invalid API key");
-  assert.equal(banana.error, "Invalid API key");
   assert.equal(eleven.valid, true);
   assert.equal(inworld.valid, true);
+});
+
+test("validateCommandCodeProvider ignores caller baseUrl and chatPath overrides", async () => {
+  globalThis.fetch = async (url, init = {}) => {
+    assert.equal(String(url), "https://api.commandcode.ai/alpha/generate");
+    const headers = init.headers as Record<string, string>;
+    assert.equal(headers.Authorization, "Bearer cc-key");
+    const body = JSON.parse(String(init.body));
+    assert.equal(body.params.model, "command-code-validation-model");
+    return new Response(JSON.stringify({ ok: true }), { status: 200 });
+  };
+
+  const result = await validateCommandCodeProvider({
+    apiKey: "cc-key",
+    providerSpecificData: {
+      baseUrl: "https://evil.example/api",
+      chatPath: "/v1/chat/completions",
+      validationModelId: "command-code-validation-model",
+    },
+  });
+
+  assert.equal(result.valid, true);
+});
+
+test("validateCommandCodeProvider defaults probe model to DeepSeek flash", async () => {
+  globalThis.fetch = async (_url, init = {}) => {
+    const body = JSON.parse(String(init.body));
+    assert.equal(body.params.model, "deepseek/deepseek-v4-flash");
+    return new Response("", { status: 400 });
+  };
+
+  const result = await validateCommandCodeProvider({ apiKey: "cc-key" });
+
+  assert.deepEqual(result, { valid: true, error: null });
 });
 
 test("specialty providers surface network failures and non-auth upstream failures", async () => {
@@ -78,9 +121,6 @@ test("specialty providers surface network failures and non-auth upstream failure
     const target = String(url);
     if (target.match(/deepgram/i)) {
       throw new Error("deepgram offline");
-    }
-    if (target.match(/nanobanana/i)) {
-      throw new Error("nanobanana offline");
     }
     if (target.match(/elevenlabs/i)) {
       return new Response(JSON.stringify({ error: "server" }), { status: 500 });
@@ -95,13 +135,11 @@ test("specialty providers surface network failures and non-auth upstream failure
   };
 
   const deepgram = await validateProviderApiKey({ provider: "deepgram", apiKey: "dg-key" });
-  const banana = await validateProviderApiKey({ provider: "nanobanana", apiKey: "nb-key" });
   const eleven = await validateProviderApiKey({ provider: "elevenlabs", apiKey: "el-key" });
   const inworld = await validateProviderApiKey({ provider: "inworld", apiKey: "iw-key" });
   const longcat = await validateProviderApiKey({ provider: "longcat", apiKey: "lc-key" });
 
   assert.equal(deepgram.error, "deepgram offline");
-  assert.equal(banana.error, "nanobanana offline");
   assert.equal(eleven.error, "Validation failed: 500");
   assert.equal(inworld.error, "Invalid API key");
   assert.equal(longcat.error, "longcat offline");
@@ -216,14 +254,20 @@ test("gitlab specialty validator treats 401 as invalid PAT", async () => {
 
 test("web-cookie provider validators accept valid Grok, Perplexity, Blackbox and Muse Spark session cookies", async () => {
   const calls = [];
+
+  // Perplexity now uses tlsFetchPerplexity (TLS-impersonating client) instead of globalThis.fetch
+  // to bypass Cloudflare Enterprise. Use the test-only override hook to intercept calls.
+  let pplxTlsCall: { url: string; options: Record<string, unknown> } | null = null;
+  __setPplxTlsFetchOverride(async (url, options) => {
+    pplxTlsCall = { url, options };
+    return { status: 200, headers: new Headers(), text: null, body: null };
+  });
+
   globalThis.fetch = async (url, init = {}) => {
     const target = String(url);
     calls.push({ url: target, init });
 
     if (target.includes("grok.com/rest/app-chat/conversations/new")) {
-      return new Response(JSON.stringify({ ok: true }), { status: 200 });
-    }
-    if (target.includes("perplexity.ai/rest/sse/perplexity_ask")) {
       return new Response(JSON.stringify({ ok: true }), { status: 200 });
     }
     if (target.includes("app.blackbox.ai/api/auth/session")) {
@@ -276,9 +320,6 @@ test("web-cookie provider validators accept valid Grok, Perplexity, Blackbox and
   const grokCall = calls.find((call) =>
     call.url.includes("grok.com/rest/app-chat/conversations/new")
   );
-  const perplexityCall = calls.find((call) =>
-    call.url.includes("perplexity.ai/rest/sse/perplexity_ask")
-  );
   const blackboxSessionCall = calls.find((call) =>
     call.url.includes("app.blackbox.ai/api/auth/session")
   );
@@ -292,7 +333,14 @@ test("web-cookie provider validators accept valid Grok, Perplexity, Blackbox and
   assert.equal(grokBody.modeId, "fast");
   assert.equal("modelName" in grokBody, false);
   assert.equal("modelMode" in grokBody, false);
-  assert.equal(perplexityCall?.init.headers.Cookie, "__Secure-next-auth.session-token=pplx-cookie");
+  // Perplexity goes through tlsFetchPerplexity (TLS override), not globalThis.fetch.
+  // options.headers is a plain object; the validator sets Cookie from the session token.
+  assert.ok(pplxTlsCall, "perplexity TLS override was called");
+  assert.ok(pplxTlsCall!.url.includes("perplexity.ai/rest/sse/perplexity_ask"));
+  assert.equal(
+    (pplxTlsCall!.options.headers as Record<string, string>)["Cookie"],
+    "__Secure-next-auth.session-token=pplx-cookie"
+  );
   assert.equal(blackboxSessionCall?.init.headers.Cookie, "__Secure-authjs.session-token=bb-cookie");
   assert.equal(
     blackboxSubscriptionCall?.init.headers.Cookie,
@@ -303,13 +351,16 @@ test("web-cookie provider validators accept valid Grok, Perplexity, Blackbox and
 });
 
 test("web-cookie provider validators surface auth and subscription failures", async () => {
+  // Perplexity uses tlsFetchPerplexity (TLS-impersonating client). Return 403 to simulate
+  // an invalid session cookie so the validator emits the expected error message.
+  __setPplxTlsFetchOverride(async () => {
+    return { status: 403, headers: new Headers(), text: null, body: null };
+  });
+
   globalThis.fetch = async (url, init = {}) => {
     const target = String(url);
     if (target.includes("grok.com/rest/app-chat/conversations/new")) {
       return new Response(JSON.stringify({ error: "unauthorized" }), { status: 401 });
-    }
-    if (target.includes("perplexity.ai/rest/sse/perplexity_ask")) {
-      return new Response(JSON.stringify({ error: "forbidden" }), { status: 403 });
     }
     if (target.includes("app.blackbox.ai/api/auth/session")) {
       const cookie = (init.headers as Record<string, string>)?.Cookie || "";
@@ -819,21 +870,28 @@ test("local OpenAI-style providers validate without sending Authorization when a
       provider: "lemonade",
       providerSpecificData: { baseUrl: "http://localhost:13305/api/v1" },
     });
+    const llamaCpp = await validateProviderApiKey({
+      provider: "llama-cpp",
+      providerSpecificData: { baseUrl: "http://127.0.0.1:8080/v1" },
+    });
 
     assert.equal(lmStudio.valid, true);
     assert.equal(vllm.valid, true);
     assert.equal(lemonade.valid, true);
+    assert.equal(llamaCpp.valid, true);
     assert.deepEqual(
       calls.map((call) => call.url),
       [
         "http://localhost:1234/v1/models",
         "http://localhost:8000/v1/models",
         "http://localhost:13305/api/v1/models",
+        "http://127.0.0.1:8080/v1/models",
       ]
     );
     assert.equal(calls[0].headers.Authorization, undefined);
     assert.equal(calls[1].headers.Authorization, undefined);
     assert.equal(calls[2].headers.Authorization, undefined);
+    assert.equal(calls[3].headers.Authorization, undefined);
   } finally {
     if (originalAllowPrivateProviderUrls === undefined) {
       delete process.env.OMNIROUTE_ALLOW_PRIVATE_PROVIDER_URLS;
@@ -1055,7 +1113,7 @@ test("registry providers cover remaining OpenAI-like and Claude-like validation 
   assert.equal(calls[1].headers["x-api-key"], "sk-claude");
 });
 
-test("specialty validators cover remaining status branches for Deepgram, AssemblyAI, NanoBanana, ElevenLabs, Inworld, Bailian and LongCat", async () => {
+test("specialty validators cover remaining status branches for Deepgram, AssemblyAI, ElevenLabs, Inworld, Bailian and LongCat", async () => {
   globalThis.fetch = async (url) => {
     const target = String(url);
     if (target.match(/deepgram/i)) {
@@ -1063,9 +1121,6 @@ test("specialty validators cover remaining status branches for Deepgram, Assembl
     }
     if (target.match(/assemblyai/i)) {
       return new Response(JSON.stringify({ transcripts: [] }), { status: 200 });
-    }
-    if (target.match(/nanobanana/i)) {
-      return new Response(JSON.stringify({ error: "bad request" }), { status: 400 });
     }
     if (target.match(/elevenlabs/i)) {
       return new Response(JSON.stringify({ error: "forbidden" }), { status: 403 });
@@ -1084,7 +1139,6 @@ test("specialty validators cover remaining status branches for Deepgram, Assembl
 
   const deepgram = await validateProviderApiKey({ provider: "deepgram", apiKey: "dg-key" });
   const assembly = await validateProviderApiKey({ provider: "assemblyai", apiKey: "aa-key" });
-  const banana = await validateProviderApiKey({ provider: "nanobanana", apiKey: "nb-key" });
   const eleven = await validateProviderApiKey({ provider: "elevenlabs", apiKey: "el-key" });
   const inworld = await validateProviderApiKey({ provider: "inworld", apiKey: "iw-key" });
   const bailian = await validateProviderApiKey({
@@ -1111,7 +1165,6 @@ test("specialty validators cover remaining status branches for Deepgram, Assembl
 
   assert.equal(deepgram.error, "Validation failed: 500");
   assert.equal(assembly.valid, true);
-  assert.equal(banana.error, "Validation failed: 400");
   assert.equal(eleven.error, "Invalid API key");
   assert.equal(inworld.error, "inworld offline");
   assert.equal(bailian.error, "Validation failed: 500");
@@ -1398,65 +1451,92 @@ test("specialty validators accept watsonx, OCI and SAP enterprise gateways", asy
   assert.equal(sap.method, "sap_models");
 });
 
-test("specialty validator accepts Bedrock mantle discovery and runtime chat fallback", async () => {
-  let runtimeChatProbed = false;
+test("specialty validator accepts native Bedrock model discovery with a configured region", async () => {
+  const seenUrls: string[] = [];
 
   globalThis.fetch = async (url, init = {}) => {
     const target = String(url);
+    seenUrls.push(target);
+    assert.equal((init.headers as Record<string, string>).Authorization, "Bearer bedrock-key");
 
-    if (target === "https://bedrock-mantle.us-east-1.api.aws/v1/models") {
-      assert.equal((init.headers as Record<string, string>).Authorization, "Bearer bedrock-key");
-      return new Response(JSON.stringify({ data: [] }), { status: 200 });
+    if (
+      target === "https://bedrock.eu-west-2.amazonaws.com/foundation-models?byOutputModality=TEXT"
+    ) {
+      return new Response(
+        JSON.stringify({
+          modelSummaries: [
+            {
+              modelId: "anthropic.claude-sonnet-4-6",
+              modelName: "Claude Sonnet 4.6",
+              providerName: "Anthropic",
+              inputModalities: ["TEXT", "IMAGE"],
+              outputModalities: ["TEXT"],
+              responseStreamingSupported: true,
+            },
+          ],
+        }),
+        { status: 200 }
+      );
     }
 
-    if (target === "https://bedrock-runtime.us-east-1.amazonaws.com/openai/v1/models") {
-      assert.equal((init.headers as Record<string, string>).Authorization, "Bearer runtime-key");
-      return new Response(JSON.stringify({ error: "not found" }), { status: 404 });
+    if (
+      target ===
+      "https://bedrock.eu-west-2.amazonaws.com/inference-profiles?maxResults=100&typeEquals=SYSTEM_DEFINED"
+    ) {
+      return new Response(
+        JSON.stringify({
+          inferenceProfileSummaries: [
+            {
+              inferenceProfileId: "eu.anthropic.claude-sonnet-4-6",
+              inferenceProfileName: "EU Claude Sonnet 4.6",
+              models: [
+                {
+                  modelArn:
+                    "arn:aws:bedrock:eu-west-2::foundation-model/anthropic.claude-sonnet-4-6",
+                },
+              ],
+            },
+          ],
+        }),
+        { status: 200 }
+      );
     }
 
-    if (target === "https://bedrock-runtime.us-east-1.amazonaws.com/openai/v1/chat/completions") {
-      runtimeChatProbed = true;
-      const body = JSON.parse(String(init.body || "{}"));
-      assert.equal((init.headers as Record<string, string>).Authorization, "Bearer runtime-key");
-      assert.equal(body.model, "openai.gpt-oss-120b-1:0");
-      return new Response(JSON.stringify({ error: "bad request" }), { status: 400 });
-    }
-
-    throw new Error(`unexpected fetch: ${target}`);
-  };
-
-  const mantle = await validateProviderApiKey({
-    provider: "bedrock",
-    apiKey: "bedrock-key",
-  });
-  const runtime = await validateProviderApiKey({
-    provider: "bedrock",
-    apiKey: "runtime-key",
-    providerSpecificData: {
-      baseUrl: "https://bedrock-runtime.us-east-1.amazonaws.com",
-    },
-  });
-
-  assert.equal(mantle.valid, true);
-  assert.equal(runtime.valid, true);
-  assert.equal(runtimeChatProbed, true);
-});
-
-test("specialty validator rejects invalid Bedrock credentials", async () => {
-  globalThis.fetch = async (url, init = {}) => {
-    const target = String(url);
-
-    if (target === "https://bedrock-mantle.us-east-1.api.aws/v1/models") {
-      assert.equal((init.headers as Record<string, string>).Authorization, "Bearer bedrock-key");
-      return new Response(JSON.stringify({ error: "forbidden" }), { status: 403 });
-    }
-
-    throw new Error(`unexpected fetch: ${target}`);
+    throw new Error("unexpected fetch: " + target);
   };
 
   const bedrock = await validateProviderApiKey({
     provider: "bedrock",
     apiKey: "bedrock-key",
+    providerSpecificData: { region: "eu-west-2" },
+  });
+
+  assert.equal(bedrock.valid, true);
+  assert.equal(bedrock.method, "bedrock_native_models");
+  assert.deepEqual(seenUrls, [
+    "https://bedrock.eu-west-2.amazonaws.com/foundation-models?byOutputModality=TEXT",
+    "https://bedrock.eu-west-2.amazonaws.com/inference-profiles?maxResults=100&typeEquals=SYSTEM_DEFINED",
+  ]);
+});
+
+test("specialty validator rejects invalid native Bedrock credentials", async () => {
+  globalThis.fetch = async (url, init = {}) => {
+    const target = String(url);
+
+    if (
+      target === "https://bedrock.eu-west-2.amazonaws.com/foundation-models?byOutputModality=TEXT"
+    ) {
+      assert.equal((init.headers as Record<string, string>).Authorization, "Bearer bedrock-key");
+      return new Response(JSON.stringify({ message: "forbidden" }), { status: 403 });
+    }
+
+    throw new Error("unexpected fetch: " + target);
+  };
+
+  const bedrock = await validateProviderApiKey({
+    provider: "bedrock",
+    apiKey: "bedrock-key",
+    providerSpecificData: { region: "eu-west-2" },
   });
 
   assert.equal(bedrock.error, "Invalid API key");
@@ -1625,54 +1705,6 @@ test("specialty validator rejects invalid Nous Research credentials", async () =
   });
 
   assert.equal(nous.error, "Invalid API key");
-});
-
-test("specialty validator accepts the public Petals generate endpoint without an API key", async () => {
-  globalThis.fetch = async (url, init = {}) => {
-    const target = String(url);
-
-    if (target === "https://chat.petals.dev/api/v1/generate") {
-      const headers = init.headers as Record<string, string>;
-      const body = new URLSearchParams(String(init.body));
-      assert.equal(headers.Authorization, undefined);
-      assert.equal(headers["Content-Type"], "application/x-www-form-urlencoded");
-      assert.equal(body.get("model"), "stabilityai/StableBeluga2");
-      assert.equal(body.get("inputs"), "test");
-      assert.equal(body.get("max_new_tokens"), "1");
-      return new Response(JSON.stringify({ ok: true, outputs: "hi" }), { status: 200 });
-    }
-
-    throw new Error(`unexpected fetch: ${target}`);
-  };
-
-  const petals = await validateProviderApiKey({
-    provider: "petals",
-    apiKey: "",
-  });
-
-  assert.equal(petals.valid, true);
-  assert.equal(petals.method, "petals_generate");
-});
-
-test("specialty validator surfaces Petals upstream unavailability", async () => {
-  globalThis.fetch = async (url, init = {}) => {
-    const target = String(url);
-
-    if (target === "https://chat.petals.dev/api/v1/generate") {
-      const headers = init.headers as Record<string, string>;
-      assert.equal(headers.Authorization, undefined);
-      return new Response(JSON.stringify({ error: "unavailable" }), { status: 503 });
-    }
-
-    throw new Error(`unexpected fetch: ${target}`);
-  };
-
-  const petals = await validateProviderApiKey({
-    provider: "petals",
-    apiKey: "",
-  });
-
-  assert.equal(petals.error, "Provider unavailable (503)");
 });
 
 test("specialty validator rejects invalid Poe credentials", async () => {
@@ -1875,4 +1907,585 @@ test("specialty validator rejects invalid Runway credentials", async () => {
   });
 
   assert.equal(runway.error, "Invalid API key");
+});
+
+test("validateCommandCodeProvider sends Command Code probe URL, headers, and wrapper body", async () => {
+  const calls: any[] = [];
+  globalThis.fetch = async (url, init = {}) => {
+    calls.push({
+      url: String(url),
+      method: init.method,
+      headers: toPlainHeaders(init.headers),
+      body: JSON.parse(String(init.body)),
+    });
+    return new Response("", { status: 400 });
+  };
+
+  const result = await validateCommandCodeProvider({
+    apiKey: "cc_test_key",
+    providerSpecificData: { validationModelId: "gpt-5.4-mini" },
+  });
+
+  assert.deepEqual(result, { valid: true, error: null });
+  assert.equal(calls.length, 1);
+  assert.equal(calls[0].url, "https://api.commandcode.ai/alpha/generate");
+  assert.equal(calls[0].method, "POST");
+  assert.equal(calls[0].headers.Authorization, "Bearer cc_test_key");
+  assert.equal(calls[0].headers["Content-Type"], "application/json");
+  assert.equal(calls[0].headers["x-command-code-version"], "0.24.1");
+  assert.equal(calls[0].headers["x-cli-environment"], "external");
+  assert.equal(calls[0].headers["x-project-slug"], "pi-cc");
+  assert.equal(calls[0].headers["x-taste-learning"], "false");
+  assert.equal(calls[0].headers["x-co-flag"], "false");
+  assert.equal(typeof calls[0].headers["x-session-id"], "string");
+  assert.equal(calls[0].body.config.environment, "external");
+  assert.equal(calls[0].body.permissionMode, "standard");
+  assert.equal(calls[0].body.skills, "");
+  assert.equal(calls[0].body.params.model, "gpt-5.4-mini");
+  assert.equal(calls[0].body.params.stream, true);
+  assert.equal(calls[0].body.params.max_tokens, 1);
+});
+
+for (const status of [400, 422, 429]) {
+  test(`validateCommandCodeProvider accepts ${status} as direct validator auth success`, async () => {
+    globalThis.fetch = async () => new Response("", { status });
+    assert.deepEqual(await validateCommandCodeProvider({ apiKey: "cc_test_key" }), {
+      valid: true,
+      error: null,
+    });
+  });
+}
+
+test("validateCommandCodeProvider rejects auth failures and provider outages", async () => {
+  globalThis.fetch = async () => new Response("unauthorized", { status: 401 });
+  assert.deepEqual(await validateCommandCodeProvider({ apiKey: "bad" }), {
+    valid: false,
+    error: "Invalid API key",
+  });
+
+  globalThis.fetch = async () => new Response("server down", { status: 500 });
+  assert.deepEqual(await validateCommandCodeProvider({ apiKey: "cc_test_key" }), {
+    valid: false,
+    error: "Provider unavailable (500)",
+  });
+});
+
+// ─── claude-web validator ────────────────────────────────────────────────────
+
+const { __setTlsFetchOverrideForTesting: __setClaudeTlsFetchOverride } =
+  await import("../../open-sse/services/claudeTlsClient.ts");
+
+function makeClaudeTlsResponse(status: number, body: string, headers: Record<string, string> = {}): any {
+  const h = new Headers();
+  for (const [k, v] of Object.entries(headers)) h.set(k, v);
+  return { status, ok: status >= 200 && status < 300, headers: h, text: body, body: null };
+}
+
+test("claude-web validator: 200 from /api/organizations → valid", async () => {
+  let captured: { url: string; opts: any } | null = null;
+  __setClaudeTlsFetchOverride(async (url, opts) => {
+    captured = { url, opts };
+    return makeClaudeTlsResponse(200, JSON.stringify({ orgs: [] }));
+  });
+
+  const result = await validateProviderApiKey({
+    provider: "claude-web",
+    apiKey: "sessionKey=sk-ant-sid02-test-session-key",
+  });
+
+  assert.equal(result.valid, true);
+  assert.equal(result.error, null);
+  assert.equal(captured?.url, "https://claude.ai/api/organizations");
+  assert.match((captured?.opts.headers as Record<string, string>).Cookie || "", /sessionKey=sk-ant-sid02-test-session-key/);
+  __setClaudeTlsFetchOverride(null);
+});
+
+test("claude-web validator: full cookie blob passes through verbatim", async () => {
+  let capturedCookie = "";
+  __setClaudeTlsFetchOverride(async (_url, opts) => {
+    capturedCookie = (opts.headers as Record<string, string>).Cookie || "";
+    return makeClaudeTlsResponse(200, JSON.stringify({ orgs: [] }));
+  });
+
+  const blob =
+    "__cf_bm=abc123; sessionKey=sk-ant-sid02-test; intercom-device-id-lupk8zyo=xyz; __stripe_mid=stripe123";
+  await validateProviderApiKey({ provider: "claude-web", apiKey: blob });
+  assert.equal(capturedCookie, blob);
+  __setClaudeTlsFetchOverride(null);
+});
+
+test("claude-web validator: 401 → invalid session cookie", async () => {
+  __setClaudeTlsFetchOverride(async () =>
+    makeClaudeTlsResponse(401, JSON.stringify({ error: "unauthorized" }))
+  );
+
+  const result = await validateProviderApiKey({
+    provider: "claude-web",
+    apiKey: "sessionKey=expired-key",
+  });
+
+  assert.equal(result.valid, false);
+  assert.match(result.error || "", /Invalid or expired session cookie/i);
+  __setClaudeTlsFetchOverride(null);
+});
+
+test("claude-web validator: 429 → valid (rate limited means auth passed)", async () => {
+  __setClaudeTlsFetchOverride(async () =>
+    makeClaudeTlsResponse(429, JSON.stringify({ error: "rate limited" }))
+  );
+
+  const result = await validateProviderApiKey({
+    provider: "claude-web",
+    apiKey: "sessionKey=sk-ant-sid02-good-key",
+  });
+
+  assert.equal(result.valid, true);
+  __setClaudeTlsFetchOverride(null);
+});
+
+test("claude-web validator: 500 → Claude.ai unavailable", async () => {
+  __setClaudeTlsFetchOverride(async () =>
+    makeClaudeTlsResponse(500, "internal server error")
+  );
+
+  const result = await validateProviderApiKey({
+    provider: "claude-web",
+    apiKey: "sessionKey=sk-ant-sid02-any-key",
+  });
+
+  assert.equal(result.valid, false);
+  assert.match(result.error || "", /Claude\.ai unavailable \(500\)/i);
+  __setClaudeTlsFetchOverride(null);
+});
+
+test("claude-web validator: TLS client unavailable → clear error", async () => {
+  const { TlsClientUnavailableError } = await import("../../open-sse/services/claudeTlsClient.ts");
+  __setClaudeTlsFetchOverride(async () => {
+    throw new TlsClientUnavailableError("tls-client-node not installed");
+  });
+
+  const result = await validateProviderApiKey({
+    provider: "claude-web",
+    apiKey: "sessionKey=sk-ant-sid02-any-key",
+  });
+
+  assert.equal(result.valid, false);
+  assert.match(result.error || "", /tls-client-node not installed/i);
+  __setClaudeTlsFetchOverride(null);
+});
+
+test("claude-web validator: bare sessionKey value gets prefixed", async () => {
+  let capturedCookie = "";
+  __setClaudeTlsFetchOverride(async (_url, opts) => {
+    capturedCookie = (opts.headers as Record<string, string>).Cookie || "";
+    return makeClaudeTlsResponse(200, JSON.stringify({ orgs: [] }));
+  });
+
+  await validateProviderApiKey({
+    provider: "claude-web",
+    apiKey: "sk-ant-sid02-bare-value",
+  });
+  assert.equal(capturedCookie, "sessionKey=sk-ant-sid02-bare-value");
+  __setClaudeTlsFetchOverride(null);
+});
+
+// ─── gemini-web validator ────────────────────────────────────────────────────
+
+test("gemini-web validator: 200 from gemini.google.com → valid", async () => {
+  globalThis.fetch = async (url, init = {}) => {
+    const target = String(url);
+    const headers = init.headers || {};
+    if (target.includes("gemini.google.com/app")) {
+      assert.match((headers as Record<string, string>).Cookie || "", /__Secure-1PSID=eyJPSID/);
+      return new Response("ok", { status: 200 });
+    }
+    throw new Error(`unexpected fetch: ${target}`);
+  };
+
+  const result = await validateProviderApiKey({
+    provider: "gemini-web",
+    apiKey: "__Secure-1PSID=eyJPSID",
+  });
+
+  assert.equal(result.valid, true);
+  assert.equal(result.error, null);
+});
+
+test("gemini-web validator: bare value gets __Secure-1PSID prefix", async () => {
+  let capturedCookie = "";
+  globalThis.fetch = async (url, init = {}) => {
+    if (String(url).includes("gemini.google.com")) {
+      capturedCookie = ((init.headers as Record<string, string>) || {}).Cookie || "";
+      return new Response("ok", { status: 200 });
+    }
+    throw new Error(`unexpected fetch: ${String(url)}`);
+  };
+
+  await validateProviderApiKey({ provider: "gemini-web", apiKey: "eyJbarevalue" });
+  assert.equal(capturedCookie, "__Secure-1PSID=eyJbarevalue");
+});
+
+test("gemini-web validator: 401 → invalid cookie", async () => {
+  globalThis.fetch = async () => new Response("unauthorized", { status: 401 });
+
+  const result = await validateProviderApiKey({
+    provider: "gemini-web",
+    apiKey: "__Secure-1PSID=expired",
+  });
+
+  assert.equal(result.valid, false);
+  assert.match(result.error || "", /Invalid or expired __Secure-1PSID/i);
+});
+
+test("gemini-web validator: 500 → unavailable", async () => {
+  globalThis.fetch = async () => new Response("down", { status: 500 });
+
+  const result = await validateProviderApiKey({
+    provider: "gemini-web",
+    apiKey: "__Secure-1PSID=eyJany",
+  });
+
+  assert.equal(result.valid, false);
+  assert.match(result.error || "", /Gemini validation failed \(500\)/i);
+});
+
+// ─── copilot-web validator ───────────────────────────────────────────────────
+
+test("copilot-web validator: valid access_token → 200", async () => {
+  globalThis.fetch = async (url, init = {}) => {
+    const target = String(url);
+    if (target.includes("copilot.microsoft.com/c/api/conversations")) {
+      assert.match(
+        ((init.headers as Record<string, string>) || {}).Authorization || "",
+        /Bearer eyJhbGci/
+      );
+      return new Response(JSON.stringify({ conversations: [] }), { status: 200 });
+    }
+    throw new Error(`unexpected fetch: ${target}`);
+  };
+
+  const result = await validateProviderApiKey({
+    provider: "copilot-web",
+    apiKey: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.test",
+  });
+
+  assert.equal(result.valid, true);
+  assert.equal(result.error, null);
+});
+
+test("copilot-web validator: cookie with access_token= is extracted", async () => {
+  let capturedAuth = "";
+  globalThis.fetch = async (url, init = {}) => {
+    if (String(url).includes("copilot.microsoft.com")) {
+      capturedAuth = ((init.headers as Record<string, string>) || {}).Authorization || "";
+      return new Response(JSON.stringify({}), { status: 200 });
+    }
+    throw new Error(`unexpected fetch: ${String(url)}`);
+  };
+
+  await validateProviderApiKey({
+    provider: "copilot-web",
+    apiKey: "access_token=eyJhbGciOiJIUzI1NiJ9.payload.sig; other_cookie=foo",
+  });
+  assert.equal(capturedAuth, "Bearer eyJhbGciOiJIUzI1NiJ9.payload.sig");
+});
+
+test("copilot-web validator: 401 → invalid token", async () => {
+  globalThis.fetch = async () => new Response("unauthorized", { status: 401 });
+
+  const result = await validateProviderApiKey({
+    provider: "copilot-web",
+    apiKey: "bad-token",
+  });
+
+  assert.equal(result.valid, false);
+  assert.match(result.error || "", /Invalid or expired access_token/i);
+});
+
+test("copilot-web validator: 500 → unavailable", async () => {
+  globalThis.fetch = async () => new Response("down", { status: 500 });
+
+  const result = await validateProviderApiKey({
+    provider: "copilot-web",
+    apiKey: "any-token",
+  });
+
+  assert.equal(result.valid, false);
+  assert.match(result.error || "", /Copilot unavailable \(500\)/i);
+});
+
+test("copilot-web validator: empty input → paste prompt", async () => {
+  globalThis.fetch = async () => {
+    throw new Error("should not fetch");
+  };
+
+  const result = await validateProviderApiKey({ provider: "copilot-web", apiKey: "" });
+
+  assert.equal(result.valid, false);
+  assert.match(result.error || "", /Paste your access_token/i);
+});
+
+// ─── t3-web validator ────────────────────────────────────────────────────────
+
+test("t3-web validator: valid cookies → valid", async () => {
+  globalThis.fetch = async (url, init = {}) => {
+    if (String(url).includes("t3.chat")) {
+      return new Response("ok", { status: 200 });
+    }
+    throw new Error(`unexpected fetch: ${String(url)}`);
+  };
+
+  const result = await validateProviderApiKey({
+    provider: "t3-web",
+    apiKey: "cookies=__session=abc123; convexSessionId=def456",
+  });
+
+  assert.equal(result.valid, true);
+  assert.equal(result.error, null);
+});
+
+test("t3-web validator: 500 → unavailable", async () => {
+  globalThis.fetch = async () => new Response("down", { status: 500 });
+
+  const result = await validateProviderApiKey({
+    provider: "t3-web",
+    apiKey: "cookies=__session=abc",
+  });
+
+  assert.equal(result.valid, false);
+  assert.match(result.error || "", /t3\.chat unavailable \(500\)/i);
+});
+
+test("t3-web validator: valid cookies → passes through", async () => {
+  globalThis.fetch = async (url, init = {}) => {
+    if (String(url).includes("t3.chat")) {
+      return new Response("ok", { status: 200 });
+    }
+    throw new Error(`unexpected fetch: ${String(url)}`);
+  };
+
+  const result = await validateProviderApiKey({
+    provider: "t3-web",
+    apiKey: "__session=abc123; convex-session-id=def456",
+  });
+
+  assert.equal(result.valid, true);
+  assert.equal(result.error, null);
+});
+
+test("llama-cpp is classified as a self-hosted chat provider", async () => {
+  const { isSelfHostedChatProvider, isLocalProvider, providerAllowsOptionalApiKey } =
+    await import("../../src/shared/constants/providers.ts");
+
+  assert.equal(isSelfHostedChatProvider("llama-cpp"), true);
+  assert.equal(isLocalProvider("llama-cpp"), true);
+  assert.equal(providerAllowsOptionalApiKey("llama-cpp"), true);
+});
+
+// ─── Gitlawb Opengateway specialty validators ──────────────────────────────
+
+test("gitlawb validator: accepts valid API key via chat/completions probe", async () => {
+  const calls: any[] = [];
+  globalThis.fetch = async (url, init = {}) => {
+    calls.push({ url: String(url), headers: init.headers || {}, body: init.body });
+    assert.equal(String(url), "https://opengateway.gitlawb.com/v1/xiaomi-mimo/chat/completions");
+    assert.equal((init.headers as Record<string, string>).Authorization, "Bearer glb-valid-key");
+    const body = JSON.parse(String(init.body));
+    assert.equal(body.model, "mimo-v2.5-pro");
+    assert.equal(body.messages[0].content, "test");
+    assert.equal(body.max_tokens, 1);
+    return new Response(JSON.stringify({ choices: [{ message: { content: "ok" } }] }), {
+      status: 200,
+    });
+  };
+
+  const result = await validateProviderApiKey({ provider: "gitlawb", apiKey: "glb-valid-key" });
+  assert.equal(result.valid, true);
+  assert.equal(calls.length, 1);
+});
+
+test("gitlawb validator: 400/422/429 treated as auth success", async () => {
+  for (const status of [400, 422, 429]) {
+    globalThis.fetch = async (url) => {
+      assert.equal(
+        String(url),
+        "https://opengateway.gitlawb.com/v1/xiaomi-mimo/chat/completions"
+      );
+      return new Response(JSON.stringify({ error: "bad request" }), { status });
+    };
+    const result = await validateProviderApiKey({ provider: "gitlawb", apiKey: "glb-key" });
+    assert.equal(result.valid, true, `status ${status} should pass auth`);
+    assert.equal(result.error, null, `status ${status} should not return error`);
+  }
+});
+
+test("gitlawb validator: rejects invalid API key (401)", async () => {
+  globalThis.fetch = async (url) => {
+    assert.equal(
+      String(url),
+      "https://opengateway.gitlawb.com/v1/xiaomi-mimo/chat/completions"
+    );
+    return new Response(JSON.stringify({ error: "unauthorized" }), { status: 401 });
+  };
+
+  const result = await validateProviderApiKey({ provider: "gitlawb", apiKey: "glb-bad-key" });
+  assert.equal(result.valid, false);
+  assert.equal(result.error, "Invalid API key");
+});
+
+test("gitlawb validator: rejects invalid API key (403)", async () => {
+  globalThis.fetch = async (url) => {
+    assert.equal(
+      String(url),
+      "https://opengateway.gitlawb.com/v1/xiaomi-mimo/chat/completions"
+    );
+    return new Response(JSON.stringify({ error: "forbidden" }), { status: 403 });
+  };
+
+  const result = await validateProviderApiKey({ provider: "gitlawb", apiKey: "glb-bad-key" });
+  assert.equal(result.valid, false);
+  assert.equal(result.error, "Invalid API key");
+});
+
+test("gitlawb validator: surfaces network failures", async () => {
+  globalThis.fetch = async () => {
+    throw new Error("gitlawb opengateway offline");
+  };
+
+  const result = await validateProviderApiKey({ provider: "gitlawb", apiKey: "glb-key" });
+  assert.equal(result.valid, false);
+  assert.match(result.error || "", /gitlawb opengateway offline/i);
+});
+
+test("gitlawb validator: accepts custom baseUrl override", async () => {
+  globalThis.fetch = async (url, init = {}) => {
+    assert.equal(
+      String(url),
+      "https://custom-gateway.example.com/v1/xiaomi-mimo/chat/completions"
+    );
+    assert.equal((init.headers as Record<string, string>).Authorization, "Bearer glb-key");
+    return new Response(JSON.stringify({ choices: [{ message: { content: "ok" } }] }), {
+      status: 200,
+    });
+  };
+
+  const result = await validateProviderApiKey({
+    provider: "gitlawb",
+    apiKey: "glb-key",
+    providerSpecificData: {
+      baseUrl: "https://custom-gateway.example.com/v1/xiaomi-mimo",
+    },
+  });
+  assert.equal(result.valid, true);
+});
+
+// ─── Gitlawb-GMI (GMI Cloud) ─────────────────────────────────────────────
+
+test("gitlawb-gmi validator: accepts valid API key via chat/completions probe", async () => {
+  const calls: any[] = [];
+  globalThis.fetch = async (url, init = {}) => {
+    calls.push({ url: String(url), headers: init.headers || {} });
+    assert.equal(String(url), "https://opengateway.gitlawb.com/v1/gmi-cloud/chat/completions");
+    assert.equal((init.headers as Record<string, string>).Authorization, "Bearer glb-gmi-valid-key");
+    const body = JSON.parse(String(init.body));
+    assert.equal(body.model, "XiaomiMiMo/MiMo-V2.5-Pro");
+    assert.equal(body.messages[0].content, "test");
+    assert.equal(body.max_tokens, 1);
+    return new Response(JSON.stringify({ choices: [{ message: { content: "ok" } }] }), {
+      status: 200,
+    });
+  };
+
+  const result = await validateProviderApiKey({
+    provider: "gitlawb-gmi",
+    apiKey: "glb-gmi-valid-key",
+  });
+  assert.equal(result.valid, true);
+  assert.equal(calls.length, 1);
+});
+
+test("gitlawb-gmi validator: accepts 400/422/429 as auth success", async () => {
+  for (const status of [400, 422, 429]) {
+    globalThis.fetch = async (url) => {
+      assert.equal(
+        String(url),
+        "https://opengateway.gitlawb.com/v1/gmi-cloud/chat/completions"
+      );
+      return new Response(JSON.stringify({ error: "bad request" }), { status });
+    };
+    const result = await validateProviderApiKey({
+      provider: "gitlawb-gmi",
+      apiKey: "glb-gmi-key",
+    });
+    assert.equal(result.valid, true, `status ${status} should pass auth`);
+  }
+});
+
+test("gitlawb-gmi validator: rejects invalid API key (401)", async () => {
+  globalThis.fetch = async (url) => {
+    assert.equal(
+      String(url),
+      "https://opengateway.gitlawb.com/v1/gmi-cloud/chat/completions"
+    );
+    return new Response(JSON.stringify({ error: "unauthorized" }), { status: 401 });
+  };
+
+  const result = await validateProviderApiKey({
+    provider: "gitlawb-gmi",
+    apiKey: "glb-gmi-bad-key",
+  });
+  assert.equal(result.valid, false);
+  assert.equal(result.error, "Invalid API key");
+});
+
+test("gitlawb-gmi validator: rejects invalid API key (403)", async () => {
+  globalThis.fetch = async (url) => {
+    assert.equal(
+      String(url),
+      "https://opengateway.gitlawb.com/v1/gmi-cloud/chat/completions"
+    );
+    return new Response(JSON.stringify({ error: "forbidden" }), { status: 403 });
+  };
+
+  const result = await validateProviderApiKey({
+    provider: "gitlawb-gmi",
+    apiKey: "glb-gmi-bad-key",
+  });
+  assert.equal(result.valid, false);
+  assert.equal(result.error, "Invalid API key");
+});
+
+test("gitlawb-gmi validator: surfaces network failures", async () => {
+  globalThis.fetch = async () => {
+    throw new Error("gitlawb-gmi opengateway offline");
+  };
+
+  const result = await validateProviderApiKey({
+    provider: "gitlawb-gmi",
+    apiKey: "glb-gmi-key",
+  });
+  assert.equal(result.valid, false);
+  assert.match(result.error || "", /gitlawb-gmi opengateway offline/i);
+});
+
+test("gitlawb-gmi validator: accepts custom baseUrl override", async () => {
+  globalThis.fetch = async (url, init = {}) => {
+    assert.equal(
+      String(url),
+      "https://custom-gateway.example.com/v1/gmi-cloud/chat/completions"
+    );
+    assert.equal((init.headers as Record<string, string>).Authorization, "Bearer glb-gmi-key");
+    return new Response(JSON.stringify({ choices: [{ message: { content: "ok" } }] }), {
+      status: 200,
+    });
+  };
+
+  const result = await validateProviderApiKey({
+    provider: "gitlawb-gmi",
+    apiKey: "glb-gmi-key",
+    providerSpecificData: {
+      baseUrl: "https://custom-gateway.example.com/v1/gmi-cloud",
+    },
+  });
+  assert.equal(result.valid, true);
 });

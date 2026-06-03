@@ -136,11 +136,15 @@ export async function registerNodejs(): Promise<void> {
   }
 
   try {
-    const [{ migrateCodexConnectionDefaultsFromLegacySettings }, { seedDefaultModelAliases }] =
-      await Promise.all([
-        import("@/lib/providers/codexConnectionDefaults"),
-        import("@/lib/modelAliasSeed"),
-      ]);
+    const [
+      { migrateCodexConnectionDefaultsFromLegacySettings },
+      { startSessionAccountAffinityCleanup },
+      { seedDefaultModelAliases },
+    ] = await Promise.all([
+      import("@/lib/providers/codexConnectionDefaults"),
+      import("@/lib/db/sessionAccountAffinity"),
+      import("@/lib/modelAliasSeed"),
+    ]);
     let settings = await getSettings();
     const passwordState = await ensurePersistentManagementPasswordHash({
       logger: console,
@@ -157,10 +161,19 @@ export async function registerNodejs(): Promise<void> {
       );
     }
 
+    // Restore Global System Prompt into in-memory config (#2468/#2470)
+    if (settings.systemPrompt) {
+      const { setSystemPromptConfig } =
+        await import("@omniroute/open-sse/services/systemPrompt.ts");
+      setSystemPromptConfig(settings.systemPrompt);
+      console.log("[STARTUP] Global System Prompt restored from settings");
+    }
+
     const seededModelAliases = await seedDefaultModelAliases();
     console.log(
       `[STARTUP] Model alias seed: applied=${seededModelAliases.applied.length}, skipped=${seededModelAliases.skipped.length}, failed=${seededModelAliases.failed.length}`
     );
+    startSessionAccountAffinityCleanup();
 
     const migration = await migrateCodexConnectionDefaultsFromLegacySettings();
     if (migration.migrated) {
@@ -189,7 +202,7 @@ export async function registerNodejs(): Promise<void> {
     initAuditLog();
     console.log("[COMPLIANCE] Audit log table initialized");
 
-    const cleanup = cleanupExpiredLogs();
+    const cleanup = await cleanupExpiredLogs();
     if (
       cleanup.deletedUsage ||
       cleanup.deletedCallLogs ||
@@ -203,5 +216,26 @@ export async function registerNodejs(): Promise<void> {
   } catch (err: unknown) {
     const msg = err instanceof Error ? err.message : String(err);
     console.warn("[COMPLIANCE] Could not initialize audit log:", msg);
+  }
+
+  await import("@/lib/db/core").then(({ ensureDbInitialized }) => ensureDbInitialized());
+
+  if (!isBackgroundServicesDisabled()) {
+    try {
+      const { bootstrapEmbeddedServices } = await import("@/lib/services/bootstrap");
+      await bootstrapEmbeddedServices();
+      console.log("[STARTUP] Embedded services bootstrap complete");
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : String(err);
+      console.warn("[STARTUP] Embedded services bootstrap failed (non-fatal):", msg);
+    }
+
+    try {
+      const { initEmbedWsProxy } = await import("@/lib/services/embedWsProxy");
+      initEmbedWsProxy();
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : String(err);
+      console.warn("[STARTUP] Embed WS proxy failed to start (non-fatal):", msg);
+    }
   }
 }

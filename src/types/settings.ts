@@ -1,5 +1,14 @@
-import type { HideableSidebarItemId } from "@/shared/constants/sidebarVisibility";
+import type {
+  HideableSidebarItemId,
+  SidebarItemOrder,
+  SidebarPresetId,
+  SidebarSectionId,
+} from "@/shared/constants/sidebarVisibility";
 import type { ResilienceSettings } from "@/lib/resilience/settings";
+import type {
+  AccountFallbackStrategyValue,
+  RoutingStrategyValue,
+} from "@/shared/constants/routingStrategies";
 
 /**
  * Application settings stored in SQLite key-value pairs.
@@ -7,17 +16,11 @@ import type { ResilienceSettings } from "@/lib/resilience/settings";
 export interface Settings {
   requireLogin: boolean;
   hasPassword: boolean;
-  fallbackStrategy:
-    | "fill-first"
-    | "round-robin"
-    | "p2c"
-    | "random"
-    | "least-used"
-    | "cost-optimized"
-    | "strict-random";
+  fallbackStrategy: AccountFallbackStrategyValue;
   stickyRoundRobinLimit: number;
   requestRetry: number;
   maxRetryIntervalSec: number;
+  maxBodySizeMb?: number;
   jwtSecret?: string;
   mcpEnabled?: boolean;
   mcpTransport?: "stdio" | "sse" | "streamable-http";
@@ -26,14 +29,29 @@ export interface Settings {
   hideEndpointCloudflaredTunnel?: boolean;
   hideEndpointTailscaleFunnel?: boolean;
   hideEndpointNgrokTunnel?: boolean;
+  autoRefreshProviderQuota?: boolean;
+  autoRefreshProviderQuotaInterval?: number;
+  pinProviderQuotaToHome?: boolean;
+  showQuickStartOnHome?: boolean;
+  showProviderTopologyOnHome?: boolean;
   hiddenSidebarItems?: HideableSidebarItemId[];
+  sidebarSectionOrder?: SidebarSectionId[];
+  sidebarItemOrder?: SidebarItemOrder;
+  sidebarActivePreset?: SidebarPresetId;
   resilienceSettings?: ResilienceSettings;
+  // LOCAL_ONLY manage-scope bypass policy (DB-stored, hot-reloaded by
+  // `applyRuntimeSettings` → `applyAuthzBypassSection`). The route guard
+  // consults `getAuthzBypassSnapshot()` on the hot path; these fields are
+  // the persisted source of truth that feeds that snapshot.
+  localOnlyManageScopeBypassEnabled?: boolean;
+  localOnlyManageScopeBypassPrefixes?: string[];
 }
 
 export interface ComboDefaults {
-  strategy: "priority" | "weighted" | "round-robin" | "context-relay";
+  strategy: RoutingStrategyValue;
   maxRetries: number;
   retryDelayMs: number;
+  fallbackDelayMs?: number;
   maxComboDepth: number;
   trackMetrics: boolean;
   concurrencyPerModel?: number;

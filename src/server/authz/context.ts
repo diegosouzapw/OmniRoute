@@ -20,6 +20,8 @@ export interface RequestLike {
   cookies?: { get?: (name: string) => { value?: string } | undefined };
   nextUrl?: { pathname?: string | null } | null;
   url?: string;
+  ip?: string;
+  socket?: { remoteAddress?: string };
 }
 
 export interface PolicyContext {

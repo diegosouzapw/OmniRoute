@@ -1,0 +1,4 @@
+Fetching gem metadata from https://rubygems.org/
+Installing rack 3.0.9
+Installing puma 6.4.2
+Bundle complete! 12 Gemfile dependencies, 42 gems now installed.

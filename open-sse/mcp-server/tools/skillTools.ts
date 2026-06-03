@@ -25,6 +25,7 @@ export const skillTools = {
   omniroute_skills_list: {
     name: "omniroute_skills_list",
     description: "List all registered skills with optional filtering by API key or name",
+    scopes: ["read:skills"],
     inputSchema: SkillListSchema,
     handler: async (args: z.infer<typeof SkillListSchema>) => {
       await skillRegistry.loadFromDatabase(args.apiKeyId);
@@ -55,18 +56,14 @@ export const skillTools = {
   omniroute_skills_enable: {
     name: "omniroute_skills_enable",
     description: "Enable or disable a specific skill by ID",
+    scopes: ["write:skills"],
     inputSchema: SkillEnableSchema,
     handler: async (args: z.infer<typeof SkillEnableSchema>) => {
-      const skill = skillRegistry.getSkill(args.skillId, args.apiKeyId);
+      await skillRegistry.loadFromDatabase(args.apiKeyId);
+      const skill = await skillRegistry.setEnabledById(args.skillId, args.apiKeyId, args.enabled);
       if (!skill) {
         throw new Error(`Skill not found: ${args.skillId}`);
       }
-
-      await skillRegistry.register({
-        ...skill,
-        enabled: args.enabled,
-        apiKeyId: args.apiKeyId,
-      });
 
       return { success: true, skillId: args.skillId, enabled: args.enabled };
     },
@@ -75,6 +72,7 @@ export const skillTools = {
   omniroute_skills_execute: {
     name: "omniroute_skills_execute",
     description: "Execute a skill with provided input and return the result",
+    scopes: ["execute:skills"],
     inputSchema: SkillExecuteSchema,
     handler: async (args: z.infer<typeof SkillExecuteSchema>) => {
       const execution = await skillExecutor.execute(args.skillName, args.input, {
@@ -97,6 +95,7 @@ export const skillTools = {
   omniroute_skills_executions: {
     name: "omniroute_skills_executions",
     description: "List recent skill execution history",
+    scopes: ["read:skills"],
     inputSchema: z.object({
       apiKeyId: z.string().optional(),
       limit: z.number().int().positive().max(100).optional(),

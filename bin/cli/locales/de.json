@@ -1,0 +1,29 @@
+{
+  "common": {
+    "error": "Fehler: {message}",
+    "serverOffline": "OmniRoute-Server ist offline. Starten mit: omniroute serve",
+    "authRequired": "Authentifizierung erforderlich. OMNIROUTE_API_KEY setzen oder ausführen: omniroute setup",
+    "rateLimited": "Anfragelimit überschritten. Erneut versuchen in {seconds}s.",
+    "timeout": "Anfrage-Timeout nach {ms}ms.",
+    "success": "Fertig.",
+    "yes": "ja",
+    "no": "nein",
+    "confirm": "Sind Sie sicher? (ja/nein)",
+    "dryRun": "[Simulation] würde: {action}",
+    "cancelled": "Abgebrochen.",
+    "jsonOpt": "Ausgabe als JSON",
+    "yesOpt": "Bestätigung überspringen"
+  },
+  "program": {
+    "description": "OmniRoute — Intelligenter AI-Router mit automatischem Fallback",
+    "version": "Version ausgeben und beenden",
+    "output": "Ausgabeformat (table, json, jsonl, csv)",
+    "quiet": "Unwesentliche Ausgabe unterdrücken",
+    "no_color": "Farbige Ausgabe deaktivieren",
+    "timeout": "HTTP-Anfrage-Timeout in Millisekunden",
+    "api_key": "API-Schlüssel für den OmniRoute-Server",
+    "base_url": "OmniRoute-Server-Basis-URL",
+    "context": "Server-Kontext/Profil für diesen Befehl",
+    "lang": "CLI-Anzeigesprache festlegen (überschreibt OMNIROUTE_LANG)"
+  }
+}

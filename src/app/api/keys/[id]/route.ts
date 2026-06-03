@@ -66,23 +66,41 @@ export async function PATCH(request, { params }) {
     const {
       name,
       allowedModels,
+      allowedCombos,
       allowedConnections,
       noLog,
       autoResolve,
       isActive,
+      throttleDelayMs,
+      isBanned,
+      expiresAt,
       maxSessions,
       accessSchedule,
+      rateLimits,
+      scopes,
+      allowedEndpoints,
+      streamDefaultMode,
+      disableNonPublicModels,
     } = validation.data;
 
     const payload: Parameters<typeof updateApiKeyPermissions>[1] = {};
     if (name !== undefined) payload.name = name;
     if (allowedModels !== undefined) payload.allowedModels = allowedModels;
+    if (allowedCombos !== undefined) payload.allowedCombos = allowedCombos;
     if (allowedConnections !== undefined) payload.allowedConnections = allowedConnections;
     if (noLog !== undefined) payload.noLog = noLog;
     if (autoResolve !== undefined) payload.autoResolve = autoResolve;
     if (isActive !== undefined) payload.isActive = isActive;
+    if (throttleDelayMs !== undefined) payload.throttleDelayMs = throttleDelayMs;
+    if (isBanned !== undefined) payload.isBanned = isBanned;
+    if (expiresAt !== undefined) payload.expiresAt = expiresAt;
     if (maxSessions !== undefined) payload.maxSessions = maxSessions;
     if (accessSchedule !== undefined) payload.accessSchedule = accessSchedule;
+    if (rateLimits !== undefined) payload.rateLimits = rateLimits;
+    if (scopes !== undefined) payload.scopes = scopes;
+    if (allowedEndpoints !== undefined) payload.allowedEndpoints = allowedEndpoints;
+    if (streamDefaultMode !== undefined) payload.streamDefaultMode = streamDefaultMode;
+    if (disableNonPublicModels !== undefined) payload.disableNonPublicModels = disableNonPublicModels;
 
     const updated = await updateApiKeyPermissions(id, payload);
     if (!updated) {
@@ -96,12 +114,21 @@ export async function PATCH(request, { params }) {
       message: "API key settings updated successfully",
       ...(name !== undefined && { name }),
       ...(allowedModels !== undefined && { allowedModels }),
+      ...(allowedCombos !== undefined && { allowedCombos }),
       ...(allowedConnections !== undefined && { allowedConnections }),
       ...(noLog !== undefined && { noLog }),
       ...(autoResolve !== undefined && { autoResolve }),
       ...(isActive !== undefined && { isActive }),
+      ...(throttleDelayMs !== undefined && { throttleDelayMs }),
+      ...(isBanned !== undefined && { isBanned }),
+      ...(expiresAt !== undefined && { expiresAt }),
       ...(maxSessions !== undefined && { maxSessions }),
       ...(accessSchedule !== undefined && { accessSchedule }),
+      ...(rateLimits !== undefined && { rateLimits }),
+      ...(scopes !== undefined && { scopes }),
+      ...(allowedEndpoints !== undefined && { allowedEndpoints }),
+      ...(streamDefaultMode !== undefined && { streamDefaultMode }),
+      ...(disableNonPublicModels !== undefined && { disableNonPublicModels }),
     });
   } catch (error) {
     log.error("keys", "Error updating key permissions", error);

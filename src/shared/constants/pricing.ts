@@ -129,6 +129,13 @@ export const DEFAULT_PRICING = {
 
   // Claude Code (cc)
   cc: {
+    "claude-opus-4-8": {
+      input: 5.0,
+      output: 25.0,
+      cached: 2.5,
+      reasoning: 25.0,
+      cache_creation: 5.0,
+    },
     "claude-opus-4-7": {
       input: 5.0,
       output: 25.0,
@@ -175,6 +182,7 @@ export const DEFAULT_PRICING = {
 
   // OpenAI Codex (cx)
   cx: {
+    "codex-auto-review": GPT_5_5_PRICING,
     // GPT 5.5
     "gpt-5.5": GPT_5_5_PRICING,
     "gpt5.5": GPT_5_5_PRICING,
@@ -349,7 +357,7 @@ export const DEFAULT_PRICING = {
       reasoning: 6.0,
       cache_creation: 1.0,
     },
-    // Next-generation Qwen Coder tier (added Mar 2026 from decolua/9router catalog)
+    // Next-generation Qwen Coder tier (added Mar 2026)
     "qwen3-coder-next": {
       input: 2.0,
       output: 8.0,
@@ -424,7 +432,7 @@ export const DEFAULT_PRICING = {
       reasoning: 2.19,
       cache_creation: 0.55,
     },
-    // Short-form aliases used by decolua/9router catalog (Mar 2026)
+    // Short-form aliases (Mar 2026)
     "deepseek-3.1": {
       input: 0.27,
       output: 1.1,
@@ -709,6 +717,9 @@ export const DEFAULT_PRICING = {
     // Common model IDs (without dates) used across providers
     // Intentional duplicates of dot-notation variants (e.g. claude-opus-4.6)
     // to cover hyphen-notation IDs (claude-opus-4-6) used by some clients
+    "claude-opus-4.8": CLAUDE_OPUS_4_PRICING,
+    "claude-opus-4-8": CLAUDE_OPUS_4_PRICING,
+    "claude-opus-4-7": CLAUDE_OPUS_4_PRICING,
     "claude-opus-4-6": CLAUDE_OPUS_46_PRICING,
     "claude-sonnet-4-6": CLAUDE_SONNET_46_PRICING,
     "claude-opus-4-5-20251101": CLAUDE_OPUS_4_PRICING,
@@ -810,6 +821,21 @@ export const DEFAULT_PRICING = {
       cached: 0.14,
       reasoning: 2.19,
       cache_creation: 0.55,
+    },
+    // DeepSeek V4 Pro — promo until 2026-05-31, then list ($0.145 / $3.48)
+    "deepseek-v4-pro": {
+      input: 0.435,
+      output: 0.87,
+      cached: 0.0036,
+      reasoning: 0.87,
+      cache_creation: 0.435,
+    },
+    "deepseek-v4-flash": {
+      input: 0.07,
+      output: 0.28,
+      cached: 0.014,
+      reasoning: 0.28,
+      cache_creation: 0.07,
     },
   },
 

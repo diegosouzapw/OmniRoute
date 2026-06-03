@@ -1,6 +1,6 @@
 {
   "name": "omniroute-desktop",
-  "version": "3.7.8",
+  "version": "3.8.8",
   "description": "OmniRoute Desktop Application",
   "main": "main.js",
   "author": {
@@ -9,10 +9,13 @@
   },
   "license": "MIT",
   "homepage": "https://omniroute.online",
+  "engines": {
+    "node": ">=22.22.2 <23 || >=24.0.0 <27"
+  },
   "scripts": {
     "start": "electron .",
     "dev": "electron . --no-sandbox",
-    "prepare:bundle": "node ../scripts/prepare-electron-standalone.mjs",
+    "prepare:bundle": "node ../scripts/build/prepare-electron-standalone.mjs",
     "build": "npm run prepare:bundle && electron-builder",
     "build:win": "npm run prepare:bundle && electron-builder --win",
     "build:mac": "npm run prepare:bundle && electron-builder --mac",
@@ -22,12 +25,11 @@
     "pack": "npm run prepare:bundle && electron-builder --dir"
   },
   "dependencies": {
-    "better-sqlite3": "^12.8.0",
-    "electron-updater": "^6.8.3"
+    "electron-updater": "^6.8.6"
   },
   "devDependencies": {
-    "electron": "^41.2.0",
-    "electron-builder": "^26.8.1"
+    "electron": "^42.2.0",
+    "electron-builder": "^26.11.1"
   },
   "overrides": {
     "@xmldom/xmldom": "^0.9.10",
@@ -49,6 +51,7 @@
     "files": [
       "main.js",
       "preload.js",
+      "sqlite-inspection.js",
       "package.json",
       "node_modules/**/*"
     ],

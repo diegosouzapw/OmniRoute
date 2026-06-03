@@ -18,12 +18,15 @@ const { invalidateCacheControlSettingsCache } =
 const { clearCache, getCachedResponse, generateSignature } =
   await import("../../src/lib/semanticCache.ts");
 const { clearIdempotency } = await import("../../src/lib/idempotencyLayer.ts");
+const { getPendingRequests, clearPendingRequests } =
+  await import("../../src/lib/usage/usageHistory.ts");
 const { clearInflight } = await import("../../open-sse/services/requestDedup.ts");
 const {
   buildAccountSemaphoreKey,
   getStats: getAccountSemaphoreStats,
   resetAll: resetAccountSemaphores,
 } = await import("../../open-sse/services/accountSemaphore.ts");
+const { getExecutor } = await import("../../open-sse/executors/index.ts");
 const { clearModelLock, isModelLocked } =
   await import("../../open-sse/services/accountFallback.ts");
 const { saveModelsDevCapabilities, clearModelsDevCapabilities } =
@@ -37,8 +40,10 @@ const { getCallLogs, getCallLogById } = await import("../../src/lib/usage/callLo
 const {
   handleChatCore,
   shouldUseNativeCodexPassthrough,
+  isClaudeCodeSemanticPassthroughRequest,
   isTokenExpiringSoon,
   clearUpstreamProxyConfigCache,
+  buildStreamingResponseHeaders,
 } = await import("../../open-sse/handlers/chatCore.ts");
 const { resetPayloadRulesConfigForTests, setPayloadRulesConfig } =
   await import("../../open-sse/services/payloadRules.ts");
@@ -366,6 +371,7 @@ async function invokeChatCore({
 test.afterEach(async () => {
   globalThis.fetch = originalFetch;
   restorePipelineCaptureEnv();
+  clearPendingRequests();
   resetAccountSemaphores();
   await waitForAsyncSideEffects();
   await resetStorage();
@@ -374,10 +380,71 @@ test.afterEach(async () => {
 test.after(async () => {
   globalThis.fetch = originalFetch;
   restorePipelineCaptureEnv();
+  clearPendingRequests();
   resetAccountSemaphores();
   await waitForAsyncSideEffects();
   await resetStorage();
   fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+});
+
+test("chatCore times out upstream execution before provider response headers", async () => {
+  const executor = getExecutor("openai");
+  const originalGetTimeoutMs = executor.getTimeoutMs?.bind(executor);
+  executor.getTimeoutMs = () => 200;
+
+  const connectionId = "upstream-start-timeout";
+  const body = {
+    model: "gpt-4o-mini",
+    stream: false,
+    messages: [{ role: "user", content: "never returns" }],
+  };
+  const fetchSignals: AbortSignal[] = [];
+  const upstreamBodies: any[] = [];
+  globalThis.fetch = async (_url, init = {}) => {
+    if (init.signal instanceof AbortSignal) fetchSignals.push(init.signal);
+    if (init.body) upstreamBodies.push(JSON.parse(String(init.body)));
+    return new Promise(() => {});
+  };
+
+  try {
+    const invocation = handleChatCore({
+      body: structuredClone(body),
+      modelInfo: { provider: "openai", model: "gpt-4o-mini", extendedContext: false },
+      credentials: {
+        apiKey: "sk-test",
+        providerSpecificData: {},
+      },
+      log: noopLog(),
+      clientRawRequest: {
+        endpoint: "/v1/chat/completions",
+        body: structuredClone(body),
+        headers: new Headers({ accept: "application/json" }),
+      },
+      connectionId,
+      userAgent: "unit-test",
+    } as any);
+
+    const pendingDetail = (await waitFor(
+      () =>
+        Object.values(getPendingRequests().details[connectionId] || {}).find(
+          (detail: any) => detail?.providerRequest
+        )
+    )) as any;
+    assert.equal(pendingDetail?.providerRequest?.model, "gpt-4o-mini");
+    assert.deepEqual(pendingDetail?.providerRequest?.messages, body.messages);
+    const result = await invocation;
+    await waitForAsyncSideEffects();
+
+    assert.equal(upstreamBodies[0]?.model, "gpt-4o-mini");
+    assert.deepEqual(upstreamBodies[0]?.messages, body.messages);
+    assert.equal(result.success, false);
+    assert.equal(result.status, 504);
+    assert.equal(fetchSignals[0]?.aborted, true);
+    assert.equal(getPendingRequests().details[connectionId], undefined);
+  } finally {
+    if (originalGetTimeoutMs) executor.getTimeoutMs = originalGetTimeoutMs;
+    globalThis.fetch = originalFetch;
+  }
 });
 
 test("chatCore can disable pipeline stream chunk capture through environment", async () => {
@@ -487,6 +554,46 @@ test("chatCore helper exports detect responses passthrough paths and token expir
   assert.equal(isTokenExpiringSoon(null), false);
 });
 
+test("chatCore helper detects Claude Code semantic passthrough only for direct Claude-Code routes", () => {
+  assert.equal(
+    isClaudeCodeSemanticPassthroughRequest({
+      provider: "claude",
+      sourceFormat: FORMATS.CLAUDE,
+      targetFormat: FORMATS.CLAUDE,
+      userAgent: "claude-cli/2.1.137",
+    }),
+    true
+  );
+  assert.equal(
+    isClaudeCodeSemanticPassthroughRequest({
+      provider: "anthropic-compatible-cc-test",
+      sourceFormat: FORMATS.CLAUDE,
+      targetFormat: FORMATS.CLAUDE,
+      headers: new Headers({ "x-app": "cli" }),
+      userAgent: "unit-test",
+    }),
+    true
+  );
+  assert.equal(
+    isClaudeCodeSemanticPassthroughRequest({
+      provider: "anthropic-compatible-test",
+      sourceFormat: FORMATS.CLAUDE,
+      targetFormat: FORMATS.CLAUDE,
+      userAgent: "claude-cli/2.1.137",
+    }),
+    false
+  );
+  assert.equal(
+    isClaudeCodeSemanticPassthroughRequest({
+      provider: "claude",
+      sourceFormat: FORMATS.CLAUDE,
+      targetFormat: FORMATS.CLAUDE,
+      userAgent: "generic-client",
+    }),
+    false
+  );
+});
+
 test("chatCore applies payload rules after translating Responses input into Chat payloads", async () => {
   setPayloadRulesConfig({
     default: [
@@ -564,6 +671,207 @@ test("chatCore builds Claude Code-compatible upstream requests for CC providers"
   assert.equal(call.body.messages[0].content[0].text, "Ping");
 });
 
+// Fix #2468: normalizeClaudeUpstreamMessages() now runs on the pure Claude passthrough
+// path too. It extracts role:"system" messages into the top-level system parameter,
+// strips empty text blocks, converts inline document blocks (no url/data) to text, and
+// drops unknown block types (e.g. future_block). tool_result blocks are preserved via
+// preserveToolResultBlocks:true.
+test("chatCore normalizes native Claude Code messages for native Claude OAuth passthrough", async () => {
+  const clientMessages = [
+    {
+      role: "system",
+      content: [{ type: "text", text: "system-message-that-should-stay-in-messages" }],
+    },
+    {
+      role: "user",
+      content: [
+        { type: "text", text: "" },
+        { type: "text", text: "Run pwd", cache_control: { type: "ephemeral" } },
+        { type: "document", name: "README.md", content: "Do not flatten me" },
+        { type: "future_block", payload: { keep: true } },
+      ],
+    },
+    {
+      role: "assistant",
+      content: [{ type: "tool_use", id: "toolu_pwd", name: "Bash", input: { command: "pwd" } }],
+    },
+    {
+      role: "user",
+      content: [{ type: "tool_result", tool_use_id: "toolu_pwd", content: "ok" }],
+    },
+  ];
+
+  const { call, result } = await invokeChatCore({
+    provider: "claude",
+    model: "claude-sonnet-4-6",
+    endpoint: "/v1/messages",
+    credentials: { apiKey: "claude-key", providerSpecificData: {} },
+    body: {
+      model: "omniroute/alias-that-should-resolve",
+      max_tokens: 64,
+      system: [{ type: "text", text: "top-level-system" }],
+      messages: clientMessages,
+      tools: [{ name: "Bash", input_schema: { type: "object", properties: {} } }],
+    },
+    userAgent: "claude-cli/2.1.137",
+    requestHeaders: { "x-app": "cli", "x-claude-code-session-id": "session-123" },
+    responseFormat: "claude",
+  });
+
+  assert.equal(result.success, true);
+  assert.equal(call.body.model, "claude-sonnet-4-6");
+
+  // After normalization: role:"system" msg extracted → top-level system (3 msgs remain, not 4)
+  assert.equal(call.body.messages.length, 3);
+
+  // system-role block appended to top-level system array
+  assert.equal(
+    call.body.system.some(
+      (block: { text?: string }) => block.text === "system-message-that-should-stay-in-messages"
+    ),
+    true
+  );
+
+  // user msg[0] (was clientMessages[1]): empty text, document and future_block are preserved
+  // since it is a semantic passthrough request
+  assert.equal(call.body.messages[0].content.length, 4);
+  assert.equal(call.body.messages[0].content[0].type, "text");
+  assert.equal(call.body.messages[0].content[0].text, "");
+  assert.equal(call.body.messages[0].content[1].text, "Run pwd");
+  assert.equal(call.body.messages[0].content[2].type, "document");
+  assert.equal(call.body.messages[0].content[3].type, "future_block");
+
+  // assistant msg[1] (was clientMessages[2]): tool_use unchanged
+  assert.equal(call.body.messages[1].content[0].type, "tool_use");
+
+  // user msg[2] (was clientMessages[3]): tool_result preserved (preserveToolResultBlocks:true)
+  assert.equal(call.body.messages[2].content[0].type, "tool_result");
+});
+
+test("chatCore keeps Claude normalization for non-Claude-Code Claude passthrough", async () => {
+  const { call, result } = await invokeChatCore({
+    provider: "claude",
+    model: "claude-sonnet-4-6",
+    endpoint: "/v1/messages",
+    credentials: { apiKey: "claude-key", providerSpecificData: {} },
+    body: {
+      model: "claude-sonnet-4-6",
+      max_tokens: 64,
+      messages: [
+        { role: "system", content: "system role should move" },
+        {
+          role: "user",
+          content: [
+            { type: "text", text: "" },
+            { type: "text", text: "hello" },
+            { type: "document", name: "README.md", content: "Read me" },
+            { type: "future_block", payload: { drop: true } },
+          ],
+        },
+      ],
+    },
+    userAgent: "generic-client/1.0",
+    responseFormat: "claude",
+  });
+
+  assert.equal(result.success, true);
+  assert.equal(
+    call.body.messages.some((message) => message.role === "system"),
+    false
+  );
+  assert.equal(call.body.system.at(-1).text, "system role should move");
+  assert.deepEqual(call.body.messages[0].content, [
+    { type: "text", text: "hello" },
+    { type: "text", text: "[README.md]\nRead me" },
+  ]);
+});
+
+// Fix #2468: normalizeClaudeUpstreamMessages() runs on the CC-compatible bridge path too
+// (preserveClaudeMessages=true). Same normalization: system-role → top-level system,
+// empty text stripped, document→text, future_block dropped, tool_result preserved.
+test("chatCore normalizes native Claude Code messages before CC-compatible relay transforms", async () => {
+  const clientMessages = [
+    {
+      role: "system",
+      content: [{ type: "text", text: "system-message-remains-in-source-history" }],
+    },
+    {
+      role: "user",
+      content: [
+        { type: "text", text: "" },
+        { type: "text", text: "Inspect project", cache_control: { type: "ephemeral" } },
+        { type: "document", name: "design.md", content: "Keep as document block" },
+        { type: "future_block", payload: { keep: true } },
+      ],
+    },
+    {
+      role: "assistant",
+      content: [{ type: "tool_use", id: "toolu_read", name: "Read", input: { file_path: "a.ts" } }],
+    },
+    {
+      role: "user",
+      content: [{ type: "tool_result", tool_use_id: "toolu_read", content: "file contents" }],
+    },
+  ];
+
+  const { call, result } = await invokeChatCore({
+    provider: "anthropic-compatible-cc-test",
+    model: "claude-sonnet-4-6",
+    endpoint: "/v1/messages",
+    credentials: {
+      apiKey: "sk-test",
+      providerSpecificData: {
+        baseUrl: "https://proxy.example.com/v1/messages?beta=true",
+        chatPath: "/v1/messages?beta=true",
+      },
+    },
+    body: {
+      model: "claude-sonnet-4-6",
+      max_tokens: 64,
+      system: [{ type: "text", text: "top-level-system" }],
+      messages: clientMessages,
+      tools: [{ name: "Read", input_schema: { type: "object", properties: {} } }],
+    },
+    userAgent: "Claude-Code/2.1.137",
+    requestHeaders: { "x-app": "cli", "x-claude-code-session-id": "cc-session-123" },
+    responseFormat: "claude",
+  });
+
+  assert.equal(result.success, true);
+  assert.match(call.url, /\/v1\/messages\?beta=true$/);
+  assert.equal(call.body.stream, true);
+
+  // After normalization: role:"system" msg extracted → top-level system (3 msgs remain, not 4)
+  assert.equal(call.body.messages.length, 3);
+
+  // CC bridge prepends its own system block; extracted system block is appended after it
+  assert.equal(
+    call.body.system[0].text,
+    "You are a Claude agent, built on Anthropic's Claude Agent SDK."
+  );
+  assert.equal(
+    call.body.system.some(
+      (block: { text?: string }) => block.text === "system-message-remains-in-source-history"
+    ),
+    true
+  );
+
+  // user msg[0] (was clientMessages[1]): empty text, document and future_block are preserved
+  // since it is a semantic passthrough request
+  assert.equal(call.body.messages[0].content.length, 4);
+  assert.equal(call.body.messages[0].content[0].type, "text");
+  assert.equal(call.body.messages[0].content[0].text, "");
+  assert.equal(call.body.messages[0].content[1].text, "Inspect project");
+  assert.equal(call.body.messages[0].content[2].type, "document");
+  assert.equal(call.body.messages[0].content[3].type, "future_block");
+
+  // assistant msg[1] (was clientMessages[2]): tool_use unchanged
+  assert.equal(call.body.messages[1].content[0].type, "tool_use");
+
+  // user msg[2] (was clientMessages[3]): tool_result preserved (preserveToolResultBlocks:true)
+  assert.equal(call.body.messages[2].content[0].type, "tool_result");
+});
+
 test("chatCore preserves cache_control automatically for Claude Code single-model requests", async () => {
   await settingsDb.updateSettings({ alwaysPreserveClientCache: "auto" });
   invalidateCacheControlSettingsCache();
@@ -604,9 +912,11 @@ test("chatCore preserves cache_control automatically for Claude Code single-mode
   });
 
   assert.equal(hasCacheControl(call.body), true);
-  assert.deepEqual(call.body.system[0].cache_control, { type: "ephemeral", ttl: "5m" });
+  // system[0] and system[1] are now the billing line and sentinel injected by base.ts for Claude Code
+  assert.deepEqual(call.body.system[2].cache_control, { type: "ephemeral", ttl: "5m" });
   assert.deepEqual(call.body.messages[0].content[0].cache_control, { type: "ephemeral" });
-  assert.deepEqual(call.body.tools[0].cache_control, { type: "ephemeral", ttl: "30m" });
+  // base.ts executor explicitly strips cache_control from tools for Claude Code clients
+  assert.equal(call.body.tools[0].cache_control, undefined);
 });
 
 test("chatCore auto cache policy becomes false for nondeterministic combos", async () => {
@@ -840,7 +1150,7 @@ test("chatCore strips unsupported reasoning params and caps provider token field
 
   assert.equal(call.body.temperature, undefined);
   assert.equal(call.body.presence_penalty, undefined);
-  assert.equal(call.body.max_tokens, 16384);
+  assert.equal(call.body.max_tokens, undefined);
   assert.equal(call.body.max_completion_tokens, 16384);
 });
 
@@ -1350,6 +1660,25 @@ test("chatCore attaches OmniRoute response metadata headers to non-stream respon
   assert.equal(result.response.headers.get("X-OmniRoute-Tokens-Out"), "3");
   assert.ok(Number(result.response.headers.get("X-OmniRoute-Latency-Ms")) >= 0);
   assert.match(String(result.response.headers.get("X-OmniRoute-Response-Cost")), /^\d+\.\d{10}$/);
+});
+
+test("chatCore does not expose provider request credentials in non-stream response headers", async () => {
+  const { result } = await invokeChatCore({
+    provider: "openai",
+    model: "gpt-4o-mini",
+    body: {
+      model: "gpt-4o-mini",
+      stream: false,
+      messages: [{ role: "user", content: "hide provider credentials" }],
+    },
+    responseFormat: "openai",
+  });
+
+  assert.equal(result.success, true);
+  assert.equal(result.response.headers.get("authorization"), null);
+  assert.equal(result.response.headers.get("x-api-key"), null);
+  assert.equal(result.response.headers.get("Content-Type"), "application/json");
+  assert.equal(result.response.headers.get("X-OmniRoute-Cache"), "MISS");
 });
 
 test("chatCore normalizes tool finish reasons and estimates usage when upstream omits it", async () => {
@@ -1944,9 +2273,10 @@ test("chatCore records Claude prompt cache and cache usage metadata in call logs
   assert.equal(result.success, true);
   assert.ok(detail);
   assert.equal(detail.requestBody._omniroute.claudePromptCache.applied, true);
-  assert.equal(detail.requestBody._omniroute.claudePromptCache.totalBreakpoints, 4);
+  // Breakpoints: system[2] (1), message content (1), assistant response (1). Tools cache_control is stripped by base.ts.
+  assert.equal(detail.requestBody._omniroute.claudePromptCache.totalBreakpoints, 3);
   assert.equal(detail.responseBody._omniroute.claudePromptCache.applied, true);
-  assert.equal(detail.responseBody._omniroute.claudePromptCache.totalBreakpoints, 4);
+  assert.equal(detail.responseBody._omniroute.claudePromptCache.totalBreakpoints, 3);
   assert.equal(typeof detail.responseBody._omniroute.claudePromptCache.anthropicBeta, "string");
   assert.match(detail.responseBody._omniroute.claudePromptCache.anthropicBeta, /prompt-caching/i);
   assert.deepEqual(detail.responseBody._omniroute.claudePromptCacheUsage, {
@@ -2039,6 +2369,70 @@ test("chatCore emits final SSE metadata comments before [DONE] on streaming resp
   assert.ok(
     streamText.indexOf(": x-omniroute-response-cost=") < streamText.indexOf("data: [DONE]")
   );
+});
+
+test("buildStreamingResponseHeaders drops upstream compression and framing headers", () => {
+  const headers = new Headers(
+    buildStreamingResponseHeaders(
+      new Headers({
+        "Content-Type": "text/event-stream",
+        "Content-Encoding": "gzip",
+        "Content-Length": "999",
+        "Transfer-Encoding": "chunked",
+        "X-Upstream-Trace": "trace-1",
+      }),
+      {
+        provider: "openai",
+        model: "gpt-4o-mini",
+        cacheHit: false,
+        latencyMs: 0,
+        usage: null,
+        costUsd: 0,
+      }
+    )
+  );
+
+  assert.equal(headers.get("Content-Type"), "text/event-stream");
+  assert.equal(headers.get("Content-Encoding"), null);
+  assert.equal(headers.get("Content-Length"), null);
+  assert.equal(headers.get("Transfer-Encoding"), null);
+  assert.equal(headers.get("X-Upstream-Trace"), "trace-1");
+  assert.equal(headers.get("X-OmniRoute-Cache"), "MISS");
+});
+
+test("chatCore strips upstream compression and length headers from streaming responses", async () => {
+  const upstreamPayload = `data: ${JSON.stringify({
+    id: "chatcmpl-stream-headers",
+    object: "chat.completion.chunk",
+    choices: [{ index: 0, delta: { role: "assistant", content: "streamed" } }],
+  })}\n\ndata: [DONE]\n\n`;
+  const { result } = await invokeChatCore({
+    provider: "openai",
+    model: "gpt-4o-mini",
+    accept: "text/event-stream",
+    body: {
+      model: "gpt-4o-mini",
+      stream: true,
+      messages: [{ role: "user", content: "stream header sanitization" }],
+    },
+    responseFactory() {
+      return new Response(upstreamPayload, {
+        status: 200,
+        headers: {
+          "Content-Type": "text/event-stream",
+          "Content-Length": String(Buffer.byteLength(upstreamPayload)),
+          "X-Upstream-Trace": "trace-1",
+        },
+      });
+    },
+  });
+
+  assert.equal(result.success, true);
+  assert.equal(result.response.headers.get("Content-Type"), "text/event-stream");
+  assert.equal(result.response.headers.get("Content-Length"), null);
+  assert.equal(result.response.headers.get("X-Upstream-Trace"), "trace-1");
+  assert.equal(result.response.headers.get("X-OmniRoute-Cache"), "MISS");
+  await result.response.text();
 });
 
 test("chatCore maps upstream aborts to request-aborted errors", async () => {

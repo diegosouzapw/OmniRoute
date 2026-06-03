@@ -3,8 +3,14 @@
  */
 
 import { getDbInstance } from "../db/core";
+import { upsertSemanticMemoryPoint, deleteSemanticMemoryPoint } from "./qdrant";
 import { Memory, MemoryType } from "./types";
 import { logger } from "../../../open-sse/utils/logger.ts";
+import { sanitizeErrorMessage } from "../../../open-sse/utils/error.ts";
+import { resolveEmbeddingSource, embed } from "./embedding";
+import { getVectorStore } from "./vectorStore";
+import { getMemorySettings } from "./settings";
+import { markMemoryNeedsReindex } from "@/lib/localDb";
 
 const log = logger("MEMORY_STORE");
 
@@ -27,8 +33,8 @@ interface MemoryRow {
 }
 
 // Memory cache configuration
-const MEMORY_CACHE_TTL = 300_000; // 5 minutes
-const MEMORY_MAX_CACHE_SIZE = 10_000;
+const MEMORY_CACHE_TTL = 60_000; // 1 minute
+const MEMORY_MAX_CACHE_SIZE = 500;
 
 // Cache for recently accessed memories
 const _memoryCache = new Map<string, CacheEntry<Memory | null>>();
@@ -92,6 +98,60 @@ function findExistingMemory(
 }
 
 /**
+ * Fire-and-forget: generate embedding for a memory and upsert into sqlite-vec.
+ * Errors are logged but never thrown — this must never block the SQLite write.
+ */
+/**
+ * Best-effort: try to mark a memory needs_reindex. Swallows errors so that DB-closed
+ * states (e.g. test teardown after the parent promise resolved) never escape as
+ * unhandledRejection. Producing this side-effect is opportunistic by design.
+ */
+function safeMarkNeedsReindex(id: string, needs: boolean): void {
+  try {
+    markMemoryNeedsReindex(id, needs);
+  } catch {
+    // intentional swallow — DB may be closed (test teardown) or schema not yet ready
+  }
+}
+
+function scheduleVectorUpsert(id: string, content: string): void {
+  setImmediate(async () => {
+    try {
+      const settings = await getMemorySettings();
+      const resolution = resolveEmbeddingSource(settings);
+      if (!resolution.source) return;
+
+      const embeddingResult = await embed(content, settings);
+      if (!("vector" in embeddingResult)) {
+        log.warn("memory.vec.embed.fail", {
+          id,
+          reason: embeddingResult.reason,
+          message: sanitizeErrorMessage(embeddingResult.message),
+        });
+        safeMarkNeedsReindex(id, true);
+        return;
+      }
+
+      const vec = getVectorStore();
+      if (!vec) {
+        safeMarkNeedsReindex(id, true);
+        return;
+      }
+
+      await vec.ensureReady(resolution);
+      await vec.upsertVector(id, embeddingResult.vector);
+      safeMarkNeedsReindex(id, false);
+    } catch (err: unknown) {
+      log.warn("memory.vec.upsert.fail", {
+        id,
+        error: sanitizeErrorMessage(err instanceof Error ? err.message : String(err)),
+      });
+      safeMarkNeedsReindex(id, true);
+    }
+  });
+}
+
+/**
  * Create a new memory entry (UPSERT: updates existing if same apiKeyId + key)
  */
 export async function createMemory(
@@ -144,6 +204,27 @@ export async function createMemory(
       key: memory.key,
     });
 
+    // Best-effort vector upsert (fire-and-forget — content changed so regenerate)
+    scheduleVectorUpsert(String(existing.id), memory.content);
+
+    // Best-effort re-sync to Qdrant after update
+    upsertSemanticMemoryPoint({
+      id: String(existing.id),
+      apiKeyId: memory.apiKeyId || "",
+      sessionId: memory.sessionId || "",
+      key: memory.key || "",
+      content: memory.content,
+      metadata: updatedMetadata || {},
+      createdAt: String(existing.created_at),
+      expiresAt: memory.expiresAt ? memory.expiresAt.toISOString() : null,
+    })
+      .then((r) => {
+        if (r.ok) log.debug?.("qdrant.upsert.ok", { id: existing.id, latencyMs: r.latencyMs });
+        else if (r.error && r.error !== "not_configured")
+          log.warn?.("qdrant.upsert.fail", { id: existing.id, error: r.error });
+      })
+      .catch((e) => log.warn?.("qdrant.upsert.error", { id: existing.id, error: String(e) }));
+
     return updatedMemory;
   }
 
@@ -186,6 +267,27 @@ export async function createMemory(
   _memoryCache.set(id, { value: createdMemory, timestamp: Date.now() });
 
   log.info("memory.stored", { apiKeyId: memory.apiKeyId, type: memory.type, id });
+
+  // Best-effort vector upsert (fire-and-forget)
+  scheduleVectorUpsert(id, memory.content);
+
+  // Best-effort sync to semantic memory store (Qdrant). Failures do not block the SQLite write.
+  upsertSemanticMemoryPoint({
+    id,
+    apiKeyId: memory.apiKeyId || "",
+    sessionId: memory.sessionId || "",
+    key: memory.key || "",
+    content: memory.content,
+    metadata: memory.metadata || {},
+    createdAt: now,
+    expiresAt: memory.expiresAt ? memory.expiresAt.toISOString() : null,
+  })
+    .then((r) => {
+      if (r.ok) log.debug?.("qdrant.upsert.ok", { id, latencyMs: r.latencyMs });
+      else if (r.error && r.error !== "not_configured")
+        log.warn?.("qdrant.upsert.fail", { id, error: r.error });
+    })
+    .catch((e) => log.warn?.("qdrant.upsert.error", { id, error: String(e) }));
 
   return createdMemory;
 }
@@ -234,6 +336,11 @@ export async function updateMemory(
   const db = getDbInstance();
   const now = new Date().toISOString();
 
+  // Fetch current state to detect content/key change (needed for vector re-gen)
+  const currentRow = db.prepare("SELECT content, key FROM memories WHERE id = ?").get(id) as
+    | { content: string; key: string | null }
+    | undefined;
+
   // Build dynamic update query
   const fields: string[] = [];
   const values: unknown[] = [];
@@ -276,15 +383,47 @@ export async function updateMemory(
   // Invalidate cache for this memory
   invalidateMemoryCache(id);
 
+  // Regenerate vector if content or key changed (fire-and-forget)
+  const contentChanged =
+    updates.content !== undefined && updates.content !== currentRow?.content;
+  const keyChanged = updates.key !== undefined && updates.key !== currentRow?.key;
+
+  if (contentChanged || keyChanged) {
+    const newContent = updates.content ?? currentRow?.content ?? "";
+    scheduleVectorUpsert(id, newContent);
+  }
+
   return true;
 }
 
 /**
- * Delete a memory by ID
+ * Delete a memory by ID.
+ * D15 (bug #3): MUST call both vec.deleteVector AND deleteSemanticMemoryPoint
+ * before the SQLite DELETE to keep all stores in sync.
  */
 export async function deleteMemory(id: string): Promise<boolean> {
   if (!id || typeof id !== "string") return false;
 
+  // 1. Delete from sqlite-vec (best-effort — does not fail if vec not loaded)
+  const vec = getVectorStore();
+  if (vec) {
+    await vec.deleteVector(id).catch((e: unknown) =>
+      log.warn("memory.vec.delete.fail", {
+        id,
+        error: sanitizeErrorMessage(e instanceof Error ? e.message : String(e)),
+      })
+    );
+  }
+
+  // 2. Delete from Qdrant (best-effort — already existed before plan 21)
+  await deleteSemanticMemoryPoint(id).catch((e: unknown) =>
+    log.warn("memory.qdrant.delete.fail", {
+      id,
+      error: sanitizeErrorMessage(e instanceof Error ? e.message : String(e)),
+    })
+  );
+
+  // 3. Delete from SQLite
   const db = getDbInstance();
   const stmt = db.prepare("DELETE FROM memories WHERE id = ?");
   const result = stmt.run(id);
@@ -388,4 +527,19 @@ export async function listMemories(filters: {
     total,
     byType,
   };
+}
+
+/**
+ * Total estimated tokens across stored memories (4 chars ≈ 1 token), computed in
+ * SQL so we never load every memory's content into process memory. Scoped to a
+ * single API key when `apiKeyId` is provided, otherwise counts all memories.
+ */
+export function getMemoryTokensUsed(apiKeyId?: string): number {
+  const db = getDbInstance();
+  const stmt = db.prepare(
+    "SELECT COALESCE(SUM((LENGTH(content) + 3) / 4), 0) as tokensUsed FROM memories" +
+      (apiKeyId ? " WHERE api_key_id = ?" : "")
+  );
+  const row = stmt.get(...(apiKeyId ? [apiKeyId] : [])) as { tokensUsed: number } | undefined;
+  return row?.tokensUsed ?? 0;
 }

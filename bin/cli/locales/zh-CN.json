@@ -1,0 +1,29 @@
+{
+  "common": {
+    "error": "错误：{message}",
+    "serverOffline": "OmniRoute 服务器已离线。请启动：omniroute serve",
+    "authRequired": "需要认证。请设置 OMNIROUTE_API_KEY 或运行：omniroute setup",
+    "rateLimited": "请求超出限制。请在 {seconds}s 后重试。",
+    "timeout": "请求在 {ms}ms 后超时。",
+    "success": "完成。",
+    "yes": "是",
+    "no": "否",
+    "confirm": "确定吗？（是/否）",
+    "dryRun": "【模拟】将执行：{action}",
+    "cancelled": "已取消。",
+    "jsonOpt": "以 JSON 格式输出",
+    "yesOpt": "跳过确认"
+  },
+  "program": {
+    "description": "OmniRoute — 具有自动故障转移的智能 AI 路由器",
+    "version": "打印版本并退出",
+    "output": "输出格式（table, json, jsonl, csv）",
+    "quiet": "禁止非必要输出",
+    "no_color": "禁用彩色输出",
+    "timeout": "HTTP 请求超时（毫秒）",
+    "api_key": "OmniRoute 服务器的 API 密钥",
+    "base_url": "OmniRoute 服务器的基础 URL",
+    "context": "此命令使用的服务器上下文/配置文件",
+    "lang": "设置 CLI 显示语言（覆盖 OMNIROUTE_LANG）"
+  }
+}

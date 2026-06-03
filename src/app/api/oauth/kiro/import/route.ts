@@ -5,13 +5,23 @@ import { getConsistentMachineId } from "@/shared/utils/machineId";
 import { syncToCloud } from "@/lib/cloudSync";
 import { kiroImportSchema } from "@/shared/validation/schemas";
 import { isValidationFailure, validateBody } from "@/shared/validation/helpers";
+import { isAuthRequired, isAuthenticated } from "@/shared/utils/apiAuth";
 import { runWithProxyContext } from "@omniroute/open-sse/utils/proxyFetch.ts";
+
+async function requireOAuthImportAuth(request: Request) {
+  if (!(await isAuthRequired(request))) return null;
+  if (await isAuthenticated(request)) return null;
+  return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+}
 
 /**
  * POST /api/oauth/kiro/import
  * Import and validate refresh token from Kiro IDE
  */
-export async function POST(request: any) {
+export async function POST(request: Request) {
+  const authResponse = await requireOAuthImportAuth(request);
+  if (authResponse) return authResponse;
+
   let rawBody;
   try {
     rawBody = await request.json();
@@ -34,16 +44,18 @@ export async function POST(request: any) {
     if (isValidationFailure(validation)) {
       return NextResponse.json({ error: validation.error }, { status: 400 });
     }
-    const { refreshToken } = validation.data;
+    const { refreshToken, region } = validation.data;
 
     const kiroService = new KiroService();
 
     // Resolve proxy for this provider (provider-level → global → direct)
     const proxy = await resolveProxyForProvider(targetProvider);
 
-    // Validate and refresh token (through proxy if configured)
+    // Validate and refresh token (through proxy if configured).
+    // validateImportToken also calls registerClient() to obtain a per-connection OIDC
+    // client pair so multiple Kiro accounts do not share a single backend session (#2328).
     const tokenData = await runWithProxyContext(proxy, () =>
-      kiroService.validateImportToken(refreshToken.trim())
+      kiroService.validateImportToken(refreshToken.trim(), region)
     );
 
     // Extract email from JWT if available
@@ -61,6 +73,16 @@ export async function POST(request: any) {
         profileArn: tokenData.profileArn,
         authMethod: "imported",
         provider: "Imported",
+        ...(tokenData.clientId
+          ? {
+              clientId: tokenData.clientId,
+              clientSecret: tokenData.clientSecret,
+              region,
+              ...(tokenData.clientSecretExpiresAt
+                ? { clientSecretExpiresAt: tokenData.clientSecretExpiresAt }
+                : {}),
+            }
+          : {}),
       },
       testStatus: "active",
     });
@@ -77,8 +99,8 @@ export async function POST(request: any) {
       },
     });
   } catch (error: any) {
-    console.log("Kiro-compatible import token error:", error);
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    console.error("Kiro-compatible import token error:", error);
+    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
 }
 

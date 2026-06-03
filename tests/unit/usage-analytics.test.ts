@@ -9,9 +9,11 @@ process.env.DATA_DIR = TEST_DATA_DIR;
 
 const core = await import("../../src/lib/db/core.ts");
 const localDb = await import("../../src/lib/localDb.ts");
+const apiKeysDb = await import("../../src/lib/db/apiKeys.ts");
 const providersDb = await import("../../src/lib/db/providers.ts");
 const usageHistory = await import("../../src/lib/usage/usageHistory.ts");
 const usageStats = await import("../../src/lib/usage/usageStats.ts");
+const legacyUsageAnalytics = await import("../../src/lib/usageAnalytics.ts");
 const callLogs = await import("../../src/lib/usage/callLogs.ts");
 const { calculateCost } = await import("../../src/lib/usage/costCalculator.ts");
 
@@ -20,9 +22,28 @@ const clearPendingRequests = usageHistory.clearPendingRequests;
 
 async function resetStorage() {
   core.resetDbInstance();
+  apiKeysDb.resetApiKeyState();
   fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
   fs.mkdirSync(TEST_DATA_DIR, { recursive: true });
   clearPendingRequests();
+}
+
+async function withPrepareFailure(match: string, fn: () => Promise<void>) {
+  const db = core.getDbInstance();
+  const originalPrepare = db.prepare.bind(db);
+
+  db.prepare = (sql, ...args) => {
+    if (String(sql).includes(match)) {
+      throw new Error("full history scan should not run");
+    }
+    return originalPrepare(sql, ...args);
+  };
+
+  try {
+    await fn();
+  } finally {
+    db.prepare = originalPrepare;
+  }
 }
 
 test.beforeEach(async () => {
@@ -31,6 +52,7 @@ test.beforeEach(async () => {
 
 test.after(() => {
   core.resetDbInstance();
+  apiKeysDb.resetApiKeyState();
   fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
 });
 
@@ -258,7 +280,7 @@ test("getUsageStats aggregates totals, buckets, pending requests, and cost break
   assert.equal(stats.byAccount[accountKey].requests, 2);
   assert.equal(stats.byAccount[accountKey].accountName, "Primary Account");
 
-  assert.equal(stats.byApiKey["Service Key (api-key-1)"].requests, 2);
+  assert.equal(stats.byApiKey["id:api-key-1"].requests, 2);
   assert.equal(stats.pending.byModel["pricing-model (pricing-provider)"], 1);
   assert.equal(stats.pending.byAccount[connection.id]["pricing-model (pricing-provider)"], 1);
   assert.deepEqual(stats.activeRequests, [
@@ -273,6 +295,125 @@ test("getUsageStats aggregates totals, buckets, pending requests, and cost break
   assert.equal(stats.last10Minutes.length, 10);
   const recentBucketTotal = stats.last10Minutes.reduce((sum, bucket) => sum + bucket.requests, 0);
   assert.equal(recentBucketTotal, 1);
+});
+
+test("getUsageStats avoids loading the entire usage_history table", async () => {
+  await usageHistory.saveRequestUsage({
+    provider: "provider-a",
+    model: "model-a",
+    tokens: { input: 10, output: 5 },
+    success: true,
+    timestamp: new Date().toISOString(),
+  });
+
+  await withPrepareFailure("SELECT * FROM usage_history ORDER BY timestamp ASC", async () => {
+    const stats = await usageStats.getUsageStats();
+    assert.equal(stats.totalRequests, 1);
+    assert.equal(stats.totalPromptTokens, 10);
+    assert.equal(stats.totalCompletionTokens, 5);
+  });
+});
+
+test("getUsageStats groups renamed API key usage by stable ID", async () => {
+  const db = core.getDbInstance();
+  const now = new Date().toISOString();
+  db.prepare(
+    `INSERT INTO api_keys (id, name, key, machine_id, allowed_models, no_log, created_at, key_prefix)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?)`
+  ).run(
+    "api-key-rename",
+    "Current Name",
+    "omni-test-key",
+    "machine1234567890",
+    "[]",
+    0,
+    now,
+    "omni-test-ke"
+  );
+
+  await usageHistory.saveRequestUsage({
+    provider: "provider-a",
+    model: "model-a",
+    apiKeyId: "api-key-rename",
+    apiKeyName: "Original Name",
+    tokens: { input: 10, output: 5 },
+    success: true,
+    timestamp: new Date(Date.now() - 60_000).toISOString(),
+  });
+  await usageHistory.saveRequestUsage({
+    provider: "provider-a",
+    model: "model-a",
+    apiKeyId: "api-key-rename",
+    apiKeyName: "Renamed Alias",
+    tokens: { input: 20, output: 10 },
+    success: true,
+    timestamp: now,
+  });
+
+  const stats = await usageStats.getUsageStats();
+  const row = stats.byApiKey["id:api-key-rename"];
+
+  assert.ok(row);
+  assert.equal(Object.keys(stats.byApiKey).length, 1);
+  assert.equal(row.apiKeyId, "api-key-rename");
+  assert.equal(row.apiKeyName, "Current Name");
+  assert.deepEqual(row.historicalApiKeyNames?.sort(), ["Original Name", "Renamed Alias"]);
+  assert.equal(row.requests, 2);
+  assert.equal(row.promptTokens, 30);
+  assert.equal(row.completionTokens, 15);
+});
+
+test("computeAnalytics groups renamed API key usage by stable ID", async () => {
+  const analytics = await legacyUsageAnalytics.computeAnalytics(
+    [
+      {
+        timestamp: new Date(Date.now() - 60_000).toISOString(),
+        provider: "provider-a",
+        model: "model-a",
+        apiKeyId: "api-key-legacy",
+        apiKeyName: "Original Name",
+        tokens: { input: 10, output: 5 },
+      },
+      {
+        timestamp: new Date().toISOString(),
+        provider: "provider-a",
+        model: "model-a",
+        apiKeyId: "api-key-legacy",
+        apiKeyName: "Renamed Alias",
+        tokens: { input: 20, output: 10 },
+      },
+    ],
+    "all"
+  );
+
+  assert.equal(analytics.summary.uniqueApiKeys, 1);
+  assert.equal(analytics.byApiKey.length, 1);
+  assert.equal(analytics.byApiKey[0].apiKeyId, "api-key-legacy");
+  assert.deepEqual(analytics.byApiKey[0].historicalApiKeyNames.sort(), [
+    "Original Name",
+    "Renamed Alias",
+  ]);
+  assert.equal(analytics.byApiKey[0].requests, 2);
+  assert.equal(analytics.byApiKey[0].promptTokens, 30);
+  assert.equal(analytics.byApiKey[0].completionTokens, 15);
+});
+
+test("Codex Fast service tier applies documented GPT-5.5 and GPT-5.4 cost multipliers", async () => {
+  await localDb.updatePricing({
+    codex: {
+      "gpt-5.5": { input: 5, output: 30 },
+      "gpt-5.4": { input: 5, output: 30 },
+    },
+  });
+
+  const tokens = { input: 1000, output: 500 };
+
+  assert.equal(await calculateCost("codex", "gpt-5.5", tokens), 0.02);
+  assert.equal(await calculateCost("codex", "gpt-5.5", tokens, { serviceTier: "priority" }), 0.05);
+  assert.equal(await calculateCost("codex", "gpt-5.5", tokens, { serviceTier: "flex" }), 0.01);
+  assert.equal(await calculateCost("codex", "gpt-5.4-high", tokens, { serviceTier: "fast" }), 0.04);
+  assert.equal(await calculateCost("openai", "gpt-5.5", tokens, { serviceTier: "priority" }), 0.02);
+  assert.equal(await calculateCost("openai", "gpt-5.5", tokens, { serviceTier: "flex" }), 0.02);
 });
 
 test("recent request summaries are generated from SQLite call logs", async () => {
@@ -315,6 +456,7 @@ test("pending request metadata stores sanitized payload previews and clears afte
       token: "super-secret-token",
       messages: [{ role: "user", content: "hello" }],
     },
+    stage: "registered",
   });
 
   usageHistory.updatePendingRequest("gpt-test", "openai", "conn-preview", {
@@ -323,6 +465,7 @@ test("pending request metadata stores sanitized payload previews and clears afte
       authorization: "Bearer super-secret-token",
       messages: [{ role: "user", content: "hello" }],
     },
+    stage: "sending_to_provider",
   });
 
   const pending = usageHistory.getPendingRequests();
@@ -334,6 +477,8 @@ test("pending request metadata stores sanitized payload previews and clears afte
   assert.equal(clientRequestPreview.token, "[REDACTED]");
   assert.equal(providerRequestPreview.authorization, "[REDACTED]");
   assert.equal(detail.providerUrl, "https://api.example.com/v1/chat/completions");
+  assert.equal(detail.stage, "sending_to_provider");
+  assert.equal(typeof detail.stageUpdatedAt, "number");
 
   usageHistory.trackPendingRequest("gpt-test", "openai", "conn-preview", false);
   assert.equal(pending.details["conn-preview"], undefined);

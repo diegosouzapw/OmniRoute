@@ -267,10 +267,10 @@ export function migrateUsageJsonToSqlite() {
         const insert = db.prepare(`
           INSERT INTO usage_history (provider, model, connection_id, api_key_id, api_key_name,
             tokens_input, tokens_output, tokens_cache_read, tokens_cache_creation, tokens_reasoning,
-            status, success, latency_ms, ttft_ms, error_code, timestamp)
+            status, success, latency_ms, ttft_ms, error_code, combo_strategy, timestamp)
           VALUES (@provider, @model, @connectionId, @apiKeyId, @apiKeyName,
             @tokensInput, @tokensOutput, @tokensCacheRead, @tokensCacheCreation, @tokensReasoning,
-            @status, @success, @latencyMs, @ttftMs, @errorCode, @timestamp)
+            @status, @success, @latencyMs, @ttftMs, @errorCode, @comboStrategy, @timestamp)
         `);
 
         const tx = db.transaction(() => {
@@ -281,8 +281,10 @@ export function migrateUsageJsonToSqlite() {
               connectionId: entry.connectionId || null,
               apiKeyId: entry.apiKeyId || null,
               apiKeyName: entry.apiKeyName || null,
-              tokensInput: entry.tokens?.input ?? entry.tokens?.prompt_tokens ?? 0,
-              tokensOutput: entry.tokens?.output ?? entry.tokens?.completion_tokens ?? 0,
+              tokensInput:
+                entry.tokens?.input ?? entry.tokens?.prompt_tokens ?? entry.tokens?.in ?? 0,
+              tokensOutput:
+                entry.tokens?.output ?? entry.tokens?.completion_tokens ?? entry.tokens?.out ?? 0,
               tokensCacheRead: entry.tokens?.cacheRead ?? entry.tokens?.cached_tokens ?? 0,
               tokensCacheCreation:
                 entry.tokens?.cacheCreation ?? entry.tokens?.cache_creation_input_tokens ?? 0,
@@ -296,6 +298,7 @@ export function migrateUsageJsonToSqlite() {
                   ? Number(entry.latencyMs)
                   : 0,
               errorCode: entry.errorCode || null,
+              comboStrategy: entry.comboStrategy || entry.combo_strategy || "direct",
               timestamp: entry.timestamp || new Date().toISOString(),
             });
           }
@@ -358,7 +361,7 @@ export function migrateUsageJsonToSqlite() {
 
             if (detailExpected) {
               const artifact: CallLogArtifact = {
-                schemaVersion: 4,
+                schemaVersion: 5,
                 summary: {
                   id,
                   timestamp,

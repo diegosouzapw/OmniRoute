@@ -1,4 +1,5 @@
 import { getDbInstance, rowToCamel, objToSnake } from "./core";
+import { deleteFile } from "./files";
 import { v4 as uuidv4 } from "uuid";
 
 function parseBatchRow(row: any): BatchRecord {
@@ -24,6 +25,23 @@ function parseBatchRow(row: any): BatchRecord {
       camel.usage = null;
     }
   }
+  // Normalize numeric date fields to ensure they are valid numbers
+  const coerceNum = (v: any): number | null => {
+    if (typeof v === "number" && Number.isFinite(v)) return v;
+    if (v == null) return null;
+    const n = Number(v);
+    return Number.isFinite(n) ? n : null;
+  };
+
+  camel.createdAt = coerceNum(camel.createdAt) ?? 0;
+  camel.inProgressAt = coerceNum(camel.inProgressAt);
+  camel.expiresAt = coerceNum(camel.expiresAt);
+  camel.finalizingAt = coerceNum(camel.finalizingAt);
+  camel.completedAt = coerceNum(camel.completedAt);
+  camel.failedAt = coerceNum(camel.failedAt);
+  camel.expiredAt = coerceNum(camel.expiredAt);
+  camel.cancellingAt = coerceNum(camel.cancellingAt);
+  camel.cancelledAt = coerceNum(camel.cancelledAt);
   return camel as BatchRecord;
 }
 
@@ -69,11 +87,11 @@ export function createBatch(
     BatchRecord,
     | "id"
     | "createdAt"
-    | "status"
     | "requestCountsTotal"
     | "requestCountsCompleted"
     | "requestCountsFailed"
-  >
+    | "status"
+  > & { status?: BatchRecord["status"] }
 ): BatchRecord {
   const db = getDbInstance();
   const id = "batch_" + uuidv4().replaceAll("-", "").substring(0, 24);
@@ -82,7 +100,7 @@ export function createBatch(
     ...batch,
     id,
     createdAt,
-    status: "validating",
+    status: batch.status || "validating",
     requestCountsTotal: 0,
     requestCountsCompleted: 0,
     requestCountsFailed: 0,
@@ -168,6 +186,19 @@ export function listBatches(apiKeyId?: string, limit: number = 20, after?: strin
   return rows.map((row) => parseBatchRow(row));
 }
 
+export function countBatches(apiKeyId?: string): number {
+  const db = getDbInstance();
+  if (apiKeyId) {
+    const row = db
+      .prepare("SELECT COUNT(*) as c FROM batches WHERE api_key_id = ?")
+      .get(apiKeyId) as { c: number } | undefined;
+    return row ? Number(row.c) : 0;
+  } else {
+    const row = db.prepare("SELECT COUNT(*) as c FROM batches").get() as { c: number } | undefined;
+    return row ? Number(row.c) : 0;
+  }
+}
+
 export function getPendingBatches(): BatchRecord[] {
   const db = getDbInstance();
   const rows = db
@@ -186,4 +217,70 @@ export function getTerminalBatches(): BatchRecord[] {
     )
     .all();
   return rows.map((row) => parseBatchRow(row));
+}
+
+export function deleteBatch(id: string): boolean {
+  const db = getDbInstance();
+  const batch = getBatch(id);
+  if (!batch) return false;
+
+  // Soft-delete associated files (input, output, error)
+  if (batch.inputFileId) {
+    try {
+      deleteFile(batch.inputFileId);
+    } catch {
+      /* ignore */
+    }
+  }
+  if (batch.outputFileId) {
+    try {
+      deleteFile(batch.outputFileId);
+    } catch {
+      /* ignore */
+    }
+  }
+  if (batch.errorFileId) {
+    try {
+      deleteFile(batch.errorFileId);
+    } catch {
+      /* ignore */
+    }
+  }
+
+  const result = db.prepare("DELETE FROM batches WHERE id = ?").run(id);
+  return result.changes > 0;
+}
+
+export function deleteCompletedBatches(): { deletedBatches: number; deletedFiles: number } {
+  const db = getDbInstance();
+
+  // Collect unique file IDs from all completed batches
+  const rows = db
+    .prepare(
+      "SELECT input_file_id, output_file_id, error_file_id FROM batches WHERE status = 'completed'"
+    )
+    .all() as Array<{
+    input_file_id: string | null;
+    output_file_id: string | null;
+    error_file_id: string | null;
+  }>;
+
+  const fileIds = new Set<string>();
+  for (const row of rows) {
+    if (row.input_file_id) fileIds.add(row.input_file_id);
+    if (row.output_file_id) fileIds.add(row.output_file_id);
+    if (row.error_file_id) fileIds.add(row.error_file_id);
+  }
+
+  let deletedFiles = 0;
+  for (const fid of fileIds) {
+    try {
+      if (deleteFile(fid)) deletedFiles++;
+    } catch {
+      /* ignore */
+    }
+  }
+
+  const result = db.prepare("DELETE FROM batches WHERE status = 'completed'").run();
+  return { deletedBatches: result.changes, deletedFiles };
 }

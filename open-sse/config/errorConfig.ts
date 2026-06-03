@@ -106,6 +106,18 @@ export const ERROR_RULES: ErrorRule[] = [
     reason: "rate_limit_exceeded",
   },
   {
+    id: "hour_quota_exceeded",
+    text: "hour quota",
+    backoff: true,
+    reason: "quota_exhausted",
+  },
+  {
+    id: "quota_has_been_exceeded",
+    text: "quota has been exceeded",
+    backoff: true,
+    reason: "quota_exhausted",
+  },
+  {
     id: "quota_exceeded",
     text: "quota exceeded",
     backoff: true,
@@ -126,6 +138,12 @@ export const ERROR_RULES: ErrorRule[] = [
   {
     id: "quota_exhausted",
     text: "quota exhausted",
+    backoff: true,
+    reason: "quota_exhausted",
+  },
+  {
+    id: "free_tier_exhausted",
+    text: "free tier of the model has been exhausted",
     backoff: true,
     reason: "quota_exhausted",
   },

@@ -1,5 +1,6 @@
-import { getModelInfo } from "../services/model";
+import { getModelInfo, getComboForModel } from "../services/model";
 import { clearAccountError, markAccountUnavailable } from "../services/auth";
+import { connectionHasExtraKeys } from "@omniroute/open-sse/services/apiKeyRotator.ts";
 import * as log from "../utils/logger";
 import { updateProviderCredentials } from "../services/tokenRefresh";
 import {
@@ -25,33 +26,248 @@ import {
 } from "@omniroute/open-sse/utils/proxyFetch.ts";
 import { resolveProxyForConnection } from "@/lib/localDb";
 import { CircuitBreakerOpenError, getCircuitBreaker } from "../../shared/utils/circuitBreaker";
+import { classify429FromError, type FailureKind } from "../../shared/utils/classify429";
+import { resolveUseUpstream429BreakerHints } from "../../shared/utils/providerHints";
+
 import { logProxyEvent } from "../../lib/proxyLogger";
 import { logTranslationEvent } from "../../lib/translatorEvents";
 import { getRuntimeProviderProfile } from "@omniroute/open-sse/services/accountFallback.ts";
 
-export async function resolveModelOrError(modelStr: string, body: any, endpointPath: string = "") {
+// Models that explicitly cannot run on the codex/ChatGPT-Pro OAuth pool — when
+// a caller writes `codex/deepseek-v4-pro` we transparently reroute to the
+// canonical provider whose API key is configured. Saves callers from having
+// to know about the OAuth-vs-API-key split.
+const NON_OAUTH_MODEL_PREFIX = /^(deepseek|qwen|kimi|glm|minimax|mimo)/i;
+const PREFERRED_BY_FAMILY: Record<string, string> = {
+  deepseek: "deepseek",
+  qwen: "bailian",
+  kimi: "moonshot",
+  glm: "zhipu",
+  minimax: "minimax",
+  mimo: "moonshot",
+};
+
+const CODEX_NATIVE_RESPONSES_MODELS = new Set(["gpt-5.5"]);
+
+type TrafficType = "production" | "shadow";
+
+type ExecuteChatWithBreakerOptions = {
+  trafficType?: TrafficType;
+  [key: string]: any;
+};
+
+function getHeaderValue(headers: Record<string, unknown> | null | undefined, name: string) {
+  if (!headers || typeof headers !== "object") return "";
+  const lowerName = name.toLowerCase();
+  for (const [key, value] of Object.entries(headers)) {
+    if (key.toLowerCase() !== lowerName) continue;
+    return Array.isArray(value) ? value.join(",") : String(value ?? "");
+  }
+  return "";
+}
+
+function isCodexNativeResponsesRequest(
+  body: any,
+  endpointPath: string,
+  headers: Record<string, unknown> | null | undefined
+) {
+  const normalizedEndpoint = String(endpointPath || "").replace(/\/+$/, "");
+  if (!/(^|\/)responses(?=\/|$)/i.test(normalizedEndpoint)) return false;
+  if (/\/responses\/compact$/i.test(normalizedEndpoint)) return true;
+
+  const userAgent = getHeaderValue(headers, "user-agent").toLowerCase();
+  if (userAgent.includes("codex")) return true;
+  if (getHeaderValue(headers, "x-codex-session-id")) return true;
+  if (getHeaderValue(headers, "x-codex-window-id")) return true;
+  if (getHeaderValue(headers, "x-codex-turn-metadata")) return true;
+
+  const metadataSource =
+    body && typeof body === "object" && body.metadata && typeof body.metadata === "object"
+      ? String(body.metadata.source || "")
+      : "";
+  return metadataSource.toLowerCase().includes("codex");
+}
+
+async function hasOnlyActiveCodexAccount() {
+  try {
+    const { getProviderConnections } = await import("@/lib/db/providers");
+    const connections = await getProviderConnections({ isActive: true });
+    const providers = new Set(
+      connections
+        .map((connection: any) => String(connection?.provider || "").trim())
+        .filter(Boolean)
+    );
+    return providers.size === 1 && providers.has("codex");
+  } catch {
+    return false;
+  }
+}
+
+export async function resolveModelOrError(
+  modelStr: string,
+  body: any,
+  endpointPath: string = "",
+  requestHeaders: Record<string, unknown> | null | undefined = null
+) {
   const modelInfo = await getModelInfo(modelStr);
+  const sourceFormat = detectFormatFromEndpoint(body, endpointPath);
+
+  if (
+    modelInfo.provider === "openai" &&
+    typeof modelInfo.model === "string" &&
+    CODEX_NATIVE_RESPONSES_MODELS.has(modelInfo.model) &&
+    sourceFormat === "openai-responses" &&
+    isCodexNativeResponsesRequest(body, endpointPath, requestHeaders)
+  ) {
+    log.info("ROUTING", `${modelStr} → codex/${modelInfo.model} (Codex native responses)`);
+    modelInfo.provider = "codex";
+  }
+
+  if (
+    modelInfo.provider === "openai" &&
+    modelInfo.model === "gpt-5.5" &&
+    sourceFormat === "openai-responses" &&
+    !isCodexNativeResponsesRequest(body, endpointPath, requestHeaders) &&
+    (await hasOnlyActiveCodexAccount())
+  ) {
+    // #2877: keep the bare model id (do NOT bake a `-medium` suffix). The Codex
+    // executor reads a model-name suffix as an explicit `modelEffort` that (per
+    // #2331) overrides the client's `reasoning.effort`, so injecting `-medium`
+    // here silently demoted a genuine `reasoning.effort=xhigh`. The default
+    // effort still comes from the connection fallback when the client sends none.
+    log.info("ROUTING", `${modelStr} → codex/gpt-5.5 (Codex-only active account)`);
+    modelInfo.provider = "codex";
+    modelInfo.model = "gpt-5.5";
+  }
+
+  // Forced-rewrite: codex provider doesn't serve DeepSeek/Qwen/Kimi/etc. Reroute
+  // these to their canonical native provider so the request lands on the right
+  // upstream API key instead of failing with a 400 on the OAuth account.
+  // Ambiguous candidates (e.g. deepseek-v4-pro lives on both ds + opencode-go)
+  // resolve to the model-family's native provider via NON_OAUTH_PROVIDER_BY_FAMILY.
+  if (
+    modelInfo.provider === "codex" &&
+    typeof modelInfo.model === "string" &&
+    NON_OAUTH_MODEL_PREFIX.test(modelInfo.model)
+  ) {
+    log.info(
+      "ROUTING",
+      `codex/${modelInfo.model} → re-resolving via native provider (codex OAuth does not serve this model)`
+    );
+    const rerouted = await getModelInfo(modelInfo.model);
+    if (rerouted.provider && rerouted.provider !== "codex") {
+      log.info("ROUTING", `codex/${modelInfo.model} → ${rerouted.provider}/${rerouted.model}`);
+      Object.assign(modelInfo, rerouted);
+    } else if ((rerouted as any).errorType === "ambiguous_model") {
+      const candidates: string[] = (rerouted as any).candidateProviders || [];
+      const family = modelInfo.model.match(NON_OAUTH_MODEL_PREFIX)?.[1]?.toLowerCase();
+      const pick = family && PREFERRED_BY_FAMILY[family];
+      if (pick && candidates.includes(pick)) {
+        log.info(
+          "ROUTING",
+          `codex/${modelInfo.model} → ${pick}/${modelInfo.model} (ambiguity resolved by family)`
+        );
+        modelInfo.provider = pick;
+        modelInfo.model = (rerouted as any).model;
+      }
+    }
+  }
+
+  // "auto" is a combo prefix, not a provider. parseModel("auto/fast") splits it into
+  // provider="auto" model="fast" — redirect to matching combo before credential lookup fails.
+  if (modelInfo.provider === "auto") {
+    const exactCombo = await getComboForModel(modelStr);
+    if (exactCombo) {
+      log.info("ROUTING", `"auto" provider → combo "${modelStr}"`);
+      return { combo: exactCombo, provider: "auto", model: modelInfo.model };
+    }
+
+    // Fuzzy: "fast" → "auto/best-fast", "chat" → "auto/best-chat"
+    const suffix = modelInfo.model || "";
+    for (const candidate of [`auto/best-${suffix}`, `auto/${suffix}`]) {
+      const fuzzyCombo = await getComboForModel(candidate);
+      if (fuzzyCombo) {
+        log.info("ROUTING", `"auto/${suffix}" → combo "${candidate}" (fuzzy)`);
+        return { combo: fuzzyCombo, provider: "auto", model: suffix };
+      }
+    }
+
+    // List available auto/* combos in error
+    const available: string[] = [];
+    try {
+      const { getCombos } = await import("@/lib/localDb");
+      const all = await getCombos();
+      for (const c of all) {
+        if (c.name?.startsWith("auto/")) available.push(c.name);
+      }
+    } catch {
+      /* DB unavailable */
+    }
+
+    const hint =
+      available.length > 0
+        ? ` Available auto combos: ${available.join(", ")}`
+        : " No auto combos configured — create one in the Dashboard.";
+    const message = `Model '${modelStr}' is not a valid combo or provider.${hint}`;
+    log.warn("CHAT", message, { model: modelStr });
+    return { error: errorResponse(HTTP_STATUS.BAD_REQUEST, message) };
+  }
+
   if (!modelInfo.provider) {
-    if ((modelInfo as any).errorType === "ambiguous_model") {
+    // model_not_found: raised by resolveModelByProviderInference when no
+    // provider could be inferred — return a clear error instead of the
+    // misleading "openai" default that the old code silently fell back to.
+    if ((modelInfo as any).errorType === "model_not_found") {
       const message =
         (modelInfo as any).errorMessage ||
-        `Ambiguous model '${modelStr}'. Use provider/model prefix (ex: gh/${modelStr} or cc/${modelStr}).`;
-      log.warn("CHAT", message, {
-        model: modelStr,
-        candidates:
-          (modelInfo as any).candidateAliases || (modelInfo as any).candidateProviders || [],
-      });
+        `Model '${modelStr}' could not be resolved to a known provider.`;
+      log.warn("CHAT", message, { model: modelStr });
       return { error: errorResponse(HTTP_STATUS.BAD_REQUEST, message) };
     }
-    log.warn("CHAT", "Invalid model format", { model: modelStr });
-    return { error: errorResponse(HTTP_STATUS.BAD_REQUEST, "Invalid model format") };
+
+    if ((modelInfo as any).errorType === "ambiguous_model") {
+      // Family disambiguation: if the model name begins with a known
+      // non-OAuth family prefix, auto-pick the family-native provider
+      // from the candidate set instead of returning a 400. Saves callers
+      // (codex CLI, hermes, etc.) from having to guess the right alias.
+      const candidates: string[] = (modelInfo as any).candidateProviders || [];
+      const modelLower = (modelInfo.model || modelStr).toLowerCase();
+      const family = modelLower.match(NON_OAUTH_MODEL_PREFIX)?.[1];
+      const pick = family && PREFERRED_BY_FAMILY[family];
+      if (pick && candidates.includes(pick)) {
+        log.info(
+          "ROUTING",
+          `${modelStr} → ${pick}/${modelInfo.model} (ambiguity auto-resolved by family)`
+        );
+        modelInfo.provider = pick;
+      } else {
+        const message =
+          (modelInfo as any).errorMessage ||
+          `Ambiguous model '${modelStr}'. Use provider/model prefix (ex: gh/${modelStr} or cc/${modelStr}).`;
+        log.warn("CHAT", message, {
+          model: modelStr,
+          candidates:
+            (modelInfo as any).candidateAliases || (modelInfo as any).candidateProviders || [],
+        });
+        return { error: errorResponse(HTTP_STATUS.BAD_REQUEST, message) };
+      }
+    } else {
+      log.warn("CHAT", "Invalid model format", { model: modelStr });
+      return { error: errorResponse(HTTP_STATUS.BAD_REQUEST, "Invalid model format") };
+    }
   }
 
   const { provider, model, extendedContext } = modelInfo;
-  const sourceFormat = detectFormatFromEndpoint(body, endpointPath);
+  // apiFormat: optional custom-model marker — see chatCore.ts for shape narrowing rationale.
+  const apiFormat: string | undefined =
+    modelInfo && typeof modelInfo === "object" && "apiFormat" in modelInfo
+      ? typeof (modelInfo as { apiFormat?: unknown }).apiFormat === "string"
+        ? ((modelInfo as { apiFormat?: string }).apiFormat as string)
+        : undefined
+      : undefined;
   const providerAlias = PROVIDER_ID_TO_ALIAS[provider] || provider;
   let targetFormat = getModelTargetFormat(providerAlias, model) || getTargetFormat(provider);
-  if ((modelInfo as any).apiFormat === "responses") {
+  if (apiFormat === "responses") {
     targetFormat = "openai-responses";
     log.info("ROUTING", `Custom model apiFormat=responses → targetFormat=openai-responses`);
   }
@@ -63,7 +279,7 @@ export async function resolveModelOrError(modelStr: string, body: any, endpointP
     log.info("ROUTING", `Provider: ${provider}, Model: ${model}${ctxTag}`);
   }
 
-  return { provider, model, sourceFormat, targetFormat, extendedContext };
+  return { provider, model, sourceFormat, targetFormat, extendedContext, apiFormat };
 }
 
 export async function checkPipelineGates(
@@ -83,11 +299,25 @@ export async function checkPipelineGates(
 ) {
   const bypassReason = options.bypassReason || "pipeline override";
   const providerProfile = options.providerProfile ?? (await getRuntimeProviderProfile(provider));
+  // Issue #2100 follow-up: opt-in upstream 429 hint trust per provider.
+  const useHints429 = resolveUseUpstream429BreakerHints(
+    provider,
+    (providerProfile as { useUpstream429BreakerHints?: boolean }).useUpstream429BreakerHints
+  );
   const breaker = getCircuitBreaker(provider, {
     failureThreshold: providerProfile.failureThreshold ?? providerProfile.circuitBreakerThreshold,
     resetTimeout: providerProfile.resetTimeoutMs ?? providerProfile.circuitBreakerReset,
     onStateChange: (name: string, from: string, to: string) =>
       log.info("CIRCUIT", `${name}: ${from} → ${to}`),
+    ...(useHints429
+      ? {
+          cooldownByKind: {
+            rate_limit: 60_000,
+            quota_exhausted: 3_600_000,
+          } satisfies Partial<Record<FailureKind, number>>,
+          classifyError: classify429FromError,
+        }
+      : {}),
   });
   if (options.ignoreCircuitBreaker && !breaker.canExecute()) {
     log.info("CIRCUIT", `Bypassing OPEN circuit breaker for ${provider} (${bypassReason})`);
@@ -120,16 +350,25 @@ export async function executeChatWithBreaker({
   comboStepId,
   comboExecutionKey,
   extendedContext,
+  modelApiFormat,
   providerProfile,
-}: any): Promise<{ result: any; tlsFingerprintUsed: boolean }> {
+  cachedSettings,
+  skipUpstreamRetry = false,
+  trafficType = "production",
+}: ExecuteChatWithBreakerOptions): Promise<{ result: any; tlsFingerprintUsed: boolean }> {
   let tlsFingerprintUsed = false;
+  const normalizedTrafficType: TrafficType =
+    typeof trafficType === "string" && trafficType.trim().toLowerCase() === "shadow"
+      ? "shadow"
+      : "production";
+  const isShadowTraffic = normalizedTrafficType === "shadow";
 
   try {
     const chatFn = () =>
       runWithProxyContext(proxyInfo?.proxy || null, () =>
         (handleChatCore as any)({
           body: { ...body, model: `${provider}/${model}` },
-          modelInfo: { provider, model, extendedContext },
+          modelInfo: { provider, model, extendedContext, apiFormat: modelApiFormat },
           credentials: refreshedCredentials,
           log: handlerLog,
           clientRawRequest,
@@ -141,6 +380,10 @@ export async function executeChatWithBreaker({
           isCombo,
           comboStepId,
           comboExecutionKey,
+          disableEmergencyFallback: isCombo,
+          cachedSettings,
+          skipUpstreamRetry,
+          trafficType: normalizedTrafficType,
           onCredentialsRefreshed: async (newCreds: any) => {
             await updateProviderCredentials(credentials.connectionId, {
               accessToken: newCreds.accessToken,
@@ -152,14 +395,32 @@ export async function executeChatWithBreaker({
               // apiKey blob mid-request — forward it so the DB credential
               // doesn't go stale after Set-Cookie rotation.
               apiKey: newCreds.apiKey,
-              testStatus: "active",
+              testStatus: newCreds.testStatus ?? "active",
+              isActive: newCreds.isActive,
             });
           },
           onRequestSuccess: async () => {
+            if (isShadowTraffic) return;
             await clearAccountError(credentials.connectionId, credentials);
           },
           onStreamFailure: async (failure: any) => {
+            if (isShadowTraffic) return;
             if (!credentials.connectionId) return;
+            // A3 guard: if 401 and connection has extra keys, skip connection-level disable
+            // (key-level failure already recorded in chatCore.ts via T07)
+            // Check extra keys directly from credentials for reliability across restarts
+            const extraKeys =
+              (credentials.providerSpecificData?.extraApiKeys as string[] | undefined) ?? [];
+            const hasExtraKeys =
+              extraKeys.length > 0 || connectionHasExtraKeys(credentials.connectionId);
+            const is401 = Number(failure?.status) === 401;
+            if (is401 && hasExtraKeys) {
+              log.debug(
+                "AUTH",
+                `A3 guard: skipping markAccountUnavailable for 401 with extra keys on ${credentials.connectionId.slice(0, 8)}`
+              );
+              return;
+            }
             await markAccountUnavailable(
               credentials.connectionId,
               Number(failure?.status || HTTP_STATUS.BAD_GATEWAY),
@@ -171,6 +432,28 @@ export async function executeChatWithBreaker({
           },
         })
       );
+
+    if (isShadowTraffic) {
+      if (!bypassCircuitBreaker && breaker && !breaker.canExecute()) {
+        const retryAfterMs = breaker.getRetryAfterMs();
+        return {
+          result: {
+            success: false,
+            response: providerCircuitOpenResponse(provider, Math.ceil(retryAfterMs / 1000)),
+            status: HTTP_STATUS.SERVICE_UNAVAILABLE,
+          },
+          tlsFingerprintUsed: false,
+        };
+      }
+
+      if (!proxyInfo?.proxy && isTlsFingerprintActive()) {
+        const tracked = await runWithTlsTracking(chatFn);
+        return { result: tracked.result, tlsFingerprintUsed: tracked.tlsFingerprintUsed };
+      }
+
+      const result = await chatFn();
+      return { result, tlsFingerprintUsed: false };
+    }
 
     if (bypassCircuitBreaker) {
       if (!proxyInfo?.proxy && isTlsFingerprintActive()) {
@@ -258,6 +541,24 @@ export function handleNoCredentials(
       credentials.retryAfterHuman
     );
   }
+
+  if (credentials?.allExpired) {
+    // Every connection for this provider is in a terminal state (expired,
+    // banned, or credits_exhausted). Surface as 401 with a re-auth hint
+    // instead of the generic 400 "No credentials", so dashboards/CLIs can
+    // distinguish "never configured" from "needs to reconnect".
+    const status = credentials.expiredStatus || "expired";
+    const count = credentials.expiredCount || 1;
+    const reason =
+      status === "credits_exhausted"
+        ? "credits exhausted"
+        : status === "banned"
+          ? "banned by upstream"
+          : "authentication expired";
+    const message = `[${provider}] All ${count} connection(s) ${reason} — please reconnect in the dashboard`;
+    log.warn("CHAT", message);
+    return errorResponse(HTTP_STATUS.UNAUTHORIZED, message);
+  }
   if (lastError && lastStatus) {
     log.warn("CHAT", "Preserving last upstream error after credential exhaustion", {
       provider,
@@ -305,7 +606,8 @@ export function safeLogEvents({
       clientRawRequest?.headers?.["x-real-ip"] ||
       clientRawRequest?.headers?.["cf-connecting-ip"] ||
       null;
-    const publicIp = rawIp ? rawIp.split(",")[0].trim() : null;
+    const rawIpValue = Array.isArray(rawIp) ? rawIp[0] : rawIp;
+    const clientIp = typeof rawIpValue === "string" ? rawIpValue.split(",")[0].trim() : null;
 
     logProxyEvent({
       status: result.success
@@ -318,7 +620,7 @@ export function safeLogEvents({
       levelId: proxyInfo?.levelId || null,
       provider,
       targetUrl: `${provider}/${model}`,
-      publicIp,
+      clientIp,
       latencyMs: proxyLatency,
       error: result.success ? null : result.error || null,
       connectionId: credentials.connectionId,

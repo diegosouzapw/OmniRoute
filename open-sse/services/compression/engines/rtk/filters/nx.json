@@ -1,0 +1,34 @@
+{
+  "id": "nx",
+  "label": "Nx",
+  "description": "Compact Nx task graph and output.",
+  "category": "build",
+  "priority": 76,
+  "match": {
+    "outputTypes": [],
+    "commands": ["^nx\\b", "^npx\\s+nx\\b"],
+    "patterns": ["NX   ", "Successfully ran target"]
+  },
+  "rules": {
+    "stripAnsi": true,
+    "dropPatterns": ["^\\s*$", "^> nx run"],
+    "includePatterns": ["NX   ", "ERROR", "Failed", "Successfully ran", "Running target"],
+    "collapsePatterns": [],
+    "deduplicate": true,
+    "maxLines": 120,
+    "headLines": 25,
+    "tailLines": 50
+  },
+  "preserve": {
+    "errorPatterns": ["ERROR", "Failed"],
+    "summaryPatterns": ["Successfully ran"]
+  },
+  "tests": [
+    {
+      "name": "inline sample",
+      "command": "nx",
+      "input": "> nx run app:build\nNX   Failed tasks:\nERROR boom\n",
+      "expected": "NX   Failed tasks:\nERROR boom"
+    }
+  ]
+}

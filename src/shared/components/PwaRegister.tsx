@@ -8,6 +8,11 @@ export function PwaRegister() {
       return;
     }
 
+    // Disable service worker in development to avoid chunk loading / HMR conflicts
+    if (process.env.NODE_ENV !== "production") {
+      return;
+    }
+
     navigator.serviceWorker.register("/sw.js").catch(() => {
       // Ignore registration failures to avoid blocking app rendering.
     });

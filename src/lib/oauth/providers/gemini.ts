@@ -90,6 +90,7 @@ export const gemini = {
   mapTokens: (tokens, extra) => ({
     accessToken: tokens.access_token,
     refreshToken: tokens.refresh_token,
+    idToken: tokens.id_token ?? null,
     expiresIn: tokens.expires_in,
     scope: tokens.scope,
     email: extra?.userInfo?.email,

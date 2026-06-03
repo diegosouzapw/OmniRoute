@@ -1,6 +1,8 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
+import Link from "next/link";
+import { useTranslations } from "next-intl";
 import { Card, Button, Input, Toggle } from "@/shared/components";
 
 interface Settings {
@@ -28,6 +30,7 @@ function isValidUrl(value: string): boolean {
 }
 
 export default function CliproxyapiSettingsTab() {
+  const t = useTranslations("settings");
   const [settings, setSettings] = useState<Settings>({});
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -118,6 +121,21 @@ export default function CliproxyapiSettingsTab() {
 
   return (
     <div className="space-y-4">
+      {/* Migration banner — new lifecycle management lives in the Services page */}
+      <div className="flex items-start gap-2 px-3 py-2.5 rounded-lg bg-blue-500/10 text-blue-700 dark:text-blue-300 text-xs">
+        <span className="material-symbols-outlined text-[14px] mt-0.5 shrink-0">info</span>
+        <span>
+          CLIProxyAPI lifecycle management (install, start, stop) has moved to{" "}
+          <Link
+            href="/dashboard/providers/services"
+            className="underline underline-offset-2 hover:opacity-80"
+          >
+            Providers → Services
+          </Link>
+          . Fallback routing settings below remain here.
+        </span>
+      </div>
+
       {message && (
         <div
           className={`flex items-center gap-2 px-3 py-2 rounded-lg text-xs ${
@@ -139,7 +157,7 @@ export default function CliproxyapiSettingsTab() {
             <span className="material-symbols-outlined text-indigo-500 text-xl">swap_horiz</span>
           </div>
           <div>
-            <h3 className="font-medium text-sm">CLIProxyAPI Fallback</h3>
+            <h3 className="font-medium text-sm">{t("cliproxyapiFallback")}</h3>
             <p className="text-xs text-text-muted">
               When enabled, failed requests are retried through CLIProxyAPI (localhost:8317)
             </p>
@@ -148,7 +166,7 @@ export default function CliproxyapiSettingsTab() {
 
         <div className="space-y-4">
           <div className="flex items-center justify-between">
-            <label className="text-sm text-text-main">Enable CLIProxyAPI Fallback</label>
+            <label className="text-sm text-text-main">{t("cliproxyapiEnableFallback")}</label>
             <Toggle
               checked={cpaEnabled}
               onChange={(checked) => updateSetting("cliproxyapi_fallback_enabled", checked)}
@@ -158,7 +176,9 @@ export default function CliproxyapiSettingsTab() {
           {cpaEnabled && (
             <>
               <div>
-                <label className="text-xs text-text-muted mb-1.5 block">CLIProxyAPI URL</label>
+                <label className="text-xs text-text-muted mb-1.5 block">
+                  {t("cliproxyapiUrl")}
+                </label>
                 <Input
                   value={cpaUrl}
                   onChange={(e) => updateSetting("cliproxyapi_url", e.target.value)}
@@ -184,7 +204,7 @@ export default function CliproxyapiSettingsTab() {
       </Card>
 
       <Card padding="md">
-        <h3 className="font-medium text-sm mb-4">CLIProxyAPI Status</h3>
+        <h3 className="font-medium text-sm mb-4">{t("cliproxyapiStatus")}</h3>
         {loading ? (
           <div className="flex items-center gap-2 text-text-muted text-sm">
             <span className="material-symbols-outlined animate-spin text-base">
@@ -237,7 +257,7 @@ export default function CliproxyapiSettingsTab() {
             </div>
           </div>
         ) : (
-          <p className="text-sm text-text-muted">CLIProxyAPI not detected</p>
+          <p className="text-sm text-text-muted">{t("cliproxyapiNotDetected")}</p>
         )}
       </Card>
     </div>

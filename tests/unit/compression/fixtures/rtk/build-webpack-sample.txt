@@ -1,0 +1,3 @@
+webpack 5.91.0 compiled with 1 error in 1200 ms
+asset main.js 120 KiB [emitted] [minimized]
+ERROR in ./src/app.ts

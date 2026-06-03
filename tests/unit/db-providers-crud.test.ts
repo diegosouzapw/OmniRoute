@@ -224,6 +224,40 @@ test("deleteProviderConnection reorders remaining rows and bulk delete reports c
   assert.deepEqual(await providersDb.getProviderConnections({ provider: "anthropic" }), []);
 });
 
+test("deleteProviderConnections deletes multiple connections and returns correct count", async () => {
+  const a = await providersDb.createProviderConnection({
+    provider: "openai",
+    authType: "apikey",
+    name: "Alpha",
+    apiKey: "alpha-key",
+  });
+  const b = await providersDb.createProviderConnection({
+    provider: "openai",
+    authType: "apikey",
+    name: "Beta",
+    apiKey: "beta-key",
+  });
+  const c = await providersDb.createProviderConnection({
+    provider: "openai",
+    authType: "apikey",
+    name: "Gamma",
+    apiKey: "gamma-key",
+  });
+
+  const deleted = await providersDb.deleteProviderConnections([(a as any).id, (c as any).id]);
+  assert.equal(deleted, 2);
+
+  assert.equal(await providersDb.getProviderConnectionById((a as any).id), null);
+  assert.equal(await providersDb.getProviderConnectionById((c as any).id), null);
+  const remaining = await providersDb.getProviderConnectionById((b as any).id);
+  assert.notEqual(remaining, null);
+});
+
+test("deleteProviderConnections with empty array returns 0", async () => {
+  const deleted = await providersDb.deleteProviderConnections([]);
+  assert.equal(deleted, 0);
+});
+
 test("provider node CRUD supports filter, update and delete", async () => {
   const customNode = await providersDb.createProviderNode({
     type: "custom",

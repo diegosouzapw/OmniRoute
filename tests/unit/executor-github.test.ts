@@ -25,6 +25,12 @@ test("GithubExecutor.buildUrl routes response-format models to /responses", () =
   }
 });
 
+test("GithubExecutor.buildUrl keeps GitHub Claude Opus 4.6 on /chat/completions", () => {
+  const executor = new GithubExecutor();
+  const url = executor.buildUrl("claude-opus-4.6", true);
+  assert.equal(url, "https://api.githubcopilot.com/chat/completions");
+});
+
 test("GithubExecutor.transformRequest injects JSON response instructions for Claude and strips reasoning fields", () => {
   const executor = new GithubExecutor();
   const body = {
@@ -282,4 +288,25 @@ test("GithubExecutor.execute preserves complete SSE responses including terminal
   } finally {
     globalThis.fetch = originalFetch;
   }
+});
+
+test("GithubExecutor.transformRequest strips invalid synthetic Responses reasoning ids", () => {
+  const executor = new GithubExecutor();
+  const result = executor.transformRequest(
+    "gpt-5.5",
+    {
+      input: [
+        {
+          id: "thinking_0",
+          type: "reasoning",
+          summary: [{ type: "summary_text", text: "cached reasoning" }],
+        },
+      ],
+    },
+    true,
+    {}
+  );
+
+  assert.equal(result.input[0].id, undefined);
+  assert.equal(result.input[0].type, "reasoning");
 });

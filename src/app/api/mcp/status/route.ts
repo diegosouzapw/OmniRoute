@@ -6,10 +6,16 @@ import {
   readMcpHeartbeat,
   resolveMcpHeartbeatPath,
 } from "@omniroute/open-sse/mcp-server/runtimeHeartbeat";
-import { getMcpHttpStatus } from "../../../../../open-sse/mcp-server/httpTransport";
+import {
+  getMcpHttpStatus,
+  isMcpHttpTransportReady,
+} from "../../../../../open-sse/mcp-server/httpTransport";
 import { getSettings } from "@/lib/db/settings";
+import { requireManagementAuth } from "@/lib/api/requireManagementAuth";
 
-export async function GET() {
+export async function GET(request: Request) {
+  const authError = await requireManagementAuth(request);
+  if (authError) return authError;
   try {
     const [heartbeat, stats, lastCallPage, settings] = await Promise.all([
       readMcpHeartbeat(),
@@ -21,12 +27,18 @@ export async function GET() {
     const mcpEnabled = !!settings.mcpEnabled;
     const mcpTransport = (settings.mcpTransport as string) || "stdio";
 
-    // Check HTTP transport (SSE / Streamable HTTP) if active
+    // Check HTTP transport active-session state separately from endpoint readiness.
     const httpStatus = getMcpHttpStatus();
 
-    // stdio uses heartbeat file; HTTP transports use in-process state
+    // stdio uses an external process heartbeat. HTTP transports are in-process and lazy-start
+    // on first request, so an enabled HTTP endpoint is online even before any session exists.
     const stdioOnline = isMcpHeartbeatOnline(heartbeat, { requireLivePid: true });
-    const online = mcpTransport === "stdio" ? stdioOnline : httpStatus.online;
+    const online =
+      mcpTransport === "stdio"
+        ? mcpEnabled && stdioOnline
+        : isMcpHttpTransportReady(mcpEnabled, mcpTransport);
+
+    const scopesEnforced = process.env.OMNIROUTE_MCP_ENFORCE_SCOPES === "true";
 
     const lastCall = lastCallPage.entries[0] || null;
     const now = Date.now();
@@ -46,6 +58,7 @@ export async function GET() {
       online,
       enabled: mcpEnabled,
       transport: mcpTransport,
+      scopesEnforced,
       heartbeatPath: resolveMcpHeartbeatPath(),
       heartbeat: heartbeat
         ? {

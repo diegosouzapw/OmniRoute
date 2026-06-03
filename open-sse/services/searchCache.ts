@@ -8,8 +8,8 @@
 
 import { createHash } from "crypto";
 
-const MAX_CACHE_ENTRIES = 5000;
-const DEFAULT_TTL_MS = parseInt(process.env.SEARCH_CACHE_TTL_MS || String(5 * 60 * 1000), 10);
+const MAX_CACHE_ENTRIES = 500;
+const DEFAULT_TTL_MS = parseInt(process.env.SEARCH_CACHE_TTL_MS || String(60 * 1000), 10);
 
 interface CacheEntry<T> {
   data: T;

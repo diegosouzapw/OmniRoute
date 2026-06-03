@@ -6,6 +6,8 @@ import AlibabaMonoIcon from "@lobehub/icons/es/Alibaba/components/Mono";
 import AnthropicMonoIcon from "@lobehub/icons/es/Anthropic/components/Mono";
 import AntigravityColorIcon from "@lobehub/icons/es/Antigravity/components/Color";
 import AntigravityMonoIcon from "@lobehub/icons/es/Antigravity/components/Mono";
+import ArceeColorIcon from "@lobehub/icons/es/Arcee/components/Color";
+import ArceeMonoIcon from "@lobehub/icons/es/Arcee/components/Mono";
 import AssemblyAIColorIcon from "@lobehub/icons/es/AssemblyAI/components/Color";
 import AssemblyAIMonoIcon from "@lobehub/icons/es/AssemblyAI/components/Mono";
 import AutomaticColorIcon from "@lobehub/icons/es/Automatic/components/Color";
@@ -16,6 +18,8 @@ import AzureColorIcon from "@lobehub/icons/es/Azure/components/Color";
 import AzureMonoIcon from "@lobehub/icons/es/Azure/components/Mono";
 import AzureAIColorIcon from "@lobehub/icons/es/AzureAI/components/Color";
 import AzureAIMonoIcon from "@lobehub/icons/es/AzureAI/components/Mono";
+import BaichuanColorIcon from "@lobehub/icons/es/Baichuan/components/Color";
+import BaichuanMonoIcon from "@lobehub/icons/es/Baichuan/components/Mono";
 import BaiduColorIcon from "@lobehub/icons/es/Baidu/components/Color";
 import BaiduMonoIcon from "@lobehub/icons/es/Baidu/components/Mono";
 import BailianColorIcon from "@lobehub/icons/es/Bailian/components/Color";
@@ -39,11 +43,16 @@ import ComfyUIColorIcon from "@lobehub/icons/es/ComfyUI/components/Color";
 import ComfyUIMonoIcon from "@lobehub/icons/es/ComfyUI/components/Mono";
 import CursorMonoIcon from "@lobehub/icons/es/Cursor/components/Mono";
 import DbrxColorIcon from "@lobehub/icons/es/Dbrx/components/Color";
+import CozeMonoIcon from "@lobehub/icons/es/Coze/components/Mono";
 import DbrxMonoIcon from "@lobehub/icons/es/Dbrx/components/Mono";
 import DeepInfraColorIcon from "@lobehub/icons/es/DeepInfra/components/Color";
 import DeepInfraMonoIcon from "@lobehub/icons/es/DeepInfra/components/Mono";
 import DeepSeekColorIcon from "@lobehub/icons/es/DeepSeek/components/Color";
 import DeepSeekMonoIcon from "@lobehub/icons/es/DeepSeek/components/Mono";
+import DifyColorIcon from "@lobehub/icons/es/Dify/components/Color";
+import DifyMonoIcon from "@lobehub/icons/es/Dify/components/Mono";
+import DoubaoColorIcon from "@lobehub/icons/es/Doubao/components/Color";
+import DoubaoMonoIcon from "@lobehub/icons/es/Doubao/components/Mono";
 import ElevenLabsMonoIcon from "@lobehub/icons/es/ElevenLabs/components/Mono";
 import ExaColorIcon from "@lobehub/icons/es/Exa/components/Color";
 import ExaMonoIcon from "@lobehub/icons/es/Exa/components/Mono";
@@ -74,7 +83,10 @@ import KiloCodeMonoIcon from "@lobehub/icons/es/KiloCode/components/Mono";
 import KimiColorIcon from "@lobehub/icons/es/Kimi/components/Color";
 import KimiMonoIcon from "@lobehub/icons/es/Kimi/components/Mono";
 import LambdaMonoIcon from "@lobehub/icons/es/Lambda/components/Mono";
+import LiquidMonoIcon from "@lobehub/icons/es/Liquid/components/Mono";
 import LmStudioMonoIcon from "@lobehub/icons/es/LmStudio/components/Mono";
+import LongCatColorIcon from "@lobehub/icons/es/LongCat/components/Color";
+import LongCatMonoIcon from "@lobehub/icons/es/LongCat/components/Mono";
 import MetaColorIcon from "@lobehub/icons/es/Meta/components/Color";
 import MetaMonoIcon from "@lobehub/icons/es/Meta/components/Mono";
 import MetaAIColorIcon from "@lobehub/icons/es/MetaAI/components/Color";
@@ -102,14 +114,17 @@ import OpenCodeMonoIcon from "@lobehub/icons/es/OpenCode/components/Mono";
 import OpenRouterMonoIcon from "@lobehub/icons/es/OpenRouter/components/Mono";
 import PerplexityColorIcon from "@lobehub/icons/es/Perplexity/components/Color";
 import PerplexityMonoIcon from "@lobehub/icons/es/Perplexity/components/Mono";
+import PhindMonoIcon from "@lobehub/icons/es/Phind/components/Mono";
 import PoeColorIcon from "@lobehub/icons/es/Poe/components/Color";
 import PoeMonoIcon from "@lobehub/icons/es/Poe/components/Mono";
+import PollinationsMonoIcon from "@lobehub/icons/es/Pollinations/components/Mono";
 import QoderColorIcon from "@lobehub/icons/es/Qoder/components/Color";
 import QoderMonoIcon from "@lobehub/icons/es/Qoder/components/Mono";
 import QwenColorIcon from "@lobehub/icons/es/Qwen/components/Color";
 import QwenMonoIcon from "@lobehub/icons/es/Qwen/components/Mono";
 import RecraftMonoIcon from "@lobehub/icons/es/Recraft/components/Mono";
 import ReplicateMonoIcon from "@lobehub/icons/es/Replicate/components/Mono";
+import RooCodeMonoIcon from "@lobehub/icons/es/RooCode/components/Mono";
 import RunwayMonoIcon from "@lobehub/icons/es/Runway/components/Mono";
 import SambaNovaColorIcon from "@lobehub/icons/es/SambaNova/components/Color";
 import SambaNovaMonoIcon from "@lobehub/icons/es/SambaNova/components/Mono";
@@ -118,15 +133,25 @@ import SiliconCloudColorIcon from "@lobehub/icons/es/SiliconCloud/components/Col
 import SiliconCloudMonoIcon from "@lobehub/icons/es/SiliconCloud/components/Mono";
 import SnowflakeColorIcon from "@lobehub/icons/es/Snowflake/components/Color";
 import SnowflakeMonoIcon from "@lobehub/icons/es/Snowflake/components/Mono";
+import SenseNovaColorIcon from "@lobehub/icons/es/SenseNova/components/Color";
+import SenseNovaMonoIcon from "@lobehub/icons/es/SenseNova/components/Mono";
 import StabilityColorIcon from "@lobehub/icons/es/Stability/components/Color";
 import StabilityMonoIcon from "@lobehub/icons/es/Stability/components/Mono";
+import StepfunColorIcon from "@lobehub/icons/es/Stepfun/components/Color";
+import StepfunMonoIcon from "@lobehub/icons/es/Stepfun/components/Mono";
 import TavilyColorIcon from "@lobehub/icons/es/Tavily/components/Color";
 import TavilyMonoIcon from "@lobehub/icons/es/Tavily/components/Mono";
 import TogetherColorIcon from "@lobehub/icons/es/Together/components/Color";
+import TencentColorIcon from "@lobehub/icons/es/Tencent/components/Color";
+import TencentMonoIcon from "@lobehub/icons/es/Tencent/components/Mono";
 import TogetherMonoIcon from "@lobehub/icons/es/Together/components/Mono";
 import TopazLabsMonoIcon from "@lobehub/icons/es/TopazLabs/components/Mono";
+import TraeColorIcon from "@lobehub/icons/es/Trae/components/Color";
+import TraeMonoIcon from "@lobehub/icons/es/Trae/components/Mono";
 import UpstageColorIcon from "@lobehub/icons/es/Upstage/components/Color";
 import UpstageMonoIcon from "@lobehub/icons/es/Upstage/components/Mono";
+import YiColorIcon from "@lobehub/icons/es/Yi/components/Color";
+import YiMonoIcon from "@lobehub/icons/es/Yi/components/Mono";
 import V0MonoIcon from "@lobehub/icons/es/V0/components/Mono";
 import VeniceColorIcon from "@lobehub/icons/es/Venice/components/Color";
 import VeniceMonoIcon from "@lobehub/icons/es/Venice/components/Mono";
@@ -139,6 +164,7 @@ import VolcengineColorIcon from "@lobehub/icons/es/Volcengine/components/Color";
 import VolcengineMonoIcon from "@lobehub/icons/es/Volcengine/components/Mono";
 import VoyageColorIcon from "@lobehub/icons/es/Voyage/components/Color";
 import VoyageMonoIcon from "@lobehub/icons/es/Voyage/components/Mono";
+import WindsurfMonoIcon from "@lobehub/icons/es/Windsurf/components/Mono";
 import WorkersAIColorIcon from "@lobehub/icons/es/WorkersAI/components/Color";
 import WorkersAIMonoIcon from "@lobehub/icons/es/WorkersAI/components/Mono";
 import XAIMonoIcon from "@lobehub/icons/es/XAI/components/Mono";
@@ -166,11 +192,13 @@ const LOBE_ICON_COMPONENTS = {
   Alibaba: { mono: AlibabaMonoIcon, color: AlibabaColorIcon },
   Anthropic: { mono: AnthropicMonoIcon },
   Antigravity: { mono: AntigravityMonoIcon, color: AntigravityColorIcon },
+  Arcee: { mono: ArceeMonoIcon, color: ArceeColorIcon },
   AssemblyAI: { mono: AssemblyAIMonoIcon, color: AssemblyAIColorIcon },
   Automatic: { mono: AutomaticMonoIcon, color: AutomaticColorIcon },
   Aws: { mono: AwsMonoIcon, color: AwsColorIcon },
   Azure: { mono: AzureMonoIcon, color: AzureColorIcon },
   AzureAI: { mono: AzureAIMonoIcon, color: AzureAIColorIcon },
+  Baichuan: { mono: BaichuanMonoIcon, color: BaichuanColorIcon },
   Baidu: { mono: BaiduMonoIcon, color: BaiduColorIcon },
   Bailian: { mono: BailianMonoIcon, color: BailianColorIcon },
   Baseten: { mono: BasetenMonoIcon },
@@ -183,10 +211,13 @@ const LOBE_ICON_COMPONENTS = {
   Codex: { mono: CodexMonoIcon, color: CodexColorIcon },
   Cohere: { mono: CohereMonoIcon, color: CohereColorIcon },
   ComfyUI: { mono: ComfyUIMonoIcon, color: ComfyUIColorIcon },
+  Coze: { mono: CozeMonoIcon },
   Cursor: { mono: CursorMonoIcon },
   Dbrx: { mono: DbrxMonoIcon, color: DbrxColorIcon },
   DeepInfra: { mono: DeepInfraMonoIcon, color: DeepInfraColorIcon },
   DeepSeek: { mono: DeepSeekMonoIcon, color: DeepSeekColorIcon },
+  Dify: { mono: DifyMonoIcon, color: DifyColorIcon },
+  Doubao: { mono: DoubaoMonoIcon, color: DoubaoColorIcon },
   ElevenLabs: { mono: ElevenLabsMonoIcon },
   Exa: { mono: ExaMonoIcon, color: ExaColorIcon },
   Fal: { mono: FalMonoIcon, color: FalColorIcon },
@@ -207,7 +238,9 @@ const LOBE_ICON_COMPONENTS = {
   KiloCode: { mono: KiloCodeMonoIcon },
   Kimi: { mono: KimiMonoIcon, color: KimiColorIcon },
   Lambda: { mono: LambdaMonoIcon },
+  Liquid: { mono: LiquidMonoIcon },
   LmStudio: { mono: LmStudioMonoIcon },
+  LongCat: { mono: LongCatMonoIcon, color: LongCatColorIcon },
   Meta: { mono: MetaMonoIcon, color: MetaColorIcon },
   MetaAI: { mono: MetaAIMonoIcon, color: MetaAIColorIcon },
   Minimax: { mono: MinimaxMonoIcon, color: MinimaxColorIcon },
@@ -225,20 +258,27 @@ const LOBE_ICON_COMPONENTS = {
   OpenCode: { mono: OpenCodeMonoIcon },
   OpenRouter: { mono: OpenRouterMonoIcon },
   Perplexity: { mono: PerplexityMonoIcon, color: PerplexityColorIcon },
+  Phind: { mono: PhindMonoIcon },
   Poe: { mono: PoeMonoIcon, color: PoeColorIcon },
+  Pollinations: { mono: PollinationsMonoIcon },
   Qoder: { mono: QoderMonoIcon, color: QoderColorIcon },
   Qwen: { mono: QwenMonoIcon, color: QwenColorIcon },
   Recraft: { mono: RecraftMonoIcon },
   Replicate: { mono: ReplicateMonoIcon },
+  RooCode: { mono: RooCodeMonoIcon },
   Runway: { mono: RunwayMonoIcon },
   SambaNova: { mono: SambaNovaMonoIcon, color: SambaNovaColorIcon },
   SearchApi: { mono: SearchApiMonoIcon },
   SiliconCloud: { mono: SiliconCloudMonoIcon, color: SiliconCloudColorIcon },
+  SenseNova: { mono: SenseNovaMonoIcon, color: SenseNovaColorIcon },
   Snowflake: { mono: SnowflakeMonoIcon, color: SnowflakeColorIcon },
   Stability: { mono: StabilityMonoIcon, color: StabilityColorIcon },
+  Stepfun: { mono: StepfunMonoIcon, color: StepfunColorIcon },
   Tavily: { mono: TavilyMonoIcon, color: TavilyColorIcon },
+  Tencent: { mono: TencentMonoIcon, color: TencentColorIcon },
   Together: { mono: TogetherMonoIcon, color: TogetherColorIcon },
   TopazLabs: { mono: TopazLabsMonoIcon },
+  Trae: { mono: TraeMonoIcon, color: TraeColorIcon },
   Upstage: { mono: UpstageMonoIcon, color: UpstageColorIcon },
   V0: { mono: V0MonoIcon },
   Venice: { mono: VeniceMonoIcon, color: VeniceColorIcon },
@@ -247,10 +287,12 @@ const LOBE_ICON_COMPONENTS = {
   Vllm: { mono: VllmMonoIcon, color: VllmColorIcon },
   Volcengine: { mono: VolcengineMonoIcon, color: VolcengineColorIcon },
   Voyage: { mono: VoyageMonoIcon, color: VoyageColorIcon },
+  Windsurf: { mono: WindsurfMonoIcon },
   WorkersAI: { mono: WorkersAIMonoIcon, color: WorkersAIColorIcon },
   XAI: { mono: XAIMonoIcon },
   XiaomiMiMo: { mono: XiaomiMiMoMonoIcon },
   Xinference: { mono: XinferenceMonoIcon, color: XinferenceColorIcon },
+  Yi: { mono: YiMonoIcon, color: YiColorIcon },
   ZAI: { mono: ZAIMonoIcon },
   Zhipu: { mono: ZhipuMonoIcon, color: ZhipuColorIcon },
 } satisfies Record<string, LobeIconEntry>;
@@ -258,11 +300,11 @@ const LOBE_ICON_COMPONENTS = {
 const LOBE_PROVIDER_ALIASES = {
   ai21: "Ai21",
   alibaba: "Alibaba",
-  alicode: "Alibaba",
-  "alicode-intl": "Alibaba",
+  "alibaba-cn": "Alibaba",
   "amazon-q": "Aws",
   anthropic: "Anthropic",
   antigravity: "Antigravity",
+  agy: "Antigravity", // Antigravity CLI — same brand icon as the antigravity provider
   assemblyai: "AssemblyAI",
   "aws-polly": "Aws",
   azure: "Azure",
@@ -275,19 +317,24 @@ const LOBE_PROVIDER_ALIASES = {
   bfl: "Bfl",
   "black-forest-labs": "Bfl",
   cerebras: "Cerebras",
+  "chatgpt-web": "OpenAI",
   claude: "ClaudeCode",
+  "claude-web": "HuggingFace",
   cline: "Cline",
   cloudflare: "Cloudflare",
   "cloudflare-ai": "WorkersAI",
   codestral: "Mistral",
   codex: "Codex",
+  "codex-cloud": "Codex",
   cohere: "Cohere",
   comfyui: "ComfyUI",
   copilot: "GithubCopilot",
+  coze: "Coze",
   cursor: "Cursor",
   databricks: "Dbrx",
   deepinfra: "DeepInfra",
   deepseek: "DeepSeek",
+  "deepseek-web": "DeepSeek",
   elevenlabs: "ElevenLabs",
   exa: "Exa",
   "exa-search": "Exa",
@@ -323,8 +370,10 @@ const LOBE_PROVIDER_ALIASES = {
   "kimi-coding-apikey": "Kimi",
   lambda: "Lambda",
   "lambda-ai": "Lambda",
+  liquid: "Liquid",
   "lm-studio": "LmStudio",
   lmstudio: "LmStudio",
+  longcat: "LongCat",
   "meta-llama": "Meta",
   minimax: "Minimax",
   "minimax-cn": "Minimax",
@@ -341,6 +390,7 @@ const LOBE_PROVIDER_ALIASES = {
   nvidia: "Nvidia",
   ollama: "Ollama",
   "ollama-cloud": "Ollama",
+  "ollama-search": "Ollama",
   openai: "OpenAI",
   openclaw: "OpenClaw",
   opencode: "OpenCode",
@@ -352,10 +402,13 @@ const LOBE_PROVIDER_ALIASES = {
   "perplexity-search": "Perplexity",
   "perplexity-web": "Perplexity",
   poe: "Poe",
+  phind: "Phind",
+  pollinations: "Pollinations",
   qoder: "Qoder",
   qwen: "Qwen",
   recraft: "Recraft",
   replicate: "Replicate",
+  roo: "RooCode",
   runwayml: "Runway",
   sambanova: "SambaNova",
   sdwebui: "Automatic",
@@ -363,12 +416,16 @@ const LOBE_PROVIDER_ALIASES = {
   "searchapi-search": "SearchApi",
   siliconflow: "SiliconCloud",
   snowflake: "Snowflake",
+  stepfun: "Stepfun",
   stability: "Stability",
   "stability-ai": "Stability",
   tavily: "Tavily",
   "tavily-search": "Tavily",
+  tencent: "Tencent",
   together: "Together",
   topaz: "TopazLabs",
+  trae: "Trae",
+  triton: "Nvidia",
   upstage: "Upstage",
   v0: "V0",
   "v0-vercel": "V0",
@@ -382,6 +439,7 @@ const LOBE_PROVIDER_ALIASES = {
   voyage: "Voyage",
   "voyage-ai": "Voyage",
   watsonx: "IBM",
+  windsurf: "Windsurf",
   "workers-ai": "WorkersAI",
   workersai: "WorkersAI",
   xai: "XAI",
@@ -389,6 +447,7 @@ const LOBE_PROVIDER_ALIASES = {
   xiaomimimo: "XiaomiMiMo",
   xinference: "Xinference",
   zai: "ZAI",
+  yi: "Yi",
   zhipu: "Zhipu",
 } satisfies Record<string, keyof typeof LOBE_ICON_COMPONENTS>;
 

@@ -1,0 +1,102 @@
+{
+  "language": "en",
+  "category": "structural",
+  "rules": [
+    {
+      "name": "redundant_phrasing",
+      "pattern": "\\b(?:make sure to|be sure to)\\b\\s*",
+      "replacement": "ensure ",
+      "context": "all",
+      "category": "structural",
+      "minIntensity": "full"
+    },
+    {
+      "name": "redundant_because",
+      "pattern": "\\b(?:due to the fact that|the reason is because)\\b\\s*",
+      "replacement": "because ",
+      "context": "all",
+      "category": "structural",
+      "minIntensity": "full"
+    },
+    {
+      "name": "redundant_directive",
+      "pattern": "\\b(?:it is important to|you should|remember to)\\b\\s*",
+      "replacement": "",
+      "context": "all",
+      "category": "structural",
+      "minIntensity": "full"
+    },
+    {
+      "name": "list_conjunction",
+      "pattern": ",\\s*and also\\s+|,\\s*as well as\\s+",
+      "replacement": ", ",
+      "context": "all",
+      "category": "structural",
+      "minIntensity": "full"
+    },
+    {
+      "name": "purpose_phrases",
+      "pattern": "\\b(?:in order to|so as to)\\b\\s*",
+      "replacement": "to ",
+      "context": "all",
+      "category": "structural",
+      "minIntensity": "lite"
+    },
+    {
+      "name": "redundant_quantifiers",
+      "pattern": "\\b(?:each and every single|each and every)\\b",
+      "replacement": "each",
+      "context": "all",
+      "category": "structural",
+      "minIntensity": "full"
+    },
+    {
+      "name": "all_quantifier",
+      "pattern": "\\bany and all\\b",
+      "replacement": "all",
+      "context": "all",
+      "category": "structural",
+      "minIntensity": "full"
+    },
+    {
+      "name": "verbose_connectors",
+      "pattern": "\\b(?:furthermore|additionally|moreover|in addition)\\b\\s*",
+      "replacement": "also ",
+      "context": "all",
+      "category": "structural",
+      "minIntensity": "lite"
+    },
+    {
+      "name": "transition_removal",
+      "pattern": "^(?:On the other hand,?\\s*|In contrast,?\\s*|However,?\\s*)",
+      "replacement": "",
+      "context": "all",
+      "category": "structural",
+      "minIntensity": "lite"
+    },
+    {
+      "name": "emphasis_removal",
+      "pattern": "\\b(?:very|really|extremely|highly|quite)\\s+(?=[a-z])",
+      "replacement": "",
+      "context": "all",
+      "category": "structural",
+      "minIntensity": "lite"
+    },
+    {
+      "name": "passive_voice",
+      "pattern": "\\b(?:is being used|is being called|is being generated|was created|was generated|was implemented)\\b",
+      "replacement": "uses",
+      "replacementMap": {
+        "is being used": "uses",
+        "is being called": "calls",
+        "is being generated": "generated",
+        "was created": "created",
+        "was generated": "generated",
+        "was implemented": "implemented"
+      },
+      "context": "all",
+      "category": "structural",
+      "minIntensity": "full"
+    }
+  ]
+}

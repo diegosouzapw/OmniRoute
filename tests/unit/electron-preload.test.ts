@@ -10,6 +10,10 @@
 
 import { describe, it } from "node:test";
 import assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
+import { resolve } from "node:path";
+
+const preloadSource = readFileSync(resolve(process.cwd(), "electron/preload.js"), "utf8");
 
 // ─── Channel Whitelist Tests ─────────────────────────────────
 
@@ -176,6 +180,46 @@ describe("Preload Listener Disposer Pattern", () => {
     // Double-dispose should be safe
     dispose1();
     assert.equal(listeners.length, 1);
+  });
+});
+
+// ─── macOS Drag Region Tests ─────────────────────────────────
+
+describe("macOS Drag Region", () => {
+  it("should make the real header draggable when available", () => {
+    assert.match(preloadSource, /header,\s*\.omniroute-electron-drag-region/);
+    assert.match(preloadSource, /document\.querySelector\("header"\)/);
+  });
+
+  it("should preserve pointer events on header controls", () => {
+    for (const selector of ["a", "button", "input", "select", "textarea"]) {
+      assert.ok(preloadSource.includes(selector));
+    }
+    assert.match(preloadSource, /-webkit-app-region: no-drag/);
+  });
+
+  it("should use a moderate fallback layer", () => {
+    assert.match(preloadSource, /z-index: 9999/);
+    assert.match(preloadSource, /left: 96px/);
+    assert.match(preloadSource, /right: 180px/);
+    assert.ok(!preloadSource.includes("2147483647"));
+  });
+
+  it("should guard DOM attachment and replace prior injected elements", () => {
+    assert.match(preloadSource, /if \(!document\.head \|\| !document\.body\) return/);
+    assert.match(preloadSource, /getElementById\(MAC_DRAG_STYLE_ID\)\?\.remove\(\)/);
+    assert.match(preloadSource, /getElementById\(MAC_DRAG_FALLBACK_ID\)\?\.remove\(\)/);
+  });
+
+  it("should avoid modern CSS pseudo-classes for drag selectors", () => {
+    assert.ok(!preloadSource.includes(":is("));
+    assert.ok(!preloadSource.includes(":has("));
+    assert.match(preloadSource, /new MutationObserver\(syncDragFallback\)/);
+  });
+
+  it("should stop observing after the real header appears", () => {
+    assert.match(preloadSource, /if \(hasHeader\) observer\.disconnect\(\)/);
+    assert.match(preloadSource, /setTimeout\(\(\) => observer\.disconnect\(\), 5000\)/);
   });
 });
 

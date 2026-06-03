@@ -1,10 +1,13 @@
 import { jwtVerify, SignJWT } from "jose";
 import { NextResponse, type NextRequest } from "next/server";
+import { getCachedSettings } from "../../lib/db/readCache";
 import { isDraining } from "../../lib/gracefulShutdown";
 import { checkBodySize, getBodySizeLimit } from "../../shared/middleware/bodySizeGuard";
 import { generateRequestId } from "../../shared/utils/requestId";
 import { applyCorsHeaders } from "../cors/origins";
 import { classifyRoute } from "./classify";
+import { classifyHostLocality } from "./routeGuard";
+import { resolveStampedPeer } from "./peerStamp";
 import { clientApiPolicy } from "./policies/clientApi";
 import { managementPolicy } from "./policies/management";
 import { publicPolicy } from "./policies/public";
@@ -13,9 +16,11 @@ import {
   AUTHZ_HEADER_AUTH_KIND,
   AUTHZ_HEADER_AUTH_LABEL,
   AUTHZ_HEADER_AUTH_SCOPES,
+  AUTHZ_HEADER_PEER_LOCALITY,
   AUTHZ_HEADER_REQUEST_ID,
   AUTHZ_HEADER_ROUTE_CLASS,
   AUTHZ_TRUSTED_HEADERS,
+  PEER_IP_HEADER,
 } from "./headers";
 import type { AuthSubject, RouteClass, RouteClassification } from "./types";
 import type { AuthOutcome, RoutePolicy } from "./context";
@@ -60,7 +65,12 @@ function rejectionResponse(
 }
 
 function isDashboardPath(pathname: string): boolean {
-  return pathname === "/dashboard" || pathname.startsWith("/dashboard/");
+  return (
+    pathname === "/dashboard" ||
+    pathname.startsWith("/dashboard/") ||
+    pathname === "/home" ||
+    pathname.startsWith("/home/")
+  );
 }
 
 function isManagementDashboardRoute(
@@ -168,6 +178,18 @@ function stampRouteResponse(
   return response;
 }
 
+async function getBodySizeSettings(): Promise<Record<string, unknown> | undefined> {
+  try {
+    return await getCachedSettings();
+  } catch (error) {
+    console.warn(
+      "[Authz] Failed to load request body limit settings:",
+      error instanceof Error ? error.message : error
+    );
+    return undefined;
+  }
+}
+
 export async function runAuthzPipeline(
   request: NextRequest,
   options: AuthzPipelineOptions = {}
@@ -194,7 +216,11 @@ export async function runAuthzPipeline(
   }
 
   if (guardedPathname.startsWith("/api/") && method !== "GET" && method !== "OPTIONS") {
-    const bodySizeRejection = checkBodySize(request, getBodySizeLimit(guardedPathname));
+    const bodySizeSettings = await getBodySizeSettings();
+    const bodySizeRejection = checkBodySize(
+      request,
+      getBodySizeLimit(guardedPathname, bodySizeSettings)
+    );
     if (bodySizeRejection) {
       stampRouteResponse(bodySizeRejection, requestId, classification.routeClass);
       applyCorsHeaders(bodySizeRejection, request);
@@ -206,9 +232,23 @@ export async function runAuthzPipeline(
   for (const trusted of AUTHZ_TRUSTED_HEADERS) {
     requestHeaders.delete(trusted);
   }
+  // The trusted peer-IP stamp is read by the policy from the ORIGINAL request
+  // (above); strip it from the forwarded headers so the per-process token never
+  // reaches route handlers or upstream providers.
+  requestHeaders.delete(PEER_IP_HEADER);
 
   requestHeaders.set(AUTHZ_HEADER_ROUTE_CLASS, classification.routeClass);
   requestHeaders.set(AUTHZ_HEADER_REQUEST_ID, requestId);
+  // Stamp a trusted, non-secret locality verdict derived from the real stamped
+  // peer IP. Route handlers (e.g. cliTokenAuth) read this instead of re-deriving
+  // locality from the spoofable Host header. The client-supplied value (if any)
+  // was already removed by the AUTHZ_TRUSTED_HEADERS strip above.
+  requestHeaders.set(
+    AUTHZ_HEADER_PEER_LOCALITY,
+    classifyHostLocality(
+      resolveStampedPeer(request.headers.get(PEER_IP_HEADER), process.env.OMNIROUTE_PEER_STAMP_TOKEN)
+    )
+  );
 
   if (method === "OPTIONS") {
     const preflight = new NextResponse(null, { status: 204 });

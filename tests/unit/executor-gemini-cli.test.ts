@@ -3,7 +3,10 @@ import assert from "node:assert/strict";
 
 import { GeminiCLIExecutor } from "../../open-sse/executors/gemini-cli.ts";
 import { setCliCompatProviders } from "../../open-sse/config/cliFingerprints.ts";
-import { GEMINI_CLI_VERSION } from "../../open-sse/services/geminiCliHeaders.ts";
+import {
+  GEMINI_CLI_VERSION,
+  GEMINI_CLI_GOOGLE_API_NODE_CLIENT_VERSION,
+} from "../../open-sse/services/geminiCliHeaders.ts";
 
 type CapturedFetchCall = {
   url: string;
@@ -40,10 +43,21 @@ test("GeminiCLIExecutor.buildUrl and buildHeaders match the native Gemini CLI fi
   );
   assert.equal(headers.Authorization, "Bearer gcli-token");
   assert.equal(headers.Accept, "*/*");
+
+  const apiKeyHeaders = executor.buildHeaders(
+    { apiKey: "gcli-api-key" },
+    false,
+    undefined,
+    "models/gemini-2.5-flash"
+  );
+  assert.equal(apiKeyHeaders["x-goog-api-key"], "gcli-api-key");
+  assert.equal(apiKeyHeaders.Authorization, undefined);
+  assert.equal(apiKeyHeaders.Accept, "application/json");
+
   assert.match(
     headers["User-Agent"],
     new RegExp(
-      `^GeminiCLI/${GEMINI_CLI_VERSION.replaceAll(".", "\\.")}/gemini-2\\.5-flash \\((linux|macos|windows); (x64|arm64|x86); terminal\\) google-api-nodejs-client/9\\.15\\.1$`
+      `^GeminiCLI/${GEMINI_CLI_VERSION.replaceAll(".", "\\.")}/gemini-2\\.5-flash \\((linux|macos|windows); (x64|arm64|x86); terminal\\) google-api-nodejs-client/${GEMINI_CLI_GOOGLE_API_NODE_CLIENT_VERSION.replaceAll(".", "\\.")}$`
     )
   );
   assert.equal(headers["X-Goog-Api-Client"], `gl-node/${process.versions.node}`);
@@ -82,12 +96,12 @@ test("GeminiCLIExecutor.buildHeaders derives the User-Agent from the request mod
   assert.notEqual(flashHeaders["User-Agent"], proHeaders["User-Agent"]);
 });
 
-test("GeminiCLIExecutor.refreshProject caches loadCodeAssist lookups and transformRequest updates body.project", async () => {
+test("GeminiCLIExecutor.refreshProject caches loadCodeAssist lookups and transformRequest refreshes stale body.project", async () => {
   const executor = new GeminiCLIExecutor();
   const originalFetch = globalThis.fetch;
   let calls = 0;
 
-  globalThis.fetch = async (url) => {
+  (globalThis as any).fetch = async (url) => {
     calls += 1;
     assert.match(String(url), /loadCodeAssist$/);
     return new Response(JSON.stringify({ cloudaicompanionProject: "fresh-project-id" }), {
@@ -108,6 +122,19 @@ test("GeminiCLIExecutor.refreshProject caches loadCodeAssist lookups and transfo
     assert.equal(second, "fresh-project-id");
     assert.equal(calls, 1);
     assert.equal(transformed.project, "fresh-project-id");
+
+    const apiKeyTransformed = await executor.transformRequest(
+      "gemini-2.5-flash",
+      { request: { contents: [] } },
+      true,
+      { apiKey: "gcli-api-key" }
+    );
+    // Source always sets envelope.project = storedProject (gemini-cli.ts ~line 334).
+    // For apiKey-only flows with no stored project, storedProject defaults to "" (line 330).
+    assert.ok(
+      !apiKeyTransformed.project,
+      "project should be falsy (empty string) for apiKey-only flows without a stored projectId"
+    );
   } finally {
     globalThis.fetch = originalFetch;
   }
@@ -117,7 +144,7 @@ test("GeminiCLIExecutor.transformRequest preserves thinking config for supported
   const executor = new GeminiCLIExecutor();
   const originalFetch = globalThis.fetch;
 
-  globalThis.fetch = async () =>
+  (globalThis as any).fetch = async () =>
     new Response(JSON.stringify({ cloudaicompanionProject: "fresh-project-id" }), {
       status: 200,
       headers: { "Content-Type": "application/json" },
@@ -160,7 +187,7 @@ test("GeminiCLIExecutor.transformRequest does not mutate the caller request body
     },
   };
 
-  globalThis.fetch = async () =>
+  (globalThis as any).fetch = async () =>
     new Response(JSON.stringify({ cloudaicompanionProject: "fresh-project-id" }), {
       status: 200,
       headers: { "Content-Type": "application/json" },
@@ -190,7 +217,7 @@ test("GeminiCLIExecutor.transformRequest does not mutate the caller request body
 test("GeminiCLIExecutor.refreshProject returns null on failed loadCodeAssist responses", async () => {
   const executor = new GeminiCLIExecutor();
   const originalFetch = globalThis.fetch;
-  globalThis.fetch = async () => new Response("forbidden", { status: 403 });
+  (globalThis as any).fetch = async () => new Response("forbidden", { status: 403 });
 
   try {
     assert.equal(await executor.refreshProject("access-token-2"), null);
@@ -204,7 +231,7 @@ test("GeminiCLIExecutor.refreshProject onboards a managed project when loadCodeA
   const originalFetch = globalThis.fetch;
   const calls: CapturedFetchCall[] = [];
 
-  globalThis.fetch = async (url, init: RequestInit = {}) => {
+  (globalThis as any).fetch = async (url, init: RequestInit = {}) => {
     const body = parseInitBody(init);
     calls.push({ url: String(url), body });
 
@@ -256,7 +283,7 @@ test("GeminiCLIExecutor.onboardManagedProject retries until completion", async (
   const originalFetch = globalThis.fetch;
   let attempts = 0;
 
-  globalThis.fetch = async (url) => {
+  (globalThis as any).fetch = async (url) => {
     attempts += 1;
     assert.match(String(url), /onboardUser$/);
     return new Response(
@@ -286,10 +313,73 @@ test("GeminiCLIExecutor.onboardManagedProject retries until completion", async (
   }
 });
 
+test("GeminiCLIExecutor.onboardManagedProject returns null when done=true has no project", async () => {
+  const executor = new GeminiCLIExecutor();
+  const originalFetch = globalThis.fetch;
+
+  globalThis.fetch = async (url) => {
+    assert.match(String(url), /onboardUser$/);
+    return new Response(JSON.stringify({ done: true, response: {} }), {
+      status: 200,
+      headers: { "Content-Type": "application/json" },
+    });
+  };
+
+  try {
+    assert.equal(
+      await executor.onboardManagedProject("access-token-no-project", "free-tier", {
+        attempts: 1,
+        delayMs: 0,
+      }),
+      null
+    );
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+});
+
+test("GeminiCLIExecutor.transformRequest prefers DB projectId over default-project body", async () => {
+  const executor = new GeminiCLIExecutor();
+
+  const transformed = await executor.transformRequest(
+    "gemini-2.5-flash",
+    {
+      project: "default-project",
+      request: { contents: [{ role: "user", parts: [{ text: "Hello" }] }] },
+    },
+    true,
+    {
+      projectId: "projects/custom-from-db",
+      providerSpecificData: { projectId: "projects/custom-from-psd" },
+    }
+  );
+
+  assert.equal(transformed.project, "projects/custom-from-psd");
+});
+
+test("GeminiCLIExecutor.transformRequest ignores projects/default-project placeholders", async () => {
+  const executor = new GeminiCLIExecutor();
+
+  const transformed = await executor.transformRequest(
+    "gemini-2.5-flash",
+    {
+      project: "projects/default-project",
+      request: { contents: [{ role: "user", parts: [{ text: "Hello" }] }] },
+    },
+    true,
+    {
+      projectId: "default-project",
+      providerSpecificData: { projectId: "projects/default-project" },
+    }
+  );
+
+  assert.equal(transformed.project, undefined);
+});
+
 test("GeminiCLIExecutor.refreshCredentials exchanges refresh tokens via Google OAuth", async () => {
   const executor = new GeminiCLIExecutor();
   const originalFetch = globalThis.fetch;
-  globalThis.fetch = async (url) => {
+  (globalThis as any).fetch = async (url) => {
     assert.match(String(url), /oauth2\.googleapis\.com\/token$/);
     return new Response(
       JSON.stringify({
@@ -322,7 +412,7 @@ test("GeminiCLIExecutor.execute applies CLI fingerprint to the final Cloud Code 
   const originalFetch = globalThis.fetch;
   const calls: Array<{ url: string; headers: Record<string, string>; body: string }> = [];
 
-  globalThis.fetch = async (url, init: RequestInit = {}) => {
+  (globalThis as any).fetch = async (url, init: RequestInit = {}) => {
     const requestUrl = String(url);
     calls.push({
       url: requestUrl,
@@ -337,10 +427,10 @@ test("GeminiCLIExecutor.execute applies CLI fingerprint to the final Cloud Code 
       });
     }
 
-    return new Response(
-      'data: {"candidates":[{"content":{"parts":[{"text":"ok"}]}}]}\n\n',
-      { status: 200, headers: { "Content-Type": "text/event-stream" } }
-    );
+    return new Response('data: {"candidates":[{"content":{"parts":[{"text":"ok"}]}}]}\n\n', {
+      status: 200,
+      headers: { "Content-Type": "text/event-stream" },
+    });
   };
 
   try {
@@ -358,7 +448,7 @@ test("GeminiCLIExecutor.execute applies CLI fingerprint to the final Cloud Code 
     assert.ok(finalCall);
 
     const finalBody = JSON.parse(finalCall.body);
-    assert.deepEqual(Object.keys(finalBody), ["model", "project", "user_prompt_id", "request"]);
+    assert.deepEqual(Object.keys(finalBody), ["model", "user_prompt_id", "request", "project"]);
     assert.deepEqual(Object.keys(finalCall.headers), [
       "Content-Type",
       "User-Agent",
@@ -373,7 +463,9 @@ test("GeminiCLIExecutor.execute applies CLI fingerprint to the final Cloud Code 
     assert.match(finalBody.request.session_id, /^-\d+$/);
     assert.match(
       finalCall.headers["User-Agent"],
-      /^GeminiCLI\/0\.40\.1\/gemini-3\.1-pro-preview /
+      new RegExp(
+        `^GeminiCLI/${GEMINI_CLI_VERSION.replaceAll(".", "\\.")}/gemini-3\\.1-pro-preview `
+      )
     );
     assert.equal(finalCall.headers.Accept, "*/*");
   } finally {

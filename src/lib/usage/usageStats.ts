@@ -8,9 +8,11 @@
  */
 
 import { getDbInstance } from "../db/core";
+import { getApiKeys } from "../db/apiKeys";
 import { getPendingRequests } from "./usageHistory";
 import { getAccountDisplayName } from "@/lib/display/names";
 import { calculateCost } from "./costCalculator";
+import { getRawDataCutoffDate, isAggregationEnabled } from "./aggregateHistory";
 
 type JsonRecord = Record<string, unknown>;
 type UsageBucket = {
@@ -28,6 +30,7 @@ type UsageBreakdown = UsageBucket & {
   accountName?: string;
   apiKeyId?: string | null;
   apiKeyName?: string;
+  historicalApiKeyNames?: string[];
 };
 
 type ActiveRequest = {
@@ -54,12 +57,178 @@ function toStringOrEmpty(value: unknown): string {
   return typeof value === "string" ? value : "";
 }
 
+function buildUsageSourceSql(aggregationEnabled: boolean) {
+  if (!aggregationEnabled) {
+    return `
+      SELECT
+        provider,
+        model,
+        timestamp,
+        connection_id,
+        api_key_id,
+        api_key_name,
+        COALESCE(tokens_input, 0) as tokens_input,
+        COALESCE(tokens_output, 0) as tokens_output,
+        COALESCE(tokens_cache_read, 0) as tokens_cache_read,
+        COALESCE(tokens_cache_creation, 0) as tokens_cache_creation,
+        COALESCE(tokens_reasoning, 0) as tokens_reasoning,
+        COALESCE(tokens_input, 0) as cost_tokens_input,
+        COALESCE(tokens_output, 0) as cost_tokens_output,
+        COALESCE(tokens_cache_read, 0) as cost_tokens_cache_read,
+        COALESCE(tokens_cache_creation, 0) as cost_tokens_cache_creation,
+        COALESCE(tokens_reasoning, 0) as cost_tokens_reasoning,
+        0.0 as stored_cost,
+        COALESCE(service_tier, 'standard') as service_tier,
+        1 as request_count
+      FROM usage_history
+    `;
+  }
+
+  return `
+    SELECT
+      provider,
+      model,
+      timestamp,
+      connection_id,
+      api_key_id,
+      api_key_name,
+      COALESCE(tokens_input, 0) as tokens_input,
+      COALESCE(tokens_output, 0) as tokens_output,
+      COALESCE(tokens_cache_read, 0) as tokens_cache_read,
+      COALESCE(tokens_cache_creation, 0) as tokens_cache_creation,
+      COALESCE(tokens_reasoning, 0) as tokens_reasoning,
+      COALESCE(tokens_input, 0) as cost_tokens_input,
+      COALESCE(tokens_output, 0) as cost_tokens_output,
+      COALESCE(tokens_cache_read, 0) as cost_tokens_cache_read,
+      COALESCE(tokens_cache_creation, 0) as cost_tokens_cache_creation,
+      COALESCE(tokens_reasoning, 0) as cost_tokens_reasoning,
+      0.0 as stored_cost,
+      COALESCE(service_tier, 'standard') as service_tier,
+      1 as request_count
+    FROM usage_history
+    WHERE DATE(timestamp) >= ?
+
+    UNION ALL
+
+    SELECT
+      provider,
+      model,
+      date || 'T12:00:00.000Z' as timestamp,
+      NULL as connection_id,
+      NULL as api_key_id,
+      NULL as api_key_name,
+      COALESCE(total_input_tokens, 0) as tokens_input,
+      COALESCE(total_output_tokens, 0) as tokens_output,
+      0 as tokens_cache_read,
+      0 as tokens_cache_creation,
+      0 as tokens_reasoning,
+      0 as cost_tokens_input,
+      0 as cost_tokens_output,
+      0 as cost_tokens_cache_read,
+      0 as cost_tokens_cache_creation,
+      0 as cost_tokens_reasoning,
+      COALESCE(total_cost, 0.0) as stored_cost,
+      'standard' as service_tier,
+      COALESCE(total_requests, 0) as request_count
+    FROM daily_usage_summary
+    WHERE date < ?
+  `;
+}
+
+const AGGREGATE_FIELDS = `
+  SUM(request_count) as request_count,
+  COALESCE(SUM(tokens_input), 0) as tokens_input,
+  COALESCE(SUM(tokens_output), 0) as tokens_output,
+  COALESCE(SUM(tokens_cache_read), 0) as tokens_cache_read,
+  COALESCE(SUM(tokens_cache_creation), 0) as tokens_cache_creation,
+  COALESCE(SUM(tokens_reasoning), 0) as tokens_reasoning,
+  COALESCE(SUM(cost_tokens_input), 0) as cost_tokens_input,
+  COALESCE(SUM(cost_tokens_output), 0) as cost_tokens_output,
+  COALESCE(SUM(cost_tokens_cache_read), 0) as cost_tokens_cache_read,
+  COALESCE(SUM(cost_tokens_cache_creation), 0) as cost_tokens_cache_creation,
+  COALESCE(SUM(cost_tokens_reasoning), 0) as cost_tokens_reasoning,
+  COALESCE(SUM(stored_cost), 0.0) as stored_cost,
+  MAX(timestamp) as last_used
+`;
+
+async function calculateAggregateCost(row: JsonRecord): Promise<number> {
+  const provider = toStringOrEmpty(row.provider) || "unknown";
+  const model = toStringOrEmpty(row.model) || "unknown";
+  const serviceTier = toStringOrEmpty(row.service_tier) || "standard";
+  const storedCost = toNumber(row.stored_cost);
+  const calculatedCost = await calculateCost(
+    provider,
+    model,
+    {
+      input: toNumber(row.cost_tokens_input ?? row.tokens_input),
+      output: toNumber(row.cost_tokens_output ?? row.tokens_output),
+      cacheRead: toNumber(row.cost_tokens_cache_read ?? row.tokens_cache_read),
+      cacheCreation: toNumber(row.cost_tokens_cache_creation ?? row.tokens_cache_creation),
+      reasoning: toNumber(row.cost_tokens_reasoning ?? row.tokens_reasoning),
+    },
+    { serviceTier }
+  );
+  return storedCost + calculatedCost;
+}
+
+function addUsage(
+  bucket: UsageBucket,
+  requests: number,
+  promptTokens: number,
+  completionTokens: number,
+  cost: number
+) {
+  bucket.requests += requests;
+  bucket.promptTokens += promptTokens;
+  bucket.completionTokens += completionTokens;
+  bucket.cost += cost;
+}
+
+function getApiKeyStatsKey(apiKeyId: string | null, apiKeyName: string | null): string {
+  return apiKeyId ? `id:${apiKeyId}` : `name:${apiKeyName || "unknown"}`;
+}
+
+/**
+ * Sum of all token columns recorded for one provider connection in the current
+ * UTC calendar month. Powers SELF-TRACKED provider quotas (e.g. Xiaomi MiMo
+ * Token Plan), where the upstream exposes no API-key usage endpoint — OmniRoute
+ * counts the tokens it routed and compares against the known monthly limit.
+ * Only reflects traffic that went THROUGH OmniRoute (not the provider's panel).
+ */
+export function getMonthlyProviderTokensForConnection(
+  provider: string,
+  connectionId: string
+): number {
+  if (!provider || !connectionId) return 0;
+  const db = getDbInstance();
+  const now = new Date();
+  const monthStartIso = new Date(
+    Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1)
+  ).toISOString();
+  const row = db
+    .prepare(
+      `SELECT COALESCE(SUM(tokens_input), 0)
+            + COALESCE(SUM(tokens_output), 0)
+            + COALESCE(SUM(tokens_cache_read), 0)
+            + COALESCE(SUM(tokens_cache_creation), 0)
+            + COALESCE(SUM(tokens_reasoning), 0) AS total
+       FROM usage_history
+       WHERE provider = ? AND connection_id = ? AND timestamp >= ?`
+    )
+    .get(provider, connectionId, monthStartIso) as { total?: number } | undefined;
+  return Math.max(0, Number(row?.total ?? 0));
+}
+
 /**
  * Get aggregated usage stats.
+ * Uses UNION of recent raw data and older aggregated data when aggregation is enabled.
  */
 export async function getUsageStats() {
   const db = getDbInstance();
-  const rows = db.prepare("SELECT * FROM usage_history ORDER BY timestamp ASC").all() as unknown[];
+  const aggregationEnabled = await isAggregationEnabled();
+  const cutoffDate = aggregationEnabled ? await getRawDataCutoffDate() : null;
+  const sourceSql = buildUsageSourceSql(aggregationEnabled);
+  const sourceParams = aggregationEnabled && cutoffDate ? [cutoffDate, cutoffDate] : [];
 
   const { getProviderConnections } = await import("@/lib/localDb");
   let allConnections: unknown[] = [];
@@ -77,6 +246,18 @@ export async function getUsageStats() {
       toStringOrEmpty(conn.name) || toStringOrEmpty(conn.email) || connectionId;
   }
 
+  const currentApiKeyNames = new Map<string, string>();
+  try {
+    const apiKeys = await getApiKeys();
+    for (const apiKey of apiKeys) {
+      if (typeof apiKey.id === "string" && typeof apiKey.name === "string") {
+        currentApiKeyNames.set(apiKey.id, apiKey.name);
+      }
+    }
+  } catch {
+    // Stats can still be computed from usage_history when api_keys is unavailable.
+  }
+
   const pendingRequests = getPendingRequests();
 
   const stats: {
@@ -92,7 +273,7 @@ export async function getUsageStats() {
     pending: ReturnType<typeof getPendingRequests>;
     activeRequests: ActiveRequest[];
   } = {
-    totalRequests: rows.length,
+    totalRequests: 0,
     totalPromptTokens: 0,
     totalCompletionTokens: 0,
     totalCost: 0,
@@ -136,42 +317,31 @@ export async function getUsageStats() {
 
   const tenMinutesAgo = new Date(currentMinuteStart.getTime() - 9 * 60 * 1000);
 
-  for (const rowRaw of rows) {
+  const modelRows = db
+    .prepare(
+      `
+        WITH usage_source AS (${sourceSql})
+        SELECT provider, model, service_tier, ${AGGREGATE_FIELDS}
+        FROM usage_source
+        GROUP BY provider, model, service_tier
+      `
+    )
+    .all(...sourceParams) as unknown[];
+
+  for (const rowRaw of modelRows) {
     const row = asRecord(rowRaw);
     const provider = toStringOrEmpty(row.provider) || "unknown";
     const model = toStringOrEmpty(row.model) || "unknown";
-    const timestamp = toStringOrEmpty(row.timestamp) || new Date(0).toISOString();
-    const connectionId = toStringOrEmpty(row.connection_id) || null;
-    const apiKeyId = toStringOrEmpty(row.api_key_id) || null;
-    const apiKeyName = toStringOrEmpty(row.api_key_name) || null;
-
+    const timestamp = toStringOrEmpty(row.last_used) || new Date(0).toISOString();
+    const requestCount = toNumber(row.request_count);
     const promptTokens = toNumber(row.tokens_input);
     const completionTokens = toNumber(row.tokens_output);
-    const entryTime = new Date(timestamp);
+    const entryCost = await calculateAggregateCost(row);
 
-    const entryTokens = {
-      input: toNumber(row.tokens_input),
-      output: toNumber(row.tokens_output),
-      cacheRead: toNumber(row.tokens_cache_read),
-      cacheCreation: toNumber(row.tokens_cache_creation),
-      reasoning: toNumber(row.tokens_reasoning),
-    };
-    const entryCost = await calculateCost(provider, model, entryTokens);
-
+    stats.totalRequests += requestCount;
     stats.totalPromptTokens += promptTokens;
     stats.totalCompletionTokens += completionTokens;
     stats.totalCost += entryCost;
-
-    // 10-min buckets
-    if (entryTime >= tenMinutesAgo && entryTime <= now) {
-      const entryMinuteStart = Math.floor(entryTime.getTime() / 60000) * 60000;
-      if (bucketMap[entryMinuteStart]) {
-        bucketMap[entryMinuteStart].requests++;
-        bucketMap[entryMinuteStart].promptTokens += promptTokens;
-        bucketMap[entryMinuteStart].completionTokens += completionTokens;
-        bucketMap[entryMinuteStart].cost += entryCost;
-      }
-    }
 
     // By Provider
     if (!stats.byProvider[provider]) {
@@ -182,10 +352,7 @@ export async function getUsageStats() {
         cost: 0,
       };
     }
-    stats.byProvider[provider].requests++;
-    stats.byProvider[provider].promptTokens += promptTokens;
-    stats.byProvider[provider].completionTokens += completionTokens;
-    stats.byProvider[provider].cost += entryCost;
+    addUsage(stats.byProvider[provider], requestCount, promptTokens, completionTokens, entryCost);
 
     // By Model
     const modelKey = provider ? `${model} (${provider})` : model;
@@ -200,15 +367,35 @@ export async function getUsageStats() {
         lastUsed: timestamp,
       };
     }
-    stats.byModel[modelKey].requests++;
-    stats.byModel[modelKey].promptTokens += promptTokens;
-    stats.byModel[modelKey].completionTokens += completionTokens;
-    stats.byModel[modelKey].cost += entryCost;
+    addUsage(stats.byModel[modelKey], requestCount, promptTokens, completionTokens, entryCost);
     if (new Date(timestamp) > new Date(stats.byModel[modelKey].lastUsed || timestamp)) {
       stats.byModel[modelKey].lastUsed = timestamp;
     }
+  }
 
-    // By Account
+  const accountRows = db
+    .prepare(
+      `
+        WITH usage_source AS (${sourceSql})
+        SELECT provider, model, connection_id, service_tier, ${AGGREGATE_FIELDS}
+        FROM usage_source
+        WHERE connection_id IS NOT NULL AND connection_id != ''
+        GROUP BY provider, model, connection_id, service_tier
+      `
+    )
+    .all(...sourceParams) as unknown[];
+
+  for (const rowRaw of accountRows) {
+    const row = asRecord(rowRaw);
+    const provider = toStringOrEmpty(row.provider) || "unknown";
+    const model = toStringOrEmpty(row.model) || "unknown";
+    const timestamp = toStringOrEmpty(row.last_used) || new Date(0).toISOString();
+    const connectionId = toStringOrEmpty(row.connection_id);
+    const requestCount = toNumber(row.request_count);
+    const promptTokens = toNumber(row.tokens_input);
+    const completionTokens = toNumber(row.tokens_output);
+    const entryCost = await calculateAggregateCost(row);
+
     if (connectionId) {
       const accountName =
         connectionMap[connectionId] || getAccountDisplayName({ id: connectionId });
@@ -226,39 +413,105 @@ export async function getUsageStats() {
           lastUsed: timestamp,
         };
       }
-      stats.byAccount[accountKey].requests++;
-      stats.byAccount[accountKey].promptTokens += promptTokens;
-      stats.byAccount[accountKey].completionTokens += completionTokens;
-      stats.byAccount[accountKey].cost += entryCost;
+      addUsage(
+        stats.byAccount[accountKey],
+        requestCount,
+        promptTokens,
+        completionTokens,
+        entryCost
+      );
       if (new Date(timestamp) > new Date(stats.byAccount[accountKey].lastUsed || timestamp)) {
         stats.byAccount[accountKey].lastUsed = timestamp;
       }
     }
+  }
 
-    // By API key
+  const apiKeyRows = db
+    .prepare(
+      `
+        WITH usage_source AS (${sourceSql})
+        SELECT provider, model, api_key_id, api_key_name, service_tier, ${AGGREGATE_FIELDS}
+        FROM usage_source
+        WHERE (api_key_id IS NOT NULL AND api_key_id != '')
+           OR (api_key_name IS NOT NULL AND api_key_name != '')
+        GROUP BY provider, model, api_key_id, api_key_name, service_tier
+      `
+    )
+    .all(...sourceParams) as unknown[];
+
+  for (const rowRaw of apiKeyRows) {
+    const row = asRecord(rowRaw);
+    const timestamp = toStringOrEmpty(row.last_used) || new Date(0).toISOString();
+    const apiKeyId = toStringOrEmpty(row.api_key_id) || null;
+    const apiKeyName = toStringOrEmpty(row.api_key_name) || null;
+    const requestCount = toNumber(row.request_count);
+    const promptTokens = toNumber(row.tokens_input);
+    const completionTokens = toNumber(row.tokens_output);
+    const entryCost = await calculateAggregateCost(row);
+
     if (apiKeyId || apiKeyName) {
-      const keyName = apiKeyName || apiKeyId || "unknown";
-      const keyId = apiKeyId || null;
-      const apiKey = keyId ? `${keyName} (${keyId})` : keyName;
-      if (!stats.byApiKey[apiKey]) {
-        stats.byApiKey[apiKey] = {
+      const key = getApiKeyStatsKey(apiKeyId, apiKeyName);
+      const displayName =
+        (apiKeyId ? currentApiKeyNames.get(apiKeyId) : undefined) ||
+        apiKeyName ||
+        apiKeyId ||
+        "unknown";
+      if (!stats.byApiKey[key]) {
+        stats.byApiKey[key] = {
           requests: 0,
           promptTokens: 0,
           completionTokens: 0,
           cost: 0,
-          apiKeyId: keyId,
-          apiKeyName: keyName,
+          apiKeyId,
+          apiKeyName: displayName,
+          historicalApiKeyNames: [],
           lastUsed: timestamp,
         };
       }
-      stats.byApiKey[apiKey].requests++;
-      stats.byApiKey[apiKey].promptTokens += promptTokens;
-      stats.byApiKey[apiKey].completionTokens += completionTokens;
-      stats.byApiKey[apiKey].cost += entryCost;
-      if (new Date(timestamp) > new Date(stats.byApiKey[apiKey].lastUsed || timestamp)) {
-        stats.byApiKey[apiKey].lastUsed = timestamp;
+      const apiKeyStats = stats.byApiKey[key];
+      if (apiKeyName && !apiKeyStats.historicalApiKeyNames?.includes(apiKeyName)) {
+        apiKeyStats.historicalApiKeyNames?.push(apiKeyName);
+      }
+      apiKeyStats.apiKeyName = displayName;
+      addUsage(apiKeyStats, requestCount, promptTokens, completionTokens, entryCost);
+      if (new Date(timestamp) > new Date(apiKeyStats.lastUsed || timestamp)) {
+        apiKeyStats.lastUsed = timestamp;
       }
     }
+  }
+
+  const recentRows = db
+    .prepare(
+      `
+        SELECT
+          strftime('%Y-%m-%dT%H:%M:00.000Z', timestamp) as minute,
+          provider,
+          model,
+          COALESCE(service_tier, 'standard') as service_tier,
+          COUNT(*) as request_count,
+          COALESCE(SUM(tokens_input), 0) as tokens_input,
+          COALESCE(SUM(tokens_output), 0) as tokens_output,
+          COALESCE(SUM(tokens_cache_read), 0) as tokens_cache_read,
+          COALESCE(SUM(tokens_cache_creation), 0) as tokens_cache_creation,
+          COALESCE(SUM(tokens_reasoning), 0) as tokens_reasoning
+        FROM usage_history
+        WHERE timestamp >= ? AND timestamp <= ?
+        GROUP BY minute, provider, model, service_tier
+      `
+    )
+    .all(tenMinutesAgo.toISOString(), now.toISOString()) as unknown[];
+
+  for (const rowRaw of recentRows) {
+    const row = asRecord(rowRaw);
+    const minute = toStringOrEmpty(row.minute);
+    const bucketKey = new Date(minute).getTime();
+    if (!bucketMap[bucketKey]) continue;
+
+    const requestCount = toNumber(row.request_count);
+    const promptTokens = toNumber(row.tokens_input);
+    const completionTokens = toNumber(row.tokens_output);
+    const entryCost = await calculateAggregateCost(row);
+    addUsage(bucketMap[bucketKey], requestCount, promptTokens, completionTokens, entryCost);
   }
 
   return stats;

@@ -1,17 +1,28 @@
 import { NextResponse } from "next/server";
+import { z } from "zod";
 import { KiroService } from "@/lib/oauth/services/kiro";
 import { createProviderConnection, isCloudEnabled } from "@/models";
 import { getConsistentMachineId } from "@/shared/utils/machineId";
 import { syncToCloud } from "@/lib/cloudSync";
-import { kiroSocialExchangeSchema } from "@/shared/validation/schemas";
-import { isValidationFailure, validateBody } from "@/shared/validation/helpers";
+import { isAuthRequired, isAuthenticated } from "@/shared/utils/apiAuth";
+import { validateBody, isValidationFailure } from "@/shared/validation/helpers";
+import { KIRO_CONFIG } from "@/lib/oauth/constants/oauth";
+
+const socialExchangeSchema = z.object({
+  deviceCode: z.string().min(1, "Missing deviceCode or provider"),
+  provider: z.string().min(1, "Missing deviceCode or provider"),
+});
 
 /**
  * POST /api/oauth/kiro/social-exchange
- * Exchange authorization code for tokens (Google/GitHub social login)
- * Callback URL will be in format: kiro://kiro.kiroAgent/authenticate-success?code=XXX&state=YYY
+ * Poll device code for tokens (Google/GitHub social login device flow).
+ * Frontend calls this repeatedly until authorization completes.
  */
 export async function POST(request: Request) {
+  if ((await isAuthRequired(request)) && !(await isAuthenticated(request))) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
   let rawBody;
   try {
     rawBody = await request.json();
@@ -27,38 +38,62 @@ export async function POST(request: Request) {
     );
   }
 
+  const validation = validateBody(socialExchangeSchema, rawBody);
+  if (isValidationFailure(validation)) {
+    return NextResponse.json(
+      { error: validation.error || "Missing deviceCode or provider" },
+      { status: 400 }
+    );
+  }
+
   try {
-    const validation = validateBody(kiroSocialExchangeSchema, rawBody);
-    if (isValidationFailure(validation)) {
-      return NextResponse.json({ error: validation.error }, { status: 400 });
+    const { deviceCode, provider } = validation.data;
+
+    const response = await fetch(KIRO_CONFIG.socialDevicePollUrl, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ deviceCode, clientId: KIRO_CONFIG.socialClientId }),
+    });
+
+    const data = await response.json();
+
+    if (!response.ok || data.error === "authorization_pending" || data.error === "slow_down") {
+      return NextResponse.json({
+        pending: true,
+        error: data.error || "authorization_pending",
+      });
     }
-    const { code, codeVerifier, provider } = validation.data;
+
+    if (!data.accessToken && !data.refreshToken) {
+      return NextResponse.json({
+        pending: true,
+        error: data.error || "no_tokens",
+      });
+    }
 
     const kiroService = new KiroService();
+    const email = kiroService.extractEmailFromJWT(data.accessToken);
 
-    // Exchange code for tokens (redirect_uri handled internally)
-    const tokenData = await kiroService.exchangeSocialCode(code, codeVerifier);
+    const providerSpecificData: Record<string, any> = {
+      authMethod: "imported",
+      provider: provider.charAt(0).toUpperCase() + provider.slice(1),
+    };
 
-    // Extract email from JWT if available
-    const email = kiroService.extractEmailFromJWT(tokenData.accessToken);
+    if (data.profileArn) {
+      providerSpecificData.profileArn = data.profileArn;
+    }
 
-    // Save to database
     const connection: any = await createProviderConnection({
       provider: "kiro",
       authType: "oauth",
-      accessToken: tokenData.accessToken,
-      refreshToken: tokenData.refreshToken,
-      expiresAt: new Date(Date.now() + tokenData.expiresIn * 1000).toISOString(),
+      accessToken: data.accessToken,
+      refreshToken: data.refreshToken,
+      expiresAt: new Date(Date.now() + (data.expiresIn || 3600) * 1000).toISOString(),
       email: email || null,
-      providerSpecificData: {
-        profileArn: tokenData.profileArn,
-        authMethod: provider, // "google" or "github"
-        provider: provider.charAt(0).toUpperCase() + provider.slice(1),
-      },
+      providerSpecificData,
       testStatus: "active",
     });
 
-    // Auto sync to Cloud if enabled
     await syncToCloudIfEnabled();
 
     return NextResponse.json({
@@ -70,19 +105,15 @@ export async function POST(request: Request) {
       },
     });
   } catch (error: any) {
-    console.log("Kiro social exchange error:", error);
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    console.error("Kiro social exchange error:", error);
+    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
 }
 
-/**
- * Sync to Cloud if enabled
- */
 async function syncToCloudIfEnabled() {
   try {
     const cloudEnabled = await isCloudEnabled();
     if (!cloudEnabled) return;
-
     const machineId = await getConsistentMachineId();
     await syncToCloud(machineId);
   } catch (error) {

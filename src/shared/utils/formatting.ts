@@ -5,6 +5,8 @@
  * Prevents copy-paste duplication and provides a single source of truth.
  */
 
+import { maskEmail } from "./maskEmail";
+
 /**
  * Format an ISO date string to a localized time string (HH:MM:SS).
  * @param {string} isoString - ISO 8601 date string
@@ -72,15 +74,25 @@ export function maskSegment(value: string | null | undefined, start = 2, end = 2
  */
 export function maskAccount(account: string | null | undefined, emailsVisible: boolean) {
   if (!account || account === "-") return "-";
+  if (emailsVisible) return account;
   const atIdx = account.indexOf("@");
   if (atIdx > 3) {
-    if (emailsVisible) return account;
-    return account.slice(0, 3) + "***" + account.slice(atIdx);
+    return maskEmail(account);
   }
   if (account.length > 8) {
     return account.slice(0, 5) + "***";
   }
   return account;
+}
+
+export function stableAccountSuffix(account: string | null | undefined): string {
+  if (!account || account === "-") return "0000";
+  let hash = 0x811c9dc5;
+  for (let i = 0; i < account.length; i++) {
+    hash ^= account.charCodeAt(i);
+    hash = Math.imul(hash, 0x01000193) >>> 0;
+  }
+  return hash.toString(16).padStart(8, "0").slice(0, 4);
 }
 
 /**
@@ -145,6 +157,55 @@ export function formatCost(usd: number | null | undefined): string {
 }
 
 export const fmtCost = formatCost;
+
+/**
+ * Format a USD cost for display using abbreviated K/M/B/T suffixes.
+ * Sub-cent values show additional precision.
+ *   - Values >= 1T are shown as $X.XT
+ *   - Values >= 1B are shown as $X.XB
+ *   - Values >= 1M are shown as $X.XM
+ *   - Values >= 1K are shown as $X.XK
+ *   - Otherwise shown as $X.XX
+ * @param {number} usd - Cost in USD
+ * @returns {string}
+ */
+export function formatCostAbbreviated(usd: number | null | undefined): string {
+  const value = Number(usd || 0);
+  if (!Number.isFinite(value) || value === 0) return "$0";
+  const abs = Math.abs(value);
+  if (abs < 0.01) {
+    if (value < 0) {
+      return `-$${Math.abs(value).toFixed(6)}`;
+    }
+    return `$${value.toFixed(6)}`;
+  }
+  let divisor: number, suffix: string;
+  if (abs >= 1_000_000_000_000) {
+    divisor = 1_000_000_000_000;
+    suffix = "T";
+  } else if (abs >= 1_000_000_000) {
+    divisor = 1_000_000_000;
+    suffix = "B";
+  } else if (abs >= 1_000_000) {
+    divisor = 1_000_000;
+    suffix = "M";
+  } else if (abs >= 1_000) {
+    divisor = 1_000;
+    suffix = "K";
+  } else {
+    if (value < 0) {
+      return `-$${Math.abs(value).toFixed(2)}`;
+    }
+    return `$${value.toFixed(2)}`;
+  }
+  const abbreviated = abs / divisor;
+  let formatted = abbreviated.toFixed(1);
+  if (formatted.includes(".")) {
+    formatted = formatted.replace(/\.?0+$/, "");
+  }
+  const sign = value < 0 ? "-" : "";
+  return `${sign}$${formatted}${suffix}`;
+}
 
 /**
  * Truncate a URL for compact display.

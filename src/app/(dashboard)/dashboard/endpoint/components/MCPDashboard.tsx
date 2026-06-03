@@ -4,9 +4,14 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { Card, Button } from "@/shared/components";
 import { useTranslations } from "next-intl";
 
+type McpTransport = "stdio" | "sse" | "streamable-http";
+
 type McpStatusResponse = {
   status: "online" | "offline";
   online: boolean;
+  enabled: boolean;
+  transport: McpTransport;
+  scopesEnforced?: boolean;
   heartbeatPath: string;
   heartbeat: {
     pid: number;
@@ -21,6 +26,12 @@ type McpStatusResponse = {
     heartbeatAgeMs: number | null;
     uptimeMs: number | null;
   } | null;
+  httpTransport: {
+    online: boolean;
+    transport: "sse" | "streamable-http" | null;
+    startedAt: number | null;
+    uptime: string | null;
+  };
   activity: {
     totalCalls24h: number;
     successRate: number;
@@ -353,28 +364,25 @@ export default function McpDashboardPage() {
   const totalPages = Math.max(1, Math.ceil((auditData.total || 0) / AUDIT_PAGE_SIZE));
   const currentPage = Math.floor((auditData.offset || 0) / AUDIT_PAGE_SIZE) + 1;
   const topTools = status?.activity?.topTools || [];
+  const runtimeTransport = status?.transport || status?.heartbeat?.transport || "—";
+  const runtimeUptime =
+    status?.transport === "stdio"
+      ? formatDuration(status?.heartbeat?.uptimeMs ?? null)
+      : status?.httpTransport?.uptime || "—";
+  const heartbeatLabel =
+    status?.transport === "stdio" ? formatDuration(status?.heartbeat?.heartbeatAgeMs ?? null) : "—";
 
   if (loading) {
-    return (
-      <div className="p-6 max-w-7xl mx-auto">
-        <div className="text-sm text-text-muted">{t("loading")}</div>
-      </div>
-    );
+    return <div className="text-sm text-text-muted">{t("loading")}</div>;
   }
 
   return (
-    <div className="p-6 max-w-7xl mx-auto space-y-6">
+    <div className="space-y-6">
       <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
         <StatCard label={t("processStatus")} value={status?.online ? t("online") : t("offline")} />
         <StatCard label={t("pid")} value={status?.heartbeat?.pid ?? "—"} />
-        <StatCard
-          label={t("sessionUptime")}
-          value={formatDuration(status?.heartbeat?.uptimeMs ?? null)}
-        />
-        <StatCard
-          label={t("lastHeartbeat")}
-          value={formatDuration(status?.heartbeat?.heartbeatAgeMs ?? null)}
-        />
+        <StatCard label={t("sessionUptime")} value={runtimeUptime} />
+        <StatCard label={t("lastHeartbeat")} value={heartbeatLabel} />
       </div>
 
       <Card className="p-5">
@@ -412,13 +420,12 @@ export default function McpDashboardPage() {
             <h3 className="text-sm font-semibold mb-2">{t("runtimeDetails")}</h3>
             <div className="text-sm space-y-1">
               <p>
-                {t("transport")}:{" "}
-                <span className="font-mono">{status?.heartbeat?.transport || "—"}</span>
+                {t("transport")}: <span className="font-mono">{runtimeTransport}</span>
               </p>
               <p>
                 {t("scopesEnforced")}:{" "}
                 <span className="font-semibold">
-                  {status?.heartbeat?.scopesEnforced ? t("yes") : t("no")}
+                  {(status?.scopesEnforced ?? status?.heartbeat?.scopesEnforced) ? t("yes") : t("no")}
                 </span>
               </p>
               <p>
