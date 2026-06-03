@@ -4,6 +4,7 @@ import { useState, useEffect, useMemo } from "react";
 import { useTranslations } from "next-intl";
 import { Card } from "@/shared/components";
 import { useDisplayBaseUrl } from "@/shared/hooks";
+import { matchesSearch } from "@/shared/utils/turkishText";
 
 /* ─── Types ──────────────────────────────────────────── */
 interface Endpoint {
@@ -97,13 +98,13 @@ export default function ApiEndpointsTab() {
   const filteredEndpoints = useMemo(() => {
     if (!catalog) return [];
     return catalog.endpoints.filter((ep) => {
-      const matchesSearch =
+      const matchesEndpoint =
         !search ||
-        ep.path.toLowerCase().includes(search.toLowerCase()) ||
-        ep.summary.toLowerCase().includes(search.toLowerCase()) ||
-        ep.tags.some((t) => t.toLowerCase().includes(search.toLowerCase()));
+        matchesSearch(ep.path, search) ||
+        matchesSearch(ep.summary, search) ||
+        ep.tags.some((t) => matchesSearch(t, search));
       const matchesTag = !selectedTag || ep.tags.includes(selectedTag);
-      return matchesSearch && matchesTag;
+      return matchesEndpoint && matchesTag;
     });
   }, [catalog, search, selectedTag]);
 

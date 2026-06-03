@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback } from "react";
 import { Card, DataTable, FilterBar, ColumnToggle } from "@/shared/components";
 import { useNotificationStore } from "@/store/notificationStore";
 import { useTranslations } from "next-intl";
+import { matchesSearch } from "@/shared/utils/turkishText";
 
 export default function ComplianceTab() {
   const [logs, setLogs] = useState([]);
@@ -43,12 +44,11 @@ export default function ComplianceTab() {
 
   const filtered = logs.filter((l) => {
     if (search) {
-      const q = search.toLowerCase();
-      const matchesSearch =
-        l.action?.toLowerCase().includes(q) ||
-        l.actor?.toLowerCase().includes(q) ||
-        (l.details && JSON.stringify(l.details).toLowerCase().includes(q));
-      if (!matchesSearch) return false;
+      const matchesQuery =
+        matchesSearch(l.action ?? "", search) ||
+        matchesSearch(l.actor ?? "", search) ||
+        (l.details && matchesSearch(JSON.stringify(l.details), search));
+      if (!matchesQuery) return false;
     }
     if (filters.action && l.action !== filters.action) return false;
     if (filters.actor && l.actor !== filters.actor) return false;

@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { useLocale, useTranslations } from "next-intl";
 import { Card, Button, Input, EmptyState } from "@/shared/components";
 import { useNotificationStore } from "@/store/notificationStore";
+import { matchesSearch } from "@/shared/utils/turkishText";
 
 // ────────────────────────────────────────────────────────────────────────────
 // Types
@@ -269,12 +270,11 @@ export default function BudgetTab() {
   // ── Derived data ─────────────────────────────────────────────────────────
 
   const visibleRows = useMemo(() => {
-    const query = searchQuery.trim().toLowerCase();
     const matchesQuery = (r: KeyRow) =>
-      !query ||
-      (r.name || "").toLowerCase().includes(query) ||
-      r.id.toLowerCase().includes(query) ||
-      (r.provider || "").toLowerCase().includes(query);
+      !searchQuery.trim() ||
+      matchesSearch(r.name ?? "", searchQuery) ||
+      matchesSearch(r.id, searchQuery) ||
+      matchesSearch(r.provider ?? "", searchQuery);
     const matchesStatus = (r: KeyRow) => statusFilter === "all" || statusOf(r) === statusFilter;
     const filtered = rows.filter((r) => matchesQuery(r) && matchesStatus(r));
 

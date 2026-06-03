@@ -5,6 +5,7 @@ import { Card, Button, Input, Modal, CardSkeleton } from "@/shared/components";
 import { useCopyToClipboard } from "@/shared/hooks/useCopyToClipboard";
 import { useTranslations } from "next-intl";
 import { getProviderDisplayName } from "@/lib/display/names";
+import { matchesSearch } from "@/shared/utils/turkishText";
 
 // Constants for validation
 const MAX_KEY_NAME_LENGTH = 200;
@@ -453,13 +454,14 @@ export default function ApiManagerPageClient() {
   const filteredModelsByProvider = useMemo((): ProviderGroup[] => {
     if (!debouncedSearchModel.trim()) return modelsByProvider;
 
-    const search = debouncedSearchModel.toLowerCase();
     return modelsByProvider
       .map(
         ([provider, models]): ProviderGroup => [
           provider,
           models.filter(
-            (m) => m.id.toLowerCase().includes(search) || provider.toLowerCase().includes(search)
+            (m) =>
+              matchesSearch(m.id, debouncedSearchModel) ||
+              matchesSearch(provider, debouncedSearchModel)
           ),
         ]
       )

@@ -5,6 +5,7 @@ import { Card, Button } from "@/shared/components";
 import ProviderIcon from "@/shared/components/ProviderIcon";
 import InfoTooltip from "@/shared/components/InfoTooltip";
 import { useTranslations } from "next-intl";
+import { matchesSearch } from "@/shared/utils/turkishText";
 
 type CoverageFilter = "all" | "lt50" | "gte50lt100" | "full";
 type AuthFilter = "all" | "oauth" | "apikey" | "unknown";
@@ -141,15 +142,13 @@ export default function PricingTab() {
   }, [catalog, pricingData]);
 
   const filteredProviders = useMemo(() => {
-    const query = searchQuery.trim().toLowerCase();
-    const matchesSearch = (provider: (typeof allProviders)[number]) => {
-      if (!query) return true;
+    const providerMatchesSearch = (provider: (typeof allProviders)[number]) => {
+      if (!searchQuery.trim()) return true;
       return (
-        provider.alias.toLowerCase().includes(query) ||
-        provider.id.toLowerCase().includes(query) ||
+        matchesSearch(provider.alias, searchQuery) ||
+        matchesSearch(provider.id, searchQuery) ||
         provider.models.some(
-          (model) =>
-            model.id.toLowerCase().includes(query) || model.name.toLowerCase().includes(query)
+          (model) => matchesSearch(model.id, searchQuery) || matchesSearch(model.name, searchQuery)
         )
       );
     };
@@ -171,7 +170,7 @@ export default function PricingTab() {
     };
 
     const filtered = allProviders.filter(
-      (p) => matchesSearch(p) && matchesCoverage(p) && matchesAuth(p)
+      (p) => providerMatchesSearch(p) && matchesCoverage(p) && matchesAuth(p)
     );
 
     // Sort
