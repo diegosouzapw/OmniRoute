@@ -450,7 +450,7 @@ test("CodexExecutor.transformRequest strips store from compact requests even whe
   assert.equal(result.instructions, "keep this");
 });
 
-test("CodexExecutor.transformRequest strips raw internal assistant commentary without dropping useful Responses items", () => {
+test("CodexExecutor.transformRequest preserves native assistant commentary history", () => {
   const executor = new CodexExecutor();
   const body = {
     _nativeCodexPassthrough: true,
@@ -508,7 +508,7 @@ test("CodexExecutor.transformRequest strips raw internal assistant commentary wi
 
   assert.equal(
     result.input.some((item) => JSON.stringify(item).includes("Need maybe inspect tool output")),
-    false
+    true
   );
   assert.equal(
     result.input.some((item) => JSON.stringify(item).includes("Visible final assistant answer")),
@@ -536,6 +536,46 @@ test("CodexExecutor.transformRequest strips raw internal assistant commentary wi
   );
   assert.equal(
     result.input.some((item) => item.type === "function_call_output"),
+    true
+  );
+});
+
+test("CodexExecutor.transformRequest still strips assistant commentary outside native passthrough", () => {
+  const executor = new CodexExecutor();
+  const result = executor.transformRequest(
+    "gpt-5.5-low",
+    {
+      input: [
+        {
+          type: "message",
+          role: "user",
+          content: [{ type: "input_text", text: "Continue." }],
+        },
+        {
+          type: "message",
+          role: "assistant",
+          phase: "commentary",
+          content: [{ type: "output_text", text: "Internal progress note." }],
+        },
+        {
+          type: "message",
+          role: "assistant",
+          phase: "final_answer",
+          content: [{ type: "output_text", text: "Visible final answer." }],
+        },
+      ],
+      stream: false,
+    },
+    false,
+    { requestEndpointPath: "/responses" }
+  );
+
+  assert.equal(
+    result.input.some((item) => JSON.stringify(item).includes("Internal progress note")),
+    false
+  );
+  assert.equal(
+    result.input.some((item) => JSON.stringify(item).includes("Visible final answer")),
     true
   );
 });
@@ -587,7 +627,7 @@ test("CodexExecutor.transformRequest inserts missing function_call_output items"
   });
 });
 
-test("CodexExecutor.transformRequest strips internal assistant commentary before mapping messages to input", () => {
+test("CodexExecutor.transformRequest preserves native assistant commentary before mapping messages to input", () => {
   const executor = new CodexExecutor();
   const result = executor.transformRequest(
     "gpt-5.5-low",
@@ -614,7 +654,7 @@ test("CodexExecutor.transformRequest strips internal assistant commentary before
 
   assert.equal(
     result.input.some((item) => JSON.stringify(item).includes("Need maybe update PR body")),
-    false
+    true
   );
   assert.equal(
     result.input.some((item) => JSON.stringify(item).includes("Visible final assistant answer")),
@@ -973,6 +1013,7 @@ test("CodexExecutor.transformRequest preserves namespace MCP tools and hosted to
           ],
         },
         { type: "image_generation", output_format: "png" },
+        { type: "tool_search" },
         { type: "web_search" },
         { type: "unknown_hosted_tool" },
       ],
@@ -983,7 +1024,13 @@ test("CodexExecutor.transformRequest preserves namespace MCP tools and hosted to
   );
 
   const types = (result.tools as Array<Record<string, unknown>>).map((tool) => tool.type);
-  assert.deepEqual(types, ["function", "namespace", "image_generation", "web_search"]);
+  assert.deepEqual(types, [
+    "function",
+    "namespace",
+    "image_generation",
+    "tool_search",
+    "web_search",
+  ]);
 
   const namespaceTool = (result.tools as Array<Record<string, unknown>>).find(
     (tool) => tool.type === "namespace"
@@ -994,6 +1041,76 @@ test("CodexExecutor.transformRequest preserves namespace MCP tools and hosted to
   // tool_choice trỏ vào sub-tool của namespace phải được giữ nguyên (không bị xoá
   // do tên nằm trong namespace.tools[*].name đã được đăng ký vào validToolNames).
   assert.deepEqual(result.tool_choice, { type: "function", name: "jira_get_issue" });
+});
+
+test("CodexExecutor.transformRequest preserves native Codex custom tools", () => {
+  const executor = new CodexExecutor();
+  const result = executor.transformRequest(
+    "gpt-5.5",
+    {
+      _nativeCodexPassthrough: true,
+      model: "gpt-5.5",
+      input: [],
+      tools: [
+        {
+          type: "custom",
+          name: "apply_patch",
+          description: "Use the apply_patch tool to edit files.",
+          format: {
+            type: "grammar",
+            syntax: "lark",
+            definition: "start: /.+/",
+          },
+        },
+        {
+          type: "function",
+          name: "exec_command",
+          description: "Runs a command.",
+          parameters: { type: "object", properties: {} },
+          strict: false,
+        },
+      ],
+    },
+    true,
+    { requestEndpointPath: "/responses" }
+  );
+
+  const tools = result.tools as Array<Record<string, unknown>>;
+  assert.equal(tools.length, 2);
+  assert.deepEqual(tools[0], {
+    type: "custom",
+    name: "apply_patch",
+    description: "Use the apply_patch tool to edit files.",
+    format: {
+      type: "grammar",
+      syntax: "lark",
+      definition: "start: /.+/",
+    },
+  });
+  assert.equal(tools[1].strict, false);
+});
+
+test("CodexExecutor.transformRequest still drops custom tools outside native passthrough", () => {
+  const executor = new CodexExecutor();
+  const result = executor.transformRequest(
+    "gpt-5.5",
+    {
+      model: "gpt-5.5",
+      input: [],
+      tools: [
+        { type: "custom", name: "apply_patch", format: { type: "grammar" } },
+        { type: "function", name: "exec_command", parameters: { type: "object" } },
+      ],
+    },
+    true,
+    { requestEndpointPath: "/responses" }
+  );
+
+  const tools = result.tools as Array<Record<string, unknown>>;
+  assert.deepEqual(
+    tools.map((tool) => tool.name),
+    ["exec_command"]
+  );
 });
 
 test("CodexExecutor maps Codex websocket error events to response.failed SSE", () => {

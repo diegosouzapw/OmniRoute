@@ -15,6 +15,25 @@ import { useProviderModels } from "../../providers/hooks/useProviderModels";
 
 const ENDPOINT = "/api/v1/chat/completions";
 
+/**
+ * Qualify a provider-scoped playground model with its `providerId/` prefix so
+ * OmniRoute can resolve it unambiguously. The previous heuristic only prefixed
+ * models without a `/`, which skipped vendor-namespaced ids like
+ * `moonshotai/kimi-k2.6` or `nvidia/zyphra/zamba2-7b-instruct` — those already
+ * contain a slash, so they were sent bare and rejected with
+ * "Ambiguous model ... Use provider/model prefix" when the same id exists under
+ * several providers (#3050). Always prefix unless the id is already qualified
+ * with this provider.
+ */
+export function qualifyPlaygroundModel(
+  model: string | null | undefined,
+  providerId: string | null | undefined
+): string {
+  const m = (model ?? "").trim();
+  if (!m || !providerId) return m;
+  return m === providerId || m.startsWith(`${providerId}/`) ? m : `${providerId}/${m}`;
+}
+
 interface Message {
   role: "user" | "assistant";
   content: string;
@@ -125,13 +144,11 @@ export function LlmChatCard({
 
   const firstModel = models[0]?.id ?? "";
   const effectiveModel = model || firstModel || initialModel || "";
-  // Auto-prefix model with providerId when no provider/model prefix present, to avoid
-  // OmniRoute "Ambiguous model" rejection when same alias is registered under multiple providers.
-  const qualifiedModel = effectiveModel.includes("/")
-    ? effectiveModel
-    : providerId
-      ? `${providerId}/${effectiveModel}`
-      : effectiveModel;
+  // Auto-prefix model with providerId to avoid OmniRoute "Ambiguous model"
+  // rejection when the same id is registered under multiple providers. This
+  // also covers vendor-namespaced ids (e.g. `moonshotai/kimi-k2.6`) that already
+  // contain a slash but still need the provider prefix (#3050).
+  const qualifiedModel = qualifyPlaygroundModel(effectiveModel, providerId);
 
   // Autofocus textarea in embedded mode
   useEffect(() => {

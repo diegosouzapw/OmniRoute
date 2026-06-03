@@ -42,6 +42,136 @@ export interface SelectionResult {
   isExploration: boolean;
   factors: Record<string, number>;
   excluded: string[];
+  connectionId?: string;
+}
+
+type TierName = "top" | "mid" | "rest";
+
+const TIER_PREFERENCES: Record<string, Record<TierName, number>> = {
+  smart: { top: 0.5, mid: 0.3, rest: 0.2 },
+  fast: { top: 0.3, mid: 0.5, rest: 0.2 },
+  cheap: { top: 0.2, mid: 0.3, rest: 0.5 },
+  coding: { top: 0.6, mid: 0.25, rest: 0.15 },
+  default: { top: 0.45, mid: 0.35, rest: 0.2 },
+};
+
+function tierPreferencesForName(name: string): Record<TierName, number> {
+  const key = name.toLowerCase();
+  if (TIER_PREFERENCES[key]) return TIER_PREFERENCES[key];
+  for (const prefix of Object.keys(TIER_PREFERENCES)) {
+    if (key.startsWith(`${prefix}-`) || key.includes(prefix)) return TIER_PREFERENCES[prefix];
+  }
+  return TIER_PREFERENCES.default;
+}
+
+const SCORE_EPSILON = 1e-4;
+const CLEAR_WINNER_THRESHOLD = 0.1;
+
+class ScoreTierRotator {
+  private readonly tierCounters = new Map<TierName, number>();
+  private rrCounter = 0;
+
+  constructor(private readonly comboName: string) {}
+
+  pick(candidates: ScoredProvider[]): ScoredProvider {
+    if (candidates.length === 0) {
+      throw new Error(`ScoreTierRotator: no candidates to pick from for combo=${this.comboName}`);
+    }
+    if (candidates.length === 1) return candidates[0];
+
+    const tiers = groupIntoTiers(candidates);
+    const best = candidates[0].score;
+    const worst = candidates[candidates.length - 1].score;
+    if (tiers.top.length > 0 && (best - worst) >= CLEAR_WINNER_THRESHOLD) {
+      return this.pickFromPool(tiers.top);
+    }
+    const prefs = tierPreferencesForName(this.comboName);
+    const chosen = chooseTierWeighted(tiers, prefs, (pool) => this.pickFromPool(pool), () =>
+      this.advance(tiers, prefs, candidates)
+    );
+    return chosen;
+  }
+
+  private advance(
+    tiers: Record<TierName, ScoredProvider[]>,
+    prefs: Record<TierName, number>,
+    candidates: ScoredProvider[]
+  ): ScoredProvider {
+    const order: TierName[] = ["top", "mid", "rest"];
+    for (const tier of order) {
+      if (tiers[tier].length > 0 && prefs[tier] > 0) {
+        const idx = this.tierCounters.get(tier) ?? 0;
+        const picked = tiers[tier][idx % tiers[tier].length];
+        this.tierCounters.set(tier, idx + 1);
+        return picked;
+      }
+    }
+    return tiers.top[0] ?? tiers.mid[0] ?? tiers.rest[0] ?? candidates[0];
+  }
+
+  private pickFromPool(pool: ScoredProvider[]): ScoredProvider {
+    if (pool.length === 0) throw new Error("pickFromPool: empty pool");
+    if (pool.length === 1) return pool[0];
+    const picked = pool[this.rrCounter % pool.length];
+    this.rrCounter = (this.rrCounter + 1) % pool.length;
+    return picked;
+  }
+}
+
+function groupIntoTiers(candidates: ScoredProvider[]): Record<TierName, ScoredProvider[]> {
+  if (candidates.length === 0) return { top: [], mid: [], rest: [] };
+  const best = candidates[0].score;
+  const worst = candidates[candidates.length - 1].score;
+  const range = best - worst;
+
+  const top: ScoredProvider[] = [];
+  const mid: ScoredProvider[] = [];
+  const rest: ScoredProvider[] = [];
+
+  for (const c of candidates) {
+    const delta = best - c.score;
+    if (delta <= SCORE_EPSILON) top.push(c);
+    else if (range <= SCORE_EPSILON || delta <= range * 0.3) mid.push(c);
+    else rest.push(c);
+  }
+
+  if (mid.length === 0 && rest.length > 0) {
+    const half = Math.ceil(rest.length / 2);
+    mid.push(...rest.splice(0, half));
+  }
+
+  return { top, mid, rest };
+}
+
+function chooseTierWeighted(
+  tiers: Record<TierName, ScoredProvider[]>,
+  prefs: Record<TierName, number>,
+  pickFromPool: (pool: ScoredProvider[]) => ScoredProvider,
+  fallback: () => ScoredProvider
+): ScoredProvider {
+  const active = {
+    top: tiers.top.length > 0 ? prefs.top : 0,
+    mid: tiers.mid.length > 0 ? prefs.mid : 0,
+    rest: tiers.rest.length > 0 ? prefs.rest : 0,
+  };
+  const total = active.top + active.mid + active.rest;
+  if (total <= 0) return fallback();
+  const r = Math.random() * total;
+  let acc = 0;
+  if (active.top > 0 && (acc += active.top) >= r) return pickFromPool(tiers.top);
+  if (active.mid > 0 && (acc += active.mid) >= r) return pickFromPool(tiers.mid);
+  if (active.rest > 0) return pickFromPool(tiers.rest);
+  return fallback();
+}
+
+const comboRotators = new Map<string, ScoreTierRotator>();
+function getRotator(comboName: string): ScoreTierRotator {
+  let r = comboRotators.get(comboName);
+  if (!r) {
+    r = new ScoreTierRotator(comboName);
+    comboRotators.set(comboName, r);
+  }
+  return r;
 }
 
 /**
@@ -137,27 +267,32 @@ export function selectProvider(
   const isExploration = Math.random() < effectiveExplorationRate && candidates_.length > 1;
 
   if (isExploration) {
-    // Random selection (bandit exploration)
     const idx = Math.floor(Math.random() * candidates_.length);
     selected = candidates_[idx];
   } else {
-    // Greedy: highest score
-    selected = candidates_[0];
+    const rotator = getRotator(config.name);
+    selected = rotator.pick(candidates_);
   }
 
   // Budget cap enforcement
   if (config.budgetCap) {
-    const candidate = candidates.find((c) => c.provider === selected.provider);
-    if (candidate) {
-      const estimatedCost = (candidate.costPer1MTokens / 1_000_000) * 1000; // approx for 1K tokens
-      if (estimatedCost > config.budgetCap) {
-        // Degrade to cheapest
-        const cheapest = candidates_
-          .map((s) => ({
-            ...s,
-            cost: candidates.find((c) => c.provider === s.provider)?.costPer1MTokens || 0,
-          }))
-          .sort((a, b) => a.cost - b.cost)[0];
+    const costMap = new Map<string, number>();
+    for (const c of candidates) {
+      costMap.set(`${c.provider}\0${c.model}`, c.costPer1MTokens);
+    }
+    const estimatedCostFor = (s: ScoredProvider) => {
+      const cost = costMap.get(`${s.provider}\0${s.model}`) ?? 0;
+      return (cost / 1_000_000) * 1000;
+    };
+    if (estimatedCostFor(selected) > config.budgetCap) {
+      const budgetOk = candidates_.filter((s) => estimatedCostFor(s) <= config.budgetCap!);
+      if (budgetOk.length > 0) {
+        const rotator = getRotator(`${config.name}#budget`);
+        selected = rotator.pick(budgetOk);
+      } else {
+        const cheapest = [...candidates_].sort(
+          (a, b) => estimatedCostFor(a) - estimatedCostFor(b)
+        )[0];
         if (cheapest) selected = cheapest;
       }
     }
@@ -170,6 +305,7 @@ export function selectProvider(
     isExploration,
     factors: selected.factors as unknown as Record<string, number>,
     excluded,
+    connectionId: selected.connectionId,
   };
 }
 

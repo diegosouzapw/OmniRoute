@@ -195,13 +195,34 @@ export async function createProviderConnection(data: JsonRecord) {
           )
           .get(data.provider, data.email) as JsonRecord | undefined) || null;
     }
-  } else if (data.authType === "apikey" && data.name) {
-    existing =
-      (db
-        .prepare(
-          "SELECT * FROM provider_connections WHERE provider = ? AND auth_type = 'apikey' AND name = ?"
-        )
-        .get(data.provider, data.name) as JsonRecord | undefined) || null;
+  } else if (data.authType === "apikey") {
+    // Name-based upsert (existing behavior): same provider + same name → update.
+    if (data.name) {
+      existing =
+        (db
+          .prepare(
+            "SELECT * FROM provider_connections WHERE provider = ? AND auth_type = 'apikey' AND name = ?"
+          )
+          .get(data.provider, data.name) as JsonRecord | undefined) || null;
+    }
+    // #3023 — dedup by API key value: re-adding the same key (under a different
+    // or blank name) must update the existing connection, not insert a duplicate
+    // row. Stored keys use non-deterministic AES-GCM, so ciphertext can't be
+    // compared directly — decrypt each apikey row for this provider and match the
+    // plaintext (trimmed) instead.
+    const newApiKey = typeof data.apiKey === "string" ? data.apiKey.trim() : "";
+    if (!existing && newApiKey) {
+      const apiKeyRows = db
+        .prepare("SELECT * FROM provider_connections WHERE provider = ? AND auth_type = 'apikey'")
+        .all(data.provider) as JsonRecord[];
+      for (const row of apiKeyRows) {
+        const decrypted = decryptConnectionFields(toRecord(rowToCamel(row)));
+        if (toStringOrNull(decrypted.apiKey)?.trim() === newApiKey) {
+          existing = row;
+          break;
+        }
+      }
+    }
   }
 
   if (existing) {
