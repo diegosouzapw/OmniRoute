@@ -165,9 +165,9 @@ export default function RequestLoggerV2() {
           // If the server returned a full window, more rows may exist beyond it.
           setHasMore(Array.isArray(data) && data.length >= limit);
           // Skip re-render if data hasn't changed (#1369 GPU perf)
-          // Lightweight check: first id + last id + count instead of serializing all IDs
+          // Lightweight check: map key fields to detect additions, deletions, or status/duration updates
           const arr = Array.isArray(data) ? data : [];
-          const sig = `${arr[0]?.id}|${arr[arr.length - 1]?.id}|${arr.length}`;
+          const sig = arr.map((l: any) => l.id + ":" + l.status + ":" + l.duration + ":" + (l.tokens?.out || 0)).join("|");
           if (sig !== logsSignatureRef.current) {
             logsSignatureRef.current = sig;
             setLogs(data);
@@ -213,11 +213,15 @@ export default function RequestLoggerV2() {
   // scrolled past the first page to avoid escalating payload sizes.
   useEffect(() => {
     const onVisibility = () => {
-      visibleRef.current = document.visibilityState === "visible";
+      const isVisible = document.visibilityState === "visible";
+      visibleRef.current = isVisible;
+      if (isVisible && recording && limit <= PAGE_SIZE) {
+        fetchLogs(false);
+      }
     };
     document.addEventListener("visibilitychange", onVisibility);
     return () => document.removeEventListener("visibilitychange", onVisibility);
-  }, []);
+  }, [recording, limit, fetchLogs]);
 
   useEffect(() => {
     if (intervalRef.current) clearInterval(intervalRef.current);
@@ -370,8 +374,8 @@ export default function RequestLoggerV2() {
     okCount: filteredLogs.filter((l) => l.status >= 200 && l.status < 300).length,
     errorCount: filteredLogs.filter((l) => l.status >= 400).length,
     comboCount: logs.filter((l) => l.comboName).length,
-    apiKeyCount: new Set(logs.map((l) => l.apiKeyId || l.apiKeyName).filter(Boolean)).size,
-  }), [filteredLogs, logs]);
+    apiKeyCount: uniqueApiKeys.length,
+  }), [filteredLogs, logs, uniqueApiKeys]);
 
   return (
     <div className="flex flex-col gap-4">
