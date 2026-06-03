@@ -9,6 +9,34 @@ function normalizeToolName(value) {
   return typeof value === "string" ? value.trim() : "";
 }
 
+function stripEmptyOptionalToolArgs(value, toolName) {
+  if (value == null) return value;
+
+  if (typeof value === "string") {
+    // JSON-string cleanup is intentionally scoped to Claude Code's Read tool.
+    // For arbitrary tools, empty strings/arrays may be valid user payloads.
+    if (toolName !== "Read") return value;
+    try {
+      const parsed = JSON.parse(value);
+      if (Array.isArray(parsed) || typeof parsed !== "object" || parsed === null) return value;
+      const cleaned = stripEmptyOptionalToolArgs(parsed, toolName);
+      return JSON.stringify(cleaned ?? {});
+    } catch {
+      return value;
+    }
+  }
+
+  if (Array.isArray(value) || typeof value !== "object") return value;
+
+  const cleaned = { ...value };
+  for (const [key, entry] of Object.entries(cleaned)) {
+    if (entry === "" || (Array.isArray(entry) && entry.length === 0)) {
+      delete cleaned[key];
+    }
+  }
+  return cleaned;
+}
+
 /**
  * Translate OpenAI chunk to Responses API events
  * @returns {Array} Array of events with { event, data } structure
@@ -631,15 +659,7 @@ export function openaiResponsesToOpenAIResponse(chunk, state) {
 
       state.toolCallIndex++;
 
-      let argsToEmit = item.arguments;
-      if (argsToEmit != null && typeof argsToEmit === "object" && !Array.isArray(argsToEmit)) {
-        // Fix #1674 & #1852: Strip empty string and array placeholders emitted by GPT-5.5 for optional fields
-        const cleaned = { ...argsToEmit };
-        for (const [k, v] of Object.entries(cleaned)) {
-          if (v === "" || (Array.isArray(v) && v.length === 0)) delete cleaned[k];
-        }
-        argsToEmit = cleaned;
-      }
+      const argsToEmit = stripEmptyOptionalToolArgs(item.arguments, toolName);
 
       const argsStr =
         argsToEmit != null
@@ -681,14 +701,7 @@ export function openaiResponsesToOpenAIResponse(chunk, state) {
 
     // Only emit if arguments exist in the done event AND they weren't already streamed via deltas
     if (item.arguments != null && !buffered) {
-      let argsToEmit = item.arguments;
-      if (argsToEmit != null && typeof argsToEmit === "object" && !Array.isArray(argsToEmit)) {
-        const cleaned = { ...argsToEmit };
-        for (const [k, v] of Object.entries(cleaned)) {
-          if (v === "" || (Array.isArray(v) && v.length === 0)) delete cleaned[k];
-        }
-        argsToEmit = cleaned;
-      }
+      const argsToEmit = stripEmptyOptionalToolArgs(item.arguments, toolName);
 
       const argsStr = typeof argsToEmit === "string" ? argsToEmit : JSON.stringify(argsToEmit);
       if (argsStr) {

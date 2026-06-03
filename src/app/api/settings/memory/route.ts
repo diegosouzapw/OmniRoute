@@ -1,23 +1,14 @@
 import { NextRequest, NextResponse } from "next/server";
-import { z } from "zod";
 import { getSettings, updateSettings } from "@/lib/localDb";
 import { isAuthenticated } from "@/shared/utils/apiAuth";
 import { isValidationFailure, validateBody } from "@/shared/validation/helpers";
+import { MemorySettingsExtendedSchema } from "@/shared/schemas/memory";
 import {
   invalidateMemorySettingsCache,
   normalizeMemorySettings,
   toMemorySettingsUpdates,
 } from "@/lib/memory/settings";
-
-const memorySettingsUpdateSchema = z
-  .object({
-    enabled: z.boolean().optional(),
-    maxTokens: z.number().int().min(0).max(16000).optional(),
-    retentionDays: z.number().int().min(1).max(365).optional(),
-    strategy: z.enum(["recent", "semantic", "hybrid"]).optional(),
-    skillsEnabled: z.boolean().optional(),
-  })
-  .strict();
+import { sanitizeErrorMessage } from "@omniroute/open-sse/utils/error.ts";
 
 export async function GET(request: NextRequest) {
   if (!(await isAuthenticated(request))) {
@@ -27,8 +18,9 @@ export async function GET(request: NextRequest) {
   try {
     const settings = (await getSettings()) as Record<string, unknown>;
     return NextResponse.json(normalizeMemorySettings(settings));
-  } catch (error) {
-    return NextResponse.json({ error: String(error) }, { status: 500 });
+  } catch (err: unknown) {
+    const message = sanitizeErrorMessage(err instanceof Error ? err.message : String(err));
+    return NextResponse.json({ error: { message } }, { status: 500 });
   }
 }
 
@@ -37,25 +29,29 @@ export async function PUT(request: NextRequest) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
+  let rawBody: unknown;
   try {
-    let rawBody: unknown;
-    try {
-      rawBody = await request.json();
-    } catch {
-      return NextResponse.json({ error: "Invalid JSON body" }, { status: 400 });
-    }
+    rawBody = await request.json();
+  } catch {
+    return NextResponse.json(
+      { error: { message: "Invalid JSON body", details: [] } },
+      { status: 400 },
+    );
+  }
 
-    const validation = validateBody(memorySettingsUpdateSchema, rawBody);
-    if (isValidationFailure(validation)) {
-      return validation.response;
-    }
+  const validation = validateBody(MemorySettingsExtendedSchema, rawBody);
+  if (isValidationFailure(validation)) {
+    return NextResponse.json(validation.error, { status: 400 });
+  }
 
+  try {
     const updates = toMemorySettingsUpdates(validation.data);
     const settings = (await updateSettings(updates)) as Record<string, unknown>;
     invalidateMemorySettingsCache();
 
     return NextResponse.json(normalizeMemorySettings(settings));
-  } catch (error) {
-    return NextResponse.json({ error: String(error) }, { status: 500 });
+  } catch (err: unknown) {
+    const message = sanitizeErrorMessage(err instanceof Error ? err.message : String(err));
+    return NextResponse.json({ error: { message } }, { status: 500 });
   }
 }

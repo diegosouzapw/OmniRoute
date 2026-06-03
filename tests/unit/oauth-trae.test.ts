@@ -87,12 +87,28 @@ test("trae mapTokens preserves machineId in providerSpecificData (#2658)", () =>
   assert.equal(mapped.providerSpecificData.authMethod, "imported");
 });
 
-test("trae mapTokens defaults expiresIn to 86400 when not provided", () => {
+test("trae mapTokens defaults expiresIn to the ~14-day Cloud-IDE-JWT lifetime when not provided", () => {
   const provider = PROVIDERS.trae;
 
   const mapped = provider.mapTokens({ accessToken: "trae-token-2" });
 
-  assert.equal(mapped.expiresIn, 86400);
+  // SOLO Cloud-IDE-JWTs live ~14 days (TRAE_CONFIG.tokenLifetimeDays).
+  assert.equal(mapped.expiresIn, TRAE_CONFIG.tokenLifetimeDays * 24 * 60 * 60);
+});
+
+test("trae mapTokens enriches providerSpecificData with SOLO identity defaults", () => {
+  const provider = PROVIDERS.trae;
+  const mapped = provider.mapTokens({
+    accessToken: "tk",
+    webId: "WID",
+    bizUserId: "BUID",
+  });
+  assert.equal(mapped.providerSpecificData.webId, "WID");
+  assert.equal(mapped.providerSpecificData.bizUserId, "BUID");
+  // Identity defaults required by the SOLO common_params payload.
+  assert.equal(mapped.providerSpecificData.scope, "marscode-us");
+  assert.equal(mapped.providerSpecificData.tenant, "marscode");
+  assert.equal(mapped.providerSpecificData.region, "US-East");
 });
 
 test("trae mapTokens returns an object even when called with empty tokens", () => {
@@ -101,7 +117,7 @@ test("trae mapTokens returns an object even when called with empty tokens", () =
 
   assert.ok(mapped && typeof mapped === "object");
   assert.equal(mapped.refreshToken, null);
-  assert.equal(mapped.expiresIn, 86400);
+  assert.equal(mapped.expiresIn, TRAE_CONFIG.tokenLifetimeDays * 24 * 60 * 60);
 });
 
 // ---------------------------------------------------------------------------

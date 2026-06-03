@@ -69,12 +69,6 @@ export const WEB_SESSION_CREDENTIAL_REQUIREMENTS = {
     placeholder: "access_token=... or a DevTools HAR export",
     acceptsFullCookieHeader: false,
   },
-  "veoaifree-web": {
-    kind: "none",
-    credentialName: "",
-    placeholder: "",
-    acceptsFullCookieHeader: false,
-  },
   "t3-web": {
     kind: "cookie",
     credentialName: "convex-session-id + Cookie header",
@@ -91,12 +85,6 @@ export const WEB_SESSION_CREDENTIAL_REQUIREMENTS = {
     kind: "cookie",
     credentialName: "token + email",
     placeholder: "token_value user@example.com",
-    acceptsFullCookieHeader: false,
-  },
-  "duckduckgo-web": {
-    kind: "none",
-    credentialName: "",
-    placeholder: "",
     acceptsFullCookieHeader: false,
   },
   huggingchat: {
@@ -140,6 +128,12 @@ export const WEB_SESSION_CREDENTIAL_REQUIREMENTS = {
     credentialName: "session",
     placeholder: "session=... or full Cookie header from doubao.com",
     acceptsFullCookieHeader: true,
+  },
+  "qwen-web": {
+    kind: "token",
+    credentialName: "token",
+    placeholder: "Paste your Qwen token from chat.qwen.ai (Local Storage → token)",
+    acceptsFullCookieHeader: false,
   },
 } satisfies Record<keyof typeof WEB_COOKIE_PROVIDERS, WebSessionCredentialRequirement>;
 

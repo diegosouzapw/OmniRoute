@@ -21,7 +21,7 @@ In scope:
 - New `GET /api/v1/me/status` endpoint authenticated by normal Bearer API key.
 - New self-service API key scopes: `self:usage` and `self:account-quota`.
 - Per-key cost and token aggregation for the calling key.
-- Optional normalized provider account quota for unambiguous single-connection keys.
+- Optional normalized provider account quotas for all provider-limit connections the key may use.
 - API Manager create/edit controls for visibility scopes.
 - Reuse the existing budget configuration surface for USD limits.
 - i18n message keys for all new dashboard text.
@@ -46,7 +46,7 @@ The new scopes must not grant management access. Only `manage` and `admin` remai
 
 - Scope editing in the current dashboard can collapse scopes to only management access; implementation must preserve unrelated scopes.
 - Shared account quota can reveal account exhaustion; it must remain disabled by default.
-- Multi-connection and unrestricted-connection keys are ambiguous; first implementation should decline account quota rather than guessing.
+- Unrestricted keys can use all active provider connections, so account quota visibility enumerates all active provider-limit connections when explicitly permitted.
 - Backfill must be idempotent so upgrades do not repeatedly rewrite API keys or re-enable a permission an operator later disabled.
 - New UI text can regress non-English dashboards if translation keys are not added consistently.
 - The current scope validation cap is 16 entries; adding self-service scopes may require raising that cap.

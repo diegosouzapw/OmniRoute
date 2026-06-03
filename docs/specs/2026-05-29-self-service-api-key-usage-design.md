@@ -4,7 +4,7 @@
 
 Operators often share one upstream coding account, such as Codex, across multiple OmniRoute API keys. OmniRoute already records per-key usage and supports per-key USD budgets, but a normal client API key cannot query its own spend or token totals. The existing usage APIs are management endpoints, so exposing them to each API key would disclose other keys, account metadata, and operational settings.
 
-Operators also need a way to decide whether a key may see the shared upstream account quota. For Codex this includes the short session window and weekly window fetched from ChatGPT usage APIs. That quota is account-level state, not key-level state, so it should not be visible by default.
+Operators also need a way to decide whether a key may see shared upstream account quotas. For Codex this includes the short session window and weekly window fetched from ChatGPT usage APIs, and other subscription providers can expose their own normalized provider-limit windows. That quota is account-level state, not key-level state, so it should not be visible by default.
 
 The goal is to add a small self-service status API and matching dashboard controls so a delegated API key can see:
 
@@ -29,7 +29,7 @@ Relevant current implementation:
 - `/api/v1/*` routes are public from the route classifier perspective, but individual handlers still validate Bearer API keys.
 - Per-key USD budgets already exist through `domain_budgets`, `domain_cost_history`, `getCostSummary(apiKeyId)`, and `checkBudget(apiKeyId)`.
 - Token usage is already recorded per key in `usage_history.api_key_id` with input, output, cache read, cache creation, and reasoning token columns.
-- Provider quota data is fetched through `src/lib/usage/providerLimits.ts` and Codex quota support in `open-sse/services/codexQuotaFetcher.ts` / `open-sse/services/usage.ts`.
+- Provider quota data is fetched through `src/lib/usage/providerLimits.ts` and provider usage support in `open-sse/services/usage.ts`.
 - The API Manager UI currently has a management-access toggle on create/edit and sends `scopes: ["manage"]` or `[]`; the edit modal must be changed before adding more scope types so it does not discard unrelated scopes.
 
 ## Goals
@@ -101,16 +101,45 @@ The response contains only the caller's own API key identity, budget usage, toke
       "totalTokens": 1067000
     }
   },
+  "accountQuotas": [
+    {
+      "provider": "codex",
+      "connectionId": "conn_123",
+      "shared": true,
+      "plan": "ChatGPT Plus",
+      "quotas": {
+        "session": {
+          "remainingPercentage": 99,
+          "usedPercentage": 1,
+          "resetAt": "2026-05-29T18:11:44.000Z"
+        },
+        "weekly": {
+          "remainingPercentage": 3,
+          "usedPercentage": 97,
+          "resetAt": "2026-05-31T01:23:38.000Z"
+        }
+      }
+    },
+    {
+      "provider": "claude",
+      "connectionId": "conn_456",
+      "shared": true,
+      "plan": "Claude Max",
+      "quotas": {
+        "daily": {
+          "remainingPercentage": 65,
+          "usedPercentage": 35,
+          "resetAt": "2026-05-30T00:00:00.000Z"
+        }
+      }
+    }
+  ],
   "accountQuota": {
     "provider": "codex",
     "connectionId": "conn_123",
     "shared": true,
+    "plan": "ChatGPT Plus",
     "quotas": {
-      "session": {
-        "remainingPercentage": 99,
-        "usedPercentage": 1,
-        "resetAt": "2026-05-29T18:11:44.000Z"
-      },
       "weekly": {
         "remainingPercentage": 3,
         "usedPercentage": 97,
@@ -121,25 +150,53 @@ The response contains only the caller's own API key identity, budget usage, toke
 }
 ```
 
-`accountQuota` is omitted unless the key has the account quota scope. If the scope is present but the connection cannot be resolved safely, return:
+`accountQuotas` is omitted unless the key has the account quota scope. `accountQuota` is retained as a compatibility alias only when exactly one account quota entry is returned. If a specific allowed connection cannot fetch quota data, include a per-connection unavailable entry:
 
 ```json
 {
+  "accountQuotas": [
+    {
+      "provider": "cursor",
+      "connectionId": "conn_789",
+      "shared": true,
+      "available": false,
+      "reason": "fetch_failed"
+    }
+  ],
   "accountQuota": {
+    "provider": "cursor",
+    "connectionId": "conn_789",
+    "shared": true,
     "available": false,
-    "reason": "ambiguous_connection"
+    "reason": "fetch_failed"
   }
 }
 ```
 
-Use stable reason strings: `not_supported`, `ambiguous_connection`, `no_allowed_connection`, `not_available`, and `fetch_failed`.
+If explicit connection metadata lookup fails before the provider is known, return the unresolved connection as unavailable without failing the whole status response:
+
+```json
+{
+  "accountQuotas": [
+    {
+      "provider": "unknown",
+      "connectionId": "conn_789",
+      "shared": true,
+      "available": false,
+      "reason": "connection_lookup_failed"
+    }
+  ]
+}
+```
+
+Use stable reason strings: `not_supported`, `not_available`, `fetch_failed`, and `connection_lookup_failed`.
 
 ## Scopes
 
 Add self-service scopes that do not grant management access:
 
 - `self:usage`: allows a key to query its own spend, budget percent, and token totals.
-- `self:account-quota`: allows a key to see shared upstream account quota for its resolved connection.
+- `self:account-quota`: allows a key to see shared upstream account quotas for provider-limit connections it may use.
 
 `self:usage` should be enabled by default for newly created ordinary API keys. The UI should show it checked by default and persist the scope when the control is enabled. For backwards compatibility, the implementation should backfill `self:usage` onto existing ordinary keys during migration or first startup after upgrade. After that compatibility step, absence of `self:usage` means own-usage visibility is disabled and the self-service endpoint returns `403`.
 
@@ -181,19 +238,21 @@ WHERE api_key_id = ?
 Account quota is shared provider state. The self-service endpoint may include it only when:
 
 - The API key has `self:account-quota`.
-- A single provider connection can be resolved without ambiguity.
-- The provider supports quota fetching.
+- Provider connections can be resolved from the key's allowed connection policy.
+- The providers support quota fetching through the provider limits path.
 
 Connection resolution must follow the source semantics for `allowedConnections`: an empty array means unrestricted access to all connections, not "no connections".
 
-- If exactly one explicit allowed connection exists and it resolves to a quota-supported provider, use that connection.
-- If `allowedConnections` is empty, treat the connection scope as ambiguous and return `available: false` with `ambiguous_connection`. This avoids exposing shared quota for a broad/unrestricted key.
-- If explicit allowed connection ids are present but none resolve, return `available: false` with `no_allowed_connection`.
-- If multiple explicit allowed connections exist, return `available: false` with `ambiguous_connection`.
+- If explicit allowed connection ids are present, fetch quota data for those active provider-limit connections.
+- If `allowedConnections` is empty, fetch quota data for all active provider-limit connections because the key may use all of them.
+- If an allowed connection is inactive, missing, or unsupported, skip it or return a per-connection `not_supported` entry when the connection identity is known.
+- If explicit connection lookup fails, keep the rest of the response and return that connection as `available: false` with `connection_lookup_failed`.
+- If unrestricted connection listing fails, keep the rest of the response and return an empty `accountQuotas` array because no allowed connection identities can be resolved.
+- If a provider quota fetch fails, keep the rest of the response and return that connection as `available: false` with `fetch_failed`.
 
-This conservative rule avoids accidentally exposing quota for an account the key may not actually use. A later change can add an explicitly authorized `?connectionId=` flow if there is demand for multi-connection keys.
+This rule matches routing permissions: the endpoint exposes only account quotas for connections the key is allowed to use, and only when the operator explicitly grants `self:account-quota`.
 
-For Codex, reuse the existing provider limits / Codex quota path. Normalize Codex windows to `session` and `weekly` and return used/remaining percentages plus reset timestamps. Do not return raw upstream payloads.
+Reuse the existing provider limits path. Normalize every returned quota window to used/remaining percentages plus reset timestamps. Do not return raw upstream payloads.
 
 ## Dashboard UX
 
@@ -218,7 +277,7 @@ Usage display:
 
 - In the key list or details panel, show USD used, active USD limit, and used percent when a budget exists.
 - Show token totals in a compact details view.
-- Show shared account quota only for keys with `self:account-quota`, clearly labeled as shared account quota, not per-key quota.
+- Show shared account quotas only for keys with `self:account-quota`, clearly labeled as shared account quota, not per-key quota.
 - When no USD budget is configured, show usage normally and render the limit, remaining amount, and percent as unset/not configured rather than `0%`.
 
 ## Internationalization
@@ -287,7 +346,7 @@ Never include:
 - Upstream access tokens or refresh tokens.
 - Provider account email unless that email is already visible to this key through another client API.
 - Other keys' spend, token totals, names, or budgets.
-- Raw ChatGPT/Codex usage payloads.
+- Raw upstream usage payloads.
 
 Account quota should be treated as sensitive because it lets delegated users infer shared account exhaustion. The default remains off.
 
@@ -297,7 +356,7 @@ Account quota should be treated as sensitive because it lets delegated users inf
 - Valid key without `self:usage`: `403`.
 - Budget missing: `200` with null limit and percent fields.
 - Usage aggregation failure: `500` with generic message; log server-side details.
-- Quota fetch unsupported or unavailable: `200` with `accountQuota.available: false`.
+- Quota fetch unsupported or unavailable: `200` with per-connection unavailable entries in `accountQuotas`.
 - Quota fetch auth failure: do not leak provider auth details; return `not_available` or `fetch_failed` and log details server-side.
 
 ## Testing
@@ -310,9 +369,11 @@ Add focused tests:
 - A normal key with `self:usage` can query its own cost and token totals without `manage`.
 - The endpoint never accepts an `apiKeyId` override.
 - Key A cannot see Key B usage.
-- A key without account quota scope does not receive `accountQuota`.
-- A key with account quota scope and one allowed Codex connection receives normalized session and weekly quota.
-- Unrestricted or multiple allowed connections return `ambiguous_connection`.
+- A key without account quota scope does not receive `accountQuotas`.
+- A key with account quota scope and one allowed Codex connection receives normalized session and weekly quota plus the compatibility `accountQuota` field.
+- A key with account quota scope and multiple allowed provider-limit connections receives multiple `accountQuotas` entries.
+- A key with account quota scope and unrestricted connection access receives all active provider-limit connection quotas.
+- A failed provider quota fetch returns an unavailable entry without hiding successful provider quota entries.
 - Create UI defaults own usage on and shared quota off.
 - Edit UI preserves unrelated scopes.
 - UI renders the no-budget state as not configured, with usage and token totals still visible.

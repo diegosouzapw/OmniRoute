@@ -22,6 +22,8 @@ import {
   type ProviderCredentials,
 } from "./base.ts";
 import { HTTP_STATUS, FETCH_TIMEOUT_MS } from "../config/constants.ts";
+import { cloakThirdPartyToolNames } from "../services/claudeCodeToolRemapper.ts";
+import { sanitizeClaudeToolSchemas } from "../translator/helpers/schemaCoercion.ts";
 
 const DEFAULT_PORT = 8317;
 const DEFAULT_HOST = "127.0.0.1";
@@ -335,9 +337,38 @@ export class CliproxyapiExecutor extends BaseExecutor {
       // uses (utils/stream.ts:restoreClaudePassthroughToolUseName) to
       // rewrite tool_use.name back to the client's original namespace on
       // the response side. Capy sees mcp_call back in tool_use blocks.
-      const toolNameMap = applyMcpToolNameRewrite(transformed);
+      // Sanitize invalid tool input_schemas (truncation placeholders such as
+      // `enum: "[MaxDepth]"`, or index-keyed objects where arrays are required)
+      // that Anthropic rejects with `tools.N.custom.input_schema: JSON schema is
+      // invalid` — surfaced as the same misleading "out of extra usage" 400.
+      if (Array.isArray(transformed.tools)) {
+        transformed.tools = sanitizeClaudeToolSchemas(transformed.tools) as unknown[];
+      }
+
+      // Cloak third-party / blacklisted tool names (e.g. `mixture_of_agents`, or
+      // a large enough set of recognizable snake_case agent tools) that Anthropic
+      // fingerprints and refuses with the same placeholder. The `mcp_*` reserved
+      // namespace is deferred to applyMcpToolNameRewrite below (its bisected
+      // `Mcp_X` form) so the two reverse maps stay disjoint and single-hop.
+      const cloakMap = cloakThirdPartyToolNames(transformed, {
+        skip: (name) => MCP_RESERVED_PREFIX_RE.test(name),
+      });
+
+      const mcpMap = applyMcpToolNameRewrite(transformed);
+
+      const toolNameMap = new Map<string, string>(cloakMap);
+      for (const [alias, original] of mcpMap) {
+        toolNameMap.set(alias, original);
+      }
       if (toolNameMap.size > 0) {
-        transformed._toolNameMap = toolNameMap;
+        // Non-enumerable: chatCore reads this for response-side tool-name
+        // restoration; the wire body must never carry it (also stripped in execute()).
+        Object.defineProperty(transformed, "_toolNameMap", {
+          value: toolNameMap,
+          enumerable: false,
+          configurable: true,
+          writable: true,
+        });
       }
     }
 

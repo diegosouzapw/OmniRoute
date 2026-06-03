@@ -48,7 +48,7 @@ data:
 `;
 }
 
-test("specialty provider validators cover Deepgram, AssemblyAI, NanoBanana, ElevenLabs and Inworld branches", async () => {
+test("specialty provider validators cover Deepgram, AssemblyAI, ElevenLabs and Inworld branches", async () => {
   globalThis.fetch = async (url, init = {}) => {
     const target = String(url);
     const headers = init.headers || {};
@@ -60,9 +60,6 @@ test("specialty provider validators cover Deepgram, AssemblyAI, NanoBanana, Elev
     if (target.match(/assemblyai/i)) {
       assert.equal(headers.Authorization, "aa-key");
       return new Response(JSON.stringify({ error: "unauthorized" }), { status: 403 });
-    }
-    if (target.match(/nanobanana/i)) {
-      return new Response(JSON.stringify({ error: "unauthorized" }), { status: 401 });
     }
     if (target.match(/elevenlabs/i)) {
       return new Response(JSON.stringify({ voices: [] }), { status: 200 });
@@ -76,13 +73,11 @@ test("specialty provider validators cover Deepgram, AssemblyAI, NanoBanana, Elev
 
   const deepgram = await validateProviderApiKey({ provider: "deepgram", apiKey: "dg-key" });
   const assembly = await validateProviderApiKey({ provider: "assemblyai", apiKey: "aa-key" });
-  const banana = await validateProviderApiKey({ provider: "nanobanana", apiKey: "nb-key" });
   const eleven = await validateProviderApiKey({ provider: "elevenlabs", apiKey: "el-key" });
   const inworld = await validateProviderApiKey({ provider: "inworld", apiKey: "iw-key" });
 
   assert.equal(deepgram.valid, true);
   assert.equal(assembly.error, "Invalid API key");
-  assert.equal(banana.error, "Invalid API key");
   assert.equal(eleven.valid, true);
   assert.equal(inworld.valid, true);
 });
@@ -127,9 +122,6 @@ test("specialty providers surface network failures and non-auth upstream failure
     if (target.match(/deepgram/i)) {
       throw new Error("deepgram offline");
     }
-    if (target.match(/nanobanana/i)) {
-      throw new Error("nanobanana offline");
-    }
     if (target.match(/elevenlabs/i)) {
       return new Response(JSON.stringify({ error: "server" }), { status: 500 });
     }
@@ -143,13 +135,11 @@ test("specialty providers surface network failures and non-auth upstream failure
   };
 
   const deepgram = await validateProviderApiKey({ provider: "deepgram", apiKey: "dg-key" });
-  const banana = await validateProviderApiKey({ provider: "nanobanana", apiKey: "nb-key" });
   const eleven = await validateProviderApiKey({ provider: "elevenlabs", apiKey: "el-key" });
   const inworld = await validateProviderApiKey({ provider: "inworld", apiKey: "iw-key" });
   const longcat = await validateProviderApiKey({ provider: "longcat", apiKey: "lc-key" });
 
   assert.equal(deepgram.error, "deepgram offline");
-  assert.equal(banana.error, "nanobanana offline");
   assert.equal(eleven.error, "Validation failed: 500");
   assert.equal(inworld.error, "Invalid API key");
   assert.equal(longcat.error, "longcat offline");
@@ -1123,7 +1113,7 @@ test("registry providers cover remaining OpenAI-like and Claude-like validation 
   assert.equal(calls[1].headers["x-api-key"], "sk-claude");
 });
 
-test("specialty validators cover remaining status branches for Deepgram, AssemblyAI, NanoBanana, ElevenLabs, Inworld, Bailian and LongCat", async () => {
+test("specialty validators cover remaining status branches for Deepgram, AssemblyAI, ElevenLabs, Inworld, Bailian and LongCat", async () => {
   globalThis.fetch = async (url) => {
     const target = String(url);
     if (target.match(/deepgram/i)) {
@@ -1131,9 +1121,6 @@ test("specialty validators cover remaining status branches for Deepgram, Assembl
     }
     if (target.match(/assemblyai/i)) {
       return new Response(JSON.stringify({ transcripts: [] }), { status: 200 });
-    }
-    if (target.match(/nanobanana/i)) {
-      return new Response(JSON.stringify({ error: "bad request" }), { status: 400 });
     }
     if (target.match(/elevenlabs/i)) {
       return new Response(JSON.stringify({ error: "forbidden" }), { status: 403 });
@@ -1152,7 +1139,6 @@ test("specialty validators cover remaining status branches for Deepgram, Assembl
 
   const deepgram = await validateProviderApiKey({ provider: "deepgram", apiKey: "dg-key" });
   const assembly = await validateProviderApiKey({ provider: "assemblyai", apiKey: "aa-key" });
-  const banana = await validateProviderApiKey({ provider: "nanobanana", apiKey: "nb-key" });
   const eleven = await validateProviderApiKey({ provider: "elevenlabs", apiKey: "el-key" });
   const inworld = await validateProviderApiKey({ provider: "inworld", apiKey: "iw-key" });
   const bailian = await validateProviderApiKey({
@@ -1179,7 +1165,6 @@ test("specialty validators cover remaining status branches for Deepgram, Assembl
 
   assert.equal(deepgram.error, "Validation failed: 500");
   assert.equal(assembly.valid, true);
-  assert.equal(banana.error, "Validation failed: 400");
   assert.equal(eleven.error, "Invalid API key");
   assert.equal(inworld.error, "inworld offline");
   assert.equal(bailian.error, "Validation failed: 500");
@@ -1720,54 +1705,6 @@ test("specialty validator rejects invalid Nous Research credentials", async () =
   });
 
   assert.equal(nous.error, "Invalid API key");
-});
-
-test("specialty validator accepts the public Petals generate endpoint without an API key", async () => {
-  globalThis.fetch = async (url, init = {}) => {
-    const target = String(url);
-
-    if (target === "https://chat.petals.dev/api/v1/generate") {
-      const headers = init.headers as Record<string, string>;
-      const body = new URLSearchParams(String(init.body));
-      assert.equal(headers.Authorization, undefined);
-      assert.equal(headers["Content-Type"], "application/x-www-form-urlencoded");
-      assert.equal(body.get("model"), "stabilityai/StableBeluga2");
-      assert.equal(body.get("inputs"), "test");
-      assert.equal(body.get("max_new_tokens"), "1");
-      return new Response(JSON.stringify({ ok: true, outputs: "hi" }), { status: 200 });
-    }
-
-    throw new Error(`unexpected fetch: ${target}`);
-  };
-
-  const petals = await validateProviderApiKey({
-    provider: "petals",
-    apiKey: "",
-  });
-
-  assert.equal(petals.valid, true);
-  assert.equal(petals.method, "petals_generate");
-});
-
-test("specialty validator surfaces Petals upstream unavailability", async () => {
-  globalThis.fetch = async (url, init = {}) => {
-    const target = String(url);
-
-    if (target === "https://chat.petals.dev/api/v1/generate") {
-      const headers = init.headers as Record<string, string>;
-      assert.equal(headers.Authorization, undefined);
-      return new Response(JSON.stringify({ error: "unavailable" }), { status: 503 });
-    }
-
-    throw new Error(`unexpected fetch: ${target}`);
-  };
-
-  const petals = await validateProviderApiKey({
-    provider: "petals",
-    apiKey: "",
-  });
-
-  assert.equal(petals.error, "Provider unavailable (503)");
 });
 
 test("specialty validator rejects invalid Poe credentials", async () => {

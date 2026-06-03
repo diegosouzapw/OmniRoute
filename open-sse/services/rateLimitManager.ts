@@ -192,6 +192,20 @@ function reconcileEnabledConnections(
 
 function watchdogTick() {
   const now = Date.now();
+  // Clean up idle limiters that haven't been used recently
+  for (const [key, limiter] of Array.from(limiters)) {
+    const lastUsed = limiterLastUsed.get(key) ?? 0;
+    if (now - lastUsed > INACTIVE_LIMITER_MS) {
+      const counts = limiter.counts();
+      if (counts.QUEUED === 0 && counts.RUNNING === 0 && counts.EXECUTING === 0) {
+        limiters.delete(key);
+        lastDispatchAt.delete(key);
+        limiterLastUsed.delete(key);
+        logRateLimit(`🧹 [RATE-LIMIT] Evicting idle limiter: ${key} (inactive for ${Math.round((now - lastUsed) / 1000)}s)`);
+        trackAsyncOperation(limiter.disconnect());
+      }
+    }
+  }
   for (const [key, limiter] of Array.from(limiters)) {
     const counts = limiter.counts();
     if (counts.QUEUED === 0) continue;
@@ -211,6 +225,7 @@ function watchdogTick() {
     );
     limiters.delete(key);
     lastDispatchAt.delete(key);
+    limiterLastUsed.delete(key);
     // Do NOT call limiter.stop() — it permanently rejects future .schedule() calls with
     // "This limiter has been stopped". In-flight requests still holding a reference to
     // the old instance cannot be redirected to a new one, causing spurious 502 bursts.
@@ -257,6 +272,7 @@ function shutdownLimiters(): void {
   }
   limiters.clear();
   lastDispatchAt.clear();
+  limiterLastUsed.clear();
 }
 
 // Only register shutdown handlers when there are active limiters to shut down.
@@ -349,6 +365,7 @@ export function disableRateLimitProtection(connectionId) {
     if (key.includes(connectionId)) {
       limiters.delete(key);
       lastDispatchAt.delete(key);
+      limiterLastUsed.delete(key);
       trackAsyncOperation(limiter.disconnect());
     }
   }
@@ -403,8 +420,10 @@ function getLimiter(provider, connectionId, model = null) {
 
     limiters.set(key, limiter);
     lastDispatchAt.set(key, Date.now());
+    limiterLastUsed.set(key, Date.now());
   }
 
+  limiterLastUsed.set(key, Date.now());
   return limiters.get(key);
 }
 
@@ -626,6 +645,7 @@ export function updateFromHeaders(provider, connectionId, headers, status, model
     // the abandoned Bottleneck; under sustained quota pressure that is a real leak.
     limiters.delete(limiterKey);
     lastDispatchAt.delete(limiterKey);
+    limiterLastUsed.delete(limiterKey);
     trackAsyncOperation(limiter.disconnect());
     return;
   }
@@ -799,6 +819,7 @@ export async function __resetRateLimitManagerForTests() {
   enabledConnections.clear();
   initialized = false;
   lastDispatchAt.clear();
+  limiterLastUsed.clear();
   shutdownHandlersRegistered = false;
 
   for (const key of Object.keys(learnedLimits)) {

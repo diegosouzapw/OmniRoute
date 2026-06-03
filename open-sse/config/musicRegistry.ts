@@ -23,11 +23,7 @@ interface MusicProvider {
   models: MusicModel[];
 }
 
-let _MUSIC_PROVIDERS: Record<string, MusicProvider> | null = null;
-
-function getOrCreateMusicProviders(): Record<string, MusicProvider> {
-  if (!_MUSIC_PROVIDERS) {
-    _MUSIC_PROVIDERS = {
+export const MUSIC_PROVIDERS: Record<string, MusicProvider> = {
   kie: {
     id: "kie",
     baseUrl: "https://api.kie.ai",
@@ -86,59 +82,25 @@ function getOrCreateMusicProviders(): Record<string, MusicProvider> {
       { id: "musicgen-medium", name: "MusicGen Medium" },
     ],
   },
-  };
-}
-  return _MUSIC_PROVIDERS;
-}
+};
 
-export const MUSIC_PROVIDERS: Record<string, MusicProvider> = new Proxy({} as Record<string, MusicProvider>, {
-  get(target, key: string) {
-    if (key in target) {
-      return target[key];
-    }
-    return getOrCreateMusicProviders()[key];
-  },
-  set(target, key: string, value) {
-    target[key] = value;
-    getOrCreateMusicProviders()[key] = value;
-    return true;
-  },
-  deleteProperty(target, key: string) {
-    delete target[key];
-    delete getOrCreateMusicProviders()[key];
-    return true;
-  },
-  ownKeys(target) {
-    const targetKeys = Reflect.ownKeys(target);
-    const registryKeys = Reflect.ownKeys(getOrCreateMusicProviders());
-    return Array.from(new Set([...targetKeys, ...registryKeys]));
-  },
-  has(target, key) {
-    return key in target || key in getOrCreateMusicProviders();
-  },
-  getOwnPropertyDescriptor(target, key) {
-    if (key in target) {
-      return Reflect.getOwnPropertyDescriptor(target, key);
-    }
-    if (key in getOrCreateMusicProviders()) {
-      return { configurable: true, enumerable: true, value: getOrCreateMusicProviders()[key as string] };
-    }
-    return undefined;
-  },
-});
-
-export function getMusicProviders(): Record<string, MusicProvider> {
-  return MUSIC_PROVIDERS;
-}
-
+/**
+ * Get music provider config by ID
+ */
 export function getMusicProvider(providerId: string): MusicProvider | null {
   return MUSIC_PROVIDERS[providerId] || null;
 }
 
+/**
+ * Parse music model string (format: "provider/model" or just "model")
+ */
 export function parseMusicModel(modelStr: string | null) {
   return parseModelFromRegistry(modelStr, MUSIC_PROVIDERS);
 }
 
+/**
+ * Get all music models as a flat list
+ */
 export function getAllMusicModels() {
   return getAllModelsFromRegistry(MUSIC_PROVIDERS);
 }

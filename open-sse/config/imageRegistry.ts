@@ -112,11 +112,7 @@ function findImageModelConfig(providerId, modelId) {
   return provider.models.find((model) => model.id === modelId) || null;
 }
 
-let _IMAGE_PROVIDERS: Record<string, ImageProviderConfig> | null = null;
-
-function getOrCreateImageProviders(): Record<string, ImageProviderConfig> {
-  if (!_IMAGE_PROVIDERS) {
-    _IMAGE_PROVIDERS = {
+export const IMAGE_PROVIDERS: Record<string, ImageProviderConfig> = {
   openai: {
     id: "openai",
     baseUrl: "https://api.openai.com/v1/images/generations",
@@ -544,53 +540,14 @@ function getOrCreateImageProviders(): Record<string, ImageProviderConfig> {
     supportedSizes: ["1024x1024", "1024x1280", "1280x1024"],
   },
 };
-}
-return _IMAGE_PROVIDERS;
-}
 
-export function getImageProviders(): Record<string, ImageProviderConfig> {
-  return IMAGE_PROVIDERS;
-}
-
-export const IMAGE_PROVIDERS = new Proxy({} as Record<string, ImageProviderConfig>, {
-  get(target, key: string) {
-    if (key in target) {
-      return target[key];
-    }
-    return getOrCreateImageProviders()[key];
-  },
-  set(target, key: string, value) {
-    target[key] = value;
-    getOrCreateImageProviders()[key] = value;
-    return true;
-  },
-  deleteProperty(target, key: string) {
-    delete target[key];
-    delete getOrCreateImageProviders()[key];
-    return true;
-  },
-  ownKeys(target) {
-    const targetKeys = Reflect.ownKeys(target);
-    const registryKeys = Reflect.ownKeys(getOrCreateImageProviders());
-    return Array.from(new Set([...targetKeys, ...registryKeys]));
-  },
-  has(target, key) {
-    return key in target || key in getOrCreateImageProviders();
-  },
-  getOwnPropertyDescriptor(target, key) {
-    if (key in target) {
-      return Reflect.getOwnPropertyDescriptor(target, key);
-    }
-    if (key in getOrCreateImageProviders()) {
-      return { configurable: true, enumerable: true, value: getOrCreateImageProviders()[key as string] };
-    }
-    return undefined;
-  },
-});
-
+/**
+ * Get image provider config by ID
+ */
 export function getImageProvider(providerId) {
   return IMAGE_PROVIDERS[providerId] || null;
 }
+
 /**
  * Parse image model string (format: "provider/model")
  * Returns { provider, model }

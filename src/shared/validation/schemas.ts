@@ -1048,6 +1048,11 @@ export const providerModelMutationSchema = z.object({
       ])
     )
     .default(["chat"]),
+  // #2905: optional per-model wire format override for custom models (e.g. a
+  // custom opencode-go model that must use the Anthropic Messages shape).
+  targetFormat: z
+    .enum(["openai", "openai-responses", "claude", "gemini", "gemini-cli", "antigravity"])
+    .optional(),
   normalizeToolCallId: z.boolean().optional(),
   preserveOpenAIDeveloperRole: z.boolean().nullable().optional(),
   upstreamHeaders: upstreamHeadersRecordSchema.nullable().optional(),
@@ -1646,6 +1651,16 @@ export const cursorImportSchema = z.object({
   machineId: z.string().trim().optional(),
 });
 
+export const traeImportSchema = z.object({
+  accessToken: z.string().trim().min(1, "Cloud-IDE-JWT access token is required"),
+  webId: z.string().trim().optional(),
+  bizUserId: z.string().trim().optional(),
+  userUniqueId: z.string().trim().optional(),
+  scope: z.string().trim().optional(),
+  tenant: z.string().trim().optional(),
+  region: z.string().trim().optional(),
+});
+
 export const kiroImportSchema = z.object({
   refreshToken: z.string().trim().min(1, "Refresh token is required"),
   region: z.string().trim().default("us-east-1"),
@@ -1856,6 +1871,8 @@ export const updateKeyPermissionsSchema = z
       .optional(),
     scopes: z.array(z.string().trim().min(1).max(64)).max(32).optional(),
     allowedEndpoints: z.array(z.string().trim().min(1).max(64)).max(20).optional(),
+    streamDefaultMode: z.enum(["legacy", "json"]).optional(),
+    disableNonPublicModels: z.boolean().optional(),
   })
   .superRefine((value, ctx) => {
     if (
@@ -1873,7 +1890,8 @@ export const updateKeyPermissionsSchema = z
       value.accessSchedule === undefined &&
       value.rateLimits === undefined &&
       value.scopes === undefined &&
-      value.allowedEndpoints === undefined
+      value.allowedEndpoints === undefined &&
+      value.streamDefaultMode === undefined
     ) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,

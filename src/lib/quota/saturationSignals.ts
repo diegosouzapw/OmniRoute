@@ -1,0 +1,177 @@
+/**
+ * saturationSignals.ts — Read the current global saturation signal (0..1)
+ * for a provider/connection/dimension combination.
+ *
+ * Strategy (per provider):
+ *   codex   → codexQuotaFetcher (dual 5h + weekly window)
+ *   bailian → bailianQuotaFetcher (triple 5h + weekly + monthly window)
+ *   default → getUsageForProvider (open-sse/services/usage.ts)
+ *
+ * Cache: in-memory Map, TTL = 30 seconds.
+ * Fail-open: on any error, return 0 (generous mode) and log pino.warn.
+ * Hard Rule #12: no stack traces propagated to return values.
+ *
+ * Part of: Group B — Quota Sharing Engine (plan 22, frente F6).
+ */
+
+import { createLogger } from "@/shared/utils/logger";
+import type { QuotaUnit, QuotaWindow } from "./dimensions";
+
+const log = createLogger("quota:saturation");
+
+// ---------------------------------------------------------------------------
+// Types
+// ---------------------------------------------------------------------------
+
+interface CacheEntry {
+  value: number; // 0..1
+  ts: number; // epoch ms
+}
+
+interface DimensionSpec {
+  unit: QuotaUnit;
+  window: QuotaWindow;
+}
+
+// ---------------------------------------------------------------------------
+// In-memory cache (Map<cacheKey, CacheEntry>)
+// ---------------------------------------------------------------------------
+
+const CACHE_TTL_MS = 30_000; // 30 seconds
+
+const _cache = new Map<string, CacheEntry>();
+
+function cacheKey(connectionId: string, provider: string, dim: DimensionSpec): string {
+  return `${provider}:${connectionId}:${dim.unit}:${dim.window}`;
+}
+
+// Exported for test reset
+export function _clearSaturationCache(): void {
+  _cache.clear();
+}
+
+// ---------------------------------------------------------------------------
+// Provider-specific extractors
+// ---------------------------------------------------------------------------
+
+/**
+ * Map QuotaWindow to the Codex window keys returned by the fetcher.
+ */
+function codexWindowKey(window: QuotaWindow): string {
+  switch (window) {
+    case "5h":
+      return "session"; // CODEX_WINDOW_SESSION
+    case "weekly":
+      return "weekly"; // CODEX_WINDOW_WEEKLY
+    default:
+      return "session";
+  }
+}
+
+async function fetchCodexSaturation(
+  connectionId: string,
+  dim: DimensionSpec
+): Promise<number> {
+  // Dynamic import — codexQuotaFetcher lives in open-sse workspace
+  const mod = await import("@omniroute/open-sse/services/codexQuotaFetcher");
+  const quota = await mod.fetchCodexQuota(connectionId);
+  if (!quota) return 0;
+
+  const winKey = codexWindowKey(dim.window);
+  const windows = quota.windows as Record<string, { percentUsed: number } | undefined>;
+  const win = windows[winKey];
+  if (win && typeof win.percentUsed === "number") {
+    return Math.min(1, Math.max(0, win.percentUsed));
+  }
+  // fallback to overall percentUsed
+  return Math.min(1, Math.max(0, quota.percentUsed ?? 0));
+}
+
+async function fetchBailianSaturation(
+  connectionId: string,
+  dim: DimensionSpec
+): Promise<number> {
+  const mod = await import("@omniroute/open-sse/services/bailianQuotaFetcher");
+  const quota = await mod.fetchBailianQuota(connectionId);
+  if (!quota) return 0;
+
+  // Select the window matching the dimension
+  let pct = 0;
+  switch (dim.window) {
+    case "5h":
+      pct = quota.window5h?.percentUsed ?? 0;
+      break;
+    case "weekly":
+      pct = quota.windowWeekly?.percentUsed ?? 0;
+      break;
+    case "monthly":
+      pct = quota.windowMonthly?.percentUsed ?? 0;
+      break;
+    default:
+      pct = quota.percentUsed ?? 0;
+  }
+  return Math.min(1, Math.max(0, pct));
+}
+
+async function fetchGenericSaturation(
+  connectionId: string,
+  provider: string
+): Promise<number> {
+  const mod = await import("@omniroute/open-sse/services/usage");
+  // getUsageForProvider returns an object with percentUsed or similar
+  const result = await mod.getUsageForProvider(provider, connectionId);
+  if (!result || typeof result !== "object") return 0;
+  const obj = result as Record<string, unknown>;
+  const pct =
+    typeof obj.percentUsed === "number"
+      ? obj.percentUsed
+      : typeof obj.used_percent === "number"
+        ? obj.used_percent
+        : 0;
+  return Math.min(1, Math.max(0, pct));
+}
+
+// ---------------------------------------------------------------------------
+// Public API
+// ---------------------------------------------------------------------------
+
+/**
+ * Return the current global saturation signal (0..1) for a connection+dim.
+ *
+ * A value of 0 means "no saturation detected" (generous/borrowing mode allowed).
+ * A value >= saturationThreshold triggers strict mode in fairShare.ts.
+ *
+ * Always fail-open: returns 0 on any error.
+ */
+export async function getSaturation(
+  connectionId: string,
+  provider: string,
+  dim: DimensionSpec
+): Promise<number> {
+  const key = cacheKey(connectionId, provider, dim);
+  const cached = _cache.get(key);
+  if (cached && Date.now() - cached.ts < CACHE_TTL_MS) {
+    return cached.value;
+  }
+
+  let value = 0;
+  try {
+    switch (provider) {
+      case "codex":
+        value = await fetchCodexSaturation(connectionId, dim);
+        break;
+      case "bailian":
+        value = await fetchBailianSaturation(connectionId, dim);
+        break;
+      default:
+        value = await fetchGenericSaturation(connectionId, provider);
+        break;
+    }
+  } catch (err) {
+    log.warn({ err: (err as Error)?.message, connectionId, provider }, "saturation fetch failed — failing open with 0");
+    value = 0;
+  }
+
+  _cache.set(key, { value, ts: Date.now() });
+  return value;
+}

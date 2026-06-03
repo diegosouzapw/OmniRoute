@@ -119,30 +119,48 @@ The self-service endpoint SHALL include shared account quota only when the authe
 - WHEN it calls the self-service endpoint
 - THEN the response SHALL NOT include shared account quota details
 
-#### Scenario: Codex quota shown with explicit permission
+#### Scenario: Allowed provider quotas shown with explicit permission
 
 - GIVEN a valid API key has `self:account-quota`
-- AND it is restricted to exactly one Codex connection
-- AND Codex quota data is available
+- AND it is allowed to use Codex and Claude provider-limit connections
+- AND quota data is available for both connections
 - WHEN it calls the self-service endpoint
-- THEN the response SHALL include normalized `session` and `weekly` quota windows
+- THEN the response SHALL include an `accountQuotas` entry for each allowed provider-limit connection
 - AND each window SHALL include used percentage, remaining percentage, and reset timestamp when known
 
-#### Scenario: Multiple connections are ambiguous
+#### Scenario: Single connection compatibility field
 
 - GIVEN a valid API key has `self:account-quota`
-- AND it is allowed to use more than one connection
+- AND it is allowed to use exactly one provider-limit connection
 - WHEN it calls the self-service endpoint
-- THEN `accountQuota.available` SHALL be `false`
-- AND `accountQuota.reason` SHALL be `ambiguous_connection`
+- THEN the response SHALL include exactly one `accountQuotas` entry
+- AND the response SHALL also include `accountQuota` with the same entry for backwards compatibility
 
-#### Scenario: Unrestricted connections are ambiguous
+#### Scenario: Unrestricted connections include active provider-limit connections
 
 - GIVEN a valid API key has `self:account-quota`
 - AND its `allowedConnections` list is empty, meaning all connections are allowed
 - WHEN it calls the self-service endpoint
-- THEN `accountQuota.available` SHALL be `false`
-- AND `accountQuota.reason` SHALL be `ambiguous_connection`
+- THEN the response SHALL include `accountQuotas` entries for active provider-limit connections
+
+#### Scenario: Per-connection quota failure is isolated
+
+- GIVEN a valid API key has `self:account-quota`
+- AND it is allowed to use two provider-limit connections
+- AND one provider quota fetch fails
+- WHEN it calls the self-service endpoint
+- THEN the successful provider SHALL remain in `accountQuotas`
+- AND the failed provider SHALL be represented with `available: false` and `reason: "fetch_failed"`
+
+#### Scenario: Provider connection lookup failure is isolated
+
+- GIVEN a valid API key has `self:account-quota`
+- AND it is explicitly allowed to use two provider-limit connections
+- AND one provider connection lookup fails before quota fetching
+- WHEN it calls the self-service endpoint
+- THEN the successful provider SHALL remain in `accountQuotas`
+- AND the unresolved connection SHALL be represented with `available: false` and `reason: "connection_lookup_failed"`
+- AND the response SHALL still include the key's own cost and token usage
 
 ### Requirement: Dashboard configuration
 

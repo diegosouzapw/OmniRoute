@@ -189,6 +189,37 @@ function getApiKeyStatsKey(apiKeyId: string | null, apiKeyName: string | null): 
 }
 
 /**
+ * Sum of all token columns recorded for one provider connection in the current
+ * UTC calendar month. Powers SELF-TRACKED provider quotas (e.g. Xiaomi MiMo
+ * Token Plan), where the upstream exposes no API-key usage endpoint — OmniRoute
+ * counts the tokens it routed and compares against the known monthly limit.
+ * Only reflects traffic that went THROUGH OmniRoute (not the provider's panel).
+ */
+export function getMonthlyProviderTokensForConnection(
+  provider: string,
+  connectionId: string
+): number {
+  if (!provider || !connectionId) return 0;
+  const db = getDbInstance();
+  const now = new Date();
+  const monthStartIso = new Date(
+    Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1)
+  ).toISOString();
+  const row = db
+    .prepare(
+      `SELECT COALESCE(SUM(tokens_input), 0)
+            + COALESCE(SUM(tokens_output), 0)
+            + COALESCE(SUM(tokens_cache_read), 0)
+            + COALESCE(SUM(tokens_cache_creation), 0)
+            + COALESCE(SUM(tokens_reasoning), 0) AS total
+       FROM usage_history
+       WHERE provider = ? AND connection_id = ? AND timestamp >= ?`
+    )
+    .get(provider, connectionId, monthStartIso) as { total?: number } | undefined;
+  return Math.max(0, Number(row?.total ?? 0));
+}
+
+/**
  * Get aggregated usage stats.
  * Uses UNION of recent raw data and older aggregated data when aggregation is enabled.
  */

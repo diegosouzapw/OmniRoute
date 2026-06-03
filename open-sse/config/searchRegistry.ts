@@ -26,11 +26,7 @@ export interface SearchProviderConfig {
   cacheTTLMs: number;
 }
 
-let _SEARCH_PROVIDERS: Record<string, SearchProviderConfig> | null = null;
-
-function getOrCreateSearchProviders(): Record<string, SearchProviderConfig> {
-  if (!_SEARCH_PROVIDERS) {
-    _SEARCH_PROVIDERS = {
+export const SEARCH_PROVIDERS: Record<string, SearchProviderConfig> = {
   "serper-search": {
     id: "serper-search",
     name: "Serper Search",
@@ -222,52 +218,14 @@ function getOrCreateSearchProviders(): Record<string, SearchProviderConfig> {
     timeoutMs: 10_000,
     cacheTTLMs: 5 * 60 * 1000,
   },
-  };
-}
-  return _SEARCH_PROVIDERS;
-}
+};
 
-export const SEARCH_PROVIDERS: Record<string, SearchProviderConfig> = new Proxy({} as Record<string, SearchProviderConfig>, {
-  get(target, key: string) {
-    if (key in target) {
-      return target[key];
-    }
-    return getOrCreateSearchProviders()[key];
-  },
-  set(target, key: string, value) {
-    target[key] = value;
-    getOrCreateSearchProviders()[key] = value;
-    return true;
-  },
-  deleteProperty(target, key: string) {
-    delete target[key];
-    delete getOrCreateSearchProviders()[key];
-    return true;
-  },
-  ownKeys(target) {
-    const targetKeys = Reflect.ownKeys(target);
-    const registryKeys = Reflect.ownKeys(getOrCreateSearchProviders());
-    return Array.from(new Set([...targetKeys, ...registryKeys]));
-  },
-  has(target, key) {
-    return key in target || key in getOrCreateSearchProviders();
-  },
-  getOwnPropertyDescriptor(target, key) {
-    if (key in target) {
-      return Reflect.getOwnPropertyDescriptor(target, key);
-    }
-    if (key in getOrCreateSearchProviders()) {
-      return { configurable: true, enumerable: true, value: getOrCreateSearchProviders()[key as string] };
-    }
-    return undefined;
-  },
-});
-
-export function getSearchProviders(): Record<string, SearchProviderConfig> {
-  return SEARCH_PROVIDERS;
-}
-
-export const SEARCH_CREDENTIAL_FALLBACKS: Record<string, string> = {  "perplexity-search": "perplexity",
+/**
+ * Credential fallback mapping — search providers that can reuse credentials
+ * from a related provider (e.g., perplexity-search uses the same API key as perplexity chat).
+ */
+export const SEARCH_CREDENTIAL_FALLBACKS: Record<string, string> = {
+  "perplexity-search": "perplexity",
   "ollama-search": "ollama-cloud",
   "zai-search": "zai",
 };

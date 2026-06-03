@@ -76,6 +76,7 @@ interface CodexConnectionMeta {
 
 const MAX_CONNECTIONS = 100;
 const connectionRegistry = new Map<string, CodexConnectionMeta>();
+const MAX_QUOTA_CACHE_ENTRIES = 200;
 
 /**
  * Register Codex connection metadata for quota fetching.
@@ -85,7 +86,7 @@ const connectionRegistry = new Map<string, CodexConnectionMeta>();
  * @param meta - Access token and optional workspace ID
  */
 export function registerCodexConnection(connectionId: string, meta: CodexConnectionMeta): void {
-  if (connectionRegistry.size >= MAX_CONNECTIONS) {
+  if (!connectionRegistry.has(connectionId) && connectionRegistry.size >= MAX_CONNECTIONS) {
     const oldestKey = connectionRegistry.keys().next().value;
     if (oldestKey !== undefined) {
       quotaCache.delete(oldestKey);
@@ -123,6 +124,13 @@ function getCodexConnectionMeta(
 
     if (accessToken) {
       const meta = { accessToken, ...(workspaceId ? { workspaceId } : {}) };
+      if (!connectionRegistry.has(connectionId) && connectionRegistry.size >= MAX_CONNECTIONS) {
+        const oldestKey = connectionRegistry.keys().next().value;
+        if (oldestKey !== undefined) {
+          quotaCache.delete(oldestKey);
+          connectionRegistry.delete(oldestKey);
+        }
+      }
       connectionRegistry.set(connectionId, meta);
       return meta;
     }
@@ -204,6 +212,10 @@ export async function fetchCodexQuota(
     if (!quota) return null;
 
     // Store in cache
+    if (!quotaCache.has(connectionId) && quotaCache.size >= MAX_QUOTA_CACHE_ENTRIES) {
+      const oldestCacheKey = quotaCache.keys().next().value;
+      if (oldestCacheKey !== undefined) quotaCache.delete(oldestCacheKey);
+    }
     quotaCache.set(connectionId, { quota, fetchedAt: Date.now() });
     return quota;
   } catch {

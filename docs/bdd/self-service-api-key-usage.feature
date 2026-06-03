@@ -61,36 +61,51 @@ Feature: Self-service API key usage and account quota visibility
     Then the response status should be 200
     And the response should not include shared account quota details
 
-  Scenario: Shared Codex account quota is visible with explicit permission
+  Scenario: Shared provider account quotas are visible with explicit permission
+    Given an API key named "team-a" has the scope "self:usage"
+    And "team-a" has the scope "self:account-quota"
+    And "team-a" is restricted to a Codex connection and a Claude connection
+    And Codex reports a session quota with 1 percent used
+    And Claude reports a daily quota with 35 percent used
+    When "team-a" calls GET "/api/v1/me/status" with its Bearer token
+    Then the response status should be 200
+    And the response accountQuotas should contain 2 entries
+    And the first response accountQuotas entry provider should be "codex"
+    And the first response accountQuotas entry quotas.session.remainingPercentage should be 99
+    And the second response accountQuotas entry provider should be "claude"
+    And the second response accountQuotas entry quotas.daily.remainingPercentage should be 65
+
+  Scenario: A single allowed provider also keeps the compatibility accountQuota field
     Given an API key named "team-a" has the scope "self:usage"
     And "team-a" has the scope "self:account-quota"
     And "team-a" is restricted to exactly one Codex connection
-    And Codex reports a session quota with 1 percent used
     And Codex reports a weekly quota with 97 percent used
     When "team-a" calls GET "/api/v1/me/status" with its Bearer token
     Then the response status should be 200
+    And the response accountQuotas should contain 1 entry
     And the response accountQuota.provider should be "codex"
-    And the response accountQuota.shared should be true
-    And the response accountQuota.quotas.session.remainingPercentage should be 99
     And the response accountQuota.quotas.weekly.remainingPercentage should be 3
 
-  Scenario: Account quota is not guessed for multi-connection keys
-    Given an API key named "team-a" has the scope "self:usage"
-    And "team-a" has the scope "self:account-quota"
-    And "team-a" is allowed to use two provider connections
-    When "team-a" calls GET "/api/v1/me/status" with its Bearer token
-    Then the response status should be 200
-    And the response accountQuota.available should be false
-    And the response accountQuota.reason should be "ambiguous_connection"
-
-  Scenario: Account quota is not guessed for unrestricted connection keys
+  Scenario: Unrestricted keys can see all active provider account quotas
     Given an API key named "team-a" has the scope "self:usage"
     And "team-a" has the scope "self:account-quota"
     And "team-a" has no explicit allowed connection restrictions
+    And OmniRoute has active Codex and Cursor provider connections with quota data
     When "team-a" calls GET "/api/v1/me/status" with its Bearer token
     Then the response status should be 200
-    And the response accountQuota.available should be false
-    And the response accountQuota.reason should be "ambiguous_connection"
+    And the response accountQuotas should contain the Codex account quota
+    And the response accountQuotas should contain the Cursor account quota
+
+  Scenario: Provider connection lookup failures do not hide own usage
+    Given an API key named "team-a" has the scope "self:usage"
+    And "team-a" has the scope "self:account-quota"
+    And "team-a" is restricted to a Codex connection and another provider connection
+    And OmniRoute cannot resolve the other provider connection metadata
+    When "team-a" calls GET "/api/v1/me/status" with its Bearer token
+    Then the response status should be 200
+    And the response should still include own cost and token usage
+    And the unresolved response accountQuotas entry should have available false
+    And the unresolved response accountQuotas entry reason should be "connection_lookup_failed"
 
   Scenario: Existing budget endpoint stays management-only
     Given an API key named "team-a" has the scope "self:usage"

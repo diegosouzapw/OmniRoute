@@ -24,11 +24,7 @@ interface VideoProvider {
   models: VideoModel[];
 }
 
-let _VIDEO_PROVIDERS: Record<string, VideoProvider> | null = null;
-
-function getOrCreateVideoProviders(): Record<string, VideoProvider> {
-  if (!_VIDEO_PROVIDERS) {
-    _VIDEO_PROVIDERS = {
+export const VIDEO_PROVIDERS: Record<string, VideoProvider> = {
   kie: {
     id: "kie",
     baseUrl: "https://api.kie.ai",
@@ -152,59 +148,25 @@ function getOrCreateVideoProviders(): Record<string, VideoProvider> {
     format: "runwayml",
     models: RUNWAYML_SUPPORTED_VIDEO_MODELS,
   },
-  };
-}
-  return _VIDEO_PROVIDERS;
-}
+};
 
-export const VIDEO_PROVIDERS: Record<string, VideoProvider> = new Proxy({} as Record<string, VideoProvider>, {
-  get(target, key: string) {
-    if (key in target) {
-      return target[key];
-    }
-    return getOrCreateVideoProviders()[key];
-  },
-  set(target, key: string, value) {
-    target[key] = value;
-    getOrCreateVideoProviders()[key] = value;
-    return true;
-  },
-  deleteProperty(target, key: string) {
-    delete target[key];
-    delete getOrCreateVideoProviders()[key];
-    return true;
-  },
-  ownKeys(target) {
-    const targetKeys = Reflect.ownKeys(target);
-    const registryKeys = Reflect.ownKeys(getOrCreateVideoProviders());
-    return Array.from(new Set([...targetKeys, ...registryKeys]));
-  },
-  has(target, key) {
-    return key in target || key in getOrCreateVideoProviders();
-  },
-  getOwnPropertyDescriptor(target, key) {
-    if (key in target) {
-      return Reflect.getOwnPropertyDescriptor(target, key);
-    }
-    if (key in getOrCreateVideoProviders()) {
-      return { configurable: true, enumerable: true, value: getOrCreateVideoProviders()[key as string] };
-    }
-    return undefined;
-  },
-});
-
-export function getVideoProviders(): Record<string, VideoProvider> {
-  return VIDEO_PROVIDERS;
-}
-
+/**
+ * Get video provider config by ID
+ */
 export function getVideoProvider(providerId: string): VideoProvider | null {
   return VIDEO_PROVIDERS[providerId] || null;
 }
 
+/**
+ * Parse video model string (format: "provider/model" or just "model")
+ */
 export function parseVideoModel(modelStr: string | null) {
   return parseModelFromRegistry(modelStr, VIDEO_PROVIDERS);
 }
 
+/**
+ * Get all video models as a flat list
+ */
 export function getAllVideoModels() {
   return getAllModelsFromRegistry(VIDEO_PROVIDERS);
 }

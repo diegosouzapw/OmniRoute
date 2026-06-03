@@ -333,10 +333,6 @@ test("testApiKeyConnection: searxng-search with empty API key does NOT require A
   assert.equal(providerAllowsOptionalApiKey("searxng-search"), true);
 });
 
-test("testApiKeyConnection: petals with empty API key does NOT require API key", () => {
-  assert.equal(providerAllowsOptionalApiKey("petals"), true);
-});
-
 test("testApiKeyConnection: self-hosted chat providers with empty API key do NOT require API key", () => {
   for (const provider of SELF_HOSTED_CHAT_PROVIDER_IDS) {
     assert.equal(

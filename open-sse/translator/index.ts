@@ -183,12 +183,15 @@ export function translateRequest(
         const toOpenAI = getRequestTranslator(sourceFormat, FORMATS.OPENAI);
         if (toOpenAI) {
           // Forward Copilot UA marker to source→openai translators only.
-          const step1Credentials = options?.copilotClient
-            ? {
-                ...(credentials && typeof credentials === "object" ? credentials : {}),
-                _copilotClient: true,
-              }
-            : credentials;
+          const hasTargetHint = targetFormat != null;
+          const step1Credentials =
+            options?.copilotClient || hasTargetHint
+              ? {
+                  ...(credentials && typeof credentials === "object" ? credentials : {}),
+                  ...(options?.copilotClient ? { _copilotClient: true } : {}),
+                  ...(hasTargetHint ? { _targetFormat: targetFormat } : {}),
+                }
+              : credentials;
           result = toOpenAI(model, result, stream, step1Credentials);
           // Log OpenAI intermediate format
           reqLogger?.logOpenAIRequest?.(result);

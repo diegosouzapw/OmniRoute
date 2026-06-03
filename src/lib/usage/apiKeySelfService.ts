@@ -2,8 +2,10 @@ import {
   hasSelfAccountQuotaScope,
   hasSelfUsageScope,
 } from "@/shared/constants/selfServiceScopes";
+import { USAGE_SUPPORTED_PROVIDERS } from "@/shared/constants/providers";
 
 type JsonRecord = Record<string, unknown>;
+type DateLike = number | string | Date | null | undefined;
 
 interface ApiKeySelfServiceMetadata {
   id: string;
@@ -26,9 +28,9 @@ interface CostSummaryLike {
   totalCostPeriod: number;
   activeLimitUsd: number;
   resetInterval: string | null;
-  budgetResetAt: number | null;
-  periodStartAt: number | null;
-  nextResetAt: number | null;
+  budgetResetAt: DateLike;
+  periodStartAt: DateLike;
+  nextResetAt: DateLike;
   warningThreshold: number | null;
 }
 
@@ -36,6 +38,7 @@ type GetCostSummaryFn = (apiKeyId: string) => CostSummaryLike;
 type CheckBudgetFn = (apiKeyId: string) => unknown;
 type GetDbInstanceFn = () => DbLike;
 type GetProviderConnectionByIdFn = (connectionId: string) => Promise<unknown>;
+type GetProviderConnectionsFn = (filters?: Record<string, unknown>) => Promise<unknown[]>;
 type FetchAndPersistProviderLimitsFn = (
   connectionId: string,
   source: "manual"
@@ -47,6 +50,7 @@ interface ApiKeySelfServiceDeps {
   checkBudget?: CheckBudgetFn;
   getDbInstance?: GetDbInstanceFn;
   getProviderConnectionById?: GetProviderConnectionByIdFn;
+  getProviderConnections?: GetProviderConnectionsFn;
   fetchAndPersistProviderLimits?: FetchAndPersistProviderLimitsFn;
 }
 
@@ -57,6 +61,12 @@ interface TokenTotals {
   cacheCreationTokens: number;
   reasoningTokens: number;
   totalTokens: number;
+}
+
+interface AccountQuotaConnection {
+  id: string;
+  provider: string;
+  lookupFailed?: boolean;
 }
 
 function toNumber(value: unknown, fallback = 0): number {
@@ -74,15 +84,28 @@ function roundNumber(value: number, precision = 6): number {
   return Number(value.toFixed(precision));
 }
 
-function isoOrNull(value: number | string | null | undefined): string | null {
+function dateMsOrNull(value: DateLike): number | null {
   if (typeof value === "number" && Number.isFinite(value) && value > 0) {
-    return new Date(value).toISOString();
+    return value;
+  }
+  if (value instanceof Date) {
+    const parsed = value.getTime();
+    return Number.isFinite(parsed) && parsed > 0 ? parsed : null;
   }
   if (typeof value === "string" && value.trim()) {
     const parsed = Date.parse(value);
-    return Number.isFinite(parsed) ? new Date(parsed).toISOString() : null;
+    return Number.isFinite(parsed) && parsed > 0 ? parsed : null;
   }
   return null;
+}
+
+function isoOrNull(value: DateLike): string | null {
+  const timestamp = dateMsOrNull(value);
+  return timestamp === null ? null : new Date(timestamp).toISOString();
+}
+
+function withDateFallback(value: DateLike, fallback: number): DateLike {
+  return isoOrNull(value) === null ? fallback : value;
 }
 
 function getCurrentMonthWindow(now: number) {
@@ -96,10 +119,10 @@ function buildCostStatus(summary: CostSummaryLike, now: number) {
   const hasBudget = !!summary.budget && toNumber(summary.activeLimitUsd) > 0;
   const fallbackWindow = getCurrentMonthWindow(now);
   const periodStartAt = hasBudget
-    ? toNumber(summary.periodStartAt, fallbackWindow.periodStartAt)
+    ? withDateFallback(summary.periodStartAt, fallbackWindow.periodStartAt)
     : fallbackWindow.periodStartAt;
   const resetAt = hasBudget
-    ? toNumber(summary.nextResetAt ?? summary.budgetResetAt, fallbackWindow.resetAt)
+    ? withDateFallback(summary.nextResetAt ?? summary.budgetResetAt, fallbackWindow.resetAt)
     : fallbackWindow.resetAt;
   const usedUsd = hasBudget
     ? roundNumber(toNumber(summary.totalCostPeriod))
@@ -177,57 +200,158 @@ function quotaWindow(value: unknown) {
     remainingPercentage: Number.isFinite(remainingPercentage)
       ? roundNumber(remainingPercentage, 2)
       : roundNumber(100 - usedPercentage, 2),
-    resetAt: isoOrNull(record.resetAt as string | number | null | undefined),
+    resetAt: isoOrNull(record.resetAt as DateLike),
   };
 }
 
-async function resolveAccountQuota(metadata: ApiKeySelfServiceMetadata, deps: RequiredDeps) {
-  if (!hasSelfAccountQuotaScope(metadata.scopes)) return undefined;
+function normalizePlan(value: unknown): unknown {
+  if (typeof value === "string" && value.trim()) return value;
+  if (typeof value === "number" && Number.isFinite(value)) return value;
+  if (typeof value === "boolean") return value;
+  return undefined;
+}
 
+function isSupportedProvider(provider: string): boolean {
+  return USAGE_SUPPORTED_PROVIDERS.includes(provider as (typeof USAGE_SUPPORTED_PROVIDERS)[number]);
+}
+
+function getConnectionIdentity(value: unknown): { id: string; provider: string } | null {
+  if (!value || typeof value !== "object" || Array.isArray(value)) return null;
+  const record = value as JsonRecord;
+  if (record.isActive === false) return null;
+
+  const id = typeof record.id === "string" ? record.id : "";
+  const provider = typeof record.provider === "string" ? record.provider : "";
+  if (!id || !provider) return null;
+
+  return { id, provider };
+}
+
+async function listAccountQuotaConnections(
+  metadata: ApiKeySelfServiceMetadata,
+  deps: RequiredDeps
+) {
   const allowedConnections = Array.isArray(metadata.allowedConnections)
     ? metadata.allowedConnections
     : [];
-  if (allowedConnections.length !== 1) {
-    return unavailableAccountQuota("ambiguous_connection");
+
+  const rawConnections =
+    allowedConnections.length > 0
+      ? await Promise.all(
+          allowedConnections.map(async (id) => {
+            try {
+              return await deps.getProviderConnectionById(id);
+            } catch {
+              return { id, provider: "unknown", lookupFailed: true };
+            }
+          })
+        )
+      : await deps.getProviderConnections({ isActive: true }).catch(() => []);
+
+  const connections: AccountQuotaConnection[] = [];
+  const seen = new Set<string>();
+  for (const rawConnection of rawConnections) {
+    if (
+      rawConnection &&
+      typeof rawConnection === "object" &&
+      !Array.isArray(rawConnection) &&
+      (rawConnection as JsonRecord).lookupFailed === true
+    ) {
+      const record = rawConnection as JsonRecord;
+      const id = typeof record.id === "string" ? record.id : "";
+      const provider = typeof record.provider === "string" ? record.provider : "unknown";
+      if (!id || seen.has(id)) continue;
+      seen.add(id);
+      connections.push({ id, provider, lookupFailed: true });
+      continue;
+    }
+
+    const connection = getConnectionIdentity(rawConnection);
+    if (!connection || seen.has(connection.id)) continue;
+    seen.add(connection.id);
+    connections.push(connection);
   }
 
-  const connection = (await deps.getProviderConnectionById(allowedConnections[0])) as
-    | JsonRecord
-    | null;
-  if (!connection) {
-    return unavailableAccountQuota("no_allowed_connection");
+  return connections;
+}
+
+function normalizeQuotaWindows(quotas: JsonRecord | null) {
+  if (!quotas) return null;
+
+  const normalized: Record<string, ReturnType<typeof quotaWindow>> = {};
+  for (const [key, value] of Object.entries(quotas)) {
+    const window = quotaWindow(value);
+    if (window) normalized[key] = window;
   }
 
-  const provider = typeof connection.provider === "string" ? connection.provider : "";
-  if (provider !== "codex") {
-    return unavailableAccountQuota("not_supported");
+  return Object.keys(normalized).length > 0 ? normalized : null;
+}
+
+async function resolveConnectionAccountQuota(
+  connection: AccountQuotaConnection,
+  deps: RequiredDeps
+) {
+  if (connection.lookupFailed) {
+    return {
+      provider: connection.provider,
+      connectionId: connection.id,
+      shared: true,
+      ...unavailableAccountQuota("connection_lookup_failed"),
+    };
+  }
+
+  if (!isSupportedProvider(connection.provider)) {
+    return {
+      provider: connection.provider,
+      connectionId: connection.id,
+      shared: true,
+      ...unavailableAccountQuota("not_supported"),
+    };
   }
 
   try {
-    const result = await deps.fetchAndPersistProviderLimits(allowedConnections[0], "manual");
+    const result = await deps.fetchAndPersistProviderLimits(connection.id, "manual");
     const usage = result.usage as JsonRecord;
     const quotas =
       usage.quotas && typeof usage.quotas === "object" && !Array.isArray(usage.quotas)
         ? (usage.quotas as JsonRecord)
         : null;
-    if (!quotas) return unavailableAccountQuota("not_available");
+    const normalizedQuotas = normalizeQuotaWindows(quotas);
+    const plan = normalizePlan(usage.plan);
 
-    const session = quotaWindow(quotas.session);
-    const weekly = quotaWindow(quotas.weekly);
-    if (!session && !weekly) return unavailableAccountQuota("not_available");
+    if (!normalizedQuotas && plan === undefined) {
+      return {
+        provider: connection.provider,
+        connectionId: connection.id,
+        shared: true,
+        ...unavailableAccountQuota("not_available"),
+      };
+    }
 
     return {
-      provider,
-      connectionId: allowedConnections[0],
+      provider: connection.provider,
+      connectionId: connection.id,
       shared: true,
-      quotas: {
-        ...(session && { session }),
-        ...(weekly && { weekly }),
-      },
+      ...(plan !== undefined && { plan }),
+      ...(normalizedQuotas && { quotas: normalizedQuotas }),
     };
   } catch {
-    return unavailableAccountQuota("fetch_failed");
+    return {
+      provider: connection.provider,
+      connectionId: connection.id,
+      shared: true,
+      ...unavailableAccountQuota("fetch_failed"),
+    };
   }
+}
+
+async function resolveAccountQuotas(metadata: ApiKeySelfServiceMetadata, deps: RequiredDeps) {
+  if (!hasSelfAccountQuotaScope(metadata.scopes)) return undefined;
+
+  const connections = await listAccountQuotaConnections(metadata, deps);
+  return Promise.all(
+    connections.map((connection) => resolveConnectionAccountQuota(connection, deps))
+  );
 }
 
 type RequiredDeps = Required<ApiKeySelfServiceDeps>;
@@ -236,7 +360,10 @@ async function normalizeDeps(deps: ApiKeySelfServiceDeps): Promise<RequiredDeps>
   const costRules =
     deps.getCostSummary && deps.checkBudget ? null : await import("@/domain/costRules");
   const dbCore = deps.getDbInstance ? null : await import("@/lib/db/core");
-  const localDb = deps.getProviderConnectionById ? null : await import("@/lib/localDb");
+  const localDb =
+    deps.getProviderConnectionById && deps.getProviderConnections
+      ? null
+      : await import("@/lib/localDb");
   const providerLimits = deps.fetchAndPersistProviderLimits
     ? null
     : await import("@/lib/usage/providerLimits");
@@ -247,6 +374,7 @@ async function normalizeDeps(deps: ApiKeySelfServiceDeps): Promise<RequiredDeps>
     checkBudget: deps.checkBudget ?? costRules!.checkBudget,
     getDbInstance: deps.getDbInstance ?? dbCore!.getDbInstance,
     getProviderConnectionById: deps.getProviderConnectionById ?? localDb!.getProviderConnectionById,
+    getProviderConnections: deps.getProviderConnections ?? localDb!.getProviderConnections,
     fetchAndPersistProviderLimits:
       deps.fetchAndPersistProviderLimits ?? providerLimits!.fetchAndPersistProviderLimits,
   };
@@ -270,7 +398,9 @@ export async function buildApiKeySelfServiceStatus(
     metadata.id,
     cost.periodStartAt ?? new Date(getCurrentMonthWindow(resolvedDeps.now()).periodStartAt).toISOString()
   );
-  const accountQuota = await resolveAccountQuota(metadata, resolvedDeps);
+  const accountQuotas = await resolveAccountQuotas(metadata, resolvedDeps);
+  const accountQuota =
+    accountQuotas && accountQuotas.length === 1 ? accountQuotas[0] : undefined;
 
   return {
     apiKey: {
@@ -284,6 +414,7 @@ export async function buildApiKeySelfServiceStatus(
         ...tokens,
       },
     },
+    ...(accountQuotas !== undefined && { accountQuotas }),
     ...(accountQuota !== undefined && { accountQuota }),
   };
 }

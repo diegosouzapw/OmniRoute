@@ -18,9 +18,10 @@
 ## 3. Account Quota
 
 - [ ] Resolve account quota only when the key has `self:account-quota`.
-- [ ] Use exactly one explicit allowed connection; treat unrestricted or multiple connections as ambiguous.
-- [ ] Normalize Codex quota windows to `session` and `weekly`.
-- [ ] Add tests for no scope, one connection, multiple connections, unsupported provider, and fetch failure.
+- [ ] Enumerate all explicit allowed connections, or all active connections when `allowedConnections` is empty.
+- [ ] Normalize quota windows for every provider-limit connection that returns quota data.
+- [ ] Preserve the legacy `accountQuota` field when exactly one quota entry is returned.
+- [ ] Add tests for no scope, one connection, multiple connections, unrestricted connections, unsupported provider, and fetch failure.
 
 ## 4. API Endpoint
 

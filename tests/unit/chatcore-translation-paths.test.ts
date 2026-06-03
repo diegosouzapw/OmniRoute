@@ -399,8 +399,10 @@ test("chatCore times out upstream execution before provider response headers", a
     messages: [{ role: "user", content: "never returns" }],
   };
   const fetchSignals: AbortSignal[] = [];
+  const upstreamBodies: any[] = [];
   globalThis.fetch = async (_url, init = {}) => {
     if (init.signal instanceof AbortSignal) fetchSignals.push(init.signal);
+    if (init.body) upstreamBodies.push(JSON.parse(String(init.body)));
     return new Promise(() => {});
   };
 
@@ -426,15 +428,15 @@ test("chatCore times out upstream execution before provider response headers", a
       () =>
         Object.values(getPendingRequests().details[connectionId] || {}).find(
           (detail: any) => detail?.providerRequest
-        ),
-      150
+        )
     )) as any;
     assert.equal(pendingDetail?.providerRequest?.model, "gpt-4o-mini");
     assert.deepEqual(pendingDetail?.providerRequest?.messages, body.messages);
-
     const result = await invocation;
     await waitForAsyncSideEffects();
 
+    assert.equal(upstreamBodies[0]?.model, "gpt-4o-mini");
+    assert.deepEqual(upstreamBodies[0]?.messages, body.messages);
     assert.equal(result.success, false);
     assert.equal(result.status, 504);
     assert.equal(fetchSignals[0]?.aborted, true);

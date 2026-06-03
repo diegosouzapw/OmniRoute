@@ -117,6 +117,36 @@ test("Codex helper functions isolate rate-limit scopes and parse quota headers",
   assert.ok(getCodexResetTime(quota) >= new Date(quota.resetAt7d).getTime());
 });
 
+test("isCodexResponsesWebSocketRequired: OMNIROUTE_CODEX_WS_ENABLED=false forces HTTP even with codexTransport=websocket", () => {
+  // Transport available + per-connection opt-in would normally enable WS…
+  __setCodexWebSocketTransportForTesting(
+    () =>
+      ({
+        send() {},
+        close() {},
+        onmessage: null,
+        onopen: null,
+        onerror: null,
+        onclose: null,
+      }) as unknown as ReturnType<typeof Object>
+  );
+  const prev = process.env.OMNIROUTE_CODEX_WS_ENABLED;
+  process.env.OMNIROUTE_CODEX_WS_ENABLED = "false";
+  try {
+    // …but the global kill-switch (default ON) overrides it to false.
+    assert.equal(
+      isCodexResponsesWebSocketRequired("gpt-5.5-xhigh", {
+        providerSpecificData: { codexTransport: "websocket" },
+      }),
+      false
+    );
+  } finally {
+    if (prev === undefined) delete process.env.OMNIROUTE_CODEX_WS_ENABLED;
+    else process.env.OMNIROUTE_CODEX_WS_ENABLED = prev;
+    __setCodexWebSocketTransportForTesting(undefined);
+  }
+});
+
 test("CodexExecutor.buildUrl honors /responses subpaths and compact mode", () => {
   const executor = new CodexExecutor();
 
@@ -508,6 +538,53 @@ test("CodexExecutor.transformRequest strips raw internal assistant commentary wi
     result.input.some((item) => item.type === "function_call_output"),
     true
   );
+});
+
+test("CodexExecutor.transformRequest inserts missing function_call_output items", () => {
+  const executor = new CodexExecutor();
+  const result = executor.transformRequest(
+    "gpt-5.5-xhigh",
+    {
+      _nativeCodexPassthrough: true,
+      input: [
+        {
+          type: "message",
+          role: "user",
+          content: [{ type: "input_text", text: "Continue." }],
+        },
+        {
+          type: "function_call",
+          call_id: "call_missing_result",
+          name: "read_file",
+          arguments: "{}",
+        },
+        {
+          type: "message",
+          role: "user",
+          content: [{ type: "input_text", text: "Next turn." }],
+        },
+      ],
+      stream: false,
+    },
+    false,
+    {
+      requestEndpointPath: "/responses",
+    }
+  );
+
+  const missingOutputIndex = result.input.findIndex(
+    (item) => item.type === "function_call_output" && item.call_id === "call_missing_result"
+  );
+  const functionCallIndex = result.input.findIndex(
+    (item) => item.type === "function_call" && item.call_id === "call_missing_result"
+  );
+
+  assert.equal(missingOutputIndex, functionCallIndex + 1);
+  assert.deepEqual(result.input[missingOutputIndex], {
+    type: "function_call_output",
+    call_id: "call_missing_result",
+    output: "",
+  });
 });
 
 test("CodexExecutor.transformRequest strips internal assistant commentary before mapping messages to input", () => {
