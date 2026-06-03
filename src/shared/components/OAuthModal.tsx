@@ -414,7 +414,7 @@ export default function OAuthModal({
         // Google OAuth built-in credentials only accept loopback redirect URIs.
         // Even in remote deployments we use loopback — user copies the callback URL manually.
         const port = window.location.port || "20128";
-        redirectUri = `http://localhost:${port}/callback`;
+        redirectUri = `http://127.0.0.1:${port}/callback`;
       } else if (!isLocalhost) {
         // Behind reverse proxy: use actual origin (e.g., https://omniroute.example.com/callback)
         // Supports PUBLIC_URL env var override, or falls back to window.location.origin.
