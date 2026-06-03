@@ -41,6 +41,7 @@ import {
   extractComfyOutputFiles,
 } from "../utils/comfyuiClient.ts";
 import { fetchRemoteImage } from "@/shared/network/remoteImageFetch";
+import { fetchWithTimeout, getConfiguredTimeout } from "@/shared/utils/fetchTimeout";
 import { sanitizeErrorMessage, sanitizeUpstreamDetails } from "../utils/error.ts";
 
 interface KieImageOptions {
@@ -2414,10 +2415,11 @@ function saveImageErrorResult({ provider, model, status, startTime, error, reque
  */
 async function fetchImageEndpoint(url, headers, body, provider, log) {
   try {
-    const response = await fetch(url, {
+    const response = await fetchWithTimeout(url, {
       method: "POST",
       headers,
       body,
+      timeoutMs: getConfiguredTimeout(),
     });
 
     if (!response.ok) {
