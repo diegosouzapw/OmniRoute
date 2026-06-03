@@ -144,3 +144,58 @@ test("OpenAI -> Cursor converts tool role messages using remembered tool metadat
   assert.match(result.messages[1].content, /<tool_name>search_docs<\/tool_name>/);
   assert.match(result.messages[1].content, /<result>found it<\/result>/);
 });
+
+test("OpenAI -> Cursor preserves image_url parts so vision input survives", () => {
+  const dataUri = "data:image/png;base64,iVBORw0KGgo=";
+  const result = buildCursorRequest(
+    "gpt-5.2",
+    {
+      messages: [
+        {
+          role: "user",
+          content: [
+            { type: "text", text: "what color?" },
+            { type: "image_url", image_url: { url: dataUri } },
+            { type: "image_url", image_url: { url: "https://example.com/a.png" } },
+          ],
+        },
+      ],
+    },
+    false,
+    null
+  );
+
+  // Content is kept as an OpenAI array: a leading text part + the image parts.
+  assert.equal(result.messages.length, 1);
+  assert.equal(result.messages[0].role, "user");
+  const content = result.messages[0].content;
+  assert.ok(Array.isArray(content), "content preserved as array");
+  assert.deepEqual(content[0], { type: "text", text: "what color?" });
+  assert.deepEqual(content[1], { type: "image_url", image_url: { url: dataUri } });
+  assert.deepEqual(content[2], {
+    type: "image_url",
+    image_url: { url: "https://example.com/a.png" },
+  });
+});
+
+test("OpenAI -> Cursor accepts shorthand image_url string form", () => {
+  const result = buildCursorRequest(
+    "gpt-5.2",
+    {
+      messages: [
+        {
+          role: "user",
+          content: [{ type: "image_url", image_url: "data:image/png;base64,AAAA" }],
+        },
+      ],
+    },
+    false,
+    null
+  );
+  const content = result.messages[0].content;
+  assert.ok(Array.isArray(content));
+  // No text part (none supplied) — just the normalized image part.
+  assert.deepEqual(content, [
+    { type: "image_url", image_url: { url: "data:image/png;base64,AAAA" } },
+  ]);
+});
