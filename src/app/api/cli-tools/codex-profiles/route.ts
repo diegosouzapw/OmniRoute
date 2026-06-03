@@ -6,6 +6,7 @@ import path from "path";
 import { requireCliToolsAuth } from "@/lib/api/requireCliToolsAuth";
 import { ensureCliConfigWriteAllowed, getCliConfigPaths } from "@/shared/services/cliRuntime";
 import { resolveDataDir } from "@/lib/dataPaths";
+import { compareTr } from "@/shared/utils/turkishText";
 import { codexProfileIdSchema, codexProfileNameSchema } from "@/shared/validation/schemas";
 import { isValidationFailure, validateBody } from "@/shared/validation/helpers";
 
@@ -88,7 +89,7 @@ export async function GET(request: Request) {
     }
 
     // Sort by name
-    profiles.sort((a, b) => a.name.localeCompare(b.name));
+    profiles.sort((a, b) => compareTr(a.name, b.name));
     return NextResponse.json({ profiles });
   } catch (error) {
     console.log("Error listing codex profiles:", error.message);

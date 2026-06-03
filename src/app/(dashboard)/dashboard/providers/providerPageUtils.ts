@@ -7,6 +7,7 @@ import {
   type ResolvedProviderCatalogEntry,
   type StaticProviderCatalogCategory,
 } from "@/lib/providers/catalog";
+import { compareTr } from "@/shared/utils/turkishText";
 
 export interface ProviderStatsSnapshot {
   total?: number;
@@ -52,9 +53,9 @@ export function sortProviderEntriesByName<TProvider>(
   entries: ProviderEntry<TProvider>[]
 ): ProviderEntry<TProvider>[] {
   return [...entries].sort((a, b) => {
-    const nameCompare = getProviderSortLabel(a).localeCompare(getProviderSortLabel(b));
+    const nameCompare = compareTr(getProviderSortLabel(a), getProviderSortLabel(b));
     if (nameCompare !== 0) return nameCompare;
-    return a.providerId.localeCompare(b.providerId);
+    return compareTr(a.providerId, b.providerId);
   });
 }
 

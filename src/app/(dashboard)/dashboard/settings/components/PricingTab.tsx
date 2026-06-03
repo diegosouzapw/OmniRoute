@@ -5,7 +5,7 @@ import { Card, Button } from "@/shared/components";
 import ProviderIcon from "@/shared/components/ProviderIcon";
 import InfoTooltip from "@/shared/components/InfoTooltip";
 import { useTranslations } from "next-intl";
-import { matchesSearch } from "@/shared/utils/turkishText";
+import { compareTr, matchesSearch } from "@/shared/utils/turkishText";
 
 type CoverageFilter = "all" | "lt50" | "gte50lt100" | "full";
 type AuthFilter = "all" | "oauth" | "apikey" | "unknown";
@@ -186,7 +186,7 @@ export default function PricingTab() {
         sorted.sort((a, b) => coveragePct(a) - coveragePct(b));
         break;
       case "nameAsc":
-        sorted.sort((a, b) => a.alias.localeCompare(b.alias));
+        sorted.sort((a, b) => compareTr(a.alias, b.alias));
         break;
     }
     return sorted;

@@ -4,7 +4,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { useLocale, useTranslations } from "next-intl";
 import { Card, Button, Input, EmptyState } from "@/shared/components";
 import { useNotificationStore } from "@/store/notificationStore";
-import { matchesSearch } from "@/shared/utils/turkishText";
+import { compareTr, matchesSearch } from "@/shared/utils/turkishText";
 
 // ────────────────────────────────────────────────────────────────────────────
 // Types
@@ -279,7 +279,7 @@ export default function BudgetTab() {
     const filtered = rows.filter((r) => matchesQuery(r) && matchesStatus(r));
 
     return [...filtered].sort((a, b) => {
-      if (sortKey === "name") return (a.name || a.id).localeCompare(b.name || b.id);
+      if (sortKey === "name") return compareTr(a.name || a.id, b.name || b.id);
       if (sortKey === "todayDesc")
         return (b.budget?.totalCostToday || 0) - (a.budget?.totalCostToday || 0);
       if (sortKey === "monthDesc")

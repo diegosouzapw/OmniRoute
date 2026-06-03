@@ -18,6 +18,7 @@ import { pickMaskedDisplayValue, pickDisplayValue } from "@/shared/utils/maskEma
 import useEmailPrivacyStore from "@/store/emailPrivacyStore";
 import EmailPrivacyToggle from "@/shared/components/EmailPrivacyToggle";
 import ProviderIcon from "@/shared/components/ProviderIcon";
+import { compareTr } from "@/shared/utils/turkishText";
 import QuotaCutoffModal from "./QuotaCutoffModal";
 import { translateUsageOrFallback, type UsageTranslationValues } from "./i18nFallback";
 
@@ -645,7 +646,7 @@ export default function ProviderLimits() {
       [...groups.entries()].sort(([a], [b]) => {
         if (a === t("ungrouped")) return 1;
         if (b === t("ungrouped")) return -1;
-        return a.localeCompare(b);
+        return compareTr(a, b);
       })
     );
 

@@ -5,7 +5,7 @@ import { Card, Button, Input, Modal, CardSkeleton } from "@/shared/components";
 import { useCopyToClipboard } from "@/shared/hooks/useCopyToClipboard";
 import { useTranslations } from "next-intl";
 import { getProviderDisplayName } from "@/lib/display/names";
-import { matchesSearch } from "@/shared/utils/turkishText";
+import { compareTr, matchesSearch } from "@/shared/utils/turkishText";
 
 // Constants for validation
 const MAX_KEY_NAME_LENGTH = 200;
@@ -447,7 +447,7 @@ export default function ApiManagerPageClient() {
       if (!grouped[provider]) grouped[provider] = [];
       grouped[provider].push(model);
     }
-    return Object.entries(grouped).sort((a, b) => a[0].localeCompare(b[0]));
+    return Object.entries(grouped).sort((a, b) => compareTr(a[0], b[0]));
   }, [allModels, t]);
 
   // Filter models based on debounced search
@@ -1818,7 +1818,7 @@ const PermissionsModal = memo(function PermissionsModal({
                     return acc;
                   }, {})
                 )
-                  .sort(([a], [b]) => a.localeCompare(b))
+                  .sort(([a], [b]) => compareTr(a, b))
                   .map(([provider, conns]) => (
                     <div key={provider}>
                       <p className="text-[10px] font-semibold text-text-muted uppercase tracking-wider px-1 py-0.5">

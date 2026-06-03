@@ -53,7 +53,7 @@ export default function BatchPage() {
                 batchMap.set(m.id, m);
               }
               return Array.from(batchMap.values()).sort(
-                (a, b) => b.createdAt - a.createdAt || b.id.localeCompare(a.id)
+                (a, b) => b.createdAt - a.createdAt || b.id.localeCompare(a.id) // teknik sıralama: ASCII kasıtlı
               );
             });
             // Don't reset batchesLastId or batchesHasMore on background refresh
@@ -75,7 +75,7 @@ export default function BatchPage() {
                 fileMap.set(m.id, m);
               }
               return Array.from(fileMap.values()).sort(
-                (a, b) => b.createdAt - a.createdAt || b.id.localeCompare(a.id)
+                (a, b) => b.createdAt - a.createdAt || b.id.localeCompare(a.id) // teknik sıralama: ASCII kasıtlı
               );
             });
           } else {

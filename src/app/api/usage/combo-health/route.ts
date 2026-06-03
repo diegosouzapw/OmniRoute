@@ -169,7 +169,7 @@ function buildProviderHealth(provider: string, snapshots: QuotaSnapshotRow[]): P
     const ordered = [...history].sort((left, right) => {
       const leftView = left as unknown as QuotaSnapshotView;
       const rightView = right as unknown as QuotaSnapshotView;
-      return (leftView.createdAt || "").localeCompare(rightView.createdAt || "");
+      return (leftView.createdAt || "").localeCompare(rightView.createdAt || ""); // teknik sıralama: ASCII kasıtlı
     });
     const firstSnapshot = ordered.find((entry) => {
       const entryView = entry as unknown as QuotaSnapshotView;
@@ -232,7 +232,7 @@ function buildConnectionHealth(
   const ordered = [...snapshots].sort((left, right) => {
     const leftView = left as unknown as QuotaSnapshotView;
     const rightView = right as unknown as QuotaSnapshotView;
-    return (leftView.createdAt || "").localeCompare(rightView.createdAt || "");
+    return (leftView.createdAt || "").localeCompare(rightView.createdAt || ""); // teknik sıralama: ASCII kasıtlı
   });
   const firstSnapshot = ordered.find((entry) => {
     const snapshotView = entry as unknown as QuotaSnapshotView;

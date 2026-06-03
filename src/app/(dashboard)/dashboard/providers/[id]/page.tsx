@@ -64,6 +64,7 @@ import {
 } from "@/lib/providers/codexFastTier";
 import { isClaudeExtraUsageBlockEnabled } from "@/lib/providers/claudeExtraUsage";
 import { parseExtraApiKeys } from "@/shared/utils/parseApiKeys";
+import { compareTr } from "@/shared/utils/turkishText";
 import { resolveDashboardProviderInfo } from "../providerPageUtils";
 
 type CompatByProtocolMap = Partial<
@@ -3906,7 +3907,7 @@ export default function ProviderDetailPage() {
               const groupKeys = Array.from(groupMap.keys()).sort((a, b) => {
                 if (a === "") return -1;
                 if (b === "") return 1;
-                return a.localeCompare(b);
+                return compareTr(a, b);
               });
 
               return (
