@@ -4,7 +4,8 @@ import { useTranslations } from "next-intl";
 import Badge from "@/shared/components/Badge";
 import ProviderIcon from "@/shared/components/ProviderIcon";
 import { pickDisplayValue } from "@/shared/utils/maskEmail";
-import { STATUS_EMOJI, type CardStatus } from "../utils";
+import { STATUS_EMOJI, formatCountdown, type CardStatus } from "../utils";
+import { translateUsageOrFallback } from "../i18nFallback";
 
 interface Props {
   connection: any;
@@ -40,6 +41,27 @@ export default function QuotaCardHeader({
     emailsVisible,
     connection.provider
   );
+
+  // OAuth token expiry — informative only. Shown small/blue for connections that
+  // expose a concrete token expiry (e.g. Codex), so an operator can see at a
+  // glance when the access token rotates. Hidden for API-key / no-expiry connections.
+  const tokenExpiryIso =
+    connection.authType === "oauth"
+      ? connection.tokenExpiresAt || connection.expiresAt || null
+      : null;
+  const tokenExpiryMs = tokenExpiryIso ? new Date(tokenExpiryIso).getTime() : NaN;
+  const hasTokenExpiry = Number.isFinite(tokenExpiryMs);
+  const tokenCountdown = hasTokenExpiry ? formatCountdown(tokenExpiryIso) : null;
+  const tokenExpiryLabel = !hasTokenExpiry
+    ? null
+    : tokenCountdown
+      ? translateUsageOrFallback(t, "tokenExpiresIn", `Token expires in ${tokenCountdown}`, {
+          time: tokenCountdown,
+        })
+      : translateUsageOrFallback(t, "tokenExpired", "Token expired");
+  const tokenExpiryTitle = hasTokenExpiry
+    ? new Date(tokenExpiryMs).toLocaleString()
+    : undefined;
 
   return (
     <div className="flex items-start justify-between gap-2 px-3 pt-2.5 pb-1.5">
@@ -85,6 +107,14 @@ export default function QuotaCardHeader({
           <span className="text-[11px] text-text-muted truncate" title={accountName ?? ""}>
             {accountName}
           </span>
+          {tokenExpiryLabel && (
+            <span
+              className={`text-[10px] truncate ${tokenCountdown ? "text-sky-500" : "text-rose-500"}`}
+              title={tokenExpiryTitle}
+            >
+              {tokenExpiryLabel}
+            </span>
+          )}
         </div>
       </div>
       <div className="flex items-center gap-0.5 shrink-0">
