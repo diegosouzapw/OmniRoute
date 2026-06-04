@@ -31,6 +31,7 @@ export const HIDEABLE_SIDEBAR_ITEM_IDS = [
   "analytics-compression",
   "analytics-search",
   "analytics-evals",
+  "provider-stats",
   // Monitoring — flat
   "logs",
   "logs-proxy",
@@ -353,6 +354,13 @@ const ANALYTICS_ITEMS: readonly SidebarItemDefinition[] = [
     i18nKey: "analyticsEvals",
     subtitleKey: "analyticsEvalsSubtitle",
     icon: "labs",
+  },
+  {
+    id: "provider-stats",
+    href: "/dashboard/provider-stats",
+    i18nKey: "providerStats",
+    subtitleKey: "providerStatsSubtitle",
+    icon: "speed",
   },
 ];
 

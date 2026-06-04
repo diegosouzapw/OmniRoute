@@ -894,6 +894,8 @@
     "analyticsCompressionSubtitle": "Token savings stats",
     "analyticsSearchSubtitle": "Search tool analytics",
     "analyticsEvalsSubtitle": "Eval suite results",
+    "providerStats": "Provider Stats",
+    "providerStatsSubtitle": "Latency and performance metrics",
     "logsSubtitle": "Application logs",
     "logsProxySubtitle": "Proxy traffic logs",
     "consoleLogsSubtitle": "Console output",
