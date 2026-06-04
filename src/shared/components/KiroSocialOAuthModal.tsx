@@ -7,6 +7,7 @@ import Button from "./Button";
 type KiroSocialOAuthModalProps = {
   isOpen: boolean;
   provider: "google" | "github";
+  targetProvider?: string;
   providerLabel?: string;
   onSuccess?: () => void;
   onClose: () => void;
@@ -15,6 +16,7 @@ type KiroSocialOAuthModalProps = {
 export default function KiroSocialOAuthModal({
   isOpen,
   provider,
+  targetProvider,
   providerLabel = "Kiro",
   onSuccess,
   onClose,
@@ -50,7 +52,7 @@ export default function KiroSocialOAuthModal({
             const pollRes = await fetch("/api/oauth/kiro/social-exchange", {
               method: "POST",
               headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({ deviceCode: data.deviceCode, provider }),
+              body: JSON.stringify({ deviceCode: data.deviceCode, provider, targetProvider }),
             });
             const pollData = await pollRes.json();
 
