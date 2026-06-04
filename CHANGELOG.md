@@ -16,6 +16,15 @@
 
 _Development cycle in progress — entries are added as work merges into `release/v3.8.10` and finalized by the release flow._
 
+### Bug Fixes
+
+- **fireworks:** preserve fully-qualified router/model IDs so Fire Pass router IDs (`accounts/fireworks/routers/...`) are no longer double-prefixed into an upstream 404. (#3133 — thanks @KooshaPari)
+- **llama-cpp:** route requests to the configured local baseUrl instead of OpenAI's API (which returned an OpenAI-worded 401). (#3136 — thanks @tjengbudi)
+- **t3-chat-web:** parse cookies + convexSessionId from the single stored credential so t3.chat web connections work (the executor previously read fields the credential pipeline never produced). (#3007 — thanks @minhtran162)
+- **minimax:** stop capping MiniMax-M3 / MiniMax-M2.7 `max_tokens` at the 8192 default — add the M3 model spec (512K output) and make model-spec lookups case-insensitive. (#3141 — thanks @totaltube)
+- **github-copilot:** discover the model catalog live from `api.githubcopilot.com/models` so Import Models refreshes and only entitled models are listed (with fallback to the static catalog). (#3120, #3121 — thanks @gabrielmoreira)
+- **combo:** invalidate the nested-combo cache on combo edits so removed targets/models stop being served within the 10s window; log the resolved DATA_DIR at startup to diagnose multi-replica volume mismatches. (#3147 — thanks @ViFigueiredo)
+
 ---
 
 ## [3.8.9] — 2026-06-03

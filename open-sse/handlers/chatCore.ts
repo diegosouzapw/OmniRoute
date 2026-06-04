@@ -1374,24 +1374,33 @@ const PROXY_CONFIG_CACHE_TTL = 10_000;
  */
 let _combosPromise: Promise<unknown[]> | null = null;
 let _combosCacheTs = 0;
+let _combosCacheVersionSnapshot = -1;
 const COMBOS_CACHE_TTL = 10_000;
 
 async function getCombosCached(): Promise<unknown[]> {
   const now = Date.now();
+  const { getCombos, getCombosCacheVersion } = await import("@/lib/localDb");
+  const version = getCombosCacheVersion();
+  // A combo write (create/update/delete/reorder) bumps the shared version via
+  // invalidateDbCache("combos"); when it no longer matches our snapshot we drop
+  // the cached promise so the nested-combo expansion stops serving removed
+  // targets/models within the 10s TTL window (#3147).
+  if (version !== _combosCacheVersionSnapshot) {
+    clearCombosCache();
+  }
   if (_combosPromise && now - _combosCacheTs < COMBOS_CACHE_TTL) {
     return _combosPromise;
   }
   _combosCacheTs = now;
-  _combosPromise = (async () => {
-    const { getCombos } = await import("@/lib/localDb");
-    return getCombos();
-  })();
+  _combosCacheVersionSnapshot = version;
+  _combosPromise = getCombos();
   return _combosPromise;
 }
 
 export function clearCombosCache() {
   _combosPromise = null;
   _combosCacheTs = 0;
+  _combosCacheVersionSnapshot = -1;
 }
 
 export function clearUpstreamProxyConfigCache(providerId?: string) {

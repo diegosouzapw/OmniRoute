@@ -207,6 +207,7 @@ export {
   getCachedLKGP,
   setCachedLKGP,
   invalidateDbCache,
+  getCombosCacheVersion,
 } from "./db/readCache";
 
 export {
