@@ -155,6 +155,13 @@ export async function updateSettings(updates: Record<string, unknown>) {
   tx();
   backupDbFile("pre-write");
   invalidateDbCache("settings"); // Bust the read cache immediately
+
+  // Bust proxy resolution cache when proxy toggle settings change
+  const PROXY_TOGGLE_KEYS = ["proxyEnabled", "perKeyProxyEnabled"];
+  if (Object.keys(updates).some((k) => PROXY_TOGGLE_KEYS.includes(k))) {
+    bumpProxyConfigGeneration();
+  }
+
   const nextSettings = await getSettings();
 
   try {
@@ -606,11 +613,12 @@ export async function resolveProxyForConnection(connectionId: string, apiKeyId?:
     return cached.result;
   }
 
+  const db = getDbInstance();
+
   // Step 1: Check global proxyEnabled setting
   // Read only the proxyEnabled key for performance instead of loading all settings.
   let globalProxyEnabled = true;
   try {
-    const db = getDbInstance();
     const proxyEnabledRow = db
       .prepare("SELECT value FROM key_value WHERE namespace = 'settings' AND key = 'proxyEnabled'")
       .get() as { value?: string } | undefined;
@@ -631,9 +639,10 @@ export async function resolveProxyForConnection(connectionId: string, apiKeyId?:
   // Step 1.5: Check global perKeyProxyEnabled setting
   let globalPerKeyProxyEnabled = false;
   try {
-    const db2 = getDbInstance();
-    const perKeyRow = db2
-      .prepare("SELECT value FROM key_value WHERE namespace = 'settings' AND key = 'perKeyProxyEnabled'")
+    const perKeyRow = db
+      .prepare(
+        "SELECT value FROM key_value WHERE namespace = 'settings' AND key = 'perKeyProxyEnabled'"
+      )
       .get() as { value?: string } | undefined;
     if (perKeyRow?.value) {
       globalPerKeyProxyEnabled = JSON.parse(perKeyRow.value) !== false;
@@ -650,8 +659,7 @@ export async function resolveProxyForConnection(connectionId: string, apiKeyId?:
     let perKeyEnabled = globalPerKeyProxyEnabled;
     if (!perKeyEnabled && connectionId) {
       try {
-        const db_ = getDbInstance();
-        const perKeyConn = db_
+        const perKeyConn = db
           .prepare("SELECT per_key_proxy_enabled FROM provider_connections WHERE id = ?")
           .get(connectionId) as { per_key_proxy_enabled?: number } | undefined;
         perKeyEnabled = perKeyConn?.per_key_proxy_enabled === 1;
@@ -662,12 +670,11 @@ export async function resolveProxyForConnection(connectionId: string, apiKeyId?:
 
     if (perKeyEnabled) {
       try {
-        const db2 = getDbInstance();
-        const apiKeyRow = db2
-          .prepare("SELECT proxy_id FROM api_keys WHERE id = ?")
-          .get(apiKeyId) as { proxy_id?: string | null } | undefined;
+        const apiKeyRow = db.prepare("SELECT proxy_id FROM api_keys WHERE id = ?").get(apiKeyId) as
+          | { proxy_id?: string | null }
+          | undefined;
         if (apiKeyRow?.proxy_id) {
-          const proxyRow = db2
+          const proxyRow = db
             .prepare(
               "SELECT p.type, p.host, p.port, p.username, p.password FROM proxy_registry p WHERE p.id = ?"
             )
@@ -712,7 +719,6 @@ export async function resolveProxyForConnection(connectionId: string, apiKeyId?:
   }
 
   // Step 5: Look up the connection's provider and check proxy_enabled
-  const db = getDbInstance();
   const connection = db
     .prepare("SELECT provider, proxy_enabled FROM provider_connections WHERE id = ?")
     .get(connectionId);
@@ -788,9 +794,7 @@ export async function resolveProxyForConnection(connectionId: string, apiKeyId?:
 
   // Step 11: Auto-selection fallback (only when global proxy is enabled)
   try {
-    const { selectWorkingProxyFallback } = await import(
-      "@omniroute/open-sse/utils/proxyFallback"
-    );
+    const { selectWorkingProxyFallback } = await import("@omniroute/open-sse/utils/proxyFallback");
     const fallback = await selectWorkingProxyFallback(connectionId);
     if (fallback) {
       cacheProxyResolution(cacheKey, startGeneration, startRegistryGeneration, fallback);

@@ -233,9 +233,11 @@ test("resolveProxyForConnection uses apiKey proxy before account-level proxy", a
   const key = await apiKeysDb.createApiKey("proxy-test-key", "machine-p1");
 
   // Enable per-key proxy globally so the API key's proxy_id is honored
-  const core = await import("../../src/lib/db/core.ts");
-  core.getDbInstance()
-    .prepare("INSERT OR REPLACE INTO key_value (namespace, key, value) VALUES ('settings', 'perKeyProxyEnabled', 'true')")
+  core
+    .getDbInstance()
+    .prepare(
+      "INSERT OR REPLACE INTO key_value (namespace, key, value) VALUES ('settings', 'perKeyProxyEnabled', 'true')"
+    )
     .run();
 
   const apiKeyProxy = await proxiesDb.createProxy({

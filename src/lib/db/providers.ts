@@ -464,8 +464,18 @@ function _updateConnectionRow(db: DbLike, id: string, data: JsonRecord) {
     group: data.group || null,
     maxConcurrent: data.maxConcurrent ?? null,
     quotaWindowThresholdsJson: serializeQuotaWindowThresholds(data.quotaWindowThresholds),
-    proxyEnabled: typeof data.proxyEnabled === "boolean" ? (data.proxyEnabled ? 1 : 0) : (data.proxyEnabled ?? 0),
-    perKeyProxyEnabled: typeof data.perKeyProxyEnabled === "boolean" ? (data.perKeyProxyEnabled ? 1 : 0) : (data.perKeyProxyEnabled ?? 0),
+    proxyEnabled:
+      typeof data.proxyEnabled === "boolean"
+        ? data.proxyEnabled
+          ? 1
+          : 0
+        : (data.proxyEnabled ?? 1),
+    perKeyProxyEnabled:
+      typeof data.perKeyProxyEnabled === "boolean"
+        ? data.perKeyProxyEnabled
+          ? 1
+          : 0
+        : (data.perKeyProxyEnabled ?? 0),
     updatedAt: now,
   });
 }
