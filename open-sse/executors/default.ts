@@ -205,6 +205,7 @@ export class DefaultExecutor extends BaseExecutor {
         const baseUrl = credentials?.providerSpecificData?.baseUrl || this.config.baseUrl;
         return normalizeOpenAIChatUrl(baseUrl);
       }
+      case "llama-cpp":
       case "lm-studio":
       case "modal":
       case "reka":
