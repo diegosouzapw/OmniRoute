@@ -259,6 +259,8 @@ export const updateSettingsSchema = z.object({
   autoRoutingDefaultVariant: z
     .enum(["lkgp", "coding", "fast", "cheap", "offline", "smart"])
     .optional(),
+  proxyEnabled: z.boolean().optional(),
+  perKeyProxyEnabled: z.boolean().optional(),
 });
 
 export const databaseSettingsSchema = z.object(
@@ -326,9 +328,7 @@ export const databaseSettingsSchema = z.object(
     }),
 
     // Skip location and stats as they're read-only
-  },
-  { strict: true }
-);
+}).strict();
 
 export type DatabaseSettingsSchema = z.infer<typeof databaseSettingsSchema>;
 

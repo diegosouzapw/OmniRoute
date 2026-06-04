@@ -1770,6 +1770,8 @@ export const updateProviderConnectionSchema = z
       ])
       .optional(),
     projectId: z.union([z.string(), z.null()]).optional(),
+    proxyEnabled: z.boolean().optional(),
+    perKeyProxyEnabled: z.boolean().optional(),
     // Partial patch of per-connection provider-specific settings (e.g. quota toggles)
     providerSpecificData: z
       .record(z.string(), z.unknown())

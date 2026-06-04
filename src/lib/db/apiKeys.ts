@@ -56,6 +56,7 @@ interface ApiKeyMetadata {
   scopes: string[];
   isBanned: boolean;
   keyHash: string | null;
+  proxyId: string | null;
 }
 
 interface ApiKeyRow extends JsonRecord {
@@ -78,6 +79,7 @@ interface ApiKeyRow extends JsonRecord {
   accessSchedule?: unknown;
   rate_limits?: unknown;
   rateLimits?: unknown;
+  proxy_id?: unknown;
 }
 
 interface StatementLike<TRow = unknown> {
@@ -110,6 +112,7 @@ interface ApiKeyView extends JsonRecord {
   accessSchedule: AccessSchedule | null;
   rateLimits: RateLimitRule[] | null;
   scopes: string[];
+  proxyId?: string | null;
 }
 
 // LRU cache for API key validation (valid keys only)
@@ -142,6 +145,7 @@ const API_KEY_COLUMN_FALLBACKS = [
   { name: "rate_limits", definition: "rate_limits TEXT" },
   { name: "is_banned", definition: "is_banned INTEGER NOT NULL DEFAULT 0" },
   { name: "key_hash", definition: "key_hash TEXT" },
+  { name: "proxy_id", definition: "proxy_id TEXT" },
 ] as const;
 
 // Cache for model permission checks
@@ -337,7 +341,7 @@ function getPreparedStatements(db: ApiKeysDbLike): ApiKeysStatements {
       "SELECT id, expires_at, revoked_at, is_active, is_banned FROM api_keys WHERE key = ? OR key_hash = ?"
     );
     _stmtGetKeyMetadata = db.prepare<ApiKeyRow>(
-      "SELECT id, name, machine_id, allowed_models, allowed_connections, no_log, auto_resolve, is_active, access_schedule, max_requests_per_day, max_requests_per_minute, max_sessions, revoked_at, expires_at, ip_allowlist, scopes, rate_limits, is_banned, key_hash FROM api_keys WHERE key = ? OR key_hash = ?"
+      "SELECT id, name, machine_id, allowed_models, allowed_connections, no_log, auto_resolve, is_active, access_schedule, max_requests_per_day, max_requests_per_minute, max_sessions, revoked_at, expires_at, ip_allowlist, scopes, rate_limits, is_banned, key_hash, proxy_id FROM api_keys WHERE key = ? OR key_hash = ?"
     );
     _stmtInsertKey = db.prepare(
       "INSERT INTO api_keys (id, name, key, machine_id, allowed_models, no_log, created_at, key_prefix, key_hash, scopes) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
@@ -631,6 +635,7 @@ export async function updateApiKeyPermissions(
         // T08: max concurrent sessions for this key (0 = unlimited)
         maxSessions?: number | null;
         scopes?: string[] | null;
+        proxyId?: string | null;
       }
 ) {
   const db = getDbInstance() as ApiKeysDbLike;
@@ -654,6 +659,7 @@ export async function updateApiKeyPermissions(
           expiresAt: update.expiresAt,
           maxSessions: (update as { maxSessions?: number | null }).maxSessions,
           scopes: (update as { scopes?: string[] | null }).scopes,
+          proxyId: (update as { proxyId?: string | null }).proxyId,
         };
 
   if (
@@ -670,7 +676,8 @@ export async function updateApiKeyPermissions(
     normalized.isBanned === undefined &&
     normalized.expiresAt === undefined &&
     (normalized as Record<string, unknown>).maxSessions === undefined &&
-    (normalized as Record<string, unknown>).scopes === undefined
+    (normalized as Record<string, unknown>).scopes === undefined &&
+    (normalized as Record<string, unknown>).proxyId === undefined
   ) {
     return false;
   }
@@ -692,6 +699,7 @@ export async function updateApiKeyPermissions(
     maxSessions?: number;
     expiresAt?: string | null;
     scopes?: string;
+    proxyId?: string | null;
   } = { id };
 
   if (normalized.name !== undefined) {
@@ -762,6 +770,13 @@ export async function updateApiKeyPermissions(
   if (maxSessionsUpdate !== undefined) {
     updates.push("max_sessions = @maxSessions");
     params.maxSessions = typeof maxSessionsUpdate === "number" ? Math.max(0, maxSessionsUpdate) : 0;
+  }
+
+  const proxyIdUpdate = (normalized as Record<string, unknown>).proxyId;
+  if (proxyIdUpdate !== undefined) {
+    updates.push("proxy_id = @proxyId");
+    params.proxyId =
+      typeof proxyIdUpdate === "string" && proxyIdUpdate.trim() !== "" ? proxyIdUpdate : null;
   }
 
   const scopesUpdate = (normalized as Record<string, unknown>).scopes;
@@ -1108,6 +1123,7 @@ export async function getApiKeyMetadata(
       isBanned: false,
       keyHash: null,
       scopes: ["manage"],
+      proxyId: null,
     };
   }
 
@@ -1158,6 +1174,10 @@ export async function getApiKeyMetadata(
     scopes: parseStringList((record as JsonRecord).scopes),
     isBanned: parseIsBanned(record.is_banned ?? (record as JsonRecord).isBanned),
     keyHash: (record.key_hash ?? (record as JsonRecord).keyHash) as string | null,
+    proxyId:
+      typeof record.proxy_id === "string" && record.proxy_id.trim() !== ""
+        ? record.proxy_id
+        : null,
   };
 
   if (!metadata.id) {

@@ -39,6 +39,7 @@ interface ProxyPayload {
   region?: string | null;
   notes?: string | null;
   status?: string;
+  source?: string;
 }
 
 interface LegacyProxyConfig {
@@ -197,8 +198,8 @@ export async function createProxy(payload: ProxyPayload) {
 
   db.prepare(
     `INSERT INTO proxy_registry
-      (id, name, type, host, port, username, password, region, notes, status, created_at, updated_at)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+      (id, name, type, host, port, username, password, region, notes, status, source, created_at, updated_at)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
   ).run(
     id,
     payload.name,
@@ -210,6 +211,7 @@ export async function createProxy(payload: ProxyPayload) {
     payload.region || null,
     payload.notes || null,
     payload.status || "active",
+    payload.source || "manual",
     now,
     now
   );
