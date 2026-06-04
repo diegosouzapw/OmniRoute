@@ -190,10 +190,11 @@ test.describe("Agent Skills page", () => {
 
   test("/dashboard/skills redirects to /dashboard/omni-skills", async ({ page }) => {
     await page.goto("/dashboard/skills", { waitUntil: "commit", timeout: NAVIGATION_TIMEOUT_MS });
-    await page.waitForURL(/\/dashboard\/(omni-skills|login|onboarding)/, {
+    // Next.js redirects /dashboard/skills → /dashboard/omni-skills (next.config.mjs).
+    // If auth is required the app then client-redirects to /login (bare path, no /dashboard/ prefix).
+    await page.waitForURL(/\/(login|onboarding|dashboard\/(omni-skills|onboarding))/, {
       timeout: 15_000,
     });
-    // After auth, check that the final destination is omni-skills
     const finalUrl = page.url();
     expect(
       finalUrl.includes("/dashboard/omni-skills") ||

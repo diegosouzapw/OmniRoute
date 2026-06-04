@@ -236,6 +236,26 @@ test("key with empty allowedQuotas is subject to normal model restriction checks
   assert.notEqual(body.error.code, "QUOTA_ONLY", "normal key rejection must NOT use QUOTA_ONLY code");
 });
 
+test("non-quota key (empty allowedQuotas) requesting a qtSd model is rejected 403 QUOTA_NOT_ALLOCATED", async () => {
+  // A normal key with NO quota allocation must NOT route through a shared quota pool.
+  const created = await apiKeysDb.createApiKey("Normal Key No Quota", "machine-b4-noalloc");
+  // (no allowedQuotas set → empty array)
+
+  const policy = await loadPolicy("b4-quota-noalloc");
+  const qtSdModel = quotaModelName("AnyGroup", "codex", "gpt-5.5");
+
+  const blocked = await policy.enforceApiKeyPolicy(makeRequest(created.key), qtSdModel);
+  assert.ok(blocked.rejection, "non-quota key must be blocked from qtSd models");
+  assert.equal(blocked.rejection.status, 403);
+  const body = await readBody(blocked.rejection);
+  assert.equal(body.error.code, "QUOTA_NOT_ALLOCATED", "must use QUOTA_NOT_ALLOCATED code");
+  assert.match(body.error.message, /quota-pool allocation/);
+
+  // Sanity: the same key can still use a normal (non-qtSd) model freely.
+  const allowed = await policy.enforceApiKeyPolicy(makeRequest(created.key), "openai/gpt-4.1");
+  assert.equal(allowed.rejection, null, "non-quota key still uses normal models freely");
+});
+
 test("quota-only key whose allowedQuotas references a non-existent pool is rejected 403 QUOTA_ONLY (fail-closed)", async () => {
   // Create an API key bound to a pool ID that does not exist in the DB (dangling reference)
   const created = await apiKeysDb.createApiKey("Dangling Quota Key", "machine-b4-dangling");

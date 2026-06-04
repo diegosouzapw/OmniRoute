@@ -30,13 +30,13 @@ const {
 // Test group 1 — Flag definitions registry
 // ──────────────────────────────────────────────────────
 describe("featureFlagDefinitions", () => {
-  it("has exactly 27 flag definitions", () => {
-    assert.strictEqual(FEATURE_FLAG_DEFINITIONS.length, 27);
+  it("has exactly 28 flag definitions", () => {
+    assert.strictEqual(FEATURE_FLAG_DEFINITIONS.length, 28);
   });
 
   it("has unique keys for all flags", () => {
     const keys = FEATURE_FLAG_DEFINITIONS.map((d) => d.key);
-    assert.strictEqual(new Set(keys).size, 27);
+    assert.strictEqual(new Set(keys).size, 28);
   });
 
   it("has valid categories for all flags", () => {
@@ -221,9 +221,9 @@ describe("resolveFeatureFlag", () => {
   });
 
   describe("resolveAllFeatureFlags", () => {
-    it("returns all 27 flags", () => {
+    it("returns all 28 flags", () => {
       const all = resolveAllFeatureFlags();
-      assert.strictEqual(all.length, 27);
+      assert.strictEqual(all.length, 28);
     });
 
     it("marks DB-overridden flags with source 'db'", () => {

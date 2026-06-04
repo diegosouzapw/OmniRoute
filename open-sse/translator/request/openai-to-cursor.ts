@@ -12,6 +12,19 @@ import { FORMATS } from "../formats.ts";
 type TextPart = { type?: string; text?: string };
 type ToolUsePart = { type?: string; id?: string; name?: string; input?: unknown };
 type ToolResultPart = { type?: string; tool_use_id?: string; content?: unknown };
+type ImagePart = { type?: string; image_url?: string | { url?: string } };
+
+/**
+ * Pull the URL string out of an OpenAI `image_url` content part. Accepts both
+ * the canonical `{ image_url: { url } }` and the shorthand `{ image_url: "..." }`.
+ * Returns "" when no usable url is present.
+ */
+function extractImageUrl(part: ImagePart): string {
+  const iu = part.image_url;
+  if (typeof iu === "string") return iu;
+  if (iu && typeof iu === "object" && typeof iu.url === "string") return iu.url;
+  return "";
+}
 
 function normalizeToolCallId(id: unknown): string {
   return typeof id === "string" ? id.split("\n")[0] : "";
@@ -106,12 +119,21 @@ function convertMessages(messages) {
     if (msg.role === "user" || msg.role === "assistant") {
       if (msg.role === "user" && Array.isArray(msg.content)) {
         const parts: string[] = [];
-        for (const block of msg.content as Array<TextPart | ToolResultPart>) {
+        // Preserve vision input: image_url parts are kept (the cursor executor
+        // inlines them into the request — see resolveCursorImages). Without
+        // this they'd be silently dropped here and never reach a vision model.
+        const imageParts: Array<{ type: "image_url"; image_url: { url: string } }> = [];
+        for (const block of msg.content as Array<TextPart | ToolResultPart | ImagePart>) {
           if (!block || typeof block !== "object") continue;
           if (block.type === "text") {
             if (typeof (block as TextPart).text === "string") {
               parts.push((block as TextPart).text || "");
             }
+            continue;
+          }
+          if (block.type === "image_url") {
+            const url = extractImageUrl(block as ImagePart);
+            if (url) imageParts.push({ type: "image_url", image_url: { url } });
             continue;
           }
           if (block.type === "tool_result") {
@@ -126,7 +148,19 @@ function convertMessages(messages) {
           }
         }
         const joined = parts.filter(Boolean).join("\n");
-        if (joined) result.push({ role: "user", content: joined });
+        if (imageParts.length > 0) {
+          // Emit an OpenAI content array so the executor sees both the text
+          // (via flattenMessages) and the images (via extractImageUrls). A
+          // leading text part keeps text extraction unchanged.
+          const contentArr: Array<
+            { type: "text"; text: string } | { type: "image_url"; image_url: { url: string } }
+          > = [];
+          if (joined) contentArr.push({ type: "text", text: joined });
+          contentArr.push(...imageParts);
+          result.push({ role: "user", content: contentArr });
+        } else if (joined) {
+          result.push({ role: "user", content: joined });
+        }
         continue;
       }
 

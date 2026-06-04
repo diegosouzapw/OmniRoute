@@ -52,11 +52,21 @@ export function createSseTextTransform(
   let isJsonStream = false;
   let flushed = false;
   let errored = false;
+  let currentEventLine = "";
+  let lastEventLine = "";
+  let pendingEventLine = "";
 
   const handleLine = (line: string, controller: TransformStreamDefaultController) => {
     const trimmed = line.trim();
     if (trimmed === "" || line.startsWith(":")) {
       // Pass comments and empty lines through unchanged
+      if (trimmed === "") {
+        currentEventLine = "";
+      }
+      if (pendingEventLine) {
+        controller.enqueue(encoder.encode(pendingEventLine + "\n"));
+        pendingEventLine = "";
+      }
       controller.enqueue(encoder.encode(line + "\n"));
       return;
     }
@@ -71,9 +81,16 @@ export function createSseTextTransform(
           if (flushedValue) {
             const prefix = lastPrefix || "data: ";
             const payload = typeof flushedValue === "string" ? flushedValue : JSON.stringify(flushedValue);
-            controller.enqueue(encoder.encode(prefix + payload + "\n"));
+            if (lastEventLine) {
+              controller.enqueue(encoder.encode(lastEventLine + "\n"));
+            }
+            controller.enqueue(encoder.encode(prefix + payload + "\n\n"));
           }
           flushed = true;
+        }
+        if (pendingEventLine) {
+          controller.enqueue(encoder.encode(pendingEventLine + "\n"));
+          pendingEventLine = "";
         }
         controller.enqueue(encoder.encode(line + "\n"));
         return;
@@ -146,12 +163,23 @@ export function createSseTextTransform(
               const prefix = lastPrefix || "data: ";
               const payload = typeof flushedValue === "string" ? flushedValue : JSON.stringify(flushedValue);
               // Only enqueue if the flushed value actually has content (onFlush usually returns null if buffer is empty now)
-              controller.enqueue(encoder.encode(prefix + payload + "\n"));
+              if (lastEventLine) {
+                controller.enqueue(encoder.encode(lastEventLine + "\n"));
+              }
+              controller.enqueue(encoder.encode(prefix + payload + "\n\n"));
             }
             flushed = true;
           }
 
+          if (!isStopSignal && !isSnapshot) {
+            lastEventLine = currentEventLine;
+          }
+
           lastJson = json;
+          if (pendingEventLine) {
+            controller.enqueue(encoder.encode(pendingEventLine + "\n"));
+            pendingEventLine = "";
+          }
           controller.enqueue(encoder.encode(prefix + JSON.stringify(json) + "\n"));
         } catch (err: any) {
           if (err?.message?.startsWith("[PII]")) {
@@ -161,7 +189,12 @@ export function createSseTextTransform(
             // JSON parsing failed. Check if it looks like JSON that failed to parse.
             if (trimmedSegment.startsWith("{") || trimmedSegment.startsWith("[")) {
               console.warn("[SSE-TRANSFORM] Dropping malformed JSON chunk to prevent syntax injection:", trimmedSegment.slice(0, 100));
+              pendingEventLine = "";
             } else {
+              if (pendingEventLine) {
+                controller.enqueue(encoder.encode(pendingEventLine + "\n"));
+                pendingEventLine = "";
+              }
               // Treat segment as raw text delta (fail-open)
               const processed = processor(segment, "content");
               controller.enqueue(encoder.encode(prefix + processed + "\n"));
@@ -172,12 +205,29 @@ export function createSseTextTransform(
         }
       } else {
         // Starts with data: but not JSON, process as raw text
+        lastEventLine = currentEventLine;
         const processed = processor(segment, "content");
+        if (pendingEventLine) {
+          controller.enqueue(encoder.encode(pendingEventLine + "\n"));
+          pendingEventLine = "";
+        }
         controller.enqueue(encoder.encode(prefix + processed + "\n"));
       }
     } else {
       // Non-data line, pass through (e.g. event: content_block_delta)
-      controller.enqueue(encoder.encode(line + "\n"));
+      if (line.startsWith("event:")) {
+        if (pendingEventLine) {
+          controller.enqueue(encoder.encode(pendingEventLine + "\n"));
+        }
+        currentEventLine = line;
+        pendingEventLine = line;
+      } else {
+        if (pendingEventLine) {
+          controller.enqueue(encoder.encode(pendingEventLine + "\n"));
+          pendingEventLine = "";
+        }
+        controller.enqueue(encoder.encode(line + "\n"));
+      }
     }
   };
 
@@ -216,12 +266,19 @@ export function createSseTextTransform(
         if (remaining) {
           handleLine(remaining, controller);
         }
+        if (pendingEventLine) {
+          controller.enqueue(encoder.encode(pendingEventLine + "\n"));
+          pendingEventLine = "";
+        }
         if (onFlush && !flushed) {
           const flushedValue = onFlush(lastJson, isJsonStream, lastContentJson);
           if (flushedValue) {
             const prefix = lastPrefix || "data: ";
             const payload = typeof flushedValue === "string" ? flushedValue : JSON.stringify(flushedValue);
-            controller.enqueue(encoder.encode(prefix + payload + "\n"));
+            if (lastEventLine) {
+              controller.enqueue(encoder.encode(lastEventLine + "\n"));
+            }
+            controller.enqueue(encoder.encode(prefix + payload + "\n\n"));
           }
         }
       } catch (err) {

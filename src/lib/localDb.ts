@@ -603,3 +603,11 @@ export {
 } from "./db/plugins";
 
 export type { PluginRow, PluginCreateInput } from "./db/plugins";
+
+export {
+  getApiKeyContextSource,
+  setApiKeyContextSource,
+  deleteApiKeyContextSource,
+  listApiKeyContextSources,
+} from "./db/apiKeyContextSources";
+export type { ApiKeyContextSource } from "./db/apiKeyContextSources";

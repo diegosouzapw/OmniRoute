@@ -196,6 +196,54 @@ test("provider models route retries transient OpenAI-compatible probe failures b
   assert.deepEqual(body.models, [{ id: "demo-model", name: "Demo Model" }]);
 });
 
+test("provider models route discovers SiliconFlow models from configured China base URL", async () => {
+  const connection = await seedConnection("siliconflow", {
+    apiKey: "sf-cn-key",
+    providerSpecificData: {
+      baseUrl: "https://api.siliconflow.cn/v1",
+    },
+  });
+  const seenRequests: Array<{
+    url: string;
+    method: string | undefined;
+    authorization: string | null;
+  }> = [];
+
+  globalThis.fetch = async (url, init) => {
+    const headers = new Headers(init?.headers as HeadersInit | undefined);
+    seenRequests.push({
+      url: String(url),
+      method: init?.method,
+      authorization: headers.get("authorization"),
+    });
+
+    return Response.json({
+      data: [{ id: "Qwen/Qwen3-Coder-480B-A35B-Instruct", name: "Qwen3 Coder" }],
+    });
+  };
+
+  const response = await callRoute(connection.id, "?refresh=true");
+  const body = (await response.json()) as any;
+
+  assert.equal(response.status, 200);
+  assert.equal(body.provider, "siliconflow");
+  assert.equal(body.source, "api");
+  assert.deepEqual(seenRequests, [
+    {
+      url: "https://api.siliconflow.cn/v1/models",
+      method: "GET",
+      authorization: "Bearer sf-cn-key",
+    },
+  ]);
+  assert.deepEqual(body.models, [
+    {
+      id: "Qwen/Qwen3-Coder-480B-A35B-Instruct",
+      name: "Qwen3 Coder",
+      owned_by: "siliconflow",
+    },
+  ]);
+});
+
 test("provider models route returns static catalog entries for providers with hardcoded models", async () => {
   const connection = await seedConnection("bailian-coding-plan", {
     apiKey: "bailian-key",

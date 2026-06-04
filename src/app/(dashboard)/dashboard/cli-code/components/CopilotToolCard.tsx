@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { Card, Button } from "@/shared/components";
 import Image from "next/image";
 import { useTranslations } from "next-intl";
+import { matchesSearch } from "@/shared/utils/turkishText";
 
 /**
  * GitHub Copilot Configuration Generator
@@ -78,7 +79,7 @@ export default function CopilotToolCard({
 
   // Filter models by search
   const availableModels = searchFilter
-    ? allModels.filter((m) => m.label.toLowerCase().includes(searchFilter.toLowerCase()))
+    ? allModels.filter((m) => matchesSearch(m.label, searchFilter))
     : allModels;
 
   // Persist selection

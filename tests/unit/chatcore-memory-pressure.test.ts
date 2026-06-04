@@ -37,11 +37,31 @@ test("estimateSizeFast handles circular references", async () => {
   assert.ok(size < 1000, `Simple circular ref should be small, got ${size}`);
 });
 
-// ── HEAP_PRESSURE_THRESHOLD_MB default ─────────────────────────────────
+// ── HEAP_PRESSURE_THRESHOLD_MB auto-calibration ────────────────────────
+// Regression: the old fixed 200MB default sat below the app's ~260MB working set,
+// so the chatCore heap guard 503'd every request ("resource pressure" outage).
+// The live constant must now auto-calibrate from the real V8 heap ceiling.
 
-test("HEAP_PRESSURE_THRESHOLD_MB defaults to 200 when env is unset", () => {
-  const val = parseInt(process.env.HEAP_PRESSURE_THRESHOLD_MB || "200", 10);
-  assert.equal(val, 200);
+test("HEAP_PRESSURE_THRESHOLD_MB auto-calibrates from the live V8 heap ceiling (no fixed 200)", async () => {
+  const { getHeapStatistics } = await import("node:v8");
+  const { HEAP_PRESSURE_THRESHOLD_MB, computeHeapPressureThresholdMb } = await import(
+    "../../open-sse/utils/heapPressure.ts"
+  );
+  const limitMb = getHeapStatistics().heap_size_limit / (1024 * 1024);
+  // The live constant must equal the pure helper applied to this process's
+  // actual ceiling — no drift between the resolved value and the formula.
+  assert.equal(
+    HEAP_PRESSURE_THRESHOLD_MB,
+    computeHeapPressureThresholdMb(limitMb, process.env.HEAP_PRESSURE_THRESHOLD_MB)
+  );
+  // With no operator override it must clear the ~260MB baseline, otherwise the
+  // guard would reject every request at idle (the bug we are fixing).
+  if (!process.env.HEAP_PRESSURE_THRESHOLD_MB) {
+    assert.ok(
+      HEAP_PRESSURE_THRESHOLD_MB >= 400,
+      `live threshold ${HEAP_PRESSURE_THRESHOLD_MB}MB must clear the ~260MB app baseline`
+    );
+  }
 });
 
 // ── estimateSizeFast vs MAX_LOG_BODY_CHARS threshold ───────────────────

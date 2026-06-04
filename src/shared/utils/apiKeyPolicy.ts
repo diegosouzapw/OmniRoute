@@ -321,6 +321,33 @@ export async function enforceApiKeyPolicy(
     }
   }
 
+  // ── Check 2.9: qtSd models require a quota-pool allocation ──
+  //
+  // quotaShared-* (qtSd/<group>/<provider>/<model>) virtual models are pool-gated:
+  // a key that is NOT allocated to any quota pool (empty allowedQuotas) must not be
+  // able to call them — otherwise an ordinary key could route through someone
+  // else's shared quota. Only allocated keys (allowedQuotas non-empty, further
+  // validated against their pool scope in Check 3 below) may use qtSd models.
+  if (
+    modelStr &&
+    isQuotaModelName(modelStr) &&
+    !(Array.isArray(apiKeyInfo.allowedQuotas) && apiKeyInfo.allowedQuotas.length > 0)
+  ) {
+    const notAllocatedBody = buildErrorBody(
+      HTTP_STATUS.FORBIDDEN,
+      `Model "${modelStr}" requires a quota-pool allocation; this API key is not allocated to any quota pool`
+    );
+    notAllocatedBody.error.code = "QUOTA_NOT_ALLOCATED";
+    return {
+      apiKey,
+      apiKeyInfo,
+      rejection: new Response(JSON.stringify(notAllocatedBody), {
+        status: HTTP_STATUS.FORBIDDEN,
+        headers: { "Content-Type": "application/json" },
+      }),
+    };
+  }
+
   // ── Check 3: Quota-exclusive enforcement (Phase B4) ──
   //
   // When a key has allowedQuotas its access is governed exclusively by the

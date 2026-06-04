@@ -24,7 +24,7 @@ export function createPiiSseTransform(options?: PiiTransformOptions): TransformS
   };
 
   let windowSize = Math.max(200, options?.windowSize ?? (parseInt(process.env.PII_WINDOW_SIZE || "", 10) || 200));
-  if (options?.windowSize && process.env.PII_TEST_BYPASS_MIN_WINDOW === "true") {
+  if (options?.windowSize !== undefined && process.env.PII_TEST_BYPASS_MIN_WINDOW === "true") {
     windowSize = options.windowSize;
   }
   const W = windowSize;

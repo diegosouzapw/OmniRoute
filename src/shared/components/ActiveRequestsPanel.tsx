@@ -62,6 +62,8 @@ export default function ActiveRequestsPanel() {
     let cancelled = false;
 
     const load = async () => {
+      // Skip polling when tab is not visible to save resources
+      if (document.visibilityState !== "visible") return;
       try {
         const res = await fetch("/api/logs/active", { cache: "no-store" });
         if (!res.ok) return;
@@ -81,7 +83,7 @@ export default function ActiveRequestsPanel() {
     };
 
     load();
-    const interval = setInterval(load, 3000);
+    const interval = setInterval(load, 15_000);
     return () => {
       cancelled = true;
       clearInterval(interval);

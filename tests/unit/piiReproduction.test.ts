@@ -3,6 +3,7 @@ import assert from "node:assert/strict";
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
+import { resetDbInstance } from "../../src/lib/db/core";
 
 // Isolate DB state
 const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-test-repro-"));
@@ -35,6 +36,7 @@ test("PII Reproduction Tests", async (t) => {
 
     // Write 50 alphanumeric characters starting with "sk-"
     const piiText = "sk-123456789012345678901234567890123456789012345678"; // 51 chars
+
     await writer.write(encoder.encode(`data: ${JSON.stringify({ choices: [{ delta: { content: piiText } }] })}\n`));
 
     // Wait a bit — if the buffer is withheld (W=10, PII window), nothing should be emitted yet
@@ -62,9 +64,18 @@ test("PII Reproduction Tests", async (t) => {
     assert.strictEqual(resultWordJoiner.text, "[API_KEY_REDACTED]", "API Key with Word Joiner is now correctly redacted");
     assert.strictEqual(resultSoftHyphen.text, "[API_KEY_REDACTED]", "API Key with Soft Hyphen is now correctly redacted");
 
-    // 2. IPv6 lookbehind/lookahead issues — sanitizer no longer falsely redacts abc::1
-    const resultIpv6Lookbehind = sanitizePII("abc::1");
-    assert.strictEqual(resultIpv6Lookbehind.text, "abc::1", "abc::1 should not be redacted");
+    // 2. IPv6 lookbehind/lookahead issues
+    // xyz::1 (preceded by non-hex alphabetic characters) should NOT be redacted
+    const resultIpv6Lookbehind = sanitizePII("xyz::1");
+    assert.strictEqual(resultIpv6Lookbehind.text, "xyz::1", "xyz::1 should not be redacted");
+
+    // abc::1 (preceded by valid hex characters) is a valid compressed IPv6 address and should be redacted
+    const resultIpv6ValidCompressed = sanitizePII("abc::1");
+    assert.strictEqual(resultIpv6ValidCompressed.text, "[IP_REDACTED]", "abc::1 should be redacted as a valid compressed IP");
+
+    // Invalid IPv6 followed by letters should NOT be redacted
+    const resultIpv6Lookahead = sanitizePII("2001:db8:3333:4444:5555:6666:7777:8888abcd");
+    assert.strictEqual(resultIpv6Lookahead.text, "2001:db8:3333:4444:5555:6666:7777:8888abcd", "Invalid IPv6 with trailing characters should not be redacted");
 
     // Valid IPv6 is correctly redacted
     const resultIpv6Valid = sanitizePII("2001:db8:3333:4444:5555:6666:7777:8888");
@@ -122,4 +133,9 @@ test("PII Reproduction Tests", async (t) => {
     // Verify the content is present — "H" from first window emit + "ello world" from flush.
     assert.ok(outputB.includes('"H"') && outputB.includes("ello world"), "Scenario B: buffered content must not be lost — expect window-split output containing both parts");
   });
+});
+
+test.after(() => {
+  resetDbInstance();
+  fs.rmSync(tmpDir, { recursive: true, force: true });
 });

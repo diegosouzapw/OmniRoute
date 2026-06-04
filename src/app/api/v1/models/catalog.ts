@@ -462,6 +462,7 @@ export async function getUnifiedModelsResponse(
           ? synced.attachment
           : syncedInputModalities.length > 0 || syncedOutputModalities.length > 0
             ? [...syncedInputModalities, ...syncedOutputModalities].some((entry) =>
+                // eslint-disable-next-line no-restricted-syntax -- teknik string kontrolü, kullanıcı metni araması değil
                 entry.toLowerCase().includes("image")
               )
             : undefined;

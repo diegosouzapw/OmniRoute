@@ -5,6 +5,7 @@ import { Card, Button, Input, Modal, CardSkeleton } from "@/shared/components";
 import { useCopyToClipboard } from "@/shared/hooks/useCopyToClipboard";
 import { useTranslations } from "next-intl";
 import { getProviderDisplayName } from "@/lib/display/names";
+import { compareTr, matchesSearch } from "@/shared/utils/turkishText";
 import { ENDPOINT_CATEGORIES } from "@/shared/constants/endpointCategories";
 import ApiKeyFilterBar from "./components/ApiKeyFilterBar";
 import {
@@ -102,6 +103,7 @@ interface ApiKey {
   allowedEndpoints?: string[];
   streamDefaultMode?: StreamDefaultMode;
   disableNonPublicModels?: boolean;
+  allowedQuotas?: string[] | null;
   createdAt: string;
 }
 
@@ -163,6 +165,7 @@ export default function ApiManagerPageClient() {
   const [activeOnly, setActiveOnly] = useState(false);
   const [statusFilter, setStatusFilter] = useState<KeyStatus | null>(null);
   const [typeFilter, setTypeFilter] = useState<KeyType | null>(null);
+  const [quotaPoolGroup, setQuotaPoolGroup] = useState<Record<string, string>>({});
 
   const { copied, copy } = useCopyToClipboard();
 
@@ -198,6 +201,44 @@ export default function ApiManagerPageClient() {
   useEffect(() => {
     writeActiveOnlyPreference(activeOnly);
   }, [activeOnly]);
+
+  useEffect(() => {
+    let cancelled = false;
+    const loadQuotaGroups = async () => {
+      try {
+        const [poolsRes, groupsRes] = await Promise.all([
+          fetch("/api/quota/pools"),
+          fetch("/api/quota/groups"),
+        ]);
+        if (!poolsRes.ok || !groupsRes.ok) return;
+        const poolsData = await poolsRes.json();
+        const groupsData = await groupsRes.json();
+        const pools: Array<{ id: string; groupId: string }> = Array.isArray(poolsData.pools)
+          ? poolsData.pools
+          : [];
+        const groups: Array<{ id: string; name: string }> = Array.isArray(groupsData.groups)
+          ? groupsData.groups
+          : [];
+        const groupNameById: Record<string, string> = {};
+        for (const g of groups) {
+          groupNameById[g.id] = g.name;
+        }
+        const map: Record<string, string> = {};
+        for (const p of pools) {
+          if (groupNameById[p.groupId]) {
+            map[p.id] = groupNameById[p.groupId];
+          }
+        }
+        if (!cancelled) setQuotaPoolGroup(map);
+      } catch {
+        // fail open — quota group chips simply won't render
+      }
+    };
+    loadQuotaGroups();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   useEffect(() => {
     if (!showAddModal || !nameError) return;
@@ -290,11 +331,12 @@ export default function ApiManagerPageClient() {
         );
 
         // Match call logs by unique ID as well for the lastUsed timestamp
+        // Prefer an exact apiKeyId match; fall back to name match for legacy
+        // logs that predate per-key IDs (apiKeyId absent).
         const lastUsed =
-          (logs || []).find((log: any) => log.apiKeyId === key.id)?.timestamp || null;
-        (logs || []).find(
-          (log: any) => log.apiKeyId === key.id || (!log.apiKeyId && log.apiKeyName === key.name)
-        )?.timestamp || null;
+          (logs || []).find(
+            (log: any) => log.apiKeyId === key.id || (!log.apiKeyId && log.apiKeyName === key.name)
+          )?.timestamp || null;
 
         stats[key.id] = {
           totalRequests,
@@ -369,6 +411,26 @@ export default function ApiManagerPageClient() {
 
   const isFiltered =
     activeOnly || statusFilter !== null || typeFilter !== null || searchQuery.trim() !== "";
+
+  const isQuotaKey = (k: ApiKey) =>
+    Array.isArray(k.allowedQuotas) && k.allowedQuotas.length > 0;
+
+  const quotaKeys = filteredKeys.filter(isQuotaKey);
+  const normalKeys = filteredKeys.filter((k) => !isQuotaKey(k));
+
+  const quotaGroupsForKey = (k: ApiKey): string[] => {
+    if (!Array.isArray(k.allowedQuotas)) return [];
+    const seen = new Set<string>();
+    const result: string[] = [];
+    for (const poolId of k.allowedQuotas) {
+      const groupName = quotaPoolGroup[poolId];
+      if (groupName && !seen.has(groupName)) {
+        seen.add(groupName);
+        result.push(groupName);
+      }
+    }
+    return result;
+  };
 
   const handleClearFilters = () => {
     setSearchQuery("");
@@ -614,20 +676,21 @@ export default function ApiManagerPageClient() {
       if (!grouped[provider]) grouped[provider] = [];
       grouped[provider].push(model);
     }
-    return Object.entries(grouped).sort((a, b) => a[0].localeCompare(b[0]));
+    return Object.entries(grouped).sort((a, b) => compareTr(a[0], b[0]));
   }, [allModels, t]);
 
   // Filter models based on debounced search
   const filteredModelsByProvider = useMemo((): ProviderGroup[] => {
     if (!debouncedSearchModel.trim()) return modelsByProvider;
 
-    const search = debouncedSearchModel.toLowerCase();
     return modelsByProvider
       .map(
         ([provider, models]): ProviderGroup => [
           provider,
           models.filter(
-            (m) => m.id.toLowerCase().includes(search) || provider.toLowerCase().includes(search)
+            (m) =>
+              matchesSearch(m.id, debouncedSearchModel) ||
+              matchesSearch(provider, debouncedSearchModel)
           ),
         ]
       )
@@ -804,21 +867,11 @@ export default function ApiManagerPageClient() {
             <Button onClick={handleClearFilters}>{t("emptyFilterClear")}</Button>
           </div>
         ) : (
-          <div className="flex flex-col border border-border rounded-lg overflow-hidden">
-            {/* Table Header */}
-            <div className="grid grid-cols-12 gap-4 px-4 py-3 bg-surface/50 border-b border-border text-xs font-semibold text-text-muted uppercase tracking-wider">
-              <div className="col-span-2">{t("name")}</div>
-              <div className="col-span-3">{t("key")}</div>
-              <div className="col-span-2">{t("permissions")}</div>
-              <div className="col-span-2">{t("usage")}</div>
-              <div className="col-span-1">{t("created")}</div>
-              <div className="col-span-2 text-right">{t("actions")}</div>
-            </div>
-
-            {/* Table Rows */}
-            {filteredKeys.map((key) => {
+          (() => {
+            const renderKeyRow = (key: ApiKey) => {
               const stats = usageStats[key.id];
-              const isRestricted = Array.isArray(key.allowedModels) && key.allowedModels.length > 0;
+              const isRestricted =
+                Array.isArray(key.allowedModels) && key.allowedModels.length > 0;
               const hasComboRestrictions =
                 Array.isArray(key.allowedCombos) && key.allowedCombos.length > 0;
               const hasConnectionRestrictions =
@@ -830,12 +883,17 @@ export default function ApiManagerPageClient() {
                   ? key.throttleDelayMs
                   : 0;
               const hasThrottle = throttleDelayMs > 0;
-              const hasManageScope = Array.isArray(key.scopes) && key.scopes.includes("manage");
+              const hasManageScope =
+                Array.isArray(key.scopes) && key.scopes.includes("manage");
               const hasJsonStreamDefault = key.streamDefaultMode === "json";
               const maxSessions = typeof key.maxSessions === "number" ? key.maxSessions : 0;
               const hasSessionLimit = maxSessions > 0;
               const activeSessions = sessionCounts[key.id] || 0;
               const hasSchedule = key.accessSchedule?.enabled === true;
+              const keyIsQuota = isQuotaKey(key);
+              const groups = quotaGroupsForKey(key);
+              const visibleGroups = groups.slice(0, 3);
+              const extraGroupCount = groups.length - visibleGroups.length;
               return (
                 <div
                   key={key.id}
@@ -875,13 +933,34 @@ export default function ApiManagerPageClient() {
                   </div>
                   <div className="col-span-2 flex items-center">
                     <div className="flex flex-col items-start gap-1">
+                      {/* QUOTA differentiation chips — prepended before existing badges */}
+                      {keyIsQuota && (
+                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-violet-500/10 text-violet-600 dark:text-violet-400 text-[11px] font-medium">
+                          {t("quotaModeOnly")}
+                        </span>
+                      )}
+                      {keyIsQuota &&
+                        visibleGroups.map((groupName) => (
+                          <span
+                            key={groupName}
+                            className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-sky-500/10 text-sky-600 dark:text-sky-400 text-[11px] font-medium truncate max-w-full"
+                          >
+                            {groupName}
+                          </span>
+                        ))}
+                      {keyIsQuota && extraGroupCount > 0 && (
+                        <span className="inline-flex items-center px-2 py-0.5 rounded-md bg-sky-500/10 text-sky-600 dark:text-sky-400 text-[11px] font-medium">
+                          +{extraGroupCount}
+                        </span>
+                      )}
+                      {/* Existing badges */}
                       {isRestricted ? (
                         <button
                           onClick={() => handleOpenPermissions(key)}
                           className="flex items-center gap-1.5 px-2 py-1 rounded-md bg-amber-500/10 text-amber-600 dark:text-amber-400 text-xs font-medium hover:bg-amber-500/20 transition-colors"
                         >
                           <span className="material-symbols-outlined text-[14px]">lock</span>
-                          {t("modelsCount", { count: key.allowedModels.length })}
+                          {t("modelsCount", { count: key.allowedModels!.length })}
                         </button>
                       ) : (
                         <button
@@ -898,7 +977,7 @@ export default function ApiManagerPageClient() {
                           className="flex items-center gap-1.5 px-2 py-1 rounded-md bg-blue-500/10 text-blue-600 dark:text-blue-400 text-xs font-medium hover:bg-blue-500/20 transition-colors"
                         >
                           <span className="material-symbols-outlined text-[14px]">cable</span>
-                          {key.allowedConnections.length} conn
+                          {key.allowedConnections!.length} conn
                         </button>
                       )}
                       {hasComboRestrictions && (
@@ -907,7 +986,7 @@ export default function ApiManagerPageClient() {
                           className="flex items-center gap-1.5 px-2 py-1 rounded-md bg-teal-500/10 text-teal-600 dark:text-teal-400 text-xs font-medium hover:bg-teal-500/20 transition-colors"
                         >
                           <span className="material-symbols-outlined text-[14px]">hub</span>
-                          {key.allowedCombos.length} combos
+                          {key.allowedCombos!.length} combos
                         </button>
                       )}
                       {noLogEnabled && (
@@ -1019,8 +1098,67 @@ export default function ApiManagerPageClient() {
                   </div>
                 </div>
               );
-            })}
-          </div>
+            };
+
+            const tableHeader = (
+              <div className="grid grid-cols-12 gap-4 px-4 py-3 bg-surface/50 border-b border-border text-xs font-semibold text-text-muted uppercase tracking-wider">
+                <div className="col-span-2">{t("name")}</div>
+                <div className="col-span-3">{t("key")}</div>
+                <div className="col-span-2">{t("permissions")}</div>
+                <div className="col-span-2">{t("usage")}</div>
+                <div className="col-span-1">{t("created")}</div>
+                <div className="col-span-2 text-right">{t("actions")}</div>
+              </div>
+            );
+
+            return (
+              <div className="flex flex-col gap-4">
+                {normalKeys.length > 0 && (
+                  <div>
+                    {/* Normal keys section heading */}
+                    <div className="flex items-center gap-2 mb-2">
+                      <span className="material-symbols-outlined text-base text-text-muted">
+                        vpn_key
+                      </span>
+                      <span className="text-sm font-medium text-text-main">
+                        {t("normalKeysSection")}
+                      </span>
+                      <span className="inline-flex items-center justify-center px-2 py-0.5 rounded-full bg-surface/80 border border-border text-[11px] font-semibold text-text-muted">
+                        {normalKeys.length}
+                      </span>
+                    </div>
+                    <div className="flex flex-col border border-border rounded-lg overflow-hidden">
+                      {tableHeader}
+                      {normalKeys.map(renderKeyRow)}
+                    </div>
+                  </div>
+                )}
+                {quotaKeys.length > 0 && (
+                  <div>
+                    {/* Quota keys section heading */}
+                    <div className="flex items-center gap-2 mb-2">
+                      <span className="material-symbols-outlined text-base text-violet-500">
+                        toll
+                      </span>
+                      <span className="text-sm font-medium text-text-main">
+                        {t("quotaKeysSection")}
+                      </span>
+                      <span className="inline-flex items-center justify-center px-2 py-0.5 rounded-full bg-surface/80 border border-border text-[11px] font-semibold text-text-muted">
+                        {quotaKeys.length}
+                      </span>
+                      <span className="inline-flex items-center px-2 py-0.5 rounded-full bg-violet-500/10 text-violet-600 dark:text-violet-400 text-[11px] font-semibold">
+                        {t("quotaPill")}
+                      </span>
+                    </div>
+                    <div className="flex flex-col border border-border rounded-lg overflow-hidden">
+                      {tableHeader}
+                      {quotaKeys.map(renderKeyRow)}
+                    </div>
+                  </div>
+                )}
+              </div>
+            );
+          })()
         )}
       </Card>
 
@@ -2301,7 +2439,7 @@ const PermissionsModal = memo(function PermissionsModal({
                     return acc;
                   }, {})
                 )
-                  .sort(([a], [b]) => a.localeCompare(b))
+                  .sort(([a], [b]) => compareTr(a, b))
                   .map(([provider, conns]) => (
                     <div key={provider}>
                       <p className="text-[10px] font-semibold text-text-muted uppercase tracking-wider px-1 py-0.5">

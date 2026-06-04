@@ -31,38 +31,15 @@ docs/new-features/
 
 # dependencies
 node_modules/
-/.pnp
-.pnp.*
-.yarn/*
-!.yarn/patches
-!.yarn/plugins
-!.yarn/releases
-!.yarn/versions
-.data/
-.next-playwright/
-.agents/
-workflows/
-.omo/
-
-# devbox
-.devbox/
-
-# testing
-coverage/
-coverage**
-
-# next.js
-.next/
-/out/
-
-# production
-/build
-/app
-cloud/*
-
-# misc
+*.map
 .DS_Store
-*.pem
+
+# Obsidian sync plugin — committed for community distribution
+!obsidian-plugin/
+obsidian-plugin/node_modules/
+
+# Serena AI assistant config (local-only tool, not project code)
+.serena/
 
 # debug
 npm-debug.log*
@@ -124,10 +101,13 @@ app.__qa_backup/
 .app-build-backup-*/
 backup/
 
-# Production standalone build (created by scripts/prepublish.mjs)
-# Conflicts with Next.js App Router detection in dev (root app/ shadows src/app/)
-# npm publish still includes it via package.json "files" field
-/app/
+# Build intermediates (.build/) and shippable standalone (dist/).
+# These are fully reproducible from source; never committed.
+# Layer 1: Next.js now writes to .build/next (was .next); assembled bundle → dist/
+# (Previously /app/ was the standalone output; renamed to /dist/ in Layer 1.)
+/.build/
+/dist/
+/.next/
 
 # Electron
 electron/dist-electron/
@@ -141,9 +121,6 @@ vscode-extension/
 *.sqlite-shm
 *.sqlite-wal
 *.sqlite-journal
-
-# Compiled npm-package build artifact (not source, should not be in git)
-/app
 
 # IDEA
 .idea/

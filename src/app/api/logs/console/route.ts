@@ -14,6 +14,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { readFileSync, existsSync } from "fs";
 import { getAppLogFilePath } from "@/lib/logEnv";
 import { requireManagementAuth } from "@/lib/api/requireManagementAuth";
+import { matchesSearch } from "@/shared/utils/turkishText";
 import { sanitizeErrorMessage } from "@omniroute/open-sse/utils/error.ts";
 
 const LEVEL_ORDER: Record<string, number> = {
@@ -115,7 +116,7 @@ export async function GET(req: NextRequest) {
         // Filter by component
         if (componentFilter) {
           const comp = entry.component || entry.module || "";
-          if (!comp.toLowerCase().includes(componentFilter.toLowerCase())) continue;
+          if (!matchesSearch(comp, componentFilter)) continue;
         }
 
         // Normalize timestamp field

@@ -22,7 +22,9 @@ const KEY = process.env.NVIDIA_API_KEY ?? "";
 const BASE_URL = process.env.NVIDIA_BASE_URL || "https://integrate.api.nvidia.com/v1/chat/completions";
 const MODEL = process.env.NVIDIA_MODEL || "openai/gpt-oss-120b";
 
-const line = (s = "") => console.log(s);
+// Neutralize CR/LF before logging so env-derived values (NVIDIA_MODEL, etc.)
+// cannot forge extra log lines (S5145 log injection).
+const line = (s = "") => console.log(String(s).replace(/[\r\n]+/g, " "));
 const hr = () => line("─".repeat(72));
 
 function show(label: string, value: unknown) {

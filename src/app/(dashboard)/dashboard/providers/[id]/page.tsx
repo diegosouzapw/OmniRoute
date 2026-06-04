@@ -85,6 +85,7 @@ import {
 } from "@/lib/providers/codexFastTier";
 import { isClaudeExtraUsageBlockEnabled } from "@/lib/providers/claudeExtraUsage";
 import { parseExtraApiKeys } from "@/shared/utils/parseApiKeys";
+import { compareTr } from "@/shared/utils/turkishText";
 import RiskNoticeModal from "../components/RiskNoticeModal";
 import { isRiskAcknowledged, useRiskAcknowledged } from "../hooks/useRiskAcknowledged";
 import { resolveDashboardProviderInfo } from "../providerPageUtils";
@@ -3006,7 +3007,11 @@ export default function ProviderDetailPage() {
   const handleImportModels = async () => {
     if (importingModels) return;
     const activeConnection = connections.find((conn) => conn.isActive !== false);
-    if (!activeConnection) return;
+    // #3047 — no-auth providers (e.g. OpenCode Free) have no connection rows;
+    // fall back to the provider id so the models route can serve the public
+    // catalog instead of the button silently doing nothing.
+    if (!activeConnection && !isFreeNoAuth) return;
+    const importTargetId = activeConnection?.id ?? providerId;
 
     setImportingModels(true);
     setShowImportModal(true);
@@ -3021,7 +3026,7 @@ export default function ProviderDetailPage() {
     });
 
     try {
-      const res = await fetch(`/api/providers/${activeConnection.id}/models?refresh=true`);
+      const res = await fetch(`/api/providers/${importTargetId}/models?refresh=true`);
       const data = await res.json();
       if (!res.ok) {
         setImportProgress((prev) => ({
@@ -4410,7 +4415,7 @@ export default function ProviderDetailPage() {
               const groupKeys = Array.from(groupMap.keys()).sort((a, b) => {
                 if (a === "") return -1;
                 if (b === "") return 1;
-                return a.localeCompare(b);
+                return compareTr(a, b);
               });
 
               return (

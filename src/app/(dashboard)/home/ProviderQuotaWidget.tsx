@@ -175,7 +175,11 @@ export default function ProviderQuotaWidget({ autoRefreshInterval = 0 }: Provide
           onClick={refreshAll}
           disabled={refreshingAll || loading}
           className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-border bg-bg-subtle text-xs font-medium text-text-main disabled:opacity-50 disabled:cursor-not-allowed hover:bg-surface transition-colors"
-          title={autoRefreshIntervalMs > 0 ? tr("autoRefreshing", "Auto-refreshing") : tr("refreshAll", "Refresh All")}
+          title={
+            autoRefreshIntervalMs > 0
+              ? tr("autoRefreshing", "Auto-refreshing")
+              : tr("refreshAll", "Refresh All")
+          }
         >
           <span
             className={`material-symbols-outlined text-[16px] ${refreshingAll ? "animate-spin" : ""}`}
@@ -187,7 +191,10 @@ export default function ProviderQuotaWidget({ autoRefreshInterval = 0 }: Provide
               ? tr("refreshing", "Refreshing")
               : autoRefreshIntervalMs > 0
                 ? `${tr("autoRefreshing", "Auto-refreshing")} ${formatAutoRefreshCountdown(
-                    Math.max(0, autoRefreshIntervalMs - (autoRefreshClock - lastRefreshAllAtRef.current))
+                    Math.max(
+                      0,
+                      autoRefreshIntervalMs - (autoRefreshClock - lastRefreshAllAtRef.current)
+                    )
                   )}`
                 : tr("refreshAll", "Refresh All")}
           </span>
@@ -224,7 +231,7 @@ export default function ProviderQuotaWidget({ autoRefreshInterval = 0 }: Provide
                   className="rounded-lg border border-border bg-surface/40 p-3 flex flex-col gap-2"
                 >
                   <div className="flex items-center gap-2">
-                    <ProviderIcon provider={provider} size={18} />
+                    <ProviderIcon providerId={provider} size={18} />
                     <span className="font-medium text-sm truncate">
                       {provider.charAt(0).toUpperCase() + provider.slice(1)}
                     </span>

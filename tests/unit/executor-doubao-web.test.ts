@@ -20,7 +20,11 @@ describe("DoubaoWebExecutor", () => {
         signal: null,
       });
       assert.ok(result.response instanceof Response);
-      assert.ok(result.url.includes("doubao.com"));
+      // Parse the host instead of substring-matching the URL: a bare
+      // `.includes("doubao.com")` would also accept hostile URLs like
+      // `https://evil.com/?x=doubao.com` (CodeQL js/incomplete-url-substring-sanitization).
+      const host = new URL(result.url).hostname;
+      assert.ok(host === "doubao.com" || host.endsWith(".doubao.com"), `unexpected host: ${host}`);
     } catch {
       // Network error expected
     }
