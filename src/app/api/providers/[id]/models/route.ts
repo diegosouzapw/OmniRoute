@@ -76,6 +76,7 @@ import {
   isAutoFetchModelsEnabled,
   persistDiscoveredModels,
 } from "@/lib/providerModels/modelDiscovery";
+import { getSyncedAvailableModels } from "@/lib/db/models";
 import { fetchCursorAgentModels } from "@/lib/providerModels/cursorAgent";
 
 type JsonRecord = Record<string, unknown>;
@@ -794,8 +795,32 @@ export async function GET(
     const accessToken = typeof connection.accessToken === "string" ? connection.accessToken : "";
     const autoFetchModels = isAutoFetchModelsEnabled(connection.providerSpecificData);
     const cachedDiscoveryModels = await getCachedDiscoveredModels(provider, connectionId);
-    const registryCatalogModels = getModelsByProviderId(provider) || [];
-    const specialtyCatalogModels = getStaticModelsForProvider(provider) || [];
+
+    // Check for synced models from ANY connection of this provider.
+    // When sync has been performed (even on a different connection),
+    // use the synced list as the authoritative source instead of static models.
+    let providerSyncedModels: Array<{
+      id: string;
+      name: string;
+      apiFormat?: string;
+      supportedEndpoints?: string[];
+    }> | null = null;
+    try {
+      const allSynced = await getSyncedAvailableModels(provider);
+      if (Array.isArray(allSynced) && allSynced.length > 0) {
+        providerSyncedModels = allSynced.map((m) => ({
+          id: m.id,
+          name: m.name || m.id,
+          ...(m.apiFormat ? { apiFormat: m.apiFormat } : {}),
+          ...(m.supportedEndpoints ? { supportedEndpoints: m.supportedEndpoints } : {}),
+        }));
+      }
+    } catch {
+      // DB unavailable — fall through to static catalog
+    }
+
+    const registryCatalogModels = providerSyncedModels ?? (getModelsByProviderId(provider) || []);
+    const specialtyCatalogModels = providerSyncedModels ? [] : (getStaticModelsForProvider(provider) || []);
 
     const toLocalCatalogModels = () => {
       const localCatalog = mergeLocalCatalogModels(registryCatalogModels, specialtyCatalogModels);
