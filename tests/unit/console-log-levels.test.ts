@@ -8,7 +8,13 @@ import { updateSettings } from "../../src/lib/db/settings";
 
 const TEST_LOG_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-console-log-levels-"));
 const TEST_LOG_PATH = path.join(TEST_LOG_DIR, "app.log");
-process.once("exit", () => fs.rmSync(TEST_LOG_DIR, { recursive: true, force: true }));
+process.once("exit", () => {
+  try {
+    fs.rmSync(TEST_LOG_DIR, { recursive: true, force: true, maxRetries: 3, retryDelay: 50 });
+  } catch {
+    // Best-effort cleanup only; tmpdir residue must not fail otherwise-passing tests.
+  }
+});
 
 const originalLogFilePath = process.env.APP_LOG_FILE_PATH;
 process.env.APP_LOG_FILE_PATH = TEST_LOG_PATH;

@@ -2144,10 +2144,13 @@ const PermissionsModal = memo(function PermissionsModal({
               value={toLocalDateTimeInputValue(expiresAt)}
               onChange={(e) => {
                 const val = e.target.value;
-                try {
-                  setExpiresAt(val ? new Date(val).toISOString() : "");
-                } catch {
-                  // Ignore invalid dates to prevent UI crashes
+                if (!val) {
+                  setExpiresAt("");
+                  return;
+                }
+                const date = new Date(val);
+                if (!Number.isNaN(date.getTime())) {
+                  setExpiresAt(date.toISOString());
                 }
               }}
               className="min-w-0 flex-1 px-2 py-1.5 text-sm border border-border rounded-md bg-background text-text-main"

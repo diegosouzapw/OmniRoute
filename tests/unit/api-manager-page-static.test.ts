@@ -43,7 +43,8 @@ test("permissions modal converts API key expiration ISO timestamps to local date
   );
 
   assert.match(expirationBlock, /value=\{toLocalDateTimeInputValue\(expiresAt\)\}/);
-  assert.match(expirationBlock, /new Date\(val\)\.toISOString\(\)/);
+  assert.match(expirationBlock, /const date = new Date\(val\)/);
+  assert.match(expirationBlock, /setExpiresAt\(date\.toISOString\(\)\)/);
   assert.match(expirationBlock, /onClick=\{\(\) => setExpiresAt\(""\)\}/);
   assert.match(expirationBlock, /\{tc\("clear"\)\}/);
   assert.doesNotMatch(expirationBlock, /expiresAt\.slice\(0, 16\)/);
