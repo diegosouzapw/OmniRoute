@@ -25,6 +25,7 @@ import {
   resolveInitialVisibility,
   shouldAutoRefresh,
 } from "./requestLoggerSignature";
+import { getProviderDisplayName } from "@/lib/display/names";
 
 // Number of call-log rows fetched per page. The viewer grows its window by this
 // amount on "Load more" / infinite scroll so users can browse past the first
@@ -34,6 +35,15 @@ const PAGE_SIZE = 50;
 
 // Polling interval in ms. 15s balances freshness vs resource usage.
 const POLL_INTERVAL_MS = 15_000;
+
+function getProviderDisplayLabel(provider: string, providerNodes?: any[]): string | null {
+  if (!provider) return "-";
+  if (PROVIDER_COLORS[provider]) return null;
+  const matchedNode = providerNodes?.find(
+    (node) => node.id === provider || node.prefix === provider
+  );
+  return getProviderDisplayName(provider, matchedNode);
+}
 
 function getLogTotalTokens(log) {
   return (log?.tokens?.in || 0) + (log?.tokens?.out || 0);
