@@ -3369,7 +3369,7 @@ export async function handleComboChat({
         return null;
       }
 
-      if (provider && consecutiveProviderFailures.has(provider) && consecutiveProviderFailures.get(provider)! >= providerFailureThreshold) {
+      if (provider && (consecutiveProviderFailures.get(provider) ?? 0) >= providerFailureThreshold) {
         log.info("COMBO", `Skipping ${modelStr} — provider ${provider} hit consecutive failure threshold (#3200)`);
         if (i > 0) fallbackCount++;
         return null;
