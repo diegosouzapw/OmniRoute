@@ -112,6 +112,12 @@ export interface RegistryEntry {
   modelsUrl?: string;
   /** Prefix to prepend to model IDs before upstream API calls (e.g. "accounts/fireworks/models/") */
   modelIdPrefix?: string;
+  /**
+   * Additional already-qualified model ID prefixes that must NOT receive `modelIdPrefix`
+   * (e.g. Fireworks router IDs "accounts/fireworks/routers/"). Prevents double-prefixing
+   * fully-qualified IDs that legitimately differ from `modelIdPrefix`. See issue #3133.
+   */
+  acceptedModelIdPrefixes?: string[];
   chatPath?: string;
   clientVersion?: string;
   timeoutMs?: number;
@@ -3037,6 +3043,7 @@ const _REGISTRY_EAGER: Record<string, RegistryEntry> = {
     modelsUrl:
       "https://api.fireworks.ai/v1/accounts/fireworks/models?filter=supports_serverless=true",
     modelIdPrefix: "accounts/fireworks/models/",
+    acceptedModelIdPrefixes: ["accounts/fireworks/models/", "accounts/fireworks/routers/"],
     authType: "apikey",
     authHeader: "bearer",
     models: [
