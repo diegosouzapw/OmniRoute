@@ -3298,6 +3298,15 @@ export async function handleComboChat({
     // Reset each retry so providers excluded in a previous attempt get another chance.
     const exhaustedProviders = new Set<string>();
     const transientRateLimitedProviders = new Set<string>();
+    // #3200: Track consecutive failures per provider across targets to break infinite
+    // loops where a single failing provider exhausts all its targets before the combo
+    // moves to a different provider. Once a provider fails >= threshold times in a row,
+    // all remaining targets from that provider are skipped for this set iteration.
+    const consecutiveProviderFailures = new Map<string, number>();
+    const providerFailureThreshold =
+      (config as Record<string, unknown>).providerFailureThreshold
+        ? Number((config as Record<string, unknown>).providerFailureThreshold) || 2
+        : 2;
     if (setTry > 0) {
       log.info("COMBO", `All targets failed — retrying set (${setTry}/${maxSetRetries})`);
       await new Promise((resolve) => {
@@ -3356,6 +3365,12 @@ export async function handleComboChat({
           "COMBO",
           `Skipping ${modelStr} — provider ${provider} marked exhausted this request (#1731)`
         );
+        if (i > 0) fallbackCount++;
+        return null;
+      }
+
+      if (provider && consecutiveProviderFailures.has(provider) && consecutiveProviderFailures.get(provider)! >= providerFailureThreshold) {
+        log.info("COMBO", `Skipping ${modelStr} — provider ${provider} hit consecutive failure threshold (#3200)`);
         if (i > 0) fallbackCount++;
         return null;
       }
@@ -3536,6 +3551,10 @@ export async function handleComboChat({
               latencyMs: Date.now() - startTime,
             });
             return null;
+          }
+          // #3200: Reset consecutive failure counter for this provider on success.
+          if (provider && provider !== "unknown") {
+            consecutiveProviderFailures.delete(provider);
           }
           const latencyMs = Date.now() - startTime;
           emit("combo.target.succeeded", {
@@ -3827,22 +3846,32 @@ export async function handleComboChat({
           if (!lastStatus) lastStatus = result.status;
           if (i > 0) fallbackCount++;
           log.warn("COMBO", `Model ${modelStr} failed with body-specific error, stopping combo`);
-          break; // Break out of the target loop to avoid trying other models
+          if (provider && provider !== "unknown") {
+            const prev = consecutiveProviderFailures.get(provider) ?? 0;
+            const next = prev + 1;
+            consecutiveProviderFailures.set(provider, next);
+            if (next >= providerFailureThreshold && !exhaustedProviders.has(provider)) {
+              exhaustedProviders.add(provider);
+              log.info("COMBO", `Provider ${provider} consecutive failure threshold reached (${next}/${providerFailureThreshold}) — skipping remaining targets (#3200)`);
+            }
+          }
+          break;
         }
 
-        // Trigger shared provider circuit breaker for 5xx errors and connection failures.
-        // If the next target in the combo is on the same provider, don't mark the provider
-        // as failed — different models on the same provider may still succeed.
         // G-02: when fallbackResult.skipProviderBreaker is set (embedded service supervisor
         // outage signalled via X-Omni-Fallback-Hint: connection_cooldown) apply connection
         // cooldown only — do NOT trip the whole-provider breaker.
         const nextTarget = orderedTargets[i + 1];
         const sameProviderNext =
           typeof nextTarget?.provider === "string" && nextTarget.provider === provider;
+        const providerHitThreshold =
+          provider &&
+          provider !== "unknown" &&
+          (consecutiveProviderFailures.get(provider) ?? 0) >= providerFailureThreshold;
         if (
           !isStreamReadinessFailure &&
           isProviderFailureCode(result.status) &&
-          !sameProviderNext &&
+          (!sameProviderNext || providerHitThreshold) &&
           !fallbackResult.skipProviderBreaker
         ) {
           recordProviderFailure(provider, log, target.connectionId, profile);
@@ -3871,6 +3900,16 @@ export async function handleComboChat({
         if (!lastStatus) lastStatus = result.status;
         if (i > 0) fallbackCount++;
         log.warn("COMBO", `Model ${modelStr} failed, trying next`, { status: result.status });
+
+        if (provider && provider !== "unknown") {
+          const prev = consecutiveProviderFailures.get(provider) ?? 0;
+          const next = prev + 1;
+          consecutiveProviderFailures.set(provider, next);
+          if (next >= providerFailureThreshold && !exhaustedProviders.has(provider)) {
+            exhaustedProviders.add(provider);
+            log.info("COMBO", `Provider ${provider} consecutive failure threshold reached (${next}/${providerFailureThreshold}) — skipping remaining targets (#3200)`);
+          }
+        }
 
         const fallbackWaitMs =
           fallbackDelayMs > 0 && cooldownMs > 0 && cooldownMs <= MAX_FALLBACK_WAIT_MS
@@ -4086,6 +4125,11 @@ async function handleRoundRobinCombo({
   // provider are skipped to avoid the cascade through N same-provider targets.
   const exhaustedProviders = new Set<string>();
   const transientRateLimitedProviders = new Set<string>();
+  const consecutiveProviderFailures = new Map<string, number>();
+  const providerFailureThreshold =
+    (config as Record<string, unknown>).providerFailureThreshold
+      ? Number((config as Record<string, unknown>).providerFailureThreshold) || 2
+      : 2;
 
   // Try each model starting from the round-robin target
   for (let offset = 0; offset < modelCount; offset++) {
@@ -4118,6 +4162,13 @@ async function handleRoundRobinCombo({
         "COMBO-RR",
         `Skipping ${modelStr} — provider ${provider} marked exhausted this request (#1731)`
       );
+      if (offset > 0) fallbackCount++;
+      continue;
+    }
+
+    const rrConsecutiveFails = consecutiveProviderFailures.get(provider) ?? 0;
+    if (provider && rrConsecutiveFails >= providerFailureThreshold) {
+      log.info("COMBO-RR", `Skipping ${modelStr} — provider ${provider} consecutive failure threshold (${rrConsecutiveFails}/${providerFailureThreshold}) (#3200)`);
       if (offset > 0) fallbackCount++;
       continue;
     }
@@ -4397,6 +4448,16 @@ async function handleRoundRobinCombo({
         if (!lastStatus) lastStatus = result.status;
         if (offset > 0) fallbackCount++;
         log.warn("COMBO-RR", `${modelStr} failed, trying next model`, { status: result.status });
+
+        if (provider && provider !== "unknown") {
+          const prev = consecutiveProviderFailures.get(provider) ?? 0;
+          const next = prev + 1;
+          consecutiveProviderFailures.set(provider, next);
+          if (next >= providerFailureThreshold && !exhaustedProviders.has(provider)) {
+            exhaustedProviders.add(provider);
+            log.info("COMBO-RR", `Provider ${provider} consecutive failure threshold reached (${next}/${providerFailureThreshold}) — skipping remaining targets (#3200)`);
+          }
+        }
 
         const fallbackWaitMs =
           fallbackDelayMs > 0 && cooldownMs > 0 && cooldownMs <= MAX_FALLBACK_WAIT_MS
