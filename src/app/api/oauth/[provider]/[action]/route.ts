@@ -4,6 +4,7 @@ import {
   getProvider,
   generateAuthData,
   exchangeTokens,
+  finalizeTokens,
   requestDeviceCode,
   pollForToken,
   resolveBrowserOAuthRedirectUri,
@@ -21,6 +22,7 @@ import { startLocalServer } from "@/lib/oauth/utils/server";
 import { runWithProxyContext } from "@omniroute/open-sse/utils/proxyFetch.ts";
 import {
   jsonObjectSchema,
+  oauthDeviceCompleteSchema,
   oauthExchangeSchema,
   oauthImportTokenSchema,
   oauthPollSchema,
@@ -40,6 +42,13 @@ if (!globalThis.__windsurfCallbackState) {
 
 /** Providers that use the PKCE browser callback flow (like Codex). */
 const PKCE_CALLBACK_PROVIDERS = new Set(["codex"]);
+
+/**
+ * Providers whose device flow runs in the user's browser (auth.openai.com blocks
+ * datacenter IPs but allows CORS), so the server never polls — it only persists
+ * the final tokens via the `device-complete` action. See src/lib/oauth/codexDeviceFlow.ts.
+ */
+const BROWSER_DEVICE_FLOW_PROVIDERS = new Set(["codex"]);
 
 /**
  * Providers whose PKCE flow has been retired but whose import-token path is
@@ -361,6 +370,12 @@ export async function POST(
       body = validation.data;
     } else if (action === "import-token") {
       const validation = validateBody(oauthImportTokenSchema, rawBody);
+      if (isValidationFailure(validation)) {
+        return NextResponse.json({ error: validation.error }, { status: 400 });
+      }
+      body = validation.data;
+    } else if (action === "device-complete") {
+      const validation = validateBody(oauthDeviceCompleteSchema, rawBody);
       if (isValidationFailure(validation)) {
         return NextResponse.json({ error: validation.error }, { status: 400 });
       }
@@ -755,11 +770,118 @@ export async function POST(
       }
     }
 
+    if (action === "device-complete") {
+      // The browser-driven Codex device flow already performed the device
+      // authorization + token exchange against auth.openai.com (the server's
+      // datacenter IP is blocked by Cloudflare, so it cannot). Here we only map
+      // the final tokens and persist the connection — no HTTP exchange/poll.
+      if (!BROWSER_DEVICE_FLOW_PROVIDERS.has(provider)) {
+        return NextResponse.json(
+          {
+            error: `device-complete not supported for provider: ${provider}. Supported: ${[...BROWSER_DEVICE_FLOW_PROVIDERS].join(", ")}`,
+          },
+          { status: 400 }
+        );
+      }
+
+      const {
+        access_token: accessToken,
+        refresh_token: refreshToken,
+        id_token: idToken,
+        expires_in: expiresIn,
+        connectionId,
+      } = body;
+
+      let tokenData: any;
+      try {
+        tokenData = await finalizeTokens(provider, {
+          access_token: accessToken,
+          refresh_token: refreshToken,
+          id_token: idToken,
+          expires_in: expiresIn,
+        });
+      } catch (finalizeErr: any) {
+        return NextResponse.json(
+          {
+            success: false,
+            error: sanitizeErrorMessage(finalizeErr?.message) || "Failed to finalize tokens",
+          },
+          { status: 500 }
+        );
+      }
+
+      const connection = await persistOAuthConnection(provider, tokenData, connectionId);
+
+      return NextResponse.json({
+        success: true,
+        connection: {
+          id: connection.id,
+          provider: connection.provider,
+          email: connection.email,
+          displayName: connection.displayName,
+        },
+      });
+    }
+
     return NextResponse.json({ error: "Unknown action" }, { status: 400 });
   } catch (error) {
     console.error("OAuth POST error:", error);
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
+}
+
+/**
+ * Upsert an OAuth connection from already-mapped token data.
+ * Mirrors the exchange/poll/poll-callback persistence: normalize the display
+ * name, compute expiry, match an existing connection by id or email (+ Codex
+ * workspaceId) and update it, else create a new one, then sync to Cloud.
+ */
+async function persistOAuthConnection(provider: string, tokenData: any, connectionId?: string) {
+  // Normalize: if name is missing, use email or displayName as fallback label.
+  if (!tokenData.name && (tokenData.email || tokenData.displayName)) {
+    tokenData.name = tokenData.email || tokenData.displayName;
+  }
+
+  const expiresAt = tokenData.expiresIn
+    ? new Date(Date.now() + tokenData.expiresIn * 1000).toISOString()
+    : null;
+
+  let connection: any;
+  if (tokenData.email) {
+    const existing = await getProviderConnections({ provider });
+    const match = existing.find((c: any) => {
+      if (c.id && safeEqual(connectionId, c.id)) return true;
+      // safeEqual: constant-time comparison to prevent timing attacks (CWE-208).
+      if (!safeEqual(c.email, tokenData.email) || c.authType !== "oauth") return false;
+      // For Codex, also check workspaceId to avoid overwriting a different workspace.
+      if (provider === "codex" && tokenData.providerSpecificData?.workspaceId) {
+        const existingWorkspace = c.providerSpecificData?.workspaceId;
+        return safeEqual(existingWorkspace, tokenData.providerSpecificData.workspaceId);
+      }
+      return true;
+    });
+    const matchId = typeof match?.id === "string" ? match.id : null;
+    if (matchId) {
+      connection = await updateProviderConnection(matchId, {
+        ...tokenData,
+        expiresAt,
+        testStatus: "active",
+        isActive: true,
+      });
+    }
+  }
+  if (!connection) {
+    connection = await createProviderConnection({
+      provider,
+      authType: "oauth",
+      ...tokenData,
+      expiresAt,
+      testStatus: "active",
+    });
+  }
+
+  await syncToCloudIfEnabled();
+  return connection;
 }
 
 /**

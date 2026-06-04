@@ -191,6 +191,23 @@ export async function exchangeTokens(providerName, code, redirectUri, codeVerifi
 }
 
 /**
+ * Finalize tokens obtained out-of-band (e.g. the browser-driven Codex device
+ * flow, where the browser performs the auth.openai.com exchange because the
+ * server's datacenter IP is blocked). Runs the provider's postExchange +
+ * mapTokens — the same tail as exchangeTokens — without an HTTP token exchange.
+ */
+export async function finalizeTokens(providerName, tokens) {
+  const provider = getProvider(providerName);
+
+  let extra = null;
+  if (provider.postExchange) {
+    extra = await provider.postExchange(tokens);
+  }
+
+  return provider.mapTokens(tokens, extra);
+}
+
+/**
  * Request device code (for device_code flow)
  */
 export async function requestDeviceCode(providerName, codeChallenge, configOverride = null) {
