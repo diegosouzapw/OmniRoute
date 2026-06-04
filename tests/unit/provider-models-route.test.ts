@@ -640,6 +640,47 @@ test("provider models route honors autoFetchModels=false and skips remote discov
   assert.ok(body.models.some((model) => model.id === "glm-5"));
 });
 
+test("provider models route uses synced models as the authoritative local catalog (#3148)", async () => {
+  // A connection that resolves to the local catalog (auto-fetch off, no remote
+  // discovery). Once a sync has populated the synced-models table for this
+  // provider, the route must surface the synced list — even on a connection
+  // that never ran the sync itself — instead of the static catalog.
+  const connection = await seedConnection("opencode-go", {
+    apiKey: "opencode-go-key",
+    providerSpecificData: {
+      autoFetchModels: false,
+    },
+  });
+
+  await modelsDb.replaceSyncedAvailableModelsForConnection("opencode-go", "synced-conn", [
+    { id: "synced-only-model", name: "Synced Only Model" },
+  ]);
+
+  let called = false;
+  globalThis.fetch = async () => {
+    called = true;
+    return Response.json({ data: [] });
+  };
+
+  const response = await callRoute(connection.id);
+  const body = (await response.json()) as any;
+
+  assert.equal(response.status, 200);
+  assert.equal(body.source, "local_catalog");
+  assert.equal(called, false);
+  // Synced models become the catalog…
+  assert.ok(
+    body.models.some((model) => model.id === "synced-only-model"),
+    "synced model should be present in the local catalog"
+  );
+  // …and the static catalog entries are no longer surfaced for this provider.
+  assert.equal(
+    body.models.some((model) => model.id === "glm-5"),
+    false,
+    "static catalog should be superseded by the synced list"
+  );
+});
+
 test("provider models route validates Gemini CLI credentials before fetching quota buckets", async () => {
   const missingToken = await seedConnection("gemini-cli", {
     authType: "oauth",
