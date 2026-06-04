@@ -902,7 +902,7 @@ async function handleSingleModelChat(
           refreshedCredentials
         );
       }
-      const proxyInfo = await safeResolveProxy(credentials.connectionId);
+      const proxyInfo = await safeResolveProxy(credentials.connectionId, apiKeyInfo?.id);
       const proxyStartTime = Date.now();
 
       // 4. Execute chat via core after breaker gate checks (with optional TLS tracking)
