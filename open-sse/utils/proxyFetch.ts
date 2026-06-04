@@ -10,6 +10,7 @@ import {
 } from "./proxyDispatcher.ts";
 import tlsClient from "./tlsClient.ts";
 import { isProxyReachable } from "@/lib/proxyHealth";
+import { findWorkingProxy } from "./proxyFallback.ts";
 
 function isTlsFingerprintEnabled() {
   return process.env.ENABLE_TLS_FINGERPRINT === "true";
@@ -294,12 +295,12 @@ async function patchedFetch(
         // Prefer the .code property when available (more stable across undici
         // versions than message-string matching); fall back to substring match
         // for errors that lack a structured code.
-        const errCode = (dispatcherError as { code?: string })?.code;
+        const errCode = (dispatcherError as { code?: unknown })?.code;
         if (
           msg.includes("fetch failed") ||
           errCode === "ECONNREFUSED" ||
           msg.includes("ECONNREFUSED") ||
-          (errCode !== undefined && errCode.startsWith("UND_ERR")) ||
+          (typeof errCode === "string" && errCode.startsWith("UND_ERR")) ||
           msg.includes("UND_ERR")
         ) {
           if (attempt === 0 && maxAttempts > 1) {
@@ -308,7 +309,29 @@ async function patchedFetch(
             await new Promise((r) => setTimeout(r, 25 + Math.random() * 50));
             continue;
           }
-          // All attempts exhausted — fall back to native fetch.
+          // All attempts exhausted — try proxy fallback before native fetch
+          if (source === "direct") {
+            let targetHostname = "";
+            try {
+              targetHostname = new URL(targetUrl).hostname;
+            } catch {
+              // ignore
+            }
+            if (targetHostname) {
+              const fallbackProxyUrl = await findWorkingProxy(
+                targetHostname,
+                targetUrl
+              );
+              if (fallbackProxyUrl) {
+                try {
+                  const dispatcher = createProxyDispatcher(fallbackProxyUrl);
+                  return await _undiciDirect(input, { ...options, dispatcher });
+                } catch {
+                  // Proxy also failed — fall through to native fetch
+                }
+              }
+            }
+          }
           // Preserve original phrase intact for monitoring: "Undici dispatcher failed, falling back to native fetch"
           console.warn(
             `[ProxyFetch] Undici dispatcher failed, falling back to native fetch (after retry): ${msg}`
