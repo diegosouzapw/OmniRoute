@@ -356,6 +356,37 @@ test("Responses round-trip preserves store and previous_response_id when opt-in 
   assert.equal((result as any).instructions, "Rules");
 });
 
+test("Chat -> Responses converts assistant image_url history parts to output_text", () => {
+  const result = openaiToOpenAIResponsesRequest(
+    "gpt-4o",
+    {
+      messages: [
+        {
+          role: "assistant",
+          content: [
+            { type: "text", text: "I inspected the screenshot." },
+            { type: "image_url", image_url: { url: "https://example.com/scope.png" } },
+          ],
+        },
+      ],
+    },
+    true,
+    null
+  );
+
+  assert.deepEqual((result as any).input, [
+    {
+      type: "message",
+      role: "assistant",
+      content: [
+        { type: "output_text", text: "I inspected the screenshot." },
+        { type: "output_text", text: "[Image: https://example.com/scope.png]" },
+      ],
+    },
+  ]);
+  assert.equal(JSON.stringify(result).includes('"image_url"'), false);
+});
+
 test("Chat -> Responses preserves prompt_cache_key and session affinity fields", () => {
   const result = openaiToOpenAIResponsesRequest(
     "gpt-5.3-codex",

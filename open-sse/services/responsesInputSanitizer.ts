@@ -55,11 +55,64 @@ function sanitizeInputItemId(record: JsonRecord): JsonRecord {
   return next;
 }
 
+function imageUrlToText(value: unknown): string {
+  if (typeof value === "string") return value;
+  const record = toRecord(value);
+  return typeof record?.url === "string" ? record.url : "";
+}
+
+function sanitizeContentPart(part: unknown, role: string): unknown {
+  const record = toRecord(part);
+  if (!record) return part;
+
+  if (record.type === "image_url") {
+    const url = imageUrlToText(record.image_url);
+    if (role === "user") {
+      const next: JsonRecord = { type: "input_image", image_url: url };
+      const image = toRecord(record.image_url);
+      if (image?.detail !== undefined) next.detail = image.detail;
+      return next;
+    }
+    return { type: "output_text", text: url ? `[Image: ${url}]` : "[Image]" };
+  }
+
+  if (role === "assistant" && record.type === "input_image") {
+    const url = imageUrlToText(record.image_url);
+    return { type: "output_text", text: url ? `[Image: ${url}]` : "[Image]" };
+  }
+
+  return part;
+}
+
+function sanitizeMessageContent(record: JsonRecord): JsonRecord {
+  if (!Array.isArray(record.content)) return record;
+
+  const role = typeof record.role === "string" ? record.role.toLowerCase() : "";
+  const content = record.content.map((part) => sanitizeContentPart(part, role));
+  return { ...record, content };
+}
+
+function sanitizeOutputContent(record: JsonRecord): JsonRecord {
+  if (!Array.isArray(record.output)) return record;
+
+  // Some clients replay previous Responses output items inside the next
+  // Responses input. In that shape OpenAI validates `input[n].output[m].type`
+  // against output content part types, so legacy Chat-style `image_url` parts
+  // must be normalized here too, not only in message.content.
+  const role = record.type === "function_call_output" ? "user" : "assistant";
+  const output = record.output.map((part) => sanitizeContentPart(part, role));
+  return { ...record, output };
+}
+
 function sanitizeInputItem(item: unknown): unknown {
   const record = toRecord(item);
   if (!record) return item;
 
   let next = sanitizeInputItemId(record);
+  if (isResponsesMessageItem(next)) {
+    next = sanitizeMessageContent(next);
+  }
+  next = sanitizeOutputContent(next);
   if (
     (next.type === "function_call" || next.type === "function_call_output") &&
     typeof next.name === "string" &&
