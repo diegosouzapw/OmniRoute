@@ -23,6 +23,7 @@ import {
 import { getProviderOutboundGuard } from "@/shared/network/outboundUrlGuard";
 import { sanitizeErrorMessage } from "@omniroute/open-sse/utils/error";
 import { getStaticQoderModels } from "@omniroute/open-sse/services/qoderCli.ts";
+import { fetchGitHubCopilotModels } from "@omniroute/open-sse/services/githubCopilotModels.ts";
 import { getAntigravityHeaders } from "@omniroute/open-sse/services/antigravityHeaders.ts";
 import { ensureAntigravityProjectAssigned } from "@omniroute/open-sse/services/antigravityProjectBootstrap.ts";
 import {
@@ -1923,6 +1924,56 @@ export async function GET(
         models: staticModels,
         source: "local_catalog",
         warning: "API unavailable — using local catalog",
+      });
+    }
+
+    if (provider === "github") {
+      // #3120/#3121 — GitHub Copilot's catalog is per-account and dynamic. The
+      // registry static list never refreshes and advertises non-entitled models
+      // (e.g. gemini previews) that fail upstream when tested. Discover the live
+      // catalog from api.githubcopilot.com/models with the Copilot bearer +
+      // Copilot chat headers; fall back to the static registry catalog when the
+      // live fetch is unavailable (offline/unauthed/error) so import never breaks.
+      const cachedResponse = maybeReturnCachedDiscovery();
+      if (cachedResponse) return cachedResponse;
+
+      const autoFetchDisabledResponse = maybeReturnAutoFetchDisabled();
+      if (autoFetchDisabledResponse) return autoFetchDisabledResponse;
+
+      const psd = asRecord(connection.providerSpecificData);
+      // The /models endpoint requires the short-lived Copilot token (same as the
+      // chat executor), not the raw GitHub OAuth access token.
+      const copilotToken =
+        toNonEmptyString(psd.copilotToken) || toNonEmptyString(accessToken) || null;
+
+      const discovery = await fetchGitHubCopilotModels({
+        token: copilotToken,
+        fetchImpl: (url, init) =>
+          safeOutboundFetch(url as string, {
+            ...SAFE_OUTBOUND_FETCH_PRESETS.modelsDiscovery,
+            guard: getProviderOutboundGuard(),
+            proxyConfig: proxy,
+            ...(init as Record<string, unknown>),
+          }),
+        fallbackModels: toLocalCatalogModels(),
+      });
+
+      if (discovery.source === "api") {
+        return buildApiDiscoveryResponse(discovery.models);
+      }
+
+      // Live discovery unavailable — preserve cached/static catalog behavior.
+      const fallback = buildDiscoveryFallbackResponse({
+        cacheWarning: "Copilot models API unavailable — using cached catalog",
+        localWarning: "Copilot models API unavailable — using local catalog",
+      });
+      if (fallback) return fallback;
+      return buildResponse({
+        provider,
+        connectionId,
+        models: discovery.models,
+        source: "local_catalog",
+        warning: "Copilot models API unavailable — using local catalog",
       });
     }
 
