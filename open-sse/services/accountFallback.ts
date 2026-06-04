@@ -25,7 +25,7 @@ import {
 import { classify429FromError, type FailureKind } from "../../src/shared/utils/classify429";
 import { resolveUseUpstream429BreakerHints } from "../../src/shared/utils/providerHints";
 
-type ProviderProfile = {
+export type ProviderProfile = {
   baseCooldownMs: number;
   useUpstreamRetryHints: boolean;
   /** Issue #2100 follow-up. Stored override; undefined → per-provider default. */
