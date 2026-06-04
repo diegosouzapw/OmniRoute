@@ -521,6 +521,8 @@ interface ConnectionRowConnection {
   tokenExpiresAt?: string;
   maxConcurrent?: number | null;
   authType?: string;
+  proxyEnabled?: boolean;
+  perKeyProxyEnabled?: boolean;
 }
 
 interface ConnectionRowProps {
@@ -553,6 +555,10 @@ interface ConnectionRowProps {
   hasProxy?: boolean;
   proxySource?: string;
   proxyHost?: string;
+  proxyEnabled?: boolean;
+  perKeyProxyEnabled?: boolean;
+  onToggleProxyEnabled?: (enabled: boolean) => void;
+  onTogglePerKeyProxyEnabled?: (enabled: boolean) => void;
   onRefreshToken?: () => void;
   isRefreshing?: boolean;
   onApplyCodexAuthLocal?: () => void;
@@ -1058,6 +1064,7 @@ export default function ProviderDetailPage() {
   const emailsVisible = useEmailPrivacyStore((s) => s.emailsVisible);
   const notify = useNotificationStore();
   const [proxyTarget, setProxyTarget] = useState(null);
+  const [distributingProxies, setDistributingProxies] = useState(false);
   const [proxyConfig, setProxyConfig] = useState(null);
   const [connProxyMap, setConnProxyMap] = useState<
     Record<string, { proxy: any; level: string } | null>
@@ -1960,6 +1967,248 @@ export default function ProviderDetailPage() {
     }
   };
 
+  const handleToggleProxyEnabled = async (connectionId, proxyEnabled) => {
+    try {
+      const res = await fetch(`/api/providers/${connectionId}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ proxyEnabled }),
+      });
+      if (res.ok) {
+        setConnections((prev) =>
+          prev.map((c) => (c.id === connectionId ? { ...c, proxyEnabled } : c))
+        );
+      }
+    } catch (error) {
+      console.error("Error toggling proxy enabled:", error);
+    }
+  };
+
+  const handleTogglePerKeyProxyEnabled = async (connectionId, perKeyProxyEnabled) => {
+    try {
+      const res = await fetch(`/api/providers/${connectionId}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ perKeyProxyEnabled }),
+      });
+      if (res.ok) {
+        setConnections((prev) =>
+          prev.map((c) => (c.id === connectionId ? { ...c, perKeyProxyEnabled } : c))
+        );
+      }
+    } catch (error) {
+      console.error("Error toggling per-key proxy enabled:", error);
+    }
+  };
+
+  const handleDistributeProxies = async (tagFilter?: string) => {
+    const targetConnections = tagFilter
+      ? connections.filter(
+          (c: any) =>
+            (c.providerSpecificData?.tag as string | undefined)?.trim() === tagFilter
+        )
+      : connections;
+    if (targetConnections.length === 0) return;
+    setDistributingProxies(true);
+    try {
+      const proxiesRes = await fetch("/api/settings/proxies");
+      if (!proxiesRes.ok) throw new Error("Failed to fetch proxies");
+      const proxiesData = await proxiesRes.json();
+      const savedProxies = (proxiesData?.items || []).filter(
+        (p: any) => p.status === "active"
+      );
+      if (savedProxies.length === 0) {
+        notify.error("No saved proxies found. Add proxies in Settings → Proxy first.");
+        return;
+      }
+
+      let assigned = 0;
+      const sorted = [...targetConnections].sort(
+        (a: any, b: any) => (a.priority || 0) - (b.priority || 0)
+      );
+
+      for (let i = 0; i < sorted.length; i++) {
+        const conn = sorted[i] as any;
+        const proxy = savedProxies[i % savedProxies.length];
+
+        try {
+          await fetch("/api/settings/proxies/assignments", {
+            method: "PUT",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              scope: "account",
+              scopeId: conn.id,
+              proxyId: null,
+            }),
+          });
+        } catch {
+          /* clear old assignment */
+        }
+
+        const patchRes = await fetch(`/api/providers/${conn.id}`, {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ proxyEnabled: true, perKeyProxyEnabled: true }),
+        });
+
+        if (!patchRes.ok) {
+          console.error(`Failed to update connection ${conn.id}`);
+          continue;
+        }
+
+        // Assign new proxy
+        const assignRes = await fetch("/api/settings/proxies/assignments", {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            scope: "account",
+            scopeId: conn.id,
+            proxyId: proxy.id,
+          }),
+        });
+
+        if (!assignRes.ok) {
+          console.error(`Failed to assign proxy to ${conn.id}`);
+          continue;
+        }
+
+        assigned++;
+      }
+
+      await fetchConnections();
+      const tagLabel = tagFilter ? `"${tagFilter}" ` : "";
+      notify.success(
+        `Distributed ${assigned} proxy assignment(s) across ${tagLabel}${sorted.length} connection(s).`
+      );
+    } catch (err) {
+      console.error("Error distributing proxies:", err);
+      notify.error("Failed to distribute proxies.");
+    } finally {
+      setDistributingProxies(false);
+    }
+  };
+
+  const handleToggleProxyEnabled = async (connectionId, proxyEnabled) => {
+    try {
+      const res = await fetch(`/api/providers/${connectionId}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ proxyEnabled }),
+      });
+      if (res.ok) {
+        setConnections((prev) =>
+          prev.map((c) => (c.id === connectionId ? { ...c, proxyEnabled } : c))
+        );
+      }
+    } catch (error) {
+      console.error("Error toggling proxy enabled:", error);
+    }
+  };
+
+  const handleTogglePerKeyProxyEnabled = async (connectionId, perKeyProxyEnabled) => {
+    try {
+      const res = await fetch(`/api/providers/${connectionId}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ perKeyProxyEnabled }),
+      });
+      if (res.ok) {
+        setConnections((prev) =>
+          prev.map((c) => (c.id === connectionId ? { ...c, perKeyProxyEnabled } : c))
+        );
+      }
+    } catch (error) {
+      console.error("Error toggling per-key proxy enabled:", error);
+    }
+  };
+
+  const handleDistributeProxies = async (tagFilter?: string) => {
+    const targetConnections = tagFilter
+      ? connections.filter(
+          (c: any) =>
+            (c.providerSpecificData?.tag as string | undefined)?.trim() === tagFilter
+        )
+      : connections;
+    if (targetConnections.length === 0) return;
+    setDistributingProxies(true);
+    try {
+      const proxiesRes = await fetch("/api/settings/proxies");
+      if (!proxiesRes.ok) throw new Error("Failed to fetch proxies");
+      const proxiesData = await proxiesRes.json();
+      const savedProxies = (proxiesData?.items || []).filter(
+        (p: any) => p.status === "active"
+      );
+      if (savedProxies.length === 0) {
+        notify.error("No saved proxies found. Add proxies in Settings → Proxy first.");
+        return;
+      }
+
+      let assigned = 0;
+      const sorted = [...targetConnections].sort(
+        (a: any, b: any) => (a.priority || 0) - (b.priority || 0)
+      );
+
+      for (let i = 0; i < sorted.length; i++) {
+        const conn = sorted[i] as any;
+        const proxy = savedProxies[i % savedProxies.length];
+
+        try {
+          await fetch("/api/settings/proxies/assignments", {
+            method: "PUT",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              scope: "account",
+              scopeId: conn.id,
+              proxyId: null,
+            }),
+          });
+        } catch {
+          /* clear old assignment */
+        }
+
+        const patchRes = await fetch(`/api/providers/${conn.id}`, {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ proxyEnabled: true, perKeyProxyEnabled: true }),
+        });
+
+        if (!patchRes.ok) {
+          console.error(`Failed to update connection ${conn.id}`);
+          continue;
+        }
+
+        // Assign new proxy
+        const assignRes = await fetch("/api/settings/proxies/assignments", {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            scope: "account",
+            scopeId: conn.id,
+            proxyId: proxy.id,
+          }),
+        });
+
+        if (!assignRes.ok) {
+          console.error(`Failed to assign proxy to ${conn.id}`);
+          continue;
+        }
+
+        assigned++;
+      }
+
+      await fetchConnections();
+      const tagLabel = tagFilter ? `"${tagFilter}" ` : "";
+      notify.success(
+        `Distributed ${assigned} proxy assignment(s) across ${tagLabel}${sorted.length} connection(s).`
+      );
+    } catch (err) {
+      console.error("Error distributing proxies:", err);
+      notify.error("Failed to distribute proxies.");
+    } finally {
+      setDistributingProxies(false);
+    }
+  };
+
   const handleToggleRateLimit = async (connectionId, enabled) => {
     try {
       const res = await fetch("/api/rate-limits", {
@@ -2846,8 +3095,9 @@ export default function ProviderDetailPage() {
   const [clearingModels, setClearingModels] = useState(false);
   const providerAliasEntries = useMemo(
     () =>
-      Object.entries(modelAliases).filter(([, model]) =>
-        (model as string).startsWith(`${providerStorageAlias}/`)
+      Object.entries(modelAliases).filter(
+        ([, model]) =>
+          typeof model === "string" && model.startsWith(`${providerStorageAlias}/`)
       ),
     [modelAliases, providerStorageAlias]
   );
@@ -3575,6 +3825,24 @@ export default function ProviderDetailPage() {
               </button>
             </div>
             <div className="flex shrink-0 flex-wrap items-center justify-end gap-2">
+              {connections.length > 0 && (
+                <button
+                  onClick={() => handleDistributeProxies()}
+                  disabled={distributingProxies || batchTesting || !!retestingId}
+                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium border transition-colors ${
+                    distributingProxies
+                      ? "bg-primary/20 border-primary/40 text-primary animate-pulse"
+                      : "bg-bg-subtle border-border text-text-muted hover:text-text-primary hover:border-primary/40"
+                  }`}
+                  title={t("distributeProxies")}
+                  aria-label={t("distributeProxies")}
+                >
+                  <span className="material-symbols-outlined text-[14px]">
+                    {distributingProxies ? "sync" : "swap_horiz"}
+                  </span>
+                  {distributingProxies ? t("distributing") : t("distributeProxies")}
+                </button>
+              )}
               {connections.length > 1 && (
                 <button
                   onClick={handleBatchTestAll}
@@ -3893,6 +4161,10 @@ export default function ProviderDetailPage() {
                           hasProxy={!!connProxyMap[conn.id]?.proxy}
                           proxySource={connProxyMap[conn.id]?.level || null}
                           proxyHost={connProxyMap[conn.id]?.proxy?.host || null}
+                          proxyEnabled={conn.proxyEnabled !== false}
+                          onToggleProxyEnabled={(enabled) => handleToggleProxyEnabled(conn.id, enabled)}
+                          perKeyProxyEnabled={conn.perKeyProxyEnabled === true}
+                          onTogglePerKeyProxyEnabled={(enabled) => handleTogglePerKeyProxyEnabled(conn.id, enabled)}
                         />
                       ))}
                     </div>
@@ -3934,17 +4206,30 @@ export default function ProviderDetailPage() {
                         </span>
                       </label>
 
-                      {selectedIds.size > 0 && (
-                        <Button
-                          variant="danger"
-                          size="sm"
-                          icon="delete"
-                          loading={batchDeleting}
-                          onClick={handleBatchDelete}
-                        >
-                          {t("batchDeleteSelected", { count: selectedIds.size })}
-                        </Button>
-                      )}
+                      <div className="flex items-center gap-2">
+                        {selectedIds.size === 0 && connections.length > 0 && (
+                          <Button
+                            variant="secondary"
+                            size="sm"
+                            icon="shield"
+                            loading={distributingProxies}
+                            onClick={() => handleDistributeProxies()}
+                          >
+                            Distribute Proxies
+                          </Button>
+                        )}
+                        {selectedIds.size > 0 && (
+                          <Button
+                            variant="danger"
+                            size="sm"
+                            icon="delete"
+                            loading={batchDeleting}
+                            onClick={handleBatchDelete}
+                          >
+                            {t("batchDeleteSelected", { count: selectedIds.size })}
+                          </Button>
+                        )}
+                      </div>
                     </div>
                   ) : null}
                   <div className="flex flex-col gap-0 border border-t-0 border-border rounded-b-lg overflow-hidden">
@@ -3968,6 +4253,15 @@ export default function ProviderDetailPage() {
                                 {tag}
                               </span>
                               <div className="flex-1 h-px bg-black/[0.04] dark:bg-white/[0.04]" />
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                icon="shield"
+                                loading={distributingProxies}
+                                onClick={() => handleDistributeProxies(tag)}
+                              >
+                                Distribute Proxies
+                              </Button>
                               <span className="text-[10px] text-text-muted/40">
                                 {groupConns.length}
                               </span>
@@ -4080,6 +4374,10 @@ export default function ProviderDetailPage() {
                                 hasProxy={!!connProxyMap[conn.id]?.proxy}
                                 proxySource={connProxyMap[conn.id]?.level || null}
                                 proxyHost={connProxyMap[conn.id]?.proxy?.host || null}
+                                proxyEnabled={conn.proxyEnabled !== false}
+                                onToggleProxyEnabled={(enabled) => handleToggleProxyEnabled(conn.id, enabled)}
+                                perKeyProxyEnabled={conn.perKeyProxyEnabled === true}
+                                onTogglePerKeyProxyEnabled={(enabled) => handleTogglePerKeyProxyEnabled(conn.id, enabled)}
                               />
                             ))}
                           </div>
@@ -4494,11 +4792,13 @@ export default function ProviderDetailPage() {
           {importProgress.logs.length > 0 && (
             <div className="max-h-48 overflow-y-auto rounded-lg bg-black/5 dark:bg-white/5 p-3 border border-black/5 dark:border-white/5">
               <div className="flex flex-col gap-1">
-                {importProgress.logs.map((log, i) => (
+                  {importProgress.logs.map((log, i) => (
                   <p
                     key={i}
                     className={`text-xs font-mono ${
-                      log.startsWith("✓") ? "text-green-500 font-semibold" : "text-text-muted"
+                      typeof log === "string" && log.startsWith("✓")
+                        ? "text-green-500 font-semibold"
+                        : "text-text-muted"
                     }`}
                   >
                     {log}
@@ -6170,6 +6470,10 @@ function ConnectionRow({
   isApplyingGeminiAuthLocal,
   onExportGeminiAuthFile,
   isExportingGeminiAuthFile,
+  perKeyProxyEnabled,
+  onTogglePerKeyProxyEnabled,
+  proxyEnabled,
+  onToggleProxyEnabled,
 }: ConnectionRowProps) {
   const t = useTranslations("providers");
   const emailsVisible = useEmailPrivacyStore((s) => s.emailsVisible);
@@ -6452,6 +6756,74 @@ function ConnectionRow({
                 >
                   <span className="material-symbols-outlined text-[13px]">date_range</span>
                   {t("weeklyShort")} {codexWeeklyEnabled ? t("toggleOnShort") : t("toggleOffShort")}
+                </button>
+              </>
+            )}
+            {onToggleProxyEnabled && (
+              <>
+                <span className="text-text-muted/30 select-none">|</span>
+                <button
+                  onClick={() => onToggleProxyEnabled(!proxyEnabled)}
+                  className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-xs font-medium transition-all cursor-pointer ${
+                    proxyEnabled
+                      ? "bg-emerald-500/15 text-emerald-500 hover:bg-emerald-500/25"
+                      : "bg-black/[0.03] dark:bg-white/[0.03] text-text-muted/50 hover:text-text-muted hover:bg-black/[0.06] dark:hover:bg-white/[0.06]"
+                  }`}
+                  title={proxyEnabled ? t("proxyEnabledTitle") : t("proxyDisabledTitle")}
+                >
+                  <span className="material-symbols-outlined text-[13px]">vpn_lock</span>
+                  {proxyEnabled ? t("proxyOn") : t("proxyOff")}
+                </button>
+              </>
+            )}
+            {onTogglePerKeyProxyEnabled && (
+              <>
+                <span className="text-text-muted/30 select-none">|</span>
+                <button
+                  onClick={() => onTogglePerKeyProxyEnabled(!perKeyProxyEnabled)}
+                  className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-xs font-medium transition-all cursor-pointer ${
+                    perKeyProxyEnabled
+                      ? "bg-violet-500/15 text-violet-500 hover:bg-violet-500/25"
+                      : "bg-black/[0.03] dark:bg-white/[0.03] text-text-muted/50 hover:text-text-muted hover:bg-black/[0.06] dark:hover:bg-white/[0.06]"
+                  }`}
+                  title={perKeyProxyEnabled ? t("perKeyProxyEnabledTitle") : t("perKeyProxyDisabledTitle")}
+                >
+                  <span className="material-symbols-outlined text-[13px]">key</span>
+                  {perKeyProxyEnabled ? t("perKeyProxyOn") : t("perKeyProxyOff")}
+                </button>
+              </>
+            )}
+            {onToggleProxyEnabled && (
+              <>
+                <span className="text-text-muted/30 select-none">|</span>
+                <button
+                  onClick={() => onToggleProxyEnabled(!proxyEnabled)}
+                  className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-xs font-medium transition-all cursor-pointer ${
+                    proxyEnabled
+                      ? "bg-emerald-500/15 text-emerald-500 hover:bg-emerald-500/25"
+                      : "bg-black/[0.03] dark:bg-white/[0.03] text-text-muted/50 hover:text-text-muted hover:bg-black/[0.06] dark:hover:bg-white/[0.06]"
+                  }`}
+                  title={proxyEnabled ? t("proxyEnabledTitle") : t("proxyDisabledTitle")}
+                >
+                  <span className="material-symbols-outlined text-[13px]">vpn_lock</span>
+                  {proxyEnabled ? t("proxyOn") : t("proxyOff")}
+                </button>
+              </>
+            )}
+            {onTogglePerKeyProxyEnabled && (
+              <>
+                <span className="text-text-muted/30 select-none">|</span>
+                <button
+                  onClick={() => onTogglePerKeyProxyEnabled(!perKeyProxyEnabled)}
+                  className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-xs font-medium transition-all cursor-pointer ${
+                    perKeyProxyEnabled
+                      ? "bg-violet-500/15 text-violet-500 hover:bg-violet-500/25"
+                      : "bg-black/[0.03] dark:bg-white/[0.03] text-text-muted/50 hover:text-text-muted hover:bg-black/[0.06] dark:hover:bg-white/[0.06]"
+                  }`}
+                  title={perKeyProxyEnabled ? t("perKeyProxyEnabledTitle") : t("perKeyProxyDisabledTitle")}
+                >
+                  <span className="material-symbols-outlined text-[13px]">key</span>
+                  {perKeyProxyEnabled ? t("perKeyProxyOn") : t("perKeyProxyOff")}
                 </button>
               </>
             )}
