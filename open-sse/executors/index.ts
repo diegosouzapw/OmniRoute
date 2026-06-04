@@ -46,6 +46,7 @@ import { V0VercelWebExecutor } from "./v0-vercel-web.ts";
 import { KimiWebExecutor } from "./kimi-web.ts";
 import { DoubaoWebExecutor } from "./doubao-web.ts";
 import { QwenWebExecutor } from "./qwen-web.ts";
+import { KimiExecutor } from "./kimi.ts"
 
 const executors = {
   antigravity: new AntigravityExecutor(),
@@ -127,6 +128,7 @@ const executors = {
   v0: new V0VercelWebExecutor(), // Alias
   "kimi-web": new KimiWebExecutor(),
   kimi: new KimiWebExecutor(), // Alias
+  "kimi-coding-apikey": new KimiExecutor(), // Alias
   "doubao-web": new DoubaoWebExecutor(),
   db: new DoubaoWebExecutor(), // Alias
   "qwen-web": new QwenWebExecutor(),
