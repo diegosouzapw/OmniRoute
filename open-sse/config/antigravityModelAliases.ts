@@ -148,6 +148,9 @@ function getLazyDb() {
     try {
       _lazyDb = getDbInstance();
     } catch {
+      // Transient DB failure (build phase, lock, etc.) — reset the flag
+      // so subsequent calls can retry instead of being permanently disabled.
+      _lazyDbAttempted = false;
       _lazyDb = null;
     }
   }
