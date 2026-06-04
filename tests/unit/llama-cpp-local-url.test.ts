@@ -16,5 +16,8 @@ test("llama-cpp buildUrl routes to the configured local baseUrl, not OpenAI", ()
   });
 
   assert.equal(url, "http://127.0.0.1:8080/v1/chat/completions");
-  assert.ok(!url.includes("api.openai.com"), `expected local URL, got ${url}`);
+  // Assert the resolved host is the local one — parse the URL and compare the
+  // hostname exactly (a substring check like `url.includes("api.openai.com")`
+  // is an incomplete URL sanitization pattern: `api.openai.com.evil` would match).
+  assert.equal(new URL(url).hostname, "127.0.0.1", `expected local host, got ${url}`);
 });
