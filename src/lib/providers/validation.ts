@@ -3718,8 +3718,43 @@ export async function validateProviderApiKey({ provider, apiKey, providerSpecifi
   // ── Specialty provider validation ──
   const SPECIALTY_VALIDATORS = {
     jules: validateJulesProvider,
-    qoder: ({ apiKey, providerSpecificData }: any) =>
-      validateQoderCliPat({ apiKey, providerSpecificData }),
+    qoder: async ({ apiKey, providerSpecificData }: any) => {
+      // Bifurcate validation: PAT tokens use Cosy auth against api1.qoder.sh;
+      // regular API keys validate against dashscope (OpenAI-compatible endpoint).
+      const key = (apiKey || "").trim();
+      if (key.startsWith("pt-")) {
+        return validateQoderCliPat({ apiKey: key, providerSpecificData });
+      }
+      // Non-PAT token → validate against dashscope (Alibaba Cloud).
+      // The executor routes these tokens to dashscope.aliyuncs.com, so the
+      // validation must test against dashscope, NOT the Cosy PAT endpoint.
+      try {
+        const dashscopeUrl =
+          "https://dashscope.aliyuncs.com/compatible-mode/v1/models";
+        const res = await validationRead(
+          dashscopeUrl,
+          {
+            headers: {
+              Authorization: `Bearer ${key}`,
+            },
+          },
+          false
+        );
+        if (res.ok) return { valid: true, error: null };
+        if (res.status === 401 || res.status === 403) {
+          return {
+            valid: false,
+            error:
+              "Invalid Qoder API key. Make sure you're using a valid API key from Qoder / Alibaba Cloud Dashscope.",
+          };
+        }
+        // 4xx/5xx other than auth — treat as valid bypass to prevent false
+        // negatives from transient dashscope issues (consistent with PAT path).
+        return { valid: true, error: null };
+      } catch (err: unknown) {
+        return toValidationErrorResult(err);
+      }
+    },
     "command-code": validateCommandCodeProvider,
     deepgram: validateDeepgramProvider,
     assemblyai: validateAssemblyAIProvider,
