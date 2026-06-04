@@ -1861,8 +1861,8 @@ const _REGISTRY_EAGER: Record<string, RegistryEntry> = {
   kilocode: {
     id: "kilocode",
     alias: "kc",
-    format: "openrouter",
-    executor: "openrouter",
+    format: "openai",
+    executor: "default",
     baseUrl: "https://api.kilo.ai/api/openrouter/chat/completions",
     modelsUrl: "https://api.kilo.ai/api/openrouter/models",
     authType: "oauth",
