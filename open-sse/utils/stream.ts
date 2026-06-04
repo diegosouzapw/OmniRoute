@@ -1307,7 +1307,7 @@ export function createSSEStream(options: StreamOptions = {}) {
                   }
 
                   const content = delta?.content || delta?.reasoning_content;
-                  if (content && typeof content === "string") {
+                  if (typeof content === "string") {
                     totalContentLength += content.length;
 
                     if (!contentAfterToolSeen) {
@@ -1549,9 +1549,9 @@ export function createSSEStream(options: StreamOptions = {}) {
           }
 
           const translateHasContent =
-            parsed.delta?.text ||
-            parsed.choices?.[0]?.delta?.content ||
-            parsed.choices?.[0]?.delta?.reasoning_content;
+            typeof parsed.delta?.text === "string" ||
+            typeof parsed.choices?.[0]?.delta?.content === "string" ||
+            typeof parsed.choices?.[0]?.delta?.reasoning_content === "string";
           if (translateHasContent && !contentAfterToolSeen) {
             const toolTs = toolFinishTime || pendingToolFinishTime;
             const lastChunkTs = lastToolCallChunkTime;

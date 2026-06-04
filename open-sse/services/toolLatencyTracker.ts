@@ -79,6 +79,7 @@ export function recordToolTtft(provider: string, ttftMs: number): void {
   }
 
   const entry = metrics.get(provider)!;
+  entry.totalRequests++;
   entry.ttftAfterToolSum += ttftMs;
   entry.ttftCount++;
 }
