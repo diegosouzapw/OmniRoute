@@ -414,10 +414,10 @@ async function cleanModelName(model: string): Promise<string> {
     const mitmAliases = await getMitmAlias("antigravity");
     if (mitmAliases && typeof mitmAliases === "object") {
       const aliases = mitmAliases as Record<string, unknown>;
-      if (aliases[stripped]) {
-        const raw = aliases[stripped];
-        // Guard against corrupted DB values (e.g. null stored as truthy)
-        if (typeof raw !== "string") return;
+      const raw = aliases[stripped];
+      // Only honor string aliases; corrupted/non-string DB values fall through
+      // to the static alias resolution below (never return undefined here).
+      if (typeof raw === "string" && raw) {
         // Strip the "antigravity/" prefix if present; use the raw model ID otherwise.
         const PREFIX = "antigravity/";
         clean = raw.startsWith(PREFIX) ? raw.slice(PREFIX.length) : raw;

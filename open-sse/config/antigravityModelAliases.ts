@@ -1,5 +1,3 @@
-import { getDbInstance } from "@/lib/db/core";
-
 export const ANTIGRAVITY_PUBLIC_MODELS = Object.freeze([
   // Gemini 3.5 Flash — flagship model in Antigravity 2.0 (May 2026)
   {
@@ -139,24 +137,6 @@ const UPSTREAM_PUBLIC_MODEL_IDS = new Set(
   ANTIGRAVITY_PUBLIC_MODELS.map((model) => resolveAntigravityModelId(model.id))
 );
 
-// Lazy DB accessor — memoizes the DB instance for reuse across calls.
-let _lazyDb: ReturnType<typeof getDbInstance> | null = null;
-let _lazyDbAttempted = false;
-function getLazyDb() {
-  if (!_lazyDbAttempted) {
-    _lazyDbAttempted = true;
-    try {
-      _lazyDb = getDbInstance();
-    } catch {
-      // Transient DB failure (build phase, lock, etc.) — reset the flag
-      // so subsequent calls can retry instead of being permanently disabled.
-      _lazyDbAttempted = false;
-      _lazyDb = null;
-    }
-  }
-  return _lazyDb;
-}
-
 export function resolveAntigravityModelId(modelId: string): string {
   if (!modelId) return modelId;
   return (ANTIGRAVITY_MODEL_ALIASES as AntigravityModelAliasMap)[modelId] || modelId;
@@ -178,35 +158,5 @@ export function isUserCallableAntigravityModelId(modelId: string): boolean {
   if (!modelId) return false;
   const clientId = toClientAntigravityModelId(modelId);
   const upstreamId = resolveAntigravityModelId(modelId);
-
-  // 1. Check static public model sets first (fast, no DB)
-  if (PUBLIC_MODEL_IDS.has(clientId) || UPSTREAM_PUBLIC_MODEL_IDS.has(upstreamId)) {
-    return true;
-  }
-
-  // 2. Check dynamic MITM alias table (populated from synced models).
-  //    After the first successful sync, this table contains ONLY models
-  //    that currently exist upstream — removed models are excluded.
-  try {
-    const db = getLazyDb();
-    if (!db) return false;
-    const row = db
-      .prepare(
-        "SELECT value FROM key_value WHERE namespace = 'mitmAlias' AND key = 'antigravity'"
-      )
-      .get();
-    if (row) {
-      const r = row as unknown as { value: string };
-      if (!r.value) return false;
-      const aliases = JSON.parse(r.value) as Record<string, unknown>;
-      // Check both the raw modelId and the resolved client/upstream IDs
-      if (aliases[modelId] || aliases[clientId] || aliases[upstreamId]) {
-        return true;
-      }
-    }
-  } catch {
-    // DB not available (build phase, first load) — skip dynamic check
-  }
-
-  return false;
+  return PUBLIC_MODEL_IDS.has(clientId) || UPSTREAM_PUBLIC_MODEL_IDS.has(upstreamId);
 }
