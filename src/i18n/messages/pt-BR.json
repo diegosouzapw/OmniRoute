@@ -2471,42 +2471,78 @@
     "actor": "Autor",
     "actorPlaceholder": "Filtrar por autor",
     "eventTypes": {
-      "apiKey.activate": "API Key Ativada",
-      "apiKey.ban": "API Key Banida",
-      "apiKey.deactivate": "API Key Desativada",
-      "apiKey.regenerate": "API Key Regenerada",
-      "apiKey.scopes.grant": "Escopos de API Key Concedidos",
-      "apiKey.scopes.revoke": "Escopos de API Key Revogados",
-      "apiKey.scopes.update": "Escopos de API Key Atualizados",
-      "apiKey.unban": "API Key Desbanida",
-      "auth.login.error": "Erro de Login",
-      "auth.login.failed": "Login Falhou",
-      "auth.login.locked": "Login Bloqueado",
-      "auth.login.misconfigured": "Login Mal Configurado",
-      "auth.login.setup_required": "Configuração de Login Necessária",
-      "auth.login.success": "Login com Sucesso",
-      "auth.logout.success": "Logout com Sucesso",
-      "compliance.cleanup": "Limpeza de Conformidade",
-      "provider.credentials.applied": "Credenciais do Provedor Aplicadas",
-      "provider.credentials.batch_revoked": "Credenciais do Provedor Revogadas em Lote",
-      "provider.credentials.bulk_created": "Credenciais do Provedor Criadas em Massa",
-      "provider.credentials.bulk_imported": "Credenciais do Provedor Importadas em Massa",
-      "provider.credentials.created": "Credenciais do Provedor Criadas",
-      "provider.credentials.imported": "Credenciais do Provedor Importadas",
-      "provider.credentials.revoked": "Credenciais do Provedor Revogadas",
-      "provider.credentials.updated": "Credenciais do Provedor Atualizadas",
-      "provider.validation.ssrf_blocked": "SSRF do Provedor Bloqueado",
-      "quota.plan.updated": "Plano de Cota Atualizado",
-      "quota.pool.created": "Pool de Cota Criado",
-      "quota.pool.deleted": "Pool de Cota Excluído",
-      "quota.pool.updated": "Pool de Cota Atualizado",
-      "quota.store.driver_changed": "Driver do Store de Cota Alterado",
-      "server.start": "Servidor Iniciado",
-      "service.reveal_api_key": "API Key do Serviço Revelada",
-      "settings.update": "Configurações Atualizadas",
-      "settings.update_failed": "Falha ao Atualizar Configurações",
-      "sync.token.created": "Token de Sincronização Criado",
-      "sync.token.revoked": "Token de Sincronização Revogado"
+      "apiKey": {
+        "activate": "API Key Ativada",
+        "ban": "API Key Banida",
+        "deactivate": "API Key Desativada",
+        "regenerate": "API Key Regenerada",
+        "scopes": {
+          "grant": "Escopos de API Key Concedidos",
+          "revoke": "Escopos de API Key Revogados",
+          "update": "Escopos de API Key Atualizados"
+        },
+        "unban": "API Key Desbanida"
+      },
+      "auth": {
+        "login": {
+          "error": "Erro de Login",
+          "failed": "Login Falhou",
+          "locked": "Login Bloqueado",
+          "misconfigured": "Login Mal Configurado",
+          "setup_required": "Configuração de Login Necessária",
+          "success": "Login com Sucesso"
+        },
+        "logout": {
+          "success": "Logout com Sucesso"
+        }
+      },
+      "compliance": {
+        "cleanup": "Limpeza de Conformidade"
+      },
+      "provider": {
+        "credentials": {
+          "applied": "Credenciais do Provedor Aplicadas",
+          "batch_revoked": "Credenciais do Provedor Revogadas em Lote",
+          "bulk_created": "Credenciais do Provedor Criadas em Massa",
+          "bulk_imported": "Credenciais do Provedor Importadas em Massa",
+          "created": "Credenciais do Provedor Criadas",
+          "imported": "Credenciais do Provedor Importadas",
+          "revoked": "Credenciais do Provedor Revogadas",
+          "updated": "Credenciais do Provedor Atualizadas"
+        },
+        "validation": {
+          "ssrf_blocked": "SSRF do Provedor Bloqueado"
+        }
+      },
+      "quota": {
+        "plan": {
+          "updated": "Plano de Cota Atualizado"
+        },
+        "pool": {
+          "created": "Pool de Cota Criado",
+          "deleted": "Pool de Cota Excluído",
+          "updated": "Pool de Cota Atualizado"
+        },
+        "store": {
+          "driver_changed": "Driver do Store de Cota Alterado"
+        }
+      },
+      "server": {
+        "start": "Servidor Iniciado"
+      },
+      "service": {
+        "reveal_api_key": "API Key do Serviço Revelada"
+      },
+      "settings": {
+        "update": "Configurações Atualizadas",
+        "update_failed": "Falha ao Atualizar Configurações"
+      },
+      "sync": {
+        "token": {
+          "created": "Token de Sincronização Criado",
+          "revoked": "Token de Sincronização Revogado"
+        }
+      }
     }
   },
   "contextCaveman": {
@@ -5311,7 +5347,7 @@
     "title": "Compartilhamento de Cota",
     "description": "Compartilhe cotas de provedores entre API keys com limites %",
     "newPool": "Novo pool",
-    "betaTitle": "Beta — UI preview.",
+    "betaTitle": "Beta",
     "betaDescription": "A configuração é salva em localStorage (ainda não persistida no servidor). A aplicação dos caps por request ainda não está conectada ao pipeline da proxy. Esta tela permite desenhar e visualizar a divisão de cota; a aplicação real virá em uma próxima iteração com persistência no banco e interceptação na chamada upstream.",
     "kpiActivePools": "Pools ativos",
     "kpiKeysAllocated": "Keys alocadas",
@@ -5433,7 +5469,6 @@
     "endpointsAnthropicNote": "nativo Anthropic",
     "endpointsResponsesNote": "OpenAI Responses — codex/github",
     "endpointsWsNote": "WebSocket — somente codex",
-    "betaTitle": "Beta",
     "betaText": "O Quota Share está funcional, mas bugs são esperados. Encontrou um? Reporte, por favor.",
     "betaReportLink": "Abrir uma issue",
     "deleteGroup": "Excluir grupo",

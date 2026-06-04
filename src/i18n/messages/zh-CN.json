@@ -1285,42 +1285,78 @@
     "actor": "演员",
     "actorPlaceholder": "按演员筛选",
     "eventTypes": {
-      "apiKey.activate": "API 密钥已激活",
-      "apiKey.ban": "API 密钥已被禁止",
-      "apiKey.deactivate": "API 密钥已停用",
-      "apiKey.regenerate": "API 密钥已重新生成",
-      "apiKey.scopes.grant": "API 密钥范围已授予",
-      "apiKey.scopes.revoke": "API 密钥范围已被撤销",
-      "apiKey.scopes.update": "API 密钥范围已更新",
-      "apiKey.unban": "API 密钥已解禁",
-      "auth.login.error": "登录错误",
-      "auth.login.failed": "登录失败",
-      "auth.login.locked": "登录被锁定",
-      "auth.login.misconfigured": "登录配置错误",
-      "auth.login.setup_required": "需要登录设置",
-      "auth.login.success": "登录成功",
-      "auth.logout.success": "注销成功",
-      "compliance.cleanup": "合规清理",
-      "provider.credentials.applied": "提供者凭据已应用",
-      "provider.credentials.batch_revoked": "提供者凭据批次已撤销",
-      "provider.credentials.bulk_created": "提供者凭据批量创建",
-      "provider.credentials.bulk_imported": "提供者凭据已批量导入",
-      "provider.credentials.created": "提供者凭据已创建",
-      "provider.credentials.imported": "提供者凭据已导入",
-      "provider.credentials.revoked": "提供者凭据已被撤销",
-      "provider.credentials.updated": "提供者凭据已更新",
-      "provider.validation.ssrf_blocked": "提供者 SSRF 被阻止",
-      "quota.plan.updated": "配额计划已更新",
-      "quota.pool.created": "配额池已创建",
-      "quota.pool.deleted": "配额池已删除",
-      "quota.pool.updated": "配额池已更新",
-      "quota.store.driver_changed": "配额存储驱动程序已更改",
-      "server.start": "服务器启动",
-      "service.reveal_api_key": "服务 API 密钥已泄露",
-      "settings.update": "设置已更新",
-      "settings.update_failed": "设置更新失败",
-      "sync.token.created": "同步令牌已创建",
-      "sync.token.revoked": "同步令牌已撤销"
+      "apiKey": {
+        "activate": "API 密钥已激活",
+        "ban": "API 密钥已被禁止",
+        "deactivate": "API 密钥已停用",
+        "regenerate": "API 密钥已重新生成",
+        "scopes": {
+          "grant": "API 密钥范围已授予",
+          "revoke": "API 密钥范围已被撤销",
+          "update": "API 密钥范围已更新"
+        },
+        "unban": "API 密钥已解禁"
+      },
+      "auth": {
+        "login": {
+          "error": "登录错误",
+          "failed": "登录失败",
+          "locked": "登录被锁定",
+          "misconfigured": "登录配置错误",
+          "setup_required": "需要登录设置",
+          "success": "登录成功"
+        },
+        "logout": {
+          "success": "注销成功"
+        }
+      },
+      "compliance": {
+        "cleanup": "合规清理"
+      },
+      "provider": {
+        "credentials": {
+          "applied": "提供者凭据已应用",
+          "batch_revoked": "提供者凭据批次已撤销",
+          "bulk_created": "提供者凭据批量创建",
+          "bulk_imported": "提供者凭据已批量导入",
+          "created": "提供者凭据已创建",
+          "imported": "提供者凭据已导入",
+          "revoked": "提供者凭据已被撤销",
+          "updated": "提供者凭据已更新"
+        },
+        "validation": {
+          "ssrf_blocked": "提供者 SSRF 被阻止"
+        }
+      },
+      "quota": {
+        "plan": {
+          "updated": "配额计划已更新"
+        },
+        "pool": {
+          "created": "配额池已创建",
+          "deleted": "配额池已删除",
+          "updated": "配额池已更新"
+        },
+        "store": {
+          "driver_changed": "配额存储驱动程序已更改"
+        }
+      },
+      "server": {
+        "start": "服务器启动"
+      },
+      "service": {
+        "reveal_api_key": "服务 API 密钥已泄露"
+      },
+      "settings": {
+        "update": "设置已更新",
+        "update_failed": "设置更新失败"
+      },
+      "sync": {
+        "token": {
+          "created": "同步令牌已创建",
+          "revoked": "同步令牌已撤销"
+        }
+      }
     }
   },
   "themesPage": {

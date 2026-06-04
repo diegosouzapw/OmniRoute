@@ -1285,42 +1285,78 @@
     "actor": "Актер",
     "actorPlaceholder": "Фильтровать по актеру",
     "eventTypes": {
-      "apiKey.activate": "Ключ API активирован",
-      "apiKey.ban": "Ключ API заблокирован",
-      "apiKey.deactivate": "Ключ API деактивирован",
-      "apiKey.regenerate": "Ключ API восстановлен",
-      "apiKey.scopes.grant": "Предоставленные области ключа API",
-      "apiKey.scopes.revoke": "Области API-ключа отозваны",
-      "apiKey.scopes.update": "Области ключа API обновлены",
-      "apiKey.unban": "API Ключ Разблокирован",
-      "auth.login.error": "Ошибка входа",
-      "auth.login.failed": "Не удалось войти",
-      "auth.login.locked": "Вход заблокирован",
-      "auth.login.misconfigured": "Ошибка конфигурации входа",
-      "auth.login.setup_required": "Требуется настройка входа",
-      "auth.login.success": "Успешный вход",
-      "auth.logout.success": "Успешный выход",
-      "compliance.cleanup": "Очистка соответствия",
-      "provider.credentials.applied": "Учетные данные поставщика применены",
-      "provider.credentials.batch_revoked": "Учетные данные поставщика отозваны批量",
-      "provider.credentials.bulk_created": "Учетные данные поставщика созданы массово",
-      "provider.credentials.bulk_imported": "Учетные данные поставщика массово импортированы",
-      "provider.credentials.created": "Учетные данные провайдера созданы",
-      "provider.credentials.imported": "Учетные данные поставщика импортированы",
-      "provider.credentials.revoked": "Учетные данные провайдера отозваны",
-      "provider.credentials.updated": "Учетные данные провайдера обновлены",
-      "provider.validation.ssrf_blocked": "Провайдер SSRF заблокирован",
-      "quota.plan.updated": "План квоты обновлён",
-      "quota.pool.created": "Создан пул квот",
-      "quota.pool.deleted": "Пул квот удалён",
-      "quota.pool.updated": "Квота пула обновлена",
-      "quota.store.driver_changed": "Драйвер хранилища квот изменен",
-      "server.start": "Запуск сервера",
-      "service.reveal_api_key": "Ключ API сервиса раскрыт",
-      "settings.update": "Настройки обновлены",
-      "settings.update_failed": "Не удалось обновить настройки",
-      "sync.token.created": "Токен синхронизации создан",
-      "sync.token.revoked": "Токен синхронизации отозван"
+      "apiKey": {
+        "activate": "Ключ API активирован",
+        "ban": "Ключ API заблокирован",
+        "deactivate": "Ключ API деактивирован",
+        "regenerate": "Ключ API восстановлен",
+        "scopes": {
+          "grant": "Предоставленные области ключа API",
+          "revoke": "Области API-ключа отозваны",
+          "update": "Области ключа API обновлены"
+        },
+        "unban": "API Ключ Разблокирован"
+      },
+      "auth": {
+        "login": {
+          "error": "Ошибка входа",
+          "failed": "Не удалось войти",
+          "locked": "Вход заблокирован",
+          "misconfigured": "Ошибка конфигурации входа",
+          "setup_required": "Требуется настройка входа",
+          "success": "Успешный вход"
+        },
+        "logout": {
+          "success": "Успешный выход"
+        }
+      },
+      "compliance": {
+        "cleanup": "Очистка соответствия"
+      },
+      "provider": {
+        "credentials": {
+          "applied": "Учетные данные поставщика применены",
+          "batch_revoked": "Учетные данные поставщика отозваны批量",
+          "bulk_created": "Учетные данные поставщика созданы массово",
+          "bulk_imported": "Учетные данные поставщика массово импортированы",
+          "created": "Учетные данные провайдера созданы",
+          "imported": "Учетные данные поставщика импортированы",
+          "revoked": "Учетные данные провайдера отозваны",
+          "updated": "Учетные данные провайдера обновлены"
+        },
+        "validation": {
+          "ssrf_blocked": "Провайдер SSRF заблокирован"
+        }
+      },
+      "quota": {
+        "plan": {
+          "updated": "План квоты обновлён"
+        },
+        "pool": {
+          "created": "Создан пул квот",
+          "deleted": "Пул квот удалён",
+          "updated": "Квота пула обновлена"
+        },
+        "store": {
+          "driver_changed": "Драйвер хранилища квот изменен"
+        }
+      },
+      "server": {
+        "start": "Запуск сервера"
+      },
+      "service": {
+        "reveal_api_key": "Ключ API сервиса раскрыт"
+      },
+      "settings": {
+        "update": "Настройки обновлены",
+        "update_failed": "Не удалось обновить настройки"
+      },
+      "sync": {
+        "token": {
+          "created": "Токен синхронизации создан",
+          "revoked": "Токен синхронизации отозван"
+        }
+      }
     }
   },
   "themesPage": {
