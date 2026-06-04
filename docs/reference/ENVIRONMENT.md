@@ -877,6 +877,7 @@ Provider quota endpoints, network tunnels (Tailscale, Ngrok, MITM debug proxy), 
 | `DB_BACKUP_MAX_FILES`                      | `20`                                                                        | `src/lib/db/backup.ts`                              | Maximum SQLite backup files retained on disk.                               |
 | `DB_BACKUP_RETENTION_DAYS`                 | `0`                                                                         | `src/lib/db/backup.ts`                              | Maximum age (days) of retained backups. `0` disables age-based pruning.     |
 | `OMNIROUTE_TLS_PROXY_URL`                  | _(unset)_                                                                   | `open-sse/services/chatgptTlsClient.ts`             | Override the TLS sidecar URL for tests. Production should leave unset.      |
+| `CONTAINER_HOST` | `docker` | `scripts/check-permissions.sh` | Container runtime hint for the entrypoint permission check. Set to `podman` under rootless Podman so the fix instructions use `podman unshare chown` instead of `sudo chown`. |
 | `QUOTA_STORE_DRIVER` | `sqlite` | `src/lib/quota/storeFactory.ts` | Quota-share consumption store backend: `sqlite` (default) or `redis`. |
 | `QUOTA_STORE_REDIS_URL` | _(unset)_ | `src/lib/quota/storeFactory.ts` | Redis connection string used when `QUOTA_STORE_DRIVER=redis` (e.g. `redis://localhost:6379`). |
 | `QUOTA_SATURATION_THRESHOLD` | `0.5` | `src/lib/quota/enforce.ts` | Pool saturation ratio (0..1); at/above it the pool enters strict mode (no borrowing). |
