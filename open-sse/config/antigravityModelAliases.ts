@@ -191,7 +191,7 @@ export function isUserCallableAntigravityModelId(modelId: string): boolean {
       .prepare(
         "SELECT value FROM key_value WHERE namespace = 'mitmAlias' AND key = 'antigravity'"
       )
-      .get(null);
+      .get();
     if (row) {
       const r = row as unknown as { value: string };
       if (!r.value) return false;
