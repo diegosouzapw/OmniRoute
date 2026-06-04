@@ -6289,6 +6289,8 @@
     "notApplicable": "N/A",
     "rawPlanWithValue": "Raw plan: {plan}",
     "noPlanFromProvider": "No plan from provider",
+    "tokenExpiresIn": "Token expires in {time}",
+    "tokenExpired": "Token expired",
     "noQuotaData": "No quota data",
     "cardExpand": "Expand",
     "cardCollapse": "Collapse",
