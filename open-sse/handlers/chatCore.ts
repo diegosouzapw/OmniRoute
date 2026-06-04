@@ -1,4 +1,5 @@
 import { CORS_HEADERS } from "../utils/cors.ts";
+import { HEAP_PRESSURE_THRESHOLD_MB } from "../utils/heapPressure.ts";
 import { normalizeHeaders } from "../utils/headers.ts";
 import { detectFormatFromEndpoint, getTargetFormat } from "../services/provider.ts";
 import { injectSystemPrompt } from "../services/systemPrompt.ts";
@@ -12,6 +13,7 @@ import {
   withBodyTimeout,
 } from "../utils/stream.ts";
 import { ensureStreamReadiness } from "../utils/streamReadiness.ts";
+import { synthesizeOpenAiSseFromJson } from "../utils/jsonToSse.ts";
 import { resolveStreamReadinessTimeout } from "../utils/streamReadinessPolicy.ts";
 import { createStreamController, pipeWithDisconnect } from "../utils/streamHandler.ts";
 import { createSseHeartbeatTransform, shapeForClientFormat } from "../utils/sseHeartbeat.ts";
@@ -59,7 +61,8 @@ import {
   PROVIDER_ERROR_TYPES,
   isEmptyContentResponse,
 } from "../services/errorClassifier.ts";
-import { updateProviderConnection } from "@/lib/db/providers";
+import { updateProviderConnection, getProviderConnectionById } from "@/lib/db/providers";
+import { wasRefreshTokenRotated } from "@omniroute/open-sse/services/refreshSerializer.ts";
 import {
   recordKeyFailure,
   recordKeySuccess,
@@ -173,6 +176,8 @@ import {
 } from "@/lib/semanticCache";
 import { getIdempotencyKey, checkIdempotency, saveIdempotency } from "@/lib/idempotencyLayer";
 import { createProgressTransform, wantsProgress } from "../utils/progressTracker.ts";
+import { createPiiSseTransform } from "@/lib/streamingPiiTransform";
+import { isFeatureFlagEnabled } from "@/shared/utils/featureFlags";
 import {
   isModelUnavailableError,
   getNextFamilyFallback,
@@ -228,6 +233,13 @@ import {
 
 const MEMORY_EXTRACTION_TEXT_LIMIT = 64 * 1024;
 
+// ── Global memory pressure guard ────────────────────────────────────────
+// Prevents OOM by rejecting new requests when V8 heap exceeds threshold.
+// Self-healing: no counters to leak, no cleanup needed. The threshold
+// auto-calibrates to 85% of the actual V8 heap ceiling (see heapPressure.ts) so
+// it tracks --max-old-space-size across 1GB/2GB/large VPS instead of a fixed
+// 200MB that sat below the app's own ~260MB baseline and rejected every request.
+
 function capMemoryExtractionText(value: string): string {
   if (value.length <= MEMORY_EXTRACTION_TEXT_LIMIT) return value;
   return value.slice(-MEMORY_EXTRACTION_TEXT_LIMIT);
@@ -278,6 +290,32 @@ function cloneBoundedChatLogPayload(value: unknown, depth = 0): unknown {
 }
 
 import { estimateSizeFast, isSmallEnoughForSemanticCache } from "../utils/estimateSize.ts";
+
+const MAX_LOG_BODY_CHARS = 8 * 1024; // 8KB cap for logged request/response bodies
+/**
+ * Truncate a large object for logging. If its JSON representation exceeds
+ * MAX_LOG_BODY_CHARS, return a lightweight summary instead of the full clone.
+ * This prevents persistAttemptLogs from holding multi-MB references to
+ * translatedBody across 17 call sites per request.
+ */
+function truncateForLog(value: unknown): Record<string, unknown> | null | undefined {
+  if (value === null || value === undefined) return value as null | undefined;
+  if (typeof value !== "object") return value as unknown as Record<string, unknown>;
+  const estimatedSize = estimateSizeFast(value);
+  if (estimatedSize <= MAX_LOG_BODY_CHARS) return value as Record<string, unknown>;
+  // Object is too large — return a summary instead of a deep clone
+  const obj = value as Record<string, unknown>;
+  const summary: Record<string, unknown> = {
+    _truncated: true,
+    _originalBytes: estimatedSize,
+  };
+  if (typeof obj.model === "string") summary.model = obj.model;
+  if (typeof obj.provider === "string") summary.provider = obj.provider;
+  if (Array.isArray(obj.messages)) summary.messageCount = obj.messages.length;
+  if (Array.isArray(obj.contents)) summary.contentCount = obj.contents.length;
+  if (typeof obj.stream === "boolean") summary.stream = obj.stream;
+  return summary;
+}
 
 function extractMemoryTextFromResponse(
   response: Record<string, unknown> | null | undefined
@@ -1482,8 +1520,37 @@ export async function handleChatCore({
   disableEmergencyFallback = false,
   cachedSettings = null,
   skipUpstreamRetry = false,
+  createPiiTransform = null,
 }) {
   let { provider, model, extendedContext } = modelInfo;
+  // ── Memory pressure guard ────────────────────────────────────────────
+  // Reject early if V8 heap is already near the 256MB limit. Prevents
+  // cascading OOM when many large-context requests arrive concurrently.
+  try {
+    const heapUsedMB = process.memoryUsage().heapUsed / (1024 * 1024);
+    if (heapUsedMB > HEAP_PRESSURE_THRESHOLD_MB) {
+      // Internal telemetry only — never expose the heap figure to clients (Hard Rule #12).
+      console.warn(
+        `[chatCore] heap pressure guard tripped: ${Math.round(heapUsedMB)}MB > ${HEAP_PRESSURE_THRESHOLD_MB}MB; returning 503`
+      );
+      return {
+        success: false,
+        status: 503,
+        error: "Service temporarily unavailable due to resource pressure. Retry shortly.",
+        response: new Response(
+          JSON.stringify({
+            error: {
+              message: "Service temporarily unavailable due to resource pressure. Retry shortly.",
+              type: "server_error",
+              code: "heap_pressure",
+            },
+          }),
+          { status: 503, headers: { "Content-Type": "application/json", "Retry-After": "5" } }
+        ),
+      };
+    }
+  } catch { /* memoryUsage() never throws */ }
+
   // apiFormat is an optional custom-model marker injected by getModelInfo for
   // providers whose models can route to /chat/completions or /responses
   // (Azure AI Foundry, OCI generic OpenAI). It's not on the base ModelInfo
@@ -1492,6 +1559,15 @@ export async function handleChatCore({
     modelInfo && typeof modelInfo === "object" && "apiFormat" in modelInfo
       ? typeof (modelInfo as { apiFormat?: unknown }).apiFormat === "string"
         ? ((modelInfo as { apiFormat?: string }).apiFormat as string)
+        : undefined
+      : undefined;
+  // #2905: per-model wire-format override for custom models, injected by
+  // getModelInfo. Custom models are not in the static registry, so
+  // getModelTargetFormat() can't see this — use it before the provider default.
+  const customModelTargetFormat: string | undefined =
+    modelInfo && typeof modelInfo === "object" && "targetFormat" in modelInfo
+      ? typeof (modelInfo as { targetFormat?: unknown }).targetFormat === "string"
+        ? ((modelInfo as { targetFormat?: string }).targetFormat as string)
         : undefined
       : undefined;
   const requestedModel =
@@ -1532,7 +1608,7 @@ export async function handleChatCore({
   // ── Plugin onRequest hook ──
   // Dynamic import cached by Node.js after first call — minimal overhead
   try {
-    const { runOnRequest } = await import("@/lib/plugins/index");
+    const { runOnRequest } = await import("@/lib/plugins/hooks");
     const pluginCtx = {
       requestId: traceId,
       body,
@@ -1564,8 +1640,11 @@ export async function handleChatCore({
             ),
       };
     }
-    if (pluginResult?.ctx && "body" in pluginResult.ctx) {
-      body = (pluginResult.ctx as unknown as Record<string, unknown>).body;
+    if (pluginResult?.body) {
+      body = pluginResult.body;
+    }
+    if (pluginResult?.metadata) {
+      Object.assign(pluginCtx.metadata, pluginResult.metadata);
     }
   } catch (pluginErr) {
     log?.debug?.(
@@ -1875,7 +1954,9 @@ export async function handleChatCore({
   const targetFormat =
     apiFormat === "responses"
       ? FORMATS.OPENAI_RESPONSES
-      : modelTargetFormat || getTargetFormat(provider, credentials?.providerSpecificData);
+      : modelTargetFormat ||
+        customModelTargetFormat ||
+        getTargetFormat(provider, credentials?.providerSpecificData);
 
   const initialProviderRequest =
     body && typeof body === "object" && !Array.isArray(body)
@@ -2024,16 +2105,16 @@ export async function handleChatCore({
       model,
       requestedModel,
       provider,
-      connectionId,
+      connectionId: connectionId || credentials?.connectionId || undefined,
       duration: Date.now() - startTime,
       tokens: tokens || {},
       requestBody: cloneBoundedChatLogPayload(
-        attachLogMeta((body as Record<string, unknown>) ?? undefined, {
+        attachLogMeta(truncateForLog(body as Record<string, unknown>), {
           claudePromptCache: claudeCacheMeta,
         })
       ),
       responseBody: cloneBoundedChatLogPayload(
-        attachLogMeta((responseBody as Record<string, unknown>) ?? undefined, {
+        attachLogMeta(truncateForLog(responseBody as Record<string, unknown>), {
           claudePromptCache: claudeCacheMeta
             ? {
                 applied: claudeCacheMeta.applied,
@@ -2115,6 +2196,12 @@ export async function handleChatCore({
     clientRawRequest?.headers && typeof clientRawRequest.headers.get === "function"
       ? clientRawRequest.headers.get("accept") || clientRawRequest.headers.get("Accept")
       : clientRawRequest?.headers?.["accept"] || clientRawRequest?.headers?.["Accept"];
+  const streamUserAgent = [
+    typeof userAgent === "string" ? userAgent : "",
+    getHeaderValueCaseInsensitive(clientRawRequest?.headers ?? null, "user-agent") || "",
+  ]
+    .filter(Boolean)
+    .join(" ");
 
   const explicitStreamAlias = resolveExplicitStreamAlias(body);
 
@@ -2140,7 +2227,14 @@ export async function handleChatCore({
   const stream =
     nativeCodexPassthrough && isCompactResponsesEndpoint(endpointPath)
       ? false
-      : resolveStreamFlag(body?.stream, acceptHeader, sourceFormat);
+      : resolveStreamFlag(body?.stream, acceptHeader, sourceFormat, {
+          userAgent: streamUserAgent,
+          streamDefaultMode: apiKeyInfo?.streamDefaultMode,
+        });
+  // `settings` is already consolidated once near the top of handleChatCore
+  // (the "fetch once, reuse" const). A second `const settings` here was a
+  // duplicate same-scope declaration that broke the esbuild/tsx transform
+  // ("settings has already been declared") and the production build. Reuse it.
   credentials = applyCodexGlobalFastServiceTier(provider, credentials, settings, {
     model: requestedModel,
     body: body && typeof body === "object" ? (body as Record<string, unknown>) : null,
@@ -2197,20 +2291,28 @@ export async function handleChatCore({
         cacheSource: "semantic",
       });
       trackPendingRequest(model, provider, connectionId, false);
+      // #2952 — when the client requested a stream, serve the cached completion
+      // as an SSE stream (not a raw JSON body) so content + reasoning_content
+      // arrive in the streaming shape the client expects. Cache hits previously
+      // returned application/json regardless of the stream flag, which made
+      // OpenAI-compatible streaming clients lose reasoning_content. Non-OpenAI
+      // shapes (no `choices`) yield "" and fall back to the JSON body unchanged.
+      const cachedSse = stream ? synthesizeOpenAiSseFromJson(JSON.stringify(cached)) : "";
+      const cacheHitMetaHeaders = buildOmniRouteResponseMetaHeaders({
+        provider,
+        model,
+        cacheHit: true,
+        latencyMs: Date.now() - startTime,
+        usage: cachedUsage,
+        costUsd: cachedCost,
+      });
       return {
         success: true,
-        response: new Response(JSON.stringify(cached), {
+        response: new Response(cachedSse || JSON.stringify(cached), {
           headers: {
-            "Content-Type": "application/json",
+            "Content-Type": cachedSse ? "text/event-stream" : "application/json",
             [OMNIROUTE_RESPONSE_HEADERS.cache]: "HIT",
-            ...buildOmniRouteResponseMetaHeaders({
-              provider,
-              model,
-              cacheHit: true,
-              latencyMs: Date.now() - startTime,
-              usage: cachedUsage,
-              costUsd: cachedCost,
-            }),
+            ...cacheHitMetaHeaders,
           },
         }),
       };
@@ -2299,9 +2401,84 @@ export async function handleChatCore({
     })
   ) {
     try {
+      // Plan 21 FAIL #1 fix: extract the last user message and pass it as
+      // `query`. Without this, `config.query` is undefined in retrieveMemories
+      // and the semantic/hybrid branches (sqlite-vec + RRF, and Qdrant
+      // tier-2) never fire from the chat hot path — they only fire in the
+      // Playground (retrievePreview, which gets `query` as a positional arg).
+      const lastUserQuery = ((): string => {
+        // Responses API item types that are NOT user input — never accept
+        // their text as the retrieval query (e.g. function_call_output is the
+        // tool's reply, reasoning is the model's chain of thought).
+        const NON_USER_TYPES = new Set([
+          "function_call",
+          "function_call_output",
+          "tool_call",
+          "tool_call_output",
+          "reasoning",
+          "computer_call",
+          "computer_call_output",
+          "web_search_call",
+          "file_search_call",
+        ]);
+
+        function pickFrom(arr: unknown[]): string {
+          for (let i = arr.length - 1; i >= 0; i--) {
+            const item = arr[i] as Record<string, unknown> | undefined;
+            if (!item) continue;
+            // Chat API: only role==="user" items. Responses API items often
+            // have type instead of role — skip non-user types like
+            // function_call_output so the tool's reply doesn't leak into the
+            // memory query.
+            if (item.role !== undefined && item.role !== "user") continue;
+            if (item.role === undefined && typeof item.type === "string") {
+              if (NON_USER_TYPES.has(item.type)) continue;
+            }
+            const content = item.content ?? item.text;
+            if (typeof content === "string" && content.trim().length > 0) {
+              return content;
+            }
+            if (Array.isArray(content)) {
+              const parts: string[] = [];
+              for (const p of content) {
+                if (typeof p === "string") {
+                  parts.push(p);
+                } else if (p && typeof p === "object") {
+                  const pp = p as Record<string, unknown>;
+                  // Skip non-text content parts (image_url, tool_use, etc.)
+                  const ptype = typeof pp.type === "string" ? pp.type : "";
+                  if (
+                    ptype &&
+                    ptype !== "text" &&
+                    ptype !== "input_text" &&
+                    ptype !== "output_text"
+                  ) {
+                    continue;
+                  }
+                  const t = pp.text ?? pp.input_text;
+                  if (typeof t === "string") parts.push(t);
+                }
+              }
+              if (parts.length > 0) return parts.join(" ").trim();
+            }
+          }
+          return "";
+        }
+        const b = body as Record<string, unknown>;
+        if (Array.isArray(b.messages)) {
+          const r = pickFrom(b.messages);
+          if (r) return r;
+        }
+        if (Array.isArray(b.input)) {
+          const r = pickFrom(b.input);
+          if (r) return r;
+        }
+        return "";
+      })();
+
       const memories = await retrieveMemories(
         memoryOwnerId,
-        toMemoryRetrievalConfig(memorySettings)
+        toMemoryRetrievalConfig(memorySettings, { query: lastUserQuery })
       );
       if (memories.length > 0) {
         const injected = injectMemory(
@@ -3255,7 +3432,7 @@ export async function handleChatCore({
   } catch (error) {
     // ── Plugin onError hook ──
     try {
-      const { runOnError } = await import("@/lib/plugins/index");
+      const { runOnError } = await import("@/lib/plugins/hooks");
       await runOnError(
         { requestId: traceId, body, model, provider, apiKeyInfo, metadata: {} },
         error instanceof Error ? error : new Error(String(error))
@@ -3484,6 +3661,71 @@ export async function handleChatCore({
     };
     return wrapper;
   };
+
+  // === Quota Share enforcement PRE-hook (B/F7) ===
+  // Runs after provider/model/credentials/apiKeyInfo are fully resolved,
+  // before dispatcher. Fail-open per B16: errors → allow.
+  let quotaSoftDeprioritize = false;
+  if (apiKeyInfo?.id && credentials?.connectionId) {
+    try {
+      const { enforceQuotaShare } = await import("@/lib/quota/enforce");
+      const decision = await enforceQuotaShare({
+        apiKeyId: apiKeyInfo.id,
+        connectionId: credentials.connectionId,
+        provider: provider ?? "unknown",
+        estimatedCost: {},
+      }).catch((err: unknown) => {
+        log?.warn?.(
+          "QUOTA_SHARE",
+          `enforceQuotaShare failed; fail-open: ${err instanceof Error ? err.message : String(err)}`
+        );
+        return { kind: "allow" as const };
+      });
+
+      if (decision.kind === "block") {
+        const { buildErrorBody } = await import("../utils/error.ts");
+        log?.warn?.(
+          "QUOTA_SHARE",
+          `[quotaShare] blocked apiKeyId=${apiKeyInfo.id} provider=${provider ?? "unknown"}: ${decision.reason}`
+        );
+        const headers: Record<string, string> = { "Content-Type": "application/json" };
+        if (decision.retryAfterSeconds) {
+          headers["Retry-After"] = String(decision.retryAfterSeconds);
+        }
+        return new Response(
+          JSON.stringify(buildErrorBody(429, decision.reason)),
+          { status: 429, headers }
+        );
+      }
+
+      if (decision.kind === "allow" && decision.deprioritize) {
+        quotaSoftDeprioritize = true;
+        log?.info?.(
+          "QUOTA_SHARE",
+          `[quotaShare] soft deprioritize active for apiKeyId=${apiKeyInfo.id} provider=${provider ?? "unknown"}`
+        );
+      }
+    } catch (err) {
+      // Outer fail-open guard — should not be reached (inner .catch covers it)
+      log?.warn?.(
+        "QUOTA_SHARE",
+        `[quotaShare] enforceQuotaShare unexpected error; fail-open: ${err instanceof Error ? err.message : String(err)}`
+      );
+    }
+  }
+  // G2: Propagate soft penalty to the current candidate so combo scoring can deprioritize.
+  if (quotaSoftDeprioritize && isCombo && comboStepId) {
+    try {
+      const { setCandidateQuotaSoftPenalty } = await import("../services/combo");
+      setCandidateQuotaSoftPenalty(comboExecutionKey, comboStepId, true);
+    } catch (err) {
+      log?.warn?.(
+        "QUOTA_SHARE",
+        `[quotaShare] could not set soft penalty on candidate: ${err instanceof Error ? err.message : String(err)}`
+      );
+    }
+  }
+  // === /Quota Share enforcement PRE-hook ===
 
   // Get executor for this provider (with optional upstream proxy routing)
   const executor = await resolveExecutorWithProxy(provider);
@@ -4192,6 +4434,11 @@ export async function handleChatCore({
     // inside getAccessToken, we still need to do the credentials mutation + user
     // callback after refreshCredentials returns. The `persistFnRan` flag tracks
     // which path executed so we don't double-fire (race-prone) or skip (regression).
+    // Front 3: remember the refresh_token we are about to present so that, if the
+    // refresh fails as unrecoverable, we can tell a genuine death apart from a
+    // stale-token reuse that a concurrent/sibling refresh already rotated past.
+    const attemptedRefreshToken =
+      typeof credentials?.refreshToken === "string" ? credentials.refreshToken : null;
     let persistFnRan = false;
     const persistFn = onCredentialsRefreshed
       ? async (refreshResult: Record<string, unknown>) => {
@@ -4274,7 +4521,29 @@ export async function handleChatCore({
     } else {
       log?.warn?.("TOKEN", `${provider?.toUpperCase()} | refresh failed`);
       if (isUnrecoverableRefreshError(newCredentials) && onCredentialsRefreshed) {
-        await onCredentialsRefreshed({ testStatus: "expired", isActive: false });
+        // Front 3 (reuse-race tolerance): before deactivating, re-read the DB.
+        // If a sibling/concurrent refresh already rotated this connection's
+        // refresh_token (common for Codex/OpenAI under one shared Auth0 client),
+        // the failure we saw was a stale-token reuse — the account is healthy
+        // with the newer token, so keep it active instead of killing it.
+        let alreadyRotated = false;
+        if (typeof connectionId === "string" && connectionId && attemptedRefreshToken) {
+          try {
+            const latest = await getProviderConnectionById(connectionId);
+            if (wasRefreshTokenRotated(attemptedRefreshToken, latest?.refreshToken)) {
+              alreadyRotated = true;
+              log?.warn?.(
+                "TOKEN",
+                `${provider.toUpperCase()} | refresh_token already rotated by a concurrent refresh — keeping connection active`
+              );
+            }
+          } catch {
+            // DB read failed — fall through to the safe default (deactivate).
+          }
+        }
+        if (!alreadyRotated) {
+          await onCredentialsRefreshed({ testStatus: "expired", isActive: false });
+        }
       }
     }
   }
@@ -5160,6 +5429,33 @@ export async function handleChatCore({
       recordCost(apiKeyInfo.id, estimatedCost);
     }
 
+    // === Quota Share POST-hook (B/F7) — fire-and-forget, fail-open ===
+    if (apiKeyInfo?.id && credentials?.connectionId) {
+      try {
+        const { scheduleRecordConsumption } = await import("@/lib/quota/spendRecorder");
+        scheduleRecordConsumption(
+          {
+            apiKeyId: apiKeyInfo.id,
+            connectionId: credentials.connectionId,
+            provider: provider ?? "unknown",
+            cost: {
+              tokens:
+                usage && typeof usage === "object"
+                  ? ((usage as Record<string, unknown>).prompt_tokens as number ?? 0) +
+                    ((usage as Record<string, unknown>).completion_tokens as number ?? 0)
+                  : 0,
+              usd: estimatedCost > 0 ? estimatedCost : 0,
+              requests: 1,
+            },
+          },
+          log
+        );
+      } catch (_) {
+        // Outer fail-open — never throws to caller
+      }
+    }
+    // === /Quota Share POST-hook ===
+
     // ── Gamification event (fire-and-forget) ──
     if (apiKeyInfo?.id) {
       try {
@@ -5194,6 +5490,47 @@ export async function handleChatCore({
   }
 
   // Streaming response
+  // #3089 — some "reasoning" openai-compatible upstreams ignore a stream:true
+  // request and return a complete application/json chat-completion body instead
+  // of an SSE stream. The readiness check below only recognizes SSE `data:`
+  // frames, so that body produced a spurious STREAM_EARLY_EOF / HTTP 502 even
+  // though it carried valid content/reasoning_content. Detect a JSON (non-SSE)
+  // upstream body and synthesize an equivalent OpenAI SSE stream so the
+  // streaming pipeline (and the client) get a valid stream.
+  {
+    const upstreamContentType = (providerResponse.headers.get("content-type") || "").toLowerCase();
+    const isNonSseJsonBody =
+      !!providerResponse.body &&
+      upstreamContentType.includes("application/json") &&
+      !upstreamContentType.includes("text/event-stream") &&
+      !upstreamContentType.includes("application/x-ndjson");
+    if (isNonSseJsonBody) {
+      const jsonText = await withBodyTimeout<string>(providerResponse.text());
+      const synthesizedSse = synthesizeOpenAiSseFromJson(jsonText);
+      const rebuiltHeaders = new Headers(providerResponse.headers);
+      rebuiltHeaders.delete("content-length");
+      if (synthesizedSse) {
+        log?.debug?.(
+          "STREAM",
+          `Upstream returned application/json on a streaming request — converting to SSE (${provider}/${model})`
+        );
+        rebuiltHeaders.set("content-type", "text/event-stream");
+        providerResponse = new Response(synthesizedSse, {
+          status: providerResponse.status,
+          statusText: providerResponse.statusText,
+          headers: rebuiltHeaders,
+        });
+      } else {
+        // Not a convertible chat-completion JSON — rebuild the consumed body so
+        // the existing readiness/error path still runs unchanged.
+        providerResponse = new Response(jsonText, {
+          status: providerResponse.status,
+          statusText: providerResponse.statusText,
+          headers: rebuiltHeaders,
+        });
+      }
+    }
+  }
   const streamReadinessPolicy = resolveStreamReadinessTimeout({
     baseTimeoutMs: STREAM_READINESS_TIMEOUT_MS,
     provider,
@@ -5365,6 +5702,37 @@ export async function handleChatCore({
         .catch(() => {});
     }
 
+    // === Quota Share POST-hook streaming (B/F7) — fire-and-forget, fail-open ===
+    if (apiKeyInfo?.id && credentials?.connectionId && streamStatus === 200) {
+      const su = streamUsage as Record<string, unknown> | null;
+      const quotaApiKeyId = apiKeyInfo.id;
+      const quotaConnectionId = credentials.connectionId;
+      // onStreamComplete is sync — use .then() (fire-and-forget, fail-open) instead of await
+      import("@/lib/quota/spendRecorder")
+        .then(({ scheduleRecordConsumption }) => {
+          scheduleRecordConsumption(
+            {
+              apiKeyId: quotaApiKeyId,
+              connectionId: quotaConnectionId,
+              provider: provider ?? "unknown",
+              cost: {
+                tokens: su
+                  ? (Number(su.prompt_tokens ?? 0) || 0) +
+                    (Number(su.completion_tokens ?? 0) || 0)
+                  : 0,
+                usd: 0, // estimatedCost resolved async above; omit to avoid dependency
+                requests: 1,
+              },
+            },
+            log
+          );
+        })
+        .catch(() => {
+          // Outer fail-open — never throws to caller
+        });
+    }
+    // === /Quota Share POST-hook streaming ===
+
     if (
       memoryOwnerId &&
       memorySettings?.enabled &&
@@ -5488,14 +5856,21 @@ export async function handleChatCore({
   // ── Phase 9.3: Progress tracking (opt-in) ──
   const progressEnabled = wantsProgress(clientRawRequest?.headers);
   let finalStream;
+
+  let piiStream = pipeWithDisconnect(providerResponse, transformStream, streamController);
+  if (typeof createPiiTransform === "function") {
+    piiStream = piiStream.pipeThrough((createPiiTransform as () => TransformStream)());
+  } else if (isFeatureFlagEnabled("PII_RESPONSE_SANITIZATION")) {
+    piiStream = piiStream.pipeThrough(createPiiSseTransform());
+  }
+
   if (progressEnabled) {
     const progressTransform = createProgressTransform({ signal: streamController.signal });
     // Chain: provider → transform → progress → client
-    const transformedBody = pipeWithDisconnect(providerResponse, transformStream, streamController);
-    finalStream = transformedBody.pipeThrough(progressTransform);
+    finalStream = piiStream.pipeThrough(progressTransform);
     responseHeaders[OMNIROUTE_RESPONSE_HEADERS.progress] = "enabled";
   } else {
-    finalStream = pipeWithDisconnect(providerResponse, transformStream, streamController);
+    finalStream = piiStream;
   }
   finalStream = finalStream.pipeThrough(
     createSseHeartbeatTransform({
@@ -5517,6 +5892,17 @@ export async function handleChatCore({
     } catch (_) {
       /* gamification optional */
     }
+  }
+
+  // ── Plugin onResponse hook (fire-and-forget) ──
+  try {
+    const { runOnResponse } = await import("@/lib/plugins/hooks");
+    runOnResponse(
+      { requestId: traceId, body, model, provider, apiKeyInfo, metadata: {} },
+      { status: 200 }
+    ).catch(() => {});
+  } catch (_) {
+    /* plugin onResponse optional */
   }
 
   return {

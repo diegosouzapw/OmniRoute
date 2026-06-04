@@ -406,7 +406,13 @@ function getMiniMaxQuotaResetAt(
 
 function isMiniMaxTextQuotaModel(modelName: string): boolean {
   const normalized = modelName.trim().toLowerCase();
-  return normalized.startsWith("minimax-m") || normalized.startsWith("coding-plan");
+  return (
+    normalized.startsWith("minimax-m") ||
+    normalized.startsWith("coding-plan") ||
+    // MiniMax Coding Plan surfaces the text/coding quota under model "general"
+    // (media buckets like "video"/"image"/"music" are excluded).
+    normalized === "general"
+  );
 }
 
 function getMiniMaxSessionTotal(model: JsonRecord): number {
@@ -442,6 +448,66 @@ function createMiniMaxQuotaFromCount(
 ): UsageQuota {
   const used = countMeansRemaining ? Math.max(total - count, 0) : count;
   return createQuotaFromUsage(used, total, resetAt);
+}
+
+/**
+ * MiniMax Coding Plan exposes per-window remaining as a 0–100 percent
+ * (`current_interval_remaining_percent` / `current_weekly_remaining_percent`)
+ * with zero request counts. Read it defensively (string-encoded numbers ok).
+ */
+function getMiniMaxRemainingPercent(
+  model: JsonRecord,
+  snakeKey: string,
+  camelKey: string
+): number | null {
+  const raw = getFieldValue(model, snakeKey, camelKey);
+  if (raw === null || raw === undefined || raw === "") return null;
+  const parsed = toNumber(raw, NaN);
+  return Number.isFinite(parsed) ? Math.max(0, Math.min(100, parsed)) : null;
+}
+
+/** Build a 0–100 percent-based window quota (used = 100 − remaining). */
+function createMiniMaxQuotaFromPercent(
+  remainingPercent: number,
+  resetAt: string | null
+): UsageQuota {
+  const clamped = Math.max(0, Math.min(100, remainingPercent));
+  return createQuotaFromUsage(100 - clamped, 100, resetAt);
+}
+
+/**
+ * Build one MiniMax usage window (session or weekly) from the representative
+ * model. Token Plan keys report request counts (`*_total_count`); Coding Plan
+ * keys report zero counts and a `*_remaining_percent` instead — fall back to
+ * that so the Coding Plan still surfaces a quota. The percent signal is keyed
+ * off "counts == 0 + percent present", NOT the endpoint URL, because the
+ * `token_plan/remains` and `coding_plan/remains` endpoints return identical
+ * Coding-Plan payloads for a Coding Plan key.
+ */
+function buildMiniMaxWindow(
+  models: JsonRecord[],
+  getTotal: (model: JsonRecord) => number,
+  usageCountKeys: [string, string],
+  percentKeys: [string, string],
+  resetKeys: [string, string, string, string],
+  capturedAtMs: number,
+  countMeansRemaining: boolean
+): UsageQuota | null {
+  const model = pickMiniMaxRepresentativeModel(models, getTotal);
+  if (!model) return null;
+
+  const resetAt = getMiniMaxQuotaResetAt(model, capturedAtMs, ...resetKeys);
+  const total = getTotal(model);
+
+  if (total > 0) {
+    const count = Math.max(0, toNumber(getFieldValue(model, ...usageCountKeys), 0));
+    return createMiniMaxQuotaFromCount(total, count, resetAt, countMeansRemaining);
+  }
+
+  const remainingPercent = getMiniMaxRemainingPercent(model, ...percentKeys);
+  return remainingPercent !== null
+    ? createMiniMaxQuotaFromPercent(remainingPercent, resetAt)
+    : null;
 }
 
 function getMiniMaxAuthErrorMessage(message: string): string {
@@ -559,58 +625,31 @@ async function getMiniMaxUsage(apiKey: string, provider: "minimax" | "minimax-cn
 
       const countMeansRemaining = usageUrl.includes("/coding_plan/remains");
       const quotas: Record<string, UsageQuota> = {};
-      const sessionModel = pickMiniMaxRepresentativeModel(textModels, getMiniMaxSessionTotal);
-      if (sessionModel) {
-        const total = getMiniMaxSessionTotal(sessionModel);
-        const count = Math.max(
-          0,
-          toNumber(
-            getFieldValue(
-              sessionModel,
-              "current_interval_usage_count",
-              "currentIntervalUsageCount"
-            ),
-            0
-          )
-        );
-        quotas["session (5h)"] = createMiniMaxQuotaFromCount(
-          total,
-          count,
-          getMiniMaxQuotaResetAt(
-            sessionModel,
-            capturedAtMs,
-            "remains_time",
-            "remainsTime",
-            "end_time",
-            "endTime"
-          ),
-          countMeansRemaining
-        );
+
+      const sessionQuota = buildMiniMaxWindow(
+        textModels,
+        getMiniMaxSessionTotal,
+        ["current_interval_usage_count", "currentIntervalUsageCount"],
+        ["current_interval_remaining_percent", "currentIntervalRemainingPercent"],
+        ["remains_time", "remainsTime", "end_time", "endTime"],
+        capturedAtMs,
+        countMeansRemaining
+      );
+      if (sessionQuota) {
+        quotas["session (5h)"] = sessionQuota;
       }
 
-      const weeklyModel = pickMiniMaxRepresentativeModel(textModels, getMiniMaxWeeklyTotal);
-      if (weeklyModel && getMiniMaxWeeklyTotal(weeklyModel) > 0) {
-        const total = getMiniMaxWeeklyTotal(weeklyModel);
-        const count = Math.max(
-          0,
-          toNumber(
-            getFieldValue(weeklyModel, "current_weekly_usage_count", "currentWeeklyUsageCount"),
-            0
-          )
-        );
-        quotas["weekly (7d)"] = createMiniMaxQuotaFromCount(
-          total,
-          count,
-          getMiniMaxQuotaResetAt(
-            weeklyModel,
-            capturedAtMs,
-            "weekly_remains_time",
-            "weeklyRemainsTime",
-            "weekly_end_time",
-            "weeklyEndTime"
-          ),
-          countMeansRemaining
-        );
+      const weeklyQuota = buildMiniMaxWindow(
+        textModels,
+        getMiniMaxWeeklyTotal,
+        ["current_weekly_usage_count", "currentWeeklyUsageCount"],
+        ["current_weekly_remaining_percent", "currentWeeklyRemainingPercent"],
+        ["weekly_remains_time", "weeklyRemainsTime", "weekly_end_time", "weeklyEndTime"],
+        capturedAtMs,
+        countMeansRemaining
+      );
+      if (weeklyQuota) {
+        quotas["weekly (7d)"] = weeklyQuota;
       }
 
       if (Object.keys(quotas).length === 0) {
@@ -1051,6 +1090,43 @@ async function getDeepseekUsage(connectionId: string, apiKey: string) {
   }
 }
 
+// Xiaomi MiMo Token Plan monthly limit (tokens). Keep in sync with the
+// "xiaomi-mimo" preset in src/lib/quota/planRegistry.ts.
+const XIAOMI_MIMO_MONTHLY_TOKEN_LIMIT = 4_100_000_000;
+
+/**
+ * Xiaomi MiMo — SELF-TRACKED monthly quota.
+ *
+ * Xiaomi exposes plan usage only behind the console session cookie (the API key
+ * cannot reach the `tokenPlan/usage` endpoint), so there is no upstream usage
+ * API to call. Instead we count the tokens OmniRoute itself routed to this
+ * connection in the current UTC month (from `usage_history`) and compare them
+ * to the known Token Plan monthly limit. This reflects only traffic that went
+ * through OmniRoute, not the provider's own dashboard figure.
+ */
+async function getXiaomiMimoUsage(connectionId: string) {
+  if (!connectionId) {
+    return { message: "Xiaomi MiMo: connection id unavailable for self-tracked quota." };
+  }
+  try {
+    const { getMonthlyProviderTokensForConnection } = await import("@/lib/usage/usageStats");
+    const used = getMonthlyProviderTokensForConnection("xiaomi-mimo", connectionId);
+    const total = XIAOMI_MIMO_MONTHLY_TOKEN_LIMIT;
+    const now = new Date();
+    const resetAt = new Date(
+      Date.UTC(now.getUTCFullYear(), now.getUTCMonth() + 1, 1)
+    ).toISOString();
+    return {
+      plan: "Xiaomi MiMo Token Plan (OmniRoute-tracked)",
+      quotas: {
+        monthly: createQuotaFromUsage(used, total, resetAt),
+      },
+    };
+  } catch (error) {
+    return { message: `Xiaomi MiMo self-tracked usage error: ${(error as Error).message}` };
+  }
+}
+
 /**
  * OpenCode Go / OpenCode / OpenCode Zen Usage
  * Delegates to the dedicated opencodeQuotaFetcher and shapes the result into
@@ -1367,9 +1443,9 @@ export const USAGE_FETCHER_PROVIDERS = [
   "bailian-coding-plan",
   "nanogpt",
   "deepseek",
-  "opencode-go",
   "opencode",
   "opencode-zen",
+  "xiaomi-mimo",
 ] as const;
 
 export type UsageFetcherProvider = (typeof USAGE_FETCHER_PROVIDERS)[number];
@@ -1428,10 +1504,11 @@ export async function getUsageForProvider(
       return await getNanoGptUsage(apiKey || "");
     case "deepseek":
       return await getDeepseekUsage(id || "", apiKey || "");
-    case "opencode-go":
     case "opencode":
     case "opencode-zen":
       return await getOpencodeUsage(id || "", apiKey || "");
+    case "xiaomi-mimo":
+      return await getXiaomiMimoUsage(id || "");
     default:
       return { message: `Usage API not implemented for ${provider}` };
   }
@@ -1951,7 +2028,10 @@ function mapSubscriptionTierStringToPlanLabel(tierText: string): string | null {
   if (upper.includes("PLUS")) return "Plus";
   if (upper.includes("LITE")) return "Lite";
   if (upper.includes("INDIVIDUAL") || upper.includes("FREE")) return "Free";
-  const normalizedId = upper.replace(/\s*\(RESTRICTED\)\s*$/i, "").trim();
+  // Strip a trailing "(RESTRICTED)" marker. Match the fixed literal anywhere then
+  // trim, instead of /\s*\(RESTRICTED\)\s*$/ whose overlapping \s* runs backtrack
+  // polynomially on whitespace-heavy upstream input (js/polynomial-redos).
+  const normalizedId = upper.replace(/\(RESTRICTED\)/i, "").trim();
   if (normalizedId) {
     const mapped = mapCodeAssistTierIdToLabel(normalizedId);
     if (mapped) return mapped;
@@ -2939,4 +3019,21 @@ export const __testing = {
   getMiniMaxPlanLabel,
   inferMiniMaxPlanLabelFromTotals,
   getOpencodeUsage,
+  getClaudePlanLabel,
+  createQuotaFromUsage,
+  getMiniMaxQuotaResetAt,
+  isMiniMaxTextQuotaModel,
+  getMiniMaxSessionTotal,
+  getMiniMaxWeeklyTotal,
+  createMiniMaxQuotaFromCount,
+  createMiniMaxQuotaFromPercent,
+  getMiniMaxRemainingPercent,
+  getMiniMaxUsage,
+  getXiaomiMimoUsage,
+  getMiniMaxAuthErrorMessage,
+  getMiniMaxErrorSummary,
+  mapCodeAssistSubscriptionToPlanLabel,
+  mapCodeAssistTierIdToLabel,
+  mapSubscriptionTierStringToPlanLabel,
+  toDisplayLabel,
 };

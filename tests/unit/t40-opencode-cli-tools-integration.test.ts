@@ -173,16 +173,14 @@ test("T40: OpenCode light/dark provider assets are valid SVG files", async () =>
   assert.doesNotMatch(dark, /<html/i);
 });
 
-test("T40: Windsurf card documents current official limitations honestly", () => {
-  const windsurf = CLI_TOOLS.windsurf;
-  assert.ok(windsurf, "Windsurf tool card must exist");
-  assert.equal(windsurf.configType, "guide");
-
-  const notesText = (windsurf.notes || [])
-    .map((note) => note?.text || "")
-    .join(" ")
-    .toLowerCase();
-
-  assert.match(notesText, /byok/);
-  assert.match(notesText, /custom openai-compatible provider/);
+test("T40: Windsurf was removed from CLI_TOOLS in plan 14 D17 (MITM backlog plan 11)", () => {
+  // windsurf (Codeium) was removed from CLI_TOOLS because it has no generic custom base URL
+  // support. It remains as an OAuth provider in src/lib/oauth/ for authentication.
+  // The old guide/limitations notes are no longer needed in the UI catalog.
+  // Cross-reference: _tasks/features-v3.8.6/refactorpages/_orchestration/_plan11-mitm-backlog.md
+  assert.equal(
+    (CLI_TOOLS as Record<string, unknown>)["windsurf"],
+    undefined,
+    "windsurf must be removed from CLI_TOOLS per plan 14 D17"
+  );
 });

@@ -31,7 +31,7 @@ const CATEGORIES = [
   { value: "security", label: "Security (6)" },
   { value: "network", label: "Network (5)" },
   { value: "policies", label: "Policies (3)" },
-  { value: "runtime", label: "Runtime (6)" },
+  { value: "runtime", label: "Runtime (7)" },
   { value: "cli", label: "CLI (3)" },
   { value: "health", label: "Health (3)" },
   // Synthetic "category" that filters by requiresRestart=true regardless of

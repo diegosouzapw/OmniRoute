@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useTranslations } from "next-intl";
 import { maskAccount } from "@/shared/utils/formatting";
+import { getProviderDisplayLabel } from "@/shared/utils/providerDisplayLabel";
 import useEmailPrivacyStore from "@/store/emailPrivacyStore";
 
 type ActiveRequestRow = {
@@ -46,11 +47,23 @@ export default function ActiveRequestsPanel() {
   const [rows, setRows] = useState<ActiveRequestRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedRow, setSelectedRow] = useState<ActiveRequestRow | null>(null);
+  const [providerNodes, setProviderNodes] = useState<
+    Array<{ id?: string; prefix?: string; name?: string }>
+  >([]);
+
+  useEffect(() => {
+    fetch("/api/provider-nodes")
+      .then((r) => (r.ok ? r.json() : { nodes: [] }))
+      .then((d) => setProviderNodes(d.nodes || []))
+      .catch(() => {});
+  }, []);
 
   useEffect(() => {
     let cancelled = false;
 
     const load = async () => {
+      // Skip polling when tab is not visible to save resources
+      if (document.visibilityState !== "visible") return;
       try {
         const res = await fetch("/api/logs/active", { cache: "no-store" });
         if (!res.ok) return;
@@ -70,7 +83,7 @@ export default function ActiveRequestsPanel() {
     };
 
     load();
-    const interval = setInterval(load, 3000);
+    const interval = setInterval(load, 15_000);
     return () => {
       cancelled = true;
       clearInterval(interval);
@@ -149,7 +162,9 @@ export default function ActiveRequestsPanel() {
                   className="border-t border-border/60"
                 >
                   <td className="px-4 py-3 font-medium text-text-main">{row.model}</td>
-                  <td className="px-4 py-3 text-text-muted">{row.provider}</td>
+                  <td className="px-4 py-3 text-text-muted">
+                    {getProviderDisplayLabel(row.provider, providerNodes) || row.provider}
+                  </td>
                   <td className="px-4 py-3 text-text-muted" title={accountLabel}>
                     {accountLabel}
                   </td>
@@ -178,7 +193,9 @@ export default function ActiveRequestsPanel() {
             <div className="flex items-start justify-between gap-4 border-b border-border px-5 py-4">
               <div>
                 <h4 className="text-lg font-semibold text-text-main">
-                  {selectedRow.provider} / {selectedRow.model}
+                  {getProviderDisplayLabel(selectedRow.provider, providerNodes) ||
+                    selectedRow.provider}{" "}
+                  / {selectedRow.model}
                 </h4>
                 <p className="mt-1 text-sm text-text-muted">
                   {t("runningRequestDetailMeta", {

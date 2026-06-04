@@ -20,6 +20,7 @@ import EmailPrivacyToggle from "@/shared/components/EmailPrivacyToggle";
 import QuotaCutoffModal from "./QuotaCutoffModal";
 import QuotaCardGrid from "./QuotaCardGrid";
 import { translateUsageOrFallback, type UsageTranslationValues } from "./i18nFallback";
+import { compareTr } from "@/shared/utils/turkishText";
 
 const LS_PURCHASE_FILTER = "omniroute:limits:purchaseFilter";
 const LS_STATUS_FILTER = "omniroute:limits:statusFilter";
@@ -593,7 +594,7 @@ export default function ProviderLimits({
       const tag = (conn.providerSpecificData?.tag as string | undefined)?.trim();
       if (tag) tags.add(tag);
     }
-    return [...tags].sort((a, b) => a.localeCompare(b));
+    return [...tags].sort((a, b) => compareTr(a, b));
   }, [sortedConnections]);
 
   const envCounts = useMemo(() => {
@@ -649,6 +650,25 @@ export default function ProviderLimits({
     envFilter,
     quotaData,
   ]);
+
+  // Auto-fetch LIVE quota on open for visible connections that have no cached
+  // quota yet (e.g. a Codex account whose access_token expired — its per-connection
+  // live fetch refreshes the token serialized/cascade-safe and surfaces real quota).
+  // Scoped to what's on screen and to the entries actually missing data (the ones
+  // that already have cache render instantly and are not re-fetched), and runs once
+  // per page open so it never loops on the quotaData it writes.
+  const autoLiveFetchedRef = useRef(false);
+  useEffect(() => {
+    if (initialLoading || autoLiveFetchedRef.current || visibleConnections.length === 0) return;
+    autoLiveFetchedRef.current = true;
+    for (const conn of visibleConnections) {
+      const cached = quotaData[conn.id];
+      const hasQuota = Array.isArray(cached?.quotas) && cached.quotas.length > 0;
+      if (!hasQuota) {
+        void fetchQuota(conn.id, conn.provider, { force: true }).catch(() => {});
+      }
+    }
+  }, [initialLoading, visibleConnections, quotaData, fetchQuota]);
 
   const handleSetPurchaseFilter = useCallback((value: PurchaseTypeKey) => {
     setPurchaseTypeFilter(value);

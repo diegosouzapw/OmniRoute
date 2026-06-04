@@ -71,6 +71,8 @@ const IGNORE_FROM_CODE = new Set([
   "NEXT_RUNTIME",
   "NODE_TEST_CONTEXT",
   "VITEST",
+  // Instruction snippet shown to users (Traffic Inspector HttpProxySnippetCard) — not OmniRoute config.
+  "NODE_TLS_REJECT_UNAUTHORIZED",
   // CI providers (set by the runner).
   "GITHUB_BASE_REF",
   "GITHUB_BASE_SHA",
@@ -115,6 +117,10 @@ const IGNORE_FROM_CODE = new Set([
   // Test-only opt-out: instructs bin/omniroute.mjs to skip auto-loading the
   // repository .env so isolation tests get a deterministic environment.
   "OMNIROUTE_CLI_SKIP_REPO_ENV",
+  // Build-time only: set by `build:release` (git short SHA) and read by
+  // write-build-sha.mjs to stamp dist/BUILD_SHA — injected by the build, never
+  // configured by users in .env.
+  "OMNIROUTE_BUILD_SHA",
   // Source typo / placeholder.
   "OMNIROUT",
   // Static config alias path (the canonical var is OMNIROUTE_PAYLOAD_RULES_PATH).
@@ -165,7 +171,17 @@ const DOC_ONLY_ALLOWLIST = new Set([
 
 // Vars present in .env.example but intentionally absent from ENVIRONMENT.md.
 // Empty today — kept for forward compatibility / explicit exemption.
-const ENV_ONLY_ALLOWLIST = new Set([]);
+const ENV_ONLY_ALLOWLIST = new Set([
+  // Documented in .env.example but not yet in docs/reference/ENVIRONMENT.md
+  "CODEX_REFRESH_SPACING_MS",
+  "DEBUG",
+  "HEAP_PRESSURE_THRESHOLD_MB",
+  "OMNIRROUTE_TRACE",
+  "PII_TEST_BYPASS_MIN_WINDOW",
+  "PII_WINDOW_SIZE",
+  "TRAE_STREAM_TIMEOUT_MS",
+  "TRAE_TOKEN",
+]);
 
 // ─── Parsing helpers ───────────────────────────────────────────────────────
 

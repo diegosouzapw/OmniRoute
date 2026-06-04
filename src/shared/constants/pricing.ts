@@ -1304,6 +1304,20 @@ export const DEFAULT_PRICING = {
       reasoning: 15.0,
       cache_creation: 3.0,
     },
+    "claude-opus-4.8": {
+      input: 15.0,
+      output: 75.0,
+      cached: 7.5,
+      reasoning: 75.0,
+      cache_creation: 15.0,
+    },
+    "claude-opus-4.7": {
+      input: 15.0,
+      output: 75.0,
+      cached: 7.5,
+      reasoning: 75.0,
+      cache_creation: 15.0,
+    },
     "claude-opus-4.6": {
       input: 15.0,
       output: 75.0,

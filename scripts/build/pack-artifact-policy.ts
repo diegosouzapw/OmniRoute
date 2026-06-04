@@ -1,9 +1,9 @@
 /**
  * Shared policy for OmniRoute npm publish artifact hygiene.
  *
- * The package currently publishes the standalone runtime under app/.
+ * The package publishes the standalone runtime under dist/ (Layer 1: renamed from app/).
  * This policy keeps local backups, QA scratch files, and development-only
- * directories out of the staged app/ tree and out of the final tarball.
+ * directories out of the staged dist/ tree and out of the final tarball.
  */
 
 const STAGING_FORBIDDEN_DIRECTORIES = [
@@ -29,9 +29,11 @@ export const APP_STAGING_REMOVAL_PATHS: string[] = [
 
 export const APP_STAGING_ALLOWED_EXACT_PATHS: string[] = [
   ".env.example",
+  "BUILD_SHA",
   "docs/reference/openapi.yaml",
   "open-sse/mcp-server/server.js",
   "package.json",
+  "peer-stamp.mjs",
   "responses-ws-proxy.mjs",
   "scripts/dev/sync-env.mjs",
   "server.js",
@@ -39,6 +41,9 @@ export const APP_STAGING_ALLOWED_EXACT_PATHS: string[] = [
 ];
 
 export const APP_STAGING_ALLOWED_PATH_PREFIXES: string[] = [
+  // Layer 1: Next.js distDir changed from ".next" to ".build/next"; the server
+  // bundle now lives under .build/next/ inside the standalone output.
+  ".build/next/",
   ".next/",
   "data/",
   "node_modules/",
@@ -50,11 +55,11 @@ export const APP_STAGING_ALLOWED_PATH_PREFIXES: string[] = [
 ];
 
 export const PACK_ARTIFACT_ALLOWED_EXACT_PATHS: string[] = APP_STAGING_ALLOWED_EXACT_PATHS.map(
-  (filePath: string) => `app/${filePath}`
+  (filePath: string) => `dist/${filePath}`
 );
 
 export const PACK_ARTIFACT_ALLOWED_PATH_PREFIXES: string[] = APP_STAGING_ALLOWED_PATH_PREFIXES.map(
-  (directoryPath: string) => `app/${directoryPath}`
+  (directoryPath: string) => `dist/${directoryPath}`
 );
 
 export const PACK_ARTIFACT_ROOT_ALLOWED_EXACT_PATHS: string[] = [
@@ -99,11 +104,12 @@ export const PACK_ARTIFACT_ROOT_ALLOWED_PATH_PREFIXES: string[] = [
 ];
 
 export const PACK_ARTIFACT_REQUIRED_PATHS: string[] = [
-  "app/open-sse/services/compression/engines/rtk/filters/generic-output.json",
-  "app/open-sse/services/compression/rules/en/filler.json",
-  "app/server.js",
-  "app/server-ws.mjs",
-  "app/responses-ws-proxy.mjs",
+  "dist/open-sse/services/compression/engines/rtk/filters/generic-output.json",
+  "dist/open-sse/services/compression/rules/en/filler.json",
+  "dist/server.js",
+  "dist/server-ws.mjs",
+  "dist/responses-ws-proxy.mjs",
+  "dist/peer-stamp.mjs",
   "bin/cli/program.mjs",
   "bin/mcp-server.mjs",
   "bin/nodeRuntimeSupport.mjs",

@@ -1,4 +1,5 @@
 const https = require("https");
+const net = require("net");
 const fs = require("fs");
 const path = require("path");
 const dns = require("dns");
@@ -13,13 +14,21 @@ function getDataDir() {
 }
 
 // Configuration
-// Keep in sync with src/mitm/targets/antigravity.ts
+// Keep in sync with src/mitm/targets/antigravity.ts. Antigravity hosts are the
+// historical baseline — they remain hard-coded so the proxy keeps working even
+// if targets.json is missing or unreadable.
+// T-A-F3: baseline set extended at runtime via loadDynamicTargets() below.
 const TARGET_HOSTS = new Set([
   "daily-cloudcode-pa.sandbox.googleapis.com",
   "daily-cloudcode-pa.googleapis.com",
   "cloudcode-pa.googleapis.com",
   "autopush-cloudcode-pa.sandbox.googleapis.com",
 ]);
+
+// T-A-F3: track which agent each host belongs to (for logging only).
+const TARGET_HOST_AGENT = new Map();
+for (const h of TARGET_HOSTS) TARGET_HOST_AGENT.set(h, "antigravity");
+
 const parsedLocalPort = Number.parseInt(process.env.MITM_LOCAL_PORT || "443", 10);
 const LOCAL_PORT =
   Number.isInteger(parsedLocalPort) && parsedLocalPort > 0 && parsedLocalPort <= 65535
@@ -37,6 +46,119 @@ const API_KEY = process.env.ROUTER_API_KEY;
 const DATA_DIR = getDataDir();
 const DB_FILE = path.join(DATA_DIR, "db.json");
 const SQLITE_FILE = path.join(DATA_DIR, "storage.sqlite");
+
+// T-A-F3: dynamic-targets file written by manager.writeTargetsJson() (F3).
+// Schema: { targets: Array<{ id, hosts: string[] }> }. Missing/invalid file
+// is non-fatal — we keep the baseline antigravity hosts so existing installs
+// continue to function while AgentBridge targets roll out.
+const TARGETS_JSON_FILE = path.join(DATA_DIR, "mitm", "targets.json");
+function loadDynamicTargets() {
+  try {
+    if (!fs.existsSync(TARGETS_JSON_FILE)) return 0;
+    const raw = fs.readFileSync(TARGETS_JSON_FILE, "utf-8");
+    const parsed = JSON.parse(raw);
+    if (!parsed || !Array.isArray(parsed.targets)) return 0;
+    let added = 0;
+    for (const t of parsed.targets) {
+      if (!t || typeof t !== "object") continue;
+      const id = typeof t.id === "string" ? t.id : "unknown";
+      const hosts = Array.isArray(t.hosts) ? t.hosts : [];
+      for (const host of hosts) {
+        if (typeof host !== "string" || !host) continue;
+        const lower = host.toLowerCase();
+        if (!TARGET_HOSTS.has(lower)) {
+          TARGET_HOSTS.add(lower);
+          TARGET_HOST_AGENT.set(lower, id);
+          added++;
+        }
+      }
+    }
+    return added;
+  } catch (err) {
+    console.error(`[MITM] Failed to load targets.json: ${err.message}`);
+    return 0;
+  }
+}
+// T-A-F3: load dynamic targets at startup; antigravity baseline remains intact.
+const _dynamicAdded = loadDynamicTargets();
+if (_dynamicAdded > 0) {
+  console.log(`[MITM] Loaded ${_dynamicAdded} additional host(s) from targets.json`);
+}
+
+// =========================================================================
+// Minimal CJS port of `sanitizeErrorMessage` from open-sse/utils/error.ts.
+// Hard Rule #12: HTTP / SSE error bodies must never expose raw err.stack /
+// err.message. The CJS proxy cannot import the TS ESM module, so we mirror
+// the linear (ReDoS-safe) tokenizer here.
+// =========================================================================
+const SANITIZE_MAX_LEN = 4096;
+const SANITIZE_SOURCE_EXT = ["ts", "tsx", "js", "jsx", "mjs", "cjs"];
+function looksLikeAbsolutePath(tok) {
+  if (tok.length < 4 || tok.length > 2048) return false;
+  const isPosix = tok.charCodeAt(0) === 0x2f;
+  const isWindows =
+    tok.length > 2 && tok.charCodeAt(1) === 0x3a && /[A-Za-z]/.test(tok[0]);
+  if (!isPosix && !isWindows) return false;
+  const dot = tok.lastIndexOf(".");
+  if (dot <= 0 || dot === tok.length - 1) return false;
+  const ext = tok.slice(dot + 1).split(":", 1)[0].toLowerCase();
+  return SANITIZE_SOURCE_EXT.includes(ext);
+}
+function sanitizeErrorMessage(message) {
+  let str =
+    typeof message === "string" ? message : String(message == null ? "" : message);
+  if (str.length > SANITIZE_MAX_LEN) str = str.slice(0, SANITIZE_MAX_LEN);
+  const nl = str.indexOf("\n");
+  const firstLine = nl >= 0 ? str.slice(0, nl) : str;
+  const parts = firstLine.split(/(\s+)/);
+  for (let i = 0; i < parts.length; i++) {
+    if (looksLikeAbsolutePath(parts[i])) parts[i] = "<path>";
+  }
+  return parts.join("");
+}
+
+// =========================================================================
+// C1 — Passthrough / Bypass routing (plan 11 §4.6, master plan §3.5/§12 #16).
+//
+// The CJS proxy mirrors the routing logic of `src/mitm/passthrough.ts` and
+// `src/mitm/targets/index.ts::routeConnection` so CONNECT tunnels for hosts
+// that aren't AgentBridge targets and aren't on the user bypass list still
+// get a transparent TCP forward (no TLS decrypt). Defaults live in the
+// `_internal/bypass.cjs` shim (also used by unit tests). The user list lives
+// in <DATA_DIR>/mitm/bypass.json written by `manager.writeBypassJson()`.
+// =========================================================================
+
+const bypassShim = require("./_internal/bypass.cjs");
+
+const BYPASS_JSON_FILE = path.join(DATA_DIR, "mitm", "bypass.json");
+let _userBypassPatterns = []; // array of glob strings, lowercased
+
+function loadUserBypassPatterns() {
+  try {
+    if (!fs.existsSync(BYPASS_JSON_FILE)) {
+      _userBypassPatterns = [];
+      return 0;
+    }
+    const raw = fs.readFileSync(BYPASS_JSON_FILE, "utf-8");
+    _userBypassPatterns = bypassShim.parseBypassJson(raw);
+    return _userBypassPatterns.length;
+  } catch (err) {
+    console.error(`[MITM] Failed to load bypass.json: ${err.message}`);
+    _userBypassPatterns = [];
+    return 0;
+  }
+}
+
+function routeBypass(hostname) {
+  return bypassShim.routeBypass(hostname, TARGET_HOSTS, _userBypassPatterns);
+}
+
+const _bypassLoaded = loadUserBypassPatterns();
+if (_bypassLoaded > 0) {
+  console.log(
+    `[MITM] Loaded ${_bypassLoaded} user bypass pattern(s) from bypass.json`
+  );
+}
 
 let _sqliteDb = null;
 
@@ -245,11 +367,21 @@ async function intercept(req, res, bodyBuffer, mappedModel) {
     const body = JSON.parse(bodyBuffer.toString());
     body.model = mappedModel;
 
+    // C2 — Inject AgentBridge correlation headers per master plan §3.5.
+    // The OmniRoute router uses these to distinguish AgentBridge traffic from
+    // other inbound clients and to record the originating IDE agent id.
+    // Resolve agent id from the Host header against the target map; defensive
+    // fallback to "unknown" when the host is somehow not in the map.
+    const reqHost = String(req.headers.host || "").split(":")[0].toLowerCase();
+    const agentId = TARGET_HOST_AGENT.get(reqHost) || "unknown";
+
     const response = await fetch(ROUTER_URL, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
         Authorization: `Bearer ${API_KEY}`,
+        "x-omniroute-source": "agent-bridge",
+        "x-omniroute-agent": agentId,
       },
       body: JSON.stringify(body),
     });
@@ -278,9 +410,18 @@ async function intercept(req, res, bodyBuffer, mappedModel) {
       res.write(decoder.decode(value, { stream: true }));
     }
   } catch (error) {
+    // Log the raw message locally (server console only) but never expose it
+    // in the response body. Hard Rule #12 — sanitize before sending.
     console.error(`❌ ${error.message}`);
     if (!res.headersSent) res.writeHead(500, { "Content-Type": "application/json" });
-    res.end(JSON.stringify({ error: { message: error.message, type: "mitm_error" } }));
+    res.end(
+      JSON.stringify({
+        error: {
+          message: sanitizeErrorMessage(error && error.message),
+          type: "mitm_error",
+        },
+      })
+    );
   }
 }
 
@@ -329,6 +470,134 @@ const server = https.createServer(sslOptions, async (req, res) => {
   return intercept(req, res, bodyBuffer, mappedModel);
 });
 
+// =========================================================================
+// C1 — CONNECT handler: bypass + passthrough TCP support (plan 11 §4.6).
+//
+// Clients (browsers, IDE agents acting as HTTP proxy clients) send a
+// CONNECT request before opening a TLS tunnel. The original `https.Server`
+// has no built-in CONNECT handler because it expects connections to come
+// pre-routed (typically via /etc/hosts DNS spoofing). For AgentBridge we
+// also accept clients configured with HTTPS_PROXY/HTTP_PROXY, where every
+// HTTPS request arrives as CONNECT. For those:
+//
+//   - bypass hostname → raw TCP pipe upstream, NO TLS decrypt, NO log of
+//     body or headers. Privacy contract: bypass = "never see content".
+//   - passthrough (host not in TARGET_HOSTS, no bypass match) → raw TCP
+//     pipe upstream so the user's system never loses internet for hosts
+//     outside our scope. Acceptance criterion §12 #16.
+//   - target hostname → write 200 Connection Established and pipe the
+//     client socket into the local TLS-terminating port so the existing
+//     https.createServer can decrypt and route via the normal flow.
+//
+// Note: in the DNS-spoof mode (IDE points at 127.0.0.1 via /etc/hosts),
+// IDEs reach the server directly without CONNECT; the existing
+// `https.createServer` request handler still applies for those. The
+// CONNECT handler only fires for clients that explicitly speak proxy.
+// =========================================================================
+
+function parseConnectAuthority(authority) {
+  // CONNECT host[:port]
+  const idx = authority.lastIndexOf(":");
+  if (idx === -1) return { host: authority.toLowerCase(), port: 443 };
+  const host = authority.slice(0, idx).toLowerCase();
+  const port = Number.parseInt(authority.slice(idx + 1), 10);
+  return {
+    host,
+    port: Number.isInteger(port) && port > 0 && port <= 65535 ? port : 443,
+  };
+}
+
+function rawTcpForward(clientSocket, head, host, port, label) {
+  const targetSocket = net.connect(port, host, () => {
+    clientSocket.write("HTTP/1.1 200 Connection Established\r\n\r\n");
+    if (head && head.length > 0) targetSocket.write(head);
+    targetSocket.pipe(clientSocket);
+    clientSocket.pipe(targetSocket);
+  });
+
+  // Best-effort cleanup; never crash the proxy on tunnel errors.
+  const onErr = (label2) => (err) => {
+    console.error(`[MITM] ${label} TCP forward ${label2} error: ${err.message}`);
+    try {
+      clientSocket.destroy();
+    } catch {
+      // ignore
+    }
+    try {
+      targetSocket.destroy();
+    } catch {
+      // ignore
+    }
+  };
+  targetSocket.on("error", onErr("upstream"));
+  clientSocket.on("error", onErr("client"));
+  clientSocket.on("close", () => {
+    try {
+      targetSocket.destroy();
+    } catch {
+      // ignore
+    }
+  });
+  targetSocket.on("close", () => {
+    try {
+      clientSocket.destroy();
+    } catch {
+      // ignore
+    }
+  });
+}
+
+// CONNECT handler — scope note (plan 11 §4.6):
+//
+// This fires ONLY when a client uses this server as an explicit HTTPS proxy and
+// sends a `CONNECT host:port` line *inside* an already-established TLS session
+// (HTTPS-proxy-tunneled-in-TLS). The primary "no config required" AgentBridge
+// flow does NOT use it: there the IDE is pointed at 127.0.0.1 via /etc/hosts DNS
+// spoofing and opens TLS DIRECTLY, so requests are routed by the decrypted Host
+// header in the request handler above (target → intercept, otherwise passthrough).
+// Likewise, bypass/passthrough for *unmapped* hosts in the DNS-spoof model is
+// handled by DNS scoping (only spoofed hosts ever resolve to 127.0.0.1), and the
+// System-wide proxy mode (plan 12 §2.5.4) routes through httpProxyServer.ts (:8080),
+// which has its own CONNECT handling. This handler is retained for the explicit-
+// proxy edge case and to honor the routeBypass precedence (bypass > target >
+// passthrough); true on-wire bypass-without-decrypt at :443 under direct TLS would
+// require SNI sniffing on the raw 'connection' event, which is intentionally out
+// of scope for this release.
+server.on("connect", (req, clientSocket, head) => {
+  const authority = String(req.url || "");
+  const { host: connectHost, port: connectPort } = parseConnectAuthority(authority);
+
+  const decision = routeBypass(connectHost);
+
+  if (decision === "bypass") {
+    // Privacy: bypass hosts are never logged with body/headers and never
+    // TLS-decrypted. Only the hostname appears in console output.
+    console.log(`[MITM] CONNECT ${connectHost}:${connectPort} → BYPASS (TCP tunnel)`);
+    rawTcpForward(clientSocket, head, connectHost, connectPort, "bypass");
+    return;
+  }
+
+  if (decision === "target") {
+    // Hand the tunnel off to the local TLS-terminating server so the existing
+    // https.createServer request handler can decrypt and route. We write the
+    // 200 response ourselves and then `emit("connection")` so the TLS layer
+    // picks the socket up.
+    console.log(
+      `[MITM] CONNECT ${connectHost}:${connectPort} → TARGET (TLS terminate locally)`
+    );
+    clientSocket.write("HTTP/1.1 200 Connection Established\r\n\r\n");
+    if (head && head.length > 0) clientSocket.unshift(head);
+    server.emit("connection", clientSocket);
+    return;
+  }
+
+  // decision === "passthrough"
+  console.log(
+    `[MITM] CONNECT ${connectHost}:${connectPort} → PASSTHROUGH (TCP tunnel)`
+  );
+  rawTcpForward(clientSocket, head, connectHost, connectPort, "passthrough");
+});
+
 server.listen(LOCAL_PORT, () => {
   stats.startedAt = new Date().toISOString();
   writeStats();
@@ -336,6 +605,10 @@ server.listen(LOCAL_PORT, () => {
 });
 
 server.on("connection", (socket) => {
+  // Guard against double-counting: a CONNECT "target" tunnel re-emits an
+  // already-counted socket into the TLS layer via emit("connection") above.
+  if (socket.__mitmCounted) return;
+  socket.__mitmCounted = true;
   stats.activeConnections++;
   writeStats();
   socket.on("close", () => {

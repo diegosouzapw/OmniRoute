@@ -14,6 +14,7 @@ const settingsDb = await import("../../src/lib/db/settings.ts");
 const apiKeysDb = await import("../../src/lib/db/apiKeys.ts");
 const auth = await import("../../src/sse/services/auth.ts");
 const quotaCache = await import("../../src/domain/quotaCache.ts");
+const fallback = await import("../../open-sse/services/accountFallback.ts");
 
 async function resetStorage() {
   core.resetDbInstance();
@@ -32,7 +33,11 @@ async function seedConnection(provider: string, overrides: any = {}) {
     authType: overrides.authType || "apikey",
     name: overrides.name || `${provider}-${Math.random().toString(16).slice(2, 8)}`,
     email: overrides.email,
-    apiKey: overrides.apiKey || "sk-test",
+    // Unique per connection by default — real accounts have distinct keys, and
+    // createProviderConnection dedups by decrypted key value (#3023), so a shared
+    // default would collapse multiple seeded connections into one and break
+    // round-robin / least-used / fallback selection tests.
+    apiKey: overrides.apiKey || `sk-test-${Math.random().toString(16).slice(2, 10)}`,
     accessToken: overrides.accessToken,
     refreshToken: overrides.refreshToken,
     isActive: overrides.isActive ?? true,
@@ -1120,6 +1125,91 @@ test("markAccountUnavailable applies a model-only lockout for compatible provide
   assert.equal(updated.rateLimitedUntil, undefined);
   assert.equal(updated.lastErrorType, "rate_limited");
   assert.equal(Number(updated.errorCode), 429);
+});
+
+// #3027 — a per-model subscription/permission 403 from a passthrough provider
+// (ollama-cloud) must lock only the paid model, not the whole connection.
+test("markAccountUnavailable: ollama-cloud per-model subscription 403 locks the model, not the connection (#3027)", async () => {
+  fallback.clearAllModelLockouts();
+  const connection = await seedConnection("ollama-cloud", {
+    name: "ollama-paid-model",
+    providerSpecificData: { passthroughModels: true },
+  });
+
+  const result = await auth.markAccountUnavailable(
+    connection.id,
+    403,
+    "this model requires a subscription, upgrade for access: https://ollama.com/upgrade",
+    "ollama-cloud",
+    "deepseek-v4-pro"
+  );
+  await flushWrites();
+  const updated = await providersDb.getProviderConnectionById(connection.id);
+
+  // Connection stays eligible — only the paid model is cooled down.
+  assert.equal(result.shouldFallback, true);
+  assert.ok(result.cooldownMs > 0);
+  assert.equal(updated.testStatus, "active");
+  assert.equal(updated.rateLimitedUntil, undefined);
+  assert.equal(updated.lastErrorType, "forbidden");
+  assert.equal(Number(updated.errorCode), 403);
+
+  assert.equal(fallback.isModelLocked("ollama-cloud", connection.id, "deepseek-v4-pro"), true);
+  // A free model on the same key is still usable.
+  assert.equal(fallback.isModelLocked("ollama-cloud", connection.id, "gemma4:31b"), false);
+});
+
+// #3027 regression — a genuine whole-key 403 (deactivated/banned key) must NOT
+// be downgraded to a model lockout; the connection still becomes terminal.
+test("markAccountUnavailable: a whole-key 403 still deactivates the ollama-cloud connection (#3027 regression)", async () => {
+  fallback.clearAllModelLockouts();
+  const connection = await seedConnection("ollama-cloud", {
+    name: "ollama-banned-key",
+    providerSpecificData: { passthroughModels: true },
+  });
+
+  await auth.markAccountUnavailable(
+    connection.id,
+    403,
+    "account has been deactivated",
+    "ollama-cloud",
+    "deepseek-v4-pro"
+  );
+  await flushWrites();
+  const updated = await providersDb.getProviderConnectionById(connection.id);
+
+  assert.equal(fallback.isModelLocked("ollama-cloud", connection.id, "deepseek-v4-pro"), false);
+  assert.ok(
+    ["banned", "expired", "credits_exhausted"].includes(updated.testStatus),
+    `expected a terminal connection status, got ${updated.testStatus}`
+  );
+});
+
+// #3027 — repeated subscription 403s on the paid model must never escalate a
+// connection-wide cooldown/backoff (only the model lockout escalates).
+test("markAccountUnavailable: repeated ollama-cloud subscription 403s never escalate connection backoff (#3027)", async () => {
+  fallback.clearAllModelLockouts();
+  const connection = await seedConnection("ollama-cloud", {
+    name: "ollama-repeat-403",
+    providerSpecificData: { passthroughModels: true },
+  });
+
+  for (let i = 0; i < 3; i++) {
+    await auth.markAccountUnavailable(
+      connection.id,
+      403,
+      "this model requires a subscription, upgrade for access",
+      "ollama-cloud",
+      "deepseek-v4-pro"
+    );
+    await flushWrites();
+  }
+  const updated = await providersDb.getProviderConnectionById(connection.id);
+
+  assert.equal(updated.rateLimitedUntil, undefined);
+  assert.notEqual(updated.testStatus, "unavailable");
+  assert.ok(!updated.backoffLevel, "connection backoffLevel must not escalate");
+  assert.equal(fallback.isModelLocked("ollama-cloud", connection.id, "deepseek-v4-pro"), true);
 });
 
 test("markAccountUnavailable honors configured api-key rate-limit cooldowns", async () => {

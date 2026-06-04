@@ -4,7 +4,7 @@ import { dirname } from "node:path";
 import { fileURLToPath } from "node:url";
 
 const withNextIntl = createNextIntlPlugin("./src/i18n/request.ts");
-const distDir = process.env.NEXT_DIST_DIR || ".next";
+const distDir = process.env.NEXT_DIST_DIR || ".build/next";
 const projectRoot = dirname(fileURLToPath(import.meta.url));
 const scriptSrc =
   process.env.NODE_ENV === "development"
@@ -141,6 +141,11 @@ const nextConfig = {
     "thread-stream",
     "pino-abstract-transport",
     "better-sqlite3",
+    // sqlite-vec ships a native vec0.so loaded at runtime via createRequire().
+    // Turbopack otherwise tries to bundle the .so and fails with "Unknown module
+    // type"; externalizing it keeps the require at runtime (like better-sqlite3).
+    // See issue #3066.
+    "sqlite-vec",
     "node-machine-id",
     "keytar",
     "wreq-js",
@@ -149,6 +154,7 @@ const nextConfig = {
     "koffi",
     "tough-cookie",
     "@ngrok/ngrok",
+    "@huggingface/transformers",
     "child_process",
     "fs",
     "path",
@@ -259,6 +265,12 @@ const nextConfig = {
 
   async redirects() {
     return [
+      // Dashboard routes
+      {
+        source: "/dashboard/skills",
+        destination: "/dashboard/omni-skills",
+        permanent: true,
+      },
       // Architecture
       {
         source: "/docs/architecture",
@@ -419,6 +431,19 @@ const nextConfig = {
       {
         source: "/docs/vm-deployment-guide",
         destination: "/docs/ops/vm-deployment-guide",
+        permanent: true,
+      },
+      // CLI Pages — Plano 14 (F9)
+      { source: "/dashboard/cli-tools", destination: "/dashboard/cli-code", permanent: true },
+      {
+        source: "/dashboard/cli-tools/:path*",
+        destination: "/dashboard/cli-code/:path*",
+        permanent: true,
+      },
+      { source: "/dashboard/agents", destination: "/dashboard/acp-agents", permanent: true },
+      {
+        source: "/dashboard/agents/:path*",
+        destination: "/dashboard/acp-agents/:path*",
         permanent: true,
       },
     ];

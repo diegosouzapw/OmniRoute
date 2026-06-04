@@ -4,6 +4,7 @@ import { useState, useEffect, useMemo } from "react";
 import { useTranslations } from "next-intl";
 import { Card } from "@/shared/components";
 import { useDisplayBaseUrl } from "@/shared/hooks";
+import { matchesSearch } from "@/shared/utils/turkishText";
 
 /* ─── Types ──────────────────────────────────────────── */
 interface Endpoint {
@@ -136,12 +137,16 @@ export default function ApiEndpointsTab() {
   const filteredEndpoints = useMemo(() => {
     if (!catalog) return [];
     return catalog.endpoints.filter((ep) => {
+      // Keep the internal-endpoint visibility toggle + security-tier filter
+      // (from release) while using the locale-aware matchesSearch helper. The
+      // local var is matchesEndpoint (not matchesSearch) to avoid shadowing the
+      // imported helper used in its own initializer.
       if (!showInternal && ep.internal) return false;
-      const matchesSearch =
+      const matchesEndpoint =
         !search ||
-        ep.path.toLowerCase().includes(search.toLowerCase()) ||
-        ep.summary.toLowerCase().includes(search.toLowerCase()) ||
-        ep.tags.some((t) => t.toLowerCase().includes(search.toLowerCase()));
+        matchesSearch(ep.path, search) ||
+        matchesSearch(ep.summary, search) ||
+        ep.tags.some((t) => matchesSearch(t, search));
       const matchesTag = !selectedTag || ep.tags.includes(selectedTag);
       const matchesTier =
         securityTier === "all" ||
@@ -149,7 +154,7 @@ export default function ApiEndpointsTab() {
         (securityTier === "always-protected" && ep.alwaysProtected) ||
         (securityTier === "auth" && ep.security && !ep.loopbackOnly && !ep.alwaysProtected) ||
         (securityTier === "public" && !ep.security && !ep.loopbackOnly && !ep.alwaysProtected);
-      return matchesSearch && matchesTag && matchesTier;
+      return matchesEndpoint && matchesTag && matchesTier;
     });
   }, [catalog, search, selectedTag, showInternal, securityTier]);
 

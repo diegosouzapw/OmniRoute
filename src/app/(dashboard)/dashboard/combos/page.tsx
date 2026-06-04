@@ -726,7 +726,7 @@ export default function CombosPage() {
       const metricsData = await metricsRes.json();
       const nodesData = nodesRes.ok ? await nodesRes.json() : { nodes: [] };
 
-      if (combosRes.ok) setCombos(combosData.combos || []);
+      if (combosRes.ok) setCombos((combosData.combos || []).filter((c) => !c.isHidden));
       if (providersRes.ok) {
         const active = (providersData.connections || []).filter(
           (c) => c.testStatus === "active" || c.testStatus === "success"
@@ -2512,7 +2512,19 @@ function ComboFormModal({ isOpen, combo, onClose, onSave, activeProviders, combo
   };
 
   const handleAddModel = (model) => {
-    const nextEntry = { model: model.value, weight: 0 };
+    const qualifiedModel = typeof model?.value === "string" ? model.value : "";
+    const parsedModel = parseQualifiedModel(qualifiedModel);
+    const resolvedProviderId =
+      resolveComboBuilderProviderId(model?.providerId, builderProviders) ||
+      resolveComboBuilderProviderId(parsedModel?.providerId, builderProviders) ||
+      (typeof model?.providerId === "string" && model.providerId.trim()) ||
+      parsedModel?.providerId ||
+      null;
+    const nextEntry = {
+      model: qualifiedModel,
+      ...(resolvedProviderId ? { providerId: resolvedProviderId } : {}),
+      weight: 0,
+    };
     if (hasExactModelStepDuplicate(models, nextEntry)) {
       setBuilderError(
         getI18nOrFallback(

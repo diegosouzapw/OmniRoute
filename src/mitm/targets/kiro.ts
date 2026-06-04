@@ -1,25 +1,45 @@
 /**
- * Kiro IDE MITM Configuration (#336)
+ * Kiro IDE target descriptor (#336).
  *
- * Kiro IDE removed the Base URL / API Key configuration UI.
- * To route Kiro's traffic through OmniRoute, we intercept it using MITM,
- * similar to the existing Antigravity/Claude Code implementation.
- *
- * Kiro IDE uses the Anthropic API at https://api.anthropic.com:
- * - Main endpoint: POST /v1/messages
- * - Auth header: x-api-key: <key>
- * - User-Agent contains: "kiro" or "Kiro"
- *
- * To use: Install OmniRoute's MITM certificate, then run:
- *   omniroute mitm start --targets kiro
- *
- * The MITM server intercepts requests to api.anthropic.com and forwards
- * them to the OmniRoute proxy (localhost:20128) instead.
+ * Kiro removed its Base URL / API Key UI; we intercept its Anthropic-style
+ * traffic via MITM. Provides:
+ *  - `KIRO_TARGET`: canonical `MitmTarget` per F1 contract (§3.1).
+ *  - `KIRO_MITM_PROFILE`: legacy alias retained for back-compat with
+ *    `src/app/api/settings/mitm/route.ts`.
  */
+import type { MitmTarget } from "../types";
 
-export interface MitmTarget {
-  id: string;
-  name: string;
+const HOSTS = ["api.anthropic.com"];
+const ENDPOINTS = ["/v1/messages"];
+const INSTRUCTIONS = [
+  "1. Install OmniRoute's root certificate (Dashboard → AgentBridge → Cert)",
+  "2. Start the MITM proxy: `omniroute mitm start --target kiro`",
+  "3. Set your system HTTP proxy to 127.0.0.1:20130 (or use transparent MITM via DNS override)",
+  "4. Open Kiro IDE — API calls will be automatically routed through OmniRoute.",
+  "5. Verify: check the Proxy Logs in OmniRoute dashboard and look for provider=anthropic source=mitm",
+];
+
+export const KIRO_TARGET: MitmTarget = {
+  id: "kiro",
+  name: "Kiro IDE",
+  icon: "code_blocks",
+  color: "#8B5CF6",
+  hosts: HOSTS,
+  port: 443,
+  endpointPatterns: ENDPOINTS,
+  defaultModels: [],
+  setupTutorial: {
+    steps: INSTRUCTIONS,
+    detection: { command: "which kiro", platform: "all" },
+  },
+  handler: () =>
+    import("../handlers/kiro").then((m) => ({
+      default: m.KiroHandler,
+    })),
+  riskNoticeKey: "providers.riskNotice.oauth",
+};
+
+export const KIRO_MITM_PROFILE: MitmTarget & {
   description: string;
   targetHost: string;
   targetPort: number;
@@ -28,27 +48,17 @@ export interface MitmTarget {
   apiEndpoints: string[];
   authHeader: string;
   instructions: string[];
-  referenceIde?: string;
-}
-
-/** Kiro IDE MITM profile */
-export const KIRO_MITM_PROFILE: MitmTarget = {
-  id: "kiro",
-  name: "Kiro IDE",
+  referenceIde: string;
+} = {
+  ...KIRO_TARGET,
   description:
     "Intercepts Kiro IDE requests to api.anthropic.com and routes them through OmniRoute.",
-  targetHost: "api.anthropic.com",
+  targetHost: HOSTS[0],
   targetPort: 443,
   localPort: 20130,
-  userAgentPattern: null, // Kiro does not expose a stable User-Agent
-  apiEndpoints: ["/v1/messages"],
+  userAgentPattern: null,
+  apiEndpoints: ENDPOINTS,
   authHeader: "x-api-key",
-  instructions: [
-    "1. Install OmniRoute's root certificate: run `omniroute cert install` or go to Settings → MITM Certificates",
-    "2. Start the MITM proxy: `omniroute mitm start --target kiro`",
-    "3. Set your system HTTP proxy to 127.0.0.1:20130 (or use transparent MITM via DNS override)",
-    "4. Open Kiro IDE — API calls will be automatically routed through OmniRoute.",
-    "5. Verify: check the Proxy Logs in OmniRoute dashboard and look for provider=anthropic source=mitm",
-  ],
-  referenceIde: "antigravity", // Same MITM infrastructure as Antigravity
+  instructions: INSTRUCTIONS,
+  referenceIde: "antigravity",
 };

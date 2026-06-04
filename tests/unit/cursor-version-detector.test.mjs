@@ -4,10 +4,9 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 
-const FALLBACK_VERSION = "3.2.14";
 const Database = (await import("better-sqlite3")).default;
 
-const { getCursorVersion, resetCursorVersionCache } =
+const { getCursorVersion, resetCursorVersionCache, FALLBACK_VERSION } =
   await import("../../open-sse/utils/cursorVersionDetector.ts");
 
 function createStateDb(dir, version) {

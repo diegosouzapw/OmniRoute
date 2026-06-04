@@ -22,6 +22,26 @@ function isPlainObject(v: unknown): v is Record<string, unknown> {
   return v !== null && typeof v === "object" && !Array.isArray(v);
 }
 
+function hasOwn(obj: Record<string, unknown>, key: string): boolean {
+  return Object.prototype.hasOwnProperty.call(obj, key);
+}
+
+function keepOpaqueObjectSchemasOpen(schema: Record<string, unknown>): void {
+  const explicitAdditionalProperties = hasOwn(schema, "additionalProperties");
+  if (explicitAdditionalProperties) return;
+
+  const properties = schema.properties;
+  const isObjectSchema = schema.type === "object" || isPlainObject(properties);
+  if (!isObjectSchema) return;
+
+  if (properties === undefined) {
+    schema.properties = {};
+    schema.additionalProperties = true;
+  } else if (isPlainObject(properties) && Object.keys(properties).length === 0) {
+    schema.additionalProperties = true;
+  }
+}
+
 function sanitizeSchema(value: unknown, depth = 0): Record<string, unknown> {
   if (depth > MAX_RECURSION_DEPTH) return {};
   if (!isPlainObject(value)) return {};
@@ -85,15 +105,17 @@ function sanitizeSchema(value: unknown, depth = 0): Record<string, unknown> {
     result.required = (result.required as string[]).filter((r) => validKeys.has(r));
   }
 
+  keepOpaqueObjectSchemasOpen(result);
+
   return result;
 }
 
 function normalizeParameters(parameters: unknown): unknown {
   if (isPlainObject(parameters)) return sanitizeSchema(parameters);
   if (parameters === null || parameters === undefined) {
-    return { type: "object", properties: {} };
+    return { type: "object", properties: {}, additionalProperties: true };
   }
-  return { type: "object", properties: {} };
+  return { type: "object", properties: {}, additionalProperties: true };
 }
 
 export function sanitizeOpenAITool(tool: unknown): unknown {

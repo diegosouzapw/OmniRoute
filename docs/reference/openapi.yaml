@@ -1,7 +1,7 @@
 openapi: 3.1.0
 info:
   title: OmniRoute API
-  version: 3.8.7
+  version: 3.8.9
   description: |
     OmniRoute is a local-first AI API proxy router. It provides an OpenAI-compatible
     endpoint that routes requests to multiple AI providers with load balancing,
@@ -23,6 +23,10 @@ servers:
     description: Local development
 
 tags:
+  - name: Playground
+    description: Playground Studio — preset management and prompt improvement
+  - name: Memory
+    description: Conversational memory management — CRUD, engine status, playground preview, summarization, reindex, and Qdrant settings (plan 21 — v3.8.6). All routes require management auth.
   - name: Chat
     description: OpenAI-compatible chat completions
   - name: Messages
@@ -75,8 +79,1001 @@ tags:
     description: Fallback chain management
   - name: Telemetry
     description: Telemetry and token health monitoring
+  - name: Agent Skills
+    description: >-
+      Agent Skills catalog — 42 SKILL.md files (22 REST API + 20 CLI) for external agents,
+      MCP clients, and A2A orchestrators to discover OmniRoute capabilities.
+  - name: AgentBridge
+    description: >-
+      MITM proxy manager for 9 IDE agents (Antigravity, Kiro, Copilot, Codex, Cursor, Zed,
+      Claude Code, Open Code, Trae). Controls server lifecycle, DNS/model mappings, bypass list,
+      and cert management. All routes are LOCAL_ONLY + SPAWN_CAPABLE (hard rules #15, #17).
+      See docs/frameworks/AGENTBRIDGE.md.
+  - name: Traffic Inspector
+    description: >-
+      LLM-aware HTTPS traffic debugger with 4 capture modes (AgentBridge, Custom Hosts,
+      HTTP_PROXY :8080, System-wide). Provides real-time WebSocket stream, session recording,
+      HAR export, SSE merge, and conversation normalization.
+      All routes are LOCAL_ONLY + SPAWN_CAPABLE (hard rules #15, #17).
+      See docs/frameworks/TRAFFIC_INSPECTOR.md.
 
 paths:
+  # --- Playground + Search Tools (plans 17+18) ---
+  /api/playground/improve-prompt:
+    post:
+      tags:
+        - Playground
+      summary: Improve prompt via LLM
+      description: |
+        Rewrites the supplied system prompt and/or user prompt using a meta-prompt
+        (inspired by Anthropic Console Prompt Improver). Internally calls
+        `/v1/chat/completions` with the model specified in the request body.
+        Quota is consumed from the caller's account.
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - model
+              properties:
+                system:
+                  type: string
+                  maxLength: 50000
+                  description: System prompt to improve (at least one of system/prompt required)
+                prompt:
+                  type: string
+                  maxLength: 50000
+                  description: User prompt to improve
+                model:
+                  type: string
+                  description: Model to use for the improvement call (e.g. openai/gpt-4o)
+                tone:
+                  type: string
+                  enum:
+                    - concise
+                    - detailed
+                  default: concise
+      responses:
+        '200':
+          description: Improved prompt(s)
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  improvedSystem:
+                    type: string
+                  improvedPrompt:
+                    type: string
+                  tokensIn:
+                    type: integer
+                  tokensOut:
+                    type: integer
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+  /api/playground/presets:
+    get:
+      tags:
+        - Playground
+      summary: List playground presets
+      description: Returns all saved playground presets ordered by creation date (newest first).
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: Preset list
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  presets:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/PlaygroundPreset'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+    post:
+      tags:
+        - Playground
+      summary: Create playground preset
+      description: Saves the current playground configuration as a named preset in the database.
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PlaygroundPresetCreate'
+      responses:
+        '201':
+          description: Created preset
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PlaygroundPreset'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+  /api/playground/presets/{id}:
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    get:
+      tags:
+        - Playground
+      summary: Get playground preset
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: Preset found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PlaygroundPreset'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          description: Preset not found
+    put:
+      tags:
+        - Playground
+      summary: Update playground preset
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PlaygroundPresetCreate'
+      responses:
+        '200':
+          description: Updated preset
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PlaygroundPreset'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          description: Preset not found
+    delete:
+      tags:
+        - Playground
+      summary: Delete playground preset
+      security:
+        - BearerAuth: []
+      responses:
+        '204':
+          description: Deleted
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          description: Preset not found
+  # --- Memory Engine (plan 21) ---
+  /api/memory:
+    get:
+      tags:
+        - Memory
+      summary: List memory entries
+      security:
+        - ManagementSessionAuth: []
+      parameters:
+        - name: apiKeyId
+          in: query
+          schema:
+            type: string
+        - name: type
+          in: query
+          schema:
+            type: string
+            enum:
+              - factual
+              - episodic
+              - procedural
+              - semantic
+        - name: sessionId
+          in: query
+          schema:
+            type: string
+        - name: q
+          in: query
+          schema:
+            type: string
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 200
+            default: 50
+        - name: page
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            default: 1
+        - name: offset
+          in: query
+          schema:
+            type: integer
+            minimum: 0
+      responses:
+        '200':
+          description: Paginated list of memories with stats
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/MemoryEntry'
+                  total:
+                    type: integer
+                  totalPages:
+                    type: integer
+                  stats:
+                    type: object
+                    properties:
+                      total:
+                        type: integer
+                      tokensUsed:
+                        type: integer
+                      hitRate:
+                        type: number
+                      cacheStats:
+                        type: object
+                        properties:
+                          hits:
+                            type: integer
+                          misses:
+                            type: integer
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+    post:
+      tags:
+        - Memory
+      summary: Create a memory entry
+      security:
+        - ManagementSessionAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - content
+                - key
+              properties:
+                content:
+                  type: string
+                  minLength: 1
+                key:
+                  type: string
+                  minLength: 1
+                type:
+                  type: string
+                  enum:
+                    - factual
+                    - episodic
+                    - procedural
+                    - semantic
+                  default: factual
+                sessionId:
+                  type: string
+                  nullable: true
+                apiKeyId:
+                  type: string
+                metadata:
+                  type: object
+                  additionalProperties: true
+                expiresAt:
+                  type: string
+                  format: date-time
+                  nullable: true
+      responses:
+        '201':
+          description: Created memory entry
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MemoryEntry'
+        '400':
+          description: Validation error
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+  /api/memory/{id}:
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+        description: Memory UUID
+    get:
+      tags:
+        - Memory
+      summary: Get a single memory entry
+      security:
+        - ManagementSessionAuth: []
+      responses:
+        '200':
+          description: Memory entry
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MemoryEntry'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          description: Memory not found
+    put:
+      tags:
+        - Memory
+      summary: Update a memory entry
+      description: Update `type`, `key`, `content`, and/or `metadata` of an existing memory. If an embedding source is available, the vector in `vec_memories` is also regenerated. Corresponds to `MemoryUpdatePutSchema`.
+      security:
+        - ManagementSessionAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                type:
+                  type: string
+                  enum:
+                    - factual
+                    - episodic
+                    - procedural
+                    - semantic
+                key:
+                  type: string
+                  minLength: 1
+                content:
+                  type: string
+                  minLength: 1
+                metadata:
+                  type: object
+                  additionalProperties: true
+              additionalProperties: false
+      responses:
+        '200':
+          description: Updated memory entry
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MemoryEntry'
+        '400':
+          description: Validation error
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          description: Memory not found
+    delete:
+      tags:
+        - Memory
+      summary: Delete a memory entry
+      description: Deletes the SQLite row, removes the vector from `vec_memories`, and best-effort deletes the point from Qdrant.
+      security:
+        - ManagementSessionAuth: []
+      responses:
+        '200':
+          description: Deleted
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          description: Memory not found
+  /api/memory/health:
+    get:
+      tags:
+        - Memory
+      summary: Memory store health check
+      description: Round-trip create→list→delete to verify the store is alive.
+      security:
+        - ManagementSessionAuth: []
+      responses:
+        '200':
+          description: Health result
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  working:
+                    type: boolean
+                  latencyMs:
+                    type: number
+                  error:
+                    type: string
+                    nullable: true
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+  /api/memory/retrieve-preview:
+    post:
+      tags:
+        - Memory
+      summary: Dry-run memory retrieval (Playground)
+      description: Simulates `retrieveMemories()` for a given query and returns the ranked results with score, tier, and token count. Does NOT modify any memory. Corresponds to `RetrievePreviewSchema`.
+      security:
+        - ManagementSessionAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - query
+              properties:
+                query:
+                  type: string
+                  minLength: 1
+                strategy:
+                  type: string
+                  enum:
+                    - exact
+                    - semantic
+                    - hybrid
+                  default: hybrid
+                maxTokens:
+                  type: integer
+                  minimum: 1
+                  maximum: 16000
+                  default: 2000
+                apiKeyId:
+                  type: string
+                  description: Optional — tests global pool when omitted
+                limit:
+                  type: integer
+                  minimum: 1
+                  maximum: 100
+                  default: 20
+              additionalProperties: false
+      responses:
+        '200':
+          description: Preview results
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  memories:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id:
+                          type: string
+                        type:
+                          type: string
+                          enum:
+                            - factual
+                            - episodic
+                            - procedural
+                            - semantic
+                        key:
+                          type: string
+                        content:
+                          type: string
+                        score:
+                          type: number
+                        tokens:
+                          type: integer
+                        tier:
+                          type: string
+                          enum:
+                            - fts5
+                            - vector
+                            - hybrid-rrf
+                            - qdrant
+                        vecScore:
+                          type: number
+                          nullable: true
+                        ftsScore:
+                          type: number
+                          nullable: true
+                  resolution:
+                    type: object
+                    properties:
+                      embeddingSource:
+                        type: string
+                        enum:
+                          - remote
+                          - static
+                          - transformers
+                        nullable: true
+                      embeddingModel:
+                        type: string
+                        nullable: true
+                      vectorStore:
+                        type: string
+                        enum:
+                          - sqlite-vec
+                          - qdrant
+                          - none
+                      strategyUsed:
+                        type: string
+                        enum:
+                          - exact
+                          - semantic
+                          - hybrid
+                      rerankApplied:
+                        type: boolean
+                      fallbackReason:
+                        type: string
+                        nullable: true
+                  totalTokensUsed:
+                    type: integer
+                  budgetMaxTokens:
+                    type: integer
+        '400':
+          description: Validation error
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+  /api/memory/embedding-providers:
+    get:
+      tags:
+        - Memory
+      summary: List embedding providers
+      description: Returns all providers that have embedding-capable models, indicating which have an active API key configured.
+      security:
+        - ManagementSessionAuth: []
+      responses:
+        '200':
+          description: Provider list
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  providers:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        provider:
+                          type: string
+                        hasKey:
+                          type: boolean
+                        models:
+                          type: array
+                          items:
+                            type: object
+                            properties:
+                              id:
+                                type: string
+                                description: 'Format: provider/model'
+                              name:
+                                type: string
+                              dimensions:
+                                type: integer
+                                nullable: true
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+  /api/memory/engine-status:
+    get:
+      tags:
+        - Memory
+      summary: Memory engine status
+      description: Returns the full engine status including keyword tier availability, embedding resolution, vector store statistics (sqlite-vec), Qdrant health, and rerank configuration. Corresponds to `MemoryEngineStatusSchema`.
+      security:
+        - ManagementSessionAuth: []
+      responses:
+        '200':
+          description: Engine status
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  keyword:
+                    type: object
+                    properties:
+                      available:
+                        type: boolean
+                      backend:
+                        type: string
+                        enum:
+                          - FTS5
+                  embedding:
+                    type: object
+                    properties:
+                      source:
+                        type: string
+                        enum:
+                          - remote
+                          - static
+                          - transformers
+                        nullable: true
+                      model:
+                        type: string
+                        nullable: true
+                      dimensions:
+                        type: integer
+                        nullable: true
+                      available:
+                        type: boolean
+                      reason:
+                        type: string
+                      cacheStats:
+                        type: object
+                        properties:
+                          hits:
+                            type: integer
+                          misses:
+                            type: integer
+                          size:
+                            type: integer
+                  vectorStore:
+                    type: object
+                    properties:
+                      backend:
+                        type: string
+                        enum:
+                          - sqlite-vec
+                          - qdrant
+                          - none
+                      available:
+                        type: boolean
+                      rowCount:
+                        type: integer
+                      needsReindex:
+                        type: integer
+                      reason:
+                        type: string
+                  qdrant:
+                    type: object
+                    properties:
+                      enabled:
+                        type: boolean
+                      healthy:
+                        type: boolean
+                        nullable: true
+                      latencyMs:
+                        type: number
+                        nullable: true
+                      error:
+                        type: string
+                        nullable: true
+                  rerank:
+                    type: object
+                    properties:
+                      enabled:
+                        type: boolean
+                      provider:
+                        type: string
+                        nullable: true
+                      model:
+                        type: string
+                        nullable: true
+                      available:
+                        type: boolean
+                      reason:
+                        type: string
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+  /api/memory/summarize:
+    post:
+      tags:
+        - Memory
+      summary: Compact old memories
+      description: 'Manually triggers memory compaction for memories older than `olderThanDays`. Use `dryRun: true` to preview candidates. Corresponds to `MemorySummarizeSchema`.'
+      security:
+        - ManagementSessionAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                olderThanDays:
+                  type: integer
+                  minimum: 1
+                  maximum: 365
+                  default: 30
+                apiKeyId:
+                  type: string
+                  description: Optional — compacts all keys when omitted
+                dryRun:
+                  type: boolean
+                  default: false
+              additionalProperties: false
+      responses:
+        '200':
+          description: Summarization result
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  candidates:
+                    type: integer
+                  tokensSaved:
+                    type: integer
+                  dryRun:
+                    type: boolean
+        '400':
+          description: Validation error
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+  /api/memory/reindex:
+    post:
+      tags:
+        - Memory
+      summary: Trigger vector reindex
+      description: 'Starts background reindexing of memories with `needs_reindex = 1`. Use `force: true` to regenerate ALL vectors regardless of index status. Corresponds to `MemoryReindexSchema`.'
+      security:
+        - ManagementSessionAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                force:
+                  type: boolean
+                  default: false
+                  description: When true, marks all memories needs_reindex=1 before running.
+              additionalProperties: false
+      responses:
+        '200':
+          description: Reindex started
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  started:
+                    type: boolean
+                  pending:
+                    type: integer
+                    description: Memories still pending after this batch
+        '400':
+          description: Validation error
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+  /api/settings/memory:
+    get:
+      tags:
+        - Memory
+        - Settings
+      summary: Get memory settings
+      description: Returns the extended memory settings including 7 new fields added in plan 21 (embeddingSource, embeddingProviderModel, transformersEnabled, staticEnabled, rerankEnabled, rerankProviderModel, vectorStore).
+      security:
+        - ManagementSessionAuth: []
+      responses:
+        '200':
+          description: Extended memory settings
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MemorySettingsExtended'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+    put:
+      tags:
+        - Memory
+        - Settings
+      summary: Update memory settings
+      description: 'Update any subset of the extended memory settings. All fields are optional; only provided fields are updated. Schema: `MemorySettingsExtendedSchema`.'
+      security:
+        - ManagementSessionAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MemorySettingsExtended'
+      responses:
+        '200':
+          description: Updated memory settings
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MemorySettingsExtended'
+        '400':
+          description: Validation error
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+  /api/settings/qdrant:
+    get:
+      tags:
+        - Memory
+        - Settings
+      summary: Get Qdrant settings
+      description: Returns current Qdrant configuration. The `apiKey` field is never returned raw — use `hasApiKey` / `apiKeyMasked` instead.
+      security:
+        - ManagementSessionAuth: []
+      responses:
+        '200':
+          description: Qdrant settings
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/QdrantSettings'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+    put:
+      tags:
+        - Memory
+        - Settings
+      summary: Update Qdrant settings
+      description: 'Update Qdrant configuration. Pass `apiKey: ""` to remove the stored key. Schema: `QdrantSettingsUpdateSchema`.'
+      security:
+        - ManagementSessionAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                enabled:
+                  type: boolean
+                host:
+                  type: string
+                port:
+                  type: integer
+                  minimum: 1
+                  maximum: 65535
+                collection:
+                  type: string
+                  minLength: 1
+                embeddingModel:
+                  type: string
+                  minLength: 1
+                apiKey:
+                  type: string
+                  description: Empty string removes the key
+              additionalProperties: false
+      responses:
+        '200':
+          description: Updated Qdrant settings
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/QdrantSettings'
+        '400':
+          description: Validation error
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+  /api/settings/qdrant/health:
+    get:
+      tags:
+        - Memory
+      summary: Qdrant health probe
+      description: Performs a liveness check against the configured Qdrant instance. Returns latency and any connection error (sanitized — no stack traces).
+      security:
+        - ManagementSessionAuth: []
+      responses:
+        '200':
+          description: Health result
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/QdrantHealthResult'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+  /api/settings/qdrant/search:
+    post:
+      tags:
+        - Memory
+      summary: Qdrant semantic search test
+      description: 'Performs a test semantic search against the Qdrant collection. Useful for validating that the integration works end-to-end. Schema: `QdrantSearchSchema`.'
+      security:
+        - ManagementSessionAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - query
+              properties:
+                query:
+                  type: string
+                  minLength: 1
+                topK:
+                  type: integer
+                  minimum: 1
+                  maximum: 50
+                  default: 5
+              additionalProperties: false
+      responses:
+        '200':
+          description: Search results
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  results:
+                    type: array
+                    items:
+                      type: object
+        '400':
+          description: Validation error
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '503':
+          description: Qdrant unavailable (structured error, no stack trace)
+  /api/settings/qdrant/cleanup:
+    post:
+      tags:
+        - Memory
+      summary: Clean up expired Qdrant points
+      description: Removes Qdrant points for memories that have expired or exceeded the configured retention window.
+      security:
+        - ManagementSessionAuth: []
+      responses:
+        '200':
+          description: Cleanup result
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  deleted:
+                    type: integer
+                  checked:
+                    type: integer
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '503':
+          description: Qdrant unavailable (structured error, no stack trace)
+  /api/settings/qdrant/embedding-models:
+    get:
+      tags:
+        - Memory
+      summary: List Qdrant embedding models
+      description: Returns the list of embedding models available for use with Qdrant.
+      security:
+        - ManagementSessionAuth: []
+      responses:
+        '200':
+          description: Embedding models list
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  models:
+                    type: array
+                    items:
+                      type: string
+        '401':
+          $ref: '#/components/responses/Unauthorized'
   # ─── Proxy Endpoints ──────────────────────────────────────────
 
   /api/v1/chat/completions:
@@ -2651,15 +3648,350 @@ paths:
     get:
       tags: [System]
       summary: Get compliance audit log
+      description: >
+        Returns paginated audit log entries. Use `level=high` to filter to
+        high-level actions only (powers the Activity feed). Use `level=all`
+        (default) for full compliance table.
+      security:
+        - bearerAuth: []
       parameters:
+        - name: level
+          in: query
+          schema:
+            type: string
+            enum: [high, all]
+            default: all
+          description: "high = Activity feed events only; all = all audit events"
+        - name: action
+          in: query
+          schema:
+            type: string
+          description: Filter by exact action string (e.g. "provider.added")
+        - name: actor
+          in: query
+          schema:
+            type: string
+          description: Filter by actor identifier
         - name: limit
           in: query
           schema:
             type: integer
-            default: 100
+            default: 50
+            maximum: 500
+        - name: offset
+          in: query
+          schema:
+            type: integer
+            default: 0
       responses:
         "200":
           description: Audit log entries
+        "401":
+          description: Unauthorized
+        "500":
+          description: Internal server error
+
+  # ─── Quota Sharing (Group B, plan 22) ────────────────────────────
+
+  /api/quota/pools:
+    get:
+      tags: [Quota]
+      summary: List quota pools
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Array of QuotaPool objects
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/QuotaPool"
+        "401":
+          description: Unauthorized
+        "500":
+          description: Internal server error
+    post:
+      tags: [Quota]
+      summary: Create quota pool
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PoolCreate"
+      responses:
+        "201":
+          description: Pool created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/QuotaPool"
+        "400":
+          description: Validation error (Zod)
+        "401":
+          description: Unauthorized
+        "500":
+          description: Internal server error
+
+  /api/quota/pools/{id}:
+    get:
+      tags: [Quota]
+      summary: Get quota pool by ID
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: QuotaPool object
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/QuotaPool"
+        "401":
+          description: Unauthorized
+        "404":
+          description: Pool not found
+        "500":
+          description: Internal server error
+    patch:
+      tags: [Quota]
+      summary: Update quota pool (name or allocations)
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PoolUpdate"
+      responses:
+        "200":
+          description: Updated pool
+        "400":
+          description: Validation error
+        "401":
+          description: Unauthorized
+        "404":
+          description: Pool not found
+        "500":
+          description: Internal server error
+    delete:
+      tags: [Quota]
+      summary: Delete quota pool
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "204":
+          description: Deleted
+        "401":
+          description: Unauthorized
+        "404":
+          description: Pool not found
+        "500":
+          description: Internal server error
+
+  /api/quota/pools/{id}/usage:
+    get:
+      tags: [Quota]
+      summary: Get pool usage snapshot (per-key consumption + burn rate)
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: PoolUsageSnapshot
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PoolUsageSnapshot"
+        "401":
+          description: Unauthorized
+        "404":
+          description: Pool not found
+        "500":
+          description: Internal server error
+
+  /api/quota/plans:
+    get:
+      tags: [Quota]
+      summary: List resolved provider plans (catalog + manual overrides)
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Array of ProviderPlan
+        "401":
+          description: Unauthorized
+        "500":
+          description: Internal server error
+
+  /api/quota/plans/{connectionId}:
+    get:
+      tags: [Quota]
+      summary: Get resolved plan for a connection
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: connectionId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: ProviderPlan (source = auto | manual)
+        "401":
+          description: Unauthorized
+        "404":
+          description: Connection not found
+        "500":
+          description: Internal server error
+    put:
+      tags: [Quota]
+      summary: Upsert manual plan override for a connection
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: connectionId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PlanUpsert"
+      responses:
+        "200":
+          description: Updated plan
+        "400":
+          description: Validation error (Zod)
+        "401":
+          description: Unauthorized
+        "500":
+          description: Internal server error
+    delete:
+      tags: [Quota]
+      summary: Delete manual plan override (reverts to catalog/auto)
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: connectionId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "204":
+          description: Override deleted
+        "401":
+          description: Unauthorized
+        "404":
+          description: Override not found
+        "500":
+          description: Internal server error
+
+  /api/quota/preview:
+    get:
+      tags: [Quota]
+      summary: Dry-run quota enforcement check (preview only, no consumption recorded)
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: apiKeyId
+          in: query
+          required: true
+          schema:
+            type: string
+        - name: poolId
+          in: query
+          required: true
+          schema:
+            type: string
+        - name: estimatedTokens
+          in: query
+          schema:
+            type: number
+        - name: estimatedUsd
+          in: query
+          schema:
+            type: number
+        - name: estimatedRequests
+          in: query
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: EnforceDecision (allow/block + reason)
+        "400":
+          description: Validation error (Zod)
+        "401":
+          description: Unauthorized
+        "500":
+          description: Internal server error
+
+  /api/settings/quota-store:
+    get:
+      tags: [Settings]
+      summary: Get current quota store driver settings
+      description: Redis URL is masked in the response (shows only scheme+host).
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: QuotaStoreSettings (driver + masked redisUrl)
+        "401":
+          description: Unauthorized
+        "500":
+          description: Internal server error
+    put:
+      tags: [Settings]
+      summary: Update quota store driver settings
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/QuotaStoreSettings"
+      responses:
+        "200":
+          description: Settings updated
+        "400":
+          description: Validation error (Zod) — e.g. driver=redis without valid URL
+        "401":
+          description: Unauthorized
+        "500":
+          description: Internal server error
 
   # ─── v1beta (Gemini-Compatible) ─────────────────────────────────
 
@@ -2696,6 +4028,609 @@ paths:
       responses:
         "200":
           description: Generated content
+
+  # ─── AgentBridge ──────────────────────────────────────────────
+
+  /api/tools/agent-bridge/agents:
+    get:
+      tags: [AgentBridge]
+      summary: List all 9 IDE agents with current state
+      description: >-
+        Returns the state (dns_enabled, cert_trusted, setup_completed, last_started_at,
+        last_error) for all 9 configured IDE agents. LOCAL_ONLY.
+      responses:
+        "200":
+          description: Array of agent state rows
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/AgentBridgeAgentState"
+        "403":
+          description: Loopback-only — request came from a non-loopback address
+
+  /api/tools/agent-bridge/state:
+    get:
+      tags: [AgentBridge]
+      summary: Get global AgentBridge server state
+      description: Returns running status, port, cert info, and intercepted request count.
+      responses:
+        "200":
+          description: Server state
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AgentBridgeServerState"
+
+  /api/tools/agent-bridge/server:
+    post:
+      tags: [AgentBridge]
+      summary: Control AgentBridge MITM server
+      description: Start, stop, restart, trust-cert, or regenerate-cert. SPAWN_CAPABLE.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AgentBridgeServerAction"
+      responses:
+        "200":
+          description: Action executed
+        "400":
+          description: Invalid action
+        "409":
+          description: Port 443 conflict
+
+  /api/tools/agent-bridge/agents/{agentId}/state:
+    get:
+      tags: [AgentBridge]
+      summary: Get state of one agent
+      parameters:
+        - name: agentId
+          in: path
+          required: true
+          schema:
+            $ref: "#/components/schemas/AgentId"
+      responses:
+        "200":
+          description: Agent state
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AgentBridgeAgentState"
+        "404":
+          description: Unknown agent ID
+
+  /api/tools/agent-bridge/agents/{agentId}/dns:
+    post:
+      tags: [AgentBridge]
+      summary: Enable or disable DNS for one agent
+      description: Adds or removes /etc/hosts entries for the agent's host list. SPAWN_CAPABLE.
+      parameters:
+        - name: agentId
+          in: path
+          required: true
+          schema:
+            $ref: "#/components/schemas/AgentId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AgentBridgeDnsAction"
+      responses:
+        "200":
+          description: DNS updated
+        "400":
+          description: Validation error
+
+  /api/tools/agent-bridge/agents/{agentId}/mappings:
+    get:
+      tags: [AgentBridge]
+      summary: Get model mappings for one agent
+      parameters:
+        - name: agentId
+          in: path
+          required: true
+          schema:
+            $ref: "#/components/schemas/AgentId"
+      responses:
+        "200":
+          description: Array of source→target model mappings
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/AgentBridgeMappingRow"
+    put:
+      tags: [AgentBridge]
+      summary: Update model mappings for one agent
+      parameters:
+        - name: agentId
+          in: path
+          required: true
+          schema:
+            $ref: "#/components/schemas/AgentId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AgentBridgeMappingPut"
+      responses:
+        "200":
+          description: Mappings updated
+
+  /api/tools/agent-bridge/bypass:
+    get:
+      tags: [AgentBridge]
+      summary: List bypass patterns (hosts never decrypted)
+      responses:
+        "200":
+          description: Bypass patterns
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/AgentBridgeBypassRow"
+    put:
+      tags: [AgentBridge]
+      summary: Update user bypass patterns
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AgentBridgeBypassUpsert"
+      responses:
+        "200":
+          description: Patterns updated
+
+  /api/tools/agent-bridge/cert:
+    post:
+      tags: [AgentBridge]
+      summary: Download or regenerate the AgentBridge CA certificate
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [action]
+              properties:
+                action:
+                  type: string
+                  enum: [download, regenerate]
+      responses:
+        "200":
+          description: CA certificate PEM (download) or regeneration confirmation
+
+  /api/tools/agent-bridge/upstream-ca:
+    get:
+      tags: [AgentBridge]
+      summary: Get configured upstream CA cert path
+      responses:
+        "200":
+          description: Upstream CA configuration
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  path:
+                    type: string
+                    nullable: true
+    post:
+      tags: [AgentBridge]
+      summary: Set upstream CA cert path for corporate TLS environments
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AgentBridgeUpstreamCaPost"
+      responses:
+        "200":
+          description: Upstream CA configured
+        "400":
+          description: Path does not exist or is not readable
+
+  # ─── Traffic Inspector ─────────────────────────────────────────
+
+  /api/tools/traffic-inspector/requests:
+    get:
+      tags: [Traffic Inspector]
+      summary: List intercepted requests (filterable)
+      parameters:
+        - name: profile
+          in: query
+          schema:
+            type: string
+            enum: [llm, custom, all]
+        - name: host
+          in: query
+          schema:
+            type: string
+        - name: agent
+          in: query
+          schema:
+            $ref: "#/components/schemas/AgentId"
+        - name: status
+          in: query
+          schema:
+            type: string
+            enum: ["2xx", "3xx", "4xx", "5xx", error]
+        - name: source
+          in: query
+          schema:
+            $ref: "#/components/schemas/CaptureSource"
+        - name: sessionId
+          in: query
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Array of intercepted requests
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/InterceptedRequest"
+    delete:
+      tags: [Traffic Inspector]
+      summary: Clear the in-memory traffic buffer
+      responses:
+        "204":
+          description: Buffer cleared
+
+  /api/tools/traffic-inspector/requests/{id}:
+    get:
+      tags: [Traffic Inspector]
+      summary: Get a single intercepted request by ID
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Intercepted request details
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InterceptedRequest"
+        "404":
+          description: Request not found in buffer
+
+  /api/tools/traffic-inspector/requests/{id}/replay:
+    post:
+      tags: [Traffic Inspector]
+      summary: Replay a captured request through OmniRoute router
+      description: Re-executes the original request body against /v1/chat/completions. Consumes quota.
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Replay response (streaming or JSON)
+        "404":
+          description: Request not found
+
+  /api/tools/traffic-inspector/requests/{id}/annotation:
+    put:
+      tags: [Traffic Inspector]
+      summary: Save or update annotation on a request
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/InspectorAnnotationPut"
+      responses:
+        "200":
+          description: Annotation saved
+
+  /api/tools/traffic-inspector/ws:
+    get:
+      tags: [Traffic Inspector]
+      summary: Live WebSocket stream of intercepted requests
+      description: >-
+        Upgrade to WebSocket. On connect, server sends `{type:"snapshot", data:[...]}`.
+        Subsequent events: `{type:"new", data:{...}}`, `{type:"update", data:{...}}`,
+        `{type:"clear"}`. LOCAL_ONLY.
+      responses:
+        "101":
+          description: WebSocket upgrade successful
+        "403":
+          description: Non-loopback origin rejected
+
+  /api/tools/traffic-inspector/export.har:
+    get:
+      tags: [Traffic Inspector]
+      summary: Export current filtered request list as HAR 1.2
+      parameters:
+        - name: profile
+          in: query
+          schema:
+            type: string
+            enum: [llm, custom, all]
+        - name: sessionId
+          in: query
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: HAR file (JSON)
+          content:
+            application/json:
+              schema:
+                type: object
+                description: HAR 1.2 format
+
+  /api/tools/traffic-inspector/hosts:
+    get:
+      tags: [Traffic Inspector]
+      summary: List custom capture hosts
+      responses:
+        "200":
+          description: Custom hosts list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/InspectorCustomHost"
+    post:
+      tags: [Traffic Inspector]
+      summary: Add a custom capture host (edits /etc/hosts)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/InspectorCustomHostCreate"
+      responses:
+        "201":
+          description: Host added
+        "409":
+          description: Host already exists
+
+  /api/tools/traffic-inspector/hosts/{host}:
+    delete:
+      tags: [Traffic Inspector]
+      summary: Remove a custom capture host
+      parameters:
+        - name: host
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "204":
+          description: Host removed
+    patch:
+      tags: [Traffic Inspector]
+      summary: Toggle enabled state of a custom host
+      parameters:
+        - name: host
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [enabled]
+              properties:
+                enabled:
+                  type: boolean
+      responses:
+        "200":
+          description: Host updated
+
+  /api/tools/traffic-inspector/capture-modes:
+    get:
+      tags: [Traffic Inspector]
+      summary: Get state of all 4 capture modes
+      responses:
+        "200":
+          description: Capture modes state
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InspectorCaptureModesState"
+
+  /api/tools/traffic-inspector/capture-modes/http-proxy:
+    post:
+      tags: [Traffic Inspector]
+      summary: Start or stop the HTTP_PROXY listener (port 8080)
+      description: SPAWN_CAPABLE — spawns a net.Server listener.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/InspectorCaptureModeAction"
+      responses:
+        "200":
+          description: Action executed
+        "409":
+          description: Port conflict (EADDRINUSE) when starting
+
+  /api/tools/traffic-inspector/capture-modes/system-proxy:
+    post:
+      tags: [Traffic Inspector]
+      summary: Apply or revert system-wide proxy settings
+      description: SPAWN_CAPABLE — executes networksetup/gsettings/netsh. Requires admin.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/InspectorSystemProxyAction"
+      responses:
+        "200":
+          description: System proxy updated
+        "500":
+          description: OS command failed (permission error)
+
+  /api/tools/traffic-inspector/capture-modes/tls-intercept:
+    post:
+      tags: [Traffic Inspector]
+      summary: Toggle TLS body decryption in HTTP_PROXY mode
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/InspectorTlsInterceptToggle"
+      responses:
+        "200":
+          description: TLS intercept mode updated
+
+  /api/tools/traffic-inspector/sessions:
+    get:
+      tags: [Traffic Inspector]
+      summary: List all saved recording sessions
+      responses:
+        "200":
+          description: Sessions list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/InspectorSession"
+    post:
+      tags: [Traffic Inspector]
+      summary: Start a new recording session
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/InspectorSessionStart"
+      responses:
+        "201":
+          description: Session started
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InspectorSession"
+
+  /api/tools/traffic-inspector/sessions/{id}:
+    get:
+      tags: [Traffic Inspector]
+      summary: Get session snapshot (all captured requests)
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Session with embedded requests
+        "404":
+          description: Session not found
+    patch:
+      tags: [Traffic Inspector]
+      summary: Stop or rename a recording session
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/InspectorSessionPatch"
+      responses:
+        "200":
+          description: Session updated
+    delete:
+      tags: [Traffic Inspector]
+      summary: Delete a recording session
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "204":
+          description: Session deleted
+
+  /api/tools/traffic-inspector/sessions/{id}/export.har:
+    get:
+      tags: [Traffic Inspector]
+      summary: Export a recorded session as HAR 1.2
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: HAR file for this session
+          content:
+            application/json:
+              schema:
+                type: object
+                description: HAR 1.2 format
+        "404":
+          description: Session not found
+
+  /api/tools/traffic-inspector/internal/ingest:
+    post:
+      tags: [Traffic Inspector]
+      summary: Internal ingest endpoint for server.cjs passthrough path
+      description: >-
+        Accepts a serialized InterceptedRequest from the CJS MITM server for requests
+        that do not go through TypeScript handlers (e.g., passthrough hosts). Requires
+        INSPECTOR_INTERNAL_INGEST_TOKEN header. LOCAL_ONLY.
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/InterceptedRequest"
+      responses:
+        "204":
+          description: Ingested
+        "401":
+          description: Invalid or missing ingest token
 
   # ─── OpenAPI Spec ──────────────────────────────────────────────
 
@@ -2764,6 +4699,232 @@ paths:
         "500":
           description: Failed to parse OpenAPI spec
 
+  # ─── Agent Skills Catalog ────────────────────────────────────────────────────
+
+  /api/agent-skills:
+    get:
+      tags: [Agent Skills]
+      summary: List agent skills catalog
+      description: |
+        Returns the full 42-entry Agent Skills catalog with optional filtering.
+        Skills describe how to use OmniRoute's REST API and CLI — they are structured
+        SKILL.md documentation files discoverable by external agents, MCP clients, and
+        A2A orchestrators. No authentication required.
+      parameters:
+        - name: category
+          in: query
+          required: false
+          schema:
+            type: string
+            enum: [api, cli]
+          description: Filter by category (api = REST API skills, cli = CLI skills)
+        - name: area
+          in: query
+          required: false
+          schema:
+            type: string
+          description: Filter by area slug (e.g. "providers", "models", "cli-serve")
+      responses:
+        "200":
+          description: Catalog list
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [skills, count, coverage]
+                properties:
+                  skills:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/AgentSkill"
+                  count:
+                    type: integer
+                  coverage:
+                    $ref: "#/components/schemas/SkillCoverage"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "500":
+          $ref: "#/components/responses/InternalError"
+
+  /api/agent-skills/{id}:
+    get:
+      tags: [Agent Skills]
+      summary: Get a single agent skill
+      description: |
+        Returns metadata for a single agent skill by its canonical ID
+        (e.g. `omni-providers`, `cli-serve`). No authentication required.
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            pattern: "^[a-z][a-z0-9-]*$"
+          description: Canonical skill ID
+          example: omni-providers
+      responses:
+        "200":
+          description: Agent skill metadata
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AgentSkill"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "500":
+          $ref: "#/components/responses/InternalError"
+
+  /api/agent-skills/{id}/raw:
+    get:
+      tags: [Agent Skills]
+      summary: Get raw SKILL.md content
+      description: |
+        Returns the SKILL.md content for a skill as `text/markdown`.
+        Resolution order: local filesystem `skills/{id}/SKILL.md` → GitHub raw URL (1-hour cache).
+        No authentication required.
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            pattern: "^[a-z][a-z0-9-]*$"
+          description: Canonical skill ID
+          example: omni-providers
+      responses:
+        "200":
+          description: SKILL.md content as Markdown
+          headers:
+            X-Skill-Source:
+              schema:
+                type: string
+                enum: [filesystem, github, generated]
+              description: Where the content was loaded from
+            X-Skill-Fetched-At:
+              schema:
+                type: string
+                format: date-time
+              description: ISO timestamp of when the content was fetched
+            Cache-Control:
+              schema:
+                type: string
+              description: "public, max-age=3600"
+          content:
+            text/markdown:
+              schema:
+                type: string
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "502":
+          description: Upstream GitHub fetch failed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          $ref: "#/components/responses/InternalError"
+
+  /api/agent-skills/coverage:
+    get:
+      tags: [Agent Skills]
+      summary: Get SKILL.md coverage stats
+      description: |
+        Returns how many of the 22 API skills and 20 CLI skills have SKILL.md
+        files on the local filesystem vs the catalog totals. No authentication required.
+      responses:
+        "200":
+          description: Coverage stats
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SkillCoverage"
+        "500":
+          $ref: "#/components/responses/InternalError"
+
+  /api/agent-skills/generate:
+    post:
+      tags: [Agent Skills]
+      summary: Trigger SKILL.md generator
+      description: |
+        Runs the Agent Skills generator which writes `skills/{id}/SKILL.md` for
+        all 42 catalog entries (or a subset via `onlyIds`). Preserves
+        `<!-- skill:custom-start --> ... <!-- skill:custom-end -->` blocks.
+        **Requires management authentication.**
+      security:
+        - BearerAuth: []
+        - ManagementSessionAuth: []
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                dryRun:
+                  type: boolean
+                  default: true
+                  description: "If true, reports what would be generated without writing files"
+                prune:
+                  type: boolean
+                  default: false
+                  description: "If true, deletes skill directories not in the catalog"
+                onlyIds:
+                  type: array
+                  items:
+                    type: string
+                  description: "If provided, only regenerate these skill IDs"
+      responses:
+        "200":
+          description: Generator report
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [generated, unchanged, pruned, orphansDetected, errors]
+                properties:
+                  generated:
+                    type: array
+                    items:
+                      type: string
+                    description: IDs that got new/updated SKILL.md
+                  unchanged:
+                    type: array
+                    items:
+                      type: string
+                    description: IDs whose content was already up to date
+                  pruned:
+                    type: array
+                    items:
+                      type: string
+                    description: IDs whose directories were deleted (prune mode)
+                  orphansDetected:
+                    type: array
+                    items:
+                      type: string
+                    description: Directories found in skills/ not in the catalog
+                  errors:
+                    type: array
+                    items:
+                      type: object
+                      required: [id, error]
+                      properties:
+                        id:
+                          type: string
+                        error:
+                          type: string
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "500":
+          $ref: "#/components/responses/InternalError"
+        "503":
+          description: Generator module not available
+
 components:
   securitySchemes:
     BearerAuth:
@@ -2825,6 +4986,851 @@ components:
             $ref: "#/components/schemas/ValidationErrorResponse"
 
   schemas:
+    PlaygroundPreset:
+      type: object
+      required:
+        - id
+        - name
+        - endpoint
+        - model
+        - params
+        - created_at
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+          maxLength: 100
+        endpoint:
+          type: string
+          description: Playground endpoint key (e.g. "chat.completions")
+        model:
+          type: string
+        system:
+          type: string
+          nullable: true
+        params:
+          type: object
+          additionalProperties: true
+          description: Serialized parameter values (temperature, max_tokens, etc.)
+        created_at:
+          type: string
+          format: date-time
+    PlaygroundPresetCreate:
+      type: object
+      required:
+        - name
+        - endpoint
+        - model
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 100
+        endpoint:
+          type: string
+          minLength: 1
+        model:
+          type: string
+          minLength: 1
+        system:
+          type: string
+          nullable: true
+        params:
+          type: object
+          additionalProperties: true
+          default: {}
+    MemoryEntry:
+      type: object
+      description: A single persisted memory entry
+      properties:
+        id:
+          type: string
+          description: UUID
+        apiKeyId:
+          type: string
+        sessionId:
+          type: string
+          nullable: true
+        type:
+          type: string
+          enum:
+            - factual
+            - episodic
+            - procedural
+            - semantic
+        key:
+          type: string
+          description: Stable upsert key (e.g. preference:i_prefer_python)
+        content:
+          type: string
+        metadata:
+          type: object
+          additionalProperties: true
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+        expiresAt:
+          type: string
+          format: date-time
+          nullable: true
+        needsReindex:
+          type: integer
+          description: 1 if the vector for this memory is stale or missing
+    MemorySettingsExtended:
+      type: object
+      description: Extended memory settings including 7 new fields from plan 21. All fields are optional for PUT (patch semantics).
+      properties:
+        enabled:
+          type: boolean
+        maxTokens:
+          type: integer
+          minimum: 0
+          maximum: 16000
+        retentionDays:
+          type: integer
+          minimum: 1
+          maximum: 365
+        strategy:
+          type: string
+          enum:
+            - recent
+            - semantic
+            - hybrid
+        skillsEnabled:
+          type: boolean
+        embeddingSource:
+          type: string
+          enum:
+            - remote
+            - static
+            - transformers
+            - auto
+          description: Which embedding source to use. "auto" = remote > static > transformers.
+        embeddingProviderModel:
+          type: string
+          nullable: true
+          description: Embedding provider/model in "provider/model" format (e.g. openai/text-embedding-3-small).
+        transformersEnabled:
+          type: boolean
+          description: Opt-in for Transformers.js local MiniLM model (~400MB RAM)
+        staticEnabled:
+          type: boolean
+          description: Opt-in for static potion-base-8M local model
+        rerankEnabled:
+          type: boolean
+          description: Enable reranking step (+200-500ms/req)
+        rerankProviderModel:
+          type: string
+          nullable: true
+          description: Rerank provider/model in "provider/model" format
+        vectorStore:
+          type: string
+          enum:
+            - sqlite-vec
+            - qdrant
+            - auto
+          description: Which vector backend to use
+    QdrantSettings:
+      type: object
+      description: Qdrant vector database configuration (read shape — no raw apiKey)
+      properties:
+        enabled:
+          type: boolean
+        host:
+          type: string
+        port:
+          type: integer
+          minimum: 1
+          maximum: 65535
+        collection:
+          type: string
+        embeddingModel:
+          type: string
+        hasApiKey:
+          type: boolean
+        apiKeyMasked:
+          type: string
+          nullable: true
+          description: First 4 chars of the configured API key, or null
+    QdrantHealthResult:
+      type: object
+      description: Result of a Qdrant liveness probe
+      properties:
+        ok:
+          type: boolean
+        latencyMs:
+          type: number
+        error:
+          type: string
+          nullable: true
+          description: Sanitized error message (no stack traces)
+    AgentSkill:
+      type: object
+      description: >-
+        Single entry in the Agent Skills catalog. Describes one OmniRoute REST API surface
+        (category: api) or CLI subcommand group (category: cli) with a canonical ID and a
+        link to its SKILL.md documentation file.
+      required: [id, name, description, category, area, rawUrl, githubUrl]
+      properties:
+        id:
+          type: string
+          pattern: "^[a-z][a-z0-9-]*$"
+          description: Canonical skill ID (e.g. "omni-providers", "cli-serve")
+          example: omni-providers
+        name:
+          type: string
+          minLength: 1
+          maxLength: 100
+          description: Human-readable skill name
+          example: Provider Management
+        description:
+          type: string
+          minLength: 1
+          maxLength: 2000
+          description: One-paragraph description of what the skill covers
+        category:
+          type: string
+          enum: [api, cli]
+          description: "api = REST API skill; cli = CLI subcommand skill"
+        area:
+          type: string
+          minLength: 1
+          maxLength: 50
+          description: Functional area slug (e.g. "providers", "combos-routing", "cli-serve")
+          example: providers
+        endpoints:
+          type: array
+          items:
+            type: string
+          description: REST API endpoints (present for api-category skills only)
+          example: ["POST /api/providers", "GET /api/providers/:id"]
+        cliCommands:
+          type: array
+          items:
+            type: string
+          description: CLI subcommand names (present for cli-category skills only)
+          example: ["providers list", "providers test", "providers rotate"]
+        icon:
+          type: string
+          description: Material symbol icon name for dashboard display
+        isEntry:
+          type: boolean
+          description: Whether this is a recommended starting point
+        isNew:
+          type: boolean
+          description: Whether this skill was added in a recent release
+        rawUrl:
+          type: string
+          format: uri
+          description: GitHub raw URL of the SKILL.md file
+          example: "https://raw.githubusercontent.com/diegosouzapw/OmniRoute/refs/heads/main/skills/omni-providers/SKILL.md"
+        githubUrl:
+          type: string
+          format: uri
+          description: GitHub blob URL for viewing the SKILL.md in the browser
+          example: "https://github.com/diegosouzapw/OmniRoute/blob/main/skills/omni-providers/SKILL.md"
+
+    SkillCoverage:
+      type: object
+      description: >-
+        Coverage statistics for the Agent Skills catalog: how many of the 22 REST API
+        skills and 20 CLI skills have generated SKILL.md files on the local filesystem.
+      required: [api, cli, totalSkills, generatedAt]
+      properties:
+        api:
+          type: object
+          required: [have, total]
+          properties:
+            have:
+              type: integer
+              minimum: 0
+              maximum: 22
+              description: Number of API skills with SKILL.md on disk
+            total:
+              type: integer
+              enum: [22]
+              description: Canonical API skill count (always 22)
+        cli:
+          type: object
+          required: [have, total]
+          properties:
+            have:
+              type: integer
+              minimum: 0
+              maximum: 20
+              description: Number of CLI skills with SKILL.md on disk
+            total:
+              type: integer
+              enum: [20]
+              description: Canonical CLI skill count (always 20)
+        totalSkills:
+          type: integer
+          minimum: 0
+          maximum: 42
+          description: Sum of api.have + cli.have
+        generatedAt:
+          type: string
+          format: date-time
+          description: ISO datetime when coverage was last computed
+
+    ErrorResponse:
+      type: object
+      description: Standard error response body
+      required: [error]
+      properties:
+        error:
+          type: object
+          required: [message]
+          properties:
+            message:
+              type: string
+              description: Human-readable error message (never includes stack traces)
+            code:
+              type: string
+              description: Machine-readable error code
+
+    # ─── AgentBridge Schemas ────────────────────────────────────────
+
+    AgentId:
+      type: string
+      enum:
+        - antigravity
+        - kiro
+        - copilot
+        - codex
+        - cursor
+        - zed
+        - claude-code
+        - open-code
+        - trae
+      description: One of the 9 supported IDE agents
+
+    AgentBridgeAgentState:
+      type: object
+      description: Per-agent MITM state
+      properties:
+        agent_id:
+          $ref: "#/components/schemas/AgentId"
+        dns_enabled:
+          type: boolean
+        cert_trusted:
+          type: boolean
+        setup_completed:
+          type: boolean
+        last_started_at:
+          type: string
+          format: date-time
+          nullable: true
+        last_error:
+          type: string
+          nullable: true
+
+    AgentBridgeServerState:
+      type: object
+      description: Global AgentBridge MITM server state
+      properties:
+        running:
+          type: boolean
+        port:
+          type: integer
+          example: 443
+        certReady:
+          type: boolean
+        interceptedCount:
+          type: integer
+        activeConnections:
+          type: integer
+        lastStartedAt:
+          type: string
+          format: date-time
+          nullable: true
+
+    AgentBridgeServerAction:
+      type: object
+      required: [action]
+      properties:
+        action:
+          type: string
+          enum: [start, stop, restart, trust-cert, regenerate-cert]
+
+    AgentBridgeDnsAction:
+      type: object
+      required: [enabled]
+      properties:
+        enabled:
+          type: boolean
+
+    AgentBridgeMappingRow:
+      type: object
+      properties:
+        agent_id:
+          $ref: "#/components/schemas/AgentId"
+        source_model:
+          type: string
+          example: gpt-4o
+        target_model:
+          type: string
+          example: claude-sonnet-4.7
+        updated_at:
+          type: string
+          format: date-time
+
+    AgentBridgeMappingPut:
+      type: object
+      required: [mappings]
+      properties:
+        mappings:
+          type: array
+          items:
+            type: object
+            required: [source, target]
+            properties:
+              source:
+                type: string
+                example: gpt-4o
+              target:
+                type: string
+                example: claude-sonnet-4.7
+
+    AgentBridgeBypassRow:
+      type: object
+      properties:
+        pattern:
+          type: string
+          example: "*.bank.*"
+        source:
+          type: string
+          enum: [default, user]
+        created_at:
+          type: string
+          format: date-time
+
+    AgentBridgeBypassUpsert:
+      type: object
+      required: [patterns]
+      properties:
+        patterns:
+          type: array
+          items:
+            type: string
+          example: ["*.bank.*", "*.gov.*"]
+
+    AgentBridgeUpstreamCaPost:
+      type: object
+      required: [path]
+      properties:
+        path:
+          type: string
+          description: Absolute path to a PEM file for corporate upstream CA
+          example: "/etc/ssl/certs/corporate-ca.pem"
+
+    # ─── Traffic Inspector Schemas ──────────────────────────────────
+
+    CaptureSource:
+      type: string
+      enum: [agent-bridge, custom-host, http-proxy, system-proxy]
+
+    DetectedKind:
+      type: string
+      enum: [llm, app, unknown]
+
+    InterceptedRequest:
+      type: object
+      description: A single intercepted HTTP request captured by the Traffic Inspector
+      required: [id, source, timestamp, method, host, path, requestHeaders, requestSize, responseHeaders, responseSize, status]
+      properties:
+        id:
+          type: string
+          format: uuid
+        source:
+          $ref: "#/components/schemas/CaptureSource"
+        agent:
+          $ref: "#/components/schemas/AgentId"
+        timestamp:
+          type: string
+          format: date-time
+        method:
+          type: string
+          example: POST
+        host:
+          type: string
+          example: api.githubcopilot.com
+        path:
+          type: string
+          example: /v1/chat/completions
+        requestHeaders:
+          type: object
+          additionalProperties:
+            type: string
+        requestBody:
+          type: string
+          nullable: true
+          description: Masked (secrets replaced with ***)
+        requestSize:
+          type: integer
+        responseHeaders:
+          type: object
+          additionalProperties:
+            type: string
+        responseBody:
+          type: string
+          nullable: true
+        responseSize:
+          type: integer
+        status:
+          oneOf:
+            - type: integer
+            - type: string
+              enum: [in-flight, error]
+        proxyLatencyMs:
+          type: number
+          nullable: true
+        upstreamLatencyMs:
+          type: number
+          nullable: true
+        totalLatencyMs:
+          type: number
+          nullable: true
+        error:
+          type: string
+          nullable: true
+          description: Sanitized error message (no stack traces)
+        sourceModel:
+          type: string
+          nullable: true
+        mappedModel:
+          type: string
+          nullable: true
+        detectedKind:
+          $ref: "#/components/schemas/DetectedKind"
+        contextKey:
+          type: string
+          nullable: true
+          description: 12-char SHA-256 hex of the system prompt (for conversation grouping)
+          example: a3f9c2b1d5e4
+        annotation:
+          type: string
+          nullable: true
+        sessionId:
+          type: string
+          format: uuid
+          nullable: true
+        note:
+          type: string
+          nullable: true
+          description: Informational note (e.g. TLS tunnel metadata)
+
+    InspectorCustomHost:
+      type: object
+      properties:
+        host:
+          type: string
+          example: api.openai.com
+        enabled:
+          type: boolean
+        label:
+          type: string
+          nullable: true
+        kind:
+          type: string
+          enum: [llm, app, custom]
+        added_at:
+          type: string
+          format: date-time
+        last_seen_at:
+          type: string
+          format: date-time
+          nullable: true
+
+    InspectorCustomHostCreate:
+      type: object
+      required: [host]
+      properties:
+        host:
+          type: string
+          minLength: 1
+          example: my-internal-llm.company.com
+        enabled:
+          type: boolean
+          default: true
+        label:
+          type: string
+          nullable: true
+        kind:
+          type: string
+          enum: [llm, app, custom]
+          default: custom
+
+    InspectorCaptureModesState:
+      type: object
+      properties:
+        agentBridge:
+          type: object
+          properties:
+            active:
+              type: boolean
+        customHosts:
+          type: object
+          properties:
+            active:
+              type: boolean
+            count:
+              type: integer
+        httpProxy:
+          type: object
+          properties:
+            active:
+              type: boolean
+            port:
+              type: integer
+              example: 8080
+        systemProxy:
+          type: object
+          properties:
+            active:
+              type: boolean
+            guardMinutes:
+              type: integer
+
+    InspectorCaptureModeAction:
+      type: object
+      required: [action]
+      properties:
+        action:
+          type: string
+          enum: [start, stop]
+
+    InspectorSystemProxyAction:
+      type: object
+      required: [action]
+      properties:
+        action:
+          type: string
+          enum: [apply, revert]
+        port:
+          type: integer
+          minimum: 1
+          maximum: 65535
+          example: 8080
+        guardMinutes:
+          type: integer
+          minimum: 1
+          example: 30
+
+    InspectorTlsInterceptToggle:
+      type: object
+      required: [enabled]
+      properties:
+        enabled:
+          type: boolean
+
+    InspectorAnnotationPut:
+      type: object
+      required: [annotation]
+      properties:
+        annotation:
+          type: string
+          maxLength: 10000
+
+    InspectorSession:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+          nullable: true
+        started_at:
+          type: string
+          format: date-time
+        ended_at:
+          type: string
+          format: date-time
+          nullable: true
+        request_count:
+          type: integer
+        profile:
+          type: string
+          enum: [llm, custom, all]
+          nullable: true
+
+    InspectorSessionStart:
+      type: object
+      properties:
+        name:
+          type: string
+          example: "Antigravity test run #1"
+
+    InspectorSessionPatch:
+      type: object
+      required: [action]
+      properties:
+        action:
+          type: string
+          enum: [stop, rename]
+        name:
+          type: string
+    QuotaPool:
+      type: object
+      description: A quota sharing pool — binds a provider connection to allocation rules.
+      required: [id, connectionId, name, createdAt, allocations]
+      properties:
+        id:
+          type: string
+        connectionId:
+          type: string
+        name:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+        allocations:
+          type: array
+          items:
+            $ref: "#/components/schemas/PoolAllocation"
+
+    PoolAllocation:
+      type: object
+      required: [apiKeyId, weight, policy]
+      properties:
+        apiKeyId:
+          type: string
+        weight:
+          type: number
+          minimum: 0
+          maximum: 100
+          description: Share percentage (0–100)
+        capValue:
+          type: number
+          nullable: true
+          description: Absolute cap value (optional)
+        capUnit:
+          type: string
+          enum: [percent, requests, tokens, usd]
+          nullable: true
+        policy:
+          type: string
+          enum: [hard, soft, burst]
+
+    PoolCreate:
+      type: object
+      required: [connectionId, name]
+      properties:
+        connectionId:
+          type: string
+        name:
+          type: string
+          maxLength: 120
+        allocations:
+          type: array
+          items:
+            $ref: "#/components/schemas/PoolAllocation"
+          default: []
+
+    PoolUpdate:
+      type: object
+      properties:
+        name:
+          type: string
+          maxLength: 120
+        allocations:
+          type: array
+          items:
+            $ref: "#/components/schemas/PoolAllocation"
+
+    PoolUsageSnapshot:
+      type: object
+      required: [poolId, generatedAt, dimensions]
+      properties:
+        poolId:
+          type: string
+        generatedAt:
+          type: string
+          format: date-time
+        dimensions:
+          type: array
+          items:
+            type: object
+            properties:
+              unit:
+                type: string
+                enum: [percent, requests, tokens, usd]
+              window:
+                type: string
+                enum: ["5h", hourly, daily, weekly, monthly]
+              limit:
+                type: number
+              consumedTotal:
+                type: number
+              perKey:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    apiKeyId:
+                      type: string
+                    consumed:
+                      type: number
+                    fairShare:
+                      type: number
+                    deficit:
+                      type: number
+                      description: "Negative = surplus; positive = over-allocation"
+                    borrowing:
+                      type: boolean
+        burnRate:
+          type: object
+          nullable: true
+          properties:
+            tokensPerSecond:
+              type: number
+            timeToExhaustionMs:
+              type: number
+              nullable: true
+
+    QuotaDimension:
+      type: object
+      required: [unit, window, limit]
+      properties:
+        unit:
+          type: string
+          enum: [percent, requests, tokens, usd]
+        window:
+          type: string
+          enum: ["5h", hourly, daily, weekly, monthly]
+        limit:
+          type: number
+          minimum: 0
+
+    PlanUpsert:
+      type: object
+      required: [dimensions]
+      properties:
+        dimensions:
+          type: array
+          minItems: 1
+          items:
+            $ref: "#/components/schemas/QuotaDimension"
+
+    QuotaStoreSettings:
+      type: object
+      required: [driver]
+      properties:
+        driver:
+          type: string
+          enum: [sqlite, redis]
+        redisUrl:
+          type: string
+          format: uri
+          nullable: true
+          description: Redis connection URL (write-only; masked in GET responses)
+
     ServiceStatus:
       type: object
       description: Live supervisor state for an embedded service

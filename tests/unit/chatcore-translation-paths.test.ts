@@ -399,8 +399,10 @@ test("chatCore times out upstream execution before provider response headers", a
     messages: [{ role: "user", content: "never returns" }],
   };
   const fetchSignals: AbortSignal[] = [];
+  const upstreamBodies: any[] = [];
   globalThis.fetch = async (_url, init = {}) => {
     if (init.signal instanceof AbortSignal) fetchSignals.push(init.signal);
+    if (init.body) upstreamBodies.push(JSON.parse(String(init.body)));
     return new Promise(() => {});
   };
 
@@ -430,10 +432,11 @@ test("chatCore times out upstream execution before provider response headers", a
     )) as any;
     assert.equal(pendingDetail?.providerRequest?.model, "gpt-4o-mini");
     assert.deepEqual(pendingDetail?.providerRequest?.messages, body.messages);
-
     const result = await invocation;
     await waitForAsyncSideEffects();
 
+    assert.equal(upstreamBodies[0]?.model, "gpt-4o-mini");
+    assert.deepEqual(upstreamBodies[0]?.messages, body.messages);
     assert.equal(result.success, false);
     assert.equal(result.status, 504);
     assert.equal(fetchSignals[0]?.aborted, true);
@@ -2638,9 +2641,16 @@ test("chatCore caches streaming response and serves cache HIT on repeat", async 
   assert.equal(second.calls.length, 0, "second request should not reach upstream");
   assert.equal(second.result.response.headers.get("X-OmniRoute-Cache"), "HIT");
 
-  const payload = (await second.result.response.json()) as any;
-  assert.ok(payload.choices, "cached response should have choices");
-  assert.equal(payload.choices[0].message.content, "streamed-once");
+  // #2952 — a streaming client receives the cache HIT as an SSE stream (not a
+  // raw JSON body), so content + reasoning_content arrive in the streaming shape.
+  assert.equal(
+    second.result.response.headers.get("Content-Type"),
+    "text/event-stream",
+    "streaming cache HIT should be served as SSE"
+  );
+  const sse = await second.result.response.text();
+  assert.match(sse, /^data:/m, "cache HIT should be SSE-framed");
+  assert.match(sse, /streamed-once/, "SSE cache HIT should carry the cached content");
 });
 
 test("chatCore does not cache streaming response when temperature > 0", async () => {
@@ -2731,7 +2741,7 @@ test("chatCore skips streaming cache when X-OmniRoute-No-Cache header is set", a
   assert.equal(upstreamHits, 2, "both requests should hit upstream with no-cache");
 });
 
-test("chatCore returns cache HIT as JSON even when client requests SSE", async () => {
+test("chatCore returns cache HIT as SSE when the client requests streaming", async () => {
   const sharedBody = {
     model: "gpt-4o-mini",
     stream: false,
@@ -2764,12 +2774,15 @@ test("chatCore returns cache HIT as JSON even when client requests SSE", async (
 
   assert.equal(second.calls.length, 0, "cached response should prevent upstream call");
   assert.equal(second.result.response.headers.get("X-OmniRoute-Cache"), "HIT");
+  // #2952 — even though the cache was populated by a non-streaming request, a
+  // later streaming request gets the cached completion SSE-wrapped, so streaming
+  // clients keep their streaming shape (and reasoning_content) on cache hits.
   assert.equal(
     second.result.response.headers.get("Content-Type"),
-    "application/json",
-    "cache HIT should return JSON regardless of stream flag"
+    "text/event-stream",
+    "streaming cache HIT should be served as SSE"
   );
-
-  const payload = (await second.result.response.json()) as any;
-  assert.equal(payload.choices[0].message.content, "cached-json");
+  const sse = await second.result.response.text();
+  assert.match(sse, /^data:/m, "cache HIT should be SSE-framed");
+  assert.match(sse, /cached-json/, "SSE cache HIT should carry the cached content");
 });

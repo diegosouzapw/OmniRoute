@@ -85,6 +85,7 @@ import {
 } from "@/lib/providers/codexFastTier";
 import { isClaudeExtraUsageBlockEnabled } from "@/lib/providers/claudeExtraUsage";
 import { parseExtraApiKeys } from "@/shared/utils/parseApiKeys";
+import { compareTr } from "@/shared/utils/turkishText";
 import RiskNoticeModal from "../components/RiskNoticeModal";
 import { isRiskAcknowledged, useRiskAcknowledged } from "../hooks/useRiskAcknowledged";
 import { resolveDashboardProviderInfo } from "../providerPageUtils";
@@ -1628,6 +1629,19 @@ export default function ProviderDetailPage() {
     }
   }, [providerId, isSearchProvider]);
 
+  const fetchProxyConfig = useCallback(async () => {
+    try {
+      const res = await fetch("/api/settings/proxy", { cache: "no-store" });
+      if (res.ok) {
+        setProxyConfig(await res.json());
+      } else {
+        setProxyConfig(null);
+      }
+    } catch {
+      // Proxy indicators are best-effort.
+    }
+  }, []);
+
   const fetchConnections = useCallback(async () => {
     try {
       const [connectionsRes, nodesRes] = await Promise.all([
@@ -1689,11 +1703,8 @@ export default function ProviderDetailPage() {
     fetchConnections();
     fetchAliases();
     // Load proxy config for visual indicators (provider-level button)
-    fetch("/api/settings/proxy")
-      .then((r) => (r.ok ? r.json() : null))
-      .then((c) => setProxyConfig(c))
-      .catch(() => {});
-  }, [fetchConnections, fetchAliases]);
+    void fetchProxyConfig();
+  }, [fetchConnections, fetchAliases, fetchProxyConfig]);
 
   const handleZedImport = useCallback(async () => {
     if (importingZed) return;
@@ -2996,7 +3007,11 @@ export default function ProviderDetailPage() {
   const handleImportModels = async () => {
     if (importingModels) return;
     const activeConnection = connections.find((conn) => conn.isActive !== false);
-    if (!activeConnection) return;
+    // #3047 — no-auth providers (e.g. OpenCode Free) have no connection rows;
+    // fall back to the provider id so the models route can serve the public
+    // catalog instead of the button silently doing nothing.
+    if (!activeConnection && !isFreeNoAuth) return;
+    const importTargetId = activeConnection?.id ?? providerId;
 
     setImportingModels(true);
     setShowImportModal(true);
@@ -3011,7 +3026,7 @@ export default function ProviderDetailPage() {
     });
 
     try {
-      const res = await fetch(`/api/providers/${activeConnection.id}/models?refresh=true`);
+      const res = await fetch(`/api/providers/${importTargetId}/models?refresh=true`);
       const data = await res.json();
       if (!res.ok) {
         setImportProgress((prev) => ({
@@ -4400,7 +4415,7 @@ export default function ProviderDetailPage() {
               const groupKeys = Array.from(groupMap.keys()).sort((a, b) => {
                 if (a === "") return -1;
                 if (b === "") return 1;
-                return a.localeCompare(b);
+                return compareTr(a, b);
               });
 
               return (
@@ -4605,7 +4620,7 @@ export default function ProviderDetailPage() {
             </div>
             <div className="flex flex-wrap gap-2">
               <Link
-                href="/dashboard/cli-tools"
+                href="/dashboard/cli-code"
                 className="inline-flex items-center gap-2 rounded-lg border border-border px-3 py-2 text-sm text-text-main hover:border-primary/40 hover:text-text-primary transition-colors"
               >
                 <span className="material-symbols-outlined text-base">terminal</span>
@@ -4930,7 +4945,10 @@ export default function ProviderDetailPage() {
           level={proxyTarget.level}
           levelId={proxyTarget.id}
           levelLabel={proxyTarget.label}
-          onSaved={() => void loadConnProxies(connections)}
+          onSaved={() => {
+            void fetchProxyConfig();
+            void loadConnProxies(connections);
+          }}
         />
       )}
       {/* Import Progress Modal */}

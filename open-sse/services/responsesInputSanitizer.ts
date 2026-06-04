@@ -1,4 +1,7 @@
 type JsonRecord = Record<string, unknown>;
+type SanitizeResponsesInputOptions = {
+  dropInternalAssistantMessages?: boolean;
+};
 const INTERNAL_ASSISTANT_PHASES = new Set(["commentary"]);
 const SERVER_ITEM_ID_PREFIX_BY_TYPE: Record<string, string> = {
   function_call: "fc_",
@@ -67,12 +70,17 @@ function sanitizeInputItem(item: unknown): unknown {
   return next;
 }
 
-export function sanitizeResponsesInputItems(items: readonly unknown[], clone = true): unknown[] {
+export function sanitizeResponsesInputItems(
+  items: readonly unknown[],
+  clone = true,
+  options: SanitizeResponsesInputOptions = {}
+): unknown[] {
+  const dropInternalAssistantMessages = options.dropInternalAssistantMessages ?? true;
   const sanitized: unknown[] = [];
 
   for (const item of items) {
     const record = toRecord(item);
-    if (record && isInternalAssistantMessage(record)) {
+    if (dropInternalAssistantMessages && record && isInternalAssistantMessage(record)) {
       continue;
     }
 

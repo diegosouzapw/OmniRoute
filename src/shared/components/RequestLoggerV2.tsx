@@ -18,45 +18,22 @@ import {
   stableAccountSuffix,
   formatApiKeyLabel,
 } from "@/shared/utils/formatting";
+import { getProviderDisplayLabel } from "@/shared/utils/providerDisplayLabel";
 import useEmailPrivacyStore from "@/store/emailPrivacyStore";
+import {
+  computeLogsSignature,
+  resolveInitialVisibility,
+  shouldAutoRefresh,
+} from "./requestLoggerSignature";
 
 // Number of call-log rows fetched per page. The viewer grows its window by this
 // amount on "Load more" / infinite scroll so users can browse past the first
 // page (previously hardcoded to a single 300-row window). See #2565.
-const PAGE_SIZE = 300;
+// Reduced from 300 → 50 to avoid browser freeze and network saturation.
+const PAGE_SIZE = 50;
 
-/**
- * Get a friendly display label for compatible providers.
- * Converts long IDs like "openai-compatible-chat-02669115-2545-4896-b003-cb4dac09d441"
- * to readable labels. If providerNodes are available, uses user-defined name;
- * otherwise falls back to "OAI-Compat".
- */
-function getProviderDisplayLabel(provider: string, providerNodes?: any[]): string {
-  if (!provider) return "-";
-  if (provider.startsWith("openai-compatible-") || provider.startsWith("anthropic-compatible-")) {
-    // Try to find user-defined name from provider nodes
-    if (providerNodes?.length) {
-      const matchedNode = providerNodes.find(
-        (node) => node.id === provider || node.prefix === provider
-      );
-      if (matchedNode?.name) return matchedNode.name;
-    }
-    // Fallback to generic labels
-    if (provider.startsWith("openai-compatible-")) {
-      const suffix = provider.replace("openai-compatible-", "");
-      const parts = suffix.split("-");
-      if (parts.length > 1 && parts[1]?.length >= 8) return `OAI-COMPAT`;
-      return `OAI: ${suffix.slice(0, 16).toUpperCase()}`;
-    }
-    if (provider.startsWith("anthropic-compatible-")) {
-      const suffix = provider.replace("anthropic-compatible-", "");
-      const parts = suffix.split("-");
-      if (parts.length > 1 && parts[1]?.length >= 8) return `ANT-COMPAT`;
-      return `ANT: ${suffix.slice(0, 16).toUpperCase()}`;
-    }
-  }
-  return null; // Not a compatible provider, use default PROVIDER_COLORS
-}
+// Polling interval in ms. 15s balances freshness vs resource usage.
+const POLL_INTERVAL_MS = 15_000;
 
 function getLogTotalTokens(log) {
   return (log?.tokens?.in || 0) + (log?.tokens?.out || 0);
@@ -148,6 +125,7 @@ export default function RequestLoggerV2() {
   const scrollContainerRef = useRef(null);
   const loadMoreSentinelRef = useRef(null);
   const [providerNodes, setProviderNodes] = useState([]);
+  const visibleRef = useRef(resolveInitialVisibility());
 
   // Column visibility with localStorage persistence
   const [visibleColumns, setVisibleColumns] = useState(() => {
@@ -191,8 +169,10 @@ export default function RequestLoggerV2() {
           const data = await res.json();
           // If the server returned a full window, more rows may exist beyond it.
           setHasMore(Array.isArray(data) && data.length >= limit);
-          // Skip re-render if data hasn't changed (#1369 GPU perf)
-          const sig = JSON.stringify(data.map?.((l: any) => l.id) ?? []);
+          // Skip re-render if data hasn't changed (#1369 GPU perf). The signature
+          // captures id + status + duration + tokens_out so in-progress updates
+          // still re-render while identical snapshots are skipped.
+          const sig = computeLogsSignature(data);
           if (sig !== logsSignatureRef.current) {
             logsSignatureRef.current = sig;
             setLogs(data);
@@ -234,16 +214,31 @@ export default function RequestLoggerV2() {
       .catch(() => {});
   }, []);
 
-  // Auto-refresh
+  // Visibility-aware auto-refresh: pause polling when tab is hidden or user has
+  // scrolled past the first page to avoid escalating payload sizes.
+  useEffect(() => {
+    const onVisibility = () => {
+      const isVisible = document.visibilityState === "visible";
+      visibleRef.current = isVisible;
+      if (isVisible && shouldAutoRefresh(recording, limit, PAGE_SIZE)) {
+        fetchLogs(false);
+      }
+    };
+    document.addEventListener("visibilitychange", onVisibility);
+    return () => document.removeEventListener("visibilitychange", onVisibility);
+  }, [recording, limit, fetchLogs]);
+
   useEffect(() => {
     if (intervalRef.current) clearInterval(intervalRef.current);
-    if (recording) {
-      intervalRef.current = setInterval(() => fetchLogs(false), 3000);
+    if (shouldAutoRefresh(recording, limit, PAGE_SIZE)) {
+      intervalRef.current = setInterval(() => {
+        if (visibleRef.current) fetchLogs(false);
+      }, POLL_INTERVAL_MS);
     }
     return () => {
       if (intervalRef.current) clearInterval(intervalRef.current);
     };
-  }, [recording, fetchLogs]);
+  }, [recording, fetchLogs, limit]);
 
   // Reset the window back to the first page whenever the active filters change,
   // so switching filters doesn't keep fetching a large expanded window.
@@ -355,23 +350,37 @@ export default function RequestLoggerV2() {
 
   // Unique accounts and providers for dropdowns
 
-  const uniqueAccounts = [...new Set(logs.map((l) => l.account).filter((a) => a && a !== "-"))];
-  const uniqueModels = [
-    ...new Set(logs.flatMap((l) => [l.model, l.requestedModel]).filter((value) => Boolean(value))),
-  ].sort();
-  const uniqueProviders = [
-    ...new Set(logs.map((l) => l.provider).filter((p) => p && p !== "-")),
-  ].sort();
-  const uniqueApiKeys = [
-    ...new Set(logs.map((l) => l.apiKeyId || l.apiKeyName).filter(Boolean)),
-  ].sort();
+  const uniqueAccounts = useMemo(
+    () => [...new Set(logs.map((l) => l.account).filter((a) => a && a !== "-"))],
+    [logs]
+  );
+  const uniqueModels = useMemo(
+    () => [
+      ...new Set(logs.flatMap((l) => [l.model, l.requestedModel]).filter((value) => Boolean(value))),
+    ].sort(),
+    [logs]
+  );
+  const uniqueProviders = useMemo(
+    () => [
+      ...new Set(logs.map((l) => l.provider).filter((p) => p && p !== "-")),
+    ].sort(),
+    [logs]
+  );
+  const uniqueApiKeys = useMemo(
+    () => [
+      ...new Set(logs.map((l) => l.apiKeyId || l.apiKeyName).filter(Boolean)),
+    ].sort(),
+    [logs]
+  );
 
-  // Stats
-  const totalCount = filteredLogs.length;
-  const okCount = filteredLogs.filter((l) => l.status >= 200 && l.status < 300).length;
-  const errorCount = filteredLogs.filter((l) => l.status >= 400).length;
-  const comboCount = logs.filter((l) => l.comboName).length;
-  const apiKeyCount = uniqueApiKeys.length;
+  // Stats (memoized to avoid re-computation on every render)
+  const { totalCount, okCount, errorCount, comboCount, apiKeyCount } = useMemo(() => ({
+    totalCount: filteredLogs.length,
+    okCount: filteredLogs.filter((l) => l.status >= 200 && l.status < 300).length,
+    errorCount: filteredLogs.filter((l) => l.status >= 400).length,
+    comboCount: logs.filter((l) => l.comboName).length,
+    apiKeyCount: uniqueApiKeys.length,
+  }), [filteredLogs, logs, uniqueApiKeys]);
 
   return (
     <div className="flex flex-col gap-4">

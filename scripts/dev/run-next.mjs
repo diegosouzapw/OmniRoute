@@ -8,6 +8,7 @@ import { bootstrapEnv } from "../build/bootstrap-env.mjs";
 import { resolveRuntimePorts, withRuntimePortEnv } from "../build/runtime-env.mjs";
 import { createOmnirouteWsBridge } from "./v1-ws-bridge.mjs";
 import { createResponsesWsProxy } from "./responses-ws-proxy.mjs";
+import { ensurePeerStampToken, stampPeerIp } from "./peer-stamp.mjs";
 import { randomUUID } from "node:crypto";
 
 // Pre-read DATA_DIR from local .env before bootstrap resolves paths
@@ -49,6 +50,9 @@ const { dashboardPort } = runtimePorts;
 const hostname = process.env.HOST || "0.0.0.0";
 const useTurbopack = dev && mergedEnv.OMNIROUTE_USE_TURBOPACK === "1";
 process.env.OMNIROUTE_WS_BRIDGE_SECRET ||= randomUUID();
+// Per-process secret used to prove the trusted peer-IP stamp came from this
+// server (read by the authz middleware in the same process). See peer-stamp.mjs.
+ensurePeerStampToken();
 
 const nextApp = next({
   dev,
@@ -71,7 +75,12 @@ async function start() {
     baseUrl: `http://127.0.0.1:${dashboardPort}`,
   });
 
-  const server = http.createServer((req, res) => requestHandler(req, res));
+  const server = http.createServer((req, res) => {
+    // Stamp the real TCP peer IP before Next sees the request, so the authz
+    // middleware can decide LOCAL_ONLY locality without trusting the Host header.
+    stampPeerIp(req);
+    return requestHandler(req, res);
+  });
   server.on("upgrade", async (req, socket, head) => {
     try {
       const responsesWsHandled = await responsesWsProxy.handleUpgrade(req, socket, head);
