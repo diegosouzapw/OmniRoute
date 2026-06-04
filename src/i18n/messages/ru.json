@@ -7858,7 +7858,7 @@
     "title": "Quota Sharing",
     "description": "Share provider quotas across API keys with % limits",
     "newPool": "New pool",
-    "betaTitle": "Beta — UI preview.",
+    "betaTitle": "Beta",
     "betaDescription": "Configuration is saved in localStorage (not yet persisted on the server). Per-request cap enforcement is not yet wired into the proxy pipeline. This screen lets you design and visualize the quota split; real enforcement will land in a future iteration with DB persistence and upstream call interception.",
     "kpiActivePools": "Active pools",
     "kpiKeysAllocated": "Keys allocated",
