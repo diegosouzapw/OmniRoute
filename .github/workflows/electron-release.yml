@@ -13,6 +13,9 @@ on:
         description: "Release version (e.g., v1.6.8)"
         required: true
         type: string
+permissions:
+  contents: read
+
 
 permissions:
   contents: write

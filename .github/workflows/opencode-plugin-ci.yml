@@ -11,14 +11,13 @@ on:
       - "@omniroute/opencode-plugin/**"
     types: [opened, synchronize, reopened, ready_for_review]
   workflow_dispatch:
+permissions:
+  contents: read
+
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
-
-permissions:
-  contents: read
-
 defaults:
   run:
     working-directory: "@omniroute/opencode-plugin"

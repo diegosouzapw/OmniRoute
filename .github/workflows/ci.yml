@@ -7,14 +7,13 @@ on:
     branches: [main]
     types: [opened, synchronize, reopened, ready_for_review]
   workflow_dispatch:
+permissions:
+  contents: read
+
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
-
-permissions:
-  contents: read
-
 env:
   CI_NODE_VERSION: "24"
   CI_NODE_24_VERSION: "24"

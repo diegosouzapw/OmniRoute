@@ -1,4 +1,9 @@
 name: Lock released branch
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -34,10 +39,6 @@ on:
         description: "Tag of the released version (e.g. v3.8.2)"
         required: true
         type: string
-
-permissions:
-  contents: read
-
 jobs:
   # ─────────────────────────────────────────────────────────────────────────
   # Job 1 — Lock the release branch when a Release is published.
