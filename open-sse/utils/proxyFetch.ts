@@ -420,4 +420,14 @@ export function isTlsFingerprintActive() {
   return isTlsFingerprintEnabled() && tlsClient.available;
 }
 
+/**
+ * Get the original unpatched global fetch function (Node.js native fetch
+ * before the proxy/TLS fingerprint patch was applied).
+ * Use this to bypass the patched fetch for specific requests when the
+ * proxy dispatcher has compatibility issues with a particular endpoint.
+ */
+export function getOriginalFetch(): typeof globalThis.fetch {
+  return originalFetch;
+}
+
 export default isCloud ? originalFetch : patchedFetch;

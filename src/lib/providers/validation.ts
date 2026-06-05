@@ -209,6 +209,32 @@ function withCustomUserAgent(init: RequestInit, providerSpecificData: any = {}) 
   };
 }
 
+/**
+ * Direct HTTPS request utility that bypasses the global patched fetch.
+ * Used for provider validation where the patched fetch has compatibility issues.
+ * Uses safeOutboundFetch with bypassProxyPatch to use native Node.js fetch directly.
+ */
+function directHttpsRequest(
+  url: string,
+  options: { method?: string; headers?: Record<string, string>; body?: string },
+  timeoutMs: number
+): Promise<{ status: number; ok: boolean; text: () => Promise<string> }> {
+  return safeOutboundFetch(url, {
+    method: options.method || "GET",
+    headers: (options.headers || {}) as Record<string, string>,
+    body: options.body,
+    timeoutMs,
+    bypassProxyPatch: true,
+    allowRedirect: true,
+    guard: "none",
+    retry: false,
+  }).then(async (response) => ({
+    status: response.status,
+    ok: response.ok,
+    text: async () => await response.text(),
+  }));
+}
+
 function buildBearerHeaders(apiKey: string, providerSpecificData: any = {}) {
   const headers: Record<string, string> = {
     "Content-Type": "application/json",
@@ -3919,7 +3945,9 @@ export async function validateProviderApiKey({ provider, apiKey, providerSpecifi
           providerSpecificData?.validationModelId ||
           getRegistryEntry("nvidia")?.models?.[0]?.id ||
           "meta/llama-3.1-8b-instruct";
-        const res = await validationWrite(
+        // NVIDIA NIM validation: use raw https to bypass the patched fetch
+        // which has compatibility issues with this endpoint.
+        const res = await directHttpsRequest(
           chatUrl,
           {
             method: "POST",
@@ -3930,7 +3958,7 @@ export async function validateProviderApiKey({ provider, apiKey, providerSpecifi
               max_tokens: 1,
             }),
           },
-          isLocal
+          20000
         );
         if (res.status === 401 || res.status === 403) {
           return { valid: false, error: "Invalid API key" };
