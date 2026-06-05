@@ -56,6 +56,18 @@ export function resolveAllFeatureFlags(): Array<{
 }
 
 // Backward-compatible wrappers
+export function isRequireApiKeyEnabled(): boolean {
+  try {
+    return isFeatureFlagEnabled("REQUIRE_API_KEY");
+  } catch (error) {
+    console.error(
+      "[featureFlags] Failed to resolve REQUIRE_API_KEY, defaulting to required:",
+      error instanceof Error ? error.message : error
+    );
+    return true;
+  }
+}
+
 export function isCcCompatibleProviderEnabled(): boolean {
   return isFeatureFlagEnabled("ENABLE_CC_COMPATIBLE_PROVIDER");
 }

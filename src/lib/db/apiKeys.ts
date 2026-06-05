@@ -66,6 +66,7 @@ interface ApiKeyMetadata {
   scopes: string[];
   isBanned: boolean;
   keyHash: string | null;
+  proxyId: string | null;
   allowedEndpoints: string[];
   streamDefaultMode: "legacy" | "json";
   disableNonPublicModels: boolean;
@@ -95,6 +96,7 @@ interface ApiKeyRow extends JsonRecord {
   accessSchedule?: unknown;
   rate_limits?: unknown;
   rateLimits?: unknown;
+  proxy_id?: unknown;
   stream_default_mode?: unknown;
   streamDefaultMode?: unknown;
 }
@@ -132,6 +134,7 @@ interface ApiKeyView extends JsonRecord {
   throttleDelayMs?: number | null;
   rateLimits: RateLimitRule[] | null;
   scopes: string[];
+  proxyId?: string | null;
   isBanned?: boolean;
   expiresAt?: string | null;
   allowedEndpoints: string[];
@@ -171,6 +174,7 @@ const API_KEY_COLUMN_FALLBACKS = [
   { name: "rate_limits", definition: "rate_limits TEXT" },
   { name: "is_banned", definition: "is_banned INTEGER NOT NULL DEFAULT 0" },
   { name: "key_hash", definition: "key_hash TEXT" },
+  { name: "proxy_id", definition: "proxy_id TEXT" },
   { name: "allowed_endpoints", definition: "allowed_endpoints TEXT" },
   { name: "allowed_quotas", definition: "allowed_quotas TEXT NOT NULL DEFAULT '[]'" },
   { name: "stream_default_mode", definition: "stream_default_mode TEXT NOT NULL DEFAULT 'legacy'" },
@@ -374,7 +378,7 @@ function getPreparedStatements(db: ApiKeysDbLike): ApiKeysStatements {
       "SELECT id, expires_at, revoked_at, is_active, is_banned FROM api_keys WHERE key = ? OR key_hash = ?"
     );
     _stmtGetKeyMetadata = db.prepare<ApiKeyRow>(
-      "SELECT id, name, machine_id, allowed_models, allowed_combos, allowed_connections, allowed_quotas, no_log, auto_resolve, is_active, access_schedule, max_requests_per_day, max_requests_per_minute, throttle_delay_ms, max_sessions, revoked_at, expires_at, ip_allowlist, scopes, rate_limits, is_banned, key_hash, allowed_endpoints, stream_default_mode, disable_non_public_models FROM api_keys WHERE key = ? OR key_hash = ?"
+      "SELECT id, name, machine_id, allowed_models, allowed_combos, allowed_connections, allowed_quotas, no_log, auto_resolve, is_active, access_schedule, max_requests_per_day, max_requests_per_minute, throttle_delay_ms, max_sessions, revoked_at, expires_at, ip_allowlist, scopes, rate_limits, is_banned, key_hash, allowed_endpoints, stream_default_mode, disable_non_public_models, proxy_id FROM api_keys WHERE key = ? OR key_hash = ?"
     );
     _stmtInsertKey = db.prepare(
       "INSERT INTO api_keys (id, name, key, machine_id, allowed_models, no_log, created_at, key_prefix, key_hash, scopes) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
@@ -711,6 +715,7 @@ export async function updateApiKeyPermissions(
         // T08: max concurrent sessions for this key (0 = unlimited)
         maxSessions?: number | null;
         scopes?: string[] | null;
+        proxyId?: string | null;
         allowedEndpoints?: string[] | null;
         streamDefaultMode?: "legacy" | "json" | null;
         disableNonPublicModels?: boolean;
@@ -740,6 +745,7 @@ export async function updateApiKeyPermissions(
           expiresAt: update.expiresAt,
           maxSessions: (update as { maxSessions?: number | null }).maxSessions,
           scopes: (update as { scopes?: string[] | null }).scopes,
+          proxyId: (update as { proxyId?: string | null }).proxyId,
           allowedEndpoints: (update as { allowedEndpoints?: string[] | null }).allowedEndpoints,
           streamDefaultMode: (update as { streamDefaultMode?: "legacy" | "json" | null })
             .streamDefaultMode,
@@ -765,6 +771,7 @@ export async function updateApiKeyPermissions(
     normalized.expiresAt === undefined &&
     (normalized as Record<string, unknown>).maxSessions === undefined &&
     (normalized as Record<string, unknown>).scopes === undefined &&
+    (normalized as Record<string, unknown>).proxyId === undefined &&
     (normalized as Record<string, unknown>).allowedEndpoints === undefined &&
     (normalized as Record<string, unknown>).streamDefaultMode === undefined &&
     normalized.disableNonPublicModels === undefined
@@ -792,6 +799,7 @@ export async function updateApiKeyPermissions(
     maxSessions?: number;
     expiresAt?: string | null;
     scopes?: string;
+    proxyId?: string | null;
     streamDefaultMode?: "legacy" | "json";
     disableNonPublicModels?: number;
   } = { id };
@@ -890,6 +898,13 @@ export async function updateApiKeyPermissions(
   if (maxSessionsUpdate !== undefined) {
     updates.push("max_sessions = @maxSessions");
     params.maxSessions = typeof maxSessionsUpdate === "number" ? Math.max(0, maxSessionsUpdate) : 0;
+  }
+
+  const proxyIdUpdate = (normalized as Record<string, unknown>).proxyId;
+  if (proxyIdUpdate !== undefined) {
+    updates.push("proxy_id = @proxyId");
+    params.proxyId =
+      typeof proxyIdUpdate === "string" && proxyIdUpdate.trim() !== "" ? proxyIdUpdate : null;
   }
 
   const allowedEndpointsUpdate = (normalized as Record<string, unknown>).allowedEndpoints;
@@ -1254,6 +1269,7 @@ export async function getApiKeyMetadata(
       isBanned: false,
       keyHash: null,
       scopes: ["manage"],
+      proxyId: null,
       allowedEndpoints: [],
       streamDefaultMode: "legacy",
       disableNonPublicModels: false,
@@ -1314,6 +1330,10 @@ export async function getApiKeyMetadata(
     scopes: parseStringList((record as JsonRecord).scopes),
     isBanned: parseIsBanned(record.is_banned ?? (record as JsonRecord).isBanned),
     keyHash: (record.key_hash ?? (record as JsonRecord).keyHash) as string | null,
+    proxyId:
+      typeof record.proxy_id === "string" && record.proxy_id.trim() !== ""
+        ? record.proxy_id
+        : null,
     allowedEndpoints: parseStringList(
       (record as JsonRecord).allowed_endpoints ?? (record as JsonRecord).allowedEndpoints
     ),

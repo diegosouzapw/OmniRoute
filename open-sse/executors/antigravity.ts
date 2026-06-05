@@ -54,9 +54,9 @@ const MAX_RETRY_AFTER_MS = 60_000;
 const LONG_RETRY_THRESHOLD_MS = 60_000;
 const CREDITS_EXHAUSTED_TTL_MS = 5 * 60 * 60 * 1000; // 5 hours
 // The upstream API uses plain model IDs (no -high/-low suffix).
-// Tier suffixes were speculative and caused 404 for gemini-3.x models.
-// Only keep models that are live-proven via streamGenerateContent.
-const BARE_PRO_IDS: Set<string> = new Set();
+// Tier suffixes were speculative and caused 404 for gemini-3.x models — the
+// bare-Pro→Low normalization was retired (the set stayed empty, making the guard
+// dead code). Only keep models that are live-proven via streamGenerateContent.
 
 interface AntigravityContent {
   role: string;
@@ -432,11 +432,6 @@ async function cleanModelName(model: string): Promise<string> {
     clean = resolveAntigravityModelId(clean);
   }
 
-  // 3. Normalize bare Pro IDs to the Low tier (matching OpenClaw convention).
-  //    The upstream API requires an explicit tier suffix; bare IDs cause errors.
-  if (BARE_PRO_IDS.has(clean)) {
-    clean = `${clean}-low`;
-  }
   return clean;
 }
 

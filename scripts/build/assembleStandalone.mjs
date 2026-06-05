@@ -62,6 +62,64 @@ async function exists(targetPath) {
 }
 
 /**
+ * SINGLE SOURCE OF TRUTH for the standalone bundle's native assets and extra
+ * modules/sidecars. Both the async path (syncStandaloneNativeAssets /
+ * syncStandaloneExtraModules, used by build-next-isolated + tests) and the sync
+ * path (copyNativeAssetsAndExtraModules, used by assembleStandalone) derive their
+ * copy lists from these arrays. Add a sidecar in ONE place — never two.
+ *
+ * Each entry uses path SEGMENT arrays (not pre-joined strings) so the source
+ * (relative to projectRoot) and destination (relative to outDir) can be joined
+ * for either path/platform. @type {{label:string, src:string[], dest:string[]}[]}
+ */
+const NATIVE_ASSET_ENTRIES = [
+  { label: "wreq-js native runtime", src: ["node_modules", "wreq-js", "rust"], dest: ["node_modules", "wreq-js", "rust"] },
+  { label: "better-sqlite3 native binary", src: ["node_modules", "better-sqlite3", "build"], dest: ["node_modules", "better-sqlite3", "build"] },
+];
+
+/** @type {{label:string, src:string[], dest:string[]}[]} */
+const EXTRA_MODULE_ENTRIES = [
+  { label: "@swc/helpers", src: ["node_modules", "@swc", "helpers"], dest: ["node_modules", "@swc", "helpers"] },
+  { label: "pino-abstract-transport", src: ["node_modules", "pino-abstract-transport"], dest: ["node_modules", "pino-abstract-transport"] },
+  { label: "pino-pretty", src: ["node_modules", "pino-pretty"], dest: ["node_modules", "pino-pretty"] },
+  { label: "split2", src: ["node_modules", "split2"], dest: ["node_modules", "split2"] },
+  { label: "migrations", src: ["src", "lib", "db", "migrations"], dest: ["migrations"] },
+  { label: "MITM server", src: ["src", "mitm", "server.cjs"], dest: ["src", "mitm", "server.cjs"] },
+  { label: "run-standalone script", src: ["scripts", "dev", "run-standalone.mjs"], dest: ["dev", "run-standalone.mjs"] },
+  {
+    // WS-aware wrapper that run-standalone.mjs prefers over bare server.js.
+    // It installs the trusted peer-IP stamp the authz middleware needs to allow
+    // loopback/LAN access to LOCAL_ONLY routes; without it the Docker container
+    // fails closed (every LOCAL_ONLY request 403s). Imports peer-stamp.mjs +
+    // responses-ws-proxy.mjs, so all three are co-located.
+    label: "WS/peer-stamp standalone server wrapper",
+    src: ["scripts", "dev", "standalone-server-ws.mjs"],
+    dest: ["server-ws.mjs"],
+  },
+  { label: "peer-stamp helper (server-ws.mjs dependency)", src: ["scripts", "dev", "peer-stamp.mjs"], dest: ["peer-stamp.mjs"] },
+  { label: "responses-ws-proxy (server-ws.mjs dependency)", src: ["scripts", "dev", "responses-ws-proxy.mjs"], dest: ["responses-ws-proxy.mjs"] },
+  { label: "runtime-env script", src: ["scripts", "build", "runtime-env.mjs"], dest: ["build", "runtime-env.mjs"] },
+  { label: "bootstrap-env script", src: ["scripts", "build", "bootstrap-env.mjs"], dest: ["build", "bootstrap-env.mjs"] },
+  { label: "healthcheck script", src: ["scripts", "dev", "healthcheck.mjs"], dest: ["healthcheck.mjs"] },
+  { label: "public directory", src: ["public"], dest: ["public"] },
+  { label: "playwright-core (dynamic import by gemini-web executor)", src: ["node_modules", "playwright-core"], dest: ["node_modules", "playwright-core"] },
+  { label: "sqlite-vec wrapper (vector memory - loaded at runtime via createRequire)", src: ["node_modules", "sqlite-vec"], dest: ["node_modules", "sqlite-vec"] },
+  // sqlite-vec's native vec0.so lives in a platform-specific package resolved at
+  // runtime via require.resolve(). Next.js does NOT trace it into the standalone
+  // (the externalized wrapper is copied, but its optional platform dep is missed -
+  // Next.js #88844), so without this the bundled/Docker build silently degrades
+  // vector search to FTS5: the wrapper loads but getLoadablePath() throws
+  // MODULE_NOT_FOUND. Copy whichever platform package npm actually installed. See #3066.
+  ...[
+    "sqlite-vec-linux-x64",
+    "sqlite-vec-linux-arm64",
+    "sqlite-vec-darwin-x64",
+    "sqlite-vec-darwin-arm64",
+    "sqlite-vec-windows-x64",
+  ].map((pkg) => ({ label: pkg, src: ["node_modules", pkg], dest: ["node_modules", pkg] })),
+];
+
+/**
  * Copy native standalone assets (wreq-js rust/, better-sqlite3 build/).
  *
  * The destination is derived as <rootDir>/<distDir>/standalone/node_modules/...
@@ -72,9 +130,9 @@ async function exists(targetPath) {
  * @param {Console|{log:Function}} [log] - logger
  * @returns {Promise<boolean>} true if any asset was copied
  */
-export async function syncStandaloneNativeAssets(rootDir, fsImpl = fs, log = console) {
-  const nextDistDir = process.env.NEXT_DIST_DIR || ".build/next";
-  const standaloneRoot = path.join(rootDir, nextDistDir, "standalone");
+export async function syncStandaloneNativeAssets(rootDir, fsImpl = fs, log = console, outDir) {
+  const standaloneRoot =
+    outDir || path.join(rootDir, process.env.NEXT_DIST_DIR || ".build/next", "standalone");
   return syncNativeAssetsToDir(rootDir, standaloneRoot, fsImpl, log);
 }
 
@@ -89,9 +147,9 @@ export async function syncStandaloneNativeAssets(rootDir, fsImpl = fs, log = con
  * @param {Console|{log:Function}} [log] - logger
  * @returns {Promise<boolean>} true if any module was copied
  */
-export async function syncStandaloneExtraModules(rootDir, fsImpl = fs, log = console) {
-  const nextDistDir = process.env.NEXT_DIST_DIR || ".build/next";
-  const standaloneRoot = path.join(rootDir, nextDistDir, "standalone");
+export async function syncStandaloneExtraModules(rootDir, fsImpl = fs, log = console, outDir) {
+  const standaloneRoot =
+    outDir || path.join(rootDir, process.env.NEXT_DIST_DIR || ".build/next", "standalone");
   return syncExtraModulesToDir(rootDir, standaloneRoot, fsImpl, log);
 }
 
@@ -105,35 +163,24 @@ export async function syncStandaloneExtraModules(rootDir, fsImpl = fs, log = con
  * @returns {Promise<boolean>}
  */
 async function syncNativeAssetsToDir(projectRoot, outDir, fsImpl, log) {
-  const nativeAssetDirs = [
-    {
-      label: "wreq-js native runtime",
-      sourcePath: path.join(projectRoot, "node_modules", "wreq-js", "rust"),
-      destinationPath: path.join(outDir, "node_modules", "wreq-js", "rust"),
-    },
-    {
-      label: "better-sqlite3 native binary",
-      sourcePath: path.join(projectRoot, "node_modules", "better-sqlite3", "build"),
-      destinationPath: path.join(outDir, "node_modules", "better-sqlite3", "build"),
-    },
-  ];
-
   let changed = false;
 
-  for (const entry of nativeAssetDirs) {
-    if (!(await exists(entry.sourcePath))) continue;
+  for (const entry of NATIVE_ASSET_ENTRIES) {
+    const sourcePath = path.join(projectRoot, ...entry.src);
+    if (!(await exists(sourcePath))) continue;
 
+    const destinationPath = path.join(outDir, ...entry.dest);
     const mkdir =
       typeof fsImpl.mkdir === "function" ? fsImpl.mkdir.bind(fsImpl) : fs.mkdir.bind(fs);
-    await mkdir(path.dirname(entry.destinationPath), { recursive: true });
-    await fsImpl.cp(entry.sourcePath, entry.destinationPath, {
+    await mkdir(path.dirname(destinationPath), { recursive: true });
+    await fsImpl.cp(sourcePath, destinationPath, {
       recursive: true,
       force: true,
     });
     log.log(
       `[assembleStandalone] Copied native standalone asset: ${path.relative(
         projectRoot,
-        entry.destinationPath
+        destinationPath
       )}`
     );
     changed = true;
@@ -152,121 +199,17 @@ async function syncNativeAssetsToDir(projectRoot, outDir, fsImpl, log) {
  * @returns {Promise<boolean>}
  */
 async function syncExtraModulesToDir(projectRoot, outDir, fsImpl, log) {
-  const entries = [
-    {
-      label: "@swc/helpers",
-      sourcePath: path.join(projectRoot, "node_modules", "@swc", "helpers"),
-      destRelative: path.join("node_modules", "@swc", "helpers"),
-    },
-    {
-      label: "pino-abstract-transport",
-      sourcePath: path.join(projectRoot, "node_modules", "pino-abstract-transport"),
-      destRelative: path.join("node_modules", "pino-abstract-transport"),
-    },
-    {
-      label: "pino-pretty",
-      sourcePath: path.join(projectRoot, "node_modules", "pino-pretty"),
-      destRelative: path.join("node_modules", "pino-pretty"),
-    },
-    {
-      label: "split2",
-      sourcePath: path.join(projectRoot, "node_modules", "split2"),
-      destRelative: path.join("node_modules", "split2"),
-    },
-    {
-      label: "migrations",
-      sourcePath: path.join(projectRoot, "src", "lib", "db", "migrations"),
-      destRelative: "migrations",
-    },
-    {
-      label: "MITM server",
-      sourcePath: path.join(projectRoot, "src", "mitm", "server.cjs"),
-      destRelative: path.join("src", "mitm", "server.cjs"),
-    },
-    {
-      label: "run-standalone script",
-      sourcePath: path.join(projectRoot, "scripts", "dev", "run-standalone.mjs"),
-      destRelative: path.join("dev", "run-standalone.mjs"),
-    },
-    {
-      // WS-aware wrapper that run-standalone.mjs prefers over bare server.js.
-      // It installs the trusted peer-IP stamp the authz middleware needs to
-      // allow loopback/LAN access to LOCAL_ONLY routes; without it the Docker
-      // container fails closed (every LOCAL_ONLY request 403s). Imports
-      // peer-stamp.mjs + responses-ws-proxy.mjs, so all three are co-located.
-      label: "WS/peer-stamp standalone server wrapper",
-      sourcePath: path.join(projectRoot, "scripts", "dev", "standalone-server-ws.mjs"),
-      destRelative: "server-ws.mjs",
-    },
-    {
-      label: "peer-stamp helper (server-ws.mjs dependency)",
-      sourcePath: path.join(projectRoot, "scripts", "dev", "peer-stamp.mjs"),
-      destRelative: "peer-stamp.mjs",
-    },
-    {
-      label: "responses-ws-proxy (server-ws.mjs dependency)",
-      sourcePath: path.join(projectRoot, "scripts", "dev", "responses-ws-proxy.mjs"),
-      destRelative: "responses-ws-proxy.mjs",
-    },
-    {
-      label: "runtime-env script",
-      sourcePath: path.join(projectRoot, "scripts", "build", "runtime-env.mjs"),
-      destRelative: path.join("build", "runtime-env.mjs"),
-    },
-    {
-      label: "bootstrap-env script",
-      sourcePath: path.join(projectRoot, "scripts", "build", "bootstrap-env.mjs"),
-      destRelative: path.join("build", "bootstrap-env.mjs"),
-    },
-    {
-      label: "healthcheck script",
-      sourcePath: path.join(projectRoot, "scripts", "dev", "healthcheck.mjs"),
-      destRelative: "healthcheck.mjs",
-    },
-    {
-      label: "public directory",
-      sourcePath: path.join(projectRoot, "public"),
-      destRelative: "public",
-    },
-    {
-      label: "playwright-core (dynamic import by gemini-web executor)",
-      sourcePath: path.join(projectRoot, "node_modules", "playwright-core"),
-      destRelative: path.join("node_modules", "playwright-core"),
-    },
-    {
-      label: "sqlite-vec wrapper (vector memory - loaded at runtime via createRequire)",
-      sourcePath: path.join(projectRoot, "node_modules", "sqlite-vec"),
-      destRelative: path.join("node_modules", "sqlite-vec"),
-    },
-    // sqlite-vec's native vec0.so lives in a platform-specific package resolved at
-    // runtime via require.resolve(). Next.js does NOT trace it into the standalone
-    // (the externalized wrapper is copied, but its optional platform dep is missed -
-    // Next.js #88844), so without this the bundled/Docker build silently degrades
-    // vector search to FTS5: the wrapper loads but getLoadablePath() throws
-    // MODULE_NOT_FOUND. Copy whichever platform package npm actually installed. See #3066.
-    ...[
-      "sqlite-vec-linux-x64",
-      "sqlite-vec-linux-arm64",
-      "sqlite-vec-darwin-x64",
-      "sqlite-vec-darwin-arm64",
-      "sqlite-vec-windows-x64",
-    ].map((pkg) => ({
-      label: pkg,
-      sourcePath: path.join(projectRoot, "node_modules", pkg),
-      destRelative: path.join("node_modules", pkg),
-    })),
-  ];
-
   let changed = false;
 
-  for (const entry of entries) {
-    if (!(await exists(entry.sourcePath))) continue;
+  for (const entry of EXTRA_MODULE_ENTRIES) {
+    const sourcePath = path.join(projectRoot, ...entry.src);
+    if (!(await exists(sourcePath))) continue;
 
-    const destPath = path.join(outDir, entry.destRelative);
+    const destPath = path.join(outDir, ...entry.dest);
     const mkdir =
       typeof fsImpl.mkdir === "function" ? fsImpl.mkdir.bind(fsImpl) : fs.mkdir.bind(fs);
     await mkdir(path.dirname(destPath), { recursive: true });
-    await fsImpl.cp(entry.sourcePath, destPath, { recursive: true, force: true });
+    await fsImpl.cp(sourcePath, destPath, { recursive: true, force: true });
     log.log(`[assembleStandalone] Synced standalone module: ${entry.label}`);
     changed = true;
   }
@@ -419,124 +362,21 @@ function copyStaticAndPublic({ distDir, relDistDir, projectRoot, resolvedOutDir 
  * @param {string} resolvedOutDir
  */
 function copyNativeAssetsAndExtraModules(projectRoot, resolvedOutDir) {
-  const nativeAssets = [
-    {
-      label: "wreq-js native runtime",
-      src: path.join(projectRoot, "node_modules", "wreq-js", "rust"),
-      dest: path.join(resolvedOutDir, "node_modules", "wreq-js", "rust"),
-    },
-    {
-      label: "better-sqlite3 native binary",
-      src: path.join(projectRoot, "node_modules", "better-sqlite3", "build"),
-      dest: path.join(resolvedOutDir, "node_modules", "better-sqlite3", "build"),
-    },
-  ];
-
-  for (const asset of nativeAssets) {
-    if (!fsSync.existsSync(asset.src)) continue;
-    fsSync.mkdirSync(path.dirname(asset.dest), { recursive: true });
-    fsSync.cpSync(asset.src, asset.dest, { recursive: true, force: true });
+  for (const asset of NATIVE_ASSET_ENTRIES) {
+    const src = path.join(projectRoot, ...asset.src);
+    if (!fsSync.existsSync(src)) continue;
+    const dest = path.join(resolvedOutDir, ...asset.dest);
+    fsSync.mkdirSync(path.dirname(dest), { recursive: true });
+    fsSync.cpSync(src, dest, { recursive: true, force: true });
     console.log(`[assembleStandalone] Copied native asset: ${asset.label}`);
   }
 
-  const extraModules = [
-    {
-      label: "@swc/helpers",
-      src: path.join(projectRoot, "node_modules", "@swc", "helpers"),
-      dest: path.join(resolvedOutDir, "node_modules", "@swc", "helpers"),
-    },
-    {
-      label: "pino-abstract-transport",
-      src: path.join(projectRoot, "node_modules", "pino-abstract-transport"),
-      dest: path.join(resolvedOutDir, "node_modules", "pino-abstract-transport"),
-    },
-    {
-      label: "pino-pretty",
-      src: path.join(projectRoot, "node_modules", "pino-pretty"),
-      dest: path.join(resolvedOutDir, "node_modules", "pino-pretty"),
-    },
-    {
-      label: "split2",
-      src: path.join(projectRoot, "node_modules", "split2"),
-      dest: path.join(resolvedOutDir, "node_modules", "split2"),
-    },
-    {
-      label: "migrations",
-      src: path.join(projectRoot, "src", "lib", "db", "migrations"),
-      dest: path.join(resolvedOutDir, "migrations"),
-    },
-    {
-      label: "MITM server",
-      src: path.join(projectRoot, "src", "mitm", "server.cjs"),
-      dest: path.join(resolvedOutDir, "src", "mitm", "server.cjs"),
-    },
-    {
-      label: "run-standalone script",
-      src: path.join(projectRoot, "scripts", "dev", "run-standalone.mjs"),
-      dest: path.join(resolvedOutDir, "dev", "run-standalone.mjs"),
-    },
-    {
-      label: "WS/peer-stamp standalone server wrapper",
-      src: path.join(projectRoot, "scripts", "dev", "standalone-server-ws.mjs"),
-      dest: path.join(resolvedOutDir, "server-ws.mjs"),
-    },
-    {
-      label: "peer-stamp helper",
-      src: path.join(projectRoot, "scripts", "dev", "peer-stamp.mjs"),
-      dest: path.join(resolvedOutDir, "peer-stamp.mjs"),
-    },
-    {
-      label: "responses-ws-proxy",
-      src: path.join(projectRoot, "scripts", "dev", "responses-ws-proxy.mjs"),
-      dest: path.join(resolvedOutDir, "responses-ws-proxy.mjs"),
-    },
-    {
-      label: "runtime-env script",
-      src: path.join(projectRoot, "scripts", "build", "runtime-env.mjs"),
-      dest: path.join(resolvedOutDir, "build", "runtime-env.mjs"),
-    },
-    {
-      label: "bootstrap-env script",
-      src: path.join(projectRoot, "scripts", "build", "bootstrap-env.mjs"),
-      dest: path.join(resolvedOutDir, "build", "bootstrap-env.mjs"),
-    },
-    {
-      label: "healthcheck script",
-      src: path.join(projectRoot, "scripts", "dev", "healthcheck.mjs"),
-      dest: path.join(resolvedOutDir, "healthcheck.mjs"),
-    },
-    {
-      label: "public directory",
-      src: path.join(projectRoot, "public"),
-      dest: path.join(resolvedOutDir, "public"),
-    },
-    {
-      label: "playwright-core",
-      src: path.join(projectRoot, "node_modules", "playwright-core"),
-      dest: path.join(resolvedOutDir, "node_modules", "playwright-core"),
-    },
-    {
-      label: "sqlite-vec wrapper",
-      src: path.join(projectRoot, "node_modules", "sqlite-vec"),
-      dest: path.join(resolvedOutDir, "node_modules", "sqlite-vec"),
-    },
-    ...[
-      "sqlite-vec-linux-x64",
-      "sqlite-vec-linux-arm64",
-      "sqlite-vec-darwin-x64",
-      "sqlite-vec-darwin-arm64",
-      "sqlite-vec-windows-x64",
-    ].map((pkg) => ({
-      label: pkg,
-      src: path.join(projectRoot, "node_modules", pkg),
-      dest: path.join(resolvedOutDir, "node_modules", pkg),
-    })),
-  ];
-
-  for (const mod of extraModules) {
-    if (!fsSync.existsSync(mod.src)) continue;
-    fsSync.mkdirSync(path.dirname(mod.dest), { recursive: true });
-    fsSync.cpSync(mod.src, mod.dest, { recursive: true, force: true });
+  for (const mod of EXTRA_MODULE_ENTRIES) {
+    const src = path.join(projectRoot, ...mod.src);
+    if (!fsSync.existsSync(src)) continue;
+    const dest = path.join(resolvedOutDir, ...mod.dest);
+    fsSync.mkdirSync(path.dirname(dest), { recursive: true });
+    fsSync.cpSync(src, dest, { recursive: true, force: true });
     console.log(`[assembleStandalone] Synced module: ${mod.label}`);
   }
 }

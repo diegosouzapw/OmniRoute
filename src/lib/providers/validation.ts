@@ -2,6 +2,7 @@ import { randomUUID } from "node:crypto";
 import { getEmbeddingProvider } from "@omniroute/open-sse/config/embeddingRegistry.ts";
 import { getRerankProvider } from "@omniroute/open-sse/config/rerankRegistry.ts";
 import { getRegistryEntry } from "@omniroute/open-sse/config/providerRegistry.ts";
+import { selectProxyForValidation } from "@omniroute/open-sse/services/proxyAutoSelector.ts";
 import {
   buildClaudeCodeCompatibleHeaders,
   buildClaudeCodeCompatibleValidationPayload,
@@ -26,7 +27,7 @@ import {
   getSafeOutboundFetchErrorStatus,
   safeOutboundFetch,
 } from "@/shared/network/safeOutboundFetch";
-import { getProviderOutboundGuard } from "@/shared/network/outboundUrlGuard";
+import { getProviderOutboundGuard, isPrivateHost } from "@/shared/network/outboundUrlGuard";
 import {
   buildGrokCookieHeader,
   extractCookieValue,
@@ -268,20 +269,65 @@ function buildTokenHeaders(apiKey: string, providerSpecificData: any = {}) {
   return applyCustomUserAgent(headers, providerSpecificData);
 }
 
+/**
+ * Wrapped fetch call that auto-retries with a proxy when the direct connection
+ * fails.  This happens transparently so individual validators don't need to
+ * think about proxy fallback.
+ */
+async function fetchWithProxyFallback(
+  url: string,
+  init: RequestInit,
+  presets: typeof SAFE_OUTBOUND_FETCH_PRESETS.validationRead,
+  isLocal: boolean
+): Promise<Response> {
+  try {
+    return await safeOutboundFetch(url, {
+      ...presets,
+      guard: isLocal ? "none" : getProviderOutboundGuard(),
+      ...init,
+    });
+  } catch (err: unknown) {
+    // Only attempt proxy fallback for retryable errors (network / timeout)
+    // and only when the target is not a local / LAN address.
+    const fetchErr = err as SafeOutboundFetchError;
+    const isNetworkIssue =
+      fetchErr?.code === "NETWORK_ERROR" || fetchErr?.code === "TIMEOUT";
+    const isRetryable = fetchErr?.isRetryable !== false;
+    const isValidTarget = !isLocal && isRetryableProxyTarget(url);
+
+    if (isLocal || !isNetworkIssue || !isRetryable) throw err;
+    if (!isValidTarget) throw err;
+
+    const proxyUrl = await selectProxyForValidation(url);
+    if (!proxyUrl) throw err;
+
+    return safeOutboundFetch(url, {
+      ...presets,
+      guard: isLocal ? "none" : getProviderOutboundGuard(),
+      ...init,
+      proxyConfig: proxyUrl,
+    });
+  }
+}
+
+export function isRetryableProxyTarget(url: string): boolean {
+  try {
+    const hostname = new URL(url).hostname.toLowerCase();
+    // Never proxy-fallback to a private/link-local/metadata host. Delegates to
+    // the canonical SSRF guard (covers 169.254, 0.0.0.0, 172.16/12, CGNAT,
+    // IPv6 fc/fd/fe80, .internal — gaps the previous inline check missed).
+    return !isPrivateHost(hostname);
+  } catch {
+    return false;
+  }
+}
+
 async function validationRead(url: string, init: RequestInit, isLocal: boolean = false) {
-  return safeOutboundFetch(url, {
-    ...SAFE_OUTBOUND_FETCH_PRESETS.validationRead,
-    guard: isLocal ? "none" : getProviderOutboundGuard(),
-    ...init,
-  });
+  return fetchWithProxyFallback(url, init, SAFE_OUTBOUND_FETCH_PRESETS.validationRead, isLocal);
 }
 
 async function validationWrite(url: string, init: RequestInit, isLocal: boolean = false) {
-  return safeOutboundFetch(url, {
-    ...SAFE_OUTBOUND_FETCH_PRESETS.validationWrite,
-    guard: isLocal ? "none" : getProviderOutboundGuard(),
-    ...init,
-  });
+  return fetchWithProxyFallback(url, init, SAFE_OUTBOUND_FETCH_PRESETS.validationWrite, isLocal);
 }
 
 function toValidationErrorResult(error: unknown) {
@@ -3891,7 +3937,7 @@ export async function validateProviderApiKey({ provider, apiKey, providerSpecifi
               max_tokens: 1,
             }),
           },
-          isLocal
+          isLocal,
         );
         if (res.status === 401 || res.status === 403) {
           return { valid: false, error: "Invalid API key" };
@@ -3961,7 +4007,7 @@ export async function validateProviderApiKey({ provider, apiKey, providerSpecifi
               max_tokens: 1,
             }),
           },
-          isLocal
+          isLocal,
         );
         if (res.status === 401 || res.status === 403) {
           return { valid: false, error: "Invalid API key" };
