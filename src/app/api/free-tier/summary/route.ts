@@ -15,12 +15,7 @@ export async function GET(req: Request): Promise<Response> {
   const url = new URL(req.url);
   const excludeTosAvoid = url.searchParams.get("excludeTosAvoid") === "1";
   const totals = computeFreeModelTotals({ excludeTosAvoid });
-  let usedThisMonth = 0;
-  try {
-    usedThisMonth = sumUsageTokensThisMonth();
-  } catch {
-    usedThisMonth = 0;
-  }
+  const usedThisMonth = sumUsageTokensThisMonth();
   const body = {
     ...totals,
     usedThisMonth,

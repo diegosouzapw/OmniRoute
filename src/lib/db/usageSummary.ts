@@ -1,8 +1,8 @@
 import { getDbInstance } from "./core.ts";
-import type Database from "better-sqlite3";
+import type { SqliteAdapter } from "./adapters/types.ts";
 
 /** Total input+output tokens rolled up in daily_usage_summary for the current calendar month. */
-export function sumUsageTokensThisMonth(db: Database.Database = getDbInstance()): number {
+export function sumUsageTokensThisMonth(db: SqliteAdapter = getDbInstance()): number {
   try {
     const row = db
       .prepare(
