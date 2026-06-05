@@ -137,7 +137,7 @@ jobs:
       - name: Build Electron for ${{ matrix.platform }}
         working-directory: electron
         env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ github.token }}
         run: npm run build:${{ matrix.target }}
 
       - name: Smoke packaged Electron app
@@ -236,7 +236,7 @@ jobs:
             release-assets/*.source.tar.gz
             release-assets/*.source.zip
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ github.token }}
 
   publish-npm:
     name: Publish to npm

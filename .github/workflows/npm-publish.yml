@@ -163,7 +163,7 @@ jobs:
         env:
           VERSION: ${{ steps.resolve.outputs.version }}
           TAG: ${{ steps.resolve.outputs.tag }}
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ github.token }}
         run: |
           set -euo pipefail
           echo "Configuring for GitHub Packages..."
