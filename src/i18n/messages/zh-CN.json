@@ -4480,7 +4480,7 @@
     "validationModelIdHint": "用于验证此提供商连接的模型 ID。",
     "validationModelIdLabel": "验证模型 ID",
     "validationModelIdPlaceholder": "输入用于测试的模型 ID",
-    "vertexServiceAccountPlaceholder": "Vertex Service Account",
+    "vertexServiceAccountPlaceholder": "粘贴 Service Account JSON（{\"type\":\"service_account\",...}）或 OAuth access_token",
     "webCookieProviders": "Web Cookie Provider",
     "weeklyShort": "每周",
     "xiaomiMimoBaseUrlHint": "小米 Mimo 服务的 Base URL。",

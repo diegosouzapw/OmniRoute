@@ -215,6 +215,9 @@ export function proxyConfigToUrl(
   }
 
   const config = proxyConfig as ProxyConfigObject;
+
+  // Partial / empty config object — treat as no proxy instead of crashing
+  if (!config.host) return null;
   const type = String(config.type || "http").toLowerCase();
 
   // Vercel Relay entries carry the relay URL in `host` — no dispatcher needed;
@@ -232,9 +235,6 @@ export function proxyConfigToUrl(
     throw new Error(
       "[ProxyDispatcher] SOCKS5 proxy is disabled (set ENABLE_SOCKS5_PROXY=true to enable)"
     );
-  }
-  if (!config.host) {
-    throw new Error("[ProxyDispatcher] Context proxy host is required");
   }
 
   const port = normalizePort(config.port, protocol);

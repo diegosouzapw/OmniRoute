@@ -647,7 +647,7 @@ const _REGISTRY_EAGER: Record<string, RegistryEntry> = {
     oauth: {
       clientIdEnv: "CLAUDE_OAUTH_CLIENT_ID",
       clientIdDefault: "9d1c250a-e61b-44d9-88ed-5944d1962f5e",
-      tokenUrl: "https://console.anthropic.com/v1/oauth/token",
+      tokenUrl: "https://api.anthropic.com/v1/oauth/token",
     },
     models: [
       {
@@ -1337,7 +1337,12 @@ const _REGISTRY_EAGER: Record<string, RegistryEntry> = {
       // #2900: big-pickle's upstream runs DeepSeek thinking mode — declare the
       // interleaved reasoning_content contract so follow-up/tool-use turns replay
       // it (otherwise DeepSeek returns 400 "reasoning_content ... must be passed back").
-      { id: "big-pickle", name: "Big Pickle", supportsReasoning: true, interleavedField: "reasoning_content" },
+      {
+        id: "big-pickle",
+        name: "Big Pickle",
+        supportsReasoning: true,
+        interleavedField: "reasoning_content",
+      },
       { id: "deepseek-v4-flash-free", name: "DeepSeek V4 Flash Free", supportsReasoning: true },
       { id: "minimax-m2.5-free", name: "MiniMax M2.5 Free", contextLength: 204800 },
       { id: "ling-2.6-1t-free", name: "Ling 2.6 Free", contextLength: 262000 },
@@ -1347,7 +1352,13 @@ const _REGISTRY_EAGER: Record<string, RegistryEntry> = {
         contextLength: 131000,
       },
       { id: "nemotron-3-super-free", name: "Nemotron 3 Super Free", contextLength: 1000000 },
-      { id: "qwen3.6-plus-free", name: "Qwen3.6 Plus Free", targetFormat: "claude", supportsVision: false, contextLength: 200000, },
+      {
+        id: "qwen3.6-plus-free",
+        name: "Qwen3.6 Plus Free",
+        targetFormat: "claude",
+        supportsVision: false,
+        contextLength: 200000,
+      },
     ],
   },
 
@@ -1409,7 +1420,12 @@ const _REGISTRY_EAGER: Record<string, RegistryEntry> = {
       // #2900: big-pickle's upstream runs DeepSeek thinking mode — declare the
       // interleaved reasoning_content contract so follow-up/tool-use turns replay
       // it (otherwise DeepSeek returns 400 "reasoning_content ... must be passed back").
-      { id: "big-pickle", name: "Big Pickle", supportsReasoning: true, interleavedField: "reasoning_content" },
+      {
+        id: "big-pickle",
+        name: "Big Pickle",
+        supportsReasoning: true,
+        interleavedField: "reasoning_content",
+      },
       { id: "gpt-5-nano", name: "GPT 5 Nano", contextLength: 400000 },
       { id: "gpt-5", name: "GPT 5" },
       { id: "gpt-5-codex", name: "GPT 5 Codex" },
@@ -2346,7 +2362,6 @@ const _REGISTRY_EAGER: Record<string, RegistryEntry> = {
     models: [{ id: "auto", name: "Auto" }],
   },
 
-
   kluster: {
     id: "kluster",
     alias: "kluster",
@@ -2379,7 +2394,6 @@ const _REGISTRY_EAGER: Record<string, RegistryEntry> = {
     authHeader: "bearer",
     models: [{ id: "liquid-lfm-40b", name: "Liquid LFM 40B" }],
   },
-
 
   monsterapi: {
     id: "monsterapi",
@@ -2417,7 +2431,6 @@ const _REGISTRY_EAGER: Record<string, RegistryEntry> = {
       { id: "claude-3.5-sonnet", name: "Claude 3.5 Sonnet (via Phind)" },
     ],
   },
-
 
   chutes: {
     id: "chutes",
@@ -3587,7 +3600,6 @@ const _REGISTRY_EAGER: Record<string, RegistryEntry> = {
     ],
   },
 
-
   hackclub: {
     id: "hackclub",
     alias: "hc",
@@ -4215,6 +4227,29 @@ const _REGISTRY_EAGER: Record<string, RegistryEntry> = {
         contextLength: 128000,
       },
     ],
+  },
+
+  theoldllm: {
+    id: "theoldllm",
+    alias: "tllm",
+    format: "openai",
+    executor: "theoldllm",
+    // Playwright-backed executor — no standard auth; uses embedded browser for token generation
+    baseUrl: "https://theoldllm.vercel.app/api/chatgpt",
+    baseUrls: ["https://theoldllm.vercel.app/api/chatgpt"],
+    authType: "none",
+    authHeader: "none",
+    models: [
+      { id: "GPT_5_4", name: "GPT-5.4 (The Old LLM 🆓)" },
+      { id: "GPT_4o", name: "GPT-4o (The Old LLM 🆓)" },
+      { id: "claude_opus_4", name: "Claude Opus 4 (The Old LLM 🆓)" },
+      { id: "claude_sonnet_4", name: "Claude Sonnet 4 (The Old LLM 🆓)" },
+      { id: "claude_haiku_3_5", name: "Claude Haiku 3.5 (The Old LLM 🆓)" },
+      { id: "deepseek_v4", name: "DeepSeek V4 (The Old LLM 🆓)" },
+      { id: "gemini_3_flash", name: "Gemini 3 Flash (The Old LLM 🆓)" },
+      { id: "gemini_3_pro", name: "Gemini 3 Pro (The Old LLM 🆓)" },
+    ],
+    passthroughModels: true,
   },
 };
 

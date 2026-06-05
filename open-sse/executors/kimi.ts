@@ -1,60 +1,85 @@
 
 import { DefaultExecutor } from "./default.ts";
-type JsonRecord = Record<string, unknown>;
-import {
-  type ProviderCredentials,
-} from "./base.ts";
-
+import {  ExecuteInput, type ProviderCredentials } from "./base.ts";
 import { applyProviderRequestDefaults } from "../services/providerRequestDefaults.ts";
+import { NON_ANTHROPIC_THINKING_PLACEHOLDER } from "../translator/helpers/claudeHelper.ts";
+type JsonRecord = Record<string, unknown>;
 
 function hasActiveKimiThinking(body: JsonRecord): boolean {
-  const reasoningEffort = body.reasoning_effort;
-  if (typeof reasoningEffort === "string") {
-    const normalized = reasoningEffort.trim().toLowerCase();
-    if (normalized && normalized !== "off" && normalized !== "none") return true;
-  }
-
-  const reasoning = body.reasoning;
-  if (reasoning && typeof reasoning === "object" && !Array.isArray(reasoning)) {
-    const reasoningRecord = reasoning as JsonRecord;
-    const effort = reasoningRecord.effort;
-    if (typeof effort === "string") {
-      const normalized = effort.trim().toLowerCase();
-      if (normalized && normalized !== "off" && normalized !== "none") return true;
-    }
-    if (reasoningRecord.enabled === true || reasoningRecord.type === "enabled") return true;
-  }
-
   const thinking = body.thinking;
   if (thinking && typeof thinking === "object" && !Array.isArray(thinking)) {
     const thinkingRecord = thinking as JsonRecord;
     return thinkingRecord.type === "enabled" || thinkingRecord.type === "adaptive";
   }
-
   return false;
 }
 
-function ensureToolCallReasoningContent(body: JsonRecord): JsonRecord {
-  if (!hasActiveKimiThinking(body) || !Array.isArray(body.messages)) return body;
-
-  let changed = false;
-  const messages = body.messages.map((message: unknown) => {
-    if (!message || typeof message !== "object" || Array.isArray(message)) return message;
-
-    const msg = message as JsonRecord;
-    if (msg.role !== "assistant" || !Array.isArray(msg.tool_calls)) return message;
-    if (Object.prototype.hasOwnProperty.call(msg, "reasoning_content")) return message;
-
-    changed = true;
-    return { ...msg, reasoning_content: "" };
-  });
-
-  return changed ? { ...body, messages } : body;
+function hasNonEmptyReasoningContent(message: JsonRecord): boolean {
+  return typeof message.reasoning_content === "string" && message.reasoning_content.trim().length > 0;
 }
 
-function hasTools(body: unknown): boolean {
-  const record = asRecord(body);
-  return Array.isArray(record?.tools) && record.tools.length > 0;
+function isToolUseBlock(value: unknown): value is JsonRecord {
+  return !!value && typeof value === "object" && !Array.isArray(value) &&
+    (value as JsonRecord).type === "tool_use";
+}
+
+function isThinkingBlock(value: unknown): boolean {
+  return !!value && typeof value === "object" && !Array.isArray(value) &&
+    ((value as JsonRecord).type === "thinking" || (value as JsonRecord).type === "redacted_thinking");
+}
+
+function hasAssistantToolCalls(message: JsonRecord): boolean {
+  if (Array.isArray(message.tool_calls) && message.tool_calls.length > 0) return true;
+  return Array.isArray(message.content) && message.content.some(isToolUseBlock);
+}
+
+function isClaudeProtocolBody(body: JsonRecord): boolean {
+  if (Array.isArray(body.system)) return true;
+
+  if (!Array.isArray(body.messages)) return false;
+  return body.messages.some((message: unknown) => {
+    const msg = asRecord(message);
+    if (!msg || !Array.isArray(msg.content)) return false;
+    return msg.content.some((part) => {
+      const block = asRecord(part);
+      return block?.type === "text" || block?.type === "tool_use" || block?.type === "tool_result";
+    });
+  });
+}
+
+function disableKimiPreservedThinking(body: JsonRecord): JsonRecord {
+  if (!isClaudeProtocolBody(body)) return body;
+
+  const thinking = asRecord(body.thinking) ?? { type: "enabled" };
+  if (thinking.keep === null) return body;
+
+  return {
+    ...body,
+    thinking: {
+      ...thinking,
+      keep: null,
+    },
+  };
+}
+
+function ensureKimiThinkingContent(message: JsonRecord): JsonRecord {
+  const reasoningContent = hasNonEmptyReasoningContent(message)
+    ? String(message.reasoning_content)
+    : NON_ANTHROPIC_THINKING_PLACEHOLDER;
+  let nextMessage = hasNonEmptyReasoningContent(message)
+    ? message
+    : { ...message, reasoning_content: reasoningContent };
+
+  if (!Array.isArray(nextMessage.content)) return nextMessage;
+  const firstToolUseIndex = nextMessage.content.findIndex(isToolUseBlock);
+  if (firstToolUseIndex < 0 || nextMessage.content.some(isThinkingBlock)) return nextMessage;
+
+  const content = [...nextMessage.content];
+  content.splice(firstToolUseIndex, 0, {
+    type: "thinking",
+    thinking: reasoningContent,
+  });
+  return { ...nextMessage, content };
 }
 
 
@@ -65,11 +90,28 @@ function asRecord(value: unknown): JsonRecord | null {
 function applyKimiRequestDefaults(body: unknown, defaults?: JsonRecord | null): unknown {
   const withDefaults = applyProviderRequestDefaults(body, defaults);
   const record = asRecord(withDefaults);
-  if (record && hasActiveKimiThinking(record) && hasTools(record)) {
-    return ensureToolCallReasoningContent(record);
+  if (!record || !Array.isArray(record.messages)) {
+    return withDefaults;
   }
-  return withDefaults;
+
+  const kimiBody = disableKimiPreservedThinking(record);
+
+  if (!hasActiveKimiThinking(kimiBody)) return kimiBody;
+
+  let modified = false;
+  const sourceMessages = Array.isArray(kimiBody.messages) ? kimiBody.messages : record.messages;
+  const messages = sourceMessages.map((message: unknown) => {
+    const msg = asRecord(message);
+    if (!msg || msg.role !== "assistant" || !hasAssistantToolCalls(msg)) return message;
+
+    const nextMessage = ensureKimiThinkingContent(msg);
+    if (nextMessage !== msg) modified = true;
+    return nextMessage;
+  });
+
+  return modified ? { ...kimiBody, messages } : kimiBody;
 }
+
 
 export class KimiExecutor extends DefaultExecutor {
   constructor(provider = "kimi-coding") {
@@ -85,6 +127,7 @@ export class KimiExecutor extends DefaultExecutor {
     const cleanedBody = super.transformRequest(model, body, stream, credentials);
     return applyKimiRequestDefaults(cleanedBody);
   }
+  
 }
 
 export default KimiExecutor;

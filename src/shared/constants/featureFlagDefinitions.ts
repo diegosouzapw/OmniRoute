@@ -21,7 +21,7 @@ export const FEATURE_FLAG_DEFINITIONS: FeatureFlagDefinition[] = [
     category: "security",
     defaultValue: "false",
     type: "boolean",
-    requiresRestart: true,
+    requiresRestart: false,
     warningLevel: "caution",
   },
   {
@@ -72,7 +72,8 @@ export const FEATURE_FLAG_DEFINITIONS: FeatureFlagDefinition[] = [
   {
     key: "PII_RESPONSE_SANITIZATION_MODE",
     label: "PII Response Sanitization Mode",
-    description: "Mode for PII response sanitization: redact (replace PII), warn (log only), block (reject), off (disable)",
+    description:
+      "Mode for PII response sanitization: redact (replace PII), warn (log only), block (reject), off (disable)",
     descriptionI18nKey: "featureFlagPiiResponseSanitizationModeDescription",
     category: "security",
     defaultValue: "redact",
