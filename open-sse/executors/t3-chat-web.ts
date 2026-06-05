@@ -528,7 +528,7 @@ export class T3ChatWebExecutor extends BaseExecutor {
         choices: [
           {
             index: 0,
-            message: { role: "assistant", content },
+            message: { role: "assistant", content: rawContent },
             finish_reason: "stop",
           },
         ],

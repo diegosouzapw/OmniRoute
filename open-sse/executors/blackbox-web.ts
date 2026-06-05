@@ -325,7 +325,7 @@ export class BlackboxWebExecutor extends BaseExecutor {
       };
     }
 
-    const { hasTools, requestedTools, effectiveMessages } = prepareToolMessages(bodyObj, messages);
+    const { hasTools, requestedTools, effectiveMessages } = prepareToolMessages(bodyObj, messages as Array<{ role: string; content: unknown }>);
     const chatId = crypto.randomUUID().slice(0, 7);
     const parsedMessages = parseOpenAIMessages(effectiveMessages, chatId);
     if (parsedMessages.length === 0) {

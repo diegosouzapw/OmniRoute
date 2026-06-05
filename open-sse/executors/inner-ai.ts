@@ -708,7 +708,7 @@ export class InnerAiExecutor extends BaseExecutor {
             }),
             { status: 200, headers: { "Content-Type": "application/json" } }
           ),
-          url: CHAT_API_URL, headers: reqHeaders, transformedBody: innerAiBody,
+          url: INNER_AI_CHAT_URL, headers: reqHeaders, transformedBody: innerAiBody,
         };
       }
       content = cleaned;

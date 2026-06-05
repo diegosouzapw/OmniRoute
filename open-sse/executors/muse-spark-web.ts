@@ -1153,7 +1153,7 @@ async function buildSuccessResult(
   transformedBody: unknown,
   hasTools?: boolean,
   requestedTools?: unknown
-): MuseSparkExecuteResult {
+): Promise<MuseSparkExecuteResult> {
   const id = `chatcmpl-meta-${crypto.randomUUID().slice(0, 12)}`;
   const created = Math.floor(Date.now() / 1000);
   const deltas = parsed.deltas.length > 0 ? parsed.deltas : [parsed.content];
@@ -1210,7 +1210,7 @@ export class MuseSparkWebExecutor extends BaseExecutor {
       return errorResult(400, "Missing or empty messages array", "invalid_request", {}, body);
     }
 
-    const { hasTools, requestedTools, effectiveMessages } = prepareToolMessages(bodyObj, rawMessages);
+    const { hasTools, requestedTools, effectiveMessages } = prepareToolMessages(bodyObj, rawMessages as Array<{ role: string; content: unknown }>);
     const parsedHistory = parseOpenAIMessages(effectiveMessages);
     if (!parsedHistory.foldedPrompt) {
       return errorResult(400, "Empty query after processing messages", "invalid_request", {}, body);
@@ -1245,7 +1245,10 @@ export class MuseSparkWebExecutor extends BaseExecutor {
     const combinedSignal = signal ? mergeAbortSignals(signal, timeoutSignal) : timeoutSignal;
 
     const fetchResult = await postMetaAiRequest(headers, transformedBody, combinedSignal, log);
-    if (!fetchResult.ok) return fetchResult.result;
+    if (!fetchResult.ok) {
+      const err = fetchResult as { ok: false; result: MuseSparkExecuteResult };
+      return err.result;
+    }
 
     const upstreamResponse = fetchResult.response;
     if (!upstreamResponse.ok) {
