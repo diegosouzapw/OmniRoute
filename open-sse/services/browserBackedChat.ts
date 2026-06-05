@@ -97,11 +97,14 @@ export function __resetHttpBackedChatOverrideForTesting(): void {
 function waitWithSignal(ms: number, signal?: AbortSignal | null): Promise<void> {
   return new Promise((resolve, reject) => {
     if (signal?.aborted) return reject(new DOMException("Aborted", "AbortError"));
-    const timer = setTimeout(resolve, ms);
     const onAbort = () => {
       clearTimeout(timer);
       reject(new DOMException("Aborted", "AbortError"));
     };
+    const timer = setTimeout(() => {
+      signal?.removeEventListener("abort", onAbort);
+      resolve();
+    }, ms);
     signal?.addEventListener("abort", onAbort, { once: true });
   }).catch((err) => {
     if (err instanceof DOMException && err.name === "AbortError") throw err;
@@ -303,9 +306,11 @@ export async function browserBackedChat(
     );
 
     // Wire signal to responsePromise via Promise.race
+    let abortListener: (() => void) | undefined;
     const signalPromise = signal ? new Promise<never>((_, reject) => {
       if (signal.aborted) return reject(new DOMException("Aborted", "AbortError"));
-      signal.addEventListener("abort", () => reject(new DOMException("Aborted", "AbortError")), { once: true });
+      abortListener = () => reject(new DOMException("Aborted", "AbortError"));
+      signal.addEventListener("abort", abortListener, { once: true });
     }) : null;
     
     if (submitButtonSelector) {
@@ -324,6 +329,9 @@ export async function browserBackedChat(
     }
     const tCaptureStart = Date.now();
     const response = signalPromise ? await Promise.race([responsePromise, signalPromise]).catch(() => null) : await responsePromise.catch(() => null);
+    if (signal && abortListener) {
+      signal.removeEventListener("abort", abortListener);
+    }
     if (response) {
       // Wait for the upstream SSE to finish streaming
       await waitWithSignal(Math.min(postSubmitWaitMs, 30000), signal);

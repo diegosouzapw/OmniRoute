@@ -71,8 +71,8 @@ function normalizeHeaders(headers: HeadersInit | undefined): Record<string, stri
  */
 class TlsClient {
   session: WreqSession | null = null;
-  available: boolean;
 
+  private _libraryAvailable: boolean;
   private failureCount: number = 0;
   private maxFailures: number = 3;
   private baseCooldownMs: number = 30_000;
@@ -83,7 +83,13 @@ class TlsClient {
   private circuitTripped: boolean = false;
 
   constructor() {
-    this.available = !!createSession;
+    this._libraryAvailable = !!createSession;
+  }
+
+  get available(): boolean {
+    if (!this._libraryAvailable) return false;
+    if (!this.circuitTripped) return true;
+    return Date.now() >= this.circuitOpenUntil;
   }
 
   private recordFailure(): void {
@@ -91,7 +97,6 @@ class TlsClient {
     if (this.failureCount >= this.maxFailures) {
       this.circuitOpenUntil = Date.now() + this.cooldownMs;
       this.circuitTripped = true;
-      this.available = false;
       // Close the stale session so the next half-open retry creates a
       // fresh one instead of reusing a broken connection.
       if (this.session) {
@@ -113,7 +118,6 @@ class TlsClient {
       this.cooldownMs = this.baseCooldownMs;
       console.log("[TlsClient] Circuit closed (success after cooldown)");
       this.circuitTripped = false;
-      this.available = !!createSession;
     }
   }
 
@@ -213,7 +217,6 @@ class TlsClient {
     this.failureCount = 0;
     this.circuitTripped = false;
     this.circuitOpenUntil = 0;
-    this.available = !!createSession;
   }
 
   getCircuitState(): {
