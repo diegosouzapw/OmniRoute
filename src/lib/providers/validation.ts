@@ -2820,6 +2820,12 @@ async function validateGrokWebProvider({ apiKey, providerSpecificData = {} }: an
       };
     }
 
+    // Use the TLS-impersonating client — Cloudflare on grok.com pins
+    // cf_clearance to JA3/JA4 + HTTP/2 SETTINGS, so plain Node fetch always
+    // gets "Request rejected by anti-bot rules." regardless of cookies (#3180).
+    const { tlsFetchGrok, TlsClientUnavailableError, isCloudflareChallenge } =
+      await import("@omniroute/open-sse/services/grokTlsClient.ts");
+
     // Generate the same Cloudflare-bypass headers the GrokWebExecutor uses.
     const randomHex = (n: number) => {
       const a = new Uint8Array(n);
@@ -2830,68 +2836,89 @@ async function validateGrokWebProvider({ apiKey, providerSpecificData = {} }: an
     const traceId = randomHex(16);
     const spanId = randomHex(8);
 
-    const response = await validationWrite("https://grok.com/rest/app-chat/conversations/new", {
-      method: "POST",
-      headers: applyCustomUserAgent(
-        {
-          Accept: "*/*",
-          "Accept-Encoding": "gzip, deflate, br, zstd",
-          "Accept-Language": "en-US,en;q=0.9",
-          Baggage:
-            "sentry-environment=production,sentry-release=d6add6fb0460641fd482d767a335ef72b9b6abb8,sentry-public_key=b311e0f2690c81f25e2c4cf6d4f7ce1c",
-          "Cache-Control": "no-cache",
-          "Content-Type": "application/json",
-          Cookie: buildGrokCookieHeader(apiKey),
-          Origin: "https://grok.com",
-          Pragma: "no-cache",
-          Referer: "https://grok.com/",
-          "Sec-Ch-Ua": '"Google Chrome";v="147", "Chromium";v="147", "Not(A:Brand";v="24"',
-          "Sec-Ch-Ua-Mobile": "?0",
-          "Sec-Ch-Ua-Platform": '"macOS"',
-          "Sec-Fetch-Dest": "empty",
-          "Sec-Fetch-Mode": "cors",
-          "Sec-Fetch-Site": "same-origin",
-          "User-Agent":
-            "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36",
-          "x-statsig-id": btoa(statsigMsg),
-          "x-xai-request-id": crypto.randomUUID(),
-          traceparent: `00-${traceId}-${spanId}-00`,
-        },
-        providerSpecificData
-      ),
-      body: JSON.stringify({
-        temporary: true,
-        modeId: "fast",
-        message: "test",
-        fileAttachments: [],
-        imageAttachments: [],
-        disableSearch: true,
-        enableImageGeneration: false,
-        returnImageBytes: false,
-        returnRawGrokInXaiRequest: false,
-        enableImageStreaming: false,
-        imageGenerationCount: 0,
-        forceConcise: true,
-        toolOverrides: {},
-        enableSideBySide: false,
-        sendFinalMetadata: false,
-        isReasoning: false,
-        disableTextFollowUps: true,
-        disableMemory: true,
-        forceSideBySide: false,
-        isAsyncChat: false,
-        disableSelfHarmShortCircuit: false,
-      }),
-    });
-
-    if (response.ok) {
-      return { valid: true, error: null };
+    let response;
+    try {
+      response = await tlsFetchGrok("https://grok.com/rest/app-chat/conversations/new", {
+        method: "POST",
+        headers: applyCustomUserAgent(
+          {
+            Accept: "*/*",
+            "Accept-Encoding": "gzip, deflate, br, zstd",
+            "Accept-Language": "en-US,en;q=0.9",
+            Baggage:
+              "sentry-environment=production,sentry-release=d6add6fb0460641fd482d767a335ef72b9b6abb8,sentry-public_key=b311e0f2690c81f25e2c4cf6d4f7ce1c",
+            "Cache-Control": "no-cache",
+            "Content-Type": "application/json",
+            Cookie: buildGrokCookieHeader(apiKey),
+            Origin: "https://grok.com",
+            Pragma: "no-cache",
+            Referer: "https://grok.com/",
+            "Sec-Ch-Ua": '"Google Chrome";v="147", "Chromium";v="147", "Not(A:Brand";v="24"',
+            "Sec-Ch-Ua-Mobile": "?0",
+            "Sec-Ch-Ua-Platform": '"macOS"',
+            "Sec-Fetch-Dest": "empty",
+            "Sec-Fetch-Mode": "cors",
+            "Sec-Fetch-Site": "same-origin",
+            "User-Agent":
+              "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36",
+            "x-statsig-id": btoa(statsigMsg),
+            "x-xai-request-id": crypto.randomUUID(),
+            traceparent: `00-${traceId}-${spanId}-00`,
+          },
+          providerSpecificData
+        ),
+        body: JSON.stringify({
+          temporary: true,
+          modeId: "fast",
+          message: "test",
+          fileAttachments: [],
+          imageAttachments: [],
+          disableSearch: true,
+          enableImageGeneration: false,
+          returnImageBytes: false,
+          returnRawGrokInXaiRequest: false,
+          enableImageStreaming: false,
+          imageGenerationCount: 0,
+          forceConcise: true,
+          toolOverrides: {},
+          enableSideBySide: false,
+          sendFinalMetadata: false,
+          isReasoning: false,
+          disableTextFollowUps: true,
+          disableMemory: true,
+          forceSideBySide: false,
+          isAsyncChat: false,
+          disableSelfHarmShortCircuit: false,
+        }),
+        timeoutMs: 15_000,
+      });
+    } catch (err: any) {
+      if (err instanceof TlsClientUnavailableError) {
+        return {
+          valid: false,
+          error: `TLS impersonation client unavailable: ${err.message}`,
+        };
+      }
+      throw err;
     }
 
     let errorDetail = "";
     try {
-      errorDetail = (await response.text()).slice(0, 240);
+      errorDetail = (response.text || "").slice(0, 240);
     } catch {}
+
+    // Detect Cloudflare challenge pages even with a 200 status from tls-client-node
+    if (isCloudflareChallenge(errorDetail)) {
+      return {
+        valid: false,
+        error:
+          "Grok validation blocked by Cloudflare anti-bot. Try a residential IP or proxy.",
+      };
+    }
+
+    if (response.status >= 200 && response.status < 300) {
+      return { valid: true, error: null };
+    }
 
     if (response.status === 401) {
       return {
