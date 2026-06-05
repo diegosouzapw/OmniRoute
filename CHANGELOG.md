@@ -31,6 +31,8 @@ _Development cycle in progress — entries are added as work merges into `releas
 ### 🔧 Bug Fixes
 
 - **docker:** copy `scripts/dev/healthcheck.mjs` into the runner-base image — the Next.js standalone output doesn't trace it, so the `HEALTHCHECK CMD ["node", "healthcheck.mjs"]` probe silently exited 1. (#3201 — thanks @wilsonicdev)
+- **usage:** route the `agy` provider's quota through the existing Antigravity usage implementation (register `agy` in `USAGE_FETCHER_PROVIDERS`, all four `getUsageForProvider` call sites + `parseQuotaData` + `syncAntigravitySubscriptionIfNeeded`) so it no longer falls through to "Usage API not implemented" (#3230). (#3232 — thanks @wilsonicdev)
+- **cli:** show OpenCode Free in the Hermes Agent model picker even with no active connection — new optional `alwaysIncludeProviders` prop on `ModelSelectModal` (defaults to `[]`, so other callers are unaffected) lets zero-config providers like `opencode` surface in the grouped list. (#3240 — thanks @wilsonicdev)
 
 ---
 
