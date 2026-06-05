@@ -122,11 +122,21 @@ function noProxyMatch(targetUrl) {
 }
 
 function isLocalAddress(hostname: string): boolean {
-  if (hostname === "localhost" || hostname === "127.0.0.1" || hostname === "::1") return true;
-  if (hostname.startsWith("192.168.")) return true;
-  if (hostname.startsWith("10.")) return true;
-  if (hostname.match(/^172\.(1[6-9]|2\d|3[0-1])\./)) return true;
-  if (hostname.endsWith(".local") || hostname.endsWith(".lan")) return true;
+  const host = hostname.replace(/^\[/, "").replace(/\]$/, "").replace(/^::ffff:/i, "");
+  if (host === "localhost" || host === "0.0.0.0" || host === "127.0.0.1" || host === "::1") {
+    return true;
+  }
+  if (host.endsWith(".local") || host.endsWith(".lan") || host.endsWith(".internal")) return true;
+  // RFC1918 + loopback + link-local (169.254, incl. cloud metadata 169.254.169.254)
+  // + CGNAT (100.64/10). 127/8 covers all loopback, not just 127.0.0.1.
+  if (host.startsWith("192.168.")) return true;
+  if (host.startsWith("10.")) return true;
+  if (host.startsWith("127.")) return true;
+  if (host.startsWith("169.254.")) return true;
+  if (/^172\.(1[6-9]|2\d|3[0-1])\./.test(host)) return true;
+  if (/^100\.(6[4-9]|[7-9]\d|1[01]\d|12[0-7])\./.test(host)) return true;
+  // IPv6 ULA (fc00::/7 → fc/fd prefix) and link-local (fe80::/10)
+  if (/^f[cd][0-9a-f]*:/i.test(host) || host.startsWith("fe80:")) return true;
   return false;
 }
 

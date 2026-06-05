@@ -27,7 +27,7 @@ import {
   getSafeOutboundFetchErrorStatus,
   safeOutboundFetch,
 } from "@/shared/network/safeOutboundFetch";
-import { getProviderOutboundGuard } from "@/shared/network/outboundUrlGuard";
+import { getProviderOutboundGuard, isPrivateHost } from "@/shared/network/outboundUrlGuard";
 import {
   buildGrokCookieHeader,
   extractCookieValue,
@@ -310,20 +310,13 @@ async function fetchWithProxyFallback(
   }
 }
 
-function isRetryableProxyTarget(url: string): boolean {
+export function isRetryableProxyTarget(url: string): boolean {
   try {
     const hostname = new URL(url).hostname.toLowerCase();
-    if (
-      hostname === "localhost" ||
-      hostname === "127.0.0.1" ||
-      hostname === "::1"
-    )
-      return false;
-    if (hostname.startsWith("192.168.")) return false;
-    if (hostname.startsWith("10.")) return false;
-    if (hostname.match(/^172\.(1[6-9]|2\d|3[0-1])\./)) return false;
-    if (hostname.endsWith(".local") || hostname.endsWith(".lan")) return false;
-    return true;
+    // Never proxy-fallback to a private/link-local/metadata host. Delegates to
+    // the canonical SSRF guard (covers 169.254, 0.0.0.0, 172.16/12, CGNAT,
+    // IPv6 fc/fd/fe80, .internal — gaps the previous inline check missed).
+    return !isPrivateHost(hostname);
   } catch {
     return false;
   }
