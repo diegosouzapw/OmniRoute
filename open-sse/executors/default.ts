@@ -205,6 +205,7 @@ export class DefaultExecutor extends BaseExecutor {
         const baseUrl = credentials?.providerSpecificData?.baseUrl || this.config.baseUrl;
         return normalizeOpenAIChatUrl(baseUrl);
       }
+      case "llama-cpp":
       case "lm-studio":
       case "modal":
       case "reka":
@@ -510,8 +511,16 @@ export class DefaultExecutor extends BaseExecutor {
       const entry = getRegistryEntry(this.provider);
       if (entry?.modelIdPrefix) {
         const body = withDefaults as Record<string, unknown>;
-        if (typeof body.model === "string" && !body.model.startsWith(entry.modelIdPrefix)) {
-          body.model = `${entry.modelIdPrefix}${body.model}`;
+        if (typeof body.model === "string") {
+          // Skip prepending when the model already carries the canonical prefix OR any
+          // other accepted fully-qualified prefix (e.g. Fireworks router IDs). #3133.
+          const acceptedPrefixes = [entry.modelIdPrefix, ...(entry.acceptedModelIdPrefixes ?? [])];
+          const alreadyQualified = acceptedPrefixes.some((prefix) =>
+            (body.model as string).startsWith(prefix)
+          );
+          if (!alreadyQualified) {
+            body.model = `${entry.modelIdPrefix}${body.model}`;
+          }
         }
       }
     }

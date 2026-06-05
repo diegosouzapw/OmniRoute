@@ -135,7 +135,7 @@ export function shouldAttemptRotatingRefresh(
 
 export async function refreshAndUpdateCredentials(
   connection: ProviderConnectionLike,
-  opts: { allowRotatingRefresh?: boolean } = {}
+  opts: { allowRotatingRefresh?: boolean; force?: boolean } = {}
 ) {
   if (!shouldAttemptRotatingRefresh(connection.provider, opts.allowRotatingRefresh)) {
     return { connection, refreshed: false };
@@ -151,7 +151,12 @@ export async function refreshAndUpdateCredentials(
     copilotTokenExpiresAt: connection.providerSpecificData?.copilotTokenExpiresAt,
   };
 
-  if (!executor.needsRefresh(credentials)) {
+  // `force` is used ONLY on the reactive 401 recovery path (a usage fetch came
+  // back unauthorized) — it bypasses the proactive `needsRefresh` heuristic so
+  // imported accounts (expiresAt=null, where needsRefresh is always false) can
+  // still re-mint. The mint stays serialized per rotation group; this never
+  // refreshes proactively from the bulk path (#3019 guard above is unchanged).
+  if (!opts.force && !executor.needsRefresh(credentials)) {
     return { connection, refreshed: false };
   }
 
@@ -209,6 +214,19 @@ export async function refreshAndUpdateCredentials(
     },
     refreshed: true,
   };
+}
+
+function isUsageAuthError(message: unknown): boolean {
+  if (typeof message !== "string") return false;
+  const m = message.toLowerCase();
+  return (
+    m.includes("token expired") ||
+    m.includes("unauthorized") ||
+    m.includes("re-authenticate") ||
+    m.includes("access denied") ||
+    m.includes("invalidated") ||
+    m.includes("401")
+  );
 }
 
 function isNetworkFailureMessage(message: unknown): boolean {
@@ -384,6 +402,29 @@ export function getProviderLimitsSyncIntervalMs(): number {
   return getProviderLimitsSyncIntervalMinutes() * 60 * 1000;
 }
 
+/** Default gap (ms) inserted between two consecutive OAuth quota fetches. */
+const DEFAULT_PROVIDER_LIMITS_SYNC_SPACING_MS = 1500;
+
+/**
+ * Spacing (ms) between consecutive OAuth provider-limits fetches in a bulk sync.
+ *
+ * OAuth providers (Codex/Claude/Kimi-coding/…) are fetched ONE AT A TIME with
+ * this gap so a single host never bursts several simultaneous usage/refresh
+ * requests to the same upstream — bursts read as automated traffic and
+ * contribute to session termination / anomaly flags (and, for rotating-token
+ * providers, to the Auth0 family-revocation race). Stateless API-key providers
+ * keep the fast concurrent path. Tunable via `PROVIDER_LIMITS_SYNC_SPACING_MS`;
+ * set to `"0"` to opt out.
+ */
+export function getProviderLimitsSyncSpacingMs(): number {
+  const rawEnv = process.env.PROVIDER_LIMITS_SYNC_SPACING_MS;
+  if (rawEnv === undefined || rawEnv === "") return DEFAULT_PROVIDER_LIMITS_SYNC_SPACING_MS;
+  const raw = Number(rawEnv);
+  return Number.isFinite(raw) && raw >= 0 ? raw : DEFAULT_PROVIDER_LIMITS_SYNC_SPACING_MS;
+}
+
+const syncDelay = (ms: number) => new Promise<void>((resolve) => setTimeout(resolve, ms));
+
 export async function getLastProviderLimitsAutoSyncTime(): Promise<string | null> {
   try {
     const settings = await getSettings();
@@ -456,7 +497,25 @@ async function fetchLiveProviderLimitsWithOptions(
         await syncToCloudIfEnabled();
       }
 
-      const usageData = (await getUsageForProvider(conn, options)) as JsonRecord;
+      let usageData = (await getUsageForProvider(conn, options)) as JsonRecord;
+
+      // Reactive 401 recovery (on-demand/force path only): an unauthorized usage
+      // response means the access token is actually dead. Force ONE serialized
+      // re-mint and retry once. This recovers imported accounts (expiresAt=null,
+      // where the proactive needsRefresh heuristic never fires) without ever
+      // refreshing proactively from the bulk path.
+      if (options.allowRotatingRefresh && !wasRefreshed && isUsageAuthError(usageData?.message)) {
+        const forced = await refreshAndUpdateCredentials(conn, {
+          allowRotatingRefresh: true,
+          force: true,
+        });
+        if (forced.refreshed) {
+          conn = forced.connection;
+          await syncToCloudIfEnabled();
+          usageData = (await getUsageForProvider(conn, options)) as JsonRecord;
+        }
+      }
+
       connection = conn;
       return { usage: usageData };
     });
@@ -595,42 +654,62 @@ export async function syncAllProviderLimits(
   const caches: Record<string, ProviderLimitsCacheEntry> = {};
   const errors: Record<string, string> = {};
 
-  for (let i = 0; i < connections.length; i += concurrency) {
-    const chunk = connections.slice(i, i + concurrency);
-    const results = await Promise.allSettled(
-      chunk.map(async (connection) => {
-        const { usage } = await fetchLiveProviderLimitsWithOptions(connection.id, {
-          forceRefresh: source === "manual",
-        });
-        const cache = toProviderLimitsCacheEntry(usage, source);
-        return { connectionId: connection.id, cache };
-      })
-    );
-
-    results.forEach((result, index) => {
-      const connectionId = chunk[index]?.id;
-      if (!connectionId) return;
-
-      if (result.status === "fulfilled") {
-        const { cache } = result.value;
-        // Don't persist error-only entries; show prior cache or pass through.
-        if (!cache.quotas && cache.message) {
-          const previous = getProviderLimitsCache(connectionId);
-          if (previous?.quotas && Object.keys(previous.quotas).length > 0) {
-            caches[connectionId] = previous;
-          } else {
-            caches[connectionId] = cache;
-          }
-          return;
+  const recordResult = (
+    connectionId: string,
+    result: PromiseSettledResult<{ connectionId: string; cache: ProviderLimitsCacheEntry }>
+  ) => {
+    if (result.status === "fulfilled") {
+      const { cache } = result.value;
+      // Don't persist error-only entries; show prior cache or pass through.
+      if (!cache.quotas && cache.message) {
+        const previous = getProviderLimitsCache(connectionId);
+        if (previous?.quotas && Object.keys(previous.quotas).length > 0) {
+          caches[connectionId] = previous;
+        } else {
+          caches[connectionId] = cache;
         }
-        cacheEntries.push({ connectionId, entry: cache });
-        caches[connectionId] = cache;
         return;
       }
+      cacheEntries.push({ connectionId, entry: cache });
+      caches[connectionId] = cache;
+      return;
+    }
+    const reason = result.reason as { message?: string } | undefined;
+    errors[connectionId] = reason?.message || "Failed to refresh provider limits";
+  };
 
-      const reason = result.reason as { message?: string } | undefined;
-      errors[connectionId] = reason?.message || "Failed to refresh provider limits";
+  const fetchOne = async (connection: ProviderConnectionLike) => {
+    const { usage } = await fetchLiveProviderLimitsWithOptions(connection.id, {
+      forceRefresh: source === "manual",
     });
+    const cache = toProviderLimitsCacheEntry(usage, source);
+    return { connectionId: connection.id, cache };
+  };
+
+  // OAuth connections are processed STRICTLY SEQUENTIALLY with a spacing gap so a
+  // single host never bursts simultaneous usage/refresh requests to the same
+  // upstream (anomaly/session-termination guard; see getProviderLimitsSyncSpacingMs).
+  // Stateless API-key connections keep the fast chunked-concurrent path.
+  const oauthConnections = connections.filter((c) => c.authType === "oauth");
+  const otherConnections = connections.filter((c) => c.authType !== "oauth");
+  const spacingMs = getProviderLimitsSyncSpacingMs();
+
+  for (let i = 0; i < otherConnections.length; i += concurrency) {
+    const chunk = otherConnections.slice(i, i + concurrency);
+    const results = await Promise.allSettled(chunk.map(fetchOne));
+    results.forEach((result, index) => {
+      const connectionId = chunk[index]?.id;
+      if (connectionId) recordResult(connectionId, result);
+    });
+  }
+
+  for (let i = 0; i < oauthConnections.length; i++) {
+    const connection = oauthConnections[i];
+    const [result] = await Promise.allSettled([fetchOne(connection)]);
+    recordResult(connection.id, result);
+    if (spacingMs > 0 && i < oauthConnections.length - 1) {
+      await syncDelay(spacingMs);
+    }
   }
 
   if (cacheEntries.length > 0) {

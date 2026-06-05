@@ -23,6 +23,7 @@ import {
 import { getProviderOutboundGuard } from "@/shared/network/outboundUrlGuard";
 import { sanitizeErrorMessage } from "@omniroute/open-sse/utils/error";
 import { getStaticQoderModels } from "@omniroute/open-sse/services/qoderCli.ts";
+import { fetchGitHubCopilotModels } from "@omniroute/open-sse/services/githubCopilotModels.ts";
 import { getAntigravityHeaders } from "@omniroute/open-sse/services/antigravityHeaders.ts";
 import { ensureAntigravityProjectAssigned } from "@omniroute/open-sse/services/antigravityProjectBootstrap.ts";
 import {
@@ -76,6 +77,7 @@ import {
   isAutoFetchModelsEnabled,
   persistDiscoveredModels,
 } from "@/lib/providerModels/modelDiscovery";
+import { getSyncedAvailableModels } from "@/lib/db/models";
 import { fetchCursorAgentModels } from "@/lib/providerModels/cursorAgent";
 
 type JsonRecord = Record<string, unknown>;
@@ -794,8 +796,32 @@ export async function GET(
     const accessToken = typeof connection.accessToken === "string" ? connection.accessToken : "";
     const autoFetchModels = isAutoFetchModelsEnabled(connection.providerSpecificData);
     const cachedDiscoveryModels = await getCachedDiscoveredModels(provider, connectionId);
-    const registryCatalogModels = getModelsByProviderId(provider) || [];
-    const specialtyCatalogModels = getStaticModelsForProvider(provider) || [];
+
+    // Check for synced models from ANY connection of this provider.
+    // When sync has been performed (even on a different connection),
+    // use the synced list as the authoritative source instead of static models.
+    let providerSyncedModels: Array<{
+      id: string;
+      name: string;
+      apiFormat?: string;
+      supportedEndpoints?: string[];
+    }> | null = null;
+    try {
+      const allSynced = await getSyncedAvailableModels(provider);
+      if (Array.isArray(allSynced) && allSynced.length > 0) {
+        providerSyncedModels = allSynced.map((m) => ({
+          id: m.id,
+          name: m.name || m.id,
+          ...(m.apiFormat ? { apiFormat: m.apiFormat } : {}),
+          ...(m.supportedEndpoints ? { supportedEndpoints: m.supportedEndpoints } : {}),
+        }));
+      }
+    } catch {
+      // DB unavailable — fall through to static catalog
+    }
+
+    const registryCatalogModels = providerSyncedModels ?? (getModelsByProviderId(provider) || []);
+    const specialtyCatalogModels = providerSyncedModels ? [] : (getStaticModelsForProvider(provider) || []);
 
     const toLocalCatalogModels = () => {
       const localCatalog = mergeLocalCatalogModels(registryCatalogModels, specialtyCatalogModels);
@@ -897,10 +923,52 @@ export async function GET(
         });
       }
 
-      const fallback = buildLocalCatalogResponse(
-        "No remote models discovered — using local catalog"
-      );
-      if (fallback) return fallback;
+      // Empty discovery just cleared THIS connection's synced cache (via
+      // persistDiscoveredModels([])). `providerSyncedModels` was read at the top
+      // of the handler and is now stale, so it must not leak the just-cleared
+      // models back into the response (#3148 made synced authoritative for the
+      // normal path; here we re-read the current state instead). Re-derive the
+      // local catalog from the provider's remaining synced models (union across
+      // its other connections) or the static catalog when none remain.
+      let freshSynced: Awaited<ReturnType<typeof getSyncedAvailableModels>> = [];
+      try {
+        freshSynced = await getSyncedAvailableModels(provider);
+      } catch {
+        /* DB unavailable — fall through to static catalog */
+      }
+      const freshRegistry = freshSynced.length
+        ? freshSynced.map((m) => ({
+            id: m.id,
+            name: m.name || m.id,
+            ...(m.apiFormat ? { apiFormat: m.apiFormat } : {}),
+            ...(m.supportedEndpoints ? { supportedEndpoints: m.supportedEndpoints } : {}),
+          }))
+        : getModelsByProviderId(provider) || [];
+      const freshSpecialty = freshSynced.length ? [] : getStaticModelsForProvider(provider) || [];
+      const freshLocal = mergeLocalCatalogModels(freshRegistry, freshSpecialty).map((model) => ({
+        id: model.id,
+        name: model.name || model.id,
+        ...((model as Record<string, unknown>).apiFormat
+          ? { apiFormat: (model as Record<string, unknown>).apiFormat as string | undefined }
+          : {}),
+        ...((model as Record<string, unknown>).supportedEndpoints
+          ? {
+              supportedEndpoints: (model as Record<string, unknown>).supportedEndpoints as
+                | string[]
+                | undefined,
+            }
+          : {}),
+        ...(freshRegistry.length > 0 ? { owned_by: provider } : {}),
+      }));
+      if (freshLocal.length > 0) {
+        return buildResponse({
+          provider,
+          connectionId,
+          models: freshLocal,
+          source: "local_catalog",
+          warning: "No remote models discovered — using local catalog",
+        });
+      }
 
       return buildResponse({
         provider,
@@ -1898,6 +1966,56 @@ export async function GET(
         models: staticModels,
         source: "local_catalog",
         warning: "API unavailable — using local catalog",
+      });
+    }
+
+    if (provider === "github") {
+      // #3120/#3121 — GitHub Copilot's catalog is per-account and dynamic. The
+      // registry static list never refreshes and advertises non-entitled models
+      // (e.g. gemini previews) that fail upstream when tested. Discover the live
+      // catalog from api.githubcopilot.com/models with the Copilot bearer +
+      // Copilot chat headers; fall back to the static registry catalog when the
+      // live fetch is unavailable (offline/unauthed/error) so import never breaks.
+      const cachedResponse = maybeReturnCachedDiscovery();
+      if (cachedResponse) return cachedResponse;
+
+      const autoFetchDisabledResponse = maybeReturnAutoFetchDisabled();
+      if (autoFetchDisabledResponse) return autoFetchDisabledResponse;
+
+      const psd = asRecord(connection.providerSpecificData);
+      // The /models endpoint requires the short-lived Copilot token (same as the
+      // chat executor), not the raw GitHub OAuth access token.
+      const copilotToken =
+        toNonEmptyString(psd.copilotToken) || toNonEmptyString(accessToken) || null;
+
+      const discovery = await fetchGitHubCopilotModels({
+        token: copilotToken,
+        fetchImpl: (url, init) =>
+          safeOutboundFetch(url as string, {
+            ...SAFE_OUTBOUND_FETCH_PRESETS.modelsDiscovery,
+            guard: getProviderOutboundGuard(),
+            proxyConfig: proxy,
+            ...(init as Record<string, unknown>),
+          }),
+        fallbackModels: toLocalCatalogModels(),
+      });
+
+      if (discovery.source === "api") {
+        return buildApiDiscoveryResponse(discovery.models);
+      }
+
+      // Live discovery unavailable — preserve cached/static catalog behavior.
+      const fallback = buildDiscoveryFallbackResponse({
+        cacheWarning: "Copilot models API unavailable — using cached catalog",
+        localWarning: "Copilot models API unavailable — using local catalog",
+      });
+      if (fallback) return fallback;
+      return buildResponse({
+        provider,
+        connectionId,
+        models: discovery.models,
+        source: "local_catalog",
+        warning: "Copilot models API unavailable — using local catalog",
       });
     }
 

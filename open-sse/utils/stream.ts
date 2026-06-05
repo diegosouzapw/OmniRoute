@@ -29,6 +29,12 @@ import {
   extractThinkingFromContent,
 } from "../handlers/responseSanitizer.ts";
 import { buildErrorBody } from "./error.ts";
+import { recordToolLatency } from "../services/toolLatencyTracker.ts";
+import {
+  generateSessionId,
+  markToolFinish,
+  consumeToolFinishTime,
+} from "../services/sessionManager.ts";
 
 /**
  * Race a response body read against a timeout.
@@ -795,6 +801,21 @@ export function createSSEStream(options: StreamOptions = {}) {
   let passthroughResponsesCurrentFunctionCallKey: string | null = null;
   const passthroughResponsesReasoningSummarySeen = new Set<string>();
   const streamStartedAt = Date.now();
+
+  let lastToolCallChunkTime: number | null = null;
+  let toolFinishTime: number | null = null;
+  let contentAfterToolSeen = false;
+
+  // Cross-request tool latency: fingerprint the session from the request body
+  // so Request 2 can pick up the tool-finish timestamp left by Request 1.
+  const sessionId = generateSessionId(body as Parameters<typeof generateSessionId>[0], {
+    provider: provider ?? undefined,
+    connectionId: connectionId ?? undefined,
+  });
+  let pendingToolFinishTime: number | null = null;
+  try {
+    pendingToolFinishTime = consumeToolFinishTime(sessionId);
+  } catch {}
 
   // Guard against duplicate [DONE] events — ensures exactly one per stream
   let doneSent = false;
@@ -1637,6 +1658,7 @@ export function createSSEStream(options: StreamOptions = {}) {
                   // T18: Track if we saw tool calls & accumulate for call log
                   if (delta?.tool_calls && delta.tool_calls.length > 0) {
                     passthroughHasToolCalls = true;
+                    lastToolCallChunkTime = Date.now();
                     for (const tc of delta.tool_calls) {
                       // Key by index first — id only appears on the first delta in OpenAI streaming
                       let key: string;
@@ -1670,8 +1692,25 @@ export function createSSEStream(options: StreamOptions = {}) {
                   }
 
                   const content = delta?.content || delta?.reasoning_content;
-                  if (content && typeof content === "string") {
+                  if (typeof content === "string") {
                     totalContentLength += content.length;
+
+                    if (!contentAfterToolSeen) {
+                      const toolTs = toolFinishTime || pendingToolFinishTime;
+                      const lastChunkTs = lastToolCallChunkTime;
+                      if (toolTs || lastChunkTs) {
+                        contentAfterToolSeen = true;
+                        const now = Date.now();
+                        try {
+                          recordToolLatency(
+                            provider || "unknown",
+                            toolTs ? now - toolTs : null,
+                            lastChunkTs ? now - lastChunkTs : null
+                          );
+                        } catch {}
+                        pendingToolFinishTime = null;
+                      }
+                    }
                   }
                   {
                     const guarded = applyTextualToolCallStreamingGuard(
@@ -1692,6 +1731,13 @@ export function createSSEStream(options: StreamOptions = {}) {
                   }
 
                   const isFinishChunk = parsed.choices?.[0]?.finish_reason;
+
+                  if (isFinishChunk && passthroughHasToolCalls) {
+                    toolFinishTime = Date.now();
+                    try {
+                      markToolFinish(sessionId);
+                    } catch {}
+                  }
 
                   // T18: Normalize finish_reason to 'tool_calls' if tool calls were used
                   if (
@@ -1783,6 +1829,16 @@ export function createSSEStream(options: StreamOptions = {}) {
 
           if (parsed && parsed.done) {
             continue;
+          }
+
+          if (parsed.choices?.[0]?.delta?.tool_calls) {
+            lastToolCallChunkTime = Date.now();
+          }
+          if (parsed.choices?.[0]?.finish_reason === "tool_calls") {
+            toolFinishTime = Date.now();
+            try {
+              markToolFinish(sessionId);
+            } catch {}
           }
 
           // Track content length and accumulate for call log (from raw provider chunk, so content is never missed)
@@ -1879,6 +1935,27 @@ export function createSSEStream(options: StreamOptions = {}) {
               const t = (parsed as JsonRecord).text as string;
               state.accumulatedContent = appendBoundedText(state.accumulatedContent, t);
               totalContentLength += t.length;
+            }
+          }
+
+          const translateHasContent =
+            typeof parsed.delta?.text === "string" ||
+            typeof parsed.choices?.[0]?.delta?.content === "string" ||
+            typeof parsed.choices?.[0]?.delta?.reasoning_content === "string";
+          if (translateHasContent && !contentAfterToolSeen) {
+            const toolTs = toolFinishTime || pendingToolFinishTime;
+            const lastChunkTs = lastToolCallChunkTime;
+            if (toolTs || lastChunkTs) {
+              contentAfterToolSeen = true;
+              const now = Date.now();
+              try {
+                recordToolLatency(
+                  provider || "unknown",
+                  toolTs ? now - toolTs : null,
+                  lastChunkTs ? now - lastChunkTs : null
+                );
+              } catch {}
+              pendingToolFinishTime = null;
             }
           }
 

@@ -9,6 +9,18 @@ _ideia/
 _mono_repo/
 _references/
 _tasks/
+.agents/**
+.claude/**
+.gemini/**
+.config/**
+.data/**
+.logs/**
+.tests/**
+.coverage/**
+.dist/**
+.next/**
+.build/**
+.out/**
 
 
 # Memory Bank and Cursor rules (local-only AI agent context)

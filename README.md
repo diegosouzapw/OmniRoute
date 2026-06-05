@@ -540,6 +540,22 @@ devbox run npm run dev
 
 📖 [Docker Guide](docs/guides/DOCKER_GUIDE.md) — Compose profiles, Caddy HTTPS, Cloudflare tunnels.
 
+**🦭 Podman**
+
+```bash
+# 1. Build the image
+podman build --target runner-base -t omniroute:base .
+
+# 2. Fix data directory permissions for rootless Podman
+mkdir -p data && podman unshare chown 1000:1000 ./data
+
+# 3. Set runtime in .env, then run (see contrib/podman/ for Quadlet)
+echo "CONTAINER_HOST=podman" >> .env
+podman compose --profile base up -d
+```
+
+📖 [Podman Guide](contrib/podman/README.md) — Quadlet setup, podman-compose, Quadlet.
+
 </details>
 
 <br/>
@@ -779,6 +795,7 @@ Compression: aggressive (~50%) → double your free quota · Cost: $0/mo
 | Document                                             | Description                                                    |
 | ---------------------------------------------------- | -------------------------------------------------------------- |
 | [Docker Guide](docs/guides/DOCKER_GUIDE.md)                 | Docker run, Compose profiles, Caddy HTTPS, tunnels, image tags |
+| [Podman Guide](contrib/podman/README.md)                   | Quadlet systemd integration, podman-compose, SELinux           |
 | [VM Deployment](docs/ops/VM_DEPLOYMENT_GUIDE.md)         | Complete guide: VM + nginx + Cloudflare setup                  |
 | [Fly.io Deployment](docs/ops/FLY_IO_DEPLOYMENT_GUIDE.md) | Deploy to Fly.io with persistent storage                       |
 | [Termux Guide](docs/guides/TERMUX_GUIDE.md)                 | Run OmniRoute on Android via Termux                            |

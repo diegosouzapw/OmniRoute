@@ -30,6 +30,16 @@ import {
 const MAX_KEY_NAME_LENGTH = 200;
 const MAX_SELECTED_MODELS = 500;
 
+function toLocalDateTimeInputValue(value: string | null | undefined): string {
+  if (!value) return "";
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return "";
+  const pad = (n: number) => String(n).padStart(2, "0");
+  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(
+    date.getHours()
+  )}:${pad(date.getMinutes())}`;
+}
+
 // Debounce hook for search optimization
 function useDebouncedValue<T>(value: T, delay: number): T {
   const [debouncedValue, setDebouncedValue] = useState(value);
@@ -2128,15 +2138,32 @@ const PermissionsModal = memo(function PermissionsModal({
               Key will automatically stop working after this date.
             </p>
           </div>
-          <input
-            type="datetime-local"
-            value={expiresAt ? expiresAt.slice(0, 16) : ""}
-            onChange={(e) => {
-              const val = e.target.value;
-              setExpiresAt(val ? new Date(val).toISOString() : "");
-            }}
-            className="w-full px-2 py-1.5 text-sm border border-border rounded-md bg-background text-text-main"
-          />
+          <div className="flex gap-2">
+            <input
+              type="datetime-local"
+              value={toLocalDateTimeInputValue(expiresAt)}
+              onChange={(e) => {
+                const val = e.target.value;
+                if (!val) {
+                  setExpiresAt("");
+                  return;
+                }
+                const date = new Date(val);
+                if (!Number.isNaN(date.getTime())) {
+                  setExpiresAt(date.toISOString());
+                }
+              }}
+              className="min-w-0 flex-1 px-2 py-1.5 text-sm border border-border rounded-md bg-background text-text-main"
+            />
+            <button
+              type="button"
+              onClick={() => setExpiresAt("")}
+              disabled={!expiresAt}
+              className="shrink-0 px-3 py-1.5 text-sm font-medium border border-border rounded-md text-text-muted hover:text-text-main hover:bg-black/5 dark:hover:bg-white/5 disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-transparent"
+            >
+              {tc("clear")}
+            </button>
+          </div>
         </div>
         {/* Management Access */}
         <div className="flex flex-col gap-2 p-3 rounded-lg border border-border bg-surface/40">
