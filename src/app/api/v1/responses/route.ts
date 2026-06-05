@@ -1,7 +1,7 @@
 import { handleChat } from "@/sse/handlers/chat";
 import { withEarlyStreamKeepalive } from "@omniroute/open-sse/utils/earlyStreamKeepalive";
 import { resolveResponsesApiModel } from "@/app/api/internal/codex-responses-ws/modelResolution";
-import { getModelInfo } from "@/sse/services/model";
+import { getModelInfo, getComboForModel } from "@/sse/services/model";
 
 // NOTE: We do NOT call initTranslators() here — the translator registry is
 // bootstrapped at module level inside open-sse/translator/index.ts when it
@@ -30,13 +30,27 @@ export async function OPTIONS() {
  * Safe: only rewrites when codex/model is genuinely registered; all other models
  * pass through unchanged. Errors are caught and the original request is returned.
  */
-async function withCodexPreferredModel(request: Request): Promise<Request> {
+export async function withCodexPreferredModel(request: Request): Promise<Request> {
   try {
     const clone = request.clone();
     const body = await clone.json().catch(() => null);
     if (!body || typeof body !== "object" || typeof body.model !== "string") {
       return request;
     }
+
+    // FIX #3233: Do NOT rewrite combo names to codex/ prefix.
+    // Combo names like "paid-premium" or "n8n-text" have no "/" and would
+    // otherwise be rewritten to "codex/paid-premium", breaking combo
+    // resolution and causing "No credentials for provider: codex".
+    // Performance: only check combos for bare model ids (no "/"); already
+    // prefixed or combo/ names bypass the DB lookup entirely.
+    if (!body.model.includes("/")) {
+      const combo = await getComboForModel(body.model);
+      if (combo) {
+        return request;
+      }
+    }
+
     const { model, changed } = await resolveResponsesApiModel(body.model, getModelInfo);
     if (!changed) return request;
 
