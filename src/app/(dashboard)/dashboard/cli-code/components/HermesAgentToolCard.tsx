@@ -23,6 +23,8 @@ const HERMES_ROLES: Role[] = [
   { id: "approval", label: "Approval", description: "Safety and approval decisions" },
 ];
 
+const HERMES_AGENT_ZERO_CONFIG_PROVIDERS = ["opencode"];
+
 export default function HermesAgentToolCard({
   tool,
   isExpanded = false,
@@ -517,6 +519,7 @@ export default function HermesAgentToolCard({
         }}
         showCombos={true}
         activeProviders={activeProviders}
+        alwaysIncludeProviders={HERMES_AGENT_ZERO_CONFIG_PROVIDERS}
       />
     </Card>
   );
