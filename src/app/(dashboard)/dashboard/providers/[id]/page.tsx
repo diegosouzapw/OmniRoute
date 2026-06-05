@@ -582,6 +582,7 @@ interface PassthroughModelRowProps {
   modelId: string;
   fullModel: string;
   source?: string;
+  isFree?: boolean;
   isHidden?: boolean;
   copied?: string;
   onCopy: (text: string, key: string) => void;
@@ -966,6 +967,7 @@ function ModelCompatPopover({
   getUpstreamHeadersRecord,
   onCompatPatch,
   showDeveloperToggle = true,
+  compact = false,
   disabled,
 }: {
   t: (key: string) => string;
@@ -981,6 +983,7 @@ function ModelCompatPopover({
     }
   ) => void;
   showDeveloperToggle?: boolean;
+  compact?: boolean;
   disabled?: boolean;
 }) {
   const [open, setOpen] = useState(false);
@@ -1123,7 +1126,7 @@ function ModelCompatPopover({
         title={t("compatAdjustmentsTitle")}
       >
         <span className="material-symbols-outlined text-base leading-none">tune</span>
-        {t("compatButtonLabel")}
+        {!compact && t("compatButtonLabel")}
       </button>
       {open &&
         typeof document !== "undefined" &&
@@ -4518,8 +4521,8 @@ export default function ProviderDetailPage() {
                         />
                         <span className="text-sm font-medium text-text-muted">
                           {selectedIds.size > 0
-                            ? `${selectedIds.size} selected`
-                            : `${connections.length} accounts`}
+                            ? t("selectedCount", { count: selectedIds.size })
+                            : t("accountsCount", { count: connections.length })}
                         </span>
                       </label>
 
@@ -4677,8 +4680,8 @@ export default function ProviderDetailPage() {
                         />
                         <span className="text-sm font-medium text-text-muted">
                           {selectedIds.size > 0
-                            ? `${selectedIds.size} selected`
-                            : `${connections.length} accounts`}
+                            ? t("selectedCount", { count: selectedIds.size })
+                            : t("accountsCount", { count: connections.length })}
                         </span>
                       </label>
 
@@ -4691,7 +4694,7 @@ export default function ProviderDetailPage() {
                             loading={distributingProxies}
                             onClick={() => handleDistributeProxies()}
                           >
-                            Distribute Proxies
+                            {t("distributeProxies")}
                           </Button>
                         )}
                         {selectedIds.size > 0 && (
@@ -5726,6 +5729,7 @@ function PassthroughModelsSection({
       alias: string | null;
       displayName: string;
       source: string;
+      isFree: boolean;
       isHidden: boolean;
     }> = [];
     const seenModelIds = new Set<string>();
@@ -5746,6 +5750,10 @@ function PassthroughModelsSection({
         alias: aliasByModelId.get(model.id) || null,
         displayName: model.name || model.id,
         source,
+        isFree:
+          Boolean((model as any).free) ||
+          model.id.endsWith(":free") ||
+          /\bgr[aá]tis\b|\bfree\b/i.test(model.name || ""),
         isHidden: isModelHidden(model.id),
       });
       seenModelIds.add(model.id);
@@ -5773,6 +5781,10 @@ function PassthroughModelsSection({
         alias: alias as string,
         displayName: alias as string,
         source: customModel ? customModel.source || "custom" : "alias",
+        isFree:
+          modelId.endsWith(":free") ||
+          Boolean((customModel as any)?.free) ||
+          /\bgr[aá]tis\b|\bfree\b/i.test(customModel?.name || alias || ""),
         isHidden: isModelHidden(modelId),
       });
       seenModelIds.add(modelId);
@@ -5876,27 +5888,33 @@ function PassthroughModelsSection({
             selectAllDisabled={hiddenFilteredCount === 0 || bulkTogglePending}
             deselectAllDisabled={visibleFilteredCount === 0 || bulkTogglePending}
           />
-          {filteredModels.map(({ modelId, fullModel, alias, isHidden, source }) => (
-            <PassthroughModelRow
-              key={fullModel as string}
-              modelId={modelId}
-              fullModel={fullModel}
-              source={source}
-              isHidden={isHidden}
-              copied={copied}
-              onCopy={onCopy}
-              onDeleteAlias={source === "alias" && alias ? () => onDeleteAlias(alias) : undefined}
-              t={t}
-              showDeveloperToggle
-              effectiveModelNormalize={effectiveModelNormalize}
-              effectiveModelPreserveDeveloper={effectiveModelPreserveDeveloper}
-              getUpstreamHeadersRecord={(p) => getUpstreamHeadersRecord(modelId, p)}
-              saveModelCompatFlags={saveModelCompatFlags}
-              compatDisabled={compatSavingModelId === modelId}
-              onToggleHidden={onToggleHidden}
-              togglingHidden={togglingModelId === modelId}
-            />
-          ))}
+          <div className="grid grid-cols-1 gap-3 xl:grid-cols-2">
+            {filteredModels.map(({ modelId, fullModel, alias, isHidden, source, isFree }) => (
+              <PassthroughModelRow
+                key={fullModel as string}
+                modelId={modelId}
+                fullModel={fullModel}
+                source={source}
+                isFree={isFree}
+                isHidden={isHidden}
+                copied={copied}
+                onCopy={onCopy}
+                onDeleteAlias={source === "alias" && alias ? () => onDeleteAlias(alias) : undefined}
+                t={t}
+                showDeveloperToggle
+                effectiveModelNormalize={effectiveModelNormalize}
+                effectiveModelPreserveDeveloper={effectiveModelPreserveDeveloper}
+                getUpstreamHeadersRecord={(p) => getUpstreamHeadersRecord(modelId, p)}
+                saveModelCompatFlags={saveModelCompatFlags}
+                compatDisabled={compatSavingModelId === modelId}
+                onToggleHidden={onToggleHidden}
+                togglingHidden={togglingModelId === modelId}
+                onTestModel={onTestModel}
+                testStatus={modelTestStatus?.[modelId] || null}
+                testingModel={testingModelId === modelId}
+              />
+            ))}
+          </div>
           {filteredModels.length === 0 && modelFilter && (
             <p className="py-2 text-sm text-text-muted">
               {providerText(t, "noModelsMatch", `No models match "${modelFilter}"`, {
@@ -5914,6 +5932,7 @@ function PassthroughModelRow({
   modelId,
   fullModel,
   source,
+  isFree,
   isHidden,
   copied,
   onCopy,
@@ -5933,37 +5952,43 @@ function PassthroughModelRow({
 }: PassthroughModelRowProps) {
   return (
     <div
-      className={`flex gap-0 rounded-lg border border-border p-3 transition-opacity hover:bg-sidebar/50 ${
+      className={`flex min-w-0 flex-col gap-2 rounded-lg border border-border px-3.5 py-3 transition-opacity hover:bg-sidebar/50 ${
         isHidden ? "opacity-50" : ""
       }`}
     >
-      <div className="flex min-w-0 flex-1 items-start gap-3">
+      <div className="flex min-w-0 items-center gap-2">
         <span
           className="material-symbols-outlined shrink-0 text-base text-text-muted"
           style={{ color: isHidden ? "var(--color-text-muted)" : undefined }}
         >
           smart_toy
         </span>
-        <div className="min-w-0 flex-1">
-          <p className="truncate text-sm font-medium">{modelId}</p>
-          <div className="mt-1 flex flex-wrap items-center gap-1">
-            <code className="rounded bg-sidebar px-1.5 py-0.5 font-mono text-xs text-text-muted">
-              {fullModel}
-            </code>
-            <ModelSourceBadge source={source} />
-            <button
-              onClick={() => onCopy(fullModel, `model-${modelId}`)}
-              className="rounded p-0.5 text-text-muted hover:bg-sidebar hover:text-primary"
-              title={t("copyModel")}
-            >
-              <span className="material-symbols-outlined text-sm">
-                {copied === `model-${modelId}` ? "check" : "content_copy"}
-              </span>
-            </button>
-          </div>
-        </div>
+        <code
+          className="min-w-0 truncate rounded bg-sidebar px-1.5 py-0.5 font-mono text-xs text-text-muted"
+          title={fullModel}
+        >
+          {fullModel}
+        </code>
       </div>
-      <div className="flex shrink-0 items-center gap-1 self-start">
+      <div className="flex min-w-0 items-center justify-between gap-2">
+        <div className="flex min-w-0 flex-wrap items-center gap-1.5">
+          <ModelSourceBadge source={source} />
+          {isFree && (
+            <Badge variant="success" className="shrink-0 px-1.5 py-0 text-[10px]">
+              {providerText(t, "freeBadge", "Free")}
+            </Badge>
+          )}
+        </div>
+        <div className="flex shrink-0 items-center gap-1">
+        <button
+          onClick={() => onCopy(fullModel, `model-${modelId}`)}
+          className="rounded p-0.5 text-text-muted hover:bg-sidebar hover:text-primary"
+          title={t("copyModel")}
+        >
+          <span className="material-symbols-outlined text-sm">
+            {copied === `model-${modelId}` ? "check" : "content_copy"}
+          </span>
+        </button>
         {onTestModel && (
           <button
             onClick={() => onTestModel(modelId, fullModel)}
@@ -6017,6 +6042,7 @@ function PassthroughModelRow({
             saveModelCompatFlags(modelId, { compatByProtocol: { [protocol]: payload } })
           }
           showDeveloperToggle={showDeveloperToggle}
+          compact
           disabled={compatDisabled}
         />
         {onDeleteAlias && (
@@ -6028,6 +6054,7 @@ function PassthroughModelRow({
             <span className="material-symbols-outlined text-sm">delete</span>
           </button>
         )}
+        </div>
       </div>
     </div>
   );
@@ -6609,6 +6636,7 @@ function CompatibleModelsSection({
       alias: string | null;
       displayName: string;
       source: string;
+      isFree: boolean;
       isHidden: boolean;
     }> = [];
     const seenModelIds = new Set<string>();
@@ -6626,6 +6654,10 @@ function CompatibleModelsSection({
         alias: aliasByModelId.get(model.id) || null,
         displayName: model.name || model.id,
         source,
+        isFree:
+          Boolean((model as any).free) ||
+          model.id.endsWith(":free") ||
+          /\bgr[aá]tis\b|\bfree\b/i.test(model.name || ""),
         isHidden: isModelHidden(model.id),
       });
       seenModelIds.add(model.id);
@@ -6656,6 +6688,10 @@ function CompatibleModelsSection({
         alias: alias as string,
         displayName: alias as string,
         source: customModel ? customModel.source || "custom" : "alias",
+        isFree:
+          modelId.endsWith(":free") ||
+          Boolean((customModel as any)?.free) ||
+          /\bgr[aá]tis\b|\bfree\b/i.test(customModel?.name || alias || ""),
         isHidden: isModelHidden(modelId),
       });
       seenModelIds.add(modelId);
@@ -6846,33 +6882,42 @@ function CompatibleModelsSection({
             selectAllDisabled={hiddenFilteredCount === 0 || bulkTogglePending}
             deselectAllDisabled={visibleFilteredCount === 0 || bulkTogglePending}
           />
-          {filteredModels.map(({ modelId, alias, isHidden, source }) => (
-            <PassthroughModelRow
-              key={`${providerStorageAlias}:${modelId}`}
-              modelId={modelId}
-              fullModel={`${providerDisplayAlias}/${modelId}`}
-              source={source}
-              isHidden={isHidden}
-              copied={copied}
-              onCopy={onCopy}
-              onDeleteAlias={
-                source === "custom" || source === "manual"
-                  ? () => handleDeleteModel(modelId, alias)
-                  : source === "alias" && alias
-                    ? () => onDeleteAlias(alias)
-                    : undefined
-              }
-              t={t}
-              showDeveloperToggle={!isAnthropic}
-              effectiveModelNormalize={effectiveModelNormalize}
-              effectiveModelPreserveDeveloper={effectiveModelPreserveDeveloper}
-              getUpstreamHeadersRecord={(p) => getUpstreamHeadersRecord(modelId, p)}
-              saveModelCompatFlags={saveModelCompatFlags}
-              compatDisabled={compatSavingModelId === modelId}
-              onToggleHidden={onToggleHidden}
-              togglingHidden={togglingModelId === modelId}
-            />
-          ))}
+          <div className="grid grid-cols-1 gap-3 xl:grid-cols-2">
+            {filteredModels.map(({ modelId, alias, isHidden, source, isFree }) => {
+              const fullModel = `${providerDisplayAlias}/${modelId}`;
+              return (
+                <PassthroughModelRow
+                  key={`${providerStorageAlias}:${modelId}`}
+                  modelId={modelId}
+                  fullModel={fullModel}
+                  source={source}
+                  isFree={isFree}
+                  isHidden={isHidden}
+                  copied={copied}
+                  onCopy={onCopy}
+                  onDeleteAlias={
+                    source === "custom" || source === "manual"
+                      ? () => handleDeleteModel(modelId, alias)
+                      : source === "alias" && alias
+                        ? () => onDeleteAlias(alias)
+                        : undefined
+                  }
+                  t={t}
+                  showDeveloperToggle={!isAnthropic}
+                  effectiveModelNormalize={effectiveModelNormalize}
+                  effectiveModelPreserveDeveloper={effectiveModelPreserveDeveloper}
+                  getUpstreamHeadersRecord={(p) => getUpstreamHeadersRecord(modelId, p)}
+                  saveModelCompatFlags={saveModelCompatFlags}
+                  compatDisabled={compatSavingModelId === modelId}
+                  onToggleHidden={onToggleHidden}
+                  togglingHidden={togglingModelId === modelId}
+                  onTestModel={onTestModel}
+                  testStatus={modelTestStatus?.[modelId] || null}
+                  testingModel={testingModelId === modelId}
+                />
+              );
+            })}
+          </div>
           {filteredModels.length === 0 && modelFilter && (
             <p className="py-2 text-sm text-text-muted">
               {providerText(t, "noModelsMatch", `No models match "${modelFilter}"`, {
@@ -7473,40 +7518,6 @@ function ConnectionRow({
                 >
                   <span className="material-symbols-outlined text-[13px]">date_range</span>
                   {t("weeklyShort")} {codexWeeklyEnabled ? t("toggleOnShort") : t("toggleOffShort")}
-                </button>
-              </>
-            )}
-            {onToggleProxyEnabled && (
-              <>
-                <span className="text-text-muted/30 select-none">|</span>
-                <button
-                  onClick={() => onToggleProxyEnabled(!proxyEnabled)}
-                  className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-xs font-medium transition-all cursor-pointer ${
-                    proxyEnabled
-                      ? "bg-emerald-500/15 text-emerald-500 hover:bg-emerald-500/25"
-                      : "bg-black/[0.03] dark:bg-white/[0.03] text-text-muted/50 hover:text-text-muted hover:bg-black/[0.06] dark:hover:bg-white/[0.06]"
-                  }`}
-                  title={proxyEnabled ? t("proxyEnabledTitle") : t("proxyDisabledTitle")}
-                >
-                  <span className="material-symbols-outlined text-[13px]">vpn_lock</span>
-                  {proxyEnabled ? t("proxyOn") : t("proxyOff")}
-                </button>
-              </>
-            )}
-            {onTogglePerKeyProxyEnabled && (
-              <>
-                <span className="text-text-muted/30 select-none">|</span>
-                <button
-                  onClick={() => onTogglePerKeyProxyEnabled(!perKeyProxyEnabled)}
-                  className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-xs font-medium transition-all cursor-pointer ${
-                    perKeyProxyEnabled
-                      ? "bg-violet-500/15 text-violet-500 hover:bg-violet-500/25"
-                      : "bg-black/[0.03] dark:bg-white/[0.03] text-text-muted/50 hover:text-text-muted hover:bg-black/[0.06] dark:hover:bg-white/[0.06]"
-                  }`}
-                  title={perKeyProxyEnabled ? t("perKeyProxyEnabledTitle") : t("perKeyProxyDisabledTitle")}
-                >
-                  <span className="material-symbols-outlined text-[13px]">key</span>
-                  {perKeyProxyEnabled ? t("perKeyProxyOn") : t("perKeyProxyOff")}
                 </button>
               </>
             )}
