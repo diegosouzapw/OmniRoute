@@ -260,6 +260,7 @@ export function parseQuotaData(provider, data) {
         break;
 
       case "antigravity":
+      case "agy":
         if (data.quotas) {
           Object.entries(data.quotas).forEach(([modelKey, quota]: [string, any]) => {
             if (modelKey === "credits") {
