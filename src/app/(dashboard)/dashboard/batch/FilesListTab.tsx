@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useTranslations } from "next-intl";
+import { matchesSearch } from "@/shared/utils/turkishText";
 import FileDetailModal from "./FileDetailModal";
 import ExpirationBadge from "./components/ExpirationBadge";
 
@@ -90,8 +91,7 @@ export default function FilesListTab({
   const filtered = files.filter((f) => {
     if (purposeFilter !== "all" && f.purpose !== purposeFilter) return false;
     if (searchQuery) {
-      const q = searchQuery.toLowerCase();
-      return f.id.toLowerCase().includes(q) || f.filename.toLowerCase().includes(q);
+      return matchesSearch(f.id, searchQuery) || matchesSearch(f.filename, searchQuery);
     }
     return true;
   });

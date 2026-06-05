@@ -33,10 +33,16 @@ import {
   flattenMessages,
   openAIToolsToMcpDefs,
   type ChatMessage,
+  type EncodedImage,
   type ExecServerEvent,
   type McpToolDefinition,
   type OpenAITool,
 } from "../utils/cursorAgentProtobuf.ts";
+import {
+  resolveCursorImages,
+  extractImageUrls,
+  CursorImageError,
+} from "../utils/cursorImages.ts";
 import {
   estimateInputTokens,
   estimateOutputTokens,
@@ -57,6 +63,97 @@ import { promisify } from "node:util";
 const BUILTIN_TOOL_REJECT_REASON =
   "Tool not available in this environment. Use the MCP tools provided instead.";
 const gunzipAsync = promisify(zlib.gunzip);
+
+// Tool-commit directive — adapted from composer-api's TOOL_SYSTEM_DIRECTIVE.
+// composer-2.5 otherwise narrates intent ("Checking the weather...") and ends
+// the turn ~20% of the time instead of actually invoking a declared tool. This
+// directive, prepended to the user text only when the request declares tools,
+// tells the model to commit to the tool call rather than describe it as prose.
+const TOOL_COMMIT_DIRECTIVE = [
+  "You are serving an OpenAI-compatible API request and the client has provided executable tools.",
+  "When a tool is needed to answer (real-time data, web/search lookups, file or project operations), you MUST issue the actual tool call. Do NOT describe what you are about to do as prose and then stop — call the tool.",
+  "Answer directly only when no tool is needed.",
+  "Do not emit duplicate tool calls: call each operation once, then continue after the tool result is returned.",
+  "Never claim that tools are unavailable.",
+].join("\n");
+
+// NOTE: composer-api primes the model into "agent mode" with a fabricated
+// prior switch_mode exchange (AGENT_MODE_PRIMER). On OmniRoute's native-tool
+// agent endpoint that primer is counterproductive — it references a
+// non-existent switch_mode tool and measurably LOWERED the tool-call rate in
+// live A/B (56% vs 69%), so it is intentionally not ported.
+
+function isRecordLike(v: unknown): v is Record<string, unknown> {
+  return typeof v === "object" && v !== null;
+}
+
+/**
+ * Translate OpenAI `tool_choice` into an extra directive line — cursor's agent
+ * endpoint has no native equivalent. `"required"` forces some tool; a specific
+ * `{type:"function", function:{name}}` forces that tool. `"auto"`/`"none"`/
+ * absent add nothing here ("none" is handled by dropping tools entirely).
+ * Ported from composer-api (directToolChoiceHint / tool_choice === "required").
+ */
+function toolChoiceDirectiveLine(toolChoice: unknown): string {
+  if (toolChoice === "required") {
+    return "\nYou MUST call at least one of the available tools now; do not answer without calling a tool.";
+  }
+  if (
+    isRecordLike(toolChoice) &&
+    toolChoice.type === "function" &&
+    isRecordLike(toolChoice.function) &&
+    typeof toolChoice.function.name === "string" &&
+    toolChoice.function.name
+  ) {
+    return `\nYou MUST call the \`${toolChoice.function.name}\` tool now and not any other tool.`;
+  }
+  return "";
+}
+
+/**
+ * Build an OUTPUT CONSTRAINTS block from OpenAI request params that cursor's
+ * agent endpoint silently ignores (response_format / max_tokens / stop), so
+ * they're surfaced to the model as prompt instructions instead. Ported from
+ * composer-api (appendChatOptions / appendJsonConstraint / appendStopConstraint).
+ * Returns "" when no constraints apply.
+ */
+function buildCursorOutputConstraints(body: {
+  max_tokens?: unknown;
+  max_completion_tokens?: unknown;
+  stop?: unknown;
+  response_format?: unknown;
+}): string {
+  const constraints: string[] = [];
+
+  const rawMax = body.max_completion_tokens ?? body.max_tokens;
+  const maxTokens = typeof rawMax === "number" && Number.isFinite(rawMax) ? Math.floor(rawMax) : 0;
+  if (maxTokens > 0) {
+    constraints.push(`Keep the answer within about ${maxTokens} output tokens.`);
+  }
+
+  const stop = body.stop;
+  if (typeof stop === "string" && stop) {
+    constraints.push(`Do not include any text at or after this stop sequence: ${stop}`);
+  } else if (Array.isArray(stop) && stop.length) {
+    constraints.push(`Stop before any of these sequences: ${stop.filter(Boolean).join(", ")}`);
+  }
+
+  const fmt = body.response_format;
+  if (isRecordLike(fmt)) {
+    if (fmt.type === "json_object") {
+      constraints.push("Return a single valid JSON object and no surrounding prose or code fences.");
+    } else if (fmt.type === "json_schema") {
+      const js = isRecordLike(fmt.json_schema) ? fmt.json_schema.schema : fmt.schema;
+      constraints.push(
+        `Return only valid JSON (no prose or code fences) matching this schema: ${JSON.stringify(js ?? fmt)}`
+      );
+    }
+  }
+
+  return constraints.length
+    ? `\n\nOUTPUT CONSTRAINTS:\n${constraints.map((c) => `- ${c}`).join("\n")}`
+    : "";
+}
 
 /**
  * Build the ExecClientMessage frame that responds to a built-in tool request.
@@ -166,8 +263,21 @@ const debugLog = (...args: unknown[]) => {
 
 // Phase 8: max wall-clock time before we give up on the upstream and abort
 // the stream. Cursor's longest-observed plain chat takes ~90s; tool-using
-// turns can be longer. Five minutes is generous but bounded.
-const CURSOR_STREAM_TIMEOUT_MS = parseInt(process.env.CURSOR_STREAM_TIMEOUT_MS || "300000", 10);
+// turns can be longer. Five minutes is generous but bounded. A malformed env
+// value (NaN / non-positive) falls back to the default rather than breaking
+// setTimeout.
+const CURSOR_STREAM_TIMEOUT_MS = (() => {
+  const parsed = parseInt(process.env.CURSOR_STREAM_TIMEOUT_MS || "300000", 10);
+  return Number.isInteger(parsed) && parsed > 0 ? parsed : 300000;
+})();
+
+// Upper bound on a single Connect-RPC frame. The 4-byte length prefix can
+// declare up to 4 GiB; a corrupt or hostile upstream could send a huge length
+// that forces driveH2's rolling buffer to grow unbounded (OOM) while it waits
+// for bytes that never arrive. Real cursor frames are well under 1 MiB
+// (largest observed: a ~13 KB KV blob), so 16 MiB is a generous ceiling that
+// turns the failure into a clean stream error instead of memory exhaustion.
+const CURSOR_MAX_FRAME_BYTES = 16 * 1024 * 1024;
 
 type CursorHttpResponse = {
   status: number;
@@ -288,7 +398,12 @@ export function buildCursorUsage(ctx: StreamCtx, body: { messages?: ChatMessage[
 }
 
 function emitUsage(ctx: StreamCtx, body: { messages?: ChatMessage[] }) {
-  if (ctx.tokenDelta <= 0 && ctx.totalText.length === 0 && ctx.thinkingText.length === 0) return;
+  // Always emit a usage chunk on the success path — the OpenAI streaming
+  // contract is that every completed response carries usage. buildCursorUsage
+  // already degrades cleanly to prompt-only counts when the model produced no
+  // text/thinking (e.g. an empty turn), so there's no need to skip it. The
+  // mid-stream-error path in finalizeSseStream returns before calling this, so
+  // errored responses still don't get a spurious usage chunk.
   const usage = buildCursorUsage(ctx, body);
   const payload = {
     id: ctx.responseId,
@@ -476,6 +591,12 @@ export function processFrame(
       // Cursor short-circuits turn_ended for plain chats — kv_server_message
       // after text means the model finished and the server is saving the
       // turn. Phase 8 keeps both signals as defense-in-depth.
+      //
+      // Safe vs tool calls: when the model invokes a tool, the exec_mcp event
+      // always arrives at or before this kv checkpoint (verified across many
+      // live composer-2.5 trials — a tool call never follows kv_after_text), so
+      // endReason is already "tool_calls" by the time we get here. Ending on
+      // kv_after_text therefore never truncates a pending tool call.
       ctx.kvAfterTextSeen = true;
       ctx.endReason = "kv_after_text";
     }
@@ -531,18 +652,86 @@ export class CursorExecutor extends BaseExecutor {
    * root_prompt_messages_json semantically — verified end-to-end with
    * wire-tap captures.
    */
-  private buildRequest(
-    model: string,
-    body: { messages?: ChatMessage[]; tools?: unknown; conversation_id?: string }
-  ): { body: Uint8Array; blobStore: Map<string, Buffer> } {
+  /**
+   * Assemble the user text + resolved tools shared by the sync (transformRequest)
+   * and async (buildRequest) request builders. Image resolution is intentionally
+   * NOT done here — it's async and only the cold-path buildRequest needs it.
+   */
+  private assembleTextAndTools(body: {
+    messages?: ChatMessage[];
+    tools?: unknown;
+    tool_choice?: unknown;
+    max_tokens?: unknown;
+    max_completion_tokens?: unknown;
+    stop?: unknown;
+    response_format?: unknown;
+  }): { userText: string; tools: OpenAITool[] | undefined } {
     const messages: ChatMessage[] = body.messages || [];
-    const tools: OpenAITool[] | undefined = Array.isArray(body.tools)
+    const declaredTools: OpenAITool[] | undefined = Array.isArray(body.tools)
       ? (body.tools as OpenAITool[])
       : undefined;
+    // tool_choice:"none" means "do not call any tool" — honor it by advertising
+    // no tools at all (matches OpenAI semantics; composer-api does the same).
+    const tools = body.tool_choice === "none" ? undefined : declaredTools;
 
     // flattenMessages prepends any role:"system" messages into the user
-    // text (proven path that cursor's models honor).
-    const userText = flattenMessages(messages);
+    // text (proven path that cursor's models honor). Image parts in the content
+    // are ignored here (they carry no text) and resolved separately.
+    let userText = flattenMessages(messages);
+
+    // When the request declares tools, prepend the tool-commit directive so
+    // composer-2.5 reliably invokes them instead of narrating intent and
+    // stopping. Measured live: tool-call rate ~53% → ~88% with the directive.
+    // tool_choice "required"/specific-function add a forcing line on top.
+    // Default-on; set CURSOR_TOOL_DIRECTIVE=0 to opt out. See TOOL_COMMIT_DIRECTIVE.
+    if (tools && tools.length > 0 && process.env.CURSOR_TOOL_DIRECTIVE !== "0") {
+      userText = `${TOOL_COMMIT_DIRECTIVE}${toolChoiceDirectiveLine(body.tool_choice)}\n\n${userText}`;
+    }
+
+    // Surface OpenAI output params cursor ignores natively (response_format /
+    // max_tokens / stop) as trailing prompt constraints.
+    userText += buildCursorOutputConstraints(body);
+
+    return { userText, tools };
+  }
+
+  /**
+   * Resolve any OpenAI image_url parts in the request's user messages into
+   * inlined cursor images. Returns undefined when the request carries no
+   * images (keeps the request byte-identical to the text-only path). Throws
+   * CursorImageError on invalid / oversized / SSRF-blocked input.
+   */
+  private async resolveRequestImages(body: {
+    messages?: ChatMessage[];
+  }): Promise<EncodedImage[] | undefined> {
+    const messages: ChatMessage[] = body.messages || [];
+    const imageUrls: string[] = [];
+    for (const m of messages) {
+      // Images only ride on user turns (the openai-to-cursor translator keeps
+      // them only there). System/assistant/tool turns carry no vision input.
+      if (m.role === "user") {
+        for (const u of extractImageUrls(m.content)) imageUrls.push(u);
+      }
+    }
+    if (imageUrls.length === 0) return undefined;
+    return resolveCursorImages(imageUrls);
+  }
+
+  private async buildRequest(
+    model: string,
+    body: {
+      messages?: ChatMessage[];
+      tools?: unknown;
+      tool_choice?: unknown;
+      conversation_id?: string;
+      max_tokens?: unknown;
+      max_completion_tokens?: unknown;
+      stop?: unknown;
+      response_format?: unknown;
+    }
+  ): Promise<{ body: Uint8Array; blobStore: Map<string, Buffer> }> {
+    const { userText, tools } = this.assembleTextAndTools(body);
+    const images = await this.resolveRequestImages(body);
 
     const blobStore = new Map<string, Buffer>();
     const requestBody = buildAgentRequestBody({
@@ -551,12 +740,23 @@ export class CursorExecutor extends BaseExecutor {
       conversationId: body.conversation_id,
       tools,
       blobStore,
+      images,
     });
     return { body: requestBody, blobStore };
   }
 
   transformRequest(model, body, _stream, _credentials) {
-    return this.buildRequest(model, body).body;
+    // Sync interface method (not used by cursor's own execute() path, which
+    // uses the async buildRequest). Text-only — image resolution is async.
+    const { userText, tools } = this.assembleTextAndTools(body);
+    const blobStore = new Map<string, Buffer>();
+    return buildAgentRequestBody({
+      modelId: model,
+      userText,
+      conversationId: body.conversation_id,
+      tools,
+      blobStore,
+    });
   }
 
   // ─── h2 lifecycle: open + drive (Phase 4 streaming refactor) ─────────────
@@ -670,7 +870,22 @@ export class CursorExecutor extends BaseExecutor {
 
       // Bidirectional streaming: write the init message but DO NOT send
       // END_STREAM — cursor's server stops responding once we close our side.
-      req.write(body);
+      // Guard the write like every h2Req.write in processFrame: a synchronous
+      // failure here (e.g. stream already torn down) would otherwise leave the
+      // request hung until the safety timeout instead of failing fast.
+      try {
+        req.write(body);
+      } catch (err) {
+        if (!resolved) {
+          resolved = true;
+          if (signal) signal.removeEventListener("abort", onAbort);
+          try {
+            req.close();
+            client.close();
+          } catch {}
+          reject(err instanceof Error ? err : new Error(String(err)));
+        }
+      }
     });
   }
 
@@ -769,6 +984,14 @@ export class CursorExecutor extends BaseExecutor {
           let pos = 0;
           while (!settled && pos + 5 <= buf.length) {
             const length = buf.readUInt32BE(pos + 1);
+            if (length > CURSOR_MAX_FRAME_BYTES) {
+              // Refuse to buffer an implausibly large frame — fail fast instead
+              // of letting the rolling buffer grow toward OOM.
+              settled = true;
+              teardown();
+              reject(new Error(`cursor-agent frame too large (${length} bytes)`));
+              return;
+            }
             if (pos + 5 + length > buf.length) break; // partial frame; wait
             const flag = buf[pos];
             const raw = buf.subarray(pos + 5, pos + 5 + length);
@@ -927,8 +1150,30 @@ export class CursorExecutor extends BaseExecutor {
     if (!session) {
       // Cold path: open fresh h2 stream with the full message history
       // flattened into UserText (Phase 6 flattenMessages handles role:"tool"
-      // and assistant.tool_calls).
-      const built = this.buildRequest(model, body);
+      // and assistant.tool_calls). buildRequest also resolves any image_url
+      // parts (base64 / remote) into inlined cursor images.
+      let built;
+      try {
+        built = await this.buildRequest(model, body);
+      } catch (err) {
+        // Image resolution failures (invalid / oversized / SSRF-blocked) are
+        // client errors — return a sanitized 400 rather than a 500.
+        if (err instanceof CursorImageError) {
+          return {
+            response: buildErrorResponse(err.status, err.message, "invalid_request_error"),
+            url,
+            headers,
+            transformedBody: body,
+          };
+        }
+        const message = err instanceof Error ? err.message : String(err);
+        return {
+          response: buildErrorResponse(HTTP_STATUS.SERVER_ERROR, message, "connection_error"),
+          url,
+          headers,
+          transformedBody: body,
+        };
+      }
       blobStore = built.blobStore;
       let opened;
       try {

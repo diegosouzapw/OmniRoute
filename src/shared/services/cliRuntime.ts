@@ -261,13 +261,22 @@ const parseBoolean = (value: unknown, defaultValue = true) => {
   return !FALSE_VALUES.has(String(value).trim().toLowerCase());
 };
 
+export const shouldUseShellForCommand = (command: string): boolean => {
+  if (!isWindows()) return false;
+
+  // Windows npm CLI wrappers are usually .cmd/.bat files and require cmd.exe.
+  // Direct executables should not go through the shell: absolute paths with spaces
+  // (for example C:\Users\Name With Spaces\...\claude.exe) are split by cmd.exe.
+  return /\.(?:cmd|bat)$/i.test(command);
+};
+
 const runProcess = (
   command: string,
   args: string[],
   {
     env,
     timeoutMs = 3000,
-    useShell = isWindows(),
+    useShell = shouldUseShellForCommand(command),
   }: {
     env?: Record<string, string | undefined>;
     timeoutMs?: number;
@@ -287,12 +296,16 @@ const runProcess = (
     let timedOut = false;
     let settled = false;
 
+    // Do NOT string-interpolate the path into a quoted shell command (hard rule
+    // #13). When useShell is false (.exe and all non-Windows), spawn passes
+    // `command` as a raw argv[0] and the OS loader handles spaces. When useShell
+    // is true (.cmd/.bat on Windows), Node quotes the command for cmd.exe itself.
     const child = spawn(command, args, {
       env,
       stdio: ["ignore", "pipe", "pipe"],
-      // On Windows, npm installs CLI wrappers as .cmd scripts (e.g. claude.cmd).
-      // Without shell:true, spawn cannot resolve them via PATHEXT and the
-      // healthcheck fails even when the CLI is correctly installed (#447).
+      // On Windows, npm installs CLI wrappers as .cmd/.bat scripts. Those still
+      // need cmd.exe, but direct .exe paths must avoid the shell so paths with
+      // spaces are not split before execution.
       ...(useShell ? { shell: true } : {}),
     });
     const timer = setTimeout(() => {

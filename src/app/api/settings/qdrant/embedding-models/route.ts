@@ -30,7 +30,7 @@ export async function GET(request: NextRequest) {
         value: `${m.provider}/${m.model}`,
         label: `${m.provider}/${m.model} - ${m.name}`,
       }))
-      .sort((a, b) => a.value.localeCompare(b.value));
+      .sort((a, b) => a.value.localeCompare(b.value)); // teknik sıralama: ASCII kasıtlı
 
     // Add OpenRouter account models that explicitly support embeddings.
     try {
@@ -85,7 +85,7 @@ export async function GET(request: NextRequest) {
       });
     }
 
-    options.sort((a, b) => a.value.localeCompare(b.value));
+    options.sort((a, b) => a.value.localeCompare(b.value)); // teknik sıralama: ASCII kasıtlı
 
     return NextResponse.json({ models: options });
   } catch (error) {

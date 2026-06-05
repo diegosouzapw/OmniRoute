@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useTranslations } from "next-intl";
+import { matchesSearch } from "@/shared/utils/turkishText";
 import BatchDetailModal from "./BatchDetailModal";
 import ExpirationBadge from "./components/ExpirationBadge";
 import ProgressBarBicolor from "./components/ProgressBarBicolor";
@@ -348,11 +349,10 @@ export default function BatchListTab({
   const filtered = batches.filter((b) => {
     if (statusFilter !== "all" && b.status !== statusFilter) return false;
     if (searchQuery) {
-      const q = searchQuery.toLowerCase();
       return (
-        b.id.toLowerCase().includes(q) ||
-        b.endpoint.toLowerCase().includes(q) ||
-        (b.model ?? "").toLowerCase().includes(q)
+        matchesSearch(b.id, searchQuery) ||
+        matchesSearch(b.endpoint, searchQuery) ||
+        matchesSearch(b.model ?? "", searchQuery)
       );
     }
     return true;

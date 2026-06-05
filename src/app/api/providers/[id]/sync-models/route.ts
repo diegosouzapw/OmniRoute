@@ -174,7 +174,7 @@ export type EnsureReadyOptions = {
 };
 
 export async function ensureLoopbackServerReady(opts: EnsureReadyOptions = {}): Promise<void> {
-  if (__loopbackReadyPromise) return __loopbackReadyPromise;
+  if (__loopbackReadyPromise != null) return __loopbackReadyPromise;
   __loopbackReadyPromise = (async () => {
     const f = opts.fetch ?? fetch;
     const maxWaitMs = opts.maxWaitMs ?? 30_000;
@@ -436,6 +436,40 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
           ...(parseError ? { upstreamStatus: modelsRes.status } : {}),
         },
         { status: responseStatus }
+      );
+    }
+
+    const modelSource = toNonEmptyString(modelsData.source)?.toLowerCase() || "unknown";
+    const modelWarning = toNonEmptyString(modelsData.warning);
+    if (modelSource === "local_catalog") {
+      const responseError =
+        modelWarning || "Remote model discovery failed; local catalog fallback not synced";
+      await saveCallLog({
+        method: "GET",
+        path: `/api/providers/${id}/models`,
+        status: 502,
+        model: "model-sync",
+        provider: logProvider,
+        sourceFormat: "-",
+        connectionId: id,
+        duration,
+        error: responseError,
+        requestType: "model-sync",
+        responseBody: {
+          source: modelSource,
+          warning: modelWarning,
+          provider: logProvider,
+          channel: channelLabel,
+        },
+      });
+
+      return NextResponse.json(
+        {
+          error: responseError,
+          source: modelSource,
+          ...(modelWarning ? { warning: modelWarning } : {}),
+        },
+        { status: 502 }
       );
     }
 

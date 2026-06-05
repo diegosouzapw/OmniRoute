@@ -20,6 +20,7 @@ import EmailPrivacyToggle from "@/shared/components/EmailPrivacyToggle";
 import QuotaCutoffModal from "./QuotaCutoffModal";
 import QuotaCardGrid from "./QuotaCardGrid";
 import { translateUsageOrFallback, type UsageTranslationValues } from "./i18nFallback";
+import { compareTr } from "@/shared/utils/turkishText";
 
 const LS_PURCHASE_FILTER = "omniroute:limits:purchaseFilter";
 const LS_STATUS_FILTER = "omniroute:limits:statusFilter";
@@ -593,7 +594,7 @@ export default function ProviderLimits({
       const tag = (conn.providerSpecificData?.tag as string | undefined)?.trim();
       if (tag) tags.add(tag);
     }
-    return [...tags].sort((a, b) => a.localeCompare(b));
+    return [...tags].sort((a, b) => compareTr(a, b));
   }, [sortedConnections]);
 
   const envCounts = useMemo(() => {

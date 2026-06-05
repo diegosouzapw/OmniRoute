@@ -22,7 +22,11 @@ import {
   getCircuitBreaker,
   STATE,
 } from "../../src/shared/utils/circuitBreaker";
-import { classify429FromError, type FailureKind } from "../../src/shared/utils/classify429";
+import {
+  classify429FromError,
+  looksLikeQuotaExhausted,
+  type FailureKind,
+} from "../../src/shared/utils/classify429";
 import { resolveUseUpstream429BreakerHints } from "../../src/shared/utils/providerHints";
 
 type ProviderProfile = {
@@ -912,25 +916,33 @@ export function parseRetryFromErrorText(errorText: unknown): number | null {
   }
 
   const match = errorText.match(/reset after (\d+h)?(\d+m)?(\d+s)?/i);
-  if (!match) {
-    // Also try the variant without "reset after": "will reset after XhYmZs"
-    const altMatch = errorText.match(/will reset after (\d+h)?(\d+m)?(\d+s)?/i);
-    if (!altMatch) return null;
-    return computeDurationMs(altMatch);
+  if (match?.[1] || match?.[2] || match?.[3]) return computeDurationMs(match);
+
+  // Variant without "reset after": "will reset after XhYmZs"
+  const altMatch = errorText.match(/will reset after (\d+h)?(\d+m)?(\d+s)?/i);
+  if (altMatch?.[1] || altMatch?.[2] || altMatch?.[3]) return computeDurationMs(altMatch);
+
+  // Antigravity / Cloud Code phrasing: "Resets in 164h27m24s".
+  const resetsInMatch = errorText.match(/resets? in (\d+h)?(\d+m)?(\d+s)?/i);
+  if (resetsInMatch?.[1] || resetsInMatch?.[2] || resetsInMatch?.[3]) {
+    return computeDurationMs(resetsInMatch);
   }
 
-  return computeDurationMs(match);
+  return null;
 }
 
 /**
  * Compute total milliseconds from regex match groups (Xh)(Ym)(Zs)
+ * Capped at 30 days to prevent adversarial/buggy upstream from locking indefinitely.
  */
+const MAX_PROVIDER_COOLDOWN_MS = 30 * 24 * 60 * 60 * 1000; // 30 days
+
 function computeDurationMs(match: RegExpMatchArray): number | null {
   let totalMs = 0;
   if (match[1]) totalMs += parseInt(match[1], 10) * 3600 * 1000; // hours
   if (match[2]) totalMs += parseInt(match[2], 10) * 60 * 1000; // minutes
   if (match[3]) totalMs += parseInt(match[3], 10) * 1000; // seconds
-  return totalMs > 0 ? totalMs : null;
+  return totalMs > 0 ? Math.min(totalMs, MAX_PROVIDER_COOLDOWN_MS) : null;
 }
 
 function isSubscriptionQuotaText(lower: string): boolean {
@@ -960,6 +972,7 @@ export function classifyErrorText(errorText: unknown): RateLimitReasonValue {
     lower.includes("quota has been exceeded") ||
     lower.includes("hour quota") ||
     lower.includes("billing") ||
+    looksLikeQuotaExhausted(lower) ||
     // Issue #2321: Anthropic OAuth (Claude Code Pro/Team) 429 bodies surface
     // the subscription quota with phrases that contain neither "quota" nor
     // "billing". Without these patterns the error was classified as a

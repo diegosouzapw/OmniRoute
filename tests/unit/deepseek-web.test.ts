@@ -7,6 +7,7 @@ const { DeepSeekWebExecutor, DEEPSEEK_WEB_BASE } =
 const { DeepSeekWebWithAutoRefreshExecutor } =
   await import("../../open-sse/executors/deepseek-web-with-auto-refresh.ts");
 const { getExecutor, hasSpecializedExecutor } = await import("../../open-sse/executors/index.ts");
+const { serializeToolsToPrompt } = await import("../../open-sse/translator/webTools.ts");
 
 const COMPLETION_URL = `${DEEPSEEK_WEB_BASE}/api/v0/chat/completion`;
 
@@ -58,37 +59,23 @@ test("execute returns 400 with empty apiKey", async () => {
   assert.equal(result.response.status, 400);
 });
 
-test("execute returns 400 when client sends non-empty tools[] (chat.deepseek.com has no tool support) - issue #2848", async () => {
-  const executor = new DeepSeekWebExecutor();
-  const result = await executor.execute({
-    model: "default",
-    body: {
-      messages: [{ role: "user", content: "call my_tool" }],
-      tools: [
-        {
-          type: "function",
-          function: {
-            name: "my_tool",
-            description: "test",
-            parameters: { type: "object", properties: {} },
-          },
-        },
-      ],
+test("tools[] is translated into a <tool> prompt contract, not rejected - issue #2820 (supersedes #2848)", () => {
+  // #2848 made deepseek-web hard-fail tool requests with a 400. #2820 reverses that:
+  // tools[] is now serialized into a <tool> prompt contract and the model's text reply
+  // is parsed back into OpenAI tool_calls. Full execute() round-trip coverage lives in
+  // deepseek-web-tools-execute-2820.test.ts.
+  const prompt = serializeToolsToPrompt([
+    {
+      type: "function",
+      function: {
+        name: "my_tool",
+        description: "test tool",
+        parameters: { type: "object", properties: {} },
+      },
     },
-    stream: false,
-    credentials: { apiKey: "any-valid-looking-token" },
-    signal: AbortSignal.timeout(5000),
-  });
-  assert.equal(result.response.status, 400);
-  const text = await result.response.text();
-  assert.ok(
-    /does not support function calling/i.test(text),
-    `expected explanatory error body, got: ${text}`
-  );
-  assert.ok(
-    /provider 'deepseek'|api\.deepseek\.com/i.test(text),
-    `expected guidance to use official deepseek provider, got: ${text}`
-  );
+  ]);
+  assert.ok(prompt.includes("my_tool"), "tool name serialized into the prompt");
+  assert.ok(prompt.includes("<tool>"), "invocation contract present");
 });
 
 test("execute does NOT 400 on tools[]=[] (empty array, equivalent to no tools)", async () => {

@@ -78,12 +78,83 @@ test("parseRetryFromErrorText parses both compact reset formats", () => {
   assert.equal(parseRetryFromErrorText("No reset metadata"), null);
 });
 
+test("parseRetryFromErrorText parses Antigravity 'Resets in XhYmZs' phrasing", () => {
+  assert.equal(
+    parseRetryFromErrorText(
+      "Individual quota reached. Contact your administrator to enable overages. " +
+        "Resets in 164h27m24s."
+    ),
+    (164 * 3600 + 27 * 60 + 24) * 1000
+  );
+  assert.equal(parseRetryFromErrorText("Resets in 2h7m23s"), 7_643_000);
+  assert.equal(parseRetryFromErrorText("Reset in 45m"), 2_700_000);
+});
+
+test("parseRetryFromErrorText caps extreme reset windows at 30 days", () => {
+  const thirtyDaysMs = 30 * 24 * 60 * 60 * 1000;
+  // 100 days → capped to 30
+  assert.equal(parseRetryFromErrorText("Resets in 2400h"), thirtyDaysMs);
+  // Absurd value → capped
+  assert.equal(parseRetryFromErrorText("Resets in 999999h"), thirtyDaysMs);
+});
+
+test("checkFallbackError locks Antigravity quota-reached 429 for the full reset window", () => {
+  const message =
+    "Individual quota reached. Contact your administrator to enable overages. " +
+    "Resets in 164h27m24s.";
+  const result = checkFallbackError(
+    429,
+    message,
+    0,
+    "gemini-3-flash-agent",
+    "antigravity",
+    null,
+    makeProfile()
+  );
+
+  assert.equal(result.shouldFallback, true);
+  assert.equal(result.reason, RateLimitReason.QUOTA_EXHAUSTED);
+  assert.equal(result.usedUpstreamRetryHint, true);
+  // Full parsed window (≈164.46h), under the 30-day cap — not the generic ~5s rate-limit backoff.
+  assert.equal(result.cooldownMs, (164 * 3600 + 27 * 60 + 24) * 1000);
+});
+
+test("recordModelLockoutFailure honors a multi-day exactCooldownMs (under 30-day cap)", () => {
+  const provider = "antigravity";
+  const connectionId = "conn-quota-window";
+  const model = "gemini-3-flash-agent";
+  const exactCooldownMs = (164 * 3600 + 27 * 60 + 24) * 1000;
+
+  clearModelLock(provider, connectionId, model);
+  const lockout = recordModelLockoutFailure(
+    provider,
+    connectionId,
+    model,
+    "quota_exhausted",
+    429,
+    0,
+    makeProfile(),
+    { exactCooldownMs }
+  );
+
+  assert.equal(lockout.cooldownMs, exactCooldownMs);
+  assert.equal(isModelLocked(provider, connectionId, model), true);
+  clearModelLock(provider, connectionId, model);
+});
+
 test("checkFallbackError marks deactivated accounts as permanent auth failures", () => {
   const result = checkFallbackError(401, "This account has been deactivated");
   assert.equal(result.shouldFallback, true);
   assert.equal(result.reason, RateLimitReason.AUTH_ERROR);
   assert.equal(result.permanent, true);
   assert.ok(result.cooldownMs >= 300 * 24 * 60 * 60 * 1000);
+});
+
+test("checkFallbackError classifies 'free tier of the model has been exhausted' as quota exhausted", () => {
+  const result = checkFallbackError(429, "free tier of the model has been exhausted");
+  assert.equal(result.shouldFallback, true);
+  assert.equal(result.reason, RateLimitReason.QUOTA_EXHAUSTED);
+  assert.equal(result.creditsExhausted, true);
 });
 
 test("checkFallbackError treats non-429 exhausted credits as long quota cooldowns", () => {

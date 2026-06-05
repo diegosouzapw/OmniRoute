@@ -72,7 +72,18 @@ const DETERMINISTIC_STRATEGIES: Set<RoutingStrategyValue> = new Set(["priority",
 /**
  * Providers that support prompt caching
  */
-const CACHING_PROVIDERS = new Set(["claude", "anthropic", "zai", "qwen", "deepseek"]);
+const CACHING_PROVIDERS = new Set([
+  "claude",
+  "anthropic",
+  "zai",
+  "qwen",
+  "deepseek",
+  // #3088 — Xiaomi MiMo honors OpenAI-format cache_control breakpoints. Without
+  // this entry, shouldPreserveCacheControl() returns false for Claude Code
+  // clients and filterToOpenAIFormat() strips cache_control, so Xiaomi never
+  // sees the cache hints and every request is a cache miss.
+  "xiaomi-mimo",
+]);
 
 /**
  * Detect if the client is Claude Code or another caching-aware client

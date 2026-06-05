@@ -5,6 +5,7 @@ import { Card, Button, Input, Modal, CardSkeleton } from "@/shared/components";
 import { useCopyToClipboard } from "@/shared/hooks/useCopyToClipboard";
 import { useTranslations } from "next-intl";
 import { getProviderDisplayName } from "@/lib/display/names";
+import { compareTr, matchesSearch } from "@/shared/utils/turkishText";
 import { ENDPOINT_CATEGORIES } from "@/shared/constants/endpointCategories";
 import ApiKeyFilterBar from "./components/ApiKeyFilterBar";
 import {
@@ -675,20 +676,21 @@ export default function ApiManagerPageClient() {
       if (!grouped[provider]) grouped[provider] = [];
       grouped[provider].push(model);
     }
-    return Object.entries(grouped).sort((a, b) => a[0].localeCompare(b[0]));
+    return Object.entries(grouped).sort((a, b) => compareTr(a[0], b[0]));
   }, [allModels, t]);
 
   // Filter models based on debounced search
   const filteredModelsByProvider = useMemo((): ProviderGroup[] => {
     if (!debouncedSearchModel.trim()) return modelsByProvider;
 
-    const search = debouncedSearchModel.toLowerCase();
     return modelsByProvider
       .map(
         ([provider, models]): ProviderGroup => [
           provider,
           models.filter(
-            (m) => m.id.toLowerCase().includes(search) || provider.toLowerCase().includes(search)
+            (m) =>
+              matchesSearch(m.id, debouncedSearchModel) ||
+              matchesSearch(provider, debouncedSearchModel)
           ),
         ]
       )
@@ -2437,7 +2439,7 @@ const PermissionsModal = memo(function PermissionsModal({
                     return acc;
                   }, {})
                 )
-                  .sort(([a], [b]) => a.localeCompare(b))
+                  .sort(([a], [b]) => compareTr(a, b))
                   .map(([provider, conns]) => (
                     <div key={provider}>
                       <p className="text-[10px] font-semibold text-text-muted uppercase tracking-wider px-1 py-0.5">
