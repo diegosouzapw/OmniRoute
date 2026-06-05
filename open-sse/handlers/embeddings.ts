@@ -49,7 +49,7 @@ export async function handleEmbedding({
   connectionId = null,
 }: {
   body: Record<string, unknown>;
-  credentials: { apiKey?: string; accessToken?: string } | null;
+  credentials: { apiKey?: string | null; accessToken?: string | null } | null;
   log?: { info: (...args: unknown[]) => void; error: (...args: unknown[]) => void };
   resolvedProvider?: EmbeddingProvider | null;
   resolvedModel?: string | null;
@@ -140,7 +140,7 @@ export async function handleEmbedding({
   }
 
   // Build headers
-  const headers = {
+  const headers: Record<string, string> = {
     "Content-Type": "application/json",
   };
 

@@ -14,93 +14,100 @@ export function transformToOllama(response, model) {
   let pendingToolCalls: Record<number, PendingToolCall> = {};
   const completedToolCalls: PendingToolCall[] = [];
 
-  const transform = new TransformStream({
-    transform(chunk, controller) {
-      const text = new TextDecoder().decode(chunk);
-      buffer += text;
-      const lines = buffer.split("\n");
-      buffer = lines.pop() || "";
+  const transform = new TransformStream(
+    {
+      transform(chunk, controller) {
+        const text = new TextDecoder().decode(chunk);
+        buffer += text;
+        const lines = buffer.split("\n");
+        buffer = lines.pop() || "";
 
-      for (const line of lines) {
-        if (!line.startsWith("data:")) continue;
-        const data = line.slice(5).trim();
+        for (const line of lines) {
+          if (!line.startsWith("data:")) continue;
+          const data = line.slice(5).trim();
 
-        if (data === "[DONE]") {
-          const ollamaEnd =
-            JSON.stringify({ model, message: { role: "assistant", content: "" }, done: true }) +
-            "\n";
-          controller.enqueue(new TextEncoder().encode(ollamaEnd));
-          return;
-        }
-
-        try {
-          const parsed = JSON.parse(data);
-          const delta = parsed.choices?.[0]?.delta || {};
-          const content = delta.content || "";
-          const toolCalls = delta.tool_calls;
-
-          if (toolCalls) {
-            for (const tc of toolCalls) {
-              const idx = tc.index;
-
-              // T37: Prevent merging tool_calls on same index if ID changes
-              if (pendingToolCalls[idx] && tc.id && pendingToolCalls[idx].id !== tc.id) {
-                completedToolCalls.push(pendingToolCalls[idx]);
-                delete pendingToolCalls[idx];
-              }
-
-              if (!pendingToolCalls[idx]) {
-                pendingToolCalls[idx] = { id: tc.id, function: { name: "", arguments: "" } };
-              }
-              if (tc.function?.name) pendingToolCalls[idx].function.name += tc.function.name;
-              if (tc.function?.arguments)
-                pendingToolCalls[idx].function.arguments += tc.function.arguments;
-            }
-          }
-
-          if (content) {
-            const ollama =
-              JSON.stringify({ model, message: { role: "assistant", content }, done: false }) +
+          if (data === "[DONE]") {
+            const ollamaEnd =
+              JSON.stringify({ model, message: { role: "assistant", content: "" }, done: true }) +
               "\n";
-            controller.enqueue(new TextEncoder().encode(ollama));
+            controller.enqueue(new TextEncoder().encode(ollamaEnd));
+            return;
           }
 
-          const finishReason = parsed.choices?.[0]?.finish_reason;
-          if (finishReason === "tool_calls" || finishReason === "stop") {
-            const toolCallsArr = [...completedToolCalls, ...Object.values(pendingToolCalls)];
-            if (toolCallsArr.length > 0) {
-              const formattedCalls = toolCallsArr.map((tc) => ({
-                function: {
-                  name: tc.function.name,
-                  arguments: JSON.parse(tc.function.arguments || "{}"),
-                },
-              }));
-              const ollama =
-                JSON.stringify({
-                  model,
-                  message: { role: "assistant", content: "", tool_calls: formattedCalls },
-                  done: true,
-                }) + "\n";
-              controller.enqueue(new TextEncoder().encode(ollama));
-              pendingToolCalls = {};
-            } else if (finishReason === "stop") {
-              const ollamaEnd =
-                JSON.stringify({ model, message: { role: "assistant", content: "" }, done: true }) +
-                "\n";
-              controller.enqueue(new TextEncoder().encode(ollamaEnd));
+          try {
+            const parsed = JSON.parse(data);
+            const delta = parsed.choices?.[0]?.delta || {};
+            const content = delta.content || "";
+            const toolCalls = delta.tool_calls;
+
+            if (toolCalls) {
+              for (const tc of toolCalls) {
+                const idx = tc.index;
+
+                // T37: Prevent merging tool_calls on same index if ID changes
+                if (pendingToolCalls[idx] && tc.id && pendingToolCalls[idx].id !== tc.id) {
+                  completedToolCalls.push(pendingToolCalls[idx]);
+                  delete pendingToolCalls[idx];
+                }
+
+                if (!pendingToolCalls[idx]) {
+                  pendingToolCalls[idx] = { id: tc.id, function: { name: "", arguments: "" } };
+                }
+                if (tc.function?.name) pendingToolCalls[idx].function.name += tc.function.name;
+                if (tc.function?.arguments)
+                  pendingToolCalls[idx].function.arguments += tc.function.arguments;
+              }
             }
+
+            if (content) {
+              const ollama =
+                JSON.stringify({ model, message: { role: "assistant", content }, done: false }) +
+                "\n";
+              controller.enqueue(new TextEncoder().encode(ollama));
+            }
+
+            const finishReason = parsed.choices?.[0]?.finish_reason;
+            if (finishReason === "tool_calls" || finishReason === "stop") {
+              const toolCallsArr = [...completedToolCalls, ...Object.values(pendingToolCalls)];
+              if (toolCallsArr.length > 0) {
+                const formattedCalls = toolCallsArr.map((tc) => ({
+                  function: {
+                    name: tc.function.name,
+                    arguments: JSON.parse(tc.function.arguments || "{}"),
+                  },
+                }));
+                const ollama =
+                  JSON.stringify({
+                    model,
+                    message: { role: "assistant", content: "", tool_calls: formattedCalls },
+                    done: true,
+                  }) + "\n";
+                controller.enqueue(new TextEncoder().encode(ollama));
+                pendingToolCalls = {};
+              } else if (finishReason === "stop") {
+                const ollamaEnd =
+                  JSON.stringify({
+                    model,
+                    message: { role: "assistant", content: "" },
+                    done: true,
+                  }) + "\n";
+                controller.enqueue(new TextEncoder().encode(ollamaEnd));
+              }
+            }
+          } catch (e) {
+            // Silently ignore parse errors
           }
-        } catch (e) {
-          // Silently ignore parse errors
         }
-      }
+      },
+      flush(controller) {
+        const ollamaEnd =
+          JSON.stringify({ model, message: { role: "assistant", content: "" }, done: true }) + "\n";
+        controller.enqueue(new TextEncoder().encode(ollamaEnd));
+      },
     },
-    flush(controller) {
-      const ollamaEnd =
-        JSON.stringify({ model, message: { role: "assistant", content: "" }, done: true }) + "\n";
-      controller.enqueue(new TextEncoder().encode(ollamaEnd));
-    },
-  });
+    { highWaterMark: 16384 },
+    { highWaterMark: 16384 }
+  );
 
   return new Response(response.body.pipeThrough(transform), {
     headers: {

@@ -28,6 +28,24 @@ async function resetStorage() {
   clearPendingRequests();
 }
 
+async function withPrepareFailure(match: string, fn: () => Promise<void>) {
+  const db = core.getDbInstance();
+  const originalPrepare = db.prepare.bind(db);
+
+  db.prepare = (sql, ...args) => {
+    if (String(sql).includes(match)) {
+      throw new Error("full history scan should not run");
+    }
+    return originalPrepare(sql, ...args);
+  };
+
+  try {
+    await fn();
+  } finally {
+    db.prepare = originalPrepare;
+  }
+}
+
 test.beforeEach(async () => {
   await resetStorage();
 });
@@ -279,6 +297,23 @@ test("getUsageStats aggregates totals, buckets, pending requests, and cost break
   assert.equal(recentBucketTotal, 1);
 });
 
+test("getUsageStats avoids loading the entire usage_history table", async () => {
+  await usageHistory.saveRequestUsage({
+    provider: "provider-a",
+    model: "model-a",
+    tokens: { input: 10, output: 5 },
+    success: true,
+    timestamp: new Date().toISOString(),
+  });
+
+  await withPrepareFailure("SELECT * FROM usage_history ORDER BY timestamp ASC", async () => {
+    const stats = await usageStats.getUsageStats();
+    assert.equal(stats.totalRequests, 1);
+    assert.equal(stats.totalPromptTokens, 10);
+    assert.equal(stats.totalCompletionTokens, 5);
+  });
+});
+
 test("getUsageStats groups renamed API key usage by stable ID", async () => {
   const db = core.getDbInstance();
   const now = new Date().toISOString();
@@ -375,8 +410,10 @@ test("Codex Fast service tier applies documented GPT-5.5 and GPT-5.4 cost multip
 
   assert.equal(await calculateCost("codex", "gpt-5.5", tokens), 0.02);
   assert.equal(await calculateCost("codex", "gpt-5.5", tokens, { serviceTier: "priority" }), 0.05);
+  assert.equal(await calculateCost("codex", "gpt-5.5", tokens, { serviceTier: "flex" }), 0.01);
   assert.equal(await calculateCost("codex", "gpt-5.4-high", tokens, { serviceTier: "fast" }), 0.04);
   assert.equal(await calculateCost("openai", "gpt-5.5", tokens, { serviceTier: "priority" }), 0.02);
+  assert.equal(await calculateCost("openai", "gpt-5.5", tokens, { serviceTier: "flex" }), 0.02);
 });
 
 test("recent request summaries are generated from SQLite call logs", async () => {
@@ -419,6 +456,7 @@ test("pending request metadata stores sanitized payload previews and clears afte
       token: "super-secret-token",
       messages: [{ role: "user", content: "hello" }],
     },
+    stage: "registered",
   });
 
   usageHistory.updatePendingRequest("gpt-test", "openai", "conn-preview", {
@@ -427,6 +465,7 @@ test("pending request metadata stores sanitized payload previews and clears afte
       authorization: "Bearer super-secret-token",
       messages: [{ role: "user", content: "hello" }],
     },
+    stage: "sending_to_provider",
   });
 
   const pending = usageHistory.getPendingRequests();
@@ -438,6 +477,8 @@ test("pending request metadata stores sanitized payload previews and clears afte
   assert.equal(clientRequestPreview.token, "[REDACTED]");
   assert.equal(providerRequestPreview.authorization, "[REDACTED]");
   assert.equal(detail.providerUrl, "https://api.example.com/v1/chat/completions");
+  assert.equal(detail.stage, "sending_to_provider");
+  assert.equal(typeof detail.stageUpdatedAt, "number");
 
   usageHistory.trackPendingRequest("gpt-test", "openai", "conn-preview", false);
   assert.equal(pending.details["conn-preview"], undefined);

@@ -217,7 +217,7 @@ function buildLayout(
       return 3;
     };
     const d = rank(aId) - rank(bId);
-    return d !== 0 ? d : aId.localeCompare(bId);
+    return d !== 0 ? d : aId.localeCompare(bId); // teknik sıralama: ASCII kasıtlı
   });
 
   let provIdx = 0;

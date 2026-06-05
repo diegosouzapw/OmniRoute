@@ -10,6 +10,7 @@ import {
 import { updateResilienceSchema } from "@/shared/validation/schemas";
 import { isValidationFailure, validateBody } from "@/shared/validation/helpers";
 import { resetAllCircuitBreakers } from "@/shared/utils/circuitBreaker";
+import { sanitizeErrorMessage } from "@omniroute/open-sse/utils/error";
 
 type JsonRecord = Record<string, unknown>;
 
@@ -18,7 +19,7 @@ function asRecord(value: unknown): JsonRecord {
 }
 
 function getErrorMessage(error: unknown, fallback: string): string {
-  return error instanceof Error && error.message ? error.message : fallback;
+  return sanitizeErrorMessage(error) || fallback;
 }
 
 function normalizeLegacyPatch(body: JsonRecord): ResilienceSettingsPatch {

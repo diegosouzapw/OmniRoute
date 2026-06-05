@@ -1,0 +1,50 @@
+[Unit]
+Description=OmniRoute — Unified AI Proxy
+After=network-online.target
+Wants=network-online.target
+Requires=omniroute-redis.service
+After=omniroute-redis.service
+
+[Container]
+# Use this image if your building locally
+Image=localhost/omniroute:base
+# Use this image if you are pulling from Docker Hub
+# Image=diegosouzapw/omniroute:base
+
+ContainerName=omniroute
+
+Network=omniroute.network
+PublishPort=20128:20128
+PublishPort=20129:20129
+
+Volume=omniroute.volume:/app/data:Z
+
+# Use a bind mount if you need direct host access to the data:
+# Volume=/home/USER/code/docker/OmniRoute/data:/app/data:Z
+
+Environment=DATA_DIR=/app/data
+Environment=PORT=20128
+Environment=DASHBOARD_PORT=20128
+Environment=API_PORT=20129
+Environment=API_HOST=0.0.0.0
+Environment=REDIS_URL=redis://redis:6379
+Environment=JWT_SECRET=change-me-to-a-random-base64-string
+Environment=API_KEY_SECRET=change-me-to-a-random-base64-string
+Environment=INITIAL_PASSWORD=change-me-to-a-random-hex-string
+Environment=NODE_ENV=production
+Environment=REQUIRE_API_KEY=true
+
+# Load additional secrets (API keys, OAuth creds) from the project .env:
+# EnvironmentFile=%h/code/docker/OmniRoute/.env
+
+HealthCmd=node /app/healthcheck.mjs
+HealthInterval=30s
+HealthRetries=3
+HealthTimeout=5s
+HealthStartPeriod=15s
+
+[Service]
+Restart=always
+
+[Install]
+WantedBy=default.target

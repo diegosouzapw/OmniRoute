@@ -53,6 +53,7 @@ export async function GET() {
   try {
     getSyncedCapabilities();
     const models = [];
+    const existingNames = new Set<string>();
 
     // Only list models whose provider has an active/validated connection (#2483).
     const activeKeys = await getActiveProviderKeys();
@@ -61,9 +62,11 @@ export async function GET() {
     for (const [provider, providerModels] of Object.entries(PROVIDER_MODELS)) {
       if (!activeKeys.has(provider)) continue;
       for (const model of providerModels) {
+        const name = `models/${provider}/${model.id}`;
+        if (existingNames.has(name)) continue;
         const resolved = getResolvedModelCapabilities({ provider, model: model.id });
         models.push({
-          name: `models/${provider}/${model.id}`,
+          name,
           displayName: model.name || model.id,
           description: `${provider} model: ${model.name || model.id}`,
           supportedGenerationMethods: ["generateContent"],
@@ -71,6 +74,7 @@ export async function GET() {
           outputTokenLimit: resolved.maxOutputTokens || 8192,
           ...(resolved.supportsThinking === true ? { thinking: true } : {}),
         });
+        existingNames.add(name);
       }
     }
 
@@ -102,8 +106,6 @@ export async function GET() {
     } catch (err) {
       console.error("[v1beta/models] Error fetching synced Gemini models:", err);
     }
-
-    const existingNames = new Set(models.map((model) => (model as any).name));
 
     // Synced/imported models for non-Gemini providers
     try {

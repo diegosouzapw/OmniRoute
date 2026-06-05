@@ -149,7 +149,7 @@ export async function resetManagementPassword(
     db.pragma("journal_mode = WAL");
     ensureSettingsSchema(db);
     const hashedPassword = await hashManagementPassword(password);
-    updateSettings(db, { password: hashedPassword, requireLogin: true });
+    updateSettings(db, { password: hashedPassword, requireLogin: true, setupComplete: true });
   } finally {
     db.close();
   }

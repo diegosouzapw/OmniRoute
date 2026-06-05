@@ -318,3 +318,224 @@ test("processPendingBatches caches rate-limit headers across sequential batches"
   assert.strictEqual(afterReset.headers, null, "reset should clear cached headers");
   assert.strictEqual(afterReset.timestamp, 0, "reset should clear cached timestamp");
 });
+
+test("processPendingBatches should recover stale in_progress batches", async () => {
+  const file = await localDb.createFile({
+    bytes: 10,
+    filename: "stale_test.jsonl",
+    purpose: "batch_input",
+    content: Buffer.from(
+      JSON.stringify({
+        method: "POST",
+        url: "/v1/chat/completions",
+        body: { model: "gpt-4", messages: [{ role: "user", content: "hi" }] },
+      }) + "\n"
+    ),
+  });
+
+  const batch = await localDb.createBatch({
+    endpoint: "/v1/chat/completions",
+    status: "in_progress",
+    inputFileId: file.id,
+    completionWindow: "24h",
+    inProgressAt: Math.floor(Date.now() / 1000),
+  });
+
+  mock.method(dispatch, "dispatchBatchApiRequest", async () => {
+    return new Response(
+      JSON.stringify({
+        id: "chatcmpl-stale",
+        choices: [{ message: { content: "recovered" } }],
+        usage: { prompt_tokens: 10, completion_tokens: 5 },
+      }),
+      { status: 200, headers: { "Content-Type": "application/json" } }
+    );
+  });
+
+  await batchProcessor.processPendingBatches();
+
+  await waitForAllBatches();
+
+  const updated = await localDb.getBatch(batch.id);
+  assert.strictEqual(updated?.status, "completed", "Stale batch should be recovered and completed");
+  assert.ok(
+    updated?.inProgressAt != null,
+    "inProgressAt should be set (from fresh start, not stale)"
+  );
+});
+
+test("processPendingBatches should recover stale finalizing batches", async () => {
+  const file = await localDb.createFile({
+    bytes: 10,
+    filename: "stale_finalizing.jsonl",
+    purpose: "batch_input",
+    content: Buffer.from(
+      JSON.stringify({
+        method: "POST",
+        url: "/v1/chat/completions",
+        body: { model: "gpt-4", messages: [{ role: "user", content: "hi" }] },
+      }) + "\n"
+    ),
+  });
+
+  const batch = await localDb.createBatch({
+    endpoint: "/v1/chat/completions",
+    status: "finalizing",
+    inputFileId: file.id,
+    completionWindow: "24h",
+    finalizingAt: Math.floor(Date.now() / 1000),
+  });
+
+  mock.method(dispatch, "dispatchBatchApiRequest", async () => {
+    return new Response(
+      JSON.stringify({
+        id: "chatcmpl-stale-finalizing",
+        choices: [{ message: { content: "recovered" } }],
+        usage: { prompt_tokens: 10, completion_tokens: 5 },
+      }),
+      { status: 200, headers: { "Content-Type": "application/json" } }
+    );
+  });
+
+  await batchProcessor.processPendingBatches();
+
+  await waitForAllBatches();
+
+  const updated = await localDb.getBatch(batch.id);
+  assert.strictEqual(
+    updated?.status,
+    "completed",
+    "Stale finalizing batch should be recovered and completed"
+  );
+  assert.ok(
+    updated?.inProgressAt != null,
+    "inProgressAt should be set by fresh start after recovery"
+  );
+});
+
+test("processPendingBatches should respect BATCH_MAX_CONCURRENT (default 1)", async () => {
+  async function createValidBatch(prefix: string) {
+    const content =
+      JSON.stringify({
+        custom_id: `${prefix}-req`,
+        method: "POST",
+        url: "/v1/chat/completions",
+        body: { model: "gpt-4", messages: [{ role: "user", content: prefix }] },
+      }) + "\n";
+
+    const file = await localDb.createFile({
+      bytes: Buffer.byteLength(content),
+      filename: `${prefix}_input.jsonl`,
+      purpose: "batch_input",
+      content: Buffer.from(content),
+    });
+
+    return await localDb.createBatch({
+      endpoint: "/v1/chat/completions",
+      status: "validating",
+      inputFileId: file.id,
+      completionWindow: "24h",
+    });
+  }
+
+  mock.method(dispatch, "dispatchBatchApiRequest", async () => {
+    return new Response(
+      JSON.stringify({
+        id: "chatcmpl-concur",
+        choices: [{ message: { content: "ok" } }],
+        usage: { prompt_tokens: 10, completion_tokens: 5 },
+      }),
+      { status: 200, headers: { "Content-Type": "application/json" } }
+    );
+  });
+
+  const batchA = await createValidBatch("concur-a");
+  const batchB = await createValidBatch("concur-b");
+  const batchC = await createValidBatch("concur-c");
+
+  await batchProcessor.processPendingBatches();
+
+  const statuses = [
+    localDb.getBatch(batchA.id)?.status,
+    localDb.getBatch(batchB.id)?.status,
+    localDb.getBatch(batchC.id)?.status,
+  ];
+
+  const inProgressCount = statuses.filter((s) => s === "in_progress").length;
+  const validatingCount = statuses.filter((s) => s === "validating").length;
+
+  assert.strictEqual(
+    inProgressCount,
+    1,
+    "Only one batch should be in_progress (concurrency limit)"
+  );
+  assert.strictEqual(validatingCount, 2, "Two batches should remain validating");
+
+  await waitForAllBatches();
+});
+
+test("processPendingBatches should not reset an actively processing batch", async () => {
+  async function createValidBatch(prefix: string) {
+    const content =
+      JSON.stringify({
+        custom_id: `${prefix}-req`,
+        method: "POST",
+        url: "/v1/chat/completions",
+        body: { model: "gpt-4", messages: [{ role: "user", content: prefix }] },
+      }) + "\n";
+
+    const file = await localDb.createFile({
+      bytes: Buffer.byteLength(content),
+      filename: `${prefix}_input.jsonl`,
+      purpose: "batch_input",
+      content: Buffer.from(content),
+    });
+
+    return await localDb.createBatch({
+      endpoint: "/v1/chat/completions",
+      status: "validating",
+      inputFileId: file.id,
+      completionWindow: "24h",
+    });
+  }
+
+  let firstRequest = true;
+  mock.method(dispatch, "dispatchBatchApiRequest", async () => {
+    if (firstRequest) {
+      firstRequest = false;
+      await new Promise((r) => setTimeout(r, 2000));
+    }
+    return new Response(
+      JSON.stringify({
+        id: "chatcmpl-active",
+        choices: [{ message: { content: "ok" } }],
+        usage: { prompt_tokens: 10, completion_tokens: 5 },
+      }),
+      { status: 200, headers: { "Content-Type": "application/json" } }
+    );
+  });
+
+  const batch = await createValidBatch("active-noreset");
+
+  // First call starts the batch (in_progress + activeBatches)
+  await batchProcessor.processPendingBatches();
+
+  let updated = await localDb.getBatch(batch.id);
+  assert.strictEqual(updated?.status, "in_progress");
+
+  // Second call should NOT reset it (it's in activeBatches)
+  await batchProcessor.processPendingBatches();
+
+  updated = await localDb.getBatch(batch.id);
+  assert.strictEqual(
+    updated?.status,
+    "in_progress",
+    "Actively processing batch should not be reset"
+  );
+
+  // Wait for the slow processing to finish
+  await waitForAllBatches();
+
+  updated = await localDb.getBatch(batch.id);
+  assert.strictEqual(updated?.status, "completed");
+});

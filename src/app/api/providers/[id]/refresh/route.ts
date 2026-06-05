@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { getProviderConnectionById, updateProviderConnection } from "@/lib/db/providers";
 import { getAccessToken, updateProviderCredentials } from "@/sse/services/tokenRefresh";
+import { rotationGroupFor } from "@omniroute/open-sse/services/refreshSerializer.ts";
 
 type RefreshResult = {
   accessToken?: string;
@@ -44,6 +45,33 @@ export async function POST(_request: Request, { params }: { params: Promise<{ id
     }
 
     const provider = connection.provider;
+
+    // Codex multi-account family-revocation cascade guard.
+    // Rotating-refresh providers (Codex/OpenAI share one Auth0 client_id, etc.)
+    // mint a single-use refresh_token on every refresh. This endpoint is invoked
+    // per-connection by the dashboard (incl. an OLD cached frontend that bulk-
+    // refreshes every expiring connection on a page load); rotating several
+    // sibling accounts makes Auth0 revoke the whole token family
+    // (openai/codex#9648), killing every account but the last. Never proactively
+    // rotate a rotating provider here — the access_token is reused as-is and
+    // genuine expiry is handled by the reactive, serialized 401 path on the next
+    // real request. This was the last unguarded proactive-refresh entry point
+    // (refreshAndUpdateCredentials and the connection-test route are already
+    // guarded). Non-rotating providers keep refreshing on demand below.
+    if (rotationGroupFor(provider) !== null) {
+      return NextResponse.json({
+        success: true,
+        skipped: true,
+        connectionId: id,
+        provider,
+        message:
+          "Rotating-refresh provider: the token refreshes automatically on the next request. " +
+          "Manual/bulk refresh is intentionally skipped to avoid Auth0 token-family revocation.",
+        expiresAt: connection.tokenExpiresAt || connection.expiresAt || null,
+        refreshedAt: new Date().toISOString(),
+      });
+    }
+
     const credentials = {
       connectionId: id,
       accessToken: connection.accessToken,
@@ -55,8 +83,15 @@ export async function POST(_request: Request, { params }: { params: Promise<{ id
     };
 
     // Use the existing getAccessToken helper which knows how to refresh
-    // tokens for each provider type (Claude, GitHub, Gemini, etc.)
-    const newCredentials = (await getAccessToken(provider, credentials)) as RefreshResult | null;
+    // tokens for each provider type (Claude, GitHub, Gemini, etc.).
+    // Pass onPersist so the DB write happens atomically INSIDE the per-connection
+    // mutex — prevents the race where a concurrent request reads stale credentials
+    // between the network call and the DB update.
+    let persistedCredentials: RefreshResult | null = null;
+    const newCredentials = (await getAccessToken(provider, credentials, async (result) => {
+      await updateProviderCredentials(id, result);
+      persistedCredentials = result;
+    })) as RefreshResult | null;
 
     if (newCredentials && typeof newCredentials === "object" && newCredentials.error) {
       if (
@@ -82,12 +117,17 @@ export async function POST(_request: Request, { params }: { params: Promise<{ id
       );
     }
 
-    // Persist new credentials to DB
-    await updateProviderCredentials(id, newCredentials);
+    // If onPersist was not called (e.g. no connectionId in credentials path), persist now.
+    if (!persistedCredentials) {
+      await updateProviderCredentials(id, newCredentials);
+    }
 
-    const expiresAt = newCredentials.expiresIn
-      ? new Date(Date.now() + newCredentials.expiresIn * 1000).toISOString()
-      : null;
+    const resolvedCreds = persistedCredentials || newCredentials;
+    const expiresAt = resolvedCreds.expiresAt
+      ? resolvedCreds.expiresAt
+      : resolvedCreds.expiresIn
+        ? new Date(Date.now() + resolvedCreds.expiresIn * 1000).toISOString()
+        : null;
 
     return NextResponse.json({
       success: true,

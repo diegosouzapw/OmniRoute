@@ -10,6 +10,7 @@ import {
 import { dbBackupCleanupSchema, dbBackupRestoreSchema } from "@/shared/validation/schemas";
 import { isValidationFailure, validateBody } from "@/shared/validation/helpers";
 import { isAuthenticated } from "@/shared/utils/apiAuth";
+import { sanitizeErrorMessage } from "@omniroute/open-sse/utils/error";
 
 /**
  * PUT /api/db-backups — Trigger a manual backup snapshot.
@@ -28,7 +29,7 @@ export async function PUT(request: NextRequest) {
     return NextResponse.json({ created: true, ...result });
   } catch (error) {
     console.error("[API] Error creating manual backup:", error);
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    return NextResponse.json({ error: sanitizeErrorMessage(error) }, { status: 500 });
   }
 }
 
@@ -46,7 +47,7 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ backups });
   } catch (error) {
     console.error("[API] Error listing DB backups:", error);
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    return NextResponse.json({ error: sanitizeErrorMessage(error) }, { status: 500 });
   }
 }
 
@@ -86,7 +87,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json(result);
   } catch (error) {
     console.error("[API] Error restoring DB backup:", error);
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    return NextResponse.json({ error: sanitizeErrorMessage(error) }, { status: 500 });
   }
 }
 
@@ -132,6 +133,6 @@ export async function DELETE(request) {
     });
   } catch (error) {
     console.error("[API] Error cleaning DB backups:", error);
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    return NextResponse.json({ error: sanitizeErrorMessage(error) }, { status: 500 });
   }
 }

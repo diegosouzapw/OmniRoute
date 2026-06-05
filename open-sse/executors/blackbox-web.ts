@@ -60,6 +60,7 @@ type CachedSession = {
   fetchedAt: number;
 };
 
+const MAX_SESSIONS = 100;
 const sessionCache = new Map<string, CachedSession>();
 
 type BlackboxMessage = {
@@ -182,29 +183,9 @@ function buildStreamingResponse(
 ): ReadableStream<Uint8Array> {
   const encoder = new TextEncoder();
 
-  return new ReadableStream({
-    start(controller) {
-      controller.enqueue(
-        encoder.encode(
-          sseChunk({
-            id,
-            object: "chat.completion.chunk",
-            created,
-            model,
-            system_fingerprint: null,
-            choices: [
-              {
-                index: 0,
-                delta: { role: "assistant" },
-                finish_reason: null,
-                logprobs: null,
-              },
-            ],
-          })
-        )
-      );
-
-      if (responseText) {
+  return new ReadableStream(
+    {
+      start(controller) {
         controller.enqueue(
           encoder.encode(
             sseChunk({
@@ -216,7 +197,7 @@ function buildStreamingResponse(
               choices: [
                 {
                   index: 0,
-                  delta: { content: responseText },
+                  delta: { role: "assistant" },
                   finish_reason: null,
                   logprobs: null,
                 },
@@ -224,24 +205,47 @@ function buildStreamingResponse(
             })
           )
         );
-      }
 
-      controller.enqueue(
-        encoder.encode(
-          sseChunk({
-            id,
-            object: "chat.completion.chunk",
-            created,
-            model,
-            system_fingerprint: null,
-            choices: [{ index: 0, delta: {}, finish_reason: "stop", logprobs: null }],
-          })
-        )
-      );
-      controller.enqueue(encoder.encode("data: [DONE]\n\n"));
-      controller.close();
+        if (responseText) {
+          controller.enqueue(
+            encoder.encode(
+              sseChunk({
+                id,
+                object: "chat.completion.chunk",
+                created,
+                model,
+                system_fingerprint: null,
+                choices: [
+                  {
+                    index: 0,
+                    delta: { content: responseText },
+                    finish_reason: null,
+                    logprobs: null,
+                  },
+                ],
+              })
+            )
+          );
+        }
+
+        controller.enqueue(
+          encoder.encode(
+            sseChunk({
+              id,
+              object: "chat.completion.chunk",
+              created,
+              model,
+              system_fingerprint: null,
+              choices: [{ index: 0, delta: {}, finish_reason: "stop", logprobs: null }],
+            })
+          )
+        );
+        controller.enqueue(encoder.encode("data: [DONE]\n\n"));
+        controller.close();
+      },
     },
-  });
+    { highWaterMark: 16384 }
+  );
 }
 
 function buildNonStreamingResponse(
@@ -410,6 +414,11 @@ export class BlackboxWebExecutor extends BaseExecutor {
           teamAccount,
           fetchedAt: Date.now(),
         });
+        while (sessionCache.size > MAX_SESSIONS) {
+          const oldestKey = sessionCache.keys().next().value;
+          if (oldestKey !== undefined) sessionCache.delete(oldestKey);
+          else break;
+        }
       } catch (diagErr) {
         log?.debug?.("BLACKBOX-WEB", `Session/subscription fetch failed (non-fatal): ${diagErr}`);
       }

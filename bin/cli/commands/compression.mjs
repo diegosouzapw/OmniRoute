@@ -3,18 +3,89 @@ import { apiFetch } from "../api.mjs";
 import { emit } from "../output.mjs";
 import { t } from "../i18n.mjs";
 
-const VALID_ENGINES = ["caveman", "rtk", "hybrid", "none"];
+// #2688 — CLI no longer assumes MCP is enabled. Engine names are normalized
+// to the current core set; legacy aliases continue to work.
+const VALID_ENGINES = ["off", "caveman", "rtk", "stacked"];
+const ENGINE_ALIASES = { none: "off", hybrid: "stacked" };
 
-async function mcpCall(name, args) {
-  const res = await apiFetch("/api/mcp/tools/call", {
-    method: "POST",
-    body: { name, arguments: args },
+function normalizeEngine(name) {
+  return ENGINE_ALIASES[name] ?? name;
+}
+
+// Direct REST fallbacks used when the MCP tool surface is not mounted (404).
+// Keeps every subcommand working on minimal builds.
+async function restCompressionStatus() {
+  const [settingsRes, combosRes, analyticsRes] = await Promise.all([
+    apiFetch("/api/settings/compression"),
+    apiFetch("/api/context/combos"),
+    apiFetch("/api/context/analytics?period=7d").catch(() => null),
+  ]);
+  const settings = settingsRes.ok ? await settingsRes.json() : {};
+  const combosBody = combosRes.ok ? await combosRes.json() : { combos: [] };
+  const analytics = analyticsRes && analyticsRes.ok ? await analyticsRes.json() : null;
+  return {
+    engine: settings.engine ?? null,
+    settings,
+    combos: combosBody.combos ?? combosBody,
+    analytics,
+  };
+}
+
+async function restCompressionConfigure(config) {
+  const body = { ...config };
+  if (body.engine) body.engine = normalizeEngine(body.engine);
+  const res = await apiFetch("/api/settings/compression", { method: "PUT", body });
+  if (!res.ok) {
+    process.stderr.write(`Error: ${res.status}\n`);
+    process.exit(1);
+  }
+  return res.json();
+}
+
+async function restSetEngine(name) {
+  const res = await apiFetch("/api/settings/compression", {
+    method: "PUT",
+    body: { engine: normalizeEngine(name) },
   });
   if (!res.ok) {
     process.stderr.write(`Error: ${res.status}\n`);
     process.exit(1);
   }
   return res.json();
+}
+
+async function restListCombos() {
+  const res = await apiFetch("/api/context/combos");
+  if (!res.ok) {
+    process.stderr.write(`Error: ${res.status}\n`);
+    process.exit(1);
+  }
+  const body = await res.json();
+  return body.combos ?? body;
+}
+
+async function restComboStats(period) {
+  const res = await apiFetch(`/api/context/analytics?period=${encodeURIComponent(period ?? "7d")}`);
+  if (!res.ok) {
+    process.stderr.write(`Error: ${res.status}\n`);
+    process.exit(1);
+  }
+  return res.json();
+}
+
+async function mcpCall(name, args, restFallback) {
+  const res = await apiFetch("/api/mcp/tools/call", {
+    method: "POST",
+    body: { name, arguments: args },
+  });
+  if (res.ok) return res.json();
+  // 404 = MCP tool surface not mounted on this build; 501 = not implemented.
+  // Anything else is a genuine error and we surface it.
+  if ((res.status === 404 || res.status === 501) && typeof restFallback === "function") {
+    return restFallback();
+  }
+  process.stderr.write(`Error: ${res.status}\n`);
+  process.exit(1);
 }
 
 async function confirm(q) {
@@ -26,7 +97,7 @@ async function confirm(q) {
 }
 
 export async function runCompressionStatus(opts, cmd) {
-  const data = await mcpCall("omniroute_compression_status", {});
+  const data = await mcpCall("omniroute_compression_status", {}, restCompressionStatus);
   emit(data, cmd.optsWithGlobals());
 }
 
@@ -37,17 +108,22 @@ export async function runCompressionConfigure(opts, cmd) {
     config.caveman = { aggressiveness: opts.cavemanAggressiveness };
   if (opts.rtkBudget !== undefined) config.rtk = { tokenBudget: opts.rtkBudget };
   if (opts.languagePack) config.languagePack = opts.languagePack;
-  const data = await mcpCall("omniroute_compression_configure", config);
+  const data = await mcpCall("omniroute_compression_configure", config, () =>
+    restCompressionConfigure(config)
+  );
   emit(data, cmd.optsWithGlobals());
 }
 
 export async function runCompressionEngineSet(name, opts, cmd) {
-  if (!VALID_ENGINES.includes(name)) {
+  const normalized = normalizeEngine(name);
+  if (!VALID_ENGINES.includes(normalized)) {
     process.stderr.write(`Unknown engine: ${name}. Valid: ${VALID_ENGINES.join(", ")}\n`);
     process.exit(2);
   }
-  await mcpCall("omniroute_set_compression_engine", { engine: name });
-  process.stdout.write(`Engine: ${name}\n`);
+  await mcpCall("omniroute_set_compression_engine", { engine: normalized }, () =>
+    restSetEngine(normalized)
+  );
+  process.stdout.write(`Engine: ${normalized}\n`);
 }
 
 export async function runCompressionPreview(opts, cmd) {
@@ -86,22 +162,26 @@ export function registerCompression(program) {
   const engine = cmp.command("engine").description(t("compression.engine.description"));
   engine.command("set <name>").action(runCompressionEngineSet);
   engine.command("get").action(async (opts, cmd) => {
-    const data = await mcpCall("omniroute_compression_status", {});
+    const data = await mcpCall("omniroute_compression_status", {}, restCompressionStatus);
     process.stdout.write(`${data.engine ?? "(default)"}\n`);
   });
 
   const combos = cmp.command("combos").description(t("compression.combos.description"));
   combos.command("list").action(async (opts, cmd) => {
-    const data = await mcpCall("omniroute_list_compression_combos", {});
+    const data = await mcpCall("omniroute_list_compression_combos", {}, async () => ({
+      combos: await restListCombos(),
+    }));
     emit(data.combos ?? data, cmd.optsWithGlobals());
   });
   combos
     .command("stats")
     .option("--period <p>", null, "7d")
     .action(async (opts, cmd) => {
-      const data = await mcpCall("omniroute_compression_combo_stats", {
-        period: opts.period ?? "7d",
-      });
+      const data = await mcpCall(
+        "omniroute_compression_combo_stats",
+        { period: opts.period ?? "7d" },
+        () => restComboStats(opts.period)
+      );
       emit(data, cmd.optsWithGlobals());
     });
 

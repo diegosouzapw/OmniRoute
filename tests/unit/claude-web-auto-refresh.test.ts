@@ -7,14 +7,22 @@ import {
   getCacheInfo,
   createAutoRefreshMiddleware,
 } from "../../open-sse/services/claudeWebAutoRefresh";
-import { getCfClearanceToken, getCacheStatus } from "../../open-sse/services/claudeTurnstileSolver";
+import {
+  getCfClearanceToken,
+  getCacheStatus,
+  setCfClearanceTokenForTesting,
+} from "../../open-sse/services/claudeTurnstileSolver";
+
+const TEST_CF_CLEARANCE_TOKEN = "test_cf_clearance_token_1234567890";
 
 test.before(() => {
+  setCfClearanceTokenForTesting(TEST_CF_CLEARANCE_TOKEN);
   clearCfClearanceCache();
 });
 
 test.after(() => {
   clearCfClearanceCache();
+  setCfClearanceTokenForTesting(null);
 });
 
 test("should handle cache status when empty", () => {

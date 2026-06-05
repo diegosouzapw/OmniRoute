@@ -18,12 +18,15 @@ const { invalidateCacheControlSettingsCache } =
 const { clearCache, getCachedResponse, generateSignature } =
   await import("../../src/lib/semanticCache.ts");
 const { clearIdempotency } = await import("../../src/lib/idempotencyLayer.ts");
+const { getPendingRequests, clearPendingRequests } =
+  await import("../../src/lib/usage/usageHistory.ts");
 const { clearInflight } = await import("../../open-sse/services/requestDedup.ts");
 const {
   buildAccountSemaphoreKey,
   getStats: getAccountSemaphoreStats,
   resetAll: resetAccountSemaphores,
 } = await import("../../open-sse/services/accountSemaphore.ts");
+const { getExecutor } = await import("../../open-sse/executors/index.ts");
 const { clearModelLock, isModelLocked } =
   await import("../../open-sse/services/accountFallback.ts");
 const { saveModelsDevCapabilities, clearModelsDevCapabilities } =
@@ -368,6 +371,7 @@ async function invokeChatCore({
 test.afterEach(async () => {
   globalThis.fetch = originalFetch;
   restorePipelineCaptureEnv();
+  clearPendingRequests();
   resetAccountSemaphores();
   await waitForAsyncSideEffects();
   await resetStorage();
@@ -376,10 +380,71 @@ test.afterEach(async () => {
 test.after(async () => {
   globalThis.fetch = originalFetch;
   restorePipelineCaptureEnv();
+  clearPendingRequests();
   resetAccountSemaphores();
   await waitForAsyncSideEffects();
   await resetStorage();
   fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+});
+
+test("chatCore times out upstream execution before provider response headers", async () => {
+  const executor = getExecutor("openai");
+  const originalGetTimeoutMs = executor.getTimeoutMs?.bind(executor);
+  executor.getTimeoutMs = () => 200;
+
+  const connectionId = "upstream-start-timeout";
+  const body = {
+    model: "gpt-4o-mini",
+    stream: false,
+    messages: [{ role: "user", content: "never returns" }],
+  };
+  const fetchSignals: AbortSignal[] = [];
+  const upstreamBodies: any[] = [];
+  globalThis.fetch = async (_url, init = {}) => {
+    if (init.signal instanceof AbortSignal) fetchSignals.push(init.signal);
+    if (init.body) upstreamBodies.push(JSON.parse(String(init.body)));
+    return new Promise(() => {});
+  };
+
+  try {
+    const invocation = handleChatCore({
+      body: structuredClone(body),
+      modelInfo: { provider: "openai", model: "gpt-4o-mini", extendedContext: false },
+      credentials: {
+        apiKey: "sk-test",
+        providerSpecificData: {},
+      },
+      log: noopLog(),
+      clientRawRequest: {
+        endpoint: "/v1/chat/completions",
+        body: structuredClone(body),
+        headers: new Headers({ accept: "application/json" }),
+      },
+      connectionId,
+      userAgent: "unit-test",
+    } as any);
+
+    const pendingDetail = (await waitFor(
+      () =>
+        Object.values(getPendingRequests().details[connectionId] || {}).find(
+          (detail: any) => detail?.providerRequest?.model === "gpt-4o-mini"
+        )
+    )) as any;
+    assert.equal(pendingDetail?.providerRequest?.model, "gpt-4o-mini");
+    assert.deepEqual(pendingDetail?.providerRequest?.messages, body.messages);
+    const result = await invocation;
+    await waitForAsyncSideEffects();
+
+    assert.equal(upstreamBodies[0]?.model, "gpt-4o-mini");
+    assert.deepEqual(upstreamBodies[0]?.messages, body.messages);
+    assert.equal(result.success, false);
+    assert.equal(result.status, 504);
+    assert.equal(fetchSignals[0]?.aborted, true);
+    assert.equal(getPendingRequests().details[connectionId], undefined);
+  } finally {
+    if (originalGetTimeoutMs) executor.getTimeoutMs = originalGetTimeoutMs;
+    globalThis.fetch = originalFetch;
+  }
 });
 
 test("chatCore can disable pipeline stream chunk capture through environment", async () => {
@@ -667,12 +732,14 @@ test("chatCore normalizes native Claude Code messages for native Claude OAuth pa
     true
   );
 
-  // user msg[0] (was clientMessages[1]): empty text stripped, document→text, future_block dropped
-  // Remaining: ["Run pwd" text, "[README.md]\nDo not flatten me" text]
-  assert.equal(call.body.messages[0].content.length, 2);
-  assert.equal(call.body.messages[0].content[0].text, "Run pwd");
-  assert.equal(call.body.messages[0].content[1].type, "text");
-  assert.equal(call.body.messages[0].content[1].text, "[README.md]\nDo not flatten me");
+  // user msg[0] (was clientMessages[1]): empty text, document and future_block are preserved
+  // since it is a semantic passthrough request
+  assert.equal(call.body.messages[0].content.length, 4);
+  assert.equal(call.body.messages[0].content[0].type, "text");
+  assert.equal(call.body.messages[0].content[0].text, "");
+  assert.equal(call.body.messages[0].content[1].text, "Run pwd");
+  assert.equal(call.body.messages[0].content[2].type, "document");
+  assert.equal(call.body.messages[0].content[3].type, "future_block");
 
   // assistant msg[1] (was clientMessages[2]): tool_use unchanged
   assert.equal(call.body.messages[1].content[0].type, "tool_use");
@@ -789,12 +856,14 @@ test("chatCore normalizes native Claude Code messages before CC-compatible relay
     true
   );
 
-  // user msg[0] (was clientMessages[1]): empty text stripped, document→text, future_block dropped
-  // Remaining: ["Inspect project" text, "[design.md]\nKeep as document block" text]
-  assert.equal(call.body.messages[0].content.length, 2);
-  assert.equal(call.body.messages[0].content[0].text, "Inspect project");
-  assert.equal(call.body.messages[0].content[1].type, "text");
-  assert.equal(call.body.messages[0].content[1].text, "[design.md]\nKeep as document block");
+  // user msg[0] (was clientMessages[1]): empty text, document and future_block are preserved
+  // since it is a semantic passthrough request
+  assert.equal(call.body.messages[0].content.length, 4);
+  assert.equal(call.body.messages[0].content[0].type, "text");
+  assert.equal(call.body.messages[0].content[0].text, "");
+  assert.equal(call.body.messages[0].content[1].text, "Inspect project");
+  assert.equal(call.body.messages[0].content[2].type, "document");
+  assert.equal(call.body.messages[0].content[3].type, "future_block");
 
   // assistant msg[1] (was clientMessages[2]): tool_use unchanged
   assert.equal(call.body.messages[1].content[0].type, "tool_use");
@@ -2572,9 +2641,16 @@ test("chatCore caches streaming response and serves cache HIT on repeat", async 
   assert.equal(second.calls.length, 0, "second request should not reach upstream");
   assert.equal(second.result.response.headers.get("X-OmniRoute-Cache"), "HIT");
 
-  const payload = (await second.result.response.json()) as any;
-  assert.ok(payload.choices, "cached response should have choices");
-  assert.equal(payload.choices[0].message.content, "streamed-once");
+  // #2952 — a streaming client receives the cache HIT as an SSE stream (not a
+  // raw JSON body), so content + reasoning_content arrive in the streaming shape.
+  assert.equal(
+    second.result.response.headers.get("Content-Type"),
+    "text/event-stream",
+    "streaming cache HIT should be served as SSE"
+  );
+  const sse = await second.result.response.text();
+  assert.match(sse, /^data:/m, "cache HIT should be SSE-framed");
+  assert.match(sse, /streamed-once/, "SSE cache HIT should carry the cached content");
 });
 
 test("chatCore does not cache streaming response when temperature > 0", async () => {
@@ -2665,7 +2741,7 @@ test("chatCore skips streaming cache when X-OmniRoute-No-Cache header is set", a
   assert.equal(upstreamHits, 2, "both requests should hit upstream with no-cache");
 });
 
-test("chatCore returns cache HIT as JSON even when client requests SSE", async () => {
+test("chatCore returns cache HIT as SSE when the client requests streaming", async () => {
   const sharedBody = {
     model: "gpt-4o-mini",
     stream: false,
@@ -2698,12 +2774,15 @@ test("chatCore returns cache HIT as JSON even when client requests SSE", async (
 
   assert.equal(second.calls.length, 0, "cached response should prevent upstream call");
   assert.equal(second.result.response.headers.get("X-OmniRoute-Cache"), "HIT");
+  // #2952 — even though the cache was populated by a non-streaming request, a
+  // later streaming request gets the cached completion SSE-wrapped, so streaming
+  // clients keep their streaming shape (and reasoning_content) on cache hits.
   assert.equal(
     second.result.response.headers.get("Content-Type"),
-    "application/json",
-    "cache HIT should return JSON regardless of stream flag"
+    "text/event-stream",
+    "streaming cache HIT should be served as SSE"
   );
-
-  const payload = (await second.result.response.json()) as any;
-  assert.equal(payload.choices[0].message.content, "cached-json");
+  const sse = await second.result.response.text();
+  assert.match(sse, /^data:/m, "cache HIT should be SSE-framed");
+  assert.match(sse, /cached-json/, "SSE cache HIT should carry the cached content");
 });

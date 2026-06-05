@@ -203,18 +203,23 @@ export default function MemorySkillsTab() {
       const data = await res.json().catch(() => null);
       if (res.ok && data?.ok) {
         setQdrantCleanupMsg(
-          `OK: removeu ${data.deletedCount ?? 0} ponto(s) (retencao: ${data.retentionDays} dias)`
+          t("qdrantCleanupSuccess", {
+            count: data.deletedCount ?? 0,
+            days: data.retentionDays,
+          })
         );
       } else {
-        const err = data?.error || "Falha na limpeza";
-        setQdrantCleanupMsg(`Erro: ${String(err)}`);
+        const err = data?.error || t("qdrantCleanupFailed");
+        setQdrantCleanupMsg(t("qdrantCleanupError", { error: String(err) }));
       }
     } catch (e) {
-      setQdrantCleanupMsg(`Erro: ${e instanceof Error ? e.message : String(e)}`);
+      setQdrantCleanupMsg(
+        t("qdrantCleanupError", { error: e instanceof Error ? e.message : String(e) })
+      );
     } finally {
       setQdrantCleanupLoading(false);
     }
-  }, []);
+  }, [t]);
 
   const saveSkillsmpApiKey = useCallback(async () => {
     setSkillsmpSaving(true);

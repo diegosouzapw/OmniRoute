@@ -104,6 +104,7 @@ export default function KiroOAuthWrapper({
       <KiroSocialOAuthModal
         isOpen={isOpen}
         provider={socialProvider}
+        targetProvider={oauthProviderId}
         providerLabel={providerLabel}
         onSuccess={handleSocialSuccess}
         onClose={handleBack}

@@ -4,14 +4,22 @@ import {
   mergeModelCompatOverride,
   replaceCustomModels,
   replaceSyncedAvailableModelsForConnection,
+  pruneStaleSyncedAvailableModelsForProvider,
+  setMitmAliasAll,
+  getSyncedAvailableModels,
   type ModelCompatPatch,
   type SyncedAvailableModel,
 } from "@/lib/db/models";
+import { getProviderConnections } from "@/lib/db/providers";
 import {
   syncManagedAvailableModelAliases,
   usesManagedAvailableModels,
 } from "@/lib/providerModels/managedAvailableModels";
 import { normalizeDiscoveredModels } from "@/lib/providerModels/modelDiscovery";
+import {
+  ANTIGRAVITY_MODEL_ALIASES,
+  ANTIGRAVITY_REVERSE_MODEL_ALIASES,
+} from "@omniroute/open-sse/config/antigravityModelAliases.ts";
 
 type JsonRecord = Record<string, unknown>;
 
@@ -237,6 +245,67 @@ export async function importManagedModels({
       discoveredModels
     );
   }
+
+  // Prune stale/inactive connection caches for this provider
+  const activeConnections = await getProviderConnections({ provider: providerId, isActive: true });
+  const allowedConnectionIds = Array.from(
+    new Set([...activeConnections.map((c) => String(c.id)), connectionId])
+  );
+  await pruneStaleSyncedAvailableModelsForProvider(providerId, allowedConnectionIds);
+
+  // If this is the "antigravity" provider, dynamically regenerate and persist the mitmAlias mapping for "antigravity"
+  if (providerId === "antigravity") {
+    const allAntigravityModels = await getSyncedAvailableModels("antigravity");
+    const syncedIds = new Set(allAntigravityModels.map((m) => m.id).filter(Boolean) as string[]);
+
+    // Transitive/recursive resolution helper
+    const resolveTransitively = (name: string): string => {
+      let current = name;
+      const visited = new Set<string>();
+      while (current && !visited.has(current)) {
+        if (syncedIds.has(current)) {
+          return current;
+        }
+        visited.add(current);
+        if (ANTIGRAVITY_MODEL_ALIASES && (ANTIGRAVITY_MODEL_ALIASES as any)[current]) {
+          current = (ANTIGRAVITY_MODEL_ALIASES as any)[current];
+          continue;
+        }
+        if (ANTIGRAVITY_REVERSE_MODEL_ALIASES && (ANTIGRAVITY_REVERSE_MODEL_ALIASES as any)[current]) {
+          current = (ANTIGRAVITY_REVERSE_MODEL_ALIASES as any)[current];
+          continue;
+        }
+        break;
+      }
+      return current;
+    };
+
+    // Gather all candidate alias names to check
+    const candidates = new Set<string>();
+    for (const id of syncedIds) {
+      candidates.add(id);
+    }
+    for (const [k, v] of Object.entries(ANTIGRAVITY_MODEL_ALIASES || {})) {
+      candidates.add(k);
+      candidates.add(v);
+    }
+    for (const [k, v] of Object.entries(ANTIGRAVITY_REVERSE_MODEL_ALIASES || {})) {
+      candidates.add(k);
+      candidates.add(v);
+    }
+
+    // Build the dynamic mapping dictionary
+    const mappings: Record<string, string> = {};
+    for (const alias of candidates) {
+      const resolvedId = resolveTransitively(alias);
+      if (syncedIds.has(resolvedId)) {
+        mappings[alias] = `antigravity/${resolvedId}`;
+      }
+    }
+
+    await setMitmAliasAll("antigravity", mappings);
+  }
+
 
   let syncedAliases = 0;
   if (usesManagedAvailableModels(providerId) && (mode === "merge" || discoveredModels.length > 0)) {

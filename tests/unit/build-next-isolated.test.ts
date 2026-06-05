@@ -110,9 +110,11 @@ test("resolveNextBuildEnv forces stable build worker mode unless already provide
 test("getTransientBuildPaths leaves _tasks in place by default", () => {
   const paths = getTransientBuildPaths("/repo", {});
 
+  // Layer 1 deleted the root-level `app/` move-out hack, so the only default
+  // transient path left is the Wine prefix. ("legacy app snapshot" is gone.)
   assert.deepEqual(
     paths.map((entry) => entry.label),
-    ["legacy app snapshot", "local Wine prefix"]
+    ["local Wine prefix"]
   );
   assert.equal(
     paths.some((entry) => path.basename(entry.sourcePath) === "_tasks"),
@@ -131,13 +133,17 @@ test("getTransientBuildPaths only moves _tasks when explicitly enabled", () => {
 
 test("pruneStandaloneArtifacts removes traced _tasks from standalone output", async () => {
   await withTempDir(async (tempDir) => {
-    const tracedTaskFile = path.join(tempDir, ".next", "standalone", "_tasks", "plan.md");
+    // Layer 1 moved the Next distDir default to .build/next.
+    const tracedTaskFile = path.join(tempDir, ".build", "next", "standalone", "_tasks", "plan.md");
     await fs.mkdir(path.dirname(tracedTaskFile), { recursive: true });
     await fs.writeFile(tracedTaskFile, "transient planning artifact");
 
     await pruneStandaloneArtifacts(tempDir);
 
-    assert.equal(fsSync.existsSync(path.join(tempDir, ".next", "standalone", "_tasks")), false);
+    assert.equal(
+      fsSync.existsSync(path.join(tempDir, ".build", "next", "standalone", "_tasks")),
+      false
+    );
   });
 });
 
@@ -152,7 +158,8 @@ test("syncStandaloneNativeAssets copies wreq-js native runtime into standalone o
     );
     const destinationNativeFile = path.join(
       tempDir,
-      ".next",
+      ".build",
+      "next",
       "standalone",
       "node_modules",
       "wreq-js",

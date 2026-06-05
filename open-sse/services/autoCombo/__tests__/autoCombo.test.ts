@@ -163,6 +163,186 @@ describe("Mode Packs", () => {
   });
 });
 
+describe("SLA-aware Strategy", () => {
+  const pool: ProviderCandidate[] = [
+    {
+      provider: "fast-flaky",
+      model: "fast-model",
+      quotaRemaining: 100,
+      quotaTotal: 100,
+      circuitBreakerState: "CLOSED",
+      costPer1MTokens: 2,
+      p95LatencyMs: 800,
+      latencyStdDev: 200,
+      errorRate: 0.2,
+    },
+    {
+      provider: "steady",
+      model: "steady-model",
+      quotaRemaining: 80,
+      quotaTotal: 100,
+      circuitBreakerState: "CLOSED",
+      costPer1MTokens: 6,
+      p95LatencyMs: 1400,
+      latencyStdDev: 100,
+      errorRate: 0.01,
+    },
+    {
+      provider: "cheap-slow",
+      model: "cheap-model",
+      quotaRemaining: 100,
+      quotaTotal: 100,
+      circuitBreakerState: "CLOSED",
+      costPer1MTokens: 0.2,
+      p95LatencyMs: 3500,
+      latencyStdDev: 150,
+      errorRate: 0.01,
+    },
+  ];
+
+  it("should prefer candidates that satisfy latency and error-rate SLOs", () => {
+    const strategy = getStrategy("sla-aware");
+    const result = strategy.select(pool, {
+      taskType: "coding",
+      sla: {
+        targetP95Ms: 2000,
+        maxErrorRate: 0.05,
+        maxCostPer1MTokens: 10,
+      },
+    });
+
+    expect(result.strategy).toBe("sla-aware");
+    expect(result.provider).toBe("steady");
+    expect(result.reason).toContain("p95=1400ms/2000ms");
+  });
+
+  it("should support the sla alias and soft-fallback when no candidate satisfies all SLOs", () => {
+    const strategy = getStrategy("sla");
+    const result = strategy.select(pool, {
+      taskType: "coding",
+      sla: {
+        targetP95Ms: 500,
+        maxErrorRate: 0.005,
+        maxCostPer1MTokens: 1,
+        hardConstraints: true,
+      },
+    });
+
+    expect(result.strategy).toBe("sla-aware");
+    expect(result.candidatesConsidered).toBe(3);
+    expect(result.reason).toContain("no candidate met all SLA constraints");
+  });
+
+  it("should use pure score ranking in soft mode even when a compliant candidate exists", () => {
+    const strategy = getStrategy("sla-aware");
+    const softPool: ProviderCandidate[] = [
+      {
+        provider: "slightly-over-error",
+        model: "fast-reliable-enough",
+        quotaRemaining: 100,
+        quotaTotal: 100,
+        circuitBreakerState: "CLOSED",
+        costPer1MTokens: 1,
+        p95LatencyMs: 500,
+        latencyStdDev: 10,
+        errorRate: 0.06,
+      },
+      {
+        provider: "compliant-but-risky",
+        model: "threshold-model",
+        quotaRemaining: 100,
+        quotaTotal: 100,
+        circuitBreakerState: "HALF_OPEN",
+        costPer1MTokens: 5,
+        p95LatencyMs: 2_000,
+        latencyStdDev: 1_000,
+        errorRate: 0.05,
+      },
+    ];
+
+    const result = strategy.select(softPool, {
+      taskType: "coding",
+      sla: {
+        targetP95Ms: 2_000,
+        maxErrorRate: 0.05,
+        maxCostPer1MTokens: 5,
+      },
+    });
+
+    expect(result.provider).toBe("slightly-over-error");
+    expect(result.reason).not.toContain("no candidate met all SLA constraints");
+  });
+
+  it("should prefer compliant candidates before score when hard constraints are enabled", () => {
+    const strategy = getStrategy("sla-aware");
+    const hardPool: ProviderCandidate[] = [
+      {
+        provider: "slightly-over-error",
+        model: "fast-reliable-enough",
+        quotaRemaining: 100,
+        quotaTotal: 100,
+        circuitBreakerState: "CLOSED",
+        costPer1MTokens: 1,
+        p95LatencyMs: 500,
+        latencyStdDev: 10,
+        errorRate: 0.06,
+      },
+      {
+        provider: "compliant-but-risky",
+        model: "threshold-model",
+        quotaRemaining: 100,
+        quotaTotal: 100,
+        circuitBreakerState: "HALF_OPEN",
+        costPer1MTokens: 5,
+        p95LatencyMs: 2_000,
+        latencyStdDev: 1_000,
+        errorRate: 0.05,
+      },
+    ];
+
+    const result = strategy.select(hardPool, {
+      taskType: "coding",
+      sla: {
+        targetP95Ms: 2_000,
+        maxErrorRate: 0.05,
+        maxCostPer1MTokens: 5,
+        hardConstraints: true,
+      },
+    });
+
+    expect(result.provider).toBe("compliant-but-risky");
+  });
+
+  it("should give full SLO-factor credit to candidates exactly at configured thresholds", () => {
+    const strategy = getStrategy("sla-aware");
+    const result = strategy.select(
+      [
+        {
+          provider: "threshold-provider",
+          model: "threshold-model",
+          quotaRemaining: 100,
+          quotaTotal: 100,
+          circuitBreakerState: "CLOSED",
+          costPer1MTokens: 5,
+          p95LatencyMs: 1_000,
+          latencyStdDev: 50,
+          errorRate: 0.1,
+        },
+      ],
+      {
+        taskType: "coding",
+        sla: {
+          targetP95Ms: 1_000,
+          maxErrorRate: 0.1,
+          maxCostPer1MTokens: 5,
+        },
+      }
+    );
+
+    expect(result.finalScore).toBeGreaterThan(0.9);
+  });
+});
+
 describe("LKGP Strategy", () => {
   const pool: ProviderCandidate[] = [
     {

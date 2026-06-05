@@ -7,6 +7,7 @@ const { DeepSeekWebExecutor, DEEPSEEK_WEB_BASE } =
 const { DeepSeekWebWithAutoRefreshExecutor } =
   await import("../../open-sse/executors/deepseek-web-with-auto-refresh.ts");
 const { getExecutor, hasSpecializedExecutor } = await import("../../open-sse/executors/index.ts");
+const { serializeToolsToPrompt } = await import("../../open-sse/translator/webTools.ts");
 
 const COMPLETION_URL = `${DEEPSEEK_WEB_BASE}/api/v0/chat/completion`;
 
@@ -56,6 +57,49 @@ test("execute returns 400 with empty apiKey", async () => {
     signal: AbortSignal.timeout(5000),
   });
   assert.equal(result.response.status, 400);
+});
+
+test("tools[] is translated into a <tool> prompt contract, not rejected - issue #2820 (supersedes #2848)", () => {
+  // #2848 made deepseek-web hard-fail tool requests with a 400. #2820 reverses that:
+  // tools[] is now serialized into a <tool> prompt contract and the model's text reply
+  // is parsed back into OpenAI tool_calls. Full execute() round-trip coverage lives in
+  // deepseek-web-tools-execute-2820.test.ts.
+  const prompt = serializeToolsToPrompt([
+    {
+      type: "function",
+      function: {
+        name: "my_tool",
+        description: "test tool",
+        parameters: { type: "object", properties: {} },
+      },
+    },
+  ]);
+  assert.ok(prompt.includes("my_tool"), "tool name serialized into the prompt");
+  assert.ok(prompt.includes("<tool>"), "invocation contract present");
+});
+
+test("execute does NOT 400 on tools[]=[] (empty array, equivalent to no tools)", async () => {
+  const executor = new DeepSeekWebExecutor();
+  const result = await executor.execute({
+    model: "default",
+    body: {
+      messages: [{ role: "user", content: "hi" }],
+      tools: [],
+    },
+    stream: false,
+    credentials: {},
+    signal: AbortSignal.timeout(5000),
+  });
+  assert.equal(
+    result.response.status,
+    400,
+    "still returns 400 but for missing userToken, NOT for tools[]"
+  );
+  const text = await result.response.text();
+  assert.ok(
+    text.includes("userToken"),
+    `expected userToken error (not tools error) for empty tools[], got: ${text}`
+  );
 });
 
 // ─── Test connection ─────────────────────────────────────────────────────
@@ -121,6 +165,13 @@ async function mockDeepSeekFlow() {
         }),
         { status: 200, headers: { "Content-Type": "application/json" } }
       );
+    }
+
+    if (urlStr.includes("/chat_session/delete")) {
+      return new Response(JSON.stringify({ code: 0 }), {
+        status: 200,
+        headers: { "Content-Type": "application/json" },
+      });
     }
 
     if (urlStr.includes("/chat/completion")) {
@@ -463,6 +514,127 @@ test("isSessionValid starts false", () => {
   assert.equal(exec.isSessionValid(), false);
 });
 
+test("auto-refresh stays idle until a userToken is provided", async () => {
+  const errors = [];
+  const originalError = console.error;
+  console.error = (...args) => {
+    errors.push(args);
+  };
+
+  const exec = new DeepSeekWebWithAutoRefreshExecutor({
+    autoRefresh: true,
+    sessionRefreshInterval: 5,
+  });
+  try {
+    await new Promise((resolve) => setTimeout(resolve, 25));
+    assert.equal(errors.length, 0);
+  } finally {
+    exec.destroy();
+    console.error = originalError;
+  }
+});
+
+test("execute without DeepSeek credentials does not start auto-refresh", async () => {
+  const errors = [];
+  const originalError = console.error;
+  console.error = (...args) => {
+    errors.push(args);
+  };
+
+  const exec = new DeepSeekWebWithAutoRefreshExecutor({
+    autoRefresh: true,
+    sessionRefreshInterval: 5,
+  });
+  try {
+    const result = await exec.execute({
+      model: "default",
+      body: { messages: [{ role: "user", content: "hi" }] },
+      stream: true,
+      credentials: {},
+      signal: AbortSignal.timeout(5000),
+    });
+    assert.equal(result.response.status, 400);
+
+    await new Promise((resolve) => setTimeout(resolve, 25));
+    assert.equal(errors.length, 0);
+  } finally {
+    exec.destroy();
+    console.error = originalError;
+  }
+});
+
+test("execute without DeepSeek credentials preserves an active auto-refresh session", async () => {
+  const mock = await mockDeepSeekFlow();
+  const exec = new DeepSeekWebWithAutoRefreshExecutor({
+    autoRefresh: true,
+    sessionRefreshInterval: 60_000,
+  });
+  try {
+    const validResult = await exec.execute({
+      model: "default",
+      body: { messages: [{ role: "user", content: "hi" }] },
+      stream: true,
+      credentials: { apiKey: "test-user-token-active-refresh" },
+      signal: AbortSignal.timeout(10000),
+    });
+    assert.ok(validResult.response.ok);
+
+    const activeTimer = exec.refreshTimer;
+    assert.ok(activeTimer);
+    assert.equal(exec.currentUserToken, "test-user-token-active-refresh");
+
+    const invalidResult = await exec.execute({
+      model: "default",
+      body: { messages: [{ role: "user", content: "hi" }] },
+      stream: true,
+      credentials: {},
+      signal: AbortSignal.timeout(5000),
+    });
+    assert.equal(invalidResult.response.status, 400);
+    assert.equal(exec.currentUserToken, "test-user-token-active-refresh");
+    assert.equal(exec.refreshTimer, activeTimer);
+  } finally {
+    exec.destroy();
+    mock.restore();
+  }
+});
+
+test("execute with a new DeepSeek userToken restarts auto-refresh", async () => {
+  const mock = await mockDeepSeekFlow();
+  const exec = new DeepSeekWebWithAutoRefreshExecutor({
+    autoRefresh: true,
+    sessionRefreshInterval: 60_000,
+  });
+  try {
+    const firstResult = await exec.execute({
+      model: "default",
+      body: { messages: [{ role: "user", content: "first" }] },
+      stream: true,
+      credentials: { apiKey: "test-user-token-refresh-1" },
+      signal: AbortSignal.timeout(10000),
+    });
+    assert.ok(firstResult.response.ok);
+
+    const firstTimer = exec.refreshTimer;
+    assert.ok(firstTimer);
+
+    const secondResult = await exec.execute({
+      model: "default",
+      body: { messages: [{ role: "user", content: "second" }] },
+      stream: true,
+      credentials: { apiKey: "test-user-token-refresh-2" },
+      signal: AbortSignal.timeout(10000),
+    });
+    assert.ok(secondResult.response.ok);
+    assert.equal(exec.currentUserToken, "test-user-token-refresh-2");
+    assert.ok(exec.refreshTimer);
+    assert.notEqual(exec.refreshTimer, firstTimer);
+  } finally {
+    exec.destroy();
+    mock.restore();
+  }
+});
+
 // ─── Abort handling ──────────────────────────────────────────────────────
 
 test("execute: handles abort signal gracefully", async () => {
@@ -650,5 +822,259 @@ test("execute: handles JSON-wrapped userToken", async () => {
     );
   } finally {
     mock.restore();
+  }
+});
+
+// ─── Session management ──────────────────────────────────────────────────
+
+test("execute: always creates a new session per request (no caching)", async () => {
+  const mock = await mockDeepSeekFlow();
+  try {
+    const executor = new DeepSeekWebExecutor();
+    await executor.execute({
+      model: "deepseek-v4-flash",
+      body: { messages: [{ role: "user", content: "first" }] },
+      stream: true,
+      credentials: { apiKey: "test-session-fresh-key" },
+      signal: AbortSignal.timeout(10000),
+    });
+    await executor.execute({
+      model: "deepseek-v4-flash",
+      body: { messages: [{ role: "user", content: "second" }] },
+      stream: true,
+      credentials: { apiKey: "test-session-fresh-key" },
+      signal: AbortSignal.timeout(10000),
+    });
+    const sessionCalls = mock.calls.filter((c) => c.url.includes("/chat_session/create"));
+    assert.equal(sessionCalls.length, 2, "Should create a fresh session for every request");
+  } finally {
+    mock.restore();
+  }
+});
+
+test("execute: always deletes session after non-streaming response", async () => {
+  const mock = await mockDeepSeekFlow();
+  try {
+    const executor = new DeepSeekWebExecutor();
+    const result = await executor.execute({
+      model: "deepseek-v4-flash",
+      body: { messages: [{ role: "user", content: "hi" }] },
+      stream: false,
+      credentials: { apiKey: "test-delete-always-key" },
+      signal: AbortSignal.timeout(10000),
+    });
+    assert.ok(result.response.ok, "Should succeed");
+    await new Promise((r) => setTimeout(r, 100));
+    const deleteCalls = mock.calls.filter((c) => c.url.includes("/chat_session/delete"));
+    assert.equal(deleteCalls.length, 1, "Should always delete session after response");
+  } finally {
+    mock.restore();
+  }
+});
+
+test("execute: always deletes session after streaming response completes", async () => {
+  const mock = await mockDeepSeekFlow();
+  try {
+    const executor = new DeepSeekWebExecutor();
+    const result = await executor.execute({
+      model: "deepseek-v4-flash",
+      body: { messages: [{ role: "user", content: "hi" }] },
+      stream: true,
+      credentials: { apiKey: "test-delete-stream-key" },
+      signal: AbortSignal.timeout(10000),
+    });
+    assert.ok(result.response.ok, "Should succeed");
+    await result.response.text();
+    await new Promise((r) => setTimeout(r, 100));
+    const deleteCalls = mock.calls.filter((c) => c.url.includes("/chat_session/delete"));
+    assert.equal(deleteCalls.length, 1, "Should delete session after stream ends");
+  } finally {
+    mock.restore();
+  }
+});
+
+// ─── Thinking content separation ─────────────────────────────────────────
+
+test("execute: THINK fragments emit as reasoning_content, not content", async () => {
+  const dsMod = await import("../../open-sse/executors/deepseek-web.ts");
+  if (dsMod.tokenCache) dsMod.tokenCache.clear();
+
+  const original = globalThis.fetch;
+  globalThis.fetch = async (url, opts) => {
+    const urlStr = typeof url === "string" ? url : url.toString();
+    if (urlStr.includes("/users/current")) {
+      return new Response(JSON.stringify({ code: 0, data: { biz_data: { token: "tok-think" } } }), {
+        headers: { "Content-Type": "application/json" },
+      });
+    }
+    if (urlStr.includes("/chat_session/create")) {
+      return new Response(
+        JSON.stringify({ code: 0, data: { biz_data: { chat_session: { id: "s-think" } } } }),
+        { headers: { "Content-Type": "application/json" } }
+      );
+    }
+    if (urlStr.includes("/chat_session/delete")) {
+      return new Response(JSON.stringify({ code: 0 }), {
+        headers: { "Content-Type": "application/json" },
+      });
+    }
+    if (urlStr.includes("/create_pow_challenge")) {
+      return new Response(
+        JSON.stringify({
+          code: 0,
+          data: {
+            biz_data: {
+              challenge: {
+                algorithm: "DeepSeekHashV1",
+                challenge: "311b26ae1e0fe7375e242958ce46db5552a6c67fea3f96880dcd846c63a74286",
+                salt: "1122334455667788",
+                signature: "sig123",
+                difficulty: 1000,
+                expire_at: 1778891543095,
+                expire_after: 300000,
+                target_path: "/api/v0/chat/completion",
+              },
+            },
+          },
+        }),
+        { headers: { "Content-Type": "application/json" } }
+      );
+    }
+    if (urlStr.includes("/chat/completion")) {
+      const enc = new TextEncoder();
+      const sse = [
+        'data: {"v":{"response":{"thinking_enabled":true,"fragments":[{"id":2,"type":"THINK","content":""}]}}}\n',
+        "\n",
+        'data: {"p":"response/fragments/-1/content","o":"APPEND","v":"I am thinking..."}\n',
+        "\n",
+        'data: {"p":"response/fragments","o":"APPEND","v":{"id":3,"type":"RESPONSE","content":""}}\n',
+        "\n",
+        'data: {"p":"response/fragments/-1/content","v":"Here is the answer."}\n',
+        "\n",
+        'data: {"p":"response/status","o":"SET","v":"FINISHED"}\n',
+        "\n",
+      ].join("");
+      return new Response(enc.encode(sse), {
+        status: 200,
+        headers: { "Content-Type": "text/event-stream" },
+      });
+    }
+    return new Response("", { status: 404 });
+  };
+  try {
+    const executor = new DeepSeekWebExecutor();
+    const result = await executor.execute({
+      model: "deepseek-r1",
+      body: { messages: [{ role: "user", content: "think about this" }] },
+      stream: true,
+      credentials: { apiKey: "test-think-key" },
+      signal: AbortSignal.timeout(10000),
+    });
+    assert.ok(result.response.ok);
+    const text = await result.response.text();
+    assert.ok(
+      text.includes('"reasoning_content":"I am thinking..."'),
+      "Thinking should be reasoning_content"
+    );
+    assert.ok(text.includes('"content":"Here is the answer."'), "Response should be content");
+    assert.ok(
+      !text.includes('"content":"I am thinking..."'),
+      "Thinking should NOT be in content field"
+    );
+  } finally {
+    globalThis.fetch = original;
+    if (dsMod.tokenCache) dsMod.tokenCache.clear();
+  }
+});
+
+test("execute: search model converts citation tags and appends search results", async () => {
+  const dsMod = await import("../../open-sse/executors/deepseek-web.ts");
+  if (dsMod.tokenCache) dsMod.tokenCache.clear();
+
+  const original = globalThis.fetch;
+  globalThis.fetch = async (url) => {
+    const urlStr = typeof url === "string" ? url : url.toString();
+    if (urlStr.includes("/users/current")) {
+      return new Response(
+        JSON.stringify({ code: 0, data: { biz_data: { token: "tok-search" } } }),
+        { headers: { "Content-Type": "application/json" } }
+      );
+    }
+    if (urlStr.includes("/chat_session/create")) {
+      return new Response(
+        JSON.stringify({ code: 0, data: { biz_data: { chat_session: { id: "s-search" } } } }),
+        { headers: { "Content-Type": "application/json" } }
+      );
+    }
+    if (urlStr.includes("/chat_session/delete")) {
+      return new Response(JSON.stringify({ code: 0 }), {
+        headers: { "Content-Type": "application/json" },
+      });
+    }
+    if (urlStr.includes("/create_pow_challenge")) {
+      return new Response(
+        JSON.stringify({
+          code: 0,
+          data: {
+            biz_data: {
+              challenge: {
+                algorithm: "DeepSeekHashV1",
+                challenge: "311b26ae1e0fe7375e242958ce46db5552a6c67fea3f96880dcd846c63a74286",
+                salt: "1122334455667788",
+                signature: "sig123",
+                difficulty: 1000,
+                expire_at: 1778891543095,
+                expire_after: 300000,
+                target_path: "/api/v0/chat/completion",
+              },
+            },
+          },
+        }),
+        { headers: { "Content-Type": "application/json" } }
+      );
+    }
+    if (urlStr.includes("/chat/completion")) {
+      const enc = new TextEncoder();
+      const sse = [
+        'data: {"v":{"response":{"fragments":[{"id":1,"type":"RESPONSE","content":""}]}}}\n',
+        "\n",
+        'data: {"p":"response/fragments/-1/content","v":"Today is Monday [citation:10]."}\n',
+        "\n",
+        'data: {"p":"response/status","o":"SET","v":"FINISHED"}\n',
+        "\n",
+        'data: {"p":"response/search_results","v":[{"title":"Example","url":"https://example.com","cite_index":10}]}\n',
+        "\n",
+      ].join("");
+      return new Response(enc.encode(sse), {
+        status: 200,
+        headers: { "Content-Type": "text/event-stream" },
+      });
+    }
+    return new Response("", { status: 404 });
+  };
+  try {
+    const executor = new DeepSeekWebExecutor();
+    const result = await executor.execute({
+      model: "deepseek-v4-flash-search",
+      body: { messages: [{ role: "user", content: "what day is it" }] },
+      stream: true,
+      credentials: { apiKey: "test-search-key" },
+      signal: AbortSignal.timeout(10000),
+    });
+    assert.ok(result.response.ok);
+    const text = await result.response.text();
+    assert.ok(
+      text.includes('"model":"deepseek-v4-flash-search"'),
+      "Should preserve client model id"
+    );
+    assert.ok(text.includes("Today is Monday [10]."), "Should convert citation tags");
+    assert.ok(
+      text.includes("[10]: [Example](https://example.com)"),
+      "Should append search citations"
+    );
+    assert.ok(!text.includes("[citation:10]"), "Should not leak raw citation tags");
+  } finally {
+    globalThis.fetch = original;
+    if (dsMod.tokenCache) dsMod.tokenCache.clear();
   }
 });

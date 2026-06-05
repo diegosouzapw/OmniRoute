@@ -1,4 +1,4 @@
-import { BaseExecutor, setUserAgentHeader } from "./base.ts";
+import { BaseExecutor, setUserAgentHeader, type ExecuteInput } from "./base.ts";
 import { PROVIDERS, OAUTH_ENDPOINTS } from "../config/constants.ts";
 import { getAccessToken } from "../services/tokenRefresh.ts";
 import {
@@ -24,11 +24,12 @@ import {
 import { sanitizeQwenThinkingToolChoice } from "../services/qwenThinking.ts";
 import { buildDataRobotChatUrl } from "../config/datarobot.ts";
 import { buildAzureAiChatUrl } from "../config/azureAi.ts";
-import { buildBedrockChatUrl } from "../config/bedrock.ts";
 import { buildWatsonxChatUrl } from "../config/watsonx.ts";
 import { buildOciChatUrl } from "../config/oci.ts";
 import { buildSapChatUrl, getSapResourceGroup } from "../config/sap.ts";
 import { buildMaritalkChatUrl } from "../config/maritalk.ts";
+
+import type { PoolConfig } from "../services/sessionPool/types.ts";
 
 function normalizeBaseUrl(baseUrl) {
   return (baseUrl || "").trim().replace(/\/$/, "");
@@ -104,6 +105,10 @@ function normalizeOpenAIChatUrl(baseUrl) {
 export class DefaultExecutor extends BaseExecutor {
   constructor(provider) {
     super(provider, PROVIDERS[provider] || PROVIDERS.openai);
+    const registryEntry = getRegistryEntry(provider);
+    if (registryEntry?.poolConfig) {
+      this.poolConfig = registryEntry.poolConfig as PoolConfig;
+    }
   }
 
   buildUrl(model, stream, urlIndex = 0, credentials = null) {
@@ -162,10 +167,6 @@ export class DefaultExecutor extends BaseExecutor {
         const baseUrl = credentials?.providerSpecificData?.baseUrl || this.config.baseUrl;
         return normalizeAzureAiChatUrl(baseUrl, apiType);
       }
-      case "bedrock": {
-        const baseUrl = credentials?.providerSpecificData?.baseUrl || this.config.baseUrl;
-        return buildBedrockChatUrl(baseUrl);
-      }
       case "watsonx": {
         const baseUrl = credentials?.providerSpecificData?.baseUrl || this.config.baseUrl;
         return normalizeWatsonxChatUrl(baseUrl);
@@ -200,6 +201,11 @@ export class DefaultExecutor extends BaseExecutor {
         const baseUrl = credentials?.providerSpecificData?.baseUrl || this.config.baseUrl;
         return buildMaritalkChatUrl(baseUrl);
       }
+      case "siliconflow": {
+        const baseUrl = credentials?.providerSpecificData?.baseUrl || this.config.baseUrl;
+        return normalizeOpenAIChatUrl(baseUrl);
+      }
+      case "llama-cpp":
       case "lm-studio":
       case "modal":
       case "reka":
@@ -505,8 +511,16 @@ export class DefaultExecutor extends BaseExecutor {
       const entry = getRegistryEntry(this.provider);
       if (entry?.modelIdPrefix) {
         const body = withDefaults as Record<string, unknown>;
-        if (typeof body.model === "string" && !body.model.startsWith(entry.modelIdPrefix)) {
-          body.model = `${entry.modelIdPrefix}${body.model}`;
+        if (typeof body.model === "string") {
+          // Skip prepending when the model already carries the canonical prefix OR any
+          // other accepted fully-qualified prefix (e.g. Fireworks router IDs). #3133.
+          const acceptedPrefixes = [entry.modelIdPrefix, ...(entry.acceptedModelIdPrefixes ?? [])];
+          const alreadyQualified = acceptedPrefixes.some((prefix) =>
+            (body.model as string).startsWith(prefix)
+          );
+          if (!alreadyQualified) {
+            body.model = `${entry.modelIdPrefix}${body.model}`;
+          }
         }
       }
     }
@@ -546,6 +560,47 @@ export class DefaultExecutor extends BaseExecutor {
       if (!credentials.expiresAt) return false;
     }
     return super.needsRefresh(credentials);
+  }
+
+  async execute(input: ExecuteInput) {
+    const pool = this.getPool();
+    if (!pool) return super.execute(input);
+
+    const session = pool.acquire();
+    if (session) {
+      input.upstreamExtraHeaders = {
+        ...session.buildHeaders(),
+        ...input.upstreamExtraHeaders,
+      };
+    }
+
+    let result;
+    try {
+      result = await super.execute(input);
+    } catch (err) {
+      if (session) {
+        pool.reportCooldown(session);
+        session.release();
+      }
+      throw err;
+    }
+
+    if (session) {
+      try {
+        const status = result?.response?.status;
+        if (status === 429) {
+          pool.reportCooldown(session);
+        } else if (status >= 500) {
+          pool.reportDead(session);
+        } else {
+          pool.reportSuccess(session);
+        }
+      } finally {
+        session.release();
+      }
+    }
+
+    return result;
   }
 }
 

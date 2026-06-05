@@ -57,6 +57,61 @@ export function hasValidContent(msg: ClaudeMessage): boolean {
   return false;
 }
 
+// Move tool_result blocks out of assistant messages into the preceding user
+// turn. Anthropic 400s on tool_result inside assistant. Drop tool_results
+// whose tool_use_id has not been emitted by an earlier assistant turn —
+// keeping them just shifts the 400 to "unexpected tool_use_id". See #2815.
+export function splitMisplacedToolResults(messages: ClaudeMessage[]): ClaudeMessage[] {
+  if (!Array.isArray(messages) || messages.length === 0) return messages;
+
+  const out: ClaudeMessage[] = [];
+  const seenToolUseIds = new Set<string>();
+
+  const recordToolUseIds = (blocks: ClaudeContentBlock[]) => {
+    for (const b of blocks) {
+      if (b?.type === "tool_use" && typeof b.id === "string") {
+        seenToolUseIds.add(b.id);
+      }
+    }
+  };
+
+  for (const msg of messages) {
+    if (msg.role !== "assistant" || !Array.isArray(msg.content)) {
+      out.push(msg);
+      continue;
+    }
+
+    const toolResults = msg.content.filter((b) => b?.type === "tool_result");
+    if (toolResults.length === 0) {
+      out.push(msg);
+      recordToolUseIds(msg.content);
+      continue;
+    }
+
+    const validToolResults = toolResults.filter(
+      (b) => typeof b?.tool_use_id === "string" && seenToolUseIds.has(b.tool_use_id)
+    );
+    const remaining = msg.content.filter((b) => b?.type !== "tool_result");
+
+    if (validToolResults.length > 0) {
+      const prev = out[out.length - 1];
+      if (prev && prev.role === "user" && Array.isArray(prev.content)) {
+        out[out.length - 1] = { ...prev, content: [...prev.content, ...validToolResults] };
+      } else {
+        out.push({ role: "user", content: validToolResults });
+      }
+    }
+
+    // Drop the assistant message entirely if only tool_result blocks remained.
+    if (remaining.length > 0) {
+      out.push({ ...msg, content: remaining });
+      recordToolUseIds(remaining);
+    }
+  }
+
+  return out;
+}
+
 // Fix tool_use/tool_result ordering for Claude API
 // 1. Assistant message with tool_use: remove text AFTER tool_use (Claude doesn't allow)
 // 2. Merge consecutive same-role messages
@@ -225,6 +280,10 @@ export function prepareClaudeRequest(
     if (body.tools && Array.isArray(body.tools)) {
       body.tools = body.tools.filter((tool) => tool.name && tool.name?.trim());
     }
+
+    // Pass 1.45: Move stray tool_result blocks out of assistant messages
+    // before any ordering fix runs (#2815).
+    filtered = splitMisplacedToolResults(filtered);
 
     // Pass 1.5: Fix tool_use/tool_result ordering
     // Each tool_use must have tool_result in the NEXT message (not same message with other content)

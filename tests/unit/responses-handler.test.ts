@@ -165,7 +165,7 @@ test("handleResponsesCore converts Responses API input, instructions, tools, met
   assert.equal("store" in call.body, false);
 });
 
-test("handleResponsesCore preserves previous_response_id and handles empty input arrays", async () => {
+test("handleResponsesCore strips previous_response_id by default and handles empty input arrays", async () => {
   const { call, result } = await invokeResponsesCore({
     body: {
       model: "gpt-4o-mini",
@@ -176,7 +176,7 @@ test("handleResponsesCore preserves previous_response_id and handles empty input
   });
 
   assert.equal(result.success, true);
-  assert.equal(call.body.previous_response_id, "resp_prev_123");
+  assert.equal(call.body.previous_response_id, undefined);
   assert.equal(call.body.metadata, undefined);
   assert.deepEqual(call.body.messages, []);
   assert.equal(call.body.stream, true);
@@ -286,13 +286,15 @@ test("handleResponsesCore propagates upstream failures from chatCore unchanged",
 });
 
 test("handleResponsesCore rejects invalid Responses API input that cannot be translated", async () => {
+  // After #2695 the web_search family is allowed; use file_search to keep this
+  // assertion exercising the "untranslatable tool type" path.
   await assert.rejects(
     () =>
       handleResponsesCore({
         body: {
           model: "gpt-4o-mini",
           input: "hello",
-          tools: [{ type: "web_search_preview" }],
+          tools: [{ type: "file_search" }],
         },
         modelInfo: { provider: "openai", model: "gpt-4o-mini", extendedContext: false },
         credentials: { apiKey: "sk-test", providerSpecificData: {} },
@@ -303,8 +305,7 @@ test("handleResponsesCore rejects invalid Responses API input that cannot be tra
         connectionId: null,
       }),
     (error) =>
-      error instanceof Error &&
-      error.message.includes("web_search_preview tool type is not supported")
+      error instanceof Error && error.message.includes("file_search tool type is not supported")
   );
 });
 

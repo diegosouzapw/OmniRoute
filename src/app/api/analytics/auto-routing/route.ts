@@ -18,8 +18,8 @@ export async function GET(request: Request) {
     const totalRequests = db
       .prepare(
         `
-        SELECT COUNT(*) as count 
-        FROM usage_logs 
+        SELECT COUNT(*) as count
+        FROM usage_logs
         WHERE model = 'auto' OR model LIKE 'auto/%'
       `
       )
@@ -29,8 +29,8 @@ export async function GET(request: Request) {
     const variantRows = db
       .prepare(
         `
-        SELECT 
-          CASE 
+        SELECT
+          CASE
             WHEN model = 'auto' THEN 'default'
             WHEN model LIKE 'auto/%' THEN SUBSTR(model, 6)
             ELSE 'other'

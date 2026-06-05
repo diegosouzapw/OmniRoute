@@ -3,6 +3,7 @@ import assert from "node:assert/strict";
 
 import { getModelsByProviderId } from "../../open-sse/config/providerModels.ts";
 import { resolveCanonicalProviderModel } from "../../open-sse/services/model.ts";
+import { DEFAULT_PRICING } from "../../src/shared/constants/pricing.ts";
 
 test("Pollinations catalog mirrors the current public text model lineup", () => {
   const models = getModelsByProviderId("pollinations");
@@ -44,4 +45,20 @@ test("NVIDIA catalog includes the verified 2026 additions and GPT OSS 20B alias 
     provider: "nvidia",
     model: "openai/gpt-oss-20b",
   });
+});
+
+test("Kiro catalog exposes Claude Opus 4.8 alongside 4.7 with matching pricing", () => {
+  const models = getModelsByProviderId("kiro");
+  const ids = new Set(models.map((model) => model.id));
+
+  assert.ok(ids.has("claude-opus-4.8"), "kiro must expose claude-opus-4.8");
+  assert.ok(ids.has("claude-opus-4.7"), "kiro must still expose claude-opus-4.7");
+
+  const opus48 = models.find((model) => model.id === "claude-opus-4.8");
+  assert.equal(opus48?.contextLength, 1000000);
+  assert.equal(opus48?.maxOutputTokens, 128000);
+
+  // Pricing for the Kiro channel must cover the new model so usage cost is non-zero.
+  const kiroPricing = (DEFAULT_PRICING as Record<string, Record<string, unknown>>).kiro;
+  assert.ok(kiroPricing["claude-opus-4.8"], "kiro pricing must include claude-opus-4.8");
 });

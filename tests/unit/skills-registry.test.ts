@@ -13,6 +13,8 @@ const { skillRegistry } = await import("../../src/lib/skills/registry.ts");
 function resetRegistryState() {
   skillRegistry["registeredSkills"].clear();
   skillRegistry["versionCache"].clear();
+  skillRegistry["loadedAll"] = false;
+  skillRegistry["loadedApiKeyIds"].clear();
   skillRegistry.invalidateCache();
 }
 
@@ -60,7 +62,8 @@ test("skillRegistry registers, lists, sorts and resolves versions", async () => 
 
   assert.equal(skillRegistry.list("key-a").length, 2);
   assert.equal(skillRegistry.list().length, 3);
-  assert.equal(skillRegistry.getSkill("echo@1.2.0").description, "latest");
+  assert.equal(skillRegistry.getSkill("echo@1.2.0")?.description, "latest");
+  assert.equal(skillRegistry.getSkill("echo", "key-a")?.description, "latest");
 
   const versions = skillRegistry.getSkillVersions("echo").map((skill) => skill.version);
   assert.deepEqual(versions, ["1.2.0", "1.0.0"]);
@@ -68,6 +71,33 @@ test("skillRegistry registers, lists, sorts and resolves versions", async () => 
   assert.equal(skillRegistry.resolveVersion("echo", "~1.0.0")?.version, "1.0.0");
   assert.equal(skillRegistry.resolveVersion("echo", "1.2.0")?.version, "1.2.0");
   assert.equal(skillRegistry.resolveVersion("missing", "^1.0.0"), undefined);
+});
+
+test("skillRegistry keeps same name/version isolated per API key", async () => {
+  const first = await skillRegistry.register({
+    name: "shared-skill",
+    version: "1.0.0",
+    description: "key a",
+    schema: { input: {}, output: {} },
+    handler: "shared-handler",
+    apiKeyId: "key-a",
+  });
+  const second = await skillRegistry.register({
+    name: "shared-skill",
+    version: "1.0.0",
+    description: "key b",
+    schema: { input: {}, output: {} },
+    handler: "shared-handler",
+    apiKeyId: "key-b",
+  });
+
+  assert.equal(skillRegistry.list().length, 2);
+  assert.equal(skillRegistry.getSkill("shared-skill", "key-a")?.id, first.id);
+  assert.equal(skillRegistry.getSkill("shared-skill", "key-b")?.id, second.id);
+  assert.deepEqual(
+    skillRegistry.getSkillVersions("shared-skill", "key-a").map((skill) => skill.id),
+    [first.id]
+  );
 });
 
 test("skillRegistry can reload persisted skills from SQLite", async () => {
@@ -97,6 +127,15 @@ test("skillRegistry can reload persisted skills from SQLite", async () => {
     ["file-read"]
   );
 
+  await skillRegistry.loadFromDatabase();
+  assert.deepEqual(
+    skillRegistry
+      .list()
+      .map((skill) => skill.name)
+      .sort(),
+    ["file-read", "file-write"]
+  );
+
   resetRegistryState();
   await skillRegistry.loadFromDatabase();
 
@@ -108,6 +147,26 @@ test("skillRegistry can reload persisted skills from SQLite", async () => {
   assert.deepEqual(loadedNames, ["file-read", "file-write"]);
   assert.equal(skillRegistry.getSkill(`${first.name}@${first.version}`)?.apiKeyId, "key-a");
   assert.equal(skillRegistry.getSkill(`${second.name}@${second.version}`)?.apiKeyId, "key-b");
+});
+
+test("skillRegistry updates enabled state by ID without duplicate registration", async () => {
+  const skill = await skillRegistry.register({
+    name: "toggle-skill",
+    version: "1.0.0",
+    description: "toggles",
+    schema: { input: {}, output: {} },
+    handler: "toggle-handler",
+    enabled: false,
+    apiKeyId: "key-a",
+  });
+
+  const updated = await skillRegistry.setEnabledById(skill.id, "key-a", true);
+
+  assert.equal(updated?.enabled, true);
+  assert.equal(updated?.mode, "on");
+  assert.equal(skillRegistry.list("key-a").length, 1);
+  assert.equal(skillRegistry.getSkill(skill.id, "key-a")?.enabled, true);
+  assert.equal(await skillRegistry.setEnabledById(skill.id, "key-b", false), undefined);
 });
 
 test("skillRegistry unregisters by version, by name/apiKey and by id", async () => {

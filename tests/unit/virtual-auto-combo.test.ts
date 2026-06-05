@@ -48,12 +48,12 @@ test("createVirtualAutoCombo returns an executable auto combo for API-key connec
   const combo: VirtualComboResult = await virtualFactory.createVirtualAutoCombo("fast");
 
   assert.equal(combo.strategy, "auto");
-  assert.equal(combo.models.length, 1);
+  assert.ok(combo.models.length >= 1);
   assert.equal(combo.models[0].kind, "model");
   assert.equal(combo.models[0].model, "openai/gpt-4o-mini");
   assert.equal(combo.models[0].providerId, "openai");
   assert.equal(combo.autoConfig.routerStrategy, "lkgp");
-  assert.deepEqual(combo.autoConfig.candidatePool, ["openai"]);
+  assert.ok(combo.autoConfig.candidatePool.includes("openai"));
 });
 
 test("createVirtualAutoCombo includes OAuth accessToken connections with real expiry fields", async () => {
@@ -69,7 +69,30 @@ test("createVirtualAutoCombo includes OAuth accessToken connections with real ex
   const combo: VirtualComboResult = await virtualFactory.createVirtualAutoCombo("coding");
 
   assert.equal(combo.strategy, "auto");
-  assert.equal(combo.models.length, 1);
+  assert.ok(combo.models.length >= 1);
   assert.equal(combo.models[0].model, "anthropic/claude-sonnet-4-5");
-  assert.deepEqual(combo.autoConfig.candidatePool, ["anthropic"]);
+  assert.ok(combo.autoConfig.candidatePool.includes("anthropic"));
+});
+
+test("createVirtualAutoCombo includes no-auth OpenCode Free without provider_connections rows", async () => {
+  const combo: VirtualComboResult = await virtualFactory.createVirtualAutoCombo("fast");
+
+  const opencode = combo.models.find((model) => model.providerId === "opencode");
+  assert.ok(
+    opencode,
+    "OpenCode Free should appear in auto/* even when it has no provider_connections row"
+  );
+  assert.equal(opencode.connectionId, "noauth");
+  assert.equal(opencode.model, "oc/big-pickle");
+  assert.ok(combo.autoConfig.candidatePool.includes("opencode"));
+});
+
+test("createVirtualAutoCombo keeps credential-required providers out when disconnected", async () => {
+  const combo: VirtualComboResult = await virtualFactory.createVirtualAutoCombo("fast");
+
+  assert.equal(
+    combo.models.some((model) => model.providerId === "openai"),
+    false,
+    "OpenAI should still require a real active connection"
+  );
 });

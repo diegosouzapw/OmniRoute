@@ -18,6 +18,69 @@ import {
   isVisionBridgeForcedModel,
 } from "@/shared/constants/visionBridgeDefaults";
 
+type ComboVisionBridgeDecision = "process" | "skip" | "not-combo";
+
+/// Check if a combo model should trigger vision bridge processing.
+/// Resolves combo targets and returns:
+/// - "process" if any target cannot be proven vision-capable
+/// - "skip" if all model targets can handle images directly
+/// - "not-combo" when the model is not a combo/mapping
+async function getComboVisionBridgeDecision(model: string): Promise<ComboVisionBridgeDecision> {
+  try {
+    const { getComboByName } = await import("@/lib/localDb");
+    const { resolveComboForModel } = await import("@/lib/db/modelComboMappings");
+
+    // 1. Try to find combo by exact name match
+    let combo = await getComboByName(model);
+
+    // 2. If no exact match, try model-combo mapping
+    if (!combo) {
+      const mapping = await resolveComboForModel(model);
+      if (!mapping) return "not-combo";
+      const comboName = mapping.comboName ?? mapping.name ?? null;
+      if (!comboName) return "not-combo";
+      combo = await getComboByName(comboName);
+    }
+
+    if (!combo) return "not-combo";
+
+    // 3. Get the combo's models (target steps)
+    const rawModels = (combo as Record<string, unknown>).models;
+    if (!Array.isArray(rawModels)) return "process";
+
+    // 4. Check each target for vision support
+    // combo-ref → conservative (process images)
+    // model step with no native vision → process images
+    // all model steps with native vision → safe to skip
+    let hasModelStep = false;
+    for (const step of rawModels) {
+      const s = step as Record<string, unknown>;
+      if (s.kind === "combo-ref") return "process";
+      if (s.kind === "model") {
+        hasModelStep = true;
+        const targetModel = s.model;
+        if (typeof targetModel === "string") {
+          const caps = getResolvedModelCapabilities(targetModel);
+          if (caps.supportsVision !== true) {
+            return "process";
+          }
+        } else {
+          return "process";
+        }
+      }
+    }
+
+    // All model steps support vision — safe to skip
+    if (hasModelStep) return "skip";
+
+    // No recognizable steps — don't force bridge
+    return "not-combo";
+  } catch {
+    // On error, try to process images (conservative)
+    return "process";
+  }
+}
+
 export interface VisionBridgeDependencies {
   getSettings?: () => Promise<Record<string, unknown>>;
   callVisionModel?: (
@@ -25,6 +88,8 @@ export interface VisionBridgeDependencies {
     config: import("./visionBridgeHelpers").VisionModelConfig,
     apiKey?: string
   ) => Promise<string>;
+  /** Override combo-target vision check — return true to force processing, false to skip. */
+  checkModelHasComboMapping?: (model: string) => Promise<boolean>;
 }
 
 export class VisionBridgeGuardrail extends BaseGuardrail {
@@ -60,8 +125,27 @@ export class VisionBridgeGuardrail extends BaseGuardrail {
 
     // 4. Check if model supports vision
     const capabilities = getResolvedModelCapabilities(model);
-    if (capabilities.supportsVision === true && !forceVisionBridge) {
+    const comboVisionBridgeDecision = forceVisionBridge
+      ? "process"
+      : this.deps.checkModelHasComboMapping
+        ? (await this.deps.checkModelHasComboMapping(model))
+          ? "process"
+          : "skip"
+        : await getComboVisionBridgeDecision(model);
+
+    if (comboVisionBridgeDecision === "skip") {
       return { block: false };
+    }
+
+    if (capabilities.supportsVision === true && !forceVisionBridge) {
+      // The request model supports vision natively, but check if a
+      // model-combo mapping routes this model through a combo where
+      // some targets may NOT support vision. In that case, the vision
+      // bridge must process images so combo targets can describe them.
+      if (comboVisionBridgeDecision !== "process") {
+        return { block: false };
+      }
+      // Combo mapping found — fall through to process images
     }
 
     // 5. Get body and check for messages

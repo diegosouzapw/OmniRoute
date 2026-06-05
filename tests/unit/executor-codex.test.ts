@@ -13,6 +13,12 @@ import {
   parseCodexQuotaHeaders,
 } from "../../open-sse/executors/codex.ts";
 import {
+  clearRememberedResponseFunctionCallsForTesting,
+  rememberResponseConversationState,
+  rememberResponseFunctionCalls,
+} from "../../open-sse/services/responsesToolCallState.ts";
+import { sanitizeReasoningEffortForProvider } from "../../open-sse/executors/base.ts";
+import {
   DEFAULT_THINKING_CONFIG,
   setThinkingBudgetConfig,
   ThinkingMode,
@@ -65,16 +71,14 @@ async function withEnv<T>(entries: Record<string, string | undefined>, fn: () =>
 }
 
 test("Codex helper functions isolate rate-limit scopes and parse quota headers", () => {
-  const quota = parseCodexQuotaHeaders(
-    new Headers({
-      "x-codex-5h-usage": "100",
-      "x-codex-5h-limit": "500",
-      "x-codex-5h-reset-at": new Date(Date.now() + 60_000).toISOString(),
-      "x-codex-7d-usage": "1000",
-      "x-codex-7d-limit": "5000",
-      "x-codex-7d-reset-at": new Date(Date.now() + 120_000).toISOString(),
-    })
-  );
+  const quota = parseCodexQuotaHeaders({
+    "x-codex-5h-usage": "100",
+    "x-codex-5h-limit": "500",
+    "x-codex-5h-reset-at": new Date(Date.now() + 60_000).toISOString(),
+    "x-codex-7d-usage": "1000",
+    "x-codex-7d-limit": "5000",
+    "x-codex-7d-reset-at": new Date(Date.now() + 120_000).toISOString(),
+  });
 
   assert.equal(getCodexModelScope("codex-spark-mini"), "spark");
   assert.equal(getCodexModelScope("gpt-5.3-codex"), "codex");
@@ -111,6 +115,36 @@ test("Codex helper functions isolate rate-limit scopes and parse quota headers",
   assert.equal(quota.usage5h, 100);
   assert.equal(quota.limit7d, 5000);
   assert.ok(getCodexResetTime(quota) >= new Date(quota.resetAt7d).getTime());
+});
+
+test("isCodexResponsesWebSocketRequired: OMNIROUTE_CODEX_WS_ENABLED=false forces HTTP even with codexTransport=websocket", () => {
+  // Transport available + per-connection opt-in would normally enable WS…
+  __setCodexWebSocketTransportForTesting(
+    () =>
+      ({
+        send() {},
+        close() {},
+        onmessage: null,
+        onopen: null,
+        onerror: null,
+        onclose: null,
+      }) as unknown as ReturnType<typeof Object>
+  );
+  const prev = process.env.OMNIROUTE_CODEX_WS_ENABLED;
+  process.env.OMNIROUTE_CODEX_WS_ENABLED = "false";
+  try {
+    // …but the global kill-switch (default ON) overrides it to false.
+    assert.equal(
+      isCodexResponsesWebSocketRequired("gpt-5.5-xhigh", {
+        providerSpecificData: { codexTransport: "websocket" },
+      }),
+      false
+    );
+  } finally {
+    if (prev === undefined) delete process.env.OMNIROUTE_CODEX_WS_ENABLED;
+    else process.env.OMNIROUTE_CODEX_WS_ENABLED = prev;
+    __setCodexWebSocketTransportForTesting(undefined);
+  }
 });
 
 test("CodexExecutor.buildUrl honors /responses subpaths and compact mode", () => {
@@ -216,6 +250,76 @@ test("CodexExecutor.transformRequest injects default instructions, clamps reason
   assert.equal(result.stream_options, undefined);
 });
 
+// Issue #2608: gpt-5.5 models reject residual Chat Completions fields via Codex OAuth.
+// The non-passthrough path must strip ALL non-Responses-API fields using an allowlist.
+test("CodexExecutor.transformRequest non-passthrough allowlist strips all residual Chat Completions fields (#2608)", () => {
+  const executor = new CodexExecutor();
+  const body = {
+    model: "gpt-5.5",
+    messages: [{ role: "user", content: "hello" }],
+    instructions: "",
+    // All of these are Chat Completions fields that must be stripped:
+    temperature: 0.7,
+    top_p: 0.9,
+    frequency_penalty: 0.5,
+    presence_penalty: 0.3,
+    logprobs: true,
+    top_logprobs: 3,
+    n: 2,
+    seed: 42,
+    stop: ["\n"],
+    response_format: { type: "json_object" },
+    logit_bias: { "123": 1 },
+    function_call: "auto",
+    functions: [{ name: "test", parameters: {} }],
+    max_completion_tokens: 1000,
+    parallel_tool_calls: true,
+    user: "cursor-user",
+    metadata: { key: "value" },
+    stream_options: { include_usage: true },
+    safety_identifier: "safe-1",
+    suffix: "end",
+    // Custom/arbitrary fields that could be injected by middleware
+    custom_field: "should be stripped",
+    _internal_marker: true,
+  };
+
+  const result = executor.transformRequest("gpt-5.5", body, false, {
+    requestEndpointPath: "/responses",
+  });
+
+  // Allowed Responses API fields should survive
+  assert.equal(result.model, "gpt-5.5");
+  assert.ok(Array.isArray(result.input));
+  assert.equal(typeof result.instructions, "string");
+  assert.equal(result.store, false);
+  assert.equal(result.stream, true);
+
+  // All Chat Completions fields must be stripped
+  assert.equal(result.temperature, undefined, "temperature should be stripped");
+  assert.equal(result.top_p, undefined, "top_p should be stripped");
+  assert.equal(result.frequency_penalty, undefined, "frequency_penalty should be stripped");
+  assert.equal(result.presence_penalty, undefined, "presence_penalty should be stripped");
+  assert.equal(result.logprobs, undefined, "logprobs should be stripped");
+  assert.equal(result.top_logprobs, undefined, "top_logprobs should be stripped");
+  assert.equal(result.n, undefined, "n should be stripped");
+  assert.equal(result.seed, undefined, "seed should be stripped");
+  assert.equal(result.stop, undefined, "stop should be stripped");
+  assert.equal(result.response_format, undefined, "response_format should be stripped");
+  assert.equal(result.logit_bias, undefined, "logit_bias should be stripped");
+  assert.equal(result.function_call, undefined, "function_call should be stripped");
+  assert.equal(result.functions, undefined, "functions should be stripped");
+  assert.equal(result.max_completion_tokens, undefined, "max_completion_tokens should be stripped");
+  assert.equal(result.parallel_tool_calls, undefined, "parallel_tool_calls should be stripped");
+  assert.equal(result.user, undefined, "user should be stripped");
+  assert.equal(result.metadata, undefined, "metadata should be stripped");
+  assert.equal(result.stream_options, undefined, "stream_options should be stripped");
+  assert.equal(result.safety_identifier, undefined, "safety_identifier should be stripped");
+  assert.equal(result.suffix, undefined, "suffix should be stripped");
+  assert.equal(result.custom_field, undefined, "arbitrary custom fields should be stripped");
+  assert.equal(result._internal_marker, undefined, "internal markers should be stripped");
+});
+
 test("CodexExecutor.transformRequest normalizes max reasoning_effort to xhigh", () => {
   const executor = new CodexExecutor();
   const result = executor.transformRequest(
@@ -288,7 +392,19 @@ test("CodexExecutor.transformRequest preserves compact requests and native passt
   assert.equal(result.instructions, "keep this");
 });
 
-test("CodexExecutor.transformRequest preserves previous_response_id without local handling", () => {
+test("CodexExecutor.transformRequest applies flex request default service tier", () => {
+  const executor = new CodexExecutor();
+  const result = executor.transformRequest("gpt-5.5", { input: "hello" }, false, {
+    requestEndpointPath: "/responses",
+    providerSpecificData: {
+      requestDefaults: { serviceTier: "flex" },
+    },
+  });
+
+  assert.equal(result.service_tier, "flex");
+});
+
+test("CodexExecutor.transformRequest preserves store-enabled responses state when explicitly enabled", () => {
   const executor = new CodexExecutor();
   const body = {
     _nativeCodexPassthrough: true,
@@ -334,7 +450,7 @@ test("CodexExecutor.transformRequest strips store from compact requests even whe
   assert.equal(result.instructions, "keep this");
 });
 
-test("CodexExecutor.transformRequest strips raw internal assistant commentary without dropping useful Responses items", () => {
+test("CodexExecutor.transformRequest preserves native assistant commentary history", () => {
   const executor = new CodexExecutor();
   const body = {
     _nativeCodexPassthrough: true,
@@ -392,7 +508,7 @@ test("CodexExecutor.transformRequest strips raw internal assistant commentary wi
 
   assert.equal(
     result.input.some((item) => JSON.stringify(item).includes("Need maybe inspect tool output")),
-    false
+    true
   );
   assert.equal(
     result.input.some((item) => JSON.stringify(item).includes("Visible final assistant answer")),
@@ -424,7 +540,94 @@ test("CodexExecutor.transformRequest strips raw internal assistant commentary wi
   );
 });
 
-test("CodexExecutor.transformRequest strips internal assistant commentary before mapping messages to input", () => {
+test("CodexExecutor.transformRequest still strips assistant commentary outside native passthrough", () => {
+  const executor = new CodexExecutor();
+  const result = executor.transformRequest(
+    "gpt-5.5-low",
+    {
+      input: [
+        {
+          type: "message",
+          role: "user",
+          content: [{ type: "input_text", text: "Continue." }],
+        },
+        {
+          type: "message",
+          role: "assistant",
+          phase: "commentary",
+          content: [{ type: "output_text", text: "Internal progress note." }],
+        },
+        {
+          type: "message",
+          role: "assistant",
+          phase: "final_answer",
+          content: [{ type: "output_text", text: "Visible final answer." }],
+        },
+      ],
+      stream: false,
+    },
+    false,
+    { requestEndpointPath: "/responses" }
+  );
+
+  assert.equal(
+    result.input.some((item) => JSON.stringify(item).includes("Internal progress note")),
+    false
+  );
+  assert.equal(
+    result.input.some((item) => JSON.stringify(item).includes("Visible final answer")),
+    true
+  );
+});
+
+test("CodexExecutor.transformRequest inserts missing function_call_output items", () => {
+  const executor = new CodexExecutor();
+  const result = executor.transformRequest(
+    "gpt-5.5-xhigh",
+    {
+      _nativeCodexPassthrough: true,
+      input: [
+        {
+          type: "message",
+          role: "user",
+          content: [{ type: "input_text", text: "Continue." }],
+        },
+        {
+          type: "function_call",
+          call_id: "call_missing_result",
+          name: "read_file",
+          arguments: "{}",
+        },
+        {
+          type: "message",
+          role: "user",
+          content: [{ type: "input_text", text: "Next turn." }],
+        },
+      ],
+      stream: false,
+    },
+    false,
+    {
+      requestEndpointPath: "/responses",
+    }
+  );
+
+  const missingOutputIndex = result.input.findIndex(
+    (item) => item.type === "function_call_output" && item.call_id === "call_missing_result"
+  );
+  const functionCallIndex = result.input.findIndex(
+    (item) => item.type === "function_call" && item.call_id === "call_missing_result"
+  );
+
+  assert.equal(missingOutputIndex, functionCallIndex + 1);
+  assert.deepEqual(result.input[missingOutputIndex], {
+    type: "function_call_output",
+    call_id: "call_missing_result",
+    output: "",
+  });
+});
+
+test("CodexExecutor.transformRequest preserves native assistant commentary before mapping messages to input", () => {
   const executor = new CodexExecutor();
   const result = executor.transformRequest(
     "gpt-5.5-low",
@@ -451,7 +654,7 @@ test("CodexExecutor.transformRequest strips internal assistant commentary before
 
   assert.equal(
     result.input.some((item) => JSON.stringify(item).includes("Need maybe update PR body")),
-    false
+    true
   );
   assert.equal(
     result.input.some((item) => JSON.stringify(item).includes("Visible final assistant answer")),
@@ -563,6 +766,61 @@ test("CodexExecutor.transformRequest keeps gpt-5.5 as the model and applies xhig
 
   assert.equal(result.model, "gpt-5.5");
   assert.equal(result.reasoning.effort, "xhigh");
+});
+
+test("CodexExecutor.transformRequest keeps GPT 5.3 Codex reasoning in Responses shape", () => {
+  const executor = new CodexExecutor();
+  const transformed = executor.transformRequest(
+    "gpt-5.3-codex",
+    {
+      model: "gpt-5.3-codex",
+      input: [],
+      reasoning_effort: "high",
+    },
+    true,
+    {
+      requestEndpointPath: "/responses",
+    }
+  );
+  const sanitized = sanitizeReasoningEffortForProvider(
+    transformed,
+    "codex",
+    "gpt-5.3-codex",
+    null
+  ) as Record<string, unknown>;
+  const reasoning = getRecord(sanitized.reasoning);
+
+  assert.equal(sanitized.model, "gpt-5.3-codex");
+  assert.equal(reasoning.effort, "high");
+  assert.equal(sanitized.reasoning_effort, undefined);
+});
+
+test("CodexExecutor.transformRequest keeps GPT 5.4 Mini reasoning downgrade in Responses shape", () => {
+  const executor = new CodexExecutor();
+  const transformed = executor.transformRequest(
+    "gpt-5.4-mini",
+    {
+      model: "gpt-5.4-mini",
+      input: [],
+      reasoning: { effort: "xhigh", summary: "auto" },
+    },
+    true,
+    {
+      requestEndpointPath: "/responses",
+    }
+  );
+  const sanitized = sanitizeReasoningEffortForProvider(
+    transformed,
+    "codex",
+    "gpt-5.4-mini",
+    null
+  ) as Record<string, unknown>;
+  const reasoning = getRecord(sanitized.reasoning);
+
+  assert.equal(sanitized.model, "gpt-5.4-mini");
+  assert.equal(reasoning.effort, "high");
+  assert.equal(reasoning.summary, "auto");
+  assert.equal(sanitized.reasoning_effort, undefined);
 });
 
 test("CodexExecutor.transformRequest merges Codex installation metadata", () => {
@@ -755,6 +1013,7 @@ test("CodexExecutor.transformRequest preserves namespace MCP tools and hosted to
           ],
         },
         { type: "image_generation", output_format: "png" },
+        { type: "tool_search" },
         { type: "web_search" },
         { type: "unknown_hosted_tool" },
       ],
@@ -765,7 +1024,13 @@ test("CodexExecutor.transformRequest preserves namespace MCP tools and hosted to
   );
 
   const types = (result.tools as Array<Record<string, unknown>>).map((tool) => tool.type);
-  assert.deepEqual(types, ["function", "namespace", "image_generation", "web_search"]);
+  assert.deepEqual(types, [
+    "function",
+    "namespace",
+    "image_generation",
+    "tool_search",
+    "web_search",
+  ]);
 
   const namespaceTool = (result.tools as Array<Record<string, unknown>>).find(
     (tool) => tool.type === "namespace"
@@ -776,6 +1041,76 @@ test("CodexExecutor.transformRequest preserves namespace MCP tools and hosted to
   // tool_choice trỏ vào sub-tool của namespace phải được giữ nguyên (không bị xoá
   // do tên nằm trong namespace.tools[*].name đã được đăng ký vào validToolNames).
   assert.deepEqual(result.tool_choice, { type: "function", name: "jira_get_issue" });
+});
+
+test("CodexExecutor.transformRequest preserves native Codex custom tools", () => {
+  const executor = new CodexExecutor();
+  const result = executor.transformRequest(
+    "gpt-5.5",
+    {
+      _nativeCodexPassthrough: true,
+      model: "gpt-5.5",
+      input: [],
+      tools: [
+        {
+          type: "custom",
+          name: "apply_patch",
+          description: "Use the apply_patch tool to edit files.",
+          format: {
+            type: "grammar",
+            syntax: "lark",
+            definition: "start: /.+/",
+          },
+        },
+        {
+          type: "function",
+          name: "exec_command",
+          description: "Runs a command.",
+          parameters: { type: "object", properties: {} },
+          strict: false,
+        },
+      ],
+    },
+    true,
+    { requestEndpointPath: "/responses" }
+  );
+
+  const tools = result.tools as Array<Record<string, unknown>>;
+  assert.equal(tools.length, 2);
+  assert.deepEqual(tools[0], {
+    type: "custom",
+    name: "apply_patch",
+    description: "Use the apply_patch tool to edit files.",
+    format: {
+      type: "grammar",
+      syntax: "lark",
+      definition: "start: /.+/",
+    },
+  });
+  assert.equal(tools[1].strict, false);
+});
+
+test("CodexExecutor.transformRequest still drops custom tools outside native passthrough", () => {
+  const executor = new CodexExecutor();
+  const result = executor.transformRequest(
+    "gpt-5.5",
+    {
+      model: "gpt-5.5",
+      input: [],
+      tools: [
+        { type: "custom", name: "apply_patch", format: { type: "grammar" } },
+        { type: "function", name: "exec_command", parameters: { type: "object" } },
+      ],
+    },
+    true,
+    { requestEndpointPath: "/responses" }
+  );
+
+  const tools = result.tools as Array<Record<string, unknown>>;
+  assert.deepEqual(
+    tools.map((tool) => tool.name),
+    ["exec_command"]
+  );
 });
 
 test("CodexExecutor maps Codex websocket error events to response.failed SSE", () => {

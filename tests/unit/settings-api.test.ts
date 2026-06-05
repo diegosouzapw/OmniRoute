@@ -59,6 +59,11 @@ after(() => {
 });
 
 describe("Settings API - persisted preferences", () => {
+  test("getSettings defaults Responses previous_response_id handling to auto", async () => {
+    const settings = await harness.getSettings();
+    assert.strictEqual(settings.responsesPreviousResponseIdMode, "auto");
+  });
+
   describe("debugMode", () => {
     test("updateSettings with debugMode=true succeeds", async () => {
       const result = await harness.updateSettings({ debugMode: true });
@@ -156,6 +161,22 @@ describe("Settings API - persisted preferences", () => {
       assert.equal(settings.hideEndpointCloudflaredTunnel, true);
       assert.equal(settings.hideEndpointTailscaleFunnel, true);
       assert.equal(settings.hideEndpointNgrokTunnel, true);
+    });
+
+    test("PATCH /api/settings persists Responses previous_response_id handling", async () => {
+      const response = await harness.settingsRoute.PATCH(
+        await makeManagementSessionRequest("http://localhost/api/settings", {
+          method: "PATCH",
+          body: { responsesPreviousResponseIdMode: "strip" },
+        })
+      );
+      const body = (await response.json()) as Record<string, unknown>;
+
+      assert.equal(response.status, 200);
+      assert.equal(body.responsesPreviousResponseIdMode, "strip");
+
+      const settings = await harness.getSettings();
+      assert.equal(settings.responsesPreviousResponseIdMode, "strip");
     });
 
     test("PUT /api/settings reuses the PATCH update flow", async () => {

@@ -1,17 +1,21 @@
 "use client";
 
 import type { MouseEvent, ReactNode } from "react";
+import { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useTranslations } from "next-intl";
 
 import { Badge, Card, Toggle } from "@/shared/components";
+import ProviderTestSlideOver from "@/shared/components/ProviderTestSlideOver";
 import ProviderIcon from "@/shared/components/ProviderIcon";
 import {
   isAnthropicCompatibleProvider,
   isClaudeCodeCompatibleProvider,
   isOpenAICompatibleProvider,
 } from "@/shared/constants/providers";
+
+import { CategoryDot } from "./CategoryDot";
 
 interface ProviderStats {
   total?: number;
@@ -22,8 +26,21 @@ interface ProviderStats {
   errorTime?: string | null;
   allDisabled?: boolean;
   expiryStatus?: "expired" | "expiring_soon" | string | null;
-  codexFastActive?: boolean;
+  codexServiceTier?: "default" | "priority" | "flex" | null;
 }
+
+const KIND_LABEL: Record<string, string> = {
+  llm: "Chat",
+  embedding: "Embed",
+  image: "Image",
+  imageToText: "I→T",
+  tts: "TTS",
+  stt: "STT",
+  webSearch: "Search",
+  webFetch: "Fetch",
+  video: "Video",
+  music: "Music",
+};
 
 interface ProviderCardProps {
   providerId: string;
@@ -36,6 +53,9 @@ interface ProviderCardProps {
     deprecationReason?: string;
     hasFree?: boolean;
     freeNote?: string;
+    subscriptionRisk?: boolean;
+    /** Declared service kinds — "llm" enables the inline Test button */
+    serviceKinds?: string[];
   };
   stats: ProviderStats;
   authType?: string;
@@ -44,6 +64,7 @@ interface ProviderCardProps {
 
 const DOT_COLORS: Record<string, string> = {
   free: "bg-green-500",
+  "no-auth": "bg-stone-500",
   oauth: "bg-blue-500",
   apikey: "bg-amber-500",
   compatible: "bg-orange-500",
@@ -54,6 +75,28 @@ const DOT_COLORS: Record<string, string> = {
   "upstream-proxy": "bg-indigo-500",
   "cloud-agent": "bg-violet-500",
 };
+
+type ProviderMessageTranslator = ((key: string, values?: Record<string, unknown>) => string) & {
+  has?: (key: string) => boolean;
+};
+
+function providerText(
+  t: ProviderMessageTranslator,
+  key: string,
+  fallback: string,
+  values?: Record<string, unknown>
+): string {
+  if (typeof t.has === "function" && t.has(key)) {
+    return t(key, values);
+  }
+  if (values) {
+    return Object.entries(values).reduce(
+      (acc, [name, value]) => acc.replaceAll(`{${name}}`, String(value)),
+      fallback
+    );
+  }
+  return fallback;
+}
 
 function getStatusDisplay(
   connected: number,
@@ -104,26 +147,60 @@ export default function ProviderCard({
 }: ProviderCardProps) {
   const t = useTranslations("providers");
   const tc = useTranslations("common");
+  const tp = useTranslations("miniPlayground");
+  const [testExpanded, setTestExpanded] = useState<boolean>(false);
+
+  // Show the Test button for LLM providers (when serviceKinds includes "llm"
+  // OR when the provider has no explicit serviceKinds but is a regular LLM provider
+  // i.e. not a search/audio/cloud-agent type).
+  const serviceKinds = provider.serviceKinds ?? [];
+  const isLlmProvider =
+    serviceKinds.includes("llm") ||
+    (serviceKinds.length === 0 &&
+      authType !== "search" &&
+      authType !== "audio" &&
+      authType !== "cloud-agent" &&
+      authType !== "upstream-proxy" &&
+      authType !== "no-auth");
+
+  const handleTestClick = (e: MouseEvent<HTMLButtonElement>) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setTestExpanded((v) => !v);
+  };
   const connected = Number(stats.connected || 0);
   const error = Number(stats.error || 0);
   const allDisabled = Boolean(stats.allDisabled);
   const isCompatible = isOpenAICompatibleProvider(providerId);
   const isCcCompatible = isClaudeCodeCompatibleProvider(providerId);
   const isAnthropicCompatible = isAnthropicCompatibleProvider(providerId) && !isCcCompatible;
-  const codexFastChip =
-    providerId === "codex" && stats.codexFastActive ? (
+  const codexServiceTierLabel =
+    stats.codexServiceTier === "flex"
+      ? providerText(t, "codexTierFlexLabel", "Flex")
+      : providerText(t, "codexTierFastLabel", "Fast");
+  const codexServiceTierChip =
+    providerId === "codex" && stats.codexServiceTier && stats.codexServiceTier !== "default" ? (
       <span
-        key="fast"
-        className="inline-flex items-center gap-0.5 rounded-full bg-sky-500/10 px-1.5 py-0 text-[9px] font-semibold uppercase tracking-wide text-sky-600 dark:text-sky-400"
-        title={t("codexFastTierActiveChip")}
+        key="codex-service-tier"
+        className={`inline-flex items-center gap-0.5 rounded-full px-1.5 py-0 text-[9px] font-semibold uppercase tracking-wide ${
+          stats.codexServiceTier === "flex"
+            ? "bg-cyan-500/10 text-cyan-600 dark:text-cyan-400"
+            : "bg-sky-500/10 text-sky-600 dark:text-sky-400"
+        }`}
+        title={providerText(t, "codexServiceTierActive", "Codex {tier} service tier is active", {
+          tier: codexServiceTierLabel,
+        })}
       >
-        <span className="material-symbols-outlined text-[10px] leading-none">bolt</span>
-        {t("tierFast")}
+        <span className="material-symbols-outlined text-[10px] leading-none">
+          {stats.codexServiceTier === "flex" ? "speed" : "bolt"}
+        </span>
+        {codexServiceTierLabel}
       </span>
     ) : null;
 
   const dotLabels: Record<string, string> = {
     free: tc("free"),
+    "no-auth": t("noAuthLabel"),
     oauth: t("oauthLabel"),
     apikey: t("apiKeyLabel"),
     compatible: t("compatibleLabel"),
@@ -132,6 +209,7 @@ export default function ProviderCard({
     audio: t("audioProvidersHeading"),
     local: t("localProviders"),
     "upstream-proxy": t("upstreamProxyProviders"),
+    "cloud-agent": t("cloudAgentProviders"),
   };
 
   const staticIconPath = (() => {
@@ -149,63 +227,103 @@ export default function ProviderCard({
   };
 
   return (
-    <Link href={`/dashboard/providers/${providerId}`} className="group">
-      <Card
-        padding="xs"
-        className={`h-full hover:bg-black/[0.01] dark:hover:bg-white/[0.01] transition-colors cursor-pointer ${
-          allDisabled ? "opacity-50" : ""
-        } ${provider.deprecated ? "opacity-60" : ""}`}
-      >
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3 min-w-0 pr-2">
-            <div
-              className="size-7 rounded-lg flex items-center justify-center shrink-0"
-              style={{ backgroundColor: `${provider.color || "#64748b"}15` }}
-            >
-              {staticIconPath ? (
-                <Image
-                  src={staticIconPath}
-                  alt={provider.name}
-                  width={26}
-                  height={26}
-                  className="object-contain rounded-lg max-w-[26px] max-h-[26px]"
-                  sizes="26px"
-                />
-              ) : (
-                <ProviderIcon providerId={provider.id || providerId} size={24} type="color" />
-              )}
-            </div>
-            <div className="min-w-0">
-              <h3 className="text-sm font-semibold flex items-center gap-1 min-w-0">
+    <div className="flex flex-col h-full">
+      <Link href={`/dashboard/providers/${providerId}`} className="group flex-1 flex flex-col">
+        <Card
+          padding="xs"
+          className={`h-full flex flex-col hover:bg-black/[0.01] dark:hover:bg-white/[0.01] transition-colors cursor-pointer ${allDisabled ? "opacity-50" : ""} ${provider.deprecated ? "opacity-60" : ""}`}
+        >
+          <div className="flex flex-col gap-2 h-full">
+            {/* Row 1 — Identity: icon + full name + risk/category indicators */}
+            <div className="flex items-start gap-3 min-w-0">
+              <div
+                className="size-9 rounded-lg flex items-center justify-center shrink-0"
+                style={{ backgroundColor: `${provider.color || "#64748b"}15` }}
+              >
+                {staticIconPath ? (
+                  <Image
+                    src={staticIconPath}
+                    alt={provider.name}
+                    width={26}
+                    height={26}
+                    className="object-contain rounded-lg max-w-[26px] max-h-[26px]"
+                    sizes="26px"
+                  />
+                ) : (
+                  <ProviderIcon providerId={provider.id || providerId} size={24} type="color" />
+                )}
+              </div>
+              <h3 className="text-sm font-semibold leading-snug flex-1 min-w-0">
                 <span
-                  className={`truncate min-w-0 flex-1 ${provider.deprecated ? "line-through opacity-60" : ""}`}
+                  className={`block break-words ${provider.deprecated ? "line-through opacity-60" : ""}`}
+                  title={provider.name}
                 >
                   {provider.name}
                 </span>
+              </h3>
+              <div className="flex items-center gap-1 shrink-0 pt-0.5">
                 {provider.deprecated && (
-                  <Badge
-                    variant="default"
-                    size="sm"
+                  <span
+                    className="material-symbols-outlined text-[16px] leading-none text-text-muted"
                     title={provider.deprecationReason || t("deprecatedProvider")}
+                    aria-label={t("deprecated")}
                   >
-                    <span className="flex items-center gap-0.5">
-                      <span className="material-symbols-outlined text-[10px]">block</span>
-                      {t("deprecated")}
-                    </span>
+                    block
+                  </span>
+                )}
+                {provider.subscriptionRisk === true && (
+                  <span
+                    className="material-symbols-outlined text-[16px] leading-none text-amber-500"
+                    title={t("riskNotice.tooltip")}
+                    aria-label={t("riskNotice.tooltip")}
+                  >
+                    info
+                  </span>
+                )}
+                <CategoryDot
+                  color={DOT_COLORS[authType] || DOT_COLORS.apikey}
+                  hasFree={provider.hasFree === true}
+                  label={dotLabels[authType] || t("apiKeyLabel")}
+                  freeLabel={t("hasFreeTooltip")}
+                />
+              </div>
+            </div>
+
+            {/* Row 2 — Capabilities: service-kind chips + compatibility badges (deprecated shown as block icon in Row 1 header). Rendered only when content exists. */}
+            {((provider.serviceKinds && provider.serviceKinds.length > 0) ||
+              isCompatible ||
+              isCcCompatible ||
+              isAnthropicCompatible) && (
+              <div className="flex flex-wrap items-center gap-1">
+                {provider.serviceKinds?.map((k) => (
+                  <span
+                    key={k}
+                    className="text-[10px] px-1.5 py-0.5 rounded bg-bg-subtle border border-border text-text-muted leading-none"
+                  >
+                    {KIND_LABEL[k] ?? k}
+                  </span>
+                ))}
+                {isCompatible && (
+                  <Badge variant="default" size="sm">
+                    {provider.apiType === "responses" ? t("responses") : t("chat")}
                   </Badge>
                 )}
-                <span
-                  className={`size-2 rounded-full shrink-0 ${DOT_COLORS[authType] || DOT_COLORS.apikey}`}
-                  title={dotLabels[authType] || t("apiKeyLabel")}
-                />
-                {provider.hasFree === true && authType !== "free" && (
-                  <span
-                    className="size-2 rounded-full shrink-0 bg-green-500"
-                    title={provider.freeNote || t("freeTierAvailable")}
-                  />
+                {isCcCompatible && (
+                  <Badge variant="default" size="sm">
+                    CC
+                  </Badge>
                 )}
-              </h3>
-              <div className="flex items-center gap-2 text-xs flex-wrap">
+                {isAnthropicCompatible && (
+                  <Badge variant="default" size="sm">
+                    {t("messages")}
+                  </Badge>
+                )}
+              </div>
+            )}
+
+            {/* Row 3 — Footer: connection status + controls (toggle, test) */}
+            <div className="flex items-center justify-between gap-2 mt-auto pt-1.5 border-t border-border/40">
+              <div className="flex items-center gap-1.5 text-xs flex-nowrap min-w-0 overflow-hidden">
                 {allDisabled ? (
                   <Badge variant="default" size="sm">
                     <span className="flex items-center gap-1">
@@ -221,7 +339,7 @@ export default function ProviderCard({
                       Number(stats.warning || 0),
                       stats.errorCode,
                       t,
-                      codexFastChip
+                      codexServiceTierChip
                     )}
                     {stats.expiryStatus === "expired" && (
                       <Badge variant="error" size="sm" dot>
@@ -233,46 +351,55 @@ export default function ProviderCard({
                         {t("expiringSoonBadge")}
                       </Badge>
                     )}
-                    {isCompatible && (
-                      <Badge variant="default" size="sm">
-                        {provider.apiType === "responses" ? t("responses") : t("chat")}
-                      </Badge>
-                    )}
-                    {isCcCompatible && (
-                      <Badge variant="default" size="sm">
-                        CC
-                      </Badge>
-                    )}
-                    {isAnthropicCompatible && (
-                      <Badge variant="default" size="sm">
-                        {t("messages")}
-                      </Badge>
-                    )}
                     {stats.errorTime && (
-                      <span className="text-text-muted">* {stats.errorTime}</span>
+                      <span className="text-text-muted truncate min-w-0">* {stats.errorTime}</span>
                     )}
                   </>
                 )}
               </div>
+              <div className="flex items-center gap-2 shrink-0">
+                {Number(stats.total || 0) > 0 && (
+                  <div onClick={handleToggle}>
+                    <Toggle
+                      size="xs"
+                      checked={!allDisabled}
+                      onChange={() => {}}
+                      title={allDisabled ? t("enableProvider") : t("disableProvider")}
+                    />
+                  </div>
+                )}
+                {isLlmProvider && (
+                  <button
+                    type="button"
+                    onClick={handleTestClick}
+                    title={tp("expandTest")}
+                    className="inline-flex items-center gap-0.5 rounded-md border border-border bg-bg-subtle px-2 py-0.5 text-[11px] text-text-muted hover:text-text-primary hover:border-primary/30 transition-colors"
+                  >
+                    <span className="material-symbols-outlined text-[11px] leading-none">
+                      play_arrow
+                    </span>
+                    {tp("testLabel")}
+                  </button>
+                )}
+                {!isLlmProvider && (
+                  <span className="material-symbols-outlined text-text-muted opacity-0 group-hover:opacity-100 transition-opacity">
+                    chevron_right
+                  </span>
+                )}
+              </div>
             </div>
           </div>
-          <div className="flex items-center gap-2 shrink-0">
-            {Number(stats.total || 0) > 0 && (
-              <div onClick={handleToggle}>
-                <Toggle
-                  size="xs"
-                  checked={!allDisabled}
-                  onChange={() => {}}
-                  title={allDisabled ? t("enableProvider") : t("disableProvider")}
-                />
-              </div>
-            )}
-            <span className="material-symbols-outlined text-text-muted opacity-0 group-hover:opacity-100 transition-opacity">
-              chevron_right
-            </span>
-          </div>
-        </div>
-      </Card>
-    </Link>
+        </Card>
+      </Link>
+      {isLlmProvider && (
+        <ProviderTestSlideOver
+          isOpen={testExpanded}
+          onClose={() => setTestExpanded(false)}
+          providerId={providerId}
+          provider={provider}
+          staticIconPath={staticIconPath}
+        />
+      )}
+    </div>
   );
 }

@@ -10,6 +10,7 @@ const ORIGINAL_DATA_DIR = process.env.DATA_DIR;
 const ORIGINAL_CLOUD_URL = process.env.CLOUD_URL;
 const ORIGINAL_PUBLIC_CLOUD_URL = process.env.NEXT_PUBLIC_CLOUD_URL;
 const ORIGINAL_TIMEOUT = process.env.CLOUD_SYNC_TIMEOUT_MS;
+const ORIGINAL_CLOUD_SECRETS = process.env.OMNIROUTE_CLOUD_SYNC_SECRETS;
 const ORIGINAL_FETCH = globalThis.fetch;
 const cloudSyncModuleUrl = pathToFileURL(path.join(process.cwd(), "src/lib/cloudSync.ts")).href;
 
@@ -42,6 +43,7 @@ async function resetStorage() {
   delete process.env.CLOUD_URL;
   delete process.env.NEXT_PUBLIC_CLOUD_URL;
   delete process.env.CLOUD_SYNC_TIMEOUT_MS;
+  delete process.env.OMNIROUTE_CLOUD_SYNC_SECRETS;
 }
 
 test.beforeEach(async () => {
@@ -72,6 +74,11 @@ test.after(() => {
     delete process.env.CLOUD_SYNC_TIMEOUT_MS;
   } else {
     process.env.CLOUD_SYNC_TIMEOUT_MS = ORIGINAL_TIMEOUT;
+  }
+  if (ORIGINAL_CLOUD_SECRETS === undefined) {
+    delete process.env.OMNIROUTE_CLOUD_SYNC_SECRETS;
+  } else {
+    process.env.OMNIROUTE_CLOUD_SYNC_SECRETS = ORIGINAL_CLOUD_SECRETS;
   }
 });
 
@@ -123,12 +130,17 @@ test("cloudSync returns a generic error when the API responds with a non-OK stat
 
   const originalConsoleLog = console.log;
   const logged = [];
-  console.log = (...args) => logged.push(args.join(" "));
-  globalThis.fetch = async () => ({
-    ok: false,
-    status: 503,
-    text: async () => "upstream unavailable",
-  });
+  console.log = (...args) =>
+    logged.push(
+      args
+        .map((x) => (typeof x === "object" ? JSON.stringify(x) : String(x)))
+        .join(" ")
+    );
+  globalThis.fetch = async () =>
+    new Response("upstream unavailable", {
+      status: 503,
+      headers: { "Content-Type": "text/plain" },
+    });
 
   try {
     const cloudSync = await loadCloudSync("sync-non-ok");
@@ -136,7 +148,7 @@ test("cloudSync returns a generic error when the API responds with a non-OK stat
 
     assert.deepEqual(result, { error: "Cloud sync failed" });
     assert.equal(
-      logged.some((entry) => entry.includes("Cloud sync failed (503)")),
+      logged.some((entry) => entry.includes("Cloud sync failed") && entry.includes("503")),
       true
     );
   } finally {
@@ -146,6 +158,7 @@ test("cloudSync returns a generic error when the API responds with a non-OK stat
 
 test("cloudSync syncs data upstream and refreshes only locally stale provider tokens", async () => {
   process.env.NEXT_PUBLIC_CLOUD_URL = "https://cloud.example";
+  process.env.OMNIROUTE_CLOUD_SYNC_SECRETS = "true";
 
   const stale = await providersDb.createProviderConnection({
     provider: "openai",
@@ -178,40 +191,41 @@ test("cloudSync syncs data upstream and refreshes only locally stale provider to
   let postedBody = null;
   globalThis.fetch = async (_url, options) => {
     postedBody = JSON.parse(options.body);
-    return {
-      ok: true,
-      json: async () => ({
-        changes: { providers: 1 },
-        data: {
-          providers: {
-            [stale.id]: {
-              updatedAt: "2026-04-01T00:00:00.000Z",
-              accessToken: "new-token",
-              refreshToken: "new-refresh",
-              expiresAt: "2026-04-02T00:00:00.000Z",
-              expiresIn: 3600,
-              providerSpecificData: { region: "eu" },
-              status: "active",
-              lastError: null,
-              lastErrorAt: null,
-              errorCode: null,
-              rateLimitedUntil: null,
-            },
-            [fresh.id]: {
-              updatedAt: "2026-02-01T00:00:00.000Z",
-              accessToken: "should-not-overwrite",
-              refreshToken: "should-not-overwrite",
-            },
+    const responseData = {
+      changes: { providers: 1 },
+      data: {
+        providers: {
+          [stale.id]: {
+            updatedAt: "2026-04-01T00:00:00.000Z",
+            accessToken: "new-token",
+            refreshToken: "new-refresh",
+            expiresAt: "2026-04-02T00:00:00.000Z",
+            expiresIn: 3600,
+            providerSpecificData: { region: "eu" },
+            status: "active",
+            lastError: null,
+            lastErrorAt: null,
+            errorCode: null,
+            rateLimitedUntil: null,
+          },
+          [fresh.id]: {
+            updatedAt: "2026-02-01T00:00:00.000Z",
+            accessToken: "should-not-overwrite",
+            refreshToken: "should-not-overwrite",
           },
         },
-      }),
+      },
     };
+    return new Response(JSON.stringify(responseData), {
+      status: 200,
+      headers: { "Content-Type": "application/json" },
+    });
   };
 
   const cloudSync = await loadCloudSync("sync-success");
   const result = await cloudSync.syncToCloud("machine-1", "created-key-1");
-  const staleAfter = await providersDb.getProviderConnectionById((stale as any).id);
-  const freshAfter = await providersDb.getProviderConnectionById((fresh as any).id);
+  const staleAfter = await providersDb.getProviderConnectionById((stale as { id: string }).id);
+  const freshAfter = await providersDb.getProviderConnectionById((fresh as { id: string }).id);
 
   assert.equal(Array.isArray(postedBody.providers), true);
   assert.equal(Array.isArray(postedBody.apiKeys), true);

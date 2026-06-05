@@ -14,6 +14,9 @@ const localDb = await import("../../src/lib/localDb.ts");
 const apiKeysDb = await import("../../src/lib/db/apiKeys.ts");
 const apiAuth = await import("../../src/shared/utils/apiAuth.ts");
 const { requireManagementAuth } = await import("../../src/lib/api/requireManagementAuth.ts");
+const { getLegacyCliTokenSync, getMachineTokenSync } =
+  await import("../../src/lib/machineToken.ts");
+const { CLI_TOKEN_HEADER } = await import("../../src/server/authz/headers.ts");
 
 const ORIGINAL_JWT_SECRET = process.env.JWT_SECRET;
 const ORIGINAL_INITIAL_PASSWORD = process.env.INITIAL_PASSWORD;
@@ -330,6 +333,13 @@ function managementRequest(bearerKey?: string) {
   });
 }
 
+function managementCliRequest(token: string) {
+  const request = new Request("http://localhost:20128/api/combos", {
+    headers: { [CLI_TOKEN_HEADER]: token },
+  });
+  return Object.assign(request, { ip: "127.0.0.1" }) as Request;
+}
+
 test("requireManagementAuth returns 401 with no credentials", async () => {
   await setupAuth();
   const res = await requireManagementAuth(managementRequest());
@@ -360,6 +370,22 @@ test("requireManagementAuth returns null for valid key with manage scope", async
   await setupAuth();
   const key = await apiKeysDb.createApiKey("admin-key", "machine-test", ["manage"]);
   const res = await requireManagementAuth(managementRequest(key.key));
+  assert.equal(res, null);
+});
+
+test("requireManagementAuth accepts the 64-character local machine token", async () => {
+  await setupAuth();
+  const token = getMachineTokenSync();
+  assert.equal(token.length, 64);
+  const res = await requireManagementAuth(managementCliRequest(token));
+  assert.equal(res, null);
+});
+
+test("requireManagementAuth accepts the legacy 32-character local CLI token", async () => {
+  await setupAuth();
+  const token = getLegacyCliTokenSync();
+  assert.equal(token.length, 32);
+  const res = await requireManagementAuth(managementCliRequest(token));
   assert.equal(res, null);
 });
 

@@ -215,9 +215,10 @@ test("handleToolCallExecution appends OpenAI tool results and leaves empty respo
   assert.equal(await handleToolCallExecution(untouched, "gpt-4.1", executionContext), untouched);
 });
 
-test("handleToolCallExecution appends Anthropic tool_result blocks", async () => {
+test("handleToolCallExecution returns Anthropic skill results as text", async () => {
   const anthropicResponse = await handleToolCallExecution(
     {
+      stop_reason: "tool_use",
       content: [{ type: "tool_use", id: "tool-1", name: "lookup@1.0.0", input: { id: "77" } }],
     },
     "claude-3-7-sonnet",
@@ -225,13 +226,17 @@ test("handleToolCallExecution appends Anthropic tool_result blocks", async () =>
   );
 
   assert.deepEqual(anthropicResponse.content, [
-    { type: "tool_use", id: "tool-1", name: "lookup@1.0.0", input: { id: "77" } },
     {
-      type: "tool_result",
-      tool_use_id: "tool-1",
-      content: '{"record":"resolved:77"}',
+      type: "text",
+      text: '[Skill result: lookup@1.0.0]\n{"record":"resolved:77"}',
     },
   ]);
+  assert.equal(
+    anthropicResponse.content.some((b: { type: string }) => b.type === "tool_result"),
+    false
+  );
+  assert.equal(anthropicResponse.stop_reason, "end_turn");
+  assert.equal(anthropicResponse.stop_sequence, null);
 });
 
 test("handleToolCallExecution appends Responses API function_call_output items", async () => {
@@ -264,4 +269,75 @@ test("handleToolCallExecution appends Responses API function_call_output items",
       output: '{"record":"resolved:55"}',
     },
   ]);
+});
+
+test("handleToolCallExecution forwards unregistered client-native tool_use untouched (#2815)", async () => {
+  const original = {
+    content: [
+      { type: "tool_use", id: "tool-native", name: "Bash", input: { command: "ls" } },
+      { type: "text", text: "Calling Bash" },
+    ],
+  };
+  const result = await handleToolCallExecution(original, "claude-3-7-sonnet", executionContext);
+
+  assert.equal(result, original);
+  assert.equal(
+    (result.content as Array<{ type: string }>).some((b) => b.type === "tool_result"),
+    false
+  );
+});
+
+test("handleToolCallExecution intercepts a registered skill alongside an unregistered tool (#2815)", async () => {
+  const mixed = await handleToolCallExecution(
+    {
+      stop_reason: "tool_use",
+      content: [
+        { type: "tool_use", id: "tool-native", name: "Bash", input: { command: "ls" } },
+        { type: "tool_use", id: "tool-skill", name: "lookup@1.0.0", input: { id: "9" } },
+      ],
+    },
+    "claude-3-7-sonnet",
+    executionContext
+  );
+
+  assert.deepEqual(mixed.content, [
+    {
+      type: "text",
+      text: '[Skill result: lookup@1.0.0]\n{"record":"resolved:9"}',
+    },
+    { type: "tool_use", id: "tool-native", name: "Bash", input: { command: "ls" } },
+  ]);
+  assert.equal(mixed.content.some((b: { type: string }) => b.type === "tool_result"), false);
+  assert.equal(mixed.stop_reason, "tool_use");
+});
+
+test("handleToolCallExecution loads registry from DB on cold cache (covers loadFromDatabase fix)", async () => {
+  // Skills are in the DB (registered in beforeEach) but we evict the in-memory
+  // cache to simulate a cold/fresh process. Without the loadFromDatabase() call
+  // at the top of handleToolCallExecution, isRegisteredCustomSkill() would
+  // return false (false negative) and the skill would be silently skipped.
+  skillRegistry["registeredSkills"].clear();
+  skillRegistry["versionCache"].clear();
+  skillRegistry.invalidateCache();
+
+  const result = await handleToolCallExecution(
+    {
+      stop_reason: "tool_use",
+      content: [
+        { type: "tool_use", id: "tool-skill", name: "lookup@1.0.0", input: { id: "cold" } },
+      ],
+    },
+    "claude-3-7-sonnet",
+    executionContext
+  );
+
+  assert.deepEqual(result.content, [
+    {
+      type: "text",
+      text: '[Skill result: lookup@1.0.0]\n{"record":"resolved:cold"}',
+    },
+  ]);
+  assert.equal(result.content.some((b: { type: string }) => b.type === "tool_result"), false);
+  assert.equal(result.stop_reason, "end_turn");
+  assert.equal(result.stop_sequence, null);
 });

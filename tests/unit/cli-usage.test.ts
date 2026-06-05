@@ -101,7 +101,7 @@ async function captureStdout(fn: () => Promise<void>): Promise<string> {
   const chunks: string[] = [];
   const orig = process.stdout.write.bind(process.stdout);
   process.stdout.write = (c: string | Uint8Array) => {
-    chunks.push(typeof c === "string" ? c : c.toString());
+    if (typeof c === "string") chunks.push(c);
     return true;
   };
   try {

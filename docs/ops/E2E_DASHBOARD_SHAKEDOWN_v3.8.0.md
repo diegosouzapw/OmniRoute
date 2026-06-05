@@ -1,3 +1,7 @@
+---
+title: "E2E Dashboard Shakedown — v3.8.0"
+---
+
 # E2E Dashboard Shakedown — v3.8.0
 
 **Branch alvo:** `release/v3.8.0`
@@ -308,7 +312,7 @@ E2E shakedown v3.8.0: <página> quebrava com <sintoma>.
 <o que mudou e por quê>"
 ```
 
-Não usar `Co-Authored-By` (hard rule #16). Não rodar `--no-verify`.
+Não usar `Co-Authored-By` para IA/bot — Claude, GPT, Copilot etc. (hard rule #16). Co-autores humanos são permitidos. Não rodar `--no-verify`.
 
 Ao final da sessão, **push único** com todos os fixes:
 

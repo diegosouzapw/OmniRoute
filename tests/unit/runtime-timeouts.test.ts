@@ -125,3 +125,12 @@ test("API bridge proxy timeout defaults to the long upstream request window", ()
   assert.equal(config.proxyTimeoutMs, 600000);
   assert.equal(config.serverRequestTimeoutMs, 600000);
 });
+
+test("REQUEST_TIMEOUT_MS=0 disables API bridge proxy and request timeouts consistently", () => {
+  const config = runtimeTimeouts.getApiBridgeTimeoutConfig({
+    REQUEST_TIMEOUT_MS: "0",
+  });
+
+  assert.equal(config.proxyTimeoutMs, 0);
+  assert.equal(config.serverRequestTimeoutMs, 0);
+});

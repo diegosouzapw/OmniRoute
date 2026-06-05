@@ -41,6 +41,7 @@ import {
   extractComfyOutputFiles,
 } from "../utils/comfyuiClient.ts";
 import { fetchRemoteImage } from "@/shared/network/remoteImageFetch";
+import { FetchTimeoutError, fetchWithTimeout, getConfiguredTimeout } from "@/shared/utils/fetchTimeout";
 import { sanitizeErrorMessage, sanitizeUpstreamDetails } from "../utils/error.ts";
 
 interface KieImageOptions {
@@ -133,6 +134,12 @@ const BFL_EDIT_MODELS = new Set([
 ]);
 
 const BFL_FAILURE_STATUSES = new Set(["Error", "Failed", "Content Moderated", "Request Moderated"]);
+
+function formatImageProviderError(err) {
+  const sanitized = sanitizeErrorMessage(err);
+  const message = (sanitized || "").replace(/^Error:\s*/i, "").trim();
+  return message ? `Image provider error: ${message}` : "Image provider error";
+}
 
 const STABILITY_GENERATION_ENDPOINTS = {
   "sd3.5-large": "/v2beta/stable-image/generate/sd3",
@@ -2408,11 +2415,33 @@ function saveImageErrorResult({ provider, model, status, startTime, error, reque
  */
 async function fetchImageEndpoint(url, headers, body, provider, log) {
   try {
-    const response = await fetch(url, {
-      method: "POST",
-      headers,
-      body,
-    });
+    let response;
+    try {
+      response = await fetchWithTimeout(url, {
+        method: "POST",
+        headers,
+        body,
+        timeoutMs: getConfiguredTimeout(),
+      });
+    } catch (err: unknown) {
+      const isAbortError =
+        typeof err === "object" &&
+        err !== null &&
+        "name" in err &&
+        (err as { name?: unknown }).name === "AbortError";
+      if (err instanceof FetchTimeoutError || isAbortError) {
+        const message = err instanceof Error ? err.message : String(err);
+        if (log) {
+          log.error("IMAGE", `${provider} fetch error: ${message}`);
+        }
+        return {
+          success: false,
+          status: 504,
+          error: `Image provider error: ${sanitizeErrorMessage(message || err)}`,
+        };
+      }
+      throw err;
+    }
 
     if (!response.ok) {
       const errorText = await response.text();
@@ -2436,14 +2465,15 @@ async function fetchImageEndpoint(url, headers, body, provider, log) {
         data: data.data || [],
       },
     };
-  } catch (err) {
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : String(err);
     if (log) {
-      log.error("IMAGE", `${provider} fetch error: ${err.message}`);
+      log.error("IMAGE", `${provider} fetch error: ${message}`);
     }
     return {
       success: false,
       status: 502,
-      error: `Image provider error: ${sanitizeErrorMessage((err as Error).message || err)}`,
+      error: `Image provider error: ${sanitizeErrorMessage(message || err)}`,
     };
   }
 }
