@@ -4,9 +4,7 @@
 
 ---
 
-## [3.8.11] — Unreleased
-
-_Development cycle in progress — entries are added as work merges into `release/v3.8.11` and finalized by the release flow._
+## [3.8.11] — 2026-06-05
 
 ### ✨ New Features
 
@@ -44,6 +42,7 @@ _Development cycle in progress — entries are added as work merges into `releas
 
 - **build:** finish the build-output-isolation cleanup — `assembleStandalone.mjs` now derives both its async (`syncStandalone*`) and sync copy paths from a single `NATIVE_ASSET_ENTRIES`/`EXTRA_MODULE_ENTRIES` source of truth (previously two hand-maintained lists that could silently drift), guarded by a new parity test; and the `Dockerfile` drops 5 redundant per-module `COPY` overrides (`@swc/helpers`, `pino-abstract-transport`, `pino-pretty`, `split2`, `migrations`) now that `assembleStandalone` bundles them into the standalone regardless of NFT/Turbopack tracing (validated with a real Turbopack `docker build` + boot → `/api/monitoring/health` 200; `better-sqlite3` stays explicit since only its native `build/` is synced) (#3187 — thanks @diegosouzapw)
 - **combo:** add a regression guard asserting the same-provider cascade is short-circuited by the connection-cooldown layer (#3200 — thanks @diegosouzapw)
+- **repo:** housekeeping — ignore the generated `coverage/` output dir and prune deprecated `.agents/skills/*` SKILL definitions superseded by the current workflow skills (thanks @diegosouzapw)
 
 ### 🙌 Contributors
 

@@ -1,7 +1,9 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 
-import { nestDottedKeys } from "@/i18n/request";
+// The shipped helper is `normalizeComplianceEventTypes` (#3185); it nests dotted
+// keys under `compliance.eventTypes` and is a no-op for messages without that path.
+import { normalizeComplianceEventTypes as nestDottedKeys } from "@/i18n/request";
 
 test("nestDottedKeys expands flat compliance.eventTypes keys into nested objects", () => {
   const input = {

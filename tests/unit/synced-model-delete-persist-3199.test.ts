@@ -9,13 +9,22 @@
  */
 import test, { before, after } from "node:test";
 import assert from "node:assert/strict";
+import os from "node:os";
+import path from "node:path";
+import fs from "node:fs";
 
-import {
-  replaceSyncedAvailableModelsForConnection,
-  getSyncedAvailableModels,
-  mergeModelCompatOverride,
-} from "../../src/lib/localDb.ts";
-import { resetDbInstance } from "../../src/lib/db/core.ts";
+// Hermetic DB: this test marks a model hidden (an override persisted in the
+// `modelCompatOverrides` key_value namespace). Without an isolated DATA_DIR it
+// would write that override into the shared dev/CI database and never clean it
+// up, so the SECOND run would see `model-del` already hidden and the first-sync
+// precondition would fail. Point DATA_DIR at a throwaway dir before any import
+// that opens the SQLite connection.
+const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-test-synced-del-"));
+process.env.DATA_DIR = tmpDir;
+
+const { replaceSyncedAvailableModelsForConnection, getSyncedAvailableModels, mergeModelCompatOverride } =
+  await import("../../src/lib/localDb.ts");
+const { resetDbInstance } = await import("../../src/lib/db/core.ts");
 
 before(() => {
   resetDbInstance();
@@ -23,6 +32,7 @@ before(() => {
 
 after(() => {
   resetDbInstance();
+  fs.rmSync(tmpDir, { recursive: true, force: true });
 });
 
 test("a hidden (deleted) synced model is not re-added on re-import", async () => {
