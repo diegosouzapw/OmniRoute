@@ -10,7 +10,7 @@ import {
   resolveBrowserOAuthRedirectUri,
 } from "@/lib/oauth/providers";
 import { persistOAuthConnection } from "@/lib/oauth/connectionPersistence";
-import { createDeviceFlowTicket } from "@/lib/oauth/deviceFlowTickets";
+import { createDeviceFlowTicket, getDeviceFlowTicketStatus } from "@/lib/oauth/deviceFlowTickets";
 import {
   createProviderConnection,
   updateProviderConnection,
@@ -217,6 +217,17 @@ export async function GET(
 
     if (action === "start-callback-server") {
       return await handleStartCallbackServer(provider, searchParams);
+    }
+
+    if (action === "public-link-status") {
+      // Dashboard polls this (authenticated) to learn when the external visitor
+      // finished the device flow, so it can notify + refresh the connections.
+      const token = searchParams.get("token");
+      if (!token) {
+        return NextResponse.json({ error: "Missing token" }, { status: 400 });
+      }
+      const { status, result } = getDeviceFlowTicketStatus(token);
+      return NextResponse.json({ status, connection: result });
     }
 
     return NextResponse.json({ error: "Unknown action" }, { status: 400 });
@@ -803,7 +814,7 @@ export async function POST(
       const { token, expiresAt } = createDeviceFlowTicket(provider, connectionId);
 
       return NextResponse.json({
-        url: `${resolvePublicBaseUrl(request)}/codex/connect/${token}`,
+        url: `${resolvePublicBaseUrl(request)}/connect/codex/${token}`,
         token,
         expiresAt: new Date(expiresAt).toISOString(),
       });

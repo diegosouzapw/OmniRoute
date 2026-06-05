@@ -4,10 +4,13 @@ import assert from "node:assert/strict";
 import {
   createDeviceFlowTicket,
   peekDeviceFlowTicket,
-  consumeDeviceFlowTicket,
+  claimDeviceFlowTicket,
+  completeDeviceFlowTicket,
+  releaseDeviceFlowTicket,
+  getDeviceFlowTicketStatus,
 } from "@/lib/oauth/deviceFlowTickets";
 
-test("createDeviceFlowTicket returns a token + future expiry and is peekable", () => {
+test("createDeviceFlowTicket returns a token + future expiry and starts pending", () => {
   const { token, expiresAt } = createDeviceFlowTicket("codex", "conn-1");
   assert.ok(token.length >= 32);
   assert.ok(expiresAt > Date.now());
@@ -16,28 +19,49 @@ test("createDeviceFlowTicket returns a token + future expiry and is peekable", (
   assert.ok(ticket);
   assert.equal(ticket!.provider, "codex");
   assert.equal(ticket!.connectionId, "conn-1");
-  assert.equal(ticket!.used, false);
+  assert.equal(ticket!.status, "pending");
 });
 
-test("consumeDeviceFlowTicket is single-use", () => {
+test("claimDeviceFlowTicket is single-use (second claim rejected)", () => {
   const { token } = createDeviceFlowTicket("codex");
-  const first = consumeDeviceFlowTicket(token, "codex");
+  const first = claimDeviceFlowTicket(token, "codex");
   assert.ok(first);
-  assert.equal(first!.token, token);
+  assert.equal(first!.status, "claimed");
 
-  // Second consume + any peek must fail (single-use).
-  assert.equal(consumeDeviceFlowTicket(token, "codex"), null);
-  assert.equal(peekDeviceFlowTicket(token), null);
+  // Second claim must fail — it is no longer pending.
+  assert.equal(claimDeviceFlowTicket(token, "codex"), null);
 });
 
-test("consumeDeviceFlowTicket rejects a provider mismatch without consuming", () => {
+test("complete records the result and surfaces it via status", () => {
   const { token } = createDeviceFlowTicket("codex");
-  assert.equal(consumeDeviceFlowTicket(token, "claude"), null);
-  // Still valid for the correct provider since the mismatch did not consume it.
-  assert.ok(consumeDeviceFlowTicket(token, "codex"));
+  claimDeviceFlowTicket(token, "codex");
+  completeDeviceFlowTicket(token, { connectionId: "c-9", email: "u@example.com" });
+
+  const status = getDeviceFlowTicketStatus(token);
+  assert.equal(status.status, "completed");
+  assert.deepEqual(status.result, { connectionId: "c-9", email: "u@example.com" });
 });
 
-test("peek/consume return null for unknown tokens", () => {
+test("release reverts a claimed ticket to pending so the visitor can retry", () => {
+  const { token } = createDeviceFlowTicket("codex");
+  claimDeviceFlowTicket(token, "codex");
+  releaseDeviceFlowTicket(token);
+
+  assert.equal(getDeviceFlowTicketStatus(token).status, "pending");
+  // Claimable again after release.
+  assert.ok(claimDeviceFlowTicket(token, "codex"));
+});
+
+test("claimDeviceFlowTicket rejects a provider mismatch without claiming", () => {
+  const { token } = createDeviceFlowTicket("codex");
+  assert.equal(claimDeviceFlowTicket(token, "claude"), null);
+  // Still pending + claimable for the correct provider.
+  assert.equal(peekDeviceFlowTicket(token)!.status, "pending");
+  assert.ok(claimDeviceFlowTicket(token, "codex"));
+});
+
+test("status is 'expired' for unknown tokens", () => {
   assert.equal(peekDeviceFlowTicket("nope"), null);
-  assert.equal(consumeDeviceFlowTicket("nope", "codex"), null);
+  assert.equal(getDeviceFlowTicketStatus("nope").status, "expired");
+  assert.equal(claimDeviceFlowTicket("nope", "codex"), null);
 });

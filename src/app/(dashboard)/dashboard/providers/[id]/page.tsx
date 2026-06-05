@@ -1435,6 +1435,7 @@ export default function ProviderDetailPage() {
   // "Adicionar Externo": public shareable device-flow link state.
   const [externalLinkModalOpen, setExternalLinkModalOpen] = useState(false);
   const [externalLinkUrl, setExternalLinkUrl] = useState("");
+  const [externalLinkToken, setExternalLinkToken] = useState<string | null>(null);
   const [externalLinkLoading, setExternalLinkLoading] = useState(false);
   const [externalLinkError, setExternalLinkError] = useState<string | null>(null);
   const { copied: externalLinkCopied, copy: externalLinkCopy } = useCopyToClipboard();
@@ -1996,6 +1997,7 @@ export default function ProviderDetailPage() {
   const openExternalLinkFlow = useCallback(async () => {
     setExternalLinkModalOpen(true);
     setExternalLinkUrl("");
+    setExternalLinkToken(null);
     setExternalLinkError(null);
     setExternalLinkLoading(true);
     try {
@@ -2007,6 +2009,7 @@ export default function ProviderDetailPage() {
       const data = await res.json().catch(() => ({}));
       if (res.ok && data?.url) {
         setExternalLinkUrl(data.url);
+        setExternalLinkToken(data.token || null);
       } else {
         setExternalLinkError(data?.error || "Falha ao gerar o link.");
       }
@@ -2016,6 +2019,41 @@ export default function ProviderDetailPage() {
       setExternalLinkLoading(false);
     }
   }, [providerId]);
+
+  // While the share popup is open, poll the ticket status so the dashboard can
+  // notify + refresh the connections the moment the external visitor finishes.
+  useEffect(() => {
+    if (!externalLinkModalOpen || !externalLinkToken) return;
+    let active = true;
+    const interval = setInterval(async () => {
+      if (!active) return;
+      try {
+        const res = await fetch(
+          `/api/oauth/${providerId}/public-link-status?token=${encodeURIComponent(externalLinkToken)}`
+        );
+        const data = await res.json().catch(() => ({}));
+        if (!active) return;
+        if (data?.status === "completed") {
+          active = false;
+          clearInterval(interval);
+          notify.success("Conta Codex conectada pelo link externo.");
+          fetchConnections();
+          setExternalLinkModalOpen(false);
+          setExternalLinkToken(null);
+        } else if (data?.status === "expired") {
+          active = false;
+          clearInterval(interval);
+          setExternalLinkError("O link expirou sem ser concluído.");
+        }
+      } catch {
+        /* transient network error — keep polling */
+      }
+    }, 3000);
+    return () => {
+      active = false;
+      clearInterval(interval);
+    };
+  }, [externalLinkModalOpen, externalLinkToken, providerId, notify, fetchConnections]);
 
   const gateConnectionFlow = useCallback(
     (callback: () => void) => {
@@ -4882,6 +4920,10 @@ export default function ProviderDetailPage() {
                     {externalLinkCopied === "extlink" ? "Copiado" : "Copiar"}
                   </Button>
                 </div>
+                <p className="flex items-center gap-2 text-xs text-text-muted">
+                  <span className="material-symbols-outlined animate-spin text-[16px]">sync</span>
+                  Aguardando a autenticação no navegador da pessoa… esta janela atualiza sozinha.
+                </p>
               </>
             ) : null}
           </div>

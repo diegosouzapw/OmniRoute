@@ -3,7 +3,9 @@ import { finalizeTokens } from "@/lib/oauth/providers";
 import { persistOAuthConnection } from "@/lib/oauth/connectionPersistence";
 import {
   peekDeviceFlowTicket,
-  consumeDeviceFlowTicket,
+  claimDeviceFlowTicket,
+  completeDeviceFlowTicket,
+  releaseDeviceFlowTicket,
 } from "@/lib/oauth/deviceFlowTickets";
 import { validateBody, isValidationFailure } from "@/shared/validation/helpers";
 import { oauthDeviceCompleteSchema } from "@/shared/validation/schemas";
@@ -27,7 +29,7 @@ export async function GET(
 ) {
   const { token } = await params;
   const ticket = peekDeviceFlowTicket(token);
-  if (!ticket || ticket.provider !== PROVIDER) {
+  if (!ticket || ticket.provider !== PROVIDER || ticket.status !== "pending") {
     return NextResponse.json(
       { valid: false, error: "This link is invalid, already used, or expired." },
       { status: 404 }
@@ -59,9 +61,10 @@ export async function POST(
     return NextResponse.json({ error: validation.error }, { status: 400 });
   }
 
-  // Consume the ticket FIRST (single-use): an invalid/expired/used token must
-  // never reach token mapping or persistence.
-  const ticket = consumeDeviceFlowTicket(token, PROVIDER);
+  // Claim the ticket FIRST (single-use): an invalid/expired/already-used token
+  // must never reach token mapping or persistence. Claiming also blocks
+  // concurrent/duplicate submissions.
+  const ticket = claimDeviceFlowTicket(token, PROVIDER);
   if (!ticket) {
     return NextResponse.json(
       { success: false, error: "This link is invalid, already used, or expired." },
@@ -86,11 +89,19 @@ export async function POST(
 
     const connection = await persistOAuthConnection(PROVIDER, tokenData, ticket.connectionId);
 
+    // Record completion so the dashboard poll can notify + refresh.
+    completeDeviceFlowTicket(token, {
+      connectionId: connection.id,
+      email: connection.email ?? null,
+    });
+
     return NextResponse.json({
       success: true,
       connection: { id: connection.id, provider: connection.provider, email: connection.email },
     });
   } catch (err: any) {
+    // Release the claim so the visitor can retry within the link's lifetime.
+    releaseDeviceFlowTicket(token);
     console.error("Codex public device-flow completion error:", err);
     return NextResponse.json(
       { success: false, error: sanitizeErrorMessage(err?.message) || "Failed to save connection" },

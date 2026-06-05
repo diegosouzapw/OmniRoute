@@ -61,6 +61,16 @@ export function classifyRoute(rawPath: string, method: string = "GET"): RouteCla
     };
   }
 
+  // Public, ticket-gated device-flow connect pages (e.g. /connect/codex/{token}).
+  // Anyone with the shared link completes the provider login in their own browser.
+  if (normalizedPath === "/connect" || normalizedPath.startsWith("/connect/")) {
+    return {
+      routeClass: "PUBLIC",
+      reason: "public_connect_page",
+      normalizedPath,
+    };
+  }
+
   if (normalizedPath.startsWith("/dashboard")) {
     return {
       routeClass: "MANAGEMENT",
