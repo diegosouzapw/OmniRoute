@@ -2,6 +2,7 @@ import { handleChat } from "@/sse/handlers/chat";
 import { withEarlyStreamKeepalive } from "@omniroute/open-sse/utils/earlyStreamKeepalive";
 import { resolveResponsesApiModel } from "@/app/api/internal/codex-responses-ws/modelResolution";
 import { getModelInfo } from "@/sse/services/model";
+import { getComboByName } from "@/lib/db/combos";
 
 // NOTE: We do NOT call initTranslators() here — the translator registry is
 // bootstrapped at module level inside open-sse/translator/index.ts when it
@@ -37,7 +38,11 @@ async function withCodexPreferredModel(request: Request): Promise<Request> {
     if (!body || typeof body !== "object" || typeof body.model !== "string") {
       return request;
     }
-    const { model, changed } = await resolveResponsesApiModel(body.model, getModelInfo);
+    const { model, changed } = await resolveResponsesApiModel(
+      body.model,
+      getModelInfo,
+      async (name) => !!(await getComboByName(name))
+    );
     if (!changed) return request;
 
     return new Request(request.url, {
