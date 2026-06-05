@@ -47,6 +47,7 @@ export function formatOmniRouteCost(costUsd: unknown): string {
 export function buildOmniRouteResponseMetaHeaders({
   cacheHit = false,
   costUsd = 0,
+  fallbackAttempts = 0,
   latencyMs = 0,
   model = null,
   provider = null,
@@ -54,6 +55,7 @@ export function buildOmniRouteResponseMetaHeaders({
 }: {
   cacheHit?: boolean;
   costUsd?: unknown;
+  fallbackAttempts?: number;
   latencyMs?: unknown;
   model?: string | null;
   provider?: string | null;
@@ -74,6 +76,11 @@ export function buildOmniRouteResponseMetaHeaders({
 
   if (typeof provider === "string" && provider.trim().length > 0) {
     headers[OMNIROUTE_RESPONSE_HEADERS.provider] = getProviderAlias(provider);
+  }
+
+  const attempts = toNonNegativeInteger(fallbackAttempts);
+  if (attempts > 0) {
+    headers[OMNIROUTE_RESPONSE_HEADERS.fallbackAttempts] = String(attempts);
   }
 
   return headers;
