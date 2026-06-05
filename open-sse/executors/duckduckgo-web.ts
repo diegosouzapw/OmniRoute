@@ -1,5 +1,6 @@
 import { BaseExecutor, type ExecuteInput } from "./base.ts";
 import { FETCH_TIMEOUT_MS } from "../config/constants.ts";
+import { prepareToolMessages, buildToolAwareResult } from "../translator/webTools.ts";
 
 export const DUCKDUCKGO_BASE = "https://duckduckgo.com";
 const STATUS_URL = `${DUCKDUCKGO_BASE}/duckchat/v1/status`;
@@ -64,7 +65,16 @@ export class DuckDuckGoWebExecutor extends BaseExecutor {
   }
 
   async execute(input: ExecuteInput) {
-    const { model, messages, stream, signal, upstreamHeaders } = input;
+    const { model, body, stream, signal } = input;
+    const bodyObj = (body || {}) as Record<string, unknown>;
+    const messages = (bodyObj.messages as Array<{ role: string; content: string }>) || [];
+
+    if (signal?.aborted) {
+      return new Response(
+        JSON.stringify({ error: { message: "Request cancelled" } }),
+        { status: 499, headers: { "Content-Type": "application/json" } }
+      );
+    }
 
     if (!messages || messages.length === 0) {
       return new Response(
@@ -72,6 +82,8 @@ export class DuckDuckGoWebExecutor extends BaseExecutor {
         { status: 400, headers: { "Content-Type": "application/json" } }
       );
     }
+
+    const { hasTools, requestedTools, effectiveMessages } = prepareToolMessages(bodyObj, messages);
 
     // Acquire session from pool for fingerprint rotation
     const pool = this.getPool();
@@ -117,7 +129,7 @@ export class DuckDuckGoWebExecutor extends BaseExecutor {
         },
         body: JSON.stringify({
           model,
-          messages,
+          messages: effectiveMessages,
           stream: stream !== false,
         }),
         signal: mergedSignal,
@@ -145,13 +157,13 @@ export class DuckDuckGoWebExecutor extends BaseExecutor {
             },
             body: JSON.stringify({
               model,
-              messages,
+              messages: effectiveMessages,
               stream: stream !== false,
             }),
             signal: mergedSignal,
           });
 
-          return this.processResponse(retryResponse, stream !== false);
+          return this.processResponse(retryResponse, stream !== false, hasTools, requestedTools);
         }
         return new Response(
           JSON.stringify({ error: { message: "Service unavailable" } }),
@@ -167,7 +179,7 @@ export class DuckDuckGoWebExecutor extends BaseExecutor {
         );
       }
 
-      const result = this.processResponse(chatResponse, stream !== false);
+      const result = this.processResponse(chatResponse, stream !== false, hasTools, requestedTools);
 
       // Report pool status based on response
       if (pool && session) {
@@ -222,7 +234,7 @@ export class DuckDuckGoWebExecutor extends BaseExecutor {
     }
   }
 
-  private async processResponse(response: Response, streaming: boolean): Promise<Response> {
+  private async processResponse(response: Response, streaming: boolean, hasTools?: boolean, requestedTools?: unknown): Promise<Response> {
     if (!response.ok) {
       const body = await response.text();
       return new Response(body, {
@@ -231,7 +243,7 @@ export class DuckDuckGoWebExecutor extends BaseExecutor {
       });
     }
 
-    if (streaming) {
+    if (streaming && !hasTools) {
       const reader = response.body?.getReader();
       if (!reader) {
         return new Response(
@@ -302,6 +314,15 @@ export class DuckDuckGoWebExecutor extends BaseExecutor {
         } catch {
           continue;
         }
+      }
+
+      if (hasTools) {
+        const { content, toolCalls, finishReason } = buildToolAwareResult(fullContent, requestedTools, "ddg");
+        const message: Record<string, unknown> = { role: "assistant", content };
+        if (toolCalls) { message.tool_calls = toolCalls; message.content = null; }
+        return new Response(JSON.stringify({ choices: [{ index: 0, message, finish_reason: finishReason }] }), {
+          headers: { "Content-Type": "application/json" },
+        });
       }
 
       const openaiResponse = {
