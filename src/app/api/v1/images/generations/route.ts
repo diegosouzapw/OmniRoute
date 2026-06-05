@@ -20,6 +20,7 @@ import { v1ImageGenerationSchema } from "@/shared/validation/schemas";
 import { isValidationFailure, validateBody } from "@/shared/validation/helpers";
 
 import { getAllCustomModels, resolveProxyForConnection } from "@/lib/localDb";
+import { getProviderNodes } from "@/lib/db/providers";
 import { runWithProxyContext } from "@omniroute/open-sse/utils/proxyFetch.ts";
 
 /**
@@ -117,6 +118,43 @@ function publicBaseUrlHeaders(headers: Headers): Record<string, string> {
   return out;
 }
 
+/**
+ * Resolve a `prefix/model` image request to the internal `<nodeId>/<model>`
+ * form (#3205).
+ *
+ * The custom-model lookup below only matches the full internal id
+ * (`<nodeId>/<modelId>`), so a request that uses the user-defined provider
+ * prefix (e.g. `myImg/gpt-image-2`) never matched and fell through to
+ * "Invalid image model". This mirrors how chat resolves prefixes in
+ * `src/sse/services/model.ts` (match on `node.prefix` OR `node.id`).
+ *
+ * Returns the rewritten model string, or the original string when no node
+ * prefix matches (so built-in and already-internal ids are untouched).
+ */
+async function resolveImageModelPrefix(modelStr: string): Promise<string> {
+  if (typeof modelStr !== "string") return modelStr;
+  const slash = modelStr.indexOf("/");
+  if (slash <= 0) return modelStr;
+
+  const prefixPart = modelStr.slice(0, slash);
+  const rest = modelStr.slice(slash + 1);
+  if (!rest) return modelStr;
+
+  try {
+    const nodes = await getProviderNodes({ type: "openai-compatible" });
+    // Prefer an explicit user-defined prefix match; node.id (internal UUID) is
+    // already handled by the exact-id loop, so only rewrite when the prefix
+    // differs from the node id.
+    const matched = nodes.find((node: any) => node.prefix === prefixPart);
+    if (matched && matched.id && matched.id !== prefixPart) {
+      return `${matched.id}/${rest}`;
+    }
+  } catch {
+    // DB unavailable (pre-migration / tests) — leave the model untouched.
+  }
+  return modelStr;
+}
+
 export async function POST(request) {
   let rawBody;
   try {
@@ -135,6 +173,14 @@ export async function POST(request) {
   // Enforce API key policies (model restrictions + budget limits)
   const policy = await enforceApiKeyPolicy(request, body.model);
   if (policy.rejection) return policy.rejection;
+
+  // #3205: rewrite a user-prefixed custom image model (`myImg/gpt-image-2`) to
+  // its internal `<nodeId>/<model>` form so the custom-model lookup and
+  // handler's resolvedProvider extraction resolve correctly. Built-in and
+  // already-internal ids pass through unchanged.
+  if (!parseImageModel(body.model).provider) {
+    body.model = await resolveImageModelPrefix(body.model);
+  }
 
   // Parse model to get provider
   let { provider } = parseImageModel(body.model);
