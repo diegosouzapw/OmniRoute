@@ -83,6 +83,10 @@ COPY --from=builder /app/node_modules/split2 ./node_modules/split2
 COPY --from=builder /app/src/lib/db/migrations ./migrations
 ENV OMNIROUTE_MIGRATIONS_DIR=/app/migrations
 
+# Docker healthcheck script — not traced by Next.js standalone output, so copy
+# it explicitly. The HEALTHCHECK CMD references it as `node healthcheck.mjs`.
+COPY --from=builder /app/scripts/dev/healthcheck.mjs ./healthcheck.mjs
+
 # Hand /app over to the baked-in `node` non-root user (UID/GID 1000) so the
 # runtime process never holds root privileges. The chown happens after all
 # COPYs so it covers files originally owned by root in the builder stage.
