@@ -855,7 +855,6 @@ export async function pruneStaleSyncedAvailableModelsForProvider(
   return Number(result.changes || 0);
 }
 
-
 export async function updateCustomModel(
   providerId: string,
   modelId: string,

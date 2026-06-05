@@ -87,6 +87,50 @@ const OPENAI_IMAGE_TO_IMAGE_MODELS = new Set([
 
 const IMAGE_ASPECT_RATIO_PATTERN = /^\d+:\d+$/;
 
+/**
+ * Resolve the upstream images endpoint for a custom (OpenAI-compatible) image
+ * provider node (#3205).
+ *
+ * Custom provider nodes store their base URL the same way the chat path does:
+ * in `credentials.providerSpecificData.baseUrl` (e.g. `https://example.com/v1`),
+ * NOT as a top-level `credentials.baseUrl`. Older callers may still pass a
+ * top-level `baseUrl`, so we honor that as a secondary source. When neither is
+ * present we fall back to `fallback` (the built-in Gemini OpenAI endpoint).
+ *
+ * Resolution order: providerSpecificData.baseUrl → credentials.baseUrl → fallback.
+ *
+ * A node base URL like `https://example.com/v1` is normalized and the
+ * OpenAI-compatible `/images/generations` path appended (mirroring
+ * `buildOpenAICompatibleUrl` in services/provider.ts). A node URL that already
+ * ends in `/images/generations` is returned as-is (no double-append). The
+ * `fallback` value is assumed to already be a complete URL and is returned
+ * verbatim.
+ */
+export function resolveImageBaseUrl(
+  credentials:
+    | { baseUrl?: unknown; providerSpecificData?: { baseUrl?: unknown } | null }
+    | null
+    | undefined,
+  fallback: string
+): string {
+  const psd = credentials?.providerSpecificData;
+  const psdBaseUrl =
+    psd && typeof psd === "object" && typeof psd.baseUrl === "string" && psd.baseUrl.trim()
+      ? psd.baseUrl.trim()
+      : null;
+  const topLevelBaseUrl =
+    typeof credentials?.baseUrl === "string" && credentials.baseUrl.trim()
+      ? credentials.baseUrl.trim()
+      : null;
+  const nodeBaseUrl = psdBaseUrl || topLevelBaseUrl;
+
+  if (!nodeBaseUrl) return fallback;
+
+  const normalized = nodeBaseUrl.replace(/\/+$/, "");
+  if (/\/images\/generations$/.test(normalized)) return normalized;
+  return `${normalized}/images/generations`;
+}
+
 function normalizeImageAspectRatio(value: unknown, fallbackSize: unknown): string {
   if (typeof value === "string") {
     const trimmedValue = value.trim();
@@ -257,9 +301,16 @@ export async function handleImageGeneration({
 
     const syntheticConfig = {
       id: provider,
-      baseUrl:
-        credentials?.baseUrl ||
-        `https://generativelanguage.googleapis.com/v1beta/openai/images/generations`,
+      // #3205: custom OpenAI-compatible nodes store their base URL in
+      // credentials.providerSpecificData.baseUrl (same as the chat path —
+      // see executors/default.ts:buildUrl / services/provider.ts:buildProviderUrl).
+      // Previously only the (always-absent) top-level credentials.baseUrl was
+      // read, so every custom image node fell back to the Gemini endpoint and
+      // returned "Please pass a valid API key".
+      baseUrl: resolveImageBaseUrl(
+        credentials,
+        `https://generativelanguage.googleapis.com/v1beta/openai/images/generations`
+      ),
       authType: "apikey",
       authHeader: "bearer",
       format: "openai",
