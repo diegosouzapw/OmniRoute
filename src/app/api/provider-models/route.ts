@@ -5,6 +5,7 @@ import {
   removeCustomModel,
   replaceCustomModels,
   deleteSyncedAvailableModelsForProvider,
+  removeSyncedAvailableModel,
   updateCustomModel,
   getModelCompatOverrides,
   mergeModelCompatOverride,
@@ -396,9 +397,22 @@ export async function DELETE(request) {
       );
     }
 
-    const removed = await removeCustomModel(provider, modelId);
+    // #3199 — a single model may live in the custom-model namespace, the synced
+    // (fetched/authoritative, #3148) namespace, or both. Remove from both, and
+    // mark it hidden so a later auto-fetch does not re-import the deleted model
+    // (the sync write path skips hidden ids).
+    const removedCustom = await removeCustomModel(provider, modelId);
+    const removedSynced = await removeSyncedAvailableModel(provider, modelId);
+    if (removedSynced) {
+      mergeModelCompatOverride(provider, modelId, { isHidden: true });
+    }
+    const removed = removedCustom || removedSynced;
     const removedAliases = await deleteManagedAvailableModelAliases(provider, [modelId]);
-    return Response.json({ removed, aliasChanges: { removed: removedAliases, assigned: [] } });
+    return Response.json({
+      removed,
+      removedSynced,
+      aliasChanges: { removed: removedAliases, assigned: [] },
+    });
   } catch (error) {
     console.error("Error removing provider model:", error);
     return Response.json(

@@ -808,8 +808,12 @@ export async function GET(
     }> | null = null;
     try {
       const allSynced = await getSyncedAvailableModels(provider);
-      if (Array.isArray(allSynced) && allSynced.length > 0) {
-        providerSyncedModels = allSynced.map((m) => ({
+      // #3199 — a model the operator deleted is flagged hidden; drop it from the
+      // authoritative synced list so the deletion sticks across re-fetch even when
+      // excludeHidden is not requested by the caller.
+      const visibleSynced = allSynced.filter((m) => !getModelIsHidden(provider, m.id));
+      if (Array.isArray(visibleSynced) && visibleSynced.length > 0) {
+        providerSyncedModels = visibleSynced.map((m) => ({
           id: m.id,
           name: m.name || m.id,
           ...(m.apiFormat ? { apiFormat: m.apiFormat } : {}),
@@ -932,7 +936,10 @@ export async function GET(
       // its other connections) or the static catalog when none remain.
       let freshSynced: Awaited<ReturnType<typeof getSyncedAvailableModels>> = [];
       try {
-        freshSynced = await getSyncedAvailableModels(provider);
+        // #3199 — keep operator-deleted (hidden) models out of the re-derived list.
+        freshSynced = (await getSyncedAvailableModels(provider)).filter(
+          (m) => !getModelIsHidden(provider, m.id)
+        );
       } catch {
         /* DB unavailable — fall through to static catalog */
       }

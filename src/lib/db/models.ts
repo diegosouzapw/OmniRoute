@@ -714,7 +714,11 @@ export async function replaceSyncedAvailableModelsForConnection(
 ): Promise<SyncedAvailableModel[]> {
   const db = getDbInstance();
   const key = `${providerId}:${connectionId}`;
-  const normalizedModels = normalizeSyncedAvailableModels(models);
+  // #3199 — a model the operator explicitly deleted is marked hidden; skip those
+  // here so an auto-fetch re-import cannot re-add a deleted/synced model.
+  const normalizedModels = normalizeSyncedAvailableModels(models).filter(
+    (m) => !getModelIsHidden(providerId, m.id)
+  );
   if (normalizedModels.length === 0) {
     db.prepare("DELETE FROM key_value WHERE namespace = 'syncedAvailableModels' AND key = ?").run(
       key
@@ -760,6 +764,71 @@ export async function deleteSyncedAvailableModelsForProvider(providerId: string)
     .run(keyPrefix.length, keyPrefix);
   backupDbFile("pre-write");
   return Number(result.changes || 0);
+}
+
+/**
+ * Remove a single model from the synced available-model set for a provider (#3199).
+ *
+ * Without a `connectionId` the model is removed from every connection list that
+ * advertises it (the lists are unioned on read). With a `connectionId` only that
+ * connection's list is touched. Returns `true` if at least one list changed.
+ *
+ * Note: this only clears the stored copy. To make the deletion survive a later
+ * auto-fetch the caller must also mark the model hidden via
+ * `mergeModelCompatOverride(providerId, modelId, { isHidden: true })` — the sync
+ * write path (`replaceSyncedAvailableModelsForConnection`) skips hidden ids.
+ */
+export async function removeSyncedAvailableModel(
+  providerId: string,
+  modelId: string,
+  connectionId?: string
+): Promise<boolean> {
+  const db = getDbInstance();
+  const targetId = toNonEmptyString(modelId);
+  if (!targetId) return false;
+
+  const rows: Array<{ key: string; value: string }> = [];
+  if (connectionId) {
+    const key = `${providerId}:${connectionId}`;
+    const row = db
+      .prepare("SELECT key, value FROM key_value WHERE namespace = 'syncedAvailableModels' AND key = ?")
+      .get(key);
+    const { key: k, value } = getKeyValue(row);
+    if (k && value !== null) rows.push({ key: k, value });
+  } else {
+    const found = db
+      .prepare("SELECT key, value FROM key_value WHERE namespace = 'syncedAvailableModels' AND key LIKE ?")
+      .all(`${providerId}:%`);
+    for (const r of found) {
+      const { key, value } = getKeyValue(r);
+      if (key && value !== null) rows.push({ key, value });
+    }
+  }
+
+  let changed = false;
+  for (const { key, value } of rows) {
+    let models: SyncedAvailableModel[];
+    try {
+      models = normalizeSyncedAvailableModels(JSON.parse(value));
+    } catch {
+      continue;
+    }
+    const filtered = models.filter((m) => m.id !== targetId);
+    if (filtered.length === models.length) continue;
+    changed = true;
+    if (filtered.length === 0) {
+      db.prepare("DELETE FROM key_value WHERE namespace = 'syncedAvailableModels' AND key = ?").run(
+        key
+      );
+    } else {
+      db.prepare(
+        "UPDATE key_value SET value = ? WHERE namespace = 'syncedAvailableModels' AND key = ?"
+      ).run(JSON.stringify(filtered), key);
+    }
+  }
+
+  if (changed) backupDbFile("pre-write");
+  return changed;
 }
 
 /**
