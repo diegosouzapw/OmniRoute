@@ -14,12 +14,9 @@ test("#3205: custom node baseUrl from providerSpecificData is used (not Gemini f
     resolved.startsWith("https://example.com/"),
     `expected resolved URL to point to example.com, got: ${resolved}`
   );
-  assert.ok(
-    !resolved.includes("generativelanguage.googleapis.com"),
-    `resolved URL must not fall back to the Gemini endpoint, got: ${resolved}`
-  );
-  // A node configured as https://example.com/v1 should yield the OpenAI-compatible
-  // images path appended.
+  // The exact-equality assertion below already guarantees the Gemini fallback
+  // was not used (a substring `.includes` check trips CodeQL
+  // js/incomplete-url-substring-sanitization and is redundant here).
   assert.equal(resolved, "https://example.com/v1/images/generations");
 });
 

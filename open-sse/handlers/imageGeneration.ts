@@ -131,7 +131,10 @@ export function resolveImageBaseUrl(
   // points at the requested OpenAI image path, and rewrite one that points at the other
   // image endpoint (e.g. `.../images/generations` requested for edits) (#3214/#3215).
   const suffix = `/images/${endpoint}`;
-  const normalized = nodeBaseUrl.replace(/\/+$/, "");
+  // Trim trailing slashes without a backtracking-prone regex (`/\/+$/` is a
+  // polynomial-ReDoS pattern on long runs of "/" — CodeQL js/polynomial-redos).
+  let normalized = nodeBaseUrl;
+  while (normalized.endsWith("/")) normalized = normalized.slice(0, -1);
   if (normalized.endsWith(suffix)) return normalized;
   const stripped = normalized.replace(/\/images\/(?:generations|edits)$/, "");
   return `${stripped}${suffix}`;
