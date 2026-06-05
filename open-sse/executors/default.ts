@@ -28,6 +28,7 @@ import { buildWatsonxChatUrl } from "../config/watsonx.ts";
 import { buildOciChatUrl } from "../config/oci.ts";
 import { buildSapChatUrl, getSapResourceGroup } from "../config/sap.ts";
 import { buildMaritalkChatUrl } from "../config/maritalk.ts";
+import { LOCAL_PROVIDERS } from "@/shared/constants/providers";
 
 import type { PoolConfig } from "../services/sessionPool/types.ts";
 
@@ -205,6 +206,7 @@ export class DefaultExecutor extends BaseExecutor {
         const baseUrl = credentials?.providerSpecificData?.baseUrl || this.config.baseUrl;
         return normalizeOpenAIChatUrl(baseUrl);
       }
+      case "llama-cpp":
       case "lm-studio":
       case "modal":
       case "reka":
@@ -215,7 +217,14 @@ export class DefaultExecutor extends BaseExecutor {
       case "docker-model-runner":
       case "xinference":
       case "oobabooga": {
-        const baseUrl = credentials?.providerSpecificData?.baseUrl || this.config.baseUrl;
+        // #3197 (residual of #3136): for self-hosted/local providers, prefer the
+        // catalog's localDefault when no explicit baseUrl is set. `this.config`
+        // falls back to PROVIDERS.openai for providers not in the open-sse
+        // registry (llama-cpp, etc.), so without this guard an empty baseUrl
+        // silently hits OpenAI's API. Fall back to localDefault BEFORE config.
+        const localDefault = LOCAL_PROVIDERS[this.provider]?.localDefault;
+        const baseUrl =
+          credentials?.providerSpecificData?.baseUrl || localDefault || this.config.baseUrl;
         return normalizeOpenAIChatUrl(baseUrl);
       }
       case "zai":
@@ -510,8 +519,16 @@ export class DefaultExecutor extends BaseExecutor {
       const entry = getRegistryEntry(this.provider);
       if (entry?.modelIdPrefix) {
         const body = withDefaults as Record<string, unknown>;
-        if (typeof body.model === "string" && !body.model.startsWith(entry.modelIdPrefix)) {
-          body.model = `${entry.modelIdPrefix}${body.model}`;
+        if (typeof body.model === "string") {
+          // Skip prepending when the model already carries the canonical prefix OR any
+          // other accepted fully-qualified prefix (e.g. Fireworks router IDs). #3133.
+          const acceptedPrefixes = [entry.modelIdPrefix, ...(entry.acceptedModelIdPrefixes ?? [])];
+          const alreadyQualified = acceptedPrefixes.some((prefix) =>
+            (body.model as string).startsWith(prefix)
+          );
+          if (!alreadyQualified) {
+            body.model = `${entry.modelIdPrefix}${body.model}`;
+          }
         }
       }
     }

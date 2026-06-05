@@ -7611,6 +7611,8 @@
     "notApplicable": "N/D",
     "rawPlanWithValue": "Plano bruto: {plan}",
     "noPlanFromProvider": "Sem plano do provedor",
+    "tokenExpiresIn": "Token expira em {time}",
+    "tokenExpired": "Token expirado",
     "noQuotaData": "Sem dados de cota",
     "cardExpand": "Expandir",
     "cardCollapse": "Recolher",

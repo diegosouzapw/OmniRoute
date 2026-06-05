@@ -12,6 +12,7 @@ import {
 } from "./proxyDispatcher.ts";
 import tlsClient from "./tlsClient.ts";
 import { isProxyReachable } from "@/lib/proxyHealth";
+import { findWorkingProxy } from "./proxyFallback.ts";
 
 function isTlsFingerprintEnabled() {
   return process.env.ENABLE_TLS_FINGERPRINT === "true";
@@ -121,11 +122,21 @@ function noProxyMatch(targetUrl) {
 }
 
 function isLocalAddress(hostname: string): boolean {
-  if (hostname === "localhost" || hostname === "127.0.0.1" || hostname === "::1") return true;
-  if (hostname.startsWith("192.168.")) return true;
-  if (hostname.startsWith("10.")) return true;
-  if (hostname.match(/^172\.(1[6-9]|2\d|3[0-1])\./)) return true;
-  if (hostname.endsWith(".local") || hostname.endsWith(".lan")) return true;
+  const host = hostname.replace(/^\[/, "").replace(/\]$/, "").replace(/^::ffff:/i, "");
+  if (host === "localhost" || host === "0.0.0.0" || host === "127.0.0.1" || host === "::1") {
+    return true;
+  }
+  if (host.endsWith(".local") || host.endsWith(".lan") || host.endsWith(".internal")) return true;
+  // RFC1918 + loopback + link-local (169.254, incl. cloud metadata 169.254.169.254)
+  // + CGNAT (100.64/10). 127/8 covers all loopback, not just 127.0.0.1.
+  if (host.startsWith("192.168.")) return true;
+  if (host.startsWith("10.")) return true;
+  if (host.startsWith("127.")) return true;
+  if (host.startsWith("169.254.")) return true;
+  if (/^172\.(1[6-9]|2\d|3[0-1])\./.test(host)) return true;
+  if (/^100\.(6[4-9]|[7-9]\d|1[01]\d|12[0-7])\./.test(host)) return true;
+  // IPv6 ULA (fc00::/7 → fc/fd prefix) and link-local (fe80::/10)
+  if (/^f[cd][0-9a-f]*:/i.test(host) || host.startsWith("fe80:")) return true;
   return false;
 }
 
@@ -312,7 +323,7 @@ async function patchedFetch(
         // Prefer the .code property when available (more stable across undici
         // versions than message-string matching); fall back to substring match
         // for errors that lack a structured code.
-        const errCode = (dispatcherError as { code?: string })?.code;
+        const errCode = (dispatcherError as { code?: unknown })?.code;
         if (
           msg.includes("fetch failed") ||
           errCode === "ECONNREFUSED" ||
@@ -326,7 +337,29 @@ async function patchedFetch(
             await new Promise((r) => setTimeout(r, 25 + Math.random() * 50));
             continue;
           }
-          // All attempts exhausted — fall back to native fetch.
+          // All attempts exhausted — try proxy fallback before native fetch
+          if (source === "direct") {
+            let targetHostname = "";
+            try {
+              targetHostname = new URL(targetUrl).hostname;
+            } catch {
+              // ignore
+            }
+            if (targetHostname) {
+              const fallbackProxyUrl = await findWorkingProxy(
+                targetHostname,
+                targetUrl
+              );
+              if (fallbackProxyUrl) {
+                try {
+                  const dispatcher = createProxyDispatcher(fallbackProxyUrl);
+                  return await _undiciDirect(input, { ...options, dispatcher });
+                } catch {
+                  // Proxy also failed — fall through to native fetch
+                }
+              }
+            }
+          }
           // Preserve original phrase intact for monitoring: "Undici dispatcher failed, falling back to native fetch"
           console.warn(
             `[ProxyFetch] Undici dispatcher failed, falling back to native fetch (after retry): ${msg}`
@@ -418,6 +451,16 @@ export async function runWithTlsTracking(fn) {
 /** Check if TLS fingerprint is enabled and available */
 export function isTlsFingerprintActive() {
   return isTlsFingerprintEnabled() && tlsClient.available;
+}
+
+/**
+ * Get the original unpatched global fetch function (Node.js native fetch
+ * before the proxy/TLS fingerprint patch was applied).
+ * Use this to bypass the patched fetch for specific requests when the
+ * proxy dispatcher has compatibility issues with a particular endpoint.
+ */
+export function getOriginalFetch(): typeof globalThis.fetch {
+  return originalFetch;
 }
 
 export default isCloud ? originalFetch : patchedFetch;

@@ -1031,7 +1031,8 @@ export class DeepSeekWebExecutor extends BaseExecutor {
         await cleanupFn();
         const { content: cleanedContent, toolCalls } = parseToolCallsFromText(
           content,
-          `call-${Date.now()}`
+          `call-${Date.now()}`,
+          requestedTools
         );
         return buildToolAwareResult({
           stream: stream !== false,

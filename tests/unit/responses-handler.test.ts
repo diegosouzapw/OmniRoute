@@ -165,7 +165,7 @@ test("handleResponsesCore converts Responses API input, instructions, tools, met
   assert.equal("store" in call.body, false);
 });
 
-test("handleResponsesCore preserves previous_response_id and handles empty input arrays", async () => {
+test("handleResponsesCore strips previous_response_id by default and handles empty input arrays", async () => {
   const { call, result } = await invokeResponsesCore({
     body: {
       model: "gpt-4o-mini",
@@ -176,7 +176,7 @@ test("handleResponsesCore preserves previous_response_id and handles empty input
   });
 
   assert.equal(result.success, true);
-  assert.equal(call.body.previous_response_id, "resp_prev_123");
+  assert.equal(call.body.previous_response_id, undefined);
   assert.equal(call.body.metadata, undefined);
   assert.deepEqual(call.body.messages, []);
   assert.equal(call.body.stream, true);

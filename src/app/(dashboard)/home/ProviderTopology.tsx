@@ -14,6 +14,7 @@ import {
 import "@xyflow/react/dist/style.css";
 import { AI_PROVIDERS } from "@/shared/constants/providers";
 import ProviderIcon from "@/shared/components/ProviderIcon";
+import { resolveTopologyNodeLabel } from "./topologyLabel";
 
 const FE_ACTIVE_TIMEOUT_MS = 60_000;
 const FE_ACTIVE_TICK_MS = 1_000;
@@ -244,7 +245,7 @@ function buildLayout(
         type: "provider",
         position: { x: cx - nodeW / 2, y: cy - nodeH / 2 },
         data: {
-          label: config.name || p.name || p.provider,
+          label: resolveTopologyNodeLabel(p.name, config.name, p.provider),
           color: config.color || "#6b7280",
           providerId: p.provider,
           active,

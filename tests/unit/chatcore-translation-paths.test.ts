@@ -427,7 +427,7 @@ test("chatCore times out upstream execution before provider response headers", a
     const pendingDetail = (await waitFor(
       () =>
         Object.values(getPendingRequests().details[connectionId] || {}).find(
-          (detail: any) => detail?.providerRequest
+          (detail: any) => detail?.providerRequest?.model === "gpt-4o-mini"
         )
     )) as any;
     assert.equal(pendingDetail?.providerRequest?.model, "gpt-4o-mini");

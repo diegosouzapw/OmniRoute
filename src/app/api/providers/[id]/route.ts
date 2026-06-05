@@ -132,6 +132,8 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
       group,
       maxConcurrent,
       quotaWindowThresholds: incomingWindowThresholds,
+      proxyEnabled,
+      perKeyProxyEnabled,
       projectId,
       providerSpecificData: incomingPsd,
     } = body;
@@ -184,6 +186,8 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
       }
     }
     if (projectId !== undefined) updateData.projectId = projectId;
+    if (proxyEnabled !== undefined) updateData.proxyEnabled = proxyEnabled;
+    if (perKeyProxyEnabled !== undefined) updateData.perKeyProxyEnabled = perKeyProxyEnabled;
 
     // Merge providerSpecificData (partial update — preserve existing keys not sent by caller)
     if (incomingPsd !== undefined && incomingPsd !== null && typeof incomingPsd === "object") {

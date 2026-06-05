@@ -58,6 +58,21 @@ export const NOAUTH_PROVIDERS = {
     freeNote: "Free — anonymous access to multiple AI models via DuckDuckGo.",
     authHint: "No credentials required — DuckDuckGo AI Chat is anonymous and free.",
   },
+  theoldllm: {
+    id: "theoldllm",
+    alias: "tllm",
+    name: "The Old LLM (Free)",
+    icon: "auto_awesome",
+    color: "#8B5CF6",
+    textIcon: "TL",
+    website: "https://theoldllm.vercel.app",
+    noAuth: true,
+    hasFree: true,
+    freeNote:
+      "Free — GPT-5.4, Claude 4.6 Opus/Sonnet/Haiku, + more. No API key — tokens auto-generated via browser.",
+    authHint:
+      "No credentials required. The executor auto-generates access tokens via an embedded Playwright browser instance.",
+  },
   "veoaifree-web": {
     id: "veoaifree-web",
     alias: "veo-free",
@@ -435,7 +450,8 @@ export const WEB_COOKIE_PROVIDERS = {
   },
   huggingchat: {
     id: "huggingchat",
-    alias: "hc",
+    // "hc" belongs to the hackclub provider; huggingchat uses its own id as alias.
+    alias: "huggingchat",
     name: "HuggingChat (Free)",
     icon: "auto_awesome",
     color: "#FFD21E",
@@ -497,7 +513,8 @@ export const WEB_COOKIE_PROVIDERS = {
   },
   "kimi-web": {
     id: "kimi-web",
-    alias: "kimi",
+    // Primary "kimi" provider keeps the short alias; web variant uses its own id.
+    alias: "kimi-web",
     name: "Kimi Web (Moonshot AI)",
     icon: "auto_awesome",
     color: "#2563EB",
@@ -521,7 +538,8 @@ export const WEB_COOKIE_PROVIDERS = {
   },
   "qwen-web": {
     id: "qwen-web",
-    alias: "qw",
+    // Primary "qwen" provider keeps the short alias; web variant uses its own id.
+    alias: "qwen-web",
     name: "Qwen Web (Free)",
     icon: "auto_awesome",
     color: "#10B981",
@@ -533,7 +551,7 @@ export const WEB_COOKIE_PROVIDERS = {
       "Open chat.qwen.ai, log in, then open DevTools → Application → Local Storage → " +
       'copy the "token" value (or use tongyi_sso_ticket cookie as Bearer token).',
   },
-};
+  };
 
 // API Key Providers
 export const APIKEY_PROVIDERS = {

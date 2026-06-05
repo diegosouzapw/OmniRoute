@@ -198,7 +198,8 @@ export async function resolveModelOrError(
       const { getCombos } = await import("@/lib/localDb");
       const all = await getCombos();
       for (const c of all) {
-        if (c.name?.startsWith("auto/")) available.push(c.name);
+        const name = typeof c === "object" && c !== null ? (c as Record<string, unknown>).name : undefined;
+        if (typeof name === "string" && name.startsWith("auto/")) available.push(name);
       }
     } catch {
       /* DB unavailable */
@@ -578,9 +579,9 @@ export function handleNoCredentials(
   );
 }
 
-export async function safeResolveProxy(connectionId: string) {
+export async function safeResolveProxy(connectionId: string, apiKeyId?: string) {
   try {
-    return await resolveProxyForConnection(connectionId);
+    return await resolveProxyForConnection(connectionId, apiKeyId);
   } catch (proxyErr: any) {
     log.debug("PROXY", `Failed to resolve proxy: ${proxyErr.message}`);
     return null;

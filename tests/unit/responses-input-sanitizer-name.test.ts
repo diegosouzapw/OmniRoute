@@ -72,3 +72,75 @@ test("keeps valid server reasoning item ids", () => {
   const result = sanitizeResponsesInputItems(items) as Array<Record<string, unknown>>;
   assert.equal(result[0].id, "rs_123");
 });
+
+test("normalizes user image_url content parts to input_image", () => {
+  const items = [
+    {
+      type: "message",
+      role: "user",
+      content: [{ type: "image_url", image_url: { url: "https://example.com/u.png", detail: "high" } }],
+    },
+  ];
+  const result = sanitizeResponsesInputItems(items) as Array<Record<string, unknown>>;
+  assert.deepEqual((result[0].content as unknown[])[0], {
+    type: "input_image",
+    image_url: "https://example.com/u.png",
+    detail: "high",
+  });
+});
+
+test("normalizes assistant image content parts to output_text", () => {
+  const items = [
+    {
+      type: "message",
+      role: "assistant",
+      content: [
+        { type: "image_url", image_url: { url: "https://example.com/a.png" } },
+        { type: "input_image", image_url: "https://example.com/b.png" },
+      ],
+    },
+  ];
+  const result = sanitizeResponsesInputItems(items) as Array<Record<string, unknown>>;
+  assert.deepEqual(result[0], {
+    type: "message",
+    role: "assistant",
+    content: [
+      { type: "output_text", text: "[Image: https://example.com/a.png]" },
+      { type: "output_text", text: "[Image: https://example.com/b.png]" },
+    ],
+  });
+});
+
+test("normalizes replayed Responses output image parts to output_text", () => {
+  const items = [
+    {
+      type: "message",
+      role: "assistant",
+      output: [{ type: "image_url", image_url: { url: "https://example.com/output.png" } }],
+    },
+  ];
+  const result = sanitizeResponsesInputItems(items) as Array<Record<string, unknown>>;
+  assert.deepEqual(result[0], {
+    type: "message",
+    role: "assistant",
+    output: [{ type: "output_text", text: "[Image: https://example.com/output.png]" }],
+  });
+  assert.equal(JSON.stringify(result).includes('"image_url"'), false);
+});
+
+test("normalizes function_call_output image output parts to input_image", () => {
+  const items = [
+    {
+      type: "function_call_output",
+      call_id: "call_1",
+      output: [{ type: "image_url", image_url: { url: "https://example.com/tool.png" } }],
+    },
+  ];
+  const result = sanitizeResponsesInputItems(items) as Array<Record<string, unknown>>;
+  assert.deepEqual(result[0], {
+    type: "function_call_output",
+    call_id: "call_1",
+    output: [{ type: "input_image", image_url: "https://example.com/tool.png" }],
+  });
+  assert.equal(JSON.stringify(result).includes('"type":"image_url"'), false);
+});

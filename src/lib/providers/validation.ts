@@ -2,6 +2,7 @@ import { randomUUID } from "node:crypto";
 import { getEmbeddingProvider } from "@omniroute/open-sse/config/embeddingRegistry.ts";
 import { getRerankProvider } from "@omniroute/open-sse/config/rerankRegistry.ts";
 import { getRegistryEntry } from "@omniroute/open-sse/config/providerRegistry.ts";
+import { selectProxyForValidation } from "@omniroute/open-sse/services/proxyAutoSelector.ts";
 import {
   buildClaudeCodeCompatibleHeaders,
   buildClaudeCodeCompatibleValidationPayload,
@@ -26,13 +27,14 @@ import {
   getSafeOutboundFetchErrorStatus,
   safeOutboundFetch,
 } from "@/shared/network/safeOutboundFetch";
-import { getProviderOutboundGuard } from "@/shared/network/outboundUrlGuard";
+import { getProviderOutboundGuard, isPrivateHost } from "@/shared/network/outboundUrlGuard";
 import {
   buildGrokCookieHeader,
   extractCookieValue,
   normalizeSessionCookieHeader,
 } from "@/lib/providers/webCookieAuth";
 import { buildJulesApiUrl } from "@/lib/cloudAgent/julesApi.ts";
+import { resolveNvidiaValidationModel } from "@/lib/providers/nvidiaValidationModel";
 import { getGigachatAccessToken } from "@omniroute/open-sse/services/gigachatAuth.ts";
 import { validateQoderCliPat } from "@omniroute/open-sse/services/qoderCli.ts";
 import {
@@ -209,6 +211,32 @@ function withCustomUserAgent(init: RequestInit, providerSpecificData: any = {}) 
   };
 }
 
+/**
+ * Direct HTTPS request utility that bypasses the global patched fetch.
+ * Used for provider validation where the patched fetch has compatibility issues.
+ * Uses safeOutboundFetch with bypassProxyPatch to use native Node.js fetch directly.
+ */
+function directHttpsRequest(
+  url: string,
+  options: { method?: string; headers?: Record<string, string>; body?: string },
+  timeoutMs: number
+): Promise<{ status: number; ok: boolean; text: () => Promise<string> }> {
+  return safeOutboundFetch(url, {
+    method: options.method || "GET",
+    headers: (options.headers || {}) as Record<string, string>,
+    body: options.body,
+    timeoutMs,
+    bypassProxyPatch: true,
+    allowRedirect: true,
+    guard: "none",
+    retry: false,
+  }).then(async (response) => ({
+    status: response.status,
+    ok: response.ok,
+    text: async () => await response.text(),
+  }));
+}
+
 function buildBearerHeaders(apiKey: string, providerSpecificData: any = {}) {
   const headers: Record<string, string> = {
     "Content-Type": "application/json",
@@ -268,20 +296,65 @@ function buildTokenHeaders(apiKey: string, providerSpecificData: any = {}) {
   return applyCustomUserAgent(headers, providerSpecificData);
 }
 
+/**
+ * Wrapped fetch call that auto-retries with a proxy when the direct connection
+ * fails.  This happens transparently so individual validators don't need to
+ * think about proxy fallback.
+ */
+async function fetchWithProxyFallback(
+  url: string,
+  init: RequestInit,
+  presets: typeof SAFE_OUTBOUND_FETCH_PRESETS.validationRead,
+  isLocal: boolean
+): Promise<Response> {
+  try {
+    return await safeOutboundFetch(url, {
+      ...presets,
+      guard: isLocal ? "none" : getProviderOutboundGuard(),
+      ...init,
+    });
+  } catch (err: unknown) {
+    // Only attempt proxy fallback for retryable errors (network / timeout)
+    // and only when the target is not a local / LAN address.
+    const fetchErr = err as SafeOutboundFetchError;
+    const isNetworkIssue =
+      fetchErr?.code === "NETWORK_ERROR" || fetchErr?.code === "TIMEOUT";
+    const isRetryable = fetchErr?.isRetryable !== false;
+    const isValidTarget = !isLocal && isRetryableProxyTarget(url);
+
+    if (isLocal || !isNetworkIssue || !isRetryable) throw err;
+    if (!isValidTarget) throw err;
+
+    const proxyUrl = await selectProxyForValidation(url);
+    if (!proxyUrl) throw err;
+
+    return safeOutboundFetch(url, {
+      ...presets,
+      guard: isLocal ? "none" : getProviderOutboundGuard(),
+      ...init,
+      proxyConfig: proxyUrl,
+    });
+  }
+}
+
+export function isRetryableProxyTarget(url: string): boolean {
+  try {
+    const hostname = new URL(url).hostname.toLowerCase();
+    // Never proxy-fallback to a private/link-local/metadata host. Delegates to
+    // the canonical SSRF guard (covers 169.254, 0.0.0.0, 172.16/12, CGNAT,
+    // IPv6 fc/fd/fe80, .internal — gaps the previous inline check missed).
+    return !isPrivateHost(hostname);
+  } catch {
+    return false;
+  }
+}
+
 async function validationRead(url: string, init: RequestInit, isLocal: boolean = false) {
-  return safeOutboundFetch(url, {
-    ...SAFE_OUTBOUND_FETCH_PRESETS.validationRead,
-    guard: isLocal ? "none" : getProviderOutboundGuard(),
-    ...init,
-  });
+  return fetchWithProxyFallback(url, init, SAFE_OUTBOUND_FETCH_PRESETS.validationRead, isLocal);
 }
 
 async function validationWrite(url: string, init: RequestInit, isLocal: boolean = false) {
-  return safeOutboundFetch(url, {
-    ...SAFE_OUTBOUND_FETCH_PRESETS.validationWrite,
-    guard: isLocal ? "none" : getProviderOutboundGuard(),
-    ...init,
-  });
+  return fetchWithProxyFallback(url, init, SAFE_OUTBOUND_FETCH_PRESETS.validationWrite, isLocal);
 }
 
 function toValidationErrorResult(error: unknown) {
@@ -3718,8 +3791,43 @@ export async function validateProviderApiKey({ provider, apiKey, providerSpecifi
   // ── Specialty provider validation ──
   const SPECIALTY_VALIDATORS = {
     jules: validateJulesProvider,
-    qoder: ({ apiKey, providerSpecificData }: any) =>
-      validateQoderCliPat({ apiKey, providerSpecificData }),
+    qoder: async ({ apiKey, providerSpecificData }: any) => {
+      // Bifurcate validation: PAT tokens use Cosy auth against api1.qoder.sh;
+      // regular API keys validate against dashscope (OpenAI-compatible endpoint).
+      const key = (apiKey || "").trim();
+      if (key.startsWith("pt-")) {
+        return validateQoderCliPat({ apiKey: key, providerSpecificData });
+      }
+      // Non-PAT token → validate against dashscope (Alibaba Cloud).
+      // The executor routes these tokens to dashscope.aliyuncs.com, so the
+      // validation must test against dashscope, NOT the Cosy PAT endpoint.
+      try {
+        const dashscopeUrl =
+          "https://dashscope.aliyuncs.com/compatible-mode/v1/models";
+        const res = await validationRead(
+          dashscopeUrl,
+          {
+            headers: {
+              Authorization: `Bearer ${key}`,
+            },
+          },
+          false
+        );
+        if (res.ok) return { valid: true, error: null };
+        if (res.status === 401 || res.status === 403) {
+          return {
+            valid: false,
+            error:
+              "Invalid Qoder API key. Make sure you're using a valid API key from Qoder / Alibaba Cloud Dashscope.",
+          };
+        }
+        // 4xx/5xx other than auth — treat as valid bypass to prevent false
+        // negatives from transient dashscope issues (consistent with PAT path).
+        return { valid: true, error: null };
+      } catch (err: unknown) {
+        return toValidationErrorResult(err);
+      }
+    },
     "command-code": validateCommandCodeProvider,
     deepgram: validateDeepgramProvider,
     assemblyai: validateAssemblyAIProvider,
@@ -3856,7 +3964,7 @@ export async function validateProviderApiKey({ provider, apiKey, providerSpecifi
               max_tokens: 1,
             }),
           },
-          isLocal
+          isLocal,
         );
         if (res.status === 401 || res.status === 403) {
           return { valid: false, error: "Invalid API key" };
@@ -3880,11 +3988,13 @@ export async function validateProviderApiKey({ provider, apiKey, providerSpecifi
         const chatUrl = normalized.endsWith("/chat/completions")
           ? normalized
           : `${normalized}/chat/completions`;
-        const modelId =
-          providerSpecificData?.validationModelId ||
-          getRegistryEntry("nvidia")?.models?.[0]?.id ||
-          "meta/llama-3.1-8b-instruct";
-        const res = await validationWrite(
+        // #3116: probe a universally-available model rather than models[0]
+        // (z-ai/glm-5.1), which requires the "Public API Endpoints" account permission
+        // and can hang/be DEGRADED — making a *valid* key fail with "Upstream Error".
+        const modelId = resolveNvidiaValidationModel(providerSpecificData);
+        // #3226: use raw https (bypass the proxy/TLS-patched fetch) — the undici
+        // dispatcher stalls against NVIDIA's endpoint, causing a 504 timeout.
+        const res = await directHttpsRequest(
           chatUrl,
           {
             method: "POST",
@@ -3895,7 +4005,7 @@ export async function validateProviderApiKey({ provider, apiKey, providerSpecifi
               max_tokens: 1,
             }),
           },
-          isLocal
+          20000
         );
         if (res.status === 401 || res.status === 403) {
           return { valid: false, error: "Invalid API key" };
@@ -3926,7 +4036,7 @@ export async function validateProviderApiKey({ provider, apiKey, providerSpecifi
               max_tokens: 1,
             }),
           },
-          isLocal
+          isLocal,
         );
         if (res.status === 401 || res.status === 403) {
           return { valid: false, error: "Invalid API key" };

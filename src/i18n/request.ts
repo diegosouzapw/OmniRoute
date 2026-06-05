@@ -34,40 +34,65 @@ export function deepMergeFallback(
   return target;
 }
 
-/**
- * next-intl v4 forbids "." inside message keys (it denotes nesting). Some
- * namespaces ship flat dotted keys (e.g. compliance.eventTypes carries event ids
- * like "apiKey.activate" / "auth.login.success"). Convert any dotted key into a
- * nested object so the provider accepts the tree and `t("a.b.c")` resolves.
- * Idempotent and recursive; a no-op when no dotted keys exist.
- */
-export function nestDottedKeys(value: unknown): unknown {
-  if (Array.isArray(value)) return value.map(nestDottedKeys);
-  if (value === null || typeof value !== "object") return value;
+function setNestedValue(target: Record<string, unknown>, dottedKey: string, value: unknown): void {
+  const segments = dottedKey.split(".");
+  let cursor: Record<string, unknown> = target;
 
-  const out: Record<string, unknown> = {};
-  for (const [key, raw] of Object.entries(value as Record<string, unknown>)) {
-    const nested = nestDottedKeys(raw);
-    const parts = key.split(".");
-    let cursor = out;
-    let bail = false;
-    for (let i = 0; i < parts.length - 1; i++) {
-      const part = parts[i];
-      // Guard against prototype pollution from a crafted message tree.
-      if (part === "__proto__" || part === "constructor" || part === "prototype") {
-        bail = true;
-        break;
-      }
-      const existing = cursor[part];
-      if (typeof existing !== "object" || existing === null || Array.isArray(existing)) {
-        cursor[part] = {};
-      }
-      cursor = cursor[part] as Record<string, unknown>;
+  for (let index = 0; index < segments.length; index += 1) {
+    const segment = segments[index];
+    if (!segment || segment === "__proto__" || segment === "constructor" || segment === "prototype") {
+      return;
     }
-    if (bail) continue;
-    cursor[parts[parts.length - 1]] = nested;
+
+    if (index === segments.length - 1) {
+      cursor[segment] = value;
+      return;
+    }
+
+    const next = cursor[segment];
+    if (next && typeof next === "object" && !Array.isArray(next)) {
+      cursor = next as Record<string, unknown>;
+      continue;
+    }
+
+    const created: Record<string, unknown> = {};
+    cursor[segment] = created;
+    cursor = created;
   }
-  return out;
+}
+
+export function normalizeComplianceEventTypes(
+  messages: Record<string, unknown>
+): Record<string, unknown> {
+  const compliance =
+    messages.compliance && typeof messages.compliance === "object" && !Array.isArray(messages.compliance)
+      ? (messages.compliance as Record<string, unknown>)
+      : null;
+  const eventTypes =
+    compliance?.eventTypes &&
+    typeof compliance.eventTypes === "object" &&
+    !Array.isArray(compliance.eventTypes)
+      ? (compliance.eventTypes as Record<string, unknown>)
+      : null;
+
+  if (!compliance || !eventTypes) return messages;
+
+  const normalizedEventTypes: Record<string, unknown> = {};
+  for (const [key, value] of Object.entries(eventTypes)) {
+    if (key.includes(".")) {
+      setNestedValue(normalizedEventTypes, key, value);
+    } else {
+      normalizedEventTypes[key] = value;
+    }
+  }
+
+  return {
+    ...messages,
+    compliance: {
+      ...compliance,
+      eventTypes: normalizedEventTypes,
+    },
+  };
 }
 
 export default getRequestConfig(async () => {
@@ -83,13 +108,17 @@ export default getRequestConfig(async () => {
     locale = DEFAULT_LOCALE;
   }
 
-  const localeMessages = (await import(`./messages/${locale}.json`)).default;
+  const localeMessages = normalizeComplianceEventTypes(
+    (await import(`./messages/${locale}.json`)).default as Record<string, unknown>
+  );
 
   // G1: fall back to EN for any missing key. EN is loaded only once per request
   // and only when the active locale is not EN itself (no-op).
   let messages = localeMessages as Record<string, unknown>;
   if (locale !== FALLBACK_LOCALE) {
-    const fallbackMessages = (await import(`./messages/${FALLBACK_LOCALE}.json`)).default as Record<string, unknown>;
+    const fallbackMessages = normalizeComplianceEventTypes(
+      (await import(`./messages/${FALLBACK_LOCALE}.json`)).default as Record<string, unknown>
+    );
     messages = deepMergeFallback({ ...localeMessages }, fallbackMessages);
   }
 
@@ -102,14 +131,14 @@ export default getRequestConfig(async () => {
   //    translations are shipped.
   let mergedMessages: Record<string, unknown> = messages as Record<string, unknown>;
   if (locale !== DEFAULT_LOCALE) {
-    const enMessages = (
-      await import(`./messages/${DEFAULT_LOCALE}.json`)
-    ).default as Record<string, unknown>;
+    const enMessages = normalizeComplianceEventTypes(
+      (await import(`./messages/${DEFAULT_LOCALE}.json`)).default as Record<string, unknown>
+    );
     mergedMessages = { ...enMessages, ...mergedMessages };
   }
 
   return {
     locale,
-    messages: nestDottedKeys(mergedMessages) as Record<string, unknown>,
+    messages: mergedMessages,
   };
 });

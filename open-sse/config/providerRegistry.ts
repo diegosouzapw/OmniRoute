@@ -112,6 +112,12 @@ export interface RegistryEntry {
   modelsUrl?: string;
   /** Prefix to prepend to model IDs before upstream API calls (e.g. "accounts/fireworks/models/") */
   modelIdPrefix?: string;
+  /**
+   * Additional already-qualified model ID prefixes that must NOT receive `modelIdPrefix`
+   * (e.g. Fireworks router IDs "accounts/fireworks/routers/"). Prevents double-prefixing
+   * fully-qualified IDs that legitimately differ from `modelIdPrefix`. See issue #3133.
+   */
+  acceptedModelIdPrefixes?: string[];
   chatPath?: string;
   clientVersion?: string;
   timeoutMs?: number;
@@ -641,7 +647,7 @@ const _REGISTRY_EAGER: Record<string, RegistryEntry> = {
     oauth: {
       clientIdEnv: "CLAUDE_OAUTH_CLIENT_ID",
       clientIdDefault: "9d1c250a-e61b-44d9-88ed-5944d1962f5e",
-      tokenUrl: "https://console.anthropic.com/v1/oauth/token",
+      tokenUrl: "https://api.anthropic.com/v1/oauth/token",
     },
     models: [
       {
@@ -1331,7 +1337,12 @@ const _REGISTRY_EAGER: Record<string, RegistryEntry> = {
       // #2900: big-pickle's upstream runs DeepSeek thinking mode — declare the
       // interleaved reasoning_content contract so follow-up/tool-use turns replay
       // it (otherwise DeepSeek returns 400 "reasoning_content ... must be passed back").
-      { id: "big-pickle", name: "Big Pickle", supportsReasoning: true, interleavedField: "reasoning_content" },
+      {
+        id: "big-pickle",
+        name: "Big Pickle",
+        supportsReasoning: true,
+        interleavedField: "reasoning_content",
+      },
       { id: "deepseek-v4-flash-free", name: "DeepSeek V4 Flash Free", supportsReasoning: true },
       { id: "minimax-m2.5-free", name: "MiniMax M2.5 Free", contextLength: 204800 },
       { id: "ling-2.6-1t-free", name: "Ling 2.6 Free", contextLength: 262000 },
@@ -1341,7 +1352,13 @@ const _REGISTRY_EAGER: Record<string, RegistryEntry> = {
         contextLength: 131000,
       },
       { id: "nemotron-3-super-free", name: "Nemotron 3 Super Free", contextLength: 1000000 },
-      { id: "qwen3.6-plus-free", name: "Qwen3.6 Plus Free", targetFormat: "claude", supportsVision: false, contextLength: 200000, },
+      {
+        id: "qwen3.6-plus-free",
+        name: "Qwen3.6 Plus Free",
+        targetFormat: "claude",
+        supportsVision: false,
+        contextLength: 200000,
+      },
     ],
   },
 
@@ -1403,7 +1420,12 @@ const _REGISTRY_EAGER: Record<string, RegistryEntry> = {
       // #2900: big-pickle's upstream runs DeepSeek thinking mode — declare the
       // interleaved reasoning_content contract so follow-up/tool-use turns replay
       // it (otherwise DeepSeek returns 400 "reasoning_content ... must be passed back").
-      { id: "big-pickle", name: "Big Pickle", supportsReasoning: true, interleavedField: "reasoning_content" },
+      {
+        id: "big-pickle",
+        name: "Big Pickle",
+        supportsReasoning: true,
+        interleavedField: "reasoning_content",
+      },
       { id: "gpt-5-nano", name: "GPT 5 Nano", contextLength: 400000 },
       { id: "gpt-5", name: "GPT 5" },
       { id: "gpt-5-codex", name: "GPT 5 Codex" },
@@ -1861,8 +1883,8 @@ const _REGISTRY_EAGER: Record<string, RegistryEntry> = {
   kilocode: {
     id: "kilocode",
     alias: "kc",
-    format: "openrouter",
-    executor: "openrouter",
+    format: "openai",
+    executor: "default",
     baseUrl: "https://api.kilo.ai/api/openrouter/chat/completions",
     modelsUrl: "https://api.kilo.ai/api/openrouter/models",
     authType: "oauth",
@@ -2340,7 +2362,6 @@ const _REGISTRY_EAGER: Record<string, RegistryEntry> = {
     models: [{ id: "auto", name: "Auto" }],
   },
 
-
   kluster: {
     id: "kluster",
     alias: "kluster",
@@ -2373,7 +2394,6 @@ const _REGISTRY_EAGER: Record<string, RegistryEntry> = {
     authHeader: "bearer",
     models: [{ id: "liquid-lfm-40b", name: "Liquid LFM 40B" }],
   },
-
 
   monsterapi: {
     id: "monsterapi",
@@ -2412,7 +2432,6 @@ const _REGISTRY_EAGER: Record<string, RegistryEntry> = {
     ],
   },
 
-
   chutes: {
     id: "chutes",
     alias: "chutes",
@@ -2437,7 +2456,9 @@ const _REGISTRY_EAGER: Record<string, RegistryEntry> = {
 
   huggingchat: {
     id: "huggingchat",
-    alias: "hc",
+    // Distinct alias: "hc" belongs to the hackclub provider; huggingchat is
+    // addressed by its own id to avoid the alias collision.
+    alias: "huggingchat",
     format: "openai",
     executor: "huggingchat",
     baseUrl: "https://huggingface.co/chat/conversation",
@@ -3035,6 +3056,7 @@ const _REGISTRY_EAGER: Record<string, RegistryEntry> = {
     modelsUrl:
       "https://api.fireworks.ai/v1/accounts/fireworks/models?filter=supports_serverless=true",
     modelIdPrefix: "accounts/fireworks/models/",
+    acceptedModelIdPrefixes: ["accounts/fireworks/models/", "accounts/fireworks/routers/"],
     authType: "apikey",
     authHeader: "bearer",
     models: [
@@ -3578,7 +3600,6 @@ const _REGISTRY_EAGER: Record<string, RegistryEntry> = {
     ],
   },
 
-
   hackclub: {
     id: "hackclub",
     alias: "hc",
@@ -3863,7 +3884,9 @@ const _REGISTRY_EAGER: Record<string, RegistryEntry> = {
 
   "kimi-web": {
     id: "kimi-web",
-    alias: "kimi",
+    // Distinct alias: the primary "kimi" provider (dedicated KimiExecutor) keeps
+    // the short "kimi" alias; this web/cookie variant is addressed by its own id.
+    alias: "kimi-web",
     format: "openai",
     executor: "kimi-web",
     baseUrl: "https://kimi.moonshot.cn/api/chat",
@@ -3891,7 +3914,9 @@ const _REGISTRY_EAGER: Record<string, RegistryEntry> = {
 
   "qwen-web": {
     id: "qwen-web",
-    alias: "qw",
+    // Distinct alias: the primary "qwen" provider keeps the short "qw" alias;
+    // this web/cookie variant is addressed by its own id.
+    alias: "qwen-web",
     format: "openai",
     executor: "qwen-web",
     baseUrl: "https://chat.qwen.ai/api/chat/completions",
@@ -4202,6 +4227,29 @@ const _REGISTRY_EAGER: Record<string, RegistryEntry> = {
         contextLength: 128000,
       },
     ],
+  },
+
+  theoldllm: {
+    id: "theoldllm",
+    alias: "tllm",
+    format: "openai",
+    executor: "theoldllm",
+    // Playwright-backed executor — no standard auth; uses embedded browser for token generation
+    baseUrl: "https://theoldllm.vercel.app/api/chatgpt",
+    baseUrls: ["https://theoldllm.vercel.app/api/chatgpt"],
+    authType: "none",
+    authHeader: "none",
+    models: [
+      { id: "GPT_5_4", name: "GPT-5.4 (The Old LLM 🆓)" },
+      { id: "GPT_4o", name: "GPT-4o (The Old LLM 🆓)" },
+      { id: "claude_opus_4", name: "Claude Opus 4 (The Old LLM 🆓)" },
+      { id: "claude_sonnet_4", name: "Claude Sonnet 4 (The Old LLM 🆓)" },
+      { id: "claude_haiku_3_5", name: "Claude Haiku 3.5 (The Old LLM 🆓)" },
+      { id: "deepseek_v4", name: "DeepSeek V4 (The Old LLM 🆓)" },
+      { id: "gemini_3_flash", name: "Gemini 3 Flash (The Old LLM 🆓)" },
+      { id: "gemini_3_pro", name: "Gemini 3 Pro (The Old LLM 🆓)" },
+    ],
+    passthroughModels: true,
   },
 };
 
