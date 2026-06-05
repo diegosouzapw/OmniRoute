@@ -399,6 +399,12 @@ export async function DELETE(request) {
 
     const removedCustom = await removeCustomModel(provider, modelId);
     const removedSynced = await removeSyncedAvailableModel(provider, modelId);
+    if (removedSynced) {
+      // #3199: mark the deleted synced model hidden so a later auto-fetch
+      // re-import (replaceSyncedAvailableModelsForConnection) does not re-add it
+      // — otherwise the model reappears and the delete looks like it did nothing.
+      mergeModelCompatOverride(provider, modelId, { isHidden: true });
+    }
     const removed = removedCustom || removedSynced;
     const removedAliases = await deleteManagedAvailableModelAliases(provider, [modelId]);
     return Response.json({ removed, aliasChanges: { removed: removedAliases, assigned: [] } });

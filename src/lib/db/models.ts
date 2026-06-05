@@ -714,7 +714,11 @@ export async function replaceSyncedAvailableModelsForConnection(
 ): Promise<SyncedAvailableModel[]> {
   const db = getDbInstance();
   const key = `${providerId}:${connectionId}`;
-  const normalizedModels = normalizeSyncedAvailableModels(models);
+  // #3199: drop ids the operator has deleted/hidden so a re-fetch does not
+  // re-import a model that was explicitly removed.
+  const normalizedModels = normalizeSyncedAvailableModels(models).filter(
+    (m) => !getModelIsHidden(providerId, m.id)
+  );
   if (normalizedModels.length === 0) {
     db.prepare("DELETE FROM key_value WHERE namespace = 'syncedAvailableModels' AND key = ?").run(
       key
