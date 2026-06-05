@@ -139,7 +139,7 @@ class AmeliaClient {
     rejectConnect: (e: Error) => void,
     timeout: NodeJS.Timeout,
   ): void {
-    const command = frame.split("\n")[0];
+    const command = frame.split("\n")[0].replace(/\r$/, "");
 
     if (command === "CONNECTED") {
       this.stompConnected = true;
@@ -170,11 +170,15 @@ class AmeliaClient {
 
   private handleStompMessage(frame: string): void {
     const nullIdx = frame.indexOf("\0");
-    const bodyStart = frame.indexOf("\n\n");
+    let bodyStart = frame.indexOf("\n\n");
+    if (bodyStart === -1) bodyStart = frame.indexOf("\r\n\r\n");
+    const headerLen = bodyStart !== -1
+      ? (frame[bodyStart + 2] === "\r" ? 4 : 2)
+      : 0;
     let body = "";
     if (bodyStart !== -1) {
       body = frame
-        .substring(bodyStart + 2, nullIdx !== -1 ? nullIdx : undefined)
+        .substring(bodyStart + headerLen, nullIdx !== -1 ? nullIdx : undefined)
         .replace(/\0$/, "");
     }
     if (!body) return;
@@ -189,6 +193,8 @@ class AmeliaClient {
         text = parsed.text as string;
       } else if (parsed.message) {
         text = parsed.message as string;
+      } else {
+        return;
       }
     } catch {
       // plain text
@@ -200,10 +206,14 @@ class AmeliaClient {
     }
   }
 
-  async chat(message: string, timeoutMs = 15_000): Promise<string> {
+  async chat(message: string, timeoutMs = 15_000, signal?: AbortSignal | null): Promise<string> {
     if (!this.stompConnected) {
       await this.init();
       await this.connect();
+    }
+
+    if (signal?.aborted) {
+      throw new DOMException("Aborted", "AbortError");
     }
 
     const callbackId = crypto.randomUUID();
@@ -214,8 +224,16 @@ class AmeliaClient {
         reject(new Error("Response timeout"));
       }, timeoutMs);
 
+      const onAbort = () => {
+        clearTimeout(timer);
+        this.messageCallbacks.delete(callbackId);
+        reject(new DOMException("Aborted", "AbortError"));
+      };
+      signal?.addEventListener("abort", onAbort, { once: true });
+
       this.messageCallbacks.set(callbackId, (text) => {
         clearTimeout(timer);
+        signal?.removeEventListener("abort", onAbort);
         resolve(text);
       });
 
@@ -231,7 +249,7 @@ class AmeliaClient {
   }
 
   private buildStompConnect(): string {
-    return `CONNECT\naccept-version:1.1,1.0\nheart-beat:10000,10000\nX-CSRF-TOKEN:${this.session!.csrfToken}\n\n\0`;
+    return `CONNECT\naccept-version:1.1,1.0\nheart-beat:0,0\nX-CSRF-TOKEN:${this.session!.csrfToken}\n\n\0`;
   }
 
   private buildStompSubscribe(destination: string, id: string): string {
@@ -263,8 +281,6 @@ class AmeliaClient {
 
 const POOL_MAX = 5;
 const pool: AmeliaClient[] = [];
-let poolInitializing = false;
-let poolReady: Promise<void> | null = null;
 
 async function getClient(): Promise<AmeliaClient> {
   if (pool.length > 0) return pool.pop()!;
@@ -343,7 +359,7 @@ export class ChipotleExecutor extends BaseExecutor {
       client = await getClient();
       log?.info?.("CHIPOTLE", `Sending to Pepper (model=${model})`);
 
-      const responseText = await client.chat(prompt);
+      const responseText = await client.chat(prompt, 15_000, signal);
       releaseClient(client);
       client = null;
 
