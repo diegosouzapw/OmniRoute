@@ -9,6 +9,7 @@
 ### 🔧 Bug Fixes
 
 - **mcp:** move `enforceScopes` guard before `MCP_TOOL_MAP` lookup, add inline `scopes` parameter to `withScopeEnforcement()`, and declare scopes on all 24 dynamic tool definitions (memory, skills, plugins, gamification, compression) to fix scope enforcement for dynamic MCP tool groups (#2958)
+- **i18n:** normalize dotted `compliance.eventTypes` keys into nested objects at load time so next-intl no longer throws `INVALID_KEY: Namespace keys cannot contain "."` ([#3185](https://github.com/diegosouzapw/OmniRoute/pull/3185) — thanks @zhiru; the same bug was independently fixed by @androw in [#3167](https://github.com/diegosouzapw/OmniRoute/pull/3167), credited here as co-author)
 - **build:** finish the build-output-isolation cleanup — `assembleStandalone.mjs` now derives both its async (`syncStandalone*`) and sync copy paths from a single `NATIVE_ASSET_ENTRIES`/`EXTRA_MODULE_ENTRIES` source of truth (previously two hand-maintained lists that could silently drift), guarded by a new parity test; and the `Dockerfile` drops 5 redundant per-module `COPY` overrides (`@swc/helpers`, `pino-abstract-transport`, `pino-pretty`, `split2`, `migrations`) now that `assembleStandalone` bundles them into the standalone regardless of NFT/Turbopack tracing (validated with a real Turbopack `docker build` + boot → `/api/monitoring/health` 200; `better-sqlite3` stays explicit since only its native `build/` is synced)
 
 ---
@@ -59,6 +60,18 @@ OAuth resilience & observability release: spaced/sequential quota sync for OAuth
 - **deps:** bump hono from 4.12.18 to 4.12.23. (#3179 — thanks @dependabot)
 - **ci(electron):** make the macOS-arm64 smoke step best-effort (headless GPU crash). (#3137 — thanks @diegosouzapw)
 - **chore(release):** open the v3.8.10 development cycle. (thanks @diegosouzapw)
+
+---
+
+## [3.8.10] — Unreleased
+
+_Development cycle in progress — entries are added as work merges into `release/v3.8.10` and finalized by the release flow._
+
+---
+
+## [3.8.10] — Unreleased
+
+_Development cycle in progress — entries are added as work merges into `release/v3.8.10` and finalized by the release flow._
 
 ---
 

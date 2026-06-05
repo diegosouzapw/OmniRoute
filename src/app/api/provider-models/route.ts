@@ -5,6 +5,7 @@ import {
   removeCustomModel,
   replaceCustomModels,
   deleteSyncedAvailableModelsForProvider,
+  removeSyncedAvailableModel,
   updateCustomModel,
   getModelCompatOverrides,
   mergeModelCompatOverride,
@@ -396,7 +397,9 @@ export async function DELETE(request) {
       );
     }
 
-    const removed = await removeCustomModel(provider, modelId);
+    const removedCustom = await removeCustomModel(provider, modelId);
+    const removedSynced = await removeSyncedAvailableModel(provider, modelId);
+    const removed = removedCustom || removedSynced;
     const removedAliases = await deleteManagedAvailableModelAliases(provider, [modelId]);
     return Response.json({ removed, aliasChanges: { removed: removedAliases, assigned: [] } });
   } catch (error) {
