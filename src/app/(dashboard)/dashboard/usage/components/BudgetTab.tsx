@@ -5,8 +5,6 @@ import { useLocale, useTranslations } from "next-intl";
 import { Card, Button, Input, EmptyState } from "@/shared/components";
 import { useNotificationStore } from "@/store/notificationStore";
 import { compareTr, matchesSearch } from "@/shared/utils/turkishText";
-import FreeBudgetCard from "./FreeBudgetCard";
-
 // ────────────────────────────────────────────────────────────────────────────
 // Types
 // ────────────────────────────────────────────────────────────────────────────
@@ -441,9 +439,6 @@ export default function BudgetTab() {
 
   return (
     <div className="flex flex-col gap-4">
-      {/* Free-token budget summary */}
-      <FreeBudgetCard />
-
       {/* Hero KPIs */}
       <Card className="p-5">
         <div className="flex items-start justify-between gap-3 mb-4">
