@@ -260,6 +260,7 @@ export function parseQuotaData(provider, data) {
         break;
 
       case "antigravity":
+      case "agy":
         if (data.quotas) {
           Object.entries(data.quotas).forEach(([modelKey, quota]: [string, any]) => {
             if (modelKey === "credits") {
@@ -390,7 +391,10 @@ export function parseQuotaData(provider, data) {
   }
 
   // Sort quotas according to PROVIDER_MODELS order
-  const modelOrder = getModelsByProviderId(provider);
+  // agy (Antigravity CLI) shares the antigravity model catalog, so normalize
+  // the provider id before looking up models.
+  const providerForModels = providerId === "agy" ? "antigravity" : providerId;
+  const modelOrder = getModelsByProviderId(providerForModels);
   if (modelOrder.length > 0) {
     const orderMap = new Map(modelOrder.map((m, i) => [m.id, i]));
 
