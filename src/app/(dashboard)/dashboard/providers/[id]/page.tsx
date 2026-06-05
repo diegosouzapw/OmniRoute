@@ -1432,6 +1432,12 @@ export default function ProviderDetailPage() {
   );
   const [exportingCodexAuthId, setExportingCodexAuthId] = useState<string | null>(null);
   const [importCodexModalOpen, setImportCodexModalOpen] = useState(false);
+  // "Adicionar Externo": public shareable device-flow link state.
+  const [externalLinkModalOpen, setExternalLinkModalOpen] = useState(false);
+  const [externalLinkUrl, setExternalLinkUrl] = useState("");
+  const [externalLinkLoading, setExternalLinkLoading] = useState(false);
+  const [externalLinkError, setExternalLinkError] = useState<string | null>(null);
+  const { copied: externalLinkCopied, copy: externalLinkCopy } = useCopyToClipboard();
   const [applyingClaudeAuthId, setApplyingClaudeAuthId] = useState<string | null>(null);
   const [applyClaudeModalConnectionId, setApplyClaudeModalConnectionId] = useState<string | null>(
     null
@@ -1984,6 +1990,32 @@ export default function ProviderDetailPage() {
     }
     openApiKeyAddFlow();
   }, [isOAuth, openApiKeyAddFlow]);
+
+  // "Adicionar Externo": generate a single-use public link so a third party can
+  // complete the Codex device flow in their own browser.
+  const openExternalLinkFlow = useCallback(async () => {
+    setExternalLinkModalOpen(true);
+    setExternalLinkUrl("");
+    setExternalLinkError(null);
+    setExternalLinkLoading(true);
+    try {
+      const res = await fetch(`/api/oauth/${providerId}/public-link`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({}),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (res.ok && data?.url) {
+        setExternalLinkUrl(data.url);
+      } else {
+        setExternalLinkError(data?.error || "Falha ao gerar o link.");
+      }
+    } catch {
+      setExternalLinkError("Não foi possível contatar o servidor.");
+    } finally {
+      setExternalLinkLoading(false);
+    }
+  }, [providerId]);
 
   const gateConnectionFlow = useCallback(
     (callback: () => void) => {
@@ -4134,6 +4166,16 @@ export default function ProviderDetailPage() {
                           Experimental OAuth
                         </Button>
                       )}
+                      {providerId === "codex" && (
+                        <Button
+                          size="sm"
+                          variant="secondary"
+                          icon="share"
+                          onClick={() => gateConnectionFlow(openExternalLinkFlow)}
+                        >
+                          Adicionar Externo
+                        </Button>
+                      )}
                       {providerId === "claude" && (
                         <Button
                           size="sm"
@@ -4802,6 +4844,48 @@ export default function ProviderDetailPage() {
             fetchData();
           }}
         />
+      )}
+      {providerId === "codex" && externalLinkModalOpen && (
+        <Modal
+          isOpen={externalLinkModalOpen}
+          onClose={() => setExternalLinkModalOpen(false)}
+          title="Adicionar Externo — link do Codex"
+        >
+          <div className="space-y-4">
+            <p className="text-sm text-text-muted">
+              Compartilhe este link com quem vai autenticar a conta do Codex. A pessoa abre a
+              página, faz o login da OpenAI no próprio navegador e a conexão é cadastrada aqui.
+              Uso único, expira em 15 minutos.
+            </p>
+            {externalLinkLoading ? (
+              <p className="text-sm text-text-muted">Gerando link…</p>
+            ) : externalLinkError ? (
+              <p className="text-sm text-red-500">{externalLinkError}</p>
+            ) : externalLinkUrl ? (
+              <>
+                <div className="rounded-lg border border-border bg-bg-base p-3 break-all text-sm text-text-main">
+                  {externalLinkUrl}
+                </div>
+                <div className="flex gap-2">
+                  <Button
+                    className="flex-1"
+                    icon="open_in_new"
+                    onClick={() => window.open(externalLinkUrl, "_blank", "noopener")}
+                  >
+                    Abrir
+                  </Button>
+                  <Button
+                    variant="secondary"
+                    icon="content_copy"
+                    onClick={() => externalLinkCopy(externalLinkUrl, "extlink")}
+                  >
+                    {externalLinkCopied === "extlink" ? "Copiado" : "Copiar"}
+                  </Button>
+                </div>
+              </>
+            ) : null}
+          </div>
+        </Modal>
       )}
       {/* Claude Apply Auth Modal */}
       {providerId === "claude" && applyClaudeModalConnectionId && (

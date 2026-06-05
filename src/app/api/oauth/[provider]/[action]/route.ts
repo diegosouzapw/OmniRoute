@@ -9,6 +9,8 @@ import {
   pollForToken,
   resolveBrowserOAuthRedirectUri,
 } from "@/lib/oauth/providers";
+import { persistOAuthConnection } from "@/lib/oauth/connectionPersistence";
+import { createDeviceFlowTicket } from "@/lib/oauth/deviceFlowTickets";
 import {
   createProviderConnection,
   updateProviderConnection,
@@ -73,6 +75,20 @@ function safeEqual(a: string | null | undefined, b: string | null | undefined): 
   const bb = Buffer.from(String(b));
   if (ba.length !== bb.length) return false;
   return timingSafeEqual(ba, bb);
+}
+
+/**
+ * Resolve the externally reachable base URL for public share links. Prefers the
+ * configured public base URL; otherwise derives it from forwarded headers so the
+ * link points at the host the operator actually serves (not an internal origin).
+ */
+function resolvePublicBaseUrl(request: Request): string {
+  const env = process.env.NEXT_PUBLIC_BASE_URL || process.env.OMNIROUTE_PUBLIC_BASE_URL;
+  if (env && env.trim()) return env.trim().replace(/\/+$/, "");
+  const host = request.headers.get("x-forwarded-host") || request.headers.get("host");
+  const proto = request.headers.get("x-forwarded-proto") || "https";
+  if (host) return `${proto}://${host}`;
+  return new URL(request.url).origin;
 }
 
 async function requireOAuthRouteAuth(request: Request) {
@@ -770,6 +786,29 @@ export async function POST(
       }
     }
 
+    if (action === "public-link") {
+      // Generate a single-use, short-lived public link so a third party can
+      // complete the Codex device flow in their own browser (see Fase 6).
+      if (!BROWSER_DEVICE_FLOW_PROVIDERS.has(provider)) {
+        return NextResponse.json(
+          {
+            error: `public-link not supported for provider: ${provider}. Supported: ${[...BROWSER_DEVICE_FLOW_PROVIDERS].join(", ")}`,
+          },
+          { status: 400 }
+        );
+      }
+
+      const connectionId =
+        rawBody && typeof rawBody.connectionId === "string" ? rawBody.connectionId : undefined;
+      const { token, expiresAt } = createDeviceFlowTicket(provider, connectionId);
+
+      return NextResponse.json({
+        url: `${resolvePublicBaseUrl(request)}/codex/connect/${token}`,
+        token,
+        expiresAt: new Date(expiresAt).toISOString(),
+      });
+    }
+
     if (action === "device-complete") {
       // The browser-driven Codex device flow already performed the device
       // authorization + token exchange against auth.openai.com (the server's
@@ -828,60 +867,6 @@ export async function POST(
     console.error("OAuth POST error:", error);
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
-}
-
-/**
- * Upsert an OAuth connection from already-mapped token data.
- * Mirrors the exchange/poll/poll-callback persistence: normalize the display
- * name, compute expiry, match an existing connection by id or email (+ Codex
- * workspaceId) and update it, else create a new one, then sync to Cloud.
- */
-async function persistOAuthConnection(provider: string, tokenData: any, connectionId?: string) {
-  // Normalize: if name is missing, use email or displayName as fallback label.
-  if (!tokenData.name && (tokenData.email || tokenData.displayName)) {
-    tokenData.name = tokenData.email || tokenData.displayName;
-  }
-
-  const expiresAt = tokenData.expiresIn
-    ? new Date(Date.now() + tokenData.expiresIn * 1000).toISOString()
-    : null;
-
-  let connection: any;
-  if (tokenData.email) {
-    const existing = await getProviderConnections({ provider });
-    const match = existing.find((c: any) => {
-      if (c.id && safeEqual(connectionId, c.id)) return true;
-      // safeEqual: constant-time comparison to prevent timing attacks (CWE-208).
-      if (!safeEqual(c.email, tokenData.email) || c.authType !== "oauth") return false;
-      // For Codex, also check workspaceId to avoid overwriting a different workspace.
-      if (provider === "codex" && tokenData.providerSpecificData?.workspaceId) {
-        const existingWorkspace = c.providerSpecificData?.workspaceId;
-        return safeEqual(existingWorkspace, tokenData.providerSpecificData.workspaceId);
-      }
-      return true;
-    });
-    const matchId = typeof match?.id === "string" ? match.id : null;
-    if (matchId) {
-      connection = await updateProviderConnection(matchId, {
-        ...tokenData,
-        expiresAt,
-        testStatus: "active",
-        isActive: true,
-      });
-    }
-  }
-  if (!connection) {
-    connection = await createProviderConnection({
-      provider,
-      authType: "oauth",
-      ...tokenData,
-      expiresAt,
-      testStatus: "active",
-    });
-  }
-
-  await syncToCloudIfEnabled();
-  return connection;
 }
 
 /**
