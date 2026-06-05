@@ -1424,6 +1424,7 @@ export const USAGE_FETCHER_PROVIDERS = [
   "github",
   "gemini-cli",
   "antigravity",
+  "agy",
   "claude",
   "codex",
   "cursor",
@@ -1467,6 +1468,7 @@ export async function getUsageForProvider(
     case "gemini-cli":
       return await getGeminiUsage(accessToken, providerSpecificData, projectId);
     case "antigravity":
+    case "agy":
       return await getAntigravityUsage(accessToken, providerSpecificData, projectId, id, options);
     case "claude":
       return await getClaudeUsage(accessToken);
