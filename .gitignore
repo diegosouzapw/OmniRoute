@@ -180,3 +180,6 @@ scripts/i18n/_pending-keys.json
 # PR Reviews and local feedback files
 pr_reviews*.json
 
+#hidden local data directories (never commit)
+.local-data/
+.data-dev/
