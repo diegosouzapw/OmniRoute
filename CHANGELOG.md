@@ -17,6 +17,8 @@ _Development cycle in progress — entries are added as work merges into `releas
 
 ### 🔧 Bug Fixes
 
+- **api:** combo names sent to `/v1/responses` are no longer force-rewritten to `codex/<name>` — the Codex CLI WS→HTTP fallback rewrite now skips bare names that are combos, so combos (e.g. `n8n-text`, `paid-premium`) route correctly again instead of failing with "No credentials for provider: codex" (regression since v3.8.9) (#3227, #3233 — thanks @Marcus1Pierce, @Dima-Kal)
+- **antigravity:** the `agy` `gemini-3.1-pro-high`/`-low` models now alias to the plain `gemini-3.1-pro` upstream id (the `-high`/`-low` suffix is rejected for gemini-3.x), and non-streaming upstream 4xx/5xx errors surface as real error bodies instead of being masked as an empty `chat.completion` envelope (#3229)
 - **auth:** honor the effective `REQUIRE_API_KEY` feature flag (DB override > env > default) in client API auth instead of reading `process.env` directly, and align the route-local optional-auth checks (`/v1/embeddings`, `/v1/web/fetch`, `/v1/combos`, playground) with it (#3188 — thanks @xz-dev)
 - **oauth:** use `api.anthropic.com` for the Claude OAuth token exchange so self-hosted VPS deployments are no longer blocked by Cloudflare Bot Management on `console.anthropic.com` (#3203, fixes #3192 — thanks @wilsonicdev)
 - **oauth:** validate OAuth client IDs against `resolvePublicCred` so adding an Antigravity / Gemini CLI / AGY connection with the built-in public client no longer fails with a Google `redirect_uri_mismatch` (#3206 — thanks @juandisay)
