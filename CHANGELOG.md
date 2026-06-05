@@ -9,6 +9,7 @@
 ### 🔧 Bug Fixes
 
 - **mcp:** move `enforceScopes` guard before `MCP_TOOL_MAP` lookup, add inline `scopes` parameter to `withScopeEnforcement()`, and declare scopes on all 24 dynamic tool definitions (memory, skills, plugins, gamification, compression) to fix scope enforcement for dynamic MCP tool groups (#2958)
+- **build:** finish the build-output-isolation cleanup — `assembleStandalone.mjs` now derives both its async (`syncStandalone*`) and sync copy paths from a single `NATIVE_ASSET_ENTRIES`/`EXTRA_MODULE_ENTRIES` source of truth (previously two hand-maintained lists that could silently drift), guarded by a new parity test; and the `Dockerfile` drops 5 redundant per-module `COPY` overrides (`@swc/helpers`, `pino-abstract-transport`, `pino-pretty`, `split2`, `migrations`) now that `assembleStandalone` bundles them into the standalone regardless of NFT/Turbopack tracing (validated with a real Turbopack `docker build` + boot → `/api/monitoring/health` 200; `better-sqlite3` stays explicit since only its native `build/` is synced)
 
 ---
 
