@@ -34,6 +34,42 @@ export function deepMergeFallback(
   return target;
 }
 
+/**
+ * next-intl v4 forbids "." inside message keys (it denotes nesting). Some
+ * namespaces ship flat dotted keys (e.g. compliance.eventTypes carries event ids
+ * like "apiKey.activate" / "auth.login.success"). Convert any dotted key into a
+ * nested object so the provider accepts the tree and `t("a.b.c")` resolves.
+ * Idempotent and recursive; a no-op when no dotted keys exist.
+ */
+export function nestDottedKeys(value: unknown): unknown {
+  if (Array.isArray(value)) return value.map(nestDottedKeys);
+  if (value === null || typeof value !== "object") return value;
+
+  const out: Record<string, unknown> = {};
+  for (const [key, raw] of Object.entries(value as Record<string, unknown>)) {
+    const nested = nestDottedKeys(raw);
+    const parts = key.split(".");
+    let cursor = out;
+    let bail = false;
+    for (let i = 0; i < parts.length - 1; i++) {
+      const part = parts[i];
+      // Guard against prototype pollution from a crafted message tree.
+      if (part === "__proto__" || part === "constructor" || part === "prototype") {
+        bail = true;
+        break;
+      }
+      const existing = cursor[part];
+      if (typeof existing !== "object" || existing === null || Array.isArray(existing)) {
+        cursor[part] = {};
+      }
+      cursor = cursor[part] as Record<string, unknown>;
+    }
+    if (bail) continue;
+    cursor[parts[parts.length - 1]] = nested;
+  }
+  return out;
+}
+
 export default getRequestConfig(async () => {
   const cookieStore = await cookies();
   let locale: string = cookieStore.get(LOCALE_COOKIE)?.value || "";
@@ -74,6 +110,6 @@ export default getRequestConfig(async () => {
 
   return {
     locale,
-    messages: mergedMessages,
+    messages: nestDottedKeys(mergedMessages) as Record<string, unknown>,
   };
 });
