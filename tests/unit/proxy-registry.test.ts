@@ -6,16 +6,19 @@ import path from "node:path";
 
 const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-proxy-registry-"));
 process.env.DATA_DIR = TEST_DATA_DIR;
+process.env.API_KEY_SECRET = "test-secret";
 
 const core = await import("../../src/lib/db/core.ts");
 const providersDb = await import("../../src/lib/db/providers.ts");
 const proxiesDb = await import("../../src/lib/db/proxies.ts");
 const settingsDb = await import("../../src/lib/db/settings.ts");
+const apiKeysDb = await import("../../src/lib/db/apiKeys.ts");
 const proxiesRoute = await import("../../src/app/api/settings/proxies/route.ts");
 
 async function resetStorage() {
   delete process.env.INITIAL_PASSWORD;
   core.resetDbInstance();
+  apiKeysDb.resetApiKeyState();
   fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
   fs.mkdirSync(TEST_DATA_DIR, { recursive: true });
 }
@@ -161,9 +164,9 @@ test("specific registry account assignment takes precedence over legacy key prox
   await proxiesDb.assignProxyToScope("account", (conn as any).id, accountProxy.id);
 
   const resolved = await settingsDb.resolveProxyForConnection((conn as any).id);
-  assert.equal(resolved.level, "account");
-  assert.equal(resolved.source, "registry");
-  assert.equal(resolved.proxy.host, "account.local");
+  assert.equal((resolved as any).level, "account");
+  assert.equal((resolved as any).source, "registry");
+  assert.equal((resolved as any).proxy.host, "account.local");
 });
 
 test("legacy proxy config migration imports global/provider/key assignments", async () => {
@@ -197,9 +200,9 @@ test("legacy proxy config migration imports global/provider/key assignments", as
   assert.equal(result.migrated >= 3, true);
 
   const resolved = await settingsDb.resolveProxyForConnection((conn as any).id);
-  assert.equal(resolved.level, "account");
-  assert.equal(resolved.source, "registry");
-  assert.equal(resolved.proxy.host, "account-legacy.local");
+  assert.equal((resolved as any).level, "account");
+  assert.equal((resolved as any).source, "registry");
+  assert.equal((resolved as any).proxy.host, "account-legacy.local");
 });
 
 // #2456: resolveProxyForProvider (used by the OAuth token exchange + token refresh,
@@ -289,6 +292,75 @@ test("resolveProxyForProvider returns null when neither registry nor legacy conf
   await resetStorage();
   const resolved = await proxiesDb.resolveProxyForProvider("gemini");
   assert.equal(resolved, null);
+});
+
+test("resolveProxyForConnection uses apiKey proxy before account-level proxy", async () => {
+  await resetStorage();
+
+  const conn = await providersDb.createProviderConnection({
+    provider: "openai",
+    authType: "apikey",
+    name: "api-key-proxy",
+    apiKey: "sk-apikey-proxy",
+  });
+
+  const accountProxy = await proxiesDb.createProxy({
+    name: "Account Proxy",
+    type: "http",
+    host: "account.local",
+    port: 8081,
+  });
+  await proxiesDb.assignProxyToScope("account", (conn as any).id, accountProxy.id);
+
+  const key = await apiKeysDb.createApiKey("proxy-test-key", "machine-p1");
+
+  // Enable per-key proxy globally so the API key's proxy_id is honored
+  core
+    .getDbInstance()
+    .prepare(
+      "INSERT OR REPLACE INTO key_value (namespace, key, value) VALUES ('settings', 'perKeyProxyEnabled', 'true')"
+    )
+    .run();
+
+  const apiKeyProxy = await proxiesDb.createProxy({
+    name: "API Key Proxy",
+    type: "https",
+    host: "apikey.local",
+    port: 8443,
+  });
+  await apiKeysDb.updateApiKeyPermissions(key.id, { proxyId: apiKeyProxy.id });
+
+  const resolved = await settingsDb.resolveProxyForConnection((conn as any).id, key.id);
+  assert.ok(resolved);
+  assert.equal((resolved as any).level, "apiKey");
+  assert.equal((resolved as any).proxy.host, "apikey.local");
+  assert.equal((resolved as any).proxy.port, 8443);
+});
+
+test("resolveProxyForConnection falls through when apiKey has no proxy_id", async () => {
+  await resetStorage();
+
+  const conn = await providersDb.createProviderConnection({
+    provider: "openai",
+    authType: "apikey",
+    name: "fallthrough-test",
+    apiKey: "sk-fallthrough",
+  });
+
+  const accountProxy = await proxiesDb.createProxy({
+    name: "Account Proxy",
+    type: "http",
+    host: "account-fallthrough.local",
+    port: 8081,
+  });
+  await proxiesDb.assignProxyToScope("account", (conn as any).id, accountProxy.id);
+
+  const key = await apiKeysDb.createApiKey("fallthrough-key", "machine-ft");
+
+  const resolved = await settingsDb.resolveProxyForConnection((conn as any).id, key.id);
+  assert.ok(resolved);
+  assert.equal((resolved as any).level, "account");
+  assert.equal((resolved as any).proxy.host, "account-fallthrough.local");
 });
 
 test("createProxyRegistrySchema accepts type:vercel and source:vercel-relay (schema gap-06)", async () => {

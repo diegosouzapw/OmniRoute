@@ -12,6 +12,7 @@ import { HTTP_STATUS } from "@omniroute/open-sse/config/constants.ts";
 import { extractApiKey, isValidApiKey } from "@/sse/services/auth";
 import { listPlaygroundPresets, createPlaygroundPreset } from "@/lib/db/playgroundPresets";
 import { PlaygroundPresetCreateSchema } from "@/shared/schemas/playground";
+import { isRequireApiKeyEnabled } from "@/shared/utils/featureFlags";
 
 const CORS_HEADERS = {
   "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
@@ -19,18 +20,15 @@ const CORS_HEADERS = {
 };
 
 function errorResp(status: number, message: string): Response {
-  return new Response(
-    JSON.stringify(buildErrorBody(status, sanitizeErrorMessage(message))),
-    {
-      status,
-      headers: { "Content-Type": "application/json", ...CORS_HEADERS },
-    }
-  );
+  return new Response(JSON.stringify(buildErrorBody(status, sanitizeErrorMessage(message))), {
+    status,
+    headers: { "Content-Type": "application/json", ...CORS_HEADERS },
+  });
 }
 
 async function checkAuth(request: Request): Promise<Response | null> {
   const apiKeyRaw = extractApiKey(request);
-  if (process.env.REQUIRE_API_KEY === "true" && !apiKeyRaw) {
+  if (isRequireApiKeyEnabled() && !apiKeyRaw) {
     return errorResp(HTTP_STATUS.UNAUTHORIZED, "Authentication required");
   }
   if (apiKeyRaw && !(await isValidApiKey(apiKeyRaw))) {

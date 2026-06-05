@@ -5,6 +5,7 @@
 import { v4 as uuidv4 } from "uuid";
 import { getDbInstance } from "./core";
 import { backupDbFile } from "./backup";
+import { invalidateDbCache } from "./readCache";
 import { normalizeComboRecord } from "@/lib/combos/steps";
 
 type JsonRecord = Record<string, unknown>;
@@ -138,6 +139,7 @@ export async function createCombo(data: JsonRecord) {
     "INSERT INTO combos (id, name, data, sort_order, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?)"
   ).run(combo.id, combo.name, JSON.stringify(combo), sortOrder, now, now);
 
+  invalidateDbCache("combos");
   backupDbFile("pre-write");
   return combo;
 }
@@ -178,6 +180,7 @@ export async function updateCombo(id: string, data: JsonRecord) {
     "UPDATE combos SET name = ?, data = ?, sort_order = ?, updated_at = ? WHERE id = ?"
   ).run(nextName, JSON.stringify(normalizedMerged), sortOrder, normalizedMerged.updatedAt, id);
 
+  invalidateDbCache("combos");
   backupDbFile("pre-write");
   return normalizedMerged;
 }
@@ -249,6 +252,7 @@ export async function reorderCombos(comboIds: string[]) {
   });
 
   reorderTransaction();
+  invalidateDbCache("combos");
   backupDbFile("pre-write");
   return getCombos();
 }
@@ -257,6 +261,7 @@ export async function deleteCombo(id: string) {
   const db = getDbInstance();
   const result = db.prepare("DELETE FROM combos WHERE id = ?").run(id);
   if (result.changes === 0) return false;
+  invalidateDbCache("combos");
   backupDbFile("pre-write");
   return true;
 }
