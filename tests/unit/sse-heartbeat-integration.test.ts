@@ -71,9 +71,9 @@ test("integration: anthropic-ping heartbeat reaches downstream and does NOT trig
       break;
     }
   }
+  assert.equal(sawPing, true);
 
   await reader.cancel();
-  assert.ok(sawPing, "expected to receive at least one event: ping heartbeat within 200ms");
 });
 
 test("integration: openai-chunk heartbeat is valid JSON parseable by SDKs", async () => {
@@ -112,9 +112,9 @@ test("integration: openai-chunk heartbeat is valid JSON parseable by SDKs", asyn
       break;
     }
   }
+  assert.equal(sawValidChunk, true);
 
   await reader.cancel();
-  assert.ok(sawValidChunk, "expected to receive a valid openai-chunk heartbeat within 200ms");
 });
 
 test("integration: shapeForClientFormat + createSseHeartbeatTransform pipeline (claude path)", async () => {

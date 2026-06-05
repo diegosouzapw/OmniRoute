@@ -5,24 +5,24 @@ import os from "node:os";
 import path from "node:path";
 import { spawn } from "node:child_process";
 import { pathToFileURL } from "node:url";
+import {
+  assembleStandalone,
+  syncStandaloneNativeAssets as _syncNativeAssets,
+  syncStandaloneExtraModules as _syncExtraModules,
+} from "./assembleStandalone.mjs";
 
 /**
- * This repository contains a legacy `app/` snapshot (packaging/runtime artifacts)
- * alongside the active Next.js source in `src/app/`. Next.js route discovery scans
- * both and fails the build on legacy files. We temporarily move the legacy folder
- * out of the project root during `next build`, then restore it in all outcomes.
+ * Layer 1: `app/` has been renamed to `dist/` and the App-Router collision is gone.
+ * The only transient paths remaining are `.tmp/wine32` (Wine prefix used by some
+ * older build tools) and `_tasks` (planning workspace).
  */
 
 const projectRoot = process.cwd();
+const distDir = path.resolve(process.env.NEXT_DIST_DIR || ".build/next");
 const backupRoot = path.join(os.tmpdir(), `omniroute-build-isolated-${process.pid}-${Date.now()}`);
 
 export function getTransientBuildPaths(rootDir = projectRoot, env = process.env) {
   const paths = [
-    {
-      label: "legacy app snapshot",
-      sourcePath: path.join(rootDir, "app"),
-      backupPath: path.join(backupRoot, "app"),
-    },
     {
       label: "local Wine prefix",
       sourcePath: path.join(rootDir, ".tmp", "wine32"),
@@ -114,7 +114,10 @@ export function resolveNextBuildEnv(baseEnv = process.env) {
 }
 
 async function resetStandaloneOutput(rootDir = projectRoot, fsImpl = fs) {
-  const standaloneRoot = path.join(rootDir, ".next", "standalone");
+  // Use the module-level distDir so NEXT_DIST_DIR is respected
+  const resolvedDistDir =
+    rootDir === projectRoot ? distDir : path.join(rootDir, process.env.NEXT_DIST_DIR || ".build/next");
+  const standaloneRoot = path.join(resolvedDistDir, "standalone");
   if (!(await exists(standaloneRoot))) return;
 
   const staleStandaloneBackup = path.join(backupRoot, "standalone-stale");
@@ -124,7 +127,9 @@ async function resetStandaloneOutput(rootDir = projectRoot, fsImpl = fs) {
 }
 
 export async function pruneStandaloneArtifacts(rootDir = projectRoot, fsImpl = fs) {
-  const standaloneRoot = path.join(rootDir, ".next", "standalone");
+  const resolvedDistDirForPrune =
+    rootDir === projectRoot ? distDir : path.join(rootDir, process.env.NEXT_DIST_DIR || ".build/next");
+  const standaloneRoot = path.join(resolvedDistDirForPrune, "standalone");
   const pruneTargets = [path.join(standaloneRoot, "_tasks")];
 
   for (const targetPath of pruneTargets) {
@@ -141,34 +146,15 @@ export async function syncStandaloneNativeAssets(
   fsImpl = fs,
   log = console
 ) {
-  const nativeAssetDirs = [
-    {
-      label: "wreq-js native runtime",
-      sourcePath: path.join(rootDir, "node_modules", "wreq-js", "rust"),
-      destinationPath: path.join(rootDir, ".next", "standalone", "node_modules", "wreq-js", "rust"),
-    },
-  ];
+  return _syncNativeAssets(rootDir, fsImpl, log);
+}
 
-  let changed = false;
-
-  for (const entry of nativeAssetDirs) {
-    if (!(await exists(entry.sourcePath))) continue;
-
-    await fsImpl.mkdir(path.dirname(entry.destinationPath), { recursive: true });
-    await fsImpl.cp(entry.sourcePath, entry.destinationPath, {
-      recursive: true,
-      force: true,
-    });
-    log.log(
-      `[build-next-isolated] Copied native standalone asset: ${path.relative(
-        rootDir,
-        entry.destinationPath
-      )}`
-    );
-    changed = true;
-  }
-
-  return changed;
+export async function syncStandaloneExtraModules(
+  rootDir = projectRoot,
+  fsImpl = fs,
+  log = console
+) {
+  return _syncExtraModules(rootDir, fsImpl, log);
 }
 
 export async function main() {
@@ -184,34 +170,13 @@ export async function main() {
 
     await resetStandaloneOutput(projectRoot);
 
-    console.log("[build-next-isolated] Generating docs index...");
-    try {
-      const { execSync } = await import("node:child_process");
-      execSync("node scripts/docs/generate-docs-index.mjs", { cwd: projectRoot, stdio: "inherit" });
-    } catch (docGenErr) {
-      console.warn(
-        "[build-next-isolated] Docs index generation failed (non-fatal):",
-        docGenErr?.message
-      );
-    }
-
     const result = await runNextBuild();
-    if (result.code === 0 && (await exists(path.join(projectRoot, ".next", "standalone")))) {
-      console.log("[build-next-isolated] Copying static assets for standalone server...");
-      try {
-        await fs.cp(
-          path.join(projectRoot, ".next", "static"),
-          path.join(projectRoot, ".next", "standalone", ".next", "static"),
-          { recursive: true }
-        );
-      } catch (copyErr) {
-        console.warn("[build-next-isolated] Non-fatal error copying static assets:", copyErr);
-      }
-
+    const standaloneDir = path.join(distDir, "standalone");
+    if (result.code === 0 && (await exists(standaloneDir))) {
       try {
         await fs.cp(
           path.join(projectRoot, "docs"),
-          path.join(projectRoot, ".next", "standalone", "docs"),
+          path.join(standaloneDir, "docs"),
           { recursive: true }
         );
         console.log("[build-next-isolated] Copied docs/ to standalone output");
@@ -229,11 +194,17 @@ export async function main() {
       }
 
       try {
-        await syncStandaloneNativeAssets(projectRoot);
-      } catch (nativeAssetErr) {
+        console.log("[build-next-isolated] Assembling standalone bundle (static + public + natives + extras)...");
+        assembleStandalone({
+          distDir,
+          outDir: standaloneDir,
+          projectRoot,
+          copyNatives: true,
+        });
+      } catch (assembleErr) {
         console.warn(
-          "[build-next-isolated] Non-fatal error copying native standalone assets:",
-          nativeAssetErr
+          "[build-next-isolated] Non-fatal error assembling standalone:",
+          assembleErr
         );
       }
     }

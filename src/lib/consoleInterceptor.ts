@@ -87,6 +87,10 @@ function writeEntry(level: string, args: unknown[]) {
   }
 }
 
+function shouldIgnoreConsoleWriteError(error: unknown): boolean {
+  return error instanceof Error && (error as NodeJS.ErrnoException).code === "EPIPE";
+}
+
 /**
  * Initialize the console interceptor.
  * Patches console.log, console.info, console.warn, console.error, console.debug
@@ -121,10 +125,12 @@ export function initConsoleInterceptor(): void {
     if (!original) continue;
 
     (console as unknown as Record<string, unknown>)[method] = (...args: unknown[]) => {
-      // Call original console method
-      original(...args);
-      // Also write to file
       writeEntry(level, args);
+      try {
+        original(...args);
+      } catch (error) {
+        if (!shouldIgnoreConsoleWriteError(error)) throw error;
+      }
     };
   }
 }

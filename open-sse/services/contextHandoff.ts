@@ -1,5 +1,6 @@
 import {
   cleanupExpiredHandoffs,
+  getHandoff,
   hasActiveHandoff,
   type HandoffPayload,
   upsertHandoff,
@@ -37,7 +38,7 @@ Generate a JSON object with this exact structure:
 
 Important: Return ONLY the JSON object, no markdown, no explanation.`;
 
-type MessageLike = {
+export type MessageLike = {
   role?: string;
   content?: unknown;
 };
@@ -49,6 +50,113 @@ export interface ContextRelayConfig {
   maxMessagesForSummary?: number;
 }
 
+export interface UniversalHandoffConfig {
+  /** Enable universal context handoff for any model/provider switch */
+  enabled: boolean;
+  /** When to generate handoff: always = every turn, on-switch = only when model changes, on-error = only after error fallback */
+  trigger: "always" | "on-switch" | "on-error";
+  /** Providers allowed to generate handoffs. Empty array = all providers */
+  providerAllowlist: string[];
+  /** Max messages to include in summary generation */
+  maxMessagesForSummary: number;
+  /** Model to use for summary generation (e.g., 'gpt-4o-mini'). Empty = use same model as request */
+  handoffModel: string;
+  /** Handoff TTL in minutes */
+  ttlMinutes: number;
+  /** Preserve existing system prompt when injecting handoff */
+  preserveSystemPrompt: boolean;
+}
+
+export const DEFAULT_UNIVERSAL_HANDOFF_CONFIG: UniversalHandoffConfig = {
+  enabled: true,
+  trigger: "on-switch",
+  providerAllowlist: [],
+  maxMessagesForSummary: 30,
+  handoffModel: "",
+  ttlMinutes: 300,
+  preserveSystemPrompt: true,
+};
+
+export const SKIP_UNIVERSAL_HANDOFF_FLAG = "_omnirouteSkipUniversalHandoff";
+
+export function resolveUniversalHandoffConfig(
+  comboConfig: Record<string, unknown> | null | undefined,
+  globalConfig: Record<string, unknown> | null | undefined
+): UniversalHandoffConfig {
+  const rawCombo = comboConfig ?? {};
+  const rawGlobal = globalConfig ?? {};
+
+  const getBool = (key: keyof UniversalHandoffConfig, fallback: boolean): boolean => {
+    if (typeof rawCombo[key] === "boolean") return rawCombo[key] as boolean;
+    if (typeof rawGlobal[key] === "boolean") return rawGlobal[key] as boolean;
+    return fallback;
+  };
+
+  const getString = (key: keyof UniversalHandoffConfig, fallback: string): string => {
+    if (typeof rawCombo[key] === "string") {
+      const v = (rawCombo[key] as string).trim();
+      if (v.length > 0) return v;
+    }
+    if (typeof rawGlobal[key] === "string") {
+      const v = (rawGlobal[key] as string).trim();
+      if (v.length > 0) return v;
+    }
+    return fallback;
+  };
+
+  const getNumber = (
+    key: keyof UniversalHandoffConfig,
+    fallback: number,
+    min?: number,
+    max?: number
+  ): number => {
+    let candidate: number | undefined;
+    const raw = rawCombo[key] ?? rawGlobal[key];
+    if (typeof raw === "number" && Number.isFinite(raw)) {
+      candidate = raw;
+    } else if (typeof raw === "string") {
+      const parsed = Number(raw);
+      if (Number.isFinite(parsed)) candidate = parsed;
+    }
+    if (candidate === undefined) return fallback;
+    if (min !== undefined && candidate < min) return min;
+    if (max !== undefined && candidate > max) return max;
+    return candidate;
+  };
+
+  const getStringArray = (key: keyof UniversalHandoffConfig, fallback: string[]): string[] => {
+    const raw = rawCombo[key] ?? rawGlobal[key];
+    if (!Array.isArray(raw)) return fallback;
+    return raw
+      .map((item) => (typeof item === "string" ? item.trim().toLowerCase() : ""))
+      .filter(Boolean);
+  };
+
+  const triggerRaw = getString("trigger", DEFAULT_UNIVERSAL_HANDOFF_CONFIG.trigger);
+  const trigger: UniversalHandoffConfig["trigger"] =
+    triggerRaw === "always" || triggerRaw === "on-error" ? triggerRaw : "on-switch";
+
+  return {
+    enabled: getBool("enabled", DEFAULT_UNIVERSAL_HANDOFF_CONFIG.enabled),
+    trigger,
+    providerAllowlist: getStringArray(
+      "providerAllowlist",
+      DEFAULT_UNIVERSAL_HANDOFF_CONFIG.providerAllowlist
+    ),
+    maxMessagesForSummary: getNumber(
+      "maxMessagesForSummary",
+      DEFAULT_UNIVERSAL_HANDOFF_CONFIG.maxMessagesForSummary,
+      5,
+      100
+    ),
+    handoffModel: getString("handoffModel", DEFAULT_UNIVERSAL_HANDOFF_CONFIG.handoffModel),
+    ttlMinutes: getNumber("ttlMinutes", DEFAULT_UNIVERSAL_HANDOFF_CONFIG.ttlMinutes, 1, 10080),
+    preserveSystemPrompt: getBool(
+      "preserveSystemPrompt",
+      DEFAULT_UNIVERSAL_HANDOFF_CONFIG.preserveSystemPrompt
+    ),
+  };
+}
 export interface ParsedHandoffContent {
   summary: string;
   keyDecisions: string[];
@@ -122,16 +230,36 @@ function formatMessagesForPrompt(messages: MessageLike[]): string {
     .join("\n\n");
 }
 
-function selectMessagesForSummary(messages: MessageLike[], maxMessages: number): MessageLike[] {
-  const recentMessages = messages.slice(-maxMessages);
+export function selectMessagesForSummary(messages: MessageLike[], maxMessages: number): MessageLike[] {
+  const validMessages = messages.filter((m) => m && typeof m === "object");
+  const system = validMessages.filter(
+    (m) => typeof m.role === "string" && (m.role === "system" || m.role === "developer")
+  );
+  const nonSystem = validMessages.filter(
+    (m) => typeof m.role !== "string" || (m.role !== "system" && m.role !== "developer")
+  );
+
+  const recentMessages = [...system, ...nonSystem.slice(-maxMessages)];
   let working = [...recentMessages];
 
-  while (working.length > 1) {
+  while (working.length > system.length + 1) {
     const history = formatMessagesForPrompt(working);
     if (estimateTokens(history) <= MAX_HISTORY_TOKENS_FOR_SUMMARY) {
       return working;
     }
-    working = working.slice(1);
+    working = [...system, ...working.slice(system.length + 1)];
+  }
+
+  const fallbackHistory = formatMessagesForPrompt(working);
+  if (estimateTokens(fallbackHistory) > MAX_HISTORY_TOKENS_FOR_SUMMARY) {
+    // If there are system messages, return them so the caller can still produce context.
+    // If there are no system messages (system=[]), fall back to the single most-recent
+    // non-system message rather than returning [] which would silently drop the handoff.
+    if (system.length > 0) {
+      return system;
+    }
+    const lastNonSystem = nonSystem[nonSystem.length - 1];
+    return lastNonSystem ? [lastNonSystem] : [];
   }
 
   return working;
@@ -392,6 +520,240 @@ export function injectHandoffIntoBody(
       return rest;
     }
 
+    return nextBody;
+  }
+
+  const handoffMessage = {
+    role: "system",
+    content: handoffContent,
+  };
+  const messages = Array.isArray(body.messages) ? [...body.messages] : [];
+
+  return {
+    ...body,
+    messages: [handoffMessage, ...messages],
+  };
+}
+
+export function buildUniversalHandoffSystemMessage(
+  prevModel: string,
+  currModel: string,
+  reason: string,
+  payload?: HandoffPayload | null
+): string {
+  const escapedPrev = escapeXml(prevModel);
+  const escapedCurr = escapeXml(currModel);
+  const escapedReason = escapeXml(reason);
+
+  if (!payload || !payload.summary) {
+    return `<context_handoff>
+<transfer_reason>${escapedReason}</transfer_reason>
+<previous_model>${escapedPrev}</previous_model>
+<current_model>${escapedCurr}</current_model>
+<note>A continuación se resume toda la conversacion para continuar sin perder el hilo.</note>
+</context_handoff>`;
+  }
+
+  const decisions = payload.keyDecisions.map((d) => `  - ${escapeXml(d)}`).join("\n");
+  const entities = payload.activeEntities.map((e) => escapeXml(e)).join(", ");
+
+  return `<context_handoff>
+<transfer_reason>${escapedReason}</transfer_reason>
+<previous_model>${escapedPrev}</previous_model>
+<current_model>${escapedCurr}</current_model>
+<session_summary>${escapeXml(payload.summary)}</session_summary>
+<task_progress>${escapeXml(payload.taskProgress)}</task_progress>
+<key_decisions>
+${decisions}
+</key_decisions>
+<active_context>${entities}</active_context>
+<messages_processed>${payload.messageCount}</messages_processed>
+</context_handoff>
+
+Continues conversation transfered from ${escapedPrev} to ${escapedCurr}.
+The context above contains a concise summary of prior work.
+Continue seamlessly from where the session left off.`;
+}
+
+/**
+ * Evaluate whether a universal handoff is needed for a model/provider switch.
+ *,
+ * @returns "generate" - need to create a new handoff summary
+ *          "inject"  - handoff already exists, just inject it
+ *          "skip"    - no handoff needed
+ */
+export function shouldGenerateUniversalHandoff(options: {
+  sessionId: string | null;
+  comboName: string;
+  previousModel: string | null;
+  currentModel: string;
+  universalConfig: UniversalHandoffConfig;
+}): "generate" | "inject" | "skip" {
+  if (!options.universalConfig.enabled) return "skip";
+  if (!options.previousModel) return "skip";
+  if (options.previousModel === options.currentModel) return "skip";
+
+  // Check if handoff already exists for this session/combo
+  if (options.sessionId) {
+    const existing = getHandoff(options.sessionId, options.comboName);
+    if (existing && existing.summary) return "inject";
+  }
+
+  return "generate";
+}
+
+/**
+ * Generate a universal handoff summary for any model/provider switch.
+ */
+async function generateUniversalHandoffAsync(options: {
+  sessionId: string;
+  comboName: string;
+  messages: MessageLike[];
+  prevModel: string;
+  currModel: string;
+  handoffModel: string;
+  ttlMs: number;
+  maxMessages: number;
+  providerAllowlist: string[];
+  handleSingleModel: (body: Record<string, unknown>, modelStr: string) => Promise<Response>;
+}): Promise<void> {
+  const selectedMessages = selectMessagesForSummary(
+    Array.isArray(options.messages) ? options.messages : [],
+    options.maxMessages
+  );
+  const historyText = formatMessagesForPrompt(selectedMessages);
+  if (!historyText) return;
+
+  const summaryPrompt = HANDOFF_PROMPT_TEMPLATE.replace("{HISTORY}", historyText);
+  const summaryModel = options.handoffModel || options.currModel;
+  const summaryBody: Record<string, unknown> = {
+    model: summaryModel,
+    messages: [{ role: "user", content: summaryPrompt }],
+    stream: false,
+    max_tokens: DEFAULT_SUMMARY_RESPONSE_TOKENS,
+    temperature: 0.1,
+    _omnirouteSkipContextRelay: true,
+    _omnirouteInternalRequest: "universal-handoff",
+  };
+
+  const response = await options.handleSingleModel(summaryBody, summaryModel);
+  if (!response.ok) return;
+
+  let content = "";
+  try {
+    const json = (await response.clone().json()) as Record<string, unknown>;
+    content = getResponseText(json);
+  } catch {
+    try {
+      content = await response.clone().text();
+    } catch {
+      content = "";
+    }
+  }
+
+  const parsed = parseHandoffJSON(content);
+  if (!parsed) return;
+
+  upsertHandoff({
+    sessionId: options.sessionId,
+    comboName: options.comboName,
+    fromAccount: `universal:${options.prevModel}`,
+    summary: parsed.summary,
+    keyDecisions: parsed.keyDecisions,
+    taskProgress: parsed.taskProgress,
+    activeEntities: parsed.activeEntities,
+    messageCount: Array.isArray(options.messages) ? options.messages.length : 0,
+    model: summaryModel,
+    lastModel: options.prevModel,
+    warningThresholdPct: 0,
+    generatedAt: new Date().toISOString(),
+    expiresAt: new Date(Date.now() + options.ttlMs).toISOString(),
+  });
+}
+
+export function maybeGenerateUniversalHandoff(options: {
+  sessionId: string | null;
+  comboName: string;
+  messages: MessageLike[];
+  prevModel: string | null;
+  currModel: string;
+  universalConfig: UniversalHandoffConfig;
+  handleSingleModel: (body: Record<string, unknown>, modelStr: string) => Promise<Response>;
+}): void {
+  const decision = shouldGenerateUniversalHandoff({
+    sessionId: options.sessionId,
+    comboName: options.comboName,
+    previousModel: options.prevModel,
+    currentModel: options.currModel,
+    universalConfig: options.universalConfig,
+  });
+
+  if (decision !== "generate") return;
+  if (!options.sessionId) return;
+
+  const inflightKey = getInflightKey(options.sessionId, options.comboName);
+  if (inflightHandoffGenerations.has(inflightKey)) return;
+  inflightHandoffGenerations.add(inflightKey);
+
+  const ttlMs = (options.universalConfig.ttlMinutes || 300) * 60 * 1000;
+
+  setImmediate(() => {
+    generateUniversalHandoffAsync({
+      sessionId: options.sessionId as string,
+      comboName: options.comboName,
+      messages: options.messages,
+      prevModel: options.prevModel || "unknown",
+      currModel: options.currModel,
+      handoffModel: options.universalConfig.handoffModel || options.currModel,
+      ttlMs,
+      maxMessages: options.universalConfig.maxMessagesForSummary,
+      providerAllowlist: options.universalConfig.providerAllowlist,
+      handleSingleModel: options.handleSingleModel,
+    })
+      .catch((err) => {
+        if (process.env.NODE_ENV !== "test") {
+          console.warn("[universal-handoff] Generation failed:", err?.message || err);
+        }
+      })
+      .finally(() => {
+        inflightHandoffGenerations.delete(inflightKey);
+      });
+  });
+}
+
+export function injectUniversalHandoffBody(
+  body: Record<string, unknown>,
+  prevModel: string,
+  currModel: string,
+  reason: string,
+  existingPayload?: HandoffPayload | null
+): Record<string, unknown> {
+  const handoffContent = buildUniversalHandoffSystemMessage(
+    prevModel,
+    currModel,
+    reason,
+    existingPayload
+  );
+
+  const isResponsesRequest =
+    Object.prototype.hasOwnProperty.call(body, "input") ||
+    Object.prototype.hasOwnProperty.call(body, "instructions");
+
+  if (isResponsesRequest) {
+    const existingInstructions =
+      typeof body.instructions === "string" && body.instructions.trim().length > 0
+        ? body.instructions
+        : "";
+    const nextBody: Record<string, unknown> = {
+      ...body,
+      instructions: existingInstructions
+        ? `${handoffContent}\n\n${existingInstructions}`
+        : handoffContent,
+    };
+    if (Array.isArray(nextBody.messages) && nextBody.messages.length === 0) {
+      const { messages: _messages, ...rest } = nextBody;
+      return rest;
+    }
     return nextBody;
   }
 

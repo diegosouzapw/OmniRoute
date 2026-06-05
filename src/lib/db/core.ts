@@ -567,6 +567,11 @@ function ensureUsageHistoryColumns(db: SqliteDatabase) {
       console.log("[DB] Added usage_history.service_tier column");
     }
     db.exec("CREATE INDEX IF NOT EXISTS idx_uh_service_tier ON usage_history(service_tier)");
+    if (!columnNames.has("combo_strategy")) {
+      db.exec("ALTER TABLE usage_history ADD COLUMN combo_strategy TEXT DEFAULT 'direct'");
+      console.log("[DB] Added usage_history.combo_strategy column");
+    }
+    db.exec("CREATE INDEX IF NOT EXISTS idx_uh_combo_strategy ON usage_history(combo_strategy)");
   } catch (error: unknown) {
     const message = error instanceof Error ? error.message : String(error);
     console.warn("[DB] Failed to verify usage_history schema:", message);
@@ -1180,30 +1185,6 @@ export function getDbInstance(): SqliteDatabase {
   let failedProbePath: string | null = null;
   let failedProbeMessage: string | null = null;
 
-  if (fs.existsSync(sqliteFile)) {
-    preservedCriticalState = captureCriticalDbState(sqliteFile);
-    if (preservedCriticalState.captureSucceeded) {
-      if (preservedCriticalState.preservedTables.length > 0) {
-        console.log(
-          `[DB] Preserved critical DB state before potential recreation: ${summarizePreservedTables(
-            preservedCriticalState.preservedTables
-          )}`
-        );
-      }
-      if (preservedCriticalState.skippedTables.length > 0) {
-        console.warn(
-          `[DB] Critical DB tables skipped during preservation: ${summarizeSkippedTables(
-            preservedCriticalState.skippedTables
-          )}`
-        );
-      }
-    } else if (preservedCriticalState.captureError) {
-      console.warn(
-        `[DB] Could not preserve critical DB state before recreation: ${preservedCriticalState.captureError}`
-      );
-    }
-  }
-
   // Track whether the DB file is brand new (fresh DATA_DIR / Docker volume).
   // This is needed so the migration runner skips the mass-migration safety abort
   // that would otherwise trigger because heuristic seeding marks some migrations
@@ -1270,6 +1251,7 @@ export function getDbInstance(): SqliteDatabase {
       if (isNativeSqliteLoadError(e) || message.includes("could not be found")) {
         throw e;
       }
+  preservedCriticalState = captureCriticalDbState(sqliteFile);
 
       // SAFETY: Never delete the database — rename to backup so data can be recovered.
       // The old code would silently destroy all user data on any probe failure.
@@ -1305,6 +1287,7 @@ export function getDbInstance(): SqliteDatabase {
   db.pragma("journal_mode = WAL");
   db.pragma("busy_timeout = 5000");
   db.pragma("synchronous = NORMAL");
+  db.pragma("cache_size = -2048");
   db.exec(SCHEMA_SQL);
   ensureProviderConnectionsColumns(db);
   ensureUsageHistoryColumns(db);
@@ -1385,8 +1368,29 @@ export function getDbInstance(): SqliteDatabase {
   }
 
   startDbHealthCheckScheduler(db);
-  console.log(`[DB] SQLite database ready: ${sqliteFile}`);
+  // Log the resolved absolute DATA_DIR + SQLITE_FILE once at init so a
+  // multi-replica / Docker volume-topology mismatch (each replica opening a
+  // different on-disk DB → "phantom"/missing combos & connections) is
+  // diagnosable straight from the logs. (#3147)
+  console.log(
+    `[DB] SQLite database ready: ${sqliteFile} ` +
+      `(DATA_DIR=${path.resolve(DATA_DIR)}, SQLITE_FILE=${path.resolve(sqliteFile)})`
+  );
   return db;
+}
+
+/**
+ * Lightweight liveness probe — runs `SELECT 1` against the singleton DB.
+ * Returns `true` if the database is reachable, `false` on any error.
+ * Intended for use by the `/api/health/ping` route (Hard Rule #5: no raw SQL in routes).
+ */
+export function pingDb(): boolean {
+  try {
+    const result = getDbInstance().prepare("SELECT 1 AS ok").get() as { ok: number } | undefined;
+    return result?.ok === 1;
+  } catch {
+    return false;
+  }
 }
 
 export function closeDbInstance(options?: { checkpointMode?: CheckpointMode | null }): boolean {

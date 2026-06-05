@@ -100,7 +100,7 @@ Exported for completeness. Strips trailing `/`, deduplicates a trailing `/v1`, a
 - `OMNIROUTE_PROVIDER_KEY` — `"omniroute"` (the key used under `provider.*`).
 - `OMNIROUTE_PROVIDER_NPM` — `"@ai-sdk/openai-compatible"` (the runtime delegate).
 - `OPENCODE_CONFIG_SCHEMA` — `"https://opencode.ai/config.json"`.
-- `OMNIROUTE_DEFAULT_OPENCODE_MODELS` — readonly list of 4 default model ids.
+- `OMNIROUTE_DEFAULT_OPENCODE_MODELS` — readonly list of default model ids.
 
 ## Custom model catalog
 
@@ -110,10 +110,10 @@ import { createOmniRouteProvider } from "@omniroute/opencode-provider";
 createOmniRouteProvider({
   baseURL: "http://localhost:20128",
   apiKey: "sk_omniroute",
-  models: ["auto", "claude-opus-4-7", "gpt-5.5"],
+  models: ["auto", "claude-opus-4-8", "gpt-5.5"],
   modelLabels: {
     auto: "Auto-Combo (recommended)",
-    "claude-opus-4-7": "Claude Opus 4.7",
+    "claude-opus-4-8": "Claude Opus 4.8",
     "gpt-5.5": "GPT-5.5",
   },
 });

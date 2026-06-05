@@ -7,7 +7,14 @@ import { v4 as uuidv4 } from "uuid";
 import { getDbInstance, rowToCamel } from "./core";
 import { backupDbFile } from "./backup";
 import { registerDbStateResetter } from "./stateReset";
-import { setNoLog } from "../compliance";
+import { getKeyGroupsForApiKey, checkKeyModelAccess } from "./apiKeyGroups";
+import { setNoLog } from "../compliance/noLog";
+import { resolveModelAlias } from "@omniroute/open-sse/services/modelDeprecation.ts";
+import {
+  getSyncedAvailableModelsByConnection,
+  getCustomModels,
+  getModelIsHidden,
+} from "./models";
 
 // ──────────────── Performance Optimizations ────────────────
 
@@ -39,13 +46,16 @@ interface ApiKeyMetadata {
   name: string;
   machineId: string | null;
   allowedModels: string[];
+  allowedCombos: string[];
   allowedConnections: string[];
+  allowedQuotas: string[];
   noLog: boolean;
   autoResolve: boolean;
   isActive: boolean;
   accessSchedule: AccessSchedule | null;
   maxRequestsPerDay: number | null;
   maxRequestsPerMinute: number | null;
+  throttleDelayMs: number | null;
   rateLimits: RateLimitRule[] | null;
   // T08: Per-key max concurrent sticky sessions (0 = unlimited)
   maxSessions: number;
@@ -56,6 +66,10 @@ interface ApiKeyMetadata {
   scopes: string[];
   isBanned: boolean;
   keyHash: string | null;
+  proxyId: string | null;
+  allowedEndpoints: string[];
+  streamDefaultMode: "legacy" | "json";
+  disableNonPublicModels: boolean;
 }
 
 interface ApiKeyRow extends JsonRecord {
@@ -66,8 +80,12 @@ interface ApiKeyRow extends JsonRecord {
   machineId?: unknown;
   allowed_models?: unknown;
   allowedModels?: unknown;
+  allowed_combos?: unknown;
+  allowedCombos?: unknown;
   allowed_connections?: unknown;
   allowedConnections?: unknown;
+  allowed_quotas?: unknown;
+  allowedQuotas?: unknown;
   no_log?: unknown;
   noLog?: unknown;
   auto_resolve?: unknown;
@@ -78,6 +96,9 @@ interface ApiKeyRow extends JsonRecord {
   accessSchedule?: unknown;
   rate_limits?: unknown;
   rateLimits?: unknown;
+  proxy_id?: unknown;
+  stream_default_mode?: unknown;
+  streamDefaultMode?: unknown;
 }
 
 interface StatementLike<TRow = unknown> {
@@ -103,13 +124,22 @@ interface ApiKeysStatements {
 interface ApiKeyView extends JsonRecord {
   id?: string;
   allowedModels: string[];
+  allowedCombos: string[];
   allowedConnections: string[];
+  allowedQuotas: string[];
   noLog: boolean;
   autoResolve: boolean;
   isActive: boolean;
   accessSchedule: AccessSchedule | null;
+  throttleDelayMs?: number | null;
   rateLimits: RateLimitRule[] | null;
   scopes: string[];
+  proxyId?: string | null;
+  isBanned?: boolean;
+  expiresAt?: string | null;
+  allowedEndpoints: string[];
+  streamDefaultMode: "legacy" | "json";
+  disableNonPublicModels?: boolean;
 }
 
 // LRU cache for API key validation (valid keys only)
@@ -125,6 +155,7 @@ const MAX_CACHE_SIZE = 1000;
 
 const API_KEY_COLUMN_FALLBACKS = [
   { name: "allowed_models", definition: "allowed_models TEXT" },
+  { name: "allowed_combos", definition: "allowed_combos TEXT" },
   { name: "no_log", definition: "no_log INTEGER NOT NULL DEFAULT 0" },
   { name: "allowed_connections", definition: "allowed_connections TEXT" },
   { name: "auto_resolve", definition: "auto_resolve INTEGER NOT NULL DEFAULT 0" },
@@ -132,6 +163,7 @@ const API_KEY_COLUMN_FALLBACKS = [
   { name: "access_schedule", definition: "access_schedule TEXT" },
   { name: "max_requests_per_day", definition: "max_requests_per_day INTEGER" },
   { name: "max_requests_per_minute", definition: "max_requests_per_minute INTEGER" },
+  { name: "throttle_delay_ms", definition: "throttle_delay_ms INTEGER" },
   { name: "max_sessions", definition: "max_sessions INTEGER NOT NULL DEFAULT 0" },
   { name: "revoked_at", definition: "revoked_at TEXT" },
   { name: "expires_at", definition: "expires_at TEXT" },
@@ -142,6 +174,11 @@ const API_KEY_COLUMN_FALLBACKS = [
   { name: "rate_limits", definition: "rate_limits TEXT" },
   { name: "is_banned", definition: "is_banned INTEGER NOT NULL DEFAULT 0" },
   { name: "key_hash", definition: "key_hash TEXT" },
+  { name: "proxy_id", definition: "proxy_id TEXT" },
+  { name: "allowed_endpoints", definition: "allowed_endpoints TEXT" },
+  { name: "allowed_quotas", definition: "allowed_quotas TEXT NOT NULL DEFAULT '[]'" },
+  { name: "stream_default_mode", definition: "stream_default_mode TEXT NOT NULL DEFAULT 'legacy'" },
+  { name: "disable_non_public_models", definition: "disable_non_public_models INTEGER NOT NULL DEFAULT 0" },
 ] as const;
 
 // Cache for model permission checks
@@ -186,9 +223,9 @@ async function deleteRedisAuthCacheEntry(keyHash: unknown): Promise<void> {
   if (!isRedisAuthCacheEnabled() || typeof keyHash !== "string" || keyHash.trim() === "") return;
 
   try {
-    const { getRedisClient } = await import("@/shared/utils/rateLimiter");
+    const { getRedisClient, isRedisConfigured } = await import("@/shared/utils/rateLimiter");
+    if (!isRedisConfigured()) return;
     const redis = getRedisClient();
-    if (!redis) return; // #2357: Redis is optional; skip when disabled.
     await redis.del(`auth:api_key:${keyHash}`);
   } catch {
     // Redis is an optimization for auth caching; SQLite remains authoritative.
@@ -319,7 +356,9 @@ function ensureApiKeysColumns(db: ApiKeysDbLike) {
 
 /**
  * Initialize prepared statements (lazy initialization)
+ * Re-creates statements if the underlying DB connection changed (HMR, backup restore).
  */
+let _stmtDb: ApiKeysDbLike | null = null;
 function getPreparedStatements(db: ApiKeysDbLike): ApiKeysStatements {
   ensureApiKeysColumns(db);
 
@@ -329,15 +368,17 @@ function getPreparedStatements(db: ApiKeysDbLike): ApiKeysStatements {
     !_stmtValidateKey ||
     !_stmtGetKeyMetadata ||
     !_stmtInsertKey ||
-    !_stmtDeleteKey
+    !_stmtDeleteKey ||
+    _stmtDb !== db
   ) {
+    _stmtDb = db;
     _stmtGetAllKeys = db.prepare<ApiKeyRow>("SELECT * FROM api_keys ORDER BY created_at");
     _stmtGetKeyById = db.prepare<ApiKeyRow>("SELECT * FROM api_keys WHERE id = ?");
     _stmtValidateKey = db.prepare<JsonRecord>(
       "SELECT id, expires_at, revoked_at, is_active, is_banned FROM api_keys WHERE key = ? OR key_hash = ?"
     );
     _stmtGetKeyMetadata = db.prepare<ApiKeyRow>(
-      "SELECT id, name, machine_id, allowed_models, allowed_connections, no_log, auto_resolve, is_active, access_schedule, max_requests_per_day, max_requests_per_minute, max_sessions, revoked_at, expires_at, ip_allowlist, scopes, rate_limits, is_banned, key_hash FROM api_keys WHERE key = ? OR key_hash = ?"
+      "SELECT id, name, machine_id, allowed_models, allowed_combos, allowed_connections, allowed_quotas, no_log, auto_resolve, is_active, access_schedule, max_requests_per_day, max_requests_per_minute, throttle_delay_ms, max_sessions, revoked_at, expires_at, ip_allowlist, scopes, rate_limits, is_banned, key_hash, allowed_endpoints, stream_default_mode, disable_non_public_models, proxy_id FROM api_keys WHERE key = ? OR key_hash = ?"
     );
     _stmtInsertKey = db.prepare(
       "INSERT INTO api_keys (id, name, key, machine_id, allowed_models, no_log, created_at, key_prefix, key_hash, scopes) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
@@ -373,7 +414,9 @@ export async function getApiKeys() {
   return rows.map((row) => {
     const camelRow = toRecord(rowToCamel(row)) as ApiKeyView;
     camelRow.allowedModels = parseAllowedModels(camelRow.allowedModels);
+    camelRow.allowedCombos = parseAllowedCombos(camelRow.allowedCombos);
     camelRow.allowedConnections = parseAllowedConnections(camelRow.allowedConnections);
+    camelRow.allowedQuotas = parseAllowedQuotas((camelRow as JsonRecord).allowedQuotas);
     camelRow.noLog = parseNoLog(camelRow.noLog);
     camelRow.autoResolve = parseAutoResolve(camelRow.autoResolve);
     camelRow.isActive = parseIsActive(camelRow.isActive);
@@ -381,6 +424,9 @@ export async function getApiKeys() {
     camelRow.rateLimits = parseRateLimits(camelRow.rateLimits);
     camelRow.isBanned = parseIsBanned(camelRow.isBanned);
     camelRow.scopes = parseStringList((camelRow as JsonRecord).scopes);
+    camelRow.allowedEndpoints = parseStringList((camelRow as JsonRecord).allowedEndpoints);
+    camelRow.streamDefaultMode = parseStreamDefaultMode((camelRow as JsonRecord).streamDefaultMode);
+    camelRow.disableNonPublicModels = parseDisableNonPublicModels((camelRow as JsonRecord).disableNonPublicModels);
     if (typeof camelRow.id === "string" && camelRow.id.length > 0) {
       setNoLog(camelRow.id, camelRow.noLog === true);
     }
@@ -395,7 +441,9 @@ export async function getApiKeyById(id: string) {
   if (!row) return null;
   const camelRow = toRecord(rowToCamel(row)) as ApiKeyView;
   camelRow.allowedModels = parseAllowedModels(camelRow.allowedModels);
+  camelRow.allowedCombos = parseAllowedCombos(camelRow.allowedCombos);
   camelRow.allowedConnections = parseAllowedConnections(camelRow.allowedConnections);
+  camelRow.allowedQuotas = parseAllowedQuotas((camelRow as JsonRecord).allowedQuotas);
   camelRow.noLog = parseNoLog(camelRow.noLog);
   camelRow.autoResolve = parseAutoResolve(camelRow.autoResolve);
   camelRow.isActive = parseIsActive(camelRow.isActive);
@@ -403,6 +451,9 @@ export async function getApiKeyById(id: string) {
   camelRow.rateLimits = parseRateLimits(camelRow.rateLimits);
   camelRow.isBanned = parseIsBanned(camelRow.isBanned);
   camelRow.scopes = parseStringList((camelRow as JsonRecord).scopes);
+  camelRow.allowedEndpoints = parseStringList((camelRow as JsonRecord).allowedEndpoints);
+  camelRow.streamDefaultMode = parseStreamDefaultMode((camelRow as JsonRecord).streamDefaultMode);
+  camelRow.disableNonPublicModels = parseDisableNonPublicModels((camelRow as JsonRecord).disableNonPublicModels);
   if (typeof camelRow.id === "string" && camelRow.id.length > 0) {
     setNoLog(camelRow.id, camelRow.noLog === true);
   }
@@ -426,11 +477,19 @@ function parseAllowedModels(value: unknown): string[] {
   }
 }
 
+function parseAllowedCombos(value: unknown): string[] {
+  return parseStringList(value);
+}
+
 function parseNoLog(value: unknown): boolean {
   return value === true || value === 1 || value === "1";
 }
 
 function parseAutoResolve(value: unknown): boolean {
+  return value === true || value === 1 || value === "1";
+}
+
+function parseDisableNonPublicModels(value: unknown): boolean {
   return value === true || value === 1 || value === "1";
 }
 
@@ -504,6 +563,23 @@ function parseAllowedConnections(value: unknown): string[] {
   }
 }
 
+/**
+ * Helper function to safely parse allowed_quotas JSON
+ */
+function parseAllowedQuotas(value: unknown): string[] {
+  if (!value || typeof value !== "string" || value.trim() === "") {
+    return [];
+  }
+  try {
+    const parsed = JSON.parse(value);
+    return Array.isArray(parsed)
+      ? parsed.filter((entry): entry is string => typeof entry === "string")
+      : [];
+  } catch {
+    return [];
+  }
+}
+
 function parseStringList(value: unknown): string[] {
   if (!value || typeof value !== "string" || value.trim() === "") return [];
   try {
@@ -524,6 +600,10 @@ function parseNullableTimestamp(value: unknown): string | null {
 
 function parseIsBanned(value: unknown): boolean {
   return value === 1 || value === "1" || value === true;
+}
+
+function parseStreamDefaultMode(value: unknown): "legacy" | "json" {
+  return value === "json" ? "json" : "legacy";
 }
 
 async function hashKey(key: string): Promise<string> {
@@ -553,6 +633,7 @@ export async function createApiKey(name: string, machineId: string, scopes: stri
     key: result.key,
     machineId: machineId,
     allowedModels: [], // Empty array means all models allowed
+    allowedCombos: [], // Empty array means no explicit combo restriction
     allowedConnections: [], // Empty array means all connections allowed
     noLog: false,
     createdAt: now,
@@ -618,19 +699,26 @@ export async function updateApiKeyPermissions(
     | {
         name?: string;
         allowedModels?: string[];
+        allowedCombos?: string[];
         allowedConnections?: string[];
+        allowedQuotas?: string[];
         noLog?: boolean;
         autoResolve?: boolean;
         isActive?: boolean;
         accessSchedule?: AccessSchedule | null;
         maxRequestsPerDay?: number | null;
         maxRequestsPerMinute?: number | null;
+        throttleDelayMs?: number | null;
         rateLimits?: RateLimitRule[] | null;
         isBanned?: boolean;
         expiresAt?: string | null;
         // T08: max concurrent sessions for this key (0 = unlimited)
         maxSessions?: number | null;
         scopes?: string[] | null;
+        proxyId?: string | null;
+        allowedEndpoints?: string[] | null;
+        streamDefaultMode?: "legacy" | "json" | null;
+        disableNonPublicModels?: boolean;
       }
 ) {
   const db = getDbInstance() as ApiKeysDbLike;
@@ -642,35 +730,51 @@ export async function updateApiKeyPermissions(
       : {
           name: update.name,
           allowedModels: update.allowedModels,
+          allowedCombos: update.allowedCombos,
           allowedConnections: update.allowedConnections,
+          allowedQuotas: (update as { allowedQuotas?: string[] }).allowedQuotas,
           noLog: update.noLog,
           autoResolve: update.autoResolve,
           isActive: update.isActive,
           accessSchedule: update.accessSchedule,
           maxRequestsPerDay: update.maxRequestsPerDay,
           maxRequestsPerMinute: update.maxRequestsPerMinute,
+          throttleDelayMs: update.throttleDelayMs,
           rateLimits: update.rateLimits,
           isBanned: update.isBanned,
           expiresAt: update.expiresAt,
           maxSessions: (update as { maxSessions?: number | null }).maxSessions,
           scopes: (update as { scopes?: string[] | null }).scopes,
+          proxyId: (update as { proxyId?: string | null }).proxyId,
+          allowedEndpoints: (update as { allowedEndpoints?: string[] | null }).allowedEndpoints,
+          streamDefaultMode: (update as { streamDefaultMode?: "legacy" | "json" | null })
+            .streamDefaultMode,
+          disableNonPublicModels: (update as { disableNonPublicModels?: boolean })
+            .disableNonPublicModels,
         };
 
   if (
     normalized.name === undefined &&
     normalized.allowedModels === undefined &&
+    normalized.allowedCombos === undefined &&
     normalized.allowedConnections === undefined &&
+    (normalized as Record<string, unknown>).allowedQuotas === undefined &&
     normalized.noLog === undefined &&
     normalized.autoResolve === undefined &&
     normalized.isActive === undefined &&
     normalized.accessSchedule === undefined &&
     normalized.maxRequestsPerDay === undefined &&
     normalized.maxRequestsPerMinute === undefined &&
+    normalized.throttleDelayMs === undefined &&
     normalized.rateLimits === undefined &&
     normalized.isBanned === undefined &&
     normalized.expiresAt === undefined &&
     (normalized as Record<string, unknown>).maxSessions === undefined &&
-    (normalized as Record<string, unknown>).scopes === undefined
+    (normalized as Record<string, unknown>).scopes === undefined &&
+    (normalized as Record<string, unknown>).proxyId === undefined &&
+    (normalized as Record<string, unknown>).allowedEndpoints === undefined &&
+    (normalized as Record<string, unknown>).streamDefaultMode === undefined &&
+    normalized.disableNonPublicModels === undefined
   ) {
     return false;
   }
@@ -680,18 +784,24 @@ export async function updateApiKeyPermissions(
     id: string;
     name?: string;
     allowedModels?: string;
+    allowedCombos?: string;
     allowedConnections?: string;
+    allowedQuotas?: string;
     noLog?: number;
     autoResolve?: number;
     isActive?: number;
     accessSchedule?: string | null;
     maxRequestsPerDay?: number | null;
     maxRequestsPerMinute?: number | null;
+    throttleDelayMs?: number | null;
     rateLimits?: string | null;
     isBanned?: number;
     maxSessions?: number;
     expiresAt?: string | null;
     scopes?: string;
+    proxyId?: string | null;
+    streamDefaultMode?: "legacy" | "json";
+    disableNonPublicModels?: number;
   } = { id };
 
   if (normalized.name !== undefined) {
@@ -705,10 +815,26 @@ export async function updateApiKeyPermissions(
     params.allowedModels = JSON.stringify(normalized.allowedModels || []);
   }
 
+  if (normalized.allowedCombos !== undefined) {
+    // Empty array means no explicit combo restriction; legacy allowed_models rules still apply.
+    updates.push("allowed_combos = @allowedCombos");
+    params.allowedCombos = JSON.stringify(normalized.allowedCombos || []);
+  }
+
   if (normalized.allowedConnections !== undefined) {
     // Empty array means all connections are allowed
     updates.push("allowed_connections = @allowedConnections");
     params.allowedConnections = JSON.stringify(normalized.allowedConnections || []);
+  }
+
+  const allowedQuotasUpdate = (normalized as Record<string, unknown>).allowedQuotas;
+  if (allowedQuotasUpdate !== undefined) {
+    // Empty array means no quota-pool restriction; non-empty restricts to listed pools
+    updates.push("allowed_quotas = @allowedQuotas");
+    const nextQuotas: string[] = Array.isArray(allowedQuotasUpdate)
+      ? (allowedQuotasUpdate as unknown[]).filter((s): s is string => typeof s === "string")
+      : [];
+    params.allowedQuotas = JSON.stringify(nextQuotas);
   }
 
   if (normalized.noLog !== undefined) {
@@ -742,6 +868,11 @@ export async function updateApiKeyPermissions(
     params.maxRequestsPerMinute = normalized.maxRequestsPerMinute;
   }
 
+  if (normalized.throttleDelayMs !== undefined) {
+    updates.push("throttle_delay_ms = @throttleDelayMs");
+    params.throttleDelayMs = normalized.throttleDelayMs;
+  }
+
   if (normalized.rateLimits !== undefined) {
     updates.push("rate_limits = @rateLimits");
     params.rateLimits =
@@ -758,10 +889,37 @@ export async function updateApiKeyPermissions(
     params.expiresAt = normalized.expiresAt;
   }
 
+  if (normalized.disableNonPublicModels !== undefined) {
+    updates.push("disable_non_public_models = @disableNonPublicModels");
+    params.disableNonPublicModels = normalized.disableNonPublicModels ? 1 : 0;
+  }
+
   const maxSessionsUpdate = (normalized as Record<string, unknown>).maxSessions;
   if (maxSessionsUpdate !== undefined) {
     updates.push("max_sessions = @maxSessions");
     params.maxSessions = typeof maxSessionsUpdate === "number" ? Math.max(0, maxSessionsUpdate) : 0;
+  }
+
+  const proxyIdUpdate = (normalized as Record<string, unknown>).proxyId;
+  if (proxyIdUpdate !== undefined) {
+    updates.push("proxy_id = @proxyId");
+    params.proxyId =
+      typeof proxyIdUpdate === "string" && proxyIdUpdate.trim() !== "" ? proxyIdUpdate : null;
+  }
+
+  const allowedEndpointsUpdate = (normalized as Record<string, unknown>).allowedEndpoints;
+  if (allowedEndpointsUpdate !== undefined) {
+    updates.push("allowed_endpoints = @allowedEndpoints");
+    const nextEndpoints: string[] = Array.isArray(allowedEndpointsUpdate)
+      ? (allowedEndpointsUpdate as unknown[]).filter((s): s is string => typeof s === "string")
+      : [];
+    (params as Record<string, unknown>).allowedEndpoints = JSON.stringify(nextEndpoints);
+  }
+
+  const streamDefaultModeUpdate = (normalized as Record<string, unknown>).streamDefaultMode;
+  if (streamDefaultModeUpdate !== undefined) {
+    updates.push("stream_default_mode = @streamDefaultMode");
+    params.streamDefaultMode = parseStreamDefaultMode(streamDefaultModeUpdate);
   }
 
   const scopesUpdate = (normalized as Record<string, unknown>).scopes;
@@ -974,25 +1132,26 @@ export async function validateApiKey(key: string | null | undefined) {
   if (isRedisAuthCacheEnabled()) {
     // Try Redis cache for multi-instance consistency
     try {
-      const { getRedisClient } = await import("@/shared/utils/rateLimiter");
-      const redis = getRedisClient();
-      if (!redis) throw new Error("redis-disabled"); // #2357: optional
-      const redisKey = `auth:api_key:${hashedKey}`;
-      const redisData = await redis.get(redisKey);
-      if (redisData) {
-        const data = JSON.parse(redisData);
-        const isBanned = !!data.isBanned;
-        const isActive = !!data.isActive;
-        const revokedAt = data.revokedAt;
-        const expiresAt = data.expiresAt;
+      const { getRedisClient, isRedisConfigured } = await import("@/shared/utils/rateLimiter");
+      if (isRedisConfigured()) {
+        const redis = getRedisClient();
+        const redisKey = `auth:api_key:${hashedKey}`;
+        const redisData = await redis.get(redisKey);
+        if (redisData) {
+          const data = JSON.parse(redisData);
+          const isBanned = !!data.isBanned;
+          const isActive = !!data.isActive;
+          const revokedAt = data.revokedAt;
+          const expiresAt = data.expiresAt;
 
-        if (isBanned || !isActive) return false;
-        if (typeof revokedAt === "string" && revokedAt.trim() !== "") return false;
-        if (typeof expiresAt === "string" && expiresAt.trim() !== "") {
-          const expiresMs = Date.parse(expiresAt);
-          if (Number.isFinite(expiresMs) && expiresMs <= now) return false;
+          if (isBanned || !isActive) return false;
+          if (typeof revokedAt === "string" && revokedAt.trim() !== "") return false;
+          if (typeof expiresAt === "string" && expiresAt.trim() !== "") {
+            const expiresMs = Date.parse(expiresAt);
+            if (Number.isFinite(expiresMs) && expiresMs <= now) return false;
+          }
+          return true;
         }
-        return true;
       }
     } catch {
       // Redis lookup failures fall through to SQLite.
@@ -1026,24 +1185,23 @@ export async function validateApiKey(key: string | null | undefined) {
   if (isRedisAuthCacheEnabled()) {
     // Update Redis cache for fast validation
     try {
-      const { getRedisClient } = await import("@/shared/utils/rateLimiter");
-      const redis = getRedisClient();
-      // #2357: Redis is optional; throw so the catch below skips the write
-      // without affecting the function's `Promise<boolean>` return type.
-      if (!redis) throw new Error("redis-disabled");
-      const redisKey = `auth:api_key:${hashedKey}`;
-      await redis.set(
-        redisKey,
-        JSON.stringify({
-          id: row.id,
-          isBanned: parseIsBanned(row.is_banned),
-          isActive: parseIsActive(row.is_active),
-          expiresAt: row.expires_at,
-          revokedAt: row.revoked_at,
-        }),
-        "EX",
-        3600 // 1 hour cache
-      );
+      const { getRedisClient, isRedisConfigured } = await import("@/shared/utils/rateLimiter");
+      if (isRedisConfigured()) {
+        const redis = getRedisClient();
+        const redisKey = `auth:api_key:${hashedKey}`;
+        await redis.set(
+          redisKey,
+          JSON.stringify({
+            id: row.id,
+            isBanned: parseIsBanned(row.is_banned),
+            isActive: parseIsActive(row.is_active),
+            expiresAt: row.expires_at,
+            revokedAt: row.revoked_at,
+          }),
+          "EX",
+          3600 // 1 hour cache
+        );
+      }
     } catch {
       // Redis cache update failures do not block successful SQLite validation.
     }
@@ -1093,7 +1251,9 @@ export async function getApiKeyMetadata(
       name: "Environment Key",
       machineId: "server-env",
       allowedModels: [],
+      allowedCombos: [],
       allowedConnections: [],
+      allowedQuotas: [],
       noLog: false,
       autoResolve: true,
       isActive: true,
@@ -1101,6 +1261,7 @@ export async function getApiKeyMetadata(
       rateLimits: null,
       maxRequestsPerDay: null,
       maxRequestsPerMinute: null,
+      throttleDelayMs: null,
       maxSessions: 0,
       revokedAt: null,
       expiresAt: null,
@@ -1108,6 +1269,10 @@ export async function getApiKeyMetadata(
       isBanned: false,
       keyHash: null,
       scopes: ["manage"],
+      proxyId: null,
+      allowedEndpoints: [],
+      streamDefaultMode: "legacy",
+      disableNonPublicModels: false,
     };
   }
 
@@ -1132,6 +1297,7 @@ export async function getApiKeyMetadata(
 
   const rawMaxRPD = record.max_requests_per_day ?? record.maxRequestsPerDay;
   const rawMaxRPM = record.max_requests_per_minute ?? record.maxRequestsPerMinute;
+  const rawThrottleDelayMs = record.throttle_delay_ms ?? (record as JsonRecord).throttleDelayMs;
 
   const rawMaxSessions = record.max_sessions ?? record.maxSessions;
 
@@ -1140,8 +1306,12 @@ export async function getApiKeyMetadata(
     name: metadataName,
     machineId: metadataMachineId,
     allowedModels: parseAllowedModels(record.allowed_models ?? record.allowedModels),
+    allowedCombos: parseAllowedCombos(record.allowed_combos ?? record.allowedCombos),
     allowedConnections: parseAllowedConnections(
       record.allowed_connections ?? record.allowedConnections
+    ),
+    allowedQuotas: parseAllowedQuotas(
+      (record as JsonRecord).allowed_quotas ?? (record as JsonRecord).allowedQuotas
     ),
     noLog: parseNoLog(record.no_log ?? record.noLog),
     autoResolve: parseAutoResolve(record.auto_resolve ?? record.autoResolve),
@@ -1150,6 +1320,8 @@ export async function getApiKeyMetadata(
     rateLimits: parseRateLimits(record.rate_limits ?? (record as JsonRecord).rateLimits),
     maxRequestsPerDay: typeof rawMaxRPD === "number" && rawMaxRPD > 0 ? rawMaxRPD : null,
     maxRequestsPerMinute: typeof rawMaxRPM === "number" && rawMaxRPM > 0 ? rawMaxRPM : null,
+    throttleDelayMs:
+      typeof rawThrottleDelayMs === "number" && rawThrottleDelayMs > 0 ? rawThrottleDelayMs : null,
     // T08: max concurrent sessions; 0 = unlimited (default & backward-compatible)
     maxSessions: typeof rawMaxSessions === "number" && rawMaxSessions > 0 ? rawMaxSessions : 0,
     revokedAt: parseNullableTimestamp(record.revoked_at ?? (record as JsonRecord).revokedAt),
@@ -1158,6 +1330,19 @@ export async function getApiKeyMetadata(
     scopes: parseStringList((record as JsonRecord).scopes),
     isBanned: parseIsBanned(record.is_banned ?? (record as JsonRecord).isBanned),
     keyHash: (record.key_hash ?? (record as JsonRecord).keyHash) as string | null,
+    proxyId:
+      typeof record.proxy_id === "string" && record.proxy_id.trim() !== ""
+        ? record.proxy_id
+        : null,
+    allowedEndpoints: parseStringList(
+      (record as JsonRecord).allowed_endpoints ?? (record as JsonRecord).allowedEndpoints
+    ),
+    streamDefaultMode: parseStreamDefaultMode(
+      (record as JsonRecord).stream_default_mode ?? (record as JsonRecord).streamDefaultMode
+    ),
+    disableNonPublicModels: parseDisableNonPublicModels(
+      (record as JsonRecord).disable_non_public_models ?? (record as JsonRecord).disableNonPublicModels
+    ),
   };
 
   if (!metadata.id) {
@@ -1202,7 +1387,26 @@ export async function isModelAllowedForKey(
   // SECURITY: Key not found in database = deny access (invalid/non-existent key)
   if (!metadata) return false;
 
-  const { allowedModels } = metadata;
+  const { allowedModels, disableNonPublicModels } = metadata;
+
+  // Check disableNonPublicModels flag
+  if (disableNonPublicModels) {
+    const resolvedModelId = resolveModelAlias(modelId);
+    const effectiveModelId = resolvedModelId || modelId;
+    
+    const providerId = effectiveModelId.split("/")[0];
+    const shortModelId = effectiveModelId.split("/").slice(1).join("/");
+    const syncedModelsByConnection = await getSyncedAvailableModelsByConnection(providerId);
+    const customModels = await getCustomModels(providerId);
+    
+    // Combine synced and custom models
+    const allDiscoveredModels = Object.values(syncedModelsByConnection).flat().concat(customModels);
+    const discovered = allDiscoveredModels.some((m) => m.id === shortModelId);
+    if (!discovered) return false;
+    
+    const isPublic = !getModelIsHidden(providerId, shortModelId);
+    if (!isPublic) return false;
+  }
 
   // Empty array means all models allowed
   if (!allowedModels || allowedModels.length === 0) {
@@ -1235,6 +1439,13 @@ export async function isModelAllowedForKey(
     }
   }
 
+  // If key belongs to groups, also check group-level permissions
+  if (metadata.id) {
+    const groupAccess = checkKeyModelAccess(metadata.id, modelId || "");
+    if (!groupAccess.allowed) {
+      allowed = false;
+    }
+  }
   // Cache the result
   evictIfNeeded(_modelPermissionCache);
   _modelPermissionCache.set(cacheKey, { allowed, timestamp: now });

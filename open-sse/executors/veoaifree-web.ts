@@ -15,29 +15,96 @@ const USER_AGENT =
   "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36";
 const POLL_INTERVAL_MS = 20_000;
 const MAX_POLLS = 30; // 10 minutes max
+const FETCH_TIMEOUT_MS = 30_000;
 
 // ─── Helpers ────────────────────────────────────────────────────────────────
 
-async function fetchNonce(): Promise<string> {
-  const res = await fetch(BASE_URL, { headers: { "User-Agent": USER_AGENT } });
+function throwIfAborted(signal?: AbortSignal): void {
+  if (signal?.aborted) {
+    throw signal.reason instanceof Error ? signal.reason : new Error("Request aborted");
+  }
+}
+
+function withTimeout(signal?: AbortSignal): { signal: AbortSignal; cleanup: () => void } {
+  const controller = new AbortController();
+  const abort = () => controller.abort(signal?.reason || new Error("Request aborted"));
+  const timeout = setTimeout(
+    () => controller.abort(new Error("VeoAIFree request timed out")),
+    FETCH_TIMEOUT_MS
+  );
+
+  if (signal?.aborted) {
+    abort();
+  } else {
+    signal?.addEventListener("abort", abort, { once: true });
+  }
+
+  return {
+    signal: controller.signal,
+    cleanup: () => {
+      clearTimeout(timeout);
+      signal?.removeEventListener("abort", abort);
+    },
+  };
+}
+
+async function fetchWithTimeout(
+  url: string,
+  init: RequestInit = {},
+  signal?: AbortSignal
+): Promise<Response> {
+  throwIfAborted(signal);
+  const timeout = withTimeout(signal);
+  try {
+    return await fetch(url, { ...init, signal: timeout.signal });
+  } finally {
+    timeout.cleanup();
+  }
+}
+
+function waitForPoll(signal?: AbortSignal): Promise<void> {
+  throwIfAborted(signal);
+  let abort: (() => void) | undefined;
+  return new Promise((resolve, reject) => {
+    const timeout = setTimeout(resolve, POLL_INTERVAL_MS);
+    abort = () => {
+      clearTimeout(timeout);
+      reject(signal?.reason instanceof Error ? signal.reason : new Error("Request aborted"));
+    };
+    signal?.addEventListener("abort", abort, { once: true });
+  }).finally(() => {
+    if (abort) signal?.removeEventListener("abort", abort);
+  });
+}
+
+async function fetchNonce(signal?: AbortSignal): Promise<string> {
+  const res = await fetchWithTimeout(BASE_URL, { headers: { "User-Agent": USER_AGENT } }, signal);
   const html = await res.text();
   const match = html.match(/nonce":"([a-f0-9]+)"/);
   if (!match) throw new Error("Failed to extract CSRF nonce from veoaifree.com");
   return match[1];
 }
 
-async function postAjax(nonce: string, params: Record<string, string>): Promise<string> {
+async function postAjax(
+  nonce: string,
+  params: Record<string, string>,
+  signal?: AbortSignal
+): Promise<string> {
   const body = new URLSearchParams({ action: "veo_video_generator", nonce, ...params });
-  const res = await fetch(AJAX_URL, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/x-www-form-urlencoded",
-      "User-Agent": USER_AGENT,
-      Origin: BASE_URL,
-      Referer: `${BASE_URL}/`,
+  const res = await fetchWithTimeout(
+    AJAX_URL,
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/x-www-form-urlencoded",
+        "User-Agent": USER_AGENT,
+        Origin: BASE_URL,
+        Referer: `${BASE_URL}/`,
+      },
+      body: body.toString(),
     },
-    body: body.toString(),
-  });
+    signal
+  );
   return res.text();
 }
 
@@ -72,14 +139,23 @@ export function detectIntent(model?: string, prompt?: string): ToolIntent {
 
 // ─── Tool Handlers ──────────────────────────────────────────────────────────
 
-async function handleVideo(nonce: string, prompt: string, aspectRatio: string): Promise<Response> {
+async function handleVideo(
+  nonce: string,
+  prompt: string,
+  aspectRatio: string,
+  signal?: AbortSignal
+): Promise<Response> {
   // Generate
-  const genResult = await postAjax(nonce, {
-    prompt,
-    totalVariations: "1",
-    aspectRatio,
-    actionType: "full-video-generate",
-  });
+  const genResult = await postAjax(
+    nonce,
+    {
+      prompt,
+      totalVariations: "1",
+      aspectRatio,
+      actionType: "full-video-generate",
+    },
+    signal
+  );
   const sceneData = genResult.trim();
   if (!sceneData || sceneData === "0" || sceneData.toLowerCase().includes("error")) {
     return errResp("Video generation failed");
@@ -87,12 +163,17 @@ async function handleVideo(nonce: string, prompt: string, aspectRatio: string): 
 
   // Poll
   for (let i = 0; i < MAX_POLLS; i++) {
-    await new Promise((r) => setTimeout(r, POLL_INTERVAL_MS));
+    await waitForPoll(signal);
+    throwIfAborted(signal);
     try {
-      const pollResult = await postAjax(nonce, {
-        sceneData,
-        actionType: "final-video-results",
-      });
+      const pollResult = await postAjax(
+        nonce,
+        {
+          sceneData,
+          actionType: "final-video-results",
+        },
+        signal
+      );
       const trimmed = pollResult.trim();
       if (trimmed && trimmed !== "0" && !trimmed.toLowerCase().includes("error")) {
         const urls = trimmed
@@ -114,13 +195,22 @@ async function handleVideo(nonce: string, prompt: string, aspectRatio: string): 
   return errResp("Video generation timed out after 10 minutes", 504);
 }
 
-async function handleImage(nonce: string, prompt: string, aspectRatio: string): Promise<Response> {
-  const result = await postAjax(nonce, {
-    promptIMG: prompt,
-    totalVariationsIMG: "1",
-    aspectRatioIMG: aspectRatio,
-    actionType: "banan-image-generator",
-  });
+async function handleImage(
+  nonce: string,
+  prompt: string,
+  aspectRatio: string,
+  signal?: AbortSignal
+): Promise<Response> {
+  const result = await postAjax(
+    nonce,
+    {
+      promptIMG: prompt,
+      totalVariationsIMG: "1",
+      aspectRatioIMG: aspectRatio,
+      actionType: "banan-image-generator",
+    },
+    signal
+  );
   const trimmed = result.trim();
   if (!trimmed || trimmed === "0" || trimmed.toLowerCase().includes("error")) {
     return errResp("Image generation failed");
@@ -136,28 +226,37 @@ async function handleImage(nonce: string, prompt: string, aspectRatio: string): 
   return jsonResp({ object: "image.generation", data: images, status: "completed" });
 }
 
-async function handleTTS(prompt: string, voice?: string, lang?: string): Promise<Response> {
+async function handleTTS(
+  prompt: string,
+  voice?: string,
+  lang?: string,
+  signal?: AbortSignal
+): Promise<Response> {
   // Parse prompt for text and optional voice instructions
   const text = prompt;
   const selectedVoice = voice || "en-US-AvaNeural";
   const selectedLang = lang || "en-US";
 
-  const res = await fetch(TTS_URL, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      "User-Agent": USER_AGENT,
-      Origin: BASE_URL,
-      Referer: `${BASE_URL}/free-ai-text-to-speech/`,
+  const res = await fetchWithTimeout(
+    TTS_URL,
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "User-Agent": USER_AGENT,
+        Origin: BASE_URL,
+        Referer: `${BASE_URL}/free-ai-text-to-speech/`,
+      },
+      body: JSON.stringify({
+        text: text.slice(0, 10000),
+        voice: selectedVoice,
+        lang: selectedLang,
+        pitch: "0",
+        speed: "1.0",
+      }),
     },
-    body: JSON.stringify({
-      text: text.slice(0, 10000),
-      voice: selectedVoice,
-      lang: selectedLang,
-      pitch: "0",
-      speed: "1.0",
-    }),
-  });
+    signal
+  );
 
   if (!res.ok) {
     return errResp(`TTS failed (${res.status})`);
@@ -194,11 +293,19 @@ async function handleTTS(prompt: string, voice?: string, lang?: string): Promise
   return errResp("TTS unexpected response format");
 }
 
-async function handleEnhance(nonce: string, prompt: string): Promise<Response> {
-  const result = await postAjax(nonce, {
-    prompt,
-    actionType: "main-prompt-generation",
-  });
+async function handleEnhance(
+  nonce: string,
+  prompt: string,
+  signal?: AbortSignal
+): Promise<Response> {
+  const result = await postAjax(
+    nonce,
+    {
+      prompt,
+      actionType: "main-prompt-generation",
+    },
+    signal
+  );
   const trimmed = result.trim();
   if (!trimmed || trimmed === "0") {
     return errResp("Prompt enhancement failed");
@@ -245,14 +352,14 @@ export class VeoAIFreeWebExecutor extends BaseExecutor {
     if (intent === "tts") {
       const voiceMatch = systemText.match(/voice:\s*(\S+)/);
       const langMatch = systemText.match(/lang:\s*(\S+)/);
-      const resp = await handleTTS(prompt, voiceMatch?.[1], langMatch?.[1]);
+      const resp = await handleTTS(prompt, voiceMatch?.[1], langMatch?.[1], input.signal);
       return { response: resp, url: TTS_URL, headers: {}, transformedBody: { intent, model } };
     }
 
     // Get nonce for AJAX endpoints
     let nonce: string;
     try {
-      nonce = await fetchNonce();
+      nonce = await fetchNonce(input.signal);
     } catch (err) {
       const msg = err instanceof Error ? err.message : "Failed to get nonce";
       return { response: errResp(msg), url: BASE_URL, headers: {}, transformedBody: null };
@@ -265,13 +372,18 @@ export class VeoAIFreeWebExecutor extends BaseExecutor {
     let resp: Response;
     switch (intent) {
       case "image":
-        resp = await handleImage(nonce, prompt, aspectRatio.replace("VIDEO_", "IMAGE_"));
+        resp = await handleImage(
+          nonce,
+          prompt,
+          aspectRatio.replace("VIDEO_", "IMAGE_"),
+          input.signal
+        );
         break;
       case "enhance":
-        resp = await handleEnhance(nonce, prompt);
+        resp = await handleEnhance(nonce, prompt, input.signal);
         break;
       default:
-        resp = await handleVideo(nonce, prompt, aspectRatio);
+        resp = await handleVideo(nonce, prompt, aspectRatio, input.signal);
     }
 
     return { response: resp, url: AJAX_URL, headers: {}, transformedBody: { intent, model } };

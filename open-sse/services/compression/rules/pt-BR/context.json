@@ -4,35 +4,66 @@
   "rules": [
     {
       "name": "pt_context_setup",
-      "pattern": "\\b(?:segue o codigo|segue o código|abaixo esta o codigo|abaixo está o código|este e o codigo|este é o código)\\b\\s*[:.]?\\s*",
+      "pattern": "\\b(?:segue o codigo|segue o código|abaixo esta o codigo|abaixo está o código|este e o codigo|este é o código|aqui está o código)\\b\\s*[:.]?\\s*",
       "replacement": "Código:",
       "context": "user",
       "category": "context",
-      "minIntensity": "lite"
+      "minIntensity": "lite",
+      "description": "Code introduction framing → direct label"
     },
     {
       "name": "pt_intent",
-      "pattern": "\\b(?:o que eu quero fazer e|o que eu quero fazer é|meu objetivo e|meu objetivo é|a ideia e|a ideia é)\\b\\s*",
-      "replacement": "Objetivo:",
+      "pattern": "\\b(?:o que eu quero fazer e|o que eu quero fazer é|meu objetivo e|meu objetivo é|a ideia e|a ideia é|o que preciso é)\\b\\s*",
+      "replacement": "Objetivo: ",
       "context": "user",
       "category": "context",
-      "minIntensity": "lite"
+      "minIntensity": "lite",
+      "description": "Intent declaration → label"
     },
     {
       "name": "pt_question_directive",
-      "pattern": "\\b(?:voce pode explicar por que|você pode explicar por que|pode mostrar como|poderia mostrar como)\\b\\s*",
+      "pattern": "\\b(?:voce pode explicar por que|você pode explicar por que|pode mostrar como|poderia mostrar como|me explica como|me explica por que)\\b\\s*",
       "replacement": "Explique ",
       "context": "user",
       "category": "context",
-      "minIntensity": "lite"
+      "minIntensity": "lite",
+      "description": "Question framing → direct imperative"
     },
     {
       "name": "pt_background",
-      "pattern": "\\b(?:como voce sabe|como você sabe|como falamos antes|como mencionei antes)\\b[,.]?\\s*",
+      "pattern": "\\b(?:como voce sabe|como você sabe|como falamos antes|como mencionei antes|como já disse|conforme mencionado)\\b[,.]?\\s*",
       "replacement": "",
       "context": "all",
       "category": "context",
-      "minIntensity": "lite"
+      "minIntensity": "lite",
+      "description": "Background references — context is already in conversation"
+    },
+    {
+      "name": "pt_error_framing",
+      "pattern": "\\b(?:o erro que voce está vendo|o erro que você está vendo|esse erro acontece porque|esse erro ocorre porque|o motivo desse erro é)\\b\\s*",
+      "replacement": "Erro: ",
+      "context": "assistant",
+      "category": "context",
+      "minIntensity": "lite",
+      "description": "Error explanation padding → diagnostic label"
+    },
+    {
+      "name": "pt_solution_framing",
+      "pattern": "\\b(?:para resolver isso|para corrigir isso|a solução é|a correção é|o que voce precisa fazer é|o que você precisa fazer é)\\b[,:]?\\s*",
+      "replacement": "Resolver: ",
+      "context": "assistant",
+      "category": "context",
+      "minIntensity": "full",
+      "description": "Solution introduction → action label"
+    },
+    {
+      "name": "pt_step_framing",
+      "pattern": "\\b(?:primeiro voce precisa|primeiro você precisa|o primeiro passo é|em seguida voce deve|em seguida você deve)\\b\\s*",
+      "replacement": "1. ",
+      "context": "assistant",
+      "category": "context",
+      "minIntensity": "full",
+      "description": "Step-by-step padding → numbered list"
     }
   ]
 }

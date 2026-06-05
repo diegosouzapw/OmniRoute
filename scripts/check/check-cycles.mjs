@@ -4,7 +4,13 @@ import fs from "node:fs";
 import path from "node:path";
 
 const cwd = process.cwd();
-const defaultRoots = ["src/shared/components", "src/lib/db", "open-sse/translator"];
+const defaultRoots = [
+  "src/shared/components",
+  "src/lib/db",
+  "src/lib/compliance",
+  "open-sse/translator",
+  "open-sse/mcp-server",
+];
 const roots = process.argv.slice(2).length > 0 ? process.argv.slice(2) : defaultRoots;
 const sourceExtensions = [".ts", ".tsx", ".js", ".mjs", ".jsx", ".mts", ".cts"];
 

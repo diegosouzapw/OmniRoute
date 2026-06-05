@@ -7,6 +7,8 @@ import { authorizeWebSocketHandshake, extractWsTokenFromRequest } from "@/lib/ws
 import { getModelInfo } from "@/sse/services/model";
 import { getProviderCredentialsWithQuotaPreflight } from "@/sse/services/auth";
 import { checkAndRefreshToken } from "@/sse/services/tokenRefresh";
+import { resolveCodexWsModelInfo } from "./modelResolution";
+import { isFeatureFlagEnabled } from "@/shared/utils/featureFlags";
 
 const CODEX_RESPONSES_WS_URL = "wss://chatgpt.com/backend-api/codex/responses";
 const executor = new CodexExecutor();
@@ -108,6 +110,12 @@ async function authenticate(body: JsonRecord) {
 }
 
 async function prepare(body: JsonRecord) {
+  // Global kill-switch (feature flag OMNIROUTE_CODEX_WS_ENABLED, default ON).
+  // When disabled, the public Responses-over-WebSocket endpoint is unavailable.
+  if (!isFeatureFlagEnabled("OMNIROUTE_CODEX_WS_ENABLED")) {
+    return jsonError(503, "codex_ws_disabled", "Codex Responses WebSocket transport is disabled");
+  }
+
   const authResponse = await authenticate(body);
   if (!authResponse.ok) return authResponse;
 
@@ -124,7 +132,9 @@ async function prepare(body: JsonRecord) {
     typeof responseBody.model === "string" && responseBody.model.trim()
       ? responseBody.model.trim()
       : "gpt-5.5";
-  const modelInfo = await getModelInfo(requestedModel);
+  // codex-only bridge: re-resolve bare ChatGPT model ids (the Codex CLI rejects
+  // provider-prefixed ids client-side over WebSocket) as codex models.
+  const modelInfo = await resolveCodexWsModelInfo(requestedModel, getModelInfo);
   const provider = modelInfo.provider;
   const model = modelInfo.model || requestedModel;
 

@@ -15,6 +15,7 @@ import { getProviderNodes, getComboByName, getCombos, getDatabaseSettings } from
 import { handleComboChat } from "@omniroute/open-sse/services/combo.ts";
 
 type ValidatedEmbeddingBody = Record<string, unknown> & { model: string };
+type ProviderCredentialsResult = Awaited<ReturnType<typeof getProviderCredentials>>;
 
 export interface EmbeddingHandlerOptions {
   clientRawRequest?: {
@@ -37,7 +38,7 @@ export async function createEmbeddingResponse(
     try {
       const combo = await getComboByName(modelStr);
       if (combo) {
-        let allCombos: any[] = [];
+        let allCombos: Awaited<ReturnType<typeof getCombos>> = [];
         try {
           allCombos = await getCombos();
         } catch {}
@@ -49,7 +50,7 @@ export async function createEmbeddingResponse(
 
         return handleComboChat({
           body,
-          combo,
+          combo: combo as any,
           handleSingleModel: async (reqBody: any, targetModelStr: string, target?: any) => {
             const newBody = { ...reqBody, model: targetModelStr };
             return createEmbeddingResponse(newBody, {
@@ -60,7 +61,7 @@ export async function createEmbeddingResponse(
           isModelAvailable: undefined,
           log,
           settings,
-          allCombos,
+          allCombos: allCombos as any,
           relayOptions: undefined,
           signal: undefined,
         });
@@ -148,7 +149,7 @@ export async function createEmbeddingResponse(
     );
   }
 
-  let credentials: Awaited<ReturnType<typeof getProviderCredentials>> | null = null;
+  let credentials: ProviderCredentialsResult | null = null;
   if (providerConfig.authType !== "none") {
     credentials = await getProviderCredentials(credentialsProviderId);
     if (!credentials) {
@@ -157,7 +158,7 @@ export async function createEmbeddingResponse(
         `No credentials for embedding provider: ${provider}`
       );
     }
-    if (credentials.allRateLimited) {
+    if ("allRateLimited" in credentials && credentials.allRateLimited) {
       return unavailableResponse(
         HTTP_STATUS.RATE_LIMITED,
         `[${provider}] All accounts rate limited`,

@@ -34,7 +34,9 @@ const standalonePublicDir = join(cwd, testDistDir(), "standalone", "public");
 let appDirMoved = false;
 
 function testDistDir() {
-  return process.env.NEXT_DIST_DIR || ".next";
+  // Layer 1 moved the Next distDir default to .build/next; the Playwright
+  // `start` runner must resolve the standalone server under the same dir.
+  return process.env.NEXT_DIST_DIR || ".build/next";
 }
 
 function resolvePlaywrightDataDir({ cwd, env, pid = process.pid }) {

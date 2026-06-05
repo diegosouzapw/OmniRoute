@@ -44,17 +44,40 @@ export async function createChatPipelineHarness(prefix) {
   const originalRetryDelayMs = BaseExecutor.RETRY_CONFIG.delayMs;
 
   function clearSkillState() {
-    skillRegistry.registeredSkills?.clear?.();
-    skillRegistry.versionCache?.clear?.();
-    skillExecutor.handlers?.clear?.();
+    (skillRegistry as any).registeredSkills?.clear?.();
+    (skillRegistry as any).versionCache?.clear?.();
+    (skillExecutor as any).handlers?.clear?.();
   }
 
   function toPlainHeaders(headers) {
     if (!headers) return {};
-    if (headers instanceof Headers) return Object.fromEntries(headers.entries());
-    return Object.fromEntries(
-      Object.entries(headers).map(([key, value]) => [key, value == null ? "" : String(value)])
-    );
+    const plain = {};
+    if (typeof headers.forEach === "function") {
+      try {
+        headers.forEach((value, key) => {
+          plain[key.toLowerCase()] = value;
+        });
+        return plain;
+      } catch (e) {
+        // Fall through to other strategies if forEach fails due to cross-realm private slot errors
+      }
+    }
+    if (typeof headers.entries === "function") {
+      try {
+        for (const [key, value] of headers.entries()) {
+          plain[key.toLowerCase()] = value;
+        }
+        return plain;
+      } catch (e) {
+        // Fall through
+      }
+    }
+    try {
+      for (const [key, value] of Object.entries(headers)) {
+        plain[key.toLowerCase()] = value == null ? "" : String(value);
+      }
+    } catch (e) {}
+    return plain;
   }
 
   function buildRequest({
@@ -62,8 +85,13 @@ export async function createChatPipelineHarness(prefix) {
     body,
     authKey = null,
     headers = {},
+  }: {
+    url?: string;
+    body?: any;
+    authKey?: string | null;
+    headers?: Record<string, string>;
   } = {}) {
-    const requestHeaders = {
+    const requestHeaders: Record<string, string> = {
       "Content-Type": "application/json",
       ...headers,
     };
@@ -236,7 +264,7 @@ export async function createChatPipelineHarness(prefix) {
     fs.rmSync(testDataDir, { recursive: true, force: true });
   }
 
-  async function seedConnection(provider, overrides = {}) {
+  async function seedConnection(provider: string, overrides: any = {}) {
     return providersDb.createProviderConnection({
       provider,
       authType: "apikey",
@@ -255,9 +283,14 @@ export async function createChatPipelineHarness(prefix) {
     noLog = false,
     allowedConnections,
     allowedModels,
+  }: {
+    name?: string;
+    noLog?: boolean;
+    allowedConnections?: any;
+    allowedModels?: any;
   } = {}) {
     const key = await apiKeysDb.createApiKey(name, "machine-test");
-    const updates = {};
+    const updates: any = {};
     if (noLog) updates.noLog = true;
     if (allowedConnections) updates.allowedConnections = allowedConnections;
     if (allowedModels) updates.allowedModels = allowedModels;

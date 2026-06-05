@@ -22,6 +22,24 @@ async function withModelsFetch(mockFetch: typeof fetch, fn: () => Promise<void>)
   }
 }
 
+async function captureStdout(fn: () => Promise<number>) {
+  let output = "";
+  const originalWrite = process.stdout.write;
+  process.stdout.write = ((chunk: unknown, encoding?: unknown, callback?: unknown) => {
+    output += String(chunk);
+    const cb = typeof encoding === "function" ? encoding : callback;
+    if (typeof cb === "function") cb();
+    return true;
+  }) as typeof process.stdout.write;
+
+  try {
+    const result = await fn();
+    return { output, result };
+  } finally {
+    process.stdout.write = originalWrite;
+  }
+}
+
 test("models returns 1 when server is offline", async () => {
   await withModelsFetch(
     (async () => {
@@ -57,17 +75,12 @@ test("models --json returns 0 and prints JSON when server responds", async () =>
   await withModelsFetch(mockFetch, async () => {
     const { runModelsCommand } = await import("../../bin/cli/commands/models.mjs");
 
-    const chunks: string[] = [];
-    const originalWrite = process.stdout.write.bind(process.stdout);
-    process.stdout.write = (chunk: any) => {
-      chunks.push(String(chunk));
-      return true;
-    };
-    const result = await runModelsCommand(undefined, { json: true });
-    process.stdout.write = originalWrite;
+    const { output, result } = await captureStdout(() =>
+      runModelsCommand(undefined, { json: true })
+    );
 
     assert.equal(result, 0);
-    const parsed = JSON.parse(chunks.join(""));
+    const parsed = JSON.parse(output);
     assert.ok(Array.isArray(parsed));
     assert.equal(parsed.length, 2);
   });
@@ -89,17 +102,12 @@ test("models filters by provider argument", async () => {
   await withModelsFetch(mockFetch, async () => {
     const { runModelsCommand } = await import("../../bin/cli/commands/models.mjs");
 
-    const chunks: string[] = [];
-    const originalWrite = process.stdout.write.bind(process.stdout);
-    process.stdout.write = (chunk: any) => {
-      chunks.push(String(chunk));
-      return true;
-    };
-    const result = await runModelsCommand("openai", { json: true });
-    process.stdout.write = originalWrite;
+    const { output, result } = await captureStdout(() =>
+      runModelsCommand("openai", { json: true })
+    );
 
     assert.equal(result, 0);
-    const parsed = JSON.parse(chunks.join(""));
+    const parsed = JSON.parse(output);
     assert.equal(parsed.length, 1);
     assert.equal(parsed[0].provider, "openai");
   });

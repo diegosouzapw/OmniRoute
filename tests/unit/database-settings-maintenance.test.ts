@@ -11,6 +11,7 @@ process.env.DISABLE_SQLITE_AUTO_BACKUP = "true";
 const core = await import("../../src/lib/db/core.ts");
 const databaseSettings = await import("../../src/lib/db/databaseSettings.ts");
 const databaseSettingsRoute = await import("../../src/app/api/settings/database/route.ts");
+const settingsDb = await import("../../src/lib/db/settings.ts");
 const cleanup = await import("../../src/lib/db/cleanup.ts");
 const aggregateHistory = await import("../../src/lib/usage/aggregateHistory.ts");
 
@@ -101,6 +102,23 @@ test("database settings reader supports legacy flat keys and lets nested saves w
   assert.equal(databaseSettings.getUserDatabaseSettings().retention.callLogs, 7);
 });
 
+test("database log settings mirror the runtime pipeline toggle", async () => {
+  await settingsDb.updateSettings({ call_log_pipeline_enabled: false });
+
+  assert.equal(databaseSettings.getUserDatabaseSettings().logs.callLogPipelineEnabled, false);
+
+  databaseSettings.updateDatabaseSettings({
+    logs: {
+      ...databaseSettings.getUserDatabaseSettings().logs,
+      callLogPipelineEnabled: true,
+    },
+  });
+
+  const settings = await settingsDb.getSettings();
+  assert.equal(settings.call_log_pipeline_enabled, true);
+  assert.equal(databaseSettings.getUserDatabaseSettings().logs.callLogPipelineEnabled, true);
+});
+
 test("purgeDetailedLogs deletes request_detail_logs", async () => {
   const db = core.getDbInstance();
   db.prepare("INSERT INTO request_detail_logs (id, timestamp, duration_ms) VALUES (?, ?, ?)").run(
@@ -167,4 +185,37 @@ test("usage aggregation upserts replace recomputed totals instead of adding them
   assert.equal(hourly.total_input_tokens, 30);
   assert.equal(hourly.total_output_tokens, 10);
   assert.equal(hourly.total_cost, 0.75);
+});
+
+test("cleanupUsageHistory rolls up and deletes old rows using the same day boundary", async () => {
+  const db = core.getDbInstance();
+  const oldTimestamp = "2024-01-01T12:00:00.000Z";
+  const recentTimestamp = new Date().toISOString();
+
+  databaseSettings.updateDatabaseSettings({
+    retention: {
+      ...databaseSettings.getUserDatabaseSettings().retention,
+      usageHistory: 30,
+    },
+  });
+
+  const insertUsage = db.prepare(
+    `INSERT INTO usage_history (provider, model, timestamp, tokens_input, tokens_output, success, latency_ms)
+     VALUES (?, ?, ?, ?, ?, ?, ?)`
+  );
+  insertUsage.run("openai", "gpt-test", oldTimestamp, 100, 40, 1, 200);
+  insertUsage.run("openai", "gpt-test", recentTimestamp, 7, 3, 1, 100);
+
+  const result = await cleanup.cleanupUsageHistory();
+
+  assert.equal(result.errors, 0);
+  assert.equal(result.deleted, 1);
+
+  const remaining = db.prepare("SELECT COUNT(*) AS count FROM usage_history").get() as CountRow;
+  assert.equal(remaining.count, 1);
+
+  const daily = db.prepare("SELECT * FROM daily_usage_summary").get() as UsageSummaryRow;
+  assert.equal(daily.total_requests, 1);
+  assert.equal(daily.total_input_tokens, 100);
+  assert.equal(daily.total_output_tokens, 40);
 });

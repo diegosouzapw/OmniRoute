@@ -9,11 +9,22 @@ import { isIP } from "node:net";
 // In-memory IP lists
 let _config = {
   enabled: false,
-  mode: "blacklist", // "blacklist" | "whitelist" | "whitelist-priority"
+  mode: "blacklist",
   blacklist: new Set(),
   whitelist: new Set(),
-  tempBans: new Map(), // IP → { until: timestamp, reason: string }
+  tempBans: new Map(),
 };
+
+const _tempBanSweep = setInterval(() => {
+  const now = Date.now();
+  const bans = _config.tempBans as Map<string, { until: number; reason: string }>;
+  for (const [ip, entry] of bans) {
+    if (now >= entry.until) bans.delete(ip);
+  }
+}, 60_000);
+if (typeof _tempBanSweep === "object" && "unref" in _tempBanSweep) {
+  (_tempBanSweep as { unref?: () => void }).unref?.();
+}
 
 /**
  * Configure the IP filter

@@ -13,6 +13,10 @@ export type IntelligentRoutingWeights = {
   taskFit: number;
   stability: number;
   tierPriority: number;
+  tierAffinity: number;
+  specificityMatch: number;
+  contextAffinity: number;
+  resetWindowAffinity: number;
 };
 
 export type IntelligentRoutingConfig = {
@@ -22,6 +26,10 @@ export type IntelligentRoutingConfig = {
   budgetCap?: number;
   weights: IntelligentRoutingWeights;
   routerStrategy: string;
+  slaTargetP95Ms?: number;
+  slaMaxErrorRate?: number;
+  slaMaxCostPer1MTokens?: number;
+  slaHardConstraints: boolean;
 };
 
 export type IntelligentProviderScore = {
@@ -32,13 +40,17 @@ export type IntelligentProviderScore = {
 };
 
 export const DEFAULT_INTELLIGENT_WEIGHTS: IntelligentRoutingWeights = {
-  quota: 0.2,
-  health: 0.25,
-  costInv: 0.2,
-  latencyInv: 0.15,
-  taskFit: 0.1,
+  quota: 0.16,
+  health: 0.2,
+  costInv: 0.16,
+  latencyInv: 0.12,
+  taskFit: 0.08,
   stability: 0.05,
   tierPriority: 0.05,
+  tierAffinity: 0.05,
+  specificityMatch: 0.05,
+  contextAffinity: 0.08,
+  resetWindowAffinity: 0,
 };
 
 export const MODE_PACK_OPTIONS = [
@@ -52,6 +64,7 @@ export const ROUTER_STRATEGY_OPTIONS = [
   { id: "rules", label: "Rules (6-Factor Scoring)" },
   { id: "cost", label: "Cost Optimized" },
   { id: "latency", label: "Latency Optimized" },
+  { id: "sla-aware", label: "SLA-aware" },
   { id: "lkgp", label: "Last Known Good Provider" },
 ] as const;
 
@@ -63,6 +76,10 @@ export const FACTOR_LABELS: Record<keyof IntelligentRoutingWeights, string> = {
   taskFit: "Task Fit",
   stability: "Stability",
   tierPriority: "Tier",
+  tierAffinity: "Tier Affinity",
+  specificityMatch: "Specificity",
+  contextAffinity: "Context Affinity",
+  resetWindowAffinity: "Reset Window",
 };
 
 function isRecord(value: unknown): value is JsonRecord {
@@ -105,6 +122,11 @@ export function filterCombosByStrategyCategory<T extends { strategy?: unknown }>
 export function normalizeIntelligentRoutingConfig(config: unknown): IntelligentRoutingConfig {
   const configRecord = isRecord(config) ? config : {};
   const rawWeights = isRecord(configRecord.weights) ? configRecord.weights : {};
+  const rawSla = isRecord(configRecord.sla) ? configRecord.sla : {};
+  const slaTargetP95Ms = configRecord.slaTargetP95Ms ?? rawSla.targetP95Ms;
+  const slaMaxErrorRate = toFiniteNumber(configRecord.slaMaxErrorRate ?? rawSla.maxErrorRate);
+  const slaMaxCostPer1MTokens = configRecord.slaMaxCostPer1MTokens ?? rawSla.maxCostPer1MTokens;
+  const slaHardConstraints = configRecord.slaHardConstraints ?? rawSla.hardConstraints;
 
   return {
     candidatePool: Array.isArray(configRecord.candidatePool)
@@ -125,12 +147,26 @@ export function normalizeIntelligentRoutingConfig(config: unknown): IntelligentR
       stability: toFiniteNumber(rawWeights.stability) ?? DEFAULT_INTELLIGENT_WEIGHTS.stability,
       tierPriority:
         toFiniteNumber(rawWeights.tierPriority) ?? DEFAULT_INTELLIGENT_WEIGHTS.tierPriority,
+      tierAffinity:
+        toFiniteNumber(rawWeights.tierAffinity) ?? DEFAULT_INTELLIGENT_WEIGHTS.tierAffinity,
+      specificityMatch:
+        toFiniteNumber(rawWeights.specificityMatch) ?? DEFAULT_INTELLIGENT_WEIGHTS.specificityMatch,
+      contextAffinity:
+        toFiniteNumber(rawWeights.contextAffinity) ?? DEFAULT_INTELLIGENT_WEIGHTS.contextAffinity,
+      resetWindowAffinity:
+        toFiniteNumber(rawWeights.resetWindowAffinity) ??
+        DEFAULT_INTELLIGENT_WEIGHTS.resetWindowAffinity,
     },
     routerStrategy:
       typeof configRecord.routerStrategy === "string" &&
       configRecord.routerStrategy.trim().length > 0
         ? configRecord.routerStrategy
         : "rules",
+    slaTargetP95Ms: toPositiveNumber(slaTargetP95Ms),
+    slaMaxErrorRate:
+      slaMaxErrorRate !== null ? Math.min(1, Math.max(0, slaMaxErrorRate)) : undefined,
+    slaMaxCostPer1MTokens: toPositiveNumber(slaMaxCostPer1MTokens),
+    slaHardConstraints: slaHardConstraints === true,
   };
 }
 

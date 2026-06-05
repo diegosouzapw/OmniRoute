@@ -195,13 +195,34 @@ export async function createProviderConnection(data: JsonRecord) {
           )
           .get(data.provider, data.email) as JsonRecord | undefined) || null;
     }
-  } else if (data.authType === "apikey" && data.name) {
-    existing =
-      (db
-        .prepare(
-          "SELECT * FROM provider_connections WHERE provider = ? AND auth_type = 'apikey' AND name = ?"
-        )
-        .get(data.provider, data.name) as JsonRecord | undefined) || null;
+  } else if (data.authType === "apikey") {
+    // Name-based upsert (existing behavior): same provider + same name → update.
+    if (data.name) {
+      existing =
+        (db
+          .prepare(
+            "SELECT * FROM provider_connections WHERE provider = ? AND auth_type = 'apikey' AND name = ?"
+          )
+          .get(data.provider, data.name) as JsonRecord | undefined) || null;
+    }
+    // #3023 — dedup by API key value: re-adding the same key (under a different
+    // or blank name) must update the existing connection, not insert a duplicate
+    // row. Stored keys use non-deterministic AES-GCM, so ciphertext can't be
+    // compared directly — decrypt each apikey row for this provider and match the
+    // plaintext (trimmed) instead.
+    const newApiKey = typeof data.apiKey === "string" ? data.apiKey.trim() : "";
+    if (!existing && newApiKey) {
+      const apiKeyRows = db
+        .prepare("SELECT * FROM provider_connections WHERE provider = ? AND auth_type = 'apikey'")
+        .all(data.provider) as JsonRecord[];
+      for (const row of apiKeyRows) {
+        const decrypted = decryptConnectionFields(toRecord(rowToCamel(row)));
+        if (toStringOrNull(decrypted.apiKey)?.trim() === newApiKey) {
+          existing = row;
+          break;
+        }
+      }
+    }
   }
 
   if (existing) {
@@ -280,6 +301,8 @@ export async function createProviderConnection(data: JsonRecord) {
     "rateLimitProtection",
     "group",
     "maxConcurrent",
+    "proxyEnabled",
+    "perKeyProxyEnabled",
     "quotaWindowThresholds",
   ];
   for (const field of optionalFields) {
@@ -327,6 +350,7 @@ function _insertConnectionRow(db: DbLike, conn: JsonRecord) {
       last_tested, api_key, id_token, provider_specific_data,
       expires_in, display_name, global_priority, default_model,
       token_type, consecutive_use_count, rate_limit_protection, last_used_at, "group", max_concurrent,
+      proxy_enabled, per_key_proxy_enabled,
       quota_window_thresholds_json,
       created_at, updated_at
     ) VALUES (
@@ -338,6 +362,7 @@ function _insertConnectionRow(db: DbLike, conn: JsonRecord) {
       @lastTested, @apiKey, @idToken, @providerSpecificData,
       @expiresIn, @displayName, @globalPriority, @defaultModel,
       @tokenType, @consecutiveUseCount, @rateLimitProtection, @lastUsedAt, @group, @maxConcurrent,
+      @proxyEnabled, @perKeyProxyEnabled,
       @quotaWindowThresholdsJson,
       @createdAt, @updatedAt
     )
@@ -383,6 +408,8 @@ function _insertConnectionRow(db: DbLike, conn: JsonRecord) {
     lastUsedAt: conn.lastUsedAt || null,
     group: conn.group || null,
     maxConcurrent: conn.maxConcurrent ?? null,
+    proxyEnabled: conn.proxyEnabled ?? 1,
+    perKeyProxyEnabled: conn.perKeyProxyEnabled ?? 0,
     quotaWindowThresholdsJson: serializeQuotaWindowThresholds(conn.quotaWindowThresholds),
     createdAt: conn.createdAt,
     updatedAt: conn.updatedAt,
@@ -411,6 +438,8 @@ function _updateConnectionRow(db: DbLike, id: string, data: JsonRecord) {
       "group" = @group,
       max_concurrent = @maxConcurrent,
       quota_window_thresholds_json = @quotaWindowThresholdsJson,
+      proxy_enabled = @proxyEnabled,
+      per_key_proxy_enabled = @perKeyProxyEnabled,
       updated_at = @updatedAt
     WHERE id = @id
   `
@@ -456,6 +485,18 @@ function _updateConnectionRow(db: DbLike, id: string, data: JsonRecord) {
     group: data.group || null,
     maxConcurrent: data.maxConcurrent ?? null,
     quotaWindowThresholdsJson: serializeQuotaWindowThresholds(data.quotaWindowThresholds),
+    proxyEnabled:
+      typeof data.proxyEnabled === "boolean"
+        ? data.proxyEnabled
+          ? 1
+          : 0
+        : (data.proxyEnabled ?? 1),
+    perKeyProxyEnabled:
+      typeof data.perKeyProxyEnabled === "boolean"
+        ? data.perKeyProxyEnabled
+          ? 1
+          : 0
+        : (data.perKeyProxyEnabled ?? 0),
     updatedAt: now,
   });
 }

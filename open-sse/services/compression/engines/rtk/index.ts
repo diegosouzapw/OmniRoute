@@ -268,7 +268,7 @@ function processRtkCodeBlocksOnly(
 
 export function processRtkText(
   text: string,
-  options: { command?: string | null; config?: Partial<RtkConfig> } = {}
+  options: { command?: string | null; config?: Partial<RtkConfig>; skipFilters?: boolean } = {}
 ): RtkProcessResult {
   const config = mergeRtkConfig(options.config);
   const originalTokens = estimateCompressionTokens(text);
@@ -278,20 +278,22 @@ export function processRtkText(
   let result = text;
 
   const detection = detectCommandType(text, options.command);
-  const filter = matchRtkFilter(text, detection.command, {
-    customFiltersEnabled: config.customFiltersEnabled,
-    trustProjectFilters: config.trustProjectFilters,
-  });
-  if (filter && !config.disabledFilters.includes(filter.id)) {
-    if (config.enabledFilters.length === 0 || config.enabledFilters.includes(filter.id)) {
-      const filtered = applyLineFilter(result, {
-        ...filter,
-        maxLines: filter.maxLines || config.maxLinesPerResult,
-      });
-      result = filtered.text;
-      if (filtered.appliedRules.length > 0) {
-        techniquesUsed.push("rtk-filter");
-        rulesApplied.push(...filtered.appliedRules);
+  if (!options.skipFilters) {
+    const filter = matchRtkFilter(text, detection.command, {
+      customFiltersEnabled: config.customFiltersEnabled,
+      trustProjectFilters: config.trustProjectFilters,
+    });
+    if (filter && !config.disabledFilters.includes(filter.id)) {
+      if (config.enabledFilters.length === 0 || config.enabledFilters.includes(filter.id)) {
+        const filtered = applyLineFilter(result, {
+          ...filter,
+          maxLines: filter.maxLines || config.maxLinesPerResult,
+        });
+        result = filtered.text;
+        if (filtered.appliedRules.length > 0) {
+          techniquesUsed.push("rtk-filter");
+          rulesApplied.push(...filtered.appliedRules);
+        }
       }
     }
   }
@@ -314,13 +316,11 @@ export function processRtkText(
     }
   }
 
-  if (config.intensity !== "minimal") {
-    const deduped = deduplicateRepeatedLines(result, { threshold: config.deduplicateThreshold });
-    if (deduped.collapsed > 0) {
-      result = deduped.text;
-      techniquesUsed.push("rtk-dedup");
-      rulesApplied.push("rtk:dedup");
-    }
+  const deduped = deduplicateRepeatedLines(result, { threshold: config.deduplicateThreshold });
+  if (deduped.collapsed > 0) {
+    result = deduped.text;
+    techniquesUsed.push("rtk-dedup");
+    rulesApplied.push("rtk:dedup");
   }
 
   const truncated = smartTruncate(result, {
@@ -362,7 +362,8 @@ export function processRtkText(
 
 function processRtkContent(
   content: Message["content"],
-  config: RtkConfig
+  config: RtkConfig,
+  options?: { command?: string | null; skipFilters?: boolean }
 ): {
   content: Message["content"];
   compressed: boolean;
@@ -387,7 +388,11 @@ function processRtkContent(
     if (!content) {
       return { content, compressed: false, techniquesUsed, rulesApplied, rawOutputPointers };
     }
-    const processed = processRtkText(content, { config });
+    const processed = processRtkText(content, {
+      config,
+      command: options?.command,
+      skipFilters: options?.skipFilters,
+    });
     collect(processed);
     return {
       content: processed.compressed ? processed.text : content,
@@ -405,7 +410,11 @@ function processRtkContent(
   let compressed = false;
   const nextContent = content.map((part) => {
     if (!isTextBlock(part) || !part.text) return part;
-    const processed = processRtkText(part.text, { config });
+    const processed = processRtkText(part.text, {
+      config,
+      command: options?.command,
+      skipFilters: options?.skipFilters,
+    });
     collect(processed);
     if (!processed.compressed) return part;
     compressed = true;
@@ -426,7 +435,14 @@ export function applyRtkCompression(
   options: { config?: Partial<RtkConfig>; stepConfig?: Record<string, unknown> } = {}
 ): CompressionResult {
   const start = performance.now();
-  const config = mergeRtkConfig(options.config, options.stepConfig);
+  const stepConfig =
+    options.stepConfig && options.stepConfig.enabled === undefined
+      ? { enabled: true, ...options.stepConfig }
+      : options.stepConfig;
+  const explicitConfig = options.config && Object.keys(options.config).length > 0;
+  const baseConfig =
+    !explicitConfig && !stepConfig ? { enabled: true } : (options.config ?? {});
+  const config = mergeRtkConfig(baseConfig, stepConfig);
   if (!config.enabled) return { body, compressed: false, stats: null };
 
   const adapter = adaptBodyForCompression(body);
@@ -438,9 +454,64 @@ export function applyRtkCompression(
   const allTechniques: string[] = [];
   const allRules: string[] = [];
   const rawOutputPointers: RtkRawOutputPointer[] = [];
+
+  // Build tool_call_id → tool metadata lookup from assistant messages.
+  // This lets us distinguish bash tool results (which RTK filters are designed for)
+  // from non-shell tool results (read, grep, glob, etc.) that should skip filters.
+  const toolCallLookup = new Map<string, { toolName: string; command: string | null }>();
+  for (const msg of messages) {
+    if (msg.role !== "assistant") continue;
+    const toolCalls = msg.tool_calls;
+    if (!Array.isArray(toolCalls)) continue;
+    for (const tc of toolCalls as Array<Record<string, unknown>>) {
+      if (!tc || typeof tc !== "object") continue;
+      const id = typeof tc.id === "string" ? tc.id : null;
+      if (!id) continue;
+      const fn = tc.function as Record<string, unknown> | undefined;
+      if (!fn || typeof fn !== "object") continue;
+      const toolName = typeof fn.name === "string" ? fn.name : "";
+      let command: string | null = null;
+      if (typeof fn.arguments === "string") {
+        try {
+          const args = JSON.parse(fn.arguments);
+          command =
+            typeof args.command === "string"
+              ? args.command
+              : typeof args.cmd === "string"
+                ? args.cmd
+                : null;
+        } catch {
+          // non-JSON arguments
+        }
+      }
+      toolCallLookup.set(id, { toolName, command });
+    }
+  }
+
   const compressedMessages = messages.map((message) => {
     if (!shouldCompressMessage(message, config)) return message;
-    const processed = processRtkContent(message.content, config);
+
+    // Resolve tool metadata from the preceding assistant tool_calls entry.
+    let command: string | null = null;
+    let skipFilters = false;
+    if (message.role === "tool") {
+      const callId = typeof message.tool_call_id === "string" ? message.tool_call_id : null;
+      const meta = callId ? toolCallLookup.get(callId) : null;
+      if (meta) {
+        const name = meta.toolName.toLowerCase();
+        // Match the same terminal tool pattern used in grok-web.ts isTerminalTool().
+        // Only apply RTK filters to bash/shell tool results.
+        // Non-shell tools (read, glob, grep, edit, write, etc.) skip filter matching
+        // to prevent content-based false positives (e.g. a TS file matching build-typescript).
+        if (/\b(bash|shell|terminal|run_command|execute_command|exec|command)\b/.test(name)) {
+          command = meta.command;
+        } else {
+          skipFilters = true;
+        }
+      }
+    }
+
+    const processed = processRtkContent(message.content, config, { command, skipFilters });
     allTechniques.push(...processed.techniquesUsed);
     allRules.push(...processed.rulesApplied);
     rawOutputPointers.push(...processed.rawOutputPointers);

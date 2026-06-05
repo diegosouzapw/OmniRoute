@@ -18,16 +18,23 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 
-const { translateRequest } = await import("../../open-sse/translator/index.ts");
-const { FORMATS } = await import("../../open-sse/translator/formats.ts");
+const { openaiToGeminiRequest } = await import(
+  "../../open-sse/translator/request/openai-to-gemini.ts"
+);
 
 function translateToGemini(messages, tools) {
-  return translateRequest(FORMATS.OPENAI, FORMATS.GEMINI, "gemini-2.0-flash", {
-    model: "gemini-2.0-flash",
-    messages,
-    tools,
-    stream: false,
-  });
+  return openaiToGeminiRequest(
+    "gemini-2.0-flash",
+    {
+      model: "gemini-2.0-flash",
+      messages,
+      tools,
+      stream: false,
+    },
+    false,
+    null,
+    { signaturelessToolCallMode: "native" }
+  );
 }
 
 test("T43: functionCall parts do NOT get a fake thoughtSignature injected", () => {
@@ -74,7 +81,7 @@ test("T43: functionCall parts do NOT get a fake thoughtSignature injected", () =
 
   assert.ok(modelTurn, "Expected a model turn with functionCall parts");
 
-  const functionCallParts = modelTurn.parts.filter((part) => part.functionCall);
+  const functionCallParts = modelTurn.parts.filter((part: any) => part.functionCall) as any[];
   assert.equal(functionCallParts.length, 1, "Expected exactly 1 functionCall part");
   assert.equal(functionCallParts[0].functionCall.name, "get_weather");
   assert.deepEqual(functionCallParts[0].functionCall.args, { location: "Tokyo" });
@@ -121,7 +128,7 @@ test("T43: client-provided thoughtSignature is ignored in default enabled cache 
   );
   assert.ok(modelTurn, "Expected a model turn with functionCall parts");
 
-  const functionCallParts = modelTurn.parts.filter((p) => p.functionCall);
+  const functionCallParts = modelTurn.parts.filter((p: any) => p.functionCall) as any[];
   assert.equal(functionCallParts.length, 1, "Expected 1 functionCall part");
 
   // In enabled cache mode, client-provided signatures are NOT forwarded

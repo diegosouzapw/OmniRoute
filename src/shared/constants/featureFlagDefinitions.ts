@@ -21,7 +21,7 @@ export const FEATURE_FLAG_DEFINITIONS: FeatureFlagDefinition[] = [
     category: "security",
     defaultValue: "false",
     type: "boolean",
-    requiresRestart: true,
+    requiresRestart: false,
     warningLevel: "caution",
   },
   {
@@ -30,7 +30,7 @@ export const FEATURE_FLAG_DEFINITIONS: FeatureFlagDefinition[] = [
     description: "Enable input sanitization for all requests",
     descriptionI18nKey: "featureFlagInputSanitizerEnabledDescription",
     category: "security",
-    defaultValue: "false",
+    defaultValue: "true",
     type: "boolean",
     requiresRestart: false,
     warningLevel: "info",
@@ -70,12 +70,25 @@ export const FEATURE_FLAG_DEFINITIONS: FeatureFlagDefinition[] = [
     warningLevel: "info",
   },
   {
+    key: "PII_RESPONSE_SANITIZATION_MODE",
+    label: "PII Response Sanitization Mode",
+    description:
+      "Mode for PII response sanitization: redact (replace PII), warn (log only), block (reject), off (disable)",
+    descriptionI18nKey: "featureFlagPiiResponseSanitizationModeDescription",
+    category: "security",
+    defaultValue: "redact",
+    type: "enum",
+    enumValues: ["redact", "warn", "block", "off"],
+    requiresRestart: false,
+    warningLevel: "info",
+  },
+  {
     key: "OUTBOUND_SSRF_GUARD_ENABLED",
     label: "SSRF Guard",
     description: "Block outbound requests to private/internal IP ranges",
     descriptionI18nKey: "featureFlagOutboundSsrfGuardEnabledDescription",
     category: "security",
-    defaultValue: "false",
+    defaultValue: "true",
     type: "boolean",
     requiresRestart: false,
     warningLevel: "info",
@@ -174,14 +187,14 @@ export const FEATURE_FLAG_DEFINITIONS: FeatureFlagDefinition[] = [
     warningLevel: "info",
   },
 
-  // ──────────────── Runtime (5) ────────────────
+  // ──────────────── Runtime (7) ────────────────
   {
     key: "OMNIROUTE_MCP_ENFORCE_SCOPES",
     label: "MCP Enforce Scopes",
     description: "Enforce scope restrictions on MCP tool access",
     descriptionI18nKey: "featureFlagOmnirouteMcpEnforceScopesDescription",
     category: "runtime",
-    defaultValue: "false",
+    defaultValue: "true",
     type: "boolean",
     requiresRestart: false,
     warningLevel: "caution",
@@ -229,6 +242,30 @@ export const FEATURE_FLAG_DEFINITIONS: FeatureFlagDefinition[] = [
     type: "boolean",
     requiresRestart: false,
     warningLevel: "caution",
+  },
+  {
+    key: "OMNIROUTE_ENABLE_LIVE_WS",
+    label: "Live Dashboard WebSocket",
+    description:
+      "Start the real-time dashboard WebSocket server on import (port 20129 by default).",
+    descriptionI18nKey: "featureFlagOmnirouteEnableLiveWsDescription",
+    category: "runtime",
+    defaultValue: "true",
+    type: "boolean",
+    requiresRestart: true,
+    warningLevel: "info",
+  },
+  {
+    key: "OMNIROUTE_CODEX_WS_ENABLED",
+    label: "Codex Responses WebSocket",
+    description:
+      "Allow Codex to use the Responses-over-WebSocket transport (the codex CLI WS endpoint and codexTransport=websocket). When off, Codex falls back to HTTP Responses.",
+    descriptionI18nKey: "featureFlagOmnirouteCodexWsEnabledDescription",
+    category: "runtime",
+    defaultValue: "true",
+    type: "boolean",
+    requiresRestart: false,
+    warningLevel: "info",
   },
 
   // ──────────────── CLI (3) ────────────────

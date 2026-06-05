@@ -1,8 +1,11 @@
 name: Publish to npm
 
 on:
+  # 'released' (not 'published') so editing/re-publishing old releases does NOT
+  # re-trigger this workflow. Pairs with the semver guard below as defense in
+  # depth against accidental dist-tag clobbering by old releases.
   release:
-    types: [published]
+    types: [released]
   workflow_dispatch:
     inputs:
       version:
@@ -10,13 +13,15 @@ on:
         required: true
         type: string
       tag:
-        description: "npm dist-tag (latest / next)"
+        description: "npm dist-tag (auto / latest / next / historic)"
         required: false
-        default: "latest"
+        default: "auto"
         type: choice
         options:
+          - auto
           - latest
           - next
+          - historic
   workflow_call:
     inputs:
       version:
@@ -24,9 +29,9 @@ on:
         required: true
         type: string
       tag:
-        description: "npm dist-tag (latest / next)"
+        description: "npm dist-tag (auto / latest / next / historic)"
         required: false
-        default: "latest"
+        default: "auto"
         type: string
     secrets:
       NPM_TOKEN:
@@ -43,10 +48,13 @@ env:
 jobs:
   publish:
     runs-on: ubuntu-latest
-    environment: NPM_TOKEN
     steps:
       - name: Checkout
         uses: actions/checkout@v6
+        with:
+          # Need full tag history to compare against highest semver when
+          # deciding whether this release should claim dist-tag `latest`.
+          fetch-depth: 0
 
       - name: Setup Node.js
         uses: actions/setup-node@v6
@@ -57,77 +65,148 @@ jobs:
       - name: Install dependencies (skip scripts to avoid heavy build)
         run: npm install --ignore-scripts --no-audit --no-fund
 
-      - name: Resolve version and dist-tag
+      - name: Resolve version, dist-tag and skip flag
         id: resolve
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          REF_NAME: ${{ github.ref_name }}
+          INPUT_VERSION: ${{ inputs.version }}
+          INPUT_TAG: ${{ inputs.tag }}
         run: |
-          VERSION="${{ inputs.version }}"
-          TAG="${{ inputs.tag }}"
+          set -euo pipefail
 
-          if [ -z "$VERSION" ]; then
-            if [ "${{ github.event_name }}" = "release" ]; then
-              VERSION="${GITHUB_REF_NAME}"
-            fi
+          # 1) Resolve VERSION from the trigger (all inputs come via env).
+          VERSION="${INPUT_VERSION:-}"
+          if [ -z "$VERSION" ] && [ "$EVENT_NAME" = "release" ]; then
+            VERSION="$REF_NAME"
+          fi
+          VERSION="${VERSION#v}"
+          if ! printf '%s' "$VERSION" | grep -qE '^[0-9]+\.[0-9]+\.[0-9]+([.-][A-Za-z0-9.-]+)?$'; then
+            echo "Refusing to publish unsafe VERSION value: $VERSION" >&2
+            exit 1
           fi
 
-          # Strip v prefix if present
-          VERSION="${VERSION#v}"
-
-          # Default dist-tag logic
-          if [ -z "$TAG" ]; then
-            if [[ "$VERSION" == *-* ]]; then
+          # 2) Resolve dist-tag.
+          #    - explicit 'latest'/'next'/'historic' is honored
+          #    - 'auto' (or empty): pre-release identifiers → 'next';
+          #      stable versions → 'latest' only if VERSION is the highest
+          #      stable semver among `v*` tags (otherwise → 'historic').
+          REQUESTED_TAG="${INPUT_TAG:-auto}"
+          TAG="$REQUESTED_TAG"
+          if [ "$TAG" = "auto" ] || [ -z "$TAG" ]; then
+            if printf '%s' "$VERSION" | grep -qE -- '-(rc|alpha|beta|pre|next)'; then
               TAG="next"
             else
-              TAG="latest"
+              git fetch --tags --quiet || true
+              HIGHEST=$(git tag -l 'v[0-9]*' | sed 's/^v//' | grep -vE -- '-(rc|alpha|beta|pre|next)' | sort -V | tail -1 || echo "")
+              if [ -n "$HIGHEST" ] && [ "$VERSION" = "$HIGHEST" ]; then
+                TAG="latest"
+              else
+                echo "Version $VERSION is not the highest semver tag (highest=${HIGHEST:-<none>}). Using dist-tag 'historic' to avoid clobbering @latest."
+                TAG="historic"
+              fi
             fi
           fi
-          echo "version=$VERSION" >> $GITHUB_OUTPUT
-          echo "tag=$TAG" >> $GITHUB_OUTPUT
-          echo "📦 Publishing omniroute@$VERSION with tag=$TAG"
+
+          # 3) Skip-if-already-published. NOTE: do NOT pass `--silent` to
+          #    `npm view` — it suppresses stdout and breaks the grep, which
+          #    caused old releases (3.2.8) to be re-published and steal
+          #    dist-tag `latest`. See incident notes in CHANGELOG.
+          PUBLISHED="$(npm view "omniroute@${VERSION}" version 2>/dev/null || true)"
+          SKIP="false"
+          if [ "$PUBLISHED" = "$VERSION" ]; then
+            echo "⚠️ omniroute@${VERSION} is already on npm — skipping publish."
+            SKIP="true"
+          fi
+
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+          echo "tag=$TAG"          >> "$GITHUB_OUTPUT"
+          echo "skip=$SKIP"        >> "$GITHUB_OUTPUT"
+          echo "📦 Resolved omniroute@$VERSION dist-tag=$TAG skip=$SKIP"
 
       - name: Sync package.json version
+        if: steps.resolve.outputs.skip != 'true'
+        env:
+          VERSION: ${{ steps.resolve.outputs.version }}
         run: |
-          npm version "${{ steps.resolve.outputs.version }}" --no-git-tag-version --allow-same-version
+          npm version "$VERSION" --no-git-tag-version --allow-same-version
 
       - name: Build CLI bundle (standalone app)
+        if: steps.resolve.outputs.skip != 'true'
         env:
           JWT_SECRET: ci-build-secret-with-sufficient-length-for-validation
         run: npm run build:cli
 
       - name: Validate npm package artifact
+        if: steps.resolve.outputs.skip != 'true'
         run: npm run check:pack-artifact
 
       - name: Publish to npm
-        run: |
-          VERSION="${{ steps.resolve.outputs.version }}"
-          TAG="${{ steps.resolve.outputs.tag }}"
-          # Check if this version is already published — skip instead of failing with E403
-          if npm view "omniroute@${VERSION}" version --silent 2>/dev/null | grep -q "^${VERSION}$"; then
-            echo "⚠️ Version ${VERSION} is already published on npm — skipping."
-            exit 0
-          fi
-          if [ "$TAG" = "latest" ]; then
-            npm publish --access public
-          else
-            npm publish --access public --tag "$TAG"
-          fi
-          echo "✅ Published omniroute@$VERSION (tag: $TAG)"
+        if: steps.resolve.outputs.skip != 'true'
         env:
+          VERSION: ${{ steps.resolve.outputs.version }}
+          TAG: ${{ steps.resolve.outputs.tag }}
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: |
+          set -euo pipefail
+          # Always pass --tag explicitly. Defense in depth: even if VERSION is
+          # accidentally an older release, `npm publish --tag historic` will
+          # NOT promote it to `@latest`.
+          npm publish --access public --tag "$TAG"
+          echo "✅ Published omniroute@$VERSION (dist-tag=$TAG)"
 
       - name: Publish to GitHub Packages
-        run: |
-          VERSION="${{ steps.resolve.outputs.version }}"
-          TAG="${{ steps.resolve.outputs.tag }}"
-
-          echo "Configuring for GitHub Packages..."
-          echo "//npm.pkg.github.com/:_authToken=${{ secrets.GITHUB_TOKEN }}" > .npmrc
-          npm pkg set name="@diegosouzapw/omniroute"
-
-          if [ "$TAG" = "latest" ]; then
-            npm publish --registry=https://npm.pkg.github.com || echo "⚠️ Version ${VERSION} might already be published on GitHub."
-          else
-            npm publish --registry=https://npm.pkg.github.com --tag "$TAG" || echo "⚠️ Version ${VERSION} might already be published on GitHub."
-          fi
-          echo "✅ Action finished for GitHub Packages"
+        if: steps.resolve.outputs.skip != 'true'
         env:
+          VERSION: ${{ steps.resolve.outputs.version }}
+          TAG: ${{ steps.resolve.outputs.tag }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          echo "Configuring for GitHub Packages..."
+          echo "//npm.pkg.github.com/:_authToken=${GITHUB_TOKEN}" > .npmrc
+          npm pkg set name="@diegosouzapw/omniroute"
+          npm publish --registry=https://npm.pkg.github.com --tag "$TAG" \
+            || echo "⚠️ omniroute@${VERSION} might already be published on GitHub Packages."
+          echo "✅ Action finished for GitHub Packages"
+
+  publish-opencode-plugin:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: ${{ env.NPM_PUBLISH_NODE_VERSION }}
+          registry-url: https://registry.npmjs.org
+
+      - name: Install plugin dependencies
+        working-directory: "@omniroute/opencode-plugin"
+        run: npm install --no-audit --no-fund
+
+      - name: Build plugin
+        working-directory: "@omniroute/opencode-plugin"
+        run: npm run clean && npm run build
+
+      - name: Test plugin
+        working-directory: "@omniroute/opencode-plugin"
+        run: npm test
+
+      - name: Publish @omniroute/opencode-plugin to npm
+        working-directory: "@omniroute/opencode-plugin"
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: |
+          set -euo pipefail
+          PKG_VERSION=$(node -p "require('./package.json').version")
+          PKG_NAME=$(node -p "require('./package.json').name")
+          # Same hardened skip-check as the main job (no --silent flag).
+          PUBLISHED="$(npm view "${PKG_NAME}@${PKG_VERSION}" version 2>/dev/null || true)"
+          if [ "$PUBLISHED" = "$PKG_VERSION" ]; then
+            echo "⚠️ ${PKG_NAME}@${PKG_VERSION} is already published on npm — skipping."
+            exit 0
+          fi
+          npm publish --access public --ignore-scripts
+          echo "✅ Published ${PKG_NAME}@${PKG_VERSION}"

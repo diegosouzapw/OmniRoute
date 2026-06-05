@@ -1,7 +1,6 @@
 import { NextResponse } from "next/server";
 import { isAuthRequired, isAuthenticated } from "@/shared/utils/apiAuth";
-
-const KIRO_AUTH_SERVICE = "https://prod.us-east-1.auth.desktop.kiro.dev";
+import { KIRO_CONFIG } from "@/lib/oauth/constants/oauth";
 
 /**
  * GET /api/oauth/kiro/social-authorize
@@ -26,11 +25,11 @@ export async function GET(request) {
 
     const loginProvider = provider === "google" ? "Google" : "Github";
 
-    const response = await fetch(`${KIRO_AUTH_SERVICE}/oauth/device/authorization`, {
+    const response = await fetch(KIRO_CONFIG.socialDeviceAuthorizeUrl, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        clientId: "kiro-cli",
+        clientId: KIRO_CONFIG.socialClientId,
         loginProvider,
       }),
     });

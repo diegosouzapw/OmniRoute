@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
+import { compareTr } from "@/shared/utils/turkishText";
 
 /**
  * Prefix-based format→model matching, used to pick a smart default
@@ -34,7 +35,7 @@ export function useAvailableModels() {
       try {
         const res = await fetch("/api/v1/models");
         const data = await res.json();
-        const models = (data.data || []).map((m) => m.id).sort((a, b) => a.localeCompare(b));
+        const models = (data.data || []).map((m) => m.id).sort((a, b) => compareTr(a, b));
         setAvailableModels(models);
       } catch {
         setAvailableModels([]);

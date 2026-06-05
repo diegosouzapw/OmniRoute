@@ -299,6 +299,7 @@ export const compressionTools = {
     name: "omniroute_compression_status",
     description:
       "Returns current compression configuration, strategy, analytics summary (requests compressed, tokens saved, avg ratio), and provider-aware cache statistics.",
+    scopes: ["read:compression"],
     inputSchema: compressionStatusInput,
     handler: (args: z.infer<typeof compressionStatusInput>) => handleCompressionStatus(args),
   },
@@ -306,24 +307,28 @@ export const compressionTools = {
     name: "omniroute_compression_configure",
     description:
       "Configure compression settings at runtime. Supports enabling/disabling compression, changing strategy (off/lite/standard/aggressive/ultra/rtk/stacked), adjusting maxTokens threshold, targetRatio, auto-trigger mode, system prompt preservation, and MCP description compression.",
+    scopes: ["write:compression"],
     inputSchema: compressionConfigureInput,
     handler: (args: z.infer<typeof compressionConfigureInput>) => handleCompressionConfigure(args),
   },
   omniroute_set_compression_engine: {
     name: "omniroute_set_compression_engine",
     description: "Set the active compression engine and Caveman/RTK runtime options.",
+    scopes: ["write:compression"],
     inputSchema: setCompressionEngineInput,
     handler: (args: z.infer<typeof setCompressionEngineInput>) => handleSetCompressionEngine(args),
   },
   omniroute_list_compression_combos: {
     name: "omniroute_list_compression_combos",
     description: "List compression combos and their engine pipelines.",
+    scopes: ["read:compression"],
     inputSchema: listCompressionCombosInput,
     handler: (_args: z.infer<typeof listCompressionCombosInput>) => handleListCompressionCombos(),
   },
   omniroute_compression_combo_stats: {
     name: "omniroute_compression_combo_stats",
     description: "Get compression analytics grouped by engine and compression combo.",
+    scopes: ["read:compression"],
     inputSchema: compressionComboStatsInput,
     handler: (args: z.infer<typeof compressionComboStatsInput>) =>
       handleCompressionComboStats(args),

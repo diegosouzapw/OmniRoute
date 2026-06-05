@@ -161,13 +161,21 @@ describe("toolSchemaSanitizer", () => {
         function: { name: "x", parameters: null },
       };
       const out = sanitizeOpenAITool(tool);
-      assert.deepEqual(out.function.parameters, { type: "object", properties: {} });
+      assert.deepEqual(out.function.parameters, {
+        type: "object",
+        properties: {},
+        additionalProperties: true,
+      });
     });
 
     it("creates empty object schema when parameters is missing", () => {
       const tool = { type: "function", function: { name: "x" } };
       const out = sanitizeOpenAITool(tool);
-      assert.deepEqual(out.function.parameters, { type: "object", properties: {} });
+      assert.deepEqual(out.function.parameters, {
+        type: "object",
+        properties: {},
+        additionalProperties: true,
+      });
     });
 
     it("replaces non-object/non-boolean property values with empty schema", () => {
@@ -395,7 +403,11 @@ describe("toolSchemaSanitizer", () => {
     it("normalizes missing parameters in Responses-format tool", () => {
       const tool = { type: "function", name: "x" };
       const out = sanitizeOpenAITool(tool);
-      assert.deepEqual(out.parameters, { type: "object", properties: {} });
+      assert.deepEqual(out.parameters, {
+        type: "object",
+        properties: {},
+        additionalProperties: true,
+      });
     });
 
     it("does not touch Responses-format tool without type=function", () => {

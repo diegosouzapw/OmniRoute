@@ -112,6 +112,12 @@ export const OPENWEBUI_PARAGRAPH_ANCHORS = [
 /** Open WebUI identity paragraph prefixes. */
 export const OPENWEBUI_IDENTITY_PREFIXES = ["You are Open WebUI"];
 
+export const PI_PARAGRAPH_ANCHORS = [
+  "@earendil-works/pi-coding-agent",
+  "/.pi/",
+  "Pi documentation (read only when the user asks about pi itself",
+];
+
 // ────────────────────────────────────────────────────────────────────────────
 // Per-provider defaults.
 // ────────────────────────────────────────────────────────────────────────────
@@ -141,7 +147,7 @@ export const PROVIDER_CC_BRIDGE = "anthropic-compatible-cc";
  *
  * Plugin parity (`@ex-machina/opencode-anthropic-auth`): drops 3rd-party-agent
  * anchor paragraphs (anomalyco/opencode, cline, getcursor/cursor, continue.dev,
- * Open WebUI), drops "You are OpenCode" / "You are Open WebUI" identity
+ * Open WebUI, Pi docs), drops "You are OpenCode" / "You are Open WebUI" identity
  * paragraphs, replaces the "Here is some useful information about the
  * environment you are running in:" billing-gate trigger phrase, and ZWJ
  * obfuscates sensitive client words. Without these, the native OAuth path
@@ -150,11 +156,15 @@ export const PROVIDER_CC_BRIDGE = "anthropic-compatible-cc";
  * verified against opencode→OmniRoute→Anthropic with claude-opus-4-7 OAuth.
  */
 export const DEFAULT_CLAUDE_PIPELINE: TransformOp[] = [
-  // Drop paragraphs containing 3rd-party-agent anchor URLs (anomalyco/opencode,
-  // opencode.ai/docs, cline, getcursor/cursor, continue.dev) and Open WebUI URLs.
+  // Drop paragraphs containing 3rd-party-agent anchors (anomalyco/opencode,
+  // opencode.ai/docs, cline, getcursor/cursor, continue.dev, Open WebUI, Pi docs).
   {
     kind: "drop_paragraph_if_contains",
-    needles: [...DEFAULT_PARAGRAPH_REMOVAL_ANCHORS, ...OPENWEBUI_PARAGRAPH_ANCHORS],
+    needles: [
+      ...DEFAULT_PARAGRAPH_REMOVAL_ANCHORS,
+      ...OPENWEBUI_PARAGRAPH_ANCHORS,
+      ...PI_PARAGRAPH_ANCHORS,
+    ],
   },
   // Drop "You are OpenCode" + "You are Open WebUI" identity paragraphs.
   {

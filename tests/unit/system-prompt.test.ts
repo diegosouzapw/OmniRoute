@@ -9,29 +9,50 @@ const { injectSystemPrompt, setSystemPromptConfig, getSystemPromptConfig } =
 test("default config: disabled", () => {
   const config = getSystemPromptConfig();
   assert.equal(config.enabled, false);
-  assert.equal(config.prompt, "");
+  assert.equal(config.prefixPrompt, "");
+  assert.equal(config.suffixPrompt, "");
+});
+
+test("setSystemPromptConfig: legacy prompt migrates to suffixPrompt", () => {
+  setSystemPromptConfig({ enabled: true, prompt: "legacy text" });
+  const config = getSystemPromptConfig();
+  assert.equal(config.suffixPrompt, "legacy text");
+});
+
+test("setSystemPromptConfig: explicit prefix/suffix clears legacy prompt", () => {
+  setSystemPromptConfig({ enabled: true, prefixPrompt: "PRE", suffixPrompt: "SUF" });
+  const config = getSystemPromptConfig();
+  assert.equal(config.prefixPrompt, "PRE");
+  assert.equal(config.suffixPrompt, "SUF");
 });
 
 // ─── Injection ──────────────────────────────────────────────────────────────
 
 test("injectSystemPrompt: disabled → no change", () => {
-  setSystemPromptConfig({ enabled: false, prompt: "system" });
+  setSystemPromptConfig({ enabled: false, suffixPrompt: "system" });
   const body = { messages: [{ role: "user", content: "hi" }] };
   const result = injectSystemPrompt(body);
   assert.deepEqual(result, body);
 });
 
-test("injectSystemPrompt: adds system message when none exists", () => {
-  setSystemPromptConfig({ enabled: true, prompt: "You are an AI assistant." });
+test("injectSystemPrompt: empty prefix and suffix → no change", () => {
+  setSystemPromptConfig({ enabled: true, prefixPrompt: "", suffixPrompt: "" });
+  const body = { messages: [{ role: "user", content: "hi" }] };
+  const result = injectSystemPrompt(body);
+  assert.deepEqual(result, body);
+});
+
+test("injectSystemPrompt: suffix adds system message when none exists", () => {
+  setSystemPromptConfig({ enabled: true, prefixPrompt: "", suffixPrompt: "You are an AI." });
   const body = { messages: [{ role: "user", content: "hi" }] };
   const result = injectSystemPrompt(body);
   assert.equal(result.messages[0].role, "system");
-  assert.ok(result.messages[0].content.includes("You are an AI assistant."));
+  assert.ok(result.messages[0].content.includes("You are an AI."));
   assert.equal(result.messages.length, 2);
 });
 
-test("injectSystemPrompt: appends after existing system message (#2468)", () => {
-  setSystemPromptConfig({ enabled: true, prompt: "GLOBAL:" });
+test("injectSystemPrompt: prefix + suffix wrap existing system message (#2468)", () => {
+  setSystemPromptConfig({ enabled: true, prefixPrompt: "BEFORE", suffixPrompt: "AFTER" });
   const body = {
     messages: [
       { role: "system", content: "Original prompt" },
@@ -39,38 +60,53 @@ test("injectSystemPrompt: appends after existing system message (#2468)", () => 
     ],
   };
   const result = injectSystemPrompt(body);
-  // Global prompt must be the FINAL instruction so it wins over provider/agent blocks.
-  assert.ok(result.messages[0].content.startsWith("Original prompt"));
-  assert.ok(result.messages[0].content.trimEnd().endsWith("GLOBAL:"));
+  assert.ok(result.messages[0].content.startsWith("BEFORE"));
+  assert.ok(result.messages[0].content.includes("Original prompt"));
+  assert.ok(result.messages[0].content.trimEnd().endsWith("AFTER"));
   assert.equal(result.messages.length, 2);
 });
 
-test("injectSystemPrompt: Claude body.system field appends global last (#2468)", () => {
-  setSystemPromptConfig({ enabled: true, prompt: "GLOBAL:" });
+test("injectSystemPrompt: only prefix prepends before system message", () => {
+  setSystemPromptConfig({ enabled: true, prefixPrompt: "PREFIX", suffixPrompt: "" });
+  const body = {
+    messages: [
+      { role: "system", content: "Agent instructions" },
+      { role: "user", content: "hi" },
+    ],
+  };
+  const result = injectSystemPrompt(body);
+  assert.ok(result.messages[0].content.startsWith("PREFIX"));
+  assert.ok(result.messages[0].content.includes("Agent instructions"));
+});
+
+test("injectSystemPrompt: Claude body.system string — prefix/suffix wrap (#2468)", () => {
+  setSystemPromptConfig({ enabled: true, prefixPrompt: "PRE", suffixPrompt: "SUF" });
   const body = {
     system: "Claude prompt",
     messages: [{ role: "user", content: "hi" }],
   };
   const result = injectSystemPrompt(body);
-  assert.ok(result.system.startsWith("Claude prompt"));
-  assert.ok(result.system.trimEnd().endsWith("GLOBAL:"));
+  assert.ok(result.system.startsWith("PRE"));
+  assert.ok(result.system.includes("Claude prompt"));
+  assert.ok(result.system.trimEnd().endsWith("SUF"));
 });
 
-test("injectSystemPrompt: Claude array system field appends global last (#2468)", () => {
-  setSystemPromptConfig({ enabled: true, prompt: "GLOBAL:" });
+test("injectSystemPrompt: Claude array system field — prefix/suffix wrap (#2468)", () => {
+  setSystemPromptConfig({ enabled: true, prefixPrompt: "PRE", suffixPrompt: "SUF" });
   const body = {
     system: [{ type: "text", text: "Claude prompt" }],
     messages: [{ role: "user", content: "hi" }],
   };
   const result = injectSystemPrompt(body);
   assert.ok(Array.isArray(result.system));
-  assert.equal(result.system[0].text, "Claude prompt");
-  assert.equal(result.system[result.system.length - 1].text, "GLOBAL:");
-  assert.equal(result.system.length, 2);
+  assert.equal(result.system[0].text, "PRE");
+  assert.equal(result.system[1].text, "Claude prompt");
+  assert.equal(result.system[2].text, "SUF");
+  assert.equal(result.system.length, 3);
 });
 
 test("injectSystemPrompt: _skipSystemPrompt bypasses", () => {
-  setSystemPromptConfig({ enabled: true, prompt: "GLOBAL:" });
+  setSystemPromptConfig({ enabled: true, suffixPrompt: "GLOBAL:" });
   const body = {
     _skipSystemPrompt: true,
     messages: [{ role: "user", content: "hi" }],
@@ -79,17 +115,24 @@ test("injectSystemPrompt: _skipSystemPrompt bypasses", () => {
   assert.deepEqual(result, body);
 });
 
-test("injectSystemPrompt: with explicit promptText override", () => {
-  setSystemPromptConfig({ enabled: true, prompt: "default" });
-  const body = { messages: [{ role: "user", content: "hi" }] };
-  const result = injectSystemPrompt(body, "custom override");
-  assert.ok(result.messages[0].content.includes("custom override"));
-});
-
 test("injectSystemPrompt: null body returns as-is", () => {
-  setSystemPromptConfig({ enabled: true, prompt: "test" });
+  setSystemPromptConfig({ enabled: true, suffixPrompt: "test" });
   assert.equal(injectSystemPrompt(null), null);
 });
 
+test("injectSystemPrompt: developer role treated as system", () => {
+  setSystemPromptConfig({ enabled: true, prefixPrompt: "PRE", suffixPrompt: "SUF" });
+  const body = {
+    messages: [
+      { role: "developer", content: "Dev instructions" },
+      { role: "user", content: "hi" },
+    ],
+  };
+  const result = injectSystemPrompt(body);
+  assert.ok(result.messages[0].content.startsWith("PRE"));
+  assert.ok(result.messages[0].content.includes("Dev instructions"));
+  assert.ok(result.messages[0].content.trimEnd().endsWith("SUF"));
+});
+
 // Reset
-test.after(() => setSystemPromptConfig({ enabled: false, prompt: "" }));
+test.after(() => setSystemPromptConfig({ enabled: false, prefixPrompt: "", suffixPrompt: "" }));

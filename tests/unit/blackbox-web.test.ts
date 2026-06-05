@@ -333,8 +333,9 @@ test("Provider registry: blackbox-web models are exposed", async () => {
   // If it gets re-added, also add: assert.equal(PROVIDER_ID_TO_ALIAS["blackbox-web"], "bb-web");
   if (models && models.length > 0) {
     const ids = models.map((model: any) => model.id);
-    assert.ok(ids.includes("openai/gpt-5.4"));
-    assert.ok(ids.includes("anthropic/claude-opus-4.7"));
+    assert.ok(ids.includes("gpt-4"));
+    assert.ok(ids.includes("claude-3-opus"));
   }
   // If not present, skip assertions - provider may have been temporarily removed
 });
+

@@ -12,6 +12,7 @@ import {
   isModelSyncInternalRequest,
 } from "@/shared/services/modelSyncScheduler";
 import { GET as getProviderModels } from "../models/route";
+import { sanitizeErrorMessage } from "@omniroute/open-sse/utils/error";
 
 type JsonRecord = Record<string, unknown>;
 
@@ -173,7 +174,7 @@ export type EnsureReadyOptions = {
 };
 
 export async function ensureLoopbackServerReady(opts: EnsureReadyOptions = {}): Promise<void> {
-  if (__loopbackReadyPromise) return __loopbackReadyPromise;
+  if (__loopbackReadyPromise != null) return __loopbackReadyPromise;
   __loopbackReadyPromise = (async () => {
     const f = opts.fetch ?? fetch;
     const maxWaitMs = opts.maxWaitMs ?? 30_000;
@@ -438,6 +439,40 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
       );
     }
 
+    const modelSource = toNonEmptyString(modelsData.source)?.toLowerCase() || "unknown";
+    const modelWarning = toNonEmptyString(modelsData.warning);
+    if (modelSource === "local_catalog") {
+      const responseError =
+        modelWarning || "Remote model discovery failed; local catalog fallback not synced";
+      await saveCallLog({
+        method: "GET",
+        path: `/api/providers/${id}/models`,
+        status: 502,
+        model: "model-sync",
+        provider: logProvider,
+        sourceFormat: "-",
+        connectionId: id,
+        duration,
+        error: responseError,
+        requestType: "model-sync",
+        responseBody: {
+          source: modelSource,
+          warning: modelWarning,
+          provider: logProvider,
+          channel: channelLabel,
+        },
+      });
+
+      return NextResponse.json(
+        {
+          error: responseError,
+          source: modelSource,
+          ...(modelWarning ? { warning: modelWarning } : {}),
+        },
+        { status: 502 }
+      );
+    }
+
     const fetchedModels = modelsData.models || [];
     const {
       previousModels,
@@ -540,6 +575,9 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
         : {}),
     }).catch(() => {});
 
-    return NextResponse.json({ error: error.message || "Failed to sync models" }, { status: 500 });
+    return NextResponse.json(
+      { error: sanitizeErrorMessage(error) || "Failed to sync models" },
+      { status: 500 }
+    );
   }
 }

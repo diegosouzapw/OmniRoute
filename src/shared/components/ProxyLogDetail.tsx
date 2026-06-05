@@ -94,10 +94,10 @@ export default function ProxyLogDetail({ log, onClose }) {
             </div>
             <div>
               <div className="text-[10px] text-text-muted uppercase tracking-wider mb-1">
-                Public IP
+                Client IP
               </div>
               <div className="text-sm font-medium font-mono text-emerald-400">
-                {log.publicIp || "—"}
+                {log.clientIp || "—"}
               </div>
             </div>
             <div>

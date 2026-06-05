@@ -276,6 +276,122 @@ test("reset-aware strategy prefers lower weekly remaining quota when reset is mu
   assert.equal(await selectedConnectionFor(combo), soon.id);
 });
 
+test("reset-aware strategy aggressively spends quota that resets soon", async (t) => {
+  const team = { id: `team-${randomUUID()}`, token: `token-team-${randomUUID()}` };
+  const fullLater = { id: `full-${randomUUID()}`, token: `token-full-${randomUUID()}` };
+  const soonLow = { id: `soon-low-${randomUUID()}`, token: `token-soon-low-${randomUUID()}` };
+  const soonLower = {
+    id: `soon-lower-${randomUUID()}`,
+    token: `token-soon-lower-${randomUUID()}`,
+  };
+  t.after(
+    installCodexQuotaMock({
+      [team.token]: codexQuota({
+        used5h: 29,
+        reset5hSeconds: 2.5 * 3600,
+        used7d: 40,
+        reset7dSeconds: 2.25 * 24 * 3600,
+      }),
+      [fullLater.token]: codexQuota({
+        used5h: 1,
+        reset5hSeconds: 5 * 3600,
+        used7d: 0,
+        reset7dSeconds: 7 * 24 * 3600,
+      }),
+      [soonLow.token]: codexQuota({
+        used5h: 1,
+        reset5hSeconds: 5 * 3600,
+        used7d: 86,
+        reset7dSeconds: 1.5 * 3600,
+      }),
+      [soonLower.token]: codexQuota({
+        used5h: 1,
+        reset5hSeconds: 5 * 3600,
+        used7d: 84,
+        reset7dSeconds: 1.5 * 3600,
+      }),
+    })
+  );
+
+  const combo = resetAwareCombo(`reset-aware-pressure-${randomUUID()}`, [
+    team,
+    fullLater,
+    soonLow,
+    soonLower,
+  ]);
+  const selections = [await selectedConnectionFor(combo), await selectedConnectionFor(combo)];
+
+  assert.deepEqual(new Set(selections), new Set([soonLow.id, soonLower.id]));
+});
+
+test("reset-aware strategy prioritizes soon-reset weekly quota over empty later accounts", async (t) => {
+  const fullerSoon = {
+    id: `fuller-soon-${randomUUID()}`,
+    token: `token-fuller-soon-${randomUUID()}`,
+  };
+  const emptyLater = {
+    id: `empty-later-${randomUUID()}`,
+    token: `token-empty-later-${randomUUID()}`,
+  };
+  t.after(
+    installCodexQuotaMock({
+      [fullerSoon.token]: codexQuota({
+        used5h: 25,
+        reset5hSeconds: 2 * 3600,
+        used7d: 70,
+        reset7dSeconds: 2 * 3600,
+      }),
+      [emptyLater.token]: codexQuota({
+        used5h: 1,
+        reset5hSeconds: 5 * 3600,
+        used7d: 0,
+        reset7dSeconds: 7 * 24 * 3600,
+      }),
+    })
+  );
+
+  const combo = resetAwareCombo(`reset-aware-weekly-pressure-${randomUUID()}`, [
+    emptyLater,
+    fullerSoon,
+  ]);
+
+  assert.equal(await selectedConnectionFor(combo), fullerSoon.id);
+});
+
+test("reset-aware strategy keeps 5h reset pressure softer than weekly pressure", async (t) => {
+  const fullerSoon = {
+    id: `session-fuller-soon-${randomUUID()}`,
+    token: `token-session-fuller-soon-${randomUUID()}`,
+  };
+  const emptyLater = {
+    id: `session-empty-later-${randomUUID()}`,
+    token: `token-session-empty-later-${randomUUID()}`,
+  };
+  t.after(
+    installCodexQuotaMock({
+      [fullerSoon.token]: codexQuota({
+        used5h: 70,
+        reset5hSeconds: 2 * 3600,
+        used7d: 1,
+        reset7dSeconds: 7 * 24 * 3600,
+      }),
+      [emptyLater.token]: codexQuota({
+        used5h: 0,
+        reset5hSeconds: 5 * 3600,
+        used7d: 0,
+        reset7dSeconds: 7 * 24 * 3600,
+      }),
+    })
+  );
+
+  const combo = resetAwareCombo(`reset-aware-session-pressure-${randomUUID()}`, [
+    fullerSoon,
+    emptyLater,
+  ]);
+
+  assert.equal(await selectedConnectionFor(combo), emptyLater.id);
+});
+
 test("reset-aware strategy avoids accounts near 5h exhaustion", async (t) => {
   const exhausted5h = {
     id: `exhausted-${randomUUID()}`,
@@ -406,6 +522,55 @@ test("reset-aware strategy deduplicates quota fetches for repeated connection ta
 
   assert.equal(await selectedConnectionFor(combo), connectionId);
   assert.equal(fetchCount, 1);
+});
+
+test("reset-aware quota SWR serves stale ordering while refreshing in background", async () => {
+  const provider = `swr-provider-${randomUUID()}`;
+  const cachedFirst = `cached-first-${randomUUID()}`;
+  const cachedSecond = `cached-second-${randomUUID()}`;
+  const fetchCounts = new Map<string, number>();
+
+  registerQuotaFetcher(provider, async (connectionId) => {
+    fetchCounts.set(connectionId, (fetchCounts.get(connectionId) || 0) + 1);
+    if (connectionId === cachedFirst) {
+      return {
+        used: 40,
+        total: 100,
+        percentUsed: 0.4,
+        resetAt: new Date(Date.now() + 24 * 3600 * 1000).toISOString(),
+      };
+    }
+    return {
+      used: 20,
+      total: 100,
+      percentUsed: 0.2,
+      resetAt: new Date(Date.now() + 5 * 24 * 3600 * 1000).toISOString(),
+    };
+  });
+
+  const combo = {
+    name: `reset-aware-swr-${randomUUID()}`,
+    strategy: "reset-aware",
+    config: {
+      resetAwareQuotaCacheTtlMs: 1,
+      resetAwareQuotaCacheMaxStaleMs: 60_000,
+    },
+    models: [cachedFirst, cachedSecond].map((connectionId, index) => ({
+      kind: "model",
+      provider,
+      providerId: provider,
+      model: "balanced-model",
+      connectionId,
+      id: `swr-${index}`,
+    })),
+  };
+
+  assert.equal(await selectedConnectionFor(combo), cachedFirst);
+  await new Promise((resolve) => setTimeout(resolve, 5));
+  assert.equal(await selectedConnectionFor(combo), cachedFirst);
+
+  assert.equal(fetchCounts.get(cachedFirst), 2);
+  assert.equal(fetchCounts.get(cachedSecond), 2);
 });
 
 test("reset-aware strategy respects API-key allowed connections during expansion", async () => {

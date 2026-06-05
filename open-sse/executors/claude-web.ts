@@ -22,8 +22,7 @@
 import { BaseExecutor, mergeAbortSignals, type ExecuteInput } from "./base.ts";
 import { FETCH_TIMEOUT_MS } from "../config/constants.ts";
 import { tlsFetchClaude } from "../services/claudeTlsClient.ts";
-import { createAutoRefreshMiddleware, refreshCookie } from "../services/claudeWebAutoRefresh.ts";
-import { getCfClearanceToken, getCacheStatus } from "../services/claudeTurnstileSolver.ts";
+import { getCfClearanceToken } from "../services/claudeTurnstileSolver.ts";
 import { normalizeSessionCookieHeader } from "@/lib/providers/webCookieAuth";
 import { randomUUID } from "crypto";
 import { sanitizeErrorMessage } from "../utils/error.ts";
@@ -44,16 +43,6 @@ const DEFAULT_CLAUDE_MODEL = "claude-sonnet-4-6";
 // ─── Types ──────────────────────────────────────────────────────────────────
 /**
  * Extended credentials to include organization and conversation context
- */
-interface ClaudeWebCredentials {
-  cookie: string;
-  deviceId?: string;
-  orgId?: string;
-  conversationId?: string;
-}
-
-/**
- * Full request payload matching real Claude Web API format
  */
 interface ClaudeWebRequestPayload {
   prompt: string;
@@ -175,7 +164,8 @@ async function normalizeClaudeSessionCookieWithAutoRefresh(
       options?.log?.info?.("CLAUDE-WEB", "cf_clearance injected successfully");
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error);
-      // Continue anyway - request might fail, but that's OK
+      options?.log?.warn?.("CLAUDE-WEB", `cf_clearance injection failed: ${message}`);
+      // Continue anyway - the retry wrapper will handle 403
     }
   }
 
@@ -417,7 +407,7 @@ export class ClaudeWebExecutor extends BaseExecutor {
         return false;
       }
 
-      const cookieHeader = normalizeClaudeSessionCookie(rawCookie);
+      const cookieHeader = await normalizeClaudeSessionCookieWithAutoRefresh(rawCookie, { allowAutoSolve: false });
       const deviceId = (credentials as any)?.deviceId as string | undefined;
 
       return await verifyCookieValidity(cookieHeader, deviceId, signal);
@@ -429,7 +419,7 @@ export class ClaudeWebExecutor extends BaseExecutor {
   /**
    * Get user's organization ID from session
    */
-  async execute({ model, body, stream, credentials, signal, log }: ExecuteInput) {
+  async execute({ model, body, stream: _stream, credentials, signal, log }: ExecuteInput) {
     const bodyObj = (body || {}) as Record<string, unknown>;
 
     try {
@@ -479,7 +469,10 @@ export class ClaudeWebExecutor extends BaseExecutor {
         };
       }
 
-      const cookieHeader = normalizeClaudeSessionCookie(rawCookie);
+      const cookieHeader = await normalizeClaudeSessionCookieWithAutoRefresh(rawCookie, {
+        allowAutoSolve: true,
+        log,
+      });
       const deviceId = (credentials as any)?.deviceId as string | undefined;
 
       // Transform request to Claude format
@@ -542,7 +535,7 @@ export class ClaudeWebExecutor extends BaseExecutor {
 
       log?.debug?.("CLAUDE-WEB", `Making request to ${completionUrl}`);
 
-      // Inject cf_clearance before calling tlsFetchClaude
+      // cf_clearance is already injected via normalizeClaudeSessionCookieWithAutoRefresh above
 
       const fetchResponse = await tlsFetchClaude(completionUrl, {
         method: "POST",
@@ -627,91 +620,96 @@ export class ClaudeWebExecutor extends BaseExecutor {
       }
 
       // Stream the response
-      const responseStream = new ReadableStream({
-        async start(controller) {
-          try {
-            const reader = fetchResponse.body?.getReader();
-            if (!reader) {
-              controller.error(new Error("No response body"));
-              return;
-            }
+      const responseStream = new ReadableStream(
+        {
+          async start(controller) {
+            try {
+              const reader = fetchResponse.body?.getReader();
+              if (!reader) {
+                controller.error(new Error("No response body"));
+                return;
+              }
 
-            const decoder = new TextDecoder();
-            let buffer = "";
+              const decoder = new TextDecoder();
+              let buffer = "";
 
-            while (true) {
-              const { done, value } = await reader.read();
-              if (done) break;
+              while (true) {
+                const { done, value } = await reader.read();
+                if (done) break;
 
-              buffer += decoder.decode(value, { stream: true });
+                buffer += decoder.decode(value, { stream: true });
 
-              // Process complete lines
-              const lines = buffer.split("\n");
-              buffer = lines.pop() || ""; // Keep incomplete line in buffer
+                // Process complete lines
+                const lines = buffer.split("\n");
+                buffer = lines.pop() || ""; // Keep incomplete line in buffer
 
-              for (const line of lines) {
-                const trimmed = line.trim();
-                if (!trimmed || trimmed === "[DONE]") continue;
+                for (const line of lines) {
+                  const trimmed = line.trim();
+                  if (!trimmed || trimmed === "[DONE]") continue;
 
-                if (trimmed.startsWith("data: ")) {
-                  const jsonStr = trimmed.slice(6); // Remove "data: " prefix
-                  try {
-                    const chunk = JSON.parse(jsonStr) as ClaudeWebStreamChunk;
+                  if (trimmed.startsWith("data: ")) {
+                    const jsonStr = trimmed.slice(6); // Remove "data: " prefix
+                    try {
+                      const chunk = JSON.parse(jsonStr) as ClaudeWebStreamChunk;
 
-                    // Extract completion text from various possible formats
-                    let completionText = "";
-                    if (chunk.completion) {
-                      completionText = chunk.completion;
-                    } else if (chunk.delta?.text) {
-                      completionText = chunk.delta.text;
-                    }
+                      // Extract completion text from various possible formats
+                      let completionText = "";
+                      if (chunk.completion) {
+                        completionText = chunk.completion;
+                      } else if (chunk.delta?.text) {
+                        completionText = chunk.delta.text;
+                      }
 
-                    if (completionText) {
-                      const openaiChunk = transformFromClaude(
-                        completionText,
-                        model,
-                        chunk.stop_reason
+                      if (completionText) {
+                        const openaiChunk = transformFromClaude(
+                          completionText,
+                          model,
+                          chunk.stop_reason
+                        );
+                        const sseContent = `data: ${JSON.stringify(openaiChunk)}\n\n`;
+                        controller.enqueue(new TextEncoder().encode(sseContent));
+                      }
+                    } catch (parseError) {
+                      log?.warn?.(
+                        "CLAUDE-WEB",
+                        `Failed to parse stream chunk: ${JSON.stringify({ line: trimmed })}`
                       );
-                      const sseContent = `data: ${JSON.stringify(openaiChunk)}\n\n`;
-                      controller.enqueue(new TextEncoder().encode(sseContent));
                     }
-                  } catch (parseError) {
-                    log?.warn?.(
-                      "CLAUDE-WEB",
-                      `Failed to parse stream chunk: ${JSON.stringify({ line: trimmed })}`
-                    );
                   }
                 }
               }
-            }
 
-            // Finish the stream
-            const finalChunk = {
-              id: `chatcmpl-${Date.now()}`,
-              object: "chat.completion.chunk",
-              created: Math.floor(Date.now() / 1000),
-              model,
-              choices: [
-                {
-                  index: 0,
-                  delta: {},
-                  finish_reason: "stop",
-                  logprobs: null,
-                },
-              ],
-            };
-            controller.enqueue(new TextEncoder().encode(`data: ${JSON.stringify(finalChunk)}\n\n`));
-            controller.enqueue(new TextEncoder().encode("data: [DONE]\n\n"));
-            controller.close();
-          } catch (error) {
-            log?.error?.(
-              "CLAUDE-WEB",
-              `Stream error: ${error instanceof Error ? error.message : String(error)}`
-            );
-            controller.error(error);
-          }
+              // Finish the stream
+              const finalChunk = {
+                id: `chatcmpl-${Date.now()}`,
+                object: "chat.completion.chunk",
+                created: Math.floor(Date.now() / 1000),
+                model,
+                choices: [
+                  {
+                    index: 0,
+                    delta: {},
+                    finish_reason: "stop",
+                    logprobs: null,
+                  },
+                ],
+              };
+              controller.enqueue(
+                new TextEncoder().encode(`data: ${JSON.stringify(finalChunk)}\n\n`)
+              );
+              controller.enqueue(new TextEncoder().encode("data: [DONE]\n\n"));
+              controller.close();
+            } catch (error) {
+              log?.error?.(
+                "CLAUDE-WEB",
+                `Stream error: ${error instanceof Error ? error.message : String(error)}`
+              );
+              controller.error(error);
+            }
+          },
         },
-      });
+        { highWaterMark: 16384 }
+      );
 
       const finalResponse = new Response(responseStream, {
         status: 200,
