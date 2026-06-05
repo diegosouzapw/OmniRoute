@@ -34,6 +34,7 @@ import {
   normalizeSessionCookieHeader,
 } from "@/lib/providers/webCookieAuth";
 import { buildJulesApiUrl } from "@/lib/cloudAgent/julesApi.ts";
+import { resolveNvidiaValidationModel } from "@/lib/providers/nvidiaValidationModel";
 import { getGigachatAccessToken } from "@omniroute/open-sse/services/gigachatAuth.ts";
 import { validateQoderCliPat } from "@omniroute/open-sse/services/qoderCli.ts";
 import {
@@ -3961,10 +3962,10 @@ export async function validateProviderApiKey({ provider, apiKey, providerSpecifi
         const chatUrl = normalized.endsWith("/chat/completions")
           ? normalized
           : `${normalized}/chat/completions`;
-        const modelId =
-          providerSpecificData?.validationModelId ||
-          getRegistryEntry("nvidia")?.models?.[0]?.id ||
-          "meta/llama-3.1-8b-instruct";
+        // #3116: probe a universally-available model rather than models[0]
+        // (z-ai/glm-5.1), which requires the "Public API Endpoints" account permission
+        // and can hang/be DEGRADED — making a *valid* key fail with "Upstream Error".
+        const modelId = resolveNvidiaValidationModel(providerSpecificData);
         const res = await validationWrite(
           chatUrl,
           {
