@@ -8,6 +8,7 @@ import {
   type ProviderCredentials,
 } from "./base.ts";
 import { applyFingerprint, isCliCompatEnabled } from "../config/cliFingerprints.ts";
+import { buildAntigravityUpstreamError } from "./antigravityUpstreamError.ts";
 import {
   PROVIDERS,
   OAUTH_ENDPOINTS,
@@ -1354,6 +1355,29 @@ export class AntigravityExecutor extends BaseExecutor {
         // For non-streaming clients, collect the SSE stream and return a synthetic
         // non-streaming Response so chatCore doesn't need to handle SSE conversion.
         if (!stream) {
+          // #3229: surface a real upstream error instead of masking a 4xx/5xx as an
+          // empty `chat.completion` envelope (collectStreamToResponse synthesizes a
+          // success-shaped body when the upstream returned no SSE data).
+          if (!response.ok) {
+            const rawBody = await response
+              .clone()
+              .text()
+              .catch(() => "");
+            const errorBody = buildAntigravityUpstreamError(
+              response.status,
+              response.statusText,
+              rawBody
+            );
+            return {
+              response: new Response(JSON.stringify(errorBody), {
+                status: response.status,
+                headers: { "Content-Type": "application/json" },
+              }),
+              url,
+              headers: finalHeaders,
+              transformedBody: attachToolNameMap(transformedBody, requestToolNameMap),
+            };
+          }
           const collected = await this.collectStreamToResponse(
             response,
             model,
