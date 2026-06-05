@@ -15,6 +15,7 @@ import {
   formatDuration as formatLatency,
   truncateUrl,
 } from "@/shared/utils/formatting";
+import { getProviderDisplayLabel } from "@/shared/utils/providerDisplayLabel";
 
 const PROXY_COLUMN_KEYS = [
   "status",
@@ -43,6 +44,9 @@ export default function ProxyLogger() {
   const [selectedLevel, setSelectedLevel] = useState("");
   const [sortBy, setSortBy] = useState("newest");
   const [selectedLog, setSelectedLog] = useState(null);
+  const [providerNodes, setProviderNodes] = useState<
+    Array<{ id?: string; prefix?: string; name?: string }>
+  >([]);
   const intervalRef = useRef(null);
   const hasLoadedRef = useRef(false);
   const logsSignatureRef = useRef("");
@@ -67,7 +71,7 @@ export default function ProxyLogger() {
       { key: "provider", label: t("colProvider") },
       { key: "target", label: t("colTarget") },
       { key: "latency", label: t("colLatency") },
-      { key: "ip", label: t("colPublicIp") },
+      { key: "ip", label: t("colClientIp") },
       { key: "time", label: t("colTime") },
     ],
     [t]
@@ -131,6 +135,14 @@ export default function ProxyLogger() {
     hasLoadedRef.current = true;
     fetchLogs(showLoading);
   }, [fetchLogs]);
+
+  // Fetch provider nodes for display labels
+  useEffect(() => {
+    fetch("/api/provider-nodes")
+      .then((r) => (r.ok ? r.json() : { nodes: [] }))
+      .then((d) => setProviderNodes(d.nodes || []))
+      .catch(() => {});
+  }, []);
 
   useEffect(() => {
     if (intervalRef.current) clearInterval(intervalRef.current);
@@ -435,7 +447,7 @@ export default function ProxyLogger() {
                   )}
                   {visibleColumns.ip && (
                     <th className="px-3 py-2.5 font-semibold text-text-muted uppercase tracking-wider text-[10px]">
-                      {t("colPublicIp")}
+                      {t("colClientIp")}
                     </th>
                   )}
                   {visibleColumns.time && (
@@ -454,10 +466,13 @@ export default function ProxyLogger() {
                     label: log.proxy?.type || "-",
                   };
                   const levelColor = LEVEL_COLORS[log.level] || LEVEL_COLORS.direct;
+                  const resolvedProviderLabel =
+                    getProviderDisplayLabel(log.provider, providerNodes) ||
+                    (log.provider || "-").toUpperCase();
                   const providerColor = PROVIDER_COLORS[log.provider] || {
                     bg: "#374151",
                     text: "#fff",
-                    label: (log.provider || "-").toUpperCase(),
+                    label: resolvedProviderLabel,
                   };
                   const isError = log.status === "error" || log.status === "timeout";
 
@@ -552,7 +567,7 @@ export default function ProxyLogger() {
                       )}
                       {visibleColumns.ip && (
                         <td className="px-3 py-2 font-mono text-[11px] text-emerald-400">
-                          {log.publicIp || "—"}
+                          {log.clientIp || "—"}
                         </td>
                       )}
                       {visibleColumns.time && (

@@ -23,6 +23,53 @@ type GeminiFunctionCallPart = {
   };
 };
 
+function normalizeToolCallArgs(args: unknown): unknown {
+  if (typeof args !== "string") return args;
+  const trimmed = args.trim();
+  if (!trimmed || !(trimmed.startsWith("{") || trimmed.startsWith("["))) return args;
+  try {
+    return JSON.parse(trimmed);
+  } catch {
+    return args;
+  }
+}
+
+function parseTextualToolCall(text: unknown): { name: string; args: unknown } | null {
+  if (typeof text !== "string") return null;
+
+  // Gemini/Antigravity sometimes imitates the request-side fallback with small
+  // variations, e.g. a leading "(empty)" marker or zero-width chars inserted
+  // into argument strings. Normalize those variants before parsing so the
+  // response is still surfaced as a structured OpenAI tool call.
+  const normalized = text.replace(/[\u200B-\u200D\uFEFF]/g, "");
+  const match = normalized.match(
+    /^[\s\S]*?\[Tool call:\s*([^\]\n]+)\]\s*\nArguments:\s*([\s\S]+?)\s*$/
+  );
+  if (!match) return null;
+  const name = match[1]?.trim();
+  const rawArgs = match[2]?.trim();
+  if (!name || !rawArgs) return null;
+  try {
+    let args = JSON.parse(rawArgs);
+    if (typeof args === "string") {
+      const trimmed = args.trim();
+      if (trimmed.startsWith("{") || trimmed.startsWith("[")) {
+        args = JSON.parse(trimmed);
+      }
+    }
+    if (args && typeof args === "object" && !Array.isArray(args)) {
+      return { name, args };
+    }
+  } catch {}
+  return null;
+}
+
+function containsTextualToolCallMarker(text: unknown): boolean {
+  return (
+    typeof text === "string" && text.replace(/[\u200B-\u200D\uFEFF]/g, "").includes("[Tool call:")
+  );
+}
+
 function buildToolCallId(
   functionCall: GeminiFunctionCallPart["functionCall"],
   toolName: string,
@@ -47,7 +94,7 @@ function emitFunctionCallPart(
 ) {
   const rawToolName = part.functionCall.name;
   const fcName = state.toolNameMap?.get(rawToolName) || rawToolName;
-  const fcArgs = part.functionCall.args || {};
+  const fcArgs = normalizeToolCallArgs(part.functionCall.args || {});
   const toolCallIndex = state.functionIndex++;
   const toolCall = {
     id: buildToolCallId(part.functionCall, fcName, toolCallIndex),
@@ -169,6 +216,15 @@ export function geminiToOpenAIResponse(chunk, state) {
         const hasTextContent = part.text !== undefined && part.text !== "";
         const hasFunctionCall = !!part.functionCall;
 
+        // Gemini/Antigravity can emit thoughtSignature as a standalone part
+        // immediately before the functionCall part. Keep it pending so the
+        // following functionCall is cached and can be re-attached on later
+        // turns; otherwise OpenAI-format clients lose the signature and the
+        // next Gemini request has to stringify historical tool calls.
+        if (hasThoughtSig && !hasTextContent && !hasFunctionCall) {
+          continue;
+        }
+
         if (hasTextContent) {
           results.push({
             id: `chatcmpl-${state.messageId}`,
@@ -191,8 +247,35 @@ export function geminiToOpenAIResponse(chunk, state) {
         continue;
       }
 
-      // Text content (non-thinking)
+      // Text content (non-thinking). Some Gemini/Antigravity turns can imitate
+      // the request-side signatureless history fallback and emit a textual
+      // "[Tool call: ...]" block instead of native functionCall. Convert that
+      // back to a structured OpenAI tool call so clients/tools do not see it as
+      // assistant prose.
       if (part.text !== undefined && part.text !== "") {
+        const textualToolCall = parseTextualToolCall(part.text);
+        if (textualToolCall) {
+          emitFunctionCallPart(
+            {
+              functionCall: {
+                name: textualToolCall.name,
+                args: textualToolCall.args,
+              },
+            },
+            state,
+            results
+          );
+          continue;
+        }
+
+        // Never leak a malformed textual pseudo tool-call to clients. If the
+        // model emits the marker but the arguments are not parseable yet/at all,
+        // suppress the text; the final finish reason remains `stop` unless a
+        // structured tool call was emitted elsewhere.
+        if (containsTextualToolCallMarker(part.text)) {
+          continue;
+        }
+
         results.push({
           id: `chatcmpl-${state.messageId}`,
           object: "chat.completion.chunk",
@@ -238,6 +321,40 @@ export function geminiToOpenAIResponse(chunk, state) {
           ],
         });
       }
+    }
+  }
+
+  // Grounding Metadata (Google Search)
+  const grounding = candidate.groundingMetadata || candidate.grounding_metadata;
+  if (grounding && !state.groundingProcessed) {
+    const citations = [];
+    if (grounding.groundingChunks || grounding.grounding_chunks) {
+      const chunks = grounding.groundingChunks || grounding.grounding_chunks;
+      for (const chunk of chunks) {
+        if (chunk.web) {
+          citations.push({
+            title: chunk.web.title,
+            url: chunk.web.uri,
+          });
+        }
+      }
+    }
+
+    if (citations.length > 0) {
+      results.push({
+        id: `chatcmpl-${state.messageId}`,
+        object: "chat.completion.chunk",
+        created: Math.floor(Date.now() / 1000),
+        model: state.model,
+        choices: [
+          {
+            index: 0,
+            delta: { citations },
+            finish_reason: null,
+          },
+        ],
+      });
+      state.groundingProcessed = true;
     }
   }
 

@@ -1,0 +1,192 @@
+{
+  "language": "pt-BR",
+  "category": "ultra",
+  "rules": [
+    {
+      "name": "pt_terse_leader_phrases",
+      "pattern": "^(?:eu vou|vou|eu posso|posso|deixa eu|deixe-me|vamos|a gente pode)\\s+(?=[a-záéíóúâêôãõç])",
+      "replacement": "",
+      "flags": "gm",
+      "context": "all",
+      "category": "terse",
+      "minIntensity": "full",
+      "description": "Leader phrases at sentence start — PT-BR equivalent of 'I'll/Let me'"
+    },
+    {
+      "name": "pt_ultra_banco_de_dados",
+      "pattern": "\\bbanco de dados\\b",
+      "replacement": "BD",
+      "flags": "gi",
+      "context": "all",
+      "category": "ultra",
+      "minIntensity": "ultra",
+      "description": "banco de dados → BD"
+    },
+    {
+      "name": "pt_ultra_configuracao",
+      "pattern": "\\b(?:configuração|configurações)\\b",
+      "replacement": "config",
+      "replacementMap": {
+        "configuração": "config",
+        "configurações": "configs"
+      },
+      "flags": "gi",
+      "context": "all",
+      "category": "ultra",
+      "minIntensity": "ultra",
+      "description": "configuração → config"
+    },
+    {
+      "name": "pt_ultra_funcao",
+      "pattern": "\\b(?:função|funções)\\b",
+      "replacement": "fn",
+      "replacementMap": {
+        "função": "fn",
+        "funções": "fns"
+      },
+      "flags": "gi",
+      "context": "all",
+      "category": "ultra",
+      "minIntensity": "ultra",
+      "description": "função → fn"
+    },
+    {
+      "name": "pt_ultra_requisicao",
+      "pattern": "\\b(?:requisição|requisições)\\b",
+      "replacement": "req",
+      "replacementMap": {
+        "requisição": "req",
+        "requisições": "reqs"
+      },
+      "flags": "gi",
+      "context": "all",
+      "category": "ultra",
+      "minIntensity": "ultra",
+      "description": "requisição → req"
+    },
+    {
+      "name": "pt_ultra_resposta",
+      "pattern": "\\bresposta\\b",
+      "replacement": "res",
+      "flags": "gi",
+      "context": "all",
+      "category": "ultra",
+      "minIntensity": "ultra",
+      "description": "resposta → res"
+    },
+    {
+      "name": "pt_ultra_implementacao",
+      "pattern": "\\b(?:implementação|implementações)\\b",
+      "replacement": "impl",
+      "flags": "gi",
+      "context": "all",
+      "category": "ultra",
+      "minIntensity": "ultra",
+      "description": "implementação → impl"
+    },
+    {
+      "name": "pt_ultra_autenticacao",
+      "pattern": "\\b(?:autenticação|autenticações)\\b",
+      "replacement": "auth",
+      "flags": "gi",
+      "context": "all",
+      "category": "ultra",
+      "minIntensity": "ultra",
+      "description": "autenticação → auth"
+    },
+    {
+      "name": "pt_ultra_autorizacao",
+      "pattern": "\\b(?:autorização|autorizações)\\b",
+      "replacement": "authz",
+      "flags": "gi",
+      "context": "all",
+      "category": "ultra",
+      "minIntensity": "ultra",
+      "description": "autorização → authz"
+    },
+    {
+      "name": "pt_ultra_aplicacao",
+      "pattern": "\\b(?:aplicação|aplicações)\\b",
+      "replacement": "app",
+      "replacementMap": {
+        "aplicação": "app",
+        "aplicações": "apps"
+      },
+      "flags": "gi",
+      "context": "all",
+      "category": "ultra",
+      "minIntensity": "ultra",
+      "description": "aplicação → app"
+    },
+    {
+      "name": "pt_ultra_dependencia",
+      "pattern": "\\b(?:dependência|dependências)\\b",
+      "replacement": "dep",
+      "replacementMap": {
+        "dependência": "dep",
+        "dependências": "deps"
+      },
+      "flags": "gi",
+      "context": "all",
+      "category": "ultra",
+      "minIntensity": "ultra",
+      "description": "dependência → dep"
+    },
+    {
+      "name": "pt_ultra_repositorio",
+      "pattern": "\\b(?:repositório|repositórios)\\b",
+      "replacement": "repo",
+      "replacementMap": {
+        "repositório": "repo",
+        "repositórios": "repos"
+      },
+      "flags": "gi",
+      "context": "all",
+      "category": "ultra",
+      "minIntensity": "ultra",
+      "description": "repositório → repo"
+    },
+    {
+      "name": "pt_ultra_variavel",
+      "pattern": "\\b(?:variável|variáveis)\\b",
+      "replacement": "var",
+      "replacementMap": {
+        "variável": "var",
+        "variáveis": "vars"
+      },
+      "flags": "gi",
+      "context": "all",
+      "category": "ultra",
+      "minIntensity": "ultra",
+      "description": "variável → var"
+    },
+    {
+      "name": "pt_ultra_componente",
+      "pattern": "\\b(?:componente|componentes)\\b",
+      "replacement": "comp",
+      "replacementMap": {
+        "componente": "comp",
+        "componentes": "comps"
+      },
+      "flags": "gi",
+      "context": "all",
+      "category": "ultra",
+      "minIntensity": "ultra",
+      "description": "componente → comp"
+    },
+    {
+      "name": "pt_ultra_diretorio",
+      "pattern": "\\b(?:diretório|diretórios)\\b",
+      "replacement": "dir",
+      "replacementMap": {
+        "diretório": "dir",
+        "diretórios": "dirs"
+      },
+      "flags": "gi",
+      "context": "all",
+      "category": "ultra",
+      "minIntensity": "ultra",
+      "description": "diretório → dir"
+    }
+  ]
+}

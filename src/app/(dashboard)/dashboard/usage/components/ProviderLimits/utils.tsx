@@ -246,6 +246,7 @@ export function parseQuotaData(provider, data) {
       case "glm":
       case "glm-cn":
       case "glmt":
+      case "opencode-go":
         if (data.quotas) {
           Object.entries(data.quotas).forEach(([name, quota]: [string, any]) => {
             normalizedQuotas.push(
@@ -403,7 +404,12 @@ export function parseQuotaData(provider, data) {
     });
   }
 
-  if (providerId === "glm" || providerId === "glm-cn" || providerId === "glmt") {
+  if (
+    providerId === "glm" ||
+    providerId === "glm-cn" ||
+    providerId === "glmt" ||
+    providerId === "opencode-go"
+  ) {
     normalizedQuotas.sort((a, b) => {
       const orderA = GLM_QUOTA_ORDER[a.name] ?? 99;
       const orderB = GLM_QUOTA_ORDER[b.name] ?? 99;
@@ -547,4 +553,107 @@ export function normalizePlanTier(plan) {
     .join(" ");
 
   return { key: "unknown", label: titleCased || "Unknown", variant: "default", rank: 0, raw };
+}
+
+// === Card Grid Helpers (T7) =================================================
+
+export const STATUS_EMOJI = {
+  critical: "🔴",
+  alert: "🟡",
+  ok: "🟢",
+  empty: "⚪",
+} as const;
+
+export type CardStatus = keyof typeof STATUS_EMOJI;
+
+const QUOTA_BAR_GREEN_THRESHOLD = 50;
+const QUOTA_BAR_YELLOW_THRESHOLD = 20;
+
+function quotaRemainingPercent(q: any): number {
+  if (q?.unlimited) return 100;
+  if (q?.remainingPercentage !== undefined) return Number(q.remainingPercentage);
+  return calculatePercentage(q?.used, q?.total);
+}
+
+function quotaStatus(q: any): "critical" | "alert" | "ok" {
+  const pct = quotaRemainingPercent(q);
+  if (pct <= QUOTA_BAR_YELLOW_THRESHOLD) return "critical";
+  if (pct <= QUOTA_BAR_GREEN_THRESHOLD) return "alert";
+  return "ok";
+}
+
+export function worstStatus(quotas: any[] | undefined): CardStatus {
+  if (!quotas || quotas.length === 0) return "empty";
+  let worst: "ok" | "alert" = "ok";
+  for (const q of quotas) {
+    const s = quotaStatus(q);
+    if (s === "critical") return "critical";
+    if (s === "alert" && worst === "ok") worst = "alert";
+  }
+  return worst;
+}
+
+const STATUS_ORDER: Record<"critical" | "alert" | "ok", number> = {
+  critical: 0,
+  alert: 1,
+  ok: 2,
+};
+
+export function topQuotas(quotas: any[], n = 3): any[] {
+  return [...quotas.filter(Boolean)]
+    .sort((a, b) => {
+      const sa = STATUS_ORDER[quotaStatus(a)];
+      const sb = STATUS_ORDER[quotaStatus(b)];
+      if (sa !== sb) return sa - sb;
+      return quotaRemainingPercent(a) - quotaRemainingPercent(b);
+    })
+    .slice(0, n);
+}
+
+export function getBarColor(remainingPercentage: number): {
+  bar: string;
+  text: string;
+  bg: string;
+} {
+  if (remainingPercentage > QUOTA_BAR_GREEN_THRESHOLD) {
+    return { bar: "#22c55e", text: "#22c55e", bg: "rgba(34,197,94,0.12)" };
+  }
+  if (remainingPercentage > QUOTA_BAR_YELLOW_THRESHOLD) {
+    return { bar: "#eab308", text: "#eab308", bg: "rgba(234,179,8,0.12)" };
+  }
+  return { bar: "#ef4444", text: "#ef4444", bg: "rgba(239,68,68,0.12)" };
+}
+
+export function formatCountdown(resetAt: string | null | undefined): string | null {
+  if (!resetAt) return null;
+  try {
+    const diff = new Date(resetAt).getTime() - Date.now();
+    if (diff <= 0) return null;
+    const h = Math.floor(diff / 3_600_000);
+    const m = Math.floor((diff % 3_600_000) / 60_000);
+    if (h >= 24) {
+      const d = Math.floor(h / 24);
+      return `${d}d ${h % 24}h ${m}m`;
+    }
+    return `${h}h ${m}m`;
+  } catch {
+    return null;
+  }
+}
+
+export function getNextResetSummary(quotas: any[] | undefined): string | null {
+  if (!quotas || quotas.length === 0) return null;
+  const now = Date.now();
+  let soonest = Number.POSITIVE_INFINITY;
+  let soonestIso: string | null = null;
+  for (const q of quotas) {
+    if (!q?.resetAt) continue;
+    const ts = new Date(q.resetAt).getTime();
+    if (!Number.isFinite(ts) || ts <= now) continue;
+    if (ts < soonest) {
+      soonest = ts;
+      soonestIso = typeof q.resetAt === "string" ? q.resetAt : new Date(ts).toISOString();
+    }
+  }
+  return soonestIso ? formatCountdown(soonestIso) : null;
 }

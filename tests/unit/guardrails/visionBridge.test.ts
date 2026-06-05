@@ -38,6 +38,7 @@ function createGuardrail(options?: Parameters<typeof VisionBridgeGuardrail>[0]) 
         }
         return mockVisionResponse;
       },
+      ...(options?.deps ?? {}),
     },
   });
 }
@@ -500,4 +501,73 @@ test("VB-S10: returns meta with imagesProcessed count", async () => {
   assert.strictEqual((meta.descriptions as string[]).length, 2);
   assert.strictEqual(typeof meta.processingTimeMs, "number");
   assert.strictEqual(meta.visionModel, "openai/gpt-4o-mini");
+});
+
+// ── VB-S11: Combo mapping forces vision processing despite vision-capable model ──
+
+test("VB-S11: processes images when vision-capable model has combo mapping", async () => {
+  mockVisionResponse = "A description from combo-mapped vision bridge";
+  const guardrail = createGuardrail({
+    deps: {
+      checkModelHasComboMapping: async (_model: string) => true,
+    },
+  });
+
+  const payload = createPayload({
+    model: "openai/gpt-4o",
+    messages: [
+      {
+        role: "user",
+        content: [
+          { type: "text", text: "What is this?" },
+          {
+            type: "image_url",
+            image_url: { url: "https://example.com/image.png" },
+          },
+        ],
+      },
+    ],
+  });
+
+  const startCallCount = visionCallCount;
+  const result = await guardrail.preCall(payload, createContext({ model: "openai/gpt-4o" }));
+
+  // Vision bridge should have processed the image
+  assert.strictEqual(result.block, false);
+  assert.ok(visionCallCount > startCallCount, "Expected vision model to be called");
+  assert.ok(
+    result.modifiedPayload !== undefined,
+    "Expected modifiedPayload when combo mapping forces vision bridge"
+  );
+});
+
+test("VB-S11b: passthroughs when vision-capable model has NO combo mapping", async () => {
+  const guardrail = createGuardrail({
+    deps: {
+      checkModelHasComboMapping: async (_model: string) => false,
+    },
+  });
+
+  const payload = createPayload({
+    model: "openai/gpt-4o",
+    messages: [
+      {
+        role: "user",
+        content: [
+          { type: "text", text: "What is this?" },
+          {
+            type: "image_url",
+            image_url: { url: "https://example.com/image.png" },
+          },
+        ],
+      },
+    ],
+  });
+
+  const result = await guardrail.preCall(payload, createContext({ model: "openai/gpt-4o" }));
+
+  // Vision bridge should skip (passthrough) since model supports vision and no combo mapping
+  assert.strictEqual(result.block, false);
+  assert.strictEqual(result.modifiedPayload, undefined);
+  assert.strictEqual(visionCallCount, 0);
 });

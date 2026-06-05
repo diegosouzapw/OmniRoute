@@ -243,6 +243,67 @@ Validates a WebSocket upgrade handshake and returns the wire protocol example me
 
 **Auth:** Bearer API key during handshake.
 
+### Responses API over WebSocket (codex only)
+
+```bash
+# Same host:port as the HTTP API (default 20128); upgrade the connection:
+wscat -c "ws://localhost:20128/v1/responses?api_key=<OMNIROUTE_API_KEY>"
+# (or: -H "Authorization: Bearer <OMNIROUTE_API_KEY>")
+
+# First frame MUST be response.create:
+{ "type": "response.create", "model": "gpt-5.5", "input": [ { "role": "user", "content": "hi" } ] }
+```
+
+A Responses-API-over-WebSocket proxy is wired **exclusively to `codex`** (ChatGPT
+backend). It listens on the same port as the API/dashboard at paths `/v1/responses`,
+`/responses`, and `/api/v1/responses`. On the first `response.create` frame it
+authenticates + prepares via the internal `codex-responses-ws` bridge, selects a
+codex OAuth connection, and tunnels to `wss://chatgpt.com/backend-api/codex/responses`
+via the `wreq-js` transport. **Non-codex models are rejected** (`codex_ws_provider_required`).
+For quota-share routing use `model: "qtSd/<group>/codex/<model>"`. Implemented in
+`app/server-ws.mjs` + `scripts/dev/responses-ws-proxy.mjs` + `src/app/api/internal/codex-responses-ws/route.ts`.
+
+**Auth:** Bearer API key during handshake. The bundled HTTP server (`server-ws.mjs`)
+must be the active entrypoint (it is, by default, when `app/server-ws.mjs` exists).
+
+#### Model id: use the bare ChatGPT id (no `codex/` prefix)
+
+The OpenAI **Codex CLI** validates the model name client-side when
+`supports_websockets = true` and **rejects provider-prefixed ids** like
+`codex/gpt-5.5` (`The 'codex/gpt-5.5' model is not supported when using Codex with
+a ChatGPT account`). Send the **bare** id (e.g. `gpt-5.5`). OmniRoute's bridge is
+codex-only, so it re-resolves a bare id as a codex model
+(`resolveCodexWsModelInfo`) before tunneling upstream — even though a bare
+`gpt-5.5` would otherwise route to another provider over HTTP.
+
+#### Configuring the OpenAI Codex CLI
+
+Point the Codex CLI at OmniRoute by adding a custom provider with WebSocket
+support to `~/.codex/config.toml` (use a separate `CODEX_HOME` to avoid touching
+an existing config):
+
+```toml
+model = "gpt-5.5"                 # bare id — NOT "codex/gpt-5.5"
+model_provider = "omniroute"
+
+[model_providers.omniroute]
+name = "OmniRoute (WS)"
+base_url = "http://localhost:20128/v1"   # no trailing slash; the WS URL is derived (use https/wss in production)
+wire_api = "responses"                    # only supported value since Feb 2026
+supports_websockets = true                # enables the Responses-over-WS transport
+env_key = "OMNIROUTE_API_KEY"             # holds the OmniRoute API key (Bearer)
+```
+
+```bash
+export OMNIROUTE_API_KEY=sk-...           # an OmniRoute API key (any key if REQUIRE_API_KEY=false)
+codex exec "Responda apenas: PONG"
+```
+
+The CLI upgrades `base_url + /responses` to a WebSocket and OmniRoute tunnels it
+to the selected codex OAuth connection. Validated end-to-end against the local
+server: ChatGPT returns `codex.rate_limits` + `response.created` and streams the
+completion.
+
 ---
 
 ## Quotas & Issues Reporting
@@ -325,12 +386,13 @@ Response example:
 
 ### Usage & Analytics
 
-| Endpoint                    | Method | Description          |
-| --------------------------- | ------ | -------------------- |
-| `/api/usage/history`        | GET    | Usage history        |
-| `/api/usage/logs`           | GET    | Usage logs           |
-| `/api/usage/request-logs`   | GET    | Request-level logs   |
-| `/api/usage/[connectionId]` | GET    | Per-connection usage |
+| Endpoint                    | Method            | Description                       |
+| --------------------------- | ----------------- | --------------------------------- |
+| `/api/usage/history`        | GET               | Usage history                     |
+| `/api/usage/logs`           | GET               | Usage logs                        |
+| `/api/usage/request-logs`   | GET               | Request-level logs                |
+| `/api/usage/[connectionId]` | GET               | Per-connection usage              |
+| `/api/usage/token-limits`   | GET/POST/DELETE   | Per-API-key token-limit budgets   |
 
 ### Settings
 
@@ -589,6 +651,33 @@ Content-Type: application/json
 ```
 
 > **Schema notes** (`setBudgetSchema`): `apiKeyId` is required; at least one of `dailyLimitUsd`, `weeklyLimitUsd`, or `monthlyLimitUsd` must be greater than zero. Optional fields: `warningThreshold` (0–1), `resetInterval` (`daily` | `weekly` | `monthly`), `resetTime` (`HH:MM`). The legacy `{keyId, limit, period}` shape returns `400 Bad Request`.
+
+## Token Limits
+
+Per-API-key **token** budgets (distinct from the USD-based Budget above). Enforced inline on the request path: when a key's current window usage reaches its limit, requests are rejected with `429 Too Many Requests`. Limits can be scoped to a specific `model`, a `provider`, or applied `global`ly across the key; when several limits match a request, the most restrictive one wins.
+
+```bash
+# List a key's token limits (includes live window usage)
+GET /api/usage/token-limits?apiKeyId=key-123
+
+# Create or update a token limit
+POST /api/usage/token-limits
+Content-Type: application/json
+
+{
+  "apiKeyId": "key-123",
+  "scopeType": "model",
+  "scopeValue": "openai/gpt-4o",
+  "tokenLimit": 1000000,
+  "resetInterval": "monthly",
+  "enabled": true
+}
+
+# Delete a token limit by id
+DELETE /api/usage/token-limits?id=tl-abc
+```
+
+> **Schema notes** (`setTokenLimitSchema`): `apiKeyId` and `scopeType` (`model` | `provider` | `global`) are required. `scopeValue` is required unless `scopeType` is `global` (e.g. a model id for `model` scope, a provider id for `provider` scope). `tokenLimit` must be a positive integer (coerced from string). Optional: `id` (omit to create, supply to update), `resetInterval` (`daily` | `weekly` | `monthly`, default `monthly`), `resetTime` (`HH:MM`), `enabled` (default `true`). `GET` responses enrich each limit with `tokensUsed`, `remaining`, `windowStart`, `periodStartAt`, and `nextResetAt`. This is a management-class endpoint (auth enforced centrally by the authz pipeline).
 
 ## Request Processing
 

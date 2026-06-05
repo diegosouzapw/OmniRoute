@@ -64,6 +64,11 @@ test("updateKeyPermissionsSchema accepts noLog-only updates and rejects empty pa
   });
   assert.equal(maxSessionsOnly.success, true);
 
+  const streamDefaultOnly = schemas.validateBody(schemas.updateKeyPermissionsSchema, {
+    streamDefaultMode: "json",
+  });
+  assert.equal(streamDefaultOnly.success, true);
+
   const emptyPayload = schemas.validateBody(schemas.updateKeyPermissionsSchema, {});
   assert.equal(emptyPayload.success, false);
 });

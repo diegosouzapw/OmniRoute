@@ -60,14 +60,20 @@ test("GLM import uses international coding endpoint when apiRegion is internatio
 
 test("GLM import normalizes custom coding models URLs without duplicating endpoints", async () => {
   await resetStorage();
+  // Distinct apiKeys per connection: createProviderConnection dedups by decrypted
+  // key value (#3023), so a shared key would collapse these two custom-endpoint
+  // connections into one and the second would serve from the first's cached
+  // catalog (only one discovery fetch instead of two).
   const cases = [
     {
       baseUrl: "https://api.z.ai/api/coding/paas/v4",
       expectedUrl: "https://api.z.ai/api/coding/paas/v4/models",
+      apiKey: "glm-key-0",
     },
     {
       baseUrl: "https://api.z.ai/api/coding/paas/v4/models",
       expectedUrl: "https://api.z.ai/api/coding/paas/v4/models",
+      apiKey: "glm-key-1",
     },
   ];
 
@@ -81,7 +87,7 @@ test("GLM import normalizes custom coding models URLs without duplicating endpoi
         provider: "glm",
         authType: "apikey",
         name: `glm-custom-${index}`,
-        apiKey: "glm-key",
+        apiKey: testCase.apiKey,
         providerSpecificData: { baseUrl: testCase.baseUrl },
       })
     );
@@ -91,7 +97,7 @@ test("GLM import normalizes custom coding models URLs without duplicating endpoi
     const expected = cases[seenUrls.length];
     assert.ok(expected, `unexpected GLM discovery call to ${String(url)}`);
     assert.equal(String(url), expected.expectedUrl);
-    assert.equal(init.headers.Authorization, "Bearer glm-key");
+    assert.equal(init.headers.Authorization, `Bearer ${expected.apiKey}`);
     assert.equal(init.headers["x-api-key"], undefined);
     assert.equal(init.headers["anthropic-version"], undefined);
     seenUrls.push(String(url));

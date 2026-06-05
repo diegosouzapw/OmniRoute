@@ -227,11 +227,11 @@ export function runJsonMigration(
         INSERT OR REPLACE INTO usage_history (
           id, provider, model, connection_id, api_key_id, api_key_name,
           tokens_input, tokens_output, tokens_cache_read, tokens_cache_creation,
-          tokens_reasoning, status, success, latency_ms, ttft_ms, error_code, timestamp
+          tokens_reasoning, status, success, latency_ms, ttft_ms, error_code, combo_strategy, timestamp
         ) VALUES (
           @id, @provider, @model, @connection_id, @api_key_id, @api_key_name,
           @tokens_input, @tokens_output, @tokens_cache_read, @tokens_cache_creation,
-          @tokens_reasoning, @status, @success, @latency_ms, @ttft_ms, @error_code, @timestamp
+          @tokens_reasoning, @status, @success, @latency_ms, @ttft_ms, @error_code, @combo_strategy, @timestamp
         )
       `);
       for (const row of data.usageHistory) {
@@ -252,6 +252,7 @@ export function runJsonMigration(
           latency_ms: row.latency_ms ?? 0,
           ttft_ms: row.ttft_ms ?? 0,
           error_code: row.error_code ?? null,
+          combo_strategy: row.combo_strategy ?? "direct",
           timestamp: row.timestamp,
         });
       }

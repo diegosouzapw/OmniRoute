@@ -22,6 +22,24 @@ async function withServerFetch(mockFetch: typeof fetch, fn: () => Promise<void>)
   }
 }
 
+async function captureStdout(fn: () => Promise<number>) {
+  let output = "";
+  const originalWrite = process.stdout.write;
+  process.stdout.write = ((chunk: unknown, encoding?: unknown, callback?: unknown) => {
+    output += String(chunk);
+    const cb = typeof encoding === "function" ? encoding : callback;
+    if (typeof cb === "function") cb();
+    return true;
+  }) as typeof process.stdout.write;
+
+  try {
+    const result = await fn();
+    return { output, result };
+  } finally {
+    process.stdout.write = originalWrite;
+  }
+}
+
 // ── health ────────────────────────────────────────────────────────────────────
 
 test("health returns 1 when server is offline", async () => {
@@ -100,44 +118,23 @@ test("mcp status --json returns 0 when server responds", async () => {
 
 test("completion bash outputs bash script", async () => {
   const { runCompletionCommand } = await import("../../bin/cli/commands/completion.mjs");
-  const chunks: string[] = [];
-  const originalWrite = process.stdout.write.bind(process.stdout);
-  process.stdout.write = (chunk: any) => {
-    chunks.push(String(chunk));
-    return true;
-  };
-  const result = await runCompletionCommand("bash");
-  process.stdout.write = originalWrite;
+  const { output, result } = await captureStdout(() => runCompletionCommand("bash"));
   assert.equal(result, 0);
-  assert.ok(chunks.join("").includes("_omniroute"));
+  assert.ok(output.includes("_omniroute"));
 });
 
 test("completion zsh outputs zsh script", async () => {
   const { runCompletionCommand } = await import("../../bin/cli/commands/completion.mjs");
-  const chunks: string[] = [];
-  const originalWrite = process.stdout.write.bind(process.stdout);
-  process.stdout.write = (chunk: any) => {
-    chunks.push(String(chunk));
-    return true;
-  };
-  const result = await runCompletionCommand("zsh");
-  process.stdout.write = originalWrite;
+  const { output, result } = await captureStdout(() => runCompletionCommand("zsh"));
   assert.equal(result, 0);
-  assert.ok(chunks.join("").includes("#compdef omniroute"));
+  assert.ok(output.includes("#compdef omniroute"));
 });
 
 test("completion fish outputs fish script", async () => {
   const { runCompletionCommand } = await import("../../bin/cli/commands/completion.mjs");
-  const chunks: string[] = [];
-  const originalWrite = process.stdout.write.bind(process.stdout);
-  process.stdout.write = (chunk: any) => {
-    chunks.push(String(chunk));
-    return true;
-  };
-  const result = await runCompletionCommand("fish");
-  process.stdout.write = originalWrite;
+  const { output, result } = await captureStdout(() => runCompletionCommand("fish"));
   assert.equal(result, 0);
-  assert.ok(chunks.join("").includes("complete -c omniroute"));
+  assert.ok(output.includes("complete -c omniroute"));
 });
 
 // ── env ───────────────────────────────────────────────────────────────────────

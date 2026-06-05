@@ -23,6 +23,7 @@ function readRoute(rel: string): string {
 
 const CACHE_STATS = "src/app/api/cache/stats/route.ts";
 const HERMES = "src/app/api/cli-tools/hermes-agent-settings/route.ts";
+const COPILOT_CHAT = "src/app/api/copilot/chat/route.ts";
 const DB_IMPORT = "src/app/api/db-backups/import/route.ts";
 
 test("db-backups/import awaits getSettings() before re-hydrating the system prompt", () => {
@@ -69,4 +70,20 @@ test("hermes-agent-settings POST validates baseUrl as an http(s) URL", () => {
     "must import the shared validateBaseUrl helper"
   );
   assert.match(src, /validateBaseUrl\(baseUrl\)/, "POST must validate the supplied baseUrl");
+});
+
+test("hermes-agent-settings POST validates preview mode before use", () => {
+  const src = readRoute(HERMES);
+  assert.match(src, /preview: z\.boolean\(\)\.optional\(\)/, "preview must be schema-bound");
+  assert.match(src, /const \{ baseUrl, keyId, apiKey, selections, preview \} = parsed\.data;/);
+  assert.match(src, /if \(preview === true\)/);
+  assert.ok(!/body\.preview/.test(src), "must not reference an undefined body variable");
+});
+
+test("copilot chat route requires management auth and sanitizes thrown errors", () => {
+  const src = readRoute(COPILOT_CHAT);
+  assert.match(src, /requireManagementAuth/, "route should enforce management auth");
+  assert.match(src, /const authError = await requireManagementAuth\(request\);/);
+  assert.match(src, /sanitizeErrorMessage\(error\)/, "catch blocks must sanitize errors");
+  assert.ok(!/error\.message/.test(src), "must not return raw error.message");
 });

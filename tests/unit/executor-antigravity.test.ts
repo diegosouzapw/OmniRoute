@@ -4,6 +4,7 @@ import assert from "node:assert/strict";
 import { AntigravityExecutor } from "../../open-sse/executors/antigravity.ts";
 import { setCliCompatProviders } from "../../open-sse/config/cliFingerprints.ts";
 import { scrubProxyAndFingerprintHeaders } from "../../open-sse/services/antigravityHeaderScrub.ts";
+import { antigravityUserAgent } from "../../open-sse/services/antigravityHeaders.ts";
 import {
   clearAntigravityVersionCache,
   seedAntigravityVersionCache,
@@ -128,7 +129,7 @@ test("AntigravityExecutor.transformRequest normalizes model, project and content
 
   if (result instanceof Response) throw new Error("Unexpected Response from transformRequest");
   assert.equal(result.project, "project-1");
-  assert.equal(result.model, "gemini-3.1-pro-low");
+  assert.equal(result.model, "gemini-3.1-pro");
   assert.deepEqual(Object.keys(result), [
     "project",
     "requestId",
@@ -215,7 +216,7 @@ test("AntigravityExecutor.transformRequest tolerates a missing body when project
 
   if (result instanceof Response) throw new Error("Unexpected Response from transformRequest");
   assert.equal(result.project, "project-1");
-  assert.equal(result.model, "gemini-3.1-pro-low");
+  assert.equal(result.model, "gemini-3.1-pro");
   assert.ok(result.request.sessionId);
 });
 
@@ -476,6 +477,60 @@ test("AntigravityExecutor.collectStreamToResponse turns SSE Gemini chunks into a
   });
 });
 
+test("AntigravityExecutor.collectStreamToResponse converts textual tool call SSE to structured tool_calls", async () => {
+  const executor = new AntigravityExecutor();
+  const response = new Response(
+    [
+      `data: ${JSON.stringify({
+        response: {
+          candidates: [
+            {
+              content: {
+                parts: [
+                  {
+                    text: '[Tool call: search_files]\nArguments: {"file_glob":"*gemini*","output_mode":"files_only","path":"/opt/O\\u200dmniRoute","target":"files"}',
+                  },
+                ],
+              },
+              finishReason: "STOP",
+            },
+          ],
+          usageMetadata: {
+            promptTokenCount: 7,
+            candidatesTokenCount: 4,
+            totalTokenCount: 11,
+          },
+        },
+      })}\n\n`,
+    ].join(""),
+    {
+      status: 200,
+      headers: { "Content-Type": "text/event-stream" },
+    }
+  );
+
+  const result = await executor.collectStreamToResponse(
+    response,
+    "gemini-3.5-flash-low",
+    "https://example.com",
+    { Authorization: "Bearer ag-token" },
+    { request: {} }
+  );
+  const payload = await result.response.json();
+  const choice = payload.choices[0];
+
+  assert.equal(choice.message.content, null);
+  assert.equal(choice.finish_reason, "tool_calls");
+  assert.equal(choice.message.tool_calls.length, 1);
+  assert.equal(choice.message.tool_calls[0].function.name, "search_files");
+  assert.deepEqual(JSON.parse(choice.message.tool_calls[0].function.arguments), {
+    file_glob: "*gemini*",
+    output_mode: "files_only",
+    path: "/opt/OmniRoute",
+    target: "files",
+  });
+});
+
 test("AntigravityExecutor.collectStreamToResponse parses fragmented SSE lines incrementally", async () => {
   const executor = new AntigravityExecutor();
   const encoder = new TextEncoder();
@@ -667,6 +722,54 @@ test("AntigravityExecutor.execute embeds retryAfterMs when the upstream asks for
   }
 });
 
+test("AntigravityExecutor.execute bounds a persistent short-retry 429 instead of looping forever", async () => {
+  const executor = new AntigravityExecutor();
+  const originalFetch = globalThis.fetch;
+  const originalSetTimeout = globalThis.setTimeout;
+  const calls: string[] = [];
+  seedAntigravityVersionCache("2026.04.17-test");
+
+  // "rate limited" classifies as rate_limited → decide429 returns 60s
+  // (≤ LONG_RETRY_THRESHOLD_MS), i.e. the short-retry branch. A persistent 429
+  // must NOT loop forever on one endpoint — it must exhaust MAX_AUTO_RETRIES per
+  // endpoint, advance through every base URL, then return the 429 so the
+  // account-fallback layer can switch accounts.
+  globalThis.fetch = async (url) => {
+    calls.push(String(url));
+    return new Response(JSON.stringify({ error: { message: "rate limited" } }), {
+      status: 429,
+      headers: { "Content-Type": "application/json" },
+    });
+  };
+  globalThis.setTimeout = ((callback) => {
+    (callback as () => void)();
+    return 0;
+  }) as typeof setTimeout;
+
+  try {
+    const result = await executor.execute({
+      model: "antigravity/gemini-2.5-flash",
+      body: { request: { contents: [] } },
+      stream: true,
+      credentials: { accessToken: "token", projectId: "project-1" },
+      log: { debug() {}, warn() {} },
+    });
+
+    // Returns the 429 rather than hanging.
+    assert.equal(result.response.status, 429);
+
+    // Bounded: 3 endpoints × (1 initial + MAX_AUTO_RETRIES=3) = 12 attempts total.
+    assert.equal(calls.length, 12);
+
+    // Tried every distinct base URL before giving up.
+    const distinctHosts = new Set(calls.map((u) => new URL(u).host));
+    assert.equal(distinctHosts.size, 3);
+  } finally {
+    globalThis.fetch = originalFetch;
+    globalThis.setTimeout = originalSetTimeout;
+  }
+});
+
 test("AntigravityExecutor.execute tags pre-response stalls with a fallbackable timeout code", async () => {
   const executor = new AntigravityExecutor();
   const originalFetch = globalThis.fetch;
@@ -722,10 +825,7 @@ test("AntigravityExecutor.execute applies CLI fingerprint when enabled", async (
     const headers = init?.headers as Record<string, string>;
     const parsedBody = JSON.parse(String(init?.body));
 
-    assert.match(
-      headers["User-Agent"],
-      /^Antigravity\/2026\.04\.17-test \(.+\) Chrome\/132\.0\.6834\.160 Electron\/39\.2\.3$/
-    );
+    assert.equal(headers["User-Agent"], antigravityUserAgent("2026.04.17-test"));
     assert.equal(headers["x-client-name"], "antigravity");
     assert.equal(headers["x-client-version"], "2026.04.17-test");
     assert.equal(headers["x-goog-user-project"], "project-1");

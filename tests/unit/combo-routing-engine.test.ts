@@ -19,10 +19,12 @@ const { normalizeComboStep } = await import("../../src/lib/combos/steps.ts");
 const { registerStrategy } = await import("../../open-sse/services/autoCombo/routerStrategy.ts");
 const core = await import("../../src/lib/db/core.ts");
 const settingsDb = await import("../../src/lib/db/settings.ts");
+const evalsDb = await import("../../src/lib/db/evals.ts");
 const { saveModelsDevCapabilities, clearModelsDevCapabilities } =
   await import("../../src/lib/modelsDevSync.ts");
 const { getComboMetrics, recordComboRequest, resetAllComboMetrics } =
   await import("../../open-sse/services/comboMetrics.ts");
+const { resetEvalRoutingCache } = await import("../../open-sse/services/evalRouting.ts");
 const { resetAllCircuitBreakers } = await import("../../src/shared/utils/circuitBreaker.ts");
 const { acquire: acquireSemaphore, resetAll: resetAllSemaphores } =
   await import("../../open-sse/services/rateLimitSemaphore.ts");
@@ -53,6 +55,10 @@ function errorResponse(status: number, message: string = `Error ${status}`) {
   });
 }
 
+function waitForBackgroundWork() {
+  return new Promise((resolve) => setTimeout(resolve, 25));
+}
+
 function providerBreakerOpenResponse() {
   return new Response(
     JSON.stringify({
@@ -78,7 +84,7 @@ function streamResponse(chunks: any[]) {
   });
 }
 
-function capabilityEntry(limitContext: any) {
+function capabilityEntry(limitContext: unknown, overrides: Record<string, unknown> = {}) {
   return {
     tool_call: true,
     reasoning: false,
@@ -97,6 +103,7 @@ function capabilityEntry(limitContext: any) {
     limit_input: limitContext,
     limit_output: 4096,
     interleaved_field: null,
+    ...overrides,
   };
 }
 
@@ -134,6 +141,7 @@ async function resetStorage() {
 
 test.beforeEach(async () => {
   resetAllComboMetrics();
+  resetEvalRoutingCache();
   resetAllCircuitBreakers();
   resetAllSemaphores();
   _resetAllDecks();
@@ -142,6 +150,7 @@ test.beforeEach(async () => {
 
 test.after(async () => {
   resetAllComboMetrics();
+  resetEvalRoutingCache();
   resetAllCircuitBreakers();
   resetAllSemaphores();
   _resetAllDecks();
@@ -263,6 +272,161 @@ test("handleComboChat priority strategy defaults to first model and records succ
   assert.equal(metrics.byTarget[firstStep.id].requests, 1);
   assert.equal(metrics.byTarget[firstStep.id].model, "openai/gpt-4o-mini");
   assert.equal(metrics.strategy, "priority");
+});
+
+test("handleComboChat runs shadow targets without changing the primary response or metrics", async () => {
+  const calls: any[] = [];
+  const shadowRequests: any[] = [];
+  const combo = {
+    name: "shadow-routing-priority",
+    models: ["openai/gpt-4o-mini"],
+    config: {
+      shadowRouting: {
+        enabled: true,
+        targets: [
+          {
+            kind: "model",
+            id: "shadow-anthropic",
+            providerId: "anthropic",
+            model: "anthropic/claude-3-haiku",
+            label: "Dark launch target",
+          },
+        ],
+        sampleRate: 1,
+        maxTargets: 1,
+      },
+    },
+  };
+
+  const result = await handleComboChat({
+    body: { stream: true },
+    combo,
+    handleSingleModel: async (body: any, modelStr: any, target?: any) => {
+      calls.push({
+        modelStr,
+        trafficType: target?.trafficType ?? "production",
+        stream: body.stream,
+      });
+      if (target?.trafficType === "shadow") {
+        shadowRequests.push({
+          executionKey: target.executionKey,
+          hasBodyMarker: body._omnirouteShadowRouting === true,
+        });
+      }
+      if (target?.trafficType === "shadow") return errorResponse(503, "shadow failed");
+      return okResponse();
+    },
+    isModelAvailable: async () => true,
+    log: createLog(),
+    settings: null,
+    allCombos: null,
+  });
+
+  await waitForBackgroundWork();
+
+  const metrics = getComboMetrics("shadow-routing-priority");
+
+  assert.equal(result.ok, true);
+  calls.sort((a, b) => a.trafficType.localeCompare(b.trafficType));
+  assert.deepEqual(calls, [
+    { modelStr: "openai/gpt-4o-mini", trafficType: "production", stream: true },
+    { modelStr: "anthropic/claude-3-haiku", trafficType: "shadow", stream: false },
+  ]);
+  assert.deepEqual(shadowRequests, [
+    { executionKey: "shadow>shadow-anthropic", hasBodyMarker: false },
+  ]);
+  assert.equal(metrics.totalRequests, 1);
+  assert.equal(metrics.totalSuccesses, 1);
+  assert.equal(metrics.byModel["openai/gpt-4o-mini"].requests, 1);
+  assert.equal(metrics.byModel["anthropic/claude-3-haiku"], undefined);
+  assert.equal(metrics.shadow.totalRequests, 1);
+  assert.equal(metrics.shadow.totalFailures, 1);
+  assert.equal(metrics.shadow.byModel["anthropic/claude-3-haiku"].requests, 1);
+});
+
+test("handleComboChat isolates nested shadow request bodies", async () => {
+  type MutableChatBody = { messages: Array<{ role: string; content: string }>; stream: boolean };
+
+  const shadowMessages: string[] = [];
+  const body = { messages: [{ role: "user", content: "original" }], stream: true };
+  const combo = {
+    name: "shadow-routing-isolation",
+    models: ["openai/gpt-4o-mini"],
+    config: {
+      shadowRouting: {
+        enabled: true,
+        targets: ["anthropic/claude-3-haiku"],
+        sampleRate: 1,
+      },
+    },
+  };
+
+  const result = await handleComboChat({
+    body,
+    combo,
+    handleSingleModel: async (
+      requestBody: MutableChatBody,
+      _modelStr: unknown,
+      target?: unknown
+    ) => {
+      const trafficType =
+        target && typeof target === "object" && "trafficType" in target
+          ? (target as { trafficType?: unknown }).trafficType
+          : null;
+      if (trafficType === "shadow") {
+        shadowMessages.push(requestBody.messages[0].content);
+        return okResponse();
+      }
+      requestBody.messages[0].content = "mutated by production";
+      return okResponse();
+    },
+    isModelAvailable: async () => true,
+    log: createLog(),
+    settings: null,
+    allCombos: null,
+  });
+
+  await waitForBackgroundWork();
+
+  assert.equal(result.ok, true);
+  assert.deepEqual(shadowMessages, ["original"]);
+});
+
+test("handleComboChat honors shadow sampleRate zero", async () => {
+  const calls: any[] = [];
+  const combo = {
+    name: "shadow-routing-sampled-out",
+    models: ["openai/gpt-4o-mini"],
+    config: {
+      shadowRouting: {
+        enabled: true,
+        targets: ["anthropic/claude-3-haiku"],
+        sampleRate: 0,
+      },
+    },
+  };
+
+  const result = await handleComboChat({
+    body: {},
+    combo,
+    handleSingleModel: async (_body: any, modelStr: any, target?: any) => {
+      calls.push({ modelStr, trafficType: target?.trafficType ?? "production" });
+      return okResponse();
+    },
+    isModelAvailable: async () => true,
+    log: createLog(),
+    settings: null,
+    allCombos: null,
+  });
+
+  await waitForBackgroundWork();
+
+  const metrics = getComboMetrics("shadow-routing-sampled-out");
+
+  assert.equal(result.ok, true);
+  assert.deepEqual(calls, [{ modelStr: "openai/gpt-4o-mini", trafficType: "production" }]);
+  assert.equal(metrics.totalRequests, 1);
+  assert.equal(metrics.shadow.totalRequests, 0);
 });
 
 test("handleComboChat priority strategy honors composite tier order before fallback", async () => {
@@ -1167,6 +1331,174 @@ test("handleComboChat falls through generic 400s when a later priority target su
   assert.deepEqual(calls, ["provider-a/model-a", "provider-b/model-b"]);
 });
 
+test("handleComboChat preserves fallback request bodies when zero-latency optimizations are disabled", async () => {
+  const longToolOutput = "x".repeat(2500);
+  let fallbackBody: any = null;
+
+  const result = await handleComboChat({
+    body: {
+      messages: [
+        { role: "user", content: "please inspect this output" },
+        { role: "tool", content: longToolOutput },
+      ],
+    },
+    combo: {
+      name: "zero-latency-disabled-preserves-body",
+      strategy: "priority",
+      models: ["provider-a/model-a", "provider-b/model-b"],
+      config: {
+        maxRetries: 0,
+        retryDelayMs: 1,
+        fallbackCompressionMode: "lite",
+        fallbackCompressionThreshold: 1,
+      },
+    },
+    handleSingleModel: async (requestBody: any, modelStr: any) => {
+      if (modelStr === "provider-a/model-a") {
+        return errorResponse(500, "first target failed");
+      }
+      fallbackBody = requestBody;
+      return okResponse();
+    },
+    isModelAvailable: async () => true,
+    log: createLog(),
+    settings: null,
+    relayOptions: null as any,
+    allCombos: null,
+  });
+
+  assert.equal(result.status, 200);
+  assert.equal(fallbackBody.messages[1].content, longToolOutput);
+});
+
+test("handleComboChat applies fallback compression only after explicit zero-latency opt-in", async () => {
+  const longToolOutput = "x".repeat(2500);
+  let fallbackBody: any = null;
+
+  const result = await handleComboChat({
+    body: {
+      messages: [
+        { role: "user", content: "please inspect this output" },
+        { role: "tool", content: longToolOutput },
+      ],
+    },
+    combo: {
+      name: "zero-latency-enabled-compresses-fallback",
+      strategy: "priority",
+      models: ["provider-a/model-a", "provider-b/model-b"],
+      config: {
+        maxRetries: 0,
+        retryDelayMs: 1,
+        zeroLatencyOptimizationsEnabled: true,
+        fallbackCompressionMode: "lite",
+        fallbackCompressionThreshold: 1,
+      },
+    },
+    handleSingleModel: async (requestBody: any, modelStr: any) => {
+      if (modelStr === "provider-a/model-a") {
+        return errorResponse(500, "first target failed");
+      }
+      fallbackBody = requestBody;
+      return okResponse();
+    },
+    isModelAvailable: async () => true,
+    log: createLog(),
+    settings: null,
+    relayOptions: null as any,
+    allCombos: null,
+  });
+
+  assert.equal(result.status, 200);
+  const fallbackToolContent = fallbackBody.messages[1].content;
+  assert.equal(typeof fallbackToolContent, "string");
+  assert.ok(fallbackToolContent.length < longToolOutput.length);
+  assert.match(fallbackToolContent, /truncated/i);
+});
+
+test("handleComboChat suppresses hedging unless zero-latency optimizations are enabled", async () => {
+  const calls: any[] = [];
+
+  const result = await handleComboChat({
+    body: {},
+    combo: {
+      name: "hedging-disabled-with-subfeature-set",
+      strategy: "priority",
+      models: ["model-a", "model-b"],
+      config: {
+        maxRetries: 0,
+        retryDelayMs: 1,
+        hedging: true,
+        hedgeDelayMs: 1,
+      },
+    },
+    handleSingleModel: async (_body: any, modelStr: any) => {
+      calls.push(modelStr);
+      await new Promise((resolve) => setTimeout(resolve, 20));
+      return okResponse({ choices: [{ message: { content: modelStr } }] });
+    },
+    isModelAvailable: async () => true,
+    log: createLog(),
+    settings: null,
+    relayOptions: null as any,
+    allCombos: null,
+  });
+
+  const payload = (await result.json()) as any;
+
+  assert.equal(result.status, 200);
+  assert.equal(payload.choices[0].message.content, "model-a");
+  assert.deepEqual(calls, ["model-a"]);
+});
+
+test("handleComboChat starts hedged fallback only after explicit zero-latency opt-in", async () => {
+  const calls: any[] = [];
+
+  const result = await handleComboChat({
+    body: {},
+    combo: {
+      name: "hedging-enabled-with-zero-latency",
+      strategy: "priority",
+      models: ["model-a", "model-b"],
+      config: {
+        maxRetries: 0,
+        retryDelayMs: 1,
+        zeroLatencyOptimizationsEnabled: true,
+        hedging: true,
+        hedgeDelayMs: 1,
+      },
+    },
+    handleSingleModel: async (_body: any, modelStr: any, target: any) => {
+      calls.push(modelStr);
+      if (modelStr === "model-a") {
+        await new Promise((resolve) => {
+          const timer = setTimeout(resolve, 100);
+          target?.modelAbortSignal?.addEventListener(
+            "abort",
+            () => {
+              clearTimeout(timer);
+              resolve(undefined);
+            },
+            { once: true }
+          );
+        });
+        return okResponse({ choices: [{ message: { content: "slow" } }] });
+      }
+      return okResponse({ choices: [{ message: { content: "fast" } }] });
+    },
+    isModelAvailable: async () => true,
+    log: createLog(),
+    settings: null,
+    relayOptions: null as any,
+    allCombos: null,
+  });
+
+  const payload = (await result.json()) as any;
+
+  assert.equal(result.status, 200);
+  assert.equal(payload.choices[0].message.content, "fast");
+  assert.deepEqual(calls, ["model-a", "model-b"]);
+});
+
 test("handleComboChat round-robin falls through generic 400s when a later model succeeds", async () => {
   const calls: any[] = [];
 
@@ -1410,6 +1742,284 @@ test("handleComboChat context-optimized preserves order when all context limits 
   assert.deepEqual(calls, ["unknown/model-a"]);
 });
 
+test("handleComboChat skips fallback targets with too small context windows", async () => {
+  saveModelsDevCapabilities({
+    openai: {
+      "tiny-context": capabilityEntry(32),
+      "large-context": capabilityEntry(4096),
+    },
+  });
+
+  const calls: any[] = [];
+  const result = await handleComboChat({
+    body: {
+      messages: [{ role: "user", content: "x".repeat(800) }],
+    },
+    combo: {
+      name: "context-aware-fallback-context",
+      strategy: "priority",
+      models: ["openai/tiny-context", "openai/large-context"],
+    },
+    handleSingleModel: async (_body: any, modelStr: any) => {
+      calls.push(modelStr);
+      return okResponse();
+    },
+    isModelAvailable: async () => true,
+    log: createLog(),
+    settings: null,
+    relayOptions: null as any,
+    allCombos: null,
+  });
+
+  assert.equal(result.ok, true);
+  assert.deepEqual(calls, ["openai/large-context"]);
+});
+
+test("handleComboChat skips tool, vision, and structured-output incompatible fallbacks", async () => {
+  saveModelsDevCapabilities({
+    openai: {
+      "no-tools": capabilityEntry(128000, {
+        tool_call: false,
+        attachment: true,
+        structured_output: true,
+        modalities_input: JSON.stringify(["text", "image"]),
+      }),
+      "no-vision": capabilityEntry(128000, {
+        tool_call: true,
+        attachment: false,
+        structured_output: true,
+        modalities_input: JSON.stringify(["text"]),
+      }),
+      "no-json": capabilityEntry(128000, {
+        tool_call: true,
+        attachment: true,
+        structured_output: false,
+        modalities_input: JSON.stringify(["text", "image"]),
+      }),
+      compatible: capabilityEntry(128000, {
+        tool_call: true,
+        attachment: true,
+        structured_output: true,
+        modalities_input: JSON.stringify(["text", "image"]),
+      }),
+    },
+  });
+
+  const calls: any[] = [];
+  const result = await handleComboChat({
+    body: {
+      messages: [
+        {
+          role: "user",
+          content: [
+            { type: "text", text: "Describe this image and return JSON." },
+            { type: "image_url", image_url: { url: "data:image/png;base64,AAAA" } },
+          ],
+        },
+      ],
+      tools: [{ type: "function", function: { name: "save", parameters: {} } }],
+      response_format: { type: "json_schema", json_schema: { name: "result", schema: {} } },
+    },
+    combo: {
+      name: "context-aware-fallback-capabilities",
+      strategy: "priority",
+      models: ["openai/no-tools", "openai/no-vision", "openai/no-json", "openai/compatible"],
+    },
+    handleSingleModel: async (_body: any, modelStr: any) => {
+      calls.push(modelStr);
+      return okResponse();
+    },
+    isModelAvailable: async () => true,
+    log: createLog(),
+    settings: null,
+    relayOptions: null as any,
+    allCombos: null,
+  });
+
+  assert.equal(result.ok, true);
+  assert.deepEqual(calls, ["openai/compatible"]);
+});
+
+test("handleComboChat preserves strategy order when context-aware filtering rejects all targets", async () => {
+  saveModelsDevCapabilities({
+    openai: {
+      "no-tools-a": capabilityEntry(128000, { tool_call: false }),
+      "no-tools-b": capabilityEntry(128000, { tool_call: false }),
+    },
+  });
+
+  const calls: any[] = [];
+  const result = await handleComboChat({
+    body: {
+      messages: [{ role: "user", content: "Use a tool." }],
+      tools: [{ type: "function", function: { name: "lookup", parameters: {} } }],
+    },
+    combo: {
+      name: "context-aware-fallback-full-filter",
+      strategy: "priority",
+      models: ["openai/no-tools-a", "openai/no-tools-b"],
+    },
+    handleSingleModel: async (_body: any, modelStr: any) => {
+      calls.push(modelStr);
+      return okResponse();
+    },
+    isModelAvailable: async () => true,
+    log: createLog(),
+    settings: null,
+    relayOptions: null as any,
+    allCombos: null,
+  });
+
+  assert.equal(result.ok, true);
+  assert.deepEqual(calls, ["openai/no-tools-a"]);
+});
+
+test("handleComboChat eval-driven routing prioritizes higher scoring evaluated targets", async () => {
+  evalsDb.saveEvalRun({
+    suiteId: "routing-quality",
+    suiteName: "Routing Quality",
+    target: { type: "model", id: "openai/eval-low", label: "Model: openai/eval-low" },
+    summary: { total: 10, passed: 4, failed: 6, passRate: 40 },
+    avgLatencyMs: 100,
+    results: [],
+    createdAt: new Date().toISOString(),
+  });
+  evalsDb.saveEvalRun({
+    suiteId: "routing-quality",
+    suiteName: "Routing Quality",
+    target: { type: "model", id: "openai/eval-high", label: "Model: openai/eval-high" },
+    summary: { total: 10, passed: 9, failed: 1, passRate: 90 },
+    avgLatencyMs: 120,
+    results: [],
+    createdAt: new Date().toISOString(),
+  });
+
+  const calls: any[] = [];
+  const result = await handleComboChat({
+    body: {},
+    combo: {
+      name: "eval-driven-priority",
+      strategy: "priority",
+      models: ["openai/eval-low", "openai/eval-high"],
+      config: {
+        evalRouting: {
+          enabled: true,
+          suiteIds: ["routing-quality"],
+          qualityWeight: 1,
+          latencyWeight: 0,
+        },
+      },
+    },
+    handleSingleModel: async (_body: any, modelStr: any) => {
+      calls.push(modelStr);
+      return okResponse();
+    },
+    isModelAvailable: async () => true,
+    log: createLog(),
+    settings: null,
+    relayOptions: null as any,
+    allCombos: null,
+  });
+
+  assert.equal(result.ok, true);
+  assert.deepEqual(calls, ["openai/eval-high"]);
+});
+
+test("handleComboChat eval-driven routing ignores stale and undersized eval runs", async () => {
+  evalsDb.saveEvalRun({
+    suiteId: "routing-quality",
+    suiteName: "Routing Quality",
+    target: { type: "model", id: "openai/stale-good", label: "Model: openai/stale-good" },
+    summary: { total: 10, passed: 10, failed: 0, passRate: 100 },
+    avgLatencyMs: 50,
+    results: [],
+    createdAt: "2020-01-01T00:00:00.000Z",
+  });
+  evalsDb.saveEvalRun({
+    suiteId: "routing-quality",
+    suiteName: "Routing Quality",
+    target: { type: "model", id: "openai/small-good", label: "Model: openai/small-good" },
+    summary: { total: 1, passed: 1, failed: 0, passRate: 100 },
+    avgLatencyMs: 50,
+    results: [],
+    createdAt: new Date().toISOString(),
+  });
+
+  const calls: any[] = [];
+  const result = await handleComboChat({
+    body: {},
+    combo: {
+      name: "eval-driven-ignored-runs",
+      strategy: "priority",
+      models: ["openai/stale-good", "openai/small-good", "openai/no-evals"],
+      config: {
+        evalRouting: {
+          enabled: true,
+          suiteIds: ["routing-quality"],
+          maxAgeHours: 24,
+          minCases: 5,
+          qualityWeight: 1,
+          latencyWeight: 0,
+        },
+      },
+    },
+    handleSingleModel: async (_body: any, modelStr: any) => {
+      calls.push(modelStr);
+      return okResponse();
+    },
+    isModelAvailable: async () => true,
+    log: createLog(),
+    settings: null,
+    relayOptions: null as any,
+    allCombos: null,
+  });
+
+  assert.equal(result.ok, true);
+  assert.deepEqual(calls, ["openai/stale-good"]);
+});
+
+test("handleComboChat eval-driven routing can match bare model eval target ids", async () => {
+  evalsDb.saveEvalRun({
+    suiteId: "routing-quality",
+    suiteName: "Routing Quality",
+    target: { type: "model", id: "bare-high", label: "Model: bare-high" },
+    summary: { total: 8, passed: 8, failed: 0, passRate: 100 },
+    avgLatencyMs: 200,
+    results: [],
+    createdAt: new Date().toISOString(),
+  });
+
+  const calls: any[] = [];
+  const result = await handleComboChat({
+    body: {},
+    combo: {
+      name: "eval-driven-bare-model-id",
+      strategy: "priority",
+      models: ["openai/bare-low", "openai/bare-high"],
+      config: {
+        evalRouting: {
+          enabled: true,
+          suiteIds: ["routing-quality"],
+          qualityWeight: 1,
+          latencyWeight: 0,
+        },
+      },
+    },
+    handleSingleModel: async (_body: any, modelStr: any) => {
+      calls.push(modelStr);
+      return okResponse();
+    },
+    isModelAvailable: async () => true,
+    log: createLog(),
+    settings: null,
+    relayOptions: null as any,
+    allCombos: null,
+  });
+
+  assert.equal(result.ok, true);
+  assert.deepEqual(calls, ["openai/bare-high"]);
+});
+
 test("handleComboChat normalizes legacy strategy names at runtime", async () => {
   const usageCalls: any[] = [];
   recordComboRequest("legacy-usage-combo", "model-a", {
@@ -1591,12 +2201,14 @@ test("handleComboChat standalone lkgp strategy updates LKGP after a successful c
   });
 
   // Give the async fire-and-forget LKGP update a chance to execute
-  await new Promise((resolve) => setTimeout(resolve, 10));
-
-  const persistedProvider = await settingsDb.getLKGP(
-    "standalone-lkgp-save",
-    "standalone-lkgp-save"
-  );
+  let persistedProvider: any = null;
+  for (let i = 0; i < 20; i++) {
+    persistedProvider = await settingsDb.getLKGP("standalone-lkgp-save", "standalone-lkgp-save");
+    if (persistedProvider?.provider === "openai") {
+      break;
+    }
+    await new Promise((resolve) => setTimeout(resolve, 10));
+  }
 
   assert.equal(result.ok, true);
   // getLKGP now returns LKGPRecord | null — source: src/lib/db/settings.ts getLKGP()
@@ -1711,6 +2323,41 @@ test("handleComboChat auto strategy reads strategyName from combo.config.auto an
   assert.equal(calls[0], "gemini/gemini-2.5-flash");
 });
 
+test("handleComboChat auto strategy can route by SLA targets", async () => {
+  const calls: any[] = [];
+  const log = createLog();
+  const result = await handleComboChat({
+    body: { prompt: "Keep this response fast and reliable" },
+    combo: {
+      name: "auto-sla-aware",
+      strategy: "auto",
+      models: ["openai/gpt-4o-mini", "gemini/gemini-2.5-flash", "claude/claude-sonnet-4-6"],
+      autoConfig: {
+        routerStrategy: "sla-aware",
+        slaTargetP95Ms: 1500,
+        slaMaxErrorRate: 0.05,
+      },
+    },
+    handleSingleModel: async (_body: any, modelStr: any) => {
+      calls.push(modelStr);
+      return okResponse();
+    },
+    isModelAvailable: async () => true,
+    log,
+    settings: null,
+    relayOptions: null as any,
+    allCombos: null,
+  });
+
+  assert.equal(result.ok, true);
+  assert.equal(calls[0], "gemini/gemini-2.5-flash");
+  assert.ok(
+    log.entries.some(
+      (entry) => entry.level === "info" && /strategy=sla-aware/i.test(String(entry.msg))
+    )
+  );
+});
+
 test("handleComboChat context cache protection pins the model and tags tool-call responses", async () => {
   const calls: any[] = [];
   const result = await handleComboChat({
@@ -1764,7 +2411,7 @@ test("handleComboChat context cache protection pins the model and tags tool-call
   );
 });
 
-test("handleComboChat context cache protection sanitizes streamed text tags from client output", async () => {
+test("handleComboChat context cache protection preserves omniModel tag in streamed output for round-trip pinning", async () => {
   const result = await handleComboChat({
     body: { stream: true, messages: [{ role: "user", content: "stream it" }] },
     combo: {
@@ -1790,7 +2437,7 @@ test("handleComboChat context cache protection sanitizes streamed text tags from
   assert.equal(result.ok, true);
   assert.equal(result.headers.get("X-OmniRoute-Model"), "openai/gpt-4o-mini");
   assert.match(text, /hello world/);
-  assert.doesNotMatch(text, /<omniModel>/);
+  assert.match(text, /<omniModel>openai\/gpt-4o-mini<\/omniModel>/);
 });
 
 test("handleComboChat context cache protection injects a hidden tag for tool-call-only streams", async () => {
@@ -1818,7 +2465,7 @@ test("handleComboChat context cache protection injects a hidden tag for tool-cal
   const text = await result.text();
   assert.equal(result.ok, true);
   assert.match(text, /"finish_reason":"tool_calls"/);
-  assert.doesNotMatch(text, /<omniModel>/);
+  assert.match(text, /<omniModel>openai\/gpt-4o-mini<\/omniModel>/);
 });
 
 test("handleComboChat context cache protection flushes cleanly when a stream ends without content", async () => {
@@ -1842,8 +2489,7 @@ test("handleComboChat context cache protection flushes cleanly when a stream end
   assert.equal(result.ok, true);
   assert.equal(result.headers.get("X-OmniRoute-Model"), "openai/gpt-4o-mini");
   assert.match(text, /data: \[DONE\]/);
-  assert.match(text, /"content":""/);
-  assert.doesNotMatch(text, /<omniModel>/);
+  assert.match(text, /"content":"<omniModel>openai\/gpt-4o-mini<\/omniModel>"/);
 });
 
 test("handleComboChat round-robin resolves nested combos and returns inactive when every target is skipped", async () => {

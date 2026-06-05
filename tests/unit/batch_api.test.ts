@@ -23,14 +23,36 @@ const {
   getTerminalBatches,
 } = await import("../../src/lib/localDb.ts");
 const { getDbInstance } = await import("../../src/lib/db/core.ts");
-const { initBatchProcessor, stopBatchProcessor, processPendingBatches } =
-  await import("../../open-sse/services/batchProcessor.ts");
+const {
+  initBatchProcessor,
+  stopBatchProcessor,
+  processPendingBatches,
+  waitForAllBatches,
+  resetBatchProcessorState,
+} = await import("../../open-sse/services/batchProcessor.ts");
 const batchesRoute = await import("../../src/app/api/v1/batches/route.ts");
 const batchByIdRoute = await import("../../src/app/api/v1/batches/[id]/route.ts");
 const batchCancelRoute = await import("../../src/app/api/v1/batches/[id]/cancel/route.ts");
 const filesRoute = await import("../../src/app/api/v1/files/route.ts");
 const fileByIdRoute = await import("../../src/app/api/v1/files/[id]/route.ts");
 const fileContentRoute = await import("../../src/app/api/v1/files/[id]/content/route.ts");
+
+test.afterEach(async () => {
+  stopBatchProcessor();
+  await waitForAllBatches();
+  if (typeof resetBatchProcessorState === "function") {
+    resetBatchProcessorState();
+  }
+  try {
+    const db = getDbInstance();
+    db.prepare("DELETE FROM batches").run();
+    db.prepare("DELETE FROM files").run();
+    db.prepare("DELETE FROM provider_connections").run();
+    db.prepare("DELETE FROM api_keys").run();
+  } catch (err) {
+    console.error("Failed to clean up db tables:", err);
+  }
+});
 
 test("Batch API and Processing", async () => {
   // 0. Setup environment, mock provider and API key
@@ -248,7 +270,7 @@ test("Batch handles and counts failures correctly", async () => {
 
 test("Batch dispatches non-chat endpoints through the matching route handler", async () => {
   const originalFetch = globalThis.fetch;
-  globalThis.fetch = async () =>
+  (globalThis as any).fetch = async () =>
     new Response(
       JSON.stringify({
         object: "list",
@@ -641,13 +663,25 @@ test("Batch cleanup honors output_expires_after for output artifacts", async () 
   assert.equal(getFile(errorFile.id), null);
 });
 
-test("Batch processor fails orphaned finalizing batches during startup recovery", async () => {
+test("Batch processor recovers orphaned finalizing batches during startup recovery", async () => {
   const apiKey = await createApiKey("Finalizing Recovery Key", "test-machine");
+  const batchItems = [
+    JSON.stringify({
+      custom_id: "req-recovery",
+      method: "POST",
+      url: "/v1/chat/completions",
+      body: {
+        model: "openai/gpt-4o-mini",
+        messages: [{ role: "user", content: "hi" }],
+      },
+    }),
+  ].join("\n");
+
   const inputFile = createFile({
-    bytes: 2,
+    bytes: Buffer.byteLength(batchItems),
     filename: "finalizing.jsonl",
     purpose: "batch",
-    content: Buffer.from("{}"),
+    content: Buffer.from(batchItems),
     apiKeyId: apiKey.id,
   });
 
@@ -663,17 +697,35 @@ test("Batch processor fails orphaned finalizing batches during startup recovery"
     finalizingAt: Math.floor(Date.now() / 1000),
   });
 
-  initBatchProcessor();
+  const originalFetch = globalThis.fetch;
+  (globalThis as any).fetch = async () => {
+    return Response.json({
+      id: "chatcmpl-mock-recovery",
+      object: "chat.completion",
+      model: "gpt-4o-mini",
+      choices: [
+        {
+          index: 0,
+          message: { role: "assistant", content: "recovered ok" },
+          finish_reason: "stop",
+        },
+      ],
+      usage: {
+        prompt_tokens: 1,
+        completion_tokens: 1,
+        total_tokens: 2,
+      },
+    });
+  };
 
   try {
+    await processPendingBatches();
+    await waitForAllBatches();
+
     const recoveredBatch = getBatch(batch.id);
-    assert.strictEqual(recoveredBatch?.status, "failed");
-    assert.match(
-      String(recoveredBatch?.errors?.[0]?.message || ""),
-      /interrupted during finalization/i
-    );
+    assert.strictEqual(recoveredBatch?.status, "completed");
   } finally {
-    stopBatchProcessor();
+    globalThis.fetch = originalFetch;
   }
 });
 
@@ -719,6 +771,32 @@ test("Files and batches routes expose explicit CORS preflight handlers", async (
       /Authorization/i
     );
   }
+});
+
+test("Batch by-id route exposes ownerless records to anonymous requests", async () => {
+  const file = createFile({
+    bytes: 2,
+    filename: "ownerless.jsonl",
+    purpose: "batch",
+    content: Buffer.from("{}"),
+    apiKeyId: null,
+  });
+  const batch = createBatch({
+    endpoint: "/v1/chat/completions",
+    completionWindow: "24h",
+    inputFileId: file.id,
+    apiKeyId: null,
+  });
+
+  const response = await batchByIdRoute.GET(
+    new Request(`http://localhost/api/v1/batches/${batch.id}`),
+    { params: Promise.resolve({ id: batch.id }) }
+  );
+  const body = await response.json();
+
+  assert.strictEqual(response.status, 200);
+  assert.strictEqual(body.id, batch.id);
+  assert.strictEqual(body.status, "validating");
 });
 
 test("Batch Cancel API", async () => {
@@ -781,8 +859,7 @@ test("Batch processor keeps cancelled status for in-flight batches", async () =>
       method: "POST",
       url: "/v1/chat/completions",
       body: {
-        // openai/gpt-4o-mini is now ambiguous (multi-provider); use o3-mini which resolves unambiguously to openai
-        model: "openai/o3-mini",
+        model: "openai/gpt-4.1",
         messages: [{ role: "user", content: "cancel me" }],
       },
     }),
@@ -803,7 +880,7 @@ test("Batch processor keeps cancelled status for in-flight batches", async () =>
     apiKeyId: apiKey.id,
   });
 
-  globalThis.fetch = async () => {
+  (globalThis as any).fetch = async () => {
     updateBatch(batch.id, {
       status: "cancelled",
       cancelledAt: Math.floor(Date.now() / 1000),

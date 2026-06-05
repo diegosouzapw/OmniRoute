@@ -4,7 +4,13 @@ import { getRuntimePorts } from "@/lib/runtime/ports";
 import { updateSettingsSchema } from "@/shared/validation/settingsSchemas";
 import { isValidationFailure, validateBody } from "@/shared/validation/helpers";
 import { getConsistentMachineId } from "@/shared/utils/machineId";
-import { validateProxyUrl, upsertUpstreamProxyConfig } from "@/lib/db/upstreamProxy";
+import {
+  validateProxyUrl,
+  upsertUpstreamProxyConfig,
+  getUpstreamProxyConfig,
+} from "@/lib/db/upstreamProxy";
+import { getProviderConnections } from "@/lib/db/providers";
+import { clearCliproxyapiUrlCache } from "@omniroute/open-sse/executors/cliproxyapi.ts";
 import {
   ensurePersistentManagementPasswordHash,
   getStoredManagementPassword,
@@ -144,6 +150,17 @@ export async function GET(request: Request) {
     const cloudUrl = process.env.CLOUD_URL || process.env.NEXT_PUBLIC_CLOUD_URL || null;
     const machineId = await getConsistentMachineId();
 
+    // Include cliproxyapi_model_mapping from upstream_proxy_config table
+    let cliproxyapiModelMapping: Record<string, string> | null = null;
+    try {
+      const proxyConfig = await getUpstreamProxyConfig("cliproxyapi");
+      if (proxyConfig?.cliproxyapiModelMapping) {
+        cliproxyapiModelMapping = proxyConfig.cliproxyapiModelMapping as Record<string, string>;
+      }
+    } catch {
+      // best effort — don't fail GET /api/settings if this lookup fails
+    }
+
     return NextResponse.json({
       ...safeSettings,
       hasPassword: hasManagementPasswordConfigured(settings),
@@ -153,6 +170,9 @@ export async function GET(request: Request) {
       cloudConfigured: Boolean(cloudUrl),
       cloudUrl,
       machineId,
+      ...(cliproxyapiModelMapping !== null
+        ? { cliproxyapi_model_mapping: cliproxyapiModelMapping }
+        : {}),
     });
   } catch (error) {
     console.log("Error getting settings:", error);
@@ -277,16 +297,49 @@ export async function PATCH(request: Request) {
           { status: 400 }
         );
       }
+      // Invalidate the executor's URL cache so it picks up the new URL immediately
+      clearCliproxyapiUrlCache();
     }
 
-    if (cpaFallback !== undefined || cpaUrl !== undefined) {
+    const cpaModelMapping = rawBody.cliproxyapi_model_mapping as Record<string, string> | undefined;
+
+    if (cpaFallback !== undefined || cpaUrl !== undefined || cpaModelMapping !== undefined) {
       const enabled =
         cpaFallback ?? (settings as Record<string, unknown>).cliproxyapi_fallback_enabled;
       const mode = enabled ? "fallback" : "native";
+
+      // Get all distinct active provider IDs so each one gets its own
+      // upstream_proxy_config row. chatCore reads per-provider config
+      // (e.g. getUpstreamProxyConfig("anthropic")), not a single global row.
+      // Embedded service IDs are not real routing targets and must be skipped.
+      const EMBEDDED_SERVICE_IDS = new Set(["cliproxyapi", "9router"]);
+      const activeConnections = await getProviderConnections({ isActive: true });
+      const activeProviderIds = [
+        ...new Set(
+          activeConnections
+            .map((c: Record<string, unknown>) => c.provider as string)
+            .filter((id: string) => !EMBEDDED_SERVICE_IDS.has(id))
+        ),
+      ];
+
+      for (const providerId of activeProviderIds) {
+        await upsertUpstreamProxyConfig({
+          providerId,
+          mode,
+          enabled: !!enabled,
+          ...(cpaModelMapping !== undefined ? { cliproxyapiModelMapping: cpaModelMapping } : {}),
+        });
+      }
+
+      // Update the "cliproxyapi" sentinel row used by GET /api/settings to
+      // retrieve cliproxyapi_model_mapping. This row is NOT used for routing
+      // (chatCore reads per-real-provider rows above); it exists solely as
+      // storage for the global model-mapping blob.
       await upsertUpstreamProxyConfig({
         providerId: "cliproxyapi",
         mode,
         enabled: !!enabled,
+        ...(cpaModelMapping !== undefined ? { cliproxyapiModelMapping: cpaModelMapping } : {}),
       });
     }
 

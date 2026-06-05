@@ -1,10 +1,11 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 
-const { resolveComboConfig, getDefaultComboConfig } =
+const { resolveComboConfig, getDefaultComboConfig, resolveComboTargetTimeoutMs } =
   await import("../../open-sse/services/comboConfig.ts");
 const { createComboSchema, updateComboDefaultsSchema } =
   await import("../../src/shared/validation/schemas.ts");
+const { MAX_TIMER_TIMEOUT_MS } = await import("../../src/shared/utils/runtimeTimeouts.ts");
 
 test("getDefaultComboConfig returns a fresh copy of the defaults", () => {
   const first = getDefaultComboConfig();
@@ -20,9 +21,16 @@ test("getDefaultComboConfig returns a fresh copy of the defaults", () => {
   assert.equal(first.handoffThreshold, 0.85);
   assert.equal(first.maxMessagesForSummary, 30);
   assert.deepEqual(first.handoffProviders, ["codex"]);
-  assert.equal(first.failoverBeforeRetry, false);
+  assert.equal(first.failoverBeforeRetry, true);
   assert.equal(first.maxSetRetries, 0);
   assert.equal(first.setRetryDelayMs, 2000);
+  assert.equal(first.zeroLatencyOptimizationsEnabled, false);
+  assert.equal(first.hedging, false);
+  assert.equal(first.fallbackCompressionMode, "lite");
+  assert.equal(first.fallbackCompressionThreshold, 1000);
+  assert.equal(first.predictiveTtftMs, 0);
+  assert.equal(first.evalRouting.enabled, false);
+  assert.equal(first.evalRouting.maxAgeHours, 720);
 
   first.strategy = "weighted";
   assert.equal(second.strategy, "priority");
@@ -39,10 +47,12 @@ test("resolveComboConfig applies the full cascade from defaults to combo overrid
       comboDefaults: {
         strategy: "round-robin",
         timeoutMs: 120000,
+        targetTimeoutMs: 90000,
       },
       providerOverrides: {
         openai: {
           timeoutMs: 60000,
+          targetTimeoutMs: 45000,
           retryDelayMs: 500,
           fallbackDelayMs: 100,
         },
@@ -55,8 +65,36 @@ test("resolveComboConfig applies the full cascade from defaults to combo overrid
   assert.equal(result.retryDelayMs, 500);
   assert.equal(result.fallbackDelayMs, 100);
   assert.equal(result.maxRetries, 4);
+  assert.equal(result.targetTimeoutMs, 45000);
   assert.ok(!("timeoutMs" in result));
   assert.ok(!("healthCheckEnabled" in result));
+});
+
+test("resolveComboConfig preserves nested routing defaults for partial overrides", () => {
+  const result = resolveComboConfig(
+    {
+      config: {
+        shadowRouting: { enabled: true },
+        evalRouting: { enabled: true, suiteIds: ["coding-proficiency"] },
+      },
+    },
+    {
+      comboDefaults: {
+        shadowRouting: { sampleRate: 0.5 },
+        evalRouting: { maxAgeHours: 168 },
+      },
+    }
+  );
+
+  assert.equal(result.shadowRouting.enabled, true);
+  assert.equal(result.shadowRouting.sampleRate, 0.5);
+  assert.equal(result.shadowRouting.maxTargets, 2);
+  assert.equal(result.shadowRouting.timeoutMs, 30000);
+  assert.equal(result.evalRouting.enabled, true);
+  assert.deepEqual(result.evalRouting.suiteIds, ["coding-proficiency"]);
+  assert.equal(result.evalRouting.maxAgeHours, 168);
+  assert.equal(result.evalRouting.minCases, 1);
+  assert.equal(result.evalRouting.cacheTtlMs, 60000);
 });
 
 test("resolveComboConfig ignores null, undefined, and legacy resilience overrides", () => {
@@ -93,16 +131,104 @@ test("updateComboDefaultsSchema accepts arbitrarily large timeout defaults and p
   const parsed = updateComboDefaultsSchema.parse({
     comboDefaults: {
       timeoutMs: 3600000,
+      targetTimeoutMs: 30000,
     },
     providerOverrides: {
       anthropic: {
         timeoutMs: 5400000,
+        targetTimeoutMs: 45000,
       },
     },
   });
 
   assert.equal(parsed.comboDefaults.timeoutMs, 3600000);
+  assert.equal(parsed.comboDefaults.targetTimeoutMs, 30000);
   assert.equal(parsed.providerOverrides.anthropic.timeoutMs, 5400000);
+  assert.equal(parsed.providerOverrides.anthropic.targetTimeoutMs, 45000);
+});
+
+test("combo config schema accepts explicit zero-latency opt-in controls", () => {
+  const parsed = createComboSchema.parse({
+    name: "zero-latency-opt-in",
+    models: ["openai/gpt-4o-mini", "anthropic/claude-3-haiku"],
+    config: {
+      zeroLatencyOptimizationsEnabled: true,
+      hedging: true,
+      hedgeDelayMs: 250,
+      fallbackCompressionMode: "lite",
+      fallbackCompressionThreshold: 2500,
+      predictiveTtftMs: 1800,
+    },
+  });
+
+  assert.equal(parsed.config.zeroLatencyOptimizationsEnabled, true);
+  assert.equal(parsed.config.hedging, true);
+  assert.equal(parsed.config.hedgeDelayMs, 250);
+  assert.equal(parsed.config.fallbackCompressionMode, "lite");
+  assert.equal(parsed.config.fallbackCompressionThreshold, 2500);
+  assert.equal(parsed.config.predictiveTtftMs, 1800);
+});
+
+test("combo config schema rejects enabled zero-latency subfeatures without opt-in", () => {
+  const result = createComboSchema.safeParse({
+    name: "zero-latency-noop",
+    models: ["openai/gpt-4o-mini", "anthropic/claude-3-haiku"],
+    config: {
+      hedging: true,
+      fallbackCompressionMode: "lite",
+      predictiveTtftMs: 1800,
+    },
+  });
+
+  assert.equal(result.success, false);
+  assert.deepEqual(
+    result.error.issues.map((issue) => issue.path.join(".")),
+    ["config.hedging", "config.predictiveTtftMs", "config.fallbackCompressionMode"]
+  );
+});
+
+test("combo config schema allows zero-latency tuning fields when subfeatures stay disabled", () => {
+  const parsed = createComboSchema.parse({
+    name: "zero-latency-disabled-tuning",
+    models: ["openai/gpt-4o-mini", "anthropic/claude-3-haiku"],
+    config: {
+      hedgeDelayMs: 250,
+      fallbackCompressionMode: "off",
+      fallbackCompressionThreshold: 2500,
+      predictiveTtftMs: 0,
+    },
+  });
+
+  assert.equal(parsed.config.hedgeDelayMs, 250);
+  assert.equal(parsed.config.fallbackCompressionMode, "off");
+  assert.equal(parsed.config.fallbackCompressionThreshold, 2500);
+  assert.equal(parsed.config.predictiveTtftMs, 0);
+});
+
+test("resolveComboTargetTimeoutMs inherits the upstream timeout and only shortens it", () => {
+  assert.equal(resolveComboTargetTimeoutMs({}, 600000), 600000);
+  assert.equal(resolveComboTargetTimeoutMs({ targetTimeoutMs: 30000 }, 600000), 30000);
+  assert.equal(resolveComboTargetTimeoutMs({ targetTimeoutMs: 900000 }, 600000), 600000);
+  assert.equal(resolveComboTargetTimeoutMs({ targetTimeoutMs: 0 }, 600000), 600000);
+  assert.equal(resolveComboTargetTimeoutMs({ targetTimeoutMs: 30000 }, 0), 30000);
+  assert.equal(resolveComboTargetTimeoutMs({}, 0), 0);
+  assert.equal(
+    resolveComboTargetTimeoutMs({ targetTimeoutMs: 999999999999 }, 0),
+    MAX_TIMER_TIMEOUT_MS
+  );
+  assert.equal(resolveComboTargetTimeoutMs({}, 999999999999), MAX_TIMER_TIMEOUT_MS);
+});
+
+test("combo timeout schema rejects values beyond the safe timer limit", () => {
+  const result = createComboSchema.safeParse({
+    name: "unsafe-timeout",
+    models: ["openai/gpt-4"],
+    config: {
+      targetTimeoutMs: MAX_TIMER_TIMEOUT_MS + 1,
+    },
+  });
+
+  assert.equal(result.success, false);
 });
 
 test("resolveComboConfig preserves explicit empty handoffProviders overrides", () => {
@@ -156,6 +282,57 @@ test("createComboSchema accepts context-relay strategy with handoff config", () 
   assert.equal(parsed.strategy, "context-relay");
   assert.equal(parsed.config.handoffThreshold, 0.85);
   assert.equal(parsed.config.maxMessagesForSummary, 24);
+});
+
+test("createComboSchema accepts eval-driven routing config", () => {
+  const parsed = createComboSchema.parse({
+    name: "eval-ranked",
+    models: ["openai/gpt-4o-mini", "anthropic/claude-3-haiku"],
+    strategy: "priority",
+    config: {
+      evalRouting: {
+        enabled: true,
+        suiteIds: ["golden-set", "coding-proficiency"],
+        maxAgeHours: 168,
+        minCases: 5,
+        qualityWeight: 0.9,
+        latencyWeight: 0.1,
+        cacheTtlMs: 30000,
+      },
+    },
+  });
+
+  assert.equal(parsed.config.evalRouting.enabled, true);
+  assert.deepEqual(parsed.config.evalRouting.suiteIds, ["golden-set", "coding-proficiency"]);
+});
+
+test("createComboSchema accepts SLA-aware auto routing config", () => {
+  const parsed = createComboSchema.parse({
+    name: "sla-auto",
+    models: ["openai/gpt-4o-mini", "gemini/gemini-2.5-flash"],
+    strategy: "auto",
+    config: {
+      routerStrategy: "sla-aware",
+      slaTargetP95Ms: "1500",
+      slaMaxErrorRate: "0.05",
+      slaMaxCostPer1MTokens: "4.5",
+      slaHardConstraints: true,
+      sla: {
+        targetP95Ms: "2000",
+        maxErrorRate: "0.1",
+        hardConstraints: false,
+      },
+    },
+  });
+
+  assert.equal(parsed.strategy, "auto");
+  assert.equal(parsed.config.routerStrategy, "sla-aware");
+  assert.equal(parsed.config.slaTargetP95Ms, 1500);
+  assert.equal(parsed.config.slaMaxErrorRate, 0.05);
+  assert.equal(parsed.config.slaMaxCostPer1MTokens, 4.5);
+  assert.equal(parsed.config.slaHardConstraints, true);
+  assert.equal(parsed.config.sla.targetP95Ms, 2000);
+  assert.equal(parsed.config.sla.maxErrorRate, 0.1);
 });
 
 test("createComboSchema accepts structured combo steps with pinned connection and combo refs", () => {

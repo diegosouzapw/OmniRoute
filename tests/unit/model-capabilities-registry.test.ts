@@ -112,6 +112,26 @@ test("canonical model capability resolver lets exact synced metadata override gl
   assert.equal(codexGpt55.supportsThinking, true);
   assert.equal(codexGpt55.supportsVision, true);
 
+  const bedrockSonnet46 = modelCapabilities.getResolvedModelCapabilities(
+    "bedrock/eu.anthropic.claude-sonnet-4-6"
+  );
+  assert.equal(bedrockSonnet46.contextWindow, 1000000);
+  assert.equal(bedrockSonnet46.maxInputTokens, 1000000);
+  assert.equal(bedrockSonnet46.maxOutputTokens, 64000);
+  assert.equal(bedrockSonnet46.supportsVision, true);
+
+  const bedrockSonnet45 = modelCapabilities.getResolvedModelCapabilities(
+    "bedrock/anthropic.claude-sonnet-4-5"
+  );
+  assert.equal(bedrockSonnet45.contextWindow, 200000);
+  assert.equal(bedrockSonnet45.maxOutputTokens, 64000);
+
+  const bedrockOpus46 = modelCapabilities.getResolvedModelCapabilities(
+    "bedrock/anthropic.claude-opus-4-6"
+  );
+  assert.equal(bedrockOpus46.contextWindow, 1000000);
+  assert.equal(bedrockOpus46.maxOutputTokens, 128000);
+
   const bareGpt55 = modelCapabilities.getResolvedModelCapabilities("gpt-5.5");
   assert.equal(bareGpt55.contextWindow, 1050000);
 });

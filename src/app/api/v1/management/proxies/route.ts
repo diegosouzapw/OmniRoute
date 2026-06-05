@@ -1,15 +1,18 @@
 import {
   createProxy,
+  createProxyAndAssign,
   deleteProxyById,
   getProxyById,
   getProxyWhereUsed,
   listProxies,
   updateProxy,
+  updateProxyAndAssign,
 } from "@/lib/localDb";
 import { createProxyRegistrySchema, updateProxyRegistrySchema } from "@/shared/validation/schemas";
 import { isValidationFailure, validateBody } from "@/shared/validation/helpers";
 import { createErrorResponse, createErrorResponseFromUnknown } from "@/lib/api/errorResponse";
 import { requireManagementAuth } from "@/lib/api/requireManagementAuth";
+import { clearDispatcherCache } from "@omniroute/open-sse/utils/proxyDispatcher";
 
 function toPagination(searchParams: URLSearchParams) {
   const limit = Math.max(1, Math.min(200, Number(searchParams.get("limit") || 50)));
@@ -77,7 +80,14 @@ export async function POST(request: Request) {
       });
     }
 
-    const created = await createProxy(validation.data);
+    const { assignment, ...proxyFields } = validation.data;
+    if (assignment) {
+      const result = await createProxyAndAssign(proxyFields, assignment);
+      clearDispatcherCache();
+      return Response.json({ ...result.proxy, assignment: result.assignment }, { status: 201 });
+    }
+
+    const created = await createProxy(proxyFields);
     return Response.json(created, { status: 201 });
   } catch (error) {
     return createErrorResponseFromUnknown(error, "Failed to create proxy");
@@ -110,7 +120,17 @@ export async function PATCH(request: Request) {
       });
     }
 
-    const { id, ...changes } = validation.data;
+    const { id, assignment, ...changes } = validation.data;
+    if (assignment) {
+      const result = await updateProxyAndAssign(id, changes, assignment);
+      if (!result?.proxy) {
+        return createErrorResponse({ status: 404, message: "Proxy not found", type: "not_found" });
+      }
+
+      clearDispatcherCache();
+      return Response.json({ ...result.proxy, assignment: result.assignment });
+    }
+
     const updated = await updateProxy(id, changes);
     if (!updated) {
       return createErrorResponse({ status: 404, message: "Proxy not found", type: "not_found" });

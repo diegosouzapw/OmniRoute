@@ -57,6 +57,28 @@ test("backup creates backup-info.json when storage.sqlite exists", async () => {
   });
 });
 
+test("encrypted backup removes temporary ciphertext files", async () => {
+  await withBackupEnv(async (dataDir) => {
+    fs.writeFileSync(path.join(dataDir, "settings.json"), JSON.stringify({ ok: true }), "utf8");
+    const keyFile = path.join(dataDir, "backup.key");
+    fs.writeFileSync(keyFile, "test-passphrase", "utf8");
+
+    const { runBackupCommand } = await import("../../bin/cli/commands/backup.mjs");
+    const result = await runBackupCommand({ encrypt: true, keyFile });
+    assert.equal(result, 0);
+
+    const backupDir = path.join(dataDir, "backups");
+    const entries = fs.readdirSync(backupDir).filter((d) => d.startsWith("omniroute-backup-"));
+    assert.ok(entries.length > 0);
+    const backupPath = path.join(backupDir, entries[0]);
+    assert.deepEqual(
+      fs.readdirSync(backupPath).filter((name) => name.endsWith(".ciphertext")),
+      []
+    );
+    assert.ok(fs.existsSync(path.join(backupPath, "settings.json.enc")));
+  });
+});
+
 test("restore --list returns 0 with no backups", async () => {
   await withBackupEnv(async () => {
     const { runRestoreCommand } = await import("../../bin/cli/commands/backup.mjs");

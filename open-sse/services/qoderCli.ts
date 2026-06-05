@@ -348,7 +348,7 @@ MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQDA8iMH5c02LilrsERw9t6Pv5Nc
 XcW+ML9FoCI6AOvOzwIDAQAB
 -----END PUBLIC KEY-----`;
 
-function buildCosyHeadersForValidation(bodyStr: string, token: string) {
+export function buildCosyHeadersForValidation(bodyStr: string, token: string) {
   const aesKeyBytes = crypto.randomBytes(16);
   const aesKeyStr = aesKeyBytes.toString("hex").slice(0, 16);
   const aesKeyBuf = Buffer.from(aesKeyStr, "utf8");
@@ -505,6 +505,22 @@ export async function validateQoderCliPat({
 
     // Treat 5xx as valid bypass to prevent false negatives from legacy Qoder APIs (issue #1391)
     if (res.status >= 500) {
+      const isCosyAppError =
+        /"success"\s*:\s*false/.test(errorDetail) &&
+        (/"msgCode"\s*:\s*500/.test(errorDetail) || /internal\s*server\s*error/i.test(errorDetail));
+
+      if (isCosyAppError) {
+        return {
+          valid: false,
+          error:
+            `Authentication failed (HTTP ${res.status}). The Qoder Cosy server returned an Internal Server Error. ` +
+            "This typically indicates that your Personal Access Token is invalid, expired, or not authorized. " +
+            "Please check your token at https://qoder.com/account/integrations." +
+            (errorDetail ? ` Server response: ${errorDetail}` : ""),
+          unsupported: false,
+        };
+      }
+
       return {
         valid: true,
         error: `Validation endpoint returned HTTP ${res.status}${errorDetail ? `: ${errorDetail}` : ""}, treating PAT as valid`,

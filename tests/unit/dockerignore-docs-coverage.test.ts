@@ -25,12 +25,25 @@ const DOCKERIGNORE = path.resolve(REPO_ROOT, ".dockerignore");
 const REQUIRED_DOCS = [
   "docs/README.md",
   "docs/PROVIDERS.md",
-  "docs/AUTO-COMBO.md",
+  "docs/routing/AUTO-COMBO.md",
   "docs/guides/SETUP_GUIDE.md",
   "docs/guides/TROUBLESHOOTING.md",
   "docs/reference/API_REFERENCE.md",
   "docs/reference/PROVIDER_REFERENCE.md",
   "docs/reference/ENVIRONMENT.md",
+];
+
+// Referenced from docs/**/*.md — fumadocs-mdx webpack build fails if missing.
+const REQUIRED_DOC_DIAGRAMS = [
+  "docs/diagrams/exported/request-pipeline.svg",
+  "docs/diagrams/exported/resilience-3layers.svg",
+  "docs/diagrams/exported/authz-pipeline.svg",
+  "docs/diagrams/exported/db-schema-overview.svg",
+];
+
+const REQUIRED_DOC_SCREENSHOTS = [
+  "docs/screenshots/01-providers.png",
+  "docs/screenshots/05-translator.png",
 ];
 
 // Compile .dockerignore patterns into a simple matcher.
@@ -120,7 +133,7 @@ test("#2348 .dockerignore keeps every doc the in-product viewer needs", () => {
   const missing: string[] = [];
   const ignored: string[] = [];
 
-  for (const docPath of REQUIRED_DOCS) {
+  for (const docPath of [...REQUIRED_DOCS, ...REQUIRED_DOC_DIAGRAMS, ...REQUIRED_DOC_SCREENSHOTS]) {
     const absPath = path.resolve(REPO_ROOT, docPath);
     if (!fs.existsSync(absPath)) {
       missing.push(docPath);
@@ -139,15 +152,11 @@ test("#2348 .dockerignore keeps every doc the in-product viewer needs", () => {
   );
 });
 
-test("#2348 .dockerignore still excludes the heavy i18n + screenshots dirs", () => {
+test("#2348 .dockerignore still excludes the heavy i18n tree", () => {
   const parsed = parseDockerignore(fs.readFileSync(DOCKERIGNORE, "utf8"));
-  // These should NOT make it into the container — they are 45+ MB combined
-  // and the in-product viewer reads only the English originals at runtime.
-  const HEAVY_PATHS = ["docs/i18n/pt-BR/docs/AUTO-COMBO.md", "docs/screenshots/dashboard.png"];
-  for (const heavy of HEAVY_PATHS) {
-    assert.ok(
-      isIgnored(heavy, parsed),
-      `${heavy} should be excluded from Docker context but is not — image size will balloon`
-    );
-  }
+  const heavy = "docs/i18n/pt-BR/docs/routing/AUTO-COMBO.md";
+  assert.ok(
+    isIgnored(heavy, parsed),
+    `${heavy} should be excluded from Docker context but is not — image size will balloon`
+  );
 });

@@ -34,6 +34,8 @@ export async function GET(request: Request) {
           clientRequest: detail.clientRequest ?? null,
           providerRequest: detail.providerRequest ?? null,
           providerUrl: detail.providerUrl || null,
+          stage: detail.stage || null,
+          stageUpdatedAt: detail.stageUpdatedAt || null,
         }))
       )
       .filter((requestRow) => requestRow.count > 0)

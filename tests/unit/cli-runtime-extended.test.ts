@@ -157,6 +157,95 @@ test("getCliRuntimeStatus reports healthcheck_failed when a binary exists but do
   assert.equal(status.runtimeMode, "auto");
 });
 
+test("getCliRuntimeStatus healthchecks Windows .exe paths with spaces without shell", async () => {
+  if (process.platform !== "win32") return;
+
+  const tempDir = path.join(createTempDir("omniroute-cli-space-"), "dir with space");
+  const scriptPath = writeScript(
+    tempDir,
+    "claude.exe",
+    "fake executable content padding padding padding"
+  );
+  const spawnCalls = [];
+
+  process.env.CLI_CLAUDE_BIN = scriptPath;
+  childProcess.spawn = (command, args, options) => {
+    spawnCalls.push({ command, args, options });
+    const child = new (require("node:events").EventEmitter)();
+    child.stdout = new (require("node:events").EventEmitter)();
+    child.stderr = new (require("node:events").EventEmitter)();
+    child.kill = () => true;
+    setImmediate(() => {
+      child.stdout.emit("data", "2.1.157 (Claude Code)\n");
+      child.emit("close", 0);
+    });
+    return child;
+  };
+  syncBuiltinESMExports();
+
+  const cliRuntime = await importFresh("windows-exe-space-no-shell");
+  const status = await cliRuntime.getCliRuntimeStatus("claude");
+
+  assert.equal(status.installed, true);
+  assert.equal(status.runnable, true);
+  assert.equal(status.reason, null);
+  assert.equal(status.commandPath, scriptPath);
+  assert.equal(spawnCalls[0].command, scriptPath);
+  assert.deepEqual(spawnCalls[0].args, ["--version"]);
+  assert.equal(spawnCalls[0].options.shell, undefined);
+});
+
+test("getCliRuntimeStatus still healthchecks Windows .cmd wrappers through shell", async () => {
+  if (process.platform !== "win32") return;
+
+  const tempDir = createTempDir("omniroute-cli-cmd-shell-");
+  const scriptPath = writeScript(
+    tempDir,
+    "codex.cmd",
+    "@echo off\r\necho codex 1.2.3\r\nREM padding padding padding\r\n"
+  );
+  const spawnCalls = [];
+
+  process.env.CLI_CODEX_BIN = scriptPath;
+  childProcess.spawn = (command, args, options) => {
+    spawnCalls.push({ command, args, options });
+    const child = new (require("node:events").EventEmitter)();
+    child.stdout = new (require("node:events").EventEmitter)();
+    child.stderr = new (require("node:events").EventEmitter)();
+    child.kill = () => true;
+    setImmediate(() => {
+      child.stdout.emit("data", "codex 1.2.3\n");
+      child.emit("close", 0);
+    });
+    return child;
+  };
+  syncBuiltinESMExports();
+
+  const cliRuntime = await importFresh("windows-cmd-shell");
+  const status = await cliRuntime.getCliRuntimeStatus("codex");
+
+  assert.equal(status.installed, true);
+  assert.equal(status.runnable, true);
+  assert.equal(status.reason, null);
+  // The command is passed to spawn unquoted — Node quotes it for cmd.exe when
+  // shell:true. We must NOT manually interpolate quotes (hard rule #13).
+  assert.equal(spawnCalls[0].command, scriptPath);
+  assert.deepEqual(spawnCalls[0].args, ["--version"]);
+  assert.equal(spawnCalls[0].options.shell, true);
+});
+
+test("shouldUseShellForCommand never uses the shell on non-Windows platforms", async () => {
+  if (process.platform === "win32") return;
+  const cliRuntime = await importFresh("should-use-shell-posix");
+  for (const cmd of ["/usr/bin/claude", "/opt/My App/claude.exe", "tool.cmd", "x.bat"]) {
+    assert.equal(
+      cliRuntime.shouldUseShellForCommand(cmd),
+      false,
+      `expected no shell on POSIX for: ${cmd}`
+    );
+  }
+});
+
 test("getCliRuntimeStatus discovers binaries from CLI_EXTRA_PATHS during PATH lookup", async () => {
   const tempDir = createTempDir("omniroute-cli-extra-path-");
   const scriptName = process.platform === "win32" ? "qodercli.cmd" : "qodercli";

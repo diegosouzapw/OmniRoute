@@ -152,6 +152,34 @@ test("CursorSessionManager.acquire returns the session after release(awaiting_to
   assert.equal(acquired?.state, "running");
 });
 
+test("CursorSessionManager release(awaiting_tool_result) actively evicts after TTL", async () => {
+  const m = new CursorSessionManager({ idleTtlMs: 20 });
+  const { req } = mockReq();
+  const { client, closed } = mockClient();
+  const session = m.open("conv-ttl", client, req, new Map());
+  m.release(session, "awaiting_tool_result");
+
+  await new Promise((resolve) => setTimeout(resolve, 50));
+
+  assert.equal(m.size(), 0);
+  assert.ok(closed.value);
+});
+
+test("CursorSessionManager enforces a maximum retained session count", () => {
+  const m = new CursorSessionManager({ maxSessions: 1 });
+  const firstReq = mockReq();
+  const firstClient = mockClient();
+  m.open("conv-max-1", firstClient.client, firstReq.req, new Map());
+  const secondReq = mockReq();
+  const secondClient = mockClient();
+  m.open("conv-max-2", secondClient.client, secondReq.req, new Map());
+
+  assert.equal(m.size(), 1);
+  assert.equal(m.has("conv-max-1"), false);
+  assert.equal(m.has("conv-max-2"), true);
+  assert.ok(firstClient.closed.value);
+});
+
 test("CursorSessionManager.release(idle) closes the session", () => {
   const m = new CursorSessionManager();
   const { req, calls } = mockReq();
@@ -207,6 +235,22 @@ test("CursorSessionManager.sendToolResult returns false when openAIToolCallId no
   const session = m.open("conv-7", client, req, new Map());
   const ok = m.sendToolResult(session, "unknown_id", "x", false);
   assert.equal(ok, false);
+});
+
+test("CursorSessionManager.close clears unanswered pendingToolCalls", () => {
+  const m = new CursorSessionManager();
+  const { req } = mockReq();
+  const { client } = mockClient();
+  const session = m.open("conv-clear", client, req, new Map());
+  session.pendingToolCalls.set("call_unanswered", {
+    execMsgId: 1,
+    execId: "exec-1",
+    toolName: "get_weather",
+  });
+  m.close(session);
+  // close() drops the unanswered mapping so it isn't pinned on the dead session.
+  assert.equal(session.pendingToolCalls.size, 0);
+  assert.equal(m.size(), 0);
 });
 
 test("CursorSessionManager.open replaces an existing session for the same conversation", () => {

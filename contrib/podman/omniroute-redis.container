@@ -1,0 +1,26 @@
+[Unit]
+Description=OmniRoute Redis (rate-limiter backend)
+After=network-online.target
+Wants=network-online.target
+
+[Container]
+Image=docker.io/redis:7-alpine
+ContainerName=omniroute-redis
+
+Network=omniroute.network
+NetworkAlias=redis
+
+Volume=omniroute-redis.volume:/data
+
+Exec=redis-server --save 60 1 --loglevel warning
+
+HealthCmd=/bin/sh -c "redis-cli ping | grep -q PONG"
+HealthInterval=10s
+HealthRetries=3
+HealthTimeout=5s
+
+[Service]
+Restart=always
+
+[Install]
+WantedBy=default.target

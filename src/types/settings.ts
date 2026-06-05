@@ -29,6 +29,8 @@ export interface Settings {
   hideEndpointCloudflaredTunnel?: boolean;
   hideEndpointTailscaleFunnel?: boolean;
   hideEndpointNgrokTunnel?: boolean;
+  autoRefreshProviderQuota?: boolean;
+  autoRefreshProviderQuotaInterval?: number;
   pinProviderQuotaToHome?: boolean;
   showQuickStartOnHome?: boolean;
   showProviderTopologyOnHome?: boolean;

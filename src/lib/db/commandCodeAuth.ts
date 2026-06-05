@@ -69,7 +69,7 @@ function parseMetadata(value: unknown): CommandCodeAuthMetadata | null {
   // rowToCamel auto-parses the `metadata_json` column and exposes the object under
   // `camel.metadata` (already parsed); accept that directly. Fall back to parsing a
   // raw string for any other caller.
-  if (typeof value === "object") {
+  if (typeof value === "object" && !Array.isArray(value)) {
     return value as CommandCodeAuthMetadata;
   }
   if (typeof value !== "string") return null;
@@ -87,7 +87,7 @@ function toSafeStatus(row: AuthSessionRow): CommandCodeAuthSafeStatus {
     id: String(camel.id),
     stateHash: String(camel.stateHash),
     status: camel.status as CommandCodeAuthStatus,
-    metadata: parseMetadata(camel.metadata),
+    metadata: parseMetadata(camel.metadata ?? camel.metadataJson),
     createdAt: String(camel.createdAt),
     expiresAt: String(camel.expiresAt),
     receivedAt: (camel.receivedAt as string | null | undefined) ?? null,

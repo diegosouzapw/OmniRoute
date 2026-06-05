@@ -107,14 +107,24 @@ test("usage history persists service tier and defaults to standard", async () =>
     success: true,
     timestamp: new Date(Date.now() + 1).toISOString(),
   });
+  await usageHistory.saveRequestUsage({
+    provider: "codex",
+    model: "gpt-5.5",
+    tokens: { input: 40, output: 20 },
+    success: true,
+    serviceTier: "flex",
+    timestamp: new Date(Date.now() + 2).toISOString(),
+  });
 
   const history = await usageHistory.getUsageHistory({ provider: "codex" });
   const usageDb = await usageHistory.getUsageDb();
 
-  assert.equal(history.length, 1);
+  assert.equal(history.length, 2);
   assert.equal(history[0].serviceTier, "priority");
+  assert.equal(history[1].serviceTier, "flex");
   assert.equal(usageDb.data.history[0].serviceTier, "priority");
   assert.equal(usageDb.data.history[1].serviceTier, "standard");
+  assert.equal(usageDb.data.history[2].serviceTier, "flex");
 });
 
 test("getUsageDb provides nextCursor when rows exceed MAX_ROWS", async () => {

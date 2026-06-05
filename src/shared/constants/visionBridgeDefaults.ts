@@ -3,14 +3,30 @@
  */
 
 const FORCED_VISION_BRIDGE_MODELS = new Set<string>([
-  // Fallback list for models whose metadata is known to overstate native vision support.
+  // opencode-go/opencode-zen providers: synced capabilities overstate vision support
+  // (modalities_input includes "image" from provider catalog), but the actual backend
+  // models used by these providers do not have native vision. Force Vision Bridge to
+  // convert images to text descriptions for these models.
+  "opencode-go/deepseek-v4-flash",
+  "opencode-go/deepseek-v4-pro",
+  "opencode-go/kimi-k2.6",
+  "opencode-go/kimi-k2.5",
+  "opencode-go/glm-5.1",
+  "opencode-go/glm-5",
+  "opencode-go/qwen3.6-plus",
+  "opencode-go/qwen3.5-plus",
+  "opencode-zen/deepseek-v4-flash",
+  "opencode-zen/deepseek-v4-pro",
 ]);
 
 export function isVisionBridgeForcedModel(model: string | null | undefined): boolean {
   if (!model) return false;
-  const normalizedModel = (model.includes("/") ? model.split("/").pop() || model : model)
-    .trim()
-    .toLowerCase();
+  const lowerModel = model.trim().toLowerCase();
+  if (FORCED_VISION_BRIDGE_MODELS.has(lowerModel)) return true;
+  // Also check just the model name (after /) for backward compatibility
+  const normalizedModel = lowerModel.includes("/")
+    ? lowerModel.split("/").pop() || lowerModel
+    : lowerModel;
   return FORCED_VISION_BRIDGE_MODELS.has(normalizedModel);
 }
 

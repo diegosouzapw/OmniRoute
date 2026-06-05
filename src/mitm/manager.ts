@@ -2,9 +2,19 @@ import { spawn, type ChildProcess } from "child_process";
 import path from "path";
 import fs from "fs";
 import { resolveMitmDataDir } from "./dataDir.ts";
-import { addDNSEntry, removeDNSEntry } from "./dns/dnsConfig.ts";
+import { addDNSEntry, addDNSEntries, removeDNSEntry } from "./dns/dnsConfig.ts";
 import { generateCert } from "./cert/generate.ts";
 import { installCert } from "./cert/install.ts";
+import { ALL_TARGETS } from "./targets/index.ts";
+import { detectAgent } from "./detection/index.ts";
+import type { AgentId, DetectionResult, MitmTarget } from "./types.ts";
+import { getAllAgentBridgeStates } from "@/lib/db/agentBridgeState.ts";
+import { listCustomHosts } from "@/lib/db/inspectorCustomHosts.ts";
+import { getUserBypassPatterns } from "@/lib/db/agentBridgeBypass.ts";
+import { configureUpstreamCa } from "./upstreamTrust.ts";
+import { createLogger } from "@/shared/utils/logger.ts";
+
+const log = createLogger("mitm-manager");
 
 // Store server process
 let serverProcess: ChildProcess | null = null;
@@ -24,6 +34,99 @@ export function clearCachedPassword(): void {
 }
 
 const PID_FILE = path.join(resolveMitmDataDir(), "mitm", ".mitm.pid");
+const TARGETS_JSON_FILE = path.join(resolveMitmDataDir(), "mitm", "targets.json");
+const BYPASS_JSON_FILE = path.join(resolveMitmDataDir(), "mitm", "bypass.json");
+const CA_PATH_FILE = path.join(resolveMitmDataDir(), "mitm", "upstream-ca.path");
+
+/** Read the persisted upstream CA path written by the POST upstream-ca route handler. */
+function readStoredUpstreamCaPath(): string | null {
+  try {
+    if (!fs.existsSync(CA_PATH_FILE)) return null;
+    const raw = fs.readFileSync(CA_PATH_FILE, "utf8").trim();
+    return raw || null;
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Write the canonical `targets.json` consumed by `server.cjs` at startup.
+ *
+ * The file mirrors the static `ALL_TARGETS` registry; server.cjs treats it as
+ * an extension of its baseline antigravity hosts. Hard Rule #13: only the
+ * declarative target hosts are persisted — no runtime paths, no shell escapes.
+ */
+export function writeTargetsJson(targets: MitmTarget[] = ALL_TARGETS): void {
+  const dir = path.join(resolveMitmDataDir(), "mitm");
+  try {
+    if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
+  } catch {
+    // mkdir failures are non-fatal; the write below will report the real error.
+  }
+  const payload = {
+    version: 1,
+    generatedAt: new Date().toISOString(),
+    targets: targets.map((t) => ({
+      id: t.id,
+      name: t.name,
+      hosts: t.hosts,
+      endpointPatterns: t.endpointPatterns,
+      viability: t.viability ?? "supported",
+    })),
+  };
+  fs.writeFileSync(TARGETS_JSON_FILE, JSON.stringify(payload, null, 2));
+}
+
+/**
+ * Write the canonical `bypass.json` file consumed by `server.cjs` at startup.
+ *
+ * Only USER-configured patterns are persisted here — the default bypass
+ * regexes (banks/gov/okta/auth0) live hard-coded in `server.cjs` and in
+ * `src/mitm/passthrough.ts` so they apply even when the file is missing.
+ *
+ * Plan reference: 11-agent-bridge.plan.md §4.6 + master-plan-group-A.md §3.7.
+ * Hard Rule #13: no shell interpolation, file only.
+ */
+export function writeBypassJson(userPatterns?: string[]): void {
+  const dir = path.join(resolveMitmDataDir(), "mitm");
+  try {
+    if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
+  } catch {
+    // mkdir failures are non-fatal; the write below will report the real error.
+  }
+  const patterns =
+    Array.isArray(userPatterns) && userPatterns.length >= 0
+      ? userPatterns
+      : getUserBypassPatterns();
+  const payload = {
+    version: 1,
+    generatedAt: new Date().toISOString(),
+    patterns,
+  };
+  fs.writeFileSync(BYPASS_JSON_FILE, JSON.stringify(payload, null, 2));
+}
+
+export interface AgentStatus {
+  id: AgentId;
+  name: string;
+  hosts: string[];
+  viability: "supported" | "investigating" | "deprecated";
+  detection: DetectionResult;
+}
+
+/**
+ * Aggregate every registered MITM target with its current installation
+ * detection result. Read-only — used by the AgentBridge dashboard.
+ */
+export function getAllAgentsStatus(): AgentStatus[] {
+  return ALL_TARGETS.map((t) => ({
+    id: t.id,
+    name: t.name,
+    hosts: t.hosts,
+    viability: t.viability ?? "supported",
+    detection: detectAgent(t.id),
+  }));
+}
 const MITM_SERVER_URL = new URL("./server.cjs", import.meta.url);
 const urlPath =
   process.platform === "win32" && MITM_SERVER_URL.pathname.startsWith("/")
@@ -104,22 +207,87 @@ export async function startMitm(
     throw new Error("MITM proxy is already running");
   }
 
+  // 0. Persist the canonical targets.json so server.cjs can pick up the full
+  //    AgentBridge target registry alongside its hard-coded antigravity baseline.
+  try {
+    writeTargetsJson();
+  } catch (err) {
+    log.error({ err }, "Failed to write targets.json (continuing)");
+  }
+
+  // 0b. Persist the user bypass patterns to bypass.json so server.cjs can
+  //     route CONNECT tunnels for those hostnames without TLS decryption.
+  //     Defaults (banks/gov/okta/auth0) are hard-coded in server.cjs.
+  try {
+    writeBypassJson();
+  } catch (err) {
+    log.error({ err }, "Failed to write bypass.json (continuing)");
+  }
+
+  // 0c. Apply upstream CA certificate (env var wins over stored path).
+  //     Spec: plan 11 §4.7 + acceptance criterion §12 #18.
+  try {
+    const storedCaPath = readStoredUpstreamCaPath();
+    const activeCaPath = process.env.AGENTBRIDGE_UPSTREAM_CA_CERT || storedCaPath;
+    if (activeCaPath) {
+      configureUpstreamCa(activeCaPath);
+      log.info({ caPath: activeCaPath }, "Upstream CA certificate configured");
+    }
+  } catch (err) {
+    log.error(
+      { err },
+      `AGENTBRIDGE_UPSTREAM_CA_CERT path invalid: ${(err as Error).message ?? err} (continuing without custom CA)`
+    );
+  }
+
   // 1. Generate SSL certificate if not exists
   const certPath = path.join(resolveMitmDataDir(), "mitm", "server.crt");
   if (!fs.existsSync(certPath)) {
-    console.log("Generating SSL certificate...");
+    log.info("Generating SSL certificate...");
     await generateCert();
   }
 
   // 2. Install certificate to system keychain
   await installCert(sudoPassword, certPath);
 
-  // 3. Add DNS entry
-  console.log("Adding DNS entry...");
+  // 3. Add DNS entries: Antigravity defaults + all agents with dns_enabled=true +
+  //    all custom hosts with enabled=true.
+  log.info("Adding DNS entries...");
   await addDNSEntry(sudoPassword);
 
+  // Collect hosts from agents that have dns_enabled=true in the DB.
+  try {
+    const agentStates = getAllAgentBridgeStates();
+    const agentHostsToAdd: string[] = [];
+    for (const state of agentStates) {
+      if (!state.dns_enabled) continue;
+      const target = ALL_TARGETS.find((t) => t.id === state.agent_id);
+      if (target) {
+        agentHostsToAdd.push(...target.hosts);
+      }
+    }
+    if (agentHostsToAdd.length > 0) {
+      log.info({ count: agentHostsToAdd.length }, "Adding DNS for agent host(s)...");
+      await addDNSEntries(agentHostsToAdd, sudoPassword);
+    }
+  } catch (err) {
+    log.error({ err }, "Failed to add agent DNS entries (continuing)");
+  }
+
+  // Collect enabled custom hosts.
+  try {
+    const customHosts = listCustomHosts({ enabledOnly: true });
+    const customHostNames = customHosts.map((h) => h.host);
+    if (customHostNames.length > 0) {
+      log.info({ count: customHostNames.length }, "Adding DNS for custom host(s)...");
+      await addDNSEntries(customHostNames, sudoPassword);
+    }
+  } catch (err) {
+    log.error({ err }, "Failed to add custom host DNS entries (continuing)");
+  }
+
   // 4. Start MITM server
-  console.log("Starting MITM server...");
+  log.info("Starting MITM server...");
   const port =
     typeof options.port === "number" &&
     Number.isInteger(options.port) &&
@@ -148,15 +316,15 @@ export async function startMitm(
 
   // Log server output
   proc.stdout?.on("data", (data) => {
-    console.log(`[MITM Server] ${data.toString().trim()}`);
+    log.info({ source: "mitm-server" }, data.toString().trim());
   });
 
   proc.stderr?.on("data", (data) => {
-    console.error(`[MITM Server Error] ${data.toString().trim()}`);
+    log.error({ source: "mitm-server" }, data.toString().trim());
   });
 
   proc.on("exit", (code) => {
-    console.log(`MITM server exited with code ${code}`);
+    log.info({ exitCode: code }, "MITM server exited");
     serverProcess = null;
     serverPid = null;
 
@@ -217,7 +385,7 @@ export async function stopMitm(sudoPassword: string): Promise<{ running: false; 
   // 1. Kill server process (in-memory or from PID file)
   const proc = serverProcess;
   if (proc && !proc.killed) {
-    console.log("Stopping MITM server...");
+    log.info("Stopping MITM server...");
     proc.kill("SIGTERM");
     await new Promise((resolve) => setTimeout(resolve, 1000));
     if (!proc.killed) {
@@ -231,7 +399,7 @@ export async function stopMitm(sudoPassword: string): Promise<{ running: false; 
       if (fs.existsSync(PID_FILE)) {
         const savedPid = parseInt(fs.readFileSync(PID_FILE, "utf-8").trim(), 10);
         if (savedPid && isProcessAlive(savedPid)) {
-          console.log(`Killing MITM server (PID: ${savedPid})...`);
+          log.info({ pid: savedPid }, "Killing MITM server by PID...");
           process.kill(savedPid, "SIGTERM");
           await new Promise((resolve) => setTimeout(resolve, 1000));
           if (isProcessAlive(savedPid)) {
@@ -247,7 +415,7 @@ export async function stopMitm(sudoPassword: string): Promise<{ running: false; 
   }
 
   // 2. Remove DNS entry
-  console.log("Removing DNS entry...");
+  log.info("Removing DNS entry...");
   await removeDNSEntry(sudoPassword);
 
   // 3. Clean up

@@ -11,8 +11,6 @@ import {
   CollapsibleSection,
 } from "@/shared/components";
 import {
-  FREE_PROVIDERS,
-  OAUTH_PROVIDERS,
   AGGREGATOR_PROVIDER_IDS,
   EMBEDDING_RERANK_PROVIDER_IDS,
   ENTERPRISE_CLOUD_PROVIDER_IDS,
@@ -20,7 +18,6 @@ import {
   IMAGE_ONLY_PROVIDER_IDS,
   VIDEO_PROVIDER_IDS,
   isClaudeCodeCompatibleProvider,
-  CLOUD_AGENT_PROVIDERS,
 } from "@/shared/constants/providers";
 import { useRouter, useSearchParams } from "next/navigation";
 import { getErrorCode, getRelativeTime } from "@/shared/utils";
@@ -29,7 +26,6 @@ import useEmailPrivacyStore from "@/store/emailPrivacyStore";
 import { useNotificationStore } from "@/store/notificationStore";
 import { useTranslations } from "next-intl";
 import {
-  buildMergedOAuthProviderEntries,
   buildStaticProviderEntries,
   filterConfiguredProviderEntries,
   shouldApplyConfiguredOnlyFilter,
@@ -38,18 +34,69 @@ import {
 import type { ProviderEntry } from "./providerPageUtils";
 import { readConfiguredOnlyPreference, writeConfiguredOnlyPreference } from "./providerPageStorage";
 import {
-  getCodexEffectiveFastServiceTier,
-  isCodexGlobalFastServiceTierEnabled,
+  getCodexEffectiveServiceTier,
+  getCodexGlobalServiceMode,
+  type CodexGlobalServiceMode,
 } from "@/lib/providers/codexFastTier";
 import AddCompatibleProviderModal from "./components/AddCompatibleProviderModal";
+import { CategoryDot } from "./components/CategoryDot";
 import ProviderCard from "./components/ProviderCard";
 import ProviderCountBadge from "./components/ProviderCountBadge";
+
+type DashboardProviderInfo = {
+  id?: string;
+  name: string;
+  color?: string;
+  apiType?: string;
+  deprecated?: boolean;
+  deprecationReason?: string;
+  hasFree?: boolean;
+  freeNote?: string;
+  [key: string]: unknown;
+};
+
+type DashboardProviderEntry = ProviderEntry<DashboardProviderInfo>;
 
 function countConfigured<T>(entries: ProviderEntry<T>[]) {
   return {
     configured: entries.filter((entry) => Number(entry.stats?.total || 0) > 0).length,
     total: entries.length,
   };
+}
+
+function dedupeProviderEntries(entries: DashboardProviderEntry[]): DashboardProviderEntry[] {
+  const seen = new Set<string>();
+  return entries.filter((entry) => {
+    if (seen.has(entry.providerId)) return false;
+    seen.add(entry.providerId);
+    return true;
+  });
+}
+
+function providerEntryHasFree(entry: DashboardProviderEntry): boolean {
+  return entry.provider.hasFree === true;
+}
+
+type ProviderMessageTranslator = ((key: string, values?: Record<string, unknown>) => string) & {
+  has?: (key: string) => boolean;
+};
+
+function providerText(
+  t: ProviderMessageTranslator,
+  key: string,
+  fallback: string,
+  values?: Record<string, unknown>
+): string {
+  if (typeof t.has === "function" && t.has(key)) {
+    return t(key, values);
+  }
+  if (values) {
+    return Object.entries(values).reduce(
+      (acc, [name, value]) => acc.replaceAll(`{${name}}`, String(value)),
+      fallback
+    );
+  }
+  return fallback;
 }
 
 type ProviderBatchTestResult = {
@@ -118,7 +165,8 @@ export default function ProvidersPage() {
   const [providerNodes, setProviderNodes] = useState<any[]>([]);
   const [ccCompatibleProviderEnabled, setCcCompatibleProviderEnabled] = useState(false);
   const [expirations, setExpirations] = useState<any>(null);
-  const [codexGlobalFastServiceTier, setCodexGlobalFastServiceTier] = useState(false);
+  const [codexGlobalServiceMode, setCodexGlobalServiceMode] =
+    useState<CodexGlobalServiceMode>("none");
   const [loading, setLoading] = useState(true);
   const [showAllProviders, setShowAllProviders] = useState(false);
   const [showAddCompatibleModal, setShowAddCompatibleModal] = useState(false);
@@ -137,9 +185,26 @@ export default function ProvidersPage() {
   const [showFreeOnly, setShowFreeOnly] = useState(false);
   const [activeCategory, setActiveCategory] = useState<string | null>(null);
   const notify = useNotificationStore();
-  const showSection = (category: string) => !activeCategory || activeCategory === category;
+  const hasSearchQuery = searchQuery.trim().length > 0;
+  const sectionCategoryAliases: Record<string, string> = {
+    cloud: "cloudagent",
+    noauth: "no-auth",
+    proxy: "upstream-proxy",
+    web: "webcookie",
+  };
+  const showSection = (category: string) => {
+    const normalizedCategory = sectionCategoryAliases[category] ?? category;
+    if (showFreeOnly) return normalizedCategory === "free";
+    if (hasSearchQuery && !activeCategory) return normalizedCategory !== "free";
+    return !activeCategory || activeCategory === normalizedCategory;
+  };
   const t = useTranslations("providers");
   const tc = useTranslations("common");
+  const webCookieProvidersDesc = providerText(
+    t,
+    "webCookieProvidersDesc",
+    "These providers use browser web sessions, cookies, or web tokens instead of API keys. Open a provider to add the required session credential."
+  );
   const ccCompatibleLabel = t("ccCompatibleLabel");
   const addCcCompatibleLabel = t("addCcCompatible");
   const searchParams = useSearchParams();
@@ -175,7 +240,7 @@ export default function ProvidersPage() {
           setCcCompatibleProviderEnabled(nodesData.ccCompatibleProviderEnabled === true);
         }
         if (expirationsRes.ok && expirationsData) setExpirations(expirationsData);
-        setCodexGlobalFastServiceTier(isCodexGlobalFastServiceTierEnabled(settingsData));
+        setCodexGlobalServiceMode(getCodexGlobalServiceMode(settingsData));
       } catch (error) {
         console.log("Error fetching data:", error);
       } finally {
@@ -283,12 +348,23 @@ export default function ProvidersPage() {
     if (hasExpired) expiryStatus = "expired";
     else if (hasExpiringSoon) expiryStatus = "expiring_soon";
 
-    const codexFastActive =
-      providerId === "codex" &&
-      (codexGlobalFastServiceTier ||
-        providerConnections.some((connection) =>
-          getCodexEffectiveFastServiceTier(connection.providerSpecificData, false)
-        ));
+    const codexConnectionServiceTiers = [
+      ...new Set(
+        providerConnections
+          .map((connection) =>
+            getCodexEffectiveServiceTier(connection.providerSpecificData, "none")
+          )
+          .filter((tier) => tier !== "default")
+      ),
+    ];
+    const codexServiceTier =
+      providerId === "codex"
+        ? codexGlobalServiceMode !== "none"
+          ? codexGlobalServiceMode
+          : codexConnectionServiceTiers.length === 1
+            ? codexConnectionServiceTiers[0]
+            : null
+        : null;
 
     // Count API keys in "warning" state across all connections
     const warning = providerConnections.reduce((warnCount, conn) => {
@@ -308,7 +384,7 @@ export default function ProvidersPage() {
       errorTime,
       allDisabled,
       expiryStatus,
-      codexFastActive,
+      codexServiceTier,
     };
   };
 
@@ -421,11 +497,7 @@ export default function ProvidersPage() {
     connections.length
   );
 
-  const oauthProviderEntriesAll = buildMergedOAuthProviderEntries(
-    OAUTH_PROVIDERS,
-    FREE_PROVIDERS,
-    getProviderStats
-  );
+  const oauthProviderEntriesAll = buildStaticProviderEntries("oauth", getProviderStats);
   const oauthProviderEntries = filterConfiguredProviderEntries(
     oauthProviderEntriesAll,
     effectiveShowConfiguredOnly,
@@ -433,46 +505,70 @@ export default function ProvidersPage() {
     showFreeOnly
   );
 
-  const apiKeyProviderEntriesAll = buildStaticProviderEntries("apikey", getProviderStats);
-  const llmProviderEntries = filterConfiguredProviderEntries(
-    apiKeyProviderEntriesAll.filter(
-      (entry) =>
-        !IMAGE_ONLY_PROVIDER_IDS.has(entry.providerId) &&
-        !AGGREGATOR_PROVIDER_IDS.has(entry.providerId) &&
-        !ENTERPRISE_CLOUD_PROVIDER_IDS.has(entry.providerId) &&
-        !VIDEO_PROVIDER_IDS.has(entry.providerId) &&
-        !EMBEDDING_RERANK_PROVIDER_IDS.has(entry.providerId)
-    ),
+  const noAuthEntriesAll = buildStaticProviderEntries("no-auth", getProviderStats);
+  const noAuthEntries = filterConfiguredProviderEntries(
+    noAuthEntriesAll,
     effectiveShowConfiguredOnly,
     searchQuery,
     showFreeOnly
+  );
+
+  const apiKeyProviderEntriesAll = buildStaticProviderEntries("apikey", getProviderStats);
+  const llmProviderEntriesAll = apiKeyProviderEntriesAll.filter(
+    (entry) =>
+      !IMAGE_ONLY_PROVIDER_IDS.has(entry.providerId) &&
+      !AGGREGATOR_PROVIDER_IDS.has(entry.providerId) &&
+      !ENTERPRISE_CLOUD_PROVIDER_IDS.has(entry.providerId) &&
+      !VIDEO_PROVIDER_IDS.has(entry.providerId) &&
+      !EMBEDDING_RERANK_PROVIDER_IDS.has(entry.providerId)
+  );
+  const llmProviderEntries = filterConfiguredProviderEntries(
+    llmProviderEntriesAll,
+    effectiveShowConfiguredOnly,
+    searchQuery,
+    showFreeOnly
+  );
+  const aggregatorProviderEntriesAll = apiKeyProviderEntriesAll.filter((entry) =>
+    AGGREGATOR_PROVIDER_IDS.has(entry.providerId)
   );
   const aggregatorProviderEntries = filterConfiguredProviderEntries(
-    apiKeyProviderEntriesAll.filter((entry) => AGGREGATOR_PROVIDER_IDS.has(entry.providerId)),
+    aggregatorProviderEntriesAll,
     effectiveShowConfiguredOnly,
     searchQuery,
     showFreeOnly
+  );
+  const imageProviderEntriesAll = apiKeyProviderEntriesAll.filter((entry) =>
+    IMAGE_ONLY_PROVIDER_IDS.has(entry.providerId)
   );
   const imageProviderEntries = filterConfiguredProviderEntries(
-    apiKeyProviderEntriesAll.filter((entry) => IMAGE_ONLY_PROVIDER_IDS.has(entry.providerId)),
+    imageProviderEntriesAll,
     effectiveShowConfiguredOnly,
     searchQuery,
     showFreeOnly
+  );
+  const enterpriseProviderEntriesAll = apiKeyProviderEntriesAll.filter((entry) =>
+    ENTERPRISE_CLOUD_PROVIDER_IDS.has(entry.providerId)
   );
   const enterpriseProviderEntries = filterConfiguredProviderEntries(
-    apiKeyProviderEntriesAll.filter((entry) => ENTERPRISE_CLOUD_PROVIDER_IDS.has(entry.providerId)),
+    enterpriseProviderEntriesAll,
     effectiveShowConfiguredOnly,
     searchQuery,
     showFreeOnly
+  );
+  const videoProviderEntriesAll = apiKeyProviderEntriesAll.filter((entry) =>
+    VIDEO_PROVIDER_IDS.has(entry.providerId)
   );
   const videoProviderEntries = filterConfiguredProviderEntries(
-    apiKeyProviderEntriesAll.filter((entry) => VIDEO_PROVIDER_IDS.has(entry.providerId)),
+    videoProviderEntriesAll,
     effectiveShowConfiguredOnly,
     searchQuery,
     showFreeOnly
   );
+  const embeddingRerankProviderEntriesAll = apiKeyProviderEntriesAll.filter((entry) =>
+    EMBEDDING_RERANK_PROVIDER_IDS.has(entry.providerId)
+  );
   const embeddingRerankProviderEntries = filterConfiguredProviderEntries(
-    apiKeyProviderEntriesAll.filter((entry) => EMBEDDING_RERANK_PROVIDER_IDS.has(entry.providerId)),
+    embeddingRerankProviderEntriesAll,
     effectiveShowConfiguredOnly,
     searchQuery,
     showFreeOnly
@@ -556,38 +652,22 @@ export default function ProvidersPage() {
     showFreeOnly
   );
 
-  const FREE_SECTION_IDS = new Set([
-    "kiro",
-    "amazon-q",
-    "gemini-cli",
-    "qoder",
-    "pollinations",
-    "llm7",
-    "opencode",
-    "gemini",
-    "groq",
-    "cerebras",
-    "mistral",
-    "nvidia",
-    "openrouter",
-    "cloudflare-ai",
-    "together",
-    "siliconflow",
-    "deepseek",
-    "longcat",
-    "glhf",
-    "morph",
-    "bazaarlink",
-    "uncloseai",
-    "completions",
-    "freetheai",
-    "enally",
-    "puter",
-    "blackbox",
+  const staticProviderEntriesAll = dedupeProviderEntries([
+    ...oauthProviderEntriesAll,
+    ...noAuthEntriesAll,
+    ...apiKeyProviderEntriesAll,
+    ...webCookieProviderEntriesAll,
+    ...localProviderEntriesAll,
+    ...searchProviderEntriesAll,
+    ...audioProviderEntriesAll,
+    ...cloudAgentProviderEntriesAll,
+    ...upstreamProxyEntriesAll,
+  ] as DashboardProviderEntry[]);
+  const dashboardProviderEntriesAll = dedupeProviderEntries([
+    ...staticProviderEntriesAll,
+    ...compatibleProviderEntriesAll,
   ]);
-  const freeSectionEntriesAll = [...oauthProviderEntriesAll, ...apiKeyProviderEntriesAll].filter(
-    (e) => FREE_SECTION_IDS.has(e.providerId)
-  );
+  const freeSectionEntriesAll = dashboardProviderEntriesAll.filter(providerEntryHasFree);
   const freeSectionEntries = filterConfiguredProviderEntries(
     freeSectionEntriesAll,
     effectiveShowConfiguredOnly,
@@ -610,14 +690,25 @@ export default function ProvidersPage() {
   const oauthOnlyEntriesAll = oauthProviderEntriesAll
     .filter((e) => e.toggleAuthType === "oauth")
     .filter((e) => !IDE_PROVIDER_IDS.has(e.providerId));
+
+  // Web Fetch providers: filter across all entries by serviceKinds
+  const webFetchEntriesAll = dedupeProviderEntries(
+    [...staticProviderEntriesAll, ...compatibleProviderEntriesAll].filter((e) => {
+      const p = e.provider as DashboardProviderInfo & { serviceKinds?: string[] };
+      return p.serviceKinds?.includes("webFetch") === true;
+    }) as DashboardProviderEntry[]
+  );
+  const webFetchEntries = filterConfiguredProviderEntries(
+    webFetchEntriesAll,
+    effectiveShowConfiguredOnly,
+    searchQuery,
+    showFreeOnly
+  );
+
   const summaryStats = {
-    all: {
-      configured:
-        oauthProviderEntriesAll.filter((e) => Number(e.stats?.total || 0) > 0).length +
-        apiKeyProviderEntriesAll.filter((e) => Number(e.stats?.total || 0) > 0).length,
-      total: oauthProviderEntriesAll.length + apiKeyProviderEntriesAll.length,
-    },
+    all: countConfigured(dashboardProviderEntriesAll),
     free: countConfigured(freeSectionEntriesAll),
+    noauth: countConfigured(noAuthEntriesAll),
     oauth: countConfigured(oauthOnlyEntriesAll),
     apikey: countConfigured(apiKeyProviderEntriesAll),
     compatible: countConfigured(compatibleProviderEntriesAll),
@@ -625,8 +716,10 @@ export default function ProvidersPage() {
     search: countConfigured(searchProviderEntriesAll),
     audio: countConfigured(audioProviderEntriesAll),
     local: countConfigured(localProviderEntriesAll),
+    upstreamproxy: countConfigured(upstreamProxyEntriesAll),
     cloudagent: countConfigured(cloudAgentProviderEntriesAll),
     ide: countConfigured(ideProviderEntriesAll),
+    webfetch: countConfigured(webFetchEntriesAll),
   };
 
   if (loading) {
@@ -656,15 +749,20 @@ export default function ProvidersPage() {
               {t("addFirstProviderDesc") ||
                 "Connect an AI provider to start routing requests through OmniRoute. You can use free providers, API keys, or OAuth accounts."}
             </p>
-            <a
-              href="https://docs.omniroute.io/providers"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center gap-1.5 px-4 py-2 text-sm font-medium rounded-lg border border-border text-text-muted hover:text-text-main hover:bg-bg-subtle transition-colors mt-4"
-            >
-              <span className="material-symbols-outlined text-[16px]">help</span>
-              {t("learnMore") || "Learn more"}
-            </a>
+            <div className="mt-4 flex flex-wrap items-center justify-center gap-2">
+              <Button icon="add" onClick={() => router.push("/dashboard/providers/new")}>
+                {providerText(t, "onboardingWizard", "Provider Onboarding Wizard")}
+              </Button>
+              <a
+                href="https://docs.omniroute.io/providers"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-1.5 px-4 py-2 text-sm font-medium rounded-lg border border-border text-text-muted hover:text-text-main hover:bg-bg-subtle transition-colors"
+              >
+                <span className="material-symbols-outlined text-[16px]">help</span>
+                {t("learnMore") || "Learn more"}
+              </a>
+            </div>
           </div>
         </Card>
       )}
@@ -701,6 +799,9 @@ export default function ProvidersPage() {
               disabled={connections.length === 0}
               className="rounded-lg border border-border bg-bg-subtle px-3 py-1.5"
             />
+            <Button size="sm" icon="add" onClick={() => router.push("/dashboard/providers/new")}>
+              {providerText(t, "onboardingWizardShort", "Onboarding Wizard")}
+            </Button>
             <button
               onClick={() => handleBatchTest("all")}
               disabled={!!testingMode}
@@ -724,28 +825,41 @@ export default function ProvidersPage() {
               [
                 { key: null, color: null, label: t("providerSummaryAll"), stat: summaryStats.all },
                 {
-                  key: "free",
-                  color: "bg-green-500",
-                  label: tc("free"),
-                  stat: summaryStats.free,
-                },
-                {
                   key: "oauth",
                   color: "bg-blue-500",
                   label: t("oauthLabel"),
                   stat: summaryStats.oauth,
                 },
                 {
-                  key: "apikey",
-                  color: "bg-amber-500",
-                  label: t("apiKeyLabel"),
-                  stat: summaryStats.apikey,
-                },
-                {
                   key: "ide",
                   color: "bg-cyan-500",
                   label: "IDE",
                   stat: summaryStats.ide,
+                },
+                {
+                  key: "free",
+                  color: "bg-green-500",
+                  label: t("freeTier"),
+                  stat: summaryStats.free,
+                  title: t("freeAggregated"),
+                },
+                {
+                  key: "no-auth",
+                  color: "bg-stone-500",
+                  label: t("noAuthLabel"),
+                  stat: summaryStats.noauth,
+                },
+                {
+                  key: "upstream-proxy",
+                  color: "bg-indigo-500",
+                  label: t("upstreamProxyLabel"),
+                  stat: summaryStats.upstreamproxy,
+                },
+                {
+                  key: "apikey",
+                  color: "bg-amber-500",
+                  label: t("apiKeyLabel"),
+                  stat: summaryStats.apikey,
                 },
                 {
                   key: "compatible",
@@ -764,6 +878,13 @@ export default function ProvidersPage() {
                   color: "bg-teal-500",
                   label: "Search",
                   stat: summaryStats.search,
+                },
+                {
+                  key: "webfetch",
+                  color: "bg-orange-500",
+                  label: t("webFetch"),
+                  stat: summaryStats.webfetch,
+                  title: t("webFetchTooltip"),
                 },
                 {
                   key: "audio",
@@ -788,6 +909,7 @@ export default function ProvidersPage() {
                 color: string | null;
                 label: string;
                 stat: { configured: number; total: number };
+                title?: string;
               }>
             ).map((cat) => {
               const isActive =
@@ -817,9 +939,9 @@ export default function ProvidersPage() {
                       ? "bg-primary text-white border-primary"
                       : "bg-bg-subtle border-border text-text-muted hover:text-text-primary hover:border-primary/30"
                   }`}
-                  title={cat.label}
+                  title={cat.title || cat.label}
                 >
-                  {cat.color && <span className={`size-2 rounded-full shrink-0 ${cat.color}`} />}
+                  {cat.color && <CategoryDot color={cat.color} label={cat.label} />}
                   <span>{cat.label}</span>
                   <span className={`text-[11px] ${isActive ? "text-white/80" : "text-text-muted"}`}>
                     {cat.stat.configured}
@@ -831,6 +953,42 @@ export default function ProvidersPage() {
           </div>
         </div>
       </Card>
+
+      {/* Expiration Banner */}
+      {expirations?.summary &&
+        (expirations.summary.expired > 0 || expirations.summary.expiringSoon > 0) && (
+          <div
+            className={`p-4 rounded-xl flex items-start gap-3 border ${
+              expirations.summary.expired > 0
+                ? "bg-red-500/10 border-red-500/20"
+                : "bg-amber-500/10 border-amber-500/20"
+            }`}
+          >
+            <span
+              className={`material-symbols-outlined text-[24px] ${
+                expirations.summary.expired > 0 ? "text-red-500" : "text-amber-500"
+              }`}
+            >
+              {expirations.summary.expired > 0 ? "error" : "warning"}
+            </span>
+            <div className="flex-1">
+              <h3
+                className={`font-semibold ${expirations.summary.expired > 0 ? "text-red-500" : "text-amber-500"}`}
+              >
+                {expirations.summary.expired > 0
+                  ? t("expirationBannerExpired", { count: expirations.summary.expired })
+                  : t("expirationBannerExpiringSoon", {
+                      count: expirations.summary.expiringSoon,
+                    })}
+              </h3>
+              <p className="text-sm mt-1 opacity-80 text-text-main">
+                {expirations.summary.expired > 0
+                  ? t("expirationBannerExpiredDesc")
+                  : t("expirationBannerExpiringSoonDesc")}
+              </p>
+            </div>
+          </div>
+        )}
 
       {/* API Key Compatible Providers — dynamic (OpenAI/Anthropic compatible) */}
       {showSection("compatible") && (
@@ -874,6 +1032,7 @@ export default function ProvidersPage() {
               </Button>
             </div>
           </div>
+          <p className="text-sm text-text-muted -mt-2">{t("compatibleProvidersDesc")}</p>
           {compatibleProviders.length === 0 &&
           anthropicCompatibleProviders.length === 0 &&
           ccCompatibleProviders.length === 0 ? (
@@ -882,7 +1041,7 @@ export default function ProvidersPage() {
               <span>{t("noCompatibleYet")}</span>
             </div>
           ) : (
-            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3">
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-4 gap-3">
               {compatibleProviderEntries.map(
                 ({ providerId, provider, stats, displayAuthType, toggleAuthType }) => (
                   <ProviderCard
@@ -897,87 +1056,6 @@ export default function ProvidersPage() {
               )}
             </div>
           )}
-        </div>
-      )}
-
-      {/* Expiration Banner */}
-      {expirations?.summary &&
-        (expirations.summary.expired > 0 || expirations.summary.expiringSoon > 0) && (
-          <div
-            className={`p-4 rounded-xl flex items-start gap-3 border ${
-              expirations.summary.expired > 0
-                ? "bg-red-500/10 border-red-500/20"
-                : "bg-amber-500/10 border-amber-500/20"
-            }`}
-          >
-            <span
-              className={`material-symbols-outlined text-[24px] ${
-                expirations.summary.expired > 0 ? "text-red-500" : "text-amber-500"
-              }`}
-            >
-              {expirations.summary.expired > 0 ? "error" : "warning"}
-            </span>
-            <div className="flex-1">
-              <h3
-                className={`font-semibold ${expirations.summary.expired > 0 ? "text-red-500" : "text-amber-500"}`}
-              >
-                {expirations.summary.expired > 0
-                  ? t("expirationBannerExpired", { count: expirations.summary.expired })
-                  : t("expirationBannerExpiringSoon", {
-                      count: expirations.summary.expiringSoon,
-                    })}
-              </h3>
-              <p className="text-sm mt-1 opacity-80 text-text-main">
-                {expirations.summary.expired > 0
-                  ? t("expirationBannerExpiredDesc")
-                  : t("expirationBannerExpiringSoonDesc")}
-              </p>
-            </div>
-          </div>
-        )}
-
-      {/* Free Tier Providers */}
-      {showSection("free") && freeSectionEntries.length > 0 && (
-        <div className="flex flex-col gap-4">
-          <div className="flex flex-wrap items-start gap-2">
-            <div className="flex-1 min-w-0">
-              <h2 className="text-xl font-semibold flex items-center gap-2">
-                {t("freeTierProviders")}
-                <span className="size-2.5 rounded-full bg-green-500" title={t("freeTierLabel")} />
-                <ProviderCountBadge {...countConfigured(freeSectionEntriesAll)} />
-              </h2>
-              <p className="text-sm text-text-muted mt-1">{t("freeTierProvidersDesc")}</p>
-            </div>
-            <button
-              onClick={() => handleBatchTest("free")}
-              disabled={!!testingMode}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium border transition-colors ${
-                testingMode === "free"
-                  ? "bg-primary/20 border-primary/40 text-primary animate-pulse"
-                  : "bg-bg-subtle border-border text-text-muted hover:text-text-primary hover:border-primary/40"
-              }`}
-              title={t("testAll")}
-            >
-              <span className="material-symbols-outlined text-[14px]">
-                {testingMode === "free" ? "sync" : "play_arrow"}
-              </span>
-              {testingMode === "free" ? t("testing") : t("testAll")}
-            </button>
-          </div>
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3">
-            {freeSectionEntries.map(
-              ({ providerId, provider, stats, displayAuthType, toggleAuthType }) => (
-                <ProviderCard
-                  key={`free-section-${providerId}`}
-                  providerId={providerId}
-                  provider={{ ...provider, hasFree: false }}
-                  stats={stats}
-                  authType={toggleAuthType === "free" ? "free" : displayAuthType}
-                  onToggle={(active) => handleToggleProvider(providerId, toggleAuthType, active)}
-                />
-              )
-            )}
-          </div>
         </div>
       )}
 
@@ -1031,7 +1109,8 @@ export default function ProvidersPage() {
               </button>
             </div>
           </div>
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3">
+          <p className="text-sm text-text-muted -mt-2">{t("oauthProvidersDesc")}</p>
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-4 gap-3">
             {oauthProviderEntries
               .filter((e) => !IDE_PROVIDER_IDS.has(e.providerId))
               .map(({ providerId, provider, stats, displayAuthType, toggleAuthType }) => (
@@ -1086,7 +1165,7 @@ export default function ProvidersPage() {
               {t("noIdeProviders") || "No IDE providers match the current filters."}
             </div>
           ) : (
-            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3">
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-4 gap-3">
               {ideProviderEntries.map(
                 ({ providerId, provider, stats, displayAuthType, toggleAuthType }) => (
                   <ProviderCard
@@ -1101,6 +1180,95 @@ export default function ProvidersPage() {
               )}
             </div>
           )}
+        </div>
+      )}
+
+      {/* Web / Cookie Providers */}
+      {showSection("web") && webCookieProviderEntries.length > 0 && (
+        <div className="flex flex-col gap-4">
+          <div className="flex flex-wrap items-center gap-2">
+            <h2 className="text-xl font-semibold flex items-center gap-2 flex-1 min-w-0">
+              {t("webCookieProviders")}{" "}
+              <span
+                className="size-2.5 rounded-full bg-purple-500"
+                title={t("webCookieProviders")}
+              />
+              <ProviderCountBadge {...countConfigured(webCookieProviderEntriesAll)} />
+            </h2>
+            <button
+              onClick={() => handleBatchTest("web-cookie")}
+              disabled={!!testingMode}
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium border transition-colors ${
+                testingMode === "web-cookie"
+                  ? "bg-primary/20 border-primary/40 text-primary animate-pulse"
+                  : "bg-bg-subtle border-border text-text-muted hover:text-text-primary hover:border-primary/40"
+              }`}
+              title={t("testAll")}
+            >
+              <span className="material-symbols-outlined text-[14px]">
+                {testingMode === "web-cookie" ? "sync" : "play_arrow"}
+              </span>
+              {testingMode === "web-cookie" ? t("testing") : t("testAll")}
+            </button>
+          </div>
+          <p className="text-sm text-text-muted -mt-2">{t("webCookieProvidersDesc")}</p>
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-4 gap-3">
+            {webCookieProviderEntries.map(({ providerId, provider, stats, toggleAuthType }) => (
+              <ProviderCard
+                key={providerId}
+                providerId={providerId}
+                provider={provider}
+                stats={stats}
+                authType="web-cookie"
+                onToggle={(active) => handleToggleProvider(providerId, toggleAuthType, active)}
+              />
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Free Tier Providers */}
+      {showSection("free") && freeSectionEntries.length > 0 && (
+        <div className="flex flex-col gap-4">
+          <div className="flex flex-wrap items-start gap-2">
+            <div className="flex-1 min-w-0">
+              <h2 className="text-xl font-semibold flex items-center gap-2">
+                {t("freeTierProviders")}
+                <CategoryDot color="bg-green-500" label={t("freeTierLabel")} />
+                <ProviderCountBadge {...countConfigured(freeSectionEntriesAll)} />
+              </h2>
+              <p className="text-sm text-text-muted mt-1">{t("freeAggregated")}</p>
+            </div>
+            <button
+              onClick={() => handleBatchTest("free")}
+              disabled={!!testingMode}
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium border transition-colors ${
+                testingMode === "free"
+                  ? "bg-primary/20 border-primary/40 text-primary animate-pulse"
+                  : "bg-bg-subtle border-border text-text-muted hover:text-text-primary hover:border-primary/40"
+              }`}
+              title={t("testAll")}
+            >
+              <span className="material-symbols-outlined text-[14px]">
+                {testingMode === "free" ? "sync" : "play_arrow"}
+              </span>
+              {testingMode === "free" ? t("testing") : t("testAll")}
+            </button>
+          </div>
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-4 gap-3">
+            {freeSectionEntries.map(
+              ({ providerId, provider, stats, displayAuthType, toggleAuthType }) => (
+                <ProviderCard
+                  key={`free-section-${providerId}`}
+                  providerId={providerId}
+                  provider={provider}
+                  stats={stats}
+                  authType={toggleAuthType === "free" ? "free" : displayAuthType}
+                  onToggle={(active) => handleToggleProvider(providerId, toggleAuthType, active)}
+                />
+              )
+            )}
+          </div>
         </div>
       )}
 
@@ -1130,12 +1298,13 @@ export default function ProvidersPage() {
               {testingMode === "apikey" ? t("testing") : t("testAll")}
             </button>
           </div>
+          <p className="text-sm text-text-muted -mt-2">{t("apiKeyProvidersDesc")}</p>
           {llmProviderEntries.length > 0 && (
             <div className="flex flex-col gap-3">
               <h3 className="text-xs font-semibold uppercase tracking-wider text-text-muted">
                 {t("llmProviders")}
               </h3>
-              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3">
+              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-4 gap-3">
                 {llmProviderEntries.map(
                   ({ providerId, provider, stats, displayAuthType, toggleAuthType }) => (
                     <ProviderCard
@@ -1153,165 +1322,43 @@ export default function ProvidersPage() {
               </div>
             </div>
           )}
-
-          {aggregatorProviderEntries.length > 0 && (
-            <div className="flex flex-col gap-3">
-              <h3 className="text-xs font-semibold uppercase tracking-wider text-text-muted">
-                {t("aggregatorsGateways")}
-              </h3>
-              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3">
-                {aggregatorProviderEntries.map(
-                  ({ providerId, provider, stats, displayAuthType, toggleAuthType }) => (
-                    <ProviderCard
-                      key={providerId}
-                      providerId={providerId}
-                      provider={provider}
-                      stats={stats}
-                      authType={displayAuthType}
-                      onToggle={(active) =>
-                        handleToggleProvider(providerId, toggleAuthType, active)
-                      }
-                    />
-                  )
-                )}
-              </div>
-            </div>
-          )}
-
-          {enterpriseProviderEntries.length > 0 && (
-            <div className="flex flex-col gap-3">
-              <h3 className="text-xs font-semibold uppercase tracking-wider text-text-muted">
-                {t("enterpriseCloud")}
-              </h3>
-              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3">
-                {enterpriseProviderEntries.map(
-                  ({ providerId, provider, stats, displayAuthType, toggleAuthType }) => (
-                    <ProviderCard
-                      key={providerId}
-                      providerId={providerId}
-                      provider={provider}
-                      stats={stats}
-                      authType={displayAuthType}
-                      onToggle={(active) =>
-                        handleToggleProvider(providerId, toggleAuthType, active)
-                      }
-                    />
-                  )
-                )}
-              </div>
-            </div>
-          )}
-
-          {imageProviderEntries.length > 0 && (
-            <div className="flex flex-col gap-3">
-              <h3 className="text-xs font-semibold uppercase tracking-wider text-text-muted">
-                {t("imageProviders")}
-              </h3>
-              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3">
-                {imageProviderEntries.map(
-                  ({ providerId, provider, stats, displayAuthType, toggleAuthType }) => (
-                    <ProviderCard
-                      key={providerId}
-                      providerId={providerId}
-                      provider={provider}
-                      stats={stats}
-                      authType={displayAuthType}
-                      onToggle={(active) =>
-                        handleToggleProvider(providerId, toggleAuthType, active)
-                      }
-                    />
-                  )
-                )}
-              </div>
-            </div>
-          )}
-
-          {videoProviderEntries.length > 0 && (
-            <div className="flex flex-col gap-3">
-              <h3 className="text-xs font-semibold uppercase tracking-wider text-text-muted">
-                {t("videoProviders")}
-              </h3>
-              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3">
-                {videoProviderEntries.map(
-                  ({ providerId, provider, stats, displayAuthType, toggleAuthType }) => (
-                    <ProviderCard
-                      key={providerId}
-                      providerId={providerId}
-                      provider={provider}
-                      stats={stats}
-                      authType={displayAuthType}
-                      onToggle={(active) =>
-                        handleToggleProvider(providerId, toggleAuthType, active)
-                      }
-                    />
-                  )
-                )}
-              </div>
-            </div>
-          )}
-
-          {embeddingRerankProviderEntries.length > 0 && (
-            <div className="flex flex-col gap-3">
-              <h3 className="text-xs font-semibold uppercase tracking-wider text-text-muted">
-                {t("embeddingRerankProviders")}
-              </h3>
-              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3">
-                {embeddingRerankProviderEntries.map(
-                  ({ providerId, provider, stats, displayAuthType, toggleAuthType }) => (
-                    <ProviderCard
-                      key={providerId}
-                      providerId={providerId}
-                      provider={provider}
-                      stats={stats}
-                      authType={displayAuthType}
-                      onToggle={(active) =>
-                        handleToggleProvider(providerId, toggleAuthType, active)
-                      }
-                    />
-                  )
-                )}
-              </div>
-            </div>
-          )}
         </div>
       )}
 
-      {/* Web / Cookie Providers */}
-      {showSection("webcookie") && webCookieProviderEntries.length > 0 && (
+      {/* No Auth Providers */}
+      {showSection("noauth") && noAuthEntries.length > 0 && (
         <div className="flex flex-col gap-4">
           <div className="flex flex-wrap items-center gap-2">
             <h2 className="text-xl font-semibold flex items-center gap-2 flex-1 min-w-0">
-              {t("webCookieProviders")}{" "}
-              <span
-                className="size-2.5 rounded-full bg-purple-500"
-                title={t("webCookieProviders")}
-              />
-              <ProviderCountBadge {...countConfigured(webCookieProviderEntriesAll)} />
+              {t("noAuthProviders")}{" "}
+              <span className="size-2.5 rounded-full bg-stone-500" title={t("noAuthLabel")} />
+              <ProviderCountBadge {...countConfigured(noAuthEntriesAll)} />
             </h2>
             <button
-              onClick={() => handleBatchTest("web-cookie")}
+              onClick={() => handleBatchTest("no-auth")}
               disabled={!!testingMode}
               className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium border transition-colors ${
-                testingMode === "web-cookie"
+                testingMode === "no-auth"
                   ? "bg-primary/20 border-primary/40 text-primary animate-pulse"
                   : "bg-bg-subtle border-border text-text-muted hover:text-text-primary hover:border-primary/40"
               }`}
               title={t("testAll")}
             >
               <span className="material-symbols-outlined text-[14px]">
-                {testingMode === "web-cookie" ? "sync" : "play_arrow"}
+                {testingMode === "no-auth" ? "sync" : "play_arrow"}
               </span>
-              {testingMode === "web-cookie" ? t("testing") : t("testAll")}
+              {testingMode === "no-auth" ? t("testing") : t("testAll")}
             </button>
           </div>
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3">
-            {webCookieProviderEntries.map(({ providerId, provider, stats, toggleAuthType }) => (
+          <p className="text-sm text-text-muted -mt-2">{t("noAuthProvidersDesc")}</p>
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-4 gap-3">
+            {noAuthEntries.map(({ providerId, provider, stats, toggleAuthType }) => (
               <ProviderCard
                 key={providerId}
                 providerId={providerId}
                 provider={provider}
                 stats={stats}
-                authType="web-cookie"
+                authType="no-auth"
                 onToggle={(active) => handleToggleProvider(providerId, toggleAuthType, active)}
               />
             ))}
@@ -1319,42 +1366,43 @@ export default function ProvidersPage() {
         </div>
       )}
 
-      {/* Search Providers */}
-      {showSection("search") && searchProviderEntries.length > 0 && (
+      {/* Upstream Proxy Providers */}
+      {showSection("proxy") && upstreamProxyEntries.length > 0 && (
         <div className="flex flex-col gap-4">
           <div className="flex flex-wrap items-center gap-2">
             <h2 className="text-xl font-semibold flex items-center gap-2 flex-1 min-w-0">
-              {t("searchProvidersHeading")}{" "}
+              {t("upstreamProxyProviders")}{" "}
               <span
-                className="size-2.5 rounded-full bg-teal-500"
-                title={t("searchProvidersHeading")}
+                className="size-2.5 rounded-full bg-indigo-500"
+                title={t("upstreamProxyProviders")}
               />
-              <ProviderCountBadge {...countConfigured(searchProviderEntriesAll)} />
+              <ProviderCountBadge {...countConfigured(upstreamProxyEntriesAll)} />
             </h2>
             <button
-              onClick={() => handleBatchTest("search")}
+              onClick={() => handleBatchTest("upstream-proxy")}
               disabled={!!testingMode}
               className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium border transition-colors ${
-                testingMode === "search"
+                testingMode === "upstream-proxy"
                   ? "bg-primary/20 border-primary/40 text-primary animate-pulse"
                   : "bg-bg-subtle border-border text-text-muted hover:text-text-primary hover:border-primary/40"
               }`}
               title={t("testAll")}
             >
               <span className="material-symbols-outlined text-[14px]">
-                {testingMode === "search" ? "sync" : "play_arrow"}
+                {testingMode === "upstream-proxy" ? "sync" : "play_arrow"}
               </span>
-              {testingMode === "search" ? t("testing") : t("testAll")}
+              {testingMode === "upstream-proxy" ? t("testing") : t("testAll")}
             </button>
           </div>
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3">
-            {searchProviderEntries.map(({ providerId, provider, stats, toggleAuthType }) => (
+          <p className="text-sm text-text-muted -mt-2">{t("upstreamProxyProvidersDesc")}</p>
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-4 gap-3">
+            {upstreamProxyEntries.map(({ providerId, provider, stats, toggleAuthType }) => (
               <ProviderCard
                 key={providerId}
                 providerId={providerId}
                 provider={provider}
                 stats={stats}
-                authType="search"
+                authType="upstream-proxy"
                 onToggle={(active) => handleToggleProvider(providerId, toggleAuthType, active)}
               />
             ))}
@@ -1362,51 +1410,95 @@ export default function ProvidersPage() {
         </div>
       )}
 
-      {/* Audio Only Providers */}
-      {showSection("audio") && audioProviderEntries.length > 0 && (
+      {/* Web Fetch Providers */}
+      {showSection("webfetch") && webFetchEntries.length > 0 && (
         <div className="flex flex-col gap-4">
           <div className="flex flex-wrap items-center gap-2">
             <h2 className="text-xl font-semibold flex items-center gap-2 flex-1 min-w-0">
-              {t("audioProvidersHeading")}{" "}
-              <span
-                className="size-2.5 rounded-full bg-rose-500"
-                title={t("audioProvidersHeading")}
-              />
-              <ProviderCountBadge {...countConfigured(audioProviderEntriesAll)} />
+              {t("webFetchProvidersHeading")}{" "}
+              <span className="size-2.5 rounded-full bg-orange-500" title={t("webFetchTooltip")} />
+              <ProviderCountBadge {...countConfigured(webFetchEntriesAll)} />
             </h2>
-            <button
-              onClick={() => handleBatchTest("audio")}
-              disabled={!!testingMode}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium border transition-colors ${
-                testingMode === "audio"
-                  ? "bg-primary/20 border-primary/40 text-primary animate-pulse"
-                  : "bg-bg-subtle border-border text-text-muted hover:text-text-primary hover:border-primary/40"
-              }`}
-              title={t("testAll")}
-            >
-              <span className="material-symbols-outlined text-[14px]">
-                {testingMode === "audio" ? "sync" : "play_arrow"}
-              </span>
-              {testingMode === "audio" ? t("testing") : t("testAll")}
-            </button>
           </div>
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3">
-            {audioProviderEntries.map(({ providerId, provider, stats, toggleAuthType }) => (
-              <ProviderCard
-                key={providerId}
-                providerId={providerId}
-                provider={provider}
-                stats={stats}
-                authType="audio"
-                onToggle={(active) => handleToggleProvider(providerId, toggleAuthType, active)}
+          <p className="text-sm text-text-muted -mt-2">{t("webFetchProvidersDesc")}</p>
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-4 gap-3">
+            {webFetchEntries.map(
+              ({ providerId, provider, stats, displayAuthType, toggleAuthType }) => (
+                <ProviderCard
+                  key={`webfetch-${providerId}`}
+                  providerId={providerId}
+                  provider={provider}
+                  stats={stats}
+                  authType={displayAuthType}
+                  onToggle={(active) => handleToggleProvider(providerId, toggleAuthType, active)}
+                />
+              )
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* Aggregators Gateways */}
+      {showSection("apikey") && aggregatorProviderEntries.length > 0 && (
+        <div className="flex flex-col gap-4">
+          <div className="flex flex-wrap items-center gap-2">
+            <h2 className="text-xl font-semibold flex items-center gap-2 flex-1 min-w-0">
+              {t("aggregatorsGateways")}{" "}
+              <span
+                className="size-2.5 rounded-full bg-amber-500"
+                title={t("aggregatorsGateways")}
               />
-            ))}
+              <ProviderCountBadge {...countConfigured(aggregatorProviderEntriesAll)} />
+            </h2>
+          </div>
+          <p className="text-sm text-text-muted -mt-2">{t("aggregatorsGatewaysDesc")}</p>
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-4 gap-3">
+            {aggregatorProviderEntries.map(
+              ({ providerId, provider, stats, displayAuthType, toggleAuthType }) => (
+                <ProviderCard
+                  key={providerId}
+                  providerId={providerId}
+                  provider={provider}
+                  stats={stats}
+                  authType={displayAuthType}
+                  onToggle={(active) => handleToggleProvider(providerId, toggleAuthType, active)}
+                />
+              )
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* Enterprise & Cloud */}
+      {showSection("apikey") && enterpriseProviderEntries.length > 0 && (
+        <div className="flex flex-col gap-4">
+          <div className="flex flex-wrap items-center gap-2">
+            <h2 className="text-xl font-semibold flex items-center gap-2 flex-1 min-w-0">
+              {t("enterpriseCloud")}{" "}
+              <span className="size-2.5 rounded-full bg-amber-500" title={t("enterpriseCloud")} />
+              <ProviderCountBadge {...countConfigured(enterpriseProviderEntriesAll)} />
+            </h2>
+          </div>
+          <p className="text-sm text-text-muted -mt-2">{t("enterpriseCloudDesc")}</p>
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-4 gap-3">
+            {enterpriseProviderEntries.map(
+              ({ providerId, provider, stats, displayAuthType, toggleAuthType }) => (
+                <ProviderCard
+                  key={providerId}
+                  providerId={providerId}
+                  provider={provider}
+                  stats={stats}
+                  authType={displayAuthType}
+                  onToggle={(active) => handleToggleProvider(providerId, toggleAuthType, active)}
+                />
+              )
+            )}
           </div>
         </div>
       )}
 
       {/* Cloud Agent Providers */}
-      {showSection("cloudagent") && cloudAgentProviderEntries.length > 0 && (
+      {showSection("cloud") && cloudAgentProviderEntries.length > 0 && (
         <div className="flex flex-col gap-4">
           <div className="flex flex-wrap items-center gap-2">
             <h2 className="text-xl font-semibold flex items-center gap-2 flex-1 min-w-0">
@@ -1433,7 +1525,8 @@ export default function ProvidersPage() {
               {testingMode === "cloud-agent" ? t("testing") : t("testAll")}
             </button>
           </div>
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3">
+          <p className="text-sm text-text-muted -mt-2">{t("cloudAgentProvidersDesc")}</p>
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-4 gap-3">
             {cloudAgentProviderEntries.map(({ providerId, provider, stats, toggleAuthType }) => (
               <ProviderCard
                 key={providerId}
@@ -1473,7 +1566,8 @@ export default function ProvidersPage() {
               {testingMode === "local" ? t("testing") : t("testAll")}
             </button>
           </div>
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3">
+          <p className="text-sm text-text-muted -mt-2">{t("localProvidersDesc")}</p>
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-4 gap-3">
             {localProviderEntries.map(({ providerId, provider, stats, toggleAuthType }) => (
               <ProviderCard
                 key={providerId}
@@ -1488,45 +1582,177 @@ export default function ProvidersPage() {
         </div>
       )}
 
-      {/* Upstream Proxy Providers */}
-      {upstreamProxyEntries.length > 0 && (
+      {/* Search Providers */}
+      {showSection("search") && searchProviderEntries.length > 0 && (
         <div className="flex flex-col gap-4">
           <div className="flex flex-wrap items-center gap-2">
             <h2 className="text-xl font-semibold flex items-center gap-2 flex-1 min-w-0">
-              {t("upstreamProxyProviders")}{" "}
+              {t("searchProvidersHeading")}{" "}
               <span
-                className="size-2.5 rounded-full bg-indigo-500"
-                title={t("upstreamProxyProviders")}
+                className="size-2.5 rounded-full bg-teal-500"
+                title={t("searchProvidersHeading")}
               />
-              <ProviderCountBadge {...countConfigured(upstreamProxyEntriesAll)} />
+              <ProviderCountBadge {...countConfigured(searchProviderEntriesAll)} />
             </h2>
             <button
-              onClick={() => handleBatchTest("upstream-proxy")}
+              onClick={() => handleBatchTest("search")}
               disabled={!!testingMode}
               className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium border transition-colors ${
-                testingMode === "upstream-proxy"
+                testingMode === "search"
                   ? "bg-primary/20 border-primary/40 text-primary animate-pulse"
                   : "bg-bg-subtle border-border text-text-muted hover:text-text-primary hover:border-primary/40"
               }`}
               title={t("testAll")}
             >
               <span className="material-symbols-outlined text-[14px]">
-                {testingMode === "upstream-proxy" ? "sync" : "play_arrow"}
+                {testingMode === "search" ? "sync" : "play_arrow"}
               </span>
-              {testingMode === "upstream-proxy" ? t("testing") : t("testAll")}
+              {testingMode === "search" ? t("testing") : t("testAll")}
             </button>
           </div>
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3">
-            {upstreamProxyEntries.map(({ providerId, provider, stats, toggleAuthType }) => (
+          <p className="text-sm text-text-muted -mt-2">{t("searchProvidersDesc")}</p>
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-4 gap-3">
+            {searchProviderEntries.map(({ providerId, provider, stats, toggleAuthType }) => (
               <ProviderCard
                 key={providerId}
                 providerId={providerId}
                 provider={provider}
                 stats={stats}
-                authType="upstream-proxy"
+                authType="search"
                 onToggle={(active) => handleToggleProvider(providerId, toggleAuthType, active)}
               />
             ))}
+          </div>
+        </div>
+      )}
+
+      {/* Embeddings & Rerank */}
+      {showSection("apikey") && embeddingRerankProviderEntries.length > 0 && (
+        <div className="flex flex-col gap-4">
+          <div className="flex flex-wrap items-center gap-2">
+            <h2 className="text-xl font-semibold flex items-center gap-2 flex-1 min-w-0">
+              {t("embeddingRerankProviders")}{" "}
+              <span
+                className="size-2.5 rounded-full bg-amber-500"
+                title={t("embeddingRerankProviders")}
+              />
+              <ProviderCountBadge {...countConfigured(embeddingRerankProviderEntriesAll)} />
+            </h2>
+          </div>
+          <p className="text-sm text-text-muted -mt-2">{t("embeddingRerankProvidersDesc")}</p>
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-4 gap-3">
+            {embeddingRerankProviderEntries.map(
+              ({ providerId, provider, stats, displayAuthType, toggleAuthType }) => (
+                <ProviderCard
+                  key={providerId}
+                  providerId={providerId}
+                  provider={provider}
+                  stats={stats}
+                  authType={displayAuthType}
+                  onToggle={(active) => handleToggleProvider(providerId, toggleAuthType, active)}
+                />
+              )
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* Image Providers */}
+      {showSection("apikey") && imageProviderEntries.length > 0 && (
+        <div className="flex flex-col gap-4">
+          <div className="flex flex-wrap items-center gap-2">
+            <h2 className="text-xl font-semibold flex items-center gap-2 flex-1 min-w-0">
+              {t("imageProviders")}{" "}
+              <span className="size-2.5 rounded-full bg-amber-500" title={t("imageProviders")} />
+              <ProviderCountBadge {...countConfigured(imageProviderEntriesAll)} />
+            </h2>
+          </div>
+          <p className="text-sm text-text-muted -mt-2">{t("imageProvidersDesc")}</p>
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-4 gap-3">
+            {imageProviderEntries.map(
+              ({ providerId, provider, stats, displayAuthType, toggleAuthType }) => (
+                <ProviderCard
+                  key={providerId}
+                  providerId={providerId}
+                  provider={provider}
+                  stats={stats}
+                  authType={displayAuthType}
+                  onToggle={(active) => handleToggleProvider(providerId, toggleAuthType, active)}
+                />
+              )
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* Audio Only Providers */}
+      {showSection("audio") && audioProviderEntries.length > 0 && (
+        <div className="flex flex-col gap-4">
+          <div className="flex flex-wrap items-center gap-2">
+            <h2 className="text-xl font-semibold flex items-center gap-2 flex-1 min-w-0">
+              {t("audioProvidersHeading")}{" "}
+              <span
+                className="size-2.5 rounded-full bg-rose-500"
+                title={t("audioProvidersHeading")}
+              />
+              <ProviderCountBadge {...countConfigured(audioProviderEntriesAll)} />
+            </h2>
+            <button
+              onClick={() => handleBatchTest("audio")}
+              disabled={!!testingMode}
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium border transition-colors ${
+                testingMode === "audio"
+                  ? "bg-primary/20 border-primary/40 text-primary animate-pulse"
+                  : "bg-bg-subtle border-border text-text-muted hover:text-text-primary hover:border-primary/40"
+              }`}
+              title={t("testAll")}
+            >
+              <span className="material-symbols-outlined text-[14px]">
+                {testingMode === "audio" ? "sync" : "play_arrow"}
+              </span>
+              {testingMode === "audio" ? t("testing") : t("testAll")}
+            </button>
+          </div>
+          <p className="text-sm text-text-muted -mt-2">{t("audioProvidersDesc")}</p>
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-4 gap-3">
+            {audioProviderEntries.map(({ providerId, provider, stats, toggleAuthType }) => (
+              <ProviderCard
+                key={providerId}
+                providerId={providerId}
+                provider={provider}
+                stats={stats}
+                authType="audio"
+                onToggle={(active) => handleToggleProvider(providerId, toggleAuthType, active)}
+              />
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Video Generation */}
+      {showSection("apikey") && videoProviderEntries.length > 0 && (
+        <div className="flex flex-col gap-4">
+          <div className="flex flex-wrap items-center gap-2">
+            <h2 className="text-xl font-semibold flex items-center gap-2 flex-1 min-w-0">
+              {t("videoProviders")}{" "}
+              <span className="size-2.5 rounded-full bg-amber-500" title={t("videoProviders")} />
+              <ProviderCountBadge {...countConfigured(videoProviderEntriesAll)} />
+            </h2>
+          </div>
+          <p className="text-sm text-text-muted -mt-2">{t("videoProvidersDesc")}</p>
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-4 gap-3">
+            {videoProviderEntries.map(
+              ({ providerId, provider, stats, displayAuthType, toggleAuthType }) => (
+                <ProviderCard
+                  key={providerId}
+                  providerId={providerId}
+                  provider={provider}
+                  stats={stats}
+                  authType={displayAuthType}
+                  onToggle={(active) => handleToggleProvider(providerId, toggleAuthType, active)}
+                />
+              )
+            )}
           </div>
         </div>
       )}

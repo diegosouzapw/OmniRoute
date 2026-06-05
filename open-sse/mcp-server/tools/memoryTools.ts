@@ -2,6 +2,7 @@ import { z } from "zod";
 import { retrieveMemories } from "@/lib/memory/retrieval";
 import { createMemory, deleteMemory, listMemories } from "@/lib/memory/store";
 import { MemoryType } from "@/lib/memory/types";
+import { getMemorySettings, toMemoryRetrievalConfig, DEFAULT_MEMORY_SETTINGS } from "@/lib/memory/settings";
 
 export const MemorySearchSchema = z.object({
   apiKeyId: z.string(),
@@ -30,17 +31,20 @@ export const memoryTools = {
   omniroute_memory_search: {
     name: "omniroute_memory_search",
     description: "Search memories by query, type, or API key with token budget enforcement",
+    scopes: ["read:memory"],
     inputSchema: MemorySearchSchema,
     handler: async (args: z.infer<typeof MemorySearchSchema>) => {
-      const config = {
-        enabled: true,
-        maxTokens: args.maxTokens || 2000,
-        retrievalStrategy: "exact" as const,
-        autoSummarize: false,
-        persistAcrossModels: false,
-        retentionDays: 30,
-        scope: "apiKey" as const,
+      // Plan 21 D16/Bug#7 fix: even on the error path the fallback must
+      // respect DEFAULT_MEMORY_SETTINGS.strategy instead of hardcoding "exact".
+      const memorySettings =
+        (await getMemorySettings().catch(() => null)) ?? DEFAULT_MEMORY_SETTINGS;
+      const baseConfig = toMemoryRetrievalConfig(memorySettings, {
         query: args.query,
+      });
+
+      const config = {
+        ...baseConfig,
+        maxTokens: args.maxTokens || (baseConfig.maxTokens ?? DEFAULT_MEMORY_SETTINGS.maxTokens),
       };
 
       const memories = await retrieveMemories(args.apiKeyId, config);
@@ -63,6 +67,7 @@ export const memoryTools = {
   omniroute_memory_add: {
     name: "omniroute_memory_add",
     description: "Add a new memory entry",
+    scopes: ["write:memory"],
     inputSchema: MemoryAddSchema,
     handler: async (args: z.infer<typeof MemoryAddSchema>) => {
       const memory = await createMemory({
@@ -88,6 +93,7 @@ export const memoryTools = {
   omniroute_memory_clear: {
     name: "omniroute_memory_clear",
     description: "Clear memories for an API key, optionally filtered by type or age",
+    scopes: ["write:memory"],
     inputSchema: MemoryClearSchema,
     handler: async (args: z.infer<typeof MemoryClearSchema>) => {
       const result = await listMemories({

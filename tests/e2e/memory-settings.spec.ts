@@ -140,7 +140,7 @@ test.describe("Memory settings", () => {
       await fulfillJson(route, { success: true });
     });
 
-    await gotoDashboardRoute(page, "/dashboard/settings?tab=ai", {
+    await gotoDashboardRoute(page, "/dashboard/settings/ai", {
       timeoutMs: NAVIGATION_TIMEOUT_MS,
     });
 

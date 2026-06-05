@@ -13,9 +13,20 @@ function formatPercent(value) {
   return `${Number(value ?? 0).toFixed(2)}%`;
 }
 
+function parseThreshold(name, fallbackValue) {
+  const rawValue = getArg(name, fallbackValue);
+  const value = Number(rawValue);
+  if (!Number.isFinite(value)) {
+    console.error(`Invalid coverage threshold for ${name}: ${rawValue}`);
+    process.exit(1);
+  }
+  return value;
+}
+
 const inputPath = getArg("--input", "coverage/coverage-summary.json");
 const outputPath = getArg("--output", "");
-const threshold = Number(getArg("--threshold", "60"));
+const hasGlobalThreshold = process.argv.includes("--threshold");
+const defaultThreshold = parseThreshold("--threshold", "75");
 
 if (!existsSync(inputPath)) {
   console.error(`Coverage summary file not found: ${inputPath}`);
@@ -30,9 +41,15 @@ const metrics = [
   ["functions", "Functions"],
   ["branches", "Branches"],
 ];
+const thresholds = Object.fromEntries(
+  metrics.map(([metric]) => {
+    const fallback = metric === "branches" && !hasGlobalThreshold ? "70" : String(defaultThreshold);
+    return [metric, parseThreshold(`--${metric}`, fallback)];
+  })
+);
 
 const total = summary.total ?? {};
-const gatePassed = metrics.every(([metric]) => (total[metric]?.pct ?? 0) >= threshold);
+const gatePassed = metrics.every(([metric]) => (total[metric]?.pct ?? 0) >= thresholds[metric]);
 
 const files = Object.entries(summary)
   .filter(([name]) => name !== "total" && /\.(?:[cm]?[jt]sx?)$/.test(name))
@@ -59,7 +76,7 @@ const files = Object.entries(summary)
 const report = [
   "# Coverage Report",
   "",
-  `Gate: ${gatePassed ? "PASS" : "FAIL"} at ${threshold}% minimum for lines, statements, functions, and branches.`,
+  `Gate: ${gatePassed ? "PASS" : "FAIL"} at configured metric minimums.`,
   "",
   "## Totals",
   "",
@@ -69,6 +86,7 @@ const report = [
     const covered = total[metric]?.covered ?? 0;
     const totalCount = total[metric]?.total ?? 0;
     const pct = total[metric]?.pct ?? 0;
+    const threshold = thresholds[metric];
     const status = pct >= threshold ? "PASS" : "FAIL";
     return `| ${label} | ${covered} | ${totalCount} | ${formatPercent(pct)} | ${threshold}% | ${status} |`;
   }),

@@ -46,6 +46,7 @@ export const OPENCODE_CONFIG_SCHEMA = "https://opencode.ai/config.json" as const
  * with Claude Code passthrough models (`cc/` prefix).
  */
 export const OMNIROUTE_DEFAULT_OPENCODE_MODELS = [
+  "cc/claude-opus-4-8",
   "cc/claude-opus-4-7",
   "cc/claude-sonnet-4-6",
   "cc/claude-haiku-4-5-20251001",
@@ -83,7 +84,8 @@ export interface ModelCapabilities {
  * Matches the context lengths used by OmniRoute's provider registry.
  */
 export const OMNIROUTE_DEFAULT_MODEL_CONTEXT_LENGTHS: Record<string, number> = {
-  "cc/claude-opus-4-7": 200_000,
+  "cc/claude-opus-4-8": 1_000_000,
+  "cc/claude-opus-4-7": 1_000_000,
   "cc/claude-sonnet-4-6": 200_000,
   "cc/claude-haiku-4-5-20251001": 200_000,
   "claude-opus-4-5-thinking": 200_000,
@@ -100,6 +102,7 @@ export const OMNIROUTE_DEFAULT_MODEL_CONTEXT_LENGTHS: Record<string, number> = {
  * model via `OmniRouteProviderOptions.modelCapabilities`.
  */
 export const OMNIROUTE_DEFAULT_MODEL_CAPABILITIES: Record<string, ModelCapabilities> = {
+  "cc/claude-opus-4-8": { attachment: true, reasoning: true, temperature: true, tool_call: true },
   "cc/claude-opus-4-7": { attachment: true, reasoning: true, temperature: true, tool_call: true },
   "cc/claude-sonnet-4-6": { attachment: true, reasoning: true, temperature: true, tool_call: true },
   "cc/claude-haiku-4-5-20251001": { attachment: true, temperature: true, tool_call: true },

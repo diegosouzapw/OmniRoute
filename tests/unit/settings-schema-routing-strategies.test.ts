@@ -70,17 +70,36 @@ test("settings schemas accept combo configuration modes", () => {
 
 test("settings schemas accept global Codex fast tier setting", () => {
   const payload = { codexServiceTier: { enabled: true } };
+  const extendedPayload = {
+    codexServiceTier: {
+      enabled: true,
+      tier: "flex",
+      supportedModels: ["gpt-5.5", "gpt-5.4"],
+    },
+  };
   const routeParsed = settingsRouteSchema.parse(payload);
   const sharedParsed = sharedSettingsSchema.parse(payload);
+  const extendedRouteParsed = settingsRouteSchema.parse(extendedPayload);
+  const extendedSharedParsed = sharedSettingsSchema.parse(extendedPayload);
 
   assert.deepEqual(routeParsed.codexServiceTier, { enabled: true });
   assert.deepEqual(sharedParsed.codexServiceTier, { enabled: true });
+  assert.deepEqual(extendedRouteParsed.codexServiceTier, extendedPayload.codexServiceTier);
+  assert.deepEqual(extendedSharedParsed.codexServiceTier, extendedPayload.codexServiceTier);
   assert.equal(
     settingsRouteSchema.safeParse({ codexServiceTier: { enabled: "yes" } }).success,
     false
   );
   assert.equal(
     sharedSettingsSchema.safeParse({ codexServiceTier: { enabled: "yes" } }).success,
+    false
+  );
+  assert.equal(
+    settingsRouteSchema.safeParse({ codexServiceTier: { enabled: true, tier: "turbo" } }).success,
+    false
+  );
+  assert.equal(
+    sharedSettingsSchema.safeParse({ codexServiceTier: { enabled: true, tier: "turbo" } }).success,
     false
   );
 });

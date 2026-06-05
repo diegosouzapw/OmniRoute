@@ -6,6 +6,10 @@ import { HTTP_STATUS } from "@omniroute/open-sse/config/constants.ts";
 import { enforceApiKeyPolicy } from "@/shared/utils/apiKeyPolicy";
 import { v1ModerationSchema } from "@/shared/validation/schemas";
 import { isValidationFailure, validateBody } from "@/shared/validation/helpers";
+import {
+  isAllRateLimitedCredentials,
+  rateLimitedProviderResponse,
+} from "@/app/api/v1/_shared/rateLimit";
 
 /**
  * Handle CORS preflight
@@ -53,6 +57,9 @@ export async function POST(request) {
       HTTP_STATUS.BAD_REQUEST,
       `No credentials for provider: ${resolvedProvider}`
     );
+  }
+  if (isAllRateLimitedCredentials(credentials)) {
+    return rateLimitedProviderResponse(resolvedProvider, credentials);
   }
 
   const response = await handleModeration({ body: { ...body, model }, credentials });

@@ -58,11 +58,11 @@ async function captureOutput(fn: () => Promise<void>): Promise<{ stdout: string;
   const origOut = process.stdout.write.bind(process.stdout);
   const origErr = process.stderr.write.bind(process.stderr);
   process.stdout.write = (c: string | Uint8Array) => {
-    stdoutChunks.push(typeof c === "string" ? c : c.toString());
+    if (typeof c === "string") stdoutChunks.push(c);
     return true;
   };
   process.stderr.write = (c: string | Uint8Array) => {
-    stderrChunks.push(typeof c === "string" ? c : c.toString());
+    if (typeof c === "string") stderrChunks.push(c);
     return true;
   };
   try {
