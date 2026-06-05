@@ -3550,6 +3550,16 @@ export async function handleComboChat({
               error: `Quality: ${quality.reason}`,
               latencyMs: Date.now() - startTime,
             });
+            // #3200: Increment consecutive failure counter on quality failure too
+            if (provider && provider !== "unknown") {
+              const prev = consecutiveProviderFailures.get(provider) ?? 0;
+              const next = prev + 1;
+              consecutiveProviderFailures.set(provider, next);
+              if (next >= providerFailureThreshold && !exhaustedProviders.has(provider)) {
+                exhaustedProviders.add(provider);
+                log.info("COMBO", `Provider ${provider} consecutive failure threshold reached (${next}/${providerFailureThreshold}) on quality failure (#3200)`);
+              }
+            }
             return null;
           }
           // #3200: Reset consecutive failure counter for this provider on success.
@@ -4243,6 +4253,16 @@ async function handleRoundRobinCombo({
             lastError = `Upstream response failed quality validation: ${quality.reason}`;
             if (!lastStatus) lastStatus = 502;
             if (offset > 0) fallbackCount++;
+            // #3200: Increment consecutive failure counter on quality failure too
+            if (provider && provider !== "unknown") {
+              const prev = consecutiveProviderFailures.get(provider) ?? 0;
+              const next = prev + 1;
+              consecutiveProviderFailures.set(provider, next);
+              if (next >= providerFailureThreshold && !exhaustedProviders.has(provider)) {
+                exhaustedProviders.add(provider);
+                log.info("COMBO-RR", `Provider ${provider} consecutive failure threshold reached (${next}/${providerFailureThreshold}) on quality failure (#3200)`);
+              }
+            }
             break; // move to next model
           }
           const latencyMs = Date.now() - startTime;
@@ -4258,6 +4278,10 @@ async function handleRoundRobinCombo({
             target: toRecordedTarget(target),
           });
           recordedAttempts++;
+          // #3200: Reset consecutive failure counter for this provider on success.
+          if (provider && provider !== "unknown") {
+            consecutiveProviderFailures.delete(provider);
+          }
           if (provider) {
             const connId = target.connectionId || undefined;
             void (async () => {
