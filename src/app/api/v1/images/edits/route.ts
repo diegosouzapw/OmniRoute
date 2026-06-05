@@ -13,6 +13,22 @@ import {
   resolveImageRouteModel,
   extractImageEditInputFromJson,
 } from "@/lib/images/imageRouteModel";
+import { z } from "zod";
+
+// JSON edit body (Open WebUI / OpenAI-style). All fields optional — the prompt
+// and resolvable image are enforced after extraction in POST — but the top-level
+// shape must be an object with correctly-typed fields, so a malformed body
+// (array, string, wrong types) is rejected with 400 instead of silently parsed.
+const ImageEditJsonSchema = z
+  .object({
+    prompt: z.string().optional(),
+    model: z.string().optional(),
+    size: z.string().optional(),
+    response_format: z.string().optional(),
+    image: z.unknown().optional(),
+    images: z.array(z.unknown()).optional(),
+  })
+  .passthrough();
 
 /**
  * /v1/images/edits — OpenAI-compatible image-edit endpoint.
@@ -99,7 +115,12 @@ async function readEditInput(request: Request): Promise<EditInput | null> {
   }
   if (contentType.includes("application/json")) {
     try {
-      return extractImageEditInputFromJson(await request.json());
+      const parsed = ImageEditJsonSchema.safeParse(await request.json());
+      if (!parsed.success) {
+        log.warn("IMAGE", `Invalid JSON edit body shape: ${parsed.error.message}`);
+        return null;
+      }
+      return extractImageEditInputFromJson(parsed.data);
     } catch (err) {
       log.warn("IMAGE", `Invalid JSON edit body: ${err instanceof Error ? err.message : err}`);
       return null;
