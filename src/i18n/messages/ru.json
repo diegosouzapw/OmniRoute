@@ -4480,7 +4480,7 @@
     "validationModelIdHint": "Validation Model Id Hint",
     "validationModelIdLabel": "Validation Model Id Label",
     "validationModelIdPlaceholder": "Validation Model Id Placeholder",
-    "vertexServiceAccountPlaceholder": "Vertex Service Account Placeholder",
+    "vertexServiceAccountPlaceholder": "Paste your Service Account JSON ({\"type\":\"service_account\",\"project_id\":\"…\",\"client_email\":\"…\",\"private_key\":\"…\"}) or an OAuth access_token",
     "webCookieProviders": "Web Cookie Providers",
     "weeklyShort": "Weekly Short",
     "xiaomiMimoBaseUrlHint": "Xiaomi Mimo Base Url Hint",
