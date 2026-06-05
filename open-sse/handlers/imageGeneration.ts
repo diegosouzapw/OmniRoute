@@ -111,7 +111,8 @@ export function resolveImageBaseUrl(
     | { baseUrl?: unknown; providerSpecificData?: { baseUrl?: unknown } | null }
     | null
     | undefined,
-  fallback: string
+  fallback: string,
+  endpoint: "generations" | "edits" = "generations"
 ): string {
   const psd = credentials?.providerSpecificData;
   const psdBaseUrl =
@@ -126,9 +127,14 @@ export function resolveImageBaseUrl(
 
   if (!nodeBaseUrl) return fallback;
 
+  // A single configured node serves both image routes: honor a base URL that already
+  // points at the requested OpenAI image path, and rewrite one that points at the other
+  // image endpoint (e.g. `.../images/generations` requested for edits) (#3214/#3215).
+  const suffix = `/images/${endpoint}`;
   const normalized = nodeBaseUrl.replace(/\/+$/, "");
-  if (/\/images\/generations$/.test(normalized)) return normalized;
-  return `${normalized}/images/generations`;
+  if (normalized.endsWith(suffix)) return normalized;
+  const stripped = normalized.replace(/\/images\/(?:generations|edits)$/, "");
+  return `${stripped}${suffix}`;
 }
 
 function normalizeImageAspectRatio(value: unknown, fallbackSize: unknown): string {
@@ -965,6 +971,92 @@ async function handleOpenAIImageGeneration({
         ? result.error.slice(0, 500)
         : null,
     requestBody: logRequestBody,
+    responseBody: result.success ? { images_count: result.data?.data?.length || 0 } : null,
+  }).catch(() => {});
+
+  return result;
+}
+
+/**
+ * OpenAI-compatible image *edit* forwarder for custom providers (#3214 / #3215).
+ *
+ * Mirrors `handleOpenAIImageGeneration` but posts multipart/form-data to the node's
+ * `/images/edits` endpoint and returns the upstream OpenAI-compatible response. Kept
+ * separate from the chatgpt-web edit flow, which continues a saved conversation node
+ * rather than forwarding a stateless edit. The fetch helper leaves Content-Type unset so
+ * `fetch` derives the multipart boundary from the FormData body.
+ */
+export async function handleOpenAIImageEdit({
+  model,
+  provider,
+  credentials,
+  prompt,
+  imageBytes,
+  imageMime,
+  size,
+  responseFormat,
+  n = 1,
+  log,
+}: {
+  model: string;
+  provider: string;
+  credentials:
+    | {
+        apiKey?: string;
+        accessToken?: string;
+        baseUrl?: unknown;
+        providerSpecificData?: { baseUrl?: unknown } | null;
+      }
+    | null
+    | undefined;
+  prompt: string;
+  imageBytes: Buffer;
+  imageMime?: string | null;
+  size?: string | null;
+  responseFormat?: string | null;
+  n?: number;
+  log?: { info: (tag: string, message: string) => void } | null;
+}) {
+  const startTime = Date.now();
+  const url = resolveImageBaseUrl(
+    credentials,
+    `https://generativelanguage.googleapis.com/v1beta/openai/images/edits`,
+    "edits"
+  );
+
+  const form = new FormData();
+  form.append("model", model);
+  form.append("prompt", prompt);
+  if (size) form.append("size", size);
+  if (responseFormat) form.append("response_format", responseFormat);
+  form.append("n", String(n || 1));
+  const blob = new Blob([imageBytes], { type: imageMime || "image/png" });
+  form.append("image", blob, "image.png");
+
+  const headers: Record<string, string> = {};
+  const token = credentials?.apiKey || credentials?.accessToken;
+  if (token) headers["Authorization"] = `Bearer ${token}`;
+
+  if (log) {
+    log.info("IMAGE", `${provider}/${model} (edit) | prompt: "${prompt.slice(0, 60)}..." -> ${url}`);
+  }
+
+  const result = await fetchImageEndpoint(url, headers, form as unknown as BodyInit, provider, log);
+
+  saveCallLog({
+    method: "POST",
+    path: "/v1/images/edits",
+    status: result.status || (result.success ? 200 : 502),
+    model: `${provider}/${model}`,
+    provider,
+    duration: Date.now() - startTime,
+    tokens: { prompt_tokens: 0, completion_tokens: 0 },
+    error: result.success
+      ? null
+      : typeof result.error === "string"
+        ? result.error.slice(0, 500)
+        : null,
+    requestBody: { model, prompt: prompt.slice(0, 200), size: size || "default", n: n || 1 },
     responseBody: result.success ? { images_count: result.data?.data?.length || 0 } : null,
   }).catch(() => {});
 
