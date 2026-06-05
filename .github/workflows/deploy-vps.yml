@@ -17,27 +17,52 @@ jobs:
     name: Deploy OmniRoute to VPS
     runs-on: ubuntu-latest
     steps:
+      # NOTE: no `continue-on-error` — a failed SSH/install/boot MUST fail this job.
+      # Masking it (previous behavior) made the workflow report SUCCESS while the
+      # server was left broken or stale on an old version.
       - name: Deploy via SSH
         uses: appleboy/ssh-action@v1
-        continue-on-error: true
         with:
           host: ${{ secrets.VPS_HOST }}
           username: ${{ secrets.VPS_USER }}
           key: ${{ secrets.VPS_SSH_KEY }}
           port: 22
-          timeout: 30s
-          command_timeout: 5m
+          timeout: 60s
+          command_timeout: 15m
           script: |
+            set -e
             echo "=== Updating OmniRoute ==="
-            npm install -g omniroute@latest 2>&1
-            INSTALLED_VERSION=$(omniroute --version 2>/dev/null || echo "unknown")
-            echo "Installed version: $INSTALLED_VERSION"
+            npm install -g omniroute@latest
+            INSTALLED_VERSION=$(omniroute --version 2>/dev/null | tr -d '[:space:]' || echo "unknown")
+            echo "Installed CLI version: $INSTALLED_VERSION"
 
-            echo "=== Restarting PM2 ==="
-            pm2 restart omniroute || pm2 start omniroute --name omniroute -- --port 20128
+            echo "=== (Re)starting PM2 via the omniroute bin ==="
+            # Recreate the process from the bin on every deploy so its script path is
+            # ALWAYS the current bin — never a stale build file. The build output layout
+            # moved (app/ -> dist/, build-output isolation), so a bare `pm2 restart` of a
+            # process saved against the old `app/server-ws.mjs` path silently fails to
+            # boot. The `omniroute` bin loads DATA_DIR/.env and resolves the dist/ layout
+            # (with the legacy app/ fallback), so launching it is version-layout agnostic.
+            pm2 delete omniroute 2>/dev/null || true
+            pm2 start omniroute --name omniroute -- --port 20128
             pm2 save
 
-            echo "=== Health Check ==="
-            sleep 3
-            curl -sf http://localhost:20128/api/settings > /dev/null && echo "✅ OmniRoute is healthy" || echo "❌ Health check failed"
+            echo "=== Health Check (poll up to ~3min for boot) ==="
+            HEALTH_URL="http://localhost:20128/api/monitoring/health"
+            HEALTHY_BODY=""
+            for _ in $(seq 1 36); do
+              BODY=$(curl -sf -m 5 "$HEALTH_URL" 2>/dev/null || true)
+              if printf '%s' "$BODY" | grep -q '"status":"healthy"'; then
+                HEALTHY_BODY="$BODY"
+                break
+              fi
+              sleep 5
+            done
+            if [ -z "$HEALTHY_BODY" ]; then
+              echo "❌ Health check failed — server did not become healthy in time"
+              pm2 logs omniroute --err --lines 40 --nostream || true
+              exit 1
+            fi
+            RUNNING_VERSION=$(printf '%s' "$HEALTHY_BODY" | sed -n 's/.*"version":"\([^"]*\)".*/\1/p' | head -1)
+            echo "✅ OmniRoute is healthy — running version: ${RUNNING_VERSION:-unknown}"
             echo "=== Deploy complete ==="
