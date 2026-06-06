@@ -5146,7 +5146,7 @@ export default function ProviderDetailPage() {
           onClose={() => setImportCodexModalOpen(false)}
           onSuccess={() => {
             setImportCodexModalOpen(false);
-            fetchData();
+            fetchConnections();
           }}
         />
       )}
@@ -5213,7 +5213,7 @@ export default function ProviderDetailPage() {
           onClose={() => setImportClaudeModalOpen(false)}
           onSuccess={() => {
             setImportClaudeModalOpen(false);
-            fetchData();
+            fetchConnections();
           }}
         />
       )}
@@ -5234,7 +5234,7 @@ export default function ProviderDetailPage() {
           onClose={() => setImportGeminiModalOpen(false)}
           onSuccess={() => {
             setImportGeminiModalOpen(false);
-            fetchData();
+            fetchConnections();
           }}
         />
       )}
