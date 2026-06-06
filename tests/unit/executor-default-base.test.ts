@@ -97,15 +97,15 @@ test("DefaultExecutor.buildUrl handles Gemini, Claude and Qwen variants", () => 
 
 test("DefaultExecutor.buildUrl uses full chat endpoints for hosted OpenAI-compatible providers", () => {
   const bazaarlink = new DefaultExecutor("bazaarlink");
-  const completions = new DefaultExecutor("completions");
+  const crof = new DefaultExecutor("crof");
 
   assert.equal(
     bazaarlink.buildUrl("auto:free", true),
     "https://bazaarlink.ai/api/v1/chat/completions"
   );
   assert.equal(
-    completions.buildUrl("gpt-4.1", true),
-    "https://completions.me/api/v1/chat/completions"
+    crof.buildUrl("gpt-4.1", true),
+    "https://crof.ai/v1/chat/completions"
   );
 });
 
