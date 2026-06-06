@@ -51,6 +51,7 @@
     "files": [
       "main.js",
       "preload.js",
+      "loginManager.js",
       "sqlite-inspection.js",
       "package.json",
       "node_modules/**/*"
