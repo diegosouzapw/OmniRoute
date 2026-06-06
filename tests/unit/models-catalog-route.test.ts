@@ -1340,6 +1340,38 @@ test("v1 models catalog prefers manual combo context_length over auto-calculated
   assert.equal(comboModel.context_length, 64000, "manual context_length should override auto-calc");
 });
 
+test("v1 models catalog computes combo context_length from known targets when some targets have unknown context", async () => {
+  await seedConnection("openai", { name: "openai-mixed-context" });
+  await seedConnection("claude", {
+    authType: "oauth",
+    name: "claude-mixed-context",
+    apiKey: null,
+    accessToken: "claude-access",
+  });
+
+  // Create a combo with targets: one known (gpt-4o = 128K), one unknown (nonexistent-model).
+  // The combo should still compute context_length = 128K from the known target.
+  const combo = await combosDb.createCombo({
+    name: "mixed-context-combo",
+    strategy: "priority",
+    models: ["openai/gpt-4o", "openai/nonexistent-model-xyz"],
+  });
+
+  const response = await v1ModelsCatalog.getUnifiedModelsResponse(
+    new Request("http://localhost/api/v1/models")
+  );
+  const body = (await response.json()) as any;
+  const comboModel = body.data.find((item) => item.id === "mixed-context-combo");
+
+  assert.equal(response.status, 200);
+  assert.ok(comboModel);
+  assert.equal(
+    comboModel.context_length,
+    128000,
+    "combo context_length should be the MIN of known target model limits, ignoring unknown targets"
+  );
+});
+
 // Regression test for Issue #2798: noAuth providers (opencode/oc) have no DB connection rows
 // but their models must still appear in /v1/models.
 test("v1 models catalog includes noAuth provider models when no DB connections exist (#2798)", async () => {
