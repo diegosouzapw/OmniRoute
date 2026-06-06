@@ -25,6 +25,7 @@ import {
 } from "./streamPayloadCollector.ts";
 import { STREAM_IDLE_TIMEOUT_MS, FETCH_BODY_TIMEOUT_MS, HTTP_STATUS } from "../config/constants.ts";
 import {
+  OMIT_STREAMING_CHUNK_MARKER,
   sanitizeStreamingChunk,
   extractThinkingFromContent,
 } from "../handlers/responseSanitizer.ts";
@@ -1608,6 +1609,14 @@ export function createSSEStream(options: StreamOptions = {}) {
                   );
 
                   parsed = sanitizeStreamingChunk(parsed);
+                  if (
+                    parsed &&
+                    typeof parsed === "object" &&
+                    !Array.isArray(parsed) &&
+                    (parsed as Record<string, unknown>)[OMIT_STREAMING_CHUNK_MARKER] === true
+                  ) {
+                    continue;
+                  }
 
                   const idFixed = fixInvalidId(parsed);
 

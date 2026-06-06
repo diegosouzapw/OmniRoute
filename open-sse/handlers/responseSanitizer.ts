@@ -27,6 +27,8 @@ const ALLOWED_RESPONSES_USAGE_FIELDS = new Set([
 
 type JsonRecord = Record<string, unknown>;
 
+export const OMIT_STREAMING_CHUNK_MARKER = "__omniroute_omit_streaming_chunk";
+
 const DEEPSEEK_V4_SANITIZER_MODEL_PATTERN = /deepseek[-/]v4/i;
 
 function isDeepSeekV4Model(model: unknown): boolean {
@@ -62,9 +64,84 @@ function stripZeroWidthValue(value: unknown): unknown {
   return value;
 }
 
+function findBalancedJsonEnd(text: string, startIndex: number): number {
+  if (startIndex < 0 || startIndex >= text.length || text[startIndex] !== "{") return -1;
+
+  let depth = 0;
+  let inString = false;
+  let escaped = false;
+
+  for (let index = startIndex; index < text.length; index += 1) {
+    const char = text[index];
+
+    if (inString) {
+      if (escaped) {
+        escaped = false;
+        continue;
+      }
+      if (char === "\\") {
+        escaped = true;
+        continue;
+      }
+      if (char === '"') {
+        inString = false;
+      }
+      continue;
+    }
+
+    if (char === '"') {
+      inString = true;
+      continue;
+    }
+
+    if (char === "{") {
+      depth += 1;
+      continue;
+    }
+
+    if (char === "}") {
+      depth -= 1;
+      if (depth === 0) return index;
+    }
+  }
+
+  return -1;
+}
+
+function stripInternalToolEnvelopeText(content: string): string {
+  let sanitized = stripZeroWidthText(content);
+  const markerRegex = /to=(?:functions\.[A-Za-z0-9_.-]+|multi_tool_use\.[A-Za-z0-9_.-]+|[A-Za-z_][A-Za-z0-9_]*)/g;
+
+  while (true) {
+    const match = markerRegex.exec(sanitized);
+    if (!match || match.index < 0) break;
+
+    const searchWindowEnd = Math.min(sanitized.length, match.index + 1200);
+    const jsonStart = sanitized.indexOf("{", match.index);
+    if (jsonStart < 0 || jsonStart >= searchWindowEnd) {
+      sanitized = `${sanitized.slice(0, match.index)}${sanitized.slice(match.index + match[0].length)}`;
+      markerRegex.lastIndex = 0;
+      continue;
+    }
+
+    const jsonEnd = findBalancedJsonEnd(sanitized, jsonStart);
+    if (jsonEnd < 0) {
+      sanitized = sanitized.slice(0, match.index);
+      break;
+    }
+
+    const prefix = sanitized.slice(0, match.index).replace(/[ \t]+$/g, "");
+    const suffix = sanitized.slice(jsonEnd + 1).replace(/^[ \t]+/g, "");
+    sanitized = `${prefix}${suffix}`;
+    markerRegex.lastIndex = 0;
+  }
+
+  return sanitized.replace(/\n{3,}/g, "\n\n").trim();
+}
+
 function parseTextualToolCallContent(content: unknown): { name: string; args: unknown } | null {
   if (typeof content !== "string") return null;
-  const normalized = stripZeroWidthText(content);
+  const normalized = stripInternalToolEnvelopeText(content);
   const toolCallIndex = normalized.lastIndexOf("[Tool call:");
   if (toolCallIndex < 0) return null;
   const candidate = normalized.slice(toolCallIndex);
@@ -93,7 +170,7 @@ function parseTextualToolCallContent(content: unknown): { name: string; args: un
 }
 
 function containsTextualToolCallContent(content: unknown): boolean {
-  return typeof content === "string" && stripZeroWidthText(content).includes("[Tool call:");
+  return typeof content === "string" && stripInternalToolEnvelopeText(content).includes("[Tool call:");
 }
 
 function hasVisibleMessageContent(content: unknown): boolean {
@@ -297,7 +374,9 @@ function sanitizeMessage(msg: unknown, isDeepSeekV4 = false): unknown {
 
   // Handle content — extract <think> tags
   if (typeof msgRecord.content === "string") {
-    const { content, thinking } = extractThinkingFromContent(msgRecord.content);
+    const { content, thinking } = extractThinkingFromContent(
+      stripInternalToolEnvelopeText(msgRecord.content)
+    );
     sanitized.content = collapseExcessiveNewlines(content);
 
     // Set reasoning_content from <think> tags (if not already set)
@@ -520,6 +599,140 @@ function normalizeResponsesId(id: unknown): string {
   return `resp_${id}`;
 }
 
+function sanitizeResponsesStreamingOutputItem(item: unknown): JsonRecord | null {
+  const itemRecord = toRecord(item);
+  if (!itemRecord) return null;
+
+  const type = toString(itemRecord.type) || "message";
+
+  if (type === "message") {
+    const role = toString(itemRecord.role) || "assistant";
+    const phase = toString(itemRecord.phase);
+    if (role === "assistant" && phase === "commentary") {
+      return null;
+    }
+
+    const content = sanitizeResponsesMessageContent(itemRecord.content).filter((part) => {
+      const partRecord = toRecord(part);
+      const partPhase = partRecord ? toString(partRecord.phase) : undefined;
+      return partPhase !== "commentary";
+    });
+
+    if (role === "assistant" && content.length === 0) {
+      return null;
+    }
+
+    return {
+      ...itemRecord,
+      type: "message",
+      role,
+      content,
+    };
+  }
+
+  if (type === "reasoning") {
+    const summary = Array.isArray(itemRecord.summary)
+      ? itemRecord.summary
+          .map((part) => {
+            const partRecord = toRecord(part);
+            if (!partRecord) return null;
+            return {
+              ...partRecord,
+              type: toString(partRecord.type) || "summary_text",
+              text: collapseExcessiveNewlines(toString(partRecord.text) || ""),
+            };
+          })
+          .filter((part): part is JsonRecord => part !== null)
+      : [];
+
+    return {
+      ...itemRecord,
+      type: "reasoning",
+      summary,
+    };
+  }
+
+  if (type === "function_call") {
+    return {
+      ...itemRecord,
+      type: "function_call",
+      arguments:
+        typeof itemRecord.arguments === "string"
+          ? itemRecord.arguments
+          : JSON.stringify(itemRecord.arguments || {}),
+    };
+  }
+
+  if (type === "function_call_output") {
+    return {
+      ...itemRecord,
+      type: "function_call_output",
+      output:
+        typeof itemRecord.output === "string"
+          ? collapseExcessiveNewlines(itemRecord.output)
+          : JSON.stringify(itemRecord.output ?? ""),
+    };
+  }
+
+  return { ...itemRecord };
+}
+
+function sanitizeResponsesStreamingOutput(output: unknown): JsonRecord[] {
+  if (!Array.isArray(output)) return [];
+
+  return output
+    .map((item) => sanitizeResponsesStreamingOutputItem(item))
+    .filter((item): item is JsonRecord => item !== null);
+}
+
+function sanitizeResponsesStreamingEvent(parsedRecord: JsonRecord): JsonRecord {
+  const sanitized: JsonRecord = { ...parsedRecord };
+  const eventType = toString(parsedRecord.type) || "";
+
+  if (parsedRecord.item !== undefined) {
+    const sanitizedItem = sanitizeResponsesStreamingOutputItem(parsedRecord.item);
+    if (sanitizedItem) {
+      sanitized.item = sanitizedItem;
+    } else {
+      delete sanitized.item;
+      if (eventType === "response.output_item.added" || eventType === "response.output_item.done") {
+        sanitized[OMIT_STREAMING_CHUNK_MARKER] = true;
+      }
+    }
+  }
+
+  if (Array.isArray(parsedRecord.output)) {
+    const output = sanitizeResponsesStreamingOutput(parsedRecord.output);
+    sanitized.output = output;
+    const outputText = extractResponsesOutputText(output);
+    if (outputText.length > 0) {
+      sanitized.output_text = outputText;
+    } else {
+      delete sanitized.output_text;
+    }
+  }
+
+  const responseRecord = toRecord(parsedRecord.response);
+  if (responseRecord) {
+    const responseOutput = Array.isArray(responseRecord.output)
+      ? sanitizeResponsesStreamingOutput(responseRecord.output)
+      : undefined;
+    const sanitizedResponse: JsonRecord = {
+      ...responseRecord,
+      ...(responseOutput ? { output: responseOutput } : {}),
+    };
+    const responseOutputText = responseOutput ? extractResponsesOutputText(responseOutput) : "";
+    if (responseOutputText.length > 0) {
+      sanitizedResponse.output_text = responseOutputText;
+    } else {
+      delete sanitizedResponse.output_text;
+    }
+    sanitized.response = sanitizedResponse;
+  }
+
+  return sanitized;
+}
+
 function sanitizeResponsesOutput(output: unknown): JsonRecord[] {
   if (!Array.isArray(output)) return [];
 
@@ -598,7 +811,7 @@ function sanitizeResponsesMessageContent(content: unknown): JsonRecord[] {
     return [
       {
         type: "output_text",
-        text: collapseExcessiveNewlines(content),
+        text: collapseExcessiveNewlines(stripInternalToolEnvelopeText(content)),
         annotations: [],
       },
     ];
@@ -613,7 +826,7 @@ function sanitizeResponsesMessageContent(content: unknown): JsonRecord[] {
         if (typeof part === "string") {
           return {
             type: "output_text",
-            text: collapseExcessiveNewlines(part),
+            text: collapseExcessiveNewlines(stripInternalToolEnvelopeText(part)),
             annotations: [],
           };
         }
@@ -629,7 +842,9 @@ function sanitizeResponsesMessageContent(content: unknown): JsonRecord[] {
         return {
           ...partRecord,
           type: "output_text",
-          text: collapseExcessiveNewlines(toString(partRecord.text) || ""),
+          text: collapseExcessiveNewlines(
+            stripInternalToolEnvelopeText(toString(partRecord.text) || "")
+          ),
           annotations: Array.isArray(partRecord.annotations) ? partRecord.annotations : [],
         };
       }
@@ -751,6 +966,11 @@ function convertOpenAIResponseToResponses(openaiResponse: JsonRecord): JsonRecor
 export function sanitizeStreamingChunk(parsed: unknown): unknown {
   const parsedRecord = toRecord(parsed);
   if (!parsedRecord) return parsed;
+
+  const eventType = toString(parsedRecord.type) || "";
+  if (eventType.startsWith("response.") || parsedRecord.object === "response") {
+    return sanitizeResponsesStreamingEvent(parsedRecord);
+  }
 
   // Build sanitized chunk
   const sanitized: JsonRecord = {};
