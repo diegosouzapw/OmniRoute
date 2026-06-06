@@ -11,7 +11,11 @@ _Development cycle in progress — entries are added as work merges into `releas
 ### ✨ New Features
 
 - **feat(web-cookie):** self-service login infrastructure for 21 web-cookie providers — three login pathways (Electron BrowserWindow, Playwright dashboard fallback, `POST /api/providers/{id}/login`), token-extraction configs, and a 15-min cookie-validity auto-refresh daemon. Hardened on merge: error bodies sanitized (Hard Rule #12), the spawn-capable login route classified LOCAL_ONLY (Hard Rules #15/#17), and the Electron status listener de-duplicated. ([#3292](https://github.com/diegosouzapw/OmniRoute/pull/3292), closes #3070 — thanks @oyi77 / @diegosouzapw)
-- **feat(api):** accept path-scoped API keys on client API routes — keys may now arrive via `/api/v1/vscode/<key>/…` path aliases (incl. `raw`/`combos`) or `?token=`/`?apiKey=`/`?api_key=`/`?key=` query params; explicit `Authorization`/`x-api-key` headers still take precedence. Split out of #3073. ([#3300](https://github.com/diegosouzapw/OmniRoute/pull/3300) — thanks @zhiru)
+- **feat(api):** accept path-scoped API keys on client API routes — keys may arrive via `/api/v1/vscode/<key>/…` path aliases (incl. `raw`/`combos`); explicit `Authorization`/`x-api-key` headers still take precedence. Split out of #3073. ([#3300](https://github.com/diegosouzapw/OmniRoute/pull/3300) — thanks @zhiru)
+
+### 🔒 Security
+
+- **fix(auth):** follow-up hardening of the client-API key extractor (#3300) — removed the generic query-string token fallbacks (`?token=`/`?key=`/`?apiKey=`/`?api_key=`), which leak credentials into access logs / Referer headers, and gated URL-borne tokens to client routes only (management auth is now header-only) so a credential in the URL can never authenticate a management route. The path-scoped `/vscode/<key>/…` form the VS Code integration needs is unchanged. (security review follow-up to [#3300](https://github.com/diegosouzapw/OmniRoute/pull/3300) — thanks @zhiru / @diegosouzapw)
 
 ### 🔧 Bug Fixes
 
