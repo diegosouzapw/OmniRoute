@@ -255,24 +255,30 @@ class LoginManager extends EventEmitter {
           );
 
           if (storageSources.length > 0 && this.window && !this.window.isDestroyed()) {
-            // Execute JS to extract localStorage tokens
+            // Execute JS to extract all localStorage/sessionStorage tokens
             const storageType = storageSources[0].type === "localStorage" ? "localStorage" : "sessionStorage";
             const keys = storageSources.map((s) => s.key);
-            const js = `${storageType}.getItem(${JSON.stringify(keys[0])})`;
+            const js = `(() => {
+              const res = {};
+              ${JSON.stringify(keys)}.forEach(k => {
+                try { res[k] = ${storageType}.getItem(k); } catch {}
+              });
+              return res;
+            })()`;
 
             this.window.webContents
               .executeJavaScript(js)
-              .then((value) => {
-                if (value && typeof value === "string") {
-                  credentials[keys[0]] = value;
+              .then((values) => {
+                if (values && typeof values === "object") {
+                  Object.assign(credentials, values);
                 }
-                this._checkCredentials(providerId, credentials, cookieSources, storageSources, poll);
+                this._checkCredentials(providerId, credentials, cookieSources, storageSources, poll, pollInterval);
               })
               .catch(() => {
-                this._checkCredentials(providerId, credentials, cookieSources, storageSources, poll);
+                this._checkCredentials(providerId, credentials, cookieSources, storageSources, poll, pollInterval);
               });
           } else {
-            this._checkCredentials(providerId, credentials, cookieSources, storageSources, poll);
+            this._checkCredentials(providerId, credentials, cookieSources, storageSources, poll, pollInterval);
           }
         })
         .catch(() => {
@@ -289,7 +295,7 @@ class LoginManager extends EventEmitter {
   /**
    * Check if we have all required credentials, otherwise continue polling
    */
-  _checkCredentials(providerId, credentials, cookieSources, storageSources, poll) {
+  _checkCredentials(providerId, credentials, cookieSources, storageSources, poll, pollInterval) {
     if (this.isCompleted) return;
 
     // Collect the required source names/keys
@@ -307,8 +313,8 @@ class LoginManager extends EventEmitter {
         return acc;
       }, {}));
     } else if (!this.isCompleted) {
-      // Continue polling
-      this.pollIntervalId = setTimeout(poll, 1000);
+      // Continue polling using the configured interval
+      this.pollIntervalId = setTimeout(poll, pollInterval);
     }
   }
 

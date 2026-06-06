@@ -144,10 +144,9 @@ class AutoRefreshDaemon {
     const entry = this.credentialStore.get(providerId);
     if (!entry) return false;
 
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 10000);
     try {
-      const controller = new AbortController();
-      const timeout = setTimeout(() => controller.abort(), 10000);
-
       const response = await fetch(homeUrl, {
         method: "HEAD",
         signal: controller.signal,
@@ -156,8 +155,6 @@ class AutoRefreshDaemon {
             "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36",
         },
       });
-
-      clearTimeout(timeout);
 
       // A valid credential typically returns 200 (occasionally 301/302)
       // 401/403 strongly suggest expired credential
@@ -169,6 +166,8 @@ class AutoRefreshDaemon {
     } catch {
       // Network errors (timeout, DNS failure) don't mean the credential is bad
       return true;
+    } finally {
+      clearTimeout(timeout);
     }
   }
 
