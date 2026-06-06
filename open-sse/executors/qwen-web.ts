@@ -10,6 +10,7 @@
  */
 import { BaseExecutor, type ExecuteInput } from "./base.ts";
 import { makeExecutorErrorResult as makeErrorResult } from "../utils/error.ts";
+import { prepareToolMessages, buildToolAwareResult } from "../translator/webTools.ts";
 
 const BASE_URL = "https://chat.qwen.ai";
 const CHAT_URL = `${BASE_URL}/api/chat/completions`;
@@ -29,8 +30,10 @@ export class QwenWebExecutor extends BaseExecutor {
     const messages = (bodyObj.messages as Array<{ role: string; content: string }>) || [];
     const modelId = (bodyObj.model as string) || "qwen-plus";
 
+    const { hasTools, requestedTools, effectiveMessages } = prepareToolMessages(bodyObj, messages);
+
     const reqBody = {
-      messages: messages.map((m) => ({ role: m.role, content: m.content })),
+      messages: effectiveMessages.map((m) => ({ role: m.role, content: String(m.content ?? "") })),
       model: modelId,
       stream: wantStream,
       max_tokens: (bodyObj.max_tokens as number) || 4096,
@@ -80,30 +83,86 @@ export class QwenWebExecutor extends BaseExecutor {
 
     if (!wantStream) {
       const data = (await upstream.json()) as Record<string, unknown>;
-      const content =
+      const rawContent =
         (data?.choices as Array<{ message?: { content?: string } }>)?.[0]?.message?.content ||
         (data?.content as string) ||
         "";
+
+      if (hasTools) {
+        const { content, toolCalls, finishReason } = buildToolAwareResult(rawContent, requestedTools, "qwen");
+        const message: Record<string, unknown> = { role: "assistant", content };
+        if (toolCalls) { message.tool_calls = toolCalls; message.content = null; }
+        return {
+          response: new Response(
+            JSON.stringify({
+              id: `chatcmpl-qwen-${Date.now()}`, object: "chat.completion",
+              created: Math.floor(Date.now() / 1000), model: modelId,
+              choices: [{ index: 0, message, finish_reason: finishReason }],
+            }),
+            { headers: { "Content-Type": "application/json" } }
+          ),
+          url: CHAT_URL, headers: reqHeaders, transformedBody: reqBody,
+        };
+      }
+
       return {
         response: new Response(
           JSON.stringify({
-            id: `chatcmpl-qwen-${Date.now()}`,
-            object: "chat.completion",
-            created: Math.floor(Date.now() / 1000),
-            model: modelId,
-            choices: [{ index: 0, message: { role: "assistant", content }, finish_reason: "stop" }],
+            id: `chatcmpl-qwen-${Date.now()}`, object: "chat.completion",
+            created: Math.floor(Date.now() / 1000), model: modelId,
+            choices: [{ index: 0, message: { role: "assistant", content: rawContent }, finish_reason: "stop" }],
           }),
           { headers: { "Content-Type": "application/json" } }
         ),
-        url: CHAT_URL,
-        headers: reqHeaders,
-        transformedBody: reqBody,
+        url: CHAT_URL, headers: reqHeaders, transformedBody: reqBody,
       };
     }
 
     // Streaming
     const encoder = new TextEncoder();
     const decoder = new TextDecoder();
+
+    if (hasTools) {
+      let fullContent = "";
+      const reader = upstream.body?.getReader();
+      if (reader) {
+        let buf = "";
+        try {
+          while (true) {
+            const { done, value } = await reader.read();
+            if (done) break;
+            buf += decoder.decode(value, { stream: true });
+            for (const line of buf.split("\n")) {
+              if (!line.startsWith("data:")) continue;
+              const d = line.slice(5).trim();
+              if (d === "[DONE]") continue;
+              try { fullContent += JSON.parse(d).choices?.[0]?.delta?.content || ""; } catch {}
+            }
+            buf = buf.split("\n").pop() || "";
+          }
+        } catch {}
+      }
+
+      const { content, toolCalls, finishReason } = buildToolAwareResult(fullContent, requestedTools, "qwen");
+      const stream = new ReadableStream({
+        start(controller) {
+          const id = `chatcmpl-qwen-${Date.now()}`;
+          const created = Math.floor(Date.now() / 1000);
+          const delta = toolCalls
+            ? { role: "assistant", content: null, tool_calls: toolCalls }
+            : { role: "assistant", content };
+          controller.enqueue(encoder.encode(`data: ${JSON.stringify({ id, object: "chat.completion.chunk", created, model: modelId, choices: [{ index: 0, delta, finish_reason: null }] })}\n\n`));
+          controller.enqueue(encoder.encode(`data: ${JSON.stringify({ id, object: "chat.completion.chunk", created, model: modelId, choices: [{ index: 0, delta: {}, finish_reason: finishReason }] })}\n\n`));
+          controller.enqueue(encoder.encode("data: [DONE]\n\n"));
+          controller.close();
+        },
+      });
+      return {
+        response: new Response(stream, { headers: { "Content-Type": "text/event-stream", "Cache-Control": "no-cache", Connection: "keep-alive" } }),
+        url: CHAT_URL, headers: reqHeaders, transformedBody: reqBody,
+      };
+    }
+
     const stream = new ReadableStream({
       async start(controller) {
         const reader = upstream.body?.getReader();

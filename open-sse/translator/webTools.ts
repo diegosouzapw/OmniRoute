@@ -435,3 +435,58 @@ export function parseToolCallsFromText(
   const content = stripRanges(text, acceptedRanges);
   return { content, toolCalls };
 }
+
+// ── Shared helpers for web-cookie executors ────────────────────────────────
+
+interface ToolPrepResult {
+  hasTools: boolean;
+  requestedTools: unknown;
+  effectiveMessages: Array<{ role: string; content: unknown }>;
+}
+
+/**
+ * Extract tools from an OpenAI request body and prepend a tool-system-prompt
+ * to the messages array when tools are present.  Every web-cookie executor
+ * that wants tool-call support calls this once before building its upstream
+ * request body.
+ */
+export function prepareToolMessages(
+  bodyObj: Record<string, unknown>,
+  messages: Array<{ role: string; content: unknown }>,
+): ToolPrepResult {
+  const requestedTools = bodyObj.tools;
+  const hasTools = Array.isArray(requestedTools) && requestedTools.length > 0;
+  if (!hasTools) return { hasTools: false, requestedTools, effectiveMessages: messages };
+
+  const toolPrompt = serializeToolsToPrompt(requestedTools);
+  return {
+    hasTools: true,
+    requestedTools,
+    effectiveMessages: [{ role: "system", content: toolPrompt }, ...messages],
+  };
+}
+
+interface ToolCompletionResult {
+  content: string;
+  toolCalls: OpenAIToolCall[] | null;
+  finishReason: string;
+}
+
+/**
+ * Parse tool calls from a model's text response.  Returns the cleaned content
+ * (with `<tool>` blocks stripped), the parsed tool calls (or null), and the
+ * appropriate finish_reason.  Every web-cookie executor calls this on the
+ * collected response text when `hasTools` is true.
+ */
+export function buildToolAwareResult(
+  rawContent: string,
+  requestedTools: unknown,
+  idSeed = "call",
+): ToolCompletionResult {
+  const { content, toolCalls } = parseToolCallsFromText(rawContent, `${idSeed}-${Date.now()}`, requestedTools);
+  return {
+    content,
+    toolCalls,
+    finishReason: toolCalls ? "tool_calls" : "stop",
+  };
+}

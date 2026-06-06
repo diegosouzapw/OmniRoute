@@ -13,6 +13,7 @@ import {
   TlsClientUnavailableError,
   type TlsFetchResult,
 } from "../services/perplexityTlsClient.ts";
+import { prepareToolMessages, buildToolAwareResult } from "../translator/webTools.ts";
 
 const PPLX_SSE_ENDPOINT = "https://www.perplexity.ai/rest/sse/perplexity_ask";
 const PPLX_API_VERSION = "client-1.11.0";
@@ -657,10 +658,11 @@ export class PerplexityWebExecutor extends BaseExecutor {
   }
 
   async execute({ model, body, stream, credentials, signal, log }: ExecuteInput) {
-    const messages = (body as Record<string, unknown>).messages as
+    const bodyObj = (body || {}) as Record<string, unknown>;
+    const rawMessages = bodyObj.messages as
       | Array<Record<string, unknown>>
       | undefined;
-    if (!messages || !Array.isArray(messages) || messages.length === 0) {
+    if (!rawMessages || !Array.isArray(rawMessages) || rawMessages.length === 0) {
       const errResp = new Response(
         JSON.stringify({
           error: { message: "Missing or empty messages array", type: "invalid_request" },
@@ -670,8 +672,9 @@ export class PerplexityWebExecutor extends BaseExecutor {
       return { response: errResp, url: PPLX_SSE_ENDPOINT, headers: {}, transformedBody: body };
     }
 
+    const { hasTools, requestedTools, effectiveMessages } = prepareToolMessages(bodyObj, rawMessages as Array<{ role: string; content: unknown }>);
+
     // Resolve thinking mode
-    const bodyObj = body as Record<string, unknown>;
     const thinking =
       bodyObj.thinking === true ||
       (bodyObj.reasoning_effort != null && bodyObj.reasoning_effort !== "none");
@@ -691,7 +694,7 @@ export class PerplexityWebExecutor extends BaseExecutor {
     }
 
     // Parse messages and check session continuity
-    const parsed = parseOpenAIMessages(messages);
+    const parsed = parseOpenAIMessages(effectiveMessages);
     const followUpUuid = sessionLookup(parsed.history);
     if (followUpUuid) {
       log?.info?.("PPLX-WEB", `Session continue: ${followUpUuid.slice(0, 12)}...`);
@@ -833,6 +836,24 @@ export class PerplexityWebExecutor extends BaseExecutor {
         parsed.currentMsg,
         signal
       );
+    }
+
+    if (hasTools && !stream) {
+      const bodyText = await (finalResponse as Response).text();
+      try {
+        const json = JSON.parse(bodyText);
+        const rawContent = json?.choices?.[0]?.message?.content || "";
+        const { content, toolCalls, finishReason } = buildToolAwareResult(rawContent, requestedTools, "pplx");
+        if (toolCalls) {
+          json.choices[0].message = { role: "assistant", content: null, tool_calls: toolCalls };
+          json.choices[0].finish_reason = finishReason;
+        } else {
+          json.choices[0].message.content = content;
+        }
+        finalResponse = new Response(JSON.stringify(json), {
+          status: 200, headers: { "Content-Type": "application/json" },
+        });
+      } catch { /* keep original response */ }
     }
 
     return {
