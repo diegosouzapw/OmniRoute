@@ -1,0 +1,59 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="760" height="430" viewBox="0 0 760 430" font-family="-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif">
+  <rect width="760" height="430" rx="14" fill="#0d1117"/>
+  <rect x="16" y="16" width="728" height="398" rx="12" fill="#161b22" stroke="#30363d"/>
+
+  <!-- header -->
+  <text x="36" y="56" fill="#e6edf3" font-size="17" font-weight="700">Monthly free-token budget</text>
+  <text x="724" y="56" fill="#7d8590" font-size="13" text-anchor="end">1.86B remaining · 98% of 1.90B</text>
+
+  <!-- stacked bar (segments ∝ pool-deduped budget) -->
+  <g>
+    <rect x="36" y="76" width="688" height="16" rx="8" fill="#21262d"/>
+    <clipPath id="bar"><rect x="36" y="76" width="688" height="16" rx="8"/></clipPath>
+    <g clip-path="url(#bar)">
+      <rect x="36"  y="76" width="472" height="16" fill="#6c5ce7"/>
+      <rect x="508" y="76" width="71"  height="16" fill="#00b894"/>
+      <rect x="579" y="76" width="58"  height="16" fill="#0984e3"/>
+      <rect x="637" y="76" width="28"  height="16" fill="#e17055"/>
+      <rect x="665" y="76" width="28"  height="16" fill="#fdcb6e"/>
+      <rect x="693" y="76" width="14"  height="16" fill="#e84393"/>
+      <rect x="707" y="76" width="9"   height="16" fill="#00cec9"/>
+      <rect x="716" y="76" width="8"   height="16" fill="#d63031"/>
+    </g>
+  </g>
+  <text x="36" y="116" fill="#7d8590" font-size="12.5">Up to <tspan fill="#3fb950" font-weight="600">~2.5B</tspan> in your first month with signup credits · stretched further by RTK + Caveman compression</text>
+
+  <!-- per-model legend grid (3 cols) -->
+  <g font-size="13" fill="#c9d1d9">
+    <!-- row 1 -->
+    <circle cx="42" cy="158" r="5" fill="#6c5ce7"/><text x="54" y="162">Mistral Large — <tspan fill="#7d8590">1.0B</tspan></text>
+    <circle cx="282" cy="158" r="5" fill="#00b894"/><text x="294" y="162">LongCat 2.0 — <tspan fill="#7d8590">150M</tspan></text>
+    <circle cx="522" cy="158" r="5" fill="#0984e3"/><text x="534" y="162">Cloudflare WAI — <tspan fill="#7d8590">122M</tspan></text>
+    <!-- row 2 -->
+    <circle cx="42" cy="190" r="5" fill="#e17055"/><text x="54" y="194">Gemini 2.5 Flash — <tspan fill="#7d8590">60M</tspan></text>
+    <circle cx="282" cy="190" r="5" fill="#fdcb6e"/><text x="294" y="194">Doubao — <tspan fill="#7d8590">60M</tspan></text>
+    <circle cx="522" cy="190" r="5" fill="#e84393"/><text x="534" y="194">Cerebras Qwen3 — <tspan fill="#7d8590">30M</tspan></text>
+    <!-- row 3 -->
+    <circle cx="42" cy="222" r="5" fill="#00cec9"/><text x="54" y="226">GitHub Models — <tspan fill="#7d8590">18M</tspan></text>
+    <circle cx="282" cy="222" r="5" fill="#d63031"/><text x="294" y="226">Groq Llama 3.3 — <tspan fill="#7d8590">15M</tspan></text>
+    <circle cx="522" cy="222" r="5" fill="#636e72"/><text x="534" y="226">OpenRouter :free — <tspan fill="#7d8590">1.2M</tspan></text>
+  </g>
+
+  <line x1="36" y1="252" x2="724" y2="252" stroke="#30363d"/>
+
+  <!-- three honest tiers -->
+  <g>
+    <text x="36"  y="284" fill="#7d8590" font-size="12">Steady / month</text>
+    <text x="36"  y="312" fill="#e6edf3" font-size="22" font-weight="700">~1.94B</text>
+    <text x="282" y="284" fill="#7d8590" font-size="12">First month (+ signup credits)</text>
+    <text x="282" y="312" fill="#3fb950" font-size="22" font-weight="700">~2.53B</text>
+    <text x="522" y="284" fill="#7d8590" font-size="12">Pools · models</text>
+    <text x="522" y="312" fill="#e6edf3" font-size="22" font-weight="700">50 · 530</text>
+  </g>
+
+  <!-- footer note -->
+  <rect x="36" y="338" width="688" height="40" rx="8" fill="#1c2230" stroke="#30363d"/>
+  <text x="50" y="363" fill="#d29922" font-size="12.5">⚠ 19 providers are ToS-restricted (proxy not permitted) and excluded · figures are pool-deduped — no inflated rate-limit ceilings.</text>
+
+  <text x="724" y="400" fill="#484f58" font-size="10.5" text-anchor="end">OmniRoute · /dashboard/free-tiers · preview mockup</text>
+</svg>

@@ -982,6 +982,20 @@ Special thanks to **[Troglodita](https://github.com/leninejunior/troglodita)** b
 
 <br/>
 
+## 💰 Free-Token Budget — see exactly how much free inference you have
+
+Stacking free tiers by hand is painful: dozens of SDKs, dozens of rate limits, and no idea how much you actually have. OmniRoute aggregates the **documented** free tiers of **50+ provider pools / 530 models** into one honest number and shows it live on the dashboard (`/dashboard/free-tiers`).
+
+- **~1.9B free tokens / month** (steady) — and **up to ~2.5B in your first month** with signup credits.
+- **Pool-deduped, honest:** we count each shared free pool **once**, so the headline isn't inflated by rate-limit ceilings the way multi-billion competitor claims are. (The naïve per-model sum would read ~8B; we don't publish that.)
+- **Per-model breakdown**, **live used / remaining** for the current month, and a **ToS flag** for the 19 providers whose terms don't permit proxying.
+
+![Free-Tier Budget card (preview mockup)](docs/screenshots/free-tier-budget-card.svg)
+
+> Preview mockup — a real screenshot lands once the `/dashboard/free-tiers` page is validated. Full methodology (pool dedupe, credit tiers, the 19 ToS-restricted providers): **[docs/reference/FREE_TIERS.md](docs/reference/FREE_TIERS.md)**.
+
+<br/>
+
 ## 📄 License
 
 MIT License - see [LICENSE](LICENSE) for details.
