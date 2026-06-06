@@ -26,6 +26,7 @@ import {
   isCloudflareChallenge,
   type TlsFetchResult,
 } from "../services/grokTlsClient.ts";
+import { sanitizeErrorMessage } from "../utils/error.ts";
 
 // ─── Constants ──────────────────────────────────────────────────────────────
 
@@ -1500,7 +1501,9 @@ function buildStreamingResponse(
                   {
                     index: 0,
                     delta: {
-                      content: `[Stream error: ${err instanceof Error ? err.message : String(err)}]`,
+                      content: sanitizeErrorMessage(
+                `[Stream error: ${err instanceof Error ? err.message : String(err)}]`
+              ),
                     },
                     finish_reason: "stop",
                     logprobs: null,
@@ -1783,7 +1786,7 @@ export class GrokWebExecutor extends BaseExecutor {
         const errResp = new Response(
           JSON.stringify({
             error: {
-              message: `Grok TLS client unavailable: ${err.message}`,
+              message: sanitizeErrorMessage(`Grok TLS client unavailable: ${err.message}`),
               type: "upstream_error",
               code: "TLS_CLIENT_UNAVAILABLE",
             },
@@ -1796,7 +1799,9 @@ export class GrokWebExecutor extends BaseExecutor {
       const errResp = new Response(
         JSON.stringify({
           error: {
-            message: `Grok connection failed: ${err instanceof Error ? err.message : String(err)}`,
+            message: sanitizeErrorMessage(
+              `Grok connection failed: ${err instanceof Error ? err.message : String(err)}`
+            ),
             type: "upstream_error",
           },
         }),
