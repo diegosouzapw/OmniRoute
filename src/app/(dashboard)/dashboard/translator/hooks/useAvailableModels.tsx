@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import { compareTr } from "@/shared/utils/turkishText";
 
 /**
@@ -46,9 +46,11 @@ export function useAvailableModels(provider?: string) {
     fetchModels();
   }, []);
 
-  const availableModels = provider
-    ? allModels.filter((m) => m.startsWith(`${provider}/`) || m === provider)
-    : allModels;
+  const availableModels = useMemo(() => {
+    return provider
+      ? allModels.filter((m) => m.startsWith(`${provider}/`) || m === provider)
+      : allModels;
+  }, [allModels, provider]);
 
   /**
    * Pick the best model for a given format from the available models.

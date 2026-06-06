@@ -2985,7 +2985,13 @@ export async function handleComboChat({
         // eligibleTargets intentionally unchanged — same fallback contract as tool-calling filter
       }
 
-      if (!Array.isArray(autoConfigSource?.candidatePool)) {
+      const localAutoConfig =
+        combo?.autoConfig ||
+        (isRecord(combo?.config?.auto) ? combo.config.auto : null) ||
+        combo?.config ||
+        {};
+
+      if (!Array.isArray(localAutoConfig?.candidatePool)) {
         try {
           const allConnections = await getProviderConnections({ isActive: true });
           const providerIds = [...new Set(allConnections.map((c) => c.provider))];
@@ -2995,12 +3001,16 @@ export async function handleComboChat({
               const modelStr = `${providerId}/${model.id}`;
               if (!eligibleTargets.some((t) => t.modelStr === modelStr)) {
                 eligibleTargets.push({
+                  kind: "model",
+                  stepId: modelStr,
+                  executionKey: modelStr,
                   provider: providerId,
+                  providerId: providerId,
                   model: model.id,
                   modelStr,
                   weight: 1,
-                  connectionId: undefined,
-                  apiKeyId: undefined,
+                  connectionId: null,
+                  label: null,
                 });
               }
             }
