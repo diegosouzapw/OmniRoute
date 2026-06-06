@@ -122,7 +122,12 @@ test("v1 models catalog accepts bearer API keys and filters the list by allowed 
   );
 });
 
-test("v1 models catalog accepts API keys supplied via query string when auth is required", async () => {
+test("v1 models catalog does NOT accept API keys supplied via query string (#3300 security follow-up)", async () => {
+  // Query-string token fallbacks (`?token=`/`?key=`/`?apiKey=`/`?api_key=`) were
+  // intentionally removed — a credential in the query string leaks into access
+  // logs / Referer headers. The VS Code integration uses the path-scoped
+  // `/vscode/<token>/…` form instead (covered by the next test). So a `?token=`
+  // on the catalog route is no longer a usable credential → auth fails.
   await settingsDb.updateSettings({
     requireLogin: true,
     password: "hashed-password",
@@ -135,11 +140,8 @@ test("v1 models catalog accepts API keys supplied via query string when auth is 
   const response = await v1ModelsCatalog.getUnifiedModelsResponse(
     new Request(`http://localhost/api/v1/models?token=${encodeURIComponent(key.key)}`)
   );
-  const body = (await response.json()) as any;
 
-  assert.equal(response.status, 200);
-  assert.ok(Array.isArray(body.data));
-  assert.ok(body.data.length > 0);
+  assert.equal(response.status, 401);
 });
 
 test("v1 models catalog accepts API keys embedded in vscode path aliases when auth is required", async () => {
@@ -1378,6 +1380,38 @@ test("v1 models catalog prefers manual combo context_length over auto-calculated
   assert.equal(response.status, 200);
   assert.ok(comboModel);
   assert.equal(comboModel.context_length, 64000, "manual context_length should override auto-calc");
+});
+
+test("v1 models catalog computes combo context_length from known targets when some targets have unknown context", async () => {
+  await seedConnection("openai", { name: "openai-mixed-context" });
+  await seedConnection("claude", {
+    authType: "oauth",
+    name: "claude-mixed-context",
+    apiKey: null,
+    accessToken: "claude-access",
+  });
+
+  // Create a combo with targets: one known (gpt-4o = 128K), one unknown (nonexistent-model).
+  // The combo should still compute context_length = 128K from the known target.
+  const combo = await combosDb.createCombo({
+    name: "mixed-context-combo",
+    strategy: "priority",
+    models: ["openai/gpt-4o", "openai/nonexistent-model-xyz"],
+  });
+
+  const response = await v1ModelsCatalog.getUnifiedModelsResponse(
+    new Request("http://localhost/api/v1/models")
+  );
+  const body = (await response.json()) as any;
+  const comboModel = body.data.find((item) => item.id === "mixed-context-combo");
+
+  assert.equal(response.status, 200);
+  assert.ok(comboModel);
+  assert.equal(
+    comboModel.context_length,
+    128000,
+    "combo context_length should be the MIN of known target model limits, ignoring unknown targets"
+  );
 });
 
 // Regression test for Issue #2798: noAuth providers (opencode/oc) have no DB connection rows

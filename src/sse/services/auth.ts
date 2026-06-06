@@ -849,7 +849,11 @@ async function getProviderSearchPool(provider: string): Promise<string[]> {
       const nodePrefix = typeof nodeRecord.prefix === "string" ? nodeRecord.prefix.trim() : "";
       const nodeId = typeof nodeRecord.id === "string" ? nodeRecord.id.trim() : "";
       if (!nodePrefix || !nodeId) continue;
-      if (nodePrefix === provider || nodePrefix === canonicalProvider || nodePrefix === canonicalAlias) {
+      if (
+        nodePrefix === provider ||
+        nodePrefix === canonicalProvider ||
+        nodePrefix === canonicalAlias
+      ) {
         searchPool.add(nodeId);
       }
     }
@@ -1602,8 +1606,8 @@ export async function getProviderCredentialsWithQuotaPreflight(
     // false for both "not set" and "explicit false" — we need an explicit check
     // here to distinguish them.
     const legacyForceDisable =
-      (credentials as { providerSpecificData?: Record<string, unknown> })
-        .providerSpecificData?.quotaPreflightEnabled === false;
+      (credentials as { providerSpecificData?: Record<string, unknown> }).providerSpecificData
+        ?.quotaPreflightEnabled === false;
     if (legacyForceDisable) return credentials;
 
     const hasConnectionOverrides = Object.keys(perConnectionWindowOverrides).length > 0;
@@ -2077,10 +2081,12 @@ function readNonEmptyUrlToken(request: AuthRequestLike): string | null {
       }
     }
 
-    for (const key of ["apiKey", "api_key", "key", "token"]) {
-      const token = url.searchParams.get(key)?.trim();
-      if (token) return token;
-    }
+    // NOTE: query-string token fallbacks (`?token=`/`?key=`/`?apiKey=`/`?api_key=`)
+    // were intentionally REMOVED. They are a broad credential-in-URL surface that
+    // leaks into access logs, Referer headers and proxy logs, and — because this
+    // extractor also feeds management auth — would let `?token=<mgmt-key>`
+    // authenticate management routes. The VS Code integration only needs the
+    // path-scoped `/vscode/<token>/…` form above. (security review, #3300 follow-up)
   } catch {
     return null;
   }
@@ -2091,12 +2097,12 @@ function readNonEmptyUrlToken(request: AuthRequestLike): string | null {
 /**
  * Extract API key from request auth inputs.
  *
- * Honors both explicit headers and URL-based fallbacks:
+ * Honors explicit auth headers and (for client-facing routes only) a
+ * path-scoped URL token:
  * - `Authorization: Bearer <key>` (OpenAI / OmniRoute / Codex CLI / Bearer clients)
  * - `x-api-key: <key>` (Anthropic Messages API contract — Claude Code,
  *   `@anthropic-ai/sdk`, any SDK that sets `anthropic-version`)
- * - `/vscode/<key>/...` (path-scoped tokenized aliases)
- * - `?token=<key>` / `?apiKey=<key>` / `?api_key=<key>` / `?key=<key>`
+ * - `/vscode/<key>/...` (path-scoped tokenized aliases — only when `allowUrl`)
  *
  * When multiple inputs are present, explicit auth headers win.
  *
@@ -2106,8 +2112,13 @@ function readNonEmptyUrlToken(request: AuthRequestLike): string | null {
  * non-Anthropic SDKs that happen to set `x-api-key` (or local-mode tools
  * with placeholder keys) would be treated as authenticated attempts and
  * rejected by per-route gates that compare against OmniRoute keys.
+ *
+ * `opts.allowUrl` (default `true`) gates the path-scoped URL token. Management
+ * auth MUST pass `allowUrl: false` — a credential in the URL must never
+ * authenticate a management route (it leaks into logs/Referer and would widen
+ * the management surface). See the #3300 security follow-up.
  */
-export function extractApiKey(request: AuthRequestLike) {
+export function extractApiKey(request: AuthRequestLike, opts?: { allowUrl?: boolean }) {
   const authHeader =
     readHeaderValue(request?.headers, "Authorization") ||
     readHeaderValue(request?.headers, "authorization");
@@ -2135,6 +2146,7 @@ export function extractApiKey(request: AuthRequestLike) {
     }
   }
 
+  if (opts?.allowUrl === false) return null;
   return readNonEmptyUrlToken(request);
 }
 

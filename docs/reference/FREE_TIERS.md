@@ -51,7 +51,6 @@ Biggest **documented** contributors: `mistral` 1.00B, `longcat` 150M, `cloudflar
 | `ai21` | ToS §4.2/§8.2 prohibits sublicensing or distributing API access to third parties; §3.3 restricts trial/evaluation products to "internal evaluation on… |
 | `amazon-q` | Product is discontinued for new signups; existing users are subject to AWS Customer Agreement which governs use of managed services — self-hosted pro… |
 | `blackbox` | ToS explicitly prohibits sublicensing, reselling, making the service available to third parties, and building derivative services — a self-hosted per… |
-| `completions` | No published ToS found (404 on /terms, /faq, /docs). The service proxies Anthropic/OpenAI/Google APIs without authorization, violating those upstream… |
 | `coze` | Coze ToS explicitly restricts use to "personal and non-commercial use" and prohibits renting, distributing, sublicensing, or reselling the service; a… |
 | `duckduckgo-web` | Duck.ai ToS (duckduckgo.com/duckai/privacy-terms) explicitly prohibits "automated querying and developing or offering AI services" and circumventing … |
 | `featherless-ai` | Individual plans explicitly restricted to "interactive use or proto-typing and experimentation by the purchaser" — inference resale and proxy use req… |
@@ -201,7 +200,6 @@ Biggest **documented** contributors: `mistral` 1.00B, `longcat` 150M, `cloudflar
 | `bytez` | aggregator | recurring-credit | — | med | ambiguous | Bytez offers $1 in free credits that refresh every 4 weeks (credits expire if unused within the cycle). Free tier is li… |
 | `chutes` | aggregator | discontinued | — | high | unknown | The free Early Access program (200 requests/day) was officially discontinued on March 15, 2026. Chutes.ai now operates … |
 | `comfyui` | image | keyless-unlimited | — | high | ok | ComfyUI is a fully open-source (GPL-3.0), self-hosted diffusion model interface that runs entirely on local hardware wi… |
-| `completions` | aggregator | keyless-unlimited | — | med | caution | Completions.me claims to offer completely free, unlimited access to Claude Opus 4.6, GPT-5.2, Gemini 3.1 Pro, and 15+ m… |
 | `coze` | aggregator | recurring-daily | — | med | caution | Coze's free plan provides 10 message credits per day — a platform-level unit (not raw LLM tokens) where each model call… |
 | `deepinfra` | aggregator | one-time-trial-credit | — | med | caution | DeepInfra is a pay-as-you-go inference provider that explicitly requires a credit card or prepayment to use services; a… |
 | `deepseek` | llm-chat | one-time-trial-credit | — | high | caution | DeepSeek offers a one-time signup credit of 5 million tokens (no credit card required) valid for 30 days from account c… |
@@ -281,7 +279,6 @@ Biggest **documented** contributors: `mistral` 1.00B, `longcat` 150M, `cloudflar
 - **`byteplus`** — Our catalog shipped "(none)" but BytePlus ModelArk does have a free tier: a one-time trial credit of 500k tokens per LLM model for new accounts. The catalog underreports this.
 - **`cerebras`** — TPM appears tightened from 60K to 30K on current documented models (gpt-oss-120b, zai-glm-4.7). RPM of 5 is now explicitly documented (was not in our shipped note). Daily token cap of 1M/day is uncha…
 - **`chutes`** — The shipped freeNote says "Free tier available" but as of March 15, 2026, the free tier has been officially discontinued. The catalog note is stale and should be updated to reflect that there is no r…
-- **`completions`** — Our shipped freeNote ("Free unlimited access to Claude, GPT, Gemini — no rate limits") still matches the site's self-described claims. However, the service is a legally dubious, short-lived aggregato…
 - **`coze`** — The shipped note "Free ByteDance agent platform" is directionally accurate but omits that the free tier is now tightly credit-capped (10 credits/day ≈ 5–100 messages depending on model), a constraint…
 - **`deepinfra`** — Our shipped freeNote says "Free signup credits for API testing" — this appears stale. The official pricing page now requires card/prepayment with no documented general free signup credit. The free ti…
 - **`deepseek`** — Our shipped note says "5M free tokens on signup - no credit card required" — this is still accurate for the one-time grant, but importantly the credits expire after 30 days (not mentioned in the ship…

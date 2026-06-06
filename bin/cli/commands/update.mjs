@@ -1,16 +1,24 @@
 import { printHeading, printInfo, printSuccess, printError } from "../io.mjs";
 import { homedir } from "node:os";
 import path from "node:path";
+import { fileURLToPath } from "node:url";
 import { execFile } from "node:child_process";
 import { promisify } from "node:util";
 import { t } from "../i18n.mjs";
 
 const execFileAsync = promisify(execFile);
 
-async function getCurrentVersion() {
+// This file lives at <pkgRoot>/bin/cli/commands/update.mjs — resolve package
+// paths relative to the script, NOT process.cwd(). On a global npm/brew install
+// the user's cwd is not the package root, so cwd-relative lookups break (#3295).
+const SCRIPT_DIR = path.dirname(fileURLToPath(import.meta.url));
+const PKG_ROOT = path.resolve(SCRIPT_DIR, "..", "..", "..");
+const BIN_DIR = path.join(PKG_ROOT, "bin");
+
+export async function getCurrentVersion() {
   try {
     const { readFileSync } = await import("node:fs");
-    const pkg = JSON.parse(readFileSync(path.join(process.cwd(), "package.json"), "utf-8"));
+    const pkg = JSON.parse(readFileSync(path.join(PKG_ROOT, "package.json"), "utf-8"));
     return pkg.version;
   } catch {
     return null;
@@ -38,12 +46,12 @@ function compareVersions(a, b) {
   return 0;
 }
 
-async function createBackup() {
-  const binPath = path.join(process.cwd(), "bin");
+export async function createBackup() {
+  const binPath = BIN_DIR;
   const backupDir = path.join(homedir(), ".omniroute", "backups", `omniroute-${Date.now()}`);
 
   try {
-    const { mkdirSync, copyFileSync, existsSync } = await import("node:fs");
+    const { mkdirSync, cpSync, existsSync } = await import("node:fs");
     if (!existsSync(binPath)) return null;
 
     mkdirSync(backupDir, { recursive: true });
@@ -51,7 +59,9 @@ async function createBackup() {
     for (const f of files) {
       const src = path.join(binPath, f);
       if (existsSync(src)) {
-        copyFileSync(src, path.join(backupDir, f));
+        // cpSync handles both files and directories; the old copyFileSync threw
+        // EISDIR on the "cli" directory, which was swallowed by the catch (#3295).
+        cpSync(src, path.join(backupDir, f), { recursive: true });
       }
     }
     return backupDir;

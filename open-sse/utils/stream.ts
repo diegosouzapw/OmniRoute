@@ -1600,6 +1600,36 @@ export function createSSEStream(options: StreamOptions = {}) {
                 } else {
                   // Chat Completions: full sanitization pipeline
 
+                  // Hardening: detect upstream returning empty choices array
+                  // which breaks OpenAI-compatible clients (e.g. Copilot Chat)
+                  if (Array.isArray(parsed.choices) && parsed.choices.length === 0) {
+                    console.warn(
+                      `[STREAM] Upstream returned empty choices array (${provider || "provider"}:${model || "unknown"}) — emitting error chunk`
+                    );
+                    const errorChunk = {
+                      id: parsed.id || `omniroute-empty-choices-${Date.now()}`,
+                      object: "chat.completion.chunk",
+                      created: parsed.created || Math.floor(Date.now() / 1000),
+                      model: parsed.model || model || "unknown",
+                      choices: [
+                        {
+                          index: 0,
+                          delta: {
+                            role: "assistant",
+                            content: "[OmniRoute] Upstream returned an empty response. Please retry.",
+                          },
+                          finish_reason: "stop",
+                        },
+                      ],
+                    };
+                    output = `data: ${JSON.stringify(errorChunk)}\n`;
+                    injectedUsage = true;
+                    clientPayload = errorChunk;
+                    reqLogger?.appendConvertedChunk?.(output);
+                    controller.enqueue(encoder.encode(output));
+                    continue;
+                  }
+
                   // Detect reasoning alias before sanitization strips it
                   const hadReasoningAlias = !!(
                     parsed.choices?.[0]?.delta?.reasoning &&
@@ -2118,6 +2148,14 @@ export function createSSEStream(options: StreamOptions = {}) {
                     (a, b) => a.index - b.index
                   );
                 }
+                // Hardening: log empty assistant response after tool completion
+                // for observability — helps diagnose Copilot "Sorry, no response was returned"
+                if (passthroughHasToolCalls && !content.trim() && !reasoning.trim()) {
+                  console.warn(
+                    `[STREAM] Empty assistant response after tool_calls completion (${provider || "provider"}:${model || "unknown"}) — sessionId=${sessionId}`
+                  );
+                }
+
                 const responseBody = {
                   choices: [
                     {
