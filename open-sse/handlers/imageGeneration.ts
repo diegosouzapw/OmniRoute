@@ -1027,16 +1027,40 @@ export async function handleOpenAIImageEdit({
     "edits"
   );
 
-  const form = new FormData();
-  form.append("model", model);
-  form.append("prompt", prompt);
-  if (size) form.append("size", size);
-  if (responseFormat) form.append("response_format", responseFormat);
-  form.append("n", String(n || 1));
-  const blob = new Blob([imageBytes], { type: imageMime || "image/png" });
-  form.append("image", blob, "image.png");
+  // Build the multipart body as a Buffer with an explicit boundary instead of a global
+  // `FormData`. In production `globalThis.fetch` is patched with node_modules/undici's fetch,
+  // whose `FormData` class differs from `globalThis.FormData` — passing a native FormData
+  // makes undici serialize it as the string "[object FormData]" (text/plain), dropping every
+  // field (including `model`, which reaches the upstream empty). A Buffer body is accepted
+  // verbatim by any fetch implementation. (#3273)
+  const boundary = `----OmniRouteImageEdit${randomUUID().replace(/-/g, "")}`;
+  const CRLF = "\r\n";
+  const partBuffers: Buffer[] = [];
+  const appendField = (name: string, value: string) => {
+    partBuffers.push(
+      Buffer.from(
+        `--${boundary}${CRLF}Content-Disposition: form-data; name="${name}"${CRLF}${CRLF}${value}${CRLF}`
+      )
+    );
+  };
+  appendField("model", model);
+  appendField("prompt", prompt);
+  if (size) appendField("size", size);
+  if (responseFormat) appendField("response_format", responseFormat);
+  appendField("n", String(n || 1));
+  partBuffers.push(
+    Buffer.from(
+      `--${boundary}${CRLF}Content-Disposition: form-data; name="image"; filename="image.png"${CRLF}` +
+        `Content-Type: ${imageMime || "image/png"}${CRLF}${CRLF}`
+    )
+  );
+  partBuffers.push(imageBytes);
+  partBuffers.push(Buffer.from(`${CRLF}--${boundary}--${CRLF}`));
+  const multipartBody = Buffer.concat(partBuffers);
 
-  const headers: Record<string, string> = {};
+  const headers: Record<string, string> = {
+    "Content-Type": `multipart/form-data; boundary=${boundary}`,
+  };
   const token = credentials?.apiKey || credentials?.accessToken;
   if (token) headers["Authorization"] = `Bearer ${token}`;
 
@@ -1044,7 +1068,13 @@ export async function handleOpenAIImageEdit({
     log.info("IMAGE", `${provider}/${model} (edit) | prompt: "${prompt.slice(0, 60)}..." -> ${url}`);
   }
 
-  const result = await fetchImageEndpoint(url, headers, form as unknown as BodyInit, provider, log);
+  const result = await fetchImageEndpoint(
+    url,
+    headers,
+    multipartBody as unknown as BodyInit,
+    provider,
+    log
+  );
 
   saveCallLog({
     method: "POST",
