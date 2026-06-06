@@ -217,6 +217,8 @@ const PHYSICAL_SCHEMA_SENTINELS = [
 ] as const;
 
 const INITIAL_SCHEMA_SENTINELS = ["provider_connections", "combos", "call_logs"] as const;
+const OPTIONAL_FTS5_MIGRATION_VERSIONS = new Set(["022", "023"]);
+const fts5SupportCache = new WeakMap<SqliteAdapter, boolean>();
 
 /**
  * Ensure the schema_migrations tracking table exists.
@@ -229,6 +231,41 @@ function ensureMigrationsTable(db: SqliteAdapter): void {
       applied_at TEXT NOT NULL DEFAULT (datetime('now'))
     );
   `);
+}
+
+function isOptionalFts5Migration(migration: { version: string; name: string }): boolean {
+  return OPTIONAL_FTS5_MIGRATION_VERSIONS.has(migration.version);
+}
+
+function supportsFts5(db: SqliteAdapter): boolean {
+  const cached = fts5SupportCache.get(db);
+  if (cached !== undefined) {
+    return cached;
+  }
+
+  try {
+    const probeTable = `__omniroute_fts5_probe_${Date.now()}_${Math.random().toString(36).slice(2)}`;
+    db.transaction(() => {
+      db.exec(`CREATE VIRTUAL TABLE "${probeTable}" USING fts5(content);`);
+      db.exec(`DROP TABLE "${probeTable}";`);
+    })();
+    fts5SupportCache.set(db, true);
+    return true;
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : String(error);
+    if (/no such module:\s*fts5/i.test(message)) {
+      fts5SupportCache.set(db, false);
+      return false;
+    }
+    throw error;
+  }
+}
+
+function isDeferredUnsupportedMigration(
+  db: SqliteAdapter,
+  migration: { version: string; name: string }
+): boolean {
+  return isOptionalFts5Migration(migration) && !supportsFts5(db);
 }
 
 /**
@@ -873,9 +910,21 @@ export function runMigrations(db: SqliteAdapter, options?: { isNewDb?: boolean }
     }
     return isMissing;
   });
+  const deferredUnsupported = pending.filter((migration) => isDeferredUnsupportedMigration(db, migration));
+  const actionablePending = pending.filter(
+    (migration) => !deferredUnsupported.some((deferred) => deferred.version === migration.version)
+  );
 
   if (pending.length === 0) {
     return 0; // Nothing to do
+  }
+
+  if (deferredUnsupported.length > 0) {
+    const summary = deferredUnsupported.map((migration) => `${migration.version}_${migration.name}`).join(", ");
+    console.warn(
+      `[Migration] Deferring optional FTS5 migrations on driver ${db.driver}: ${summary}. ` +
+        `Memory search will fall back until a SQLite driver with FTS5 support is available.`
+    );
   }
 
   // ── Safety Check 2: Mass-migration detection (abort if existing DB + many migrations) ──
@@ -891,16 +940,16 @@ export function runMigrations(db: SqliteAdapter, options?: { isNewDb?: boolean }
     process.env.DISABLE_SQLITE_AUTO_BACKUP !== "true" &&
     MAX_PENDING_MIGRATIONS_ON_EXISTING_DB > 0 &&
     applied.size > 0 &&
-    pending.length > MAX_PENDING_MIGRATIONS_ON_EXISTING_DB
+    actionablePending.length > MAX_PENDING_MIGRATIONS_ON_EXISTING_DB
   ) {
     const physicalBaseline = inferPhysicalSchemaBaseline(db);
     const plausiblePendingCount = physicalBaseline
       ? getPlausiblePendingCount(files, physicalBaseline.version)
       : null;
 
-    if (plausiblePendingCount !== null && pending.length <= plausiblePendingCount) {
+    if (plausiblePendingCount !== null && actionablePending.length <= plausiblePendingCount) {
       console.warn(
-        `[Migration] Allowing ${pending.length} pending migrations on an existing database ` +
+        `[Migration] Allowing ${actionablePending.length} pending migrations on an existing database ` +
           `because the physical schema only proves ${physicalBaseline?.version} ` +
           `(${physicalBaseline?.description}).`
       );
@@ -912,7 +961,7 @@ export function runMigrations(db: SqliteAdapter, options?: { isNewDb?: boolean }
             `migration(s) are expected from a legitimate upgrade.`
           : "";
       const msg =
-        `[Migration] 🛑 ABORT: Detected ${pending.length} pending migrations on an existing database ` +
+        `[Migration] 🛑 ABORT: Detected ${actionablePending.length} pending migrations on an existing database ` +
         `(threshold is ${MAX_PENDING_MIGRATIONS_ON_EXISTING_DB}). ` +
         `This usually means the migration tracking table was accidentally wiped. ` +
         `Running all migrations from scratch will cause data loss or schema errors.` +
@@ -932,6 +981,10 @@ export function runMigrations(db: SqliteAdapter, options?: { isNewDb?: boolean }
   let count = 0;
 
   for (const migration of pending) {
+    if (isDeferredUnsupportedMigration(db, migration)) {
+      continue;
+    }
+
     const applyMigration = db.transaction(() => {
       if (isSchemaAlreadyApplied(db, migration)) {
         console.warn(

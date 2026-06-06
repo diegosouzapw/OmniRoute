@@ -117,6 +117,16 @@ export function isNativeSqliteLoadError(error: unknown): boolean {
   );
 }
 
+export function isSqliteDriverUnavailableError(error: unknown): boolean {
+  const message = error instanceof Error ? error.message : String(error);
+
+  return (
+    message.includes("Nenhum driver SQLite disponível") ||
+    message.includes("Chame ensureDbInitialized() no startup") ||
+    message.includes("sql.js WASM ainda não foi pré-inicializado")
+  );
+}
+
 function getErrorCode(error: unknown): string | undefined {
   if (!error || typeof error !== "object" || !("code" in error)) return undefined;
   const code = (error as { code?: unknown }).code;
@@ -1248,7 +1258,11 @@ export function getDbInstance(): SqliteDatabase {
       console.warn("[DB] Could not probe existing DB:", message);
 
       // If the error is a Node module/ABI failure, throw it immediately to avoid renaming the database
-      if (isNativeSqliteLoadError(e) || message.includes("could not be found")) {
+      if (
+        isNativeSqliteLoadError(e) ||
+        isSqliteDriverUnavailableError(e) ||
+        message.includes("could not be found")
+      ) {
         throw e;
       }
   preservedCriticalState = captureCriticalDbState(sqliteFile);
