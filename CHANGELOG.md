@@ -38,7 +38,7 @@ Thanks to everyone whose work landed in v3.8.12:
 | Contributor | PRs / Issues |
 | --- | --- |
 | [@oyi77](https://github.com/oyi77) | #3250, #3259 |
-| [@wilsonicdev](https://github.com/wilsonicdev) | #3249, #3268 |
+| [@wilsonicdev](https://github.com/wilsonicdev) | #3249, #3268, #3282 (co-author, #3247 diagnosis) |
 | [@strangersp](https://github.com/strangersp) | #3261 |
 | [@MikeTuev](https://github.com/MikeTuev) | #3248 |
 | [@leninejunior](https://github.com/leninejunior) | #3271 |
@@ -49,7 +49,7 @@ Thanks to everyone whose work landed in v3.8.12:
 - **sse/groq:** non-reasoning Groq models (`llama-3.3-70b-versatile`, `llama-4-scout`) are now flagged `supportsReasoning: false`, so `reasoning_effort` / `output_config.effort` / `thinking` are stripped before dispatch instead of being forwarded and rejected with HTTP 400 — fixes the Claude Code → Groq regression of #764 ([#3258](https://github.com/diegosouzapw/OmniRoute/issues/3258))
 - **api/images:** `POST /v1/images/edits` to a custom OpenAI-compatible provider no longer forwards an empty `model`. The multipart body is now built as a `Buffer` with an explicit boundary instead of a global `FormData` — the patched undici `fetch` serialized a native `FormData` as the literal string `[object FormData]` (text/plain), dropping every field including `model` ([#3273](https://github.com/diegosouzapw/OmniRoute/issues/3273))
 - **api/webhooks:** webhook URLs may now target a private/internal address (e.g. `192.168.x`, a docker-internal host) when `OMNIROUTE_ALLOW_PRIVATE_PROVIDER_URLS=true` — the webhook guard reuses the same explicit opt-in as private provider URLs (default OFF; protocol and embedded-credential checks stay unconditional). Cloud-metadata / link-local endpoints (`169.254.169.254`, `metadata.google.internal`, `100.100.100.200`, `169.254.0.0/16`) are blocked **unconditionally** even with the opt-in on, and the webhook test endpoint redacts the upstream response body for private targets (no SSRF→IAM-credential pivot, no content exfiltration) ([#3269](https://github.com/diegosouzapw/OmniRoute/issues/3269))
-- **sse/qoder:** a valid Qoder Personal Access Token is no longer wrongly reported as "expired" when the Cosy validation endpoint returns a generic `Internal Server Error` (HTTP 500). A Cosy 500 only marks the PAT invalid when its body carries an explicit auth signal; a generic server fault now falls back to the #1391 valid-bypass rule ([#3247](https://github.com/diegosouzapw/OmniRoute/issues/3247))
+- **sse/qoder:** a valid Qoder Personal Access Token is no longer wrongly reported as "expired" when the Cosy validation endpoint returns a generic `Internal Server Error` (HTTP 500). A Cosy 500 only marks the PAT invalid when its body carries an explicit auth signal; a generic server fault now falls back to the #1391 valid-bypass rule ([#3283](https://github.com/diegosouzapw/OmniRoute/pull/3283), fixes #3247 — thanks @wilsonicdev, who independently diagnosed the same root cause and filed [#3282](https://github.com/diegosouzapw/OmniRoute/pull/3282); refined here to keep rejecting on an explicit-auth-signal 500)
 
 ---
 

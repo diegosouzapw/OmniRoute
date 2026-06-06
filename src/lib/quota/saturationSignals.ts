@@ -41,6 +41,51 @@ const CACHE_TTL_MS = 30_000; // 30 seconds
 
 const _cache = new Map<string, CacheEntry>();
 
+// ---------------------------------------------------------------------------
+// Rate-limit header cache (populated by response handlers)
+// ---------------------------------------------------------------------------
+
+interface RateLimitHeaderEntry {
+  limit: number;
+  remaining: number;
+  ts: number;
+}
+
+const _rateLimitHeaders = new Map<string, RateLimitHeaderEntry>();
+const RL_HEADER_TTL_MS = 5 * 60 * 1000; // 5 minutes
+
+/**
+ * Store rate-limit headers from an upstream response for saturation signal use.
+ * Called by the response handler after a successful request.
+ */
+export function storeRateLimitHeaders(
+  connectionId: string,
+  provider: string,
+  headers: Record<string, string>
+): void {
+  // Anthropic: anthropic-ratelimit-requests-limit / anthropic-ratelimit-requests-remaining
+  const limitStr =
+    headers["anthropic-ratelimit-requests-limit"] ??
+    headers["x-ratelimit-limit-requests"] ??
+    headers["x-ratelimit-limit"];
+  const remainingStr =
+    headers["anthropic-ratelimit-requests-remaining"] ??
+    headers["x-ratelimit-remaining-requests"] ??
+    headers["x-ratelimit-remaining"];
+
+  if (limitStr && remainingStr) {
+    const limit = Number(limitStr);
+    const remaining = Number(remainingStr);
+    if (Number.isFinite(limit) && limit > 0 && Number.isFinite(remaining)) {
+      _rateLimitHeaders.set(`${provider}:${connectionId}`, {
+        limit,
+        remaining,
+        ts: Date.now(),
+      });
+    }
+  }
+}
+
 function cacheKey(connectionId: string, provider: string, dim: DimensionSpec): string {
   return `${provider}:${connectionId}:${dim.unit}:${dim.window}`;
 }
@@ -95,40 +140,55 @@ async function fetchBailianSaturation(
   const quota = await mod.fetchBailianQuota(connectionId);
   if (!quota) return 0;
 
-  // Select the window matching the dimension
+  const q = quota as unknown as Record<string, unknown>;
   let pct = 0;
   switch (dim.window) {
     case "5h":
-      pct = quota.window5h?.percentUsed ?? 0;
+      pct = (q.window5h as Record<string, unknown>)?.percentUsed as number ?? 0;
       break;
     case "weekly":
-      pct = quota.windowWeekly?.percentUsed ?? 0;
+      pct = (q.windowWeekly as Record<string, unknown>)?.percentUsed as number ?? 0;
       break;
     case "monthly":
-      pct = quota.windowMonthly?.percentUsed ?? 0;
+      pct = (q.windowMonthly as Record<string, unknown>)?.percentUsed as number ?? 0;
       break;
     default:
-      pct = quota.percentUsed ?? 0;
+      pct = (q.percentUsed as number) ?? 0;
   }
   return Math.min(1, Math.max(0, pct));
+}
+
+async function fetchAnthropicSaturation(
+  connectionId: string,
+  dim: DimensionSpec
+): Promise<number> {
+  const entry = _rateLimitHeaders.get(`anthropic:${connectionId}`);
+  if (!entry || Date.now() - entry.ts > RL_HEADER_TTL_MS) return 0;
+
+  const used = entry.limit - entry.remaining;
+  return Math.min(1, Math.max(0, used / entry.limit));
 }
 
 async function fetchGenericSaturation(
   connectionId: string,
   provider: string
 ): Promise<number> {
-  const mod = await import("@omniroute/open-sse/services/usage");
-  // getUsageForProvider returns an object with percentUsed or similar
-  const result = await mod.getUsageForProvider(provider, connectionId);
-  if (!result || typeof result !== "object") return 0;
-  const obj = result as Record<string, unknown>;
-  const pct =
-    typeof obj.percentUsed === "number"
-      ? obj.percentUsed
-      : typeof obj.used_percent === "number"
-        ? obj.used_percent
-        : 0;
-  return Math.min(1, Math.max(0, pct));
+  try {
+    const mod = await import("@omniroute/open-sse/services/usage");
+    const conn = { id: connectionId, provider } as Parameters<typeof mod.getUsageForProvider>[0];
+    const result = await mod.getUsageForProvider(conn);
+    if (!result || typeof result !== "object") return 0;
+    const obj = result as Record<string, unknown>;
+    const pct =
+      typeof obj.percentUsed === "number"
+        ? obj.percentUsed
+        : typeof obj.used_percent === "number"
+          ? obj.used_percent
+          : 0;
+    return Math.min(1, Math.max(0, pct));
+  } catch {
+    return 0;
+  }
 }
 
 // ---------------------------------------------------------------------------
@@ -162,6 +222,10 @@ export async function getSaturation(
         break;
       case "bailian":
         value = await fetchBailianSaturation(connectionId, dim);
+        break;
+      case "anthropic":
+      case "claude":
+        value = await fetchAnthropicSaturation(connectionId, dim);
         break;
       default:
         value = await fetchGenericSaturation(connectionId, provider);

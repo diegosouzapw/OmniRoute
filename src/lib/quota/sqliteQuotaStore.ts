@@ -26,7 +26,7 @@ import {
 import { WINDOW_MS, dimensionKeyToString } from "./dimensions";
 import type { DimensionKey } from "./dimensions";
 import type { QuotaStore, PoolUsageSnapshot } from "./types";
-import { computeBurnRate } from "./burnRate";
+import { computeBurnRateFromWindow } from "./burnRate";
 
 // ---------------------------------------------------------------------------
 // In-memory mutex (anti-thundering-herd, same pattern as auth.ts)
@@ -261,9 +261,6 @@ export class SqliteQuotaStore implements QuotaStore {
     const { allocations } = pool;
     const totalWeight = allocations.reduce((sum, a) => sum + a.weight, 0);
 
-    // Burn rate samples: collect peek values at nowMs and nowMs - 60s
-    const burnSamples: Array<{ ts: number; consumed: number }> = [];
-
     const dimensionSnapshots: PoolUsageSnapshot["dimensions"] = [];
 
     for (const planDim of planDimensions) {
@@ -285,7 +282,6 @@ export class SqliteQuotaStore implements QuotaStore {
         const effectiveWeight = totalWeight > 0 ? alloc.weight : 0;
         const fairShare = (effectiveWeight / 100) * planDim.limit;
         const deficit = consumed - fairShare;
-        // borrowing = key consumed more than its fair share
         const borrowing = consumed > fairShare;
 
         perKey.push({
@@ -297,8 +293,6 @@ export class SqliteQuotaStore implements QuotaStore {
         });
       }
 
-      burnSamples.push({ ts: nowMs, consumed: consumedTotal });
-
       dimensionSnapshots.push({
         unit: planDim.unit as PoolUsageSnapshot["dimensions"][number]["unit"],
         window: planDim.window as PoolUsageSnapshot["dimensions"][number]["window"],
@@ -308,12 +302,13 @@ export class SqliteQuotaStore implements QuotaStore {
       });
     }
 
-    // Compute burn rate from token-like dimensions
+    // Burn rate: derive from the sliding window (single-snapshot, no history needed).
     const tokenDim = dimensionSnapshots.find((d) => d.unit === "tokens");
     let burnRate: PoolUsageSnapshot["burnRate"];
-    if (tokenDim && burnSamples.length >= 1) {
+    if (tokenDim && tokenDim.consumedTotal > 0) {
+      const windowMs = WINDOW_MS[tokenDim.window as keyof typeof WINDOW_MS];
       const remaining = tokenDim.limit - tokenDim.consumedTotal;
-      const rateResult = computeBurnRate(burnSamples, remaining);
+      const rateResult = computeBurnRateFromWindow(tokenDim.consumedTotal, windowMs, remaining);
       burnRate = {
         tokensPerSecond: rateResult.tokensPerSecond,
         timeToExhaustionMs: rateResult.timeToExhaustionMs,

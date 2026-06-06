@@ -45,6 +45,20 @@ export interface QuotaStore {
    */
   poolConsumedTotal(poolId: string, dim: DimensionKey): Promise<number>;
   poolUsage(poolId: string): Promise<PoolUsageSnapshot>;
+  /**
+   * Build a PoolUsageSnapshot with explicit plan dimensions. This is the
+   * primary method for dashboard / REST usage — it resolves per-key
+   * consumption, fair-share, deficit, borrowing, and burn-rate from the
+   * plan's dimension list.
+   *
+   * The parameterless `poolUsage()` is kept for backward compatibility but
+   * returns minimal data (no plan context). Prefer this method when plan
+   * dimensions are available.
+   */
+  poolUsageWithDimensions(
+    poolId: string,
+    planDimensions: Array<{ unit: string; window: string; limit: number }>
+  ): Promise<PoolUsageSnapshot>;
   clear(apiKeyId: string, dim: DimensionKey): Promise<void>;
 }
 
