@@ -2049,9 +2049,12 @@ export const providersBatchTestSchema = z
       "upstream-proxy",
       "cloud-agent",
       "ide",
+      "selected",
     ]),
     // Frontend may send null when mode != 'provider' — accept and treat as missing
     providerId: z.string().trim().min(1).nullable().optional(),
+    // Explicit connection IDs to test — required when mode=selected
+    connectionIds: z.array(z.string().trim().min(1)).max(100).nullable().optional(),
   })
   .superRefine((value, ctx) => {
     // Treat null same as undefined
@@ -2063,7 +2066,21 @@ export const providersBatchTestSchema = z
         path: ["providerId"],
       });
     }
+    const ids = value.connectionIds ?? null;
+    if (value.mode === "selected" && (!ids || ids.length === 0)) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "connectionIds is required when mode=selected",
+        path: ["connectionIds"],
+      });
+    }
   });
+
+// PATCH /api/providers — bulk activate/deactivate selected connections
+export const batchUpdateProviderConnectionsSchema = z.object({
+  ids: z.array(z.string().trim().min(1)).min(1).max(100),
+  isActive: z.boolean(),
+});
 
 export const validateProviderApiKeySchema = z
   .object({
