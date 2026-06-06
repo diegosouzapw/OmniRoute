@@ -365,37 +365,59 @@ test("validateQoderCliPat treats 5xx HTTP failures as valid bypass", async () =>
   }
 });
 
-test("validateQoderCliPat rejects 500 HTTP failures if response is Cosy app-level auth error", async () => {
+// #3247: a generic Cosy 500 (`{"success":false,...,"msgCode":500,"message":"Internal
+// Server Error"}`) is a SERVER fault, not a reliable auth verdict — a PAT that works in
+// the Qoder CLI was being wrongly marked "expired". Per the older #1391 rule, a generic
+// 5xx is now a valid bypass; only an explicit auth signal in the body marks it invalid.
+test("validateQoderCliPat treats a generic Cosy 500 (no auth signal) as a valid bypass (#3247)", async () => {
   const originalFetch = globalThis.fetch;
   globalThis.fetch = async (url) => {
     if (String(url).includes("/ping")) return new Response("pong", { status: 200 });
     return new Response(
-      ' { "success"  :  false, "traceId": "a4e5de61929400b9243b4f6e49756906", "msgCode"  :  500 } ',
+      '{"success":false,"traceId":"a4e5de61929400b9243b4f6e49756906","msgCode":500,"msgInfo":"Internal Server Error","message":"Internal Server Error"}',
       { status: 500 }
     );
   };
 
   try {
-    const result = await qoderCli.validateQoderCliPat({ apiKey: "invalid-pat" });
-    assert.equal(result.valid, false);
-    assert.match(result.error!, /Authentication failed \(HTTP 500\)/);
+    const result = await qoderCli.validateQoderCliPat({ apiKey: "pt-valid-token" });
+    assert.equal(result.valid, true);
+    assert.match(result.error!, /treating PAT as valid/);
   } finally {
     globalThis.fetch = originalFetch;
   }
 });
 
-test("validateQoderCliPat rejects 500 HTTP failures using regex for Internal Server Error with whitespace", async () => {
+test("validateQoderCliPat treats a generic 'Internal Server Error' 500 as a valid bypass (#3247)", async () => {
+  const originalFetch = globalThis.fetch;
+  globalThis.fetch = async (url) => {
+    if (String(url).includes("/ping")) return new Response("pong", { status: 200 });
+    return new Response(' { "success"  :  false, "error": "Internal   Server    Error" } ', {
+      status: 500,
+    });
+  };
+
+  try {
+    const result = await qoderCli.validateQoderCliPat({ apiKey: "pt-valid-token" });
+    assert.equal(result.valid, true);
+    assert.match(result.error!, /treating PAT as valid/);
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+});
+
+test("validateQoderCliPat still rejects a Cosy 500 that carries an explicit auth signal (#2860)", async () => {
   const originalFetch = globalThis.fetch;
   globalThis.fetch = async (url) => {
     if (String(url).includes("/ping")) return new Response("pong", { status: 200 });
     return new Response(
-      ' { "success"  :  false, "error": "Internal   Server    Error" } ',
+      '{"success":false,"msgCode":500,"message":"token invalid or unauthorized"}',
       { status: 500 }
     );
   };
 
   try {
-    const result = await qoderCli.validateQoderCliPat({ apiKey: "invalid-pat" });
+    const result = await qoderCli.validateQoderCliPat({ apiKey: "pt-bad-token" });
     assert.equal(result.valid, false);
     assert.match(result.error!, /Authentication failed \(HTTP 500\)/);
   } finally {
