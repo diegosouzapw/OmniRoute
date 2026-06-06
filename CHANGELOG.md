@@ -19,6 +19,7 @@ _Development cycle in progress — entries are added as work merges into `releas
 
 ### 🔧 Bug Fixes
 
+- **fix(dashboard):** keep no-auth providers (opencode, duckduckgo-web, theoldllm, veoaifree-web) visible under the "Show configured only" filter — they never create a connection row (`stats.total === 0`) but are always usable and already appear in `/v1/models`, so the filter now treats `displayAuthType === "no-auth"` as configured. (#3290 — thanks @uniQta)
 - **fix(sse):** harden the passthrough stream against empty upstream responses — emit a synthetic retry chunk on an empty `choices: []` (fixes a Copilot Chat crash) and log empty post-`tool_calls` completions; also registers **MiniMax M3** (1M context) across 8 provider tiers. ([#3297](https://github.com/diegosouzapw/OmniRoute/pull/3297), #3110 — thanks @wilsonicdev)
 - **fix(opencode-provider):** extract `contextLength` from the live `/v1/models` catalog (live > `modelContextLengths` > static map) so passthrough models outside the legacy 8-model map no longer silently truncate to OpenCode's 128K default. ([#3298](https://github.com/diegosouzapw/OmniRoute/pull/3298) — thanks @herjarsa / @diegosouzapw)
 - **fix(dev):** auto-rebuild `better-sqlite3` on a Node ABI mismatch at `npm run dev` startup (nvm 22↔24) — dev-only, no-op on the healthy path, unrelated errors not swallowed. ([#3301](https://github.com/diegosouzapw/OmniRoute/pull/3301) — thanks @zhiru)
