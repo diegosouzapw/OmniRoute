@@ -22,6 +22,10 @@ interface OpenAIToolDef {
 }
 
 const TOOL_BLOCK_RE = /<tool>\s*([\s\S]*?)\s*<\/tool>/g;
+// Some web-cookie models (e.g. ds-web) wrap calls as `<tool_call name="...">{json}</tool_call>`
+// instead of the canonical `<tool>{json}</tool>`. Capture the JSON body — the real tool name
+// lives there, never in the tag's `name="..."` attribute (#3260).
+const TOOL_CALL_TAG_RE = /<tool_call(?:\s+[^>]*)?\s*>\s*([\s\S]*?)\s*<\/tool_call>/g;
 
 interface ToolParseCandidate {
   raw: string;
@@ -374,7 +378,10 @@ export function parseToolCallsFromText(
 ): { content: string; toolCalls: OpenAIToolCall[] | null } {
   const requestedToolNames = getRequestedToolNames(requestedTools);
   const canParseBareJson = requestedToolNames.length > 0;
-  if (typeof text !== "string" || (!text.includes("<tool>") && !canParseBareJson)) {
+  if (
+    typeof text !== "string" ||
+    (!text.includes("<tool>") && !text.includes("<tool_call") && !canParseBareJson)
+  ) {
     return { content: text ?? "", toolCalls: null };
   }
 
@@ -385,6 +392,18 @@ export function parseToolCallsFromText(
   TOOL_BLOCK_RE.lastIndex = 0;
   while ((blockMatch = TOOL_BLOCK_RE.exec(text)) !== null) {
     const range = { start: blockMatch.index, end: TOOL_BLOCK_RE.lastIndex };
+    toolBlockRanges.push(range);
+    candidates.push({
+      raw: blockMatch[1].trim(),
+      start: range.start,
+      end: range.end,
+      requireRequestedTool: false,
+    });
+  }
+
+  TOOL_CALL_TAG_RE.lastIndex = 0;
+  while ((blockMatch = TOOL_CALL_TAG_RE.exec(text)) !== null) {
+    const range = { start: blockMatch.index, end: TOOL_CALL_TAG_RE.lastIndex };
     toolBlockRanges.push(range);
     candidates.push({
       raw: blockMatch[1].trim(),

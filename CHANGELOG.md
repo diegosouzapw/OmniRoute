@@ -11,6 +11,7 @@ _Development cycle in progress — entries are added as work merges into `releas
 ### 🔧 Bug Fixes
 
 - **api/responses:** combo names without a slash (e.g. `paid-premium`, `n8n-text`) are no longer force-rewritten to `codex/<combo>` on `/v1/responses` — `resolveResponsesApiModel` now returns the request unchanged when the model resolves to a combo (regression from the v3.8.9 Codex WS→HTTP fallback) ([#3242](https://github.com/diegosouzapw/OmniRoute/pull/3242) — thanks @wilsonicdev; the same fix shipped via #3244, closing #3227 / #3233)
+- **sse/web-tools:** web-cookie providers (e.g. `ds-web`) that wrap tool calls as `<tool_call name="...">{json}</tool_call>` are now parsed correctly — the real tool name is read from the JSON body instead of the tag attribute, and the call is no longer silently dropped when `arguments` is absent ([#3260](https://github.com/diegosouzapw/OmniRoute/issues/3260))
 
 ---
 
