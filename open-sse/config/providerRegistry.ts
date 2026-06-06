@@ -207,6 +207,16 @@ const GPT_5_5_CODEX_CAPABILITIES = {
   contextLength: GPT_5_5_CONTEXT_LENGTH,
 } as const;
 
+const GPT_5_4_CODEX_CAPABILITIES = {
+  targetFormat: "openai-responses",
+  toolCalling: true,
+  supportsReasoning: true,
+  supportsVision: true,
+  supportsXHighEffort: true,
+  contextLength: 200000,
+  maxOutputTokens: 128000,
+} as const;
+
 const CHAT_OPENAI_COMPAT_MODELS: Record<string, RegistryModel[]> = {
   deepinfra: buildModels([
     "anthropic/claude-4-opus",
@@ -866,9 +876,27 @@ const _REGISTRY_EAGER: Record<string, RegistryEntry> = {
       {
         id: "gpt-5.4",
         name: "GPT 5.4",
-        targetFormat: "openai-responses",
-        supportsReasoning: true,
-        supportsXHighEffort: true,
+        ...GPT_5_4_CODEX_CAPABILITIES,
+      },
+      {
+        id: "gpt-5.4-xhigh",
+        name: "GPT 5.4 (xHigh)",
+        ...GPT_5_4_CODEX_CAPABILITIES,
+      },
+      {
+        id: "gpt-5.4-high",
+        name: "GPT 5.4 (High)",
+        ...GPT_5_4_CODEX_CAPABILITIES,
+      },
+      {
+        id: "gpt-5.4-medium",
+        name: "GPT 5.4 (Medium)",
+        ...GPT_5_4_CODEX_CAPABILITIES,
+      },
+      {
+        id: "gpt-5.4-low",
+        name: "GPT 5.4 (Low)",
+        ...GPT_5_4_CODEX_CAPABILITIES,
       },
       { id: "gpt-5.4-mini", name: "GPT 5.4 Mini", targetFormat: "openai-responses" },
       { id: "gpt-5.3-codex-spark", name: "GPT 5.3 Codex Spark" },
@@ -1007,7 +1035,7 @@ const _REGISTRY_EAGER: Record<string, RegistryEntry> = {
       { id: "gpt-5-mini", name: "GPT-5 Mini", targetFormat: "openai-responses" },
       { id: "gpt-5.3-codex", name: "GPT-5.3 Codex", targetFormat: "openai-responses" },
       { id: "gpt-5.4-mini", name: "GPT-5.4 Mini", targetFormat: "openai-responses" },
-      { id: "gpt-5.4", name: "GPT-5.4", targetFormat: "openai-responses" },
+      { id: "gpt-5.4", name: "GPT-5.4", targetFormat: "openai-responses", supportsXHighEffort: true },
       { id: "gpt-5.5", name: "GPT-5.5", ...GPT_5_5_CODEX_CAPABILITIES },
       {
         id: "claude-haiku-4.5",
@@ -2687,25 +2715,6 @@ const _REGISTRY_EAGER: Record<string, RegistryEntry> = {
       { id: "mistral-medium-3.1", name: "Mistral Medium 3.1" },
       { id: "mistral-small-2603", name: "Mistral Small 4" },
       { id: "nemotron-3-super-120b-a12b", name: "Nemotron 3 Super" },
-    ],
-  },
-  completions: {
-    id: "completions",
-    alias: "cpl",
-    format: "openai",
-    executor: "default",
-    baseUrl: "https://completions.me/api/v1/chat/completions",
-    authType: "apikey",
-    authHeader: "bearer",
-    models: [
-      { id: "claude-opus-4.6", name: "Claude Opus 4.6" },
-      { id: "claude-sonnet-4.6", name: "Claude Sonnet 4.6" },
-      { id: "claude-haiku-4.5", name: "Claude Haiku 4.5" },
-      { id: "gpt-5.2", name: "GPT-5.2" },
-      { id: "gpt-5-mini", name: "GPT-5 Mini" },
-      { id: "gpt-4.1", name: "GPT-4.1" },
-      { id: "gemini-3.1-pro-preview", name: "Gemini 3.1 Pro" },
-      { id: "gemini-3-flash-preview", name: "Gemini 3 Flash" },
     ],
   },
   xai: {

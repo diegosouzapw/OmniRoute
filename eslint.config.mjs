@@ -72,6 +72,10 @@ const eslintConfig = [
       // Dependencies
       "node_modules/**",
       ".worktrees/**",
+      // Nested git worktrees created by review/resolve skills live under
+      // .claude/ (gitignored). They hold other sessions' in-progress work and
+      // their files move mid-scan, so never lint them from the main checkout.
+      ".claude/**",
       ".omnivscodeagent/**",
       // VS Code extension and its large test fixtures
       "vscode-extension/**",

@@ -122,6 +122,48 @@ test("v1 models catalog accepts bearer API keys and filters the list by allowed 
   );
 });
 
+test("v1 models catalog does NOT accept API keys supplied via query string (#3300 security follow-up)", async () => {
+  // Query-string token fallbacks (`?token=`/`?key=`/`?apiKey=`/`?api_key=`) were
+  // intentionally removed — a credential in the query string leaks into access
+  // logs / Referer headers. The VS Code integration uses the path-scoped
+  // `/vscode/<token>/…` form instead (covered by the next test). So a `?token=`
+  // on the catalog route is no longer a usable credential → auth fails.
+  await settingsDb.updateSettings({
+    requireLogin: true,
+    password: "hashed-password",
+    requireAuthForModels: true,
+  });
+  await seedConnection("openai", { name: "openai-query-auth" });
+
+  const key = await apiKeysDb.createApiKey("catalog-query-auth", "machine-catalog-query");
+
+  const response = await v1ModelsCatalog.getUnifiedModelsResponse(
+    new Request(`http://localhost/api/v1/models?token=${encodeURIComponent(key.key)}`)
+  );
+
+  assert.equal(response.status, 401);
+});
+
+test("v1 models catalog accepts API keys embedded in vscode path aliases when auth is required", async () => {
+  await settingsDb.updateSettings({
+    requireLogin: true,
+    password: "hashed-password",
+    requireAuthForModels: true,
+  });
+  await seedConnection("openai", { name: "openai-path-auth" });
+
+  const key = await apiKeysDb.createApiKey("catalog-path-auth", "machine-catalog-path");
+
+  const response = await v1ModelsCatalog.getUnifiedModelsResponse(
+    new Request(`http://localhost/api/v1/vscode/${encodeURIComponent(key.key)}/models`)
+  );
+  const body = (await response.json()) as any;
+
+  assert.equal(response.status, 200);
+  assert.ok(Array.isArray(body.data));
+  assert.ok(body.data.length > 0);
+});
+
 test("v1 models catalog hides models excluded by every active connection while keeping models served by at least one account", async () => {
   const first = await seedConnection("openai", {
     name: "openai-first",
@@ -617,7 +659,13 @@ test("v1 models catalog exposes Antigravity client-visible preview aliases inste
   assert.equal(response.status, 200);
   assert.ok(ids.has("antigravity/gemini-3-pro-preview"));
   assert.ok(ids.has("antigravity/gemini-3-flash-preview"));
-  assert.equal(ids.has("antigravity/gemini-3.1-pro-high"), false);
+  // #3184/#3303: the Gemini budget tiers (`-high`/`-low`) are user-callable
+  // client-visible aliases on the Antigravity OAuth backend (agy parity), so
+  // they ARE now exposed in the catalog. (They alias to the plain
+  // `gemini-3.1-pro` upstream id — see ANTIGRAVITY_MODEL_ALIASES.)
+  assert.ok(ids.has("antigravity/gemini-3.1-pro-high"));
+  // The legacy `gemini-claude-*` ids are alias KEYS (remapped to live upstream
+  // ids), not public catalog entries, so they stay unexposed.
   assert.equal(ids.has("antigravity/gemini-claude-sonnet-4-5"), false);
   assert.equal(ids.has("antigravity/gemini-claude-sonnet-4-5-thinking"), false);
   assert.equal(ids.has("antigravity/gemini-claude-opus-4-5-thinking"), false);
@@ -1338,6 +1386,38 @@ test("v1 models catalog prefers manual combo context_length over auto-calculated
   assert.equal(response.status, 200);
   assert.ok(comboModel);
   assert.equal(comboModel.context_length, 64000, "manual context_length should override auto-calc");
+});
+
+test("v1 models catalog computes combo context_length from known targets when some targets have unknown context", async () => {
+  await seedConnection("openai", { name: "openai-mixed-context" });
+  await seedConnection("claude", {
+    authType: "oauth",
+    name: "claude-mixed-context",
+    apiKey: null,
+    accessToken: "claude-access",
+  });
+
+  // Create a combo with targets: one known (gpt-4o = 128K), one unknown (nonexistent-model).
+  // The combo should still compute context_length = 128K from the known target.
+  const combo = await combosDb.createCombo({
+    name: "mixed-context-combo",
+    strategy: "priority",
+    models: ["openai/gpt-4o", "openai/nonexistent-model-xyz"],
+  });
+
+  const response = await v1ModelsCatalog.getUnifiedModelsResponse(
+    new Request("http://localhost/api/v1/models")
+  );
+  const body = (await response.json()) as any;
+  const comboModel = body.data.find((item) => item.id === "mixed-context-combo");
+
+  assert.equal(response.status, 200);
+  assert.ok(comboModel);
+  assert.equal(
+    comboModel.context_length,
+    128000,
+    "combo context_length should be the MIN of known target model limits, ignoring unknown targets"
+  );
 });
 
 // Regression test for Issue #2798: noAuth providers (opencode/oc) have no DB connection rows

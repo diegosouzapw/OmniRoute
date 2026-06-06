@@ -165,7 +165,7 @@ test("custom provider auth lookup search pool maps alias prefixes to internal pr
   );
   assert.match(
     authSrc,
-    /nodePrefix === provider \|\| nodePrefix === canonicalProvider \|\| nodePrefix === canonicalAlias/,
+    /nodePrefix === provider\s*\|\|\s*nodePrefix === canonicalProvider\s*\|\|\s*nodePrefix === canonicalAlias/,
     "auth lookup should match provider node prefixes against the requested alias/canonical provider values"
   );
   assert.match(
