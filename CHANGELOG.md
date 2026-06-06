@@ -8,6 +8,10 @@
 
 _Development cycle in progress — entries are added as work merges into `release/v3.8.12` and finalized by the release flow._
 
+### 🔧 Bug Fixes
+
+- **api/responses:** combo names without a slash (e.g. `paid-premium`, `n8n-text`) are no longer force-rewritten to `codex/<combo>` on `/v1/responses` — `resolveResponsesApiModel` now returns the request unchanged when the model resolves to a combo (regression from the v3.8.9 Codex WS→HTTP fallback) ([#3242](https://github.com/diegosouzapw/OmniRoute/pull/3242) — thanks @wilsonicdev; the same fix shipped via #3244, closing #3227 / #3233)
+
 ---
 
 ## [3.8.11] — 2026-06-05
