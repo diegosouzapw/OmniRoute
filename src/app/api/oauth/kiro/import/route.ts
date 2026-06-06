@@ -71,7 +71,7 @@ export async function POST(request: Request) {
       email: email || null,
       providerSpecificData: {
         profileArn: tokenData.profileArn,
-        authMethod: "imported",
+        authMethod: tokenData.authMethod || "imported",
         provider: "Imported",
         ...(tokenData.clientId
           ? {

@@ -279,9 +279,9 @@ export class KiroService {
 
   /**
    * Validate and import refresh token.
-   * Registers a dedicated OIDC client so this connection has an isolated refresh session.
-   * If registerClient() fails (network issue, OIDC service down), the import still
-   * succeeds and the connection falls back to the shared social-auth refresh path.
+   * First attempts to validate using cached AWS SSO client credentials (Builder ID path).
+   * If that fails or no cached credentials exist, registers a dedicated OIDC client.
+   * If registerClient() also fails, the import falls back to the shared social-auth refresh path.
    */
   async validateImportToken(refreshToken: string, region: string = "us-east-1") {
     // Validate token format
@@ -289,7 +289,32 @@ export class KiroService {
       throw new Error("Invalid token format. Token should start with aorAAAAAG...");
     }
 
-    // Try to refresh to validate
+    // Try to read cached clientId/clientSecret from AWS SSO cache (Builder ID tokens)
+    const cachedClient = await this.readCachedClientCredentials();
+
+    // Attempt 1: Try Builder ID refresh using cached credentials
+    if (cachedClient) {
+      try {
+        const result = await this.refreshToken(refreshToken, {
+          clientId: cachedClient.clientId,
+          clientSecret: cachedClient.clientSecret,
+          authMethod: "builder-id",
+        });
+        return {
+          accessToken: result.accessToken,
+          refreshToken: result.refreshToken || refreshToken,
+          profileArn: result.profileArn,
+          expiresIn: result.expiresIn,
+          authMethod: "builder-id",
+          clientId: cachedClient.clientId,
+          clientSecret: cachedClient.clientSecret,
+        };
+      } catch {
+        // Cached credentials didn't work, fall through
+      }
+    }
+
+    // Attempt 2: Try social auth refresh
     let result: Awaited<ReturnType<typeof this.refreshToken>>;
     try {
       result = await this.refreshToken(refreshToken);
@@ -319,6 +344,37 @@ export class KiroService {
       authMethod: "imported",
       ...(clientId ? { clientId, clientSecret, clientSecretExpiresAt } : {}),
     };
+  }
+
+  /**
+   * Read clientId/clientSecret from AWS SSO cache (for Builder ID tokens).
+   * The cache is located at ~/.aws/sso/cache/ and contains JSON files from
+   * the OIDC client registration step of the device code flow.
+   */
+  private async readCachedClientCredentials(): Promise<{ clientId: string; clientSecret: string } | null> {
+    try {
+      const { readdir, readFile } = await import("fs/promises");
+      const { homedir } = await import("os");
+      const { join } = await import("path");
+      const cachePath = join(homedir(), ".aws", "sso", "cache");
+      const files = await readdir(cachePath);
+
+      for (const file of files) {
+        if (!file.endsWith(".json")) continue;
+        try {
+          const content = await readFile(join(cachePath, file), "utf-8");
+          const data = JSON.parse(content);
+          if (data.clientId && data.clientSecret) {
+            return { clientId: data.clientId, clientSecret: data.clientSecret };
+          }
+        } catch {
+          continue;
+        }
+      }
+    } catch {
+      // Cache not available
+    }
+    return null;
   }
 
   /**
