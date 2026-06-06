@@ -255,7 +255,7 @@ export function createOmniRouteProvider(options: OmniRouteProviderOptions): Open
   const seen = new Set<string>();
   for (const raw of modelList) {
     const id =
-      typeof raw === "object" && raw !== null && "id" in raw
+      typeof raw === "object" && raw !== null && "id" in raw && typeof (raw as any).id === "string"
         ? (raw as { id: string }).id.trim()
         : typeof raw === "string"
           ? raw.trim()
@@ -281,8 +281,9 @@ export function createOmniRouteProvider(options: OmniRouteProviderOptions): Open
     const liveContext = typeof raw === "object" && raw !== null
       ? (raw as { contextLength?: number }).contextLength
       : undefined;
-    const contextLength = liveContext ?? options.modelContextLengths?.[id] ?? OMNIROUTE_DEFAULT_MODEL_CONTEXT_LENGTHS[id];
-    if (typeof contextLength === "number" && contextLength > 0) {
+    const rawContextLength = liveContext ?? options.modelContextLengths?.[id] ?? OMNIROUTE_DEFAULT_MODEL_CONTEXT_LENGTHS[id];
+    const contextLength = typeof rawContextLength === "string" ? parseInt(rawContextLength, 10) : rawContextLength;
+    if (typeof contextLength === "number" && !isNaN(contextLength) && contextLength > 0) {
       entry.limit = { context: contextLength };
     }
 
