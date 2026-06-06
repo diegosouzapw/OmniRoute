@@ -1454,6 +1454,8 @@ export default function ProviderDetailPage() {
   const [savingCodexGlobalServiceMode, setSavingCodexGlobalServiceMode] = useState(false);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [batchDeleting, setBatchDeleting] = useState(false);
+  const [batchUpdating, setBatchUpdating] = useState<"activate" | "deactivate" | null>(null);
+  const [batchRetesting, setBatchRetesting] = useState(false);
   const commandCodeAuthWindowRef = useRef<Window | null>(null);
   const commandCodeAuthTimerRef = useRef<number | null>(null);
   const pendingRiskActionRef = useRef<(() => void) | null>(null);
@@ -1961,6 +1963,35 @@ export default function ProviderDetailPage() {
       notify.error("Network error during batch delete");
     } finally {
       setBatchDeleting(false);
+    }
+  };
+
+  const handleBatchSetActive = async (isActive: boolean) => {
+    if (selectedIds.size === 0 || batchUpdating) return;
+    setBatchUpdating(isActive ? "activate" : "deactivate");
+    try {
+      const res = await fetch("/api/providers", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ ids: Array.from(selectedIds), isActive }),
+      });
+
+      if (res.ok) {
+        const data = await res.json();
+        await fetchConnections();
+        notify.success(
+          isActive
+            ? t("batchActivateSuccess", { count: data.updated })
+            : t("batchDeactivateSuccess", { count: data.updated })
+        );
+      } else {
+        const data = await res.json().catch(() => ({}));
+        notify.error(data.error?.message || data.error || "Batch update failed");
+      }
+    } catch {
+      notify.error("Network error during batch update");
+    } finally {
+      setBatchUpdating(null);
     }
   };
 
@@ -2635,10 +2666,8 @@ export default function ProviderDetailPage() {
     }
   };
 
-  // Batch test all connections for this provider
-  const handleBatchTestAll = async () => {
-    if (batchTesting || connections.length === 0) return;
-    setBatchTesting(true);
+  // Shared runner for batch connection tests (all-for-provider or selected IDs)
+  const runBatchTest = async (payload: Record<string, unknown>) => {
     setBatchTestResults(null);
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), 120_000); // 2min max
@@ -2646,7 +2675,7 @@ export default function ProviderDetailPage() {
       const res = await fetch("/api/providers/test-batch", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ mode: "provider", providerId }),
+        body: JSON.stringify(payload),
         signal: controller.signal,
       });
       let data: any;
@@ -2677,7 +2706,28 @@ export default function ProviderDetailPage() {
       notify.error(msg);
     } finally {
       clearTimeout(timeoutId);
+    }
+  };
+
+  // Batch test all connections for this provider
+  const handleBatchTestAll = async () => {
+    if (batchTesting || connections.length === 0) return;
+    setBatchTesting(true);
+    try {
+      await runBatchTest({ mode: "provider", providerId });
+    } finally {
       setBatchTesting(false);
+    }
+  };
+
+  // Batch retest only the selected connections
+  const handleBatchRetest = async () => {
+    if (batchRetesting || selectedIds.size === 0) return;
+    setBatchRetesting(true);
+    try {
+      await runBatchTest({ mode: "selected", connectionIds: Array.from(selectedIds) });
+    } finally {
+      setBatchRetesting(false);
     }
   };
 
@@ -4262,6 +4312,51 @@ export default function ProviderDetailPage() {
               );
               const allSelected = selectedIds.size === connections.length && connections.length > 0;
               const someSelected = selectedIds.size > 0 && selectedIds.size < connections.length;
+              const bulkBusy = batchUpdating !== null || batchRetesting || batchDeleting;
+              const bulkActions = selectedIds.size > 0 && (
+                <div className="flex flex-wrap items-center justify-end gap-2">
+                  <Button
+                    variant="secondary"
+                    size="sm"
+                    icon="toggle_on"
+                    loading={batchUpdating === "activate"}
+                    disabled={bulkBusy && batchUpdating !== "activate"}
+                    onClick={() => handleBatchSetActive(true)}
+                  >
+                    {t("batchActivateSelected")}
+                  </Button>
+                  <Button
+                    variant="secondary"
+                    size="sm"
+                    icon="toggle_off"
+                    loading={batchUpdating === "deactivate"}
+                    disabled={bulkBusy && batchUpdating !== "deactivate"}
+                    onClick={() => handleBatchSetActive(false)}
+                  >
+                    {t("batchDeactivateSelected")}
+                  </Button>
+                  <Button
+                    variant="secondary"
+                    size="sm"
+                    icon="play_arrow"
+                    loading={batchRetesting}
+                    disabled={(bulkBusy && !batchRetesting) || !!retestingId}
+                    onClick={handleBatchRetest}
+                  >
+                    {t("batchRetestSelected")}
+                  </Button>
+                  <Button
+                    variant="danger"
+                    size="sm"
+                    icon="delete"
+                    loading={batchDeleting}
+                    disabled={bulkBusy && !batchDeleting}
+                    onClick={handleBatchDelete}
+                  >
+                    {t("batchDeleteSelected", { count: selectedIds.size })}
+                  </Button>
+                </div>
+              );
 
               if (!hasAnyTag) {
                 return (
@@ -4284,17 +4379,7 @@ export default function ProviderDetailPage() {
                         </span>
                       </label>
 
-                      {selectedIds.size > 0 && (
-                        <Button
-                          variant="danger"
-                          size="sm"
-                          icon="delete"
-                          loading={batchDeleting}
-                          onClick={handleBatchDelete}
-                        >
-                          {t("batchDeleteSelected", { count: selectedIds.size })}
-                        </Button>
-                      )}
+                      {bulkActions}
                     </div>
                     <div className="flex flex-col divide-y divide-black/[0.03] dark:divide-white/[0.03] border border-t-0 border-border rounded-b-lg overflow-hidden">
                       {sorted.map((conn, index) => (
@@ -4439,17 +4524,7 @@ export default function ProviderDetailPage() {
                         </span>
                       </label>
 
-                      {selectedIds.size > 0 && (
-                        <Button
-                          variant="danger"
-                          size="sm"
-                          icon="delete"
-                          loading={batchDeleting}
-                          onClick={handleBatchDelete}
-                        >
-                          {t("batchDeleteSelected", { count: selectedIds.size })}
-                        </Button>
-                      )}
+                      {bulkActions}
                     </div>
                   ) : null}
                   <div className="flex flex-col gap-0 border border-t-0 border-border rounded-b-lg overflow-hidden">

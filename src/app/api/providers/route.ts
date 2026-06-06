@@ -8,6 +8,7 @@ import {
   getProviderConnections,
   createProviderConnection,
   deleteProviderConnections,
+  updateProviderConnection,
   getProviderNodeById,
   isCloudEnabled,
 } from "@/models";
@@ -18,7 +19,10 @@ import {
 } from "@/shared/constants/providers";
 import { getConsistentMachineId } from "@/shared/utils/machineId";
 import { syncToCloud } from "@/lib/cloudSync";
-import { createProviderSchema } from "@/shared/validation/schemas";
+import {
+  createProviderSchema,
+  batchUpdateProviderConnectionsSchema,
+} from "@/shared/validation/schemas";
 import { isValidationFailure, validateBody } from "@/shared/validation/helpers";
 import { normalizeQoderPatProviderData } from "@omniroute/open-sse/services/qoderCli";
 import {
@@ -192,6 +196,62 @@ export async function POST(request: Request) {
   } catch (error) {
     console.log("Error creating provider:", error);
     return NextResponse.json({ error: "Failed to create provider" }, { status: 500 });
+  }
+}
+
+// PATCH /api/providers - Bulk activate/deactivate connections
+export async function PATCH(request: Request) {
+  const authError = await requireManagementAuth(request);
+  if (authError) return authError;
+
+  const auditContext = getAuditRequestContext(request);
+
+  let rawBody;
+  try {
+    rawBody = await request.json();
+  } catch {
+    return NextResponse.json({ error: "Invalid JSON body" }, { status: 400 });
+  }
+
+  const validation = validateBody(batchUpdateProviderConnectionsSchema, rawBody);
+  if (isValidationFailure(validation)) {
+    return NextResponse.json({ error: validation.error }, { status: 400 });
+  }
+  const { ids, isActive } = validation.data;
+
+  try {
+    // Partial-failure semantics: report unknown IDs instead of failing the whole batch
+    const updatedIds: string[] = [];
+    const notFoundIds: string[] = [];
+    for (const id of ids) {
+      const updated = await updateProviderConnection(id, { isActive });
+      if (updated) updatedIds.push(id);
+      else notFoundIds.push(id);
+    }
+
+    await syncToCloudIfEnabled();
+
+    logAuditEvent({
+      action: "provider.credentials.batch_updated",
+      actor: "admin",
+      resourceType: "provider_credentials",
+      status: "success",
+      ipAddress: auditContext.ipAddress || undefined,
+      requestId: auditContext.requestId,
+      metadata: { isActive, updated: updatedIds.length, notFound: notFoundIds, ids },
+    });
+
+    return NextResponse.json(
+      {
+        message: `${isActive ? "Activated" : "Deactivated"} ${updatedIds.length} connection(s)`,
+        updated: updatedIds.length,
+        notFound: notFoundIds,
+      },
+      { status: 200 }
+    );
+  } catch (error) {
+    console.log("Error batch updating connections:", error);
+    return NextResponse.json({ error: "Failed to batch update connections" }, { status: 500 });
   }
 }
 
