@@ -407,9 +407,12 @@ export class TheOldLlmExecutor extends BaseExecutor {
         upstream = await directFetch(token, reqBody, signal);
       }
 
-      const upstreamBody = await upstream.text();
+      // Read the body once — a Response body is single-use, so re-reading the
+      // same Response throws "Body has already been read" (#3296). Only re-read
+      // when a token rejection forces a fresh fetch below.
+      let finalBody = await upstream.text();
 
-      if (isTokenRejected(upstream.status, upstreamBody)) {
+      if (isTokenRejected(upstream.status, finalBody)) {
         log?.warn?.("THEOLDLLM", `Token rejected (${upstream.status}), refreshing…`);
         invalidateToken();
         try {
@@ -419,9 +422,8 @@ export class TheOldLlmExecutor extends BaseExecutor {
           log?.warn?.("THEOLDLLM", "Token refresh failed, retrying with existing token");
         }
         upstream = await directFetch(token, reqBody, signal);
+        finalBody = await upstream.text();
       }
-
-      const finalBody = await upstream.text();
 
       if (upstream.status === 200 && finalBody) {
         const payload = stream

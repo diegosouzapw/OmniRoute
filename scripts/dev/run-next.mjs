@@ -9,6 +9,7 @@ import { resolveRuntimePorts, withRuntimePortEnv } from "../build/runtime-env.mj
 import { createOmnirouteWsBridge } from "./v1-ws-bridge.mjs";
 import { createResponsesWsProxy } from "./responses-ws-proxy.mjs";
 import { ensurePeerStampToken, stampPeerIp } from "./peer-stamp.mjs";
+import { ensureNativeSqlite } from "./ensure-native-sqlite.mjs";
 import { randomUUID } from "node:crypto";
 
 // Pre-read DATA_DIR from local .env before bootstrap resolves paths
@@ -35,6 +36,12 @@ if (fs.existsSync(rootAppDir) && fs.statSync(rootAppDir).isDirectory()) {
 
 const mode = process.argv[2] === "start" ? "start" : "dev";
 const dev = mode === "dev";
+
+// Self-heal a stale better-sqlite3 native binary after a Node version switch
+// (nvm 22 <-> 24) before bootstrap touches the DB. No-op when the ABI matches.
+if (dev) {
+  ensureNativeSqlite();
+}
 
 const bootstrappedEnv = bootstrapEnv();
 const runtimePorts = resolveRuntimePorts(bootstrappedEnv);

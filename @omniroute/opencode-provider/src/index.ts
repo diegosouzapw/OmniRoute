@@ -129,8 +129,8 @@ export interface OmniRouteProviderOptions {
   apiKey: string;
   /** Override the display name shown in OpenCode. Default: `"OmniRoute"`. */
   displayName?: string;
-  /** Override the model catalog. Defaults to `OMNIROUTE_DEFAULT_OPENCODE_MODELS`. */
-  models?: readonly string[];
+  /** Override the model catalog. Accepts model ids (strings) or live model entries from `fetchLiveModels`. When entries carry a `contextLength`, it is used directly — no hardcoded map needed. */
+  models?: readonly (string | { id: string; contextLength?: number })[];
   /** Optional human-readable labels keyed by model id. Overridden by `modelCapabilities[id].label`. */
   modelLabels?: Record<string, string>;
   /**
@@ -139,6 +139,12 @@ export interface OmniRouteProviderOptions {
    * for custom ids the override is used verbatim.
    */
   modelCapabilities?: Record<string, ModelCapabilities>;
+  /**
+   * Optional per-model context-length overrides (tokens). Takes precedence
+   * over the static `OMNIROUTE_DEFAULT_MODEL_CONTEXT_LENGTHS` map but is
+   * superseded by `contextLength` on live model entries passed via `models`.
+   */
+  modelContextLengths?: Record<string, string | number>;
   /**
    * Primary model for OpenCode (top-level `model` key).
    * Emitted as `"omniroute/<id>"`. When omitted the key is not written.
@@ -248,7 +254,12 @@ export function createOmniRouteProvider(options: OmniRouteProviderOptions): Open
   const models: Record<string, OpenCodeModelEntry> = {};
   const seen = new Set<string>();
   for (const raw of modelList) {
-    const id = typeof raw === "string" ? raw.trim() : "";
+    const id =
+      typeof raw === "object" && raw !== null && "id" in raw
+        ? (raw as { id: string }).id.trim()
+        : typeof raw === "string"
+          ? raw.trim()
+          : "";
     if (!id || seen.has(id)) continue;
     seen.add(id);
     const defaults = OMNIROUTE_DEFAULT_MODEL_CAPABILITIES[id] ?? {};
@@ -266,9 +277,11 @@ export function createOmniRouteProvider(options: OmniRouteProviderOptions): Open
     if (typeof merged.temperature === "boolean") entry.temperature = merged.temperature;
     if (typeof merged.tool_call === "boolean") entry.tool_call = merged.tool_call;
 
-    // Include context window limit when known — OpenCode reads this to
-    // determine usable context length for compaction & overflow detection.
-    const contextLength = OMNIROUTE_DEFAULT_MODEL_CONTEXT_LENGTHS[id];
+    // Context window: live model entry (from API catalog) > modelContextLengths > static defaults
+    const liveContext = typeof raw === "object" && raw !== null
+      ? (raw as { contextLength?: number }).contextLength
+      : undefined;
+    const contextLength = liveContext ?? options.modelContextLengths?.[id] ?? OMNIROUTE_DEFAULT_MODEL_CONTEXT_LENGTHS[id];
     if (typeof contextLength === "number" && contextLength > 0) {
       entry.limit = { context: contextLength };
     }
@@ -508,7 +521,7 @@ export interface OmniRouteLiveModel {
  * const config = buildOmniRouteOpenCodeConfig({
  *   baseURL: "http://localhost:20128",
  *   apiKey: "sk_omniroute",
- *   models: models.map((m) => m.id),
+ *   models,                    // OmniRouteLiveModel[] — contextLength auto-extracted
  *   modelLabels: Object.fromEntries(models.map((m) => [m.id, m.name])),
  * });
  * ```

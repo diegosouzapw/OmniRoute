@@ -33,6 +33,7 @@ const { spawn } = require("child_process");
 const fs = require("fs");
 const { autoUpdater } = require("electron-updater");
 const { hasEncryptedCredentials } = require("./sqlite-inspection");
+const { loginManager } = require("./loginManager");
 
 // ── Single Instance Lock ───────────────────────────────────
 const gotTheLock = app.requestSingleInstanceLock();
@@ -798,6 +799,48 @@ function setupIpcHandlers() {
   });
 
   ipcMain.handle("get-app-version", () => app.getVersion());
+
+  // ── Web-Cookie Login IPC Handlers ──────────────────────────
+  // Forward login status events to the renderer. Registered ONCE here — never
+  // inside the login:start handler, which would attach a fresh listener (and
+  // duplicate every subsequent status event) on each invocation.
+  loginManager.on("status", (status) => {
+    sendToRenderer("login:status", status);
+  });
+
+  ipcMain.handle("login:start", async (_event, providerId, options) => {
+    const result = await loginManager.startLogin(providerId, options);
+
+    // Persist extracted credentials
+    if (result.success && result.credentials) {
+      try {
+        // Store as JSON blob under the provider ID
+        const { persistSecret: ps } = require("../src/lib/db/secrets");
+        if (typeof ps === "function") {
+          ps(providerId, JSON.stringify(result.credentials));
+        }
+        sendToRenderer("login:status", {
+          providerId,
+          status: "persisted",
+          message: "Credentials saved",
+        });
+      } catch (err) {
+        console.error("[Electron] Failed to persist credentials:", err);
+        return { success: false, error: "Extracted but failed to save credentials" };
+      }
+    }
+
+    return result;
+  });
+
+  ipcMain.handle("login:cancel", async () => {
+    loginManager.cancel();
+    return { success: true };
+  });
+
+  ipcMain.handle("login:status", async () => {
+    return { active: loginManager.getActiveProvider() !== null };
+  });
 
   // Autostart management handlers
   ipcMain.handle("get-autostart-status", () => {
