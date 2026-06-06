@@ -125,6 +125,27 @@ export function parseAndValidatePublicUrl(input: string | URL) {
   return url;
 }
 
+/**
+ * Webhook variant of {@link parseAndValidatePublicUrl}. Webhooks legitimately point at
+ * internal services (n8n, Home Assistant, a LAN box) in Docker/self-hosted deployments,
+ * so the private-host block is gated behind the same explicit opt-in used for private
+ * provider URLs (`OMNIROUTE_ALLOW_PRIVATE_PROVIDER_URLS`, default OFF). Protocol and
+ * embedded-credential checks in {@link parseOutboundUrl} remain unconditional. (#3269)
+ */
+export function parseAndValidateWebhookUrl(input: string | URL) {
+  const url = parseOutboundUrl(input);
+
+  if (!arePrivateProviderUrlsAllowed() && isPrivateHost(url.hostname)) {
+    throw new OutboundUrlGuardError(PROVIDER_URL_BLOCKED_MESSAGE, {
+      code: "OUTBOUND_URL_GUARD_BLOCKED",
+      url: url.toString(),
+      hostname: url.hostname || null,
+    });
+  }
+
+  return url;
+}
+
 function isTrueValue(raw: unknown): boolean {
   if (typeof raw !== "string") return false;
   return TRUE_ENV_VALUES.has(raw.trim().toLowerCase());

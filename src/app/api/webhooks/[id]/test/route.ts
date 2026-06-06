@@ -14,7 +14,7 @@ import { requireManagementAuth } from "@/lib/api/requireManagementAuth";
 import { insertDelivery } from "@/lib/db/webhookDeliveries";
 import { recordWebhookDelivery } from "@/lib/localDb";
 import {
-  parseAndValidatePublicUrl,
+  parseAndValidateWebhookUrl,
   OutboundUrlGuardError,
 } from "@/shared/network/outboundUrlGuard";
 import crypto from "crypto";
@@ -34,7 +34,7 @@ async function testFetch(
 }> {
   const start = Date.now();
   try {
-    parseAndValidatePublicUrl(url);
+    parseAndValidateWebhookUrl(url);
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), 10_000);
     const res = await fetch(url, {

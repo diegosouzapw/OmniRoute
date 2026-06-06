@@ -44,6 +44,11 @@ Thanks to everyone whose work landed in v3.8.12:
 | [@leninejunior](https://github.com/leninejunior) | #3271 |
 | [@zhiru](https://github.com/zhiru) | #3274 |
 | [@diegosouzapw](https://github.com/diegosouzapw) | maintainer — #3256, #3263, #3270, #3275, #3277, #3278 |
+- **api/responses:** combo names without a slash (e.g. `paid-premium`, `n8n-text`) are no longer force-rewritten to `codex/<combo>` on `/v1/responses` — `resolveResponsesApiModel` now returns the request unchanged when the model resolves to a combo (regression from the v3.8.9 Codex WS→HTTP fallback) ([#3242](https://github.com/diegosouzapw/OmniRoute/pull/3242) — thanks @wilsonicdev; the same fix shipped via #3244, closing #3227 / #3233)
+- **sse/web-tools:** web-cookie providers (e.g. `ds-web`) that wrap tool calls as `<tool_call name="...">{json}</tool_call>` are now parsed correctly — the real tool name is read from the JSON body instead of the tag attribute, and the call is no longer silently dropped when `arguments` is absent ([#3260](https://github.com/diegosouzapw/OmniRoute/issues/3260))
+- **sse/groq:** non-reasoning Groq models (`llama-3.3-70b-versatile`, `llama-4-scout`) are now flagged `supportsReasoning: false`, so `reasoning_effort` / `output_config.effort` / `thinking` are stripped before dispatch instead of being forwarded and rejected with HTTP 400 — fixes the Claude Code → Groq regression of #764 ([#3258](https://github.com/diegosouzapw/OmniRoute/issues/3258))
+- **api/images:** `POST /v1/images/edits` to a custom OpenAI-compatible provider no longer forwards an empty `model`. The multipart body is now built as a `Buffer` with an explicit boundary instead of a global `FormData` — the patched undici `fetch` serialized a native `FormData` as the literal string `[object FormData]` (text/plain), dropping every field including `model` ([#3273](https://github.com/diegosouzapw/OmniRoute/issues/3273))
+- **api/webhooks:** webhook URLs may now target a private/internal address (e.g. `192.168.x`, a docker-internal host) when `OMNIROUTE_ALLOW_PRIVATE_PROVIDER_URLS=true` — the webhook guard reuses the same explicit opt-in as private provider URLs (default OFF; protocol and embedded-credential checks stay unconditional) ([#3269](https://github.com/diegosouzapw/OmniRoute/issues/3269))
 
 ---
 
