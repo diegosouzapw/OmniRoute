@@ -40,6 +40,7 @@
 - **fix(codex):** strip client-only params (`prompt_cache_retention`, `safety_identifier`, `user`) on the native `codex/` `/v1/responses` passthrough — Codex upstream rejects them with `400 Unsupported parameter`, which broke Factory Droid and any client injecting those fields. The chat-completions path already stripped them; the responses→responses passthrough now does too. (#3317 — thanks @tycronk20)
 - **fix(theoldllm):** stop the `[502]: Body is unusable: Body has already been read` error on the cached-token path — the executor read the same upstream `Response` body with `.text()` twice; it now reads it once and only re-reads after a token-rejection refetch. (#3296 — thanks @onizukashonan14-png)
 - **fix(dashboard):** keep no-auth providers (opencode, duckduckgo-web, theoldllm, veoaifree-web) visible under the "Show configured only" filter — they never create a connection row (`stats.total === 0`) but are always usable and already appear in `/v1/models`, so the filter now treats `displayAuthType === "no-auth"` as configured. (#3290 — thanks @uniQta)
+- **fix(dashboard):** refresh the connection list after a Codex/Claude/Gemini auth import — the import modals called `fetchData()` (which only reloads provider metadata), so a freshly-imported connection stayed invisible until a manual reload; they now call `fetchConnections()`. ([#3320](https://github.com/diegosouzapw/OmniRoute/pull/3320) — thanks @zhiru)
 - **fix(cli):** `omniroute update` no longer always fails on a global install — `getCurrentVersion()` and `createBackup()` now resolve `package.json`/`bin` relative to the script (`import.meta.url`) instead of `process.cwd()` (the user's working dir on a global npm/brew install → *"Could not determine current version"*), and the backup copies the `cli` directory with `cpSync({recursive:true})` instead of `copyFileSync`, which threw a swallowed `EISDIR` → *"Failed to create backup. Aborting"*. (#3295 — thanks @uniQta)
 - **fix(sse):** harden the passthrough stream against empty upstream responses — emit a synthetic retry chunk on an empty `choices: []` (fixes a Copilot Chat crash) and log empty post-`tool_calls` completions; also registers **MiniMax M3** (1M context) across 8 provider tiers. ([#3297](https://github.com/diegosouzapw/OmniRoute/pull/3297), #3110 — thanks @wilsonicdev)
 - **fix(opencode-provider):** extract `contextLength` from the live `/v1/models` catalog (live > `modelContextLengths` > static map) so passthrough models outside the legacy 8-model map no longer silently truncate to OpenCode's 128K default. ([#3298](https://github.com/diegosouzapw/OmniRoute/pull/3298) — thanks @herjarsa / @diegosouzapw)
@@ -62,7 +63,8 @@ Thanks to everyone whose work landed in v3.8.13:
 
 | Contributor | PRs / Issues |
 | --- | --- |
-| [@zhiru](https://github.com/zhiru) | #3300, #3306, #3307 / #3310, #3309, #3301, #3311 |
+| [@zhiru](https://github.com/zhiru) | #3300, #3306, #3307 / #3310, #3309, #3301, #3311, #3320 |
+| [@tycronk20](https://github.com/tycronk20) | #3317, #3318 |
 | [@oyi77](https://github.com/oyi77) | #3292 (closes #3070) |
 | [@onizukashonan14-png](https://github.com/onizukashonan14-png) | #3296 |
 | [@uniQta](https://github.com/uniQta) | #3290, #3295 |
