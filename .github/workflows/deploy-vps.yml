@@ -24,15 +24,15 @@ jobs:
           username: ${{ secrets.VPS_USER }}
           key: ${{ secrets.VPS_SSH_KEY }}
           port: 22
-          timeout: 30s
-          command_timeout: 5m
+          timeout: 60s
+          command_timeout: 15m
           script: |
             set -euo pipefail
 
             echo "=== Updating OmniRoute ==="
-            npm install -g omniroute@latest 2>&1
-            INSTALLED_VERSION=$(omniroute --version 2>/dev/null || echo "unknown")
-            echo "Installed version: $INSTALLED_VERSION"
+            npm install -g omniroute@latest
+            INSTALLED_VERSION=$(omniroute --version 2>/dev/null | tr -d '[:space:]' || echo "unknown")
+            echo "Installed CLI version: $INSTALLED_VERSION"
 
             # Recreate the PM2 process instead of `pm2 restart`. A bare restart
             # re-runs whatever script path was saved earlier; after the build-output
@@ -46,22 +46,25 @@ jobs:
             pm2 start omniroute --name omniroute -- --port 20128
             pm2 save
 
-            # Health gate: fail the deploy if the box never serves /login 200.
-            # /login is a public route that returns 200 once the server is up.
+            # Health gate: fail the deploy unless the box actually reports healthy.
+            # Poll /api/monitoring/health for "status":"healthy" (a deeper signal than
+            # a static page 200 — it confirms the app booted, not just that a port is
+            # bound). Boot can take a while after a native-module/build-layout change,
+            # so poll up to ~3min before giving up.
             echo "=== Health Check (gates the deploy) ==="
             ok=0
-            for i in $(seq 1 10); do
-              code=$(curl -s -o /dev/null -w "%{http_code}" --max-time 5 http://localhost:20128/login || echo "000")
-              if [ "$code" = "200" ]; then
+            for i in $(seq 1 36); do
+              BODY=$(curl -sf -m 5 http://localhost:20128/api/monitoring/health 2>/dev/null || true)
+              if printf '%s' "$BODY" | grep -q '"status":"healthy"'; then
                 ok=1
-                echo "✅ /login -> 200 (attempt $i) — version $INSTALLED_VERSION"
+                echo "✅ /api/monitoring/health -> healthy (attempt $i) — version $INSTALLED_VERSION"
                 break
               fi
-              echo "… /login -> $code (attempt $i/10), retrying in 3s"
-              sleep 3
+              echo "… not healthy yet (attempt $i/36), retrying in 5s"
+              sleep 5
             done
             if [ "$ok" != "1" ]; then
-              echo "❌ Health check failed — /login never returned 200 after 10 attempts"
+              echo "❌ Health check failed — /api/monitoring/health never reported healthy after ~3min"
               echo "--- recent PM2 logs ---"
               pm2 logs omniroute --lines 40 --nostream || true
               exit 1
