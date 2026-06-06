@@ -47,6 +47,7 @@ export const HIDEABLE_SIDEBAR_ITEM_IDS = [
   // Costs section
   "costs-pricing",
   "costs-budget",
+  "costs-free-tiers",
   "costs-quota-share",
   // Monitoring > Audit
   "audit",
@@ -468,6 +469,13 @@ const COSTS_ITEMS: readonly SidebarItemDefinition[] = [
     i18nKey: "costsBudget",
     subtitleKey: "costsBudgetSubtitle",
     icon: "savings",
+  },
+  {
+    id: "costs-free-tiers",
+    href: "/dashboard/free-tiers",
+    i18nKey: "costsFreeTiers",
+    subtitleKey: "costsFreeTiersSubtitle",
+    icon: "request_quote",
   },
 ];
 

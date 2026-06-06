@@ -31,7 +31,7 @@ export async function OPTIONS() {
  * Safe: only rewrites when codex/model is genuinely registered; all other models
  * pass through unchanged. Errors are caught and the original request is returned.
  */
-async function withCodexPreferredModel(request: Request): Promise<Request> {
+export async function withCodexPreferredModel(request: Request): Promise<Request> {
   try {
     const clone = request.clone();
     const body = await clone.json().catch(() => null);

@@ -48,6 +48,7 @@ import { DoubaoWebExecutor } from "./doubao-web.ts";
 import { QwenWebExecutor } from "./qwen-web.ts";
 import { KimiExecutor } from "./kimi.ts"
 import { TheOldLlmExecutor } from "./theoldllm.ts";
+import { ChipotleExecutor } from "./chipotle.ts";
 
 const executors = {
   antigravity: new AntigravityExecutor(),
@@ -137,6 +138,8 @@ const executors = {
   qw: new QwenWebExecutor(), // Alias
   theoldllm: new TheOldLlmExecutor(),
   tllm: new TheOldLlmExecutor(), // Alias
+  chipotle: new ChipotleExecutor(),
+  pepper: new ChipotleExecutor(), // Alias
 };
 
 const defaultCache = new Map();
@@ -194,3 +197,4 @@ export { T3ChatWebExecutor } from "./t3-chat-web.ts";
 export { InnerAiExecutor } from "./inner-ai.ts";
 export { QwenWebExecutor } from "./qwen-web.ts";
 export { TheOldLlmExecutor } from "./theoldllm.ts";
+export { ChipotleExecutor } from "./chipotle.ts";

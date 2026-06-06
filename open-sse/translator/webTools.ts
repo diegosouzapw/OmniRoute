@@ -22,6 +22,10 @@ interface OpenAIToolDef {
 }
 
 const TOOL_BLOCK_RE = /<tool>\s*([\s\S]*?)\s*<\/tool>/g;
+// Some web-cookie models (e.g. ds-web) wrap calls as `<tool_call name="...">{json}</tool_call>`
+// instead of the canonical `<tool>{json}</tool>`. Capture the JSON body — the real tool name
+// lives there, never in the tag's `name="..."` attribute (#3260).
+const TOOL_CALL_TAG_RE = /<tool_call(?:\s+[^>]*)?\s*>\s*([\s\S]*?)\s*<\/tool_call>/g;
 
 interface ToolParseCandidate {
   raw: string;
@@ -374,7 +378,10 @@ export function parseToolCallsFromText(
 ): { content: string; toolCalls: OpenAIToolCall[] | null } {
   const requestedToolNames = getRequestedToolNames(requestedTools);
   const canParseBareJson = requestedToolNames.length > 0;
-  if (typeof text !== "string" || (!text.includes("<tool>") && !canParseBareJson)) {
+  if (
+    typeof text !== "string" ||
+    (!text.includes("<tool>") && !text.includes("<tool_call") && !canParseBareJson)
+  ) {
     return { content: text ?? "", toolCalls: null };
   }
 
@@ -385,6 +392,18 @@ export function parseToolCallsFromText(
   TOOL_BLOCK_RE.lastIndex = 0;
   while ((blockMatch = TOOL_BLOCK_RE.exec(text)) !== null) {
     const range = { start: blockMatch.index, end: TOOL_BLOCK_RE.lastIndex };
+    toolBlockRanges.push(range);
+    candidates.push({
+      raw: blockMatch[1].trim(),
+      start: range.start,
+      end: range.end,
+      requireRequestedTool: false,
+    });
+  }
+
+  TOOL_CALL_TAG_RE.lastIndex = 0;
+  while ((blockMatch = TOOL_CALL_TAG_RE.exec(text)) !== null) {
+    const range = { start: blockMatch.index, end: TOOL_CALL_TAG_RE.lastIndex };
     toolBlockRanges.push(range);
     candidates.push({
       raw: blockMatch[1].trim(),
@@ -434,4 +453,59 @@ export function parseToolCallsFromText(
 
   const content = stripRanges(text, acceptedRanges);
   return { content, toolCalls };
+}
+
+// ── Shared helpers for web-cookie executors ────────────────────────────────
+
+interface ToolPrepResult {
+  hasTools: boolean;
+  requestedTools: unknown;
+  effectiveMessages: Array<{ role: string; content: unknown }>;
+}
+
+/**
+ * Extract tools from an OpenAI request body and prepend a tool-system-prompt
+ * to the messages array when tools are present.  Every web-cookie executor
+ * that wants tool-call support calls this once before building its upstream
+ * request body.
+ */
+export function prepareToolMessages(
+  bodyObj: Record<string, unknown>,
+  messages: Array<{ role: string; content: unknown }>,
+): ToolPrepResult {
+  const requestedTools = bodyObj.tools;
+  const hasTools = Array.isArray(requestedTools) && requestedTools.length > 0;
+  if (!hasTools) return { hasTools: false, requestedTools, effectiveMessages: messages };
+
+  const toolPrompt = serializeToolsToPrompt(requestedTools);
+  return {
+    hasTools: true,
+    requestedTools,
+    effectiveMessages: [{ role: "system", content: toolPrompt }, ...messages],
+  };
+}
+
+interface ToolCompletionResult {
+  content: string;
+  toolCalls: OpenAIToolCall[] | null;
+  finishReason: string;
+}
+
+/**
+ * Parse tool calls from a model's text response.  Returns the cleaned content
+ * (with `<tool>` blocks stripped), the parsed tool calls (or null), and the
+ * appropriate finish_reason.  Every web-cookie executor calls this on the
+ * collected response text when `hasTools` is true.
+ */
+export function buildToolAwareResult(
+  rawContent: string,
+  requestedTools: unknown,
+  idSeed = "call",
+): ToolCompletionResult {
+  const { content, toolCalls } = parseToolCallsFromText(rawContent, `${idSeed}-${Date.now()}`, requestedTools);
+  return {
+    content,
+    toolCalls,
+    finishReason: toolCalls ? "tool_calls" : "stop",
+  };
 }

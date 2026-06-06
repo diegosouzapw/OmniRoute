@@ -1,5 +1,6 @@
 import { createHash } from "node:crypto";
 import { BaseExecutor, type ExecuteInput } from "./base.ts";
+import { prepareToolMessages, buildToolAwareResult } from "../translator/webTools.ts";
 import { sanitizeErrorMessage } from "../utils/error.ts";
 
 const INNER_AI_CHAT_URL = "https://chatapi.innerai.com/chat";
@@ -599,7 +600,8 @@ export class InnerAiExecutor extends BaseExecutor {
 
     // Build message content from OpenAI messages array
     const rawMessages = Array.isArray(bodyObj.messages) ? bodyObj.messages : [];
-    const messages = rawMessages as Array<Record<string, unknown>>;
+    const { hasTools, requestedTools, effectiveMessages } = prepareToolMessages(bodyObj, rawMessages);
+    const messages = effectiveMessages as Array<Record<string, unknown>>;
     const messageContent = buildMessageContent(messages);
     if (!messageContent.trim()) {
       return makeErrorResult(400, "No message content to send", body);
@@ -693,6 +695,25 @@ export class InnerAiExecutor extends BaseExecutor {
       throw err;
     }
     const completionId = `chatcmpl-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+
+    if (hasTools) {
+      const { content: cleaned, toolCalls, finishReason } = buildToolAwareResult(content, requestedTools, "inner");
+      if (toolCalls) {
+        return {
+          response: new Response(
+            JSON.stringify({
+              id: completionId, object: "chat.completion",
+              created: Math.floor(Date.now() / 1000), model: resolvedModel,
+              choices: [{ index: 0, message: { role: "assistant", content: null, tool_calls: toolCalls }, finish_reason: finishReason }],
+            }),
+            { status: 200, headers: { "Content-Type": "application/json" } }
+          ),
+          url: INNER_AI_CHAT_URL, headers: reqHeaders, transformedBody: innerAiBody,
+        };
+      }
+      content = cleaned;
+    }
+
     return {
       response: new Response(
         JSON.stringify({

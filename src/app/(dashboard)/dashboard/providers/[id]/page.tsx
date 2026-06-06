@@ -582,6 +582,7 @@ interface PassthroughModelRowProps {
   modelId: string;
   fullModel: string;
   source?: string;
+  isFree?: boolean;
   isHidden?: boolean;
   copied?: string;
   onCopy: (text: string, key: string) => void;
@@ -966,6 +967,7 @@ function ModelCompatPopover({
   getUpstreamHeadersRecord,
   onCompatPatch,
   showDeveloperToggle = true,
+  compact = false,
   disabled,
 }: {
   t: (key: string) => string;
@@ -981,6 +983,7 @@ function ModelCompatPopover({
     }
   ) => void;
   showDeveloperToggle?: boolean;
+  compact?: boolean;
   disabled?: boolean;
 }) {
   const [open, setOpen] = useState(false);
@@ -1123,7 +1126,7 @@ function ModelCompatPopover({
         title={t("compatAdjustmentsTitle")}
       >
         <span className="material-symbols-outlined text-base leading-none">tune</span>
-        {t("compatButtonLabel")}
+        {!compact && t("compatButtonLabel")}
       </button>
       {open &&
         typeof document !== "undefined" &&
@@ -1468,6 +1471,8 @@ export default function ProviderDetailPage() {
   const [savingCodexGlobalServiceMode, setSavingCodexGlobalServiceMode] = useState(false);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [batchDeleting, setBatchDeleting] = useState(false);
+  const [batchUpdating, setBatchUpdating] = useState<"activate" | "deactivate" | null>(null);
+  const [batchRetesting, setBatchRetesting] = useState(false);
   const commandCodeAuthWindowRef = useRef<Window | null>(null);
   const commandCodeAuthTimerRef = useRef<number | null>(null);
   const pendingRiskActionRef = useRef<(() => void) | null>(null);
@@ -1975,6 +1980,35 @@ export default function ProviderDetailPage() {
       notify.error("Network error during batch delete");
     } finally {
       setBatchDeleting(false);
+    }
+  };
+
+  const handleBatchSetActive = async (isActive: boolean) => {
+    if (selectedIds.size === 0 || batchUpdating) return;
+    setBatchUpdating(isActive ? "activate" : "deactivate");
+    try {
+      const res = await fetch("/api/providers", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ ids: Array.from(selectedIds), isActive }),
+      });
+
+      if (res.ok) {
+        const data = await res.json();
+        await fetchConnections();
+        notify.success(
+          isActive
+            ? t("batchActivateSuccess", { count: data.updated })
+            : t("batchDeactivateSuccess", { count: data.updated })
+        );
+      } else {
+        const data = await res.json().catch(() => ({}));
+        notify.error(data.error?.message || data.error || "Batch update failed");
+      }
+    } catch {
+      notify.error("Network error during batch update");
+    } finally {
+      setBatchUpdating(null);
     }
   };
 
@@ -2833,10 +2867,8 @@ export default function ProviderDetailPage() {
     }
   };
 
-  // Batch test all connections for this provider
-  const handleBatchTestAll = async () => {
-    if (batchTesting || connections.length === 0) return;
-    setBatchTesting(true);
+  // Shared runner for batch connection tests (all-for-provider or selected IDs)
+  const runBatchTest = async (payload: Record<string, unknown>) => {
     setBatchTestResults(null);
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), 120_000); // 2min max
@@ -2844,7 +2876,7 @@ export default function ProviderDetailPage() {
       const res = await fetch("/api/providers/test-batch", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ mode: "provider", providerId }),
+        body: JSON.stringify(payload),
         signal: controller.signal,
       });
       let data: any;
@@ -2875,7 +2907,28 @@ export default function ProviderDetailPage() {
       notify.error(msg);
     } finally {
       clearTimeout(timeoutId);
+    }
+  };
+
+  // Batch test all connections for this provider
+  const handleBatchTestAll = async () => {
+    if (batchTesting || connections.length === 0) return;
+    setBatchTesting(true);
+    try {
+      await runBatchTest({ mode: "provider", providerId });
+    } finally {
       setBatchTesting(false);
+    }
+  };
+
+  // Batch retest only the selected connections
+  const handleBatchRetest = async () => {
+    if (batchRetesting || selectedIds.size === 0) return;
+    setBatchRetesting(true);
+    try {
+      await runBatchTest({ mode: "selected", connectionIds: Array.from(selectedIds) });
+    } finally {
+      setBatchRetesting(false);
     }
   };
 
@@ -4501,6 +4554,51 @@ export default function ProviderDetailPage() {
               );
               const allSelected = selectedIds.size === connections.length && connections.length > 0;
               const someSelected = selectedIds.size > 0 && selectedIds.size < connections.length;
+              const bulkBusy = batchUpdating !== null || batchRetesting || batchDeleting;
+              const bulkActions = selectedIds.size > 0 && (
+                <div className="flex flex-wrap items-center justify-end gap-2">
+                  <Button
+                    variant="secondary"
+                    size="sm"
+                    icon="toggle_on"
+                    loading={batchUpdating === "activate"}
+                    disabled={bulkBusy && batchUpdating !== "activate"}
+                    onClick={() => handleBatchSetActive(true)}
+                  >
+                    {t("batchActivateSelected")}
+                  </Button>
+                  <Button
+                    variant="secondary"
+                    size="sm"
+                    icon="toggle_off"
+                    loading={batchUpdating === "deactivate"}
+                    disabled={bulkBusy && batchUpdating !== "deactivate"}
+                    onClick={() => handleBatchSetActive(false)}
+                  >
+                    {t("batchDeactivateSelected")}
+                  </Button>
+                  <Button
+                    variant="secondary"
+                    size="sm"
+                    icon="play_arrow"
+                    loading={batchRetesting}
+                    disabled={(bulkBusy && !batchRetesting) || !!retestingId}
+                    onClick={handleBatchRetest}
+                  >
+                    {t("batchRetestSelected")}
+                  </Button>
+                  <Button
+                    variant="danger"
+                    size="sm"
+                    icon="delete"
+                    loading={batchDeleting}
+                    disabled={bulkBusy && !batchDeleting}
+                    onClick={handleBatchDelete}
+                  >
+                    {t("batchDeleteSelected", { count: selectedIds.size })}
+                  </Button>
+                </div>
+              );
 
               if (!hasAnyTag) {
                 return (
@@ -4518,22 +4616,12 @@ export default function ProviderDetailPage() {
                         />
                         <span className="text-sm font-medium text-text-muted">
                           {selectedIds.size > 0
-                            ? `${selectedIds.size} selected`
-                            : `${connections.length} accounts`}
+                            ? t("selectedCount", { count: selectedIds.size })
+                            : t("accountsCount", { count: connections.length })}
                         </span>
                       </label>
 
-                      {selectedIds.size > 0 && (
-                        <Button
-                          variant="danger"
-                          size="sm"
-                          icon="delete"
-                          loading={batchDeleting}
-                          onClick={handleBatchDelete}
-                        >
-                          {t("batchDeleteSelected", { count: selectedIds.size })}
-                        </Button>
-                      )}
+                      {bulkActions}
                     </div>
                     <div className="flex flex-col divide-y divide-black/[0.03] dark:divide-white/[0.03] border border-t-0 border-border rounded-b-lg overflow-hidden">
                       {sorted.map((conn, index) => (
@@ -4677,12 +4765,12 @@ export default function ProviderDetailPage() {
                         />
                         <span className="text-sm font-medium text-text-muted">
                           {selectedIds.size > 0
-                            ? `${selectedIds.size} selected`
-                            : `${connections.length} accounts`}
+                            ? t("selectedCount", { count: selectedIds.size })
+                            : t("accountsCount", { count: connections.length })}
                         </span>
                       </label>
 
-                      <div className="flex items-center gap-2">
+                      <div className="flex flex-wrap items-center justify-end gap-2">
                         {selectedIds.size === 0 && connections.length > 0 && (
                           <Button
                             variant="secondary"
@@ -4691,20 +4779,10 @@ export default function ProviderDetailPage() {
                             loading={distributingProxies}
                             onClick={() => handleDistributeProxies()}
                           >
-                            Distribute Proxies
+                            {t("distributeProxies")}
                           </Button>
                         )}
-                        {selectedIds.size > 0 && (
-                          <Button
-                            variant="danger"
-                            size="sm"
-                            icon="delete"
-                            loading={batchDeleting}
-                            onClick={handleBatchDelete}
-                          >
-                            {t("batchDeleteSelected", { count: selectedIds.size })}
-                          </Button>
-                        )}
+                        {bulkActions}
                       </div>
                     </div>
                   ) : null}
@@ -5726,6 +5804,7 @@ function PassthroughModelsSection({
       alias: string | null;
       displayName: string;
       source: string;
+      isFree: boolean;
       isHidden: boolean;
     }> = [];
     const seenModelIds = new Set<string>();
@@ -5746,6 +5825,10 @@ function PassthroughModelsSection({
         alias: aliasByModelId.get(model.id) || null,
         displayName: model.name || model.id,
         source,
+        isFree:
+          Boolean((model as any).free) ||
+          model.id.endsWith(":free") ||
+          /\bgr[aá]tis\b|\bfree\b/i.test(model.name || ""),
         isHidden: isModelHidden(model.id),
       });
       seenModelIds.add(model.id);
@@ -5773,6 +5856,10 @@ function PassthroughModelsSection({
         alias: alias as string,
         displayName: alias as string,
         source: customModel ? customModel.source || "custom" : "alias",
+        isFree:
+          modelId.endsWith(":free") ||
+          Boolean((customModel as any)?.free) ||
+          /\bgr[aá]tis\b|\bfree\b/i.test(customModel?.name || alias || ""),
         isHidden: isModelHidden(modelId),
       });
       seenModelIds.add(modelId);
@@ -5876,27 +5963,33 @@ function PassthroughModelsSection({
             selectAllDisabled={hiddenFilteredCount === 0 || bulkTogglePending}
             deselectAllDisabled={visibleFilteredCount === 0 || bulkTogglePending}
           />
-          {filteredModels.map(({ modelId, fullModel, alias, isHidden, source }) => (
-            <PassthroughModelRow
-              key={fullModel as string}
-              modelId={modelId}
-              fullModel={fullModel}
-              source={source}
-              isHidden={isHidden}
-              copied={copied}
-              onCopy={onCopy}
-              onDeleteAlias={source === "alias" && alias ? () => onDeleteAlias(alias) : undefined}
-              t={t}
-              showDeveloperToggle
-              effectiveModelNormalize={effectiveModelNormalize}
-              effectiveModelPreserveDeveloper={effectiveModelPreserveDeveloper}
-              getUpstreamHeadersRecord={(p) => getUpstreamHeadersRecord(modelId, p)}
-              saveModelCompatFlags={saveModelCompatFlags}
-              compatDisabled={compatSavingModelId === modelId}
-              onToggleHidden={onToggleHidden}
-              togglingHidden={togglingModelId === modelId}
-            />
-          ))}
+          <div className="grid grid-cols-1 gap-3 xl:grid-cols-2">
+            {filteredModels.map(({ modelId, fullModel, alias, isHidden, source, isFree }) => (
+              <PassthroughModelRow
+                key={fullModel as string}
+                modelId={modelId}
+                fullModel={fullModel}
+                source={source}
+                isFree={isFree}
+                isHidden={isHidden}
+                copied={copied}
+                onCopy={onCopy}
+                onDeleteAlias={source === "alias" && alias ? () => onDeleteAlias(alias) : undefined}
+                t={t}
+                showDeveloperToggle
+                effectiveModelNormalize={effectiveModelNormalize}
+                effectiveModelPreserveDeveloper={effectiveModelPreserveDeveloper}
+                getUpstreamHeadersRecord={(p) => getUpstreamHeadersRecord(modelId, p)}
+                saveModelCompatFlags={saveModelCompatFlags}
+                compatDisabled={compatSavingModelId === modelId}
+                onToggleHidden={onToggleHidden}
+                togglingHidden={togglingModelId === modelId}
+                onTestModel={onTestModel}
+                testStatus={modelTestStatus?.[modelId] || null}
+                testingModel={testingModelId === modelId}
+              />
+            ))}
+          </div>
           {filteredModels.length === 0 && modelFilter && (
             <p className="py-2 text-sm text-text-muted">
               {providerText(t, "noModelsMatch", `No models match "${modelFilter}"`, {
@@ -5914,6 +6007,7 @@ function PassthroughModelRow({
   modelId,
   fullModel,
   source,
+  isFree,
   isHidden,
   copied,
   onCopy,
@@ -5933,37 +6027,43 @@ function PassthroughModelRow({
 }: PassthroughModelRowProps) {
   return (
     <div
-      className={`flex gap-0 rounded-lg border border-border p-3 transition-opacity hover:bg-sidebar/50 ${
+      className={`flex min-w-0 flex-col gap-2 rounded-lg border border-border px-3.5 py-3 transition-opacity hover:bg-sidebar/50 ${
         isHidden ? "opacity-50" : ""
       }`}
     >
-      <div className="flex min-w-0 flex-1 items-start gap-3">
+      <div className="flex min-w-0 items-center gap-2">
         <span
           className="material-symbols-outlined shrink-0 text-base text-text-muted"
           style={{ color: isHidden ? "var(--color-text-muted)" : undefined }}
         >
           smart_toy
         </span>
-        <div className="min-w-0 flex-1">
-          <p className="truncate text-sm font-medium">{modelId}</p>
-          <div className="mt-1 flex flex-wrap items-center gap-1">
-            <code className="rounded bg-sidebar px-1.5 py-0.5 font-mono text-xs text-text-muted">
-              {fullModel}
-            </code>
-            <ModelSourceBadge source={source} />
-            <button
-              onClick={() => onCopy(fullModel, `model-${modelId}`)}
-              className="rounded p-0.5 text-text-muted hover:bg-sidebar hover:text-primary"
-              title={t("copyModel")}
-            >
-              <span className="material-symbols-outlined text-sm">
-                {copied === `model-${modelId}` ? "check" : "content_copy"}
-              </span>
-            </button>
-          </div>
-        </div>
+        <code
+          className="min-w-0 truncate rounded bg-sidebar px-1.5 py-0.5 font-mono text-xs text-text-muted"
+          title={fullModel}
+        >
+          {fullModel}
+        </code>
       </div>
-      <div className="flex shrink-0 items-center gap-1 self-start">
+      <div className="flex min-w-0 items-center justify-between gap-2">
+        <div className="flex min-w-0 flex-wrap items-center gap-1.5">
+          <ModelSourceBadge source={source} />
+          {isFree && (
+            <Badge variant="success" className="shrink-0 px-1.5 py-0 text-[10px]">
+              {providerText(t, "freeBadge", "Free")}
+            </Badge>
+          )}
+        </div>
+        <div className="flex shrink-0 items-center gap-1">
+        <button
+          onClick={() => onCopy(fullModel, `model-${modelId}`)}
+          className="rounded p-0.5 text-text-muted hover:bg-sidebar hover:text-primary"
+          title={t("copyModel")}
+        >
+          <span className="material-symbols-outlined text-sm">
+            {copied === `model-${modelId}` ? "check" : "content_copy"}
+          </span>
+        </button>
         {onTestModel && (
           <button
             onClick={() => onTestModel(modelId, fullModel)}
@@ -6017,6 +6117,7 @@ function PassthroughModelRow({
             saveModelCompatFlags(modelId, { compatByProtocol: { [protocol]: payload } })
           }
           showDeveloperToggle={showDeveloperToggle}
+          compact
           disabled={compatDisabled}
         />
         {onDeleteAlias && (
@@ -6028,6 +6129,7 @@ function PassthroughModelRow({
             <span className="material-symbols-outlined text-sm">delete</span>
           </button>
         )}
+        </div>
       </div>
     </div>
   );
@@ -6609,6 +6711,7 @@ function CompatibleModelsSection({
       alias: string | null;
       displayName: string;
       source: string;
+      isFree: boolean;
       isHidden: boolean;
     }> = [];
     const seenModelIds = new Set<string>();
@@ -6626,6 +6729,10 @@ function CompatibleModelsSection({
         alias: aliasByModelId.get(model.id) || null,
         displayName: model.name || model.id,
         source,
+        isFree:
+          Boolean((model as any).free) ||
+          model.id.endsWith(":free") ||
+          /\bgr[aá]tis\b|\bfree\b/i.test(model.name || ""),
         isHidden: isModelHidden(model.id),
       });
       seenModelIds.add(model.id);
@@ -6656,6 +6763,10 @@ function CompatibleModelsSection({
         alias: alias as string,
         displayName: alias as string,
         source: customModel ? customModel.source || "custom" : "alias",
+        isFree:
+          modelId.endsWith(":free") ||
+          Boolean((customModel as any)?.free) ||
+          /\bgr[aá]tis\b|\bfree\b/i.test(customModel?.name || alias || ""),
         isHidden: isModelHidden(modelId),
       });
       seenModelIds.add(modelId);
@@ -6846,33 +6957,42 @@ function CompatibleModelsSection({
             selectAllDisabled={hiddenFilteredCount === 0 || bulkTogglePending}
             deselectAllDisabled={visibleFilteredCount === 0 || bulkTogglePending}
           />
-          {filteredModels.map(({ modelId, alias, isHidden, source }) => (
-            <PassthroughModelRow
-              key={`${providerStorageAlias}:${modelId}`}
-              modelId={modelId}
-              fullModel={`${providerDisplayAlias}/${modelId}`}
-              source={source}
-              isHidden={isHidden}
-              copied={copied}
-              onCopy={onCopy}
-              onDeleteAlias={
-                source === "custom" || source === "manual"
-                  ? () => handleDeleteModel(modelId, alias)
-                  : source === "alias" && alias
-                    ? () => onDeleteAlias(alias)
-                    : undefined
-              }
-              t={t}
-              showDeveloperToggle={!isAnthropic}
-              effectiveModelNormalize={effectiveModelNormalize}
-              effectiveModelPreserveDeveloper={effectiveModelPreserveDeveloper}
-              getUpstreamHeadersRecord={(p) => getUpstreamHeadersRecord(modelId, p)}
-              saveModelCompatFlags={saveModelCompatFlags}
-              compatDisabled={compatSavingModelId === modelId}
-              onToggleHidden={onToggleHidden}
-              togglingHidden={togglingModelId === modelId}
-            />
-          ))}
+          <div className="grid grid-cols-1 gap-3 xl:grid-cols-2">
+            {filteredModels.map(({ modelId, alias, isHidden, source, isFree }) => {
+              const fullModel = `${providerDisplayAlias}/${modelId}`;
+              return (
+                <PassthroughModelRow
+                  key={`${providerStorageAlias}:${modelId}`}
+                  modelId={modelId}
+                  fullModel={fullModel}
+                  source={source}
+                  isFree={isFree}
+                  isHidden={isHidden}
+                  copied={copied}
+                  onCopy={onCopy}
+                  onDeleteAlias={
+                    source === "custom" || source === "manual"
+                      ? () => handleDeleteModel(modelId, alias)
+                      : source === "alias" && alias
+                        ? () => onDeleteAlias(alias)
+                        : undefined
+                  }
+                  t={t}
+                  showDeveloperToggle={!isAnthropic}
+                  effectiveModelNormalize={effectiveModelNormalize}
+                  effectiveModelPreserveDeveloper={effectiveModelPreserveDeveloper}
+                  getUpstreamHeadersRecord={(p) => getUpstreamHeadersRecord(modelId, p)}
+                  saveModelCompatFlags={saveModelCompatFlags}
+                  compatDisabled={compatSavingModelId === modelId}
+                  onToggleHidden={onToggleHidden}
+                  togglingHidden={togglingModelId === modelId}
+                  onTestModel={onTestModel}
+                  testStatus={modelTestStatus?.[modelId] || null}
+                  testingModel={testingModelId === modelId}
+                />
+              );
+            })}
+          </div>
           {filteredModels.length === 0 && modelFilter && (
             <p className="py-2 text-sm text-text-muted">
               {providerText(t, "noModelsMatch", `No models match "${modelFilter}"`, {
@@ -7473,40 +7593,6 @@ function ConnectionRow({
                 >
                   <span className="material-symbols-outlined text-[13px]">date_range</span>
                   {t("weeklyShort")} {codexWeeklyEnabled ? t("toggleOnShort") : t("toggleOffShort")}
-                </button>
-              </>
-            )}
-            {onToggleProxyEnabled && (
-              <>
-                <span className="text-text-muted/30 select-none">|</span>
-                <button
-                  onClick={() => onToggleProxyEnabled(!proxyEnabled)}
-                  className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-xs font-medium transition-all cursor-pointer ${
-                    proxyEnabled
-                      ? "bg-emerald-500/15 text-emerald-500 hover:bg-emerald-500/25"
-                      : "bg-black/[0.03] dark:bg-white/[0.03] text-text-muted/50 hover:text-text-muted hover:bg-black/[0.06] dark:hover:bg-white/[0.06]"
-                  }`}
-                  title={proxyEnabled ? t("proxyEnabledTitle") : t("proxyDisabledTitle")}
-                >
-                  <span className="material-symbols-outlined text-[13px]">vpn_lock</span>
-                  {proxyEnabled ? t("proxyOn") : t("proxyOff")}
-                </button>
-              </>
-            )}
-            {onTogglePerKeyProxyEnabled && (
-              <>
-                <span className="text-text-muted/30 select-none">|</span>
-                <button
-                  onClick={() => onTogglePerKeyProxyEnabled(!perKeyProxyEnabled)}
-                  className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-xs font-medium transition-all cursor-pointer ${
-                    perKeyProxyEnabled
-                      ? "bg-violet-500/15 text-violet-500 hover:bg-violet-500/25"
-                      : "bg-black/[0.03] dark:bg-white/[0.03] text-text-muted/50 hover:text-text-muted hover:bg-black/[0.06] dark:hover:bg-white/[0.06]"
-                  }`}
-                  title={perKeyProxyEnabled ? t("perKeyProxyEnabledTitle") : t("perKeyProxyDisabledTitle")}
-                >
-                  <span className="material-symbols-outlined text-[13px]">key</span>
-                  {perKeyProxyEnabled ? t("perKeyProxyOn") : t("perKeyProxyOff")}
                 </button>
               </>
             )}

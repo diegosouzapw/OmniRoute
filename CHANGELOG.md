@@ -4,6 +4,55 @@
 
 ---
 
+## [3.8.12] — Unreleased
+
+_Development cycle in progress — entries are added as work merges into `release/v3.8.12` and finalized by the release flow._
+
+### ✨ New Features
+
+- **chipotle:** add Chipotle Pepper AI — a free provider implemented via the reverse-engineered Amelia protocol, with its executor error body routed through `sanitizeErrorMessage()` (Hard Rule #12) ([#3250](https://github.com/diegosouzapw/OmniRoute/pull/3250) — thanks @oyi77)
+- **web-cookie:** add tool-call translation to 8 web-cookie executors via shared `webTools` helpers, so cookie-backed providers can participate in tool/function calling through a single serialize/parse path ([#3259](https://github.com/diegosouzapw/OmniRoute/pull/3259) — thanks @oyi77)
+- **free-tiers:** per-model free-token budget catalog + a Monthly Budget dashboard card surfacing each provider's monthly free allowance (joins the honest free-token catalog/API/headline work from #3257) ([#3263](https://github.com/diegosouzapw/OmniRoute/pull/3263), [#3257](https://github.com/diegosouzapw/OmniRoute/pull/3257) — thanks @diegosouzapw)
+- **dashboard:** bulk activate / deactivate / retest for selected provider connections — multi-select with batch lifecycle actions on the providers page ([#3271](https://github.com/diegosouzapw/OmniRoute/pull/3271) — thanks @leninejunior)
+
+### 🔧 Bug Fixes
+
+- **api/responses:** combo names without a slash (e.g. `paid-premium`, `n8n-text`) are no longer force-rewritten to `codex/<combo>` on `/v1/responses` — `resolveResponsesApiModel` now returns the request unchanged when the model resolves to a combo (regression from the v3.8.9 Codex WS→HTTP fallback) ([#3268](https://github.com/diegosouzapw/OmniRoute/pull/3268), fixes #3227 / #3233 — thanks @wilsonicdev; supersedes the earlier closed #3242)
+- **sse:** strip **every** `<omniModel>` tag before forwarding to the provider, not just the first — a global-regex variant prevents stray routing tags from leaking into the upstream prompt ([#3248](https://github.com/diegosouzapw/OmniRoute/pull/3248), fixes #454 — thanks @MikeTuev)
+- **grok-web:** add TLS fingerprint impersonation to bypass Cloudflare anti-bot on the Grok web endpoint, with the executor's error bodies routed through `sanitizeErrorMessage()` (Hard Rule #12) ([#3249](https://github.com/diegosouzapw/OmniRoute/pull/3249), fixes #3180 — thanks @wilsonicdev)
+- **providers:** improve provider refresh/validation and the model-catalog UI — including the OpenRouter catalog and the proxy UI, plus the NVIDIA NIM `/models`-suffix probe path (real-VPS validated) ([#3261](https://github.com/diegosouzapw/OmniRoute/pull/3261) — thanks @strangersp)
+- **embeddings:** block cross-dimension failover inside embedding combos so a fallback target with a different vector dimension can no longer corrupt results ([#3256](https://github.com/diegosouzapw/OmniRoute/pull/3256) — thanks @diegosouzapw)
+- **sse/web-tools:** web-cookie providers (e.g. `ds-web`/`deepseek-v4-pro`) that wrap tool calls as `<tool_call name="...">{json}</tool_call>` are now parsed correctly — the real tool name is read from the JSON body instead of the tag attribute, and the call is no longer silently dropped when `arguments` is absent ([#3275](https://github.com/diegosouzapw/OmniRoute/pull/3275), fixes #3260 — thanks @diegosouzapw)
+- **sse/groq:** non-reasoning Groq models (`llama-3.3-70b-versatile`, `llama-4-scout`) are now flagged `supportsReasoning: false`, so `reasoning_effort` / `output_config.effort` / `thinking` are stripped before dispatch instead of being forwarded and rejected with HTTP 400 — fixes the Claude Code → Groq regression of #764 ([#3277](https://github.com/diegosouzapw/OmniRoute/pull/3277), fixes #3258 — thanks @diegosouzapw)
+- **api/images:** `POST /v1/images/edits` to a custom OpenAI-compatible provider no longer forwards an empty `model`. The multipart body is now built as a `Buffer` with an explicit boundary instead of a global `FormData` — the patched undici `fetch` serialized a native `FormData` as the literal string `[object FormData]` (text/plain), dropping every field including `model` ([#3278](https://github.com/diegosouzapw/OmniRoute/pull/3278), fixes #3273 — thanks @diegosouzapw)
+- **db:** detect SQLite driver-unavailable errors to avoid a destructive DB rename + an optional FTS5 migration guard, so a transient driver-load failure no longer triggers the backup-and-recreate path on a healthy database (split from #3073) ([#3274](https://github.com/diegosouzapw/OmniRoute/pull/3274) — thanks @zhiru)
+
+### 📝 Maintenance
+
+- **ci:** `deploy-vps` recreates the PM2 process via the `omniroute` bin (instead of a bare `pm2 restart` pinned to the removed `app/server-ws.mjs` path) and gates the deploy on `/api/monitoring/health` reporting `"status":"healthy"`, failing the job (with recent PM2 logs) when the box never becomes healthy — supersedes #3262 ([#3270](https://github.com/diegosouzapw/OmniRoute/pull/3270) — thanks @diegosouzapw)
+
+### 🙌 Contributors
+
+Thanks to everyone whose work landed in v3.8.12:
+
+| Contributor | PRs / Issues |
+| --- | --- |
+| [@oyi77](https://github.com/oyi77) | #3250, #3259 |
+| [@wilsonicdev](https://github.com/wilsonicdev) | #3249, #3268 |
+| [@strangersp](https://github.com/strangersp) | #3261 |
+| [@MikeTuev](https://github.com/MikeTuev) | #3248 |
+| [@leninejunior](https://github.com/leninejunior) | #3271 |
+| [@zhiru](https://github.com/zhiru) | #3274 |
+| [@diegosouzapw](https://github.com/diegosouzapw) | maintainer — #3256, #3263, #3270, #3275, #3277, #3278 |
+- **api/responses:** combo names without a slash (e.g. `paid-premium`, `n8n-text`) are no longer force-rewritten to `codex/<combo>` on `/v1/responses` — `resolveResponsesApiModel` now returns the request unchanged when the model resolves to a combo (regression from the v3.8.9 Codex WS→HTTP fallback) ([#3242](https://github.com/diegosouzapw/OmniRoute/pull/3242) — thanks @wilsonicdev; the same fix shipped via #3244, closing #3227 / #3233)
+- **sse/web-tools:** web-cookie providers (e.g. `ds-web`) that wrap tool calls as `<tool_call name="...">{json}</tool_call>` are now parsed correctly — the real tool name is read from the JSON body instead of the tag attribute, and the call is no longer silently dropped when `arguments` is absent ([#3260](https://github.com/diegosouzapw/OmniRoute/issues/3260))
+- **sse/groq:** non-reasoning Groq models (`llama-3.3-70b-versatile`, `llama-4-scout`) are now flagged `supportsReasoning: false`, so `reasoning_effort` / `output_config.effort` / `thinking` are stripped before dispatch instead of being forwarded and rejected with HTTP 400 — fixes the Claude Code → Groq regression of #764 ([#3258](https://github.com/diegosouzapw/OmniRoute/issues/3258))
+- **api/images:** `POST /v1/images/edits` to a custom OpenAI-compatible provider no longer forwards an empty `model`. The multipart body is now built as a `Buffer` with an explicit boundary instead of a global `FormData` — the patched undici `fetch` serialized a native `FormData` as the literal string `[object FormData]` (text/plain), dropping every field including `model` ([#3273](https://github.com/diegosouzapw/OmniRoute/issues/3273))
+- **api/webhooks:** webhook URLs may now target a private/internal address (e.g. `192.168.x`, a docker-internal host) when `OMNIROUTE_ALLOW_PRIVATE_PROVIDER_URLS=true` — the webhook guard reuses the same explicit opt-in as private provider URLs (default OFF; protocol and embedded-credential checks stay unconditional). Cloud-metadata / link-local endpoints (`169.254.169.254`, `metadata.google.internal`, `100.100.100.200`, `169.254.0.0/16`) are blocked **unconditionally** even with the opt-in on, and the webhook test endpoint redacts the upstream response body for private targets (no SSRF→IAM-credential pivot, no content exfiltration) ([#3269](https://github.com/diegosouzapw/OmniRoute/issues/3269))
+- **sse/qoder:** a valid Qoder Personal Access Token is no longer wrongly reported as "expired" when the Cosy validation endpoint returns a generic `Internal Server Error` (HTTP 500). A Cosy 500 only marks the PAT invalid when its body carries an explicit auth signal; a generic server fault now falls back to the #1391 valid-bypass rule ([#3247](https://github.com/diegosouzapw/OmniRoute/issues/3247))
+
+---
+
 ## [3.8.11] — 2026-06-05
 
 ### ✨ New Features
@@ -18,7 +67,7 @@
 - **api:** combo names sent to `/v1/responses` are no longer force-rewritten to `codex/<name>` — the Codex CLI WS→HTTP fallback rewrite now skips bare names that are combos, so combos (e.g. `n8n-text`, `paid-premium`) route correctly again instead of failing with "No credentials for provider: codex" (regression since v3.8.9) (#3227, #3233 — thanks @Marcus1Pierce, @Dima-Kal)
 - **antigravity:** the `agy` `gemini-3.1-pro-high`/`-low` models now alias to the plain `gemini-3.1-pro` upstream id (the `-high`/`-low` suffix is rejected for gemini-3.x), and non-streaming upstream 4xx/5xx errors surface as real error bodies instead of being masked as an empty `chat.completion` envelope (#3229)
 - **auth:** honor the effective `REQUIRE_API_KEY` feature flag (DB override > env > default) in client API auth instead of reading `process.env` directly, and align the route-local optional-auth checks (`/v1/embeddings`, `/v1/web/fetch`, `/v1/combos`, playground) with it (#3188 — thanks @xz-dev)
-- **oauth:** use `api.anthropic.com` for the Claude OAuth token exchange so self-hosted VPS deployments are no longer blocked by Cloudflare Bot Management on `console.anthropic.com` (#3203, fixes #3192 — thanks @wilsonicdev)
+- **oauth:** use `api.anthropic.com` for the Claude OAuth token exchange so self-hosted VPS deployments are no longer blocked by Cloudflare Bot Management on `console.anthropic.com` (#3203, fixes #3192 — thanks @wilsonicdev; the same root cause was independently diagnosed by @ibanunmangun in [#3193](https://github.com/diegosouzapw/OmniRoute/pull/3193), credited here as co-author)
 - **oauth:** validate OAuth client IDs against `resolvePublicCred` so adding an Antigravity / Gemini CLI / AGY connection with the built-in public client no longer fails with a Google `redirect_uri_mismatch` (#3206 — thanks @juandisay)
 - **auto-combo:** include zero-config OpenCode Free in `auto/*` virtual combos even with no `provider_connections` row, reusing the synthetic `noauth` connection id and routing through the `oc/` prefix (#3189, fixes #3155 — thanks @wilsonicdev)
 - **sse:** refine Kimi thinking-block handling and add regression tests for assistant tool-call replay (#3191 — thanks @bypanghu)
@@ -66,6 +115,7 @@ Thanks to everyone whose work landed in v3.8.11:
 | [@YoursSweetDom](https://github.com/YoursSweetDom) | #3180 |
 | [@Guru01100101](https://github.com/Guru01100101) | #3091 |
 | [@androw](https://github.com/androw) | #3167 (co-author) |
+| [@ibanunmangun](https://github.com/ibanunmangun) | #3193 (co-author) |
 | [@diegosouzapw](https://github.com/diegosouzapw) | maintainer — #3187, #3200, issue-fix batches |
 
 ---

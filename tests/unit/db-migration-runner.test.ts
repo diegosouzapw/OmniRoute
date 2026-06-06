@@ -61,6 +61,47 @@ function createDb() {
   return new Database(":memory:");
 }
 
+function createSqlJsLikeDb() {
+  const db = createDb();
+
+  return {
+    driver: "sql.js",
+    get open() {
+      return true;
+    },
+    get name() {
+      return ":memory:";
+    },
+    prepare(sql) {
+      return db.prepare(sql);
+    },
+    exec(sql) {
+      if (/fts5/i.test(sql)) {
+        throw new Error("no such module: fts5");
+      }
+      db.exec(sql);
+    },
+    pragma(pragmaStr, options) {
+      return db.pragma(pragmaStr, options);
+    },
+    transaction(fn) {
+      const tx = db.transaction((...args) => fn(...args));
+      return (...args) => tx(...args);
+    },
+    immediate(fn) {
+      fn();
+    },
+    async backup() {},
+    checkpoint() {},
+    close() {
+      db.close();
+    },
+    get raw() {
+      return db;
+    },
+  };
+}
+
 function createInitialSchemaTables(db) {
   db.exec(`
     CREATE TABLE provider_connections (id TEXT PRIMARY KEY);
@@ -572,6 +613,65 @@ test(
         content: "memory content",
         key: "topic",
       });
+    } finally {
+      db.close();
+    }
+  }
+);
+
+test(
+  "runMigrations defers optional FTS migrations when the current driver lacks fts5 support",
+  serial,
+  async () => {
+    const runner = await importFresh("src/lib/db/migrationRunner.ts");
+    const db = createSqlJsLikeDb();
+
+    try {
+      db.exec(`
+        CREATE TABLE _omniroute_migrations (
+          version TEXT PRIMARY KEY,
+          name TEXT NOT NULL,
+          applied_at TEXT NOT NULL DEFAULT (datetime('now'))
+        );
+
+        CREATE TABLE memories (
+          id TEXT PRIMARY KEY,
+          api_key_id TEXT NOT NULL,
+          session_id TEXT,
+          type TEXT NOT NULL,
+          key TEXT,
+          content TEXT NOT NULL,
+          metadata TEXT,
+          created_at TEXT NOT NULL DEFAULT (datetime('now')),
+          updated_at TEXT NOT NULL DEFAULT (datetime('now')),
+          expires_at TEXT
+        );
+      `);
+      db.prepare("INSERT INTO _omniroute_migrations (version, name) VALUES (?, ?)").run(
+        "021",
+        "combo_call_log_targets"
+      );
+
+      const count = withMockedMigrationFs(
+        {
+          "022_add_memory_fts5.sql": REAL_022_ADD_MEMORY_FTS5_SQL,
+          "023_fix_memory_fts_uuid.sql": REAL_023_FIX_MEMORY_FTS_UUID_SQL,
+          "024_after_fts.sql": "CREATE TABLE after_fts (id INTEGER PRIMARY KEY);",
+        },
+        () => runner.runMigrations(db)
+      );
+
+      assert.equal(count, 1);
+      assert.deepEqual(
+        db.prepare("SELECT version FROM _omniroute_migrations ORDER BY version").all(),
+        [{ version: "021" }, { version: "024" }]
+      );
+      assert.equal(
+        db
+          .prepare("SELECT COUNT(*) AS count FROM sqlite_master WHERE type = 'table' AND name = ?")
+          .get("memory_fts").count,
+        0
+      );
     } finally {
       db.close();
     }
