@@ -89,6 +89,14 @@ test("extractApiKey parses bearer headers and isValidApiKey validates persisted 
     ),
     null
   );
+  assert.equal(
+    auth.extractApiKey(new Request(`http://localhost/v1/chat/completions?token=${created.key}`)),
+    created.key
+  );
+  assert.equal(
+    auth.extractApiKey(new Request(`http://localhost/api/v1/vscode/${created.key}/chat/completions`)),
+    created.key
+  );
   assert.equal(await auth.isValidApiKey(created.key), true);
   assert.equal(await auth.isValidApiKey("sk-missing"), false);
   assert.equal(await auth.isValidApiKey(""), false);

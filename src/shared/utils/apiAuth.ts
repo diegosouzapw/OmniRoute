@@ -11,6 +11,7 @@ import { jwtVerify } from "jose";
 import { cookies } from "next/headers";
 import { getSettings } from "@/lib/localDb";
 import { isPublicApiRoute } from "@/shared/constants/publicApiRoutes";
+import { extractApiKey } from "@/sse/services/auth";
 
 type RequestLike = {
   cookies?: {
@@ -138,15 +139,18 @@ function getCookieValueFromHeader(headers: Headers | undefined, name: string): s
   return null;
 }
 
-function getBearerToken(request: RequestLike | Request | null | undefined): string | null {
-  const headers =
-    request && typeof request === "object" && "headers" in request ? request.headers : undefined;
-  const authHeader = headers?.get("authorization") || headers?.get("Authorization");
-  if (typeof authHeader !== "string") return null;
+function getRequestApiKey(request: RequestLike | Request | null | undefined): string | null {
+  if (!request || typeof request !== "object") return null;
 
-  const trimmedHeader = authHeader.trim();
-  if (!trimmedHeader.toLowerCase().startsWith("bearer ")) return null;
-  return trimmedHeader.slice(7).trim() || null;
+  const headers = "headers" in request ? request.headers : undefined;
+  const rawUrl = "url" in request && typeof request.url === "string" ? request.url : null;
+  const pathname = getRequestPathname(request);
+  const syntheticUrl = rawUrl || (pathname ? `http://localhost${pathname}` : null);
+
+  return extractApiKey({
+    headers,
+    url: syntheticUrl,
+  });
 }
 
 async function validateBearerApiKey(apiKey: string | null): Promise<boolean> {
@@ -248,15 +252,15 @@ export async function verifyAuth(request: any): Promise<string | null> {
     return null;
   }
 
-  const bearerToken = getBearerToken(request);
+  const apiKey = getRequestApiKey(request);
   if (isManagementApiRequest(request)) {
-    if (await validateBearerApiKeyForManagement(bearerToken)) {
+    if (await validateBearerApiKeyForManagement(apiKey)) {
       return null;
     }
-    return bearerToken ? "Invalid management token" : "Authentication required";
+    return apiKey ? "Invalid management token" : "Authentication required";
   }
 
-  if (await validateBearerApiKey(bearerToken)) {
+  if (await validateBearerApiKey(apiKey)) {
     return null;
   }
 
@@ -282,12 +286,12 @@ export async function isAuthenticated(request: Request): Promise<boolean> {
     return true;
   }
 
-  const bearerToken = getBearerToken(request);
+  const apiKey = getRequestApiKey(request);
   if (isManagementApiRequest(request)) {
-    return validateBearerApiKeyForManagement(bearerToken);
+    return validateBearerApiKeyForManagement(apiKey);
   }
 
-  return validateBearerApiKey(bearerToken);
+  return validateBearerApiKey(apiKey);
 }
 
 /**
