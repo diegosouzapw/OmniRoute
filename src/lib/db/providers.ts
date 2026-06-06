@@ -301,6 +301,8 @@ export async function createProviderConnection(data: JsonRecord) {
     "rateLimitProtection",
     "group",
     "maxConcurrent",
+    "proxyEnabled",
+    "perKeyProxyEnabled",
     "quotaWindowThresholds",
   ];
   for (const field of optionalFields) {
@@ -348,6 +350,7 @@ function _insertConnectionRow(db: DbLike, conn: JsonRecord) {
       last_tested, api_key, id_token, provider_specific_data,
       expires_in, display_name, global_priority, default_model,
       token_type, consecutive_use_count, rate_limit_protection, last_used_at, "group", max_concurrent,
+      proxy_enabled, per_key_proxy_enabled,
       quota_window_thresholds_json,
       created_at, updated_at
     ) VALUES (
@@ -359,6 +362,7 @@ function _insertConnectionRow(db: DbLike, conn: JsonRecord) {
       @lastTested, @apiKey, @idToken, @providerSpecificData,
       @expiresIn, @displayName, @globalPriority, @defaultModel,
       @tokenType, @consecutiveUseCount, @rateLimitProtection, @lastUsedAt, @group, @maxConcurrent,
+      @proxyEnabled, @perKeyProxyEnabled,
       @quotaWindowThresholdsJson,
       @createdAt, @updatedAt
     )
@@ -404,6 +408,8 @@ function _insertConnectionRow(db: DbLike, conn: JsonRecord) {
     lastUsedAt: conn.lastUsedAt || null,
     group: conn.group || null,
     maxConcurrent: conn.maxConcurrent ?? null,
+    proxyEnabled: conn.proxyEnabled ?? 1,
+    perKeyProxyEnabled: conn.perKeyProxyEnabled ?? 0,
     quotaWindowThresholdsJson: serializeQuotaWindowThresholds(conn.quotaWindowThresholds),
     createdAt: conn.createdAt,
     updatedAt: conn.updatedAt,
@@ -432,6 +438,8 @@ function _updateConnectionRow(db: DbLike, id: string, data: JsonRecord) {
       "group" = @group,
       max_concurrent = @maxConcurrent,
       quota_window_thresholds_json = @quotaWindowThresholdsJson,
+      proxy_enabled = @proxyEnabled,
+      per_key_proxy_enabled = @perKeyProxyEnabled,
       updated_at = @updatedAt
     WHERE id = @id
   `
@@ -477,6 +485,18 @@ function _updateConnectionRow(db: DbLike, id: string, data: JsonRecord) {
     group: data.group || null,
     maxConcurrent: data.maxConcurrent ?? null,
     quotaWindowThresholdsJson: serializeQuotaWindowThresholds(data.quotaWindowThresholds),
+    proxyEnabled:
+      typeof data.proxyEnabled === "boolean"
+        ? data.proxyEnabled
+          ? 1
+          : 0
+        : (data.proxyEnabled ?? 1),
+    perKeyProxyEnabled:
+      typeof data.perKeyProxyEnabled === "boolean"
+        ? data.perKeyProxyEnabled
+          ? 1
+          : 0
+        : (data.perKeyProxyEnabled ?? 0),
     updatedAt: now,
   });
 }

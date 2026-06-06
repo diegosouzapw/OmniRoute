@@ -23,6 +23,7 @@ const {
   resolveFeatureFlag,
   isFeatureFlagEnabled,
   resolveAllFeatureFlags,
+  isRequireApiKeyEnabled,
   isCcCompatibleProviderEnabled,
 } = await import("../../src/shared/utils/featureFlags.ts");
 
@@ -249,6 +250,29 @@ describe("resolveFeatureFlag", () => {
   });
 
   describe("backward compatibility", () => {
+    it("isRequireApiKeyEnabled uses the resolved REQUIRE_API_KEY flag", () => {
+      setFeatureFlagOverride("REQUIRE_API_KEY", "true");
+      assert.strictEqual(isRequireApiKeyEnabled(), true);
+    });
+
+    it("isRequireApiKeyEnabled fails closed when the flag store cannot be read", () => {
+      const originalError = console.error;
+      console.error = () => {};
+      try {
+        core.resetDbInstance();
+        fs.rmSync(tmpDir, { recursive: true, force: true });
+        fs.mkdirSync(tmpDir, { recursive: true });
+        const blockerPath = path.join(tmpDir, "storage.sqlite");
+        fs.mkdirSync(blockerPath, { recursive: true });
+        assert.strictEqual(isRequireApiKeyEnabled(), true);
+      } finally {
+        console.error = originalError;
+        core.resetDbInstance();
+        fs.rmSync(tmpDir, { recursive: true, force: true });
+        fs.mkdirSync(tmpDir, { recursive: true });
+      }
+    });
+
     it("isCcCompatibleProviderEnabled still works", () => {
       const result = isCcCompatibleProviderEnabled();
       assert.strictEqual(typeof result, "boolean");

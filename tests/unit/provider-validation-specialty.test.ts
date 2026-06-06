@@ -10,11 +10,15 @@ const {
 const { __setTlsFetchOverrideForTesting: __setPplxTlsFetchOverride } =
   await import("../../open-sse/services/perplexityTlsClient.ts");
 
+const { __setTlsFetchOverrideForTesting: __setGrokTlsFetchOverride } =
+  await import("../../open-sse/services/grokTlsClient.ts");
+
 const originalFetch = globalThis.fetch;
 
 test.afterEach(() => {
   globalThis.fetch = originalFetch;
   __setPplxTlsFetchOverride(null);
+  __setGrokTlsFetchOverride(null);
 });
 
 function toPlainHeaders(headers: any) {
@@ -255,6 +259,13 @@ test("gitlab specialty validator treats 401 as invalid PAT", async () => {
 test("web-cookie provider validators accept valid Grok, Perplexity, Blackbox and Muse Spark session cookies", async () => {
   const calls = [];
 
+  // Grok now uses tlsFetchGrok (TLS-impersonating client) to bypass Cloudflare Enterprise.
+  let grokTlsCall: { url: string; options: Record<string, unknown> } | null = null;
+  __setGrokTlsFetchOverride(async (url, options) => {
+    grokTlsCall = { url, options };
+    return { status: 200, headers: new Headers(), text: null, body: null };
+  });
+
   // Perplexity now uses tlsFetchPerplexity (TLS-impersonating client) instead of globalThis.fetch
   // to bypass Cloudflare Enterprise. Use the test-only override hook to intercept calls.
   let pplxTlsCall: { url: string; options: Record<string, unknown> } | null = null;
@@ -267,9 +278,6 @@ test("web-cookie provider validators accept valid Grok, Perplexity, Blackbox and
     const target = String(url);
     calls.push({ url: target, init });
 
-    if (target.includes("grok.com/rest/app-chat/conversations/new")) {
-      return new Response(JSON.stringify({ ok: true }), { status: 200 });
-    }
     if (target.includes("app.blackbox.ai/api/auth/session")) {
       return new Response(
         JSON.stringify({
@@ -317,9 +325,6 @@ test("web-cookie provider validators accept valid Grok, Perplexity, Blackbox and
   assert.equal(blackbox.valid, true);
   assert.equal(museSpark.valid, true);
 
-  const grokCall = calls.find((call) =>
-    call.url.includes("grok.com/rest/app-chat/conversations/new")
-  );
   const blackboxSessionCall = calls.find((call) =>
     call.url.includes("app.blackbox.ai/api/auth/session")
   );
@@ -328,8 +333,14 @@ test("web-cookie provider validators accept valid Grok, Perplexity, Blackbox and
   );
   const museSparkCall = calls.find((call) => call.url.includes("meta.ai/api/graphql"));
 
-  assert.equal(grokCall?.init.headers.Cookie, "sso=grok-cookie");
-  const grokBody = JSON.parse(String(grokCall?.init.body || "{}"));
+  // Grok goes through tlsFetchGrok (TLS override), not globalThis.fetch.
+  assert.ok(grokTlsCall, "grok TLS override was called");
+  assert.ok(grokTlsCall!.url.includes("grok.com/rest/app-chat/conversations/new"));
+  assert.equal(
+    (grokTlsCall!.options.headers as Record<string, string>)["Cookie"],
+    "sso=grok-cookie"
+  );
+  const grokBody = JSON.parse(String(grokTlsCall!.options.body || "{}"));
   assert.equal(grokBody.modeId, "fast");
   assert.equal("modelName" in grokBody, false);
   assert.equal("modelMode" in grokBody, false);
@@ -422,14 +433,10 @@ test("web-cookie provider validators surface auth and subscription failures", as
 
 test("grok-web validator: full DevTools cookie blob is parsed for the sso value", async () => {
   let capturedCookie = "";
-  globalThis.fetch = async (url, init = {}) => {
-    const target = String(url);
-    if (target.includes("grok.com/rest/app-chat/conversations/new")) {
-      capturedCookie = ((init.headers as Record<string, string>) || {}).Cookie || "";
-      return new Response(JSON.stringify({ result: { conversation: {} } }), { status: 200 });
-    }
-    throw new Error(`unexpected fetch: ${target}`);
-  };
+  __setGrokTlsFetchOverride(async (_url, options) => {
+    capturedCookie = ((options.headers as Record<string, string>) || {}).Cookie || "";
+    return { status: 200, headers: new Headers(), text: null, body: null };
+  });
 
   const blob = "i18nextLng=en; stblid=foo; __cf_bm=bar; sso=eyJTARGET.abc.def; cf_clearance=baz;";
   const result = await validateProviderApiKey({ provider: "grok-web", apiKey: blob });
@@ -439,9 +446,9 @@ test("grok-web validator: full DevTools cookie blob is parsed for the sso value"
 });
 
 test("grok-web validator: empty/missing sso in input returns 'Missing sso cookie'", async () => {
-  globalThis.fetch = async () => {
+  __setGrokTlsFetchOverride(async () => {
     throw new Error("validator should short-circuit before fetching");
-  };
+  });
   const result = await validateProviderApiKey({
     provider: "grok-web",
     apiKey: "foo=1; bar=2;",
@@ -451,16 +458,14 @@ test("grok-web validator: empty/missing sso in input returns 'Missing sso cookie
 });
 
 test("grok-web validator: non-auth 403 is reported as failure with upstream body, not silently passed", async () => {
-  globalThis.fetch = async (url) => {
-    const target = String(url);
-    if (target.includes("grok.com/rest/app-chat/conversations/new")) {
-      return new Response(
-        JSON.stringify({ error: { code: 7, message: "Model is not found", details: [] } }),
-        { status: 403 }
-      );
-    }
-    throw new Error(`unexpected fetch: ${target}`);
-  };
+  __setGrokTlsFetchOverride(async () => {
+    return {
+      status: 403,
+      headers: new Headers(),
+      text: JSON.stringify({ error: { code: 7, message: "Model is not found", details: [] } }),
+      body: null,
+    };
+  });
 
   const result = await validateProviderApiKey({ provider: "grok-web", apiKey: "good-cookie" });
   assert.equal(result.valid, false);
@@ -469,13 +474,9 @@ test("grok-web validator: non-auth 403 is reported as failure with upstream body
 });
 
 test("grok-web validator: generic 403 forbidden is rejected, not silently passed", async () => {
-  globalThis.fetch = async (url) => {
-    const target = String(url);
-    if (target.includes("grok.com/rest/app-chat/conversations/new")) {
-      return new Response("Forbidden", { status: 403 });
-    }
-    throw new Error(`unexpected fetch: ${target}`);
-  };
+  __setGrokTlsFetchOverride(async () => {
+    return { status: 403, headers: new Headers(), text: "Forbidden", body: null };
+  });
 
   const result = await validateProviderApiKey({ provider: "grok-web", apiKey: "any-cookie" });
   assert.equal(result.valid, false);
@@ -483,26 +484,53 @@ test("grok-web validator: generic 403 forbidden is rejected, not silently passed
 });
 
 test("grok-web validator: 403 with credential-rejection body is treated as auth-failed", async () => {
-  globalThis.fetch = async (url) => {
-    const target = String(url);
-    if (target.includes("grok.com/rest/app-chat/conversations/new")) {
-      return new Response(
-        JSON.stringify({
-          error: {
-            code: 16,
-            message: "Failed to look up session ID. [WKE=unauthenticated:invalid-credentials]",
-            details: [],
-          },
-        }),
-        { status: 403 }
-      );
-    }
-    throw new Error(`unexpected fetch: ${target}`);
-  };
+  __setGrokTlsFetchOverride(async () => {
+    return {
+      status: 403,
+      headers: new Headers(),
+      text: JSON.stringify({
+        error: {
+          code: 16,
+          message: "Failed to look up session ID. [WKE=unauthenticated:invalid-credentials]",
+          details: [],
+        },
+      }),
+      body: null,
+    };
+  });
 
   const result = await validateProviderApiKey({ provider: "grok-web", apiKey: "bad-cookie" });
   assert.equal(result.valid, false);
   assert.match(result.error || "", /Invalid SSO cookie/i);
+});
+
+test("grok-web validator: TLS client unavailable surfaces actionable error", async () => {
+  __setGrokTlsFetchOverride(async () => {
+    const { TlsClientUnavailableError } = await import(
+      "../../open-sse/services/grokTlsClient.ts"
+    );
+    throw new TlsClientUnavailableError("native binary not found");
+  });
+
+  const result = await validateProviderApiKey({ provider: "grok-web", apiKey: "sso=abc" });
+  assert.equal(result.valid, false);
+  assert.match(result.error || "", /TLS impersonation client unavailable/i);
+  assert.match(result.error || "", /native binary not found/i);
+});
+
+test("grok-web validator: Cloudflare challenge page is detected and reported", async () => {
+  __setGrokTlsFetchOverride(async () => {
+    return {
+      status: 200,
+      headers: new Headers(),
+      text: "<html><title>Just a moment...</title><script>window._cf_chl_opt</script></html>",
+      body: null,
+    };
+  });
+
+  const result = await validateProviderApiKey({ provider: "grok-web", apiKey: "sso=abc" });
+  assert.equal(result.valid, false);
+  assert.match(result.error || "", /Cloudflare anti-bot/i);
 });
 
 // ─── chatgpt-web validator ──────────────────────────────────────────────────

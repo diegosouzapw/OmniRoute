@@ -103,6 +103,10 @@ export const ANTIGRAVITY_PUBLIC_MODELS = Object.freeze([
 // gemini-3.x models. Only plain IDs like "gemini-2.5-flash" are proven working.
 export const ANTIGRAVITY_MODEL_ALIASES = Object.freeze({
   "gemini-3-pro-preview": "gemini-3.1-pro",
+  // agy catalog exposes -high/-low budget tiers, but the upstream rejects the suffix
+  // for gemini-3.x (#3229) — map them to the plain proven id.
+  "gemini-3.1-pro-high": "gemini-3.1-pro",
+  "gemini-3.1-pro-low": "gemini-3.1-pro",
   "gemini-3.5-flash-preview": "gemini-3.5-flash",
   "gemini-3-flash-preview": "gemini-3-flash",
   "gemini-3-pro-image-preview": "gemini-3-pro-image",

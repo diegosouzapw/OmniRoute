@@ -20,6 +20,7 @@ import { v1ImageGenerationSchema } from "@/shared/validation/schemas";
 import { isValidationFailure, validateBody } from "@/shared/validation/helpers";
 
 import { getAllCustomModels, resolveProxyForConnection } from "@/lib/localDb";
+import { resolveImageRouteModel } from "@/lib/images/imageRouteModel";
 import { runWithProxyContext } from "@omniroute/open-sse/utils/proxyFetch.ts";
 
 /**
@@ -135,6 +136,12 @@ export async function POST(request) {
   // Enforce API key policies (model restrictions + budget limits)
   const policy = await enforceApiKeyPolicy(request, body.model);
   if (policy.rejection) return policy.rejection;
+
+  // #3205/#3215: resolve a combo/alias name (`image`) or a user-prefixed custom image
+  // model (`myImg/gpt-image-2`) to its internal `<nodeId>/<model>` form so the
+  // custom-model lookup and handler's resolvedProvider extraction resolve correctly.
+  // Built-in and already-internal ids pass through unchanged. Shared with /images/edits.
+  body.model = await resolveImageRouteModel(body.model);
 
   // Parse model to get provider
   let { provider } = parseImageModel(body.model);

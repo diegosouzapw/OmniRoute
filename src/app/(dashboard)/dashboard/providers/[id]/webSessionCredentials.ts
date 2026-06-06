@@ -22,9 +22,11 @@ export const WEB_SESSION_CREDENTIAL_REQUIREMENTS = {
     acceptsFullCookieHeader: true,
   },
   "grok-web": {
+    // Grok needs BOTH the sso and sso-rw cookies (#3180) — the hint previously named
+    // only `sso`, which read as "paste just sso" and produced anti-bot 403s.
     kind: "cookie",
-    credentialName: "sso",
-    placeholder: "sso=...",
+    credentialName: "sso + sso-rw",
+    placeholder: "sso=...; sso-rw=...",
     acceptsFullCookieHeader: true,
   },
   "gemini-web": {

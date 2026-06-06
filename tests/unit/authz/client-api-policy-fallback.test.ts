@@ -40,8 +40,13 @@ const POLICY_IMPORT_TARGET = "src/lib/db/apiKeys";
 
 // Write the stub file ad-hoc (Node's loader needs a real file)
 import fs from "node:fs";
+import os from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+
+const ORIGINAL_DATA_DIR = process.env.DATA_DIR;
+const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "omr-clientapi-policy-fallback-"));
+process.env.DATA_DIR = TEST_DATA_DIR;
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const STUB_PATH = path.join(__dirname, "__stub_apiKeys.mjs");
@@ -60,6 +65,9 @@ test.after(() => {
   } catch {
     /* ignore */
   }
+  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+  if (ORIGINAL_DATA_DIR === undefined) delete process.env.DATA_DIR;
+  else process.env.DATA_DIR = ORIGINAL_DATA_DIR;
 });
 
 // ─── Load policy fresh (after the interceptor is in place) ────────────────

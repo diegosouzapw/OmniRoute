@@ -6,6 +6,7 @@ import { errorResponse } from "@omniroute/open-sse/utils/error.ts";
 import { HTTP_STATUS } from "@omniroute/open-sse/config/constants.ts";
 import * as log from "@/sse/utils/logger";
 import { enforceApiKeyPolicy } from "@/shared/utils/apiKeyPolicy";
+import { isRequireApiKeyEnabled } from "@/shared/utils/featureFlags";
 import { v1EmbeddingsSchema } from "@/shared/validation/schemas";
 import { isValidationFailure, validateBody } from "@/shared/validation/helpers";
 
@@ -91,7 +92,7 @@ export async function POST(request) {
 
   // Auth check
   const apiKeyRaw = extractApiKey(request);
-  if (process.env.REQUIRE_API_KEY === "true" && !apiKeyRaw) {
+  if (isRequireApiKeyEnabled() && !apiKeyRaw) {
     return errorResponse(HTTP_STATUS.UNAUTHORIZED, "Authentication required");
   }
   if (apiKeyRaw && !(await isValidApiKey(apiKeyRaw))) {

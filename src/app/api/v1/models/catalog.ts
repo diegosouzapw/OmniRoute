@@ -20,6 +20,7 @@ import { CODEX_NATIVE_UNPREFIXED_MODELS } from "@omniroute/open-sse/services/mod
 import { resolveNestedComboTargets } from "@omniroute/open-sse/services/combo";
 import { getAllSyncedAvailableModels, type SyncedAvailableModel } from "@/lib/db/models";
 import { getCompatibleFallbackModels } from "@/lib/providers/managedAvailableModels";
+import { getOpenRouterCatalog } from "@/lib/catalog/openrouterCatalog";
 import { hasEligibleConnectionForModel } from "@/domain/connectionModelRules";
 import {
   INTERNAL_PROXY_ERROR,
@@ -141,6 +142,50 @@ function getVisionCapabilityFields(modelId: string) {
     input_modalities: ["text", "image"],
     output_modalities: ["text"],
   };
+}
+
+function qualifyOpenRouterModelId(modelId: string): string {
+  return modelId.startsWith("openrouter/") ? modelId : `openrouter/${modelId}`;
+}
+
+function normalizeOpenRouterModalities(value: unknown): string[] {
+  return Array.isArray(value)
+    ? value.filter((entry): entry is string => typeof entry === "string" && entry.length > 0)
+    : [];
+}
+
+function getOpenRouterModelType(inputModalities: string[], outputModalities: string[]) {
+  if (outputModalities.includes("image")) return "image";
+  if (outputModalities.includes("audio")) return "audio";
+  if (outputModalities.includes("video")) return "video";
+  if (outputModalities.includes("embedding")) return "embedding";
+  return "chat";
+}
+
+function isZeroPrice(value: unknown) {
+  if (typeof value === "number") return value === 0;
+  if (typeof value !== "string") return false;
+  const parsed = Number(value);
+  return Number.isFinite(parsed) && parsed === 0;
+}
+
+function isOpenRouterFreeModel(model: {
+  id?: string;
+  pricing?: { prompt?: string; completion?: string };
+}) {
+  if (typeof model.id === "string" && model.id.endsWith(":free")) return true;
+  return isZeroPrice(model.pricing?.prompt) && isZeroPrice(model.pricing?.completion);
+}
+
+function getOpenRouterDisplayName(model: {
+  id?: string;
+  name?: string;
+  pricing?: { prompt?: string; completion?: string };
+}) {
+  const name = model.name || model.id || "OpenRouter model";
+  return isOpenRouterFreeModel(model) && !/\bgr[aá]tis\b/i.test(name)
+    ? `${name} (Grátis)`
+    : name;
 }
 
 function extractBearer(headers: Headers): string | null {
@@ -820,6 +865,72 @@ export async function getUnifiedModelsResponse(
       }
     } catch (err) {
       console.error("[catalog] Error fetching synced provider models:", err);
+    }
+
+    if (
+      activeAliases.has("openrouter") &&
+      !blockedProviders.has("openrouter") &&
+      !providersWithSyncedModels.has("openrouter")
+    ) {
+      try {
+        const openRouterCatalog = await getOpenRouterCatalog();
+        for (const openRouterModel of openRouterCatalog.data || []) {
+          if (!openRouterModel?.id || typeof openRouterModel.id !== "string") continue;
+          const qualifiedId = qualifyOpenRouterModelId(openRouterModel.id);
+          if (models.some((existingModel: any) => existingModel?.id === qualifiedId)) continue;
+
+          const inputModalities = normalizeOpenRouterModalities(
+            openRouterModel.architecture?.input_modalities
+          );
+          const outputModalities = normalizeOpenRouterModalities(
+            openRouterModel.architecture?.output_modalities
+          );
+          const modelType = getOpenRouterModelType(inputModalities, outputModalities);
+          const isFree = isOpenRouterFreeModel(openRouterModel);
+          const supportedParameters = Array.isArray(openRouterModel.supported_parameters)
+            ? openRouterModel.supported_parameters
+            : [];
+          const capabilities: Record<string, boolean> = {};
+          if (inputModalities.includes("image")) capabilities.vision = true;
+          if (
+            supportedParameters.includes("reasoning") ||
+            supportedParameters.includes("include_reasoning")
+          ) {
+            capabilities.reasoning = true;
+          }
+          if (supportedParameters.includes("tools")) capabilities.tool_calling = true;
+          if (
+            supportedParameters.includes("structured_outputs") ||
+            supportedParameters.includes("response_format")
+          ) {
+            capabilities.structured_output = true;
+          }
+
+          models.push({
+            id: qualifiedId,
+            object: "model",
+            created: openRouterModel.created || timestamp,
+            owned_by: "openrouter",
+            permission: [],
+            root: openRouterModel.id,
+            parent: null,
+            name: getOpenRouterDisplayName(openRouterModel),
+            type: modelType,
+            ...(isFree ? { free: true } : {}),
+            ...(typeof openRouterModel.context_length === "number"
+              ? { context_length: openRouterModel.context_length }
+              : {}),
+            ...(typeof openRouterModel.top_provider?.max_completion_tokens === "number"
+              ? { max_output_tokens: openRouterModel.top_provider.max_completion_tokens }
+              : {}),
+            ...(inputModalities.length > 0 ? { input_modalities: inputModalities } : {}),
+            ...(outputModalities.length > 0 ? { output_modalities: outputModalities } : {}),
+            ...(Object.keys(capabilities).length > 0 ? { capabilities } : {}),
+          });
+        }
+      } catch (err) {
+        console.error("[catalog] Error loading OpenRouter catalog:", err);
+      }
     }
 
     // Helper: check if a provider is active (by provider id or alias)

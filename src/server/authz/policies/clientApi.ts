@@ -1,4 +1,5 @@
 import { isDashboardSessionAuthenticated } from "@/shared/utils/apiAuth.ts";
+import { isRequireApiKeyEnabled } from "@/shared/utils/featureFlags";
 import type { AuthOutcome, PolicyContext, RoutePolicy } from "../context";
 import { allow, reject } from "../context";
 
@@ -29,7 +30,7 @@ export const clientApiPolicy: RoutePolicy = {
         return allow({ kind: "dashboard_session", id: "dashboard" });
       }
 
-      if (process.env.REQUIRE_API_KEY !== "true") {
+      if (!isRequireApiKeyEnabled()) {
         return allow({ kind: "anonymous", id: "local" });
       }
 
@@ -45,7 +46,7 @@ export const clientApiPolicy: RoutePolicy = {
       // "anonymous traffic is allowed", so an invalid key should degrade to
       // anonymous instead of rejecting. We log a warning so the bad key is
       // still observable in the request log.
-      if (process.env.REQUIRE_API_KEY !== "true") {
+      if (!isRequireApiKeyEnabled()) {
         console.warn(
           `[clientApiPolicy] invalid bearer presented to ${ctx.classification.normalizedPath} ` +
             `but REQUIRE_API_KEY=false — falling through to anonymous (key_id=${maskKeyId(bearer)})`

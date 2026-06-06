@@ -323,7 +323,7 @@ async function syncAntigravitySubscriptionIfNeeded(
   connection: ProviderConnectionLike,
   usage: JsonRecord
 ): Promise<ProviderConnectionLike> {
-  if (connection.provider !== "antigravity") return connection;
+  if (connection.provider !== "antigravity" && connection.provider !== "agy") return connection;
 
   const subscriptionInfo = usage.subscriptionInfo;
   if (!subscriptionInfo) return connection;

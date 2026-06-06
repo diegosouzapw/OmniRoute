@@ -15,10 +15,11 @@ test("web session credential metadata covers every web-cookie provider", () => {
 });
 
 test("web session credential metadata identifies cookie, token, and no-auth providers", () => {
+  // Grok needs BOTH sso and sso-rw cookies (#3180)
   assert.deepEqual(webSessionCredentials.getWebSessionCredentialRequirement("grok-web"), {
     kind: "cookie",
-    credentialName: "sso",
-    placeholder: "sso=...",
+    credentialName: "sso + sso-rw",
+    placeholder: "sso=...; sso-rw=...",
     acceptsFullCookieHeader: true,
   });
   assert.deepEqual(webSessionCredentials.getWebSessionCredentialRequirement("copilot-web"), {
