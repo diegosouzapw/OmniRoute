@@ -73,6 +73,21 @@ export const NOAUTH_PROVIDERS = {
     authHint:
       "No credentials required. The executor auto-generates access tokens via an embedded Playwright browser instance.",
   },
+  chipotle: {
+    id: "chipotle",
+    alias: "pepper",
+    name: "Chipotle Pepper AI (Free)",
+    icon: "restaurant",
+    color: "#C41230",
+    textIcon: "🌯",
+    website: "https://amelia.chipotle.com",
+    noAuth: true,
+    hasFree: true,
+    freeNote:
+      "Free — Chipotle's Pepper AI (IPsoft Amelia). Anonymous sessions, no API key. Rate-limited.",
+    authHint:
+      "No credentials required. Uses Chipotle's public support chatbot via reverse-engineered SockJS/STOMP protocol.",
+  },
   "veoaifree-web": {
     id: "veoaifree-web",
     alias: "veo-free",

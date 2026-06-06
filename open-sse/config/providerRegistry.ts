@@ -4288,6 +4288,21 @@ const _REGISTRY_EAGER: Record<string, RegistryEntry> = {
     ],
     passthroughModels: true,
   },
+
+  chipotle: {
+    id: "chipotle",
+    alias: "pepper",
+    format: "openai",
+    executor: "chipotle",
+    baseUrl: "https://amelia.chipotle.com",
+    baseUrls: ["https://amelia.chipotle.com"],
+    authType: "none",
+    authHeader: "none",
+    models: [
+      { id: "pepper-1", name: "Pepper (Chipotle AI 🌯)" },
+    ],
+    passthroughModels: true,
+  },
 };
 
 export const REGISTRY: Record<string, RegistryEntry> = _REGISTRY_EAGER;
