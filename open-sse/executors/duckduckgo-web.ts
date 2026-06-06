@@ -3,6 +3,7 @@ import vm from "node:vm";
 import { parseFragment, serialize } from "parse5";
 import { BaseExecutor, type ExecuteInput } from "./base.ts";
 import { FETCH_TIMEOUT_MS } from "../config/constants.ts";
+import { prepareToolMessages, buildToolAwareResult } from "../translator/webTools.ts";
 import type { Session } from "../services/sessionPool/session.ts";
 import { tryBackedChat } from "../services/browserBackedChat.ts";
 
@@ -486,9 +487,12 @@ export class DuckDuckGoWebExecutor extends BaseExecutor {
   }> {
     const { model, body, stream, signal, upstreamExtraHeaders } = input;
     const upstreamModel = normalizeDuckDuckGoModel(model);
-    const messages = Array.isArray((body as { messages?: unknown[] } | null)?.messages)
+    const bodyObj = (body || {}) as Record<string, unknown>;
+    const rawMessages = Array.isArray((body as { messages?: unknown[] } | null)?.messages)
       ? ((body as { messages: unknown[] }).messages as Array<Record<string, unknown>>)
       : [];
+    const { hasTools, requestedTools, effectiveMessages } = prepareToolMessages(bodyObj, rawMessages);
+    const messages = effectiveMessages as Array<Record<string, unknown>>;
     const isStreaming = stream !== false;
     const upstreamHeaders = upstreamExtraHeaders || {};
 
@@ -546,7 +550,7 @@ export class DuckDuckGoWebExecutor extends BaseExecutor {
             "Content-Type": result.contentType || "text/event-stream",
           },
         });
-        return wrap(await this.processResponse(upstreamResp, isStreaming));
+        return wrap(await this.processResponse(upstreamResp, isStreaming, hasTools, requestedTools));
       }
       // status 0 means no response captured (selector/navigation error).
       return wrap(errorResponse(502, "Browser-backed chat captured no upstream response"));
@@ -622,15 +626,63 @@ export class DuckDuckGoWebExecutor extends BaseExecutor {
 
       if (chatResponse.status === 429) {
         if (pool && session) pool.reportCooldown(session);
-        return wrap(await this.processResponse(chatResponse, isStreaming));
-      }
+      return wrap(await this.processResponse(chatResponse, isStreaming, hasTools, requestedTools));
+    } catch {
+      // retry below
+    }
+  }
 
-      if (chatResponse.status === 401 || chatResponse.status === 403) {
-        const newVqd = await this.acquireAuthHeaders(mergedSignal);
-        if (newVqd.vqd4 || newVqd.vqdHash1) {
-          const retryResponse = await sendChat(newVqd);
+  // VQD retry (legacy path)
+  const vqdToken = await this.acquireVqd(mergedSignal);
+  if (!vqdToken) {
+    clearTimeout(timeout);
+    return wrap(errorResponse(503, "Failed to acquire VQD token"));
+  }
 
-          return wrap(await this.processResponse(retryResponse, isStreaming));
+  const chatResponse = await fetch(CHAT_URL, {
+    method: "POST",
+    headers: {
+      ...FAKE_HEADERS,
+      ...sessionHeaders,
+      ...upstreamHeaders,
+      "Content-Type": "application/json",
+      "x-vqd-hash-1": vqdToken,
+    },
+    body: JSON.stringify({
+      model: upstreamModel,
+      messages: effectiveMessages,
+      stream: isStreaming,
+    }),
+    signal: mergedSignal,
+  });
+
+  clearTimeout(timeout);
+
+  if (chatResponse.status === 429) {
+    if (pool && session) pool.reportCooldown(session);
+    return wrap(errorResponse(429, "DuckDuckGo rate limited"));
+  }
+
+  if (chatResponse.status === 401 || chatResponse.status === 403) {
+    const newVqd = await this.acquireVqd(mergedSignal);
+    if (newVqd) {
+      const retryResponse = await fetch(CHAT_URL, {
+        method: "POST",
+        headers: {
+          ...FAKE_HEADERS,
+          ...upstreamHeaders,
+          "Content-Type": "application/json",
+          "x-vqd-hash-1": newVqd,
+        },
+        body: JSON.stringify({
+          model: upstreamModel,
+          messages: effectiveMessages,
+          stream: isStreaming,
+        }),
+        signal: mergedSignal,
+      });
+
+      return wrap(await this.processResponse(retryResponse, isStreaming, hasTools, requestedTools));
         }
         return wrap(errorResponse(503, "Service unavailable"));
       }
@@ -640,7 +692,7 @@ export class DuckDuckGoWebExecutor extends BaseExecutor {
         return wrap(errorResponse(502, "Upstream error"));
       }
 
-      const result = await this.processResponse(chatResponse, isStreaming);
+      const result = await this.processResponse(chatResponse, isStreaming, hasTools, requestedTools);
 
       // Report pool status based on response
       if (pool && session) {
@@ -807,7 +859,7 @@ export class DuckDuckGoWebExecutor extends BaseExecutor {
     }
   }
 
-  private async processResponse(response: Response, streaming: boolean): Promise<Response> {
+  private async processResponse(response: Response, streaming: boolean, hasTools?: boolean, requestedTools?: unknown): Promise<Response> {
     if (!response.ok) {
       const body = await response.text();
       return new Response(
@@ -872,7 +924,14 @@ export class DuckDuckGoWebExecutor extends BaseExecutor {
         fullContent += extractDuckDuckGoContent(parseDuckDuckGoDataLine(line));
       }
 
-      const openaiResponse = {
+      const openaiResponse = hasTools
+        ? (() => {
+            const { content, toolCalls, finishReason } = buildToolAwareResult(fullContent, requestedTools, "ddg");
+            const message: Record<string, unknown> = { role: "assistant", content };
+            if (toolCalls) { message.tool_calls = toolCalls; message.content = null; }
+            return { choices: [{ index: 0, message, finish_reason: finishReason }] };
+          })()
+        : {
         choices: [
           {
             message: { content: fullContent, role: "assistant" },
