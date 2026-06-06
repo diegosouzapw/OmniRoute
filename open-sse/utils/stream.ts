@@ -205,7 +205,17 @@ function parseTextualToolCallCandidate(
   if (typeof text !== "string") return null;
   const normalized = text.replace(/[\u200B-\u200D\uFEFF]/g, "");
   const toolCallIndex = normalized.lastIndexOf("[Tool call:");
-  if (toolCallIndex < 0) return null;
+  if (toolCallIndex < 0) {
+    const lastBracket = normalized.lastIndexOf("[");
+    if (lastBracket !== -1 && "[Tool call:".startsWith(normalized.slice(lastBracket))) {
+      return { kind: "partial" };
+    }
+    const lastParen = normalized.lastIndexOf("(");
+    if (lastParen !== -1 && "(empty)[Tool call:".startsWith(normalized.slice(lastParen))) {
+      return { kind: "partial" };
+    }
+    return null;
+  }
   const candidate = normalized.slice(toolCallIndex);
   const headerMatch = candidate.match(/^\[Tool call:\s*([^\]\n]+)\]\s*\nArguments:\s*/);
   if (!headerMatch) return { kind: "partial" };

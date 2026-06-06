@@ -13,6 +13,7 @@ type GeminiToOpenAIState = {
   signatureNamespace?: string | null;
   toolCalls: Map<number, unknown>;
   toolNameMap?: Map<string, string>;
+  textualToolCallBuffer?: string;
 };
 
 type GeminiFunctionCallPart = {
@@ -68,6 +69,22 @@ function containsTextualToolCallMarker(text: unknown): boolean {
   return (
     typeof text === "string" && text.replace(/[\u200B-\u200D\uFEFF]/g, "").includes("[Tool call:")
   );
+}
+
+function isTextualToolCallCandidate(text: string): boolean {
+  const normalized = text.replace(/[\u200B-\u200D\uFEFF]/g, "");
+  if (normalized.includes("[Tool call:")) {
+    return true;
+  }
+  const lastBracket = normalized.lastIndexOf("[");
+  if (lastBracket !== -1 && "[Tool call:".startsWith(normalized.slice(lastBracket))) {
+    return true;
+  }
+  const lastParen = normalized.lastIndexOf("(");
+  if (lastParen !== -1 && "(empty)[Tool call:".startsWith(normalized.slice(lastParen))) {
+    return true;
+  }
+  return false;
 }
 
 function buildToolCallId(
@@ -253,25 +270,48 @@ export function geminiToOpenAIResponse(chunk, state) {
       // back to a structured OpenAI tool call so clients/tools do not see it as
       // assistant prose.
       if (part.text !== undefined && part.text !== "") {
-        const textualToolCall = parseTextualToolCall(part.text);
-        if (textualToolCall) {
-          emitFunctionCallPart(
-            {
-              functionCall: {
-                name: textualToolCall.name,
-                args: textualToolCall.args,
+        const accumulated = (state.textualToolCallBuffer || "") + part.text;
+
+        if (isTextualToolCallCandidate(accumulated)) {
+          const textualToolCall = parseTextualToolCall(accumulated);
+          if (textualToolCall) {
+            emitFunctionCallPart(
+              {
+                functionCall: {
+                  name: textualToolCall.name,
+                  args: textualToolCall.args,
+                },
               },
-            },
-            state,
-            results
-          );
+              state,
+              results
+            );
+            state.textualToolCallBuffer = "";
+          } else {
+            state.textualToolCallBuffer = accumulated;
+          }
           continue;
         }
 
-        // Never leak a malformed textual pseudo tool-call to clients. If the
-        // model emits the marker but the arguments are not parseable yet/at all,
-        // suppress the text; the final finish reason remains `stop` unless a
-        // structured tool call was emitted elsewhere.
+        if (state.textualToolCallBuffer) {
+          const flushedText = state.textualToolCallBuffer;
+          state.textualToolCallBuffer = "";
+          if (!containsTextualToolCallMarker(flushedText)) {
+            results.push({
+              id: `chatcmpl-${state.messageId}`,
+              object: "chat.completion.chunk",
+              created: Math.floor(Date.now() / 1000),
+              model: state.model,
+              choices: [
+                {
+                  index: 0,
+                  delta: { content: flushedText },
+                  finish_reason: null,
+                },
+              ],
+            });
+          }
+        }
+
         if (containsTextualToolCallMarker(part.text)) {
           continue;
         }
@@ -373,6 +413,38 @@ export function geminiToOpenAIResponse(chunk, state) {
 
   // Finish reason - include usage in final chunk
   if (candidate.finishReason) {
+    if (state.textualToolCallBuffer) {
+      const remainingText = state.textualToolCallBuffer;
+      state.textualToolCallBuffer = "";
+      const textualToolCall = parseTextualToolCall(remainingText);
+      if (textualToolCall) {
+        emitFunctionCallPart(
+          {
+            functionCall: {
+              name: textualToolCall.name,
+              args: textualToolCall.args,
+            },
+          },
+          state,
+          results
+        );
+      } else if (!containsTextualToolCallMarker(remainingText)) {
+        results.push({
+          id: `chatcmpl-${state.messageId}`,
+          object: "chat.completion.chunk",
+          created: Math.floor(Date.now() / 1000),
+          model: state.model,
+          choices: [
+            {
+              index: 0,
+              delta: { content: remainingText },
+              finish_reason: null,
+            },
+          ],
+        });
+      }
+    }
+
     let finishReason = candidate.finishReason.toLowerCase();
     if (finishReason === "stop" && state.toolCalls.size > 0) {
       finishReason = "tool_calls";
