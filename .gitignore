@@ -181,3 +181,8 @@ scripts/i18n/_pending-keys.json
 
 # Fumadocs generated source
 .source/
+
+
+# Added by cargo
+
+/target

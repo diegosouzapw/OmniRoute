@@ -1316,7 +1316,8 @@ export function checkFallbackError(
       getProviderCategory(provider) === "apikey" &&
       !errorStr.toLowerCase().includes("has not been used in project") &&
       !errorStr.toLowerCase().includes("hour quota") &&
-      !errorStr.toLowerCase().includes("quota has been exceeded")
+      !errorStr.toLowerCase().includes("quota has been exceeded") &&
+      !errorStr.toLowerCase().includes("fire pass api keys are not authorized")
     ) {
       return buildRetryableFallback(RateLimitReason.AUTH_ERROR);
     }

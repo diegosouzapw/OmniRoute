@@ -383,7 +383,22 @@ async function validateOpenAILikeProvider({
     }
 
     if (response.status === 401 || response.status === 403) {
-      return { valid: false, error: "Invalid API key" };
+      // Check if this is a Fire Pass key restriction (403 with "Fire Pass API keys are not authorized")
+      // Fire Pass keys work for chat completions but not model listing, so we should try chat endpoint
+      if (response.status === 403) {
+        try {
+          const errorText = await response.text();
+          if (errorText.includes("Fire Pass API keys are not authorized for this route")) {
+            // This is a Fire Pass key - fall through to try chat completions endpoint
+          } else {
+            return { valid: false, error: "Invalid API key" };
+          }
+        } catch {
+          return { valid: false, error: "Invalid API key" };
+        }
+      } else {
+        return { valid: false, error: "Invalid API key" };
+      }
     }
 
     const chatUrl = resolveChatUrl(provider, baseUrl, providerSpecificData);
@@ -2178,7 +2193,20 @@ async function validateOpenAICompatibleProvider({ apiKey, providerSpecificData =
     }
 
     if (modelsRes.status === 401 || modelsRes.status === 403) {
-      return { valid: false, error: "Invalid API key" };
+      // Check if this is a scope restriction error (e.g., Fire Pass keys blocked from /models)
+      // rather than an actual auth failure. Scope restrictions should fall through to chat test.
+      const errorText = await modelsRes.text().catch(() => "");
+      const isScopeRestriction =
+        modelsRes.status === 403 &&
+        (errorText.toLowerCase().includes("not authorized") ||
+          errorText.toLowerCase().includes("not permitted") ||
+          errorText.toLowerCase().includes("fire pass") ||
+          errorText.toLowerCase().includes("scope"));
+
+      if (!isScopeRestriction) {
+        return { valid: false, error: "Invalid API key" };
+      }
+      // Fall through to chat completions fallback for scope-restricted keys
     }
 
     // Endpoint responded and auth seems valid, but quota is exhausted/rate-limited.
