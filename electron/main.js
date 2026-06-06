@@ -801,18 +801,19 @@ function setupIpcHandlers() {
   ipcMain.handle("get-app-version", () => app.getVersion());
 
   // ── Web-Cookie Login IPC Handlers ──────────────────────────
+  // Forward login status events to the renderer. Registered ONCE here — never
+  // inside the login:start handler, which would attach a fresh listener (and
+  // duplicate every subsequent status event) on each invocation.
+  loginManager.on("status", (status) => {
+    sendToRenderer("login:status", status);
+  });
+
   ipcMain.handle("login:start", async (_event, providerId, options) => {
     const result = await loginManager.startLogin(providerId, options);
-
-    // Forward status events to the renderer
-    loginManager.on("status", (status) => {
-      sendToRenderer("login:status", status);
-    });
 
     // Persist extracted credentials
     if (result.success && result.credentials) {
       try {
-        const { persistSecret } = require("./sqlite-inspection");
         // Store as JSON blob under the provider ID
         const { persistSecret: ps } = require("../src/lib/db/secrets");
         if (typeof ps === "function") {

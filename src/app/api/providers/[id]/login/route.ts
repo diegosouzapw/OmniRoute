@@ -9,6 +9,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getProviderConnectionById, updateProviderConnection } from "@/lib/localDb";
 import { requireManagementAuth } from "@/lib/api/requireManagementAuth";
+import { sanitizeErrorMessage } from "@omniroute/open-sse/utils/error.ts";
 
 // ─── POST: Start login flow ────────────────────────────────────────────────
 
@@ -51,7 +52,8 @@ export async function POST(
           persisted: true,
         });
       } catch (err) {
-        const msg = err instanceof Error ? err.message : String(err);
+        // Hard Rule #12: never put raw err.message/stack in a response body.
+        const msg = sanitizeErrorMessage(err instanceof Error ? err.message : err);
         return NextResponse.json(
           { success: false, error: `Extracted but failed to persist: ${msg}` },
           { status: 500 }
@@ -63,7 +65,8 @@ export async function POST(
       status: result.success ? 200 : 400,
     });
   } catch (err) {
-    const msg = err instanceof Error ? err.message : String(err);
+    // Hard Rule #12: never put raw err.message/stack in a response body.
+    const msg = sanitizeErrorMessage(err instanceof Error ? err.message : err);
     return NextResponse.json(
       { success: false, error: `Login endpoint error: ${msg}` },
       { status: 500 }
