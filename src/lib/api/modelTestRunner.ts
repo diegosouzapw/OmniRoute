@@ -88,7 +88,7 @@ function buildInternalRerankRequest(testBody: Record<string, unknown>, signal: A
   });
 }
 
-function detectTestKind(modelStr: string, customModel: any) {
+export function detectTestKind(modelStr: string, customModel: any) {
   const supportedEndpoints = Array.isArray(customModel?.supportedEndpoints)
     ? customModel.supportedEndpoints
     : [];

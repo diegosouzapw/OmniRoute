@@ -1,5 +1,6 @@
 // src/lib/db/adapters/sqljsAdapter.ts
 import fs from "node:fs";
+import path from "node:path";
 import type { SqliteAdapter, PreparedStatement, RunResult } from "./types";
 
 const SAVE_DEBOUNCE_MS = 100;
@@ -7,11 +8,35 @@ const CHECKPOINT_INTERVAL_MS = 60_000;
 
 let _sqlJsLib: Awaited<ReturnType<(typeof import("sql.js"))["default"]>> | null = null;
 
+function resolveSqlJsWasmPath(): string {
+  const candidatePaths = [
+    path.join(process.cwd(), "node_modules", "sql.js", "dist", "sql-wasm.wasm"),
+    path.join(process.cwd(), ".next", "standalone", "node_modules", "sql.js", "dist", "sql-wasm.wasm"),
+  ];
+
+  for (const candidatePath of candidatePaths) {
+    if (fs.existsSync(candidatePath)) {
+      return candidatePath;
+    }
+  }
+
+  return candidatePaths[0];
+}
+
 async function loadSqlJs(): Promise<typeof _sqlJsLib> {
   if (_sqlJsLib) return _sqlJsLib;
   const initSqlJs = ((await import("sql.js")) as { default: (typeof import("sql.js"))["default"] })
     .default;
-  _sqlJsLib = await initSqlJs();
+  const wasmPath = resolveSqlJsWasmPath();
+
+  _sqlJsLib = await initSqlJs({
+    locateFile(fileName) {
+      if (fileName === "sql-wasm.wasm") {
+        return wasmPath;
+      }
+      return fileName;
+    },
+  });
   return _sqlJsLib;
 }
 

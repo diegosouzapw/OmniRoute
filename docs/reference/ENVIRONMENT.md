@@ -560,6 +560,8 @@ REQUEST_TIMEOUT_MS (global override)
 | `OMNIROUTE_CLAUDE_TLS_GRACE_MS`          | `10000`              | JS-side grace added on top of the wire timeout when the native binding is wedged.           |
 | `OMNIROUTE_PPLX_TLS_TIMEOUT_MS`          | `30000`              | Wire-level timeout for the bogdanfinn/tls-client koffi binding (`perplexityTlsClient.ts`).  |
 | `OMNIROUTE_PPLX_TLS_GRACE_MS`            | `10000`              | JS-side grace added on top of the wire timeout when the native binding is wedged.           |
+| `OMNIROUTE_GROK_TLS_TIMEOUT_MS`          | `60000`              | Wire-level timeout for the bogdanfinn/tls-client koffi binding (`grokTlsClient.ts`).        |
+| `OMNIROUTE_GROK_TLS_GRACE_MS`            | `10000`              | JS-side grace added on top of the wire timeout when the native binding is wedged.           |
 
 Combo target attempts inherit the resolved upstream request timeout (`FETCH_TIMEOUT_MS`, or
 `REQUEST_TIMEOUT_MS` when it supplies the fetch default). Set `targetTimeoutMs` in a combo,

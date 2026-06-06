@@ -79,7 +79,7 @@ test("nvidia specialty validator returns Invalid API key on 401", async () => {
   );
 });
 
-test("nvidia specialty validator skips /models probe entirely", async () => {
+test("nvidia specialty validator accepts a successful chat probe", async () => {
   const calls: string[] = [];
   await withMockServer(
     (req, res) => {
@@ -102,6 +102,40 @@ test("nvidia specialty validator skips /models probe entirely", async () => {
         calls.some((u) => u.endsWith("/chat/completions")),
         `should call /chat/completions, called: ${JSON.stringify(calls)}`
       );
+    }
+  );
+});
+
+test("nvidia specialty validator falls back to stable chat validation model", async () => {
+  let payload: any = null;
+  const calls: string[] = [];
+  await withMockServer(
+    (req, res) => {
+      calls.push(String(req.url));
+      let body = "";
+      req.on("data", (chunk) => {
+        body += String(chunk);
+      });
+      req.on("end", () => {
+        if (String(req.url).endsWith("/chat/completions")) {
+          payload = JSON.parse(body || "{}");
+        }
+        res.writeHead(200, { "content-type": "application/json" });
+        res.end(JSON.stringify({}));
+      });
+    },
+    async (baseUrl) => {
+      const result = await validateProviderApiKey({
+        provider: "nvidia",
+        apiKey: "nv-key",
+        providerSpecificData: { baseUrl },
+      });
+      assert.equal(result.valid, true);
+      assert.ok(
+        calls.some((u) => u.endsWith("/chat/completions")),
+        `should fall back to /chat/completions, called: ${JSON.stringify(calls)}`
+      );
+      assert.equal(payload?.model, "meta/llama-3.1-8b-instruct");
     }
   );
 });

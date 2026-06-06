@@ -38,7 +38,7 @@ export default function ProxyTab() {
       <div
         className="flex gap-1 border-b border-border overflow-x-auto"
         role="tablist"
-        aria-label="Proxy sections"
+        aria-label={t("proxySubTabsAria")}
       >
         {TABS.map((tab) => (
           <button

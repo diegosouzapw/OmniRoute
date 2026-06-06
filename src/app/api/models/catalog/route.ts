@@ -38,6 +38,7 @@ export async function GET(request: Request) {
         name: model.name || model.root || model.id,
         type: model.type || "chat",
         custom: model.custom === true,
+        ...(model.free === true ? { free: true } : {}),
         ...(model.capabilities ? { capabilities: model.capabilities } : {}),
         ...(typeof model.context_length === "number"
           ? { context_length: model.context_length }

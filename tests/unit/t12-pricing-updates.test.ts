@@ -42,10 +42,10 @@ test("T12: codex catalog includes GPT 5.5 variations", () => {
   assert.equal(codexModels.get("gpt-5.5-xhigh")?.targetFormat, "openai-responses");
 });
 
-test("T12: minimax default model list starts with M2.7", () => {
+test("T12: minimax default model list starts with M3", () => {
   const minimaxModels = REGISTRY.minimax.models.map((m) => m.id);
   const minimaxCnModels = REGISTRY["minimax-cn"].models.map((m) => m.id);
 
-  assert.equal(minimaxModels[0], "MiniMax-M2.7");
-  assert.equal(minimaxCnModels[0], "MiniMax-M2.7");
+  assert.equal(minimaxModels[0], "MiniMax-M3");
+  assert.equal(minimaxCnModels[0], "MiniMax-M3");
 });

@@ -4307,6 +4307,14 @@ export async function handleChatCore({
       providerResponse.status,
       model
     );
+
+    // Store rate-limit headers for quota saturation signals
+    try {
+      const { storeRateLimitHeaders } = await import("@/lib/quota/saturationSignals");
+      storeRateLimitHeaders(connectionId, provider, providerResponse.headers as Record<string, string>);
+    } catch {
+      // fail-open: saturation signal is best-effort
+    }
   } catch (error) {
     trackPendingRequest(model, provider, connectionId, false);
     if (isSemaphoreCapacityError(error)) {

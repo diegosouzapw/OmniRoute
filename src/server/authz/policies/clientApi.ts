@@ -1,19 +1,23 @@
 import { isDashboardSessionAuthenticated } from "@/shared/utils/apiAuth.ts";
 import { isRequireApiKeyEnabled } from "@/shared/utils/featureFlags";
+import { extractApiKey } from "@/sse/services/auth.ts";
 import type { AuthOutcome, PolicyContext, RoutePolicy } from "../context";
 import { allow, reject } from "../context";
 
-function extractBearer(headers: Headers): string | null {
-  const raw = headers.get("authorization") ?? headers.get("Authorization");
-  const xApiKey = headers.get("x-api-key") ?? headers.get("X-Api-Key");
+function extractBearer(request: Request): string | null {
+  const raw = request.headers.get("authorization") ?? request.headers.get("Authorization");
+  const xApiKey = request.headers.get("x-api-key") ?? request.headers.get("X-Api-Key");
   if (raw) {
     const trimmed = raw.trim();
     if (!trimmed.toLowerCase().startsWith("bearer ")) return null;
     return trimmed.slice(7).trim() || null;
-  } else if (xApiKey) {
+  }
+
+  if (xApiKey) {
     return xApiKey?.trim() || null;
   }
-  return null;
+
+  return extractApiKey(request);
 }
 
 function maskKeyId(apiKey: string): string {
@@ -24,7 +28,7 @@ function maskKeyId(apiKey: string): string {
 export const clientApiPolicy: RoutePolicy = {
   routeClass: "CLIENT_API",
   async evaluate(ctx: PolicyContext): Promise<AuthOutcome> {
-    const bearer = extractBearer(ctx.request.headers);
+    const bearer = extractBearer(ctx.request as Request);
     if (!bearer) {
       if (await isDashboardSessionAuthenticated(ctx.request)) {
         return allow({ kind: "dashboard_session", id: "dashboard" });

@@ -615,3 +615,5 @@ export {
   listApiKeyContextSources,
 } from "./db/apiKeyContextSources";
 export type { ApiKeyContextSource } from "./db/apiKeyContextSources";
+
+export { sumUsageTokensThisMonth } from "./db/usageSummary";

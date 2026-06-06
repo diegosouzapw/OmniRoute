@@ -32,13 +32,13 @@ test("manual refresh route imports rotationGroupFor", async () => {
   );
 });
 
-test("manual refresh route skips proactive refresh for rotating providers BEFORE calling getAccessToken", async () => {
+test("manual refresh route skips proactive refresh for the OpenAI Auth0 family BEFORE calling getAccessToken", async () => {
   const src = await read();
 
-  const guardIdx = src.search(/rotationGroupFor\s*\(\s*[\w.]*provider[\w.]*\s*\)\s*!==\s*null/);
+  const guardIdx = src.search(/rotationGroup\s*===\s*["']openai-auth0["']/);
   assert.ok(
     guardIdx >= 0,
-    "refresh route must guard with `rotationGroupFor(provider) !== null` to skip rotating providers"
+    "refresh route must only skip proactive refresh for the OpenAI Auth0 family"
   );
 
   const getAccessTokenIdx = src.indexOf("getAccessToken(");
@@ -46,7 +46,7 @@ test("manual refresh route skips proactive refresh for rotating providers BEFORE
 
   assert.ok(
     guardIdx < getAccessTokenIdx,
-    "the rotating-provider guard must run BEFORE getAccessToken so the rotating refresh_token is never exercised"
+    "the OpenAI Auth0 guard must run BEFORE getAccessToken so the risky refresh_token is never exercised"
   );
 
   // The guard short-circuits with an early return (no token rotation).
@@ -54,6 +54,20 @@ test("manual refresh route skips proactive refresh for rotating providers BEFORE
   assert.match(
     guardBlock,
     /return\b/,
-    "the rotating-provider guard must return early (defer to the reactive 401 path) instead of refreshing"
+    "the OpenAI Auth0 guard must return early (defer to the reactive 401 path) instead of refreshing"
+  );
+});
+
+test("manual refresh route does not skip Kiro just because it is serialized", async () => {
+  const src = await read();
+  assert.doesNotMatch(
+    src,
+    /rotationGroupFor\s*\(\s*[\w.]*provider[\w.]*\s*\)\s*!==\s*null/,
+    "a blanket rotation-group skip blocks Kiro manual refresh"
+  );
+  assert.match(
+    src,
+    /rotationGroup\s*===\s*["']openai-auth0["']/,
+    "only the OpenAI Auth0 family should be skipped by the manual refresh route"
   );
 });

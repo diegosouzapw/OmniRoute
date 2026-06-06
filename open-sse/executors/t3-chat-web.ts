@@ -15,6 +15,7 @@
 
 import { BaseExecutor, type ExecuteInput } from "./base.ts";
 import { sanitizeErrorMessage } from "../utils/error.ts";
+import { prepareToolMessages, buildToolAwareResult } from "../translator/webTools.ts";
 
 // ─── Constants ───────────────────────────────────────────────────────────────
 
@@ -344,10 +345,11 @@ export class T3ChatWebExecutor extends BaseExecutor {
 
   async execute({ model, body, stream, credentials, signal, log }: ExecuteInput) {
     const bodyObj = (body || {}) as Record<string, unknown>;
-    const messages = (Array.isArray(bodyObj.messages) ? bodyObj.messages : []) as Array<{
+    const rawMessages = (Array.isArray(bodyObj.messages) ? bodyObj.messages : []) as Array<{
       role: string;
       content: string | unknown;
     }>;
+    const { hasTools, requestedTools, effectiveMessages } = prepareToolMessages(bodyObj, rawMessages);
     // 1. Parse + validate credentials. The credential pipeline stores the single
     // pasted string as `apiKey` (fallback `accessToken`); parse out the Cookie
     // header + convex-session-id (#3007) instead of expecting pre-structured fields.
@@ -374,7 +376,7 @@ export class T3ChatWebExecutor extends BaseExecutor {
       // fields (model, messages, stream) in the request body.
       const requestPayload: Record<string, unknown> = {
         model,
-        messages,
+        messages: effectiveMessages,
         stream: stream !== false,
       };
 
@@ -487,7 +489,37 @@ export class T3ChatWebExecutor extends BaseExecutor {
       }
 
       // Non-streaming: collect all content and return OpenAI JSON
-      const content = await collectStreamContent(resp.body);
+      const rawContent = await collectStreamContent(resp.body);
+
+      if (hasTools) {
+        const { content, toolCalls, finishReason } = buildToolAwareResult(rawContent, requestedTools, "t3");
+        if (toolCalls) {
+          return {
+            response: new Response(
+              JSON.stringify({
+                id: `chatcmpl-t3-${Date.now()}`, object: "chat.completion",
+                created: Math.floor(Date.now() / 1000), model: model || "unknown",
+                choices: [{ index: 0, message: { role: "assistant", content: null, tool_calls: toolCalls }, finish_reason: finishReason }],
+              }),
+              { status: 200, headers: { "Content-Type": "application/json" } }
+            ),
+            url: completionUrl, headers, transformedBody: requestPayload,
+          };
+        }
+        const openaiResponse = {
+          id: `chatcmpl-t3-${Date.now()}`, object: "chat.completion",
+          created: Math.floor(Date.now() / 1000), model: model || "unknown",
+          choices: [{ index: 0, message: { role: "assistant", content }, finish_reason: "stop" }],
+          usage: { prompt_tokens: 0, completion_tokens: 0, total_tokens: 0 },
+        };
+        return {
+          response: new Response(JSON.stringify(openaiResponse), {
+            status: 200, headers: { "Content-Type": "application/json" },
+          }),
+          url: completionUrl, headers, transformedBody: requestPayload,
+        };
+      }
+
       const openaiResponse = {
         id: `chatcmpl-t3-${Date.now()}`,
         object: "chat.completion",
@@ -496,7 +528,7 @@ export class T3ChatWebExecutor extends BaseExecutor {
         choices: [
           {
             index: 0,
-            message: { role: "assistant", content },
+            message: { role: "assistant", content: rawContent },
             finish_reason: "stop",
           },
         ],

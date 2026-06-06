@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import { requireManagementAuth } from "@/lib/api/requireManagementAuth";
 import { runSingleModelTest } from "@/lib/api/modelTestRunner";
+import { sanitizeErrorMessage } from "@omniroute/open-sse/utils/error.ts";
 
 const testModelSchema = z.object({
   providerId: z.string().min(1),
@@ -66,7 +67,7 @@ export async function POST(request: Request) {
     return NextResponse.json(
       {
         status: "error",
-        error: error instanceof Error ? error.message : "Unknown error",
+        error: sanitizeErrorMessage(error) || "Unknown error",
       },
       { status: 500 }
     );
