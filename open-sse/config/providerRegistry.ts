@@ -1195,6 +1195,8 @@ const _REGISTRY_EAGER: Record<string, RegistryEntry> = {
       { id: "work", name: "Work (Auto · fast)" },
       { id: "gemini-3.1-pro", name: "Gemini 3.1 Pro" },
       { id: "gemini-3-flash-solo", name: "Gemini 3 Flash" },
+      // #3110: MiniMax M3 via Trae
+      { id: "minimax-m3", name: "MiniMax M3", contextLength: 1048576 },
       { id: "minimax-m2.7", name: "MiniMax M2.7" },
       { id: "kimi-k2.5", name: "Kimi K2.5" },
       { id: "gpt-5.4", name: "GPT 5.4" },
@@ -1381,6 +1383,8 @@ const _REGISTRY_EAGER: Record<string, RegistryEntry> = {
         interleavedField: "reasoning_content",
       },
       { id: "deepseek-v4-flash-free", name: "DeepSeek V4 Flash Free", supportsReasoning: true },
+      // #3110: MiniMax M3 free tier via OpenCode
+      { id: "minimax-m3-free", name: "MiniMax M3 Free", contextLength: 1048576 },
       { id: "minimax-m2.5-free", name: "MiniMax M2.5 Free", contextLength: 204800 },
       { id: "ling-2.6-1t-free", name: "Ling 2.6 Free", contextLength: 262000 },
       {
@@ -1420,6 +1424,8 @@ const _REGISTRY_EAGER: Record<string, RegistryEntry> = {
       { id: "mimo-v2.5", name: "MiMo-V2.5" },
       { id: "mimo-v2-pro", name: "MiMo-V2-Pro" },
       { id: "mimo-v2-omni", name: "MiMo-V2-Omni" },
+      // #3110: MiniMax M3 via OpenCode Go tier
+      { id: "minimax-m3", name: "MiniMax M3", targetFormat: "claude", contextLength: 1048576 },
       { id: "minimax-m2.7", name: "MiniMax M2.7", targetFormat: "claude" },
       { id: "minimax-m2.5", name: "MiniMax M2.5", targetFormat: "claude" },
       // Issue #2292: Qwen models on opencode-go reject oa-compat format
@@ -1504,6 +1510,8 @@ const _REGISTRY_EAGER: Record<string, RegistryEntry> = {
       { id: "glm-5.1", name: "GLM-5.1" },
 
       // ── MiniMax ────────────────────────────────────────────────
+      // #3110: MiniMax M3 — frontier coding model with 1M context
+      { id: "minimax-m3", name: "MiniMax M3", contextLength: 1048576 },
       { id: "minimax-m2.5", name: "MiniMax M2.5" },
       { id: "minimax-m2.7", name: "MiniMax M2.7" },
 
@@ -2185,6 +2193,8 @@ const _REGISTRY_EAGER: Record<string, RegistryEntry> = {
     },
     models: [
       // T12/T28: MiniMax default upgraded from M2.5 to M2.7
+      // #3110: MiniMax M3 — frontier coding model with 1M context
+      { id: "MiniMax-M3", name: "MiniMax M3", contextLength: 1048576 },
       { id: "MiniMax-M2.7", name: "MiniMax M2.7" },
       { id: "MiniMax-M2.7-highspeed", name: "MiniMax M2.7 Highspeed" },
       { id: "MiniMax-M2.5", name: "MiniMax M2.5" },
@@ -2206,6 +2216,8 @@ const _REGISTRY_EAGER: Record<string, RegistryEntry> = {
     },
     models: [
       // Keep parity with minimax to ensure model discovery works for minimax-cn connections.
+      // #3110: MiniMax M3 — frontier coding model with 1M context
+      { id: "MiniMax-M3", name: "MiniMax M3", contextLength: 1048576 },
       { id: "MiniMax-M2.7", name: "MiniMax M2.7" },
       { id: "MiniMax-M2.7-highspeed", name: "MiniMax M2.7 Highspeed" },
       { id: "MiniMax-M2.5", name: "MiniMax M2.5" },
@@ -2663,6 +2675,8 @@ const _REGISTRY_EAGER: Record<string, RegistryEntry> = {
       { id: "glm-5", name: "GLM 5" },
       { id: "mimo-v2.5-pro", name: "MiMo-V2.5-Pro" },
       { id: "mimo-v2.5", name: "MiMo-V2.5" },
+      // #3110: MiniMax M3 via OpenCode Zen
+      { id: "minimax-m3", name: "MiniMax M3", contextLength: 1048576 },
       { id: "minimax-m2.7", name: "MiniMax M2.7" },
       { id: "minimax-m2.5", name: "MiniMax M2.5" },
       { id: "llama-4-maverick", name: "Llama 4 Maverick" },
@@ -3153,6 +3167,8 @@ const _REGISTRY_EAGER: Record<string, RegistryEntry> = {
       { id: "deepseek-v4-flash", name: "DeepSeek V4 Flash", supportsReasoning: true },
       { id: "kimi-k2.6", name: "Kimi K2.6" },
       { id: "glm-5.1", name: "GLM 5.1" },
+      // #3110: MiniMax M3 via Ollama
+      { id: "minimax-m3", name: "MiniMax M3", contextLength: 1048576 },
       { id: "minimax-m2.7", name: "MiniMax M2.7" },
       { id: "gemma4:31b", name: "Gemma 4 31B" },
       { id: "nemotron-3-super", name: "NVIDIA Nemotron 3 Super" },
@@ -3198,6 +3214,8 @@ const _REGISTRY_EAGER: Record<string, RegistryEntry> = {
     authHeader: "bearer",
     models: [
       { id: "z-ai/glm-5.1", name: "GLM 5.1" },
+      // #3110: MiniMax M3 via NVIDIA
+      { id: "minimaxai/minimax-m3", name: "MiniMax M3", contextLength: 1048576 },
       { id: "minimaxai/minimax-m2.7", name: "MiniMax M2.7" },
       { id: "google/gemma-4-31b-it", name: "Gemma 4 31B" },
       { id: "mistralai/mistral-small-4-119b-2603", name: "Mistral Small 4 2603" },
