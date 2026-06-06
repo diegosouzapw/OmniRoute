@@ -7,13 +7,11 @@ const DOMAIN_CODE = "chipotle";
 const DOMAIN_ID = "23700760-e1e5-4c3c-931d-8804e29a6775";
 
 function randomServerId(): string {
-  return String(Math.floor(Math.random() * 1000)).padStart(3, "0");
+  return String(crypto.randomInt(0, 1000)).padStart(3, "0");
 }
 
 function randomSessionId(): string {
-  return Array.from({ length: 8 }, () =>
-    Math.random().toString(36).substring(2, 6),
-  ).join("");
+  return crypto.randomUUID().replace(/-/g, "").slice(0, 32);
 }
 
 interface AmeliaSession {

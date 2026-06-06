@@ -12,7 +12,8 @@ describe("ChipotleExecutor", () => {
 
   it("buildUrl returns Amelia endpoint", () => {
     const url = executor.buildUrl("pepper-1", false);
-    assert.ok(url.includes("amelia.chipotle.com"));
+    const parsed = new URL(url);
+    assert.strictEqual(parsed.hostname, "amelia.chipotle.com");
   });
 
   it("transformRequest passes model through", () => {
