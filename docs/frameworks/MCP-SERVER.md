@@ -10,7 +10,7 @@ lastUpdated: 2026-05-30
 >
 > Source of truth: `open-sse/mcp-server/schemas/tools.ts` (30 tools) + `open-sse/mcp-server/tools/memoryTools.ts` (3 tools) + `open-sse/mcp-server/tools/skillTools.ts` (4 tools) + `open-sse/mcp-server/tools/notionTools.ts` (6 tools). Tool registration and scope wiring lives in `open-sse/mcp-server/server.ts`.
 
-![MCP tool inventory (43 tools by category)](../diagrams/exported/mcp-tools-43.svg)
+![MCP tool inventory (43 tools by category)](../diagrams/exported/mcp-tools-37.svg)
 
 > Source: [diagrams/mcp-tools-43.mmd](../diagrams/mcp-tools-43.mmd) (regenerate via `npm run docs:render-diagrams`).
 

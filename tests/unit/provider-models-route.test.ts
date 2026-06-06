@@ -469,6 +469,27 @@ test("provider models route returns the updated local catalog for GitHub Copilot
   );
 });
 
+test("provider models route returns codex gpt-5.4 effort variants in the local catalog", async () => {
+  const connection = await seedConnection("codex", {
+    authType: "oauth",
+    apiKey: null,
+    accessToken: "codex-access",
+  });
+
+  const response = await callRoute(connection.id);
+  const body = (await response.json()) as any;
+  const modelIds = new Set((body.models || []).map((model: any) => model.id));
+
+  assert.equal(response.status, 200);
+  assert.equal(body.provider, "codex");
+  assert.equal(body.source, "local_catalog");
+  assert.ok(modelIds.has("gpt-5.4"));
+  assert.ok(modelIds.has("gpt-5.4-low"));
+  assert.ok(modelIds.has("gpt-5.4-medium"));
+  assert.ok(modelIds.has("gpt-5.4-high"));
+  assert.ok(modelIds.has("gpt-5.4-xhigh"));
+});
+
 test("provider models route returns the expanded local catalog for Kiro", async () => {
   const connection = await seedConnection("kiro", {
     authType: "oauth",
