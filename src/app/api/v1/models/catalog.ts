@@ -33,6 +33,7 @@ import { getModelSpec } from "@/shared/constants/modelSpecs";
 import { isAuthRequired, isDashboardSessionAuthenticated } from "@/shared/utils/apiAuth";
 import { parseModel } from "@omniroute/open-sse/services/model";
 import { getTokenLimit } from "@omniroute/open-sse/services/contextManager";
+import { extractApiKey } from "@/sse/services/auth";
 import type { ComboModelStep } from "@/lib/combos/steps";
 
 interface CustomModelEntry {
@@ -99,8 +100,9 @@ function intersectStringArrays(arrays: string[][]): string[] {
 }
 
 function minKnownNumber(values: Array<number | undefined>): number | undefined {
-  if (values.length === 0 || !values.every(isPositiveFiniteNumber)) return undefined;
-  return Math.min(...values);
+  const knownValues = values.filter(isPositiveFiniteNumber);
+  if (knownValues.length === 0) return undefined;
+  return Math.min(...knownValues);
 }
 
 const VISION_MODEL_KEYWORDS = [
@@ -188,13 +190,7 @@ function getOpenRouterDisplayName(model: {
     : name;
 }
 
-function extractBearer(headers: Headers): string | null {
-  const authHeader = headers.get("authorization") || headers.get("Authorization");
-  if (!authHeader?.trim().toLowerCase().startsWith("bearer ")) return null;
-  return authHeader.trim().slice(7).trim() || null;
-}
-
-async function validateCatalogBearer(apiKey: string): Promise<boolean> {
+async function validateCatalogApiKey(apiKey: string): Promise<boolean> {
   const { validateApiKey } = await import("@/lib/db/apiKeys");
   return validateApiKey(apiKey);
 }
@@ -206,9 +202,9 @@ async function getModelCatalogAuthRejection(
 ): Promise<Response | null> {
   if (settings.requireAuthForModels !== true || !(await isAuthRequired(request))) return null;
 
-  const bearer = extractBearer(request.headers);
-  if (bearer) {
-    if (await validateCatalogBearer(bearer)) return null;
+  const apiKey = extractApiKey(request);
+  if (apiKey) {
+    if (await validateCatalogApiKey(apiKey)) return null;
     return Response.json(
       {
         error: {
@@ -579,9 +575,11 @@ export async function getUnifiedModelsResponse(
       if (targets.length === 0) return baseMetadata;
 
       const targetMetadata = targets.map((target) => getComboTargetCatalogMetadata(target));
-      if (targetMetadata.some((metadata) => metadata === null)) return baseMetadata;
 
-      const knownMetadata = targetMetadata as ComboTargetCatalogMetadata[];
+      const knownMetadata = targetMetadata.filter(
+        (metadata): metadata is ComboTargetCatalogMetadata => metadata !== null
+      );
+      if (knownMetadata.length === 0) return baseMetadata;
       const contextLength =
         explicitContextLength ??
         minKnownNumber(knownMetadata.map((metadata) => metadata.contextLength));
@@ -1247,7 +1245,7 @@ export async function getUnifiedModelsResponse(
     }
 
     // Filter by API key permissions if requested
-    const apiKey = extractBearer(request.headers);
+    const apiKey = extractApiKey(request);
     let finalModels = models;
     if (apiKey) {
       const { isModelAllowedForKey, getApiKeyMetadata } = await import("@/lib/db/apiKeys");

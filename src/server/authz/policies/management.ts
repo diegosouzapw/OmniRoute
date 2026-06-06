@@ -120,7 +120,9 @@ export const managementPolicy: RoutePolicy = {
     // still hit the same 403 LOCAL_ONLY they did before.
     if (isLocalOnlyPath(path) && !isLoopbackRequest(ctx) && !isPrivateLanRequest(ctx)) {
       if (isLocalOnlyBypassableByManageScope(path)) {
-        const apiKey = extractApiKey(ctx.request as unknown as Request);
+        // Management auth is header-only — a URL-borne token must never satisfy a
+        // manage-scope bypass of a LOCAL_ONLY route. See #3300 follow-up.
+        const apiKey = extractApiKey(ctx.request as unknown as Request, { allowUrl: false });
         if (apiKey) {
           try {
             if (await isValidApiKey(apiKey)) {
@@ -198,7 +200,9 @@ export const managementPolicy: RoutePolicy = {
     // unhealthy, which is a 503, not a 403 — masking it as an auth failure
     // would tell callers their credentials are wrong when the real problem
     // is that the server cannot validate any credential right now.
-    const apiKey = extractApiKey(ctx.request as unknown as Request);
+    // Management auth is header-only — a URL-borne token must not authenticate
+    // a management route. See #3300 follow-up.
+    const apiKey = extractApiKey(ctx.request as unknown as Request, { allowUrl: false });
     if (apiKey) {
       try {
         if (await isValidApiKey(apiKey)) {

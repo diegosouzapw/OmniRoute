@@ -1,4 +1,27 @@
 export const ANTIGRAVITY_PUBLIC_MODELS = Object.freeze([
+  // Claude (Antigravity backend). The `agy` provider already ships these from the live
+  // :fetchAvailableModels probe (see agyModels.ts) and discussion #3184 confirmed they
+  // are user-callable through the `antigravity` OAuth provider too — same backend.
+  // `antigravity/claude-opus-4-6-thinking` and `antigravity/claude-sonnet-4-6` both work.
+  // They are upstream IDs, so no alias remapping is required.
+  {
+    id: "claude-opus-4-6-thinking",
+    name: "Claude Opus 4.6 (Thinking)",
+    contextLength: 200000,
+    maxOutputTokens: 65536,
+    supportsReasoning: true,
+    supportsVision: true,
+    toolCalling: true,
+  },
+  {
+    id: "claude-sonnet-4-6",
+    name: "Claude Sonnet 4.6 (Thinking)",
+    contextLength: 200000,
+    maxOutputTokens: 65536,
+    supportsReasoning: true,
+    supportsVision: true,
+    toolCalling: true,
+  },
   // Gemini 3.5 Flash — flagship model in Antigravity 2.0 (May 2026)
   {
     id: "gemini-3.5-flash-preview",
@@ -27,12 +50,51 @@ export const ANTIGRAVITY_PUBLIC_MODELS = Object.freeze([
     supportsVision: true,
     toolCalling: true,
   },
+  // Gemini 3.1 Pro budget tiers — agy already ships these; #3184 confirmed they work via
+  // the antigravity OAuth provider. The -high/-low suffix is aliased to the plain
+  // gemini-3.1-pro upstream id (see ANTIGRAVITY_MODEL_ALIASES / #3229).
+  {
+    id: "gemini-3.1-pro-high",
+    name: "Gemini 3.1 Pro (High)",
+    contextLength: 1048576,
+    maxOutputTokens: 65535,
+    supportsReasoning: true,
+    supportsVision: true,
+    toolCalling: true,
+  },
+  {
+    id: "gemini-3.1-pro-low",
+    name: "Gemini 3.1 Pro (Low)",
+    contextLength: 1048576,
+    maxOutputTokens: 65535,
+    supportsReasoning: true,
+    supportsVision: true,
+    toolCalling: true,
+  },
   {
     id: "gemini-3-flash-preview",
     name: "Gemini 3 Flash",
     contextLength: 1048576,
     maxOutputTokens: 65536,
     supportsReasoning: true,
+    supportsVision: true,
+    toolCalling: true,
+  },
+  // Gemini 3.5 Flash budget tiers — agy ships these as exact upstream ids; #3184 verified
+  // they work via the antigravity OAuth provider (no alias remapping required).
+  {
+    id: "gemini-3.5-flash-low",
+    name: "Gemini 3.5 Flash (Low)",
+    contextLength: 1048576,
+    maxOutputTokens: 65536,
+    supportsVision: true,
+    toolCalling: true,
+  },
+  {
+    id: "gemini-3.5-flash-extra-low",
+    name: "Gemini 3.5 Flash (Extra Low)",
+    contextLength: 1048576,
+    maxOutputTokens: 65536,
     supportsVision: true,
     toolCalling: true,
   },
@@ -111,8 +173,11 @@ export const ANTIGRAVITY_MODEL_ALIASES = Object.freeze({
   "gemini-3-flash-preview": "gemini-3-flash",
   "gemini-3-pro-image-preview": "gemini-3-pro-image",
   "gemini-2.5-computer-use-preview-10-2025": "rev19-uic3-1p",
-  // Deprecated: Claude models were removed from Antigravity 2.0 (May 2026).
-  // These aliases are kept for backward compatibility but will 404 on new requests.
+  // Legacy Claude display ids → current upstream ids. NOTE: an earlier comment here
+  // assumed Claude was removed from Antigravity 2.0 and would 404; discussion #3184
+  // disproved that — the Antigravity OAuth backend still serves claude-opus-4-6-thinking
+  // and claude-sonnet-4-6 (now listed in ANTIGRAVITY_PUBLIC_MODELS above). These aliases
+  // remap the old gemini-claude-* ids to the live upstream ids.
   "gemini-claude-sonnet-4-5": "claude-sonnet-4-6",
   "gemini-claude-sonnet-4-5-thinking": "claude-sonnet-4-6",
   "gemini-claude-opus-4-5-thinking": "claude-opus-4-6-thinking",

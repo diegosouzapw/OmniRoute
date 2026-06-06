@@ -1,16 +1,16 @@
 ---
 title: "Provider Reference"
-version: 3.8.11
-lastUpdated: 2026-06-05
+version: 3.8.12
+lastUpdated: 2026-06-06
 ---
 
 # Provider Reference
 
 > **Auto-generated** from `src/shared/constants/providers.ts` — do not edit by hand.
 > Regenerate with: `npm run gen:provider-reference`
-> **Last generated:** 2026-06-05
+> **Last generated:** 2026-06-06
 
-Total providers: **224**. See category breakdown below.
+Total providers: **223**. See category breakdown below.
 
 ## Categories
 
@@ -80,7 +80,7 @@ Use the dashboard at `/dashboard/providers` to enable, configure, and test each 
 | `v0-vercel-web` | `v0` | v0 Vercel Web (Code Gen) | Web cookie | [link](https://v0.dev) | Paste your session cookie from v0.dev (DevTools → Application → Cookies) |
 | `venice-web` | `ven` | Venice Web (Privacy) | Web cookie | [link](https://venice.ai) | Paste your session cookie from venice.ai (DevTools → Application → Cookies) |
 
-## API Key Providers (paid / paid-with-free-credits) (152)
+## API Key Providers (paid / paid-with-free-credits) (151)
 
 | ID | Alias | Name | Tags | Website | Notes |
 |----|-------|------|------|---------|-------|
@@ -114,7 +114,6 @@ Use the dashboard at `/dashboard/providers` to enable, configure, and test each 
 | `codestral` | `codestral` | Codestral | API key | [link](https://mistral.ai) | — |
 | `cohere` | `cohere` | Cohere | API key | [link](https://cohere.com) | Free Trial: 1,000 API calls/month for testing, no credit card required |
 | `command-code` | `cmd` | Command Code | API key | [link](https://commandcode.ai/) | Use a Command Code API key. Requests are sent to Command Code's /alpha/generate endpoint. |
-| `completions` | `cpl` | Completions.me | API key | [link](https://completions.me) | Free unlimited access to Claude, GPT, Gemini — no credit card, no rate limits |
 | `coze` | `coze` | Coze | API key | [link](https://coze.com) | Get API key at coze.com/open/api |
 | `crof` | `crof` | CrofAI | API key | [link](https://crof.ai) | — |
 | `databricks` | `databricks` | Databricks | API key, enterprise | [link](https://www.databricks.com) | — |

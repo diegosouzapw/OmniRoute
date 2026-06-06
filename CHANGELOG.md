@@ -4,6 +4,56 @@
 
 ---
 
+## [3.8.13] — 2026-06-06
+
+### ✨ New Features
+
+- **feat(web-cookie):** self-service login infrastructure for 21 web-cookie providers — three login pathways (Electron BrowserWindow, Playwright dashboard fallback, `POST /api/providers/{id}/login`), token-extraction configs, and a 15-min cookie-validity auto-refresh daemon. Hardened on merge: error bodies sanitized (Hard Rule #12), the spawn-capable login route classified LOCAL_ONLY (Hard Rules #15/#17), and the Electron status listener de-duplicated. ([#3292](https://github.com/diegosouzapw/OmniRoute/pull/3292), closes #3070 — thanks @oyi77 / @diegosouzapw)
+- **feat(api):** accept path-scoped API keys on client API routes — keys may arrive via `/api/v1/vscode/<key>/…` path aliases (incl. `raw`/`combos`); explicit `Authorization`/`x-api-key` headers still take precedence. Split out of #3073. ([#3300](https://github.com/diegosouzapw/OmniRoute/pull/3300) — thanks @zhiru)
+- **feat(api):** model-catalog enrichment + MCP `model-catalog` tools — richer per-model metadata (context window, capabilities) surfaced through `/v1/models` and new MCP tools, plus `readHeaderValue` header-record support. Split out of #3073; reconciled on merge with the #3309 URL-token hardening (kept the security gate — no query-string credential fallback, management auth stays header-only). ([#3306](https://github.com/diegosouzapw/OmniRoute/pull/3306) — thanks @zhiru / @diegosouzapw)
+- **feat(dashboard):** internationalize the proxy settings UI — `ProxyTab` + the proxy `DocumentationTab`/`FreePoolTab`/`VercelRelayModal` now render via `t(...)`, with matching `en`/`pt-BR` message keys. Split out of #3073. ([#3307](https://github.com/diegosouzapw/OmniRoute/pull/3307), [#3310](https://github.com/diegosouzapw/OmniRoute/pull/3310) — thanks @zhiru)
+
+### 🔒 Security
+
+- **fix(auth):** follow-up hardening of the client-API key extractor (#3300) — removed the generic query-string token fallbacks (`?token=`/`?key=`/`?apiKey=`/`?api_key=`), which leak credentials into access logs / Referer headers, and gated URL-borne tokens to client routes only (management auth is now header-only) so a credential in the URL can never authenticate a management route. The path-scoped `/vscode/<key>/…` form the VS Code integration needs is unchanged. (security review follow-up to [#3300](https://github.com/diegosouzapw/OmniRoute/pull/3300) — thanks @zhiru / @diegosouzapw)
+
+### 🔧 Bug Fixes
+
+- **fix(theoldllm):** stop the `[502]: Body is unusable: Body has already been read` error on the cached-token path — the executor read the same upstream `Response` body with `.text()` twice; it now reads it once and only re-reads after a token-rejection refetch. (#3296 — thanks @onizukashonan14-png)
+- **fix(dashboard):** keep no-auth providers (opencode, duckduckgo-web, theoldllm, veoaifree-web) visible under the "Show configured only" filter — they never create a connection row (`stats.total === 0`) but are always usable and already appear in `/v1/models`, so the filter now treats `displayAuthType === "no-auth"` as configured. (#3290 — thanks @uniQta)
+- **fix(cli):** `omniroute update` no longer always fails on a global install — `getCurrentVersion()` and `createBackup()` now resolve `package.json`/`bin` relative to the script (`import.meta.url`) instead of `process.cwd()` (the user's working dir on a global npm/brew install → *"Could not determine current version"*), and the backup copies the `cli` directory with `cpSync({recursive:true})` instead of `copyFileSync`, which threw a swallowed `EISDIR` → *"Failed to create backup. Aborting"*. (#3295 — thanks @uniQta)
+- **fix(sse):** harden the passthrough stream against empty upstream responses — emit a synthetic retry chunk on an empty `choices: []` (fixes a Copilot Chat crash) and log empty post-`tool_calls` completions; also registers **MiniMax M3** (1M context) across 8 provider tiers. ([#3297](https://github.com/diegosouzapw/OmniRoute/pull/3297), #3110 — thanks @wilsonicdev)
+- **fix(opencode-provider):** extract `contextLength` from the live `/v1/models` catalog (live > `modelContextLengths` > static map) so passthrough models outside the legacy 8-model map no longer silently truncate to OpenCode's 128K default. ([#3298](https://github.com/diegosouzapw/OmniRoute/pull/3298) — thanks @herjarsa / @diegosouzapw)
+- **fix(dev):** auto-rebuild `better-sqlite3` on a Node ABI mismatch at `npm run dev` startup (nvm 22↔24) — dev-only, no-op on the healthy path, unrelated errors not swallowed. ([#3301](https://github.com/diegosouzapw/OmniRoute/pull/3301) — thanks @zhiru)
+- **fix(api):** remove the bundled **Completions.me** provider preset — empirically verified to return Rick Astley lyrics instead of real completions for every model/prompt. ([#3302](https://github.com/diegosouzapw/OmniRoute/pull/3302), discussion #3293 — thanks @diegosouzapw; reported by @mikmaneggahommie)
+- **fix(ci):** skip the auto-deploy step when the VPS SSH port is unreachable from the GitHub runner (private LAN / firewall) instead of red-failing every release pipeline; genuine deploy/boot failures still fail honestly. ([#3299](https://github.com/diegosouzapw/OmniRoute/pull/3299) — thanks @diegosouzapw)
+- **fix(sse):** strip leaked internal tool-call envelopes (`to=functions.*` / `multi_tool_use.parallel { … }`) from visible assistant text and sanitize Responses-API streaming (drop `commentary`-phase output items) so harness syntax never reaches the client. ([#3311](https://github.com/diegosouzapw/OmniRoute/pull/3311) — thanks @zhiru)
+- **fix(sse):** expose the Claude (`claude-opus-4-6-thinking`, `claude-sonnet-4-6`) and Gemini budget tiers (`gemini-3.1-pro-{high,low}`, `gemini-3.5-flash-{low,extra-low}`) in the Antigravity catalog — they are user-callable on the Antigravity OAuth backend (agy parity), correcting an earlier assumption that Claude had been removed. ([#3303](https://github.com/diegosouzapw/OmniRoute/pull/3303), discussion #3184 — thanks @diegosouzapw)
+- **fix(catalog):** compute a combo's `context_length` from the known targets only — a single target with unknown context no longer collapses the whole combo to `undefined`; also accepts live `{id, contextLength}` model entries in the opencode-provider helper (follow-up to #3298). ([#3304](https://github.com/diegosouzapw/OmniRoute/pull/3304) — thanks @herjarsa / @diegosouzapw)
+
+### 📝 Maintenance
+
+- **test(catalog):** align the Antigravity preview-alias catalog test with the #3303 budget tiers — asserts the restored Claude/Gemini tiers are surfaced, locking in the behavior so a future tier change can't silently drop them again (thanks @diegosouzapw)
+- **docs:** rename the `resolve-issues` skill references to `review-issues` across the docs/skill surfaces, matching the renamed governance skill (thanks @diegosouzapw)
+- **chore(release):** open the v3.8.13 development cycle (version bump + cycle bookkeeping) and finalize this changelog (thanks @diegosouzapw)
+
+### 🙌 Contributors
+
+Thanks to everyone whose work landed in v3.8.13:
+
+| Contributor | PRs / Issues |
+| --- | --- |
+| [@zhiru](https://github.com/zhiru) | #3300, #3306, #3307 / #3310, #3309, #3301, #3311 |
+| [@oyi77](https://github.com/oyi77) | #3292 (closes #3070) |
+| [@onizukashonan14-png](https://github.com/onizukashonan14-png) | #3296 |
+| [@uniQta](https://github.com/uniQta) | #3290, #3295 |
+| [@wilsonicdev](https://github.com/wilsonicdev) | #3297 |
+| [@herjarsa](https://github.com/herjarsa) | #3298, #3304 |
+| [@mikmaneggahommie](https://github.com/mikmaneggahommie) | reported the Completions.me rickroll (discussion #3293) |
+| [@diegosouzapw](https://github.com/diegosouzapw) | maintainer — #3299, #3302, #3303; co-author on #3292 / #3306 / #3298 / #3304 / #3309 |
+
+---
+
 ## [3.8.12] — 2026-06-06
 
 ### ✨ New Features
@@ -1850,7 +1900,7 @@ Thank you to all **55+ community contributors** who made v3.8.0 possible! 🎉
 
 ### 🧹 Chores
 
-- **chore(workflow):** mandate implementation plan generation in `/resolve-issues` workflow before coding
+- **chore(workflow):** mandate implementation plan generation in `/review-issues` workflow before coding
 - **chore(release):** expand contributor credits to 155 PRs across full project history
 
 ### 🏆 Community Contributors Acknowledgment

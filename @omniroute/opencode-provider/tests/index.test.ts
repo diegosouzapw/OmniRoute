@@ -430,6 +430,34 @@ test("createOmniRouteProvider omits limit.context for unknown model ids", () => 
   assert.equal(entry.limit, undefined);
 });
 
+test("createOmniRouteProvider reads contextLength from a live model entry for ids absent from the static map", () => {
+  // #3298 regression guard: the static OMNIROUTE_DEFAULT_MODEL_CONTEXT_LENGTHS
+  // map only covers the legacy 8 Claude/Gemini ids. Before this change, any
+  // other model got `undefined` context (see the test above, string form) and
+  // OpenCode silently fell back to its 128K internal default. A live model
+  // entry carrying `contextLength` must now surface as `limit.context`.
+  const provider = createOmniRouteProvider({
+    baseURL: "http://localhost:20128",
+    apiKey: "sk_omniroute",
+    models: [{ id: "completely-unknown-model", contextLength: 262_144 }],
+  });
+  const entry = provider.models["completely-unknown-model"];
+  assert.ok(entry.limit, "a live contextLength should produce a limit field even for ids absent from the static map");
+  assert.equal(entry.limit!.context, 262_144);
+});
+
+test("createOmniRouteProvider: a live model contextLength wins over the static default map", () => {
+  // `cc/claude-opus-4-8` has a static default (1_000_000). A live entry carrying
+  // a different contextLength must take precedence (live > modelContextLengths >
+  // static defaults).
+  const provider = createOmniRouteProvider({
+    baseURL: "http://localhost:20128",
+    apiKey: "sk_omniroute",
+    models: [{ id: "cc/claude-opus-4-8", contextLength: 524_288 }],
+  });
+  assert.equal(provider.models["cc/claude-opus-4-8"].limit!.context, 524_288);
+});
+
 test("createOmniRouteProvider serialises limit.context to JSON", () => {
   const provider = createOmniRouteProvider({
     baseURL: "http://localhost:20128",

@@ -80,6 +80,40 @@ test("configured-only filter keeps only providers with saved connections", () =>
   assert.equal(providerPageUtils.filterConfiguredProviderEntries(entries, false).length, 3);
 });
 
+test("configured-only filter keeps no-auth providers even without a saved connection (#3290)", () => {
+  const entries = [
+    {
+      providerId: "claude",
+      provider: { id: "claude" },
+      stats: { total: 0 },
+      displayAuthType: "oauth",
+      toggleAuthType: "oauth",
+    },
+    {
+      providerId: "opencode",
+      provider: { id: "opencode" },
+      stats: { total: 0 },
+      displayAuthType: "no-auth",
+      toggleAuthType: "no-auth",
+    },
+    {
+      providerId: "duckduckgo-web",
+      provider: { id: "duckduckgo-web" },
+      stats: { total: 0 },
+      displayAuthType: "no-auth",
+      toggleAuthType: "no-auth",
+    },
+  ];
+
+  // no-auth providers never create a DB connection row (total === 0) but are
+  // always usable and appear in /v1/models — they must survive the filter.
+  const visible = providerPageUtils.filterConfiguredProviderEntries(entries, true);
+  assert.deepEqual(
+    visible.map((entry) => entry.providerId),
+    ["duckduckgo-web", "opencode"]
+  );
+});
+
 test("search filter matches provider name and id case-insensitively", () => {
   const entries = [
     {
