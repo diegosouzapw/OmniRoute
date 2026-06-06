@@ -89,6 +89,27 @@ test("extractApiKey parses bearer headers and isValidApiKey validates persisted 
     ),
     null
   );
+  // Security follow-up (#3300): query-string token fallbacks were removed — a
+  // credential in `?token=` must NOT be extracted (it leaks into logs/Referer).
+  assert.equal(
+    auth.extractApiKey(new Request(`http://localhost/v1/chat/completions?token=${created.key}`)),
+    null
+  );
+  // The path-scoped `/vscode/<token>/…` form (VS Code integration) still works.
+  assert.equal(
+    auth.extractApiKey(
+      new Request(`http://localhost/api/v1/vscode/${created.key}/chat/completions`)
+    ),
+    created.key
+  );
+  // …but never when the caller opts out of URL extraction (management auth path).
+  assert.equal(
+    auth.extractApiKey(
+      new Request(`http://localhost/api/v1/vscode/${created.key}/chat/completions`),
+      { allowUrl: false }
+    ),
+    null
+  );
   assert.equal(await auth.isValidApiKey(created.key), true);
   assert.equal(await auth.isValidApiKey("sk-missing"), false);
   assert.equal(await auth.isValidApiKey(""), false);
@@ -381,7 +402,9 @@ test("getProviderCredentialsWithQuotaPreflight: explicit quotaPreflightEnabled:f
   });
   // Give the connection per-window overrides (simulates a user-configured
   // threshold) — this is the field that previously caused the gate to keep going.
-  await (await import("../../src/lib/db/providers.ts")).updateProviderConnection(conn.id, {
+  await (
+    await import("../../src/lib/db/providers.ts")
+  ).updateProviderConnection(conn.id, {
     quotaWindowThresholds: { primary: 50 },
   });
 
@@ -679,7 +702,6 @@ test("getProviderCredentials retains rate-limited accounts when allowRateLimited
   assert.equal(blocked.allRateLimited, true);
   assert.equal(bypassed.connectionId, connection.id);
 });
-
 
 test("getProviderCredentials retains terminal accounts for combo live tests", async () => {
   const connection = await seedConnection("openai", {

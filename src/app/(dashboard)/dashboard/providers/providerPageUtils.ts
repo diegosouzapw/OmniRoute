@@ -107,7 +107,12 @@ export function filterConfiguredProviderEntries<TProvider>(
   let filtered = entries;
 
   if (showConfiguredOnly) {
-    filtered = filtered.filter((entry) => Number(entry.stats?.total || 0) > 0);
+    // no-auth providers never create a DB connection row (stats.total === 0) but
+    // are always usable and appear unconditionally in the /v1/models catalog, so
+    // they must not be hidden by the configured-only filter (#3290).
+    filtered = filtered.filter(
+      (entry) => entry.displayAuthType === "no-auth" || Number(entry.stats?.total || 0) > 0
+    );
   }
 
   if (showFreeOnly) {

@@ -99,8 +99,9 @@ function intersectStringArrays(arrays: string[][]): string[] {
 }
 
 function minKnownNumber(values: Array<number | undefined>): number | undefined {
-  if (values.length === 0 || !values.every(isPositiveFiniteNumber)) return undefined;
-  return Math.min(...values);
+  const knownValues = values.filter(isPositiveFiniteNumber);
+  if (knownValues.length === 0) return undefined;
+  return Math.min(...knownValues);
 }
 
 const VISION_MODEL_KEYWORDS = [
@@ -579,9 +580,11 @@ export async function getUnifiedModelsResponse(
       if (targets.length === 0) return baseMetadata;
 
       const targetMetadata = targets.map((target) => getComboTargetCatalogMetadata(target));
-      if (targetMetadata.some((metadata) => metadata === null)) return baseMetadata;
 
-      const knownMetadata = targetMetadata as ComboTargetCatalogMetadata[];
+      const knownMetadata = targetMetadata.filter(
+        (metadata): metadata is ComboTargetCatalogMetadata => metadata !== null
+      );
+      if (knownMetadata.length === 0) return baseMetadata;
       const contextLength =
         explicitContextLength ??
         minKnownNumber(knownMetadata.map((metadata) => metadata.contextLength));
