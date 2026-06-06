@@ -340,10 +340,13 @@ test("usage service covers Antigravity quota parsing, exclusions and forbidden a
   });
 
   assert.equal(usage.plan, "Ultra");
-  // claude-sonnet-4-6 was removed from ANTIGRAVITY_PUBLIC_MODELS in May 2026 (deprecated)
-  assert.deepEqual(Object.keys(usage.quotas).sort(), ["gemini-pro-agent"]);
+  // #3184: claude-sonnet-4-6 is user-callable on the Antigravity backend, so its quota is
+  // surfaced. tab_flash_lite_preview (not chat-callable), gemini-unlimited (no quota), and
+  // internal-model (internal) are still filtered out by the hardening logic.
+  assert.deepEqual(Object.keys(usage.quotas).sort(), ["claude-sonnet-4-6", "gemini-pro-agent"]);
   assert.equal(usage.quotas["gemini-pro-agent"].total, 0);
   assert.equal(usage.quotas["gemini-pro-agent"].remainingPercentage, 100);
+  assert.equal(usage.quotas["claude-sonnet-4-6"].remainingPercentage, 40);
   const loadCodeAssistCall = calls.find((call) => call.url.includes("loadCodeAssist"));
   assert.match(loadCodeAssistCall?.url, /daily-cloudcode-pa\.sandbox\.googleapis\.com/);
   assert.match(loadCodeAssistCall?.init.headers["User-Agent"], /^vscode\/1\.X\.X \(Antigravity\//);

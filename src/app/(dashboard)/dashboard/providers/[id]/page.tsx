@@ -634,6 +634,8 @@ interface PassthroughModelsSectionProps {
   onTestModel?: (modelId: string, fullModel: string) => Promise<void>;
   modelTestStatus?: Record<string, "ok" | "error" | null>;
   testingModelId?: string | null;
+  providerId: string;
+  connectionId: string;
 }
 
 interface CustomModelsSectionProps {
@@ -685,6 +687,11 @@ interface CompatibleModelsSectionProps {
   onTestModel?: (modelId: string, fullModel: string) => Promise<void>;
   modelTestStatus?: Record<string, "ok" | "error" | null>;
   testingModelId?: string | null;
+  onTestAll?: (targets: Array<{ modelId: string; fullModel: string }>) => Promise<void>;
+  testingAll?: boolean;
+  testProgress?: { done: number; total: number } | null;
+  autoHideFailed?: boolean;
+  onAutoHideFailedChange?: (v: boolean) => void;
 }
 
 interface CooldownTimerProps {
@@ -842,6 +849,7 @@ interface EditConnectionModalConnection {
   email?: string;
   priority?: number;
   maxConcurrent?: number | null;
+  rateLimitOverrides?: Record<string, number> | null;
   authType?: string;
   provider?: string;
   apiKey?: string;
@@ -1433,6 +1441,10 @@ export default function ProviderDetailPage() {
   const [togglingModelId, setTogglingModelId] = useState<string | null>(null);
   const [testingModelId, setTestingModelId] = useState<string | null>(null);
   const [modelTestStatus, setModelTestStatus] = useState<Record<string, "ok" | "error">>({});
+  const [testingAll, setTestingAll] = useState(false);
+  const [testProgress, setTestProgress] = useState<{ done: number; total: number } | null>(null);
+  const [autoHideFailed, setAutoHideFailed] = useState(true);
+  const [visibilityFilter, setVisibilityFilter] = useState<"all" | "visible" | "hidden">("all");
   const [bulkVisibilityAction, setBulkVisibilityAction] = useState<"select" | "deselect" | null>(
     null
   );
@@ -1519,13 +1531,10 @@ export default function ProviderDetailPage() {
   // Prefer synced API-discovered models when available, then merge built-ins
   // and user-managed custom models without duplicating IDs.
   const models = useMemo(() => {
-    if (providerId === "gemini") {
-      return syncedAvailableModels.map((model: any) => ({
-        ...model,
-        source: "imported",
-      }));
-    }
-
+    // Universal: merge built-in registry models with API-synced models and
+    // user-managed custom models for ALL providers (was previously Gemini-only).
+    // Synced models keep their full property spread so provider-specific fields
+    // (e.g. Gemini's `supportedGenerationMethods`) survive into the table.
     const builtInModels = registryModels.map((model) => ({
       ...model,
       source: "system",
@@ -1535,6 +1544,7 @@ export default function ProviderDetailPage() {
     const syncedExtras = syncedAvailableModels
       .filter((model: any) => model?.id && !registryIds.has(model.id))
       .map((model: any) => ({
+        ...model,
         id: model.id,
         name: model.name || model.id,
         source: "imported",
@@ -1547,7 +1557,12 @@ export default function ProviderDetailPage() {
         name: cm.name || cm.id,
         source: normalizeModelCatalogSource(cm.source) === "imported" ? "imported" : "custom",
       }));
-    return [...builtInModels, ...syncedExtras, ...customExtras];
+    const allModels = [...builtInModels, ...syncedExtras, ...customExtras];
+    const deduped = new Map<string, typeof allModels[0]>();
+    for (const m of allModels) {
+      if (m.id && !deduped.has(m.id)) deduped.set(m.id, m);
+    }
+    return Array.from(deduped.values());
   }, [providerId, registryModels, syncedAvailableModels, modelMeta.customModels]);
   const providerAlias = getProviderAlias(providerId);
   const isManagedAvailableModelsProvider = isCompatible || providerId === "openrouter";
@@ -1614,6 +1629,56 @@ export default function ProviderDetailPage() {
       console.log("Error fetching aliases:", error);
     }
   }, []);
+
+  const handleSetAlias = useCallback(
+    async (modelId: string, alias: string, providerAlias?: string) => {
+      const qualifiedModel = providerAlias
+        ? modelId.includes("/")
+          ? `${providerAlias}/${modelId.split("/").slice(1).join("/")}`
+          : `${providerAlias}/${modelId}`
+        : modelId;
+      try {
+        const res = await fetch("/api/models/alias", {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ model: qualifiedModel, alias }),
+        });
+        if (res.ok) {
+          await fetchAliases();
+          notify.success(t("setAliasSuccess", { alias }));
+        } else {
+          const data = await res.json().catch(() => ({}));
+          notify.error(data?.error?.message || "Failed to set alias");
+        }
+      } catch (error) {
+        console.log("Error setting alias:", error);
+        notify.error("Network error setting alias");
+      }
+    },
+    [fetchAliases, t]
+  );
+
+  const handleDeleteAlias = useCallback(
+    async (alias: string) => {
+      try {
+        const res = await fetch(
+          `/api/models/alias?alias=${encodeURIComponent(alias)}`,
+          { method: "DELETE" }
+        );
+        if (res.ok) {
+          await fetchAliases();
+          notify.success(t("deleteAliasSuccess", { alias }));
+        } else {
+          const data = await res.json().catch(() => ({}));
+          notify.error(data?.error?.message || "Failed to delete alias");
+        }
+      } catch (error) {
+        console.log("Error deleting alias:", error);
+        notify.error("Network error deleting alias");
+      }
+    },
+    [fetchAliases, t]
+  );
 
   const fetchProviderModelMeta = useCallback(async () => {
     if (isSearchProvider) return;
@@ -1866,6 +1931,7 @@ export default function ProviderDetailPage() {
         body: JSON.stringify({
           providerId: selectedConnection?.provider || providerNode?.id || providerId,
           modelId: fullModel,
+          connectionId: selectedConnection?.id,
         }),
       });
       const data = await res.json();
@@ -1882,67 +1948,93 @@ export default function ProviderDetailPage() {
       } else {
         notify.error(data.error || "Model test failed");
         setModelTestStatus((prev) => ({ ...prev, [modelId]: "error" }));
+        if (handleToggleModelHidden) {
+          await handleToggleModelHidden(providerStorageAlias, modelId, true);
+        }
       }
     } catch (err) {
       notify.error("Network error testing model");
       setModelTestStatus((prev) => ({ ...prev, [modelId]: "error" }));
+      if (handleToggleModelHidden) {
+        await handleToggleModelHidden(providerStorageAlias, modelId, true);
+      }
     } finally {
       setTestingModelId(null);
     }
   };
 
-  const handleSetAlias = async (modelId, alias, providerAliasOverride = providerAlias) => {
-    const fullModel = `${providerAliasOverride}/${modelId}`;
-    try {
-      const res = await fetch("/api/models/alias", {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ model: fullModel, alias }),
-      });
-      if (res.ok) {
-        await fetchAliases();
-      } else {
-        const data = await res.json();
-        alert(data.error || t("failedSetAlias"));
-      }
-    } catch (error) {
-      console.log("Error setting alias:", error);
+  const handleTestAll = async (
+    targets: Array<{ modelId: string; fullModel: string }>
+  ): Promise<void> => {
+    if (testingAll) return;
+    if (targets.length === 0) {
+      notify.error(providerText(t, "noModelsToTest", "No models to test"));
+      return;
     }
-  };
+    setTestingAll(true);
+    setTestProgress({ done: 0, total: targets.length });
 
-  const handleDeleteAlias = async (alias) => {
-    try {
-      const res = await fetch(`/api/models/alias?alias=${encodeURIComponent(alias)}`, {
-        method: "DELETE",
-      });
-      if (res.ok) {
-        await fetchAliases();
-      }
-    } catch (error) {
-      console.log("Error deleting alias:", error);
+    let ok = 0;
+    let error = 0;
+    let hiddenCount = 0;
+
+    const CHUNK_SIZE = 3;
+    for (let i = 0; i < targets.length; i += CHUNK_SIZE) {
+      const chunk = targets.slice(i, i + CHUNK_SIZE);
+      await Promise.all(
+        chunk.map(async ({ modelId, fullModel }) => {
+          try {
+            const result: {
+              results?: Record<
+                string,
+                {
+                  status?: "ok" | "error";
+                  rateLimited?: boolean;
+                  isTimeout?: boolean;
+                  error?: string;
+                }
+              >;
+            } = await fetch("/api/models/test-all", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                providerId: providerId,
+                connectionId: selectedConnection?.id,
+                modelIds: [fullModel],
+              }),
+            }).then((r) => r.json());
+
+            const entry = result.results?.[fullModel];
+            if (entry?.status === "ok") {
+              ok++;
+            } else {
+              error++;
+              if (autoHideFailed && !entry?.rateLimited && !entry?.isTimeout) {
+                await handleToggleModelHidden(providerStorageAlias, modelId, true);
+                hiddenCount++;
+              }
+            }
+          } catch (e) {
+            error++;
+          }
+          setTestProgress((prev) =>
+            prev ? { done: prev.done + 1, total: prev.total } : null
+          );
+        })
+      );
     }
-  };
 
-  const handleDelete = async (id) => {
-    if (!confirm(t("deleteConnectionConfirm"))) return;
-    try {
-      const res = await fetch(`/api/providers/${id}`, { method: "DELETE" });
-      if (res.ok) {
-        setConnections(connections.filter((c) => c.id !== id));
-        if (providerId === "gemini") {
-          await fetchProviderModelMeta();
-        }
-      }
-    } catch (error) {
-      console.log("Error deleting connection:", error);
-    }
-  };
-
-  const handleToggleSelectAll = useCallback(() => {
-    setSelectedIds((prev) =>
-      prev.size === connections.length ? new Set() : new Set(connections.map((c) => c.id))
+    notify.info(
+      providerText(t, "testAllResults", "{ok} ok, {error} error", { ok, error })
     );
-  }, [connections]);
+    if (hiddenCount > 0) {
+      notify.info(
+        providerText(t, "testAllFailedHidden", "{count} hidden", { count: hiddenCount })
+      );
+    }
+    setTestingAll(false);
+    setTestProgress(null);
+  };
 
   const handleToggleSelectOne = useCallback((id: string) => {
     setSelectedIds((prev) => {
@@ -1952,6 +2044,15 @@ export default function ProviderDetailPage() {
       return next;
     });
   }, []);
+
+  const handleToggleSelectAll = useCallback(() => {
+    setSelectedIds((prev) => {
+      if (prev.size === connections.length && connections.length > 0) {
+        return new Set();
+      }
+      return new Set(connections.map((c) => (c as { id: string }).id));
+    });
+  }, [connections]);
 
   const handleBatchDelete = async () => {
     if (selectedIds.size === 0) return;
@@ -1969,9 +2070,7 @@ export default function ProviderDetailPage() {
         setSelectedIds(new Set());
         await fetchConnections();
         notify.success(t("batchDeleteSuccess", { count: selectedIds.size }));
-        if (providerId === "gemini") {
-          await fetchProviderModelMeta();
-        }
+        await fetchProviderModelMeta();
       } else {
         const data = await res.json();
         notify.error(data.error || "Batch delete failed");
@@ -1982,6 +2081,31 @@ export default function ProviderDetailPage() {
       setBatchDeleting(false);
     }
   };
+
+  const handleDelete = useCallback(
+    async (connectionId: string) => {
+      if (!connectionId) return;
+      try {
+        const res = await fetch(`/api/providers/${connectionId}`, { method: "DELETE" });
+        if (res.ok) {
+          notify.success("Connection deleted");
+          await fetchConnections();
+          await fetchProviderModelMeta();
+        } else {
+          const data = await res.json().catch(() => ({}));
+          const message =
+            (typeof data?.error === "string" && data.error) ||
+            data?.error?.message ||
+            "Failed to delete connection";
+          notify.error(message);
+        }
+      } catch (error) {
+        console.error("Error deleting connection:", error);
+        notify.error("Failed to delete connection");
+      }
+    },
+    [fetchConnections, fetchProviderModelMeta, notify]
+  );
 
   const handleBatchSetActive = async (isActive: boolean) => {
     if (selectedIds.size === 0 || batchUpdating) return;
@@ -2387,8 +2511,9 @@ export default function ProviderDetailPage() {
         setShowAddApiKeyModal(false);
         setSiliconFlowInitialBaseUrl(undefined);
 
-        // For Gemini: show progress dialog and sync models from endpoint
-        if (providerId === "gemini" && newConnection?.id) {
+        // Universal: sync models from the provider endpoint on every new connection
+        // (was previously Gemini-only). Do NOT re-introduce a providerId guard here.
+        if (newConnection?.id) {
           setShowImportModal(true);
           setImportProgress({
             current: 0,
@@ -3824,6 +3949,11 @@ export default function ProviderDetailPage() {
             onTestModel={onTestModel}
             modelTestStatus={modelTestStatus}
             testingModelId={testingModelId}
+            onTestAll={handleTestAll}
+            testingAll={testingAll}
+            testProgress={testProgress}
+            autoHideFailed={autoHideFailed}
+            onAutoHideFailedChange={setAutoHideFailed}
           />
         </div>
       );
@@ -3893,29 +4023,30 @@ export default function ProviderDetailPage() {
             onTestModel={onTestModel}
             modelTestStatus={modelTestStatus}
             testingModelId={testingModelId}
+            providerId={providerId}
+            connectionId={selectedConnection?.id ?? ""}
           />
         </div>
       );
     }
 
-    const importButton =
-      providerId === "gemini" ? null : (
-        <div className="flex items-center gap-2 mb-4">
-          <Button
-            size="sm"
-            variant="secondary"
-            icon="download"
-            onClick={handleImportModels}
-            disabled={!canImportModels || importingModels}
-          >
-            {importingModels ? t("importingModels") : t("importFromModels")}
-          </Button>
-          {autoSyncToggle}
-          {!canImportModels && (
-            <span className="text-xs text-text-muted">{t("addConnectionToImport")}</span>
-          )}
-        </div>
-      );
+    const importButton = (
+      <div className="flex items-center gap-2 mb-4">
+        <Button
+          size="sm"
+          variant="secondary"
+          icon="download"
+          onClick={handleImportModels}
+          disabled={!canImportModels || importingModels}
+        >
+          {importingModels ? t("importingModels") : t("importFromModels")}
+        </Button>
+        {autoSyncToggle}
+        {!canImportModels && (
+          <span className="text-xs text-text-muted">{t("addConnectionToImport")}</span>
+        )}
+      </div>
+    );
 
     if (models.length === 0) {
       return (
@@ -3929,16 +4060,26 @@ export default function ProviderDetailPage() {
       ...model,
       isHidden: effectiveModelHidden(model.id),
     }));
-    const filteredModels = modelsWithVisibility.filter((model) =>
-      matchesModelCatalogQuery(modelFilter, {
+    const filteredModels = modelsWithVisibility.filter((model) => {
+      const matchesQuery = matchesModelCatalogQuery(modelFilter, {
         modelId: model.id,
         modelName: model.name,
         source: model.source,
-      })
-    );
+      });
+      const matchesVisibility =
+        visibilityFilter === "all"
+          ? true
+          : visibilityFilter === "visible"
+            ? !model.isHidden
+            : model.isHidden;
+      return matchesQuery && matchesVisibility;
+    });
     const activeCount = modelsWithVisibility.filter((m) => !m.isHidden).length;
     const hiddenFilteredCount = filteredModels.filter((m) => m.isHidden).length;
     const visibleFilteredCount = filteredModels.length - hiddenFilteredCount;
+    const testAllTargets = filteredModels
+      .filter((m) => !m.isHidden)
+      .map((m) => ({ modelId: m.id, fullModel: `${providerDisplayAlias}/${m.id}` }));
     return (
       <div>
         {importButton}
@@ -3965,6 +4106,13 @@ export default function ProviderDetailPage() {
             }
             selectAllDisabled={hiddenFilteredCount === 0 || bulkVisibilityAction !== null}
             deselectAllDisabled={visibleFilteredCount === 0 || bulkVisibilityAction !== null}
+            onTestAll={() => handleTestAll(testAllTargets)}
+            testingAll={testingAll}
+            testProgress={testProgress}
+            visibilityFilter={visibilityFilter}
+            onVisibilityFilterChange={setVisibilityFilter}
+            autoHideFailed={autoHideFailed}
+            onAutoHideFailedChange={setAutoHideFailed}
           />
         )}
         <div className="flex flex-wrap gap-3">
@@ -4227,7 +4375,7 @@ export default function ProviderDetailPage() {
                       router.push("/dashboard/providers");
                     }
                   } catch (error) {
-                    console.log("Error deleting provider node:", error);
+                    console.error("Error deleting provider node:", error);
                   }
                 }}
               >
@@ -4455,7 +4603,11 @@ export default function ProviderDetailPage() {
                 </>
               ) : (
                 connections.length === 0 && (
-                  <Button size="sm" icon="add" onClick={() => gateConnectionFlow(openApiKeyAddFlow)}>
+                  <Button
+                    size="sm"
+                    icon="add"
+                    onClick={() => gateConnectionFlow(openApiKeyAddFlow)}
+                  >
                     {t("add")}
                   </Button>
                 )
@@ -5146,7 +5298,7 @@ export default function ProviderDetailPage() {
           onClose={() => setImportCodexModalOpen(false)}
           onSuccess={() => {
             setImportCodexModalOpen(false);
-            fetchData();
+            void fetchConnections();
           }}
         />
       )}
@@ -5213,7 +5365,7 @@ export default function ProviderDetailPage() {
           onClose={() => setImportClaudeModalOpen(false)}
           onSuccess={() => {
             setImportClaudeModalOpen(false);
-            fetchData();
+            void fetchConnections();
           }}
         />
       )}
@@ -5234,7 +5386,7 @@ export default function ProviderDetailPage() {
           onClose={() => setImportGeminiModalOpen(false)}
           onSuccess={() => {
             setImportGeminiModalOpen(false);
-            fetchData();
+            void fetchConnections();
           }}
         />
       )}
@@ -5699,6 +5851,13 @@ function ModelVisibilityToolbar({
   onDeselectAll,
   selectAllDisabled,
   deselectAllDisabled,
+  onTestAll,
+  testingAll,
+  testProgress,
+  visibilityFilter,
+  onVisibilityFilterChange,
+  autoHideFailed,
+  onAutoHideFailedChange,
 }: {
   t: ((key: string, values?: Record<string, unknown>) => string) & {
     has?: (key: string) => boolean;
@@ -5711,6 +5870,13 @@ function ModelVisibilityToolbar({
   onDeselectAll: () => void;
   selectAllDisabled?: boolean;
   deselectAllDisabled?: boolean;
+  onTestAll?: () => void;
+  testingAll?: boolean;
+  testProgress?: { done: number; total: number } | null;
+  visibilityFilter?: "all" | "visible" | "hidden";
+  onVisibilityFilterChange?: (filter: "all" | "visible" | "hidden") => void;
+  autoHideFailed?: boolean;
+  onAutoHideFailedChange?: (v: boolean) => void;
 }) {
   return (
     <div className="mb-3 flex flex-wrap items-center gap-2">
@@ -5726,30 +5892,73 @@ function ModelVisibilityToolbar({
           className="w-full rounded-lg border border-border bg-sidebar/50 py-1.5 pl-7 pr-3 text-xs text-text-main placeholder:text-text-muted focus:outline-none focus:ring-1 focus:ring-primary"
         />
       </div>
+      {visibilityFilter !== undefined && onVisibilityFilterChange && (
+        <div className="flex items-center gap-1 rounded-lg border border-border bg-sidebar/50 p-0.5">
+          {(["all", "visible", "hidden"] as const).map((f) => (
+            <button
+              key={f}
+              onClick={() => onVisibilityFilterChange(f)}
+              className={`rounded px-2 py-1 text-xs ${
+                visibilityFilter === f
+                  ? "bg-primary text-primary-foreground"
+                  : "text-text-muted hover:text-text-main"
+              }`}
+            >
+              {f === "all"
+                ? providerText(t, "showAllModels", "All")
+                : f === "visible"
+                  ? providerText(t, "showVisibleOnly", "Visible")
+                  : providerText(t, "showHiddenOnly", "Hidden")}
+            </button>
+          ))}
+        </div>
+      )}
+      {onAutoHideFailedChange && (
+        <label className="flex items-center gap-1.5 text-xs text-text-muted">
+          <input
+            type="checkbox"
+            checked={autoHideFailed ?? false}
+            onChange={(e) => onAutoHideFailedChange(e.target.checked)}
+            className="rounded border-border bg-sidebar"
+          />
+          {providerText(t, "hideFailedAuto", "Auto-hide failed")}
+        </label>
+      )}
+      {onTestAll && (
+        <button
+          onClick={onTestAll}
+          disabled={testingAll}
+          className="flex items-center gap-1.5 rounded-lg border border-border bg-transparent px-2.5 py-1 text-[12px] text-text-main disabled:cursor-not-allowed disabled:opacity-50"
+          title={providerText(t, "testAllModels", "Test all")}
+        >
+          <span className="material-symbols-outlined text-[16px]">
+            {testingAll ? "progress_activity" : "science"}
+          </span>
+          <span>
+            {testingAll && testProgress
+              ? providerText(t, "testingAllModels", "Testing {done}/{total}", testProgress)
+              : providerText(t, "testAllModels", "Test all")}
+          </span>
+        </button>
+      )}
       <button
         onClick={onSelectAll}
         disabled={selectAllDisabled}
         className="flex items-center gap-1.5 rounded-lg border border-border bg-transparent px-2.5 py-1 text-[12px] text-text-main disabled:cursor-not-allowed disabled:opacity-50"
-        title={providerText(t, "selectAllModels", "Select all")}
+        title={providerText(t, "showAllModels", "Show all")}
       >
-        <span className="material-symbols-outlined text-[16px]">done_all</span>
-        <span>{providerText(t, "selectAllModels", "Select all")}</span>
+        <span className="material-symbols-outlined text-[16px]">visibility</span>
+        <span>{providerText(t, "showAllModels", "Show all")}</span>
       </button>
       <button
         onClick={onDeselectAll}
         disabled={deselectAllDisabled}
         className="flex items-center gap-1.5 rounded-lg border border-border bg-transparent px-2.5 py-1 text-[12px] text-text-main disabled:cursor-not-allowed disabled:opacity-50"
-        title={providerText(t, "deselectAllModels", "Deselect all")}
+        title={providerText(t, "hideAllModels", "Hide all")}
       >
-        <span className="material-symbols-outlined text-[16px]">remove_done</span>
-        <span>{providerText(t, "deselectAllModels", "Deselect all")}</span>
+        <span className="material-symbols-outlined text-[16px]">visibility_off</span>
+        <span>{providerText(t, "hideAllModels", "Hide all")}</span>
       </button>
-      <span className="whitespace-nowrap text-xs text-text-muted">
-        {providerText(t, "modelsActiveCount", "{active}/{total} active", {
-          active: activeCount,
-          total: totalCount,
-        })}
-      </span>
     </div>
   );
 }
@@ -5780,11 +5989,77 @@ function PassthroughModelsSection({
   onTestModel,
   modelTestStatus,
   testingModelId,
+  providerId,
+  connectionId,
 }: PassthroughModelsSectionProps) {
   const [newModel, setNewModel] = useState("");
   const [adding, setAdding] = useState(false);
   const [modelFilter, setModelFilter] = useState("");
+  const [testingAll, setTestingAll] = useState(false);
+  const [testProgress, setTestProgress] = useState<{ done: number; total: number } | null>(null);
+  const [autoHideFailed, setAutoHideFailed] = useState(true);
+  const [visibilityFilter, setVisibilityFilter] = useState<"all" | "visible" | "hidden">("all");
+  const notify = useNotificationStore();
   const customModelMap = useMemo(() => buildCompatMap(customModels), [customModels]);
+
+  const handleTestAll = async () => {
+    const modelsToTest = filteredModels.filter((m) => !m.isHidden);
+    if (modelsToTest.length === 0) {
+      notify.error(providerText(t, "noModelsToTest", "No models to test"));
+      return;
+    }
+    setTestingAll(true);
+    setTestProgress({ done: 0, total: modelsToTest.length });
+
+    let ok = 0;
+    let error = 0;
+    let hiddenCount = 0;
+
+    for (const model of modelsToTest) {
+      try {
+        const result: {
+          results?: Record<
+            string,
+            {
+              status?: "ok" | "error";
+              rateLimited?: boolean;
+              isTimeout?: boolean;
+              error?: string;
+            }
+          >;
+        } = await fetch("/api/models/test-all", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            providerId,
+            connectionId,
+            modelIds: [model.modelId],
+          }),
+        }).then((r) => r.json());
+
+        const entry = result.results?.[model.modelId];
+        if (entry?.status === "ok") {
+          ok++;
+        } else {
+          error++;
+          if (autoHideFailed && !entry?.rateLimited && !entry?.isTimeout) {
+            await onToggleHidden(model.modelId, true);
+            hiddenCount++;
+          }
+        }
+      } catch (e) {
+        error++;
+      }
+      setTestProgress((prev) => (prev ? { done: prev.done + 1, total: prev.total } : null));
+    }
+
+    notify.info(providerText(t, "testAllResults", "{ok} ok, {error} error", { ok, error }));
+    if (hiddenCount > 0) {
+      notify.info(providerText(t, "testAllFailedHidden", "{count} hidden", { count: hiddenCount }));
+    }
+    setTestingAll(false);
+    setTestProgress(null);
+  };
 
   const providerAliases = useMemo(
     () =>
@@ -5874,14 +6149,23 @@ function PassthroughModelsSection({
     providerAlias,
     providerAliases,
   ]);
-  const filteredModels = allModels.filter((model) =>
-    matchesModelCatalogQuery(modelFilter, {
+  const filteredModels = allModels.filter((model) => {
+    const matchesQuery = matchesModelCatalogQuery(modelFilter, {
       modelId: model.modelId,
       modelName: model.displayName,
       alias: model.alias,
       source: model.source,
-    })
-  );
+    });
+
+    const matchesVisibility =
+      visibilityFilter === "all"
+        ? true
+        : visibilityFilter === "visible"
+          ? !model.isHidden
+          : model.isHidden;
+
+    return matchesQuery && matchesVisibility;
+  });
   const activeCount = allModels.filter((model) => !model.isHidden).length;
   const hiddenFilteredCount = filteredModels.filter((model) => model.isHidden).length;
   const visibleFilteredCount = filteredModels.length - hiddenFilteredCount;
@@ -5908,7 +6192,7 @@ function PassthroughModelsSection({
       await onSetAlias(modelId, defaultAlias);
       setNewModel("");
     } catch (error) {
-      console.log("Error adding model:", error);
+      console.error("Error adding model:", error);
     } finally {
       setAdding(false);
     }
@@ -5950,18 +6234,24 @@ function PassthroughModelsSection({
             totalCount={allModels.length}
             onSelectAll={() =>
               onBulkToggleHidden(
-                filteredModels.map((model) => model.modelId),
+                filteredModels.map((m) => m.modelId),
                 false
               )
             }
             onDeselectAll={() =>
               onBulkToggleHidden(
-                filteredModels.map((model) => model.modelId),
+                filteredModels.map((m) => m.modelId),
                 true
               )
             }
-            selectAllDisabled={hiddenFilteredCount === 0 || bulkTogglePending}
-            deselectAllDisabled={visibleFilteredCount === 0 || bulkTogglePending}
+            selectAllDisabled={bulkTogglePending || filteredModels.length === 0}
+            deselectAllDisabled={bulkTogglePending || filteredModels.length === 0}
+            onTestAll={handleTestAll}
+            testingAll={testingAll}
+            visibilityFilter={visibilityFilter}
+            onVisibilityFilterChange={setVisibilityFilter}
+            autoHideFailed={autoHideFailed}
+            onAutoHideFailedChange={setAutoHideFailed}
           />
           <div className="grid grid-cols-1 gap-3 xl:grid-cols-2">
             {filteredModels.map(({ modelId, fullModel, alias, isHidden, source, isFree }) => (
@@ -6687,11 +6977,17 @@ function CompatibleModelsSection({
   onTestModel,
   modelTestStatus,
   testingModelId,
+  onTestAll,
+  testingAll,
+  testProgress,
+  autoHideFailed,
+  onAutoHideFailedChange,
 }: CompatibleModelsSectionProps) {
   const [newModel, setNewModel] = useState("");
   const [adding, setAdding] = useState(false);
   const [importing, setImporting] = useState(false);
   const [modelFilter, setModelFilter] = useState("");
+  const [visibilityFilter, setVisibilityFilter] = useState<"all" | "visible" | "hidden">("all");
   const notify = useNotificationStore();
   const customModelMap = useMemo(() => buildCompatMap(customModels), [customModels]);
 
@@ -6782,14 +7078,21 @@ function CompatibleModelsSection({
     providerAliases,
     providerStorageAlias,
   ]);
-  const filteredModels = allModels.filter((model) =>
-    matchesModelCatalogQuery(modelFilter, {
+  const filteredModels = allModels.filter((model) => {
+    const matchesQuery = matchesModelCatalogQuery(modelFilter, {
       modelId: model.modelId,
       modelName: model.displayName,
       alias: model.alias,
       source: model.source,
-    })
-  );
+    });
+    const matchesVisibility =
+      visibilityFilter === "all"
+        ? true
+        : visibilityFilter === "visible"
+          ? !model.isHidden
+          : model.isHidden;
+    return matchesQuery && matchesVisibility;
+  });
   const activeCount = allModels.filter((model) => !model.isHidden).length;
   const hiddenFilteredCount = filteredModels.filter((model) => model.isHidden).length;
   const visibleFilteredCount = filteredModels.length - hiddenFilteredCount;
@@ -6956,6 +7259,21 @@ function CompatibleModelsSection({
             }
             selectAllDisabled={hiddenFilteredCount === 0 || bulkTogglePending}
             deselectAllDisabled={visibleFilteredCount === 0 || bulkTogglePending}
+            visibilityFilter={visibilityFilter}
+            onVisibilityFilterChange={setVisibilityFilter}
+            onTestAll={() => {
+              const targets = filteredModels
+                .filter((m) => !m.isHidden)
+                .map((m) => ({
+                  modelId: m.modelId,
+                  fullModel: `${providerDisplayAlias}/${m.modelId}`,
+                }));
+              return onTestAll?.(targets);
+            }}
+            testingAll={testingAll}
+            testProgress={testProgress}
+            autoHideFailed={autoHideFailed}
+            onAutoHideFailedChange={onAutoHideFailedChange}
           />
           <div className="grid grid-cols-1 gap-3 xl:grid-cols-2">
             {filteredModels.map(({ modelId, alias, isHidden, source, isFree }) => {
@@ -7050,8 +7368,8 @@ const ERROR_TYPE_LABELS = {
   network_error: { labelKey: "errorTypeNetworkError", variant: "warning" },
   unsupported: { labelKey: "errorTypeTestUnsupported", variant: "default" },
   upstream_error: { labelKey: "errorTypeUpstreamError", variant: "error" },
-  banned: { labelKey: "403 Banned", variant: "error" },
-  credits_exhausted: { labelKey: "No Credits", variant: "warning" },
+  banned: { labelKey: "errorTypeBanned", variant: "error" },
+  credits_exhausted: { labelKey: "errorTypeCreditsExhausted", variant: "warning" },
 };
 
 function inferErrorType(connection, isCooldown) {
@@ -10331,6 +10649,11 @@ function EditConnectionModal({ isOpen, connection, onSave, onClose }: EditConnec
     name: "",
     priority: 1,
     maxConcurrent: "",
+    rpm: "",
+    tpm: "",
+    tpd: "",
+    minTime: "",
+    rateLimitMaxConcurrent: "",
     apiKey: "",
     healthCheckInterval: 60,
     baseUrl: "",
@@ -10459,6 +10782,26 @@ function EditConnectionModal({ isOpen, connection, onSave, onClose }: EditConnec
         maxConcurrent:
           connection.maxConcurrent !== null && connection.maxConcurrent !== undefined
             ? String(connection.maxConcurrent)
+            : "",
+        rpm:
+          connection.rateLimitOverrides?.rpm != null
+            ? String(connection.rateLimitOverrides.rpm)
+            : "",
+        tpm:
+          connection.rateLimitOverrides?.tpm != null
+            ? String(connection.rateLimitOverrides.tpm)
+            : "",
+        tpd:
+          connection.rateLimitOverrides?.tpd != null
+            ? String(connection.rateLimitOverrides.tpd)
+            : "",
+        minTime:
+          connection.rateLimitOverrides?.minTime != null
+            ? String(connection.rateLimitOverrides.minTime)
+            : "",
+        rateLimitMaxConcurrent:
+          connection.rateLimitOverrides?.maxConcurrent != null
+            ? String(connection.rateLimitOverrides.maxConcurrent)
             : "",
         apiKey: "",
         healthCheckInterval: connection.healthCheckInterval ?? 60,
@@ -10612,6 +10955,16 @@ function EditConnectionModal({ isOpen, connection, onSave, onClose }: EditConnec
         maxConcurrent: parsedMaxConcurrent,
         healthCheckInterval: formData.healthCheckInterval,
       };
+
+      // Build rateLimitOverrides from non-empty fields
+      const overrides: Record<string, number> = {};
+      if (formData.rpm.trim()) overrides.rpm = Number(formData.rpm);
+      if (formData.tpm.trim()) overrides.tpm = Number(formData.tpm);
+      if (formData.tpd.trim()) overrides.tpd = Number(formData.tpd);
+      if (formData.minTime.trim()) overrides.minTime = Number(formData.minTime);
+      if (formData.rateLimitMaxConcurrent.trim())
+        overrides.maxConcurrent = Number(formData.rateLimitMaxConcurrent);
+      updates.rateLimitOverrides = Object.keys(overrides).length > 0 ? overrides : null;
 
       if (supportsGoogleProjectId) {
         updates.projectId = trimmedCloudCodeProjectId || null;
@@ -11057,6 +11410,60 @@ function EditConnectionModal({ isOpen, connection, onSave, onClose }: EditConnec
                     type="password"
                   />
                 )}
+                <div className="border-t border-border/30 pt-3 mt-1">
+                  <p className="text-xs font-medium text-text-muted mb-2">
+                    {t("rateLimitOverridesSection")}
+                  </p>
+                  <div className="grid grid-cols-2 gap-3">
+                    <Input
+                      label={t("rateLimitOverridesRpmLabel")}
+                      type="number"
+                      min={0}
+                      value={formData.rpm}
+                      onChange={(e) => setFormData({ ...formData, rpm: e.target.value })}
+                      placeholder="Inherit"
+                      hint={t("rateLimitOverridesRpmHint")}
+                    />
+                    <Input
+                      label={t("rateLimitOverridesTpmLabel")}
+                      type="number"
+                      min={0}
+                      value={formData.tpm}
+                      onChange={(e) => setFormData({ ...formData, tpm: e.target.value })}
+                      placeholder="Inherit"
+                      hint={t("rateLimitOverridesTpmHint")}
+                    />
+                    <Input
+                      label={t("rateLimitOverridesTpdLabel")}
+                      type="number"
+                      min={0}
+                      value={formData.tpd}
+                      onChange={(e) => setFormData({ ...formData, tpd: e.target.value })}
+                      placeholder="Inherit"
+                      hint={t("rateLimitOverridesTpdHint")}
+                    />
+                    <Input
+                      label={t("rateLimitOverridesMinTimeLabel")}
+                      type="number"
+                      min={0}
+                      value={formData.minTime}
+                      onChange={(e) => setFormData({ ...formData, minTime: e.target.value })}
+                      placeholder="Inherit"
+                      hint={t("rateLimitOverridesMinTimeHint")}
+                    />
+                    <Input
+                      label={t("rateLimitOverridesMaxConcurrentLabel")}
+                      type="number"
+                      min={0}
+                      value={formData.rateLimitMaxConcurrent}
+                      onChange={(e) =>
+                        setFormData({ ...formData, rateLimitMaxConcurrent: e.target.value })
+                      }
+                      placeholder="Inherit"
+                      hint={t("rateLimitOverridesMaxConcurrentHint")}
+                    />
+                  </div>
+                </div>
               </div>
             )}
             <Input

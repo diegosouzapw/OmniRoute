@@ -76,10 +76,10 @@ function isPlainObject(value) {
   return value !== null && typeof value === "object" && !Array.isArray(value);
 }
 
-function collectLeafPaths(obj, prefix = "") {
+function collectLeafPaths(obj, prefix = []) {
   const paths = [];
   for (const [key, value] of Object.entries(obj)) {
-    const next = prefix ? `${prefix}.${key}` : key;
+    const next = [...prefix, key];
     if (isPlainObject(value)) {
       paths.push(...collectLeafPaths(value, next));
     } else {
@@ -94,8 +94,7 @@ function collectLeafPaths(obj, prefix = "") {
 // scanner correctly flags any dynamic indexing with untrusted-looking keys.
 const FORBIDDEN_KEY_SEGMENTS = new Set(["__proto__", "prototype", "constructor"]);
 
-function lookupPath(obj, dotPath) {
-  const parts = dotPath.split(".");
+function lookupPath(obj, parts) {
   let cur = obj;
   for (const part of parts) {
     if (!isPlainObject(cur)) return undefined;
@@ -170,8 +169,8 @@ async function main() {
     let present = 0;
     let missing = 0;
     let placeholder = 0;
-    for (const dotPath of enPaths) {
-      const value = lookupPath(target, dotPath);
+    for (const pathParts of enPaths) {
+      const value = lookupPath(target, pathParts);
       if (value === undefined) {
         missing++;
         continue;

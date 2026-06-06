@@ -204,6 +204,7 @@ const SCHEMA_SQL = `
     "group" TEXT,
     max_concurrent INTEGER,
     quota_window_thresholds_json TEXT,
+    rate_limit_overrides_json TEXT,
     created_at TEXT NOT NULL,
     updated_at TEXT NOT NULL
   );
@@ -539,6 +540,10 @@ function ensureProviderConnectionsColumns(db: SqliteDatabase) {
     if (!columnNames.has("quota_window_thresholds_json")) {
       db.exec("ALTER TABLE provider_connections ADD COLUMN quota_window_thresholds_json TEXT");
       console.log("[DB] Added provider_connections.quota_window_thresholds_json column");
+    }
+    if (!columnNames.has("rate_limit_overrides_json")) {
+      db.exec("ALTER TABLE provider_connections ADD COLUMN rate_limit_overrides_json TEXT");
+      console.log("[DB] Added provider_connections.rate_limit_overrides_json column");
     }
     db.exec(
       "CREATE INDEX IF NOT EXISTS idx_pc_max_concurrent ON provider_connections(provider, max_concurrent)"

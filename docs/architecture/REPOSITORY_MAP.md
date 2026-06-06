@@ -491,7 +491,7 @@ Shipped configuration templates and sample files (referenced by setup wizard).
 | `commands/deploy-vps-{local,akamai,both}-cc.md`                   | Deploy to VPS                                      |
 | `commands/capture-release-evidences-cc.md`                        | Browser-record new features as WebP                |
 | `commands/review-{prs,discussions}-cc.md`                         | Triage GitHub PRs/discussions                      |
-| `commands/{issue-triage,resolve-issues,implement-features}-cc.md` | Issue workflows                                    |
+| `commands/{review-issues,implement-features}-cc.md`               | Issue workflows                                    |
 | `settings.local.json`                                             | Per-project Claude Code settings                   |
 
 ---

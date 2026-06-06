@@ -61,6 +61,41 @@ function withNullableQuotaWindowThresholds(
   };
 }
 
+// Always surface `rateLimitOverrides` (possibly null) — matches the pattern
+// used by withNullableMaxConcurrent and withNullableQuotaWindowThresholds.
+function withNullableRateLimitOverrides(
+  record: JsonRecord,
+  source: JsonRecord | null | undefined
+): JsonRecord {
+  return {
+    ...record,
+    rateLimitOverrides: (source?.rateLimitOverrides ?? null) as Record<string, number> | null,
+  };
+}
+
+// Sanitize the per-connection rate limit overrides map: keep only known
+// fields with valid numeric values. Called once at each write-path boundary.
+function sanitizeRateLimitOverrides(value: unknown): Record<string, number> | null {
+  if (value === null || value === undefined) return null;
+  if (typeof value !== "object" || Array.isArray(value)) return null;
+  const allowedKeys = new Set(["rpm", "tpm", "tpd", "minTime", "maxConcurrent"]);
+  const map: Record<string, number> = {};
+  for (const [key, v] of Object.entries(value as Record<string, unknown>)) {
+    if (!allowedKeys.has(key)) continue;
+    if (typeof v === "number" && Number.isInteger(v) && v >= 0) {
+      map[key] = v;
+    }
+  }
+  return Object.keys(map).length === 0 ? null : map;
+}
+
+// Serialize an already-sanitized map for SQLite TEXT storage.
+function serializeRateLimitOverrides(value: unknown): string | null {
+  if (value === null || value === undefined) return null;
+  if (typeof value !== "object" || Array.isArray(value)) return null;
+  return JSON.stringify(value);
+}
+
 function toRecord(value: unknown): JsonRecord {
   return value && typeof value === "object" ? (value as JsonRecord) : {};
 }
@@ -124,8 +159,11 @@ export async function getProviderConnections(filter: JsonRecord = {}) {
   return rows.map((r) => {
     const camelRow = rowToCamel(r);
     return decryptConnectionFields(
-      withNullableQuotaWindowThresholds(
-        withNullableMaxConcurrent(cleanNulls(camelRow), camelRow),
+      withNullableRateLimitOverrides(
+        withNullableQuotaWindowThresholds(
+          withNullableMaxConcurrent(cleanNulls(camelRow), camelRow),
+          camelRow
+        ),
         camelRow
       )
     );
@@ -139,8 +177,11 @@ export async function getProviderConnectionById(id: string) {
 
   const camelRow = rowToCamel(row);
   return decryptConnectionFields(
-    withNullableQuotaWindowThresholds(
-      withNullableMaxConcurrent(cleanNulls(camelRow), camelRow),
+    withNullableRateLimitOverrides(
+      withNullableQuotaWindowThresholds(
+        withNullableMaxConcurrent(cleanNulls(camelRow), camelRow),
+        camelRow
+      ),
       camelRow
     )
   );
@@ -235,8 +276,11 @@ export async function createProviderConnection(data: JsonRecord) {
     );
     _updateConnectionRow(db, existingId, merged);
     backupDbFile("pre-write");
-    return withNullableQuotaWindowThresholds(
-      withNullableMaxConcurrent(cleanNulls(merged), merged),
+    return withNullableRateLimitOverrides(
+      withNullableQuotaWindowThresholds(
+        withNullableMaxConcurrent(cleanNulls(merged), merged),
+        merged
+      ),
       merged
     );
   }
@@ -304,6 +348,7 @@ export async function createProviderConnection(data: JsonRecord) {
     "proxyEnabled",
     "perKeyProxyEnabled",
     "quotaWindowThresholds",
+    "rateLimitOverrides",
   ];
   for (const field of optionalFields) {
     if (data[field] !== undefined && data[field] !== null) {
@@ -324,6 +369,14 @@ export async function createProviderConnection(data: JsonRecord) {
     );
   }
 
+  // Same sanitization for rateLimitOverrides — keep in-memory representation
+  // in sync with what gets persisted.
+  if ("rateLimitOverrides" in connection) {
+    connection.rateLimitOverrides = sanitizeRateLimitOverrides(
+      connection.rateLimitOverrides
+    );
+  }
+
   _insertConnectionRow(db, encryptConnectionFields({ ...connection }));
   const providerId = toStringOrNull(data.provider);
   if (providerId) {
@@ -332,8 +385,11 @@ export async function createProviderConnection(data: JsonRecord) {
   backupDbFile("pre-write");
   invalidateDbCache("connections"); // Bust connections read cache
 
-  return withNullableQuotaWindowThresholds(
-    withNullableMaxConcurrent(cleanNulls(connection), connection),
+  return withNullableRateLimitOverrides(
+    withNullableQuotaWindowThresholds(
+      withNullableMaxConcurrent(cleanNulls(connection), connection),
+      connection
+    ),
     connection
   );
 }
@@ -350,8 +406,7 @@ function _insertConnectionRow(db: DbLike, conn: JsonRecord) {
       last_tested, api_key, id_token, provider_specific_data,
       expires_in, display_name, global_priority, default_model,
       token_type, consecutive_use_count, rate_limit_protection, last_used_at, "group", max_concurrent,
-      proxy_enabled, per_key_proxy_enabled,
-      quota_window_thresholds_json,
+      proxy_enabled, per_key_proxy_enabled, quota_window_thresholds_json, rate_limit_overrides_json,
       created_at, updated_at
     ) VALUES (
       @id, @provider, @authType, @name, @email, @priority, @isActive,
@@ -362,8 +417,7 @@ function _insertConnectionRow(db: DbLike, conn: JsonRecord) {
       @lastTested, @apiKey, @idToken, @providerSpecificData,
       @expiresIn, @displayName, @globalPriority, @defaultModel,
       @tokenType, @consecutiveUseCount, @rateLimitProtection, @lastUsedAt, @group, @maxConcurrent,
-      @proxyEnabled, @perKeyProxyEnabled,
-      @quotaWindowThresholdsJson,
+      @proxyEnabled, @perKeyProxyEnabled, @quotaWindowThresholdsJson, @rateLimitOverridesJson,
       @createdAt, @updatedAt
     )
   `
@@ -411,6 +465,7 @@ function _insertConnectionRow(db: DbLike, conn: JsonRecord) {
     proxyEnabled: conn.proxyEnabled ?? 1,
     perKeyProxyEnabled: conn.perKeyProxyEnabled ?? 0,
     quotaWindowThresholdsJson: serializeQuotaWindowThresholds(conn.quotaWindowThresholds),
+    rateLimitOverridesJson: serializeRateLimitOverrides(conn.rateLimitOverrides),
     createdAt: conn.createdAt,
     updatedAt: conn.updatedAt,
   });
@@ -440,6 +495,7 @@ function _updateConnectionRow(db: DbLike, id: string, data: JsonRecord) {
       quota_window_thresholds_json = @quotaWindowThresholdsJson,
       proxy_enabled = @proxyEnabled,
       per_key_proxy_enabled = @perKeyProxyEnabled,
+      rate_limit_overrides_json = @rateLimitOverridesJson,
       updated_at = @updatedAt
     WHERE id = @id
   `
@@ -497,6 +553,7 @@ function _updateConnectionRow(db: DbLike, id: string, data: JsonRecord) {
           ? 1
           : 0
         : (data.perKeyProxyEnabled ?? 0),
+    rateLimitOverridesJson: serializeRateLimitOverrides(data.rateLimitOverrides),
     updatedAt: now,
   });
 }
@@ -523,6 +580,9 @@ export async function updateProviderConnection(id: string, data: JsonRecord) {
     // path surfaces the cleared state to callers that just patched it.
     merged.quotaWindowThresholds = sanitized;
   }
+  if ("rateLimitOverrides" in merged) {
+    merged.rateLimitOverrides = sanitizeRateLimitOverrides(merged.rateLimitOverrides);
+  }
   _updateConnectionRow(db, id, encryptConnectionFields({ ...merged }));
   backupDbFile("pre-write");
   invalidateDbCache("connections"); // Bust connections read cache
@@ -536,8 +596,11 @@ export async function updateProviderConnection(id: string, data: JsonRecord) {
     _reorderConnections(db, providerId);
   }
 
-  return withNullableQuotaWindowThresholds(
-    withNullableMaxConcurrent(cleanNulls(merged), merged),
+  return withNullableRateLimitOverrides(
+    withNullableQuotaWindowThresholds(
+      withNullableMaxConcurrent(cleanNulls(merged), merged),
+      merged
+    ),
     merged
   );
 }

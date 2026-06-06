@@ -2012,6 +2012,20 @@ export const updateProviderConnectionSchema = z
       ])
       .optional(),
     projectId: z.union([z.string(), z.null()]).optional(),
+    // Per-connection rate limit overrides — overrides the global RequestQueueSettings
+    // for this connection. Set to null to clear all overrides.
+    rateLimitOverrides: z
+      .union([
+        z.null(),
+        z.object({
+          rpm: z.coerce.number().int().min(0).max(1_000_000).optional(),
+          tpm: z.coerce.number().int().min(0).max(100_000_000).optional(),
+          tpd: z.coerce.number().int().min(0).max(10_000_000_000).optional(),
+          minTime: z.coerce.number().int().min(0).max(60_000).optional(),
+          maxConcurrent: z.coerce.number().int().min(0).max(10_000).optional(),
+        }),
+      ])
+      .optional(),
     proxyEnabled: z.boolean().optional(),
     perKeyProxyEnabled: z.boolean().optional(),
     // Partial patch of per-connection provider-specific settings (e.g. quota toggles)

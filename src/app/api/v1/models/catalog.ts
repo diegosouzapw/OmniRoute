@@ -100,8 +100,9 @@ function intersectStringArrays(arrays: string[][]): string[] {
 }
 
 function minKnownNumber(values: Array<number | undefined>): number | undefined {
-  if (values.length === 0 || !values.every(isPositiveFiniteNumber)) return undefined;
-  return Math.min(...values);
+  const knownValues = values.filter(isPositiveFiniteNumber);
+  if (knownValues.length === 0) return undefined;
+  return Math.min(...knownValues);
 }
 
 const VISION_MODEL_KEYWORDS = [
@@ -564,7 +565,10 @@ export async function getUnifiedModelsResponse(
       };
     };
 
-    const buildComboCatalogMetadata = (combo: Record<string, any>, allCombos: any[]) => {
+    const buildComboCatalogMetadata = (
+      combo: Parameters<typeof resolveNestedComboTargets>[0],
+      allCombos: Parameters<typeof resolveNestedComboTargets>[1]
+    ) => {
       const explicitContextLength = isPositiveFiniteNumber(combo.context_length)
         ? combo.context_length
         : undefined;
@@ -574,9 +578,11 @@ export async function getUnifiedModelsResponse(
       if (targets.length === 0) return baseMetadata;
 
       const targetMetadata = targets.map((target) => getComboTargetCatalogMetadata(target));
-      if (targetMetadata.some((metadata) => metadata === null)) return baseMetadata;
 
-      const knownMetadata = targetMetadata as ComboTargetCatalogMetadata[];
+      const knownMetadata = targetMetadata.filter(
+        (metadata): metadata is ComboTargetCatalogMetadata => metadata !== null
+      );
+      if (knownMetadata.length === 0) return baseMetadata;
       const contextLength =
         explicitContextLength ??
         minKnownNumber(knownMetadata.map((metadata) => metadata.contextLength));
@@ -635,6 +641,21 @@ export async function getUnifiedModelsResponse(
     for (const combo of combos) {
       if (combo.isActive === false || combo.isHidden === true) continue;
       if (typeof combo.name !== "string" || combo.name.length === 0) continue;
+
+      // Skip combos whose any underlying target model is hidden
+      const comboTargets = resolveNestedComboTargets(
+        combo as Parameters<typeof resolveNestedComboTargets>[0],
+        combos as Parameters<typeof resolveNestedComboTargets>[1]
+      ) as ComboCatalogTarget[];
+      if (
+        comboTargets.some((target) => {
+          const resolved = getComboTargetModelId(target);
+          return resolved ? getModelIsHidden(resolved.providerId, resolved.modelId) : false;
+        })
+      ) {
+        continue;
+      }
+
       const comboMetadata = buildComboCatalogMetadata(combo, combos);
 
       models.push({
@@ -969,6 +990,7 @@ export async function getUnifiedModelsResponse(
       if (!isProviderActive(embModel.provider)) continue;
       const rawModelId = embModel.id.split("/").pop() || embModel.id;
       if (!providerSupportsModel(embModel.provider, rawModelId)) continue;
+      if (getModelIsHidden(embModel.provider, rawModelId)) continue;
       if (hasEquivalentSpecialtyModel(embModel.provider, rawModelId, "embedding", embModel.id)) {
         continue;
       }
@@ -988,6 +1010,7 @@ export async function getUnifiedModelsResponse(
       if (!isProviderActive(imgModel.provider)) continue;
       const rawModelId = imgModel.id.split("/").pop() || imgModel.id;
       if (!providerSupportsModel(imgModel.provider, rawModelId)) continue;
+      if (getModelIsHidden(imgModel.provider, rawModelId)) continue;
       models.push({
         id: imgModel.id,
         object: "model",
@@ -1006,6 +1029,7 @@ export async function getUnifiedModelsResponse(
       if (!isProviderActive(rerankModel.provider)) continue;
       const rawModelId = rerankModel.id.split("/").pop() || rerankModel.id;
       if (!providerSupportsModel(rerankModel.provider, rawModelId)) continue;
+      if (getModelIsHidden(rerankModel.provider, rawModelId)) continue;
       if (hasEquivalentSpecialtyModel(rerankModel.provider, rawModelId, "rerank", rerankModel.id)) {
         continue;
       }
@@ -1024,6 +1048,7 @@ export async function getUnifiedModelsResponse(
       if (!isProviderActive(audioModel.provider)) continue;
       const rawModelId = audioModel.id.split("/").pop() || audioModel.id;
       if (!providerSupportsModel(audioModel.provider, rawModelId)) continue;
+      if (getModelIsHidden(audioModel.provider, rawModelId)) continue;
       models.push({
         id: audioModel.id,
         object: "model",
@@ -1039,6 +1064,7 @@ export async function getUnifiedModelsResponse(
       if (!isProviderActive(modModel.provider)) continue;
       const rawModelId = modModel.id.split("/").pop() || modModel.id;
       if (!providerSupportsModel(modModel.provider, rawModelId)) continue;
+      if (getModelIsHidden(modModel.provider, rawModelId)) continue;
       models.push({
         id: modModel.id,
         object: "model",
@@ -1053,6 +1079,7 @@ export async function getUnifiedModelsResponse(
       if (!isProviderActive(videoModel.provider)) continue;
       const rawModelId = videoModel.id.split("/").pop() || videoModel.id;
       if (!providerSupportsModel(videoModel.provider, rawModelId)) continue;
+      if (getModelIsHidden(videoModel.provider, rawModelId)) continue;
       models.push({
         id: videoModel.id,
         object: "model",
@@ -1067,6 +1094,7 @@ export async function getUnifiedModelsResponse(
       if (!isProviderActive(musicModel.provider)) continue;
       const rawModelId = musicModel.id.split("/").pop() || musicModel.id;
       if (!providerSupportsModel(musicModel.provider, rawModelId)) continue;
+      if (getModelIsHidden(musicModel.provider, rawModelId)) continue;
       models.push({
         id: musicModel.id,
         object: "model",
@@ -1109,6 +1137,7 @@ export async function getUnifiedModelsResponse(
           const modelId = typeof model.id === "string" ? model.id : null;
           if (!modelId) continue;
           if (model.isHidden === true) continue;
+          if (getModelIsHidden(canonicalProviderId, modelId)) continue;
           if (
             !hasEligibleConnectionForModel(
               getConnectionsForProvider(alias, canonicalProviderId, providerId, parentProviderType),
@@ -1212,11 +1241,12 @@ export async function getUnifiedModelsResponse(
 
       const prefix = providerIdToPrefix[providerId];
       const alias = prefix || providerIdToAlias[providerId] || providerId;
+      const canonicalProviderId = resolveCanonicalProviderId(alias, providerId);
 
       for (const model of fallbackModels) {
         const modelId = typeof model.id === "string" ? model.id : null;
         if (!modelId) continue;
-        if (getModelIsHidden(providerId, modelId)) continue;
+        if (getModelIsHidden(canonicalProviderId, modelId)) continue;
         if (!hasEligibleConnectionForModel([conn], modelId)) continue;
 
         const aliasId = `${alias}/${modelId}`;

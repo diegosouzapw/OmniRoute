@@ -38,6 +38,22 @@ export const LOCAL_ONLY_API_PREFIXES: ReadonlyArray<string> = [
 ];
 
 /**
+ * LOCAL_ONLY routes whose spawn-capable segment sits AFTER a dynamic path
+ * parameter, so a flat prefix in `LOCAL_ONLY_API_PREFIXES` cannot target them
+ * without over-broadening (e.g. locking the entire `/api/providers/` subtree,
+ * which remote dashboards legitimately use for provider CRUD). These are matched
+ * by regex instead.
+ *
+ *   - `POST /api/providers/{id}/login` launches a headful Playwright Chromium
+ *     (a child process) to drive a web-cookie login. Loopback enforcement must
+ *     happen unconditionally before any auth check (Hard Rules #15 + #17), so a
+ *     leaked JWT via tunnel cannot trigger a browser spawn.
+ */
+export const LOCAL_ONLY_API_PATTERNS: ReadonlyArray<RegExp> = [
+  /^\/api\/providers\/[^/]+\/login\/?$/,
+];
+
+/**
  * Compile-time deny-list: route prefixes that can spawn arbitrary local
  * subprocesses on behalf of the caller. These MUST NEVER appear in the
  * manage-scope bypass list — regardless of DB state — because reaching them
@@ -141,7 +157,10 @@ export function isPrivateLanHost(hostHeader: string | null): boolean {
 }
 
 export function isLocalOnlyPath(path: string): boolean {
-  return LOCAL_ONLY_API_PREFIXES.some((p) => path === p || path.startsWith(p));
+  return (
+    LOCAL_ONLY_API_PREFIXES.some((p) => path === p || path.startsWith(p)) ||
+    LOCAL_ONLY_API_PATTERNS.some((re) => re.test(path))
+  );
 }
 
 /**
