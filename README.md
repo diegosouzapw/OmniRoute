@@ -523,6 +523,19 @@ curl http://localhost:20128/v1/models -H "Authorization: Bearer YOUR_KEY"
 
 You should see your connected models listed. 🎉 That's it — start coding, and OmniRoute auto-routes & falls back for you.
 
+If your client cannot send custom headers, OmniRoute also exposes tokenized compatibility aliases:
+
+```txt
+OpenAI catalog:   http://localhost:20128/vscode/YOUR_KEY/
+OpenAI models:    http://localhost:20128/vscode/YOUR_KEY/models
+OpenAI chat:      http://localhost:20128/vscode/YOUR_KEY/chat/completions
+OpenAI responses: http://localhost:20128/vscode/YOUR_KEY/responses
+Ollama chat:      http://localhost:20128/vscode/YOUR_KEY/api/chat
+Ollama tags:      http://localhost:20128/vscode/YOUR_KEY/api/tags
+```
+
+Use these only for clients that cannot attach `Authorization: Bearer ...`. Header auth remains the preferred mode.
+
 <br/>
 
 ## 📦 More install methods — Docker, source, pnpm, Arch</b></summary>
