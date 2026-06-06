@@ -113,6 +113,9 @@ function addModelsSuffix(baseUrl: string) {
   if (!normalized) return "";
 
   const suffixes = ["/chat/completions", "/responses", "/chat", "/messages"];
+  if (normalized.endsWith("/models")) {
+    return normalized;
+  }
   for (const suffix of suffixes) {
     if (normalized.endsWith(suffix)) {
       return `${normalized.slice(0, -suffix.length)}/models`;
@@ -4012,9 +4015,10 @@ export async function validateProviderApiKey({ provider, apiKey, providerSpecifi
         const baseUrlRaw =
           providerSpecificData?.baseUrl || "https://integrate.api.nvidia.com/v1/chat/completions";
         const normalized = normalizeBaseUrl(baseUrlRaw);
+        const chatBase = normalized.replace(/\/models$/, "");
         const chatUrl = normalized.endsWith("/chat/completions")
           ? normalized
-          : `${normalized}/chat/completions`;
+          : `${chatBase}/chat/completions`;
         // #3116: probe a universally-available model rather than models[0]
         // (z-ai/glm-5.1), which requires the "Public API Endpoints" account permission
         // and can hang/be DEGRADED — making a *valid* key fail with "Upstream Error".
@@ -4168,6 +4172,30 @@ export async function validateProviderApiKey({ provider, apiKey, providerSpecifi
         authType: entry.authType,
         isLocal,
       });
+    }
+
+    if (entry.format === "antigravity") {
+      const expiresAt =
+        providerSpecificData?.tokenExpiresAt ||
+        providerSpecificData?.expiresAt ||
+        providerSpecificData?.expiry_date ||
+        providerSpecificData?.expiryDate;
+      const expiryMs =
+        typeof expiresAt === "number"
+          ? expiresAt
+          : typeof expiresAt === "string" && expiresAt.trim()
+            ? Date.parse(expiresAt)
+            : Number.NaN;
+
+      if (Number.isFinite(expiryMs) && expiryMs > 0 && expiryMs < Date.now()) {
+        return {
+          valid: false,
+          error: "Antigravity OAuth token has expired. Re-import or refresh the CLI login.",
+          unsupported: false,
+        };
+      }
+
+      return { valid: true, error: null, unsupported: false };
     }
 
     return { valid: false, error: "Provider validation not supported", unsupported: true };
