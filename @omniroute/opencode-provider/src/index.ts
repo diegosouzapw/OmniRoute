@@ -138,7 +138,7 @@ export interface OmniRouteProviderOptions {
    * `OMNIROUTE_DEFAULT_MODEL_CAPABILITIES` for ids in the default catalog;
    * for custom ids the override is used verbatim.
    */
-modelCapabilities?: Record<string, ModelCapabilities>;
+  modelCapabilities?: Record<string, ModelCapabilities>;
   /**
    * Optional per-model context-length overrides (tokens). Takes precedence
    * over the static `OMNIROUTE_DEFAULT_MODEL_CONTEXT_LENGTHS` map but is
