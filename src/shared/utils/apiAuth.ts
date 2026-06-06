@@ -139,7 +139,10 @@ function getCookieValueFromHeader(headers: Headers | undefined, name: string): s
   return null;
 }
 
-function getRequestApiKey(request: RequestLike | Request | null | undefined): string | null {
+function getRequestApiKey(
+  request: RequestLike | Request | null | undefined,
+  opts?: { allowUrl?: boolean }
+): string | null {
   if (!request || typeof request !== "object") return null;
 
   const headers = "headers" in request ? request.headers : undefined;
@@ -147,10 +150,12 @@ function getRequestApiKey(request: RequestLike | Request | null | undefined): st
   const pathname = getRequestPathname(request);
   const syntheticUrl = rawUrl || (pathname ? `http://localhost${pathname}` : null);
 
-  return extractApiKey({
-    headers,
-    url: syntheticUrl,
-  });
+  // Management auth never honours a URL-borne credential (defence-in-depth: the
+  // path-scoped token is a client-API affordance only — a credential in the URL
+  // must not authenticate a management route). See the #3300 security follow-up.
+  const allowUrl = opts?.allowUrl !== false;
+
+  return extractApiKey({ headers, url: allowUrl ? syntheticUrl : null }, { allowUrl });
 }
 
 async function validateBearerApiKey(apiKey: string | null): Promise<boolean> {
@@ -252,8 +257,9 @@ export async function verifyAuth(request: any): Promise<string | null> {
     return null;
   }
 
-  const apiKey = getRequestApiKey(request);
-  if (isManagementApiRequest(request)) {
+  const isManagement = isManagementApiRequest(request);
+  const apiKey = getRequestApiKey(request, { allowUrl: !isManagement });
+  if (isManagement) {
     if (await validateBearerApiKeyForManagement(apiKey)) {
       return null;
     }
@@ -286,8 +292,9 @@ export async function isAuthenticated(request: Request): Promise<boolean> {
     return true;
   }
 
-  const apiKey = getRequestApiKey(request);
-  if (isManagementApiRequest(request)) {
+  const isManagement = isManagementApiRequest(request);
+  const apiKey = getRequestApiKey(request, { allowUrl: !isManagement });
+  if (isManagement) {
     return validateBearerApiKeyForManagement(apiKey);
   }
 

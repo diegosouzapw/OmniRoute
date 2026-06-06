@@ -278,11 +278,16 @@ export function createOmniRouteProvider(options: OmniRouteProviderOptions): Open
     if (typeof merged.tool_call === "boolean") entry.tool_call = merged.tool_call;
 
     // Context window: live model entry (from API catalog) > modelContextLengths > static defaults
-    const liveContext = typeof raw === "object" && raw !== null
-      ? (raw as { contextLength?: number }).contextLength
-      : undefined;
-    const rawContextLength = liveContext ?? options.modelContextLengths?.[id] ?? OMNIROUTE_DEFAULT_MODEL_CONTEXT_LENGTHS[id];
-    const contextLength = typeof rawContextLength === "string" ? parseInt(rawContextLength, 10) : rawContextLength;
+    const liveContext =
+      typeof raw === "object" && raw !== null
+        ? (raw as { contextLength?: number }).contextLength
+        : undefined;
+    const rawContextLength =
+      liveContext ??
+      options.modelContextLengths?.[id] ??
+      OMNIROUTE_DEFAULT_MODEL_CONTEXT_LENGTHS[id];
+    const contextLength =
+      typeof rawContextLength === "string" ? parseInt(rawContextLength, 10) : rawContextLength;
     if (typeof contextLength === "number" && !isNaN(contextLength) && contextLength > 0) {
       entry.limit = { context: contextLength };
     }
