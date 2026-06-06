@@ -1,6 +1,10 @@
 import { describe, it } from "node:test";
 import assert from "node:assert";
-import { ChipotleExecutor } from "../../open-sse/executors/chipotle.ts";
+import {
+  ChipotleExecutor,
+  randomServerId,
+  randomSessionId,
+} from "../../open-sse/executors/chipotle.ts";
 
 const executor = new ChipotleExecutor();
 
@@ -14,6 +18,22 @@ describe("ChipotleExecutor", () => {
     const url = executor.buildUrl("pepper-1", false);
     const parsed = new URL(url);
     assert.strictEqual(parsed.hostname, "amelia.chipotle.com");
+  });
+
+  // Regression guard for the node:crypto import — randomInt is NOT on the Web
+  // Crypto global, so a bare `crypto.randomInt` would throw at WS-connect time.
+  it("randomServerId yields a 3-digit numeric string (crypto.randomInt available)", () => {
+    for (let i = 0; i < 50; i++) {
+      const id = randomServerId();
+      assert.match(id, /^\d{3}$/, `expected 3 digits, got "${id}"`);
+      assert.ok(Number(id) >= 0 && Number(id) <= 999);
+    }
+  });
+
+  it("randomSessionId yields 32 hex chars (crypto.randomUUID available)", () => {
+    const id = randomSessionId();
+    assert.match(id, /^[0-9a-f]{32}$/, `expected 32 hex chars, got "${id}"`);
+    assert.notStrictEqual(randomSessionId(), randomSessionId());
   });
 
   it("transformRequest passes model through", () => {

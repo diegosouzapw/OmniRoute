@@ -1,3 +1,5 @@
+import { randomInt, randomUUID } from "node:crypto";
+
 import { BaseExecutor, type ExecuteInput } from "./base.ts";
 import type { ProviderCredentials } from "./base.ts";
 import { sanitizeErrorMessage } from "../utils/error.ts";
@@ -6,12 +8,15 @@ const BASE_URL = "https://amelia.chipotle.com";
 const DOMAIN_CODE = "chipotle";
 const DOMAIN_ID = "23700760-e1e5-4c3c-931d-8804e29a6775";
 
-function randomServerId(): string {
-  return String(crypto.randomInt(0, 1000)).padStart(3, "0");
+// Exported for unit testing — these run at WS-connect time, so a missing
+// node:crypto import (crypto.randomInt is NOT on the Web Crypto global) would
+// otherwise only surface as a runtime crash deep in _connect().
+export function randomServerId(): string {
+  return String(randomInt(0, 1000)).padStart(3, "0");
 }
 
-function randomSessionId(): string {
-  return crypto.randomUUID().replace(/-/g, "").slice(0, 32);
+export function randomSessionId(): string {
+  return randomUUID().replace(/-/g, "").slice(0, 32);
 }
 
 interface AmeliaSession {
