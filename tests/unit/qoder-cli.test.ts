@@ -313,6 +313,30 @@ test("validateQoderCliPat builds COSY headers and handles success, HTTP failures
     assert.equal(badRequest.error, null);
   }
 
+  // Test 4b: 5xx Cosy app error treated as valid bypass (issue #3247)
+  // The Qoder server returns 500 with a generic error body that looks like an auth failure,
+  // but we cannot distinguish an invalid token from a transient server error. The same PAT
+  // works via the Qoder CLI, so we must not reject on 500.
+  {
+    globalThis.fetch = async (url) => {
+      if (String(url).includes("/ping")) {
+        return new Response("pong", { status: 200 });
+      }
+      const cosyError = JSON.stringify({
+        success: false,
+        traceId: "2a430b09219d9cc2fe4fa5fc803bf7c7",
+        msgCode: 500,
+        msgInfo: "Internal Server Error",
+        message: "Internal Server Error",
+      });
+      return new Response(cosyError, { status: 500, headers: { "Content-Type": "application/json" } });
+    };
+
+    const serverError = await qoderCli.validateQoderCliPat({ apiKey: "pat-token" });
+    assert.equal(serverError.valid, true, "500 from Qoder Cosy must be treated as valid bypass");
+    assert.match(serverError.error!, /treating PAT as valid/);
+  }
+
   // Test 5: Empty token returns clear error
   {
     await withEnv({ QODER_PERSONAL_ACCESS_TOKEN: undefined }, async () => {
@@ -365,7 +389,7 @@ test("validateQoderCliPat treats 5xx HTTP failures as valid bypass", async () =>
   }
 });
 
-test("validateQoderCliPat rejects 500 HTTP failures if response is Cosy app-level auth error", async () => {
+test("validateQoderCliPat treats 500 Cosy app-level error as valid bypass (issue #3247)", async () => {
   const originalFetch = globalThis.fetch;
   globalThis.fetch = async (url) => {
     if (String(url).includes("/ping")) return new Response("pong", { status: 200 });
@@ -376,15 +400,15 @@ test("validateQoderCliPat rejects 500 HTTP failures if response is Cosy app-leve
   };
 
   try {
-    const result = await qoderCli.validateQoderCliPat({ apiKey: "invalid-pat" });
-    assert.equal(result.valid, false);
-    assert.match(result.error!, /Authentication failed \(HTTP 500\)/);
+    const result = await qoderCli.validateQoderCliPat({ apiKey: "pat-that-works-in-cli" });
+    assert.equal(result.valid, true, "500 Cosy app error must be treated as valid bypass");
+    assert.match(result.error!, /HTTP 500.*treating PAT as valid/);
   } finally {
     globalThis.fetch = originalFetch;
   }
 });
 
-test("validateQoderCliPat rejects 500 HTTP failures using regex for Internal Server Error with whitespace", async () => {
+test("validateQoderCliPat treats 500 Internal Server Error with whitespace as valid bypass", async () => {
   const originalFetch = globalThis.fetch;
   globalThis.fetch = async (url) => {
     if (String(url).includes("/ping")) return new Response("pong", { status: 200 });
@@ -395,9 +419,9 @@ test("validateQoderCliPat rejects 500 HTTP failures using regex for Internal Ser
   };
 
   try {
-    const result = await qoderCli.validateQoderCliPat({ apiKey: "invalid-pat" });
-    assert.equal(result.valid, false);
-    assert.match(result.error!, /Authentication failed \(HTTP 500\)/);
+    const result = await qoderCli.validateQoderCliPat({ apiKey: "pat-that-works-in-cli" });
+    assert.equal(result.valid, true, "500 Internal Server Error must be treated as valid bypass");
+    assert.match(result.error!, /HTTP 500.*treating PAT as valid/);
   } finally {
     globalThis.fetch = originalFetch;
   }
