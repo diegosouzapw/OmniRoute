@@ -17,7 +17,33 @@ jobs:
     name: Deploy OmniRoute to VPS
     runs-on: ubuntu-latest
     steps:
+      - name: Check VPS SSH reachability from runner
+        id: reach
+        env:
+          # Pass the host via env (never interpolate a secret straight into the
+          # script body) so /dev/tcp gets a shell variable, not inlined text.
+          VPS_HOST: ${{ secrets.VPS_HOST }}
+        run: |
+          set -uo pipefail
+          # A GitHub-hosted runner can only deploy when it can actually open a TCP
+          # connection to the VPS SSH port. The Local VPS lives on a private LAN and
+          # the Akamai host firewalls :22 to known IPs, so the runner is routinely
+          # unable to reach it (`dial tcp ***:22: i/o timeout`). Treat "unreachable
+          # from the runner" as a SKIP — the real deploys are run manually from an
+          # allowed network via the deploy-vps-local / deploy-vps-akamai skills — so
+          # an unreachable host no longer red-fails every release/push pipeline.
+          # When the host IS reachable, the deploy step below still runs in full and
+          # its health gate surfaces any genuine deploy failure.
+          if timeout 15 bash -c 'exec 3<>"/dev/tcp/${VPS_HOST}/22"' 2>/dev/null; then
+            echo "reachable=true" >> "$GITHUB_OUTPUT"
+            echo "✅ VPS_HOST:22 reachable from the runner — proceeding with deploy."
+          else
+            echo "reachable=false" >> "$GITHUB_OUTPUT"
+            echo "::warning title=Auto-deploy skipped::VPS_HOST:22 is not reachable from this GitHub runner (private LAN / firewalled). Deploy manually with the deploy-vps-local or deploy-vps-akamai skill."
+          fi
+
       - name: Deploy via SSH
+        if: steps.reach.outputs.reachable == 'true'
         uses: appleboy/ssh-action@v1
         with:
           host: ${{ secrets.VPS_HOST }}

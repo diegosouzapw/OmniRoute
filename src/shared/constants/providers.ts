@@ -933,18 +933,6 @@ export const APIKEY_PROVIDERS = {
     apiHint:
       "Get free API key at https://bazaarlink.ai — use model 'auto:free' for zero-cost inference. OpenAI-compatible.",
   },
-  completions: {
-    id: "completions",
-    alias: "cpl",
-    name: "Completions.me",
-    icon: "bolt",
-    color: "#F59E0B",
-    textIcon: "CP",
-    website: "https://completions.me",
-    hasFree: true,
-    freeNote: "Free unlimited access to Claude, GPT, Gemini — no credit card, no rate limits",
-    apiHint: "Sign up at https://completions.me for free API key. OpenAI-compatible endpoint.",
-  },
   xai: {
     id: "xai",
     alias: "xai",

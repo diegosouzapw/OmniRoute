@@ -137,6 +137,36 @@ export const WEB_SESSION_CREDENTIAL_REQUIREMENTS = {
     placeholder: "Paste your Qwen token from chat.qwen.ai (Local Storage → token)",
     acceptsFullCookieHeader: false,
   },
+  "duckduckgo-web": {
+    kind: "cookie",
+    credentialName: "duckai",
+    placeholder: "duckai=... or full Cookie header from duckduckgo.com",
+    acceptsFullCookieHeader: true,
+  },
+  "t3-chat-web": {
+    kind: "token",
+    credentialName: "token",
+    placeholder: "Paste your T3 Chat token from t3.chat (Local Storage → token)",
+    acceptsFullCookieHeader: false,
+  },
+  "chatglm-web": {
+    kind: "cookie",
+    credentialName: "chatglm_session",
+    placeholder: "chatglm_session=... or full Cookie header from chatglm.cn",
+    acceptsFullCookieHeader: true,
+  },
+  "xiaomimimo-web": {
+    kind: "cookie",
+    credentialName: "session",
+    placeholder: "session=... or full Cookie header from aistudio.xiaomimimo.com",
+    acceptsFullCookieHeader: true,
+  },
+  "manus-web": {
+    kind: "cookie",
+    credentialName: "manus_session",
+    placeholder: "manus_session=... or full Cookie header from manus.im",
+    acceptsFullCookieHeader: true,
+  },
 } satisfies Record<keyof typeof WEB_COOKIE_PROVIDERS, WebSessionCredentialRequirement>;
 
 export function getWebSessionCredentialRequirement(
