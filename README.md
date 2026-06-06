@@ -28,11 +28,14 @@
 
 <br/>
 
-### 💬 Join the community on Discord
+### 💬 Join the community
 
-[![Join our Discord](https://img.shields.io/badge/Join_our_Discord-5865F2?style=for-the-badge&logo=discord&logoColor=white)](https://discord.gg/hmexnhgE)
+[![Discord](https://img.shields.io/badge/Discord-5865F2?style=for-the-badge&logo=discord&logoColor=white)](https://discord.gg/hmexnhgE)
+[![Telegram](https://img.shields.io/badge/Telegram-26A5E4?style=for-the-badge&logo=telegram&logoColor=white)](https://t.me/omnirouteOficial)
+[![WhatsApp Global](https://img.shields.io/badge/WhatsApp_Global-25D366?style=for-the-badge&logo=whatsapp&logoColor=white)](https://chat.whatsapp.com/JI7cDQ1GyaiDHhVBpLxf8b?mode=gi_t)
+[![WhatsApp Brasil](https://img.shields.io/badge/WhatsApp_Brasil-25D366?style=for-the-badge&logo=whatsapp&logoColor=white)](https://chat.whatsapp.com/CeGCxdFzqBe5Uki288wOvf)
 
-**Questions, provider tips, roadmap & support → [discord.gg/hmexnhgE](https://discord.gg/hmexnhgE)**
+**Questions, provider tips, roadmap & support → [Discord](https://discord.gg/hmexnhgE) · [Telegram](https://t.me/omnirouteOficial) · WhatsApp [🌍 Global](https://chat.whatsapp.com/JI7cDQ1GyaiDHhVBpLxf8b?mode=gi_t) / [🇧🇷 Brasil](https://chat.whatsapp.com/CeGCxdFzqBe5Uki288wOvf)**
 
 <br/>
 
@@ -56,7 +59,7 @@
 
 <br/>
 
-[**🚀 Quick Start**](#-quick-start) • [**🎯 Combos**](#-combos--the-flagship) • [**🌐 Providers**](#-177-ai-providers--50-free) • [**🔌 CLI & MCP**](#-full-cli--a2a--mcp) • [**🗜️ Compression**](#%EF%B8%8F-save-1595-tokens--automatically) • [**🌍 Website**](https://omniroute.online) • [**💬 WhatsApp 🌍**](https://chat.whatsapp.com/JI7cDQ1GyaiDHhVBpLxf8b?mode=gi_t) • [**💬 WhatsApp 🇧🇷**](https://chat.whatsapp.com/CeGCxdFzqBe5Uki288wOvf)
+[**🚀 Quick Start**](#-quick-start) • [**🎯 Combos**](#-combos--the-flagship) • [**🌐 Providers**](#-177-ai-providers--50-free) • [**🔌 CLI & MCP**](#-full-cli--a2a--mcp) • [**🗜️ Compression**](#%EF%B8%8F-save-1595-tokens--automatically) • [**🌍 Website**](https://omniroute.online)
 
 [💥 The Promise](#-the-promise) • [🤔 Why](#-why-omniroute) • [🏆 What Sets Apart](#-what-sets-omniroute-apart) • [🤖 Compatible CLIs](#-compatible-clis--coding-agents) • [🖥️ Where It Runs](#%EF%B8%8F-where-omniroute-runs--anywhere) • [🔒 Private](#-private--local-first) • [🎬 In Action](#-omniroute-in-action) • [📚 Explore More](#-explore-more) • [📧 Support](#-support--community)
 
@@ -106,6 +109,24 @@
   </tr>
 </table>
 </div>
+
+<br/>
+
+<div align="center">
+
+# 💰 ~1.9B Free Tokens / Month
+
+</div>
+
+> Stacking free tiers by hand is painful — dozens of SDKs, dozens of rate limits, and no idea how much you actually have. OmniRoute aggregates the **documented** free tiers of **50+ provider pools / 530 models** into one honest number and shows it live on the dashboard (`/dashboard/free-tiers`).
+
+- **~1.9B free tokens / month** (steady) — and **up to ~2.5B in your first month** with signup credits.
+- **Pool-deduped, honest** — we count each shared free pool **once**, so the headline isn't inflated by rate-limit ceilings the way multi-billion competitor claims are. (The naïve per-model sum would read ~8B; we don't publish that.)
+- **Per-model breakdown**, **live used / remaining** for the current month, and a transparent **terms flag** per provider.
+
+![Free-Tier Budget card (preview mockup)](docs/screenshots/free-tier-budget-card.svg)
+
+> Preview mockup — a real screenshot lands once the `/dashboard/free-tiers` page is validated. Full methodology (pool dedupe, credit tiers, provider terms): **[docs/reference/FREE_TIERS.md](docs/reference/FREE_TIERS.md)**.
 
 <br/>
 
@@ -743,8 +764,7 @@ Compression: aggressive (~50%) → double your free quota · Cost: $0/mo
 
 # 📧 Support & Community
 
-> 💬 **Join our WhatsApp groups** — get help, share tips, stay updated:
-> · [**🌍 International**](https://chat.whatsapp.com/JI7cDQ1GyaiDHhVBpLxf8b?mode=gi_t) · [**🇧🇷 Português**](https://chat.whatsapp.com/CeGCxdFzqBe5Uki288wOvf)
+> 💬 **Chat with the community** — Discord, Telegram & WhatsApp (🌍 / 🇧🇷) links are at the [top of this README](#-join-the-community).
 
 - 🌍 **Website**: [omniroute.online](https://omniroute.online)
 - 🐙 **GitHub**: [github.com/diegosouzapw/OmniRoute](https://github.com/diegosouzapw/OmniRoute)
@@ -979,22 +999,6 @@ Special thanks to **[Caveman](https://github.com/JuliusBrussee/caveman)** by **[
 Special thanks to **[RTK - Rust Token Killer](https://github.com/rtk-ai/rtk)** by **[RTK AI](https://github.com/rtk-ai)** — the high-performance command-output compression project whose terminal, build, test, git, and tool-output filtering model inspired OmniRoute's RTK engine, JSON filter DSL, raw-output recovery, and stacked RTK → Caveman compression pipeline.
 
 Special thanks to **[Troglodita](https://github.com/leninejunior/troglodita)** by **[Lenine Júnior](https://github.com/leninejunior)** — the PT-BR token compression project ("por que gastar muitos tokens quando poucos resolve?") whose Portuguese-native rules power OmniRoute's pt-BR language pack: pleonasm reduction, filler removal tuned for Brazilian Portuguese grammar, and technical abbreviations for the dev BR community.
-
-<br/>
-
-## 💰 Free-Token Budget — see exactly how much free inference you have
-
-Stacking free tiers by hand is painful: dozens of SDKs, dozens of rate limits, and no idea how much you actually have. OmniRoute aggregates the **documented** free tiers of **50+ provider pools / 530 models** into one honest number and shows it live on the dashboard (`/dashboard/free-tiers`).
-
-- **~1.9B free tokens / month** (steady) — and **up to ~2.5B in your first month** with signup credits.
-- **Pool-deduped, honest:** we count each shared free pool **once**, so the headline isn't inflated by rate-limit ceilings the way multi-billion competitor claims are. (The naïve per-model sum would read ~8B; we don't publish that.)
-- **Per-model breakdown**, **live used / remaining** for the current month, and a **ToS flag** for the 19 providers whose terms don't permit proxying.
-
-![Free-Tier Budget card (preview mockup)](docs/screenshots/free-tier-budget-card.svg)
-
-> Preview mockup — a real screenshot lands once the `/dashboard/free-tiers` page is validated. Full methodology (pool dedupe, credit tiers, the 19 ToS-restricted providers): **[docs/reference/FREE_TIERS.md](docs/reference/FREE_TIERS.md)**.
-
-<br/>
 
 ## 📄 License
 
