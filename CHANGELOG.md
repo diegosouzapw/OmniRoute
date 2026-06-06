@@ -2,7 +2,24 @@
 
 ## [Unreleased]
 
----
+### ✨ New Features
+- **api:** `POST /api/models/test-all` — parallel model testing with chunk size 3 and timeout-skip
+- **api:** shared `runSingleModelTest` runner extracted from single-test endpoint
+- **providers:** per-connection rate-limit overrides via PATCH `/api/providers/:id`
+- **db:** `rate_limit_overrides_json` column + Zod schema + serialization helpers
+- **dashboard:** model visibility filter toolbar (All / Visible / Hidden)
+- **api:** `/v1/models` catalog excludes user-hidden models
+- **providers:** auto-fetch models on every connection add (universalized)
+- **dashboard:** test buttons for passthrough models (OpenRouter)
+
+### 🔧 Bug Fixes
+- **dashboard:** missing handlers — handleDelete, handleSetAlias, handleDeleteAlias, handleToggleSelectAll
+- **auth:** fetchData crash in auth import modals
+- **debug:** stray console.log removed; error handlers use console.error
+- **dashboard:** React key collisions from duplicate model IDs
+- **build:** empty .env values no longer override real config
+- **i18n:** missing keys added
+- **dashboard:** "Hide all" button restored
 
 ## [3.8.11] — 2026-06-05
 

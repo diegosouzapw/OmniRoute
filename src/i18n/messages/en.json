@@ -1287,42 +1287,78 @@
     "actor": "Actor",
     "actorPlaceholder": "Filter by actor",
     "eventTypes": {
-      "apiKey.activate": "API Key Activated",
-      "apiKey.ban": "API Key Banned",
-      "apiKey.deactivate": "API Key Deactivated",
-      "apiKey.regenerate": "API Key Regenerated",
-      "apiKey.scopes.grant": "API Key Scopes Granted",
-      "apiKey.scopes.revoke": "API Key Scopes Revoked",
-      "apiKey.scopes.update": "API Key Scopes Updated",
-      "apiKey.unban": "API Key Unbanned",
-      "auth.login.error": "Login Error",
-      "auth.login.failed": "Login Failed",
-      "auth.login.locked": "Login Locked",
-      "auth.login.misconfigured": "Login Misconfigured",
-      "auth.login.setup_required": "Login Setup Required",
-      "auth.login.success": "Login Success",
-      "auth.logout.success": "Logout Success",
-      "compliance.cleanup": "Compliance Cleanup",
-      "provider.credentials.applied": "Provider Credentials Applied",
-      "provider.credentials.batch_revoked": "Provider Credentials Batch Revoked",
-      "provider.credentials.bulk_created": "Provider Credentials Bulk Created",
-      "provider.credentials.bulk_imported": "Provider Credentials Bulk Imported",
-      "provider.credentials.created": "Provider Credentials Created",
-      "provider.credentials.imported": "Provider Credentials Imported",
-      "provider.credentials.revoked": "Provider Credentials Revoked",
-      "provider.credentials.updated": "Provider Credentials Updated",
-      "provider.validation.ssrf_blocked": "Provider SSRF Blocked",
-      "quota.plan.updated": "Quota Plan Updated",
-      "quota.pool.created": "Quota Pool Created",
-      "quota.pool.deleted": "Quota Pool Deleted",
-      "quota.pool.updated": "Quota Pool Updated",
-      "quota.store.driver_changed": "Quota Store Driver Changed",
-      "server.start": "Server Start",
-      "service.reveal_api_key": "Service API Key Revealed",
-      "settings.update": "Settings Updated",
-      "settings.update_failed": "Settings Update Failed",
-      "sync.token.created": "Sync Token Created",
-      "sync.token.revoked": "Sync Token Revoked"
+      "apiKey": {
+        "activate": "API Key Activated",
+        "ban": "API Key Banned",
+        "deactivate": "API Key Deactivated",
+        "regenerate": "API Key Regenerated",
+        "scopes": {
+          "grant": "API Key Scopes Granted",
+          "revoke": "API Key Scopes Revoked",
+          "update": "API Key Scopes Updated"
+        },
+        "unban": "API Key Unbanned"
+      },
+      "auth": {
+        "login": {
+          "error": "Login Error",
+          "failed": "Login Failed",
+          "locked": "Login Locked",
+          "misconfigured": "Login Misconfigured",
+          "setup_required": "Login Setup Required",
+          "success": "Login Success"
+        },
+        "logout": {
+          "success": "Logout Success"
+        }
+      },
+      "compliance": {
+        "cleanup": "Compliance Cleanup"
+      },
+      "provider": {
+        "credentials": {
+          "applied": "Provider Credentials Applied",
+          "batch_revoked": "Provider Credentials Batch Revoked",
+          "bulk_created": "Provider Credentials Bulk Created",
+          "bulk_imported": "Provider Credentials Bulk Imported",
+          "created": "Provider Credentials Created",
+          "imported": "Provider Credentials Imported",
+          "revoked": "Provider Credentials Revoked",
+          "updated": "Provider Credentials Updated"
+        },
+        "validation": {
+          "ssrf_blocked": "Provider SSRF Blocked"
+        }
+      },
+      "quota": {
+        "plan": {
+          "updated": "Quota Plan Updated"
+        },
+        "pool": {
+          "created": "Quota Pool Created",
+          "deleted": "Quota Pool Deleted",
+          "updated": "Quota Pool Updated"
+        },
+        "store": {
+          "driver_changed": "Quota Store Driver Changed"
+        }
+      },
+      "server": {
+        "start": "Server Start"
+      },
+      "service": {
+        "reveal_api_key": "Service API Key Revealed"
+      },
+      "settings": {
+        "update": "Settings Updated",
+        "update_failed": "Settings Update Failed"
+      },
+      "sync": {
+        "token": {
+          "created": "Sync Token Created",
+          "revoked": "Sync Token Revoked"
+        }
+      }
     }
   },
   "themesPage": {
@@ -3824,6 +3860,7 @@
   },
   "providers": {
     "title": "Providers",
+    "Account Deactivated": "Account Deactivated",
     "allProviders": "All Providers",
     "audioProviders": "Audio Providers",
     "showFreeOnly": "Free only",
@@ -3862,9 +3899,27 @@
     "testAllFree": "Test all Free connections",
     "testAllApiKey": "Test all API Key connections",
     "testAllCompatible": "Test all Compatible connections",
+    "testAllModels": "Test all models",
+    "testAllModelsConfirm": "Test all {count} models? Failed models will be hidden. This respects your rate limits.",
+    "testingAllModels": "Testing...",
+    "testAllResults": "Test all: {ok} ok, {error} error",
+    "noModelsToTest": "No models to test",
+    "showAllModels": "All",
+    "showVisibleOnly": "Visible only",
+    "showHiddenOnly": "Hidden only",
+    "filterByVisibility": "Filter by visibility",
+    "autoHideFailed": "Model hidden due to test failure",
     "connected": "{count} Connected",
     "errorCount": "{count} Error ({code})",
     "errorCountNoCode": "{count} Error",
+    "testAllModels": "Test all",
+    "testingAllModels": "Testing {current}/{total}...",
+    "testAllCompleted": "Tested {total} models: {ok} OK, {failed} failed",
+    "modelAutoHidden": "Model hidden due to test failure",
+    "filterAll": "All",
+    "filterVisible": "Visible only",
+    "filterHidden": "Hidden only",
+    "modelsHiddenCount": "{count} hidden",
     "warningCount": "{count} Warning",
     "noConnections": "No connections",
     "expiredBadge": "Expired",
@@ -3966,6 +4021,8 @@
     "batchDeleteConfirm": "Delete {count} connection(s)? This action cannot be undone.",
     "batchDeleteSuccess": "Deleted {count} connection(s)",
     "failedSetAlias": "Failed to set alias",
+    "setAliasSuccess": "Alias {alias} set",
+    "deleteAliasSuccess": "Alias {alias} deleted",
     "failedSaveConnection": "Failed to save connection",
     "failedSaveConnectionRetry": "Failed to save connection. Please try again.",
     "failedRetestConnection": "Failed to retest connection",
@@ -3999,6 +4056,8 @@
     "connectionCount": "{count} connection(s)",
     "fetchingModels": "Fetching available models...",
     "failedFetchModels": "Failed to fetch models",
+    "fetchModelsSuccess": "Found {count} new models",
+    "fetchModelsFailed": "Could not auto-fetch models (you can retry from settings)",
     "noModelsFound": "No models found",
     "importFailed": "Import failed",
     "noNewModelsAdded": "No new models were added.",
@@ -4007,6 +4066,21 @@
     "importingModelsTitle": "Importing Models",
     "copyModel": "Copy model",
     "filterModels": "Filter models...",
+    "filterByVisibility": "Filter by visibility",
+    "showAllModels": "All",
+    "showVisibleOnly": "Visible",
+    "showHiddenOnly": "Hidden",
+    "testAllModels": "Test all",
+    "testAllModelsConfirm": "Test all {count} models? This may take a while.",
+    "testingAllModels": "Testing models... ({done}/{total})",
+    "testAllResults": "Tested {total} models, {failed} failed, {rateLimited} rate-limited",
+    "testAllRateLimited": "{count} rate-limited (skipped)",
+    "noModelsToTest": "No models match the current filter",
+    "autoHideFailed": "Auto-hide failed",
+    "hideFailedAuto": "Auto-hide failed",
+    "modelAutoHidden": "Model {model} auto-hidden (test failed)",
+    "selectAllModels": "Select all",
+    "hideAllModels": "Hide all",
     "modelsActive": "Active",
     "showModel": "Show model",
     "hideModel": "Hide model",
@@ -4015,6 +4089,19 @@
     "rateLimitUnprotected": "Unprotected",
     "enableRateLimitProtection": "Click to enable rate limit protection",
     "disableRateLimitProtection": "Click to disable rate limit protection",
+    "testAllModels": "Test all models",
+    "testAllModelsConfirm": "Test all {count} models? Failed models will be hidden. This respects your rate limits.",
+    "testingAllModels": "Testing models...",
+    "testAllProgress": "Tested {done}/{total}",
+    "testAllResults": "Test all: {ok} ok, {error} error",
+    "testAllFailedHidden": "{count} failed model(s) hidden",
+    "testAllDone": "All models tested",
+    "testAllRateLimited": "Rate limited at {model}, stopped",
+    "showAllModels": "Show all",
+    "showVisibleOnly": "Visible only",
+    "showHiddenOnly": "Hidden only",
+    "filterByVisibility": "Filter by visibility",
+    "hideFailedAuto": "Auto-hide failed models",
     "productionKey": "Production Key",
     "enterNewApiKey": "Enter new API key",
     "codexApplyModalTitle": "Apply to Local Codex",
@@ -4045,6 +4132,17 @@
     "connectionCountLabel": "{count, plural, one {# connection} other {# connections}}",
     "messagesPath": "messages",
     "responsesPath": "responses",
+    "testAllModels": "Test all models",
+    "testAllModelsConfirm": "Test all visible models? Failed models will be hidden if auto-hide is enabled.",
+    "testingAllModels": "Testing {done}/{total}...",
+    "testAllResults": "{ok} of {total} models working",
+    "testAllFailedHidden": "{count} failed models hidden",
+    "testAllRateLimited": "Rate limit reached, stopped early",
+    "autoHideFailed": "Auto-hide failed models",
+    "showAllModels": "All",
+    "showVisibleOnly": "Visible only",
+    "showHiddenOnly": "Hidden only",
+    "filterByVisibility": "Filter by visibility",
     "chatCompletionsPath": "chat/completions",
     "add": "Add",
     "edit": "Edit",
@@ -4090,6 +4188,8 @@
     "errorTypeNetworkError": "Network error",
     "errorTypeTestUnsupported": "Test unsupported",
     "errorTypeUpstreamError": "Upstream error",
+    "errorTypeCreditsExhausted": "No credits",
+    "errorTypeBanned": "403 Banned",
     "proxySourceGlobal": "Global",
     "proxySourceProvider": "Provider",
     "proxySourceKey": "Key",
@@ -4451,6 +4551,17 @@
     "personalAccessTokenLabel": "Personal Access Token Label",
     "qoderPatHint": "Qoder Pat Hint",
     "qoderPatPlaceholder": "Qoder Pat Placeholder",
+    "rateLimitOverridesSection": "Rate Limit Overrides",
+    "rateLimitOverridesMaxConcurrentHint": "Max concurrent requests override for this connection. Overrides the account-level cap.",
+    "rateLimitOverridesMaxConcurrentLabel": "Max Concurrent (Rate Limit)",
+    "rateLimitOverridesMinTimeHint": "Minimum time (ms) between requests. Overrides the default rate limiter delay.",
+    "rateLimitOverridesMinTimeLabel": "Min Interval (ms)",
+    "rateLimitOverridesRpmHint": "Max requests per minute for this connection. Overrides the provider default.",
+    "rateLimitOverridesRpmLabel": "RPM (Requests/min)",
+    "rateLimitOverridesTpdHint": "Max tokens per day for this connection. Overrides the provider default.",
+    "rateLimitOverridesTpdLabel": "TPD (Tokens/day)",
+    "rateLimitOverridesTpmHint": "Max tokens per minute for this connection. Overrides the provider default.",
+    "rateLimitOverridesTpmLabel": "TPM (Tokens/min)",
     "refreshOauthTokenTitle": "Refresh Oauth Token Title",
     "regionHint": "Region Hint",
     "regionLabel": "Region Label",

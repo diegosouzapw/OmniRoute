@@ -59,6 +59,7 @@ export {
   getModelPreserveOpenAIDeveloperRole,
   getModelUpstreamExtraHeaders,
   getModelIsHidden,
+  setModelIsHidden,
 
   // Synced Available Models
   getSyncedAvailableModels,

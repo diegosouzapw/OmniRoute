@@ -150,7 +150,15 @@ export function bootstrapEnv({ dataDirOverride, quiet = false } = {}) {
 
   // ── Layer 2: Load the same preferred .env that the CLI wrapper uses ───────
   // This keeps run-next / run-standalone consistent with `bin/omniroute.mjs`.
-  const merged = { ...persisted, ...preferredEnv, ...process.env };
+  //
+  // We strip empty values from preferredEnv so an empty placeholder
+  // (e.g. `STORAGE_ENCRYPTION_KEY=` in the project .env template) does not
+  // override the real value persisted in server.env. Only the .env entries
+  // that the operator actually set should win.
+  const preferredEnvFiltered = Object.fromEntries(
+    Object.entries(preferredEnv).filter(([, v]) => typeof v === "string" && v.length > 0)
+  );
+  const merged = { ...persisted, ...preferredEnvFiltered, ...process.env };
 
   // ── Auto-generate required secrets ────────────────────────────────────────
   let needsPersist = false;

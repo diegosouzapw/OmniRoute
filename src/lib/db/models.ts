@@ -1034,6 +1034,44 @@ export function getModelIsHidden(providerId: string, modelId: string): boolean {
   return Boolean(co?.isHidden);
 }
 
+/**
+ * Persist the hidden flag for a model. Stores the override on the custom-model
+ * row when one exists, otherwise on the compat-override list. Setting
+ * `hidden = false` is a no-op when the model is already visible.
+ */
+export function setModelIsHidden(providerId: string, modelId: string, hidden: boolean): void {
+  const customRow = getCustomModelRow(providerId, modelId);
+  if (customRow) {
+    if (hidden) {
+      updateCustomModel(providerId, modelId, { isHidden: true });
+    } else if (Object.prototype.hasOwnProperty.call(customRow, "isHidden")) {
+      updateCustomModel(providerId, modelId, { isHidden: false });
+    }
+    return;
+  }
+
+  const list = readCompatList(providerId);
+  const idx = list.findIndex((e) => e.id === modelId);
+  if (hidden) {
+    const prev = idx >= 0 ? list[idx] : { id: modelId };
+    const next: ModelCompatOverride = { ...prev, id: modelId, isHidden: true };
+    if (idx >= 0) list[idx] = next;
+    else list.push(next);
+    writeCompatList(providerId, list);
+    return;
+  }
+
+  if (idx < 0) return;
+  if (Object.keys(list[idx]).length <= 1) {
+    // Only `id` left; drop the entry entirely.
+    const filtered = list.filter((_, i) => i !== idx);
+    writeCompatList(providerId, filtered);
+    return;
+  }
+  delete list[idx].isHidden;
+  writeCompatList(providerId, list);
+}
+
 function readUpstreamFromJsonRecord(
   row: JsonRecord | null | undefined,
   key: "upstreamHeaders"
