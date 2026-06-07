@@ -125,13 +125,19 @@ export const providerRuleRegistry = new Map<string, ProviderErrorRule[]>([
 export function getProviderErrorRuleMatch(
   provider: string | null | undefined,
   status: number,
-  headers: Record<string, string> | null | undefined,
+  headers: Headers | Record<string, string> | null | undefined,
   body?: unknown
 ): ProviderErrorRuleMatch | null {
   if (!provider) return null;
   const rules = providerRuleRegistry.get(provider);
   if (!rules) return null;
-  const safeHeaders = headers ?? {};
+  // Normalize headers: accept either a `Headers` object (from `fetch()`) or
+  // a plain record. Provider rules access headers via plain object indexing.
+  const safeHeaders: Record<string, string> = !headers
+    ? {}
+    : typeof (headers as Headers).get === "function"
+      ? Object.fromEntries((headers as Headers).entries())
+      : (headers as Record<string, string>);
   for (const rule of rules) {
     const match = rule.match({ status, headers: safeHeaders, body });
     if (match) return match;
