@@ -1557,3 +1557,91 @@ test("createSSEStream passthrough mode decrements pending requests on failure", 
     `pending request count for ${modelKey} should be 0 after failure, got ${count}`
   );
 });
+
+test("createSSEStream passthrough does not swallow false positive textual tool call", async () => {
+  let onCompletePayload = null;
+  const sentence = "Checking: [Tool call: terminal] was executed successfully.";
+
+  const text = await readTransformed(
+    [
+      `data: ${JSON.stringify({
+        id: "chatcmpl_false_positive_textual_tool",
+        object: "chat.completion.chunk",
+        created: 1,
+        model: "MainAgent",
+        choices: [{ index: 0, delta: { role: "assistant", content: sentence } }],
+      })}\n\n`,
+      `data: ${JSON.stringify({
+        id: "chatcmpl_false_positive_textual_tool",
+        object: "chat.completion.chunk",
+        created: 1,
+        model: "MainAgent",
+        choices: [{ index: 0, delta: {}, finish_reason: "stop" }],
+      })}\n\n`,
+    ],
+    {
+      mode: "passthrough",
+      sourceFormat: FORMATS.OPENAI,
+      provider: "omniroute",
+      model: "MainAgent",
+      body: { messages: [{ role: "user", content: "inspect status" }] },
+      onComplete(payload) {
+        onCompletePayload = payload;
+      },
+    }
+  );
+
+  const choice = onCompletePayload.responseBody.choices[0];
+  assert.equal(choice.finish_reason, "stop");
+  assert.equal(choice.message.content, sentence);
+  assert.equal(choice.message.tool_calls, undefined);
+  assert.match(text, /\[Tool call: terminal\] was executed successfully/);
+});
+
+test("createSSEStream passthrough does not swallow false positive textual tool call starting chunk", async () => {
+  let onCompletePayload = null;
+  const chunk1 = "[Tool call: terminal]";
+  const chunk2 = " was skipped.";
+
+  const text = await readTransformed(
+    [
+      `data: ${JSON.stringify({
+        id: "chatcmpl_false_positive_textual_tool_start",
+        object: "chat.completion.chunk",
+        created: 1,
+        model: "MainAgent",
+        choices: [{ index: 0, delta: { role: "assistant", content: chunk1 } }],
+      })}\n\n`,
+      `data: ${JSON.stringify({
+        id: "chatcmpl_false_positive_textual_tool_start",
+        object: "chat.completion.chunk",
+        created: 1,
+        model: "MainAgent",
+        choices: [{ index: 0, delta: { content: chunk2 } }],
+      })}\n\n`,
+      `data: ${JSON.stringify({
+        id: "chatcmpl_false_positive_textual_tool_start",
+        object: "chat.completion.chunk",
+        created: 1,
+        model: "MainAgent",
+        choices: [{ index: 0, delta: {}, finish_reason: "stop" }],
+      })}\n\n`,
+    ],
+    {
+      mode: "passthrough",
+      sourceFormat: FORMATS.OPENAI,
+      provider: "omniroute",
+      model: "MainAgent",
+      body: { messages: [{ role: "user", content: "inspect status" }] },
+      onComplete(payload) {
+        onCompletePayload = payload;
+      },
+    }
+  );
+
+  const choice = onCompletePayload.responseBody.choices[0];
+  assert.equal(choice.finish_reason, "stop");
+  assert.equal(choice.message.content, chunk1 + chunk2);
+  assert.equal(choice.message.tool_calls, undefined);
+  assert.match(text, /\[Tool call: terminal\] was skipped/);
+});
