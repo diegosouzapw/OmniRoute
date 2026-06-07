@@ -185,4 +185,195 @@ describe("config-generator", () => {
       assert.ok(result.yaml.includes("new-model"));
     });
   });
+
+  describe("opencode (context-aware)", () => {
+    /**
+     * Helper: build a mock catalog response covering both individual models
+     * and a combo, matching the OpenAI-compatible /v1/models payload shape.
+     */
+    function makeCatalogResponse(models: unknown[]): unknown {
+      return {
+        object: "list",
+        data: models,
+      };
+    }
+
+    const SAMPLE_CATALOG: unknown[] = [
+      // Individual model with explicit context_length
+      { id: "ds/deepseek-v4-flash", owned_by: "deepseek", context_length: 1_000_000, max_input_tokens: 1_000_000 },
+      // Individual model using max_context_window_tokens (llama.cpp style)
+      { id: "llama3", owned_by: "llama", max_context_window_tokens: 8192 },
+      // Combo with context_length computed from its targets
+      { id: "MASTER", owned_by: "combo", context_length: 131072, max_input_tokens: 131072 },
+      // Combo with no context_length at all — generator should fall back to default
+      { id: "NO_CTX_COMBO", owned_by: "combo" },
+    ];
+
+    /**
+     * Stub the global fetch used by the generator so we can run it without
+     * hitting a real OmniRoute instance. The real fetch is captured at module
+     * load time; we swap it out and restore it after each test.
+     */
+    function stubFetchOnce(body: unknown, status = 200) {
+      const original = globalThis.fetch;
+      let calls = 0;
+      // @ts-ignore — globalThis.fetch signature is compatible for our purposes
+      globalThis.fetch = (async (url: string | URL, init?: RequestInit) => {
+        calls += 1;
+        return new Response(JSON.stringify(body), {
+          status,
+          headers: { "content-type": "application/json" },
+        });
+      }) as typeof fetch;
+      return {
+        calls: () => calls,
+        restore: () => {
+          globalThis.fetch = original;
+        },
+      };
+    }
+
+    it("emits limit.context for every model from the live catalog", async () => {
+      const stub = stubFetchOnce(makeCatalogResponse(SAMPLE_CATALOG));
+      try {
+        const { generateOpencodeConfig } = await import(
+          "../../../src/lib/cli-helper/config-generator/opencode.ts"
+        );
+        const out = await generateOpencodeConfig({
+          baseUrl: "http://localhost:20128",
+          apiKey: "sk-test",
+        });
+        const cfg = JSON.parse(out);
+        const models = cfg.provider.omniroute.models;
+        assert.strictEqual(typeof models["ds/deepseek-v4-flash"].limit.context, "number");
+        assert.strictEqual(models["ds/deepseek-v4-flash"].limit.context, 1_000_000);
+        assert.strictEqual(models["MASTER"].limit.context, 131072);
+      } finally {
+        stub.restore();
+      }
+    });
+
+    it("falls back to 128K when the catalog has no context_length for a model", async () => {
+      const stub = stubFetchOnce(makeCatalogResponse(SAMPLE_CATALOG));
+      try {
+        const { generateOpencodeConfig } = await import(
+          "../../../src/lib/cli-helper/config-generator/opencode.ts"
+        );
+        const out = await generateOpencodeConfig({
+          baseUrl: "http://localhost:20128",
+          apiKey: "sk-test",
+        });
+        const cfg = JSON.parse(out);
+        // The combo without any context info in the catalog should get the
+        // documented fallback so OpenCode never sees a missing limit.
+        assert.strictEqual(cfg.provider.omniroute.models["NO_CTX_COMBO"].limit.context, 128_000);
+      } finally {
+        stub.restore();
+      }
+    });
+
+    it("prefers max_context_window_tokens when context_length is absent", async () => {
+      const stub = stubFetchOnce(makeCatalogResponse(SAMPLE_CATALOG));
+      try {
+        const { generateOpencodeConfig } = await import(
+          "../../../src/lib/cli-helper/config-generator/opencode.ts"
+        );
+        const out = await generateOpencodeConfig({
+          baseUrl: "http://localhost:20128",
+          apiKey: "sk-test",
+        });
+        const cfg = JSON.parse(out);
+        assert.strictEqual(cfg.provider.omniroute.models.llama3.limit.context, 8192);
+      } finally {
+        stub.restore();
+      }
+    });
+
+    it("still emits a usable config when the catalog fetch fails", async () => {
+      // When the catalog fetch fails (network down, server unreachable, etc.)
+      // the generator must still return valid JSON that OpenCode can read,
+      // and every existing model in the user's config must still end up
+      // with an explicit `limit.context` so OpenCode never sees a missing
+      // limit. We can't assert `models === {}` because the test runner
+      // shares $HOME with the real user; instead we assert that the
+      // catalog stub was actually called and that every entry has a limit.
+      const original = globalThis.fetch;
+      let fetchCalled = 0;
+      // @ts-ignore
+      globalThis.fetch = (async () => {
+        fetchCalled += 1;
+        throw new Error("ECONNREFUSED");
+      }) as typeof fetch;
+      try {
+        const { generateOpencodeConfig } = await import(
+          "../../../src/lib/cli-helper/config-generator/opencode.ts"
+        );
+        const out = await generateOpencodeConfig({
+          baseUrl: "http://localhost:20128",
+          apiKey: "sk-test",
+        });
+        const cfg = JSON.parse(out);
+        assert.ok(cfg.provider);
+        assert.ok(cfg.provider.omniroute);
+        assert.ok(fetchCalled > 0, "expected fetch to be attempted");
+        // Whatever models the generator emitted (zero or more), each one
+        // must have a numeric limit.context so OpenCode never sees a
+        // missing limit. This is the actual user-visible failure mode.
+        const models = cfg.provider.omniroute.models;
+        for (const [id, entry] of Object.entries(models) as [string, any][]) {
+          assert.ok(
+            typeof entry.limit?.context === "number" && entry.limit.context > 0,
+            `Model ${id} has no numeric limit.context after catalog failure`
+          );
+        }
+      } finally {
+        globalThis.fetch = original;
+      }
+    });
+
+    it("writes a top-level model prefixed with provider id when options.model is supplied", async () => {
+      const stub = stubFetchOnce(makeCatalogResponse(SAMPLE_CATALOG));
+      try {
+        const { generateOpencodeConfig } = await import(
+          "../../../src/lib/cli-helper/config-generator/opencode.ts"
+        );
+        const out = await generateOpencodeConfig({
+          baseUrl: "http://localhost:20128",
+          apiKey: "sk-test",
+          model: "MASTER",
+        });
+        const cfg = JSON.parse(out);
+        assert.strictEqual(cfg.model, "omniroute/MASTER");
+      } finally {
+        stub.restore();
+      }
+    });
+
+    it("uses the live catalog even for combo models (the user-reported regression)", async () => {
+      // Regression guard for the "OpenCode sigue sin detectar el tamano tanto
+      // para modelos individual como para los combos" bug: every catalog
+      // entry — including combos with explicit context_length — must end up
+      // with a non-empty `limit.context` in the emitted config.
+      const stub = stubFetchOnce(makeCatalogResponse(SAMPLE_CATALOG));
+      try {
+        const { generateOpencodeConfig } = await import(
+          "../../../src/lib/cli-helper/config-generator/opencode.ts"
+        );
+        const out = await generateOpencodeConfig({
+          baseUrl: "http://localhost:20128",
+          apiKey: "sk-test",
+        });
+        const cfg = JSON.parse(out);
+        const models = cfg.provider.omniroute.models;
+        for (const [id, entry] of Object.entries(models) as [string, any][]) {
+          assert.ok(
+            typeof entry.limit?.context === "number" && entry.limit.context > 0,
+            `Model ${id} has no numeric limit.context (got ${JSON.stringify(entry)})`
+          );
+        }
+      } finally {
+        stub.restore();
+      }
+    });
+  });
 });
