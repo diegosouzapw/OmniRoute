@@ -37,6 +37,7 @@ type ModelSelectModalProps = {
   addedModelValues?: string[];
   multiSelect?: boolean;
   showCombos?: boolean;
+  alwaysIncludeProviders?: string[] | null;
 };
 
 export default function ModelSelectModal({
@@ -51,6 +52,7 @@ export default function ModelSelectModal({
   addedModelValues = [],
   multiSelect = false,
   showCombos = true,
+  alwaysIncludeProviders = [],
 }: ModelSelectModalProps) {
   const t = useTranslations("common");
   const resolvedTitle = title ?? t("selectModel");
@@ -111,6 +113,11 @@ export default function ModelSelectModal({
     () => ({ ...OAUTH_PROVIDERS, ...NOAUTH_PROVIDERS, ...APIKEY_PROVIDERS }),
     []
   );
+  const alwaysIncludeProvidersKey = Array.isArray(alwaysIncludeProviders)
+    ? alwaysIncludeProviders
+        .filter((providerId) => typeof providerId === "string" && providerId)
+        .join("\0")
+    : "";
 
   // Group models by provider with priority order
   const groupedModels = useMemo(() => {
@@ -118,10 +125,14 @@ export default function ModelSelectModal({
 
     // Get all active provider IDs from connections
     const activeConnectionIds = activeProviders.map((p) => p.provider);
+    const explicitProviderIds = alwaysIncludeProvidersKey
+      ? alwaysIncludeProvidersKey.split("\0")
+      : [];
 
     // Only show connected providers (including both standard and custom)
     const providerIdsToShow = new Set([
-      ...activeConnectionIds, // Only connected providers
+      ...activeConnectionIds, // Connected providers
+      ...explicitProviderIds, // Zero-config providers required by specific clients
     ]);
 
     // Sort by PROVIDER_ORDER
@@ -262,7 +273,14 @@ export default function ModelSelectModal({
     });
 
     return groups;
-  }, [activeProviders, modelAliases, allProviders, providerNodes, customModels]);
+  }, [
+    activeProviders,
+    alwaysIncludeProvidersKey,
+    modelAliases,
+    allProviders,
+    providerNodes,
+    customModels,
+  ]);
 
   // Filter combos by search query
   const filteredCombos = useMemo(() => {

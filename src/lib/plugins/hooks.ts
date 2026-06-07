@@ -190,7 +190,11 @@ export async function emitHookBlocking(
       continue;
     }
     try {
-      const result = await reg.handler(payload);
+      // Chain the payload: each handler must see the body/metadata as mutated by
+      // previous handlers, not the original static payload — otherwise plugin B
+      // can't observe plugin A's changes. (#3286)
+      const currentPayload = { ...ctx, body: mergedBody, metadata: mergedMetadata };
+      const result = await reg.handler(currentPayload);
       if (result && typeof result === "object") {
         if ("body" in result) mergedBody = (result as Record<string, unknown>).body;
         if ("metadata" in result)

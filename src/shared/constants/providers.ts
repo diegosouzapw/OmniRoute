@@ -38,6 +38,7 @@ export const NOAUTH_PROVIDERS = {
     website: "https://opencode.ai",
     noAuth: true,
     hasFree: true,
+    serviceKinds: ["llm"],
     authHint: "No API key required — uses OpenCode's public free endpoint.",
     freeNote:
       "No API key required — public OpenCode endpoint with Kimi, GLM, Qwen, MiMo, MiniMax models.",
@@ -55,8 +56,41 @@ export const NOAUTH_PROVIDERS = {
     website: "https://duckduckgo.com/duckchat",
     noAuth: true,
     hasFree: true,
+    serviceKinds: ["llm"],
     freeNote: "Free — anonymous access to multiple AI models via DuckDuckGo.",
     authHint: "No credentials required — DuckDuckGo AI Chat is anonymous and free.",
+  },
+  theoldllm: {
+    id: "theoldllm",
+    alias: "tllm",
+    name: "The Old LLM (Free)",
+    icon: "auto_awesome",
+    color: "#8B5CF6",
+    textIcon: "TL",
+    website: "https://theoldllm.vercel.app",
+    noAuth: true,
+    hasFree: true,
+    serviceKinds: ["llm"],
+    freeNote:
+      "Free — GPT-5.4, Claude 4.6 Opus/Sonnet/Haiku, + more. No API key — tokens auto-generated via browser.",
+    authHint:
+      "No credentials required. The executor auto-generates access tokens via an embedded Playwright browser instance.",
+  },
+  chipotle: {
+    id: "chipotle",
+    alias: "pepper",
+    name: "Chipotle Pepper AI (Free)",
+    icon: "restaurant",
+    color: "#C41230",
+    textIcon: "🌯",
+    website: "https://amelia.chipotle.com",
+    noAuth: true,
+    hasFree: true,
+    serviceKinds: ["llm"],
+    freeNote:
+      "Free — Chipotle's Pepper AI (IPsoft Amelia). Anonymous sessions, no API key. Rate-limited.",
+    authHint:
+      "No credentials required. Uses Chipotle's public support chatbot via reverse-engineered SockJS/STOMP protocol.",
   },
   "veoaifree-web": {
     id: "veoaifree-web",
@@ -68,6 +102,7 @@ export const NOAUTH_PROVIDERS = {
     website: "https://veoaifree.com",
     noAuth: true,
     hasFree: true,
+    serviceKinds: ["video"],
     freeNote: "Free video generation — VEO 3.1, Seedance. 6 requests/hour.",
     authHint: "No auth required. Rate limited to 6 requests/hour per IP.",
   },
@@ -138,6 +173,8 @@ export const OAUTH_PROVIDERS = {
     subscriptionRisk: true,
     riskNoticeVariant: "deprecated",
     hasFree: true,
+    freeNote:
+      "Free tier: 50 credits/month (~25K–100K tokens). ⚠️ Kiro ToS prohibits third-party proxy/harness use.",
   },
   "amazon-q": {
     id: "amazon-q",
@@ -435,7 +472,8 @@ export const WEB_COOKIE_PROVIDERS = {
   },
   huggingchat: {
     id: "huggingchat",
-    alias: "hc",
+    // "hc" belongs to the hackclub provider; huggingchat uses its own id as alias.
+    alias: "huggingchat",
     name: "HuggingChat (Free)",
     icon: "auto_awesome",
     color: "#FFD21E",
@@ -497,7 +535,8 @@ export const WEB_COOKIE_PROVIDERS = {
   },
   "kimi-web": {
     id: "kimi-web",
-    alias: "kimi",
+    // Primary "kimi" provider keeps the short alias; web variant uses its own id.
+    alias: "kimi-web",
     name: "Kimi Web (Moonshot AI)",
     icon: "auto_awesome",
     color: "#2563EB",
@@ -521,7 +560,8 @@ export const WEB_COOKIE_PROVIDERS = {
   },
   "qwen-web": {
     id: "qwen-web",
-    alias: "qw",
+    // Primary "qwen" provider keeps the short alias; web variant uses its own id.
+    alias: "qwen-web",
     name: "Qwen Web (Free)",
     icon: "auto_awesome",
     color: "#10B981",
@@ -559,7 +599,7 @@ export const APIKEY_PROVIDERS = {
     textIcon: "CC",
     website: "https://commandcode.ai/",
     authHint:
-      "Use a Command Code API key. Requests are sent to Command Code's /alpha/generate endpoint.",
+      "Use a Command Code API key. Requests are sent to Command Code's /provider/v1/chat/completions endpoint.",
     apiHint: "Create or copy an API key from Command Code, then paste it here as a Bearer token.",
   },
   openrouter: {
@@ -899,18 +939,6 @@ export const APIKEY_PROVIDERS = {
     apiHint:
       "Get free API key at https://bazaarlink.ai — use model 'auto:free' for zero-cost inference. OpenAI-compatible.",
   },
-  completions: {
-    id: "completions",
-    alias: "cpl",
-    name: "Completions.me",
-    icon: "bolt",
-    color: "#F59E0B",
-    textIcon: "CP",
-    website: "https://completions.me",
-    hasFree: true,
-    freeNote: "Free unlimited access to Claude, GPT, Gemini — no credit card, no rate limits",
-    apiHint: "Sign up at https://completions.me for free API key. OpenAI-compatible endpoint.",
-  },
   xai: {
     id: "xai",
     alias: "xai",
@@ -972,7 +1000,7 @@ export const APIKEY_PROVIDERS = {
     textIcon: "CB",
     website: "https://inference.cerebras.ai",
     hasFree: true,
-    freeNote: "Free: 1M tokens/day, 60K TPM — world's fastest inference",
+    freeNote: "Free Trial: 1M tokens/day, 30K TPM, 5 RPM — no credit card.",
   },
   cohere: {
     id: "cohere",
@@ -1117,6 +1145,7 @@ export const APIKEY_PROVIDERS = {
     icon: "opencode",
     color: "#6366f1",
     website: "https://opencode.ai/zen",
+    anonymousFallback: true,
   },
   "opencode-go": {
     id: "opencode-go",
@@ -1125,6 +1154,7 @@ export const APIKEY_PROVIDERS = {
     icon: "opencode",
     color: "#6366f1",
     website: "https://opencode.ai/go",
+    anonymousFallback: true,
   },
   alibaba: {
     id: "alibaba",
@@ -1156,7 +1186,7 @@ export const APIKEY_PROVIDERS = {
     website: "https://longcat.chat/platform/docs",
     hasFree: true,
     freeNote:
-      "50M tokens/day (Flash-Lite) + 500K/day (Chat/Thinking) — 100% free while public beta",
+      "Free: 5M tokens/day on LongCat-2.0-Preview (Flash models retired 2026-05-29); up to 120M/day via feedback.",
   },
   pollinations: {
     id: "pollinations",
@@ -1167,6 +1197,7 @@ export const APIKEY_PROVIDERS = {
     textIcon: "PO",
     website: "https://pollinations.ai",
     hasFree: true,
+    anonymousFallback: true,
     freeNote:
       "No API key required for free public endpoint. Optional Spore tier: ~0.01 pollen/hour.",
   },

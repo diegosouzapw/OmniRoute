@@ -52,7 +52,7 @@ export default function StudioConfigPane({ configState, setConfigState }: Studio
   const { provider, setProvider, providerOptions, loading: loadingProviders } = useProviderOptions(
     configState.provider ?? ""
   );
-  const { availableModels, loading: loadingModels } = useAvailableModels();
+  const { availableModels, loading: loadingModels } = useAvailableModels(provider || undefined);
 
   function update<K extends keyof ConfigState>(key: K, value: ConfigState[K]) {
     setConfigState({ ...configState, [key]: value });
@@ -125,6 +125,7 @@ export default function StudioConfigPane({ configState, setConfigState }: Studio
             onChange={(e) => {
               setProvider(e.target.value);
               update("provider", e.target.value);
+              update("model", "");
             }}
             disabled={loadingProviders}
             className="w-full text-xs bg-surface border border-border rounded px-2 py-1.5 focus:outline-none focus:ring-1 focus:ring-primary text-text-main"

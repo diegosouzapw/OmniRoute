@@ -20,8 +20,11 @@ test("T31: antigravity static catalog exposes client-visible Gemini preview IDs"
   // still accepts its internal model identifiers.
   const staticIds = (getStaticModelsForProvider("antigravity") || []).map((m) => m.id);
   assert.ok(staticIds.includes("gemini-3-pro-preview"));
-  assert.ok(!staticIds.includes("gemini-3.1-pro-low"));
-  assert.ok(!staticIds.includes("claude-sonnet-4-6"));
+  // #3303 (agy parity, discussion #3184): the Gemini + Claude budget tiers ARE
+  // client-visible on the Antigravity OAuth backend (Claude was never removed).
+  assert.ok(staticIds.includes("gemini-3.1-pro-low"));
+  assert.ok(staticIds.includes("claude-sonnet-4-6"));
+  // The legacy cloaked Claude aliases remain absent.
   assert.ok(!staticIds.includes("gemini-claude-sonnet-4-5-thinking"));
   assert.ok(!staticIds.includes("gemini-claude-opus-4-5-thinking"));
 });

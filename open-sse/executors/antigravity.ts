@@ -8,6 +8,7 @@ import {
   type ProviderCredentials,
 } from "./base.ts";
 import { applyFingerprint, isCliCompatEnabled } from "../config/cliFingerprints.ts";
+import { buildAntigravityUpstreamError } from "./antigravityUpstreamError.ts";
 import {
   PROVIDERS,
   OAUTH_ENDPOINTS,
@@ -29,6 +30,7 @@ import {
   handleCreditsFailure,
 } from "../services/antigravityCredits.ts";
 import { persistCreditBalance, getAllPersistedCreditBalances } from "@/lib/db/creditBalance";
+import { getMitmAlias } from "@/lib/db/models";
 import { obfuscateSensitiveWords } from "../services/antigravityObfuscation.ts";
 import { resolveAntigravityVersion } from "../services/antigravityVersion.ts";
 import { ensureAntigravityProjectAssigned } from "../services/antigravityProjectBootstrap.ts";
@@ -53,9 +55,9 @@ const MAX_RETRY_AFTER_MS = 60_000;
 const LONG_RETRY_THRESHOLD_MS = 60_000;
 const CREDITS_EXHAUSTED_TTL_MS = 5 * 60 * 60 * 1000; // 5 hours
 // The upstream API uses plain model IDs (no -high/-low suffix).
-// Tier suffixes were speculative and caused 404 for gemini-3.x models.
-// Only keep models that are live-proven via streamGenerateContent.
-const BARE_PRO_IDS: Set<string> = new Set();
+// Tier suffixes were speculative and caused 404 for gemini-3.x models — the
+// bare-Pro→Low normalization was retired (the set stayed empty, making the guard
+// dead code). Only keep models that are live-proven via streamGenerateContent.
 
 interface AntigravityContent {
   role: string;
@@ -401,15 +403,36 @@ function flushAntigravitySSEText(
  * Strip provider prefixes (e.g. "antigravity/model" → "model").
  * Ensures the model name sent to the upstream API never contains a routing prefix.
  */
-function cleanModelName(model: string): string {
+async function cleanModelName(model: string): Promise<string> {
   if (!model) return model;
-  let clean = model.includes("/") ? model.split("/").pop()! : model;
-  clean = resolveAntigravityModelId(clean);
-  // Normalize bare Pro IDs to the Low tier (matching OpenClaw convention).
-  // The upstream API requires an explicit tier suffix; bare IDs cause errors.
-  if (BARE_PRO_IDS.has(clean)) {
-    clean = `${clean}-low`;
+  const stripped = model.includes("/") ? model.split("/").pop()! : model;
+  let clean = stripped;
+
+  // 1. Check dynamic MITM aliases first (authoritative after first sync).
+  //    Built during model sync — contains ONLY currently-available models.
+  //    Obsolete/removed models are automatically excluded.
+  try {
+    const mitmAliases = await getMitmAlias("antigravity");
+    if (mitmAliases && typeof mitmAliases === "object") {
+      const aliases = mitmAliases as Record<string, unknown>;
+      const raw = aliases[stripped];
+      // Only honor string aliases; corrupted/non-string DB values fall through
+      // to the static alias resolution below (never return undefined here).
+      if (typeof raw === "string" && raw) {
+        // Strip the "antigravity/" prefix if present; use the raw model ID otherwise.
+        const PREFIX = "antigravity/";
+        clean = raw.startsWith(PREFIX) ? raw.slice(PREFIX.length) : raw;
+      }
+    }
+  } catch {
+    // DB not available (build phase, transient error) — fall through to static aliases
   }
+
+  // 2. Fall back to static aliases if MITM didn't resolve
+  if (clean === stripped) {
+    clean = resolveAntigravityModelId(clean);
+  }
+
   return clean;
 }
 
@@ -610,7 +633,7 @@ export class AntigravityExecutor extends BaseExecutor {
       return resp as unknown as never;
     }
 
-    const upstreamModel = cleanModelName(model);
+    const upstreamModel = await cleanModelName(model);
     const isClaude = upstreamModel.toLowerCase().includes("claude");
     const baseBody = bodyRecord;
     const normalizedBody = shouldStripCloudCodeThinking(this.provider, upstreamModel)
@@ -1238,11 +1261,21 @@ export class AntigravityExecutor extends BaseExecutor {
             }
           }
 
-          if (retryMs && retryMs <= LONG_RETRY_THRESHOLD_MS) {
+          // Bounded short-retry: a non-null retryAfterMs ≤ 60s covers nearly every
+          // 429 (decide429 returns 2s/5s/60s defaults), so this branch MUST share the
+          // per-URL attempt counter. Without the bound a persistent 429 loops forever
+          // on the same endpoint/account (urlIndex-- cancels the loop's urlIndex++) and
+          // never returns the 429 to the account-fallback layer in chat.ts.
+          if (
+            retryMs &&
+            retryMs <= LONG_RETRY_THRESHOLD_MS &&
+            retryAttemptsByUrl[urlIndex] < MAX_AUTO_RETRIES
+          ) {
+            retryAttemptsByUrl[urlIndex]++;
             const effectiveRetryMs = Math.min(retryMs, MAX_RETRY_AFTER_MS);
             log?.debug?.(
               "RETRY",
-              `${response.status} with Retry-After: ${Math.ceil(effectiveRetryMs / 1000)}s, waiting...`
+              `${response.status} retry ${retryAttemptsByUrl[urlIndex]}/${MAX_AUTO_RETRIES} with Retry-After: ${Math.ceil(effectiveRetryMs / 1000)}s, waiting...`
             );
             await new Promise((resolve) => setTimeout(resolve, effectiveRetryMs));
             urlIndex--;
@@ -1322,6 +1355,29 @@ export class AntigravityExecutor extends BaseExecutor {
         // For non-streaming clients, collect the SSE stream and return a synthetic
         // non-streaming Response so chatCore doesn't need to handle SSE conversion.
         if (!stream) {
+          // #3229: surface a real upstream error instead of masking a 4xx/5xx as an
+          // empty `chat.completion` envelope (collectStreamToResponse synthesizes a
+          // success-shaped body when the upstream returned no SSE data).
+          if (!response.ok) {
+            const rawBody = await response
+              .clone()
+              .text()
+              .catch(() => "");
+            const errorBody = buildAntigravityUpstreamError(
+              response.status,
+              response.statusText,
+              rawBody
+            );
+            return {
+              response: new Response(JSON.stringify(errorBody), {
+                status: response.status,
+                headers: { "Content-Type": "application/json" },
+              }),
+              url,
+              headers: finalHeaders,
+              transformedBody: attachToolNameMap(transformedBody, requestToolNameMap),
+            };
+          }
           const collected = await this.collectStreamToResponse(
             response,
             model,

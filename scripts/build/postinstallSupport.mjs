@@ -13,7 +13,13 @@ import { join } from "node:path";
  * @returns {boolean}
  */
 export function hasStandaloneAppBundle(rootDir) {
-  return existsSync(join(rootDir, "dist", "server.js"));
+  // The published bundle ships in dist/ (build-output-isolation). Also accept the
+  // legacy app/ location so an upgrade over a partially-replaced install is still
+  // detected as a published bundle — mirrors the serve CLI's dist/ -> app/ fallback.
+  return (
+    existsSync(join(rootDir, "dist", "server.js")) ||
+    existsSync(join(rootDir, "app", "server.js"))
+  );
 }
 
 /**

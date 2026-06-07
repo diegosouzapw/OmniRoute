@@ -714,7 +714,11 @@ export async function replaceSyncedAvailableModelsForConnection(
 ): Promise<SyncedAvailableModel[]> {
   const db = getDbInstance();
   const key = `${providerId}:${connectionId}`;
-  const normalizedModels = normalizeSyncedAvailableModels(models);
+  // #3199: drop ids the operator has deleted/hidden so a re-fetch does not
+  // re-import a model that was explicitly removed.
+  const normalizedModels = normalizeSyncedAvailableModels(models).filter(
+    (m) => !getModelIsHidden(providerId, m.id)
+  );
   if (normalizedModels.length === 0) {
     db.prepare("DELETE FROM key_value WHERE namespace = 'syncedAvailableModels' AND key = ?").run(
       key
@@ -727,6 +731,59 @@ export async function replaceSyncedAvailableModelsForConnection(
   backupDbFile("pre-write");
   // Return the full unioned list for the provider
   return getSyncedAvailableModels(providerId);
+}
+
+/**
+ * Remove a single synced available model from all connections of a provider.
+ * Returns true if the model was found and removed from at least one connection.
+ */
+export async function removeSyncedAvailableModel(
+  providerId: string,
+  modelId: string
+): Promise<boolean> {
+  const db = getDbInstance();
+  const prefix = `${providerId}:`;
+  const rows = db
+    .prepare(
+      "SELECT key, value FROM key_value WHERE namespace = 'syncedAvailableModels' AND key LIKE ?"
+    )
+    .all(`${prefix}%`);
+
+  let removedAny = false;
+  const removeModel = db.transaction(() => {
+    for (const row of rows) {
+      const { key, value } = getKeyValue(row);
+      if (!key || value === null) continue;
+
+      let parsedModels: unknown;
+      try {
+        parsedModels = JSON.parse(value);
+      } catch (error) {
+        console.warn(`[DB] Skipping malformed syncedAvailableModels entry for key ${key}:`, error);
+        continue;
+      }
+
+      const models = normalizeSyncedAvailableModels(parsedModels);
+      const filtered = models.filter((m) => m.id !== modelId);
+      if (filtered.length !== models.length) {
+        removedAny = true;
+        if (filtered.length === 0) {
+          db.prepare(
+            "DELETE FROM key_value WHERE namespace = 'syncedAvailableModels' AND key = ?"
+          ).run(key);
+        } else {
+          db.prepare(
+            "UPDATE key_value SET value = ? WHERE namespace = 'syncedAvailableModels' AND key = ?"
+          ).run(JSON.stringify(filtered), key);
+        }
+      }
+    }
+
+    if (removedAny) backupDbFile("pre-write");
+  });
+
+  removeModel();
+  return removedAny;
 }
 
 /**
@@ -785,7 +842,6 @@ export async function pruneStaleSyncedAvailableModelsForProvider(
   backupDbFile("pre-write");
   return Number(result.changes || 0);
 }
-
 
 export async function updateCustomModel(
   providerId: string,
@@ -976,6 +1032,44 @@ export function getModelIsHidden(providerId: string, modelId: string): boolean {
   }
   const co = readCompatList(providerId).find((e) => e.id === modelId);
   return Boolean(co?.isHidden);
+}
+
+/**
+ * Persist the hidden flag for a model. Stores the override on the custom-model
+ * row when one exists, otherwise on the compat-override list. Setting
+ * `hidden = false` is a no-op when the model is already visible.
+ */
+export function setModelIsHidden(providerId: string, modelId: string, hidden: boolean): void {
+  const customRow = getCustomModelRow(providerId, modelId);
+  if (customRow) {
+    if (hidden) {
+      updateCustomModel(providerId, modelId, { isHidden: true });
+    } else if (Object.prototype.hasOwnProperty.call(customRow, "isHidden")) {
+      updateCustomModel(providerId, modelId, { isHidden: false });
+    }
+    return;
+  }
+
+  const list = readCompatList(providerId);
+  const idx = list.findIndex((e) => e.id === modelId);
+  if (hidden) {
+    const prev = idx >= 0 ? list[idx] : { id: modelId };
+    const next: ModelCompatOverride = { ...prev, id: modelId, isHidden: true };
+    if (idx >= 0) list[idx] = next;
+    else list.push(next);
+    writeCompatList(providerId, list);
+    return;
+  }
+
+  if (idx < 0) return;
+  if (Object.keys(list[idx]).length <= 1) {
+    // Only `id` left; drop the entry entirely.
+    const filtered = list.filter((_, i) => i !== idx);
+    writeCompatList(providerId, filtered);
+    return;
+  }
+  delete list[idx].isHidden;
+  writeCompatList(providerId, list);
 }
 
 function readUpstreamFromJsonRecord(

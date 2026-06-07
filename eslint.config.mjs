@@ -23,6 +23,25 @@ const eslintConfig = [
       ],
     },
   },
+  // i18n: ham toLowerCase().includes() arama pattern'ini engelle
+  // (Türkçe İ/ı karakterlerini bozar — matchesSearch kullanılmalı).
+  // "warn" (error değil): kuralın eklendiği anda kod tabanında zaten bu pattern'i
+  // kullanan ~19 satır var; aşamalı temizlik için uyarı seviyesinde tutuluyor
+  // (proje politikası: 0 error, warning'ler tolere edilir).
+  {
+    files: ["src/app/**/*.{ts,tsx}", "src/components/**/*.{ts,tsx}"],
+    rules: {
+      "no-restricted-syntax": [
+        "warn",
+        {
+          selector:
+            "CallExpression[callee.property.name='includes'][callee.object.callee.property.name='toLowerCase']",
+          message:
+            "Türkçe-güvenli arama için matchesSearch() kullan (@/shared/utils/turkishText). Ham toLowerCase().includes() İ/ı karakterlerini bozar.",
+        },
+      ],
+    },
+  },
   // Relaxed rules for open-sse and tests (incremental adoption)
   {
     files: ["open-sse/**/*.ts", "tests/**/*.mjs", "tests/**/*.ts"],
@@ -53,6 +72,10 @@ const eslintConfig = [
       // Dependencies
       "node_modules/**",
       ".worktrees/**",
+      // Nested git worktrees created by review/resolve skills live under
+      // .claude/ (gitignored). They hold other sessions' in-progress work and
+      // their files move mid-scan, so never lint them from the main checkout.
+      ".claude/**",
       ".omnivscodeagent/**",
       // VS Code extension and its large test fixtures
       "vscode-extension/**",

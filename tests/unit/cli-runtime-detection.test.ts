@@ -231,23 +231,28 @@ describe("resolveOpencodeConfigPath — cross-platform", () => {
     assert.equal(result, path.join("/home/dev", ".config", "opencode", "opencode.json"));
   });
 
-  it("should resolve on Windows with APPDATA", () => {
+  it("should resolve on Windows under ~/.config (XDG, NOT %APPDATA% — #3330)", () => {
+    // #3330: OpenCode reads its config from ~/.config/opencode on every
+    // platform, including Windows (%USERPROFILE%\.config). %APPDATA% is ignored.
     const result = resolveOpencodeConfigPathFn(
       "win32",
       { APPDATA: "C:\\Users\\dev\\AppData\\Roaming" },
       "C:\\Users\\dev"
     );
-    assert.equal(
-      result,
-      path.join("C:\\Users\\dev\\AppData\\Roaming", "opencode", "opencode.json")
-    );
+    assert.equal(result, path.join("C:\\Users\\dev", ".config", "opencode", "opencode.json"));
   });
 
-  it("should fallback to home/AppData/Roaming on Windows without APPDATA", () => {
+  it("should resolve on Windows under ~/.config without APPDATA (#3330)", () => {
     const result = resolveOpencodeConfigPathFn("win32", {}, "C:\\Users\\dev");
-    assert.equal(
-      result,
-      path.join("C:\\Users\\dev", "AppData", "Roaming", "opencode", "opencode.json")
+    assert.equal(result, path.join("C:\\Users\\dev", ".config", "opencode", "opencode.json"));
+  });
+
+  it("should honor XDG_CONFIG_HOME on Windows too (#3330)", () => {
+    const result = resolveOpencodeConfigPathFn(
+      "win32",
+      { XDG_CONFIG_HOME: "D:\\xdg" },
+      "C:\\Users\\dev"
     );
+    assert.equal(result, path.join("D:\\xdg", "opencode", "opencode.json"));
   });
 });

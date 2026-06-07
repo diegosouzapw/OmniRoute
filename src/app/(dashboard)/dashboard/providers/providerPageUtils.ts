@@ -7,6 +7,7 @@ import {
   type ResolvedProviderCatalogEntry,
   type StaticProviderCatalogCategory,
 } from "@/lib/providers/catalog";
+import { compareTr, matchesSearch } from "@/shared/utils/turkishText";
 
 export interface ProviderStatsSnapshot {
   total?: number;
@@ -52,9 +53,9 @@ export function sortProviderEntriesByName<TProvider>(
   entries: ProviderEntry<TProvider>[]
 ): ProviderEntry<TProvider>[] {
   return [...entries].sort((a, b) => {
-    const nameCompare = getProviderSortLabel(a).localeCompare(getProviderSortLabel(b));
+    const nameCompare = compareTr(getProviderSortLabel(a), getProviderSortLabel(b));
     if (nameCompare !== 0) return nameCompare;
-    return a.providerId.localeCompare(b.providerId);
+    return a.providerId.localeCompare(b.providerId); // teknik sıralama: ASCII kasıtlı
   });
 }
 
@@ -106,7 +107,12 @@ export function filterConfiguredProviderEntries<TProvider>(
   let filtered = entries;
 
   if (showConfiguredOnly) {
-    filtered = filtered.filter((entry) => Number(entry.stats?.total || 0) > 0);
+    // no-auth providers never create a DB connection row (stats.total === 0) but
+    // are always usable and appear unconditionally in the /v1/models catalog, so
+    // they must not be hidden by the configured-only filter (#3290).
+    filtered = filtered.filter(
+      (entry) => entry.displayAuthType === "no-auth" || Number(entry.stats?.total || 0) > 0
+    );
   }
 
   if (showFreeOnly) {
@@ -117,12 +123,12 @@ export function filterConfiguredProviderEntries<TProvider>(
   }
 
   if (searchQuery && searchQuery.trim()) {
-    const query = searchQuery.trim().toLowerCase();
     filtered = filtered.filter((entry) => {
       const provider = entry.provider as Record<string, unknown>;
-      const name = String(provider.name || "").toLowerCase();
-      const id = entry.providerId.toLowerCase();
-      return name.includes(query) || id.includes(query);
+      return (
+        matchesSearch(String(provider.name || ""), searchQuery) ||
+        matchesSearch(entry.providerId, searchQuery)
+      );
     });
   }
 

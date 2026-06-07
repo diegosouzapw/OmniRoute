@@ -117,6 +117,10 @@ const IGNORE_FROM_CODE = new Set([
   // Test-only opt-out: instructs bin/omniroute.mjs to skip auto-loading the
   // repository .env so isolation tests get a deterministic environment.
   "OMNIROUTE_CLI_SKIP_REPO_ENV",
+  // Build-time only: set by `build:release` (git short SHA) and read by
+  // write-build-sha.mjs to stamp dist/BUILD_SHA — injected by the build, never
+  // configured by users in .env.
+  "OMNIROUTE_BUILD_SHA",
   // Source typo / placeholder.
   "OMNIROUT",
   // Static config alias path (the canonical var is OMNIROUTE_PAYLOAD_RULES_PATH).

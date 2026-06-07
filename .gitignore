@@ -9,6 +9,19 @@ _ideia/
 _mono_repo/
 _references/
 _tasks/
+.agents/**
+.claude/**
+.gemini/**
+.config/**
+.data/**
+.logs/**
+.tests/**
+.coverage/**
+coverage/
+.dist/**
+.next/**
+.build/**
+.out/**
 
 
 # Memory Bank and Cursor rules (local-only AI agent context)
@@ -50,6 +63,9 @@ yarn-error.log*
 # env files (can opt-in for committing if needed)
 .env*
 !.env.example
+# Provider API keys (never commit)
+*.api-key
+.nvidia-api-key
 
 # vercel
 .vercel
@@ -180,3 +196,6 @@ scripts/i18n/_pending-keys.json
 # PR Reviews and local feedback files
 pr_reviews*.json
 
+#hidden local data directories (never commit)
+.local-data/
+.data-dev/

@@ -42,6 +42,15 @@ export const MODEL_SPECS: Record<string, ModelSpec> = {
     supportsVision: true,
   },
 
+  "gpt-5.4": {
+    maxOutputTokens: 131072,
+    contextWindow: 409600,
+    supportsThinking: true,
+    supportsTools: true,
+    supportsVision: true,
+    aliases: ["openai/gpt-5.4"],
+  },
+
   // ── GPT-4o family ──────────────────────────────────────────────
   "gpt-4o-mini": {
     maxOutputTokens: 16384,
@@ -58,6 +67,22 @@ export const MODEL_SPECS: Record<string, ModelSpec> = {
     supportsTools: true,
     supportsVision: true,
     aliases: ["openai/gpt-4o"],
+  },
+
+  // ── Gemini 2.5 and 3.5 Flash series ──────────────────────────────
+  "gemini-2.5-flash": {
+    maxOutputTokens: 65536,
+    contextWindow: 1048576,
+    supportsThinking: false,
+    supportsTools: true,
+    supportsVision: true,
+  },
+  "gemini-3.5-flash-low": {
+    maxOutputTokens: 65536,
+    contextWindow: 1048576,
+    supportsThinking: false,
+    supportsTools: true,
+    supportsVision: true,
   },
 
   // ── Gemini 3 Flash series ───────────────────────────────────────
@@ -310,12 +335,24 @@ export const MODEL_SPECS: Record<string, ModelSpec> = {
     supportsTools: true,
   },
 
+  // ── MiniMax M3 (1M context, 512K max output) ─────────────────────
+  // max output verified against MiniMax docs / OpenRouter / Artificial
+  // Analysis (Nov 2025 launch): 1,048,576-token context, up to 512K output.
+  "minimax-m3": {
+    maxOutputTokens: 512000,
+    contextWindow: 1048576,
+    supportsThinking: true,
+    supportsTools: true,
+    aliases: ["MiniMax-M3", "MiniMaxAI/MiniMax-M3"],
+  },
+
   // ── MiniMax M2.x (200K context family) ───────────────────────────
   "minimax-m2.7": {
     maxOutputTokens: 131072,
     contextWindow: 204800,
     supportsThinking: true,
     supportsTools: true,
+    aliases: ["MiniMax-M2.7", "MiniMaxAI/MiniMax-M2.7"],
   },
   "minimax-m2.5": {
     maxOutputTokens: 131072,
@@ -356,14 +393,23 @@ export const MODEL_SPECS: Record<string, ModelSpec> = {
 export function getModelSpec(modelId: string): ModelSpec | undefined {
   if (MODEL_SPECS[modelId]) return MODEL_SPECS[modelId];
 
-  // Buscas por alias
+  // Case-insensitive lookups: upstream model ids are often capitalized
+  // (e.g. "MiniMax-M2.7") while specs/aliases use lowercase ids (#3141).
+  const lower = modelId.toLowerCase();
+
+  // Exact match (case-insensitive)
   for (const [canonical, spec] of Object.entries(MODEL_SPECS)) {
-    if (spec.aliases?.includes(modelId)) return spec;
+    if (canonical.toLowerCase() === lower) return spec;
   }
 
-  // Prefix matching
+  // Buscas por alias (case-insensitive)
+  for (const [, spec] of Object.entries(MODEL_SPECS)) {
+    if (spec.aliases?.some((alias) => alias.toLowerCase() === lower)) return spec;
+  }
+
+  // Prefix matching (case-insensitive)
   for (const [key, spec] of Object.entries(MODEL_SPECS)) {
-    if (key !== "__default__" && modelId.startsWith(key)) return spec;
+    if (key !== "__default__" && lower.startsWith(key.toLowerCase())) return spec;
   }
 
   return undefined;

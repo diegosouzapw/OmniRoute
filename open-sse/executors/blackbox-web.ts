@@ -6,6 +6,7 @@ import {
 } from "./base.ts";
 import { FETCH_TIMEOUT_MS } from "../config/constants.ts";
 import { normalizeSessionCookieHeader } from "@/lib/providers/webCookieAuth";
+import { prepareToolMessages, buildToolAwareResult } from "../translator/webTools.ts";
 
 const BLACKBOX_CHAT_API = "https://app.blackbox.ai/api/chat";
 const BLACKBOX_DEFAULT_COOKIE = "next-auth.session-token";
@@ -302,7 +303,8 @@ export class BlackboxWebExecutor extends BaseExecutor {
     log,
     upstreamExtraHeaders,
   }: ExecuteInput) {
-    const messages = (body as Record<string, unknown>).messages as
+    const bodyObj = (body || {}) as Record<string, unknown>;
+    const messages = bodyObj.messages as
       | Array<Record<string, unknown>>
       | undefined;
     if (!messages || !Array.isArray(messages) || messages.length === 0) {
@@ -323,8 +325,9 @@ export class BlackboxWebExecutor extends BaseExecutor {
       };
     }
 
+    const { hasTools, requestedTools, effectiveMessages } = prepareToolMessages(bodyObj, messages as Array<{ role: string; content: unknown }>);
     const chatId = crypto.randomUUID().slice(0, 7);
-    const parsedMessages = parseOpenAIMessages(messages, chatId);
+    const parsedMessages = parseOpenAIMessages(effectiveMessages, chatId);
     if (parsedMessages.length === 0) {
       const errorResponse = new Response(
         JSON.stringify({
@@ -644,6 +647,27 @@ export class BlackboxWebExecutor extends BaseExecutor {
 
     const id = `chatcmpl-blackbox-${crypto.randomUUID().slice(0, 12)}`;
     const created = Math.floor(Date.now() / 1000);
+
+    if (hasTools) {
+      const { content, toolCalls, finishReason } = buildToolAwareResult(responseText, requestedTools, "bbx");
+      if (toolCalls) {
+        const toolResponse = new Response(
+          JSON.stringify({
+            id, object: "chat.completion", created, model,
+            choices: [{ index: 0, message: { role: "assistant", content: null, tool_calls: toolCalls }, finish_reason: finishReason }],
+          }),
+          { status: 200, headers: { "Content-Type": "application/json" } }
+        );
+        return { response: toolResponse, url: BLACKBOX_CHAT_API, headers, transformedBody };
+      }
+      const finalResponse = stream
+        ? new Response(buildStreamingResponse(content, model, id, created), {
+            status: 200,
+            headers: { "Content-Type": "text/event-stream", "Cache-Control": "no-cache", "X-Accel-Buffering": "no" },
+          })
+        : buildNonStreamingResponse(content, model, id, created);
+      return { response: finalResponse, url: BLACKBOX_CHAT_API, headers, transformedBody };
+    }
 
     const finalResponse = stream
       ? new Response(buildStreamingResponse(responseText, model, id, created), {

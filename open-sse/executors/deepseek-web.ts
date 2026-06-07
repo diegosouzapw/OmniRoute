@@ -1,5 +1,10 @@
 import { BaseExecutor, type ExecuteInput } from "./base.ts";
 import { solveDeepSeekPowAsync } from "../lib/deepseek-pow.ts";
+import {
+  serializeToolsToPrompt,
+  parseToolCallsFromText,
+  type OpenAIToolCall,
+} from "../translator/webTools.ts";
 
 export const DEEPSEEK_WEB_BASE = "https://chat.deepseek.com";
 const DEEPSEEK_API_BASE = `${DEEPSEEK_WEB_BASE}/api`;
@@ -481,28 +486,44 @@ async function collectSSEContent(
 
 // ── Prompt builder (DeepSeek native format, matches Chat2API) ────────────
 
-function messagesToPrompt(messages: Array<{ role: string; content: string }>): string {
-  const extractText = (content: unknown): string => {
-    if (Array.isArray(content)) {
-      return (content as any[])
-        .filter((item: any) => item.type === "text")
-        .map((item: any) => item.text)
-        .join("\n");
-    }
-    return String(content || "");
-  };
+function extractMessageText(content: unknown): string {
+  if (Array.isArray(content)) {
+    return (content as any[])
+      .filter((item: any) => item.type === "text")
+      .map((item: any) => item.text)
+      .join("\n");
+  }
+  return String(content || "");
+}
 
+/**
+ * Build the single prompt string the DeepSeek web API accepts.
+ *
+ * The web endpoint (`/api/v0/chat/completion`) takes only a `prompt` string, not a
+ * `messages` array. With `historyWindow <= 0` (default) we keep the legacy behavior —
+ * system prompt(s) + the last user message only — which is fine for plain chat.
+ *
+ * With `historyWindow > 0` we stitch the last N non-system messages into a role-tagged
+ * transcript so agentic multi-turn clients keep context across turns (rolling-window
+ * memory, #2942). The system prompt(s) still lead the prompt and the newest user turn
+ * is the last line of the transcript.
+ */
+export function messagesToPrompt(
+  messages: Array<{ role: string; content: string }>,
+  historyWindow = 0
+): string {
   if (messages.length === 0) return "";
 
-  // Collect system prompt(s) and find the last user message
   const systemParts: string[] = [];
+  const conversation: Array<{ role: string; text: string }> = [];
   let lastUserContent = "";
   for (const m of messages) {
+    const text = extractMessageText(m.content).trim();
     if (m.role === "system") {
-      const text = extractText(m.content).trim();
       if (text) systemParts.push(text);
-    } else if (m.role === "user") {
-      lastUserContent = extractText(m.content).trim();
+    } else if (m.role === "user" || m.role === "assistant") {
+      if (text) conversation.push({ role: m.role, text });
+      if (m.role === "user") lastUserContent = text;
     }
   }
 
@@ -510,7 +531,15 @@ function messagesToPrompt(messages: Array<{ role: string; content: string }>): s
   if (systemParts.length > 0) {
     parts.push(systemParts.join("\n\n"));
   }
-  if (lastUserContent) {
+
+  if (historyWindow > 0 && conversation.length > 1) {
+    // Rolling-window transcript of the most recent turns (#2942).
+    const recent = conversation.slice(-historyWindow);
+    const transcript = recent
+      .map((turn) => `${turn.role === "assistant" ? "Assistant" : "User"}: ${turn.text}`)
+      .join("\n\n");
+    parts.push(transcript);
+  } else if (lastUserContent) {
     parts.push(lastUserContent);
   }
 
@@ -663,6 +692,108 @@ async function getPowChallenge(
   return bizData.challenge as PowChallenge;
 }
 
+// ── Tool-call response builder (#2820) ──────────────────────────────────
+
+/**
+ * Build the executor result for a tool-translated reply. Emits OpenAI `tool_calls`
+ * with `finish_reason: "tool_calls"` when tool calls were parsed, otherwise plain
+ * content. Supports both streaming (synthetic SSE) and non-streaming clients.
+ */
+function buildToolAwareResult(opts: {
+  stream: boolean;
+  clientModel: string;
+  content: string;
+  reasoningContent?: string;
+  toolCalls: OpenAIToolCall[] | null;
+  reqHeaders: Record<string, string>;
+  requestPayload: unknown;
+}) {
+  const { stream, clientModel, content, reasoningContent, toolCalls, reqHeaders, requestPayload } =
+    opts;
+  const hasCalls = !!toolCalls && toolCalls.length > 0;
+  const finishReason = hasCalls ? "tool_calls" : "stop";
+  const id = `chatcmpl-${Date.now()}`;
+  const created = Math.floor(Date.now() / 1000);
+
+  if (stream) {
+    const encoder = new TextEncoder();
+    const emit = (
+      controller: ReadableStreamDefaultController,
+      delta: object,
+      finish: string | null
+    ) => {
+      controller.enqueue(
+        encoder.encode(
+          `data: ${JSON.stringify({
+            id,
+            object: "chat.completion.chunk",
+            created,
+            model: clientModel,
+            choices: [{ index: 0, delta, finish_reason: finish }],
+          })}\n\n`
+        )
+      );
+    };
+    const sse = new ReadableStream({
+      start(controller) {
+        emit(controller, { role: "assistant", content: "" }, null);
+        if (hasCalls) {
+          emit(
+            controller,
+            {
+              tool_calls: toolCalls!.map((tc, i) => ({
+                index: i,
+                id: tc.id,
+                type: "function",
+                function: { name: tc.function.name, arguments: tc.function.arguments },
+              })),
+            },
+            null
+          );
+        } else if (content) {
+          emit(controller, { content }, null);
+        }
+        emit(controller, {}, finishReason);
+        controller.enqueue(encoder.encode("data: [DONE]\n\n"));
+        controller.close();
+      },
+    });
+    return {
+      response: new Response(sse, {
+        status: 200,
+        headers: { "Content-Type": "text/event-stream", "Cache-Control": "no-cache" },
+      }),
+      url: COMPLETION_URL,
+      headers: reqHeaders,
+      transformedBody: requestPayload,
+    };
+  }
+
+  const message: Record<string, unknown> = { role: "assistant", content: content || "" };
+  if (reasoningContent) message.reasoning_content = reasoningContent;
+  if (hasCalls) {
+    message.tool_calls = toolCalls;
+    if (!content) message.content = null;
+  }
+  const openaiResponse = {
+    id,
+    object: "chat.completion",
+    created,
+    model: clientModel,
+    choices: [{ index: 0, message, finish_reason: finishReason }],
+    usage: { prompt_tokens: 0, completion_tokens: 0, total_tokens: 0 },
+  };
+  return {
+    response: new Response(JSON.stringify(openaiResponse), {
+      status: 200,
+      headers: { "Content-Type": "application/json" },
+    }),
+    url: COMPLETION_URL,
+    headers: reqHeaders,
+    transformedBody: requestPayload,
+  };
+}
+
 // ── Executor ─────────────────────────────────────────────────────────────
 
 export class DeepSeekWebExecutor extends BaseExecutor {
@@ -688,32 +819,21 @@ export class DeepSeekWebExecutor extends BaseExecutor {
     const bodyObj = (body || {}) as Record<string, unknown>;
 
     // chat.deepseek.com's web API only accepts {prompt, ref_file_ids,
-    // thinking_enabled, search_enabled} - no tools field. Silently dropping
-    // tools[] is misleading: models reply as if no tools were ever offered,
-    // causing agentic clients (OpenAI-compatible) to hallucinate "I don't
-    // have that tool". Fail fast with a clear error so callers route to the
-    // official DeepSeek API (provider: 'deepseek') or a different provider
-    // for tool-using requests. See #2848.
+    // thinking_enabled, search_enabled} - no native tools field. Instead of failing
+    // tool-using requests, translate them (#2820): serialize the OpenAI tools[] into a
+    // <tool>...</tool> prompt contract on the way in, and parse the model's text reply
+    // back into OpenAI tool_calls on the way out.
     const requestedTools = bodyObj.tools;
-    if (Array.isArray(requestedTools) && requestedTools.length > 0) {
-      return {
-        response: errorResponse(
-          400,
-          "deepseek-web upstream (chat.deepseek.com) does not support function calling. " +
-            "The web interface only accepts text + thinking_enabled + search_enabled flags. " +
-            "Use provider 'deepseek' (official api.deepseek.com) for tool-using requests, " +
-            "or route through a different provider."
-        ),
-        url: COMPLETION_URL,
-        headers: {},
-        transformedBody: body,
-      };
-    }
+    const hasTools = Array.isArray(requestedTools) && requestedTools.length > 0;
+    const toolSystemPrompt = hasTools ? serializeToolsToPrompt(requestedTools) : "";
 
     const messages = (Array.isArray(bodyObj.messages) ? bodyObj.messages : []) as Array<{
       role: string;
       content: string;
     }>;
+    const promptMessages = toolSystemPrompt
+      ? [{ role: "system", content: toolSystemPrompt }, ...messages]
+      : messages;
     const rawCreds = credentials as unknown as Record<string, unknown>;
 
     const userToken = extractUserToken(rawCreds);
@@ -735,66 +855,98 @@ export class DeepSeekWebExecutor extends BaseExecutor {
       bodyObj
     );
 
+    // Per-connection memory config (#2942). Defaults preserve the legacy
+    // fresh-session-per-request, last-user-message-only behavior.
+    const psd = (rawCreds.providerSpecificData ?? {}) as Record<string, unknown>;
+    const persistSession = psd.persistSession === true;
+    const historyWindow =
+      typeof psd.historyWindow === "number" && psd.historyWindow > 0 ? psd.historyWindow : 0;
+
     try {
       let t0 = Date.now();
       const accessToken = await acquireAccessToken(userToken, signal, log);
       log?.info?.("DEEPSEEK-WEB", `Token acquired in ${Date.now() - t0}ms`);
 
-      // Always create a fresh session per request (matches Chat2API behavior).
-      // Avoids all stale-session issues when user deletes chats from DeepSeek UI.
-      t0 = Date.now();
-      const sessionId = await createSession(accessToken, signal);
-      log?.info?.("DEEPSEEK-WEB", `Session created in ${Date.now() - t0}ms`);
-
-      t0 = Date.now();
-      const powChallenge = await getPowChallenge(accessToken, signal);
-      log?.info?.(
-        "DEEPSEEK-WEB",
-        `PoW challenge fetched in ${Date.now() - t0}ms (difficulty=${powChallenge.difficulty})`
-      );
-      t0 = Date.now();
-      const powAnswer = await solvePow(powChallenge);
-      log?.info?.("DEEPSEEK-WEB", `PoW solved in ${Date.now() - t0}ms`);
-
-      const prompt = messagesToPrompt(messages);
+      const prompt = messagesToPrompt(promptMessages, historyWindow);
       const refFileIds = Array.isArray(bodyObj.ref_file_ids) ? bodyObj.ref_file_ids : [];
       log?.info?.(
         "DEEPSEEK-WEB",
-        `model_type=${modelType}, thinking=${thinkingEnabled}, search=${searchEnabled}, files=${refFileIds.length}, stream=${stream !== false}`
+        `model_type=${modelType}, thinking=${thinkingEnabled}, search=${searchEnabled}, files=${refFileIds.length}, stream=${stream !== false}, persist=${persistSession}, window=${historyWindow}`
       );
 
-      const reqHeaders: Record<string, string> = {
-        ...FAKE_HEADERS,
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${accessToken}`,
-        "X-Ds-Pow-Response": powAnswer,
-        "X-Client-Timezone-Offset": String(new Date().getTimezoneOffset() * -60),
-        Cookie: generateFakeCookie(),
+      // One completion attempt against a given session id (fresh PoW per attempt).
+      const performCompletion = async (sid: string) => {
+        const powChallenge = await getPowChallenge(accessToken, signal);
+        const powAnswer = await solvePow(powChallenge);
+        const reqHeaders: Record<string, string> = {
+          ...FAKE_HEADERS,
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${accessToken}`,
+          "X-Ds-Pow-Response": powAnswer,
+          "X-Client-Timezone-Offset": String(new Date().getTimezoneOffset() * -60),
+          Cookie: generateFakeCookie(),
+        };
+        const requestPayload = {
+          chat_session_id: sid,
+          parent_message_id: null,
+          model_type: modelType,
+          prompt,
+          ref_file_ids: refFileIds,
+          thinking_enabled: thinkingEnabled,
+          search_enabled: searchEnabled,
+          preempt: false,
+        };
+        const resp = await fetch(COMPLETION_URL, {
+          method: "POST",
+          headers: reqHeaders,
+          body: JSON.stringify(requestPayload),
+          signal: signal ?? undefined,
+        });
+        return { resp, reqHeaders, requestPayload };
       };
 
-      const requestPayload = {
-        chat_session_id: sessionId,
-        parent_message_id: null,
-        model_type: modelType,
-        prompt,
-        ref_file_ids: refFileIds,
-        thinking_enabled: thinkingEnabled,
-        search_enabled: searchEnabled,
-        preempt: false,
+      // Acquire a session. With persistSession we reuse one upstream session per
+      // userToken (rolling-window memory); otherwise we create a fresh one per
+      // request (legacy behavior — dodges stale sessions when the user deletes
+      // chats in the DeepSeek UI). (#2942)
+      const acquireSession = async (): Promise<{ sessionId: string; reused: boolean }> => {
+        if (persistSession) {
+          const cached = sessionCache.get(userToken);
+          if (cached) return { sessionId: cached.sessionId, reused: true };
+          const created = await createSession(accessToken, signal);
+          evictOldest(sessionCache);
+          sessionCache.set(userToken, { sessionId: created, createdAt: Date.now() });
+          return { sessionId: created, reused: false };
+        }
+        return { sessionId: await createSession(accessToken, signal), reused: false };
       };
 
       t0 = Date.now();
+      let { sessionId, reused: reusedSession } = await acquireSession();
+      log?.info?.(
+        "DEEPSEEK-WEB",
+        `Session ${reusedSession ? "reused" : "created"} in ${Date.now() - t0}ms`
+      );
+
+      t0 = Date.now();
       log?.info?.("DEEPSEEK-WEB", `POST ${COMPLETION_URL}`);
-      const resp = await fetch(COMPLETION_URL, {
-        method: "POST",
-        headers: reqHeaders,
-        body: JSON.stringify(requestPayload),
-        signal: signal ?? undefined,
-      });
+      let { resp, reqHeaders, requestPayload } = await performCompletion(sessionId);
       log?.info?.(
         "DEEPSEEK-WEB",
         `Completion response in ${Date.now() - t0}ms, status=${resp.status}`
       );
+
+      // A reused session that fails is likely stale (user deleted the chat in the
+      // DeepSeek UI). Drop it, create a fresh session, and retry once. (#2942)
+      if (!resp.ok && persistSession && reusedSession) {
+        log?.warn?.("DEEPSEEK-WEB", "Reused session failed — retrying with a fresh session");
+        sessionCache.delete(userToken);
+        sessionId = await createSession(accessToken, signal);
+        evictOldest(sessionCache);
+        sessionCache.set(userToken, { sessionId, createdAt: Date.now() });
+        reusedSession = false;
+        ({ resp, reqHeaders, requestPayload } = await performCompletion(sessionId));
+      }
 
       if (!resp.ok) {
         const status = resp.status;
@@ -816,6 +968,7 @@ export class DeepSeekWebExecutor extends BaseExecutor {
           /* ignore */
         }
 
+        if (persistSession) sessionCache.delete(userToken);
         deleteSessionOnDeepSeek(accessToken, sessionId).catch(() => {});
         return {
           response: errorResponse(status, errMsg),
@@ -838,6 +991,7 @@ export class DeepSeekWebExecutor extends BaseExecutor {
             if (parsed.code === 40003) {
               tokenCache.delete(userToken);
             }
+            if (persistSession) sessionCache.delete(userToken);
             deleteSessionOnDeepSeek(accessToken, sessionId).catch(() => {});
             return {
               response: errorResponse(status, errMsg, parsed.code),
@@ -846,7 +1000,7 @@ export class DeepSeekWebExecutor extends BaseExecutor {
               transformedBody: requestPayload,
             };
           }
-          deleteSessionOnDeepSeek(accessToken, sessionId).catch(() => {});
+          if (!persistSession) deleteSessionOnDeepSeek(accessToken, sessionId).catch(() => {});
           return {
             response: new Response(JSON.stringify(json), {
               status: 200,
@@ -861,9 +1015,35 @@ export class DeepSeekWebExecutor extends BaseExecutor {
         }
       }
 
-      const cleanupFn = () => deleteSessionOnDeepSeek(accessToken, sessionId);
+      // Persistent sessions are kept across requests for reuse; only delete the
+      // upstream chat session when persistence is off (legacy behavior). (#2942)
+      const cleanupFn = persistSession
+        ? async () => {}
+        : () => deleteSessionOnDeepSeek(accessToken, sessionId);
 
       const clientModel = typeof model === "string" && model.trim() ? model.trim() : "deepseek-web";
+
+      // Tool-call translation: buffer the full reply and parse <tool> blocks into
+      // OpenAI tool_calls. Buffering (even for stream clients) is acceptable because
+      // tool invocations are short and need the complete block to parse. (#2820)
+      if (hasTools) {
+        const { content, reasoningContent } = await collectSSEContent(resp.body!, clientModel);
+        await cleanupFn();
+        const { content: cleanedContent, toolCalls } = parseToolCallsFromText(
+          content,
+          `call-${Date.now()}`,
+          requestedTools
+        );
+        return buildToolAwareResult({
+          stream: stream !== false,
+          clientModel,
+          content: cleanedContent,
+          reasoningContent,
+          toolCalls,
+          reqHeaders,
+          requestPayload,
+        });
+      }
 
       if (stream !== false) {
         const openaiStream = transformSSE(resp.body!, clientModel);

@@ -24,6 +24,7 @@ import {
 } from "@/lib/providers/claudeExtraUsage";
 import { requireManagementAuth } from "@/lib/api/requireManagementAuth";
 import { isApiKeyRevealEnabled, maskStoredApiKey } from "@/lib/apiKeyExposure";
+import { refreshConnectionRateLimits, enableRateLimitProtection } from "@/../open-sse/services/rateLimitManager";
 
 function normalizeCodexLimitPolicy(
   incoming: unknown,
@@ -132,8 +133,11 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
       group,
       maxConcurrent,
       quotaWindowThresholds: incomingWindowThresholds,
+      proxyEnabled,
+      perKeyProxyEnabled,
       projectId,
       providerSpecificData: incomingPsd,
+      rateLimitOverrides,
     } = body;
 
     const existing = (await getProviderConnectionById(id)) as Record<string, any> | null;
@@ -184,6 +188,9 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
       }
     }
     if (projectId !== undefined) updateData.projectId = projectId;
+    if (rateLimitOverrides !== undefined) updateData.rateLimitOverrides = rateLimitOverrides;
+    if (proxyEnabled !== undefined) updateData.proxyEnabled = proxyEnabled;
+    if (perKeyProxyEnabled !== undefined) updateData.perKeyProxyEnabled = perKeyProxyEnabled;
 
     // Merge providerSpecificData (partial update — preserve existing keys not sent by caller)
     if (incomingPsd !== undefined && incomingPsd !== null && typeof incomingPsd === "object") {
@@ -277,6 +284,14 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
     }
 
     const updated = await updateProviderConnection(id, updateData);
+
+    // If rateLimitOverrides was included in the request, refresh the in-memory
+    // rate limiter state so the change takes effect without a server restart.
+    // Also ensure rate limit protection is active so the limiter is enforced.
+    if (rateLimitOverrides !== undefined) {
+      refreshConnectionRateLimits(id, updated?.rateLimitOverrides ?? null);
+      enableRateLimitProtection(id);
+    }
 
     // Hide sensitive fields
     const result: Record<string, any> = { ...updated };

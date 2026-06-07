@@ -21,7 +21,7 @@ export const FEATURE_FLAG_DEFINITIONS: FeatureFlagDefinition[] = [
     category: "security",
     defaultValue: "false",
     type: "boolean",
-    requiresRestart: true,
+    requiresRestart: false,
     warningLevel: "caution",
   },
   {
@@ -72,7 +72,8 @@ export const FEATURE_FLAG_DEFINITIONS: FeatureFlagDefinition[] = [
   {
     key: "PII_RESPONSE_SANITIZATION_MODE",
     label: "PII Response Sanitization Mode",
-    description: "Mode for PII response sanitization: redact (replace PII), warn (log only), block (reject), off (disable)",
+    description:
+      "Mode for PII response sanitization: redact (replace PII), warn (log only), block (reject), off (disable)",
     descriptionI18nKey: "featureFlagPiiResponseSanitizationModeDescription",
     category: "security",
     defaultValue: "redact",
@@ -115,6 +116,18 @@ export const FEATURE_FLAG_DEFINITIONS: FeatureFlagDefinition[] = [
     type: "boolean",
     requiresRestart: false,
     warningLevel: "info",
+  },
+  {
+    key: "PROXY_AUTO_SELECT_ENABLED",
+    label: "Proxy Auto-Selection Fallback",
+    description:
+      "When no proxy is assigned to a connection, auto-select the first working proxy from the registry. Off by default — otherwise any single registry proxy becomes a global fallback for all traffic (#3332).",
+    descriptionI18nKey: "settings.featureFlags.proxyAutoSelectEnabled",
+    category: "network",
+    defaultValue: "false",
+    type: "boolean",
+    requiresRestart: false,
+    warningLevel: "caution",
   },
   {
     key: "MITM_DISABLE_TLS_VERIFY",

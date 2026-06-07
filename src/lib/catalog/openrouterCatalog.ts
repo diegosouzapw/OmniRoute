@@ -44,9 +44,12 @@ interface CatalogEntry {
   };
   architecture?: {
     modality?: string;
+    input_modalities?: string[];
+    output_modalities?: string[];
     tokenizer?: string;
     instruct_type?: string;
   };
+  supported_parameters?: string[];
   created?: number;
 }
 

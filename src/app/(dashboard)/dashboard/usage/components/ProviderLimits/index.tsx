@@ -20,6 +20,7 @@ import EmailPrivacyToggle from "@/shared/components/EmailPrivacyToggle";
 import QuotaCutoffModal from "./QuotaCutoffModal";
 import QuotaCardGrid from "./QuotaCardGrid";
 import { translateUsageOrFallback, type UsageTranslationValues } from "./i18nFallback";
+import { compareTr } from "@/shared/utils/turkishText";
 
 const LS_PURCHASE_FILTER = "omniroute:limits:purchaseFilter";
 const LS_STATUS_FILTER = "omniroute:limits:statusFilter";
@@ -362,10 +363,17 @@ export default function ProviderLimits({
           const errorMsg = errorData.error || response.statusText;
           if (response.status === 404) return;
           if (response.status === 401) {
+            // The on-demand path already attempts a forced, serialized re-mint
+            // before surfacing a 401, so a 401 here means the token is genuinely
+            // dead — make that actionable instead of a silent empty card.
+            const reauthMsg = /re-?authenticat|sign in|log in/i.test(errorMsg)
+              ? errorMsg
+              : `${errorMsg} — re-authenticate this account.`;
             setQuotaData((prev) => ({
               ...prev,
-              [connectionId]: { quotas: [], message: errorMsg },
+              [connectionId]: { quotas: [], message: reauthMsg },
             }));
+            setErrors((prev) => ({ ...prev, [connectionId]: reauthMsg }));
             return;
           }
           throw new Error(`HTTP ${response.status}: ${errorMsg}`);
@@ -593,7 +601,7 @@ export default function ProviderLimits({
       const tag = (conn.providerSpecificData?.tag as string | undefined)?.trim();
       if (tag) tags.add(tag);
     }
-    return [...tags].sort((a, b) => a.localeCompare(b));
+    return [...tags].sort((a, b) => compareTr(a, b));
   }, [sortedConnections]);
 
   const envCounts = useMemo(() => {

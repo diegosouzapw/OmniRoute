@@ -7,7 +7,7 @@ import { z } from "zod";
 import { NextResponse } from "next/server";
 import { requireManagementAuth } from "@/lib/api/requireManagementAuth";
 import {
-  parseAndValidatePublicUrl,
+  parseAndValidateWebhookUrl,
   OutboundUrlGuardError,
 } from "@/shared/network/outboundUrlGuard";
 import { validateBody, isValidationFailure } from "@/shared/validation/helpers";
@@ -35,7 +35,7 @@ export async function POST(request: Request) {
   const { url } = validation.data;
 
   try {
-    parseAndValidatePublicUrl(url);
+    parseAndValidateWebhookUrl(url);
     return NextResponse.json({ valid: true });
   } catch (err) {
     if (err instanceof OutboundUrlGuardError) {

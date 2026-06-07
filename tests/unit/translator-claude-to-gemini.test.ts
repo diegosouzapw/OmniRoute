@@ -116,7 +116,9 @@ test("Claude -> Gemini clamps maxOutputTokens to the model cap", () => {
     false
   );
 
-  assert.equal(result.generationConfig.maxOutputTokens, 8192);
+  // #3358 added the gemini-2.5-flash model spec (real cap 65536, not the old
+  // 8192 default). An over-cap request clamps to the model's true max output.
+  assert.equal(result.generationConfig.maxOutputTokens, 65536);
 });
 
 test("Claude -> Gemini converts text and base64 images to Gemini parts", () => {

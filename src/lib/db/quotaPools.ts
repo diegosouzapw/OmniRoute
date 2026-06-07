@@ -451,6 +451,14 @@ export function deletePool(id: string): boolean {
 export function upsertAllocations(poolId: string, allocations: PoolAllocation[]): void {
   const database = getDb();
 
+  // Normalize: when all weights are 0, distribute equally so the pool is usable
+  // without requiring a manual re-save. Persists the normalized weights.
+  const totalWeight = allocations.reduce((s, a) => s + (Number.isFinite(a.weight) ? a.weight : 0), 0);
+  const normalizedAllocations =
+    totalWeight === 0 && allocations.length > 0
+      ? allocations.map((a) => ({ ...a, weight: 100 / allocations.length }))
+      : allocations;
+
   // Resolve the target pool's group so we can propagate to siblings.
   // Defensive: fall back to [poolId] (single-pool semantics) if pool not found.
   const targetPool = database
@@ -475,9 +483,8 @@ export function upsertAllocations(poolId: string, allocations: PoolAllocation[])
        VALUES (?, ?, ?, ?, ?, ?)`
     );
     for (const pid of poolIdsInGroup) {
-      // Replace allocations for this pool.
       database.prepare("DELETE FROM quota_allocations WHERE pool_id = ?").run(pid);
-      for (const alloc of allocations) {
+      for (const alloc of normalizedAllocations) {
         insert.run(
           pid,
           alloc.apiKeyId,

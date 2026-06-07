@@ -398,3 +398,74 @@ test("checkConnection skips interval refresh when token expiry is known and stil
     }
   );
 });
+
+test("checkConnection skips providers listed in OMNIROUTE_HEALTHCHECK_SKIP_PROVIDERS (#kimi-15)", async () => {
+  await resetStorage();
+
+  const providerId = "custom-oauth-skip-list";
+  const refreshRequests: string[] = [];
+  const prevSkip = process.env.OMNIROUTE_HEALTHCHECK_SKIP_PROVIDERS;
+
+  await withHttpServer(
+    (req, res) => {
+      let body = "";
+      req.setEncoding("utf8");
+      req.on("data", (chunk) => {
+        body += chunk;
+      });
+      req.on("end", () => {
+        refreshRequests.push(body);
+        res.writeHead(200, { "Content-Type": "application/json" });
+        res.end(
+          JSON.stringify({
+            access_token: "should-not-be-fetched",
+            refresh_token: "should-not-be-fetched",
+            expires_in: 3600,
+          })
+        );
+      });
+    },
+    async (tokenServer) => {
+      await withPatchedProvider(
+        providerId,
+        {
+          tokenUrl: `${tokenServer.url}/token`,
+          clientId: "skip-client-id",
+          clientSecret: "skip-client-secret",
+        },
+        async () => {
+          const connection = await providersDb.createProviderConnection({
+            provider: providerId,
+            authType: "oauth",
+            name: "Skip-list Account",
+            email: "skip@example.com",
+            accessToken: "stale-access-token",
+            refreshToken: "refresh-token-skip",
+            isActive: true,
+          });
+
+          // The connection is due for refresh (no known expiry, never checked).
+          // With the provider listed, the proactive sweep must skip it entirely —
+          // NO refresh request is made.
+          process.env.OMNIROUTE_HEALTHCHECK_SKIP_PROVIDERS = `foo, ${providerId} ,bar`;
+          await tokenHealthCheck.checkConnection(connection);
+          assert.equal(
+            refreshRequests.length,
+            0,
+            "listed provider must NOT trigger a proactive refresh"
+          );
+
+          // Control: with the provider no longer listed, the same due connection
+          // IS refreshed — proving the skip (not token freshness) gated it.
+          process.env.OMNIROUTE_HEALTHCHECK_SKIP_PROVIDERS = "some-other-provider";
+          const stillStale = await providersDb.getProviderConnectionById((connection as any).id);
+          await tokenHealthCheck.checkConnection(stillStale);
+          assert.equal(refreshRequests.length, 1, "non-listed provider must refresh");
+        }
+      );
+    }
+  );
+
+  if (prevSkip === undefined) delete process.env.OMNIROUTE_HEALTHCHECK_SKIP_PROVIDERS;
+  else process.env.OMNIROUTE_HEALTHCHECK_SKIP_PROVIDERS = prevSkip;
+});

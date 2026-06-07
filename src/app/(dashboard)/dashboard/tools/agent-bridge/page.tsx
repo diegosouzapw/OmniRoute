@@ -2,6 +2,7 @@ import { getProviderConnections } from "@/lib/db/providers";
 import { ALL_TARGETS } from "@/mitm/targets/index";
 import AgentBridgePageClient from "./AgentBridgePageClient";
 import type { AgentBridgePageData } from "./AgentBridgePageClient";
+import { normalizeAgentBridgeState } from "./normalizeState";
 
 /**
  * AgentBridge page — Server Component entry point.
@@ -44,8 +45,10 @@ export default async function AgentBridgePage() {
       headers: { "x-internal-fetch": "1" },
     });
     if (res.ok) {
-      const json = (await res.json()) as AgentBridgePageData;
-      initialData = json;
+      // #3318: normalize — the /state route returns `{ server, agents }`, not the
+      // page's `{ serverState, ... }` shape; replacing initialData verbatim left
+      // serverState undefined and crashed the page.
+      initialData = normalizeAgentBridgeState(await res.json());
     }
   } catch {
     // Backend not yet available — use defaults; client will poll

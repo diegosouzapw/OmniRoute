@@ -174,7 +174,7 @@ export type EnsureReadyOptions = {
 };
 
 export async function ensureLoopbackServerReady(opts: EnsureReadyOptions = {}): Promise<void> {
-  if (__loopbackReadyPromise) return __loopbackReadyPromise;
+  if (__loopbackReadyPromise != null) return __loopbackReadyPromise;
   __loopbackReadyPromise = (async () => {
     const f = opts.fetch ?? fetch;
     const maxWaitMs = opts.maxWaitMs ?? 30_000;

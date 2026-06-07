@@ -28,6 +28,25 @@ function isPlainObject(value: unknown): value is JsonRecord {
   return Boolean(value) && typeof value === "object" && !Array.isArray(value);
 }
 
+function hasOwn(obj: JsonRecord, key: string): boolean {
+  return Object.prototype.hasOwnProperty.call(obj, key);
+}
+
+function keepOpaqueObjectSchemasOpen(schema: JsonRecord): void {
+  if (hasOwn(schema, "additionalProperties")) return;
+
+  const properties = schema.properties;
+  const isObjectSchema = schema.type === "object" || isPlainObject(properties);
+  if (!isObjectSchema) return;
+
+  if (properties === undefined) {
+    schema.properties = {};
+    schema.additionalProperties = true;
+  } else if (isPlainObject(properties) && Object.keys(properties).length === 0) {
+    schema.additionalProperties = true;
+  }
+}
+
 function coerceNumericString(value: unknown): unknown {
   if (typeof value !== "string") return value;
   const trimmed = value.trim();
@@ -117,6 +136,8 @@ export function coerceSchemaNumericFields(schema: unknown): unknown {
   if (isPlainObject(result.else)) {
     result.else = coerceSchemaNumericFields(result.else);
   }
+
+  keepOpaqueObjectSchemasOpen(result);
 
   return result;
 }

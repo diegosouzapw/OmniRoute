@@ -5,6 +5,8 @@ import { AutoVariant } from "./autoPrefix";
 import { getProviderConnections } from "@/lib/db/providers";
 import { getProviderRegistry } from "./providerRegistryAccessor";
 import type { ConnectionFields } from "@/lib/db/encryption";
+import { NOAUTH_PROVIDERS } from "@/shared/constants/providers";
+import { hasUsableWebSessionCredential } from "@/shared/providers/webSessionCredentials";
 import { defaultLogger as log } from "@omniroute/open-sse/utils/logger";
 
 /** Minimal connection shape needed for virtual auto-combo factory */
@@ -14,7 +16,15 @@ interface VirtualFactoryConn extends ConnectionFields {
   defaultModel?: string;
   expiresAt?: number | string | null;
   tokenExpiresAt?: number | string | null;
+  providerSpecificData?: Record<string, unknown> | null;
 }
+
+type NoAuthProviderDefinition = {
+  id?: string;
+  alias?: string;
+  noAuth?: boolean;
+  serviceKinds?: string[];
+};
 
 export interface VirtualAutoComboCandidate {
   provider: string;
@@ -81,6 +91,67 @@ function hasUsableOAuthToken(conn: VirtualFactoryConn): boolean {
   return expiryMs === null || expiryMs > Date.now();
 }
 
+function hasProviderSpecificSessionData(conn: VirtualFactoryConn): boolean {
+  return hasUsableWebSessionCredential(conn.provider, conn.providerSpecificData);
+}
+
+function hasUsableConnectionCredential(conn: VirtualFactoryConn): boolean {
+  const hasApiKey = typeof conn.apiKey === "string" && conn.apiKey.trim().length > 0;
+  return hasApiKey || hasUsableOAuthToken(conn) || hasProviderSpecificSessionData(conn);
+}
+
+const SYNTHETIC_NOAUTH_CONNECTION_ID = "noauth";
+
+function isChatAutoComboNoAuthProvider(providerDef: NoAuthProviderDefinition): boolean {
+  if (providerDef.noAuth !== true) return false;
+  if (!Array.isArray(providerDef.serviceKinds) || providerDef.serviceKinds.length === 0)
+    return true;
+  return providerDef.serviceKinds.includes("llm");
+}
+
+function getFirstRegistryModelId(providerInfo: { models?: Array<{ id?: string }> } | undefined) {
+  const firstModel = Array.isArray(providerInfo?.models) ? providerInfo.models[0] : undefined;
+  return typeof firstModel?.id === "string" && firstModel.id.trim().length > 0
+    ? firstModel.id
+    : undefined;
+}
+
+function getNoAuthCandidates(excludedProviders: Set<string>): VirtualAutoComboCandidate[] {
+  const registry = getProviderRegistry();
+  const candidates: VirtualAutoComboCandidate[] = [];
+
+  for (const providerDef of Object.values(NOAUTH_PROVIDERS) as NoAuthProviderDefinition[]) {
+    if (!isChatAutoComboNoAuthProvider(providerDef)) continue;
+
+    const providerId = providerDef.id;
+    if (!providerId || excludedProviders.has(providerId)) continue;
+
+    const providerInfo = registry[providerId];
+    const modelId = getFirstRegistryModelId(providerInfo);
+    if (!modelId) continue;
+
+    // No-auth providers do not have provider_connections rows. Use the same
+    // synthetic connection id returned by getProviderCredentials() so the
+    // downstream combo path can still carry a stable target/account identity.
+    // Prefer provider aliases because some canonical provider IDs are reserved
+    // for credentialed tiers with different routing semantics.
+    const registryAlias =
+      typeof providerInfo?.alias === "string" && providerInfo.alias.trim().length > 0
+        ? providerInfo.alias
+        : null;
+    const routingPrefix = providerDef.alias || registryAlias || providerId;
+    candidates.push({
+      provider: providerId,
+      connectionId: SYNTHETIC_NOAUTH_CONNECTION_ID,
+      model: modelId,
+      modelStr: `${routingPrefix}/${modelId}`,
+      costPer1MTokens: 0,
+    });
+  }
+
+  return candidates;
+}
+
 /**
  * Creates a virtual AutoCombo configuration dynamically based on connected providers and a specified variant.
  * This combo is not persisted in the DB.
@@ -90,12 +161,34 @@ export async function createVirtualAutoCombo(
 ): Promise<VirtualAutoCombo> {
   const connections = (await getProviderConnections({ isActive: true })) as VirtualFactoryConn[];
 
-  const validConnections = connections.filter((conn) => {
-    const hasApiKey = typeof conn.apiKey === "string" && conn.apiKey.trim().length > 0;
-    return hasApiKey || hasUsableOAuthToken(conn);
-  });
+  const validConnections = connections.filter(hasUsableConnectionCredential);
 
-  if (validConnections.length === 0) {
+  const candidatePool: VirtualAutoComboCandidate[] = [];
+  for (const conn of validConnections) {
+    const providerInfo = getProviderRegistry()[conn.provider];
+    if (!providerInfo) continue; // Skip unknown providers
+
+    let modelId: string | undefined = conn.defaultModel;
+    if (!modelId) {
+      const firstModel = providerInfo.models[0];
+      modelId = firstModel?.id;
+    }
+    if (!modelId) continue; // Skip providers without a model
+
+    candidatePool.push({
+      provider: conn.provider,
+      connectionId: conn.id,
+      model: modelId,
+      modelStr: `${conn.provider}/${modelId}`,
+      costPer1MTokens: 0, // Not used in virtual auto-combo (LKGP uses session stickiness)
+    });
+  }
+
+  candidatePool.push(
+    ...getNoAuthCandidates(new Set(validConnections.map((conn) => conn.provider)))
+  );
+
+  if (candidatePool.length === 0) {
     log.warn("AUTO", "No connected providers with valid credentials for virtual auto-combo");
     const emptyPool: string[] = [];
     const autoConfig = {
@@ -117,27 +210,6 @@ export async function createVirtualAutoCombo(
       autoConfig,
       config: { auto: autoConfig },
     };
-  }
-
-  const candidatePool: VirtualAutoComboCandidate[] = [];
-  for (const conn of validConnections) {
-    const providerInfo = getProviderRegistry()[conn.provider];
-    if (!providerInfo) continue; // Skip unknown providers
-
-    let modelId: string | undefined = conn.defaultModel;
-    if (!modelId) {
-      const firstModel = providerInfo.models[0];
-      modelId = firstModel?.id;
-    }
-    if (!modelId) continue; // Skip providers without a model
-
-    candidatePool.push({
-      provider: conn.provider,
-      connectionId: conn.id,
-      model: modelId,
-      modelStr: `${conn.provider}/${modelId}`,
-      costPer1MTokens: 0, // Not used in virtual auto-combo (LKGP uses session stickiness)
-    });
   }
 
   let weights: ScoringWeights = { ...DEFAULT_WEIGHTS };

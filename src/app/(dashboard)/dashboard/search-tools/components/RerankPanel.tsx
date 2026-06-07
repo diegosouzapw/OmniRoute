@@ -32,6 +32,7 @@ export default function RerankPanel({ query, results, onClose }: RerankPanelProp
       .then((res) => res.json())
       .then((data) => {
         const rerankModels = (data?.data || [])
+          // eslint-disable-next-line no-restricted-syntax -- teknik string kontrolü, kullanıcı metni araması değil
           .filter((m: any) => m.id.toLowerCase().includes("rerank"))
           .map((m: any) => ({ value: m.id, label: m.id }));
         setModels(rerankModels);

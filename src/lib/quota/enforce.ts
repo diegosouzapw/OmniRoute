@@ -187,6 +187,19 @@ export async function enforceQuotaShare(input: EnforceInput): Promise<EnforceDec
   });
 
   if (decision.kind === "block") {
+    // Fire webhook (fire-and-forget, never blocks the response)
+    try {
+      const { notifyWebhookEvent } = await import("@/lib/webhookDispatcher");
+      notifyWebhookEvent("quota.exceeded", {
+        apiKeyId: input.apiKeyId,
+        provider: input.provider,
+        connectionId: input.connectionId,
+        reason: decision.reason,
+      });
+    } catch {
+      // webhook dispatch is best-effort
+    }
+
     return {
       kind: "block",
       reason: messageForReason(decision.reason, input.provider),

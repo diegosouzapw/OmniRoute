@@ -109,6 +109,25 @@ function isHealthCheckDisabled(): boolean {
   );
 }
 
+/**
+ * Providers excluded from the PROACTIVE refresh sweep, comma-separated and
+ * case-insensitive (e.g. "codex,openai"). A targeted alternative to the blunt
+ * OMNIROUTE_DISABLE_TOKEN_HEALTHCHECK switch: it lets an operator keep the
+ * rotating-token cascade providers (Codex/OpenAI share one Auth0 family) off the
+ * proactive sweep — leaving their refresh to the reactive, serialized 401 path —
+ * WITHOUT also starving short-TTL providers like Kimi-coding, whose tokens expire
+ * while idle when the whole sweep is disabled.
+ */
+function getHealthCheckSkipProviders(): Set<string> {
+  const raw = process.env.OMNIROUTE_HEALTHCHECK_SKIP_PROVIDERS || "";
+  return new Set(
+    raw
+      .split(",")
+      .map((s) => s.trim().toLowerCase())
+      .filter(Boolean)
+  );
+}
+
 // ── Logging helper ───────────────────────────────────────────────────────────
 let cachedHideLogs: boolean | null = null;
 let cacheTimestamp = 0;
@@ -264,6 +283,13 @@ export async function checkConnection(conn) {
 
   const latestConnection = (await getProviderConnectionById(conn.id)) || conn;
   conn = latestConnection;
+
+  // Per-provider opt-out of proactive refresh (e.g. Codex/OpenAI cascade
+  // providers) — their token stays on the reactive, serialized 401 path while
+  // other providers keep being refreshed proactively.
+  if (getHealthCheckSkipProviders().has(String(conn.provider || "").toLowerCase())) {
+    return;
+  }
 
   // Determine interval (0 = disabled)
   const intervalMin = conn.healthCheckInterval ?? DEFAULT_HEALTH_CHECK_INTERVAL_MIN;

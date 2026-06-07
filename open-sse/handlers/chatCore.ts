@@ -24,6 +24,7 @@ import {
   runWithOnPersist,
 } from "../services/tokenRefresh.ts";
 import { createRequestLogger } from "../utils/requestLogger.ts";
+import { applyResponsesPreviousResponseIdPolicy } from "../utils/responsesStatePolicy.ts";
 import { getModelTargetFormat, PROVIDER_ID_TO_ALIAS } from "../config/providerModels.ts";
 import { DEFAULT_THINKING_CLAUDE_SIGNATURE } from "../config/defaultThinkingSignature.ts";
 import {
@@ -891,6 +892,27 @@ function getExecutorTimeoutMs(executor: unknown): number {
   }
 }
 
+function normalizeExecutorResult(
+  result:
+    | Response
+    | {
+        response: Response;
+        url?: string;
+        headers?: Record<string, string>;
+        transformedBody?: unknown;
+      }
+): { response: Response; url: string; headers: Record<string, string>; transformedBody: unknown } {
+  if (result instanceof Response) {
+    return { response: result, url: "", headers: {}, transformedBody: null };
+  }
+  return {
+    response: result.response,
+    url: result.url || "",
+    headers: result.headers || {},
+    transformedBody: result.transformedBody ?? null,
+  };
+}
+
 async function executeWithUpstreamStartTimeout<T>({
   executor,
   provider,
@@ -1373,24 +1395,33 @@ const PROXY_CONFIG_CACHE_TTL = 10_000;
  */
 let _combosPromise: Promise<unknown[]> | null = null;
 let _combosCacheTs = 0;
+let _combosCacheVersionSnapshot = -1;
 const COMBOS_CACHE_TTL = 10_000;
 
 async function getCombosCached(): Promise<unknown[]> {
   const now = Date.now();
+  const { getCombos, getCombosCacheVersion } = await import("@/lib/localDb");
+  const version = getCombosCacheVersion();
+  // A combo write (create/update/delete/reorder) bumps the shared version via
+  // invalidateDbCache("combos"); when it no longer matches our snapshot we drop
+  // the cached promise so the nested-combo expansion stops serving removed
+  // targets/models within the 10s TTL window (#3147).
+  if (version !== _combosCacheVersionSnapshot) {
+    clearCombosCache();
+  }
   if (_combosPromise && now - _combosCacheTs < COMBOS_CACHE_TTL) {
     return _combosPromise;
   }
   _combosCacheTs = now;
-  _combosPromise = (async () => {
-    const { getCombos } = await import("@/lib/localDb");
-    return getCombos();
-  })();
+  _combosCacheVersionSnapshot = version;
+  _combosPromise = getCombos();
   return _combosPromise;
 }
 
 export function clearCombosCache() {
   _combosPromise = null;
   _combosCacheTs = 0;
+  _combosCacheVersionSnapshot = -1;
 }
 
 export function clearUpstreamProxyConfigCache(providerId?: string) {
@@ -1549,7 +1580,9 @@ export async function handleChatCore({
         ),
       };
     }
-  } catch { /* memoryUsage() never throws */ }
+  } catch {
+    /* memoryUsage() never throws */
+  }
 
   // apiFormat is an optional custom-model marker injected by getModelInfo for
   // providers whose models can route to /chat/completions or /responses
@@ -1588,8 +1621,7 @@ export async function handleChatCore({
       comboName: comboName || undefined,
     });
   });
-  const traceEnabled =
-    process.env.OMNIRROUTE_TRACE === "true" || process.env.DEBUG === "true";
+  const traceEnabled = process.env.OMNIRROUTE_TRACE === "true" || process.env.DEBUG === "true";
   const trace = (label: string, extra?: Record<string, unknown>) => {
     if (!traceEnabled) return;
     const elapsed = Date.now() - startTime;
@@ -1765,10 +1797,7 @@ export async function handleChatCore({
     }
   };
 
-  const persistCodexQuotaState = async (
-    headers: Record<string, string> | null,
-    status = 0
-  ) => {
+  const persistCodexQuotaState = async (headers: Record<string, string> | null, status = 0) => {
     if (provider !== "codex" || !connectionId || !headers) return;
 
     try {
@@ -2105,7 +2134,7 @@ export async function handleChatCore({
       model,
       requestedModel,
       provider,
-      connectionId,
+      connectionId: connectionId || credentials?.connectionId || undefined,
       duration: Date.now() - startTime,
       tokens: tokens || {},
       requestBody: cloneBoundedChatLogPayload(
@@ -3512,6 +3541,14 @@ export async function handleChatCore({
   }
   translatedBody.model = finalModelToUpstream;
 
+  const previousResponseIdPolicy = applyResponsesPreviousResponseIdPolicy(translatedBody, {
+    mode: settings.responsesPreviousResponseIdMode,
+    sourceFormat,
+    targetFormat,
+    credentials,
+  });
+  translatedBody = previousResponseIdPolicy.body as typeof translatedBody;
+
   // #1789: Prevent output_config.effort from overriding effort encoded in model name (Codex)
   if (provider === "codex" || provider?.startsWith("codex")) {
     const hasEffortSuffix = finalModelToUpstream.match(/-(low|medium|high|xhigh)$/i);
@@ -3609,14 +3646,19 @@ export async function handleChatCore({
     let fallbackCodes: number[] = [429, 500, 502, 503, 504];
     try {
       const allSettings = await getCachedSettings();
-      if (typeof allSettings.cliproxyapi_fallback_codes === "string" && allSettings.cliproxyapi_fallback_codes.trim()) {
+      if (
+        typeof allSettings.cliproxyapi_fallback_codes === "string" &&
+        allSettings.cliproxyapi_fallback_codes.trim()
+      ) {
         const parsed = allSettings.cliproxyapi_fallback_codes
           .split(",")
           .map((s: string) => parseInt(s.trim(), 10))
           .filter((n: number) => !isNaN(n));
         if (parsed.length > 0) fallbackCodes = parsed;
       }
-    } catch { /* use defaults */ }
+    } catch {
+      /* use defaults */
+    }
     const isRetryableStatus = (s: number) => fallbackCodes.includes(s) || s === 0;
 
     const wrapper = Object.create(nativeExec);
@@ -3692,10 +3734,10 @@ export async function handleChatCore({
         if (decision.retryAfterSeconds) {
           headers["Retry-After"] = String(decision.retryAfterSeconds);
         }
-        return new Response(
-          JSON.stringify(buildErrorBody(429, decision.reason)),
-          { status: 429, headers }
-        );
+        return new Response(JSON.stringify(buildErrorBody(429, decision.reason)), {
+          status: 429,
+          headers,
+        });
       }
 
       if (decision.kind === "allow" && decision.deprioritize) {
@@ -3943,13 +3985,7 @@ export async function handleChatCore({
                 stage: "sending_to_provider",
               });
               const execCreds = getExecutionCredentials();
-              const res = await executeWithUpstreamStartTimeout<{
-                response: Response;
-                url: string;
-                headers: Record<string, string>;
-                transformedBody: unknown;
-                _executionCredentials?: unknown;
-              }>({
+              const rawExecutorResult = await executeWithUpstreamStartTimeout({
                 executor,
                 provider,
                 model: modelToCall,
@@ -3970,6 +4006,7 @@ export async function handleChatCore({
                     skipUpstreamRetry,
                   }),
               });
+              const res = normalizeExecutorResult(rawExecutorResult);
               trace("post_executor", { status: res?.response?.status });
               updatePendingRequest(model, provider, connectionId, {
                 stage: "provider_response_started",
@@ -4225,7 +4262,11 @@ export async function handleChatCore({
   // ── Tier 2: Authoritative per-model/provider token-limit check (provider now resolved) ──
   if (apiKeyInfo?.id) {
     try {
-      const tokenBreach = checkTokenLimits(apiKeyInfo.id, provider || undefined, model || undefined);
+      const tokenBreach = checkTokenLimits(
+        apiKeyInfo.id,
+        provider || undefined,
+        model || undefined
+      );
       if (tokenBreach) {
         const scopeLabel =
           tokenBreach.scopeType === "global"
@@ -4289,6 +4330,18 @@ export async function handleChatCore({
       providerResponse.status,
       model
     );
+
+    // Store rate-limit headers for quota saturation signals
+    try {
+      const { storeRateLimitHeaders } = await import("@/lib/quota/saturationSignals");
+      storeRateLimitHeaders(
+        connectionId,
+        provider,
+        providerResponse.headers as Record<string, string>
+      );
+    } catch {
+      // fail-open: saturation signal is best-effort
+    }
   } catch (error) {
     trackPendingRequest(model, provider, connectionId, false);
     if (isSemaphoreCapacityError(error)) {
@@ -5218,7 +5271,8 @@ export async function handleChatCore({
       if (apiKeyInfo?.id) {
         try {
           const billable = computeBillableTokens(usage);
-          if (billable > 0) recordTokenUsage(apiKeyInfo.id, provider || "unknown", model || "unknown", billable);
+          if (billable > 0)
+            recordTokenUsage(apiKeyInfo.id, provider || "unknown", model || "unknown", billable);
         } catch {
           // never block the response on counter recording
         }
@@ -5441,8 +5495,8 @@ export async function handleChatCore({
             cost: {
               tokens:
                 usage && typeof usage === "object"
-                  ? ((usage as Record<string, unknown>).prompt_tokens as number ?? 0) +
-                    ((usage as Record<string, unknown>).completion_tokens as number ?? 0)
+                  ? (((usage as Record<string, unknown>).prompt_tokens as number) ?? 0) +
+                    (((usage as Record<string, unknown>).completion_tokens as number) ?? 0)
                   : 0,
               usd: estimatedCost > 0 ? estimatedCost : 0,
               requests: 1,
@@ -5675,7 +5729,8 @@ export async function handleChatCore({
       if (apiKeyInfo?.id && streamStatus === 200) {
         try {
           const billable = computeBillableTokens(streamUsage);
-          if (billable > 0) recordTokenUsage(apiKeyInfo.id, provider || "unknown", model || "unknown", billable);
+          if (billable > 0)
+            recordTokenUsage(apiKeyInfo.id, provider || "unknown", model || "unknown", billable);
         } catch {
           // never block the stream on counter recording
         }
@@ -5717,8 +5772,7 @@ export async function handleChatCore({
               provider: provider ?? "unknown",
               cost: {
                 tokens: su
-                  ? (Number(su.prompt_tokens ?? 0) || 0) +
-                    (Number(su.completion_tokens ?? 0) || 0)
+                  ? (Number(su.prompt_tokens ?? 0) || 0) + (Number(su.completion_tokens ?? 0) || 0)
                   : 0,
                 usd: 0, // estimatedCost resolved async above; omit to avoid dependency
                 requests: 1,

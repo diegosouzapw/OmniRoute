@@ -183,11 +183,29 @@ function toBooleanOrDefault(value: unknown, fallback: boolean): boolean {
 }
 
 function readHeaderValue(
-  headers: Headers | { get?: (name: string) => string | null } | null | undefined,
+  headers:
+    | Headers
+    | { get?: (name: string) => string | null }
+    | Record<string, string | string[] | undefined>
+    | null
+    | undefined,
   name: string
 ): string | null {
-  if (!headers || typeof headers.get !== "function") return null;
-  const value = headers.get(name);
+  if (!headers) return null;
+
+  if (typeof (headers as Headers).get === "function") {
+    const value = (headers as Headers).get(name) || (headers as Headers).get(name.toLowerCase());
+    return typeof value === "string" && value.trim().length > 0 ? value.trim() : null;
+  }
+
+  const recordHeaders = headers as Record<string, string | string[] | undefined>;
+  const value =
+    recordHeaders[name] || recordHeaders[name.toLowerCase()] || recordHeaders[name.toUpperCase()];
+
+  if (Array.isArray(value)) {
+    return typeof value[0] === "string" && value[0].trim().length > 0 ? value[0].trim() : null;
+  }
+
   return typeof value === "string" && value.trim().length > 0 ? value.trim() : null;
 }
 
@@ -700,11 +718,81 @@ async function selectSessionAffinityConnection(
 
 /**
  * Sentinel connection id used for the synthetic credentials of no-auth /
- * keyless providers (opencode / opencode-zen). It is NOT a real DB row, so it
+ * keyless providers. It is NOT a real DB row, so it
  * cannot carry cooldown state — the account-fallback loop must be able to
  * exclude it (#3061), otherwise it gets re-selected forever.
  */
 const SYNTHETIC_NOAUTH_CONNECTION_ID = "noauth";
+
+type AnonymousFallbackProviderDefinition = {
+  anonymousFallback?: boolean;
+  noAuth?: boolean;
+};
+
+function buildSyntheticNoAuthCredentials(): {
+  apiKey: null;
+  accessToken: null;
+  refreshToken: null;
+  expiresAt: null;
+  projectId: null;
+  copilotToken: null;
+  providerSpecificData: Record<string, never>;
+  connectionId: typeof SYNTHETIC_NOAUTH_CONNECTION_ID;
+  testStatus: "active";
+  lastError: null;
+  lastErrorType: null;
+  lastErrorSource: null;
+  errorCode: null;
+  rateLimitedUntil: null;
+  maxConcurrent: null;
+  allRateLimited?: never;
+  allExpired?: never;
+  retryAfter?: never;
+  retryAfterHuman?: never;
+} {
+  return {
+    apiKey: null,
+    accessToken: null,
+    refreshToken: null,
+    expiresAt: null,
+    projectId: null,
+    copilotToken: null,
+    providerSpecificData: {},
+    connectionId: SYNTHETIC_NOAUTH_CONNECTION_ID,
+    testStatus: "active",
+    lastError: null,
+    lastErrorType: null,
+    lastErrorSource: null,
+    errorCode: null,
+    rateLimitedUntil: null,
+    maxConcurrent: null,
+  };
+}
+
+function providerCanUseSyntheticNoAuthFallback(providerId: string): boolean {
+  const providerDef = getProviderById(providerId) as
+    | AnonymousFallbackProviderDefinition
+    | undefined;
+  return (
+    providerDef?.anonymousFallback === true ||
+    Boolean(
+      (NOAUTH_PROVIDERS as Record<string, AnonymousFallbackProviderDefinition | undefined>)[
+        providerId
+      ]?.noAuth
+    ) ||
+    Boolean(
+      (WEB_COOKIE_PROVIDERS as Record<string, AnonymousFallbackProviderDefinition | undefined>)[
+        providerId
+      ]?.noAuth
+    )
+  );
+}
+
+function maybeSyntheticNoAuthFallback(providerId: string, excludedConnectionIds: Set<string>) {
+  if (!providerCanUseSyntheticNoAuthFallback(providerId)) return null;
+  if (excludedConnectionIds.has(SYNTHETIC_NOAUTH_CONNECTION_ID)) return null;
+  return buildSyntheticNoAuthCredentials();
+}
 
 function normalizeExcludedConnectionIds(
   excludeConnectionId: string | null,
@@ -831,7 +919,11 @@ async function getProviderSearchPool(provider: string): Promise<string[]> {
       const nodePrefix = typeof nodeRecord.prefix === "string" ? nodeRecord.prefix.trim() : "";
       const nodeId = typeof nodeRecord.id === "string" ? nodeRecord.id.trim() : "";
       if (!nodePrefix || !nodeId) continue;
-      if (nodePrefix === provider || nodePrefix === canonicalProvider || nodePrefix === canonicalAlias) {
+      if (
+        nodePrefix === provider ||
+        nodePrefix === canonicalProvider ||
+        nodePrefix === canonicalAlias
+      ) {
         searchPool.add(nodeId);
       }
     }
@@ -878,26 +970,7 @@ export async function getProviderCredentials(
         excludeConnectionId,
         options.excludeConnectionIds
       );
-      if (excludedForNoAuth.has(SYNTHETIC_NOAUTH_CONNECTION_ID)) {
-        return null;
-      }
-      return {
-        apiKey: null,
-        accessToken: null,
-        refreshToken: null,
-        expiresAt: null,
-        projectId: null,
-        copilotToken: null,
-        providerSpecificData: {},
-        connectionId: SYNTHETIC_NOAUTH_CONNECTION_ID,
-        testStatus: "active",
-        lastError: null,
-        lastErrorType: null,
-        lastErrorSource: null,
-        errorCode: null,
-        rateLimitedUntil: null,
-        maxConcurrent: null,
-      };
+      return maybeSyntheticNoAuthFallback(resolvedId, excludedForNoAuth);
     }
 
     const allowSuppressedConnections = options.allowSuppressedConnections === true;
@@ -982,6 +1055,9 @@ export async function getProviderCredentials(
         // the dashboard sees a misleading "bad_request" code.
         const terminalConnections = allConnections.filter(isTerminalConnectionStatus);
         if (terminalConnections.length === allConnections.length) {
+          const syntheticFallback = maybeSyntheticNoAuthFallback(resolvedId, excludedConnectionIds);
+          if (syntheticFallback) return syntheticFallback;
+
           const statusCounts = new Map<string, number>();
           for (const c of terminalConnections) {
             const key = normalizeStatus(c.testStatus) || "expired";
@@ -996,37 +1072,8 @@ export async function getProviderCredentials(
           };
         }
       }
-      // #2962: opencode-zen exposes the public, signup-free OpenCode Zen endpoint
-      // (https://opencode.ai/zen/v1). With no usable API-key connection, fall back
-      // to anonymous (no-auth) access — the free tier — instead of erroring with
-      // "No credentials". This is what the Playground/combos hit when selecting an
-      // OpenCode free model. A configured, active key is still selected above; a
-      // rate-limited/terminal key returns its own signal before reaching here.
-      if (resolvedId === "opencode-zen") {
-        // #3061: same loop guard as the NOAUTH_PROVIDERS path above — once the
-        // single synthetic "noauth" connection has been excluded by the chat
-        // fallback loop, return null instead of re-handing it back forever.
-        if (excludedConnectionIds.has(SYNTHETIC_NOAUTH_CONNECTION_ID)) {
-          return null;
-        }
-        return {
-          apiKey: null,
-          accessToken: null,
-          refreshToken: null,
-          expiresAt: null,
-          projectId: null,
-          copilotToken: null,
-          providerSpecificData: {},
-          connectionId: SYNTHETIC_NOAUTH_CONNECTION_ID,
-          testStatus: "active",
-          lastError: null,
-          lastErrorType: null,
-          lastErrorSource: null,
-          errorCode: null,
-          rateLimitedUntil: null,
-          maxConcurrent: null,
-        };
-      }
+      const syntheticFallback = maybeSyntheticNoAuthFallback(resolvedId, excludedConnectionIds);
+      if (syntheticFallback) return syntheticFallback;
       log.warn("AUTH", `No credentials for ${provider}`);
       return null;
     }
@@ -1196,6 +1243,8 @@ export async function getProviderCredentials(
           cooldownModel: allBlockedByModelCooldown ? requestedModel : null,
         };
       }
+      const syntheticFallback = maybeSyntheticNoAuthFallback(resolvedId, excludedConnectionIds);
+      if (syntheticFallback) return syntheticFallback;
       log.warn("AUTH", `${provider} | all ${connections.length} accounts unavailable`);
       return null;
     }
@@ -1549,7 +1598,10 @@ export async function getProviderCredentialsWithQuotaPreflight(
       return null;
     }
 
-    if (credentials.allRateLimited || credentials.allExpired) {
+    if (
+      ("allRateLimited" in credentials && credentials.allRateLimited) ||
+      ("allExpired" in credentials && credentials.allExpired)
+    ) {
       return credentials;
     }
 
@@ -1584,8 +1636,8 @@ export async function getProviderCredentialsWithQuotaPreflight(
     // false for both "not set" and "explicit false" — we need an explicit check
     // here to distinguish them.
     const legacyForceDisable =
-      (credentials as { providerSpecificData?: Record<string, unknown> })
-        .providerSpecificData?.quotaPreflightEnabled === false;
+      (credentials as { providerSpecificData?: Record<string, unknown> }).providerSpecificData
+        ?.quotaPreflightEnabled === false;
     if (legacyForceDisable) return credentials;
 
     const hasConnectionOverrides = Object.keys(perConnectionWindowOverrides).length > 0;
@@ -2024,16 +2076,65 @@ export async function clearRecoveredProviderState(
   await clearAccountError(credentials.connectionId, credentials);
 }
 
+type AuthRequestHeaders = Headers | Record<string, string | string[] | undefined>;
+
+type AuthRequestLike = {
+  headers?: AuthRequestHeaders | null;
+  url?: string | null;
+};
+
+function readNonEmptyUrlToken(request: AuthRequestLike): string | null {
+  if (typeof request?.url !== "string" || request.url.trim().length === 0) return null;
+
+  try {
+    const url = new URL(request.url, "http://localhost");
+
+    const segments = url.pathname
+      .split("/")
+      .map((segment) => segment.trim())
+      .filter(Boolean);
+
+    if (segments[0] === "vscode" && segments[1]) {
+      const decodedSegment = decodeURIComponent(segments[1]).trim();
+      if (decodedSegment.length > 0) return decodedSegment;
+    }
+
+    if (segments[0] === "api" && segments[1] === "v1" && segments[2] === "vscode") {
+      if (segments[3] && segments[3] !== "raw" && segments[3] !== "combos") {
+        const decodedSegment = decodeURIComponent(segments[3]).trim();
+        if (decodedSegment.length > 0) return decodedSegment;
+      }
+
+      if ((segments[3] === "raw" || segments[3] === "combos") && segments[4]) {
+        const decodedSegment = decodeURIComponent(segments[4]).trim();
+        if (decodedSegment.length > 0) return decodedSegment;
+      }
+    }
+
+    // NOTE: query-string token fallbacks (`?token=`/`?key=`/`?apiKey=`/`?api_key=`)
+    // were intentionally REMOVED. They are a broad credential-in-URL surface that
+    // leaks into access logs, Referer headers and proxy logs, and — because this
+    // extractor also feeds management auth — would let `?token=<mgmt-key>`
+    // authenticate management routes. The VS Code integration only needs the
+    // path-scoped `/vscode/<token>/…` form above. (security review, #3300 follow-up)
+  } catch {
+    return null;
+  }
+
+  return null;
+}
+
 /**
- * Extract API key from request headers.
+ * Extract API key from request auth inputs.
  *
- * Honors both:
+ * Honors explicit auth headers and (for client-facing routes only) a
+ * path-scoped URL token:
  * - `Authorization: Bearer <key>` (OpenAI / OmniRoute / Codex CLI / Bearer clients)
  * - `x-api-key: <key>` (Anthropic Messages API contract — Claude Code,
  *   `@anthropic-ai/sdk`, any SDK that sets `anthropic-version`)
+ * - `/vscode/<key>/...` (path-scoped tokenized aliases — only when `allowUrl`)
  *
- * When both are present, `Authorization: Bearer` wins for back-compat
- * (issue #2225).
+ * When multiple inputs are present, explicit auth headers win.
  *
  * The `x-api-key` fallback only triggers when the request also carries an
  * `anthropic-version` header — the documented signal that the caller is
@@ -2041,29 +2142,42 @@ export async function clearRecoveredProviderState(
  * non-Anthropic SDKs that happen to set `x-api-key` (or local-mode tools
  * with placeholder keys) would be treated as authenticated attempts and
  * rejected by per-route gates that compare against OmniRoute keys.
+ *
+ * `opts.allowUrl` (default `true`) gates the path-scoped URL token. Management
+ * auth MUST pass `allowUrl: false` — a credential in the URL must never
+ * authenticate a management route (it leaks into logs/Referer and would widen
+ * the management surface). See the #3300 security follow-up.
  */
-export function extractApiKey(request: Request) {
-  const authHeader = request.headers.get("Authorization") || request.headers.get("authorization");
+export function extractApiKey(request: AuthRequestLike, opts?: { allowUrl?: boolean }) {
+  const authHeader =
+    readHeaderValue(request?.headers, "Authorization") ||
+    readHeaderValue(request?.headers, "authorization");
   if (typeof authHeader === "string") {
     const trimmedHeader = authHeader.trim();
     if (trimmedHeader.toLowerCase().startsWith("bearer ")) {
-      return trimmedHeader.slice(7).trim();
+      return trimmedHeader.slice(7).trim() || null;
     }
   }
+
   // Issue #2225: Anthropic Messages API clients authenticate via x-api-key.
   // Gate the fallback on the anthropic-version header so we don't trip up
   // local-mode requests from non-Anthropic clients that send placeholder
   // x-api-key values (which would otherwise be rejected as Invalid API key).
   const anthropicVersion =
-    request.headers.get("anthropic-version") || request.headers.get("Anthropic-Version");
+    readHeaderValue(request?.headers, "anthropic-version") ||
+    readHeaderValue(request?.headers, "Anthropic-Version");
   if (anthropicVersion) {
-    const xApiKey = request.headers.get("x-api-key") || request.headers.get("X-Api-Key");
+    const xApiKey =
+      readHeaderValue(request?.headers, "x-api-key") ||
+      readHeaderValue(request?.headers, "X-Api-Key");
     if (typeof xApiKey === "string") {
       const trimmed = xApiKey.trim();
       if (trimmed.length > 0) return trimmed;
     }
   }
-  return null;
+
+  if (opts?.allowUrl === false) return null;
+  return readNonEmptyUrlToken(request);
 }
 
 /**
