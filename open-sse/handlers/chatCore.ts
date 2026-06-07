@@ -1559,7 +1559,9 @@ export async function handleChatCore({
         ),
       };
     }
-  } catch { /* memoryUsage() never throws */ }
+  } catch {
+    /* memoryUsage() never throws */
+  }
 
   // apiFormat is an optional custom-model marker injected by getModelInfo for
   // providers whose models can route to /chat/completions or /responses
@@ -1598,8 +1600,7 @@ export async function handleChatCore({
       comboName: comboName || undefined,
     });
   });
-  const traceEnabled =
-    process.env.OMNIRROUTE_TRACE === "true" || process.env.DEBUG === "true";
+  const traceEnabled = process.env.OMNIRROUTE_TRACE === "true" || process.env.DEBUG === "true";
   const trace = (label: string, extra?: Record<string, unknown>) => {
     if (!traceEnabled) return;
     const elapsed = Date.now() - startTime;
@@ -1775,10 +1776,7 @@ export async function handleChatCore({
     }
   };
 
-  const persistCodexQuotaState = async (
-    headers: Record<string, string> | null,
-    status = 0
-  ) => {
+  const persistCodexQuotaState = async (headers: Record<string, string> | null, status = 0) => {
     if (provider !== "codex" || !connectionId || !headers) return;
 
     try {
@@ -3627,14 +3625,19 @@ export async function handleChatCore({
     let fallbackCodes: number[] = [429, 500, 502, 503, 504];
     try {
       const allSettings = await getCachedSettings();
-      if (typeof allSettings.cliproxyapi_fallback_codes === "string" && allSettings.cliproxyapi_fallback_codes.trim()) {
+      if (
+        typeof allSettings.cliproxyapi_fallback_codes === "string" &&
+        allSettings.cliproxyapi_fallback_codes.trim()
+      ) {
         const parsed = allSettings.cliproxyapi_fallback_codes
           .split(",")
           .map((s: string) => parseInt(s.trim(), 10))
           .filter((n: number) => !isNaN(n));
         if (parsed.length > 0) fallbackCodes = parsed;
       }
-    } catch { /* use defaults */ }
+    } catch {
+      /* use defaults */
+    }
     const isRetryableStatus = (s: number) => fallbackCodes.includes(s) || s === 0;
 
     const wrapper = Object.create(nativeExec);
@@ -3710,10 +3713,10 @@ export async function handleChatCore({
         if (decision.retryAfterSeconds) {
           headers["Retry-After"] = String(decision.retryAfterSeconds);
         }
-        return new Response(
-          JSON.stringify(buildErrorBody(429, decision.reason)),
-          { status: 429, headers }
-        );
+        return new Response(JSON.stringify(buildErrorBody(429, decision.reason)), {
+          status: 429,
+          headers,
+        });
       }
 
       if (decision.kind === "allow" && decision.deprioritize) {
@@ -3961,13 +3964,7 @@ export async function handleChatCore({
                 stage: "sending_to_provider",
               });
               const execCreds = getExecutionCredentials();
-              const res = await executeWithUpstreamStartTimeout<{
-                response: Response;
-                url: string;
-                headers: Record<string, string>;
-                transformedBody: unknown;
-                _executionCredentials?: unknown;
-              }>({
+              const rawExecutorResult = await executeWithUpstreamStartTimeout<any>({
                 executor,
                 provider,
                 model: modelToCall,
@@ -3988,6 +3985,15 @@ export async function handleChatCore({
                     skipUpstreamRetry,
                   }),
               });
+              const res =
+                rawExecutorResult instanceof Response
+                  ? {
+                      response: rawExecutorResult,
+                      url: "",
+                      headers: {},
+                      transformedBody: null,
+                    }
+                  : rawExecutorResult;
               trace("post_executor", { status: res?.response?.status });
               updatePendingRequest(model, provider, connectionId, {
                 stage: "provider_response_started",
@@ -4243,7 +4249,11 @@ export async function handleChatCore({
   // ── Tier 2: Authoritative per-model/provider token-limit check (provider now resolved) ──
   if (apiKeyInfo?.id) {
     try {
-      const tokenBreach = checkTokenLimits(apiKeyInfo.id, provider || undefined, model || undefined);
+      const tokenBreach = checkTokenLimits(
+        apiKeyInfo.id,
+        provider || undefined,
+        model || undefined
+      );
       if (tokenBreach) {
         const scopeLabel =
           tokenBreach.scopeType === "global"
@@ -4311,7 +4321,11 @@ export async function handleChatCore({
     // Store rate-limit headers for quota saturation signals
     try {
       const { storeRateLimitHeaders } = await import("@/lib/quota/saturationSignals");
-      storeRateLimitHeaders(connectionId, provider, providerResponse.headers as Record<string, string>);
+      storeRateLimitHeaders(
+        connectionId,
+        provider,
+        providerResponse.headers as Record<string, string>
+      );
     } catch {
       // fail-open: saturation signal is best-effort
     }
@@ -5244,7 +5258,8 @@ export async function handleChatCore({
       if (apiKeyInfo?.id) {
         try {
           const billable = computeBillableTokens(usage);
-          if (billable > 0) recordTokenUsage(apiKeyInfo.id, provider || "unknown", model || "unknown", billable);
+          if (billable > 0)
+            recordTokenUsage(apiKeyInfo.id, provider || "unknown", model || "unknown", billable);
         } catch {
           // never block the response on counter recording
         }
@@ -5467,8 +5482,8 @@ export async function handleChatCore({
             cost: {
               tokens:
                 usage && typeof usage === "object"
-                  ? ((usage as Record<string, unknown>).prompt_tokens as number ?? 0) +
-                    ((usage as Record<string, unknown>).completion_tokens as number ?? 0)
+                  ? (((usage as Record<string, unknown>).prompt_tokens as number) ?? 0) +
+                    (((usage as Record<string, unknown>).completion_tokens as number) ?? 0)
                   : 0,
               usd: estimatedCost > 0 ? estimatedCost : 0,
               requests: 1,
@@ -5701,7 +5716,8 @@ export async function handleChatCore({
       if (apiKeyInfo?.id && streamStatus === 200) {
         try {
           const billable = computeBillableTokens(streamUsage);
-          if (billable > 0) recordTokenUsage(apiKeyInfo.id, provider || "unknown", model || "unknown", billable);
+          if (billable > 0)
+            recordTokenUsage(apiKeyInfo.id, provider || "unknown", model || "unknown", billable);
         } catch {
           // never block the stream on counter recording
         }
@@ -5743,8 +5759,7 @@ export async function handleChatCore({
               provider: provider ?? "unknown",
               cost: {
                 tokens: su
-                  ? (Number(su.prompt_tokens ?? 0) || 0) +
-                    (Number(su.completion_tokens ?? 0) || 0)
+                  ? (Number(su.prompt_tokens ?? 0) || 0) + (Number(su.completion_tokens ?? 0) || 0)
                   : 0,
                 usd: 0, // estimatedCost resolved async above; omit to avoid dependency
                 requests: 1,
