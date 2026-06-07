@@ -35,6 +35,12 @@ interface ProxyShape {
 const PROXY_FALLBACK_CACHE = new Map<string, CacheEntry>();
 const CACHE_TTL_MS = 5 * 60 * 1000; // 5 minutes
 
+export function isProxyAutoFallbackEnabled(): boolean {
+  const raw =
+    process.env.OMNIROUTE_PROXY_AUTO_FALLBACK || process.env.ENABLE_PROXY_AUTO_FALLBACK || "";
+  return raw === "1" || raw.toLowerCase() === "true";
+}
+
 /**
  * Clear the in-memory proxy fallback cache.
  * Useful for testing or admin operations.
@@ -51,10 +57,9 @@ export function clearProxyFallbackCache(): void {
  * Build a full proxy URL string from a proxy record's fields.
  */
 function proxyRecordToUrl(proxy: ProxyShape): string {
-  const auth =
-    proxy.username
-      ? `${encodeURIComponent(proxy.username)}:${encodeURIComponent(proxy.password || "")}@`
-      : "";
+  const auth = proxy.username
+    ? `${encodeURIComponent(proxy.username)}:${encodeURIComponent(proxy.password || "")}@`
+    : "";
   return `${proxy.type}://${auth}${proxy.host}:${proxy.port}`;
 }
 
@@ -251,9 +256,7 @@ export async function testProxiesAgainstTarget(
   );
 
   return results.map((r) =>
-    r.status === "fulfilled"
-      ? r.value
-      : { proxyUrl: "unknown", ok: false, latencyMs: null }
+    r.status === "fulfilled" ? r.value : { proxyUrl: "unknown", ok: false, latencyMs: null }
   );
 }
 
@@ -303,9 +306,7 @@ export async function findWorkingProxy(
     })
   );
 
-  const working = results.find(
-    (r) => r.status === "fulfilled" && r.value.ok
-  );
+  const working = results.find((r) => r.status === "fulfilled" && r.value.ok);
 
   if (working && working.status === "fulfilled") {
     const proxyUrl = working.value.proxyUrl;
@@ -339,14 +340,14 @@ export async function findWorkingProxy(
  * @param _connectionId  Optional connection ID (reserved for future use).
  * @returns A proxy resolution result with level "autoSelect", or null.
  */
-export async function selectWorkingProxyFallback(
-  _connectionId?: string
-): Promise<{
+export async function selectWorkingProxyFallback(_connectionId?: string): Promise<{
   proxy: { type: string; host: string; port: number; username: string; password: string } | null;
   level: string;
   levelId: string | null;
   source: string;
 } | null> {
+  if (!isProxyAutoFallbackEnabled()) return null;
+
   const candidates = await getProxyCandidates();
   if (candidates.length === 0) return null;
 

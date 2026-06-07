@@ -186,6 +186,17 @@ function providerText(
   return fallback;
 }
 
+function readBooleanToggle(value: unknown, fallback: boolean): boolean {
+  if (typeof value === "boolean") return value;
+  if (typeof value === "number") return value === 1;
+  if (typeof value === "string") {
+    const normalized = value.trim().toLowerCase();
+    if (normalized === "1" || normalized === "true") return true;
+    if (normalized === "0" || normalized === "false") return false;
+  }
+  return fallback;
+}
+
 function getWebSessionCredentialLabel(
   t: ProviderMessageTranslator,
   requirement: WebSessionCredentialRequirement,
@@ -4877,9 +4888,9 @@ export default function ProviderDetailPage() {
                           hasProxy={!!connProxyMap[conn.id]?.proxy}
                           proxySource={connProxyMap[conn.id]?.level || null}
                           proxyHost={connProxyMap[conn.id]?.proxy?.host || null}
-                          proxyEnabled={conn.proxyEnabled !== false}
+                          proxyEnabled={readBooleanToggle(conn.proxyEnabled, true)}
                           onToggleProxyEnabled={(enabled) => handleToggleProxyEnabled(conn.id, enabled)}
-                          perKeyProxyEnabled={conn.perKeyProxyEnabled === true}
+                          perKeyProxyEnabled={readBooleanToggle(conn.perKeyProxyEnabled, false)}
                           onTogglePerKeyProxyEnabled={(enabled) => handleTogglePerKeyProxyEnabled(conn.id, enabled)}
                         />
                       ))}
@@ -5080,9 +5091,9 @@ export default function ProviderDetailPage() {
                                 hasProxy={!!connProxyMap[conn.id]?.proxy}
                                 proxySource={connProxyMap[conn.id]?.level || null}
                                 proxyHost={connProxyMap[conn.id]?.proxy?.host || null}
-                                proxyEnabled={conn.proxyEnabled !== false}
+                                proxyEnabled={readBooleanToggle(conn.proxyEnabled, true)}
                                 onToggleProxyEnabled={(enabled) => handleToggleProxyEnabled(conn.id, enabled)}
-                                perKeyProxyEnabled={conn.perKeyProxyEnabled === true}
+                                perKeyProxyEnabled={readBooleanToggle(conn.perKeyProxyEnabled, false)}
                                 onTogglePerKeyProxyEnabled={(enabled) => handleTogglePerKeyProxyEnabled(conn.id, enabled)}
                               />
                             ))}

@@ -12,6 +12,7 @@ import {
 } from "./encryption";
 import { invalidateDbCache } from "./readCache";
 import { normalizeProviderSpecificData } from "@/lib/providers/requestDefaults";
+import { bumpProxyConfigGeneration } from "./settings";
 
 type JsonRecord = Record<string, unknown>;
 
@@ -71,6 +72,13 @@ function withNullableRateLimitOverrides(
     ...record,
     rateLimitOverrides: (source?.rateLimitOverrides ?? null) as Record<string, number> | null,
   };
+}
+
+function normalizeBooleanColumn(value: unknown, fallback: boolean): boolean {
+  if (typeof value === "boolean") return value;
+  if (typeof value === "number") return value === 1;
+  if (typeof value === "string") return value === "1" || value.toLowerCase() === "true";
+  return fallback;
 }
 
 // Sanitize the per-connection rate limit overrides map: keep only known
@@ -316,6 +324,8 @@ export async function createProviderConnection(data: JsonRecord) {
     isActive: data.isActive !== undefined ? data.isActive : true,
     createdAt: now,
     updatedAt: now,
+    proxyEnabled: normalizeBooleanColumn(data.proxyEnabled, true),
+    perKeyProxyEnabled: normalizeBooleanColumn(data.perKeyProxyEnabled, false),
   };
 
   // Optional fields
@@ -372,9 +382,7 @@ export async function createProviderConnection(data: JsonRecord) {
   // Same sanitization for rateLimitOverrides — keep in-memory representation
   // in sync with what gets persisted.
   if ("rateLimitOverrides" in connection) {
-    connection.rateLimitOverrides = sanitizeRateLimitOverrides(
-      connection.rateLimitOverrides
-    );
+    connection.rateLimitOverrides = sanitizeRateLimitOverrides(connection.rateLimitOverrides);
   }
 
   _insertConnectionRow(db, encryptConnectionFields({ ...connection }));
@@ -462,8 +470,8 @@ function _insertConnectionRow(db: DbLike, conn: JsonRecord) {
     lastUsedAt: conn.lastUsedAt || null,
     group: conn.group || null,
     maxConcurrent: conn.maxConcurrent ?? null,
-    proxyEnabled: conn.proxyEnabled ?? 1,
-    perKeyProxyEnabled: conn.perKeyProxyEnabled ?? 0,
+    proxyEnabled: normalizeBooleanColumn(conn.proxyEnabled, true) ? 1 : 0,
+    perKeyProxyEnabled: normalizeBooleanColumn(conn.perKeyProxyEnabled, false) ? 1 : 0,
     quotaWindowThresholdsJson: serializeQuotaWindowThresholds(conn.quotaWindowThresholds),
     rateLimitOverridesJson: serializeRateLimitOverrides(conn.rateLimitOverrides),
     createdAt: conn.createdAt,
@@ -541,18 +549,8 @@ function _updateConnectionRow(db: DbLike, id: string, data: JsonRecord) {
     group: data.group || null,
     maxConcurrent: data.maxConcurrent ?? null,
     quotaWindowThresholdsJson: serializeQuotaWindowThresholds(data.quotaWindowThresholds),
-    proxyEnabled:
-      typeof data.proxyEnabled === "boolean"
-        ? data.proxyEnabled
-          ? 1
-          : 0
-        : (data.proxyEnabled ?? 1),
-    perKeyProxyEnabled:
-      typeof data.perKeyProxyEnabled === "boolean"
-        ? data.perKeyProxyEnabled
-          ? 1
-          : 0
-        : (data.perKeyProxyEnabled ?? 0),
+    proxyEnabled: normalizeBooleanColumn(data.proxyEnabled, true) ? 1 : 0,
+    perKeyProxyEnabled: normalizeBooleanColumn(data.perKeyProxyEnabled, false) ? 1 : 0,
     rateLimitOverridesJson: serializeRateLimitOverrides(data.rateLimitOverrides),
     updatedAt: now,
   });
@@ -586,6 +584,7 @@ export async function updateProviderConnection(id: string, data: JsonRecord) {
   _updateConnectionRow(db, id, encryptConnectionFields({ ...merged }));
   backupDbFile("pre-write");
   invalidateDbCache("connections"); // Bust connections read cache
+  bumpProxyConfigGeneration();
 
   if (data.priority !== undefined) {
     const existingRecord = toRecord(existing);
@@ -612,6 +611,7 @@ export async function deleteProviderConnection(id: string) {
 
   db.prepare("DELETE FROM quota_snapshots WHERE connection_id = ?").run(id);
   db.prepare("DELETE FROM provider_connections WHERE id = ?").run(id);
+  bumpProxyConfigGeneration();
   const existingRecord = toRecord(existing);
   const providerId =
     typeof existingRecord.provider === "string"

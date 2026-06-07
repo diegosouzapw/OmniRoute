@@ -7,6 +7,8 @@ import path from "node:path";
 const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-proxy-registry-"));
 process.env.DATA_DIR = TEST_DATA_DIR;
 process.env.API_KEY_SECRET = "test-secret";
+const ORIGINAL_PROXY_AUTO_FALLBACK = process.env.OMNIROUTE_PROXY_AUTO_FALLBACK;
+const ORIGINAL_ENABLE_PROXY_AUTO_FALLBACK = process.env.ENABLE_PROXY_AUTO_FALLBACK;
 
 const core = await import("../../src/lib/db/core.ts");
 const providersDb = await import("../../src/lib/db/providers.ts");
@@ -17,6 +19,8 @@ const proxiesRoute = await import("../../src/app/api/settings/proxies/route.ts")
 
 async function resetStorage() {
   delete process.env.INITIAL_PASSWORD;
+  delete process.env.OMNIROUTE_PROXY_AUTO_FALLBACK;
+  delete process.env.ENABLE_PROXY_AUTO_FALLBACK;
   core.resetDbInstance();
   apiKeysDb.resetApiKeyState();
   fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
@@ -26,6 +30,17 @@ async function resetStorage() {
 test.after(async () => {
   core.resetDbInstance();
   fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+
+  if (ORIGINAL_PROXY_AUTO_FALLBACK === undefined) {
+    delete process.env.OMNIROUTE_PROXY_AUTO_FALLBACK;
+  } else {
+    process.env.OMNIROUTE_PROXY_AUTO_FALLBACK = ORIGINAL_PROXY_AUTO_FALLBACK;
+  }
+  if (ORIGINAL_ENABLE_PROXY_AUTO_FALLBACK === undefined) {
+    delete process.env.ENABLE_PROXY_AUTO_FALLBACK;
+  } else {
+    process.env.ENABLE_PROXY_AUTO_FALLBACK = ORIGINAL_ENABLE_PROXY_AUTO_FALLBACK;
+  }
 });
 
 test("proxy registry blocks delete when proxy is still assigned", async () => {
@@ -361,6 +376,81 @@ test("resolveProxyForConnection falls through when apiKey has no proxy_id", asyn
   assert.ok(resolved);
   assert.equal((resolved as any).level, "account");
   assert.equal((resolved as any).proxy.host, "account-fallthrough.local");
+});
+
+test("connection proxy toggle gates account assignments and invalidates cached resolutions", async () => {
+  await resetStorage();
+
+  const directConnection = await providersDb.createProviderConnection({
+    provider: "proxy-toggle-test-provider",
+    authType: "apikey",
+    name: "Direct Account",
+    apiKey: "sk-direct-account",
+  });
+  const proxiedConnection = await providersDb.createProviderConnection({
+    provider: "proxy-toggle-test-provider",
+    authType: "apikey",
+    name: "Proxied Account",
+    apiKey: "sk-proxied-account",
+  });
+
+  const poolProxy = await proxiesDb.createProxy({
+    name: "Pool Proxy",
+    type: "http",
+    host: "pool-proxy.local",
+    port: 8080,
+  });
+  await proxiesDb.assignProxyToScope("account", (proxiedConnection as any).id, poolProxy.id);
+
+  const directResolved = await settingsDb.resolveProxyForConnection((directConnection as any).id);
+  assert.equal(directResolved.level, "direct");
+  assert.equal(directResolved.proxy, null);
+
+  const proxiedResolved = await settingsDb.resolveProxyForConnection((proxiedConnection as any).id);
+  assert.equal(proxiedResolved.level, "account");
+  assert.equal((proxiedResolved.proxy as any).host, "pool-proxy.local");
+
+  const disabled = await providersDb.updateProviderConnection((proxiedConnection as any).id, {
+    proxyEnabled: false,
+  });
+  assert.equal((disabled as any).proxyEnabled, false);
+
+  const disabledResolved = await settingsDb.resolveProxyForConnection(
+    (proxiedConnection as any).id
+  );
+  assert.equal(disabledResolved.level, "direct");
+  assert.equal(disabledResolved.proxy, null);
+
+  const enabled = await providersDb.updateProviderConnection((proxiedConnection as any).id, {
+    proxyEnabled: true,
+  });
+  assert.equal((enabled as any).proxyEnabled, true);
+
+  const enabledResolved = await settingsDb.resolveProxyForConnection((proxiedConnection as any).id);
+  assert.equal(enabledResolved.level, "account");
+  assert.equal((enabledResolved.proxy as any).host, "pool-proxy.local");
+});
+
+test("provider connection proxy toggle fields round-trip as booleans", async () => {
+  await resetStorage();
+
+  const connection = await providersDb.createProviderConnection({
+    provider: "openai",
+    authType: "apikey",
+    name: "Boolean Toggle Account",
+    apiKey: "sk-toggle-roundtrip",
+  });
+
+  const updated = await providersDb.updateProviderConnection((connection as any).id, {
+    proxyEnabled: false,
+    perKeyProxyEnabled: true,
+  });
+  const fetched = await providersDb.getProviderConnectionById((connection as any).id);
+
+  assert.equal((updated as any).proxyEnabled, false);
+  assert.equal((updated as any).perKeyProxyEnabled, true);
+  assert.equal((fetched as any).proxyEnabled, false);
+  assert.equal((fetched as any).perKeyProxyEnabled, true);
 });
 
 test("createProxyRegistrySchema accepts type:vercel and source:vercel-relay (schema gap-06)", async () => {

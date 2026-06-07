@@ -12,7 +12,7 @@ import {
 } from "./proxyDispatcher.ts";
 import tlsClient from "./tlsClient.ts";
 import { isProxyReachable } from "@/lib/proxyHealth";
-import { findWorkingProxy } from "./proxyFallback.ts";
+import { findWorkingProxy, isProxyAutoFallbackEnabled } from "./proxyFallback.ts";
 
 function isTlsFingerprintEnabled() {
   return process.env.ENABLE_TLS_FINGERPRINT === "true";
@@ -122,7 +122,10 @@ function noProxyMatch(targetUrl) {
 }
 
 function isLocalAddress(hostname: string): boolean {
-  const host = hostname.replace(/^\[/, "").replace(/\]$/, "").replace(/^::ffff:/i, "");
+  const host = hostname
+    .replace(/^\[/, "")
+    .replace(/\]$/, "")
+    .replace(/^::ffff:/i, "");
   if (host === "localhost" || host === "0.0.0.0" || host === "127.0.0.1" || host === "::1") {
     return true;
   }
@@ -338,7 +341,7 @@ async function patchedFetch(
             continue;
           }
           // All attempts exhausted — try proxy fallback before native fetch
-          if (source === "direct") {
+          if (source === "direct" && isProxyAutoFallbackEnabled()) {
             let targetHostname = "";
             try {
               targetHostname = new URL(targetUrl).hostname;
@@ -346,10 +349,7 @@ async function patchedFetch(
               // ignore
             }
             if (targetHostname) {
-              const fallbackProxyUrl = await findWorkingProxy(
-                targetHostname,
-                targetUrl
-              );
+              const fallbackProxyUrl = await findWorkingProxy(targetHostname, targetUrl);
               if (fallbackProxyUrl) {
                 try {
                   const dispatcher = createProxyDispatcher(fallbackProxyUrl);
