@@ -752,6 +752,7 @@ export function recordProviderFailure(
     if (lastFailure && now - lastFailure < CONNECTION_FAILURE_DEDUP_MS) {
       return;
     }
+    lastConnectionFailure.delete(dedupKey);
     lastConnectionFailure.set(dedupKey, now);
     pruneConnectionFailureDedupeEntries();
   }

@@ -680,6 +680,36 @@ test("recordProviderFailure keeps recent connection dedupe entries when pruning"
   }
 });
 
+test("recordProviderFailure refreshes insertion order for existing dedupe keys", () => {
+  const originalNow = Date.now;
+  let now = 1_700_000_000_000;
+  Date.now = () => now;
+
+  try {
+    const provider = "test-provider-dedupe-lru";
+    const profile = { failureThreshold: 20_000, resetTimeoutMs: 60_000 };
+    clearProviderFailure(provider);
+
+    for (let i = 0; i < 9_999; i++) {
+      recordProviderFailure(provider, undefined, `conn-${i}`, profile);
+    }
+
+    now += 10_000;
+    recordProviderFailure(provider, undefined, "conn-0", profile);
+
+    for (let i = 10_000; i < 10_050; i++) {
+      recordProviderFailure(provider, undefined, `conn-${i}`, profile);
+    }
+
+    const breakerState = getProviderBreakerState(provider);
+    assert.equal(breakerState?.failureCount !== undefined, true);
+    assert.equal(isProviderInCooldown(provider), false);
+  } finally {
+    Date.now = originalNow;
+    clearProviderFailure("test-provider-dedupe-lru");
+  }
+});
+
 test("checkFallbackError no longer mutates provider breaker state on per-connection failures", () => {
   const provider = "test-provider-check";
   clearProviderFailure(provider);
