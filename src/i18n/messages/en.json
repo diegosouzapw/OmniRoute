@@ -3870,6 +3870,8 @@
     "testAll": "Test All",
     "distributeProxies": "Distribute Proxies",
     "distributing": "Distributing...",
+    "selectedCount": "{count, plural, one {# selected} other {# selected}}",
+    "accountsCount": "{count, plural, one {# account} other {# accounts}}",
     "testAllOAuth": "Test all OAuth connections",
     "testAllFree": "Test all Free connections",
     "testAllApiKey": "Test all API Key connections",
