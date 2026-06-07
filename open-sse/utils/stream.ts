@@ -421,8 +421,7 @@ type ClaudeEmptyResponseLifecycle = {
   warningLogged: boolean;
 };
 
-const SYNTHETIC_CLAUDE_EMPTY_RESPONSE_TEXT =
-  "[Proxy Error] The upstream API returned an empty response. Please retry the request.";
+const SYNTHETIC_CLAUDE_EMPTY_RESPONSE_TEXT = "";
 
 function createClaudeEmptyResponseLifecycle(): ClaudeEmptyResponseLifecycle {
   return {
@@ -1588,29 +1587,8 @@ export function createSSEStream(options: StreamOptions = {}) {
                   // which breaks OpenAI-compatible clients (e.g. Copilot Chat)
                   if (Array.isArray(parsed.choices) && parsed.choices.length === 0) {
                     console.warn(
-                      `[STREAM] Upstream returned empty choices array (${provider || "provider"}:${model || "unknown"}) — emitting error chunk`
+                      `[STREAM] Upstream returned empty choices array (${provider || "provider"}:${model || "unknown"}) — skipping chunk`
                     );
-                    const errorChunk = {
-                      id: parsed.id || `omniroute-empty-choices-${Date.now()}`,
-                      object: "chat.completion.chunk",
-                      created: parsed.created || Math.floor(Date.now() / 1000),
-                      model: parsed.model || model || "unknown",
-                      choices: [
-                        {
-                          index: 0,
-                          delta: {
-                            role: "assistant",
-                            content: "[OmniRoute] Upstream returned an empty response. Please retry.",
-                          },
-                          finish_reason: "stop",
-                        },
-                      ],
-                    };
-                    output = `data: ${JSON.stringify(errorChunk)}\n`;
-                    injectedUsage = true;
-                    clientPayload = errorChunk;
-                    reqLogger?.appendConvertedChunk?.(output);
-                    controller.enqueue(encoder.encode(output));
                     continue;
                   }
 
