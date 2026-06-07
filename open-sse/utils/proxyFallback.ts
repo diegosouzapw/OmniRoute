@@ -10,6 +10,7 @@
 import { fetch as undiciFetch } from "undici";
 import { createProxyDispatcher, normalizeProxyUrl } from "./proxyDispatcher.ts";
 import { resolveProxyForScopeFromRegistry, listProxies, listOneproxyProxies } from "@/lib/localDb";
+import { isFeatureFlagEnabled } from "@/shared/utils/featureFlags";
 
 // ---------------------------------------------------------------------------
 // Types
@@ -347,6 +348,12 @@ export async function selectWorkingProxyFallback(
   levelId: string | null;
   source: string;
 } | null> {
+  // #3332: auto-selection is opt-in. Without this gate, any single proxy in the
+  // registry silently becomes a global fallback for ALL connections (ignoring
+  // assignments / per-connection proxy_enabled). Default OFF — only run when the
+  // operator explicitly enables PROXY_AUTO_SELECT_ENABLED.
+  if (!isFeatureFlagEnabled("PROXY_AUTO_SELECT_ENABLED")) return null;
+
   const candidates = await getProxyCandidates();
   if (candidates.length === 0) return null;
 
