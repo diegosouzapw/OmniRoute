@@ -1,270 +1,270 @@
-# OmniRoute — Dashboard Features Gallery (Bahasa Indonesia)
+# OmniRoute — Galeri Fitur Dashboard (Bahasa Indonesia)
 
 🌐 **Languages:** 🇺🇸 [English](../../../../docs/FEATURES.md) · 🇸🇦 [ar](../../ar/docs/FEATURES.md) · 🇧🇬 [bg](../../bg/docs/FEATURES.md) · 🇧🇩 [bn](../../bn/docs/FEATURES.md) · 🇨🇿 [cs](../../cs/docs/FEATURES.md) · 🇩🇰 [da](../../da/docs/FEATURES.md) · 🇩🇪 [de](../../de/docs/FEATURES.md) · 🇪🇸 [es](../../es/docs/FEATURES.md) · 🇮🇷 [fa](../../fa/docs/FEATURES.md) · 🇫🇮 [fi](../../fi/docs/FEATURES.md) · 🇫🇷 [fr](../../fr/docs/FEATURES.md) · 🇮🇳 [gu](../../gu/docs/FEATURES.md) · 🇮🇱 [he](../../he/docs/FEATURES.md) · 🇮🇳 [hi](../../hi/docs/FEATURES.md) · 🇭🇺 [hu](../../hu/docs/FEATURES.md) · 🇮🇩 [id](../../id/docs/FEATURES.md) · 🇮🇹 [it](../../it/docs/FEATURES.md) · 🇯🇵 [ja](../../ja/docs/FEATURES.md) · 🇰🇷 [ko](../../ko/docs/FEATURES.md) · 🇮🇳 [mr](../../mr/docs/FEATURES.md) · 🇲🇾 [ms](../../ms/docs/FEATURES.md) · 🇳🇱 [nl](../../nl/docs/FEATURES.md) · 🇳🇴 [no](../../no/docs/FEATURES.md) · 🇵🇭 [phi](../../phi/docs/FEATURES.md) · 🇵🇱 [pl](../../pl/docs/FEATURES.md) · 🇵🇹 [pt](../../pt/docs/FEATURES.md) · 🇧🇷 [pt-BR](../../pt-BR/docs/FEATURES.md) · 🇷🇴 [ro](../../ro/docs/FEATURES.md) · 🇷🇺 [ru](../../ru/docs/FEATURES.md) · 🇸🇰 [sk](../../sk/docs/FEATURES.md) · 🇸🇪 [sv](../../sv/docs/FEATURES.md) · 🇰🇪 [sw](../../sw/docs/FEATURES.md) · 🇮🇳 [ta](../../ta/docs/FEATURES.md) · 🇮🇳 [te](../../te/docs/FEATURES.md) · 🇹🇭 [th](../../th/docs/FEATURES.md) · 🇹🇷 [tr](../../tr/docs/FEATURES.md) · 🇺🇦 [uk-UA](../../uk-UA/docs/FEATURES.md) · 🇵🇰 [ur](../../ur/docs/FEATURES.md) · 🇻🇳 [vi](../../vi/docs/FEATURES.md) · 🇨🇳 [zh-CN](../../zh-CN/docs/FEATURES.md)
 
 ---
 
-Visual guide to every section of the OmniRoute dashboard.
+Panduan visual untuk setiap bagian dashboard OmniRoute.
 
 ---
 
-## 🔌 Providers
+## 🔌 Penyedia
 
-Manage AI provider connections: OAuth providers (Claude Code, Codex, Gemini CLI), API key providers (Groq, DeepSeek, OpenRouter), and free providers (Qoder, Qwen, Kiro). Kiro accounts include credit balance tracking — remaining credits, total allowance, and renewal date visible in Dashboard → Usage.
+Kelola koneksi penyedia AI: penyedia OAuth (Claude Code, Codex, Gemini CLI), penyedia kunci API (Groq, DeepSeek, OpenRouter), dan penyedia gratis (Qoder, Qwen, Kiro). Akun Kiro menyertakan pelacakan saldo kredit — sisa kredit, total tunjangan, dan tanggal pembaruan terlihat di Dashboard → Penggunaan.
 
 ![Providers Dashboard](screenshots/01-providers.png)
 
 ---
 
-## 🎨 Combos
+## 🎨 Combo
 
-Create model routing combos with 13 strategies: priority, weighted, round-robin, random, least-used, cost-optimized, strict-random, auto, fill-first, p2c, lkgp, context-optimized, and **context-relay**. Each combo chains multiple models with automatic fallback and includes quick templates and readiness checks.
+Buat combo routing model dengan 13 strategi: priority, weighted, round-robin, random, least-used, cost-optimized, strict-random, auto, fill-first, p2c, lkgp, context-optimized, dan **context-relay**. Setiap combo menghubungkan beberapa model dengan fallback otomatis dan menyertakan templat cepat serta pemeriksaan kesiapan.
 
-Recent combo improvements:
+Peningkatan combo terbaru:
 
-- **Structured combo builder** — create each step by selecting provider, model, and exact account/connection
-- **Repeated provider support** — reuse the same provider many times in one combo as long as the `(provider, model, connection)` tuple is unique
-- **Combo target health** — analytics and health surfaces now distinguish individual combo targets/steps instead of collapsing everything into model strings
-- **Composite tier ordering** — `defaultTier -> fallbackTier` now influences runtime execution/fallback order for top-level combo steps
+- **Pembuat combo terstruktur** — buat setiap langkah dengan memilih penyedia, model, dan akun/koneksi yang tepat
+- **Dukungan penyedia berulang** — gunakan kembali penyedia yang sama berkali-kali dalam satu combo selama tuple `(provider, model, connection)` bersifat unik
+- **Kesehatan target combo** — analitik dan tampilan kesehatan kini membedakan target/langkah combo individual alih-alih menggabungkan semuanya ke dalam string model
+- **Urutan tingkatan komposit** — `defaultTier -> fallbackTier` kini memengaruhi urutan eksekusi/fallback saat runtime untuk langkah combo tingkat atas
 
 ![Combos Dashboard](screenshots/02-combos.png)
 
 ---
 
-## 📊 Analytics
+## 📊 Analitik
 
-Comprehensive usage analytics with token consumption, cost estimates, activity heatmaps, weekly distribution charts, and per-provider breakdowns.
+Analitik penggunaan komprehensif dengan konsumsi token, estimasi biaya, peta panas aktivitas, grafik distribusi mingguan, dan rincian per penyedia.
 
 ![Analytics Dashboard](screenshots/03-analytics.png)
 
 ---
 
-## 🏥 System Health
+## 🏥 Kesehatan Sistem
 
-Real-time monitoring: uptime, memory, version, latency percentiles (p50/p95/p99), cache statistics, provider circuit breaker states, active quota-monitored sessions, and combo target health.
+Pemantauan real-time: uptime, memori, versi, persentil latensi (p50/p95/p99), statistik cache, status circuit breaker penyedia, sesi terpantau kuota yang aktif, dan kesehatan target combo.
 
 ![Health Dashboard](screenshots/04-health.png)
 
 ---
 
-## 🔧 Translator Playground
+## 🔧 Taman Bermain Translator
 
-Four modes for debugging API translations: **Playground** (format converter), **Chat Tester** (live requests), **Test Bench** (batch tests), and **Live Monitor** (real-time stream).
+Empat mode untuk men-debug terjemahan API: **Playground** (konverter format), **Chat Tester** (permintaan langsung), **Test Bench** (pengujian batch), dan **Live Monitor** (aliran real-time).
 
 ![Translator Playground](screenshots/05-translator.png)
 
 ---
 
-## 🎮 Model Playground _(v2.0.9+)_
+## 🎮 Taman Bermain Model _(v2.0.9+)_
 
-Test any model directly from the dashboard. Select provider, model, and endpoint, write prompts with Monaco Editor, stream responses in real-time, abort mid-stream, and view timing metrics.
-
----
-
-## 🎨 Themes _(v2.0.5+)_
-
-Customizable color themes for the entire dashboard. Choose from 7 preset colors (Coral, Blue, Red, Green, Violet, Orange, Cyan) or create a custom theme by picking any hex color. Supports light, dark, and system mode.
+Uji model apa pun langsung dari dashboard. Pilih penyedia, model, dan endpoint, tulis prompt dengan Monaco Editor, streaming respons secara real-time, batalkan di tengah streaming, dan lihat metrik waktu.
 
 ---
 
-## ⚙️ Settings
+## 🎨 Tema _(v2.0.5+)_
 
-Comprehensive settings panel with tabs:
+Tema warna yang dapat dikustomisasi untuk seluruh dashboard. Pilih dari 7 warna prasetel (Coral, Blue, Red, Green, Violet, Orange, Cyan) atau buat tema kustom dengan memilih warna hex apa pun. Mendukung mode terang, gelap, dan sistem.
 
-- **General** — System storage, backup management (export/import database)
-- **Appearance** — Theme selector (dark/light/system), color theme presets and custom colors, health log visibility, sidebar item visibility controls
-- **Security** — API endpoint protection, custom provider blocking, IP filtering, session info
-- **Routing** — Model aliases, background task degradation
-- **Resilience** — Rate limit persistence, circuit breaker tuning, auto-disable banned accounts, provider expiration monitoring, **Context Relay** handoff threshold and summary model configuration
-- **Advanced** — Configuration overrides, configuration audit trail, fallback degradation mode
+---
+
+## ⚙️ Pengaturan
+
+Panel pengaturan komprehensif dengan tab:
+
+- **Umum** — Penyimpanan sistem, manajemen cadangan (ekspor/impor database)
+- **Tampilan** — Pemilih tema (gelap/terang/sistem), prasetel tema warna dan warna kustom, visibilitas log kesehatan, kontrol visibilitas item bilah samping
+- **Keamanan** — Perlindungan endpoint API, pemblokiran penyedia kustom, pemfilteran IP, info sesi
+- **Routing** — Alias model, degradasi tugas latar belakang
+- **Ketahanan** — Persistensi batas laju, penyetelan circuit breaker, nonaktifkan akun yang diblokir secara otomatis, pemantauan kedaluwarsa penyedia, ambang batas handoff **Context Relay** dan konfigurasi model ringkasan
+- **Lanjutan** — Penimpaan konfigurasi, jejak audit konfigurasi, mode degradasi fallback
 
 ![Settings Dashboard](screenshots/06-settings.png)
 
 ---
 
-## 🔧 CLI Tools
+## 🔧 Alat CLI
 
-One-click configuration for AI coding tools: Claude Code, Codex CLI, Gemini CLI, OpenClaw, Kilo Code, Antigravity, Cline, Continue, Cursor, and Factory Droid. Features automated config apply/reset, connection profiles, and model mapping.
+Konfigurasi satu klik untuk alat pengkodean AI: Claude Code, Codex CLI, Gemini CLI, OpenClaw, Kilo Code, Antigravity, Cline, Continue, Cursor, dan Factory Droid. Dilengkapi penerapan/reset konfigurasi otomatis, profil koneksi, dan pemetaan model.
 
 ![CLI Tools Dashboard](screenshots/07-cli-tools.png)
 
 ---
 
-## 🤖 CLI Agents _(v2.0.11+)_
+## 🤖 Agen CLI _(v2.0.11+)_
 
-Dashboard for discovering and managing CLI agents. Shows a grid of 14 built-in agents (Codex, Claude, Goose, Gemini CLI, OpenClaw, Aider, OpenCode, Cline, Qwen Code, ForgeCode, Amazon Q, Open Interpreter, Cursor CLI, Warp) with:
+Dashboard untuk menemukan dan mengelola agen CLI. Menampilkan kisi 14 agen bawaan (Codex, Claude, Goose, Gemini CLI, OpenClaw, Aider, OpenCode, Cline, Qwen Code, ForgeCode, Amazon Q, Open Interpreter, Cursor CLI, Warp) dengan:
 
-- **Installation status** — Installed / Not Found with version detection
-- **Protocol badges** — stdio, HTTP, etc.
-- **Custom agents** — Register any CLI tool via form (name, binary, version command, spawn args)
-- **CLI Fingerprint Matching** — Per-provider toggle to match native CLI request signatures, reducing ban risk while preserving proxy IP
+- **Status instalasi** — Terpasang / Tidak Ditemukan dengan deteksi versi
+- **Lencana protokol** — stdio, HTTP, dll.
+- **Agen kustom** — Daftarkan alat CLI apa pun melalui formulir (nama, biner, perintah versi, argumen spawn)
+- **Pencocokan Sidik Jari CLI** — Sakelar per penyedia untuk mencocokkan tanda tangan permintaan CLI asli, mengurangi risiko pemblokiran sambil mempertahankan IP proxy
 
 ---
 
 ## 🔗 Context Relay _(v3.5.5+)_
 
-A combo strategy that preserves session continuity when account rotation happens mid-conversation. Before the active account is exhausted, OmniRoute generates a structured handoff summary in the background. After the next request resolves to a different account, the summary is injected as a system message so the new account continues with full context.
+Strategi combo yang mempertahankan kesinambungan sesi saat rotasi akun terjadi di tengah percakapan. Sebelum akun aktif habis, OmniRoute menghasilkan ringkasan handoff terstruktur di latar belakang. Setelah permintaan berikutnya diarahkan ke akun berbeda, ringkasan disuntikkan sebagai pesan sistem sehingga akun baru melanjutkan dengan konteks penuh.
 
-Configurable via combo-level or global settings:
+Dapat dikonfigurasi melalui pengaturan level combo atau global:
 
-- **Handoff Threshold** — Quota usage percentage that triggers summary generation (default 85%)
-- **Max Messages For Summary** — How much recent history to condense
-- **Summary Model** — Optional override model for generating the handoff summary
+- **Ambang Batas Handoff** — Persentase penggunaan kuota yang memicu pembuatan ringkasan (default 85%)
+- **Maks Pesan untuk Ringkasan** — Seberapa banyak riwayat terkini yang dipadatkan
+- **Model Ringkasan** — Model penimpaan opsional untuk menghasilkan ringkasan handoff
 
-Currently supports Codex account rotation. See [Context Relay documentation](features/context-relay.md).
-
----
-
-## 🛡️ Proxy Hardening _(v3.5.5+)_
-
-Comprehensive proxy configuration enforcement across the entire request pipeline:
-
-- **Token Health Check** — Background OAuth refresh now resolves proxy config per connection, preventing failures in proxy-required environments
-- **API Key Validation** — Provider key validation (`POST /api/providers/validate`) routes through `runWithProxyContext`, honoring provider-level and global proxy settings
-- **undici Dispatcher Fix** — Proxy dispatchers use undici's own fetch implementation instead of Node's built-in fetch, resolving `invalid onRequestStart method` errors on Node.js 22
-- **Node.js Version Detection** — Login page proactively detects incompatible Node.js versions (24+) and displays a warning banner with instructions to use Node 22 LTS
+Saat ini mendukung rotasi akun Codex. Lihat [dokumentasi Context Relay](features/context-relay.md).
 
 ---
 
-## 📧 Email Privacy Masking _(v3.5.6+)_
+## 🛡️ Penguatan Proxy _(v3.5.5+)_
 
-OAuth account emails are now masked in the provider dashboard (e.g. `di*****@g****.com`) to prevent accidental exposure when sharing screenshots or recording demos. The full email address remains accessible via hover tooltip (`title` attribute).
+Penegakan konfigurasi proxy komprehensif di seluruh pipeline permintaan:
 
----
-
-## 👁️ Model Visibility Toggle _(v3.5.6+)_
-
-The provider page model list now includes:
-
-- **Real-time search/filter bar** — Quickly find specific models
-- **Per-model visibility toggle** (👁 icon) — Hidden models are grayed out and excluded from the `/v1/models` catalog
-- **Active-count badge** (`N/M active`) — Shows at a glance how many models are enabled vs total
+- **Pemeriksaan Kesehatan Token** — Pembaruan OAuth latar belakang kini me-resolve konfigurasi proxy per koneksi, mencegah kegagalan di lingkungan yang memerlukan proxy
+- **Validasi Kunci API** — Validasi kunci penyedia (`POST /api/providers/validate`) diarahkan melalui `runWithProxyContext`, menghormati pengaturan proxy level penyedia dan global
+- **Perbaikan Dispatcher undici** — Dispatcher proxy menggunakan implementasi fetch milik undici sendiri alih-alih fetch bawaan Node, menyelesaikan kesalahan `invalid onRequestStart method` pada Node.js 22
+- **Deteksi Versi Node.js** — Halaman login secara proaktif mendeteksi versi Node.js yang tidak kompatibel (24+) dan menampilkan spanduk peringatan dengan instruksi untuk menggunakan Node 22 LTS
 
 ---
 
-## 🔧 OAuth Env Repair _(v3.6.1+)_
+## 📧 Penyamaran Privasi Email _(v3.5.6+)_
 
-One-click "Repair env" action for OAuth providers that restores missing environment variables and fixes broken auth state. Accessible from `Dashboard → Providers → [OAuth Provider] → Repair env`. Automatically detects and repairs:
-
-- Missing OAuth client credentials
-- Corrupted env file entries
-- Backup path sanitization
+Email akun OAuth kini disembunyikan di dashboard penyedia (mis. `di*****@g****.com`) untuk mencegah paparan tidak sengaja saat berbagi tangkapan layar atau merekam demo. Alamat email lengkap tetap dapat diakses melalui tooltip hover (atribut `title`).
 
 ---
 
-## 🗑️ Uninstall / Full Uninstall _(v3.6.2+)_
+## 👁️ Sakelar Visibilitas Model _(v3.5.6+)_
 
-Clean removal scripts for all installation methods:
+Daftar model halaman penyedia kini menyertakan:
 
-| Command                  | Action                                                                              |
-| ------------------------ | ----------------------------------------------------------------------------------- |
-| `npm run uninstall`      | Removes the system app but **keeps your DB and configurations** in `~/.omniroute`.  |
-| `npm run uninstall:full` | Removes the app AND permanently **erases all configurations, keys, and databases**. |
+- **Bilah pencarian/filter real-time** — Temukan model tertentu dengan cepat
+- **Sakelar visibilitas per model** (ikon 👁) — Model yang disembunyikan diarsir dan dikecualikan dari katalog `/v1/models`
+- **Lencana jumlah aktif** (`N/M active`) — Menampilkan sekilas berapa banyak model yang diaktifkan vs total
+
+---
+
+## 🔧 Perbaikan Env OAuth _(v3.6.1+)_
+
+Tindakan "Repair env" satu klik untuk penyedia OAuth yang memulihkan variabel lingkungan yang hilang dan memperbaiki status autentikasi yang rusak. Dapat diakses dari `Dashboard → Providers → [OAuth Provider] → Repair env`. Secara otomatis mendeteksi dan memperbaiki:
+
+- Kredensial klien OAuth yang hilang
+- Entri file env yang rusak
+- Sanitasi jalur cadangan
+
+---
+
+## 🗑️ Uninstall / Uninstall Penuh _(v3.6.2+)_
+
+Skrip penghapusan bersih untuk semua metode instalasi:
+
+| Perintah                 | Tindakan                                                                                      |
+| ------------------------ | --------------------------------------------------------------------------------------------- |
+| `npm run uninstall`      | Menghapus aplikasi sistem tetapi **mempertahankan DB dan konfigurasi Anda** di `~/.omniroute`. |
+| `npm run uninstall:full` | Menghapus aplikasi DAN secara permanen **menghapus semua konfigurasi, kunci, dan database**.  |
 
 ---
 
 ## 🖼️ Media _(v2.0.3+)_
 
-Generate images, videos, and music from the dashboard. Supports OpenAI, xAI, Together, Hyperbolic, SD WebUI, ComfyUI, AnimateDiff, Stable Audio Open, and MusicGen.
+Hasilkan gambar, video, dan musik dari dashboard. Mendukung OpenAI, xAI, Together, Hyperbolic, SD WebUI, ComfyUI, AnimateDiff, Stable Audio Open, dan MusicGen.
 
 ---
 
-## 📝 Request Logs
+## 📝 Log Permintaan
 
-Real-time request logging with filtering by provider, model, account, and API key. Shows status codes, token usage, latency, and response details.
+Pencatatan permintaan real-time dengan pemfilteran berdasarkan penyedia, model, akun, dan kunci API. Menampilkan kode status, penggunaan token, latensi, dan detail respons.
 
 ![Usage Logs](screenshots/08-usage.png)
 
 ---
 
-## 🌐 API Endpoint
+## 🌐 Endpoint API
 
-Your unified API endpoint with capability breakdown: Chat Completions, Responses API, Embeddings, Image Generation, Reranking, Audio Transcription, Text-to-Speech, Moderations, and registered API keys. Cloudflare Quick Tunnel integration and cloud proxy support for remote access.
+Endpoint API terpadu Anda dengan rincian kemampuan: Chat Completions, Responses API, Embeddings, Image Generation, Reranking, Audio Transcription, Text-to-Speech, Moderations, dan kunci API yang terdaftar. Integrasi Cloudflare Quick Tunnel dan dukungan proxy cloud untuk akses jarak jauh.
 
 ![Endpoint Dashboard](screenshots/09-endpoint.png)
 
 ---
 
-## 🔑 API Key Management
+## 🔑 Manajemen Kunci API
 
-Create, scope, and revoke API keys. Each key can be restricted to specific models/providers with full access or read-only permissions. Visual key management with usage tracking.
-
----
-
-## 📋 Audit Log
-
-Administrative action tracking with filtering by action type, actor, target, IP address, and timestamp. Full security event history.
+Buat, batasi cakupan, dan cabut kunci API. Setiap kunci dapat dibatasi ke model/penyedia tertentu dengan izin akses penuh atau hanya baca. Manajemen kunci secara visual dengan pelacakan penggunaan.
 
 ---
 
-## 🖥️ Desktop Application
+## 📋 Log Audit
 
-Native Electron desktop app for Windows, macOS, and Linux. Run OmniRoute as a standalone application with system tray integration, offline support, auto-update, and one-click install.
+Pelacakan tindakan administratif dengan pemfilteran berdasarkan jenis tindakan, pelaku, target, alamat IP, dan cap waktu. Riwayat kejadian keamanan lengkap.
 
-Key features:
+---
 
-- Server readiness polling (no blank screen on cold start)
-- System tray with port management
+## 🖥️ Aplikasi Desktop
+
+Aplikasi desktop Electron asli untuk Windows, macOS, dan Linux. Jalankan OmniRoute sebagai aplikasi mandiri dengan integrasi system tray, dukungan offline, pembaruan otomatis, dan instalasi satu klik.
+
+Fitur utama:
+
+- Polling kesiapan server (tidak ada layar kosong saat cold start)
+- System tray dengan manajemen port
 - Content Security Policy
-- Single-instance lock
-- Auto-update on restart
-- Platform-conditional UI (macOS traffic lights, Windows/Linux default titlebar)
-- Hardened Electron build packaging — symlinked `node_modules` in the standalone bundle is detected and rejected before packaging, preventing runtime dependency on the build machine (v2.5.5+)
-- **Graceful shutdown** — Electron `before-quit` shuts down Next.js cleanly, preventing SQLite WAL database locks (v3.6.2+)
+- Kunci instans tunggal
+- Pembaruan otomatis saat restart
+- UI kondisional platform (lampu lalu lintas macOS, titlebar default Windows/Linux)
+- Pengemasan build Electron yang diperkuat — `node_modules` yang di-symlink dalam bundel mandiri terdeteksi dan ditolak sebelum pengemasan, mencegah ketergantungan runtime pada mesin build (v2.5.5+)
+- **Penutupan yang baik** — `before-quit` Electron menutup Next.js dengan bersih, mencegah kunci database SQLite WAL (v3.6.2+)
 
-📖 See [`electron/README.md`](../electron/README.md) for full documentation.
-
----
-
-## 🌐 V1 WebSocket Bridge _(v3.6.6+)_
-
-OmniRoute now supports **OpenAI-compatible WebSocket clients** via the `/v1/ws` upgrade endpoint. The custom `scripts/v1-ws-bridge.mjs` server wraps Next.js and upgrades WS connections to full bidirectional streaming sessions. Authentication uses the same API key or session cookie as HTTP requests.
-
-Key behaviours:
-
-- WS upgrade validated by `src/lib/ws/handshake.ts` before the connection is established
-- Streams terminated cleanly on session close or upstream error
-- Works alongside the existing HTTP+SSE streaming path simultaneously
+📖 Lihat [`electron/README.md`](../electron/README.md) untuk dokumentasi lengkap.
 
 ---
 
-## 🔑 Sync Tokens & Config Bundle _(v3.6.6+)_
+## 🌐 Jembatan WebSocket V1 _(v3.6.6+)_
 
-Multi-device and external operator access is now possible via **scoped sync tokens**:
+OmniRoute kini mendukung **klien WebSocket yang kompatibel dengan OpenAI** melalui endpoint upgrade `/v1/ws`. Server `scripts/v1-ws-bridge.mjs` kustom membungkus Next.js dan mengupgrade koneksi WS menjadi sesi streaming dua arah penuh. Autentikasi menggunakan kunci API atau cookie sesi yang sama seperti permintaan HTTP.
 
-- **`POST /api/sync/tokens`** — Issue a new sync token (scoped, with optional expiry)
-- **`DELETE /api/sync/tokens/:id`** — Revoke a token
-- **`GET /api/sync/bundle`** — Download a versioned, ETag-keyed JSON snapshot of all non-sensitive settings (passwords redacted)
+Perilaku utama:
 
-The config bundle is built by `src/lib/sync/bundle.ts`. Consumers compare the `ETag` response header to detect changes without re-downloading the full payload.
-
----
-
-## 🧠 GLM Thinking Preset _(v3.6.6+)_
-
-**GLM Thinking (`glmt`)** is now a registered first-class provider: 65 536 max output tokens, 24 576 thinking budget, 900 s default timeout, Claude-compatible API format, and shared usage sync with the GLM family.
-
-**Hybrid token counting** also lands in v3.6.6: when a Claude-compatible provider exposes `/messages/count_tokens`, OmniRoute calls it before large requests with graceful estimation fallback.
+- Upgrade WS divalidasi oleh `src/lib/ws/handshake.ts` sebelum koneksi dibuat
+- Aliran dihentikan dengan bersih saat sesi ditutup atau terjadi kesalahan upstream
+- Berfungsi berdampingan dengan jalur streaming HTTP+SSE yang ada secara bersamaan
 
 ---
 
-## 🛡️ Safe Outbound Fetch & SSRF Guard _(v3.6.6+)_
+## 🔑 Token Sinkronisasi & Bundel Konfigurasi _(v3.6.6+)_
 
-All provider validation and model discovery calls now go through a two-layer outbound guard:
+Akses multi-perangkat dan operator eksternal kini dimungkinkan melalui **token sinkronisasi bercakupan**:
 
-1. **URL guard** (`src/shared/network/outboundUrlGuard.ts`) — Blocks private/loopback/link-local IP ranges before the socket is opened.
-2. **Safe fetch wrapper** (`src/shared/network/safeOutboundFetch.ts`) — Applies the URL guard, normalises timeouts, and retries transient errors with exponential backoff.
+- **`POST /api/sync/tokens`** — Terbitkan token sinkronisasi baru (bercakupan, dengan kedaluwarsa opsional)
+- **`DELETE /api/sync/tokens/:id`** — Cabut token
+- **`GET /api/sync/bundle`** — Unduh snapshot JSON berversi dan berkey ETag dari semua pengaturan tidak sensitif (kata sandi disunting)
 
-Guard violations surface as HTTP 422 (`URL_GUARD_BLOCKED`) and are written to the compliance audit log via `providerAudit.ts`.
-
----
-
-## 🔄 Cooldown-Aware Retries _(v3.6.6+)_
-
-Chat requests now **automatically retry** when an upstream provider returns a model-scoped cooldown. Configurable via `REQUEST_RETRY` (default: 2) and `MAX_RETRY_INTERVAL_SEC` (default: 30 s). Rate-limit header learning improved across `x-ratelimit-reset-requests`, `x-ratelimit-reset-tokens`, and `Retry-After` — per-model cooldown state is visible in the Resilience dashboard.
+Bundel konfigurasi dibuat oleh `src/lib/sync/bundle.ts`. Konsumen membandingkan header respons `ETag` untuk mendeteksi perubahan tanpa mengunduh ulang payload penuh.
 
 ---
 
-## 📋 Compliance Audit v2 _(v3.6.6+)_
+## 🧠 Prasetel GLM Thinking _(v3.6.6+)_
 
-The audit log has been expanded with cursor-based pagination, request context enrichment (request ID, user agent, IP), structured auth events, provider CRUD events with diff context, and SSRF-blocked validation logging. New events emitted by `src/lib/compliance/providerAudit.ts`.
+**GLM Thinking (`glmt`)** kini merupakan penyedia kelas pertama yang terdaftar: 65 536 token output maksimum, anggaran thinking 24 576, timeout default 900 detik, format API yang kompatibel dengan Claude, dan sinkronisasi penggunaan bersama dengan keluarga GLM.
+
+**Penghitungan token hibrida** juga hadir di v3.6.6: ketika penyedia yang kompatibel dengan Claude mengekspos `/messages/count_tokens`, OmniRoute memanggilnya sebelum permintaan besar dengan fallback estimasi yang baik.
+
+---
+
+## 🛡️ Fetch Keluar Aman & Penjaga SSRF _(v3.6.6+)_
+
+Semua panggilan validasi penyedia dan penemuan model kini melewati penjaga keluar dua lapis:
+
+1. **Penjaga URL** (`src/shared/network/outboundUrlGuard.ts`) — Memblokir rentang IP privat/loopback/link-local sebelum soket dibuka.
+2. **Pembungkus fetch aman** (`src/shared/network/safeOutboundFetch.ts`) — Menerapkan penjaga URL, menormalkan timeout, dan mencoba ulang kesalahan transien dengan backoff eksponensial.
+
+Pelanggaran penjaga muncul sebagai HTTP 422 (`URL_GUARD_BLOCKED`) dan ditulis ke log audit kepatuhan melalui `providerAudit.ts`.
+
+---
+
+## 🔄 Percobaan Ulang yang Mempertimbangkan Cooldown _(v3.6.6+)_
+
+Permintaan chat kini **secara otomatis mencoba ulang** ketika penyedia upstream mengembalikan cooldown bercakupan model. Dapat dikonfigurasi melalui `REQUEST_RETRY` (default: 2) dan `MAX_RETRY_INTERVAL_SEC` (default: 30 detik). Pembelajaran header batas laju yang ditingkatkan di seluruh `x-ratelimit-reset-requests`, `x-ratelimit-reset-tokens`, dan `Retry-After` — status cooldown per model terlihat di dashboard Ketahanan.
+
+---
+
+## 📋 Audit Kepatuhan v2 _(v3.6.6+)_
+
+Log audit telah diperluas dengan paginasi berbasis kursor, pengayaan konteks permintaan (ID permintaan, user agent, IP), kejadian autentikasi terstruktur, kejadian CRUD penyedia dengan konteks diff, dan pencatatan validasi yang diblokir SSRF. Kejadian baru dipancarkan oleh `src/lib/compliance/providerAudit.ts`.
