@@ -5,7 +5,7 @@ import { AutoVariant } from "./autoPrefix";
 import { getProviderConnections } from "@/lib/db/providers";
 import { getProviderRegistry } from "./providerRegistryAccessor";
 import type { ConnectionFields } from "@/lib/db/encryption";
-import { NOAUTH_PROVIDERS } from "@/shared/constants/providers";
+import { NOAUTH_PROVIDERS, WEB_COOKIE_PROVIDERS } from "@/shared/constants/providers";
 import { defaultLogger as log } from "@omniroute/open-sse/utils/logger";
 
 /** Minimal connection shape needed for virtual auto-combo factory */
@@ -15,6 +15,7 @@ interface VirtualFactoryConn extends ConnectionFields {
   defaultModel?: string;
   expiresAt?: number | string | null;
   tokenExpiresAt?: number | string | null;
+  providerSpecificData?: Record<string, unknown> | null;
 }
 
 type NoAuthProviderDefinition = {
@@ -89,6 +90,17 @@ function hasUsableOAuthToken(conn: VirtualFactoryConn): boolean {
   return expiryMs === null || expiryMs > Date.now();
 }
 
+function hasProviderSpecificSessionData(conn: VirtualFactoryConn): boolean {
+  if (!(conn.provider in WEB_COOKIE_PROVIDERS)) return false;
+  const data = conn.providerSpecificData;
+  return Boolean(data && typeof data === "object" && Object.keys(data).length > 0);
+}
+
+function hasUsableConnectionCredential(conn: VirtualFactoryConn): boolean {
+  const hasApiKey = typeof conn.apiKey === "string" && conn.apiKey.trim().length > 0;
+  return hasApiKey || hasUsableOAuthToken(conn) || hasProviderSpecificSessionData(conn);
+}
+
 const SYNTHETIC_NOAUTH_CONNECTION_ID = "noauth";
 
 function isChatAutoComboNoAuthProvider(providerDef: NoAuthProviderDefinition): boolean {
@@ -150,10 +162,7 @@ export async function createVirtualAutoCombo(
 ): Promise<VirtualAutoCombo> {
   const connections = (await getProviderConnections({ isActive: true })) as VirtualFactoryConn[];
 
-  const validConnections = connections.filter((conn) => {
-    const hasApiKey = typeof conn.apiKey === "string" && conn.apiKey.trim().length > 0;
-    return hasApiKey || hasUsableOAuthToken(conn);
-  });
+  const validConnections = connections.filter(hasUsableConnectionCredential);
 
   const candidatePool: VirtualAutoComboCandidate[] = [];
   for (const conn of validConnections) {
