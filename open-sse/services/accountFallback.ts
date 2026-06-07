@@ -1393,7 +1393,21 @@ export function checkFallbackError(
       : findMatchingErrorRule(status, errorStr);
   if (configuredRule) {
     if (configuredRule.backoff) {
-      return buildRetryableFallback(configuredRule.reason ?? classifyError(status, errorStr));
+      // Provider-specific rules in `providerRuleRegistry` are MORE SPECIFIC
+      // than the configured (global) rule, so we check them first. If a
+      // provider rule matches, it overrides the configured rule's reason
+      // (e.g. Opencode's `x-ratelimit-remaining-requests: 0` overrides
+      // 429 → RATE_LIMIT_EXCEEDED). We do NOT call the full `classifyError`
+      // here because its global status fallback would otherwise override
+      // specific configured reasons (e.g. 503 → SERVER_ERROR would be
+      // shadowed by 503 → MODEL_CAPACITY).
+      const providerMatch = provider
+        ? getProviderErrorRuleMatch(provider, status, headers, structuredError ?? null)
+        : null;
+      const reason = providerMatch
+        ? providerMatch.reason
+        : (configuredRule.reason ?? RateLimitReason.UNKNOWN);
+      return buildRetryableFallback(reason);
     }
     const cooldownMs = configuredRule.cooldownMs ?? 0;
     return {

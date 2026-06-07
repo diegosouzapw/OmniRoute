@@ -14,7 +14,7 @@ import assert from "node:assert/strict";
  *   - Anything else: falls back to global ERROR_RULES.
  */
 
-const { classifyError } = await import(
+const { classifyError, checkFallbackError } = await import(
   "../../open-sse/services/accountFallback.ts"
 );
 const { RateLimitReason } = await import(
@@ -85,4 +85,36 @@ test("S3: Regression — provider with no rules falls back to global ERROR_RULES
   // And without any context at all (old call sites), still works.
   const reasonNoCtx = classifyError(429, "rate limit reached");
   assert.equal(reasonNoCtx, RateLimitReason.RATE_LIMIT_EXCEEDED);
+});
+
+test("S4: End-to-end — checkFallbackError forwards provider+headers to classifyError", () => {
+  // The wiring test: when combo.ts calls checkFallbackError with provider=opencode
+  // and headers containing x-ratelimit-remaining-requests: 0, the reason must be
+  // QUOTA_EXHAUSTED (not RATE_LIMIT_EXCEEDED). This proves the registry is ACTIVE
+  // in the production fallback path, not just callable in isolation.
+  //
+  // Simulate what combo.ts:3849 does — it passes provider, headers, and structuredError.
+  // For Opencode with account-wide quota exhausted, the fallback should signal
+  // quota_exhausted so the combo router skips remaining targets from the same provider.
+  const result = checkFallbackError(
+    429,
+    "rate limit reached", // generic body that would normally be RATE_LIMIT_EXCEEDED
+    0, // backoffLevel
+    null, // model
+    "opencode", // provider
+    { "x-ratelimit-remaining-requests": "0" }, // headers
+    null, // profileOverride
+    null // structuredError
+  );
+
+  assert.equal(
+    result.reason,
+    RateLimitReason.QUOTA_EXHAUSTED,
+    "checkFallbackError must forward provider+headers to classifyError so the Opencode quota rule fires"
+  );
+  assert.equal(
+    result.shouldFallback,
+    true,
+    "quota_exhausted must trigger fallback to the next provider"
+  );
 });
