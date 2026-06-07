@@ -3223,8 +3223,9 @@ const _REGISTRY_EAGER: Record<string, RegistryEntry> = {
     authHeader: "bearer",
     models: [
       { id: "z-ai/glm-5.1", name: "GLM 5.1" },
-      // #3110: MiniMax M3 via NVIDIA
-      { id: "minimaxai/minimax-m3", name: "MiniMax M3", contextLength: 1048576 },
+      // #3329: minimaxai/minimax-m3 removed — NVIDIA NIM does not host it yet
+      // (every request 404s), while minimax-m2.7 on the same provider works.
+      // Re-add only once NVIDIA actually serves it.
       { id: "minimaxai/minimax-m2.7", name: "MiniMax M2.7" },
       { id: "google/gemma-4-31b-it", name: "Gemma 4 31B" },
       { id: "mistralai/mistral-small-4-119b-2603", name: "Mistral Small 4 2603" },
