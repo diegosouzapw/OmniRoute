@@ -1412,7 +1412,14 @@ const _REGISTRY_EAGER: Record<string, RegistryEntry> = {
       },
       { id: "deepseek-v4-flash-free", name: "DeepSeek V4 Flash Free", supportsReasoning: true },
       // #3110: MiniMax M3 free tier via OpenCode
-      { id: "minimax-m3-free", name: "MiniMax M3 Free", contextLength: 1048576 },
+      // #3328: MiniMax M3 is multimodal (verified: describes base64 images via the
+      // opencode upstream) — flag it so vision requests aren't gated/stripped.
+      {
+        id: "minimax-m3-free",
+        name: "MiniMax M3 Free",
+        contextLength: 1048576,
+        supportsVision: true,
+      },
       { id: "minimax-m2.5-free", name: "MiniMax M2.5 Free", contextLength: 204800 },
       { id: "ling-2.6-1t-free", name: "Ling 2.6 Free", contextLength: 262000 },
       {
