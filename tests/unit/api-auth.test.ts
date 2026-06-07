@@ -14,6 +14,9 @@ const localDb = await import("../../src/lib/localDb.ts");
 const apiKeysDb = await import("../../src/lib/db/apiKeys.ts");
 const apiAuth = await import("../../src/shared/utils/apiAuth.ts");
 const { requireManagementAuth } = await import("../../src/lib/api/requireManagementAuth.ts");
+const { getLegacyCliTokenSync, getMachineTokenSync } =
+  await import("../../src/lib/machineToken.ts");
+const { CLI_TOKEN_HEADER } = await import("../../src/server/authz/headers.ts");
 
 const ORIGINAL_JWT_SECRET = process.env.JWT_SECRET;
 const ORIGINAL_INITIAL_PASSWORD = process.env.INITIAL_PASSWORD;
@@ -99,6 +102,56 @@ test("verifyAuth falls back to bearer API key validation after a bad JWT", async
   const result = await apiAuth.verifyAuth(request);
 
   assert.equal(result, null);
+});
+
+test("verifyAuth no longer accepts API keys supplied via query string (#3300 follow-up)", async () => {
+  // Query-string token fallbacks were removed (credential-in-URL leaks into logs).
+  const key = await apiKeysDb.createApiKey("query-auth", "machine1234567890");
+
+  const result = await apiAuth.verifyAuth({
+    cookies: {
+      get() {
+        return undefined;
+      },
+    },
+    headers: new Headers(),
+    url: `https://example.com/api/v1/models?token=${encodeURIComponent(key.key)}`,
+  });
+
+  // No usable credential → authentication fails (was incorrectly accepted before).
+  assert.notEqual(result, null);
+});
+
+test("isAuthenticated accepts API keys embedded in vscode path aliases", async () => {
+  const key = await apiKeysDb.createApiKey("path-auth", "machine1234567890");
+  const request = new Request(
+    `https://example.com/api/v1/vscode/${encodeURIComponent(key.key)}/models`
+  );
+
+  const result = await apiAuth.isAuthenticated(request);
+
+  assert.equal(result, true);
+});
+
+test("verifyAuth never honours a URL-borne token on MANAGEMENT routes (#3300 follow-up)", async () => {
+  // The historical escalation: a credential in the query string on a management
+  // route (/api/* but not /api/v1/*). It must not be extracted at all, so the
+  // failure is "Authentication required" (no credential) — NOT "Invalid
+  // management token" (which the pre-fix code returned, proving the URL token
+  // had been picked up and tried against management validation).
+  const key = await apiKeysDb.createApiKey("mgmt-url", "machine1234567890");
+
+  const result = await apiAuth.verifyAuth({
+    cookies: {
+      get() {
+        return undefined;
+      },
+    },
+    headers: new Headers(),
+    url: `https://example.com/api/providers?token=${encodeURIComponent(key.key)}`,
+  });
+
+  assert.equal(result, "Authentication required");
 });
 
 test("verifyAuth rejects bearer API keys on management routes", async () => {
@@ -330,6 +383,13 @@ function managementRequest(bearerKey?: string) {
   });
 }
 
+function managementCliRequest(token: string) {
+  const request = new Request("http://localhost:20128/api/combos", {
+    headers: { [CLI_TOKEN_HEADER]: token },
+  });
+  return Object.assign(request, { ip: "127.0.0.1" }) as Request;
+}
+
 test("requireManagementAuth returns 401 with no credentials", async () => {
   await setupAuth();
   const res = await requireManagementAuth(managementRequest());
@@ -360,6 +420,22 @@ test("requireManagementAuth returns null for valid key with manage scope", async
   await setupAuth();
   const key = await apiKeysDb.createApiKey("admin-key", "machine-test", ["manage"]);
   const res = await requireManagementAuth(managementRequest(key.key));
+  assert.equal(res, null);
+});
+
+test("requireManagementAuth accepts the 64-character local machine token", async () => {
+  await setupAuth();
+  const token = getMachineTokenSync();
+  assert.equal(token.length, 64);
+  const res = await requireManagementAuth(managementCliRequest(token));
+  assert.equal(res, null);
+});
+
+test("requireManagementAuth accepts the legacy 32-character local CLI token", async () => {
+  await setupAuth();
+  const token = getLegacyCliTokenSync();
+  assert.equal(token.length, 32);
+  const res = await requireManagementAuth(managementCliRequest(token));
   assert.equal(res, null);
 });
 

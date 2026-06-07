@@ -23,9 +23,26 @@ type StreamableSession = {
   server: McpServer;
   transport: WebStandardStreamableHTTPServerTransport;
   startedAt: number;
+  lastActivityAt: number;
 };
 
 const _streamableSessions = new Map<string, StreamableSession>();
+
+const MCP_SESSION_IDLE_MS = 5 * 60 * 1000;
+
+const _mcpSessionSweep = setInterval(() => {
+  const now = Date.now();
+  for (const [sessionId, session] of _streamableSessions) {
+    if (now - session.lastActivityAt > MCP_SESSION_IDLE_MS) {
+      try {
+        closeStreamableSession(sessionId);
+      } catch {}
+    }
+  }
+}, 60_000);
+if (typeof _mcpSessionSweep === "object" && "unref" in _mcpSessionSweep) {
+  (_mcpSessionSweep as { unref?: () => void }).unref?.();
+}
 
 function closeSseTransport(): void {
   if (_sseTransport) {
@@ -95,6 +112,7 @@ function createStreamableSession(): StreamableSession {
     server,
     transport,
     startedAt: Date.now(),
+    lastActivityAt: Date.now(),
   };
 
   void server.connect(transport);
@@ -154,6 +172,7 @@ async function handleStreamableRequest(request: Request): Promise<Response> {
     }
 
     try {
+      session.lastActivityAt = Date.now();
       const response = await session.transport.handleRequest(request);
       if (request.method === "DELETE") {
         closeStreamableSession(sessionId);
@@ -237,6 +256,13 @@ export function getMcpHttpStatus(): {
     startedAt,
     uptime: startedAt ? `${Math.floor((Date.now() - startedAt) / 1000)}s` : null,
   };
+}
+
+export function isMcpHttpTransportReady(
+  enabled: boolean,
+  transport: string | null | undefined
+): boolean {
+  return enabled && (transport === "sse" || transport === "streamable-http");
 }
 
 export function shutdownMcpHttp(): void {

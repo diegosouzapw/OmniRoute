@@ -4,12 +4,37 @@
 .omnivscodeagent/
 omnirouteCloud/
 omnirouteSite/
+_cache/
+_ideia/
+_mono_repo/
+_references/
+_tasks/
+.agents/**
+.claude/**
+.gemini/**
+.config/**
+.data/**
+.logs/**
+.tests/**
+.coverage/**
+coverage/
+.dist/**
+.next/**
+.build/**
+.out/**
+
+
+# Memory Bank and Cursor rules (local-only AI agent context)
+memory-bank/
+.cursor/rules/core.mdc
+.cursor/rules/memory-bank.mdc
 
 # Claude Code local state — runtime files only; shared commands at .claude/commands/ are tracked
 .claude/scheduled_tasks.lock
 .claude/scheduled_tasks/
 .claude/sessions/
 .claude/state.json
+.claude/settings.local.json
 
 # Root-level underscore-prefixed directories (private/draft — never commit)
 /_*/
@@ -19,32 +44,15 @@ docs/new-features/
 
 # dependencies
 node_modules/
-/.pnp
-.pnp.*
-.yarn/*
-!.yarn/patches
-!.yarn/plugins
-!.yarn/releases
-!.yarn/versions
-.data/
-.next-playwright/
-
-# testing
-coverage/
-coverage**
-
-# next.js
-.next/
-/out/
-
-# production
-/build
-/app
-cloud/*
-
-# misc
+*.map
 .DS_Store
-*.pem
+
+# Obsidian sync plugin — committed for community distribution
+!obsidian-plugin/
+obsidian-plugin/node_modules/
+
+# Serena AI assistant config (local-only tool, not project code)
+.serena/
 
 # debug
 npm-debug.log*
@@ -55,6 +63,9 @@ yarn-error.log*
 # env files (can opt-in for committing if needed)
 .env*
 !.env.example
+# Provider API keys (never commit)
+*.api-key
+.nvidia-api-key
 
 # vercel
 .vercel
@@ -106,10 +117,13 @@ app.__qa_backup/
 .app-build-backup-*/
 backup/
 
-# Production standalone build (created by scripts/prepublish.mjs)
-# Conflicts with Next.js App Router detection in dev (root app/ shadows src/app/)
-# npm publish still includes it via package.json "files" field
-/app/
+# Build intermediates (.build/) and shippable standalone (dist/).
+# These are fully reproducible from source; never committed.
+# Layer 1: Next.js now writes to .build/next (was .next); assembled bundle → dist/
+# (Previously /app/ was the standalone output; renamed to /dist/ in Layer 1.)
+/.build/
+/dist/
+/.next/
 
 # Electron
 electron/dist-electron/
@@ -123,9 +137,6 @@ vscode-extension/
 *.sqlite-shm
 *.sqlite-wal
 *.sqlite-journal
-
-# Compiled npm-package build artifact (not source, should not be in git)
-/app
 
 # IDEA
 .idea/
@@ -166,6 +177,25 @@ scripts/i18n/_pending-keys.json
 # These contain proprietary multi-phase logic and should not be committed
 .agents/workflows/implement-features-ag.md
 .agents/workflows/port-upstream-features-ag.md
+.agents/workflows/port-upstream-issues-ag.md
 .agents/skills/implement-features/
 .claude/commands/implement-features-cc.md
+.claude/commands/port-upstream-features-cc.md
+.claude/commands/port-upstream-issues-cc.md
 .claude/worktrees/
+.codegraph/
+
+# Fumadocs generated source
+.source/
+
+# AI agent local settings and configs
+.agents/
+.antigravitycli/
+.claude/
+
+# PR Reviews and local feedback files
+pr_reviews*.json
+
+#hidden local data directories (never commit)
+.local-data/
+.data-dev/

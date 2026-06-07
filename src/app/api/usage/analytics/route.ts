@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { requireManagementAuth } from "@/lib/api/requireManagementAuth";
 import { getApiKeys } from "@/lib/db/apiKeys";
 import { getDbInstance } from "@/lib/db/core";
+import { getUserDatabaseSettings } from "@/lib/db/databaseSettings";
 
 function getRangeStartIso(range: string): string | null {
   const end = new Date();
@@ -40,6 +41,11 @@ type ComputeCostFromPricing = (
   tokens: Record<string, number | undefined> | null | undefined,
   options?: Record<string, unknown>
 ) => number;
+type GetCodexFastCostMultiplier = (
+  provider: string | null | undefined,
+  model: string | null | undefined,
+  serviceTier: string | null | undefined
+) => number;
 
 function toNumber(value: unknown): number {
   if (typeof value === "number" && Number.isFinite(value)) return value;
@@ -58,13 +64,15 @@ function roundCost(value: number): number {
   return Math.round(value * 1_000_000) / 1_000_000;
 }
 
-function normalizeServiceTier(value: unknown): "standard" | "priority" {
+function normalizeServiceTier(value: unknown): "standard" | "priority" | "flex" {
   const tier = typeof value === "string" ? value.trim().toLowerCase() : "";
-  return tier === "priority" || tier === "fast" ? "priority" : "standard";
+  if (tier === "priority" || tier === "fast") return "priority";
+  if (tier === "flex") return "flex";
+  return "standard";
 }
 
-function getServiceTierLabel(serviceTier: string): string {
-  return normalizeServiceTier(serviceTier) === "priority" ? "Fast" : "Standard";
+function getServiceTierLabelId(serviceTier: string): string {
+  return normalizeServiceTier(serviceTier);
 }
 
 function appendWhereCondition(whereClause: string, condition: string): string {
@@ -245,6 +253,40 @@ function computeUsageRowCost(
   );
 }
 
+function computeUsageRowStandardCost(
+  row: Record<string, unknown>,
+  pricingByProvider: PricingByProvider,
+  providerAliasMap: Record<string, string>,
+  normalizeModelName: (model: string) => string,
+  computeCostFromPricing: ComputeCostFromPricing
+): number {
+  return computeUsageRowCost(
+    { ...row, serviceTier: "standard", service_tier: "standard" },
+    pricingByProvider,
+    providerAliasMap,
+    normalizeModelName,
+    computeCostFromPricing
+  );
+}
+
+function computeUsageSavingsTokens(
+  row: Record<string, unknown>,
+  serviceTier: string,
+  getCodexFastCostMultiplier: GetCodexFastCostMultiplier
+): number {
+  const provider = toStringValue(row.provider);
+  const model = toStringValue(row.model);
+  const totalTokens = toNumber(row.totalTokens);
+  if (!provider || !model || totalTokens <= 0) return 0;
+
+  const standardMultiplier = getCodexFastCostMultiplier(provider, model, "standard");
+  if (standardMultiplier <= 0) return 0;
+
+  const actualMultiplier = getCodexFastCostMultiplier(provider, model, serviceTier);
+  const savingsRatio = Math.max(0, (standardMultiplier - actualMultiplier) / standardMultiplier);
+  return totalTokens * savingsRatio;
+}
+
 function formatUtcDate(date: Date): string {
   return date.toISOString().slice(0, 10);
 }
@@ -286,6 +328,14 @@ export async function GET(request: Request) {
       }
     }
 
+    // Compute the raw-data cutoff: rows older than this may have been rolled up to
+    // daily_usage_summary and deleted from usage_history.
+    const dbSettings = getUserDatabaseSettings();
+    const rawRetentionDays = dbSettings.aggregation?.rawDataRetentionDays ?? 30;
+    const rawCutoff = new Date();
+    rawCutoff.setDate(rawCutoff.getDate() - rawRetentionDays);
+    const rawCutoffIso = rawCutoff.toISOString();
+
     const conditions = [];
     const params: Record<string, string> = {};
 
@@ -310,6 +360,102 @@ export async function GET(request: Request) {
 
     const whereClause = conditions.length > 0 ? `WHERE ${conditions.join(" AND ")}` : "";
 
+    // Build a UNION data source that merges recent raw rows with aggregated history.
+    // daily_usage_summary rows are included only when the query window extends before
+    // rawCutoffIso. They are gated off entirely when an api_key filter is active:
+    // daily_usage_summary does not store api_key/connection, so including it under a
+    // key filter would leak other keys' aggregated usage. With a key filter we serve
+    // only raw rows (older key-scoped data beyond retention is intentionally unavailable).
+    const rawCutoffDate = rawCutoffIso.split("T")[0];
+    const needsAggregated = (!sinceIso || sinceIso < rawCutoffDate) && apiKeyIds.length === 0;
+
+    // Raw leg: when aggregated rows are also included, lower-bound the raw leg at the
+    // raw cutoff so the two legs never overlap (prevents double-counting).
+    const rawConditions: string[] = [];
+    if (needsAggregated) {
+      rawConditions.push("timestamp >= @rawCutoff");
+      params.rawCutoff = rawCutoffDate;
+    } else if (sinceIso) {
+      rawConditions.push("timestamp >= @since");
+    }
+    if (untilIso) rawConditions.push("timestamp <= @until");
+    if (apiKeyWhere) rawConditions.push(apiKeyWhere);
+    const rawWhere = rawConditions.length > 0 ? `WHERE ${rawConditions.join(" AND ")}` : "";
+
+    // Aggregated rows span the requested window but strictly before the raw cutoff,
+    // so they never overlap the raw leg above (no api_key filter — see note above).
+    const aggConditions: string[] = [];
+    if (sinceIso) {
+      // Use date comparison on the summary's date column (YYYY-MM-DD).
+      const sinceDate = sinceIso.split("T")[0];
+      aggConditions.push("date >= @sinceDate");
+      params.sinceDate = sinceDate;
+    }
+    if (untilIso) {
+      const untilDate = untilIso.split("T")[0];
+      aggConditions.push("date <= @untilDate");
+      params.untilDate = untilDate;
+    }
+    aggConditions.push("date < @rawCutoffDate");
+    params.rawCutoffDate = rawCutoffDate;
+    const aggWhere = aggConditions.length > 0 ? `WHERE ${aggConditions.join(" AND ")}` : "";
+
+    // Unified source CTE: columns aligned to usage_history shape needed by analytics queries.
+    // Fields not available in daily_usage_summary default to 0/NULL.
+    const unifiedSource = needsAggregated
+      ? `(
+          SELECT
+            timestamp,
+            provider,
+            model,
+            tokens_input,
+            tokens_output,
+            tokens_cache_read,
+            tokens_cache_creation,
+            tokens_reasoning,
+            service_tier,
+            success,
+            latency_ms,
+            connection_id,
+            api_key_id,
+            api_key_name
+          FROM usage_history
+          ${rawWhere}
+          UNION ALL
+          SELECT
+            date || 'T12:00:00.000Z' as timestamp,
+            provider,
+            model,
+            total_input_tokens as tokens_input,
+            total_output_tokens as tokens_output,
+            0 as tokens_cache_read,
+            0 as tokens_cache_creation,
+            0 as tokens_reasoning,
+            'standard' as service_tier,
+            1 as success,
+            0 as latency_ms,
+            NULL as connection_id,
+            NULL as api_key_id,
+            NULL as api_key_name
+          FROM daily_usage_summary
+          ${aggWhere}
+         )`
+      : `(SELECT
+            timestamp, provider, model,
+            tokens_input, tokens_output,
+            tokens_cache_read, tokens_cache_creation, tokens_reasoning,
+            service_tier, success, latency_ms,
+            connection_id, api_key_id, api_key_name
+          FROM usage_history
+          ${whereClause}
+         )`;
+
+    // When using the unified source the WHERE filters are already embedded inside.
+    // For the original whereClause-based queries that still reference usage_history directly
+    // (e.g. fallbackRow, accountRows) we keep them as-is since they need joins or
+    // columns only present in usage_history.
+    const unifiedWhere = ""; // no additional WHERE needed — filters embedded in unifiedSource
+
     // Fetch pricing data for cost calculation (no rows loaded)
     const { getPricing } = await import("@/lib/db/settings");
     const rawPricingByProvider = (await getPricing()) as PricingByProvider;
@@ -323,7 +469,7 @@ export async function GET(request: Request) {
       }
       pricingByProvider[providerKey.toLowerCase()] = lowerProvider;
     }
-    const { computeCostFromPricing, normalizeModelName } =
+    const { computeCostFromPricing, getCodexFastCostMultiplier, normalizeModelName } =
       await import("@/lib/usage/costCalculator");
     const { PROVIDER_ID_TO_ALIAS } = await import("@omniroute/open-sse/config/providerModels");
 
@@ -342,8 +488,8 @@ export async function GET(request: Request) {
           COALESCE(AVG(latency_ms), 0) as avgLatencyMs,
           COALESCE(MIN(timestamp), '') as firstRequest,
           COALESCE(MAX(timestamp), '') as lastRequest
-        FROM usage_history
-        ${whereClause}
+        FROM ${unifiedSource} AS _u
+        ${unifiedWhere}
       `
       )
       .get(params) as Record<string, unknown>;
@@ -357,8 +503,8 @@ export async function GET(request: Request) {
           COALESCE(SUM(tokens_input), 0) as promptTokens,
           COALESCE(SUM(tokens_output), 0) as completionTokens,
           COALESCE(SUM(tokens_input + tokens_output), 0) as totalTokens
-        FROM usage_history
-        ${whereClause}
+        FROM ${unifiedSource} AS _u
+        ${unifiedWhere}
         GROUP BY DATE(timestamp)
         ORDER BY date ASC
       `
@@ -378,8 +524,8 @@ export async function GET(request: Request) {
           COALESCE(SUM(tokens_cache_read), 0) as cacheReadTokens,
           COALESCE(SUM(tokens_cache_creation), 0) as cacheCreationTokens,
           COALESCE(SUM(tokens_reasoning), 0) as reasoningTokens
-        FROM usage_history
-        ${whereClause}
+        FROM ${unifiedSource} AS _u
+        ${unifiedWhere}
         GROUP BY DATE(timestamp), LOWER(provider), LOWER(model), serviceTier
         ORDER BY date ASC
       `
@@ -437,8 +583,8 @@ export async function GET(request: Request) {
           COALESCE(AVG(latency_ms), 0) as avgLatencyMs,
           COALESCE(SUM(CASE WHEN success = 1 THEN 1 ELSE 0 END), 0) as successfulRequests,
           COALESCE(MAX(timestamp), '') as lastUsed
-        FROM usage_history
-        ${whereClause}
+        FROM ${unifiedSource} AS _u
+        ${unifiedWhere}
         GROUP BY LOWER(model), LOWER(provider), serviceTier
         ORDER BY requests DESC
       `
@@ -457,8 +603,8 @@ export async function GET(request: Request) {
           COALESCE(SUM(tokens_cache_read), 0) as cacheReadTokens,
           COALESCE(SUM(tokens_cache_creation), 0) as cacheCreationTokens,
           COALESCE(SUM(tokens_reasoning), 0) as reasoningTokens
-        FROM usage_history
-        ${whereClause}
+        FROM ${unifiedSource} AS _u
+        ${unifiedWhere}
         GROUP BY LOWER(provider), LOWER(model), serviceTier
       `
       )
@@ -475,8 +621,8 @@ export async function GET(request: Request) {
           COALESCE(SUM(tokens_input + tokens_output), 0) as totalTokens,
           COALESCE(AVG(latency_ms), 0) as avgLatencyMs,
           COALESCE(SUM(CASE WHEN success = 1 THEN 1 ELSE 0 END), 0) as successfulRequests
-        FROM usage_history
-        ${whereClause}
+        FROM ${unifiedSource} AS _u
+        ${unifiedWhere}
         GROUP BY LOWER(provider)
         ORDER BY requests DESC
       `
@@ -567,9 +713,8 @@ export async function GET(request: Request) {
           COALESCE(SUM(tokens_cache_creation), 0) as cacheCreationTokens,
           COALESCE(SUM(tokens_reasoning), 0) as reasoningTokens,
           COALESCE(SUM(tokens_input + tokens_output), 0) as totalTokens
-        FROM usage_history
-
-        ${whereClause}
+        FROM ${unifiedSource} AS _u
+        ${unifiedWhere}
         GROUP BY serviceTier, LOWER(provider), LOWER(model)
       `
       )
@@ -620,8 +765,8 @@ export async function GET(request: Request) {
             strftime('%w', timestamp) as dayOfWeek,
             COUNT(*) as requests,
             COALESCE(SUM(tokens_input + tokens_output), 0) as totalTokens
-          FROM usage_history
-          ${whereClause}
+          FROM ${unifiedSource} AS _u
+          ${unifiedWhere}
           GROUP BY DATE(timestamp), strftime('%w', timestamp)
         )
         GROUP BY dayOfWeek
@@ -685,8 +830,12 @@ export async function GET(request: Request) {
       fallbackCount: Number(fallbackRow?.fallbacks || 0),
       fastRequests: 0,
       standardRequests: 0,
+      flexRequests: 0,
       fastCost: 0,
       standardCost: 0,
+      flexCost: 0,
+      flexSavings: 0,
+      flexUsageSavingsTokens: 0,
       fastRequestSharePct: 0,
       fallbackRatePct:
         Number(fallbackRow?.fallback_eligible || 0) > 0
@@ -930,46 +1079,79 @@ export async function GET(request: Request) {
     const serviceTierMap = new Map<
       string,
       {
-        serviceTier: "standard" | "priority";
+        serviceTier: "standard" | "priority" | "flex";
         label: string;
         requests: number;
         promptTokens: number;
         completionTokens: number;
         totalTokens: number;
         cost: number;
+        savings: number;
+        usageSavingsTokens: number;
       }
     >();
     for (const row of serviceTierRows) {
       const serviceTier = normalizeServiceTier(row.serviceTier);
       const existing = serviceTierMap.get(serviceTier) || {
         serviceTier,
-        label: getServiceTierLabel(serviceTier),
+        label: getServiceTierLabelId(serviceTier),
         requests: 0,
         promptTokens: 0,
         completionTokens: 0,
         totalTokens: 0,
         cost: 0,
+        savings: 0,
+        usageSavingsTokens: 0,
       };
       existing.requests += Number(row.requests || 0);
       existing.promptTokens += Number(row.promptTokens || 0);
       existing.completionTokens += Number(row.completionTokens || 0);
       existing.totalTokens += Number(row.totalTokens || 0);
-      existing.cost += computeUsageRowCost(
+      const actualCost = computeUsageRowCost(
         row,
         pricingByProvider,
         PROVIDER_ID_TO_ALIAS,
         normalizeModelName,
         computeCostFromPricing
       );
+      existing.cost += actualCost;
+      if (serviceTier === "flex") {
+        const standardCost = computeUsageRowStandardCost(
+          row,
+          pricingByProvider,
+          PROVIDER_ID_TO_ALIAS,
+          normalizeModelName,
+          computeCostFromPricing
+        );
+        existing.savings += Math.max(0, standardCost - actualCost);
+        existing.usageSavingsTokens += computeUsageSavingsTokens(
+          row,
+          serviceTier,
+          getCodexFastCostMultiplier
+        );
+      }
       serviceTierMap.set(serviceTier, existing);
     }
     const byServiceTier = Array.from(serviceTierMap.values())
-      .map((row) => ({ ...row, cost: roundCost(row.cost) }))
-      .sort((left, right) => (left.serviceTier === "priority" ? -1 : 1));
+      .map((row) => ({
+        ...row,
+        cost: roundCost(row.cost),
+        savings: roundCost(row.savings),
+        usageSavingsTokens: Math.round(row.usageSavingsTokens),
+      }))
+      .sort((left, right) => {
+        const order = { priority: 0, flex: 1, standard: 2 } as const;
+        return order[left.serviceTier] - order[right.serviceTier];
+      });
     const fastTier = serviceTierMap.get("priority");
+    const flexTier = serviceTierMap.get("flex");
     const standardTier = serviceTierMap.get("standard");
     summary.fastRequests = fastTier?.requests || 0;
     summary.fastCost = roundCost(fastTier?.cost || 0);
+    summary.flexRequests = flexTier?.requests || 0;
+    summary.flexCost = roundCost(flexTier?.cost || 0);
+    summary.flexSavings = roundCost(flexTier?.savings || 0);
+    summary.flexUsageSavingsTokens = Math.round(flexTier?.usageSavingsTokens || 0);
     summary.standardRequests = standardTier?.requests || 0;
     summary.standardCost = roundCost(standardTier?.cost || 0);
     summary.fastRequestSharePct =
@@ -1038,19 +1220,66 @@ export async function GET(request: Request) {
         }
 
         const presetSinceIso = getRangeStartIso(presetRange);
-        const presetConditions = [];
         const presetParams: Record<string, string> = {};
-        if (presetSinceIso) {
-          presetConditions.push("timestamp >= @presetSince");
+
+        // Build unified source for preset cost queries (same UNION logic as main query).
+        // Aggregated rows are gated off when an api_key filter is active (leakage) and
+        // bounded strictly before the raw cutoff (overlap / double-count) — see main query.
+        const presetNeedsAggregated =
+          (!presetSinceIso || presetSinceIso < rawCutoffDate) && apiKeyIds.length === 0;
+
+        const presetRawConds: string[] = [];
+        if (presetNeedsAggregated) {
+          presetRawConds.push("timestamp >= @presetRawCutoff");
+          presetParams.presetRawCutoff = rawCutoffDate;
+        } else if (presetSinceIso) {
+          presetRawConds.push("timestamp >= @presetSince");
           presetParams.presetSince = presetSinceIso;
         }
         if (apiKeyWhere) {
-          presetConditions.push(apiKeyWhere);
+          presetRawConds.push(apiKeyWhere);
           Object.assign(presetParams, params);
         }
+        const presetRawWhere =
+          presetRawConds.length > 0 ? `WHERE ${presetRawConds.join(" AND ")}` : "";
 
-        const presetWhere =
-          presetConditions.length > 0 ? `WHERE ${presetConditions.join(" AND ")}` : "";
+        const presetAggConds: string[] = [];
+        if (presetSinceIso) {
+          const presetSinceDate = presetSinceIso.split("T")[0];
+          presetAggConds.push("date >= @presetSinceDate");
+          presetParams.presetSinceDate = presetSinceDate;
+        }
+        presetAggConds.push("date < @presetRawCutoffDate");
+        presetParams.presetRawCutoffDate = rawCutoffDate;
+        const presetAggWhere =
+          presetAggConds.length > 0 ? `WHERE ${presetAggConds.join(" AND ")}` : "";
+
+        const presetUnifiedSource = presetNeedsAggregated
+          ? `(
+              SELECT timestamp, provider, model, service_tier,
+                tokens_input, tokens_output,
+                tokens_cache_read, tokens_cache_creation, tokens_reasoning
+              FROM usage_history
+              ${presetRawWhere}
+              UNION ALL
+              SELECT
+                date || 'T12:00:00.000Z' as timestamp,
+                provider, model,
+                'standard' as service_tier,
+                total_input_tokens as tokens_input,
+                total_output_tokens as tokens_output,
+                0 as tokens_cache_read,
+                0 as tokens_cache_creation,
+                0 as tokens_reasoning
+              FROM daily_usage_summary
+              ${presetAggWhere}
+            )`
+          : `(SELECT timestamp, provider, model, service_tier,
+                tokens_input, tokens_output,
+                tokens_cache_read, tokens_cache_creation, tokens_reasoning
+              FROM usage_history
+              ${presetRawWhere}
+            )`;
 
         const presetModelRows = db
           .prepare(
@@ -1058,14 +1287,14 @@ export async function GET(request: Request) {
             SELECT
               LOWER(model) as model,
               LOWER(provider) as provider,
+              COALESCE(NULLIF(service_tier, ''), 'standard') as serviceTier,
               COALESCE(SUM(tokens_input), 0) as promptTokens,
               COALESCE(SUM(tokens_output), 0) as completionTokens,
               COALESCE(SUM(tokens_cache_read), 0) as cacheReadTokens,
               COALESCE(SUM(tokens_cache_creation), 0) as cacheCreationTokens,
               COALESCE(SUM(tokens_reasoning), 0) as reasoningTokens
-            FROM usage_history
-            ${presetWhere}
-            GROUP BY LOWER(model), LOWER(provider)
+            FROM ${presetUnifiedSource} AS _pu
+            GROUP BY LOWER(model), LOWER(provider), serviceTier
           `
           )
           .all(presetParams) as Array<Record<string, unknown>>;

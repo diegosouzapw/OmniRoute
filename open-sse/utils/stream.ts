@@ -25,11 +25,18 @@ import {
 } from "./streamPayloadCollector.ts";
 import { STREAM_IDLE_TIMEOUT_MS, FETCH_BODY_TIMEOUT_MS, HTTP_STATUS } from "../config/constants.ts";
 import {
+  OMIT_STREAMING_CHUNK_MARKER,
   sanitizeStreamingChunk,
   extractThinkingFromContent,
 } from "../handlers/responseSanitizer.ts";
 import { buildErrorBody } from "./error.ts";
 import { parseTextualToolCallCandidate, isValidToolCallHeaderPrefix } from "./textualToolCall.ts";
+import { recordToolLatency } from "../services/toolLatencyTracker.ts";
+import {
+  generateSessionId,
+  markToolFinish,
+  consumeToolFinishTime,
+} from "../services/sessionManager.ts";
 
 /**
  * Race a response body read against a timeout.
@@ -770,6 +777,21 @@ export function createSSEStream(options: StreamOptions = {}) {
   const passthroughResponsesReasoningSummarySeen = new Set<string>();
   const streamStartedAt = Date.now();
 
+  let lastToolCallChunkTime: number | null = null;
+  let toolFinishTime: number | null = null;
+  let contentAfterToolSeen = false;
+
+  // Cross-request tool latency: fingerprint the session from the request body
+  // so Request 2 can pick up the tool-finish timestamp left by Request 1.
+  const sessionId = generateSessionId(body as Parameters<typeof generateSessionId>[0], {
+    provider: provider ?? undefined,
+    connectionId: connectionId ?? undefined,
+  });
+  let pendingToolFinishTime: number | null = null;
+  try {
+    pendingToolFinishTime = consumeToolFinishTime(sessionId);
+  } catch {}
+
   // Guard against duplicate [DONE] events — ensures exactly one per stream
   let doneSent = false;
   const providerPayloadCollector = createStructuredSSECollector({
@@ -1022,6 +1044,49 @@ export function createSSEStream(options: StreamOptions = {}) {
     return responseId !== null && outputIndex !== null ? `${responseId}:${outputIndex}` : null;
   };
 
+  const getResponsesReasoningSummaryText = (item: Record<string, unknown>): string => {
+    return Array.isArray(item.summary)
+      ? item.summary
+          .map((part) => {
+            if (!part || typeof part !== "object" || Array.isArray(part)) {
+              return "";
+            }
+            return typeof (part as Record<string, unknown>).text === "string"
+              ? ((part as Record<string, unknown>).text as string)
+              : "";
+          })
+          .join("")
+      : "";
+  };
+
+  const ensureVisibleResponsesReasoningSummary = (payload: Record<string, unknown>): boolean => {
+    const item =
+      payload.item && typeof payload.item === "object" && !Array.isArray(payload.item)
+        ? (payload.item as Record<string, unknown>)
+        : null;
+    if (!item || item.type !== "reasoning") {
+      return false;
+    }
+
+    if (getResponsesReasoningSummaryText(item)) {
+      return false;
+    }
+
+    const hasEncryptedReasoning =
+      typeof item.encrypted_content === "string" && item.encrypted_content.length > 0;
+    if (!hasEncryptedReasoning) {
+      return false;
+    }
+
+    item.summary = [
+      {
+        type: "summary_text",
+        text: "Codex is reasoning, but the upstream Responses API exposed this reasoning block only as encrypted state. OmniRoute cannot recover the private reasoning text.",
+      },
+    ];
+    return true;
+  };
+
   const emitSyntheticResponsesReasoningSummary = (
     controller: TransformStreamDefaultController,
     payload: Record<string, unknown>
@@ -1030,22 +1095,14 @@ export function createSSEStream(options: StreamOptions = {}) {
       payload.item && typeof payload.item === "object" && !Array.isArray(payload.item)
         ? (payload.item as Record<string, unknown>)
         : null;
-    if (!item || item.type !== "reasoning" || !Array.isArray(item.summary)) {
+    if (!item || item.type !== "reasoning") {
       return;
     }
 
-    const summaryText = item.summary
-      .map((part) => {
-        if (!part || typeof part !== "object" || Array.isArray(part)) {
-          return "";
-        }
-        return typeof (part as Record<string, unknown>).text === "string"
-          ? ((part as Record<string, unknown>).text as string)
-          : "";
-      })
-      .join("");
+    ensureVisibleResponsesReasoningSummary(payload);
+    const visibleSummary = getResponsesReasoningSummaryText(item);
 
-    if (!summaryText) {
+    if (!visibleSummary) {
       return;
     }
 
@@ -1069,7 +1126,7 @@ export function createSSEStream(options: StreamOptions = {}) {
           item_id: itemId,
           output_index: outputIndex,
           summary_index: 0,
-          delta: summaryText,
+          delta: visibleSummary,
         },
       },
       {
@@ -1079,7 +1136,7 @@ export function createSSEStream(options: StreamOptions = {}) {
           item_id: itemId,
           output_index: outputIndex,
           summary_index: 0,
-          part: { type: "summary_text", text: summaryText },
+          part: { type: "summary_text", text: visibleSummary },
         },
       },
     ];
@@ -1197,6 +1254,45 @@ export function createSSEStream(options: StreamOptions = {}) {
             if (trimmed.startsWith("data:") && trimmed.slice(5).trim() !== "[DONE]") {
               try {
                 let parsed = JSON.parse(trimmed.slice(5).trim());
+
+                // Some upstream Responses-compatible providers leak an initial Chat Completions
+                // bootstrap chunk (assistant role + empty content) before emitting proper
+                // `response.*` events. That chunk is invalid on /v1/responses and breaks strict
+                // clients like OpenCode, so drop it only for Responses-native consumers.
+                const hasActiveDeltaValue = (value: unknown): boolean => {
+                  if (typeof value === "string") return value.length > 0;
+                  if (Array.isArray(value)) return value.some((entry) => hasActiveDeltaValue(entry));
+                  if (value && typeof value === "object") {
+                    return Object.values(value).some((entry) => hasActiveDeltaValue(entry));
+                  }
+                  return value !== null && value !== undefined;
+                };
+
+                const isEmptyAssistantBootstrapChunkForResponsesClient =
+                  clientExpectsResponsesStream &&
+                  parsed?.object === "chat.completion.chunk" &&
+                  Array.isArray(parsed?.choices) &&
+                  parsed.choices.length > 0 &&
+                  parsed.choices.every((choice) => {
+                    const candidate = choice && typeof choice === "object" ? choice : {};
+                    const delta =
+                      candidate.delta && typeof candidate.delta === "object"
+                        ? candidate.delta
+                        : null;
+
+                    if (!delta || delta.role !== "assistant") return false;
+                    if (hasActiveDeltaValue(delta.content)) return false;
+                    if (candidate.finish_reason !== null && candidate.finish_reason !== undefined) {
+                      return false;
+                    }
+
+                    const { role: _role, content: _content, ...restDelta } = delta;
+                    return !hasActiveDeltaValue(restDelta);
+                  });
+
+                if (isEmptyAssistantBootstrapChunkForResponsesClient) {
+                  continue;
+                }
 
                 // Detect Responses SSE payloads (have a `type` field like "response.created",
                 // "response.output_item.added", etc.) and skip Chat Completions-specific
@@ -1367,8 +1463,13 @@ export function createSSEStream(options: StreamOptions = {}) {
                   // response.completed snapshot can be backfilled when upstream
                   // returns an empty `output` (happens with store: false).
                   if (parsed.type === "response.output_item.done" && parsed.item) {
+                    const reasoningSummaryInjected = ensureVisibleResponsesReasoningSummary(parsed);
                     emitSyntheticResponsesReasoningSummary(controller, parsed);
                     pushUniqueResponsesOutputItems(passthroughResponsesOutputItems, [parsed.item]);
+                    if (reasoningSummaryInjected) {
+                      output = `data: ${JSON.stringify(parsed)}\n`;
+                      injectedUsage = true;
+                    }
                     if (parsed.item?.type === "function_call") {
                       const pendingKey =
                         typeof parsed.item.id === "string"
@@ -1483,6 +1584,36 @@ export function createSSEStream(options: StreamOptions = {}) {
                 } else {
                   // Chat Completions: full sanitization pipeline
 
+                  // Hardening: detect upstream returning empty choices array
+                  // which breaks OpenAI-compatible clients (e.g. Copilot Chat)
+                  if (Array.isArray(parsed.choices) && parsed.choices.length === 0) {
+                    console.warn(
+                      `[STREAM] Upstream returned empty choices array (${provider || "provider"}:${model || "unknown"}) — emitting error chunk`
+                    );
+                    const errorChunk = {
+                      id: parsed.id || `omniroute-empty-choices-${Date.now()}`,
+                      object: "chat.completion.chunk",
+                      created: parsed.created || Math.floor(Date.now() / 1000),
+                      model: parsed.model || model || "unknown",
+                      choices: [
+                        {
+                          index: 0,
+                          delta: {
+                            role: "assistant",
+                            content: "[OmniRoute] Upstream returned an empty response. Please retry.",
+                          },
+                          finish_reason: "stop",
+                        },
+                      ],
+                    };
+                    output = `data: ${JSON.stringify(errorChunk)}\n`;
+                    injectedUsage = true;
+                    clientPayload = errorChunk;
+                    reqLogger?.appendConvertedChunk?.(output);
+                    controller.enqueue(encoder.encode(output));
+                    continue;
+                  }
+
                   // Detect reasoning alias before sanitization strips it
                   const hadReasoningAlias = !!(
                     parsed.choices?.[0]?.delta?.reasoning &&
@@ -1491,6 +1622,14 @@ export function createSSEStream(options: StreamOptions = {}) {
                   );
 
                   parsed = sanitizeStreamingChunk(parsed);
+                  if (
+                    parsed &&
+                    typeof parsed === "object" &&
+                    !Array.isArray(parsed) &&
+                    (parsed as Record<string, unknown>)[OMIT_STREAMING_CHUNK_MARKER] === true
+                  ) {
+                    continue;
+                  }
 
                   const idFixed = fixInvalidId(parsed);
 
@@ -1541,6 +1680,7 @@ export function createSSEStream(options: StreamOptions = {}) {
                   // T18: Track if we saw tool calls & accumulate for call log
                   if (delta?.tool_calls && delta.tool_calls.length > 0) {
                     passthroughHasToolCalls = true;
+                    lastToolCallChunkTime = Date.now();
                     for (const tc of delta.tool_calls) {
                       // Key by index first — id only appears on the first delta in OpenAI streaming
                       let key: string;
@@ -1574,8 +1714,25 @@ export function createSSEStream(options: StreamOptions = {}) {
                   }
 
                   const content = delta?.content || delta?.reasoning_content;
-                  if (content && typeof content === "string") {
+                  if (typeof content === "string") {
                     totalContentLength += content.length;
+
+                    if (!contentAfterToolSeen) {
+                      const toolTs = toolFinishTime || pendingToolFinishTime;
+                      const lastChunkTs = lastToolCallChunkTime;
+                      if (toolTs || lastChunkTs) {
+                        contentAfterToolSeen = true;
+                        const now = Date.now();
+                        try {
+                          recordToolLatency(
+                            provider || "unknown",
+                            toolTs ? now - toolTs : null,
+                            lastChunkTs ? now - lastChunkTs : null
+                          );
+                        } catch {}
+                        pendingToolFinishTime = null;
+                      }
+                    }
                   }
                   {
                     const guarded = applyTextualToolCallStreamingGuard(
@@ -1596,6 +1753,13 @@ export function createSSEStream(options: StreamOptions = {}) {
                   }
 
                   const isFinishChunk = parsed.choices?.[0]?.finish_reason;
+
+                  if (isFinishChunk && passthroughHasToolCalls) {
+                    toolFinishTime = Date.now();
+                    try {
+                      markToolFinish(sessionId);
+                    } catch {}
+                  }
 
                   // T18: Normalize finish_reason to 'tool_calls' if tool calls were used
                   if (
@@ -1687,6 +1851,16 @@ export function createSSEStream(options: StreamOptions = {}) {
 
           if (parsed && parsed.done) {
             continue;
+          }
+
+          if (parsed.choices?.[0]?.delta?.tool_calls) {
+            lastToolCallChunkTime = Date.now();
+          }
+          if (parsed.choices?.[0]?.finish_reason === "tool_calls") {
+            toolFinishTime = Date.now();
+            try {
+              markToolFinish(sessionId);
+            } catch {}
           }
 
           // Track content length and accumulate for call log (from raw provider chunk, so content is never missed)
@@ -1783,6 +1957,27 @@ export function createSSEStream(options: StreamOptions = {}) {
               const t = (parsed as JsonRecord).text as string;
               state.accumulatedContent = appendBoundedText(state.accumulatedContent, t);
               totalContentLength += t.length;
+            }
+          }
+
+          const translateHasContent =
+            typeof parsed.delta?.text === "string" ||
+            typeof parsed.choices?.[0]?.delta?.content === "string" ||
+            typeof parsed.choices?.[0]?.delta?.reasoning_content === "string";
+          if (translateHasContent && !contentAfterToolSeen) {
+            const toolTs = toolFinishTime || pendingToolFinishTime;
+            const lastChunkTs = lastToolCallChunkTime;
+            if (toolTs || lastChunkTs) {
+              contentAfterToolSeen = true;
+              const now = Date.now();
+              try {
+                recordToolLatency(
+                  provider || "unknown",
+                  toolTs ? now - toolTs : null,
+                  lastChunkTs ? now - lastChunkTs : null
+                );
+              } catch {}
+              pendingToolFinishTime = null;
             }
           }
 
@@ -1993,6 +2188,14 @@ export function createSSEStream(options: StreamOptions = {}) {
                     (a, b) => a.index - b.index
                   );
                 }
+                // Hardening: log empty assistant response after tool completion
+                // for observability — helps diagnose Copilot "Sorry, no response was returned"
+                if (passthroughHasToolCalls && !content.trim() && !reasoning.trim()) {
+                  console.warn(
+                    `[STREAM] Empty assistant response after tool_calls completion (${provider || "provider"}:${model || "unknown"}) — sessionId=${sessionId}`
+                  );
+                }
+
                 const responseBody = {
                   choices: [
                     {
@@ -2267,11 +2470,12 @@ export function createSSEStream(options: StreamOptions = {}) {
           console.log(`[STREAM] Error in flush (${model || "unknown"}):`, error.message || error);
         }
       },
+      cancel(reason) {
+        clearIdleTimer();
+      },
     },
-    // Writable side backpressure — limit buffered chunks to avoid unbounded memory
-    { highWaterMark: 16 },
-    // Readable side backpressure — limit queued output chunks
-    { highWaterMark: 16 }
+    { highWaterMark: 16384 },
+    { highWaterMark: 16384 }
   );
 }
 

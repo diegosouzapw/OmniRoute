@@ -12,7 +12,7 @@ import { createHash, randomBytes, randomUUID } from "node:crypto";
 
 // ---------- Versions ------------------------------------------------------
 
-export const CLAUDE_CODE_VERSION = "2.1.146";
+export const CLAUDE_CODE_VERSION = "2.1.158";
 /** Bundled @anthropic-ai/sdk version for the pinned CLI release. */
 export const CLAUDE_CODE_STAINLESS_VERSION = "0.94.0";
 
@@ -342,9 +342,12 @@ export function selectBetaFlags(
   const flags: string[] = [];
   if (isFullAgent) flags.push("claude-code-20250219");
   flags.push("oauth-2025-04-20");
-  if (isContext1m) flags.push("context-1m-2025-08-07");
+  if (isContext1m) {
+    flags.push("context-1m-2025-08-07", "mid-conversation-system-2026-04-07");
+  }
   flags.push(
     "interleaved-thinking-2025-05-14",
+    "redact-thinking-2026-02-12",
     "thinking-token-count-2026-05-13",
     "context-management-2025-06-27",
     "prompt-caching-scope-2026-01-05"
@@ -357,7 +360,7 @@ export function selectBetaFlags(
     flags.push("extended-cache-ttl-2025-04-11", "cache-diagnosis-2026-04-07");
   }
   if (isHeavyAgent) {
-    flags.push("afk-mode-2026-01-31", "advanced-tool-use-2025-11-20", "effort-2025-11-24");
+    flags.push("advanced-tool-use-2025-11-20", "effort-2025-11-24");
   }
   return flags.join(",");
 }

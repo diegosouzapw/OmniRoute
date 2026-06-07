@@ -1,7 +1,44 @@
 import { readFileSync, writeFileSync } from "node:fs";
+import { z } from "zod";
 import { apiFetch } from "../api.mjs";
 import { emit } from "../output.mjs";
 import { t } from "../i18n.mjs";
+
+const policyBodySchema = z.record(z.string(), z.unknown());
+const importBodySchema = z.record(z.string(), z.unknown());
+const contextSchema = z.record(z.string(), z.unknown());
+
+function parseJsonInput(value, label, schema) {
+  let parsed;
+  try {
+    parsed = JSON.parse(value);
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+    process.stderr.write(`Invalid JSON for ${label}: ${message}\n`);
+    process.exit(2);
+  }
+
+  const result = schema.safeParse(parsed);
+  if (!result.success) {
+    process.stderr.write(
+      `Invalid ${label}: ${result.error.issues[0]?.message || "schema error"}\n`
+    );
+    process.exit(2);
+  }
+  return result.data;
+}
+
+function readJsonFile(file, schema) {
+  let raw;
+  try {
+    raw = readFileSync(file, "utf8");
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+    process.stderr.write(`Unable to read ${file}: ${message}\n`);
+    process.exit(2);
+  }
+  return parseJsonInput(raw, file, schema);
+}
 
 function fmtTs(v) {
   if (!v) return "-";
@@ -53,7 +90,7 @@ export async function runPolicyGet(id, opts, cmd) {
 }
 
 export async function runPolicyCreate(opts, cmd) {
-  const body = JSON.parse(readFileSync(opts.file, "utf8"));
+  const body = readJsonFile(opts.file, policyBodySchema);
   const res = await apiFetch("/api/policies", { method: "POST", body });
   if (!res.ok) {
     process.stderr.write(`Error: ${res.status}\n`);
@@ -63,7 +100,7 @@ export async function runPolicyCreate(opts, cmd) {
 }
 
 export async function runPolicyUpdate(id, opts, cmd) {
-  const body = JSON.parse(readFileSync(opts.file, "utf8"));
+  const body = readJsonFile(opts.file, policyBodySchema);
   const res = await apiFetch(`/api/policies/${id}`, { method: "PUT", body });
   if (!res.ok) {
     process.stderr.write(`Error: ${res.status}\n`);
@@ -90,7 +127,7 @@ export async function runPolicyEvaluate(opts, cmd) {
     apiKey: opts.apiKey,
     action: opts.action,
     ...(opts.resource ? { resource: opts.resource } : {}),
-    ...(opts.context ? { context: JSON.parse(opts.context) } : {}),
+    ...(opts.context ? { context: parseJsonInput(opts.context, "--context", contextSchema) } : {}),
   };
   const res = await apiFetch("/api/policies/evaluate", { method: "POST", body });
   if (!res.ok) {
@@ -114,7 +151,7 @@ export async function runPolicyExport(file, opts, cmd) {
 }
 
 export async function runPolicyImport(file, opts, cmd) {
-  const body = JSON.parse(readFileSync(file, "utf8"));
+  const body = readJsonFile(file, importBodySchema);
   const overwrite = opts.overwrite ? "true" : "false";
   const res = await apiFetch(`/api/policies?import=true&overwrite=${overwrite}`, {
     method: "POST",

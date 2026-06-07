@@ -15,6 +15,10 @@
 
 // ── Types ──
 
+import { logger } from "../../../open-sse/utils/logger.ts";
+
+const log = logger("PLUGINS");
+
 export interface PluginContext {
   /** Unique request ID */
   requestId: string;
@@ -75,9 +79,11 @@ export function registerPlugin(plugin: Plugin): void {
   _plugins.push(plugin);
   _plugins.sort((a, b) => (a.priority || 100) - (b.priority || 100));
 
-  console.log(
-    `[Plugins] Registered "${plugin.name}" (priority: ${plugin.priority}, enabled: ${plugin.enabled})`
-  );
+  log.info("plugin.registered", {
+    name: plugin.name,
+    priority: plugin.priority,
+    enabled: plugin.enabled,
+  });
 }
 
 /**
@@ -139,7 +145,7 @@ export async function runOnRequest(
       const result = await plugin.onRequest(currentCtx);
       if (result) {
         if (result.blocked) {
-          console.log(`[Plugins] Request blocked by "${plugin.name}"`);
+          log.info("plugin.request_blocked", { name: plugin.name });
           return { blocked: true, response: result.response, ctx: currentCtx };
         }
         if (result.body) currentCtx.body = result.body;
@@ -148,7 +154,10 @@ export async function runOnRequest(
         }
       }
     } catch (err: any) {
-      console.error(`[Plugins] onRequest error in "${plugin.name}": ${err.message}`);
+      log.error("plugin.onRequest_error", {
+        name: plugin.name,
+        error: err instanceof Error ? err.message : String(err),
+      });
       // Plugin errors don't block the pipeline by default
     }
   }
@@ -171,7 +180,10 @@ export async function runOnResponse(ctx: PluginContext, response: any): Promise<
         currentResponse = modified;
       }
     } catch (err: any) {
-      console.error(`[Plugins] onResponse error in "${plugin.name}": ${err.message}`);
+      log.error("plugin.onResponse_error", {
+        name: plugin.name,
+        error: err instanceof Error ? err.message : String(err),
+      });
     }
   }
 
@@ -189,11 +201,14 @@ export async function runOnError(ctx: PluginContext, error: Error): Promise<any 
     try {
       const recovery = await plugin.onError(ctx, error);
       if (recovery !== undefined && recovery !== null) {
-        console.log(`[Plugins] Error recovered by "${plugin.name}"`);
+        log.info("plugin.error_recovered", { name: plugin.name });
         return recovery;
       }
     } catch (err: any) {
-      console.error(`[Plugins] onError error in "${plugin.name}": ${err.message}`);
+      log.error("plugin.onError_error", {
+        name: plugin.name,
+        error: err instanceof Error ? err.message : String(err),
+      });
     }
   }
 

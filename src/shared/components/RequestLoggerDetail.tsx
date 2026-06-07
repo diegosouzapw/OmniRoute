@@ -1,12 +1,13 @@
 "use client";
 
+import Link from "next/link";
 import { useState, useEffect } from "react";
 import {
   PROVIDER_COLORS,
   getHttpStatusStyle as getStatusStyle,
   getProtocolColor,
 } from "@/shared/constants/colors";
-import { formatDuration, formatApiKeyLabel } from "@/shared/utils/formatting";
+import { formatDuration, formatApiKeyLabel, maskAccount } from "@/shared/utils/formatting";
 
 // ─── Payload Code Block ─────────────────────────────────────────────────────
 
@@ -36,7 +37,7 @@ function PayloadSection({ title, json, onCopy }) {
           {copied ? "Copied!" : "Copy"}
         </button>
       </div>
-      <pre className="p-4 rounded-xl bg-black/5 dark:bg-black/30 border border-border overflow-x-auto text-xs font-mono text-text-main max-h-[600px] overflow-y-auto leading-relaxed whitespace-pre-wrap break-words">
+      <pre className="p-4 rounded-xl bg-black/5 dark:bg-black/30 border border-border overflow-x-auto text-xs font-mono text-text-main max-h-150 overflow-y-auto leading-relaxed whitespace-pre-wrap break-words">
         {json}
       </pre>
     </div>
@@ -52,6 +53,7 @@ export default function RequestLoggerDetail({
   detail,
   loading,
   debugEnabled,
+  emailsVisible = false,
   onClose,
   onCopy,
 }) {
@@ -170,6 +172,7 @@ export default function RequestLoggerDetail({
     cacheSource === "semantic"
       ? "bg-emerald-500/20 text-emerald-700 dark:text-emerald-300 border-emerald-500/30"
       : "bg-sky-500/20 text-sky-700 dark:text-sky-300 border-sky-500/30";
+  const accountLabel = maskAccount(detail?.account || log.account, emailsVisible);
 
   return (
     <div
@@ -181,7 +184,7 @@ export default function RequestLoggerDetail({
     >
       <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" />
       <div
-        className="relative bg-bg-primary border border-border rounded-xl w-full max-w-[900px] max-h-[90vh] overflow-y-auto shadow-2xl"
+        className="relative bg-bg-primary border border-border rounded-xl w-full max-w-225 max-h-[90vh] overflow-y-auto shadow-2xl"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Modal Header */}
@@ -210,13 +213,22 @@ export default function RequestLoggerDetail({
             </div>
             <span className="text-text-muted font-mono text-sm self-center ml-2">{log.path}</span>
           </div>
-          <button
-            onClick={onClose}
-            className="p-1.5 rounded-lg hover:bg-bg-subtle text-text-muted hover:text-text-primary transition-colors"
-            aria-label="Close detail modal"
-          >
-            <span className="material-symbols-outlined">close</span>
-          </button>
+          <div className="flex items-center gap-2">
+            <Link
+              href={`/dashboard/analytics?tab=route-trace&id=${encodeURIComponent(log.id)}`}
+              className="inline-flex items-center gap-1.5 rounded-lg bg-primary/10 px-3 py-1.5 text-xs font-medium text-primary transition-colors hover:bg-primary/20"
+            >
+              <span className="material-symbols-outlined text-[16px]">alt_route</span>
+              Route Trace
+            </Link>
+            <button
+              onClick={onClose}
+              className="p-1.5 rounded-lg hover:bg-bg-subtle text-text-muted hover:text-text-primary transition-colors"
+              aria-label="Close detail modal"
+            >
+              <span className="material-symbols-outlined">close</span>
+            </button>
+          </div>
         </div>
 
         <div className="p-6 flex flex-col gap-6">
@@ -249,15 +261,18 @@ export default function RequestLoggerDetail({
                 <span className="px-2 py-0.5 rounded bg-amber-500/20 text-amber-700 dark:text-amber-400 text-xs font-bold">
                   Cache Write: {formatTokenValue(tokenStats.cacheWrite)}
                 </span>
-                {tokenStats.compressed != null && tokenStats.compressed > 0 && (() => {
-                  const fromTokens = tokenStats.totalIn + tokenStats.compressed;
-                  const pct = Math.round((tokenStats.compressed / fromTokens) * 100);
-                  return (
-                    <span className="px-2 py-0.5 rounded bg-purple-500/20 text-purple-700 dark:text-purple-300 text-xs font-bold">
-                      Compressed: {fromTokens.toLocaleString()} → {tokenStats.totalIn.toLocaleString()} (-{pct}%)
-                    </span>
-                  );
-                })()}
+                {tokenStats.compressed != null &&
+                  tokenStats.compressed > 0 &&
+                  (() => {
+                    const fromTokens = tokenStats.totalIn + tokenStats.compressed;
+                    const pct = Math.round((tokenStats.compressed / fromTokens) * 100);
+                    return (
+                      <span className="px-2 py-0.5 rounded bg-purple-500/20 text-purple-700 dark:text-purple-300 text-xs font-bold">
+                        Compressed: {fromTokens.toLocaleString()} →{" "}
+                        {tokenStats.totalIn.toLocaleString()} (-{pct}%)
+                      </span>
+                    );
+                  })()}
               </div>
             </div>
             <div>
@@ -328,7 +343,9 @@ export default function RequestLoggerDetail({
               <div className="text-[10px] text-text-muted uppercase tracking-wider mb-1">
                 Account
               </div>
-              <div className="text-sm font-medium">{detail?.account || log.account || "-"}</div>
+              <div className="text-sm font-medium" title={accountLabel}>
+                {accountLabel}
+              </div>
             </div>
             <div>
               <div className="text-[10px] text-text-muted uppercase tracking-wider mb-1">

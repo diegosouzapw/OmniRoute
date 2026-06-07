@@ -58,11 +58,17 @@ async function withHttpServer(handler, fn) {
   }
 }
 
-const originalTlsAvailable = tlsClient.available;
 const originalTlsFetch = tlsClient.fetch.bind(tlsClient);
 
+// #3323 made `tlsClient.available` a computed getter (library availability +
+// circuit breaker), so it can no longer be assigned. Tests stub it by shadowing
+// the prototype getter with an own data property, then `delete` to restore.
+function setTlsAvailable(value: boolean) {
+  Object.defineProperty(tlsClient, "available", { value, configurable: true, writable: true });
+}
+
 test.afterEach(() => {
-  tlsClient.available = originalTlsAvailable;
+  delete (tlsClient as unknown as { available?: boolean }).available;
   tlsClient.fetch = originalTlsFetch;
 });
 
@@ -120,7 +126,7 @@ test("proxy fetch uses TLS fingerprint transport when enabled and available", as
       NO_PROXY: undefined,
     },
     async () => {
-      tlsClient.available = true;
+      setTlsAvailable(true);
       tlsClient.fetch = async (url, options = {}) => {
         assert.equal(url, "https://omniroute.example.test/hello");
         assert.equal(options.method, "POST");

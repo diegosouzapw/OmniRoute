@@ -1,3 +1,7 @@
+---
+title: "Route Guard Tiers"
+---
+
 # Route Guard Tiers
 
 ## Overview
@@ -20,10 +24,11 @@ non-loopback traffic would allow an attacker who obtained a valid JWT (e.g.,
 via a Cloudflared/Ngrok tunnel) to trigger process spawning — a known CVE
 class (GHSA-fhh6-4qxv-rpqj).
 
-| Prefix                    | Reason                                             | Bypassable by `manage`? |
-| ------------------------- | -------------------------------------------------- | ----------------------- |
-| `/api/mcp/`               | MCP server — spawns stdio bridges and SSE handlers | Yes                     |
-| `/api/cli-tools/runtime/` | CLI tool runtime — executes arbitrary plugin code  | No (strict-loopback)    |
+| Prefix                    | Reason                                                    | Bypassable by `manage`? |
+| ------------------------- | --------------------------------------------------------- | ----------------------- |
+| `/api/mcp/`               | MCP server — spawns stdio bridges and SSE handlers        | Yes                     |
+| `/api/cli-tools/runtime/` | CLI tool runtime — executes arbitrary plugin code         | No (strict-loopback)    |
+| `/api/services/`          | Embedded services (9router, CLIProxy) — npm install+spawn | No (strict-loopback)    |
 
 **Response on violation:** `403 LOCAL_ONLY`
 
@@ -37,9 +42,10 @@ default for any new LOCAL_ONLY path remains strict-loopback. Unauthenticated
 requests and requests with non-manage keys are still rejected with
 `403 LOCAL_ONLY`.
 
-Today the only bypassable prefix is `/api/mcp/`. `/api/cli-tools/runtime/`
-is intentionally excluded because it can spawn arbitrary subprocesses, which
-is the exact CVE class the LOCAL_ONLY tier exists to prevent.
+Today the only bypassable prefix is `/api/mcp/`. `/api/cli-tools/runtime/` and
+`/api/services/` are intentionally excluded because they can spawn arbitrary
+subprocesses (`npm install`, `node`), which is the exact CVE class the
+LOCAL_ONLY tier exists to prevent.
 
 | Request                                     | Path                       | Result              |
 | ------------------------------------------- | -------------------------- | ------------------- |
@@ -127,6 +133,37 @@ expired DB doesn't silently downgrade to "deny".
 | `src/server/authz/policies/management.ts`    | Evaluation logic               |
 | `tests/unit/authz/routeGuard.test.ts`        | Unit tests for tier helpers    |
 | `tests/unit/authz/management-policy.test.ts` | Unit tests for evaluate()      |
+
+## Documenting Security Tiers in OpenAPI
+
+When adding a new route to `docs/reference/openapi.yaml`, apply the corresponding
+vendor extension if the route is classified by `routeGuard.ts`:
+
+| routeGuard.ts classification  | YAML annotation            | Enforcement                                     |
+| ----------------------------- | -------------------------- | ----------------------------------------------- |
+| `LOCAL_ONLY_API_PREFIXES`     | `x-loopback-only: true`    | Blocked from non-loopback unconditionally       |
+| `ALWAYS_PROTECTED_API_PATHS`  | `x-always-protected: true` | Auth required even with `requireLogin=false`    |
+| Internal admin/debug route    | `x-internal: true`         | Hidden from /dashboard/api-endpoints by default |
+| None (public / standard auth) | (no annotation needed)     | Standard `requireLogin`-controlled access       |
+
+### Validation
+
+Two scripts enforce consistency between YAML annotations and `routeGuard.ts`:
+
+- `scripts/check/check-openapi-coverage.mjs` — fails if coverage < 99%
+- `scripts/check/check-openapi-security-tiers.mjs` — fails if `x-loopback-only` or
+  `x-always-protected` annotations diverge from the compile-time constants
+
+Both scripts run in the pre-commit hook and in CI.
+
+### False Positive Rule
+
+If `x-always-protected` or `x-loopback-only` is annotated on a route that is NOT in
+the `routeGuard.ts` constant, the coverage script fails. The fix is always to align the
+YAML to what `routeGuard.ts` actually enforces — not to add routes to `routeGuard.ts`
+without also implementing the enforcement logic.
+
+---
 
 ## See also
 

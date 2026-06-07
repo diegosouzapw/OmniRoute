@@ -467,6 +467,30 @@ test("Gemini stream: safety block without candidates emits role chunk then conte
   assert.equal(result[1].choices[0].finish_reason, "content_filter");
 });
 
+test("Gemini stream: grounding metadata (citations) are extracted", () => {
+  const state = createStreamingState();
+  const result = geminiToOpenAIResponse(
+    {
+      responseId: "resp-grounding",
+      modelVersion: "gemini-2.0-flash",
+      candidates: [
+        {
+          content: { parts: [{ text: "Today is sunny." }] },
+          groundingMetadata: {
+            groundingChunks: [{ web: { title: "Weather Today", uri: "https://weather.com" } }],
+          },
+        },
+      ],
+    },
+    state
+  );
+
+  assert.equal(result[1].choices[0].delta.content, "Today is sunny.");
+  assert.deepEqual(result[2].choices[0].delta.citations, [
+    { title: "Weather Today", url: "https://weather.com" },
+  ]);
+});
+
 test("Gemini stream: null chunk is ignored", () => {
   assert.equal(geminiToOpenAIResponse(null, createStreamingState()), null);
 });

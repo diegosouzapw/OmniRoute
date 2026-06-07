@@ -429,8 +429,8 @@ REQUEST_TIMEOUT_MS (global override)
 │   ├── FETCH_CONNECT_TIMEOUT_MS (independent, default: 30000)
 │   └── FETCH_KEEPALIVE_TIMEOUT_MS (independent, default: 4000)
 ├─→ STREAM_IDLE_TIMEOUT_MS (inherits from REQUEST_TIMEOUT_MS, default: 600000)
-└─→ API_BRIDGE_PROXY_TIMEOUT_MS (inherits from REQUEST_TIMEOUT_MS, default: 30000)
-    ├─→ API_BRIDGE_SERVER_REQUEST_TIMEOUT_MS (derived, default: 300000)
+└─→ API_BRIDGE_PROXY_TIMEOUT_MS (inherits from REQUEST_TIMEOUT_MS, default: 600000)
+    ├─→ API_BRIDGE_SERVER_REQUEST_TIMEOUT_MS (derived, default: 600000)
     ├── API_BRIDGE_SERVER_HEADERS_TIMEOUT_MS (default: 60000)
     ├── API_BRIDGE_SERVER_KEEPALIVE_TIMEOUT_MS (default: 5000)
     └── API_BRIDGE_SERVER_SOCKET_TIMEOUT_MS (default: 0 = disabled)
@@ -446,8 +446,8 @@ REQUEST_TIMEOUT_MS (global override)
 | `FETCH_CONNECT_TIMEOUT_MS`               | `30000`              | TCP connection establishment timeout.                                                       |
 | `FETCH_KEEPALIVE_TIMEOUT_MS`             | `4000`               | Keep-alive socket idle timeout.                                                             |
 | `TLS_CLIENT_TIMEOUT_MS`                  | = `FETCH_TIMEOUT_MS` | TLS fingerprint proxy (wreq-js) timeout.                                                    |
-| `API_BRIDGE_PROXY_TIMEOUT_MS`            | `30000`              | Proxy hop timeout for `/v1` bridge requests.                                                |
-| `API_BRIDGE_SERVER_REQUEST_TIMEOUT_MS`   | `300000`             | Overall server request timeout for the bridge.                                              |
+| `API_BRIDGE_PROXY_TIMEOUT_MS`            | `600000`             | Proxy hop timeout for `/v1` bridge requests.                                                |
+| `API_BRIDGE_SERVER_REQUEST_TIMEOUT_MS`   | `600000`             | Overall server request timeout for the bridge.                                              |
 | `API_BRIDGE_SERVER_HEADERS_TIMEOUT_MS`   | `60000`              | Time to send response headers via the bridge.                                               |
 | `API_BRIDGE_SERVER_KEEPALIVE_TIMEOUT_MS` | `5000`               | Bridge keep-alive idle timeout.                                                             |
 | `API_BRIDGE_SERVER_SOCKET_TIMEOUT_MS`    | `0`                  | Raw socket timeout (0 = disabled).                                                          |
@@ -487,7 +487,7 @@ The logging system writes to both stdout and rotated log files. All configuratio
 
 | Variable                   | Default                         | Description                                                            |
 | -------------------------- | ------------------------------- | ---------------------------------------------------------------------- |
-| `OMNIROUTE_MEMORY_MB`      | `256` (Docker) / system default | V8 heap limit. Sets `--max-old-space-size`.                            |
+| `OMNIROUTE_MEMORY_MB`      | `512`                           | Runtime V8 heap limit. Docker standalone and `omniroute serve` use it to set `--max-old-space-size`. |
 | `PROMPT_CACHE_MAX_SIZE`    | `50`                            | Max cached system prompt entries.                                      |
 | `PROMPT_CACHE_MAX_BYTES`   | `2097152` (2 MB)                | Max total prompt cache size.                                           |
 | `PROMPT_CACHE_TTL_MS`      | `300000` (5 min)                | Prompt cache entry TTL.                                                |

@@ -32,6 +32,9 @@ const path = require("path");
 const { spawn } = require("child_process");
 const fs = require("fs");
 const { autoUpdater } = require("electron-updater");
+const { hasEncryptedCredentials } = require("./sqlite-inspection");
+const { loginManager } = require("./loginManager");
+const { killProcessTree } = require("./processTree");
 
 // ── Single Instance Lock ───────────────────────────────────
 const gotTheLock = app.requestSingleInstanceLock();
@@ -68,6 +71,32 @@ const getServerUrl = () => `http://localhost:${serverPort}`;
 function resolveNodeExecutable(env = process.env) {
   // #1081: Ensure Next.js standalone runs using Electron's Node runtime
   // instead of a randomly found system Node to prevent ABI architecture mismatches.
+  //
+  // On macOS packaged builds, process.execPath is the main Electron binary
+  // (e.g. OmniRoute.app/Contents/MacOS/OmniRoute). Spawning it with
+  // ELECTRON_RUN_AS_NODE causes macOS to show a second dock icon and/or
+  // flash a shell window. Use the Helper binary instead — macOS treats
+  // Helper processes as background tasks with no visible UI artifacts.
+  if (process.platform === "darwin" && !isDev) {
+    const helperPath = path.join(path.dirname(process.execPath), `${app.getName()} Helper`);
+    if (fs.existsSync(helperPath)) {
+      return helperPath;
+    }
+    // Electron \u003e= 20 may use "(Renderer)" / "(GPU)" / "(Plugin)" suffixed helpers.
+    // The unsuffixed Helper is the one suitable for ELECTRON_RUN_AS_NODE.
+    const frameworkHelper = path.join(
+      path.dirname(process.execPath),
+      "..",
+      "Frameworks",
+      `${app.getName()} Helper.app`,
+      "Contents",
+      "MacOS",
+      `${app.getName()} Helper`
+    );
+    if (fs.existsSync(frameworkHelper)) {
+      return frameworkHelper;
+    }
+  }
   return process.execPath;
 }
 
@@ -132,34 +161,6 @@ function getPreferredEnvFilePath(env = process.env) {
   return candidates.find((filePath) => fs.existsSync(filePath)) || null;
 }
 
-function hasEncryptedCredentials(dbPath) {
-  if (!fs.existsSync(dbPath)) return false;
-
-  try {
-    const Database = require("better-sqlite3");
-    const db = new Database(dbPath, { readonly: true, fileMustExist: true });
-    try {
-      const row = db
-        .prepare(
-          `SELECT 1
-             FROM provider_connections
-            WHERE access_token LIKE 'enc:v1:%'
-               OR refresh_token LIKE 'enc:v1:%'
-               OR api_key LIKE 'enc:v1:%'
-               OR id_token LIKE 'enc:v1:%'
-            LIMIT 1`
-        )
-        .get();
-      return !!row;
-    } finally {
-      db.close();
-    }
-  } catch (error) {
-    const message = error instanceof Error ? error.message : String(error);
-    throw new Error(`Unable to inspect existing database at ${dbPath}: ${message}`);
-  }
-}
-
 // ── Auto-Updater Configuration ──────────────────────────────
 autoUpdater.autoDownload = false;
 autoUpdater.autoInstallOnAppQuit = true;
@@ -200,7 +201,9 @@ async function waitForServerExit(proc, timeoutMs = 5000) {
     new Promise((r) =>
       setTimeout(() => {
         try {
-          proc.kill("SIGKILL");
+          // #3347: force-kill the whole tree (Windows leaves grandchildren alive on a
+          // bare SIGKILL of the direct child, keeping omniroute.exe locked).
+          killProcessTree(proc, { signal: "SIGKILL" });
         } catch {
           /* already dead */
         }
@@ -266,7 +269,18 @@ async function checkForUpdates(silent = false) {
     }
     return;
   }
-  await autoUpdater.checkForUpdates();
+  // Update-check failures (404 when the release manifest isn't published yet,
+  // offline, rate-limited) are surfaced to the user via the autoUpdater "error"
+  // event handler. The promise returned by checkForUpdates() ALSO rejects on
+  // those, so it must be caught here — the startup check (line ~928) fires it
+  // unawaited inside a setTimeout, and an uncaught rejection there becomes an
+  // "Unhandled Rejection" that the packaged-app smoke test treats as fatal.
+  try {
+    await autoUpdater.checkForUpdates();
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : String(err);
+    console.warn("[Electron] Update check failed (non-fatal):", msg);
+  }
 }
 
 async function downloadUpdate() {
@@ -275,7 +289,9 @@ async function downloadUpdate() {
 
 function installUpdate() {
   if (nextServer) {
-    nextServer.kill("SIGTERM");
+    // #3347: tree-kill before quitAndInstall — a surviving server child (and its
+    // grandchildren) keeps omniroute.exe locked and the updater fails with "file in use".
+    killProcessTree(nextServer, { signal: "SIGTERM" });
     nextServer = null;
   }
   autoUpdater.quitAndInstall();
@@ -356,9 +372,17 @@ function createWindow() {
     mainWindow.webContents.openDevTools({ mode: "detach" });
   }
 
-  // Show window when ready
+  // Show window when ready (unless starting minimized/hidden in tray)
   mainWindow.once("ready-to-show", () => {
-    mainWindow.show();
+    const startHidden =
+      process.argv.includes("--hidden") ||
+      process.argv.includes("--minimized") ||
+      app.getLoginItemSettings().wasOpenedAsHidden;
+    if (!startHidden) {
+      mainWindow.show();
+    } else {
+      console.log("[Electron] Launched hidden in background tray");
+    }
   });
 
   // Handle external links — validate URL protocol to prevent RCE
@@ -403,6 +427,10 @@ function createTray() {
   try {
     icon = nativeImage.createFromPath(iconPath);
     if (icon.isEmpty()) icon = nativeImage.createEmpty();
+    if (process.platform === "darwin" && !icon.isEmpty()) {
+      icon = icon.resize({ width: 20, height: 20 });
+      icon.setTemplateImage(true);
+    }
   } catch {
     icon = nativeImage.createEmpty();
   }
@@ -586,6 +614,8 @@ function startNextServer() {
   sendToRenderer("server-status", { status: "starting", port: serverPort });
 
   // Fix #10: Use pipe instead of inherit for logging & readiness detection
+  // windowsHide prevents a visible console window from spawning alongside the GUI app.
+  // shell: false avoids launching via a shell wrapper which can flash a terminal on macOS.
   nextServer = spawn(nodeExecutable, [serverScript], {
     cwd: NEXT_SERVER_PATH,
     env: {
@@ -597,6 +627,8 @@ function startNextServer() {
       NODE_PATH: resolveServerNodePath(serverEnv),
     },
     stdio: "pipe",
+    windowsHide: true,
+    shell: false,
   });
 
   // Capture server output for logging
@@ -607,6 +639,17 @@ function startNextServer() {
     // Detect server ready
     if (text.includes("Ready") || text.includes("started") || text.includes("listening")) {
       sendToRenderer("server-status", { status: "running", port: serverPort });
+      const isHeadless =
+        process.argv.includes("--headless") ||
+        process.argv.includes("--cli") ||
+        process.env.OMNIROUTE_HEADLESS === "true";
+      if (isHeadless && !global.loggedHeadlessReady) {
+        global.loggedHeadlessReady = true;
+        console.log("\n\x1b[32m✔ OmniRoute Headless CLI Server is ready and listening!\x1b[0m");
+        console.log(`  \x1b[1mPort:\x1b[0m       http://localhost:${serverPort}`);
+        console.log(`  \x1b[1mAPI Base:\x1b[0m   http://localhost:${serverPort}/v1`);
+        console.log("  \x1b[2mPress Ctrl+C to terminate the process.\x1b[0m\n");
+      }
     }
   });
 
@@ -628,8 +671,77 @@ function startNextServer() {
 
 function stopNextServer() {
   if (nextServer) {
-    nextServer.kill("SIGTERM");
+    // #3347: kill the whole tree, not just the direct child. On Windows the server
+    // (omniroute.exe-as-node) spawns grandchildren that a bare SIGTERM leaves alive,
+    // holding a lock on omniroute.exe and blocking updates.
+    killProcessTree(nextServer, { signal: "SIGTERM" });
     nextServer = null;
+  }
+}
+
+// Linux-specific autostart helpers using standard .desktop entry placement
+function enableLinuxDesktopAutostart() {
+  try {
+    const os = require("os");
+    const fs = require("fs");
+    const path = require("path");
+    const autostartDir = path.join(os.homedir(), ".config", "autostart");
+    fs.mkdirSync(autostartDir, { recursive: true });
+
+    const execPath = app.getPath("exe");
+    const desktopFileContent =
+      [
+        "[Desktop Entry]",
+        "Type=Application",
+        "Name=OmniRoute",
+        "Comment=OmniRoute Desktop Client",
+        `Exec="${execPath}" --hidden`,
+        "Terminal=false",
+        "Hidden=false",
+        "X-GNOME-Autostart-enabled=true",
+      ].join("\n") + "\n";
+
+    fs.writeFileSync(path.join(autostartDir, "omniroute-desktop.desktop"), desktopFileContent, {
+      mode: 0o644,
+    });
+    return true;
+  } catch (err) {
+    console.error("[Electron] Failed to enable Linux autostart:", err);
+    return false;
+  }
+}
+
+function disableLinuxDesktopAutostart() {
+  try {
+    const os = require("os");
+    const fs = require("fs");
+    const path = require("path");
+    const desktopPath = path.join(
+      os.homedir(),
+      ".config",
+      "autostart",
+      "omniroute-desktop.desktop"
+    );
+    if (fs.existsSync(desktopPath)) {
+      fs.unlinkSync(desktopPath);
+    }
+    return true;
+  } catch (err) {
+    console.error("[Electron] Failed to disable Linux autostart:", err);
+    return false;
+  }
+}
+
+function isLinuxDesktopAutostartEnabled() {
+  try {
+    const os = require("os");
+    const fs = require("fs");
+    const path = require("path");
+    return fs.existsSync(
+      path.join(os.homedir(), ".config", "autostart", "omniroute-desktop.desktop")
+    );
+  } catch {
+    return false;
   }
 }
 
@@ -706,12 +818,100 @@ function setupIpcHandlers() {
   });
 
   ipcMain.handle("get-app-version", () => app.getVersion());
+
+  // ── Web-Cookie Login IPC Handlers ──────────────────────────
+  // Forward login status events to the renderer. Registered ONCE here — never
+  // inside the login:start handler, which would attach a fresh listener (and
+  // duplicate every subsequent status event) on each invocation.
+  loginManager.on("status", (status) => {
+    sendToRenderer("login:status", status);
+  });
+
+  ipcMain.handle("login:start", async (_event, providerId, options) => {
+    const result = await loginManager.startLogin(providerId, options);
+
+    // Persist extracted credentials
+    if (result.success && result.credentials) {
+      try {
+        // Store as JSON blob under the provider ID
+        const { persistSecret: ps } = require("../src/lib/db/secrets");
+        if (typeof ps === "function") {
+          ps(providerId, JSON.stringify(result.credentials));
+        }
+        sendToRenderer("login:status", {
+          providerId,
+          status: "persisted",
+          message: "Credentials saved",
+        });
+      } catch (err) {
+        console.error("[Electron] Failed to persist credentials:", err);
+        return { success: false, error: "Extracted but failed to save credentials" };
+      }
+    }
+
+    return result;
+  });
+
+  ipcMain.handle("login:cancel", async () => {
+    loginManager.cancel();
+    return { success: true };
+  });
+
+  ipcMain.handle("login:status", async () => {
+    return { active: loginManager.getActiveProvider() !== null };
+  });
+
+  // Autostart management handlers
+  ipcMain.handle("get-autostart-status", () => {
+    if (process.platform === "linux") {
+      return isLinuxDesktopAutostartEnabled();
+    }
+    return app.getLoginItemSettings().openAtLogin;
+  });
+
+  ipcMain.handle("enable-autostart", () => {
+    if (process.platform === "linux") {
+      return enableLinuxDesktopAutostart();
+    }
+    try {
+      app.setLoginItemSettings({
+        openAtLogin: true,
+        openAsHidden: true,
+        args: ["--hidden"],
+      });
+      return true;
+    } catch (err) {
+      console.error("[Electron] Enable autostart failed:", err);
+      return false;
+    }
+  });
+
+  ipcMain.handle("disable-autostart", () => {
+    if (process.platform === "linux") {
+      return disableLinuxDesktopAutostart();
+    }
+    try {
+      app.setLoginItemSettings({
+        openAtLogin: false,
+      });
+      return true;
+    } catch (err) {
+      console.error("[Electron] Disable autostart failed:", err);
+      return false;
+    }
+  });
 }
 
 // ── App Lifecycle ──────────────────────────────────────────
 app.whenReady().then(async () => {
   // Fix #15: Set up CSP before any content loads
   setupContentSecurityPolicy();
+
+  // Headless mode check: supports running without any UI windows or tray icons
+  const isHeadless =
+    process.argv.includes("--headless") ||
+    process.argv.includes("--cli") ||
+    process.env.OMNIROUTE_HEADLESS === "true";
 
   // Fix #1: Start server and WAIT for readiness before showing window
   startNextServer();
@@ -721,14 +921,19 @@ app.whenReady().then(async () => {
     serverReady = await waitForServer(`${getServerUrl()}/api/monitoring/health`);
   }
 
-  createWindow();
-  createTray();
+  if (isHeadless) {
+    console.log("[Electron] Headless mode active — UI window and tray icon skipped");
+  } else {
+    createWindow();
+    createTray();
+  }
+
   setupIpcHandlers();
   setupAutoUpdater();
 
   // If readiness timed out (e.g. very long first-launch migrations), don't leave the
   // window stuck on a hanging connection — keep polling and reload once it responds (#2460).
-  if (!isDev && !serverReady) {
+  if (!isDev && !serverReady && !isHeadless) {
     void waitForServer(`${getServerUrl()}/api/monitoring/health`, 300000).then((ready) => {
       if (ready && mainWindow && !mainWindow.isDestroyed()) {
         mainWindow.loadURL(getServerUrl());
@@ -745,6 +950,7 @@ app.whenReady().then(async () => {
 
   // macOS: recreate window when dock icon clicked
   app.on("activate", () => {
+    if (isHeadless) return;
     if (BrowserWindow.getAllWindows().length === 0) {
       createWindow();
     } else if (mainWindow) {
@@ -755,7 +961,11 @@ app.whenReady().then(async () => {
 
 // Quit when all windows closed (except macOS)
 app.on("window-all-closed", () => {
-  if (process.platform !== "darwin") {
+  const isHeadless =
+    process.argv.includes("--headless") ||
+    process.argv.includes("--cli") ||
+    process.env.OMNIROUTE_HEADLESS === "true";
+  if (process.platform !== "darwin" && !isHeadless) {
     app.quit();
   }
 });

@@ -38,6 +38,24 @@ describe("omniroute_set_routing_strategy MCP tool schema", () => {
     expect(result.success).toBe(true);
   });
 
+  it("should validate SLA-aware auto strategy", () => {
+    const result = setRoutingStrategyInput.safeParse({
+      comboId: "my-combo",
+      strategy: "auto",
+      autoRoutingStrategy: "sla-aware",
+    });
+    expect(result.success).toBe(true);
+  });
+
+  it("should validate SLA auto strategy alias", () => {
+    const result = setRoutingStrategyInput.safeParse({
+      comboId: "my-combo",
+      strategy: "auto",
+      autoRoutingStrategy: "sla",
+    });
+    expect(result.success).toBe(true);
+  });
+
   it("should reject unknown strategy", () => {
     const result = setRoutingStrategyInput.safeParse({
       comboId: "my-combo",

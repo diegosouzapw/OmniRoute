@@ -3,10 +3,12 @@
 import { useState, useEffect, useRef } from "react";
 import Modal from "./Modal";
 import Button from "./Button";
+import { copyToClipboard } from "@/shared/utils/clipboard";
 
 type KiroSocialOAuthModalProps = {
   isOpen: boolean;
   provider: "google" | "github";
+  targetProvider?: string;
   providerLabel?: string;
   onSuccess?: () => void;
   onClose: () => void;
@@ -15,6 +17,7 @@ type KiroSocialOAuthModalProps = {
 export default function KiroSocialOAuthModal({
   isOpen,
   provider,
+  targetProvider,
   providerLabel = "Kiro",
   onSuccess,
   onClose,
@@ -50,7 +53,7 @@ export default function KiroSocialOAuthModal({
             const pollRes = await fetch("/api/oauth/kiro/social-exchange", {
               method: "POST",
               headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({ deviceCode: data.deviceCode, provider }),
+              body: JSON.stringify({ deviceCode: data.deviceCode, provider, targetProvider }),
             });
             const pollData = await pollRes.json();
 
@@ -133,7 +136,7 @@ export default function KiroSocialOAuthModal({
                     {authUrl.length > 80 ? authUrl.slice(0, 80) + "..." : authUrl}
                   </a>
                   <button
-                    onClick={() => navigator.clipboard.writeText(authUrl)}
+                    onClick={() => copyToClipboard(authUrl)}
                     className="shrink-0 p-1 rounded hover:bg-sidebar"
                     title="Copy link"
                   >

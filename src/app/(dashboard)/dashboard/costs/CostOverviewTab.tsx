@@ -4,6 +4,10 @@ import { useEffect, useMemo, useState } from "react";
 import { useLocale, useTranslations } from "next-intl";
 import { Card, EmptyState, SegmentedControl, CardSkeleton } from "@/shared/components";
 import {
+  getServiceTierDisplayLabel,
+  type TranslationFn as CostTranslationFn,
+} from "@/shared/utils/serviceTierLabels";
+import {
   ResponsiveContainer,
   PieChart,
   Pie,
@@ -17,6 +21,14 @@ import {
   BarChart,
   Bar,
 } from "recharts";
+
+import {
+  buildCostExplorerRows,
+  type CostExplorerGroupBy,
+  type CostExplorerRow,
+  type CostExplorerSortDirection,
+  type CostExplorerSortKey,
+} from "./costExplorerUtils";
 
 type CostRange = "7d" | "30d" | "90d" | "all";
 
@@ -33,6 +45,10 @@ interface UsageAnalyticsSummary {
   fallbackRatePct: number;
   requestedModelCoveragePct: number;
   streak: number;
+  flexRequests?: number;
+  flexCost?: number;
+  flexSavings?: number;
+  flexUsageSavingsTokens?: number;
 }
 
 interface UsageAnalyticsProviderRow {
@@ -72,12 +88,25 @@ interface UsageAnalyticsAccountRow {
   cost: number;
 }
 
+interface UsageAnalyticsServiceTierRow {
+  serviceTier: "standard" | "priority" | "flex";
+  label: string;
+  requests: number;
+  promptTokens: number;
+  completionTokens: number;
+  totalTokens: number;
+  cost: number;
+  savings?: number;
+  usageSavingsTokens?: number;
+}
+
 interface UsageAnalyticsPayload {
   summary: UsageAnalyticsSummary;
   byProvider: UsageAnalyticsProviderRow[];
   byModel: UsageAnalyticsModelRow[];
   byApiKey: UsageAnalyticsApiKeyRow[];
   byAccount: UsageAnalyticsAccountRow[];
+  byServiceTier?: UsageAnalyticsServiceTierRow[];
   dailyTrend: UsageAnalyticsTrendRow[];
   weeklyPattern: Array<{ day: string; avgTokens: number; totalTokens: number }>;
   activityMap: Record<string, number>;
@@ -89,6 +118,17 @@ const RANGE_OPTIONS: Array<{ value: CostRange; labelKey: string }> = [
   { value: "30d", labelKey: "range30d" },
   { value: "90d", labelKey: "range90d" },
   { value: "all", labelKey: "rangeAll" },
+];
+
+const EXPLORER_GROUP_OPTIONS: Array<{
+  value: CostExplorerGroupBy;
+  labelKey: string;
+}> = [
+  { value: "provider", labelKey: "groupProvider" },
+  { value: "model", labelKey: "groupModel" },
+  { value: "apiKey", labelKey: "groupApiKey" },
+  { value: "account", labelKey: "groupAccount" },
+  { value: "serviceTier", labelKey: "groupServiceTier" },
 ];
 
 const CHART_COLORS = [
@@ -244,6 +284,11 @@ export default function CostOverviewTab() {
   const [loading, setLoading] = useState(true);
   const [summaryLoading, setSummaryLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [explorerGroupBy, setExplorerGroupBy] = useState<CostExplorerGroupBy>("provider");
+  const [explorerSearch, setExplorerSearch] = useState("");
+  const [explorerSortKey, setExplorerSortKey] = useState<CostExplorerSortKey>("cost");
+  const [explorerSortDirection, setExplorerSortDirection] =
+    useState<CostExplorerSortDirection>("desc");
 
   useEffect(() => {
     let active = true;
@@ -318,6 +363,16 @@ export default function CostOverviewTab() {
   const accountsByCost = [...(analytics?.byAccount || [])]
     .filter((account) => (hasCostData ? account.cost > 0 : account.requests > 0))
     .sort((left, right) => (hasCostData ? right.cost - left.cost : right.requests - left.requests));
+  const localizedAnalytics = useMemo<UsageAnalyticsPayload | null>(() => {
+    if (!analytics?.byServiceTier) return analytics;
+    return {
+      ...analytics,
+      byServiceTier: analytics.byServiceTier.map((row) => ({
+        ...row,
+        label: getServiceTierDisplayLabel(t as CostTranslationFn, row.serviceTier, row.label),
+      })),
+    };
+  }, [analytics, t]);
   const avgCostPerRequest =
     summary.totalRequests > 0 ? summary.totalCost / summary.totalRequests : 0;
   const dailyTrend = analytics?.dailyTrend || [];
@@ -343,6 +398,28 @@ export default function CostOverviewTab() {
       : secondHalfCost > 0
         ? 100
         : 0;
+  const explorerRows = useMemo(
+    () =>
+      buildCostExplorerRows({
+        analytics: localizedAnalytics,
+        groupBy: explorerGroupBy,
+        searchQuery: explorerSearch,
+        sortKey: explorerSortKey,
+        sortDirection: explorerSortDirection,
+      }),
+    [localizedAnalytics, explorerGroupBy, explorerSearch, explorerSortDirection, explorerSortKey]
+  );
+  const explorerVisibleRows = explorerRows.slice(0, 50);
+
+  function handleExplorerSort(sortKey: CostExplorerSortKey) {
+    if (explorerSortKey === sortKey) {
+      setExplorerSortDirection((direction) => (direction === "asc" ? "desc" : "asc"));
+      return;
+    }
+
+    setExplorerSortKey(sortKey);
+    setExplorerSortDirection(sortKey === "name" ? "asc" : "desc");
+  }
 
   if (loading && !analytics) {
     return <CardSkeleton />;
@@ -465,6 +542,24 @@ export default function CostOverviewTab() {
           />
         </div>
       </Card>
+
+      <CostExplorerCard
+        rows={explorerVisibleRows}
+        totalRows={explorerRows.length}
+        groupBy={explorerGroupBy}
+        groupOptions={EXPLORER_GROUP_OPTIONS.map((option) => ({
+          value: option.value,
+          label: t(option.labelKey),
+        }))}
+        searchQuery={explorerSearch}
+        sortKey={explorerSortKey}
+        sortDirection={explorerSortDirection}
+        locale={locale}
+        hasCostData={hasCostData}
+        onGroupByChange={setExplorerGroupBy}
+        onSearchChange={setExplorerSearch}
+        onSort={handleExplorerSort}
+      />
 
       <Card className="p-5">
         <h3 className="text-sm font-semibold text-text-muted uppercase tracking-wide mb-4">
@@ -779,6 +874,201 @@ function MetricCard({
   );
 }
 
+function CostExplorerCard({
+  rows,
+  totalRows,
+  groupBy,
+  groupOptions,
+  searchQuery,
+  sortKey,
+  sortDirection,
+  locale,
+  hasCostData,
+  onGroupByChange,
+  onSearchChange,
+  onSort,
+}: {
+  rows: CostExplorerRow[];
+  totalRows: number;
+  groupBy: CostExplorerGroupBy;
+  groupOptions: Array<{ value: CostExplorerGroupBy; label: string }>;
+  searchQuery: string;
+  sortKey: CostExplorerSortKey;
+  sortDirection: CostExplorerSortDirection;
+  locale: string;
+  hasCostData: boolean;
+  onGroupByChange: (groupBy: CostExplorerGroupBy) => void;
+  onSearchChange: (query: string) => void;
+  onSort: (sortKey: CostExplorerSortKey) => void;
+}) {
+  const t = useTranslations("costs");
+  const currencyFormatter = useMemo(() => createCurrencyFormatter(locale), [locale]);
+  const numberFormatter = useMemo(() => new Intl.NumberFormat(locale), [locale]);
+  const compactFormatter = useMemo(
+    () => new Intl.NumberFormat(locale, { notation: "compact" }),
+    [locale]
+  );
+
+  const columns = useMemo<
+    Array<{
+      key: CostExplorerSortKey;
+      label: string;
+      align: "left" | "right";
+    }>
+  >(
+    () => [
+      { key: "name", label: t("dimension"), align: "left" },
+      { key: "cost", label: t("cost"), align: "right" },
+      { key: "requests", label: t("requests"), align: "right" },
+      { key: "totalTokens", label: t("tokens"), align: "right" },
+      { key: "avgCostPerRequest", label: t("avgCostPerRequest"), align: "right" },
+      { key: "sharePct", label: t("share"), align: "right" },
+    ],
+    [t]
+  );
+
+  function renderSortIcon(columnKey: CostExplorerSortKey) {
+    if (sortKey !== columnKey) return "unfold_more";
+    return sortDirection === "asc" ? "arrow_upward" : "arrow_downward";
+  }
+
+  function formatCost(value: number): string {
+    if (!hasCostData && value <= 0) return t("legacyOrFree");
+    return formatCurrencyCost(locale, value);
+  }
+
+  function formatRowCount(): string {
+    const shown = numberFormatter.format(rows.length);
+    const total = numberFormatter.format(totalRows);
+    if (totalRows > rows.length) {
+      return t("showingTopCostRows", { shown, total });
+    }
+
+    return t("showingCostRows", { shown, total });
+  }
+
+  return (
+    <Card className="p-5">
+      <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between mb-5">
+        <div>
+          <div className="flex items-center gap-2">
+            <span className="material-symbols-outlined text-emerald-400 text-xl">
+              travel_explore
+            </span>
+            <h3 className="text-lg font-bold text-text-main">{t("costExplorerTitle")}</h3>
+          </div>
+          <p className="text-sm text-text-muted mt-1">{t("costExplorerDescription")}</p>
+        </div>
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+          <SegmentedControl
+            options={groupOptions}
+            value={groupBy}
+            onChange={(value) => onGroupByChange(value as CostExplorerGroupBy)}
+          />
+          <label className="relative block min-w-55">
+            <span className="material-symbols-outlined pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-sm text-text-muted">
+              search
+            </span>
+            <input
+              value={searchQuery}
+              onChange={(event) => onSearchChange(event.target.value)}
+              placeholder={t("filterRows")}
+              className="w-full rounded-lg border border-border/40 bg-surface/40 py-2 pl-9 pr-3 text-sm text-text-main placeholder:text-text-muted focus:border-primary focus:outline-none"
+              aria-label={t("filterCostExplorerRows")}
+            />
+          </label>
+        </div>
+      </div>
+
+      {rows.length === 0 ? (
+        <div className="rounded-xl border border-border/30 bg-surface/20 p-6">
+          <EmptyState
+            icon="manage_search"
+            title={t("noMatchingCostRows")}
+            description={t("noMatchingCostRowsDescription")}
+          />
+        </div>
+      ) : (
+        <>
+          <div className="overflow-x-auto">
+            <table className="w-full min-w-205 text-sm">
+              <thead>
+                <tr className="border-b border-border/30 text-[11px] uppercase text-text-muted">
+                  {columns.map((column) => (
+                    <th
+                      key={column.key}
+                      className={`pb-2 font-semibold ${
+                        column.align === "right" ? "text-right" : "text-left"
+                      }`}
+                    >
+                      <button
+                        type="button"
+                        onClick={() => onSort(column.key)}
+                        className={`inline-flex items-center gap-1 hover:text-text-main ${
+                          column.align === "right" ? "justify-end" : "justify-start"
+                        }`}
+                      >
+                        <span>{column.label}</span>
+                        <span className="material-symbols-outlined text-sm">
+                          {renderSortIcon(column.key)}
+                        </span>
+                      </button>
+                    </th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-border/20">
+                {rows.map((row) => (
+                  <tr key={row.id} className="hover:bg-surface/20">
+                    <td className="py-3 pr-4">
+                      <div className="flex flex-col">
+                        <span className="font-medium text-text-main">{row.name}</span>
+                        {row.detail ? (
+                          <span className="text-xs text-text-muted truncate max-w-[320px]">
+                            {row.detail}
+                          </span>
+                        ) : null}
+                      </div>
+                    </td>
+                    <td className="py-3 text-right font-mono text-text-muted">
+                      {formatCost(row.cost)}
+                    </td>
+                    <td className="py-3 text-right font-mono text-text-muted">
+                      {numberFormatter.format(row.requests)}
+                    </td>
+                    <td className="py-3 text-right font-mono text-text-muted">
+                      {compactFormatter.format(row.totalTokens)}
+                    </td>
+                    <td className="py-3 text-right font-mono text-text-muted">
+                      {row.avgCostPerRequest > 0
+                        ? currencyFormatter.format(row.avgCostPerRequest)
+                        : "—"}
+                    </td>
+                    <td className="py-3 text-right">
+                      <div className="flex items-center justify-end gap-2">
+                        <div className="h-1.5 w-16 overflow-hidden rounded-full bg-surface/60">
+                          <div
+                            className="h-full rounded-full bg-emerald-400"
+                            style={{ width: `${Math.min(Math.max(row.sharePct, 0), 100)}%` }}
+                          />
+                        </div>
+                        <span className="w-12 font-mono text-text-muted">
+                          {row.sharePct.toFixed(1)}%
+                        </span>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+          <p className="mt-3 text-xs text-text-muted">{formatRowCount()}</p>
+        </>
+      )}
+    </Card>
+  );
+}
+
 function CompactMetric({ label, value }: { label: string; value: string }) {
   return (
     <div className="rounded-lg border border-border/20 bg-surface/20 px-4 py-3">
@@ -810,7 +1100,7 @@ function ProviderSpendCard({
         {title}
       </h3>
       <div className="flex flex-col gap-4 md:flex-row md:items-center">
-        <div className="w-full md:w-[180px] h-[180px]">
+        <div className="w-full md:w-45 h-45">
           <ResponsiveContainer width="100%" height="100%">
             <PieChart>
               <Pie
@@ -877,7 +1167,7 @@ function CostTrendCard({
       <h3 className="text-sm font-semibold text-text-muted uppercase tracking-wide mb-4">
         {title}
       </h3>
-      <div className="h-[220px]">
+      <div className="h-55">
         <ResponsiveContainer width="100%" height="100%">
           <LineChart data={chartRows} margin={{ top: 5, right: 12, left: 0, bottom: 0 }}>
             <CartesianGrid stroke="rgba(255,255,255,0.06)" vertical={false} />
@@ -937,7 +1227,7 @@ function WeeklyPatternCard({
       <h3 className="text-sm font-semibold text-text-muted uppercase tracking-wide mb-4">
         {title}
       </h3>
-      <div className="h-[160px]">
+      <div className="h-40">
         <ResponsiveContainer width="100%" height="100%">
           <BarChart data={chartData} margin={{ top: 5, right: 5, left: 0, bottom: 0 }}>
             <XAxis
@@ -1018,13 +1308,13 @@ function ActivityHeatmap({
         {title}
       </h3>
       <div className="overflow-x-auto">
-        <div className="flex gap-[3px]">
+        <div className="flex gap-0.75">
           {weeks.map((week) => (
-            <div key={week[0]?.date} className="flex flex-col gap-[3px]">
+            <div key={week[0]?.date} className="flex flex-col gap-0.75">
               {week.map((day) => (
                 <div
                   key={day.date}
-                  className={`w-[11px] h-[11px] rounded-[2px] ${getIntensity(day.value)}`}
+                  className={`w-2.75 h-2.75 rounded-xs ${getIntensity(day.value)}`}
                   title={`${day.date}: ${
                     day.value > 0
                       ? `${new Intl.NumberFormat(locale).format(day.value)} tokens`
@@ -1038,12 +1328,12 @@ function ActivityHeatmap({
       </div>
       <div className="flex items-center gap-2 mt-3 text-[10px] text-text-muted">
         <span>{lessLabel}</span>
-        <div className="flex gap-[2px]">
-          <div className="w-[10px] h-[10px] rounded-[2px] bg-surface/30" />
-          <div className="w-[10px] h-[10px] rounded-[2px] bg-emerald-900/50" />
-          <div className="w-[10px] h-[10px] rounded-[2px] bg-emerald-700/60" />
-          <div className="w-[10px] h-[10px] rounded-[2px] bg-emerald-500/70" />
-          <div className="w-[10px] h-[10px] rounded-[2px] bg-emerald-400" />
+        <div className="flex gap-0.5">
+          <div className="w-2.5 h-2.5 rounded-xs bg-surface/30" />
+          <div className="w-2.5 h-2.5 rounded-xs bg-emerald-900/50" />
+          <div className="w-2.5 h-2.5 rounded-xs bg-emerald-700/60" />
+          <div className="w-2.5 h-2.5 rounded-xs bg-emerald-500/70" />
+          <div className="w-2.5 h-2.5 rounded-xs bg-emerald-400" />
         </div>
         <span>{moreLabel}</span>
       </div>
@@ -1174,7 +1464,7 @@ function CostBreakdownTable({
                     className={`py-2 ${
                       column.align === "right"
                         ? "text-right font-mono text-text-muted"
-                        : "text-left text-text-main truncate max-w-[200px]"
+                        : "text-left text-text-main truncate max-w-50"
                     }`}
                   >
                     {formatValue(row[column.key], column.format)}

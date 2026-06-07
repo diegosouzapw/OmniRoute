@@ -2,6 +2,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import {
   resolveRequestedModel,
+  normalizeCursorModelId,
   encodeAgentRunRequest,
   buildAgentRequestBody,
   iterateConnectFrames,
@@ -39,6 +40,83 @@ test("resolveRequestedModel maps cursor-agent's client-side aliases", () => {
     parameters: [],
   });
   assert.deepEqual(resolveRequestedModel("composer-2"), { modelId: "composer-2", parameters: [] });
+});
+
+test("normalizeCursorModelId canonicalizes composer spelling variants", () => {
+  // Known-equivalent spellings cursor would otherwise reject.
+  assert.equal(normalizeCursorModelId("composer-2-5"), "composer-2.5");
+  assert.equal(normalizeCursorModelId("composer-2.5-sdk"), "composer-2.5");
+  assert.equal(normalizeCursorModelId("composer-latest"), "composer-2.5");
+  assert.equal(normalizeCursorModelId("COMPOSER-2-5"), "composer-2.5"); // case-insensitive
+  assert.equal(normalizeCursorModelId("  composer-latest  "), "composer-2.5"); // trimmed
+  assert.equal(normalizeCursorModelId(""), "composer-2.5"); // empty → default model
+  assert.equal(normalizeCursorModelId("composer-2-5-fast"), "composer-2.5-fast");
+  // Canonical and unrelated ids pass through verbatim (no behavior change).
+  assert.equal(normalizeCursorModelId("composer-2.5"), "composer-2.5");
+  assert.equal(normalizeCursorModelId("composer-2.5-fast"), "composer-2.5-fast");
+  assert.equal(normalizeCursorModelId("auto"), "auto");
+  assert.equal(normalizeCursorModelId("claude-4.6-sonnet-medium"), "claude-4.6-sonnet-medium");
+});
+
+test("resolveRequestedModel normalizes variants then applies auto/-fast rules", () => {
+  // Variant of composer-2.5 → canonical id, no parameters.
+  assert.deepEqual(resolveRequestedModel("composer-2-5"), {
+    modelId: "composer-2.5",
+    parameters: [],
+  });
+  // Variant of the fast model → split into base id + fast parameter.
+  assert.deepEqual(resolveRequestedModel("composer-2-5-fast"), {
+    modelId: "composer-2.5",
+    parameters: [{ id: "fast", value: "true" }],
+  });
+  // Empty model id resolves to the working default rather than a server reject.
+  assert.deepEqual(resolveRequestedModel(""), { modelId: "composer-2.5", parameters: [] });
+});
+
+// ─── decode bounds hardening (malformed/hostile wire data) ──────────────────
+
+test("decodeAgentServerMessage throws on a length-delimited field that overruns the buffer", () => {
+  function v(n: number): Buffer {
+    const out: number[] = [];
+    while (n > 0x7f) {
+      out.push((n & 0x7f) | 0x80);
+      n >>>= 7;
+    }
+    out.push(n);
+    return Buffer.from(out);
+  }
+  function tag(field: number, wt: number) {
+    return v((field << 3) | wt);
+  }
+  // field 1 (LEN) declaring length 200, but only 3 payload bytes follow.
+  // Before hardening Buffer.subarray silently clamped to EOF, decoding a
+  // truncated message as if it were complete; now checkedLen rejects it so
+  // processFrame skips the corrupt frame instead of acting on partial data.
+  const malformed = Buffer.concat([tag(1, 2), v(200), Buffer.from([1, 2, 3])]);
+  assert.throws(() => decodeAgentServerMessage(malformed), /overruns buffer/);
+});
+
+test("decode bounds hardening does not affect well-formed frames", () => {
+  // A correctly-sized frame still decodes (regression guard for the new check).
+  function v(n: number): Buffer {
+    const out: number[] = [];
+    while (n > 0x7f) {
+      out.push((n & 0x7f) | 0x80);
+      n >>>= 7;
+    }
+    out.push(n);
+    return Buffer.from(out);
+  }
+  function tag(field: number, wt: number) {
+    return v((field << 3) | wt);
+  }
+  function lp(field: number, payload: Buffer) {
+    return Buffer.concat([tag(field, 2), v(payload.length), payload]);
+  }
+  const tdu = lp(1, Buffer.from("ok", "utf8"));
+  const iu = lp(1, tdu);
+  const asm = lp(1, iu);
+  assert.deepEqual(decodeAgentServerMessage(asm), [{ kind: "text", text: "ok" }]);
 });
 
 test("encodeAgentRunRequest embeds user text and resolves the model id", () => {

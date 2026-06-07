@@ -1,0 +1,1 @@
+export { POST, OPTIONS } from "@/app/api/v1/api/chat/route";

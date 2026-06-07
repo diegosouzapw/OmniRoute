@@ -43,6 +43,25 @@ const UM_MESSAGE_ID = 2; // UserMessage.message_id
 const UM_SELECTED_CONTEXT = 3; // UserMessage.selected_context (empty placeholder required)
 const UM_MODE = 4; // UserMessage.mode (cursor-agent sends 1)
 
+// ─── Vision input (image) field numbers ────────────────────────────────────
+// Pinned from cursor-agent's agent.v1 protobuf descriptor (bundle version
+// 2026.06.02-8c11d9f, cross-checked against composer-api's older-endpoint
+// encoder for shape). Images attach to the current UserMessage through its
+// selected_context (field 3): UserMessage.selected_context is a SelectedContext
+// whose `selected_images` (field 1) is a repeated SelectedImage. Each
+// SelectedImage carries the raw bytes inline in its `data_or_blob_id` oneof
+// (the `data` case, field 8) — cursor-agent's CLI instead sends a local file
+// `path`, which a proxy cannot use, so we inline the bytes like composer-api.
+const SC_SELECTED_IMAGES = 1; // SelectedContext.selected_images [repeated SelectedImage]
+
+const SI_UUID = 2; // SelectedImage.uuid
+const SI_DIMENSION = 4; // SelectedImage.dimension (SelectedImage.Dimension)
+const SI_MIME_TYPE = 7; // SelectedImage.mime_type
+const SI_DATA = 8; // SelectedImage.data (oneof data_or_blob_id) — inline image bytes
+
+const DIM_WIDTH = 1; // SelectedImage.Dimension.width (int32)
+const DIM_HEIGHT = 2; // SelectedImage.Dimension.height (int32)
+
 const RM_MODEL_ID = 1; // RequestedModel.model_id
 const RM_PARAMETERS = 3; // RequestedModel.parameters [repeated]
 
@@ -266,6 +285,26 @@ type Field =
   | { fieldNumber: number; wireType: 0; varint: bigint }
   | { fieldNumber: number; wireType: 2; bytes: Buffer };
 
+/**
+ * Validate a length-delimited field's declared length against the bytes that
+ * actually remain in the buffer. Cursor's frames are well-formed, but a
+ * corrupted or hostile upstream could declare a length that overruns the
+ * buffer; without this guard `Buffer.subarray` silently clamps to EOF and a
+ * truncated tool argument (or any nested message) is decoded as empty/partial
+ * data instead of being recognized as malformed. Throwing lets the caller —
+ * `processFrame`, wrapped in driveH2's per-frame try/catch — skip the bad
+ * frame rather than act on corrupted fields. Also rejects absurd lengths that
+ * would not fit a JS safe integer.
+ */
+function checkedLen(len: bigint, pos: number, buf: Buffer): number {
+  if (len < 0n || len > BigInt(buf.length - pos)) {
+    throw new Error(
+      `length-delimited field overruns buffer (len=${len}, remaining=${buf.length - pos})`
+    );
+  }
+  return Number(len);
+}
+
 function decodeFields(buf: Buffer): Field[] {
   const fields: Field[] = [];
   let pos = 0;
@@ -281,7 +320,7 @@ function decodeFields(buf: Buffer): Field[] {
     } else if (wireType === WT_LEN) {
       const [len, np2] = decodeVarint(buf, pos);
       pos = np2;
-      const lenN = Number(len);
+      const lenN = checkedLen(len, pos, buf);
       fields.push({ fieldNumber, wireType: 2, bytes: buf.subarray(pos, pos + lenN) });
       pos += lenN;
     } else if (wireType === 5) {
@@ -329,29 +368,56 @@ export function* iterateConnectFrames(stream: Buffer): Generator<ConnectFrame> {
 // ─── Model id translation ──────────────────────────────────────────────────
 
 /**
+ * Canonicalize common spelling variants of cursor's composer model ids to the
+ * exact ids cursor's server accepts. Without this, an off-by-a-character id
+ * (composer-2-5, composer-2.5-sdk, composer-latest, or an empty model) reaches
+ * cursor verbatim and is rejected. Only these known-equivalent spellings are
+ * remapped (case-insensitively); every other id — including the canonical
+ * composer-2.5/composer-2.5-fast and all claude, gpt, and gemini ids — passes
+ * through unchanged, so existing behavior is preserved exactly.
+ */
+const CURSOR_MODEL_ALIASES: Record<string, string> = {
+  "": "composer-2.5",
+  "composer-2-5": "composer-2.5",
+  "composer-2.5-sdk": "composer-2.5",
+  "composer-latest": "composer-2.5",
+  "composer-2-5-fast": "composer-2.5-fast",
+  "composer-2.5-sdk-fast": "composer-2.5-fast",
+  "composer-latest-fast": "composer-2.5-fast",
+};
+
+export function normalizeCursorModelId(modelId: string): string {
+  const id = (modelId ?? "").trim();
+  const alias = CURSOR_MODEL_ALIASES[id.toLowerCase()];
+  return alias ?? id;
+}
+
+/**
  * cursor-agent rewrites model ids before putting them on the wire:
  *   "auto"            → RequestedModel { model_id: "default" }
  *   "composer-2-fast" → RequestedModel { model_id: "composer-2",
  *                                        parameters: [{id: "fast", value: "true"}] }
  *
- * Other ids (e.g. "claude-4.6-sonnet-medium") are passed through verbatim.
+ * Other ids (e.g. "claude-4.6-sonnet-medium") are passed through verbatim
+ * after spelling-variant normalization (see normalizeCursorModelId).
  */
 export function resolveRequestedModel(modelId: string): {
   modelId: string;
   parameters: Array<{ id: string; value: string }>;
 } {
-  if (modelId === "auto") {
+  const normalized = normalizeCursorModelId(modelId);
+  if (normalized === "auto") {
     return { modelId: "default", parameters: [] };
   }
   // Strip the "-fast" suffix and surface it as a parameter — only the composer
   // family observably needs this split today, but the protocol field is generic.
-  if (modelId.startsWith("composer-") && modelId.endsWith("-fast")) {
+  if (normalized.startsWith("composer-") && normalized.endsWith("-fast")) {
     return {
-      modelId: modelId.slice(0, -"-fast".length),
+      modelId: normalized.slice(0, -"-fast".length),
       parameters: [{ id: "fast", value: "true" }],
     };
   }
-  return { modelId, parameters: [] };
+  return { modelId: normalized, parameters: [] };
 }
 
 // ─── Request encoder ───────────────────────────────────────────────────────
@@ -386,7 +452,58 @@ export type AgentRunInput = {
   // which the executor's processFrame replies to with the stored bytes.
   systemPrompt?: string;
   blobStore?: Map<string, Buffer>;
+  // Vision input: images attached to the current user turn. Encoded inline as
+  // SelectedContext.selected_images[] (see encodeSelectedImageBody). Empty /
+  // undefined keeps the request byte-identical to the text-only path.
+  images?: EncodedImage[];
 };
+
+/**
+ * A resolved image ready to embed in a cursor request. `data` is the raw
+ * decoded image bytes (already SSRF-checked / size-capped by the executor's
+ * resolveCursorImages helper). `mimeType` (e.g. "image/png") helps cursor
+ * decode the inline bytes; `width`/`height` populate the optional Dimension
+ * sub-message when cheaply known; `uuid` is a stable per-image id.
+ */
+export type EncodedImage = {
+  data: Buffer;
+  mimeType?: string;
+  width?: number;
+  height?: number;
+  uuid: string;
+};
+
+/**
+ * Encode the body of a SelectedImage message (no outer field tag — the caller
+ * wraps it via encodeMessage(SC_SELECTED_IMAGES, [body])). Sets the inline
+ * `data` oneof case plus uuid, optional dimension, and mime_type. Fields are
+ * written in ascending field-number order (canonical protobuf layout).
+ */
+export function encodeSelectedImageBody(img: EncodedImage): Buffer {
+  const parts: Buffer[] = [encodeString(SI_UUID, img.uuid)];
+  if (
+    typeof img.width === "number" &&
+    typeof img.height === "number" &&
+    Number.isFinite(img.width) &&
+    Number.isFinite(img.height) &&
+    img.width > 0 &&
+    img.height > 0
+  ) {
+    parts.push(
+      encodeMessage(SI_DIMENSION, [
+        encodeUInt32Field(DIM_WIDTH, Math.floor(img.width)),
+        encodeUInt32Field(DIM_HEIGHT, Math.floor(img.height)),
+      ])
+    );
+  }
+  if (img.mimeType) {
+    parts.push(encodeString(SI_MIME_TYPE, img.mimeType));
+  }
+  // data_or_blob_id oneof = data (inline bytes) — field 8, written last to
+  // keep ascending field order.
+  parts.push(encodeBytes(SI_DATA, img.data));
+  return Buffer.concat(parts);
+}
 
 /**
  * Convert OpenAI tool definitions to cursor McpToolDefinition bodies. Used
@@ -412,14 +529,26 @@ export function encodeAgentRunRequest(input: AgentRunInput): Buffer {
   const messageId = input.messageId || crypto.randomUUID();
   const { modelId, parameters } = resolveRequestedModel(input.modelId);
 
-  // UserMessage { text, message_id, selected_context: empty, mode=1 }.
+  // UserMessage { text, message_id, selected_context, mode=1 }.
+  // selected_context is normally an empty placeholder (required by the server
+  // even when empty — see below), but when the turn carries vision input we
+  // populate its selected_images[] with the inline-encoded images. The
+  // empty-images path produces byte-identical output to the text-only request.
+  const selectedContextParts: Buffer[] = [];
+  if (input.images && input.images.length > 0) {
+    for (const img of input.images) {
+      selectedContextParts.push(
+        encodeMessage(SC_SELECTED_IMAGES, [encodeSelectedImageBody(img)])
+      );
+    }
+  }
   // The empty selected_context placeholder and mode=1 match cursor-agent's
   // wire format; without them the server accepts the request but never
   // streams a response.
   const userMessage = encodeMessage(UMA_USER_MESSAGE, [
     encodeString(UM_TEXT, input.userText),
     encodeString(UM_MESSAGE_ID, messageId),
-    encodeMessage(UM_SELECTED_CONTEXT, []),
+    encodeMessage(UM_SELECTED_CONTEXT, selectedContextParts),
     Buffer.concat([encodeTag(UM_MODE, WT_VARINT), encodeVarint(1)]),
   ]);
   // UserMessageAction { user_message }
@@ -1165,7 +1294,7 @@ export function decodeProtobufValue(buf: Buffer): unknown {
         if (wireType === WT_LEN) {
           const [len, np2] = decodeVarint(buf, pos);
           pos = np2;
-          const lenN = Number(len);
+          const lenN = checkedLen(len, pos, buf);
           const value = buf.subarray(pos, pos + lenN).toString("utf8");
           pos += lenN;
           return value;
@@ -1184,7 +1313,7 @@ export function decodeProtobufValue(buf: Buffer): unknown {
         if (wireType === WT_LEN) {
           const [len, np2] = decodeVarint(buf, pos);
           pos = np2;
-          const lenN = Number(len);
+          const lenN = checkedLen(len, pos, buf);
           const inner = buf.subarray(pos, pos + lenN);
           pos += lenN;
           return decodeProtobufStruct(inner);
@@ -1195,7 +1324,7 @@ export function decodeProtobufValue(buf: Buffer): unknown {
         if (wireType === WT_LEN) {
           const [len, np2] = decodeVarint(buf, pos);
           pos = np2;
-          const lenN = Number(len);
+          const lenN = checkedLen(len, pos, buf);
           const inner = buf.subarray(pos, pos + lenN);
           pos += lenN;
           return decodeProtobufList(inner);

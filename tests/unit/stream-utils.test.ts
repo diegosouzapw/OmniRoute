@@ -715,6 +715,71 @@ test("createSSEStream passthrough preserves Responses API events and completion 
   assert.equal(onCompletePayload.providerPayload.summary.object, "response");
 });
 
+test("createSSEStream passthrough drops leaked empty chat bootstrap chunks for Responses clients", async () => {
+  const text = await readTransformed(
+    [
+      `data: ${JSON.stringify({
+        id: "chatcmpl-dummy",
+        object: "chat.completion.chunk",
+        created: 1,
+        model: "gpt-5.4",
+        choices: [
+          { index: 0, delta: { role: "assistant", content: null, refusal: null }, finish_reason: null },
+        ],
+      })}\n\n`,
+      `event: response.created\ndata: ${JSON.stringify({
+        type: "response.created",
+        response: {
+          id: "resp_1",
+          object: "response",
+          model: "gpt-5.4",
+          status: "in_progress",
+          output: [],
+        },
+      })}\n\n`,
+      `event: response.in_progress\ndata: ${JSON.stringify({
+        type: "response.in_progress",
+        response: {
+          id: "resp_1",
+          object: "response",
+          model: "gpt-5.4",
+          status: "in_progress",
+          output: [],
+        },
+      })}\n\n`,
+      `data: ${JSON.stringify({
+        type: "response.output_text.delta",
+        delta: "OK",
+      })}\n\n`,
+      `data: ${JSON.stringify({
+        type: "response.completed",
+        response: {
+          id: "resp_1",
+          object: "response",
+          model: "gpt-5.4",
+          status: "completed",
+          output: [],
+          usage: { input_tokens: 2, output_tokens: 1, total_tokens: 3 },
+        },
+      })}\n\n`,
+      `data: [DONE]\n\n`,
+    ],
+    {
+      mode: "passthrough",
+      sourceFormat: FORMATS.OPENAI_RESPONSES,
+      clientResponseFormat: FORMATS.OPENAI_RESPONSES,
+      provider: "openai",
+      model: "gpt-5.4",
+      body: { input: "hello" },
+    }
+  );
+
+  assert.doesNotMatch(text, /chatcmpl-dummy/);
+  assert.match(text, /response\.created/);
+  assert.match(text, /response\.output_text\.delta/);
+  assert.match(text, /"delta":"OK"/);
+});
+
 test("buildStreamSummaryFromEvents falls back to response.output_text.delta when completed output is empty", () => {
   const summary = buildStreamSummaryFromEvents(
     [
@@ -1556,6 +1621,105 @@ test("createSSEStream passthrough mode decrements pending requests on failure", 
     0,
     `pending request count for ${modelKey} should be 0 after failure, got ${count}`
   );
+});
+
+test("createSSEStream passthrough emits synthetic error chunk for empty choices array", async () => {
+  let onCompletePayload = null;
+  const text = await readTransformed(
+    [
+      `data: ${JSON.stringify({
+        id: "chatcmpl_empty",
+        object: "chat.completion.chunk",
+        created: 1,
+        model: "kimi-k2.6",
+        choices: [],
+      })}\n\n`,
+      `data: ${JSON.stringify({
+        id: "chatcmpl_empty",
+        object: "chat.completion.chunk",
+        created: 1,
+        model: "kimi-k2.6",
+        choices: [{ index: 0, delta: { role: "assistant", content: "Hello" } }],
+      })}\n\n`,
+      `data: ${JSON.stringify({
+        id: "chatcmpl_empty",
+        object: "chat.completion.chunk",
+        created: 1,
+        model: "kimi-k2.6",
+        choices: [{ index: 0, delta: {}, finish_reason: "stop" }],
+      })}\n\n`,
+    ],
+    {
+      mode: "passthrough",
+      sourceFormat: FORMATS.OPENAI,
+      provider: "opencode-go",
+      model: "kimi-k2.6",
+      body: { messages: [{ role: "user", content: "hello" }] },
+      onComplete(payload) {
+        onCompletePayload = payload;
+      },
+    }
+  );
+
+  // The empty choices chunk should have been replaced with a synthetic error chunk
+  assert.match(text, /\[OmniRoute\] Upstream returned an empty response/);
+  assert.match(text, /"finish_reason":"stop"/);
+  // Subsequent valid chunks should still be present
+  assert.match(text, /"content":"Hello"/);
+  assert.equal(onCompletePayload.status, 200);
+});
+
+test("createSSEStream passthrough logs empty response after tool_calls completion", async () => {
+  let onCompletePayload = null;
+  const text = await readTransformed(
+    [
+      `data: ${JSON.stringify({
+        id: "chatcmpl_tool_then_empty",
+        object: "chat.completion.chunk",
+        created: 1,
+        model: "gpt-5.5-xhigh",
+        choices: [
+          {
+            index: 0,
+            delta: {
+              tool_calls: [
+                {
+                  index: 0,
+                  id: "call_tc",
+                  type: "function",
+                  function: { name: "task_complete", arguments: '{}' },
+                },
+              ],
+            },
+          },
+        ],
+      })}\n\n`,
+      `data: ${JSON.stringify({
+        id: "chatcmpl_tool_then_empty",
+        object: "chat.completion.chunk",
+        created: 1,
+        model: "gpt-5.5-xhigh",
+        choices: [{ index: 0, delta: {}, finish_reason: "tool_calls" }],
+      })}\n\n`,
+    ],
+    {
+      mode: "passthrough",
+      sourceFormat: FORMATS.OPENAI,
+      provider: "codex",
+      model: "gpt-5.5-xhigh",
+      body: { messages: [{ role: "user", content: "do task" }] },
+      onComplete(payload) {
+        onCompletePayload = payload;
+      },
+    }
+  );
+
+  assert.match(text, /"finish_reason":"tool_calls"/);
+  assert.equal(onCompletePayload.status, 200);
+  assert.equal(onCompletePayload.responseBody.choices[0].finish_reason, "tool_calls");
+  assert.equal(onCompletePayload.responseBody.choices[0].message.tool_calls[0].function.name, "task_complete");
+  // Content should be null (empty) since no text was generated
+  assert.equal(onCompletePayload.responseBody.choices[0].message.content, null);
 });
 
 test("createSSEStream passthrough does not swallow false positive textual tool call", async () => {

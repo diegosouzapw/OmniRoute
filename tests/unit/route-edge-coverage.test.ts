@@ -20,6 +20,12 @@ const listKeysRoute = await import("../../src/app/api/keys/route.ts");
 const settingsProxyRoute = await import("../../src/app/api/settings/proxy/route.ts");
 const managementProxiesRoute = await import("../../src/app/api/v1/management/proxies/route.ts");
 const embeddingsRoute = await import("../../src/app/api/v1/embeddings/route.ts");
+const audioSpeechRoute = await import("../../src/app/api/v1/audio/speech/route.ts");
+const audioTranscriptionsRoute = await import("../../src/app/api/v1/audio/transcriptions/route.ts");
+const moderationsRoute = await import("../../src/app/api/v1/moderations/route.ts");
+const rerankRoute = await import("../../src/app/api/v1/rerank/route.ts");
+const searchRoute = await import("../../src/app/api/v1/search/route.ts");
+const videosRoute = await import("../../src/app/api/v1/videos/generations/route.ts");
 
 const MACHINE_ID = "1234567890abcdef";
 
@@ -285,6 +291,22 @@ test("settings proxy route covers full config, resolve, validation, delete and g
   const fullConfig = await settingsProxyRoute.GET(
     new Request("http://localhost/api/settings/proxy")
   );
+
+  const registryProviderProxy = await localDb.createProxy({
+    name: "Registry Provider Proxy",
+    type: "http",
+    host: "registry-provider.local",
+    port: 8080,
+    source: "dashboard-custom",
+  });
+  await localDb.assignProxyToScope("provider", "anthropic", registryProviderProxy.id);
+  const registryProviderGet = await settingsProxyRoute.GET(
+    new Request("http://localhost/api/settings/proxy?level=provider&id=anthropic")
+  );
+  const fullConfigWithRegistryProvider = await settingsProxyRoute.GET(
+    new Request("http://localhost/api/settings/proxy")
+  );
+
   const deleted = await settingsProxyRoute.DELETE(
     new Request("http://localhost/api/settings/proxy?level=provider&id=openai", {
       method: "DELETE",
@@ -304,6 +326,8 @@ test("settings proxy route covers full config, resolve, validation, delete and g
   const providerGetBody = (await providerGet.json()) as any;
   const resolveBody = (await resolveGet.json()) as any;
   const fullConfigBody = (await fullConfig.json()) as any;
+  const registryProviderGetBody = (await registryProviderGet.json()) as any;
+  const fullConfigWithRegistryProviderBody = (await fullConfigWithRegistryProvider.json()) as any;
   const deletedBody = (await deleted.json()) as any;
   const resolveAfterDeleteBody = (await resolveAfterDelete.json()) as any;
   const missingLevelBody = (await missingLevel.json()) as any;
@@ -323,6 +347,13 @@ test("settings proxy route covers full config, resolve, validation, delete and g
   assert.equal(resolveBody.proxy.host, "provider.local");
   assert.equal(fullConfig.status, 200);
   assert.equal(fullConfigBody.global.host, "global.local");
+  assert.equal(registryProviderGet.status, 200);
+  assert.equal(registryProviderGetBody.proxy.host, "registry-provider.local");
+  assert.equal(fullConfigWithRegistryProvider.status, 200);
+  assert.equal(
+    fullConfigWithRegistryProviderBody.providers.anthropic.host,
+    "registry-provider.local"
+  );
   assert.equal(deleted.status, 200);
   assert.equal(Object.prototype.hasOwnProperty.call(deletedBody.providers, "openai"), false);
   assert.equal(resolveAfterDelete.status, 200);
@@ -330,6 +361,81 @@ test("settings proxy route covers full config, resolve, validation, delete and g
   assert.equal(resolveAfterDeleteBody.proxy.host, "global.local");
   assert.equal(missingLevel.status, 400);
   assert.equal(missingLevelBody.error.message, "level is required");
+});
+
+test("settings proxy route resolves combo and key registry assignments with legacy fallback", async () => {
+  const legacyPut = await settingsProxyRoute.PUT(
+    makeRequest("http://localhost/api/settings/proxy", {
+      method: "PUT",
+      body: {
+        combos: {
+          comboA: { type: "http", host: "legacy-combo.local", port: "9001" },
+        },
+        keys: {
+          accountA: { type: "https", host: "legacy-key.local", port: "9444" },
+        },
+      },
+    })
+  );
+
+  const legacyComboGet = await settingsProxyRoute.GET(
+    new Request("http://localhost/api/settings/proxy?level=combo&id=comboA")
+  );
+  const legacyKeyGet = await settingsProxyRoute.GET(
+    new Request("http://localhost/api/settings/proxy?level=key&id=accountA")
+  );
+
+  const comboProxy = await localDb.createProxy({
+    name: "Registry Combo Proxy",
+    type: "http",
+    host: "registry-combo.local",
+    port: 8181,
+    username: "combo-user",
+    password: "combo-secret",
+  });
+  const accountProxy = await localDb.createProxy({
+    name: "Registry Account Proxy",
+    type: "https",
+    host: "registry-account.local",
+    port: 9443,
+    username: "account-user",
+    password: "account-secret",
+  });
+  await localDb.assignProxyToScope("combo", "comboA", comboProxy.id);
+  await localDb.assignProxyToScope("account", "accountA", accountProxy.id);
+
+  const registryComboGet = await settingsProxyRoute.GET(
+    new Request("http://localhost/api/settings/proxy?level=combo&id=comboA")
+  );
+  const registryKeyGet = await settingsProxyRoute.GET(
+    new Request("http://localhost/api/settings/proxy?level=key&id=accountA")
+  );
+
+  const legacyPutBody = (await legacyPut.json()) as any;
+  const legacyComboBody = (await legacyComboGet.json()) as any;
+  const legacyKeyBody = (await legacyKeyGet.json()) as any;
+  const registryComboBody = (await registryComboGet.json()) as any;
+  const registryKeyBody = (await registryKeyGet.json()) as any;
+
+  assert.equal(legacyPut.status, 200);
+  assert.equal(legacyPutBody.combos.comboA.host, "legacy-combo.local");
+  assert.equal(legacyPutBody.keys.accountA.host, "legacy-key.local");
+  assert.equal(legacyComboGet.status, 200);
+  assert.equal(legacyComboBody.level, "combo");
+  assert.equal(legacyComboBody.id, "comboA");
+  assert.equal(legacyComboBody.proxy.host, "legacy-combo.local");
+  assert.equal(legacyKeyGet.status, 200);
+  assert.equal(legacyKeyBody.level, "key");
+  assert.equal(legacyKeyBody.id, "accountA");
+  assert.equal(legacyKeyBody.proxy.host, "legacy-key.local");
+  assert.equal(registryComboGet.status, 200);
+  assert.equal(registryComboBody.proxy.host, "registry-combo.local");
+  assert.equal(registryComboBody.proxy.username, "combo-user");
+  assert.equal(registryComboBody.proxy.password, "combo-secret");
+  assert.equal(registryKeyGet.status, 200);
+  assert.equal(registryKeyBody.proxy.host, "registry-account.local");
+  assert.equal(registryKeyBody.proxy.username, "account-user");
+  assert.equal(registryKeyBody.proxy.password, "account-secret");
 });
 
 test("settings proxy route prefers proxy registry assignments and enforces socks5 feature gating", async () => {
@@ -714,6 +820,83 @@ test("embeddings route surfaces missing-credentials and provider-rate-limit erro
   assert.match(missingCredentialsBody.error.message, /No credentials for embedding provider/);
   assert.equal(allRateLimited.status, 429);
   assert.match(allRateLimitedBody.error.message, /All accounts rate limited/);
+});
+
+test("v1 routes surface provider-rate-limit sentinels instead of missing credentials", async () => {
+  const validApiKey = await apiKeysDb.createApiKey("caller", MACHINE_ID);
+  const retryAt = new Date(Date.now() + 60_000).toISOString();
+  await seedOpenAIConnection({ email: "openai-limited@example.com", rateLimitedUntil: retryAt });
+  await seedOpenAIConnection({
+    email: "runway-limited@example.com",
+    provider: "runwayml",
+    rateLimitedUntil: retryAt,
+  });
+  await seedOpenAIConnection({
+    email: "cohere-limited@example.com",
+    provider: "cohere",
+    rateLimitedUntil: retryAt,
+  });
+  await seedOpenAIConnection({
+    email: "serper-limited@example.com",
+    provider: "serper-search",
+    rateLimitedUntil: retryAt,
+  });
+
+  const token = validApiKey.key;
+  const transcriptionForm = new FormData();
+  transcriptionForm.set("model", "openai/whisper-1");
+
+  const responses = [
+    await moderationsRoute.POST(
+      makeRequest("http://localhost/v1/moderations", {
+        method: "POST",
+        token,
+        body: { model: "openai/omni-moderation-latest", input: "hello" },
+      })
+    ),
+    await audioSpeechRoute.POST(
+      makeRequest("http://localhost/v1/audio/speech", {
+        method: "POST",
+        token,
+        body: { model: "openai/tts-1", input: "hello" },
+      })
+    ),
+    await audioTranscriptionsRoute.POST(
+      new Request("http://localhost/v1/audio/transcriptions", {
+        method: "POST",
+        headers: { authorization: `Bearer ${token}` },
+        body: transcriptionForm,
+      })
+    ),
+    await videosRoute.POST(
+      makeRequest("http://localhost/v1/videos/generations", {
+        method: "POST",
+        token,
+        body: { model: "runwayml/gen4.5", prompt: "a quiet wave" },
+      })
+    ),
+    await rerankRoute.POST(
+      makeRequest("http://localhost/v1/rerank", {
+        method: "POST",
+        token,
+        body: { model: "cohere/rerank-v3.5", query: "hello", documents: ["hello world"] },
+      })
+    ),
+    await searchRoute.POST(
+      makeRequest("http://localhost/v1/search", {
+        method: "POST",
+        token,
+        body: { provider: "serper-search", query: "hello", search_type: "web" },
+      })
+    ),
+  ];
+
+  for (const response of responses) {
+    const body = (await response.json()) as any;
+    assert.equal(response.status, 429);
+    assert.match(body.error.message, /All accounts rate limited/);
+    assert.ok(response.headers.get("retry-after"));
+  }
 });
 
 test("embeddings route tolerates custom-model and provider-node lookup failures", async () => {

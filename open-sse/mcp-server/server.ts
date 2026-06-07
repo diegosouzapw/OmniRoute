@@ -48,6 +48,7 @@ import {
 } from "./schemas/tools.ts";
 import { startMcpHeartbeat } from "./runtimeHeartbeat.ts";
 
+import { z } from "zod";
 import { closeAuditDb, logToolCall } from "./audit.ts";
 import {
   evaluateToolScopes,
@@ -75,8 +76,14 @@ import {
 } from "./tools/advancedTools.ts";
 import { memoryTools } from "./tools/memoryTools.ts";
 import { skillTools } from "./tools/skillTools.ts";
+import { agentSkillTools } from "./tools/agentSkillTools.ts";
+import { skillRegistry } from "../../src/lib/skills/registry.ts";
+import { skillExecutor } from "../../src/lib/skills/executor.ts";
+import { pluginTools } from "./tools/pluginTools.ts";
 import { compressionTools } from "./tools/compressionTools.ts";
 import { gamificationTools } from "./tools/gamificationTools.ts";
+import { notionTools } from "./tools/notionTools.ts";
+import { obsidianTools } from "./tools/obsidianTools.ts";
 import { compressMcpRegistryMetadata } from "./descriptionCompressor.ts";
 import { smartFilterText } from "../services/compression/engines/mcpAccessibility/index.ts";
 import {
@@ -84,13 +91,15 @@ import {
   type McpAccessibilityConfig,
 } from "../services/compression/engines/mcpAccessibility/constants.ts";
 import { getDbInstance } from "../../src/lib/db/core.ts";
+import { getProviderConnections } from "../../src/lib/db/providers.ts";
+import { getCodexRequestDefaults } from "../../src/lib/providers/requestDefaults.ts";
 import { normalizeQuotaResponse } from "../../src/shared/contracts/quota.ts";
+import { AI_PROVIDERS, NOAUTH_PROVIDERS } from "../../src/shared/constants/providers.ts";
 import { resolveOmniRouteBaseUrl } from "../../src/shared/utils/resolveOmniRouteBaseUrl.ts";
 
 // ============ Configuration ============
 
 const OMNIROUTE_BASE_URL = resolveOmniRouteBaseUrl();
-const OMNIROUTE_API_KEY = process.env.OMNIROUTE_API_KEY || "";
 const MCP_ENFORCE_SCOPES = process.env.OMNIROUTE_MCP_ENFORCE_SCOPES === "true";
 const MCP_ALLOWED_SCOPES = new Set(
   (process.env.OMNIROUTE_MCP_SCOPES || "")
@@ -102,7 +111,11 @@ const TOTAL_MCP_TOOL_COUNT =
   MCP_TOOLS.length +
   Object.keys(memoryTools).length +
   Object.keys(skillTools).length +
-  gamificationTools.length;
+  Object.keys(agentSkillTools).length +
+  gamificationTools.length +
+  pluginTools.length +
+  notionTools.length +
+  obsidianTools.length;
 
 type JsonRecord = Record<string, unknown>;
 
@@ -135,6 +148,28 @@ function readMcpAccessibilityConfig(): McpAccessibilityConfig {
 type TextToolResult = {
   content: Array<{ type: "text"; text: string }>;
   isError?: boolean;
+};
+
+type McpCatalogStatus = "available" | "degraded" | "unavailable";
+
+type McpCatalogResponse = {
+  models: Array<{
+    id: string;
+    provider: string;
+    capabilities: string[];
+    status: McpCatalogStatus;
+    thinkingEffort?: string;
+    pricing?: unknown;
+  }>;
+  source: string;
+  warning?: string;
+};
+
+type ProviderConnectionLike = {
+  id?: string;
+  provider?: string;
+  isActive?: boolean;
+  providerSpecificData?: unknown;
 };
 
 function toRecord(value: unknown): JsonRecord {
@@ -180,11 +215,16 @@ function normalizeComboModels(
 /**
  * Internal fetch helper that calls OmniRoute API endpoints.
  */
+function getOmniRouteApiKey(): string {
+  return process.env.OMNIROUTE_API_KEY || "";
+}
+
 async function omniRouteFetch(path: string, options: RequestInit = {}): Promise<unknown> {
   const url = `${OMNIROUTE_BASE_URL}${path}`;
+  const apiKey = getOmniRouteApiKey();
   const headers: Record<string, string> = {
     "Content-Type": "application/json",
-    ...(OMNIROUTE_API_KEY ? { Authorization: `Bearer ${OMNIROUTE_API_KEY}` } : {}),
+    ...(apiKey ? { Authorization: `Bearer ${apiKey}` } : {}),
     ...((options.headers as Record<string, string>) || {}),
   };
 
@@ -199,13 +239,196 @@ async function omniRouteFetch(path: string, options: RequestInit = {}): Promise<
   return response.json();
 }
 
+function buildProviderAliasMap(): Record<string, string> {
+  const aliasMap: Record<string, string> = {};
+
+  for (const provider of Object.values(AI_PROVIDERS)) {
+    if (!provider?.id) continue;
+    aliasMap[provider.id] = provider.id;
+    if (typeof provider.alias === "string" && provider.alias.length > 0) {
+      aliasMap[provider.alias] = provider.id;
+    }
+  }
+
+  for (const provider of Object.values(NOAUTH_PROVIDERS)) {
+    if (!provider?.id) continue;
+    aliasMap[provider.id] = provider.id;
+    if ("alias" in provider && typeof provider.alias === "string" && provider.alias.length > 0) {
+      aliasMap[provider.alias] = provider.id;
+    }
+  }
+
+  return aliasMap;
+}
+
+function normalizeCapability(value: string): string {
+  switch (value) {
+    case "embeddings":
+      return "embedding";
+    case "images":
+      return "image";
+    case "videos":
+      return "video";
+    case "moderations":
+      return "moderation";
+    case "chat-completions":
+      return "chat";
+    default:
+      return value;
+  }
+}
+
+function getCatalogModelCapabilities(model: JsonRecord): string[] {
+  if (Array.isArray(model.capabilities) && model.capabilities.length > 0) {
+    return toStringArray(model.capabilities, ["chat"]).map(normalizeCapability);
+  }
+
+  if (Array.isArray(model.supportedEndpoints) && model.supportedEndpoints.length > 0) {
+    return toStringArray(model.supportedEndpoints, ["chat"]).map(normalizeCapability);
+  }
+
+  const type = toString(model.type);
+  if (type) return [normalizeCapability(type)];
+
+  return ["chat"];
+}
+
+function normalizeCatalogStatus(model: JsonRecord, source: string, warning?: string): McpCatalogStatus {
+  const explicitStatus = toString(model.status);
+  if (explicitStatus === "available" || explicitStatus === "degraded" || explicitStatus === "unavailable") {
+    return explicitStatus;
+  }
+
+  if (warning || source === "local_catalog") return "degraded";
+  return "available";
+}
+
+function getConnectionThinkingEffort(connection: ProviderConnectionLike): string | undefined {
+  const provider = typeof connection.provider === "string" ? connection.provider : null;
+  const providerSpecificData = toRecord(connection.providerSpecificData);
+
+  if (provider === "codex") {
+    return getCodexRequestDefaults(providerSpecificData).reasoningEffort || "medium";
+  }
+
+  const rawThinkingEffort = toString(providerSpecificData.thinkingEffort);
+  return rawThinkingEffort || undefined;
+}
+
+function normalizeProviderModelRecord(
+  rawModel: unknown,
+  fallbackProvider: string,
+  source: string,
+  warning?: string,
+  thinkingEffort?: string
+) {
+  const model = toRecord(rawModel);
+  const id = toString(model.id, "");
+
+  return {
+    id,
+    provider: toString(model.owned_by, toString(model.provider, fallbackProvider)),
+    capabilities: getCatalogModelCapabilities(model),
+    status: normalizeCatalogStatus(model, source, warning),
+    ...(thinkingEffort ? { thinkingEffort } : {}),
+    pricing: model.pricing,
+  };
+}
+
+export async function getMcpModelsCatalog(
+  args: { provider?: string; capability?: string },
+  deps: {
+    fetchJson?: (path: string) => Promise<unknown>;
+    listProviderConnections?: () => Promise<ProviderConnectionLike[]>;
+  } = {}
+): Promise<McpCatalogResponse> {
+  const fetchJson = deps.fetchJson ?? ((path: string) => omniRouteFetch(path));
+  const listProviderConnections = deps.listProviderConnections ?? getProviderConnections;
+  const aliasMap = buildProviderAliasMap();
+  const normalizeProviderId = (value: string) => aliasMap[value] || value;
+  const requestedProvider = args.provider ? normalizeProviderId(args.provider) : null;
+  const requestedCapability = args.capability ? normalizeCapability(args.capability) : null;
+
+  let connections = await listProviderConnections();
+  connections = Array.isArray(connections) ? connections : [];
+
+  const activeConnections = connections.filter((connection) => {
+    const provider = typeof connection?.provider === "string" ? normalizeProviderId(connection.provider) : null;
+    if (!provider || !connection?.id || connection.isActive === false) return false;
+    if (requestedProvider && provider !== requestedProvider) return false;
+    return true;
+  });
+
+  const requestSpecs = activeConnections.map((connection) => ({
+    provider: normalizeProviderId(String(connection.provider)),
+    path: `/api/providers/${encodeURIComponent(String(connection.id))}/models?excludeHidden=true`,
+    thinkingEffort: getConnectionThinkingEffort(connection),
+  }));
+
+  if (requestedProvider && requestSpecs.length === 0) {
+    const isNoAuthProvider = Object.values(NOAUTH_PROVIDERS).some((provider) => provider.id === requestedProvider);
+    if (isNoAuthProvider) {
+      requestSpecs.push({
+        provider: requestedProvider,
+        path: `/api/v1/providers/${encodeURIComponent(requestedProvider)}/models`,
+        thinkingEffort: undefined,
+      });
+    } else {
+      return {
+        models: [],
+        source: "provider_connections",
+        warning: `No active connections found for provider '${requestedProvider}'.`,
+      };
+    }
+  }
+
+  const collectedModels = new Map<string, McpCatalogResponse["models"][number]>();
+  const warnings = new Set<string>();
+  const sources = new Set<string>();
+
+  for (const spec of requestSpecs) {
+    const raw = toRecord(await fetchJson(spec.path));
+    const source = toString(raw.source, spec.path.startsWith("/api/providers/") ? "api" : "v1_catalog");
+    const warning = raw.warning ? String(raw.warning) : undefined;
+    if (warning) warnings.add(warning);
+    sources.add(source);
+
+    const rawModels = Array.isArray(raw.models)
+      ? raw.models
+      : Array.isArray(raw.data)
+        ? raw.data
+        : [];
+
+    for (const rawModel of rawModels) {
+      const normalized = normalizeProviderModelRecord(rawModel, spec.provider, source, warning);
+      if (spec.thinkingEffort && !normalized.thinkingEffort) {
+        normalized.thinkingEffort = spec.thinkingEffort;
+      }
+      if (!normalized.id) continue;
+      if (requestedCapability && !normalized.capabilities.includes(requestedCapability)) continue;
+
+      const key = `${normalized.provider}:${normalized.id}`;
+      if (!collectedModels.has(key)) {
+        collectedModels.set(key, normalized);
+      }
+    }
+  }
+
+  return {
+    models: [...collectedModels.values()],
+    source: sources.size === 1 ? [...sources][0] : "aggregated_provider_models",
+    ...(warnings.size > 0 ? { warning: [...warnings].join(" | ") } : {}),
+  };
+}
+
 function withScopeEnforcement(
   toolName: string,
-  handler: (args: unknown, extra?: McpToolExtraLike) => Promise<TextToolResult>
+  handler: (args: unknown, extra?: McpToolExtraLike) => Promise<TextToolResult>,
+  toolScopes?: readonly string[]
 ) {
   return async (args: unknown, extra?: McpToolExtraLike): Promise<TextToolResult> => {
     const scopeContext = resolveCallerScopeContext(extra, Array.from(MCP_ALLOWED_SCOPES));
-    const scopeCheck = evaluateToolScopes(toolName, scopeContext.scopes, MCP_ENFORCE_SCOPES);
+    const scopeCheck = evaluateToolScopes(toolName, scopeContext.scopes, MCP_ENFORCE_SCOPES, toolScopes);
     if (!scopeCheck.allowed) {
       const missingScopes =
         scopeCheck.missing.length > 0 ? scopeCheck.missing.join(", ") : "unavailable";
@@ -506,50 +729,7 @@ async function handleCostReport(args: { period?: string }) {
 async function handleListModelsCatalog(args: { provider?: string; capability?: string }) {
   const start = Date.now();
   try {
-    let path = "/v1/models";
-    let isProviderSpecific = false;
-    let source = "local_catalog";
-    let warning: string | undefined;
-
-    if (args.provider && !args.capability) {
-      // Use direct provider fetch to get real-time API status
-      path = `/api/providers/${encodeURIComponent(args.provider)}/models?excludeHidden=true`;
-      isProviderSpecific = true;
-    } else {
-      const params = new URLSearchParams();
-      if (args.provider) params.set("provider", args.provider);
-      if (args.capability) params.set("capability", args.capability);
-      if (params.toString()) path += `?${params.toString()}`;
-    }
-
-    const raw = toRecord(await omniRouteFetch(path));
-
-    // If we used the direct provider endpoint
-    let rawModels: unknown[] = [];
-    if (isProviderSpecific) {
-      rawModels = Array.isArray(raw.models) ? raw.models : [];
-      source = typeof raw.source === "string" ? raw.source : "api";
-      if (raw.warning) warning = String(raw.warning);
-    } else {
-      rawModels = Array.isArray(raw.data) ? raw.data : [];
-      source = "local_catalog";
-      // OmniRoute's global /v1/models is always a cached/local catalog
-    }
-
-    const result = {
-      models: rawModels.map((rawModel) => {
-        const model = toRecord(rawModel);
-        return {
-          id: toString(model.id, ""),
-          provider: toString(model.owned_by, toString(model.provider, args.provider || "unknown")),
-          capabilities: toStringArray(model.capabilities, ["chat"]),
-          status: toString(model.status, "available"),
-          pricing: model.pricing,
-        };
-      }),
-      source,
-      ...(warning ? { warning } : {}),
-    };
+    const result = await getMcpModelsCatalog(args);
 
     await logToolCall(
       "omniroute_list_models_catalog",
@@ -658,6 +838,17 @@ export function createMcpServer(): McpServer {
     });
     return registerResource(name, uriOrTemplate as never, metadata as never, readCallback as never);
   }) as typeof server.registerResource;
+
+  const RESERVED_MCP_NAMES = new Set([
+    ...MCP_TOOLS.map((t) => t.name),
+    ...Object.keys(memoryTools),
+    ...Object.keys(skillTools),
+    ...Object.keys(compressionTools),
+    ...pluginTools.map((t) => t.name),
+    ...gamificationTools.map((t) => t.name),
+    ...obsidianTools.map((t) => t.name),
+    ...notionTools.map((t) => t.name),
+  ]);
 
   // Register essential tools
   server.registerTool(
@@ -958,7 +1149,7 @@ export function createMcpServer(): McpServer {
   );
 
   // ── Memory Tools ──────────────────────────────
-  Object.values(memoryTools).forEach((toolDef) => {
+  Object.values(memoryTools).forEach((toolDef: any) => {
     server.registerTool(
       toolDef.name,
       {
@@ -966,22 +1157,53 @@ export function createMcpServer(): McpServer {
         // @ts-ignore: dynamic zod access
         inputSchema: toolDef.inputSchema,
       },
-      withScopeEnforcement(toolDef.name, async (args) => {
-        try {
-          const parsedArgs = toolDef.inputSchema.parse(args ?? {});
-          // @ts-expect-error - handler type lost through dynamic Object.values() access
-          const result = await toolDef.handler(parsedArgs);
-          return { content: [{ type: "text" as const, text: JSON.stringify(result, null, 2) }] };
-        } catch (err) {
-          const msg = err instanceof Error ? err.message : String(err);
-          return { content: [{ type: "text" as const, text: `Error: ${msg}` }], isError: true };
-        }
-      })
+      withScopeEnforcement(
+        toolDef.name,
+        async (args) => {
+          try {
+            const parsedArgs = toolDef.inputSchema.parse(args ?? {});
+            // @ts-ignore - handler type lost through dynamic Object.values() access
+            const result = await toolDef.handler(parsedArgs);
+            return { content: [{ type: "text" as const, text: JSON.stringify(result, null, 2) }] };
+          } catch (err) {
+            const msg = err instanceof Error ? err.message : String(err);
+            return { content: [{ type: "text" as const, text: `Error: ${msg}` }], isError: true };
+          }
+        },
+        toolDef.scopes
+      )
     );
   });
 
   // ── Skill Tools ──────────────────────────────
-  Object.values(skillTools).forEach((toolDef) => {
+  Object.values(skillTools).forEach((toolDef: any) => {
+    server.registerTool(
+      toolDef.name,
+      {
+        description: toolDef.description,
+        // @ts-ignore: dynamic zod access
+        inputSchema: toolDef.inputSchema,
+      },
+      withScopeEnforcement(
+        toolDef.name,
+        async (args) => {
+          try {
+            const parsedArgs = toolDef.inputSchema.parse(args ?? {});
+            // @ts-ignore - handler type lost through dynamic Object.values() access
+            const result = await toolDef.handler(parsedArgs);
+            return { content: [{ type: "text" as const, text: JSON.stringify(result, null, 2) }] };
+          } catch (err) {
+            const msg = err instanceof Error ? err.message : String(err);
+            return { content: [{ type: "text" as const, text: `Error: ${msg}` }], isError: true };
+          }
+        },
+        toolDef.scopes
+      )
+    );
+  });
+
+  // ── Agent Skill Tools ─────────────────────────
+  Object.values(agentSkillTools).forEach((toolDef) => {
     server.registerTool(
       toolDef.name,
       {
@@ -1003,8 +1225,8 @@ export function createMcpServer(): McpServer {
     );
   });
 
-  // ── Compression Tools ─────────────────────────
-  Object.values(compressionTools).forEach((toolDef) => {
+  // ── Plugin Tools ──────────────────────────────
+  pluginTools.forEach((toolDef) => {
     server.registerTool(
       toolDef.name,
       {
@@ -1012,17 +1234,48 @@ export function createMcpServer(): McpServer {
         // @ts-ignore: dynamic zod access
         inputSchema: toolDef.inputSchema,
       },
-      withScopeEnforcement(toolDef.name, async (args) => {
-        try {
-          const parsedArgs = toolDef.inputSchema.parse(args ?? {});
-          // @ts-expect-error - handler type lost through dynamic Object.values() access
-          const result = await toolDef.handler(parsedArgs);
-          return { content: [{ type: "text" as const, text: JSON.stringify(result, null, 2) }] };
-        } catch (err) {
-          const msg = err instanceof Error ? err.message : String(err);
-          return { content: [{ type: "text" as const, text: `Error: ${msg}` }], isError: true };
-        }
-      })
+      withScopeEnforcement(
+        toolDef.name,
+        async (args) => {
+          try {
+            const parsedArgs = toolDef.inputSchema.parse(args ?? {});
+            // @ts-ignore: handler expected specific object
+            const result = await toolDef.handler(parsedArgs);
+            return { content: [{ type: "text" as const, text: JSON.stringify(result, null, 2) }] };
+          } catch (err) {
+            const msg = err instanceof Error ? err.message : String(err);
+            return { content: [{ type: "text" as const, text: `Error: ${msg}` }], isError: true };
+          }
+        },
+        toolDef.scopes
+      )
+    );
+  });
+
+  // ── Compression Tools ─────────────────────────
+  Object.values(compressionTools).forEach((toolDef: any) => {
+    server.registerTool(
+      toolDef.name,
+      {
+        description: toolDef.description,
+        // @ts-ignore: dynamic zod access
+        inputSchema: toolDef.inputSchema,
+      },
+      withScopeEnforcement(
+        toolDef.name,
+        async (args) => {
+          try {
+            const parsedArgs = toolDef.inputSchema.parse(args ?? {});
+            // @ts-ignore - handler type lost through dynamic Object.values() access
+            const result = await toolDef.handler(parsedArgs);
+            return { content: [{ type: "text" as const, text: JSON.stringify(result, null, 2) }] };
+          } catch (err) {
+            const msg = err instanceof Error ? err.message : String(err);
+            return { content: [{ type: "text" as const, text: `Error: ${msg}` }], isError: true };
+          }
+        },
+        toolDef.scopes
+      )
     );
   });
 
@@ -1035,19 +1288,123 @@ export function createMcpServer(): McpServer {
         // @ts-ignore: dynamic zod access
         inputSchema: toolDef.inputSchema,
       },
-      withScopeEnforcement(toolDef.name, async (args) => {
-        try {
-          const parsedArgs = toolDef.inputSchema.parse(args ?? {});
-          // @ts-ignore: handler expected specific object
-          const result = await toolDef.handler(parsedArgs);
-          return { content: [{ type: "text" as const, text: JSON.stringify(result, null, 2) }] };
-        } catch (err) {
-          const msg = err instanceof Error ? err.message : String(err);
-          return { content: [{ type: "text" as const, text: `Error: ${msg}` }], isError: true };
-        }
-      })
+      withScopeEnforcement(
+        toolDef.name,
+        async (args) => {
+          try {
+            const parsedArgs = toolDef.inputSchema.parse(args ?? {});
+            // @ts-ignore: handler expected specific object
+            const result = await toolDef.handler(parsedArgs);
+            return { content: [{ type: "text" as const, text: JSON.stringify(result, null, 2) }] };
+          } catch (err) {
+            const msg = err instanceof Error ? err.message : String(err);
+            return { content: [{ type: "text" as const, text: `Error: ${msg}` }], isError: true };
+          }
+        },
+        toolDef.scopes
+      )
     );
   });
+
+  // ── Notion Context Source Tools ───────────────
+  notionTools.forEach((toolDef) => {
+    server.registerTool(
+      toolDef.name,
+      {
+        description: toolDef.description,
+        // @ts-ignore: dynamic zod access
+        inputSchema: toolDef.inputSchema,
+      },
+      withScopeEnforcement(
+        toolDef.name,
+        async (args) => {
+          try {
+            const parsedArgs = toolDef.inputSchema.parse(args ?? {});
+            // @ts-ignore: handler expected specific object
+            const result = await toolDef.handler(parsedArgs);
+            return { content: [{ type: "text" as const, text: JSON.stringify(result, null, 2) }] };
+          } catch (err) {
+            const msg = err instanceof Error ? err.message : String(err);
+            return { content: [{ type: "text" as const, text: `Error: ${msg}` }], isError: true };
+          }
+        },
+        toolDef.scopes
+      )
+    );
+  });
+
+  // ── Obsidian Context Source Tools ─────────────
+  obsidianTools.forEach((toolDef) => {
+    server.registerTool(
+      toolDef.name,
+      {
+        description: toolDef.description,
+        // @ts-ignore: dynamic zod access
+        inputSchema: toolDef.inputSchema,
+      },
+      withScopeEnforcement(
+        toolDef.name,
+        async (args) => {
+          try {
+            const parsedArgs = toolDef.inputSchema.parse(args ?? {});
+            // @ts-ignore: handler expected specific object
+            const result = await toolDef.handler(parsedArgs);
+            return { content: [{ type: "text" as const, text: JSON.stringify(result, null, 2) }] };
+          } catch (err) {
+            const msg = err instanceof Error ? err.message : String(err);
+            return { content: [{ type: "text" as const, text: `Error: ${msg}` }], isError: true };
+          }
+        },
+        toolDef.scopes
+      )
+    );
+  });
+
+  // ── Dynamic Skill Tools (from skills table) ──
+  const skillToMcpToolName = (skill: { name: string }) => `skill_${skill.name.replace(/[^a-z0-9_-]/gi, "_")}`;
+  try {
+    const enabledSkills = skillRegistry.list().filter((s) => s.enabled);
+    for (const skill of enabledSkills) {
+      const toolName = skillToMcpToolName(skill);
+      if (RESERVED_MCP_NAMES.has(toolName)) continue;
+
+      server.registerTool(
+        toolName,
+        {
+          description: skill.description,
+          inputSchema: z.object({}).passthrough(),
+        },
+        withScopeEnforcement(
+          toolName,
+          async (args, extra) => {
+            const scopeContext = resolveCallerScopeContext(extra, Array.from(MCP_ALLOWED_SCOPES));
+            const apiKeyId = scopeContext.callerId || "mcp";
+            try {
+              const execution = await skillExecutor.execute(
+                skill.name,
+                (args ?? {}) as Record<string, unknown>,
+                { apiKeyId }
+              );
+              return {
+                content: [
+                  { type: "text" as const, text: JSON.stringify(execution.output, null, 2) },
+                ],
+              };
+            } catch (err) {
+              const msg = err instanceof Error ? err.message : String(err);
+              return {
+                content: [{ type: "text" as const, text: `Error: ${msg}` }],
+                isError: true,
+              };
+            }
+          },
+          ["execute:skills"]
+        )
+      );
+    }
+  } catch {
+    // Skills not loaded yet — skip dynamic registration until next reconnect
+  }
 
   return server;
 }

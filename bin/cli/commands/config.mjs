@@ -16,7 +16,7 @@ function ensureBackup(configPath) {
 }
 
 async function runConfigListCommand(opts = {}) {
-  const { detectAllTools } = await import("../../../src/lib/cli-helper/tool-detector.js");
+  const { detectAllTools } = await import("../../../src/lib/cli-helper/tool-detector.ts");
   const tools = await detectAllTools();
 
   if (opts.json) {
@@ -42,7 +42,7 @@ async function runConfigGetCommand(toolId, opts = {}) {
     printError("Tool ID required. Usage: omniroute config get <tool>");
     return 1;
   }
-  const { detectTool } = await import("../../../src/lib/cli-helper/tool-detector.js");
+  const { detectTool } = await import("../../../src/lib/cli-helper/tool-detector.ts");
   const tool = await detectTool(toolId);
   if (!tool) {
     printError(`Unknown tool: ${toolId}`);
@@ -268,27 +268,52 @@ export function registerConfig(program) {
   config
     .command("set <tool>")
     .description("Write config for a tool")
-    .option("--base-url <url>", "OmniRoute API base URL", "http://localhost:20128/v1")
-    .option("--api-key <key>", "API key for the tool")
     .option("--model <model>", "Model identifier (where applicable)")
     .option("--non-interactive", "Do not prompt for confirmation")
     .option("--yes", "Skip confirmation prompt")
     .action(async (tool, opts, cmd) => {
       const globalOpts = cmd.parent.optsWithGlobals();
-      const exitCode = await runConfigSetCommand(tool, { ...opts, output: globalOpts.output });
+      const exitCode = await runConfigSetCommand(tool, {
+        ...opts,
+        apiKey: opts.apiKey || globalOpts.apiKey || process.env.OMNIROUTE_API_KEY,
+        baseUrl: opts.baseUrl || globalOpts.baseUrl || process.env.OMNIROUTE_BASE_URL,
+        output: globalOpts.output,
+      });
       if (exitCode !== 0) process.exit(exitCode);
     });
 
   config
     .command("validate <tool>")
     .description("Validate config format without writing")
-    .option("--base-url <url>", "OmniRoute API base URL", "http://localhost:20128/v1")
-    .option("--api-key <key>", "API key for the tool")
     .option("--model <model>", "Model identifier (where applicable)")
     .option("--json", "Output as JSON")
     .action(async (tool, opts, cmd) => {
       const globalOpts = cmd.parent.optsWithGlobals();
-      const exitCode = await runConfigValidateCommand(tool, { ...opts, output: globalOpts.output });
+      const exitCode = await runConfigValidateCommand(tool, {
+        ...opts,
+        apiKey: opts.apiKey || globalOpts.apiKey || process.env.OMNIROUTE_API_KEY,
+        baseUrl: opts.baseUrl || globalOpts.baseUrl || process.env.OMNIROUTE_BASE_URL,
+        output: globalOpts.output,
+      });
+      if (exitCode !== 0) process.exit(exitCode);
+    });
+
+  // Convenience alias: `config opencode` → `config set opencode`
+  // Matches the documented CLI usage in docs/frameworks/OPENCODE.md.
+  config
+    .command("opencode")
+    .description("Generate OpenCode config (alias for 'config set opencode')")
+    .option("--model <model>", "Model identifier")
+    .option("--non-interactive", "Do not prompt for confirmation")
+    .option("--yes", "Skip confirmation prompt")
+    .action(async (opts, cmd) => {
+      const globalOpts = cmd.parent.optsWithGlobals();
+      const exitCode = await runConfigSetCommand("opencode", {
+        ...opts,
+        apiKey: opts.apiKey || globalOpts.apiKey || process.env.OMNIROUTE_API_KEY,
+        baseUrl: opts.baseUrl || globalOpts.baseUrl || process.env.OMNIROUTE_BASE_URL,
+        output: globalOpts.output,
+      });
       if (exitCode !== 0) process.exit(exitCode);
     });
 

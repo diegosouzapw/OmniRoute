@@ -4,7 +4,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { useLocale, useTranslations } from "next-intl";
 import { Card, Button, Input, EmptyState } from "@/shared/components";
 import { useNotificationStore } from "@/store/notificationStore";
-
+import { compareTr, matchesSearch } from "@/shared/utils/turkishText";
 // ────────────────────────────────────────────────────────────────────────────
 // Types
 // ────────────────────────────────────────────────────────────────────────────
@@ -269,17 +269,16 @@ export default function BudgetTab() {
   // ── Derived data ─────────────────────────────────────────────────────────
 
   const visibleRows = useMemo(() => {
-    const query = searchQuery.trim().toLowerCase();
     const matchesQuery = (r: KeyRow) =>
-      !query ||
-      (r.name || "").toLowerCase().includes(query) ||
-      r.id.toLowerCase().includes(query) ||
-      (r.provider || "").toLowerCase().includes(query);
+      !searchQuery.trim() ||
+      matchesSearch(r.name ?? "", searchQuery) ||
+      matchesSearch(r.id, searchQuery) ||
+      matchesSearch(r.provider ?? "", searchQuery);
     const matchesStatus = (r: KeyRow) => statusFilter === "all" || statusOf(r) === statusFilter;
     const filtered = rows.filter((r) => matchesQuery(r) && matchesStatus(r));
 
     return [...filtered].sort((a, b) => {
-      if (sortKey === "name") return (a.name || a.id).localeCompare(b.name || b.id);
+      if (sortKey === "name") return compareTr(a.name || a.id, b.name || b.id);
       if (sortKey === "todayDesc")
         return (b.budget?.totalCostToday || 0) - (a.budget?.totalCostToday || 0);
       if (sortKey === "monthDesc")
@@ -723,8 +722,12 @@ function BudgetRow({
           borderLeft: `3px solid ${status === "all" ? "transparent" : meta.dot}`,
         }}
       >
-        {/* Checkbox */}
-        <div onClick={(e) => e.stopPropagation()}>
+        {/* Checkbox — wrapper only stops the row-expand trigger from firing */}
+        <div
+          role="presentation"
+          onClick={(e) => e.stopPropagation()}
+          onKeyDown={(e) => e.stopPropagation()}
+        >
           <input type="checkbox" checked={isSelected} onChange={onToggleSelect} />
         </div>
 

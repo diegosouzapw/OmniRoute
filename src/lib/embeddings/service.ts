@@ -13,8 +13,10 @@ import { toJsonErrorPayload } from "@/shared/utils/upstreamError";
 import { getProviderCredentials, clearRecoveredProviderState } from "@/sse/services/auth";
 import { getProviderNodes, getComboByName, getCombos, getDatabaseSettings } from "@/lib/localDb";
 import { handleComboChat } from "@omniroute/open-sse/services/combo.ts";
+import { findEmbeddingComboDimensionConflict } from "./familyGuard";
 
 type ValidatedEmbeddingBody = Record<string, unknown> & { model: string };
+type ProviderCredentialsResult = Awaited<ReturnType<typeof getProviderCredentials>>;
 
 export interface EmbeddingHandlerOptions {
   clientRawRequest?: {
@@ -37,10 +39,28 @@ export async function createEmbeddingResponse(
     try {
       const combo = await getComboByName(modelStr);
       if (combo) {
-        let allCombos: any[] = [];
+        let allCombos: Awaited<ReturnType<typeof getCombos>> = [];
         try {
           allCombos = await getCombos();
         } catch {}
+
+        // Guard: an embedding combo whose targets span multiple vector
+        // dimensions would corrupt any vector store on failover (vectors from
+        // different models are not comparable). The generic combo engine has no
+        // notion of embedding families, so reject loudly here before dispatch.
+        // See _tasks/features-v3.8.12/01-embeddings-combo-family-guard.plan.md.
+        const dimConflict = findEmbeddingComboDimensionConflict(
+          combo as any,
+          allCombos as any
+        );
+        if (dimConflict.conflict) {
+          return errorResponse(
+            HTTP_STATUS.BAD_REQUEST,
+            `Embedding combo "${modelStr}" mixes models with incompatible vector ` +
+              `dimensions (${dimConflict.distinct.join(", ")}). Failover between them ` +
+              `would corrupt your vector store — use a single embedding dimension per combo.`
+          );
+        }
 
         let settings = {};
         try {
@@ -49,7 +69,7 @@ export async function createEmbeddingResponse(
 
         return handleComboChat({
           body,
-          combo,
+          combo: combo as any,
           handleSingleModel: async (reqBody: any, targetModelStr: string, target?: any) => {
             const newBody = { ...reqBody, model: targetModelStr };
             return createEmbeddingResponse(newBody, {
@@ -60,7 +80,7 @@ export async function createEmbeddingResponse(
           isModelAvailable: undefined,
           log,
           settings,
-          allCombos,
+          allCombos: allCombos as any,
           relayOptions: undefined,
           signal: undefined,
         });
@@ -148,7 +168,7 @@ export async function createEmbeddingResponse(
     );
   }
 
-  let credentials: Awaited<ReturnType<typeof getProviderCredentials>> | null = null;
+  let credentials: ProviderCredentialsResult | null = null;
   if (providerConfig.authType !== "none") {
     credentials = await getProviderCredentials(credentialsProviderId);
     if (!credentials) {
@@ -157,7 +177,7 @@ export async function createEmbeddingResponse(
         `No credentials for embedding provider: ${provider}`
       );
     }
-    if (credentials.allRateLimited) {
+    if ("allRateLimited" in credentials && credentials.allRateLimited) {
       return unavailableResponse(
         HTTP_STATUS.RATE_LIMITED,
         `[${provider}] All accounts rate limited`,

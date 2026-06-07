@@ -14,6 +14,7 @@ import { saveCliToolLastConfigured, deleteCliToolLastConfigured } from "@/lib/db
 import { cliModelConfigSchema } from "@/shared/validation/schemas";
 import { isValidationFailure, validateBody } from "@/shared/validation/helpers";
 import { getApiKeyById } from "@/lib/localDb";
+import { normalizeCodexBaseUrl } from "@/shared/utils/codexBaseUrl";
 
 const getCodexConfigPath = () => getCliConfigPaths("codex").config;
 const getCodexAuthPath = () => getCliConfigPaths("codex").auth;
@@ -261,8 +262,7 @@ export async function POST(request: Request) {
       delete parsed._root.model_reasoning_effort;
     }
 
-    // Fix: Codex CLI sends /chat/completions; ensure the base resolves strictly to /api/v1
-    const normalizedBaseUrl = baseUrl.replace(/\/v1\/?$/, "").replace(/\/api\/?$/, "") + "/api/v1";
+    const normalizedBaseUrl = normalizeCodexBaseUrl(baseUrl, wireApi || "chat");
 
     // Always create a custom provider to reliably pass wire_api and use OMNIROUTE_API_KEY
     parsed._root.model_provider = "omniroute";

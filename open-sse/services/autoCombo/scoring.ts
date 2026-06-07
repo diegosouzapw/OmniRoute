@@ -1,13 +1,7 @@
 /**
  * Auto-Combo Scoring Function
  *
- * Calculates a weighted score for each provider candidate based on 6 factors:
- *   1. Quota        (0.20) — residual capacity [0..1]
- *   2. Health       (0.25) — circuit breaker state
- *   3. CostInv      (0.20) — inverse cost normalized to pool
- *   4. LatencyInv   (0.15) — inverse p95 latency normalized to pool
- *   5. TaskFit      (0.10) — model × taskType fitness score
- *   6. Stability    (0.10) — variance-based prediction of consistency
+ * Calculates a weighted score for each provider candidate.
  */
 
 import type { RoutingHint } from "../manifestAdapter";
@@ -22,6 +16,9 @@ export interface ScoringFactors {
   tierPriority: number;
   tierAffinity: number;
   specificityMatch: number;
+  contextAffinity: number;
+  resetWindowAffinity: number;
+  connectionDensity: number;
 }
 
 export interface ScoringWeights {
@@ -34,18 +31,24 @@ export interface ScoringWeights {
   tierPriority: number;
   tierAffinity: number;
   specificityMatch: number;
+  contextAffinity: number;
+  resetWindowAffinity: number;
+  connectionDensity: number;
 }
 
 export const DEFAULT_WEIGHTS: ScoringWeights = {
-  quota: 0.17,
-  health: 0.22,
-  costInv: 0.17,
-  latencyInv: 0.13,
+  quota: 0.15,
+  health: 0.2,
+  costInv: 0.15,
+  latencyInv: 0.12,
   taskFit: 0.08,
   stability: 0.05,
   tierPriority: 0.05,
   tierAffinity: 0.05,
-  specificityMatch: 0.08,
+  specificityMatch: 0.05,
+  contextAffinity: 0.05,
+  resetWindowAffinity: 0,
+  connectionDensity: 0.05,
 };
 
 export interface ProviderCandidate {
@@ -62,6 +65,12 @@ export interface ProviderCandidate {
   accountTier?: "ultra" | "pro" | "standard" | "free";
   /** T10: Optional quota reset interval in seconds (shorter = higher priority when same quota) */
   quotaResetIntervalSecs?: number;
+  /** Score [0..1] for staying on the current session's provider/account/model path. */
+  contextAffinity?: number;
+  /** Score [0..1] for quota reset-window preference; sooner selected reset windows score higher. */
+  resetWindowAffinity?: number;
+  connectionPoolSize?: number;
+  connectionId?: string;
 }
 
 export interface ScoredProvider {
@@ -69,6 +78,7 @@ export interface ScoredProvider {
   model: string;
   score: number;
   factors: ScoringFactors;
+  connectionId?: string;
 }
 
 /**
@@ -85,7 +95,10 @@ export function calculateScore(factors: ScoringFactors, weights: ScoringWeights)
     weights.stability * factors.stability +
     weights.tierPriority * factors.tierPriority +
     (weights.tierAffinity ?? 0) * factors.tierAffinity +
-    (weights.specificityMatch ?? 0) * factors.specificityMatch
+    (weights.specificityMatch ?? 0) * factors.specificityMatch +
+    (weights.contextAffinity ?? 0) * factors.contextAffinity +
+    (weights.resetWindowAffinity ?? 0) * factors.resetWindowAffinity +
+    (weights.connectionDensity ?? 0) * factors.connectionDensity
   );
 }
 
@@ -178,6 +191,9 @@ export function calculateFactors(
     tierPriority: calculateTierScore(candidate.accountTier, candidate.quotaResetIntervalSecs),
     tierAffinity: calculateTierAffinity(candidate, manifestHint),
     specificityMatch: calculateSpecificityMatch(candidate, manifestHint),
+    contextAffinity: candidate.contextAffinity ?? 0.5,
+    resetWindowAffinity: candidate.resetWindowAffinity ?? 0.5,
+    connectionDensity: Math.min(1, Math.max(0, ((candidate.connectionPoolSize ?? 1) - 1) / 10)),
   };
 }
 
@@ -196,6 +212,7 @@ export function scorePool(
         model: candidate.model,
         score: calculateScore(factors, weights),
         factors,
+        connectionId: candidate.connectionId,
       };
     })
     .sort((a, b) => b.score - a.score);

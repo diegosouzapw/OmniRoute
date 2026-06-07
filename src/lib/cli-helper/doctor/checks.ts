@@ -9,7 +9,7 @@ export interface DoctorCheckResult {
 }
 
 export async function collectCliToolChecks(): Promise<DoctorCheckResult[]> {
-  const { detectAllTools } = await import("../tool-detector.js");
+  const { detectAllTools } = await import("../tool-detector.ts");
   const tools = await detectAllTools();
 
   return tools.map((tool) => {

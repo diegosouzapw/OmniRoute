@@ -22,8 +22,8 @@ async function fetchFirstOk(endpoints: string[], init: RequestInit) {
 
 export const antigravity = {
   config: ANTIGRAVITY_CONFIG,
-  flowType: "authorization_code",
-  buildAuthUrl: (config, redirectUri, state) => {
+  flowType: "authorization_code_pkce",
+  buildAuthUrl: (config, redirectUri, state, codeChallenge) => {
     const params = new URLSearchParams({
       client_id: config.clientId,
       response_type: "code",
@@ -33,9 +33,13 @@ export const antigravity = {
       access_type: "offline",
       prompt: "consent",
     });
+    if (codeChallenge) {
+      params.set("code_challenge", codeChallenge);
+      params.set("code_challenge_method", "S256");
+    }
     return `${config.authorizeUrl}?${params.toString()}`;
   },
-  exchangeToken: async (config, code, redirectUri) => {
+  exchangeToken: async (config, code, redirectUri, codeVerifier) => {
     const bodyParams: Record<string, string> = {
       grant_type: "authorization_code",
       client_id: config.clientId,
@@ -45,6 +49,10 @@ export const antigravity = {
 
     if (config.clientSecret) {
       bodyParams.client_secret = config.clientSecret;
+    }
+
+    if (codeVerifier) {
+      bodyParams.code_verifier = codeVerifier;
     }
 
     const response = await fetch(config.tokenUrl, {

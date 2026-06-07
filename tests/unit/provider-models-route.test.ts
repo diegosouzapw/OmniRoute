@@ -196,6 +196,54 @@ test("provider models route retries transient OpenAI-compatible probe failures b
   assert.deepEqual(body.models, [{ id: "demo-model", name: "Demo Model" }]);
 });
 
+test("provider models route discovers SiliconFlow models from configured China base URL", async () => {
+  const connection = await seedConnection("siliconflow", {
+    apiKey: "sf-cn-key",
+    providerSpecificData: {
+      baseUrl: "https://api.siliconflow.cn/v1",
+    },
+  });
+  const seenRequests: Array<{
+    url: string;
+    method: string | undefined;
+    authorization: string | null;
+  }> = [];
+
+  globalThis.fetch = async (url, init) => {
+    const headers = new Headers(init?.headers as HeadersInit | undefined);
+    seenRequests.push({
+      url: String(url),
+      method: init?.method,
+      authorization: headers.get("authorization"),
+    });
+
+    return Response.json({
+      data: [{ id: "Qwen/Qwen3-Coder-480B-A35B-Instruct", name: "Qwen3 Coder" }],
+    });
+  };
+
+  const response = await callRoute(connection.id, "?refresh=true");
+  const body = (await response.json()) as any;
+
+  assert.equal(response.status, 200);
+  assert.equal(body.provider, "siliconflow");
+  assert.equal(body.source, "api");
+  assert.deepEqual(seenRequests, [
+    {
+      url: "https://api.siliconflow.cn/v1/models",
+      method: "GET",
+      authorization: "Bearer sf-cn-key",
+    },
+  ]);
+  assert.deepEqual(body.models, [
+    {
+      id: "Qwen/Qwen3-Coder-480B-A35B-Instruct",
+      name: "Qwen3 Coder",
+      owned_by: "siliconflow",
+    },
+  ]);
+});
+
 test("provider models route returns static catalog entries for providers with hardcoded models", async () => {
   const connection = await seedConnection("bailian-coding-plan", {
     apiKey: "bailian-key",
@@ -356,6 +404,7 @@ test("provider models route returns the local catalog for embedding and rerank p
   assert.equal(voyageBody.source, "local_catalog");
   assert.ok(voyageBody.models.some((model) => model.id === "voyage-4-large"));
   assert.ok(voyageBody.models.some((model) => model.id === "voyage-code-3"));
+  assert.ok(voyageBody.models.some((model) => model.id === "voyage-4-lite"));
 
   assert.equal(jinaResponse.status, 200);
   assert.equal(jinaBody.provider, "jina-ai");
@@ -418,6 +467,27 @@ test("provider models route returns the updated local catalog for GitHub Copilot
     body.models.some((model) => model.id === "gpt-5.1"),
     false
   );
+});
+
+test("provider models route returns codex gpt-5.4 effort variants in the local catalog", async () => {
+  const connection = await seedConnection("codex", {
+    authType: "oauth",
+    apiKey: null,
+    accessToken: "codex-access",
+  });
+
+  const response = await callRoute(connection.id);
+  const body = (await response.json()) as any;
+  const modelIds = new Set((body.models || []).map((model: any) => model.id));
+
+  assert.equal(response.status, 200);
+  assert.equal(body.provider, "codex");
+  assert.equal(body.source, "local_catalog");
+  assert.ok(modelIds.has("gpt-5.4"));
+  assert.ok(modelIds.has("gpt-5.4-low"));
+  assert.ok(modelIds.has("gpt-5.4-medium"));
+  assert.ok(modelIds.has("gpt-5.4-high"));
+  assert.ok(modelIds.has("gpt-5.4-xhigh"));
 });
 
 test("provider models route returns the expanded local catalog for Kiro", async () => {
@@ -591,6 +661,47 @@ test("provider models route honors autoFetchModels=false and skips remote discov
   assert.ok(body.models.some((model) => model.id === "glm-5"));
 });
 
+test("provider models route uses synced models as the authoritative local catalog (#3148)", async () => {
+  // A connection that resolves to the local catalog (auto-fetch off, no remote
+  // discovery). Once a sync has populated the synced-models table for this
+  // provider, the route must surface the synced list — even on a connection
+  // that never ran the sync itself — instead of the static catalog.
+  const connection = await seedConnection("opencode-go", {
+    apiKey: "opencode-go-key",
+    providerSpecificData: {
+      autoFetchModels: false,
+    },
+  });
+
+  await modelsDb.replaceSyncedAvailableModelsForConnection("opencode-go", "synced-conn", [
+    { id: "synced-only-model", name: "Synced Only Model" },
+  ]);
+
+  let called = false;
+  globalThis.fetch = async () => {
+    called = true;
+    return Response.json({ data: [] });
+  };
+
+  const response = await callRoute(connection.id);
+  const body = (await response.json()) as any;
+
+  assert.equal(response.status, 200);
+  assert.equal(body.source, "local_catalog");
+  assert.equal(called, false);
+  // Synced models become the catalog…
+  assert.ok(
+    body.models.some((model) => model.id === "synced-only-model"),
+    "synced model should be present in the local catalog"
+  );
+  // …and the static catalog entries are no longer surfaced for this provider.
+  assert.equal(
+    body.models.some((model) => model.id === "glm-5"),
+    false,
+    "static catalog should be superseded by the synced list"
+  );
+});
+
 test("provider models route validates Gemini CLI credentials before fetching quota buckets", async () => {
   const missingToken = await seedConnection("gemini-cli", {
     authType: "oauth",
@@ -637,6 +748,55 @@ test("provider models route maps Gemini CLI quota buckets into a model list", as
     { id: "gemini-3-pro-preview", name: "gemini-3-pro-preview", owned_by: "google" },
     { id: "gemini-3-flash", name: "gemini-3-flash", owned_by: "google" },
   ]);
+});
+
+test("provider models route prefers providerSpecificData projectId over default-project", async () => {
+  const connection = await seedConnection("gemini-cli", {
+    authType: "oauth",
+    accessToken: "gemini-cli-access",
+    apiKey: null,
+    projectId: "default-project",
+    providerSpecificData: {
+      projectId: "projects/custom-psd-456",
+    },
+  });
+
+  globalThis.fetch = async (url, init = {}) => {
+    assert.equal(String(url), "https://cloudcode-pa.googleapis.com/v1internal:retrieveUserQuota");
+    assert.equal(init.headers.Authorization, "Bearer gemini-cli-access");
+    assert.deepEqual(JSON.parse(String(init.body)), { project: "projects/custom-psd-456" });
+    return Response.json({ buckets: [{ modelId: "gemini-3.1-pro-preview" }] });
+  };
+
+  const response = await callRoute(connection.id);
+  const body = (await response.json()) as any;
+
+  assert.equal(response.status, 200);
+  assert.deepEqual(body.models, [
+    { id: "gemini-3.1-pro-preview", name: "gemini-3.1-pro-preview", owned_by: "google" },
+  ]);
+});
+
+test("provider models route rejects projects/default-project placeholders", async () => {
+  const connection = await seedConnection("gemini-cli", {
+    authType: "oauth",
+    accessToken: "gemini-cli-access",
+    apiKey: null,
+    projectId: "projects/default-project",
+    providerSpecificData: {
+      projectId: "default-project",
+    },
+  });
+
+  globalThis.fetch = async () => {
+    throw new Error("retrieveUserQuota should not be called for placeholder project IDs");
+  };
+
+  const response = await callRoute(connection.id);
+  const body = (await response.json()) as any;
+
+  assert.equal(response.status, 400);
+  assert.equal(body.error, "Gemini CLI project ID not available. Please reconnect OAuth.");
 });
 
 test("provider models route retries Antigravity discovery endpoints before returning remote models", async () => {
@@ -1109,25 +1269,58 @@ test("provider models route discovers Azure OpenAI deployments from the resource
   ]);
 });
 
-test("provider models route discovers Bedrock mantle models from the OpenAI-compatible models endpoint", async () => {
+test("provider models route discovers native Bedrock foundation models and inference profiles", async () => {
   const connection = await seedConnection("bedrock", {
     apiKey: "bedrock-key",
     providerSpecificData: {
-      baseUrl: "https://bedrock-mantle.us-east-1.api.aws",
+      region: "eu-west-2",
     },
   });
+  const seenUrls: string[] = [];
 
   globalThis.fetch = async (url, init = {}) => {
-    assert.equal(String(url), "https://bedrock-mantle.us-east-1.api.aws/v1/models");
+    const target = String(url);
+    seenUrls.push(target);
     assert.equal(init.method, "GET");
     assert.equal(init.headers.Authorization, "Bearer bedrock-key");
 
-    return Response.json({
-      data: [
-        { id: "openai.gpt-oss-120b", display_name: "OpenAI GPT-OSS 120B" },
-        { id: "mistral.mistral-large-3-675b-instruct" },
-      ],
-    });
+    if (
+      target === "https://bedrock.eu-west-2.amazonaws.com/foundation-models?byOutputModality=TEXT"
+    ) {
+      return Response.json({
+        modelSummaries: [
+          {
+            modelId: "anthropic.claude-sonnet-4-6",
+            modelName: "Claude Sonnet 4.6",
+            providerName: "Anthropic",
+            inputModalities: ["TEXT", "IMAGE"],
+            outputModalities: ["TEXT"],
+            responseStreamingSupported: true,
+          },
+        ],
+      });
+    }
+
+    if (
+      target ===
+      "https://bedrock.eu-west-2.amazonaws.com/inference-profiles?maxResults=100&typeEquals=SYSTEM_DEFINED"
+    ) {
+      return Response.json({
+        inferenceProfileSummaries: [
+          {
+            inferenceProfileId: "eu.anthropic.claude-sonnet-4-6",
+            inferenceProfileName: "EU Claude Sonnet 4.6",
+            models: [
+              {
+                modelArn: "arn:aws:bedrock:eu-west-2::foundation-model/anthropic.claude-sonnet-4-6",
+              },
+            ],
+          },
+        ],
+      });
+    }
+
+    throw new Error("unexpected fetch: " + target);
   };
 
   const response = await callRoute(connection.id);
@@ -1136,16 +1329,29 @@ test("provider models route discovers Bedrock mantle models from the OpenAI-comp
   assert.equal(response.status, 200);
   assert.equal(body.provider, "bedrock");
   assert.equal(body.source, "api");
+  assert.deepEqual(seenUrls, [
+    "https://bedrock.eu-west-2.amazonaws.com/foundation-models?byOutputModality=TEXT",
+    "https://bedrock.eu-west-2.amazonaws.com/inference-profiles?maxResults=100&typeEquals=SYSTEM_DEFINED",
+  ]);
   assert.deepEqual(body.models, [
     {
-      id: "openai.gpt-oss-120b",
-      name: "OpenAI GPT-OSS 120B",
-      owned_by: "bedrock",
+      id: "anthropic.claude-sonnet-4-6",
+      name: "Claude Sonnet 4.6",
+      owned_by: "Anthropic",
+      source: "foundation",
+      supportsStreaming: true,
+      supportsVision: true,
+      inputTokenLimit: 1000000,
+      outputTokenLimit: 64000,
     },
     {
-      id: "mistral.mistral-large-3-675b-instruct",
-      name: "mistral.mistral-large-3-675b-instruct",
+      id: "eu.anthropic.claude-sonnet-4-6",
+      name: "EU Claude Sonnet 4.6",
       owned_by: "bedrock",
+      source: "inference_profile",
+      supportsStreaming: true,
+      inputTokenLimit: 1000000,
+      outputTokenLimit: 64000,
     },
   ]);
 });

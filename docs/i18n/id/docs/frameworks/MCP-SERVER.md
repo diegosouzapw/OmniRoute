@@ -1,63 +1,63 @@
-# OmniRoute MCP Server Documentation (Bahasa Indonesia)
+# Dokumentasi Server MCP OmniRoute (Bahasa Indonesia)
 
 🌐 **Languages:** 🇺🇸 [English](../../../../docs/MCP-SERVER.md) · 🇸🇦 [ar](../../ar/docs/MCP-SERVER.md) · 🇧🇬 [bg](../../bg/docs/MCP-SERVER.md) · 🇧🇩 [bn](../../bn/docs/MCP-SERVER.md) · 🇨🇿 [cs](../../cs/docs/MCP-SERVER.md) · 🇩🇰 [da](../../da/docs/MCP-SERVER.md) · 🇩🇪 [de](../../de/docs/MCP-SERVER.md) · 🇪🇸 [es](../../es/docs/MCP-SERVER.md) · 🇮🇷 [fa](../../fa/docs/MCP-SERVER.md) · 🇫🇮 [fi](../../fi/docs/MCP-SERVER.md) · 🇫🇷 [fr](../../fr/docs/MCP-SERVER.md) · 🇮🇳 [gu](../../gu/docs/MCP-SERVER.md) · 🇮🇱 [he](../../he/docs/MCP-SERVER.md) · 🇮🇳 [hi](../../hi/docs/MCP-SERVER.md) · 🇭🇺 [hu](../../hu/docs/MCP-SERVER.md) · 🇮🇩 [id](../../id/docs/MCP-SERVER.md) · 🇮🇹 [it](../../it/docs/MCP-SERVER.md) · 🇯🇵 [ja](../../ja/docs/MCP-SERVER.md) · 🇰🇷 [ko](../../ko/docs/MCP-SERVER.md) · 🇮🇳 [mr](../../mr/docs/MCP-SERVER.md) · 🇲🇾 [ms](../../ms/docs/MCP-SERVER.md) · 🇳🇱 [nl](../../nl/docs/MCP-SERVER.md) · 🇳🇴 [no](../../no/docs/MCP-SERVER.md) · 🇵🇭 [phi](../../phi/docs/MCP-SERVER.md) · 🇵🇱 [pl](../../pl/docs/MCP-SERVER.md) · 🇵🇹 [pt](../../pt/docs/MCP-SERVER.md) · 🇧🇷 [pt-BR](../../pt-BR/docs/MCP-SERVER.md) · 🇷🇴 [ro](../../ro/docs/MCP-SERVER.md) · 🇷🇺 [ru](../../ru/docs/MCP-SERVER.md) · 🇸🇰 [sk](../../sk/docs/MCP-SERVER.md) · 🇸🇪 [sv](../../sv/docs/MCP-SERVER.md) · 🇰🇪 [sw](../../sw/docs/MCP-SERVER.md) · 🇮🇳 [ta](../../ta/docs/MCP-SERVER.md) · 🇮🇳 [te](../../te/docs/MCP-SERVER.md) · 🇹🇭 [th](../../th/docs/MCP-SERVER.md) · 🇹🇷 [tr](../../tr/docs/MCP-SERVER.md) · 🇺🇦 [uk-UA](../../uk-UA/docs/MCP-SERVER.md) · 🇵🇰 [ur](../../ur/docs/MCP-SERVER.md) · 🇻🇳 [vi](../../vi/docs/MCP-SERVER.md) · 🇨🇳 [zh-CN](../../zh-CN/docs/MCP-SERVER.md)
 
 ---
 
-> Model Context Protocol server with 16 intelligent tools
+> Server Model Context Protocol dengan 16 alat cerdas
 
-## Instal
+## Instalasi
 
-OmniRoute MCP is built-in. Start it with:
+OmniRoute MCP sudah tersedia secara bawaan. Jalankan dengan:
 
 ```bash
 omniroute --mcp
 ```
 
-Or via the open-sse transport:
+Atau melalui transport open-sse:
 
 ```bash
 # HTTP streamable transport (port 20130)
 omniroute --dev  # MCP auto-starts on /mcp endpoint
 ```
 
-## IDE Configuration
+## Konfigurasi IDE
 
-See [IDE Configs](integrations/ide-configs.md) for Antigravity, Cursor, Copilot, and Claude Desktop setup.
+Lihat [Konfigurasi IDE](integrations/ide-configs.md) untuk pengaturan Antigravity, Cursor, Copilot, dan Claude Desktop.
 
 ---
 
-## Essential Tools (8)
+## Alat Esensial (8)
 
-| Tool                            | Description                              |
-| :------------------------------ | :--------------------------------------- |
-| `omniroute_get_health`          | Gateway health, circuit breakers, uptime |
-| `omniroute_list_combos`         | All configured combos with models        |
-| `omniroute_get_combo_metrics`   | Performance metrics for a specific combo |
-| `omniroute_switch_combo`        | Switch active combo by ID/name           |
-| `omniroute_check_quota`         | Quota status per provider or all         |
-| `omniroute_route_request`       | Send a chat completion through OmniRoute |
-| `omniroute_cost_report`         | Cost analytics for a time period         |
-| `omniroute_list_models_catalog` | Full model catalog with capabilities     |
+| Alat                            | Deskripsi                                                         |
+| :------------------------------ | :---------------------------------------------------------------- |
+| `omniroute_get_health`          | Kesehatan gateway, pemutus sirkuit, uptime                        |
+| `omniroute_list_combos`         | Semua combo yang dikonfigurasi beserta modelnya                   |
+| `omniroute_get_combo_metrics`   | Metrik performa untuk combo tertentu                              |
+| `omniroute_switch_combo`        | Ganti combo aktif berdasarkan ID/nama                             |
+| `omniroute_check_quota`         | Status kuota per penyedia atau semua penyedia                     |
+| `omniroute_route_request`       | Kirim penyelesaian chat melalui OmniRoute                         |
+| `omniroute_cost_report`         | Analitik biaya untuk periode waktu tertentu                       |
+| `omniroute_list_models_catalog` | Katalog model lengkap beserta kemampuannya                        |
 
-## Advanced Tools (8)
+## Alat Lanjutan (8)
 
-| Tool                               | Description                                                 |
-| :--------------------------------- | :---------------------------------------------------------- |
-| `omniroute_simulate_route`         | Dry-run routing simulation with fallback tree               |
-| `omniroute_set_budget_guard`       | Session budget with degrade/block/alert actions             |
-| `omniroute_set_resilience_profile` | Apply conservative/balanced/aggressive preset               |
-| `omniroute_test_combo`             | Live-test all models in a combo via a real upstream request |
-| `omniroute_get_provider_metrics`   | Detailed metrics for one provider                           |
-| `omniroute_best_combo_for_task`    | Task-fitness recommendation with alternatives               |
-| `omniroute_explain_route`          | Explain a past routing decision                             |
-| `omniroute_get_session_snapshot`   | Full session state: costs, tokens, errors                   |
+| Alat                               | Deskripsi                                                              |
+| :--------------------------------- | :--------------------------------------------------------------------- |
+| `omniroute_simulate_route`         | Simulasi routing percobaan dengan pohon fallback                       |
+| `omniroute_set_budget_guard`       | Anggaran sesi dengan tindakan degrade/block/alert                      |
+| `omniroute_set_resilience_profile` | Terapkan preset conservative/balanced/aggressive                       |
+| `omniroute_test_combo`             | Uji langsung semua model dalam combo melalui permintaan upstream nyata |
+| `omniroute_get_provider_metrics`   | Metrik terperinci untuk satu penyedia                                  |
+| `omniroute_best_combo_for_task`    | Rekomendasi kesesuaian tugas beserta alternatifnya                     |
+| `omniroute_explain_route`          | Jelaskan keputusan routing yang lalu                                   |
+| `omniroute_get_session_snapshot`   | Status sesi lengkap: biaya, token, kesalahan                           |
 
-## Authentication
+## Autentikasi
 
-MCP tools are authenticated via API key scopes. Each tool requires specific scopes:
+Alat MCP diautentikasi melalui lingkup kunci API. Setiap alat memerlukan lingkup tertentu:
 
-| Scope          | Tools                                            |
+| Lingkup        | Alat                                             |
 | :------------- | :----------------------------------------------- |
 | `read:health`  | get_health, get_provider_metrics                 |
 | `read:combos`  | list_combos, get_combo_metrics                   |
@@ -68,20 +68,20 @@ MCP tools are authenticated via API key scopes. Each tool requires specific scop
 | `write:config` | set_budget_guard, set_resilience_profile         |
 | `read:models`  | list_models_catalog, best_combo_for_task         |
 
-## Audit Logging
+## Pencatatan Audit
 
-Every tool call is logged to `mcp_tool_audit` with:
+Setiap pemanggilan alat dicatat ke `mcp_tool_audit` dengan:
 
-- Tool name, arguments, result
-- Duration (ms), success/failure
-- API key hash, timestamp
+- Nama alat, argumen, hasil
+- Durasi (ms), berhasil/gagal
+- Hash kunci API, cap waktu
 
-## Files
+## Berkas
 
-| File                                         | Purpose                                     |
-| :------------------------------------------- | :------------------------------------------ |
-| `open-sse/mcp-server/server.ts`              | MCP server creation + 16 tool registrations |
-| `open-sse/mcp-server/transport.ts`           | Stdio + HTTP transport                      |
-| `open-sse/mcp-server/auth.ts`                | API key + scope validation                  |
-| `open-sse/mcp-server/audit.ts`               | Tool call audit logging                     |
-| `open-sse/mcp-server/tools/advancedTools.ts` | 8 advanced tool handlers                    |
+| Berkas                                       | Tujuan                                               |
+| :------------------------------------------- | :--------------------------------------------------- |
+| `open-sse/mcp-server/server.ts`              | Pembuatan server MCP + pendaftaran 16 alat           |
+| `open-sse/mcp-server/transport.ts`           | Transportasi Stdio + HTTP                            |
+| `open-sse/mcp-server/auth.ts`                | Validasi kunci API + lingkup                         |
+| `open-sse/mcp-server/audit.ts`               | Pencatatan audit pemanggilan alat                    |
+| `open-sse/mcp-server/tools/advancedTools.ts` | 8 pengendali alat lanjutan                           |

@@ -11,6 +11,7 @@ import {
   normalizeCliCompatProviderId,
 } from "@/shared/constants/cliCompatProviders";
 import { AI_PROVIDERS } from "@/shared/constants/providers";
+import { compareTr } from "@/shared/utils/turkishText";
 
 // Provider keys (mirror of open-sse/services/systemTransforms.ts).
 const PROVIDER_CLAUDE = "claude";
@@ -28,7 +29,7 @@ const PROVIDER_CATALOG: ProviderCatalogEntry[] = (() => {
     name: p.name ?? p.id,
   }));
   entries.push({ id: PROVIDER_CC_BRIDGE, name: "Anthropic-compatible CC bridge" });
-  entries.sort((a, b) => a.name.localeCompare(b.name));
+  entries.sort((a, b) => compareTr(a.name, b.name));
   return entries;
 })();
 
@@ -46,6 +47,12 @@ const DEFAULT_PARAGRAPH_REMOVAL_ANCHORS = [
   "github.com/cline/cline",
   "github.com/getcursor/cursor",
   "continue.dev",
+];
+
+const PI_PARAGRAPH_ANCHORS = [
+  "@earendil-works/pi-coding-agent",
+  "/.pi/",
+  "Pi documentation (read only when the user asks about pi itself",
 ];
 
 const DEFAULT_IDENTITY_PREFIXES = ["You are OpenCode"];
@@ -85,7 +92,11 @@ const DEFAULT_SYSTEM_TRANSFORMS_CLIENT = {
       pipeline: [
         {
           kind: "drop_paragraph_if_contains",
-          needles: [...DEFAULT_PARAGRAPH_REMOVAL_ANCHORS, ...OPENWEBUI_PARAGRAPH_ANCHORS],
+          needles: [
+            ...DEFAULT_PARAGRAPH_REMOVAL_ANCHORS,
+            ...OPENWEBUI_PARAGRAPH_ANCHORS,
+            ...PI_PARAGRAPH_ANCHORS,
+          ],
         },
         {
           kind: "drop_paragraph_if_starts_with",

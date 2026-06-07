@@ -48,6 +48,10 @@ export function isPrivateHost(hostname: string) {
     normalized === "::1" ||
     normalized.endsWith(".localhost") ||
     normalized.endsWith(".local") ||
+    // `.internal` is reserved for private use (ICANN-style) and is the
+    // hostname suffix used by GCP/Azure metadata probes
+    // (e.g. `metadata.google.internal`).
+    normalized.endsWith(".internal") ||
     normalized.startsWith("::ffff:")
   ) {
     return true;
@@ -74,6 +78,27 @@ export function isPrivateHost(hostname: string) {
     );
   }
 
+  return false;
+}
+
+const CLOUD_METADATA_HOSTNAMES = new Set([
+  "169.254.169.254", // AWS / GCP / Azure / Oracle IMDS
+  "metadata.google.internal", // GCP
+  "metadata.goog", // GCP
+  "100.100.100.200", // Alibaba Cloud
+  "fd00:ec2::254", // AWS IPv6 IMDS
+]);
+
+/**
+ * Cloud-metadata and IPv4 link-local (169.254.0.0/16) endpoints are the classic
+ * SSRF→IAM-credential pivot and have no legitimate webhook/automation use case. They are
+ * blocked UNCONDITIONALLY — even when private targets are explicitly opted in. (#3269)
+ */
+export function isCloudMetadataHost(hostname: string): boolean {
+  const host = normalizeHost(hostname);
+  if (!host) return false;
+  if (CLOUD_METADATA_HOSTNAMES.has(host)) return true;
+  if (host.startsWith("169.254.")) return true; // IPv4 link-local /16
   return false;
 }
 
@@ -121,20 +146,66 @@ export function parseAndValidatePublicUrl(input: string | URL) {
   return url;
 }
 
+/**
+ * Webhook variant of {@link parseAndValidatePublicUrl}. Webhooks legitimately point at
+ * internal services (n8n, Home Assistant, a LAN box) in Docker/self-hosted deployments,
+ * so the private-host block is gated behind the same explicit opt-in used for private
+ * provider URLs (`OMNIROUTE_ALLOW_PRIVATE_PROVIDER_URLS`, default OFF). Protocol and
+ * embedded-credential checks in {@link parseOutboundUrl} remain unconditional. (#3269)
+ */
+export function parseAndValidateWebhookUrl(input: string | URL) {
+  const url = parseOutboundUrl(input);
+
+  // Cloud-metadata / link-local endpoints are NEVER a valid webhook target — block them
+  // even when the private opt-in is enabled (SSRF→IAM-credential pivot). (#3269)
+  if (isCloudMetadataHost(url.hostname)) {
+    throw new OutboundUrlGuardError(PROVIDER_URL_BLOCKED_MESSAGE, {
+      code: "OUTBOUND_URL_GUARD_BLOCKED",
+      url: url.toString(),
+      hostname: url.hostname || null,
+    });
+  }
+
+  if (!arePrivateProviderUrlsAllowed() && isPrivateHost(url.hostname)) {
+    throw new OutboundUrlGuardError(PROVIDER_URL_BLOCKED_MESSAGE, {
+      code: "OUTBOUND_URL_GUARD_BLOCKED",
+      url: url.toString(),
+      hostname: url.hostname || null,
+    });
+  }
+
+  return url;
+}
+
+function isTrueValue(raw: unknown): boolean {
+  if (typeof raw !== "string") return false;
+  return TRUE_ENV_VALUES.has(raw.trim().toLowerCase());
+}
+
 export function arePrivateProviderUrlsAllowed() {
-  const value = process.env[PRIVATE_PROVIDER_URLS_ENV];
-  if (value && TRUE_ENV_VALUES.has(value.trim().toLowerCase())) return true;
-
-  const legacyValue = process.env["OUTBOUND_SSRF_GUARD_ENABLED"];
-  if (legacyValue && ["false", "0", "no", "off"].includes(legacyValue.trim().toLowerCase()))
-    return true;
-
-  // Check feature flag DB override — supports runtime toggle without restart
+  // 1) DB override takes precedence — it represents an explicit user toggle in
+  //    the dashboard ("Allow Private Provider URLs"). This is critical for the
+  //    Electron build (#2575) where the server is spawned with the env value
+  //    captured at boot, so subsequent UI toggles only land in the DB and the
+  //    env-first ordering would otherwise mask them.
   try {
     const dbValue = resolveFeatureFlag(PRIVATE_PROVIDER_URLS_ENV);
-    if (dbValue && TRUE_ENV_VALUES.has(dbValue.trim().toLowerCase())) return true;
+    if (isTrueValue(dbValue)) return true;
   } catch {
-    // DB not initialized yet — fall back to env-only check
+    // DB not initialized yet — fall through to env-only check.
+  }
+
+  // 2) Explicit env opt-in (for headless/Docker users who set it before boot).
+  if (isTrueValue(process.env[PRIVATE_PROVIDER_URLS_ENV])) return true;
+
+  // 3) Legacy escape hatch — disabling the outbound guard implies allowing
+  //    private URLs.
+  const legacyValue = process.env["OUTBOUND_SSRF_GUARD_ENABLED"];
+  if (
+    typeof legacyValue === "string" &&
+    ["false", "0", "no", "off"].includes(legacyValue.trim().toLowerCase())
+  ) {
+    return true;
   }
 
   return false;

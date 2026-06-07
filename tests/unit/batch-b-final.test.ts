@@ -21,7 +21,7 @@ import {
 
 describe("evalRunner", () => {
   after(() => {
-    // Re-register golden set since resetSuites clears everything
+    // Remove test-registered suites while preserving built-ins.
     resetSuites();
   });
 
@@ -94,6 +94,50 @@ describe("evalRunner", () => {
     assert.equal(result.passed, true);
   });
 
+  it("should fail regex when expected value is missing", () => {
+    const result = evaluateCase(
+      {
+        id: "t4-missing",
+        name: "test",
+        model: "test",
+        input: {},
+        expected: { strategy: "regex" },
+      },
+      "The answer is 42."
+    );
+    assert.equal(result.passed, false);
+    assert.equal(result.details.error, "No regex value provided for evaluation.");
+  });
+
+  it("should reject oversized regex patterns", () => {
+    const result = evaluateCase(
+      {
+        id: "t4-large",
+        name: "test",
+        model: "test",
+        input: {},
+        expected: { strategy: "regex", value: "a".repeat(513) },
+      },
+      "test"
+    );
+    assert.equal(result.passed, false);
+    assert.equal(result.details.error, "Regex pattern too large for safe evaluation.");
+  });
+
+  it("should evaluate stateful RegExp values consistently", () => {
+    const regex = /answer/g;
+    const evalCase = {
+      id: "t4-stateful",
+      name: "test",
+      model: "test",
+      input: {},
+      expected: { strategy: "regex", value: regex },
+    };
+
+    assert.equal(evaluateCase(evalCase, "answer").passed, true);
+    assert.equal(evaluateCase(evalCase, "answer").passed, true);
+  });
+
   it("should evaluate custom function", () => {
     const result = evaluateCase(
       {
@@ -115,6 +159,26 @@ describe("evalRunner", () => {
     );
     assert.equal(result.passed, false);
     assert.ok(result.error.includes("Unknown strategy"));
+  });
+
+  it("should normalize non-Error thrown values", () => {
+    const result = evaluateCase(
+      {
+        id: "t7",
+        name: "test",
+        model: "test",
+        input: {},
+        expected: {
+          strategy: "custom",
+          fn: () => {
+            throw "custom failure";
+          },
+        },
+      },
+      "test"
+    );
+    assert.equal(result.passed, false);
+    assert.equal(result.error, "custom failure");
   });
 
   it("should run suite and produce summary", () => {
@@ -156,6 +220,14 @@ describe("evalRunner", () => {
   it("should throw on unknown suite", () => {
     assert.throws(() => runSuite("nonexistent", {}), { message: /not found/ });
   });
+
+  it("should restore built-in suites when resetting test suites", () => {
+    registerSuite({ id: "temporary-suite", name: "Temporary", cases: [] });
+    resetSuites();
+
+    assert.equal(getSuite("temporary-suite"), null);
+    assert.ok(getSuite("golden-set"));
+  });
 });
 
 // ──────────────── T-35: a11y Audit ────────────────
@@ -166,8 +238,7 @@ describe("a11yAudit", () => {
   it("should pass for compliant HTML", () => {
     const html = '<button aria-label="Close">X</button><img alt="Logo" src="logo.png" />';
     const violations = auditHTML(html);
-    const noImgViolations = violations.filter((v) => v.id !== WCAG_RULES.ARIA_LABEL);
-    assert.equal(noImgViolations.length, 0);
+    assert.equal(violations.length, 0);
   });
 
   it("should detect images without alt text", () => {
@@ -210,6 +281,7 @@ describe("a11yAudit", () => {
 // ──────────────── T-39: Responsive Specs ────────────────
 
 import {
+  A11Y_CHECKS,
   VIEWPORTS,
   PAGES,
   generateTestMatrix,
@@ -242,6 +314,12 @@ describe("responsiveSpecs", () => {
   it("should get viewport names", () => {
     const names = getViewportNames();
     assert.deepEqual(names, ["mobile", "tablet", "desktop"]);
+  });
+
+  it("should separate executable and manual accessibility checks", () => {
+    assert.ok(A11Y_CHECKS.some((check) => check.kind === "evaluate"));
+    assert.ok(A11Y_CHECKS.some((check) => check.kind === "manual"));
+    assert.ok(A11Y_CHECKS.every((check) => typeof check.criteria === "string"));
   });
 });
 

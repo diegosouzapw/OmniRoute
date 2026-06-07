@@ -1,132 +1,89 @@
-# Contributor Covenant Code of Conduct (Bahasa Indonesia)
+# Kode Etik Contributor Covenant (Bahasa Indonesia)
 
 🌐 **Languages:** 🇺🇸 [English](../../../CODE_OF_CONDUCT.md) · 🇸🇦 [ar](../ar/CODE_OF_CONDUCT.md) · 🇧🇬 [bg](../bg/CODE_OF_CONDUCT.md) · 🇧🇩 [bn](../bn/CODE_OF_CONDUCT.md) · 🇨🇿 [cs](../cs/CODE_OF_CONDUCT.md) · 🇩🇰 [da](../da/CODE_OF_CONDUCT.md) · 🇩🇪 [de](../de/CODE_OF_CONDUCT.md) · 🇪🇸 [es](../es/CODE_OF_CONDUCT.md) · 🇮🇷 [fa](../fa/CODE_OF_CONDUCT.md) · 🇫🇮 [fi](../fi/CODE_OF_CONDUCT.md) · 🇫🇷 [fr](../fr/CODE_OF_CONDUCT.md) · 🇮🇳 [gu](../gu/CODE_OF_CONDUCT.md) · 🇮🇱 [he](../he/CODE_OF_CONDUCT.md) · 🇮🇳 [hi](../hi/CODE_OF_CONDUCT.md) · 🇭🇺 [hu](../hu/CODE_OF_CONDUCT.md) · 🇮🇩 [id](../id/CODE_OF_CONDUCT.md) · 🇮🇹 [it](../it/CODE_OF_CONDUCT.md) · 🇯🇵 [ja](../ja/CODE_OF_CONDUCT.md) · 🇰🇷 [ko](../ko/CODE_OF_CONDUCT.md) · 🇮🇳 [mr](../mr/CODE_OF_CONDUCT.md) · 🇲🇾 [ms](../ms/CODE_OF_CONDUCT.md) · 🇳🇱 [nl](../nl/CODE_OF_CONDUCT.md) · 🇳🇴 [no](../no/CODE_OF_CONDUCT.md) · 🇵🇭 [phi](../phi/CODE_OF_CONDUCT.md) · 🇵🇱 [pl](../pl/CODE_OF_CONDUCT.md) · 🇵🇹 [pt](../pt/CODE_OF_CONDUCT.md) · 🇧🇷 [pt-BR](../pt-BR/CODE_OF_CONDUCT.md) · 🇷🇴 [ro](../ro/CODE_OF_CONDUCT.md) · 🇷🇺 [ru](../ru/CODE_OF_CONDUCT.md) · 🇸🇰 [sk](../sk/CODE_OF_CONDUCT.md) · 🇸🇪 [sv](../sv/CODE_OF_CONDUCT.md) · 🇰🇪 [sw](../sw/CODE_OF_CONDUCT.md) · 🇮🇳 [ta](../ta/CODE_OF_CONDUCT.md) · 🇮🇳 [te](../te/CODE_OF_CONDUCT.md) · 🇹🇭 [th](../th/CODE_OF_CONDUCT.md) · 🇹🇷 [tr](../tr/CODE_OF_CONDUCT.md) · 🇺🇦 [uk-UA](../uk-UA/CODE_OF_CONDUCT.md) · 🇵🇰 [ur](../ur/CODE_OF_CONDUCT.md) · 🇻🇳 [vi](../vi/CODE_OF_CONDUCT.md) · 🇨🇳 [zh-CN](../zh-CN/CODE_OF_CONDUCT.md)
 
 ---
 
-## Our Pledge
+## Ikrar Kami
 
-We as members, contributors, and leaders pledge to make participation in our
-community a harassment-free experience for everyone, regardless of age, body
-size, visible or invisible disability, ethnicity, sex characteristics, gender
-identity and expression, level of experience, education, socio-economic status,
-nationality, personal appearance, race, religion, or sexual identity
-and orientation.
+Kami sebagai anggota, kontributor, dan pemimpin berjanji untuk menjadikan partisipasi dalam komunitas kami sebagai pengalaman yang bebas dari pelecehan bagi semua orang, tanpa memandang usia, ukuran tubuh, disabilitas yang terlihat maupun tidak terlihat, etnisitas, karakteristik seks, identitas dan ekspresi gender, tingkat pengalaman, pendidikan, status sosial-ekonomi, kebangsaan, penampilan pribadi, ras, agama, atau identitas dan orientasi seksual.
 
-We pledge to act and interact in ways that contribute to an open, welcoming,
-diverse, inclusive, and healthy community.
+Kami berjanji untuk bertindak dan berinteraksi dengan cara yang berkontribusi pada komunitas yang terbuka, ramah, beragam, inklusif, dan sehat.
 
-## Our Standards
+## Standar Kami
 
-Examples of behavior that contributes to a positive environment for our
-community include:
+Contoh perilaku yang berkontribusi pada lingkungan yang positif bagi komunitas kami meliputi:
 
-- Demonstrating empathy and kindness toward other people
-- Being respectful of differing opinions, viewpoints, and experiences
-- Giving and gracefully accepting constructive feedback
-- Accepting responsibility and apologizing to those affected by our mistakes,
-  and learning from the experience
-- Focusing on what is best not just for us as individuals, but for the
-  overall community
+- Menunjukkan empati dan kebaikan terhadap orang lain
+- Menghormati pendapat, sudut pandang, dan pengalaman yang berbeda
+- Memberikan dan menerima umpan balik yang konstruktif dengan lapang dada
+- Menerima tanggung jawab dan meminta maaf kepada mereka yang terdampak oleh kesalahan kita, serta belajar dari pengalaman tersebut
+- Berfokus pada apa yang terbaik bukan hanya bagi kita sebagai individu, tetapi bagi komunitas secara keseluruhan
 
-Examples of unacceptable behavior include:
+Contoh perilaku yang tidak dapat diterima meliputi:
 
-- The use of sexualized language or imagery, and sexual attention or
-  advances of any kind
-- Trolling, insulting or derogatory comments, and personal or political attacks
-- Public or private harassment
-- Publishing others' private information, such as a physical or email
-  address, without their explicit permission
-- Other conduct which could reasonably be considered inappropriate in a
-  professional setting
+- Penggunaan bahasa atau citra yang bersifat seksual, serta perhatian atau rayuan seksual dalam bentuk apa pun
+- Trolling, komentar menghina atau merendahkan, serta serangan pribadi atau politis
+- Pelecehan di ranah publik maupun privat
+- Mempublikasikan informasi pribadi orang lain, seperti alamat fisik atau email, tanpa izin eksplisit mereka
+- Perilaku lain yang secara wajar dapat dianggap tidak pantas dalam lingkungan profesional
 
-## Enforcement Responsibilities
+## Tanggung Jawab Penegakan
 
-Community leaders are responsible for clarifying and enforcing our standards of
-acceptable behavior and will take appropriate and fair corrective action in
-response to any behavior that they deem inappropriate, threatening, offensive,
-or harmful.
+Pemimpin komunitas bertanggung jawab untuk mengklarifikasi dan menegakkan standar perilaku yang dapat diterima, serta akan mengambil tindakan korektif yang tepat dan adil sebagai respons terhadap perilaku apa pun yang mereka anggap tidak pantas, mengancam, menyinggung, atau merugikan.
 
-Community leaders have the right and responsibility to remove, edit, or reject
-comments, commits, code, wiki edits, issues, and other contributions that are
-not aligned to this Code of Conduct, and will communicate reasons for moderation
-decisions when appropriate.
+Pemimpin komunitas memiliki hak dan tanggung jawab untuk menghapus, mengedit, atau menolak komentar, commit, kode, suntingan wiki, isu, dan kontribusi lain yang tidak sesuai dengan Kode Etik ini, serta akan mengomunikasikan alasan keputusan moderasi bila diperlukan.
 
-## Scope
+## Cakupan
 
-This Code of Conduct applies within all community spaces, and also applies when
-an individual is officially representing the community in public spaces.
-Examples of representing our community include using an official e-mail address,
-posting via an official social media account, or acting as an appointed
-representative at an online or offline event.
+Kode Etik ini berlaku di semua ruang komunitas, dan juga berlaku ketika seseorang secara resmi mewakili komunitas di ruang publik. Contoh perwakilan komunitas kita meliputi penggunaan alamat email resmi, posting melalui akun media sosial resmi, atau bertindak sebagai perwakilan yang ditunjuk pada acara daring maupun luring.
 
-## Enforcement
+## Penegakan
 
-Instances of abusive, harassing, or otherwise unacceptable behavior may be
-reported to the community leaders responsible for enforcement at
+Kasus perilaku kasar, melecehkan, atau tidak dapat diterima lainnya dapat dilaporkan kepada pemimpin komunitas yang bertanggung jawab atas penegakan di
 .
-All complaints will be reviewed and investigated promptly and fairly.
+Semua pengaduan akan ditinjau dan diselidiki dengan segera dan adil.
 
-All community leaders are obligated to respect the privacy and security of the
-reporter of any incident.
+Semua pemimpin komunitas berkewajiban untuk menghormati privasi dan keamanan pelapor dari setiap insiden.
 
-## Enforcement Guidelines
+## Pedoman Penegakan
 
-Community leaders will follow these Community Impact Guidelines in determining
-the consequences for any action they deem in violation of this Code of Conduct:
+Pemimpin komunitas akan mengikuti Pedoman Dampak Komunitas ini dalam menentukan konsekuensi atas setiap tindakan yang mereka anggap melanggar Kode Etik ini:
 
-### 1. Correction
+### 1. Koreksi
 
-**Community Impact**: Use of inappropriate language or other behavior deemed
-unprofessional or unwelcome in the community.
+**Dampak Komunitas**: Penggunaan bahasa yang tidak pantas atau perilaku lain yang dianggap tidak profesional atau tidak diinginkan dalam komunitas.
 
-**Consequence**: A private, written warning from community leaders, providing
-clarity around the nature of the violation and an explanation of why the
-behavior was inappropriate. A public apology may be requested.
+**Konsekuensi**: Peringatan tertulis secara privat dari pemimpin komunitas, yang memberikan kejelasan mengenai sifat pelanggaran dan penjelasan mengapa perilaku tersebut tidak pantas. Permohonan maaf secara publik mungkin diminta.
 
-### 2. Warning
+### 2. Peringatan
 
-**Community Impact**: A violation through a single incident or series
-of actions.
+**Dampak Komunitas**: Pelanggaran melalui satu insiden atau serangkaian tindakan.
 
-**Consequence**: A warning with consequences for continued behavior. No
-interaction with the people involved, including unsolicited interaction with
-those enforcing the Code of Conduct, for a specified period of time. This
-includes avoiding interactions in community spaces as well as external channels
-like social media. Violating these terms may lead to a temporary or
-permanent ban.
+**Konsekuensi**: Peringatan dengan konsekuensi apabila perilaku tersebut berlanjut. Tidak ada interaksi dengan pihak-pihak yang terlibat, termasuk interaksi yang tidak diminta dengan mereka yang menegakkan Kode Etik, selama jangka waktu tertentu. Hal ini mencakup penghindaran interaksi di ruang komunitas maupun di saluran eksternal seperti media sosial. Melanggar ketentuan ini dapat mengakibatkan larangan sementara atau permanen.
 
-### 3. Temporary Ban
+### 3. Larangan Sementara
 
-**Community Impact**: A serious violation of community standards, including
-sustained inappropriate behavior.
+**Dampak Komunitas**: Pelanggaran serius terhadap standar komunitas, termasuk perilaku tidak pantas yang berkelanjutan.
 
-**Consequence**: A temporary ban from any sort of interaction or public
-communication with the community for a specified period of time. No public or
-private interaction with the people involved, including unsolicited interaction
-with those enforcing the Code of Conduct, is allowed during this period.
-Violating these terms may lead to a permanent ban.
+**Konsekuensi**: Larangan sementara dari segala bentuk interaksi atau komunikasi publik dengan komunitas selama jangka waktu tertentu. Tidak ada interaksi publik maupun privat dengan pihak-pihak yang terlibat, termasuk interaksi yang tidak diminta dengan mereka yang menegakkan Kode Etik, yang diizinkan selama periode ini. Melanggar ketentuan ini dapat mengakibatkan larangan permanen.
 
-### 4. Permanent Ban
+### 4. Larangan Permanen
 
-**Community Impact**: Demonstrating a pattern of violation of community
-standards, including sustained inappropriate behavior, harassment of an
-individual, or aggression toward or disparagement of classes of individuals.
+**Dampak Komunitas**: Menunjukkan pola pelanggaran standar komunitas, termasuk perilaku tidak pantas yang berkelanjutan, pelecehan terhadap individu, atau agresi terhadap atau penghinaan kepada golongan individu tertentu.
 
-**Consequence**: A permanent ban from any sort of public interaction within
-the community.
+**Konsekuensi**: Larangan permanen dari segala bentuk interaksi publik dalam komunitas.
 
-## Attribution
+## Atribusi
 
-This Code of Conduct is adapted from the [Contributor Covenant][homepage],
-version 2.0, available at
+Kode Etik ini diadaptasi dari [Contributor Covenant][homepage],
+versi 2.0, tersedia di
 https://www.contributor-covenant.org/version/2/0/code_of_conduct.html.
 
-Community Impact Guidelines were inspired by [Mozilla's code of conduct
-enforcement ladder](https://github.com/mozilla/diversity).
+Pedoman Dampak Komunitas terinspirasi dari [tangga penegakan kode etik Mozilla](https://github.com/mozilla/diversity).
 
 [homepage]: https://www.contributor-covenant.org
 
-For answers to common questions about this code of conduct, see the FAQ at
-https://www.contributor-covenant.org/faq. Translations are available at
+Untuk jawaban atas pertanyaan umum tentang kode etik ini, lihat FAQ di
+https://www.contributor-covenant.org/faq. Terjemahan tersedia di
 https://www.contributor-covenant.org/translations.

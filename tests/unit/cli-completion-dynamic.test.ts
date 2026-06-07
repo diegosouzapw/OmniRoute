@@ -11,7 +11,7 @@ test("runCompletionCommand bash retorna 0 e string não-vazia", async () => {
   const chunks: string[] = [];
   const orig = process.stdout.write.bind(process.stdout);
   (process.stdout as any).write = (c: string | Uint8Array) => {
-    chunks.push(typeof c === "string" ? c : c.toString());
+    if (typeof c === "string") chunks.push(c);
     return true;
   };
   try {
@@ -30,7 +30,7 @@ test("runCompletionCommand zsh contém compdef", async () => {
   const chunks: string[] = [];
   const orig = process.stdout.write.bind(process.stdout);
   (process.stdout as any).write = (c: string | Uint8Array) => {
-    chunks.push(typeof c === "string" ? c : c.toString());
+    if (typeof c === "string") chunks.push(c);
     return true;
   };
   try {
@@ -48,7 +48,7 @@ test("runCompletionCommand fish retorna 0", async () => {
   const chunks: string[] = [];
   const orig = process.stdout.write.bind(process.stdout);
   (process.stdout as any).write = (c: string | Uint8Array) => {
-    chunks.push(typeof c === "string" ? c : c.toString());
+    if (typeof c === "string") chunks.push(c);
     return true;
   };
   try {
@@ -79,7 +79,7 @@ test("completion scripts incluem combos/providers/models no cache dinamicamente"
   const chunks: string[] = [];
   const orig = process.stdout.write.bind(process.stdout);
   (process.stdout as any).write = (c: string | Uint8Array) => {
-    chunks.push(typeof c === "string" ? c : c.toString());
+    if (typeof c === "string") chunks.push(c);
     return true;
   };
   try {

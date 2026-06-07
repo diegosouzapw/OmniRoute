@@ -8,6 +8,7 @@ import {
 } from "./base.ts";
 import { FETCH_TIMEOUT_MS } from "../config/constants.ts";
 import { getRotatingApiKey } from "../services/apiKeyRotator.ts";
+import { prepareToolMessages, buildToolAwareResult } from "../translator/webTools.ts";
 import {
   normalizeSessionCookieHeader,
   normalizeSessionCookieHeaders,
@@ -758,30 +759,9 @@ function buildStreamingResponse(
 ): ReadableStream<Uint8Array> {
   const encoder = new TextEncoder();
 
-  return new ReadableStream({
-    start(controller) {
-      controller.enqueue(
-        encoder.encode(
-          sseChunk({
-            id,
-            object: "chat.completion.chunk",
-            created,
-            model,
-            system_fingerprint: null,
-            choices: [
-              {
-                index: 0,
-                delta: { role: "assistant" },
-                finish_reason: null,
-                logprobs: null,
-              },
-            ],
-          })
-        )
-      );
-
-      for (const delta of reasoningDeltas) {
-        if (!delta) continue;
+  return new ReadableStream(
+    {
+      start(controller) {
         controller.enqueue(
           encoder.encode(
             sseChunk({
@@ -793,7 +773,7 @@ function buildStreamingResponse(
               choices: [
                 {
                   index: 0,
-                  delta: { reasoning_content: delta },
+                  delta: { role: "assistant" },
                   finish_reason: null,
                   logprobs: null,
                 },
@@ -801,10 +781,53 @@ function buildStreamingResponse(
             })
           )
         );
-      }
 
-      for (const delta of deltas) {
-        if (!delta) continue;
+        for (const delta of reasoningDeltas) {
+          if (!delta) continue;
+          controller.enqueue(
+            encoder.encode(
+              sseChunk({
+                id,
+                object: "chat.completion.chunk",
+                created,
+                model,
+                system_fingerprint: null,
+                choices: [
+                  {
+                    index: 0,
+                    delta: { reasoning_content: delta },
+                    finish_reason: null,
+                    logprobs: null,
+                  },
+                ],
+              })
+            )
+          );
+        }
+
+        for (const delta of deltas) {
+          if (!delta) continue;
+          controller.enqueue(
+            encoder.encode(
+              sseChunk({
+                id,
+                object: "chat.completion.chunk",
+                created,
+                model,
+                system_fingerprint: null,
+                choices: [
+                  {
+                    index: 0,
+                    delta: { content: delta },
+                    finish_reason: null,
+                    logprobs: null,
+                  },
+                ],
+              })
+            )
+          );
+        }
+
         controller.enqueue(
           encoder.encode(
             sseChunk({
@@ -813,35 +836,16 @@ function buildStreamingResponse(
               created,
               model,
               system_fingerprint: null,
-              choices: [
-                {
-                  index: 0,
-                  delta: { content: delta },
-                  finish_reason: null,
-                  logprobs: null,
-                },
-              ],
+              choices: [{ index: 0, delta: {}, finish_reason: "stop", logprobs: null }],
             })
           )
         );
-      }
-
-      controller.enqueue(
-        encoder.encode(
-          sseChunk({
-            id,
-            object: "chat.completion.chunk",
-            created,
-            model,
-            system_fingerprint: null,
-            choices: [{ index: 0, delta: {}, finish_reason: "stop", logprobs: null }],
-          })
-        )
-      );
-      controller.enqueue(encoder.encode("data: [DONE]\n\n"));
-      controller.close();
+        controller.enqueue(encoder.encode("data: [DONE]\n\n"));
+        controller.close();
+      },
     },
-  });
+    { highWaterMark: 16384 }
+  );
 }
 
 function buildNonStreamingResponse(
@@ -1141,18 +1145,20 @@ function rememberAssistantTurn(
   });
 }
 
-function buildSuccessResult(
+async function buildSuccessResult(
   parsed: ParsedMetaAiResponse,
   stream: boolean,
   model: string,
   headers: Record<string, string>,
-  transformedBody: unknown
-): MuseSparkExecuteResult {
+  transformedBody: unknown,
+  hasTools?: boolean,
+  requestedTools?: unknown
+): Promise<MuseSparkExecuteResult> {
   const id = `chatcmpl-meta-${crypto.randomUUID().slice(0, 12)}`;
   const created = Math.floor(Date.now() / 1000);
   const deltas = parsed.deltas.length > 0 ? parsed.deltas : [parsed.content];
   const reasoningDeltas = parsed.reasoningDeltas;
-  const response = stream
+  let response = stream
     ? new Response(buildStreamingResponse(deltas, reasoningDeltas, model, id, created), {
         status: 200,
         headers: {
@@ -1162,6 +1168,24 @@ function buildSuccessResult(
         },
       })
     : buildNonStreamingResponse(parsed.content, parsed.reasoningContent, model, id, created);
+
+  if (hasTools && !stream) {
+    const bodyText = await (response as Response).text();
+    try {
+      const json = JSON.parse(bodyText);
+      const rawContent = json?.choices?.[0]?.message?.content || "";
+      const { content, toolCalls, finishReason } = buildToolAwareResult(rawContent, requestedTools, "muse");
+      if (toolCalls) {
+        json.choices[0].message = { role: "assistant", content: null, tool_calls: toolCalls };
+        json.choices[0].finish_reason = finishReason;
+      } else {
+        json.choices[0].message.content = content;
+      }
+      response = new Response(JSON.stringify(json), {
+        status: 200, headers: { "Content-Type": "application/json" },
+      });
+    } catch { /* keep original response */ }
+  }
 
   return resultWithResponse(response, headers, transformedBody);
 }
@@ -1180,12 +1204,14 @@ export class MuseSparkWebExecutor extends BaseExecutor {
     log,
     upstreamExtraHeaders,
   }: ExecuteInput) {
-    const messages = getOpenAiMessages(body);
-    if (!messages) {
+    const bodyObj = (body || {}) as Record<string, unknown>;
+    const rawMessages = getOpenAiMessages(body);
+    if (!rawMessages) {
       return errorResult(400, "Missing or empty messages array", "invalid_request", {}, body);
     }
 
-    const parsedHistory = parseOpenAIMessages(messages);
+    const { hasTools, requestedTools, effectiveMessages } = prepareToolMessages(bodyObj, rawMessages as Array<{ role: string; content: unknown }>);
+    const parsedHistory = parseOpenAIMessages(effectiveMessages);
     if (!parsedHistory.foldedPrompt) {
       return errorResult(400, "Empty query after processing messages", "invalid_request", {}, body);
     }
@@ -1219,7 +1245,10 @@ export class MuseSparkWebExecutor extends BaseExecutor {
     const combinedSignal = signal ? mergeAbortSignals(signal, timeoutSignal) : timeoutSignal;
 
     const fetchResult = await postMetaAiRequest(headers, transformedBody, combinedSignal, log);
-    if (!fetchResult.ok) return fetchResult.result;
+    if (!fetchResult.ok) {
+      const err = fetchResult as { ok: false; result: MuseSparkExecuteResult };
+      return err.result;
+    }
 
     const upstreamResponse = fetchResult.response;
     if (!upstreamResponse.ok) {
@@ -1249,6 +1278,6 @@ export class MuseSparkWebExecutor extends BaseExecutor {
     }
 
     rememberAssistantTurn(parsed, credentials, model, parsedHistory, conversationContext);
-    return buildSuccessResult(parsed, stream, model, headers, transformedBody);
+    return buildSuccessResult(parsed, stream, model, headers, transformedBody, hasTools, requestedTools);
   }
 }

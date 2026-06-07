@@ -24,6 +24,19 @@ const INTERNAL_BASE_URL =
   process.env.NEXT_PUBLIC_APP_URL ||
   `http://127.0.0.1:${dashboardPort}`;
 
+/**
+ * Trusted origin for server-internal self-fetches (model sync, auto-discovery).
+ *
+ * SECURITY: never derive this from the incoming request (`request.url` /
+ * `Host` header) — that is client-controlled and lets a caller redirect an
+ * internal, credential-bearing self-fetch to an arbitrary host (SSRF +
+ * internal-auth-header exfiltration; CodeQL js/request-forgery). Always use
+ * this loopback/env-pinned origin instead.
+ */
+export function getModelSyncInternalBaseUrl(): string {
+  return INTERNAL_BASE_URL;
+}
+
 const globalState = globalThis as typeof globalThis & {
   __omnirouteModelSyncInternalAuthToken?: string;
 };

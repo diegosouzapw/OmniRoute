@@ -28,7 +28,7 @@ test.after(() => {
   resetStorage();
 });
 
-test("cleanupExpiredLogs uses separate APP and CALL retention windows", () => {
+test("cleanupExpiredLogs uses separate APP and CALL retention windows", async () => {
   compliance.initAuditLog();
   const db = core.getDbInstance();
 
@@ -117,7 +117,7 @@ test("cleanupExpiredLogs uses separate APP and CALL retention windows", () => {
     freshAppTs
   );
 
-  const result = compliance.cleanupExpiredLogs();
+  const result = await compliance.cleanupExpiredLogs();
 
   assert.equal(result.deletedUsage, 1);
   assert.equal(result.deletedCallLogs, 1);
@@ -135,7 +135,7 @@ test("cleanupExpiredLogs uses separate APP and CALL retention windows", () => {
   assert.equal((db.prepare("SELECT COUNT(*) AS cnt FROM mcp_tool_audit").get() as any).cnt, 1);
 });
 
-test("cleanupExpiredLogs enforces row count limits", () => {
+test("cleanupExpiredLogs enforces row count limits", async () => {
   compliance.initAuditLog();
   const db = core.getDbInstance();
 
@@ -169,7 +169,7 @@ test("cleanupExpiredLogs enforces row count limits", () => {
   assert.equal((db.prepare("SELECT COUNT(*) AS cnt FROM call_logs").get() as any).cnt, 10);
   assert.equal((db.prepare("SELECT COUNT(*) AS cnt FROM proxy_logs").get() as any).cnt, 10);
 
-  const result = compliance.cleanupExpiredLogs();
+  const result = await compliance.cleanupExpiredLogs();
 
   assert.equal(result.trimmedCallLogs, 5);
   assert.equal(result.trimmedProxyLogs, 5);

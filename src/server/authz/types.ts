@@ -29,6 +29,7 @@ export type ClassificationReason =
   | "public_readonly_prefix"
   | "dashboard_prefix"
   | "setup_wizard"
+  | "public_connect_page"
   | "client_api_v1"
   | "client_api_mcp"
   | "client_api_alias"

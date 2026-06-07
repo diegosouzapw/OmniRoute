@@ -117,6 +117,16 @@ export function isNativeSqliteLoadError(error: unknown): boolean {
   );
 }
 
+export function isSqliteDriverUnavailableError(error: unknown): boolean {
+  const message = error instanceof Error ? error.message : String(error);
+
+  return (
+    message.includes("Nenhum driver SQLite disponível") ||
+    message.includes("Chame ensureDbInitialized() no startup") ||
+    message.includes("sql.js WASM ainda não foi pré-inicializado")
+  );
+}
+
 function getErrorCode(error: unknown): string | undefined {
   if (!error || typeof error !== "object" || !("code" in error)) return undefined;
   const code = (error as { code?: unknown }).code;
@@ -193,7 +203,10 @@ const SCHEMA_SQL = `
     last_used_at TEXT,
     "group" TEXT,
     max_concurrent INTEGER,
+    proxy_enabled INTEGER NOT NULL DEFAULT 1,
+    per_key_proxy_enabled INTEGER NOT NULL DEFAULT 0,
     quota_window_thresholds_json TEXT,
+    rate_limit_overrides_json TEXT,
     created_at TEXT NOT NULL,
     updated_at TEXT NOT NULL
   );
@@ -208,6 +221,9 @@ const SCHEMA_SQL = `
     prefix TEXT,
     api_type TEXT,
     base_url TEXT,
+    chat_path TEXT,
+    models_path TEXT,
+    custom_headers_json TEXT,
     created_at TEXT NOT NULL,
     updated_at TEXT NOT NULL
   );
@@ -441,7 +457,12 @@ export function rowToCamel(row: unknown): JsonRecord | null {
   const result: JsonRecord = {};
   for (const [k, v] of Object.entries(row as JsonRecord)) {
     const camelKey = toCamelCase(k);
-    if (camelKey === "isActive" || camelKey === "rateLimitProtection") {
+    if (
+      camelKey === "isActive" ||
+      camelKey === "rateLimitProtection" ||
+      camelKey === "proxyEnabled" ||
+      camelKey === "perKeyProxyEnabled"
+    ) {
       result[camelKey] = v === 1 || v === true;
     } else if (camelKey === "providerSpecificData" && typeof v === "string") {
       try {
@@ -449,15 +470,21 @@ export function rowToCamel(row: unknown): JsonRecord | null {
       } catch {
         result[camelKey] = v;
       }
-    } else if (camelKey.endsWith("Json") && typeof v === "string") {
+    } else if (camelKey.endsWith("Json")) {
       // Convention: any column with a `_json` suffix is JSON-encoded TEXT.
       // Surface the parsed object under the friendlier name (key minus the
       // "Json" suffix) — e.g. quotaWindowThresholdsJson → quotaWindowThresholds.
+      // A NULL/absent column normalizes to `baseKey: null` (not the suffixed
+      // key) so read and write paths expose a consistent shape.
       const baseKey = camelKey.slice(0, -"Json".length);
-      try {
-        result[baseKey] = JSON.parse(v);
-      } catch {
-        result[baseKey] = null;
+      if (typeof v === "string") {
+        try {
+          result[baseKey] = JSON.parse(v);
+        } catch {
+          result[baseKey] = null;
+        }
+      } else {
+        result[baseKey] = v == null ? null : v;
       }
     } else {
       result[camelKey] = v;
@@ -526,9 +553,25 @@ function ensureProviderConnectionsColumns(db: SqliteDatabase) {
       db.exec("ALTER TABLE provider_connections ADD COLUMN max_concurrent INTEGER");
       console.log("[DB] Added provider_connections.max_concurrent column");
     }
+    if (!columnNames.has("proxy_enabled")) {
+      db.exec(
+        "ALTER TABLE provider_connections ADD COLUMN proxy_enabled INTEGER NOT NULL DEFAULT 1"
+      );
+      console.log("[DB] Added provider_connections.proxy_enabled column");
+    }
+    if (!columnNames.has("per_key_proxy_enabled")) {
+      db.exec(
+        "ALTER TABLE provider_connections ADD COLUMN per_key_proxy_enabled INTEGER NOT NULL DEFAULT 0"
+      );
+      console.log("[DB] Added provider_connections.per_key_proxy_enabled column");
+    }
     if (!columnNames.has("quota_window_thresholds_json")) {
       db.exec("ALTER TABLE provider_connections ADD COLUMN quota_window_thresholds_json TEXT");
       console.log("[DB] Added provider_connections.quota_window_thresholds_json column");
+    }
+    if (!columnNames.has("rate_limit_overrides_json")) {
+      db.exec("ALTER TABLE provider_connections ADD COLUMN rate_limit_overrides_json TEXT");
+      console.log("[DB] Added provider_connections.rate_limit_overrides_json column");
     }
     db.exec(
       "CREATE INDEX IF NOT EXISTS idx_pc_max_concurrent ON provider_connections(provider, max_concurrent)"
@@ -567,6 +610,11 @@ function ensureUsageHistoryColumns(db: SqliteDatabase) {
       console.log("[DB] Added usage_history.service_tier column");
     }
     db.exec("CREATE INDEX IF NOT EXISTS idx_uh_service_tier ON usage_history(service_tier)");
+    if (!columnNames.has("combo_strategy")) {
+      db.exec("ALTER TABLE usage_history ADD COLUMN combo_strategy TEXT DEFAULT 'direct'");
+      console.log("[DB] Added usage_history.combo_strategy column");
+    }
+    db.exec("CREATE INDEX IF NOT EXISTS idx_uh_combo_strategy ON usage_history(combo_strategy)");
   } catch (error: unknown) {
     const message = error instanceof Error ? error.message : String(error);
     console.warn("[DB] Failed to verify usage_history schema:", message);
@@ -1180,30 +1228,6 @@ export function getDbInstance(): SqliteDatabase {
   let failedProbePath: string | null = null;
   let failedProbeMessage: string | null = null;
 
-  if (fs.existsSync(sqliteFile)) {
-    preservedCriticalState = captureCriticalDbState(sqliteFile);
-    if (preservedCriticalState.captureSucceeded) {
-      if (preservedCriticalState.preservedTables.length > 0) {
-        console.log(
-          `[DB] Preserved critical DB state before potential recreation: ${summarizePreservedTables(
-            preservedCriticalState.preservedTables
-          )}`
-        );
-      }
-      if (preservedCriticalState.skippedTables.length > 0) {
-        console.warn(
-          `[DB] Critical DB tables skipped during preservation: ${summarizeSkippedTables(
-            preservedCriticalState.skippedTables
-          )}`
-        );
-      }
-    } else if (preservedCriticalState.captureError) {
-      console.warn(
-        `[DB] Could not preserve critical DB state before recreation: ${preservedCriticalState.captureError}`
-      );
-    }
-  }
-
   // Track whether the DB file is brand new (fresh DATA_DIR / Docker volume).
   // This is needed so the migration runner skips the mass-migration safety abort
   // that would otherwise trigger because heuristic seeding marks some migrations
@@ -1267,9 +1291,14 @@ export function getDbInstance(): SqliteDatabase {
       console.warn("[DB] Could not probe existing DB:", message);
 
       // If the error is a Node module/ABI failure, throw it immediately to avoid renaming the database
-      if (isNativeSqliteLoadError(e) || message.includes("could not be found")) {
+      if (
+        isNativeSqliteLoadError(e) ||
+        isSqliteDriverUnavailableError(e) ||
+        message.includes("could not be found")
+      ) {
         throw e;
       }
+      preservedCriticalState = captureCriticalDbState(sqliteFile);
 
       // SAFETY: Never delete the database — rename to backup so data can be recovered.
       // The old code would silently destroy all user data on any probe failure.
@@ -1305,6 +1334,7 @@ export function getDbInstance(): SqliteDatabase {
   db.pragma("journal_mode = WAL");
   db.pragma("busy_timeout = 5000");
   db.pragma("synchronous = NORMAL");
+  db.pragma("cache_size = -2048");
   db.exec(SCHEMA_SQL);
   ensureProviderConnectionsColumns(db);
   ensureUsageHistoryColumns(db);
@@ -1385,8 +1415,29 @@ export function getDbInstance(): SqliteDatabase {
   }
 
   startDbHealthCheckScheduler(db);
-  console.log(`[DB] SQLite database ready: ${sqliteFile}`);
+  // Log the resolved absolute DATA_DIR + SQLITE_FILE once at init so a
+  // multi-replica / Docker volume-topology mismatch (each replica opening a
+  // different on-disk DB → "phantom"/missing combos & connections) is
+  // diagnosable straight from the logs. (#3147)
+  console.log(
+    `[DB] SQLite database ready: ${sqliteFile} ` +
+      `(DATA_DIR=${path.resolve(DATA_DIR)}, SQLITE_FILE=${path.resolve(sqliteFile)})`
+  );
   return db;
+}
+
+/**
+ * Lightweight liveness probe — runs `SELECT 1` against the singleton DB.
+ * Returns `true` if the database is reachable, `false` on any error.
+ * Intended for use by the `/api/health/ping` route (Hard Rule #5: no raw SQL in routes).
+ */
+export function pingDb(): boolean {
+  try {
+    const result = getDbInstance().prepare("SELECT 1 AS ok").get() as { ok: number } | undefined;
+    return result?.ok === 1;
+  } catch {
+    return false;
+  }
 }
 
 export function closeDbInstance(options?: { checkpointMode?: CheckpointMode | null }): boolean {

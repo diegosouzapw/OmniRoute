@@ -24,6 +24,7 @@ const hermesAgentSettingsSchema = z.object({
       })
     )
     .min(1, "selections must be a non-empty array of { role, model }"),
+  preview: z.boolean().optional(),
 });
 
 /**
@@ -86,7 +87,7 @@ export async function POST(request: Request) {
     );
   }
 
-  const { baseUrl, keyId, apiKey, selections } = parsed.data;
+  const { baseUrl, keyId, apiKey, selections, preview } = parsed.data;
 
   if (!validateBaseUrl(baseUrl)) {
     return NextResponse.json({ error: "baseUrl must be a valid http(s) URL" }, { status: 400 });
@@ -111,7 +112,7 @@ export async function POST(request: Request) {
   }
 
   // Preview mode: return the would-be YAML without writing it (Phase 5 polish)
-  if (body.preview === true) {
+  if (preview === true) {
     return NextResponse.json({
       success: true,
       preview: true,

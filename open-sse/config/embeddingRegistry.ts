@@ -194,6 +194,7 @@ export const EMBEDDING_PROVIDERS: Record<string, EmbeddingProvider> = {
       { id: "voyage-4-large", name: "Voyage 4 Large", dimensions: 1024 },
       { id: "voyage-4", name: "Voyage 4", dimensions: 1024 },
       { id: "voyage-4-lite", name: "Voyage 4 Lite", dimensions: 1024 },
+      { id: "voyage-3-large", name: "Voyage 3 Large", dimensions: 1024 },
       { id: "voyage-multilingual-3.5", name: "Voyage Multilingual 3.5", dimensions: 1024 },
       { id: "voyage-code-3", name: "Voyage Code 3", dimensions: 1024 },
       { id: "voyage-code-2", name: "Voyage Code 2", dimensions: 1536 },
@@ -321,6 +322,41 @@ export function parseEmbeddingModel(
   }
 
   return { provider: null, model: modelStr };
+}
+
+/**
+ * Resolve the known vector dimension of an embedding model string
+ * (format: "provider/model"). Returns undefined when the provider/model is
+ * unknown or the registry has no dimension recorded for it (e.g. local/custom
+ * providers) — callers treat undefined as "can't assert", not "zero".
+ */
+export function getEmbeddingDimension(modelStr: string): number | undefined {
+  const { provider, model } = parseEmbeddingModel(modelStr);
+  if (!provider || !model) return undefined;
+  const config = getEmbeddingProvider(provider);
+  if (!config) return undefined;
+  return config.models.find((m) => m.id === model)?.dimensions;
+}
+
+/**
+ * Detect whether a set of embedding model strings spans more than one known
+ * vector dimension. Vectors from models of different dimensions live in
+ * incompatible spaces, so failing over between them silently corrupts any
+ * vector store built on top of the proxy. Models with an *unknown* dimension
+ * are ignored (conservative: we never flag a conflict we can't prove).
+ */
+export function detectEmbeddingDimensionConflict(modelStrs: string[]): {
+  conflict: boolean;
+  dimensions: Record<string, number>;
+  distinct: number[];
+} {
+  const dimensions: Record<string, number> = {};
+  for (const modelStr of modelStrs) {
+    const dim = getEmbeddingDimension(modelStr);
+    if (typeof dim === "number") dimensions[modelStr] = dim;
+  }
+  const distinct = [...new Set(Object.values(dimensions))].sort((a, b) => a - b);
+  return { conflict: distinct.length > 1, dimensions, distinct };
 }
 
 /**

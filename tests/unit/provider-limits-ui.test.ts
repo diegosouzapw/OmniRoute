@@ -6,6 +6,7 @@ import path from "node:path";
 const providerLimitUtils =
   await import("../../src/app/(dashboard)/dashboard/usage/components/ProviderLimits/utils.tsx");
 const providerConstants = await import("../../src/shared/constants/providers.ts");
+const settingsSchemas = await import("../../src/shared/validation/settingsSchemas.ts");
 
 test("provider plan fallbacks normalize to Unknown instead of repeating provider labels", () => {
   const tier = providerLimitUtils.normalizePlanTier("Claude Code");
@@ -222,4 +223,13 @@ test("usage namespace includes Provider Limits UI translation keys", () => {
     assert.equal(typeof usage[key], "string", `usage.${key} should be defined in en.json`);
     assert.ok(!usage[key].startsWith("__MISSING__:"), `usage.${key} should not be a placeholder`);
   }
+});
+
+test("provider quota auto-refresh settings are accepted by the settings schema", () => {
+  const result = settingsSchemas.updateSettingsSchema.safeParse({
+    autoRefreshProviderQuota: true,
+    autoRefreshProviderQuotaInterval: 180,
+  });
+
+  assert.equal(result.success, true);
 });

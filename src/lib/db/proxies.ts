@@ -1,6 +1,9 @@
+// Convention: when type === "vercel", the `notes` column stores JSON { relayAuth: "<token>" }
+// used by proxyFetch.ts to route requests through the Vercel edge relay instead of an undici ProxyAgent.
 import { randomUUID } from "crypto";
 import { getDbInstance } from "./core";
 import { backupDbFile } from "./backup";
+import { decrypt } from "./encryption";
 
 type JsonRecord = Record<string, unknown>;
 type ProxyScope = "global" | "provider" | "account" | "combo";
@@ -16,6 +19,7 @@ interface ProxyRegistryRecord {
   region: string | null;
   notes: string | null;
   status: string;
+  source: string;
   createdAt: string;
   updatedAt: string;
 }
@@ -39,6 +43,23 @@ interface ProxyPayload {
   region?: string | null;
   notes?: string | null;
   status?: string;
+  source?: string;
+}
+
+interface ProxyAssignmentPayload {
+  scope: string;
+  scopeId?: string | null;
+}
+
+interface ProxyMutationResult {
+  proxy: ProxyRegistryRecord;
+  assignment: ProxyAssignmentRecord | null;
+}
+
+type LegacyProxyClearStatus = "cleared" | "absent";
+
+interface ProxyTransactionResult extends ProxyMutationResult {
+  legacyClearStatus: LegacyProxyClearStatus;
 }
 
 interface LegacyProxyConfig {
@@ -75,6 +96,7 @@ function mapProxyRow(row: unknown): ProxyRegistryRecord {
     region: typeof r.region === "string" ? r.region : null,
     notes: typeof r.notes === "string" ? r.notes : null,
     status: typeof r.status === "string" ? r.status : "active",
+    source: typeof r.source === "string" ? r.source : "manual",
     createdAt: typeof r.created_at === "string" ? r.created_at : "",
     updatedAt: typeof r.updated_at === "string" ? r.updated_at : "",
   };
@@ -94,8 +116,29 @@ function mapAssignmentRow(row: unknown): ProxyAssignmentRecord {
   };
 }
 
+function extractRelayAuth(notes: unknown): string | undefined {
+  if (typeof notes !== "string") return undefined;
+  try {
+    const parsed = JSON.parse(notes) as {
+      relayAuth?: string;
+      relayAuthEnc?: string;
+    };
+    // Prefer the encrypted form when both are present (legacy plaintext rows
+    // are still readable until migrated). decrypt() is a no-op when encryption
+    // is disabled, matching the existing convention for webhook secrets.
+    if (parsed.relayAuthEnc) {
+      const dec = decrypt(parsed.relayAuthEnc);
+      if (dec) return dec;
+    }
+    return parsed.relayAuth || undefined;
+  } catch {
+    return undefined;
+  }
+}
+
 function toRegistryProxyResolution(row: unknown, level: ProxyScope, levelId: string | null) {
   const record = toRecord(row);
+  const relayAuth = record.type === "vercel" ? extractRelayAuth(record.notes) : undefined;
   return {
     proxy: {
       type: record.type,
@@ -103,6 +146,7 @@ function toRegistryProxyResolution(row: unknown, level: ProxyScope, levelId: str
       port: record.port,
       username: record.username,
       password: record.password,
+      ...(relayAuth !== undefined ? { relayAuth } : {}),
     },
     level,
     levelId,
@@ -117,6 +161,181 @@ function normalizeScope(scope: string): ProxyScope {
   if (value === "account") return "account";
   if (value === "combo") return "combo";
   return "global";
+}
+
+function normalizeAssignmentScopeId(scope: ProxyScope, scopeId?: string | null) {
+  return scope === "global" ? "__global__" : scopeId || null;
+}
+
+function toLegacyProxyLevel(scope: ProxyScope) {
+  return scope === "account" ? "key" : scope;
+}
+
+// Mutate legacy proxyConfig rows directly so these writes stay inside the same
+// SQLite transaction as the proxy registry row and assignment upsert.
+function clearLegacyProxyForAssignment(
+  db: ReturnType<typeof getDbInstance>,
+  assignment: ProxyAssignmentPayload
+): LegacyProxyClearStatus {
+  const normalizedScope = normalizeScope(assignment.scope);
+  const scopeId = normalizeAssignmentScopeId(normalizedScope, assignment.scopeId);
+  const level = toLegacyProxyLevel(normalizedScope);
+
+  const writeProxyConfig = db.prepare(
+    "INSERT OR REPLACE INTO key_value (namespace, key, value) VALUES ('proxyConfig', ?, ?)"
+  );
+
+  if (level === "global") {
+    const row = db
+      .prepare("SELECT value FROM key_value WHERE namespace = 'proxyConfig' AND key = 'global'")
+      .get() as { value?: string } | undefined;
+    if (!row) return "absent";
+
+    try {
+      if (typeof row.value === "string" && JSON.parse(row.value) === null) return "absent";
+    } catch {
+      // Malformed global proxy config still needs to be overwritten with null.
+    }
+
+    writeProxyConfig.run("global", JSON.stringify(null));
+    return "cleared";
+  }
+
+  if (!scopeId) return "absent";
+
+  const mapKey = `${level}s`;
+  const row = db
+    .prepare("SELECT value FROM key_value WHERE namespace = 'proxyConfig' AND key = ?")
+    .get(mapKey) as { value?: string } | undefined;
+  if (!row) return "absent";
+
+  let map: JsonRecord = {};
+  let shouldWrite = false;
+  if (typeof row.value === "string") {
+    try {
+      const parsed = JSON.parse(row.value);
+      if (parsed && typeof parsed === "object" && !Array.isArray(parsed)) {
+        map = parsed as JsonRecord;
+      } else {
+        shouldWrite = true;
+      }
+    } catch {
+      shouldWrite = true;
+    }
+  }
+
+  if (Object.prototype.hasOwnProperty.call(map, scopeId)) {
+    delete map[scopeId];
+    shouldWrite = true;
+  }
+
+  if (!shouldWrite) return "absent";
+
+  writeProxyConfig.run(mapKey, JSON.stringify(map));
+  return "cleared";
+}
+
+function insertProxyRow(
+  db: ReturnType<typeof getDbInstance>,
+  id: string,
+  payload: ProxyPayload,
+  now: string
+) {
+  db.prepare(
+    `INSERT INTO proxy_registry
+      (id, name, type, host, port, username, password, region, notes, status, source, created_at, updated_at)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+  ).run(
+    id,
+    payload.name,
+    payload.type,
+    payload.host,
+    Number(payload.port),
+    payload.username || "",
+    payload.password || "",
+    payload.region || null,
+    payload.notes || null,
+    payload.status || "active",
+    payload.source || "manual",
+    now,
+    now
+  );
+}
+
+function updateProxyRow(
+  db: ReturnType<typeof getDbInstance>,
+  id: string,
+  existing: ProxyRegistryRecord,
+  payload: Partial<ProxyPayload>,
+  now: string
+) {
+  const incomingUsername =
+    typeof payload.username === "string" ? payload.username.trim() : undefined;
+  const incomingPassword =
+    typeof payload.password === "string" ? payload.password.trim() : undefined;
+
+  const merged = {
+    ...existing,
+    ...payload,
+    // Omitted credentials mean preserve; explicitly provided blanks clear stored auth.
+    username: incomingUsername === undefined ? existing.username : incomingUsername,
+    password: incomingPassword === undefined ? existing.password : incomingPassword,
+    updatedAt: now,
+  };
+
+  db.prepare(
+    `UPDATE proxy_registry
+       SET name = ?, type = ?, host = ?, port = ?, username = ?, password = ?, region = ?, notes = ?, status = ?, source = ?, updated_at = ?
+     WHERE id = ?`
+  ).run(
+    merged.name,
+    merged.type,
+    merged.host,
+    Number(merged.port),
+    merged.username || "",
+    merged.password || "",
+    merged.region || null,
+    merged.notes || null,
+    merged.status || "active",
+    merged.source || "manual",
+    merged.updatedAt,
+    id
+  );
+}
+
+function upsertAssignmentRow(
+  db: ReturnType<typeof getDbInstance>,
+  assignment: ProxyAssignmentPayload,
+  proxyId: string,
+  now: string
+) {
+  const normalizedScope = normalizeScope(assignment.scope);
+  const normalizedScopeId = normalizeAssignmentScopeId(normalizedScope, assignment.scopeId);
+  if (normalizedScope !== "global" && !normalizedScopeId) {
+    throw new Error("scopeId is required for non-global proxy assignments");
+  }
+
+  db.prepare(
+    `INSERT INTO proxy_assignments (proxy_id, scope, scope_id, created_at, updated_at)
+     VALUES (?, ?, ?, ?, ?)
+     ON CONFLICT(scope, scope_id)
+     DO UPDATE SET proxy_id = excluded.proxy_id, updated_at = excluded.updated_at`
+  ).run(proxyId, normalizedScope, normalizedScopeId, now, now);
+}
+
+function getAssignmentRow(
+  db: ReturnType<typeof getDbInstance>,
+  scope: string,
+  scopeId?: string | null
+) {
+  const normalizedScope = normalizeScope(scope);
+  const normalizedScopeId = normalizeAssignmentScopeId(normalizedScope, scopeId);
+  const row = db
+    .prepare(
+      "SELECT id, proxy_id, scope, scope_id, created_at, updated_at FROM proxy_assignments WHERE scope = ? AND scope_id IS ?"
+    )
+    .get(normalizedScope, normalizedScopeId);
+  return row ? mapAssignmentRow(row) : null;
 }
 
 function coerceProxyPayload(value: unknown, fallbackName: string): ProxyPayload | null {
@@ -157,10 +376,34 @@ function coerceProxyPayload(value: unknown, fallbackName: string): ProxyPayload 
 }
 
 export function redactProxySecrets(proxy: ProxyRegistryRecord): ProxyRegistryRecord {
+  let redactedNotes = proxy.notes;
+  if (proxy.type === "vercel" && proxy.notes) {
+    try {
+      const parsed = JSON.parse(proxy.notes);
+      if (parsed && typeof parsed === "object") {
+        const next: Record<string, unknown> = { ...parsed };
+        let touched = false;
+        if ("relayAuth" in next) {
+          next.relayAuth = "***";
+          touched = true;
+        }
+        if ("relayAuthEnc" in next) {
+          next.relayAuthEnc = "***";
+          touched = true;
+        }
+        if (touched) {
+          redactedNotes = JSON.stringify(next);
+        }
+      }
+    } catch {
+      // Non-JSON notes pass through unchanged
+    }
+  }
   return {
     ...proxy,
     username: proxy.username ? "***" : "",
     password: proxy.password ? "***" : "",
+    notes: redactedNotes,
   };
 }
 
@@ -169,7 +412,7 @@ export async function listProxies(options?: { includeSecrets?: boolean }) {
   const db = getDbInstance();
   const rows = db
     .prepare(
-      "SELECT id, name, type, host, port, username, password, region, notes, status, created_at, updated_at FROM proxy_registry ORDER BY datetime(updated_at) DESC, name ASC"
+      "SELECT id, name, type, host, port, username, password, region, notes, status, source, created_at, updated_at FROM proxy_registry ORDER BY datetime(updated_at) DESC, name ASC"
     )
     .all();
 
@@ -178,11 +421,19 @@ export async function listProxies(options?: { includeSecrets?: boolean }) {
 }
 
 export async function getProxyById(id: string, options?: { includeSecrets?: boolean }) {
-  const includeSecrets = options?.includeSecrets === true;
   const db = getDbInstance();
+  return getProxyRowById(db, id, options);
+}
+
+function getProxyRowById(
+  db: ReturnType<typeof getDbInstance>,
+  id: string,
+  options?: { includeSecrets?: boolean }
+) {
+  const includeSecrets = options?.includeSecrets === true;
   const row = db
     .prepare(
-      "SELECT id, name, type, host, port, username, password, region, notes, status, created_at, updated_at FROM proxy_registry WHERE id = ?"
+      "SELECT id, name, type, host, port, username, password, region, notes, status, source, created_at, updated_at FROM proxy_registry WHERE id = ?"
     )
     .get(id);
   if (!row) return null;
@@ -190,29 +441,24 @@ export async function getProxyById(id: string, options?: { includeSecrets?: bool
   return includeSecrets ? proxy : redactProxySecrets(proxy);
 }
 
+function getProxyRowByIdOrThrow(
+  db: ReturnType<typeof getDbInstance>,
+  id: string,
+  options?: { includeSecrets?: boolean }
+) {
+  const proxy = getProxyRowById(db, id, options);
+  if (!proxy) {
+    throw new Error(`Failed to read proxy after mutation: ${id}`);
+  }
+  return proxy;
+}
+
 export async function createProxy(payload: ProxyPayload) {
   const db = getDbInstance();
   const id = randomUUID();
   const now = new Date().toISOString();
 
-  db.prepare(
-    `INSERT INTO proxy_registry
-      (id, name, type, host, port, username, password, region, notes, status, created_at, updated_at)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
-  ).run(
-    id,
-    payload.name,
-    payload.type,
-    payload.host,
-    Number(payload.port),
-    payload.username || "",
-    payload.password || "",
-    payload.region || null,
-    payload.notes || null,
-    payload.status || "active",
-    now,
-    now
-  );
+  insertProxyRow(db, id, payload, now);
 
   backupDbFile("pre-write");
   bumpProxyRegistryGeneration();
@@ -250,47 +496,83 @@ export async function updateProxy(id: string, payload: Partial<ProxyPayload>) {
   const existing = await getProxyById(id, { includeSecrets: true });
   if (!existing) return null;
 
-  const incomingUsername =
-    typeof payload.username === "string" ? payload.username.trim() : undefined;
-  const incomingPassword =
-    typeof payload.password === "string" ? payload.password.trim() : undefined;
-
-  const merged = {
-    ...existing,
-    ...payload,
-    // Preserve stored credentials unless caller explicitly sends non-empty replacements.
-    username:
-      incomingUsername === undefined || incomingUsername.length === 0
-        ? existing.username
-        : incomingUsername,
-    password:
-      incomingPassword === undefined || incomingPassword.length === 0
-        ? existing.password
-        : incomingPassword,
-    updatedAt: new Date().toISOString(),
-  };
-
-  db.prepare(
-    `UPDATE proxy_registry
-       SET name = ?, type = ?, host = ?, port = ?, username = ?, password = ?, region = ?, notes = ?, status = ?, updated_at = ?
-     WHERE id = ?`
-  ).run(
-    merged.name,
-    merged.type,
-    merged.host,
-    Number(merged.port),
-    merged.username || "",
-    merged.password || "",
-    merged.region || null,
-    merged.notes || null,
-    merged.status || "active",
-    merged.updatedAt,
-    id
-  );
+  updateProxyRow(db, id, existing, payload, new Date().toISOString());
 
   backupDbFile("pre-write");
   bumpProxyRegistryGeneration();
   return getProxyById(id, { includeSecrets: false });
+}
+
+export async function createProxyAndAssign(
+  payload: ProxyPayload,
+  assignment: ProxyAssignmentPayload
+): Promise<ProxyMutationResult> {
+  const db = getDbInstance();
+  const id = randomUUID();
+  const now = new Date().toISOString();
+
+  const tx = db.transaction((): ProxyTransactionResult => {
+    insertProxyRow(db, id, payload, now);
+    upsertAssignmentRow(db, assignment, id, now);
+    const legacyClearStatus = clearLegacyProxyForAssignment(db, assignment);
+    return {
+      legacyClearStatus,
+      proxy: getProxyRowByIdOrThrow(db, id, { includeSecrets: false }),
+      assignment: getAssignmentRow(db, assignment.scope, assignment.scopeId),
+    };
+  });
+  const result = tx();
+
+  backupDbFile("pre-write");
+  bumpProxyRegistryGeneration();
+  if (result.legacyClearStatus === "cleared") {
+    // Dynamic import avoids a static proxies.ts -> settings.ts cycle; settings.ts
+    // imports registry helpers for proxy resolution.
+    const { bumpProxyConfigGeneration } = await import("./settings");
+    bumpProxyConfigGeneration();
+  }
+  return {
+    proxy: result.proxy,
+    assignment: result.assignment,
+  };
+}
+
+export async function updateProxyAndAssign(
+  id: string,
+  payload: Partial<ProxyPayload>,
+  assignment: ProxyAssignmentPayload
+): Promise<ProxyMutationResult | null> {
+  const db = getDbInstance();
+  const now = new Date().toISOString();
+
+  const tx = db.transaction((): ProxyTransactionResult | null => {
+    const existing = getProxyRowById(db, id, { includeSecrets: true });
+    if (!existing) return null;
+
+    updateProxyRow(db, id, existing, payload, now);
+    upsertAssignmentRow(db, assignment, id, now);
+    const legacyClearStatus = clearLegacyProxyForAssignment(db, assignment);
+    return {
+      legacyClearStatus,
+      proxy: getProxyRowByIdOrThrow(db, id, { includeSecrets: false }),
+      assignment: getAssignmentRow(db, assignment.scope, assignment.scopeId),
+    };
+  });
+  const result = tx();
+  if (!result) return null;
+
+  backupDbFile("pre-write");
+  bumpProxyRegistryGeneration();
+  if (result.legacyClearStatus === "cleared") {
+    // Dynamic import avoids a static proxies.ts -> settings.ts cycle; settings.ts
+    // imports registry helpers for proxy resolution.
+    const { bumpProxyConfigGeneration } = await import("./settings");
+    bumpProxyConfigGeneration();
+  }
+  return {
+    proxy: result.proxy,
+    assignment: result.assignment,
+  };
 }
 
 export async function getProxyAssignments(filters?: { proxyId?: string; scope?: string }) {
@@ -351,7 +633,7 @@ export async function assignProxyToScope(
   proxyId: string | null
 ): Promise<ProxyAssignmentRecord | null> {
   const normalizedScope = normalizeScope(scope);
-  const normalizedScopeId = normalizedScope === "global" ? "__global__" : scopeId;
+  const normalizedScopeId = normalizeAssignmentScopeId(normalizedScope, scopeId);
   const db = getDbInstance();
 
   if (!proxyId) {
@@ -382,12 +664,7 @@ export async function assignProxyToScope(
   backupDbFile("pre-write");
   bumpProxyRegistryGeneration();
 
-  const row = db
-    .prepare(
-      "SELECT id, proxy_id, scope, scope_id, created_at, updated_at FROM proxy_assignments WHERE scope = ? AND scope_id IS ?"
-    )
-    .get(normalizedScope, normalizedScopeId);
-  return row ? mapAssignmentRow(row) : null;
+  return getAssignmentRow(db, normalizedScope, normalizedScopeId);
 }
 
 export async function deleteProxyById(id: string, options?: { force?: boolean }) {
@@ -423,11 +700,12 @@ export async function resolveProxyForConnectionFromRegistry(connectionId: string
 
     const accountAssignment = db
       .prepare(
-        "SELECT p.id, p.type, p.host, p.port, p.username, p.password FROM proxy_assignments a JOIN proxy_registry p ON p.id = a.proxy_id WHERE a.scope = 'account' AND a.scope_id = ? LIMIT 1"
+        "SELECT p.id, p.type, p.host, p.port, p.username, p.password, p.notes FROM proxy_assignments a JOIN proxy_registry p ON p.id = a.proxy_id WHERE a.scope = 'account' AND a.scope_id = ? LIMIT 1"
       )
       .get(connectionId);
     if (accountAssignment) {
       const record = toRecord(accountAssignment);
+      const relayAuth = record.type === "vercel" ? extractRelayAuth(record.notes) : undefined;
       return {
         proxy: {
           type: record.type,
@@ -435,6 +713,7 @@ export async function resolveProxyForConnectionFromRegistry(connectionId: string
           port: record.port,
           username: record.username,
           password: record.password,
+          ...(relayAuth !== undefined ? { relayAuth } : {}),
         },
         level: "account",
         levelId: connectionId,
@@ -449,11 +728,12 @@ export async function resolveProxyForConnectionFromRegistry(connectionId: string
     if (connection?.provider) {
       const providerAssignment = db
         .prepare(
-          "SELECT p.id, p.type, p.host, p.port, p.username, p.password FROM proxy_assignments a JOIN proxy_registry p ON p.id = a.proxy_id WHERE a.scope = 'provider' AND a.scope_id = ? LIMIT 1"
+          "SELECT p.id, p.type, p.host, p.port, p.username, p.password, p.notes FROM proxy_assignments a JOIN proxy_registry p ON p.id = a.proxy_id WHERE a.scope = 'provider' AND a.scope_id = ? LIMIT 1"
         )
         .get(connection.provider);
       if (providerAssignment) {
         const record = toRecord(providerAssignment);
+        const relayAuth = record.type === "vercel" ? extractRelayAuth(record.notes) : undefined;
         return {
           proxy: {
             type: record.type,
@@ -461,6 +741,7 @@ export async function resolveProxyForConnectionFromRegistry(connectionId: string
             port: record.port,
             username: record.username,
             password: record.password,
+            ...(relayAuth !== undefined ? { relayAuth } : {}),
           },
           level: "provider",
           levelId: connection.provider,
@@ -471,11 +752,12 @@ export async function resolveProxyForConnectionFromRegistry(connectionId: string
 
     const globalAssignment = db
       .prepare(
-        "SELECT p.id, p.type, p.host, p.port, p.username, p.password FROM proxy_assignments a JOIN proxy_registry p ON p.id = a.proxy_id WHERE a.scope = 'global' LIMIT 1"
+        "SELECT p.id, p.type, p.host, p.port, p.username, p.password, p.notes FROM proxy_assignments a JOIN proxy_registry p ON p.id = a.proxy_id WHERE a.scope = 'global' LIMIT 1"
       )
       .get();
     if (globalAssignment) {
       const record = toRecord(globalAssignment);
+      const relayAuth = record.type === "vercel" ? extractRelayAuth(record.notes) : undefined;
       return {
         proxy: {
           type: record.type,
@@ -483,6 +765,7 @@ export async function resolveProxyForConnectionFromRegistry(connectionId: string
           port: record.port,
           username: record.username,
           password: record.password,
+          ...(relayAuth !== undefined ? { relayAuth } : {}),
         },
         level: "global",
         levelId: null,
@@ -506,7 +789,7 @@ export async function resolveProxyForScopeFromRegistry(scope: string, scopeId?: 
     if (normalizedScope === "global") {
       const globalAssignment = db
         .prepare(
-          "SELECT p.id, p.type, p.host, p.port, p.username, p.password FROM proxy_assignments a JOIN proxy_registry p ON p.id = a.proxy_id WHERE a.scope = 'global' LIMIT 1"
+          "SELECT p.id, p.type, p.host, p.port, p.username, p.password, p.notes FROM proxy_assignments a JOIN proxy_registry p ON p.id = a.proxy_id WHERE a.scope = 'global' LIMIT 1"
         )
         .get();
       return globalAssignment ? toRegistryProxyResolution(globalAssignment, "global", null) : null;
@@ -517,7 +800,7 @@ export async function resolveProxyForScopeFromRegistry(scope: string, scopeId?: 
 
     const assignment = db
       .prepare(
-        "SELECT p.id, p.type, p.host, p.port, p.username, p.password FROM proxy_assignments a JOIN proxy_registry p ON p.id = a.proxy_id WHERE a.scope = ? AND a.scope_id = ? LIMIT 1"
+        "SELECT p.id, p.type, p.host, p.port, p.username, p.password, p.notes FROM proxy_assignments a JOIN proxy_registry p ON p.id = a.proxy_id WHERE a.scope = ? AND a.scope_id = ? LIMIT 1"
       )
       .get(normalizedScope, normalizedScopeId);
 

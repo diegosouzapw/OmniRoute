@@ -1,4 +1,5 @@
 import { skillExecutor } from "./executor";
+import { skillRegistry } from "./registry";
 import { builtinSkills } from "./builtins";
 import { detectProvider } from "./injection";
 import { OMNIROUTE_WEB_SEARCH_FALLBACK_TOOL_NAME } from "@omniroute/open-sse/services/webSearchFallback.ts";
@@ -215,17 +216,35 @@ function parseArguments(args: string | Record<string, unknown>): Record<string, 
   }
 }
 
+function isRegisteredCustomSkill(toolName: string, apiKeyId: string): boolean {
+  const [name, version] = toolName.includes("@") ? toolName.split("@", 2) : [toolName, undefined];
+  const identifier = version ? `${name}@${version}` : name;
+  return skillRegistry.getSkill(identifier, apiKeyId) != null;
+}
+
 export async function handleToolCallExecution(
   response: any,
   modelId: string,
   context: ExecutionContext
 ): Promise<any> {
+  // Only intercept tool_use blocks that resolve to a builtin handler or a
+  // registered custom skill. Unknown tool names are forwarded untouched so
+  // client-native tools (Bash, Read, etc.) are not turned into Skill-not-found
+  // tool_result blocks appended back into the assistant response. See #2815.
+
+  // Ensure the registry cache is warm for this apiKeyId before filtering.
+  // isRegisteredCustomSkill() reads registeredSkills synchronously, so on a
+  // cold/fresh process a skill that exists only in the DB would be missed
+  // (false negative → silently skipped). Mirror the pattern used in
+  // open-sse/mcp-server/tools/skillTools.ts. loadFromDatabase() is a no-op
+  // when the cache is already warm (TTL = 60 s), so repeated calls are cheap.
+  await skillRegistry.loadFromDatabase(context.apiKeyId);
+
   const toolCalls = extractToolCalls(response, modelId).filter((call) => {
-    const builtinHandlerName = resolveBuiltinHandlerName(call.name, context);
-    if (builtinHandlerName) {
-      return true;
-    }
-    return context.customSkillExecutionEnabled !== false;
+    if (typeof call?.name !== "string" || !call.name) return false;
+    if (resolveBuiltinHandlerName(call.name, context)) return true;
+    if (context.customSkillExecutionEnabled === false) return false;
+    return isRegisteredCustomSkill(call.name, context.apiKeyId);
   });
 
   if (toolCalls.length === 0) {
@@ -271,18 +290,52 @@ export async function handleToolCallExecution(
       };
     }
 
-    case "anthropic":
+    case "anthropic": {
+      // Anthropic only permits tool_result blocks in user messages. This helper
+      // returns a single assistant response, so there is no valid place to put a
+      // server-side skill result as tool_result here. Keep client-native tool_use
+      // blocks untouched, remove the OmniRoute-handled tool_use blocks, and expose
+      // their results as plain assistant text instead of corrupting history with
+      // assistant-side tool_result blocks. See #2815.
+      //
+      // When no client-native tool_use blocks remain (all were handled here), the
+      // upstream stop_reason "tool_use" is stale and would make clients wait for
+      // tool_use blocks that no longer exist — so it is normalized to "end_turn"
+      // (with stop_sequence cleared). The mixed-tool branch keeps the original
+      // stop_reason because real native tool_use blocks still need the client.
+      const handledToolCallIds = new Set(results.map((r) => r.id));
+      const toolNamesById = new Map(toolCalls.map((call) => [call.id, call.name]));
+      const remainingContent = (Array.isArray(response.content) ? response.content : []).filter(
+        (block: any) => !(block?.type === "tool_use" && handledToolCallIds.has(block.id))
+      );
+      const resultTextBlocks = results.map((r) => ({
+        type: "text",
+        text: `[Skill result: ${toolNamesById.get(r.id) || r.id}]\n${JSON.stringify(
+          r.result
+        )}`,
+      }));
+      const firstRemainingToolUseIndex = remainingContent.findIndex(
+        (block: any) => block?.type === "tool_use"
+      );
+
+      if (firstRemainingToolUseIndex === -1) {
+        return {
+          ...response,
+          content: [...remainingContent, ...resultTextBlocks],
+          stop_reason: "end_turn",
+          stop_sequence: null,
+        };
+      }
+
       return {
         ...response,
         content: [
-          ...response.content,
-          ...results.map((r) => ({
-            type: "tool_result",
-            tool_use_id: r.id,
-            content: JSON.stringify(r.result),
-          })),
+          ...remainingContent.slice(0, firstRemainingToolUseIndex),
+          ...resultTextBlocks,
+          ...remainingContent.slice(firstRemainingToolUseIndex),
         ],
       };
+    }
 
     default:
       return response;

@@ -8,7 +8,11 @@ import { useDisplayBaseUrl } from "@/shared/hooks";
 import { AI_PROVIDERS, getProviderByAlias } from "@/shared/constants/providers";
 import { getProviderDisplayName } from "@/lib/display/names";
 import { useTranslations } from "next-intl";
+import A2ADashboardPage from "./components/A2ADashboard";
+import McpDashboardPage from "./components/MCPDashboard";
 import TokenSaverCard from "./components/TokenSaverCard";
+import NotionSourceCard from "./components/NotionSourceCard";
+import VscodeTokenAliasCard from "./VscodeTokenAliasCard";
 
 const BUILD_TIME_CLOUD_URL = process.env.NEXT_PUBLIC_CLOUD_URL || null;
 const CLOUD_ACTION_TIMEOUT_MS = 15000;
@@ -119,6 +123,15 @@ type EndpointTunnelVisibility = {
   showNgrokTunnel: boolean;
 };
 
+type EndpointTab = "apis" | "mcp" | "a2a" | "context-sources";
+
+const ENDPOINT_TABS: Array<{ value: EndpointTab; label: string; icon: string }> = [
+  { value: "apis", label: "APIs", icon: "api" },
+  { value: "mcp", label: "MCP", icon: "extension" },
+  { value: "a2a", label: "A2A", icon: "hub" },
+  { value: "context-sources", label: "Context Sources", icon: "database" },
+];
+
 const DEFAULT_TUNNEL_VISIBILITY: EndpointTunnelVisibility = {
   showCloudflaredTunnel: true,
   showTailscaleFunnel: true,
@@ -176,6 +189,7 @@ export default function APIPageClient({ machineId }: Readonly<APIPageClientProps
   const [expandedTunnel, setExpandedTunnel] = useState<string | null>(null);
   const [lanUrls, setLanUrls] = useState<string[]>([]);
   const [tailscaleIpUrl, setTailscaleIpUrl] = useState<string | null>(null);
+  const [activeEndpointTab, setActiveEndpointTab] = useState<EndpointTab>("apis");
 
   const { copied, copy } = useCopyToClipboard();
 
@@ -1212,6 +1226,22 @@ export default function APIPageClient({ machineId }: Readonly<APIPageClientProps
 
   return (
     <div className="flex flex-col gap-8">
+      <SegmentedControl
+        options={ENDPOINT_TABS}
+        value={activeEndpointTab}
+        onChange={(value) => setActiveEndpointTab(value as EndpointTab)}
+        aria-label="Endpoint sections"
+        className="w-fit"
+      />
+
+      {activeEndpointTab === "mcp" ? <McpDashboardPage /> : null}
+      {activeEndpointTab === "a2a" ? <A2ADashboardPage /> : null}
+      {activeEndpointTab === "context-sources" ? (
+        <div className="flex flex-col gap-4">
+          <NotionSourceCard />
+        </div>
+      ) : null}
+
       {/* Endpoint Card */}
       <Card>
         <h2 className="text-lg font-semibold mb-4">{t("title")}</h2>
@@ -1994,6 +2024,8 @@ export default function APIPageClient({ machineId }: Readonly<APIPageClientProps
               baseUrl={currentEndpoint}
             />
           </div>
+
+          <VscodeTokenAliasCard className="mt-4" />
         </div>
       </Card>
 

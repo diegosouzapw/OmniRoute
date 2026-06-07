@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { getProviderConnectionById, updateProviderConnection } from "@/lib/db/providers";
 import { getAccessToken, updateProviderCredentials } from "@/sse/services/tokenRefresh";
+import { rotationGroupFor } from "@omniroute/open-sse/services/refreshSerializer.ts";
 
 type RefreshResult = {
   accessToken?: string;
@@ -44,6 +45,27 @@ export async function POST(_request: Request, { params }: { params: Promise<{ id
     }
 
     const provider = connection.provider;
+
+    // Codex/OpenAI multi-account family-revocation cascade guard.
+    // These two providers share the same Auth0 client_id and can revoke sibling
+    // accounts when several refresh_tokens are rotated proactively. Other
+    // serialized providers (for example Kiro) still support safe manual refresh;
+    // the serializer only prevents concurrent sibling refreshes.
+    const rotationGroup = rotationGroupFor(provider);
+    if (rotationGroup === "openai-auth0") {
+      return NextResponse.json({
+        success: true,
+        skipped: true,
+        connectionId: id,
+        provider,
+        message:
+          "Rotating-refresh provider: the token refreshes automatically on the next request. " +
+          "Manual/bulk refresh is intentionally skipped to avoid Auth0 token-family revocation.",
+        expiresAt: connection.tokenExpiresAt || connection.expiresAt || null,
+        refreshedAt: new Date().toISOString(),
+      });
+    }
+
     const credentials = {
       connectionId: id,
       accessToken: connection.accessToken,
@@ -55,8 +77,15 @@ export async function POST(_request: Request, { params }: { params: Promise<{ id
     };
 
     // Use the existing getAccessToken helper which knows how to refresh
-    // tokens for each provider type (Claude, GitHub, Gemini, etc.)
-    const newCredentials = (await getAccessToken(provider, credentials)) as RefreshResult | null;
+    // tokens for each provider type (Claude, GitHub, Gemini, etc.).
+    // Pass onPersist so the DB write happens atomically INSIDE the per-connection
+    // mutex — prevents the race where a concurrent request reads stale credentials
+    // between the network call and the DB update.
+    let persistedCredentials: RefreshResult | null = null;
+    const newCredentials = (await getAccessToken(provider, credentials, async (result) => {
+      await updateProviderCredentials(id, result);
+      persistedCredentials = result;
+    })) as RefreshResult | null;
 
     if (newCredentials && typeof newCredentials === "object" && newCredentials.error) {
       if (
@@ -82,12 +111,17 @@ export async function POST(_request: Request, { params }: { params: Promise<{ id
       );
     }
 
-    // Persist new credentials to DB
-    await updateProviderCredentials(id, newCredentials);
+    // If onPersist was not called (e.g. no connectionId in credentials path), persist now.
+    if (!persistedCredentials) {
+      await updateProviderCredentials(id, newCredentials);
+    }
 
-    const expiresAt = newCredentials.expiresIn
-      ? new Date(Date.now() + newCredentials.expiresIn * 1000).toISOString()
-      : null;
+    const resolvedCreds = persistedCredentials || newCredentials;
+    const expiresAt = resolvedCreds.expiresAt
+      ? resolvedCreds.expiresAt
+      : resolvedCreds.expiresIn
+        ? new Date(Date.now() + resolvedCreds.expiresIn * 1000).toISOString()
+        : null;
 
     return NextResponse.json({
       success: true,

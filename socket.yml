@@ -1,0 +1,28 @@
+# Socket.dev / Socket GitHub app configuration.
+# Documentation: https://docs.socket.dev/docs/socket-yml
+#
+# OmniRoute bundles privileged opt-in features (MITM proxy, Zed credential
+# import, embedded service supervisor, Cloud Sync) inside the Next.js
+# standalone build output. The v3.8.6 release applies in-tree mitigations for
+# the six `gptMalware` findings raised against v3.8.5. The maintainer-signed
+# attestation lives at:
+#
+#   docs/security/SOCKET_DEV_FINDINGS.md
+#
+# Each flagged function carries an inline `SECURITY-AUDITOR-NOTE:` block.
+version: 2
+
+projectIgnorePaths:
+  # Test fixtures, scratch directories, and design documentation are not
+  # shipped to users.
+  - "tests/"
+  - "_tasks/"
+  - "_references/"
+  - "_ideia/"
+  - "_mono_repo/"
+  - "docs/"
+  - "coverage/"
+  - "playwright-report/"
+  - "test-results/"
+
+# triggerPaths default is "*" — keep it.

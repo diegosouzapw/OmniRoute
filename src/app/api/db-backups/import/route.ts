@@ -1,13 +1,15 @@
 import { NextResponse } from "next/server";
-import Database from "better-sqlite3";
 import path from "path";
 import fs from "fs";
 import os from "os";
 import { getDbInstance, resetDbInstance, SQLITE_FILE } from "@/lib/db/core";
+import { openDatabaseAsync } from "@/lib/db/adapters/driverFactory";
+import type { SqliteAdapter } from "@/lib/db/adapters/types";
 import { backupDbFile } from "@/lib/db/backup";
 import { isAuthRequired, isAuthenticated } from "@/shared/utils/apiAuth";
 import { getSettings } from "@/lib/db/settings";
 import { setSystemPromptConfig } from "@omniroute/open-sse/services/systemPrompt.ts";
+import { sanitizeErrorMessage } from "@omniroute/open-sse/utils/error";
 
 const MAX_UPLOAD_SIZE = 100 * 1024 * 1024; // 100 MB
 
@@ -85,10 +87,14 @@ export async function POST(request: Request) {
     tmpPath = path.join(os.tmpdir(), `omniroute-import-${Date.now()}.sqlite`);
     fs.writeFileSync(tmpPath, fileBuffer!);
 
-    // Validate SQLite integrity
-    let testDb: InstanceType<typeof Database> | null = null;
+    // Validate SQLite integrity.
+    // Use the resilient driver factory (better-sqlite3 → node:sqlite → sql.js) rather than
+    // a direct `better-sqlite3` import: in the packaged Electron app that native module is
+    // absent from the standalone server's node_modules, so a hard import crashes the route
+    // with "Cannot find module 'better-sqlite3'" even though node:sqlite is available (#3025).
+    let testDb: SqliteAdapter | null = null;
     try {
-      testDb = new Database(tmpPath, { readonly: true });
+      testDb = await openDatabaseAsync(tmpPath, { readonly: true });
       const result = testDb.pragma("integrity_check") as any[];
       if (result[0]?.integrity_check !== "ok") {
         return NextResponse.json(
@@ -117,7 +123,10 @@ export async function POST(request: Request) {
       testDb = null;
     } catch (e) {
       if (testDb) testDb.close();
-      return NextResponse.json({ error: `Invalid database file: ${e.message}` }, { status: 400 });
+      return NextResponse.json(
+        { error: `Invalid database file: ${sanitizeErrorMessage(e)}` },
+        { status: 400 }
+      );
     }
 
     // Create pre-import backup
@@ -177,7 +186,7 @@ export async function POST(request: Request) {
     });
   } catch (error) {
     console.error("[API] Error importing database:", error);
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    return NextResponse.json({ error: sanitizeErrorMessage(error) }, { status: 500 });
   } finally {
     // Cleanup temp file
     if (tmpPath && fs.existsSync(tmpPath)) {

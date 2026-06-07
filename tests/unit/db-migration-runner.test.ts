@@ -61,6 +61,47 @@ function createDb() {
   return new Database(":memory:");
 }
 
+function createSqlJsLikeDb() {
+  const db = createDb();
+
+  return {
+    driver: "sql.js",
+    get open() {
+      return true;
+    },
+    get name() {
+      return ":memory:";
+    },
+    prepare(sql) {
+      return db.prepare(sql);
+    },
+    exec(sql) {
+      if (/fts5/i.test(sql)) {
+        throw new Error("no such module: fts5");
+      }
+      db.exec(sql);
+    },
+    pragma(pragmaStr, options) {
+      return db.pragma(pragmaStr, options);
+    },
+    transaction(fn) {
+      const tx = db.transaction((...args) => fn(...args));
+      return (...args) => tx(...args);
+    },
+    immediate(fn) {
+      fn();
+    },
+    async backup() {},
+    checkpoint() {},
+    close() {
+      db.close();
+    },
+    get raw() {
+      return db;
+    },
+  };
+}
+
 function createInitialSchemaTables(db) {
   db.exec(`
     CREATE TABLE provider_connections (id TEXT PRIMARY KEY);
@@ -579,6 +620,65 @@ test(
 );
 
 test(
+  "runMigrations defers optional FTS migrations when the current driver lacks fts5 support",
+  serial,
+  async () => {
+    const runner = await importFresh("src/lib/db/migrationRunner.ts");
+    const db = createSqlJsLikeDb();
+
+    try {
+      db.exec(`
+        CREATE TABLE _omniroute_migrations (
+          version TEXT PRIMARY KEY,
+          name TEXT NOT NULL,
+          applied_at TEXT NOT NULL DEFAULT (datetime('now'))
+        );
+
+        CREATE TABLE memories (
+          id TEXT PRIMARY KEY,
+          api_key_id TEXT NOT NULL,
+          session_id TEXT,
+          type TEXT NOT NULL,
+          key TEXT,
+          content TEXT NOT NULL,
+          metadata TEXT,
+          created_at TEXT NOT NULL DEFAULT (datetime('now')),
+          updated_at TEXT NOT NULL DEFAULT (datetime('now')),
+          expires_at TEXT
+        );
+      `);
+      db.prepare("INSERT INTO _omniroute_migrations (version, name) VALUES (?, ?)").run(
+        "021",
+        "combo_call_log_targets"
+      );
+
+      const count = withMockedMigrationFs(
+        {
+          "022_add_memory_fts5.sql": REAL_022_ADD_MEMORY_FTS5_SQL,
+          "023_fix_memory_fts_uuid.sql": REAL_023_FIX_MEMORY_FTS_UUID_SQL,
+          "024_after_fts.sql": "CREATE TABLE after_fts (id INTEGER PRIMARY KEY);",
+        },
+        () => runner.runMigrations(db)
+      );
+
+      assert.equal(count, 1);
+      assert.deepEqual(
+        db.prepare("SELECT version FROM _omniroute_migrations ORDER BY version").all(),
+        [{ version: "021" }, { version: "024" }]
+      );
+      assert.equal(
+        db
+          .prepare("SELECT COUNT(*) AS count FROM sqlite_master WHERE type = 'table' AND name = ?")
+          .get("memory_fts").count,
+        0
+      );
+    } finally {
+      db.close();
+    }
+  }
+);
+
+test(
   "runMigrations allows a large pending set when the physical schema still looks like 001",
   serial,
   async () => {
@@ -993,7 +1093,140 @@ test(
 );
 
 test(
-  "full upgrade simulation: all 3 renumbered migrations reconciled without CRITICAL warnings",
+  "reconcileRenumberedMigrations moves legacy 056 manifest routing marker to 059",
+  serial,
+  async () => {
+    const runner = await importFresh("src/lib/db/migrationRunner.ts");
+    const db = createDb();
+
+    try {
+      db.exec(`
+        CREATE TABLE _omniroute_migrations (
+          version TEXT PRIMARY KEY,
+          name TEXT NOT NULL,
+          applied_at TEXT NOT NULL DEFAULT (datetime('now'))
+        );
+      `);
+      db.prepare("INSERT INTO _omniroute_migrations (version, name) VALUES (?, ?)").run(
+        "056",
+        "manifest_routing"
+      );
+
+      const consoleErrors: string[] = [];
+      const originalError = console.error;
+      console.error = (...args: any[]) => {
+        consoleErrors.push(args.map(String).join(" "));
+      };
+
+      try {
+        withMockedMigrationFs(
+          {
+            "056_mcp_accessibility_compression.sql":
+              "CREATE TABLE IF NOT EXISTS mcp_accessibility_compression (id TEXT PRIMARY KEY);",
+            "059_manifest_routing.sql":
+              "CREATE TABLE IF NOT EXISTS manifest_routing (id TEXT PRIMARY KEY);",
+          },
+          () => runner.runMigrations(db)
+        );
+
+        assert.equal(
+          db.prepare("SELECT name FROM _omniroute_migrations WHERE version = ?").get("056")?.name,
+          "mcp_accessibility_compression"
+        );
+        assert.equal(
+          db.prepare("SELECT name FROM _omniroute_migrations WHERE version = ?").get("059")?.name,
+          "manifest_routing"
+        );
+
+        const renumberingWarnings = consoleErrors.filter(
+          (e) => e.includes("CRITICAL") && e.includes("renumbered")
+        );
+        assert.equal(
+          renumberingWarnings.length,
+          0,
+          `Expected no renumbering warnings, got: ${renumberingWarnings.join("; ")}`
+        );
+      } finally {
+        console.error = originalError;
+      }
+    } finally {
+      db.close();
+    }
+  }
+);
+
+test(
+  "reconcileRenumberedMigrations moves legacy 051 usage history service tier marker to 054",
+  serial,
+  async () => {
+    const runner = await importFresh("src/lib/db/migrationRunner.ts");
+    const db = createDb();
+
+    try {
+      db.exec(`
+        CREATE TABLE _omniroute_migrations (
+          version TEXT PRIMARY KEY,
+          name TEXT NOT NULL,
+          applied_at TEXT NOT NULL DEFAULT (datetime('now'))
+        );
+      `);
+      db.prepare("INSERT INTO _omniroute_migrations (version, name) VALUES (?, ?)").run(
+        "051",
+        "usage_history_service_tier"
+      );
+      db.exec(`
+        CREATE TABLE usage_history (
+          id TEXT PRIMARY KEY,
+          api_key_id TEXT,
+          timestamp TEXT
+        );
+      `);
+
+      const consoleErrors: string[] = [];
+      const originalError = console.error;
+      console.error = (...args: any[]) => {
+        consoleErrors.push(args.map(String).join(" "));
+      };
+
+      try {
+        withMockedMigrationFs(
+          {
+            "051_hot_path_db_indexes.sql":
+              "CREATE INDEX IF NOT EXISTS idx_usage_history_api_key_id_timestamp ON usage_history(api_key_id, timestamp);",
+            "054_usage_history_service_tier.sql":
+              "ALTER TABLE usage_history ADD COLUMN service_tier TEXT;",
+          },
+          () => runner.runMigrations(db)
+        );
+
+        assert.equal(
+          db.prepare("SELECT name FROM _omniroute_migrations WHERE version = ?").get("051")?.name,
+          "hot_path_db_indexes"
+        );
+        assert.equal(
+          db.prepare("SELECT name FROM _omniroute_migrations WHERE version = ?").get("054")?.name,
+          "usage_history_service_tier"
+        );
+
+        const renumberingWarnings = consoleErrors.filter(
+          (e) => e.includes("CRITICAL") && e.includes("renumbered")
+        );
+        assert.equal(
+          renumberingWarnings.length,
+          0,
+          `Expected no renumbering warnings, got: ${renumberingWarnings.join("; ")}`
+        );
+      } finally {
+        console.error = originalError;
+      }
+    } finally {
+      db.close();
+    }
+  }
+);
+
+test(
+  "full upgrade simulation: renumbered migrations are reconciled without CRITICAL warnings",
   serial,
   async () => {
     const runner = await importFresh("src/lib/db/migrationRunner.ts");
@@ -1014,6 +1247,8 @@ test(
         ["029", "provider_connection_max_concurrent"],
         ["032", "compression_analytics"],
         ["033", "compression_cache_stats"],
+        ["051", "usage_history_service_tier"],
+        ["056", "manifest_routing"],
       ] as const;
       for (const [v, n] of oldMigrations) {
         db.prepare("INSERT INTO _omniroute_migrations (version, name) VALUES (?, ?)").run(v, n);
@@ -1031,6 +1266,11 @@ test(
           CREATE TABLE api_keys (
             id TEXT PRIMARY KEY,
             key TEXT NOT NULL
+          );
+          CREATE TABLE usage_history (
+            id TEXT PRIMARY KEY,
+            api_key_id TEXT,
+            timestamp TEXT
           );
         `);
         withMockedMigrationFs(
@@ -1050,6 +1290,14 @@ test(
               "CREATE TABLE IF NOT EXISTS compression_analytics (id TEXT PRIMARY KEY);",
             "039_compression_cache_stats.sql":
               "CREATE TABLE IF NOT EXISTS compression_cache_stats_table (id TEXT PRIMARY KEY);",
+            "051_hot_path_db_indexes.sql":
+              "CREATE INDEX IF NOT EXISTS idx_usage_history_api_key_id_timestamp ON usage_history(api_key_id, timestamp);",
+            "054_usage_history_service_tier.sql":
+              "ALTER TABLE usage_history ADD COLUMN service_tier TEXT;",
+            "056_mcp_accessibility_compression.sql":
+              "CREATE TABLE IF NOT EXISTS mcp_accessibility_compression (id TEXT PRIMARY KEY);",
+            "059_manifest_routing.sql":
+              "CREATE TABLE IF NOT EXISTS manifest_routing (id TEXT PRIMARY KEY);",
           },
           () => runner.runMigrations(db)
         );
@@ -1074,10 +1322,26 @@ test(
         const row039 = db
           .prepare("SELECT name FROM _omniroute_migrations WHERE version = ?")
           .get("039") as { name: string } | undefined;
+        const row051 = db
+          .prepare("SELECT name FROM _omniroute_migrations WHERE version = ?")
+          .get("051") as { name: string } | undefined;
+        const row054 = db
+          .prepare("SELECT name FROM _omniroute_migrations WHERE version = ?")
+          .get("054") as { name: string } | undefined;
+        const row056 = db
+          .prepare("SELECT name FROM _omniroute_migrations WHERE version = ?")
+          .get("056") as { name: string } | undefined;
+        const row059 = db
+          .prepare("SELECT name FROM _omniroute_migrations WHERE version = ?")
+          .get("059") as { name: string } | undefined;
 
         assert.equal(row034?.name, "compression_settings");
         assert.equal(row038?.name, "compression_analytics");
         assert.equal(row039?.name, "compression_cache_stats");
+        assert.equal(row051?.name, "hot_path_db_indexes");
+        assert.equal(row054?.name, "usage_history_service_tier");
+        assert.equal(row056?.name, "mcp_accessibility_compression");
+        assert.equal(row059?.name, "manifest_routing");
       } finally {
         console.error = originalError;
       }

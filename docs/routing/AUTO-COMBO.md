@@ -193,6 +193,33 @@ curl -X POST http://localhost:20128/api/combos \
   -d '{"id":"my-auto","name":"Auto Coder","strategy":"auto","config":{"auto":{"candidatePool":["anthropic","google","openai"],"weights":{"quota":0.15,"health":0.3,"costInv":0.05,"latencyInv":0.35,"taskFit":0.1,"stability":0,"tierPriority":0.05}}}}'
 ```
 
+### Auto router strategies
+
+Persisted `strategy: "auto"` combos can set `config.routerStrategy` (or legacy
+`config.auto.routerStrategy`) to one of:
+
+- `rules` — default weighted scoring
+- `cost` / `eco` — cheapest healthy provider
+- `latency` / `fast` — lowest p95 latency with reliability penalty
+- `sla-aware` / `sla` — prefer candidates that satisfy p95 latency, error-rate, and optional
+  cost SLOs
+- `lkgp` — last known good provider first
+
+SLA-aware fields:
+
+```json
+{
+  "strategy": "auto",
+  "config": {
+    "routerStrategy": "sla-aware",
+    "slaTargetP95Ms": 1500,
+    "slaMaxErrorRate": 0.05,
+    "slaMaxCostPer1MTokens": 5,
+    "slaHardConstraints": true
+  }
+}
+```
+
 ## Task Fitness
 
 30+ models scored across 6 task types (`coding`, `review`, `planning`, `analysis`, `debugging`, `documentation`). Supports wildcard patterns (e.g., `*-coder` → high coding score).

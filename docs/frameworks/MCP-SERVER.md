@@ -1,18 +1,18 @@
 ---
 title: "OmniRoute MCP Server Documentation"
-version: 3.8.2
-lastUpdated: 2026-05-13
+version: 3.8.8
+lastUpdated: 2026-05-30
 ---
 
 # OmniRoute MCP Server Documentation
 
-> Model Context Protocol server with 37 tools across routing, cache, compression, memory, skills, and proxy operations.
+> Model Context Protocol server with 43 tools across routing, cache, compression, memory, skills, proxy, and context source operations.
 >
-> Source of truth: `open-sse/mcp-server/schemas/tools.ts` (30 tools) + `open-sse/mcp-server/tools/memoryTools.ts` (3 tools) + `open-sse/mcp-server/tools/skillTools.ts` (4 tools). Tool registration and scope wiring lives in `open-sse/mcp-server/server.ts`.
+> Source of truth: `open-sse/mcp-server/schemas/tools.ts` (30 tools) + `open-sse/mcp-server/tools/memoryTools.ts` (3 tools) + `open-sse/mcp-server/tools/skillTools.ts` (4 tools) + `open-sse/mcp-server/tools/notionTools.ts` (6 tools). Tool registration and scope wiring lives in `open-sse/mcp-server/server.ts`.
 
-![MCP tool inventory (37 tools by category)](../diagrams/exported/mcp-tools-37.svg)
+![MCP tool inventory (43 tools by category)](../diagrams/exported/mcp-tools-43.svg)
 
-> Source: [diagrams/mcp-tools-37.mmd](../diagrams/mcp-tools-37.mmd)
+> Source: [diagrams/mcp-tools-43.mmd](../diagrams/mcp-tools-43.mmd) (regenerate via `npm run docs:render-diagrams`).
 
 ## Installation
 
@@ -158,27 +158,67 @@ the runtime compression model behind these tools.
 
 Defined in `open-sse/mcp-server/tools/memoryTools.ts`. Auth/scope is enforced through the standard MCP scope pipeline.
 
-| Tool                      | Description                                                                         |
-| :------------------------ | :---------------------------------------------------------------------------------- |
-| `omniroute_memory_search` | Search memories by query / type / API key with token-budget enforcement             |
-| `omniroute_memory_add`    | Add a new memory entry (`factual` / `episodic` / `procedural` / `semantic`)         |
-| `omniroute_memory_clear`  | Clear memories for an API key, optionally filtered by type or `olderThan` timestamp |
+| Tool                      | Scopes           | Description                                                                         |
+| :------------------------ | :--------------- | :---------------------------------------------------------------------------------- |
+| `omniroute_memory_search` | `read:memory`    | Search memories by query / type / API key with token-budget enforcement             |
+| `omniroute_memory_add`    | `write:memory`   | Add a new memory entry (`factual` / `episodic` / `procedural` / `semantic`)         |
+| `omniroute_memory_clear`  | `write:memory`   | Clear memories for an API key, optionally filtered by type or `olderThan` timestamp |
 
 ## Skill Tools (4)
 
 Defined in `open-sse/mcp-server/tools/skillTools.ts`. Backed by `src/lib/skills/registry` + `src/lib/skills/executor`.
 
-| Tool                          | Description                                                                       |
-| :---------------------------- | :-------------------------------------------------------------------------------- |
-| `omniroute_skills_list`       | List registered skills with optional filtering by API key, name, or enabled state |
-| `omniroute_skills_enable`     | Enable or disable a specific skill by ID                                          |
-| `omniroute_skills_execute`    | Execute a skill with provided input and return the execution record               |
-| `omniroute_skills_executions` | List recent skill execution history                                               |
+| Tool                          | Scopes          | Description                                                                       |
+| :---------------------------- | :-------------- | :-------------------------------------------------------------------------------- |
+| `omniroute_skills_list`       | `read:skills`   | List registered skills with optional filtering by API key, name, or enabled state |
+| `omniroute_skills_enable`     | `write:skills`  | Enable or disable a specific skill by ID                                          |
+| `omniroute_skills_execute`    | `execute:skills`| Execute a skill with provided input and return the execution record               |
+| `omniroute_skills_executions` | `read:skills`   | List recent skill execution history                                               |
+
+## Notion Context Source (6)
+
+Defined in `open-sse/mcp-server/tools/notionTools.ts`. Token stored in `key_value` table via `src/lib/db/notion.ts`. REST client in `src/lib/notion/api.ts`. Settings API in `src/app/api/settings/notion/route.ts`. Dashboard UI in `src/app/(dashboard)/dashboard/endpoint/components/NotionSourceCard.tsx`.
+
+Configure your Notion integration token from the **Context Sources** tab in the Endpoint dashboard, or via the REST API:
+
+```bash
+# Set token
+curl -X POST http://localhost:20128/api/settings/notion \
+  -H "Content-Type: application/json" \
+  -d '{"token": "ntn_..."}'
+
+# Check status
+curl http://localhost:20128/api/settings/notion
+
+# Disconnect
+curl -X DELETE http://localhost:20128/api/settings/notion
+```
+
+| Tool                         | Scopes           | Description                                                                           |
+| :--------------------------- | :--------------- | :------------------------------------------------------------------------------------ |
+| `omniroute_notion_search`    | `read:notion`    | Full-text search across all pages and databases                                       |
+| `omniroute_notion_list_databases` | `read:notion` | List all accessible databases with schema metadata                                    |
+| `omniroute_notion_get_database`   | `read:notion` | Get database schema by ID                                                             |
+| `omniroute_notion_query_database` | `read:notion` | Query a database with filters, sorts, and pagination                                  |
+| `omniroute_notion_read`           | `read:notion` | Read a page or block by ID with its content                                           |
+| `omniroute_notion_append_blocks`  | `write:notion`| Append children blocks to a parent block (max 100 per request)                        |
+
+## Agent Skill Catalog Tools (3)
+
+Defined in `open-sse/mcp-server/tools/agentSkillTools.ts`. Backed by `src/lib/agentSkills/catalog`. These tools expose the 42-entry Agent Skills documentation catalog to MCP clients and external agents. Scope: `read:catalog`.
+
+| Tool                               | Scopes         | Description                                                                                                      |
+| :--------------------------------- | :------------- | :--------------------------------------------------------------------------------------------------------------- |
+| `omniroute_agent_skills_list`      | `read:catalog` | List all 42 agent skills with optional `category` (api\|cli) and `area` filters; returns metadata + coverage     |
+| `omniroute_agent_skills_get`       | `read:catalog` | Get full metadata + SKILL.md content for a single skill by canonical `id`                                        |
+| `omniroute_agent_skills_coverage`  | `read:catalog` | Coverage stats: how many of the 22 API and 20 CLI skills have SKILL.md files on the filesystem vs catalog totals |
+
+See [AGENT-SKILLS.md](./AGENT-SKILLS.md) for the full catalog and how external agents consume it.
 
 ## Related Frameworks (v3.8.0)
 
-The MCP tool inventory above (37 tools = 30 base + 3 memory + 4 skills) is intentionally
-scoped to runtime routing/cache/compression/memory/skills/proxy operations. Two adjacent
+The MCP tool inventory above (43 tools = 30 core + 3 memory + 4 skills + 6 notion) is intentionally
+scoped to runtime routing/cache/compression/memory/skills/proxy/context-source operations. Two adjacent
 frameworks ship alongside the MCP server in v3.8.0 and are documented separately:
 
 ### Cloud Agents
@@ -247,10 +287,16 @@ MCP tools are authenticated through API key scopes. Scope enforcement is central
 | `read:compression`    | `compression_status`, `list_compression_combos`, `compression_combo_stats`                                        |
 | `write:compression`   | `compression_configure`, `set_compression_engine`                                                                 |
 | `read:proxies`        | `oneproxy_fetch`, `oneproxy_rotate`, `oneproxy_stats`                                                             |
+| `read:notion`         | `notion_search`, `notion_list_databases`, `notion_get_database`, `notion_query_database`, `notion_read`           |
+| `write:notion`        | `notion_append_blocks`                                                                                            |
+| `read:memory`         | `memory_search`                                                                                                   |
+| `write:memory`        | `memory_add`, `memory_clear`                                                                                      |
+| `read:skills`         | `skills_list`, `skills_executions`                                                                                |
+| `write:skills`        | `skills_enable`                                                                                                   |
+| `execute:skills`      | `skills_execute`                                                                                                  |
+| `read:catalog`        | `agent_skills_list`, `agent_skills_get`, `agent_skills_coverage`                                                  |
 
 Wildcard scopes are supported: `read:*` grants all read-scopes, `*` grants full access.
-
-Memory and Skill tools currently do not declare static scope requirements in their definitions; access is gated by the caller's API key and audited through the standard MCP audit pipeline.
 
 ---
 
@@ -294,7 +340,7 @@ The heartbeat snapshot contains:
   "transport": "stdio",
   "scopesEnforced": false,
   "allowedScopes": [],
-  "toolCount": 37
+  "toolCount": 43
 }
 ```
 
@@ -328,9 +374,19 @@ Use the dashboard or the `/api/mcp/audit` and `/api/mcp/audit/stats` REST endpoi
 | `open-sse/mcp-server/tools/compressionTools.ts` | Compression tool handlers                                        |
 | `open-sse/mcp-server/tools/memoryTools.ts`      | Memory tool definitions (3 tools)                                |
 | `open-sse/mcp-server/tools/skillTools.ts`       | Skill tool definitions (4 tools)                                 |
+| `open-sse/mcp-server/tools/notionTools.ts`      | Notion context source tool definitions (6 tools)                 |
+| `open-sse/mcp-server/tools/gamificationTools.ts`| Gamification tool definitions (8 tools)                          |
+| `open-sse/mcp-server/tools/pluginTools.ts`      | Plugin registration and management tools (8 tools)               |
 | `src/app/api/mcp/status/route.ts`               | `/api/mcp/status` endpoint                                       |
 | `src/app/api/mcp/tools/route.ts`                | `/api/mcp/tools` endpoint                                        |
 | `src/app/api/mcp/sse/route.ts`                  | `/api/mcp/sse` SSE transport route                               |
 | `src/app/api/mcp/stream/route.ts`               | `/api/mcp/stream` Streamable HTTP transport route                |
 | `src/app/api/mcp/audit/route.ts`                | `/api/mcp/audit` audit log query                                 |
 | `src/app/api/mcp/audit/stats/route.ts`          | `/api/mcp/audit/stats` aggregated audit metrics                  |
+| `src/lib/notion/api.ts`                         | Notion REST API client (retry, timeout, error classification)    |
+| `src/lib/db/notion.ts`                          | Notion token persistence (`key_value` table)                     |
+| `src/app/api/settings/notion/route.ts`          | Notion settings API (GET/POST/DELETE)                            |
+| `src/app/(dashboard)/dashboard/endpoint/components/NotionSourceCard.tsx` | Notion token management UI                     |
+| `tests/unit/notion-api.test.ts`                 | Notion API client tests (7)                                      |
+| `tests/unit/notion-tools.test.ts`               | Notion tools scope enforcement tests (10)                        |
+| `tests/unit/db/notion.test.mjs`                 | Notion DB module tests (3)                                       |

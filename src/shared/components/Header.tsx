@@ -1,6 +1,15 @@
 "use client";
 
+import { useSyncExternalStore } from "react";
 import { usePathname, useRouter } from "next/navigation";
+
+const subscribePlatform = () => () => {};
+const getPlatformIsMac = () => {
+  if (typeof navigator === "undefined") return false;
+  const platform = navigator.platform || navigator.userAgent;
+  return /Mac|iPhone|iPad|iPod/.test(platform);
+};
+const getPlatformIsMacServer = () => false;
 import ThemeToggle from "./ThemeToggle";
 import TokenHealthBadge from "./TokenHealthBadge";
 import DegradationBadge from "./DegradationBadge";
@@ -10,7 +19,7 @@ import { useTranslations } from "next-intl";
 import {
   OAUTH_PROVIDERS,
   APIKEY_PROVIDERS,
-  FREE_PROVIDERS,
+  NOAUTH_PROVIDERS,
   CLAUDE_CODE_COMPATIBLE_PREFIX,
   OPENAI_COMPATIBLE_PREFIX,
   ANTHROPIC_COMPATIBLE_PREFIX,
@@ -26,7 +35,8 @@ import { useIsElectron } from "@/shared/hooks/useElectron";
 const isE2EMode = process.env.NEXT_PUBLIC_OMNIROUTE_E2E_MODE === "1";
 
 // Map sidebar item id → header description i18n key
-const HEADER_DESCRIPTIONS: Partial<Record<HideableSidebarItemId, string>> = {
+// "omni-skills" is an extended key for the /dashboard/omni-skills route (graceful fallback during deploy)
+const HEADER_DESCRIPTIONS: Partial<Record<HideableSidebarItemId | "omni-skills", string>> = {
   home: "homeDescription",
   endpoints: "endpointDescription",
   "api-manager": "apiManagerDescription",
@@ -39,11 +49,14 @@ const HEADER_DESCRIPTIONS: Partial<Record<HideableSidebarItemId, string>> = {
   quota: "limitsDescription",
   runtime: "runtimeDescription",
   media: "mediaDescription",
-  agents: "agentsDescription",
+  "cli-code": "cliToolsDescription",
+  "cli-agents": "agentsDescription",
+  "acp-agents": "agentsDescription",
   "cloud-agents": "cloudAgentsDescription",
   memory: "memoryDescription",
   skills: "skillsDescription",
   "agent-skills": "agentSkillsDescription",
+  "omni-skills": "omniSkillsDescription",
   settings: "settingsDescription",
   "context-caveman": "contextCavemanDescription",
   "context-rtk": "contextRtkDescription",
@@ -89,8 +102,6 @@ const HEADER_DESCRIPTIONS: Partial<Record<HideableSidebarItemId, string>> = {
   // Proxy sub-pages
   "mitm-proxy": "mitmProxyDescription",
   "1proxy": "oneProxyDescription",
-  // OmniProxy items
-  "cli-tools": "cliToolsDescription",
 };
 
 // Build href → sidebar item lookup (non-external items only)
@@ -118,6 +129,7 @@ function getSidebarItem(pathname: string): SidebarItemDefinition | undefined {
 
 type HeaderProps = {
   onMenuClick?: () => void;
+  onOpenCommandPalette?: () => void;
   showMenuButton?: boolean;
 };
 
@@ -138,7 +150,7 @@ function usePageInfo(pathname: string | null): PageInfo {
   const providerMatch = pathname.match(/\/providers\/([^/]+)$/);
   if (providerMatch) {
     const pid = providerMatch[1];
-    const info = OAUTH_PROVIDERS[pid] || FREE_PROVIDERS[pid] || APIKEY_PROVIDERS[pid];
+    const info = OAUTH_PROVIDERS[pid] || NOAUTH_PROVIDERS[pid] || APIKEY_PROVIDERS[pid];
     if (info) return { title: info.name, description: "", providerId: info.id };
     if (pid.startsWith(CLAUDE_CODE_COMPATIBLE_PREFIX))
       return { title: "CC Compatible", description: "", providerId: "claude" };
@@ -162,7 +174,12 @@ function usePageInfo(pathname: string | null): PageInfo {
   return { title: "", description: "" };
 }
 
-export default function Header({ onMenuClick, showMenuButton = true }: HeaderProps) {
+export default function Header({
+  onMenuClick,
+  onOpenCommandPalette,
+  showMenuButton = true,
+}: HeaderProps) {
+  const isMac = useSyncExternalStore(subscribePlatform, getPlatformIsMac, getPlatformIsMacServer);
   const pathname = usePathname();
   const router = useRouter();
   const isElectron = useIsElectron();
@@ -225,6 +242,31 @@ export default function Header({ onMenuClick, showMenuButton = true }: HeaderPro
 
       {/* Right actions */}
       <div className="flex items-center gap-3 ml-auto">
+        {onOpenCommandPalette && (
+          <>
+            <button
+              type="button"
+              onClick={onOpenCommandPalette}
+              className="hidden md:inline-flex items-center gap-2 px-2.5 py-1.5 rounded-lg border border-black/10 dark:border-white/10 bg-bg-subtle text-text-muted hover:text-text-main hover:bg-black/[0.04] dark:hover:bg-white/[0.04] transition-colors"
+              title="Quick navigation (⌘K / Ctrl+K)"
+              aria-label="Open quick navigation"
+            >
+              <span className="material-symbols-outlined text-[16px]">search</span>
+              <span className="text-xs">Quick nav</span>
+              <kbd className="hidden lg:inline-flex font-mono text-[10px] px-1 py-0.5 rounded bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10">
+                {isMac ? "⌘K" : "Ctrl+K"}
+              </kbd>
+            </button>
+            <button
+              type="button"
+              onClick={onOpenCommandPalette}
+              className="md:hidden p-2 rounded-lg text-text-muted hover:text-text-main hover:bg-black/5 dark:hover:bg-white/5 transition-colors"
+              aria-label="Open quick navigation"
+            >
+              <span className="material-symbols-outlined">search</span>
+            </button>
+          </>
+        )}
         <LanguageSelector />
         <ThemeToggle />
         {!isE2EMode && <DegradationBadge />}

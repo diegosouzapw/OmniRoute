@@ -193,7 +193,8 @@ test("migrateUsageJsonToSqlite migrates usage history aliases and TTFT fallbacks
         ORDER BY timestamp ASC
       `
     )
-    .all();
+    .all()
+    .map((row) => ({ ...row }));
 
   assert.deepEqual(rows, [
     {
@@ -287,20 +288,23 @@ test("migrateUsageJsonToSqlite migrates call logs to summary rows and ignores du
     .all();
 
   assert.equal(rows.length, 2);
-  assert.deepEqual(rows[0], {
-    id: "call-1",
-    method: "GET",
-    path: "/v1/chat/completions",
-    status: 201,
-    provider: "openai",
-    account: "acct-a",
-    connection_id: "conn-a",
-    detail_state: "ready",
-    artifact_relpath: (rows[0] as any).artifact_relpath,
-    has_request_body: 1,
-    has_response_body: 1,
-    error_summary: "bad upstream",
-  });
+  assert.deepEqual(
+    { ...rows[0] },
+    {
+      id: "call-1",
+      method: "GET",
+      path: "/v1/chat/completions",
+      status: 201,
+      provider: "openai",
+      account: "acct-a",
+      connection_id: "conn-a",
+      detail_state: "ready",
+      artifact_relpath: (rows[0] as any).artifact_relpath,
+      has_request_body: 1,
+      has_response_body: 1,
+      error_summary: "bad upstream",
+    }
+  );
   assert.equal(typeof rows[0].artifact_relpath, "string");
   assert.equal((rows[1] as any).id.length > 0, true);
   assert.equal((rows[1] as any).method, "POST");

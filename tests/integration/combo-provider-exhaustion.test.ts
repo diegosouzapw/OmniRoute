@@ -495,3 +495,79 @@ test.skip("round-robin path fast-skip: round-robin combo also skips exhausted pr
   assert.equal(openaiCalls, 1, "round-robin should skip second openai target");
   assert.equal(anthropicCalls, 1);
 });
+
+test("allow rate-limited connections after transient 429 on subsequent targets in same combo", async () => {
+  const now = Date.now();
+  await seedConnection("openai", {
+    name: "openai-rate-limited-reused",
+    apiKey: "sk-openai-rate-limited-reused",
+    rateLimitedUntil: new Date(now + 60000).toISOString(),
+  });
+
+  await seedConnection("openai", {
+    name: "openai-fresh-429",
+    apiKey: "sk-openai-fresh-429",
+  });
+
+  await settingsDb.updateSettings({
+    requestRetry: 0,
+    maxRetryIntervalSec: 0,
+  });
+
+  await combosDb.createCombo({
+    name: "rate-limit-reuse-combo",
+    strategy: "priority",
+    config: { maxRetries: 0, retryDelayMs: 0, fallbackDelayMs: 0 },
+    models: [
+      "openai/gpt-4o-mini",
+      "openai/gpt-3.5-turbo",
+    ],
+  });
+
+  let openaiCalls = 0;
+  let usedApiKeys: string[] = [];
+
+  globalThis.fetch = async (_url: string, init: any = {}) => {
+    const headers = toPlainHeaders(init.headers);
+    const authHeader = headers.authorization ?? headers.Authorization;
+
+    openaiCalls += 1;
+    if (authHeader === "Bearer sk-openai-fresh-429") {
+      usedApiKeys.push("fresh");
+      return new Response(JSON.stringify({ error: { message: "Too many requests" } }), {
+        status: 429,
+        headers: { "Content-Type": "application/json" },
+      });
+    }
+
+    if (authHeader === "Bearer sk-openai-rate-limited-reused") {
+      usedApiKeys.push("rate-limited");
+      return new Response(
+        JSON.stringify({ choices: [{ message: { content: "rate limited reuse success" } }] }),
+        {
+          status: 200,
+          headers: { "Content-Type": "application/json" },
+        }
+      );
+    }
+
+    throw new Error(`unexpected upstream headers: ${JSON.stringify(headers)}`);
+  };
+
+  const response = await handleChat(
+    buildRequest({
+      body: {
+        model: "rate-limit-reuse-combo",
+        stream: false,
+        messages: [{ role: "user", content: "test rate limit reuse" }],
+      },
+    })
+  );
+
+  const body = (await response.json()) as any;
+  assert.equal(response.status, 200);
+  assert.equal(body.choices[0].message.content, "rate limited reuse success");
+  assert.equal(openaiCalls, 2);
+  assert.deepEqual(usedApiKeys, ["fresh", "rate-limited"]);
+});
+

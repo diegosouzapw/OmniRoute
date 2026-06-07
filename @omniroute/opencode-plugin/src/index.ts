@@ -595,7 +595,7 @@ export function mapRawModelToModelV2(
         video: outMods.has("video"),
         pdf: outMods.has("pdf"),
       },
-      interleaved: false,
+      interleaved: Boolean(caps.thinking),
     },
     cost: {
       input: 0,
@@ -845,7 +845,7 @@ export function mapComboToModelV2(
       video: modalityAllHave(memberOutMods, "video"),
       pdf: modalityAllHave(memberOutMods, "pdf"),
     },
-    interleaved: false,
+    interleaved: hasMembers && members.every((m) => Boolean(m.capabilities?.thinking)),
   };
 
   return {

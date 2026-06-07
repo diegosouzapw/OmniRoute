@@ -16,7 +16,7 @@ export default function EmailPrivacyToggle({ size = "sm" }: { size?: "sm" | "md"
   const t = useTranslations("providers");
 
   const iconSize = size === "md" ? "text-[20px]" : "text-[16px]";
-  const padSize = size === "md" ? "p-1.5" : "p-1";
+  const sizeClass = size === "md" ? "h-10 w-10" : "h-8 w-8";
 
   const label = emailsVisible ? t("hideEmails") : t("showEmails");
 
@@ -24,7 +24,7 @@ export default function EmailPrivacyToggle({ size = "sm" }: { size?: "sm" | "md"
     <button
       type="button"
       onClick={toggleEmailVisibility}
-      className={`rounded ${padSize} transition-colors ${
+      className={`inline-flex ${sizeClass} items-center justify-center rounded transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary ${
         emailsVisible
           ? "bg-primary/15 text-primary hover:bg-primary/25"
           : "text-text-muted hover:bg-sidebar hover:text-primary"
