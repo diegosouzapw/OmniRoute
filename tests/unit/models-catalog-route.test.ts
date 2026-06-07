@@ -1416,7 +1416,33 @@ test("v1 models catalog computes combo context_length from known targets when so
   assert.equal(
     comboModel.context_length,
     128000,
-    "combo context_length should be the MIN of known target model limits, ignoring unknown targets"
+    "combo context_length should be the MIN of known target model limits, using getTokenLimit fallback for unknown targets
+  );
+});
+
+test("v1 models catalog falls back to getTokenLimit for combo targets with no upstream context", async () => {
+  await seedConnection("openai", { name: "openai-gettoken-fallback" });
+
+  // Create a combo with ONLY unknown targets (no registry/spec/synced context).
+  // The context should come from getTokenLimit fallback.
+  const combo = await combosDb.createCombo({
+    name: "gettoken-fallback-combo",
+    strategy: "priority",
+    models: ["openai/utterly-unknown-model-xyz"],
+  });
+
+  const response = await v1ModelsCatalog.getUnifiedModelsResponse(
+    new Request("http://localhost/api/v1/models")
+  );
+  const body = (await response.json()) as any;
+  const comboModel = body.data.find((item) => item.id === "gettoken-fallback-combo");
+
+  assert.equal(response.status, 200);
+  assert.ok(comboModel);
+  assert.equal(
+    comboModel.context_length,
+    128000,
+    "combo with only unknown targets should use getTokenLimit fallback (128K default)"
   );
 });
 
