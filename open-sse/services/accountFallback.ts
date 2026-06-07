@@ -12,6 +12,7 @@ import {
   matchErrorRuleByText,
   matchErrorRuleByStatus,
 } from "../config/errorConfig.ts";
+import { getProviderErrorRuleMatch } from "../config/providerErrorRules.ts";
 import { getPassthroughProviders, getProviderCategory } from "../config/providerRegistry.ts";
 import {
   DEFAULT_RESILIENCE_SETTINGS,
@@ -1009,8 +1010,33 @@ export function classifyErrorText(errorText: unknown): RateLimitReasonValue {
 
 /**
  * Classify HTTP status + error text into RateLimitReason
+ /**
+ * Classify HTTP status + error text into RateLimitReason
+ *
+ * If context (provider, headers, body) is supplied, provider-specific rules
+ * are evaluated FIRST. A provider like Opencode can signal account-wide quota
+ * exhaustion via `x-ratelimit-remaining-requests: 0` even when the body says
+ * "rate limit" — without context, classifyError falls through to the global
+ * text rules and misclassifies as RATE_LIMIT_EXCEEDED. With context, the
+ * provider rule takes precedence.
  */
-export function classifyError(status: number, errorText: unknown): RateLimitReasonValue {
+export function classifyError(
+  status: number,
+  errorText: unknown,
+  context?: { provider?: string | null; headers?: Record<string, string> | null; body?: unknown }
+): RateLimitReasonValue {
+  // Provider-specific rules take priority — they have the most accurate signal
+  // (e.g. `x-ratelimit-remaining-requests: 0` is irrefutable account exhaustion).
+  if (context?.provider) {
+    const match = getProviderErrorRuleMatch(
+      context.provider,
+      status,
+      context.headers ?? null,
+      context.body
+    );
+    if (match) return match.reason;
+  }
+
   // Text classification takes priority (more specific)
   const textReason = classifyErrorText(errorText);
   if (textReason !== RateLimitReason.UNKNOWN) return textReason;
