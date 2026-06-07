@@ -649,35 +649,17 @@ export async function resolveProxyForConnection(connectionId: string, apiKeyId?:
   let connectionProxyEnabled = true;
   let connectionPerKeyProxyEnabled = false;
 
-  try {
-    const row = db
-      .prepare(
-        "SELECT provider, proxy_enabled, per_key_proxy_enabled FROM provider_connections WHERE id = ?"
-      )
-      .get(connectionId);
-    if (row) {
-      connectionRecord = toRecord(row);
-      connectionProvider =
-        typeof connectionRecord.provider === "string" ? connectionRecord.provider : null;
-      connectionProxyEnabled = connectionRecord.proxy_enabled !== 0;
-      connectionPerKeyProxyEnabled = connectionRecord.per_key_proxy_enabled === 1;
-    }
-  } catch (error: unknown) {
-    const message = error instanceof Error ? error.message : String(error);
-    if (!message.includes("no such column")) {
-      throw error;
-    }
-
-    // Older DBs may not have the toggle columns yet. Keep legacy behavior enabled
-    // until migrations/repair add the columns.
-    const row = db
-      .prepare("SELECT provider FROM provider_connections WHERE id = ?")
-      .get(connectionId);
-    if (row) {
-      connectionRecord = toRecord(row);
-      connectionProvider =
-        typeof connectionRecord.provider === "string" ? connectionRecord.provider : null;
-    }
+  const row = db
+    .prepare(
+      "SELECT provider, proxy_enabled, per_key_proxy_enabled FROM provider_connections WHERE id = ?"
+    )
+    .get(connectionId);
+  if (row) {
+    connectionRecord = toRecord(row);
+    connectionProvider =
+      typeof connectionRecord.provider === "string" ? connectionRecord.provider : null;
+    connectionProxyEnabled = connectionRecord.proxy_enabled !== 0;
+    connectionPerKeyProxyEnabled = connectionRecord.per_key_proxy_enabled === 1;
   }
 
   // A connection-level Proxy Off is explicit: it must bypass every stored proxy

@@ -277,6 +277,7 @@ Route upstream LLM provider calls through an HTTP or SOCKS5 proxy for egress con
 | `ALL_PROXY`                             | _(unset)_ | Node.js standard                             | Universal proxy (supports `socks5://`).                                                   |
 | `NO_PROXY`                              | _(unset)_ | Node.js standard                             | Comma-separated hostnames/IPs to bypass the proxy.                                        |
 | `OMNIROUTE_PROXY_AUTO_FALLBACK`         | `false`   | `open-sse/utils/proxyFallback.ts`            | Opt in to automatic proxy-pool fallback after direct connection failures.                  |
+| `ENABLE_PROXY_AUTO_FALLBACK`            | `false`   | `open-sse/utils/proxyFallback.ts`            | Legacy alias for `OMNIROUTE_PROXY_AUTO_FALLBACK`.                                         |
 | `ENABLE_TLS_FINGERPRINT`                | `false`   | `open-sse/executors`                         | Spoof TLS fingerprint using wreq-js (mimics Chrome 124). Counters JA3/JA4 blocking.       |
 | `OMNIROUTE_TURNSTILE_IGNORE_TLS_ERRORS` | `false`   | `open-sse/services/claudeTurnstileSolver.ts` | Allow the Claude Turnstile Playwright browser context to ignore HTTPS certificate errors. |
 

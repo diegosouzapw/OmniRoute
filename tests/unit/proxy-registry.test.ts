@@ -17,20 +17,12 @@ const settingsDb = await import("../../src/lib/db/settings.ts");
 const apiKeysDb = await import("../../src/lib/db/apiKeys.ts");
 const proxiesRoute = await import("../../src/app/api/settings/proxies/route.ts");
 
-async function resetStorage() {
-  delete process.env.INITIAL_PASSWORD;
+function clearProxyAutoFallbackEnv() {
   delete process.env.OMNIROUTE_PROXY_AUTO_FALLBACK;
   delete process.env.ENABLE_PROXY_AUTO_FALLBACK;
-  core.resetDbInstance();
-  apiKeysDb.resetApiKeyState();
-  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
-  fs.mkdirSync(TEST_DATA_DIR, { recursive: true });
 }
 
-test.after(async () => {
-  core.resetDbInstance();
-  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
-
+function restoreProxyAutoFallbackEnv() {
   if (ORIGINAL_PROXY_AUTO_FALLBACK === undefined) {
     delete process.env.OMNIROUTE_PROXY_AUTO_FALLBACK;
   } else {
@@ -41,6 +33,25 @@ test.after(async () => {
   } else {
     process.env.ENABLE_PROXY_AUTO_FALLBACK = ORIGINAL_ENABLE_PROXY_AUTO_FALLBACK;
   }
+}
+
+async function resetStorage() {
+  delete process.env.INITIAL_PASSWORD;
+  clearProxyAutoFallbackEnv();
+  core.resetDbInstance();
+  apiKeysDb.resetApiKeyState();
+  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+  fs.mkdirSync(TEST_DATA_DIR, { recursive: true });
+}
+
+test.afterEach(() => {
+  restoreProxyAutoFallbackEnv();
+});
+
+test.after(async () => {
+  core.resetDbInstance();
+  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+  restoreProxyAutoFallbackEnv();
 });
 
 test("proxy registry blocks delete when proxy is still assigned", async () => {

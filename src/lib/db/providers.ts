@@ -77,7 +77,11 @@ function withNullableRateLimitOverrides(
 function normalizeBooleanColumn(value: unknown, fallback: boolean): boolean {
   if (typeof value === "boolean") return value;
   if (typeof value === "number") return value === 1;
-  if (typeof value === "string") return value === "1" || value.toLowerCase() === "true";
+  if (typeof value === "string") {
+    const normalized = value.trim().toLowerCase();
+    if (normalized === "1" || normalized === "true") return true;
+    if (normalized === "0" || normalized === "false") return false;
+  }
   return fallback;
 }
 

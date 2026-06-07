@@ -36,9 +36,14 @@ const PROXY_FALLBACK_CACHE = new Map<string, CacheEntry>();
 const CACHE_TTL_MS = 5 * 60 * 1000; // 5 minutes
 
 export function isProxyAutoFallbackEnabled(): boolean {
-  const raw =
-    process.env.OMNIROUTE_PROXY_AUTO_FALLBACK || process.env.ENABLE_PROXY_AUTO_FALLBACK || "";
-  return raw === "1" || raw.toLowerCase() === "true";
+  const raw = (
+    process.env.OMNIROUTE_PROXY_AUTO_FALLBACK ||
+    process.env.ENABLE_PROXY_AUTO_FALLBACK ||
+    ""
+  )
+    .trim()
+    .toLowerCase();
+  return raw === "1" || raw === "true";
 }
 
 /**
