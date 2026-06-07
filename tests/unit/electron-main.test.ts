@@ -76,6 +76,36 @@ describe("Electron packaging manifest completeness (#3292)", () => {
   }
 });
 
+// ─── Auto-updater unhandled-rejection guard (v3.8.13) ────────
+//
+// checkForUpdates() is fired unawaited from a setTimeout at startup. The
+// underlying autoUpdater.checkForUpdates() rejects on a 404 (no published
+// update manifest yet), offline, or rate-limit — and an uncaught rejection
+// there surfaces as an "Unhandled Rejection" that the packaged-app smoke test
+// treats as fatal (it failed the macOS-intel build for v3.8.13). The call must
+// be wrapped so the rejection never escapes.
+
+describe("Electron auto-updater rejection handling (v3.8.13)", () => {
+  const mainSrc = readFileSync(join(import.meta.dirname, "../../electron/main.js"), "utf8");
+
+  it("wraps autoUpdater.checkForUpdates() so a 404/offline check can't become an unhandled rejection", () => {
+    const fn = mainSrc.match(/async function checkForUpdates\([\s\S]*?\n}/);
+    assert.ok(fn, "checkForUpdates function should exist in electron/main.js");
+    const body = fn![0];
+    assert.match(body, /try\s*\{/, "checkForUpdates must wrap the update check in try/catch");
+    assert.match(
+      body,
+      /catch\s*\([\s\S]*?\)\s*\{/,
+      "checkForUpdates must catch the rejecting autoUpdater.checkForUpdates() call"
+    );
+    assert.match(
+      body,
+      /try[\s\S]*await autoUpdater\.checkForUpdates\(\)[\s\S]*catch/,
+      "autoUpdater.checkForUpdates() must sit inside the try block"
+    );
+  });
+});
+
 // ─── URL Validation Tests ────────────────────────────────────
 
 describe("Electron URL Validation", () => {
