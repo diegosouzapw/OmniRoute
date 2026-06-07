@@ -1321,6 +1321,12 @@ export async function GET(request: Request) {
     return NextResponse.json(analytics);
   } catch (error) {
     console.error("Error computing analytics:", error);
-    return NextResponse.json({ error: "Failed to compute analytics" }, { status: 500 });
+    // Surface the real (sanitized) reason so the dashboard can show it instead of a
+    // generic placeholder (#3356). buildErrorBody strips stacks/absolute paths.
+    const { buildErrorBody } = await import("@omniroute/open-sse/utils/error");
+    const message = error instanceof Error ? error.message : String(error);
+    return NextResponse.json(buildErrorBody(500, message || "Failed to compute analytics"), {
+      status: 500,
+    });
   }
 }
