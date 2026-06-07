@@ -4923,17 +4923,9 @@ export default function ProviderDetailPage() {
                       </label>
 
                       <div className="flex flex-wrap items-center justify-end gap-2">
-                        {selectedIds.size === 0 && connections.length > 0 && (
-                          <Button
-                            variant="secondary"
-                            size="sm"
-                            icon="shield"
-                            loading={distributingProxies}
-                            onClick={() => handleDistributeProxies()}
-                          >
-                            {t("distributeProxies")}
-                          </Button>
-                        )}
+                        {/* Distribute Proxies lives in the provider toolbar (top action bar);
+                            removed the duplicate here that rendered simultaneously when nothing
+                            was selected. Per-tag groups keep their own scoped button. */}
                         {bulkActions}
                       </div>
                     </div>
