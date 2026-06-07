@@ -78,13 +78,11 @@ function toJsonRecord(value: unknown): JsonRecord {
 }
 
 // Provider-level failure tracking for circuit breaker behavior
-// Error codes that count toward provider-level failure threshold
-// 429 (rate limit) is intentionally excluded: rate limits are connection-scoped
-// and handled via Connection Cooldown, not provider-wide circuit breaker.
-// 429 included so the circuit breaker opens on repeated rate limits,
-// preventing infinite combo retries. Per-error-type cooldowns
-// (rate_limit: 60s, quota_exhausted: 1h) prevent cascading provider
-// trips at scale (Issue #1846).
+// Error codes that count toward provider-level failure threshold.
+// 429 is included: per-error-type cooldowns (rate_limit: 60s, quota_exhausted: 1h)
+// prevent cascading provider trips at scale (Issue #1846 concern addressed),
+// while still allowing the circuit breaker to open on sustained 429s and
+// prevent infinite combo retries (Issue #3200).
 const PROVIDER_FAILURE_ERROR_CODES = new Set([408, 429, 500, 502, 503, 504]);
 
 // Per-connection failure deduplication: prevents rapid-fire failures from the
