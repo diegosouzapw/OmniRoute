@@ -203,6 +203,8 @@ const SCHEMA_SQL = `
     last_used_at TEXT,
     "group" TEXT,
     max_concurrent INTEGER,
+    proxy_enabled INTEGER NOT NULL DEFAULT 1,
+    per_key_proxy_enabled INTEGER NOT NULL DEFAULT 0,
     quota_window_thresholds_json TEXT,
     rate_limit_overrides_json TEXT,
     created_at TEXT NOT NULL,
@@ -219,6 +221,9 @@ const SCHEMA_SQL = `
     prefix TEXT,
     api_type TEXT,
     base_url TEXT,
+    chat_path TEXT,
+    models_path TEXT,
+    custom_headers_json TEXT,
     created_at TEXT NOT NULL,
     updated_at TEXT NOT NULL
   );
@@ -452,7 +457,12 @@ export function rowToCamel(row: unknown): JsonRecord | null {
   const result: JsonRecord = {};
   for (const [k, v] of Object.entries(row as JsonRecord)) {
     const camelKey = toCamelCase(k);
-    if (camelKey === "isActive" || camelKey === "rateLimitProtection") {
+    if (
+      camelKey === "isActive" ||
+      camelKey === "rateLimitProtection" ||
+      camelKey === "proxyEnabled" ||
+      camelKey === "perKeyProxyEnabled"
+    ) {
       result[camelKey] = v === 1 || v === true;
     } else if (camelKey === "providerSpecificData" && typeof v === "string") {
       try {
@@ -460,15 +470,21 @@ export function rowToCamel(row: unknown): JsonRecord | null {
       } catch {
         result[camelKey] = v;
       }
-    } else if (camelKey.endsWith("Json") && typeof v === "string") {
+    } else if (camelKey.endsWith("Json")) {
       // Convention: any column with a `_json` suffix is JSON-encoded TEXT.
       // Surface the parsed object under the friendlier name (key minus the
       // "Json" suffix) — e.g. quotaWindowThresholdsJson → quotaWindowThresholds.
+      // A NULL/absent column normalizes to `baseKey: null` (not the suffixed
+      // key) so read and write paths expose a consistent shape.
       const baseKey = camelKey.slice(0, -"Json".length);
-      try {
-        result[baseKey] = JSON.parse(v);
-      } catch {
-        result[baseKey] = null;
+      if (typeof v === "string") {
+        try {
+          result[baseKey] = JSON.parse(v);
+        } catch {
+          result[baseKey] = null;
+        }
+      } else {
+        result[baseKey] = v == null ? null : v;
       }
     } else {
       result[camelKey] = v;
@@ -536,6 +552,18 @@ function ensureProviderConnectionsColumns(db: SqliteDatabase) {
     if (!columnNames.has("max_concurrent")) {
       db.exec("ALTER TABLE provider_connections ADD COLUMN max_concurrent INTEGER");
       console.log("[DB] Added provider_connections.max_concurrent column");
+    }
+    if (!columnNames.has("proxy_enabled")) {
+      db.exec(
+        "ALTER TABLE provider_connections ADD COLUMN proxy_enabled INTEGER NOT NULL DEFAULT 1"
+      );
+      console.log("[DB] Added provider_connections.proxy_enabled column");
+    }
+    if (!columnNames.has("per_key_proxy_enabled")) {
+      db.exec(
+        "ALTER TABLE provider_connections ADD COLUMN per_key_proxy_enabled INTEGER NOT NULL DEFAULT 0"
+      );
+      console.log("[DB] Added provider_connections.per_key_proxy_enabled column");
     }
     if (!columnNames.has("quota_window_thresholds_json")) {
       db.exec("ALTER TABLE provider_connections ADD COLUMN quota_window_thresholds_json TEXT");
@@ -1270,7 +1298,7 @@ export function getDbInstance(): SqliteDatabase {
       ) {
         throw e;
       }
-  preservedCriticalState = captureCriticalDbState(sqliteFile);
+      preservedCriticalState = captureCriticalDbState(sqliteFile);
 
       // SAFETY: Never delete the database — rename to backup so data can be recovered.
       // The old code would silently destroy all user data on any probe failure.

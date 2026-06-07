@@ -4,6 +4,33 @@
 
 ---
 
+## [3.8.14] — Unreleased
+
+_Development cycle in progress — entries are added as work merges into `release/v3.8.14` and finalized by the release flow._
+
+### 🔒 Security
+
+- **fix(security):** provider auto-sync self-fetch now uses a trusted loopback/env-pinned origin (`getModelSyncInternalBaseUrl()`) instead of `new URL(request.url).origin`, so a management-authenticated caller can no longer redirect the credential-bearing internal request to an arbitrary host via the `Host` header (CodeQL `js/request-forgery`, critical). Shipped to Docker/Electron in v3.8.13; reaches npm here (npm `3.8.13` was immutable). ([#3336](https://github.com/diegosouzapw/OmniRoute/pull/3336), CodeQL #323 — thanks @diegosouzapw)
+
+### 🔧 Bug Fixes
+
+- **fix(proxy):** proxy auto-selection is now **opt-in** (new `PROXY_AUTO_SELECT_ENABLED` flag, default off). Previously a single proxy in the registry silently became a global fallback for **all** provider connections (the Step-11 fallback listed every registry proxy, ignoring assignments and per-connection `proxy_enabled`). It now no-ops unless the operator enables the flag. (#3332 — thanks @hertznsk)
+- **fix(cli):** write the OpenCode config to `~/.config/opencode/opencode.json` on **all** platforms — on Windows OmniRoute wrote to `%APPDATA%\opencode\` but OpenCode reads from `%USERPROFILE%\.config\opencode\` (XDG), so dashboard-saved config silently had no effect. (#3330 — thanks @abdulkadirozyurt)
+- **fix(catalog):** remove `minimaxai/minimax-m3` from the **NVIDIA NIM** tier — NVIDIA does not host it yet, so every request 404'd (`404 page not found`), while sibling `minimax-m2.7` on the same provider works. MiniMax M3 stays available on the tiers that actually serve it. (#3329 — thanks @mikmaneggahommie)
+- **fix(electron):** ship `loginManager.js` in the packaged app — #3292 added it (and a `require("./loginManager")` in `main.js`) without adding it to electron-builder's `build.files`, so the packaged app crashed at startup with "Cannot find module" on the Linux/macOS smoke tests. Plus a regression test asserting every local `require("./x")` in the Electron entry points is shipped. ([#3334](https://github.com/diegosouzapw/OmniRoute/pull/3334) — thanks @diegosouzapw)
+- **fix(startup):** correct the #3292 auto-refresh daemon import (`@/open-sse/...` → `@omniroute/open-sse/services/autoRefreshDaemon`); the `@/` alias maps to `src/`, so the daemon silently never ran in the built standalone (non-fatal "Cannot find module", caught at runtime). Adds a regression test banning `@/open-sse/*` imports in `src/`. ([#3335](https://github.com/diegosouzapw/OmniRoute/pull/3335) — thanks @diegosouzapw)
+- **fix(electron):** wrap `autoUpdater.checkForUpdates()` so a 404/offline/rate-limited update check can no longer surface as an unhandled rejection (the `error` event still notifies the user); fixes the macOS-intel packaged-app smoke failure. ([#3339](https://github.com/diegosouzapw/OmniRoute/pull/3339) — thanks @diegosouzapw)
+
+### 📝 Maintenance
+
+- **fix(review):** harden the per-provider custom-headers feature surfaced by the `/review-reviews` battery — `updateProviderNode` no longer wipes stored `custom_headers_json` on a partial update that omits the field; `customHeadersSchema` reuses the canonical `upstreamHeadersRecordSchema` guards (CRLF/control-char/length/16-max) and rejects auth header names via a single shared `isForbiddenCustomHeaderName()` denylist (executor + schema no longer keep divergent copies); custom headers now reach the wire for `anthropic-compatible-cc-*` nodes and override the executor's own `Content-Type`/`Accept` case-insensitively instead of duplicating them; and `rowToCamel` normalizes a NULL `_json` column to `baseKey: null`. (thanks @diegosouzapw)
+- **fix(catalog):** flag every `minimax-m3` registry entry `supportsVision` (not just the opencode free tier) so the vision-bridge guardrail and the compression layer agree the model is multimodal on all tiers (completes #3328). (thanks @diegosouzapw)
+- **fix(oauth):** Kiro Builder ID import forwards the requested `region` to the OIDC validation refresh (no longer pinned to `us-east-1`), prefers the region-matching cached SSO client registration over the first file found, and falls `expiresIn` back to 3600 on the OIDC path. (thanks @diegosouzapw)
+- **fix(db):** migration `095` gains an `isSchemaAlreadyApplied` guard so a fresh DB (where `SCHEMA_SQL` already creates `custom_headers_json`) skips it cleanly instead of throwing-then-catching a duplicate-column error. (thanks @diegosouzapw)
+- **test:** align stale cycle tests with shipped behavior — NVIDIA `minimaxai/minimax-m3` removal (#3329), the 29th feature flag (`PROXY_AUTO_SELECT_ENABLED`, #3332), and the OpenCode `~/.config` path on Windows (#3330). (thanks @diegosouzapw)
+
+---
+
 ## [3.8.13] — 2026-06-06
 
 ### ✨ New Features

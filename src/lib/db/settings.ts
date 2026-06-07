@@ -644,6 +644,33 @@ export async function resolveProxyForConnection(connectionId: string, apiKeyId?:
     return result;
   }
 
+  let connectionRecord: JsonRecord | null = null;
+  let connectionProvider: string | null = null;
+  let connectionProxyEnabled = true;
+  let connectionPerKeyProxyEnabled = false;
+
+  const row = db
+    .prepare(
+      "SELECT provider, proxy_enabled, per_key_proxy_enabled FROM provider_connections WHERE id = ?"
+    )
+    .get(connectionId);
+  if (row) {
+    connectionRecord = toRecord(row);
+    connectionProvider =
+      typeof connectionRecord.provider === "string" ? connectionRecord.provider : null;
+    connectionProxyEnabled = connectionRecord.proxy_enabled !== 0;
+    connectionPerKeyProxyEnabled = connectionRecord.per_key_proxy_enabled === 1;
+  }
+
+  // A connection-level Proxy Off is explicit: it must bypass every stored proxy
+  // source for this connection, including account, provider, global, and automatic
+  // fallback candidates from the proxy pool.
+  if (connectionRecord && !connectionProxyEnabled) {
+    const result: ProxyResolutionResult = { proxy: null, level: "direct", levelId: null };
+    cacheProxyResolution(cacheKey, startGeneration, startRegistryGeneration, result);
+    return result;
+  }
+
   // Step 1.5: Check global perKeyProxyEnabled setting
   let globalPerKeyProxyEnabled = false;
   try {
@@ -664,17 +691,7 @@ export async function resolveProxyForConnection(connectionId: string, apiKeyId?:
   // Step 2: API key-level proxy (only if per-key proxy is enabled globally or per-connection)
   if (apiKeyId) {
     // Check if per-key proxy is allowed: globally OR per-connection
-    let perKeyEnabled = globalPerKeyProxyEnabled;
-    if (!perKeyEnabled && connectionId) {
-      try {
-        const perKeyConn = db
-          .prepare("SELECT per_key_proxy_enabled FROM provider_connections WHERE id = ?")
-          .get(connectionId) as { per_key_proxy_enabled?: number } | undefined;
-        perKeyEnabled = perKeyConn?.per_key_proxy_enabled === 1;
-      } catch {
-        // Fall through
-      }
-    }
+    const perKeyEnabled = globalPerKeyProxyEnabled || connectionPerKeyProxyEnabled;
 
     if (perKeyEnabled) {
       try {
@@ -726,21 +743,14 @@ export async function resolveProxyForConnection(connectionId: string, apiKeyId?:
     return result;
   }
 
-  // Step 5: Look up the connection's provider and check proxy_enabled
-  const connection = db
-    .prepare("SELECT provider, proxy_enabled FROM provider_connections WHERE id = ?")
-    .get(connectionId);
-
-  if (connection) {
-    const connectionRecord = toRecord(connection);
-    const provider =
-      typeof connectionRecord.provider === "string" ? connectionRecord.provider : null;
-    // proxy_enabled defaults to 0 (false) when the column is NULL (pre-migration)
-    const connProxyEnabled = connectionRecord.proxy_enabled === 1;
-
+  // Step 5: Use the connection's provider for provider/combo scoped proxies.
+  if (connectionRecord) {
     // Step 6: Provider-level registry (only if proxy_enabled)
-    if (provider && connProxyEnabled) {
-      const registryProvider = await resolveProxyForScopeFromRegistry("provider", provider);
+    if (connectionProvider && connectionProxyEnabled) {
+      const registryProvider = await resolveProxyForScopeFromRegistry(
+        "provider",
+        connectionProvider
+      );
       if (registryProvider?.proxy) {
         cacheProxyResolution(cacheKey, startGeneration, startRegistryGeneration, registryProvider);
         return registryProvider;
@@ -748,7 +758,7 @@ export async function resolveProxyForConnection(connectionId: string, apiKeyId?:
     }
 
     // Step 7: Legacy combo-level (only if proxy_enabled)
-    if (connProxyEnabled && config.combos && Object.keys(config.combos).length > 0) {
+    if (connectionProxyEnabled && config.combos && Object.keys(config.combos).length > 0) {
       const combos = db.prepare("SELECT id, data FROM combos").all();
       for (const comboRow of combos) {
         const comboRecord = toRecord(comboRow);
@@ -760,7 +770,7 @@ export async function resolveProxyForConnection(connectionId: string, apiKeyId?:
             const combo = toRecord(JSON.parse(comboRaw));
             const comboModels = Array.isArray(combo.models) ? combo.models : [];
             const usesProvider = comboModels.some(
-              (entry) => getComboModelProvider(entry) === provider
+              (entry) => getComboModelProvider(entry) === connectionProvider
             );
             if (usesProvider) {
               const result = { proxy: config.combos[comboId], level: "combo", levelId: comboId };
@@ -775,11 +785,11 @@ export async function resolveProxyForConnection(connectionId: string, apiKeyId?:
     }
 
     // Step 8: Legacy provider-level (only if proxy_enabled)
-    if (provider && connProxyEnabled && config.providers?.[provider]) {
+    if (connectionProvider && connectionProxyEnabled && config.providers?.[connectionProvider]) {
       const result = {
-        proxy: config.providers[provider],
+        proxy: config.providers[connectionProvider],
         level: "provider",
-        levelId: provider,
+        levelId: connectionProvider,
       };
       cacheProxyResolution(cacheKey, startGeneration, startRegistryGeneration, result);
       return result;

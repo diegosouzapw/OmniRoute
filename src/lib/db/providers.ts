@@ -12,6 +12,7 @@ import {
 } from "./encryption";
 import { invalidateDbCache } from "./readCache";
 import { normalizeProviderSpecificData } from "@/lib/providers/requestDefaults";
+import { bumpProxyConfigGeneration } from "./settings";
 
 type JsonRecord = Record<string, unknown>;
 
@@ -71,6 +72,17 @@ function withNullableRateLimitOverrides(
     ...record,
     rateLimitOverrides: (source?.rateLimitOverrides ?? null) as Record<string, number> | null,
   };
+}
+
+function normalizeBooleanColumn(value: unknown, fallback: boolean): boolean {
+  if (typeof value === "boolean") return value;
+  if (typeof value === "number") return value === 1;
+  if (typeof value === "string") {
+    const normalized = value.trim().toLowerCase();
+    if (normalized === "1" || normalized === "true") return true;
+    if (normalized === "0" || normalized === "false") return false;
+  }
+  return fallback;
 }
 
 // Sanitize the per-connection rate limit overrides map: keep only known
@@ -316,6 +328,8 @@ export async function createProviderConnection(data: JsonRecord) {
     isActive: data.isActive !== undefined ? data.isActive : true,
     createdAt: now,
     updatedAt: now,
+    proxyEnabled: normalizeBooleanColumn(data.proxyEnabled, true),
+    perKeyProxyEnabled: normalizeBooleanColumn(data.perKeyProxyEnabled, false),
   };
 
   // Optional fields
@@ -372,9 +386,7 @@ export async function createProviderConnection(data: JsonRecord) {
   // Same sanitization for rateLimitOverrides — keep in-memory representation
   // in sync with what gets persisted.
   if ("rateLimitOverrides" in connection) {
-    connection.rateLimitOverrides = sanitizeRateLimitOverrides(
-      connection.rateLimitOverrides
-    );
+    connection.rateLimitOverrides = sanitizeRateLimitOverrides(connection.rateLimitOverrides);
   }
 
   _insertConnectionRow(db, encryptConnectionFields({ ...connection }));
@@ -462,8 +474,8 @@ function _insertConnectionRow(db: DbLike, conn: JsonRecord) {
     lastUsedAt: conn.lastUsedAt || null,
     group: conn.group || null,
     maxConcurrent: conn.maxConcurrent ?? null,
-    proxyEnabled: conn.proxyEnabled ?? 1,
-    perKeyProxyEnabled: conn.perKeyProxyEnabled ?? 0,
+    proxyEnabled: normalizeBooleanColumn(conn.proxyEnabled, true) ? 1 : 0,
+    perKeyProxyEnabled: normalizeBooleanColumn(conn.perKeyProxyEnabled, false) ? 1 : 0,
     quotaWindowThresholdsJson: serializeQuotaWindowThresholds(conn.quotaWindowThresholds),
     rateLimitOverridesJson: serializeRateLimitOverrides(conn.rateLimitOverrides),
     createdAt: conn.createdAt,
@@ -541,18 +553,8 @@ function _updateConnectionRow(db: DbLike, id: string, data: JsonRecord) {
     group: data.group || null,
     maxConcurrent: data.maxConcurrent ?? null,
     quotaWindowThresholdsJson: serializeQuotaWindowThresholds(data.quotaWindowThresholds),
-    proxyEnabled:
-      typeof data.proxyEnabled === "boolean"
-        ? data.proxyEnabled
-          ? 1
-          : 0
-        : (data.proxyEnabled ?? 1),
-    perKeyProxyEnabled:
-      typeof data.perKeyProxyEnabled === "boolean"
-        ? data.perKeyProxyEnabled
-          ? 1
-          : 0
-        : (data.perKeyProxyEnabled ?? 0),
+    proxyEnabled: normalizeBooleanColumn(data.proxyEnabled, true) ? 1 : 0,
+    perKeyProxyEnabled: normalizeBooleanColumn(data.perKeyProxyEnabled, false) ? 1 : 0,
     rateLimitOverridesJson: serializeRateLimitOverrides(data.rateLimitOverrides),
     updatedAt: now,
   });
@@ -586,6 +588,7 @@ export async function updateProviderConnection(id: string, data: JsonRecord) {
   _updateConnectionRow(db, id, encryptConnectionFields({ ...merged }));
   backupDbFile("pre-write");
   invalidateDbCache("connections"); // Bust connections read cache
+  bumpProxyConfigGeneration();
 
   if (data.priority !== undefined) {
     const existingRecord = toRecord(existing);
@@ -612,6 +615,7 @@ export async function deleteProviderConnection(id: string) {
 
   db.prepare("DELETE FROM quota_snapshots WHERE connection_id = ?").run(id);
   db.prepare("DELETE FROM provider_connections WHERE id = ?").run(id);
+  bumpProxyConfigGeneration();
   const existingRecord = toRecord(existing);
   const providerId =
     typeof existingRecord.provider === "string"
@@ -783,6 +787,8 @@ export async function createProviderNode(data: JsonRecord) {
   const db = getDbInstance() as unknown as DbLike;
   const now = new Date().toISOString();
 
+  const customHeadersJson = data.customHeaders ? JSON.stringify(data.customHeaders) : null;
+
   const node = {
     id: data.id || uuidv4(),
     type: data.type,
@@ -792,19 +798,32 @@ export async function createProviderNode(data: JsonRecord) {
     baseUrl: data.baseUrl || null,
     chatPath: data.chatPath || null,
     modelsPath: data.modelsPath || null,
+    customHeadersJson,
     createdAt: now,
     updatedAt: now,
   };
 
   db.prepare(
     `
-    INSERT INTO provider_nodes (id, type, name, prefix, api_type, base_url, chat_path, models_path, created_at, updated_at)
-    VALUES (@id, @type, @name, @prefix, @apiType, @baseUrl, @chatPath, @modelsPath, @createdAt, @updatedAt)
+    INSERT INTO provider_nodes (id, type, name, prefix, api_type, base_url, chat_path, models_path, custom_headers_json, created_at, updated_at)
+    VALUES (@id, @type, @name, @prefix, @apiType, @baseUrl, @chatPath, @modelsPath, @customHeadersJson, @createdAt, @updatedAt)
   `
   ).run(node);
 
   backupDbFile("pre-write");
-  return node;
+
+  const result: JsonRecord = { ...node };
+  if (customHeadersJson) {
+    try {
+      result.customHeaders = JSON.parse(customHeadersJson);
+    } catch {
+      result.customHeaders = null;
+    }
+  } else {
+    result.customHeaders = null;
+  }
+  delete result.customHeadersJson;
+  return result;
 }
 
 export async function updateProviderNode(id: string, data: JsonRecord) {
@@ -818,11 +837,23 @@ export async function updateProviderNode(id: string, data: JsonRecord) {
     updatedAt: new Date().toISOString(),
   };
 
+  if (data.customHeaders !== undefined) {
+    merged["customHeadersJson"] = data.customHeaders ? JSON.stringify(data.customHeaders) : null;
+  } else {
+    // Partial update that omits customHeaders must PRESERVE the stored value.
+    // rowToCamel surfaces the column under `customHeaders` (suffix stripped),
+    // never `customHeadersJson`, so read the raw stored JSON from `existing`
+    // directly instead of relying on the (absent) merged key — otherwise the
+    // UPDATE would bind null and silently wipe the saved headers.
+    const existingJson = (existing as JsonRecord).custom_headers_json;
+    merged["customHeadersJson"] = typeof existingJson === "string" ? existingJson : null;
+  }
+
   db.prepare(
     `
     UPDATE provider_nodes SET type = @type, name = @name, prefix = @prefix,
     api_type = @apiType, base_url = @baseUrl, chat_path = @chatPath,
-    models_path = @modelsPath, updated_at = @updatedAt
+    models_path = @modelsPath, custom_headers_json = @customHeadersJson, updated_at = @updatedAt
     WHERE id = @id
   `
   ).run({
@@ -834,11 +865,25 @@ export async function updateProviderNode(id: string, data: JsonRecord) {
     baseUrl: merged["baseUrl"] || null,
     chatPath: merged["chatPath"] || null,
     modelsPath: merged["modelsPath"] || null,
+    customHeadersJson: merged["customHeadersJson"] || null,
     updatedAt: merged["updatedAt"],
   });
 
   backupDbFile("pre-write");
-  return merged;
+
+  const result: JsonRecord = { ...merged };
+  const storedJson = merged["customHeadersJson"] as string | null;
+  if (storedJson) {
+    try {
+      result.customHeaders = JSON.parse(storedJson);
+    } catch {
+      result.customHeaders = null;
+    }
+  } else {
+    result.customHeaders = null;
+  }
+  delete result.customHeadersJson;
+  return result;
 }
 
 export async function deleteProviderNode(id: string) {

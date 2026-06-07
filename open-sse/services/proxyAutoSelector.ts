@@ -10,7 +10,11 @@
  * handled by the in-memory cache in proxyFallback.ts.
  */
 
-import { findWorkingProxy, clearProxyFallbackCache } from "@omniroute/open-sse/utils/proxyFallback.ts";
+import {
+  findWorkingProxy,
+  clearProxyFallbackCache,
+} from "@omniroute/open-sse/utils/proxyFallback.ts";
+import { isFeatureFlagEnabled } from "@/shared/utils/featureFlags";
 
 // ---------------------------------------------------------------------------
 // Public API
@@ -31,6 +35,7 @@ import { findWorkingProxy, clearProxyFallbackCache } from "@omniroute/open-sse/u
  * @returns A working proxy URL, or null if none was found.
  */
 export async function selectProxyForValidation(targetUrl: string): Promise<string | null> {
+  if (!isFeatureFlagEnabled("PROXY_AUTO_SELECT_ENABLED")) return null;
   if (!targetUrl) return null;
 
   let hostname: string;

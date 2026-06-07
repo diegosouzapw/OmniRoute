@@ -126,6 +126,7 @@ export async function POST(request: Request) {
         nodeName: node.name,
         ...(node.chatPath ? { chatPath: node.chatPath } : {}),
         ...(node.modelsPath ? { modelsPath: node.modelsPath } : {}),
+        ...(node.customHeaders ? { customHeaders: node.customHeaders } : {}),
       };
     } else if (isAnthropicCompatibleProvider(provider)) {
       const node: any = await getProviderNodeById(provider);
@@ -150,6 +151,7 @@ export async function POST(request: Request) {
         nodeName: node.name,
         ...(node.chatPath ? { chatPath: node.chatPath } : {}),
         ...(node.modelsPath ? { modelsPath: node.modelsPath } : {}),
+        ...(node.customHeaders ? { customHeaders: node.customHeaders } : {}),
       };
     }
 
