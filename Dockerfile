@@ -2,8 +2,8 @@
 FROM node:24-trixie-slim AS base
 WORKDIR /app
 
-RUN --mount=type=cache,id=apt-cache,target=/var/cache/apt,sharing=shared \
-    --mount=type=cache,id=apt-lists,target=/var/lib/apt/lists,sharing=shared \
+RUN --mount=type=cache,id=cacheKey-apt-cache,target=/var/cache/apt,sharing=shared \
+    --mount=type=cache,id=cacheKey-apt-lists,target=/var/lib/apt/lists,sharing=shared \
     apt-get update \
     && apt-get install -y --no-install-recommends libsecret-1-0 ca-certificates \
     && rm -rf /var/lib/apt/lists/*
@@ -13,8 +13,8 @@ FROM base AS builder
 
 # Build tools for native module compilation
 # apt-get update needed here because base's rm -rf clears the shared cache
-RUN --mount=type=cache,id=apt-builder-cache,target=/var/cache/apt,sharing=shared \
-    --mount=type=cache,id=apt-builder-lists,target=/var/lib/apt/lists,sharing=shared \
+RUN --mount=type=cache,id=cacheKey-apt-builder-cache,target=/var/cache/apt,sharing=shared \
+    --mount=type=cache,id=cacheKey-apt-builder-lists,target=/var/lib/apt/lists,sharing=shared \
     apt-get update \
     && apt-get install -y --no-install-recommends python3 make g++ \
     && rm -rf /var/lib/apt/lists/*
@@ -36,7 +36,7 @@ ENV NPM_CONFIG_LEGACY_PEER_DEPS=true
 RUN test -f package-lock.json \
   || (echo "package-lock.json is required for reproducible Docker builds" >&2 && exit 1)
 
-RUN --mount=type=cache,id=npm-cache,target=/root/.npm \
+RUN --mount=type=cache,id=cacheKey-npm-cache,target=/root/.npm \
     npm ci --no-audit --no-fund --legacy-peer-deps --ignore-scripts \
     && npm rebuild better-sqlite3 \
     && node -e "require('better-sqlite3')(':memory:').close()"
@@ -45,7 +45,7 @@ RUN --mount=type=cache,id=npm-cache,target=/root/.npm \
 ENV OMNIROUTE_USE_TURBOPACK=1
 
 COPY . ./
-RUN --mount=type=cache,id=next-cache,target=/app/.next/cache \
+RUN --mount=type=cache,id=cacheKey-next-cache,target=/app/.next/cache \
     mkdir -p /app/data && npm run build
 
 # ── Runner base ────────────────────────────────────────────────────────────
@@ -68,13 +68,13 @@ FROM runner-base AS production-deps
 
 COPY package*.json ./
 
-RUN --mount=type=cache,id=apt-runner-cache,target=/var/cache/apt,sharing=locked \
-    --mount=type=cache,id=apt-runner-lists,target=/var/lib/apt/lists,sharing=locked \
+RUN --mount=type=cache,id=cacheKey-apt-runner-cache,target=/var/cache/apt,sharing=locked \
+    --mount=type=cache,id=cacheKey-apt-runner-lists,target=/var/lib/apt/lists,sharing=locked \
     apt-get update \
     && apt-get install -y --no-install-recommends python3 make g++ \
     && rm -rf /var/lib/apt/lists/*
 
-RUN --mount=type=cache,id=npm-runner-cache,target=/root/.npm \
+RUN --mount=type=cache,id=cacheKey-npm-runner-cache,target=/root/.npm \
     npm ci --omit=dev --no-audit --no-fund --legacy-peer-deps --ignore-scripts \
     && npm rebuild better-sqlite3 \
     && node -e "require('better-sqlite3')(':memory:').close()"
