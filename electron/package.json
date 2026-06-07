@@ -52,6 +52,7 @@
       "main.js",
       "preload.js",
       "loginManager.js",
+      "processTree.js",
       "sqlite-inspection.js",
       "package.json",
       "node_modules/**/*"
