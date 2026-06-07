@@ -71,8 +71,14 @@ function parseComboRow(row: unknown): JsonRecord | null {
   const parsed = withSortOrder(payload, getSortOrder(row));
   // Merge deduplicated column values back into the record
   const record = asRecord(row);
-  if (record.context_cache_protection !== undefined) {
-    parsed.context_cache_protection = record.context_cache_protection === 1;
+  if (record.context_cache_protection !== undefined && record.context_cache_protection !== null) {
+    // Column is authoritative when explicitly enabled (1).
+    // When column is 0 (unset default) preserve the JSON blob value
+    // to avoid silently disabling the feature on pre-migration rows.
+    if (record.context_cache_protection === 1) {
+      parsed.context_cache_protection = true;
+    }
+    // Column is 0 — keep existing JSON blob value
   }
   return parsed;
 }
@@ -181,21 +187,12 @@ export async function updateCombo(id: string, data: JsonRecord) {
     typeof merged["name"] === "string" && merged["name"].trim().length > 0
       ? merged["name"]
       : currentName;
-  const contextCacheProtection =
-    typeof data.context_cache_protection === "boolean"
-      ? (data.context_cache_protection ? 1 : 0)
-      : null;
   const normalizedMerged = normalizeStoredCombo({ ...merged, name: nextName }, db, [nextName]);
+  const contextCacheProtection = normalizedMerged.context_cache_protection === true ? 1 : 0;
 
-  if (contextCacheProtection !== null) {
-    db.prepare(
-      "UPDATE combos SET name = ?, data = ?, sort_order = ?, updated_at = ?, context_cache_protection = ? WHERE id = ?"
-    ).run(nextName, JSON.stringify(normalizedMerged), sortOrder, normalizedMerged.updatedAt, contextCacheProtection, id);
-  } else {
-    db.prepare(
-      "UPDATE combos SET name = ?, data = ?, sort_order = ?, updated_at = ? WHERE id = ?"
-    ).run(nextName, JSON.stringify(normalizedMerged), sortOrder, normalizedMerged.updatedAt, id);
-  }
+  db.prepare(
+    "UPDATE combos SET name = ?, data = ?, sort_order = ?, updated_at = ?, context_cache_protection = ? WHERE id = ?"
+  ).run(nextName, JSON.stringify(normalizedMerged), sortOrder, normalizedMerged.updatedAt, contextCacheProtection, id);
 
   invalidateDbCache("combos");
   backupDbFile("pre-write");
