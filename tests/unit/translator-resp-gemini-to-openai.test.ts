@@ -600,3 +600,103 @@ test("Gemini stream: suppresses malformed textual Tool call marker", () => {
   );
   assert.equal(result.at(-1).choices[0].finish_reason, "stop");
 });
+
+test("Gemini stream: handles textual Tool call block split across chunks", () => {
+  const state = createStreamingState();
+  const chunk1 = {
+    responseId: "resp-split",
+    modelVersion: "gemini-3.5-flash-low",
+    candidates: [
+      {
+        content: {
+          parts: [
+            {
+              text: "[Tool call: terminal]",
+            },
+          ],
+        },
+      },
+    ],
+  };
+  const chunk2 = {
+    responseId: "resp-split",
+    modelVersion: "gemini-3.5-flash-low",
+    candidates: [
+      {
+        content: {
+          parts: [
+            {
+              text: '\nArguments: {"command":"whoami"}',
+            },
+          ],
+        },
+        finishReason: "STOP",
+      },
+    ],
+  };
+
+  const res1 = geminiToOpenAIResponse(chunk1, state) || [];
+  const res2 = geminiToOpenAIResponse(chunk2, state) || [];
+
+  const leakedContent = [...res1, ...res2]
+    .map((event) => event.choices?.[0]?.delta?.content || "")
+    .join("");
+
+  assert.equal(leakedContent, "");
+
+  const toolCalls = [...res1, ...res2].flatMap(
+    (event) => event.choices?.[0]?.delta?.tool_calls || []
+  );
+  assert.equal(toolCalls.length, 1);
+  assert.equal(toolCalls[0].function.name, "terminal");
+  assert.equal(toolCalls[0].function.arguments, JSON.stringify({ command: "whoami" }));
+});
+
+test("Gemini stream: does not swallow false positive textual tool call in backticks", () => {
+  const state = createStreamingState();
+  const chunk1 = {
+    responseId: "resp-false-positive",
+    modelVersion: "gemini-3.5-flash-low",
+    candidates: [
+      {
+        content: {
+          parts: [
+            {
+              text: "Как исправить: `[Tool call: ",
+            },
+          ],
+        },
+      },
+    ],
+  };
+  const chunk2 = {
+    responseId: "resp-false-positive",
+    modelVersion: "gemini-3.5-flash-low",
+    candidates: [
+      {
+        content: {
+          parts: [
+            {
+              text: "terminal]` не будут проходить.",
+            },
+          ],
+        },
+        finishReason: "STOP",
+      },
+    ],
+  };
+
+  const res1 = geminiToOpenAIResponse(chunk1, state) || [];
+  const res2 = geminiToOpenAIResponse(chunk2, state) || [];
+
+  const leakedContent = [...res1, ...res2]
+    .map((event) => event.choices?.[0]?.delta?.content || "")
+    .join("");
+
+  assert.equal(leakedContent, "Как исправить: `[Tool call: terminal]` не будут проходить.");
+
+  const toolCalls = [...res1, ...res2].flatMap(
+    (event) => event.choices?.[0]?.delta?.tool_calls || []
+  );
+  assert.equal(toolCalls.length, 0);
+});

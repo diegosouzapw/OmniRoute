@@ -3985,7 +3985,7 @@ export async function handleChatCore({
                 stage: "sending_to_provider",
               });
               const execCreds = getExecutionCredentials();
-              const rawExecutorResult = await executeWithUpstreamStartTimeout<any>({
+              const rawExecutorResult = await executeWithUpstreamStartTimeout({
                 executor,
                 provider,
                 model: modelToCall,

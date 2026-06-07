@@ -232,6 +232,69 @@ test("createSSEStream passthrough converts split textual tool-call content at co
   assert.doesNotMatch(text, /\[Tool call: terminal\]/);
 });
 
+test("createSSEStream passthrough handles textual tool-call content split inside the prefix [Tool call: across chunks", async () => {
+  let onCompletePayload = null;
+  const splitToolArgs = JSON.stringify({
+    command: "whoami",
+  });
+  const chunks = ["[Tool", " call: terminal]\n", `Arguments: ${splitToolArgs}`];
+
+  const text = await readTransformed(
+    [
+      `data: ${JSON.stringify({
+        id: "chatcmpl_split_prefix_textual_tool",
+        object: "chat.completion.chunk",
+        created: 1,
+        model: "antigravity/gemini-3.5-flash-low",
+        choices: [{ index: 0, delta: { role: "assistant", content: chunks[0] } }],
+      })}\n\n`,
+      `data: ${JSON.stringify({
+        id: "chatcmpl_split_prefix_textual_tool",
+        object: "chat.completion.chunk",
+        created: 1,
+        model: "antigravity/gemini-3.5-flash-low",
+        choices: [{ index: 0, delta: { content: chunks[1] } }],
+      })}\n\n`,
+      `data: ${JSON.stringify({
+        id: "chatcmpl_split_prefix_textual_tool",
+        object: "chat.completion.chunk",
+        created: 1,
+        model: "antigravity/gemini-3.5-flash-low",
+        choices: [{ index: 0, delta: { content: chunks[2] } }],
+      })}\n\n`,
+      `data: ${JSON.stringify({
+        id: "chatcmpl_split_prefix_textual_tool",
+        object: "chat.completion.chunk",
+        created: 1,
+        model: "antigravity/gemini-3.5-flash-low",
+        choices: [{ index: 0, delta: {}, finish_reason: "stop" }],
+      })}\n\n`,
+    ],
+    {
+      mode: "passthrough",
+      sourceFormat: FORMATS.OPENAI,
+      provider: "antigravity",
+      model: "antigravity/gemini-3.5-flash-low",
+      body: { messages: [{ role: "user", content: "inspect db" }] },
+      onComplete(payload) {
+        onCompletePayload = payload;
+      },
+    }
+  );
+
+  assert.doesNotMatch(text, /"content":"\[Tool/);
+  assert.doesNotMatch(text, /"content":" call:/);
+  assert.match(text, /"tool_calls":\[/);
+  assert.match(text, /"name":"terminal"/);
+  const choice = onCompletePayload.responseBody.choices[0];
+  assert.equal(choice.finish_reason, "tool_calls");
+  assert.equal(choice.message.content, null);
+  assert.equal(choice.message.tool_calls[0].function.name, "terminal");
+  assert.deepEqual(JSON.parse(choice.message.tool_calls[0].function.arguments), {
+    command: "whoami",
+  });
+});
+
 test("createSSEStream passthrough buffers fragmented textual tool-call JSON before emitting", async () => {
   let onCompletePayload = null;
   const text = await readTransformed(
@@ -1657,4 +1720,92 @@ test("createSSEStream passthrough logs empty response after tool_calls completio
   assert.equal(onCompletePayload.responseBody.choices[0].message.tool_calls[0].function.name, "task_complete");
   // Content should be null (empty) since no text was generated
   assert.equal(onCompletePayload.responseBody.choices[0].message.content, null);
+});
+
+test("createSSEStream passthrough does not swallow false positive textual tool call", async () => {
+  let onCompletePayload = null;
+  const sentence = "Checking: [Tool call: terminal] was executed successfully.";
+
+  const text = await readTransformed(
+    [
+      `data: ${JSON.stringify({
+        id: "chatcmpl_false_positive_textual_tool",
+        object: "chat.completion.chunk",
+        created: 1,
+        model: "MainAgent",
+        choices: [{ index: 0, delta: { role: "assistant", content: sentence } }],
+      })}\n\n`,
+      `data: ${JSON.stringify({
+        id: "chatcmpl_false_positive_textual_tool",
+        object: "chat.completion.chunk",
+        created: 1,
+        model: "MainAgent",
+        choices: [{ index: 0, delta: {}, finish_reason: "stop" }],
+      })}\n\n`,
+    ],
+    {
+      mode: "passthrough",
+      sourceFormat: FORMATS.OPENAI,
+      provider: "omniroute",
+      model: "MainAgent",
+      body: { messages: [{ role: "user", content: "inspect status" }] },
+      onComplete(payload) {
+        onCompletePayload = payload;
+      },
+    }
+  );
+
+  const choice = onCompletePayload.responseBody.choices[0];
+  assert.equal(choice.finish_reason, "stop");
+  assert.equal(choice.message.content, sentence);
+  assert.equal(choice.message.tool_calls, undefined);
+  assert.match(text, /\[Tool call: terminal\] was executed successfully/);
+});
+
+test("createSSEStream passthrough does not swallow false positive textual tool call starting chunk", async () => {
+  let onCompletePayload = null;
+  const chunk1 = "[Tool call: terminal]";
+  const chunk2 = " was skipped.";
+
+  const text = await readTransformed(
+    [
+      `data: ${JSON.stringify({
+        id: "chatcmpl_false_positive_textual_tool_start",
+        object: "chat.completion.chunk",
+        created: 1,
+        model: "MainAgent",
+        choices: [{ index: 0, delta: { role: "assistant", content: chunk1 } }],
+      })}\n\n`,
+      `data: ${JSON.stringify({
+        id: "chatcmpl_false_positive_textual_tool_start",
+        object: "chat.completion.chunk",
+        created: 1,
+        model: "MainAgent",
+        choices: [{ index: 0, delta: { content: chunk2 } }],
+      })}\n\n`,
+      `data: ${JSON.stringify({
+        id: "chatcmpl_false_positive_textual_tool_start",
+        object: "chat.completion.chunk",
+        created: 1,
+        model: "MainAgent",
+        choices: [{ index: 0, delta: {}, finish_reason: "stop" }],
+      })}\n\n`,
+    ],
+    {
+      mode: "passthrough",
+      sourceFormat: FORMATS.OPENAI,
+      provider: "omniroute",
+      model: "MainAgent",
+      body: { messages: [{ role: "user", content: "inspect status" }] },
+      onComplete(payload) {
+        onCompletePayload = payload;
+      },
+    }
+  );
+
+  const choice = onCompletePayload.responseBody.choices[0];
+  assert.equal(choice.finish_reason, "stop");
+  assert.equal(choice.message.content, chunk1 + chunk2);
+  assert.equal(choice.message.tool_calls, undefined);
+  assert.match(text, /\[Tool call: terminal\] was skipped/);
 });

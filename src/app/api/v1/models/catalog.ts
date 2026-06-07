@@ -427,13 +427,21 @@ export async function getUnifiedModelsResponse(
       return providerModels.find((model) => model?.id === modelId) || null;
     };
 
+    const prefixRoutesToProvider = (prefix: string, providerId: string) => {
+      const parsed = parseModel(`${prefix}/__omniroute_probe__`);
+      return parsed.provider === providerId;
+    };
+
     const getProviderPrefixes = (providerId: string, rawProvider: string) => {
       const prefixes = new Set<string>([providerId, rawProvider, providerIdToAlias[providerId]]);
       for (const [alias, mappedProviderId] of Object.entries(aliasToProviderId)) {
         if (mappedProviderId === providerId) prefixes.add(alias);
       }
       return [...prefixes].filter(
-        (prefix): prefix is string => typeof prefix === "string" && prefix.length > 0
+        (prefix): prefix is string =>
+          typeof prefix === "string" &&
+          prefix.length > 0 &&
+          prefixRoutesToProvider(prefix, providerId)
       );
     };
 
@@ -488,7 +496,8 @@ export async function getUnifiedModelsResponse(
       const specContext = isPositiveFiniteNumber(spec?.contextWindow)
         ? spec.contextWindow
         : undefined;
-      const contextLength = syncedContext ?? registryContext ?? specContext;
+      const contextLength = syncedContext ?? registryContext ?? specContext ??
+        (getTokenLimit(providerId, modelId) || undefined);
       const maxInputTokens = isPositiveFiniteNumber(synced?.limit_input)
         ? synced.limit_input
         : contextLength;
@@ -724,7 +733,10 @@ export async function getUnifiedModelsResponse(
 
         // Add provider-id prefix in addition to short alias (ex: kiro/model + kr/model).
         // This improves compatibility for clients that expect full provider names.
-        if (canonicalProviderId !== alias) {
+        if (
+          canonicalProviderId !== alias &&
+          prefixRoutesToProvider(canonicalProviderId, canonicalProviderId)
+        ) {
           const providerIdModel = `${canonicalProviderId}/${model.id}`;
           const providerVisionFields =
             getVisionCapabilityFields(providerIdModel) || getVisionCapabilityFields(model.id);

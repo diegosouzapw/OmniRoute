@@ -3890,6 +3890,8 @@ export async function handleComboChat({
             fallbackResult.shouldFallback &&
             (fallbackResult.reason === RateLimitReason.MODEL_CAPACITY ||
               errorText.toLowerCase().includes("context") ||
+              errorText.toLowerCase().includes("prompt") ||
+              errorText.toLowerCase().includes("token") ||
               errorText.toLowerCase().includes("malformed") ||
               errorText.toLowerCase().includes("invalid") ||
               errorText.toLowerCase().includes("bad request"))

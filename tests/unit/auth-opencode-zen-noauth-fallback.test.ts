@@ -59,3 +59,19 @@ test("#2962 a normal api-key provider with no connection still returns null (no 
   const connectionId = (creds as { connectionId?: string } | null)?.connectionId;
   assert.notEqual(connectionId, "noauth", "openai must not get anonymous no-auth credentials");
 });
+
+test("#2962 opencode-zen falls back to no-auth when saved key rows are unusable", async () => {
+  await createProviderConnection({
+    provider: "opencode-zen",
+    authType: "apikey",
+    name: "expired-test-key",
+    apiKey: "oa_test_expired",
+    isActive: true,
+    testStatus: "expired",
+  });
+
+  const creds = await getProviderCredentials("opencode-zen");
+  assert.ok(creds, "opencode-zen should still resolve to anonymous no-auth credentials");
+  assert.equal((creds as { connectionId?: string }).connectionId, "noauth");
+  assert.equal((creds as { apiKey?: unknown }).apiKey, null);
+});

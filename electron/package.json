@@ -1,6 +1,6 @@
 {
   "name": "omniroute-desktop",
-  "version": "3.8.14",
+  "version": "3.8.15",
   "description": "OmniRoute Desktop Application",
   "main": "main.js",
   "author": {
@@ -52,6 +52,7 @@
       "main.js",
       "preload.js",
       "loginManager.js",
+      "processTree.js",
       "sqlite-inspection.js",
       "package.json",
       "node_modules/**/*"
