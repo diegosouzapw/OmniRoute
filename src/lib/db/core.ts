@@ -219,6 +219,9 @@ const SCHEMA_SQL = `
     prefix TEXT,
     api_type TEXT,
     base_url TEXT,
+    chat_path TEXT,
+    models_path TEXT,
+    custom_headers_json TEXT,
     created_at TEXT NOT NULL,
     updated_at TEXT NOT NULL
   );

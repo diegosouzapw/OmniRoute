@@ -783,6 +783,8 @@ export async function createProviderNode(data: JsonRecord) {
   const db = getDbInstance() as unknown as DbLike;
   const now = new Date().toISOString();
 
+  const customHeadersJson = data.customHeaders ? JSON.stringify(data.customHeaders) : null;
+
   const node = {
     id: data.id || uuidv4(),
     type: data.type,
@@ -792,19 +794,32 @@ export async function createProviderNode(data: JsonRecord) {
     baseUrl: data.baseUrl || null,
     chatPath: data.chatPath || null,
     modelsPath: data.modelsPath || null,
+    customHeadersJson,
     createdAt: now,
     updatedAt: now,
   };
 
   db.prepare(
     `
-    INSERT INTO provider_nodes (id, type, name, prefix, api_type, base_url, chat_path, models_path, created_at, updated_at)
-    VALUES (@id, @type, @name, @prefix, @apiType, @baseUrl, @chatPath, @modelsPath, @createdAt, @updatedAt)
+    INSERT INTO provider_nodes (id, type, name, prefix, api_type, base_url, chat_path, models_path, custom_headers_json, created_at, updated_at)
+    VALUES (@id, @type, @name, @prefix, @apiType, @baseUrl, @chatPath, @modelsPath, @customHeadersJson, @createdAt, @updatedAt)
   `
   ).run(node);
 
   backupDbFile("pre-write");
-  return node;
+
+  const result: JsonRecord = { ...node };
+  if (customHeadersJson) {
+    try {
+      result.customHeaders = JSON.parse(customHeadersJson);
+    } catch {
+      result.customHeaders = null;
+    }
+  } else {
+    result.customHeaders = null;
+  }
+  delete result.customHeadersJson;
+  return result;
 }
 
 export async function updateProviderNode(id: string, data: JsonRecord) {
@@ -818,11 +833,15 @@ export async function updateProviderNode(id: string, data: JsonRecord) {
     updatedAt: new Date().toISOString(),
   };
 
+  if (data.customHeaders !== undefined) {
+    merged["customHeadersJson"] = data.customHeaders ? JSON.stringify(data.customHeaders) : null;
+  }
+
   db.prepare(
     `
     UPDATE provider_nodes SET type = @type, name = @name, prefix = @prefix,
     api_type = @apiType, base_url = @baseUrl, chat_path = @chatPath,
-    models_path = @modelsPath, updated_at = @updatedAt
+    models_path = @modelsPath, custom_headers_json = @customHeadersJson, updated_at = @updatedAt
     WHERE id = @id
   `
   ).run({
@@ -834,11 +853,25 @@ export async function updateProviderNode(id: string, data: JsonRecord) {
     baseUrl: merged["baseUrl"] || null,
     chatPath: merged["chatPath"] || null,
     modelsPath: merged["modelsPath"] || null,
+    customHeadersJson: merged["customHeadersJson"] || null,
     updatedAt: merged["updatedAt"],
   });
 
   backupDbFile("pre-write");
-  return merged;
+
+  const result: JsonRecord = { ...merged };
+  const storedJson = merged["customHeadersJson"] as string | null;
+  if (storedJson) {
+    try {
+      result.customHeaders = JSON.parse(storedJson);
+    } catch {
+      result.customHeaders = null;
+    }
+  } else {
+    result.customHeaders = null;
+  }
+  delete result.customHeadersJson;
+  return result;
 }
 
 export async function deleteProviderNode(id: string) {
