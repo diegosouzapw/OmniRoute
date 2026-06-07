@@ -37,6 +37,22 @@ test("#2962 opencode-zen with no connection falls back to anonymous no-auth cred
   assert.equal((creds as { apiKey?: unknown }).apiKey, null, "anonymous access carries no api key");
 });
 
+test("apikey providers with anonymous fallback use no-auth when saved rows are terminal", async () => {
+  await createProviderConnection({
+    provider: "pollinations",
+    authType: "apikey",
+    name: "expired-pollinations-key",
+    apiKey: "pollinations-expired",
+    isActive: true,
+    testStatus: "expired",
+  });
+
+  const creds = await getProviderCredentials("pollinations");
+  assert.ok(creds, "pollinations should fall back to anonymous credentials");
+  assert.equal((creds as { connectionId?: string }).connectionId, "noauth");
+  assert.equal((creds as { apiKey?: unknown }).apiKey, null);
+});
+
 test("#2962 a normal api-key provider with no connection still returns null (no over-broadening)", async () => {
   const creds = await getProviderCredentials("openai");
   // Must NOT synthesize no-auth creds for a real api-key provider.

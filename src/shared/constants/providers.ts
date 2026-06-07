@@ -38,6 +38,7 @@ export const NOAUTH_PROVIDERS = {
     website: "https://opencode.ai",
     noAuth: true,
     hasFree: true,
+    serviceKinds: ["llm"],
     authHint: "No API key required — uses OpenCode's public free endpoint.",
     freeNote:
       "No API key required — public OpenCode endpoint with Kimi, GLM, Qwen, MiMo, MiniMax models.",
@@ -55,6 +56,7 @@ export const NOAUTH_PROVIDERS = {
     website: "https://duckduckgo.com/duckchat",
     noAuth: true,
     hasFree: true,
+    serviceKinds: ["llm"],
     freeNote: "Free — anonymous access to multiple AI models via DuckDuckGo.",
     authHint: "No credentials required — DuckDuckGo AI Chat is anonymous and free.",
   },
@@ -68,6 +70,7 @@ export const NOAUTH_PROVIDERS = {
     website: "https://theoldllm.vercel.app",
     noAuth: true,
     hasFree: true,
+    serviceKinds: ["llm"],
     freeNote:
       "Free — GPT-5.4, Claude 4.6 Opus/Sonnet/Haiku, + more. No API key — tokens auto-generated via browser.",
     authHint:
@@ -83,6 +86,7 @@ export const NOAUTH_PROVIDERS = {
     website: "https://amelia.chipotle.com",
     noAuth: true,
     hasFree: true,
+    serviceKinds: ["llm"],
     freeNote:
       "Free — Chipotle's Pepper AI (IPsoft Amelia). Anonymous sessions, no API key. Rate-limited.",
     authHint:
@@ -98,6 +102,7 @@ export const NOAUTH_PROVIDERS = {
     website: "https://veoaifree.com",
     noAuth: true,
     hasFree: true,
+    serviceKinds: ["video"],
     freeNote: "Free video generation — VEO 3.1, Seedance. 6 requests/hour.",
     authHint: "No auth required. Rate limited to 6 requests/hour per IP.",
   },
@@ -168,7 +173,8 @@ export const OAUTH_PROVIDERS = {
     subscriptionRisk: true,
     riskNoticeVariant: "deprecated",
     hasFree: true,
-    freeNote: "Free tier: 50 credits/month (~25K–100K tokens). ⚠️ Kiro ToS prohibits third-party proxy/harness use.",
+    freeNote:
+      "Free tier: 50 credits/month (~25K–100K tokens). ⚠️ Kiro ToS prohibits third-party proxy/harness use.",
   },
   "amazon-q": {
     id: "amazon-q",
@@ -567,7 +573,7 @@ export const WEB_COOKIE_PROVIDERS = {
       "Open chat.qwen.ai, log in, then open DevTools → Application → Local Storage → " +
       'copy the "token" value (or use tongyi_sso_ticket cookie as Bearer token).',
   },
-  };
+};
 
 // API Key Providers
 export const APIKEY_PROVIDERS = {
@@ -593,7 +599,7 @@ export const APIKEY_PROVIDERS = {
     textIcon: "CC",
     website: "https://commandcode.ai/",
     authHint:
-      "Use a Command Code API key. Requests are sent to Command Code's /alpha/generate endpoint.",
+      "Use a Command Code API key. Requests are sent to Command Code's /provider/v1/chat/completions endpoint.",
     apiHint: "Create or copy an API key from Command Code, then paste it here as a Bearer token.",
   },
   openrouter: {
@@ -1139,6 +1145,7 @@ export const APIKEY_PROVIDERS = {
     icon: "opencode",
     color: "#6366f1",
     website: "https://opencode.ai/zen",
+    anonymousFallback: true,
   },
   "opencode-go": {
     id: "opencode-go",
@@ -1147,6 +1154,7 @@ export const APIKEY_PROVIDERS = {
     icon: "opencode",
     color: "#6366f1",
     website: "https://opencode.ai/go",
+    anonymousFallback: true,
   },
   alibaba: {
     id: "alibaba",
@@ -1177,7 +1185,8 @@ export const APIKEY_PROVIDERS = {
     textIcon: "LC",
     website: "https://longcat.chat/platform/docs",
     hasFree: true,
-    freeNote: "Free: 5M tokens/day on LongCat-2.0-Preview (Flash models retired 2026-05-29); up to 120M/day via feedback.",
+    freeNote:
+      "Free: 5M tokens/day on LongCat-2.0-Preview (Flash models retired 2026-05-29); up to 120M/day via feedback.",
   },
   pollinations: {
     id: "pollinations",
@@ -1188,6 +1197,7 @@ export const APIKEY_PROVIDERS = {
     textIcon: "PO",
     website: "https://pollinations.ai",
     hasFree: true,
+    anonymousFallback: true,
     freeNote:
       "No API key required for free public endpoint. Optional Spore tier: ~0.01 pollen/hour.",
   },

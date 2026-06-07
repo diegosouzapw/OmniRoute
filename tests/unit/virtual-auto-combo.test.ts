@@ -74,6 +74,23 @@ test("createVirtualAutoCombo includes OAuth accessToken connections with real ex
   assert.ok(combo.autoConfig.candidatePool.includes("anthropic"));
 });
 
+test("createVirtualAutoCombo includes configured web-session providers without apiKey fields", async () => {
+  await providersDb.createProviderConnection({
+    provider: "qwen-web",
+    authType: "apikey",
+    name: "Qwen Web Session",
+    providerSpecificData: { token: "qwen-web-session-token" },
+    defaultModel: "qwen3-coder-plus",
+  });
+
+  const combo: VirtualComboResult = await virtualFactory.createVirtualAutoCombo("coding");
+
+  const qwenWeb = combo.models.find((model) => model.providerId === "qwen-web");
+  assert.ok(qwenWeb, "configured web-session providers should be auto-combo candidates");
+  assert.equal(qwenWeb.model, "qwen-web/qwen3-coder-plus");
+  assert.ok(combo.autoConfig.candidatePool.includes("qwen-web"));
+});
+
 test("createVirtualAutoCombo includes no-auth OpenCode Free without provider_connections rows", async () => {
   const combo: VirtualComboResult = await virtualFactory.createVirtualAutoCombo("fast");
 
@@ -85,6 +102,24 @@ test("createVirtualAutoCombo includes no-auth OpenCode Free without provider_con
   assert.equal(opencode.connectionId, "noauth");
   assert.equal(opencode.model, "oc/big-pickle");
   assert.ok(combo.autoConfig.candidatePool.includes("opencode"));
+});
+
+test("createVirtualAutoCombo includes all chat-capable no-auth providers without connections", async () => {
+  const combo: VirtualComboResult = await virtualFactory.createVirtualAutoCombo("fast");
+
+  const byProvider = new Map(combo.models.map((model) => [model.providerId, model]));
+
+  assert.equal(byProvider.get("duckduckgo-web")?.connectionId, "noauth");
+  assert.equal(byProvider.get("duckduckgo-web")?.model, "ddgw/gpt-4o-mini");
+  assert.equal(byProvider.get("theoldllm")?.connectionId, "noauth");
+  assert.equal(byProvider.get("theoldllm")?.model, "tllm/GPT_5_4");
+  assert.equal(byProvider.get("chipotle")?.connectionId, "noauth");
+  assert.equal(byProvider.get("chipotle")?.model, "pepper/pepper-1");
+  assert.equal(
+    byProvider.has("veoaifree-web"),
+    false,
+    "video-only no-auth providers must not be inserted into chat auto-combos"
+  );
 });
 
 test("createVirtualAutoCombo keeps credential-required providers out when disconnected", async () => {
