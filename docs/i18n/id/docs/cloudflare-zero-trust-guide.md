@@ -1,106 +1,106 @@
-# Guia Completo: Cloudflare Tunnel & Zero Trust (Split-Port) (Bahasa Indonesia)
+# Panduan Lengkap: Cloudflare Tunnel & Zero Trust (Split-Port) (Bahasa Indonesia)
 
 🌐 **Languages:** 🇺🇸 [English](../../../../docs/cloudflare-zero-trust-guide.md) · 🇪🇸 [es](../../es/docs/cloudflare-zero-trust-guide.md) · 🇫🇷 [fr](../../fr/docs/cloudflare-zero-trust-guide.md) · 🇩🇪 [de](../../de/docs/cloudflare-zero-trust-guide.md) · 🇮🇹 [it](../../it/docs/cloudflare-zero-trust-guide.md) · 🇷🇺 [ru](../../ru/docs/cloudflare-zero-trust-guide.md) · 🇨🇳 [zh-CN](../../zh-CN/docs/cloudflare-zero-trust-guide.md) · 🇯🇵 [ja](../../ja/docs/cloudflare-zero-trust-guide.md) · 🇰🇷 [ko](../../ko/docs/cloudflare-zero-trust-guide.md) · 🇸🇦 [ar](../../ar/docs/cloudflare-zero-trust-guide.md) · 🇮🇳 [hi](../../hi/docs/cloudflare-zero-trust-guide.md) · 🇮🇳 [in](../../in/docs/cloudflare-zero-trust-guide.md) · 🇹🇭 [th](../../th/docs/cloudflare-zero-trust-guide.md) · 🇻🇳 [vi](../../vi/docs/cloudflare-zero-trust-guide.md) · 🇮🇩 [id](../../id/docs/cloudflare-zero-trust-guide.md) · 🇲🇾 [ms](../../ms/docs/cloudflare-zero-trust-guide.md) · 🇳🇱 [nl](../../nl/docs/cloudflare-zero-trust-guide.md) · 🇵🇱 [pl](../../pl/docs/cloudflare-zero-trust-guide.md) · 🇸🇪 [sv](../../sv/docs/cloudflare-zero-trust-guide.md) · 🇳🇴 [no](../../no/docs/cloudflare-zero-trust-guide.md) · 🇩🇰 [da](../../da/docs/cloudflare-zero-trust-guide.md) · 🇫🇮 [fi](../../fi/docs/cloudflare-zero-trust-guide.md) · 🇵🇹 [pt](../../pt/docs/cloudflare-zero-trust-guide.md) · 🇷🇴 [ro](../../ro/docs/cloudflare-zero-trust-guide.md) · 🇭🇺 [hu](../../hu/docs/cloudflare-zero-trust-guide.md) · 🇧🇬 [bg](../../bg/docs/cloudflare-zero-trust-guide.md) · 🇸🇰 [sk](../../sk/docs/cloudflare-zero-trust-guide.md) · 🇺🇦 [uk-UA](../../uk-UA/docs/cloudflare-zero-trust-guide.md) · 🇮🇱 [he](../../he/docs/cloudflare-zero-trust-guide.md) · 🇵🇭 [phi](../../phi/docs/cloudflare-zero-trust-guide.md) · 🇧🇷 [pt-BR](../../pt-BR/docs/cloudflare-zero-trust-guide.md) · 🇨🇿 [cs](../../cs/docs/cloudflare-zero-trust-guide.md) · 🇹🇷 [tr](../../tr/docs/cloudflare-zero-trust-guide.md)
 
 ---
 
-Este guia documenta o padrão ouro de infraestrutura de rede para proteger o **OmniRoute** e expor sua aplicação de forma segura para a internet, **sem abrir nenhuma porta (Zero Inbound)**.
+Panduan ini mendokumentasikan standar infrastruktur jaringan terbaik untuk mengamankan **OmniRoute** dan mengekspos aplikasi Anda ke internet secara aman, **tanpa membuka satu pun port (Zero Inbound)**.
 
-## O que foi feito na sua VM?
+## Apa yang Telah Dilakukan pada VM Anda?
 
-Nós ativamos o OmniRoute em modo **Split-Port** através do PM2:
+Kami mengaktifkan OmniRoute dalam mode **Split-Port** melalui PM2:
 
-- **Porta \`20128\`:** Roda **apenas a API** `/v1`.
-- **Porta \`20129\`:** Roda **apenas o Dashboard** Administrativo visual.
+- **Port \`20128\`:** Menjalankan **hanya API** `/v1`.
+- **Port \`20129\`:** Menjalankan **hanya Dashboard** Administratif visual.
 
-Além disso, o serviço interno exige \`REQUIRE_API_KEY=true\`, o que significa que nenhum agente pode consumir os endpoints da API sem enviar um "Bearer Token" legítimo gerado na aba API Keys do Painel.
+Selain itu, layanan internal memerlukan `REQUIRE_API_KEY=true`, yang berarti tidak ada agen yang dapat menggunakan endpoint API tanpa mengirimkan "Bearer Token" yang sah yang dihasilkan dari tab API Keys di Panel.
 
-Isso nos permite criar duas regras completamente independentes na rede. É aqui que entra o **Cloudflare Tunnel (cloudflared)**.
+Hal ini memungkinkan kita membuat dua aturan yang sepenuhnya independen di jaringan. Di sinilah peran **Cloudflare Tunnel (cloudflared)**.
 
 ---
 
-## 1. Como Criar o Túnel na Cloudflare
+## 1. Cara Membuat Terowongan di Cloudflare
 
-O utilitário \`cloudflared\` já está instalado na sua máquina. Siga os passos na nuvem:
+Utilitas `cloudflared` sudah terpasang di mesin Anda. Ikuti langkah-langkah berikut di cloud:
 
-1. Acesse seu painel **Cloudflare Zero Trust** (One.dash.cloudflare.com).
-2. No menu à esquerda, vá em **Networks > Tunnels**.
-3. Clique em **Add a Tunnel**, escolha **Cloudflared** e dê o nome \`OmniRoute-VM\`.
-4. Ele vai gerar um comando na tela chamado "Install and run a connector". **Você só precisa copiar o Token (a string longa após `--token`)**.
-5. Logue via SSH na sua máquina virtual (ou Terminal do Proxmox) e execute:
+1. Akses panel **Cloudflare Zero Trust** Anda (One.dash.cloudflare.com).
+2. Di menu sebelah kiri, pergi ke **Networks > Tunnels**.
+3. Klik **Add a Tunnel**, pilih **Cloudflared**, dan beri nama `OmniRoute-VM`.
+4. Sistem akan menghasilkan perintah di layar bernama "Install and run a connector". **Anda hanya perlu menyalin Token (string panjang setelah `--token`)**.
+5. Masuk melalui SSH ke mesin virtual Anda (atau Terminal Proxmox) dan jalankan:
    \`\`\`bash
-   # Inicia e amarra o túnel permanentemente à sua conta
-   cloudflared service install SEU_TOKEN_GIGANTE_AQUI
+   # Memulai dan mengikat terowongan secara permanen ke akun Anda
+   cloudflared service install TOKEN_PANJANG_ANDA_DI_SINI
    \`\`\`
 
 ---
 
-## 2. Configurando o Roteamento (Public Hostnames)
+## 2. Mengonfigurasi Perutean (Public Hostnames)
 
-Ainda na tela do Tunnel recém-criado, vá para a aba **Public Hostnames** e adicione as **duas** rotas, aproveitando a separação que fizemos:
+Masih di layar Tunnel yang baru dibuat, buka tab **Public Hostnames** dan tambahkan **dua** rute, memanfaatkan pemisahan yang telah kita lakukan:
 
-### Rota 1: API Segura (Limitada)
+### Rute 1: API Aman (Terbatas)
 
-- **Subdomain:** \`api\`
-- **Domain:** \`seuglobal.com.br\` (escolha seu domínio real)
-- **Service Type:** \`HTTP\`
-- **URL:** \`127.0.0.1:20128\` _(Porta interna da API)_
+- **Subdomain:** `api`
+- **Domain:** `domainanda.com` (pilih domain nyata Anda)
+- **Service Type:** `HTTP`
+- **URL:** `127.0.0.1:20128` _(Port internal API)_
 
-### Rota 2: Painel Zero Trust (Fechado)
+### Rute 2: Panel Zero Trust (Tertutup)
 
-- **Subdomain:** \`omniroute\` ou \`painel\`
-- **Domain:** \`seuglobal.com.br\`
-- **Service Type:** \`HTTP\`
-- **URL:** \`127.0.0.1:20129\` _(Porta interna do App/Visual)_
+- **Subdomain:** `omniroute` atau `panel`
+- **Domain:** `domainanda.com`
+- **Service Type:** `HTTP`
+- **URL:** `127.0.0.1:20129` _(Port internal App/Visual)_
 
-Neste momento, a conectividade "Física" está resolvida. Agora vamos blindar de verdade.
-
----
-
-## 3. Blindando o Painel com Zero Trust (Access)
-
-Nenhuma senha local protege melhor o seu painel do que remover totalmente o acesso a ele da internet aberta.
-
-1. No painel Zero Trust, vá em **Access > Applications > Add an application**.
-2. Selecione **Self-hosted**.
-3. Em **Application name**, coloque \`Painel OmniRoute\`.
-4. Em **Application domain**, coloque \`omniroute.seuglobal.com.br\` (O mesmo que você fez na "Rota 2").
-5. Clique em **Next**.
-6. Em **Rule action**, escolha \`Allow\`. Em nome da Rule coloque \`Admin Apenas\`.
-7. Em **Include**, no seletor de "Selector" escolha \`Emails\` e digite o seu email, por exemplo \`admin@spgeo.com.br\`.
-8. Salve (`Add application`).
-
-> **O que isso fez:** Se você tentar abrir \`omniroute.seuglobal.com.br\`, não cai mais na sua aplicação OmniRoute! Cai numa tela elegante da Cloudflare pedindo para digitar seu email. Somente se você (ou o email que você botou) for digitado lá, ele recebe no Outlook/Gmail um código de 6 dígitos temporário que libera o túnel até a porta \`20129\`.
+Pada titik ini, konektivitas "fisik" telah terselesaikan. Sekarang kita akan benar-benar mengamankannya.
 
 ---
 
-## 4. Limitando e Protegendo a API com Rate Limit (WAF)
+## 3. Mengamankan Panel dengan Zero Trust (Access)
 
-O Dashboard do Zero Trust não se aplica à rota da API (\`api.seuglobal.com.br\`), porque é um acesso programático via ferramentas automatizadas (agentes) sem navegador. Para ele, usaremos o Firewall principal (WAF) da Cloudflare.
+Tidak ada kata sandi lokal yang lebih baik dalam melindungi panel Anda selain menghapus sepenuhnya akses ke panel tersebut dari internet terbuka.
 
-1. Acesse o **Painel Normal** da Cloudflare (dash.cloudflare.com) e entre no seu Domínio.
-2. No menu esquerdo, vá em **Security > WAF > Rate limiting rules**.
-3. Clique em **Create rule**.
-4. **Name:** \`Anti-Abuso OmniRoute API\`
+1. Di panel Zero Trust, buka **Access > Applications > Add an application**.
+2. Pilih **Self-hosted**.
+3. Di **Application name**, masukkan `Panel OmniRoute`.
+4. Di **Application domain**, masukkan `omniroute.domainanda.com` (sama dengan yang Anda buat di "Rute 2").
+5. Klik **Next**.
+6. Di **Rule action**, pilih `Allow`. Beri nama Rule `Admin Saja`.
+7. Di **Include**, pada selektor "Selector" pilih `Emails` dan masukkan email Anda, misalnya `admin@domainanda.com`.
+8. Simpan (`Add application`).
+
+> **Apa yang terjadi:** Jika Anda mencoba membuka `omniroute.domainanda.com`, Anda tidak akan langsung masuk ke aplikasi OmniRoute! Anda akan disambut halaman Cloudflare yang meminta Anda memasukkan email. Hanya jika email yang Anda masukkan cocok, Anda akan menerima kode sementara 6 digit melalui Outlook/Gmail yang membuka akses ke terowongan menuju port `20129`.
+
+---
+
+## 4. Membatasi dan Melindungi API dengan Rate Limit (WAF)
+
+Dashboard Zero Trust tidak berlaku untuk rute API (`api.domainanda.com`), karena ini adalah akses terprogram melalui alat otomatis (agen) tanpa browser. Untuk ini, kita akan menggunakan Firewall utama (WAF) Cloudflare.
+
+1. Akses **Panel Normal** Cloudflare (dash.cloudflare.com) dan masuk ke Domain Anda.
+2. Di menu sebelah kiri, buka **Security > WAF > Rate limiting rules**.
+3. Klik **Create rule**.
+4. **Name:** `Anti-Penyalahgunaan OmniRoute API`
 5. **If incoming requests match...**
-   - Escolha em Field: \`Hostname\`
-   - Operator: \`equals\`
-   - Value: \`api.seuglobal.com.br\`
-6. Em **With the same characteristics:** Mantenha \`IP\`.
-7. Nos limites (Limit):
-   - **When requests exceed:** \`50\`
-   - **Period:** \`1 minute\`
-8. No final, em **Action**: \`Block\` (Bloquear) e decida se o bloqueio dura por 1 minuto ou 1 hora.
+   - Pilih di Field: `Hostname`
+   - Operator: `equals`
+   - Value: `api.domainanda.com`
+6. Di **With the same characteristics:** Pertahankan `IP`.
+7. Pada batas (Limit):
+   - **When requests exceed:** `50`
+   - **Period:** `1 minute`
+8. Di bagian bawah, pada **Action**: `Block` (Blokir) dan tentukan apakah pemblokiran berlangsung 1 menit atau 1 jam.
 9. **Deploy**.
 
-> **O que isso fez:** Ninguém pode mandar mais de 50 requisições num período de 60 segundos na sua URL de API. Como você roda vários agentes e os consumos por trás já batem rate limit e já rastreiam tokens, isso é apenas uma medida na Borda da Internet (Edge Layer) que protege sua Instância On-Premises de cair por estresse térmico antes mesmo do tráfego descer pelo túnel.
+> **Apa yang terjadi:** Tidak ada yang dapat mengirim lebih dari 50 permintaan dalam periode 60 detik ke URL API Anda. Karena Anda menjalankan beberapa agen dan konsumsi di belakangnya sudah mencapai batas laju serta melacak token, ini hanyalah langkah pengamanan di lapisan tepi internet (Edge Layer) yang melindungi instans On-Premises Anda dari kelebihan beban bahkan sebelum trafik melewati terowongan.
 
 ---
 
-## Finalização
+## Penutup
 
-1. A sua VM **não possui nenhuma porta exposta** em `/etc/ufw`.
-2. O OmniRoute só conversa HTTPS saindo (\`cloudflared\`) e não recebendo TCP direto do mundo.
-3. Seus requets pro OpenAI são ofuscados porque configuramos eles globalmente pra passar em um Proxy SOCKS5 (A nuvem não liga pro SOCKS5 porque ela vem Inbound).
-4. Seu painel web tem 2-Factor com Email.
-5. Sua API está ratelimitada na borda pela Cloudflare e só trafega Bearer Tokens.
+1. VM Anda **tidak memiliki port yang terbuka** di `/etc/ufw`.
+2. OmniRoute hanya berkomunikasi melalui HTTPS keluar (`cloudflared`) dan tidak menerima koneksi TCP langsung dari internet.
+3. Permintaan Anda ke OpenAI disamarkan karena dikonfigurasi secara global untuk melewati Proxy SOCKS5 (cloud tidak peduli dengan SOCKS5 karena trafik datang secara Inbound).
+4. Panel web Anda memiliki autentikasi 2 faktor melalui Email.
+5. API Anda dibatasi lajunya di tepi jaringan oleh Cloudflare dan hanya menerima lalu lintas Bearer Token.

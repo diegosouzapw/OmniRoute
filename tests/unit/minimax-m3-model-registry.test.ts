@@ -75,12 +75,10 @@ describe("MiniMax M3 model registration (#3110)", () => {
     assert.equal(m3.contextLength, 1_048_576);
   });
 
-  it("nvidia provider has minimaxai/minimax-m3 with 1M context", () => {
+  it("nvidia provider does NOT list minimaxai/minimax-m3 (removed in #3329 — 404 upstream)", () => {
     const entry = REGISTRY.nvidia;
     assert.ok(entry, "nvidia registry entry must exist");
     const m3 = entry.models.find((m) => m.id === "minimaxai/minimax-m3");
-    assert.ok(m3, "minimaxai/minimax-m3 must be in nvidia models");
-    assert.equal(m3.name, "MiniMax M3");
-    assert.equal(m3.contextLength, 1_048_576);
+    assert.equal(m3, undefined, "NVIDIA NIM does not host minimaxai/minimax-m3 (see #3329)");
   });
 });

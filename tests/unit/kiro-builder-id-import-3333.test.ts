@@ -82,7 +82,11 @@ test("validateImportToken falls back to social auth when no cached creds exist",
     // Social-auth refresh endpoint.
     if (u.includes("auth.desktop.kiro.dev")) {
       return new Response(
-        JSON.stringify({ accessToken: "access-social", refreshToken: "social-rt", expiresIn: 3600 }),
+        JSON.stringify({
+          accessToken: "access-social",
+          refreshToken: "social-rt",
+          expiresIn: 3600,
+        }),
         { status: 200, headers: { "Content-Type": "application/json" } }
       );
     }
@@ -101,6 +105,78 @@ test("validateImportToken falls back to social auth when no cached creds exist",
 
   assert.equal(result.authMethod, "imported");
   assert.equal(result.accessToken, "access-social");
+});
+
+// LEDGER-6 (/review-reviews v3.8.14): the Builder ID validation refresh must
+// forward the requested region to the OIDC endpoint, not default to us-east-1.
+test("validateImportToken forwards the region to the OIDC endpoint (LEDGER-6)", async () => {
+  makeFakeSsoCache(tmpHome, { clientId: "cid", clientSecret: "secret" });
+  const calledEndpoints: string[] = [];
+  globalThis.fetch = (async (url: string | URL | Request) => {
+    const u = String(url);
+    calledEndpoints.push(u);
+    if (u.includes("oidc.") && u.endsWith("/token")) {
+      return new Response(
+        JSON.stringify({ accessToken: "a", refreshToken: "r", expiresIn: 3600 }),
+        { status: 200, headers: { "Content-Type": "application/json" } }
+      );
+    }
+    throw new Error(`unexpected fetch to ${u}`);
+  }) as typeof fetch;
+
+  const svc = new KiroService();
+  await svc.validateImportToken("aorAAAAAGtoken", "eu-west-1");
+  assert.ok(
+    calledEndpoints.some((u) => u.includes("oidc.eu-west-1.amazonaws.com/token")),
+    `expected the eu-west-1 OIDC endpoint, got: ${calledEndpoints.join(", ")}`
+  );
+  assert.ok(
+    !calledEndpoints.some((u) => u.includes("oidc.us-east-1.amazonaws.com/token")),
+    "must not fall back to us-east-1 when a region was requested"
+  );
+});
+
+// LEDGER-8 (/review-reviews v3.8.14): with multiple cached SSO client
+// registrations, the one whose region matches the import must be chosen rather
+// than whichever readdir returns first.
+test("validateImportToken prefers the region-matching cached client (LEDGER-8)", async () => {
+  const cacheDir = path.join(tmpHome, ".aws", "sso", "cache");
+  fs.mkdirSync(cacheDir, { recursive: true });
+  // "a-" sorts first so naive first-match would pick the wrong (us-east-1) pair.
+  fs.writeFileSync(
+    path.join(cacheDir, "a-useast.json"),
+    JSON.stringify({
+      clientId: "cid-useast",
+      clientSecret: "secret-useast",
+      region: "us-east-1",
+      expiresAt: "2099-01-01T00:00:00Z",
+    })
+  );
+  fs.writeFileSync(
+    path.join(cacheDir, "z-euwest.json"),
+    JSON.stringify({
+      clientId: "cid-euwest",
+      clientSecret: "secret-euwest",
+      region: "eu-west-1",
+      expiresAt: "2099-01-01T00:00:00Z",
+    })
+  );
+
+  globalThis.fetch = (async (url: string | URL | Request) => {
+    const u = String(url);
+    if (u.includes("oidc.") && u.endsWith("/token")) {
+      return new Response(
+        JSON.stringify({ accessToken: "a", refreshToken: "r", expiresIn: 3600 }),
+        { status: 200, headers: { "Content-Type": "application/json" } }
+      );
+    }
+    throw new Error(`unexpected fetch to ${u}`);
+  }) as typeof fetch;
+
+  const svc = new KiroService();
+  const result = await svc.validateImportToken("aorAAAAAGtoken", "eu-west-1");
+  assert.equal(result.clientId, "cid-euwest", "must pick the eu-west-1 registration");
+  assert.equal(result.clientSecret, "secret-euwest");
 });
 
 test("validateImportToken rejects malformed refresh tokens before touching the cache", async () => {

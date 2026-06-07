@@ -29,8 +29,51 @@ import { buildOciChatUrl } from "../config/oci.ts";
 import { buildSapChatUrl, getSapResourceGroup } from "../config/sap.ts";
 import { buildMaritalkChatUrl } from "../config/maritalk.ts";
 import { LOCAL_PROVIDERS } from "@/shared/constants/providers";
+import { isForbiddenCustomHeaderName } from "@/shared/constants/upstreamHeaders";
 
 import type { PoolConfig } from "../services/sessionPool/types.ts";
+
+/**
+ * Apply operator-configured per-provider custom headers onto an outgoing header
+ * map. Defense-in-depth on top of the Zod `customHeadersSchema`:
+ *  - skip hop-by-hop/framing AND auth header names (canonical denylist, so a row
+ *    written before the schema tightening still can't override credential auth);
+ *  - skip control-char (CR/LF/NUL) names/values before they reach undici;
+ *  - assign case-insensitively, replacing any existing same-named header (e.g.
+ *    the executor's own Content-Type/Accept) instead of emitting a duplicate.
+ * Used for every *-compatible node, INCLUDING anthropic-compatible-cc-* (whose
+ * header builder returns early, so custom headers must be merged in explicitly).
+ */
+function applyCustomHeaders(headers: Record<string, string>, rawCustomHeaders: unknown): void {
+  let customHeaders: Record<string, unknown> | null = null;
+  if (
+    rawCustomHeaders &&
+    typeof rawCustomHeaders === "object" &&
+    !Array.isArray(rawCustomHeaders)
+  ) {
+    customHeaders = rawCustomHeaders as Record<string, unknown>;
+  } else if (typeof rawCustomHeaders === "string") {
+    try {
+      const parsed = JSON.parse(rawCustomHeaders);
+      if (parsed && typeof parsed === "object" && !Array.isArray(parsed)) {
+        customHeaders = parsed as Record<string, unknown>;
+      }
+    } catch {
+      /* ignore invalid JSON */
+    }
+  }
+  if (!customHeaders) return;
+  for (const [k, v] of Object.entries(customHeaders)) {
+    if (typeof k !== "string" || typeof v !== "string") continue;
+    if (isForbiddenCustomHeaderName(k)) continue;
+    if (/[\r\n\0]/.test(k) || /[\r\n]/.test(v)) continue;
+    const lower = k.toLowerCase();
+    for (const existing of Object.keys(headers)) {
+      if (existing.toLowerCase() === lower) delete headers[existing];
+    }
+    headers[k] = v;
+  }
+}
 
 function normalizeBaseUrl(baseUrl) {
   return (baseUrl || "").trim().replace(/\/$/, "");
@@ -375,11 +418,15 @@ export class DefaultExecutor extends BaseExecutor {
         break;
       default:
         if (isClaudeCodeCompatible(this.provider)) {
-          return buildClaudeCodeCompatibleHeaders(
+          const ccHeaders = buildClaudeCodeCompatibleHeaders(
             effectiveKey || credentials.accessToken || "",
             stream,
             credentials?.providerSpecificData?.ccSessionId
           );
+          // CC nodes are also anthropic-compatible-*, so honor operator custom
+          // headers here (the early return skips the shared block below).
+          applyCustomHeaders(ccHeaders, credentials.providerSpecificData?.customHeaders);
+          return ccHeaders;
         }
         if (this.provider?.startsWith?.("anthropic-compatible-")) {
           if (effectiveKey) {
@@ -424,31 +471,7 @@ export class DefaultExecutor extends BaseExecutor {
       this.provider?.startsWith?.("anthropic-compatible-");
 
     if (isCompatibleProvider) {
-      const rawCustomHeaders = credentials.providerSpecificData?.customHeaders;
-      let customHeaders: Record<string, string> | null = null;
-      if (rawCustomHeaders && typeof rawCustomHeaders === "object" && !Array.isArray(rawCustomHeaders)) {
-        customHeaders = rawCustomHeaders as Record<string, string>;
-      } else if (typeof rawCustomHeaders === "string") {
-        try {
-          const parsed = JSON.parse(rawCustomHeaders);
-          if (parsed && typeof parsed === "object" && !Array.isArray(parsed)) {
-            customHeaders = parsed;
-          }
-        } catch { /* ignore invalid JSON */ }
-      }
-      if (customHeaders) {
-        const forbidden = new Set([
-          "host", "connection", "content-length", "keep-alive",
-          "proxy-connection", "transfer-encoding", "te", "trailer", "upgrade",
-        ]);
-        const authHeaders = new Set(["authorization", "x-api-key", "x-goog-api-key", "api-key"]);
-        for (const [k, v] of Object.entries(customHeaders)) {
-          if (typeof k !== "string" || typeof v !== "string") continue;
-          if (forbidden.has(k.toLowerCase())) continue;
-          if (authHeaders.has(k.toLowerCase())) continue;
-          headers[k] = v;
-        }
-      }
+      applyCustomHeaders(headers, credentials.providerSpecificData?.customHeaders);
     }
 
     // Forward client request metadata headers (from OpenCode or similar clients)

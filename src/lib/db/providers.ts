@@ -839,6 +839,14 @@ export async function updateProviderNode(id: string, data: JsonRecord) {
 
   if (data.customHeaders !== undefined) {
     merged["customHeadersJson"] = data.customHeaders ? JSON.stringify(data.customHeaders) : null;
+  } else {
+    // Partial update that omits customHeaders must PRESERVE the stored value.
+    // rowToCamel surfaces the column under `customHeaders` (suffix stripped),
+    // never `customHeadersJson`, so read the raw stored JSON from `existing`
+    // directly instead of relying on the (absent) merged key — otherwise the
+    // UPDATE would bind null and silently wipe the saved headers.
+    const existingJson = (existing as JsonRecord).custom_headers_json;
+    merged["customHeadersJson"] = typeof existingJson === "string" ? existingJson : null;
   }
 
   db.prepare(

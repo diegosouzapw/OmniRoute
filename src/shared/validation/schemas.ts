@@ -8,7 +8,10 @@ import { MAX_REQUEST_BODY_LIMIT_MB, MIN_REQUEST_BODY_LIMIT_MB } from "@/shared/c
 import { COMBO_CONFIG_MODES } from "@/shared/constants/comboConfigMode";
 import { providerAllowsOptionalApiKey } from "@/shared/constants/providers";
 import { HIDEABLE_SIDEBAR_ITEM_IDS } from "@/shared/constants/sidebarVisibility";
-import { isForbiddenUpstreamHeaderName } from "@/shared/constants/upstreamHeaders";
+import {
+  isForbiddenUpstreamHeaderName,
+  isForbiddenCustomHeaderName,
+} from "@/shared/constants/upstreamHeaders";
 import { MAX_TIMER_TIMEOUT_MS } from "@/shared/utils/runtimeTimeouts";
 
 function isHttpUrl(value: string): boolean {
@@ -1917,31 +1920,20 @@ export const updateKeyPermissionsSchema = z
     }
   });
 
-const customHeadersSchema = z
-  .record(z.string(), z.string())
+// Reuse the canonical upstream-headers record schema (control-char / whitespace
+// / ":" / 128-name / 4096-value / max-16 guards) so per-provider custom headers
+// inherit the same hardening as `modelCompat.upstreamHeaders` — then additionally
+// reject auth header names (the credential layer owns those; the executor drops
+// them at send time, so reject up front for an actionable error instead of a
+// silent no-op). Single denylist source: isForbiddenCustomHeaderName.
+const customHeadersSchema = upstreamHeadersRecordSchema
+  .refine((rec) => !Object.keys(rec).some((k) => isForbiddenCustomHeaderName(k)), {
+    message:
+      "Custom headers cannot include hop-by-hop, framing, or auth headers " +
+      "(authorization / x-api-key / x-goog-api-key / api-key)",
+  })
   .nullable()
-  .optional()
-  .refine(
-    (val) => {
-      if (!val) return true;
-      const forbidden = new Set([
-        "host",
-        "connection",
-        "content-length",
-        "keep-alive",
-        "proxy-connection",
-        "transfer-encoding",
-        "te",
-        "trailer",
-        "upgrade",
-      ]);
-      for (const key of Object.keys(val)) {
-        if (forbidden.has(key.toLowerCase())) return false;
-      }
-      return true;
-    },
-    { message: "Custom headers contain forbidden hop-by-hop or framing headers" }
-  );
+  .optional();
 
 export const createProviderNodeSchema = z
   .object({

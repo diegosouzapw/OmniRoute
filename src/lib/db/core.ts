@@ -470,15 +470,21 @@ export function rowToCamel(row: unknown): JsonRecord | null {
       } catch {
         result[camelKey] = v;
       }
-    } else if (camelKey.endsWith("Json") && typeof v === "string") {
+    } else if (camelKey.endsWith("Json")) {
       // Convention: any column with a `_json` suffix is JSON-encoded TEXT.
       // Surface the parsed object under the friendlier name (key minus the
       // "Json" suffix) — e.g. quotaWindowThresholdsJson → quotaWindowThresholds.
+      // A NULL/absent column normalizes to `baseKey: null` (not the suffixed
+      // key) so read and write paths expose a consistent shape.
       const baseKey = camelKey.slice(0, -"Json".length);
-      try {
-        result[baseKey] = JSON.parse(v);
-      } catch {
-        result[baseKey] = null;
+      if (typeof v === "string") {
+        try {
+          result[baseKey] = JSON.parse(v);
+        } catch {
+          result[baseKey] = null;
+        }
+      } else {
+        result[baseKey] = v == null ? null : v;
       }
     } else {
       result[camelKey] = v;
