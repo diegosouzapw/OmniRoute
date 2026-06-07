@@ -88,7 +88,7 @@ test("specialty provider validators cover Deepgram, AssemblyAI, ElevenLabs and I
 
 test("validateCommandCodeProvider ignores caller baseUrl and chatPath overrides", async () => {
   globalThis.fetch = async (url, init = {}) => {
-    assert.equal(String(url), "https://api.commandcode.ai/alpha/generate");
+    assert.equal(String(url), "https://api.commandcode.ai/provider/v1/chat/completions");
     const headers = init.headers as Record<string, string>;
     assert.equal(headers.Authorization, "Bearer cc-key");
     const body = JSON.parse(String(init.body));
@@ -1956,7 +1956,7 @@ test("validateCommandCodeProvider sends Command Code probe URL, headers, and wra
 
   assert.deepEqual(result, { valid: true, error: null });
   assert.equal(calls.length, 1);
-  assert.equal(calls[0].url, "https://api.commandcode.ai/alpha/generate");
+  assert.equal(calls[0].url, "https://api.commandcode.ai/provider/v1/chat/completions");
   assert.equal(calls[0].method, "POST");
   assert.equal(calls[0].headers.Authorization, "Bearer cc_test_key");
   assert.equal(calls[0].headers["Content-Type"], "application/json");

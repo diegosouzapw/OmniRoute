@@ -34,6 +34,7 @@ const fs = require("fs");
 const { autoUpdater } = require("electron-updater");
 const { hasEncryptedCredentials } = require("./sqlite-inspection");
 const { loginManager } = require("./loginManager");
+const { killProcessTree } = require("./processTree");
 
 // ── Single Instance Lock ───────────────────────────────────
 const gotTheLock = app.requestSingleInstanceLock();
@@ -200,7 +201,9 @@ async function waitForServerExit(proc, timeoutMs = 5000) {
     new Promise((r) =>
       setTimeout(() => {
         try {
-          proc.kill("SIGKILL");
+          // #3347: force-kill the whole tree (Windows leaves grandchildren alive on a
+          // bare SIGKILL of the direct child, keeping omniroute.exe locked).
+          killProcessTree(proc, { signal: "SIGKILL" });
         } catch {
           /* already dead */
         }
@@ -286,7 +289,9 @@ async function downloadUpdate() {
 
 function installUpdate() {
   if (nextServer) {
-    nextServer.kill("SIGTERM");
+    // #3347: tree-kill before quitAndInstall — a surviving server child (and its
+    // grandchildren) keeps omniroute.exe locked and the updater fails with "file in use".
+    killProcessTree(nextServer, { signal: "SIGTERM" });
     nextServer = null;
   }
   autoUpdater.quitAndInstall();
@@ -666,7 +671,10 @@ function startNextServer() {
 
 function stopNextServer() {
   if (nextServer) {
-    nextServer.kill("SIGTERM");
+    // #3347: kill the whole tree, not just the direct child. On Windows the server
+    // (omniroute.exe-as-node) spawns grandchildren that a bare SIGTERM leaves alive,
+    // holding a lock on omniroute.exe and blocking updates.
+    killProcessTree(nextServer, { signal: "SIGTERM" });
     nextServer = null;
   }
 }

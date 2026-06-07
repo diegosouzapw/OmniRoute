@@ -12,6 +12,7 @@ import {
   matchErrorRuleByText,
   matchErrorRuleByStatus,
 } from "../config/errorConfig.ts";
+import { getProviderErrorRuleMatch } from "../config/providerErrorRules.ts";
 import { getPassthroughProviders, getProviderCategory } from "../config/providerRegistry.ts";
 import {
   DEFAULT_RESILIENCE_SETTINGS,
@@ -78,12 +79,12 @@ function toJsonRecord(value: unknown): JsonRecord {
 }
 
 // Provider-level failure tracking for circuit breaker behavior
-// Error codes that count toward provider-level failure threshold
-// 429 (rate limit) is intentionally excluded: rate limits are connection-scoped
-// and handled via Connection Cooldown, not provider-wide circuit breaker.
-// Counting 429 toward provider failure causes cascading provider trips at scale
-// when many connections hit rate limits simultaneously (Issue #1846).
-const PROVIDER_FAILURE_ERROR_CODES = new Set([408, 500, 502, 503, 504]);
+// Error codes that count toward provider-level failure threshold.
+// 429 is included: per-error-type cooldowns (rate_limit: 60s, quota_exhausted: 1h)
+// prevent cascading provider trips at scale (Issue #1846 concern addressed),
+// while still allowing the circuit breaker to open on sustained 429s and
+// prevent infinite combo retries (Issue #3200).
+const PROVIDER_FAILURE_ERROR_CODES = new Set([408, 429, 500, 502, 503, 504]);
 
 // Per-connection failure deduplication: prevents rapid-fire failures from the
 // same connection from counting multiple times toward the provider breaker.
@@ -1009,8 +1010,31 @@ export function classifyErrorText(errorText: unknown): RateLimitReasonValue {
 
 /**
  * Classify HTTP status + error text into RateLimitReason
+ *
+ * If context (provider, headers, body) is supplied, provider-specific rules
+ * are evaluated FIRST. A provider like Opencode can signal account-wide quota
+ * exhaustion via `x-ratelimit-remaining-requests: 0` even when the body says
+ * "rate limit" — without context, classifyError falls through to the global
+ * text rules and misclassifies as RATE_LIMIT_EXCEEDED. With context, the
+ * provider rule takes precedence.
  */
-export function classifyError(status: number, errorText: unknown): RateLimitReasonValue {
+export function classifyError(
+  status: number,
+  errorText: unknown,
+  context?: { provider?: string | null; headers?: Record<string, string> | null; body?: unknown }
+): RateLimitReasonValue {
+  // Provider-specific rules take priority — they have the most accurate signal
+  // (e.g. `x-ratelimit-remaining-requests: 0` is irrefutable account exhaustion).
+  if (context?.provider) {
+    const match = getProviderErrorRuleMatch(
+      context.provider,
+      status,
+      context.headers ?? null,
+      context.body
+    );
+    if (match) return match.reason;
+  }
+
   // Text classification takes priority (more specific)
   const textReason = classifyErrorText(errorText);
   if (textReason !== RateLimitReason.UNKNOWN) return textReason;
@@ -1367,7 +1391,21 @@ export function checkFallbackError(
       : findMatchingErrorRule(status, errorStr);
   if (configuredRule) {
     if (configuredRule.backoff) {
-      return buildRetryableFallback(configuredRule.reason ?? classifyError(status, errorStr));
+      // Provider-specific rules in `providerRuleRegistry` are MORE SPECIFIC
+      // than the configured (global) rule, so we check them first. If a
+      // provider rule matches, it overrides the configured rule's reason
+      // (e.g. Opencode's `x-ratelimit-remaining-requests: 0` overrides
+      // 429 → RATE_LIMIT_EXCEEDED). We do NOT call the full `classifyError`
+      // here because its global status fallback would otherwise override
+      // specific configured reasons (e.g. 503 → SERVER_ERROR would be
+      // shadowed by 503 → MODEL_CAPACITY).
+      const providerMatch = provider
+        ? getProviderErrorRuleMatch(provider, status, headers, structuredError ?? null)
+        : null;
+      const reason = providerMatch
+        ? providerMatch.reason
+        : (configuredRule.reason ?? RateLimitReason.UNKNOWN);
+      return buildRetryableFallback(reason);
     }
     const cooldownMs = configuredRule.cooldownMs ?? 0;
     return {

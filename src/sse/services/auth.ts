@@ -729,7 +729,27 @@ type AnonymousFallbackProviderDefinition = {
   noAuth?: boolean;
 };
 
-function buildSyntheticNoAuthCredentials() {
+function buildSyntheticNoAuthCredentials(): {
+  apiKey: null;
+  accessToken: null;
+  refreshToken: null;
+  expiresAt: null;
+  projectId: null;
+  copilotToken: null;
+  providerSpecificData: Record<string, never>;
+  connectionId: typeof SYNTHETIC_NOAUTH_CONNECTION_ID;
+  testStatus: "active";
+  lastError: null;
+  lastErrorType: null;
+  lastErrorSource: null;
+  errorCode: null;
+  rateLimitedUntil: null;
+  maxConcurrent: null;
+  allRateLimited?: never;
+  allExpired?: never;
+  retryAfter?: never;
+  retryAfterHuman?: never;
+} {
   return {
     apiKey: null,
     accessToken: null,

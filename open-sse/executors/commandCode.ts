@@ -509,8 +509,8 @@ export class CommandCodeExecutor extends BaseExecutor {
   }
 
   buildUrl() {
-    const baseUrl = (this.config.baseUrl || "https://api.commandcode.ai").replace(/\/$/, "");
-    return `${baseUrl}${this.config.chatPath || "/alpha/generate"}`;
+    const baseUrl = (this.config.baseUrl || "https://api.commandcode.ai/provider/v1").replace(/\/$/, "");
+    return `${baseUrl}${this.config.chatPath || "/chat/completions"}`;
   }
 
   async execute({ model, body, stream, credentials, signal, upstreamExtraHeaders }: ExecuteInput) {

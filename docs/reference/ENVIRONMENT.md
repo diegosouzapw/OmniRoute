@@ -562,6 +562,8 @@ REQUEST_TIMEOUT_MS (global override)
 | `OMNIROUTE_PPLX_TLS_GRACE_MS`            | `10000`              | JS-side grace added on top of the wire timeout when the native binding is wedged.           |
 | `OMNIROUTE_GROK_TLS_TIMEOUT_MS`          | `60000`              | Wire-level timeout for the bogdanfinn/tls-client koffi binding (`grokTlsClient.ts`).        |
 | `OMNIROUTE_GROK_TLS_GRACE_MS`            | `10000`              | JS-side grace added on top of the wire timeout when the native binding is wedged.           |
+| `OMNIROUTE_BROWSER_POOL`                 | `on`                | Shared Playwright browser pool for browser-backed web-cookie chat (`browserPool.ts`); set `off` to disable. |
+| `WEB_COOKIE_USE_BROWSER`                 | `0`                 | Opt a web-cookie chat request into the browser-backed path (`browserBackedChat.ts`); `1` to enable.         |
 
 Combo target attempts inherit the resolved upstream request timeout (`FETCH_TIMEOUT_MS`, or
 `REQUEST_TIMEOUT_MS` when it supplies the fetch default). Set `targetTimeoutMs` in a combo,
