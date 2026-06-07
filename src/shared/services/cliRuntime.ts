@@ -932,16 +932,15 @@ export const getCliConfigHome = () => {
 };
 
 export const resolveOpencodeConfigDir = (
-  platform = process.platform,
+  _platform = process.platform,
   env: NodeJS.ProcessEnv = process.env,
   homeDir = os.homedir()
 ) => {
-  const isWin = platform === "win32";
-  if (isWin) {
-    const appData = String(env.APPDATA || "").trim();
-    return appData || path.join(homeDir, "AppData", "Roaming");
-  }
-
+  // #3330: OpenCode reads its config from XDG `~/.config/opencode/` on ALL
+  // platforms — including Windows, where it uses `%USERPROFILE%\.config`, NOT
+  // `%APPDATA%`. Writing to %APPDATA% on Windows put the file where OpenCode
+  // never looks, so dashboard-saved config silently had no effect. `_platform`
+  // is kept in the signature for call-site/test compatibility.
   const xdgConfigHome = String(env.XDG_CONFIG_HOME || "").trim();
   return xdgConfigHome || path.join(homeDir, ".config");
 };

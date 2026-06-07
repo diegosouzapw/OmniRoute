@@ -1412,7 +1412,14 @@ const _REGISTRY_EAGER: Record<string, RegistryEntry> = {
       },
       { id: "deepseek-v4-flash-free", name: "DeepSeek V4 Flash Free", supportsReasoning: true },
       // #3110: MiniMax M3 free tier via OpenCode
-      { id: "minimax-m3-free", name: "MiniMax M3 Free", contextLength: 1048576 },
+      // #3328: MiniMax M3 is multimodal (verified: describes base64 images via the
+      // opencode upstream) — flag it so vision requests aren't gated/stripped.
+      {
+        id: "minimax-m3-free",
+        name: "MiniMax M3 Free",
+        contextLength: 1048576,
+        supportsVision: true,
+      },
       { id: "minimax-m2.5-free", name: "MiniMax M2.5 Free", contextLength: 204800 },
       { id: "ling-2.6-1t-free", name: "Ling 2.6 Free", contextLength: 262000 },
       {
@@ -3223,8 +3230,9 @@ const _REGISTRY_EAGER: Record<string, RegistryEntry> = {
     authHeader: "bearer",
     models: [
       { id: "z-ai/glm-5.1", name: "GLM 5.1" },
-      // #3110: MiniMax M3 via NVIDIA
-      { id: "minimaxai/minimax-m3", name: "MiniMax M3", contextLength: 1048576 },
+      // #3329: minimaxai/minimax-m3 removed — NVIDIA NIM does not host it yet
+      // (every request 404s), while minimax-m2.7 on the same provider works.
+      // Re-add only once NVIDIA actually serves it.
       { id: "minimaxai/minimax-m2.7", name: "MiniMax M2.7" },
       { id: "google/gemma-4-31b-it", name: "Gemma 4 31B" },
       { id: "mistralai/mistral-small-4-119b-2603", name: "Mistral Small 4 2603" },

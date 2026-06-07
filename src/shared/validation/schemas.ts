@@ -1917,6 +1917,32 @@ export const updateKeyPermissionsSchema = z
     }
   });
 
+const customHeadersSchema = z
+  .record(z.string(), z.string())
+  .nullable()
+  .optional()
+  .refine(
+    (val) => {
+      if (!val) return true;
+      const forbidden = new Set([
+        "host",
+        "connection",
+        "content-length",
+        "keep-alive",
+        "proxy-connection",
+        "transfer-encoding",
+        "te",
+        "trailer",
+        "upgrade",
+      ]);
+      for (const key of Object.keys(val)) {
+        if (forbidden.has(key.toLowerCase())) return false;
+      }
+      return true;
+    },
+    { message: "Custom headers contain forbidden hop-by-hop or framing headers" }
+  );
+
 export const createProviderNodeSchema = z
   .object({
     name: z.string().trim().min(1, "Name is required"),
@@ -1936,6 +1962,7 @@ export const createProviderNodeSchema = z
     compatMode: z.enum(["cc"]).optional(),
     chatPath: z.string().trim().startsWith("/").max(500).optional().or(z.literal("")),
     modelsPath: z.string().trim().startsWith("/").max(500).optional().or(z.literal("")),
+    customHeaders: customHeadersSchema,
   })
   .superRefine((value, ctx) => {
     const nodeType = value.type || "openai-compatible";
@@ -1964,6 +1991,7 @@ export const updateProviderNodeSchema = z.object({
   baseUrl: z.string().trim().min(1, "Base URL is required"),
   chatPath: z.string().trim().startsWith("/").max(500).optional().or(z.literal("")),
   modelsPath: z.string().trim().startsWith("/").max(500).optional().or(z.literal("")),
+  customHeaders: customHeadersSchema,
 });
 
 export const providerNodeValidateSchema = z.object({

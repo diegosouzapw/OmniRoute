@@ -159,9 +159,9 @@ async function saveContinueConfig({ baseUrl, apiKey, model }) {
 }
 
 /**
- * Save OpenCode config to:
- * - Linux/macOS: ~/.config/opencode/opencode.json (XDG_CONFIG_HOME aware)
- * - Windows: %APPDATA%/opencode/opencode.json
+ * Save OpenCode config to ~/.config/opencode/opencode.json on ALL platforms
+ * (XDG_CONFIG_HOME aware). OpenCode uses XDG `~/.config` even on Windows
+ * (%USERPROFILE%\.config), NOT %APPDATA% (#3330).
  *
  * (#524) OpenCode was silently failing because this handler was missing.
  */

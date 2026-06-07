@@ -13,8 +13,8 @@
 import {
   findWorkingProxy,
   clearProxyFallbackCache,
-  isProxyAutoFallbackEnabled,
 } from "@omniroute/open-sse/utils/proxyFallback.ts";
+import { isFeatureFlagEnabled } from "@/shared/utils/featureFlags";
 
 // ---------------------------------------------------------------------------
 // Public API
@@ -35,7 +35,7 @@ import {
  * @returns A working proxy URL, or null if none was found.
  */
 export async function selectProxyForValidation(targetUrl: string): Promise<string | null> {
-  if (!isProxyAutoFallbackEnabled()) return null;
+  if (!isFeatureFlagEnabled("PROXY_AUTO_SELECT_ENABLED")) return null;
   if (!targetUrl) return null;
 
   let hostname: string;

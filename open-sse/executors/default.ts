@@ -419,6 +419,38 @@ export class DefaultExecutor extends BaseExecutor {
       }
     }
 
+    const isCompatibleProvider =
+      this.provider?.startsWith?.("openai-compatible-") ||
+      this.provider?.startsWith?.("anthropic-compatible-");
+
+    if (isCompatibleProvider) {
+      const rawCustomHeaders = credentials.providerSpecificData?.customHeaders;
+      let customHeaders: Record<string, string> | null = null;
+      if (rawCustomHeaders && typeof rawCustomHeaders === "object" && !Array.isArray(rawCustomHeaders)) {
+        customHeaders = rawCustomHeaders as Record<string, string>;
+      } else if (typeof rawCustomHeaders === "string") {
+        try {
+          const parsed = JSON.parse(rawCustomHeaders);
+          if (parsed && typeof parsed === "object" && !Array.isArray(parsed)) {
+            customHeaders = parsed;
+          }
+        } catch { /* ignore invalid JSON */ }
+      }
+      if (customHeaders) {
+        const forbidden = new Set([
+          "host", "connection", "content-length", "keep-alive",
+          "proxy-connection", "transfer-encoding", "te", "trailer", "upgrade",
+        ]);
+        const authHeaders = new Set(["authorization", "x-api-key", "x-goog-api-key", "api-key"]);
+        for (const [k, v] of Object.entries(customHeaders)) {
+          if (typeof k !== "string" || typeof v !== "string") continue;
+          if (forbidden.has(k.toLowerCase())) continue;
+          if (authHeaders.has(k.toLowerCase())) continue;
+          headers[k] = v;
+        }
+      }
+    }
+
     // Forward client request metadata headers (from OpenCode or similar clients)
     // Allowlist-based: only specific x-opencode-* headers and User-Agent are forwarded
     if (clientHeaders) {

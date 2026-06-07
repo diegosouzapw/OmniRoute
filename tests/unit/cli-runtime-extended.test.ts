@@ -85,10 +85,9 @@ test("CLI config helpers enforce safe config homes and expose per-tool config pa
   assert.equal(cliRuntime.getCliConfigPaths("unknown"), null);
 
   process.env.XDG_CONFIG_HOME = path.join(homeDir, ".config-test");
-  const expectedOpencodeRoot =
-    process.platform === "win32"
-      ? process.env.APPDATA || path.join(homeDir, "AppData", "Roaming")
-      : process.env.XDG_CONFIG_HOME;
+  // #3330: OpenCode uses XDG (`~/.config` / $XDG_CONFIG_HOME) on every platform,
+  // including Windows — no %APPDATA% special-case.
+  const expectedOpencodeRoot = process.env.XDG_CONFIG_HOME;
   assert.deepEqual(cliRuntime.getCliConfigPaths("opencode"), {
     config: path.join(expectedOpencodeRoot, "opencode", "opencode.json"),
   });

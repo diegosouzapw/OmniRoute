@@ -59,7 +59,10 @@ function modelSupportsVision(model: string): boolean {
     normalized.includes("gpt-4") ||
     normalized.includes("4o") ||
     normalized.includes("claude-3") ||
-    normalized.includes("gemini")
+    normalized.includes("gemini") ||
+    // #3328: MiniMax M3 is multimodal — verified it describes images via the opencode
+    // upstream. Without this, compression strips the image and the model goes "blind".
+    normalized.includes("minimax-m3")
   );
 }
 

@@ -12,7 +12,8 @@ import {
 } from "./proxyDispatcher.ts";
 import tlsClient from "./tlsClient.ts";
 import { isProxyReachable } from "@/lib/proxyHealth";
-import { findWorkingProxy, isProxyAutoFallbackEnabled } from "./proxyFallback.ts";
+import { isFeatureFlagEnabled } from "@/shared/utils/featureFlags";
+import { findWorkingProxy } from "./proxyFallback.ts";
 
 function isTlsFingerprintEnabled() {
   return process.env.ENABLE_TLS_FINGERPRINT === "true";
@@ -341,7 +342,7 @@ async function patchedFetch(
             continue;
           }
           // All attempts exhausted — try proxy fallback before native fetch
-          if (source === "direct" && isProxyAutoFallbackEnabled()) {
+          if (source === "direct" && isFeatureFlagEnabled("PROXY_AUTO_SELECT_ENABLED")) {
             let targetHostname = "";
             try {
               targetHostname = new URL(targetUrl).hostname;

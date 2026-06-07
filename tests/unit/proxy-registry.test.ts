@@ -7,8 +7,6 @@ import path from "node:path";
 const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-proxy-registry-"));
 process.env.DATA_DIR = TEST_DATA_DIR;
 process.env.API_KEY_SECRET = "test-secret";
-const ORIGINAL_PROXY_AUTO_FALLBACK = process.env.OMNIROUTE_PROXY_AUTO_FALLBACK;
-const ORIGINAL_ENABLE_PROXY_AUTO_FALLBACK = process.env.ENABLE_PROXY_AUTO_FALLBACK;
 
 const core = await import("../../src/lib/db/core.ts");
 const providersDb = await import("../../src/lib/db/providers.ts");
@@ -17,41 +15,17 @@ const settingsDb = await import("../../src/lib/db/settings.ts");
 const apiKeysDb = await import("../../src/lib/db/apiKeys.ts");
 const proxiesRoute = await import("../../src/app/api/settings/proxies/route.ts");
 
-function clearProxyAutoFallbackEnv() {
-  delete process.env.OMNIROUTE_PROXY_AUTO_FALLBACK;
-  delete process.env.ENABLE_PROXY_AUTO_FALLBACK;
-}
-
-function restoreProxyAutoFallbackEnv() {
-  if (ORIGINAL_PROXY_AUTO_FALLBACK === undefined) {
-    delete process.env.OMNIROUTE_PROXY_AUTO_FALLBACK;
-  } else {
-    process.env.OMNIROUTE_PROXY_AUTO_FALLBACK = ORIGINAL_PROXY_AUTO_FALLBACK;
-  }
-  if (ORIGINAL_ENABLE_PROXY_AUTO_FALLBACK === undefined) {
-    delete process.env.ENABLE_PROXY_AUTO_FALLBACK;
-  } else {
-    process.env.ENABLE_PROXY_AUTO_FALLBACK = ORIGINAL_ENABLE_PROXY_AUTO_FALLBACK;
-  }
-}
-
 async function resetStorage() {
   delete process.env.INITIAL_PASSWORD;
-  clearProxyAutoFallbackEnv();
   core.resetDbInstance();
   apiKeysDb.resetApiKeyState();
   fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
   fs.mkdirSync(TEST_DATA_DIR, { recursive: true });
 }
 
-test.afterEach(() => {
-  restoreProxyAutoFallbackEnv();
-});
-
 test.after(async () => {
   core.resetDbInstance();
   fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
-  restoreProxyAutoFallbackEnv();
 });
 
 test("proxy registry blocks delete when proxy is still assigned", async () => {
