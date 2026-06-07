@@ -112,9 +112,9 @@ test("Command Code executor posts wrapped body and required headers to alpha/gen
     },
   });
 
-  assert.equal(url, "https://api.commandcode.ai/alpha/generate");
+  assert.equal(url, "https://api.commandcode.ai/provider/v1/chat/completions");
   assert.equal(calls.length, 1);
-  assert.equal(calls[0].url, "https://api.commandcode.ai/alpha/generate");
+  assert.equal(calls[0].url, "https://api.commandcode.ai/provider/v1/chat/completions");
   assert.equal(calls[0].init.method, "POST");
   assert.equal(headers.Authorization, "Bearer cc_test_key");
   assert.equal(headers["x-command-code-version"], "0.24.1");
