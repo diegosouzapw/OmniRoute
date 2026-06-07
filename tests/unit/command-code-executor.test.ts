@@ -74,8 +74,8 @@ test("Command Code provider catalog has pinned models and alias lookup", () => {
   assert.ok(entry);
   assert.equal(entry.alias, "cmd");
   assert.equal(entry.executor, "command-code");
-  assert.equal(entry.baseUrl, "https://api.commandcode.ai");
-  assert.equal(entry.chatPath, "/alpha/generate");
+  assert.equal(entry.baseUrl, "https://api.commandcode.ai/provider/v1");
+  assert.equal(entry.chatPath, "/chat/completions");
   assert.deepEqual(
     entry.models.map((model) => model.id),
     PINNED_COMMAND_CODE_MODELS
