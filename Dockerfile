@@ -62,3 +62,31 @@ ENV PORT=20128
 ENV HOSTNAME=0.0.0.0
 ENV OMNIROUTE_MEMORY_MB=1024
 ENV NODE_OPTIONS="--max-old-space-size=${OMNIROUTE_MEMORY_MB}"
+
+# ── Production dependencies ────────────────────────────────────────────────
+FROM runner-base AS production-deps
+
+COPY package*.json ./
+
+RUN --mount=type=cache,id=apt-runner-cache,target=/var/cache/apt,sharing=locked \
+    --mount=type=cache,id=apt-runner-lists,target=/var/lib/apt/lists,sharing=locked \
+    apt-get update \
+    && apt-get install -y --no-install-recommends python3 make g++ \
+    && rm -rf /var/lib/apt/lists/*
+
+RUN --mount=type=cache,id=npm-runner-cache,target=/root/.npm \
+    npm ci --omit=dev --no-audit --no-fund --legacy-peer-deps --ignore-scripts \
+    && npm rebuild better-sqlite3 \
+    && node -e "require('better-sqlite3')(':memory:').close()"
+
+# ── Runner ─────────────────────────────────────────────────────────────────
+FROM runner-base AS runner
+
+COPY --from=production-deps /app/node_modules ./node_modules
+COPY --from=builder /app/.next/standalone ./
+COPY --from=builder /app/.next/static ./.next/static
+COPY --from=builder /app/public ./public
+
+EXPOSE ${PORT}
+
+CMD ["node", "server.js"]
