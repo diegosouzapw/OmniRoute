@@ -35,56 +35,112 @@ function normalizeToolCallArgs(args: unknown): unknown {
   }
 }
 
-function parseTextualToolCall(text: unknown): { name: string; args: unknown } | null {
-  if (typeof text !== "string") return null;
+function stripZeroWidth(value: unknown): unknown {
+  if (typeof value === "string") {
+    return value.replace(/[\u200B-\u200D\uFEFF]/g, "");
+  }
+  if (Array.isArray(value)) {
+    return value.map((item) => stripZeroWidth(item));
+  }
+  if (value && typeof value === "object") {
+    return Object.fromEntries(
+      Object.entries(value as Record<string, unknown>).map(([key, item]) => [
+        key,
+        stripZeroWidth(item),
+      ])
+    );
+  }
+  return value;
+}
 
-  // Gemini/Antigravity sometimes imitates the request-side fallback with small
-  // variations, e.g. a leading "(empty)" marker or zero-width chars inserted
-  // into argument strings. Normalize those variants before parsing so the
-  // response is still surfaced as a structured OpenAI tool call.
+function isValidToolCallHeaderPrefix(candidate: string): boolean {
+  if (!candidate.startsWith("[Tool call:")) return false;
+
+  const bracketIndex = candidate.indexOf("]");
+  if (bracketIndex === -1) {
+    const namePart = candidate.slice("[Tool call:".length);
+    if (namePart.includes("\n") || namePart.includes("[")) return false;
+    return true;
+  }
+
+  const namePart = candidate.slice("[Tool call:".length, bracketIndex);
+  if (namePart.includes("\n") || namePart.trim().length === 0) return false;
+
+  const afterBracket = candidate.slice(bracketIndex + 1);
+  const leadingWhitespaceMatch = afterBracket.match(/^[\s\r\n]*/);
+  const leadingWhitespace = leadingWhitespaceMatch ? leadingWhitespaceMatch[0] : "";
+  const textAfterWhitespace = afterBracket.slice(leadingWhitespace.length);
+
+  if (textAfterWhitespace.length === 0) {
+    return true;
+  }
+
+  if (!leadingWhitespace.includes("\n")) {
+    return false;
+  }
+
+  const expectedText = "Arguments:";
+  if (expectedText.startsWith(textAfterWhitespace)) {
+    return true;
+  }
+
+  if (textAfterWhitespace.startsWith(expectedText)) {
+    return true;
+  }
+
+  return false;
+}
+
+function parseTextualToolCallCandidate(
+  text: unknown
+): { kind: "complete"; name: string; args: unknown } | { kind: "partial" } | null {
+  if (typeof text !== "string") return null;
   const normalized = text.replace(/[\u200B-\u200D\uFEFF]/g, "");
-  const match = normalized.match(
-    /^[\s\S]*?\[Tool call:\s*([^\]\n]+)\]\s*\nArguments:\s*([\s\S]+?)\s*$/
-  );
-  if (!match) return null;
-  const name = match[1]?.trim();
-  const rawArgs = match[2]?.trim();
-  if (!name || !rawArgs) return null;
-  try {
-    let args = JSON.parse(rawArgs);
-    if (typeof args === "string") {
-      const trimmed = args.trim();
-      if (trimmed.startsWith("{") || trimmed.startsWith("[")) {
-        args = JSON.parse(trimmed);
+  const toolCallIndex = normalized.lastIndexOf("[Tool call:");
+  if (toolCallIndex < 0) {
+    const lastBracket = normalized.lastIndexOf("[");
+    if (lastBracket !== -1 && "[Tool call:".startsWith(normalized.slice(lastBracket))) {
+      return { kind: "partial" };
+    }
+    const lastParen = normalized.lastIndexOf("(");
+    if (lastParen !== -1 && "(empty)[Tool call:".startsWith(normalized.slice(lastParen))) {
+      return { kind: "partial" };
+    }
+    return null;
+  }
+  const candidate = normalized.slice(toolCallIndex);
+  if (!isValidToolCallHeaderPrefix(candidate)) {
+    return null;
+  }
+  const headerMatch = candidate.match(/^\[Tool call:\s*([^\]\n]+)\]\s*\nArguments:\s*/);
+  if (!headerMatch) return { kind: "partial" };
+  const name = headerMatch[1]?.trim();
+  const rawArgs = candidate.slice(headerMatch[0].length).trim();
+  if (!name || !rawArgs) return { kind: "partial" };
+  const decoders = [
+    (value: string) => value,
+    (value: string) => {
+      if (value.startsWith('"') && value.endsWith('"')) {
+        const decoded = JSON.parse(value);
+        return typeof decoded === "string" ? decoded : value;
       }
-    }
-    if (args && typeof args === "object" && !Array.isArray(args)) {
-      return { name, args };
-    }
-  } catch {}
-  return null;
+      return value;
+    },
+  ];
+  for (const decode of decoders) {
+    try {
+      const decoded = decode(rawArgs);
+      const parsed = JSON.parse(decoded);
+      return { kind: "complete", name, args: stripZeroWidth(parsed) };
+    } catch {}
+  }
+  return { kind: "partial" };
 }
 
 function containsTextualToolCallMarker(text: unknown): boolean {
   return (
     typeof text === "string" && text.replace(/[\u200B-\u200D\uFEFF]/g, "").includes("[Tool call:")
   );
-}
-
-function isTextualToolCallCandidate(text: string): boolean {
-  const normalized = text.replace(/[\u200B-\u200D\uFEFF]/g, "");
-  if (normalized.includes("[Tool call:")) {
-    return true;
-  }
-  const lastBracket = normalized.lastIndexOf("[");
-  if (lastBracket !== -1 && "[Tool call:".startsWith(normalized.slice(lastBracket))) {
-    return true;
-  }
-  const lastParen = normalized.lastIndexOf("(");
-  if (lastParen !== -1 && "(empty)[Tool call:".startsWith(normalized.slice(lastParen))) {
-    return true;
-  }
-  return false;
 }
 
 function buildToolCallId(
@@ -271,15 +327,15 @@ export function geminiToOpenAIResponse(chunk, state) {
       // assistant prose.
       if (part.text !== undefined && part.text !== "") {
         const accumulated = (state.textualToolCallBuffer || "") + part.text;
+        const candidate = parseTextualToolCallCandidate(accumulated);
 
-        if (isTextualToolCallCandidate(accumulated)) {
-          const textualToolCall = parseTextualToolCall(accumulated);
-          if (textualToolCall) {
+        if (candidate) {
+          if (candidate.kind === "complete") {
             emitFunctionCallPart(
               {
                 functionCall: {
-                  name: textualToolCall.name,
-                  args: textualToolCall.args,
+                  name: candidate.name,
+                  args: candidate.args,
                 },
               },
               state,
@@ -293,26 +349,21 @@ export function geminiToOpenAIResponse(chunk, state) {
         }
 
         if (state.textualToolCallBuffer) {
-          const flushedText = state.textualToolCallBuffer;
+          const flushedText = state.textualToolCallBuffer + part.text;
           state.textualToolCallBuffer = "";
-          if (!containsTextualToolCallMarker(flushedText)) {
-            results.push({
-              id: `chatcmpl-${state.messageId}`,
-              object: "chat.completion.chunk",
-              created: Math.floor(Date.now() / 1000),
-              model: state.model,
-              choices: [
-                {
-                  index: 0,
-                  delta: { content: flushedText },
-                  finish_reason: null,
-                },
-              ],
-            });
-          }
-        }
-
-        if (containsTextualToolCallMarker(part.text)) {
+          results.push({
+            id: `chatcmpl-${state.messageId}`,
+            object: "chat.completion.chunk",
+            created: Math.floor(Date.now() / 1000),
+            model: state.model,
+            choices: [
+              {
+                index: 0,
+                delta: { content: flushedText },
+                finish_reason: null,
+              },
+            ],
+          });
           continue;
         }
 
@@ -416,8 +467,8 @@ export function geminiToOpenAIResponse(chunk, state) {
     if (state.textualToolCallBuffer) {
       const remainingText = state.textualToolCallBuffer;
       state.textualToolCallBuffer = "";
-      const textualToolCall = parseTextualToolCall(remainingText);
-      if (textualToolCall) {
+      const textualToolCall = parseTextualToolCallCandidate(remainingText);
+      if (textualToolCall && textualToolCall.kind === "complete") {
         emitFunctionCallPart(
           {
             functionCall: {
