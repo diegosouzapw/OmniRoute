@@ -213,27 +213,33 @@ export interface VisionModelConfig {
 export async function callVisionModel(
   imageDataUri: string,
   config: VisionModelConfig,
-  apiKey?: string
+  apiKey?: string,
+  routerConfig?: Partial<import("./visionBridgeRouter").VisionBridgeRouterConfig>
 ): Promise<string> {
   // Auto-select the best vision model if not explicitly configured
-  const modelToUse = getBestVisionModel({ fixedModel: config.model });
-  const startTime = Date.now();
+  const modelToUse = getBestVisionModel({
+    fixedModel: config.model,
+    ...routerConfig,
+  });
   let lastError: Error | null = null;
 
   // Try primary model + fallbacks
-  const modelsToTry = [modelToUse, ...getFallbackModels(modelToUse)];
-  const maxAttempts = Math.min(modelsToTry.length, 3);
+  const modelsToTry = [modelToUse, ...getFallbackModels(modelToUse, routerConfig)];
+  const maxAttempts = Math.min(modelsToTry.length, routerConfig?.maxFallbackAttempts ?? 3);
 
   for (let attempt = 0; attempt < maxAttempts; attempt++) {
     const currentModel = modelsToTry[attempt];
+    const attemptStart = Date.now();
     try {
-      const result = await callVisionModelSingle(imageDataUri, { ...config, model: currentModel }, apiKey);
-      const latency = Date.now() - startTime;
-      recordLatency(currentModel, latency, true);
+      const result = await callVisionModelSingle(
+        imageDataUri,
+        { ...config, model: currentModel },
+        apiKey
+      );
+      recordLatency(currentModel, Date.now() - attemptStart, true);
       return result;
     } catch (error) {
-      const latency = Date.now() - startTime;
-      recordLatency(currentModel, latency, false);
+      recordLatency(currentModel, Date.now() - attemptStart, false);
       lastError = error instanceof Error ? error : new Error(String(error));
       // Continue to next model on failure
     }

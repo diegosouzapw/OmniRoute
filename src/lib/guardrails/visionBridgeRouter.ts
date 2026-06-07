@@ -182,8 +182,11 @@ export function getBestVisionModel(
     return fullConfig.fixedModel;
   }
 
-  // Check selection cache
-  const cacheKey = "default";
+  // Check selection cache — key includes excluded models to prevent cache pollution
+  // across different configurations
+  const cacheKey = fullConfig.excludedModels.length > 0
+    ? `excl:${[...fullConfig.excludedModels].sort().join(",")}`
+    : "default";
   const cached = selectionCache.get(cacheKey);
   if (cached && cached.expiresAt > Date.now()) {
     return cached.modelId;
