@@ -266,7 +266,18 @@ async function checkForUpdates(silent = false) {
     }
     return;
   }
-  await autoUpdater.checkForUpdates();
+  // Update-check failures (404 when the release manifest isn't published yet,
+  // offline, rate-limited) are surfaced to the user via the autoUpdater "error"
+  // event handler. The promise returned by checkForUpdates() ALSO rejects on
+  // those, so it must be caught here — the startup check (line ~928) fires it
+  // unawaited inside a setTimeout, and an uncaught rejection there becomes an
+  // "Unhandled Rejection" that the packaged-app smoke test treats as fatal.
+  try {
+    await autoUpdater.checkForUpdates();
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : String(err);
+    console.warn("[Electron] Update check failed (non-fatal):", msg);
+  }
 }
 
 async function downloadUpdate() {

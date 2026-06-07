@@ -239,7 +239,9 @@ export async function registerNodejs(): Promise<void> {
     }
 
     try {
-      const { autoRefreshDaemon } = await import("@/open-sse/services/autoRefreshDaemon");
+      const { autoRefreshDaemon } = await import(
+        "@omniroute/open-sse/services/autoRefreshDaemon"
+      );
       autoRefreshDaemon.start();
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : String(err);
