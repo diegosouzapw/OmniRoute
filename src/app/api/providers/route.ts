@@ -32,7 +32,10 @@ import {
 import { requireManagementAuth } from "@/lib/api/requireManagementAuth";
 import { isManagedProviderConnectionId } from "@/lib/providers/catalog";
 import { isApiKeyRevealEnabled, maskStoredApiKey } from "@/lib/apiKeyExposure";
-import { buildModelSyncInternalHeaders } from "@/shared/services/modelSyncScheduler";
+import {
+  buildModelSyncInternalHeaders,
+  getModelSyncInternalBaseUrl,
+} from "@/shared/services/modelSyncScheduler";
 
 // GET /api/providers - List all connections
 export async function GET(request: Request) {
@@ -174,7 +177,12 @@ export async function POST(request: Request) {
     // auth header (defense in depth) and an X-Internal-Auto-Sync marker for
     // log correlation.
     try {
-      const internalOrigin = new URL(request.url).origin;
+      // SECURITY: use the trusted loopback/env-pinned origin, NOT
+      // `new URL(request.url).origin` — the latter comes from the client-
+      // controlled Host header, which would let a caller redirect this
+      // credential-bearing internal self-fetch to an arbitrary host
+      // (SSRF + internal-auth-header exfiltration; CodeQL js/request-forgery).
+      const internalOrigin = getModelSyncInternalBaseUrl();
       const cookieHeader = request.headers.get("cookie") || "";
       const syncHeaders: Record<string, string> = {
         "Content-Type": "application/json",
