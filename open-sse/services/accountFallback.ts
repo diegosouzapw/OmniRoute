@@ -1010,8 +1010,6 @@ export function classifyErrorText(errorText: unknown): RateLimitReasonValue {
 
 /**
  * Classify HTTP status + error text into RateLimitReason
- /**
- * Classify HTTP status + error text into RateLimitReason
  *
  * If context (provider, headers, body) is supplied, provider-specific rules
  * are evaluated FIRST. A provider like Opencode can signal account-wide quota
