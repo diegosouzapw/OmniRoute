@@ -89,7 +89,7 @@ test("getExecutor returns the specialized Command Code executor", () => {
   assert.ok(getExecutor("cmd") instanceof CommandCodeExecutor);
 });
 
-test("Command Code executor posts wrapped body and required headers to alpha/generate", async () => {
+test("Command Code executor posts wrapped body and required headers to /provider/v1/chat/completions", async () => {
   const calls: any[] = [];
   globalThis.fetch = async (url, init = {}) => {
     calls.push({ url: String(url), init });
