@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useCallback } from "react";
 import { Card, Button, ModelSelectModal } from "@/shared/components";
 
 interface Role {
@@ -63,34 +63,7 @@ export default function HermesAgentToolCard({
     return `${minutes}m`;
   }
 
-  useEffect(() => {
-    if (isExpanded) {
-      // Phase 3: Seed from detector snapshot (batchStatus) for instant UI
-      if (
-        !seededFromBatchRef.current &&
-        Object.keys(currentRoles).length === 0 &&
-        batchStatus?.hermesAgentRoles
-      ) {
-        const seeded: Record<string, any> = {};
-        Object.entries(batchStatus.hermesAgentRoles).forEach(([role, info]: [string, any]) => {
-          seeded[role] = {
-            model: info.model,
-            provider: info.provider,
-          };
-        });
-        setCurrentRoles(seeded);
-        seededFromBatchRef.current = true;
-      }
-      loadCurrentConfig();
-    } else {
-      // Reset seed flag when collapsed so it can seed again on next expand
-      seededFromBatchRef.current = false;
-      setPreviewYaml(null);
-      setFirstSetupAt(null);
-    }
-  }, [isExpanded, batchStatus, currentRoles]);
-
-  const loadCurrentConfig = async () => {
+  const loadCurrentConfig = useCallback(async () => {
     setIsLoading(true);
     try {
       const res = await fetch("/api/cli-tools/hermes-agent-settings");
@@ -107,7 +80,36 @@ export default function HermesAgentToolCard({
     } finally {
       setIsLoading(false);
     }
-  };
+  }, []);
+
+  useEffect(() => {
+    if (!isExpanded) {
+      // Reset seed flag when collapsed so it can seed again on next expand
+      seededFromBatchRef.current = false;
+      setPreviewYaml(null);
+      setFirstSetupAt(null);
+      return;
+    }
+    // Phase 3: Seed from detector snapshot (batchStatus) for instant UI — once per expand.
+    // NOTE: currentRoles is intentionally NOT a dependency. loadCurrentConfig() below sets
+    // currentRoles to a fresh object on every fetch; if currentRoles were a dep, the effect
+    // would re-fire → refetch → setCurrentRoles → re-fire … an infinite loop. On the detail
+    // page isExpanded is hardcoded true, so that loop spun forever (the "loading forever" +
+    // console spam of /api/cli-tools/hermes-agent-settings). We read currentRoles only via a
+    // functional update so the emptiness guard sees the latest value without subscribing to it.
+    if (!seededFromBatchRef.current && batchStatus?.hermesAgentRoles) {
+      seededFromBatchRef.current = true;
+      setCurrentRoles((prev) => {
+        if (Object.keys(prev).length > 0) return prev;
+        const seeded: Record<string, any> = {};
+        Object.entries(batchStatus.hermesAgentRoles).forEach(([role, info]: [string, any]) => {
+          seeded[role] = { model: info.model, provider: info.provider };
+        });
+        return seeded;
+      });
+    }
+    loadCurrentConfig();
+  }, [isExpanded, batchStatus, loadCurrentConfig]);
 
   const setRoleSelection = (roleId: string, model: string, provider = "OmniRoute") => {
     setSelections((prev) => ({ ...prev, [roleId]: { model, provider } }));
