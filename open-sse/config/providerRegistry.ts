@@ -1035,7 +1035,12 @@ const _REGISTRY_EAGER: Record<string, RegistryEntry> = {
       { id: "gpt-5-mini", name: "GPT-5 Mini", targetFormat: "openai-responses" },
       { id: "gpt-5.3-codex", name: "GPT-5.3 Codex", targetFormat: "openai-responses" },
       { id: "gpt-5.4-mini", name: "GPT-5.4 Mini", targetFormat: "openai-responses" },
-      { id: "gpt-5.4", name: "GPT-5.4", targetFormat: "openai-responses", supportsXHighEffort: true },
+      {
+        id: "gpt-5.4",
+        name: "GPT-5.4",
+        targetFormat: "openai-responses",
+        supportsXHighEffort: true,
+      },
       { id: "gpt-5.5", name: "GPT-5.5", ...GPT_5_5_CODEX_CAPABILITIES },
       {
         id: "claude-haiku-4.5",
@@ -1224,7 +1229,7 @@ const _REGISTRY_EAGER: Record<string, RegistryEntry> = {
       { id: "gemini-3.1-pro", name: "Gemini 3.1 Pro" },
       { id: "gemini-3-flash-solo", name: "Gemini 3 Flash" },
       // #3110: MiniMax M3 via Trae
-      { id: "minimax-m3", name: "MiniMax M3", contextLength: 1048576 },
+      { id: "minimax-m3", name: "MiniMax M3", contextLength: 1048576, supportsVision: true },
       { id: "minimax-m2.7", name: "MiniMax M2.7" },
       { id: "kimi-k2.5", name: "Kimi K2.5" },
       { id: "gpt-5.4", name: "GPT 5.4" },
@@ -1460,7 +1465,13 @@ const _REGISTRY_EAGER: Record<string, RegistryEntry> = {
       { id: "mimo-v2-pro", name: "MiMo-V2-Pro" },
       { id: "mimo-v2-omni", name: "MiMo-V2-Omni" },
       // #3110: MiniMax M3 via OpenCode Go tier
-      { id: "minimax-m3", name: "MiniMax M3", targetFormat: "claude", contextLength: 1048576 },
+      {
+        id: "minimax-m3",
+        name: "MiniMax M3",
+        targetFormat: "claude",
+        contextLength: 1048576,
+        supportsVision: true,
+      },
       { id: "minimax-m2.7", name: "MiniMax M2.7", targetFormat: "claude" },
       { id: "minimax-m2.5", name: "MiniMax M2.5", targetFormat: "claude" },
       // Issue #2292: Qwen models on opencode-go reject oa-compat format
@@ -1546,7 +1557,7 @@ const _REGISTRY_EAGER: Record<string, RegistryEntry> = {
 
       // ── MiniMax ────────────────────────────────────────────────
       // #3110: MiniMax M3 — frontier coding model with 1M context
-      { id: "minimax-m3", name: "MiniMax M3", contextLength: 1048576 },
+      { id: "minimax-m3", name: "MiniMax M3", contextLength: 1048576, supportsVision: true },
       { id: "minimax-m2.5", name: "MiniMax M2.5" },
       { id: "minimax-m2.7", name: "MiniMax M2.7" },
 
@@ -2229,7 +2240,7 @@ const _REGISTRY_EAGER: Record<string, RegistryEntry> = {
     models: [
       // T12/T28: MiniMax default upgraded from M2.5 to M2.7
       // #3110: MiniMax M3 — frontier coding model with 1M context
-      { id: "MiniMax-M3", name: "MiniMax M3", contextLength: 1048576 },
+      { id: "MiniMax-M3", name: "MiniMax M3", contextLength: 1048576, supportsVision: true },
       { id: "MiniMax-M2.7", name: "MiniMax M2.7" },
       { id: "MiniMax-M2.7-highspeed", name: "MiniMax M2.7 Highspeed" },
       { id: "MiniMax-M2.5", name: "MiniMax M2.5" },
@@ -2252,7 +2263,7 @@ const _REGISTRY_EAGER: Record<string, RegistryEntry> = {
     models: [
       // Keep parity with minimax to ensure model discovery works for minimax-cn connections.
       // #3110: MiniMax M3 — frontier coding model with 1M context
-      { id: "MiniMax-M3", name: "MiniMax M3", contextLength: 1048576 },
+      { id: "MiniMax-M3", name: "MiniMax M3", contextLength: 1048576, supportsVision: true },
       { id: "MiniMax-M2.7", name: "MiniMax M2.7" },
       { id: "MiniMax-M2.7-highspeed", name: "MiniMax M2.7 Highspeed" },
       { id: "MiniMax-M2.5", name: "MiniMax M2.5" },
@@ -2711,7 +2722,7 @@ const _REGISTRY_EAGER: Record<string, RegistryEntry> = {
       { id: "mimo-v2.5-pro", name: "MiMo-V2.5-Pro" },
       { id: "mimo-v2.5", name: "MiMo-V2.5" },
       // #3110: MiniMax M3 via OpenCode Zen
-      { id: "minimax-m3", name: "MiniMax M3", contextLength: 1048576 },
+      { id: "minimax-m3", name: "MiniMax M3", contextLength: 1048576, supportsVision: true },
       { id: "minimax-m2.7", name: "MiniMax M2.7" },
       { id: "minimax-m2.5", name: "MiniMax M2.5" },
       { id: "llama-4-maverick", name: "Llama 4 Maverick" },
@@ -3184,7 +3195,7 @@ const _REGISTRY_EAGER: Record<string, RegistryEntry> = {
       { id: "kimi-k2.6", name: "Kimi K2.6" },
       { id: "glm-5.1", name: "GLM 5.1" },
       // #3110: MiniMax M3 via Ollama
-      { id: "minimax-m3", name: "MiniMax M3", contextLength: 1048576 },
+      { id: "minimax-m3", name: "MiniMax M3", contextLength: 1048576, supportsVision: true },
       { id: "minimax-m2.7", name: "MiniMax M2.7" },
       { id: "gemma4:31b", name: "Gemma 4 31B" },
       { id: "nemotron-3-super", name: "NVIDIA Nemotron 3 Super" },
@@ -4338,9 +4349,7 @@ const _REGISTRY_EAGER: Record<string, RegistryEntry> = {
     baseUrls: ["https://amelia.chipotle.com"],
     authType: "none",
     authHeader: "none",
-    models: [
-      { id: "pepper-1", name: "Pepper (Chipotle AI 🌯)" },
-    ],
+    models: [{ id: "pepper-1", name: "Pepper (Chipotle AI 🌯)" }],
     passthroughModels: true,
   },
 };

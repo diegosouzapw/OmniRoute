@@ -399,6 +399,8 @@ function isSchemaAlreadyApplied(
   switch (migration.version) {
     case "003":
       return hasColumn(db, "provider_nodes", "chat_path");
+    case "095":
+      return hasColumn(db, "provider_nodes", "custom_headers_json");
     case "005":
       return hasColumn(db, "combos", "system_message");
     case "007":
@@ -910,7 +912,9 @@ export function runMigrations(db: SqliteAdapter, options?: { isNewDb?: boolean }
     }
     return isMissing;
   });
-  const deferredUnsupported = pending.filter((migration) => isDeferredUnsupportedMigration(db, migration));
+  const deferredUnsupported = pending.filter((migration) =>
+    isDeferredUnsupportedMigration(db, migration)
+  );
   const actionablePending = pending.filter(
     (migration) => !deferredUnsupported.some((deferred) => deferred.version === migration.version)
   );
@@ -920,7 +924,9 @@ export function runMigrations(db: SqliteAdapter, options?: { isNewDb?: boolean }
   }
 
   if (deferredUnsupported.length > 0) {
-    const summary = deferredUnsupported.map((migration) => `${migration.version}_${migration.name}`).join(", ");
+    const summary = deferredUnsupported
+      .map((migration) => `${migration.version}_${migration.name}`)
+      .join(", ");
     console.warn(
       `[Migration] Deferring optional FTS5 migrations on driver ${db.driver}: ${summary}. ` +
         `Memory search will fall back until a SQLite driver with FTS5 support is available.`

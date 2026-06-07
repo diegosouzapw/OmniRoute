@@ -12,7 +12,8 @@ const providersDb = await import("../../src/lib/db/providers.ts");
 const providerNodesRoute = await import("../../src/app/api/provider-nodes/route.ts");
 const providerNodesIdRoute = await import("../../src/app/api/provider-nodes/[id]/route.ts");
 const { OPENAI_COMPATIBLE_PREFIX } = await import("../../src/shared/constants/providers.ts");
-const { createProviderNodeSchema, updateProviderNodeSchema } = await import("../../src/shared/validation/schemas.ts");
+const { createProviderNodeSchema, updateProviderNodeSchema } =
+  await import("../../src/shared/validation/schemas.ts");
 const { DefaultExecutor } = await import("../../open-sse/executors/default.ts");
 
 async function resetStorage() {
@@ -49,7 +50,12 @@ test.after(async () => {
 test("createProviderNodeSchema accepts valid customHeaders as record of strings", () => {
   const validInputs = [
     { name: "Test", prefix: "test", apiType: "chat", customHeaders: { "X-Custom-1": "value1" } },
-    { name: "Test", prefix: "test", apiType: "chat", customHeaders: { "X-Header": "value", "X-Another": "value2" } },
+    {
+      name: "Test",
+      prefix: "test",
+      apiType: "chat",
+      customHeaders: { "X-Header": "value", "X-Another": "value2" },
+    },
     { name: "Test", prefix: "test", apiType: "chat", customHeaders: {} },
     { name: "Test", prefix: "test", apiType: "chat" },
   ];
@@ -77,8 +83,15 @@ test("createProviderNodeSchema rejects customHeaders with non-string values", ()
 
 test("createProviderNodeSchema rejects forbidden hop-by-hop headers", () => {
   const forbiddenHeaders = [
-    "host", "connection", "content-length", "keep-alive",
-    "proxy-connection", "transfer-encoding", "te", "trailer", "upgrade",
+    "host",
+    "connection",
+    "content-length",
+    "keep-alive",
+    "proxy-connection",
+    "transfer-encoding",
+    "te",
+    "trailer",
+    "upgrade",
   ];
 
   for (const header of forbiddenHeaders) {
@@ -89,7 +102,7 @@ test("createProviderNodeSchema rejects forbidden hop-by-hop headers", () => {
   }
 
   const result = createProviderNodeSchema.safeParse({
-    customHeaders: { "HOST": "evil", "Content-Length": "999" },
+    customHeaders: { HOST: "evil", "Content-Length": "999" },
   });
   assert.equal(result.success, false, "Should reject case-insensitive forbidden headers");
 });
@@ -118,7 +131,7 @@ test("updateProviderNodeSchema rejects forbidden headers", () => {
     name: "Test",
     prefix: "test",
     baseUrl: "https://test.com",
-    customHeaders: { "host": "evil.com" },
+    customHeaders: { host: "evil.com" },
   });
   assert.equal(result.success, false);
 });
@@ -181,10 +194,9 @@ test("provider nodes route update modifies customHeaders", async () => {
     baseUrl: "https://updated.example.com/v1",
     customHeaders: { "X-Updated": "updated-value", "X-New": "new-header" },
   };
-  const updateResponse = await providerNodesIdRoute.PUT(
-    makeUpdateRequest(nodeId, updateBody),
-    { params: Promise.resolve({ id: nodeId }) }
-  );
+  const updateResponse = await providerNodesIdRoute.PUT(makeUpdateRequest(nodeId, updateBody), {
+    params: Promise.resolve({ id: nodeId }),
+  });
   const updated = (await updateResponse.json()) as any;
 
   assert.equal(updateResponse.status, 200);
@@ -207,17 +219,16 @@ test("provider nodes route update can clear customHeaders by passing null", asyn
   const created = (await createResponse.json()) as any;
   const nodeId = created.node.id;
 
-const clearBody = {
+  const clearBody = {
     name: "Node Without Headers",
     prefix: "no-headers",
     apiType: "chat",
     baseUrl: "https://noclear.example.com/v1",
     customHeaders: null,
   };
-  const updateResponse = await providerNodesIdRoute.PUT(
-    makeUpdateRequest(nodeId, clearBody),
-    { params: Promise.resolve({ id: nodeId }) }
-  );
+  const updateResponse = await providerNodesIdRoute.PUT(makeUpdateRequest(nodeId, clearBody), {
+    params: Promise.resolve({ id: nodeId }),
+  });
   const updated = (await updateResponse.json()) as any;
 
   assert.equal(updateResponse.status, 200);
@@ -227,7 +238,7 @@ const clearBody = {
 test("DefaultExecutor.buildHeaders applies customHeaders from providerSpecificData", () => {
   const executor = new DefaultExecutor("openai-compatible-test");
 
-const headers = executor.buildHeaders(
+  const headers = executor.buildHeaders(
     {
       apiKey: "test-key",
       providerSpecificData: {
@@ -258,7 +269,7 @@ test("DefaultExecutor.buildHeaders does NOT override auth headers with customHea
       providerSpecificData: {
         baseUrl: "https://proxy.example.com/v1",
         customHeaders: {
-          "Authorization": "Bearer fake-token",
+          Authorization: "Bearer fake-token",
           "x-api-key": "fake-key",
           "X-Custom": "custom-value",
         },
@@ -281,9 +292,9 @@ test("DefaultExecutor.buildHeaders blocks forbidden hop-by-hop headers from cust
       providerSpecificData: {
         baseUrl: "https://proxy.example.com/v1",
         customHeaders: {
-          "host": "evil.com",
+          host: "evil.com",
           "content-length": "999",
-          "connection": "close",
+          connection: "close",
           "X-Legitimate": "good-header",
         },
       },
@@ -476,7 +487,7 @@ test("DefaultExecutor.execute does NOT send forbidden headers from customHeaders
         providerSpecificData: {
           baseUrl: "https://test.proxy.com/v1",
           customHeaders: {
-            "host": "evil.com",
+            host: "evil.com",
             "content-length": "9999",
             "X-Legitimate": "good",
           },
@@ -516,7 +527,7 @@ test("DefaultExecutor.execute does NOT allow customHeaders to override Authoriza
         providerSpecificData: {
           baseUrl: "https://test.proxy.com/v1",
           customHeaders: {
-            "Authorization": "Bearer forged-key",
+            Authorization: "Bearer forged-key",
           },
         },
       },
@@ -542,7 +553,9 @@ test("db: createProviderNode and getProviderNodeById handle customHeaders as JSO
 
   assert.deepEqual(node.customHeaders, { "X-DB-Header": "db-value", "X-Another": "another" });
 
-  const retrieved = await providersDb.getProviderNodeById("openai-compatible-chat-custom-headers-db");
+  const retrieved = await providersDb.getProviderNodeById(
+    "openai-compatible-chat-custom-headers-db"
+  );
   assert.deepEqual(retrieved.customHeaders, { "X-DB-Header": "db-value", "X-Another": "another" });
 });
 
@@ -559,15 +572,17 @@ test("db: updateProviderNode modifies customHeaders", async () => {
 
   assert.deepEqual(node.customHeaders, { "X-Initial": "initial-value" });
 
-  const updated = await providersDb.updateProviderNode(
-    "openai-compatible-chat-update-custom",
-    { customHeaders: { "X-Updated": "updated-value", "X-New-Header": "new" } }
-  );
+  const updated = await providersDb.updateProviderNode("openai-compatible-chat-update-custom", {
+    customHeaders: { "X-Updated": "updated-value", "X-New-Header": "new" },
+  });
 
   assert.deepEqual(updated.customHeaders, { "X-Updated": "updated-value", "X-New-Header": "new" });
 
   const retrieved = await providersDb.getProviderNodeById("openai-compatible-chat-update-custom");
-  assert.deepEqual(retrieved.customHeaders, { "X-Updated": "updated-value", "X-New-Header": "new" });
+  assert.deepEqual(retrieved.customHeaders, {
+    "X-Updated": "updated-value",
+    "X-New-Header": "new",
+  });
 });
 
 test("db: updateProviderNode can clear customHeaders by passing null", async () => {
@@ -583,10 +598,9 @@ test("db: updateProviderNode can clear customHeaders by passing null", async () 
 
   assert.deepEqual(node.customHeaders, { "X-ToClear": "clear-me" });
 
-  const updated = await providersDb.updateProviderNode(
-    "openai-compatible-chat-clear-custom",
-    { customHeaders: null }
-  );
+  const updated = await providersDb.updateProviderNode("openai-compatible-chat-clear-custom", {
+    customHeaders: null,
+  });
 
   assert.equal(updated.customHeaders, null);
 });
