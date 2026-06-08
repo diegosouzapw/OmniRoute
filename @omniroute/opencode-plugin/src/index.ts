@@ -1542,6 +1542,103 @@ export const defaultOmniRouteEnrichmentFetcher: OmniRouteEnrichmentFetcher =
     return out;
   };
 
+// ── Startup diagnostics writer (file-based) ──────────────────────────────
+// OC doesn't capture plugin console.warn in its log file. Write diagnostics
+// to a file so they're readable after session starts. Capped at 64KB.
+async function writeStartupDiagnostics(params: {
+  providerId: string;
+  baseURL: string;
+  modelCount: number;
+  comboCount: number;
+  enrichmentSize: number;
+  autoComboCount: number;
+  enrichment: OmniRouteEnrichmentMap;
+  autoCombos: OmniRouteRawAutoCombo[];
+}): Promise<void> {
+  const {
+    providerId,
+    baseURL,
+    modelCount,
+    comboCount,
+    enrichmentSize,
+    autoComboCount,
+    enrichment,
+    autoCombos,
+  } = params;
+  const enriched = [...enrichment.entries()];
+  const withName = enriched.filter(([, e]) => e.name);
+  const withPricing = enriched.filter(([, e]) => e.pricing);
+  const withFree = enriched.filter(([, e]) => e.freeType);
+
+  const lines: string[] = [];
+  lines.push(`=== startupDebug ${new Date().toISOString()} ===`);
+  lines.push(`providerId=${providerId} baseURL=${baseURL}`);
+  lines.push(
+    `models=${modelCount} combos=${comboCount} enrichment=${enrichmentSize} autoCombos=${autoComboCount}`,
+  );
+  lines.push(
+    `enrichment: ${withName.length} with name, ${withPricing.length} with pricing, ${withFree.length} free`,
+  );
+  if (withFree.length > 0) {
+    lines.push(`free models (${withFree.length}):`);
+    for (const [k, e] of withFree.slice(0, 10)) {
+      lines.push(
+        `  ${k} → name=${e.name ?? "(none)"}, freeType=${e.freeType}, monthly=${e.monthlyTokens ?? 0}, credits=${e.creditTokens ?? 0}`,
+      );
+    }
+  } else {
+    lines.push(
+      `NO free models detected. ` +
+        (enrichmentSize === 0
+          ? "Enrichment map is EMPTY."
+          : `Enrichment has ${enrichmentSize} entries but none have freeType.`),
+    );
+  }
+  const sampleNames = enriched
+    .filter(([, e]) => e.name)
+    .slice(0, 5)
+    .map(([k, e]) => `  ${k} → "${e.name}"`);
+  if (sampleNames.length > 0) {
+    lines.push(`sample enriched names:`);
+    lines.push(sampleNames.join("\n"));
+  }
+  if (autoCombos.length > 0) {
+    lines.push(
+      `auto combos: ${autoCombos.length} — ${autoCombos.map((ac) => `${ac.id}(${ac.candidateCount ?? "?"}p)`).join(", ")}`,
+    );
+  }
+  lines.push(`=== end startupDebug ===\n`);
+
+  const diagnostics = lines.join("\n");
+  _logger.debug(diagnostics);
+
+  try {
+    const diagDir =
+      process.env.OPENCODE_DATA_DIR ??
+      path.join(os.homedir(), ".local/share/opencode");
+    const diagPath = path.join(
+      diagDir,
+      "plugins",
+      "omniroute-startup-diagnostics.log",
+    );
+    let existing = "";
+    try {
+      existing = await readFile(diagPath, "utf8");
+    } catch {
+      /* first write */
+    }
+    const KEEP = 65_536;
+    const combined = existing + diagnostics;
+    const trimmed =
+      combined.length > KEEP
+        ? combined.slice(combined.length - KEEP)
+        : combined;
+    await writeFile(diagPath, trimmed, "utf8");
+  } catch {
+    /* best effort */
+  }
+}
+
 /**
  * Separator used by `applyProviderTag` between the upstream provider
  * label (prefix) and the enriched model name. ASCII hyphen with
@@ -2591,86 +2688,16 @@ export function createOmniRouteProviderHook(
 
         // ── Startup debug: deep-dive into enrichment + auto combos ──────
         if (resolved.features?.startupDebug === true) {
-          const enriched = [...rawEnrichment.entries()];
-          const withName = enriched.filter(([, e]) => e.name);
-          const withPricing = enriched.filter(([, e]) => e.pricing);
-          const withFree = enriched.filter(([, e]) => e.freeType);
-          const freeNames = withFree
-            .slice(0, 10)
-            .map(
-              ([k, e]) =>
-                `  ${k} → name=${e.name ?? "(none)"}, freeType=${e.freeType}, monthly=${e.monthlyTokens ?? 0}, credits=${e.creditTokens ?? 0}`,
-            );
-          const sampleNames = enriched
-            .filter(([, e]) => e.name)
-            .slice(0, 5)
-            .map(([k, e]) => `  ${k} → "${e.name}"`);
-
-          const lines: string[] = [];
-          lines.push(`=== startupDebug ${new Date().toISOString()} ===`);
-          lines.push(`providerId=${resolved.providerId} baseURL=${baseURL}`);
-          lines.push(
-            `models=${rawModels.length} combos=${rawCombos.length} enrichment=${rawEnrichment.size} autoCombos=${rawAutoCombos.length}`,
-          );
-          lines.push(
-            `enrichment: ${withName.length} with name, ${withPricing.length} with pricing, ${withFree.length} free`,
-          );
-          if (freeNames.length > 0) {
-            lines.push(`free models (${withFree.length}):`);
-            lines.push(freeNames.join("\n"));
-          } else {
-            lines.push(
-              `NO free models detected. ` +
-                (rawEnrichment.size === 0
-                  ? "Enrichment map is EMPTY."
-                  : `Enrichment has ${rawEnrichment.size} entries but none have freeType.`),
-            );
-          }
-          if (sampleNames.length > 0) {
-            lines.push(`sample enriched names:`);
-            lines.push(sampleNames.join("\n"));
-          }
-          if (rawAutoCombos.length > 0) {
-            lines.push(
-              `auto combos: ${rawAutoCombos.length} — ` +
-                rawAutoCombos
-                  .map((ac) => `${ac.id}(${ac.candidateCount ?? "?"}p)`)
-                  .join(", "),
-            );
-          }
-          lines.push(`=== end startupDebug ===\n`);
-
-          const diagnostics = lines.join("\n");
-          _logger.debug(diagnostics);
-
-          // Also write to a file so it's readable after session starts.
-          // Truncate to last 64KB on each write to prevent disk fill.
-          try {
-            const diagDir =
-              process.env.OPENCODE_DATA_DIR ??
-              path.join(os.homedir(), ".local/share/opencode");
-            await mkdir(diagDir, { recursive: true });
-            const diagPath = path.join(
-              diagDir,
-              "plugins",
-              "omniroute-startup-diagnostics.log",
-            );
-            let existing = "";
-            try {
-              existing = await readFile(diagPath, "utf8");
-            } catch {
-              /* first write */
-            }
-            const KEEP = 65_536; // 64KB max
-            const combined = existing + diagnostics;
-            const trimmed =
-              combined.length > KEEP
-                ? combined.slice(combined.length - KEEP)
-                : combined;
-            await writeFile(diagPath, trimmed, { encoding: "utf8" });
-          } catch {
-            // Best effort — don't break startup for diagnostics
-          }
+          await writeStartupDiagnostics({
+            providerId: resolved.providerId,
+            baseURL,
+            modelCount: rawModels.length,
+            comboCount: rawCombos.length,
+            enrichmentSize: rawEnrichment.size,
+            autoComboCount: rawAutoCombos.length,
+            enrichment: rawEnrichment,
+            autoCombos: rawAutoCombos,
+          });
         }
       }
 
@@ -4551,6 +4578,20 @@ export function createOmniRouteConfigHook(
         rawConnections,
         expiresAt: t + resolved.modelCacheTtl,
       });
+
+      // Startup diagnostics (file-based) — fires at startup via config hook
+      if (resolved.features?.startupDebug === true) {
+        await writeStartupDiagnostics({
+          providerId: resolved.providerId,
+          baseURL,
+          modelCount: rawModels.length,
+          comboCount: rawCombos.length,
+          enrichmentSize: rawEnrichment.size,
+          autoComboCount: rawAutoCombos.length,
+          enrichment: rawEnrichment,
+          autoCombos: rawAutoCombos,
+        });
+      }
 
       // Disk-cache write: persist the last successful (or any non-empty)
       // catalog so a subsequent cold start with a failed fetch can recover.
