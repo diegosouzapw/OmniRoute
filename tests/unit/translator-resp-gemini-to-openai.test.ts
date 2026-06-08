@@ -893,4 +893,121 @@ test("Gemini stream: partial tool call with (empty) prefix check at chunk end do
   assert.equal(toolCall.function.arguments, '{"command":"whoami"}');
 });
 
+test("Gemini stream: parses textual tool call that starts in a subsequent chunk after prose has been emitted", () => {
+  const state = createStreamingState() as any;
+  const chunk1 = {
+    responseId: "resp-test-after-prose",
+    modelVersion: "gemini-3.5-flash-low",
+    candidates: [
+      {
+        content: {
+          parts: [
+            {
+              text: "Generating response now... ",
+            },
+          ],
+        },
+      },
+    ],
+  };
+
+  const chunk2 = {
+    candidates: [
+      {
+        content: {
+          parts: [
+            {
+              text: '[Tool call: web_search]\nArguments: {"query": "AI news"}',
+            },
+          ],
+        },
+        finishReason: "STOP",
+      },
+    ],
+  };
+
+  const res1 = geminiToOpenAIResponse(chunk1, state) || [];
+  const content1 = res1.map((event) => event.choices?.[0]?.delta?.content || "").join("");
+  assert.equal(content1, "Generating response now... ");
+
+  const res2 = geminiToOpenAIResponse(chunk2, state) || [];
+  const content2 = res2.map((event) => event.choices?.[0]?.delta?.content || "").join("");
+  assert.equal(content2, "");
+
+  assert.equal(state.toolCalls.size, 1);
+  const toolCall: any = Array.from(state.toolCalls.values())[0];
+  assert.equal(toolCall.function.name, "web_search");
+  assert.equal(toolCall.function.arguments, '{"query":"AI news"}');
+});
+
+test("Gemini stream: checks lastParen before lastBracket when identifying partial (empty) markers with distinct chuncks", () => {
+  const state = createStreamingState() as any;
+  
+  // Имитируем чанк, который кончается на частичный "(empty)[Tool call:" маркер, например "(em"
+  const chunk1 = {
+    responseId: "resp-test-empty-partial",
+    modelVersion: "gemini-3.5-flash-low",
+    candidates: [
+      {
+        content: {
+          parts: [
+            {
+              text: "Result is here: (em",
+            },
+          ],
+        },
+      },
+    ],
+  };
+
+  // Имитируем чанк, который содержит и "(", и "[", кончаясь на "(empty)[Tool"
+  // Если бы мы проверяли lastBracket первым, мы бы отрезали по "[", оставив "(empty)" утекать пользователю.
+  const chunk2 = {
+    candidates: [
+      {
+        content: {
+          parts: [
+            {
+              text: "pty)[Tool",
+            },
+          ],
+        },
+      },
+    ],
+  };
+
+  const chunk3 = {
+    candidates: [
+      {
+        content: {
+          parts: [
+            {
+              text: ' call: my_tool]\nArguments: {}',
+            },
+          ],
+        },
+        finishReason: "STOP",
+      },
+    ],
+  };
+
+  const res1 = geminiToOpenAIResponse(chunk1, state) || [];
+  const content1 = res1.map((event) => event.choices?.[0]?.delta?.content || "").join("");
+  assert.equal(content1, "Result is here: "); // (em задерживается в буфере
+
+  const res2 = geminiToOpenAIResponse(chunk2, state) || [];
+  const content2 = res2.map((event) => event.choices?.[0]?.delta?.content || "").join("");
+  assert.equal(content2, ""); // (empty)[Tool задерживается в буфере полностью, (empty) не утекает
+
+  const res3 = geminiToOpenAIResponse(chunk3, state) || [];
+  const content3 = res3.map((event) => event.choices?.[0]?.delta?.content || "").join("");
+  assert.equal(content3, "");
+
+  assert.equal(state.toolCalls.size, 1);
+  const toolCall: any = Array.from(state.toolCalls.values())[0];
+  assert.equal(toolCall.function.name, "my_tool");
+  assert.equal(toolCall.function.arguments, "{}");
+});
+
+
 

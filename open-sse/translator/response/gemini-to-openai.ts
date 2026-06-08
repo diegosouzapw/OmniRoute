@@ -228,18 +228,13 @@ export function geminiToOpenAIResponse(chunk, state) {
       if (part.text !== undefined && part.text !== "") {
         let accumulated = (state.textualToolCallBuffer || "") + part.text;
 
-        let candidate = null;
-        if (!state.hasEmittedContent || state.textualToolCallBuffer) {
-          candidate = parseTextualToolCallCandidate(accumulated);
-        }
+        let candidate = parseTextualToolCallCandidate(accumulated);
 
         if (candidate) {
           accumulated = accumulated.replace(/[\u200B-\u200D\uFEFF]/g, "");
-          let toolCallIndex = accumulated.lastIndexOf("[Tool call:");
+          let toolCallIndex = accumulated.lastIndexOf("(empty)[Tool call:");
           if (toolCallIndex < 0) {
-            toolCallIndex = accumulated.lastIndexOf("(empty)[Tool call:");
-          } else if (toolCallIndex >= 7 && accumulated.slice(toolCallIndex - 7, toolCallIndex) === "(empty)") {
-            toolCallIndex -= 7;
+            toolCallIndex = accumulated.lastIndexOf("[Tool call:");
           }
           if (toolCallIndex < 0) {
             const lastParen = accumulated.lastIndexOf("(");
