@@ -1621,7 +1621,7 @@ export async function handleChatCore({
       comboName: comboName || undefined,
     });
   });
-  const traceEnabled = process.env.OMNIRROUTE_TRACE === "true" || process.env.DEBUG === "true";
+  const traceEnabled = process.env.OMNIROUTE_TRACE === "true" || process.env.DEBUG === "true";
   const trace = (label: string, extra?: Record<string, unknown>) => {
     if (!traceEnabled) return;
     const elapsed = Date.now() - startTime;

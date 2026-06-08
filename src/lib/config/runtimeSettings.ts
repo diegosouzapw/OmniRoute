@@ -306,10 +306,16 @@ async function applyCacheControlSection() {
   invalidateCacheControlSettingsCache();
 }
 
-async function applyUsageTrackingSection() {
-  const { invalidateBufferTokensCache } =
+async function applyUsageTrackingSection(newBuffer: number | null) {
+  const { invalidateBufferTokensCache, setBufferTokensCache } =
     await import("@omniroute/open-sse/utils/usageTracking.ts");
-  invalidateBufferTokensCache();
+  if (typeof newBuffer === "number" && newBuffer >= 0) {
+    // Set the value directly so the first request after a settings save gets the
+    // correct count synchronously — no race window back to DEFAULT (2000).
+    setBufferTokensCache(newBuffer);
+  } else {
+    invalidateBufferTokensCache();
+  }
 }
 
 async function applyThoughtSignatureSection(mode: string) {
@@ -465,7 +471,9 @@ export async function applyRuntimeSettings(
   }
 
   if (force || hasChanged(currentSnapshot.usageTokenBuffer, previousSnapshot.usageTokenBuffer)) {
-    await applyUsageTrackingSection();
+    const newBuffer =
+      typeof currentSnapshot.usageTokenBuffer === "number" ? currentSnapshot.usageTokenBuffer : null;
+    await applyUsageTrackingSection(newBuffer);
     markChanged("usageTracking");
   }
 

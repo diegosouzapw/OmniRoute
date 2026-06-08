@@ -31,7 +31,7 @@ test("executeListCapabilities returns shape matching §3.7 contract", async () =
   const { metadata } = result;
   assert.ok(metadata, "metadata exists");
   assert.equal(metadata.source, "agent-skills-catalog", "metadata.source matches");
-  assert.equal(metadata.totalSkills, 42, "metadata.totalSkills === 42");
+  assert.equal(metadata.totalSkills, 43, "metadata.totalSkills === 43");
   assert.ok(metadata.coverage, "metadata.coverage exists");
   assert.ok(metadata.coverage.api, "metadata.coverage.api exists");
   assert.ok(metadata.coverage.cli, "metadata.coverage.cli exists");
@@ -39,12 +39,12 @@ test("executeListCapabilities returns shape matching §3.7 contract", async () =
   assert.equal(metadata.coverage.cli.total, 20, "cli.total === 20");
 });
 
-test("executeListCapabilities markdown table contains all 42 skill IDs", async () => {
+test("executeListCapabilities markdown table contains all 42 API+CLI skill IDs", async () => {
   const result = await executeListCapabilities(stubTask);
   const content = result.artifacts[0].content;
 
   const allIds = [...API_SKILL_IDS, ...CLI_SKILL_IDS] as string[];
-  assert.equal(allIds.length, 42, "catalog declares 42 skill IDs");
+  assert.equal(allIds.length, 42, "API+CLI catalog declares 42 skill IDs");
 
   for (const id of allIds) {
     assert.ok(content.includes(id), `Markdown table missing skill ID: ${id}`);

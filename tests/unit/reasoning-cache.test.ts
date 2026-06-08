@@ -754,6 +754,62 @@ describe("Reasoning Replay Cache — Translator Replay", () => {
 
     assert.equal(translated.messages[1].reasoning_content, undefined);
   });
+
+  it("should replace empty-string reasoning_content with NON_ANTHROPIC_THINKING_PLACEHOLDER on cache miss", async () => {
+    // Regression: injectEmptyReasoningContentForToolCalls (schemaCoercion.ts) pre-sets
+    // reasoning_content="" before the cache lookup. The old condition
+    // `msg.reasoning_content === undefined` never fired on cache miss, leaving the
+    // empty string in place. DeepSeek V4+ rejects "" with a 400.
+    clearReasoningCacheAll();
+    clearModelsDevCapabilities();
+    saveModelsDevCapabilities({
+      deepseek: {
+        "deepseek-v4-flash": buildCapability({
+          interleaved_field: "reasoning_content",
+          reasoning: true,
+          tool_call: true,
+        }),
+      },
+    });
+
+    const { NON_ANTHROPIC_THINKING_PLACEHOLDER } = await import(
+      "../../open-sse/translator/helpers/claudeHelper.ts"
+    );
+
+    // No cache entry → cache miss
+    const translated = translateRequest(
+      FORMATS.OPENAI,
+      FORMATS.OPENAI,
+      "deepseek-v4-flash",
+      {
+        messages: [
+          { role: "user", content: "use a tool" },
+          {
+            role: "assistant",
+            content: null,
+            reasoning_content: "",
+            tool_calls: [
+              {
+                id: "call_empty_rc",
+                type: "function",
+                function: { name: "read_file", arguments: "{}" },
+              },
+            ],
+          },
+          { role: "tool", tool_call_id: "call_empty_rc", content: "file contents" },
+        ],
+      },
+      false,
+      null,
+      "deepseek"
+    );
+
+    assert.equal(
+      translated.messages[1].reasoning_content,
+      NON_ANTHROPIC_THINKING_PLACEHOLDER,
+      "empty reasoning_content should be replaced with placeholder on cache miss"
+    );
+  });
 });
 
 describe("Reasoning Replay Cache — API Route", () => {

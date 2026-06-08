@@ -687,6 +687,14 @@ const PROVIDER_MODELS_CONFIG: Record<string, ProviderModelsConfigEntry> = {
     authPrefix: "Bearer ",
     parseResponse: (data) => data.data || data.models || [],
   },
+  "command-code": {
+    url: "https://api.commandcode.ai/provider/v1/models",
+    method: "GET",
+    headers: { "Content-Type": "application/json" },
+    authHeader: "Authorization",
+    authPrefix: "Bearer ",
+    parseResponse: (data) => data.data || data.models || [],
+  },
   "opencode-zen": {
     url: "https://opencode.ai/zen/v1/models",
     method: "GET",

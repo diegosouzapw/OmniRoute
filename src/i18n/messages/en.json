@@ -8596,6 +8596,7 @@
     },
     "categoryApi": "API",
     "categoryCli": "CLI",
+    "categoryConfig": "Config",
     "filterAll": "All",
     "coverageLabel": "Coverage",
     "mcpUrl": "MCP URL",

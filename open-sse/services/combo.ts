@@ -48,7 +48,7 @@ import * as semaphore from "./rateLimitSemaphore.ts";
 import { getCircuitBreaker } from "../../src/shared/utils/circuitBreaker";
 import { fisherYatesShuffle, getNextFromDeck } from "../../src/shared/utils/shuffleDeck";
 import { parseModel } from "./model.ts";
-import { applyComboAgentMiddleware, injectModelTag } from "./comboAgentMiddleware.ts";
+import { applyComboAgentMiddleware } from "./comboAgentMiddleware.ts";
 import { checkCredentialGate, logCredentialSkip } from "./credentialGate.ts";
 import { emit } from "../../src/lib/events/eventBus";
 import { notifyWebhookEvent } from "../../src/lib/webhookDispatcher";
@@ -2682,161 +2682,34 @@ export async function handleComboChat({
       | undefined,
     relayOptions?.universalHandoffConfig as Record<string, unknown> | null | undefined
   );
+  // ── Server-side context cache pinning (replaces <omniModel> tag roundtrip) ─
+  // Uses session_model_history — no client-side tag injection, no visible output pollution.
+  let pinnedModel: string | null = null;
+  if (
+    combo.context_cache_protection &&
+    relayOptions?.sessionId &&
+    !(body as Record<string, unknown>)?.[SKIP_UNIVERSAL_HANDOFF_FLAG]
+  ) {
+    const pinned = getLastSessionModel(relayOptions.sessionId, combo.name);
+    if (pinned) {
+      body = { ...body, model: pinned };
+      pinnedModel = pinned;
+      log.info("COMBO", `[#401] Context cache: pinned model=${pinned} (server-side)`);
+    }
+  }
+
   // ── Combo Agent Middleware (#399 + #401) ────────────────────────────────
-  // Apply system_message override, tool_filter_regex, and extract pinned model
-  // from context caching tag. These are all opt-in per combo config.
-  const { body: agentBody, pinnedModel } = applyComboAgentMiddleware(
+  // Apply system_message override, tool_filter_regex.
+  // Context cache pinning is handled above via session_model_history.
+  const { body: agentBody } = applyComboAgentMiddleware(
     body,
     combo,
     "" // provider/model not yet known — resolved per-model in loop
   );
   body = agentBody;
-  if (pinnedModel) {
-    log.info("COMBO", `[#401] Context caching: pinned model=${pinnedModel}`);
-  }
   const clientRequestedStream = body?.stream === true;
-  // Wrap handleSingleModel to inject context caching tag on response (#401)
-  const handleSingleModelWrapped = combo.context_cache_protection
-    ? async (b: Record<string, unknown>, modelStr: string, target?: SingleModelTarget) => {
-        const res = await handleSingleModel(b, modelStr, target);
-        if (!res.ok) return res;
-
-        // Non-streaming: inject tag into JSON response
-        // Fix #721: Use OpenAI choices format (json.choices[0].message) not json.messages
-        if (!b.stream) {
-          try {
-            const json = await res.clone().json();
-            const choice = json?.choices?.[0];
-            if (choice?.message) {
-              // Wrap single message in array for injectModelTag, then unwrap
-              const tagged = injectModelTag([choice.message], modelStr);
-              // If the message had tool_calls but no string content, injectModelTag
-              // appends a synthetic assistant message — use the last one
-              const taggedMsg = tagged.at(-1);
-              const updatedJson = {
-                ...json,
-                choices: [{ ...choice, message: taggedMsg }, ...(json.choices?.slice(1) || [])],
-              };
-              return new Response(JSON.stringify(updatedJson), {
-                status: res.status,
-                headers: res.headers,
-              });
-            }
-          } catch {
-            /* non-JSON — skip tagging */
-          }
-          return res;
-        }
-
-        // Streaming (Fix #490 + #511): prepend omniModel tag into the first
-        // non-empty content chunk so it arrives BEFORE finish_reason:stop.
-        // SDKs close the connection on finish_reason, so anything sent after
-        // that marker is silently dropped.
-        if (!res.body) return res;
-        const tagContent = `<omniModel>${modelStr}</omniModel>`;
-        const encoder = new TextEncoder();
-        const decoder = new TextDecoder();
-        let tagInjected = false;
-
-        const transform = new TransformStream(
-          {
-            transform(chunk, controller) {
-              if (tagInjected) {
-                // Already injected — passthrough
-                controller.enqueue(chunk);
-                return;
-              }
-
-              const text = decoder.decode(chunk, { stream: true });
-
-              // Fix #721: Look for either non-empty content OR tool_calls in the
-              // SSE data. Tool-call-only responses have content:null, so we inject
-              // the tag when we see a finish_reason approaching, or on first content.
-              const contentMatch = RegExp(/"content":"([^"]+)/).exec(text);
-              if (contentMatch) {
-                // Inject tag at the beginning of the first content value
-                const injected = text.replace(
-                  /"content":"([^"]+)/,
-                  `"content":"${tagContent.replaceAll("\\", "\\\\").replaceAll('"', String.raw`\"`)}$1`
-                );
-                tagInjected = true;
-                controller.enqueue(encoder.encode(injected));
-                return;
-              }
-
-              // Fix #721: For tool-call-only streams, inject the tag when we see
-              // the finish_reason chunk (before it reaches the client SDK which
-              // would close the connection). This ensures the tag roundtrips
-              // through the conversation history even when there's no text content.
-              if (text.includes('"finish_reason"') && !text.includes('"finish_reason":null')) {
-                // Inject a content chunk with the tag just before this finish chunk
-                const tagChunk = `data: ${JSON.stringify({
-                  choices: [
-                    {
-                      delta: { content: tagContent },
-                      index: 0,
-                      finish_reason: null,
-                    },
-                  ],
-                })}\n\n`;
-                tagInjected = true;
-                controller.enqueue(encoder.encode(tagChunk));
-                controller.enqueue(chunk);
-                return;
-              }
-
-              // No content yet — passthrough
-              controller.enqueue(chunk);
-            },
-            flush(controller) {
-              // If stream ends without ever finding content (edge case),
-              // inject tag as a standalone chunk before the stream closes
-              if (!tagInjected) {
-                const tagChunk = `data: ${JSON.stringify({
-                  choices: [
-                    {
-                      delta: { content: tagContent },
-                      index: 0,
-                      finish_reason: null,
-                    },
-                  ],
-                })}\n\n`;
-                controller.enqueue(encoder.encode(tagChunk));
-              }
-            },
-          },
-          { highWaterMark: 16384 },
-          { highWaterMark: 16384 }
-        );
-
-        const transformedStream = res.body.pipeThrough(transform);
-        const headers = new Headers();
-        if (res.headers) {
-          try {
-            res.headers.forEach((v, k) => {
-              headers.set(k, v);
-            });
-          } catch {
-            try {
-              for (const [k, v] of res.headers as unknown as Iterable<[string, string]>) {
-                headers.set(k, v);
-              }
-            } catch {
-              try {
-                for (const [k, v] of Object.entries(res.headers)) {
-                  headers.set(k, v == null ? "" : String(v));
-                }
-              } catch {}
-            }
-          }
-        }
-        headers.set("X-OmniRoute-Model", modelStr);
-        return new Response(transformedStream, {
-          status: res.status,
-          headers,
-        });
-      }
-    : handleSingleModel;
+  // Context cache pinning is handled above via server-side session_model_history.
+  // No tag injection on response — use handleSingleModel directly.
   // ─────────────────────────────────────────────────────────────────────────
 
   // Use config cascade before dispatch so all strategies, pinned context routes,
@@ -2862,7 +2735,7 @@ export async function handleComboChat({
     target?: SingleModelTarget
   ): Promise<Response> => {
     if (comboTargetTimeoutMs <= 0) {
-      return handleSingleModelWrapped(b, modelStr, target).catch((err) =>
+      return handleSingleModel(b, modelStr, target).catch((err) =>
         errorResponse(502, err?.message ?? "Upstream model error")
       );
     }
@@ -2904,7 +2777,7 @@ export async function handleComboChat({
     }
     try {
       return await Promise.race([
-        handleSingleModelWrapped(b, modelStr, targetWithSignal).catch((err) => {
+        handleSingleModel(b, modelStr, targetWithSignal).catch((err) => {
           if (timedOut) {
             // Inner call rejected because we aborted it. The synthetic 524 from
             // timeoutPromise already wins the race; return an empty response so
@@ -3353,7 +3226,7 @@ export async function handleComboChat({
     config,
     body,
     resolveShadowTargets(combo, config, allCombos),
-    handleSingleModelWrapped,
+    handleSingleModel,
     isModelAvailable,
     strategy,
     log
@@ -3642,6 +3515,22 @@ export async function handleComboChat({
               latencyMs,
               fallbackCount,
             });
+
+            // Context cache pinning: record model usage for session-based pinning
+            // (independent of universal handoff — always fires when context_cache_protection is on)
+            if (
+              combo.context_cache_protection &&
+              relayOptions?.sessionId &&
+              !(body as Record<string, unknown>)?.[SKIP_UNIVERSAL_HANDOFF_FLAG]
+            ) {
+              recordSessionModelUsage(
+                relayOptions.sessionId,
+                combo.name,
+                modelStr,
+                provider,
+                target.connectionId ?? undefined
+              );
+            }
 
             // Universal handoff: record model usage for session
             if (

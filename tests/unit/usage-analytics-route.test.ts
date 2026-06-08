@@ -520,3 +520,52 @@ test("GET /api/usage/analytics returns 500 on database errors", async () => {
   assert.equal(response.status, 200);
   assert.ok(body.summary.totalRequests === 0);
 });
+
+test("GET /api/usage/analytics does not throw Unknown named parameter on short range (needsAggregated=false)", async () => {
+  // Regression: shared params object leaked agg-only bindings (@sinceDate, @rawCutoffDate)
+  // into queries that don't reference them, causing better-sqlite3 to throw.
+  // A short range (1h) triggers needsAggregated=false because the entire window
+  // falls within the raw-data-only period.
+  const db = core.getDbInstance();
+  const now = new Date();
+  db.prepare(
+    `INSERT INTO usage_history (provider, model, connection_id, tokens_input, tokens_output, success, latency_ms, timestamp)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?)`
+  ).run("openai", "gpt-4o", "test-conn", 100, 50, 1, 200, now.toISOString());
+
+  const response = await analyticsRoute.GET(
+    makeRequest("http://localhost/api/usage/analytics?range=1h")
+  );
+  const body = await response.json();
+
+  assert.equal(response.status, 200);
+  assert.equal(body.summary.totalRequests, 1);
+});
+
+test("GET /api/usage/analytics does not throw Unknown named parameter with apiKey filter on long range", async () => {
+  // Regression: Object.assign(presetParams, params) leaked all main-query bindings
+  // into preset queries that only reference preset-prefixed placeholders.
+  const apiKey = await apiKeysDb.createApiKey("Preset Key", "machine-preset1234");
+  const db = core.getDbInstance();
+  const now = new Date();
+
+  // Seed data old enough to trigger aggregated + preset path
+  for (let i = 0; i < 5; i++) {
+    const ts = new Date(now.getTime() - (35 + i) * 24 * 60 * 60 * 1000).toISOString();
+    db.prepare(
+      `INSERT INTO usage_history (provider, model, connection_id, api_key_id, api_key_name, tokens_input, tokens_output, success, latency_ms, timestamp)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+    ).run("openai", "gpt-4o", "test-conn", apiKey.id, apiKey.name, 100, 50, 1, 200, ts);
+  }
+
+  const response = await analyticsRoute.GET(
+    makeRequest(`http://localhost/api/usage/analytics?range=60d&apiKeyId=${apiKey.id}`)
+  );
+  const body = await response.json();
+
+  assert.equal(response.status, 200);
+  // Core regression check: no "Unknown named parameter" error.
+  // The exact count depends on raw-vs-aggregated boundary; we only need to
+  // confirm the endpoint returns 200 without throwing.
+  assert.ok(typeof body.summary.totalRequests === "number");
+});

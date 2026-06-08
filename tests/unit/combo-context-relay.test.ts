@@ -531,3 +531,83 @@ test("handleComboChat universal handoff detects model switch before recording cu
   assert.ok(saved);
   assert.equal(saved.lastModel, "openai/previous");
 });
+
+// ── Rule #18 gate — PR #3399: server-side context cache pinning ─────────────
+// Proves that when context_cache_protection=true and session_model_history has
+// a prior model, handleComboChat overrides body.model with the pinned model
+// (no client-side <omniModel> tag injection required).
+
+test("context_cache_protection: pins body.model to last session model when history exists", async () => {
+  const sessionId = "sess-cache-pin-active";
+  const comboName = "cache-pin-combo";
+
+  // Pre-record a prior model usage for this session/combo
+  handoffDb.recordSessionModelUsage(sessionId, comboName, "anthropic/claude-3-5-sonnet", "anthropic");
+
+  const capturedModels: string[] = [];
+
+  const result = await handleComboChat({
+    body: {
+      model: "openai/gpt-4o",
+      messages: [{ role: "user", content: "Continue the task" }],
+    },
+    combo: {
+      name: comboName,
+      strategy: "priority",
+      models: ["openai/gpt-4o", "anthropic/claude-3-5-sonnet"],
+      config: { maxRetries: 0 },
+      context_cache_protection: true,
+    },
+    handleSingleModel: async (body, modelStr) => {
+      capturedModels.push(modelStr);
+      capturedModels.push(body?.model as string);
+      return okResponse();
+    },
+    isModelAvailable: async () => true,
+    log: createLog(),
+    settings: null,
+    allCombos: null,
+    relayOptions: { sessionId },
+  });
+
+  assert.equal(result.ok, true);
+  // The first model tried must be the pinned one, not the combo's first model
+  assert.equal(capturedModels[0], "anthropic/claude-3-5-sonnet", "modelStr must be pinned model");
+  // body.model must also reflect the pinned model
+  assert.equal(capturedModels[1], "anthropic/claude-3-5-sonnet", "body.model must be pinned model");
+});
+
+test("context_cache_protection: does NOT pin when no session history exists (first request)", async () => {
+  const sessionId = "sess-cache-pin-first";
+  const comboName = "cache-pin-first-combo";
+  // No prior recordSessionModelUsage call — fresh session
+
+  const capturedModels: string[] = [];
+
+  const result = await handleComboChat({
+    body: {
+      model: "openai/gpt-4o",
+      messages: [{ role: "user", content: "First message" }],
+    },
+    combo: {
+      name: comboName,
+      strategy: "priority",
+      models: ["openai/gpt-4o"],
+      config: { maxRetries: 0 },
+      context_cache_protection: true,
+    },
+    handleSingleModel: async (body, modelStr) => {
+      capturedModels.push(modelStr);
+      return okResponse();
+    },
+    isModelAvailable: async () => true,
+    log: createLog(),
+    settings: null,
+    allCombos: null,
+    relayOptions: { sessionId },
+  });
+
+  assert.equal(result.ok, true);
+  // No pinning on first request — should use the combo's first model
+  assert.equal(capturedModels[0], "openai/gpt-4o", "first request must use combo model (no pinning)");
+});

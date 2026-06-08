@@ -26,7 +26,9 @@ export function SkillCard({ skill, selected, onClick }: SkillCardProps): JSX.Ele
   const previewItems: string[] =
     skill.category === "api"
       ? (skill.endpoints ?? []).slice(0, 2)
-      : (skill.cliCommands ?? []).slice(0, 2);
+      : skill.category === "cli"
+        ? (skill.cliCommands ?? []).slice(0, 2)
+        : [];
 
   return (
     <div
@@ -64,10 +66,16 @@ export function SkillCard({ skill, selected, onClick }: SkillCardProps): JSX.Ele
             className={`rounded-full px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wide ${
               skill.category === "api"
                 ? "bg-blue-500/10 text-blue-700 dark:text-blue-400"
-                : "bg-violet-500/10 text-violet-700 dark:text-violet-400"
+                : skill.category === "cli"
+                  ? "bg-violet-500/10 text-violet-700 dark:text-violet-400"
+                  : "bg-emerald-500/10 text-emerald-700 dark:text-emerald-400"
             }`}
           >
-            {skill.category === "api" ? t("categoryApi") : t("categoryCli")}
+            {skill.category === "api"
+              ? t("categoryApi")
+              : skill.category === "cli"
+                ? t("categoryCli")
+                : t("categoryConfig")}
           </span>
 
           {skill.isEntry && (

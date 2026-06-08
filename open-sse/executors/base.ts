@@ -34,6 +34,7 @@ import {
   fixToolPairs,
   fixToolAdjacency,
   stripTrailingAssistantOrphanToolUse,
+  stripTrailingAssistantForProvider,
 } from "../services/contextManager.ts";
 import { randomUUID } from "node:crypto";
 import {
@@ -1076,7 +1077,10 @@ export class BaseExecutor {
             // tool_result isn't in the next message; re-run fixToolPairs to
             // drop any tool_result orphaned by that strip (discussion #2410).
             const adjacent = isClaude ? fixToolPairs(fixToolAdjacency(fixed)) : fixed;
-            tb.messages = stripTrailingAssistantOrphanToolUse(adjacent);
+            const stripped = stripTrailingAssistantOrphanToolUse(adjacent);
+            // Some providers (e.g. Mistral) require the last message to be user
+            // or tool and reject trailing assistant text messages with 400 (#3396).
+            tb.messages = stripTrailingAssistantForProvider(stripped, this.provider);
           }
         }
         let bodyString = JSON.stringify(transformedBody);

@@ -384,6 +384,9 @@ export function openaiResponsesToOpenAIRequest(
   // Strip Responses-API-only fields that Chat Completions rejects with 400.
   // safety_identifier is sent by LobeHub and has no Chat Completions equivalent (#2770).
   delete result.safety_identifier;
+  // client_metadata is sent by Codex CLI and has no Chat Completions equivalent.
+  // Strict upstreams (e.g. Mistral) reject it with HTTP 422 extra_forbidden.
+  delete result.client_metadata;
 
   return result;
 }

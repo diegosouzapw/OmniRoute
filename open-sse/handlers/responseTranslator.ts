@@ -3,6 +3,7 @@ import {
   buildGeminiThoughtSignatureKey,
   storeGeminiThoughtSignature,
 } from "../services/geminiThoughtSignatureStore.ts";
+import { containsTextualToolCallMarker } from "../utils/textualToolCall.ts";
 
 type JsonRecord = Record<string, unknown>;
 
@@ -73,12 +74,6 @@ function parseTextualToolCall(text: unknown): { name: string; args: unknown } | 
     }
   } catch {}
   return null;
-}
-
-function containsTextualToolCallMarker(text: unknown): boolean {
-  return (
-    typeof text === "string" && text.replace(/[\u200B-\u200D\uFEFF]/g, "").includes("[Tool call:")
-  );
 }
 
 function extractMessageOutputText(item: JsonRecord): string {
