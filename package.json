@@ -229,7 +229,7 @@
     "@types/ws": "^8.18.0",
     "@vitejs/plugin-react": "^6.0.2",
     "c8": "^11.0.0",
-    "concurrently": "^9.2.1",
+    "concurrently": "^10.0.3",
     "cross-env": "^10.1.0",
     "eslint": "^9.39.4",
     "eslint-config-next": "16.2.7",
