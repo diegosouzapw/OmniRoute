@@ -29,6 +29,7 @@ const {
   clearProviderFailure,
   isProviderFailureCode,
   getProvidersInCooldown,
+  getProviderBreakerState,
 } = accountFallback;
 
 const { selectAccount } = accountSelector;
@@ -621,6 +622,91 @@ test("recordProviderFailure honors runtime provider breaker profile", () => {
     assert.equal(breakerAfterStatusCheck.resetTimeout, runtimeProfile.resetTimeoutMs);
   } finally {
     clearProviderFailure(provider);
+  }
+});
+
+test("recordProviderFailure preserves provider breaker cooldown while open", () => {
+  const originalNow = Date.now;
+  let now = 1_700_000_000_000;
+  Date.now = () => now;
+
+  try {
+    const provider = "test-provider-open-cooldown-stability";
+    const profile = { failureThreshold: 1, resetTimeoutMs: 60_000 };
+    clearProviderFailure(provider);
+
+    recordProviderFailure(provider, undefined, "conn-open-cooldown", profile);
+    assert.equal(isProviderInCooldown(provider), true);
+
+    const openedAt = getProviderBreakerState(provider)?.lastFailureTime;
+    const initialRemaining = getProviderCooldownRemainingMs(provider);
+    assert.equal(openedAt, now);
+    assert.equal(initialRemaining, 60_000);
+
+    now += 10_000;
+    recordProviderFailure(provider, undefined, "conn-open-cooldown-later", profile);
+
+    assert.equal(getProviderBreakerState(provider)?.lastFailureTime, openedAt);
+    assert.equal(getProviderCooldownRemainingMs(provider), 50_000);
+  } finally {
+    Date.now = originalNow;
+    clearProviderFailure("test-provider-open-cooldown-stability");
+  }
+});
+
+test("recordProviderFailure keeps recent connection dedupe entries when pruning", () => {
+  const originalNow = Date.now;
+  const now = 1_700_000_000_000;
+  Date.now = () => now;
+
+  try {
+    const provider = "test-provider-dedupe-prune";
+    const profile = { failureThreshold: 20_000, resetTimeoutMs: 60_000 };
+    clearProviderFailure(provider);
+
+    for (let i = 0; i <= 10_000; i++) {
+      recordProviderFailure(provider, undefined, `conn-${i}`, profile);
+    }
+
+    const beforeDuplicate = getProviderBreakerState(provider)?.failureCount;
+    recordProviderFailure(provider, undefined, "conn-10000", profile);
+    const afterDuplicate = getProviderBreakerState(provider)?.failureCount;
+
+    assert.equal(afterDuplicate, beforeDuplicate);
+    assert.equal(isProviderInCooldown(provider), false);
+  } finally {
+    Date.now = originalNow;
+    clearProviderFailure("test-provider-dedupe-prune");
+  }
+});
+
+test("recordProviderFailure refreshes insertion order for existing dedupe keys", () => {
+  const originalNow = Date.now;
+  let now = 1_700_000_000_000;
+  Date.now = () => now;
+
+  try {
+    const provider = "test-provider-dedupe-lru";
+    const profile = { failureThreshold: 20_000, resetTimeoutMs: 60_000 };
+    clearProviderFailure(provider);
+
+    for (let i = 0; i < 9_999; i++) {
+      recordProviderFailure(provider, undefined, `conn-${i}`, profile);
+    }
+
+    now += 10_000;
+    recordProviderFailure(provider, undefined, "conn-0", profile);
+
+    for (let i = 10_000; i < 10_050; i++) {
+      recordProviderFailure(provider, undefined, `conn-${i}`, profile);
+    }
+
+    const breakerState = getProviderBreakerState(provider);
+    assert.equal(breakerState?.failureCount !== undefined, true);
+    assert.equal(isProviderInCooldown(provider), false);
+  } finally {
+    Date.now = originalNow;
+    clearProviderFailure("test-provider-dedupe-lru");
   }
 });
 

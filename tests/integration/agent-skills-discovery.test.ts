@@ -4,8 +4,8 @@
  * Verifies:
  *  1. Every ID in API_SKILL_IDS + CLI_SKILL_IDS has a skills/<id>/SKILL.md on disk.
  *  2. Each SKILL.md has valid frontmatter (name + description) and body ≥ 100 chars.
- *  3. MCP tool omniroute_agent_skills_list handler returns 42 entries.
- *  4. A2A skill list-capabilities returns 1 artifact with 42 lines.
+ *  3. MCP tool omniroute_agent_skills_list handler returns 43 entries.
+ *  4. A2A skill list-capabilities returns 1 artifact with 43 lines.
  *
  * Does NOT spin up a server — tests handlers directly via imports.
  */
@@ -120,11 +120,11 @@ test("each SKILL.md body is at least 100 chars", () => {
 
 // ── §3: MCP tool omniroute_agent_skills_list ─────────────────────────────────
 
-test("MCP omniroute_agent_skills_list handler returns count 42", async () => {
+test("MCP omniroute_agent_skills_list handler returns count 43", async () => {
   const result = await agentSkillTools.omniroute_agent_skills_list.handler({});
-  assert.equal(result.count, 42, `Expected 42 but got ${result.count}`);
+  assert.equal(result.count, 43, `Expected 43 but got ${result.count}`);
   assert.ok(Array.isArray(result.skills));
-  assert.equal(result.skills.length, 42);
+  assert.equal(result.skills.length, 43);
 });
 
 test("MCP omniroute_agent_skills_list result has all 42 IDs", async () => {
@@ -156,9 +156,9 @@ test("A2A list-capabilities artifact content contains 42 skill IDs as table rows
   );
 });
 
-test("A2A list-capabilities metadata.totalSkills === 42", async () => {
+test("A2A list-capabilities metadata.totalSkills === 43", async () => {
   const result = await executeListCapabilities(stubTask);
-  assert.equal(result.metadata.totalSkills, 42);
+  assert.equal(result.metadata.totalSkills, 43);
 });
 
 test("A2A list-capabilities artifact contains all 42 skill IDs", async () => {

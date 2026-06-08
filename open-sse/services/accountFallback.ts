@@ -89,7 +89,16 @@ const PROVIDER_FAILURE_ERROR_CODES = new Set([408, 429, 500, 502, 503, 504]);
 // Per-connection failure deduplication: prevents rapid-fire failures from the
 // same connection from counting multiple times toward the provider breaker.
 const CONNECTION_FAILURE_DEDUP_MS = 5000;
+const MAX_CONNECTION_FAILURE_DEDUP_ENTRIES = 10_000;
 const lastConnectionFailure = new Map<string, number>();
+
+function pruneConnectionFailureDedupeEntries(): void {
+  while (lastConnectionFailure.size > MAX_CONNECTION_FAILURE_DEDUP_ENTRIES) {
+    const oldestKey = lastConnectionFailure.keys().next().value;
+    if (typeof oldestKey !== "string") return;
+    lastConnectionFailure.delete(oldestKey);
+  }
+}
 
 const _connectionFailureSweep = setInterval(() => {
   const now = Date.now();
@@ -712,6 +721,11 @@ export function getProviderCooldownRemainingMs(provider: string | null | undefin
   return remaining > 0 ? remaining : null;
 }
 
+export function getProviderBreakerState(provider: string | null | undefined) {
+  const breaker = getProviderBreaker(provider);
+  return breaker?.getStatus?.() ?? null;
+}
+
 /**
  * Record a provider failure against the shared circuit breaker.
  * Delegates to the existing CircuitBreaker utility which handles
@@ -738,11 +752,9 @@ export function recordProviderFailure(
     if (lastFailure && now - lastFailure < CONNECTION_FAILURE_DEDUP_MS) {
       return;
     }
-    // Prevent memory leak by clearing map if it grows too large
-    if (lastConnectionFailure.size > 10000) {
-      lastConnectionFailure.clear();
-    }
+    lastConnectionFailure.delete(dedupKey);
     lastConnectionFailure.set(dedupKey, now);
+    pruneConnectionFailureDedupeEntries();
   }
 
   const breaker = configureProviderBreaker(provider, profile);

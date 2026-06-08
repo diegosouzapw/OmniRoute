@@ -7,10 +7,10 @@ const { getCatalog, getSkillById, filterCatalog, computeCoverage, refreshCatalog
 
 // ─── Counts ───────────────────────────────────────────────────────────────────
 
-test("getCatalog() returns exactly 42 entries", () => {
+test("getCatalog() returns exactly 43 entries", () => {
   refreshCatalog();
   const catalog = getCatalog();
-  assert.equal(catalog.length, 42, `Expected 42 but got ${catalog.length}`);
+  assert.equal(catalog.length, 43, `Expected 43 but got ${catalog.length}`);
 });
 
 test("API_SKILL_IDS has exactly 22 entries", () => {
@@ -167,9 +167,9 @@ test("filterCatalog({ area: 'nonexistent' }) returns empty array", () => {
   assert.equal(skills.length, 0);
 });
 
-test("filterCatalog({}) returns full catalog (42 entries)", () => {
+test("filterCatalog({}) returns full catalog (43 entries)", () => {
   const skills = filterCatalog({});
-  assert.equal(skills.length, 42);
+  assert.equal(skills.length, 43);
 });
 
 // ─── refreshCatalog ───────────────────────────────────────────────────────────
@@ -200,7 +200,7 @@ test("computeCoverage() returns valid SkillCoverage shape", () => {
   assert.ok(typeof cov.cli.have === "number");
   assert.ok(cov.cli.have >= 0 && cov.cli.have <= 20);
 
-  assert.equal(cov.totalSkills, cov.api.have + cov.cli.have);
+  assert.equal(cov.totalSkills, cov.api.have + cov.cli.have + (cov.config?.have ?? 0));
 
   // generatedAt must be a valid ISO datetime string
   assert.ok(!isNaN(Date.parse(cov.generatedAt)), `generatedAt "${cov.generatedAt}" is not a valid ISO date`);
@@ -208,7 +208,7 @@ test("computeCoverage() returns valid SkillCoverage shape", () => {
 
 test("computeCoverage() api.have + cli.have = totalSkills", () => {
   const cov = computeCoverage();
-  assert.equal(cov.totalSkills, cov.api.have + cov.cli.have);
+  assert.equal(cov.totalSkills, cov.api.have + cov.cli.have + (cov.config?.have ?? 0));
 });
 
 // ─── Cache behaviour ─────────────────────────────────────────────────────────

@@ -233,6 +233,25 @@ test("Responses -> Chat strips safety_identifier (LobeHub #2770)", () => {
   assert.ok(Array.isArray(result.messages), "translation must still produce messages");
 });
 
+test("Responses -> Chat strips client_metadata (Mistral 422 fix)", () => {
+  // Codex CLI always sends client_metadata in Responses API requests. Mistral (and other
+  // strict upstreams) reject it with HTTP 422 extra_forbidden. The translator must strip
+  // the field in the Responses-API cleanup block so it never reaches the upstream.
+  const result = openaiResponsesToOpenAIRequest(
+    "mistral-large-latest",
+    {
+      input: [{ role: "user", content: [{ type: "input_text", text: "oi" }] }],
+      client_metadata: { session_id: "abc123", foo: "bar" },
+    },
+    false,
+    null
+  ) as Record<string, unknown>;
+
+  assert.equal(result.client_metadata, undefined, "client_metadata must be stripped before forwarding to Chat Completions");
+  assert.ok(Array.isArray(result.messages), "translation must still produce messages");
+  assert.equal((result.messages as unknown[]).length, 1, "user message must be preserved");
+});
+
 test("Chat -> Responses converts messages, tool calls, tool outputs, tools and pass-through params", () => {
   const result = openaiToOpenAIResponsesRequest(
     "gpt-4o",

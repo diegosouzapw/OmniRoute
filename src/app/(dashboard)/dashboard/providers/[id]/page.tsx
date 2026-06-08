@@ -87,6 +87,7 @@ import { isClaudeExtraUsageBlockEnabled } from "@/lib/providers/claudeExtraUsage
 import { parseExtraApiKeys } from "@/shared/utils/parseApiKeys";
 import { compareTr } from "@/shared/utils/turkishText";
 import RiskNoticeModal from "../components/RiskNoticeModal";
+import CodexCliGuideModal from "../components/CodexCliGuideModal";
 import { isRiskAcknowledged, useRiskAcknowledged } from "../hooks/useRiskAcknowledged";
 import { resolveDashboardProviderInfo } from "../providerPageUtils";
 import {
@@ -1475,6 +1476,7 @@ export default function ProviderDetailPage() {
   );
   const [exportingCodexAuthId, setExportingCodexAuthId] = useState<string | null>(null);
   const [importCodexModalOpen, setImportCodexModalOpen] = useState(false);
+  const [codexCliGuideOpen, setCodexCliGuideOpen] = useState(false);
   // "Adicionar Externo": public shareable device-flow link state.
   const [externalLinkModalOpen, setExternalLinkModalOpen] = useState(false);
   const [externalLinkUrl, setExternalLinkUrl] = useState("");
@@ -4577,6 +4579,16 @@ export default function ProviderDetailPage() {
                         <Button
                           size="sm"
                           variant="secondary"
+                          icon="menu_book"
+                          onClick={() => setCodexCliGuideOpen(true)}
+                        >
+                          Codex CLI Guide
+                        </Button>
+                      )}
+                      {providerId === "codex" && (
+                        <Button
+                          size="sm"
+                          variant="secondary"
                           icon="share"
                           onClick={() => gateConnectionFlow(openExternalLinkFlow)}
                         >
@@ -5328,6 +5340,11 @@ export default function ProviderDetailPage() {
           isCcCompatible={isCcCompatible}
         />
       )}
+      {/* Codex CLI Guide Modal */}
+      <CodexCliGuideModal
+        isOpen={codexCliGuideOpen}
+        onClose={() => setCodexCliGuideOpen(false)}
+      />
       {/* Codex Import Auth Modal */}
       {providerId === "codex" && importCodexModalOpen && (
         <ImportCodexAuthModal

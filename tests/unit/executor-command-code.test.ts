@@ -18,7 +18,7 @@ describe("CommandCodeExecutor", () => {
     const executor = new mod.CommandCodeExecutor();
     const url = executor.buildUrl();
     assert.ok(typeof url === "string");
-    assert.ok(url.includes("/chat/completions") && url.includes("commandcode"));
+    assert.ok(url.includes("generate") && url.includes("commandcode"));
   });
 
   it("execute throws when no API key", async () => {

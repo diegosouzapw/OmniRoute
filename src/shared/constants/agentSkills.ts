@@ -429,5 +429,18 @@ export const CURATED_SKILLS: CuratedSkillEntry[] = [
     area: "cli-setup",
     icon: "build",
   },
+
+  // ── Config Skills ────────────────────────────────────────────────────────────
+
+  {
+    id: "config-codex-cli",
+    name: "Config: Codex CLI",
+    description:
+      "Step-by-step agent workflow to configure the OpenAI Codex CLI on any machine (Linux, macOS, Windows) to use OmniRoute as an OpenAI-compatible backend. Detects OS and shell, writes config.toml and 7 named profiles, sets environment variables, and verifies the setup.",
+    category: "config",
+    area: "config-codex-cli",
+    icon: "terminal",
+    isNew: true,
+  },
 ];
 

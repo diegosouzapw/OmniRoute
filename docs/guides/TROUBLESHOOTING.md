@@ -6,9 +6,35 @@ lastUpdated: 2026-05-13
 
 # Troubleshooting
 
+> **For Users**: Looking for quick fixes? See the [Quick Reference](#quick-reference) below.
+
 🌐 **Languages:** 🇺🇸 [English](./TROUBLESHOOTING.md) | 🇧🇷 [Português (Brasil)](../i18n/pt-BR/docs/guides/TROUBLESHOOTING.md) | 🇪🇸 [Español](../i18n/es/docs/guides/TROUBLESHOOTING.md) | 🇫🇷 [Français](../i18n/fr/docs/guides/TROUBLESHOOTING.md) | 🇮🇹 [Italiano](../i18n/it/docs/guides/TROUBLESHOOTING.md) | 🇷🇺 [Русский](../i18n/ru/docs/guides/TROUBLESHOOTING.md) | 🇨🇳 [中文 (简体)](../i18n/zh-CN/docs/guides/TROUBLESHOOTING.md) | 🇩🇪 [Deutsch](../i18n/de/docs/guides/TROUBLESHOOTING.md) | 🇮🇳 [हिन्दी](../i18n/in/docs/guides/TROUBLESHOOTING.md) | 🇹🇭 [ไทย](../i18n/th/docs/guides/TROUBLESHOOTING.md) | 🇺🇦 [Українська](../i18n/uk-UA/docs/guides/TROUBLESHOOTING.md) | 🇸🇦 [العربية](../i18n/ar/docs/guides/TROUBLESHOOTING.md) | 🇯🇵 [日本語](../i18n/ja/docs/guides/TROUBLESHOOTING.md) | 🇻🇳 [Tiếng Việt](../i18n/vi/docs/guides/TROUBLESHOOTING.md) | 🇧🇬 [Български](../i18n/bg/docs/guides/TROUBLESHOOTING.md) | 🇩🇰 [Dansk](../i18n/da/docs/guides/TROUBLESHOOTING.md) | 🇫🇮 [Suomi](../i18n/fi/docs/guides/TROUBLESHOOTING.md) | 🇮🇱 [עברית](../i18n/he/docs/guides/TROUBLESHOOTING.md) | 🇭🇺 [Magyar](../i18n/hu/docs/guides/TROUBLESHOOTING.md) | 🇮🇩 [Bahasa Indonesia](../i18n/id/docs/guides/TROUBLESHOOTING.md) | 🇰🇷 [한국어](../i18n/ko/docs/guides/TROUBLESHOOTING.md) | 🇲🇾 [Bahasa Melayu](../i18n/ms/docs/guides/TROUBLESHOOTING.md) | 🇳🇱 [Nederlands](../i18n/nl/docs/guides/TROUBLESHOOTING.md) | 🇳🇴 [Norsk](../i18n/no/docs/guides/TROUBLESHOOTING.md) | 🇵🇹 [Português (Portugal)](../i18n/pt/docs/guides/TROUBLESHOOTING.md) | 🇷🇴 [Română](../i18n/ro/docs/guides/TROUBLESHOOTING.md) | 🇵🇱 [Polski](../i18n/pl/docs/guides/TROUBLESHOOTING.md) | 🇸🇰 [Slovenčina](../i18n/sk/docs/guides/TROUBLESHOOTING.md) | 🇸🇪 [Svenska](../i18n/sv/docs/guides/TROUBLESHOOTING.md) | 🇵🇭 [Filipino](../i18n/phi/docs/guides/TROUBLESHOOTING.md) | 🇨🇿 [Čeština](../i18n/cs/docs/guides/TROUBLESHOOTING.md)
 
 Common problems and solutions for OmniRoute.
+
+---
+
+## Quick Reference
+
+**New to OmniRoute?** Start here — these solve 90% of problems:
+
+| I see this | What it means | What to do |
+|------------|--------------|------------|
+| "Can't connect" | OmniRoute isn't running | Run `omniroute` or `docker restart omniroute` |
+| "Invalid API key" | Your key is wrong or expired | Re-copy the key from the provider's website |
+| "Rate limit exceeded" | You're sending too many requests | Wait 1 minute, or use `model: "auto"` for automatic fallback |
+| "Quota exceeded" | You've used up your free/paid quota | Connect more providers, or use free providers (Kiro, Pollinations) |
+| "Slow responses" | Provider is busy or far away | Use `model: "auto/fast"` or connect a faster provider (Groq, Cerebras) |
+| "Wrong provider used" | `auto` picked a different provider | That's normal! `auto` picks the best one. Force a specific provider with `model: "openai/gpt-4o"` |
+| "502 Bad Gateway" | Provider is down | Wait and retry, or use `model: "auto"` to switch providers |
+| "401 Unauthorized" | Your credentials are wrong | Check your API key or re-authenticate with OAuth |
+| "429 Too Many Requests" | Rate limited | Wait 1 minute, or connect more providers |
+
+**Still stuck?** See the [detailed troubleshooting](#detailed-troubleshooting) below, or ask on [Discord](https://discord.gg/hmexnhgE).
+
+---
+
+## Detailed Troubleshooting
 
 ---
 
