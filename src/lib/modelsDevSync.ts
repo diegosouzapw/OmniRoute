@@ -597,26 +597,40 @@ export function getSyncedCapability(
 ): ModelCapabilityEntry | null {
   if (!provider || !modelId) return null;
 
-  const lookup = (p: string): ModelCapabilityEntry | null => {
-    if (cachedCapabilitiesLoadedAll) {
-      return cachedCapabilities?.[p]?.[modelId] ?? null;
+  // Fast path: every provider is in the in-memory cache, skip SQLite entirely.
+  if (cachedCapabilitiesLoadedAll) {
+    const lookupCached = (p: string) => cachedCapabilities?.[p]?.[modelId] ?? null;
+    const directCached = lookupCached(provider);
+    if (directCached) return directCached;
+    const fallbacks = SYNCED_CAPABILITY_FALLBACK_ALIASES[provider];
+    if (fallbacks) {
+      for (const alt of fallbacks) {
+        const found = lookupCached(alt);
+        if (found) return found;
+      }
     }
-    const db = getDbInstance();
-    ensureCapabilitiesTable();
-    const row = db
-      .prepare("SELECT * FROM model_capabilities WHERE provider = ? AND model_id = ? LIMIT 1")
-      .get(p, modelId);
+    return null;
+  }
+
+  // Cold path: hit SQLite. Prepare the statement once, reuse for every alias.
+  const db = getDbInstance();
+  ensureCapabilitiesTable();
+  const stmt = db.prepare(
+    "SELECT * FROM model_capabilities WHERE provider = ? AND model_id = ? LIMIT 1"
+  );
+  const lookupDb = (p: string): ModelCapabilityEntry | null => {
+    const row = stmt.get(p, modelId);
     if (!row) return null;
     return mapCapabilityRecord(toRecord(row));
   };
 
-  const direct = lookup(provider);
+  const direct = lookupDb(provider);
   if (direct) return direct;
 
   const fallbacks = SYNCED_CAPABILITY_FALLBACK_ALIASES[provider];
   if (fallbacks) {
     for (const alt of fallbacks) {
-      const found = lookup(alt);
+      const found = lookupDb(alt);
       if (found) return found;
     }
   }

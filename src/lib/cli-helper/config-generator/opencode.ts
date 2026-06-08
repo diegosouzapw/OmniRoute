@@ -77,12 +77,8 @@ export async function fetchOmniRouteCatalog(
   apiKey: string,
   timeoutMs = 5_000
 ): Promise<CatalogFetchResult> {
-  let base = baseUrl;
-  let end = base.length;
-  while (end > 0 && base[end - 1] === "/") end--;
-  base = end < base.length ? base.slice(0, end) : base;
-  if (base.endsWith("/v1")) base = base.slice(0, -3);
-  const baseURL = `${base}/v1`;
+  const cleanBase = baseUrl.replace(/\/+$/, "");
+  const baseURL = cleanBase.endsWith("/v1") ? cleanBase : `${cleanBase}/v1`;
 
   const result: CatalogFetchResult = {
     byId: new Map(),
@@ -228,7 +224,7 @@ function buildModelEntry(
     if (typeof userInput === "number" && userInput > 0) {
       limit.input = userInput;
     } else if (catalog) {
-      const maxInput = (catalog as unknown as Record<string, unknown>).max_input_tokens;
+      const maxInput = catalog.max_input_tokens;
       if (typeof maxInput === "number" && maxInput > 0) limit.input = maxInput;
     }
     entry.limit = limit;
@@ -299,12 +295,8 @@ export interface GenerateOpencodeOptions {
 export async function generateOpencodeConfig(
   options: GenerateOpencodeOptions
 ): Promise<string> {
-  let base = options.baseUrl;
-  let end = base.length;
-  while (end > 0 && base[end - 1] === "/") end--;
-  base = end < base.length ? base.slice(0, end) : base;
-  if (base.endsWith("/v1")) base = base.slice(0, -3);
-  const baseURL = `${base}/v1`;
+  const cleanBase = options.baseUrl.replace(/\/+$/, "");
+  const baseURL = cleanBase.endsWith("/v1") ? cleanBase : `${cleanBase}/v1`;
 
   const providerId = options.providerId?.trim() || "omniroute";
   const fetchCatalog = options.fetchCatalog !== false;
@@ -400,11 +392,8 @@ export function generateOpencodeConfigSync(options: {
   apiKey: string;
   model?: string;
 }): string {
-  let base = options.baseUrl;
-  let end = base.length;
-  while (end > 0 && base[end - 1] === "/") end--;
-  base = end < base.length ? base.slice(0, end) : base;
-  if (base.endsWith("/v1")) base = base.slice(0, -3);
+  const cleanBase = options.baseUrl.replace(/\/+$/, "");
+  const base = cleanBase.endsWith("/v1") ? cleanBase.slice(0, -3) : cleanBase;
 
   const config = {
     provider: "omniroute",
