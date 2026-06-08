@@ -211,7 +211,7 @@
   "optionalDependencies": {
     "better-sqlite3": "^12.10.0",
     "keytar": "^7.9.0",
-    "tls-client-node": "^0.1.13",
+    "tls-client-node": "^0.2.0",
     "wreq-js": "^2.3.1"
   },
   "devDependencies": {
