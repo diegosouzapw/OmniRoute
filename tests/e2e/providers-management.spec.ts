@@ -271,8 +271,9 @@ test.describe("Providers management", () => {
     // endpoint is mocked to return instantly (0 models), so the modal reaches "done" phase
     // and shows a Close button. Dismiss it before interacting with the connection list.
     const importDialog = page.getByRole("dialog");
-    await expect(importDialog.getByRole("button", { name: "Close" })).toBeVisible({ timeout: 15_000 });
-    await importDialog.getByRole("button", { name: "Close" }).click();
+    // The Modal renders two "Close" elements (header X + footer button) — use .first()
+    await expect(importDialog.getByRole("button", { name: "Close" }).first()).toBeVisible({ timeout: 15_000 });
+    await importDialog.getByRole("button", { name: "Close" }).first().click();
     await expect(importDialog).not.toBeVisible();
 
     await page.getByTitle(/^edit$/i).click();

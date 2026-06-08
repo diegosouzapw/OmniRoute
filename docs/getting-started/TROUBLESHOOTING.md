@@ -30,11 +30,7 @@ Common problems and solutions for OmniRoute.
 | "401 Unauthorized" | Your credentials are wrong | Check your API key or re-authenticate with OAuth |
 | "429 Too Many Requests" | Rate limited | Wait 1 minute, or connect more providers |
 
-**Still stuck?** See the [detailed troubleshooting](#detailed-troubleshooting) below, or ask on [Discord](https://discord.gg/hmexnhgE).
-
----
-
-## Detailed Troubleshooting
+**Still stuck?** See the [Quick Fixes](#quick-fixes) below, or ask on [Discord](https://discord.gg/hmexnhgE).
 
 ---
 
@@ -178,7 +174,7 @@ To gain isolation, delete the old connection from Dashboard → Providers and re
 via any of the three import flows.
 
 For full details and step-by-step instructions for adding two Kiro accounts side by side,
-see [`docs/guides/KIRO_SETUP.md`](./KIRO_SETUP.md).
+see [`docs/guides/KIRO_SETUP.md`](../guides/KIRO_SETUP.md).
 
 ---
 

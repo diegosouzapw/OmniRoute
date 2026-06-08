@@ -163,7 +163,7 @@ export function parseSSEToOpenAIResponse(rawSSE, fallbackModel) {
 
         if (!existing) {
           accumulatedToolCalls.set(key, {
-            id: tc?.id ?? null,
+            id: tc?.id != null ? String(tc.id) : null,
             index: Number.isInteger(tc?.index) ? tc.index : accumulatedToolCalls.size,
             type: tc?.type || "function",
             function: {
@@ -172,7 +172,7 @@ export function parseSSEToOpenAIResponse(rawSSE, fallbackModel) {
             },
           });
         } else {
-          existing.id = existing.id || tc?.id || null;
+          existing.id = existing.id || (tc?.id != null ? String(tc.id) : null);
           if (!Number.isInteger(existing.index) && Number.isInteger(tc?.index)) {
             existing.index = tc.index;
           }
@@ -216,7 +216,7 @@ export function parseSSEToOpenAIResponse(rawSSE, fallbackModel) {
   }
 
   const result: Record<string, unknown> = {
-    id: first.id || `chatcmpl-${Date.now()}`,
+    id: first.id != null ? String(first.id) : `chatcmpl-${Date.now()}`,
     object: "chat.completion",
     created: first.created || Math.floor(Date.now() / 1000),
     model: first.model || fallbackModel || "unknown",
@@ -452,6 +452,7 @@ function cloneResponseItem(item) {
   const record = toRecord(item);
   return {
     ...record,
+    id: record.id != null ? String(record.id) : record.id,
     ...(Array.isArray(record.content)
       ? {
           content: record.content.map((contentPart) => {
@@ -477,7 +478,7 @@ function ensureResponsesMessageItem(outputItems, outputIndex) {
 
   const next = {
     ...(existing && typeof existing === "object" ? existing : {}),
-    id: existing?.id || `msg_${Date.now()}_${outputIndex}`,
+    id: existing?.id != null ? String(existing.id) : `msg_${Date.now()}_${outputIndex}`,
     type: "message",
     role: "assistant",
     content: Array.isArray(existing?.content)
@@ -499,7 +500,7 @@ function ensureResponsesReasoningItem(outputItems, outputIndex, itemId) {
 
   const next = {
     ...(existing && typeof existing === "object" ? existing : {}),
-    id: itemId || existing?.id || `rs_${Date.now()}_${outputIndex}`,
+    id: itemId || (existing?.id != null ? String(existing.id) : null) || `rs_${Date.now()}_${outputIndex}`,
     type: "reasoning",
     summary: Array.isArray(existing?.summary)
       ? existing.summary.map((summaryPart) => ({ ...toRecord(summaryPart) }))
@@ -525,7 +526,7 @@ function ensureResponsesFunctionCallItem(outputItems, outputIndex, itemId, callI
 
   const next = {
     ...(existing && typeof existing === "object" ? existing : {}),
-    id: itemId || existing?.id || `fc_${callId || `${Date.now()}_${outputIndex}`}`,
+    id: itemId || (existing?.id != null ? String(existing.id) : null) || `fc_${callId || `${Date.now()}_${outputIndex}`}`,
     type: "function_call",
     call_id: callId || existing?.call_id || "",
     name: name || existing?.name || "",
@@ -705,10 +706,13 @@ export function parseSSEToResponsesOutput(rawSSE, fallbackModel) {
               : "in_progress";
 
   return {
-    id: picked.id || `resp_${Date.now()}`,
+    id: picked.id != null ? String(picked.id) : `resp_${Date.now()}`,
     object: picked.object || "response",
     model: picked.model || fallbackModel || "unknown",
-    output: pickedOutput.length > 0 ? pickedOutput : reconstructedOutput,
+    output: (pickedOutput.length > 0 ? pickedOutput : reconstructedOutput).map((item) => ({
+      ...item,
+      id: item.id != null ? String(item.id) : item.id,
+    })),
     usage: picked.usage || null,
     status: picked.status || statusFallback,
     created_at: picked.created_at || Math.floor(Date.now() / 1000),

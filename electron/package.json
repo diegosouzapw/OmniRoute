@@ -1,6 +1,6 @@
 {
   "name": "omniroute-desktop",
-  "version": "3.8.16",
+  "version": "3.8.17",
   "description": "OmniRoute Desktop Application",
   "main": "main.js",
   "author": {
@@ -25,10 +25,10 @@
     "pack": "npm run prepare:bundle && electron-builder --dir"
   },
   "dependencies": {
-    "electron-updater": "^6.8.8"
+    "electron-updater": "^6.8.9"
   },
   "devDependencies": {
-    "electron": "^42.3.2",
+    "electron": "^42.3.3",
     "electron-builder": "^26.14.0"
   },
   "overrides": {
