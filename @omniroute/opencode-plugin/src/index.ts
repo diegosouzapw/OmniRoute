@@ -172,6 +172,10 @@ const featuresSchema = z
     diskCache: z.boolean().optional(),
     providerTag: z.boolean().optional(),
     debugLog: z.boolean().optional(),
+    /** Verbose startup diagnostics: logs enrichment counts, free model
+     *  detection, auto combo fetches, and naming pipeline decisions to
+     *  console.warn. Default false. */
+    startupDebug: z.boolean().optional(),
     apiFormat: apiFormatSchema,
   })
   .strict();
@@ -2554,6 +2558,53 @@ export function createOmniRouteProviderHook(
             `${rawConnections.length} connections ` +
             `(TTL=${resolved.modelCacheTtl}ms)`,
         );
+
+        // ── Startup debug: deep-dive into enrichment + auto combos ──────
+        if (resolved.features?.startupDebug === true) {
+          const enriched = [...rawEnrichment.entries()];
+          const withName = enriched.filter(([, e]) => e.name);
+          const withPricing = enriched.filter(([, e]) => e.pricing);
+          const withFree = enriched.filter(([, e]) => e.freeType);
+          const freeNames = withFree
+            .slice(0, 10)
+            .map(
+              ([k, e]) =>
+                `  ${k} → name=${e.name ?? "(none)"}, freeType=${e.freeType}, monthly=${e.monthlyTokens ?? 0}, credits=${e.creditTokens ?? 0}`,
+            );
+          const sampleNames = enriched
+            .filter(([, e]) => e.name)
+            .slice(0, 5)
+            .map(([k, e]) => `  ${k} → "${e.name}"`);
+          console.warn(
+            `[omniroute-plugin] startupDebug enrichment: ${withName.length} with name, ${withPricing.length} with pricing, ${withFree.length} free`,
+          );
+          if (freeNames.length > 0) {
+            console.warn(
+              `[omniroute-plugin] startupDebug free models:\n${freeNames.join("\n")}`,
+            );
+          } else {
+            console.warn(
+              `[omniroute-plugin] startupDebug: NO free models detected. ` +
+                (rawEnrichment.size === 0
+                  ? "Enrichment map is EMPTY — enrichment fetch may have failed or /api/pricing/models returned no data."
+                  : `Enrichment has ${rawEnrichment.size} entries but none have freeType. ` +
+                    "Is the server running /api/free-models? Does enrichment fetcher call it?"),
+            );
+          }
+          if (sampleNames.length > 0) {
+            console.warn(
+              `[omniroute-plugin] startupDebug sample enriched names:\n${sampleNames.join("\n")}`,
+            );
+          }
+          if (rawAutoCombos.length > 0) {
+            console.warn(
+              `[omniroute-plugin] startupDebug auto combos: ${rawAutoCombos.length} variants — ` +
+                rawAutoCombos
+                  .map((ac) => `${ac.id}(${ac.candidateCount ?? "?"}p)`)
+                  .join(", "),
+            );
+          }
+        }
       }
 
       // Lookup index for LCD member resolution: O(1) per member lookup.
