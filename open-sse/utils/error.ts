@@ -229,7 +229,7 @@ export async function parseUpstreamError(response: Response, provider: string | 
     try {
       const parsed = JSON.parse(text);
       // Handle array responses (e.g., from some Gemini APIs)
-      const json = Array.isArray(parsed) && parsed.length > 0 ? parsed[0] : parsed;
+      const json = (Array.isArray(parsed) && parsed.length > 0 ? parsed[0] : parsed) || {};
       message = json.error?.message || json.message || json.error || text;
       errorCode = json.error?.code || json.code;
       errorType = json.error?.type || json.type;

@@ -419,8 +419,9 @@ function openaiToGeminiBase(
             // Gemini expects the signature on the functionCall part itself.
             // If we are in a mode where missing signatures cause 400s (and we couldn't find one),
             // safely default to the bypass string to protect against 400s.
+            const finalSignature = embeddedThoughtSignature || (signaturelessToolCallMode !== "text" ? "skip_thought_signature_validator" : undefined);
             parts.push({
-              thoughtSignature: embeddedThoughtSignature || "skip_thought_signature_validator",
+              ...(finalSignature ? { thoughtSignature: finalSignature } : {}),
               functionCall: {
                 id: id,
                 name: sanitizeToolName(fn.name),
