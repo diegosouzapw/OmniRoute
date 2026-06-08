@@ -62,6 +62,81 @@ export { COLORS, formatSSE };
 
 type JsonRecord = Record<string, unknown>;
 
+function stringifyIdValue(value: unknown): string | null {
+  return value === null || value === undefined ? null : String(value);
+}
+
+function normalizeResponsesOutputItemIds(item: unknown): unknown {
+  if (!item || typeof item !== "object" || Array.isArray(item)) {
+    return item;
+  }
+
+  const record = item as JsonRecord;
+  let changed = false;
+  const normalized = { ...record };
+
+  const id = stringifyIdValue(record.id);
+  if (id !== null && record.id !== id) {
+    normalized.id = id;
+    changed = true;
+  }
+
+  const callId = stringifyIdValue(record.call_id);
+  if (callId !== null && record.call_id !== callId) {
+    normalized.call_id = callId;
+    changed = true;
+  }
+
+  return changed ? normalized : item;
+}
+
+function normalizeResponsesSseIds(payload: JsonRecord): boolean {
+  let changed = false;
+
+  for (const key of ["response_id", "item_id", "call_id"] as const) {
+    const value = stringifyIdValue(payload[key]);
+    if (value !== null && payload[key] !== value) {
+      payload[key] = value;
+      changed = true;
+    }
+  }
+
+  if (payload.item && typeof payload.item === "object" && !Array.isArray(payload.item)) {
+    const normalizedItem = normalizeResponsesOutputItemIds(payload.item);
+    if (normalizedItem !== payload.item) {
+      payload.item = normalizedItem;
+      changed = true;
+    }
+  }
+
+  if (payload.response && typeof payload.response === "object" && !Array.isArray(payload.response)) {
+    const response = payload.response as JsonRecord;
+    let responseChanged = false;
+    const normalizedResponse = { ...response };
+
+    const responseId = stringifyIdValue(response.id);
+    if (responseId !== null && response.id !== responseId) {
+      normalizedResponse.id = responseId;
+      responseChanged = true;
+    }
+
+    if (Array.isArray(response.output)) {
+      const normalizedOutput = response.output.map(normalizeResponsesOutputItemIds);
+      if (normalizedOutput.some((item, index) => item !== response.output[index])) {
+        normalizedResponse.output = normalizedOutput;
+        responseChanged = true;
+      }
+    }
+
+    if (responseChanged) {
+      payload.response = normalizedResponse;
+      changed = true;
+    }
+  }
+
+  return changed;
+}
+
 export const PENDING_REQUEST_CLEARED_MARKER = "__omniroutePendingRequestCleared";
 
 function markPendingRequestCleared(error: Error): Error {
@@ -76,8 +151,8 @@ function buildResponsesOutputItemKey(item: unknown): string | null {
 
   const record = item as JsonRecord;
   const type = typeof record.type === "string" ? record.type : "";
-  const id = typeof record.id === "string" ? record.id : "";
-  const callId = typeof record.call_id === "string" ? record.call_id : "";
+  const id = stringifyIdValue(record.id) ?? "";
+  const callId = stringifyIdValue(record.call_id) ?? "";
   const outputIndex = typeof record.output_index === "number" ? record.output_index : "";
   const name = typeof record.name === "string" ? record.name : "";
 
@@ -1025,22 +1100,21 @@ export function createSSEStream(options: StreamOptions = {}) {
   };
 
   const getResponsesReasoningKey = (payload: Record<string, unknown>): string | null => {
-    if (typeof payload.item_id === "string" && payload.item_id) {
-      return payload.item_id;
+    const itemId = stringifyIdValue(payload.item_id);
+    if (itemId) {
+      return itemId;
     }
 
     const item =
       payload.item && typeof payload.item === "object" && !Array.isArray(payload.item)
         ? (payload.item as Record<string, unknown>)
         : null;
-    if (item && typeof item.id === "string" && item.id) {
-      return item.id;
+    const outputItemId = item ? stringifyIdValue(item.id) : null;
+    if (outputItemId) {
+      return outputItemId;
     }
 
-    const responseId =
-      typeof payload.response_id === "string" && payload.response_id
-        ? payload.response_id
-        : passthroughResponsesId;
+    const responseId = stringifyIdValue(payload.response_id) || passthroughResponsesId;
     const outputIndex =
       typeof payload.output_index === "number" && Number.isInteger(payload.output_index)
         ? payload.output_index
@@ -1319,12 +1393,16 @@ export function createSSEStream(options: StreamOptions = {}) {
                     parsed.type === "error");
 
                 if (isResponsesSSE) {
+                  const responsesIdsNormalized = normalizeResponsesSseIds(parsed as JsonRecord);
+                  const parsedResponse =
+                    parsed.response &&
+                    typeof parsed.response === "object" &&
+                    !Array.isArray(parsed.response)
+                      ? (parsed.response as JsonRecord)
+                      : null;
                   const responseId =
-                    typeof parsed.response?.id === "string"
-                      ? parsed.response.id
-                      : typeof parsed.response_id === "string"
-                        ? parsed.response_id
-                        : null;
+                    (parsedResponse ? stringifyIdValue(parsedResponse.id) : null) ||
+                    stringifyIdValue(parsed.response_id);
                   if (responseId) {
                     passthroughResponsesId = responseId;
                   }
@@ -1530,7 +1608,7 @@ export function createSSEStream(options: StreamOptions = {}) {
                     parsed,
                     passthroughResponsesOutputItems
                   );
-                  if (stripped || backfilled || textualToolCallBackfilled) {
+                  if (stripped || backfilled || textualToolCallBackfilled || responsesIdsNormalized) {
                     output = `data: ${JSON.stringify(parsed)}\n`;
                     injectedUsage = true;
                   }
@@ -1655,6 +1733,7 @@ export function createSSEStream(options: StreamOptions = {}) {
                         )
                       )
                     : false;
+                  const hadNonStringTopLevelId = parsed?.id != null && typeof parsed.id !== "string";
 
                   parsed = sanitizeStreamingChunk(parsed);
                   if (
@@ -1666,7 +1745,7 @@ export function createSSEStream(options: StreamOptions = {}) {
                     continue;
                   }
 
-                  const idFixed = fixInvalidId(parsed);
+                  const idFixed = hadNonStringTopLevelId ? false : fixInvalidId(parsed);
 
                   if (!hasValuableContent(parsed, FORMATS.OPENAI)) {
                     continue;
@@ -1718,18 +1797,18 @@ export function createSSEStream(options: StreamOptions = {}) {
                     passthroughHasToolCalls = true;
                     lastToolCallChunkTime = Date.now();
                     for (const tc of delta.tool_calls) {
-                      if (tc?.id != null) {
-                        const stringId = String(tc.id);
-                        if (tc.id !== stringId) {
-                          tc.id = stringId;
-                          toolCallIdCoerced = true;
-                        }
+                      // Note: sanitizeStreamingChunk above already coerces non-string
+                      // tool_call IDs, but this defensive check catches edge cases
+                      // where sanitize didn't run (e.g. flush path shortcuts).
+                      if (tc?.id != null && typeof tc.id !== "string") {
+                        tc.id = String(tc.id);
+                        toolCallIdCoerced = true;
                       }
                       // Key by index first — id only appears on the first delta in OpenAI streaming
                       let key: string;
                       if (Number.isInteger(tc?.index)) {
                         key = `idx:${tc.index}`;
-                      } else if (tc?.id) {
+                      } else if (tc?.id != null) {
                         key = `id:${tc.id}`;
                       } else {
                         key = `seq:${++passthroughToolCallSeq}`;
@@ -1839,7 +1918,8 @@ export function createSSEStream(options: StreamOptions = {}) {
                     idFixed ||
                     needsReserialization ||
                     toolCallIdCoerced ||
-                    hadNonStringToolCallId
+                    hadNonStringToolCallId ||
+                    hadNonStringTopLevelId
                   ) {
                     output = `data: ${JSON.stringify(parsed)}\n`;
                     injectedUsage = true;
@@ -2098,6 +2178,43 @@ export function createSSEStream(options: StreamOptions = {}) {
                   updateClaudeEmptyResponseLifecycle(claudeEmptyResponseLifecycle, bufferedPayload);
                 }
                 clientPayloadCollector.push(bufferedPayload);
+
+                // Normalize numeric IDs for final buffered data: chunk (same as transform path)
+                if (typeof bufferedPayload === "object" && !Array.isArray(bufferedPayload)) {
+                  const flushedParsed = bufferedPayload as JsonRecord;
+                  const flushedType = typeof flushedParsed.type === "string" ? flushedParsed.type : "";
+                  const isResponses = flushedType.startsWith("response.");
+                  const isClaude = isClaudeEventPayload(flushedParsed);
+                  if (isResponses) {
+                    if (normalizeResponsesSseIds(flushedParsed)) {
+                      output = `data: ${JSON.stringify(flushedParsed)}\n`;
+                    }
+                  } else if (!isClaude) {
+                    let flushChanged = false;
+                    const flushedHadNonStringTopLevelId =
+                      flushedParsed?.id != null && typeof flushedParsed.id !== "string";
+                    if (flushedHadNonStringTopLevelId) {
+                      flushedParsed.id = String(flushedParsed.id);
+                      flushChanged = true;
+                    }
+                    if (Array.isArray(flushedParsed.choices)) {
+                      for (const choice of flushedParsed.choices as JsonRecord[]) {
+                        const tcs = (choice as JsonRecord | undefined)?.delta as JsonRecord | undefined;
+                        if (Array.isArray(tcs?.tool_calls)) {
+                          for (const tc of tcs.tool_calls as JsonRecord[]) {
+                            if (tc?.id != null && typeof tc.id !== "string") {
+                              tc.id = String(tc.id);
+                              flushChanged = true;
+                            }
+                          }
+                        }
+                      }
+                    }
+                    if (flushChanged) {
+                      output = `data: ${JSON.stringify(flushedParsed)}\n`;
+                    }
+                  }
+                }
               }
               if (!bufferedLine && pendingPassthroughEventLine && !pendingPassthroughEventEmitted) {
                 output = `${pendingPassthroughEventLine}\n${output}`;
