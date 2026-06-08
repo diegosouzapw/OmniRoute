@@ -109,11 +109,11 @@ Four pre-defined weight profiles in `open-sse/services/autoCombo/modePacks.ts`. 
 
 | Factor       | ship-fast | cost-saver | quality-first | offline-friendly |
 | :----------- | :-------- | :--------- | :------------ | :--------------- |
-| quota        | 0.15      | 0.15       | 0.10          | **0.40**         |
-| health       | 0.30      | 0.20       | 0.20          | 0.30             |
-| costInv      | 0.05      | **0.40**   | 0.05          | 0.10             |
-| latencyInv   | **0.35**  | 0.05       | 0.05          | 0.05             |
-| taskFit      | 0.10      | 0.10       | **0.40**      | 0.00             |
+| quota        | 0.14      | 0.14       | 0.10          | **0.37**         |
+| health       | 0.28      | 0.19       | 0.18          | 0.28             |
+| costInv      | 0.05      | **0.37**   | 0.05          | 0.10             |
+| latencyInv   | **0.32**  | 0.05       | 0.05          | 0.05             |
+| taskFit      | 0.10      | 0.10       | **0.37**      | 0.00             |
 | stability    | 0.00      | 0.05       | 0.15          | 0.10             |
 | tierPriority | 0.05      | 0.05       | 0.05          | 0.05             |
 
@@ -121,10 +121,10 @@ Notes:
 
 - `tierAffinity` and `specificityMatch` are not set in mode packs — `calculateScore()` treats them as `?? 0` when absent.
 - Each pack's emphasis at a glance:
-  - **ship-fast** → latencyInv 0.35 + health 0.30 (low-latency, healthy connections)
-  - **cost-saver** → costInv 0.40 (cheapest tokens win)
-  - **quality-first** → taskFit 0.40 + stability 0.15 (best model for the task, consistent)
-  - **offline-friendly** → quota 0.40 + health 0.30 (max headroom regardless of speed/cost)
+  - **ship-fast** → latencyInv 0.32 + health 0.28 (low-latency, healthy connections)
+  - **cost-saver** → costInv 0.37 (cheapest tokens win)
+  - **quality-first** → taskFit 0.37 + stability 0.15 (best model for the task, consistent)
+  - **offline-friendly** → quota 0.37 + health 0.28 (max headroom regardless of speed/cost)
 
 ## All Routing Strategies
 

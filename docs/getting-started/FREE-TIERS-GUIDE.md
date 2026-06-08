@@ -224,7 +224,7 @@ Let's calculate how much free AI you can get:
 | Pollinations | Unlimited | Unlimited |
 | LongCat | 50M tokens | 1.5B tokens |
 | Cloudflare AI | 10K neurons | 300K neurons |
-| NVIDIA NIM | ~40 RPM | ~1.2M RPM |
+| NVIDIA NIM | ~40 RPM | ~1.7M requests |
 | Cerebras | 1M tokens | 30M tokens |
 
 **Total**: ~1.9B+ free tokens/month (with compression: ~9.5B+ effective tokens)
