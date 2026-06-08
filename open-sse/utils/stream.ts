@@ -269,10 +269,10 @@ function collectPassthroughTextualToolCall(
   return toolCall;
 }
 
-function toStreamingToolCallDelta(toolCall: ToolCall) {
+/* @testonly */ export function toStreamingToolCallDelta(toolCall: ToolCall) {
   return {
     index: toolCall.index,
-    id: toolCall.id,
+    id: toolCall.id != null ? String(toolCall.id) : null,
     type: toolCall.type,
     function: {
       name: toolCall.function.name,
@@ -281,11 +281,11 @@ function toStreamingToolCallDelta(toolCall: ToolCall) {
   };
 }
 
-function toResponsesFunctionCallItem(toolCall: ToolCall) {
+/* @testonly */ export function toResponsesFunctionCallItem(toolCall: ToolCall) {
   return {
     type: "function_call",
-    id: toolCall.id || `fc_${toolCall.index}`,
-    call_id: toolCall.id || `call_${toolCall.index}`,
+    id: (toolCall.id != null ? String(toolCall.id) : null) || `fc_${toolCall.index}`,
+    call_id: (toolCall.id != null ? String(toolCall.id) : null) || `call_${toolCall.index}`,
     name: toolCall.function.name,
     arguments: toolCall.function.arguments,
     status: "completed",
@@ -799,6 +799,12 @@ export function createSSEStream(options: StreamOptions = {}) {
   const clientPayloadCollector = createStructuredSSECollector({
     stage: "client_response",
   });
+  const requestRecord = asRecord(body);
+  const requestStreamOptions = asRecord(
+    requestRecord.stream_options ?? requestRecord.streamOptions
+  );
+  const expectsOpenAIUsageOnlyChunk =
+    requestStreamOptions.include_usage === true || requestStreamOptions.includeUsage === true;
 
   // Per-stream instances to avoid shared state with concurrent streams
   const decoder = new TextDecoder();
@@ -1589,12 +1595,49 @@ export function createSSEStream(options: StreamOptions = {}) {
                   // GOOD LUCK
                   // ----------------------------------------------------
                   // Chat Completions: full sanitization pipeline
-                  // Hardening: detect upstream returning empty choices array
-                  // which breaks OpenAI-compatible clients (e.g. Copilot Chat).
-                  // We drop these chunks entirely rather than injecting an error,
-                  // as injecting a chunk with finish_reason: "stop" will prematurely
-                  // terminate the stream for the client.
+
+                  // OpenAI-compatible streaming with `stream_options.include_usage=true`
+                  // ends with a usage-only chunk where `choices` is deliberately `[]`.
+                  // Forward that standards-compliant chunk instead of turning it into an
+                  // empty-response error. Keep the existing hardening for malformed empty
+                  // choices chunks without valid usage.
                   if (Array.isArray(parsed.choices) && parsed.choices.length === 0) {
+                    const emptyChoicesUsage = extractUsage(parsed) ?? parsed.usage;
+                    if (hasValidUsage(emptyChoicesUsage)) {
+                      usage = emptyChoicesUsage;
+                      output = `data: ${JSON.stringify(parsed)}\n`;
+                      injectedUsage = true;
+                      clientPayload = parsed;
+                      clientPayloadCollector.push(clientPayload);
+                      reqLogger?.appendConvertedChunk?.(output);
+                      controller.enqueue(encoder.encode(output));
+                      continue;
+                    }
+
+                    console.warn(
+                      `[STREAM] Upstream returned empty choices array (${provider || "provider"}:${model || "unknown"}) — emitting error chunk`
+                    );
+                    const errorChunk = {
+                      id: parsed.id || `omniroute-empty-choices-${Date.now()}`,
+                      object: "chat.completion.chunk",
+                      created: parsed.created || Math.floor(Date.now() / 1000),
+                      model: parsed.model || model || "unknown",
+                      choices: [
+                        {
+                          index: 0,
+                          delta: {
+                            role: "assistant",
+                            content: "[OmniRoute] Upstream returned an empty response. Please retry.",
+                          },
+                          finish_reason: "stop",
+                        },
+                      ],
+                    };
+                    output = `data: ${JSON.stringify(errorChunk)}\n`;
+                    injectedUsage = true;
+                    clientPayload = errorChunk;
+                    reqLogger?.appendConvertedChunk?.(output);
+                    controller.enqueue(encoder.encode(output));
                     continue;
                   }
 
@@ -1604,6 +1647,14 @@ export function createSSEStream(options: StreamOptions = {}) {
                     typeof parsed.choices[0].delta.reasoning === "string" &&
                     !parsed.choices[0].delta.reasoning_content
                   );
+                  const hadNonStringToolCallId = Array.isArray(parsed.choices)
+                    ? parsed.choices.some((choice) =>
+                        Array.isArray(choice?.delta?.tool_calls) &&
+                        choice.delta.tool_calls.some(
+                          (tc) => tc?.id != null && typeof tc.id !== "string"
+                        )
+                      )
+                    : false;
 
                   parsed = sanitizeStreamingChunk(parsed);
                   if (
@@ -1623,6 +1674,7 @@ export function createSSEStream(options: StreamOptions = {}) {
 
                   const delta = parsed.choices?.[0]?.delta;
                   let textualToolCallConverted = false;
+                  let toolCallIdCoerced = false;
 
                   // Extract <think> tags from streaming content
                   if (delta?.content && typeof delta.content === "string") {
@@ -1666,6 +1718,13 @@ export function createSSEStream(options: StreamOptions = {}) {
                     passthroughHasToolCalls = true;
                     lastToolCallChunkTime = Date.now();
                     for (const tc of delta.tool_calls) {
+                      if (tc?.id != null) {
+                        const stringId = String(tc.id);
+                        if (tc.id !== stringId) {
+                          tc.id = stringId;
+                          toolCallIdCoerced = true;
+                        }
+                      }
                       // Key by index first — id only appears on the first delta in OpenAI streaming
                       let key: string;
                       if (Number.isInteger(tc?.index)) {
@@ -1680,7 +1739,7 @@ export function createSSEStream(options: StreamOptions = {}) {
                         typeof tc?.function?.arguments === "string" ? tc.function.arguments : "";
                       if (!existing) {
                         passthroughToolCalls.set(key, {
-                          id: tc?.id ?? null,
+                          id: tc?.id != null ? String(tc.id) : null,
                           index: Number.isInteger(tc?.index) ? tc.index : passthroughToolCalls.size,
                           type: tc?.type || "function",
                           function: {
@@ -1689,7 +1748,7 @@ export function createSSEStream(options: StreamOptions = {}) {
                           },
                         });
                       } else {
-                        if (tc?.id) existing.id = existing.id || tc.id;
+                        if (tc?.id) existing.id = existing.id || String(tc.id);
                         if (tc?.function?.name && !existing.function.name)
                           existing.function.name = tc.function.name;
                         existing.function.arguments += deltaArgs;
@@ -1758,7 +1817,11 @@ export function createSSEStream(options: StreamOptions = {}) {
                       injectedUsage = true;
                     }
                   }
-                  if (isFinishChunk && !hasValidUsage(parsed.usage)) {
+                  if (
+                    isFinishChunk &&
+                    !hasValidUsage(parsed.usage) &&
+                    !expectsOpenAIUsageOnlyChunk
+                  ) {
                     const estimated = estimateUsage(body, totalContentLength, FORMATS.OPENAI);
                     parsed.usage = filterUsageForFormat(estimated, FORMATS.OPENAI);
                     output = `data: ${JSON.stringify(parsed)}\n`;
@@ -1772,7 +1835,12 @@ export function createSSEStream(options: StreamOptions = {}) {
                   } else if (textualToolCallConverted) {
                     output = `data: ${JSON.stringify(parsed)}\n`;
                     injectedUsage = true;
-                  } else if (idFixed || needsReserialization) {
+                  } else if (
+                    idFixed ||
+                    needsReserialization ||
+                    toolCallIdCoerced ||
+                    hadNonStringToolCallId
+                  ) {
                     output = `data: ${JSON.stringify(parsed)}\n`;
                     injectedUsage = true;
                   }
@@ -2385,7 +2453,7 @@ export function createSSEStream(options: StreamOptions = {}) {
                 ? [...state.toolCalls.values()]
                     .map(
                       (tc: Record<string, unknown>): ToolCall => ({
-                        id: (tc.id as string) ?? null,
+                        id: tc.id != null ? String(tc.id) : null,
                         index: (tc.index as number) ?? (tc.blockIndex as number) ?? 0,
                         type: (tc.type as string) ?? "function",
                         function: (tc.function as ToolCall["function"]) ?? {

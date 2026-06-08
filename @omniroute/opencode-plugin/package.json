@@ -26,7 +26,7 @@
   "scripts": {
     "build": "tsup",
     "clean": "rm -rf dist",
-    "test": "node --import tsx/esm --test tests/scaffold.test.ts tests/auth.test.ts tests/options-schema.test.ts tests/multi-instance.test.ts tests/fetch-interceptor.test.ts tests/provider.test.ts tests/gemini-sanitize.test.ts tests/combos.test.ts tests/config-shim.test.ts tests/features.test.ts tests/usable-combo.test.ts tests/disk-snapshot-perms.test.ts",
+    "test": "node --import tsx/esm --test tests/scaffold.test.ts tests/auth.test.ts tests/options-schema.test.ts tests/multi-instance.test.ts tests/fetch-interceptor.test.ts tests/provider.test.ts tests/gemini-sanitize.test.ts tests/combos.test.ts tests/config-shim.test.ts tests/features.test.ts tests/usable-combo.test.ts tests/disk-snapshot-perms.test.ts tests/fork-features.test.ts",
     "prepublishOnly": "npm run clean && npm run build && npm test"
   },
   "keywords": [
