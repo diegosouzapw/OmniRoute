@@ -8,6 +8,10 @@
 
 _Development cycle in progress — entries are added as work merges into `release/v3.8.17` and finalized by the release flow._
 
+### 🔧 Bug Fixes
+
+- **fix(translator):** Vertex AI tool calls no longer fail with `400 Unknown name "id" at contents[].parts[].function_call` — the OpenAI-style `id` field is now stripped from `functionCall`/`functionResponse` parts when the routed provider is `vertex`/`vertex-partner`. The public Gemini API still receives `id` (required for Gemini 3+ signature matching). ([#3440](https://github.com/diegosouzapw/OmniRoute/issues/3440) — thanks @nullbytef0x)
+
 ---
 
 ## [3.8.16] — 2026-06-08

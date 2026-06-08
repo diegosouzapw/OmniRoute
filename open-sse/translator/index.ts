@@ -175,7 +175,13 @@ export function translateRequest(
     // Check for direct translation path first (e.g., Claude → Gemini)
     const directTranslator = getRequestTranslator(sourceFormat, targetFormat);
     if (directTranslator && sourceFormat !== FORMATS.OPENAI && targetFormat !== FORMATS.OPENAI) {
-      result = directTranslator(model, result, stream, credentials);
+      // Thread the routed provider id so target translators can apply provider-specific
+      // quirks (e.g. Vertex rejects function_call.id — #3440).
+      const directCredentials =
+        provider != null
+          ? { ...(credentials && typeof credentials === "object" ? credentials : {}), _provider: provider }
+          : credentials;
+      result = directTranslator(model, result, stream, directCredentials);
     } else {
       // Fallback: hub-and-spoke via OpenAI
       // Step 1: source -> openai (if source is not openai)
@@ -205,13 +211,17 @@ export function translateRequest(
           const hasNs = options?.signatureNamespace != null;
           const hasPreCompression = options?.preCompressionBody != null;
           const hasCopilot = options?.copilotClient === true;
+          const hasProvider = provider != null;
           const translationCredentials =
-            hasNs || hasPreCompression || hasCopilot
+            hasNs || hasPreCompression || hasCopilot || hasProvider
               ? {
                   ...(credentials && typeof credentials === "object" ? credentials : {}),
                   ...(hasNs ? { _signatureNamespace: options.signatureNamespace } : {}),
                   ...(hasPreCompression ? { _preCompressionBody: options.preCompressionBody } : {}),
                   ...(hasCopilot ? { _copilotClient: true } : {}),
+                  // Routed provider id so target translators can apply provider-specific
+                  // quirks (e.g. Vertex rejects function_call.id — #3440).
+                  ...(hasProvider ? { _provider: provider } : {}),
                 }
               : credentials;
           result = fromOpenAI(model, result, stream, translationCredentials);
