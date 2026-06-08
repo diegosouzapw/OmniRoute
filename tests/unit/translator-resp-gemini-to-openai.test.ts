@@ -700,3 +700,117 @@ test("Gemini stream: does not swallow false positive textual tool call in backti
   );
   assert.equal(toolCalls.length, 0);
 });
+
+test("Gemini stream: does not swallow terminated trailing false positive textual tool call", () => {
+  const state = createStreamingState();
+  const chunk1 = {
+    responseId: "resp-false-positive-terminated",
+    modelVersion: "gemini-3.5-flash-low",
+    candidates: [
+      {
+        content: {
+          parts: [
+            {
+              text: "Как исправить: `[Tool call: ",
+            },
+          ],
+        },
+        finishReason: "STOP",
+      },
+    ],
+  };
+
+  const res1 = geminiToOpenAIResponse(chunk1, state) || [];
+  const leakedContent = res1.map((event) => event.choices?.[0]?.delta?.content || "").join("");
+
+  assert.equal(leakedContent, "Как исправить: `[Tool call: ");
+});
+
+test("Gemini stream: flushes left part before textual tool call candidate and flushes whole text on stop if content was emitted", () => {
+  const state = createStreamingState() as any;
+  const chunk1 = {
+    responseId: "resp-test-flush-left",
+    modelVersion: "gemini-3.5-flash-low",
+    candidates: [
+      {
+        content: {
+          parts: [
+            {
+              text: "Дмитрий, привет! Вот: `",
+            },
+          ],
+        },
+      },
+    ],
+  };
+
+  const chunk2 = {
+    candidates: [
+      {
+        content: {
+          parts: [
+            {
+              text: "[Tool call: terminal]\nArguments: {}\` не будут проходить.",
+            },
+          ],
+        },
+        finishReason: "STOP",
+      },
+    ],
+  };
+
+  const res1 = geminiToOpenAIResponse(chunk1, state) || [];
+  const content1 = res1.map((event) => event.choices?.[0]?.delta?.content || "").join("");
+  assert.equal(content1, "Дмитрий, привет! Вот: `");
+
+  const res2 = geminiToOpenAIResponse(chunk2, state) || [];
+  const content2 = res2.map((event) => event.choices?.[0]?.delta?.content || "").join("");
+  assert.equal(content2, "[Tool call: terminal]\nArguments: {}\` не будут проходить.");
+});
+
+test("Gemini stream: splits mid-stream partial candidate but preserves tool call if complete", () => {
+  const state = createStreamingState() as any;
+  const chunk1 = {
+    responseId: "resp-test-split-candidate",
+    modelVersion: "gemini-3.5-flash-low",
+    candidates: [
+      {
+        content: {
+          parts: [
+            {
+              text: "Текст до: `[Tool call: ",
+            },
+          ],
+        },
+      },
+    ],
+  };
+
+  const chunk2 = {
+    candidates: [
+      {
+        content: {
+          parts: [
+            {
+              text: 'read_file]\nArguments: {"path": "/tmp/a"}',
+            },
+          ],
+        },
+        finishReason: "STOP",
+      },
+    ],
+  };
+
+  const res1 = geminiToOpenAIResponse(chunk1, state) || [];
+  const content1 = res1.map((event) => event.choices?.[0]?.delta?.content || "").join("");
+  assert.equal(content1, "Текст до: `");
+
+  const res2 = geminiToOpenAIResponse(chunk2, state) || [];
+  const content2 = res2.map((event) => event.choices?.[0]?.delta?.content || "").join("");
+  assert.equal(content2, "");
+
+  assert.equal(state.toolCalls.size, 1);
+  const toolCall: any = Array.from(state.toolCalls.values())[0];
+  assert.equal(toolCall.function.name, "read_file");
+  assert.equal(toolCall.function.arguments, '{"path":"/tmp/a"}');
+});
