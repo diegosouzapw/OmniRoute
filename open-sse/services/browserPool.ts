@@ -82,7 +82,7 @@ async function resolveCloakLaunch(): Promise<((opts: unknown) => Promise<Browser
   if (state.cloakLaunchResolved) return state.cloakLaunch;
   state.cloakLaunchResolved = true;
   try {
-    const mod = (await import("cloakbrowser")) as unknown as {
+    const mod = (await new Function("return import('cloakbrowser')")()) as {
       launch?: (opts: unknown) => Promise<Browser>;
     };
     state.cloakLaunch = mod.launch ?? null;
