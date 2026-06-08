@@ -38,6 +38,13 @@ export const WEB_SESSION_CREDENTIAL_REQUIREMENTS = {
     acceptsFullCookieHeader: true,
     storageKeys: ["cookie", "__Secure-1PSID", "__Secure-1PSIDTS"],
   },
+  "gemini-business": {
+    kind: "cookie",
+    credentialName: "__Secure-1PSID (optional: __Secure-1PSIDTS)",
+    placeholder: "__Secure-1PSID=...; __Secure-1PSIDTS=... (from business.gemini.google)",
+    acceptsFullCookieHeader: true,
+    storageKeys: ["cookie", "__Secure-1PSID", "__Secure-1PSIDTS"],
+  },
   "perplexity-web": {
     kind: "cookie",
     credentialName: "__Secure-next-auth.session-token",
