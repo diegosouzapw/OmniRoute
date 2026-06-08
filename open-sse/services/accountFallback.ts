@@ -911,6 +911,7 @@ function parseDelayString(value: unknown): number | null {
  */
 export function parseRetryFromErrorText(errorText: unknown): number | null {
   if (!errorText || typeof errorText !== "string") return null;
+  const msg: string = String(errorText);
 
   // Issue #2321: Anthropic OAuth occasionally embeds an absolute ISO 8601
   // timestamp instead of a relative duration (e.g. "Try again at
@@ -918,7 +919,7 @@ export function parseRetryFromErrorText(errorText: unknown): number | null {
   // Convert to a future-duration in milliseconds if it parses.
   const isoMatch = RegExp(
     /\b(?:try again at|wait until|reset(?:s)? at|available at|retry after)\s+(\d{4}-\d{2}-\d{2}[Tt ]\d{2}:\d{2}(?::\d{2})?(?:\.\d+)?(?:Z|[+-]\d{2}:?\d{2})?)/i
-  ).exec(errorText);
+  ).exec(msg);
   if (isoMatch) {
     const parsedTs = Date.parse(isoMatch[1]);
     if (Number.isFinite(parsedTs)) {
@@ -927,15 +928,15 @@ export function parseRetryFromErrorText(errorText: unknown): number | null {
     }
   }
 
-  const match = RegExp(/reset after (\d+h)?(\d+m)?(\d+s)?/i).exec(errorText);
+  const match = RegExp(/reset after (\d+h)?(\d+m)?(\d+s)?/i).exec(msg);
   if (match?.[1] || match?.[2] || match?.[3]) return computeDurationMs(match);
 
   // Variant without "reset after": "will reset after XhYmZs"
-  const altMatch = RegExp(/will reset after (\d+h)?(\d+m)?(\d+s)?/i).exec(errorText);
+  const altMatch = RegExp(/will reset after (\d+h)?(\d+m)?(\d+s)?/i).exec(msg);
   if (altMatch?.[1] || altMatch?.[2] || altMatch?.[3]) return computeDurationMs(altMatch);
 
   // Antigravity / Cloud Code phrasing: "Resets in 164h27m24s".
-  const resetsInMatch = RegExp(/resets? in (\d+h)?(\d+m)?(\d+s)?/i).exec(errorText);
+  const resetsInMatch = RegExp(/resets? in (\d+h)?(\d+m)?(\d+s)?/i).exec(msg);
   if (resetsInMatch?.[1] || resetsInMatch?.[2] || resetsInMatch?.[3]) {
     return computeDurationMs(resetsInMatch);
   }

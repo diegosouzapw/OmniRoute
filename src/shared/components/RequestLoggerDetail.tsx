@@ -261,7 +261,7 @@ export default function RequestLoggerDetail({
     cacheSource === "semantic"
       ? "bg-emerald-500/20 text-emerald-700 dark:text-emerald-300 border-emerald-500/30"
       : "bg-sky-500/20 text-sky-700 dark:text-sky-300 border-sky-500/30";
-  maskAccount(detail?.account || log.account, emailsVisible);
+  const accountLabel = maskAccount(detail?.account || log.account, emailsVisible);
   return (
     <div
       className="fixed inset-0 z-50 flex items-start justify-center pt-[5vh]"
@@ -370,7 +370,7 @@ export default function RequestLoggerDetail({
               </div>
               <div className="min-w-[120px] flex-1">
                 <div className="text-[10px] text-text-muted uppercase tracking-wider mb-1">Account</div>
-                <div className="text-sm font-medium">{log.account || "-"}</div>
+                <div className="text-sm font-medium">{accountLabel}</div>
               </div>
             </div>
           ) : (
@@ -481,7 +481,7 @@ export default function RequestLoggerDetail({
                 <div className="text-[10px] text-text-muted uppercase tracking-wider mb-1">
                   Account
                 </div>
-                <div className="text-sm font-medium">{detail?.account || log.account || "-"}</div>
+                <div className="text-sm font-medium">{accountLabel}</div>
               </div>
               <div>
                 <div className="text-[10px] text-text-muted uppercase tracking-wider mb-1">

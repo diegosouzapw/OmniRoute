@@ -43,27 +43,7 @@ export async function GET(req: Request) {
           hasPipelineDetails: true,
         };
 
-        // If streamChunks are not yet populated, give a short grace period to avoid
-        // race where the stream logger hasn't injected chunks into the in-memory
-        // pending detail yet. Poll for up to 1000ms.
-        if (!pipelinePayloads.streamChunks || Object.keys(pipelinePayloads.streamChunks).length === 0) {
-          const start = Date.now();
-          while (Date.now() - start < 1000) {
-            try {
-              const refreshed = getPendingById().get(id);
-              if (refreshed?.streamChunks && Object.keys(refreshed.streamChunks).length > 0) {
-                activeEntry.pipelinePayloads.streamChunks = refreshed.streamChunks;
-                break;
-              }
-            } catch (e) {
-              // ignore
-            }
-            // small sleep
-            await new Promise((r) => setTimeout(r, 100));
-          }
-        }
-
-          return NextResponse.json(activeEntry);
+        return NextResponse.json(activeEntry);
         }
     } catch (e) {
         console.warn("/api/logs/[id] - failed to read active pending detail:", e);

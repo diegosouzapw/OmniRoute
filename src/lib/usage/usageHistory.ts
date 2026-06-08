@@ -426,15 +426,21 @@ export function getCompletedDetails(): Map<string, PendingRequestDetail> {
 }
 
 export function updatePendingRequestStreamChunks(
-  id: string,
+  model: string,
+  provider: string,
+  connectionId: string | null,
   streamChunks: {
     provider?: string[];
     openai?: string[];
     client?: string[];
   } | null
 ) {
-
-  pendingById[id].streamChunks = streamChunks;
+  if (!connectionId) return;
+  const modelKey = provider ? `${model} (${provider})` : model;
+  if (!isSafeKey(modelKey)) return;
+  const details = pendingRequests.details[connectionId]?.[modelKey];
+  if (!details?.length) return;
+  details[0].streamChunks = streamChunks;
 }
 
 /**
