@@ -2284,6 +2284,22 @@ export const APIKEY_PROVIDERS = {
     apiHint:
       "Discounted API proxy for 40+ models including GPT-5, Claude Opus 4.6, Claude Sonnet 4.6, Qwen 3.5. Get your API key at https://freeaiapikey.com/dashboard. Base URL: https://freeaiapikey.com/v1.",
   },
+  zenmux: {
+    id: "zenmux",
+    alias: "zm",
+    name: "ZenMux",
+    icon: "neurology",
+    color: "#7C3AED",
+    textIcon: "ZM",
+    website: "https://zenmux.ai",
+    hasFree: true,
+    freeNote:
+      "Free tier includes access to Gemini 3 Flash, DeepSeek V3.2, Grok 4.1 Fast, Mistral Large, and more. Get your API key at https://zenmux.ai.",
+    authHint:
+      "Use your ZenMux API key in Authorization: Bearer <key>. ZenMux is fully OpenAI-compatible. Base URL: https://zenmux.ai/api/v1.",
+    apiHint:
+      "ZenMux exposes an OpenAI-compatible chat completions endpoint at /api/v1/chat/completions, plus Anthropic Messages (/api/anthropic/v1/messages) and Google Gemini (/api/vertex-ai) protocol surfaces. OmniRoute uses the OpenAI protocol.",
+  },
 };
 
 // Sub-categories within APIKEY_PROVIDERS (used by dashboard and catalog views).

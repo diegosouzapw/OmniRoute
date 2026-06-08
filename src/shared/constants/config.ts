@@ -29,6 +29,7 @@ export const PROVIDER_ENDPOINTS = {
   minimax: "https://api.minimax.io/anthropic/v1/messages",
   "minimax-cn": "https://api.minimaxi.com/anthropic/v1/messages",
   crof: "https://crof.ai/v1/chat/completions",
+  zenmux: "https://zenmux.ai/api/v1/chat/completions",
   openai: "https://api.openai.com/v1/chat/completions",
   anthropic: "https://api.anthropic.com/v1/messages",
   gemini: "https://generativelanguage.googleapis.com/v1beta/models",
