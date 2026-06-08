@@ -59,6 +59,11 @@ import type {
 import type { Model as ModelV2 } from "@opencode-ai/sdk/v2";
 import { z } from "zod";
 import {
+  logger as _logger,
+  setLogLevel,
+  type LogLevel as _LogLevel,
+} from "./logger.js";
+import {
   PROVIDER_TAG_SEPARATOR as _PROVIDER_TAG_SEPARATOR,
   shortProviderLabel as _shortProviderLabel,
   normaliseFreeLabel as _normaliseFreeLabel,
@@ -176,6 +181,9 @@ const featuresSchema = z
      *  detection, auto combo fetches, and naming pipeline decisions to
      *  console.warn. Default false. */
     startupDebug: z.boolean().optional(),
+    /** Log verbosity: error | warn | info | debug. Default warn.
+     *  startupDebug: true is equivalent to logLevel: "debug". */
+    logLevel: z.enum(["error", "warn", "info", "debug"]).optional(),
     apiFormat: apiFormatSchema,
   })
   .strict();
@@ -517,13 +525,21 @@ export const OmniRoutePlugin: Plugin = async (_input, options) => {
   const _prefixes =
     resolved.features?.apiFormat?.anthropicPrefixes ??
     DEFAULT_ANTHROPIC_PREFIXES;
-  console.warn(
-    `[omniroute-plugin] v${_ver} (${_hash}) initialized` +
+  _logger.always(
+    `v${_ver} (${_hash}) initialized` +
       ` providerId=${resolved.providerId}` +
       ` baseURL=${resolved.baseURL ?? "(from auth.json)"}` +
       ` modelCacheTtl=${resolved.modelCacheTtl}ms` +
       ` apiFormat=anthropic:[${_prefixes.join(",")}]` +
-      ` debugLog=${resolved.features?.debugLog ?? false}`,
+      ` debugLog=${resolved.features?.debugLog ?? false}` +
+      ` logLevel=${resolved.features?.startupDebug ? "debug" : (resolved.features?.logLevel ?? "warn")}`,
+  );
+
+  // Wire log level: startupDebug:true → "debug", explicit logLevel wins.
+  setLogLevel(
+    resolved.features?.startupDebug
+      ? "debug"
+      : (resolved.features?.logLevel ?? "warn"),
   );
   return {
     auth: createOmniRouteAuthHook(resolved),
@@ -1451,28 +1467,31 @@ export const defaultOmniRouteEnrichmentFetcher: OmniRouteEnrichmentFetcher =
       clearTimeout(priceTimer);
     }
 
-    // ── 3. Free model budgets from /api/free-models ────────────────────────
+    // ── 3. Free model budgets from /api/free-tier/summary ──────────────────
     // Best-effort fetch: populates freeType/monthlyTokens/creditTokens on
-    // enrichment entries that match. 404 = endpoint doesn't exist yet — skip.
+    // enrichment entries that match. 404 = endpoint doesn't exist — skip.
+    // Uses the EXISTING /api/free-tier/summary endpoint (no new server code).
     const freeAc = new AbortController();
     const freeTimer = setTimeout(() => freeAc.abort(), timeoutMs);
     try {
-      const res = await fetch(`${root}/api/free-models`, {
+      const res = await fetch(`${root}/api/free-tier/summary`, {
         method: "GET",
         headers,
         signal: freeAc.signal,
       });
       if (res.ok) {
         const body = (await res.json()) as unknown;
-        // Accept both {models:[...]} envelope and bare array
-        const freeModels: unknown[] = Array.isArray(body)
-          ? body
-          : body &&
-              typeof body === "object" &&
-              Array.isArray((body as { models?: unknown }).models)
-            ? ((body as { models: unknown[] }).models as unknown[])
-            : [];
-        for (const fm of freeModels) {
+        // Response shape: { perModel: FreeModelBudget[], ... }
+        const perModel: unknown[] =
+          body &&
+          typeof body === "object" &&
+          Array.isArray((body as { perModel?: unknown }).perModel)
+            ? ((body as { perModel: unknown[] }).perModel as unknown[])
+            : Array.isArray(body)
+              ? (body as unknown[])
+              : [];
+        let matched = 0;
+        for (const fm of perModel) {
           if (!fm || typeof fm !== "object") continue;
           const fmObj = fm as Record<string, unknown>;
           const provider =
@@ -1490,8 +1509,14 @@ export const defaultOmniRouteEnrichmentFetcher: OmniRouteEnrichmentFetcher =
             typeof fmObj.creditTokens === "number"
               ? fmObj.creditTokens
               : undefined;
-          // Match against existing enrichment entries (namespaced and bare)
-          const candidates = [`${provider}/${modelId}`, modelId];
+          // Match against enrichment entries: namespaced, bare, and displayName
+          const displayName =
+            typeof fmObj.displayName === "string" ? fmObj.displayName : "";
+          const candidates = [
+            `${provider}/${modelId}`,
+            modelId,
+            ...(displayName ? [displayName] : []),
+          ];
           for (const key of candidates) {
             const entry = out.get(key);
             if (entry) {
@@ -1499,9 +1524,14 @@ export const defaultOmniRouteEnrichmentFetcher: OmniRouteEnrichmentFetcher =
               if (monthlyTokens !== undefined)
                 entry.monthlyTokens = monthlyTokens;
               if (creditTokens !== undefined) entry.creditTokens = creditTokens;
+              matched++;
+              break;
             }
           }
         }
+        _logger.debug(
+          `free-tier/summary: ${perModel.length} models returned, ${matched} matched enrichment entries`,
+        );
       }
     } catch {
       // Soft-fail; free metadata is optional.
