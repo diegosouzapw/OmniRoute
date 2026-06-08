@@ -5119,7 +5119,7 @@ export async function handleChatCore({
           cacheSource: "upstream",
         });
         persistFailureUsage(HTTP_STATUS.BAD_GATEWAY, "invalid_sse_payload");
-        trackPendingRequest(model, provider, connectionId, false);
+        trackPendingRequest(model, provider, pendingConnId, false);
         return createErrorResult(HTTP_STATUS.BAD_GATEWAY, invalidSseMessage);
       }
 
