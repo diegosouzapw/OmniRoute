@@ -294,7 +294,6 @@ export function translateRequest(
     thinkingEnabled: hasThinkingConfig(result),
     supportsReasoning: supportsReasoning({ provider: normalizedProvider, model: normalizedModel }),
     interleavedField: resolvedCapabilities?.interleavedField ?? null,
-    allowLegacyFallback: false,
   });
   if (isReasoner && result.messages && Array.isArray(result.messages)) {
     const canReplayReasoningOnly = isDeepSeekReplayTarget(normalizedProvider, normalizedModel);
