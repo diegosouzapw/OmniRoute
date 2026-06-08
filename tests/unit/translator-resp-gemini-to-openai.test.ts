@@ -846,3 +846,51 @@ test("Gemini stream: index mismatch regression test with zero-width characters i
   assert.equal(toolCalls[0].function.arguments, '{"command":"whoami"}');
 });
 
+test("Gemini stream: partial tool call with (empty) prefix check at chunk end does not leak (empty)", () => {
+  const state = createStreamingState();
+  const chunk1 = {
+    responseId: "resp-empty-leak",
+    modelVersion: "gemini-3.5-flash-low",
+    candidates: [
+      {
+        content: {
+          parts: [
+            {
+              text: "Результат: (empty)[Tool ca",
+            },
+          ],
+        },
+      },
+    ],
+  };
+
+  const chunk2 = {
+    candidates: [
+      {
+        content: {
+          parts: [
+            {
+              text: "ll: terminal]\nArguments: {\"command\":\"whoami\"}",
+            },
+          ],
+        },
+        finishReason: "STOP",
+      },
+    ],
+  };
+
+  const res1 = geminiToOpenAIResponse(chunk1, state) || [];
+  const content1 = res1.map((event) => event.choices?.[0]?.delta?.content || "").join("");
+  assert.equal(content1, "Результат: "); // (empty) must be buffered, not leaked!
+
+  const res2 = geminiToOpenAIResponse(chunk2, state) || [];
+  const content2 = res2.map((event) => event.choices?.[0]?.delta?.content || "").join("");
+  assert.equal(content2, "");
+
+  assert.equal(state.toolCalls.size, 1);
+  const toolCall: any = Array.from(state.toolCalls.values())[0];
+  assert.equal(toolCall.function.name, "terminal");
+  assert.equal(toolCall.function.arguments, '{"command":"whoami"}');
+});
+
+

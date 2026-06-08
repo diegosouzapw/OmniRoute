@@ -238,18 +238,20 @@ export function geminiToOpenAIResponse(chunk, state) {
           let toolCallIndex = accumulated.lastIndexOf("[Tool call:");
           if (toolCallIndex < 0) {
             toolCallIndex = accumulated.lastIndexOf("(empty)[Tool call:");
+          } else if (toolCallIndex >= 7 && accumulated.slice(toolCallIndex - 7, toolCallIndex) === "(empty)") {
+            toolCallIndex -= 7;
           }
           if (toolCallIndex < 0) {
-            const lastBracket = accumulated.lastIndexOf("[");
-            if (lastBracket !== -1 && "[Tool call:".startsWith(accumulated.slice(lastBracket))) {
-              toolCallIndex = lastBracket;
+            const lastParen = accumulated.lastIndexOf("(");
+            if (
+              lastParen !== -1 &&
+              "(empty)[Tool call:".startsWith(accumulated.slice(lastParen))
+            ) {
+              toolCallIndex = lastParen;
             } else {
-              const lastParen = accumulated.lastIndexOf("(");
-              if (
-                lastParen !== -1 &&
-                "(empty)[Tool call:".startsWith(accumulated.slice(lastParen))
-              ) {
-                toolCallIndex = lastParen;
+              const lastBracket = accumulated.lastIndexOf("[");
+              if (lastBracket !== -1 && "[Tool call:".startsWith(accumulated.slice(lastBracket))) {
+                toolCallIndex = lastBracket;
               }
             }
           }
