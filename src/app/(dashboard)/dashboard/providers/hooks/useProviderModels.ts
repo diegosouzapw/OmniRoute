@@ -51,7 +51,48 @@ export function useProviderModels(providerId: string): UseProviderModelsResult {
         }
         const data = (await res.json()) as { data?: ProviderModel[] };
         if (cancelled) return;
-        setModels(data.data ?? []);
+
+        let list = data.data ?? [];
+
+        // Auto-sync from upstream if local catalog is empty
+        if (list.length === 0) {
+          setTimeout(async () => {
+            try {
+              const connRes = await fetch("/api/providers");
+              if (!connRes.ok) return;
+              const connData = (await connRes.json()) as {
+                connections?: Array<{ id: string; provider: string; isActive?: boolean }>;
+              };
+              const providerConn = connData.connections?.find(
+                (c) => (c.provider === providerId || c.id === providerId) && c.isActive !== false
+              );
+
+              if (providerConn) {
+                const syncRes = await fetch(
+                  `/api/providers/${encodeURIComponent(providerConn.id)}/sync-models?mode=sync`,
+                  { method: "POST" }
+                );
+
+                if (syncRes.ok && !cancelled) {
+                  const refetchRes = await fetch(
+                    `/api/v1/providers/${encodeURIComponent(providerId)}/models`
+                  );
+                  if (refetchRes.ok) {
+                    const refetchData = (await refetchRes.json()) as { data?: ProviderModel[] };
+                    if (!cancelled) {
+                      setModels(refetchData.data ?? []);
+                    }
+                  }
+                }
+              }
+            } catch (syncErr) {
+              console.log("Auto-fetch models failed:", syncErr);
+            }
+          }, 0);
+        }
+
+        if (cancelled) return;
+        setModels(list);
       } catch (err) {
         if (!cancelled) {
           setError(err instanceof Error ? err.message : "Failed to load models");
