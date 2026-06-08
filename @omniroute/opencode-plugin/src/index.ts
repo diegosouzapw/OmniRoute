@@ -201,6 +201,16 @@ export type OmniRoutePluginOptions = z.infer<typeof optionsSchema>;
 
 export const OMNIROUTE_PROVIDER_KEY = "omniroute" as const;
 
+/** Deployed plugin version (injected at build time by tsup define). */
+export const PLUGIN_VERSION: string =
+  ((globalThis as Record<string, unknown>).__PLUGIN_VERSION__ as string) ??
+  "dev";
+
+/** Deployed plugin git commit hash (injected at build time by tsup define). */
+export const PLUGIN_GIT_HASH: string =
+  ((globalThis as Record<string, unknown>).__PLUGIN_GIT_HASH__ as string) ??
+  "unknown";
+
 export const DEFAULT_MODEL_CACHE_TTL_MS = 300_000 as const;
 
 // Manual trim helpers avoid polynomial-regex CodeQL warnings on
@@ -1550,7 +1560,13 @@ export function applyProviderTag(
   if (!label) return model;
   const prefix = `${label}${PROVIDER_TAG_SEPARATOR}`;
   if (model.name.startsWith(prefix)) return model;
-  model.name = `${prefix}${model.name}`;
+  // When enrichment already prepended [Free], move it before the provider
+  // tag: "[Free] GPT-4.1" → "[Free] GHM - GPT-4.1" not "GHM - [Free] GPT-4.1"
+  if (model.name.startsWith("[Free] ")) {
+    model.name = `[Free] ${prefix}${model.name.slice(7)}`;
+  } else {
+    model.name = `${prefix}${model.name}`;
+  }
   return model;
 }
 
