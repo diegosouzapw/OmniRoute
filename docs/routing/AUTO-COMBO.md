@@ -6,7 +6,7 @@ lastUpdated: 2026-05-13
 
 # OmniRoute Auto-Combo Engine
 
-> **For Users**: Looking for a quick start? See the [Auto-Combo User Guide](../guides/AUTO-COMBO-GUIDE.md) for simple explanations and examples.
+> **For Users**: Looking for a quick start? See the [Auto-Combo User Guide](../getting-started/AUTO-COMBO-GUIDE.md) for simple explanations and examples.
 
 > Self-managing model chains with adaptive scoring + zero-config auto-routing
 

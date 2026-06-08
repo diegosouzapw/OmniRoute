@@ -6,6 +6,8 @@ lastUpdated: 2026-06-06
 
 # Provider Reference
 
+> **For Users**: Looking for a simple guide? See the [Providers Guide](../getting-started/PROVIDERS-GUIDE.md) for step-by-step instructions.
+
 > **Auto-generated** from `src/shared/constants/providers.ts` — do not edit by hand.
 > Regenerate with: `npm run gen:provider-reference`
 > **Last generated:** 2026-06-06
