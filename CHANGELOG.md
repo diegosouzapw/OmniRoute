@@ -8,6 +8,10 @@
 
 _Development cycle in progress — entries are added as work merges into `release/v3.8.16` and finalized by the release flow._
 
+### 🔧 Bug Fixes
+
+- **fix(mitm):** `getMitmStatus()` in the build-time stub (Docker image) now returns a graceful `{ running: false }` status instead of throwing, so the Agent Bridge UI shows a clean "stopped" state rather than an error banner in containerised deployments. ([#3390](https://github.com/diegosouzapw/OmniRoute/issues/3390))
+
 ---
 
 ## [3.8.15] — 2026-06-07
