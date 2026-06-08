@@ -555,3 +555,39 @@ export function stripTrailingAssistantOrphanToolUse(
   if (hasContent || hasToolCalls) result.push(newLast);
   return result;
 }
+
+/**
+ * Providers that strictly require the last message to be `user` or `tool`.
+ * A trailing `assistant` message with plain text content (no tool_use) is
+ * valid for Anthropic/OpenAI (signals "continue from here") but rejected by
+ * Mistral with: "Expected last role User or Tool … but got assistant" (#3396).
+ */
+const PROVIDERS_REQUIRING_USER_LAST_MESSAGE = new Set(["mistral"]);
+
+/**
+ * Strip a trailing `assistant` message that contains ONLY plain text (no
+ * `tool_use` / `tool_calls`) for providers that mandate user-last format.
+ *
+ * Call this AFTER `stripTrailingAssistantOrphanToolUse` on the upstream-send
+ * path so `tool_use` orphans are already removed before this check runs.
+ */
+export function stripTrailingAssistantForProvider(
+  messages: Record<string, unknown>[],
+  provider: string
+): Record<string, unknown>[] {
+  if (!PROVIDERS_REQUIRING_USER_LAST_MESSAGE.has(provider)) return messages;
+  if (!Array.isArray(messages) || messages.length === 0) return messages;
+
+  const last = messages[messages.length - 1];
+  if (!last || last.role !== "assistant") return messages;
+
+  // Only strip when the message has NO tool_use / tool_calls (those are
+  // handled by stripTrailingAssistantOrphanToolUse upstream of this call).
+  const hasToolUse =
+    Array.isArray(last.content) &&
+    (last.content as Record<string, unknown>[]).some((b) => b.type === "tool_use");
+  const hasToolCalls = Array.isArray(last.tool_calls) && (last.tool_calls as unknown[]).length > 0;
+  if (hasToolUse || hasToolCalls) return messages;
+
+  return messages.slice(0, messages.length - 1);
+}

@@ -106,6 +106,11 @@ async function installProviderFetchMock(page: Page) {
         return jsonResponse({ valid }, valid ? 200 : 400);
       }
 
+      // Stub sync-models so the import modal reaches "done" immediately after adding a connection
+      if (path.match(/^\/api\/providers\/[^/]+\/sync-models$/) && method === "POST") {
+        return jsonResponse({ syncedModels: 0, models: [], availableModelsCount: 0 });
+      }
+
       const testMatch = path.match(/^\/api\/providers\/([^/]+)\/test$/);
       if (testMatch && method === "POST") {
         state.retestCalls += 1;
@@ -261,6 +266,15 @@ test.describe("Providers management", () => {
       .toBeGreaterThan(0);
     await expect(page.getByText("Primary OpenAI")).toBeVisible();
     await expect.poll(async () => (await readProviderMockState(page)).connections.length).toBe(1);
+
+    // After save, the UI opens a model-import modal (setShowImportModal). The sync-models
+    // endpoint is mocked to return instantly (0 models), so the modal reaches "done" phase
+    // and shows a Close button. Dismiss it before interacting with the connection list.
+    const importDialog = page.getByRole("dialog");
+    // The Modal renders two "Close" elements (header X + footer button) — use .first()
+    await expect(importDialog.getByRole("button", { name: "Close" }).first()).toBeVisible({ timeout: 15_000 });
+    await importDialog.getByRole("button", { name: "Close" }).first().click();
+    await expect(importDialog).not.toBeVisible();
 
     await page.getByTitle(/^edit$/i).click();
     const editDialog = page.getByRole("dialog");

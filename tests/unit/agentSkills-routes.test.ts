@@ -5,7 +5,7 @@
  * Auth tested via requireManagementAuth with live DB in temp directory.
  *
  * Coverage goals:
- * - GET  /api/agent-skills           — happy path (42 skills), filters, invalid category
+ * - GET  /api/agent-skills           — happy path (43 skills), filters, invalid category
  * - GET  /api/agent-skills/[id]      — found, 404 not found
  * - GET  /api/agent-skills/[id]/raw  — found, 404 not found, 502 on GitHub failure
  * - GET  /api/agent-skills/coverage  — happy path
@@ -101,15 +101,15 @@ test.after(() => {
 // GET /api/agent-skills
 // ═════════════════════════════════════════════════════════════════════════════
 
-test("GET /api/agent-skills — returns 42 skills with count and coverage", async () => {
+test("GET /api/agent-skills — returns 43 skills with count and coverage", async () => {
   const req = makeRequest("GET", "http://localhost/api/agent-skills");
   const res = await listRoute.GET(req);
 
   assert.equal(res.status, 200);
   const body = (await res.json()) as { skills: unknown[]; count: number; coverage: unknown };
-  assert.equal(body.count, 42, `Expected 42 skills but got ${body.count}`);
+  assert.equal(body.count, 43, `Expected 43 skills but got ${body.count}`);
   assert.equal(Array.isArray(body.skills), true);
-  assert.equal(body.skills.length, 42);
+  assert.equal(body.skills.length, 43);
   assert.ok(body.coverage !== undefined, "coverage should be present");
 });
 

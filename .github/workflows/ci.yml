@@ -144,6 +144,21 @@ jobs:
       - run: npm ci
       - run: npm run check:node-runtime
       - run: npm run build
+      - name: Archive Next.js build for E2E shards
+        # Use tar so the archive preserves paths relative to CWD (.build/next/...).
+        # upload-artifact path-stripping is ambiguous when exclude patterns are used;
+        # an explicit tar avoids the double-nesting issue (.build/next/next/...).
+        run: |
+          tar -czf /tmp/e2e-build.tar.gz \
+            --exclude='.build/next/standalone/node_modules' \
+            --exclude='.build/next/cache' \
+            .build/next
+      - name: Upload Next.js build for E2E shards
+        uses: actions/upload-artifact@v4
+        with:
+          name: e2e-next-build
+          path: /tmp/e2e-build.tar.gz
+          retention-days: 1
 
   package-artifact:
     name: Package Artifact
@@ -498,14 +513,18 @@ jobs:
             }
 
   test-e2e:
-    name: E2E Tests (${{ matrix.shard }}/6)
+    name: E2E Tests (${{ matrix.shard }}/9)
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    # Build artifact from the `build` job is downloaded instead of rebuilding
+    # (~5min saved per shard). 9 shards (up from 6) reduces tests per shard by
+    # ~33%. Playwright browser is cached across runs (~1.5min saved per shard).
+    # Heavy shard target: ≤20min (was ~40min). Timeout 45min to cover slow runners.
+    timeout-minutes: 45
     needs: build
     strategy:
       fail-fast: false
       matrix:
-        shard: [1, 2, 3, 4, 5, 6]
+        shard: [1, 2, 3, 4, 5, 6, 7, 8, 9]
     env:
       JWT_SECRET: ci-test-secret-with-sufficient-length-for-validation
       API_KEY_SECRET: ci-test-api-key-secret-long
@@ -519,9 +538,23 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npm run check:node-runtime
+      - name: Cache Playwright browsers
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-chromium-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
+          restore-keys: playwright-chromium-${{ runner.os }}-
       - run: npx playwright install --with-deps chromium
-      - run: npm run build
-      - run: npx playwright test tests/e2e/*.spec.ts --shard=${{ matrix.shard }}/6
+      - name: Download Next.js build artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: e2e-next-build
+          path: /tmp/
+      - name: Extract Next.js build and restore standalone node_modules
+        run: |
+          tar -xzf /tmp/e2e-build.tar.gz
+          cp -r node_modules .build/next/standalone/node_modules
+      - run: npx playwright test tests/e2e/*.spec.ts --shard=${{ matrix.shard }}/9
 
   test-integration:
     name: Integration Tests (${{ matrix.shard }}/2)

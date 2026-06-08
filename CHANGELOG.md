@@ -4,6 +4,46 @@
 
 ---
 
+## [3.8.17] — Unreleased
+
+_Development cycle in progress — entries are added as work merges into `release/v3.8.17` and finalized by the release flow._
+
+---
+
+## [3.8.16] — 2026-06-08
+
+### ✨ New Features
+
+- **feat(vision-bridge):** auto-routing to the fastest available vision model — when a request carries image content and the selected model does not support vision, OmniRoute now transparently delegates to the best-match vision-capable model instead of returning an error. ([#3377](https://github.com/diegosouzapw/OmniRoute/pull/3377) — thanks @herjarsa)
+- **feat(web-session):** web-session pool observability — new MCP tool `get_web_session_pool_health` and a health-matrix REST response (`GET /api/web-session-pool/health`) expose per-provider slot counts, lease ages, and error budgets so operators can diagnose pool exhaustion without digging through logs. ([#3395](https://github.com/diegosouzapw/OmniRoute/pull/3395) — thanks @oyi77)
+- **feat(web-session):** adaptive keepalive threshold — the keepalive heartbeat interval now self-adjusts based on observed provider idle-disconnect behaviour instead of using a fixed constant, reducing both unnecessary pings and unexpected session drops. ([#3397](https://github.com/diegosouzapw/OmniRoute/pull/3397) — thanks @oyi77)
+- **feat(web-session):** bulk credential import endpoint (`POST /api/web-session/import`) — import a JSON array of session credentials in one call; each entry is validated and inserted atomically, with per-entry success/failure reported in the response. ([#3403](https://github.com/diegosouzapw/OmniRoute/pull/3403) — thanks @oyi77)
+- **feat(api):** REST API for session pool health (`GET /api/session-pool/health`) — a dashboard-facing endpoint that aggregates live slot usage, wait-queue depth, and error rates across all active session pools; wired to a new dashboard widget. ([#3404](https://github.com/diegosouzapw/OmniRoute/pull/3404) — thanks @oyi77)
+
+### 🔧 Bug Fixes
+
+- **fix(sse):** eliminate race window in `usageTokenBuffer` settings update — a concurrent save + stream-start could race to apply stale settings, causing token counts to roll back by up to 2 000 tokens after a restart; the update now uses an atomic read-modify-write on the shared settings ref. ([#3405](https://github.com/diegosouzapw/OmniRoute/pull/3405) — thanks @diegosouzapw)
+- **fix(context-cache):** server-side context-cache pinning now correctly persists across restarts; proxy message content no longer leaks into the upstream prompt; and the `context_cache_protection` toggle is properly saved to the DB on change. ([#3399](https://github.com/diegosouzapw/OmniRoute/pull/3399) — thanks @k0valik)
+- **fix(providers):** the provider settings page now refreshes its model list after a successful `sync-models` call — previously the stale list remained until a full page reload. ([#3402](https://github.com/diegosouzapw/OmniRoute/pull/3402) — thanks @0xtbug)
+- **fix(stream):** empty-choices chunks (choices array present but empty, no `finish_reason`) are now silently dropped rather than emitted as a `retry:` SSE event — removes spurious retry lines from streaming responses for providers that emit heartbeat keep-alive chunks. ([#3400](https://github.com/diegosouzapw/OmniRoute/pull/3400) — thanks @0xtbug)
+- **fix(account-fallback):** the connection cooldown deduplication state is now preserved across the fallback retry chain — previously a second concurrent failure on the same account could clear the dedupe flag set by the first, allowing the cooldown window to be extended twice. ([#3381](https://github.com/diegosouzapw/OmniRoute/pull/3381) — thanks @oyi77)
+- **fix(stream):** false-positive textual tool-call marker truncation — `containsTextualToolCallMarker` now tracks how much of the accumulated streamed content has already been emitted, so it only withholds the unemitted tail rather than re-scanning from the start on every new chunk. ([#3382](https://github.com/diegosouzapw/OmniRoute/pull/3382) — thanks @Ardem2025)
+- **fix(sanitizer):** `containsTextualToolCallContent()` now requires the complete `[Tool call: name]\nArguments:` header pattern instead of a bare `.includes("[Tool call:")` check — prevents the non-streaming response sanitizer from nulling out model responses that merely quote `[Tool call:]` in prose or code examples. ([#3355](https://github.com/diegosouzapw/OmniRoute/pull/3410) — thanks @diegosouzapw)
+- **fix(stream):** the streaming textual tool-call guard now flushes any remaining buffered content as plain text when the stream ends, regardless of whether the buffer contains `"Arguments:"` — previously, a partial/incomplete tool-call header that arrived at end-of-stream was silently dropped. ([#3355](https://github.com/diegosouzapw/OmniRoute/pull/3410) — thanks @diegosouzapw)
+- **fix(executor):** Mistral (and any provider in `PROVIDERS_REQUIRING_USER_LAST_MESSAGE`) no longer receives a trailing `assistant` message with plain text content — `stripTrailingAssistantForProvider` drops it on the upstream-send path, fixing the `400: Expected last role User or Tool … but got assistant` rejection. ([#3396](https://github.com/diegosouzapw/OmniRoute/pull/3409) — thanks @diegosouzapw)
+- **fix(mitm):** `getMitmStatus()` in the build-time stub (Docker image) now returns a graceful `{ running: false }` status instead of throwing, so the Agent Bridge UI shows a clean "stopped" state rather than an error banner in containerised deployments. ([#3390](https://github.com/diegosouzapw/OmniRoute/pull/3408) — thanks @diegosouzapw)
+- **fix(env):** corrected casing of `OMNIROUTE_TRACE` in `.env.example` and all related documentation files — was previously mixed-case in some places, causing the variable to be silently ignored on case-sensitive file systems. ([#3393](https://github.com/diegosouzapw/OmniRoute/pull/3393) — thanks @androw)
+- **fix(featureFlags):** `PRICING_SYNC_ENABLED` description now clearly states that the feature requires the corresponding environment variable to be set — removes the ambiguity that led operators to enable it via the UI only and wonder why sync never ran. ([#3394](https://github.com/diegosouzapw/OmniRoute/pull/3394) — thanks @androw)
+
+### 📝 Maintenance
+
+- **ci(docker):** the CI pipeline now builds and publishes the `-web` image variant in the same Docker publish workflow, so both the standard and browser-backed images stay in sync on every release. ([#3389](https://github.com/diegosouzapw/OmniRoute/pull/3389) — thanks @zhiru)
+- **ci(e2e):** E2E shard suite hardened — timeout raised to 45 min for the heaviest shard; build artifact now uses an explicit `tar` bundle to avoid `upload-artifact@v4` LCA path ambiguity; `node_modules` copied into standalone after download; browser cache added to cut cold-shard time; `sync-models` endpoint mocked in `providers-management.spec.ts` so the import modal reaches "done" immediately. (thanks @diegosouzapw)
+- **docs:** Codex CLI configuration guide added to the dashboard (`/dashboard/codex-config`) — covers profile naming, model selection, and the `CODEX_*` environment variables accepted by OmniRoute. (thanks @diegosouzapw)
+- **chore(agentSkills):** catalog expanded to 43 entries — `config-codex-cli` added as a new `CONFIG_SKILL_IDS` category; all skill-count assertions updated across unit and integration test suites; `next-fetch` opts cast to satisfy the TypeScript overload signature in the skill runner. (thanks @diegosouzapw)
+
+---
+
 ## [3.8.15] — 2026-06-07
 
 ### ✨ New Features

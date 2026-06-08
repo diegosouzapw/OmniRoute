@@ -992,6 +992,341 @@ Returns the public A2A agent card (name, description, capabilities, skill catalo
 
 ---
 
+## ACP (Agent Client Protocol) Management
+
+The ACP framework lets you spawn CLI agents (Claude Code, Codex, Gemini CLI, etc.)
+as child processes. These endpoints manage ACP agent detection and custom agent
+registration.
+
+| Method | Path                    | Description                                                                              |
+| ------ | ----------------------- | ---------------------------------------------------------------------------------------- |
+| GET    | `/api/acp/agents`       | List all known CLI agents (built-in + custom) with installation status, version, binary |
+| POST   | `/api/acp/agents`       | Register a custom ACP agent — body: `{id, name, binary, versionCommand, providerAlias, spawnArgs, protocol}` |
+| DELETE | `/api/acp/agents/[id]`  | Remove a custom ACP agent                                                                |
+| POST   | `/api/acp/agents/refresh` | Force refresh of the agent detection cache (60s TTL)                                  |
+
+**Response example** (`GET /api/acp/agents`):
+
+```json
+{
+  "agents": [
+    {
+      "id": "claude",
+      "name": "Claude Code CLI",
+      "binary": "claude",
+      "version": "1.0.45",
+      "installed": true,
+      "protocol": "stdio",
+      "providerAlias": "claude",
+      "isCustom": false
+    },
+    {
+      "id": "my-custom-cli",
+      "name": "My Custom CLI",
+      "installed": false,
+      "protocol": "stdio",
+      "providerAlias": "my-provider",
+      "isCustom": true
+    }
+  ],
+  "cacheTtlMs": 60000,
+  "cacheAge": 1234
+}
+```
+
+**Auth:** Requires management session (dashboard `auth_token` cookie) or a
+management-scoped API key.
+
+See [ACP Framework](../frameworks/ACP.md) for full details.
+
+---
+
+## Analytics & Observability
+
+Real-time analytics endpoints for monitoring routing, compression, and provider
+diversity. These power the `/dashboard/analytics/*` pages.
+
+### Auto-routing analytics
+
+| Method | Path                                | Description                                                                                  |
+| ------ | ----------------------------------- | -------------------------------------------------------------------------------------------- |
+| GET    | `/api/analytics/auto-routing`       | Aggregate auto-routing stats: total calls, strategy distribution, tier distribution, top providers |
+| GET    | `/api/analytics/auto-routing?days=7` | Time-windowed stats (default 24h)                                                           |
+
+**Response example**:
+
+```json
+{
+  "window": "24h",
+  "totalCalls": 1234,
+  "strategyBreakdown": {
+    "rules": 800,
+    "cost": 200,
+    "latency": 150,
+    "sla-aware": 50,
+    "lkgp": 34
+  },
+  "tierBreakdown": {
+    "ultra": 100,
+    "pro": 500,
+    "standard": 400,
+    "free": 234
+  },
+  "topProviders": [
+    { "provider": "openai", "calls": 500, "avgLatencyMs": 850 },
+    { "provider": "anthropic", "calls": 300, "avgLatencyMs": 1200 }
+  ]
+}
+```
+
+### Compression analytics
+
+| Method | Path                              | Description                                                                          |
+| ------ | --------------------------------- | ------------------------------------------------------------------------------------ |
+| GET    | `/api/analytics/compression`      | Aggregate compression stats: tokens saved, savings %, mode distribution, engine usage |
+
+**Response example**:
+
+```json
+{
+  "window": "24h",
+  "totalOriginalTokens": 5000000,
+  "totalCompressedTokens": 3500000,
+  "totalSavings": 1500000,
+  "savingsPct": 30.0,
+  "modeBreakdown": {
+    "lite": 400,
+    "standard": 600,
+    "aggressive": 100,
+    "ultra": 50,
+    "rtk": 84
+  },
+  "engineBreakdown": {
+    "caveman": 800,
+    "rtk": 434
+  }
+}
+```
+
+### Provider diversity tracking
+
+| Method | Path                              | Description                                                                                  |
+| ------ | --------------------------------- | -------------------------------------------------------------------------------------------- |
+| GET    | `/api/analytics/diversity`        | Shannon entropy-based diversity tracking: prevents single points of failure by measuring provider spread |
+
+**Response example**:
+
+```json
+{
+  "window": "24h",
+  "shannonEntropy": 2.45,
+  "maxEntropy": 3.17,
+  "diversityRatio": 0.77,
+  "providerUsage": {
+    "openai": 0.40,
+    "anthropic": 0.25,
+    "google": 0.20,
+    "kiro": 0.15
+  },
+  "warnings": [
+    "OpenAI accounts for 40% of traffic — consider diversifying"
+  ]
+}
+```
+
+**Auth:** Requires management session or management-scoped API key.
+
+---
+
+## Admin Operations
+
+Admin-only endpoints for operational management.
+
+| Method | Path                            | Description                                                                                    |
+| ------ | ------------------------------- | ---------------------------------------------------------------------------------------------- |
+| GET    | `/api/admin/concurrency`         | Read current concurrency limits (global + per-provider)                                        |
+| POST   | `/api/admin/concurrency`         | Update concurrency limits — body: `{global?: number, perProvider?: Record<string, number>}`     |
+| GET    | `/api/admin/circuit-breaker`     | Read circuit breaker states for all providers                                                  |
+| POST   | `/api/admin/circuit-breaker/reset` | Manually reset a circuit breaker — body: `{providerId}`                                       |
+| GET    | `/api/admin/rate-limits`         | Read current rate limit configurations                                                         |
+| POST   | `/api/admin/rate-limits`         | Update rate limit configs — body: `{providerId, requestsPerMinute, tokensPerMinute}`          |
+
+**Auth:** Requires management session with admin scope.
+
+---
+
+## CLI Tools Management
+
+Manage CLI tools that integrate with OmniRoute (antigravity, chipotle, commandCode,
+devin-cli, etc.). See [Provider Reference](./PROVIDER_REFERENCE.md) for the full list.
+
+| Method | Path                              | Description                                                                                  |
+| ------ | --------------------------------- | -------------------------------------------------------------------------------------------- |
+| GET    | `/api/cli-tools/all-statuses`       | Status of all CLI tools (installed, version, last seen)                                       |
+| GET    | `/api/cli-tools/[id]/status`       | Status of a specific CLI tool (id can be: antigravity, chipotle, commandCode, devin-cli, etc.) |
+| POST   | `/api/cli-tools/apply`             | Apply a CLI tool configuration to a provider connection                                     |
+| GET    | `/api/cli-tools/backups`           | List CLI tool configuration backups                                                          |
+| POST   | `/api/cli-tools/backups`           | Create a backup of all CLI tool configurations                                                |
+| POST   | `/api/cli-tools/[id]/restore`      | Restore a CLI tool from a backup                                                             |
+| GET    | `/api/cli-tools/antigravity-mitm`   | Antigravity MITM proxy status (the "antigravity-mitm" CLI tool)                             |
+| POST   | `/api/cli-tools/antigravity-mitm/alias` | Configure antigravity-mitm aliases                                                          |
+
+**Auth:** Requires management session.
+
+---
+
+## Agent Skills
+
+Manage AI agent skills (similar to OpenAI's custom GPTs but for agents).
+
+| Method | Path                              | Description                                                                                  |
+| ------ | --------------------------------- | -------------------------------------------------------------------------------------------- |
+| GET    | `/api/agent-skills`                | List all agent skills (built-in + custom)                                                    |
+| GET    | `/api/agent-skills/[id]`           | Get a specific agent skill                                                                   |
+| POST   | `/api/agent-skills`                | Create a custom agent skill — body: `{name, description, prompt, model?, temperature?}`    |
+| PUT    | `/api/agent-skills/[id]`           | Update a custom agent skill                                                                  |
+| DELETE | `/api/agent-skills/[id]`           | Delete a custom agent skill                                                                  |
+| GET    | `/api/agent-skills/[id]/raw`       | Get raw prompt + metadata (no execution)                                                    |
+| POST   | `/api/agent-skills/generate`       | AI-generate a new skill from a natural language description                                   |
+
+**Auth:** Requires management session or management-scoped API key.
+
+---
+
+## Cache Management
+
+Manage the semantic cache and reasoning cache.
+
+| Method | Path                              | Description                                                                                  |
+| ------ | --------------------------------- | -------------------------------------------------------------------------------------------- |
+| GET    | `/api/cache`                       | Cache overview: total entries, hit rate, size on disk                                        |
+| GET    | `/api/cache/entries`               | List cached entries (with pagination)                                                        |
+| DELETE | `/api/cache/entries`               | Delete cache entries (filter by query parameters)                                             |
+| GET    | `/api/cache/stats`                 | Detailed cache statistics (per-provider, per-model)                                           |
+| GET    | `/api/cache/reasoning`             | Reasoning cache status (for reasoning replay)                                                |
+| POST   | `/api/cache/reasoning/clear`       | Clear reasoning cache                                                                        |
+| POST   | `/api/cache/clear`                 | Clear all cache entries                                                                      |
+
+**Auth:** Requires management session.
+
+---
+
+## Memory System
+
+Manage persistent memory (FTS5 + vector embeddings).
+
+| Method | Path                              | Description                                                                                  |
+| ------ | --------------------------------- | -------------------------------------------------------------------------------------------- |
+| GET    | `/api/memory`                      | List memory entries (filter by scope, type, search query)                                   |
+| POST   | `/api/memory`                      | Create a new memory entry — body: `{scope, type, content, metadata?}`                        |
+| GET    | `/api/memory/[id]`                 | Get a specific memory entry                                                                   |
+| PUT    | `/api/memory/[id]`                 | Update a memory entry                                                                         |
+| DELETE | `/api/memory/[id]`                 | Delete a memory entry                                                                         |
+| GET    | `/api/memory/search`               | Search memory (FTS5 + vector)                                                                |
+| POST   | `/api/memory/clear`                | Clear memory entries (with filters)                                                          |
+| GET    | `/api/memory/stats`                | Memory statistics (total entries, embedding coverage, etc.)                                    |
+
+**Auth:** Requires management session or management-scoped API key.
+
+---
+
+## Webhooks
+
+Manage webhook subscriptions for events.
+
+| Method | Path                              | Description                                                                                  |
+| ------ | --------------------------------- | -------------------------------------------------------------------------------------------- |
+| GET    | `/api/webhooks`                    | List all webhook subscriptions                                                               |
+| POST   | `/api/webhooks`                    | Create a webhook subscription — body: `{url, events[], secret?, active?}`                    |
+| GET    | `/api/webhooks/[id]`               | Get a specific webhook subscription                                                          |
+| PUT    | `/api/webhooks/[id]`               | Update a webhook subscription                                                                 |
+| DELETE | `/api/webhooks/[id]`               | Delete a webhook subscription                                                                 |
+| GET    | `/api/webhooks/events`             | List all available webhook event types                                                        |
+| GET    | `/api/webhooks/[id]/deliveries`    | List delivery history for a webhook (success/failure log)                                    |
+| POST   | `/api/webhooks/[id]/test`          | Send a test event to a webhook                                                               |
+
+**Auth:** Requires management session.
+
+See [Webhooks Framework](../frameworks/WEBHOOKS.md) for full event types.
+
+---
+
+## Skills Framework
+
+Manage Skills (the agentic extensions framework).
+
+| Method | Path                              | Description                                                                                  |
+| ------ | --------------------------------- | -------------------------------------------------------------------------------------------- |
+| GET    | `/api/skills`                      | List all installed skills (built-in + custom)                                                 |
+| POST   | `/api/skills/install`              | Install a skill from a local path or URL                                                      |
+| DELETE | `/api/skills/[id]`                 | Uninstall a skill                                                                             |
+| POST   | `/api/skills/[id]/enable`          | Enable a disabled skill                                                                      |
+| POST   | `/api/skills/[id]/disable`         | Disable an enabled skill                                                                     |
+| POST   | `/api/skills/[id]/execute`         | Execute a skill with input                                                                   |
+| GET    | `/api/skills/[id]/executions`      | List execution history for a skill                                                            |
+
+**Auth:** Requires management session or management-scoped API key.
+
+See [Skills Framework](../frameworks/SKILLS.md) for full details.
+
+---
+
+## Plugins
+
+Manage OmniRoute plugins (third-party extensions).
+
+| Method | Path                              | Description                                                                                  |
+| ------ | --------------------------------- | -------------------------------------------------------------------------------------------- |
+| GET    | `/api/plugins`                     | List installed plugins                                                                        |
+| POST   | `/api/plugins/install`             | Install a plugin from a local path or URL                                                     |
+| DELETE | `/api/plugins/[id]`                | Uninstall a plugin                                                                            |
+| POST   | `/api/plugins/[id]/enable`         | Enable a disabled plugin                                                                     |
+| POST   | `/api/plugins/[id]/disable`        | Disable an enabled plugin                                                                    |
+| GET    | `/api/plugins/[id]/config`         | Get plugin configuration                                                                      |
+| PUT    | `/api/plugins/[id]/config`         | Update plugin configuration                                                                  |
+
+**Auth:** Requires management session.
+
+See [Plugins Framework](../plugins/PLUGIN_SDK.md) for full details.
+
+---
+
+## Shadow Routing
+
+Beta-test new providers without affecting production traffic.
+
+| Method | Path                              | Description                                                                                  |
+| ------ | --------------------------------- | -------------------------------------------------------------------------------------------- |
+| GET    | `/api/shadow`                      | List all shadow routing rules                                                                |
+| POST   | `/api/shadow`                      | Create a shadow routing rule — body: `{providerId, shadowProviderId, trafficPct, duration?}` |
+| DELETE | `/api/shadow/[id]`                 | Delete a shadow routing rule                                                                 |
+| GET    | `/api/shadow/[id]/results`         | Get shadow routing results (comparison metrics between real and shadow traffic)             |
+| GET    | `/api/shadow/metrics`              | Aggregate shadow routing metrics across all rules                                           |
+
+**Auth:** Requires management session.
+
+---
+
+## Guardrails
+
+Manage runtime guardrails (PII detection, prompt injection detection, vision bridging).
+
+| Method | Path                              | Description                                                                                  |
+| ------ | --------------------------------- | -------------------------------------------------------------------------------------------- |
+| GET    | `/api/guardrails`                  | List all guardrails and their status (enabled/disabled)                                      |
+| POST   | `/api/guardrails/[id]/enable`      | Enable a guardrail                                                                          |
+| POST   | `/api/guardrails/[id]/disable`     | Disable a guardrail                                                                         |
+| GET    | `/api/guardrails/logs`             | Get guardrail trigger logs (PII detections, injection attempts, etc.)                        |
+| POST   | `/api/guardrails/test`             | Test a guardrail against a sample input                                                     |
+
+**Auth:** Requires management session.
+
+See [Security > Guardrails](../security/GUARDRAILS.md) for full details.
+
+---
+
+---
+
 ## Authentication
 
 - Dashboard routes (`/dashboard/*`) use `auth_token` cookie

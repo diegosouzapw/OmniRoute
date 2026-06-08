@@ -1,5 +1,5 @@
 /**
- * catalog.ts — single source of truth for the 42-entry Agent Skills catalog.
+ * catalog.ts — single source of truth for the 43-entry Agent Skills catalog.
  *
  * Consumers: REST routes (/api/agent-skills/*), MCP tools, A2A skill, Generator.
  * Do NOT import this from UI components directly — use the REST API instead.
@@ -36,6 +36,11 @@ export const API_SKILL_IDS: readonly string[] = [
   "omni-agents-a2a",
   "omni-version-manager",
   "omni-inference",
+] as const;
+
+/** Config skill IDs. */
+export const CONFIG_SKILL_IDS: readonly string[] = [
+  "config-codex-cli",
 ] as const;
 
 /** 20 canonical CLI skill IDs, in spec order. */
@@ -87,7 +92,7 @@ function deriveCatalog(): AgentSkill[] {
 // ── Public API ───────────────────────────────────────────────────────────────
 
 /**
- * Returns the full catalog (42 entries). Cached in module scope after first call.
+ * Returns the full catalog (43 entries). Cached in module scope after first call.
  * Safe to call multiple times — re-derives only after `refreshCatalog()`.
  */
 export function getCatalog(): AgentSkill[] {
@@ -138,11 +143,14 @@ export function computeCoverage(): SkillCoverage {
 
   const apiHave = catalog.filter((s) => s.category === "api" && presentIds.has(s.id)).length;
   const cliHave = catalog.filter((s) => s.category === "cli" && presentIds.has(s.id)).length;
+  const configTotal = CONFIG_SKILL_IDS.length;
+  const configHave = catalog.filter((s) => s.category === "config" && presentIds.has(s.id)).length;
 
   return {
     api: { have: apiHave, total: 22 },
     cli: { have: cliHave, total: 20 },
-    totalSkills: apiHave + cliHave,
+    config: { have: configHave, total: configTotal },
+    totalSkills: apiHave + cliHave + configHave,
     generatedAt: new Date().toISOString(),
   };
 }
@@ -189,10 +197,10 @@ export async function fetchSkillMarkdown(id: string): Promise<SkillMarkdown> {
     throw new Error(`Skill not found in catalog: ${id}`);
   }
 
-  const response = await fetch(skill.rawUrl, {
-    // @ts-expect-error — Next.js extended fetch options
-    next: { revalidate: 3600 },
-  });
+  const response = await fetch(
+    skill.rawUrl,
+    { next: { revalidate: 3600 } } as unknown as RequestInit
+  );
 
   if (!response.ok) {
     throw new Error(`GitHub raw fetch failed: HTTP ${response.status} for ${skill.rawUrl}`);

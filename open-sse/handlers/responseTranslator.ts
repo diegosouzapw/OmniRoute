@@ -76,9 +76,14 @@ function parseTextualToolCall(text: unknown): { name: string; args: unknown } | 
 }
 
 function containsTextualToolCallMarker(text: unknown): boolean {
-  return (
-    typeof text === "string" && text.replace(/[\u200B-\u200D\uFEFF]/g, "").includes("[Tool call:")
-  );
+  if (typeof text !== "string") return false;
+  const normalized = text.replace(/[\u200B-\u200D\uFEFF]/g, "");
+
+  if (!normalized.includes("[Tool call:")) return false;
+  if (normalized.includes("Arguments:")) return true;
+
+  const trimmed = normalized.trim();
+  return trimmed.startsWith("[Tool call:") || trimmed.startsWith("(empty)[Tool call:");
 }
 
 function extractMessageOutputText(item: JsonRecord): string {

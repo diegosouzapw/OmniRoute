@@ -8477,6 +8477,7 @@
     },
     "categoryApi": "API",
     "categoryCli": "命令行界面",
+    "categoryConfig": "Config",
     "filterAll": "所有",
     "coverageLabel": "覆盖率",
     "mcpUrl": "MCP URL",

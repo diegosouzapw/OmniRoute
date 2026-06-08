@@ -8477,6 +8477,7 @@
     },
     "categoryApi": "API",
     "categoryCli": "CLI",
+    "categoryConfig": "Config",
     "filterAll": "Все",
     "coverageLabel": "Покрытие",
     "mcpUrl": "MCP URL",

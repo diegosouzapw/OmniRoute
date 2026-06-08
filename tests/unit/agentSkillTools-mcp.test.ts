@@ -52,11 +52,11 @@ test("each agentSkillTool has name, description, inputSchema, and handler", () =
 
 // ─── omniroute_agent_skills_list ────────────────────────────────────────────
 
-test("omniroute_agent_skills_list with no filters returns all 42 skills", async () => {
+test("omniroute_agent_skills_list with no filters returns all 43 skills", async () => {
   const result = await agentSkillTools.omniroute_agent_skills_list.handler({});
-  assert.equal(result.count, 42, `Expected 42 but got ${result.count}`);
+  assert.equal(result.count, 43, `Expected 43 but got ${result.count}`);
   assert.ok(Array.isArray(result.skills));
-  assert.equal(result.skills.length, 42);
+  assert.equal(result.skills.length, 43);
 });
 
 test("omniroute_agent_skills_list({category:'api'}) returns exactly 22 entries", async () => {
@@ -168,7 +168,7 @@ test("omniroute_agent_skills_coverage({}) returns coverage shape", async () => {
   assert.ok(result.api.have >= 0 && result.api.have <= 22);
   assert.ok(result.cli.have >= 0 && result.cli.have <= 20);
   assert.ok(typeof result.totalSkills === "number");
-  assert.equal(result.totalSkills, result.api.have + result.cli.have);
+  assert.equal(result.totalSkills, result.api.have + result.cli.have + (result.config?.have ?? 0));
   assert.ok(typeof result.generatedAt === "string");
   // Validate ISO datetime format
   assert.ok(!isNaN(Date.parse(result.generatedAt)), "generatedAt should be valid ISO datetime");
