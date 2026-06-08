@@ -3049,7 +3049,7 @@ const _REGISTRY_EAGER: Record<string, RegistryEntry> = {
 
   "claude-web": {
     id: "claude-web",
-    alias: "claude-web",
+    alias: "cw",
     format: "openai",
     executor: "claude-web",
     baseUrl: "https://claude.ai/api/organizations",
