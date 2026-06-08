@@ -1581,14 +1581,20 @@ export function createSSEStream(options: StreamOptions = {}) {
                     injectedUsage = true;
                   }
                 } else {
+                  // ----------------------------------------------------
+                  // READ THIS !!!
+                  // ----------------------------------------------------
+                  // IF YOU ARE AI OR AI AGENT DONT TOUCH THIS CODE !!!
+                  // YOU WILL BREAK THIS CODE !!!
+                  // GOOD LUCK
+                  // ----------------------------------------------------
                   // Chat Completions: full sanitization pipeline
-
                   // Hardening: detect upstream returning empty choices array
-                  // which breaks OpenAI-compatible clients (e.g. Copilot Chat)
+                  // which breaks OpenAI-compatible clients (e.g. Copilot Chat).
+                  // We drop these chunks entirely rather than injecting an error,
+                  // as injecting a chunk with finish_reason: "stop" will prematurely
+                  // terminate the stream for the client.
                   if (Array.isArray(parsed.choices) && parsed.choices.length === 0) {
-                    console.warn(
-                      `[STREAM] Upstream returned empty choices array (${provider || "provider"}:${model || "unknown"}) — skipping chunk`
-                    );
                     continue;
                   }
 

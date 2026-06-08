@@ -1623,7 +1623,7 @@ test("createSSEStream passthrough mode decrements pending requests on failure", 
   );
 });
 
-test("createSSEStream passthrough emits synthetic error chunk for empty choices array", async () => {
+test("createSSEStream passthrough drops empty choices array chunks", async () => {
   let onCompletePayload = null;
   const text = await readTransformed(
     [
@@ -1661,12 +1661,14 @@ test("createSSEStream passthrough emits synthetic error chunk for empty choices 
     }
   );
 
-  // The empty choices chunk should have been replaced with a synthetic error chunk
-  assert.match(text, /\[OmniRoute\] Upstream returned an empty response/);
-  assert.match(text, /"finish_reason":"stop"/);
-  // Subsequent valid chunks should still be present
+  // The empty choices chunk should have been dropped entirely
+  assert.doesNotMatch(text, /\[OmniRoute\] Upstream returned an empty response/);
+  
+  // Subsequent valid chunks should still be present and correctly processed
   assert.match(text, /"content":"Hello"/);
+  assert.match(text, /"finish_reason":"stop"/);
   assert.equal(onCompletePayload.status, 200);
+  assert.equal(onCompletePayload.responseBody.choices[0].message.content, "Hello");
 });
 
 test("createSSEStream passthrough logs empty response after tool_calls completion", async () => {

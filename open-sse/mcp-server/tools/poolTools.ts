@@ -6,10 +6,12 @@
  *   2. omniroute_pool_sessions — List per-session details for a provider's pool
  *   3. omniroute_pool_reset    — Shut down and recreate a pool
  *   4. omniroute_pool_warm     — Warm up a pool to a target session count
+ *   5. omniroute_pool_health   — Aggregated pool health with breaker state and issues
  */
 
 import { z } from "zod";
 import { PoolRegistry } from "../../services/sessionPool/poolRegistry.ts";
+import { getWebSessionPoolHealth } from "../../services/webSessionPoolHealth.ts";
 
 // ─── Input Schemas ─────────────────────────────────────────────────────────
 
@@ -37,6 +39,13 @@ export const poolWarmInput = z.object({
     .max(50)
     .default(6)
     .describe("Target session count (1–50)"),
+});
+
+export const poolHealthInput = z.object({
+  provider: z
+    .string()
+    .optional()
+    .describe("Provider name (e.g. 'pollinations'). Omit to list all pools"),
 });
 
 // ─── Handlers ──────────────────────────────────────────────────────────────
@@ -124,6 +133,13 @@ export async function handlePoolWarm(
   };
 }
 
+export async function handlePoolHealth(
+  args: z.infer<typeof poolHealthInput>,
+): Promise<Record<string, unknown>> {
+  const report = getWebSessionPoolHealth(args.provider);
+  return report as unknown as Record<string, unknown>;
+}
+
 // ─── Tool Registry ─────────────────────────────────────────────────────────
 
 export const poolTools = {
@@ -154,5 +170,12 @@ export const poolTools = {
       "Warms a session pool to the specified session count (1–50). Sessions beyond the current count are created with fresh browser fingerprints.",
     inputSchema: poolWarmInput,
     handler: (args: z.infer<typeof poolWarmInput>) => handlePoolWarm(args),
+  },
+  omniroute_pool_health: {
+    name: "omniroute_pool_health",
+    description:
+      "Returns aggregated web-session pool health: pool stats + circuit breaker state + per-session details + health status (healthy/degraded/down) + issues list.",
+    inputSchema: poolHealthInput,
+    handler: (args: z.infer<typeof poolHealthInput>) => handlePoolHealth(args),
   },
 };
