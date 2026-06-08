@@ -10,6 +10,7 @@ _Development cycle in progress — entries are added as work merges into `releas
 
 ### 🔧 Bug Fixes
 
+- **fix(claude):** Claude Code → `claude-opus-4-8` tool calls no longer break with `tool call could not be parsed (retry also failed)` — OmniRoute no longer force-injects `interleaved-thinking` / `advanced-tool-use` / `effort` beta flags the client never negotiated. When the client sends its own `anthropic-beta` header, those betas are only emitted if the client requested them; opaque clients (OAuth identity cloak) keep the full set unchanged. ([#3415](https://github.com/diegosouzapw/OmniRoute/issues/3415) — thanks @Forcerecon)
 - **fix(translator):** Vertex AI tool calls no longer fail with `400 Unknown name "id" at contents[].parts[].function_call` — the OpenAI-style `id` field is now stripped from `functionCall`/`functionResponse` parts when the routed provider is `vertex`/`vertex-partner`. The public Gemini API still receives `id` (required for Gemini 3+ signature matching). ([#3440](https://github.com/diegosouzapw/OmniRoute/issues/3440) — thanks @nullbytef0x)
 
 ---
