@@ -239,3 +239,53 @@ test("createDebugLoggingFetch: records error without crashing the wrapped fetch"
   assert.equal(entries[0].resStatus, null);
   assert.equal(entries[0].error, "network down");
 });
+
+// ── Regression tests for the 3 HIGH-priority bot review fixes ───────────────
+
+test("createDebugLoggingFetch: URL instance input is captured (not 'undefined')", async () => {
+  const providerId = "test-provider-url-input";
+  debugLogClear(providerId);
+  const inner: typeof fetch = async () =>
+    new Response("ok", { status: 200 });
+  const wrapped = createDebugLoggingFetch(inner, providerId, true);
+  await wrapped(new URL("https://api.example.com/v1/chat"));
+  const entries = debugLogRead(providerId);
+  assert.equal(entries.length, 1);
+  assert.equal(entries[0].url, "https://api.example.com/v1/chat");
+  assert.notEqual(entries[0].url, undefined);
+});
+
+test("createDebugLoggingFetch: Request object input captures URL and headers", async () => {
+  const providerId = "test-provider-request-input";
+  debugLogClear(providerId);
+  const inner: typeof fetch = async () =>
+    new Response("ok", { status: 200 });
+  const wrapped = createDebugLoggingFetch(inner, providerId, true);
+  const req = new Request("https://api.example.com/v1/chat", {
+    method: "POST",
+    headers: { "x-test": "yes" },
+  });
+  await wrapped(req);
+  const entries = debugLogRead(providerId);
+  assert.equal(entries.length, 1);
+  assert.equal(entries[0].url, "https://api.example.com/v1/chat");
+  assert.equal(entries[0].reqHeaders["x-test"], "yes");
+});
+
+test("createDebugLoggingFetch: SSE response is NOT buffered (resBody is the stream marker)", async () => {
+  const providerId = "test-provider-sse";
+  debugLogClear(providerId);
+  const inner: typeof fetch = async () =>
+    new Response("data: hello\n\n", {
+      status: 200,
+      headers: { "content-type": "text/event-stream" },
+    });
+  const wrapped = createDebugLoggingFetch(inner, providerId, true);
+  const res = await wrapped("https://api.example.com/v1/stream");
+  // The response body must remain readable downstream
+  const txt = await res.text();
+  assert.equal(txt, "data: hello\n\n");
+  const entries = debugLogRead(providerId);
+  assert.equal(entries.length, 1);
+  assert.equal(entries[0].resBody, "[stream]", "SSE responses must not be buffered");
+});

@@ -3456,9 +3456,19 @@ export function createDebugLoggingFetch(
     const active = featureDefault || debugLogEnabled(providerId);
     if (!active) return inner(input, init);
     const reqId = randomUUID();
-    const url = typeof input === "string" ? input : (input as Request).url;
+    const url =
+      typeof input === "string"
+        ? input
+        : input instanceof URL
+          ? input.toString()
+          : input instanceof Request
+            ? input.url
+            : String(input);
     const method = (init?.method ?? (typeof input === "string" ? "GET" : (input as Request).method ?? "GET")).toUpperCase();
     const reqHeaders: Record<string, string> = {};
+    if (input instanceof Request) {
+      input.headers.forEach((v, k) => (reqHeaders[k] = v));
+    }
     if (init?.headers) {
       const h = init.headers;
       if (h instanceof Headers) h.forEach((v, k) => (reqHeaders[k] = v));
@@ -3476,6 +3486,18 @@ export function createDebugLoggingFetch(
       } else {
         reqBody = "[non-string body]";
       }
+    } else if (input instanceof Request) {
+      try {
+        const clonedReq = input.clone();
+        const text = await clonedReq.text();
+        try {
+          reqBody = JSON.parse(text);
+        } catch {
+          reqBody = text.slice(0, 4096);
+        }
+      } catch {
+        reqBody = "[body unreadable]";
+      }
     }
     const t0 = Date.now();
     try {
@@ -3489,6 +3511,8 @@ export function createDebugLoggingFetch(
         const ct = clone.headers.get("content-type") ?? "";
         if (ct.includes("application/json")) {
           resBody = await clone.json();
+        } else if (ct.includes("text/event-stream")) {
+          resBody = "[stream]";
         } else if (ct.includes("text/")) {
           const txt = await clone.text();
           resBody = txt.length > 4096 ? txt.slice(0, 4096) + "...[truncated]" : txt;
