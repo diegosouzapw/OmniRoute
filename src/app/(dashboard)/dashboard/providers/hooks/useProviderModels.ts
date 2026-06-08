@@ -58,16 +58,18 @@ export function useProviderModels(providerId: string): UseProviderModelsResult {
         if (list.length === 0) {
           setTimeout(async () => {
             try {
+              if (cancelled) return;
               const connRes = await fetch("/api/providers");
-              if (!connRes.ok) return;
+              if (!connRes.ok || cancelled) return;
               const connData = (await connRes.json()) as {
                 connections?: Array<{ id: string; provider: string; isActive?: boolean }>;
               };
+              if (cancelled) return;
               const providerConn = connData.connections?.find(
                 (c) => (c.provider === providerId || c.id === providerId) && c.isActive !== false
               );
 
-              if (providerConn) {
+              if (providerConn && !cancelled) {
                 const syncRes = await fetch(
                   `/api/providers/${encodeURIComponent(providerConn.id)}/sync-models?mode=sync`,
                   { method: "POST" }
@@ -77,7 +79,7 @@ export function useProviderModels(providerId: string): UseProviderModelsResult {
                   const refetchRes = await fetch(
                     `/api/v1/providers/${encodeURIComponent(providerId)}/models`
                   );
-                  if (refetchRes.ok) {
+                  if (refetchRes.ok && !cancelled) {
                     const refetchData = (await refetchRes.json()) as { data?: ProviderModel[] };
                     if (!cancelled) {
                       setModels(refetchData.data ?? []);
@@ -86,7 +88,9 @@ export function useProviderModels(providerId: string): UseProviderModelsResult {
                 }
               }
             } catch (syncErr) {
-              console.log("Auto-fetch models failed:", syncErr);
+              if (!cancelled) {
+                console.log("Auto-fetch models failed:", syncErr);
+              }
             }
           }, 0);
         }
