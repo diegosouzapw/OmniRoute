@@ -15,6 +15,7 @@ type GeminiToOpenAIState = {
   toolCalls: Map<number, unknown>;
   toolNameMap?: Map<string, string>;
   textualToolCallBuffer?: string;
+  hasEmittedContent?: boolean;
 };
 
 type GeminiFunctionCallPart = {
@@ -37,9 +38,14 @@ function normalizeToolCallArgs(args: unknown): unknown {
 }
 
 function containsTextualToolCallMarker(text: unknown): boolean {
-  return (
-    typeof text === "string" && text.replace(/[\u200B-\u200D\uFEFF]/g, "").includes("[Tool call:")
-  );
+  if (typeof text !== "string") return false;
+  const normalized = text.replace(/[\u200B-\u200D\uFEFF]/g, "");
+
+  if (!normalized.includes("[Tool call:")) return false;
+  if (normalized.includes("Arguments:")) return true;
+
+  const trimmed = normalized.trim();
+  return trimmed.startsWith("[Tool call:") || trimmed.startsWith("(empty)[Tool call:");
 }
 
 function buildToolCallId(
@@ -198,6 +204,9 @@ export function geminiToOpenAIResponse(chunk, state) {
         }
 
         if (hasTextContent) {
+          if (!isThought) {
+            state.hasEmittedContent = true;
+          }
           results.push({
             id: `chatcmpl-${state.messageId}`,
             object: "chat.completion.chunk",
@@ -225,31 +234,79 @@ export function geminiToOpenAIResponse(chunk, state) {
       // back to a structured OpenAI tool call so clients/tools do not see it as
       // assistant prose.
       if (part.text !== undefined && part.text !== "") {
-        const accumulated = (state.textualToolCallBuffer || "") + part.text;
-        const candidate = parseTextualToolCallCandidate(accumulated);
+        let accumulated = (state.textualToolCallBuffer || "") + part.text;
+
+        let candidate = null;
+        if (!state.hasEmittedContent || state.textualToolCallBuffer) {
+          candidate = parseTextualToolCallCandidate(accumulated);
+        }
 
         if (candidate) {
-          if (candidate.kind === "complete") {
-            emitFunctionCallPart(
-              {
-                functionCall: {
-                  name: candidate.name,
-                  args: candidate.args,
-                },
-              },
-              state,
-              results
-            );
-            state.textualToolCallBuffer = "";
-          } else {
-            state.textualToolCallBuffer = accumulated;
+          const normalized = accumulated.replace(/[​-‍﻿]/g, "");
+          let toolCallIndex = normalized.lastIndexOf("[Tool call:");
+          if (toolCallIndex < 0) {
+            toolCallIndex = normalized.lastIndexOf("(empty)[Tool call:");
           }
-          continue;
+          if (toolCallIndex < 0) {
+            const lastBracket = normalized.lastIndexOf("[");
+            if (lastBracket !== -1 && "[Tool call:".startsWith(normalized.slice(lastBracket))) {
+              toolCallIndex = lastBracket;
+            } else {
+              const lastParen = normalized.lastIndexOf("(");
+              if (
+                lastParen !== -1 &&
+                "(empty)[Tool call:".startsWith(normalized.slice(lastParen))
+              ) {
+                toolCallIndex = lastParen;
+              }
+            }
+          }
+
+          if (toolCallIndex > 0) {
+            const leftPart = accumulated.slice(0, toolCallIndex);
+            state.hasEmittedContent = true;
+            results.push({
+              id: `chatcmpl-${state.messageId}`,
+              object: "chat.completion.chunk",
+              created: Math.floor(Date.now() / 1000),
+              model: state.model,
+              choices: [
+                {
+                  index: 0,
+                  delta: { content: leftPart },
+                  finish_reason: null,
+                },
+              ],
+            });
+
+            accumulated = accumulated.slice(toolCallIndex);
+            candidate = parseTextualToolCallCandidate(accumulated);
+          }
+
+          if (candidate) {
+            if (candidate.kind === "complete") {
+              emitFunctionCallPart(
+                {
+                  functionCall: {
+                    name: candidate.name,
+                    args: candidate.args,
+                  },
+                },
+                state,
+                results
+              );
+              state.textualToolCallBuffer = "";
+            } else {
+              state.textualToolCallBuffer = accumulated;
+            }
+            continue;
+          }
         }
 
         if (state.textualToolCallBuffer) {
           const flushedText = state.textualToolCallBuffer + part.text;
           state.textualToolCallBuffer = "";
+          state.hasEmittedContent = true;
           results.push({
             id: `chatcmpl-${state.messageId}`,
             object: "chat.completion.chunk",
@@ -266,6 +323,7 @@ export function geminiToOpenAIResponse(chunk, state) {
           continue;
         }
 
+        state.hasEmittedContent = true;
         results.push({
           id: `chatcmpl-${state.messageId}`,
           object: "chat.completion.chunk",
@@ -412,7 +470,8 @@ export function geminiToOpenAIResponse(chunk, state) {
           state,
           results
         );
-      } else if (!containsTextualToolCallMarker(remainingText)) {
+      } else if (state.hasEmittedContent || !containsTextualToolCallMarker(remainingText)) {
+        state.hasEmittedContent = true;
         results.push({
           id: `chatcmpl-${state.messageId}`,
           object: "chat.completion.chunk",
