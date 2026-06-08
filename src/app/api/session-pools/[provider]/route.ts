@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { requireManagementAuth } from "@/lib/api/requireManagementAuth";
 import { getWebSessionPoolHealth } from "@omniroute/open-sse/services/webSessionPoolHealth";
+import { sanitizeErrorMessage } from "@omniroute/open-sse/utils/error";
 
 export const dynamic = "force-dynamic";
 
@@ -29,7 +30,9 @@ export async function GET(
       ...poolData,
     });
   } catch (err) {
-    const message = err instanceof Error ? err.message : "Failed to get session pool health";
-    return NextResponse.json({ error: message }, { status: 500 });
+    return NextResponse.json(
+      { error: sanitizeErrorMessage(err) || "Failed to get session pool health" },
+      { status: 500 }
+    );
   }
 }
