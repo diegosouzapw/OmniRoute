@@ -102,7 +102,7 @@ export function shortProviderLabel(
       ? alias.toUpperCase()
       : titleCaseAlias(alias);
   }
-  return raw.length > 0 ? raw : undefined;
+  return undefined;
 }
 
 // ── Free Label ────────────────────────────────────────────────────────────
@@ -127,9 +127,9 @@ export function normaliseFreeLabel(name: string): string {
 // ── Free Budget Formatting ────────────────────────────────────────────────
 
 function fmtTokens(n: number): string {
-  if (n >= 1e9) return (n / 1e9).toFixed(1) + "B";
-  if (n >= 1e6) return Math.round(n / 1e6) + "M";
-  if (n >= 1e3) return Math.round(n / 1e3) + "K";
+  if (n >= 1e9) return (n / 1e9).toFixed(1).replace(/\.0$/, "") + "B";
+  if (n >= 1e6) return (n / 1e6).toFixed(1).replace(/\.0$/, "") + "M";
+  if (n >= 1e3) return (n / 1e3).toFixed(1).replace(/\.0$/, "") + "K";
   return String(n);
 }
 
@@ -247,13 +247,19 @@ export function buildModelDisplayName(params: ModelDisplayNameParams): string {
     return formatAutoComboName(params.autoVariant, params.autoCandidateCount);
   }
 
-  // Determine base name
-  let baseName: string;
-  if (params.enrichmentName && params.enrichmentName.trim().length > 0) {
-    baseName = normaliseFreeLabel(params.enrichmentName);
-  } else {
-    baseName = normaliseFreeLabel(params.rawId);
-  }
+  // Determine base name — strip any existing free suffix first
+  const rawBase =
+    params.enrichmentName && params.enrichmentName.trim().length > 0
+      ? params.enrichmentName
+      : params.rawId;
+  const cleanedBase = rawBase
+    .replace(/\s*\(free\)\s*$/i, "")
+    .replace(/[\s-]+free\s*$/i, "")
+    .trim();
+  const wasFree = cleanedBase.length < rawBase.trim().length;
+  const isFree = !!params.isFree || wasFree;
+
+  let baseName = cleanedBase;
 
   // Provider tag (skip for combos)
   if (!params.isCombo) {
@@ -269,8 +275,13 @@ export function buildModelDisplayName(params: ModelDisplayNameParams): string {
     }
   }
 
+  // Prepend [Free] if applicable (AFTER provider tag for correct ordering)
+  if (isFree) {
+    baseName = `[Free] ${baseName}`;
+  }
+
   // Free budget suffix
-  if (params.isFree && params.freeType) {
+  if (isFree && params.freeType) {
     const budget = formatFreeBudget({
       freeType: params.freeType,
       monthlyTokens: params.monthlyTokens,

@@ -2758,7 +2758,7 @@ export function createOmniRouteProviderHook(
             },
             api: {
               id: "openai-compatible",
-              url: baseURL,
+              url: ensureV1Suffix(baseURL),
               npm: "@ai-sdk/openai-compatible",
             },
             status: "active",
