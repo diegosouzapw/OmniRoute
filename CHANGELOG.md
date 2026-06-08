@@ -4,6 +4,12 @@
 
 ---
 
+## [3.8.17] — Unreleased
+
+_Development cycle in progress — entries are added as work merges into `release/v3.8.17` and finalized by the release flow._
+
+---
+
 ## [3.8.16] — 2026-06-08
 
 ### ✨ New Features
