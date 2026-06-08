@@ -275,8 +275,8 @@ function buildStreamErrorChunks(
     ],
     error: {
       message: errorMsg,
-      type: "upstream_error",
-      code: statusCode,
+      type: statusMapping.responses.type,
+      code: statusMapping.responses.code,
     },
   };
 

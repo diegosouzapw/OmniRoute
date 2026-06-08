@@ -8,7 +8,7 @@ const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-stream-ut
 process.env.DATA_DIR = TEST_DATA_DIR;
 const core = await import("../../src/lib/db/core.ts");
 
-const { createSSEStream, createSSETransformStreamWithLogger, createPassthroughStreamWithLogger } =
+const { default, createSSETransformStreamWithLogger, createPassthroughStreamWithLogger } =
   await import("../../open-sse/utils/stream.ts");
 const {
   buildStreamSummaryFromEvents,

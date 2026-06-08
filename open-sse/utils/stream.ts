@@ -696,7 +696,7 @@ export function stripResponsesLifecycleEcho(parsed: unknown): boolean {
  * @param {object} options.body - Request body (for input token estimation)
  * @param {function} options.onComplete - Callback when stream finishes: ({ status, usage }) => void
  */
-export function createSSEStream(options: StreamOptions = {}) {
+function createSSEStream(options: StreamOptions = {}) {
   const {
     mode = STREAM_MODE.TRANSLATE,
     targetFormat,
@@ -857,10 +857,7 @@ export function createSSEStream(options: StreamOptions = {}) {
             allowedToolNames
           );
           if (collectedToolCall) {
-            parsed = toChatCompletionChunkWithToolCall(
-              parsed as JsonRecord,
-              collectedToolCall
-            ) as typeof parsed;
+            parsed = toChatCompletionChunkWithToolCall(parsed, collectedToolCall);
             passthroughHasToolCalls = true;
           } else {
             delete delta.content;
@@ -1189,7 +1186,7 @@ export function createSSEStream(options: StreamOptions = {}) {
 
           // Passthrough mode: normalize and forward
           if (mode === STREAM_MODE.PASSTHROUGH) {
-            let output;
+            let output: string;
             let injectedUsage = false;
             let clientPayload: unknown = null;
             let failurePayload: StreamFailurePayload | null = null;
@@ -2463,6 +2460,8 @@ export function createSSEStream(options: StreamOptions = {}) {
     { highWaterMark: 16384 }
   );
 }
+
+export default createSSEStream
 
 // Convenience functions for backward compatibility
 export function createSSETransformStreamWithLogger(
