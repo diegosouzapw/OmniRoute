@@ -147,7 +147,7 @@ export async function createCombo(data: JsonRecord) {
     typeof data.name === "string" ? [data.name] : []
   );
 
-  const contextCache = typeof data.context_cache_protection === "boolean" ? (data.context_cache_protection ? 1 : 0) : 0;
+  const contextCache = data.context_cache_protection ? 1 : 0;
   db.prepare(
     "INSERT INTO combos (id, name, data, sort_order, created_at, updated_at, context_cache_protection) VALUES (?, ?, ?, ?, ?, ?, ?)"
   ).run(combo.id, combo.name, JSON.stringify(combo), sortOrder, now, now, contextCache);
@@ -188,7 +188,7 @@ export async function updateCombo(id: string, data: JsonRecord) {
       ? merged["name"]
       : currentName;
   const normalizedMerged = normalizeStoredCombo({ ...merged, name: nextName }, db, [nextName]);
-  const contextCacheProtection = normalizedMerged.context_cache_protection === true ? 1 : 0;
+  const contextCacheProtection = normalizedMerged.context_cache_protection ? 1 : 0;
 
   db.prepare(
     "UPDATE combos SET name = ?, data = ?, sort_order = ?, updated_at = ?, context_cache_protection = ? WHERE id = ?"
