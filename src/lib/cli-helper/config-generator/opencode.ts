@@ -5,13 +5,6 @@ import fs from "node:fs";
 const CONFIG_PATH = path.join(os.homedir(), ".config", "opencode", "opencode.json");
 
 /**
- * Default context length used when the catalog returns nothing for a model.
- * 128K is the most common modern default and matches what OpenCode/most
- * clients fall back to.
- */
-const FALLBACK_CONTEXT_LENGTH = 128_000;
-
-/**
  * OpenAI-compatible model entry — subset of fields the /v1/models endpoint
  * returns. Only the fields we need to emit `limit.context` / `limit.output`
  * are typed.
@@ -24,6 +17,15 @@ interface CatalogModelEntry {
   max_context_window_tokens?: number;
   /** Optional max output tokens; used to populate `limit.output`. */
   max_output_tokens?: number;
+  max_input_tokens?: number;
+  /** Optional structured capability flags. */
+  capabilities?: {
+    attachment?: boolean;
+    reasoning?: boolean;
+    temperature?: boolean;
+    tool_calling?: boolean;
+    vision?: boolean;
+  };
 }
 
 /** Per-model override carried over from the user's existing opencode.json. */
@@ -54,11 +56,88 @@ interface ExistingConfig {
   [key: string]: unknown;
 }
 
+export interface CatalogFetchResult {
+  /** Models keyed by id, as returned by /v1/models. */
+  byId: Map<string, CatalogModelEntry>;
+  /** Provider ids that had at least one model in the catalog. */
+  providerIds: Set<string>;
+  /** Models that have a usable `context_length` (positive finite number). */
+  modelsWithContext: number;
+  /** Total models returned by the catalog. */
+  total: number;
+}
+
+/**
+ * Fetch the live `/v1/models` catalog from OmniRoute. The catalog is the
+ * single source of truth for context windows — opencode.json must NOT
+ * hardcode values, otherwise we drift from the provider's actual limits.
+ */
+export async function fetchOmniRouteCatalog(
+  baseUrl: string,
+  apiKey: string,
+  timeoutMs = 5_000
+): Promise<CatalogFetchResult> {
+  let base = baseUrl;
+  let end = base.length;
+  while (end > 0 && base[end - 1] === "/") end--;
+  base = end < base.length ? base.slice(0, end) : base;
+  if (base.endsWith("/v1")) base = base.slice(0, -3);
+  const baseURL = `${base}/v1`;
+
+  const result: CatalogFetchResult = {
+    byId: new Map(),
+    providerIds: new Set(),
+    modelsWithContext: 0,
+    total: 0,
+  };
+
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), timeoutMs);
+  try {
+    const response = await fetch(`${baseURL}/models`, {
+      headers: { Authorization: `Bearer ${apiKey}` },
+      signal: controller.signal,
+    });
+    if (!response.ok) {
+      throw new Error(
+        `OmniRoute /v1/models returned ${response.status} ${response.statusText}`
+      );
+    }
+    const body = (await response.json()) as unknown;
+    const list: unknown[] = Array.isArray(body)
+      ? body
+      : body && typeof body === "object" && Array.isArray((body as { data?: unknown[] }).data)
+        ? ((body as { data: unknown[] }).data as unknown[])
+        : [];
+    for (const raw of list) {
+      if (!raw || typeof raw !== "object") continue;
+      const r = raw as CatalogModelEntry;
+      if (typeof r.id !== "string" || !r.id.trim()) continue;
+      const id = r.id.trim();
+      result.byId.set(id, r);
+      result.total += 1;
+      if (typeof r.owned_by === "string" && r.owned_by.length > 0) {
+        result.providerIds.add(r.owned_by);
+      }
+      const candidates = [r.context_length, r.max_context_window_tokens];
+      if (candidates.some((c) => typeof c === "number" && Number.isFinite(c) && c > 0)) {
+        result.modelsWithContext += 1;
+      }
+    }
+  } finally {
+    clearTimeout(timer);
+  }
+  return result;
+}
+
 /**
  * Resolve the context length for a single catalog entry.
  * Prefers `context_length` (OpenAI-compatible) over `max_context_window_tokens`
- * (llama.cpp-style). Returns `undefined` when neither is a positive integer,
- * letting the caller decide whether to fall back to a default.
+ * (llama.cpp-style). Returns `undefined` when neither is a positive integer —
+ * this is intentional: we MUST NOT invent a default, because combos whose
+ * targets' contexts are unknown to the catalog will mis-report a context
+ * window. The user can override per-model via `limit.context` in their
+ * existing opencode.json, or fix the upstream catalog.
  */
 function resolveContextLength(entry: CatalogModelEntry): number | undefined {
   const candidates = [entry.context_length, entry.max_context_window_tokens];
@@ -70,11 +149,14 @@ function resolveContextLength(entry: CatalogModelEntry): number | undefined {
 
 /**
  * Build the entry that ends up under `provider.<name>.models[id]` in the
- * emitted opencode.json. Precedence for the context window:
+ * emitted opencode.json. Precedence:
  *
  *   1. Existing manual override in the user's opencode.json (`limit.context`).
  *   2. Catalog `context_length` / `max_context_window_tokens`.
- *   3. `FALLBACK_CONTEXT_LENGTH` (128K) so OpenCode never sees a missing limit.
+ *
+ * If neither is available, the entry is returned WITHOUT a `limit` block so
+ * the caller can decide whether to skip the model entirely or surface a
+ * warning. We never fabricate a default context window.
  */
 function buildModelEntry(
   id: string,
@@ -103,21 +185,24 @@ function buildModelEntry(
   }
 
   // Resolve the context window. Honor an explicit user override, then fall
-  // back to the catalog, then to a sensible default. Never emit an entry
-  // without `limit.context` — OpenCode's heuristic for missing limits is
-  // to clamp to 128K, which is exactly what we fall back to, but emitting
-  // the value explicitly is unambiguous and forward-compatible.
+  // back to the catalog. We do NOT synthesize a default — if the catalog
+  // is unaware of a model's window, the opencode.json will simply omit
+  // `limit.context` for that model and OpenCode's own heuristics apply.
+  // (OpenCode v1 defaults to 128K when `limit.context` is missing.)
   const userLimit = existing?.limit?.context;
   const catalogLimit = catalog ? resolveContextLength(catalog) : undefined;
   const context =
     typeof userLimit === "number" && userLimit > 0
       ? userLimit
-      : catalogLimit ?? FALLBACK_CONTEXT_LENGTH;
+      : catalogLimit;
 
   // `limit.output` is REQUIRED by OpenCode's v1 provider schema (configV1).
-  // Use the catalog's max_output_tokens when available, otherwise fall back
-  // to a sensible default (16K is the most common modern output cap).
-  const OUTPUT_TOKEN_FALLBACK = 16_000;
+  // Use the catalog's max_output_tokens when available; otherwise fall
+  // back to the user's existing `limit.output` and finally to a small
+  // default (8K) so OpenCode never errors on a totally missing output cap.
+  // We do NOT default context — context is a property of the model and
+  // we have no business guessing. Output is a per-request setting and a
+  // small default is harmless when truly unknown.
   const userOutput = existing?.limit?.output;
   const catalogOutput =
     catalog && typeof catalog.max_output_tokens === "number" && catalog.max_output_tokens > 0
@@ -126,18 +211,28 @@ function buildModelEntry(
   const output =
     typeof userOutput === "number" && userOutput > 0
       ? userOutput
-      : catalogOutput ?? OUTPUT_TOKEN_FALLBACK;
+      : catalogOutput ?? 8_192;
 
-  const limit: { context: number; input?: number; output: number } = { context, output };
-  if (typeof existing?.limit?.input === "number" && existing.limit.input > 0) {
-    limit.input = existing.limit.input;
+  // Emit `limit` only if we have at least one of context/output. We never
+  // emit a half-baked limit block with only an `output` (would be misleading).
+  if (typeof context === "number" || typeof userOutput === "number" || typeof catalogOutput === "number") {
+    const limit: { context?: number; input?: number; output?: number } = {};
+    if (typeof context === "number") limit.context = context;
+    if (typeof userOutput === "number" || typeof catalogOutput === "number") {
+      limit.output =
+        typeof userOutput === "number" && userOutput > 0
+          ? userOutput
+          : catalogOutput ?? 8_192;
+    }
+    const userInput = existing?.limit?.input;
+    if (typeof userInput === "number" && userInput > 0) {
+      limit.input = userInput;
+    } else if (catalog) {
+      const maxInput = (catalog as unknown as Record<string, unknown>).max_input_tokens;
+      if (typeof maxInput === "number" && maxInput > 0) limit.input = maxInput;
+    }
+    entry.limit = limit;
   }
-  // If the catalog has a max_input_tokens for non-combo models, surface it.
-  if (limit.input === undefined && catalog) {
-    const maxInput = (catalog as unknown as Record<string, unknown>).max_input_tokens;
-    if (typeof maxInput === "number" && maxInput > 0) limit.input = maxInput;
-  }
-  entry.limit = limit;
 
   return entry;
 }
@@ -170,10 +265,12 @@ export interface GenerateOpencodeOptions {
   providerId?: string;
   /**
    * If `true` (default), the generator fetches the live `/v1/models` catalog
-   * so every model entry has an explicit `limit.context`. When the catalog
-   * request fails (network down, server unreachable, etc.) the generator
-   * still emits a usable config using the user's existing entries plus
-   * `FALLBACK_CONTEXT_LENGTH`.
+   * so every model entry has an explicit `limit.context`. The catalog is the
+   * single source of truth for context windows; we never invent defaults.
+   *
+   * When the catalog request fails, the generator throws — opencode.json must
+   * not be emitted with stale or fabricated values. The CLI can catch the
+   * error and decide whether to surface it to the user.
    */
   fetchCatalog?: boolean;
   /**
@@ -183,11 +280,8 @@ export interface GenerateOpencodeOptions {
 }
 
 /**
- * Generate a full `opencode.json` document for OmniRoute. Pulls the live
- * model catalog from `/v1/models` so every model — individual and combo —
- * gets an explicit `limit.context`, which is the field OpenCode uses to
- * determine the context window for compaction, overflow detection, and
- * router decisions.
+ * Generate a full `opencode.json` document for OmniRoute. The catalog is the
+ * single source of truth for context windows — we never hardcode values.
  *
  * Behavior:
  *  - Preserves the user's existing provider name, npm, options, and
@@ -195,9 +289,12 @@ export interface GenerateOpencodeOptions {
  *  - For each existing model id, the catalog's `context_length` wins
  *    unless the user already set an explicit `limit.context` in the file.
  *  - For each catalog model id the user did NOT have, a new entry is
- *    added with `limit.context` populated.
- *  - If the catalog fetch fails, the generator still emits a config using
- *    the user's existing entries plus a 128K fallback per model.
+ *    added with `limit.context` populated when the catalog has it.
+ *  - If the catalog has no context for a model AND the user has no
+ *    override, the model is emitted WITHOUT a `limit.context` field.
+ *    OpenCode's own heuristic (typically 128K) applies.
+ *  - Throws if the catalog fetch fails — the user must fix the upstream
+ *    before we can generate a reliable opencode.json.
  */
 export async function generateOpencodeConfig(
   options: GenerateOpencodeOptions
@@ -213,36 +310,19 @@ export async function generateOpencodeConfig(
   const fetchCatalog = options.fetchCatalog !== false;
   const timeoutMs = options.catalogTimeoutMs ?? 5_000;
 
-  // Fetch live catalog (best-effort). We never fail generation because of
-  // a transient network error — the user's existing config is still usable.
+  // Fetch live catalog. The catalog is the source of truth — if it fails,
+  // we refuse to write an opencode.json that could mislead OpenCode into
+  // picking the wrong context window.
   let catalogById = new Map<string, CatalogModelEntry>();
   if (fetchCatalog) {
-    try {
-      const controller = new AbortController();
-      const timer = setTimeout(() => controller.abort(), timeoutMs);
-      const response = await fetch(`${baseURL}/models`, {
-        headers: { Authorization: `Bearer ${options.apiKey}` },
-        signal: controller.signal,
-      });
-      clearTimeout(timer);
-
-      if (response.ok) {
-        const body = (await response.json()) as unknown;
-        const list: unknown[] = Array.isArray(body)
-          ? body
-          : body && typeof body === "object" && Array.isArray((body as { data?: unknown[] }).data)
-            ? ((body as { data: unknown[] }).data as unknown[])
-            : [];
-        for (const raw of list) {
-          if (!raw || typeof raw !== "object") continue;
-          const r = raw as CatalogModelEntry;
-          if (typeof r.id !== "string" || !r.id.trim()) continue;
-          catalogById.set(r.id.trim(), r);
-        }
-      }
-    } catch {
-      // Catalog fetch failed — fall through to existing-config-only path.
-    }
+    const result = await fetchOmniRouteCatalog(baseURL, options.apiKey, timeoutMs);
+    catalogById = result.byId;
+  } else {
+    throw new Error(
+      "fetchCatalog=false is not supported. The catalog is the single source " +
+        "of truth for context windows — without it, opencode.json would carry " +
+        "fabricated or stale values."
+    );
   }
 
   // Load existing config so we preserve names, capability flags, and any
