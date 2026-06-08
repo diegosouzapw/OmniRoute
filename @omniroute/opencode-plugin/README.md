@@ -8,9 +8,9 @@
 
 This plugin solves that by:
 
-- Fetching `/v1/models` and `/api/combos` **at opencode startup, in Node.js** — no CORS, no WebView restrictions
+- Fetching `/v1/models` and `/api/combos` **at OpenCode startup, in Node.js** — no CORS, no WebView restrictions
 - Emitting the provider block **dynamically** in the plugin's `config`/`provider` hook — so `opencode.json` only needs the plugin entry, not a static `provider.omniroute`
-- Re-fetching on a configurable TTL (default 5 min), so new models / combo changes in the OmniRoute UI appear without restarting opencode
+- Re-fetching on a configurable TTL (default 5 min), so new models / combo changes in the OmniRoute UI appear without restarting OpenCode
 - Computing `limit.context` for combos as `min(member.context_length)` from the live catalog (no more `null` values that cause 4K-token truncation)
 - **Auto-pickup of `interleaved` capability** for thinking models (merged via PR #3138)
 
