@@ -800,6 +800,12 @@ export function createSSEStream(options: StreamOptions = {}) {
   const clientPayloadCollector = createStructuredSSECollector({
     stage: "client_response",
   });
+  const requestRecord = asRecord(body);
+  const requestStreamOptions = asRecord(
+    requestRecord.stream_options ?? requestRecord.streamOptions
+  );
+  const expectsOpenAIUsageOnlyChunk =
+    requestStreamOptions.include_usage === true || requestStreamOptions.includeUsage === true;
 
   // Per-stream instances to avoid shared state with concurrent streams
   const decoder = new TextDecoder();
@@ -1584,9 +1590,24 @@ export function createSSEStream(options: StreamOptions = {}) {
                 } else {
                   // Chat Completions: full sanitization pipeline
 
-                  // Hardening: detect upstream returning empty choices array
-                  // which breaks OpenAI-compatible clients (e.g. Copilot Chat)
+                  // OpenAI-compatible streaming with `stream_options.include_usage=true`
+                  // ends with a usage-only chunk where `choices` is deliberately `[]`.
+                  // Forward that standards-compliant chunk instead of turning it into an
+                  // empty-response error. Keep the existing hardening for malformed empty
+                  // choices chunks without valid usage.
                   if (Array.isArray(parsed.choices) && parsed.choices.length === 0) {
+                    const emptyChoicesUsage = extractUsage(parsed) ?? parsed.usage;
+                    if (hasValidUsage(emptyChoicesUsage)) {
+                      usage = emptyChoicesUsage;
+                      output = `data: ${JSON.stringify(parsed)}\n`;
+                      injectedUsage = true;
+                      clientPayload = parsed;
+                      clientPayloadCollector.push(clientPayload);
+                      reqLogger?.appendConvertedChunk?.(output);
+                      controller.enqueue(encoder.encode(output));
+                      continue;
+                    }
+
                     console.warn(
                       `[STREAM] Upstream returned empty choices array (${provider || "provider"}:${model || "unknown"}) — emitting error chunk`
                     );
@@ -1774,7 +1795,11 @@ export function createSSEStream(options: StreamOptions = {}) {
                       injectedUsage = true;
                     }
                   }
-                  if (isFinishChunk && !hasValidUsage(parsed.usage)) {
+                  if (
+                    isFinishChunk &&
+                    !hasValidUsage(parsed.usage) &&
+                    !expectsOpenAIUsageOnlyChunk
+                  ) {
                     const estimated = estimateUsage(body, totalContentLength, FORMATS.OPENAI);
                     parsed.usage = filterUsageForFormat(estimated, FORMATS.OPENAI);
                     output = `data: ${JSON.stringify(parsed)}\n`;
