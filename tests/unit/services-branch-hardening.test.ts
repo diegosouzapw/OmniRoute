@@ -168,8 +168,10 @@ test("combo agent middleware covers system override, tool filtering, tag strippi
     "openai/gpt-4o"
   );
 
-  assert.equal(result.pinnedModel, "anthropic/claude-sonnet-4-6");
-  assert.equal(result.body.model, "anthropic/claude-sonnet-4-6");
+  // PR #3399: server-side session pinning replaced <omniModel> tag extraction;
+  // pinnedModel is now always null from applyComboAgentMiddleware.
+  assert.equal(result.pinnedModel, null);
+  assert.equal(result.body.model, "combo/default");
   assert.deepEqual(result.body.messages, [
     { role: "system", content: "combo system" },
     { role: "user", content: "hello" },

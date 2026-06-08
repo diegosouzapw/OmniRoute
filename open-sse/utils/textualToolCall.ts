@@ -61,12 +61,12 @@ export function parseTextualToolCallCandidate(
   const normalized = text.replace(/[\u200B-\u200D\uFEFF]/g, "");
   const toolCallIndex = normalized.lastIndexOf("[Tool call:");
   if (toolCallIndex < 0) {
-    const lastBracket = normalized.lastIndexOf("[");
-    if (lastBracket !== -1 && "[Tool call:".startsWith(normalized.slice(lastBracket))) {
-      return { kind: "partial" };
-    }
     const lastParen = normalized.lastIndexOf("(");
     if (lastParen !== -1 && "(empty)[Tool call:".startsWith(normalized.slice(lastParen))) {
+      return { kind: "partial" };
+    }
+    const lastBracket = normalized.lastIndexOf("[");
+    if (lastBracket !== -1 && "[Tool call:".startsWith(normalized.slice(lastBracket))) {
       return { kind: "partial" };
     }
     return null;
@@ -98,4 +98,15 @@ export function parseTextualToolCallCandidate(
     } catch {}
   }
   return { kind: "partial" };
+}
+
+export function containsTextualToolCallMarker(text: unknown): boolean {
+  if (typeof text !== "string") return false;
+  const normalized = text.replace(/[\u200B-\u200D\uFEFF]/g, "");
+
+  if (!normalized.includes("[Tool call:")) return false;
+  if (normalized.includes("Arguments:")) return true;
+
+  const trimmed = normalized.trim();
+  return trimmed.startsWith("[Tool call:") || trimmed.startsWith("(empty)[Tool call:");
 }

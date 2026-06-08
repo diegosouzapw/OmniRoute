@@ -124,6 +124,14 @@ FROM runner-base AS runner-web
 
 USER root
 
+# Copy playwright and playwright-core from the builder stage.
+# The slim runtime image does not have playwright in node_modules, so npx falls
+# back to a registry download — unreliable on CI runners (exits 127 on failure).
+# Copying from the builder avoids any network access at image-build time and also
+# ensures the same playwright version is available at runtime for web-session providers.
+COPY --from=builder /app/node_modules/playwright-core ./node_modules/playwright-core
+COPY --from=builder /app/node_modules/playwright ./node_modules/playwright
+
 # Install Playwright browser binaries + OS dependencies under root, then hand
 # ownership of the browsers cache to the node user.
 # PLAYWRIGHT_BROWSERS_PATH overrides the default ~/.cache/ms-playwright so the
@@ -133,7 +141,7 @@ ENV PLAYWRIGHT_BROWSERS_PATH=/home/node/.cache/ms-playwright
 RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
   --mount=type=cache,target=/var/lib/apt/lists,sharing=locked \
   apt-get update \
-  && npx playwright install chromium --with-deps \
+  && node node_modules/playwright/cli.js install chromium --with-deps \
   && chown -R node:node /home/node/.cache \
   && rm -rf /var/lib/apt/lists/*
 

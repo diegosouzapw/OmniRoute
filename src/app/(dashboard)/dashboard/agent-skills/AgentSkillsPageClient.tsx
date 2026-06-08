@@ -9,7 +9,7 @@ import { SkillCard } from "./components/SkillCard";
 import { SkillPreviewPane } from "./components/SkillPreviewPane";
 import type { AgentSkill, SkillCoverage } from "@/lib/agentSkills/types";
 
-type FilterCategory = "all" | "api" | "cli";
+type FilterCategory = "all" | "api" | "cli" | "config";
 
 // ── Skeleton helpers ─────────────────────────────────────────────────────────
 
@@ -238,7 +238,7 @@ export function AgentSkillsPageClient(): JSX.Element {
           />
         </div>
         <div className="flex gap-1" role="group" aria-label={t("filters.category")}>
-          {(["all", "api", "cli"] as FilterCategory[]).map((cat) => (
+          {(["all", "api", "cli", "config"] as FilterCategory[]).map((cat) => (
             <button
               key={cat}
               onClick={() => setFilter(cat)}
@@ -253,7 +253,9 @@ export function AgentSkillsPageClient(): JSX.Element {
                 ? t("filterAll")
                 : cat === "api"
                   ? t("categoryApi")
-                  : t("categoryCli")}
+                  : cat === "cli"
+                    ? t("categoryCli")
+                    : t("categoryConfig")}
             </button>
           ))}
         </div>

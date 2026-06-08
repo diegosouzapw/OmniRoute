@@ -49,6 +49,10 @@ import { createHash } from "node:crypto";
 import { mkdir, readFile, writeFile } from "node:fs/promises";
 import * as os from "node:os";
 import * as path from "node:path";
+import { appendFileSync, existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
+import { homedir } from "node:os";
+import { join } from "node:path";
+import { randomUUID } from "node:crypto";
 import type { AuthHook, Config, Plugin, PluginOptions, ProviderHook } from "@opencode-ai/plugin";
 import type { Model as ModelV2 } from "@opencode-ai/sdk/v2";
 import { z } from "zod";
@@ -107,7 +111,38 @@ import { z } from "zod";
  *                           preferred over the chat/inference key.
  *  - `fetchInterceptor`     Inject Authorization: Bearer + Content-Type on
  *                           every outbound request to baseURL. Default true.
+ *  - `debugLog`             Capture every outbound request + response to a
+ *                           JSONL file at
+ *                           `~/.local/share/opencode/plugins/omniroute-debug-{providerId}.jsonl`.
+ *                           Each line: `{ reqId, ts, url, method, reqBody,
+ *                           resStatus, resBody, durationMs }`.
+ *                           Default false. Opt-in.
+ *  - `apiFormat`            Per-provider-prefix API format routing. Model IDs
+ *                           whose prefix (the part before `/`) matches an entry
+ *                           in `anthropicPrefixes` are served via the Anthropic
+ *                           SDK (`@ai-sdk/anthropic`, sends to `/v1/messages`
+ *                           with native cache_control, tool_choice, etc.).
+ *                           All other models fall back to `openai-compatible`.
+ *
+ *                           Default `anthropicPrefixes`:
+ *                             ["cc", "claude", "anthropic", "kiro", "kr"]
+ *                           (covers OmniRoute's canonical Anthropic aliases).
+ *
+ *                           Set `anthropicPrefixes: []` to disable and force
+ *                           everything through OpenAI-compat.
+ *
+ *                           Example:
+ *                           ```json
+ *                           "apiFormat": { "anthropicPrefixes": ["cc","claude","anthropic","kiro"] }
+ *                           ```
  */
+const apiFormatSchema = z
+  .object({
+    anthropicPrefixes: z.array(z.string()).optional(),
+  })
+  .strict()
+  .optional();
+
 const featuresSchema = z
   .object({
     combos: z.boolean().optional(),
@@ -120,6 +155,8 @@ const featuresSchema = z
     usableOnly: z.boolean().optional(),
     diskCache: z.boolean().optional(),
     providerTag: z.boolean().optional(),
+    debugLog: z.boolean().optional(),
+    apiFormat: apiFormatSchema,
   })
   .strict();
 
@@ -238,6 +275,98 @@ function coercePluginOptions(opts?: PluginOptions): OmniRoutePluginOptions {
   return parseOmniRoutePluginOptions(opts);
 }
 
+// ────────────────────────────────────────────────────────────────────────────
+// Per-prefix API format routing (apiFormat feature)
+// ────────────────────────────────────────────────────────────────────────────
+
+/**
+ * Default provider-prefix list that triggers the Anthropic SDK format.
+ * Covers OmniRoute's canonical Anthropic aliases: `cc/`, `claude/`,
+ * `anthropic/`, plus the user-configured `kiro/` and `kr/` upstream
+ * connections that proxy Anthropic models.
+ */
+export const DEFAULT_ANTHROPIC_PREFIXES = [
+  "cc",
+  "claude",
+  "anthropic",
+  "kiro",
+  "kr",
+];
+
+/**
+ * Ensure a baseURL ends with `/v1` so the OpenAI-compat SDK constructs
+ * `/v1/chat/completions` correctly. The Anthropic SDK does NOT want `/v1`
+ * (it appends `/v1/messages` automatically), so callers should branch on
+ * format first.
+ */
+export function ensureV1Suffix(url: string): string {
+  const trimmed = trimTrailingSlashes(url);
+  return trimmed.endsWith("/v1") ? trimmed : `${trimmed}/v1`;
+}
+
+/**
+ * Resolve the API block (id + url + npm package) for a given model id.
+ *
+ * Decision matrix:
+ * - If the model id's prefix (the substring before the first `/`) is in
+ *   `apiFormat.anthropicPrefixes` (or the default list), return the
+ *   Anthropic SDK block: `id: "anthropic"`, `url: baseURL` (no `/v1`),
+ *   `npm: "@ai-sdk/anthropic"`.
+ * - Otherwise return the OpenAI-compat block: `id: "openai-compatible"`,
+ *   `url: baseURL + "/v1"`, `npm: "@ai-sdk/openai-compatible"`.
+ *
+ * Combos span multiple providers. Callers should pass each combo member's
+ * id through this function and pick the LCD format (lowest common
+ * denominator that every upstream actually understands).
+ */
+export function resolveApiBlock(
+  modelId: string,
+  baseURL: string,
+  apiFormat?: { anthropicPrefixes?: string[] }
+): { id: string; url: string; npm: string } {
+  const prefixes = apiFormat?.anthropicPrefixes ?? DEFAULT_ANTHROPIC_PREFIXES;
+  const slash = modelId.indexOf("/");
+  const prefix = slash === -1 ? modelId : modelId.slice(0, slash);
+  const isAnthropic = prefixes.includes(prefix);
+  return isAnthropic
+    ? {
+        id: "anthropic",
+        url: trimTrailingSlashes(baseURL),
+        npm: "@ai-sdk/anthropic",
+      }
+    : {
+        id: "openai-compatible",
+        url: ensureV1Suffix(baseURL),
+        npm: "@ai-sdk/openai-compatible",
+      };
+}
+
+// ────────────────────────────────────────────────────────────────────────────
+// Free-label normalisation
+// ────────────────────────────────────────────────────────────────────────────
+
+/**
+ * Normalise a model display name so free-tier models always carry a
+ * consistent `[Free] ` prefix instead of a trailing `(Free)` suffix or
+ * an ad-hoc `free` word anywhere in the name.
+ *
+ *   "GPT-4.1 (Free)"          → "[Free] GPT-4.1"
+ *   "DeepSeek V4 Flash Free"  → "[Free] DeepSeek V4 Flash"
+ *   "Claude 4.7 Opus"          → "Claude 4.7 Opus"  (no change)
+ *
+ * Non-matching names pass through untouched.
+ */
+export function normaliseFreeLabel(name: string): string {
+  // Remove trailing " (Free)" or " free" (case-insensitive, hyphen-tolerant)
+  const cleaned = name
+    .replace(/\s*\(free\)\s*$/i, "")
+    .replace(/[\s-]+free\s*$/i, "")
+    .trim();
+  const wasFree = cleaned.length < name.trim().length;
+  if (!wasFree) return name;
+  return `[Free] ${cleaned}`;
+}
+
 /**
  * Build the AuthHook portion of the plugin for a given options bag. Exported
  * standalone so the auth contract can be unit-tested without faking the full
@@ -270,6 +399,7 @@ export function createOmniRouteAuthHook(opts?: OmniRoutePluginOptions): AuthHook
   // documented and schema-validated but silently ignored.
   const wantFetchInterceptor = (features ?? {}).fetchInterceptor !== false;
   const wantGeminiSanitization = (features ?? {}).geminiSanitization !== false;
+  const wantDebugLog = (features ?? {}).debugLog === true;
 
   const hook: AuthHook = {
     provider: providerId,
@@ -329,6 +459,13 @@ export function createOmniRouteAuthHook(opts?: OmniRoutePluginOptions): AuthHook
         }
         if (wantGeminiSanitization) {
           composedFetch = createGeminiSanitizingFetch(composedFetch ?? fetch);
+        }
+        if (wantDebugLog || debugLogEnabled(providerId)) {
+          composedFetch = createDebugLoggingFetch(
+            composedFetch ?? fetch,
+            providerId,
+            wantDebugLog
+          );
         }
         return composedFetch
           ? { apiKey, baseURL: resolvedBaseURL, fetch: composedFetch }
@@ -561,7 +698,7 @@ export const defaultOmniRouteModelsFetcher: OmniRouteModelsFetcher = async (
 
 export function mapRawModelToModelV2(
   raw: OmniRouteRawModelEntry,
-  ctx: { providerId: string; baseURL: string }
+  ctx: { providerId: string; baseURL: string; apiFormat?: { anthropicPrefixes?: string[] } }
 ): ModelV2 {
   const caps = raw.capabilities ?? {};
   const inMods = new Set(raw.input_modalities ?? ["text"]);
@@ -612,11 +749,7 @@ export function mapRawModelToModelV2(
     headers: {},
     release_date: raw.release_date ?? "",
     providerID: ctx.providerId,
-    api: {
-      id: "openai-compatible",
-      url: ctx.baseURL,
-      npm: "@ai-sdk/openai-compatible",
-    },
+    api: resolveApiBlock(raw.id, ctx.baseURL, ctx.apiFormat),
   };
 }
 
@@ -1410,7 +1543,7 @@ export function applyEnrichment(
 ): ModelV2 {
   if (!enrichment) return model;
   if (enrichment.name && enrichment.name.trim().length > 0) {
-    model.name = enrichment.name;
+    model.name = normaliseFreeLabel(enrichment.name);
   }
   if (enrichment.pricing) {
     if (typeof enrichment.pricing.input === "number") {
@@ -2134,6 +2267,7 @@ export function createOmniRouteProviderHook(
         const model = mapRawModelToModelV2(entry, {
           providerId: resolved.providerId,
           baseURL,
+          apiFormat: resolved.features?.apiFormat,
         });
         const enrichEntry = lookupEnrichment(entry.id, rawEnrichment, canonicalToAlias);
         applyEnrichment(model, enrichEntry);
@@ -3186,6 +3320,242 @@ export const defaultDiskSnapshotReader: OmniRouteDiskSnapshotReader = async (pro
 
 /** No-op disk-cache pair — used by tests to avoid filesystem side effects. */
 export const noopDiskSnapshotWriter: OmniRouteDiskSnapshotWriter = async () => {};
+
+// ────────────────────────────────────────────────────────────────────────────
+// Debug logging (features.debugLog)
+// ────────────────────────────────────────────────────────────────────────────
+
+/**
+ * One captured request/response pair written to the debug JSONL log.
+ * Schema documented in the schema-aware `DebugLogEntry` interface below.
+ */
+export interface DebugLogEntry {
+  reqId: string;
+  providerId: string;
+  ts: number;
+  url: string;
+  method: string;
+  reqHeaders: Record<string, string>;
+  reqBody: unknown;
+  resStatus: number | null;
+  resHeaders: Record<string, string>;
+  resBody: unknown;
+  durationMs: number | null;
+  error?: string;
+}
+
+function debugLogDir(): string {
+  return join(
+    process.env.OPENCODE_DATA_DIR ?? join(homedir(), ".local", "share", "opencode"),
+    "plugins"
+  );
+}
+
+function debugLogPath(providerId: string): string {
+  return join(debugLogDir(), `omniroute-debug-${providerId}.jsonl`);
+}
+
+function debugStatePath(providerId: string): string {
+  return join(debugLogDir(), `omniroute-debug-${providerId}.state.json`);
+}
+
+export function debugLogEnabled(providerId: string): boolean {
+  try {
+    const p = debugStatePath(providerId);
+    if (!existsSync(p)) return false;
+    const s = JSON.parse(readFileSync(p, "utf8")) as { enabled?: boolean };
+    return s.enabled === true;
+  } catch {
+    return false;
+  }
+}
+
+export function debugLogSetEnabled(providerId: string, enabled: boolean): void {
+  try {
+    const dir = debugLogDir();
+    if (!existsSync(dir)) mkdirSync(dir, { recursive: true });
+    writeFileSync(
+      debugStatePath(providerId),
+      JSON.stringify({ enabled, ts: Date.now() }, null, 2)
+    );
+  } catch (err) {
+    // best-effort; never break the auth flow
+    console.warn(`[omniroute-plugin] debugLogSetEnabled failed: ${(err as Error).message}`);
+  }
+}
+
+export function debugLogAppend(entry: DebugLogEntry): void {
+  try {
+    const dir = debugLogDir();
+    if (!existsSync(dir)) mkdirSync(dir, { recursive: true });
+    appendFileSync(debugLogPath(entry.providerId), JSON.stringify(entry) + "\n", "utf8");
+  } catch (err) {
+    console.warn(`[omniroute-plugin] debugLogAppend failed: ${(err as Error).message}`);
+  }
+}
+
+export function debugLogRead(providerId: string, limit = 20): DebugLogEntry[] {
+  try {
+    const p = debugLogPath(providerId);
+    if (!existsSync(p)) return [];
+    const lines = readFileSync(p, "utf8").trim().split("\n").filter(Boolean);
+    return lines
+      .slice(-limit)
+      .map((line) => {
+        try {
+          return JSON.parse(line) as DebugLogEntry;
+        } catch {
+          return null;
+        }
+      })
+      .filter((e): e is DebugLogEntry => e !== null);
+  } catch {
+    return [];
+  }
+}
+
+export function debugLogGetById(providerId: string, reqId: string): DebugLogEntry | null {
+  try {
+    const p = debugLogPath(providerId);
+    if (!existsSync(p)) return null;
+    const lines = readFileSync(p, "utf8").trim().split("\n").filter(Boolean);
+    for (let i = lines.length - 1; i >= 0; i--) {
+      try {
+        const e = JSON.parse(lines[i]) as DebugLogEntry;
+        if (e.reqId === reqId) return e;
+      } catch {
+        // skip malformed
+      }
+    }
+    return null;
+  } catch {
+    return null;
+  }
+}
+
+export function debugLogClear(providerId: string): void {
+  try {
+    const p = debugLogPath(providerId);
+    if (existsSync(p)) writeFileSync(p, "", "utf8");
+  } catch (err) {
+    console.warn(`[omniroute-plugin] debugLogClear failed: ${(err as Error).message}`);
+  }
+}
+
+/**
+ * Wrap a fetch function to capture request/response pairs into the debug
+ * JSONL log. Honours the `featureDefault` opt-in flag and the on-disk
+ * runtime toggle (`debugLogEnabled`).
+ */
+export function createDebugLoggingFetch(
+  inner: typeof fetch,
+  providerId: string,
+  featureDefault: boolean
+): typeof fetch {
+  return async (input, init) => {
+    const active = featureDefault || debugLogEnabled(providerId);
+    if (!active) return inner(input, init);
+    const reqId = randomUUID();
+    const url =
+      typeof input === "string"
+        ? input
+        : input instanceof URL
+          ? input.toString()
+          : input instanceof Request
+            ? input.url
+            : String(input);
+    const method = (init?.method ?? (typeof input === "string" ? "GET" : (input as Request).method ?? "GET")).toUpperCase();
+    const reqHeaders: Record<string, string> = {};
+    if (input instanceof Request) {
+      input.headers.forEach((v, k) => (reqHeaders[k] = v));
+    }
+    if (init?.headers) {
+      const h = init.headers;
+      if (h instanceof Headers) h.forEach((v, k) => (reqHeaders[k] = v));
+      else if (Array.isArray(h)) for (const [k, v] of h) reqHeaders[k] = v;
+      else Object.assign(reqHeaders, h);
+    }
+    let reqBody: unknown = undefined;
+    if (init?.body) {
+      if (typeof init.body === "string") {
+        try {
+          reqBody = JSON.parse(init.body);
+        } catch {
+          reqBody = init.body.slice(0, 4096);
+        }
+      } else {
+        reqBody = "[non-string body]";
+      }
+    } else if (input instanceof Request) {
+      try {
+        const clonedReq = input.clone();
+        const text = await clonedReq.text();
+        try {
+          reqBody = JSON.parse(text);
+        } catch {
+          reqBody = text.slice(0, 4096);
+        }
+      } catch {
+        reqBody = "[body unreadable]";
+      }
+    }
+    const t0 = Date.now();
+    try {
+      const res = await inner(input, init);
+      const durationMs = Date.now() - t0;
+      const resHeaders: Record<string, string> = {};
+      res.headers.forEach((v, k) => (resHeaders[k] = v));
+      let resBody: unknown = undefined;
+      try {
+        const clone = res.clone();
+        const ct = clone.headers.get("content-type") ?? "";
+        if (ct.includes("application/json")) {
+          resBody = await clone.json();
+        } else if (ct.includes("text/event-stream")) {
+          resBody = "[stream]";
+        } else if (ct.includes("text/")) {
+          const txt = await clone.text();
+          resBody = txt.length > 4096 ? txt.slice(0, 4096) + "...[truncated]" : txt;
+        } else {
+          resBody = `[${ct || "unknown"} body, status ${res.status}]`;
+        }
+      } catch {
+        resBody = "[body unparseable]";
+      }
+      debugLogAppend({
+        reqId,
+        providerId,
+        ts: t0,
+        url,
+        method,
+        reqHeaders,
+        reqBody,
+        resStatus: res.status,
+        resHeaders,
+        resBody,
+        durationMs,
+      });
+      return res;
+    } catch (err) {
+      const durationMs = Date.now() - t0;
+      debugLogAppend({
+        reqId,
+        providerId,
+        ts: t0,
+        url,
+        method,
+        reqHeaders,
+        reqBody,
+        resStatus: null,
+        resHeaders: {},
+        resBody: undefined,
+        durationMs,
+        error: (err as Error).message,
+      });
+      throw err;
+    }
+  };
+}
 export const noopDiskSnapshotReader: OmniRouteDiskSnapshotReader = async () => undefined;
 
 export type OmniRouteReadAuthJson = () => Promise<AuthJsonShape | undefined | null>;

@@ -306,7 +306,7 @@ export const FEATURE_FLAG_DEFINITIONS: FeatureFlagDefinition[] = [
   {
     key: "PRICING_SYNC_ENABLED",
     label: "Pricing Sync",
-    description: "Enable automatic pricing data synchronization",
+    description: "Enable automatic pricing data synchronization (requires the PRICING_SYNC_ENABLED environment variable to be set to true)",
     descriptionI18nKey: "featureFlagPricingSyncEnabledDescription",
     category: "cli",
     defaultValue: "false",

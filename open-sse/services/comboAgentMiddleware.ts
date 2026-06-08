@@ -176,17 +176,9 @@ export function applyComboAgentMiddleware(
   let messages: Message[] = Array.isArray(body.messages) ? [...body.messages] : [];
   let pinnedModel: string | null = null;
 
-  // 1. Context caching: check for pinned model in history
-  if (comboConfig.context_cache_protection) {
-    pinnedModel = extractPinnedModel(messages);
-    if (pinnedModel) {
-      // (#535) Model is pinned via <omniModel> tag — override body.model so the combo
-      // router uses exactly this model instead of picking a different one. Without this,
-      // the extracted pinnedModel is returned but body.model is unchanged, breaking
-      // context cache sessions by sending subsequent turns to a different model.
-      body = { ...body, model: pinnedModel };
-    }
-  }
+  // Context cache pinning is handled server-side in combo.ts via
+  // session_model_history. No client-side <omniModel> tag extraction needed.
+  pinnedModel = null;
 
   // 2. System message override
   if (comboConfig.system_message && comboConfig.system_message.trim()) {

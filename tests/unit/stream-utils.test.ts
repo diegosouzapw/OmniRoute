@@ -19,8 +19,9 @@ const { FORMATS } = await import("../../open-sse/translator/formats.ts");
 const { createRequestLogger } = await import("../../open-sse/utils/requestLogger.ts");
 
 const textEncoder = new TextEncoder();
-const SYNTHETIC_CLAUDE_EMPTY_RESPONSE_TEXT =
-  "[Proxy Error] The upstream API returned an empty response. Please retry the request.";
+// PR #3399 intentionally changed the synthetic empty-response text to "" so that
+// proxy internals no longer leak into chat history. Tests assert on the new behavior.
+const SYNTHETIC_CLAUDE_EMPTY_RESPONSE_TEXT = "";
 
 async function readTransformed(chunks, options) {
   const source = new ReadableStream({
@@ -493,8 +494,8 @@ test("createSSEStream passthrough suppresses malformed textual tool-call content
   assert.equal(choice.finish_reason, "stop");
   assert.equal(choice.message.content, null);
   assert.equal(choice.message.tool_calls, undefined);
-  assert.doesNotMatch(text, /\[Tool call: terminal\]/);
-  assert.doesNotMatch(JSON.stringify(onCompletePayload.responseBody), /\[Tool call: terminal\]/);
+  // PR #3355 bug-2 fix: flush now always emits the buffer as plain text (not swallowed).
+  assert.match(text, /\[Tool call: terminal\]/);
 });
 
 test("createSSEStream suppresses malformed compact textual tool-call content", async () => {
@@ -1086,13 +1087,10 @@ test("createSSEStream passthrough injects a synthetic Claude text block for empt
   assert.match(text, /event: content_block_start/);
   assert.match(text, /event: content_block_delta/);
   assert.match(text, /event: message_stop/);
-  assert.match(text, /\[Proxy Error\] The upstream API returned an empty response/);
   assert.ok(text.indexOf("event: content_block_start") > text.indexOf("event: message_start"));
   assert.ok(text.indexOf("event: message_stop") > text.indexOf("event: content_block_stop"));
-  assert.equal(
-    onCompletePayload.responseBody.choices[0].message.content,
-    SYNTHETIC_CLAUDE_EMPTY_RESPONSE_TEXT
-  );
+  // SYNTHETIC_CLAUDE_EMPTY_RESPONSE_TEXT is "" so the accumulator produces null content (empty delta is falsy).
+  assert.equal(onCompletePayload.responseBody.choices[0].message.content, null);
 });
 
 test("createSSEStream passthrough does not emit [DONE] for Claude SSE clients", async () => {
@@ -1191,13 +1189,10 @@ test("createSSEStream translate mode injects a synthetic Claude text block when 
   assert.match(text, /event: content_block_delta/);
   assert.match(text, /event: message_delta/);
   assert.match(text, /event: message_stop/);
-  assert.match(text, /\[Proxy Error\] The upstream API returned an empty response/);
   assert.ok(text.indexOf("event: content_block_start") > text.indexOf("event: message_start"));
   assert.ok(text.indexOf("event: message_delta") > text.indexOf("event: content_block_stop"));
-  assert.equal(
-    onCompletePayload.responseBody.choices[0].message.content,
-    SYNTHETIC_CLAUDE_EMPTY_RESPONSE_TEXT
-  );
+  // SYNTHETIC_CLAUDE_EMPTY_RESPONSE_TEXT is "" so the accumulator produces null content (empty delta is falsy).
+  assert.equal(onCompletePayload.responseBody.choices[0].message.content, null);
   assert.equal(onCompletePayload.responseBody.usage.total_tokens, 3);
 });
 
@@ -1623,7 +1618,7 @@ test("createSSEStream passthrough mode decrements pending requests on failure", 
   );
 });
 
-test("createSSEStream passthrough emits synthetic error chunk for empty choices array", async () => {
+test("createSSEStream passthrough drops empty choices array chunks", async () => {
   let onCompletePayload = null;
   const text = await readTransformed(
     [
@@ -1661,12 +1656,69 @@ test("createSSEStream passthrough emits synthetic error chunk for empty choices 
     }
   );
 
-  // The empty choices chunk should have been replaced with a synthetic error chunk
+  // Empty choices without usage still get replaced with a synthetic error chunk.
   assert.match(text, /\[OmniRoute\] Upstream returned an empty response/);
   assert.match(text, /"finish_reason":"stop"/);
   // Subsequent valid chunks should still be present
   assert.match(text, /"content":"Hello"/);
+  assert.match(text, /"finish_reason":"stop"/);
   assert.equal(onCompletePayload.status, 200);
+  assert.equal(onCompletePayload.responseBody.choices[0].message.content, "Hello");
+});
+
+test("createSSEStream passthrough forwards OpenAI usage-only empty choices chunks", async () => {
+  let onCompletePayload = null;
+  const usage = { prompt_tokens: 7, completion_tokens: 3, total_tokens: 10 };
+  const text = await readTransformed(
+    [
+      `data: ${JSON.stringify({
+        id: "chatcmpl_usage_only",
+        object: "chat.completion.chunk",
+        created: 1,
+        model: "gpt-4.1-mini",
+        choices: [{ index: 0, delta: { role: "assistant", content: "Hello" } }],
+        usage: null,
+      })}\n\n`,
+      `data: ${JSON.stringify({
+        id: "chatcmpl_usage_only",
+        object: "chat.completion.chunk",
+        created: 1,
+        model: "gpt-4.1-mini",
+        choices: [{ index: 0, delta: {}, finish_reason: "stop" }],
+        usage: null,
+      })}\n\n`,
+      `data: ${JSON.stringify({
+        id: "chatcmpl_usage_only",
+        object: "chat.completion.chunk",
+        created: 1,
+        model: "gpt-4.1-mini",
+        choices: [],
+        usage,
+      })}\n\n`,
+    ],
+    {
+      mode: "passthrough",
+      sourceFormat: FORMATS.OPENAI,
+      provider: "openai-compatible",
+      model: "gpt-4.1-mini",
+      body: {
+        messages: [{ role: "user", content: "hello" }],
+        stream_options: { include_usage: true },
+      },
+      onComplete(payload) {
+        onCompletePayload = payload;
+      },
+    }
+  );
+
+  assert.doesNotMatch(text, /\[OmniRoute\] Upstream returned an empty response/);
+  assert.match(text, /"choices":\[\]/);
+  assert.match(text, /"usage":\{"prompt_tokens":7,"completion_tokens":3,"total_tokens":10\}/);
+  assert.equal(onCompletePayload.status, 200);
+  assert.equal(onCompletePayload.usage.prompt_tokens, 7);
+  assert.equal(onCompletePayload.usage.completion_tokens, 3);
+  assert.equal(onCompletePayload.responseBody.choices[0].message.content, "Hello");
+  assert.deepEqual(onCompletePayload.responseBody.usage, usage);
 });
 
 test("createSSEStream passthrough logs empty response after tool_calls completion", async () => {

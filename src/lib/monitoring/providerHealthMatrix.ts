@@ -3,6 +3,7 @@ import { getProviderConnections } from "@/lib/db/providers";
 import { getDbInstance } from "@/lib/db/core";
 import { getAllCircuitBreakerStatuses } from "@/shared/utils/circuitBreaker";
 import { getAllModelLockouts } from "@omniroute/open-sse/services/accountFallback";
+import { getWebSessionPoolHealth } from "@omniroute/open-sse/services/webSessionPoolHealth";
 
 type JsonRecord = Record<string, unknown>;
 
@@ -90,6 +91,20 @@ export interface ProviderHealthMatrixResponse {
     downCount: number;
   };
   providers: ProviderHealthMatrixProvider[];
+  webSessionPools: {
+    totalPools: number;
+    healthyPools: number;
+    degradedPools: number;
+    downPools: number;
+    pools: Array<{
+      provider: string;
+      health: "healthy" | "degraded" | "down";
+      pool: Record<string, unknown> | null;
+      breaker: Record<string, unknown> | null;
+      sessions: Array<Record<string, unknown>>;
+      issues: string[];
+    }>;
+  };
 }
 
 interface CallLogTargetStats {
@@ -567,6 +582,8 @@ export async function buildProviderHealthMatrix(
     }
   }
 
+  const poolReport = getWebSessionPoolHealth(providerFilter ?? undefined);
+
   return {
     checkedAt,
     range,
@@ -586,5 +603,19 @@ export async function buildProviderHealthMatrix(
       downCount: providers.filter((provider) => provider.state === "down").length,
     },
     providers,
+    webSessionPools: {
+      totalPools: poolReport.providers.length,
+      healthyPools: poolReport.providers.filter((p) => p.health === "healthy").length,
+      degradedPools: poolReport.providers.filter((p) => p.health === "degraded").length,
+      downPools: poolReport.providers.filter((p) => p.health === "down").length,
+      pools: poolReport.providers.map((p) => ({
+        provider: p.provider,
+        health: p.health,
+        pool: p.pool as Record<string, unknown> | null,
+        breaker: p.breaker as Record<string, unknown> | null,
+        sessions: p.sessions as Array<Record<string, unknown>>,
+        issues: p.issues,
+      })),
+    },
   };
 }

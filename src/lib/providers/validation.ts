@@ -567,8 +567,8 @@ async function validateDirectChatProvider({
 
 export async function validateCommandCodeProvider({ apiKey, providerSpecificData = {} }: any) {
   const entry = getRegistryEntry("command-code");
-  const baseUrl = normalizeBaseUrl(entry?.baseUrl || "https://api.commandcode.ai/provider/v1");
-  const chatPath = entry?.chatPath || "/chat/completions";
+  const baseUrl = normalizeBaseUrl(entry?.baseUrl || "https://api.commandcode.ai");
+  const chatPath = entry?.chatPath || "/alpha/generate";
   const url = `${baseUrl}${chatPath.startsWith("/") ? chatPath : `/${chatPath}`}`;
   const validationModelId =
     providerSpecificData?.validationModelId ||

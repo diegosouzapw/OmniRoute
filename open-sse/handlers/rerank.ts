@@ -40,10 +40,10 @@ function transformRequestForProvider(providerConfig, body) {
 /**
  * Transform response from provider-specific formats back to Cohere format
  */
-function transformResponseFromProvider(providerConfig, data) {
+/* @testonly */ export function transformResponseFromProvider(providerConfig, data) {
   if (providerConfig.format === "nvidia") {
     return {
-      id: data.id || `rerank-${Date.now()}`,
+      id: data.id != null ? String(data.id) : `rerank-${Date.now()}`,
       results: (data.rankings || []).map((r) => ({
         index: r.index,
         relevance_score: r.logit || r.score || 0,

@@ -8522,6 +8522,7 @@
     },
     "categoryApi": "API",
     "categoryCli": "CLI",
+    "categoryConfig": "Config",
     "filterAll": "Todas",
     "coverageLabel": "Cobertura",
     "mcpUrl": "URL MCP",
