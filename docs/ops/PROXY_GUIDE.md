@@ -599,6 +599,222 @@ CREATE TABLE proxy_assignments (
 
 ---
 
+## Proxy Health Checking (v3.8.16+)
+
+OmniRoute's **proxy fast-fail** mechanism (`src/lib/proxyHealth.ts`) detects dead proxies in <2s via a quick TCP connection check, then **caches the result** to avoid per-request overhead.
+
+### How It Works
+
+```
+Request ──▶ ProxyHealthCache.get(url)
+             │
+             ├─ Cache hit + fresh?  ──▶ return cached status
+             │
+             └─ Cache miss / stale?  ──▶ TCP connect to host:port
+                                          (timeout: FAST_FAIL_TIMEOUT_MS)
+                                          ──▶ cache for HEALTH_CACHE_TTL_MS
+                                          ──▶ return result
+```
+
+Without this, a dead proxy would block every request for the full `PROXY_TIMEOUT_MS` (default 30s) before failing.
+
+### Tunable Environment Variables
+
+| Variable | Default | Purpose |
+|----------|---------|---------|
+| `PROXY_FAST_FAIL_TIMEOUT_MS` | `2000` | TCP connection timeout per health check |
+| `PROXY_HEALTH_CACHE_TTL_MS` | `30000` | How long a health result is cached |
+
+**Recommended values:**
+
+| Scenario | Fast-fail timeout | Cache TTL | Reasoning |
+|----------|-------------------|-----------|-----------|
+| High-throughput API gateway | 1500ms | 60000ms | Aggressive fail-fast, longer cache to reduce checks |
+| Geo-distributed nodes | 3000ms | 15000ms | Slower networks need more time; shorter cache for fast failover |
+| Dev / testing | 1000ms | 10000ms | Quick iteration on local proxies |
+| Stealth / anti-detection | 2500ms | 45000ms | Avoid rapid probing that could trigger rate limits |
+
+### Inspecting Proxy Health
+
+```ts
+import { getAllProxyHealthStatuses, invalidateProxyHealth } from "omniroute/proxy/health";
+
+const statuses = getAllProxyHealthStatuses();
+for (const s of statuses) {
+  console.log(`${s.proxyUrl} → healthy=${s.healthy}, stale=${s.stale}`);
+}
+
+// Force re-check a specific proxy
+invalidateProxyHealth("http://user:pass@1.2.3.4:8080");
+```
+
+The `stale` flag is `true` when the cache entry has exceeded `HEALTH_CACHE_TTL_MS` and the next request will trigger a fresh check.
+
+### Per-Proxy Type Defaults
+
+The health check uses sensible defaults based on the URL scheme:
+
+| Scheme | Default port |
+|--------|-------------|
+| `http://` | 8080 |
+| `https://` | 443 |
+| `socks5://` / `socks5h://` | 1080 |
+
+Custom ports in the URL (`http://host:9999`) always take precedence over the scheme default.
+
+---
+
+## Proxy Analytics & Observability
+
+OmniRoute tracks per-proxy usage to help operators diagnose routing patterns, latency spikes, and recurring failures.
+
+### What's Tracked
+
+For every request through a configured proxy, OmniRoute records:
+
+| Metric | Description |
+|--------|-------------|
+| `proxy_url` | Full proxy URL (with auth credentials masked) |
+| `provider` | Upstream provider ID (openai, anthropic, etc.) |
+| `latency_ms` | Total round-trip time including proxy handshake |
+| `connect_ms` | TCP connect time only |
+| `status` | HTTP status code from upstream |
+| `error` | Error class if request failed |
+| `timestamp` | ISO 8601 UTC |
+
+### Accessing the Data
+
+```bash
+# Recent proxy events
+curl -H "Authorization: Bearer $OMNIROUTE_KEY" \
+  "http://localhost:20128/api/proxy-logs?limit=100"
+
+# Aggregate stats by proxy
+curl -H "Authorization: Bearer $OMNIROUTE_KEY" \
+  "http://localhost:20128/api/proxy-stats?groupBy=proxy&window=24h"
+```
+
+The dashboard at `/dashboard/proxy-stats` visualizes the same data with charts.
+
+### Common Patterns
+
+**Detect a flapping proxy** (alternates between success/failure):
+
+```sql
+SELECT proxy_url,
+       COUNT(*) AS total,
+       SUM(CASE WHEN status >= 500 THEN 1 ELSE 0 END) AS errors,
+       ROUND(100.0 * SUM(CASE WHEN status >= 500 THEN 1 ELSE 0 END) / COUNT(*), 1) AS error_pct
+FROM proxy_logs
+WHERE timestamp > datetime('now', '-1 hour')
+GROUP BY proxy_url
+HAVING error_pct > 5
+ORDER BY error_pct DESC;
+```
+
+**Find slow proxies** (p95 latency > 2s):
+
+```sql
+WITH ranked AS (
+  SELECT proxy_url, latency_ms,
+         PERCENT_RANK() OVER (PARTITION BY proxy_url ORDER BY latency_ms) AS pct
+  FROM proxy_logs
+  WHERE timestamp > datetime('now', '-24 hour')
+)
+SELECT proxy_url, latency_ms
+FROM ranked
+WHERE pct >= 0.95
+ORDER BY latency_ms DESC;
+```
+
+---
+
+## Rotation Strategy Decision Tree
+
+When multiple proxies are assigned to a scope, OmniRoute uses a **rotation strategy** to pick which one to use for each request. The strategy is configured at the scope level (global, per-provider, per-account, per-combo).
+
+### Available Strategies
+
+| Strategy | When to use | Trade-off |
+|----------|-------------|-----------|
+| `quality` (default) | Production with mixed-quality proxies | Favors high-rated proxies; may starve low-rated ones |
+| `random` | Load distribution, privacy | Even distribution; ignores quality signals |
+| `sequential` | Debugging, deterministic testing | Cycles through proxies in order; easy to reason about |
+
+### Decision Tree
+
+```
+                    Do you have quality scores for your proxies?
+                    │
+        ┌───────────┴───────────┐
+        │                       │
+       YES                     NO
+        │                       │
+   Are all proxies             │
+   roughly equal                  │
+   in quality?                   │
+        │                       │
+   ┌────┴────┐                  │
+   │         │                  │
+  YES       NO                Use
+   │         │              `random`
+   │         │              (even spread
+   │         │              builds quality
+   │         │              data over time)
+   │         │
+   │    Use `quality` 
+   │    (best for
+   │    mixed quality)
+   │
+Use `random`
+(spread load
+evenly)
+```
+
+### Configuring Rotation Strategy
+
+```ts
+import { rotateOneproxyProxy } from "omniroute/oneproxy/rotator";
+
+// In a one-off script
+const proxy = await rotateOneproxyProxy({ strategy: "quality" });
+if (proxy) {
+  console.log(`Selected: ${proxy.host}:${proxy.port}, quality=${proxy.qualityScore}`);
+}
+```
+
+### Resetting Sequential Index
+
+When using `sequential` strategy, the internal index accumulates. To reset:
+
+```ts
+import { resetSequentialIndex } from "omniroute/oneproxy/rotator";
+
+resetSequentialIndex();
+```
+
+Useful when:
+- Restarting a load test
+- Recovering from a proxy outage (so you don't cycle through dead ones first)
+- Manually rebalancing after adding new proxies
+
+### Marking a Proxy as Failed
+
+When a proxy consistently fails, mark it manually so the rotator will skip it:
+
+```ts
+import { failOneproxyProxy } from "omniroute/oneproxy/rotator";
+
+const removed = await failOneproxyProxy("1.2.3.4", 8080);
+if (removed) {
+  console.log("Proxy marked as failed; rotator will skip it");
+}
+```
+
+The proxy is **not deleted** — it's marked unhealthy and won't be selected until the next successful health check (via `proxyHealth.ts`) or manual reset.
+
+---
+
 > 📖 **Related documentation:**
 >
 > - [User Guide](../guides/USER_GUIDE.md) — General setup and configuration

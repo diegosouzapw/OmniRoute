@@ -300,6 +300,232 @@ See [MCP-SERVER.md](./MCP-SERVER.md) for transport setup and scope assignments.
 
 ---
 
+## Execution Lifecycle (v3.8.16+)
+
+The `SkillExecutor` (`src/lib/skills/executor.ts`) is a **singleton** that manages every skill invocation. Understanding its lifecycle is critical for debugging timeouts, retries, and execution state.
+
+### The 5-Stage Lifecycle
+
+```
+   execute() called
+        │
+        ▼
+  ┌─────────────┐
+  │  PENDING    │  ← queued, not yet started (DB row created)
+  └──────┬──────┘
+         │ start handler
+         ▼
+  ┌─────────────┐
+  │  RUNNING    │  ← handler invoked with timeout
+  └──────┬──────┘
+         │
+    ┌────┴────┬──────────┬──────────┐
+    │         │          │          │
+    ▼         ▼          ▼          ▼
+  SUCCESS   ERROR     TIMEOUT   (no other path — killed by parent)
+    │         │          │
+    └────┬────┴──────────┘
+         │
+         ▼
+   DB row updated with status, output, durationMs
+```
+
+### Default Configuration
+
+| Setting | Default | Configurable via |
+|---------|---------|------------------|
+| `timeout` | `30000` (30s) | `skillExecutor.setTimeout(ms)` |
+| `maxRetries` | `3` | `skillExecutor.setMaxRetries(count)` |
+
+> **Important**: The executor is a singleton — calling `setTimeout()` affects all subsequent invocations globally. Per-skill timeouts are not currently supported; if you need different timeouts per skill, submit separate processes or fork the executor.
+
+### Status Values
+
+From `src/lib/skills/types.ts`:
+
+```ts
+enum SkillStatus {
+  PENDING = "pending",   // Queued, not yet started
+  RUNNING = "running",   // Handler invoked
+  SUCCESS = "success",   // Handler returned valid output
+  ERROR = "error",       // Handler threw an exception
+  TIMEOUT = "timeout",   // Exceeded the executor's timeout
+}
+```
+
+> **Note**: The `TIMEOUT` status is defined in the enum but is **not actually written to the DB** by the current executor implementation — timeouts surface as `ERROR` with the message `"Skill execution timed out"`. The status enum is reserved for future use.
+
+### Inspecting Executions
+
+```ts
+import { skillExecutor } from "omniroute/skills/executor";
+
+// Get a specific execution by ID
+const exec = skillExecutor.getExecution("exec-uuid-123");
+if (exec) {
+  console.log(`${exec.skillName}: ${exec.status} in ${exec.durationMs}ms`);
+}
+
+// List recent executions for an API key
+const recent = skillExecutor.listExecutions("api-key-id", 50, 0);
+for (const e of recent) {
+  console.log(`${e.skillName} → ${e.status} (${e.durationMs}ms)`);
+}
+
+// Count total executions
+const total = skillExecutor.countExecutions("api-key-id");
+```
+
+### Retry Behavior
+
+The `maxRetries` setting is stored but **not currently used** by the executor's `execute()` method — it only performs a single attempt. The `maxRetries` value is exposed for future implementation and for hooks that want to read it.
+
+For now, retries must be implemented inside the handler:
+
+```ts
+export default defineSkill({
+  name: "fetch-with-retry",
+  handler: async (input, ctx) => {
+    const maxRetries = 3;
+    let lastError: Error | null = null;
+    
+    for (let attempt = 1; attempt <= maxRetries; attempt++) {
+      try {
+        return await fetchSomething(input);
+      } catch (err) {
+        lastError = err as Error;
+        if (attempt < maxRetries) {
+          await new Promise(r => setTimeout(r, 1000 * attempt));
+        }
+      }
+    }
+    throw lastError;
+  },
+});
+```
+
+---
+
+## SkillMode in Detail
+
+The `SkillMode` enum (`src/lib/skills/types.ts`) controls **when and how** skills are invoked:
+
+```ts
+enum SkillMode {
+  AUTO = "auto",       // LLM decides when to call the skill
+  MANUAL = "manual",   // Only invoked by explicit user request
+  HYBRID = "hybrid",   // AUTO scoring + manual override
+}
+```
+
+> **Note**: The codebase defines `SkillMode` (AUTO/MANUAL/HYBRID), while the `Skill.mode` field uses a different shape (`"on" | "off" | "auto"`). They are related but not identical — `SkillMode` is for executor policy, `Skill.mode` is for per-skill enablement.
+
+### When to Use Each Mode
+
+| Mode | LLM behavior | Use case |
+|------|--------------|----------|
+| `AUTO` | LLM can call the skill when it deems necessary | General-purpose skills (file reads, HTTP requests) |
+| `MANUAL` | LLM cannot call the skill; only an explicit `executeSkill` API call invokes it | Sensitive operations (database writes, payments) |
+| `HYBRID` | LLM can suggest the skill; user must confirm | Skills that have side effects but aren't dangerous |
+
+### AUTO Scoring
+
+When `AUTO` mode is active, OmniRoute scores each available skill against the request context. The score is computed in `src/lib/skills/registry.ts` based on:
+
+- **Tag overlap** — does the request mention concepts in the skill's `tags`?
+- **Description similarity** — does the skill's `description` match the request intent?
+- **Recent usage** — has the skill been called recently for similar inputs? (deprioritizes redundant calls)
+- **Provider affinity** — does the active provider work well with this skill?
+
+A skill with a score above the threshold (default: `0.6`) is offered to the LLM as a callable tool. Skills below the threshold are filtered out to reduce tool-call noise.
+
+---
+
+## Sandbox Isolation Levels
+
+OmniRoute supports **three sandbox isolation levels** for executing skill handlers, traded off against security and resource overhead.
+
+### The Three Levels
+
+| Level | Resource access | Latency | Use case |
+|-------|-----------------|---------|----------|
+| `in-process` | Full Node.js API | Lowest | Trusted internal skills |
+| `child-process` (default) | Restricted Node.js API in child Node process | Low | Production skills |
+| `docker` | Isolated container, no host access | Higher | Untrusted third-party skills |
+
+### Configuration
+
+The sandbox is configured via `SkillConfig.sandboxLevel` and applied per-execution. For production, the `child-process` level is recommended — it provides resource isolation without the overhead of Docker.
+
+### `child-process` Hardening (v3.8.16+)
+
+When running in `child-process` mode, the following hardening is applied:
+
+| Protection | Effect |
+|------------|--------|
+| `unshare` namespaces | Child can't see parent's `/proc`, network, or IPC |
+| Read-only mounts by default | `/tmp`, `/var` mounted read-only unless explicit write grant |
+| Dropped capabilities | No `CAP_NET_RAW`, `CAP_SYS_ADMIN`, etc. |
+| Memory limit | `256MB` by default; configurable via `SKILL_MEMORY_LIMIT_MB` |
+| CPU limit | `0.5` cores by default; configurable via `SKILL_CPU_LIMIT` |
+| Timeout enforcement | Both `setTimeout` (Node) and `prlimit` (kernel) — child can't escape |
+
+### When to Use Docker Sandbox
+
+Use Docker sandbox when:
+- The skill is sourced from the public marketplace (Phase 2)
+- The skill handles untrusted user input
+- The skill requires network access to external APIs (harder to audit)
+- You run a multi-tenant gateway serving untrusted plugin developers
+
+Skip Docker sandbox when:
+- The skill is a trusted internal tool you wrote
+- The skill's handler is purely computational (no I/O)
+- Latency is critical (sub-100ms responses)
+
+### Docker Sandbox Caveats
+
+- ~50-200ms startup overhead per skill invocation
+- Requires Docker daemon access
+- Skills cannot share state across invocations (each gets a fresh container)
+
+---
+
+## Built-in Skills Catalog
+
+OmniRoute ships with a curated set of built-in skills in `src/lib/skills/builtin/`. The most common ones:
+
+### Browser Automation Skill
+
+The browser skill (`src/lib/skills/builtin/browser.ts`) provides headless browser automation via Playwright/Puppeteer. **It is implemented but not in the default skills catalog** — to use it, install the browser extension plugin separately.
+
+```ts
+// Enable in your config
+const config: SkillConfig = {
+  enabled: true,
+  mode: SkillMode.MANUAL,  // Always require explicit invocation
+  allowedSkills: ["browser"],
+  timeout: 60000,          // 60s for page loads
+  maxRetries: 1,
+};
+```
+
+### Other Built-in Categories
+
+| Category | Skills | Mode |
+|----------|--------|------|
+| File I/O | `read-file`, `write-file`, `list-dir` | AUTO |
+| HTTP | `http-get`, `http-post` | AUTO |
+| System | `exec-command` (sandboxed) | MANUAL |
+| Code | `run-typescript`, `run-python` (sandboxed) | HYBRID |
+| Data | `parse-json`, `parse-csv` | AUTO |
+
+### Adding a Custom Skill
+
+See the [Plugin SDK & Skills Integration](../plugins/PLUGIN_SDK.md) for how to add a custom skill via the plugin system.
+
+---
+
 ## See Also
 
 - [MCP-SERVER.md](./MCP-SERVER.md) — MCP tool registration and transports

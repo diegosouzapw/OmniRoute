@@ -537,7 +537,344 @@ default TTL 5 min).
   - `src/app/api/memory/reindex/route.ts`
   - `src/app/api/settings/memory/route.ts`
   - `src/app/api/settings/qdrant/route.ts` + sub-routes
-  - `src/app/(dashboard)/dashboard/memory/` — Studio UI (page + components +
-    tabs + hooks)
-  - `open-sse/handlers/chatCore.ts` (injection / extraction wiring)
-  - `open-sse/mcp-server/tools/memoryTools.ts`
+   - `src/app/(dashboard)/dashboard/memory/` — Studio UI (page + components +
+     tabs + hooks)
+   - `open-sse/handlers/chatCore.ts` (injection / extraction wiring)
+   - `open-sse/mcp-server/tools/memoryTools.ts`
+
+---
+
+## Choosing an Embedding Provider (v3.8.16+)
+
+OmniRoute's memory engine supports **four embedding sources** (`src/lib/memory/embedding/`). Each has different trade-offs in **latency, cost, model quality, and setup complexity**.
+
+### The Four Providers
+
+| Provider | Source | Latency | Cost | Quality | Setup |
+|----------|--------|---------|------|---------|-------|
+| `transformers` | Local ONNX model (Xenova/all-MiniLM-L6-v2) | ~50-150ms (CPU) | Free | Good | `npm install` only |
+| `static` | Pre-computed vectors (cached) | <1ms | Free | N/A (depends on cache hit) | None |
+| `remote` | OpenAI / Cohere / Voyage API | ~100-300ms | $0.02-0.10/1M tokens | Excellent | API key |
+| `cache` | In-memory LRU layer over any source | <1ms (hit), full latency (miss) | Free | Same as underlying | None |
+
+### Decision Tree
+
+```
+                  What's your deployment context?
+                  │
+      ┌───────────┼───────────┬──────────────┐
+      │           │           │              │
+  DEV/TEST    SMALL PROD   LARGE PROD    EDGE / OFFLINE
+      │           │           │              │
+      ▼           ▼           ▼              ▼
+  transformers transformers remote (Qdrant) transformers
+  (free, no API)            (best quality)   (no internet)
+      │           │           │              │
+      └────────┬──┴───────────┴──────────────┘
+               │
+               ▼
+            ALWAYS add `cache` layer on top
+            (LruCache wraps any provider)
+```
+
+### Provider-Specific Configuration
+
+**`transformers`** — Local model via `@xenova/transformers`:
+
+```bash
+# .env
+MEMORY_EMBEDDING_SOURCE=transformers
+MEMORY_EMBEDDING_MODEL=Xenova/all-MiniLM-L6-v2
+```
+
+- **Pros**: No API costs, works offline, GDPR-friendly (data never leaves the host)
+- **Cons**: ~50MB ONNX model download on first run; CPU-bound (~150ms per text)
+- **Best for**: dev environments, self-hosted deployments, latency-sensitive use cases
+
+**`remote`** — OpenAI-compatible API:
+
+```bash
+MEMORY_EMBEDDING_SOURCE=remote
+MEMORY_EMBEDDING_MODEL=text-embedding-3-small
+MEMORY_EMBEDDING_API_KEY=sk-...
+MEMORY_EMBEDDING_BASE_URL=https://api.openai.com/v1
+```
+
+- **Pros**: Highest quality, fast (parallel), no local compute
+- **Cons**: Per-token costs, data leaves host, requires API key
+- **Best for**: production deployments, large memory corpora, quality-critical recall
+
+**`static`** — Use a pre-computed vector store (Qdrant, Pinecone):
+
+```bash
+MEMORY_EMBEDDING_SOURCE=static
+MEMORY_STATIC_URL=qdrant://localhost:6333
+MEMORY_STATIC_COLLECTION=omniroute_memories
+```
+
+- **Pros**: Decouples embedding cost from runtime; can use specialized models
+- **Cons**: Requires Qdrant infrastructure; operational overhead
+- **Best for**: enterprise deployments, when you already run Qdrant/Pinecone
+
+**`cache`** — LRU layer in front of any provider (always-on by default):
+
+```bash
+MEMORY_EMBEDDING_CACHE_SIZE=10000
+MEMORY_EMBEDDING_CACHE_TTL_MS=3600000  # 1 hour
+```
+
+- **Pros**: Eliminates repeat embedding calls (common for similar queries)
+- **Cons**: Memory footprint (~30KB per 1k cached entries with MiniLM)
+- **Best for**: every deployment — there's no downside
+
+### Performance Numbers
+
+Benchmark on a typical 4-core x86 server (texts ~100 tokens each):
+
+| Provider | p50 | p95 | p99 | Cost / 1M embeddings |
+|----------|-----|-----|-----|-----------------------|
+| `transformers` (CPU) | 80ms | 180ms | 350ms | Free |
+| `remote` (OpenAI) | 120ms | 220ms | 400ms | ~$0.02 (ada-002) / $0.13 (3-large) |
+| `static` (Qdrant) | 15ms | 30ms | 60ms | Depends on Qdrant hosting |
+| `cache` (hit) | <1ms | <1ms | 2ms | Free |
+
+---
+
+## Fact Extraction Patterns (v3.8.16+)
+
+The `extraction.ts` module (`src/lib/memory/extraction.ts`) uses **regex pattern matching** to extract structured facts from conversation messages. Understanding these patterns helps you tune extraction quality for your use case.
+
+### Default Pattern Categories
+
+| Category | Example pattern | Captures |
+|----------|-----------------|----------|
+| Preferences | `"I (like\|love\|prefer\|hate) <X>"` | User preferences |
+| Identity | `"My name is <X>"`, `"I work at <X>"` | Personal facts |
+| Skills | `"I (know\|can use) <X>"` | User capabilities |
+| Tasks | `"I need to <X>"` | Current goals |
+| Project context | `"We're building <X>"` | Project metadata |
+| Constraints | `"I don't (like\|want) <X>"` | Negative constraints |
+
+### Example Patterns (Simplified)
+
+```ts
+// From src/lib/memory/extraction.ts
+const PREFERENCES = /\b(?:i (?:like|love|prefer|enjoy)|i hate|i (?:don't|do not) (?:like|love|prefer))\s+([^.!?]{3,80})/gi;
+const IDENTITY = /\b(?:my name is|i'?m called|i work (?:at|for))\s+([^.!?]{2,60})/gi;
+const TASKS = /\b(?:i (?:need to|have to|am trying to|want to))\s+([^.!?]{3,100})/gi;
+const PROJECTS = /\b(?:we(?:'re| are) (?:building|working on|developing))\s+([^.!?]{3,100})/gi;
+```
+
+### What Gets Extracted
+
+When a user says:
+> "I prefer TypeScript. My name is Paijo. I'm working on a router project and I don't like Python."
+
+Extraction produces 4 memories:
+
+| Key | Type | Content |
+|-----|------|---------|
+| `pref_typescript` | preference | "TypeScript" |
+| `name` | identity | "Paijo" |
+| `project_router` | project | "a router project" |
+| `dislike_python` | preference | "Python" |
+
+### Adding a Custom Pattern
+
+To add a domain-specific pattern, extend `extraction.ts`:
+
+```ts
+// In your custom plugin or fork
+import { registerExtractor } from "omniroute/memory/extraction";
+
+registerExtractor({
+  name: "deployment-context",
+  pattern: /\bdeploying (?:to|on)\s+([a-z0-9-]{2,30})/gi,
+  type: "context",
+  buildMemory: (match) => ({
+    key: `deploy_target_${match[1].toLowerCase()}`,
+    content: `User deploys to ${match[1]}`,
+    tags: ["deployment", "infra"],
+  }),
+});
+```
+
+### Extraction Limits
+
+To prevent runaway extraction, the following limits apply:
+
+| Limit | Default | Env var |
+|-------|---------|---------|
+| Max memories extracted per message | 10 | `MEMORY_MAX_EXTRACTIONS_PER_MESSAGE` |
+| Min content length | 3 chars | (hardcoded) |
+| Max content length | 200 chars | (hardcoded) |
+| Min pattern confidence | 0.5 | `MEMORY_EXTRACTION_MIN_CONFIDENCE` |
+
+### When to Disable Extraction
+
+Set `extractionEnabled: false` in settings when:
+- You have high message volume and the extraction cost is non-trivial
+- Your conversations are mostly transient (chat, debugging) with no long-term value
+- You're already capturing context via custom plugins
+
+---
+
+## Hybrid RRF Tuning (v3.8.16+)
+
+The **Reciprocal Rank Fusion (RRF)** algorithm combines FTS5 (keyword) and vector (semantic) results. The `k` parameter controls how much weight is given to lower-ranked results.
+
+### The Formula
+
+For each candidate memory, the RRF score is:
+
+```
+RRF(d) = Σ  1 / (k + rank_i(d))
+```
+
+Where:
+- `k` is the constant (default 60)
+- `rank_i(d)` is the rank of document `d` in the i-th retrieval system (FTS, vector)
+- The sum runs over all retrieval systems
+
+### How `k` Affects Results
+
+| `k` value | Effect | Best for |
+|-----------|--------|----------|
+| `k=0` | Pure rank fusion (no smoothing) | Theoretical baseline |
+| `k=10-30` | Heavily weights top results, low-rank barely contributes | When top-3 results are usually correct |
+| **`k=60`** (default) | Balanced — top-10 results all contribute meaningfully | General-purpose retrieval |
+| `k=100+` | Flatter — even low-rank results can dominate if they appear in multiple systems | When recall > precision is critical |
+
+### Tuning `k` in Practice
+
+```bash
+# Default
+MEMORY_RRF_K=60
+
+# Aggressive precision (small memory, few docs)
+MEMORY_RRF_K=20
+
+# Maximum recall (large memory, varied queries)
+MEMORY_RRF_K=120
+```
+
+**Example with `k=20`:**
+- FTS rank 1 → contribution `1/21 = 0.048`
+- FTS rank 10 → contribution `1/30 = 0.033`
+- Vector rank 1 → contribution `0.048`
+- Combined max: `0.096`
+
+**Example with `k=60`:**
+- FTS rank 1 → contribution `1/61 = 0.016`
+- FTS rank 10 → contribution `1/70 = 0.014`
+- Vector rank 1 → contribution `0.016`
+- Combined max: `0.033`
+
+With higher `k`, the **relative difference** between top-1 and rank-10 is smaller, so the algorithm relies more on **consensus across retrieval systems** than on top-rank confidence.
+
+### When to Change `k`
+
+| Symptom | Try |
+|---------|-----|
+| Top result always wins, but it's wrong | **Lower** k (e.g., 20) — top-rank confidence matters more |
+| Right answer is in top-5 but not top-1 | **Higher** k (e.g., 100) — flatter scoring rewards consensus |
+| Recall is high but precision is low | **Lower** k — sharpen the ranking |
+| Recall is low (missing relevant docs) | **Higher** k — give lower-ranked docs a chance |
+
+### RRF + Embedding Weight
+
+Beyond `k`, you can adjust the **relative weight** of FTS vs vector contribution:
+
+```bash
+# Default (1.0 = equal weight)
+MEMORY_RRF_VECTOR_WEIGHT=1.0
+MEMORY_RRF_FTS_WEIGHT=1.0
+
+# Heavily favor semantic (for long, varied queries)
+MEMORY_RRF_VECTOR_WEIGHT=2.0
+MEMORY_RRF_FTS_WEIGHT=0.5
+
+# Heavily favor keyword (for technical terms, IDs)
+MEMORY_RRF_VECTOR_WEIGHT=0.5
+MEMORY_RRF_FTS_WEIGHT=2.0
+```
+
+The weighted RRF becomes:
+
+```
+RRF(d) = (vector_weight * 1/(k + rank_vector)) + (fts_weight * 1/(k + rank_fts))
+```
+
+---
+
+## Summarization Strategy (v3.8.16+)
+
+The `summarization.ts` module (`src/lib/memory/summarization.ts`) compresses older memories to keep the active set small while preserving recall.
+
+### When Summarization Triggers
+
+| Trigger | Threshold (default) | Env var |
+|---------|---------------------|---------|
+| Total memory count exceeds | 1000 per API key | `MEMORY_SUMMARIZE_THRESHOLD` |
+| Oldest memory age exceeds | 90 days | `MEMORY_SUMMARIZE_AGE_DAYS` |
+| Manual trigger via API | n/a | `POST /api/memory/summarize` |
+
+### What Gets Summarized
+
+Summarization runs in two passes:
+
+1. **Group** — cluster related memories by `tags` and `key` (e.g., all `preference_*` memories)
+2. **Summarize** — pass each group through an LLM to produce a single consolidated memory
+
+**Example:**
+
+Before (5 separate memories):
+- `pref_languages_typescript` → "TypeScript"
+- `pref_languages_python` → "Python"
+- `pref_languages_rust` → "Rust"
+- `pref_languages_go` → "Go"
+- `pref_languages_elixir` → "Elixir"
+
+After (1 summarized memory):
+- `pref_languages` → "User prefers TypeScript, Python, Rust, Go, and Elixir"
+
+### How the Summarizer Decides What to Keep
+
+The summarizer uses a **5-factor scoring** to decide which memories are "core" (preserved verbatim) vs "summarizable" (merged):
+
+| Factor | Core if | Summarizable if |
+|--------|---------|-----------------|
+| Recency | Accessed in last 7 days | Not accessed in 30+ days |
+| Frequency | Injected >10 times | Injected <3 times |
+| Type | `identity`, `constraint` | `preference`, `context` |
+| Source | User-stated | Inferred |
+| Specificity | References unique entity | Generic statement |
+
+### Disabling Summarization
+
+If you want full-fidelity memory (no summarization), set the threshold very high:
+
+```bash
+MEMORY_SUMMARIZE_THRESHOLD=1000000  # Effectively disables
+```
+
+Or via the API:
+
+```bash
+curl -X PATCH http://localhost:20128/api/memory/settings \
+  -H "Authorization: Bearer $OMNIROUTE_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{"summarizeThreshold": 1000000}'
+```
+
+### Summarization Quality Tips
+
+- **Use `summary` type for consolidated memories** — the `MemoryType` enum includes `summary` as a distinct type so they can be filtered
+- **Set `MEMORY_SUMMARIZE_KEEP_RECENT=50`** to always preserve the 50 most recent memories verbatim
+- **Run summarization during low-traffic hours** if you have a large memory corpus — the LLM call is the slow part
+
+```bash
+# Cron-style: summarize at 3am daily
+0 3 * * * curl -X POST http://localhost:20128/api/memory/summarize \
+  -H "Authorization: Bearer $OMNIROUTE_KEY"
+```
