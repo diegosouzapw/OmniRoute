@@ -1,0 +1,21 @@
+# CODEOWNERS — default reviewers for this repository.
+# Order matters: later rules override earlier ones.
+
+* @KooshaPari
+
+# Governance / meta
+/.github/                @KooshaPari
+/SECURITY.md             @KooshaPari
+/CODEOWNERS              @KooshaPari
+/.github/CODEOWNERS      @KooshaPari
+
+# Per-ecosystem drill-down
+/rust/                    @KooshaPari
+/electron/                @KooshaPari
+/open-sse/                @KooshaPari
+/desktop-electrobun/      @KooshaPari
+/docs/                    @KooshaPari
+/crates/                  @KooshaPari
+
+# CI ownership
+/.github/workflows/       @KooshaPari

@@ -1,0 +1,48 @@
+# Dependabot configuration for OmniRoute.
+version: 2
+
+updates:
+  - package-ecosystem: "npm"
+    directory: "/"
+    schedule: { interval: "weekly", day: "monday", time: "09:00", timezone: "America/New_York" }
+    open-pull-requests-limit: 5
+    reviewers: ["KooshaPari"]
+    commit-message: { prefix: "chore(deps)", include: "scope" }
+    labels: ["dependencies", "automated"]
+    groups:
+      react-ecosystem:
+        patterns: ["react*", "@types/react*"]
+      testing-frameworks:
+        patterns: ["vitest*", "playwright*", "@testing-library/*", "jest*"]
+      build-tools:
+        patterns: ["vite*", "next*", "turbo*", "eslint*", "typescript*"]
+
+  - package-ecosystem: "npm"
+    directory: "/open-sse"
+    schedule: { interval: "weekly", day: "monday" }
+    open-pull-requests-limit: 3
+    labels: ["dependencies", "automated"]
+
+  - package-ecosystem: "npm"
+    directory: "/electron"
+    schedule: { interval: "weekly", day: "monday" }
+    open-pull-requests-limit: 3
+    labels: ["dependencies", "automated"]
+
+  - package-ecosystem: "npm"
+    directory: "/desktop-electrobun"
+    schedule: { interval: "weekly", day: "monday" }
+    open-pull-requests-limit: 3
+    labels: ["dependencies", "automated"]
+
+  - package-ecosystem: "docker"
+    directory: "/"
+    schedule: { interval: "weekly", day: "monday" }
+    open-pull-requests-limit: 3
+    labels: ["dependencies", "docker"]
+
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule: { interval: "weekly", day: "monday" }
+    open-pull-requests-limit: 5
+    labels: ["dependencies", "ci"]
