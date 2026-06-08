@@ -2055,10 +2055,11 @@ export function createSSEStream(options: StreamOptions = {}) {
             }
             clearPendingPassthroughEvent();
 
-            if (
-              passthroughBufferedTextualToolCallContent &&
-              !passthroughBufferedTextualToolCallContent.includes("Arguments:")
-            ) {
+            if (passthroughBufferedTextualToolCallContent) {
+              // Flush any remaining buffered content as plain text.
+              // Previously gated on !includes("Arguments:"), which silently dropped
+              // incomplete tool-call headers (buffer held "Arguments:" but JSON was
+              // never finished before stream ended) — fix #3355 bug 2.
               let flushOutput = "";
               if (clientExpectsResponsesStream) {
                 const syntheticChunk = {

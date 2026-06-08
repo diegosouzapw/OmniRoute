@@ -170,9 +170,16 @@ function parseTextualToolCallContent(content: unknown): { name: string; args: un
   return null;
 }
 
+// Matches the exact header format required by parseTextualToolCallContent:
+// "[Tool call: name]\nArguments:" (with optional whitespace).  Using the full
+// header pattern prevents false positives when the model quotes "[Tool call:"
+// in prose, code examples, or terminal output (#3355).
+const TEXTUAL_TOOL_CALL_HEADER = /\[Tool call:[^\]\n]+\]\s*\nArguments:/;
+
 function containsTextualToolCallContent(content: unknown): boolean {
   return (
-    typeof content === "string" && stripInternalToolEnvelopeText(content).includes("[Tool call:")
+    typeof content === "string" &&
+    TEXTUAL_TOOL_CALL_HEADER.test(stripInternalToolEnvelopeText(content))
   );
 }
 
