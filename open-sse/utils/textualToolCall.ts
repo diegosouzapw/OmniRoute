@@ -99,3 +99,14 @@ export function parseTextualToolCallCandidate(
   }
   return { kind: "partial" };
 }
+
+export function containsTextualToolCallMarker(text: unknown): boolean {
+  if (typeof text !== "string") return false;
+  const normalized = text.replace(/[\u200B-\u200D\uFEFF]/g, "");
+
+  if (!normalized.includes("[Tool call:")) return false;
+  if (normalized.includes("Arguments:")) return true;
+
+  const trimmed = normalized.trim();
+  return trimmed.startsWith("[Tool call:") || trimmed.startsWith("(empty)[Tool call:");
+}

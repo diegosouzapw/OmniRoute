@@ -814,3 +814,35 @@ test("Gemini stream: splits mid-stream partial candidate but preserves tool call
   assert.equal(toolCall.function.name, "read_file");
   assert.equal(toolCall.function.arguments, '{"path":"/tmp/a"}');
 });
+
+test("Gemini stream: index mismatch regression test with zero-width characters in prefix", () => {
+  const state = createStreamingState();
+  const result = geminiToOpenAIResponse(
+    {
+      responseId: "resp-textual-tool-index-mismatch",
+      modelVersion: "gemini-3.5-flash-low",
+      candidates: [
+        {
+          content: {
+            parts: [
+              {
+                text: "\u200BКак исправить: [Tool call: terminal]\nArguments: {\"command\":\"whoami\"}",
+              },
+            ],
+          },
+          finishReason: "STOP",
+        },
+      ],
+    },
+    state
+  );
+
+  const leakedContent = result.map((event: any) => event.choices?.[0]?.delta?.content || "").join("");
+  assert.equal(leakedContent, "Как исправить: ");
+
+  const toolCalls = result.flatMap((event: any) => event.choices?.[0]?.delta?.tool_calls || []);
+  assert.equal(toolCalls.length, 1);
+  assert.equal(toolCalls[0].function.name, "terminal");
+  assert.equal(toolCalls[0].function.arguments, '{"command":"whoami"}');
+});
+
