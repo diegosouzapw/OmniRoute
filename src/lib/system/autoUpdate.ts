@@ -3,8 +3,23 @@ import { closeSync, mkdirSync, openSync, existsSync } from "node:fs";
 import { access } from "node:fs/promises";
 import path from "node:path";
 import { promisify } from "node:util";
+import { homedir } from "node:os";
 
 const execFileAsync = promisify(execFile);
+
+function resolveProjectRoot(fallback: string): string {
+  try {
+    const cwd = process.cwd();
+    if (existsSync(path.join(cwd, "package.json"))) return cwd;
+    if (existsSync(path.join(cwd, ".git"))) return cwd;
+    return cwd;
+  } catch {
+    return fallback;
+  }
+}
+
+const FALLBACK_CWD = process.env.HOME || homedir() || "/tmp";
+export const PROJECT_ROOT: string = resolveProjectRoot(FALLBACK_CWD);
 
 type ComposeCommand = "docker compose" | "docker-compose";
 export type AutoUpdateMode = "npm" | "docker-compose" | "source";
@@ -70,8 +85,8 @@ export function getAutoUpdateConfig(env: NodeJS.ProcessEnv = process.env): AutoU
 
   let mode = normalizeMode(env.AUTO_UPDATE_MODE);
   if (mode === "npm") {
-    const isGitRepo = existsSync(path.join(process.cwd(), ".git"));
-    const currentDir = typeof __dirname !== "undefined" ? __dirname : process.cwd();
+    const isGitRepo = existsSync(path.join(PROJECT_ROOT, ".git"));
+    const currentDir = typeof __dirname !== "undefined" ? __dirname : PROJECT_ROOT;
     const isGlobalNodeModules = currentDir.includes("node_modules");
 
     // If we are not in a global node_modules directory, we are likely a local source install/build.
@@ -117,7 +132,7 @@ export async function validateAutoUpdateRuntime(
   existsImpl: (targetPath: string) => Promise<boolean> = pathExists
 ): Promise<AutoUpdateValidation> {
   if (config.mode === "source") {
-    const gitDir = path.join(process.cwd(), ".git");
+    const gitDir = path.join(PROJECT_ROOT, ".git");
     if (!(await existsImpl(gitDir))) {
       return {
         supported: false,
@@ -197,7 +212,7 @@ export async function validateAutoUpdateRuntime(
 export async function ensureGitTagExists(
   targetTag: string,
   execFileImpl: ExecFileLike = execFileAsync,
-  cwd = process.cwd()
+  cwd = PROJECT_ROOT
 ): Promise<void> {
   try {
     await execFileImpl("git", ["rev-parse", "-q", "--verify", `refs/tags/${targetTag}`], {
