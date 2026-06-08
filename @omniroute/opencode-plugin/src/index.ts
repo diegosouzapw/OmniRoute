@@ -2605,34 +2605,71 @@ export function createOmniRouteProviderHook(
             .filter(([, e]) => e.name)
             .slice(0, 5)
             .map(([k, e]) => `  ${k} → "${e.name}"`);
-          console.warn(
-            `[omniroute-plugin] startupDebug enrichment: ${withName.length} with name, ${withPricing.length} with pricing, ${withFree.length} free`,
+
+          const lines: string[] = [];
+          lines.push(`=== startupDebug ${new Date().toISOString()} ===`);
+          lines.push(`providerId=${resolved.providerId} baseURL=${baseURL}`);
+          lines.push(
+            `models=${rawModels.length} combos=${rawCombos.length} enrichment=${rawEnrichment.size} autoCombos=${rawAutoCombos.length}`,
+          );
+          lines.push(
+            `enrichment: ${withName.length} with name, ${withPricing.length} with pricing, ${withFree.length} free`,
           );
           if (freeNames.length > 0) {
-            console.warn(
-              `[omniroute-plugin] startupDebug free models:\n${freeNames.join("\n")}`,
-            );
+            lines.push(`free models (${withFree.length}):`);
+            lines.push(freeNames.join("\n"));
           } else {
-            console.warn(
-              `[omniroute-plugin] startupDebug: NO free models detected. ` +
+            lines.push(
+              `NO free models detected. ` +
                 (rawEnrichment.size === 0
-                  ? "Enrichment map is EMPTY — enrichment fetch may have failed or /api/pricing/models returned no data."
-                  : `Enrichment has ${rawEnrichment.size} entries but none have freeType. ` +
-                    "Is the server running /api/free-models? Does enrichment fetcher call it?"),
+                  ? "Enrichment map is EMPTY."
+                  : `Enrichment has ${rawEnrichment.size} entries but none have freeType.`),
             );
           }
           if (sampleNames.length > 0) {
-            console.warn(
-              `[omniroute-plugin] startupDebug sample enriched names:\n${sampleNames.join("\n")}`,
-            );
+            lines.push(`sample enriched names:`);
+            lines.push(sampleNames.join("\n"));
           }
           if (rawAutoCombos.length > 0) {
-            console.warn(
-              `[omniroute-plugin] startupDebug auto combos: ${rawAutoCombos.length} variants — ` +
+            lines.push(
+              `auto combos: ${rawAutoCombos.length} — ` +
                 rawAutoCombos
                   .map((ac) => `${ac.id}(${ac.candidateCount ?? "?"}p)`)
                   .join(", "),
             );
+          }
+          lines.push(`=== end startupDebug ===\n`);
+
+          const diagnostics = lines.join("\n");
+          _logger.debug(diagnostics);
+
+          // Also write to a file so it's readable after session starts.
+          // Truncate to last 64KB on each write to prevent disk fill.
+          try {
+            const diagDir =
+              process.env.OPENCODE_DATA_DIR ??
+              path.join(os.homedir(), ".local/share/opencode");
+            await mkdir(diagDir, { recursive: true });
+            const diagPath = path.join(
+              diagDir,
+              "plugins",
+              "omniroute-startup-diagnostics.log",
+            );
+            let existing = "";
+            try {
+              existing = await readFile(diagPath, "utf8");
+            } catch {
+              /* first write */
+            }
+            const KEEP = 65_536; // 64KB max
+            const combined = existing + diagnostics;
+            const trimmed =
+              combined.length > KEEP
+                ? combined.slice(combined.length - KEEP)
+                : combined;
+            await writeFile(diagPath, trimmed, { encoding: "utf8" });
+          } catch {
+            // Best effort — don't break startup for diagnostics
           }
         }
       }
