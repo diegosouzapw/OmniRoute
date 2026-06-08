@@ -143,7 +143,12 @@ function normalizeOpenAIChatUrl(baseUrl) {
   ) {
     return normalized;
   }
-  return normalized.endsWith("/v1") ? `${normalized}/chat/completions` : normalized;
+  if (normalized.endsWith("/v1")) {
+    return `${normalized}/chat/completions`;
+  }
+  // Assume OpenAI-compatible /v1/chat/completions path structure
+  // when the base URL is a bare hostname or custom path (e.g. llama.cpp, vLLM, LM Studio).
+  return `${normalized}/v1/chat/completions`;
 }
 
 export class DefaultExecutor extends BaseExecutor {

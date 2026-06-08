@@ -1,6 +1,7 @@
 ###
 # @name List model directly from llama-cpp provider
-GET http://localhost:10965/v1/models
+GET http://{{llama-address}}/v1/models
+Authorization: Bearer {{LLAMACPP_API_KEY}}
 
 ###
 # @name List all models
@@ -10,8 +11,8 @@ Content-Type: application/json
 
 ###
 # @name Send a standard OpenAI chat request directly to llama-cpp provider
-POST http://localhost:10965/v1/chat/completions
-Authorization: Bearer {{OMNIROUTE_API_KEY}}
+POST http://{{llama-address}}/chat/completions
+Authorization: Bearer {{LLAMACPP_API_KEY}}
 
 {
   "model": "unsloth/gemma-4-26B-A4B-it-GGUF:UD-IQ2_M",
