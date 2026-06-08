@@ -406,16 +406,6 @@ function openaiToGeminiBase(
             if (!signatureForToolCall && contextualizeSignaturelessToolResponses) {
               if (!toolCallIds.includes(id)) toolCallIds.push(id);
             }
-            if (!signatureForToolCall && stringifySignaturelessToolCalls) {
-              const args = fn.arguments || "{}";
-              parts.push({
-                text: buildInertHistoricalToolCallText(fn.name, args),
-              });
-              continue;
-            }
-            if (!signatureForToolCall && signaturelessToolCallMode === "context") {
-              continue;
-            }
 
             const args = tryParseJSON(fn.arguments || "{}");
             const embeddedThoughtSignature = shouldUseEmbeddedSignature
@@ -427,18 +417,17 @@ function openaiToGeminiBase(
             }
 
             // Gemini expects the signature on the functionCall part itself.
+            // If we are in a mode where missing signatures cause 400s (and we couldn't find one),
+            // safely default to the bypass string to protect against 400s.
             parts.push({
-              ...(embeddedThoughtSignature ? { thoughtSignature: embeddedThoughtSignature } : {}),
+              thoughtSignature: embeddedThoughtSignature || "skip_thought_signature_validator",
               functionCall: {
                 id: id,
                 name: sanitizeToolName(fn.name),
                 args: args,
               },
             });
-
-            if (!contextualizeSignaturelessToolResponses || signatureForToolCall) {
-              toolCallIds.push(id);
-            }
+            toolCallIds.push(id);
           }
 
           if (parts.length > 0) {
@@ -459,7 +448,6 @@ function openaiToGeminiBase(
             const toolParts: GeminiPart[] = [];
             for (const fid of toolCallIds) {
               if (!toolResponses[fid]) continue;
-              if (contextualizeSignaturelessToolResponses && !resolvedSignatures.has(fid)) continue;
 
               let name = tcID2Name[fid];
               if (!name) {
@@ -490,30 +478,6 @@ function openaiToGeminiBase(
                       : { result: parsedResp },
                 },
               });
-            }
-
-            if (contextualizeSignaturelessToolResponses) {
-              // Signature-less historical tool responses are represented as text
-              // so strict Gemini/Antigravity endpoints don't reject them as native
-              // functionResponse parts missing a matching thoughtSignature.
-              // In context mode the matching historical functionCall is omitted,
-              // avoiding pseudo tool-call records that Gemini Flash can repeat as
-              // the visible final answer.
-              for (const tc of toolCalls) {
-                const id = tc.id as string;
-                if (tc.type !== "function" || !id) continue;
-                if (!resolvedSignatures.has(id) && toolResponses[id]) {
-                  const fn = tc.function as { name?: string } | undefined;
-                  const name = tcID2Name[id] || fn?.name || "unknown";
-                  const resp = toolResponses[id];
-                  toolParts.push({
-                    text:
-                      signaturelessToolCallMode === "text"
-                        ? buildInertHistoricalToolResponseText(name, resp)
-                        : buildHistoricalToolResultContext(name, resp),
-                  });
-                }
-              }
             }
 
             if (toolParts.length > 0) {

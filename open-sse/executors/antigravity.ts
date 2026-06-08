@@ -661,7 +661,9 @@ export class AntigravityExecutor extends BaseExecutor {
             if (typeof p.text === "string" && p.text === "") return false;
             if (p.functionCall && !p.functionCall.name) return false;
 
-            return !p.thought && (hasFunctionCall || !p.thoughtSignature);
+            // Only strip if it's NOT our bypass sentinel. 
+            // Antigravity models (like Gemini) need this sentinel to bypass 400 errors.
+            return !p.thought && (hasFunctionCall || !p.thoughtSignature || p.thoughtSignature === "skip_thought_signature_validator");
           }) || [];
         return { ...c, role, parts };
       }) || [];
