@@ -985,8 +985,10 @@ export function sanitizeStreamingChunk(parsed: unknown): unknown {
   // Build sanitized chunk
   const sanitized: JsonRecord = {};
 
-  // Keep only standard fields
-  if (parsedRecord.id !== undefined) sanitized.id = parsedRecord.id;
+  // Keep only standard fields — normalize id to string to avoid AI_InvalidResponseDataError
+  if (parsedRecord.id !== undefined && parsedRecord.id !== null) {
+    sanitized.id = normalizeResponseId(typeof parsedRecord.id === "string" ? parsedRecord.id : String(parsedRecord.id));
+  }
   sanitized.object = toString(parsedRecord.object) || "chat.completion.chunk";
   if (parsedRecord.created !== undefined) sanitized.created = parsedRecord.created;
   if (parsedRecord.model !== undefined) sanitized.model = parsedRecord.model;
@@ -1037,7 +1039,18 @@ export function sanitizeStreamingChunk(parsed: unknown): unknown {
               delta.reasoning_content = parts.join("");
             }
           }
-          if (deltaRecord.tool_calls !== undefined) delta.tool_calls = deltaRecord.tool_calls;
+          if (deltaRecord.tool_calls !== undefined) {
+            delta.tool_calls = Array.isArray(deltaRecord.tool_calls)
+              ? deltaRecord.tool_calls.map((tc) => {
+                  const t = toRecord(tc);
+                  if (!t) return tc;
+                  if (t.id !== undefined && t.id !== null && typeof t.id !== "string") {
+                    return { ...t, id: String(t.id) };
+                  }
+                  return t;
+                })
+              : deltaRecord.tool_calls;
+          }
           if (deltaRecord.function_call !== undefined)
             delta.function_call = deltaRecord.function_call;
           c.delta = delta;
