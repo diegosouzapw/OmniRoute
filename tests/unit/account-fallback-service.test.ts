@@ -1186,3 +1186,64 @@ test("G-02: five consecutive 503 service_not_running do NOT trip provider circui
   );
   clearProviderFailure("9router"); // cleanup
 });
+
+// ── Custom banned signals (PR #3454) ──────────────────────────────────────────
+// Operators can extend ACCOUNT_DEACTIVATED_SIGNALS with provider-specific
+// permanent-ban phrasing via Settings → Security. These persist in the
+// key_value settings store and are applied at boot + on hot-reload through
+// setCustomBannedSignals(). Regression guard for the merge/detection behavior.
+
+const {
+  setCustomBannedSignals,
+  getMergedBannedSignals,
+  isAccountDeactivated,
+  ACCOUNT_DEACTIVATED_SIGNALS,
+} = accountFallback;
+
+test("getMergedBannedSignals returns built-in list unchanged when no custom signals", () => {
+  setCustomBannedSignals([]);
+  const merged = getMergedBannedSignals();
+  assert.deepEqual(merged, ACCOUNT_DEACTIVATED_SIGNALS);
+});
+
+test("getMergedBannedSignals appends custom signals to the built-in list", () => {
+  setCustomBannedSignals(["api key revoked", "tenant suspended"]);
+  const merged = getMergedBannedSignals();
+  // Built-ins still present
+  for (const sig of ACCOUNT_DEACTIVATED_SIGNALS) {
+    assert.ok(merged.includes(sig), `built-in signal "${sig}" must survive merge`);
+  }
+  // Custom appended
+  assert.ok(merged.includes("api key revoked"));
+  assert.ok(merged.includes("tenant suspended"));
+  setCustomBannedSignals([]); // cleanup
+});
+
+test("isAccountDeactivated still matches built-in signals when custom list is empty", () => {
+  setCustomBannedSignals([]);
+  assert.equal(isAccountDeactivated("Your account has been suspended"), true);
+  assert.equal(isAccountDeactivated("rate limit exceeded, retry later"), false);
+});
+
+test("isAccountDeactivated matches a custom signal after setCustomBannedSignals", () => {
+  setCustomBannedSignals([]);
+  // Before registration the custom phrase is not a ban signal
+  assert.equal(
+    isAccountDeactivated("Error: API key revoked by administrator"),
+    false,
+    "custom phrase must not match before it is registered"
+  );
+
+  setCustomBannedSignals(["api key revoked"]);
+  // Case-insensitive substring match against the merged list
+  assert.equal(
+    isAccountDeactivated("Error: API key revoked by administrator"),
+    true,
+    "custom phrase must match once registered (case-insensitive substring)"
+  );
+
+  // Built-ins remain matchable alongside custom signals
+  assert.equal(isAccountDeactivated("account_deactivated"), true);
+
+  setCustomBannedSignals([]); // cleanup — restore module state for other tests
+});
