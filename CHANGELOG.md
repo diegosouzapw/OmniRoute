@@ -4,6 +4,45 @@
 
 ---
 
+## [3.8.16] — Unreleased
+
+_Development cycle in progress — entries are added as work merges into `release/v3.8.16` and finalized by the release flow._
+
+---
+
+## [3.8.15] — 2026-06-07
+
+### ✨ New Features
+
+- **feat(error-rules):** provider-specific error classification with scope — a declarative rules layer lets providers map upstream error shapes to the right resilience action (provider circuit-breaker vs connection cooldown vs model lockout) at the correct scope, instead of relying on generic status-code heuristics. ([#3370](https://github.com/diegosouzapw/OmniRoute/pull/3370) — thanks @herjarsa)
+
+### 🔧 Bug Fixes
+
+- **fix(combo):** add `429` to `PROVIDER_FAILURE_ERROR_CODES` so a rate-limited target no longer drives an infinite retry loop — the combo now cools the target down and moves on. ([#3366](https://github.com/diegosouzapw/OmniRoute/pull/3366) — thanks @herjarsa)
+- **fix(catalog):** add a `getTokenLimit` fallback for combo targets with an unknown context window, so a target whose context can't be resolved no longer breaks token-limit computation for the combo. ([#3369](https://github.com/diegosouzapw/OmniRoute/pull/3369) — thanks @herjarsa)
+- **fix(auto-combo):** include no-auth providers in Auto-Combo declaratively (driven by provider metadata rather than a hard-coded list), so keyless providers are eligible candidates. ([#3365](https://github.com/diegosouzapw/OmniRoute/pull/3365) — thanks @oyi77)
+- **fix(auto-combo):** validate web-session credentials before selecting a web-cookie provider as an Auto-Combo target, so an expired/empty session doesn't get picked. ([#3371](https://github.com/diegosouzapw/OmniRoute/pull/3371) — thanks @oyi77)
+- **fix(command-code):** update the Command Code base URL from `/alpha/` to `/provider/v1/` (upstream moved the endpoint). ([#3372](https://github.com/diegosouzapw/OmniRoute/pull/3372) — thanks @TapZe)
+- **fix(kiro):** probe `%APPDATA%\kiro\storage.db` on Windows during Kiro auto-import, so the import finds the credential store where Kiro actually writes it on Windows. ([#3375](https://github.com/diegosouzapw/OmniRoute/pull/3375), fixes #3363 — thanks @diegosouzapw; reported by @Gerashka2)
+
+### 📝 Maintenance
+
+- **fix(migrations):** restore `095_provider_node_custom_headers.sql` — it was twice deleted from the release branch by a contributor branch's `git rm` of a duplicate getting folded into the squash merge; restored and guarded. (thanks @diegosouzapw)
+
+### 🙌 Contributors
+
+Thanks to everyone whose work landed in v3.8.15:
+
+| Contributor | PRs / Issues |
+| --- | --- |
+| [@herjarsa](https://github.com/herjarsa) | #3366, #3369, #3370 |
+| [@oyi77](https://github.com/oyi77) | #3365, #3371 |
+| [@TapZe](https://github.com/TapZe) | #3372 |
+| [@Gerashka2](https://github.com/Gerashka2) | reported #3363 |
+| [@diegosouzapw](https://github.com/diegosouzapw) | maintainer — #3375 shepherding, migration restores |
+
+---
+
 ## [3.8.14] — 2026-06-07
 
 ### ✨ New Features

@@ -46,7 +46,7 @@ export async function GET(request: Request) {
       "Kiro credentials not found. " +
       "Run `kiro-cli login --use-device-flow` then retry, " +
       "or use the Import Token option in the dashboard.",
-    triedPaths: [sqliteResult.triedPath, cacheResult.triedPath].filter(Boolean),
+    triedPaths: [...(sqliteResult.triedPaths ?? []), cacheResult.triedPath].filter(Boolean),
   });
 }
 
@@ -54,7 +54,7 @@ export async function GET(request: Request) {
 
 async function tryKiroCliSqlite(): Promise<{
   found: boolean;
-  triedPath?: string;
+  triedPaths?: string[];
   refreshToken?: string;
   accessToken?: string;
   expiresAt?: string;
@@ -64,94 +64,134 @@ async function tryKiroCliSqlite(): Promise<{
   profileArn?: string;
   source?: string;
 }> {
-  const dbPath = join(homedir(), ".local/share/kiro-cli/data.sqlite3");
+  // Build list of candidate DB paths to probe in order.
+  const candidatePaths: string[] = [join(homedir(), ".local/share/kiro-cli/data.sqlite3")];
+  if (process.env.APPDATA) {
+    candidatePaths.push(join(process.env.APPDATA, "kiro", "storage.db"));
+  }
 
   let Database: any;
   try {
     Database = (await import("better-sqlite3")).default;
   } catch {
-    return { found: false, triedPath: dbPath };
+    return { found: false, triedPaths: candidatePaths };
   }
 
-  let db: any;
-  try {
-    db = new Database(dbPath, { readonly: true, fileMustExist: true });
-  } catch {
-    return { found: false, triedPath: dbPath };
-  }
-
-  try {
-    // Read OIDC token (access + refresh token)
-    const tokenKeys = ["kirocli:odic:token", "kirocli:oidc:token"];
-    let tokenData: any = null;
-    for (const key of tokenKeys) {
-      const row = db.prepare("SELECT value FROM auth_kv WHERE key = ?").get(key) as
-        | { value: string }
-        | undefined;
-      if (row?.value) {
-        try {
-          tokenData = JSON.parse(row.value);
-          break;
-        } catch {
-          // continue
-        }
-      }
-    }
-
-    if (!tokenData?.refresh_token) {
-      return { found: false, triedPath: dbPath };
-    }
-
-    // Read device registration (client_id + client_secret)
-    const regKeys = ["kirocli:odic:device-registration", "kirocli:oidc:device-registration"];
-    let regData: any = null;
-    for (const key of regKeys) {
-      const row = db.prepare("SELECT value FROM auth_kv WHERE key = ?").get(key) as
-        | { value: string }
-        | undefined;
-      if (row?.value) {
-        try {
-          regData = JSON.parse(row.value);
-          break;
-        } catch {
-          // continue
-        }
-      }
-    }
-
-    // Read profileArn from state table (enterprise SSO / IDC)
-    let profileArn: string | undefined;
+  for (const dbPath of candidatePaths) {
+    let db: any;
     try {
-      const profileRow = db
-        .prepare("SELECT value FROM state WHERE key = 'api.codewhisperer.profile'")
-        .get() as { value: string } | undefined;
-      if (profileRow?.value) {
-        const profileData = JSON.parse(profileRow.value);
-        profileArn = profileData.arn || profileData.profileArn;
-      }
+      db = new Database(dbPath, { readonly: true, fileMustExist: true });
     } catch {
-      // state table may not exist for personal Builder ID accounts
+      // File does not exist or cannot be opened — try next candidate.
+      continue;
     }
 
-    const region = tokenData.region || regData?.region || "us-east-1";
-    const expiresAt = tokenData.expires_at
-      ? new Date(tokenData.expires_at).toISOString()
-      : new Date(Date.now() + 3600 * 1000).toISOString();
+    try {
+      // Read OIDC token (access + refresh token).
+      // Try auth_kv table first (kiro-cli Linux/macOS schema), then fallback
+      // key-value tables used by the Kiro IDE on Windows (VS Code-style storage).
+      // "kiro:auth:token" is the key Kiro IDE writes in its VS Code Extension Storage
+      // API-backed SQLite (ItemTable / storage tables) — confirmed from #3363 reporter's
+      // %APPDATA%\kiro\storage.db dump where the token starts with "aorAAAAAG".
+      const tokenKeys = ["kirocli:odic:token", "kirocli:oidc:token", "kiro:auth:token"];
+      let tokenData: any = null;
 
-    return {
-      found: true,
-      source: "kiro-cli-sqlite",
-      refreshToken: tokenData.refresh_token,
-      accessToken: tokenData.access_token,
-      expiresAt,
-      clientId: regData?.client_id,
-      clientSecret: regData?.client_secret,
-      region,
-      profileArn,
-    };
-  } finally {
-    db.close();
+      for (const key of tokenKeys) {
+        for (const table of ["auth_kv", "ItemTable", "storage"]) {
+          try {
+            const row = db.prepare(`SELECT value FROM ${table} WHERE key = ?`).get(key) as
+              | { value: string }
+              | undefined;
+            if (row?.value) {
+              try {
+                tokenData = JSON.parse(row.value);
+                if (tokenData?.refresh_token) break;
+              } catch {
+                // continue
+              }
+            }
+          } catch {
+            // no such table — skip gracefully
+          }
+        }
+        if (tokenData?.refresh_token) break;
+      }
+
+      if (!tokenData?.refresh_token) {
+        continue;
+      }
+
+      // Read device registration (client_id + client_secret).
+      const regKeys = ["kirocli:odic:device-registration", "kirocli:oidc:device-registration"];
+      let regData: any = null;
+      for (const key of regKeys) {
+        for (const table of ["auth_kv", "ItemTable", "storage"]) {
+          try {
+            const row = db.prepare(`SELECT value FROM ${table} WHERE key = ?`).get(key) as
+              | { value: string }
+              | undefined;
+            if (row?.value) {
+              try {
+                regData = JSON.parse(row.value);
+                if (regData?.client_id) break;
+              } catch {
+                // continue
+              }
+            }
+          } catch {
+            // no such table — skip gracefully
+          }
+        }
+        if (regData?.client_id) break;
+      }
+
+      // Read profileArn (enterprise SSO / IDC). The kiro-cli Linux schema stores this
+      // in the `state` table; the Windows Kiro IDE schema may store it in `ItemTable`
+      // or `storage` with the same key. Probe all three so IDC users on Windows also
+      // get a valid profileArn and are not silently downgraded to the Builder ID path.
+      let profileArn: string | undefined;
+      const profileKey = "api.codewhisperer.profile";
+      for (const table of ["state", "ItemTable", "storage"]) {
+        try {
+          const profileRow = db
+            .prepare(`SELECT value FROM ${table} WHERE key = ?`)
+            .get(profileKey) as { value: string } | undefined;
+          if (profileRow?.value) {
+            const profileData = JSON.parse(profileRow.value);
+            profileArn = profileData.arn || profileData.profileArn;
+            if (profileArn) break;
+          }
+        } catch {
+          // table may not exist — skip gracefully
+        }
+      }
+
+      const region = tokenData.region || regData?.region || "us-east-1";
+      const expiresAt = tokenData.expires_at
+        ? new Date(tokenData.expires_at).toISOString()
+        : new Date(Date.now() + 3600 * 1000).toISOString();
+
+      return {
+        found: true,
+        source: "kiro-cli-sqlite",
+        refreshToken: tokenData.refresh_token,
+        accessToken: tokenData.access_token,
+        expiresAt,
+        clientId: regData?.client_id,
+        clientSecret: regData?.client_secret,
+        region,
+        profileArn,
+      };
+    } finally {
+      try {
+        db.close();
+      } catch {
+        // ignore close errors
+      }
+    }
   }
+
+  return { found: false, triedPaths: candidatePaths };
 }
 
 // ── ~/.aws/sso/cache fallback ─────────────────────────────────────────────────

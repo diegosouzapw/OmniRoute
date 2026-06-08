@@ -496,7 +496,8 @@ export async function getUnifiedModelsResponse(
       const specContext = isPositiveFiniteNumber(spec?.contextWindow)
         ? spec.contextWindow
         : undefined;
-      const contextLength = syncedContext ?? registryContext ?? specContext;
+      const contextLength = syncedContext ?? registryContext ?? specContext ??
+        (getTokenLimit(providerId, modelId) || undefined);
       const maxInputTokens = isPositiveFiniteNumber(synced?.limit_input)
         ? synced.limit_input
         : contextLength;

@@ -1416,7 +1416,7 @@ test("v1 models catalog computes combo context_length from known targets when so
   assert.equal(
     comboModel.context_length,
     128000,
-    "combo context_length should be the MIN of known target model limits, ignoring unknown targets"
+    "combo context_length should be the MIN of known target model limits, ignoring targets with no registry/spec/synced source"
   );
 });
 

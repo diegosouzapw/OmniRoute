@@ -21,18 +21,21 @@ test("web session credential metadata identifies cookie, token, and no-auth prov
     credentialName: "sso + sso-rw",
     placeholder: "sso=...; sso-rw=...",
     acceptsFullCookieHeader: true,
+    storageKeys: ["cookie", "sso", "sso-rw"],
   });
   assert.deepEqual(webSessionCredentials.getWebSessionCredentialRequirement("copilot-web"), {
     kind: "token",
     credentialName: "access_token",
     placeholder: "access_token=... or a DevTools HAR export",
     acceptsFullCookieHeader: false,
+    storageKeys: ["token", "access_token", "accessToken"],
   });
   assert.deepEqual(webSessionCredentials.getWebSessionCredentialRequirement("deepseek-web"), {
     kind: "token",
     credentialName: "userToken",
     placeholder: "userToken=... or paste raw userToken",
     acceptsFullCookieHeader: false,
+    storageKeys: ["token", "userToken"],
   });
   // veoaifree-web is now a NOAUTH provider — not in WEB_SESSION_CREDENTIAL_REQUIREMENTS
   assert.equal(webSessionCredentials.getWebSessionCredentialRequirement("veoaifree-web"), null);
@@ -41,7 +44,33 @@ test("web session credential metadata identifies cookie, token, and no-auth prov
     credentialName: "convex-session-id + Cookie header",
     placeholder: "convex-session-id=abc123...; Cookie: ...",
     acceptsFullCookieHeader: true,
+    storageKeys: ["cookie", "convex-session-id", "convexSessionId"],
   });
+});
+
+test("web session credential validator requires provider-specific non-empty values", () => {
+  assert.equal(
+    webSessionCredentials.hasUsableWebSessionCredential("qwen-web", { token: "qwen-token" }),
+    true
+  );
+  assert.equal(
+    webSessionCredentials.hasUsableWebSessionCredential("qwen-web", { token: "   " }),
+    false
+  );
+  assert.equal(
+    webSessionCredentials.hasUsableWebSessionCredential("qwen-web", { unrelated: "value" }),
+    false
+  );
+  assert.equal(
+    webSessionCredentials.hasUsableWebSessionCredential("chatgpt-web", {
+      cookie: "__Secure-next-auth.session-token=session",
+    }),
+    true
+  );
+  assert.equal(
+    webSessionCredentials.hasUsableWebSessionCredential("chatgpt-web", { unrelated: "value" }),
+    false
+  );
 });
 
 test("no-auth web providers can be saved without an API key", () => {

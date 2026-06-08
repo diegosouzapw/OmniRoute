@@ -718,11 +718,16 @@ async function selectSessionAffinityConnection(
 
 /**
  * Sentinel connection id used for the synthetic credentials of no-auth /
- * keyless providers (opencode / opencode-zen). It is NOT a real DB row, so it
+ * keyless providers. It is NOT a real DB row, so it
  * cannot carry cooldown state — the account-fallback loop must be able to
  * exclude it (#3061), otherwise it gets re-selected forever.
  */
 const SYNTHETIC_NOAUTH_CONNECTION_ID = "noauth";
+
+type AnonymousFallbackProviderDefinition = {
+  anonymousFallback?: boolean;
+  noAuth?: boolean;
+};
 
 function buildSyntheticNoAuthCredentials(): {
   apiKey: null;
@@ -762,6 +767,31 @@ function buildSyntheticNoAuthCredentials(): {
     rateLimitedUntil: null,
     maxConcurrent: null,
   };
+}
+
+function providerCanUseSyntheticNoAuthFallback(providerId: string): boolean {
+  const providerDef = getProviderById(providerId) as
+    | AnonymousFallbackProviderDefinition
+    | undefined;
+  return (
+    providerDef?.anonymousFallback === true ||
+    Boolean(
+      (NOAUTH_PROVIDERS as Record<string, AnonymousFallbackProviderDefinition | undefined>)[
+        providerId
+      ]?.noAuth
+    ) ||
+    Boolean(
+      (WEB_COOKIE_PROVIDERS as Record<string, AnonymousFallbackProviderDefinition | undefined>)[
+        providerId
+      ]?.noAuth
+    )
+  );
+}
+
+function maybeSyntheticNoAuthFallback(providerId: string, excludedConnectionIds: Set<string>) {
+  if (!providerCanUseSyntheticNoAuthFallback(providerId)) return null;
+  if (excludedConnectionIds.has(SYNTHETIC_NOAUTH_CONNECTION_ID)) return null;
+  return buildSyntheticNoAuthCredentials();
 }
 
 function normalizeExcludedConnectionIds(
@@ -940,10 +970,7 @@ export async function getProviderCredentials(
         excludeConnectionId,
         options.excludeConnectionIds
       );
-      if (excludedForNoAuth.has(SYNTHETIC_NOAUTH_CONNECTION_ID)) {
-        return null;
-      }
-      return buildSyntheticNoAuthCredentials();
+      return maybeSyntheticNoAuthFallback(resolvedId, excludedForNoAuth);
     }
 
     const allowSuppressedConnections = options.allowSuppressedConnections === true;
@@ -1028,6 +1055,9 @@ export async function getProviderCredentials(
         // the dashboard sees a misleading "bad_request" code.
         const terminalConnections = allConnections.filter(isTerminalConnectionStatus);
         if (terminalConnections.length === allConnections.length) {
+          const syntheticFallback = maybeSyntheticNoAuthFallback(resolvedId, excludedConnectionIds);
+          if (syntheticFallback) return syntheticFallback;
+
           const statusCounts = new Map<string, number>();
           for (const c of terminalConnections) {
             const key = normalizeStatus(c.testStatus) || "expired";
@@ -1042,21 +1072,8 @@ export async function getProviderCredentials(
           };
         }
       }
-      // #2962: opencode-zen exposes the public, signup-free OpenCode Zen endpoint
-      // (https://opencode.ai/zen/v1). With no usable API-key connection, fall back
-      // to anonymous (no-auth) access — the free tier — instead of erroring with
-      // "No credentials". This is what the Playground/combos hit when selecting an
-      // OpenCode free model. A configured, active key is still selected above; a
-      // rate-limited/terminal key returns its own signal before reaching here.
-      if (resolvedId === "opencode-zen") {
-        // #3061: same loop guard as the NOAUTH_PROVIDERS path above — once the
-        // single synthetic "noauth" connection has been excluded by the chat
-        // fallback loop, return null instead of re-handing it back forever.
-        if (excludedConnectionIds.has(SYNTHETIC_NOAUTH_CONNECTION_ID)) {
-          return null;
-        }
-        return buildSyntheticNoAuthCredentials();
-      }
+      const syntheticFallback = maybeSyntheticNoAuthFallback(resolvedId, excludedConnectionIds);
+      if (syntheticFallback) return syntheticFallback;
       log.warn("AUTH", `No credentials for ${provider}`);
       return null;
     }
@@ -1226,13 +1243,8 @@ export async function getProviderCredentials(
           cooldownModel: allBlockedByModelCooldown ? requestedModel : null,
         };
       }
-      if (resolvedId === "opencode-zen") {
-        if (excludedConnectionIds.has(SYNTHETIC_NOAUTH_CONNECTION_ID)) {
-          return null;
-        }
-        return buildSyntheticNoAuthCredentials();
-      }
-
+      const syntheticFallback = maybeSyntheticNoAuthFallback(resolvedId, excludedConnectionIds);
+      if (syntheticFallback) return syntheticFallback;
       log.warn("AUTH", `${provider} | all ${connections.length} accounts unavailable`);
       return null;
     }
@@ -1586,7 +1598,10 @@ export async function getProviderCredentialsWithQuotaPreflight(
       return null;
     }
 
-    if (credentials.allRateLimited || credentials.allExpired) {
+    if (
+      ("allRateLimited" in credentials && credentials.allRateLimited) ||
+      ("allExpired" in credentials && credentials.allExpired)
+    ) {
       return credentials;
     }
 

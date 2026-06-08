@@ -176,20 +176,46 @@ jobs:
         env:
           DOCKER_BUILDKIT_INLINE_CACHE: 1
 
-      - name: Export digest
+      - name: Build and push WEB platform image by digest
+        id: build-web
+        uses: docker/build-push-action@v7
+        with:
+          context: .
+          target: runner-web
+          platforms: ${{ matrix.platform }}
+          outputs: type=image,push-by-digest=true,name-canonical=true,push=true
+          tags: |
+            ${{ env.IMAGE_NAME }}
+            ${{ env.GHCR_IMAGE_NAME }}
+          cache-from: type=gha,scope=docker-web-${{ matrix.arch }}
+          cache-to: type=gha,scope=docker-web-${{ matrix.arch }},mode=max
+          no-cache: false
         env:
-          DIGEST: ${{ steps.build.outputs.digest }}
+          DOCKER_BUILDKIT_INLINE_CACHE: 1
+
+      - name: Export digests
+        env:
+          DIGEST_BASE: ${{ steps.build.outputs.digest }}
+          DIGEST_WEB: ${{ steps.build-web.outputs.digest }}
         run: |
           set -euo pipefail
-          mkdir -p /tmp/digests
-          digest="${DIGEST#sha256:}"
-          touch "/tmp/digests/${digest}"
+          mkdir -p /tmp/digests/base /tmp/digests/web
+          touch "/tmp/digests/base/${DIGEST_BASE#sha256:}"
+          touch "/tmp/digests/web/${DIGEST_WEB#sha256:}"
 
-      - name: Upload digest
+      - name: Upload base digests
         uses: actions/upload-artifact@v7
         with:
-          name: digests-${{ matrix.arch }}
-          path: /tmp/digests/*
+          name: digests-base-${{ matrix.arch }}
+          path: /tmp/digests/base/*
+          if-no-files-found: error
+          retention-days: 1
+
+      - name: Upload web digests
+        uses: actions/upload-artifact@v7
+        with:
+          name: digests-web-${{ matrix.arch }}
+          path: /tmp/digests/web/*
           if-no-files-found: error
           retention-days: 1
 
@@ -228,54 +254,67 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Download digests
+      - name: Download base digests
         uses: actions/download-artifact@v8
         with:
-          pattern: digests-*
-          path: /tmp/digests
+          pattern: digests-base-*
+          path: /tmp/digests/base
+          merge-multiple: true
+
+      - name: Download web digests
+        uses: actions/download-artifact@v8
+        with:
+          pattern: digests-web-*
+          path: /tmp/digests/web
           merge-multiple: true
 
       - name: Create Docker Hub manifest
         run: |
           set -euo pipefail
 
-          tags=(-t "${IMAGE_NAME}:${VERSION}")
-          if [ "$PROMOTE_LATEST" = "true" ]; then
-            tags+=(-t "${IMAGE_NAME}:latest")
-          fi
+          create_manifest() {
+            local image="$1" suffix="$2" dir="$3"
+            local tags=(-t "${image}:${VERSION}${suffix}")
+            if [ "$PROMOTE_LATEST" = "true" ]; then
+              tags+=(-t "${image}:latest${suffix}")
+            fi
+            local refs=()
+            while IFS= read -r digest_file; do
+              refs+=("${image}@sha256:$(basename "$digest_file")")
+            done < <(find "$dir" -type f | sort)
+            if [ "${#refs[@]}" -eq 0 ]; then
+              echo "No image digests in $dir" >&2
+              exit 1
+            fi
+            docker buildx imagetools create "${tags[@]}" "${refs[@]}"
+          }
 
-          refs=()
-          while IFS= read -r digest_file; do
-            refs+=("${IMAGE_NAME}@sha256:$(basename "$digest_file")")
-          done < <(find /tmp/digests -type f | sort)
-
-          if [ "${#refs[@]}" -eq 0 ]; then
-            echo "No image digests were downloaded." >&2
-            exit 1
-          fi
-
-          docker buildx imagetools create "${tags[@]}" "${refs[@]}"
+          create_manifest "${IMAGE_NAME}" "" /tmp/digests/base
+          create_manifest "${IMAGE_NAME}" "-web" /tmp/digests/web
 
       - name: Create GHCR manifest
         run: |
           set -euo pipefail
 
-          tags=(-t "${GHCR_IMAGE_NAME}:${VERSION}")
-          if [ "$PROMOTE_LATEST" = "true" ]; then
-            tags+=(-t "${GHCR_IMAGE_NAME}:latest")
-          fi
+          create_manifest() {
+            local image="$1" suffix="$2" dir="$3"
+            local tags=(-t "${image}:${VERSION}${suffix}")
+            if [ "$PROMOTE_LATEST" = "true" ]; then
+              tags+=(-t "${image}:latest${suffix}")
+            fi
+            local refs=()
+            while IFS= read -r digest_file; do
+              refs+=("${image}@sha256:$(basename "$digest_file")")
+            done < <(find "$dir" -type f | sort)
+            if [ "${#refs[@]}" -eq 0 ]; then
+              echo "No image digests in $dir" >&2
+              exit 1
+            fi
+            docker buildx imagetools create "${tags[@]}" "${refs[@]}"
+          }
 
-          refs=()
-          while IFS= read -r digest_file; do
-            refs+=("${GHCR_IMAGE_NAME}@sha256:$(basename "$digest_file")")
-          done < <(find /tmp/digests -type f | sort)
-
-          if [ "${#refs[@]}" -eq 0 ]; then
-            echo "No image digests were downloaded." >&2
-            exit 1
-          fi
-
-          docker buildx imagetools create "${tags[@]}" "${refs[@]}"
+          create_manifest "${GHCR_IMAGE_NAME}" "" /tmp/digests/base
+          create_manifest "${GHCR_IMAGE_NAME}" "-web" /tmp/digests/web
 
       - name: Inspect image
         if: needs.prepare.outputs.version != 'main'
