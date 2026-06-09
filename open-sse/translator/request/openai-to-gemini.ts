@@ -114,6 +114,8 @@ type GeminiToolNameOptions = {
   // Gemini API DOES use `id` for Gemini 3+ signature matching, so this is scoped to
   // the vertex provider only.
   stripFunctionCallId?: boolean;
+  /** Only Antigravity/Gemini CLI support the thoughtSignature field. Standard Gemini rejects it with 400. */
+  supportsSignatureBypass?: boolean;
 };
 
 // Vertex AI (and Vertex Partner models) reject the OpenAI-style `id` field inside
@@ -430,7 +432,7 @@ function openaiToGeminiBase(
             // Gemini expects the signature on the functionCall part itself.
             // If we are in a mode where missing signatures cause 400s (and we couldn't find one),
             // safely default to the bypass string to protect against 400s.
-            const finalSignature = embeddedThoughtSignature || (signaturelessToolCallMode !== "text" ? "skip_thought_signature_validator" : undefined);
+            const finalSignature = embeddedThoughtSignature || (toolNameOptions.supportsSignatureBypass && signaturelessToolCallMode !== "text" ? "skip_thought_signature_validator" : undefined);
             parts.push({
               ...(finalSignature ? { thoughtSignature: finalSignature } : {}),
               functionCall: {
@@ -601,6 +603,7 @@ export function openaiToGeminiCLIRequest(
     functionResponseShape: options.functionResponseShape,
     signatureNamespace: options.signatureNamespace,
     signaturelessToolCallMode: options.signaturelessToolCallMode,
+    supportsSignatureBypass: true,
   });
 }
 
