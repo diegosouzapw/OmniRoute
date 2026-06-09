@@ -102,7 +102,9 @@ export function shortProviderLabel(
       ? alias.toUpperCase()
       : titleCaseAlias(alias);
   }
-  return undefined;
+  // Long displayName with no alias to fall back on: keep the long label
+  // rather than dropping the provider prefix entirely.
+  return raw.length > 0 ? raw : undefined;
 }
 
 // ── Free Label ────────────────────────────────────────────────────────────

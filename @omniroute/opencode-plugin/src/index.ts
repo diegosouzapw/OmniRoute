@@ -174,6 +174,8 @@ const featuresSchema = z
     diskCache: z.boolean().optional(),
     providerTag: z.boolean().optional(),
     debugLog: z.boolean().optional(),
+    startupDebug: z.boolean().optional(),
+    logLevel: z.enum(["error", "warn", "info", "debug"]).optional(),
     apiFormat: apiFormatSchema,
   })
   .strict();
@@ -224,59 +226,6 @@ function trimTrailingSlashes(value: string): string {
   return i === value.length ? value : value.slice(0, i);
 }
 
-/**
- * Ensure a baseURL ends with `/v1` so the OpenAI-compat SDK constructs
- * `/v1/chat/completions` instead of `/chat/completions`.
- * No-op when the URL already ends with `/v1` or `/v1/`.
- */
-export function ensureV1Suffix(url: string): string {
-  const trimmed = trimTrailingSlashes(url);
-  return trimmed.endsWith("/v1") ? trimmed : `${trimmed}/v1`;
-}
-
-/**
- * Default provider prefixes that should use the Anthropic-native SDK.
- * Covers all OmniRoute aliases that route to Anthropic upstream.
- */
-export const DEFAULT_ANTHROPIC_PREFIXES = [
-  "cc",
-  "claude",
-  "anthropic",
-  "kiro",
-  "kr",
-];
-
-/**
- * Resolve the `api` block for a ModelV2 entry given a model id and the
- * active `apiFormat` feature config.
- *
- * - Models whose prefix (before the first `/`) is in `anthropicPrefixes` →
- *   `{ id: "anthropic", url: baseURL/v1, npm: "@ai-sdk/anthropic" }`
- *
- * - All others →
- *   `{ id: "openai-compatible", url: baseURL/v1, npm: "@ai-sdk/openai-compatible" }`
- */
-export function resolveApiBlock(
-  modelId: string,
-  baseURL: string,
-  apiFormat?: { anthropicPrefixes?: string[] },
-): { id: string; url: string; npm: string } {
-  const prefixes = apiFormat?.anthropicPrefixes ?? DEFAULT_ANTHROPIC_PREFIXES;
-  const slash = modelId.indexOf("/");
-  const prefix = slash === -1 ? modelId : modelId.slice(0, slash);
-  const isAnthropic = prefixes.includes(prefix);
-  return isAnthropic
-    ? {
-        id: "anthropic",
-        url: ensureV1Suffix(baseURL),
-        npm: "@ai-sdk/anthropic",
-      }
-    : {
-        id: "openai-compatible",
-        url: ensureV1Suffix(baseURL),
-        npm: "@ai-sdk/openai-compatible",
-      };
-}
 function trimTrailingDashes(value: string): string {
   let i = value.length;
   while (i > 0 && value.charCodeAt(i - 1) === 0x2d /* "-" */) i--;
@@ -429,31 +378,6 @@ export function resolveApiBlock(
       };
 }
 
-// ────────────────────────────────────────────────────────────────────────────
-// Free-label normalisation
-// ────────────────────────────────────────────────────────────────────────────
-
-/**
- * Normalise a model display name so free-tier models always carry a
- * consistent `[Free] ` prefix instead of a trailing `(Free)` suffix or
- * an ad-hoc `free` word anywhere in the name.
- *
- *   "GPT-4.1 (Free)"          → "[Free] GPT-4.1"
- *   "DeepSeek V4 Flash Free"  → "[Free] DeepSeek V4 Flash"
- *   "Claude 4.7 Opus"          → "Claude 4.7 Opus"  (no change)
- *
- * Non-matching names pass through untouched.
- */
-export function normaliseFreeLabel(name: string): string {
-  // Remove trailing " (Free)" or " free" (case-insensitive, hyphen-tolerant)
-  const cleaned = name
-    .replace(/\s*\(free\)\s*$/i, "")
-    .replace(/[\s-]+free\s*$/i, "")
-    .trim();
-  const wasFree = cleaned.length < name.trim().length;
-  if (!wasFree) return name;
-  return `[Free] ${cleaned}`;
-}
 
 /**
  * Build the AuthHook portion of the plugin for a given options bag. Exported
@@ -560,8 +484,8 @@ export function createOmniRouteAuthHook(
           );
         }
         return composedFetch
-          ? { apiKey, baseURL: sdkBaseURL, fetch: composedFetch }
-          : { apiKey, baseURL: sdkBaseURL };
+          ? { apiKey, baseURL: resolvedBaseURL, fetch: composedFetch }
+          : { apiKey, baseURL: resolvedBaseURL };
       }
       return {};
     },
@@ -2014,7 +1938,7 @@ export function applyEnrichment(
 ): ModelV2 {
   if (!enrichment) return model;
   if (enrichment.name && enrichment.name.trim().length > 0) {
-    model.name = normaliseFreeLabel(enrichment.name);
+    model.name = _normaliseFreeLabel(enrichment.name);
   }
   if (enrichment.pricing) {
     if (typeof enrichment.pricing.input === "number") {
@@ -3029,276 +2953,6 @@ export function createOmniRouteProviderHook(
  * @see https://opencode.ai/docs/plugins for the AuthLoaderResult.fetch contract
  *      (the returned function is invoked by the AI-SDK in lieu of global fetch).
  */
-// ─────────────────────────────────────────────────────────────────────────────
-// DEBUG LOGGING — request/response capture (features.debugLog)
-// ─────────────────────────────────────────────────────────────────────────────
-
-import { homedir } from "os";
-import {
-  appendFileSync,
-  existsSync,
-  mkdirSync,
-  readFileSync,
-  writeFileSync,
-} from "fs";
-import { join } from "path";
-import { randomUUID } from "crypto";
-
-export interface DebugLogEntry {
-  reqId: string;
-  providerId: string;
-  ts: number;
-  url: string;
-  method: string;
-  reqHeaders: Record<string, string>;
-  reqBody: unknown;
-  resStatus: number | null;
-  resHeaders: Record<string, string>;
-  resBody: unknown;
-  durationMs: number | null;
-  error?: string;
-  /** Parsed from SSE trailing comments (real values when headers show 0) */
-  sseTokensIn?: number;
-  sseTokensOut?: number;
-  sseCost?: number;
-  sseModel?: string;
-  sseProvider?: string;
-  /** Parsed assistant reply text from SSE stream */
-  replyText?: string;
-}
-
-/** Parse OmniRoute SSE trailing comments + assistant content from a stream body string. */
-export function parseSseDebugMeta(body: string): {
-  tokensIn?: number;
-  tokensOut?: number;
-  cost?: number;
-  model?: string;
-  provider?: string;
-  replyText?: string;
-} {
-  if (typeof body !== "string") return {};
-  const result: ReturnType<typeof parseSseDebugMeta> = {};
-  let reply = "";
-  for (const line of body.split("\n")) {
-    const t = line.trim();
-    // OmniRoute SSE comment metadata: `: x-omniroute-tokens-in=333`
-    if (t.startsWith(":")) {
-      const kv = t.slice(1).trim();
-      const eq = kv.indexOf("=");
-      if (eq === -1) continue;
-      const k = kv.slice(0, eq).trim();
-      const v = kv.slice(eq + 1).trim();
-      if (k === "x-omniroute-tokens-in") result.tokensIn = Number(v);
-      else if (k === "x-omniroute-tokens-out") result.tokensOut = Number(v);
-      else if (k === "x-omniroute-response-cost") result.cost = Number(v);
-      else if (k === "x-omniroute-model") result.model = v;
-      else if (k === "x-omniroute-provider") result.provider = v;
-    }
-    // Parse assistant content from data chunks
-    if (t.startsWith("data:") && !t.includes("[DONE]")) {
-      try {
-        const chunk = JSON.parse(t.slice(5)) as {
-          choices?: Array<{ delta?: { content?: string } }>;
-        };
-        reply += chunk.choices?.[0]?.delta?.content ?? "";
-      } catch {
-        /**/
-      }
-    }
-  }
-  if (reply) result.replyText = reply;
-  return result;
-}
-
-function debugLogDir(): string {
-  const dir = join(homedir(), ".local", "share", "opencode", "plugins");
-  if (!existsSync(dir)) mkdirSync(dir, { recursive: true });
-  return dir;
-}
-
-function debugLogPath(providerId: string): string {
-  return join(debugLogDir(), `omniroute-debug-${providerId}.jsonl`);
-}
-
-function debugStatePath(providerId: string): string {
-  return join(debugLogDir(), `omniroute-debug-${providerId}.state.json`);
-}
-
-export function debugLogEnabled(providerId: string): boolean {
-  try {
-    const p = debugStatePath(providerId);
-    if (!existsSync(p)) return false;
-    const s = JSON.parse(readFileSync(p, "utf8")) as { enabled?: boolean };
-    return s.enabled === true;
-  } catch {
-    return false;
-  }
-}
-
-export function debugLogSetEnabled(providerId: string, enabled: boolean): void {
-  writeFileSync(
-    debugStatePath(providerId),
-    JSON.stringify({ enabled }),
-    "utf8",
-  );
-}
-
-export function debugLogAppend(entry: DebugLogEntry): void {
-  appendFileSync(
-    debugLogPath(entry.providerId),
-    JSON.stringify(entry) + "\n",
-    "utf8",
-  );
-}
-
-export function debugLogRead(providerId: string, limit = 20): DebugLogEntry[] {
-  const p = debugLogPath(providerId);
-  if (!existsSync(p)) return [];
-  const lines = readFileSync(p, "utf8").trim().split("\n").filter(Boolean);
-  return lines
-    .slice(-limit)
-    .map((l) => {
-      try {
-        return JSON.parse(l) as DebugLogEntry;
-      } catch {
-        return null;
-      }
-    })
-    .filter((e): e is DebugLogEntry => e !== null);
-}
-
-export function debugLogGetById(
-  providerId: string,
-  reqId: string,
-): DebugLogEntry | null {
-  const p = debugLogPath(providerId);
-  if (!existsSync(p)) return null;
-  const lines = readFileSync(p, "utf8").trim().split("\n").filter(Boolean);
-  for (let i = lines.length - 1; i >= 0; i--) {
-    try {
-      const e = JSON.parse(lines[i]) as DebugLogEntry;
-      if (e.reqId === reqId) return e;
-    } catch {
-      /* skip */
-    }
-  }
-  return null;
-}
-
-export function debugLogClear(providerId: string): void {
-  const p = debugLogPath(providerId);
-  if (existsSync(p)) writeFileSync(p, "", "utf8");
-}
-
-/**
- * Wraps a fetch function to capture request/response pairs into the debug
- * JSONL log. Only active when `debugLogEnabled(providerId)` returns true at
- * call time — the flag is read on every request so enable/disable takes
- * effect immediately without restarting OpenCode.
- */
-export function createDebugLoggingFetch(
-  inner: typeof fetch,
-  providerId: string,
-  featureDefault: boolean,
-): typeof fetch {
-  return async (input, init = {}) => {
-    const active = featureDefault || debugLogEnabled(providerId);
-    if (!active) return inner(input, init);
-
-    const reqId = randomUUID();
-    const url =
-      typeof input === "string"
-        ? input
-        : input instanceof URL
-          ? input.toString()
-          : (input as Request).url;
-    const method =
-      init.method ?? (input instanceof Request ? input.method : "GET");
-
-    const reqHeaders: Record<string, string> = {};
-    const headerSrc = init.headers
-      ? new Headers(init.headers)
-      : input instanceof Request
-        ? input.headers
-        : new Headers();
-    headerSrc.forEach((v, k) => {
-      reqHeaders[k] = k.toLowerCase() === "authorization" ? "[redacted]" : v;
-    });
-
-    let reqBody: unknown = undefined;
-    try {
-      if (init.body) {
-        reqBody =
-          typeof init.body === "string" ? JSON.parse(init.body) : "[binary]";
-      }
-    } catch {
-      reqBody = "[unparseable]";
-    }
-
-    const t0 = Date.now();
-    try {
-      const res = await inner(input, init);
-      const durationMs = Date.now() - t0;
-
-      const resHeaders: Record<string, string> = {};
-      res.headers.forEach((v, k) => {
-        resHeaders[k] = v;
-      });
-
-      let resBody: unknown = undefined;
-      const clone = res.clone();
-      try {
-        const ct = res.headers.get("content-type") ?? "";
-        resBody = ct.includes("application/json")
-          ? await clone.json()
-          : await clone.text();
-      } catch {
-        resBody = "[unreadable]";
-      }
-
-      const sseMeta =
-        typeof resBody === "string" ? parseSseDebugMeta(resBody) : {};
-      debugLogAppend({
-        reqId,
-        providerId,
-        ts: t0,
-        url,
-        method,
-        reqHeaders,
-        reqBody,
-        resStatus: res.status,
-        resHeaders,
-        resBody,
-        durationMs,
-        sseTokensIn: sseMeta.tokensIn,
-        sseTokensOut: sseMeta.tokensOut,
-        sseCost: sseMeta.cost,
-        sseModel: sseMeta.model,
-        sseProvider: sseMeta.provider,
-        replyText: sseMeta.replyText,
-      });
-
-      return res;
-    } catch (err) {
-      debugLogAppend({
-        reqId,
-        providerId,
-        ts: t0,
-        url,
-        method,
-        reqHeaders,
-        reqBody,
-        resStatus: null,
-        resHeaders: {},
-        resBody: null,
-        durationMs: Date.now() - t0,
-        error: String(err),
-      });
-      throw err;
-    }
-  };
-}
-
 export function createOmniRouteFetchInterceptor(config: {
   apiKey: string;
   baseURL: string;

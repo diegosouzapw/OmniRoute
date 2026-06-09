@@ -202,3 +202,8 @@ pr_reviews*.json
 
 # internal setup prompts with personal credentials — never commit
 CODEX-SETUP-PROMPT.md
+-home-diegosouzapw-dev-automações-bots-yt-downloader-20260504 .txt
+PLANO-QUALITY-GATES.md
+quality-metrics.json
+RELATORIO-QUALITY-GATES.md
+-home-diegosouzapw-dev-automações-bots-yt-downloader-20260410 .txt
