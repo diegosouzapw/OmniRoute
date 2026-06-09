@@ -28,12 +28,12 @@ interface Summary {
 
 const CATEGORIES = [
   { value: "all", label: "All" },
-  { value: "security", label: "Security (6)" },
-  { value: "network", label: "Network (5)" },
-  { value: "policies", label: "Policies (3)" },
-  { value: "runtime", label: "Runtime (7)" },
-  { value: "cli", label: "CLI (3)" },
-  { value: "health", label: "Health (3)" },
+  { value: "security", label: "Security" },
+  { value: "network", label: "Network" },
+  { value: "policies", label: "Policies" },
+  { value: "runtime", label: "Runtime" },
+  { value: "cli", label: "CLI" },
+  { value: "health", label: "Health" },
   // Synthetic "category" that filters by requiresRestart=true regardless of
   // real category — surfaces flags that need a process restart to take effect.
   { value: "__restart", label: "Requires Restart" },

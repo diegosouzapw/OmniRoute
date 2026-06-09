@@ -78,11 +78,17 @@ const state: PoolState = {
   cloakLaunchResolved: false,
 };
 
+function getCloakbrowserModuleId(): string {
+  // Keep this computed: cloakbrowser is an optional runtime enhancer, and a literal
+  // dynamic import with the package name makes Turbopack resolve it during route compilation.
+  return ["cloak", "browser"].join("");
+}
+
 async function resolveCloakLaunch(): Promise<((opts: unknown) => Promise<Browser>) | null> {
   if (state.cloakLaunchResolved) return state.cloakLaunch;
   state.cloakLaunchResolved = true;
   try {
-    const mod = (await new Function("return import('cloakbrowser')")()) as {
+    const mod = (await import(getCloakbrowserModuleId())) as unknown as {
       launch?: (opts: unknown) => Promise<Browser>;
     };
     state.cloakLaunch = mod.launch ?? null;
@@ -110,7 +116,12 @@ function evictStaleContexts(): void {
   const now = Date.now();
   for (const [key, pooled] of state.contexts) {
     if (now - pooled.lastUsed > CONTEXT_TTL_MS) {
-      console.log("[BrowserPool] Evicted stale context:", key, "(idle", ((now - pooled.lastUsed) / 1000).toFixed(0) + "s)");
+      console.log(
+        "[BrowserPool] Evicted stale context:",
+        key,
+        "(idle",
+        ((now - pooled.lastUsed) / 1000).toFixed(0) + "s)"
+      );
       state.contexts.delete(key);
       pooled.context.close().catch(() => {});
     }
@@ -124,6 +135,43 @@ function startEvictTimer(): void {
   if (state.evictTimer) clearInterval(state.evictTimer);
   state.evictTimer = setInterval(() => evictStaleContexts(), EVICT_INTERVAL_MS);
   state.evictTimer.unref?.();
+}
+
+interface ProxyRecord {
+  type?: string;
+  host: string;
+  port: number;
+  username?: string | null;
+  password?: string | null;
+}
+
+interface ResolvePlaywrightProxyDeps {
+  resolveProxy?: (providerId: string) => Promise<ProxyRecord | null | undefined>;
+}
+
+// Exported for tests (deps injection avoids mock.module()).
+export async function resolvePlaywrightProxy(
+  providerKey: string,
+  deps?: ResolvePlaywrightProxyDeps,
+): Promise<import("playwright").LaunchOptions["proxy"] | undefined> {
+  try {
+    const resolver =
+      deps?.resolveProxy ??
+      (async (id: string) => {
+        const { resolveProxyForProvider } = await import("../../src/lib/db/proxies");
+        return resolveProxyForProvider(id);
+      });
+    const p = await resolver(providerKey);
+    if (!p?.host) return undefined;
+    const scheme = p.type === "socks5" ? "socks5" : "http";
+    return {
+      server: `${scheme}://${p.host}:${p.port}`,
+      ...(p.username ? { username: p.username, password: p.password ?? "" } : {}),
+    };
+  } catch (err) {
+    console.warn("[BrowserPool] Failed to resolve proxy from DB:", err);
+    return undefined;
+  }
 }
 
 async function launchBrowser(): Promise<Browser> {
@@ -230,13 +278,14 @@ export async function acquireBrowserContext(
   if (pending) return pending;
 
   const createPromise = (async (): Promise<PooledContext> => {
-    const browser = await launchBrowser();
+    const [browser, proxy] = await Promise.all([launchBrowser(), resolvePlaywrightProxy(key)]);
     const isStealth = state.cloakLaunch !== null;
     const context = await browser.newContext({
       userAgent: options.userAgent || DEFAULT_USER_AGENT,
       locale: options.locale || "en-US",
       timezoneId: options.timezone || "America/New_York",
       viewport: { width: 1280, height: 800 },
+      ...(proxy ? { proxy } : {}),
     });
 
     if (options.cookieString) {

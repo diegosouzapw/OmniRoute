@@ -25,19 +25,20 @@ const {
   resolveAllFeatureFlags,
   isRequireApiKeyEnabled,
   isCcCompatibleProviderEnabled,
+  isModelCatalogNamesEnabled,
 } = await import("../../src/shared/utils/featureFlags.ts");
 
 // ──────────────────────────────────────────────────────
 // Test group 1 — Flag definitions registry
 // ──────────────────────────────────────────────────────
 describe("featureFlagDefinitions", () => {
-  it("has exactly 29 flag definitions", () => {
-    assert.strictEqual(FEATURE_FLAG_DEFINITIONS.length, 29);
+  it("has exactly 30 flag definitions", () => {
+    assert.strictEqual(FEATURE_FLAG_DEFINITIONS.length, 30);
   });
 
   it("has unique keys for all flags", () => {
     const keys = FEATURE_FLAG_DEFINITIONS.map((d) => d.key);
-    assert.strictEqual(new Set(keys).size, 29);
+    assert.strictEqual(new Set(keys).size, 30);
   });
 
   it("has valid categories for all flags", () => {
@@ -84,6 +85,15 @@ describe("featureFlagDefinitions", () => {
         );
       }
     }
+  });
+
+  it("defines model catalog names as a runtime boolean flag enabled by default", () => {
+    const def = FEATURE_FLAG_DEFINITIONS.find((d) => d.key === "MODEL_CATALOG_INCLUDE_NAMES");
+    assert.ok(def, "MODEL_CATALOG_INCLUDE_NAMES should exist");
+    assert.strictEqual(def.category, "runtime");
+    assert.strictEqual(def.type, "boolean");
+    assert.strictEqual(def.defaultValue, "true");
+    assert.strictEqual(def.requiresRestart, false);
   });
 });
 
@@ -222,9 +232,9 @@ describe("resolveFeatureFlag", () => {
   });
 
   describe("resolveAllFeatureFlags", () => {
-    it("returns all 29 flags", () => {
+    it("returns all 30 flags", () => {
       const all = resolveAllFeatureFlags();
-      assert.strictEqual(all.length, 29);
+      assert.strictEqual(all.length, 30);
     });
 
     it("marks DB-overridden flags with source 'db'", () => {
@@ -276,6 +286,16 @@ describe("resolveFeatureFlag", () => {
     it("isCcCompatibleProviderEnabled still works", () => {
       const result = isCcCompatibleProviderEnabled();
       assert.strictEqual(typeof result, "boolean");
+    });
+
+    it("isModelCatalogNamesEnabled defaults on and follows overrides", () => {
+      assert.strictEqual(isModelCatalogNamesEnabled(), true);
+      try {
+        setFeatureFlagOverride("MODEL_CATALOG_INCLUDE_NAMES", "false");
+        assert.strictEqual(isModelCatalogNamesEnabled(), false);
+      } finally {
+        removeFeatureFlagOverride("MODEL_CATALOG_INCLUDE_NAMES");
+      }
     });
   });
 });

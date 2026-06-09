@@ -695,6 +695,7 @@ Automatic model pricing data synchronization from external sources.
 | Variable                                  | Default            | Source File                                                           | Description                                                                           |
 | ----------------------------------------- | ------------------ | --------------------------------------------------------------------- | ------------------------------------------------------------------------------------- |
 | `OPENROUTER_CATALOG_TTL_MS`               | `86400000` (24h)   | `src/lib/catalog/openrouterCatalog.ts`                                | OpenRouter model catalog cache TTL.                                                   |
+| `MODEL_CATALOG_INCLUDE_NAMES`             | `true`             | `src/shared/constants/featureFlagDefinitions.ts`                      | Include display-friendly `name` fields in `/v1/models` responses. Disable for clients that expect IDs only. |
 | `NANOBANANA_POLL_TIMEOUT_MS`              | `120000`           | `open-sse/handlers/imageGeneration.ts`                                | Max wait for NanoBanana image generation jobs.                                        |
 | `NANOBANANA_POLL_INTERVAL_MS`             | `2500`             | `open-sse/handlers/imageGeneration.ts`                                | NanoBanana job polling frequency.                                                     |
 | `AWS_REGION`                              | _(unset)_          | `src/lib/providers/validation.ts`, `open-sse/handlers/audioSpeech.ts` | Region used to construct AWS Bedrock endpoints (Kiro, audio).                         |
@@ -859,6 +860,7 @@ Provider quota endpoints, network tunnels (Tailscale, Ngrok, MITM debug proxy), 
 | `CONTEXT_RESERVE_TOKENS`                   | `1024`                                                                      | `open-sse/services/contextManager.ts`               | Tokens reserved for completion output when computing prompt budgets.        |
 | `MODEL_ALIAS_COMPAT_ENABLED`               | enabled                                                                     | `open-sse/services/model.ts`                        | Toggle the legacy model-alias compatibility layer used by older clients.    |
 | `COMMAND_CODE_CALLBACK_PORT`               | _(unset)_                                                                   | `src/app/api/providers/command-code/auth/shared.ts` | Local port used for OAuth-style callbacks from the Command Code CLI helper. |
+| `COMMAND_CODE_VERSION`                     | `0.33.2`                                                                    | `open-sse/executors/commandCode.ts`                 | Value sent as the `x-command-code-version` header to the Command Code upstream. Override to bump the CLI version. |
 | `MITM_LOCAL_PORT`                          | `443`                                                                       | `src/mitm/server.cjs`                               | Local bind port for the MITM debug proxy.                                   |
 | `MITM_DISABLE_TLS_VERIFY`                  | `0`                                                                         | `src/mitm/server.cjs`                               | Set `1` to disable upstream TLS verification (development only).            |
 | `ONEPROXY_ENABLED`                         | `true`                                                                      | `src/lib/oneproxySync.ts`                           | Enable the 1Proxy egress pool sync.                                         |
@@ -970,3 +972,16 @@ The following variables appeared in previous versions of `.env.example` but have
 | ------------------------- | ------------------------ | ------------------- | ------------------------------------------------------ |
 | `APP_LOG_RETENTION_DAYS`  | `90`                     | `7`                 | ✅ Removed misleading value; documented `7` as default |
 | `CALL_LOG_RETENTION_DAYS` | `90`                     | `7`                 | ✅ Removed misleading value; documented `7` as default |
+
+### OpenCode config regeneration (ad-hoc tooling)
+
+Used by `scripts/ad-hoc/regen-opencode-config.ts` to regenerate an `opencode.json`
+with accurate `limit.context` and `limit.output` values pulled from the running
+OmniRoute instance. None of these are required for normal operation — the script
+is developer tooling only.
+
+| Variable            | Default                   | Source File                              | Description                                                                                                            |
+| ------------------- | ------------------------- | ---------------------------------------- | ---------------------------------------------------------------------------------------------------------------------- |
+| `OMNIROUTE_URL`     | `http://localhost:20128`  | `scripts/ad-hoc/regen-opencode-config.ts` | Base URL of the OmniRoute instance to query for `/v1/models`.                                                          |
+| `OMNIROUTE_KEY`     | _(unset)_                 | `scripts/ad-hoc/regen-opencode-config.ts` | API key to authenticate against the OmniRoute `/v1/models` endpoint. Falls back to `OPENCODE_API_KEY` when unset.        |
+| `OPENCODE_API_KEY`  | _(unset)_                 | `scripts/ad-hoc/regen-opencode-config.ts` | OpenCode-style API key (`sk-...`) written into the regenerated `opencode.json`. Falls back to `OMNIROUTE_KEY` when unset. |

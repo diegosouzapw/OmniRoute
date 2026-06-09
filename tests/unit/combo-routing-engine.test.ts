@@ -17,8 +17,10 @@ const {
 } = await import("../../open-sse/services/combo.ts");
 const { normalizeComboStep } = await import("../../src/lib/combos/steps.ts");
 const { registerStrategy } = await import("../../open-sse/services/autoCombo/routerStrategy.ts");
+const { touchSession, clearSessions } = await import("../../open-sse/services/sessionManager.ts");
 const core = await import("../../src/lib/db/core.ts");
 const settingsDb = await import("../../src/lib/db/settings.ts");
+const providersDb = await import("../../src/lib/db/providers.ts");
 const evalsDb = await import("../../src/lib/db/evals.ts");
 const { saveModelsDevCapabilities, clearModelsDevCapabilities } =
   await import("../../src/lib/modelsDevSync.ts");
@@ -145,6 +147,7 @@ test.beforeEach(async () => {
   resetAllCircuitBreakers();
   resetAllSemaphores();
   _resetAllDecks();
+  clearSessions();
   await resetStorage();
 });
 
@@ -2129,6 +2132,86 @@ test("handleComboChat auto strategy honors LKGP after filtering to tool-capable 
 
   assert.equal(result.ok, true);
   assert.equal(calls[0], "claude/claude-sonnet-4-6");
+});
+
+test("handleComboChat auto strategy preserves selected same-provider connection identity", async () => {
+  const connA = await providersDb.createProviderConnection({
+    provider: "openai",
+    authType: "apikey",
+    name: "OpenAI A",
+    apiKey: "sk-auto-conn-a",
+    defaultModel: "gpt-4o-mini",
+  });
+  const connB = await providersDb.createProviderConnection({
+    provider: "openai",
+    authType: "apikey",
+    name: "OpenAI B",
+    apiKey: "sk-auto-conn-b",
+    defaultModel: "gpt-4o-mini",
+  });
+  touchSession("sticky-auto-session", connB.id);
+
+  const calls: Array<{ modelStr: string; connectionId: string | null | undefined }> = [];
+  const result = await handleComboChat({
+    body: { messages: [{ role: "user", content: "Continue the existing conversation" }] },
+    combo: {
+      id: "auto-same-provider-connection",
+      name: "auto-same-provider-connection",
+      strategy: "auto",
+      models: [
+        {
+          kind: "model",
+          providerId: "openai",
+          model: "openai/gpt-4o-mini",
+          connectionId: connA.id,
+          label: "OpenAI A",
+        },
+        {
+          kind: "model",
+          providerId: "openai",
+          model: "openai/gpt-4o-mini",
+          connectionId: connB.id,
+          label: "OpenAI B",
+        },
+      ],
+      autoConfig: {
+        candidatePool: ["openai"],
+        explorationRate: 0,
+        weights: {
+          quota: 0,
+          health: 0,
+          costInv: 0,
+          latencyInv: 0,
+          taskFit: 0,
+          stability: 0,
+          tierPriority: 0,
+          tierAffinity: 0,
+          specificityMatch: 0,
+          contextAffinity: 1,
+          resetWindowAffinity: 0,
+          connectionDensity: 0,
+        },
+      },
+    },
+    handleSingleModel: async (_body: any, modelStr: any, target: any) => {
+      calls.push({ modelStr, connectionId: target?.connectionId });
+      return okResponse();
+    },
+    isModelAvailable: async () => true,
+    log: createLog(),
+    settings: null,
+    relayOptions: { sessionId: "sticky-auto-session" } as any,
+    allCombos: null,
+  });
+
+  assert.equal(result.ok, true);
+  assert.equal(calls.length, 1, "successful auto dispatch should call exactly one selected target");
+  assert.deepEqual(calls, [
+    {
+      modelStr: "openai/gpt-4o-mini",
+      connectionId: connB.id,
+    },
+  ]);
 });
 
 test("handleComboChat standalone lkgp strategy prioritizes the last known good provider", async () => {

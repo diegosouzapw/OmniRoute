@@ -71,3 +71,7 @@ export function isRequireApiKeyEnabled(): boolean {
 export function isCcCompatibleProviderEnabled(): boolean {
   return isFeatureFlagEnabled("ENABLE_CC_COMPATIBLE_PROVIDER");
 }
+
+export function isModelCatalogNamesEnabled(): boolean {
+  return isFeatureFlagEnabled("MODEL_CATALOG_INCLUDE_NAMES");
+}

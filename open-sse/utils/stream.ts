@@ -62,6 +62,81 @@ export { COLORS, formatSSE };
 
 type JsonRecord = Record<string, unknown>;
 
+function stringifyIdValue(value: unknown): string | null {
+  return value === null || value === undefined ? null : String(value);
+}
+
+function normalizeResponsesOutputItemIds(item: unknown): unknown {
+  if (!item || typeof item !== "object" || Array.isArray(item)) {
+    return item;
+  }
+
+  const record = item as JsonRecord;
+  let changed = false;
+  const normalized = { ...record };
+
+  const id = stringifyIdValue(record.id);
+  if (id !== null && record.id !== id) {
+    normalized.id = id;
+    changed = true;
+  }
+
+  const callId = stringifyIdValue(record.call_id);
+  if (callId !== null && record.call_id !== callId) {
+    normalized.call_id = callId;
+    changed = true;
+  }
+
+  return changed ? normalized : item;
+}
+
+function normalizeResponsesSseIds(payload: JsonRecord): boolean {
+  let changed = false;
+
+  for (const key of ["response_id", "item_id", "call_id"] as const) {
+    const value = stringifyIdValue(payload[key]);
+    if (value !== null && payload[key] !== value) {
+      payload[key] = value;
+      changed = true;
+    }
+  }
+
+  if (payload.item && typeof payload.item === "object" && !Array.isArray(payload.item)) {
+    const normalizedItem = normalizeResponsesOutputItemIds(payload.item);
+    if (normalizedItem !== payload.item) {
+      payload.item = normalizedItem;
+      changed = true;
+    }
+  }
+
+  if (payload.response && typeof payload.response === "object" && !Array.isArray(payload.response)) {
+    const response = payload.response as JsonRecord;
+    let responseChanged = false;
+    const normalizedResponse = { ...response };
+
+    const responseId = stringifyIdValue(response.id);
+    if (responseId !== null && response.id !== responseId) {
+      normalizedResponse.id = responseId;
+      responseChanged = true;
+    }
+
+    if (Array.isArray(response.output)) {
+      const normalizedOutput = response.output.map(normalizeResponsesOutputItemIds);
+      if (normalizedOutput.some((item, index) => item !== response.output[index])) {
+        normalizedResponse.output = normalizedOutput;
+        responseChanged = true;
+      }
+    }
+
+    if (responseChanged) {
+      payload.response = normalizedResponse;
+      changed = true;
+    }
+  }
+
+  return changed;
+}
+
 export const PENDING_REQUEST_CLEARED_MARKER = "__omniroutePendingRequestCleared";
 
 function markPendingRequestCleared(error: Error): Error {
@@ -76,8 +151,8 @@ function buildResponsesOutputItemKey(item: unknown): string | null {
 
   const record = item as JsonRecord;
   const type = typeof record.type === "string" ? record.type : "";
-  const id = typeof record.id === "string" ? record.id : "";
-  const callId = typeof record.call_id === "string" ? record.call_id : "";
+  const id = stringifyIdValue(record.id) ?? "";
+  const callId = stringifyIdValue(record.call_id) ?? "";
   const outputIndex = typeof record.output_index === "number" ? record.output_index : "";
   const name = typeof record.name === "string" ? record.name : "";
 
@@ -269,10 +344,10 @@ function collectPassthroughTextualToolCall(
   return toolCall;
 }
 
-function toStreamingToolCallDelta(toolCall: ToolCall) {
+/* @testonly */ export function toStreamingToolCallDelta(toolCall: ToolCall) {
   return {
     index: toolCall.index,
-    id: toolCall.id,
+    id: toolCall.id != null ? String(toolCall.id) : null,
     type: toolCall.type,
     function: {
       name: toolCall.function.name,
@@ -281,11 +356,11 @@ function toStreamingToolCallDelta(toolCall: ToolCall) {
   };
 }
 
-function toResponsesFunctionCallItem(toolCall: ToolCall) {
+/* @testonly */ export function toResponsesFunctionCallItem(toolCall: ToolCall) {
   return {
     type: "function_call",
-    id: toolCall.id || `fc_${toolCall.index}`,
-    call_id: toolCall.id || `call_${toolCall.index}`,
+    id: (toolCall.id != null ? String(toolCall.id) : null) || `fc_${toolCall.index}`,
+    call_id: (toolCall.id != null ? String(toolCall.id) : null) || `call_${toolCall.index}`,
     name: toolCall.function.name,
     arguments: toolCall.function.arguments,
     status: "completed",
@@ -799,6 +874,12 @@ function createSSEStream(options: StreamOptions = {}) {
   const clientPayloadCollector = createStructuredSSECollector({
     stage: "client_response",
   });
+  const requestRecord = asRecord(body);
+  const requestStreamOptions = asRecord(
+    requestRecord.stream_options ?? requestRecord.streamOptions
+  );
+  const expectsOpenAIUsageOnlyChunk =
+    requestStreamOptions.include_usage === true || requestStreamOptions.includeUsage === true;
 
   // Per-stream instances to avoid shared state with concurrent streams
   const decoder = new TextDecoder();
@@ -1016,22 +1097,21 @@ function createSSEStream(options: StreamOptions = {}) {
   };
 
   const getResponsesReasoningKey = (payload: Record<string, unknown>): string | null => {
-    if (typeof payload.item_id === "string" && payload.item_id) {
-      return payload.item_id;
+    const itemId = stringifyIdValue(payload.item_id);
+    if (itemId) {
+      return itemId;
     }
 
     const item =
       payload.item && typeof payload.item === "object" && !Array.isArray(payload.item)
         ? (payload.item as Record<string, unknown>)
         : null;
-    if (item && typeof item.id === "string" && item.id) {
-      return item.id;
+    const outputItemId = item ? stringifyIdValue(item.id) : null;
+    if (outputItemId) {
+      return outputItemId;
     }
 
-    const responseId =
-      typeof payload.response_id === "string" && payload.response_id
-        ? payload.response_id
-        : passthroughResponsesId;
+    const responseId = stringifyIdValue(payload.response_id) || passthroughResponsesId;
     const outputIndex =
       typeof payload.output_index === "number" && Number.isInteger(payload.output_index)
         ? payload.output_index
@@ -1310,12 +1390,16 @@ function createSSEStream(options: StreamOptions = {}) {
                     parsed.type === "error");
 
                 if (isResponsesSSE) {
+                  const responsesIdsNormalized = normalizeResponsesSseIds(parsed as JsonRecord);
+                  const parsedResponse =
+                    parsed.response &&
+                    typeof parsed.response === "object" &&
+                    !Array.isArray(parsed.response)
+                      ? (parsed.response as JsonRecord)
+                      : null;
                   const responseId =
-                    typeof parsed.response?.id === "string"
-                      ? parsed.response.id
-                      : typeof parsed.response_id === "string"
-                        ? parsed.response_id
-                        : null;
+                    (parsedResponse ? stringifyIdValue(parsedResponse.id) : null) ||
+                    stringifyIdValue(parsed.response_id);
                   if (responseId) {
                     passthroughResponsesId = responseId;
                   }
@@ -1521,7 +1605,7 @@ function createSSEStream(options: StreamOptions = {}) {
                     parsed,
                     passthroughResponsesOutputItems
                   );
-                  if (stripped || backfilled || textualToolCallBackfilled) {
+                  if (stripped || backfilled || textualToolCallBackfilled || responsesIdsNormalized) {
                     output = `data: ${JSON.stringify(parsed)}\n`;
                     injectedUsage = true;
                   }
@@ -1586,12 +1670,49 @@ function createSSEStream(options: StreamOptions = {}) {
                   // GOOD LUCK
                   // ----------------------------------------------------
                   // Chat Completions: full sanitization pipeline
-                  // Hardening: detect upstream returning empty choices array
-                  // which breaks OpenAI-compatible clients (e.g. Copilot Chat).
-                  // We drop these chunks entirely rather than injecting an error,
-                  // as injecting a chunk with finish_reason: "stop" will prematurely
-                  // terminate the stream for the client.
+
+                  // OpenAI-compatible streaming with `stream_options.include_usage=true`
+                  // ends with a usage-only chunk where `choices` is deliberately `[]`.
+                  // Forward that standards-compliant chunk instead of turning it into an
+                  // empty-response error. Keep the existing hardening for malformed empty
+                  // choices chunks without valid usage.
                   if (Array.isArray(parsed.choices) && parsed.choices.length === 0) {
+                    const emptyChoicesUsage = extractUsage(parsed) ?? parsed.usage;
+                    if (hasValidUsage(emptyChoicesUsage)) {
+                      usage = emptyChoicesUsage;
+                      output = `data: ${JSON.stringify(parsed)}\n`;
+                      injectedUsage = true;
+                      clientPayload = parsed;
+                      clientPayloadCollector.push(clientPayload);
+                      reqLogger?.appendConvertedChunk?.(output);
+                      controller.enqueue(encoder.encode(output));
+                      continue;
+                    }
+
+                    console.warn(
+                      `[STREAM] Upstream returned empty choices array (${provider || "provider"}:${model || "unknown"}) — emitting error chunk`
+                    );
+                    const errorChunk = {
+                      id: parsed.id || `omniroute-empty-choices-${Date.now()}`,
+                      object: "chat.completion.chunk",
+                      created: parsed.created || Math.floor(Date.now() / 1000),
+                      model: parsed.model || model || "unknown",
+                      choices: [
+                        {
+                          index: 0,
+                          delta: {
+                            role: "assistant",
+                            content: "[OmniRoute] Upstream returned an empty response. Please retry.",
+                          },
+                          finish_reason: "stop",
+                        },
+                      ],
+                    };
+                    output = `data: ${JSON.stringify(errorChunk)}\n`;
+                    injectedUsage = true;
+                    clientPayload = errorChunk;
+                    reqLogger?.appendConvertedChunk?.(output);
+                    controller.enqueue(encoder.encode(output));
                     continue;
                   }
 
@@ -1601,6 +1722,15 @@ function createSSEStream(options: StreamOptions = {}) {
                     typeof parsed.choices[0].delta.reasoning === "string" &&
                     !parsed.choices[0].delta.reasoning_content
                   );
+                  const hadNonStringToolCallId = Array.isArray(parsed.choices)
+                    ? parsed.choices.some((choice) =>
+                        Array.isArray(choice?.delta?.tool_calls) &&
+                        choice.delta.tool_calls.some(
+                          (tc) => tc?.id != null && typeof tc.id !== "string"
+                        )
+                      )
+                    : false;
+                  const hadNonStringTopLevelId = parsed?.id != null && typeof parsed.id !== "string";
 
                   parsed = sanitizeStreamingChunk(parsed);
                   if (
@@ -1612,7 +1742,7 @@ function createSSEStream(options: StreamOptions = {}) {
                     continue;
                   }
 
-                  const idFixed = fixInvalidId(parsed);
+                  const idFixed = hadNonStringTopLevelId ? false : fixInvalidId(parsed);
 
                   if (!hasValuableContent(parsed, FORMATS.OPENAI)) {
                     continue;
@@ -1620,6 +1750,7 @@ function createSSEStream(options: StreamOptions = {}) {
 
                   const delta = parsed.choices?.[0]?.delta;
                   let textualToolCallConverted = false;
+                  let toolCallIdCoerced = false;
 
                   // Extract <think> tags from streaming content
                   if (delta?.content && typeof delta.content === "string") {
@@ -1663,11 +1794,18 @@ function createSSEStream(options: StreamOptions = {}) {
                     passthroughHasToolCalls = true;
                     lastToolCallChunkTime = Date.now();
                     for (const tc of delta.tool_calls) {
+                      // Note: sanitizeStreamingChunk above already coerces non-string
+                      // tool_call IDs, but this defensive check catches edge cases
+                      // where sanitize didn't run (e.g. flush path shortcuts).
+                      if (tc?.id != null && typeof tc.id !== "string") {
+                        tc.id = String(tc.id);
+                        toolCallIdCoerced = true;
+                      }
                       // Key by index first — id only appears on the first delta in OpenAI streaming
                       let key: string;
                       if (Number.isInteger(tc?.index)) {
                         key = `idx:${tc.index}`;
-                      } else if (tc?.id) {
+                      } else if (tc?.id != null) {
                         key = `id:${tc.id}`;
                       } else {
                         key = `seq:${++passthroughToolCallSeq}`;
@@ -1677,7 +1815,7 @@ function createSSEStream(options: StreamOptions = {}) {
                         typeof tc?.function?.arguments === "string" ? tc.function.arguments : "";
                       if (!existing) {
                         passthroughToolCalls.set(key, {
-                          id: tc?.id ?? null,
+                          id: tc?.id != null ? String(tc.id) : null,
                           index: Number.isInteger(tc?.index) ? tc.index : passthroughToolCalls.size,
                           type: tc?.type || "function",
                           function: {
@@ -1686,7 +1824,7 @@ function createSSEStream(options: StreamOptions = {}) {
                           },
                         });
                       } else {
-                        if (tc?.id) existing.id = existing.id || tc.id;
+                        if (tc?.id) existing.id = existing.id || String(tc.id);
                         if (tc?.function?.name && !existing.function.name)
                           existing.function.name = tc.function.name;
                         existing.function.arguments += deltaArgs;
@@ -1755,7 +1893,11 @@ function createSSEStream(options: StreamOptions = {}) {
                       injectedUsage = true;
                     }
                   }
-                  if (isFinishChunk && !hasValidUsage(parsed.usage)) {
+                  if (
+                    isFinishChunk &&
+                    !hasValidUsage(parsed.usage) &&
+                    !expectsOpenAIUsageOnlyChunk
+                  ) {
                     const estimated = estimateUsage(body, totalContentLength, FORMATS.OPENAI);
                     parsed.usage = filterUsageForFormat(estimated, FORMATS.OPENAI);
                     output = `data: ${JSON.stringify(parsed)}\n`;
@@ -1769,7 +1911,13 @@ function createSSEStream(options: StreamOptions = {}) {
                   } else if (textualToolCallConverted) {
                     output = `data: ${JSON.stringify(parsed)}\n`;
                     injectedUsage = true;
-                  } else if (idFixed || needsReserialization) {
+                  } else if (
+                    idFixed ||
+                    needsReserialization ||
+                    toolCallIdCoerced ||
+                    hadNonStringToolCallId ||
+                    hadNonStringTopLevelId
+                  ) {
                     output = `data: ${JSON.stringify(parsed)}\n`;
                     injectedUsage = true;
                   }
@@ -2027,6 +2175,43 @@ function createSSEStream(options: StreamOptions = {}) {
                   updateClaudeEmptyResponseLifecycle(claudeEmptyResponseLifecycle, bufferedPayload);
                 }
                 clientPayloadCollector.push(bufferedPayload);
+
+                // Normalize numeric IDs for final buffered data: chunk (same as transform path)
+                if (typeof bufferedPayload === "object" && !Array.isArray(bufferedPayload)) {
+                  const flushedParsed = bufferedPayload as JsonRecord;
+                  const flushedType = typeof flushedParsed.type === "string" ? flushedParsed.type : "";
+                  const isResponses = flushedType.startsWith("response.");
+                  const isClaude = isClaudeEventPayload(flushedParsed);
+                  if (isResponses) {
+                    if (normalizeResponsesSseIds(flushedParsed)) {
+                      output = `data: ${JSON.stringify(flushedParsed)}\n`;
+                    }
+                  } else if (!isClaude) {
+                    let flushChanged = false;
+                    const flushedHadNonStringTopLevelId =
+                      flushedParsed?.id != null && typeof flushedParsed.id !== "string";
+                    if (flushedHadNonStringTopLevelId) {
+                      flushedParsed.id = String(flushedParsed.id);
+                      flushChanged = true;
+                    }
+                    if (Array.isArray(flushedParsed.choices)) {
+                      for (const choice of flushedParsed.choices as JsonRecord[]) {
+                        const tcs = (choice as JsonRecord | undefined)?.delta as JsonRecord | undefined;
+                        if (Array.isArray(tcs?.tool_calls)) {
+                          for (const tc of tcs.tool_calls as JsonRecord[]) {
+                            if (tc?.id != null && typeof tc.id !== "string") {
+                              tc.id = String(tc.id);
+                              flushChanged = true;
+                            }
+                          }
+                        }
+                      }
+                    }
+                    if (flushChanged) {
+                      output = `data: ${JSON.stringify(flushedParsed)}\n`;
+                    }
+                  }
+                }
               }
               if (!bufferedLine && pendingPassthroughEventLine && !pendingPassthroughEventEmitted) {
                 output = `${pendingPassthroughEventLine}\n${output}`;
@@ -2382,7 +2567,7 @@ function createSSEStream(options: StreamOptions = {}) {
                 ? [...state.toolCalls.values()]
                     .map(
                       (tc: Record<string, unknown>): ToolCall => ({
-                        id: (tc.id as string) ?? null,
+                        id: tc.id != null ? String(tc.id) : null,
                         index: (tc.index as number) ?? (tc.blockIndex as number) ?? 0,
                         type: (tc.type as string) ?? "function",
                         function: (tc.function as ToolCall["function"]) ?? {

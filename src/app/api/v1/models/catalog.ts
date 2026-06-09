@@ -31,6 +31,7 @@ import {
 import { getSyncedCapability } from "@/lib/modelsDevSync";
 import { getModelSpec } from "@/shared/constants/modelSpecs";
 import { isAuthRequired, isDashboardSessionAuthenticated } from "@/shared/utils/apiAuth";
+import { isModelCatalogNamesEnabled } from "@/shared/utils/featureFlags";
 import { parseModel } from "@omniroute/open-sse/services/model";
 import { getTokenLimit } from "@omniroute/open-sse/services/contextManager";
 import { extractApiKey } from "@/sse/services/auth";
@@ -88,6 +89,17 @@ function parseJsonStringArray(value: unknown): string[] {
   } catch {
     return [];
   }
+}
+
+function maybeOmitCatalogModelName<T extends Record<string, unknown>>(
+  model: T,
+  includeNames: boolean
+): T | Omit<T, "name"> {
+  if (includeNames || !Object.prototype.hasOwnProperty.call(model, "name")) return model;
+
+  const { name: omittedName, ...nextModel } = model;
+  void omittedName;
+  return nextModel;
 }
 
 function intersectStringArrays(arrays: string[][]): string[] {
@@ -185,9 +197,7 @@ function getOpenRouterDisplayName(model: {
   pricing?: { prompt?: string; completion?: string };
 }) {
   const name = model.name || model.id || "OpenRouter model";
-  return isOpenRouterFreeModel(model) && !/\bgr[aá]tis\b/i.test(name)
-    ? `${name} (Grátis)`
-    : name;
+  return isOpenRouterFreeModel(model) && !/\bgr[aá]tis\b/i.test(name) ? `${name} (Grátis)` : name;
 }
 
 async function validateCatalogApiKey(apiKey: string): Promise<boolean> {
@@ -289,6 +299,22 @@ function buildAliasMaps() {
   }
 
   return { aliasToProviderId, providerIdToAlias };
+}
+
+/**
+ * Detect the Codex CLI's model-catalog refresh client. Codex sends an `originator` header
+ * of `codex_exec` (codex exec) / `codex_cli_rs` (interactive TUI) — see openai/codex
+ * login/src/auth/default_client.rs DEFAULT_ORIGINATOR — and a matching `codex_*`
+ * User-Agent on its `GET /v1/models?client_version=...` catalog refresh. We only augment
+ * the response shape for these clients so every other OpenAI consumer keeps the
+ * byte-identical `{object,data}` payload.
+ */
+function isCodexModelCatalogClient(request: Request): boolean {
+  const headers = request.headers;
+  const originator = headers.get("originator")?.toLowerCase() ?? "";
+  if (originator.startsWith("codex")) return true;
+  const userAgent = headers.get("user-agent")?.toLowerCase() ?? "";
+  return userAgent.startsWith("codex");
 }
 
 /**
@@ -496,7 +522,10 @@ export async function getUnifiedModelsResponse(
       const specContext = isPositiveFiniteNumber(spec?.contextWindow)
         ? spec.contextWindow
         : undefined;
-      const contextLength = syncedContext ?? registryContext ?? specContext ??
+      const contextLength =
+        syncedContext ??
+        registryContext ??
+        specContext ??
         (getTokenLimit(providerId, modelId) || undefined);
       const maxInputTokens = isPositiveFiniteNumber(synced?.limit_input)
         ? synced.limit_input
@@ -1150,7 +1179,18 @@ export async function getUnifiedModelsResponse(
           if (!modelId) continue;
           if (model.isHidden === true) continue;
           if (getModelIsHidden(canonicalProviderId, modelId)) continue;
+          // noAuth providers (e.g. theoldllm) never create DB connection rows, so the
+          // eligibility gate would drop every imported/custom model for them (#3200).
+          // Mirror providerSupportsModel's noAuth bypass (#2798) — keep the gate for
+          // auth providers (preserving parentProviderType for compatible UUID nodes).
+          const isNoAuthProvider = Object.values(NOAUTH_PROVIDERS).some(
+            (p) =>
+              p.id === canonicalProviderId ||
+              p.id === providerId ||
+              ("alias" in p && p.alias === alias)
+          );
           if (
+            !isNoAuthProvider &&
             !hasEligibleConnectionForModel(
               getConnectionsForProvider(alias, canonicalProviderId, providerId, parentProviderType),
               modelId
@@ -1331,27 +1371,47 @@ export async function getUnifiedModelsResponse(
       return modelId ? getTokenLimit(canonicalId, modelId) : getTokenLimit(canonicalId);
     };
 
+    const includeModelNames = isModelCatalogNamesEnabled();
     const enrichedModels = finalModels.map((model) => {
-      if (model.owned_by === "combo") return model;
+      if (model.owned_by === "combo") {
+        return maybeOmitCatalogModelName(model, includeModelNames);
+      }
       const enriched = enrichCatalogModelEntry(model);
       const fallbackContextLength = getDefaultContextFallback(enriched);
-      return fallbackContextLength
+      const listedModel = fallbackContextLength
         ? { ...enriched, context_length: fallbackContextLength }
         : enriched;
+      return maybeOmitCatalogModelName(listedModel, includeModelNames);
     });
 
-    return Response.json(
-      {
-        object: "list",
-        data: enrichedModels,
+    // Codex CLI compatibility: its model-catalog refresh (codex_models_manager) does
+    // GET /v1/models?client_version=<v> and decodes a JSON object with a TOP-LEVEL
+    // `models` array, so the OpenAI-standard `{object,data}` shape makes it fail with
+    // "missing field `models`" and log "failed to refresh available models" on every
+    // startup. For codex clients only (detected by the codex originator/user-agent) we add
+    // an EMPTY `models: []` so the decode succeeds and the error disappears. Every other
+    // OpenAI consumer keeps the byte-identical `{object,data}` response.
+    //
+    // We deliberately keep it EMPTY rather than mirroring the catalog: codex replaces its
+    // built-in per-model agent prompt (`base_instructions`, ~21k chars) with whatever a
+    // populated entry carries for the selected model, so emitting our models with an
+    // empty/foreign `base_instructions` would drop codex's agent prompt to nothing and
+    // break its agent behavior (verified empirically against codex 0.137). An empty array
+    // keeps codex on its built-in model info — same inference as today, minus the error.
+    const responseBody: Record<string, unknown> = {
+      object: "list",
+      data: enrichedModels,
+    };
+    if (isCodexModelCatalogClient(request)) {
+      responseBody.models = [];
+    }
+
+    return Response.json(responseBody, {
+      headers: {
+        ...corsHeaders,
+        ...diagnosticHeaders,
       },
-      {
-        headers: {
-          ...corsHeaders,
-          ...diagnosticHeaders,
-        },
-      }
-    );
+    });
   } catch (error) {
     console.log("Error fetching models:", error);
     return Response.json(

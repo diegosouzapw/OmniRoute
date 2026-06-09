@@ -4,6 +4,56 @@
 
 ---
 
+## [3.8.18] — Unreleased
+
+### 🔧 Bug Fixes
+
+- **fix(catalog):** Codex CLI model-catalog refresh no longer errors — `GET /v1/models` now returns a top-level `models: []` array for Codex clients (detected via the `originator` / `user-agent` = `codex_*` headers it sends on `GET /v1/models?client_version=...`), so `codex_models_manager` stops failing to decode the OpenAI-standard response and no longer logs `failed to refresh available models` on every startup. The array is intentionally empty: Codex replaces its built-in per-model agent prompt (`base_instructions`, ~21k chars) with whatever a populated entry carries for the selected model, so emitting our catalog would break Codex's agent behaviour — an empty list keeps Codex on its built-in model info (same inference as before, minus the error). Non-Codex OpenAI clients receive the unchanged `{object,data}` response. ([#3481](https://github.com/diegosouzapw/OmniRoute/pull/3481) — thanks @diegosouzapw)
+
+---
+
+## [3.8.17] — 2026-06-09
+
+### ✨ New Features
+
+- **feat(providers):** LMArena provider — routes requests to the LMArena battle platform via the new `lmarena` executor; supports streaming chat completions. ([#3421](https://github.com/diegosouzapw/OmniRoute/pull/3421) — thanks @oyi77)
+- **feat(providers):** ZenMux provider — adds the `zenmux` executor for ZenMux's OpenAI-compatible endpoint with streaming support. ([#3429](https://github.com/diegosouzapw/OmniRoute/pull/3429) — thanks @oyi77)
+- **feat(providers):** Gemini Business provider — adds the `gemini-business` executor (Phase 2C of the Google provider expansion), enabling Gemini models via Google Workspace accounts. ([#3436](https://github.com/diegosouzapw/OmniRoute/pull/3436) — thanks @oyi77)
+- **feat(plugin+api):** auto-combos API + free model quota display — new `GET /api/combos/auto` endpoint lists dynamically scored combos; provider pages now surface free-tier quotas inline; MCP-plugin surface extended to match. ([#3435](https://github.com/diegosouzapw/OmniRoute/pull/3435) — thanks @mrmm)
+- **feat(opencode-plugin):** per-prefix API format selection, debug logging, and free-label normaliser — three backports from the mrmm fork: each route prefix can specify its own wire format (OpenAI / Anthropic / Gemini), structured debug output is toggled via env var, and free-tier labels are normalized across providers. ([#3420](https://github.com/diegosouzapw/OmniRoute/pull/3420) — thanks @herjarsa)
+- **feat(connections):** connection pagination, health filter, batch-delete confirmation, and custom banned keywords — the provider connections table is now paginated; a health-state filter lets operators show only healthy/degraded/failed connections; multi-select + confirm dialog for bulk deletes; per-connection keyword denylist for content safety. ([#3454](https://github.com/diegosouzapw/OmniRoute/pull/3454) — thanks @sdfsdfw2)
+- **feat(settings):** Endpoint Token Saver visibility toggle — operators can now show or hide the Token Saver widget on the endpoint page from Settings → Appearance. ([#3461](https://github.com/diegosouzapw/OmniRoute/pull/3461) — thanks @rdself)
+- **feat(catalog):** model catalog name feature flag — a new feature flag controls whether the catalog exposes provider-prefixed model names, letting deployments opt into the legacy bare-name format for downstream tooling compatibility. ([#3464](https://github.com/diegosouzapw/OmniRoute/pull/3464) — thanks @rdself)
+
+### 🔧 Bug Fixes
+
+- **fix(translator):** Vertex AI tool calls no longer fail with `400 Unknown name "id"` — the OpenAI-style `id` field is stripped from `functionCall`/`functionResponse` parts for `vertex`/`vertex-partner`; the public Gemini API still receives `id` as required for Gemini 3+ signature matching. ([#3457](https://github.com/diegosouzapw/OmniRoute/pull/3457) — thanks @nullbytef0x / @diegosouzapw)
+- **fix(claude):** Claude Code `claude-opus-4-8` tool calls no longer break with `tool call could not be parsed` — OmniRoute no longer force-injects `interleaved-thinking` / `advanced-tool-use` / `effort` beta flags the client never negotiated; clients sending their own `anthropic-beta` header control those betas themselves. ([#3458](https://github.com/diegosouzapw/OmniRoute/pull/3458) — thanks @Forcerecon / @diegosouzapw)
+- **fix(catalog):** imported/custom models on no-auth providers (e.g. The Old LLM) now appear in `GET /api/v1/models` and the Playground model selector — the eligibility gate required a DB connection row which no-auth providers never have, silently dropping every imported model for them. ([#3463](https://github.com/diegosouzapw/OmniRoute/pull/3463) — thanks @tjengbudi / @diegosouzapw)
+- **fix(browser):** optional `cloakbrowser` import no longer causes bundle errors when the package is absent — the import is now wrapped in a dynamic require so the build succeeds on environments that don't install the optional dep. ([#3460](https://github.com/diegosouzapw/OmniRoute/pull/3460) — thanks @rdself)
+- **fix(claude-web):** claude-web session handling cleanup — corrects an edge case where session cookies were not properly refreshed after a Turnstile challenge, and removes stale wrapper code left over from the provider split. ([#3449](https://github.com/diegosouzapw/OmniRoute/pull/3449) — thanks @androw)
+- **fix(analytics):** SQL named params are now scoped per query context — a shared params object was being mutated across concurrent analytics queries, causing `SQLITE_MISUSE: named parameter not found` errors under load. ([#3447](https://github.com/diegosouzapw/OmniRoute/pull/3447) — thanks @ReqX)
+- **fix(command-code):** chat endpoint reverted to `/alpha/generate` and model-sync discovery fixed — a prior refactor incorrectly targeted the wrong path, causing Command Code completions to silently 404; model listing now also resolves from the correct discovery endpoint. ([#3432](https://github.com/diegosouzapw/OmniRoute/pull/3432) — thanks @TapZe)
+- **fix(command-code):** CLI version header aligned to current Command Code release — the `X-Command-Code-Version` header value was pinned to a stale version string, causing upstream version-gated features to be rejected. ([#3462](https://github.com/diegosouzapw/OmniRoute/pull/3462) — thanks @hevener10)
+- **fix(sse):** provider IDs are normalized to strings before lookup — numeric provider IDs (e.g. from legacy DB rows) caused `undefined` lookups in the executor registry; all IDs are now coerced to string at the SSE entry point. ([#3427](https://github.com/diegosouzapw/OmniRoute/pull/3427) — thanks @disafronov)
+- **fix(stream):** textual tool-call slicing index mismatch resolved and `containsTextualToolCallMarker` deduplicated — two related bugs in the rolling-buffer parser caused partial tool-call chunks to be emitted twice or sliced from the wrong offset, producing garbled JSON in streamed tool responses. ([#3413](https://github.com/diegosouzapw/OmniRoute/pull/3413) — thanks @Ardem2025)
+- **fix(stream):** OpenAI usage-only chunks (empty `choices: []`) are now passed through instead of being dropped — some providers emit a trailing stats-only chunk after the last content delta; discarding it caused usage counters to be missing in logged responses. ([#3422](https://github.com/diegosouzapw/OmniRoute/pull/3422) — thanks @xz-dev)
+- **fix(translator):** empty-string `reasoning_content` replaced with placeholder on cache miss — `injectEmptyReasoningContentForToolCalls` pre-sets `reasoning_content=""` before the cache lookup; the old guard checked for `undefined`, never firing on miss and leaving `""` in place, which DeepSeek V4+ rejects with a 400. ([#3433](https://github.com/diegosouzapw/OmniRoute/pull/3433) — thanks @ViFigueiredo)
+- **fix(catalog):** combos auto-compute `context_length` for any provider-ID form — the context-length resolution only matched exact-string provider IDs, missing combos declared with a numeric or aliased ID; the lookup now normalizes before matching. ([#3417](https://github.com/diegosouzapw/OmniRoute/pull/3417) — thanks @herjarsa)
+- **fix(healthcheck):** container bridge network IP probed correctly — the healthcheck script was hard-coded to `localhost` which resolves to IPv6 `::1` inside some container runtimes; it now queries the bridge gateway IP so the probe succeeds on both bridge and host networking modes. ([#3434](https://github.com/diegosouzapw/OmniRoute/pull/3434) — thanks @naimo84)
+- **fix(publish):** onnxruntime CUDA binary removed from npm tarball — the native `.node` binary exceeded npm's 413 payload limit and was never needed at runtime (OmniRoute uses the CPU build); the pack policy now excludes the CUDA artifact. ([#3437](https://github.com/diegosouzapw/OmniRoute/pull/3437) — thanks @herjarsa)
+
+### 📝 Maintenance
+
+- **docs:** critical documentation gaps closed — new guides for ACP protocol, router strategies, compression, REST API reference, and updated AUTO-COMBO deep-dive; getting-started section added with Quick Start, Providers, Free Tiers, Auto-Combo, and Troubleshooting pages. ([#3438](https://github.com/diegosouzapw/OmniRoute/pull/3438) — thanks @oyi77)
+- **docs(opencode-plugin):** plugin README rewritten to lead with the why — positions the plugin as the recommended integration path over the legacy `@omniroute/opencode-provider` package, with migration guidance. ([#3418](https://github.com/diegosouzapw/OmniRoute/pull/3418) — thanks @herjarsa)
+- **docs(env):** `COMMAND_CODE_VERSION` override documented — environment variable added to `.env.example` and reference docs so operators can pin the CLI version header without a code change. ([#3462](https://github.com/diegosouzapw/OmniRoute/pull/3462) — thanks @hevener10)
+- **test(auto-combo):** same-provider connection identity assertion added — regression test covering the case where two connections for the same provider share an account ID, verifying the combo engine selects the correct one. ([#3378](https://github.com/diegosouzapw/OmniRoute/pull/3378) — thanks @oyi77)
+- **deps:** electron upgraded to 42.3.3; electron-builder to 26.15.2; electron-updater to 6.8.9; 4 development-group and 10 production-group packages bumped via Dependabot. ([#3441](https://github.com/diegosouzapw/OmniRoute/pull/3441) / [#3442](https://github.com/diegosouzapw/OmniRoute/pull/3442) / [#3443](https://github.com/diegosouzapw/OmniRoute/pull/3443) / [#3444](https://github.com/diegosouzapw/OmniRoute/pull/3444) / [#3445](https://github.com/diegosouzapw/OmniRoute/pull/3445) — thanks @diegosouzapw)
+- **chore(release):** v3.8.17 development cycle opened from `main`. (thanks @diegosouzapw)
+
+---
+
 ## [3.8.16] — 2026-06-08
 
 ### ✨ New Features

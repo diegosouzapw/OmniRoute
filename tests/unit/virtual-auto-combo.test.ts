@@ -129,6 +129,43 @@ test("createVirtualAutoCombo excludes web-session providers with irrelevant prov
   assert.equal(combo.autoConfig.candidatePool.includes("chatgpt-web"), false);
 });
 
+test("createVirtualAutoCombo preserves multiple same-provider web-session candidates", async () => {
+  const connA = await providersDb.createProviderConnection({
+    provider: "qwen-web",
+    authType: "apikey",
+    name: "Qwen Web Session A",
+    providerSpecificData: { token: "qwen-web-session-token-a" },
+    defaultModel: "qwen3-coder-plus",
+  });
+  const connB = await providersDb.createProviderConnection({
+    provider: "qwen-web",
+    authType: "apikey",
+    name: "Qwen Web Session B",
+    providerSpecificData: { token: "qwen-web-session-token-b" },
+    defaultModel: "qwen3-coder-plus",
+  });
+
+  const combo: VirtualComboResult = await virtualFactory.createVirtualAutoCombo("coding");
+
+  const qwenWebModels = combo.models.filter((model) => model.providerId === "qwen-web");
+  assert.equal(
+    qwenWebModels.length,
+    2,
+    "same-provider web sessions must not collapse to one target"
+  );
+  assert.deepEqual(
+    new Set(qwenWebModels.map((model) => model.connectionId)),
+    new Set([connA.id, connB.id]),
+    "same-provider web sessions should map back to their exact provider_connection rows"
+  );
+  assert.ok(qwenWebModels.every((model) => model.model === "qwen-web/qwen3-coder-plus"));
+  assert.equal(
+    combo.autoConfig.candidatePool.filter((provider) => provider === "qwen-web").length,
+    1,
+    "provider pool remains provider-scoped while model entries preserve connection identity"
+  );
+});
+
 test("createVirtualAutoCombo includes cookie web-session providers with required cookie data", async () => {
   await providersDb.createProviderConnection({
     provider: "chatgpt-web",
@@ -141,7 +178,10 @@ test("createVirtualAutoCombo includes cookie web-session providers with required
   const combo: VirtualComboResult = await virtualFactory.createVirtualAutoCombo("coding");
 
   const chatgptWeb = combo.models.find((model) => model.providerId === "chatgpt-web");
-  assert.ok(chatgptWeb, "cookie web-session providers with required cookie data should be candidates");
+  assert.ok(
+    chatgptWeb,
+    "cookie web-session providers with required cookie data should be candidates"
+  );
   assert.equal(chatgptWeb.model, "chatgpt-web/gpt-4o");
   assert.ok(combo.autoConfig.candidatePool.includes("chatgpt-web"));
 });

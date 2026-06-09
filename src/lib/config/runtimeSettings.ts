@@ -1,4 +1,5 @@
 import { clearHealthCheckLogCache } from "@/lib/tokenHealthCheck";
+import { setCustomBannedSignals } from "@omniroute/open-sse/services/accountFallback.ts";
 
 type JsonRecord = Record<string, unknown>;
 
@@ -15,7 +16,8 @@ export type RuntimeReloadSection =
   | "corsOrigins"
   | "ccBridgeTransforms"
   | "systemTransforms"
-  | "authzBypass";
+  | "authzBypass"
+  | "bannedSignals";
 
 export interface RuntimeReloadChange {
   section: RuntimeReloadSection;
@@ -42,6 +44,7 @@ interface RuntimeSettingsSnapshot {
   ccBridgeTransforms: unknown;
   systemTransforms: unknown;
   authzBypass: AuthzBypassSnapshot;
+  customBannedSignals: string[];
 }
 
 // Default bypass policy: kill-switch on, `/api/mcp/` bypassable. Mirrors the
@@ -67,6 +70,7 @@ const DEFAULT_RUNTIME_SETTINGS_SNAPSHOT: RuntimeSettingsSnapshot = {
   ccBridgeTransforms: null,
   systemTransforms: null,
   authzBypass: DEFAULT_AUTHZ_BYPASS_SNAPSHOT,
+  customBannedSignals: [],
 };
 
 let lastAppliedSnapshot: RuntimeSettingsSnapshot | null = null;
@@ -246,6 +250,7 @@ export function buildRuntimeSettingsSnapshot(
     ccBridgeTransforms: parseStoredJson(settings.ccBridgeTransforms, "ccBridgeTransforms"),
     systemTransforms: parseStoredJson(settings.systemTransforms, "systemTransforms"),
     authzBypass: normalizeAuthzBypass(settings),
+    customBannedSignals: normalizeStringArray(settings.customBannedSignals),
   };
 }
 
@@ -524,6 +529,11 @@ export async function applyRuntimeSettings(
   if (force || hasChanged(currentSnapshot.authzBypass, previousSnapshot.authzBypass)) {
     applyAuthzBypassSection(currentSnapshot.authzBypass);
     markChanged("authzBypass");
+  }
+
+  if (force || hasChanged(currentSnapshot.customBannedSignals, previousSnapshot.customBannedSignals)) {
+    setCustomBannedSignals(currentSnapshot.customBannedSignals);
+    markChanged("bannedSignals");
   }
 
   lastAppliedSnapshot = currentSnapshot;

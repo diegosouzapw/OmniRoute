@@ -68,6 +68,19 @@ const SEED_REGISTRY: MarketplaceEntry[] = [
     verified: true,
     lastUpdated: "2026-05-29",
   },
+  {
+    name: "theme-manager",
+    version: "1.0.0",
+    description: "Dynamic UI theme management via CSS variable injection",
+    author: "omniroute",
+    license: "MIT",
+    downloadUrl: "",
+    tags: ["theme", "ui", "css", "customization"],
+    downloads: 0,
+    rating: 5,
+    verified: true,
+    lastUpdated: "2026-06-09",
+  },
 ];
 
 // ── API ──

@@ -175,7 +175,13 @@ export function translateRequest(
     // Check for direct translation path first (e.g., Claude → Gemini)
     const directTranslator = getRequestTranslator(sourceFormat, targetFormat);
     if (directTranslator && sourceFormat !== FORMATS.OPENAI && targetFormat !== FORMATS.OPENAI) {
-      result = directTranslator(model, result, stream, credentials);
+      // Thread the routed provider id so target translators can apply provider-specific
+      // quirks (e.g. Vertex rejects function_call.id — #3440).
+      const directCredentials =
+        provider != null
+          ? { ...(credentials && typeof credentials === "object" ? credentials : {}), _provider: provider }
+          : credentials;
+      result = directTranslator(model, result, stream, directCredentials);
     } else {
       // Fallback: hub-and-spoke via OpenAI
       // Step 1: source -> openai (if source is not openai)
@@ -205,13 +211,17 @@ export function translateRequest(
           const hasNs = options?.signatureNamespace != null;
           const hasPreCompression = options?.preCompressionBody != null;
           const hasCopilot = options?.copilotClient === true;
+          const hasProvider = provider != null;
           const translationCredentials =
-            hasNs || hasPreCompression || hasCopilot
+            hasNs || hasPreCompression || hasCopilot || hasProvider
               ? {
                   ...(credentials && typeof credentials === "object" ? credentials : {}),
                   ...(hasNs ? { _signatureNamespace: options.signatureNamespace } : {}),
                   ...(hasPreCompression ? { _preCompressionBody: options.preCompressionBody } : {}),
                   ...(hasCopilot ? { _copilotClient: true } : {}),
+                  // Routed provider id so target translators can apply provider-specific
+                  // quirks (e.g. Vertex rejects function_call.id — #3440).
+                  ...(hasProvider ? { _provider: provider } : {}),
                 }
               : credentials;
           result = fromOpenAI(model, result, stream, translationCredentials);
@@ -294,7 +304,6 @@ export function translateRequest(
     thinkingEnabled: hasThinkingConfig(result),
     supportsReasoning: supportsReasoning({ provider: normalizedProvider, model: normalizedModel }),
     interleavedField: resolvedCapabilities?.interleavedField ?? null,
-    allowLegacyFallback: false,
   });
   if (isReasoner && result.messages && Array.isArray(result.messages)) {
     const canReplayReasoningOnly = isDeepSeekReplayTarget(normalizedProvider, normalizedModel);
@@ -316,7 +325,14 @@ export function translateRequest(
         canReplayReasoningOnly &&
         hasReasoningContentField(msg);
 
-      if (!hasToolCalls && !hasToolUseBlocks && !shouldReplayReasoningOnly) continue;
+      if (!hasToolCalls && !hasToolUseBlocks && !shouldReplayReasoningOnly) {
+        // Strip empty reasoning_content on non-tool-call messages; an empty
+        // string has no meaningful value to send and may confuse some upstreams.
+        if (msg.reasoning_content === "") {
+          delete msg.reasoning_content;
+        }
+        continue;
+      }
 
       if (hasToolUseBlocks) {
         // ── Claude-format message ──
@@ -370,9 +386,14 @@ export function translateRequest(
         }
       }
 
-      // Legacy fallback — empty string (works for older DeepSeek versions)
-      if (hasToolCalls && msg.reasoning_content === undefined) {
-        msg.reasoning_content = "";
+      // Cache miss fallback — use a non-empty placeholder.
+      // Empty string causes DeepSeek V4+ to reject with 400:
+      // "reasoning_content in the thinking mode must be passed back to the API."
+      // Note: injectEmptyReasoningContentForToolCalls may have pre-set
+      // reasoning_content="" before the cache lookup, so we check for
+      // both undefined AND empty string here.
+      if (hasToolCalls && !msg.reasoning_content) {
+        msg.reasoning_content = NON_ANTHROPIC_THINKING_PLACEHOLDER;
       }
     }
   } else if (

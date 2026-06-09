@@ -1,0 +1,39 @@
+{
+  "name": "request-logger",
+  "version": "1.0.0",
+  "description": "Logs all API requests and responses with timing information",
+  "author": "OmniRoute",
+  "license": "MIT",
+  "main": "index.mjs",
+  "source": "local",
+  "tags": ["logging", "debug", "monitoring"],
+  "hooks": {
+    "onRequest": true,
+    "onResponse": true,
+    "onError": true
+  },
+  "requires": {
+    "permissions": []
+  },
+  "enabledByDefault": false,
+  "configSchema": {
+    "logLevel": {
+      "type": "select",
+      "default": "info",
+      "enum": ["debug", "info", "warn", "error"],
+      "description": "Minimum log level to output"
+    },
+    "includeBody": {
+      "type": "boolean",
+      "default": false,
+      "description": "Include request/response body in logs"
+    },
+    "maxBodyLength": {
+      "type": "number",
+      "default": 500,
+      "min": 100,
+      "max": 10000,
+      "description": "Maximum body length to log"
+    }
+  }
+}

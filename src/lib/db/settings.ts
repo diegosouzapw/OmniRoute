@@ -123,6 +123,7 @@ export async function getSettings() {
     // `applyAuthzBypassSection` → `getAuthzBypassSnapshot()`.
     localOnlyManageScopeBypassEnabled: true,
     localOnlyManageScopeBypassPrefixes: ["/api/mcp/"],
+    customBannedSignals: [],
     proxyEnabled: true,
     perKeyProxyEnabled: false,
   };
