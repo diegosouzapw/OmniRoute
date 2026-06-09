@@ -1674,8 +1674,14 @@ export function createSSEStream(options: StreamOptions = {}) {
                   // OpenAI-compatible streaming with `stream_options.include_usage=true`
                   // ends with a usage-only chunk where `choices` is deliberately `[]`.
                   // Forward that standards-compliant chunk instead of turning it into an
-                  // empty-response error. Keep the existing hardening for malformed empty
-                  // choices chunks without valid usage.
+                  // empty-response error.
+                  //
+                  // For a malformed empty `choices: []` chunk WITHOUT valid usage we DROP
+                  // it (log server-side only). We must NOT inject an assistant-content
+                  // chunk like "[OmniRoute] Upstream returned an empty response. Please
+                  // retry." with finish_reason: "stop" — clients (Goose/opencode) feed that
+                  // text back as a turn and spin in a retry loop. This restores the #3400
+                  // behavior that #3422 inadvertently reverted (regression #3388/#3502).
                   if (Array.isArray(parsed.choices) && parsed.choices.length === 0) {
                     const emptyChoicesUsage = extractUsage(parsed) ?? parsed.usage;
                     if (hasValidUsage(emptyChoicesUsage)) {
@@ -1690,29 +1696,8 @@ export function createSSEStream(options: StreamOptions = {}) {
                     }
 
                     console.warn(
-                      `[STREAM] Upstream returned empty choices array (${provider || "provider"}:${model || "unknown"}) — emitting error chunk`
+                      `[STREAM] Upstream returned empty choices array (${provider || "provider"}:${model || "unknown"}) — dropping chunk`
                     );
-                    const errorChunk = {
-                      id: parsed.id || `omniroute-empty-choices-${Date.now()}`,
-                      object: "chat.completion.chunk",
-                      created: parsed.created || Math.floor(Date.now() / 1000),
-                      model: parsed.model || model || "unknown",
-                      choices: [
-                        {
-                          index: 0,
-                          delta: {
-                            role: "assistant",
-                            content: "[OmniRoute] Upstream returned an empty response. Please retry.",
-                          },
-                          finish_reason: "stop",
-                        },
-                      ],
-                    };
-                    output = `data: ${JSON.stringify(errorChunk)}\n`;
-                    injectedUsage = true;
-                    clientPayload = errorChunk;
-                    reqLogger?.appendConvertedChunk?.(output);
-                    controller.enqueue(encoder.encode(output));
                     continue;
                   }
 
