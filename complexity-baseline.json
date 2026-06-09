@@ -1,0 +1,4 @@
+{
+  "_comment": "Catraca de complexidade (check-complexity.mjs, ESLint core rules complexity>=15 e max-lines-per-function>80 sobre src+open-sse via eslint.complexity.config.mjs). Conta total de violacoes; so pode cair. --update ratcheta.",
+  "count": 1739
+}

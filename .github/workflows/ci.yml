@@ -24,6 +24,12 @@ jobs:
   lint:
     name: Lint
     runs-on: ubuntu-latest
+    env:
+      # tsx gates below (known-symbols, route-guard-membership) import modules that
+      # open SQLite on load; provide DB env so a fresh CI DB initializes cleanly.
+      JWT_SECRET: ci-lint-secret-with-sufficient-length-for-validation
+      API_KEY_SECRET: ci-lint-api-key-secret-long
+      DISABLE_SQLITE_AUTO_BACKUP: "true"
     steps:
       - uses: actions/checkout@v6
       - uses: actions/setup-node@v6
@@ -41,6 +47,12 @@ jobs:
       - run: npm run check:fetch-targets
       - run: npm run check:deps
       - run: npm run check:file-size
+      - run: npm run check:error-helper
+      - run: npm run check:migration-numbering
+      - run: npm run check:public-creds
+      - run: npm run check:db-rules
+      - run: npm run check:known-symbols
+      - run: npm run check:route-guard-membership
       - run: npm run check:docs-sync
       - run: npm run typecheck:core
       # typecheck:noimplicit:core is a forward-looking gate (noImplicitAny).
@@ -76,6 +88,8 @@ jobs:
       # para não pesar no caminho crítico do lint.
       - name: Duplication ratchet
         run: npm run check:duplication
+      - name: Complexity ratchet
+        run: npm run check:complexity
       - name: Append summary
         if: always()
         run: cat .artifacts/quality-ratchet.md >> "$GITHUB_STEP_SUMMARY"
@@ -109,6 +123,8 @@ jobs:
         run: npm run check:openapi-security-tiers
       - name: OpenAPI spec paths resolve to real routes (anti-hallucination)
         run: npm run check:openapi-routes
+      - name: Doc /api refs resolve to real routes (anti-hallucination)
+        run: npm run check:docs-symbols
       - name: i18n translation drift (warn)
         run: node scripts/i18n/check-translation-drift.mjs --warn
 
