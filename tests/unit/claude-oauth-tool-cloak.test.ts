@@ -270,3 +270,61 @@ describe("review fixes — established aliases + kill-switch", () => {
     }
   });
 });
+
+describe("native claude OAuth path — versioned built-in tool model prefix stripping", () => {
+  it("strips cc/ prefix from advisor_20260301 model field inline (simulates base.ts loop)", () => {
+    const tools: AnyRecord[] = [
+      { type: "advisor_20260301", name: "advisor", model: "cc/claude-opus-4-8" },
+      { type: "bash_20250124", name: "Bash", cache_control: { type: "ephemeral" } },
+      { name: "Read", input_schema: { type: "object", properties: {} } },
+    ];
+    for (const t of tools) {
+      delete t.cache_control;
+      if (
+        typeof t.type === "string" &&
+        /^[a-z][a-z0-9_]*_\d{8}$/.test(t.type as string) &&
+        typeof t.model === "string" &&
+        (t.model as string).includes("/")
+      ) {
+        t.model = (t.model as string).split("/").pop();
+      }
+    }
+    assert.equal(tools[0].model, "claude-opus-4-8", "cc/ prefix stripped from advisor model");
+    assert.equal("cache_control" in tools[1], false, "cache_control deleted from bash tool");
+    assert.equal("model" in tools[2], false, "regular tool untouched");
+  });
+
+  it("strips multi-segment prefix (claude/claude-sonnet-4-6) from versioned tool model", () => {
+    const tools: AnyRecord[] = [
+      { type: "bash_20250124", name: "Bash", model: "claude/claude-sonnet-4-6" },
+    ];
+    for (const t of tools) {
+      if (
+        typeof t.type === "string" &&
+        /^[a-z][a-z0-9_]*_\d{8}$/.test(t.type as string) &&
+        typeof t.model === "string" &&
+        (t.model as string).includes("/")
+      ) {
+        t.model = (t.model as string).split("/").pop();
+      }
+    }
+    assert.equal(tools[0].model, "claude-sonnet-4-6");
+  });
+
+  it("leaves bare model on versioned tool unchanged", () => {
+    const tools: AnyRecord[] = [
+      { type: "advisor_20260301", name: "advisor", model: "claude-opus-4-8" },
+    ];
+    for (const t of tools) {
+      if (
+        typeof t.type === "string" &&
+        /^[a-z][a-z0-9_]*_\d{8}$/.test(t.type as string) &&
+        typeof t.model === "string" &&
+        (t.model as string).includes("/")
+      ) {
+        t.model = (t.model as string).split("/").pop();
+      }
+    }
+    assert.equal(tools[0].model, "claude-opus-4-8");
+  });
+});

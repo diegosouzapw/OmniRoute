@@ -820,9 +820,19 @@ export class BaseExecutor {
           // separately classified surface. Do not double-prepend here.
 
           // Real CLI never sets cache_control on tools.
+          // Also strip OmniRoute provider prefix from versioned built-in tool
+          // model fields (e.g. cc/claude-opus-4-8 → claude-opus-4-8).
           if (Array.isArray(tb.tools)) {
             for (const t of tb.tools as Array<Record<string, unknown>>) {
               delete t.cache_control;
+              if (
+                typeof t.type === "string" &&
+                /^[a-z][a-z0-9_]*_\d{8}$/.test(t.type) &&
+                typeof t.model === "string" &&
+                t.model.includes("/")
+              ) {
+                t.model = t.model.split("/").pop();
+              }
             }
           }
 
