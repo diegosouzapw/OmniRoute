@@ -248,9 +248,6 @@ function makeStreamChunkMethods(
         for (const entry of pending.values()) {
           if (entry?.model === options.model && entry.provider === (options.provider || "")) {
             entry.streamChunks = { ...streamChunks };
-            try {
-              console.log(`[requestLogger] fallback pushed streamChunks to pending id=${entry.id}`);
-            } catch (e) {}
             return;
           }
         }

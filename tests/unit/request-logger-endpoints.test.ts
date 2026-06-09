@@ -339,7 +339,10 @@ test("handleNext navigates forward when not at last item", () => {
 test("deep-linked missing request id is kept pending for /api/logs/[id] polling", () => {
   const content = fs.readFileSync("src/shared/components/RequestLoggerV2.tsx", "utf8");
   assert.match(content, /pendingLookup:\s*true/);
-  assert.match(content, /detailData\?\.detailState === "pending"/);
+  // A deep-linked id that 404s while still active is kept pending...
+  assert.match(content, /setDetailData\(\{\s*detailState:\s*"pending"\s*\}\)/);
+  // ...and the detail-polling effect re-runs on that pending state.
+  assert.match(content, /detailData\?\.detailState/);
   assert.doesNotMatch(content, /activeRequests|completedRows|completedRow/);
 });
 

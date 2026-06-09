@@ -58,7 +58,7 @@ async function collectStreamOutput(
 test("createSSEStream: passthrough mode writes and reads a single SSE chunk", async () => {
   setupDb();
   try {
-    const { default } = await import("../../open-sse/utils/stream.ts");
+    const { createSSEStream } = await import("../../open-sse/utils/stream.ts");
 
     const transform = createSSEStream({ mode: "passthrough" });
     const { readable, writable } = transform;
@@ -81,7 +81,7 @@ test("createSSEStream: passthrough mode writes and reads a single SSE chunk", as
 test("createSSEStream: passthrough mode forwards multiple chunks preserving order", async () => {
   setupDb();
   try {
-    const { default } = await import("../../open-sse/utils/stream.ts");
+    const { createSSEStream } = await import("../../open-sse/utils/stream.ts");
 
     const transform = createSSEStream({ mode: "passthrough" });
     const { readable, writable } = transform;
@@ -110,7 +110,7 @@ test("createSSEStream: passthrough mode forwards multiple chunks preserving orde
 test("createSSEStream: handles backpressure with >16KB payload", async () => {
   setupDb();
   try {
-    const { default } = await import("../../open-sse/utils/stream.ts");
+    const { createSSEStream } = await import("../../open-sse/utils/stream.ts");
 
     // High water mark is 16384 (16KB), so writing >16KB tests backpressure
     const transform = createSSEStream({ mode: "passthrough" });
@@ -139,7 +139,7 @@ test("createSSEStream: handles backpressure with >16KB payload", async () => {
 test("createSSEStream: idle timeout fires when no data arrives", async () => {
   setupDb();
   try {
-    const { default } = await import("../../open-sse/utils/stream.ts");
+    const { createSSEStream } = await import("../../open-sse/utils/stream.ts");
 
     // Use very short idle timeout via environment (STREAM_IDLE_TIMEOUT_MS is from constants,
     // so we test the mechanism by not sending any data and verifying the stream errors)

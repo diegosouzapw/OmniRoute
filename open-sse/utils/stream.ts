@@ -771,7 +771,7 @@ export function stripResponsesLifecycleEcho(parsed: unknown): boolean {
  * @param {object} options.body - Request body (for input token estimation)
  * @param {function} options.onComplete - Callback when stream finishes: ({ status, usage }) => void
  */
-function createSSEStream(options: StreamOptions = {}) {
+export function createSSEStream(options: StreamOptions = {}) {
   const {
     mode = STREAM_MODE.TRANSLATE,
     targetFormat,

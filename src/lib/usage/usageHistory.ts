@@ -252,13 +252,11 @@ export function trackPendingRequest(
       };
       pendingRequests.details[connectionId][modelKey].push(newDetail);
       pendingById.set(newDetail.id, newDetail);
-      try { console.log("[usageHistory] trackPendingRequest: added pending detail:", JSON.stringify({ connectionId, modelKey, id: newDetail.id })); } catch (e) {}
       return newDetail.id;
     } else if (!started && nextCount >= 0) {
       if (pendingRequests.details[connectionId]?.[modelKey]?.length) {
         const removed = pendingRequests.details[connectionId][modelKey].shift();
         if (removed) pendingById.delete(removed.id);
-        try { console.log("[usageHistory] trackPendingRequest: removed pending detail:", JSON.stringify({ connectionId, modelKey, id: removed?.id })); } catch (e) {}
       }
       if (!pendingRequests.details[connectionId]?.[modelKey]?.length) {
         delete pendingRequests.details[connectionId]?.[modelKey];
@@ -312,7 +310,6 @@ export function finalizePendingRequest(
   if (!details?.length) return;
   const updated = { ...details[0], ...normalizePendingMetadata(metadata) };
   completedDetails.set(updated.id, updated);
-  try { console.log("[usageHistory] finalizePendingRequest: finalized id=", updated.id, "model=", model, "provider=", provider, "connectionId=", connectionId); } catch (e) {}
   setTimeout(() => completedDetails.delete(updated.id), 5000);
   trackPendingRequest(model, provider, connectionId, false);
 }
@@ -338,7 +335,6 @@ export function finalizeMostRecentPendingRequest(
   const updated = { ...details[lastIdx], ...normalizePendingMetadata(metadata) };
   // Move to completed cache
   completedDetails.set(updated.id, updated);
-  try { console.log("[usageHistory] finalizeMostRecentPendingRequest: finalized id=", updated.id, "model=", model, "provider=", provider, "connectionId=", connectionId); } catch (e) {}
 
   // If provider/client responses are missing, attempt to enrich the completed
   // detail from persisted call_log artifacts (best-effort, non-blocking).
