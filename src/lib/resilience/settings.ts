@@ -280,15 +280,21 @@ function normalizeProviderBreakerProfile(
   fallback: ProviderBreakerProfileSettings
 ): ProviderBreakerProfileSettings {
   const record = asRecord(next);
+  const failureThreshold = toInteger(record.failureThreshold, fallback.failureThreshold, {
+    min: 1,
+    max: 1000,
+  });
+  const degradationThreshold = Math.min(
+    toInteger(record.degradationThreshold, fallback.degradationThreshold, {
+      min: 1,
+      max: 1000,
+    }),
+    failureThreshold <= 1 ? 1 : failureThreshold - 1
+  );
+
   return {
-    failureThreshold: toInteger(record.failureThreshold, fallback.failureThreshold, {
-      min: 1,
-      max: 1000,
-    }),
-    degradationThreshold: toInteger(record.degradationThreshold, fallback.degradationThreshold, {
-      min: 1,
-      max: 1000,
-    }),
+    failureThreshold,
+    degradationThreshold,
     resetTimeoutMs: toInteger(record.resetTimeoutMs, fallback.resetTimeoutMs, {
       min: 1000,
       max: 24 * 60 * 60 * 1000,

@@ -311,7 +311,7 @@ function buildProviderProfile(
     circuitBreakerThreshold: providerBreaker.failureThreshold,
     circuitBreakerReset: providerBreaker.resetTimeoutMs,
     degradationThreshold: providerBreaker.degradationThreshold,
-    // Provider-level circuit breaker fields (not configurable via settings, use PROVIDER_PROFILES defaults)
+    // Provider-level cooldown fields are not exposed in resilience settings yet.
     providerFailureThreshold: PROVIDER_PROFILES[category].providerFailureThreshold,
     providerFailureWindowMs: PROVIDER_PROFILES[category].providerFailureWindowMs,
     maxBackoffMultiplier: PROVIDER_PROFILES[category].maxBackoffMultiplier,
@@ -675,16 +675,13 @@ export function getAllModelLockouts(): ModelLockoutInfo[] {
 // ─── Provider Breaker Compatibility Wrappers ────────────────────────────────
 // Legacy helpers now delegate to the shared provider circuit breaker.
 
-type ProviderBreakerProfile = Partial<
-  Pick<
-    ProviderProfile,
-    | "failureThreshold"
-    | "degradationThreshold"
-    | "resetTimeoutMs"
-    | "circuitBreakerThreshold"
-    | "circuitBreakerReset"
-  >
->;
+type ProviderBreakerProfile = {
+  failureThreshold?: number;
+  degradationThreshold?: number;
+  resetTimeoutMs?: number;
+  circuitBreakerThreshold?: number;
+  circuitBreakerReset?: number;
+};
 
 function getProviderBreaker(provider: string | null | undefined) {
   return provider ? getCircuitBreaker(provider) : null;

@@ -6,6 +6,7 @@ import {
   resolveResilienceSettings,
   type ResilienceSettings,
 } from "../../src/lib/resilience/settings.ts";
+import { updateResilienceSchema } from "../../src/shared/validation/schemas.ts";
 
 function cloneDefaults(): ResilienceSettings {
   return structuredClone(DEFAULT_RESILIENCE_SETTINGS);
@@ -29,6 +30,49 @@ test("mergeResilienceSettings stores provider breaker degradation thresholds", (
 
   assert.equal(next.providerBreaker.oauth.degradationThreshold, 4);
   assert.equal(next.providerBreaker.apikey.degradationThreshold, 6);
+});
+
+test("mergeResilienceSettings caps degradation thresholds below failure thresholds", () => {
+  const next = mergeResilienceSettings(cloneDefaults(), {
+    providerBreaker: {
+      oauth: { failureThreshold: 5, degradationThreshold: 9 },
+      apikey: { failureThreshold: 1, degradationThreshold: 9 },
+    },
+  });
+
+  assert.equal(next.providerBreaker.oauth.failureThreshold, 5);
+  assert.equal(next.providerBreaker.oauth.degradationThreshold, 4);
+  assert.equal(next.providerBreaker.apikey.failureThreshold, 1);
+  assert.equal(next.providerBreaker.apikey.degradationThreshold, 1);
+});
+
+test("updateResilienceSchema validates provider breaker degradation threshold ranges", () => {
+  assert.equal(
+    updateResilienceSchema.safeParse({
+      providerBreaker: {
+        oauth: { failureThreshold: 1000, degradationThreshold: 999 },
+      },
+    }).success,
+    true
+  );
+
+  assert.equal(
+    updateResilienceSchema.safeParse({
+      providerBreaker: {
+        oauth: { failureThreshold: 5, degradationThreshold: 5 },
+      },
+    }).success,
+    false
+  );
+
+  assert.equal(
+    updateResilienceSchema.safeParse({
+      providerBreaker: {
+        oauth: { failureThreshold: 1001, degradationThreshold: 999 },
+      },
+    }).success,
+    false
+  );
 });
 
 test("resolveResilienceSettings round-trips stored provider breaker degradation thresholds", () => {
