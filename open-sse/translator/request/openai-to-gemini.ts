@@ -109,7 +109,18 @@ type GeminiToolNameOptions = {
   functionResponseShape?: "result" | "output";
   signatureNamespace?: string | null;
   signaturelessToolCallMode?: "native" | "text" | "context";
+  // Vertex AI's FunctionCall/FunctionResponse protos have no `id` field; emitting it
+  // makes Vertex reject the request with 400 "Unknown name id" (#3440). The public
+  // Gemini API DOES use `id` for Gemini 3+ signature matching, so this is scoped to
+  // the vertex provider only.
+  stripFunctionCallId?: boolean;
 };
+
+// Vertex AI (and Vertex Partner models) reject the OpenAI-style `id` field inside
+// function_call / function_response parts. Detect these by the routed provider id.
+function isVertexGeminiProvider(provider: unknown): boolean {
+  return provider === "vertex" || provider === "vertex-partner";
+}
 
 type OpenAIToolCallLike = {
   thoughtSignature?: unknown;
@@ -430,7 +441,7 @@ function openaiToGeminiBase(
             parts.push({
               ...(embeddedThoughtSignature ? { thoughtSignature: embeddedThoughtSignature } : {}),
               functionCall: {
-                id: id,
+                ...(toolNameOptions.stripFunctionCallId ? {} : { id: id }),
                 name: sanitizeToolName(fn.name),
                 args: args,
               },
@@ -482,7 +493,7 @@ function openaiToGeminiBase(
 
               toolParts.push({
                 functionResponse: {
-                  id: fid,
+                  ...(toolNameOptions.stripFunctionCallId ? {} : { id: fid }),
                   name: name,
                   response:
                     toolNameOptions.functionResponseShape === "output"
@@ -605,6 +616,7 @@ export function openaiToGeminiRequest(
   return openaiToGeminiBase(model, body, stream, {
     signatureNamespace,
     signaturelessToolCallMode: options.signaturelessToolCallMode,
+    stripFunctionCallId: isVertexGeminiProvider(credentials?._provider),
   });
 }
 

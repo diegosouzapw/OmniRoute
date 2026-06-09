@@ -42,6 +42,7 @@ export const updateSettingsSchema = z.object({
   showProviderTopologyOnHome: z.boolean().optional(),
   localOnlyManageScopeBypassEnabled: z.boolean().optional(),
   localOnlyManageScopeBypassPrefixes: z.array(z.string().max(200)).optional(),
+  customBannedSignals: z.array(z.string().max(200)).optional(),
   debugMode: z.boolean().optional(),
   hiddenSidebarItems: z.array(z.enum(HIDEABLE_SIDEBAR_ITEM_IDS)).optional(),
   sidebarSectionOrder: z

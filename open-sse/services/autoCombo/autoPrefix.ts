@@ -6,7 +6,14 @@ export interface AutoPrefixParseResult {
   error?: string;
 }
 
-const VALID_VARIANTS: AutoVariant[] = ["coding", "fast", "cheap", "offline", "smart", "lkgp"];
+export const VALID_VARIANTS: AutoVariant[] = [
+  "coding",
+  "fast",
+  "cheap",
+  "offline",
+  "smart",
+  "lkgp",
+];
 
 /**
  * Parses a model name to determine if it's an auto-prefixed model and extracts the variant.

@@ -1,6 +1,20 @@
 # @omniroute/opencode-plugin
 
-First-class OpenCode plugin for the [OmniRoute AI Gateway](https://github.com/diegosouzapw/OmniRoute). Pulls a live model catalog from `/v1/models` (including `-low`/`-medium`/`-high`/`-thinking` variants as first-class IDs), aggregates combos via `/api/combos` using a least-common-denominator capability/limit join, sanitizes Gemini tool schemas in flight, and supports multiple side-by-side OmniRoute instances out of the box.
+> **Recommended way to use OmniRoute with OpenCode.** Pulls a live model catalog from `/v1/models` (including `-low`/`-medium`/`-high`/`-thinking` variants as first-class IDs), aggregates combos via `/api/combos` using a least-common-denominator capability/limit join, sanitizes Gemini tool schemas in flight, and supports multiple side-by-side OmniRoute instances out of the box.
+
+## Why this and not `@omniroute/opencode-provider`?
+
+`@omniroute/opencode-provider` is the legacy config-generator package — it writes a frozen `provider.omniroute` block into `opencode.json` with a **hardcoded list of 8 models** ([`OMNIROUTE_DEFAULT_OPENCODE_MODELS`](https://github.com/diegosouzapw/OmniRoute/blob/main/%40omniroute/opencode-provider/src/index.ts#L48-L56)). It works on the CLI but in the **OpenCode Desktop / Web** builds (Tauri / Electron) the runtime re-runs the model picker and the static block surfaces only a few of those — and they drift behind the live OmniRoute catalog.
+
+This plugin solves that by:
+
+- Fetching `/v1/models` and `/api/combos` **at OpenCode startup, in Node.js** — no CORS, no WebView restrictions
+- Emitting the provider block **dynamically** in the plugin's `config`/`provider` hook — so `opencode.json` only needs the plugin entry, not a static `provider.omniroute`
+- Re-fetching on a configurable TTL (default 5 min), so new models / combo changes in the OmniRoute UI appear without restarting OpenCode
+- Computing `limit.context` for combos as `min(member.context_length)` from the live catalog (no more `null` values that cause 4K-token truncation)
+- **Auto-pickup of `interleaved` capability** for thinking models (merged via PR #3138)
+
+**If you only have the legacy `opencode-provider` block in your `opencode.json`, replace it with a single plugin entry.** No other config changes required — the same `auth.json` API key works.
 
 ## Install
 

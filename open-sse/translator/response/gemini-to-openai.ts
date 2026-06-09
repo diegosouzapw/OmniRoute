@@ -4,7 +4,10 @@ import {
   buildGeminiThoughtSignatureKey,
   storeGeminiThoughtSignature,
 } from "../../services/geminiThoughtSignatureStore.ts";
-import { parseTextualToolCallCandidate } from "../../utils/textualToolCall.ts";
+import {
+  parseTextualToolCallCandidate,
+  containsTextualToolCallMarker,
+} from "../../utils/textualToolCall.ts";
 
 type GeminiToOpenAIState = {
   functionIndex: number;
@@ -35,17 +38,6 @@ function normalizeToolCallArgs(args: unknown): unknown {
   } catch {
     return args;
   }
-}
-
-function containsTextualToolCallMarker(text: unknown): boolean {
-  if (typeof text !== "string") return false;
-  const normalized = text.replace(/[\u200B-\u200D\uFEFF]/g, "");
-
-  if (!normalized.includes("[Tool call:")) return false;
-  if (normalized.includes("Arguments:")) return true;
-
-  const trimmed = normalized.trim();
-  return trimmed.startsWith("[Tool call:") || trimmed.startsWith("(empty)[Tool call:");
 }
 
 function buildToolCallId(
@@ -236,28 +228,25 @@ export function geminiToOpenAIResponse(chunk, state) {
       if (part.text !== undefined && part.text !== "") {
         let accumulated = (state.textualToolCallBuffer || "") + part.text;
 
-        let candidate = null;
-        if (!state.hasEmittedContent || state.textualToolCallBuffer) {
-          candidate = parseTextualToolCallCandidate(accumulated);
-        }
+        let candidate = parseTextualToolCallCandidate(accumulated);
 
         if (candidate) {
-          const normalized = accumulated.replace(/[​-‍﻿]/g, "");
-          let toolCallIndex = normalized.lastIndexOf("[Tool call:");
+          accumulated = accumulated.replace(/[\u200B-\u200D\uFEFF]/g, "");
+          let toolCallIndex = accumulated.lastIndexOf("(empty)[Tool call:");
           if (toolCallIndex < 0) {
-            toolCallIndex = normalized.lastIndexOf("(empty)[Tool call:");
+            toolCallIndex = accumulated.lastIndexOf("[Tool call:");
           }
           if (toolCallIndex < 0) {
-            const lastBracket = normalized.lastIndexOf("[");
-            if (lastBracket !== -1 && "[Tool call:".startsWith(normalized.slice(lastBracket))) {
-              toolCallIndex = lastBracket;
+            const lastParen = accumulated.lastIndexOf("(");
+            if (
+              lastParen !== -1 &&
+              "(empty)[Tool call:".startsWith(accumulated.slice(lastParen))
+            ) {
+              toolCallIndex = lastParen;
             } else {
-              const lastParen = normalized.lastIndexOf("(");
-              if (
-                lastParen !== -1 &&
-                "(empty)[Tool call:".startsWith(normalized.slice(lastParen))
-              ) {
-                toolCallIndex = lastParen;
+              const lastBracket = accumulated.lastIndexOf("[");
+              if (lastBracket !== -1 && "[Tool call:".startsWith(accumulated.slice(lastBracket))) {
+                toolCallIndex = lastBracket;
               }
             }
           }

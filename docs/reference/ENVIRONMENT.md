@@ -970,3 +970,16 @@ The following variables appeared in previous versions of `.env.example` but have
 | ------------------------- | ------------------------ | ------------------- | ------------------------------------------------------ |
 | `APP_LOG_RETENTION_DAYS`  | `90`                     | `7`                 | ✅ Removed misleading value; documented `7` as default |
 | `CALL_LOG_RETENTION_DAYS` | `90`                     | `7`                 | ✅ Removed misleading value; documented `7` as default |
+
+### OpenCode config regeneration (ad-hoc tooling)
+
+Used by `scripts/ad-hoc/regen-opencode-config.ts` to regenerate an `opencode.json`
+with accurate `limit.context` and `limit.output` values pulled from the running
+OmniRoute instance. None of these are required for normal operation — the script
+is developer tooling only.
+
+| Variable            | Default                   | Source File                              | Description                                                                                                            |
+| ------------------- | ------------------------- | ---------------------------------------- | ---------------------------------------------------------------------------------------------------------------------- |
+| `OMNIROUTE_URL`     | `http://localhost:20128`  | `scripts/ad-hoc/regen-opencode-config.ts` | Base URL of the OmniRoute instance to query for `/v1/models`.                                                          |
+| `OMNIROUTE_KEY`     | _(unset)_                 | `scripts/ad-hoc/regen-opencode-config.ts` | API key to authenticate against the OmniRoute `/v1/models` endpoint. Falls back to `OPENCODE_API_KEY` when unset.        |
+| `OPENCODE_API_KEY`  | _(unset)_                 | `scripts/ad-hoc/regen-opencode-config.ts` | OpenCode-style API key (`sk-...`) written into the regenerated `opencode.json`. Falls back to `OMNIROUTE_KEY` when unset. |

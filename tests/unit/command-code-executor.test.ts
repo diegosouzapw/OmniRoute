@@ -74,8 +74,8 @@ test("Command Code provider catalog has pinned models and alias lookup", () => {
   assert.ok(entry);
   assert.equal(entry.alias, "cmd");
   assert.equal(entry.executor, "command-code");
-  assert.equal(entry.baseUrl, "https://api.commandcode.ai/provider/v1");
-  assert.equal(entry.chatPath, "/chat/completions");
+  assert.equal(entry.baseUrl, "https://api.commandcode.ai");
+  assert.equal(entry.chatPath, "/alpha/generate");
   assert.deepEqual(
     entry.models.map((model) => model.id),
     PINNED_COMMAND_CODE_MODELS
@@ -89,7 +89,7 @@ test("getExecutor returns the specialized Command Code executor", () => {
   assert.ok(getExecutor("cmd") instanceof CommandCodeExecutor);
 });
 
-test("Command Code executor posts wrapped body and required headers to /provider/v1/chat/completions", async () => {
+test("Command Code executor posts wrapped body and required headers to /alpha/generate", async () => {
   const calls: any[] = [];
   globalThis.fetch = async (url, init = {}) => {
     calls.push({ url: String(url), init });
@@ -112,9 +112,9 @@ test("Command Code executor posts wrapped body and required headers to /provider
     },
   });
 
-  assert.equal(url, "https://api.commandcode.ai/provider/v1/chat/completions");
+  assert.equal(url, "https://api.commandcode.ai/alpha/generate");
   assert.equal(calls.length, 1);
-  assert.equal(calls[0].url, "https://api.commandcode.ai/provider/v1/chat/completions");
+  assert.equal(calls[0].url, "https://api.commandcode.ai/alpha/generate");
   assert.equal(calls[0].init.method, "POST");
   assert.equal(headers.Authorization, "Bearer cc_test_key");
   assert.equal(headers["x-command-code-version"], "0.24.1");

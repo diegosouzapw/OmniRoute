@@ -1150,7 +1150,18 @@ export async function getUnifiedModelsResponse(
           if (!modelId) continue;
           if (model.isHidden === true) continue;
           if (getModelIsHidden(canonicalProviderId, modelId)) continue;
+          // noAuth providers (e.g. theoldllm) never create DB connection rows, so the
+          // eligibility gate would drop every imported/custom model for them (#3200).
+          // Mirror providerSupportsModel's noAuth bypass (#2798) — keep the gate for
+          // auth providers (preserving parentProviderType for compatible UUID nodes).
+          const isNoAuthProvider = Object.values(NOAUTH_PROVIDERS).some(
+            (p) =>
+              p.id === canonicalProviderId ||
+              p.id === providerId ||
+              ("alias" in p && p.alias === alias)
+          );
           if (
+            !isNoAuthProvider &&
             !hasEligibleConnectionForModel(
               getConnectionsForProvider(alias, canonicalProviderId, providerId, parentProviderType),
               modelId

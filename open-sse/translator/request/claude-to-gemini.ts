@@ -14,12 +14,17 @@ import { capMaxOutputTokens } from "../../../src/lib/modelCapabilities.ts";
  * Converts Claude Messages API body directly to Gemini format,
  * skipping the OpenAI hub intermediate step.
  */
-export function claudeToGeminiRequest(model, body, stream) {
+export function claudeToGeminiRequest(model, body, stream, credentials = null) {
   const toolNameMap = new Map<string, string>();
   const sanitizeToolName = (name: string) =>
     sanitizeGeminiToolName(name, {
       toolNameMap,
     });
+  // Vertex AI rejects the `id` field inside function_call / function_response parts
+  // (#3440). The public Gemini API keeps it for Gemini 3+ signature matching, so this
+  // is scoped to the routed vertex provider only (threaded via credentials._provider).
+  const provider = credentials && typeof credentials === "object" ? credentials._provider : null;
+  const stripFunctionCallId = provider === "vertex" || provider === "vertex-partner";
   const result: {
     model: string;
     contents: Array<Record<string, unknown>>;
@@ -105,7 +110,7 @@ export function claudeToGeminiRequest(model, body, stream) {
             case "tool_use":
               parts.push({
                 functionCall: {
-                  id: block.id,
+                  ...(stripFunctionCallId ? {} : { id: block.id }),
                   name: sanitizeToolName(block.name),
                   args: block.input || {},
                 },
@@ -127,7 +132,7 @@ export function claudeToGeminiRequest(model, body, stream) {
               }
               parts.push({
                 functionResponse: {
-                  id: block.tool_use_id,
+                  ...(stripFunctionCallId ? {} : { id: block.tool_use_id }),
                   name: toolUseNames[block.tool_use_id] || "unknown",
                   response: { result: parsedContent },
                 },

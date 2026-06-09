@@ -25,6 +25,10 @@ const STAGING_FORBIDDEN_FILES = ["audit-report.json", "package-lock.json"];
 export const APP_STAGING_REMOVAL_PATHS: string[] = [
   ...STAGING_FORBIDDEN_DIRECTORIES,
   ...STAGING_FORBIDDEN_FILES,
+  // onnxruntime CUDA provider binary (~316 MB) inflates the npm tarball
+  // past the registry 413 limit for npm.org.  It's only needed on systems
+  // with a CUDA GPU — users install CUDA providers separately.
+  "node_modules/onnxruntime-node/bin/napi-v6/linux/x64/libonnxruntime_providers_cuda.so",
 ];
 
 export const APP_STAGING_ALLOWED_EXACT_PATHS: string[] = [

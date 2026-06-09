@@ -125,6 +125,19 @@ export const ACCOUNT_DEACTIVATED_SIGNALS = [
   "this service has been disabled in this account",
 ];
 
+// Custom banned signals — loaded from DB settings at runtime.
+// Combined with ACCOUNT_DEACTIVATED_SIGNALS in isAccountDeactivated().
+let _customBannedSignals: string[] = [];
+
+export function setCustomBannedSignals(signals: string[]): void {
+  _customBannedSignals = signals;
+}
+
+export function getMergedBannedSignals(): string[] {
+  if (_customBannedSignals.length === 0) return ACCOUNT_DEACTIVATED_SIGNALS;
+  return [...ACCOUNT_DEACTIVATED_SIGNALS, ..._customBannedSignals];
+}
+
 // T10 (sub2api PR #1169): Signals that indicate billing credits are exhausted.
 // Distinct from rate-limit 429 — the account won't recover until credits are added.
 export const CREDITS_EXHAUSTED_SIGNALS = [
@@ -240,7 +253,7 @@ const MALFORMED_REQUEST_PATTERNS = [
  */
 export function isAccountDeactivated(errorText: string): boolean {
   const lower = String(errorText || "").toLowerCase();
-  return ACCOUNT_DEACTIVATED_SIGNALS.some((sig) => lower.includes(sig));
+  return getMergedBannedSignals().some((sig) => lower.includes(sig));
 }
 
 /**
