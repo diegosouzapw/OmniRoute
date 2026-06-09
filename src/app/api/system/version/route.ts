@@ -307,15 +307,14 @@ export async function POST(req: NextRequest) {
       try {
         // Step 1: Install
         send({ step: "install", status: "running", message: `Installing omniroute@${latest}...` });
-          await execFileAsync(
-            "npm",
-            ["install", "-g", `omniroute@${latest}`, "--ignore-scripts", "--legacy-peer-deps"],
-            {
-              timeout: 300000,
-              cwd: PROJECT_ROOT,
-            }
-          );
-        send({ step: "install", status: "done", message: `Installed omniroute@${latest}` });
+        await execFileAsync(
+          "npm",
+          ["install", "-g", `omniroute@${latest}`, "--ignore-scripts", "--legacy-peer-deps"],
+          {
+            timeout: 300000,
+            cwd: PROJECT_ROOT,
+          }
+        );
 
         // Step 2: Rebuild native modules (critical for better-sqlite3)
         send({
@@ -323,9 +322,9 @@ export async function POST(req: NextRequest) {
           status: "running",
           message: "Rebuilding native modules (better-sqlite3)...",
         });
-          const globalRoot = (
-            await execFileAsync("npm", ["root", "-g"], { timeout: 10000, cwd: PROJECT_ROOT })
-          ).stdout.trim();
+        const globalRoot = (
+          await execFileAsync("npm", ["root", "-g"], { timeout: 10000, cwd: PROJECT_ROOT })
+        ).stdout.trim();
         const omniPath = `${globalRoot}/omniroute/app`;
         await execFileAsync(
           "npm",

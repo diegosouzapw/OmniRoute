@@ -1,5 +1,5 @@
 import { execFile, spawn } from "node:child_process";
-import { closeSync, mkdirSync, openSync, existsSync } from "node:fs";
+import { closeSync, mkdirSync, openSync } from "node:fs";
 import { access } from "node:fs/promises";
 import path from "node:path";
 import { promisify } from "node:util";
@@ -9,10 +9,7 @@ const execFileAsync = promisify(execFile);
 
 function resolveProjectRoot(fallback: string): string {
   try {
-    const cwd = process.cwd();
-    if (existsSync(path.join(cwd, "package.json"))) return cwd;
-    if (existsSync(path.join(cwd, ".git"))) return cwd;
-    return cwd;
+    return process.cwd();
   } catch {
     return fallback;
   }
