@@ -79,6 +79,8 @@ const state: PoolState = {
 };
 
 function getCloakbrowserModuleId(): string {
+  // Keep this computed: cloakbrowser is an optional runtime enhancer, and a literal
+  // dynamic import with the package name makes Turbopack resolve it during route compilation.
   return ["cloak", "browser"].join("");
 }
 
