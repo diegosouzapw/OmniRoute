@@ -240,7 +240,7 @@ const PLAYGROUND_KEY_ID_HEADER = "x-omniroute-playground-key-id";
  * fallback when no bearer key was presented — so it can never bypass auth or
  * escalate privileges, it only applies (narrows to) the selected key's policy.
  */
-async function resolvePlaygroundTestKey(request: Request): Promise<string | null> {
+export async function resolvePlaygroundTestKey(request: Request): Promise<string | null> {
   const keyId = request.headers.get(PLAYGROUND_KEY_ID_HEADER);
   if (!keyId) return null;
   if (!(await isDashboardSessionAuthenticated(request))) return null;
