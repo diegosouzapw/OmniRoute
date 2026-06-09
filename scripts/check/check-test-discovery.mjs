@@ -48,6 +48,14 @@ const TEST_FILE_RE = /\.(test|spec)\.(ts|tsx)$/;
 export const COLLECTORS = [
   // Node native runner — test:unit / test:unit:fast / shards / test:coverage + CI (8 shards, node24, node26)
   { glob: "tests/unit/*.test.ts", sources: ["package.json", ".github/workflows/ci.yml"] },
+  // Node native runner — subdiretórios religados pela 6A.1c (2026-06-09). Braces
+  // explícitos para NÃO incluir tests/unit/autoCombo/** (testes vitest — importam
+  // "vitest" e explodem no node runner). Subdir novo: adicione aqui E nos scripts
+  // (o drift-check + o gate de órfãos forçam a manutenção em sincronia).
+  {
+    glob: "tests/unit/{api,auth,authz,build,cli,cli-helper,compression,cors,dashboard,db,db-adapters,docs,gamification,guardrails,lib,mcp,runtime,security,services,settings,shared,ui}/**/*.test.ts",
+    sources: ["package.json", ".github/workflows/ci.yml"],
+  },
   // Node native runner — test:integration (top-level only; tests/integration/services/ NÃO roda)
   { glob: "tests/integration/*.test.ts", sources: ["package.json"] },
   // Node native runner — test:system
