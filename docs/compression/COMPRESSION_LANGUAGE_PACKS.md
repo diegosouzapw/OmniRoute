@@ -111,7 +111,7 @@ regardless of surrounding filler removal:
 | Fenced code blocks               | ` ```python\n...\n``` `                |
 | Inline code                      | `` `my_var` ``                         |
 | URLs                             | `https://example.com/path`             |
-| File paths (absolute + relative) | `/etc/hosts`, `./src/index.ts`         |
+| File paths (absolute + relative) | `/etc/hosts`, `./src/types/index.ts`         |
 | Error headers                    | `Error:`, `TypeError:`, `SyntaxError:` |
 | Stack trace lines                | `  at functionName (file.ts:12:3)`     |
 

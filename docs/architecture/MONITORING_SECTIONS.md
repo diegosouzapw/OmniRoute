@@ -143,4 +143,4 @@ Namespaces added by Group B:
 | `activity.*` | All Activity page strings (title, verbs, filters, empty state) |
 
 Source-of-truth locales: `pt-BR` and `en`. All other 39 locales fall back to
-English via the fallback mechanism (`src/i18n/fallback.ts` or `next-intl` fallback).
+English via the fallback mechanism (`src/app/(dashboard)/dashboard/usage/components/ProviderLimits/i18nFallback.ts` or `next-intl` fallback).

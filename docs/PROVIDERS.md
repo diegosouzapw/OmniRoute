@@ -80,7 +80,6 @@ claude.ai API
 | File                                                  | Purpose                                      |
 | ----------------------------------------------------- | -------------------------------------------- |
 | `src/shared/constants/providers.ts`                   | Provider registration (WEB_COOKIE_PROVIDERS) |
-| `src/lib/providers/wrappers/claudeWeb.ts`             | Type definitions + cookie utilities          |
 | `open-sse/executors/claude-web.ts`                    | Executor implementation                      |
 | `open-sse/executors/index.ts`                         | Executor registration                        |
 | `open-sse/services/claudeTlsClient.ts`                | TLS fingerprint spoofing via tls-client-node |

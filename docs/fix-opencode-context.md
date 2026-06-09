@@ -91,7 +91,7 @@ The generator now:
 4. Trigger a models.dev sync from the Settings → Models.dev panel
    (or POST `/api/settings/models-dev` with `{"action": "sync"}`).
 5. Re-run the opencode.json generator (the CLI command or the
-   `scripts/regen-opencode-config.ts` script).
+   `scripts/ad-hoc/regen-opencode-config.ts` script).
 
 After step 5, `Opencode FREE Omni`'s `limit.context` will be **200000**
 and every other combo will reflect its targets' min context.

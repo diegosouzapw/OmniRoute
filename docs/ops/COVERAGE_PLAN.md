@@ -64,7 +64,7 @@ These files have the lowest line coverage today (< 60%) and offer the best retur
 | 2   | `src/app/api/v1/batches/route.ts`                                 |   9.67% |
 | 3   | `src/app/docs/components/FeedbackWidget.tsx`                      |   9.80% |
 | 4   | `open-sse/services/compression/toolResultCompressor.ts`           |  10.00% |
-| 5   | `src/app/docs/components/DocCodeBlocks.tsx`                       |  10.63% |
+| 5   | `src/shared/components/docs/CodeBlock.tsx`                          |   10.63% |
 | 6   | `open-sse/services/compression/engines/rtk/lineFilter.ts`         |  10.96% |
 | 7   | `open-sse/services/specificityRules.ts`                           |  11.28% |
 | 8   | `src/mitm/systemCommands.ts`                                      |  12.19% |
