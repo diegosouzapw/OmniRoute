@@ -199,7 +199,7 @@ export const FEATURE_FLAG_DEFINITIONS: FeatureFlagDefinition[] = [
     warningLevel: "info",
   },
 
-  // ──────────────── Runtime (7) ────────────────
+  // ──────────────── Runtime (8) ────────────────
   {
     key: "OMNIROUTE_MCP_ENFORCE_SCOPES",
     label: "MCP Enforce Scopes",
@@ -279,6 +279,18 @@ export const FEATURE_FLAG_DEFINITIONS: FeatureFlagDefinition[] = [
     requiresRestart: false,
     warningLevel: "info",
   },
+  {
+    key: "MODEL_CATALOG_INCLUDE_NAMES",
+    label: "Model Catalog Names",
+    description:
+      "Include display-friendly name fields in /v1/models responses. Disable for clients that expect model IDs only.",
+    descriptionI18nKey: "settings.featureFlags.modelCatalogIncludeNames",
+    category: "runtime",
+    defaultValue: "true",
+    type: "boolean",
+    requiresRestart: false,
+    warningLevel: "info",
+  },
 
   // ──────────────── CLI (3) ────────────────
   {
@@ -306,7 +318,8 @@ export const FEATURE_FLAG_DEFINITIONS: FeatureFlagDefinition[] = [
   {
     key: "PRICING_SYNC_ENABLED",
     label: "Pricing Sync",
-    description: "Enable automatic pricing data synchronization (requires the PRICING_SYNC_ENABLED environment variable to be set to true)",
+    description:
+      "Enable automatic pricing data synchronization (requires the PRICING_SYNC_ENABLED environment variable to be set to true)",
     descriptionI18nKey: "featureFlagPricingSyncEnabledDescription",
     category: "cli",
     defaultValue: "false",
