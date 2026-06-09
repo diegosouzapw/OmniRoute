@@ -11,6 +11,7 @@ import { MAX_REQUEST_BODY_LIMIT_MB, MIN_REQUEST_BODY_LIMIT_MB } from "@/shared/c
 import { HIDEABLE_SIDEBAR_ITEM_IDS, SIDEBAR_SECTIONS } from "@/shared/constants/sidebarVisibility";
 import { ACCOUNT_FALLBACK_STRATEGY_VALUES } from "@/shared/constants/routingStrategies";
 import { RESPONSES_PREVIOUS_RESPONSE_ID_MODES } from "@/shared/constants/responsesPreviousResponseId";
+import { SPAWN_CAPABLE_PREFIXES } from "@/server/authz/routeGuard";
 
 const signatureCacheModeValues = ["enabled", "bypass", "bypass-strict"] as const;
 
@@ -42,7 +43,30 @@ export const updateSettingsSchema = z.object({
   showProviderTopologyOnHome: z.boolean().optional(),
   showTokenSaverOnEndpoint: z.boolean().optional(),
   localOnlyManageScopeBypassEnabled: z.boolean().optional(),
-  localOnlyManageScopeBypassPrefixes: z.array(z.string().max(200)).optional(),
+  // Layer 1 of the spawn-capable guard (Hard Rules #15/#17): reject any bypass
+  // prefix that reaches a SPAWN_CAPABLE_PREFIXES path at PATCH time, with the
+  // BYPASS_PREFIX_NOT_ALLOWED code the settings route handler translates.
+  // Layer 2 (isLocalOnlyBypassableByManageScope) still refuses spawn paths at
+  // runtime even if a malformed DB row claims otherwise. This refine was in the
+  // routeGuard.ts contract docs but missing from the live schema — restored by
+  // the 6A.1 orphan-test re-wire (AC-8 / AC-10c, 2026-06-09).
+  localOnlyManageScopeBypassPrefixes: z
+    .array(
+      z
+        .string()
+        .max(200)
+        .refine(
+          (prefix) => {
+            const normalized = prefix.endsWith("/") ? prefix : `${prefix}/`;
+            return !SPAWN_CAPABLE_PREFIXES.some((sp) => normalized.startsWith(sp));
+          },
+          {
+            message:
+              "BYPASS_PREFIX_NOT_ALLOWED: spawn-capable prefixes cannot be added to the manage-scope bypass list",
+          }
+        )
+    )
+    .optional(),
   customBannedSignals: z.array(z.string().max(200)).optional(),
   debugMode: z.boolean().optional(),
   hiddenSidebarItems: z.array(z.enum(HIDEABLE_SIDEBAR_ITEM_IDS)).optional(),
