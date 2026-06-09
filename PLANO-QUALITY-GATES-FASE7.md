@@ -4,13 +4,13 @@
 
 > # ⏳ PORTÃO DE ATIVAÇÃO — NÃO INICIAR ANTES DE **2026-06-16**
 > **Este plano está GUARDADO, não ativo.** Decisão do owner (2026-06-09): finalizar 100% as Fases 0–6 (PR #3471), **usar em produção por 1 semana** para validar na prática, e só então evoluir. **Data cravada de início da Fase 7: 2026-06-16.** Não ativar antes — o objetivo da semana é coletar sinal real (falsos-positivos dos gates, custo de CI, atrito) antes de adicionar mais.
-> **Pré-condições para ativar:** (1) PR #3471 (Fases 0–6) mergeada e rodada ≥1 semana; (2) re-home do PR para `release/v3.8.18` resolvido; (3) as issues #3483–#3501 com decisões aplicadas ou conscientemente adiadas.
+> **Pré-condições para ativar:** (1) PR #3471 (Fases 0–6) mergeada e rodada ≥1 semana; (2) re-home do PR para `release/v3.8.18` resolvido; (3) as issues #3483–#3501 com decisões aplicadas ou conscientemente adiadas; (4) **Fase 6A executada (ou conscientemente re-priorizada)** — a auditoria crítica de 2026-06-09 ([`PLANO-QUALITY-GATES-FASE6A.md`](./PLANO-QUALITY-GATES-FASE6A.md)) encontrou bugs sistêmicos de runner (≈135 testes órfãos, vitest fora do CI) e furos de escopo nos gates existentes que devem ser consertados ANTES de adicionar ferramentas novas por cima.
 
 **Goal:** Maximizar a cobertura de quality gates do OmniRoute adicionando catracas de **segurança** (Sonar/osv/CodeQL → zero na timeline), **dead-code**, **complexidade cognitiva**, **type-coverage**, **mutação**, **bundle-size**, **a11y** e completando o anti-slopsquatting — usando **somente ferramentas Community/OSS** (projeto é open-source, zero SaaS pago, dados na box).
 
 **Architecture:** Reusa o motor existente — toda métrica numérica entra como `{value, direction}` em `quality-baseline.json` (catraca só-regressão) ou vira um `scripts/check/check-*.mjs` dedicado (padrão `check-t11-any-budget.mjs`). Gates pesados vão no job paralelo `quality-gate`; gates rápidos no `lint`; mutação/visual em job nightly separado. Tudo só-regressão (sem flag-day).
 
-**Tech Stack (tudo OSS/Community):** SonarQube **Community Build** (self-hosted) · osv-scanner (Google) · CodeQL (GitHub, grátis p/ público) · knip · eslint-plugin-sonarjs · type-coverage · lockfile-lint · dpdm · Stryker (`@stryker-mutator/*`) · size-limit · `@axe-core/playwright` · semcheck · agent-lsp (MCP) · Qlty CLI (OSS, opcional). ESLint 9 flat · c8 · Node native test runner · GitHub Actions.
+**Tech Stack (tudo OSS/Community):** SonarQube **Community Build** (self-hosted) · osv-scanner (Google) · CodeQL (GitHub, grátis p/ público) · knip · eslint-plugin-sonarjs · type-coverage · lockfile-lint · dpdm · Stryker (`@stryker-mutator/*`) · size-limit · `@axe-core/playwright` · semcheck · agent-lsp (MCP) · Qlty CLI (OSS, opcional) · **gitleaks** (secret scanning, MIT; avaliar o sucessor drop-in Betterleaks, 2026-03) · **actionlint + zizmor** (lint + auditoria de segurança dos workflows) · **license-compliance** (allowlist SPDX de licenças). ESLint 9 flat · c8 · Node native test runner · GitHub Actions.
 
 ---
 
@@ -37,7 +37,10 @@ Toda catraca é **só-regressão**: congela o baseline atual, bloqueia QUALQUER 
 | `.github/workflows/ci.yml` (modificar) | wirar novos gates (lint / quality-gate / nightly) + `qualitygate.wait` no Sonar |
 | `semcheck.yaml` (criar) | semcheck: docs↔código (camada fuzzy LLM, opcional) |
 | `.mcp.json` / config de agentes (modificar) | registrar agent-lsp (LSP-in-the-loop) |
-| `dependency-allowlist.json` (modificar) | + osv-scanner, knip, sonarjs, type-coverage, lockfile-lint, stryker, size-limit, axe-core, dpdm |
+| `.gitleaks.toml` + `scripts/check/check-secrets.mjs` (criar) | gitleaks → catraca de findings de secret (Task 18) |
+| `.github/workflows/quality.yml` ou job lint (modificar) | actionlint + zizmor sobre `.github/workflows/**` (Task 19) |
+| `scripts/check/check-licenses.mjs` + `.license-allowlist.json` (criar) | allowlist SPDX das licenças das deps (Task 20) |
+| `dependency-allowlist.json` (modificar) | + osv-scanner, knip, sonarjs, type-coverage, lockfile-lint, stryker, size-limit, axe-core, dpdm, license-compliance |
 
 ---
 
@@ -139,21 +142,41 @@ Toda catraca é **só-regressão**: congela o baseline atual, bloqueia QUALQUER 
 - **Tool:** Qlty CLI (OSS, grátis).
 - **Approach:** spike: avaliar se Qlty (Baseline analysis + 70 analyzers) substitui N scripts caseiros sem perder o controle/determinismo. Decisão build-vs-buy. Não obrigatório.
 
+### Task 18 — Secret scanning local (gitleaks) ➕ *adicionada pela auditoria 6A (2026-06-09)*
+- **Tool:** gitleaks (OSS, MIT — binário Go, on-box). Nota 2026: o criador original (Zach Rice) lançou o **Betterleaks** (2026-03) como drop-in replacement (flags/config compatíveis) — avaliar os dois no Step 0 e escolher 1.
+- **Files:** `.gitleaks.toml`, `scripts/check/check-secrets.mjs`, `quality-baseline.json` (+`secretFindings {down}`), `ci.yml` (job quality-gate), pre-commit (modo `--staged`, é rápido).
+- **Approach:** complementa o `check-public-creds` da Fase 6 (que cobre apenas credenciais PÚBLICAS por chave de objeto em 2 arquivos): gitleaks pega a classe geral — `const API_KEY = "sk-…"`, tokens em config/teste/docs, secrets em histórico. Rodar `gitleaks dir --report-format json` → contar findings → catraca `down`. Findings legítimos (creds públicas já congeladas no check-public-creds, fixtures de teste) vão para `.gitleaks.toml` `[allowlist]` com comentário — sujeitos ao stale-enforcement da 6A.3 (conceitual: revisar allowlist a cada release).
+- **Acceptance:** secret real plantado em fixture é detectado; baseline congela os findings atuais; novo finding falha o gate.
+
+### Task 19 — Lint + auditoria de segurança dos workflows (actionlint + zizmor) ➕ *adicionada pela auditoria 6A*
+- **Tools:** actionlint (OSS — correção/sintaxe/shellcheck dos YAML) + zizmor (OSS, zizmorcore — 24+ audits de segurança: unpinned actions, script injection, `pull_request_target` perigoso, cache poisoning). Complementares por design; o repo tem 10 workflows sem NENHUMA validação hoje.
+- **Motivação 2026:** o incidente trivy-action/LiteLLM (2026-03) explorou exatamente uma misconfiguração de `pull_request_target` que o zizmor detecta estaticamente. Os release-workflows do OmniRoute (npm/Docker/Electron publish) são alvo de alto valor.
+- **Files:** `ci.yml` ou `quality.yml` (steps actionlint + zizmor), `zizmor.yml` (config/ignores justificados), `quality-baseline.json` (+`zizmorFindings {down}` — começar advisory, congelar baseline, depois bloquear).
+- **Approach:** actionlint = pass/fail imediato (sintaxe não tem "legado aceitável"); zizmor = catraca `down` no padrão do motor (os findings atuais — provavelmente actions não-pinadas por SHA — são dívida congelada que decai).
+- **Acceptance:** workflow novo com `pull_request_target` + checkout de código do PR falha; action não-pinada NOVA sobe o count e falha.
+
+### Task 20 — License compliance (allowlist SPDX) ➕ *adicionada pela auditoria 6A*
+- **Tool:** license-compliance ou @onebeyond/license-checker (ambos OSS, npm). Projeto é **MIT** — deps com copyleft forte (GPL/AGPL) em produção são risco de compliance para os usuários do proxy.
+- **Files:** `scripts/check/check-licenses.mjs`, `.license-allowlist.json` (SPDX permitidas: MIT, Apache-2.0, BSD-2/3, ISC, 0BSD, …), `ci.yml` (lint job), `dependency-allowlist.json`.
+- **Approach:** rodar sobre as `dependencies` de produção (devDependencies = relatório advisory); licença fora da allowlist → fail com o caminho da dep. Exceções pontuais (dual-license, LGPL avaliada) entram na allowlist por **pacote** com justificativa — pareia com o `check-deps` da Fase 2 (lá controla O QUE entra; aqui, SOB QUAL licença).
+- **Acceptance:** dep GPL-3.0 sintética em fixture falha; árvore atual passa com a allowlist calibrada.
+
 ---
 
 ## Wiring & CI (resumo)
-- **lint job:** check-lockfile, check-cognitive-complexity (rápido?), check-type-coverage.
-- **quality-gate job (paralelo):** check-vuln-ratchet, check-dead-code, check-codeql-ratchet, check-cognitive-complexity (se lento), check-bundle-size.
+- **lint job:** check-lockfile, check-cognitive-complexity (rápido?), check-type-coverage, **check-licenses (Task 20)**, **actionlint (Task 19)**.
+- **quality-gate job (paralelo):** check-vuln-ratchet, check-dead-code, check-codeql-ratchet, check-cognitive-complexity (se lento), check-bundle-size, **check-secrets (Task 18)**, **zizmor (Task 19)**.
 - **pr-test-policy job:** check-pr-evidence.
 - **sonarqube job:** Clean-as-You-Code + `qualitygate.wait`.
 - **NIGHTLY job (novo):** Stryker (mutação), semcheck (advisory), a11y full.
-- Todas as métricas numéricas → `quality-baseline.json` (motor da Fase 1). Toda dep nova → `dependency-allowlist.json`.
+- Todas as métricas numéricas → `quality-baseline.json` (motor da Fase 1, com `eps`/`tightenSlack` da 6A.5). Toda dep nova → `dependency-allowlist.json`. Toda allowlist nova nasce com o stale-enforcement da 6A.3.
 
 ## Self-Review
-- **Cobertura do spec:** 7 gates sugeridos = Task 1-3 (segurança), 4 (knip), 9 (coverage por módulo), 10 (evidence), 11 (mutação), 12 (bundle), 13 (a11y). "Todas as ferramentas discutidas" = Tasks 1-8, 11-17 (Sonar/osv/CodeQL/knip/sonarjs/type-coverage/lockfile/dpdm/stryker/size-limit/axe/semcheck/agent-lsp/Qlty). ✓
-- **Community/OSS only:** confirmado — Sonar Community Build, todos os demais OSS, zero SaaS pago. ✓
-- **Sem flag-day:** toda catraca é só-regressão, calibrada do estado atual. ✓
+- **Cobertura do spec:** 7 gates sugeridos = Task 1-3 (segurança), 4 (knip), 9 (coverage por módulo), 10 (evidence), 11 (mutação), 12 (bundle), 13 (a11y). "Todas as ferramentas discutidas" = Tasks 1-8, 11-17 (Sonar/osv/CodeQL/knip/sonarjs/type-coverage/lockfile/dpdm/stryker/size-limit/axe/semcheck/agent-lsp/Qlty). Auditoria 6A (2026-06-09) acrescentou Tasks 18-20 (gitleaks, actionlint+zizmor, license compliance). ✓
+- **Community/OSS only:** confirmado — Sonar Community Build, todos os demais OSS (gitleaks MIT, zizmor/actionlint OSS, license-compliance npm), zero SaaS pago. ✓
+- **Sem flag-day:** toda catraca é só-regressão, calibrada do estado atual (zizmor/gitleaks começam advisory→baseline→bloqueio). ✓
 - **Consistência:** todas as métricas usam o formato `{value, direction}` do motor da Fase 1; deps novas passam pelo `check-deps`+`dependency-allowlist.json`. ✓
+- **Não-sobreposição com a 6A:** a 6A conserta/endurece o EXISTENTE (runners, stale-allowlists, escopos); a Fase 7 só adiciona ferramenta nova. gitleaks (Task 18) complementa — não substitui — o check-public-creds expandido pela 6A.8. ✓
 
 ## Handoff (na ativação, 2026-06-16+)
-Quando o portão abrir: começar pela **Task 1-3 (catraca de segurança)** e **Task 4 (knip)** — maior retorno. Cada Task vira um sub-plano `writing-plans` bite-sized próprio. Recomendado: Subagent-Driven, 1 subagente por Task, com auditoria (trust-but-verify) e o ratchet `eslintWarnings`/`check-deps` validando que cada adição não regride o que já temos.
+**Ordem: Fase 6A primeiro** ([`PLANO-QUALITY-GATES-FASE6A.md`](./PLANO-QUALITY-GATES-FASE6A.md)) — consertar os runners (testes órfãos + vitest no CI) e endurecer as catracas existentes muda os baselines (cobertura recalibrada) sobre os quais várias tasks daqui (1, 9, 11) calibram. Depois: começar pela **Task 1-3 (catraca de segurança)**, **Task 4 (knip)** e **Task 19 (zizmor — protege os release-workflows)** — maior retorno. Cada Task vira um sub-plano `writing-plans` bite-sized próprio. Recomendado: Subagent-Driven, 1 subagente por Task, com auditoria (trust-but-verify) e o ratchet `eslintWarnings`/`check-deps` validando que cada adição não regride o que já temos.
