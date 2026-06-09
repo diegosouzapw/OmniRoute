@@ -218,3 +218,53 @@ test("#2257 — no bearer + REQUIRE_API_KEY=false → anonymous (unchanged, no f
     console.warn = originalWarn;
   }
 });
+
+// ─── #3504 — non-usable Authorization must NOT short-circuit the URL path token ─
+// VS Code Copilot sends its own (empty / non-OmniRoute) Authorization header even
+// when the OmniRoute key lives in the URL path of a /vscode tokenized endpoint.
+// A non-"Bearer <token>" Authorization must fall through to the URL token instead
+// of returning null and 401'ing under REQUIRE_API_KEY=true.
+
+// validateApiKey is the real (no-DB → always-false) implementation here, so we
+// distinguish "URL token was extracted" from "no token found" by the rejection
+// MESSAGE: an extracted-but-unknown token → "Invalid API key"; nothing extracted
+// → "Authentication required". On the pre-fix code a non-Bearer Authorization
+// returned null, so these would all 401 with "Authentication required".
+
+test("#3504 — empty 'Bearer ' Authorization falls through to the URL path token", async () => {
+  process.env.REQUIRE_API_KEY = "true";
+  const policy = await loadPolicy();
+  const headers = new Headers({ authorization: "Bearer " });
+  const out = await policy.evaluate(
+    ctx(headers, "/api/v1/vscode/sk-url-token/chat/completions")
+  );
+  assert.equal(out.allow, false);
+  if (!out.allow) {
+    assert.equal(out.status, 401);
+    assert.equal(
+      out.message,
+      "Invalid API key",
+      "URL token must be extracted (→ 'Invalid API key'), not skipped (→ 'Authentication required')"
+    );
+  }
+});
+
+test("#3504 — a non-Bearer scheme (Basic) also falls through to the URL token", async () => {
+  process.env.REQUIRE_API_KEY = "true";
+  const policy = await loadPolicy();
+  const headers = new Headers({ authorization: "Basic Zm9vOmJhcg==" });
+  const out = await policy.evaluate(
+    ctx(headers, "/api/v1/vscode/sk-url-token/chat/completions")
+  );
+  assert.equal(out.allow, false);
+  if (!out.allow) assert.equal(out.message, "Invalid API key");
+});
+
+test("#3504 — non-Bearer Authorization with NO URL token still rejects as unauthenticated", async () => {
+  process.env.REQUIRE_API_KEY = "true";
+  const policy = await loadPolicy();
+  const headers = new Headers({ authorization: "Bearer " });
+  const out = await policy.evaluate(ctx(headers, "/api/v1/chat/completions"));
+  assert.equal(out.allow, false);
+  if (!out.allow) assert.equal(out.message, "Authentication required");
+});
