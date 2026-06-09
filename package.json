@@ -127,6 +127,7 @@
     "check:docs-symbols": "node scripts/check/check-docs-symbols.mjs",
     "check:known-symbols": "node --import tsx scripts/check/check-known-symbols.ts",
     "check:route-guard-membership": "node --import tsx scripts/check/check-route-guard-membership.ts",
+    "check:test-discovery": "node scripts/check/check-test-discovery.mjs",
     "check:complexity": "node scripts/check/check-complexity.mjs",
     "quality:collect": "node scripts/quality/collect-metrics.mjs",
     "quality:ratchet": "node scripts/quality/check-quality-ratchet.mjs",
