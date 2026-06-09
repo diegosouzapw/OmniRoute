@@ -18,7 +18,7 @@ export default function DashboardLayout({ children }) {
   const [commandPaletteOpen, setCommandPaletteOpen] = useState(false);
   const isElectron = useIsElectron();
   const [collapsed, setCollapsed] = useState(() => {
-    if (typeof window === "undefined") return false;
+    if (typeof globalThis.window === "undefined") return false;
     try {
       return localStorage.getItem(SIDEBAR_COLLAPSED_KEY) === "true";
     } catch {
@@ -27,7 +27,9 @@ export default function DashboardLayout({ children }) {
   });
 
   const isMacElectron =
-    isElectron && typeof window !== "undefined" && window.electronAPI?.platform === "darwin";
+    isElectron &&
+    typeof globalThis.window !== "undefined" &&
+    globalThis.electronAPI?.platform === "darwin";
 
   useEffect(() => {
     if (typeof document === "undefined") return;
@@ -98,9 +100,11 @@ export default function DashboardLayout({ children }) {
         />
         {!isE2EMode && <MaintenanceBanner />}
         <div className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden custom-scrollbar p-4 sm:p-6 lg:p-10">
-          <div className="max-w-7xl mx-auto w-full">
+          <div className="max-w-7xl mx-auto w-full h-full min-h-0 flex flex-col">
             <Breadcrumbs />
-            {children}
+            <div className="flex-1 min-h-0">
+              {children}
+            </div>
           </div>
         </div>
       </main>

@@ -149,6 +149,7 @@ export const ERROR_RULES: ErrorRule[] = [
   },
   { id: "capacity", text: "capacity", backoff: true, reason: "model_capacity" },
   { id: "overloaded", text: "overloaded", backoff: true, reason: "model_capacity" },
+  { id: "high_demand", text: "high demand", backoff: true, reason: "model_capacity" },
   { id: "status_401", status: 401, cooldownMs: 0, reason: "auth_error" },
   { id: "status_402", status: 402, cooldownMs: 0, reason: "quota_exhausted" },
   { id: "status_403", status: 403, cooldownMs: 0, reason: "quota_exhausted" },

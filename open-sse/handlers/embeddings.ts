@@ -78,7 +78,7 @@ export async function handleEmbedding({
 
   // Set up request logger for pipeline artifact capture
   const detailedLoggingEnabled = await isDetailedLoggingEnabled();
-  const captureStreamChunks = await getCallLogPipelineCaptureStreamChunks();
+  const captureStreamChunks = getCallLogPipelineCaptureStreamChunks();
   const reqLogger = await createRequestLogger(
     provider || "openai",
     "openai",
@@ -86,6 +86,9 @@ export async function handleEmbedding({
     {
       enabled: detailedLoggingEnabled,
       captureStreamChunks,
+      connectionId: connectionId || undefined,
+      model: model || body.model as string,
+      provider: provider || undefined,
     }
   );
 
