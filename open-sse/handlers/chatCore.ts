@@ -2113,6 +2113,9 @@ export async function handleChatCore({
     const pipelinePayloads = detailedLoggingEnabled ? reqLogger?.getPipelinePayloads?.() : null;
 
     if (pipelinePayloads) {
+      if (providerRequest !== undefined && !pipelinePayloads.providerRequest) {
+        pipelinePayloads.providerRequest = providerRequest as Record<string, unknown>;
+      }
       if (providerResponse !== undefined && !pipelinePayloads.providerResponse) {
         pipelinePayloads.providerResponse = providerResponse as Record<string, unknown>;
       }
@@ -2792,7 +2795,7 @@ export async function handleChatCore({
           );
         }
       }
-      if (config.cavemanOutputMode?.enabled) {
+      if (config.enabled && config.cavemanOutputMode?.enabled) {
         try {
           const { applyCavemanOutputMode } = await import("../services/compression/outputMode.ts");
           const outputModeLanguage =

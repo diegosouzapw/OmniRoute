@@ -11,12 +11,6 @@ Content-Type: application/json
 }
 
 ###
-# @name Get models
-GET {{omniroute-address}}/models
-Authorization: Bearer {{OMNIROUTE_API_KEY}}
-Content-Type: application/json
-
-###
 # @name Embedding
 POST {{omniroute-address}}/v1/embeddings
 Authorization: Bearer {{OMNIROUTE_API_KEY}}
