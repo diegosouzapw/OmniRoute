@@ -441,56 +441,6 @@ A skill with a score above the threshold (default: `0.6`) is offered to the LLM 
 
 ---
 
-## Sandbox Isolation Levels
-
-OmniRoute supports **three sandbox isolation levels** for executing skill handlers, traded off against security and resource overhead.
-
-### The Three Levels
-
-| Level | Resource access | Latency | Use case |
-|-------|-----------------|---------|----------|
-| `in-process` | Full Node.js API | Lowest | Trusted internal skills |
-| `child-process` (default) | Restricted Node.js API in child Node process | Low | Production skills |
-| `docker` | Isolated container, no host access | Higher | Untrusted third-party skills |
-
-### Configuration
-
-The sandbox is configured via `SkillConfig.sandboxLevel` and applied per-execution. For production, the `child-process` level is recommended — it provides resource isolation without the overhead of Docker.
-
-### `child-process` Hardening (v3.8.16+)
-
-When running in `child-process` mode, the following hardening is applied:
-
-| Protection | Effect |
-|------------|--------|
-| `unshare` namespaces | Child can't see parent's `/proc`, network, or IPC |
-| Read-only mounts by default | `/tmp`, `/var` mounted read-only unless explicit write grant |
-| Dropped capabilities | No `CAP_NET_RAW`, `CAP_SYS_ADMIN`, etc. |
-| Memory limit | `256MB` by default; configurable via `SKILL_MEMORY_LIMIT_MB` |
-| CPU limit | `0.5` cores by default; configurable via `SKILL_CPU_LIMIT` |
-| Timeout enforcement | Both `setTimeout` (Node) and `prlimit` (kernel) — child can't escape |
-
-### When to Use Docker Sandbox
-
-Use Docker sandbox when:
-- The skill is sourced from the public marketplace (Phase 2)
-- The skill handles untrusted user input
-- The skill requires network access to external APIs (harder to audit)
-- You run a multi-tenant gateway serving untrusted plugin developers
-
-Skip Docker sandbox when:
-- The skill is a trusted internal tool you wrote
-- The skill's handler is purely computational (no I/O)
-- Latency is critical (sub-100ms responses)
-
-### Docker Sandbox Caveats
-
-- ~50-200ms startup overhead per skill invocation
-- Requires Docker daemon access
-- Skills cannot share state across invocations (each gets a fresh container)
-
----
-
 ## Built-in Skills Catalog
 
 OmniRoute ships with a curated set of built-in skills in `src/lib/skills/builtin/`. The most common ones:

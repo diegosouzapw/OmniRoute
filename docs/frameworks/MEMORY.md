@@ -679,36 +679,14 @@ Extraction produces 4 memories:
 | `project_router` | project | "a router project" |
 | `dislike_python` | preference | "Python" |
 
-### Adding a Custom Pattern
-
-To add a domain-specific pattern, extend `extraction.ts`:
-
-```ts
-// In your custom plugin or fork
-import { registerExtractor } from "omniroute/memory/extraction";
-
-registerExtractor({
-  name: "deployment-context",
-  pattern: /\bdeploying (?:to|on)\s+([a-z0-9-]{2,30})/gi,
-  type: "context",
-  buildMemory: (match) => ({
-    key: `deploy_target_${match[1].toLowerCase()}`,
-    content: `User deploys to ${match[1]}`,
-    tags: ["deployment", "infra"],
-  }),
-});
-```
-
 ### Extraction Limits
 
 To prevent runaway extraction, the following limits apply:
 
-| Limit | Default | Env var |
-|-------|---------|---------|
-| Max memories extracted per message | 10 | `MEMORY_MAX_EXTRACTIONS_PER_MESSAGE` |
-| Min content length | 3 chars | (hardcoded) |
-| Max content length | 200 chars | (hardcoded) |
-| Min pattern confidence | 0.5 | `MEMORY_EXTRACTION_MIN_CONFIDENCE` |
+| Limit | Default |
+|-------|---------|
+| Min content length | 3 chars |
+| Max content length | 200 chars |
 
 ### When to Disable Extraction
 
@@ -813,11 +791,9 @@ The `summarization.ts` module (`src/lib/memory/summarization.ts`) compresses old
 
 ### When Summarization Triggers
 
-| Trigger | Threshold (default) | Env var |
-|---------|---------------------|---------|
-| Total memory count exceeds | 1000 per API key | `MEMORY_SUMMARIZE_THRESHOLD` |
-| Oldest memory age exceeds | 90 days | `MEMORY_SUMMARIZE_AGE_DAYS` |
-| Manual trigger via API | n/a | `POST /api/memory/summarize` |
+| Trigger | Threshold (default) |
+|---------|---------------------|
+| Manual trigger via API | n/a |
 
 ### What Gets Summarized
 
@@ -852,19 +828,13 @@ The summarizer uses a **5-factor scoring** to decide which memories are "core" (
 
 ### Disabling Summarization
 
-If you want full-fidelity memory (no summarization), set the threshold very high:
-
-```bash
-MEMORY_SUMMARIZE_THRESHOLD=1000000  # Effectively disables
-```
-
-Or via the API:
+To disable summarization, use the API:
 
 ```bash
 curl -X PATCH http://localhost:20128/api/memory/settings \
   -H "Authorization: Bearer $OMNIROUTE_KEY" \
   -H "Content-Type: application/json" \
-  -d '{"summarizeThreshold": 1000000}'
+  -d '{"summarizeEnabled": false}'
 ```
 
 ### Summarization Quality Tips
