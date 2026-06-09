@@ -416,10 +416,6 @@ function openaiToGeminiBase(
             if (!fn) continue;
 
             const signatureForToolCall = resolvedSignatures.get(id);
-            if (!signatureForToolCall && contextualizeSignaturelessToolResponses) {
-              if (!toolCallIds.includes(id)) toolCallIds.push(id);
-            }
-
             const args = tryParseJSON(fn.arguments || "{}");
             const embeddedThoughtSignature = shouldUseEmbeddedSignature
               ? firstPersistedSignature || signatureForToolCall
