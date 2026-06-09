@@ -71,7 +71,7 @@ function mapModel(model: string): string {
 const TOKEN_SEED = "oldllm-client-2026";
 const UA_PREFIX = CHROME_UA.slice(0, 20); // "Mozilla/5.0 (Windows"
 
-function generateRequestToken(): string {
+export function generateRequestToken(): string {
   const n = Date.now();
   const e = `${n}-${TOKEN_SEED}-${UA_PREFIX}`;
   let t = 0;
