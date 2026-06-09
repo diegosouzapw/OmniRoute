@@ -78,11 +78,15 @@ const state: PoolState = {
   cloakLaunchResolved: false,
 };
 
+function getCloakbrowserModuleId(): string {
+  return ["cloak", "browser"].join("");
+}
+
 async function resolveCloakLaunch(): Promise<((opts: unknown) => Promise<Browser>) | null> {
   if (state.cloakLaunchResolved) return state.cloakLaunch;
   state.cloakLaunchResolved = true;
   try {
-    const mod = (await import("cloakbrowser")) as unknown as {
+    const mod = (await import(getCloakbrowserModuleId())) as unknown as {
       launch?: (opts: unknown) => Promise<Browser>;
     };
     state.cloakLaunch = mod.launch ?? null;
@@ -110,7 +114,12 @@ function evictStaleContexts(): void {
   const now = Date.now();
   for (const [key, pooled] of state.contexts) {
     if (now - pooled.lastUsed > CONTEXT_TTL_MS) {
-      console.log("[BrowserPool] Evicted stale context:", key, "(idle", ((now - pooled.lastUsed) / 1000).toFixed(0) + "s)");
+      console.log(
+        "[BrowserPool] Evicted stale context:",
+        key,
+        "(idle",
+        ((now - pooled.lastUsed) / 1000).toFixed(0) + "s)"
+      );
       state.contexts.delete(key);
       pooled.context.close().catch(() => {});
     }
