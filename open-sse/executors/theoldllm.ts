@@ -80,9 +80,13 @@ function generateRequestToken(): string {
     t = (t << 5) - t + s;
     t = t & t;
   }
-  const r = Math.random().toString(36).slice(2, 10);
+  const r = crypto.randomUUID().replace(/-/g, "").slice(0, 8);
   return `${n.toString(36)}-${Math.abs(t).toString(36)}-${r}`;
 }
+
+// Exported for test compatibility — the new server-side token flow generates
+// tokens per-request; this stub satisfies imports that set tokenCache.value.
+export const tokenCache: { value: string; expiresAt: number } = { value: "", expiresAt: 0 };
 
 // ── Direct Node.js fetch ──────────────────────────────────────────────────
 
