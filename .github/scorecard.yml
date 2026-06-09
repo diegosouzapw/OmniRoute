@@ -1,0 +1,16 @@
+# OpenSSF Scorecard policy for OmniRoute.
+# See: https://github.com/ossf/scorecard
+scorecard:
+  # Run on a weekly schedule via .github/workflows/scorecard.yml.
+  # This file declares the policy consumed by the workflow.
+  checks:
+    - binary-artifacts
+    - branch-protection
+    - code-review
+    - dangerous-workflow
+    - dependency-update-tool
+    - fuzzing
+    - license
+    - pinned-dependencies
+    - security-policy
+    - token-permissions
