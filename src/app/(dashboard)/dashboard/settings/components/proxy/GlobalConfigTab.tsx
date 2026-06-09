@@ -147,7 +147,10 @@ export default function GlobalConfigTab() {
         <div className="p-6">
           <div className="flex items-center justify-between gap-4">
             <div className="flex items-center gap-2">
-              <span className="material-symbols-outlined text-xl text-violet-500" aria-hidden="true">
+              <span
+                className="material-symbols-outlined text-xl text-violet-500"
+                aria-hidden="true"
+              >
                 key
               </span>
               <div>
@@ -170,11 +173,9 @@ export default function GlobalConfigTab() {
             <span className="material-symbols-outlined text-xl text-primary" aria-hidden="true">
               network_check
             </span>
-            <h2 className="text-lg font-bold">Bulk Healthcheck</h2>
+            <h2 className="text-lg font-bold">{t("bulkHealthcheck")}</h2>
           </div>
-          <p className="text-sm text-text-muted mb-4">
-            Test all configured proxies against a target URL to find which ones work.
-          </p>
+          <p className="text-sm text-text-muted mb-4">{t("bulkHealthcheckDesc")}</p>
           <div className="flex items-center gap-3 mb-4">
             <input
               type="text"
@@ -190,7 +191,7 @@ export default function GlobalConfigTab() {
               disabled={testing}
               onClick={runHealthcheck}
             >
-              {testing ? "Testing..." : "Healthcheck All"}
+              {testing ? t("healthcheckTesting") : t("healthcheckAll")}
             </Button>
           </div>
 
@@ -203,20 +204,20 @@ export default function GlobalConfigTab() {
           {testing && !results && (
             <div className="flex items-center gap-2 text-sm text-text-muted py-2">
               <span className="material-symbols-outlined animate-spin text-lg">refresh</span>
-              Testing all proxies in parallel...
+              {t("healthcheckTestingAll")}
             </div>
           )}
 
           {summary && (
             <div className="flex items-center gap-4 mb-3 text-sm">
               <span className="text-text-muted">
-                Total: <strong>{summary.total}</strong>
+                {t("healthcheckTotal")}: <strong>{summary.total}</strong>
               </span>
               <span className="text-emerald-400">
-                Working: <strong>{summary.working}</strong>
+                {t("healthcheckWorking")}: <strong>{summary.working}</strong>
               </span>
               <span className="text-red-400">
-                Failed: <strong>{summary.failed}</strong>
+                {t("healthcheckFailedLabel")}: <strong>{summary.failed}</strong>
               </span>
             </div>
           )}
@@ -226,9 +227,15 @@ export default function GlobalConfigTab() {
               <table className="w-full text-xs">
                 <thead>
                   <tr className="bg-black/5 dark:bg-white/5">
-                    <th className="text-left px-3 py-2 font-medium text-text-muted">Status</th>
-                    <th className="text-left px-3 py-2 font-medium text-text-muted">Proxy URL</th>
-                    <th className="text-right px-3 py-2 font-medium text-text-muted">Latency</th>
+                    <th className="text-left px-3 py-2 font-medium text-text-muted">
+                      {t("healthcheckStatus")}
+                    </th>
+                    <th className="text-left px-3 py-2 font-medium text-text-muted">
+                      {t("healthcheckProxyUrl")}
+                    </th>
+                    <th className="text-right px-3 py-2 font-medium text-text-muted">
+                      {t("healthcheckLatency")}
+                    </th>
                   </tr>
                 </thead>
                 <tbody>

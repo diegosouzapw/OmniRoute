@@ -3,11 +3,12 @@ import assert from "node:assert/strict";
 
 import { updateSettingsSchema } from "../../src/shared/validation/settingsSchemas.ts";
 
-test("home page pin settings are accepted by the settings PATCH schema", () => {
+test("appearance widget visibility settings are accepted by the settings PATCH schema", () => {
   const validation = updateSettingsSchema.safeParse({
     pinProviderQuotaToHome: true,
     showQuickStartOnHome: false,
     showProviderTopologyOnHome: true,
+    showTokenSaverOnEndpoint: false,
   });
 
   assert.equal(validation.success, true);
@@ -15,9 +16,10 @@ test("home page pin settings are accepted by the settings PATCH schema", () => {
   assert.equal(validation.data.pinProviderQuotaToHome, true);
   assert.equal(validation.data.showQuickStartOnHome, false);
   assert.equal(validation.data.showProviderTopologyOnHome, true);
+  assert.equal(validation.data.showTokenSaverOnEndpoint, false);
 });
 
-test("home page pin settings default to undefined when not provided", () => {
+test("appearance widget visibility settings default to undefined when not provided", () => {
   const validation = updateSettingsSchema.safeParse({});
 
   assert.equal(validation.success, true);
@@ -25,11 +27,13 @@ test("home page pin settings default to undefined when not provided", () => {
   assert.equal(validation.data.pinProviderQuotaToHome, undefined);
   assert.equal(validation.data.showQuickStartOnHome, undefined);
   assert.equal(validation.data.showProviderTopologyOnHome, undefined);
+  assert.equal(validation.data.showTokenSaverOnEndpoint, undefined);
 });
 
-test("home page pin settings reject non-boolean values", () => {
+test("appearance widget visibility settings reject non-boolean values", () => {
   const validation = updateSettingsSchema.safeParse({
     pinProviderQuotaToHome: "yes",
+    showTokenSaverOnEndpoint: "no",
   });
 
   assert.equal(validation.success, false);

@@ -40,6 +40,7 @@ export const updateSettingsSchema = z.object({
   pinProviderQuotaToHome: z.boolean().optional(),
   showQuickStartOnHome: z.boolean().optional(),
   showProviderTopologyOnHome: z.boolean().optional(),
+  showTokenSaverOnEndpoint: z.boolean().optional(),
   localOnlyManageScopeBypassEnabled: z.boolean().optional(),
   localOnlyManageScopeBypassPrefixes: z.array(z.string().max(200)).optional(),
   debugMode: z.boolean().optional(),
