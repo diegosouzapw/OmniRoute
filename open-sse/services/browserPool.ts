@@ -137,15 +137,33 @@ function startEvictTimer(): void {
   state.evictTimer.unref?.();
 }
 
+async function resolvePlaywrightProxy(): Promise<import("playwright").LaunchOptions["proxy"] | undefined> {
+  try {
+    const { resolveProxyForProvider } = await import("@/lib/db/proxies");
+    // Use global proxy assignment (resolveProxyForProvider falls through to global when no
+    // provider-specific assignment exists — passing a sentinel that won't match any provider).
+    const p = await resolveProxyForProvider("__browser_pool__");
+    if (!p?.host) return undefined;
+    const scheme = p.type === "socks5" ? "socks5" : "http";
+    return {
+      server: `${scheme}://${p.host}:${p.port}`,
+      ...(p.username ? { username: p.username, password: p.password ?? "" } : {}),
+    };
+  } catch {
+    return undefined;
+  }
+}
+
 async function launchBrowser(): Promise<Browser> {
   if (state.browser) return state.browser;
   if (state.launching) return state.launching;
   state.launching = (async () => {
-    const cloakLaunch = await resolveCloakLaunch();
+    const [cloakLaunch, proxy] = await Promise.all([resolveCloakLaunch(), resolvePlaywrightProxy()]);
     let browser: Browser;
     if (cloakLaunch) {
       browser = await cloakLaunch({
         headless: true,
+        proxy,
         args: ["--no-sandbox", "--disable-dev-shm-usage"],
       });
     } else {
@@ -154,6 +172,7 @@ async function launchBrowser(): Promise<Browser> {
       const { chromium } = await import("playwright");
       browser = await chromium.launch({
         headless: true,
+        proxy,
         args: [
           "--no-sandbox",
           "--disable-dev-shm-usage",
