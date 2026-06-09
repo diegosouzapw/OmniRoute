@@ -137,19 +137,39 @@ function startEvictTimer(): void {
   state.evictTimer.unref?.();
 }
 
-async function resolvePlaywrightProxy(): Promise<import("playwright").LaunchOptions["proxy"] | undefined> {
+interface ProxyRecord {
+  type?: string;
+  host: string;
+  port: number;
+  username?: string | null;
+  password?: string | null;
+}
+
+interface ResolvePlaywrightProxyDeps {
+  resolveProxy?: (providerId: string) => Promise<ProxyRecord | null | undefined>;
+}
+
+// Exported for tests (deps injection avoids mock.module()).
+export async function resolvePlaywrightProxy(
+  providerKey: string,
+  deps?: ResolvePlaywrightProxyDeps,
+): Promise<import("playwright").LaunchOptions["proxy"] | undefined> {
   try {
-    const { resolveProxyForProvider } = await import("@/lib/db/proxies");
-    // Use global proxy assignment (resolveProxyForProvider falls through to global when no
-    // provider-specific assignment exists — passing a sentinel that won't match any provider).
-    const p = await resolveProxyForProvider("__browser_pool__");
+    const resolver =
+      deps?.resolveProxy ??
+      (async (id: string) => {
+        const { resolveProxyForProvider } = await import("../../src/lib/db/proxies");
+        return resolveProxyForProvider(id);
+      });
+    const p = await resolver(providerKey);
     if (!p?.host) return undefined;
     const scheme = p.type === "socks5" ? "socks5" : "http";
     return {
       server: `${scheme}://${p.host}:${p.port}`,
       ...(p.username ? { username: p.username, password: p.password ?? "" } : {}),
     };
-  } catch {
+  } catch (err) {
+    console.warn("[BrowserPool] Failed to resolve proxy from DB:", err);
     return undefined;
   }
 }
@@ -158,12 +178,11 @@ async function launchBrowser(): Promise<Browser> {
   if (state.browser) return state.browser;
   if (state.launching) return state.launching;
   state.launching = (async () => {
-    const [cloakLaunch, proxy] = await Promise.all([resolveCloakLaunch(), resolvePlaywrightProxy()]);
+    const cloakLaunch = await resolveCloakLaunch();
     let browser: Browser;
     if (cloakLaunch) {
       browser = await cloakLaunch({
         headless: true,
-        proxy,
         args: ["--no-sandbox", "--disable-dev-shm-usage"],
       });
     } else {
@@ -172,7 +191,6 @@ async function launchBrowser(): Promise<Browser> {
       const { chromium } = await import("playwright");
       browser = await chromium.launch({
         headless: true,
-        proxy,
         args: [
           "--no-sandbox",
           "--disable-dev-shm-usage",
@@ -260,13 +278,14 @@ export async function acquireBrowserContext(
   if (pending) return pending;
 
   const createPromise = (async (): Promise<PooledContext> => {
-    const browser = await launchBrowser();
+    const [browser, proxy] = await Promise.all([launchBrowser(), resolvePlaywrightProxy(key)]);
     const isStealth = state.cloakLaunch !== null;
     const context = await browser.newContext({
       userAgent: options.userAgent || DEFAULT_USER_AGENT,
       locale: options.locale || "en-US",
       timezoneId: options.timezone || "America/New_York",
       viewport: { width: 1280, height: 800 },
+      ...(proxy ? { proxy } : {}),
     });
 
     if (options.cookieString) {
