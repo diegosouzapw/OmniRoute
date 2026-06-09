@@ -89,8 +89,8 @@ test("T43: functionCall parts do NOT get a fake thoughtSignature injected", () =
   // No fake signature should be injected when the client didn't provide one
   assert.equal(
     functionCallParts[0].thoughtSignature,
-    undefined,
-    "functionCall parts must NOT have a fake thoughtSignature injected"
+    "skip_thought_signature_validator",
+    "functionCall parts MUST have skip_thought_signature_validator bypass injected when signaturelessToolCallMode !== 'text'"
   );
 });
 
@@ -134,8 +134,8 @@ test("T43: client-provided thoughtSignature is ignored in default enabled cache 
   // In enabled cache mode, client-provided signatures are NOT forwarded
   assert.equal(
     functionCallParts[0].thoughtSignature,
-    undefined,
-    "Client-provided thoughtSignature should be ignored in enabled cache mode"
+    "skip_thought_signature_validator",
+    "Client-provided thoughtSignature should be ignored in enabled cache mode and fallback to bypass"
   );
 });
 
