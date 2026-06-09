@@ -42,6 +42,11 @@ ALIAS_TO_PROVIDER_ID["opencode"] = "opencode-zen";
 // parseModel("xiaomi/mimo-v2-flash") resolves provider = "xiaomi-mimo" instead
 // of falling through to the identity fallback ("xiaomi").
 ALIAS_TO_PROVIDER_ID["xiaomi"] = "xiaomi-mimo";
+// llamacpp/ is the user-visible alias for the llama-cpp self-hosted provider.
+// The canonical ID is "llama-cpp" (with a hyphen), but the catalog and user-facing
+// prefix is "llamacpp". Register it so parseModel("llamacpp/<model>") resolves
+// provider = "llama-cpp" instead of the identity fallback ("llamacpp").
+ALIAS_TO_PROVIDER_ID["llamacpp"] = "llama-cpp";
 
 // Provider-scoped legacy model aliases. Used to normalize provider/model inputs
 // and keep backward compatibility when upstream IDs change.

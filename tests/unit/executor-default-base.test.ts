@@ -416,6 +416,26 @@ test("DefaultExecutor local OpenAI-style providers honor custom base URLs and sk
   assert.equal(vllmHeaders.Accept, "application/json");
 });
 
+test("DefaultExecutor local providers append /v1/chat/completions for bare hostname base URLs", () => {
+  const llamaCpp = new DefaultExecutor("llama-cpp");
+  const lmStudio = new DefaultExecutor("lm-studio");
+  const vllm = new DefaultExecutor("vllm");
+
+  const bareHost = llamaCpp.buildUrl("gemma-4", true, 0, {
+    providerSpecificData: { baseUrl: "https://foo.llama.example.com" },
+  });
+  const customPath = lmStudio.buildUrl("gemma-4", true, 0, {
+    providerSpecificData: { baseUrl: "https://bar.llama.ai/foo" },
+  });
+  const alreadyComplete = vllm.buildUrl("gemma-4", true, 0, {
+    providerSpecificData: { baseUrl: "https://baz.llama.ai/v1/chat/completions" },
+  });
+
+  assert.equal(bareHost, "https://foo.llama.example.com/v1/chat/completions");
+  assert.equal(customPath, "https://bar.llama.ai/foo/v1/chat/completions");
+  assert.equal(alreadyComplete, "https://baz.llama.ai/v1/chat/completions");
+});
+
 test("DefaultExecutor.buildHeaders handles Snowflake PATs and GigaChat access tokens", () => {
   const snowflake = new DefaultExecutor("snowflake");
   const gigachat = new DefaultExecutor("gigachat");

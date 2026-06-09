@@ -1656,10 +1656,12 @@ test("createSSEStream passthrough drops empty choices array chunks", async () =>
     }
   );
 
-  // Empty choices without usage still get replaced with a synthetic error chunk.
-  assert.match(text, /\[OmniRoute\] Upstream returned an empty response/);
-  assert.match(text, /"finish_reason":"stop"/);
-  // Subsequent valid chunks should still be present
+  // Empty choices WITHOUT usage are DROPPED, never replaced with a synthetic
+  // "[OmniRoute] Upstream returned an empty response. Please retry." chunk. That
+  // injection (reintroduced by #3422) was fed back by clients as a turn and caused
+  // the retry loop #3388/#3502, which #3400 had fixed by dropping the chunk.
+  assert.doesNotMatch(text, /\[OmniRoute\] Upstream returned an empty response/);
+  // Subsequent valid chunks must still pass through untouched.
   assert.match(text, /"content":"Hello"/);
   assert.match(text, /"finish_reason":"stop"/);
   assert.equal(onCompletePayload.status, 200);

@@ -54,7 +54,36 @@ test("createDisconnectAwareStream converts upstream errors into SSE error chunks
 
   assert.match(text, /"finish_reason":"error"/);
   assert.match(text, /"message":"provider exploded"/);
-  assert.match(text, /"code":429/);
+  assert.match(text, /"code":"rate_limit_exceeded"/);
+  assert.match(text, /\[DONE\]/);
+});
+
+test("createDisconnectAwareStream: Gemini 503 high-demand error becomes SSE error chunk with message preserved", async () => {
+  const geminiMsg =
+    "[503]: This model is currently experiencing high demand. Spikes in demand are usually temporary. Please try again later.";
+  const upstreamError = Object.assign(new Error(geminiMsg), { statusCode: 503 });
+  const transformStream = {
+    readable: new ReadableStream({
+      start(controller) {
+        controller.error(upstreamError);
+      },
+    }),
+    writable: {
+      getWriter() {
+        return {
+          abort() {},
+        };
+      },
+    },
+  };
+
+  const stream = createDisconnectAwareStream(transformStream, createStreamController());
+  const text = await readStreamText(stream);
+
+  assert.match(text, /"finish_reason":"error"/);
+  assert.match(text, /"message":"\[503\]: This model is currently experiencing high demand/);
+  assert.match(text, /"type":"server_error"/);
+  assert.match(text, /"code":"server_error"/);
   assert.match(text, /\[DONE\]/);
 });
 

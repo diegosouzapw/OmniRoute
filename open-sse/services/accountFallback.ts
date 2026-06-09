@@ -21,7 +21,6 @@ import {
 import {
   getAllCircuitBreakerStatuses,
   getCircuitBreaker,
-  STATE,
 } from "../../src/shared/utils/circuitBreaker";
 import {
   classify429FromError,
@@ -692,7 +691,7 @@ function configureProviderBreaker(
 ) {
   if (!provider) return null;
 
-  const resolvedProfile = { ...getProviderProfile(provider), ...(profile ?? {}) };
+  const resolvedProfile = { ...getProviderProfile(provider), ...profile };
   // Issue #2100 follow-up: resolve useUpstream429BreakerHints from the
   // provider profile (stored override) or fall back to per-provider default.
   // Stored value type is `boolean | undefined` — never `null` after PATCH.
@@ -877,10 +876,10 @@ export function parseRetryAfterFromBody(responseBody: unknown): {
 
   // OpenAI: "Please retry after 20s" in message
   const msg = String(error.message || body.message || "");
-  const retryMatch = msg.match(/retry\s+after\s+(\d+)\s*s/i);
+  const retryMatch = RegExp(/retry\s+after\s+(\d+)\s*s/i).exec(msg);
   if (retryMatch) {
     return {
-      retryAfterMs: parseInt(retryMatch[1], 10) * 1000,
+      retryAfterMs: Number.parseInt(retryMatch[1], 10) * 1000,
       reason: RateLimitReason.RATE_LIMIT_EXCEEDED,
     };
   }
@@ -902,17 +901,17 @@ export function parseRetryAfterFromBody(responseBody: unknown): {
 function parseDelayString(value: unknown): number | null {
   if (!value) return null;
   const str = String(value).trim();
-  const msMatch = str.match(/^(\d+)\s*ms$/i);
-  if (msMatch) return parseInt(msMatch[1], 10);
-  const secMatch = str.match(/^(\d+)\s*s$/i);
-  if (secMatch) return parseInt(secMatch[1], 10) * 1000;
-  const minMatch = str.match(/^(\d+)\s*m$/i);
-  if (minMatch) return parseInt(minMatch[1], 10) * 60 * 1000;
-  const hrMatch = str.match(/^(\d+)\s*h$/i);
-  if (hrMatch) return parseInt(hrMatch[1], 10) * 3600 * 1000;
+  const msMatch = RegExp(/^(\d+)\s*ms$/i).exec(str);
+  if (msMatch) return Number.parseInt(msMatch[1], 10);
+  const secMatch = RegExp(/^(\d+)\s*s$/i).exec(str);
+  if (secMatch) return Number.parseInt(secMatch[1], 10) * 1000;
+  const minMatch = RegExp(/^(\d+)\s*m$/i).exec(str);
+  if (minMatch) return Number.parseInt(minMatch[1], 10) * 60 * 1000;
+  const hrMatch = RegExp(/^(\d+)\s*h$/i).exec(str);
+  if (hrMatch) return Number.parseInt(hrMatch[1], 10) * 3600 * 1000;
   // Bare number → seconds
-  const num = parseInt(str, 10);
-  return isNaN(num) ? null : num * 1000;
+  const num = Number.parseInt(str, 10);
+  return Number.isNaN(num) ? null : num * 1000;
 }
 
 /**
@@ -925,14 +924,15 @@ function parseDelayString(value: unknown): number | null {
  */
 export function parseRetryFromErrorText(errorText: unknown): number | null {
   if (!errorText || typeof errorText !== "string") return null;
+  const msg: string = String(errorText);
 
   // Issue #2321: Anthropic OAuth occasionally embeds an absolute ISO 8601
   // timestamp instead of a relative duration (e.g. "Try again at
   // 2026-05-17T10:00:00Z" or "Please wait until 2026-05-17T10:00:00.000Z").
   // Convert to a future-duration in milliseconds if it parses.
-  const isoMatch = errorText.match(
+  const isoMatch = RegExp(
     /\b(?:try again at|wait until|reset(?:s)? at|available at|retry after)\s+(\d{4}-\d{2}-\d{2}[Tt ]\d{2}:\d{2}(?::\d{2})?(?:\.\d+)?(?:Z|[+-]\d{2}:?\d{2})?)/i
-  );
+  ).exec(msg);
   if (isoMatch) {
     const parsedTs = Date.parse(isoMatch[1]);
     if (Number.isFinite(parsedTs)) {
@@ -941,15 +941,15 @@ export function parseRetryFromErrorText(errorText: unknown): number | null {
     }
   }
 
-  const match = errorText.match(/reset after (\d+h)?(\d+m)?(\d+s)?/i);
+  const match = RegExp(/reset after (\d+h)?(\d+m)?(\d+s)?/i).exec(msg);
   if (match?.[1] || match?.[2] || match?.[3]) return computeDurationMs(match);
 
   // Variant without "reset after": "will reset after XhYmZs"
-  const altMatch = errorText.match(/will reset after (\d+h)?(\d+m)?(\d+s)?/i);
+  const altMatch = RegExp(/will reset after (\d+h)?(\d+m)?(\d+s)?/i).exec(msg);
   if (altMatch?.[1] || altMatch?.[2] || altMatch?.[3]) return computeDurationMs(altMatch);
 
   // Antigravity / Cloud Code phrasing: "Resets in 164h27m24s".
-  const resetsInMatch = errorText.match(/resets? in (\d+h)?(\d+m)?(\d+s)?/i);
+  const resetsInMatch = RegExp(/resets? in (\d+h)?(\d+m)?(\d+s)?/i).exec(msg);
   if (resetsInMatch?.[1] || resetsInMatch?.[2] || resetsInMatch?.[3]) {
     return computeDurationMs(resetsInMatch);
   }
@@ -965,9 +965,9 @@ const MAX_PROVIDER_COOLDOWN_MS = 30 * 24 * 60 * 60 * 1000; // 30 days
 
 function computeDurationMs(match: RegExpMatchArray): number | null {
   let totalMs = 0;
-  if (match[1]) totalMs += parseInt(match[1], 10) * 3600 * 1000; // hours
-  if (match[2]) totalMs += parseInt(match[2], 10) * 60 * 1000; // minutes
-  if (match[3]) totalMs += parseInt(match[3], 10) * 1000; // seconds
+  if (match[1]) totalMs += Number.parseInt(match[1], 10) * 3600 * 1000; // hours
+  if (match[2]) totalMs += Number.parseInt(match[2], 10) * 60 * 1000; // minutes
+  if (match[3]) totalMs += Number.parseInt(match[3], 10) * 1000; // seconds
   return totalMs > 0 ? Math.min(totalMs, MAX_PROVIDER_COOLDOWN_MS) : null;
 }
 
@@ -1019,7 +1019,10 @@ export function classifyErrorText(errorText: unknown): RateLimitReasonValue {
   const configuredRule = matchErrorRuleByText(errorText);
   if (configuredRule?.reason) return configuredRule.reason;
   if (lower.includes("rate_limit")) return RateLimitReason.RATE_LIMIT_EXCEEDED;
-  if (lower.includes("resource exhausted")) return RateLimitReason.MODEL_CAPACITY;
+  if (
+    lower.includes("resource exhausted") ||
+    lower.includes("high demand")
+  ) return RateLimitReason.MODEL_CAPACITY;
   if (
     lower.includes("unauthorized") ||
     lower.includes("invalid api key") ||
@@ -1092,7 +1095,6 @@ export function classifyError(
  */
 export function getMsUntilTomorrow(): number {
   const nowMs = Date.now();
-  const now = new Date(nowMs);
   const tomorrow = new Date(nowMs);
   tomorrow.setDate(tomorrow.getDate() + 1);
   tomorrow.setHours(0, 0, 0, 0);
@@ -1219,12 +1221,12 @@ export function checkFallbackError(
         : recordHeaders["retry-after"] || recordHeaders["Retry-After"];
 
     if (retryAfter) {
-      const seconds = parseInt(retryAfter, 10);
-      if (!isNaN(seconds) && String(seconds) === String(retryAfter).trim()) {
+      const seconds = Number.parseInt(retryAfter, 10);
+      if (!Number.isNaN(seconds) && String(seconds) === String(retryAfter).trim()) {
         return Date.now() + seconds * 1000;
       }
       const date = new Date(retryAfter);
-      if (!isNaN(date.getTime())) return date.getTime();
+      if (!Number.isNaN(date.getTime())) return date.getTime();
     }
 
     // X-RateLimit-Reset
@@ -1234,8 +1236,8 @@ export function checkFallbackError(
         : recordHeaders["x-ratelimit-reset"] || recordHeaders["X-RateLimit-Reset"];
 
     if (rlReset) {
-      const ts = parseInt(rlReset, 10);
-      if (!isNaN(ts)) {
+      const ts = Number.parseInt(rlReset, 10);
+      if (!Number.isNaN(ts)) {
         return ts > 10000000000 ? ts : ts * 1000;
       }
     }

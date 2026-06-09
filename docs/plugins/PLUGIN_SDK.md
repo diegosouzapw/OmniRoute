@@ -179,6 +179,10 @@ Config values are persisted in the database and accessible via the dashboard con
 | `onProviderError` | Provider returned error | Error details |
 | `onStreamStart` | SSE stream started | Stream info |
 | `onStreamEnd` | SSE stream ended | Stream stats |
+| `onInstall` | Plugin installed | `{ name, version, manifest }` |
+| `onActivate` | Plugin activated | `{ name, version, manifest }` |
+| `onDeactivate` | Plugin deactivated | `{ name, version, manifest }` |
+| `onUninstall` | Plugin uninstalled (before files deleted) | `{ name, version, manifest }` |
 
 ## Examples
 

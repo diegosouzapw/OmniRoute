@@ -110,6 +110,27 @@ test("classifyErrorText: handles various patterns", () => {
   assert.equal(classifyErrorText("random error"), RateLimitReason.UNKNOWN);
 });
 
+test("classifyErrorText: Gemini 503 high demand maps to MODEL_CAPACITY", () => {
+  const geminiMsg =
+    "[503]: This model is currently experiencing high demand. Spikes in demand are usually temporary. Please try again later.";
+  assert.equal(classifyErrorText(geminiMsg), RateLimitReason.MODEL_CAPACITY);
+});
+
+test("classifyError: 503 with Gemini high demand message returns MODEL_CAPACITY", () => {
+  const geminiMsg =
+    "[503]: This model is currently experiencing high demand. Spikes in demand are usually temporary. Please try again later.";
+  assert.equal(classifyError(503, geminiMsg), RateLimitReason.MODEL_CAPACITY);
+});
+
+test("checkFallbackError: 503 with Gemini high demand returns MODEL_CAPACITY reason", () => {
+  const geminiMsg =
+    "[503]: This model is currently experiencing high demand. Spikes in demand are usually temporary. Please try again later.";
+  const result = checkFallbackError(503, geminiMsg);
+  assert.equal(result.shouldFallback, true);
+  assert.equal(result.reason, RateLimitReason.MODEL_CAPACITY);
+  assert.ok(result.cooldownMs > 0, "cooldownMs should be positive");
+});
+
 // ─── Per-Model Lockout Tests ────────────────────────────────────────────────
 
 test("lockModel + isModelLocked: locks specific model", () => {

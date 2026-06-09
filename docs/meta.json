@@ -1,12 +1,13 @@
 {
   "pages": [
-    {
-      "title": "For Non-Tech Users",
-      "pages": ["getting-started", "guides"]
-    },
-    {
-      "title": "For Tech Users",
-      "pages": ["architecture", "reference", "frameworks", "routing", "security", "compression", "ops"]
-    }
+    "getting-started",
+    "guides",
+    "architecture",
+    "reference",
+    "frameworks",
+    "routing",
+    "security",
+    "compression",
+    "ops"
   ]
 }

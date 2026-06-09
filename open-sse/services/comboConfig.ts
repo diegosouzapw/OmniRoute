@@ -7,6 +7,12 @@
 
 import { MAX_TIMER_TIMEOUT_MS } from "../../src/shared/utils/runtimeTimeouts.ts";
 
+/**
+ * Maximum number of concurrent pre-screen checks (provider profile + availability)
+ * when running parallel pre-screening for priority strategy combos.
+ */
+export const PRE_SCREEN_CONCURRENCY = 5;
+
 const DEFAULT_COMBO_CONFIG = {
   strategy: "priority",
   maxRetries: 1,

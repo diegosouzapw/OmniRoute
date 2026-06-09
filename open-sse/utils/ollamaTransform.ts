@@ -44,14 +44,19 @@ export function transformToOllama(response, model) {
               for (const tc of toolCalls) {
                 const idx = tc.index;
 
+                const toolCallId = tc.id != null ? String(tc.id) : tc.id;
+
                 // T37: Prevent merging tool_calls on same index if ID changes
-                if (pendingToolCalls[idx] && tc.id && pendingToolCalls[idx].id !== tc.id) {
+                if (pendingToolCalls[idx] && toolCallId && pendingToolCalls[idx].id !== toolCallId) {
                   completedToolCalls.push(pendingToolCalls[idx]);
                   delete pendingToolCalls[idx];
                 }
 
                 if (!pendingToolCalls[idx]) {
-                  pendingToolCalls[idx] = { id: tc.id != null ? String(tc.id) : tc.id, function: { name: "", arguments: "" } };
+                  pendingToolCalls[idx] = {
+                    id: toolCallId,
+                    function: { name: "", arguments: "" },
+                  };
                 }
                 if (tc.function?.name) pendingToolCalls[idx].function.name += tc.function.name;
                 if (tc.function?.arguments)

@@ -199,6 +199,7 @@ pr_reviews*.json
 #hidden local data directories (never commit)
 .local-data/
 .data-dev/
+/.junie/
 
 # internal setup prompts with personal credentials — never commit
 CODEX-SETUP-PROMPT.md

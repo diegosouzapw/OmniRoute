@@ -1,9 +1,6 @@
 import { BaseExecutor, type ExecuteInput } from "./base.ts";
 import type { ProviderCredentials } from "./base.ts";
 
-type BrowserRef = import("playwright").Browser;
-type PageRef = import("playwright").Page;
-
 const API_BASE = "https://theoldllm.vercel.app";
 const API_PATH = "/api/chatgpt";
 const API_URL = `${API_BASE}${API_PATH}`;
@@ -58,172 +55,42 @@ function mapModel(model: string): string {
   return "GPT_5_4";
 }
 
-// ── Token cache (exported for test pre-population) ────────────────────────
+// ── Token generation (mirrors client-side rie() from theoldllm.vercel.app) ──
+//
+// The SPA generates X-Request-Token via:
+//   const nie = "oldllm-client-2026";
+//   const n = Date.now();
+//   const e = `${n}-${nie}-${navigator.userAgent.slice(0, 20)}`;
+//   let t = djb2_hash(e);
+//   const r = crypto.randomUUID().slice(0, 8);
+//   return `${n.toString(36)}-${Math.abs(t).toString(36)}-${r}`;
+//
+// Since nie is a static constant and the UA prefix is known, we can generate
+// valid tokens server-side without launching a browser.
 
-const TOKEN_TTL_MS = 15 * 60 * 1000;
+const TOKEN_SEED = "oldllm-client-2026";
+const UA_PREFIX = CHROME_UA.slice(0, 20); // "Mozilla/5.0 (Windows"
 
-export const tokenCache: { value: string; expiresAt: number } = {
-  value: "",
-  expiresAt: 0,
-};
-
-let tokenLock: Promise<void> | null = null;
-
-function getCachedToken(): string | null {
-  if (tokenCache.value && Date.now() < tokenCache.expiresAt) return tokenCache.value;
-  return null;
-}
-
-function setCachedToken(token: string): void {
-  tokenCache.value = token;
-  tokenCache.expiresAt = Date.now() + TOKEN_TTL_MS;
-}
-
-function invalidateToken(): void {
-  tokenCache.value = "";
-  tokenCache.expiresAt = 0;
-}
-
-// ── Playwright token capture (fallback only) ──────────────────────────────
-
-let _browser: Promise<BrowserRef> | null = null;
-let _cleanupRegistered = false;
-
-function registerCleanup(): void {
-  if (_cleanupRegistered) return;
-  _cleanupRegistered = true;
-  const cleanup = () => {
-    if (_browser) {
-      _browser.then((b) => b.close().catch(() => {})).catch(() => {});
-      _browser = null;
-    }
-  };
-  process.on("exit", cleanup);
-  process.on("SIGTERM", () => { cleanup(); process.exit(0); });
-  process.on("SIGINT", () => { cleanup(); process.exit(0); });
-}
-
-async function getBrowser(): Promise<BrowserRef> {
-  if (_browser) {
-    try {
-      const b = await _browser;
-      if (b.isConnected()) return b;
-    } catch {
-      _browser = null;
-    }
+export function generateRequestToken(): string {
+  const n = Date.now();
+  const e = `${n}-${TOKEN_SEED}-${UA_PREFIX}`;
+  let t = 0;
+  for (let i = 0; i < e.length; i++) {
+    const s = e.charCodeAt(i);
+    t = (t << 5) - t + s;
+    t = t & t;
   }
-  registerCleanup();
-  _browser = (async () => {
-    const { chromium } = await import("playwright");
-    return await chromium.launch({
-      headless: true,
-      args: [
-        "--disable-blink-features=AutomationControlled",
-        "--no-sandbox",
-        "--disable-setuid-sandbox",
-        "--disable-dev-shm-usage",
-        "--window-size=1280,1024",
-      ],
-    });
-  })();
-  return _browser;
+  const r = crypto.randomUUID().replace(/-/g, "").slice(0, 8);
+  return `${n.toString(36)}-${Math.abs(t).toString(36)}-${r}`;
 }
 
-async function captureTokenViaBrowser(): Promise<string> {
-  const browser = await getBrowser();
-  const context = await browser.newContext({
-    userAgent: CHROME_UA,
-    viewport: { width: 1280, height: 1024 },
-  });
-  await context.addInitScript(() => {
-    Object.defineProperty(navigator, "webdriver", { get: () => false });
-    (window as any).chrome = { runtime: {} };
-  });
+// Exported for test compatibility — the new server-side token flow generates
+// tokens per-request; this stub satisfies imports that set tokenCache.value.
+export const tokenCache: { value: string; expiresAt: number } = { value: "", expiresAt: 0 };
 
-  const page = await context.newPage();
-  const navTimeout = Number(process.env.THEOLDLLM_NAV_TIMEOUT_MS) || 30_000;
-
-  try {
-    await page.goto(API_BASE, { waitUntil: "domcontentloaded", timeout: navTimeout });
-
-    const textareaFound = await page
-      .waitForSelector("textarea", { timeout: navTimeout })
-      .then(() => true)
-      .catch(() => false);
-
-    if (!textareaFound) {
-      const newChat = page.locator("button", { hasText: "New chat" });
-      await newChat.first().waitFor({ state: "visible", timeout: 5_000 }).catch(() => {});
-      if (await newChat.first().isVisible().catch(() => false)) {
-        await newChat.first().click();
-        await page.waitForTimeout(1_500);
-        await page.waitForSelector("textarea", { timeout: 10_000 }).catch(() => {});
-      }
-    }
-
-    await page.waitForTimeout(3_000);
-
-    const capturedToken = await new Promise<string>((resolve, reject) => {
-      const timeout = setTimeout(() => reject(new Error("Token capture timed out")), 25_000);
-
-      page.route("**/api/chatgpt", async (route) => {
-        clearTimeout(timeout);
-        const t = route.request().headers()["x-request-token"];
-        try { await route.abort("blockedbyclient"); } catch {}
-        resolve(t);
-      });
-
-      (async () => {
-        try {
-          const ta = page.locator("textarea").first();
-          await ta.waitFor({ state: "visible", timeout: 10_000 });
-          await ta.click();
-          await ta.fill("hello");
-          await page.waitForTimeout(300);
-          await ta.press("Enter");
-        } catch (err) {
-          clearTimeout(timeout);
-          reject(new Error(`SPA send failed: ${err instanceof Error ? err.message : String(err)}`));
-        }
-      })();
-    });
-
-    return capturedToken;
-  } finally {
-    await page.close().catch(() => {});
-  }
-}
-
-// Serialize concurrent token refreshes so only one Playwright capture runs
-async function acquireToken(): Promise<string> {
-  const cached = getCachedToken();
-  if (cached) return cached;
-
-  // Wait for in-flight refresh
-  if (tokenLock) {
-    await tokenLock;
-    const retry = getCachedToken();
-    if (retry) return retry;
-  }
-
-  // Perform refresh under lock
-  let resolveLock!: () => void;
-  tokenLock = new Promise<void>((r) => { resolveLock = r; });
-
-  try {
-    const t = await captureTokenViaBrowser();
-    setCachedToken(t);
-    return t;
-  } finally {
-    tokenLock = null;
-    resolveLock();
-  }
-}
-
-// ── Direct Node.js fetch (fast path) ──────────────────────────────────────
+// ── Direct Node.js fetch ──────────────────────────────────────────────────
 
 async function directFetch(
-  token: string,
   reqBody: Record<string, unknown>,
   signal?: AbortSignal | null,
 ): Promise<Response> {
@@ -240,7 +107,7 @@ async function directFetch(
       headers: {
         "Content-Type": "application/json",
         "X-Client-Version": "3.8.4",
-        "X-Request-Token": token,
+        "X-Request-Token": generateRequestToken(),
         "User-Agent": CHROME_UA,
       },
       body: JSON.stringify(reqBody),
@@ -337,14 +204,13 @@ export class TheOldLlmExecutor extends BaseExecutor {
     _signal?: AbortSignal | null,
     log?: ExecuteInput["log"],
   ): Promise<boolean> {
-    const token = getCachedToken();
     try {
       const resp = await fetch(API_URL, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
           "X-Client-Version": "3.8.4",
-          ...(token ? { "X-Request-Token": token } : {}),
+          "X-Request-Token": generateRequestToken(),
           "User-Agent": CHROME_UA,
         },
         body: JSON.stringify({
@@ -388,40 +254,12 @@ export class TheOldLlmExecutor extends BaseExecutor {
         stream: true,
       };
 
-      let token = getCachedToken();
-      let upstream: Response;
-
-      if (token) {
-        log?.debug?.("THEOLDLLM", "Using cached token — direct fetch");
-        upstream = await directFetch(token, reqBody, signal);
-      } else {
-        log?.info?.("THEOLDLLM", "No cached token — capturing via Playwright…");
-        try {
-          token = await acquireToken();
-        } catch (capErr) {
-          throw new Error(
-            `Token capture failed: ${capErr instanceof Error ? capErr.message : String(capErr)}`,
-          );
-        }
-        log?.info?.("THEOLDLLM", `Token captured: ${token.slice(0, 20)}…`);
-        upstream = await directFetch(token, reqBody, signal);
-      }
-
-      // Read the body once — a Response body is single-use, so re-reading the
-      // same Response throws "Body has already been read" (#3296). Only re-read
-      // when a token rejection forces a fresh fetch below.
+      let upstream = await directFetch(reqBody, signal);
       let finalBody = await upstream.text();
 
       if (isTokenRejected(upstream.status, finalBody)) {
-        log?.warn?.("THEOLDLLM", `Token rejected (${upstream.status}), refreshing…`);
-        invalidateToken();
-        try {
-          token = await acquireToken();
-          log?.info?.("THEOLDLLM", `Token refreshed: ${token.slice(0, 20)}…`);
-        } catch {
-          log?.warn?.("THEOLDLLM", "Token refresh failed, retrying with existing token");
-        }
-        upstream = await directFetch(token, reqBody, signal);
+        log?.warn?.("THEOLDLLM", `Token rejected (${upstream.status}), retrying with fresh token…`);
+        upstream = await directFetch(reqBody, signal);
         finalBody = await upstream.text();
       }
 

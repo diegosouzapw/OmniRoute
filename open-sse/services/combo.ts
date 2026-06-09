@@ -13,6 +13,7 @@ import {
   recordProviderFailure,
   isProviderFailureCode,
   isProviderExhaustedReason,
+  type ProviderProfile,
 } from "./accountFallback.ts";
 import { FETCH_TIMEOUT_MS, RateLimitReason } from "../config/constants.ts";
 import { errorResponse, unavailableResponse } from "../utils/error.ts";
@@ -27,6 +28,7 @@ import {
   resolveComboConfig,
   getDefaultComboConfig,
   resolveComboTargetTimeoutMs,
+  PRE_SCREEN_CONCURRENCY,
 } from "./comboConfig.ts";
 import {
   maybeGenerateHandoff,
@@ -1833,6 +1835,46 @@ async function fetchResetAwareQuotaWithCache({
   return refresh();
 }
 
+type PreScreenResult = { profile: ProviderProfile | null; available: boolean };
+
+export async function preScreenTargets(
+  targets: ResolvedComboTarget[],
+  isModelAvailable?: IsModelAvailable | null
+): Promise<Map<string, PreScreenResult>> {
+  if (targets.length === 0) {
+    return new Map();
+  }
+
+  const results = await mapWithConcurrency(
+    targets,
+    PRE_SCREEN_CONCURRENCY,
+    async (target): Promise<{ key: string; result: PreScreenResult }> => {
+      const profile = await getRuntimeProviderProfile(target.provider).catch(() => null);
+
+      const breaker = getCircuitBreaker(target.provider);
+      if (breaker.getStatus().state === "OPEN") {
+        return { key: target.executionKey, result: { profile, available: false } };
+      }
+
+      let available = true;
+      if (isModelAvailable) {
+        // IsModelAvailable may return a sync boolean or a Promise; Promise.resolve
+        // normalizes both so the .catch() never runs against a bare boolean.
+        available = await Promise.resolve(isModelAvailable(target.modelStr, target)).catch(
+          () => true
+        );
+      }
+      return { key: target.executionKey, result: { profile, available } };
+    }
+  );
+
+  const map = new Map<string, PreScreenResult>();
+  for (const { key, result } of results) {
+    map.set(key, result);
+  }
+  return map;
+}
+
 async function orderTargetsByResetAwareQuota(
   targets: ResolvedComboTarget[],
   comboName: string,
@@ -3217,6 +3259,15 @@ export async function handleComboChat({
   orderedTargets = orderTargetsByEvalScores(orderedTargets, config.evalRouting, log);
   orderedTargets = filterTargetsByRequestCompatibility(orderedTargets, body, log);
 
+  // Parallel pre-screen: check provider profiles and model availability for all targets
+  // Only runs for priority strategy where sequential checking causes latency
+  const preScreenMap =
+    strategy === "priority"
+      ? await preScreenTargets(orderedTargets, isModelAvailable).catch(
+          () => new Map<string, PreScreenResult>()
+        )
+      : new Map<string, PreScreenResult>();
+
   if (orderedTargets.length === 0) {
     return comboModelNotFoundResponse("Combo has no executable targets");
   }
@@ -3285,7 +3336,18 @@ export async function handleComboChat({
         const target = orderedTargets[i];
         const modelStr = target.modelStr;
         const provider = target.provider;
-        const profile = await getRuntimeProviderProfile(provider);
+
+        const cb = getCircuitBreaker(provider);
+        if (cb.getStatus().state === "OPEN") {
+          log.info("COMBO", `Skipping ${modelStr} — circuit breaker OPEN for ${provider}`);
+          if (i > 0) fallbackCount++;
+          return null;
+        }
+
+        // Use pre-screened profile if available, otherwise fetch on demand
+        const preScreenEntry = preScreenMap.get(target.executionKey);
+        const profile = preScreenEntry?.profile ?? (await getRuntimeProviderProfile(provider));
+
         const allowRateLimitedConnection =
           Boolean(provider && provider !== "unknown") &&
           transientRateLimitedProviders.has(provider);
@@ -3307,7 +3369,18 @@ export async function handleComboChat({
           return null;
         }
 
-        // Pre-check: skip models where no credentials are available (excluded, rate-limited, or unavailable)
+        // Pre-screen may have already determined this target unavailable (e.g.
+        // circuit-breaker OPEN at resolve time).  Skip immediately in that case.
+        // For targets pre-screened as "available" we still call isModelAvailable
+        // below because connection cooldowns (rateLimitedUntil) can change
+        // mid-request after a same-provider failure — the pre-screen snapshot is
+        // stale by the time we reach the 2nd/3rd same-provider target.
+        const preCheckedAvailable = preScreenEntry?.available ?? null;
+        if (preCheckedAvailable === false) {
+          log.info("COMBO", `Skipping ${modelStr} — pre-screen marked unavailable`);
+          if (i > 0) fallbackCount++;
+          return null;
+        }
         if (isModelAvailable) {
           const available = await isModelAvailable(modelStr, targetForAttempt);
           if (!available) {

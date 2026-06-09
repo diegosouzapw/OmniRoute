@@ -3056,9 +3056,8 @@ const _REGISTRY_EAGER: Record<string, RegistryEntry> = {
     authType: "apikey",
     authHeader: "cookie",
     models: [
-      { id: "claude-3-opus-20250219", name: "Claude 3 Opus (web)" },
-      { id: "claude-3-5-sonnet-20241022", name: "Claude 3.5 Sonnet (web)" },
-      { id: "claude-3-5-haiku-20241022", name: "Claude 3.5 Haiku (web)" },
+      { id: "claude-sonnet-4-6", name: "Claude 4.6 Sonnet (web)" },
+      { id: "claude-haiku-4-5", name: "Claude 4.5 Haiku (web)" },
     ],
   },
 
