@@ -10,7 +10,8 @@ import ProviderIcon from "@/shared/components/ProviderIcon";
 // Types
 // ─────────────────────────────────────────────────────────────────────────────
 
-type BreakerState = "CLOSED" | "OPEN" | "HALF_OPEN";
+type KnownBreakerState = "CLOSED" | "OPEN" | "HALF_OPEN" | "DEGRADED";
+type BreakerState = KnownBreakerState | (string & {});
 
 type ProviderBreaker = {
   provider: string;
@@ -110,11 +111,11 @@ type FeedFilter = "all" | "circuits" | "cooldowns" | "lockouts" | "sessions" | "
 
 const REFRESH_INTERVAL_MS = 5000;
 const FEED_MAX_EVENTS = 50;
+const EMPTY_PROVIDER_BREAKERS: ProviderBreaker[] = [];
 
-const BREAKER_TONE: Record<
-  BreakerState,
-  { dot: string; bg: string; ring: string; label: string; icon: string }
-> = {
+type BreakerTone = { dot: string; bg: string; ring: string; label: string; icon: string };
+
+const BREAKER_TONE: Record<string, BreakerTone> = {
   CLOSED: {
     dot: "#22c55e",
     bg: "rgba(34,197,94,0.10)",
@@ -129,6 +130,13 @@ const BREAKER_TONE: Record<
     label: "RECOV",
     icon: "sync",
   },
+  DEGRADED: {
+    dot: "#f97316",
+    bg: "rgba(249,115,22,0.10)",
+    ring: "rgba(249,115,22,0.30)",
+    label: "DEG",
+    icon: "warning",
+  },
   OPEN: {
     dot: "#ef4444",
     bg: "rgba(239,68,68,0.10)",
@@ -136,6 +144,14 @@ const BREAKER_TONE: Record<
     label: "OPEN",
     icon: "block",
   },
+};
+
+const FALLBACK_BREAKER_TONE: BreakerTone = {
+  dot: "#64748b",
+  bg: "rgba(100,116,139,0.10)",
+  ring: "rgba(100,116,139,0.30)",
+  label: "UNK",
+  icon: "help",
 };
 
 const FEED_KIND_META: Record<FeedEventKind, { icon: string; color: string; group: FeedFilter }> = {
@@ -188,6 +204,16 @@ function untilMs(value: number | string | null | undefined): number {
   return 0;
 }
 
+function normalizeBreakerState(state: string | null | undefined): string {
+  return String(state || "")
+    .trim()
+    .toUpperCase();
+}
+
+function getBreakerTone(state: string | null | undefined): BreakerTone {
+  return BREAKER_TONE[normalizeBreakerState(state)] || FALLBACK_BREAKER_TONE;
+}
+
 function pushFeed(prev: FeedEvent[], events: FeedEvent[]): FeedEvent[] {
   if (events.length === 0) return prev;
   const merged = [...events, ...prev];
@@ -210,8 +236,10 @@ function diffSnapshots(
   for (const [provider, nextB] of nextBreakers) {
     const prevB = prevBreakers.get(provider);
     if (!prevB) continue;
-    if (prevB.state === nextB.state) continue;
-    if (nextB.state === "OPEN") {
+    const prevState = normalizeBreakerState(prevB.state);
+    const nextState = normalizeBreakerState(nextB.state);
+    if (prevState === nextState) continue;
+    if (nextState === "OPEN") {
       out.push({
         id: `cb-open-${provider}-${nowTs}`,
         ts: nowTs,
@@ -219,7 +247,7 @@ function diffSnapshots(
         title: `${provider} circuit OPEN`,
         detail: `threshold hit · retry in ${fmtMs(nextB.retryAfterMs)}`,
       });
-    } else if (nextB.state === "HALF_OPEN") {
+    } else if (nextState === "HALF_OPEN") {
       out.push({
         id: `cb-half-${provider}-${nowTs}`,
         ts: nowTs,
@@ -227,7 +255,15 @@ function diffSnapshots(
         title: `${provider} HALF_OPEN`,
         detail: `probing recovery`,
       });
-    } else if (nextB.state === "CLOSED" && prevB.state !== "CLOSED") {
+    } else if (nextState === "DEGRADED") {
+      out.push({
+        id: `cb-deg-${provider}-${nowTs}`,
+        ts: nowTs,
+        kind: "circuit-recovered",
+        title: `${provider} DEGRADED`,
+        detail: `${nextB.failureCount} failures · degraded but serving`,
+      });
+    } else if (nextState === "CLOSED" && prevState !== "CLOSED") {
       out.push({
         id: `cb-close-${provider}-${nowTs}`,
         ts: nowTs,
@@ -423,16 +459,26 @@ export default function RuntimePageClient() {
     return connections.filter((c) => c.rateLimitedUntil && untilMs(c.rateLimitedUntil) > 0);
   }, [connections]);
 
-  const breakers = health?.providerBreakers ?? [];
+  const breakers = health?.providerBreakers ?? EMPTY_PROVIDER_BREAKERS;
   const lockoutEntries = useMemo<Array<[string, LockoutEntry]>>(
     () => Object.entries(health?.lockouts ?? {}),
     [health]
   );
 
   const counts = useMemo(() => {
-    const openCircuits = breakers.filter((b) => b.state === "OPEN").length;
-    const halfCircuits = breakers.filter((b) => b.state === "HALF_OPEN").length;
+    const knownBreakerStates = new Set(["CLOSED", "OPEN", "HALF_OPEN", "DEGRADED"]);
+    const openCircuits = breakers.filter((b) => normalizeBreakerState(b.state) === "OPEN").length;
+    const halfCircuits = breakers.filter(
+      (b) => normalizeBreakerState(b.state) === "HALF_OPEN"
+    ).length;
+    const degradedCircuits = breakers.filter(
+      (b) => normalizeBreakerState(b.state) === "DEGRADED"
+    ).length;
+    const unknownCircuits = breakers.filter(
+      (b) => !knownBreakerStates.has(normalizeBreakerState(b.state))
+    ).length;
     const totalBreakers = breakers.length;
+    const affectedCircuits = openCircuits + halfCircuits + degradedCircuits + unknownCircuits;
     const sessions = health?.sessions?.activeCount ?? 0;
     const lockouts = lockoutEntries.length;
     const quota = health?.quotaMonitor;
@@ -443,6 +489,9 @@ export default function RuntimePageClient() {
       stickyBound: health?.sessions?.stickyBoundCount ?? 0,
       openCircuits,
       halfCircuits,
+      degradedCircuits,
+      unknownCircuits,
+      affectedCircuits,
       totalBreakers,
       cooldowns: cooldowns.length,
       lockouts,
@@ -456,7 +505,7 @@ export default function RuntimePageClient() {
     return feed.filter((ev) => FEED_KIND_META[ev.kind].group === feedFilter);
   }, [feed, feedFilter]);
 
-  const overallHealthy = counts.totalBreakers - counts.openCircuits - counts.halfCircuits;
+  const overallHealthy = counts.totalBreakers - counts.affectedCircuits;
   const overallPercent =
     counts.totalBreakers > 0 ? Math.round((overallHealthy / counts.totalBreakers) * 100) : 100;
 
@@ -519,14 +568,20 @@ export default function RuntimePageClient() {
           label={t("kpiCircuits")}
           value={`${counts.openCircuits} / ${counts.totalBreakers}`}
           hint={
-            counts.halfCircuits > 0
-              ? t("hintRecovering", { count: counts.halfCircuits })
+            counts.halfCircuits + counts.degradedCircuits + counts.unknownCircuits > 0
+              ? t("hintRecovering", {
+                  count: counts.halfCircuits + counts.degradedCircuits + counts.unknownCircuits,
+                })
               : counts.openCircuits === 0
                 ? t("hintAllHealthy")
                 : t("hintOpen")
           }
           tone={
-            counts.openCircuits > 0 ? "#ef4444" : counts.halfCircuits > 0 ? "#eab308" : "#22c55e"
+            counts.openCircuits > 0
+              ? "#ef4444"
+              : counts.halfCircuits + counts.degradedCircuits + counts.unknownCircuits > 0
+                ? "#eab308"
+                : "#22c55e"
           }
           onClick={() => setFeedFilter("circuits")}
           active={feedFilter === "circuits"}
@@ -561,7 +616,9 @@ export default function RuntimePageClient() {
             trailing={
               <div className="flex items-center gap-3 text-[11px]">
                 <span className="text-green-500">✓ {overallHealthy}</span>
-                <span className="text-amber-500">⚠ {counts.halfCircuits}</span>
+                <span className="text-amber-500">
+                  ⚠ {counts.halfCircuits + counts.degradedCircuits + counts.unknownCircuits}
+                </span>
                 <span className="text-red-500">⛔ {counts.openCircuits}</span>
               </div>
             }
@@ -585,11 +642,15 @@ export default function RuntimePageClient() {
             title={t("layer1Title")}
             description={t("layer1Desc")}
             badge={t("badgeAffectedOf", {
-              affected: counts.openCircuits + counts.halfCircuits,
+              affected: counts.affectedCircuits,
               total: counts.totalBreakers,
             })}
             badgeTone={
-              counts.openCircuits > 0 ? "red" : counts.halfCircuits > 0 ? "amber" : "green"
+              counts.openCircuits > 0
+                ? "red"
+                : counts.halfCircuits + counts.degradedCircuits + counts.unknownCircuits > 0
+                  ? "amber"
+                  : "green"
             }
           >
             {breakers.length === 0 ? (
@@ -597,13 +658,14 @@ export default function RuntimePageClient() {
             ) : (
               <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2">
                 {breakers.map((b) => {
-                  const tone = BREAKER_TONE[b.state];
+                  const state = normalizeBreakerState(b.state);
+                  const tone = getBreakerTone(state);
                   return (
                     <div
                       key={b.provider}
                       className="rounded-md border px-2.5 py-2 flex flex-col gap-0.5"
                       style={{ borderColor: tone.ring, background: tone.bg }}
-                      title={`${b.provider} · ${b.state} · failures ${b.failureCount}`}
+                      title={`${b.provider} · ${state || "UNKNOWN"} · failures ${b.failureCount}`}
                     >
                       <div className="flex items-center gap-1.5 text-[11px] font-semibold text-text-main">
                         <ProviderIcon providerId={b.provider} size={14} />
@@ -613,7 +675,7 @@ export default function RuntimePageClient() {
                         </span>
                       </div>
                       <div className="text-[10px] text-text-muted tabular-nums">
-                        {b.state === "OPEN"
+                        {state === "OPEN"
                           ? `retry ${fmtMs(b.retryAfterMs)}`
                           : `${b.failureCount} failures`}
                       </div>
