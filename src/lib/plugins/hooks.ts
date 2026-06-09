@@ -253,6 +253,11 @@ export interface Plugin {
   onRequest?: (ctx: PluginContext) => Promise<PluginResult | void> | PluginResult | void;
   onResponse?: (ctx: PluginContext, response: unknown) => Promise<unknown | void> | unknown | void;
   onError?: (ctx: PluginContext, error: Error) => Promise<unknown | void> | unknown | void;
+  // ── Lifecycle hooks (fire-and-forget, non-blocking) ──
+  onInstall?: (payload: unknown) => Promise<void> | void;
+  onActivate?: (payload: unknown) => Promise<void> | void;
+  onDeactivate?: (payload: unknown) => Promise<void> | void;
+  onUninstall?: (payload: unknown) => Promise<void> | void;
 }
 
 /**
