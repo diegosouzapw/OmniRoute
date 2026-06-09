@@ -221,7 +221,7 @@ export const MODEL_SPECS: Record<string, ModelSpec> = {
     supportsThinking: true,
     supportsTools: true,
     supportsVision: true,
-    aliases: [],
+    aliases: BEDROCK_CLAUDE_ALIASES("claude-fable-5"),
   },
 
   // ── Claude Opus 4.8 ─────────────────────────────────────────────
