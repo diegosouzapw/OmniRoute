@@ -6,7 +6,9 @@
 
 ## [3.8.18] — Unreleased
 
-_Development cycle in progress._
+### 🔧 Bug Fixes
+
+- **fix(catalog):** Codex CLI model-catalog refresh no longer errors — `GET /v1/models` now returns a top-level `models: []` array for Codex clients (detected via the `originator` / `user-agent` = `codex_*` headers it sends on `GET /v1/models?client_version=...`), so `codex_models_manager` stops failing to decode the OpenAI-standard response and no longer logs `failed to refresh available models` on every startup. The array is intentionally empty: Codex replaces its built-in per-model agent prompt (`base_instructions`, ~21k chars) with whatever a populated entry carries for the selected model, so emitting our catalog would break Codex's agent behaviour — an empty list keeps Codex on its built-in model info (same inference as before, minus the error). Non-Codex OpenAI clients receive the unchanged `{object,data}` response. ([#3481](https://github.com/diegosouzapw/OmniRoute/pull/3481) — thanks @diegosouzapw)
 
 ---
 
