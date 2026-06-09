@@ -259,6 +259,9 @@ export async function loadPlugin(
     };
     registeredHooks.push("onError");
   }
+  // TODO: Lifecycle hooks (onActivate, onDeactivate, onUninstall) are declared in manifests
+  // but have no proxy implementations here. They need callHook-based IPC forwarding
+  // (like onRequest/onResponse/onError above) to be functional in isolated plugins.
 
   log.info("loader.loaded", {
     name: manifest.name,
