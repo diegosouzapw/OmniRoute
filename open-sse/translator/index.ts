@@ -325,7 +325,14 @@ export function translateRequest(
         canReplayReasoningOnly &&
         hasReasoningContentField(msg);
 
-      if (!hasToolCalls && !hasToolUseBlocks && !shouldReplayReasoningOnly) continue;
+      if (!hasToolCalls && !hasToolUseBlocks && !shouldReplayReasoningOnly) {
+        // Strip empty reasoning_content on non-tool-call messages; an empty
+        // string has no meaningful value to send and may confuse some upstreams.
+        if (msg.reasoning_content === "") {
+          delete msg.reasoning_content;
+        }
+        continue;
+      }
 
       if (hasToolUseBlocks) {
         // ── Claude-format message ──

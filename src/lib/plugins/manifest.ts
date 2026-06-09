@@ -39,6 +39,10 @@ export const HooksSchema = z.object({
   onRequest: z.boolean().optional(),
   onResponse: z.boolean().optional(),
   onError: z.boolean().optional(),
+  onInstall: z.boolean().optional(),
+  onActivate: z.boolean().optional(),
+  onDeactivate: z.boolean().optional(),
+  onUninstall: z.boolean().optional(),
 });
 
 // ── Requires ──
@@ -93,7 +97,15 @@ export interface PluginManifestWithDefaults extends PluginManifest {
   source: "local" | "marketplace";
   tags: string[];
   requires: { omniroute?: string; permissions: Permission[] };
-  hooks: { onRequest: boolean; onResponse: boolean; onError: boolean };
+  hooks: {
+    onRequest: boolean;
+    onResponse: boolean;
+    onError: boolean;
+    onInstall: boolean;
+    onActivate: boolean;
+    onDeactivate: boolean;
+    onUninstall: boolean;
+  };
   skills: ManifestSkill[];
   enabledByDefault: boolean;
   configSchema: Record<string, ConfigField>;
@@ -114,6 +126,10 @@ export function applyDefaults(manifest: PluginManifest): PluginManifestWithDefau
       onRequest: manifest.hooks?.onRequest ?? false,
       onResponse: manifest.hooks?.onResponse ?? false,
       onError: manifest.hooks?.onError ?? false,
+      onInstall: manifest.hooks?.onInstall ?? false,
+      onActivate: manifest.hooks?.onActivate ?? false,
+      onDeactivate: manifest.hooks?.onDeactivate ?? false,
+      onUninstall: manifest.hooks?.onUninstall ?? false,
     },
     skills: manifest.skills ?? [],
     enabledByDefault: manifest.enabledByDefault ?? false,

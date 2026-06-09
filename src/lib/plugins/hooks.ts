@@ -43,6 +43,10 @@ export const BUILTIN_EVENTS = [
   "onProviderError",
   "onStreamStart",
   "onStreamEnd",
+  "onInstall",
+  "onActivate",
+  "onDeactivate",
+  "onUninstall",
 ] as const;
 
 export type BuiltinEvent = (typeof BUILTIN_EVENTS)[number];

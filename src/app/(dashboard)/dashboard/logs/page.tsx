@@ -3,7 +3,6 @@
 import { useState, useRef, useEffect } from "react";
 import { ConfirmModal, RequestLoggerV2 } from "@/shared/components";
 import EmailPrivacyToggle from "@/shared/components/EmailPrivacyToggle";
-import ActiveRequestsPanel from "@/shared/components/ActiveRequestsPanel";
 import { useTranslations } from "next-intl";
 
 const TIME_RANGES = [
@@ -21,6 +20,7 @@ export default function LogsPage() {
   const [cleanHistoryStatus, setCleanHistoryStatus] = useState<string | null>(null);
   const [requestLogKey, setRequestLogKey] = useState(0);
   const dropdownRef = useRef<HTMLDivElement>(null);
+  const requestLoggerRef = useRef<any>(null);
   const t = useTranslations("logs");
 
   useEffect(() => {
@@ -32,6 +32,9 @@ export default function LogsPage() {
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
+
+  // initial id from URL (synchronously on client) so child can open on mount
+  const initialId = typeof window !== "undefined" ? new URL(window.location.href).searchParams.get("id") : null;
 
   async function handleExport(hours: number) {
     setExporting(true);
@@ -87,8 +90,8 @@ export default function LogsPage() {
   }
 
   return (
-    <div className="flex flex-col gap-6">
-      <div className="flex items-center justify-between gap-4 flex-wrap">
+    <div className="h-full flex flex-col gap-6 overflow-hidden">
+      <div className="flex-shrink-0 flex items-center justify-between gap-4 flex-wrap">
         <h2 className="text-lg font-semibold text-text-main">{t("requestLogs")}</h2>
 
         <div className="flex items-center gap-2">
@@ -179,14 +182,13 @@ export default function LogsPage() {
       </div>
 
       {cleanHistoryStatus && (
-        <div className="rounded-lg border border-[var(--border,#333)] bg-[var(--card-bg,#1e1e2e)] px-4 py-3 text-sm text-[var(--text-secondary,#aaa)]">
+        <div className="flex-shrink-0 rounded-lg border border-[var(--border,#333)] bg-[var(--card-bg,#1e1e2e)] px-4 py-3 text-sm text-[var(--text-secondary,#aaa)]">
           {cleanHistoryStatus}
         </div>
       )}
 
-      <div className="flex flex-col gap-6">
-        <ActiveRequestsPanel />
-        <RequestLoggerV2 key={requestLogKey} />
+      <div className="flex-1 min-h-0 overflow-hidden">
+        <RequestLoggerV2 key={requestLogKey} ref={requestLoggerRef} initialSelectedId={initialId} />
       </div>
 
       <ConfirmModal

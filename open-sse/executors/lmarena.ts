@@ -127,29 +127,31 @@ export class LMArenaExecutor extends BaseExecutor {
     };
   }
 
-  async execute(input: ExecuteInput): Promise<Response> {
+  async execute(input: ExecuteInput) {
     const { model, body, stream, credentials, signal, log } = input;
-
-    const cookie = readLMArenaCookie(credentials);
-    if (!cookie) {
-      return new Response(
-        JSON.stringify({
-          error: {
-            message: "LMArena requires a session cookie. Please provide cookie in credentials.",
-            type: "authentication_error",
-            code: "missing_cookie",
-          },
-        }),
-        {
-          status: 401,
-          headers: { "Content-Type": "application/json" },
-        }
-      );
-    }
 
     const url = this.buildUrl(model, credentials);
     const headers = this.buildHeaders(model, credentials, body);
     const transformedBody = this.transformRequest(body, model);
+
+    const cookie = readLMArenaCookie(credentials);
+    if (!cookie) {
+      return {
+        response: new Response(
+          JSON.stringify({
+            error: {
+              message: "LMArena requires a session cookie. Please provide cookie in credentials.",
+              type: "authentication_error",
+              code: "missing_cookie",
+            },
+          }),
+          { status: 401, headers: { "Content-Type": "application/json" } }
+        ),
+        url,
+        headers,
+        transformedBody,
+      };
+    }
 
     log?.info?.("LMArenaExecutor", `Executing request for model: ${model}`);
 
@@ -171,43 +173,47 @@ export class LMArenaExecutor extends BaseExecutor {
           errorMessage = errorText || errorMessage;
         }
 
-        return new Response(
-          JSON.stringify({
-            error: {
-              message: sanitizeErrorMessage(errorMessage),
-              type: "api_error",
-              code: String(response.status),
-            },
-          }),
-          {
-            status: response.status,
-            headers: { "Content-Type": "application/json" },
-          }
-        );
+        return {
+          response: new Response(
+            JSON.stringify({
+              error: {
+                message: sanitizeErrorMessage(errorMessage),
+                type: "api_error",
+                code: String(response.status),
+              },
+            }),
+            { status: response.status, headers: { "Content-Type": "application/json" } }
+          ),
+          url,
+          headers,
+          transformedBody,
+        };
       }
 
-      if (stream) {
-        return this.handleStreamingResponse(response, model, log);
-      } else {
-        return this.handleNonStreamingResponse(response, model, log);
-      }
+      const upstreamResponse = stream
+        ? await this.handleStreamingResponse(response, model, log)
+        : await this.handleNonStreamingResponse(response, model, log);
+
+      return { response: upstreamResponse, url, headers, transformedBody };
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error);
       log?.error?.("LMArenaExecutor", `Request failed: ${message}`);
 
-      return new Response(
-        JSON.stringify({
-          error: {
-            message: sanitizeErrorMessage(message),
-            type: "network_error",
-            code: "request_failed",
-          },
-        }),
-        {
-          status: 502,
-          headers: { "Content-Type": "application/json" },
-        }
-      );
+      return {
+        response: new Response(
+          JSON.stringify({
+            error: {
+              message: sanitizeErrorMessage(message),
+              type: "network_error",
+              code: "request_failed",
+            },
+          }),
+          { status: 502, headers: { "Content-Type": "application/json" } }
+        ),
+        url,
+        headers,
+        transformedBody,
+      };
     }
   }
 

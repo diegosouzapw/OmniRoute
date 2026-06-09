@@ -302,6 +302,22 @@ function buildAliasMaps() {
 }
 
 /**
+ * Detect the Codex CLI's model-catalog refresh client. Codex sends an `originator` header
+ * of `codex_exec` (codex exec) / `codex_cli_rs` (interactive TUI) — see openai/codex
+ * login/src/auth/default_client.rs DEFAULT_ORIGINATOR — and a matching `codex_*`
+ * User-Agent on its `GET /v1/models?client_version=...` catalog refresh. We only augment
+ * the response shape for these clients so every other OpenAI consumer keeps the
+ * byte-identical `{object,data}` payload.
+ */
+function isCodexModelCatalogClient(request: Request): boolean {
+  const headers = request.headers;
+  const originator = headers.get("originator")?.toLowerCase() ?? "";
+  if (originator.startsWith("codex")) return true;
+  const userAgent = headers.get("user-agent")?.toLowerCase() ?? "";
+  return userAgent.startsWith("codex");
+}
+
+/**
  * Build unified OpenAI-compatible model catalog response.
  * Reused by `/api/v1/models` and `/api/v1` to avoid semantic drift (T09).
  */
@@ -1368,18 +1384,34 @@ export async function getUnifiedModelsResponse(
       return maybeOmitCatalogModelName(listedModel, includeModelNames);
     });
 
-    return Response.json(
-      {
-        object: "list",
-        data: enrichedModels,
+    // Codex CLI compatibility: its model-catalog refresh (codex_models_manager) does
+    // GET /v1/models?client_version=<v> and decodes a JSON object with a TOP-LEVEL
+    // `models` array, so the OpenAI-standard `{object,data}` shape makes it fail with
+    // "missing field `models`" and log "failed to refresh available models" on every
+    // startup. For codex clients only (detected by the codex originator/user-agent) we add
+    // an EMPTY `models: []` so the decode succeeds and the error disappears. Every other
+    // OpenAI consumer keeps the byte-identical `{object,data}` response.
+    //
+    // We deliberately keep it EMPTY rather than mirroring the catalog: codex replaces its
+    // built-in per-model agent prompt (`base_instructions`, ~21k chars) with whatever a
+    // populated entry carries for the selected model, so emitting our models with an
+    // empty/foreign `base_instructions` would drop codex's agent prompt to nothing and
+    // break its agent behavior (verified empirically against codex 0.137). An empty array
+    // keeps codex on its built-in model info — same inference as today, minus the error.
+    const responseBody: Record<string, unknown> = {
+      object: "list",
+      data: enrichedModels,
+    };
+    if (isCodexModelCatalogClient(request)) {
+      responseBody.models = [];
+    }
+
+    return Response.json(responseBody, {
+      headers: {
+        ...corsHeaders,
+        ...diagnosticHeaders,
       },
-      {
-        headers: {
-          ...corsHeaders,
-          ...diagnosticHeaders,
-        },
-      }
-    );
+    });
   } catch (error) {
     console.log("Error fetching models:", error);
     return Response.json(

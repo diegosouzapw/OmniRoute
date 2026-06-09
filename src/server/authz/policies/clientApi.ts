@@ -9,12 +9,19 @@ function extractBearer(request: Request): string | null {
   const xApiKey = request.headers.get("x-api-key") ?? request.headers.get("X-Api-Key");
   if (raw) {
     const trimmed = raw.trim();
-    if (!trimmed.toLowerCase().startsWith("bearer ")) return null;
-    return trimmed.slice(7).trim() || null;
+    if (trimmed.toLowerCase().startsWith("bearer ")) {
+      const token = trimmed.slice(7).trim();
+      if (token) return token;
+    }
+    // A non-"Bearer <token>" Authorization header (an empty "Bearer ", or a
+    // client's own non-OmniRoute token — VS Code Copilot sends one even when the
+    // OmniRoute key lives in the URL path of a /vscode tokenized endpoint) must
+    // NOT short-circuit auth. Fall through to x-api-key and the path-scoped URL
+    // token below instead of rejecting the request with "Authentication required".
   }
 
   if (xApiKey) {
-    return xApiKey?.trim() || null;
+    return xApiKey.trim() || null;
   }
 
   return extractApiKey(request);

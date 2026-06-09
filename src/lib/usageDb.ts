@@ -21,6 +21,8 @@ import "./usage/migrations";
 export {
   trackPendingRequest,
   updatePendingRequest,
+  updatePendingRequestStreamChunks,
+  finalizePendingRequest,
   getUsageDb,
   saveRequestUsage,
   getUsageHistory,

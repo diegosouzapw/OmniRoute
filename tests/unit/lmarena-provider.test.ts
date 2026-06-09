@@ -204,47 +204,47 @@ describe("LMArena Executor", () => {
 
   it("returns 401 when cookie is missing", async () => {
     const executor = new LMArenaExecutor();
-    
-    const response = await executor.execute({
+
+    const result = await executor.execute({
       model: "gpt-4",
       body: { messages: [{ role: "user", content: "Hello" }] },
       credentials: {},
       signal: new AbortController().signal,
       log: console
     });
-    
-    assert.equal(response.status, 401, "Should return 401 for missing cookie");
-    const errorBody = await response.json();
+
+    assert.equal(result.response.status, 401, "Should return 401 for missing cookie");
+    const errorBody = await result.response.json();
     assert.ok(errorBody.error, "Should have error object");
     assert.ok(errorBody.error.message.includes("cookie"), "Error should mention cookie");
   });
 
   it("handles streaming response correctly", async () => {
     const executor = new LMArenaExecutor();
-    
+
     const mockSSE = [
       'data: a0:{"text":"Hello"}\n\n',
       'data: a0:{"text":", world!"}\n\n',
       'data: ad:{}\n\n'
     ].join('');
-    
+
     const originalFetch = global.fetch;
     global.fetch = async () => new Response(mockSSE, {
       status: 200,
       headers: { "Content-Type": "text/event-stream" }
     });
-    
+
     try {
-      const response = await executor.execute({
+      const result = await executor.execute({
         model: "gpt-4",
         body: { messages: [{ role: "user", content: "Hello" }], stream: true },
         credentials: { cookie: "session=test" },
         signal: new AbortController().signal,
         log: console
       });
-      
-      assert.equal(response.status, 200, "Should return 200 for successful streaming");
-      assert.ok(response.body, "Should have response body for streaming");
+
+      assert.equal(result.response.status, 200, "Should return 200 for successful streaming");
+      assert.ok(result.response.body, "Should have response body for streaming");
     } finally {
       global.fetch = originalFetch;
     }
@@ -252,7 +252,7 @@ describe("LMArena Executor", () => {
 
   it("handles error response from LMArena API", async () => {
     const executor = new LMArenaExecutor();
-    
+
     const originalFetch = global.fetch;
     global.fetch = async () => new Response(JSON.stringify({
       error: { message: "Rate limit exceeded" }
@@ -260,18 +260,18 @@ describe("LMArena Executor", () => {
       status: 429,
       headers: { "Content-Type": "application/json" }
     });
-    
+
     try {
-      const response = await executor.execute({
+      const result = await executor.execute({
         model: "gpt-4",
         body: { messages: [{ role: "user", content: "Hello" }] },
         credentials: { cookie: "session=test" },
         signal: new AbortController().signal,
         log: console
       });
-      
-      assert.equal(response.status, 429, "Should return 429 for rate limit");
-      const errorBody = await response.json();
+
+      assert.equal(result.response.status, 429, "Should return 429 for rate limit");
+      const errorBody = await result.response.json();
       assert.ok(errorBody.error, "Should have error object");
     } finally {
       global.fetch = originalFetch;
