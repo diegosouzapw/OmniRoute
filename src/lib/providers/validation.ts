@@ -320,8 +320,7 @@ async function fetchWithProxyFallback(
     // Only attempt proxy fallback for retryable errors (network / timeout)
     // and only when the target is not a local / LAN address.
     const fetchErr = err as SafeOutboundFetchError;
-    const isNetworkIssue =
-      fetchErr?.code === "NETWORK_ERROR" || fetchErr?.code === "TIMEOUT";
+    const isNetworkIssue = fetchErr?.code === "NETWORK_ERROR" || fetchErr?.code === "TIMEOUT";
     const isRetryable = fetchErr?.isRetryable !== false;
     const isValidTarget = !isLocal && isRetryableProxyTarget(url);
 
@@ -567,13 +566,14 @@ async function validateDirectChatProvider({
 
 export async function validateCommandCodeProvider({ apiKey, providerSpecificData = {} }: any) {
   const entry = getRegistryEntry("command-code");
-  const baseUrl = normalizeBaseUrl(entry?.baseUrl || "https://api.commandcode.ai/provider/v1");
-  const chatPath = entry?.chatPath || "/chat/completions";
+  const baseUrl = normalizeBaseUrl(entry?.baseUrl || "https://api.commandcode.ai");
+  const chatPath = entry?.chatPath || "/alpha/generate";
   const url = `${baseUrl}${chatPath.startsWith("/") ? chatPath : `/${chatPath}`}`;
   const validationModelId =
     providerSpecificData?.validationModelId ||
     entry?.models?.find((model) => model.id === "deepseek/deepseek-v4-flash")?.id ||
     "deepseek/deepseek-v4-flash";
+  const { COMMAND_CODE_VERSION } = await import("@omniroute/open-sse/executors/commandCode.ts");
 
   return validateDirectChatProvider({
     url,
@@ -581,7 +581,7 @@ export async function validateCommandCodeProvider({ apiKey, providerSpecificData
     headers: {
       "Content-Type": "application/json",
       Authorization: `Bearer ${apiKey}`,
-      "x-command-code-version": "0.24.1",
+      "x-command-code-version": COMMAND_CODE_VERSION,
       "x-cli-environment": "external",
       "x-project-slug": "pi-cc",
       "x-taste-learning": "false",
@@ -2914,8 +2914,7 @@ async function validateGrokWebProvider({ apiKey, providerSpecificData = {} }: an
     if (isCloudflareChallenge(errorDetail)) {
       return {
         valid: false,
-        error:
-          "Grok validation blocked by Cloudflare anti-bot. Try a residential IP or proxy.",
+        error: "Grok validation blocked by Cloudflare anti-bot. Try a residential IP or proxy.",
       };
     }
 
@@ -3410,9 +3409,8 @@ async function validateClaudeWebProvider({ apiKey, providerSpecificData = {} }: 
       return { valid: false, error: "Paste your sessionKey cookie from claude.ai" };
     }
 
-    const { tlsFetchClaude, TlsClientUnavailableError } = await import(
-      "@omniroute/open-sse/services/claudeTlsClient.ts"
-    );
+    const { tlsFetchClaude, TlsClientUnavailableError } =
+      await import("@omniroute/open-sse/services/claudeTlsClient.ts");
 
     let response: { status: number; text: string | null };
     try {
@@ -3455,7 +3453,8 @@ async function validateClaudeWebProvider({ apiKey, providerSpecificData = {} }: 
     if (response.status === 401 || response.status === 403) {
       return {
         valid: false,
-        error: "Invalid or expired session cookie — re-paste sessionKey from claude.ai DevTools → Cookies",
+        error:
+          "Invalid or expired session cookie — re-paste sessionKey from claude.ai DevTools → Cookies",
       };
     }
 
@@ -3502,7 +3501,8 @@ async function validateGeminiWebProvider({ apiKey, providerSpecificData = {} }: 
     if (response.status === 401 || response.status === 403) {
       return {
         valid: false,
-        error: "Invalid or expired __Secure-1PSID cookie — re-paste from gemini.google.com DevTools → Cookies",
+        error:
+          "Invalid or expired __Secure-1PSID cookie — re-paste from gemini.google.com DevTools → Cookies",
       };
     }
 
@@ -3555,7 +3555,8 @@ async function validateCopilotWebProvider({ apiKey, providerSpecificData = {} }:
     if (response.status === 401 || response.status === 403) {
       return {
         valid: false,
-        error: "Invalid or expired access_token — re-paste from copilot.microsoft.com DevTools → Cookies",
+        error:
+          "Invalid or expired access_token — re-paste from copilot.microsoft.com DevTools → Cookies",
       };
     }
 
@@ -3774,15 +3775,10 @@ export async function validateProviderApiKey({ provider, apiKey, providerSpecifi
    * These providers share a POST /chat/completions auth check pattern and differ
    * only in default baseUrl and test model name.
    */
-  function buildOpengatewayValidator(
-    defaultBaseUrl: string,
-    model: string
-  ) {
+  function buildOpengatewayValidator(defaultBaseUrl: string, model: string) {
     return async ({ apiKey, providerSpecificData }: any) => {
       try {
-        const baseUrl = normalizeBaseUrl(
-          providerSpecificData?.baseUrl || defaultBaseUrl
-        );
+        const baseUrl = normalizeBaseUrl(providerSpecificData?.baseUrl || defaultBaseUrl);
         const chatUrl = `${baseUrl.replace(/\/chat\/completions$/, "")}/chat/completions`;
         const res = await validationWrite(
           chatUrl,
@@ -3832,8 +3828,7 @@ export async function validateProviderApiKey({ provider, apiKey, providerSpecifi
       // The executor routes these tokens to dashscope.aliyuncs.com, so the
       // validation must test against dashscope, NOT the Cosy PAT endpoint.
       try {
-        const dashscopeUrl =
-          "https://dashscope.aliyuncs.com/compatible-mode/v1/models";
+        const dashscopeUrl = "https://dashscope.aliyuncs.com/compatible-mode/v1/models";
         const res = await validationRead(
           dashscopeUrl,
           {
@@ -3994,7 +3989,7 @@ export async function validateProviderApiKey({ provider, apiKey, providerSpecifi
               max_tokens: 1,
             }),
           },
-          isLocal,
+          isLocal
         );
         if (res.status === 401 || res.status === 403) {
           return { valid: false, error: "Invalid API key" };
@@ -4067,7 +4062,7 @@ export async function validateProviderApiKey({ provider, apiKey, providerSpecifi
               max_tokens: 1,
             }),
           },
-          isLocal,
+          isLocal
         );
         if (res.status === 401 || res.status === 403) {
           return { valid: false, error: "Invalid API key" };

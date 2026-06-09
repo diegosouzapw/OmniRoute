@@ -322,9 +322,32 @@ function isContext1mModel(model: unknown): boolean {
  */
 export function selectBetaFlags(
   body: Record<string, unknown> | null | undefined,
-  model?: string | null
+  model?: string | null,
+  // The client's inbound `anthropic-beta` header, when present. Real Claude Code
+  // clients negotiate their own beta set; forcing thinking/effort betas they never
+  // requested produced malformed opus tool_use streams (#3415). When this is a
+  // non-empty string we respect it and do NOT force those betas. For opaque clients
+  // (no header — the OAuth identity cloak) the full set is retained unchanged.
+  clientBeta?: string | null
 ): string {
   const b = body || {};
+  const clientBetaSet =
+    typeof clientBeta === "string" && clientBeta.trim().length > 0
+      ? new Set(
+          clientBeta
+            .split(",")
+            .map((f) => f.trim())
+            .filter(Boolean)
+        )
+      : null;
+  // When the client negotiated its own anthropic-beta, only emit the thinking / heavy
+  // betas it actually asked for. Opaque clients (clientBetaSet === null) keep them all.
+  const allowThinking =
+    clientBetaSet === null || clientBetaSet.has("interleaved-thinking-2025-05-14");
+  const allowHeavy =
+    clientBetaSet === null ||
+    clientBetaSet.has("advanced-tool-use-2025-11-20") ||
+    clientBetaSet.has("effort-2025-11-24");
   const hasSystem =
     !!b.system &&
     (typeof b.system === "string" || (Array.isArray(b.system) && b.system.length > 0));
@@ -345,13 +368,17 @@ export function selectBetaFlags(
   if (isContext1m) {
     flags.push("context-1m-2025-08-07", "mid-conversation-system-2026-04-07");
   }
-  flags.push(
-    "interleaved-thinking-2025-05-14",
-    "redact-thinking-2026-02-12",
-    "thinking-token-count-2026-05-13",
-    "context-management-2025-06-27",
-    "prompt-caching-scope-2026-01-05"
-  );
+  // Thinking betas: gated on the client header (#3415). interleaved-thinking forces
+  // interleaved-thinking semantics that conflict with a tool_choice-forced turn,
+  // producing malformed opus tool_use streams when the client never asked for it.
+  if (allowThinking) {
+    flags.push(
+      "interleaved-thinking-2025-05-14",
+      "redact-thinking-2026-02-12",
+      "thinking-token-count-2026-05-13"
+    );
+  }
+  flags.push("context-management-2025-06-27", "prompt-caching-scope-2026-01-05");
   if (hasStructuredOutput || isFullAgent) flags.push("advisor-tool-2026-03-01");
   if (hasStructuredOutput && !isFullAgent) flags.push("structured-outputs-2025-12-15");
   // extended-cache-ttl is sent for all full-agent shapes (incl. Haiku); the
@@ -359,7 +386,7 @@ export function selectBetaFlags(
   if (isFullAgent) {
     flags.push("extended-cache-ttl-2025-04-11", "cache-diagnosis-2026-04-07");
   }
-  if (isHeavyAgent) {
+  if (isHeavyAgent && allowHeavy) {
     flags.push("advanced-tool-use-2025-11-20", "effort-2025-11-24");
   }
   return flags.join(",");

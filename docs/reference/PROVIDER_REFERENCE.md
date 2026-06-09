@@ -6,6 +6,8 @@ lastUpdated: 2026-06-06
 
 # Provider Reference
 
+> **For Users**: Looking for a simple guide? See the [Providers Guide](../getting-started/PROVIDERS-GUIDE.md) for step-by-step instructions.
+
 > **Auto-generated** from `src/shared/constants/providers.ts` — do not edit by hand.
 > Regenerate with: `npm run gen:provider-reference`
 > **Last generated:** 2026-06-06
@@ -113,7 +115,7 @@ Use the dashboard at `/dashboard/providers` to enable, configure, and test each 
 | `cloudflare-ai` | `cf` | Cloudflare Workers AI | API key | [link](https://developers.cloudflare.com/workers-ai) | Requires API Token AND Account ID (found at dash.cloudflare.com) |
 | `codestral` | `codestral` | Codestral | API key | [link](https://mistral.ai) | — |
 | `cohere` | `cohere` | Cohere | API key | [link](https://cohere.com) | Free Trial: 1,000 API calls/month for testing, no credit card required |
-| `command-code` | `cmd` | Command Code | API key | [link](https://commandcode.ai/) | Use a Command Code API key. Requests are sent to Command Code's /provider/v1/chat/completions endpoint. |
+| `command-code` | `cmd` | Command Code | API key | [link](https://commandcode.ai/) | Use a Command Code API key. Requests are sent to Command Code's /alpha/generate endpoint. |
 | `coze` | `coze` | Coze | API key | [link](https://coze.com) | Get API key at coze.com/open/api |
 | `crof` | `crof` | CrofAI | API key | [link](https://crof.ai) | — |
 | `databricks` | `databricks` | Databricks | API key, enterprise | [link](https://www.databricks.com) | — |

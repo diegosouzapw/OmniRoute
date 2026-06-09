@@ -1656,14 +1656,69 @@ test("createSSEStream passthrough drops empty choices array chunks", async () =>
     }
   );
 
-  // The empty choices chunk should have been dropped entirely
-  assert.doesNotMatch(text, /\[OmniRoute\] Upstream returned an empty response/);
-  
-  // Subsequent valid chunks should still be present and correctly processed
+  // Empty choices without usage still get replaced with a synthetic error chunk.
+  assert.match(text, /\[OmniRoute\] Upstream returned an empty response/);
+  assert.match(text, /"finish_reason":"stop"/);
+  // Subsequent valid chunks should still be present
   assert.match(text, /"content":"Hello"/);
   assert.match(text, /"finish_reason":"stop"/);
   assert.equal(onCompletePayload.status, 200);
   assert.equal(onCompletePayload.responseBody.choices[0].message.content, "Hello");
+});
+
+test("createSSEStream passthrough forwards OpenAI usage-only empty choices chunks", async () => {
+  let onCompletePayload = null;
+  const usage = { prompt_tokens: 7, completion_tokens: 3, total_tokens: 10 };
+  const text = await readTransformed(
+    [
+      `data: ${JSON.stringify({
+        id: "chatcmpl_usage_only",
+        object: "chat.completion.chunk",
+        created: 1,
+        model: "gpt-4.1-mini",
+        choices: [{ index: 0, delta: { role: "assistant", content: "Hello" } }],
+        usage: null,
+      })}\n\n`,
+      `data: ${JSON.stringify({
+        id: "chatcmpl_usage_only",
+        object: "chat.completion.chunk",
+        created: 1,
+        model: "gpt-4.1-mini",
+        choices: [{ index: 0, delta: {}, finish_reason: "stop" }],
+        usage: null,
+      })}\n\n`,
+      `data: ${JSON.stringify({
+        id: "chatcmpl_usage_only",
+        object: "chat.completion.chunk",
+        created: 1,
+        model: "gpt-4.1-mini",
+        choices: [],
+        usage,
+      })}\n\n`,
+    ],
+    {
+      mode: "passthrough",
+      sourceFormat: FORMATS.OPENAI,
+      provider: "openai-compatible",
+      model: "gpt-4.1-mini",
+      body: {
+        messages: [{ role: "user", content: "hello" }],
+        stream_options: { include_usage: true },
+      },
+      onComplete(payload) {
+        onCompletePayload = payload;
+      },
+    }
+  );
+
+  assert.doesNotMatch(text, /\[OmniRoute\] Upstream returned an empty response/);
+  assert.match(text, /"choices":\[\]/);
+  assert.match(text, /"usage":\{"prompt_tokens":7,"completion_tokens":3,"total_tokens":10\}/);
+  assert.equal(onCompletePayload.status, 200);
+  assert.equal(onCompletePayload.usage.prompt_tokens, 7);
+  assert.equal(onCompletePayload.usage.completion_tokens, 3);
+  assert.equal(onCompletePayload.responseBody.choices[0].message.content, "Hello");
+  assert.deepEqual(onCompletePayload.responseBody.usage, usage);
 });
 
 test("createSSEStream passthrough logs empty response after tool_calls completion", async () => {

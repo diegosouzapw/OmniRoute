@@ -6,6 +6,8 @@ lastUpdated: 2026-06-05
 
 # Free Tiers & Free-Token Budget
 
+> **For Users**: Looking for a simple guide? See the [Free Tiers Guide](../getting-started/FREE-TIERS-GUIDE.md) for step-by-step instructions on getting free AI.
+
 > **Last researched:** 2026-06-05 — per-provider web research of current free-tier quotas + ToS (98 providers).
 > **Source of truth (catalog):** `src/shared/constants/providers.ts` (`hasFree: true` + `freeNote`). The token-budget numbers below come from live web research and are an **approximation** — see [Methodology & caveats](#methodology--caveats).
 
