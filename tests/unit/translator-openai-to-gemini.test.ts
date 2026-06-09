@@ -688,34 +688,28 @@ test("OpenAI -> Antigravity Gemini omits signature-less historical tool calls an
     false,
     "signature-less historical call must not use executable textual tool-call markers"
   );
+  // With skip_thought_signature_validator bypass, functionCall IS emitted natively
   assert.equal(
     modelTurn?.parts.some((part) => part.functionCall) ?? false,
-    false,
-    "signature-less historical call must not be emitted as native functionCall"
+    true,
+    "signature-less historical call MUST be emitted as native functionCall (bypass applied)"
+  );
+  assert.equal(
+    modelTurn?.parts.some((part) => part.thoughtSignature === "skip_thought_signature_validator") ?? false,
+    true,
+    "the bypass sentinel must be injected as thoughtSignature"
   );
 
   const toolTurn = result.request.contents.find(
     (content) =>
       content.role === "user" &&
-      content.parts.some(
-        (part) =>
-          typeof part.text === "string" &&
-          part.text.includes('<previous_tool_result_context source="default_api:todowrite_ide">') &&
-          part.text.includes("[]")
-      )
+      content.parts.some((part) => part.functionResponse)
   );
-  assert.ok(toolTurn, "expected signature-less tool response to be preserved as safe context");
-  assert.equal(
-    toolTurn.parts.some(
-      (part) => typeof part.text === "string" && part.text.includes("[Tool response:")
-    ),
-    false,
-    "signature-less historical response must not use executable textual tool-response markers"
-  );
+  assert.ok(toolTurn, "expected signature-less tool response to be preserved as native functionResponse (bypass applied)");
   assert.equal(
     toolTurn.parts.some((part) => part.functionResponse),
-    false,
-    "signature-less historical response must not be emitted as native functionResponse"
+    true,
+    "signature-less historical response MUST be emitted as native functionResponse (bypass applied)"
   );
 });
 
@@ -757,33 +751,20 @@ test("OpenAI -> Antigravity preserves multiple signature-less historical tool re
     { projectId: "proj-antigravity-gemini" } as any
   );
 
-  const text = JSON.stringify(result.request.contents);
+  // With skip_thought_signature_validator bypass: native functionCall + functionResponse expected
+  const modelTurn = result.request.contents.find(
+    (c) => c.role === "model" && c.parts.some((p) => p.functionCall)
+  );
+  assert.ok(modelTurn, "expected native functionCall turns");
   assert.equal(
-    text.includes("Historical tool-call record only"),
-    false,
-    "signature-less calls must not be emitted as visible historical text"
-  );
-  assert.equal(
-    text.includes("Tool arguments JSON"),
-    false,
-    "signature-less call arguments must not be emitted as visible text"
-  );
-  assert.ok(
-    text.includes('<previous_tool_result_context source=\\"terminal\\">'),
-    "expected signature-less responses as safe context"
-  );
-  assert.ok(
-    text.includes("data/db.json: No such file"),
-    "expected first signature-less tool response as context"
-  );
-  assert.ok(
-    text.includes("storage.sqlite"),
-    "expected second signature-less tool response as context"
+    modelTurn.parts.filter((p) => p.functionCall).length,
+    2,
+    "expected 2 functionCall parts"
   );
   assert.equal(
-    result.request.contents.some((content) => content.parts.some((part) => part.functionResponse)),
-    false,
-    "signature-less historical responses must not be emitted as native functionResponse"
+    result.request.contents.some((c) => c.parts.some((p) => p.functionResponse)),
+    true,
+    "signature-less historical responses MUST be emitted as native functionResponse (bypass applied)"
   );
 });
 
@@ -860,17 +841,12 @@ test("OpenAI -> Antigravity escapes signature-less tool response context content
     { projectId: "proj-antigravity-gemini" } as any
   );
 
-  const text = JSON.stringify(result.request.contents);
-  assert.ok(text.includes("reader&quot;&gt;&lt;x&gt;"), "source attribute must be escaped");
-  assert.ok(
-    text.includes("before &lt;/previous_tool_result_context&gt;&lt;evil&gt; after"),
-    "context content must escape tag-like tool output"
+  // With skip_thought_signature_validator bypass: native functionResponse is emitted
+  // The legacy XML escaping is no longer needed since we send native functionResponse
+  const toolResponseTurn = result.request.contents.find(
+    (c) => c.role === "user" && c.parts.some((p) => p.functionResponse)
   );
-  assert.equal(
-    text.includes("before </previous_tool_result_context><evil> after"),
-    false,
-    "raw context-closing content must not be emitted"
-  );
+  assert.ok(toolResponseTurn, "expected native functionResponse turn");
 });
 
 test("OpenAI -> Antigravity maps Claude-family models to Gemini-compatible schema", () => {
