@@ -202,17 +202,6 @@ Config values are persisted in the database and accessible via the dashboard con
 | `onDeactivate` | Plugin deactivated | `{ name, version, manifest }` |
 | `onUninstall` | Plugin uninstalled (before files deleted) | `{ name, version, manifest }` |
 
-## Lifecycle Hooks (v3.8.16+)
-
-In addition to per-request events, plugins can subscribe to **lifecycle events** that fire on install/activate/deactivate/uninstall transitions. See the [Plugin Development Guide](./PLUGIN_DEVELOPMENT.md#lifecycle-hooks-v3816) for full details, including the 5-stage lifecycle diagram and a complete example.
-
-| Lifecycle hook | When it fires | Typical use |
-|---|---|---|
-| `onInstall` | After files copied, before first activation | Initialize DB tables, register schema |
-| `onActivate` | When `activate()` is called | Connect to external service, warm caches |
-| `onDeactivate` | Before deactivation completes | Close connections, flush logs |
-| `onUninstall` | Before files are deleted | Final cleanup, send farewell webhook |
-
 ## Examples
 
 ### Request Logger
