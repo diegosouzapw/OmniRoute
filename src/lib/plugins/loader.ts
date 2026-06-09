@@ -259,6 +259,32 @@ export async function loadPlugin(
     };
     registeredHooks.push("onError");
   }
+  // ── Lifecycle hooks (fire-and-forget, errors logged but don't block) ──
+  const lifecycleHooks: Array<{
+    key: "onInstall" | "onActivate" | "onDeactivate" | "onUninstall";
+    manifestFlag: boolean;
+  }> = [
+    { key: "onInstall", manifestFlag: manifest.hooks.onInstall },
+    { key: "onActivate", manifestFlag: manifest.hooks.onActivate },
+    { key: "onDeactivate", manifestFlag: manifest.hooks.onDeactivate },
+    { key: "onUninstall", manifestFlag: manifest.hooks.onUninstall },
+  ];
+
+  for (const { key, manifestFlag } of lifecycleHooks) {
+    if (manifestFlag) {
+      plugin[key] = async (payload: unknown): Promise<void> => {
+        try {
+          await callHook(key, payload);
+        } catch (err: unknown) {
+          log.error(`plugin.${key}_error`, {
+            name: manifest.name,
+            error: err instanceof Error ? err.message : String(err),
+          });
+        }
+      };
+      registeredHooks.push(key);
+    }
+  }
 
   log.info("loader.loaded", {
     name: manifest.name,
