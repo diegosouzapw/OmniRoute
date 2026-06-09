@@ -13,7 +13,7 @@ import { randomUUID } from "crypto";
 import { logger } from "../../../open-sse/utils/logger.ts";
 import { getDefaultPluginDir, scanPluginDir } from "./scanner";
 import { loadPlugin, type LoadedPlugin } from "./loader";
-import { registerHook, unregisterHooks } from "./hooks";
+import { registerHook, unregisterHooks, emitHook } from "./hooks";
 import {
   insertPlugin,
   getPluginByName,
@@ -207,6 +207,10 @@ class PluginManager {
         manifest.hooks.onRequest && "onRequest",
         manifest.hooks.onResponse && "onResponse",
         manifest.hooks.onError && "onError",
+        manifest.hooks.onInstall && "onInstall",
+        manifest.hooks.onActivate && "onActivate",
+        manifest.hooks.onDeactivate && "onDeactivate",
+        manifest.hooks.onUninstall && "onUninstall",
       ].filter(Boolean) as string[],
       permissions: manifest.requires.permissions,
       pluginDir: destDir,
@@ -214,6 +218,11 @@ class PluginManager {
     });
 
     log.info("manager.installed", { name, version: manifest.version });
+
+    // Fire onInstall lifecycle hook
+    if (manifest.hooks.onInstall) {
+      await emitHook("onInstall", { name, version: manifest.version, manifest });
+    }
 
     // Auto-activate if enabledByDefault
     if (manifest.enabledByDefault) {
@@ -328,6 +337,10 @@ class PluginManager {
         manifest.hooks.onRequest && "onRequest",
         manifest.hooks.onResponse && "onResponse",
         manifest.hooks.onError && "onError",
+        manifest.hooks.onInstall && "onInstall",
+        manifest.hooks.onActivate && "onActivate",
+        manifest.hooks.onDeactivate && "onDeactivate",
+        manifest.hooks.onUninstall && "onUninstall",
       ].filter(Boolean) as string[],
       permissions: manifest.requires.permissions,
       pluginDir: destDir,
@@ -384,6 +397,11 @@ class PluginManager {
       this.loadedPlugins.set(name, loaded);
       updatePluginStatus(name, "active");
 
+      // Fire onActivate lifecycle hook
+      if (manifest.hooks.onActivate) {
+        await emitHook("onActivate", { name, version: manifest.version, manifest });
+      }
+
       log.info("manager.activated", { name });
     } catch (err: any) {
       updatePluginStatus(name, "error", err.message);
@@ -396,6 +414,9 @@ class PluginManager {
    * Deactivate a plugin — unregister hooks, update DB.
    */
   async deactivate(name: string): Promise<void> {
+    const row = getPluginByName(name);
+    const manifest = row ? (JSON.parse(row.manifest) as PluginManifestWithDefaults) : null;
+
     const loaded = this.loadedPlugins.get(name);
     if (loaded) {
       unregisterHooks(name);
@@ -404,6 +425,12 @@ class PluginManager {
     }
 
     updatePluginStatus(name, "inactive");
+
+    // Fire onDeactivate lifecycle hook
+    if (manifest?.hooks.onDeactivate) {
+      await emitHook("onDeactivate", { name, version: manifest.version, manifest });
+    }
+
     log.info("manager.deactivated", { name });
   }
 
@@ -414,9 +441,16 @@ class PluginManager {
     const row = getPluginByName(name);
     if (!row) throw new Error(`Plugin '${name}' not found`);
 
+    const manifest = JSON.parse(row.manifest) as PluginManifestWithDefaults;
+
     // Deactivate first if active
     if (row.status === "active") {
       await this.deactivate(name);
+    }
+
+    // Fire onUninstall lifecycle hook (before deleting files)
+    if (manifest.hooks.onUninstall) {
+      await emitHook("onUninstall", { name, version: manifest.version, manifest });
     }
 
     // CRITICAL-2: Assert the pluginDir from DB is within our managed pluginDir root
@@ -463,6 +497,10 @@ class PluginManager {
               discovered.manifest.hooks.onRequest && "onRequest",
               discovered.manifest.hooks.onResponse && "onResponse",
               discovered.manifest.hooks.onError && "onError",
+              discovered.manifest.hooks.onInstall && "onInstall",
+              discovered.manifest.hooks.onActivate && "onActivate",
+              discovered.manifest.hooks.onDeactivate && "onDeactivate",
+              discovered.manifest.hooks.onUninstall && "onUninstall",
             ].filter(Boolean) as string[],
             permissions: discovered.manifest.requires.permissions,
             pluginDir: discovered.pluginDir,
