@@ -5280,6 +5280,7 @@
     "resilienceMaxBackoffSteps": "Max backoff steps",
     "resilienceProviderBreakerTitle": "Circuit Breaker per Provider",
     "resilienceFailureThreshold": "Failure threshold",
+    "resilienceDegradationThreshold": "Degradation threshold",
     "resilienceResetTimeout": "시간 초과 재설정",
     "resilienceFailureThresholdLabel": "실패 임계값",
     "resilienceResetTimeoutLabel": "시간 초과 재설정",

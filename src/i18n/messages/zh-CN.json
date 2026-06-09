@@ -5527,6 +5527,7 @@
     "resilienceMaxBackoffSteps": "Max backoff steps",
     "resilienceProviderBreakerTitle": "Circuit Breaker per Provider",
     "resilienceFailureThreshold": "Failure threshold",
+    "resilienceDegradationThreshold": "Degradation threshold",
     "resilienceResetTimeout": "重置超时",
     "resilienceFailureThresholdLabel": "失败阈值",
     "resilienceResetTimeoutLabel": "重置超时",

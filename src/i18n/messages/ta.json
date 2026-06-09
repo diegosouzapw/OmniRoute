@@ -5280,6 +5280,7 @@
     "resilienceMaxBackoffSteps": "Max backoff steps",
     "resilienceProviderBreakerTitle": "Circuit Breaker per Provider",
     "resilienceFailureThreshold": "Failure threshold",
+    "resilienceDegradationThreshold": "Degradation threshold",
     "resilienceResetTimeout": "காலாவதியை மீட்டமைக்கவும்",
     "resilienceFailureThresholdLabel": "தோல்வி வரம்பு",
     "resilienceResetTimeoutLabel": "காலாவதியை மீட்டமைக்கவும்",

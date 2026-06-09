@@ -5280,6 +5280,7 @@
     "resilienceMaxBackoffSteps": "Max backoff steps",
     "resilienceProviderBreakerTitle": "Circuit Breaker per Provider",
     "resilienceFailureThreshold": "Failure threshold",
+    "resilienceDegradationThreshold": "Degradation threshold",
     "resilienceResetTimeout": "Weka upya muda wa kuisha",
     "resilienceFailureThresholdLabel": "Kizingiti cha kushindwa",
     "resilienceResetTimeoutLabel": "Weka upya muda wa kuisha",

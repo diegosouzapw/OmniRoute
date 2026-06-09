@@ -1145,6 +1145,7 @@ const connectionCooldownProfileSchema = z
 const providerBreakerProfileSchema = z
   .object({
     failureThreshold: z.number().int().min(1).optional(),
+    degradationThreshold: z.number().int().min(1).optional(),
     resetTimeoutMs: z.number().int().min(1000).optional(),
   })
   .strict();

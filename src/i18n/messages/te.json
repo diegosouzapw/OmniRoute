@@ -5280,6 +5280,7 @@
     "resilienceMaxBackoffSteps": "Max backoff steps",
     "resilienceProviderBreakerTitle": "Circuit Breaker per Provider",
     "resilienceFailureThreshold": "Failure threshold",
+    "resilienceDegradationThreshold": "Degradation threshold",
     "resilienceResetTimeout": "గడువు ముగిసింది",
     "resilienceFailureThresholdLabel": "వైఫల్యం థ్రెషోల్డ్",
     "resilienceResetTimeoutLabel": "గడువు ముగిసింది",

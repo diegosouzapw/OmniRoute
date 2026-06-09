@@ -5280,6 +5280,7 @@
     "resilienceMaxBackoffSteps": "Max backoff steps",
     "resilienceProviderBreakerTitle": "Circuit Breaker per Provider",
     "resilienceFailureThreshold": "Failure threshold",
+    "resilienceDegradationThreshold": "Degradation threshold",
     "resilienceResetTimeout": "Resetovat časový limit",
     "resilienceFailureThresholdLabel": "Práh selhání",
     "resilienceResetTimeoutLabel": "Resetovat časový limit",

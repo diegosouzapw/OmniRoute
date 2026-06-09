@@ -81,6 +81,7 @@ export const resilienceProfileSchema = z.object({
   circuitBreaker: z
     .object({
       failureThreshold: z.number().int().min(1).max(100).default(5),
+      degradationThreshold: z.number().int().min(1).max(100).default(3),
       resetTimeoutMs: z.number().int().min(1000).max(600000).default(30000),
       halfOpenMax: z.number().int().min(1).max(10).default(1),
     })

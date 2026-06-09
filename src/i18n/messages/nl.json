@@ -5280,6 +5280,7 @@
     "resilienceMaxBackoffSteps": "Max backoff steps",
     "resilienceProviderBreakerTitle": "Circuit Breaker per Provider",
     "resilienceFailureThreshold": "Failure threshold",
+    "resilienceDegradationThreshold": "Degradation threshold",
     "resilienceResetTimeout": "Time-out opnieuw instellen",
     "resilienceFailureThresholdLabel": "Mislukkingsdrempel",
     "resilienceResetTimeoutLabel": "Time-out opnieuw instellen",

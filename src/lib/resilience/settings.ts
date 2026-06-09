@@ -30,6 +30,7 @@ export interface ConnectionCooldownProfileSettings {
 
 export interface ProviderBreakerProfileSettings {
   failureThreshold: number;
+  degradationThreshold: number;
   resetTimeoutMs: number;
 }
 
@@ -140,10 +141,12 @@ export const DEFAULT_RESILIENCE_SETTINGS: ResilienceSettings = {
   providerBreaker: {
     oauth: {
       failureThreshold: PROVIDER_PROFILES.oauth.circuitBreakerThreshold,
+      degradationThreshold: PROVIDER_PROFILES.oauth.degradationThreshold,
       resetTimeoutMs: PROVIDER_PROFILES.oauth.circuitBreakerReset,
     },
     apikey: {
       failureThreshold: PROVIDER_PROFILES.apikey.circuitBreakerThreshold,
+      degradationThreshold: PROVIDER_PROFILES.apikey.degradationThreshold,
       resetTimeoutMs: PROVIDER_PROFILES.apikey.circuitBreakerReset,
     },
   },
@@ -279,6 +282,10 @@ function normalizeProviderBreakerProfile(
   const record = asRecord(next);
   return {
     failureThreshold: toInteger(record.failureThreshold, fallback.failureThreshold, {
+      min: 1,
+      max: 1000,
+    }),
+    degradationThreshold: toInteger(record.degradationThreshold, fallback.degradationThreshold, {
       min: 1,
       max: 1000,
     }),
@@ -424,6 +431,8 @@ function buildLegacyFallback(settings: JsonRecord): ResilienceSettings {
           DEFAULT_RESILIENCE_SETTINGS.providerBreaker.oauth.failureThreshold,
           { min: 1, max: 1000 }
         ),
+        degradationThreshold:
+          DEFAULT_RESILIENCE_SETTINGS.providerBreaker.oauth.degradationThreshold,
         resetTimeoutMs: toInteger(
           oauthLegacy.circuitBreakerReset,
           DEFAULT_RESILIENCE_SETTINGS.providerBreaker.oauth.resetTimeoutMs,
@@ -436,6 +445,8 @@ function buildLegacyFallback(settings: JsonRecord): ResilienceSettings {
           DEFAULT_RESILIENCE_SETTINGS.providerBreaker.apikey.failureThreshold,
           { min: 1, max: 1000 }
         ),
+        degradationThreshold:
+          DEFAULT_RESILIENCE_SETTINGS.providerBreaker.apikey.degradationThreshold,
         resetTimeoutMs: toInteger(
           apikeyLegacy.circuitBreakerReset,
           DEFAULT_RESILIENCE_SETTINGS.providerBreaker.apikey.resetTimeoutMs,
@@ -537,6 +548,7 @@ export function buildLegacyResilienceCompat(settings: ResilienceSettings) {
           : settings.connectionCooldown.oauth.baseCooldownMs,
         maxBackoffLevel: settings.connectionCooldown.oauth.maxBackoffSteps,
         circuitBreakerThreshold: settings.providerBreaker.oauth.failureThreshold,
+        degradationThreshold: settings.providerBreaker.oauth.degradationThreshold,
         circuitBreakerReset: settings.providerBreaker.oauth.resetTimeoutMs,
       },
       apikey: {
@@ -546,6 +558,7 @@ export function buildLegacyResilienceCompat(settings: ResilienceSettings) {
           : settings.connectionCooldown.apikey.baseCooldownMs,
         maxBackoffLevel: settings.connectionCooldown.apikey.maxBackoffSteps,
         circuitBreakerThreshold: settings.providerBreaker.apikey.failureThreshold,
+        degradationThreshold: settings.providerBreaker.apikey.degradationThreshold,
         circuitBreakerReset: settings.providerBreaker.apikey.resetTimeoutMs,
       },
     },
