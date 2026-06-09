@@ -505,7 +505,7 @@ Dashboard at `http://localhost:20128` · API at `http://localhost:20128/v1`.
 
 **2) Connect a FREE provider (no signup)**
 
-Dashboard → **Providers** → connect **Kiro AI** (free Claude unlimited) or **OpenCode Free** (no auth) → done.
+Dashboard → **Providers** → connect **Kiro AI** (free Claude 50 credits/day) or **OpenCode Free** (no auth) → done.
 
 **3) Point your coding tool**
 
