@@ -369,35 +369,52 @@ export async function GET(request: Request) {
     const rawCutoffDate = rawCutoffIso.split("T")[0];
     const needsAggregated = (!sinceIso || sinceIso < rawCutoffDate) && apiKeyIds.length === 0;
 
+    // Build a separate params object for the unified CTE source.
+    // better-sqlite3 rejects named params that don't appear in the SQL,
+    // so each query context must only receive the placeholders it references.
+    const unifiedParams: Record<string, string> = {};
+
     // Raw leg: when aggregated rows are also included, lower-bound the raw leg at the
     // raw cutoff so the two legs never overlap (prevents double-counting).
     const rawConditions: string[] = [];
     if (needsAggregated) {
       rawConditions.push("timestamp >= @rawCutoff");
-      params.rawCutoff = rawCutoffDate;
+      unifiedParams.rawCutoff = rawCutoffDate;
     } else if (sinceIso) {
       rawConditions.push("timestamp >= @since");
+      unifiedParams.since = sinceIso;
     }
-    if (untilIso) rawConditions.push("timestamp <= @until");
-    if (apiKeyWhere) rawConditions.push(apiKeyWhere);
+    if (untilIso) {
+      rawConditions.push("timestamp <= @until");
+      unifiedParams.until = untilIso;
+    }
+    if (apiKeyWhere) {
+      rawConditions.push(apiKeyWhere);
+      apiKeyIds.forEach((key, i) => {
+        unifiedParams[`apiKey${i}`] = key;
+      });
+    }
     const rawWhere = rawConditions.length > 0 ? `WHERE ${rawConditions.join(" AND ")}` : "";
 
     // Aggregated rows span the requested window but strictly before the raw cutoff,
     // so they never overlap the raw leg above (no api_key filter — see note above).
+    // Only build agg params when the agg branch is actually used in the CTE.
     const aggConditions: string[] = [];
-    if (sinceIso) {
-      // Use date comparison on the summary's date column (YYYY-MM-DD).
-      const sinceDate = sinceIso.split("T")[0];
-      aggConditions.push("date >= @sinceDate");
-      params.sinceDate = sinceDate;
+    if (needsAggregated) {
+      if (sinceIso) {
+        // Use date comparison on the summary's date column (YYYY-MM-DD).
+        const sinceDate = sinceIso.split("T")[0];
+        aggConditions.push("date >= @sinceDate");
+        unifiedParams.sinceDate = sinceDate;
+      }
+      if (untilIso) {
+        const untilDate = untilIso.split("T")[0];
+        aggConditions.push("date <= @untilDate");
+        unifiedParams.untilDate = untilDate;
+      }
+      aggConditions.push("date < @rawCutoffDate");
+      unifiedParams.rawCutoffDate = rawCutoffDate;
     }
-    if (untilIso) {
-      const untilDate = untilIso.split("T")[0];
-      aggConditions.push("date <= @untilDate");
-      params.untilDate = untilDate;
-    }
-    aggConditions.push("date < @rawCutoffDate");
-    params.rawCutoffDate = rawCutoffDate;
     const aggWhere = aggConditions.length > 0 ? `WHERE ${aggConditions.join(" AND ")}` : "";
 
     // Unified source CTE: columns aligned to usage_history shape needed by analytics queries.
@@ -492,7 +509,7 @@ export async function GET(request: Request) {
         ${unifiedWhere}
       `
       )
-      .get(params) as Record<string, unknown>;
+      .get(unifiedParams) as Record<string, unknown>;
 
     const dailyRows = db
       .prepare(
@@ -509,7 +526,7 @@ export async function GET(request: Request) {
         ORDER BY date ASC
       `
       )
-      .all(params) as Array<Record<string, unknown>>;
+      .all(unifiedParams) as Array<Record<string, unknown>>;
 
     const dailyCostRows = db
       .prepare(
@@ -530,7 +547,7 @@ export async function GET(request: Request) {
         ORDER BY date ASC
       `
       )
-      .all(params) as Array<Record<string, unknown>>;
+      .all(unifiedParams) as Array<Record<string, unknown>>;
 
     const heatmapStart = new Date();
     heatmapStart.setUTCDate(heatmapStart.getUTCDate() - 364);
@@ -589,7 +606,7 @@ export async function GET(request: Request) {
         ORDER BY requests DESC
       `
       )
-      .all(params) as Array<Record<string, unknown>>;
+      .all(unifiedParams) as Array<Record<string, unknown>>;
 
     const providerCostRows = db
       .prepare(
@@ -608,7 +625,7 @@ export async function GET(request: Request) {
         GROUP BY LOWER(provider), LOWER(model), serviceTier
       `
       )
-      .all(params) as Array<Record<string, unknown>>;
+      .all(unifiedParams) as Array<Record<string, unknown>>;
 
     const providerRows = db
       .prepare(
@@ -627,7 +644,7 @@ export async function GET(request: Request) {
         ORDER BY requests DESC
       `
       )
-      .all(params) as Array<Record<string, unknown>>;
+      .all(unifiedParams) as Array<Record<string, unknown>>;
 
     const accountCostRows = db
       .prepare(
@@ -718,7 +735,7 @@ export async function GET(request: Request) {
         GROUP BY serviceTier, LOWER(provider), LOWER(model)
       `
       )
-      .all(params) as Array<Record<string, unknown>>;
+      .all(unifiedParams) as Array<Record<string, unknown>>;
 
     const apiKeyMetadataRows = db
       .prepare(
@@ -773,7 +790,7 @@ export async function GET(request: Request) {
         ORDER BY dayOfWeek ASC
       `
       )
-      .all(params) as Array<Record<string, unknown>>;
+      .all(unifiedParams) as Array<Record<string, unknown>>;
 
     const fallbackRow = db
       .prepare(
@@ -1238,19 +1255,24 @@ export async function GET(request: Request) {
         }
         if (apiKeyWhere) {
           presetRawConds.push(apiKeyWhere);
-          Object.assign(presetParams, params);
+          // Only copy apiKey params — better-sqlite3 rejects unknown named params.
+          apiKeyIds.forEach((key, i) => {
+            presetParams[`apiKey${i}`] = key;
+          });
         }
         const presetRawWhere =
           presetRawConds.length > 0 ? `WHERE ${presetRawConds.join(" AND ")}` : "";
 
         const presetAggConds: string[] = [];
-        if (presetSinceIso) {
-          const presetSinceDate = presetSinceIso.split("T")[0];
-          presetAggConds.push("date >= @presetSinceDate");
-          presetParams.presetSinceDate = presetSinceDate;
+        if (presetNeedsAggregated) {
+          if (presetSinceIso) {
+            const presetSinceDate = presetSinceIso.split("T")[0];
+            presetAggConds.push("date >= @presetSinceDate");
+            presetParams.presetSinceDate = presetSinceDate;
+          }
+          presetAggConds.push("date < @presetRawCutoffDate");
+          presetParams.presetRawCutoffDate = rawCutoffDate;
         }
-        presetAggConds.push("date < @presetRawCutoffDate");
-        presetParams.presetRawCutoffDate = rawCutoffDate;
         const presetAggWhere =
           presetAggConds.length > 0 ? `WHERE ${presetAggConds.join(" AND ")}` : "";
 

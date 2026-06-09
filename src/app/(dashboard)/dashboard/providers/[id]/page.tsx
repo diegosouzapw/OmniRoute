@@ -23,6 +23,7 @@ import {
   Badge,
   Input,
   Modal,
+  ConfirmModal,
   CardSkeleton,
   OAuthModal,
   KiroOAuthWrapper,
@@ -1508,6 +1509,10 @@ export default function ProviderDetailPage() {
   const [batchDeleting, setBatchDeleting] = useState(false);
   const [batchUpdating, setBatchUpdating] = useState<"activate" | "deactivate" | null>(null);
   const [batchRetesting, setBatchRetesting] = useState(false);
+  const [healthFilter, setHealthFilter] = useState<string>("all");
+  const [page, setPage] = useState(0);
+  const PAGE_SIZE = 50;
+  const [batchDeleteConfirmOpen, setBatchDeleteConfirmOpen] = useState(false);
   const commandCodeAuthWindowRef = useRef<Window | null>(null);
   const commandCodeAuthTimerRef = useRef<number | null>(null);
   const pendingRiskActionRef = useRef<(() => void) | null>(null);
@@ -2077,10 +2082,13 @@ export default function ProviderDetailPage() {
     });
   }, [connections]);
 
-  const handleBatchDelete = async () => {
+  const handleBatchDeleteOpenModal = () => {
     if (selectedIds.size === 0) return;
-    if (!confirm(t("batchDeleteConfirm", { count: selectedIds.size }))) return;
+    setBatchDeleteConfirmOpen(true);
+  };
 
+  const handleBatchDeleteConfirm = async () => {
+    setBatchDeleteConfirmOpen(false);
     setBatchDeleting(true);
     try {
       const res = await fetch("/api/providers", {
@@ -4778,50 +4786,149 @@ export default function ProviderDetailPage() {
                     icon="delete"
                     loading={batchDeleting}
                     disabled={bulkBusy && !batchDeleting}
-                    onClick={handleBatchDelete}
+                    onClick={handleBatchDeleteOpenModal}
                   >
                     {t("batchDeleteSelected", { count: selectedIds.size })}
                   </Button>
                 </div>
               );
 
+              const isHealthy = (c: ConnectionRowConnection): boolean => {
+                const s = c.testStatus;
+                return c.isActive !== false && (!s || s === "active" || s === "success");
+              };
+              const STATUS_FILTER_OPTIONS = [
+                { value: "all", label: t("filterAll", "All") },
+                { value: "active", label: t("filterActive", "Active") },
+                { value: "error", label: t("filterError", "Error") },
+                { value: "banned", label: t("filterBanned", "Banned") },
+                { value: "credits_exhausted", label: t("filterCreditsExhausted", "Credits Exhausted") },
+              ];
+              const filtered = healthFilter === "all"
+                ? sorted
+                : sorted.filter((c) => {
+                    if (healthFilter === "active") return isHealthy(c);
+                    if (healthFilter === "error") return !isHealthy(c) && c.testStatus !== "banned" && c.testStatus !== "credits_exhausted";
+                    return c.testStatus === healthFilter;
+                  });
+
+              const totalFilteredPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
+              const clampedPage = Math.min(page, totalFilteredPages - 1);
+              const pageStart = clampedPage * PAGE_SIZE;
+              const pageEnd = pageStart + PAGE_SIZE;
+
+              const filterPills = (
+                <div className="flex items-center gap-1.5 flex-wrap">
+                  {STATUS_FILTER_OPTIONS.map((opt) => (
+                    <button
+                      key={opt.value}
+                      onClick={() => {
+                        setHealthFilter(opt.value);
+                        setPage(0);
+                        setSelectedIds(new Set());
+                      }}
+                      className={`px-2.5 py-1 text-xs rounded-full font-medium transition-colors ${
+                        healthFilter === opt.value
+                          ? "bg-primary text-white"
+                          : "bg-muted/60 text-text-muted hover:bg-muted"
+                      }`}
+                    >
+                      {opt.label}
+                    </button>
+                  ))}
+                </div>
+              );
+
+              const paginationBar = totalFilteredPages > 1 ? (
+                <div className="flex items-center justify-between px-3 py-2 border-t border-border">
+                  <span className="text-xs text-text-muted">
+                    {pageStart + 1}–{Math.min(pageEnd, filtered.length)} / {filtered.length}
+                  </span>
+                  <div className="flex items-center gap-1">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      icon="chevron_left"
+                      disabled={clampedPage === 0}
+                      onClick={() => setPage((p) => Math.max(0, p - 1))}
+                    />
+                    <span className="text-xs text-text-muted min-w-[4rem] text-center">
+                      {clampedPage + 1} / {totalFilteredPages}
+                    </span>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      icon="chevron_right"
+                      disabled={clampedPage >= totalFilteredPages - 1}
+                      onClick={() => setPage((p) => Math.min(totalFilteredPages - 1, p + 1))}
+                    />
+                  </div>
+                </div>
+              ) : null;
+
               if (!hasAnyTag) {
+                const pageConnections = filtered.slice(pageStart, pageEnd);
+                const allSelected = pageConnections.length > 0 && pageConnections.every((c) => selectedIds.has(c.id));
+                const someSelected = pageConnections.some((c) => selectedIds.has(c.id));
                 return (
                   <>
-                    <div className="flex items-center justify-between px-3 py-2 bg-muted/50 rounded-t-lg border border-b-0 border-border">
-                      <label className="flex items-center gap-2 cursor-pointer select-none">
-                        <input
-                          type="checkbox"
-                          checked={allSelected}
-                          ref={(el) => {
-                            if (el) el.indeterminate = someSelected;
-                          }}
-                          onChange={handleToggleSelectAll}
-                          className="w-4 h-4 rounded border-border text-primary focus:ring-primary/30 cursor-pointer"
-                        />
-                        <span className="text-sm font-medium text-text-muted">
-                          {selectedIds.size > 0
-                            ? providerCountText(
-                                t,
-                                "selectedCount",
-                                selectedIds.size,
-                                "{count} selected",
-                                "{count} selected"
-                              )
-                            : providerCountText(
-                                t,
-                                "accountsCount",
-                                connections.length,
-                                "{count} account",
-                                "{count} accounts"
-                              )}
-                        </span>
-                      </label>
+                    <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 px-3 py-2 bg-muted/50 rounded-t-lg border border-b-0 border-border">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <label className="flex items-center gap-2 cursor-pointer select-none">
+                          <input
+                            type="checkbox"
+                            checked={allSelected}
+                            ref={(el) => {
+                              if (el) el.indeterminate = someSelected;
+                            }}
+                            onChange={() => {
+                              if (allSelected) {
+                                const toRemove = new Set(pageConnections.map((c) => c.id));
+                                setSelectedIds((prev) => {
+                                  const next = new Set(prev);
+                                  for (const id of toRemove) next.delete(id);
+                                  return next;
+                                });
+                              } else {
+                                setSelectedIds((prev) => {
+                                  const next = new Set(prev);
+                                  for (const c of pageConnections) next.add(c.id);
+                                  return next;
+                                });
+                              }
+                            }}
+                            className="w-4 h-4 rounded border-border text-primary focus:ring-primary/30 cursor-pointer"
+                          />
+                          <span className="text-sm font-medium text-text-muted">
+                            {selectedIds.size > 0
+                              ? providerCountText(
+                                  t,
+                                  "selectedCount",
+                                  selectedIds.size,
+                                  "{count} selected",
+                                  "{count} selected"
+                                )
+                              : providerCountText(
+                                  t,
+                                  "accountsCount",
+                                  filtered.length,
+                                  "{count} account",
+                                  "{count} accounts"
+                                )}
+                          </span>
+                        </label>
+                        {filterPills}
+                      </div>
 
                       {bulkActions}
                     </div>
                     <div className="flex flex-col divide-y divide-black/[0.03] dark:divide-white/[0.03] border border-t-0 border-border rounded-b-lg overflow-hidden">
-                      {sorted.map((conn, index) => (
+                      {pageConnections.length === 0 ? (
+                        <div className="px-3 py-6 text-center text-sm text-text-muted">
+                          {t("noFilteredConnections", "No connections match the current filter.")}
+                        </div>
+                      ) : (
+                        pageConnections.map((conn, index) => (
                         <ConnectionRow
                           key={conn.id}
                           connection={conn}
@@ -4829,7 +4936,7 @@ export default function ProviderDetailPage() {
                           isClaude={providerId === "claude"}
                           codexGlobalServiceMode={codexGlobalServiceMode}
                           isFirst={index === 0}
-                          isLast={index === sorted.length - 1}
+                          isLast={index === pageConnections.length - 1}
                           isSelected={selectedIds.has(conn.id)}
                           onToggleSelect={() => handleToggleSelectOne(conn.id)}
                           onMoveUp={() => handleSwapPriority(conn, sorted[index - 1])}
@@ -4927,15 +5034,17 @@ export default function ProviderDetailPage() {
                           perKeyProxyEnabled={readBooleanToggle(conn.perKeyProxyEnabled, false)}
                           onTogglePerKeyProxyEnabled={(enabled) => handleTogglePerKeyProxyEnabled(conn.id, enabled)}
                         />
-                      ))}
+                      )))
+                      }
                     </div>
+                    {paginationBar}
                   </>
                 );
               }
 
               // Build ordered tag groups: untagged first, then alphabetically
               const groupMap = new Map<string, ConnectionRowConnection[]>();
-              for (const conn of sorted) {
+              for (const conn of filtered) {
                 const tag = (conn.providerSpecificData?.tag as string | undefined)?.trim() || "";
                 if (!groupMap.has(tag)) groupMap.set(tag, []);
                 groupMap.get(tag)!.push(conn);
@@ -4949,35 +5058,38 @@ export default function ProviderDetailPage() {
               return (
                 <>
                   {selectedIds.size > 0 || connections.length > 0 ? (
-                    <div className="flex items-center justify-between px-3 py-2 bg-muted/50 rounded-t-lg border border-b-0 border-border">
-                      <label className="flex items-center gap-2 cursor-pointer select-none">
-                        <input
-                          type="checkbox"
-                          checked={allSelected}
-                          ref={(el) => {
-                            if (el) el.indeterminate = someSelected;
-                          }}
-                          onChange={handleToggleSelectAll}
-                          className="w-4 h-4 rounded border-border text-primary focus:ring-primary/30 cursor-pointer"
-                        />
-                        <span className="text-sm font-medium text-text-muted">
-                          {selectedIds.size > 0
-                            ? providerCountText(
-                                t,
-                                "selectedCount",
-                                selectedIds.size,
-                                "{count} selected",
-                                "{count} selected"
-                              )
-                            : providerCountText(
-                                t,
-                                "accountsCount",
-                                connections.length,
-                                "{count} account",
-                                "{count} accounts"
-                              )}
-                        </span>
-                      </label>
+                    <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 px-3 py-2 bg-muted/50 rounded-t-lg border border-b-0 border-border">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <label className="flex items-center gap-2 cursor-pointer select-none">
+                          <input
+                            type="checkbox"
+                            checked={allSelected}
+                            ref={(el) => {
+                              if (el) el.indeterminate = someSelected;
+                            }}
+                            onChange={handleToggleSelectAll}
+                            className="w-4 h-4 rounded border-border text-primary focus:ring-primary/30 cursor-pointer"
+                          />
+                          <span className="text-sm font-medium text-text-muted">
+                            {selectedIds.size > 0
+                              ? providerCountText(
+                                  t,
+                                  "selectedCount",
+                                  selectedIds.size,
+                                  "{count} selected",
+                                  "{count} selected"
+                                )
+                              : providerCountText(
+                                  t,
+                                  "accountsCount",
+                                  filtered.length,
+                                  "{count} account",
+                                  "{count} accounts"
+                                )}
+                          </span>
+                        </label>
+                        {filterPills}
+                      </div>
 
                       <div className="flex flex-wrap items-center justify-end gap-2">
                         {/* Distribute Proxies lives in the provider toolbar (top action bar);
@@ -5313,6 +5425,16 @@ export default function ProviderDetailPage() {
           onClose={handleCloseAddApiKeyModal}
         />
       )}
+      <ConfirmModal
+        isOpen={batchDeleteConfirmOpen}
+        onClose={() => setBatchDeleteConfirmOpen(false)}
+        onConfirm={handleBatchDeleteConfirm}
+        title={t("batchDeleteConfirmTitle", "Delete connections")}
+        message={t("batchDeleteConfirm", { count: selectedIds.size })}
+        confirmText={t("batchDeleteConfirmButton", "Delete")}
+        cancelText={t("cancel", "Cancel")}
+        loading={batchDeleting}
+      />
       {providerId === "codex" && applyCodexModalConnectionId && (
         <ApplyCodexAuthModal
           key={applyCodexModalConnectionId}

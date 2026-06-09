@@ -38,6 +38,13 @@ export const WEB_SESSION_CREDENTIAL_REQUIREMENTS = {
     acceptsFullCookieHeader: true,
     storageKeys: ["cookie", "__Secure-1PSID", "__Secure-1PSIDTS"],
   },
+  "gemini-business": {
+    kind: "cookie",
+    credentialName: "__Secure-1PSID (optional: __Secure-1PSIDTS)",
+    placeholder: "__Secure-1PSID=...; __Secure-1PSIDTS=... (from business.gemini.google)",
+    acceptsFullCookieHeader: true,
+    storageKeys: ["cookie", "__Secure-1PSID", "__Secure-1PSIDTS"],
+  },
   "perplexity-web": {
     kind: "cookie",
     credentialName: "__Secure-next-auth.session-token",
@@ -191,6 +198,13 @@ export const WEB_SESSION_CREDENTIAL_REQUIREMENTS = {
     placeholder: "manus_session=... or full Cookie header from manus.im",
     acceptsFullCookieHeader: true,
     storageKeys: ["cookie", "manus_session"],
+  },
+  lmarena: {
+    kind: "cookie",
+    credentialName: "session",
+    placeholder: "session=... or full Cookie header from lmarena.ai",
+    acceptsFullCookieHeader: true,
+    storageKeys: ["cookie", "session"],
   },
 } satisfies Record<keyof typeof WEB_COOKIE_PROVIDERS, WebSessionCredentialRequirement>;
 

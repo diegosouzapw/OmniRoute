@@ -271,6 +271,206 @@ RTK mode is inspired by **[RTK - Rust Token Killer](https://github.com/rtk-ai/rt
 
 ---
 
+## Advanced Compression Systems
+
+Beyond the 7 standard modes, OmniRoute includes several advanced compression
+systems that work automatically based on context.
+
+### Cache-Aware Compression
+
+Some providers (like Anthropic with prompt caching) support **prompt caching**,
+which lets them cache parts of the prompt to reduce costs and latency. When
+caching is enabled, aggressive compression can actually **hurt** performance
+because it changes the cached tokens, invalidating the cache.
+
+The `cachingAware.ts` module solves this by **detecting caching context** and
+**adjusting the compression strategy** accordingly.
+
+#### How it works
+
+1. **Detect caching context** — Scans the request body for `cache_control` markers
+2. **Identify caching providers** — Checks if the target provider supports caching
+3. **Adjust strategy** — Downgrades `aggressive`/`ultra` to `standard` for caching providers
+4. **Skip system prompt** — System prompts are usually cached, so don't compress them
+5. **Use deterministic transformations** — Only use transformations that produce consistent output
+
+#### Code example
+
+```ts
+import { detectCachingContext, getCacheAwareStrategy } from "@omniroute/open-sse/services/compression/cachingAware";
+
+const body = {
+  model: "anthropic/claude-sonnet-4.5",
+  messages: [{ role: "user", content: "Hello" }],
+  cache_control: { type: "ephemeral" }, // ← Cache marker
+};
+
+const ctx = detectCachingContext(body, { provider: "anthropic" });
+// → { hasCacheControl: true, provider: "anthropic", isCachingProvider: true }
+
+const strategy = getCacheAwareStrategy("aggressive", ctx);
+// → { strategy: "standard", skipSystemPrompt: true, deterministicOnly: true }
+```
+
+#### When to use
+
+Cache-aware compression is **always on** — no configuration needed. It only kicks in
+when:
+- The request has `cache_control` markers
+- The target provider supports prompt caching (Anthropic, OpenAI, etc.)
+
+### Progressive Aging
+
+Long conversations accumulate many message turns, but older turns become less
+relevant. The `progressiveAging.ts` module **degrades messages by turn distance**:
+
+- **Recent turns (0-3)**: Kept verbatim (full detail)
+- **Medium turns (4-8)**: Lite compression (whitespace, formatting cleanup)
+- **Old turns (9+)**: Caveman compression (filler removal, summarization)
+- **Very old turns (20+)**: Heavily summarized or dropped
+
+#### Code example
+
+```ts
+import { applyAging } from "@omniroute/open-sse/services/compression/progressiveAging";
+
+const messages = [
+  { role: "system", content: "You are a helpful assistant" },
+  { role: "user", content: "What is 2+2?" },
+  { role: "assistant", content: "4" },
+  // ... 50 more turns ...
+];
+
+const { messages: aged, saved } = applyAging(messages, {
+  verbatim: 3,   // First 3 turns: verbatim
+  light: 8,      // Turns 4-8: lite compression
+  moderate: 20,  // Turns 9-20: caveman compression
+  // Turns 21+: heavy summarization
+});
+
+// saved = number of tokens saved
+```
+
+#### When to use
+
+Progressive aging is **always on** for `aggressive` and `ultra` modes. It's
+particularly effective for:
+- Long-running coding sessions
+- Multi-day conversations
+- Agentic workflows with many tool calls
+
+### Caveman Output Mode
+
+The `outputMode.ts` module injects **system prompt instructions** to make the
+model itself produce compressed, terse output (a "caveman" style).
+
+#### How it works
+
+Instead of compressing the input, this mode adds a system prompt like:
+> "Reply in minimal words. Skip pleasantries. Use short sentences."
+
+This works particularly well for:
+- Code generation (terser output = fewer tokens)
+- Quick Q&A (no need for elaborate explanations)
+- Batch processing (maximize throughput)
+
+#### When to use
+
+Caveman output mode is **opt-in** — set it via the combo config:
+```json
+{
+  "strategy": "auto",
+  "config": {
+    "auto": {
+      "outputMode": "caveman"
+    }
+  }
+}
+```
+
+### Tool Result Compression
+
+The `toolResultCompressor.ts` module provides **5 specialized compression strategies**
+for tool results (function calls, agent outputs, search results, etc.):
+
+1. **Search result compression** — Removes redundant results, keeps top-N
+2. **File read compression** — Truncates large files, preserves headers/imports
+3. **Code execution compression** — Keeps only essential stdout/stderr
+4. **Database query compression** — Limits rows, removes verbose metadata
+5. **API response compression** — Strips null fields, condenses arrays
+
+#### When to use
+
+Tool result compression is **always on** when tool calls are present. No
+configuration needed.
+
+### Stacked Pipeline
+
+The stacked mode runs **multiple engines in sequence** — usually RTK first
+(60-90% savings on tool output), then Caveman (30% additional savings on the
+remaining text). This achieves **78-95% total savings**.
+
+#### How it works
+
+```
+Input (1000 tokens)
+  → RTK (command-aware filter) → 200 tokens
+    → Caveman (filler removal) → 140 tokens
+  → Output (140 tokens, 86% savings)
+```
+
+#### When to use
+
+Use stacked mode for:
+- Tool-heavy workflows (agentic coding, research)
+- Cost-sensitive batch processing
+- When you need maximum token savings
+
+Configure via combo:
+```json
+{
+  "strategy": "auto",
+  "config": {
+    "auto": {
+      "modePack": "stacked"
+    }
+  }
+}
+```
+
+---
+
+## Compression Combo Overrides
+
+You can override the global compression mode **per combo** to fine-tune behavior
+for different use cases:
+
+```json
+{
+  "id": "coding-combo",
+  "strategy": "priority",
+  "config": {
+    "auto": {
+      "weights": { "taskFit": 0.5 },
+      "modePack": "quality-first"
+    }
+  },
+  "compressionOverride": {
+    "mode": "aggressive",
+    "stackedPipelines": ["rtk", "caveman"],
+    "preserveToolDefinitions": true
+  }
+}
+```
+
+This is useful for:
+- **Coding combos**: Use `aggressive` mode for long sessions
+- **Quick Q&A combos**: Use `lite` mode for fast responses
+- **Tool-heavy combos**: Use `stacked` mode for max savings
+- **Production combos**: Use `cache-aware` mode for caching providers
+
+---
+
 ## See Also
 
 - [Environment Config](../reference/ENVIRONMENT.md) — Compression environment variables
