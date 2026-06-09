@@ -4,11 +4,12 @@
  * `/v1/images/generations` and `/v1/images/edits` must resolve a requested model the
  * same way, and as close as practical to how chat routing resolves models:
  *
- *   1. Built-in image model id / alias (`cgpt-web/...`, `gpt-image-1`, …) — untouched.
- *   2. Custom provider *prefix* form (`myImg/gpt-image-2`) — rewritten to the internal
+ *   1. Bare combo / alias name with no slash (`image`) — resolved to the combo's single
+ *      image target, then that target is itself prefix-resolved. Bare combos intentionally
+ *      override built-in image aliases with the same name.
+ *   2. Built-in image model id / alias (`cgpt-web/...`, `gpt-image-1`, …) — untouched.
+ *   3. Custom provider *prefix* form (`myImg/gpt-image-2`) — rewritten to the internal
  *      `<nodeId>/<model>` id (#3205 did this inline in the generations route only).
- *   3. Bare combo / alias name with no slash (`image`) — resolved to the combo's single
- *      image target, then that target is itself prefix-resolved.
  *
  * Anything that does not match falls through unchanged, so existing built-in and
  * already-internal ids keep working.
@@ -60,7 +61,8 @@ export async function resolveSingleImageComboTarget(name: string): Promise<strin
     const allCombos = await getCombos();
     const targets = resolveComboTargets(combo as never, allCombos as never);
     const first = targets.find(
-      (t: { modelStr?: unknown }) => typeof t?.modelStr === "string" && (t.modelStr as string).trim()
+      (t: { modelStr?: unknown }) =>
+        typeof t?.modelStr === "string" && (t.modelStr as string).trim()
     );
     return (first?.modelStr as string) ?? null;
   } catch {
@@ -74,18 +76,21 @@ export async function resolveSingleImageComboTarget(name: string): Promise<strin
 export async function resolveImageRouteModel(modelStr: string): Promise<string> {
   if (typeof modelStr !== "string" || !modelStr.trim()) return modelStr;
 
-  // 1. Built-in image model (alias or provider/model) — leave untouched.
-  if (parseImageModel(modelStr).provider) return modelStr;
-
-  // 3. Bare combo/alias name (no slash): resolve to its single image target, then
+  // 1. Bare combo/alias name (no slash): resolve to its single image target, then
   //    prefix-resolve that target (it may itself be a `prefix/model` custom id).
+  //    This intentionally precedes built-in aliases so user combos can shadow names
+  //    like `gpt-image-2`; explicit `provider/model` ids still bypass this branch.
   if (!modelStr.includes("/")) {
     const target = await resolveSingleImageComboTarget(modelStr);
     if (target && target !== modelStr) return resolveImageModelPrefix(target);
-    return modelStr;
   }
 
-  // 2. Custom provider prefix form — rewrite to internal `<nodeId>/<model>`.
+  // 2. Built-in image model (alias or provider/model) — leave untouched.
+  if (parseImageModel(modelStr).provider) return modelStr;
+
+  if (!modelStr.includes("/")) return modelStr;
+
+  // 3. Custom provider prefix form — rewrite to internal `<nodeId>/<model>`.
   return resolveImageModelPrefix(modelStr);
 }
 
@@ -125,8 +130,7 @@ export function parseDataUrl(value: unknown): { bytes: Buffer; mime: string } | 
  */
 export function extractImageEditInputFromJson(body: unknown): ParsedImageEditInput {
   const obj = (body && typeof body === "object" ? body : {}) as Record<string, unknown>;
-  const str = (v: unknown): string | null =>
-    typeof v === "string" && v.trim() ? v.trim() : null;
+  const str = (v: unknown): string | null => (typeof v === "string" && v.trim() ? v.trim() : null);
 
   const prompt = typeof obj.prompt === "string" ? obj.prompt.trim() : "";
   const model = str(obj.model);
