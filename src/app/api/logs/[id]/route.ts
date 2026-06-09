@@ -5,13 +5,12 @@ import { getCompletedDetails, getPendingById } from "@/lib/usage/usageHistory";
 
 export const dynamic = "force-dynamic";
 
-export async function GET(req: Request) {
+export async function GET(req: Request, { params }: { params: { id: string } }) {
   const authError = await requireManagementAuth(req);
   if (authError) return authError;
 
   try {
-    const url = new URL(req.url);
-    const id = url.pathname.split("/").pop();
+    const id = params?.id;
     if (!id) return NextResponse.json({ error: "Missing id" }, { status: 400 });
 
     // Prefer in-flight active pending requests first to avoid races where

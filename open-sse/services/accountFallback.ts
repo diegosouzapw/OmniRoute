@@ -876,7 +876,7 @@ export function parseRetryAfterFromBody(responseBody: unknown): {
 
   // OpenAI: "Please retry after 20s" in message
   const msg = String(error.message || body.message || "");
-  const retryMatch = RegExp(/retry\s+after\s+(\d+)\s*s/i).exec(msg);
+  const retryMatch = /retry\s+after\s+(\d+)\s*s/i.exec(msg);
   if (retryMatch) {
     return {
       retryAfterMs: Number.parseInt(retryMatch[1], 10) * 1000,
@@ -901,13 +901,13 @@ export function parseRetryAfterFromBody(responseBody: unknown): {
 function parseDelayString(value: unknown): number | null {
   if (!value) return null;
   const str = String(value).trim();
-  const msMatch = RegExp(/^(\d+)\s*ms$/i).exec(str);
+  const msMatch = /^(\d+)\s*ms$/i.exec(str);
   if (msMatch) return Number.parseInt(msMatch[1], 10);
-  const secMatch = RegExp(/^(\d+)\s*s$/i).exec(str);
+  const secMatch = /^(\d+)\s*s$/i.exec(str);
   if (secMatch) return Number.parseInt(secMatch[1], 10) * 1000;
-  const minMatch = RegExp(/^(\d+)\s*m$/i).exec(str);
+  const minMatch = /^(\d+)\s*m$/i.exec(str);
   if (minMatch) return Number.parseInt(minMatch[1], 10) * 60 * 1000;
-  const hrMatch = RegExp(/^(\d+)\s*h$/i).exec(str);
+  const hrMatch = /^(\d+)\s*h$/i.exec(str);
   if (hrMatch) return Number.parseInt(hrMatch[1], 10) * 3600 * 1000;
   // Bare number → seconds
   const num = Number.parseInt(str, 10);
@@ -930,9 +930,9 @@ export function parseRetryFromErrorText(errorText: unknown): number | null {
   // timestamp instead of a relative duration (e.g. "Try again at
   // 2026-05-17T10:00:00Z" or "Please wait until 2026-05-17T10:00:00.000Z").
   // Convert to a future-duration in milliseconds if it parses.
-  const isoMatch = RegExp(
+  const isoMatch =
     /\b(?:try again at|wait until|reset(?:s)? at|available at|retry after)\s+(\d{4}-\d{2}-\d{2}[Tt ]\d{2}:\d{2}(?::\d{2})?(?:\.\d+)?(?:Z|[+-]\d{2}:?\d{2})?)/i
-  ).exec(msg);
+      .exec(msg);
   if (isoMatch) {
     const parsedTs = Date.parse(isoMatch[1]);
     if (Number.isFinite(parsedTs)) {
@@ -941,15 +941,15 @@ export function parseRetryFromErrorText(errorText: unknown): number | null {
     }
   }
 
-  const match = RegExp(/reset after (\d+h)?(\d+m)?(\d+s)?/i).exec(msg);
+  const match = /reset after (\d+h)?(\d+m)?(\d+s)?/i.exec(msg);
   if (match?.[1] || match?.[2] || match?.[3]) return computeDurationMs(match);
 
   // Variant without "reset after": "will reset after XhYmZs"
-  const altMatch = RegExp(/will reset after (\d+h)?(\d+m)?(\d+s)?/i).exec(msg);
+  const altMatch = /will reset after (\d+h)?(\d+m)?(\d+s)?/i.exec(msg);
   if (altMatch?.[1] || altMatch?.[2] || altMatch?.[3]) return computeDurationMs(altMatch);
 
   // Antigravity / Cloud Code phrasing: "Resets in 164h27m24s".
-  const resetsInMatch = RegExp(/resets? in (\d+h)?(\d+m)?(\d+s)?/i).exec(msg);
+  const resetsInMatch = /resets? in (\d+h)?(\d+m)?(\d+s)?/i.exec(msg);
   if (resetsInMatch?.[1] || resetsInMatch?.[2] || resetsInMatch?.[3]) {
     return computeDurationMs(resetsInMatch);
   }

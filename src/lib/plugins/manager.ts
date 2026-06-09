@@ -431,7 +431,14 @@ class PluginManager {
     // Fire onDeactivate lifecycle hook BEFORE unregistering — plugin's handlers
     // are still registered at this point so its own onDeactivate can run.
     if (manifest?.hooks.onDeactivate) {
-      await emitHook("onDeactivate", { name, version: manifest.version, manifest });
+      try {
+        await emitHook("onDeactivate", { name, version: manifest.version, manifest });
+      } catch (err) {
+        log.error("manager.deactivate_hook_error", {
+          name,
+          error: err instanceof Error ? err.message : String(err),
+        });
+      }
     }
 
     const loaded = this.loadedPlugins.get(name);
@@ -462,7 +469,14 @@ class PluginManager {
 
     // Fire onUninstall lifecycle hook (before deleting files)
     if (manifest.hooks.onUninstall) {
-      await emitHook("onUninstall", { name, version: manifest.version, manifest });
+      try {
+        await emitHook("onUninstall", { name, version: manifest.version, manifest });
+      } catch (err) {
+        log.error("manager.uninstall_hook_error", {
+          name,
+          error: err instanceof Error ? err.message : String(err),
+        });
+      }
     }
 
     // CRITICAL-2: Assert the pluginDir from DB is within our managed pluginDir root
