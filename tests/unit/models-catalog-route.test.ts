@@ -180,16 +180,20 @@ test("v1 models catalog includes display names by default", async () => {
 test("v1 models catalog omits display names when the feature flag is disabled", async () => {
   featureFlagsDb.setFeatureFlagOverride("MODEL_CATALOG_INCLUDE_NAMES", "false");
 
-  const response = await v1ModelsCatalog.getUnifiedModelsResponse(
-    new Request("http://localhost/api/v1/models")
-  );
-  const body = (await response.json()) as any;
-  const model = body.data.find((item) => item.id === "tllm/claude_sonnet_4");
+  try {
+    const response = await v1ModelsCatalog.getUnifiedModelsResponse(
+      new Request("http://localhost/api/v1/models")
+    );
+    const body = (await response.json()) as any;
+    const model = body.data.find((item) => item.id === "tllm/claude_sonnet_4");
 
-  assert.equal(response.status, 200);
-  assert.ok(model);
-  assert.equal("name" in model, false);
-  assert.equal(model.root, "claude_sonnet_4");
+    assert.equal(response.status, 200);
+    assert.ok(model);
+    assert.equal("name" in model, false);
+    assert.equal(model.root, "claude_sonnet_4");
+  } finally {
+    featureFlagsDb.removeFeatureFlagOverride("MODEL_CATALOG_INCLUDE_NAMES");
+  }
 });
 
 test("v1 models catalog hides models excluded by every active connection while keeping models served by at least one account", async () => {

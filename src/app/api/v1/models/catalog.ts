@@ -94,12 +94,12 @@ function parseJsonStringArray(value: unknown): string[] {
 function maybeOmitCatalogModelName<T extends Record<string, unknown>>(
   model: T,
   includeNames: boolean
-): T {
+): T | Omit<T, "name"> {
   if (includeNames || !Object.prototype.hasOwnProperty.call(model, "name")) return model;
 
-  const nextModel = { ...model };
-  delete nextModel.name;
-  return nextModel as T;
+  const { name: omittedName, ...nextModel } = model;
+  void omittedName;
+  return nextModel;
 }
 
 function intersectStringArrays(arrays: string[][]): string[] {

@@ -290,8 +290,12 @@ describe("resolveFeatureFlag", () => {
 
     it("isModelCatalogNamesEnabled defaults on and follows overrides", () => {
       assert.strictEqual(isModelCatalogNamesEnabled(), true);
-      setFeatureFlagOverride("MODEL_CATALOG_INCLUDE_NAMES", "false");
-      assert.strictEqual(isModelCatalogNamesEnabled(), false);
+      try {
+        setFeatureFlagOverride("MODEL_CATALOG_INCLUDE_NAMES", "false");
+        assert.strictEqual(isModelCatalogNamesEnabled(), false);
+      } finally {
+        removeFeatureFlagOverride("MODEL_CATALOG_INCLUDE_NAMES");
+      }
     });
   });
 });

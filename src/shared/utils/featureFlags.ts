@@ -73,13 +73,5 @@ export function isCcCompatibleProviderEnabled(): boolean {
 }
 
 export function isModelCatalogNamesEnabled(): boolean {
-  try {
-    return isFeatureFlagEnabled("MODEL_CATALOG_INCLUDE_NAMES");
-  } catch (error) {
-    console.error(
-      "[featureFlags] Failed to resolve MODEL_CATALOG_INCLUDE_NAMES, defaulting to enabled:",
-      error instanceof Error ? error.message : error
-    );
-    return true;
-  }
+  return isFeatureFlagEnabled("MODEL_CATALOG_INCLUDE_NAMES");
 }
