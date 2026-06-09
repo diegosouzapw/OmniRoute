@@ -248,8 +248,8 @@ test("plugin hooks system", async (t) => {
     resetHooks();
   });
 
-  await t.test("BUILTIN_EVENTS has all 10 events", () => {
-    assert.equal(BUILTIN_EVENTS.length, 10);
+  await t.test("BUILTIN_EVENTS has all 14 events (incl. lifecycle)", () => {
+    assert.equal(BUILTIN_EVENTS.length, 14);
     assert.ok(BUILTIN_EVENTS.includes("onRequest"));
     assert.ok(BUILTIN_EVENTS.includes("onResponse"));
     assert.ok(BUILTIN_EVENTS.includes("onError"));
@@ -260,6 +260,11 @@ test("plugin hooks system", async (t) => {
     assert.ok(BUILTIN_EVENTS.includes("onProviderError"));
     assert.ok(BUILTIN_EVENTS.includes("onStreamStart"));
     assert.ok(BUILTIN_EVENTS.includes("onStreamEnd"));
+    // Lifecycle events added in #3473.
+    assert.ok(BUILTIN_EVENTS.includes("onInstall"));
+    assert.ok(BUILTIN_EVENTS.includes("onActivate"));
+    assert.ok(BUILTIN_EVENTS.includes("onDeactivate"));
+    assert.ok(BUILTIN_EVENTS.includes("onUninstall"));
     resetHooks();
   });
 });

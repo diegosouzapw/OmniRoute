@@ -99,6 +99,15 @@ export function detectFormatFromEndpoint(body, endpointPath = "") {
     /\/(?:chat\/completions|completions)(?=\/|$)/i.test(path) ||
     /^(?:chat\/completions|completions)(?=\/|$)/i.test(path)
   ) {
+    if (
+      body &&
+      typeof body === "object" &&
+      !Array.isArray(body) &&
+      body.input !== undefined &&
+      body.messages === undefined
+    ) {
+      return "openai-responses";
+    }
     return "openai";
   }
 

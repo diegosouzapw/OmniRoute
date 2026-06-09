@@ -1325,7 +1325,7 @@
       "settings.update_failed": "Settings Update Failed",
       "sync.token.created": "Sync Token Created",
       "sync.token.revoked": "Sync Token Revoked"
-    }
+  }
   },
   "themesPage": {
     "title": "Themes",
@@ -7840,7 +7840,9 @@
     "loadingLogs": "Loading logs...",
     "noLogs": "No logs yet. Make some API calls to see them here.",
     "noMatchingLogs": "No logs matching current filters.",
-    "callLogsInfo": "Call logs are also saved as JSON files to {dataDir} and rotated based on {retentionDays} and {maxEntries}."
+    "callLogsInfo": "Call logs are also saved as JSON files to {dataDir} and rotated based on {retentionDays} and {maxEntries}.",
+    "loadMore": "Load More",
+    "loadingMore": "Loading more..."
   },
   "proxyLogger": {
     "filterAll": "All",

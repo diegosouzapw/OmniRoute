@@ -130,7 +130,7 @@ export function parseSSEToOpenAIResponse(rawSSE, fallbackModel) {
 
   const getToolCallKey = (toolCall: Record<string, unknown>) => {
     if (Number.isInteger(toolCall?.index)) return `idx:${toolCall.index}`;
-    if (toolCall?.id) return `id:${toolCall.id}`;
+    if (toolCall?.id != null) return `id:${String(toolCall.id)}`;
     unknownToolCallSeq += 1;
     return `seq:${unknownToolCallSeq}`;
   };
@@ -448,11 +448,16 @@ function toOutputIndex(value) {
   return null;
 }
 
+function toIdString(value) {
+  return value === null || value === undefined ? "" : String(value);
+}
+
 function cloneResponseItem(item) {
   const record = toRecord(item);
   return {
     ...record,
     id: record.id != null ? String(record.id) : record.id,
+    call_id: record.call_id != null ? String(record.call_id) : record.call_id,
     ...(Array.isArray(record.content)
       ? {
           content: record.content.map((contentPart) => {
@@ -517,18 +522,28 @@ function ensureResponsesReasoningItem(outputItems, outputIndex, itemId) {
 
 function ensureResponsesFunctionCallItem(outputItems, outputIndex, itemId, callId, name) {
   const existing = outputItems.get(outputIndex);
+  const normalizedItemId = toIdString(itemId);
+  const normalizedCallId = toIdString(callId);
+  const existingId = existing?.id != null ? String(existing.id) : "";
+  const existingCallId = existing?.call_id != null ? String(existing.call_id) : "";
+
   if (existing?.type === "function_call") {
-    if (callId && !existing.call_id) existing.call_id = callId;
+    if (existing.call_id != null) existing.call_id = String(existing.call_id);
+    if (existing.id != null) existing.id = String(existing.id);
+    if (normalizedCallId && !existing.call_id) existing.call_id = normalizedCallId;
     if (name && !existing.name) existing.name = name;
-    if (itemId && !existing.id) existing.id = itemId;
+    if (normalizedItemId && !existing.id) existing.id = normalizedItemId;
     return existing;
   }
 
   const next = {
     ...(existing && typeof existing === "object" ? existing : {}),
-    id: itemId || (existing?.id != null ? String(existing.id) : null) || `fc_${callId || `${Date.now()}_${outputIndex}`}`,
+    id:
+      normalizedItemId ||
+      existingId ||
+      `fc_${normalizedCallId || `${Date.now()}_${outputIndex}`}`,
     type: "function_call",
-    call_id: callId || existing?.call_id || "",
+    call_id: normalizedCallId || existingCallId || "",
     name: name || existing?.name || "",
     arguments: typeof existing?.arguments === "string" ? existing.arguments : "",
   };
@@ -626,7 +641,7 @@ export function parseSSEToResponsesOutput(rawSSE, fallbackModel) {
       const reasoningItem = ensureResponsesReasoningItem(
         outputItems,
         outputIndex,
-        toString(evt.item_id)
+        toIdString(evt.item_id)
       );
       const summary = Array.isArray(reasoningItem.summary) ? reasoningItem.summary : [];
       const firstPart =
@@ -641,7 +656,7 @@ export function parseSSEToResponsesOutput(rawSSE, fallbackModel) {
       const reasoningItem = ensureResponsesReasoningItem(
         outputItems,
         outputIndex,
-        toString(evt.item_id)
+        toIdString(evt.item_id)
       );
       const summary = Array.isArray(reasoningItem.summary) ? reasoningItem.summary : [];
       const firstPart =
@@ -656,7 +671,7 @@ export function parseSSEToResponsesOutput(rawSSE, fallbackModel) {
       const functionCallItem = ensureResponsesFunctionCallItem(
         outputItems,
         outputIndex,
-        toString(evt.item_id),
+        toIdString(evt.item_id),
         "",
         ""
       );
@@ -667,7 +682,7 @@ export function parseSSEToResponsesOutput(rawSSE, fallbackModel) {
       const functionCallItem = ensureResponsesFunctionCallItem(
         outputItems,
         outputIndex,
-        toString(evt.item_id),
+        toIdString(evt.item_id),
         "",
         ""
       );
@@ -709,10 +724,14 @@ export function parseSSEToResponsesOutput(rawSSE, fallbackModel) {
     id: picked.id != null ? String(picked.id) : `resp_${Date.now()}`,
     object: picked.object || "response",
     model: picked.model || fallbackModel || "unknown",
-    output: (pickedOutput.length > 0 ? pickedOutput : reconstructedOutput).map((item) => ({
-      ...item,
-      id: item.id != null ? String(item.id) : item.id,
-    })),
+    output: (pickedOutput.length > 0 ? pickedOutput : reconstructedOutput).map((item) => {
+      const record = toRecord(item);
+      return {
+        ...record,
+        id: record.id != null ? String(record.id) : record.id,
+        call_id: record.call_id != null ? String(record.call_id) : record.call_id,
+      };
+    }),
     usage: picked.usage || null,
     status: picked.status || statusFallback,
     created_at: picked.created_at || Math.floor(Date.now() / 1000),
