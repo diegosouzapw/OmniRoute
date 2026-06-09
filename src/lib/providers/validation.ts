@@ -573,6 +573,7 @@ export async function validateCommandCodeProvider({ apiKey, providerSpecificData
     providerSpecificData?.validationModelId ||
     entry?.models?.find((model) => model.id === "deepseek/deepseek-v4-flash")?.id ||
     "deepseek/deepseek-v4-flash";
+  const { COMMAND_CODE_VERSION } = await import("@omniroute/open-sse/executors/commandCode.ts");
 
   return validateDirectChatProvider({
     url,
@@ -580,7 +581,7 @@ export async function validateCommandCodeProvider({ apiKey, providerSpecificData
     headers: {
       "Content-Type": "application/json",
       Authorization: `Bearer ${apiKey}`,
-      "x-command-code-version": process.env.COMMAND_CODE_VERSION?.trim() || "0.33.2",
+      "x-command-code-version": COMMAND_CODE_VERSION,
       "x-cli-environment": "external",
       "x-project-slug": "pi-cc",
       "x-taste-learning": "false",

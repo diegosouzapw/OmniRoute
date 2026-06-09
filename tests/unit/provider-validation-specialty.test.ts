@@ -13,6 +13,8 @@ const { __setTlsFetchOverrideForTesting: __setPplxTlsFetchOverride } =
 const { __setTlsFetchOverrideForTesting: __setGrokTlsFetchOverride } =
   await import("../../open-sse/services/grokTlsClient.ts");
 
+const { COMMAND_CODE_VERSION } = await import("../../open-sse/executors/commandCode.ts");
+
 const originalFetch = globalThis.fetch;
 
 test.afterEach(() => {
@@ -506,9 +508,7 @@ test("grok-web validator: 403 with credential-rejection body is treated as auth-
 
 test("grok-web validator: TLS client unavailable surfaces actionable error", async () => {
   __setGrokTlsFetchOverride(async () => {
-    const { TlsClientUnavailableError } = await import(
-      "../../open-sse/services/grokTlsClient.ts"
-    );
+    const { TlsClientUnavailableError } = await import("../../open-sse/services/grokTlsClient.ts");
     throw new TlsClientUnavailableError("native binary not found");
   });
 
@@ -1960,7 +1960,7 @@ test("validateCommandCodeProvider sends Command Code probe URL, headers, and wra
   assert.equal(calls[0].method, "POST");
   assert.equal(calls[0].headers.Authorization, "Bearer cc_test_key");
   assert.equal(calls[0].headers["Content-Type"], "application/json");
-  assert.equal(calls[0].headers["x-command-code-version"], "0.24.1");
+  assert.equal(calls[0].headers["x-command-code-version"], COMMAND_CODE_VERSION);
   assert.equal(calls[0].headers["x-cli-environment"], "external");
   assert.equal(calls[0].headers["x-project-slug"], "pi-cc");
   assert.equal(calls[0].headers["x-taste-learning"], "false");
@@ -2003,7 +2003,11 @@ test("validateCommandCodeProvider rejects auth failures and provider outages", a
 const { __setTlsFetchOverrideForTesting: __setClaudeTlsFetchOverride } =
   await import("../../open-sse/services/claudeTlsClient.ts");
 
-function makeClaudeTlsResponse(status: number, body: string, headers: Record<string, string> = {}): any {
+function makeClaudeTlsResponse(
+  status: number,
+  body: string,
+  headers: Record<string, string> = {}
+): any {
   const h = new Headers();
   for (const [k, v] of Object.entries(headers)) h.set(k, v);
   return { status, ok: status >= 200 && status < 300, headers: h, text: body, body: null };
@@ -2024,7 +2028,10 @@ test("claude-web validator: 200 from /api/organizations → valid", async () => 
   assert.equal(result.valid, true);
   assert.equal(result.error, null);
   assert.equal(captured?.url, "https://claude.ai/api/organizations");
-  assert.match((captured?.opts.headers as Record<string, string>).Cookie || "", /sessionKey=sk-ant-sid02-test-session-key/);
+  assert.match(
+    (captured?.opts.headers as Record<string, string>).Cookie || "",
+    /sessionKey=sk-ant-sid02-test-session-key/
+  );
   __setClaudeTlsFetchOverride(null);
 });
 
@@ -2072,9 +2079,7 @@ test("claude-web validator: 429 → valid (rate limited means auth passed)", asy
 });
 
 test("claude-web validator: 500 → Claude.ai unavailable", async () => {
-  __setClaudeTlsFetchOverride(async () =>
-    makeClaudeTlsResponse(500, "internal server error")
-  );
+  __setClaudeTlsFetchOverride(async () => makeClaudeTlsResponse(500, "internal server error"));
 
   const result = await validateProviderApiKey({
     provider: "claude-web",
@@ -2335,10 +2340,7 @@ test("gitlawb validator: accepts valid API key via chat/completions probe", asyn
 test("gitlawb validator: 400/422/429 treated as auth success", async () => {
   for (const status of [400, 422, 429]) {
     globalThis.fetch = async (url) => {
-      assert.equal(
-        String(url),
-        "https://opengateway.gitlawb.com/v1/xiaomi-mimo/chat/completions"
-      );
+      assert.equal(String(url), "https://opengateway.gitlawb.com/v1/xiaomi-mimo/chat/completions");
       return new Response(JSON.stringify({ error: "bad request" }), { status });
     };
     const result = await validateProviderApiKey({ provider: "gitlawb", apiKey: "glb-key" });
@@ -2349,10 +2351,7 @@ test("gitlawb validator: 400/422/429 treated as auth success", async () => {
 
 test("gitlawb validator: rejects invalid API key (401)", async () => {
   globalThis.fetch = async (url) => {
-    assert.equal(
-      String(url),
-      "https://opengateway.gitlawb.com/v1/xiaomi-mimo/chat/completions"
-    );
+    assert.equal(String(url), "https://opengateway.gitlawb.com/v1/xiaomi-mimo/chat/completions");
     return new Response(JSON.stringify({ error: "unauthorized" }), { status: 401 });
   };
 
@@ -2363,10 +2362,7 @@ test("gitlawb validator: rejects invalid API key (401)", async () => {
 
 test("gitlawb validator: rejects invalid API key (403)", async () => {
   globalThis.fetch = async (url) => {
-    assert.equal(
-      String(url),
-      "https://opengateway.gitlawb.com/v1/xiaomi-mimo/chat/completions"
-    );
+    assert.equal(String(url), "https://opengateway.gitlawb.com/v1/xiaomi-mimo/chat/completions");
     return new Response(JSON.stringify({ error: "forbidden" }), { status: 403 });
   };
 
@@ -2387,10 +2383,7 @@ test("gitlawb validator: surfaces network failures", async () => {
 
 test("gitlawb validator: accepts custom baseUrl override", async () => {
   globalThis.fetch = async (url, init = {}) => {
-    assert.equal(
-      String(url),
-      "https://custom-gateway.example.com/v1/xiaomi-mimo/chat/completions"
-    );
+    assert.equal(String(url), "https://custom-gateway.example.com/v1/xiaomi-mimo/chat/completions");
     assert.equal((init.headers as Record<string, string>).Authorization, "Bearer glb-key");
     return new Response(JSON.stringify({ choices: [{ message: { content: "ok" } }] }), {
       status: 200,
@@ -2414,7 +2407,10 @@ test("gitlawb-gmi validator: accepts valid API key via chat/completions probe", 
   globalThis.fetch = async (url, init = {}) => {
     calls.push({ url: String(url), headers: init.headers || {} });
     assert.equal(String(url), "https://opengateway.gitlawb.com/v1/gmi-cloud/chat/completions");
-    assert.equal((init.headers as Record<string, string>).Authorization, "Bearer glb-gmi-valid-key");
+    assert.equal(
+      (init.headers as Record<string, string>).Authorization,
+      "Bearer glb-gmi-valid-key"
+    );
     const body = JSON.parse(String(init.body));
     assert.equal(body.model, "XiaomiMiMo/MiMo-V2.5-Pro");
     assert.equal(body.messages[0].content, "test");
@@ -2435,10 +2431,7 @@ test("gitlawb-gmi validator: accepts valid API key via chat/completions probe", 
 test("gitlawb-gmi validator: accepts 400/422/429 as auth success", async () => {
   for (const status of [400, 422, 429]) {
     globalThis.fetch = async (url) => {
-      assert.equal(
-        String(url),
-        "https://opengateway.gitlawb.com/v1/gmi-cloud/chat/completions"
-      );
+      assert.equal(String(url), "https://opengateway.gitlawb.com/v1/gmi-cloud/chat/completions");
       return new Response(JSON.stringify({ error: "bad request" }), { status });
     };
     const result = await validateProviderApiKey({
@@ -2451,10 +2444,7 @@ test("gitlawb-gmi validator: accepts 400/422/429 as auth success", async () => {
 
 test("gitlawb-gmi validator: rejects invalid API key (401)", async () => {
   globalThis.fetch = async (url) => {
-    assert.equal(
-      String(url),
-      "https://opengateway.gitlawb.com/v1/gmi-cloud/chat/completions"
-    );
+    assert.equal(String(url), "https://opengateway.gitlawb.com/v1/gmi-cloud/chat/completions");
     return new Response(JSON.stringify({ error: "unauthorized" }), { status: 401 });
   };
 
@@ -2468,10 +2458,7 @@ test("gitlawb-gmi validator: rejects invalid API key (401)", async () => {
 
 test("gitlawb-gmi validator: rejects invalid API key (403)", async () => {
   globalThis.fetch = async (url) => {
-    assert.equal(
-      String(url),
-      "https://opengateway.gitlawb.com/v1/gmi-cloud/chat/completions"
-    );
+    assert.equal(String(url), "https://opengateway.gitlawb.com/v1/gmi-cloud/chat/completions");
     return new Response(JSON.stringify({ error: "forbidden" }), { status: 403 });
   };
 
@@ -2498,10 +2485,7 @@ test("gitlawb-gmi validator: surfaces network failures", async () => {
 
 test("gitlawb-gmi validator: accepts custom baseUrl override", async () => {
   globalThis.fetch = async (url, init = {}) => {
-    assert.equal(
-      String(url),
-      "https://custom-gateway.example.com/v1/gmi-cloud/chat/completions"
-    );
+    assert.equal(String(url), "https://custom-gateway.example.com/v1/gmi-cloud/chat/completions");
     assert.equal((init.headers as Record<string, string>).Authorization, "Bearer glb-gmi-key");
     return new Response(JSON.stringify({ choices: [{ message: { content: "ok" } }] }), {
       status: 200,
