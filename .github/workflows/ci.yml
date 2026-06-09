@@ -61,10 +61,14 @@ jobs:
       - run: npm ci
       - run: npm run quality:collect
       # Catraca: falha se qualquer métrica regredir vs quality-baseline.json (commitado).
-      # Hoje: contagem de warnings do ESLint. Fases 3/4 estendem com duplicação,
-      # tamanho de arquivo e cobertura (esta última lida do coverage mergeado).
+      # Hoje: contagem de warnings do ESLint. Fase 4 estende com cobertura (lida do
+      # coverage mergeado). Tamanho de arquivo e duplicação têm gates dedicados.
       - name: Ratchet check
         run: node scripts/quality/check-quality-ratchet.mjs --summary .artifacts/quality-ratchet.md
+      # Catraca de duplicação (jscpd@4 sobre src+open-sse). Roda neste job (paralelo)
+      # para não pesar no caminho crítico do lint.
+      - name: Duplication ratchet
+        run: npm run check:duplication
       - name: Append summary
         if: always()
         run: cat .artifacts/quality-ratchet.md >> "$GITHUB_STEP_SUMMARY"
