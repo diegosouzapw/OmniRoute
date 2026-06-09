@@ -118,6 +118,7 @@
     "check:deps": "node scripts/check/check-deps.mjs",
     "check:file-size": "node scripts/check/check-file-size.mjs",
     "check:duplication": "node scripts/check/check-duplication.mjs",
+    "check:test-masking": "node scripts/check/check-test-masking.mjs",
     "quality:collect": "node scripts/quality/collect-metrics.mjs",
     "quality:ratchet": "node scripts/quality/check-quality-ratchet.mjs",
     "quality:gate": "npm run quality:collect && npm run quality:ratchet",
