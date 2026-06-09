@@ -84,6 +84,7 @@ type Connection = {
 
 type FeedEventKind =
   | "circuit-opened"
+  | "circuit-degraded"
   | "circuit-recovered"
   | "circuit-closed"
   | "cooldown-added"
@@ -156,6 +157,7 @@ const FALLBACK_BREAKER_TONE: BreakerTone = {
 
 const FEED_KIND_META: Record<FeedEventKind, { icon: string; color: string; group: FeedFilter }> = {
   "circuit-opened": { icon: "block", color: "#ef4444", group: "circuits" },
+  "circuit-degraded": { icon: "warning", color: "#f97316", group: "circuits" },
   "circuit-recovered": { icon: "sync", color: "#eab308", group: "circuits" },
   "circuit-closed": { icon: "check_circle", color: "#22c55e", group: "circuits" },
   "cooldown-added": { icon: "ac_unit", color: "#3b82f6", group: "cooldowns" },
@@ -210,8 +212,8 @@ function normalizeBreakerState(state: string | null | undefined): string {
     .toUpperCase();
 }
 
-function getBreakerTone(state: string | null | undefined): BreakerTone {
-  return BREAKER_TONE[normalizeBreakerState(state)] || FALLBACK_BREAKER_TONE;
+function getBreakerTone(normalizedState: string): BreakerTone {
+  return BREAKER_TONE[normalizedState] || FALLBACK_BREAKER_TONE;
 }
 
 function pushFeed(prev: FeedEvent[], events: FeedEvent[]): FeedEvent[] {
@@ -259,7 +261,7 @@ function diffSnapshots(
       out.push({
         id: `cb-deg-${provider}-${nowTs}`,
         ts: nowTs,
-        kind: "circuit-recovered",
+        kind: "circuit-degraded",
         title: `${provider} DEGRADED`,
         detail: `${nextB.failureCount} failures · degraded but serving`,
       });
@@ -466,17 +468,24 @@ export default function RuntimePageClient() {
   );
 
   const counts = useMemo(() => {
-    const knownBreakerStates = new Set(["CLOSED", "OPEN", "HALF_OPEN", "DEGRADED"]);
-    const openCircuits = breakers.filter((b) => normalizeBreakerState(b.state) === "OPEN").length;
-    const halfCircuits = breakers.filter(
-      (b) => normalizeBreakerState(b.state) === "HALF_OPEN"
-    ).length;
-    const degradedCircuits = breakers.filter(
-      (b) => normalizeBreakerState(b.state) === "DEGRADED"
-    ).length;
-    const unknownCircuits = breakers.filter(
-      (b) => !knownBreakerStates.has(normalizeBreakerState(b.state))
-    ).length;
+    let openCircuits = 0;
+    let halfCircuits = 0;
+    let degradedCircuits = 0;
+    let unknownCircuits = 0;
+
+    for (const breaker of breakers) {
+      const state = normalizeBreakerState(breaker.state);
+      if (state === "OPEN") {
+        openCircuits++;
+      } else if (state === "HALF_OPEN") {
+        halfCircuits++;
+      } else if (state === "DEGRADED") {
+        degradedCircuits++;
+      } else if (state !== "CLOSED") {
+        unknownCircuits++;
+      }
+    }
+
     const totalBreakers = breakers.length;
     const affectedCircuits = openCircuits + halfCircuits + degradedCircuits + unknownCircuits;
     const sessions = health?.sessions?.activeCount ?? 0;

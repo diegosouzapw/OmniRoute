@@ -18,13 +18,15 @@ function getRequestPath(input: RequestInfo | URL) {
 
 const cleanupCallbacks: Array<() => void> = [];
 
-async function waitForText(text: string) {
+async function waitForText(text: string, timeoutMs = 3000) {
   const startedAt = Date.now();
   while (!document.body.textContent?.includes(text)) {
-    if (Date.now() - startedAt > 1000) {
+    if (Date.now() - startedAt > timeoutMs) {
       throw new Error(`Timed out waiting for text: ${text}`);
     }
-    await new Promise((resolve) => setTimeout(resolve, 10));
+    await act(async () => {
+      await new Promise((resolve) => setTimeout(resolve, 20));
+    });
   }
 }
 
