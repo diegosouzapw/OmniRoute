@@ -116,6 +116,7 @@
     "check:fetch-targets": "node scripts/check/check-fetch-targets.mjs",
     "check:openapi-routes": "node scripts/check/check-openapi-routes.mjs",
     "check:deps": "node scripts/check/check-deps.mjs",
+    "check:file-size": "node scripts/check/check-file-size.mjs",
     "quality:collect": "node scripts/quality/collect-metrics.mjs",
     "quality:ratchet": "node scripts/quality/check-quality-ratchet.mjs",
     "quality:gate": "npm run quality:collect && npm run quality:ratchet",

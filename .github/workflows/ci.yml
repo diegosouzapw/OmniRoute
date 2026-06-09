@@ -40,6 +40,7 @@ jobs:
       - run: npm run check:provider-consistency
       - run: npm run check:fetch-targets
       - run: npm run check:deps
+      - run: npm run check:file-size
       - run: npm run check:docs-sync
       - run: npm run typecheck:core
       # typecheck:noimplicit:core is a forward-looking gate (noImplicitAny).
