@@ -631,8 +631,8 @@ export function openaiToGeminiRequest(
   // functionCall on the follow-up request. Without this the streaming lookup key didn't
   // match and Gemini rejected tool calls with 400 "missing thought_signature" (#2504).
   const signatureNamespace =
-    credentials && typeof credentials._signatureNamespace === "string"
-      ? credentials._signatureNamespace
+    credentials && typeof credentials["_signatureNamespace"] === "string"
+      ? credentials["_signatureNamespace"]
       : null;
   return openaiToGeminiBase(model, body, stream, {
     signatureNamespace,
@@ -832,8 +832,8 @@ register(
         signatureNamespace:
           credentials &&
           typeof credentials === "object" &&
-          typeof credentials._signatureNamespace === "string"
-            ? (credentials._signatureNamespace as string)
+          typeof credentials["_signatureNamespace"] === "string"
+            ? (credentials["_signatureNamespace"] as string)
             : null,
       }),
       credentials
