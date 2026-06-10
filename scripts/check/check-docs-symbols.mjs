@@ -60,7 +60,9 @@ export const KNOWN_STALE_DOC_REFS = new Set([
   "/api/shadow/[id]",
   "/api/shadow/[id]/results",
   "/api/shadow/metrics",
-  // docs/research/DISCOVERY_TOOL_DESIGN.md — design doc de feature NÃO implementada: — #3498
+  // docs/research/DISCOVERY_TOOL_DESIGN.md — design doc de feature NÃO implementada
+  // (Phase 2). Refs INTENCIONAIS: o doc agora traz um banner "⚠️ Not yet implemented
+  // — Phase 2" acima da tabela de endpoints. Mantidos aqui até a feature existir. — #3498
   "/api/discovery/results",
   "/api/discovery/results/:id",
   "/api/discovery/scan",

@@ -83,6 +83,12 @@ CREATE TABLE discovery_results (
 
 ## API Endpoints
 
+> ⚠️ **Not yet implemented — Phase 2 (Future).** The routes below are a design
+> proposal, not live endpoints. `src/lib/discovery/index.ts` is an explicit Phase-1
+> stub and none of the discovery routes exist yet. They are intentionally documented
+> here as the planned surface; the `check-docs-symbols` quality gate suppresses them
+> via `KNOWN_STALE_DOC_REFS` until Phase 2 lands. See **Implementation Plan → Phase 2**.
+
 | Method | Path | Description |
 |--------|------|-------------|
 | GET | `/api/discovery/results` | List all discovery results |
