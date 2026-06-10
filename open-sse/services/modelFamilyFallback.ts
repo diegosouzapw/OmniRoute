@@ -73,8 +73,9 @@ const MODEL_FAMILIES: Record<string, string[]> = {
   "gemini-2.5-pro": ["gemini-2.5-pro-preview-06-05", "gemini-2.5-pro-exp-03-25"],
   "gemini-2.5-pro-preview-06-05": ["gemini-2.5-pro", "gemini-2.5-pro-exp-03-25"],
 
-  // Claude Mythos family (Fable 5)
-  "claude-fable-5": ["claude-sonnet-4-6", "claude-opus-4-8"],
+  // Claude Mythos family (Fable 5) — flagship falls to the next-best Opus
+  // tiers before the cheaper Sonnet, matching the Opus family ordering.
+  "claude-fable-5": ["claude-opus-4-8", "claude-opus-4-7", "claude-sonnet-4-6"],
 
   // Claude Opus family
   "claude-opus-4-8": ["claude-opus-4-7", "claude-opus-4-6", "claude-sonnet-4-6"],
