@@ -101,14 +101,9 @@ export async function asTextCompletionResponse(res: Response): Promise<Response>
   const contentType = res.headers.get("content-type") || "";
 
   if (contentType.includes("text/event-stream") && res.body) {
-    // Re-serialization changes the byte length, so drop any upstream content-length
-    // (a buffered SSE body could otherwise advertise a stale length and truncate/hang
-    // the client), mirroring the JSON branch below. (#3821-review LEDGER-8)
-    const headers = new Headers(res.headers);
-    headers.delete("content-length");
     return new Response(res.body.pipeThrough(createTextCompletionStreamTransformer()), {
       status: res.status,
-      headers,
+      headers: res.headers,
     });
   }
 
