@@ -1,8 +1,35 @@
 import path from "node:path";
 import os from "node:os";
 import fs from "node:fs";
+import {
+  parseOutboundUrl,
+  isCloudMetadataHost,
+  OutboundUrlGuardError,
+} from "@/shared/network/outboundUrlGuard";
 
 const CONFIG_PATH = path.join(os.homedir(), ".config", "opencode", "opencode.json");
+
+/**
+ * SSRF guard for the catalog fetch (CodeQL js/request-forgery #326). The catalog
+ * source is the user's OWN OmniRoute instance, so loopback/private hosts are the
+ * legitimate default and must stay allowed — we cannot use the public-only guard
+ * here. What has NO legitimate use as a catalog source is the cloud-metadata /
+ * link-local pivot (169.254.169.254, metadata.google.internal, …): that is the
+ * classic SSRF→IAM-credential escalation and is blocked unconditionally, along
+ * with non-http(s) protocols and embedded credentials (via parseOutboundUrl).
+ */
+export function assertSafeCatalogUrl(rawUrl: string): URL {
+  const url = parseOutboundUrl(rawUrl); // throws on bad protocol / embedded creds
+  if (isCloudMetadataHost(url.hostname)) {
+    throw new OutboundUrlGuardError(
+      "Blocked cloud-metadata catalog URL (SSRF protection)",
+      { code: "OUTBOUND_URL_GUARD_BLOCKED", url: url.toString(), hostname: url.hostname }
+    );
+  }
+  // Return the re-parsed URL so callers fetch the validated value (a `new URL()`
+  // round-trip is a recognized request-forgery barrier — clears CodeQL #326).
+  return url;
+}
 
 /**
  * OpenAI-compatible model entry — subset of fields the /v1/models endpoint
@@ -87,10 +114,15 @@ export async function fetchOmniRouteCatalog(
     total: 0,
   };
 
+  // SSRF guard (CodeQL #326): baseUrl is user-controlled — block the cloud-metadata
+  // pivot before issuing the request. Loopback stays allowed. Fetch the VALIDATED,
+  // re-parsed URL the guard returns (not the raw string) so the taint is severed.
+  const safeUrl = assertSafeCatalogUrl(`${baseURL}/models`);
+
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), timeoutMs);
   try {
-    const response = await fetch(`${baseURL}/models`, {
+    const response = await fetch(safeUrl, {
       headers: { Authorization: `Bearer ${apiKey}` },
       signal: controller.signal,
     });

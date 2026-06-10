@@ -274,7 +274,11 @@ async function resetStorage() {
   fs.mkdirSync(TEST_DATA_DIR, { recursive: true });
 }
 
-async function waitFor(fn, timeoutMs = 1500) {
+// 10s ceiling: on 2-core CI runners under shard contention the 1500ms budget
+// expired mid-flight (observed: 1580ms fail on the upstream-timeout test) —
+// green runs return as soon as the condition holds, so the ceiling only
+// bounds the failure case.
+async function waitFor(fn, timeoutMs = 10000) {
   const startedAt = Date.now();
   while (Date.now() - startedAt < timeoutMs) {
     const result = await fn();
@@ -388,6 +392,11 @@ test.after(async () => {
 });
 
 test("chatCore times out upstream execution before provider response headers", async () => {
+  // This test asserts pendingDetail.providerRequest — only attached when the
+  // call-log pipeline capture is enabled. Declare the dependency explicitly
+  // (fresh-DB default leaves it off → the waitFor below would never resolve;
+  // failed deterministically on CI and on an isolated run, incl. at v3.8.18).
+  await settingsDb.updateSettings({ call_log_pipeline_enabled: true });
   const executor = getExecutor("openai");
   const originalGetTimeoutMs = executor.getTimeoutMs?.bind(executor);
   executor.getTimeoutMs = () => 200;
@@ -426,9 +435,12 @@ test("chatCore times out upstream execution before provider response headers", a
 
     const pendingDetail = (await waitFor(
       () =>
-        Object.values(getPendingRequests().details[connectionId] || {}).find(
-          (detail: any) => detail?.providerRequest?.model === "gpt-4o-mini"
-        )
+        // details[connectionId] is Record<modelKey, PendingRequestDetail[]> —
+        // the original predicate tested each ARRAY's .providerRequest (always
+        // undefined), so the waitFor could never resolve. Flatten to the details.
+        Object.values(getPendingRequests().details[connectionId] || {})
+          .flat()
+          .find((detail: any) => detail?.providerRequest?.model === "gpt-4o-mini")
     )) as any;
     assert.equal(pendingDetail?.providerRequest?.model, "gpt-4o-mini");
     assert.deepEqual(pendingDetail?.providerRequest?.messages, body.messages);
