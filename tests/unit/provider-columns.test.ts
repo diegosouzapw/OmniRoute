@@ -68,14 +68,15 @@ test("getProviderColumns: Antigravity falls back to dynamic schema (first 3 quot
       "claude-opus-4-6-thinking": { used: 0, total: 100, remainingPercentage: 100 },
       "claude-sonnet-4-6": { used: 0, total: 100, remainingPercentage: 100 },
       "gemini-3.1-pro-low": { used: 0, total: 100, remainingPercentage: 100 },
-      "gemini-3-flash-agent": { used: 0, total: 100, remainingPercentage: 100 },
       "gemini-3.5-flash-low": { used: 0, total: 100, remainingPercentage: 100 },
+      "gemini-3.5-flash-medium": { used: 0, total: 100, remainingPercentage: 100 },
+      "gemini-3.5-flash-high": { used: 0, total: 100, remainingPercentage: 100 },
     },
   });
 
   const schema = providerColumns.getProviderColumns("antigravity", quotas);
   assert.equal(schema.columns.length, providerColumns.MAX_DYNAMIC_COLUMNS);
-  assert.equal(schema.overflowCount, 2, "5 quotas - 3 visible = 2 overflow");
+  assert.equal(schema.overflowCount, 3, "6 quotas - 3 visible = 3 overflow");
 });
 
 test("getProviderColumns: credits never become columns, always counted toward overflow", () => {
@@ -105,7 +106,6 @@ test("getProviderColumns: unknown provider uses dynamic fallback", () => {
 });
 
 test("getProviderColumns: tolerates non-array quotas", () => {
-  // @ts-expect-error — exercise the runtime guard
   const schema = providerColumns.getProviderColumns("codex", null);
   assert.equal(schema.columns.length, 2);
   assert.equal(schema.columns[0].quota, null);

@@ -124,6 +124,21 @@ function getSoonestResetMs(quotas: any[] | undefined): number {
   return soonest;
 }
 
+function shouldAutoRefreshQuota(provider: string, cached: any): boolean {
+  const quotas = cached?.quotas;
+  if (!Array.isArray(quotas) || quotas.length === 0) return true;
+  if (provider !== "antigravity" && provider !== "agy") return false;
+
+  return quotas.some(
+    (q: any) =>
+      q &&
+      typeof q.modelKey === "string" &&
+      q.modelKey.startsWith("gemini-") &&
+      !q.isCredits &&
+      q.quotaSource !== "retrieveUserQuota"
+  );
+}
+
 const getQuotaBarWidthClass = (pct: number) => {
   if (pct <= 10) return "w-[10%]";
   if (pct <= 20) return "w-1/5";
@@ -670,8 +685,7 @@ export default function ProviderLimits({
     autoLiveFetchedRef.current = true;
     for (const conn of visibleConnections) {
       const cached = quotaData[conn.id];
-      const hasQuota = Array.isArray(cached?.quotas) && cached.quotas.length > 0;
-      if (!hasQuota) {
+      if (shouldAutoRefreshQuota(conn.provider, cached)) {
         void fetchQuota(conn.id, conn.provider, { force: true }).catch(() => {});
       }
     }
@@ -779,7 +793,9 @@ export default function ProviderLimits({
           onClick={refreshAll}
           disabled={refreshingAll}
           className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg bg-bg-subtle border border-border text-text-main text-[13px] disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
-          title={autoRefreshIntervalMs > 0 ? tr("autoRefreshing", "Auto-refreshing") : t("refreshAll")}
+          title={
+            autoRefreshIntervalMs > 0 ? tr("autoRefreshing", "Auto-refreshing") : t("refreshAll")
+          }
         >
           <span
             className={`material-symbols-outlined text-[16px] ${refreshingAll ? "animate-spin" : ""}`}
@@ -790,7 +806,10 @@ export default function ProviderLimits({
             ? tr("refreshing", "Refreshing")
             : autoRefreshIntervalMs > 0
               ? `${tr("autoRefreshing", "Auto-refreshing")} ${formatAutoRefreshCountdown(
-                  Math.max(0, autoRefreshIntervalMs - (autoRefreshClock - lastRefreshAllAtRef.current))
+                  Math.max(
+                    0,
+                    autoRefreshIntervalMs - (autoRefreshClock - lastRefreshAllAtRef.current)
+                  )
                 )}`
               : t("refreshAll")}
         </button>

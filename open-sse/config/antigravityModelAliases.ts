@@ -22,10 +22,16 @@ export const ANTIGRAVITY_PUBLIC_MODELS = Object.freeze([
     supportsVision: true,
     toolCalling: true,
   },
-  // Gemini 3.5 Flash — flagship model in Antigravity 2.0 (May 2026)
+  // Gemini 3.5 Flash tiers exposed by Antigravity 2.0.4's model selector.
+  // The user-facing names are Low / Medium / High, but fetchAvailableModels reports
+  // legacy upstream IDs for two of them:
+  //   Low    -> gemini-3.5-flash-extra-low (displayName: Gemini 3.5 Flash (Low))
+  //   Medium -> gemini-3.5-flash-low       (displayName: Gemini 3.5 Flash (Medium))
+  //   High   -> gemini-3-flash-agent       (displayName: Gemini 3.5 Flash (High))
+  // Keep the clean public IDs here and map them below for routing/quota.
   {
-    id: "gemini-3.5-flash-preview",
-    name: "Gemini 3.5 Flash",
+    id: "gemini-3.5-flash-low",
+    name: "Gemini 3.5 Flash (Low)",
     contextLength: 1048576,
     maxOutputTokens: 65536,
     supportsReasoning: true,
@@ -33,8 +39,17 @@ export const ANTIGRAVITY_PUBLIC_MODELS = Object.freeze([
     toolCalling: true,
   },
   {
-    id: "gemini-3-flash-agent",
-    name: "Gemini 3.5 Flash Agent",
+    id: "gemini-3.5-flash-medium",
+    name: "Gemini 3.5 Flash (Medium)",
+    contextLength: 1048576,
+    maxOutputTokens: 65536,
+    supportsReasoning: true,
+    supportsVision: true,
+    toolCalling: true,
+  },
+  {
+    id: "gemini-3.5-flash-high",
+    name: "Gemini 3.5 Flash (High)",
     contextLength: 1048576,
     maxOutputTokens: 65536,
     supportsReasoning: true,
@@ -68,33 +83,6 @@ export const ANTIGRAVITY_PUBLIC_MODELS = Object.freeze([
     contextLength: 1048576,
     maxOutputTokens: 65535,
     supportsReasoning: true,
-    supportsVision: true,
-    toolCalling: true,
-  },
-  {
-    id: "gemini-3-flash-preview",
-    name: "Gemini 3 Flash",
-    contextLength: 1048576,
-    maxOutputTokens: 65536,
-    supportsReasoning: true,
-    supportsVision: true,
-    toolCalling: true,
-  },
-  // Gemini 3.5 Flash budget tiers — agy ships these as exact upstream ids; #3184 verified
-  // they work via the antigravity OAuth provider (no alias remapping required).
-  {
-    id: "gemini-3.5-flash-low",
-    name: "Gemini 3.5 Flash (Low)",
-    contextLength: 1048576,
-    maxOutputTokens: 65536,
-    supportsVision: true,
-    toolCalling: true,
-  },
-  {
-    id: "gemini-3.5-flash-extra-low",
-    name: "Gemini 3.5 Flash (Extra Low)",
-    contextLength: 1048576,
-    maxOutputTokens: 65536,
     supportsVision: true,
     toolCalling: true,
   },
@@ -160,17 +148,15 @@ export const ANTIGRAVITY_PUBLIC_MODELS = Object.freeze([
   },
 ]);
 
-// The Antigravity upstream API uses plain model IDs (no -high/-low suffix).
-// The -high/-low suffix convention was speculative and caused 404 for all
-// gemini-3.x models. Only plain IDs like "gemini-2.5-flash" are proven working.
 export const ANTIGRAVITY_MODEL_ALIASES = Object.freeze({
+  "gemini-3.5-flash-low": "gemini-3.5-flash-extra-low",
+  "gemini-3.5-flash-medium": "gemini-3.5-flash-low",
+  "gemini-3.5-flash-high": "gemini-3-flash-agent",
   "gemini-3-pro-preview": "gemini-3.1-pro",
   // agy catalog exposes -high/-low budget tiers, but the upstream rejects the suffix
   // for gemini-3.x (#3229) — map them to the plain proven id.
   "gemini-3.1-pro-high": "gemini-3.1-pro",
   "gemini-3.1-pro-low": "gemini-3.1-pro",
-  "gemini-3.5-flash-preview": "gemini-3.5-flash",
-  "gemini-3-flash-preview": "gemini-3-flash",
   "gemini-3-pro-image-preview": "gemini-3-pro-image",
   "gemini-2.5-computer-use-preview-10-2025": "rev19-uic3-1p",
   // Legacy Claude display ids → current upstream ids. NOTE: an earlier comment here
@@ -186,10 +172,9 @@ export const ANTIGRAVITY_MODEL_ALIASES = Object.freeze({
 type AntigravityModelAliasMap = Record<string, string>;
 
 export const ANTIGRAVITY_REVERSE_MODEL_ALIASES: AntigravityModelAliasMap = Object.freeze({
+  "gemini-3.5-flash-extra-low": "gemini-3.5-flash-low",
+  "gemini-3-flash-agent": "gemini-3.5-flash-high",
   "gemini-3.1-pro": "gemini-3-pro-preview",
-  "gemini-3.5-flash": "gemini-3.5-flash-preview",
-  "gemini-3-flash-agent": "gemini-3.5-flash-preview",
-  "gemini-3-flash": "gemini-3-flash-preview",
   "gemini-3-pro-image": "gemini-3-pro-image-preview",
   "rev19-uic3-1p": "gemini-2.5-computer-use-preview-10-2025",
 });

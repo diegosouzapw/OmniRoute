@@ -381,6 +381,50 @@ test("Gemini stream: converts textual Tool call block to structured tool_calls",
   assert.equal(result.at(-1).choices[0].finish_reason, "tool_calls");
 });
 
+test("Gemini stream: routes textual reasoning tags to reasoning_content before tool calls", () => {
+  const state = createStreamingState();
+  const result = geminiToOpenAIResponse(
+    {
+      responseId: "resp-textual-thought-tool",
+      modelVersion: "gemini-3.5-flash-high",
+      candidates: [
+        {
+          content: {
+            parts: [
+              {
+                text: "§54§ <thought\nNeed to inspect first.",
+              },
+              {
+                functionCall: {
+                  id: "call_grep",
+                  name: "grep",
+                  args: { pattern: "Host", path: "/tmp/file" },
+                },
+              },
+            ],
+          },
+          finishReason: "STOP",
+        },
+      ],
+    },
+    state
+  );
+
+  assert.equal(
+    result.some((event: any) => event.choices?.[0]?.delta?.content?.includes("<thought")),
+    false
+  );
+  assert.equal(
+    result.find((event: any) => event.choices?.[0]?.delta?.reasoning_content)?.choices[0].delta
+      .reasoning_content,
+    "Need to inspect first."
+  );
+  const toolCall = result.find((event: any) => event.choices?.[0]?.delta?.tool_calls)?.choices[0]
+    .delta.tool_calls[0];
+  assert.equal(toolCall.id, "call_grep");
+  assert.equal(result.at(-1).choices[0].finish_reason, "tool_calls");
+});
+
 test("Gemini stream: converts prefixed textual Tool call block with zero-width chars", () => {
   const state = createStreamingState();
   const result = geminiToOpenAIResponse(
@@ -826,7 +870,7 @@ test("Gemini stream: index mismatch regression test with zero-width characters i
           content: {
             parts: [
               {
-                text: "\u200BКак исправить: [Tool call: terminal]\nArguments: {\"command\":\"whoami\"}",
+                text: '\u200BКак исправить: [Tool call: terminal]\nArguments: {"command":"whoami"}',
               },
             ],
           },
@@ -837,7 +881,9 @@ test("Gemini stream: index mismatch regression test with zero-width characters i
     state
   );
 
-  const leakedContent = result.map((event: any) => event.choices?.[0]?.delta?.content || "").join("");
+  const leakedContent = result
+    .map((event: any) => event.choices?.[0]?.delta?.content || "")
+    .join("");
   assert.equal(leakedContent, "Как исправить: ");
 
   const toolCalls = result.flatMap((event: any) => event.choices?.[0]?.delta?.tool_calls || []);
@@ -870,7 +916,7 @@ test("Gemini stream: partial tool call with (empty) prefix check at chunk end do
         content: {
           parts: [
             {
-              text: "ll: terminal]\nArguments: {\"command\":\"whoami\"}",
+              text: 'll: terminal]\nArguments: {"command":"whoami"}',
             },
           ],
         },
@@ -942,7 +988,7 @@ test("Gemini stream: parses textual tool call that starts in a subsequent chunk 
 
 test("Gemini stream: checks lastParen before lastBracket when identifying partial (empty) markers with distinct chuncks", () => {
   const state = createStreamingState() as any;
-  
+
   // Имитируем чанк, который кончается на частичный "(empty)[Tool call:" маркер, например "(em"
   const chunk1 = {
     responseId: "resp-test-empty-partial",
@@ -982,7 +1028,7 @@ test("Gemini stream: checks lastParen before lastBracket when identifying partia
         content: {
           parts: [
             {
-              text: ' call: my_tool]\nArguments: {}',
+              text: " call: my_tool]\nArguments: {}",
             },
           ],
         },
@@ -1008,6 +1054,3 @@ test("Gemini stream: checks lastParen before lastBracket when identifying partia
   assert.equal(toolCall.function.name, "my_tool");
   assert.equal(toolCall.function.arguments, "{}");
 });
-
-
-

@@ -79,7 +79,7 @@ type GeminiRequest = {
 
 type CloudCodeEnvelope = {
   project: string;
-  model: string;
+  model?: string;
   user_prompt_id?: string;
   userAgent?: "antigravity" | "jetski" | string;
   requestId?: string;
@@ -234,7 +234,8 @@ function escapeHistoricalContextContent(value: string): string {
 
 function buildHistoricalToolResultContext(name: string, response: unknown): string {
   const source = escapeHistoricalContextAttribute(name || "unknown");
-  const rawResult = typeof response === "string" ? response : stringifyHistoricalToolArguments(response);
+  const rawResult =
+    typeof response === "string" ? response : stringifyHistoricalToolArguments(response);
   const result = escapeHistoricalContextContent(rawResult);
   return [
     `<previous_tool_result_context source="${source}">`,

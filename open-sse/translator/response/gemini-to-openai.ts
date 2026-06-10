@@ -29,6 +29,60 @@ type GeminiFunctionCallPart = {
   };
 };
 
+const REASONING_TAG_OPEN_REGEX =
+  /<(think|thinking|thought|internal_thought)(?:\s[^>]*)?(?:>|\r?\n)/i;
+
+function isIgnorableReasoningTagPrefix(value: string): boolean {
+  return /^(?:\s|§\d+§)*$/.test(value);
+}
+
+function splitReasoningTagText(
+  text: string
+): { before: string; reasoning: string; after: string } | null {
+  const match = REASONING_TAG_OPEN_REGEX.exec(text);
+  if (!match || match.index < 0) return null;
+
+  const tagName = match[1];
+  const before = text.slice(0, match.index);
+  const bodyStart = match.index + match[0].length;
+  const closeRegex = new RegExp(`</${tagName}>`, "i");
+  const closeMatch = closeRegex.exec(text.slice(bodyStart));
+  if (!closeMatch || closeMatch.index < 0) {
+    return { before, reasoning: text.slice(bodyStart).trim(), after: "" };
+  }
+
+  const closeStart = bodyStart + closeMatch.index;
+  const closeEnd = closeStart + closeMatch[0].length;
+  return {
+    before,
+    reasoning: text.slice(bodyStart, closeStart).trim(),
+    after: text.slice(closeEnd),
+  };
+}
+
+function emitTextDelta(
+  content: string,
+  state: GeminiToOpenAIState,
+  results: Array<Record<string, unknown>>,
+  field: "content" | "reasoning_content" = "content"
+) {
+  if (!content) return;
+  if (field === "content") state.hasEmittedContent = true;
+  results.push({
+    id: `chatcmpl-${state.messageId}`,
+    object: "chat.completion.chunk",
+    created: Math.floor(Date.now() / 1000),
+    model: state.model,
+    choices: [
+      {
+        index: 0,
+        delta: { [field]: content },
+        finish_reason: null,
+      },
+    ],
+  });
+}
+
 function normalizeToolCallArgs(args: unknown): unknown {
   if (typeof args !== "string") return args;
   const trimmed = args.trim();
@@ -228,6 +282,19 @@ export function geminiToOpenAIResponse(chunk, state) {
       if (part.text !== undefined && part.text !== "") {
         let accumulated = (state.textualToolCallBuffer || "") + part.text;
 
+        const reasoningTag = splitReasoningTagText(accumulated);
+        if (reasoningTag) {
+          if (reasoningTag.before && !isIgnorableReasoningTagPrefix(reasoningTag.before)) {
+            emitTextDelta(reasoningTag.before, state, results, "content");
+          }
+          emitTextDelta(reasoningTag.reasoning, state, results, "reasoning_content");
+          accumulated = reasoningTag.after;
+          state.textualToolCallBuffer = "";
+          if (!accumulated) {
+            continue;
+          }
+        }
+
         let candidate = parseTextualToolCallCandidate(accumulated);
 
         if (candidate) {
@@ -238,10 +305,7 @@ export function geminiToOpenAIResponse(chunk, state) {
           }
           if (toolCallIndex < 0) {
             const lastParen = accumulated.lastIndexOf("(");
-            if (
-              lastParen !== -1 &&
-              "(empty)[Tool call:".startsWith(accumulated.slice(lastParen))
-            ) {
+            if (lastParen !== -1 && "(empty)[Tool call:".startsWith(accumulated.slice(lastParen))) {
               toolCallIndex = lastParen;
             } else {
               const lastBracket = accumulated.lastIndexOf("[");

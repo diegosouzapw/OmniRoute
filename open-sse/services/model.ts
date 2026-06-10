@@ -1,5 +1,4 @@
 import { PROVIDER_ID_TO_ALIAS, PROVIDER_MODELS } from "../config/providerModels.ts";
-import { ANTIGRAVITY_MODEL_ALIASES } from "../config/antigravityModelAliases.ts";
 import { resolveWildcardAlias } from "./wildcardRouter.ts";
 
 type ProviderModelAliasMap = Record<string, Record<string, string>>;
@@ -76,7 +75,12 @@ const PROVIDER_MODEL_ALIASES: ProviderModelAliasMap = {
     "gpt-oss-20b": "openai/gpt-oss-20b",
     "nvidia/gpt-oss-20b": "openai/gpt-oss-20b",
   },
-  antigravity: { ...ANTIGRAVITY_MODEL_ALIASES },
+  // Antigravity model aliases must be applied by the Antigravity executor, not by
+  // the global model resolver. Applying them here rewrites the client-visible model
+  // before credential/account routing and before UI/logging, causing clean IDs like
+  // gemini-3.5-flash-high to be exposed and retried as upstream-only legacy ids such
+  // as gemini-3-flash-agent. The executor owns provider-wire normalization.
+  antigravity: {},
   kiro: {
     "claude-opus-4-7": "claude-opus-4.7",
     "claude-opus-4-6": "claude-opus-4.6",

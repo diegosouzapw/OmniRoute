@@ -194,7 +194,7 @@ function addAntigravityTextualToolCall(
 
 type AntigravityRequestEnvelope = Record<string, unknown> & {
   project: string;
-  model: string;
+  model?: string;
   userAgent: "antigravity" | "jetski";
   requestType: "agent" | "image_gen";
   requestId: string;
@@ -336,6 +336,15 @@ function processAntigravitySSEPayload(
   if (!payload || payload === "[DONE]") return;
   try {
     const parsed = JSON.parse(payload);
+    const markdown =
+      typeof parsed?.markdown === "string"
+        ? parsed.markdown
+        : typeof parsed?.response?.markdown === "string"
+          ? parsed.response.markdown
+          : null;
+    if (markdown) {
+      collected.textContent += markdown;
+    }
     const candidate = parsed?.response?.candidates?.[0];
     if (candidate?.content?.parts) {
       for (const part of candidate.content.parts) {

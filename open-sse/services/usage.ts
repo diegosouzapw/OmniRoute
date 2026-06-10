@@ -7,16 +7,18 @@ import {
   getAntigravityFetchAvailableModelsUrls,
   ANTIGRAVITY_BASE_URLS,
 } from "../config/antigravityUpstream.ts";
-import { isUserCallableAntigravityModelId } from "../config/antigravityModelAliases.ts";
+import {
+  isUserCallableAntigravityModelId,
+  toClientAntigravityModelId,
+} from "../config/antigravityModelAliases.ts";
+import { isUserCallableAgyModelId } from "../config/agyModels.ts";
 import { getGlmQuotaUrl } from "../config/glmProvider.ts";
 import { getGitHubCopilotInternalUserHeaders } from "../config/providerHeaderProfiles.ts";
 import { safePercentage } from "@/shared/utils/formatting";
+import { getDbInstance } from "@/lib/db/core";
 import { fetchBailianQuota, type BailianTripleWindowQuota } from "./bailianQuotaFetcher.ts";
 import { fetchDeepseekQuota, type DeepseekQuota } from "./deepseekQuotaFetcher.ts";
-import {
-  fetchOpencodeQuota,
-  type OpencodeTripleWindowQuota,
-} from "./opencodeQuotaFetcher.ts";
+import { fetchOpencodeQuota, type OpencodeTripleWindowQuota } from "./opencodeQuotaFetcher.ts";
 import {
   applyAntigravityClientProfileHeaders,
   getAntigravityBootstrapHeaders,
@@ -139,6 +141,7 @@ type UsageQuota = {
    * NOT a confirmed-exhausted state. Antigravity-specific.
    */
   fractionReported?: boolean;
+  quotaSource?: "retrieveUserQuota" | "fetchAvailableModels" | "localUsageHistory";
   displayName?: string;
   details?: Array<{
     name: string;
@@ -1140,7 +1143,9 @@ async function getOpencodeUsage(connectionId: string, apiKey: string) {
   }
 
   try {
-    const quota = (await fetchOpencodeQuota(connectionId, { apiKey })) as OpencodeTripleWindowQuota | null;
+    const quota = (await fetchOpencodeQuota(connectionId, {
+      apiKey,
+    })) as OpencodeTripleWindowQuota | null;
 
     if (!quota) {
       return { message: "OpenCode connected. Unable to fetch quota data." };
@@ -1469,7 +1474,14 @@ export async function getUsageForProvider(
       return await getGeminiUsage(accessToken, providerSpecificData, projectId);
     case "antigravity":
     case "agy":
-      return await getAntigravityUsage(accessToken, providerSpecificData, projectId, id, options);
+      return await getAntigravityUsage(
+        provider,
+        accessToken,
+        providerSpecificData,
+        projectId,
+        id,
+        options
+      );
     case "claude":
       return await getClaudeUsage(accessToken);
     case "codex":
@@ -1622,10 +1634,7 @@ async function getGitHubUsage(accessToken?: string, providerSpecificData?: JsonR
       const addLimitedQuota = (name: string) => {
         const total = toNumber(getFieldValue(monthlyQuotas, name, name), 0);
         if (total <= 0) return null;
-        const remainingRaw = Math.max(
-          0,
-          toNumber(getFieldValue(remainingQuotas, name, name), 0)
-        );
+        const remainingRaw = Math.max(0, toNumber(getFieldValue(remainingQuotas, name, name), 0));
         const remaining = Math.min(remainingRaw, total);
         const used = Math.max(total - remaining, 0);
         quotas[name] = {
@@ -1897,6 +1906,8 @@ const ANTIGRAVITY_MODELS_CACHE_TTL_MS = 60 * 1000;
 const ANTIGRAVITY_CREDIT_PROBE_TTL_MS = 5 * 60 * 1000;
 const _antigravityAvailableModelsCache = new Map<string, { data: unknown; fetchedAt: number }>();
 const _antigravityAvailableModelsInflight = new Map<string, Promise<unknown>>();
+const _antigravityUserQuotaCache = new Map<string, { data: unknown; fetchedAt: number }>();
+const _antigravityUserQuotaInflight = new Map<string, Promise<unknown>>();
 const _antigravityCreditProbeCache = new Map<string, { data: number | null; fetchedAt: number }>();
 const _antigravityCreditProbeInflight = new Map<string, Promise<number | null>>();
 
@@ -1905,25 +1916,121 @@ const _antigravityCreditProbeInflight = new Map<string, Promise<number | null>>(
 // purges stale entries so keys accessed once and never again don't leak memory.
 // The 2 inflight Maps (availableModelsInflight, creditProbeInflight) self-clean
 // when the Promise resolves/rejects, so they are NOT touched here.
-const _usageCacheCleanupTimer = setInterval(() => {
-  const now = Date.now();
-  for (const [key, entry] of _geminiCliSubCache) {
-    if (now - entry.fetchedAt > GEMINI_CLI_CACHE_TTL_MS) _geminiCliSubCache.delete(key);
-  }
-  for (const [key, entry] of _antigravitySubCache) {
-    if (now - entry.fetchedAt > ANTIGRAVITY_CACHE_TTL_MS) _antigravitySubCache.delete(key);
-  }
-  for (const [key, entry] of _antigravityAvailableModelsCache) {
-    if (now - entry.fetchedAt > ANTIGRAVITY_MODELS_CACHE_TTL_MS) _antigravityAvailableModelsCache.delete(key);
-  }
-  for (const [key, entry] of _antigravityCreditProbeCache) {
-    if (now - entry.fetchedAt > ANTIGRAVITY_CREDIT_PROBE_TTL_MS) _antigravityCreditProbeCache.delete(key);
-  }
-}, 5 * 60 * 1000); // every 5 minutes
+const _usageCacheCleanupTimer = setInterval(
+  () => {
+    const now = Date.now();
+    for (const [key, entry] of _geminiCliSubCache) {
+      if (now - entry.fetchedAt > GEMINI_CLI_CACHE_TTL_MS) _geminiCliSubCache.delete(key);
+    }
+    for (const [key, entry] of _antigravitySubCache) {
+      if (now - entry.fetchedAt > ANTIGRAVITY_CACHE_TTL_MS) _antigravitySubCache.delete(key);
+    }
+    for (const [key, entry] of _antigravityAvailableModelsCache) {
+      if (now - entry.fetchedAt > ANTIGRAVITY_MODELS_CACHE_TTL_MS)
+        _antigravityAvailableModelsCache.delete(key);
+    }
+    for (const [key, entry] of _antigravityUserQuotaCache) {
+      if (now - entry.fetchedAt > ANTIGRAVITY_MODELS_CACHE_TTL_MS)
+        _antigravityUserQuotaCache.delete(key);
+    }
+    for (const [key, entry] of _antigravityCreditProbeCache) {
+      if (now - entry.fetchedAt > ANTIGRAVITY_CREDIT_PROBE_TTL_MS)
+        _antigravityCreditProbeCache.delete(key);
+    }
+  },
+  5 * 60 * 1000
+); // every 5 minutes
 _usageCacheCleanupTimer.unref?.(); // Don't prevent process exit
 
 interface AntigravityUsageOptions {
   forceRefresh?: boolean;
+}
+
+const ANTIGRAVITY_LOCAL_USAGE_WINDOW_MS = 5 * 60 * 60 * 1000;
+const ANTIGRAVITY_LOCAL_USAGE_TOKENS_PER_UNIT = 1000;
+
+const ANTIGRAVITY_QUOTA_MODEL_ALIASES: Record<string, string | null> = {
+  "gemini-3.5-flash-preview": null,
+  "gemini-3-flash-preview": null,
+};
+
+function normalizeAntigravityQuotaModelId(modelId: string): string | null {
+  if (!modelId) return null;
+  return Object.prototype.hasOwnProperty.call(ANTIGRAVITY_QUOTA_MODEL_ALIASES, modelId)
+    ? ANTIGRAVITY_QUOTA_MODEL_ALIASES[modelId]
+    : modelId;
+}
+
+function toClientAntigravityQuotaModelId(modelId: string): string | null {
+  if (!modelId) return null;
+  if (normalizeAntigravityQuotaModelId(modelId) === null) return null;
+  if (modelId === "gemini-3.5-flash-extra-low") return "gemini-3.5-flash-low";
+  if (modelId === "gemini-3.5-flash-low") return "gemini-3.5-flash-medium";
+  if (modelId === "gemini-3-flash-agent") return "gemini-3.5-flash-high";
+  return toClientAntigravityModelId(modelId);
+}
+
+function getAntigravityLocalUsageUnits(
+  provider: "antigravity" | "agy",
+  connectionId: string | undefined,
+  modelId: string,
+  resetAt: string | null
+): number {
+  if (!connectionId || !modelId || !resetAt) return 0;
+
+  const resetMs = Date.parse(resetAt);
+  if (!Number.isFinite(resetMs)) return 0;
+
+  const windowStart = new Date(resetMs - ANTIGRAVITY_LOCAL_USAGE_WINDOW_MS).toISOString();
+  const windowEnd = new Date(resetMs).toISOString();
+
+  try {
+    const db = getDbInstance() as unknown as {
+      prepare: (sql: string) => { get: (...params: unknown[]) => unknown };
+    };
+    const row = db
+      .prepare(
+        `SELECT COALESCE(SUM(tokens_input + tokens_output + tokens_reasoning), 0) AS tokens
+         FROM usage_history
+         WHERE provider = ?
+           AND connection_id = ?
+           AND model = ?
+           AND success = 1
+           AND timestamp >= ?
+           AND timestamp < ?`
+      )
+      .get(provider, connectionId, modelId, windowStart, windowEnd) as
+      | { tokens?: unknown }
+      | undefined;
+
+    const tokens = Number(row?.tokens || 0);
+    if (!Number.isFinite(tokens) || tokens <= 0) return 0;
+    return Math.max(1, Math.ceil(tokens / ANTIGRAVITY_LOCAL_USAGE_TOKENS_PER_UNIT));
+  } catch {
+    return 0;
+  }
+}
+
+function applyLocalUsageFallback(
+  quota: UsageQuota,
+  provider: "antigravity" | "agy",
+  connectionId: string | undefined,
+  modelId: string
+): UsageQuota {
+  if (quota.quotaSource !== "fetchAvailableModels" || quota.used > 0 || quota.unlimited) {
+    return quota;
+  }
+
+  const localUsed = getAntigravityLocalUsageUnits(provider, connectionId, modelId, quota.resetAt);
+  if (localUsed <= 0 || quota.total <= 0) return quota;
+
+  const used = Math.min(quota.total, localUsed);
+  return {
+    ...quota,
+    used,
+    remainingPercentage: Math.max(0, ((quota.total - used) / quota.total) * 100),
+    quotaSource: "localUsageHistory",
+  };
 }
 
 function buildAntigravityUsageCacheKey(accessToken: string, projectId?: string | null): string {
@@ -1991,6 +2098,57 @@ async function fetchAntigravityAvailableModelsCached(
   });
 
   _antigravityAvailableModelsInflight.set(cacheKey, promise);
+  return promise;
+}
+
+async function fetchAntigravityUserQuotaCached(
+  accessToken: string,
+  projectId?: string | null,
+  options: AntigravityUsageOptions = {}
+): Promise<unknown | null> {
+  if (!accessToken || !projectId) return null;
+
+  const cacheKey = buildAntigravityUsageCacheKey(accessToken, projectId);
+  const cached = _antigravityUserQuotaCache.get(cacheKey);
+  if (
+    !options.forceRefresh &&
+    cached &&
+    Date.now() - cached.fetchedAt < ANTIGRAVITY_MODELS_CACHE_TTL_MS
+  ) {
+    return cached.data;
+  }
+
+  const inflight = _antigravityUserQuotaInflight.get(cacheKey);
+  if (inflight) return inflight;
+
+  const promise = (async () => {
+    try {
+      const response = await fetch(
+        "https://cloudcode-pa.googleapis.com/v1internal:retrieveUserQuota",
+        {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ project: projectId }),
+          signal: AbortSignal.timeout(10000),
+        }
+      );
+
+      if (!response.ok) return null;
+
+      const data = await response.json();
+      _antigravityUserQuotaCache.set(cacheKey, { data, fetchedAt: Date.now() });
+      return data;
+    } catch {
+      return null;
+    }
+  })().finally(() => {
+    _antigravityUserQuotaInflight.delete(cacheKey);
+  });
+
+  _antigravityUserQuotaInflight.set(cacheKey, promise);
   return promise;
 }
 
@@ -2242,12 +2400,14 @@ async function probeAntigravityCreditBalanceUncached(
 }
 
 /**
- * Antigravity Usage - Fetch quota from Google Cloud Code API
- * Uses fetchAvailableModels API which returns ALL models (including Claude)
- * with per-model quotaInfo (remainingFraction, resetTime).
- * retrieveUserQuota only returns Gemini models — not suitable for Antigravity.
+ * Antigravity Usage - Fetch quota from Google Cloud Code API.
+ * fetchAvailableModels is catalog/eligibility data and may keep reporting full buckets
+ * after real usage. retrieveUserQuota is the consumption signal for Gemini-family
+ * buckets, so prefer it when present and fall back to fetchAvailableModels only for
+ * models that have no retrieveUserQuota entry (for example Claude/GPT OSS buckets).
  */
 async function getAntigravityUsage(
+  provider: "antigravity" | "agy",
   accessToken?: string,
   providerSpecificData?: JsonRecord,
   connectionProjectId?: string,
@@ -2299,32 +2459,49 @@ async function getAntigravityUsage(
     }
 
     const data = await fetchAntigravityAvailableModelsCached(accessToken, projectId, options);
+    const userQuotaData = await fetchAntigravityUserQuotaCached(accessToken, projectId, options);
     const dataObj = toRecord(data);
     if (dataObj.__antigravityForbidden === true) {
       return { message: "Antigravity access forbidden. Check subscription." };
     }
     const modelEntries = toRecord(dataObj.models);
+    const userQuotaEntries = new Map<string, JsonRecord>();
+    const userQuotaObj = toRecord(userQuotaData);
+    if (Array.isArray(userQuotaObj.buckets)) {
+      for (const bucketValue of userQuotaObj.buckets) {
+        const bucket = toRecord(bucketValue);
+        const modelId = toClientAntigravityQuotaModelId(String(bucket.modelId || "").trim());
+        if (!modelId) continue;
+        userQuotaEntries.set(modelId, bucket);
+      }
+    }
     const quotas: Record<string, UsageQuota> = {};
 
     // Parse per-model quota info from fetchAvailableModels response.
-    for (const [modelKey, infoValue] of Object.entries(modelEntries)) {
+    for (const [rawModelKey, infoValue] of Object.entries(modelEntries)) {
       const info = toRecord(infoValue);
       const quotaInfo = toRecord(info.quotaInfo);
+      const modelKey = toClientAntigravityQuotaModelId(rawModelKey);
 
       // Skip internal, excluded, and models without quota info
       if (
+        !modelKey ||
         info.isInternal === true ||
-        !isUserCallableAntigravityModelId(modelKey) ||
+        !(provider === "agy"
+          ? isUserCallableAgyModelId(modelKey)
+          : isUserCallableAntigravityModelId(modelKey)) ||
         Object.keys(quotaInfo).length === 0
       ) {
         continue;
       }
 
-      const rawFraction = toNumber(quotaInfo.remainingFraction, -1);
-      const resetAt = parseResetTime(quotaInfo.resetTime);
+      const liveQuota = userQuotaEntries.get(modelKey);
+      const quotaSource = liveQuota || quotaInfo;
+      const rawFraction = toNumber(quotaSource.remainingFraction, -1);
+      const resetAt = parseResetTime(quotaSource.resetTime);
       // Distinguish "upstream did not report remainingFraction" from "remaining is 0%".
-      // A schema drift in Antigravity's quota API (very plausible — internal Google product)
-      // would otherwise silently mark every model as exhausted across the dashboard.
+      // fetchAvailableModels is a catalog view and can be stale/full; retrieveUserQuota is
+      // the source of truth for actual Gemini consumption when it includes the model.
       const fractionReported = rawFraction >= 0;
       if (!fractionReported) {
         console.warn(
@@ -2341,13 +2518,50 @@ async function getAntigravityUsage(
       const remaining = Math.round(total * remainingFraction);
       const used = isUnlimited ? 0 : Math.max(0, total - remaining);
 
+      quotas[modelKey] = applyLocalUsageFallback(
+        {
+          used,
+          total: isUnlimited ? 0 : total,
+          resetAt,
+          remainingPercentage: isUnlimited ? 100 : remainingPercentage,
+          unlimited: isUnlimited,
+          fractionReported,
+          quotaSource: liveQuota ? "retrieveUserQuota" : "fetchAvailableModels",
+        },
+        provider,
+        connectionId,
+        modelKey
+      );
+    }
+
+    // Include retrieveUserQuota buckets not listed in the static/public Antigravity catalog yet.
+    // This keeps Provider Limits honest when Google adds a new Gemini tier before our catalog is
+    // updated. Hidden/internal catalog entries above are still filtered by the public pass.
+    for (const [modelKey, bucket] of userQuotaEntries) {
+      if (
+        quotas[modelKey] ||
+        !(provider === "agy"
+          ? isUserCallableAgyModelId(modelKey)
+          : isUserCallableAntigravityModelId(modelKey))
+      ) {
+        continue;
+      }
+      const rawFraction = toNumber(bucket.remainingFraction, -1);
+      if (rawFraction < 0) continue;
+      const remainingFraction = Math.max(0, Math.min(1, rawFraction));
+      const resetAt = parseResetTime(bucket.resetTime);
+      const isUnlimited = !resetAt && remainingFraction >= 1;
+      const QUOTA_NORMALIZED_BASE = 1000;
+      const total = QUOTA_NORMALIZED_BASE;
+      const remaining = Math.round(total * remainingFraction);
       quotas[modelKey] = {
-        used,
+        used: isUnlimited ? 0 : Math.max(0, total - remaining),
         total: isUnlimited ? 0 : total,
         resetAt,
-        remainingPercentage: isUnlimited ? 100 : remainingPercentage,
+        remainingPercentage: isUnlimited ? 100 : remainingFraction * 100,
         unlimited: isUnlimited,
-        fractionReported,
+        fractionReported: true,
+        quotaSource: "retrieveUserQuota",
       };
     }
 

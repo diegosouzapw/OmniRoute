@@ -24,18 +24,19 @@ test("T28: gemini AI Studio catalog includes current preview models", () => {
   assert.ok(geminiCliIds.includes("gemini-3-flash-preview"));
 });
 
-test("T28: antigravity static catalog exposes client-visible Gemini preview IDs", () => {
+test("T28: antigravity static catalog exposes client-visible Gemini tier IDs", () => {
   const staticIds = (getStaticModelsForProvider("antigravity") || []).map((m) => m.id);
 
   assert.ok(staticIds.includes("gemini-3-pro-preview"));
-  assert.ok(staticIds.includes("gemini-3-flash-preview"));
-  // #3303 (agy parity, discussion #3184): the Gemini budget tiers ARE
-  // client-visible on the Antigravity OAuth backend — restoring tiers an
-  // earlier assumption had wrongly hidden.
+  assert.ok(staticIds.includes("gemini-3.5-flash-low"));
+  assert.ok(staticIds.includes("gemini-3.5-flash-medium"));
+  assert.ok(staticIds.includes("gemini-3.5-flash-high"));
   assert.ok(staticIds.includes("gemini-3.1-pro-low"));
   assert.ok(staticIds.includes("gemini-3.1-pro-high"));
   // Legacy aliases that were never client-visible stay absent.
   assert.ok(!staticIds.includes("gemini-3-pro-high"));
+  assert.ok(!staticIds.includes("gemini-3-flash-preview"));
+  assert.ok(!staticIds.includes("gemini-3-flash-agent"));
   assert.ok(!staticIds.includes("gemini-claude-sonnet-4-5"));
   assert.ok(!staticIds.includes("gemini-claude-sonnet-4-5-thinking"));
   assert.ok(!staticIds.includes("gemini-claude-opus-4-5-thinking"));
