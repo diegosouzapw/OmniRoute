@@ -1,12 +1,19 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 
-// Regression guard for the gating between the standard-Gemini path and the
-// Antigravity/CLI bypass path (#3414/#3560 review). Standard Gemini (direct API,
-// the registered FORMATS.GEMINI translator uses mode "text") rejects the
-// thoughtSignature field AND signature-less native tool parts, so signature-less
-// historical tool calls/responses must be represented as inert TEXT (#3358).
-// Only the Antigravity/CLI bypass path emits native parts + the
+// Regression guard for the per-mode behavior of the OpenAI→Gemini translator
+// (#3414/#3560/#3569). History of the standard-Gemini path:
+//   - #3560 set the registered FORMATS.GEMINI translator to mode "text" on the
+//     assumption that thinking Gemini models reject signature-less native tool
+//     parts (400 "missing thought_signature").
+//   - #3569 changed the registered default to mode "native" after a live test
+//     against the real Gemini API (gemini-2.5-flash returns 200 for a
+//     signatureless historical functionCall, even with tools + thinkingConfig),
+//     which also removes the text-serialization leak (#3358).
+// These tests still pin the *per-mode* output shape: "text" mode keeps history as
+// inert text (no native parts, no sentinel — still available as an explicit mode),
+// and "native" mode emits a native functionCall with no fake signature. The
+// Antigravity/CLI bypass path is the only one that injects the
 // skip_thought_signature_validator sentinel.
 const { openaiToGeminiRequest } = await import(
   "../../open-sse/translator/request/openai-to-gemini.ts"
