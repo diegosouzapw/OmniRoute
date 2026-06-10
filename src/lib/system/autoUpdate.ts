@@ -7,15 +7,20 @@ import { homedir } from "node:os";
 
 const execFileAsync = promisify(execFile);
 
-function resolveProjectRoot(fallback: string): string {
-  try {
-    const cwd = process.cwd();
-    if (existsSync(path.join(cwd, "package.json"))) return cwd;
-    if (existsSync(path.join(cwd, ".git"))) return cwd;
-    return cwd;
-  } catch {
-    return fallback;
+/** @internal — exported for testability. */
+export function resolveProjectRoot(
+  fallback: string,
+  startDir: string = typeof __dirname !== "undefined" ? __dirname : process.cwd()
+): string {
+  const markers = ["package.json", ".git"] as const;
+  let dir = path.resolve(startDir);
+  for (let i = 0; i < 16; i++) {
+    if (markers.some((m) => existsSync(path.join(dir, m)))) return dir;
+    const parent = path.dirname(dir);
+    if (parent === dir) break;
+    dir = parent;
   }
+  return fallback;
 }
 
 const FALLBACK_CWD = process.env.HOME || homedir() || "/tmp";
