@@ -3357,7 +3357,7 @@ export async function handleComboChat({
         if (
           resilienceSettings.providerCooldown.enabled &&
           Boolean(provider && provider !== "unknown") &&
-          isProviderInCooldown(provider, target.connectionId as string | undefined, resilienceSettings)
+          isProviderInCooldown(provider, target.connectionId ?? undefined, resilienceSettings)
         ) {
           log.info(
             "COMBO",
@@ -3606,7 +3606,7 @@ export async function handleComboChat({
 
             // Reset cooldown on success
             if (provider && provider !== "unknown") {
-              recordProviderSuccess(provider, target.connectionId as string | undefined);
+              recordProviderSuccess(provider, target.connectionId ?? undefined);
             }
             // Webhook fan-out: best-effort, never blocks the response stream.
             notifyWebhookEvent("request.completed", {
@@ -3949,7 +3949,7 @@ export async function handleComboChat({
           log.warn("COMBO", `Model ${modelStr} failed, trying next`, { status: result.status });
 
           if (resilienceSettings.providerCooldown.enabled && provider && provider !== "unknown") {
-            recordProviderCooldown(provider, target.connectionId as string | undefined, resilienceSettings);
+            recordProviderCooldown(provider, target.connectionId ?? undefined, resilienceSettings);
           }
 
           const fallbackWaitMs =
@@ -4314,7 +4314,7 @@ async function handleRoundRobinCombo({
           recordedAttempts++;
 
           if (provider && provider !== "unknown") {
-            recordProviderSuccess(provider, target.connectionId as string | undefined);
+            recordProviderSuccess(provider, target.connectionId ?? undefined);
           }
 
           if (provider) {
@@ -4512,7 +4512,7 @@ async function handleRoundRobinCombo({
         log.warn("COMBO-RR", `${modelStr} failed, trying next model`, { status: result.status });
 
         if (resilienceSettings.providerCooldown.enabled && provider && provider !== "unknown") {
-          recordProviderCooldown(provider, target.connectionId as string | undefined, resilienceSettings);
+          recordProviderCooldown(provider, target.connectionId ?? undefined, resilienceSettings);
         }
 
         const fallbackWaitMs =

@@ -102,14 +102,14 @@ export function isProviderInCooldown(
   const elapsed = now - entry.lastFailureAt;
 
   const minCooldownMs =
-    settings?.waitForCooldown?.maxRetryWaitMs ??
-    DEFAULT_RESILIENCE_SETTINGS.waitForCooldown.maxRetryWaitMs;
+    settings?.providerCooldown?.minRetryCooldownMs ??
+    DEFAULT_RESILIENCE_SETTINGS.providerCooldown.minRetryCooldownMs;
 
   const maxCooldownMs =
     settings?.providerCooldown?.maxRetryCooldownMs ??
     DEFAULT_RESILIENCE_SETTINGS.providerCooldown.maxRetryCooldownMs;
 
-  const exponent = Math.min(Math.max(0, entry.failureCount - 1), 4);
+  const exponent = Math.min(Math.max(0, entry.failureCount - 1), 10);
   const scaledCooldownMs = Math.min(minCooldownMs * Math.pow(2, exponent), maxCooldownMs);
 
   return elapsed < scaledCooldownMs;
@@ -134,14 +134,14 @@ export function getRemainingCooldownMs(
   const elapsed = now - entry.lastFailureAt;
 
   const minCooldownMs =
-    settings?.waitForCooldown?.maxRetryWaitMs ??
-    DEFAULT_RESILIENCE_SETTINGS.waitForCooldown.maxRetryWaitMs;
+    settings?.providerCooldown?.minRetryCooldownMs ??
+    DEFAULT_RESILIENCE_SETTINGS.providerCooldown.minRetryCooldownMs;
 
   const maxCooldownMs =
     settings?.providerCooldown?.maxRetryCooldownMs ??
     DEFAULT_RESILIENCE_SETTINGS.providerCooldown.maxRetryCooldownMs;
 
-  const exponent = Math.min(Math.max(0, entry.failureCount - 1), 4);
+  const exponent = Math.min(Math.max(0, entry.failureCount - 1), 10);
   const scaledCooldownMs = Math.min(minCooldownMs * Math.pow(2, exponent), maxCooldownMs);
 
   const remaining = scaledCooldownMs - elapsed;
