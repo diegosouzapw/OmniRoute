@@ -528,7 +528,7 @@ export async function createProxyAndAssign(
   if (result.legacyClearStatus === "cleared") {
     // Dynamic import avoids a static proxies.ts -> settings.ts cycle; settings.ts
     // imports registry helpers for proxy resolution.
-    const { bumpProxyConfigGeneration } = await import("./settings");
+    const { bumpProxyConfigGeneration } = await import("../settings");
     bumpProxyConfigGeneration();
   }
   return {
@@ -566,7 +566,7 @@ export async function updateProxyAndAssign(
   if (result.legacyClearStatus === "cleared") {
     // Dynamic import avoids a static proxies.ts -> settings.ts cycle; settings.ts
     // imports registry helpers for proxy resolution.
-    const { bumpProxyConfigGeneration } = await import("./settings");
+    const { bumpProxyConfigGeneration } = await import("../settings");
     bumpProxyConfigGeneration();
   }
   return {
@@ -995,7 +995,7 @@ export async function resolveProxyForProvider(providerId: string) {
     // directly — which on a VPS trips Anthropic's IP rate limit (#2456).
     // resolveProxyForConnection already has this fallback; mirror it here.
     // Dynamic import avoids a static cycle (settings.ts imports from proxies.ts).
-    const { getProxyForLevel } = await import("./settings");
+    const { getProxyForLevel } = await import("../settings");
     const legacyProvider = await getProxyForLevel("provider", providerId);
     if (legacyProvider && typeof legacyProvider === "object" && legacyProvider.host) {
       return {
