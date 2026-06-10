@@ -25,6 +25,18 @@ const FORMAT_MODEL_PREFIXES = {
  *   pickModelForFormat: (format: string) => string
  * }}
  */
+/**
+ * Filter the /v1/models id list to a provider's models. The `provider` key must be the model
+ * NAMESPACE used in the catalog: built-in providers use their id (e.g. "openai"), while
+ * compatible providers use the node's custom PREFIX (e.g. "myprefix"), NOT the node id — see
+ * #3505. Pure + exported for testing.
+ */
+export function filterModelsByProvider(allModels: string[], provider?: string): string[] {
+  return provider
+    ? allModels.filter((m) => m.startsWith(`${provider}/`) || m === provider)
+    : allModels;
+}
+
 export function useAvailableModels(provider?: string) {
   const [model, setModel] = useState("");
   const [allModels, setAllModels] = useState<string[]>([]);
@@ -46,11 +58,10 @@ export function useAvailableModels(provider?: string) {
     fetchModels();
   }, []);
 
-  const availableModels = useMemo(() => {
-    return provider
-      ? allModels.filter((m) => m.startsWith(`${provider}/`) || m === provider)
-      : allModels;
-  }, [allModels, provider]);
+  const availableModels = useMemo(
+    () => filterModelsByProvider(allModels, provider),
+    [allModels, provider]
+  );
 
   /**
    * Pick the best model for a given format from the available models.

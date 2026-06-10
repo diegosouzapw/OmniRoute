@@ -47,7 +47,12 @@ export function useProviderOptions(initialProvider = "openai") {
               label = node?.name || t("openaiCompatibleLabel");
             if (!info && (pid as string).startsWith(ANTHROPIC_COMPATIBLE_PREFIX))
               label = node?.name || t("anthropicCompatibleLabel");
-            return { value: pid, label };
+            // #3505: compatible providers emit catalog models under the node's custom prefix
+            // (e.g. "myprefix/gpt-4o"), not under the connection id (`value`). Expose the prefix
+            // so model-filter consumers (playground) can match; `value` stays the id for
+            // connection lookups (translator send/translate, ApiTab).
+            const modelPrefix = !info && node?.prefix ? String(node.prefix) : undefined;
+            return { value: pid, label, modelPrefix };
           })
           .sort((a, b) => compareTr(a.label, b.label));
 

@@ -52,7 +52,14 @@ export default function StudioConfigPane({ configState, setConfigState }: Studio
   const { provider, setProvider, providerOptions, loading: loadingProviders } = useProviderOptions(
     configState.provider ?? ""
   );
-  const { availableModels, loading: loadingModels } = useAvailableModels(provider || undefined);
+  // #3505: filter models by the selected provider's catalog namespace. Compatible providers
+  // emit models under their node prefix (e.g. "myprefix/gpt-4o"), not under the connection id,
+  // so use the option's modelPrefix when present; fall back to the id for built-in providers.
+  const selectedProviderOption = providerOptions.find(
+    (opt: { value: string; modelPrefix?: string }) => opt.value === provider
+  );
+  const modelFilterKey = selectedProviderOption?.modelPrefix || provider || undefined;
+  const { availableModels, loading: loadingModels } = useAvailableModels(modelFilterKey);
 
   function update<K extends keyof ConfigState>(key: K, value: ConfigState[K]) {
     setConfigState({ ...configState, [key]: value });
