@@ -1,5 +1,5 @@
 import { getDbInstance } from "./core";
-import { getApiKeyContextSource } from "./apiKeyContextSources";
+import { getApiKeyContextSource } from "./credentials/contextSources";
 
 const OBSIDIAN_NAMESPACE = "obsidian";
 const OBSIDIAN_TOKEN_KEY = "api_key";

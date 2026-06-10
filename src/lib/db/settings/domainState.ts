@@ -10,7 +10,7 @@
  * @module lib/db/domainState
  */
 
-import { getDbInstance } from "./core";
+import { getDbInstance } from "../core";
 
 type JsonRecord = Record<string, unknown>;
 type BudgetResetInterval = "daily" | "weekly" | "monthly";

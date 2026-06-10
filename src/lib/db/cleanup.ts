@@ -5,7 +5,7 @@
  */
 
 import { getDbInstance } from "./core";
-import { getUserDatabaseSettings } from "./databaseSettings";
+import { getUserDatabaseSettings } from "./settings/databaseSettings";
 import { rollupUsageHistoryBeforeDate } from "@/lib/usage/aggregateHistory";
 
 interface CleanupResult {

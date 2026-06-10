@@ -13,7 +13,7 @@ import {
   DB_BACKUPS_DIR,
   DATA_DIR,
 } from "./core";
-import { resetAllDbModuleState } from "./stateReset";
+import { resetAllDbModuleState } from "./settings/stateReset";
 
 type CountRow = { cnt?: number };
 

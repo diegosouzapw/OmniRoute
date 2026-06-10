@@ -15,15 +15,15 @@ import path from "path";
 import fs from "fs";
 import { resolveDataDir, getLegacyDotDataDir } from "../dataPaths";
 import { runMigrations } from "./migrationRunner";
-import { runDbHealthCheck } from "./healthCheck";
+import { runDbHealthCheck } from "./monitoring/healthCheck";
 import { parseStoredPayload } from "../logPayloads";
 import {
   buildArtifactRelativePath,
   writeCallArtifact,
   type CallLogArtifact,
 } from "../usage/callLogArtifacts";
-import { migrateLegacyEncryptedString } from "./encryption";
-import { invalidateDbCache } from "./readCache";
+import { migrateLegacyEncryptedString } from "./settings/encryption";
+import { invalidateDbCache } from "./cache/readCache";
 
 type SqliteDatabase = SqliteAdapter;
 type JsonRecord = Record<string, unknown>;

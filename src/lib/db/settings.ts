@@ -5,8 +5,8 @@
 import { getDbInstance } from "./core";
 import { backupDbFile } from "./backup";
 import { PROVIDER_ID_TO_ALIAS } from "@omniroute/open-sse/config/providerModels.ts";
-import { invalidateDbCache } from "./readCache";
-import { getProxyRegistryGeneration, resolveProxyForScopeFromRegistry } from "./proxies";
+import { invalidateDbCache } from "./cache/readCache";
+import { getProxyRegistryGeneration, resolveProxyForScopeFromRegistry } from "./providers/proxies";
 import { getComboModelProvider as getComboEntryProvider } from "@/lib/combos/steps";
 import { requestBodyLimitMbFromEnv } from "@/shared/constants/bodySize";
 import { DEFAULT_RESPONSES_PREVIOUS_RESPONSE_ID_MODE } from "@/shared/constants/responsesPreviousResponseId";

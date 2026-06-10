@@ -2,8 +2,8 @@
  * db/models.js — Model aliases, MITM aliases, and custom models.
  */
 
-import { getDbInstance } from "./core";
-import { backupDbFile } from "./backup";
+import { getDbInstance } from "../core";
+import { backupDbFile } from "../backup";
 import {
   MODEL_COMPAT_PROTOCOL_KEYS,
   type ModelCompatProtocolKey,

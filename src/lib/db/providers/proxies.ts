@@ -1,9 +1,9 @@
 // Convention: when type === "vercel", the `notes` column stores JSON { relayAuth: "<token>" }
 // used by proxyFetch.ts to route requests through the Vercel edge relay instead of an undici ProxyAgent.
 import { randomUUID } from "crypto";
-import { getDbInstance } from "./core";
-import { backupDbFile } from "./backup";
-import { decrypt } from "./encryption";
+import { getDbInstance } from "../core";
+import { backupDbFile } from "../backup";
+import { decrypt } from "../settings/encryption";
 
 type JsonRecord = Record<string, unknown>;
 type ProxyScope = "global" | "provider" | "account" | "combo";

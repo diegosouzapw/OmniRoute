@@ -1,6 +1,6 @@
-import { backupDbFile } from "./backup";
-import { getDbInstance } from "./core";
-import { invalidateDbCache } from "./readCache";
+import { backupDbFile } from "../backup";
+import { getDbInstance } from "../core";
+import { invalidateDbCache } from "../cache/readCache";
 import {
   DEFAULT_AGGRESSIVE_CONFIG,
   DEFAULT_CAVEMAN_CONFIG,

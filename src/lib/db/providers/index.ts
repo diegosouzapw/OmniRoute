@@ -3,16 +3,16 @@
  */
 
 import { v4 as uuidv4 } from "uuid";
-import { getDbInstance, rowToCamel, cleanNulls } from "./core";
-import { backupDbFile } from "./backup";
+import { getDbInstance, rowToCamel, cleanNulls } from "../core";
+import { backupDbFile } from "../backup";
 import {
   encryptConnectionFields,
   decryptConnectionFields,
   migrateLegacyEncryptedString,
-} from "./encryption";
-import { invalidateDbCache } from "./readCache";
+} from "../settings/encryption";
+import { invalidateDbCache } from "../cache/readCache";
 import { normalizeProviderSpecificData } from "@/lib/providers/requestDefaults";
-import { bumpProxyConfigGeneration } from "./settings";
+import { bumpProxyConfigGeneration } from "../settings";
 
 type JsonRecord = Record<string, unknown>;
 

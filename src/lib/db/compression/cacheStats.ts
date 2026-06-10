@@ -1,4 +1,4 @@
-import { getDbInstance } from "./core";
+import { getDbInstance } from "../core";
 
 export interface CacheStatsEntry {
   provider: string;
