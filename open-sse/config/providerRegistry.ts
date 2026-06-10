@@ -2486,17 +2486,6 @@ const _REGISTRY_EAGER: Record<string, RegistryEntry> = {
     models: [{ id: "auto", name: "Auto" }],
   },
 
-  krutrim: {
-    id: "krutrim",
-    alias: "krutrim",
-    format: "openai",
-    executor: "default",
-    baseUrl: "https://api.krutrim.com/v1/chat/completions",
-    authType: "apikey",
-    authHeader: "bearer",
-    models: [{ id: "krutrim-2-7b-instruct", name: "Krutrim 2 7B" }],
-  },
-
   liquid: {
     id: "liquid",
     alias: "liquid",

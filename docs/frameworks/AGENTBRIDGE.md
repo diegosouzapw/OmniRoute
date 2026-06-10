@@ -367,7 +367,7 @@ Base path: `/api/tools/agent-bridge/`
 | GET | `/api/tools/agent-bridge/agents` | List all 9 agents with current state |
 | GET | `/api/tools/agent-bridge/state` | Global server state (running, port, cert info) |
 | POST | `/api/tools/agent-bridge/server` | Start/stop/restart server (`action: "start"\|"stop"\|"restart"\|"trust-cert"\|"regenerate-cert"`) |
-| GET | `/api/tools/agent-bridge/agents/{id}/state` | State of one agent (dns_enabled, cert_trusted, etc.) |
+| GET | `/api/tools/agent-bridge/agents/{id}` | State of one agent (dns_enabled, cert_trusted, etc.) |
 | POST | `/api/tools/agent-bridge/agents/{id}/dns` | Enable/disable DNS for agent (`{enabled: boolean}`) |
 | GET | `/api/tools/agent-bridge/agents/{id}/mappings` | Model mappings for agent |
 | PUT | `/api/tools/agent-bridge/agents/{id}/mappings` | Update model mappings |

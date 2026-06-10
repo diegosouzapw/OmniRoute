@@ -4082,26 +4082,6 @@ paths:
         "409":
           description: Port 443 conflict
 
-  /api/tools/agent-bridge/agents/{agentId}/state:
-    get:
-      tags: [AgentBridge]
-      summary: Get state of one agent
-      parameters:
-        - name: agentId
-          in: path
-          required: true
-          schema:
-            $ref: "#/components/schemas/AgentId"
-      responses:
-        "200":
-          description: Agent state
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/AgentBridgeAgentState"
-        "404":
-          description: Unknown agent ID
-
   /api/tools/agent-bridge/agents/{agentId}/dns:
     post:
       tags: [AgentBridge]

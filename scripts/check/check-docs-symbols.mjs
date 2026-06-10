@@ -79,9 +79,6 @@ export const KNOWN_STALE_DOC_REFS = new Set([
   "/api/discovery/results/:id",
   "/api/discovery/scan",
   "/api/discovery/verify/:id",
-  // docs/frameworks/AGENTBRIDGE.md — state POR-AGENTE; rota real é o /state GLOBAL
-  // (mesmo drift congelado em check-openapi-routes.mjs::KNOWN_STALE_SPEC):
-  "/api/tools/agent-bridge/agents/{id}/state",
   // docs/reference/ENVIRONMENT.md — endpoint UPSTREAM do provedor Blackbox Web,
   // citado na descrição de env var (não é rota do OmniRoute):
   "/api/chat",

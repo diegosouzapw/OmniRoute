@@ -17,8 +17,6 @@ const OPENAPI_PATH = path.join(ROOT, "docs", "reference", "openapi.yaml");
 const KNOWN_STALE_SPEC = new Set([
   // openapi.yaml documenta um state por-agente, mas a rota real é o state GLOBAL
   // (/api/tools/agent-bridge/state); por-agente só há /{id}, /{id}/detect, /mappings, /dns.
-  // Triagem: corrigir a spec para /state ou criar a rota. (pré-existente)
-  "/api/tools/agent-bridge/agents/{agentId}/state",
 ]);
 
 /** Normaliza qualquer {param} para {} para casar independente do nome do parâmetro. */

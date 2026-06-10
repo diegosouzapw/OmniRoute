@@ -11,10 +11,7 @@ import { REGISTRY } from "@omniroute/open-sse/config/providerRegistry.ts";
 
 // Entradas registry-only conhecidas (meia-registro pré-existente). Cada uma com
 // justificativa. Remover daqui ao registrar o provider em providers.ts.
-export const KNOWN_REGISTRY_ONLY: Record<string, string> = {
-  krutrim:
-    "Registry-only (baseUrl + krutrim-2-7b-instruct presentes) mas ausente de providers.ts — meia-registro pré-existente; triar em follow-up (registrar em APIKEY_PROVIDERS ou remover a entrada).",
-};
+export const KNOWN_REGISTRY_ONLY: Record<string, string> = {};
 
 /** Ids do REGISTRY que não são providers canônicos e não estão na allowlist. */
 export function findOrphanRegistryIds(

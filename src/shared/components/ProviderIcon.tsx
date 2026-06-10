@@ -84,7 +84,6 @@ const KNOWN_SVGS = new Set([
   "sparkdesk",
   "arcee-ai",
   "inclusionai",
-  "krutrim",
   "liquid",
   "monsterapi",
   "nomic",
