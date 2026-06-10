@@ -199,6 +199,15 @@ pr_reviews*.json
 #hidden local data directories (never commit)
 .local-data/
 .data-dev/
+/.junie/
 
 # internal setup prompts with personal credentials — never commit
 CODEX-SETUP-PROMPT.md
+# Quality ratchet — métricas efêmeras (baseline é commitado, métricas não)
+quality-metrics.json
+-home-diegosouzapw-dev-automações-bots-yt-downloader-20260504 .txt
+-home-diegosouzapw-dev-automações-bots-yt-downloader-20260410 .txt
+docs/prompts/AGENT-OWNERSHIP-PROTOCOL.omniroute.md
+docs/prompts/AGENT-OWNERSHIP-PROTOCOL.md
+docs/prompts/AGENT-OWNERSHIP-PROTOCOL.omniroute-mim.md
+docs/prompts/AGENT-OWNERSHIP-PROTOCOL.omniroute-mid.md

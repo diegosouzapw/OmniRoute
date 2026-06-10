@@ -117,9 +117,12 @@ export function shortProviderLabel(
  * "Claude Opus 4.7"         → "Claude Opus 4.7"  (unchanged)
  */
 export function normaliseFreeLabel(name: string): string {
+  // Bounded whitespace quantifiers ({0,8}/{1,8}) avoid the polynomial-ReDoS
+  // backtracking that unbounded \s* before an anchored \s*$ would allow on
+  // attacker-influenced display names. 8 covers any realistic label spacing.
   const cleaned = name
-    .replace(/\s*\(free\)\s*$/i, "")
-    .replace(/[\s-]+free\s*$/i, "")
+    .replace(/\s{0,8}\(free\)\s{0,8}$/i, "")
+    .replace(/[\s-]{1,8}free\s{0,8}$/i, "")
     .trim();
   const wasFree = cleaned.length < name.trim().length;
   if (!wasFree) return name;

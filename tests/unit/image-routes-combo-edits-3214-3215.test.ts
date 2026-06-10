@@ -103,7 +103,11 @@ test("extractImageEditInputFromJson reads model/prompt and the first data-URL im
 });
 
 test("resolveImageRouteModel resolves a bare combo/alias to its single image target", async () => {
-  await createCombo({ name: "image-alias-3215", models: ["myimg/gpt-image-2"], strategy: "priority" });
+  await createCombo({
+    name: "image-alias-3215",
+    models: ["myimg/gpt-image-2"],
+    strategy: "priority",
+  });
 
   assert.equal(await resolveSingleImageComboTarget("image-alias-3215"), "myimg/gpt-image-2");
   // No openai-compatible node has prefix "myimg" in this test DB, so the prefix step
@@ -111,7 +115,18 @@ test("resolveImageRouteModel resolves a bare combo/alias to its single image tar
   assert.equal(await resolveImageRouteModel("image-alias-3215"), "myimg/gpt-image-2");
 });
 
+test("resolveImageRouteModel lets bare combos shadow built-in image aliases", async () => {
+  await createCombo({ name: "gpt-image-2", models: ["myimg/gpt-image-2"], strategy: "priority" });
+
+  assert.equal(await resolveSingleImageComboTarget("gpt-image-2"), "myimg/gpt-image-2");
+  assert.equal(await resolveImageRouteModel("gpt-image-2"), "myimg/gpt-image-2");
+  assert.equal(await resolveImageRouteModel("openai/gpt-image-2"), "openai/gpt-image-2");
+});
+
 test("resolveImageRouteModel leaves built-in / already-resolved ids untouched", async () => {
-  assert.equal(await resolveImageRouteModel("cgpt-web/gpt-5.3-instant"), "cgpt-web/gpt-5.3-instant");
+  assert.equal(
+    await resolveImageRouteModel("cgpt-web/gpt-5.3-instant"),
+    "cgpt-web/gpt-5.3-instant"
+  );
   assert.equal(await resolveSingleImageComboTarget("definitely-not-a-combo-3215"), null);
 });

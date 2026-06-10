@@ -9,7 +9,8 @@
  */
 
 import { extractApiKey } from "@/sse/services/auth";
-import { getApiKeyMetadata, getComboByName, isModelAllowedForKey } from "@/lib/localDb";
+import { getApiKeyMetadata, getComboByName, isModelAllowedForKey, getApiKeyById } from "@/lib/localDb";
+import { isDashboardSessionAuthenticated } from "./apiAuth";
 import { resolveComboForModel } from "@/lib/db/modelComboMappings";
 import { checkBudget } from "@/domain/costRules";
 import { checkTokenLimits } from "@omniroute/open-sse/services/tokenLimitCounter.ts";
@@ -225,13 +226,41 @@ export interface ApiKeyPolicyResult {
  * // proceed with request, optionally use policy.apiKeyInfo
  * ```
  */
+/** Header carrying the id of the API key a dashboard playground request wants to
+ *  test the policy for (never the key secret). */
+const PLAYGROUND_KEY_ID_HEADER = "x-omniroute-playground-key-id";
+
+/**
+ * Dashboard playground support. An authenticated admin session may test a
+ * specific API key's policy (allowed_models, budget, …) WITHOUT putting the key
+ * secret on the wire: the browser sends only the key id via
+ * `x-omniroute-playground-key-id` and we resolve the secret server-side.
+ *
+ * Security: honored ONLY for authenticated dashboard sessions, and only as a
+ * fallback when no bearer key was presented — so it can never bypass auth or
+ * escalate privileges, it only applies (narrows to) the selected key's policy.
+ */
+export async function resolvePlaygroundTestKey(request: Request): Promise<string | null> {
+  const keyId = request.headers.get(PLAYGROUND_KEY_ID_HEADER);
+  if (!keyId) return null;
+  if (!(await isDashboardSessionAuthenticated(request))) return null;
+  try {
+    const row = await getApiKeyById(keyId);
+    return typeof row?.key === "string" ? row.key : null;
+  } catch {
+    return null;
+  }
+}
+
 export async function enforceApiKeyPolicy(
   request: Request,
   modelStr: string | null
 ): Promise<ApiKeyPolicyResult> {
-  const apiKey = extractApiKey(request);
+  // A real bearer key wins; otherwise an authenticated dashboard playground may
+  // test a specific key's policy by id (resolved server-side, secret never sent).
+  const apiKey = extractApiKey(request) || (await resolvePlaygroundTestKey(request));
 
-  // No API key = local mode, skip policy checks
+  // No API key = local/session mode, skip policy checks
   if (!apiKey) {
     return { apiKey: null, apiKeyInfo: null, rejection: null };
   }
