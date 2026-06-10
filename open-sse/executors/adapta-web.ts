@@ -1,5 +1,6 @@
 import { BaseExecutor, type ExecuteInput } from "./base.ts";
 import { prepareToolMessages, buildToolAwareResult } from "../translator/webTools.ts";
+import { sanitizeErrorMessage } from "../utils/error.ts";
 
 const ADAPTA_APP_URL = "https://agent.adapta.one";
 const ADAPTA_CLERK_URL = "https://clerk.agent.adapta.one";
@@ -378,7 +379,7 @@ export class AdaptaWebExecutor extends BaseExecutor {
       const msg = err instanceof Error ? err.message : String(err);
       log?.warn?.("ADAPTA-WEB", `Auth failed: ${msg}`);
       return {
-        response: makeErrorResponse(401, `Adapta auth failed: ${msg}`),
+        response: makeErrorResponse(401, `Adapta auth failed: ${sanitizeErrorMessage(msg)}`),
         url: ADAPTA_STREAM_URL,
         headers: {},
         transformedBody: body,

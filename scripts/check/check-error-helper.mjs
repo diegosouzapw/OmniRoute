@@ -31,35 +31,7 @@ const SCAN_DIRS = [
 // with no utils/error import) and should become a tracked cleanup issue: route the
 // message through sanitizeErrorMessage()/buildErrorBody()/makeExecutorErrorResult().
 // Do NOT add new entries without a justification — that defeats the gate.
-export const KNOWN_MISSING_ERROR_HELPER = new Set([
-  // adapta-web: local makeErrorResponse() + `Adapta auth failed: ${msg}` where
-  //   msg = err.message — raw auth/upstream error string in the JSON error body,
-  //   no open-sse/utils/error import. Fix: sanitizeErrorMessage(msg) before forwarding.
-  "open-sse/executors/adapta-web.ts",
-  // deepseek-web: local errorResponse() shadow that puts `message` raw into the body,
-  //   fed `DeepSeek error: ${msg}` where msg = err.message — bypasses the canonical
-  //   sanitizer. Fix: route through buildErrorBody()/sanitizeErrorMessage().
-  "open-sse/executors/deepseek-web.ts",
-  // perplexity-web: `new Response({ error: { message: `Perplexity connection failed:
-  //   ${err.message}` }})` (multi-line envelope) for TLS/connection failures — raw
-  //   err.message in the client error body, no sanitizer import.
-  "open-sse/executors/perplexity-web.ts",
-  // qoder: `response: new Response({ error: { message: `Qoder fetch error:
-  //   ${error.message}` }})` — raw error.message in the returned response body,
-  //   no sanitizer import.
-  "open-sse/executors/qoder.ts",
-  // veoaifree-web: local errResp(msg) on nonce-fetch failure where msg = err.message —
-  //   raw error string in the response body, no sanitizer import.
-  "open-sse/executors/veoaifree-web.ts",
-  // embeddings handler: `return { success: false, status: 502, error: `Embedding
-  //   provider error: ${err.message}` }` — raw err.message in the result error field,
-  //   no sanitizer import. (The saveCallLog `error: err.message` rows are internal and
-  //   correctly NOT what is frozen here.)
-  "open-sse/handlers/embeddings.ts",
-  // search handler: `return { …, error: `Search provider …: ${err.message}` }` — raw
-  //   err.message in the result error field, no sanitizer import.
-  "open-sse/handlers/search.ts",
-]);
+export const KNOWN_MISSING_ERROR_HELPER = new Set([]);
 
 // Import specifiers that count as "uses the error helper" (path ends in utils/error).
 const ERROR_HELPER_IMPORT =

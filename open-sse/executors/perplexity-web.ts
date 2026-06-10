@@ -14,6 +14,7 @@ import {
   type TlsFetchResult,
 } from "../services/perplexityTlsClient.ts";
 import { prepareToolMessages, buildToolAwareResult } from "../translator/webTools.ts";
+import { sanitizeErrorMessage } from "../utils/error.ts";
 
 const PPLX_SSE_ENDPOINT = "https://www.perplexity.ai/rest/sse/perplexity_ask";
 const PPLX_API_VERSION = "client-1.11.0";
@@ -756,8 +757,8 @@ export class PerplexityWebExecutor extends BaseExecutor {
         JSON.stringify({
           error: {
             message: isTlsUnavail
-              ? `Perplexity TLS client unavailable: ${(err as Error).message}`
-              : `Perplexity connection failed: ${err instanceof Error ? err.message : String(err)}`,
+              ? `Perplexity TLS client unavailable: ${sanitizeErrorMessage((err as Error).message)}`
+              : `Perplexity connection failed: ${sanitizeErrorMessage(err instanceof Error ? err.message : String(err))}`,
             type: "upstream_error",
           },
         }),

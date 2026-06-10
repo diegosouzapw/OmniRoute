@@ -7,6 +7,7 @@
  * No auth required. Rate limited to 6 requests/hour per IP.
  */
 import { BaseExecutor, type ExecuteInput } from "./base.ts";
+import { sanitizeErrorMessage } from "../utils/error.ts";
 
 const BASE_URL = "https://veoaifree.com";
 const AJAX_URL = `${BASE_URL}/wp-admin/admin-ajax.php`;
@@ -362,7 +363,7 @@ export class VeoAIFreeWebExecutor extends BaseExecutor {
       nonce = await fetchNonce(input.signal);
     } catch (err) {
       const msg = err instanceof Error ? err.message : "Failed to get nonce";
-      return { response: errResp(msg), url: BASE_URL, headers: {}, transformedBody: null };
+      return { response: errResp(sanitizeErrorMessage(msg)), url: BASE_URL, headers: {}, transformedBody: null };
     }
 
     // Extract aspect ratio from system prompt or default
