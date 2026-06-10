@@ -18,15 +18,15 @@ import {
   mergeAbortSignals,
   type ExecuteInput,
 } from "./base.ts";
-import { FETCH_TIMEOUT_MS } from "../config/constants.ts";
+import { FETCH_TIMEOUT_MS } from "../../config/constants.ts";
 import { buildGrokCookieHeader } from "@/lib/providers/webCookieAuth";
 import {
   tlsFetchGrok,
   TlsClientUnavailableError,
   isCloudflareChallenge,
   type TlsFetchResult,
-} from "../services/grokTlsClient.ts";
-import { sanitizeErrorMessage } from "../utils/error.ts";
+} from "../../services/grokTlsClient.ts";
+import { sanitizeErrorMessage } from "../../utils/error.ts";
 
 // ─── Constants ──────────────────────────────────────────────────────────────
 

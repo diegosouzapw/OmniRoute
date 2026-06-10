@@ -8,8 +8,8 @@ import {
   type ExecutorLog,
   type ProviderCredentials,
 } from "./base.ts";
-import { FETCH_TIMEOUT_MS } from "../config/constants.ts";
-import { getAccessToken } from "../services/tokenRefresh.ts";
+import { FETCH_TIMEOUT_MS } from "../../config/constants.ts";
+import { getAccessToken } from "../../services/tokenRefresh.ts";
 import {
   buildGitLabDirectGatewayUrl,
   buildGitLabOAuthEndpoints,

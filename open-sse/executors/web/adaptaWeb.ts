@@ -1,5 +1,5 @@
 import { BaseExecutor, type ExecuteInput } from "./base.ts";
-import { prepareToolMessages, buildToolAwareResult } from "../translator/webTools.ts";
+import { prepareToolMessages, buildToolAwareResult } from "../../translator/webTools.ts";
 
 const ADAPTA_APP_URL = "https://agent.adapta.one";
 const ADAPTA_CLERK_URL = "https://clerk.agent.adapta.one";

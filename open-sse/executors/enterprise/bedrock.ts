@@ -7,8 +7,8 @@ import {
 import { randomUUID } from "node:crypto";
 
 import { BaseExecutor } from "./base.ts";
-import { PROVIDERS } from "../config/constants.ts";
-import { buildBedrockNativeConverseUrl, resolveBedrockRegion } from "../config/bedrock.ts";
+import { PROVIDERS } from "../../config/constants.ts";
+import { buildBedrockNativeConverseUrl, resolveBedrockRegion } from "../../config/bedrock.ts";
 
 const encoder = new TextEncoder();
 

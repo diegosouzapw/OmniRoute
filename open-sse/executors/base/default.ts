@@ -1,37 +1,37 @@
 import { BaseExecutor, setUserAgentHeader, type ExecuteInput } from "./base.ts";
-import { PROVIDERS, OAUTH_ENDPOINTS } from "../config/constants.ts";
-import { getAccessToken } from "../services/tokenRefresh.ts";
+import { PROVIDERS, OAUTH_ENDPOINTS } from "../../config/constants.ts";
+import { getAccessToken } from "../../services/tokenRefresh.ts";
 import {
   getRotatingApiKey,
   getValidApiKey,
   resolveKeyForRequest,
-} from "../services/apiKeyRotator.ts";
-import type { KeyHealth } from "../services/apiKeyRotator.ts";
+} from "../../services/apiKeyRotator.ts";
+import type { KeyHealth } from "../../services/apiKeyRotator.ts";
 import {
   buildClaudeCodeCompatibleHeaders,
   CLAUDE_CODE_COMPATIBLE_DEFAULT_CHAT_PATH,
   joinClaudeCodeCompatibleUrl,
-} from "../services/claudeCodeCompatible.ts";
-import { getGigachatAccessToken } from "../services/gigachatAuth.ts";
-import { getRegistryEntry } from "../config/providerRegistry.ts";
-import { applyProviderRequestDefaults } from "../services/providerRequestDefaults.ts";
+} from "../../services/claudeCodeCompatible.ts";
+import { getGigachatAccessToken } from "../../services/gigachatAuth.ts";
+import { getRegistryEntry } from "../../config/providerRegistry.ts";
+import { applyProviderRequestDefaults } from "../../services/providerRequestDefaults.ts";
 import {
   detectFormat,
   getOpenAICompatibleType,
   getTargetFormat,
   isClaudeCodeCompatible,
-} from "../services/provider.ts";
-import { sanitizeQwenThinkingToolChoice } from "../services/qwenThinking.ts";
-import { buildDataRobotChatUrl } from "../config/datarobot.ts";
-import { buildAzureAiChatUrl } from "../config/azureAi.ts";
-import { buildWatsonxChatUrl } from "../config/watsonx.ts";
-import { buildOciChatUrl } from "../config/oci.ts";
-import { buildSapChatUrl, getSapResourceGroup } from "../config/sap.ts";
-import { buildMaritalkChatUrl } from "../config/maritalk.ts";
+} from "../../services/provider.ts";
+import { sanitizeQwenThinkingToolChoice } from "../../services/qwenThinking.ts";
+import { buildDataRobotChatUrl } from "../../config/datarobot.ts";
+import { buildAzureAiChatUrl } from "../../config/azureAi.ts";
+import { buildWatsonxChatUrl } from "../../config/watsonx.ts";
+import { buildOciChatUrl } from "../../config/oci.ts";
+import { buildSapChatUrl, getSapResourceGroup } from "../../config/sap.ts";
+import { buildMaritalkChatUrl } from "../../config/maritalk.ts";
 import { LOCAL_PROVIDERS } from "@/shared/constants/providers";
 import { isForbiddenCustomHeaderName } from "@/shared/constants/upstreamHeaders";
 
-import type { PoolConfig } from "../services/sessionPool/types.ts";
+import type { PoolConfig } from "../../services/sessionPool/types.ts";
 
 /**
  * Apply operator-configured per-provider custom headers onto an outgoing header

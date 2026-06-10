@@ -1,10 +1,10 @@
 import { BaseExecutor, type ExecuteInput } from "./base.ts";
-import { solveDeepSeekPowAsync } from "../lib/deepseek-pow.ts";
+import { solveDeepSeekPowAsync } from "../../lib/deepseek-pow.ts";
 import {
   serializeToolsToPrompt,
   parseToolCallsFromText,
   type OpenAIToolCall,
-} from "../translator/webTools.ts";
+} from "../../translator/webTools.ts";
 
 export const DEEPSEEK_WEB_BASE = "https://chat.deepseek.com";
 const DEEPSEEK_API_BASE = `${DEEPSEEK_WEB_BASE}/api`;

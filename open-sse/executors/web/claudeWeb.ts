@@ -20,13 +20,13 @@
  * Response is streamed as server-sent events (SSE format).
  */
 import { BaseExecutor, mergeAbortSignals, type ExecuteInput } from "./base.ts";
-import { FETCH_TIMEOUT_MS } from "../config/constants.ts";
-import { tlsFetchClaude } from "../services/claudeTlsClient.ts";
-import { getCfClearanceToken } from "../services/claudeTurnstileSolver.ts";
+import { FETCH_TIMEOUT_MS } from "../../config/constants.ts";
+import { tlsFetchClaude } from "../../services/claudeTlsClient.ts";
+import { getCfClearanceToken } from "../../services/claudeTurnstileSolver.ts";
 import { normalizeSessionCookieHeader } from "@/lib/providers/webCookieAuth";
 import { randomUUID } from "crypto";
-import { sanitizeErrorMessage } from "../utils/error.ts";
-import { tryBackedChat } from "../services/browserBackedChat.ts";
+import { sanitizeErrorMessage } from "../../utils/error.ts";
+import { tryBackedChat } from "../../services/browserBackedChat.ts";
 
 // ─── Constants ──────────────────────────────────────────────────────────────
 const CLAUDE_WEB_API_BASE = "https://claude.ai/api";

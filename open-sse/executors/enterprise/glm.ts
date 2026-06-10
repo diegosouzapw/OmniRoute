@@ -17,21 +17,21 @@ import {
   GLM_COUNT_TOKENS_TIMEOUT_MS,
   type GlmTransport,
   getGlmTransport,
-} from "../config/glmProvider.ts";
-import { applyProviderRequestDefaults } from "../services/providerRequestDefaults.ts";
-import { getRotatingApiKey } from "../services/apiKeyRotator.ts";
-import { CLAUDE_CLI_STAINLESS_PACKAGE_VERSION } from "../config/anthropicHeaders.ts";
+} from "../../config/glmProvider.ts";
+import { applyProviderRequestDefaults } from "../../services/providerRequestDefaults.ts";
+import { getRotatingApiKey } from "../../services/apiKeyRotator.ts";
+import { CLAUDE_CLI_STAINLESS_PACKAGE_VERSION } from "../../config/anthropicHeaders.ts";
 import {
   getRuntimeVersion,
   normalizeStainlessArch,
   normalizeStainlessPlatform,
-} from "../config/providerHeaderProfiles.ts";
-import { translateNonStreamingResponse } from "../handlers/responseTranslator.ts";
-import { translateRequest } from "../translator/index.ts";
-import { FORMATS } from "../translator/formats.ts";
-import { createSSETransformStreamWithLogger } from "../utils/stream.ts";
-import { ensureStreamReadiness } from "../utils/streamReadiness.ts";
-import { STREAM_READINESS_TIMEOUT_MS } from "../config/constants.ts";
+} from "../../config/providerHeaderProfiles.ts";
+import { translateNonStreamingResponse } from "../../handlers/responseTranslator.ts";
+import { translateRequest } from "../../translator/index.ts";
+import { FORMATS } from "../../translator/formats.ts";
+import { createSSETransformStreamWithLogger } from "../../utils/stream.ts";
+import { ensureStreamReadiness } from "../../utils/streamReadiness.ts";
+import { STREAM_READINESS_TIMEOUT_MS } from "../../config/constants.ts";
 
 type JsonRecord = Record<string, unknown>;
 type GlmExecuteResult = Awaited<ReturnType<DefaultExecutor["execute"]>> & {

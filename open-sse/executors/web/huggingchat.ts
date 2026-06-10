@@ -23,7 +23,7 @@ import {
   mergeUpstreamExtraHeaders,
   type ExecuteInput,
 } from "./base.ts";
-import { FETCH_TIMEOUT_MS } from "../config/constants.ts";
+import { FETCH_TIMEOUT_MS } from "../../config/constants.ts";
 import { normalizeSessionCookieHeader } from "@/lib/providers/webCookieAuth";
 
 const HUGGINGFACE_BASE = "https://huggingface.co";

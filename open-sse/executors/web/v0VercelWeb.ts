@@ -8,7 +8,7 @@
  * Auth: Session cookie from v0.dev
  */
 import { BaseExecutor, type ExecuteInput } from "./base.ts";
-import { makeExecutorErrorResult as makeErrorResult, normalizeCookie } from "../utils/error.ts";
+import { makeExecutorErrorResult as makeErrorResult, normalizeCookie } from "../../utils/error.ts";
 
 const BASE_URL = "https://v0.dev";
 const CHAT_URL = `${BASE_URL}/api/chat`;

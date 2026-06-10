@@ -1,6 +1,6 @@
 import { BaseExecutor } from "./base.ts";
-import { PROVIDERS } from "../config/constants.ts";
-import { DEFAULT_POOL_CONFIG } from "../services/sessionPool/types.ts";
+import { PROVIDERS } from "../../config/constants.ts";
+import { DEFAULT_POOL_CONFIG } from "../../services/sessionPool/types.ts";
 import type { ExecuteInput } from "./base.ts";
 
 export class PollinationsExecutor extends BaseExecutor {

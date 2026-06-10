@@ -12,8 +12,8 @@ import {
   isCloudflareChallenge,
   TlsClientUnavailableError,
   type TlsFetchResult,
-} from "../services/perplexityTlsClient.ts";
-import { prepareToolMessages, buildToolAwareResult } from "../translator/webTools.ts";
+} from "../../services/perplexityTlsClient.ts";
+import { prepareToolMessages, buildToolAwareResult } from "../../translator/webTools.ts";
 
 const PPLX_SSE_ENDPOINT = "https://www.perplexity.ai/rest/sse/perplexity_ask";
 const PPLX_API_VERSION = "client-1.11.0";

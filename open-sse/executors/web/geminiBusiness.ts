@@ -29,7 +29,7 @@
  */
 import { createHash, randomUUID } from "node:crypto";
 import { BaseExecutor, mergeAbortSignals, type ExecuteInput } from "./base.ts";
-import { makeExecutorErrorResult as makeErrorResult } from "../utils/error.ts";
+import { makeExecutorErrorResult as makeErrorResult } from "../../utils/error.ts";
 
 const GEMINI_BUSINESS_FETCH_TIMEOUT_MS = 60_000;
 

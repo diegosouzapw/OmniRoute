@@ -1,6 +1,6 @@
 import { randomUUID } from "node:crypto";
 
-import { REGISTRY } from "../config/providerRegistry.ts";
+import { REGISTRY } from "../../config/providerRegistry.ts";
 import { BaseExecutor, mergeUpstreamExtraHeaders, type ExecuteInput } from "./base.ts";
 
 type JsonRecord = Record<string, unknown>;

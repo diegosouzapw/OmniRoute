@@ -2,11 +2,11 @@ import { createHash, generateKeyPairSync, randomUUID } from "node:crypto";
 import vm from "node:vm";
 import { parseFragment, serialize } from "parse5";
 import { BaseExecutor, type ExecuteInput } from "./base.ts";
-import { FETCH_TIMEOUT_MS } from "../config/constants.ts";
-import { prepareToolMessages, buildToolAwareResult } from "../translator/webTools.ts";
-import type { Session } from "../services/sessionPool/session.ts";
-import { tryBackedChat } from "../services/browserBackedChat.ts";
-import { sanitizeErrorMessage } from "../utils/error.ts";
+import { FETCH_TIMEOUT_MS } from "../../config/constants.ts";
+import { prepareToolMessages, buildToolAwareResult } from "../../translator/webTools.ts";
+import type { Session } from "../../services/sessionPool/session.ts";
+import { tryBackedChat } from "../../services/browserBackedChat.ts";
+import { sanitizeErrorMessage } from "../../utils/error.ts";
 
 export const DUCKDUCKGO_BASE = "https://duckduckgo.com";
 const DUCKAI_BASE = "https://duck.ai";

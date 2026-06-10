@@ -21,9 +21,9 @@ import {
   mergeAbortSignals,
   type ProviderCredentials,
 } from "./base.ts";
-import { HTTP_STATUS, FETCH_TIMEOUT_MS } from "../config/constants.ts";
-import { cloakThirdPartyToolNames } from "../services/claudeCodeToolRemapper.ts";
-import { sanitizeClaudeToolSchemas } from "../translator/helpers/schemaCoercion.ts";
+import { HTTP_STATUS, FETCH_TIMEOUT_MS } from "../../config/constants.ts";
+import { cloakThirdPartyToolNames } from "../../services/claudeCodeToolRemapper.ts";
+import { sanitizeClaudeToolSchemas } from "../../translator/helpers/schemaCoercion.ts";
 
 const DEFAULT_PORT = 8317;
 const DEFAULT_HOST = "127.0.0.1";

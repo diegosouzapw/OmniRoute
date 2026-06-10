@@ -8,7 +8,7 @@
  * Auth: Session cookie from kimi.moonshot.cn
  */
 import { BaseExecutor, type ExecuteInput } from "./base.ts";
-import { makeExecutorErrorResult as makeErrorResult, normalizeCookie } from "../utils/error.ts";
+import { makeExecutorErrorResult as makeErrorResult, normalizeCookie } from "../../utils/error.ts";
 
 const BASE_URL = "https://kimi.moonshot.cn";
 const CHAT_URL = `${BASE_URL}/api/chat`;

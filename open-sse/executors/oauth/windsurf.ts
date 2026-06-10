@@ -20,7 +20,7 @@
  */
 
 import { BaseExecutor, mergeUpstreamExtraHeaders, type ExecuteInput } from "./base.ts";
-import { PROVIDERS } from "../config/constants.ts";
+import { PROVIDERS } from "../../config/constants.ts";
 import { randomUUID } from "node:crypto";
 
 // ─── Windsurf API constants ──────────────────────────────────────────────────

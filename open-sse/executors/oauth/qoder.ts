@@ -5,13 +5,13 @@ import {
   type ExecuteInput,
   type ProviderCredentials,
 } from "./base.ts";
-import { PROVIDERS } from "../config/constants.ts";
+import { PROVIDERS } from "../../config/constants.ts";
 import {
   getQoderDashscopeCompatHeaders,
   QODER_DEFAULT_USER_AGENT,
-} from "../config/providerHeaderProfiles.ts";
-import { sanitizeQwenThinkingToolChoice } from "../services/qwenThinking.ts";
-import { buildCosyHeadersForValidation } from "../services/qoderCli.ts";
+} from "../../config/providerHeaderProfiles.ts";
+import { sanitizeQwenThinkingToolChoice } from "../../services/qwenThinking.ts";
+import { buildCosyHeadersForValidation } from "../../services/qoderCli.ts";
 
 function getAuthToken(credentials: ProviderCredentials): string {
   if (typeof credentials.apiKey === "string" && credentials.apiKey.trim()) {

@@ -7,7 +7,7 @@ import {
   type ExecutorLog,
   type ProviderCredentials,
 } from "./base.ts";
-import { applyFingerprint, isCliCompatEnabled } from "../config/cliFingerprints.ts";
+import { applyFingerprint, isCliCompatEnabled } from "../../config/cliFingerprints.ts";
 import { buildAntigravityUpstreamError } from "./antigravityUpstreamError.ts";
 import {
   PROVIDERS,
@@ -15,41 +15,41 @@ import {
   HTTP_STATUS,
   STREAM_READINESS_TIMEOUT_MS,
   ANTIGRAVITY_PRE_RESPONSE_TIMEOUT_CODE,
-} from "../config/constants.ts";
-import { scrubProxyAndFingerprintHeaders } from "../services/antigravityHeaderScrub.ts";
+} from "../../config/constants.ts";
+import { scrubProxyAndFingerprintHeaders } from "../../services/antigravityHeaderScrub.ts";
 import {
   antigravityNativeOAuthUserAgent,
   antigravityUserAgent,
-} from "../services/antigravityHeaders.ts";
-import { classify429, decide429, type Decision } from "../services/antigravity429Engine.ts";
+} from "../../services/antigravityHeaders.ts";
+import { classify429, decide429, type Decision } from "../../services/antigravity429Engine.ts";
 import {
   injectCreditsField,
   shouldRetryWithCredits,
   shouldUseCreditsFirst,
   getCreditsMode,
   handleCreditsFailure,
-} from "../services/antigravityCredits.ts";
+} from "../../services/antigravityCredits.ts";
 import { persistCreditBalance, getAllPersistedCreditBalances } from "@/lib/db/creditBalance";
 import { getMitmAlias } from "@/lib/db/models";
-import { obfuscateSensitiveWords } from "../services/antigravityObfuscation.ts";
-import { resolveAntigravityVersion } from "../services/antigravityVersion.ts";
-import { ensureAntigravityProjectAssigned } from "../services/antigravityProjectBootstrap.ts";
-import { resolveAntigravityModelId } from "../config/antigravityModelAliases.ts";
-import { cloakAntigravityToolPayload } from "../config/toolCloaking.ts";
+import { obfuscateSensitiveWords } from "../../services/antigravityObfuscation.ts";
+import { resolveAntigravityVersion } from "../../services/antigravityVersion.ts";
+import { ensureAntigravityProjectAssigned } from "../../services/antigravityProjectBootstrap.ts";
+import { resolveAntigravityModelId } from "../../config/antigravityModelAliases.ts";
+import { cloakAntigravityToolPayload } from "../../config/toolCloaking.ts";
 import {
   shouldStripCloudCodeThinking,
   stripCloudCodeThinkingConfig,
-} from "../services/cloudCodeThinking.ts";
-import { buildGeminiTools } from "../translator/helpers/geminiToolsSanitizer.ts";
+} from "../../services/cloudCodeThinking.ts";
+import { buildGeminiTools } from "../../translator/helpers/geminiToolsSanitizer.ts";
 import {
   applyAntigravityClientProfileHeaders,
   removeHeaderCaseInsensitive,
-} from "../services/antigravityClientProfile.ts";
+} from "../../services/antigravityClientProfile.ts";
 import {
   generateAntigravityRequestId,
   getAntigravityEnvelopeUserAgent,
   getAntigravitySessionId,
-} from "../services/antigravityIdentity.ts";
+} from "../../services/antigravityIdentity.ts";
 
 const MAX_RETRY_AFTER_MS = 60_000;
 const LONG_RETRY_THRESHOLD_MS = 60_000;

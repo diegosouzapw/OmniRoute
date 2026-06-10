@@ -8,8 +8,8 @@
  * Docs: https://docs.tavily.com/documentation/api-reference/endpoint/post-extract
  */
 
-import { sanitizeErrorMessage, buildErrorBody } from "../utils/error.ts";
-import type { WebFetchResult, WebFetchFormat, WebFetchCredentials } from "../handlers/webFetch.ts";
+import { sanitizeErrorMessage, buildErrorBody } from "../../utils/error.ts";
+import type { WebFetchResult, WebFetchFormat, WebFetchCredentials } from "../../handlers/webFetch.ts";
 
 const TAVILY_EXTRACT_URL = "https://api.tavily.com/extract";
 const TAVILY_TIMEOUT_MS = 30_000;

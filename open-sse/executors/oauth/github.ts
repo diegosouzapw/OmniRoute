@@ -1,11 +1,11 @@
 import { BaseExecutor, ExecuteInput, type ProviderCredentials } from "./base.ts";
-import { PROVIDERS, OAUTH_ENDPOINTS } from "../config/constants.ts";
-import { getModelTargetFormat } from "../config/providerModels.ts";
+import { PROVIDERS, OAUTH_ENDPOINTS } from "../../config/constants.ts";
+import { getModelTargetFormat } from "../../config/providerModels.ts";
 import {
   getGitHubCopilotChatHeaders,
   getGitHubCopilotRefreshHeaders,
-} from "../config/providerHeaderProfiles.ts";
-import { sanitizeResponsesInputItems } from "../services/responsesInputSanitizer.ts";
+} from "../../config/providerHeaderProfiles.ts";
+import { sanitizeResponsesInputItems } from "../../services/responsesInputSanitizer.ts";
 
 export class GithubExecutor extends BaseExecutor {
   constructor() {

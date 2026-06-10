@@ -21,13 +21,13 @@ import {
   tlsFetchChatGpt,
   TlsClientUnavailableError,
   type TlsFetchResult,
-} from "../services/chatgptTlsClient.ts";
+} from "../../services/chatgptTlsClient.ts";
 import {
   storeChatGptImage,
   getChatGptImageConversationContext,
   __resetChatGptImageCacheForTesting,
   type ChatGptImageConversationContext,
-} from "../services/chatgptImageCache.ts";
+} from "../../services/chatgptImageCache.ts";
 
 // ─── Constants ──────────────────────────────────────────────────────────────
 

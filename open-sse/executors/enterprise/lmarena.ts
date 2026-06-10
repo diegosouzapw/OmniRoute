@@ -25,7 +25,7 @@
  *   ad: - Done marker
  */
 import { BaseExecutor, type ExecuteInput } from "./base.ts";
-import { sanitizeErrorMessage } from "../utils/error.ts";
+import { sanitizeErrorMessage } from "../../utils/error.ts";
 
 const LMARENA_API_BASE = "https://arena.ai";
 const LMARENA_STREAM_URL = `${LMARENA_API_BASE}/nextjs-api/stream`;

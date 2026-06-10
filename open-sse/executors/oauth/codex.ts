@@ -11,23 +11,23 @@ import {
 import {
   CODEX_CHAT_DEFAULT_INSTRUCTIONS,
   CODEX_DEFAULT_INSTRUCTIONS,
-} from "../config/codexInstructions.ts";
-import { PROVIDERS } from "../config/constants.ts";
+} from "../../config/codexInstructions.ts";
+import { PROVIDERS } from "../../config/constants.ts";
 import {
   getCodexClientVersion,
   getCodexUserAgent,
   normalizeCodexSessionId,
-} from "../config/codexClient.ts";
+} from "../../config/codexClient.ts";
 import {
   applyCodexClientIdentityHeaders,
   applyCodexClientMetadata,
   createCodexClientIdentity,
   type CodexClientIdentity,
-} from "../config/codexIdentity.ts";
-import { getAccessToken } from "../services/tokenRefresh.ts";
-import { sanitizeResponsesInputItems } from "../services/responsesInputSanitizer.ts";
-import { getThinkingBudgetConfig, ThinkingMode } from "../services/thinkingBudget.ts";
-import { CORS_HEADERS } from "../utils/cors.ts";
+} from "../../config/codexIdentity.ts";
+import { getAccessToken } from "../../services/tokenRefresh.ts";
+import { sanitizeResponsesInputItems } from "../../services/responsesInputSanitizer.ts";
+import { getThinkingBudgetConfig, ThinkingMode } from "../../services/thinkingBudget.ts";
+import { CORS_HEADERS } from "../../utils/cors.ts";
 import { createRequire } from "module";
 
 // ─── wreq-js lazy loader ───────────────────────────────────────────────────

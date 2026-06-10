@@ -4,8 +4,8 @@ import {
   type ExecuteInput,
   type ProviderCredentials,
 } from "./base.ts";
-import { PROVIDERS } from "../config/constants.ts";
-import { getModelTargetFormat } from "../config/providerModels.ts";
+import { PROVIDERS } from "../../config/constants.ts";
+import { getModelTargetFormat } from "../../config/providerModels.ts";
 
 export class OpencodeExecutor extends BaseExecutor {
   _requestFormat: string | null = null;

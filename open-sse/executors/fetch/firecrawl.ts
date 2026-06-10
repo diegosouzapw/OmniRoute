@@ -8,8 +8,8 @@
  * Docs: https://docs.firecrawl.dev/api-reference/endpoint/scrape
  */
 
-import { sanitizeErrorMessage, buildErrorBody } from "../utils/error.ts";
-import type { WebFetchResult, WebFetchFormat, WebFetchCredentials } from "../handlers/webFetch.ts";
+import { sanitizeErrorMessage, buildErrorBody } from "../../utils/error.ts";
+import type { WebFetchResult, WebFetchFormat, WebFetchCredentials } from "../../handlers/webFetch.ts";
 
 const FIRECRAWL_API_BASE = "https://api.firecrawl.dev/v1";
 const FIRECRAWL_TIMEOUT_MS = 30_000;

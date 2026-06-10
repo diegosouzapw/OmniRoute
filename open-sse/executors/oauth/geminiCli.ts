@@ -1,13 +1,13 @@
 import { BaseExecutor, mergeUpstreamExtraHeaders, mergeAbortSignals } from "./base.ts";
 import { randomUUID } from "crypto";
-import { PROVIDERS, OAUTH_ENDPOINTS, FETCH_TIMEOUT_MS } from "../config/constants.ts";
-import { getGeminiCliHeaders } from "../services/geminiCliHeaders.ts";
-import { scrubProxyAndFingerprintHeaders } from "../services/antigravityHeaderScrub.ts";
-import { obfuscateSensitiveWords } from "../services/antigravityObfuscation.ts";
+import { PROVIDERS, OAUTH_ENDPOINTS, FETCH_TIMEOUT_MS } from "../../config/constants.ts";
+import { getGeminiCliHeaders } from "../../services/geminiCliHeaders.ts";
+import { scrubProxyAndFingerprintHeaders } from "../../services/antigravityHeaderScrub.ts";
+import { obfuscateSensitiveWords } from "../../services/antigravityObfuscation.ts";
 import {
   shouldStripCloudCodeThinking,
   stripCloudCodeThinkingConfig,
-} from "../services/cloudCodeThinking.ts";
+} from "../../services/cloudCodeThinking.ts";
 
 const LOAD_CODE_ASSIST_URL = "https://cloudcode-pa.googleapis.com/v1internal:loadCodeAssist";
 const ONBOARD_USER_URL = "https://cloudcode-pa.googleapis.com/v1internal:onboardUser";

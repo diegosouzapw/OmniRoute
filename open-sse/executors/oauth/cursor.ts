@@ -11,7 +11,7 @@ declare const EdgeRuntime: string | undefined;
  */
 
 import { BaseExecutor, mergeUpstreamExtraHeaders } from "./base.ts";
-import { PROVIDERS, HTTP_STATUS } from "../config/constants.ts";
+import { PROVIDERS, HTTP_STATUS } from "../../config/constants.ts";
 import {
   buildAgentRequestBody,
   decodeAgentServerMessage,
@@ -37,21 +37,21 @@ import {
   type ExecServerEvent,
   type McpToolDefinition,
   type OpenAITool,
-} from "../utils/cursorAgentProtobuf.ts";
+} from "../../utils/cursorAgentProtobuf.ts";
 import {
   resolveCursorImages,
   extractImageUrls,
   CursorImageError,
-} from "../utils/cursorImages.ts";
+} from "../../utils/cursorImages.ts";
 import {
   estimateInputTokens,
   estimateOutputTokens,
   addBufferToUsage,
-} from "../utils/usageTracking.ts";
-import { getCursorVersion } from "../utils/cursorVersionDetector.ts";
-import { sanitizeErrorMessage } from "../utils/error.ts";
-import { generateToolCallId } from "../translator/helpers/toolCallHelper.ts";
-import { cursorSessionManager, type CursorSession } from "../services/cursorSessionManager.ts";
+} from "../../utils/usageTracking.ts";
+import { getCursorVersion } from "../../utils/cursorVersionDetector.ts";
+import { sanitizeErrorMessage } from "../../utils/error.ts";
+import { generateToolCallId } from "../../translator/helpers/toolCallHelper.ts";
+import { cursorSessionManager, type CursorSession } from "../../services/cursorSessionManager.ts";
 import crypto from "crypto";
 import * as fs from "node:fs";
 import * as zlib from "node:zlib";

@@ -4,9 +4,9 @@ import {
   mergeUpstreamExtraHeaders,
   type ExecuteInput,
 } from "./base.ts";
-import { FETCH_TIMEOUT_MS } from "../config/constants.ts";
+import { FETCH_TIMEOUT_MS } from "../../config/constants.ts";
 import { normalizeSessionCookieHeader } from "@/lib/providers/webCookieAuth";
-import { prepareToolMessages, buildToolAwareResult } from "../translator/webTools.ts";
+import { prepareToolMessages, buildToolAwareResult } from "../../translator/webTools.ts";
 
 const BLACKBOX_CHAT_API = "https://app.blackbox.ai/api/chat";
 const BLACKBOX_DEFAULT_COOKIE = "next-auth.session-token";

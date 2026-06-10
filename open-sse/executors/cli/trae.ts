@@ -17,8 +17,8 @@
  */
 
 import { BaseExecutor, mergeUpstreamExtraHeaders } from "./base.ts";
-import { PROVIDERS } from "../config/constants.ts";
-import { sanitizeErrorMessage } from "../utils/error.ts";
+import { PROVIDERS } from "../../config/constants.ts";
+import { sanitizeErrorMessage } from "../../utils/error.ts";
 
 type JsonRecord = Record<string, unknown>;
 type ChatMessage = { role?: string; content?: unknown };

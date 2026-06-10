@@ -6,7 +6,7 @@ import {
   type ExecuteInput,
   type ProviderCredentials,
 } from "./base.ts";
-import { PROVIDERS } from "../config/constants.ts";
+import { PROVIDERS } from "../../config/constants.ts";
 
 type JsonRecord = Record<string, unknown>;
 type OpenAIMessage = {

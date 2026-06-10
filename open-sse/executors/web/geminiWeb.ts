@@ -14,7 +14,7 @@
  */
 
 import { BaseExecutor, type ExecuteInput } from "./base.ts";
-import { sanitizeErrorMessage } from "../utils/error.ts";
+import { sanitizeErrorMessage } from "../../utils/error.ts";
 
 // ─── Constants ──────────────────────────────────────────────────────────────
 

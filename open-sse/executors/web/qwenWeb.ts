@@ -9,8 +9,8 @@
  * Format: OpenAI-compatible
  */
 import { BaseExecutor, type ExecuteInput } from "./base.ts";
-import { makeExecutorErrorResult as makeErrorResult } from "../utils/error.ts";
-import { prepareToolMessages, buildToolAwareResult } from "../translator/webTools.ts";
+import { makeExecutorErrorResult as makeErrorResult } from "../../utils/error.ts";
+import { prepareToolMessages, buildToolAwareResult } from "../../translator/webTools.ts";
 
 const BASE_URL = "https://chat.qwen.ai";
 const CHAT_URL = `${BASE_URL}/api/chat/completions`;
