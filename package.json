@@ -1,6 +1,6 @@
 {
   "name": "omniroute",
-  "version": "3.8.23",
+  "version": "3.8.21",
   "description": "Unified AI router with 160+ providers, RTK+Caveman compression, auto fallback, MCP/A2A, desktop, PWA, and OpenAI-compatible APIs.",
   "type": "module",
   "bin": {
@@ -10,15 +10,20 @@
   "files": [
     "bin/",
     "dist/",
+    "src/lib/cli-helper/",
     "@omniroute/",
-    "open-sse/",
-    "src/domain/",
-    "src/lib/",
-    "src/mitm/",
-    "src/server/",
-    "src/shared/",
-    "src/sse/",
-    "src/types/",
+    "open-sse/mcp-server/index.ts",
+    "open-sse/mcp-server/server.ts",
+    "open-sse/mcp-server/httpTransport.ts",
+    "open-sse/mcp-server/audit.ts",
+    "open-sse/mcp-server/runtimeHeartbeat.ts",
+    "open-sse/mcp-server/scopeEnforcement.ts",
+    "open-sse/mcp-server/schemas/",
+    "open-sse/mcp-server/tools/",
+    "open-sse/mcp-server/README.md",
+    "open-sse/utils/setupPolyfill.ts",
+    "src/shared/contracts/",
+    "src/shared/utils/nodeRuntimeSupport.ts",
     ".env.example",
     "scripts/build/postinstall.mjs",
     "bin/cli/runtime/",
@@ -31,14 +36,7 @@
     "scripts/build/native-binary-compat.mjs",
     "scripts/build/build-next-isolated.mjs",
     "README.md",
-    "LICENSE",
-    "!**/__tests__/**",
-    "!**/*.test.ts",
-    "!**/*.test.tsx",
-    "!**/*.test.js",
-    "!**/*.test.mjs",
-    "!**/*.spec.ts",
-    "!**/*.spec.tsx"
+    "LICENSE"
   ],
   "workspaces": [
     "open-sse"
