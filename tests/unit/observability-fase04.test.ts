@@ -85,9 +85,12 @@ test("CircuitBreaker: transitions to HALF_OPEN after reset timeout", async () =>
 });
 
 test("CircuitBreaker: status reads refresh OPEN providers after reset timeout", async () => {
+  // resetTimeout must leave real headroom: with 10ms, any event-loop contention
+  // between execute() and the first getStatus() already lazily refreshes the
+  // state to HALF_OPEN and the OPEN assert flakes (seen on CI shard runners).
   const cb = new CircuitBreaker(`test-status-refresh${cbSuffix}`, {
     failureThreshold: 1,
-    resetTimeout: 10,
+    resetTimeout: 250,
   });
 
   try {
@@ -98,7 +101,7 @@ test("CircuitBreaker: status reads refresh OPEN providers after reset timeout", 
 
   assert.equal(cb.getStatus().state, STATE.OPEN);
 
-  await new Promise((r) => setTimeout(r, 15));
+  await new Promise((r) => setTimeout(r, 300));
 
   assert.equal(cb.getStatus().state, STATE.HALF_OPEN);
   assert.equal(cb.canExecute(), true);

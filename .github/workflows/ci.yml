@@ -24,6 +24,12 @@ jobs:
   lint:
     name: Lint
     runs-on: ubuntu-latest
+    env:
+      # tsx gates below (known-symbols, route-guard-membership) import modules that
+      # open SQLite on load; provide DB env so a fresh CI DB initializes cleanly.
+      JWT_SECRET: ci-lint-secret-with-sufficient-length-for-validation
+      API_KEY_SECRET: ci-lint-api-key-secret-long
+      DISABLE_SQLITE_AUTO_BACKUP: "true"
     steps:
       - uses: actions/checkout@v6
       - uses: actions/setup-node@v6
@@ -37,6 +43,17 @@ jobs:
       - run: npm run check:cycles
       - run: npm run check:route-validation:t06
       - run: npm run check:any-budget:t11
+      - run: npm run check:provider-consistency
+      - run: npm run check:fetch-targets
+      - run: npm run check:deps
+      - run: npm run check:file-size
+      - run: npm run check:error-helper
+      - run: npm run check:migration-numbering
+      - run: npm run check:public-creds
+      - run: npm run check:db-rules
+      - run: npm run check:known-symbols
+      - run: npm run check:route-guard-membership
+      - run: npm run check:test-discovery
       - run: npm run check:docs-sync
       - run: npm run typecheck:core
       # typecheck:noimplicit:core is a forward-looking gate (noImplicitAny).
@@ -44,6 +61,46 @@ jobs:
       # explicit annotations; track in a dedicated follow-up.
       - run: npm run typecheck:noimplicit:core
         continue-on-error: true
+
+  quality-gate:
+    name: Quality Ratchet
+    runs-on: ubuntu-latest
+    needs: test-coverage
+    if: ${{ always() && needs.test-coverage.result == 'success' }}
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
+        with:
+          node-version: ${{ env.CI_NODE_VERSION }}
+          cache: npm
+      - run: npm ci
+      # Coverage mergeada (coverage-summary.json) p/ o ratchet de cobertura.
+      - uses: actions/download-artifact@v8
+        with:
+          name: coverage-report
+          path: coverage/
+      - run: npm run quality:collect
+      # Catraca: falha se qualquer métrica regredir vs quality-baseline.json (commitado).
+      # Hoje: contagem de warnings do ESLint. Fase 4 estende com cobertura (lida do
+      # coverage mergeado). Tamanho de arquivo e duplicação têm gates dedicados.
+      - name: Ratchet check
+        run: node scripts/quality/check-quality-ratchet.mjs --summary .artifacts/quality-ratchet.md
+      # Catraca de duplicação (jscpd@4 sobre src+open-sse). Roda neste job (paralelo)
+      # para não pesar no caminho crítico do lint.
+      - name: Duplication ratchet
+        run: npm run check:duplication
+      - name: Complexity ratchet
+        run: npm run check:complexity
+      - name: Append summary
+        if: always()
+        run: cat .artifacts/quality-ratchet.md >> "$GITHUB_STEP_SUMMARY"
+      - name: Upload ratchet report
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: quality-ratchet
+          path: .artifacts/quality-ratchet.md
+          if-no-files-found: warn
 
   docs-sync-strict:
     name: Docs Sync (Strict)
@@ -56,6 +113,19 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npm run check:docs-all
+      # Previously-orphaned contract gates (existed as files, never wired anywhere).
+      # All exit 0 today: cli-i18n is a hard gate, openapi-coverage is a ratchet
+      # (floor ~36), openapi-security-tiers is advisory (Hard Rules #15/#17).
+      - name: CLI i18n consistency
+        run: npm run check:cli-i18n
+      - name: OpenAPI route coverage (ratchet)
+        run: npm run check:openapi-coverage
+      - name: OpenAPI security-tier consistency (advisory)
+        run: npm run check:openapi-security-tiers
+      - name: OpenAPI spec paths resolve to real routes (anti-hallucination)
+        run: npm run check:openapi-routes
+      - name: Doc /api refs resolve to real routes (anti-hallucination)
+        run: npm run check:docs-symbols
       - name: i18n translation drift (warn)
         run: node scripts/i18n/check-translation-drift.mjs --warn
 
@@ -125,6 +195,9 @@ jobs:
         run: git fetch --no-tags origin "${GITHUB_BASE_REF}" --depth=1
       - name: Validate source changes include tests
         run: node scripts/check/check-pr-test-policy.mjs --summary-file .artifacts/pr-test-policy.md
+      # Anti test-masking: flag net assert removal / new assert.ok(true) in changed tests.
+      - name: Detect test-masking (weakened assertions)
+        run: npm run check:test-masking
       - name: Publish PR test policy summary
         if: always()
         run: |
@@ -230,7 +303,32 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npm run check:node-runtime
-      - run: node --max-old-space-size=4096 --import tsx --test --test-force-exit --test-concurrency=4 --test-shard=${{ matrix.shard }}/8 tests/unit/*.test.ts
+      - run: node --max-old-space-size=4096 --import tsx --test --test-force-exit --test-concurrency=4 --test-shard=${{ matrix.shard }}/8 tests/unit/*.test.ts "tests/unit/{api,auth,authz,build,cli,cli-helper,compression,cors,dashboard,db,db-adapters,docs,gamification,guardrails,lib,mcp,runtime,security,services,settings,shared,ui}/**/*.test.ts"
+
+  test-vitest:
+    name: Vitest (MCP / autoCombo / UI components)
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    needs: build
+    env:
+      JWT_SECRET: ci-test-secret-with-sufficient-length-for-validation
+      API_KEY_SECRET: ci-test-api-key-secret-long
+      DISABLE_SQLITE_AUTO_BACKUP: "true"
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
+        with:
+          node-version: ${{ env.CI_NODE_VERSION }}
+          cache: npm
+      - run: npm ci
+      # The second test runner (CLAUDE.md: "Both test runners must pass") — was never
+      # wired into CI until the 2026-06-09 quality audit (Fase 6A.2).
+      - run: npm run test:vitest
+      # vitest:ui is RED today (14 fails — UI component drift accumulated while the
+      # suite never ran in CI). Informational until the Fase 6A triage (2026-06-16+)
+      # fixes the components/tests; then drop continue-on-error to make it blocking.
+      - run: npm run test:vitest:ui
+        continue-on-error: true
 
   node-24-compat:
     name: Node 24 Compatibility (${{ matrix.shard }}/2)
@@ -254,7 +352,7 @@ jobs:
       - run: npm ci
       - run: npm run check:node-runtime
       - run: npm run build
-      - run: node --import tsx --test --test-force-exit --test-concurrency=4 --test-shard=${{ matrix.shard }}/2 tests/unit/*.test.ts
+      - run: node --import tsx --test --test-force-exit --test-concurrency=4 --test-shard=${{ matrix.shard }}/2 tests/unit/*.test.ts "tests/unit/{api,auth,authz,build,cli,cli-helper,compression,cors,dashboard,db,db-adapters,docs,gamification,guardrails,lib,mcp,runtime,security,services,settings,shared,ui}/**/*.test.ts"
 
   node-26-compat:
     name: Node 26 Compatibility (${{ matrix.shard }}/2)
@@ -278,7 +376,7 @@ jobs:
       - run: npm ci
       - run: npm run check:node-runtime
       - run: npm run build
-      - run: node --import tsx --test --test-force-exit --test-concurrency=4 --test-shard=${{ matrix.shard }}/2 tests/unit/*.test.ts
+      - run: node --import tsx --test --test-force-exit --test-concurrency=4 --test-shard=${{ matrix.shard }}/2 tests/unit/*.test.ts "tests/unit/{api,auth,authz,build,cli,cli-helper,compression,cors,dashboard,db,db-adapters,docs,gamification,guardrails,lib,mcp,runtime,security,services,settings,shared,ui}/**/*.test.ts"
 
   test-coverage-shard:
     name: Coverage Shard (${{ matrix.shard }}/8)
@@ -317,7 +415,7 @@ jobs:
             --exclude=tests/** \
             --exclude=**/*.test.* \
             node --max-old-space-size=4096 --import tsx --test --test-force-exit --test-concurrency=4 \
-              --test-shard=${{ matrix.shard }}/8 tests/unit/*.test.ts
+              --test-shard=${{ matrix.shard }}/8 tests/unit/*.test.ts "tests/unit/{api,auth,authz,build,cli,cli-helper,compression,cors,dashboard,db,db-adapters,docs,gamification,guardrails,lib,mcp,runtime,security,services,settings,shared,ui}/**/*.test.ts"
       - name: Upload raw shard coverage
         if: always()
         uses: actions/upload-artifact@v7
@@ -360,10 +458,12 @@ jobs:
             find . -maxdepth 3 -type f | sort
             exit 1
           fi
-          # Gate aligned to the project's local coverage bar (npm run test:coverage
-          # uses 40/40/40/40). The previous 75/70 gate never ran on main (the
-          # coverage shards always failed → this job was skipped), so it was never
-          # actually enforced and is inconsistent with the repo's real standard.
+          # Gate aligned to the project's local coverage bar: `npm run test:coverage`
+          # gates at 60/60/60/60, so CI must match it (the previous CI floor of 40
+          # silently undershot the local bar — a real drift). Real merged coverage is
+          # ~79/79/82/75, so 60 is a conservative floor with headroom; the Fase-4
+          # coverage ratchet (quality-baseline.json) layers "must not drop vs baseline"
+          # on top of this floor.
           npx c8 report \
             --temp-directory coverage-shards \
             --reports-dir coverage \
@@ -374,7 +474,7 @@ jobs:
             --exclude=tests/** \
             --exclude=**/*.test.* \
             --check-coverage \
-            --statements 40 --lines 40 --functions 40 --branches 40
+            --statements 60 --lines 60 --functions 60 --branches 60
       - name: Build coverage summary
         if: always()
         run: |
