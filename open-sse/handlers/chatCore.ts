@@ -375,6 +375,7 @@ import { resolveAccountSemaphoreKey } from "./chatCoreSemaphoreKey.ts";
 import { runSetupPhase } from "./chatCoreSetup.ts";
 import { runTransformPhase } from "./chatCoreTransform.ts";
 import { resolveExecutorWithProxy } from "./chatCoreExecutor.ts";
+import { buildUpstreamHeadersForExecute } from "./chatCoreHeaders.ts";
 export async function handleChatCore({
   body,
   modelInfo,
@@ -927,54 +928,13 @@ export async function handleChatCore({
 
   // Primary path: merge client model id + alias target so config on either key applies; resolved
   // id wins on same header name. T5 family fallback uses only (nextModel, resolveModelAlias(next))
-  // so A-model headers are not sent to B — see buildUpstreamHeadersForExecute.
   const connectionCustomUserAgent =
     credentials?.providerSpecificData &&
     typeof credentials.providerSpecificData === "object" &&
     typeof credentials.providerSpecificData.customUserAgent === "string"
       ? credentials.providerSpecificData.customUserAgent.trim()
       : "";
-
-  const buildUpstreamHeadersForExecute = (modelToCall: string): Record<string, string> => {
-    const upstreamHeaders =
-      modelToCall === effectiveModel
-        ? {
-            ...getModelUpstreamExtraHeaders(provider || "", model || "", sourceFormat),
-            ...getModelUpstreamExtraHeaders(provider || "", resolvedModel || "", sourceFormat),
-          }
-        : (() => {
-            const r = resolveModelAlias(modelToCall);
-            return {
-              ...getModelUpstreamExtraHeaders(provider || "", modelToCall || "", sourceFormat),
-              ...getModelUpstreamExtraHeaders(provider || "", r || "", sourceFormat),
-            };
-          })();
-
-    if (connectionCustomUserAgent) {
-      upstreamHeaders["User-Agent"] = connectionCustomUserAgent;
-      if ("user-agent" in upstreamHeaders) {
-        upstreamHeaders["user-agent"] = connectionCustomUserAgent;
-      }
-    }
-
-    // Claude Fast Mode opt-in. When the user has enabled this in
-    // Settings > AI AND the target provider is the canonical Anthropic
-    // `claude` provider (Claude Code-compatible CPA bridges are excluded
-    // since they already select their own entrypoint) AND the model id
-    // matches the configured list, signal to a paired CLIProxyAPI build to
-    // rewrite the cc_entrypoint so the request can reach Anthropic Fast
-    // Mode (speed:"fast"). CPA builds that do not understand the header
-    // forward it harmlessly.
-    if (
-      provider === "claude" &&
-      typeof settings !== "undefined" &&
-      shouldRequestClaudeFastMode(settings, modelToCall)
-    ) {
-      upstreamHeaders[CPA_FORCE_FAST_MODE_HEADER] = "1";
-    }
-
-    return upstreamHeaders;
-  };
+  // buildUpstreamHeadersForExecute is now imported from chatCoreHeaders.ts
 
   // Default to false unless client explicitly sets stream: true (OpenAI spec compliant)
   const acceptHeader =
@@ -2682,7 +2642,16 @@ export async function handleChatCore({
                     signal,
                     log,
                     extendedContext,
-                    upstreamExtraHeaders: buildUpstreamHeadersForExecute(modelToCall),
+                    upstreamExtraHeaders: buildUpstreamHeadersForExecute({
+                      modelToCall,
+                      effectiveModel,
+                      provider,
+                      model,
+                      resolvedModel,
+                      sourceFormat,
+                      connectionCustomUserAgent,
+                      settings,
+                    }),
                     clientHeaders: buildExecutorClientHeaders(clientRawRequest?.headers, userAgent),
                     onCredentialsRefreshed,
                     skipUpstreamRetry,
@@ -3221,7 +3190,16 @@ export async function handleChatCore({
           signal: streamController.signal,
           log,
           extendedContext,
-          upstreamExtraHeaders: buildUpstreamHeadersForExecute(retryModelId),
+          upstreamExtraHeaders: buildUpstreamHeadersForExecute({
+            modelToCall: retryModelId,
+            effectiveModel,
+            provider,
+            model,
+            resolvedModel,
+            sourceFormat,
+            connectionCustomUserAgent,
+            settings,
+          }),
           clientHeaders: buildExecutorClientHeaders(clientRawRequest?.headers, userAgent),
           onCredentialsRefreshed,
           skipUpstreamRetry: isCombo,
