@@ -1187,6 +1187,122 @@ test("G-02: five consecutive 503 service_not_running do NOT trip provider circui
   clearProviderFailure("9router"); // cleanup
 });
 
+test("recordModelLockoutFailure caps cooldown at BACKOFF_CONFIG.max to prevent absurdly long lockouts", () => {
+  const originalNow = Date.now;
+  let now = 1_700_000_000_000;
+  Date.now = () => now;
+
+  try {
+    const provider = "openai";
+    const connectionId = "conn-capped";
+    const model = "gpt-5-trillium";
+
+    clearModelLock(provider, connectionId, model);
+
+    // Fire 9 consecutive failures so the backoff exceeds the 120s cap
+    // baseCooldownMs=1000 (getQuotaCooldown(0)), failure 9: 1000*2^8=256000 > 120000
+    let lastResult;
+    for (let i = 0; i < 9; i++) {
+      lastResult = recordModelLockoutFailure(
+        provider,
+        connectionId,
+        model,
+        "rate_limited",
+        429,
+        0,
+        null
+      );
+      now += 50; // each failure within the reset window
+    }
+
+    assert.ok(
+      lastResult.cooldownMs <= 120_000,
+      `cooldown ${lastResult.cooldownMs}ms should not exceed BACKOFF_CONFIG.max (120000ms)`
+    );
+    assert.equal(lastResult.cooldownMs, 120_000);
+    assert.equal(lastResult.failureCount, 9);
+
+    clearModelLock(provider, connectionId, model);
+  } finally {
+    Date.now = originalNow;
+  }
+});
+
+test("recordModelLockoutFailure groups provider aliases under canonical provider", () => {
+  const providerAlias = "cx";
+  const providerCanonical = "codex";
+  const connectionId = "conn-alias-test";
+  const model = "gpt-5.5";
+
+  clearModelLock(providerCanonical, connectionId, model);
+  clearModelLock(providerAlias, connectionId, model);
+
+  const result1 = recordModelLockoutFailure(
+    providerAlias,
+    connectionId,
+    model,
+    "rate_limited",
+    429,
+    1000,
+    null
+  );
+
+  assert.equal(isModelLocked(providerAlias, connectionId, model), true);
+  assert.equal(isModelLocked(providerCanonical, connectionId, model), true);
+
+  clearModelLock(providerCanonical, connectionId, model);
+});
+
+test("recordModelLockoutFailure escalates backoff correctly after cooldown expiration (long interval)", () => {
+  const originalNow = Date.now;
+  let now = 1_700_000_000_000;
+  Date.now = () => now;
+
+  try {
+    const provider = "openai";
+    const connectionId = "conn-long-interval";
+    const model = "gpt-5-escalate";
+
+    clearModelLock(provider, connectionId, model);
+
+    const profile = makeProfile({
+      baseCooldownMs: 120000,
+      resetTimeoutMs: 30000,
+    });
+
+    const first = recordModelLockoutFailure(
+      provider,
+      connectionId,
+      model,
+      "rate_limited",
+      429,
+      120000,
+      profile,
+      { maxCooldownMs: 1800000 }
+    );
+    assert.equal(first.failureCount, 1);
+    assert.equal(first.cooldownMs, 120000);
+
+    now += 130000;
+
+    const second = recordModelLockoutFailure(
+      provider,
+      connectionId,
+      model,
+      "rate_limited",
+      429,
+      120000,
+      profile,
+      { maxCooldownMs: 1800000 }
+    );
+    assert.equal(second.failureCount, 2);
+    assert.equal(second.cooldownMs, 240000);
+
+    clearModelLock(provider, connectionId, model);
+  } finally {
+    Date.now = originalNow;
+  }
+});
 // ── Custom banned signals (PR #3454) ──────────────────────────────────────────
 // Operators can extend ACCOUNT_DEACTIVATED_SIGNALS with provider-specific
 // permanent-ban phrasing via Settings → Security. These persist in the

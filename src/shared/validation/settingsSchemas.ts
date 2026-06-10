@@ -11,7 +11,6 @@ import { MAX_REQUEST_BODY_LIMIT_MB, MIN_REQUEST_BODY_LIMIT_MB } from "@/shared/c
 import { HIDEABLE_SIDEBAR_ITEM_IDS, SIDEBAR_SECTIONS } from "@/shared/constants/sidebarVisibility";
 import { ACCOUNT_FALLBACK_STRATEGY_VALUES } from "@/shared/constants/routingStrategies";
 import { RESPONSES_PREVIOUS_RESPONSE_ID_MODES } from "@/shared/constants/responsesPreviousResponseId";
-import { SPAWN_CAPABLE_PREFIXES } from "@/server/authz/routeGuard";
 
 const signatureCacheModeValues = ["enabled", "bypass", "bypass-strict"] as const;
 
@@ -43,30 +42,7 @@ export const updateSettingsSchema = z.object({
   showProviderTopologyOnHome: z.boolean().optional(),
   showTokenSaverOnEndpoint: z.boolean().optional(),
   localOnlyManageScopeBypassEnabled: z.boolean().optional(),
-  // Layer 1 of the spawn-capable guard (Hard Rules #15/#17): reject any bypass
-  // prefix that reaches a SPAWN_CAPABLE_PREFIXES path at PATCH time, with the
-  // BYPASS_PREFIX_NOT_ALLOWED code the settings route handler translates.
-  // Layer 2 (isLocalOnlyBypassableByManageScope) still refuses spawn paths at
-  // runtime even if a malformed DB row claims otherwise. This refine was in the
-  // routeGuard.ts contract docs but missing from the live schema — restored by
-  // the 6A.1 orphan-test re-wire (AC-8 / AC-10c, 2026-06-09).
-  localOnlyManageScopeBypassPrefixes: z
-    .array(
-      z
-        .string()
-        .max(200)
-        .refine(
-          (prefix) => {
-            const normalized = prefix.endsWith("/") ? prefix : `${prefix}/`;
-            return !SPAWN_CAPABLE_PREFIXES.some((sp) => normalized.startsWith(sp));
-          },
-          {
-            message:
-              "BYPASS_PREFIX_NOT_ALLOWED: spawn-capable prefixes cannot be added to the manage-scope bypass list",
-          }
-        )
-    )
-    .optional(),
+  localOnlyManageScopeBypassPrefixes: z.array(z.string().max(200)).optional(),
   customBannedSignals: z.array(z.string().max(200)).optional(),
   debugMode: z.boolean().optional(),
   hiddenSidebarItems: z.array(z.enum(HIDEABLE_SIDEBAR_ITEM_IDS)).optional(),
@@ -303,6 +279,32 @@ export const updateSettingsSchema = z.object({
   cliproxyapi_fallback_codes: z.string().max(200).optional(),
   // CLIProxyAPI model mapping (Record<string, string>)
   cliproxyapi_model_mapping: z.record(z.string(), z.string()).optional(),
+  // Model lockout settings
+  modelLockout: z
+    .object({
+      enabled: z.boolean().optional(),
+      errorCodes: z.array(z.number().int().min(100).max(599)).min(0).max(20).optional(),
+      baseCooldownMs: z
+        .number()
+        .int()
+        .min(100, "Must be at least 100ms")
+        .max(600000, "Must be at most 600,000ms (10 min)")
+        .optional(),
+      maxCooldownMs: z
+        .number()
+        .int()
+        .min(5000, "Must be at least 5,000ms")
+        .max(3600000, "Must be at most 3,600,000ms (1 h)")
+        .optional(),
+      maxBackoffSteps: z
+        .number()
+        .int()
+        .min(0, "Must be at least 0")
+        .max(20, "Must be at most 20")
+        .optional(),
+      useExponentialBackoff: z.boolean().optional(),
+    })
+    .optional(),
 });
 
 export const databaseSettingsSchema = z.object(

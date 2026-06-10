@@ -28,6 +28,7 @@ import {
   type FailureKind,
 } from "../../src/shared/utils/classify429";
 import { resolveUseUpstream429BreakerHints } from "../../src/shared/utils/providerHints";
+import { resolveProviderId } from "../../src/shared/constants/providers";
 
 export type ProviderProfile = {
   baseCooldownMs: number;
@@ -346,16 +347,23 @@ export async function getRuntimeProviderProfile(provider: string | null | undefi
 
 // ─── Per-Model Lockout Tracking ─────────────────────────────────────────────
 // In-memory map: "provider:connectionId:model" → { reason, until, lockedAt }
-const modelLockouts = new Map<string, ModelLockoutEntry>();
-const modelFailureState = new Map<string, ModelFailureState>();
+const modelLockouts = ((globalThis as any).__omnirouteModelLockouts || new Map()) as Map<string, ModelLockoutEntry>;
+(globalThis as any).__omnirouteModelLockouts = modelLockouts;
+
+const modelFailureState = ((globalThis as any).__omnirouteModelFailureState || new Map()) as Map<string, ModelFailureState>;
+(globalThis as any).__omnirouteModelFailureState = modelFailureState;
 
 function getModelLockKey(provider: string, connectionId: string, model: string) {
-  return `${provider}:${connectionId}:${model}`;
+  const canonicalProvider = resolveProviderId(provider) || provider;
+  return `${canonicalProvider}:${connectionId}:${model}`;
 }
 
 function getFailureWindowMs(profile: ProviderProfile | null = null, fallbackMs = 30 * 60 * 1000) {
   const configured = profile?.resetTimeoutMs;
-  return typeof configured === "number" && configured > 0 ? configured : fallbackMs;
+  return Math.max(
+    fallbackMs,
+    typeof configured === "number" && configured > 0 ? configured : 0
+  );
 }
 
 function cleanupModelLockKey(key: string, now = Date.now()) {
@@ -393,6 +401,34 @@ function getScaledCooldown(
   const safeBase = Number.isFinite(baseCooldownMs) && baseCooldownMs > 0 ? baseCooldownMs : 1000;
   const exponent = Math.min(Math.max(0, failureCount - 1), Math.max(0, maxBackoffLevel));
   return safeBase * Math.pow(2, exponent);
+}
+
+/**
+ * Map HTTP status code to a human-readable lockout reason for the resilience dashboard.
+ * Replaced the generic "combo_failure" which hid the actual error type.
+ */
+export function classifyLockoutReason(status: number): string {
+  if (status === 400) return "bad_request";
+  if (status === 401) return "unauthorized";
+  if (status === 403) return "forbidden";
+  if (status === 404) return "not_found";
+  if (status === 405) return "method_not_allowed";
+  if (status === 408) return "request_timeout";
+  if (status === 409) return "conflict";
+  if (status === 410) return "gone";
+  if (status === 415) return "unsupported_media";
+  if (status === 422) return "unprocessable_entity";
+  if (status === 429) return "rate_limit_exceeded";
+  if (status >= 400 && status < 500) return "client_error";
+  if (status === 500) return "internal_error";
+  if (status === 501) return "not_implemented";
+  if (status === 502) return "bad_gateway";
+  if (status === 503) return "service_unavailable";
+  if (status === 504) return "gateway_timeout";
+  if (status === 505) return "version_not_supported";
+  if (status === 529) return "model_overloaded";
+  if (status >= 500) return "server_error";
+  return "unknown";
 }
 
 // Auto-cleanup expired lockouts every 15 seconds (lazy init for Cloudflare Workers compatibility)
@@ -467,7 +503,7 @@ export function recordModelLockoutFailure(
   status: number,
   fallbackCooldownMs: number,
   profile: ProviderProfile | null = null,
-  options: { exactCooldownMs?: number | null } = {}
+  options: { exactCooldownMs?: number | null; maxCooldownMs?: number | null } = {}
 ) {
   ensureCleanupTimer();
   const key = getModelLockKey(provider, connectionId, model);
@@ -480,7 +516,12 @@ export function recordModelLockoutFailure(
     options = { ...options, exactCooldownMs: getMsUntilTomorrow() };
   }
 
-  const resetAfterMs = getFailureWindowMs(profile);
+  const baseCooldownMs = getModelLockBaseCooldown(status, fallbackCooldownMs, profile);
+  const capMs =
+    typeof options.maxCooldownMs === "number" && options.maxCooldownMs > 0
+      ? options.maxCooldownMs
+      : BACKOFF_CONFIG.max;
+  const resetAfterMs = Math.max(getFailureWindowMs(profile), capMs);
   const previous = modelFailureState.get(key);
   const withinWindow = previous && now - previous.lastFailureAt <= previous.resetAfterMs;
   const failureCount = withinWindow ? previous.failureCount + 1 : 1;
@@ -489,15 +530,16 @@ export function recordModelLockoutFailure(
     lastFailureAt: now,
     resetAfterMs,
   });
-
-  const baseCooldownMs = getModelLockBaseCooldown(status, fallbackCooldownMs, profile);
   const cooldownMs =
     typeof options.exactCooldownMs === "number" && options.exactCooldownMs > 0
       ? options.exactCooldownMs
-      : getScaledCooldown(
-          baseCooldownMs,
-          failureCount,
-          profile?.maxBackoffSteps ?? BACKOFF_CONFIG.maxLevel
+      : Math.min(
+          getScaledCooldown(
+            baseCooldownMs,
+            failureCount,
+            profile?.maxBackoffSteps ?? BACKOFF_CONFIG.maxLevel
+          ),
+          capMs
         );
 
   lockModel(provider, connectionId, model, reason, cooldownMs, {
@@ -523,6 +565,56 @@ export function clearModelLock(
   const hadLock = modelLockouts.delete(key);
   const hadFailureState = modelFailureState.delete(key);
   return hadLock || hadFailureState;
+}
+
+/**
+ * Decay (halve) the failure count when a model succeeds after a lockout.
+ * When the halved count reaches 0, the lockout is cleared entirely.
+ * This implements the "/2 on success" recovery — each successful call
+ * reduces the penalty for the NEXT failure.
+ *
+ * @returns `{ newFailureCount, cleared }` where `cleared` means the lock is gone.
+ */
+export function decayModelFailureCount(
+  provider: string,
+  connectionId: string,
+  model: string | null | undefined
+): { newFailureCount: number; cleared: boolean } {
+  if (!model) return { newFailureCount: 0, cleared: false };
+  const key = getModelLockKey(provider, connectionId, model);
+  const lockEntry = modelLockouts.get(key);
+  const failureEntry = modelFailureState.get(key);
+
+  // Nothing to decay — model isn't locked and has no failure history
+  if (!lockEntry && !failureEntry) {
+    return { newFailureCount: 0, cleared: false };
+  }
+
+  const currentCount = Math.max(
+    lockEntry?.failureCount ?? 0,
+    failureEntry?.failureCount ?? 0,
+    1
+  );
+  const newCount = Math.floor(currentCount / 2);
+
+  // Count reached 0 → fully recover (clear everything)
+  if (newCount <= 0) {
+    modelLockouts.delete(key);
+    modelFailureState.delete(key);
+    return { newFailureCount: 0, cleared: true };
+  }
+
+  // Update both maps with the halved count
+  if (lockEntry) {
+    lockEntry.failureCount = newCount;
+    modelLockouts.set(key, lockEntry);
+  }
+  if (failureEntry) {
+    failureEntry.failureCount = newCount;
+    modelFailureState.set(key, failureEntry);
+  }
+
+  return { newFailureCount: newCount, cleared: false };
 }
 
 /**
