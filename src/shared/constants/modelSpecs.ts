@@ -15,6 +15,10 @@ export interface ModelSpec {
   supportsThinking?: boolean;
   supportsTools?: boolean;
   supportsVision?: boolean;
+  // Model defaults to adaptive thinking and REJECTS an explicit `thinking.type:"disabled"`
+  // (upstream returns 400). Used to normalize the request when a combo/route substitutes
+  // this model after the client already chose `disabled`. See issue #3554.
+  rejectsThinkingDisabled?: boolean;
 }
 
 const BEDROCK_CLAUDE_ALIASES = (...modelIds: string[]) => [
@@ -221,6 +225,8 @@ export const MODEL_SPECS: Record<string, ModelSpec> = {
     supportsThinking: true,
     supportsTools: true,
     supportsVision: true,
+    // Fable 5 defaults to adaptive thinking and rejects `thinking.type:"disabled"` (#3554).
+    rejectsThinkingDisabled: true,
     aliases: BEDROCK_CLAUDE_ALIASES("claude-fable-5"),
   },
 
@@ -425,6 +431,34 @@ export function getModelSpec(modelId: string): ModelSpec | undefined {
   }
 
   return undefined;
+}
+
+/**
+ * Normalize a request's `thinking` field against the (possibly combo-substituted) target model.
+ *
+ * A combo/route can swap the upstream model AFTER the client already chose its `thinking`
+ * value. Claude Code sends `thinking:{type:"disabled"}` for internal title/name-generation
+ * calls — valid for opus/sonnet, but claude-fable-5 defaults to adaptive thinking and rejects
+ * `type:"disabled"` with an upstream 400. When the resolved target model is flagged
+ * `rejectsThinkingDisabled`, drop the now-invalid `thinking` so the model uses its adaptive
+ * default instead of hard-failing. Models that accept `disabled` are left untouched, and any
+ * non-`disabled` thinking (enabled/adaptive) is always preserved. See issue #3554.
+ */
+export function normalizeThinkingForModel<T extends Record<string, unknown>>(
+  body: T,
+  modelId: string
+): T {
+  const thinking = body?.thinking as Record<string, unknown> | undefined;
+  if (
+    thinking &&
+    typeof thinking === "object" &&
+    thinking.type === "disabled" &&
+    getModelSpec(modelId)?.rejectsThinkingDisabled
+  ) {
+    const { thinking: _omitted, ...rest } = body as Record<string, unknown>;
+    return rest as T;
+  }
+  return body;
 }
 
 export function capMaxOutputTokens(modelId: string, requested?: number): number {
