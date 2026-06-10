@@ -6,9 +6,10 @@
  * never reproduces leaky annotation text in its output.
  *
  * Uses same env vars as tests/manual/gemini.http:
- *   OMNIROUTE_URL       — base URL (default http://localhost:20128)
- *   OMNIROUTE_API_KEY   — API key for auth
- *   TEST_GEMINI_MODEL   — model override (default gemini/gemma-4-31b-it)
+ *   OMNIROUTE_URL             — base URL (default http://localhost:20128)
+ *   OMNIROUTE_API_KEY         — API key for auth
+ *   TEST_GEMINI_MODEL         — model override (default gemini/gemma-4-31b-it)
+ *   TEST_THINKING_GEMINI_MODEL — thinking model override, skipped if unset
  */
 
 import test from "node:test";
@@ -17,9 +18,11 @@ import assert from "node:assert/strict";
 const API_KEY = process.env.OMNIROUTE_API_KEY;
 const BASE_URL = process.env.OMNIROUTE_URL || "http://localhost:20128";
 const MODEL = process.env.TEST_GEMINI_MODEL || "gemini/gemma-4-31b-it";
+const THINKING_MODEL = process.env.TEST_THINKING_GEMINI_MODEL || "gemini/gemini-2.5-flash";
 const NUM_HISTORICAL_ROUNDS = 15;
 
 const skip = !API_KEY ? "OMNIROUTE_API_KEY not set — skipping live test" : undefined;
+const skipThinking = !API_KEY ? "OMNIROUTE_API_KEY not set — skipping live test" : undefined;
 
 const LEAK_PATTERNS = [
   "Historical tool-call record only",
@@ -143,6 +146,51 @@ test("historical tool calls mapped natively — no text leak in response", { ski
     }
   }
 });
+
+test(
+  "thinking model: tool call history produces no text leak or 400",
+  { skip: skipThinking },
+  async () => {
+    const messages = buildConversation(NUM_HISTORICAL_ROUNDS);
+
+    const res = await fetch(`${BASE_URL}/api/v1/chat/completions`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${API_KEY}`,
+      },
+      body: JSON.stringify({
+        model: THINKING_MODEL,
+        stream: false,
+        messages,
+      }),
+    });
+
+    // The main concern: standard Gemini thinking models must NOT 400 on
+    // historical functionCall parts that lack thoughtSignature
+    assert.equal(
+      res.status,
+      200,
+      `expected 200, got ${res.status} — thinking model rejected native functionCall without signature`
+    );
+
+    const data = (await res.json()) as Record<string, unknown>;
+    const choices = data.choices as Array<Record<string, unknown>>;
+    assert.ok(choices?.length > 0, "expected at least one choice");
+
+    const msg = choices[0].message as Record<string, unknown>;
+    const content = (msg.content as string) || "";
+    const reasoning = (msg.reasoning_content as string) || "";
+    const toolCalls = msg.tool_calls as Array<Record<string, unknown>> | undefined;
+    let allText = content + " " + reasoning;
+    if (toolCalls) {
+      allText += " " + JSON.stringify(toolCalls);
+    }
+
+    const leaks = detectLeaks(allText);
+    assert.equal(leaks.length, 0, `thinking model leaked patterns: ${leaks.join(", ")}`);
+  }
+);
 
 test("simple Q&A without tool calls — baseline", { skip }, async () => {
   const res = await fetch(`${BASE_URL}/api/v1/chat/completions`, {

@@ -207,3 +207,47 @@ Content-Type: application/json
     }
   ]
 }
+###
+# @name Tool history via OmniRoute — thinking model
+# Same as native test above but with a thinking model (gemini-2.5-flash)
+# that cryptographically validates thoughtSignature on functionCall parts.
+POST {{omniroute-address}}/v1/chat/completions
+Authorization: Bearer {{OMNIROUTE_API_KEY}}
+Content-Type: application/json
+
+{
+  "model": "gemini/gemini-2.5-flash",
+  "messages": [
+    {
+      "role": "user",
+      "content": "What is the weather in Stockholm?"
+    },
+    {
+      "role": "assistant",
+      "content": null,
+      "tool_calls": [
+        {
+          "id": "call_abc123",
+          "type": "function",
+          "function": {
+            "name": "get_weather",
+            "arguments": "{\"location\": \"Stockholm, Sweden\"}"
+          }
+        }
+      ]
+    },
+    {
+      "role": "tool",
+      "tool_call_id": "call_abc123",
+      "content": "{\"temperature\": 22, \"conditions\": \"Sunny\", \"humidity\": 45}"
+    },
+    {
+      "role": "assistant",
+      "content": "Stockholm has sunny weather at 22°C."
+    },
+    {
+      "role": "user",
+      "content": "Summarize the weather briefly."
+    }
+  ]
+}
