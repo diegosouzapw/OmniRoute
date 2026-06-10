@@ -183,7 +183,13 @@ export const DEFAULT_RESILIENCE_SETTINGS: ResilienceSettings = {
   providerCooldown: {
     minRetryCooldownMs: Number(process.env.PROVIDER_COOLDOWN_MIN_MS || "5000"),
     maxRetryCooldownMs: Number(process.env.PROVIDER_COOLDOWN_MAX_MS || "300000"),
-    enabled: process.env.PROVIDER_COOLDOWN_ENABLED !== "false",
+    // Opt-in (default OFF): this global cross-request cooldown overlaps the
+    // existing Connection Cooldown / Provider Circuit Breaker layers, so it is
+    // disabled by default and must be explicitly enabled by the operator until
+    // its interaction with those layers is validated in production.
+    enabled: ["true", "1", "on"].includes(
+      (process.env.PROVIDER_COOLDOWN_ENABLED || "").trim().toLowerCase()
+    ),
   },
   quotaPreflight: {
     // Remaining-% semantics. 2 = "stop when only 2% remaining" (= 98% used).

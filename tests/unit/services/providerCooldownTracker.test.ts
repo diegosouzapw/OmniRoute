@@ -8,7 +8,25 @@ import {
   clearCooldownState,
   getCooldownEntryCount,
 } from "../../../open-sse/services/providerCooldownTracker.ts";
-import { resolveResilienceSettings } from "../../../src/lib/resilience/settings.ts";
+import {
+  resolveResilienceSettings,
+  DEFAULT_RESILIENCE_SETTINGS,
+} from "../../../src/lib/resilience/settings.ts";
+
+test("global provider cooldown is OFF by default (opt-in)", () => {
+  // This global cross-request cooldown overlaps the existing Connection Cooldown
+  // / Provider Circuit Breaker layers, so it must default to disabled. Operators
+  // opt in via PROVIDER_COOLDOWN_ENABLED=true.
+  assert.equal(DEFAULT_RESILIENCE_SETTINGS.providerCooldown.enabled, false);
+  // resolving with no stored settings inherits the default (disabled).
+  assert.equal(resolveResilienceSettings(null).providerCooldown.enabled, false);
+  // an explicit stored value still wins.
+  assert.equal(
+    resolveResilienceSettings({ resilienceSettings: { providerCooldown: { enabled: true } } })
+      .providerCooldown.enabled,
+    true
+  );
+});
 
 function makeSettings(minMs = 5000, maxMs = 300000) {
   return resolveResilienceSettings({
