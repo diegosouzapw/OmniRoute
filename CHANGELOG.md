@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+### 🔧 Bug Fixes
+
+- **fix(routing):** a valid `max_tokens`-truncated upstream response is no longer misclassified as empty content and rewritten into a fake 502 — `isEmptyContentResponse()` flagged any Claude `content:[]` / OpenAI empty-choice payload regardless of `stop_reason`/`finish_reason`, so a Claude Code `max_tokens: 1` connectivity ping (HTTP 200, `stop_reason:"max_tokens"`, empty content) became a synthetic `502 "Provider returned empty content"` and triggered a needless family fallback. The guard now treats a terminal truncation/tool signal (Claude `stop_reason` `max_tokens`/`tool_use`, OpenAI `finish_reason` `length`/`tool_calls`) as a legitimate completion; genuinely empty responses (no terminal reason, or `stop`/`end_turn` with empty content) are still caught. ([#3572](https://github.com/diegosouzapw/OmniRoute/issues/3572))
+
 ---
 
 ## [3.8.20] — 2026-06-10
