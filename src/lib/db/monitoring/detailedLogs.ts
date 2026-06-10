@@ -8,12 +8,12 @@
 import { v4 as uuidv4 } from "uuid";
 import { getDbInstance } from "../core";
 import { getSettings } from "../settings";
-import { isNoLog } from "../../../compliance/noLog";
+import { isNoLog } from "../../compliance/noLog";
 import {
   protectPayloadForLog,
   serializePayloadForStorage,
   parseStoredPayload,
-} from "../../../logPayloads";
+} from "../../logPayloads";
 import { compactStructuredStreamPayload } from "@omniroute/open-sse/utils/streamPayloadCollector.ts";
 
 export interface RequestDetailLog {
