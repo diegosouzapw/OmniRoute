@@ -20,6 +20,46 @@ describe("config-generator", () => {
     });
   });
 
+  describe("assertSafeCatalogUrl (SSRF guard, CodeQL #326)", () => {
+    it("allows the loopback OmniRoute target (the legitimate default) and returns a URL", async () => {
+      const { assertSafeCatalogUrl } = await import(
+        "../../../src/lib/cli-helper/config-generator/opencode.ts"
+      );
+      // The catalog source IS the user's own OmniRoute — localhost must stay allowed.
+      assert.doesNotThrow(() => assertSafeCatalogUrl("http://localhost:20128/v1/models"));
+      assert.doesNotThrow(() => assertSafeCatalogUrl("http://127.0.0.1:20128/v1/models"));
+      // Returns the validated, re-parsed URL (taint-severed value the caller fetches).
+      const safe = assertSafeCatalogUrl("http://localhost:20128/v1/models");
+      assert.ok(safe instanceof URL);
+      assert.equal(safe.href, "http://localhost:20128/v1/models");
+    });
+
+    it("allows a public OmniRoute Cloud target", async () => {
+      const { assertSafeCatalogUrl } = await import(
+        "../../../src/lib/cli-helper/config-generator/opencode.ts"
+      );
+      assert.doesNotThrow(() => assertSafeCatalogUrl("https://api.omniroute.online/v1/models"));
+    });
+
+    it("blocks the cloud-metadata SSRF→IAM pivot (169.254.169.254)", async () => {
+      const { assertSafeCatalogUrl } = await import(
+        "../../../src/lib/cli-helper/config-generator/opencode.ts"
+      );
+      assert.throws(() => assertSafeCatalogUrl("http://169.254.169.254/v1/models"));
+      assert.throws(() =>
+        assertSafeCatalogUrl("http://metadata.google.internal/v1/models")
+      );
+    });
+
+    it("blocks non-http(s) protocols and embedded credentials", async () => {
+      const { assertSafeCatalogUrl } = await import(
+        "../../../src/lib/cli-helper/config-generator/opencode.ts"
+      );
+      assert.throws(() => assertSafeCatalogUrl("file:///etc/passwd"));
+      assert.throws(() => assertSafeCatalogUrl("http://user:pass@example.com/v1/models"));
+    });
+  });
+
   describe("generateConfig", () => {
     it("returns error for invalid baseUrl", async () => {
       const result = await generator.generateConfig("claude", {
