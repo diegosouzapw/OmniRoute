@@ -94,6 +94,12 @@ import {
   type RoutingTagMatchMode,
 } from "../../src/domain/tagRouter.ts";
 import { normalizeRoutingStrategy } from "../../src/shared/constants/routingStrategies.ts";
+import {
+  isProviderInCooldown,
+  recordProviderCooldown,
+  recordProviderSuccess,
+} from "./providerCooldownTracker.ts";
+import { resolveResilienceSettings, type ResilienceSettings } from "../../src/lib/resilience/settings";
 
 // Status codes that should mark round-robin target semaphores as cooling down.
 const TRANSIENT_FOR_SEMAPHORE = [429, 502, 503, 504];
@@ -2717,6 +2723,10 @@ export async function handleComboChat({
   const relayConfig =
     strategy === "context-relay" ? resolveContextRelayConfig(relayOptions?.config || null) : null;
 
+  const resilienceSettings: ResilienceSettings = settings
+    ? resolveResilienceSettings(settings)
+    : resolveResilienceSettings(null);
+
   const universalHandoffConfig = resolveUniversalHandoffConfig(
     (combo.universal_handoff || combo.universalHandoff) as
       | Record<string, unknown>
@@ -3344,6 +3354,19 @@ export async function handleComboChat({
           return null;
         }
 
+        if (
+          resilienceSettings.providerCooldown.enabled &&
+          Boolean(provider && provider !== "unknown") &&
+          isProviderInCooldown(provider, target.connectionId as string | undefined, resilienceSettings)
+        ) {
+          log.info(
+            "COMBO",
+            `Skipping ${modelStr} — provider ${provider} in global cooldown`
+          );
+          if (i > 0) fallbackCount++;
+          return null;
+        }
+
         // Use pre-screened profile if available, otherwise fetch on demand
         const preScreenEntry = preScreenMap.get(target.executionKey);
         const profile = preScreenEntry?.profile ?? (await getRuntimeProviderProfile(provider));
@@ -3580,6 +3603,11 @@ export async function handleComboChat({
               target: toRecordedTarget(target),
             });
             recordedAttempts++;
+
+            // Reset cooldown on success
+            if (provider && provider !== "unknown") {
+              recordProviderSuccess(provider, target.connectionId as string | undefined);
+            }
             // Webhook fan-out: best-effort, never blocks the response stream.
             notifyWebhookEvent("request.completed", {
               combo: combo.name,
@@ -3920,6 +3948,10 @@ export async function handleComboChat({
           if (i > 0) fallbackCount++;
           log.warn("COMBO", `Model ${modelStr} failed, trying next`, { status: result.status });
 
+          if (resilienceSettings.providerCooldown.enabled && provider && provider !== "unknown") {
+            recordProviderCooldown(provider, target.connectionId as string | undefined, resilienceSettings);
+          }
+
           const fallbackWaitMs =
             fallbackDelayMs > 0 && cooldownMs > 0 && cooldownMs <= MAX_FALLBACK_WAIT_MS
               ? Math.min(cooldownMs, fallbackDelayMs)
@@ -4091,6 +4123,10 @@ async function handleRoundRobinCombo({
   const retryDelayMs = resolveDelayMs(config.retryDelayMs, 2000);
   const fallbackDelayMs = resolveDelayMs(config.fallbackDelayMs, 0);
 
+  const resilienceSettings: ResilienceSettings = settings
+    ? resolveResilienceSettings(settings)
+    : resolveResilienceSettings(null);
+
   const orderedTargets = resolveComboTargets(combo, allCombos);
   const tagFilteredTargets = await applyRequestTagRouting(orderedTargets, body, log);
   const evalRankedTargets = orderTargetsByEvalScores(tagFilteredTargets, config.evalRouting, log);
@@ -4165,6 +4201,19 @@ async function handleRoundRobinCombo({
         if (offset > 0) fallbackCount++;
         continue;
       }
+    }
+
+    if (
+      resilienceSettings.providerCooldown.enabled &&
+      Boolean(provider && provider !== "unknown") &&
+      isProviderInCooldown(provider, target.connectionId as string | undefined, resilienceSettings)
+    ) {
+      log.info(
+        "COMBO-RR",
+        `Skipping ${modelStr} — provider ${provider} in global cooldown`
+      );
+      if (offset > 0) fallbackCount++;
+      continue;
     }
 
     // #1731: Skip targets from a provider that already signaled full quota exhaustion
@@ -4263,6 +4312,11 @@ async function handleRoundRobinCombo({
             target: toRecordedTarget(target),
           });
           recordedAttempts++;
+
+          if (provider && provider !== "unknown") {
+            recordProviderSuccess(provider, target.connectionId as string | undefined);
+          }
+
           if (provider) {
             const connId = target.connectionId || undefined;
             void (async () => {
@@ -4456,6 +4510,10 @@ async function handleRoundRobinCombo({
         if (!lastStatus) lastStatus = result.status;
         if (offset > 0) fallbackCount++;
         log.warn("COMBO-RR", `${modelStr} failed, trying next model`, { status: result.status });
+
+        if (resilienceSettings.providerCooldown.enabled && provider && provider !== "unknown") {
+          recordProviderCooldown(provider, target.connectionId as string | undefined, resilienceSettings);
+        }
 
         const fallbackWaitMs =
           fallbackDelayMs > 0 && cooldownMs > 0 && cooldownMs <= MAX_FALLBACK_WAIT_MS

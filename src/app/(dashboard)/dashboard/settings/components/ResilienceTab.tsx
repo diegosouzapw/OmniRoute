@@ -35,6 +35,12 @@ type WaitForCooldownSettings = {
   maxRetryWaitSec: number;
 };
 
+type ProviderCooldownSettings = {
+  enabled: boolean;
+  minRetryCooldownMs: number;
+  maxRetryCooldownMs: number;
+};
+
 type ResilienceResponse = {
   requestQueue: RequestQueueSettings;
   connectionCooldown: {
@@ -46,6 +52,7 @@ type ResilienceResponse = {
     apikey: ProviderBreakerProfileSettings;
   };
   waitForCooldown: WaitForCooldownSettings;
+  providerCooldown: ProviderCooldownSettings;
 };
 
 function formatMs(value: number | null | undefined) {
@@ -702,6 +709,109 @@ function WaitForCooldownCard({
   );
 }
 
+function ProviderCooldownCard({
+  value,
+  onSave,
+  saving,
+}: {
+  value: ProviderCooldownSettings;
+  onSave: (next: ProviderCooldownSettings) => Promise<void>;
+  saving: boolean;
+}) {
+  const t = useTranslations("settings");
+  const [editing, setEditing] = useState(value);
+  const [isEditing, setIsEditing] = useState(false);
+
+  useEffect(() => {
+    setEditing(value);
+  }, [value]);
+
+  return (
+    <Card className="p-6">
+      <div className="mb-4 flex items-start justify-between gap-4">
+        <div className="space-y-2">
+          <div className="flex items-center gap-2">
+            <span className="material-symbols-outlined text-xl text-primary">timer</span>
+            <h2 className="text-lg font-bold">{t("resilienceProviderCooldownTitle")}</h2>
+          </div>
+          <SectionDescription
+            scope={t("resilienceProviderCooldownScope")}
+            trigger={t("resilienceProviderCooldownTrigger")}
+            effect={t("resilienceProviderCooldownEffect")}
+          />
+        </div>
+        <ActionRow
+          editing={isEditing}
+          saving={saving}
+          onEdit={() => setIsEditing(true)}
+          onCancel={() => {
+            setEditing(value);
+            setIsEditing(false);
+          }}
+          onSave={async () => {
+            await onSave(editing);
+            setIsEditing(false);
+          }}
+        />
+      </div>
+
+      <p className="mb-4 text-sm text-text-muted">{t("resilienceProviderCooldownDesc")}</p>
+
+      <div className="grid grid-cols-1 gap-3 lg:grid-cols-2">
+        {isEditing ? (
+          <>
+            <BooleanField
+              label={t("resilienceProviderCooldownEnabled")}
+              description={t("resilienceProviderCooldownEnabledDesc")}
+              checked={editing.enabled}
+              onChange={(enabled) => setEditing((prev) => ({ ...prev, enabled }))}
+            />
+            <NumberField
+              label={t("resilienceProviderCooldownMin")}
+              value={editing.minRetryCooldownMs}
+              min={0}
+              suffix="ms"
+              onChange={(minRetryCooldownMs) =>
+                setEditing((prev) => ({ ...prev, minRetryCooldownMs }))
+              }
+            />
+            <NumberField
+              label={t("resilienceProviderCooldownMax")}
+              value={editing.maxRetryCooldownMs}
+              min={0}
+              suffix="ms"
+              onChange={(maxRetryCooldownMs) =>
+                setEditing((prev) => ({ ...prev, maxRetryCooldownMs }))
+              }
+            />
+          </>
+        ) : (
+          <>
+            <div className="rounded-xl border border-border bg-bg-subtle p-4">
+              <div className="text-xs text-text-muted">{t("resilienceProviderCooldownEnabled")}</div>
+              <div className="mt-1 text-sm font-semibold text-text-main">
+                {value.enabled ? t("statusEnabled") : t("statusDisabled")}
+              </div>
+            </div>
+            <div className="rounded-xl border border-border bg-bg-subtle p-4">
+              <div className="text-xs text-text-muted">{t("resilienceProviderCooldownMin")}</div>
+              <div className="mt-1 text-sm font-semibold text-text-main">
+                {formatMs(value.minRetryCooldownMs)}
+              </div>
+            </div>
+            <div className="rounded-xl border border-border bg-bg-subtle p-4">
+              <div className="text-xs text-text-muted">{t("resilienceProviderCooldownMax")}</div>
+              <div className="mt-1 text-sm font-semibold text-text-main">
+                {formatMs(value.maxRetryCooldownMs)}
+              </div>
+            </div>
+          </>
+        )}
+      </div>
+    </Card>
+  );
+}
+
 export default function ResilienceTab() {
   const notify = useNotificationStore();
   const t = useTranslations("settings");
@@ -734,6 +844,7 @@ export default function ResilienceTab() {
           connectionCooldown: json.connectionCooldown,
           providerBreaker: json.providerBreaker,
           waitForCooldown: json.waitForCooldown,
+          providerCooldown: json.providerCooldown,
         });
       } catch (error) {
         notify.error(
@@ -769,6 +880,7 @@ export default function ResilienceTab() {
         connectionCooldown: json.connectionCooldown,
         providerBreaker: json.providerBreaker,
         waitForCooldown: json.waitForCooldown,
+        providerCooldown: json.providerCooldown,
       });
       notify.success(tx("savedSuccessfully", "Resilience settings updated."));
     } catch (error) {
@@ -844,6 +956,11 @@ export default function ResilienceTab() {
         value={data.waitForCooldown}
         saving={savingSection === "waitForCooldown"}
         onSave={(waitForCooldown) => savePatch("waitForCooldown", { waitForCooldown })}
+      />
+      <ProviderCooldownCard
+        value={data.providerCooldown}
+        saving={savingSection === "providerCooldown"}
+        onSave={(providerCooldown) => savePatch("providerCooldown", { providerCooldown })}
       />
     </div>
   );
