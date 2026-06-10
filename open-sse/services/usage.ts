@@ -1990,7 +1990,9 @@ function getAntigravityLocalUsageUnits(
     };
     const row = db
       .prepare(
-        `SELECT COALESCE(SUM(tokens_input + tokens_output + tokens_reasoning), 0) AS tokens
+        `SELECT COALESCE(SUM(
+           COALESCE(tokens_input, 0) + COALESCE(tokens_output, 0) + COALESCE(tokens_reasoning, 0)
+         ), 0) AS tokens
          FROM usage_history
          WHERE provider = ?
            AND connection_id = ?
@@ -2458,8 +2460,10 @@ async function getAntigravityUsage(
       );
     }
 
-    const data = await fetchAntigravityAvailableModelsCached(accessToken, projectId, options);
-    const userQuotaData = await fetchAntigravityUserQuotaCached(accessToken, projectId, options);
+    const [data, userQuotaData] = await Promise.all([
+      fetchAntigravityAvailableModelsCached(accessToken, projectId, options),
+      fetchAntigravityUserQuotaCached(accessToken, projectId, options),
+    ]);
     const dataObj = toRecord(data);
     if (dataObj.__antigravityForbidden === true) {
       return { message: "Antigravity access forbidden. Check subscription." };

@@ -215,7 +215,7 @@ function shouldRefreshProviderLimitsCache(
   cache: ProviderLimitsCacheEntry | undefined
 ): boolean {
   if (!cache?.quotas) return true;
-  if (connection.provider !== "antigravity") return false;
+  if (connection.provider !== "antigravity" && connection.provider !== "agy") return false;
 
   return (
     !hasRetrieveUserQuotaSource(connection.provider, cache) ||

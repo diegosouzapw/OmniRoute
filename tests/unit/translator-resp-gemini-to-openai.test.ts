@@ -425,6 +425,74 @@ test("Gemini stream: routes textual reasoning tags to reasoning_content before t
   assert.equal(result.at(-1).choices[0].finish_reason, "tool_calls");
 });
 
+test("Gemini stream: keeps textual reasoning hidden across split chunks", () => {
+  const state = createStreamingState();
+
+  const first = geminiToOpenAIResponse(
+    {
+      responseId: "resp-split-thought",
+      modelVersion: "gemini-3.5-flash-high",
+      candidates: [{ content: { parts: [{ text: "§54§ <tho" }] } }],
+    },
+    state
+  );
+  assert.equal(
+    first.some((event: any) => event.choices?.[0]?.delta?.content),
+    false
+  );
+
+  const second = geminiToOpenAIResponse(
+    {
+      responseId: "resp-split-thought",
+      modelVersion: "gemini-3.5-flash-high",
+      candidates: [{ content: { parts: [{ text: "ught\nNeed to inspect" }] } }],
+    },
+    state
+  );
+  assert.equal(
+    (second ?? []).some((event: any) =>
+      event.choices?.[0]?.delta?.content?.includes("Need to inspect")
+    ),
+    false
+  );
+
+  const third = geminiToOpenAIResponse(
+    {
+      responseId: "resp-split-thought",
+      modelVersion: "gemini-3.5-flash-high",
+      candidates: [{ content: { parts: [{ text: " more</tho" }] } }],
+    },
+    state
+  );
+  assert.equal(
+    (third ?? []).some((event: any) => event.choices?.[0]?.delta?.content?.includes("more")),
+    false
+  );
+
+  const fourth = geminiToOpenAIResponse(
+    {
+      responseId: "resp-split-thought",
+      modelVersion: "gemini-3.5-flash-high",
+      candidates: [{ content: { parts: [{ text: "ught>Visible answer" }] } }],
+    },
+    state
+  );
+  assert.equal(
+    fourth.some(
+      (event: any) => event.choices?.[0]?.delta?.reasoning_content === "Need to inspect more"
+    ),
+    true
+  );
+  assert.equal(
+    fourth.some((event: any) => event.choices?.[0]?.delta?.content?.includes("ught>")),
+    false
+  );
+  assert.equal(
+    fourth.find((event: any) => event.choices?.[0]?.delta?.content)?.choices[0].delta.content,
+    "Visible answer"
+  );
+});
+
 test("Gemini stream: converts prefixed textual Tool call block with zero-width chars", () => {
   const state = createStreamingState();
   const result = geminiToOpenAIResponse(
