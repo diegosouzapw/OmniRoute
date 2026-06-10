@@ -212,6 +212,21 @@ export function unlockBadge(apiKeyId: string, badgeId: string): void {
     .run(apiKeyId, badgeId);
 }
 
+/**
+ * Whether a specific badge has already been awarded to an API key.
+ *
+ * Reads `user_badges` directly (no JOIN), so the "already unlocked?" check is correct even
+ * when `badge_definitions` is unpopulated. `getBadges()` INNER-JOINs `badge_definitions`, so
+ * it returns nothing until the definitions are seeded — using it as a dedup guard caused
+ * badge-unlock events to re-fire on every request (#3472).
+ */
+export function hasBadge(apiKeyId: string, badgeId: string): boolean {
+  const row = db()
+    .prepare(`SELECT 1 FROM user_badges WHERE api_key_id = ? AND badge_id = ? LIMIT 1`)
+    .get(apiKeyId, badgeId);
+  return !!row;
+}
+
 export function getBadges(apiKeyId: string): UserBadge[] {
   const rows = db()
     .prepare(

@@ -406,6 +406,7 @@ export {
   getXp,
   updateLevel,
   unlockBadge,
+  hasBadge,
   getBadges,
   getBadgeDefinitions,
   transferTokens,
