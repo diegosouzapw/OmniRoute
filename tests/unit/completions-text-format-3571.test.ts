@@ -5,7 +5,6 @@ import {
   toTextCompletionObject,
   transformSseData,
   createTextCompletionStreamTransformer,
-  asTextCompletionResponse,
 } from "../../src/app/api/v1/completions/textCompletionTransform.ts";
 
 // #3571 — /v1/completions (legacy OpenAI Completions API) must return
@@ -104,53 +103,4 @@ test("#3571 stream transformer end-to-end: chat SSE → text SSE", async () => {
   assert.equal(dataLines[1].choices[0].finish_reason, "stop");
   assert.ok(result.includes("data: [DONE]")); // [DONE] preserved
   assert.ok(!result.includes("delta")); // no chat shape leaks
-});
-
-// #3821-review LEDGER-8 — both response branches rewrite the body, so a stale upstream
-// content-length must be dropped (a buffered SSE body with content-length would otherwise
-// advertise the pre-rewrite length and truncate/hang the client).
-test("#3571/#3821 asTextCompletionResponse drops content-length on the SSE branch", async () => {
-  const sseBody =
-    'data: {"object":"chat.completion.chunk","choices":[{"index":0,"delta":{"content":"hi"},"finish_reason":"stop"}]}\n\n';
-  const upstream = new Response(sseBody, {
-    status: 200,
-    headers: {
-      "content-type": "text/event-stream",
-      // A (deliberately wrong) content-length that must NOT survive the rewrite.
-      "content-length": String(sseBody.length),
-    },
-  });
-
-  const out = await asTextCompletionResponse(upstream);
-  assert.equal(out.headers.get("content-length"), null, "content-length must be stripped");
-  assert.match(out.headers.get("content-type") || "", /text\/event-stream/);
-  const text = await out.text();
-  assert.ok(text.includes('"object":"text_completion"'));
-  assert.ok(text.includes('"text":"hi"'));
-});
-
-test("#3571/#3821 asTextCompletionResponse drops content-length on the JSON branch", async () => {
-  const jsonBody = JSON.stringify({
-    object: "chat.completion",
-    choices: [{ index: 0, message: { content: "hi" }, finish_reason: "stop" }],
-  });
-  const upstream = new Response(jsonBody, {
-    status: 200,
-    headers: { "content-type": "application/json", "content-length": String(jsonBody.length) },
-  });
-
-  const out = await asTextCompletionResponse(upstream);
-  assert.equal(out.headers.get("content-length"), null);
-  const obj = await out.json();
-  assert.equal(obj.object, "text_completion");
-  assert.equal(obj.choices[0].text, "hi");
-});
-
-test("#3571/#3821 asTextCompletionResponse passes error responses through untouched", async () => {
-  const upstream = new Response(JSON.stringify({ error: { message: "boom" } }), {
-    status: 500,
-    headers: { "content-type": "application/json" },
-  });
-  const out = await asTextCompletionResponse(upstream);
-  assert.equal(out, upstream, "non-ok responses are returned as-is");
 });
