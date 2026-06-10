@@ -812,6 +812,20 @@ function orderGlmQuotas(quotas: Record<string, UsageQuota>): Record<string, Usag
   return ordered;
 }
 
+/**
+ * Remaining-percentage for a GLM/z.ai TIME_LIMIT ("Monthly") quota. With an absolute
+ * monthly cap (`total > 0`) it is `remaining / total`. Coding plans that have no
+ * monthly cap (only 5-hour windows) report `total = 0`; in that case fall back to the
+ * percentage-derived remaining so "no monthly cap" renders as full/100% instead of a
+ * misleading 0% (#3580).
+ */
+export function glmMonthlyRemainingPercentage(total: number, remaining: number): number {
+  if (total > 0) {
+    return Math.max(0, Math.min(100, Math.round((remaining / total) * 100)));
+  }
+  return Math.max(0, Math.min(100, Math.round(remaining)));
+}
+
 async function getGlmUsage(apiKey: string, providerSpecificData?: Record<string, unknown>) {
   if (!apiKey) {
     return { message: "API key not available. Add a coding plan API key to view usage." };
@@ -876,8 +890,7 @@ async function getGlmUsage(apiKey: string, providerSpecificData?: Record<string,
       const total = toNumber(src.usage, toNumber(src.total, 0));
       const remaining = toNumber(src.remaining, Math.max(0, 100 - toPercentage(src.percentage)));
       const used = toNumber(src.currentValue, Math.max(0, total - remaining));
-      const remainingPercentage =
-        total > 0 ? Math.max(0, Math.min(100, Math.round((remaining / total) * 100))) : 0;
+      const remainingPercentage = glmMonthlyRemainingPercentage(total, remaining);
 
       quotas["mcp_monthly"] = {
         used,
