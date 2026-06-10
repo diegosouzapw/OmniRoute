@@ -268,6 +268,28 @@ async function getActiveProviderSet() {
   }
 }
 
+function isTruthyEnv(value: string | undefined) {
+  return typeof value === "string" && /^(1|true|yes|on)$/i.test(value.trim());
+}
+
+function shouldPreferClaudeCodeForUnprefixedClaudeModel(
+  modelId: string,
+  activeProviders: Set<string> | null
+) {
+  if (
+    !isTruthyEnv(process.env.OMNIROUTE_PREFER_CLAUDE_CODE_FOR_UNPREFIXED_CLAUDE_MODELS) ||
+    !/^claude-/i.test(modelId)
+  ) {
+    return false;
+  }
+
+  // If DB/provider state is unavailable in a lightweight runtime, honor the
+  // explicit operator flag and let the normal credential path report any missing
+  // Claude Code account. When state is available, avoid stealing traffic from
+  // other Claude-family providers unless Claude Code is actually active.
+  return activeProviders === null || activeProviders.size === 0 || activeProviders.has("claude");
+}
+
 function shouldTreatAsExactModelId(modelStr: string | null) {
   if (!modelStr || typeof modelStr !== "string" || !modelStr.includes("/")) return false;
   if (!KNOWN_MODEL_IDS.has(modelStr)) return false;
@@ -481,6 +503,17 @@ async function resolveModelByProviderInference(modelId: string, extendedContext:
 
   const candidatesToUse = nonOpenAIProviders;
 
+  if (
+    candidatesToUse.includes("claude") &&
+    shouldPreferClaudeCodeForUnprefixedClaudeModel(modelId, activeProviders)
+  ) {
+    return {
+      provider: "claude",
+      model: resolveInferredProviderModel("claude", modelId),
+      extendedContext,
+    };
+  }
+
   if (candidatesToUse.length === 1) {
     const provider = candidatesToUse[0];
     const canonicalModel = resolveInferredProviderModel(provider, modelId);
@@ -506,6 +539,9 @@ async function resolveModelByProviderInference(modelId: string, extendedContext:
   // FIX #73: Models like claude-haiku-4-5-20251001 sent without provider prefix
   // would incorrectly route to OpenAI. Use heuristic prefix detection first.
   if (/^claude-/i.test(modelId)) {
+    if (shouldPreferClaudeCodeForUnprefixedClaudeModel(modelId, activeProviders)) {
+      return { provider: "claude", model: modelId, extendedContext };
+    }
     // Claude models → Anthropic provider (canonical source for Claude models)
     return { provider: "anthropic", model: modelId, extendedContext };
   }

@@ -3,6 +3,26 @@ import assert from "node:assert/strict";
 
 const model = await import("../../open-sse/services/model.ts");
 
+function withEnv(name: string, value: string | undefined, fn: () => Promise<void>) {
+  return async () => {
+    const previous = process.env[name];
+    if (value === undefined) {
+      delete process.env[name];
+    } else {
+      process.env[name] = value;
+    }
+    try {
+      await fn();
+    } finally {
+      if (previous === undefined) {
+        delete process.env[name];
+      } else {
+        process.env[name] = previous;
+      }
+    }
+  };
+}
+
 test("resolveProviderAlias returns null for null/undefined", () => {
   assert.equal(model.resolveProviderAlias(null), null);
   assert.equal(model.resolveProviderAlias(undefined), null);
@@ -116,3 +136,27 @@ test("getModelInfoCore handles null", async () => {
   assert.ok(result);
   assert.ok(typeof result === "object");
 });
+
+test(
+  "getModelInfoCore routes newly released unprefixed Claude models to Claude Code when enabled",
+  withEnv("OMNIROUTE_PREFER_CLAUDE_CODE_FOR_UNPREFIXED_CLAUDE_MODELS", "true", async () => {
+    const result = await model.getModelInfoCore("claude-fable-5", {});
+    assert.deepEqual(result, {
+      provider: "claude",
+      model: "claude-fable-5",
+      extendedContext: false,
+    });
+  })
+);
+
+test(
+  "getModelInfoCore resolves ambiguous unprefixed Claude catalog models to Claude Code when enabled",
+  withEnv("OMNIROUTE_PREFER_CLAUDE_CODE_FOR_UNPREFIXED_CLAUDE_MODELS", "true", async () => {
+    const result = await model.getModelInfoCore("claude-haiku-4-5-20251001", {});
+    assert.deepEqual(result, {
+      provider: "claude",
+      model: "claude-haiku-4-5-20251001",
+      extendedContext: false,
+    });
+  })
+);
