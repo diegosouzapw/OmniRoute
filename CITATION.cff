@@ -1,0 +1,9 @@
+cff-version: 1.2.0
+message: "If you use OmniRoute, please cite this repository."
+title: OmniRoute
+type: software
+authors:
+  - family-names: Pari
+    given-names: Koosha
+repository-code: "https://github.com/KooshaPari/OmniRoute"
+license: MIT
