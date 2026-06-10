@@ -2355,13 +2355,13 @@ export function buildComboKey(
     combo.name && combo.name.trim().length > 0 ? combo.name.trim() : combo.id;
   let slug = slugifyComboName(friendlyName);
   if (slug.length === 0) slug = combo.id;
-  let key = `combo/${slug}`;
+  let key = `${slug}`;
   if (used.has(key)) {
     const tail = combo.id.split("-")[0] ?? combo.id;
-    key = `combo/${slug}-${tail}`;
+    key = `${slug}-${tail}`;
     // Defensive: in the (impossible) event the disambiguated key also
     // collides, append the full id.
-    if (used.has(key)) key = `combo/${slug}-${combo.id}`;
+    if (used.has(key)) key = `${slug}-${combo.id}`;
   }
   used.add(key);
   return key;
