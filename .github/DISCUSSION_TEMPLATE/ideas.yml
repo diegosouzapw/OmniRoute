@@ -1,0 +1,10 @@
+title: "Idea: "
+labels: [idea]
+body:
+  - type: textarea
+    id: idea
+    attributes:
+      label: Idea
+      description: Describe the routing workflow or improvement you want to discuss.
+    validations:
+      required: true
