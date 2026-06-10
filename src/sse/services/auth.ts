@@ -31,12 +31,13 @@ import {
   recordModelLockoutFailure,
 } from "@omniroute/open-sse/services/accountFallback.ts";
 import { isLocalProvider } from "@omniroute/open-sse/config/providerRegistry.ts";
-import { COOLDOWN_MS } from "@omniroute/open-sse/config/constants.ts";
+import { BACKOFF_CONFIG, COOLDOWN_MS } from "@omniroute/open-sse/config/constants.ts";
 import {
   preflightQuota,
   isQuotaPreflightEnabled,
 } from "@omniroute/open-sse/services/quotaPreflight.ts";
 import { resolveResilienceSettings } from "@/lib/resilience/settings";
+import { resolveModelLockoutSettings } from "@/lib/resilience/modelLockoutSettings";
 import { syncHealthFromDB, type KeyHealth } from "@omniroute/open-sse/services/apiKeyRotator.ts";
 import {
   classifyProviderError,
@@ -1707,6 +1708,7 @@ export async function markAccountUnavailable(
   providerProfile = null,
   options: {
     persistUnavailableState?: boolean;
+    isCombo?: boolean;
   } = {}
 ) {
   const currentMutex = markMutexes.get(connectionId) || Promise.resolve();
@@ -1783,6 +1785,13 @@ export async function markAccountUnavailable(
       effectiveProviderProfile
     );
 
+    // Resolve model lockout settings once for all model-level lockout paths.
+    // If disabled or the status code isn't in the configured list, skip all
+    // model-only lockout branches and fall through to connection-level handling.
+    const mlSettings = resolveModelLockoutSettings(await getCachedSettings());
+    const modelLockoutEnabled =
+      mlSettings.enabled && mlSettings.errorCodes.includes(status);
+
     // Read passthroughModels from connection config (user-configured per-model quota)
     const connProviderSpecificData = (conn?.providerSpecificData as Record<string, unknown>) || {};
     const connectionPassthroughModels = connProviderSpecificData.passthroughModels as
@@ -1790,11 +1799,17 @@ export async function markAccountUnavailable(
       | undefined;
 
     const isPerModelQuotaProvider = hasPerModelQuota(provider, model, connectionPassthroughModels);
+    const isConfiguredLockout = mlSettings.enabled && mlSettings.errorCodes.includes(status);
+
+    // When user-configured lockout settings are active AND this is a combo request,
+    // skip model-level lockout here — combo.ts records it with 'combo_failure' reason.
+    // For non-combo flows or legacy mode, auth.ts still handles the lockout.
     if (
       isPerModelQuotaProvider &&
       provider &&
       model &&
-      (status === 404 || status === 429 || status >= 500)
+      (status === 404 || status === 429 || status >= 500) &&
+      !(isConfiguredLockout && options.isCombo)
     ) {
       const reason =
         status === 404
@@ -1804,19 +1819,29 @@ export async function markAccountUnavailable(
             : status === 429
               ? "rate_limited"
               : "server_error";
+
+      const baseCooldownMs = isConfiguredLockout
+        ? mlSettings.baseCooldownMs
+        : (status === 404
+            ? (effectiveProviderProfile?.baseCooldownMs ?? COOLDOWN_MS.notFoundLocal)
+            : (fallbackResult.baseCooldownMs ?? effectiveProviderProfile?.baseCooldownMs ?? 0));
+
+      const useExponential = isConfiguredLockout ? mlSettings.useExponentialBackoff : true;
+
       const lockout = recordModelLockoutFailure(
         provider,
         connectionId,
         model,
         reason,
         status,
-        status === 404
-          ? (effectiveProviderProfile?.baseCooldownMs ?? COOLDOWN_MS.notFoundLocal)
-          : (fallbackResult.baseCooldownMs ?? effectiveProviderProfile?.baseCooldownMs ?? 0),
+        baseCooldownMs,
         effectiveProviderProfile,
         {
           exactCooldownMs:
-            fallbackResult.usedUpstreamRetryHint === true ? fallbackResult.cooldownMs : null,
+            fallbackResult.usedUpstreamRetryHint === true && !isConfiguredLockout
+              ? fallbackResult.cooldownMs
+              : (useExponential ? (isConfiguredLockout ? 0 : null) : baseCooldownMs),
+          maxCooldownMs: isConfiguredLockout ? mlSettings.maxCooldownMs : BACKOFF_CONFIG.max,
         }
       );
       // Update last error for observability (without changing terminal status)
@@ -1837,25 +1862,36 @@ export async function markAccountUnavailable(
     if (!shouldFallback) return { shouldFallback: false, cooldownMs: 0 };
     const providerErrorType = classifyProviderError(status, errorText, provider);
 
-    if (provider && resolveProviderId(provider) === "grok-web" && status === 403 && model) {
+    const isGrokWeb403 = provider && resolveProviderId(provider) === "grok-web" && status === 403 && model;
+    if (isGrokWeb403 && provider && model) {
+      const baseCooldownMs = isConfiguredLockout
+        ? mlSettings.baseCooldownMs
+        : (effectiveProviderProfile?.baseCooldownMs ?? COOLDOWN_MS.serviceUnavailable);
+
+      const useExponential = isConfiguredLockout ? mlSettings.useExponentialBackoff : true;
+
       const lockout = recordModelLockoutFailure(
         provider,
         connectionId,
         model,
         "forbidden",
         status,
-        effectiveProviderProfile?.baseCooldownMs ?? COOLDOWN_MS.serviceUnavailable,
-        effectiveProviderProfile
+        baseCooldownMs,
+        effectiveProviderProfile,
+        {
+          exactCooldownMs: useExponential ? (isConfiguredLockout ? 0 : null) : baseCooldownMs,
+          maxCooldownMs: isConfiguredLockout ? mlSettings.maxCooldownMs : BACKOFF_CONFIG.max,
+        }
       );
       updateProviderConnection(connectionId, {
         lastErrorType: "forbidden",
-        lastError: `Mode ${model} forbidden for this Grok account`,
+        lastError: `Model ${model} forbidden for this Grok account`,
         lastErrorAt: new Date().toISOString(),
         errorCode: status,
       }).catch(() => {});
       log.info(
         "AUTH",
-        `Mode-only lockout for ${provider}:${model} — 403 forbidden ${Math.ceil(lockout.cooldownMs / 1000)}s (connection stays active)`
+        `Model-only lockout for ${provider}:${model} — 403 forbidden ${Math.ceil(lockout.cooldownMs / 1000)}s (connection stays active)`
       );
       return { shouldFallback: true, cooldownMs: lockout.cooldownMs };
     }
@@ -1879,19 +1915,28 @@ export async function markAccountUnavailable(
     // resolveTerminalConnectionStatus() returns a non-null status for them, so
     // they keep their existing connection-level cooldown/deactivation path.
     if (isPerModelQuotaProvider && status === 403 && provider && model && !terminalStatus) {
+      const baseCooldownMs = isConfiguredLockout
+        ? mlSettings.baseCooldownMs
+        : (fallbackResult.baseCooldownMs ??
+          effectiveProviderProfile?.baseCooldownMs ??
+          COOLDOWN_MS.serviceUnavailable);
+
+      const useExponential = isConfiguredLockout ? mlSettings.useExponentialBackoff : true;
+
       const lockout = recordModelLockoutFailure(
         provider,
         connectionId,
         model,
         "forbidden",
         status,
-        fallbackResult.baseCooldownMs ??
-          effectiveProviderProfile?.baseCooldownMs ??
-          COOLDOWN_MS.serviceUnavailable,
+        baseCooldownMs,
         effectiveProviderProfile,
         {
           exactCooldownMs:
-            fallbackResult.usedUpstreamRetryHint === true ? fallbackResult.cooldownMs : null,
+            fallbackResult.usedUpstreamRetryHint === true && !isConfiguredLockout
+              ? fallbackResult.cooldownMs
+              : (useExponential ? (isConfiguredLockout ? 0 : null) : baseCooldownMs),
+          maxCooldownMs: isConfiguredLockout ? mlSettings.maxCooldownMs : BACKOFF_CONFIG.max,
         }
       );
       updateProviderConnection(connectionId, {
@@ -1915,17 +1960,26 @@ export async function markAccountUnavailable(
       | string
       | undefined;
 
-    if (isLocalProvider(connBaseUrl) && status === 404 && provider && model) {
+    const isLocal404 = isLocalProvider(connBaseUrl) && status === 404 && provider && model;
+    if (isLocal404 && provider && model) {
+      const baseCooldownMs = isConfiguredLockout
+        ? mlSettings.baseCooldownMs
+        : (effectiveProviderProfile?.baseCooldownMs ?? COOLDOWN_MS.notFoundLocal);
+
+      const useExponential = isConfiguredLockout ? mlSettings.useExponentialBackoff : true;
+
       const lockout = recordModelLockoutFailure(
         provider,
         connectionId,
         model,
         "not_found",
         status,
-        status === 404
-          ? (effectiveProviderProfile?.baseCooldownMs ?? COOLDOWN_MS.notFoundLocal)
-          : COOLDOWN_MS.notFoundLocal,
-        effectiveProviderProfile
+        baseCooldownMs,
+        effectiveProviderProfile,
+        {
+          exactCooldownMs: useExponential ? (isConfiguredLockout ? 0 : null) : baseCooldownMs,
+          maxCooldownMs: isConfiguredLockout ? mlSettings.maxCooldownMs : BACKOFF_CONFIG.max,
+        }
       );
       updateProviderConnection(connectionId, {
         lastErrorType: "not_found",
@@ -1965,7 +2019,7 @@ export async function markAccountUnavailable(
         },
       });
 
-      if (scopeCooldownMs > 0) {
+      if (modelLockoutEnabled && scopeCooldownMs > 0) {
         lockModel(provider, connectionId, model, reason || "unknown", scopeCooldownMs);
       }
 
@@ -1989,6 +2043,13 @@ export async function markAccountUnavailable(
       await updateProviderConnection(connectionId, {
         ...baseUpdate,
       });
+      // Short in-memory model lockout for combo transient failures:
+      // prevents repeated retries on failing targets across subsequent requests
+      // without persisting connection-wide unavailable state.
+      if (modelLockoutEnabled && provider && model && cooldownMs > 0) {
+        const lockoutMs = Math.min(cooldownMs, 30_000);
+        lockModel(provider, connectionId, model, "transient", lockoutMs);
+      }
     } else if (cooldownMs > 0) {
       await updateProviderConnection(connectionId, {
         ...baseUpdate,

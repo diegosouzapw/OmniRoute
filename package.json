@@ -167,7 +167,6 @@
     "@dnd-kit/sortable": "^10.0.0",
     "@dnd-kit/utilities": "^3.2.2",
     "@huggingface/transformers": "^4.2.0",
-    "@lobehub/icons": "^5.8.0",
     "@modelcontextprotocol/sdk": "^1.29.0",
     "@monaco-editor/react": "^4.7.0",
     "@ngrok/ngrok": "^1.7.0",
@@ -177,6 +176,7 @@
     "axios": "^1.16.1",
     "bcryptjs": "^3.0.3",
     "bottleneck": "^2.19.5",
+    "cloakbrowser": "^0.3.31",
     "commander": "^15.0.0",
     "csv-stringify": "^6.7.0",
     "express": "^5.2.1",
@@ -238,6 +238,7 @@
     "wreq-js": "^2.3.1"
   },
   "devDependencies": {
+    "@lobehub/icons": "^5.8.0",
     "@playwright/test": "^1.60.0",
     "@tailwindcss/postcss": "^4.3.0",
     "@testing-library/jest-dom": "^6.9.1",

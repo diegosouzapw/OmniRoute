@@ -5,11 +5,124 @@
  * context-optimized, and context-relay strategies
  */
 
+/* Read first SSE event from a streaming 200 response; if it's an upstream
+ * error cancel the stream and return errorResponse so combo can fallback. */
+async function guardStreamingFirstChunk(
+  response: Response,
+  modelStr: string,
+  maxBufferBytes = 65536,
+  guardTimeoutMs = 10000
+): Promise<Response> {
+  if (response.status !== 200 || !response.body) return response;
+
+  const reader = response.body.getReader();
+  const decoder = new TextDecoder();
+  const chunks: Uint8Array[] = [];
+  let total = 0;
+  let timedOut = false;
+
+  const timeoutId = setTimeout(() => {
+    timedOut = true;
+    reader.cancel().catch(() => {});
+  }, guardTimeoutMs);
+
+  try {
+    while (!timedOut && total < maxBufferBytes) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      if (value) {
+        chunks.push(value);
+        total += value.length;
+      }
+      if (timedOut) break;
+      const partial = chunks.map((c) => decoder.decode(c, { stream: true })).join("");
+      const flush = decoder.decode();
+      const text = partial + flush;
+      const eventEnd = text.indexOf("\n\n");
+      if (eventEnd === -1) continue;
+
+      const firstEvent = text.slice(0, eventEnd);
+      if (
+        firstEvent.startsWith('data: {"error"') ||
+        firstEvent.startsWith('data: {"object":"error"') ||
+        firstEvent.startsWith("event: error") ||
+        firstEvent.includes('"error":{"message":"')
+      ) {
+        await reader.cancel().catch(() => {});
+        clearTimeout(timeoutId);
+        const errorMatch = firstEvent.match(/"message"\s*:\s*"([^"]+)"/);
+        return errorResponse(
+          502,
+          errorMatch?.[1] ??
+            `Upstream error on ${modelStr} (reported before first content token)`
+        );
+      }
+      break;
+    }
+  } finally {
+    clearTimeout(timeoutId);
+  }
+
+  if (timedOut || chunks.length === 0) {
+    if (chunks.length === 0) {
+      clearTimeout(timeoutId);
+      return errorResponse(
+        502,
+        `Upstream timed out on ${modelStr} — no data received within ${guardTimeoutMs}ms`
+      );
+    }
+
+    const body = new ReadableStream({
+      async start(controller) {
+        try {
+          for (const chunk of chunks) controller.enqueue(chunk);
+          while (true) {
+            const { done, value } = await reader.read();
+            if (done) { controller.close(); return; }
+            if (value) controller.enqueue(value);
+          }
+        } catch (err) { controller.error(err); }
+      },
+    });
+    return new Response(body, {
+      status: response.status,
+      statusText: response.statusText,
+      headers: response.headers,
+    });
+  }
+
+  const body = new ReadableStream({
+    async start(controller) {
+      try {
+        for (const chunk of chunks) controller.enqueue(chunk);
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) { controller.close(); return; }
+          if (value) controller.enqueue(value);
+        }
+      } catch (err) {
+        controller.error(err);
+      }
+    },
+  });
+
+  return new Response(body, {
+    status: response.status,
+    statusText: response.statusText,
+    headers: response.headers,
+  });
+}
+
 import {
   checkFallbackError,
   classifyErrorText,
+  classifyLockoutReason,
   formatRetryAfter,
   getRuntimeProviderProfile,
+  isModelLocked,
+  lockModel,
+  decayModelFailureCount,
+  recordModelLockoutFailure,
   recordProviderFailure,
   isProviderFailureCode,
   isProviderExhaustedReason,
@@ -44,6 +157,7 @@ import {
   getLastSessionModel,
   getHandoff,
 } from "../../src/lib/db/contextHandoffs.ts";
+import { resolveModelLockoutSettings } from "../../src/lib/resilience/modelLockoutSettings";
 import { fetchCodexQuota } from "./codexQuotaFetcher.ts";
 import { getQuotaFetcher } from "./quotaPreflight.ts";
 import * as semaphore from "./rateLimitSemaphore.ts";
@@ -2777,9 +2891,10 @@ export async function handleComboChat({
     target?: SingleModelTarget
   ): Promise<Response> => {
     if (comboTargetTimeoutMs <= 0) {
-      return handleSingleModel(b, modelStr, target).catch((err) =>
+      const result = await handleSingleModel(b, modelStr, target).catch((err) =>
         errorResponse(502, err?.message ?? "Upstream model error")
       );
+      return guardStreamingFirstChunk(result, modelStr);
     }
 
     const timeoutController = new AbortController();
@@ -2818,18 +2933,16 @@ export async function handleComboChat({
       }
     }
     try {
-      return await Promise.race([
+      const result = await Promise.race([
         handleSingleModel(b, modelStr, targetWithSignal).catch((err) => {
           if (timedOut) {
-            // Inner call rejected because we aborted it. The synthetic 524 from
-            // timeoutPromise already wins the race; return an empty response so
-            // the loser branch resolves cleanly without leaking err.message.
             return new Response(null, { status: 599 });
           }
           return errorResponse(502, err?.message ?? "Upstream model error");
         }),
         timeoutPromise,
       ]);
+      return guardStreamingFirstChunk(result, modelStr);
     } finally {
       clearTimeout(timeoutId);
     }
@@ -3267,10 +3380,11 @@ export async function handleComboChat({
           () => new Map<string, PreScreenResult>()
         )
       : new Map<string, PreScreenResult>();
-
   if (orderedTargets.length === 0) {
+    log.warn("COMBO", `[DIAG] Zero targets after filtering for combo "${combo.name}" (strategy=${strategy})`);
     return comboModelNotFoundResponse("Combo has no executable targets");
   }
+  log.info("COMBO", `[DIAG] Combo "${combo.name}" (${strategy}): ${orderedTargets.length} targets — ${orderedTargets.map((t, idx) => `[${idx}] ${t.modelStr}${t.connectionId ? ` (${t.connectionId})` : ""}`).join(", ")}`);
 
   scheduleShadowRouting(
     combo,
@@ -3335,6 +3449,7 @@ export async function handleComboChat({
       ): Promise<{ ok: boolean; response?: Response } | null> => {
         const target = orderedTargets[i];
         const modelStr = target.modelStr;
+        const rawModel = parseModel(modelStr).model || modelStr;
         const provider = target.provider;
 
         const cb = getCircuitBreaker(provider);
@@ -3369,6 +3484,16 @@ export async function handleComboChat({
           return null;
         }
 
+        // Pre-check: skip models locked by resilience system (model-level lockout)
+        if (provider && rawModel && isModelLocked(provider, target.connectionId || "", rawModel)) {
+          log.info(
+            "COMBO",
+            `[DIAG] Pre-check skip: ${modelStr} — model locked by resilience (cooldown active)`
+          );
+          if (i > 0) fallbackCount++;
+          return null;
+        }
+
         // Pre-screen may have already determined this target unavailable (e.g.
         // circuit-breaker OPEN at resolve time).  Skip immediately in that case.
         // For targets pre-screened as "available" we still call isModelAvailable
@@ -3381,12 +3506,14 @@ export async function handleComboChat({
           if (i > 0) fallbackCount++;
           return null;
         }
+
+        // Pre-check: skip models where no credentials are available (excluded, rate-limited, or unavailable)
         if (isModelAvailable) {
           const available = await isModelAvailable(modelStr, targetForAttempt);
           if (!available) {
-            log.debug?.(
+            log.info(
               "COMBO",
-              `Skipping ${modelStr} — no credentials available or model excluded`
+              `[DIAG] Pre-check skip: ${modelStr} — no credentials available or model excluded`
             );
             if (i > 0) fallbackCount++;
             return null;
@@ -3550,6 +3677,24 @@ export async function handleComboChat({
               lastError = `Upstream response failed quality validation: ${quality.reason}`;
               if (!lastStatus) lastStatus = 502;
               if (i > 0) fallbackCount++;
+              if (provider && modelStr) {
+                const mlSettings = resolveModelLockoutSettings(settings);
+                if (mlSettings.enabled && mlSettings.errorCodes.includes(502)) {
+                  recordModelLockoutFailure(
+                    provider,
+                    target.connectionId || "",
+                    rawModel,
+                    "quality_failure",
+                    502,
+                    mlSettings.baseCooldownMs,
+                    profile,
+                    {
+                      exactCooldownMs: mlSettings.useExponentialBackoff ? 0 : mlSettings.baseCooldownMs,
+                      maxCooldownMs: mlSettings.maxCooldownMs,
+                    }
+                  );
+                }
+              }
               emit("combo.target.failed", {
                 comboName: combo.name,
                 targetIndex: i,
@@ -3560,6 +3705,16 @@ export async function handleComboChat({
               });
               return null;
             }
+
+            if (provider && rawModel) {
+              const dcResult = decayModelFailureCount(provider, target.connectionId || "", rawModel);
+              if (dcResult.cleared) {
+                log.info("COMBO", `Model ${modelStr} fully recovered — lockout cleared`);
+              } else if (dcResult.newFailureCount > 0) {
+                log.debug("COMBO", `Model ${modelStr} decayed to failureCount=${dcResult.newFailureCount}`);
+              }
+            }
+
             const latencyMs = Date.now() - startTime;
             emit("combo.target.succeeded", {
               comboName: combo.name,
@@ -3903,7 +4058,31 @@ export async function handleComboChat({
             !isTokenLimitBreach &&
             [408, 429, 500, 502, 503, 504].includes(result.status);
           if (retry < maxRetries && isTransient && !providerExhausted) {
-            continue; // Retry same model
+            // Record model lockout immediately on first transient failure —
+            // no need to wait for all retries to exhaust before cooling the model.
+            let lockoutRecorded = false;
+            if (provider && rawModel && retry === 0) {
+              const mlSettings = resolveModelLockoutSettings(settings);
+              if (mlSettings.enabled && mlSettings.errorCodes.includes(result.status)) {
+                recordModelLockoutFailure(
+                  provider, target.connectionId || "", rawModel, classifyLockoutReason(result.status),
+                  result.status, mlSettings.baseCooldownMs, profile,
+                  {
+                    exactCooldownMs: mlSettings.useExponentialBackoff ? 0 : mlSettings.baseCooldownMs,
+                    maxCooldownMs: mlSettings.maxCooldownMs,
+                  }
+                );
+                lockoutRecorded = true;
+              }
+            }
+            if (lockoutRecorded) {
+              // Model is already cooling down — retrying would waste an upstream call
+              // and extend cooldown via exponential backoff. Fallback immediately.
+              log.info("COMBO", `Skipping retry for ${modelStr} — model lockout active`);
+              if (i > 0) fallbackCount++;
+              return null;
+            }
+            continue; // Retry same model (transient error, no lockout recorded)
           }
 
           // Done retrying this model
@@ -3918,6 +4097,27 @@ export async function handleComboChat({
           lastError = errorText || String(result.status);
           if (!lastStatus) lastStatus = result.status;
           if (i > 0) fallbackCount++;
+          // Wire combo failures into the resilience dashboard (model-level lockout).
+          // Uses mlSettings.baseCooldownMs instead of a hardcoded value so the
+          // operator's configured cooldown (e.g. 15s) is respected.
+          if (provider && modelStr) {
+            const mlSettings = resolveModelLockoutSettings(settings);
+            if (mlSettings.enabled && mlSettings.errorCodes.includes(result.status)) {
+              recordModelLockoutFailure(
+                provider,
+                target.connectionId || "",
+                rawModel,
+                classifyLockoutReason(result.status),
+                result.status,
+                mlSettings.baseCooldownMs,
+                profile,
+                {
+                  exactCooldownMs: mlSettings.useExponentialBackoff ? 0 : mlSettings.baseCooldownMs,
+                  maxCooldownMs: mlSettings.maxCooldownMs,
+                }
+              );
+            }
+          }
           log.warn("COMBO", `Model ${modelStr} failed, trying next`, { status: result.status });
 
           const fallbackWaitMs =
@@ -3951,6 +4151,8 @@ export async function handleComboChat({
       for (let i = 0; i < orderedTargets.length; i++) {
         if (anySuccess) break;
 
+        log.info("COMBO", `[DIAG] Loop iteration i=${i}/${orderedTargets.length - 1} model=${orderedTargets[i]?.modelStr || "unknown"} anySuccess=${anySuccess}`);
+
         const abortController = new AbortController();
         abortControllers.set(i, abortController);
         const onClientAbort = () => abortController.abort();
@@ -3959,6 +4161,7 @@ export async function handleComboChat({
         const task = (async () => {
           try {
             const res = await executeTarget(i);
+            log.info("COMBO", `[DIAG] executeTarget(${i}) returned: ${res === null ? "null (fallback)" : res.ok ? "ok (success)" : `fatal (status=${(res.response as any)?.status || "?"})`}`);
             if (res && !anySuccess) {
               if (res.ok) {
                 anySuccess = true;
@@ -3967,7 +4170,6 @@ export async function handleComboChat({
                   if (idx !== i) ac.abort();
                 }
               } else if (res.response) {
-                // Fatal error, abort combo
                 anySuccess = true;
                 globalResolve!(res.response);
               }
@@ -3977,7 +4179,7 @@ export async function handleComboChat({
           }
         })().catch((err) => {
           const logError = log.error ?? log.warn;
-          logError("COMBO", `Speculative task error for target ${i}`, err);
+          logError("COMBO", `[DIAG] Speculative task error for target ${i}`, err);
         });
 
         runningTasks.add(task);
@@ -4001,11 +4203,14 @@ export async function handleComboChat({
       }
 
       if (anySuccess) {
-        return await globalPromise;
+        const resp = await globalPromise;
+        log.info("COMBO", `[DIAG] Combo "${combo.name}" succeeded with response status=${resp.status}`);
+        return resp;
       }
 
       // All models failed in this set try
       const latencyMs = Date.now() - startTime;
+      log.info("COMBO", `[DIAG] All ${orderedTargets.length} targets failed in set try ${setTry} (${latencyMs}ms) lastStatus=${lastStatus ?? "none"} lastError=${lastError ?? "none"}`);
       if (recordedAttempts === 0) {
         recordComboRequest(combo.name, null, {
           success: false,
@@ -4047,7 +4252,7 @@ export async function handleComboChat({
         return unavailableResponse(status, msg, earliestRetryAfter, retryHuman);
       }
 
-      log.warn("COMBO", `All models failed | ${msg}`);
+      log.warn("COMBO", `[DIAG] Final error: status=${status} msg="${msg}" fallbackCount=${fallbackCount} earliestRetryAfter=${earliestRetryAfter}`);
       return new Response(JSON.stringify({ error: { message: msg } }), {
         status,
         headers: { "Content-Type": "application/json" },

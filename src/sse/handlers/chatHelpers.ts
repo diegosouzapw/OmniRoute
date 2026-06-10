@@ -428,7 +428,8 @@ export async function executeChatWithBreaker({
               String(failure?.message || failure?.code || "stream failure"),
               provider,
               model,
-              providerProfile
+              providerProfile,
+              { isCombo }
             );
           },
         })
