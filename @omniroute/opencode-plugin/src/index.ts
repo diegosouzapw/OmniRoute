@@ -634,7 +634,7 @@ export type OmniRouteModelsFetcher = (
 export const defaultOmniRouteModelsFetcher: OmniRouteModelsFetcher = async (
   baseURL,
   apiKey,
-  timeoutMs = 10_000,
+  timeoutMs = 60_000,
 ) => {
   if (!apiKey)
     throw new Error(
@@ -896,7 +896,7 @@ export type OmniRouteCombosFetcher = (
 export const defaultOmniRouteCombosFetcher: OmniRouteCombosFetcher = async (
   baseURL,
   apiKey,
-  timeoutMs = 10_000,
+  timeoutMs = 60_000,
 ) => {
   if (!apiKey)
     throw new Error(
@@ -1150,7 +1150,7 @@ export type OmniRouteAutoCombosFetcher = (
  * or any non-2xx / network error. Logs a warning in those cases.
  */
 export const defaultOmniRouteAutoCombosFetcher: OmniRouteAutoCombosFetcher =
-  async (baseURL, apiKey, timeoutMs = 5_000) => {
+  async (baseURL, apiKey, timeoutMs = 30_000) => {
     if (!apiKey || !baseURL) return [];
 
     const trimmed = trimTrailingSlashes(baseURL);
@@ -1322,7 +1322,7 @@ export type OmniRouteEnrichmentFetcher = (
  * other.
  */
 export const defaultOmniRouteEnrichmentFetcher: OmniRouteEnrichmentFetcher =
-  async (baseURL, apiKey, timeoutMs = 10_000) => {
+  async (baseURL, apiKey, timeoutMs = 60_000) => {
     const out: OmniRouteEnrichmentMap = new Map();
     if (!baseURL || !apiKey) return out;
     const root = baseURL.replace(/\/v1\/?$/, "").replace(/\/$/, "");
@@ -1990,7 +1990,7 @@ export type OmniRouteCompressionMetaFetcher = (
  * `{ data: [...] }`. Soft-fails (returns []) on non-2xx or parse errors.
  */
 export const defaultOmniRouteCompressionMetaFetcher: OmniRouteCompressionMetaFetcher =
-  async (baseURL, apiKey, timeoutMs = 10_000) => {
+  async (baseURL, apiKey, timeoutMs = 60_000) => {
     const empty: OmniRouteCompressionCombo[] = [];
     if (!baseURL || !apiKey) return empty;
     const root = baseURL.replace(/\/v1\/?$/, "").replace(/\/$/, "");
@@ -2144,7 +2144,7 @@ export type OmniRouteProvidersFetcher = (
  * gracefully degrades to "no filter" instead of hiding the whole catalog.
  */
 export const defaultOmniRouteProvidersFetcher: OmniRouteProvidersFetcher =
-  async (baseURL, apiKey, timeoutMs = 10_000) => {
+  async (baseURL, apiKey, timeoutMs = 60_000) => {
     const empty: OmniRouteProviderConnection[] = [];
     if (!baseURL || !apiKey) return empty;
     const root = baseURL.replace(/\/v1\/?$/, "").replace(/\/$/, "");
@@ -2564,7 +2564,7 @@ export function createOmniRouteProviderHook(
         // Models fetch is required (no catalog otherwise → silent provider
         // disappearance). We do NOT wrap this in a try; let the error
         // propagate to OC's UI.
-        rawModels = await fetcher(baseURL, apiKey, 10_000);
+        rawModels = await fetcher(baseURL, apiKey, 60_000);
 
         // T-05: combos fetch is best-effort, gated by features.combos.
         // Soft-fail on any error: emit a console.warn and fall back to a
@@ -2575,7 +2575,7 @@ export function createOmniRouteProviderHook(
         rawCombos = [];
         if (wantCombos) {
           try {
-            rawCombos = await combosFetcher(baseURL, apiKey, 10_000);
+            rawCombos = await combosFetcher(baseURL, apiKey, 60_000);
           } catch (err) {
             console.warn(
               "[omniroute-plugin] combos fetch failed, falling back to models-only catalog",
@@ -2590,7 +2590,7 @@ export function createOmniRouteProviderHook(
         rawAutoCombos = [];
         if (wantAutoCombos) {
           try {
-            rawAutoCombos = await autoCombosFetcher(baseURL, apiKey, 5_000);
+            rawAutoCombos = await autoCombosFetcher(baseURL, apiKey, 30_000);
           } catch {
             // Already handled inside the default fetcher — this catch
             // is belt-and-suspenders for injected stubs.
@@ -2602,7 +2602,7 @@ export function createOmniRouteProviderHook(
         rawEnrichment = new Map();
         if (wantEnrichment) {
           try {
-            rawEnrichment = await enrichmentFetcher(baseURL, apiKey, 10_000);
+            rawEnrichment = await enrichmentFetcher(baseURL, apiKey, 60_000);
           } catch (err) {
             console.warn(
               "[omniroute-plugin] enrichment fetch failed, falling back to raw ids",
@@ -2619,7 +2619,7 @@ export function createOmniRouteProviderHook(
             rawCompressionCombos = await compressionMetaFetcher(
               baseURL,
               apiKey,
-              10_000,
+              60_000,
             );
           } catch (err) {
             console.warn(
@@ -2637,7 +2637,7 @@ export function createOmniRouteProviderHook(
         rawConnections = [];
         if (wantUsableOnly) {
           try {
-            rawConnections = await providersFetcher(baseURL, apiKey, 10_000);
+            rawConnections = await providersFetcher(baseURL, apiKey, 60_000);
           } catch (err) {
             console.warn(
               "[omniroute-plugin] /api/providers fetch failed; usableOnly filter disabled for this refresh",
@@ -4408,7 +4408,7 @@ export function createOmniRouteConfigHook(
       // disk fallback — that's a valid empty catalog.
       let modelsFetchThrew = false;
       try {
-        rawModels = await fetcher(baseURL, apiKey, 10_000);
+        rawModels = await fetcher(baseURL, apiKey, 60_000);
       } catch (err) {
         logger.warn(
           "[omniroute-plugin] config shim: /v1/models fetch failed; publishing stub provider entry",
@@ -4421,7 +4421,7 @@ export function createOmniRouteConfigHook(
 
       rawCombos = [];
       try {
-        rawCombos = await combosFetcher(baseURL, apiKey, 10_000);
+        rawCombos = await combosFetcher(baseURL, apiKey, 60_000);
       } catch (err) {
         logger.warn(
           "[omniroute-plugin] config shim: /api/combos fetch failed; publishing models-only static catalog",
@@ -4432,7 +4432,7 @@ export function createOmniRouteConfigHook(
       rawAutoCombos = [];
       if (wantAutoCombos) {
         try {
-          rawAutoCombos = await autoCombosFetcher(baseURL, apiKey, 5_000);
+          rawAutoCombos = await autoCombosFetcher(baseURL, apiKey, 30_000);
         } catch {
           // Already handled inside the default fetcher
         }
@@ -4448,7 +4448,7 @@ export function createOmniRouteConfigHook(
       rawEnrichment = new Map();
       if (wantEnrichment) {
         try {
-          rawEnrichment = await enrichmentFetcher(baseURL, apiKey, 10_000);
+          rawEnrichment = await enrichmentFetcher(baseURL, apiKey, 60_000);
         } catch (err) {
           logger.warn(
             "[omniroute-plugin] config shim: /api/pricing/models fetch failed; publishing raw-id static catalog",
@@ -4466,7 +4466,7 @@ export function createOmniRouteConfigHook(
           rawCompressionCombos = await compressionMetaFetcher(
             baseURL,
             apiKey,
-            10_000,
+            60_000,
           );
         } catch (err) {
           logger.warn(
@@ -4483,7 +4483,7 @@ export function createOmniRouteConfigHook(
       rawConnections = [];
       if (wantUsableOnly) {
         try {
-          rawConnections = await providersFetcher(baseURL, apiKey, 10_000);
+          rawConnections = await providersFetcher(baseURL, apiKey, 60_000);
         } catch (err) {
           logger.warn(
             "[omniroute-plugin] config shim: /api/providers fetch failed; usableOnly filter disabled for this refresh",
