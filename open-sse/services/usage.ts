@@ -946,7 +946,7 @@ async function getOpenCodeGoUsage(apiKey: string) {
     return { message: "OpenCode Go quota endpoint rejected this API key. Chat requests still work." };
   }
 
-  const data = toRecord(json.data);
+  const data = toRecord((json as Record<string, unknown>).data);
   const limits: unknown[] = Array.isArray(data.limits) ? data.limits : [];
   const quotas: Record<string, UsageQuota> = {};
 
