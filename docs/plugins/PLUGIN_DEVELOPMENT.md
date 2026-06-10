@@ -112,24 +112,23 @@ For the complete list of built-in events and their signatures, refer to `src/lib
 
 ## Dev Mode: Hot Reload on File Changes
 
-**`src/lib/plugins/devMode.ts`** watches the plugin directory for file changes and automatically reloads affected plugins. This is the fastest way to iterate on a plugin during development.
+**`src/lib/plugins/devMode.ts`** exports `startDevMode(pluginDir, reloadFn)` and `stopDevMode()` for hot-reloading plugins when their files change on disk. The watcher is debounced at 500ms per source change.
 
-### Starting Dev Mode
+> **⚠️ Not yet wired up.** `startDevMode()` is exported but has **no call sites** (`grep -rn "startDevMode" src/ open-sse/` returns only the definition). The environment variables `PLUGIN_DEV_MODE` and `OMNIROUTE_PLUGIN_DEV` are not read anywhere — `PLUGIN_DEV_MODE` is only the **logger name** in `src/lib/plugins/devMode.ts:12`. Dev mode is therefore only invokable programmatically today; an env-var/CLI path that turns it on is planned but not implemented.
 
-```bash
-# In the OmniRoute server, set the dev mode flag in your config
-PLUGIN_DEV_MODE=true
+### Programmatic invocation
 
-# Or via environment variable
-OMNIROUTE_PLUGIN_DEV=1 omniroute
+The function is exported and unit-testable, but in current `release/v3.8.20` no caller invokes it. To wire it up, the caller would do:
+
+```ts
+// Example (not currently invoked anywhere in the codebase)
+import { startDevMode } from "omniroute/plugins/devMode";
+import { reloadPlugin } from "./reload-helper";
+
+startDevMode(getPluginDir(), async (pluginName) => {
+  await reloadPlugin(pluginName);
+});
 ```
-
-When enabled, the server:
-
-1. Watches `~/.omniroute/plugins/*` recursively
-2. On any file change inside a plugin directory, waits 500ms (debounce)
-3. Calls `deactivate(pluginName)` then `activate(pluginName)` to reload
-4. Logs the result to the `PLUGIN_DEV_MODE` logger
 
 ### How It Works
 
@@ -148,22 +147,33 @@ export function startDevMode(pluginDir: string, reloadFn: ReloadFn): void {
     // Debounce rapid changes
     if (debounceTimer) clearTimeout(debounceTimer);
     debounceTimer = setTimeout(async () => {
-      await reloadFn(pluginName); // deactivate + activate
+      log.info("devMode.file_changed", { pluginName, file: filename });
+      try {
+        await reloadFn(pluginName);
+        log.info("devMode.reloaded", { pluginName });
+      } catch (err: unknown) {
+        log.error("devMode.reload_failed", {
+          pluginName,
+          error: err instanceof Error ? err.message : String(err),
+        });
+      }
     }, DEBOUNCE_MS);
   });
+
+  log.info("devMode.started", { pluginDir });
 }
 ```
 
-### Dev Mode Tips
+### Dev Mode Tips (when wired up)
 
-- **Edit `plugin.json`**: changes are picked up on the next reload cycle. The manifest is re-validated each time.
+- **Edit `plugin.json`**: changes would be picked up on the next reload cycle. The manifest is re-validated each time.
 - **Edit `index.js`**: same — the plugin is unloaded and re-loaded.
 - **Multiple rapid saves**: the 500ms debounce means OmniRoute won't thrash during a flurry of saves.
 - **Errors during reload**: the old version remains active. Check the server log (`PLUGIN_DEV_MODE` and `PLUGIN_MANAGER` loggers) for the error.
 
 ### When NOT to Use Dev Mode
 
-- **Production**: never set `PLUGIN_DEV_MODE=true` in production. The watcher adds CPU overhead and may briefly disable plugins during reloads.
+- **Production**: dev mode is not yet invoked anywhere, so this is moot until the env-var/CLI wiring lands. When it is wired up, never enable it in production — the watcher adds CPU overhead and may briefly disable plugins during reloads.
 - **Plugin uses native modules**: native bindings can't be re-initialized safely. Restart the server.
 
 ---

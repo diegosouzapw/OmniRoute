@@ -35,17 +35,18 @@ lastUpdated: 2026-06-08
 
 The local seed registry ships with **3 verified plugins** maintained by the OmniRoute team:
 
-| Plugin | Tags | Description |
-|--------|------|-------------|
-| `request-logger` | logging, debugging | Logs all requests and responses with timing |
-| `rate-limiter` | rate-limit, security | Per-model rate limiting with sliding window |
-| `cost-tracker` | analytics, cost | Track token costs per request and per model |
+| Plugin           | Tags                 | Description                                 |
+| ---------------- | -------------------- | ------------------------------------------- |
+| `request-logger` | logging, debugging   | Logs all requests and responses with timing |
+| `rate-limiter`   | rate-limit, security | Per-model rate limiting with sliding window |
+| `cost-tracker`   | analytics, cost      | Track token costs per request and per model |
 
 All three are `verified: true` and `license: MIT`.
 
 ### Phase 2: Remote Registry (Planned)
 
 The remote registry will add:
+
 - **Author submissions** — anyone can publish a plugin
 - **Ratings** — 0-5 stars from user reviews
 - **Downloads** — install count
@@ -85,6 +86,7 @@ const securityPlugins = searchMarketplace("security");
 ```
 
 **Parameters:**
+
 - `query` (string) — case-insensitive search string
 
 **Returns:** `MarketplaceEntry[]` — matches where `name`, `description`, or any `tag` contains the query
@@ -103,6 +105,7 @@ if (entry) {
 ```
 
 **Parameters:**
+
 - `name` (string) — exact plugin name
 
 **Returns:** `MarketplaceEntry | undefined`
@@ -129,37 +132,37 @@ if (isMarketplaceAvailable()) {
 
 ```ts
 interface MarketplaceEntry {
-  name: string;           // e.g. "request-logger"
-  version: string;        // e.g. "1.0.0"
-  description: string;    // human-readable summary
-  author: string;         // e.g. "omniroute", "your-name"
-  license: string;        // SPDX license ID, e.g. "MIT"
-  downloadUrl: string;    // URL to download the package
-  repository?: string;    // optional source repo URL
-  tags: string[];         // search tags
-  downloads: number;      // total install count
-  rating: number;         // 0-5 star average
-  verified: boolean;      // official verification flag
-  lastUpdated: string;    // ISO date of last release
+  name: string; // e.g. "request-logger"
+  version: string; // e.g. "1.0.0"
+  description: string; // human-readable summary
+  author: string; // e.g. "omniroute", "your-name"
+  license: string; // SPDX license ID, e.g. "MIT"
+  downloadUrl: string; // URL to download the package
+  repository?: string; // optional source repo URL
+  tags: string[]; // search tags
+  downloads: number; // total install count
+  rating: number; // 0-5 star average
+  verified: boolean; // official verification flag
+  lastUpdated: string; // ISO date of last release
 }
 ```
 
 ### Field Semantics
 
-| Field | Required | Notes |
-|-------|----------|-------|
-| `name` | ✅ yes | Must be unique, kebab-case, match the plugin's `plugin.json` |
-| `version` | ✅ yes | SemVer string |
-| `description` | ✅ yes | One-line summary shown in lists |
-| `author` | ✅ yes | Display name or org |
-| `license` | ✅ yes | SPDX identifier (MIT, Apache-2.0, GPL-3.0, etc.) |
-| `downloadUrl` | ✅ yes | URL to the package tarball/zip |
-| `repository` | ❌ no | Source code URL (recommended) |
-| `tags` | ✅ yes | At least 1 tag for search |
-| `downloads` | ✅ yes | Cumulative install count |
-| `rating` | ✅ yes | 0.0 to 5.0, one decimal place |
-| `verified` | ✅ yes | True if published by OmniRoute team or signed by trusted author |
-| `lastUpdated` | ✅ yes | ISO 8601 date string |
+| Field         | Required | Notes                                                           |
+| ------------- | -------- | --------------------------------------------------------------- |
+| `name`        | ✅ yes   | Must be unique, kebab-case, match the plugin's `plugin.json`    |
+| `version`     | ✅ yes   | SemVer string                                                   |
+| `description` | ✅ yes   | One-line summary shown in lists                                 |
+| `author`      | ✅ yes   | Display name or org                                             |
+| `license`     | ✅ yes   | SPDX identifier (MIT, Apache-2.0, GPL-3.0, etc.)                |
+| `downloadUrl` | ✅ yes   | URL to the package tarball/zip                                  |
+| `repository`  | ❌ no    | Source code URL (recommended)                                   |
+| `tags`        | ✅ yes   | At least 1 tag for search                                       |
+| `downloads`   | ✅ yes   | Cumulative install count                                        |
+| `rating`      | ✅ yes   | 0.0 to 5.0, one decimal place                                   |
+| `verified`    | ✅ yes   | True if published by OmniRoute team or signed by trusted author |
+| `lastUpdated` | ✅ yes   | ISO 8601 date string                                            |
 
 ---
 
@@ -188,6 +191,7 @@ console.log(tracker); // [cost-tracker]
 ### Note: CLI Plugin System is Separate
 
 The CLI command `omniroute plugin search` searches npm for **CLI plugins** (packages named `omniroute-cmd-*`), not the SDK marketplace. These are two separate plugin systems:
+
 - **SDK plugins** (this doc): Hook-based request/response interception. Managed via the marketplace API.
 - **CLI plugins** (separate system): Command-line extensions. Searched and installed via npm.
 
@@ -199,18 +203,18 @@ The CLI command `omniroute plugin search` searches npm for **CLI plugins** (pack
 
 Common tags used in the registry:
 
-| Tag | What it covers |
-|-----|----------------|
-| `logging` | Request/response logging, audit trails |
-| `debugging` | Inspection, tracing, dev tools |
-| `rate-limit` | Throttling, quota enforcement |
-| `security` | Auth, IP filtering, PII masking |
-| `analytics` | Usage tracking, cost monitoring |
-| `cost` | Token pricing, budget guards |
-| `transform` | Request/response rewriting |
-| `cache` | Response caching, memoization |
-| `provider` | Custom provider integrations |
-| `combo` | Combo routing customizations |
+| Tag          | What it covers                         |
+| ------------ | -------------------------------------- |
+| `logging`    | Request/response logging, audit trails |
+| `debugging`  | Inspection, tracing, dev tools         |
+| `rate-limit` | Throttling, quota enforcement          |
+| `security`   | Auth, IP filtering, PII masking        |
+| `analytics`  | Usage tracking, cost monitoring        |
+| `cost`       | Token pricing, budget guards           |
+| `transform`  | Request/response rewriting             |
+| `cache`      | Response caching, memoization          |
+| `provider`   | Custom provider integrations           |
+| `combo`      | Combo routing customizations           |
 
 ### Search Tips
 
@@ -239,27 +243,24 @@ See [Plugin Signing & Verification](./PLUGIN_DEVELOPMENT.md#plugin-signing--veri
 
 ### 3. Submit to the Registry
 
-```bash
-# Once the remote registry is live
-omniroute plugin publish \
-  --tarball ./my-plugin-1.0.0.tar.gz \
-  --signature ./my-plugin-1.0.0.sig \
-  --public-key ./author-pubkey.der
-```
+> **⚠️ `omniroute plugin publish` does not exist.** `bin/cli/commands/plugin.mjs` exports the subcommands `list`, `install`, `remove` (alias `uninstall`), `info`, `search`, `update`, and `scaffold` — there is no `publish` command (`grep -n "publish" bin/cli/commands/plugin.mjs` returns nothing). The marketplace registry seeds are bundled with OmniRoute and have empty `downloadUrl`; a remote publishing flow is planned but not yet implemented. Plugin authors should distribute plugins through npm (the `omniroute plugin search` CLI queries the npm registry for `omniroute-cmd-*` packages) or via direct `git+https` URLs.
 
-The registry will:
-1. Verify the signature against your public key
-2. Run automated security scans (sandbox, no `eval`, no shell exec without permission)
-3. Validate the manifest against the schema
-4. Publish the entry with `verified: false` initially
-5. Grant `verified: true` after a manual review window (typically 3-5 days)
+The current submission path is therefore:
+
+```bash
+# 1. Distribute as an npm package (the only registry wired into the CLI)
+npm publish
+
+# 2. Or, distribute via a git URL and install it locally:
+omniroute plugin install git+https://github.com/<you>/<your-plugin>.git
+```
 
 ### 4. Versioning and Updates
 
 - Bump the version in `plugin.json` and `package.json`
 - Update `CHANGELOG.md`
-- Re-submit with the new tarball
-- Users will be notified of available updates
+- Re-publish to npm (or push a new git tag)
+- Users will pick up updates via `omniroute plugin update [name]`
 
 ### 5. Ratings and Trust
 
@@ -271,13 +272,14 @@ Users can rate installed plugins 1-5 stars. The aggregate rating is shown in the
 
 The `verified: true` flag means the plugin is published by the **OmniRoute team** or by an author whose public key has been added to the trusted set.
 
-| Plugin | Author | Verified | License | Description |
-|--------|--------|----------|---------|-------------|
-| `request-logger` | omniroute | ✅ | MIT | Logs all requests and responses with timing |
-| `rate-limiter` | omniroute | ✅ | MIT | Per-model rate limiting with sliding window |
-| `cost-tracker` | omniroute | ✅ | MIT | Track token costs per request and per model |
+| Plugin           | Author    | Verified | License | Description                                 |
+| ---------------- | --------- | -------- | ------- | ------------------------------------------- |
+| `request-logger` | omniroute | ✅       | MIT     | Logs all requests and responses with timing |
+| `rate-limiter`   | omniroute | ✅       | MIT     | Per-model rate limiting with sliding window |
+| `cost-tracker`   | omniroute | ✅       | MIT     | Track token costs per request and per model |
 
 When the remote registry launches, third-party authors can apply for verification by:
+
 1. Maintaining a public source repository
 2. Signing all releases
 3. Demonstrating active maintenance
@@ -305,6 +307,7 @@ When the remote registry launches, third-party authors can apply for verificatio
 ### Quality Signals
 
 The marketplace UI will surface:
+
 - Star rating with count
 - Download count
 - Last update date
@@ -318,13 +321,13 @@ The marketplace UI will surface:
 
 The current `MarketplaceEntry` shape is designed to be forward-compatible:
 
-| Field | Phase 1 (now) | Phase 2 (future) |
-|-------|---------------|------------------|
-| `downloadUrl` | Empty string for seed entries | Real tarball URLs |
-| `downloads` | 0 for seed entries | Cumulative real count |
-| `rating` | 5.0 for seed entries | Aggregated user ratings |
-| `verified` | Always `true` for seed | Computed from signature + author |
-| `lastUpdated` | Release date | Auto-updated on new version |
+| Field         | Phase 1 (now)                 | Phase 2 (future)                 |
+| ------------- | ----------------------------- | -------------------------------- |
+| `downloadUrl` | Empty string for seed entries | Real tarball URLs                |
+| `downloads`   | 0 for seed entries            | Cumulative real count            |
+| `rating`      | 5.0 for seed entries          | Aggregated user ratings          |
+| `verified`    | Always `true` for seed        | Computed from signature + author |
+| `lastUpdated` | Release date                  | Auto-updated on new version      |
 
 **No breaking changes** are planned for the public API. New fields may be added.
 
@@ -332,13 +335,13 @@ The current `MarketplaceEntry` shape is designed to be forward-compatible:
 
 ## Source Code Reference
 
-| File | Lines | Purpose |
-|------|-------|---------|
-| `src/lib/plugins/marketplace.ts` | 107 | Marketplace data + API |
-| `src/lib/plugins/manager.ts` | 410+ | Install/activate/deactivate lifecycle |
-| `src/lib/plugins/loader.ts` | 280+ | Plugin loading and validation |
-| `src/lib/plugins/manifest.ts` | 200+ | Manifest schema validation |
-| `src/lib/plugins/signing.ts` | 34 | SHA-256 + Ed25519 verification |
+| File                             | Lines | Purpose                               |
+| -------------------------------- | ----- | ------------------------------------- |
+| `src/lib/plugins/marketplace.ts` | 107   | Marketplace data + API                |
+| `src/lib/plugins/manager.ts`     | 410+  | Install/activate/deactivate lifecycle |
+| `src/lib/plugins/loader.ts`      | 280+  | Plugin loading and validation         |
+| `src/lib/plugins/manifest.ts`    | 200+  | Manifest schema validation            |
+| `src/lib/plugins/signing.ts`     | 34    | SHA-256 + Ed25519 verification        |
 
 ---
 
