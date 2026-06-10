@@ -33,6 +33,23 @@ function getRequestPath(input: RequestInfo | URL) {
 
 const cleanupCallbacks: Array<() => void> = [];
 
+function installLocalStorageStub() {
+  const store = new Map<string, string>();
+
+  vi.stubGlobal("localStorage", {
+    getItem: vi.fn((key: string) => store.get(key) ?? null),
+    setItem: vi.fn((key: string, value: string) => {
+      store.set(key, value);
+    }),
+    removeItem: vi.fn((key: string) => {
+      store.delete(key);
+    }),
+    clear: vi.fn(() => {
+      store.clear();
+    }),
+  });
+}
+
 async function waitForText(text: string) {
   const startedAt = Date.now();
   while (!document.body.textContent?.includes(text)) {
@@ -118,6 +135,19 @@ vi.mock("next-intl", () => ({
       "endpoint.categoryCore": "Core APIs",
       "endpoint.categoryMedia": "Media APIs",
       "endpoint.categoryUtility": "Utility APIs",
+      "endpoint.vscodeAliasTitle": "VS Code Token Alias",
+      "endpoint.vscodeAliasDescriptionReady":
+        "Ready-to-paste compatibility URLs using the /api/v1/vscode/{token}/... endpoint.",
+      "endpoint.vscodeAliasDescriptionError":
+        "Showing placeholder URLs because CLI keys could not be loaded in this session.",
+      "endpoint.vscodeAliasDescriptionLoading":
+        "Loading CLI keys. Placeholder URLs are shown until a key is available.",
+      "endpoint.vscodeAliasDescriptionPlaceholder":
+        "Showing placeholder URLs. Create or activate an API key in CLI Tools to replace {token}.",
+      "endpoint.vscodeAliasManage": "CLI Tools",
+      "endpoint.vscodeAliasBaseLabel": "VS Code base",
+      "endpoint.vscodeAliasModelsLabel": "VS Code models",
+      "endpoint.vscodeAliasChatLabel": "VS Code chat",
       "endpoint.machineId": "Machine {id}",
       "endpoint.usingLocalServer": "Using local server",
       "common.copy": "Copy",
@@ -148,6 +178,7 @@ describe("EndpointPageClient", () => {
       globalThis as typeof globalThis & { IS_REACT_ACT_ENVIRONMENT?: boolean }
     ).IS_REACT_ACT_ENVIRONMENT = true;
     vi.stubGlobal("fetch", fetchMock);
+    installLocalStorageStub();
   });
 
   afterEach(() => {
@@ -187,6 +218,30 @@ describe("EndpointPageClient", () => {
       if (path === "/api/search/providers") {
         return Promise.resolve(jsonResponse({ providers: [] }));
       }
+      if (path === "/api/cli-tools/keys") {
+        return Promise.resolve(
+          jsonResponse({
+            keys: [
+              {
+                id: "key-1",
+                key: "sk-test-1234",
+                rawKey: "sk-test-1234",
+                isActive: true,
+              },
+            ],
+          })
+        );
+      }
+      if (path === "/api/settings/compression") {
+        return Promise.resolve(
+          jsonResponse({
+            enabled: true,
+            cavemanConfig: { enabled: true, intensity: "full" },
+            cavemanOutputMode: { enabled: false, intensity: "full" },
+            rtkConfig: { enabled: true, intensity: "standard" },
+          })
+        );
+      }
       throw new Error(`Unexpected request: ${path}`);
     });
 
@@ -217,7 +272,10 @@ describe("EndpointPageClient", () => {
       })
     );
 
-    await waitForText("2 models across 4 endpoints");
+    await waitForText("2 models across");
+    await waitForText("/api/v1/vscode/sk-test-1234/models");
+    expect(document.body.textContent).toContain("VS Code Token Alias");
+    expect(document.body.textContent).toContain("/api/v1/vscode/sk-test-1234/models");
   });
 
   it("does not start background endpoint requests after unmounting during settings load", async () => {
@@ -249,5 +307,48 @@ describe("EndpointPageClient", () => {
     const requestPaths = fetchMock.mock.calls.map(([input]) => getRequestPath(input));
     expect(requestPaths.length).toBeGreaterThan(0);
     expect(requestPaths.every((path) => path === "/api/settings")).toBe(true);
+  });
+
+  it("hides the Token Saver card when endpoint visibility is disabled", async () => {
+    fetchMock.mockImplementation((input: RequestInfo | URL) => {
+      const path = getRequestPath(input);
+      if (path === "/api/settings") {
+        return Promise.resolve(
+          jsonResponse({
+            cloudEnabled: false,
+            cloudConfigured: false,
+            hideEndpointCloudflaredTunnel: true,
+            hideEndpointTailscaleFunnel: true,
+            hideEndpointNgrokTunnel: true,
+            showTokenSaverOnEndpoint: false,
+          })
+        );
+      }
+      if (path === "/v1/models") {
+        return Promise.resolve(jsonResponse({ data: [] }));
+      }
+      if (path === "/api/mcp/status") {
+        return Promise.resolve(jsonResponse({ online: false }));
+      }
+      if (path === "/api/a2a/status") {
+        return Promise.resolve(jsonResponse({ status: "ok", tasks: { activeStreams: 0 } }));
+      }
+      if (path === "/api/search/providers") {
+        return Promise.resolve(jsonResponse({ providers: [] }));
+      }
+      if (path === "/api/cli-tools/keys") {
+        return Promise.resolve(jsonResponse({ keys: [] }));
+      }
+      throw new Error(`Unexpected request: ${path}`);
+    });
+
+    renderEndpointPage();
+
+    await waitForText("Endpoint");
+    await waitForText("0 models across");
+
+    const requestPaths = fetchMock.mock.calls.map(([input]) => getRequestPath(input));
+    expect(document.body.textContent).not.toContain("Token Saver");
+    expect(requestPaths).not.toContain("/api/settings/compression");
   });
 });

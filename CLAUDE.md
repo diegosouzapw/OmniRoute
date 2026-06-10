@@ -11,7 +11,7 @@ npm run build                  # Production build (Next.js 16 standalone)
 npm run lint                   # ESLint (0 errors expected; warnings are pre-existing)
 npm run typecheck:core         # TypeScript check (should be clean)
 npm run typecheck:noimplicit:core  # Strict check (no implicit any)
-npm run test:coverage          # Unit tests + coverage gate (40/40/40/40 — statements/lines/functions/branches)
+npm run test:coverage          # Unit tests + coverage gate (60/60/60/60 — statements/lines/functions/branches)
 npm run check                  # lint + test combined
 npm run check:cycles           # Detect circular dependencies
 ```
@@ -366,7 +366,7 @@ For any non-trivial change, read the matching deep-dive first:
 | E2E (Playwright)        | `npm run test:e2e`                                                          |
 | Protocol E2E (MCP+A2A)  | `npm run test:protocols:e2e`                                                |
 | Ecosystem               | `npm run test:ecosystem`                                                    |
-| Coverage gate           | `npm run test:coverage` (40/40/40/40 — statements/lines/functions/branches) |
+| Coverage gate           | `npm run test:coverage` (60/60/60/60 — statements/lines/functions/branches) |
 | Coverage report         | `npm run coverage:report`                                                   |
 
 **PR rule**: If you change production code in `src/`, `open-sse/`, `electron/`, or `bin/`, you must include or update tests in the same PR.
@@ -382,7 +382,7 @@ For any non-trivial change, read the matching deep-dive first:
 
 Why this matters: fixing bug A while opening bug B is worse than not fixing at all. The TDD/VPS gate enforces surgical scope — you touch only what the failing test proves is broken. Examples where this paid off: #3090 (claude-web 403), #3113 (WS HTTP fallback), #3052 (heap-guard auto-calibration).
 
-**Copilot coverage policy**: When a PR changes production code and coverage is below 40% (statements/lines/functions/branches), do not just report — add or update tests, rerun the coverage gate, then ask for confirmation. Include commands run, changed test files, and final coverage result in the PR report.
+**Copilot coverage policy**: When a PR changes production code and coverage is below 60% (statements/lines/functions/branches), do not just report — add or update tests, rerun the coverage gate, then ask for confirmation. Include commands run, changed test files, and final coverage result in the PR report.
 
 ---
 
@@ -428,7 +428,7 @@ git push -u origin feat/your-feature
 6. Never silently swallow errors in SSE streams
 7. Always validate inputs with Zod schemas
 8. Always include tests when changing production code
-9. Coverage must stay ≥40% (statements, lines, functions, branches).
+9. Coverage must stay ≥60% (statements, lines, functions, branches).
 10. Never bypass Husky hooks (`--no-verify`, `--no-gpg-sign`) without explicit operator approval.
 11. Never embed public upstream OAuth client_id/secret or Firebase Web keys as string literals — always go through `resolvePublicCred()` (`open-sse/utils/publicCreds.ts`). See `docs/security/PUBLIC_CREDS.md`.
 12. Never return raw `err.stack` / `err.message` in HTTP / SSE / executor responses — always route through `buildErrorBody()` or `sanitizeErrorMessage()` (`open-sse/utils/error.ts`). See `docs/security/ERROR_SANITIZATION.md`.

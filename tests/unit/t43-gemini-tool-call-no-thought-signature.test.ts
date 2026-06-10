@@ -18,9 +18,8 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 
-const { openaiToGeminiRequest } = await import(
-  "../../open-sse/translator/request/openai-to-gemini.ts"
-);
+const { openaiToGeminiRequest } =
+  await import("../../open-sse/translator/request/openai-to-gemini.ts");
 
 function translateToGemini(messages, tools) {
   return openaiToGeminiRequest(
@@ -90,7 +89,7 @@ test("T43: functionCall parts do NOT get a fake thoughtSignature injected", () =
   assert.equal(
     functionCallParts[0].thoughtSignature,
     undefined,
-    "functionCall parts must NOT have a fake thoughtSignature injected"
+    "functionCall parts must NOT have a fake thoughtSignature injected (standard Gemini)"
   );
 });
 
@@ -135,7 +134,7 @@ test("T43: client-provided thoughtSignature is ignored in default enabled cache 
   assert.equal(
     functionCallParts[0].thoughtSignature,
     undefined,
-    "Client-provided thoughtSignature should be ignored in enabled cache mode"
+    "Client-provided thoughtSignature should be ignored in enabled cache mode (standard Gemini)"
   );
 });
 

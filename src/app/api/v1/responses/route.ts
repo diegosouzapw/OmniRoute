@@ -2,6 +2,8 @@ import { handleChat } from "@/sse/handlers/chat";
 import { withEarlyStreamKeepalive } from "@omniroute/open-sse/utils/earlyStreamKeepalive";
 import { resolveResponsesApiModel } from "@/app/api/internal/codex-responses-ws/modelResolution";
 import { getModelInfo } from "@/sse/services/model";
+import { getComboByName } from "@/lib/db/combos";
+import { resolveKeepaliveThreshold } from "@omniroute/open-sse/utils/keepaliveThreshold";
 
 // NOTE: We do NOT call initTranslators() here — the translator registry is
 // bootstrapped at module level inside open-sse/translator/index.ts when it
@@ -30,14 +32,18 @@ export async function OPTIONS() {
  * Safe: only rewrites when codex/model is genuinely registered; all other models
  * pass through unchanged. Errors are caught and the original request is returned.
  */
-async function withCodexPreferredModel(request: Request): Promise<Request> {
+export async function withCodexPreferredModel(request: Request): Promise<Request> {
   try {
     const clone = request.clone();
     const body = await clone.json().catch(() => null);
     if (!body || typeof body !== "object" || typeof body.model !== "string") {
       return request;
     }
-    const { model, changed } = await resolveResponsesApiModel(body.model, getModelInfo);
+    const { model, changed } = await resolveResponsesApiModel(
+      body.model,
+      getModelInfo,
+      async (name) => !!(await getComboByName(name))
+    );
     if (!changed) return request;
 
     return new Request(request.url, {
@@ -63,7 +69,19 @@ export async function POST(request) {
   const resolved = await withCodexPreferredModel(request);
   const accept = String(request.headers?.get?.("accept") || "").toLowerCase();
   if (accept.includes("text/event-stream")) {
-    return await withEarlyStreamKeepalive(handleChat(resolved), { signal: request.signal });
+    // Adaptive threshold: web-session and anonymous-fallback providers are slower
+    // to produce the first byte, so use a longer keepalive threshold (15s vs 2s).
+    let model;
+    try {
+      const body = await resolved.clone().json().catch(() => null);
+      model = body?.model;
+    } catch {
+    }
+    const thresholdMs = resolveKeepaliveThreshold(model);
+    return await withEarlyStreamKeepalive(handleChat(resolved), {
+      signal: request.signal,
+      thresholdMs,
+    });
   }
   return await handleChat(resolved);
 }

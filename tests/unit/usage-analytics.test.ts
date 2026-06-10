@@ -469,7 +469,8 @@ test("pending request metadata stores sanitized payload previews and clears afte
   });
 
   const pending = usageHistory.getPendingRequests();
-  const detail = pending.details["conn-preview"]["gpt-test (openai)"];
+  const detailArr = pending.details["conn-preview"]["gpt-test (openai)"];
+  const detail = detailArr[0];
   const clientRequestPreview = detail.clientRequest as Record<string, unknown>;
   const providerRequestPreview = detail.providerRequest as Record<string, unknown>;
 

@@ -18,7 +18,7 @@ export default function DashboardLayout({ children }) {
   const [commandPaletteOpen, setCommandPaletteOpen] = useState(false);
   const isElectron = useIsElectron();
   const [collapsed, setCollapsed] = useState(() => {
-    if (typeof window === "undefined") return false;
+    if (typeof globalThis.window === "undefined") return false;
     try {
       return localStorage.getItem(SIDEBAR_COLLAPSED_KEY) === "true";
     } catch {
@@ -27,7 +27,9 @@ export default function DashboardLayout({ children }) {
   });
 
   const isMacElectron =
-    isElectron && typeof window !== "undefined" && window.electronAPI?.platform === "darwin";
+    isElectron &&
+    typeof globalThis.window !== "undefined" &&
+    globalThis.electronAPI?.platform === "darwin";
 
   useEffect(() => {
     if (typeof document === "undefined") return;
@@ -57,7 +59,7 @@ export default function DashboardLayout({ children }) {
   };
 
   return (
-    <div className="dashboard-shell flex h-dvh min-h-0 w-full overflow-hidden bg-bg">
+    <div className="flex h-dvh min-h-0 w-full overflow-hidden bg-bg">
       <Suspense fallback={null}>
         <NavigationProgress />
       </Suspense>
@@ -90,17 +92,19 @@ export default function DashboardLayout({ children }) {
       {/* Main content */}
       <main
         id="main-content"
-        className="dashboard-main relative flex min-h-0 flex-1 min-w-0 flex-col transition-colors duration-300"
+        className="relative flex min-h-0 flex-1 min-w-0 flex-col transition-colors duration-300"
       >
         <Header
           onMenuClick={() => setSidebarOpen(true)}
           onOpenCommandPalette={() => setCommandPaletteOpen(true)}
         />
         {!isE2EMode && <MaintenanceBanner />}
-        <div className="dashboard-content flex-1 min-h-0 overflow-y-auto overflow-x-hidden custom-scrollbar p-4 sm:p-6 lg:p-10">
-          <div className="dashboard-content-inner max-w-7xl mx-auto w-full">
+        <div className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden custom-scrollbar p-4 sm:p-6 lg:p-10">
+          <div className="max-w-7xl mx-auto w-full h-full min-h-0 flex flex-col">
             <Breadcrumbs />
-            {children}
+            <div className="flex-1 min-h-0">
+              {children}
+            </div>
           </div>
         </div>
       </main>

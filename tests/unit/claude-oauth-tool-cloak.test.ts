@@ -18,6 +18,7 @@ import {
   sanitizeClaudeToolSchema,
   sanitizeClaudeToolSchemas,
 } from "../../open-sse/translator/helpers/schemaCoercion.ts";
+import { stripVersionedToolModelPrefix } from "../../open-sse/executors/base.ts";
 
 type AnyRecord = Record<string, unknown>;
 const schemaOf = (tools: unknown, i = 0): AnyRecord =>
@@ -268,5 +269,52 @@ describe("review fixes — established aliases + kill-switch", () => {
       if (prev === undefined) delete process.env.CLAUDE_DISABLE_TOOL_NAME_CLOAK;
       else process.env.CLAUDE_DISABLE_TOOL_NAME_CLOAK = prev;
     }
+  });
+});
+
+describe("native claude OAuth path — versioned built-in tool model prefix stripping", () => {
+  // Exercises the REAL production helper from base.ts (not a re-implementation),
+  // so reverting the fix in base.ts breaks these assertions.
+  it("strips cc/ prefix from advisor_20260301 model field", () => {
+    const tools: AnyRecord[] = [
+      { type: "advisor_20260301", name: "advisor", model: "cc/claude-opus-4-8" },
+      { type: "bash_20250124", name: "Bash", model: "kiro/claude-opus-4.8" },
+      { name: "Read", input_schema: { type: "object", properties: {} } },
+    ];
+    stripVersionedToolModelPrefix(tools);
+    assert.equal(tools[0].model, "claude-opus-4-8", "cc/ prefix stripped from advisor model");
+    assert.equal(tools[1].model, "claude-opus-4.8", "kiro/ prefix stripped from bash model");
+    assert.equal("model" in tools[2], false, "regular tool untouched");
+  });
+
+  it("strips multi-segment prefix (claude/claude-sonnet-4-6) from versioned tool model", () => {
+    const tools: AnyRecord[] = [
+      { type: "bash_20250124", name: "Bash", model: "claude/claude-sonnet-4-6" },
+    ];
+    stripVersionedToolModelPrefix(tools);
+    assert.equal(tools[0].model, "claude-sonnet-4-6");
+  });
+
+  it("leaves bare model on versioned tool unchanged", () => {
+    const tools: AnyRecord[] = [
+      { type: "advisor_20260301", name: "advisor", model: "claude-opus-4-8" },
+    ];
+    stripVersionedToolModelPrefix(tools);
+    assert.equal(tools[0].model, "claude-opus-4-8");
+  });
+
+  it("leaves non-versioned tool types untouched even with a prefixed model", () => {
+    const tools: AnyRecord[] = [
+      { type: "custom", name: "x", model: "cc/claude-opus-4-8" },
+      { type: "advisor_2026", name: "y", model: "cc/claude-opus-4-8" }, // not 8 digits
+    ];
+    stripVersionedToolModelPrefix(tools);
+    assert.equal(tools[0].model, "cc/claude-opus-4-8", "non-versioned type untouched");
+    assert.equal(tools[1].model, "cc/claude-opus-4-8", "short date suffix untouched");
+  });
+
+  it("is a no-op for non-array input", () => {
+    assert.doesNotThrow(() => stripVersionedToolModelPrefix(undefined));
+    assert.doesNotThrow(() => stripVersionedToolModelPrefix({ tools: [] }));
   });
 });

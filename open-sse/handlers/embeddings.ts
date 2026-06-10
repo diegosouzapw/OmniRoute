@@ -24,6 +24,7 @@ import { isDetailedLoggingEnabled } from "@/lib/db/detailedLogs";
 import { getCallLogPipelineCaptureStreamChunks } from "@/lib/logEnv";
 import { toJsonErrorPayload } from "@/shared/utils/upstreamError";
 import { stripStaleEncodingHeaders } from "../utils/upstreamResponseHeaders.ts";
+import { sanitizeErrorMessage } from "../utils/error.ts";
 
 interface ClientRawRequest {
   endpoint: string;
@@ -78,7 +79,7 @@ export async function handleEmbedding({
 
   // Set up request logger for pipeline artifact capture
   const detailedLoggingEnabled = await isDetailedLoggingEnabled();
-  const captureStreamChunks = await getCallLogPipelineCaptureStreamChunks();
+  const captureStreamChunks = getCallLogPipelineCaptureStreamChunks();
   const reqLogger = await createRequestLogger(
     provider || "openai",
     "openai",
@@ -86,6 +87,9 @@ export async function handleEmbedding({
     {
       enabled: detailedLoggingEnabled,
       captureStreamChunks,
+      connectionId: connectionId || undefined,
+      model: model || body.model as string,
+      provider: provider || undefined,
     }
   );
 
@@ -169,6 +173,27 @@ export async function handleEmbedding({
   }
 
   try {
+    // Quota share enforcement (fail-open: errors allow the request through)
+    if (apiKeyId && connectionId && provider) {
+      try {
+        const { enforceQuotaShare } = await import("@/lib/quota/enforce");
+        const quotaDecision = await enforceQuotaShare({
+          apiKeyId,
+          connectionId,
+          provider,
+        });
+        if (quotaDecision.kind === "block") {
+          return {
+            success: false,
+            status: quotaDecision.httpStatus ?? 429,
+            error: quotaDecision.reason || "Quota share limit reached",
+          };
+        }
+      } catch {
+        // fail-open per B16
+      }
+    }
+
     // Log provider request
     reqLogger.logTargetRequest(providerConfig.baseUrl, headers, upstreamBody);
 
@@ -263,7 +288,24 @@ export async function handleEmbedding({
       connectionId,
     }).catch(() => {});
 
-    // Normalize response to OpenAI format
+    // Record quota consumption (fire-and-forget, never blocks)
+    if (apiKeyId && connectionId && provider) {
+      try {
+        const { scheduleRecordConsumption } = await import("@/lib/quota/spendRecorder");
+        scheduleRecordConsumption({
+          apiKeyId,
+          connectionId,
+          provider,
+          cost: {
+            tokens: data.usage?.prompt_tokens || data.usage?.total_tokens || 0,
+            requests: 1,
+          },
+        });
+      } catch {
+        // fail-open per B29
+      }
+    }
+
     return {
       success: true,
       data: normalizedResponse,
@@ -298,7 +340,7 @@ export async function handleEmbedding({
     return {
       success: false,
       status: 502,
-      error: `Embedding provider error: ${err.message}`,
+      error: `Embedding provider error: ${sanitizeErrorMessage(err.message)}`,
     };
   }
 }

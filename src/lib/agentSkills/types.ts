@@ -1,4 +1,4 @@
-export type SkillCategory = "api" | "cli";
+export type SkillCategory = "api" | "cli" | "config";
 
 export type SkillArea =
   // API areas (22)
@@ -24,6 +24,8 @@ export type SkillArea =
   | "agents-a2a"
   | "version-manager"
   | "inference"
+  // Config skills
+  | "config-codex-cli"
   // CLI families (20)
   | "cli-serve"
   | "cli-health"
@@ -64,6 +66,7 @@ export interface AgentSkill {
 export interface SkillCoverage {
   api: { have: number; total: 22 };
   cli: { have: number; total: 20 };
+  config: { have: number; total: number };
   totalSkills: number; // sum
   generatedAt: string; // ISO datetime
 }

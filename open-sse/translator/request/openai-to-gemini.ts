@@ -1,6 +1,5 @@
 import { register } from "../registry.ts";
 import { FORMATS } from "../formats.ts";
-import { DEFAULT_THINKING_GEMINI_SIGNATURE } from "../../config/defaultThinkingSignature.ts";
 import { ANTIGRAVITY_DEFAULT_SYSTEM } from "../../config/constants.ts";
 import {
   buildGeminiThoughtSignatureKey,
@@ -17,7 +16,7 @@ import {
   getDefaultThinkingBudget,
 } from "../../../src/lib/modelCapabilities.ts";
 
-import * as crypto from "crypto";
+import * as crypto from "node:crypto";
 
 function generateUUID() {
   return crypto.randomUUID();
@@ -28,7 +27,6 @@ import {
   convertOpenAIContentToParts,
   extractTextContent,
   tryParseJSON,
-  generateSessionId,
   cleanJSONSchemaForAntigravity,
 } from "../helpers/geminiHelper.ts";
 import { buildGeminiTools, sanitizeGeminiToolName } from "../helpers/geminiToolsSanitizer.ts";
@@ -109,7 +107,20 @@ type GeminiToolNameOptions = {
   functionResponseShape?: "result" | "output";
   signatureNamespace?: string | null;
   signaturelessToolCallMode?: "native" | "text" | "context";
+  // Vertex AI's FunctionCall/FunctionResponse protos have no `id` field; emitting it
+  // makes Vertex reject the request with 400 "Unknown name id" (#3440). The public
+  // Gemini API DOES use `id` for Gemini 3+ signature matching, so this is scoped to
+  // the vertex provider only.
+  stripFunctionCallId?: boolean;
+  /** Only Antigravity/Gemini CLI support the thoughtSignature field. Standard Gemini rejects it with 400. */
+  supportsSignatureBypass?: boolean;
 };
+
+// Vertex AI (and Vertex Partner models) reject the OpenAI-style `id` field inside
+// function_call / function_response parts. Detect these by the routed provider id.
+function isVertexGeminiProvider(provider: unknown): boolean {
+  return provider === "vertex" || provider === "vertex-partner";
+}
 
 type OpenAIToolCallLike = {
   thoughtSignature?: unknown;
@@ -167,7 +178,7 @@ function applyAntigravityGenerationDefaults(generationConfig: GeminiGenerationCo
     config.topK = 40;
   }
   if (config.topP === undefined) {
-    config.topP = 1.0;
+    config.topP = 1;
   }
 
   const thinkingBudget = Number(config.thinkingConfig?.thinkingBudget);
@@ -194,19 +205,11 @@ function stringifyHistoricalToolArguments(value: unknown): string {
 
 function buildInertHistoricalToolCallText(name: string | undefined, args: unknown): string {
   const toolName = name || "unknown";
-  return [
-    "Historical tool-call record only. Do not execute, imitate, or continue this as a tool call.",
-    `Tool name: ${toolName}`,
-    `Tool arguments JSON: ${stringifyHistoricalToolArguments(args || "{}")}`,
-  ].join("\n");
+  return `[tool_history_call: ${toolName}] ${stringifyHistoricalToolArguments(args || "{}")}`;
 }
 
 function buildInertHistoricalToolResponseText(name: string, response: unknown): string {
-  return [
-    "Historical tool-response record only. Do not execute, imitate, or continue this as a tool response.",
-    `Tool name: ${name || "unknown"}`,
-    `Tool result: ${typeof response === "string" ? response : stringifyHistoricalToolArguments(response)}`,
-  ].join("\n");
+  return `[tool_history_result: ${name || "unknown"}] ${typeof response === "string" ? response : stringifyHistoricalToolArguments(response)}`;
 }
 
 function escapeHistoricalContextAttribute(value: string): string {
@@ -223,7 +226,8 @@ function escapeHistoricalContextContent(value: string): string {
 
 function buildHistoricalToolResultContext(name: string, response: unknown): string {
   const source = escapeHistoricalContextAttribute(name || "unknown");
-  const rawResult = typeof response === "string" ? response : stringifyHistoricalToolArguments(response);
+  const rawResult =
+    typeof response === "string" ? response : stringifyHistoricalToolArguments(response);
   const result = escapeHistoricalContextContent(rawResult);
   return [
     `<previous_tool_result_context source="${source}">`,
@@ -332,8 +336,7 @@ function openaiToGeminiBase(
 
   // Convert messages
   if (messages && Array.isArray(messages)) {
-    for (let i = 0; i < messages.length; i++) {
-      const msg = messages[i];
+    for (const msg of messages) {
       const role = msg.role;
       const content = msg.content;
 
@@ -361,7 +364,7 @@ function openaiToGeminiBase(
         if (msg.reasoning_content) {
           parts.push({
             thought: true,
-            text: msg.reasoning_content as string,
+            text: msg.reasoning_content,
           });
         }
 
@@ -403,18 +406,26 @@ function openaiToGeminiBase(
             if (!fn) continue;
 
             const signatureForToolCall = resolvedSignatures.get(id);
-            if (!signatureForToolCall && contextualizeSignaturelessToolResponses) {
-              if (!toolCallIds.includes(id)) toolCallIds.push(id);
-            }
-            if (!signatureForToolCall && stringifySignaturelessToolCalls) {
-              const args = fn.arguments || "{}";
-              parts.push({
-                text: buildInertHistoricalToolCallText(fn.name, args),
-              });
-              continue;
-            }
-            if (!signatureForToolCall && signaturelessToolCallMode === "context") {
-              continue;
+
+            // Non-bypass paths (standard Gemini direct, mode "text"/"context")
+            // cannot send a thoughtSignature and reject signature-less native tool
+            // parts, so historical signature-less tool calls are represented as
+            // inert text/context (#3358). The Antigravity/CLI bypass path
+            // (supportsSignatureBypass) instead emits native parts carrying the
+            // skip_thought_signature_validator sentinel below.
+            if (!toolNameOptions.supportsSignatureBypass) {
+              if (!signatureForToolCall && contextualizeSignaturelessToolResponses) {
+                if (!toolCallIds.includes(id)) toolCallIds.push(id);
+              }
+              if (!signatureForToolCall && stringifySignaturelessToolCalls) {
+                parts.push({
+                  text: buildInertHistoricalToolCallText(fn.name, fn.arguments || "{}"),
+                });
+                continue;
+              }
+              if (!signatureForToolCall && signaturelessToolCallMode === "context") {
+                continue;
+              }
             }
 
             const args = tryParseJSON(fn.arguments || "{}");
@@ -427,16 +438,29 @@ function openaiToGeminiBase(
             }
 
             // Gemini expects the signature on the functionCall part itself.
+            // If we are in a mode where missing signatures cause 400s (and we couldn't find one),
+            // safely default to the bypass string to protect against 400s.
+            const finalSignature =
+              embeddedThoughtSignature ||
+              (toolNameOptions.supportsSignatureBypass && signaturelessToolCallMode !== "text"
+                ? "skip_thought_signature_validator"
+                : undefined);
             parts.push({
-              ...(embeddedThoughtSignature ? { thoughtSignature: embeddedThoughtSignature } : {}),
+              ...(finalSignature ? { thoughtSignature: finalSignature } : {}),
               functionCall: {
-                id: id,
+                ...(toolNameOptions.stripFunctionCallId ? {} : { id: id }),
                 name: sanitizeToolName(fn.name),
                 args: args,
               },
             });
 
-            if (!contextualizeSignaturelessToolResponses || signatureForToolCall) {
+            // Bypass path always emits the native response; non-bypass keeps the
+            // contextualize-aware bookkeeping (signature-less ids handled as text).
+            if (
+              toolNameOptions.supportsSignatureBypass ||
+              !contextualizeSignaturelessToolResponses ||
+              signatureForToolCall
+            ) {
               toolCallIds.push(id);
             }
           }
@@ -459,7 +483,12 @@ function openaiToGeminiBase(
             const toolParts: GeminiPart[] = [];
             for (const fid of toolCallIds) {
               if (!toolResponses[fid]) continue;
-              if (contextualizeSignaturelessToolResponses && !resolvedSignatures.has(fid)) continue;
+              if (
+                !toolNameOptions.supportsSignatureBypass &&
+                contextualizeSignaturelessToolResponses &&
+                !resolvedSignatures.has(fid)
+              )
+                continue;
 
               let name = tcID2Name[fid];
               if (!name) {
@@ -473,7 +502,7 @@ function openaiToGeminiBase(
               name = sanitizeToolName(name);
 
               const resp = toolResponses[fid];
-              let parsedResp = tryParseJSON(resp as string);
+              let parsedResp = tryParseJSON(resp);
               if (parsedResp === null) {
                 parsedResp = { result: resp };
               } else if (typeof parsedResp !== "object") {
@@ -482,7 +511,7 @@ function openaiToGeminiBase(
 
               toolParts.push({
                 functionResponse: {
-                  id: fid,
+                  ...(toolNameOptions.stripFunctionCallId ? {} : { id: fid }),
                   name: name,
                   response:
                     toolNameOptions.functionResponseShape === "output"
@@ -492,9 +521,12 @@ function openaiToGeminiBase(
               });
             }
 
-            if (contextualizeSignaturelessToolResponses) {
+            if (
+              !toolNameOptions.supportsSignatureBypass &&
+              contextualizeSignaturelessToolResponses
+            ) {
               // Signature-less historical tool responses are represented as text
-              // so strict Gemini/Antigravity endpoints don't reject them as native
+              // so strict standard-Gemini endpoints don't reject them as native
               // functionResponse parts missing a matching thoughtSignature.
               // In context mode the matching historical functionCall is omitted,
               // avoiding pseudo tool-call records that Gemini Flash can repeat as
@@ -545,11 +577,11 @@ function openaiToGeminiBase(
   if (geminiTools && geminiTools.length > 0) {
     result.tools = geminiTools;
     if (hasGoogleSearch) {
-      result.tools.push({ googleSearch: {} } as ToolEntry);
+      result.tools.push({ googleSearch: {} });
     }
     result.toolConfig = { functionCallingConfig: { mode: "VALIDATED" } };
   } else if (hasGoogleSearch) {
-    result.tools = [{ googleSearch: {} } as ToolEntry];
+    result.tools = [{ googleSearch: {} }];
   }
 
   // Convert response_format to Gemini's responseMimeType/responseSchema
@@ -599,12 +631,13 @@ export function openaiToGeminiRequest(
   // functionCall on the follow-up request. Without this the streaming lookup key didn't
   // match and Gemini rejected tool calls with 400 "missing thought_signature" (#2504).
   const signatureNamespace =
-    credentials && typeof credentials._signatureNamespace === "string"
-      ? credentials._signatureNamespace
+    credentials && typeof credentials["_signatureNamespace"] === "string"
+      ? credentials["_signatureNamespace"]
       : null;
   return openaiToGeminiBase(model, body, stream, {
     signatureNamespace,
     signaturelessToolCallMode: options.signaturelessToolCallMode,
+    stripFunctionCallId: isVertexGeminiProvider(credentials?._provider),
   });
 }
 
@@ -624,6 +657,7 @@ export function openaiToGeminiCLIRequest(
     functionResponseShape: options.functionResponseShape,
     signatureNamespace: options.signatureNamespace,
     signaturelessToolCallMode: options.signaturelessToolCallMode,
+    supportsSignatureBypass: true,
   });
 }
 
@@ -782,7 +816,7 @@ register(
   FORMATS.GEMINI,
   (model, body, stream = false, credentials = null) =>
     openaiToGeminiRequest(model, body, stream, credentials, {
-      signaturelessToolCallMode: "text",
+      signaturelessToolCallMode: "native",
     }),
   null
 );
@@ -798,8 +832,8 @@ register(
         signatureNamespace:
           credentials &&
           typeof credentials === "object" &&
-          typeof (credentials as Record<string, unknown>)._signatureNamespace === "string"
-            ? ((credentials as Record<string, unknown>)._signatureNamespace as string)
+          typeof credentials["_signatureNamespace"] === "string"
+            ? (credentials["_signatureNamespace"] as string)
             : null,
       }),
       credentials

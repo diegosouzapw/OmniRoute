@@ -233,6 +233,25 @@ test("Responses -> Chat strips safety_identifier (LobeHub #2770)", () => {
   assert.ok(Array.isArray(result.messages), "translation must still produce messages");
 });
 
+test("Responses -> Chat strips client_metadata (Mistral 422 fix)", () => {
+  // Codex CLI always sends client_metadata in Responses API requests. Mistral (and other
+  // strict upstreams) reject it with HTTP 422 extra_forbidden. The translator must strip
+  // the field in the Responses-API cleanup block so it never reaches the upstream.
+  const result = openaiResponsesToOpenAIRequest(
+    "mistral-large-latest",
+    {
+      input: [{ role: "user", content: [{ type: "input_text", text: "oi" }] }],
+      client_metadata: { session_id: "abc123", foo: "bar" },
+    },
+    false,
+    null
+  ) as Record<string, unknown>;
+
+  assert.equal(result.client_metadata, undefined, "client_metadata must be stripped before forwarding to Chat Completions");
+  assert.ok(Array.isArray(result.messages), "translation must still produce messages");
+  assert.equal((result.messages as unknown[]).length, 1, "user message must be preserved");
+});
+
 test("Chat -> Responses converts messages, tool calls, tool outputs, tools and pass-through params", () => {
   const result = openaiToOpenAIResponsesRequest(
     "gpt-4o",
@@ -354,6 +373,37 @@ test("Responses round-trip preserves store and previous_response_id when opt-in 
   assert.equal((result as any).previous_response_id, "resp_prev_store");
   assert.equal((result as any).store, true);
   assert.equal((result as any).instructions, "Rules");
+});
+
+test("Chat -> Responses converts assistant image_url history parts to output_text", () => {
+  const result = openaiToOpenAIResponsesRequest(
+    "gpt-4o",
+    {
+      messages: [
+        {
+          role: "assistant",
+          content: [
+            { type: "text", text: "I inspected the screenshot." },
+            { type: "image_url", image_url: { url: "https://example.com/scope.png" } },
+          ],
+        },
+      ],
+    },
+    true,
+    null
+  );
+
+  assert.deepEqual((result as any).input, [
+    {
+      type: "message",
+      role: "assistant",
+      content: [
+        { type: "output_text", text: "I inspected the screenshot." },
+        { type: "output_text", text: "[Image: https://example.com/scope.png]" },
+      ],
+    },
+  ]);
+  assert.equal(JSON.stringify(result).includes('"image_url"'), false);
 });
 
 test("Chat -> Responses preserves prompt_cache_key and session affinity fields", () => {
@@ -796,6 +846,85 @@ test("Responses -> Chat: image_generation is stripped from output tools array (i
   assert.equal(tools.length, 1, "only the function tool must remain");
   assert.equal(tools[0].type, "function");
   assert.equal(tools[0].function.name, "foo");
+});
+
+// --- Codex CLI: local_shell built-in should be mapped to a function tool ---
+
+test("Responses -> Chat: local_shell does not throw", () => {
+  // Recent Codex CLI releases inject local_shell as a Responses API built-in.
+  // Non-OpenAI upstreams do not support this tool type directly, so OmniRoute
+  // must translate it instead of rejecting the request with 400.
+  assert.doesNotThrow(() =>
+    openaiResponsesToOpenAIRequest(
+      "gpt-4o",
+      {
+        input: [{ role: "user", content: [{ type: "input_text", text: "pwd" }] }],
+        tools: [{ type: "local_shell" }],
+      },
+      false,
+      null
+    )
+  );
+});
+
+test("Responses -> Chat: local_shell maps to a shell function tool", () => {
+  const result = openaiResponsesToOpenAIRequest(
+    "gpt-4o",
+    {
+      input: [{ role: "user", content: [{ type: "input_text", text: "pwd" }] }],
+      tools: [{ type: "local_shell" }],
+    },
+    false,
+    null
+  ) as Record<string, unknown>;
+
+  const tools = result.tools as any[];
+  assert.ok(Array.isArray(tools), "tools array must be present");
+  assert.equal(tools.length, 1, "local_shell must be represented as one function tool");
+  assert.equal(tools[0].type, "function");
+  assert.equal(tools[0].function.name, "shell");
+  assert.equal(tools[0].function.parameters.type, "object");
+  assert.deepEqual(tools[0].function.parameters.required, ["command"]);
+});
+
+test("Responses -> Chat: local_shell tool_choice maps to shell function choice", () => {
+  const result = openaiResponsesToOpenAIRequest(
+    "gpt-4o",
+    {
+      input: [{ role: "user", content: [{ type: "input_text", text: "pwd" }] }],
+      tools: [{ type: "local_shell" }],
+      tool_choice: { type: "local_shell" },
+    },
+    false,
+    null
+  ) as Record<string, unknown>;
+
+  assert.deepEqual(result.tool_choice, { type: "function", function: { name: "shell" } });
+});
+
+test("Chat -> Responses: shell function maps back to local_shell", () => {
+  const result = openaiToOpenAIResponsesRequest(
+    "gpt-4o",
+    {
+      messages: [{ role: "user", content: "pwd" }],
+      tools: [
+        {
+          type: "function",
+          function: {
+            name: "shell",
+            description: "Run a shell command",
+            parameters: { type: "object" },
+          },
+        },
+      ],
+      tool_choice: { type: "function", function: { name: "shell" } },
+    },
+    false,
+    null
+  ) as Record<string, unknown>;
+
+  assert.deepEqual(result.tools, [{ type: "local_shell" }]);
+  assert.deepEqual(result.tool_choice, { type: "local_shell" });
 });
 
 // --- Issue #2893: orphaned tool results from empty/missing call_id ---

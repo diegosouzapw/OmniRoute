@@ -38,6 +38,7 @@ export const NOAUTH_PROVIDERS = {
     website: "https://opencode.ai",
     noAuth: true,
     hasFree: true,
+    serviceKinds: ["llm"],
     authHint: "No API key required — uses OpenCode's public free endpoint.",
     freeNote:
       "No API key required — public OpenCode endpoint with Kimi, GLM, Qwen, MiMo, MiniMax models.",
@@ -55,8 +56,41 @@ export const NOAUTH_PROVIDERS = {
     website: "https://duckduckgo.com/duckchat",
     noAuth: true,
     hasFree: true,
+    serviceKinds: ["llm"],
     freeNote: "Free — anonymous access to multiple AI models via DuckDuckGo.",
     authHint: "No credentials required — DuckDuckGo AI Chat is anonymous and free.",
+  },
+  theoldllm: {
+    id: "theoldllm",
+    alias: "tllm",
+    name: "The Old LLM (Free)",
+    icon: "auto_awesome",
+    color: "#8B5CF6",
+    textIcon: "TL",
+    website: "https://theoldllm.vercel.app",
+    noAuth: true,
+    hasFree: true,
+    serviceKinds: ["llm"],
+    freeNote:
+      "Free — GPT-5.4, Claude 4.6 Opus/Sonnet/Haiku, + more. No API key — tokens auto-generated via browser.",
+    authHint:
+      "No credentials required. The executor auto-generates access tokens via an embedded Playwright browser instance.",
+  },
+  chipotle: {
+    id: "chipotle",
+    alias: "pepper",
+    name: "Chipotle Pepper AI (Free)",
+    icon: "restaurant",
+    color: "#C41230",
+    textIcon: "🌯",
+    website: "https://amelia.chipotle.com",
+    noAuth: true,
+    hasFree: true,
+    serviceKinds: ["llm"],
+    freeNote:
+      "Free — Chipotle's Pepper AI (IPsoft Amelia). Anonymous sessions, no API key. Rate-limited.",
+    authHint:
+      "No credentials required. Uses Chipotle's public support chatbot via reverse-engineered SockJS/STOMP protocol.",
   },
   "veoaifree-web": {
     id: "veoaifree-web",
@@ -68,6 +102,7 @@ export const NOAUTH_PROVIDERS = {
     website: "https://veoaifree.com",
     noAuth: true,
     hasFree: true,
+    serviceKinds: ["video"],
     freeNote: "Free video generation — VEO 3.1, Seedance. 6 requests/hour.",
     authHint: "No auth required. Rate limited to 6 requests/hour per IP.",
   },
@@ -138,6 +173,8 @@ export const OAUTH_PROVIDERS = {
     subscriptionRisk: true,
     riskNoticeVariant: "deprecated",
     hasFree: true,
+    freeNote:
+      "Free tier: 50 credits/month (~25K–100K tokens). ⚠️ Kiro ToS prohibits third-party proxy/harness use.",
   },
   "amazon-q": {
     id: "amazon-q",
@@ -433,9 +470,24 @@ export const WEB_COOKIE_PROVIDERS = {
     authHint:
       "Paste your __client cookie value from .clerk.agent.adapta.one (DevTools → Application → Cookies)",
   },
+  lmarena: {
+    id: "lmarena",
+    alias: "lma",
+    name: "LMArena (Free)",
+    icon: "auto_awesome",
+    color: "#FF6B6B",
+    textIcon: "LMA",
+    website: "https://lmarena.ai",
+    hasFree: true,
+    freeNote: "Free model comparison platform — 40+ models (GPT, Claude, Gemini, Llama). No subscription required.",
+    authHint:
+      "Paste your session cookie from lmarena.ai (DevTools → Application → Cookies). Optional — works with free tier for basic comparisons.",
+    riskNoticeVariant: "webCookie",
+  },
   huggingchat: {
     id: "huggingchat",
-    alias: "hc",
+    // "hc" belongs to the hackclub provider; huggingchat uses its own id as alias.
+    alias: "huggingchat",
     name: "HuggingChat (Free)",
     icon: "auto_awesome",
     color: "#FFD21E",
@@ -497,7 +549,8 @@ export const WEB_COOKIE_PROVIDERS = {
   },
   "kimi-web": {
     id: "kimi-web",
-    alias: "kimi",
+    // Primary "kimi" provider keeps the short alias; web variant uses its own id.
+    alias: "kimi-web",
     name: "Kimi Web (Moonshot AI)",
     icon: "auto_awesome",
     color: "#2563EB",
@@ -521,7 +574,8 @@ export const WEB_COOKIE_PROVIDERS = {
   },
   "qwen-web": {
     id: "qwen-web",
-    alias: "qw",
+    // Primary "qwen" provider keeps the short alias; web variant uses its own id.
+    alias: "qwen-web",
     name: "Qwen Web (Free)",
     icon: "auto_awesome",
     color: "#10B981",
@@ -532,6 +586,20 @@ export const WEB_COOKIE_PROVIDERS = {
     authHint:
       "Open chat.qwen.ai, log in, then open DevTools → Application → Local Storage → " +
       'copy the "token" value (or use tongyi_sso_ticket cookie as Bearer token).',
+  },
+  "gemini-business": {
+    id: "gemini-business",
+    alias: "gembiz",
+    name: "Gemini Business (Enterprise)",
+    icon: "business_center",
+    color: "#4285F4",
+    textIcon: "GB",
+    website: "https://business.gemini.google",
+    hasFree: true,
+    freeNote:
+      "Free for Google Workspace enterprise accounts — enterprise Gemini models (Pro, Flash, image, video) via direct StreamGenerate HTTP API. No subscription required, just enterprise SSO.",
+    authHint:
+      "From your enterprise account: open business.gemini.google/home/cid/{your-cid}, then copy __Secure-1PSID and __Secure-1PSIDTS cookies from DevTools → Application → Cookies. Paste as a cookie header below.",
   },
 };
 
@@ -899,18 +967,6 @@ export const APIKEY_PROVIDERS = {
     apiHint:
       "Get free API key at https://bazaarlink.ai — use model 'auto:free' for zero-cost inference. OpenAI-compatible.",
   },
-  completions: {
-    id: "completions",
-    alias: "cpl",
-    name: "Completions.me",
-    icon: "bolt",
-    color: "#F59E0B",
-    textIcon: "CP",
-    website: "https://completions.me",
-    hasFree: true,
-    freeNote: "Free unlimited access to Claude, GPT, Gemini — no credit card, no rate limits",
-    apiHint: "Sign up at https://completions.me for free API key. OpenAI-compatible endpoint.",
-  },
   xai: {
     id: "xai",
     alias: "xai",
@@ -972,7 +1028,7 @@ export const APIKEY_PROVIDERS = {
     textIcon: "CB",
     website: "https://inference.cerebras.ai",
     hasFree: true,
-    freeNote: "Free: 1M tokens/day, 60K TPM — world's fastest inference",
+    freeNote: "Free Trial: 1M tokens/day, 30K TPM, 5 RPM — no credit card.",
   },
   cohere: {
     id: "cohere",
@@ -1117,6 +1173,7 @@ export const APIKEY_PROVIDERS = {
     icon: "opencode",
     color: "#6366f1",
     website: "https://opencode.ai/zen",
+    anonymousFallback: true,
   },
   "opencode-go": {
     id: "opencode-go",
@@ -1125,6 +1182,7 @@ export const APIKEY_PROVIDERS = {
     icon: "opencode",
     color: "#6366f1",
     website: "https://opencode.ai/go",
+    anonymousFallback: true,
   },
   alibaba: {
     id: "alibaba",
@@ -1156,7 +1214,7 @@ export const APIKEY_PROVIDERS = {
     website: "https://longcat.chat/platform/docs",
     hasFree: true,
     freeNote:
-      "50M tokens/day (Flash-Lite) + 500K/day (Chat/Thinking) — 100% free while public beta",
+      "Free: 5M tokens/day on LongCat-2.0-Preview (Flash models retired 2026-05-29); up to 120M/day via feedback.",
   },
   pollinations: {
     id: "pollinations",
@@ -1167,6 +1225,7 @@ export const APIKEY_PROVIDERS = {
     textIcon: "PO",
     website: "https://pollinations.ai",
     hasFree: true,
+    anonymousFallback: true,
     freeNote:
       "No API key required for free public endpoint. Optional Spore tier: ~0.01 pollen/hour.",
   },
@@ -1375,8 +1434,10 @@ export const APIKEY_PROVIDERS = {
     color: "#059669",
     textIcon: "PA",
     website: "https://publicai.co",
-    hasFree: true,
-    freeNote: "Free community inference tier for testing",
+    // #3558: PublicAI requires an API key (registry authType:"apikey"); signup grants a
+    // one-time credit, then it bills per-model. It is NOT a keyless/free tier.
+    hasFree: false,
+    freeNote: "Requires an API key — one-time signup credit, then paid",
   },
   moonshot: {
     id: "moonshot",
@@ -2252,6 +2313,22 @@ export const APIKEY_PROVIDERS = {
     website: "https://freeaiapikey.com",
     apiHint:
       "Discounted API proxy for 40+ models including GPT-5, Claude Opus 4.6, Claude Sonnet 4.6, Qwen 3.5. Get your API key at https://freeaiapikey.com/dashboard. Base URL: https://freeaiapikey.com/v1.",
+  },
+  zenmux: {
+    id: "zenmux",
+    alias: "zm",
+    name: "ZenMux",
+    icon: "neurology",
+    color: "#7C3AED",
+    textIcon: "ZM",
+    website: "https://zenmux.ai",
+    hasFree: true,
+    freeNote:
+      "Free tier includes access to Gemini 3 Flash, DeepSeek V3.2, Grok 4.1 Fast, Mistral Large, and more. Get your API key at https://zenmux.ai.",
+    authHint:
+      "Use your ZenMux API key in Authorization: Bearer <key>. ZenMux is fully OpenAI-compatible. Base URL: https://zenmux.ai/api/v1.",
+    apiHint:
+      "ZenMux exposes an OpenAI-compatible chat completions endpoint at /api/v1/chat/completions, plus Anthropic Messages (/api/anthropic/v1/messages) and Google Gemini (/api/vertex-ai) protocol surfaces. OmniRoute uses the OpenAI protocol.",
   },
 };
 

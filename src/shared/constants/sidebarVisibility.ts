@@ -36,6 +36,7 @@ export const HIDEABLE_SIDEBAR_ITEM_IDS = [
   "analytics-compression",
   "analytics-search",
   "analytics-evals",
+  "provider-stats",
   // Monitoring — flat
   "activity",
   "logs",
@@ -47,6 +48,7 @@ export const HIDEABLE_SIDEBAR_ITEM_IDS = [
   // Costs section
   "costs-pricing",
   "costs-budget",
+  "costs-free-tiers",
   "costs-quota-share",
   // Monitoring > Audit
   "audit",
@@ -226,6 +228,7 @@ export interface SidebarItemDefinition {
   id: HideableSidebarItemId;
   href: string;
   i18nKey: string;
+  labelFallback?: string;
   subtitleKey?: string;
   icon: string;
   exact?: boolean;
@@ -234,6 +237,7 @@ export interface SidebarItemDefinition {
     id: string;
     href: string;
     i18nKey: string;
+    labelFallback?: string;
     icon?: string;
   }>;
 }
@@ -305,18 +309,21 @@ const OMNI_PROXY_ITEMS: readonly SidebarItemDefinition[] = [
         id: "customers-users",
         href: "/dashboard/customers?tab=users",
         i18nKey: "customersUsers",
+        labelFallback: "Usuários",
         icon: "person",
       },
       {
         id: "customers-plans",
         href: "/dashboard/customers?tab=plans",
         i18nKey: "customersPlans",
+        labelFallback: "Planos",
         icon: "sell",
       },
       {
         id: "customers-finance",
         href: "/dashboard/customers?tab=finance",
         i18nKey: "customersFinance",
+        labelFallback: "Financeiro",
         icon: "payments",
       },
     ],
@@ -528,6 +535,13 @@ const ANALYTICS_ITEMS: readonly SidebarItemDefinition[] = [
     subtitleKey: "analyticsEvalsSubtitle",
     icon: "labs",
   },
+  {
+    id: "provider-stats",
+    href: "/dashboard/provider-stats",
+    i18nKey: "providerStats",
+    subtitleKey: "providerStatsSubtitle",
+    icon: "speed",
+  },
 ];
 
 const MONITORING_ITEMS: readonly SidebarItemDefinition[] = [
@@ -614,6 +628,13 @@ const COSTS_ITEMS: readonly SidebarItemDefinition[] = [
     i18nKey: "costsBudget",
     subtitleKey: "costsBudgetSubtitle",
     icon: "savings",
+  },
+  {
+    id: "costs-free-tiers",
+    href: "/dashboard/free-tiers",
+    i18nKey: "costsFreeTiers",
+    subtitleKey: "costsFreeTiersSubtitle",
+    icon: "request_quote",
   },
 ];
 

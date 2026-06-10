@@ -67,8 +67,8 @@ export const OAUTH_ENDPOINTS = {
     auth: "https://auth.openai.com/oauth/authorize",
   },
   anthropic: {
-    token: "https://console.anthropic.com/v1/oauth/token",
-    auth: "https://console.anthropic.com/v1/oauth/authorize",
+    token: "https://api.anthropic.com/v1/oauth/token",
+    auth: "https://api.anthropic.com/v1/oauth/authorize",
   },
   qwen: {
     token: "https://chat.qwen.ai/api/v1/oauth2/token", // From CLIProxyAPI

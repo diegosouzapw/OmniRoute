@@ -43,6 +43,10 @@ export const BUILTIN_EVENTS = [
   "onProviderError",
   "onStreamStart",
   "onStreamEnd",
+  "onInstall",
+  "onActivate",
+  "onDeactivate",
+  "onUninstall",
 ] as const;
 
 export type BuiltinEvent = (typeof BUILTIN_EVENTS)[number];
@@ -190,7 +194,11 @@ export async function emitHookBlocking(
       continue;
     }
     try {
-      const result = await reg.handler(payload);
+      // Chain the payload: each handler must see the body/metadata as mutated by
+      // previous handlers, not the original static payload — otherwise plugin B
+      // can't observe plugin A's changes. (#3286)
+      const currentPayload = { ...ctx, body: mergedBody, metadata: mergedMetadata };
+      const result = await reg.handler(currentPayload);
       if (result && typeof result === "object") {
         if ("body" in result) mergedBody = (result as Record<string, unknown>).body;
         if ("metadata" in result)
@@ -245,6 +253,11 @@ export interface Plugin {
   onRequest?: (ctx: PluginContext) => Promise<PluginResult | void> | PluginResult | void;
   onResponse?: (ctx: PluginContext, response: unknown) => Promise<unknown | void> | unknown | void;
   onError?: (ctx: PluginContext, error: Error) => Promise<unknown | void> | unknown | void;
+  // ── Lifecycle hooks (fire-and-forget, non-blocking) ──
+  onInstall?: (payload: unknown) => Promise<void> | void;
+  onActivate?: (payload: unknown) => Promise<void> | void;
+  onDeactivate?: (payload: unknown) => Promise<void> | void;
+  onUninstall?: (payload: unknown) => Promise<void> | void;
 }
 
 /**

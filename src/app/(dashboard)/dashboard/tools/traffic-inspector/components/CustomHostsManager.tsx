@@ -27,7 +27,7 @@ export function CustomHostsManager({ onClose }: CustomHostsManagerProps) {
   const fetchHosts = async () => {
     setLoading(true);
     try {
-      const res = await fetch("/api/tools/traffic-inspector/custom-hosts");
+      const res = await fetch("/api/tools/traffic-inspector/hosts");
       if (res.ok) {
         const data = (await res.json()) as { hosts: CustomHost[] };
         setHosts(data.hosts ?? []);
@@ -50,7 +50,7 @@ export function CustomHostsManager({ onClose }: CustomHostsManagerProps) {
     }
     const host = parsed.data;
     try {
-      const res = await fetch("/api/tools/traffic-inspector/custom-hosts", {
+      const res = await fetch("/api/tools/traffic-inspector/hosts", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ host, enabled: true }),
@@ -69,7 +69,7 @@ export function CustomHostsManager({ onClose }: CustomHostsManagerProps) {
 
   const deleteHost = async (host: string) => {
     try {
-      await fetch(`/api/tools/traffic-inspector/custom-hosts/${encodeURIComponent(host)}`, {
+      await fetch(`/api/tools/traffic-inspector/hosts/${encodeURIComponent(host)}`, {
         method: "DELETE",
       });
       await fetchHosts();

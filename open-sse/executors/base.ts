@@ -34,6 +34,7 @@ import {
   fixToolPairs,
   fixToolAdjacency,
   stripTrailingAssistantOrphanToolUse,
+  stripTrailingAssistantForProvider,
 } from "../services/contextManager.ts";
 import { randomUUID } from "node:crypto";
 import {
@@ -314,6 +315,27 @@ export function sanitizeReasoningEffortForProvider(
   }
 
   return body;
+}
+
+/**
+ * Strip the OmniRoute provider prefix from versioned built-in tool model
+ * fields (e.g. `cc/claude-opus-4-8` → `claude-opus-4-8`). Versioned built-in
+ * tool types carry an 8-digit date suffix (`advisor_20260301`, `bash_20250124`);
+ * the real Claude CLI sends a bare model id there, never a prefixed one, so a
+ * leaked OmniRoute prefix makes Anthropic reject the request. Mutates in place.
+ */
+export function stripVersionedToolModelPrefix(tools: unknown): void {
+  if (!Array.isArray(tools)) return;
+  for (const t of tools as Array<Record<string, unknown>>) {
+    if (
+      typeof t.type === "string" &&
+      /^[a-z][a-z0-9_]*_\d{8}$/.test(t.type) &&
+      typeof t.model === "string" &&
+      t.model.includes("/")
+    ) {
+      t.model = t.model.split("/").pop();
+    }
+  }
 }
 
 /**
@@ -823,6 +845,9 @@ export class BaseExecutor {
             for (const t of tb.tools as Array<Record<string, unknown>>) {
               delete t.cache_control;
             }
+            // Also strip OmniRoute provider prefix from versioned built-in tool
+            // model fields (e.g. cc/claude-opus-4-8 → claude-opus-4-8).
+            stripVersionedToolModelPrefix(tb.tools);
           }
 
           // Per-request behavior overrides via custom client headers.
@@ -1003,10 +1028,14 @@ export class BaseExecutor {
           // convention; SSE decoding is gated on body.stream). anthropic-beta
           // is selected per request shape; the full set on a quota probe is
           // itself a fingerprint.
+          // Respect the client's negotiated anthropic-beta (real Claude Code) instead
+          // of force-injecting thinking/effort betas it never requested (#3415).
+          const clientAnthropicBeta =
+            clientHeaders?.["anthropic-beta"] ?? clientHeaders?.["Anthropic-Beta"] ?? null;
           const ccHeaders: Record<string, string> = {
             Accept: "application/json",
             "anthropic-version": "2023-06-01",
-            "anthropic-beta": selectBetaFlags(tb),
+            "anthropic-beta": selectBetaFlags(tb, null, clientAnthropicBeta),
             "anthropic-dangerous-direct-browser-access": "true",
             "x-app": "cli",
             "User-Agent": `claude-cli/${CLAUDE_CODE_VERSION} (external, cli)`,
@@ -1076,7 +1105,10 @@ export class BaseExecutor {
             // tool_result isn't in the next message; re-run fixToolPairs to
             // drop any tool_result orphaned by that strip (discussion #2410).
             const adjacent = isClaude ? fixToolPairs(fixToolAdjacency(fixed)) : fixed;
-            tb.messages = stripTrailingAssistantOrphanToolUse(adjacent);
+            const stripped = stripTrailingAssistantOrphanToolUse(adjacent);
+            // Some providers (e.g. Mistral) require the last message to be user
+            // or tool and reject trailing assistant text messages with 400 (#3396).
+            tb.messages = stripTrailingAssistantForProvider(stripped, this.provider);
           }
         }
         let bodyString = JSON.stringify(transformedBody);

@@ -33,6 +33,8 @@ const { spawn } = require("child_process");
 const fs = require("fs");
 const { autoUpdater } = require("electron-updater");
 const { hasEncryptedCredentials } = require("./sqlite-inspection");
+const { loginManager } = require("./loginManager");
+const { killProcessTree } = require("./processTree");
 
 // ── Single Instance Lock ───────────────────────────────────
 const gotTheLock = app.requestSingleInstanceLock();
@@ -199,7 +201,9 @@ async function waitForServerExit(proc, timeoutMs = 5000) {
     new Promise((r) =>
       setTimeout(() => {
         try {
-          proc.kill("SIGKILL");
+          // #3347: force-kill the whole tree (Windows leaves grandchildren alive on a
+          // bare SIGKILL of the direct child, keeping omniroute.exe locked).
+          killProcessTree(proc, { signal: "SIGKILL" });
         } catch {
           /* already dead */
         }
@@ -265,7 +269,18 @@ async function checkForUpdates(silent = false) {
     }
     return;
   }
-  await autoUpdater.checkForUpdates();
+  // Update-check failures (404 when the release manifest isn't published yet,
+  // offline, rate-limited) are surfaced to the user via the autoUpdater "error"
+  // event handler. The promise returned by checkForUpdates() ALSO rejects on
+  // those, so it must be caught here — the startup check (line ~928) fires it
+  // unawaited inside a setTimeout, and an uncaught rejection there becomes an
+  // "Unhandled Rejection" that the packaged-app smoke test treats as fatal.
+  try {
+    await autoUpdater.checkForUpdates();
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : String(err);
+    console.warn("[Electron] Update check failed (non-fatal):", msg);
+  }
 }
 
 async function downloadUpdate() {
@@ -274,7 +289,9 @@ async function downloadUpdate() {
 
 function installUpdate() {
   if (nextServer) {
-    nextServer.kill("SIGTERM");
+    // #3347: tree-kill before quitAndInstall — a surviving server child (and its
+    // grandchildren) keeps omniroute.exe locked and the updater fails with "file in use".
+    killProcessTree(nextServer, { signal: "SIGTERM" });
     nextServer = null;
   }
   autoUpdater.quitAndInstall();
@@ -654,7 +671,10 @@ function startNextServer() {
 
 function stopNextServer() {
   if (nextServer) {
-    nextServer.kill("SIGTERM");
+    // #3347: kill the whole tree, not just the direct child. On Windows the server
+    // (omniroute.exe-as-node) spawns grandchildren that a bare SIGTERM leaves alive,
+    // holding a lock on omniroute.exe and blocking updates.
+    killProcessTree(nextServer, { signal: "SIGTERM" });
     nextServer = null;
   }
 }
@@ -798,6 +818,48 @@ function setupIpcHandlers() {
   });
 
   ipcMain.handle("get-app-version", () => app.getVersion());
+
+  // ── Web-Cookie Login IPC Handlers ──────────────────────────
+  // Forward login status events to the renderer. Registered ONCE here — never
+  // inside the login:start handler, which would attach a fresh listener (and
+  // duplicate every subsequent status event) on each invocation.
+  loginManager.on("status", (status) => {
+    sendToRenderer("login:status", status);
+  });
+
+  ipcMain.handle("login:start", async (_event, providerId, options) => {
+    const result = await loginManager.startLogin(providerId, options);
+
+    // Persist extracted credentials
+    if (result.success && result.credentials) {
+      try {
+        // Store as JSON blob under the provider ID
+        const { persistSecret: ps } = require("../src/lib/db/secrets");
+        if (typeof ps === "function") {
+          ps(providerId, JSON.stringify(result.credentials));
+        }
+        sendToRenderer("login:status", {
+          providerId,
+          status: "persisted",
+          message: "Credentials saved",
+        });
+      } catch (err) {
+        console.error("[Electron] Failed to persist credentials:", err);
+        return { success: false, error: "Extracted but failed to save credentials" };
+      }
+    }
+
+    return result;
+  });
+
+  ipcMain.handle("login:cancel", async () => {
+    loginManager.cancel();
+    return { success: true };
+  });
+
+  ipcMain.handle("login:status", async () => {
+    return { active: loginManager.getActiveProvider() !== null };
+  });
 
   // Autostart management handlers
   ipcMain.handle("get-autostart-status", () => {

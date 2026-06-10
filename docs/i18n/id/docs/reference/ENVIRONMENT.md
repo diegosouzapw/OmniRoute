@@ -1,55 +1,55 @@
-# Environment Variables Reference (Bahasa Indonesia)
+# Referensi Variabel Lingkungan (Bahasa Indonesia)
 
 🌐 **Languages:** 🇺🇸 [English](../../../../docs/ENVIRONMENT.md) · 🇸🇦 [ar](../../ar/docs/ENVIRONMENT.md) · 🇧🇬 [bg](../../bg/docs/ENVIRONMENT.md) · 🇧🇩 [bn](../../bn/docs/ENVIRONMENT.md) · 🇨🇿 [cs](../../cs/docs/ENVIRONMENT.md) · 🇩🇰 [da](../../da/docs/ENVIRONMENT.md) · 🇩🇪 [de](../../de/docs/ENVIRONMENT.md) · 🇪🇸 [es](../../es/docs/ENVIRONMENT.md) · 🇮🇷 [fa](../../fa/docs/ENVIRONMENT.md) · 🇫🇮 [fi](../../fi/docs/ENVIRONMENT.md) · 🇫🇷 [fr](../../fr/docs/ENVIRONMENT.md) · 🇮🇳 [gu](../../gu/docs/ENVIRONMENT.md) · 🇮🇱 [he](../../he/docs/ENVIRONMENT.md) · 🇮🇳 [hi](../../hi/docs/ENVIRONMENT.md) · 🇭🇺 [hu](../../hu/docs/ENVIRONMENT.md) · 🇮🇩 [id](../../id/docs/ENVIRONMENT.md) · 🇮🇹 [it](../../it/docs/ENVIRONMENT.md) · 🇯🇵 [ja](../../ja/docs/ENVIRONMENT.md) · 🇰🇷 [ko](../../ko/docs/ENVIRONMENT.md) · 🇮🇳 [mr](../../mr/docs/ENVIRONMENT.md) · 🇲🇾 [ms](../../ms/docs/ENVIRONMENT.md) · 🇳🇱 [nl](../../nl/docs/ENVIRONMENT.md) · 🇳🇴 [no](../../no/docs/ENVIRONMENT.md) · 🇵🇭 [phi](../../phi/docs/ENVIRONMENT.md) · 🇵🇱 [pl](../../pl/docs/ENVIRONMENT.md) · 🇵🇹 [pt](../../pt/docs/ENVIRONMENT.md) · 🇧🇷 [pt-BR](../../pt-BR/docs/ENVIRONMENT.md) · 🇷🇴 [ro](../../ro/docs/ENVIRONMENT.md) · 🇷🇺 [ru](../../ru/docs/ENVIRONMENT.md) · 🇸🇰 [sk](../../sk/docs/ENVIRONMENT.md) · 🇸🇪 [sv](../../sv/docs/ENVIRONMENT.md) · 🇰🇪 [sw](../../sw/docs/ENVIRONMENT.md) · 🇮🇳 [ta](../../ta/docs/ENVIRONMENT.md) · 🇮🇳 [te](../../te/docs/ENVIRONMENT.md) · 🇹🇭 [th](../../th/docs/ENVIRONMENT.md) · 🇹🇷 [tr](../../tr/docs/ENVIRONMENT.md) · 🇺🇦 [uk-UA](../../uk-UA/docs/ENVIRONMENT.md) · 🇵🇰 [ur](../../ur/docs/ENVIRONMENT.md) · 🇻🇳 [vi](../../vi/docs/ENVIRONMENT.md) · 🇨🇳 [zh-CN](../../zh-CN/docs/ENVIRONMENT.md)
 
 ---
 
-> Complete reference for every environment variable recognized by OmniRoute.
-> For a quick-start template, see [`.env.example`](../.env.example).
+> Referensi lengkap untuk setiap variabel lingkungan yang dikenali oleh OmniRoute.
+> Untuk template pengaturan cepat, lihat [`.env.example`](../.env.example).
 
 ---
 
-## Table of Contents
+## Daftar Isi
 
-- [1. Required Secrets](#1-required-secrets)
-- [2. Storage & Database](#2-storage--database)
-- [3. Network & Ports](#3-network--ports)
-- [4. Security & Authentication](#4-security--authentication)
-- [5. Input Sanitization & PII Protection](#5-input-sanitization--pii-protection)
-- [6. Tool & Routing Policies](#6-tool--routing-policies)
-- [7. URLs & Cloud Sync](#7-urls--cloud-sync)
-- [8. Outbound Proxy](#8-outbound-proxy)
-- [9. CLI Tool Integration](#9-cli-tool-integration)
-- [10. Internal Agent & MCP Integrations](#10-internal-agent--mcp-integrations)
-- [11. OAuth Provider Credentials](#11-oauth-provider-credentials)
-- [12. Provider User-Agent Overrides](#12-provider-user-agent-overrides)
-- [13. CLI Fingerprint Compatibility](#13-cli-fingerprint-compatibility)
-- [14. API Key Providers](#14-api-key-providers)
-- [15. Timeout Settings](#15-timeout-settings)
+- [1. Rahasia yang Wajib Ada](#1-required-secrets)
+- [2. Penyimpanan & Database](#2-storage--database)
+- [3. Jaringan & Port](#3-network--ports)
+- [4. Keamanan & Autentikasi](#4-security--authentication)
+- [5. Sanitasi Input & Perlindungan PII](#5-input-sanitization--pii-protection)
+- [6. Kebijakan Alat & Routing](#6-tool--routing-policies)
+- [7. URL & Sinkronisasi Cloud](#7-urls--cloud-sync)
+- [8. Proxy Keluar](#8-outbound-proxy)
+- [9. Integrasi Alat CLI](#9-cli-tool-integration)
+- [10. Agen Internal & Integrasi MCP](#10-internal-agent--mcp-integrations)
+- [11. Kredensial Provider OAuth](#11-oauth-provider-credentials)
+- [12. Override User-Agent Provider](#12-provider-user-agent-overrides)
+- [13. Kompatibilitas Fingerprint CLI](#13-cli-fingerprint-compatibility)
+- [14. Provider Kunci API](#14-api-key-providers)
+- [15. Pengaturan Batas Waktu](#15-timeout-settings)
 - [16. Logging](#16-logging)
-- [17. Memory Optimization](#17-memory-optimization)
-- [18. Pricing Sync](#18-pricing-sync)
-- [19. Model Sync (Dev)](#19-model-sync-dev)
-- [20. Provider-Specific Settings](#20-provider-specific-settings)
-- [21. Proxy Health](#21-proxy-health)
+- [17. Optimasi Memori](#17-memory-optimization)
+- [18. Sinkronisasi Harga](#18-pricing-sync)
+- [19. Sinkronisasi Model (Dev)](#19-model-sync-dev)
+- [20. Pengaturan Spesifik Provider](#20-provider-specific-settings)
+- [21. Kesehatan Proxy](#21-proxy-health)
 - [22. Debugging](#22-debugging)
-- [23. GitHub Integration](#23-github-integration)
-- [Deployment Scenarios](#deployment-scenarios)
-- [Audit: Removed / Dead Variables](#audit-removed--dead-variables)
+- [23. Integrasi GitHub](#23-github-integration)
+- [Skenario Deployment](#deployment-scenarios)
+- [Audit: Variabel yang Dihapus / Tidak Aktif](#audit-removed--dead-variables)
 
 ---
 
-## 1. Required Secrets
+## 1. Rahasia yang Wajib Ada
 
-These **must** be set before the first run. Without them, the application will either refuse to start or operate with insecure defaults.
+Variabel-variabel ini **harus** diatur sebelum menjalankan aplikasi pertama kali. Tanpa variabel ini, aplikasi akan menolak untuk berjalan atau beroperasi dengan pengaturan default yang tidak aman.
 
-| Variable           | Required | Default  | Source File             | Description                                                                                                                      |
-| ------------------ | -------- | -------- | ----------------------- | -------------------------------------------------------------------------------------------------------------------------------- |
-| `JWT_SECRET`       | **Yes**  | _(none)_ | `src/lib/auth`          | Signs/verifies all dashboard session cookies (JWT). Generate with `openssl rand -base64 48`.                                     |
-| `API_KEY_SECRET`   | **Yes**  | _(none)_ | `src/lib/db/apiKeys.ts` | AES encryption key for API key values at rest in SQLite. Generate with `openssl rand -hex 32`.                                   |
-| `INITIAL_PASSWORD` | **Yes**  | `123456` | Bootstrap script        | Sets the initial admin dashboard password. **Change before first use.** After login, change via Dashboard → Settings → Security. |
+| Variable           | Wajib    | Default  | Source File             | Deskripsi                                                                                                                                |
+| ------------------ | -------- | -------- | ----------------------- | ---------------------------------------------------------------------------------------------------------------------------------------- |
+| `JWT_SECRET`       | **Ya**   | _(none)_ | `src/lib/auth`          | Menandatangani/memverifikasi semua cookie sesi dashboard (JWT). Buat dengan `openssl rand -base64 48`.                                   |
+| `API_KEY_SECRET`   | **Ya**   | _(none)_ | `src/lib/db/apiKeys.ts` | Kunci enkripsi AES untuk nilai kunci API yang disimpan di SQLite. Buat dengan `openssl rand -hex 32`.                                    |
+| `INITIAL_PASSWORD` | **Ya**   | `123456` | Bootstrap script        | Mengatur kata sandi awal admin dashboard. **Ubah sebelum pertama kali digunakan.** Setelah login, ubah melalui Dashboard → Settings → Security. |
 
-### Generation Commands
+### Perintah Pembuatan
 
 ```bash
 # Generate all three secrets at once:
@@ -59,200 +59,200 @@ echo "INITIAL_PASSWORD=$(openssl rand -base64 16)"
 ```
 
 > [!CAUTION]
-> Never commit `.env` files with real secrets to version control. The `.gitignore` already excludes `.env`, but verify before pushing.
+> Jangan pernah melakukan commit file `.env` yang berisi rahasia nyata ke version control. `.gitignore` sudah mengecualikan `.env`, namun verifikasi sebelum melakukan push.
 
 ---
 
-## 2. Storage & Database
+## 2. Penyimpanan & Database
 
-OmniRoute uses **SQLite** (via `better-sqlite3`) for all persistence. These variables control data location, encryption, and lifecycle.
+OmniRoute menggunakan **SQLite** (melalui `better-sqlite3`) untuk semua persistensi data. Variabel-variabel ini mengontrol lokasi data, enkripsi, dan siklus hidup data.
 
-| Variable                         | Default              | Source File                                     | Description                                                                                                        |
-| -------------------------------- | -------------------- | ----------------------------------------------- | ------------------------------------------------------------------------------------------------------------------ |
-| `DATA_DIR`                       | `~/.omniroute/`      | `src/lib/db/core.ts`                            | Root directory for SQLite DB, backups, and data files. Override for Docker volumes or custom paths.                |
-| `STORAGE_ENCRYPTION_KEY`         | _(empty = disabled)_ | `src/lib/db/encryption.ts`                      | AES key for full SQLite database encryption at rest. Generate with `openssl rand -hex 32`.                         |
-| `STORAGE_ENCRYPTION_KEY_VERSION` | `v1`                 | `scripts/bootstrap-env.mjs`, `electron/main.js` | Version label for the encryption key. Increment when performing key rotation to support decryption of old backups. |
-| `DISABLE_SQLITE_AUTO_BACKUP`     | `false`              | `src/lib/db/backup.ts`                          | When `true`, skips the automatic database backup that runs before migrations on every startup.                     |
-| `OMNIROUTE_CRYPT_KEY`            | _(unset)_            | `src/lib/db/encryption.ts`                      | **Legacy alias** for `STORAGE_ENCRYPTION_KEY`. Accepted as a fallback when the primary variable is absent.         |
-| `OMNIROUTE_API_KEY_BASE64`       | _(unset)_            | `src/lib/db/encryption.ts`                      | **Legacy alias** (Base64-encoded form) accepted as a fallback. Decoded automatically before use.                   |
+| Variable                         | Default              | Source File                                     | Deskripsi                                                                                                                          |
+| -------------------------------- | -------------------- | ----------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------- |
+| `DATA_DIR`                       | `~/.omniroute/`      | `src/lib/db/core.ts`                            | Direktori utama untuk DB SQLite, cadangan, dan file data. Override untuk volume Docker atau path khusus.                           |
+| `STORAGE_ENCRYPTION_KEY`         | _(empty = disabled)_ | `src/lib/db/encryption.ts`                      | Kunci AES untuk enkripsi penuh database SQLite saat disimpan. Buat dengan `openssl rand -hex 32`.                                  |
+| `STORAGE_ENCRYPTION_KEY_VERSION` | `v1`                 | `scripts/bootstrap-env.mjs`, `electron/main.js` | Label versi untuk kunci enkripsi. Naikkan nilainya saat melakukan rotasi kunci agar mendukung dekripsi cadangan lama.              |
+| `DISABLE_SQLITE_AUTO_BACKUP`     | `false`              | `src/lib/db/backup.ts`                          | Saat bernilai `true`, melewati pencadangan database otomatis yang berjalan sebelum migrasi pada setiap startup.                    |
+| `OMNIROUTE_CRYPT_KEY`            | _(unset)_            | `src/lib/db/encryption.ts`                      | **Alias legacy** untuk `STORAGE_ENCRYPTION_KEY`. Diterima sebagai fallback ketika variabel utama tidak ada.                        |
+| `OMNIROUTE_API_KEY_BASE64`       | _(unset)_            | `src/lib/db/encryption.ts`                      | **Alias legacy** (bentuk yang dikodekan Base64) diterima sebagai fallback. Didekode secara otomatis sebelum digunakan.             |
 
-### Scenarios
+### Skenario
 
-| Scenario              | Configuration                                                                    |
-| --------------------- | -------------------------------------------------------------------------------- |
-| **Local development** | Leave all defaults. DB lives at `~/.omniroute/omniroute.db`.                     |
-| **Docker**            | `DATA_DIR=/data` + mount a volume at `/data`.                                    |
-| **Encrypted at rest** | Set `STORAGE_ENCRYPTION_KEY` + keep backups of the key! Losing it = losing data. |
-| **CI/Testing**        | `DATA_DIR=/tmp/omniroute-test` — ephemeral, no encryption needed.                |
+| Skenario                   | Konfigurasi                                                                                      |
+| -------------------------- | ------------------------------------------------------------------------------------------------ |
+| **Pengembangan lokal**     | Biarkan semua nilai default. DB berada di `~/.omniroute/omniroute.db`.                           |
+| **Docker**                 | `DATA_DIR=/data` + mount volume di `/data`.                                                      |
+| **Terenkripsi saat simpan**| Set `STORAGE_ENCRYPTION_KEY` + simpan cadangan kuncinya! Kehilangan kunci = kehilangan data.     |
+| **CI/Testing**             | `DATA_DIR=/tmp/omniroute-test` — bersifat sementara, tidak perlu enkripsi.                       |
 
 ---
 
-## 3. Network & Ports
+## 3. Jaringan & Port
 
-| Variable              | Default      | Source File                | Description                                                                            |
-| --------------------- | ------------ | -------------------------- | -------------------------------------------------------------------------------------- |
-| `PORT`                | `20128`      | `src/lib/runtime/ports.ts` | Primary port for both Dashboard UI and API endpoints (single-port mode).               |
-| `API_PORT`            | _(unset)_    | `src/lib/runtime/ports.ts` | When set, serves the `/v1/*` proxy API on this separate port.                          |
-| `API_HOST`            | `0.0.0.0`    | `src/lib/runtime/ports.ts` | Bind address for the API port.                                                         |
-| `DASHBOARD_PORT`      | _(unset)_    | `src/lib/runtime/ports.ts` | When set, serves the Dashboard UI on this separate port.                               |
-| `PROD_DASHBOARD_PORT` | `20130`      | `docker-compose.prod.yml`  | Host-side published port for the Dashboard in Docker production mode.                  |
-| `PROD_API_PORT`       | `20131`      | `docker-compose.prod.yml`  | Host-side published port for the API in Docker production mode.                        |
-| `OMNIROUTE_PORT`      | _(unset)_    | `src/lib/runtime/ports.ts` | Takes precedence over `PORT` when running inside Electron or other wrappers.           |
-| `NODE_ENV`            | `production` | Next.js core               | Controls logging verbosity, caching, error detail exposure, and Next.js optimizations. |
+| Variable              | Default      | Source File                | Deskripsi                                                                                             |
+| --------------------- | ------------ | -------------------------- | ----------------------------------------------------------------------------------------------------- |
+| `PORT`                | `20128`      | `src/lib/runtime/ports.ts` | Port utama untuk Dashboard UI dan endpoint API (mode port tunggal).                                   |
+| `API_PORT`            | _(unset)_    | `src/lib/runtime/ports.ts` | Jika diatur, menyajikan API proxy `/v1/*` pada port terpisah ini.                                     |
+| `API_HOST`            | `0.0.0.0`    | `src/lib/runtime/ports.ts` | Alamat bind untuk port API.                                                                           |
+| `DASHBOARD_PORT`      | _(unset)_    | `src/lib/runtime/ports.ts` | Jika diatur, menyajikan Dashboard UI pada port terpisah ini.                                          |
+| `PROD_DASHBOARD_PORT` | `20130`      | `docker-compose.prod.yml`  | Port yang dipublikasikan di sisi host untuk Dashboard dalam mode produksi Docker.                     |
+| `PROD_API_PORT`       | `20131`      | `docker-compose.prod.yml`  | Port yang dipublikasikan di sisi host untuk API dalam mode produksi Docker.                           |
+| `OMNIROUTE_PORT`      | _(unset)_    | `src/lib/runtime/ports.ts` | Mengambil prioritas di atas `PORT` saat berjalan di dalam Electron atau wrapper lainnya.              |
+| `NODE_ENV`            | `production` | Next.js core               | Mengontrol verbositas logging, caching, ekspos detail error, dan optimasi Next.js.                    |
 
-### Port Modes
+### Mode Port
 
 ```
-┌─────────────────────────── Single Port (default) ──────────────────────────┐
+┌─────────────────────────── Port Tunggal (default) ─────────────────────────┐
 │  PORT=20128                                                                 │
 │  → Dashboard: http://localhost:20128                                        │
 │  → API:       http://localhost:20128/v1/chat/completions                    │
 └─────────────────────────────────────────────────────────────────────────────┘
 
-┌─────────────────────────── Split Ports ─────────────────────────────────────┐
+┌─────────────────────────── Port Terpisah ───────────────────────────────────┐
 │  DASHBOARD_PORT=20128                                                       │
 │  API_PORT=20129                                                             │
 │  API_HOST=0.0.0.0                                                           │
 │  → Dashboard: http://localhost:20128                                        │
 │  → API:       http://0.0.0.0:20129/v1/chat/completions                     │
-│  Use case: Expose API to LAN while restricting Dashboard to localhost.      │
+│  Kasus penggunaan: Ekspos API ke LAN sambil membatasi Dashboard ke localhost.│
 └─────────────────────────────────────────────────────────────────────────────┘
 
 ┌─────────────────────────── Docker Production ──────────────────────────────┐
 │  PROD_DASHBOARD_PORT=443   PROD_API_PORT=8443                              │
-│  → Maps container ports to host ports in docker-compose.prod.yml.          │
+│  → Memetakan port kontainer ke port host di docker-compose.prod.yml.       │
 └─────────────────────────────────────────────────────────────────────────────┘
 ```
 
 ---
 
-## 4. Security & Authentication
+## 4. Keamanan & Autentikasi
 
-| Variable                      | Default               | Source File                              | Description                                                                                               |
-| ----------------------------- | --------------------- | ---------------------------------------- | --------------------------------------------------------------------------------------------------------- |
-| `MACHINE_ID_SALT`             | `endpoint-proxy-salt` | `src/lib/auth`                           | Salt combined with hardware identifiers for machine fingerprinting. Change per-deployment for isolation.  |
-| `AUTH_COOKIE_SECURE`          | `false`               | `src/lib/auth`                           | Sets the `Secure` flag on session cookies. **Must be `true`** when running behind HTTPS.                  |
-| `REQUIRE_API_KEY`             | `false`               | API middleware                           | When `true`, all `/v1/*` proxy requests must include a valid API key.                                     |
-| `ALLOW_API_KEY_REVEAL`        | `false`               | Dashboard providers page                 | Allows revealing full API key values in the Dashboard UI. Security risk on shared instances.              |
-| `NO_LOG_API_KEY_IDS`          | _(empty)_             | `src/lib/compliance/index.ts`            | Comma-separated API key IDs that bypass request logging (GDPR compliance).                                |
-| `MAX_BODY_SIZE_BYTES`         | `10485760` (10 MB)    | `src/shared/middleware/bodySizeGuard.ts` | Maximum allowed request body size. Rejects payloads exceeding this limit.                                 |
-| `CORS_ORIGIN`                 | `*`                   | Next.js middleware                       | CORS `Access-Control-Allow-Origin` value. Restrict for production.                                        |
-| `OUTBOUND_SSRF_GUARD_ENABLED` | `true`                | `src/shared/network/outboundUrlGuard.ts` | Block provider calls targeting private/loopback/link-local IP ranges. Disable only in isolated test envs. |
+| Variable                      | Default               | Source File                              | Deskripsi                                                                                                                          |
+| ----------------------------- | --------------------- | ---------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------- |
+| `MACHINE_ID_SALT`             | `endpoint-proxy-salt` | `src/lib/auth`                           | Salt yang digabungkan dengan pengenal perangkat keras untuk fingerprinting mesin. Ubah per-deployment untuk isolasi.               |
+| `AUTH_COOKIE_SECURE`          | `false`               | `src/lib/auth`                           | Mengatur flag `Secure` pada cookie sesi. **Harus bernilai `true`** saat berjalan di balik HTTPS.                                   |
+| `REQUIRE_API_KEY`             | `false`               | API middleware                           | Saat bernilai `true`, semua permintaan proxy `/v1/*` harus menyertakan kunci API yang valid.                                       |
+| `ALLOW_API_KEY_REVEAL`        | `false`               | Dashboard providers page                 | Memungkinkan pengungkapan nilai kunci API penuh di Dashboard UI. Berisiko pada instansi bersama.                                   |
+| `NO_LOG_API_KEY_IDS`          | _(empty)_             | `src/lib/compliance/index.ts`            | ID kunci API yang dipisahkan koma yang melewati pencatatan permintaan (kepatuhan GDPR).                                            |
+| `MAX_BODY_SIZE_BYTES`         | `10485760` (10 MB)    | `src/shared/middleware/bodySizeGuard.ts` | Ukuran body permintaan maksimum yang diizinkan. Menolak payload yang melebihi batas ini.                                           |
+| `CORS_ORIGIN`                 | `*`                   | Next.js middleware                       | Nilai CORS `Access-Control-Allow-Origin`. Batasi untuk produksi.                                                                   |
+| `OUTBOUND_SSRF_GUARD_ENABLED` | `true`                | `src/shared/network/outboundUrlGuard.ts` | Memblokir panggilan provider yang menarget rentang IP privat/loopback/link-local. Nonaktifkan hanya di lingkungan pengujian terisolasi. |
 
-### Hardening Checklist
+### Daftar Periksa Penguatan Keamanan
 
 ```bash
-# Production security minimum:
-AUTH_COOKIE_SECURE=true        # Requires HTTPS
-REQUIRE_API_KEY=true           # Authenticate all proxy calls
-ALLOW_API_KEY_REVEAL=false     # Never expose keys in UI
+# Minimum keamanan produksi:
+AUTH_COOKIE_SECURE=true        # Memerlukan HTTPS
+REQUIRE_API_KEY=true           # Autentikasi semua panggilan proxy
+ALLOW_API_KEY_REVEAL=false     # Jangan pernah ekspos kunci di UI
 CORS_ORIGIN=https://your.domain.com
-MAX_BODY_SIZE_BYTES=5242880    # 5 MB limit
+MAX_BODY_SIZE_BYTES=5242880    # Batas 5 MB
 ```
 
 ---
 
-## 5. Input Sanitization & PII Protection
+## 5. Sanitasi Input & Perlindungan PII
 
-OmniRoute provides a two-layer defense: request-side injection scanning and response-side PII stripping.
+OmniRoute menyediakan pertahanan dua lapis: pemindaian injeksi di sisi permintaan dan penghapusan PII di sisi respons.
 
-### Request-Side: Prompt Injection Guard
+### Sisi Permintaan: Penjaga Injeksi Prompt
 
-| Variable                  | Default   | Source File                              | Description                                                                                 |
-| ------------------------- | --------- | ---------------------------------------- | ------------------------------------------------------------------------------------------- |
-| `INPUT_SANITIZER_ENABLED` | `false`   | `src/middleware/promptInjectionGuard.ts` | Enable scanning of incoming messages for prompt injection patterns.                         |
-| `INPUT_SANITIZER_MODE`    | `warn`    | `src/middleware/promptInjectionGuard.ts` | `warn` = log only, `block` = reject request with 400, `redact` = strip suspicious patterns. |
-| `INJECTION_GUARD_MODE`    | _(unset)_ | `src/middleware/promptInjectionGuard.ts` | Legacy alias for `INPUT_SANITIZER_MODE` — same behavior.                                    |
-| `PII_REDACTION_ENABLED`   | `false`   | `src/middleware/promptInjectionGuard.ts` | Detect PII (emails, phones, SSNs) in incoming requests.                                     |
+| Variable                  | Default   | Source File                              | Deskripsi                                                                                                   |
+| ------------------------- | --------- | ---------------------------------------- | ----------------------------------------------------------------------------------------------------------- |
+| `INPUT_SANITIZER_ENABLED` | `false`   | `src/middleware/promptInjectionGuard.ts` | Aktifkan pemindaian pesan masuk untuk pola injeksi prompt.                                                  |
+| `INPUT_SANITIZER_MODE`    | `warn`    | `src/middleware/promptInjectionGuard.ts` | `warn` = hanya log, `block` = tolak permintaan dengan 400, `redact` = hapus pola mencurigakan.              |
+| `INJECTION_GUARD_MODE`    | _(unset)_ | `src/middleware/promptInjectionGuard.ts` | Alias legacy untuk `INPUT_SANITIZER_MODE` — perilaku sama.                                                  |
+| `PII_REDACTION_ENABLED`   | `false`   | `src/middleware/promptInjectionGuard.ts` | Deteksi PII (email, telepon, SSN) dalam permintaan masuk.                                                   |
 
-### Response-Side: PII Sanitizer
+### Sisi Respons: Sanitizer PII
 
-| Variable                         | Default  | Source File               | Description                                                             |
-| -------------------------------- | -------- | ------------------------- | ----------------------------------------------------------------------- |
-| `PII_RESPONSE_SANITIZATION`      | `false`  | `src/lib/piiSanitizer.ts` | Scan LLM responses for leaked PII before returning to client.           |
-| `PII_RESPONSE_SANITIZATION_MODE` | `redact` | `src/lib/piiSanitizer.ts` | `redact` = mask PII, `warn` = log only, `block` = drop entire response. |
+| Variable                         | Default  | Source File               | Deskripsi                                                                                    |
+| -------------------------------- | -------- | ------------------------- | -------------------------------------------------------------------------------------------- |
+| `PII_RESPONSE_SANITIZATION`      | `false`  | `src/lib/piiSanitizer.ts` | Pindai respons LLM untuk PII yang bocor sebelum dikembalikan ke klien.                       |
+| `PII_RESPONSE_SANITIZATION_MODE` | `redact` | `src/lib/piiSanitizer.ts` | `redact` = sembunyikan PII, `warn` = hanya log, `block` = buang seluruh respons.             |
 
-### Scenarios
+### Skenario
 
-| Scenario                  | Configuration                                                                                                                |
-| ------------------------- | ---------------------------------------------------------------------------------------------------------------------------- |
-| **Enterprise compliance** | `INPUT_SANITIZER_ENABLED=true`, `INPUT_SANITIZER_MODE=block`, `PII_REDACTION_ENABLED=true`, `PII_RESPONSE_SANITIZATION=true` |
-| **Monitoring only**       | `INPUT_SANITIZER_ENABLED=true`, `INPUT_SANITIZER_MODE=warn` — logs but never blocks                                          |
-| **Personal use**          | Leave all disabled — zero overhead                                                                                           |
-
----
-
-## 6. Tool & Routing Policies
-
-| Variable           | Default    | Source File             | Description                                                                                                                               |
-| ------------------ | ---------- | ----------------------- | ----------------------------------------------------------------------------------------------------------------------------------------- |
-| `TOOL_POLICY_MODE` | `disabled` | `src/lib/toolPolicy.ts` | Controls LLM tool/function-calling access. `allowlist` = only listed tools, `denylist` = all except listed, `disabled` = no restrictions. |
+| Skenario                       | Konfigurasi                                                                                                                      |
+| ------------------------------ | -------------------------------------------------------------------------------------------------------------------------------- |
+| **Kepatuhan enterprise**       | `INPUT_SANITIZER_ENABLED=true`, `INPUT_SANITIZER_MODE=block`, `PII_REDACTION_ENABLED=true`, `PII_RESPONSE_SANITIZATION=true`     |
+| **Hanya pemantauan**           | `INPUT_SANITIZER_ENABLED=true`, `INPUT_SANITIZER_MODE=warn` — mencatat log namun tidak pernah memblokir                          |
+| **Penggunaan pribadi**         | Biarkan semua dinonaktifkan — tanpa overhead                                                                                     |
 
 ---
 
-## 7. URLs & Cloud Sync
+## 6. Kebijakan Alat & Routing
 
-| Variable                | Default                  | Source File                                 | Description                                                                                                     |
-| ----------------------- | ------------------------ | ------------------------------------------- | --------------------------------------------------------------------------------------------------------------- |
-| `BASE_URL`              | `http://localhost:20128` | `src/lib/cloudSync.ts`                      | Server-side URL for internal sync jobs to call `/api/sync/cloud`.                                               |
-| `CLOUD_URL`             | _(empty)_                | `src/lib/cloudSync.ts`                      | Cloud relay endpoint URL (premium feature).                                                                     |
-| `CLOUD_SYNC_TIMEOUT_MS` | `12000`                  | `src/lib/cloudSync.ts`                      | HTTP timeout for cloud sync requests.                                                                           |
-| `NEXT_PUBLIC_BASE_URL`  | `http://localhost:20128` | OAuth, Dashboard, sync                      | Public-facing URL for OAuth redirect_uri, Dashboard links. **Must match your public URL behind reverse proxy.** |
-| `NEXT_PUBLIC_CLOUD_URL` | _(empty)_                | Client-side                                 | Client-side mirror of `CLOUD_URL`.                                                                              |
-| `NEXT_PUBLIC_APP_URL`   | _(unset)_                | `src/shared/services/cloudSyncScheduler.ts` | Legacy fallback for `NEXT_PUBLIC_BASE_URL`.                                                                     |
+| Variable           | Default    | Source File             | Deskripsi                                                                                                                                              |
+| ------------------ | ---------- | ----------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `TOOL_POLICY_MODE` | `disabled` | `src/lib/toolPolicy.ts` | Mengontrol akses pemanggilan alat/fungsi LLM. `allowlist` = hanya alat yang terdaftar, `denylist` = semua kecuali yang terdaftar, `disabled` = tanpa batasan. |
+
+---
+
+## 7. URL & Sinkronisasi Cloud
+
+| Variable                | Default                  | Source File                                 | Deskripsi                                                                                                                  |
+| ----------------------- | ------------------------ | ------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------- |
+| `BASE_URL`              | `http://localhost:20128` | `src/lib/cloudSync.ts`                      | URL sisi server untuk pekerjaan sinkronisasi internal memanggil `/api/sync/cloud`.                                         |
+| `CLOUD_URL`             | _(empty)_                | `src/lib/cloudSync.ts`                      | URL endpoint relay cloud (fitur premium).                                                                                  |
+| `CLOUD_SYNC_TIMEOUT_MS` | `12000`                  | `src/lib/cloudSync.ts`                      | Batas waktu HTTP untuk permintaan sinkronisasi cloud.                                                                      |
+| `NEXT_PUBLIC_BASE_URL`  | `http://localhost:20128` | OAuth, Dashboard, sync                      | URL publik untuk redirect_uri OAuth, tautan Dashboard. **Harus cocok dengan URL publik Anda di balik reverse proxy.**      |
+| `NEXT_PUBLIC_CLOUD_URL` | _(empty)_                | Client-side                                 | Cerminan sisi klien dari `CLOUD_URL`.                                                                                      |
+| `NEXT_PUBLIC_APP_URL`   | _(unset)_                | `src/shared/services/cloudSyncScheduler.ts` | Fallback legacy untuk `NEXT_PUBLIC_BASE_URL`.                                                                              |
 
 > [!IMPORTANT]
-> When deploying behind a reverse proxy (nginx, Caddy), `NEXT_PUBLIC_BASE_URL` **must** be set to your public URL (e.g., `https://omniroute.example.com`). Without this, OAuth callbacks will fail because the redirect_uri won't match.
+> Saat melakukan deployment di balik reverse proxy (nginx, Caddy), `NEXT_PUBLIC_BASE_URL` **harus** diatur ke URL publik Anda (misalnya, `https://omniroute.example.com`). Tanpa ini, callback OAuth akan gagal karena redirect_uri tidak akan cocok.
 
 ---
 
-## 8. Outbound Proxy
+## 8. Proxy Keluar
 
-Route upstream LLM provider calls through an HTTP or SOCKS5 proxy for egress control, geo-routing, or IP masking.
+Arahkan panggilan provider LLM upstream melalui proxy HTTP atau SOCKS5 untuk kontrol egress, geo-routing, atau penyembunyian IP.
 
-| Variable                          | Default   | Source File          | Description                                                                         |
-| --------------------------------- | --------- | -------------------- | ----------------------------------------------------------------------------------- |
-| `ENABLE_SOCKS5_PROXY`             | `true`    | `open-sse/executors` | Enable SOCKS5 proxy agent for upstream calls.                                       |
-| `NEXT_PUBLIC_ENABLE_SOCKS5_PROXY` | `true`    | Client-side          | Client-side awareness of SOCKS5 availability.                                       |
-| `HTTP_PROXY`                      | _(unset)_ | Node.js standard     | HTTP proxy for upstream calls.                                                      |
-| `HTTPS_PROXY`                     | _(unset)_ | Node.js standard     | HTTPS proxy for upstream calls.                                                     |
-| `ALL_PROXY`                       | _(unset)_ | Node.js standard     | Universal proxy (supports `socks5://`).                                             |
-| `NO_PROXY`                        | _(unset)_ | Node.js standard     | Comma-separated hostnames/IPs to bypass the proxy.                                  |
-| `ENABLE_TLS_FINGERPRINT`          | `false`   | `open-sse/executors` | Spoof TLS fingerprint using wreq-js (mimics Chrome 124). Counters JA3/JA4 blocking. |
+| Variable                          | Default   | Source File          | Deskripsi                                                                                                  |
+| --------------------------------- | --------- | -------------------- | ---------------------------------------------------------------------------------------------------------- |
+| `ENABLE_SOCKS5_PROXY`             | `true`    | `open-sse/executors` | Aktifkan agen proxy SOCKS5 untuk panggilan upstream.                                                       |
+| `NEXT_PUBLIC_ENABLE_SOCKS5_PROXY` | `true`    | Client-side          | Kesadaran sisi klien tentang ketersediaan SOCKS5.                                                          |
+| `HTTP_PROXY`                      | _(unset)_ | Node.js standard     | Proxy HTTP untuk panggilan upstream.                                                                       |
+| `HTTPS_PROXY`                     | _(unset)_ | Node.js standard     | Proxy HTTPS untuk panggilan upstream.                                                                      |
+| `ALL_PROXY`                       | _(unset)_ | Node.js standard     | Proxy universal (mendukung `socks5://`).                                                                   |
+| `NO_PROXY`                        | _(unset)_ | Node.js standard     | Nama host/IP yang dipisahkan koma untuk melewati proxy.                                                    |
+| `ENABLE_TLS_FINGERPRINT`          | `false`   | `open-sse/executors` | Memalsukan fingerprint TLS menggunakan wreq-js (meniru Chrome 124). Mengatasi pemblokiran JA3/JA4.         |
 
-### Scenarios
+### Skenario
 
-| Scenario                      | Configuration                                                                                                             |
-| ----------------------------- | ------------------------------------------------------------------------------------------------------------------------- |
-| **SOCKS5 through SSH tunnel** | `ALL_PROXY=socks5://127.0.0.1:7890`, `ENABLE_SOCKS5_PROXY=true`                                                           |
-| **Corporate HTTP proxy**      | `HTTP_PROXY=http://proxy.corp.com:3128`, `HTTPS_PROXY=http://proxy.corp.com:3128`, `NO_PROXY=localhost,internal.corp.com` |
-| **Anti-fingerprint**          | `ENABLE_TLS_FINGERPRINT=true` — requires `wreq-js` (included)                                                             |
+| Skenario                           | Konfigurasi                                                                                                               |
+| ---------------------------------- | ------------------------------------------------------------------------------------------------------------------------- |
+| **SOCKS5 melalui tunnel SSH**      | `ALL_PROXY=socks5://127.0.0.1:7890`, `ENABLE_SOCKS5_PROXY=true`                                                           |
+| **Proxy HTTP korporat**            | `HTTP_PROXY=http://proxy.corp.com:3128`, `HTTPS_PROXY=http://proxy.corp.com:3128`, `NO_PROXY=localhost,internal.corp.com` |
+| **Anti-fingerprint**               | `ENABLE_TLS_FINGERPRINT=true` — memerlukan `wreq-js` (sudah disertakan)                                                   |
 
 ---
 
-## 9. CLI Tool Integration
+## 9. Integrasi Alat CLI
 
-Controls how OmniRoute discovers and launches CLI sidecars (Claude Code, Codex, etc.).
+Mengontrol bagaimana OmniRoute menemukan dan menjalankan sidecar CLI (Claude Code, Codex, dll.).
 
-| Variable                  | Default    | Source File                         | Description                                                                |
-| ------------------------- | ---------- | ----------------------------------- | -------------------------------------------------------------------------- |
-| `CLI_MODE`                | `auto`     | `src/shared/services/cliRuntime.ts` | `auto` = search system PATH; `manual` = use explicit paths only.           |
-| `CLI_EXTRA_PATHS`         | _(unset)_  | `src/shared/services/cliRuntime.ts` | Additional PATH entries for CLI binary discovery (colon-separated).        |
-| `CLI_CONFIG_HOME`         | _(unset)_  | `src/shared/services/cliRuntime.ts` | Override home directory for reading CLI configs (`~/.claude`, `~/.codex`). |
-| `CLI_ALLOW_CONFIG_WRITES` | `false`    | `src/shared/services/cliRuntime.ts` | Allow OmniRoute to write CLI config files (token refresh, session data).   |
-| `CLI_CLAUDE_BIN`          | `claude`   | `src/shared/services/cliRuntime.ts` | Custom path to Claude CLI binary.                                          |
-| `CLI_CODEX_BIN`           | `codex`    | `src/shared/services/cliRuntime.ts` | Custom path to Codex CLI binary.                                           |
-| `CLI_DROID_BIN`           | `droid`    | `src/shared/services/cliRuntime.ts` | Custom path to Droid CLI binary.                                           |
-| `CLI_OPENCLAW_BIN`        | `openclaw` | `src/shared/services/cliRuntime.ts` | Custom path to OpenClaw CLI binary.                                        |
-| `CLI_CURSOR_BIN`          | `agent`    | `src/shared/services/cliRuntime.ts` | Custom path to Cursor agent binary.                                        |
-| `CLI_CLINE_BIN`           | `cline`    | `src/shared/services/cliRuntime.ts` | Custom path to Cline CLI binary.                                           |
-| `CLI_CONTINUE_BIN`        | `cn`       | `src/shared/services/cliRuntime.ts` | Custom path to Continue CLI binary.                                        |
-| `CLI_QODER_BIN`           | `qoder`    | `src/shared/services/cliRuntime.ts` | Custom path to Qoder CLI binary.                                           |
+| Variable                  | Default    | Source File                         | Deskripsi                                                                                        |
+| ------------------------- | ---------- | ----------------------------------- | ------------------------------------------------------------------------------------------------ |
+| `CLI_MODE`                | `auto`     | `src/shared/services/cliRuntime.ts` | `auto` = cari di PATH sistem; `manual` = gunakan hanya path eksplisit.                           |
+| `CLI_EXTRA_PATHS`         | _(unset)_  | `src/shared/services/cliRuntime.ts` | Entri PATH tambahan untuk penemuan biner CLI (dipisahkan titik dua).                             |
+| `CLI_CONFIG_HOME`         | _(unset)_  | `src/shared/services/cliRuntime.ts` | Override direktori home untuk membaca konfigurasi CLI (`~/.claude`, `~/.codex`).                 |
+| `CLI_ALLOW_CONFIG_WRITES` | `false`    | `src/shared/services/cliRuntime.ts` | Izinkan OmniRoute menulis file konfigurasi CLI (penyegaran token, data sesi).                    |
+| `CLI_CLAUDE_BIN`          | `claude`   | `src/shared/services/cliRuntime.ts` | Path kustom ke biner CLI Claude.                                                                 |
+| `CLI_CODEX_BIN`           | `codex`    | `src/shared/services/cliRuntime.ts` | Path kustom ke biner CLI Codex.                                                                  |
+| `CLI_DROID_BIN`           | `droid`    | `src/shared/services/cliRuntime.ts` | Path kustom ke biner CLI Droid.                                                                  |
+| `CLI_OPENCLAW_BIN`        | `openclaw` | `src/shared/services/cliRuntime.ts` | Path kustom ke biner CLI OpenClaw.                                                               |
+| `CLI_CURSOR_BIN`          | `agent`    | `src/shared/services/cliRuntime.ts` | Path kustom ke biner agen Cursor.                                                                |
+| `CLI_CLINE_BIN`           | `cline`    | `src/shared/services/cliRuntime.ts` | Path kustom ke biner CLI Cline.                                                                  |
+| `CLI_CONTINUE_BIN`        | `cn`       | `src/shared/services/cliRuntime.ts` | Path kustom ke biner CLI Continue.                                                               |
+| `CLI_QODER_BIN`           | `qoder`    | `src/shared/services/cliRuntime.ts` | Path kustom ke biner CLI Qoder.                                                                  |
 
-### Docker Example
+### Contoh Docker
 
 ```bash
-# Mount host binaries into the container and tell OmniRoute where they are:
+# Mount biner host ke kontainer dan beri tahu OmniRoute lokasinya:
 CLI_EXTRA_PATHS=/host-cli/bin
 CLI_CONFIG_HOME=/root
 CLI_ALLOW_CONFIG_WRITES=true
@@ -261,139 +261,139 @@ CLI_CLAUDE_BIN=/host-cli/bin/claude
 
 ---
 
-## 10. Internal Agent & MCP Integrations
+## 10. Agen Internal & Integrasi MCP
 
-| Variable                                | Default     | Source File                                 | Description                                                                                                                   |
-| --------------------------------------- | ----------- | ------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------- |
-| `OMNIROUTE_BASE_URL`                    | auto-detect | `open-sse/mcp-server/server.ts`             | Explicit URL for MCP/A2A tools to reach OmniRoute. Overrides localhost auto-detection.                                        |
-| `OMNIROUTE_API_KEY`                     | _(unset)_   | MCP/A2A modules                             | API key for internal MCP tool and A2A skill calls.                                                                            |
-| `OMNIROUTE_API_KEY_ID`                  | _(unset)_   | `open-sse/mcp-server/audit.ts`              | Key ID for MCP audit log attribution.                                                                                         |
-| `ROUTER_API_KEY`                        | _(unset)_   | Legacy                                      | Legacy alias for `OMNIROUTE_API_KEY`.                                                                                         |
-| `OMNIROUTE_MCP_ENFORCE_SCOPES`          | `false`     | `open-sse/mcp-server/server.ts`             | Enforce scope-based access control on MCP tool calls.                                                                         |
-| `OMNIROUTE_MCP_SCOPES`                  | _(all)_     | `open-sse/mcp-server/server.ts`             | Comma-separated scopes: `admin`, `combos`, `health`, `models`, `routing`, `budget`, `metrics`, `pricing`, `memory`, `skills`. |
-| `MODEL_SYNC_INTERVAL_HOURS`             | `24`        | `src/shared/services/modelSyncScheduler.ts` | Model catalog sync interval in hours.                                                                                         |
-| `PROVIDER_LIMITS_SYNC_INTERVAL_MINUTES` | `70`        | `src/server-init.ts`                        | Provider rate-limit and quota polling interval.                                                                               |
-| `OMNIROUTE_DISABLE_BACKGROUND_SERVICES` | `false`     | `src/instrumentation-node.ts`               | Disable all background services (sync, pricing, model refresh). Useful for CI/test.                                           |
-| `OMNIROUTE_BOOTSTRAPPED`                | `false`     | `src/app/(dashboard)/dashboard/page.tsx`    | Set `true` by bootstrap script after initial setup. Controls setup wizard visibility.                                         |
-| `OMNIROUTE_ALLOW_BODY_PROJECT_OVERRIDE` | `0`         | `open-sse/executors/antigravity.ts`         | Escape hatch: allow request body to override the Antigravity project field.                                                   |
+| Variable                                | Default          | Source File                                 | Deskripsi                                                                                                                              |
+| --------------------------------------- | ---------------- | ------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------- |
+| `OMNIROUTE_BASE_URL`                    | deteksi otomatis | `open-sse/mcp-server/server.ts`             | URL eksplisit agar alat MCP/A2A dapat menjangkau OmniRoute. Menimpa deteksi otomatis localhost.                                        |
+| `OMNIROUTE_API_KEY`                     | _(unset)_        | MCP/A2A modules                             | Kunci API untuk panggilan alat MCP internal dan skill A2A.                                                                             |
+| `OMNIROUTE_API_KEY_ID`                  | _(unset)_        | `open-sse/mcp-server/audit.ts`              | ID kunci untuk atribusi log audit MCP.                                                                                                 |
+| `ROUTER_API_KEY`                        | _(unset)_        | Legacy                                      | Alias legacy untuk `OMNIROUTE_API_KEY`.                                                                                                |
+| `OMNIROUTE_MCP_ENFORCE_SCOPES`          | `false`          | `open-sse/mcp-server/server.ts`             | Terapkan kontrol akses berbasis scope pada panggilan alat MCP.                                                                         |
+| `OMNIROUTE_MCP_SCOPES`                  | _(all)_          | `open-sse/mcp-server/server.ts`             | Scope yang dipisahkan koma: `admin`, `combos`, `health`, `models`, `routing`, `budget`, `metrics`, `pricing`, `memory`, `skills`.      |
+| `MODEL_SYNC_INTERVAL_HOURS`             | `24`             | `src/shared/services/modelSyncScheduler.ts` | Interval sinkronisasi katalog model dalam jam.                                                                                         |
+| `PROVIDER_LIMITS_SYNC_INTERVAL_MINUTES` | `70`             | `src/server-init.ts`                        | Interval polling batas rate dan kuota provider.                                                                                        |
+| `OMNIROUTE_DISABLE_BACKGROUND_SERVICES` | `false`          | `src/instrumentation-node.ts`               | Nonaktifkan semua layanan latar belakang (sinkronisasi, harga, pembaruan model). Berguna untuk CI/pengujian.                           |
+| `OMNIROUTE_BOOTSTRAPPED`                | `false`          | `src/app/(dashboard)/dashboard/page.tsx`    | Diatur ke `true` oleh skrip bootstrap setelah pengaturan awal. Mengontrol visibilitas wizard pengaturan.                               |
+| `OMNIROUTE_ALLOW_BODY_PROJECT_OVERRIDE` | `0`              | `open-sse/executors/antigravity.ts`         | Escape hatch: izinkan body permintaan untuk menimpa field proyek Antigravity.                                                          |
 
-### OAuth CLI Bridge (Internal)
+### Jembatan CLI OAuth (Internal)
 
-| Variable            | Default     | Source File                     | Description                               |
-| ------------------- | ----------- | ------------------------------- | ----------------------------------------- |
-| `OMNIROUTE_SERVER`  | auto-detect | `src/lib/oauth/config/index.ts` | Server URL for CLI↔OmniRoute auth bridge. |
-| `OMNIROUTE_TOKEN`   | _(unset)_   | `src/lib/oauth/config/index.ts` | Auth token for CLI bridge.                |
-| `OMNIROUTE_USER_ID` | `cli`       | `src/lib/oauth/config/index.ts` | User ID for CLI bridge sessions.          |
-| `SERVER_URL`        | _(unset)_   | `src/lib/oauth/config/index.ts` | Legacy alias for `OMNIROUTE_SERVER`.      |
-| `CLI_TOKEN`         | _(unset)_   | `src/lib/oauth/config/index.ts` | Legacy alias for `OMNIROUTE_TOKEN`.       |
-| `CLI_USER_ID`       | _(unset)_   | `src/lib/oauth/config/index.ts` | Legacy alias for `OMNIROUTE_USER_ID`.     |
+| Variable            | Default          | Source File                     | Deskripsi                                        |
+| ------------------- | ---------------- | ------------------------------- | ------------------------------------------------ |
+| `OMNIROUTE_SERVER`  | deteksi otomatis | `src/lib/oauth/config/index.ts` | URL server untuk jembatan autentikasi CLI↔OmniRoute. |
+| `OMNIROUTE_TOKEN`   | _(unset)_        | `src/lib/oauth/config/index.ts` | Token autentikasi untuk jembatan CLI.             |
+| `OMNIROUTE_USER_ID` | `cli`            | `src/lib/oauth/config/index.ts` | ID pengguna untuk sesi jembatan CLI.              |
+| `SERVER_URL`        | _(unset)_        | `src/lib/oauth/config/index.ts` | Alias legacy untuk `OMNIROUTE_SERVER`.            |
+| `CLI_TOKEN`         | _(unset)_        | `src/lib/oauth/config/index.ts` | Alias legacy untuk `OMNIROUTE_TOKEN`.             |
+| `CLI_USER_ID`       | _(unset)_        | `src/lib/oauth/config/index.ts` | Alias legacy untuk `OMNIROUTE_USER_ID`.           |
 
 ---
 
-## 11. OAuth Provider Credentials
+## 11. Kredensial Provider OAuth
 
-Built-in credentials for **localhost development**. For remote deployments, register your own at each provider's developer console.
+Kredensial bawaan untuk **pengembangan localhost**. Untuk deployment jarak jauh, daftarkan milik Anda sendiri di konsol pengembang masing-masing provider.
 
-| Variable                          | Provider                | Notes                                                                             |
-| --------------------------------- | ----------------------- | --------------------------------------------------------------------------------- |
-| `CLAUDE_OAUTH_CLIENT_ID`          | Claude Code (Anthropic) | Public client — no secret needed.                                                 |
-| `CLAUDE_CODE_REDIRECT_URI`        | Claude Code             | Override redirect URI. Default: `https://platform.claude.com/oauth/code/callback` |
-| `CODEX_OAUTH_CLIENT_ID`           | Codex / OpenAI          | Public client.                                                                    |
-| `GEMINI_OAUTH_CLIENT_ID`          | Gemini (Google)         | Requires matching `_SECRET`.                                                      |
-| `GEMINI_OAUTH_CLIENT_SECRET`      | Gemini (Google)         | —                                                                                 |
-| `GEMINI_CLI_OAUTH_CLIENT_ID`      | Gemini CLI              | Usually same as Gemini.                                                           |
-| `GEMINI_CLI_OAUTH_CLIENT_SECRET`  | Gemini CLI              | —                                                                                 |
-| `QWEN_OAUTH_CLIENT_ID`            | Qwen (Alibaba)          | Public client.                                                                    |
-| `KIMI_CODING_OAUTH_CLIENT_ID`     | Kimi Coding (Moonshot)  | Public client.                                                                    |
-| `ANTIGRAVITY_OAUTH_CLIENT_ID`     | Antigravity (Google)    | Requires matching `_SECRET`.                                                      |
-| `ANTIGRAVITY_OAUTH_CLIENT_SECRET` | Antigravity (Google)    | —                                                                                 |
-| `GITHUB_OAUTH_CLIENT_ID`          | GitHub Copilot          | Public client.                                                                    |
-| `QODER_OAUTH_CLIENT_SECRET`       | Qoder                   | —                                                                                 |
-| `QODER_OAUTH_AUTHORIZE_URL`       | Qoder                   | Set to enable Qoder OAuth.                                                        |
-| `QODER_OAUTH_TOKEN_URL`           | Qoder                   | —                                                                                 |
-| `QODER_OAUTH_USERINFO_URL`        | Qoder                   | —                                                                                 |
-| `QODER_OAUTH_CLIENT_ID`           | Qoder                   | —                                                                                 |
-| `QODER_PERSONAL_ACCESS_TOKEN`     | Qoder                   | Direct API key fallback (bypasses OAuth).                                         |
-| `QODER_CLI_WORKSPACE`             | Qoder                   | Workspace ID for Qoder CLI.                                                       |
-| `OMNIROUTE_QODER_WORKSPACE`       | Qoder                   | Alias for `QODER_CLI_WORKSPACE`.                                                  |
+| Variable                          | Provider                | Catatan                                                                                   |
+| --------------------------------- | ----------------------- | ----------------------------------------------------------------------------------------- |
+| `CLAUDE_OAUTH_CLIENT_ID`          | Claude Code (Anthropic) | Klien publik — tidak perlu secret.                                                        |
+| `CLAUDE_CODE_REDIRECT_URI`        | Claude Code             | Timpa redirect URI. Default: `https://platform.claude.com/oauth/code/callback`             |
+| `CODEX_OAUTH_CLIENT_ID`           | Codex / OpenAI          | Klien publik.                                                                             |
+| `GEMINI_OAUTH_CLIENT_ID`          | Gemini (Google)         | Memerlukan `_SECRET` yang sesuai.                                                         |
+| `GEMINI_OAUTH_CLIENT_SECRET`      | Gemini (Google)         | —                                                                                         |
+| `GEMINI_CLI_OAUTH_CLIENT_ID`      | Gemini CLI              | Biasanya sama dengan Gemini.                                                              |
+| `GEMINI_CLI_OAUTH_CLIENT_SECRET`  | Gemini CLI              | —                                                                                         |
+| `QWEN_OAUTH_CLIENT_ID`            | Qwen (Alibaba)          | Klien publik.                                                                             |
+| `KIMI_CODING_OAUTH_CLIENT_ID`     | Kimi Coding (Moonshot)  | Klien publik.                                                                             |
+| `ANTIGRAVITY_OAUTH_CLIENT_ID`     | Antigravity (Google)    | Memerlukan `_SECRET` yang sesuai.                                                         |
+| `ANTIGRAVITY_OAUTH_CLIENT_SECRET` | Antigravity (Google)    | —                                                                                         |
+| `GITHUB_OAUTH_CLIENT_ID`          | GitHub Copilot          | Klien publik.                                                                             |
+| `QODER_OAUTH_CLIENT_SECRET`       | Qoder                   | —                                                                                         |
+| `QODER_OAUTH_AUTHORIZE_URL`       | Qoder                   | Atur untuk mengaktifkan OAuth Qoder.                                                      |
+| `QODER_OAUTH_TOKEN_URL`           | Qoder                   | —                                                                                         |
+| `QODER_OAUTH_USERINFO_URL`        | Qoder                   | —                                                                                         |
+| `QODER_OAUTH_CLIENT_ID`           | Qoder                   | —                                                                                         |
+| `QODER_PERSONAL_ACCESS_TOKEN`     | Qoder                   | Fallback kunci API langsung (melewati OAuth).                                             |
+| `QODER_CLI_WORKSPACE`             | Qoder                   | ID workspace untuk CLI Qoder.                                                             |
+| `OMNIROUTE_QODER_WORKSPACE`       | Qoder                   | Alias untuk `QODER_CLI_WORKSPACE`.                                                        |
 
 > [!WARNING]
-> **Google OAuth** (Antigravity, Gemini CLI) credentials **only work on localhost**. For remote servers:
+> Kredensial **Google OAuth** (Antigravity, Gemini CLI) **hanya berfungsi di localhost**. Untuk server jarak jauh:
 >
-> 1. Go to [Google Cloud Console → Credentials](https://console.cloud.google.com/apis/credentials)
-> 2. Create an OAuth 2.0 Client ID (type: "Web application")
-> 3. Add your server URL as Authorized redirect URI
-> 4. Replace the credential values in `.env`.
+> 1. Buka [Google Cloud Console → Credentials](https://console.cloud.google.com/apis/credentials)
+> 2. Buat OAuth 2.0 Client ID (tipe: "Web application")
+> 3. Tambahkan URL server Anda sebagai Authorized redirect URI
+> 4. Ganti nilai kredensial di `.env`.
 
 ---
 
-## 12. Provider User-Agent Overrides
+## 12. Override User-Agent Provider
 
-Override the `User-Agent` header sent to each upstream provider. This is dynamically resolved at runtime by the executor base class:
+Menimpa header `User-Agent` yang dikirim ke setiap provider upstream. Ini diselesaikan secara dinamis saat runtime oleh kelas dasar executor:
 
 ```
 process.env[`${PROVIDER_ID}_USER_AGENT`]
 ```
 
-> **Source:** `open-sse/executors/base.ts` → `buildHeaders()`
+> **Sumber:** `open-sse/executors/base.ts` → `buildHeaders()`
 
-| Variable                 | Default Value                                 | When to Update                                                |
-| ------------------------ | --------------------------------------------- | ------------------------------------------------------------- |
-| `CLAUDE_USER_AGENT`      | `claude-cli/2.1.145 (external, cli)`          | When Anthropic releases a new CLI version                     |
-| `CODEX_USER_AGENT`       | `codex-cli/0.132.0 (Windows 10.0.26200; x64)` | When OpenAI updates the Codex CLI                             |
-| `CODEX_CLIENT_VERSION`   | `0.131.0`                                     | Override Codex client version independently of full UA string |
-| `GITHUB_USER_AGENT`      | `GitHubCopilotChat/0.45.1`                    | When GitHub Copilot Chat updates                              |
-| `ANTIGRAVITY_USER_AGENT` | `antigravity/2.0.1 darwin/arm64`              | When Antigravity IDE updates                                  |
-| `KIRO_USER_AGENT`        | `AWS-SDK-JS/3.0.0 kiro-ide/1.0.0`             | When Kiro IDE updates                                         |
-| `QODER_USER_AGENT`       | `Qoder-Cli`                                   | When Qoder CLI updates                                        |
-| `QWEN_USER_AGENT`        | `QwenCode/0.15.11 (linux; x64)`               | When Qwen Code updates                                        |
-| `CURSOR_USER_AGENT`      | `connect-es/1.6.1`                            | When Cursor updates                                           |
-| `GEMINI_CLI_USER_AGENT`  | `google-api-nodejs-client/10.3.0`             | When Google API client updates                                |
+| Variable                 | Nilai Default                                 | Kapan Diperbarui                                                       |
+| ------------------------ | --------------------------------------------- | ---------------------------------------------------------------------- |
+| `CLAUDE_USER_AGENT`      | `claude-cli/2.1.145 (external, cli)`          | Saat Anthropic merilis versi CLI baru                                  |
+| `CODEX_USER_AGENT`       | `codex-cli/0.132.0 (Windows 10.0.26200; x64)` | Saat OpenAI memperbarui CLI Codex                                      |
+| `CODEX_CLIENT_VERSION`   | `0.131.0`                                     | Override versi klien Codex secara independen dari string UA penuh      |
+| `GITHUB_USER_AGENT`      | `GitHubCopilotChat/0.45.1`                    | Saat GitHub Copilot Chat diperbarui                                    |
+| `ANTIGRAVITY_USER_AGENT` | `antigravity/2.0.1 darwin/arm64`              | Saat Antigravity IDE diperbarui                                        |
+| `KIRO_USER_AGENT`        | `AWS-SDK-JS/3.0.0 kiro-ide/1.0.0`             | Saat Kiro IDE diperbarui                                               |
+| `QODER_USER_AGENT`       | `Qoder-Cli`                                   | Saat CLI Qoder diperbarui                                              |
+| `QWEN_USER_AGENT`        | `QwenCode/0.15.11 (linux; x64)`               | Saat Qwen Code diperbarui                                              |
+| `CURSOR_USER_AGENT`      | `connect-es/1.6.1`                            | Saat Cursor diperbarui                                                 |
+| `GEMINI_CLI_USER_AGENT`  | `google-api-nodejs-client/10.3.0`             | Saat klien API Google diperbarui                                       |
 
 > [!TIP]
-> You can add User-Agent overrides for **any** provider using the pattern `{PROVIDER_ID}_USER_AGENT`. The executor dynamically constructs the env var name.
+> Anda dapat menambahkan override User-Agent untuk provider **mana pun** menggunakan pola `{PROVIDER_ID}_USER_AGENT`. Executor secara dinamis membangun nama variabel lingkungan.
 
 ---
 
-## 13. CLI Fingerprint Compatibility
+## 13. Kompatibilitas Fingerprint CLI
 
-When enabled, OmniRoute reorders HTTP headers and JSON body fields to match the exact signature of official CLI tools. This reduces the risk of account flagging while preserving your proxy IP.
+Saat diaktifkan, OmniRoute mengatur ulang urutan header HTTP dan field body JSON agar cocok dengan tanda tangan persis dari alat CLI resmi. Hal ini mengurangi risiko pemblokiran akun sambil mempertahankan IP proxy Anda.
 
-**Source:** `open-sse/config/cliFingerprints.ts`, `open-sse/executors/base.ts`
+**Sumber:** `open-sse/config/cliFingerprints.ts`, `open-sse/executors/base.ts`
 
 ### Per-Provider
 
-| Variable                   | Effect                                  |
-| -------------------------- | --------------------------------------- |
-| `CLI_COMPAT_CODEX=1`       | Mimics Codex CLI request signature      |
-| `CLI_COMPAT_CLAUDE=1`      | Mimics Claude Code request signature    |
-| `CLI_COMPAT_GITHUB=1`      | Mimics GitHub Copilot request signature |
-| `CLI_COMPAT_ANTIGRAVITY=1` | Mimics Antigravity request signature    |
-| `CLI_COMPAT_KIRO=1`        | Mimics Kiro IDE request signature       |
-| `CLI_COMPAT_CURSOR=1`      | Mimics Cursor request signature         |
-| `CLI_COMPAT_KIMI_CODING=1` | Mimics Kimi Coding request signature    |
-| `CLI_COMPAT_KILOCODE=1`    | Mimics Kilo Code request signature      |
-| `CLI_COMPAT_CLINE=1`       | Mimics Cline request signature          |
-| `CLI_COMPAT_QWEN=1`        | Mimics Qwen Code request signature      |
+| Variable                   | Efek                                              |
+| -------------------------- | ------------------------------------------------- |
+| `CLI_COMPAT_CODEX=1`       | Meniru tanda tangan permintaan CLI Codex          |
+| `CLI_COMPAT_CLAUDE=1`      | Meniru tanda tangan permintaan Claude Code        |
+| `CLI_COMPAT_GITHUB=1`      | Meniru tanda tangan permintaan GitHub Copilot     |
+| `CLI_COMPAT_ANTIGRAVITY=1` | Meniru tanda tangan permintaan Antigravity        |
+| `CLI_COMPAT_KIRO=1`        | Meniru tanda tangan permintaan Kiro IDE           |
+| `CLI_COMPAT_CURSOR=1`      | Meniru tanda tangan permintaan Cursor             |
+| `CLI_COMPAT_KIMI_CODING=1` | Meniru tanda tangan permintaan Kimi Coding        |
+| `CLI_COMPAT_KILOCODE=1`    | Meniru tanda tangan permintaan Kilo Code          |
+| `CLI_COMPAT_CLINE=1`       | Meniru tanda tangan permintaan Cline              |
+| `CLI_COMPAT_QWEN=1`        | Meniru tanda tangan permintaan Qwen Code          |
 
 ### Global
 
-| Variable           | Effect                                                          |
-| ------------------ | --------------------------------------------------------------- |
-| `CLI_COMPAT_ALL=1` | Enable fingerprint compatibility for **all** providers at once. |
+| Variable           | Efek                                                                     |
+| ------------------ | ------------------------------------------------------------------------ |
+| `CLI_COMPAT_ALL=1` | Aktifkan kompatibilitas fingerprint untuk **semua** provider sekaligus.  |
 
 > [!NOTE]
-> This feature works alongside the User-Agent overrides (§12). The fingerprint system handles header ordering and body field ordering, while User-Agent overrides handle the specific UA string. Both can be enabled independently.
+> Fitur ini bekerja berdampingan dengan override User-Agent (§12). Sistem fingerprint menangani urutan header dan urutan field body, sementara override User-Agent menangani string UA tertentu. Keduanya dapat diaktifkan secara independen.
 
 ---
 
-## 14. API Key Providers
+## 14. Provider Kunci API
 
-API keys for providers that use direct authentication. **Preferred setup:** Dashboard → Providers → Add API Key.
+Kunci API untuk provider yang menggunakan autentikasi langsung. **Pengaturan yang disarankan:** Dashboard → Providers → Add API Key.
 
-Setting via environment variables is an alternative for Docker or headless deployments.
+Pengaturan melalui variabel lingkungan adalah alternatif untuk deployment Docker atau tanpa antarmuka grafis.
 
-Recognized pattern: `{PROVIDER_ID}_API_KEY`
+Pola yang dikenali: `{PROVIDER_ID}_API_KEY`
 
 | Variable             | Provider            |
 | -------------------- | ------------------- |
@@ -410,15 +410,15 @@ Recognized pattern: `{PROVIDER_ID}_API_KEY`
 | `NEBIUS_API_KEY`     | Nebius (embeddings) |
 
 > [!TIP]
-> Keys set via the Dashboard are stored encrypted in SQLite and take precedence over environment variables.
+> Kunci yang diatur melalui Dashboard disimpan terenkripsi di SQLite dan mengambil prioritas di atas variabel lingkungan.
 
 ---
 
-## 15. Timeout Settings
+## 15. Pengaturan Batas Waktu
 
-All values are in **milliseconds**. Centralized resolution in `src/shared/utils/runtimeTimeouts.ts`.
+Semua nilai dalam satuan **milidetik**. Penyelesaian terpusat di `src/shared/utils/runtimeTimeouts.ts`.
 
-### Timeout Hierarchy
+### Hierarki Batas Waktu
 
 ```
 REQUEST_TIMEOUT_MS (global override)
@@ -436,69 +436,69 @@ REQUEST_TIMEOUT_MS (global override)
     └── API_BRIDGE_SERVER_SOCKET_TIMEOUT_MS (default: 0 = disabled)
 ```
 
-| Variable                                 | Default              | Description                                                                                 |
-| ---------------------------------------- | -------------------- | ------------------------------------------------------------------------------------------- |
-| `REQUEST_TIMEOUT_MS`                     | _(unset)_            | Global shortcut — overrides both `FETCH_TIMEOUT_MS` and `STREAM_IDLE_TIMEOUT_MS` defaults.  |
-| `FETCH_TIMEOUT_MS`                       | `600000`             | Total HTTP request timeout for upstream provider calls.                                     |
-| `STREAM_IDLE_TIMEOUT_MS`                 | `600000`             | Max silence between SSE chunks before aborting. Extended-thinking models rarely pause >90s. |
-| `FETCH_HEADERS_TIMEOUT_MS`               | = `FETCH_TIMEOUT_MS` | Time to receive response headers.                                                           |
-| `FETCH_BODY_TIMEOUT_MS`                  | = `FETCH_TIMEOUT_MS` | Time to receive the full response body.                                                     |
-| `FETCH_CONNECT_TIMEOUT_MS`               | `30000`              | TCP connection establishment timeout.                                                       |
-| `FETCH_KEEPALIVE_TIMEOUT_MS`             | `4000`               | Keep-alive socket idle timeout.                                                             |
-| `TLS_CLIENT_TIMEOUT_MS`                  | = `FETCH_TIMEOUT_MS` | TLS fingerprint proxy (wreq-js) timeout.                                                    |
-| `API_BRIDGE_PROXY_TIMEOUT_MS`            | `600000`             | Proxy hop timeout for `/v1` bridge requests.                                                |
-| `API_BRIDGE_SERVER_REQUEST_TIMEOUT_MS`   | `600000`             | Overall server request timeout for the bridge.                                              |
-| `API_BRIDGE_SERVER_HEADERS_TIMEOUT_MS`   | `60000`              | Time to send response headers via the bridge.                                               |
-| `API_BRIDGE_SERVER_KEEPALIVE_TIMEOUT_MS` | `5000`               | Bridge keep-alive idle timeout.                                                             |
-| `API_BRIDGE_SERVER_SOCKET_TIMEOUT_MS`    | `0`                  | Raw socket timeout (0 = disabled).                                                          |
-| `SHUTDOWN_TIMEOUT_MS`                    | `30000`              | Grace period on SIGTERM/SIGINT before force-exit.                                           |
+| Variable                                 | Default              | Deskripsi                                                                                                            |
+| ---------------------------------------- | -------------------- | -------------------------------------------------------------------------------------------------------------------- |
+| `REQUEST_TIMEOUT_MS`                     | _(unset)_            | Pintasan global — menimpa default `FETCH_TIMEOUT_MS` maupun `STREAM_IDLE_TIMEOUT_MS`.                                |
+| `FETCH_TIMEOUT_MS`                       | `600000`             | Total batas waktu permintaan HTTP untuk panggilan provider upstream.                                                 |
+| `STREAM_IDLE_TIMEOUT_MS`                 | `600000`             | Keheningan maksimum antar chunk SSE sebelum dibatalkan. Model extended-thinking jarang berhenti lebih dari 90 detik. |
+| `FETCH_HEADERS_TIMEOUT_MS`               | = `FETCH_TIMEOUT_MS` | Waktu untuk menerima header respons.                                                                                 |
+| `FETCH_BODY_TIMEOUT_MS`                  | = `FETCH_TIMEOUT_MS` | Waktu untuk menerima body respons penuh.                                                                             |
+| `FETCH_CONNECT_TIMEOUT_MS`               | `30000`              | Batas waktu pembentukan koneksi TCP.                                                                                 |
+| `FETCH_KEEPALIVE_TIMEOUT_MS`             | `4000`               | Batas waktu idle socket keep-alive.                                                                                  |
+| `TLS_CLIENT_TIMEOUT_MS`                  | = `FETCH_TIMEOUT_MS` | Batas waktu proxy fingerprint TLS (wreq-js).                                                                         |
+| `API_BRIDGE_PROXY_TIMEOUT_MS`            | `600000`             | Batas waktu hop proxy untuk permintaan jembatan `/v1`.                                                               |
+| `API_BRIDGE_SERVER_REQUEST_TIMEOUT_MS`   | `600000`             | Batas waktu permintaan server keseluruhan untuk jembatan.                                                            |
+| `API_BRIDGE_SERVER_HEADERS_TIMEOUT_MS`   | `60000`              | Waktu untuk mengirim header respons melalui jembatan.                                                                |
+| `API_BRIDGE_SERVER_KEEPALIVE_TIMEOUT_MS` | `5000`               | Batas waktu idle keep-alive jembatan.                                                                                |
+| `API_BRIDGE_SERVER_SOCKET_TIMEOUT_MS`    | `0`                  | Batas waktu socket mentah (0 = dinonaktifkan).                                                                       |
+| `SHUTDOWN_TIMEOUT_MS`                    | `30000`              | Periode grace pada SIGTERM/SIGINT sebelum force-exit.                                                                |
 
-### Scenarios
+### Skenario
 
-| Scenario                         | Configuration                                          |
-| -------------------------------- | ------------------------------------------------------ |
-| **Long-running code generation** | `REQUEST_TIMEOUT_MS=900000` (15 min)                   |
-| **Fast-fail for production API** | `API_BRIDGE_PROXY_TIMEOUT_MS=10000`                    |
-| **Extended thinking models**     | `STREAM_IDLE_TIMEOUT_MS=300000` (5 min between chunks) |
+| Skenario                                  | Konfigurasi                                               |
+| ----------------------------------------- | --------------------------------------------------------- |
+| **Pembuatan kode berjalan lama**          | `REQUEST_TIMEOUT_MS=900000` (15 menit)                    |
+| **Fast-fail untuk API produksi**          | `API_BRIDGE_PROXY_TIMEOUT_MS=10000`                       |
+| **Model extended thinking**               | `STREAM_IDLE_TIMEOUT_MS=300000` (5 menit antar chunk)     |
 
 ---
 
 ## 16. Logging
 
-The logging system writes to both stdout and rotated log files. All configuration is read by `src/lib/logEnv.ts`.
+Sistem logging menulis ke stdout dan file log yang dirotasi. Semua konfigurasi dibaca oleh `src/lib/logEnv.ts`.
 
-| Variable                    | Default                    | Description                                                                  |
-| --------------------------- | -------------------------- | ---------------------------------------------------------------------------- |
-| `APP_LOG_LEVEL`             | `info`                     | Minimum log level: `debug`, `info`, `warn`, `error`.                         |
-| `APP_LOG_FORMAT`            | `text`                     | Output format: `text` (human-readable) or `json` (structured).               |
-| `APP_LOG_TO_FILE`           | `true`                     | Write logs to file alongside stdout.                                         |
-| `APP_LOG_FILE_PATH`         | `logs/application/app.log` | Log file path (relative to project root or `DATA_DIR`).                      |
-| `APP_LOG_MAX_FILE_SIZE`     | `50M`                      | Max file size before rotation. Accepts: `50M`, `1G`, `512K`, or plain bytes. |
-| `APP_LOG_RETENTION_DAYS`    | `7`                        | Days to keep rotated application log files.                                  |
-| `APP_LOG_MAX_FILES`         | `20`                       | Maximum rotated log file backups.                                            |
-| `CALL_LOG_RETENTION_DAYS`   | `7`                        | Days to keep request/call log entries in the database.                       |
-| `CALL_LOG_MAX_ENTRIES`      | `10000`                    | Max call log entries in the in-memory buffer.                                |
-| `CALL_LOGS_TABLE_MAX_ROWS`  | `100000`                   | Max rows in the `call_logs` SQLite table before pruning.                     |
-| `PROXY_LOGS_TABLE_MAX_ROWS` | `100000`                   | Max rows in the `proxy_logs` SQLite table before pruning.                    |
+| Variable                    | Default                    | Deskripsi                                                                              |
+| --------------------------- | -------------------------- | -------------------------------------------------------------------------------------- |
+| `APP_LOG_LEVEL`             | `info`                     | Level log minimum: `debug`, `info`, `warn`, `error`.                                   |
+| `APP_LOG_FORMAT`            | `text`                     | Format output: `text` (mudah dibaca manusia) atau `json` (terstruktur).                |
+| `APP_LOG_TO_FILE`           | `true`                     | Tulis log ke file bersama stdout.                                                      |
+| `APP_LOG_FILE_PATH`         | `logs/application/app.log` | Path file log (relatif terhadap root proyek atau `DATA_DIR`).                          |
+| `APP_LOG_MAX_FILE_SIZE`     | `50M`                      | Ukuran file maksimum sebelum rotasi. Menerima: `50M`, `1G`, `512K`, atau byte biasa.   |
+| `APP_LOG_RETENTION_DAYS`    | `7`                        | Hari untuk menyimpan file log aplikasi yang telah dirotasi.                            |
+| `APP_LOG_MAX_FILES`         | `20`                       | Maksimum cadangan file log yang telah dirotasi.                                        |
+| `CALL_LOG_RETENTION_DAYS`   | `7`                        | Hari untuk menyimpan entri log permintaan/panggilan di database.                       |
+| `CALL_LOG_MAX_ENTRIES`      | `10000`                    | Maksimum entri log panggilan dalam buffer in-memory.                                   |
+| `CALL_LOGS_TABLE_MAX_ROWS`  | `100000`                   | Maksimum baris dalam tabel SQLite `call_logs` sebelum dipangkas.                       |
+| `PROXY_LOGS_TABLE_MAX_ROWS` | `100000`                   | Maksimum baris dalam tabel SQLite `proxy_logs` sebelum dipangkas.                      |
 
 ---
 
-## 17. Memory Optimization
+## 17. Optimasi Memori
 
-| Variable                   | Default                         | Description                                                            |
-| -------------------------- | ------------------------------- | ---------------------------------------------------------------------- |
-| `OMNIROUTE_MEMORY_MB`      | `512`                           | Runtime V8 heap limit. Docker standalone and `omniroute serve` use it to set `--max-old-space-size`. |
-| `PROMPT_CACHE_MAX_SIZE`    | `50`                            | Max cached system prompt entries.                                      |
-| `PROMPT_CACHE_MAX_BYTES`   | `2097152` (2 MB)                | Max total prompt cache size.                                           |
-| `PROMPT_CACHE_TTL_MS`      | `300000` (5 min)                | Prompt cache entry TTL.                                                |
-| `SEMANTIC_CACHE_MAX_SIZE`  | `100`                           | Max cached temperature=0 responses.                                    |
-| `SEMANTIC_CACHE_MAX_BYTES` | `4194304` (4 MB)                | Max total semantic cache size.                                         |
-| `SEMANTIC_CACHE_TTL_MS`    | `1800000` (30 min)              | Semantic cache entry TTL.                                              |
-| `STREAM_HISTORY_MAX`       | `50`                            | Max recent stream events in the Dashboard live view buffer.            |
-| `CONTEXT_LENGTH_DEFAULT`   | `128000`                        | Global fallback max context length for models without explicit config. |
-| `USAGE_TOKEN_BUFFER`       | `100`                           | Extra token headroom reserved when tracking usage quotas.              |
+| Variable                   | Default                         | Deskripsi                                                                                              |
+| -------------------------- | ------------------------------- | ------------------------------------------------------------------------------------------------------ |
+| `OMNIROUTE_MEMORY_MB`      | `512`                           | Batas heap V8 saat runtime. Docker standalone dan `omniroute serve` menggunakannya untuk mengatur `--max-old-space-size`. |
+| `PROMPT_CACHE_MAX_SIZE`    | `50`                            | Maksimum entri prompt sistem yang dicache.                                                             |
+| `PROMPT_CACHE_MAX_BYTES`   | `2097152` (2 MB)                | Ukuran total cache prompt maksimum.                                                                    |
+| `PROMPT_CACHE_TTL_MS`      | `300000` (5 menit)              | TTL entri cache prompt.                                                                                |
+| `SEMANTIC_CACHE_MAX_SIZE`  | `100`                           | Maksimum respons temperature=0 yang dicache.                                                           |
+| `SEMANTIC_CACHE_MAX_BYTES` | `4194304` (4 MB)                | Ukuran total cache semantik maksimum.                                                                  |
+| `SEMANTIC_CACHE_TTL_MS`    | `1800000` (30 menit)            | TTL entri cache semantik.                                                                              |
+| `STREAM_HISTORY_MAX`       | `50`                            | Maksimum event stream terbaru dalam buffer tampilan langsung Dashboard.                                |
+| `CONTEXT_LENGTH_DEFAULT`   | `128000`                        | Panjang konteks maksimum fallback global untuk model tanpa konfigurasi eksplisit.                      |
+| `USAGE_TOKEN_BUFFER`       | `100`                           | Cadangan token ekstra yang disisihkan saat melacak kuota penggunaan.                                   |
 
-### Low-RAM Docker Example
+### Contoh Docker RAM Rendah
 
 ```bash
 OMNIROUTE_MEMORY_MB=128
@@ -511,85 +511,85 @@ STREAM_HISTORY_MAX=10
 
 ---
 
-## 18. Pricing Sync
+## 18. Sinkronisasi Harga
 
-Automatic model pricing data synchronization from external sources.
+Sinkronisasi data harga model secara otomatis dari sumber eksternal.
 
-| Variable                | Default       | Source File              | Description                   |
-| ----------------------- | ------------- | ------------------------ | ----------------------------- |
-| `PRICING_SYNC_ENABLED`  | `false`       | `src/lib/pricingSync.ts` | Opt-in periodic pricing sync. |
-| `PRICING_SYNC_INTERVAL` | `86400` (24h) | `src/lib/pricingSync.ts` | Sync interval in seconds.     |
-| `PRICING_SYNC_SOURCES`  | `litellm`     | `src/lib/pricingSync.ts` | Comma-separated data sources. |
-
----
-
-## 19. Model Sync (Dev)
-
-| Variable                   | Default       | Source File                | Description                                              |
-| -------------------------- | ------------- | -------------------------- | -------------------------------------------------------- |
-| `MODELS_DEV_SYNC_INTERVAL` | `86400` (24h) | `src/lib/modelsDevSync.ts` | Development-time model catalog sync interval in seconds. |
+| Variable                | Default       | Source File              | Deskripsi                                         |
+| ----------------------- | ------------- | ------------------------ | ------------------------------------------------- |
+| `PRICING_SYNC_ENABLED`  | `false`       | `src/lib/pricingSync.ts` | Opt-in sinkronisasi harga berkala.                |
+| `PRICING_SYNC_INTERVAL` | `86400` (24h) | `src/lib/pricingSync.ts` | Interval sinkronisasi dalam detik.                |
+| `PRICING_SYNC_SOURCES`  | `litellm`     | `src/lib/pricingSync.ts` | Sumber data yang dipisahkan koma.                 |
 
 ---
 
-## 20. Provider-Specific Settings
+## 19. Sinkronisasi Model (Dev)
 
-| Variable                                  | Default            | Source File                                | Description                                                                           |
-| ----------------------------------------- | ------------------ | ------------------------------------------ | ------------------------------------------------------------------------------------- |
-| `OPENROUTER_CATALOG_TTL_MS`               | `86400000` (24h)   | `src/lib/catalog/openrouterCatalog.ts`     | OpenRouter model catalog cache TTL.                                                   |
-| `NANOBANANA_POLL_TIMEOUT_MS`              | `120000`           | `open-sse/handlers/imageGeneration.ts`     | Max wait for NanoBanana image generation jobs.                                        |
-| `NANOBANANA_POLL_INTERVAL_MS`             | `2500`             | `open-sse/handlers/imageGeneration.ts`     | NanoBanana job polling frequency.                                                     |
-| `CLOUDFLARE_ACCOUNT_ID`                   | _(unset)_          | `open-sse/executors/cloudflare-ai.ts`      | Account ID for Cloudflare Workers AI.                                                 |
-| `CLOUDFLARED_BIN`                         | auto-detect        | `src/lib/cloudflaredTunnel.ts`             | Custom path to `cloudflared` binary.                                                  |
-| `SEARCH_CACHE_TTL_MS`                     | `300000` (5 min)   | `open-sse/services/searchCache.ts`         | TTL for search API (Perplexity, Brave, etc.) response caching.                        |
-| `ALLOW_MULTI_CONNECTIONS_PER_COMPAT_NODE` | `false`            | `src/app/api/providers/route.ts`           | Allow multiple simultaneous connections per OpenAI-compatible provider.               |
-| `ENABLE_CC_COMPATIBLE_PROVIDER`           | `false`            | `src/shared/utils/featureFlags.ts`         | Enable experimental Claude Code compatible provider endpoint.                         |
-| `CLIPROXYAPI_HOST`                        | `127.0.0.1`        | `open-sse/executors/cliproxyapi.ts`        | CLIProxyAPI bridge host (legacy integration).                                         |
-| `CLIPROXYAPI_PORT`                        | `5544`             | `open-sse/executors/cliproxyapi.ts`        | CLIProxyAPI bridge port.                                                              |
-| `CLIPROXYAPI_CONFIG_DIR`                  | `~/.cli-proxy-api` | `src/lib/versionManager/processManager.ts` | CLIProxyAPI config directory.                                                         |
-| `LOCAL_HOSTNAMES`                         | _(empty)_          | `open-sse/config/providerRegistry.ts`      | Comma-separated additional hostnames treated as "local" (Docker service names, etc.). |
+| Variable                   | Default       | Source File                | Deskripsi                                                               |
+| -------------------------- | ------------- | -------------------------- | ----------------------------------------------------------------------- |
+| `MODELS_DEV_SYNC_INTERVAL` | `86400` (24h) | `src/lib/modelsDevSync.ts` | Interval sinkronisasi katalog model saat pengembangan dalam detik.      |
 
 ---
 
-## 21. Proxy Health
+## 20. Pengaturan Spesifik Provider
 
-| Variable                     | Default          | Source File                              | Description                                                                                                         |
-| ---------------------------- | ---------------- | ---------------------------------------- | ------------------------------------------------------------------------------------------------------------------- |
-| `PROXY_FAST_FAIL_TIMEOUT_MS` | `2000`           | `src/lib/proxyHealth.ts`                 | Fast-fail health check timeout.                                                                                     |
-| `PROXY_HEALTH_CACHE_TTL_MS`  | `30000`          | `src/lib/proxyHealth.ts`                 | Health check result cache TTL.                                                                                      |
-| `RATE_LIMIT_MAX_WAIT_MS`     | `120000` (2 min) | `open-sse/services/rateLimitManager.ts`  | Max time to wait on a 429 before failing the request.                                                               |
-| `REQUEST_RETRY`              | `2`              | `src/sse/services/cooldownAwareRetry.ts` | Number of automatic retries on model-scoped cooldown responses before returning error to client.                    |
-| `MAX_RETRY_INTERVAL_SEC`     | `30`             | `src/sse/services/cooldownAwareRetry.ts` | Max backoff interval (seconds) between cooldown retries. Capped by this value regardless of upstream `Retry-After`. |
+| Variable                                  | Default               | Source File                                | Deskripsi                                                                                             |
+| ----------------------------------------- | --------------------- | ------------------------------------------ | ----------------------------------------------------------------------------------------------------- |
+| `OPENROUTER_CATALOG_TTL_MS`               | `86400000` (24h)      | `src/lib/catalog/openrouterCatalog.ts`     | TTL cache katalog model OpenRouter.                                                                   |
+| `NANOBANANA_POLL_TIMEOUT_MS`              | `120000`              | `open-sse/handlers/imageGeneration.ts`     | Waktu tunggu maksimum untuk pekerjaan pembuatan gambar NanoBanana.                                    |
+| `NANOBANANA_POLL_INTERVAL_MS`             | `2500`                | `open-sse/handlers/imageGeneration.ts`     | Frekuensi polling pekerjaan NanoBanana.                                                               |
+| `CLOUDFLARE_ACCOUNT_ID`                   | _(unset)_             | `open-sse/executors/cloudflare-ai.ts`      | ID akun untuk Cloudflare Workers AI.                                                                  |
+| `CLOUDFLARED_BIN`                         | deteksi otomatis      | `src/lib/cloudflaredTunnel.ts`             | Path kustom ke biner `cloudflared`.                                                                   |
+| `SEARCH_CACHE_TTL_MS`                     | `300000` (5 menit)    | `open-sse/services/searchCache.ts`         | TTL untuk caching respons API pencarian (Perplexity, Brave, dll.).                                    |
+| `ALLOW_MULTI_CONNECTIONS_PER_COMPAT_NODE` | `false`               | `src/app/api/providers/route.ts`           | Izinkan beberapa koneksi simultan per provider yang kompatibel dengan OpenAI.                         |
+| `ENABLE_CC_COMPATIBLE_PROVIDER`           | `false`               | `src/shared/utils/featureFlags.ts`         | Aktifkan endpoint provider eksperimental yang kompatibel dengan Claude Code.                          |
+| `CLIPROXYAPI_HOST`                        | `127.0.0.1`           | `open-sse/executors/cliproxyapi.ts`        | Host jembatan CLIProxyAPI (integrasi legacy).                                                         |
+| `CLIPROXYAPI_PORT`                        | `5544`                | `open-sse/executors/cliproxyapi.ts`        | Port jembatan CLIProxyAPI.                                                                            |
+| `CLIPROXYAPI_CONFIG_DIR`                  | `~/.cli-proxy-api`    | `src/lib/versionManager/processManager.ts` | Direktori konfigurasi CLIProxyAPI.                                                                    |
+| `LOCAL_HOSTNAMES`                         | _(empty)_             | `open-sse/config/providerRegistry.ts`      | Nama host tambahan yang dipisahkan koma yang diperlakukan sebagai "lokal" (nama layanan Docker, dll.). |
+
+---
+
+## 21. Kesehatan Proxy
+
+| Variable                     | Default             | Source File                              | Deskripsi                                                                                                                          |
+| ---------------------------- | ------------------- | ---------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------- |
+| `PROXY_FAST_FAIL_TIMEOUT_MS` | `2000`              | `src/lib/proxyHealth.ts`                 | Batas waktu pemeriksaan kesehatan fast-fail.                                                                                       |
+| `PROXY_HEALTH_CACHE_TTL_MS`  | `30000`             | `src/lib/proxyHealth.ts`                 | TTL cache hasil pemeriksaan kesehatan.                                                                                             |
+| `RATE_LIMIT_MAX_WAIT_MS`     | `120000` (2 menit)  | `open-sse/services/rateLimitManager.ts`  | Waktu tunggu maksimum pada respons 429 sebelum menggagalkan permintaan.                                                            |
+| `REQUEST_RETRY`              | `2`                 | `src/sse/services/cooldownAwareRetry.ts` | Jumlah percobaan ulang otomatis pada respons cooldown berbasis model sebelum mengembalikan error ke klien.                          |
+| `MAX_RETRY_INTERVAL_SEC`     | `30`                | `src/sse/services/cooldownAwareRetry.ts` | Interval backoff maksimum (detik) antar percobaan ulang cooldown. Dibatasi oleh nilai ini terlepas dari `Retry-After` upstream.    |
 
 ---
 
 ## 22. Debugging
 
 > [!CAUTION]
-> These variables produce **verbose output** and may leak sensitive data. **Never enable in production.**
+> Variabel-variabel ini menghasilkan **output yang sangat detail** dan dapat membocorkan data sensitif. **Jangan pernah aktifkan di lingkungan produksi.**
 
-| Variable                         | Default   | Source File                               | Description                                                    |
-| -------------------------------- | --------- | ----------------------------------------- | -------------------------------------------------------------- |
-| `CURSOR_PROTOBUF_DEBUG`          | _(unset)_ | `open-sse/utils/cursorProtobuf.ts`        | Set `1` to dump Cursor protobuf decode/encode details.         |
-| `CURSOR_STREAM_DEBUG`            | _(unset)_ | `open-sse/executors/cursor.ts`            | Set `1` to dump raw Cursor SSE stream data.                    |
-| `DEBUG_RESPONSES_SSE_TO_JSON`    | _(unset)_ | `open-sse/handlers/responseTranslator.ts` | Set `true` to log Responses API SSE→JSON translation details.  |
-| `NEXT_PUBLIC_OMNIROUTE_E2E_MODE` | _(unset)_ | E2E test harness                          | Set `true` to enable E2E test mode (relaxed auth, test hooks). |
-
----
-
-## 23. GitHub Integration
-
-Allow users to report issues directly from the Dashboard.
-
-| Variable              | Default   | Source File                             | Description                                             |
-| --------------------- | --------- | --------------------------------------- | ------------------------------------------------------- |
-| `GITHUB_ISSUES_REPO`  | _(unset)_ | `src/app/api/v1/issues/report/route.ts` | Repository in `owner/repo` format.                      |
-| `GITHUB_ISSUES_TOKEN` | _(unset)_ | `src/app/api/v1/issues/report/route.ts` | GitHub Personal Access Token with `issues:write` scope. |
+| Variable                         | Default   | Source File                               | Deskripsi                                                                          |
+| -------------------------------- | --------- | ----------------------------------------- | ---------------------------------------------------------------------------------- |
+| `CURSOR_PROTOBUF_DEBUG`          | _(unset)_ | `open-sse/utils/cursorProtobuf.ts`        | Atur ke `1` untuk membuang detail decode/encode protobuf Cursor.                   |
+| `CURSOR_STREAM_DEBUG`            | _(unset)_ | `open-sse/executors/cursor.ts`            | Atur ke `1` untuk membuang data stream SSE Cursor mentah.                          |
+| `DEBUG_RESPONSES_SSE_TO_JSON`    | _(unset)_ | `open-sse/handlers/responseTranslator.ts` | Atur ke `true` untuk mencatat log detail translasi SSE→JSON Responses API.         |
+| `NEXT_PUBLIC_OMNIROUTE_E2E_MODE` | _(unset)_ | E2E test harness                          | Atur ke `true` untuk mengaktifkan mode pengujian E2E (autentikasi santai, test hook). |
 
 ---
 
-## Deployment Scenarios
+## 23. Integrasi GitHub
 
-### Minimal Local Development
+Memungkinkan pengguna melaporkan masalah langsung dari Dashboard.
+
+| Variable              | Default   | Source File                             | Deskripsi                                                            |
+| --------------------- | --------- | --------------------------------------- | -------------------------------------------------------------------- |
+| `GITHUB_ISSUES_REPO`  | _(unset)_ | `src/app/api/v1/issues/report/route.ts` | Repositori dalam format `owner/repo`.                                |
+| `GITHUB_ISSUES_TOKEN` | _(unset)_ | `src/app/api/v1/issues/report/route.ts` | GitHub Personal Access Token dengan scope `issues:write`.            |
+
+---
+
+## Skenario Deployment
+
+### Pengembangan Lokal Minimal
 
 ```bash
 JWT_SECRET=$(openssl rand -base64 48)
@@ -629,7 +629,7 @@ OMNIROUTE_DISABLE_BACKGROUND_SERVICES=true
 APP_LOG_TO_FILE=false
 ```
 
-### VPS with Reverse Proxy (nginx + Cloudflare)
+### VPS dengan Reverse Proxy (nginx + Cloudflare)
 
 ```bash
 JWT_SECRET=<generated>
@@ -647,23 +647,23 @@ CLI_COMPAT_ALL=1
 
 ---
 
-## Audit: Removed / Dead Variables
+## Audit: Variabel yang Dihapus / Tidak Aktif
 
-The following variables appeared in previous versions of `.env.example` but have **no runtime references** in the current codebase. They have been removed:
+Variabel-variabel berikut muncul di versi sebelumnya dari `.env.example` tetapi **tidak memiliki referensi runtime** di basis kode saat ini. Variabel-variabel ini telah dihapus:
 
-| Variable                                              | Reason                                                                                                  |
-| ----------------------------------------------------- | ------------------------------------------------------------------------------------------------------- |
-| `STORAGE_DRIVER=sqlite`                               | Never read by any source file. SQLite is the only supported driver — no selection needed.               |
-| `INSTANCE_NAME=omniroute`                             | Present in old docs/env templates but unused at runtime. May return in a future multi-instance feature. |
-| `SQLITE_MAX_SIZE_MB=2048`                             | Not referenced in source code. Database size is not artificially limited.                               |
-| `SQLITE_CLEAN_LEGACY_FILES=true`                      | Not referenced in source code. Legacy cleanup was likely removed.                                       |
-| `CLI_ROO_BIN`                                         | Not registered in `src/shared/services/cliRuntime.ts`.                                                  |
-| `CLI_KIMI_CODING_BIN`                                 | Not registered in `src/shared/services/cliRuntime.ts` (Kimi Coding uses OAuth, not a CLI binary).       |
-| `IFLOW_OAUTH_CLIENT_ID` / `IFLOW_OAUTH_CLIENT_SECRET` | Not referenced anywhere in source code.                                                                 |
+| Variable                                              | Alasan                                                                                                                            |
+| ----------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------- |
+| `STORAGE_DRIVER=sqlite`                               | Tidak pernah dibaca oleh file sumber mana pun. SQLite adalah satu-satunya driver yang didukung — tidak diperlukan pemilihan.       |
+| `INSTANCE_NAME=omniroute`                             | Ada di template docs/env lama tetapi tidak digunakan saat runtime. Mungkin kembali dalam fitur multi-instansi di masa depan.      |
+| `SQLITE_MAX_SIZE_MB=2048`                             | Tidak dirujuk dalam kode sumber. Ukuran database tidak dibatasi secara artifisial.                                                |
+| `SQLITE_CLEAN_LEGACY_FILES=true`                      | Tidak dirujuk dalam kode sumber. Pembersihan legacy kemungkinan telah dihapus.                                                    |
+| `CLI_ROO_BIN`                                         | Tidak terdaftar di `src/shared/services/cliRuntime.ts`.                                                                           |
+| `CLI_KIMI_CODING_BIN`                                 | Tidak terdaftar di `src/shared/services/cliRuntime.ts` (Kimi Coding menggunakan OAuth, bukan biner CLI).                          |
+| `IFLOW_OAUTH_CLIENT_ID` / `IFLOW_OAUTH_CLIENT_SECRET` | Tidak dirujuk di mana pun dalam kode sumber.                                                                                      |
 
-### Default Value Corrections
+### Koreksi Nilai Default
 
-| Variable                  | Old `.env.example` Value | Actual Code Default | Fixed                                                  |
-| ------------------------- | ------------------------ | ------------------- | ------------------------------------------------------ |
-| `APP_LOG_RETENTION_DAYS`  | `90`                     | `7`                 | ✅ Removed misleading value; documented `7` as default |
-| `CALL_LOG_RETENTION_DAYS` | `90`                     | `7`                 | ✅ Removed misleading value; documented `7` as default |
+| Variable                  | Nilai `.env.example` Lama | Default Kode Aktual | Diperbaiki                                                         |
+| ------------------------- | ------------------------- | ------------------- | ------------------------------------------------------------------ |
+| `APP_LOG_RETENTION_DAYS`  | `90`                      | `7`                 | ✅ Nilai yang menyesatkan dihapus; `7` didokumentasikan sebagai default |
+| `CALL_LOG_RETENTION_DAYS` | `90`                      | `7`                 | ✅ Nilai yang menyesatkan dihapus; `7` didokumentasikan sebagai default |

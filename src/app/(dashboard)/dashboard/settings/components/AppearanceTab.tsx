@@ -13,7 +13,10 @@ import {
   normalizeComboConfigMode,
   type ComboConfigMode,
 } from "@/shared/constants/comboConfigMode";
-import { PIN_PROVIDER_QUOTA_TO_HOME_KEY } from "@/shared/constants/homeWidgets";
+import {
+  PIN_PROVIDER_QUOTA_TO_HOME_KEY,
+  SHOW_TOKEN_SAVER_ON_ENDPOINT_KEY,
+} from "@/shared/constants/homeWidgets";
 
 export default function AppearanceTab() {
   const { theme, setTheme, isDark } = useTheme();
@@ -38,8 +41,11 @@ export default function AppearanceTab() {
   const pinProviderQuotaToHome = settings.pinProviderQuotaToHome === true;
   const showQuickStartOnHome = settings.showQuickStartOnHome !== false;
   const showProviderTopologyOnHome = settings.showProviderTopologyOnHome !== false;
+  const showTokenSaverOnEndpoint = settings[SHOW_TOKEN_SAVER_ON_ENDPOINT_KEY] !== false;
   const autoRefreshProviderQuota = settings.autoRefreshProviderQuota === true;
-  const autoRefreshProviderQuotaInterval = Number.isFinite(settings.autoRefreshProviderQuotaInterval)
+  const autoRefreshProviderQuotaInterval = Number.isFinite(
+    settings.autoRefreshProviderQuotaInterval
+  )
     ? Number(settings.autoRefreshProviderQuotaInterval)
     : 180;
   const comboConfigMode = normalizeComboConfigMode(settings[COMBO_CONFIG_MODE_SETTING_KEY]);
@@ -250,6 +256,27 @@ export default function AppearanceTab() {
                   checked={showProviderTopologyOnHome}
                   onChange={async (checked) => {
                     await updateSetting("showProviderTopologyOnHome", checked);
+                  }}
+                  disabled={loading}
+                />
+              </div>
+
+              <div className="flex items-start justify-between gap-4 px-4 py-3">
+                <div>
+                  <p className="font-medium">
+                    {getSettingsLabel("endpointTokenSaver", "Token Saver")}
+                  </p>
+                  <p className="text-sm text-text-muted">
+                    {getSettingsLabel(
+                      "endpointTokenSaverDesc",
+                      "Show the Token Saver panel on the Endpoint page."
+                    )}
+                  </p>
+                </div>
+                <Toggle
+                  checked={showTokenSaverOnEndpoint}
+                  onChange={async (checked) => {
+                    await updateSetting(SHOW_TOKEN_SAVER_ON_ENDPOINT_KEY, checked);
                   }}
                   disabled={loading}
                 />

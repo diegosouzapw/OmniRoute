@@ -4,6 +4,7 @@ import { ThemeProvider } from "@/shared/components/ThemeProvider";
 import { NextIntlClientProvider } from "next-intl";
 import { getMessages, getLocale } from "next-intl/server";
 import { RTL_LOCALES } from "@/i18n/config";
+import { normalizeComplianceEventTypes } from "@/i18n/request";
 import { getSettings } from "@/lib/db/settings";
 import type { Viewport } from "next";
 import { PwaRegister } from "@/shared/components/PwaRegister";
@@ -52,7 +53,7 @@ export async function generateMetadata() {
 
 export default async function RootLayout({ children }) {
   const locale = await getLocale();
-  const messages = await getMessages();
+  const messages = normalizeComplianceEventTypes((await getMessages()) as Record<string, unknown>);
   const isRtl = RTL_LOCALES.includes(locale as (typeof RTL_LOCALES)[number]);
 
   return (

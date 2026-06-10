@@ -8,7 +8,8 @@ const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-command-c
 process.env.DATA_DIR = TEST_DATA_DIR;
 
 const { REGISTRY, getRegistryEntry } = await import("../../open-sse/config/providerRegistry.ts");
-const { CommandCodeExecutor } = await import("../../open-sse/executors/commandCode.ts");
+const { CommandCodeExecutor, COMMAND_CODE_VERSION } =
+  await import("../../open-sse/executors/commandCode.ts");
 const { getExecutor, hasSpecializedExecutor } = await import("../../open-sse/executors/index.ts");
 const core = await import("../../src/lib/db/core.ts");
 
@@ -89,7 +90,7 @@ test("getExecutor returns the specialized Command Code executor", () => {
   assert.ok(getExecutor("cmd") instanceof CommandCodeExecutor);
 });
 
-test("Command Code executor posts wrapped body and required headers to alpha/generate", async () => {
+test("Command Code executor posts wrapped body and required headers to /alpha/generate", async () => {
   const calls: any[] = [];
   globalThis.fetch = async (url, init = {}) => {
     calls.push({ url: String(url), init });
@@ -117,7 +118,7 @@ test("Command Code executor posts wrapped body and required headers to alpha/gen
   assert.equal(calls[0].url, "https://api.commandcode.ai/alpha/generate");
   assert.equal(calls[0].init.method, "POST");
   assert.equal(headers.Authorization, "Bearer cc_test_key");
-  assert.equal(headers["x-command-code-version"], "0.24.1");
+  assert.equal(headers["x-command-code-version"], COMMAND_CODE_VERSION);
   assert.equal(headers["x-cli-environment"], "external");
   assert.equal(headers["x-project-slug"], "pi-cc");
   assert.equal(headers["x-taste-learning"], "false");

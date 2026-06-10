@@ -5,6 +5,7 @@
 import { v4 as uuidv4 } from "uuid";
 import { getDbInstance } from "./core";
 import { backupDbFile } from "./backup";
+import { invalidateDbCache } from "./readCache";
 import { normalizeComboRecord } from "@/lib/combos/steps";
 
 type JsonRecord = Record<string, unknown>;
@@ -67,7 +68,19 @@ function normalizeStoredCombo(
 function parseComboRow(row: unknown): JsonRecord | null {
   const payload = getSerializedData(row);
   if (!payload) return null;
-  return withSortOrder(payload, getSortOrder(row));
+  const parsed = withSortOrder(payload, getSortOrder(row));
+  // Merge deduplicated column values back into the record
+  const record = asRecord(row);
+  if (record.context_cache_protection !== undefined && record.context_cache_protection !== null) {
+    // Column is authoritative when explicitly enabled (1).
+    // When column is 0 (unset default) preserve the JSON blob value
+    // to avoid silently disabling the feature on pre-migration rows.
+    if (record.context_cache_protection === 1) {
+      parsed.context_cache_protection = true;
+    }
+    // Column is 0 — keep existing JSON blob value
+  }
+  return parsed;
 }
 
 function getNextSortOrder() {
@@ -80,7 +93,7 @@ function getNextSortOrder() {
 export async function getCombos() {
   const db = getDbInstance();
   const rawCombos = db
-    .prepare("SELECT data, sort_order FROM combos ORDER BY sort_order ASC, name COLLATE NOCASE ASC")
+    .prepare("SELECT data, sort_order, context_cache_protection FROM combos ORDER BY sort_order ASC, name COLLATE NOCASE ASC")
     .all()
     .map((row) => parseComboRow(row))
     .filter((row): row is JsonRecord => row !== null);
@@ -98,7 +111,7 @@ export async function getCombos() {
 
 export async function getComboById(id: string) {
   const db = getDbInstance();
-  const row = db.prepare("SELECT data, sort_order FROM combos WHERE id = ?").get(id);
+  const row = db.prepare("SELECT data, sort_order, context_cache_protection FROM combos WHERE id = ?").get(id);
   const combo = parseComboRow(row);
   if (!combo) return null;
   return normalizeStoredCombo(combo, db, typeof combo.name === "string" ? [combo.name] : []);
@@ -106,7 +119,7 @@ export async function getComboById(id: string) {
 
 export async function getComboByName(name: string) {
   const db = getDbInstance();
-  const row = db.prepare("SELECT data, sort_order FROM combos WHERE name = ?").get(name);
+  const row = db.prepare("SELECT data, sort_order, context_cache_protection FROM combos WHERE name = ?").get(name);
   const combo = parseComboRow(row);
   if (!combo) return null;
   return normalizeStoredCombo(combo, db, [name]);
@@ -134,17 +147,19 @@ export async function createCombo(data: JsonRecord) {
     typeof data.name === "string" ? [data.name] : []
   );
 
+  const contextCache = data.context_cache_protection ? 1 : 0;
   db.prepare(
-    "INSERT INTO combos (id, name, data, sort_order, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?)"
-  ).run(combo.id, combo.name, JSON.stringify(combo), sortOrder, now, now);
+    "INSERT INTO combos (id, name, data, sort_order, created_at, updated_at, context_cache_protection) VALUES (?, ?, ?, ?, ?, ?, ?)"
+  ).run(combo.id, combo.name, JSON.stringify(combo), sortOrder, now, now, contextCache);
 
+  invalidateDbCache("combos");
   backupDbFile("pre-write");
   return combo;
 }
 
 export async function updateCombo(id: string, data: JsonRecord) {
   const db = getDbInstance();
-  const existing = db.prepare("SELECT data, sort_order FROM combos WHERE id = ?").get(id);
+  const existing = db.prepare("SELECT data, sort_order, context_cache_protection FROM combos WHERE id = ?").get(id);
   if (!existing) return null;
 
   const current = parseComboRow(existing);
@@ -173,11 +188,13 @@ export async function updateCombo(id: string, data: JsonRecord) {
       ? merged["name"]
       : currentName;
   const normalizedMerged = normalizeStoredCombo({ ...merged, name: nextName }, db, [nextName]);
+  const contextCacheProtection = normalizedMerged.context_cache_protection ? 1 : 0;
 
   db.prepare(
-    "UPDATE combos SET name = ?, data = ?, sort_order = ?, updated_at = ? WHERE id = ?"
-  ).run(nextName, JSON.stringify(normalizedMerged), sortOrder, normalizedMerged.updatedAt, id);
+    "UPDATE combos SET name = ?, data = ?, sort_order = ?, updated_at = ?, context_cache_protection = ? WHERE id = ?"
+  ).run(nextName, JSON.stringify(normalizedMerged), sortOrder, normalizedMerged.updatedAt, contextCacheProtection, id);
 
+  invalidateDbCache("combos");
   backupDbFile("pre-write");
   return normalizedMerged;
 }
@@ -249,6 +266,7 @@ export async function reorderCombos(comboIds: string[]) {
   });
 
   reorderTransaction();
+  invalidateDbCache("combos");
   backupDbFile("pre-write");
   return getCombos();
 }
@@ -257,6 +275,7 @@ export async function deleteCombo(id: string) {
   const db = getDbInstance();
   const result = db.prepare("DELETE FROM combos WHERE id = ?").run(id);
   if (result.changes === 0) return false;
+  invalidateDbCache("combos");
   backupDbFile("pre-write");
   return true;
 }

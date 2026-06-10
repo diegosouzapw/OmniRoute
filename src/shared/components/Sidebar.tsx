@@ -142,7 +142,8 @@ export default function Sidebar({
 
   const getSidebarLabel = (key: string, fallback: string) =>
     typeof t.has === "function" && t.has(key) ? t(key) : fallback;
-  const getItemLabel = (key: string) => (typeof t.has === "function" && t.has(key) ? t(key) : key);
+  const getItemLabel = (key: string, fallback?: string) =>
+    typeof t.has === "function" && t.has(key) ? t(key) : fallback || key;
 
   const hiddenSidebarSet = new Set(hiddenSidebarItems);
   const visibleSections = SIDEBAR_SECTIONS.filter(
@@ -152,7 +153,7 @@ export default function Sidebar({
       ...section,
       title: getSidebarLabel(section.titleKey, section.titleFallback),
       items: getSectionItems(section)
-        .map((item) => ({ ...item, label: getItemLabel(item.i18nKey) }))
+        .map((item) => ({ ...item, label: getItemLabel(item.i18nKey, item.labelFallback) }))
         .filter((item) => !hiddenSidebarSet.has(item.id)),
     }))
     .filter((section) => section.items.length > 0);
@@ -248,7 +249,7 @@ export default function Sidebar({
                         {child.icon}
                       </span>
                     )}
-                    <span>{getItemLabel(child.i18nKey)}</span>
+                    <span>{getItemLabel(child.i18nKey, child.labelFallback)}</span>
                   </Link>
                 );
               })}
@@ -348,17 +349,19 @@ export default function Sidebar({
             href="/dashboard"
             className={cn("flex items-center", collapsed ? "justify-center" : "gap-3")}
           >
-            <div className="flex items-center justify-center size-9 rounded bg-linear-to-br from-[#E54D5E] to-[#C93D4E] shrink-0">
-              {customLogo ? (
+            {customLogo ? (
+              <div className="size-9 shrink-0 overflow-hidden rounded-md">
                 <img
                   src={customLogo}
                   alt={customAppName || APP_CONFIG.name}
-                  className="size-5 object-contain"
+                  className="size-full object-cover"
                 />
-              ) : (
+              </div>
+            ) : (
+              <div className="flex items-center justify-center size-9 rounded bg-linear-to-br from-[#E54D5E] to-[#C93D4E] shrink-0">
                 <OmniRouteLogo size={20} className="text-white" />
-              )}
-            </div>
+              </div>
+            )}
             {!collapsed && (
               <div className="flex flex-col">
                 <h1 className="text-lg font-semibold tracking-tight text-text-main">

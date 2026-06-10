@@ -9,6 +9,7 @@
 
 import { generatePKCE, generateState } from "./utils/pkce";
 import { PROVIDERS } from "./providers/index";
+import { resolvePublicCred } from "@omniroute/open-sse/utils/publicCreds.ts";
 
 const GOOGLE_BROWSER_PROVIDERS = new Set(["antigravity", "agy", "gemini-cli"]);
 
@@ -34,9 +35,12 @@ function hasCustomGoogleOAuthCredentials(
 ): boolean {
   if (providerName === "antigravity" || providerName === "agy") {
     // `agy` reuses the antigravity OAuth client + env overrides.
+    const clientId = env?.ANTIGRAVITY_OAUTH_CLIENT_ID;
+    const clientSecret = env?.ANTIGRAVITY_OAUTH_CLIENT_SECRET;
     return (
-      hasValue(env?.ANTIGRAVITY_OAUTH_CLIENT_ID) &&
-      hasValue(env?.ANTIGRAVITY_OAUTH_CLIENT_SECRET)
+      hasValue(clientId) &&
+      hasValue(clientSecret) &&
+      clientId !== resolvePublicCred("antigravity_id")
     );
   }
 
@@ -46,7 +50,11 @@ function hasCustomGoogleOAuthCredentials(
       env?.GEMINI_CLI_OAUTH_CLIENT_SECRET,
       env?.GEMINI_OAUTH_CLIENT_SECRET
     );
-    return hasValue(clientId) && hasValue(clientSecret);
+    return (
+      hasValue(clientId) &&
+      hasValue(clientSecret) &&
+      clientId !== resolvePublicCred("gemini_id")
+    );
   }
 
   return false;
@@ -181,6 +189,23 @@ export async function exchangeTokens(providerName, code, redirectUri, codeVerifi
     codeVerifier,
     state
   );
+
+  let extra = null;
+  if (provider.postExchange) {
+    extra = await provider.postExchange(tokens);
+  }
+
+  return provider.mapTokens(tokens, extra);
+}
+
+/**
+ * Finalize tokens obtained out-of-band (e.g. the browser-driven Codex device
+ * flow, where the browser performs the auth.openai.com exchange because the
+ * server's datacenter IP is blocked). Runs the provider's postExchange +
+ * mapTokens — the same tail as exchangeTokens — without an HTTP token exchange.
+ */
+export async function finalizeTokens(providerName, tokens) {
+  const provider = getProvider(providerName);
 
   let extra = null;
   if (provider.postExchange) {

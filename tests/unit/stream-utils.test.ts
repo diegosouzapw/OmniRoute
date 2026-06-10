@@ -19,8 +19,9 @@ const { FORMATS } = await import("../../open-sse/translator/formats.ts");
 const { createRequestLogger } = await import("../../open-sse/utils/requestLogger.ts");
 
 const textEncoder = new TextEncoder();
-const SYNTHETIC_CLAUDE_EMPTY_RESPONSE_TEXT =
-  "[Proxy Error] The upstream API returned an empty response. Please retry the request.";
+// PR #3399 intentionally changed the synthetic empty-response text to "" so that
+// proxy internals no longer leak into chat history. Tests assert on the new behavior.
+const SYNTHETIC_CLAUDE_EMPTY_RESPONSE_TEXT = "";
 
 async function readTransformed(chunks, options) {
   const source = new ReadableStream({
@@ -232,6 +233,69 @@ test("createSSEStream passthrough converts split textual tool-call content at co
   assert.doesNotMatch(text, /\[Tool call: terminal\]/);
 });
 
+test("createSSEStream passthrough handles textual tool-call content split inside the prefix [Tool call: across chunks", async () => {
+  let onCompletePayload = null;
+  const splitToolArgs = JSON.stringify({
+    command: "whoami",
+  });
+  const chunks = ["[Tool", " call: terminal]\n", `Arguments: ${splitToolArgs}`];
+
+  const text = await readTransformed(
+    [
+      `data: ${JSON.stringify({
+        id: "chatcmpl_split_prefix_textual_tool",
+        object: "chat.completion.chunk",
+        created: 1,
+        model: "antigravity/gemini-3.5-flash-low",
+        choices: [{ index: 0, delta: { role: "assistant", content: chunks[0] } }],
+      })}\n\n`,
+      `data: ${JSON.stringify({
+        id: "chatcmpl_split_prefix_textual_tool",
+        object: "chat.completion.chunk",
+        created: 1,
+        model: "antigravity/gemini-3.5-flash-low",
+        choices: [{ index: 0, delta: { content: chunks[1] } }],
+      })}\n\n`,
+      `data: ${JSON.stringify({
+        id: "chatcmpl_split_prefix_textual_tool",
+        object: "chat.completion.chunk",
+        created: 1,
+        model: "antigravity/gemini-3.5-flash-low",
+        choices: [{ index: 0, delta: { content: chunks[2] } }],
+      })}\n\n`,
+      `data: ${JSON.stringify({
+        id: "chatcmpl_split_prefix_textual_tool",
+        object: "chat.completion.chunk",
+        created: 1,
+        model: "antigravity/gemini-3.5-flash-low",
+        choices: [{ index: 0, delta: {}, finish_reason: "stop" }],
+      })}\n\n`,
+    ],
+    {
+      mode: "passthrough",
+      sourceFormat: FORMATS.OPENAI,
+      provider: "antigravity",
+      model: "antigravity/gemini-3.5-flash-low",
+      body: { messages: [{ role: "user", content: "inspect db" }] },
+      onComplete(payload) {
+        onCompletePayload = payload;
+      },
+    }
+  );
+
+  assert.doesNotMatch(text, /"content":"\[Tool/);
+  assert.doesNotMatch(text, /"content":" call:/);
+  assert.match(text, /"tool_calls":\[/);
+  assert.match(text, /"name":"terminal"/);
+  const choice = onCompletePayload.responseBody.choices[0];
+  assert.equal(choice.finish_reason, "tool_calls");
+  assert.equal(choice.message.content, null);
+  assert.equal(choice.message.tool_calls[0].function.name, "terminal");
+  assert.deepEqual(JSON.parse(choice.message.tool_calls[0].function.arguments), {
+    command: "whoami",
+  });
+});
+
 test("createSSEStream passthrough buffers fragmented textual tool-call JSON before emitting", async () => {
   let onCompletePayload = null;
   const text = await readTransformed(
@@ -430,8 +494,8 @@ test("createSSEStream passthrough suppresses malformed textual tool-call content
   assert.equal(choice.finish_reason, "stop");
   assert.equal(choice.message.content, null);
   assert.equal(choice.message.tool_calls, undefined);
-  assert.doesNotMatch(text, /\[Tool call: terminal\]/);
-  assert.doesNotMatch(JSON.stringify(onCompletePayload.responseBody), /\[Tool call: terminal\]/);
+  // PR #3355 bug-2 fix: flush now always emits the buffer as plain text (not swallowed).
+  assert.match(text, /\[Tool call: terminal\]/);
 });
 
 test("createSSEStream suppresses malformed compact textual tool-call content", async () => {
@@ -1023,13 +1087,10 @@ test("createSSEStream passthrough injects a synthetic Claude text block for empt
   assert.match(text, /event: content_block_start/);
   assert.match(text, /event: content_block_delta/);
   assert.match(text, /event: message_stop/);
-  assert.match(text, /\[Proxy Error\] The upstream API returned an empty response/);
   assert.ok(text.indexOf("event: content_block_start") > text.indexOf("event: message_start"));
   assert.ok(text.indexOf("event: message_stop") > text.indexOf("event: content_block_stop"));
-  assert.equal(
-    onCompletePayload.responseBody.choices[0].message.content,
-    SYNTHETIC_CLAUDE_EMPTY_RESPONSE_TEXT
-  );
+  // SYNTHETIC_CLAUDE_EMPTY_RESPONSE_TEXT is "" so the accumulator produces null content (empty delta is falsy).
+  assert.equal(onCompletePayload.responseBody.choices[0].message.content, null);
 });
 
 test("createSSEStream passthrough does not emit [DONE] for Claude SSE clients", async () => {
@@ -1128,13 +1189,10 @@ test("createSSEStream translate mode injects a synthetic Claude text block when 
   assert.match(text, /event: content_block_delta/);
   assert.match(text, /event: message_delta/);
   assert.match(text, /event: message_stop/);
-  assert.match(text, /\[Proxy Error\] The upstream API returned an empty response/);
   assert.ok(text.indexOf("event: content_block_start") > text.indexOf("event: message_start"));
   assert.ok(text.indexOf("event: message_delta") > text.indexOf("event: content_block_stop"));
-  assert.equal(
-    onCompletePayload.responseBody.choices[0].message.content,
-    SYNTHETIC_CLAUDE_EMPTY_RESPONSE_TEXT
-  );
+  // SYNTHETIC_CLAUDE_EMPTY_RESPONSE_TEXT is "" so the accumulator produces null content (empty delta is falsy).
+  assert.equal(onCompletePayload.responseBody.choices[0].message.content, null);
   assert.equal(onCompletePayload.responseBody.usage.total_tokens, 3);
 });
 
@@ -1558,4 +1616,250 @@ test("createSSEStream passthrough mode decrements pending requests on failure", 
     0,
     `pending request count for ${modelKey} should be 0 after failure, got ${count}`
   );
+});
+
+test("createSSEStream passthrough drops empty choices array chunks", async () => {
+  let onCompletePayload = null;
+  const text = await readTransformed(
+    [
+      `data: ${JSON.stringify({
+        id: "chatcmpl_empty",
+        object: "chat.completion.chunk",
+        created: 1,
+        model: "kimi-k2.6",
+        choices: [],
+      })}\n\n`,
+      `data: ${JSON.stringify({
+        id: "chatcmpl_empty",
+        object: "chat.completion.chunk",
+        created: 1,
+        model: "kimi-k2.6",
+        choices: [{ index: 0, delta: { role: "assistant", content: "Hello" } }],
+      })}\n\n`,
+      `data: ${JSON.stringify({
+        id: "chatcmpl_empty",
+        object: "chat.completion.chunk",
+        created: 1,
+        model: "kimi-k2.6",
+        choices: [{ index: 0, delta: {}, finish_reason: "stop" }],
+      })}\n\n`,
+    ],
+    {
+      mode: "passthrough",
+      sourceFormat: FORMATS.OPENAI,
+      provider: "opencode-go",
+      model: "kimi-k2.6",
+      body: { messages: [{ role: "user", content: "hello" }] },
+      onComplete(payload) {
+        onCompletePayload = payload;
+      },
+    }
+  );
+
+  // Empty choices WITHOUT usage are DROPPED, never replaced with a synthetic
+  // "[OmniRoute] Upstream returned an empty response. Please retry." chunk. That
+  // injection (reintroduced by #3422) was fed back by clients as a turn and caused
+  // the retry loop #3388/#3502, which #3400 had fixed by dropping the chunk.
+  assert.doesNotMatch(text, /\[OmniRoute\] Upstream returned an empty response/);
+  // Subsequent valid chunks must still pass through untouched.
+  assert.match(text, /"content":"Hello"/);
+  assert.match(text, /"finish_reason":"stop"/);
+  assert.equal(onCompletePayload.status, 200);
+  assert.equal(onCompletePayload.responseBody.choices[0].message.content, "Hello");
+});
+
+test("createSSEStream passthrough forwards OpenAI usage-only empty choices chunks", async () => {
+  let onCompletePayload = null;
+  const usage = { prompt_tokens: 7, completion_tokens: 3, total_tokens: 10 };
+  const text = await readTransformed(
+    [
+      `data: ${JSON.stringify({
+        id: "chatcmpl_usage_only",
+        object: "chat.completion.chunk",
+        created: 1,
+        model: "gpt-4.1-mini",
+        choices: [{ index: 0, delta: { role: "assistant", content: "Hello" } }],
+        usage: null,
+      })}\n\n`,
+      `data: ${JSON.stringify({
+        id: "chatcmpl_usage_only",
+        object: "chat.completion.chunk",
+        created: 1,
+        model: "gpt-4.1-mini",
+        choices: [{ index: 0, delta: {}, finish_reason: "stop" }],
+        usage: null,
+      })}\n\n`,
+      `data: ${JSON.stringify({
+        id: "chatcmpl_usage_only",
+        object: "chat.completion.chunk",
+        created: 1,
+        model: "gpt-4.1-mini",
+        choices: [],
+        usage,
+      })}\n\n`,
+    ],
+    {
+      mode: "passthrough",
+      sourceFormat: FORMATS.OPENAI,
+      provider: "openai-compatible",
+      model: "gpt-4.1-mini",
+      body: {
+        messages: [{ role: "user", content: "hello" }],
+        stream_options: { include_usage: true },
+      },
+      onComplete(payload) {
+        onCompletePayload = payload;
+      },
+    }
+  );
+
+  assert.doesNotMatch(text, /\[OmniRoute\] Upstream returned an empty response/);
+  assert.match(text, /"choices":\[\]/);
+  assert.match(text, /"usage":\{"prompt_tokens":7,"completion_tokens":3,"total_tokens":10\}/);
+  assert.equal(onCompletePayload.status, 200);
+  assert.equal(onCompletePayload.usage.prompt_tokens, 7);
+  assert.equal(onCompletePayload.usage.completion_tokens, 3);
+  assert.equal(onCompletePayload.responseBody.choices[0].message.content, "Hello");
+  assert.deepEqual(onCompletePayload.responseBody.usage, usage);
+});
+
+test("createSSEStream passthrough logs empty response after tool_calls completion", async () => {
+  let onCompletePayload = null;
+  const text = await readTransformed(
+    [
+      `data: ${JSON.stringify({
+        id: "chatcmpl_tool_then_empty",
+        object: "chat.completion.chunk",
+        created: 1,
+        model: "gpt-5.5-xhigh",
+        choices: [
+          {
+            index: 0,
+            delta: {
+              tool_calls: [
+                {
+                  index: 0,
+                  id: "call_tc",
+                  type: "function",
+                  function: { name: "task_complete", arguments: '{}' },
+                },
+              ],
+            },
+          },
+        ],
+      })}\n\n`,
+      `data: ${JSON.stringify({
+        id: "chatcmpl_tool_then_empty",
+        object: "chat.completion.chunk",
+        created: 1,
+        model: "gpt-5.5-xhigh",
+        choices: [{ index: 0, delta: {}, finish_reason: "tool_calls" }],
+      })}\n\n`,
+    ],
+    {
+      mode: "passthrough",
+      sourceFormat: FORMATS.OPENAI,
+      provider: "codex",
+      model: "gpt-5.5-xhigh",
+      body: { messages: [{ role: "user", content: "do task" }] },
+      onComplete(payload) {
+        onCompletePayload = payload;
+      },
+    }
+  );
+
+  assert.match(text, /"finish_reason":"tool_calls"/);
+  assert.equal(onCompletePayload.status, 200);
+  assert.equal(onCompletePayload.responseBody.choices[0].finish_reason, "tool_calls");
+  assert.equal(onCompletePayload.responseBody.choices[0].message.tool_calls[0].function.name, "task_complete");
+  // Content should be null (empty) since no text was generated
+  assert.equal(onCompletePayload.responseBody.choices[0].message.content, null);
+});
+
+test("createSSEStream passthrough does not swallow false positive textual tool call", async () => {
+  let onCompletePayload = null;
+  const sentence = "Checking: [Tool call: terminal] was executed successfully.";
+
+  const text = await readTransformed(
+    [
+      `data: ${JSON.stringify({
+        id: "chatcmpl_false_positive_textual_tool",
+        object: "chat.completion.chunk",
+        created: 1,
+        model: "MainAgent",
+        choices: [{ index: 0, delta: { role: "assistant", content: sentence } }],
+      })}\n\n`,
+      `data: ${JSON.stringify({
+        id: "chatcmpl_false_positive_textual_tool",
+        object: "chat.completion.chunk",
+        created: 1,
+        model: "MainAgent",
+        choices: [{ index: 0, delta: {}, finish_reason: "stop" }],
+      })}\n\n`,
+    ],
+    {
+      mode: "passthrough",
+      sourceFormat: FORMATS.OPENAI,
+      provider: "omniroute",
+      model: "MainAgent",
+      body: { messages: [{ role: "user", content: "inspect status" }] },
+      onComplete(payload) {
+        onCompletePayload = payload;
+      },
+    }
+  );
+
+  const choice = onCompletePayload.responseBody.choices[0];
+  assert.equal(choice.finish_reason, "stop");
+  assert.equal(choice.message.content, sentence);
+  assert.equal(choice.message.tool_calls, undefined);
+  assert.match(text, /\[Tool call: terminal\] was executed successfully/);
+});
+
+test("createSSEStream passthrough does not swallow false positive textual tool call starting chunk", async () => {
+  let onCompletePayload = null;
+  const chunk1 = "[Tool call: terminal]";
+  const chunk2 = " was skipped.";
+
+  const text = await readTransformed(
+    [
+      `data: ${JSON.stringify({
+        id: "chatcmpl_false_positive_textual_tool_start",
+        object: "chat.completion.chunk",
+        created: 1,
+        model: "MainAgent",
+        choices: [{ index: 0, delta: { role: "assistant", content: chunk1 } }],
+      })}\n\n`,
+      `data: ${JSON.stringify({
+        id: "chatcmpl_false_positive_textual_tool_start",
+        object: "chat.completion.chunk",
+        created: 1,
+        model: "MainAgent",
+        choices: [{ index: 0, delta: { content: chunk2 } }],
+      })}\n\n`,
+      `data: ${JSON.stringify({
+        id: "chatcmpl_false_positive_textual_tool_start",
+        object: "chat.completion.chunk",
+        created: 1,
+        model: "MainAgent",
+        choices: [{ index: 0, delta: {}, finish_reason: "stop" }],
+      })}\n\n`,
+    ],
+    {
+      mode: "passthrough",
+      sourceFormat: FORMATS.OPENAI,
+      provider: "omniroute",
+      model: "MainAgent",
+      body: { messages: [{ role: "user", content: "inspect status" }] },
+      onComplete(payload) {
+        onCompletePayload = payload;
+      },
+    }
+  );
+
+  const choice = onCompletePayload.responseBody.choices[0];
+  assert.equal(choice.finish_reason, "stop");
+  assert.equal(choice.message.content, chunk1 + chunk2);
+  assert.equal(choice.message.tool_calls, undefined);
+  assert.match(text, /\[Tool call: terminal\] was skipped/);
 });

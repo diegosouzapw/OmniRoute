@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useTranslations } from "next-intl";
 import Modal from "./Modal";
 import Button from "./Button";
@@ -10,10 +10,12 @@ const ALL_PROXY_TYPES = [
   { value: "https", label: "HTTPS" },
   { value: "socks5", label: "SOCKS5" },
 ];
-const SOCKS5_UI_ENABLED = process.env.NEXT_PUBLIC_ENABLE_SOCKS5_PROXY === "true";
-const PROXY_TYPES = SOCKS5_UI_ENABLED
-  ? ALL_PROXY_TYPES
-  : ALL_PROXY_TYPES.filter((type) => type.value !== "socks5");
+// Build-time fallback (static deploys). The live value comes from GET /api/settings/proxies
+// (server ENABLE_SOCKS5_PROXY) so a runtime Docker env is honoured — #3508.
+const BUILD_TIME_SOCKS5 = process.env.NEXT_PUBLIC_ENABLE_SOCKS5_PROXY === "true";
+export function buildProxyTypes(socks5Enabled: boolean) {
+  return socks5Enabled ? ALL_PROXY_TYPES : ALL_PROXY_TYPES.filter((type) => type.value !== "socks5");
+}
 
 type ProxyConfigLevel = "global" | "provider" | "combo" | "key";
 
@@ -135,7 +137,9 @@ export default function ProxyConfigModal({
   const [mode, setMode] = useState("saved");
   const [savedProxies, setSavedProxies] = useState<ProxyRegistryItem[]>([]);
   const [selectedProxyId, setSelectedProxyId] = useState("");
-  const [proxyType, setProxyType] = useState(PROXY_TYPES[0]?.value || "http");
+  const [socks5Enabled, setSocks5Enabled] = useState(BUILD_TIME_SOCKS5);
+  const proxyTypes = useMemo(() => buildProxyTypes(socks5Enabled), [socks5Enabled]);
+  const [proxyType, setProxyType] = useState("http");
   const [host, setHost] = useState("");
   const [port, setPort] = useState("");
   const [username, setUsername] = useState("");
@@ -166,14 +170,20 @@ export default function ProxyConfigModal({
       try {
         let hasSavedAssignment = false;
         let registryItems: ProxyRegistryItem[] = [];
+        let runtimeSocks5 = BUILD_TIME_SOCKS5;
         const registryRes = await fetch("/api/settings/proxies");
         if (registryRes.ok) {
           const registryPayload = await registryRes.json();
           registryItems = Array.isArray(registryPayload?.items) ? registryPayload.items : [];
           setSavedProxies(registryItems);
+          if (typeof registryPayload?.socks5Enabled === "boolean") {
+            runtimeSocks5 = registryPayload.socks5Enabled;
+          }
         } else {
           setSavedProxies([]);
         }
+        setSocks5Enabled(runtimeSocks5);
+        const runtimeProxyTypes = buildProxyTypes(runtimeSocks5);
 
         const scope = getAssignmentScope(level);
         const assignmentParams = new URLSearchParams({ scope });
@@ -194,9 +204,9 @@ export default function ProxyConfigModal({
             const assignedProxy = registryItems.find((item) => item.id === target.proxyId);
             if (assignedProxy?.source === DASHBOARD_CUSTOM_PROXY_SOURCE) {
               const normalizedType = String(assignedProxy.type || "http").toLowerCase();
-              const hasTypeOption = PROXY_TYPES.some((entry) => entry.value === normalizedType);
+              const hasTypeOption = runtimeProxyTypes.some((entry) => entry.value === normalizedType);
               setMode("custom");
-              setProxyType(hasTypeOption ? normalizedType : PROXY_TYPES[0]?.value || "http");
+              setProxyType(hasTypeOption ? normalizedType : runtimeProxyTypes[0]?.value || "http");
               setHost(assignedProxy.host || "");
               setPort(String(assignedProxy.port || ""));
               setUsername(
@@ -206,7 +216,7 @@ export default function ProxyConfigModal({
                 isRedactedSecret(assignedProxy.password) ? "" : assignedProxy.password || ""
               );
               setShowAuth(!!(assignedProxy.username || assignedProxy.password));
-              if (normalizedType === "socks5" && !SOCKS5_UI_ENABLED) {
+              if (normalizedType === "socks5" && !runtimeSocks5) {
                 setFormError(t("errorSocks5Hidden"));
               }
             } else {
@@ -227,15 +237,15 @@ export default function ProxyConfigModal({
           const proxy = data.proxy;
           if (proxy && proxy.host) {
             const normalizedType = String(proxy.type || "http").toLowerCase();
-            const hasTypeOption = PROXY_TYPES.some((entry) => entry.value === normalizedType);
-            setProxyType(hasTypeOption ? normalizedType : PROXY_TYPES[0]?.value || "http");
+            const hasTypeOption = runtimeProxyTypes.some((entry) => entry.value === normalizedType);
+            setProxyType(hasTypeOption ? normalizedType : runtimeProxyTypes[0]?.value || "http");
             setHost(proxy.host || "");
             setPort(proxy.port || "");
             setUsername(proxy.username || "");
             setPassword(proxy.password || "");
             setShowAuth(!!(proxy.username || proxy.password));
             setHasOwnProxy(true);
-            if (normalizedType === "socks5" && !SOCKS5_UI_ENABLED) {
+            if (normalizedType === "socks5" && !runtimeSocks5) {
               setFormError(t("errorSocks5Hidden"));
             }
             if (!hasSavedAssignment) setMode("custom");
@@ -279,7 +289,7 @@ export default function ProxyConfigModal({
   }, [isOpen, level, levelId]);
 
   const resetFields = () => {
-    setProxyType(PROXY_TYPES[0]?.value || "http");
+    setProxyType(proxyTypes[0]?.value || "http");
     setHost("");
     setPort("");
     setUsername("");
@@ -602,7 +612,7 @@ export default function ProxyConfigModal({
                   {t("proxyType")}
                 </label>
                 <div className="flex gap-1 bg-bg-subtle rounded-lg p-1 border border-border">
-                  {PROXY_TYPES.map((t) => (
+                  {proxyTypes.map((t) => (
                     <button
                       key={t.value}
                       onClick={() => setProxyType(t.value)}

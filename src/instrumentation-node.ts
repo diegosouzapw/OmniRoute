@@ -237,5 +237,15 @@ export async function registerNodejs(): Promise<void> {
       const msg = err instanceof Error ? err.message : String(err);
       console.warn("[STARTUP] Embed WS proxy failed to start (non-fatal):", msg);
     }
+
+    try {
+      const { autoRefreshDaemon } = await import(
+        "@omniroute/open-sse/services/autoRefreshDaemon"
+      );
+      autoRefreshDaemon.start();
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : String(err);
+      console.warn("[STARTUP] Auto-refresh daemon failed to start (non-fatal):", msg);
+    }
   }
 }

@@ -1,4 +1,5 @@
 import { clearHealthCheckLogCache } from "@/lib/tokenHealthCheck";
+import { setCustomBannedSignals } from "@omniroute/open-sse/services/accountFallback.ts";
 
 type JsonRecord = Record<string, unknown>;
 
@@ -15,7 +16,8 @@ export type RuntimeReloadSection =
   | "corsOrigins"
   | "ccBridgeTransforms"
   | "systemTransforms"
-  | "authzBypass";
+  | "authzBypass"
+  | "bannedSignals";
 
 export interface RuntimeReloadChange {
   section: RuntimeReloadSection;
@@ -42,6 +44,7 @@ interface RuntimeSettingsSnapshot {
   ccBridgeTransforms: unknown;
   systemTransforms: unknown;
   authzBypass: AuthzBypassSnapshot;
+  customBannedSignals: string[];
 }
 
 // Default bypass policy: kill-switch on, `/api/mcp/` bypassable. Mirrors the
@@ -67,6 +70,7 @@ const DEFAULT_RUNTIME_SETTINGS_SNAPSHOT: RuntimeSettingsSnapshot = {
   ccBridgeTransforms: null,
   systemTransforms: null,
   authzBypass: DEFAULT_AUTHZ_BYPASS_SNAPSHOT,
+  customBannedSignals: [],
 };
 
 let lastAppliedSnapshot: RuntimeSettingsSnapshot | null = null;
@@ -246,6 +250,7 @@ export function buildRuntimeSettingsSnapshot(
     ccBridgeTransforms: parseStoredJson(settings.ccBridgeTransforms, "ccBridgeTransforms"),
     systemTransforms: parseStoredJson(settings.systemTransforms, "systemTransforms"),
     authzBypass: normalizeAuthzBypass(settings),
+    customBannedSignals: normalizeStringArray(settings.customBannedSignals),
   };
 }
 
@@ -306,10 +311,16 @@ async function applyCacheControlSection() {
   invalidateCacheControlSettingsCache();
 }
 
-async function applyUsageTrackingSection() {
-  const { invalidateBufferTokensCache } =
+async function applyUsageTrackingSection(newBuffer: number | null) {
+  const { invalidateBufferTokensCache, setBufferTokensCache } =
     await import("@omniroute/open-sse/utils/usageTracking.ts");
-  invalidateBufferTokensCache();
+  if (typeof newBuffer === "number" && newBuffer >= 0) {
+    // Set the value directly so the first request after a settings save gets the
+    // correct count synchronously — no race window back to DEFAULT (2000).
+    setBufferTokensCache(newBuffer);
+  } else {
+    invalidateBufferTokensCache();
+  }
 }
 
 async function applyThoughtSignatureSection(mode: string) {
@@ -465,7 +476,9 @@ export async function applyRuntimeSettings(
   }
 
   if (force || hasChanged(currentSnapshot.usageTokenBuffer, previousSnapshot.usageTokenBuffer)) {
-    await applyUsageTrackingSection();
+    const newBuffer =
+      typeof currentSnapshot.usageTokenBuffer === "number" ? currentSnapshot.usageTokenBuffer : null;
+    await applyUsageTrackingSection(newBuffer);
     markChanged("usageTracking");
   }
 
@@ -516,6 +529,11 @@ export async function applyRuntimeSettings(
   if (force || hasChanged(currentSnapshot.authzBypass, previousSnapshot.authzBypass)) {
     applyAuthzBypassSection(currentSnapshot.authzBypass);
     markChanged("authzBypass");
+  }
+
+  if (force || hasChanged(currentSnapshot.customBannedSignals, previousSnapshot.customBannedSignals)) {
+    setCustomBannedSignals(currentSnapshot.customBannedSignals);
+    markChanged("bannedSignals");
   }
 
   lastAppliedSnapshot = currentSnapshot;

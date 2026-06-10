@@ -162,6 +162,7 @@ export async function getInstalledVersions(dataDir?: string): Promise<string[]> 
     return entries
       .filter(
         (e) =>
+          typeof e === "string" &&
           e.startsWith("cliproxyapi-") &&
           fsSync.statSync(path.join(/* turbopackIgnore: true */ binDir, e)).isDirectory()
       )

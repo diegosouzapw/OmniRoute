@@ -75,18 +75,22 @@ test("Provider: gemini-web has correct models", async () => {
   assert.ok(modelIds.includes("gemini-2.0-flash"));
 });
 
-// ─── Regression: #2832 — Playwright missing in Docker (runner-base) ──────────
+// ─── Regression: #2832 / #3516 — Playwright missing in Docker (runner-base) ──
 //
 // When the `runner-base` Docker image is used (no Playwright browsers installed),
 // `import("playwright")` succeeds but `chromium.launch()` throws the well-known
-// "Executable doesn't exist" error. The executor MUST surface this as a sanitized
-// 500 — never an unhandled rejection — so users get a clear error message rather
-// than a silent stream abort.
+// "Executable doesn't exist" error. The executor MUST surface this as a structured,
+// sanitized response — never an unhandled rejection / silent stream abort.
 //
-// Hard rule #12: error must go through sanitizeErrorMessage (no raw err.message
-// or stack trace in the response body).
+// #3516 superseded the original 500: a missing browser is a host/config problem,
+// not a transient upstream fault, so it now returns 503 with the
+// `X-Omni-Fallback-Hint: connection_cooldown` header (skips the provider circuit
+// breaker, short non-exponential cooldown) and an actionable message — instead of a
+// retryable 500 that marked the account unavailable and looped.
+//
+// Hard rule #12: the body carries no raw err.message stack trace.
 
-test("#2832: Playwright launch failure returns sanitized 500, not unhandled rejection", async () => {
+test("#2832/#3516: missing Playwright browser returns an actionable 503 with cooldown hint, not a retryable 500", async () => {
   const playwrightError = new Error(
     "browserType.launch: Executable doesn't exist at /home/node/.cache/ms-playwright/chromium_headless_shell-1161/chrome-linux/headless_shell\n" +
       "    at /app/node_modules/playwright-core/lib/server/browserType.js:123:19"
@@ -110,10 +114,17 @@ test("#2832: Playwright launch failure returns sanitized 500, not unhandled reje
       log: null,
     });
 
-    assert.equal(result.response.status, 500, "should return HTTP 500");
+    // #3516: missing browser → 503 + connection-cooldown hint (not a retryable 500 loop).
+    assert.equal(result.response.status, 503, "missing browser should return HTTP 503");
+    assert.equal(
+      result.response.headers.get("X-Omni-Fallback-Hint"),
+      "connection_cooldown",
+      "must signal connection cooldown so the provider breaker is skipped"
+    );
     const json = (await result.response.json()) as any;
     assert.ok(typeof json.error === "string", "error field must be a string");
-    // Hard rule #12: sanitizeErrorMessage must strip the stack trace tail.
+    assert.match(json.error, /playwright install|not installed/i, "message must be actionable");
+    // No raw stack trace / source path leaks into the body.
     assert.ok(!json.error.includes("\n    at "), "must not contain multi-line stack trace");
     assert.ok(!json.error.includes("node_modules/playwright-core"), "must not contain node_modules source path");
   } finally {

@@ -15,6 +15,10 @@ export interface ModelSpec {
   supportsThinking?: boolean;
   supportsTools?: boolean;
   supportsVision?: boolean;
+  // Model defaults to adaptive thinking and REJECTS an explicit `thinking.type:"disabled"`
+  // (upstream returns 400). Used to normalize the request when a combo/route substitutes
+  // this model after the client already chose `disabled`. See issue #3554.
+  rejectsThinkingDisabled?: boolean;
 }
 
 const BEDROCK_CLAUDE_ALIASES = (...modelIds: string[]) => [
@@ -42,6 +46,15 @@ export const MODEL_SPECS: Record<string, ModelSpec> = {
     supportsVision: true,
   },
 
+  "gpt-5.4": {
+    maxOutputTokens: 131072,
+    contextWindow: 409600,
+    supportsThinking: true,
+    supportsTools: true,
+    supportsVision: true,
+    aliases: ["openai/gpt-5.4"],
+  },
+
   // ── GPT-4o family ──────────────────────────────────────────────
   "gpt-4o-mini": {
     maxOutputTokens: 16384,
@@ -58,6 +71,22 @@ export const MODEL_SPECS: Record<string, ModelSpec> = {
     supportsTools: true,
     supportsVision: true,
     aliases: ["openai/gpt-4o"],
+  },
+
+  // ── Gemini 2.5 and 3.5 Flash series ──────────────────────────────
+  "gemini-2.5-flash": {
+    maxOutputTokens: 65536,
+    contextWindow: 1048576,
+    supportsThinking: false,
+    supportsTools: true,
+    supportsVision: true,
+  },
+  "gemini-3.5-flash-low": {
+    maxOutputTokens: 65536,
+    contextWindow: 1048576,
+    supportsThinking: false,
+    supportsTools: true,
+    supportsVision: true,
   },
 
   // ── Gemini 3 Flash series ───────────────────────────────────────
@@ -187,6 +216,20 @@ export const MODEL_SPECS: Record<string, ModelSpec> = {
     aliases: BEDROCK_CLAUDE_ALIASES("claude-opus-4-7", "claude-opus-4.7"),
   },
 
+  // ── Claude Fable 5 ──────────────────────────────────────────────
+  "claude-fable-5": {
+    maxOutputTokens: 128000,
+    contextWindow: 1000000,
+    defaultThinkingBudget: 32000,
+    thinkingBudgetCap: 120000,
+    supportsThinking: true,
+    supportsTools: true,
+    supportsVision: true,
+    // Fable 5 defaults to adaptive thinking and rejects `thinking.type:"disabled"` (#3554).
+    rejectsThinkingDisabled: true,
+    aliases: BEDROCK_CLAUDE_ALIASES("claude-fable-5"),
+  },
+
   // ── Claude Opus 4.8 ─────────────────────────────────────────────
   "claude-opus-4-8": {
     maxOutputTokens: 128000,
@@ -310,12 +353,24 @@ export const MODEL_SPECS: Record<string, ModelSpec> = {
     supportsTools: true,
   },
 
+  // ── MiniMax M3 (1M context, 512K max output) ─────────────────────
+  // max output verified against MiniMax docs / OpenRouter / Artificial
+  // Analysis (Nov 2025 launch): 1,048,576-token context, up to 512K output.
+  "minimax-m3": {
+    maxOutputTokens: 512000,
+    contextWindow: 1048576,
+    supportsThinking: true,
+    supportsTools: true,
+    aliases: ["MiniMax-M3", "MiniMaxAI/MiniMax-M3"],
+  },
+
   // ── MiniMax M2.x (200K context family) ───────────────────────────
   "minimax-m2.7": {
     maxOutputTokens: 131072,
     contextWindow: 204800,
     supportsThinking: true,
     supportsTools: true,
+    aliases: ["MiniMax-M2.7", "MiniMaxAI/MiniMax-M2.7"],
   },
   "minimax-m2.5": {
     maxOutputTokens: 131072,
@@ -356,17 +411,54 @@ export const MODEL_SPECS: Record<string, ModelSpec> = {
 export function getModelSpec(modelId: string): ModelSpec | undefined {
   if (MODEL_SPECS[modelId]) return MODEL_SPECS[modelId];
 
-  // Buscas por alias
+  // Case-insensitive lookups: upstream model ids are often capitalized
+  // (e.g. "MiniMax-M2.7") while specs/aliases use lowercase ids (#3141).
+  const lower = modelId.toLowerCase();
+
+  // Exact match (case-insensitive)
   for (const [canonical, spec] of Object.entries(MODEL_SPECS)) {
-    if (spec.aliases?.includes(modelId)) return spec;
+    if (canonical.toLowerCase() === lower) return spec;
   }
 
-  // Prefix matching
+  // Buscas por alias (case-insensitive)
+  for (const [, spec] of Object.entries(MODEL_SPECS)) {
+    if (spec.aliases?.some((alias) => alias.toLowerCase() === lower)) return spec;
+  }
+
+  // Prefix matching (case-insensitive)
   for (const [key, spec] of Object.entries(MODEL_SPECS)) {
-    if (key !== "__default__" && modelId.startsWith(key)) return spec;
+    if (key !== "__default__" && lower.startsWith(key.toLowerCase())) return spec;
   }
 
   return undefined;
+}
+
+/**
+ * Normalize a request's `thinking` field against the (possibly combo-substituted) target model.
+ *
+ * A combo/route can swap the upstream model AFTER the client already chose its `thinking`
+ * value. Claude Code sends `thinking:{type:"disabled"}` for internal title/name-generation
+ * calls — valid for opus/sonnet, but claude-fable-5 defaults to adaptive thinking and rejects
+ * `type:"disabled"` with an upstream 400. When the resolved target model is flagged
+ * `rejectsThinkingDisabled`, drop the now-invalid `thinking` so the model uses its adaptive
+ * default instead of hard-failing. Models that accept `disabled` are left untouched, and any
+ * non-`disabled` thinking (enabled/adaptive) is always preserved. See issue #3554.
+ */
+export function normalizeThinkingForModel<T extends Record<string, unknown>>(
+  body: T,
+  modelId: string
+): T {
+  const thinking = body?.thinking as Record<string, unknown> | undefined;
+  if (
+    thinking &&
+    typeof thinking === "object" &&
+    thinking.type === "disabled" &&
+    getModelSpec(modelId)?.rejectsThinkingDisabled
+  ) {
+    const { thinking: _omitted, ...rest } = body as Record<string, unknown>;
+    return rest as T;
+  }
+  return body;
 }
 
 export function capMaxOutputTokens(modelId: string, requested?: number): number {

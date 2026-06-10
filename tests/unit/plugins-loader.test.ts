@@ -130,3 +130,70 @@ export async function onRequest(ctx) {
     });
   }
 );
+
+// Regression (PR #3562, Hard Rule #18): the loader must build the plugin's
+// lifecycle-hook methods (onInstall/onActivate/onDeactivate/onUninstall) when —
+// and only when — the manifest declares them. manager.ts registers exactly these
+// methods with emitHook; before #3562 the loader only wired onRequest/onResponse/
+// onError, so the lifecycle hooks were declared-but-dead (manager registered
+// `undefined` and the fire-and-forget emitHook never reached the plugin).
+test(
+  "loadPlugin wires declared lifecycle hooks and skips undeclared ones",
+  { timeout: 5_000 },
+  async (t) => {
+    const pluginDir = await mkdtemp(join(tmpdir(), "omniroute-plugin-lifecycle-"));
+    const entryPoint = join(pluginDir, "index.mjs");
+    let loaded: LoadedPlugin | undefined;
+
+    t.after(async () => {
+      loaded?.cleanup();
+      await rm(pluginDir, { recursive: true, force: true });
+    });
+
+    await writeFile(
+      entryPoint,
+      `
+export async function onInstall(_payload) {}
+export async function onActivate(_payload) {}
+export async function onDeactivate(_payload) {}
+export async function onUninstall(_payload) {}
+`,
+      "utf-8"
+    );
+
+    loaded = await loadPlugin(entryPoint, {
+      name: "lifecycle-test",
+      version: "1.0.0",
+      license: "MIT",
+      main: "index.mjs",
+      source: "local",
+      tags: [],
+      requires: { permissions: [] },
+      hooks: {
+        onRequest: false,
+        onResponse: false,
+        onError: false,
+        onInstall: true,
+        onActivate: true,
+        onDeactivate: false, // declared in code but disabled in manifest — must NOT be wired
+        onUninstall: true,
+      },
+      skills: [],
+      enabledByDefault: false,
+      configSchema: {},
+    });
+
+    // Hooks enabled in the manifest must be wired as callable methods — this is
+    // exactly what manager.ts hands to registerHook(hookName, name, handler).
+    assert.equal(typeof loaded.plugin.onInstall, "function", "onInstall must be wired");
+    assert.equal(typeof loaded.plugin.onActivate, "function", "onActivate must be wired");
+    assert.equal(typeof loaded.plugin.onUninstall, "function", "onUninstall must be wired");
+
+    // A hook disabled in the manifest must NOT be wired, even if the plugin
+    // exports it (gated by the manifest flag).
+    assert.equal(loaded.plugin.onDeactivate, undefined, "disabled onDeactivate must not be wired");
+
+    // The wired method must bridge to the worker without throwing (fire-and-forget).
+    await loaded.plugin.onActivate?.({ name: "lifecycle-test", version: "1.0.0" });
+  }
+);

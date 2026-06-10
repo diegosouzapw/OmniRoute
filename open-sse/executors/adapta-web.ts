@@ -1,4 +1,6 @@
 import { BaseExecutor, type ExecuteInput } from "./base.ts";
+import { prepareToolMessages, buildToolAwareResult } from "../translator/webTools.ts";
+import { sanitizeErrorMessage } from "../utils/error.ts";
 
 const ADAPTA_APP_URL = "https://agent.adapta.one";
 const ADAPTA_CLERK_URL = "https://clerk.agent.adapta.one";
@@ -352,6 +354,7 @@ export class AdaptaWebExecutor extends BaseExecutor {
   async execute({ model, body, stream, credentials, signal, log }: ExecuteInput) {
     const bodyObj = (body ?? {}) as Record<string, unknown>;
     const messages = (Array.isArray(bodyObj.messages) ? bodyObj.messages : []) as OpenAIMessage[];
+    const { hasTools, requestedTools, effectiveMessages } = prepareToolMessages(bodyObj, messages);
 
     // 1. Extract and validate credentials
     const rawKey = String((credentials as Record<string, unknown>)?.apiKey ?? "");
@@ -376,7 +379,7 @@ export class AdaptaWebExecutor extends BaseExecutor {
       const msg = err instanceof Error ? err.message : String(err);
       log?.warn?.("ADAPTA-WEB", `Auth failed: ${msg}`);
       return {
-        response: makeErrorResponse(401, `Adapta auth failed: ${msg}`),
+        response: makeErrorResponse(401, `Adapta auth failed: ${sanitizeErrorMessage(msg)}`),
         url: ADAPTA_STREAM_URL,
         headers: {},
         transformedBody: body,
@@ -385,7 +388,7 @@ export class AdaptaWebExecutor extends BaseExecutor {
 
     // 2. Build Adapta request body
     const aiModelId = MODEL_ID_MAP[model] ?? DEFAULT_AI_MODEL_ID;
-    const adaptaMessages = buildAdaptaMessages(messages);
+    const adaptaMessages = buildAdaptaMessages(effectiveMessages);
 
     if (adaptaMessages.length === 0) {
       return {
@@ -486,6 +489,35 @@ export class AdaptaWebExecutor extends BaseExecutor {
       }
     } finally {
       reader.releaseLock();
+    }
+
+    if (hasTools) {
+      const { content, toolCalls, finishReason } = buildToolAwareResult(fullText, requestedTools, "adp");
+      if (toolCalls) {
+        return {
+          response: new Response(
+            JSON.stringify({
+              id: `chatcmpl-adp-${Date.now()}`, object: "chat.completion",
+              created: Math.floor(Date.now() / 1000), model,
+              choices: [{ index: 0, message: { role: "assistant", content: null, tool_calls: toolCalls }, finish_reason: finishReason }],
+            }),
+            { status: 200, headers: { "Content-Type": "application/json" } }
+          ),
+          url: ADAPTA_STREAM_URL, headers, transformedBody: requestPayload,
+        };
+      }
+      return {
+        response: new Response(
+          JSON.stringify({
+            id: `chatcmpl-adp-${Date.now()}`, object: "chat.completion",
+            created: Math.floor(Date.now() / 1000), model,
+            choices: [{ index: 0, message: { role: "assistant", content }, finish_reason: "stop" }],
+            usage: { prompt_tokens: 0, completion_tokens: 0, total_tokens: 0 },
+          }),
+          { status: 200, headers: { "Content-Type": "application/json" } }
+        ),
+        url: ADAPTA_STREAM_URL, headers, transformedBody: requestPayload,
+      };
     }
 
     return {

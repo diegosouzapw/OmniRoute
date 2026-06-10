@@ -1,9 +1,10 @@
 import { NextResponse } from "next/server";
-import Database from "better-sqlite3";
 import path from "path";
 import fs from "fs";
 import os from "os";
 import { getDbInstance, resetDbInstance, SQLITE_FILE } from "@/lib/db/core";
+import { openDatabaseAsync } from "@/lib/db/adapters/driverFactory";
+import type { SqliteAdapter } from "@/lib/db/adapters/types";
 import { backupDbFile } from "@/lib/db/backup";
 import { isAuthRequired, isAuthenticated } from "@/shared/utils/apiAuth";
 import { getSettings } from "@/lib/db/settings";
@@ -86,10 +87,14 @@ export async function POST(request: Request) {
     tmpPath = path.join(os.tmpdir(), `omniroute-import-${Date.now()}.sqlite`);
     fs.writeFileSync(tmpPath, fileBuffer!);
 
-    // Validate SQLite integrity
-    let testDb: InstanceType<typeof Database> | null = null;
+    // Validate SQLite integrity.
+    // Use the resilient driver factory (better-sqlite3 → node:sqlite → sql.js) rather than
+    // a direct `better-sqlite3` import: in the packaged Electron app that native module is
+    // absent from the standalone server's node_modules, so a hard import crashes the route
+    // with "Cannot find module 'better-sqlite3'" even though node:sqlite is available (#3025).
+    let testDb: SqliteAdapter | null = null;
     try {
-      testDb = new Database(tmpPath, { readonly: true });
+      testDb = await openDatabaseAsync(tmpPath, { readonly: true });
       const result = testDb.pragma("integrity_check") as any[];
       if (result[0]?.integrity_check !== "ok") {
         return NextResponse.json(

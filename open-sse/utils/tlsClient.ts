@@ -71,13 +71,79 @@ function normalizeHeaders(headers: HeadersInit | undefined): Record<string, stri
  */
 class TlsClient {
   session: WreqSession | null = null;
-  available: boolean;
+
+  private _libraryAvailable: boolean;
+  private failureCount: number = 0;
+  private maxFailures: number = 3;
+  private baseCooldownMs: number = 30_000;
+  private cooldownMs: number = 30_000;
+  private cooldownMultiplier: number = 1;
+  private readonly MAX_COOLDOWN_MS = 600_000; // 10 min
+  private circuitOpenUntil: number = 0;
+  private circuitTripped: boolean = false;
 
   constructor() {
-    this.available = !!createSession;
+    this._libraryAvailable = !!createSession;
+  }
+
+  get available(): boolean {
+    if (!this._libraryAvailable) return false;
+    if (!this.circuitTripped) return true;
+    return Date.now() >= this.circuitOpenUntil;
+  }
+
+  private recordFailure(): void {
+    this.failureCount++;
+    if (this.failureCount >= this.maxFailures) {
+      this.circuitOpenUntil = Date.now() + this.cooldownMs;
+      this.circuitTripped = true;
+      // Close the stale session so the next half-open retry creates a
+      // fresh one instead of reusing a broken connection.
+      if (this.session) {
+        Promise.resolve(this.session.close()).catch(() => {});
+        this.session = null;
+      }
+      console.warn(
+        `[TlsClient] Circuit opened after ${this.failureCount} consecutive failures, cooling down for ${this.cooldownMs}ms`
+      );
+      // Double cooldown for the next trip: 30s → 60s → 120s → ... → 10 min max
+      this.escalateCooldown();
+    }
+  }
+
+  private recordSuccess(): void {
+    this.failureCount = 0;
+    if (this.circuitTripped) {
+      this.cooldownMultiplier = 1;
+      this.cooldownMs = this.baseCooldownMs;
+      console.log("[TlsClient] Circuit closed (success after cooldown)");
+      this.circuitTripped = false;
+    }
+  }
+
+  private escalateCooldown(): void {
+    this.cooldownMultiplier = Math.min(this.cooldownMultiplier * 2, 20);
+    this.cooldownMs = Math.min(this.baseCooldownMs * this.cooldownMultiplier, this.MAX_COOLDOWN_MS);
+  }
+
+  private checkCircuit(): boolean {
+    if (!this.circuitTripped) return true;
+
+    if (Date.now() >= this.circuitOpenUntil) {
+      console.log("[TlsClient] Half-open: retrying after cooldown");
+      // Don't call recordSuccess() here — that would reset failureCount.
+      // Instead, let the fetch() call succeed or fail naturally.
+      // If it succeeds, recordSuccess() in fetch() handles cleanup.
+      // If it fails, recordFailure() finds failureCount still >= maxFailures
+      // and re-opens with escalated cooldown.
+      return true;
+    }
+
+    return false;
   }
 
   async getSession() {
+    if (!this.checkCircuit()) return null;
     if (!this.available) return null;
     if (this.session) return this.session;
     const createSessionFn = createSession;
@@ -103,29 +169,42 @@ class TlsClient {
    * wreq-js Response is already fetch-compatible (headers, text(), json(), clone(), body).
    */
   async fetch(url: string, options: FetchOptions = {}) {
-    const session = await this.getSession();
-    if (!session) throw new Error("wreq-js not available");
-    const { timeoutMs } = getTlsClientTimeoutConfig(process.env, (message) => {
-      console.warn(`[TlsClient] ${message}`);
-    });
-
-    const method = (options.method || "GET").toUpperCase();
-
-    const wreqOptions: Record<string, unknown> = {
-      method,
-      headers: normalizeHeaders(options.headers),
-      body: options.body,
-      redirect: options.redirect === "manual" ? "manual" : "follow",
-      timeout: timeoutMs,
-    };
-
-    // Pass signal through if available
-    if (options.signal) {
-      wreqOptions.signal = options.signal;
+    if (!this.checkCircuit()) {
+      throw new Error("wreq-js circuit open — skipping TLS request");
     }
 
-    const response = await session.fetch(url, wreqOptions);
-    return response;
+    try {
+      const session = await this.getSession();
+      if (!session) throw new Error("wreq-js not available");
+      const { timeoutMs } = getTlsClientTimeoutConfig(process.env, (message) => {
+        console.warn(`[TlsClient] ${message}`);
+      });
+
+      const method = (options.method || "GET").toUpperCase();
+
+      const wreqOptions: Record<string, unknown> = {
+        method,
+        headers: normalizeHeaders(options.headers),
+        body: options.body,
+        redirect: options.redirect === "manual" ? "manual" : "follow",
+        timeout: timeoutMs,
+      };
+
+      if (options.signal) {
+        wreqOptions.signal = options.signal;
+      }
+
+      const response = await session.fetch(url, wreqOptions);
+      this.recordSuccess();
+      return response;
+    } catch (err) {
+      const isAbort =
+        err instanceof Error && (err.name === "AbortError" || err.message.includes("aborted"));
+      if (!isAbort) {
+        this.recordFailure();
+      }
+      throw err;
+    }
   }
 
   async exit() {
@@ -133,6 +212,29 @@ class TlsClient {
       await this.session.close();
       this.session = null;
     }
+  }
+
+  resetCircuit(): void {
+    this.failureCount = 0;
+    this.circuitTripped = false;
+    this.circuitOpenUntil = 0;
+  }
+
+  getCircuitState(): {
+    available: boolean;
+    circuitTripped: boolean;
+    failureCount: number;
+    circuitOpenUntil: number;
+    coolDownRemainingMs: number;
+  } {
+    return {
+      available: this.available,
+      circuitTripped: this.circuitTripped,
+      failureCount: this.failureCount,
+      circuitOpenUntil: this.circuitOpenUntil,
+      coolDownRemainingMs:
+        this.circuitOpenUntil > 0 ? Math.max(0, this.circuitOpenUntil - Date.now()) : 0,
+    };
   }
 }
 

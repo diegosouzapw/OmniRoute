@@ -1,0 +1,253 @@
+###
+# @name OpenAI Response - Test streaming response
+POST {{omniroute-address}}/v1/responses
+Authorization: Bearer {{OMNIROUTE_API_KEY}}
+Content-Type: text/event-stream
+
+{
+  "model": "gemini/gemma-4-31b-it",
+  "stream": true,
+  "input": [
+    {
+      "type": "message",
+      "role": "user",
+      "content": [
+        {
+          "type": "input_text",
+          "text": "Ansver 1+1 only."
+        }
+      ]
+    }
+  ]
+}
+
+###
+# @name Gemini Response - Test streaming response
+POST https://generativelanguage.googleapis.com/v1beta/models/gemma-4-31b-it:streamGenerateContent?alt=sse
+x-goog-api-key: {{GEMINI_API_KEY}}
+Content-Type: text/event-stream
+
+{
+  "model": "gemma-4-31b-it",
+  "contents": [
+    {
+      "role": "user",
+      "parts": [
+        {
+          "text": "Ansver 1+1 only."
+        }
+      ]
+    }
+  ]
+}
+
+###
+# @name OpenAI Response - Test non-streaming response
+POST {{omniroute-address}}/v1/responses
+Authorization: Bearer {{OMNIROUTE_API_KEY}}
+Content-Type: application/json
+
+{
+  "model": "gemini/gemma-4-31b-it",
+  "stream": false,
+  "input": [
+    {
+      "type": "message",
+      "role": "user",
+      "content": [
+        {
+          "type": "input_text",
+          "text": "Ansver 11+212 only."
+        }
+      ]
+    }
+  ]
+}
+
+###
+# @name Gemini Response - Test non-streaming response
+POST https://generativelanguage.googleapis.com/v1beta/models/gemma-4-31b-it:generateContent
+x-goog-api-key: {{GEMINI_API_KEY}}
+Content-Type: application/json
+
+{
+  "model": "gemma-4-31b-it",
+  "contents": [
+    {
+      "role": "user",
+      "parts": [
+        {
+          "text": "Ansver 1+1 only."
+        }
+      ]
+    }
+  ]
+}
+
+###
+# @name Tool history via OmniRoute — native functionCall/functionResponse round-trip
+# Tool calls in conversation history are mapped to native Gemini functionCall parts
+# (no text serialization). The model should respond with either natural language or
+# proper functionCall — never with text labels like [tool_history_call:.
+POST {{omniroute-address}}/v1/chat/completions
+Authorization: Bearer {{OMNIROUTE_API_KEY}}
+Content-Type: application/json
+
+{
+  "model": "gemini/gemma-4-31b-it",
+  "messages": [
+    {
+      "role": "user",
+      "content": "What is the weather in Stockholm?"
+    },
+    {
+      "role": "assistant",
+      "content": null,
+      "tool_calls": [
+        {
+          "id": "call_abc123",
+          "type": "function",
+          "function": {
+            "name": "get_weather",
+            "arguments": "{\"location\": \"Stockholm, Sweden\"}"
+          }
+        }
+      ]
+    },
+    {
+      "role": "tool",
+      "tool_call_id": "call_abc123",
+      "content": "{\"temperature\": 22, \"conditions\": \"Sunny\", \"humidity\": 45}"
+    },
+    {
+      "role": "assistant",
+      "content": "Stockholm has sunny weather at 22°C."
+    },
+    {
+      "role": "user",
+      "content": "Summarize the weather briefly."
+    }
+  ]
+}
+
+###
+# @name Simple Q&A — no tool calls in history
+POST {{omniroute-address}}/v1/chat/completions
+Authorization: Bearer {{OMNIROUTE_API_KEY}}
+Content-Type: application/json
+
+{
+  "model": "gemini/gemma-4-31b-it",
+  "messages": [
+    {
+      "role": "user",
+      "content": "What is 1+1? Only respond with the number."
+    }
+  ]
+}
+
+###
+# @name Direct Gemini: native functionCall/functionResponse format
+# Baseline — native Gemini contents with functionCall/functionResponse parts.
+# No text labels should appear in the response.
+POST https://generativelanguage.googleapis.com/v1beta/models/gemma-4-31b-it:generateContent
+x-goog-api-key: {{GEMINI_API_KEY}}
+Content-Type: application/json
+
+{
+  "model": "gemma-4-31b-it",
+  "contents": [
+    {
+      "role": "user",
+      "parts": [
+        {
+          "text": "What is the weather in Stockholm?"
+        }
+      ]
+    },
+    {
+      "role": "model",
+      "parts": [
+        {
+          "functionCall": {
+            "id": "call_abc123",
+            "name": "get_weather",
+            "args": {
+              "location": "Stockholm, Sweden"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "role": "user",
+      "parts": [
+        {
+          "functionResponse": {
+            "id": "call_abc123",
+            "name": "get_weather",
+            "response": {
+              "result": {
+                "temperature": 22,
+                "conditions": "Sunny",
+                "humidity": 45
+              }
+            }
+          }
+        }
+      ]
+    },
+    {
+      "role": "user",
+      "parts": [
+        {
+          "text": "Summarize the weather briefly."
+        }
+      ]
+    }
+  ]
+}
+###
+# @name Tool history via OmniRoute — thinking model
+# Same as native test above but with a thinking model (gemini-2.5-flash)
+# that cryptographically validates thoughtSignature on functionCall parts.
+POST {{omniroute-address}}/v1/chat/completions
+Authorization: Bearer {{OMNIROUTE_API_KEY}}
+Content-Type: application/json
+
+{
+  "model": "gemini/gemini-2.5-flash",
+  "messages": [
+    {
+      "role": "user",
+      "content": "What is the weather in Stockholm?"
+    },
+    {
+      "role": "assistant",
+      "content": null,
+      "tool_calls": [
+        {
+          "id": "call_abc123",
+          "type": "function",
+          "function": {
+            "name": "get_weather",
+            "arguments": "{\"location\": \"Stockholm, Sweden\"}"
+          }
+        }
+      ]
+    },
+    {
+      "role": "tool",
+      "tool_call_id": "call_abc123",
+      "content": "{\"temperature\": 22, \"conditions\": \"Sunny\", \"humidity\": 45}"
+    },
+    {
+      "role": "assistant",
+      "content": "Stockholm has sunny weather at 22°C."
+    },
+    {
+      "role": "user",
+      "content": "Summarize the weather briefly."
+    }
+  ]
+}

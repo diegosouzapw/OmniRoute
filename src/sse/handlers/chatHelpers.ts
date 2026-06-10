@@ -198,7 +198,9 @@ export async function resolveModelOrError(
       const { getCombos } = await import("@/lib/localDb");
       const all = await getCombos();
       for (const c of all) {
-        if (c.name?.startsWith("auto/")) available.push(c.name);
+        const name =
+          typeof c === "object" && c !== null ? (c as Record<string, unknown>).name : undefined;
+        if (typeof name === "string" && name.startsWith("auto/")) available.push(name);
       }
     } catch {
       /* DB unavailable */
@@ -293,6 +295,7 @@ export async function checkPipelineGates(
       circuitBreakerThreshold?: number;
       circuitBreakerReset?: number;
       failureThreshold?: number;
+      degradationThreshold?: number;
       resetTimeoutMs?: number;
     } | null;
   } = {}
@@ -306,6 +309,7 @@ export async function checkPipelineGates(
   );
   const breaker = getCircuitBreaker(provider, {
     failureThreshold: providerProfile.failureThreshold ?? providerProfile.circuitBreakerThreshold,
+    degradationThreshold: providerProfile.degradationThreshold,
     resetTimeout: providerProfile.resetTimeoutMs ?? providerProfile.circuitBreakerReset,
     onStateChange: (name: string, from: string, to: string) =>
       log.info("CIRCUIT", `${name}: ${from} → ${to}`),
@@ -578,9 +582,9 @@ export function handleNoCredentials(
   );
 }
 
-export async function safeResolveProxy(connectionId: string) {
+export async function safeResolveProxy(connectionId: string, apiKeyId?: string) {
   try {
-    return await resolveProxyForConnection(connectionId);
+    return await resolveProxyForConnection(connectionId, apiKeyId);
   } catch (proxyErr: any) {
     log.debug("PROXY", `Failed to resolve proxy: ${proxyErr.message}`);
     return null;

@@ -7,6 +7,7 @@ type JsonRecord = Record<string, unknown>;
  * only the latest Opus tiers can request the priority service path.
  */
 export const CLAUDE_FAST_MODE_DEFAULT_MODELS = [
+  "claude-fable-5",
   "claude-opus-4-8",
   "claude-opus-4-7",
   "claude-opus-4-6",

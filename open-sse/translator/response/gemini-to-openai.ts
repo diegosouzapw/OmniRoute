@@ -4,6 +4,10 @@ import {
   buildGeminiThoughtSignatureKey,
   storeGeminiThoughtSignature,
 } from "../../services/geminiThoughtSignatureStore.ts";
+import {
+  parseTextualToolCallCandidate,
+  containsTextualToolCallMarker,
+} from "../../utils/textualToolCall.ts";
 
 type GeminiToOpenAIState = {
   functionIndex: number;
@@ -13,6 +17,8 @@ type GeminiToOpenAIState = {
   signatureNamespace?: string | null;
   toolCalls: Map<number, unknown>;
   toolNameMap?: Map<string, string>;
+  textualToolCallBuffer?: string;
+  hasEmittedContent?: boolean;
 };
 
 type GeminiFunctionCallPart = {
@@ -32,42 +38,6 @@ function normalizeToolCallArgs(args: unknown): unknown {
   } catch {
     return args;
   }
-}
-
-function parseTextualToolCall(text: unknown): { name: string; args: unknown } | null {
-  if (typeof text !== "string") return null;
-
-  // Gemini/Antigravity sometimes imitates the request-side fallback with small
-  // variations, e.g. a leading "(empty)" marker or zero-width chars inserted
-  // into argument strings. Normalize those variants before parsing so the
-  // response is still surfaced as a structured OpenAI tool call.
-  const normalized = text.replace(/[\u200B-\u200D\uFEFF]/g, "");
-  const match = normalized.match(
-    /^[\s\S]*?\[Tool call:\s*([^\]\n]+)\]\s*\nArguments:\s*([\s\S]+?)\s*$/
-  );
-  if (!match) return null;
-  const name = match[1]?.trim();
-  const rawArgs = match[2]?.trim();
-  if (!name || !rawArgs) return null;
-  try {
-    let args = JSON.parse(rawArgs);
-    if (typeof args === "string") {
-      const trimmed = args.trim();
-      if (trimmed.startsWith("{") || trimmed.startsWith("[")) {
-        args = JSON.parse(trimmed);
-      }
-    }
-    if (args && typeof args === "object" && !Array.isArray(args)) {
-      return { name, args };
-    }
-  } catch {}
-  return null;
-}
-
-function containsTextualToolCallMarker(text: unknown): boolean {
-  return (
-    typeof text === "string" && text.replace(/[\u200B-\u200D\uFEFF]/g, "").includes("[Tool call:")
-  );
 }
 
 function buildToolCallId(
@@ -226,6 +196,9 @@ export function geminiToOpenAIResponse(chunk, state) {
         }
 
         if (hasTextContent) {
+          if (!isThought) {
+            state.hasEmittedContent = true;
+          }
           results.push({
             id: `chatcmpl-${state.messageId}`,
             object: "chat.completion.chunk",
@@ -253,29 +226,93 @@ export function geminiToOpenAIResponse(chunk, state) {
       // back to a structured OpenAI tool call so clients/tools do not see it as
       // assistant prose.
       if (part.text !== undefined && part.text !== "") {
-        const textualToolCall = parseTextualToolCall(part.text);
-        if (textualToolCall) {
-          emitFunctionCallPart(
-            {
-              functionCall: {
-                name: textualToolCall.name,
-                args: textualToolCall.args,
+        let accumulated = (state.textualToolCallBuffer || "") + part.text;
+
+        let candidate = parseTextualToolCallCandidate(accumulated);
+
+        if (candidate) {
+          accumulated = accumulated.replace(/[\u200B-\u200D\uFEFF]/g, "");
+          let toolCallIndex = accumulated.lastIndexOf("(empty)[Tool call:");
+          if (toolCallIndex < 0) {
+            toolCallIndex = accumulated.lastIndexOf("[Tool call:");
+          }
+          if (toolCallIndex < 0) {
+            const lastParen = accumulated.lastIndexOf("(");
+            if (
+              lastParen !== -1 &&
+              "(empty)[Tool call:".startsWith(accumulated.slice(lastParen))
+            ) {
+              toolCallIndex = lastParen;
+            } else {
+              const lastBracket = accumulated.lastIndexOf("[");
+              if (lastBracket !== -1 && "[Tool call:".startsWith(accumulated.slice(lastBracket))) {
+                toolCallIndex = lastBracket;
+              }
+            }
+          }
+
+          if (toolCallIndex > 0) {
+            const leftPart = accumulated.slice(0, toolCallIndex);
+            state.hasEmittedContent = true;
+            results.push({
+              id: `chatcmpl-${state.messageId}`,
+              object: "chat.completion.chunk",
+              created: Math.floor(Date.now() / 1000),
+              model: state.model,
+              choices: [
+                {
+                  index: 0,
+                  delta: { content: leftPart },
+                  finish_reason: null,
+                },
+              ],
+            });
+
+            accumulated = accumulated.slice(toolCallIndex);
+            candidate = parseTextualToolCallCandidate(accumulated);
+          }
+
+          if (candidate) {
+            if (candidate.kind === "complete") {
+              emitFunctionCallPart(
+                {
+                  functionCall: {
+                    name: candidate.name,
+                    args: candidate.args,
+                  },
+                },
+                state,
+                results
+              );
+              state.textualToolCallBuffer = "";
+            } else {
+              state.textualToolCallBuffer = accumulated;
+            }
+            continue;
+          }
+        }
+
+        if (state.textualToolCallBuffer) {
+          const flushedText = state.textualToolCallBuffer + part.text;
+          state.textualToolCallBuffer = "";
+          state.hasEmittedContent = true;
+          results.push({
+            id: `chatcmpl-${state.messageId}`,
+            object: "chat.completion.chunk",
+            created: Math.floor(Date.now() / 1000),
+            model: state.model,
+            choices: [
+              {
+                index: 0,
+                delta: { content: flushedText },
+                finish_reason: null,
               },
-            },
-            state,
-            results
-          );
+            ],
+          });
           continue;
         }
 
-        // Never leak a malformed textual pseudo tool-call to clients. If the
-        // model emits the marker but the arguments are not parseable yet/at all,
-        // suppress the text; the final finish reason remains `stop` unless a
-        // structured tool call was emitted elsewhere.
-        if (containsTextualToolCallMarker(part.text)) {
-          continue;
-        }
-
+        state.hasEmittedContent = true;
         results.push({
           id: `chatcmpl-${state.messageId}`,
           object: "chat.completion.chunk",
@@ -407,6 +444,39 @@ export function geminiToOpenAIResponse(chunk, state) {
 
   // Finish reason - include usage in final chunk
   if (candidate.finishReason) {
+    if (state.textualToolCallBuffer) {
+      const remainingText = state.textualToolCallBuffer;
+      state.textualToolCallBuffer = "";
+      const textualToolCall = parseTextualToolCallCandidate(remainingText);
+      if (textualToolCall && textualToolCall.kind === "complete") {
+        emitFunctionCallPart(
+          {
+            functionCall: {
+              name: textualToolCall.name,
+              args: textualToolCall.args,
+            },
+          },
+          state,
+          results
+        );
+      } else if (state.hasEmittedContent || !containsTextualToolCallMarker(remainingText)) {
+        state.hasEmittedContent = true;
+        results.push({
+          id: `chatcmpl-${state.messageId}`,
+          object: "chat.completion.chunk",
+          created: Math.floor(Date.now() / 1000),
+          model: state.model,
+          choices: [
+            {
+              index: 0,
+              delta: { content: remainingText },
+              finish_reason: null,
+            },
+          ],
+        });
+      }
+    }
+
     let finishReason = candidate.finishReason.toLowerCase();
     if (finishReason === "stop" && state.toolCalls.size > 0) {
       finishReason = "tool_calls";

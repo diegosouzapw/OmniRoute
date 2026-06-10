@@ -68,9 +68,10 @@ test("canonical model capability resolver lets exact synced metadata override gl
       }),
     },
     antigravity: {
-      // The resolver returns "gemini-3.1-pro-high" unchanged (ANTIGRAVITY_MODEL_ALIASES only maps
-      // the public-facing alias → internal, not the reverse). Save under the canonical resolved key.
-      "gemini-3.1-pro-high": buildCapability({
+      // Since #3229, ANTIGRAVITY_MODEL_ALIASES maps both "gemini-3.1-pro-high" and
+      // "gemini-3.1-pro-low" → "gemini-3.1-pro", so the capability resolver looks
+      // synced metadata up under the canonical "gemini-3.1-pro" key. Save it there.
+      "gemini-3.1-pro": buildCapability({
         tool_call: false,
         reasoning: false,
         modalities_input: JSON.stringify(["text"]),

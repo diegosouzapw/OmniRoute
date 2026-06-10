@@ -30,6 +30,7 @@ export interface ConnectionCooldownProfileSettings {
 
 export interface ProviderBreakerProfileSettings {
   failureThreshold: number;
+  degradationThreshold: number;
   resetTimeoutMs: number;
 }
 
@@ -38,6 +39,28 @@ export interface WaitForCooldownSettings {
   maxRetries: number;
   maxRetryWaitSec: number;
   maxRetryWaitMs: number;
+}
+
+export interface ProviderCooldownSettings {
+  /**
+   * Minimum cooldown (ms) before a failed provider/connection can be retried.
+   * This prevents subsequent requests from immediately re-walking failing providers.
+   * Scaled exponentially with failure count: minRetryCooldownMs * 2^(failures-1).
+   * Default: 5000 (5 seconds).
+   */
+  minRetryCooldownMs: number;
+  /**
+   * Maximum cooldown (ms) before a failed provider/connection is retried regardless.
+   * Hard cap to prevent providers from being skipped indefinitely.
+   * Default: 300000 (5 minutes).
+   */
+  maxRetryCooldownMs: number;
+  /**
+   * Enable/disable global provider cooldown tracking.
+   * When disabled, only per-request cooldown state is used.
+   * Default: true.
+   */
+  enabled: boolean;
 }
 
 export interface QuotaPreflightSettings {
@@ -72,6 +95,7 @@ export interface ResilienceSettings {
   connectionCooldown: Record<AuthCategory, ConnectionCooldownProfileSettings>;
   providerBreaker: Record<AuthCategory, ProviderBreakerProfileSettings>;
   waitForCooldown: WaitForCooldownSettings;
+  providerCooldown: ProviderCooldownSettings;
   quotaPreflight: QuotaPreflightSettings;
 }
 
@@ -80,6 +104,7 @@ export interface ResilienceSettingsPatch {
   connectionCooldown?: Partial<Record<AuthCategory, Partial<ConnectionCooldownProfileSettings>>>;
   providerBreaker?: Partial<Record<AuthCategory, Partial<ProviderBreakerProfileSettings>>>;
   waitForCooldown?: Partial<WaitForCooldownSettings>;
+  providerCooldown?: Partial<ProviderCooldownSettings>;
   quotaPreflight?: Partial<QuotaPreflightSettings>;
 }
 
@@ -140,10 +165,12 @@ export const DEFAULT_RESILIENCE_SETTINGS: ResilienceSettings = {
   providerBreaker: {
     oauth: {
       failureThreshold: PROVIDER_PROFILES.oauth.circuitBreakerThreshold,
+      degradationThreshold: PROVIDER_PROFILES.oauth.degradationThreshold,
       resetTimeoutMs: PROVIDER_PROFILES.oauth.circuitBreakerReset,
     },
     apikey: {
       failureThreshold: PROVIDER_PROFILES.apikey.circuitBreakerThreshold,
+      degradationThreshold: PROVIDER_PROFILES.apikey.degradationThreshold,
       resetTimeoutMs: PROVIDER_PROFILES.apikey.circuitBreakerReset,
     },
   },
@@ -152,6 +179,17 @@ export const DEFAULT_RESILIENCE_SETTINGS: ResilienceSettings = {
     maxRetries: 3,
     maxRetryWaitSec: 30,
     maxRetryWaitMs: 30000,
+  },
+  providerCooldown: {
+    minRetryCooldownMs: Number(process.env.PROVIDER_COOLDOWN_MIN_MS || "5000"),
+    maxRetryCooldownMs: Number(process.env.PROVIDER_COOLDOWN_MAX_MS || "300000"),
+    // Opt-in (default OFF): this global cross-request cooldown overlaps the
+    // existing Connection Cooldown / Provider Circuit Breaker layers, so it is
+    // disabled by default and must be explicitly enabled by the operator until
+    // its interaction with those layers is validated in production.
+    enabled: ["true", "1", "on"].includes(
+      (process.env.PROVIDER_COOLDOWN_ENABLED || "").trim().toLowerCase()
+    ),
   },
   quotaPreflight: {
     // Remaining-% semantics. 2 = "stop when only 2% remaining" (= 98% used).
@@ -277,11 +315,21 @@ function normalizeProviderBreakerProfile(
   fallback: ProviderBreakerProfileSettings
 ): ProviderBreakerProfileSettings {
   const record = asRecord(next);
-  return {
-    failureThreshold: toInteger(record.failureThreshold, fallback.failureThreshold, {
+  const failureThreshold = toInteger(record.failureThreshold, fallback.failureThreshold, {
+    min: 1,
+    max: 1000,
+  });
+  const degradationThreshold = Math.min(
+    toInteger(record.degradationThreshold, fallback.degradationThreshold, {
       min: 1,
       max: 1000,
     }),
+    failureThreshold <= 1 ? 1 : failureThreshold - 1
+  );
+
+  return {
+    failureThreshold,
+    degradationThreshold,
     resetTimeoutMs: toInteger(record.resetTimeoutMs, fallback.resetTimeoutMs, {
       min: 1000,
       max: 24 * 60 * 60 * 1000,
@@ -369,6 +417,24 @@ function normalizeWaitForCooldownSettings(
   };
 }
 
+function normalizeProviderCooldownSettings(
+  next: unknown,
+  fallback: ProviderCooldownSettings
+): ProviderCooldownSettings {
+  const record = asRecord(next);
+  const enabled = toBoolean(record.enabled, fallback.enabled);
+  const minRetryCooldownMs = toInteger(record.minRetryCooldownMs, fallback.minRetryCooldownMs, {
+    min: 0,
+    max: 60 * 60 * 1000,
+  });
+  const maxRetryCooldownMs = toInteger(record.maxRetryCooldownMs, fallback.maxRetryCooldownMs, {
+    min: minRetryCooldownMs,
+    max: 24 * 60 * 60 * 1000,
+  });
+
+  return { enabled, minRetryCooldownMs, maxRetryCooldownMs };
+}
+
 function buildLegacyFallback(settings: JsonRecord): ResilienceSettings {
   const profiles = asRecord(settings.providerProfiles);
   const defaults = asRecord(settings.rateLimitDefaults);
@@ -424,6 +490,8 @@ function buildLegacyFallback(settings: JsonRecord): ResilienceSettings {
           DEFAULT_RESILIENCE_SETTINGS.providerBreaker.oauth.failureThreshold,
           { min: 1, max: 1000 }
         ),
+        degradationThreshold:
+          DEFAULT_RESILIENCE_SETTINGS.providerBreaker.oauth.degradationThreshold,
         resetTimeoutMs: toInteger(
           oauthLegacy.circuitBreakerReset,
           DEFAULT_RESILIENCE_SETTINGS.providerBreaker.oauth.resetTimeoutMs,
@@ -436,6 +504,8 @@ function buildLegacyFallback(settings: JsonRecord): ResilienceSettings {
           DEFAULT_RESILIENCE_SETTINGS.providerBreaker.apikey.failureThreshold,
           { min: 1, max: 1000 }
         ),
+        degradationThreshold:
+          DEFAULT_RESILIENCE_SETTINGS.providerBreaker.apikey.degradationThreshold,
         resetTimeoutMs: toInteger(
           apikeyLegacy.circuitBreakerReset,
           DEFAULT_RESILIENCE_SETTINGS.providerBreaker.apikey.resetTimeoutMs,
@@ -449,6 +519,7 @@ function buildLegacyFallback(settings: JsonRecord): ResilienceSettings {
       maxRetryWaitSec: waitMaxRetrySec,
       maxRetryWaitMs: waitMaxRetrySec * 1000,
     },
+    providerCooldown: DEFAULT_RESILIENCE_SETTINGS.providerCooldown,
     quotaPreflight: DEFAULT_RESILIENCE_SETTINGS.quotaPreflight,
   };
 }
@@ -485,6 +556,10 @@ export function resolveResilienceSettings(
     waitForCooldown: normalizeWaitForCooldownSettings(
       current.waitForCooldown,
       fallback.waitForCooldown
+    ),
+    providerCooldown: normalizeProviderCooldownSettings(
+      current.providerCooldown,
+      fallback.providerCooldown
     ),
     quotaPreflight: normalizeQuotaPreflightSettings(
       current.quotaPreflight,
@@ -523,6 +598,10 @@ export function mergeResilienceSettings(
       updates.waitForCooldown,
       current.waitForCooldown
     ),
+    providerCooldown: normalizeProviderCooldownSettings(
+      updates.providerCooldown,
+      current.providerCooldown
+    ),
     quotaPreflight: normalizeQuotaPreflightSettings(updates.quotaPreflight, current.quotaPreflight),
   };
 }
@@ -537,6 +616,7 @@ export function buildLegacyResilienceCompat(settings: ResilienceSettings) {
           : settings.connectionCooldown.oauth.baseCooldownMs,
         maxBackoffLevel: settings.connectionCooldown.oauth.maxBackoffSteps,
         circuitBreakerThreshold: settings.providerBreaker.oauth.failureThreshold,
+        degradationThreshold: settings.providerBreaker.oauth.degradationThreshold,
         circuitBreakerReset: settings.providerBreaker.oauth.resetTimeoutMs,
       },
       apikey: {
@@ -546,6 +626,7 @@ export function buildLegacyResilienceCompat(settings: ResilienceSettings) {
           : settings.connectionCooldown.apikey.baseCooldownMs,
         maxBackoffLevel: settings.connectionCooldown.apikey.maxBackoffSteps,
         circuitBreakerThreshold: settings.providerBreaker.apikey.failureThreshold,
+        degradationThreshold: settings.providerBreaker.apikey.degradationThreshold,
         circuitBreakerReset: settings.providerBreaker.apikey.resetTimeoutMs,
       },
     },

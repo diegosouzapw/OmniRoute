@@ -22,6 +22,7 @@ import { safeOutboundFetch } from "@/shared/network/safeOutboundFetch";
 import { Client } from "@modelcontextprotocol/sdk/client/index.js";
 import { StreamableHTTPClientTransport } from "@modelcontextprotocol/sdk/client/streamableHttp.js";
 import { z } from "zod";
+import { sanitizeErrorMessage } from "../utils/error.ts";
 
 // ── Types ────────────────────────────────────────────────────────────────
 
@@ -1164,7 +1165,7 @@ async function tryZaiMCPProvider(
     return {
       success: false,
       status: isTimeout ? 504 : 502,
-      error: `Search provider ${isTimeout ? "timeout" : "error"}: ${err.message}`,
+      error: `Search provider ${isTimeout ? "timeout" : "error"}: ${sanitizeErrorMessage(err.message)}`,
     };
   }
 }
@@ -1434,7 +1435,7 @@ async function tryProvider(
     return {
       success: false,
       status: isTimeout ? 504 : 502,
-      error: `Search provider ${isTimeout ? "timeout" : "error"}: ${err.message}`,
+      error: `Search provider ${isTimeout ? "timeout" : "error"}: ${sanitizeErrorMessage(err.message)}`,
     };
   }
 }

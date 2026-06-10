@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import { compareTr } from "@/shared/utils/turkishText";
 
 /**
@@ -25,9 +25,21 @@ const FORMAT_MODEL_PREFIXES = {
  *   pickModelForFormat: (format: string) => string
  * }}
  */
-export function useAvailableModels() {
+/**
+ * Filter the /v1/models id list to a provider's models. The `provider` key must be the model
+ * NAMESPACE used in the catalog: built-in providers use their id (e.g. "openai"), while
+ * compatible providers use the node's custom PREFIX (e.g. "myprefix"), NOT the node id — see
+ * #3505. Pure + exported for testing.
+ */
+export function filterModelsByProvider(allModels: string[], provider?: string): string[] {
+  return provider
+    ? allModels.filter((m) => m.startsWith(`${provider}/`) || m === provider)
+    : allModels;
+}
+
+export function useAvailableModels(provider?: string) {
   const [model, setModel] = useState("");
-  const [availableModels, setAvailableModels] = useState([]);
+  const [allModels, setAllModels] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -36,15 +48,20 @@ export function useAvailableModels() {
         const res = await fetch("/api/v1/models");
         const data = await res.json();
         const models = (data.data || []).map((m) => m.id).sort((a, b) => compareTr(a, b));
-        setAvailableModels(models);
+        setAllModels(models);
       } catch {
-        setAvailableModels([]);
+        setAllModels([]);
       } finally {
         setLoading(false);
       }
     };
     fetchModels();
   }, []);
+
+  const availableModels = useMemo(
+    () => filterModelsByProvider(allModels, provider),
+    [allModels, provider]
+  );
 
   /**
    * Pick the best model for a given format from the available models.

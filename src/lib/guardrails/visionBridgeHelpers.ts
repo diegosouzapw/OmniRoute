@@ -3,7 +3,11 @@
  */
 import { fetchRemoteImage } from "@/shared/network/remoteImageFetch";
 import { getRuntimePorts } from "@/lib/runtime/ports";
-
+import {
+  getBestVisionModel,
+  getFallbackModels,
+  recordLatency,
+} from "./visionBridgeRouter";
 /**
  * Provider to environment variable mapping for API key resolution.
  */
@@ -204,8 +208,51 @@ export interface VisionModelConfig {
 /**
  * Call the vision model to get an image description.
  * Supports both OpenAI-compatible and Anthropic API formats.
+ * Uses auto-routing to select the fastest available model.
  */
 export async function callVisionModel(
+  imageDataUri: string,
+  config: VisionModelConfig,
+  apiKey?: string,
+  routerConfig?: Partial<import("./visionBridgeRouter").VisionBridgeRouterConfig>
+): Promise<string> {
+  // Auto-select the best vision model if not explicitly configured
+  const modelToUse = getBestVisionModel({
+    fixedModel: config.model,
+    ...routerConfig,
+  });
+  let lastError: Error | null = null;
+
+  // Try primary model + fallbacks
+  const modelsToTry = [modelToUse, ...getFallbackModels(modelToUse, routerConfig)];
+  const maxAttempts = Math.min(modelsToTry.length, routerConfig?.maxFallbackAttempts ?? 3);
+
+  for (let attempt = 0; attempt < maxAttempts; attempt++) {
+    const currentModel = modelsToTry[attempt];
+    const attemptStart = Date.now();
+    try {
+      const result = await callVisionModelSingle(
+        imageDataUri,
+        { ...config, model: currentModel },
+        apiKey
+      );
+      recordLatency(currentModel, Date.now() - attemptStart, true);
+      return result;
+    } catch (error) {
+      recordLatency(currentModel, Date.now() - attemptStart, false);
+      lastError = error instanceof Error ? error : new Error(String(error));
+      // Continue to next model on failure
+    }
+  }
+
+  // All models failed
+  throw lastError || new Error("All vision models failed");
+}
+
+/**
+ * Internal function to call a single vision model.
+ */
+async function callVisionModelSingle(
   imageDataUri: string,
   config: VisionModelConfig,
   apiKey?: string

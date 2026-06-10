@@ -9,6 +9,7 @@ process.env.DATA_DIR = TEST_DATA_DIR;
 
 const core = await import("../../src/lib/db/core.ts");
 const { handleResponsesCore } = await import("../../open-sse/handlers/responsesHandler.ts");
+const { COMMAND_CODE_VERSION } = await import("../../open-sse/executors/commandCode.ts");
 
 const originalFetch = globalThis.fetch;
 
@@ -165,7 +166,7 @@ test("handleResponsesCore converts Responses API input, instructions, tools, met
   assert.equal("store" in call.body, false);
 });
 
-test("handleResponsesCore preserves previous_response_id and handles empty input arrays", async () => {
+test("handleResponsesCore strips previous_response_id by default and handles empty input arrays", async () => {
   const { call, result } = await invokeResponsesCore({
     body: {
       model: "gpt-4o-mini",
@@ -176,7 +177,7 @@ test("handleResponsesCore preserves previous_response_id and handles empty input
   });
 
   assert.equal(result.success, true);
-  assert.equal(call.body.previous_response_id, "resp_prev_123");
+  assert.equal(call.body.previous_response_id, undefined);
   assert.equal(call.body.metadata, undefined);
   assert.deepEqual(call.body.messages, []);
   assert.equal(call.body.stream, true);
@@ -253,7 +254,7 @@ test("handleResponsesCore transforms Command Code executor SSE through Responses
   assert.equal(result.success, true);
   assert.equal(call.url, "https://api.commandcode.ai/alpha/generate");
   assert.equal(call.headers.Authorization, "Bearer cc_test_key");
-  assert.equal(call.headers["x-command-code-version"], "0.24.1");
+  assert.equal(call.headers["x-command-code-version"], COMMAND_CODE_VERSION);
   assert.equal(call.body.params.model, "gpt-5.4-mini");
   assert.equal(call.body.params.stream, true);
 

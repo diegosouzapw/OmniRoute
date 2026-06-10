@@ -928,17 +928,25 @@ async function getOpenCodeGoUsage(apiKey: string) {
   });
 
   if (!res.ok) {
-    if (res.status === 401 || res.status === 403) throw new Error("Invalid OpenCode Go API key");
-    throw new Error(`OpenCode Go quota API error (${res.status})`);
+    if (res.status === 401 || res.status === 403) {
+      return { message: "OpenCode Go quota endpoint rejected this API key. Chat requests still work." };
+    }
+    return { message: `OpenCode Go quota API error (${res.status})` };
   }
 
-  const json = await res.json();
-  const code = toNumber(json.code, 200);
-  if (code === 401 || code === 403 || json.success === false) {
-    throw new Error("Invalid OpenCode Go API key");
+  let json: unknown;
+  try {
+    json = await res.json();
+  } catch {
+    return { message: "OpenCode Go quota response parsing failed." };
   }
 
-  const data = toRecord(json.data);
+  const code = toNumber((json as Record<string, unknown>).code, 200);
+  if (code === 401 || code === 403 || (json as Record<string, unknown>).success === false) {
+    return { message: "OpenCode Go quota endpoint rejected this API key. Chat requests still work." };
+  }
+
+  const data = toRecord((json as Record<string, unknown>).data);
   const limits: unknown[] = Array.isArray(data.limits) ? data.limits : [];
   const quotas: Record<string, UsageQuota> = {};
 
@@ -1424,6 +1432,7 @@ export const USAGE_FETCHER_PROVIDERS = [
   "github",
   "gemini-cli",
   "antigravity",
+  "agy",
   "claude",
   "codex",
   "cursor",
@@ -1467,6 +1476,7 @@ export async function getUsageForProvider(
     case "gemini-cli":
       return await getGeminiUsage(accessToken, providerSpecificData, projectId);
     case "antigravity":
+    case "agy":
       return await getAntigravityUsage(accessToken, providerSpecificData, projectId, id, options);
     case "claude":
       return await getClaudeUsage(accessToken);
@@ -2719,6 +2729,55 @@ async function getCodexUsage(
 }
 
 /**
+ * Build the Kiro usage result from a GetUsageLimits response. When the account returns no
+ * usage breakdown (some AWS IAM / Builder ID accounts don't expose per-resource quota via
+ * GetUsageLimits), return an informative message instead of empty `quotas:{}` — otherwise the
+ * dashboard renders a blank quota card with no explanation (#3506). Exported for testing.
+ */
+export function buildKiroUsageResult(
+  data: JsonRecord
+): { plan: string; quotas: Record<string, UsageQuota> } | { message: string } {
+  const usageList = Array.isArray(data.usageBreakdownList) ? data.usageBreakdownList : [];
+  const quotaInfo: Record<string, UsageQuota> = {};
+  const resetAt = parseResetTime(data.nextDateReset || data.resetDate);
+
+  usageList.forEach((breakdownValue: unknown) => {
+    const breakdown = toRecord(breakdownValue);
+    const resourceType =
+      typeof breakdown.resourceType === "string" ? breakdown.resourceType.toLowerCase() : "unknown";
+    const used = toNumber(breakdown.currentUsageWithPrecision, 0);
+    const total = toNumber(breakdown.usageLimitWithPrecision, 0);
+
+    quotaInfo[resourceType] = { used, total, remaining: total - used, resetAt, unlimited: false };
+
+    const freeTrialInfo = toRecord(breakdown.freeTrialInfo);
+    if (Object.keys(freeTrialInfo).length > 0) {
+      const freeUsed = toNumber(freeTrialInfo.currentUsageWithPrecision, 0);
+      const freeTotal = toNumber(freeTrialInfo.usageLimitWithPrecision, 0);
+      quotaInfo[`${resourceType}_freetrial`] = {
+        used: freeUsed,
+        total: freeTotal,
+        remaining: freeTotal - freeUsed,
+        resetAt,
+        unlimited: false,
+      };
+    }
+  });
+
+  if (Object.keys(quotaInfo).length === 0) {
+    return {
+      message:
+        "Kiro connected, but the account returned no usage breakdown. Some AWS IAM / Builder ID accounts don't expose per-resource quota via GetUsageLimits.",
+    };
+  }
+
+  return {
+    plan: String(toRecord(data.subscriptionInfo).subscriptionTitle || "").trim() || "Kiro",
+    quotas: quotaInfo,
+  };
+}
+
+/**
  * Kiro (AWS CodeWhisperer) Usage
  */
 async function getKiroUsage(accessToken?: string, providerSpecificData?: JsonRecord) {
@@ -2752,51 +2811,7 @@ async function getKiroUsage(accessToken?: string, providerSpecificData?: JsonRec
     }
 
     const data = toRecord(await response.json());
-
-    // Parse usage data from usageBreakdownList
-    const usageList = Array.isArray(data.usageBreakdownList) ? data.usageBreakdownList : [];
-    const quotaInfo: Record<string, UsageQuota> = {};
-
-    // Parse reset time - supports multiple formats (nextDateReset, resetDate, etc.)
-    const resetAt = parseResetTime(data.nextDateReset || data.resetDate);
-
-    usageList.forEach((breakdownValue: unknown) => {
-      const breakdown = toRecord(breakdownValue);
-      const resourceType =
-        typeof breakdown.resourceType === "string"
-          ? breakdown.resourceType.toLowerCase()
-          : "unknown";
-      const used = toNumber(breakdown.currentUsageWithPrecision, 0);
-      const total = toNumber(breakdown.usageLimitWithPrecision, 0);
-
-      quotaInfo[resourceType] = {
-        used,
-        total,
-        remaining: total - used,
-        resetAt,
-        unlimited: false,
-      };
-
-      // Add free trial if available
-      const freeTrialInfo = toRecord(breakdown.freeTrialInfo);
-      if (Object.keys(freeTrialInfo).length > 0) {
-        const freeUsed = toNumber(freeTrialInfo.currentUsageWithPrecision, 0);
-        const freeTotal = toNumber(freeTrialInfo.usageLimitWithPrecision, 0);
-
-        quotaInfo[`${resourceType}_freetrial`] = {
-          used: freeUsed,
-          total: freeTotal,
-          remaining: freeTotal - freeUsed,
-          resetAt,
-          unlimited: false,
-        };
-      }
-    });
-
-    return {
-      plan: String(toRecord(data.subscriptionInfo).subscriptionTitle || "").trim() || "Kiro",
-      quotas: quotaInfo,
-    };
+    return buildKiroUsageResult(data);
   } catch (error) {
     throw new Error(`Failed to fetch Kiro usage: ${error.message}`);
   }

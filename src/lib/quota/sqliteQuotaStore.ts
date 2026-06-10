@@ -17,7 +17,6 @@
 
 import {
   getPool,
-  listAllocationsForApiKey,
   getBucket,
   incrementBucket,
   getPair,
@@ -26,7 +25,7 @@ import {
 import { WINDOW_MS, dimensionKeyToString } from "./dimensions";
 import type { DimensionKey } from "./dimensions";
 import type { QuotaStore, PoolUsageSnapshot } from "./types";
-import { computeBurnRate } from "./burnRate";
+import { computeBurnRateFromWindow } from "./burnRate";
 
 // ---------------------------------------------------------------------------
 // In-memory mutex (anti-thundering-herd, same pattern as auth.ts)
@@ -148,90 +147,15 @@ export class SqliteQuotaStore implements QuotaStore {
       };
     }
 
-    const { allocations } = pool;
-    const totalWeight = allocations.reduce((sum, a) => sum + a.weight, 0);
-
-    // Build per-dimension snapshots
-    // Dimensions come from the allocations (we aggregate consumption per key
-    // for each active allocation dimension). Since QuotaPool doesn't directly
-    // carry dimensions (the plan does), we infer the set of known dimension
-    // keys by scanning all consumed buckets for the apiKeys in this pool.
-    //
-    // Practical approach: look up all consumptions for each apiKeyId in the
-    // pool's allocations and group by dimension key.
-
-    // Collect all (apiKeyId, dimensionKey) pairs consumed within pool
-    const dimMap = new Map<
-      string, // dimKey = "<poolId>:<unit>:<window>"
-      {
-        unit: string;
-        window: string;
-        perKey: Map<string, number>; // apiKeyId → consumed
-      }
-    >();
-
-    for (const alloc of allocations) {
-      // We don't have a direct "list all dimension keys for a pool" query;
-      // instead we scan listAllocationsForApiKey to find which pools the key
-      // participates in, and derive dimensions via best-effort getBucket.
-      // For poolUsage we rely on the dimension keys we can discover.
-      // Since dimensions live in ProviderPlan (resolved separately), we peek
-      // via direct getBucket reads for the current bucket only.
-      //
-      // Note: This is intentionally a lightweight implementation. The full
-      // dimension list should come from the resolved plan; here we surface
-      // what's been stored in quota_consumption for this pool.
-
-      const { apiKeyId } = alloc;
-      // listAllocationsForApiKey returns pairs across all pools; filter to this one
-      const allAllocsForKey = listAllocationsForApiKey(apiKeyId);
-      for (const { poolId: pid } of allAllocsForKey) {
-        if (pid !== poolId) continue;
-        // The dimension keys for this pool are known if consumption exists
-        // We can't list all keys without a query, so we rely on the calling
-        // context having pre-populated via consume(). For dashboard use,
-        // the pool dimensions are read from the provider plan.
-      }
-
-      // We only read dimensions that we can discover from what was actually
-      // consumed. For a richer implementation, the caller should pass the
-      // resolved plan dimensions (done in REST routes - F8).
-      // Here: peek for common windows to detect what's in use.
-    }
-
-    // Since we cannot enumerate all dimension keys without a table scan,
-    // return a minimal snapshot — the REST route (F8) will combine this
-    // with plan data to produce the full response.
-    const dimensionSnapshots: PoolUsageSnapshot["dimensions"] = [];
-
-    for (const [_dimKey, dimData] of dimMap) {
-      let consumedTotal = 0;
-      const perKey: PoolUsageSnapshot["dimensions"][number]["perKey"] = [];
-
-      for (const [apiKeyId, consumed] of dimData.perKey) {
-        consumedTotal += consumed;
-        const alloc = allocations.find((a) => a.apiKeyId === apiKeyId);
-        const weight = alloc?.weight ?? 0;
-        // limit comes from the plan — here we set to 0 as placeholder
-        const fairShare = 0; // overridden when plan is available
-        const deficit = consumed - fairShare;
-        const borrowing = consumed > fairShare && consumed <= consumedTotal;
-        perKey.push({ apiKeyId, consumed, fairShare, deficit, borrowing });
-      }
-
-      dimensionSnapshots.push({
-        unit: dimData.unit as PoolUsageSnapshot["dimensions"][number]["unit"],
-        window: dimData.window as PoolUsageSnapshot["dimensions"][number]["window"],
-        limit: 0,
-        consumedTotal,
-        perKey,
-      });
-    }
-
+    // QuotaPool does not carry dimension definitions — those live in the
+    // ProviderPlan, resolved separately. Without a plan we cannot enumerate
+    // dimension keys here, so this lightweight snapshot returns no dimensions.
+    // The REST route (F8) calls poolUsageWithDimensions() with the resolved
+    // plan to produce the full per-dimension response.
     return {
       poolId,
       generatedAt: new Date(nowMs).toISOString(),
-      dimensions: dimensionSnapshots,
+      dimensions: [],
     };
   }
 
@@ -261,9 +185,6 @@ export class SqliteQuotaStore implements QuotaStore {
     const { allocations } = pool;
     const totalWeight = allocations.reduce((sum, a) => sum + a.weight, 0);
 
-    // Burn rate samples: collect peek values at nowMs and nowMs - 60s
-    const burnSamples: Array<{ ts: number; consumed: number }> = [];
-
     const dimensionSnapshots: PoolUsageSnapshot["dimensions"] = [];
 
     for (const planDim of planDimensions) {
@@ -285,7 +206,6 @@ export class SqliteQuotaStore implements QuotaStore {
         const effectiveWeight = totalWeight > 0 ? alloc.weight : 0;
         const fairShare = (effectiveWeight / 100) * planDim.limit;
         const deficit = consumed - fairShare;
-        // borrowing = key consumed more than its fair share
         const borrowing = consumed > fairShare;
 
         perKey.push({
@@ -297,8 +217,6 @@ export class SqliteQuotaStore implements QuotaStore {
         });
       }
 
-      burnSamples.push({ ts: nowMs, consumed: consumedTotal });
-
       dimensionSnapshots.push({
         unit: planDim.unit as PoolUsageSnapshot["dimensions"][number]["unit"],
         window: planDim.window as PoolUsageSnapshot["dimensions"][number]["window"],
@@ -308,12 +226,13 @@ export class SqliteQuotaStore implements QuotaStore {
       });
     }
 
-    // Compute burn rate from token-like dimensions
+    // Burn rate: derive from the sliding window (single-snapshot, no history needed).
     const tokenDim = dimensionSnapshots.find((d) => d.unit === "tokens");
     let burnRate: PoolUsageSnapshot["burnRate"];
-    if (tokenDim && burnSamples.length >= 1) {
+    if (tokenDim && tokenDim.consumedTotal > 0) {
+      const windowMs = WINDOW_MS[tokenDim.window as keyof typeof WINDOW_MS];
       const remaining = tokenDim.limit - tokenDim.consumedTotal;
-      const rateResult = computeBurnRate(burnSamples, remaining);
+      const rateResult = computeBurnRateFromWindow(tokenDim.consumedTotal, windowMs, remaining);
       burnRate = {
         tokensPerSecond: rateResult.tokensPerSecond,
         timeToExhaustionMs: rateResult.timeToExhaustionMs,

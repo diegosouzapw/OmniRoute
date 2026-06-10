@@ -165,10 +165,11 @@ export default function ObsidianSourceCard() {
   };
 
   const getWebdavUrl = (): string => {
-    if (typeof window === "undefined") return "http://<server-ip>/api/v1/webdav/";
-    const host = window.location.hostname;
-    const port = window.location.port;
-    return `http://${host}:${port}/api/v1/webdav`;
+    if (typeof window === "undefined") return "<server-ip>/api/v1/webdav/";
+    // Inherit the page protocol (http on localhost, https behind a TLS proxy)
+    // instead of hard-coding http.
+    const { protocol, hostname, port } = window.location;
+    return `${protocol}//${hostname}:${port}/api/v1/webdav`;
   };
 
   return (

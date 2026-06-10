@@ -36,9 +36,16 @@ interface Message {
 
 // Handles both actual newlines (U+000A) and literal \n sequences injected
 // by combo.ts streaming around the <omniModel> tag (#531). Non-global so that
-// .exec() and .test() stay stateless; callers that need full replacement use
-// String.prototype.replace() which replaces all non-overlapping matches.
+// .exec() and .test() stay stateless (a global regex carries lastIndex between
+// calls and would skip matches).
 const CACHE_TAG_PATTERN = /(?:\\n|\n|\r)*<omniModel>([^<]+)<\/omniModel>(?:\\n|\n|\r)*/;
+
+// Global variant for .replace() callers that must strip EVERY tag. A non-global
+// regex only removes the first match, so a single message carrying more than one
+// <omniModel> tag (e.g. an Open WebUI follow-up/title request that inlines the
+// whole chat history) leaked the remaining tags to the provider — defeating the
+// cache-session protection stripModelTags exists to enforce (#454).
+const CACHE_TAG_PATTERN_GLOBAL = /(?:\\n|\n|\r)*<omniModel>([^<]+)<\/omniModel>(?:\\n|\n|\r)*/g;
 
 /**
  * Inject the model tag into the last assistant message (or append a new one).
@@ -46,10 +53,10 @@ const CACHE_TAG_PATTERN = /(?:\\n|\n|\r)*<omniModel>([^<]+)<\/omniModel>(?:\\n|\
  * Claude/Gemini multi-part message formats.
  */
 export function injectModelTag(messages: Message[], providerModel: string): Message[] {
-  // Remove any existing tag first to avoid duplication on context compaction
+  // Remove any existing tags first to avoid duplication on context compaction
   const cleaned = messages.map((msg) => {
     if (msg.role === "assistant" && typeof msg.content === "string") {
-      return { ...msg, content: msg.content.replace(CACHE_TAG_PATTERN, "").trimEnd() };
+      return { ...msg, content: msg.content.replace(CACHE_TAG_PATTERN_GLOBAL, "").trimEnd() };
     }
     return msg;
   });
@@ -147,7 +154,7 @@ export function applyToolFilter(
 export function stripModelTags(messages: Message[]): Message[] {
   return messages.map((msg) => {
     if (typeof msg.content === "string" && CACHE_TAG_PATTERN.test(msg.content)) {
-      return { ...msg, content: msg.content.replace(CACHE_TAG_PATTERN, "").trimEnd() };
+      return { ...msg, content: msg.content.replace(CACHE_TAG_PATTERN_GLOBAL, "").trimEnd() };
     }
     return msg;
   });
@@ -169,17 +176,9 @@ export function applyComboAgentMiddleware(
   let messages: Message[] = Array.isArray(body.messages) ? [...body.messages] : [];
   let pinnedModel: string | null = null;
 
-  // 1. Context caching: check for pinned model in history
-  if (comboConfig.context_cache_protection) {
-    pinnedModel = extractPinnedModel(messages);
-    if (pinnedModel) {
-      // (#535) Model is pinned via <omniModel> tag — override body.model so the combo
-      // router uses exactly this model instead of picking a different one. Without this,
-      // the extracted pinnedModel is returned but body.model is unchanged, breaking
-      // context cache sessions by sending subsequent turns to a different model.
-      body = { ...body, model: pinnedModel };
-    }
-  }
+  // Context cache pinning is handled server-side in combo.ts via
+  // session_model_history. No client-side <omniModel> tag extraction needed.
+  pinnedModel = null;
 
   // 2. System message override
   if (comboConfig.system_message && comboConfig.system_message.trim()) {

@@ -24,6 +24,7 @@ import {
   runWithOnPersist,
 } from "../services/tokenRefresh.ts";
 import { createRequestLogger } from "../utils/requestLogger.ts";
+import { applyResponsesPreviousResponseIdPolicy } from "../utils/responsesStatePolicy.ts";
 import { getModelTargetFormat, PROVIDER_ID_TO_ALIAS } from "../config/providerModels.ts";
 import { DEFAULT_THINKING_CLAUDE_SIGNATURE } from "../config/defaultThinkingSignature.ts";
 import {
@@ -33,6 +34,7 @@ import {
 import { resolveModelAlias } from "../services/modelDeprecation.ts";
 import { getUnsupportedParams } from "../config/providerRegistry.ts";
 import { supportsMaxTokens } from "@/lib/modelCapabilities.ts";
+import { normalizeThinkingForModel } from "@/shared/constants/modelSpecs.ts";
 import {
   buildErrorBody,
   createErrorResult,
@@ -66,7 +68,6 @@ import { wasRefreshTokenRotated } from "@omniroute/open-sse/services/refreshSeri
 import {
   recordKeyFailure,
   recordKeySuccess,
-  getInvalidKeyCount,
   trackConnectionExtraKeys,
   connectionHasExtraKeys,
   type KeyHealth,
@@ -88,6 +89,7 @@ import {
   saveRequestUsage,
   trackPendingRequest,
   updatePendingRequest,
+  finalizePendingRequest,
   appendRequestLog,
   saveCallLog,
 } from "@/lib/usageDb";
@@ -290,6 +292,7 @@ function cloneBoundedChatLogPayload(value: unknown, depth = 0): unknown {
 }
 
 import { estimateSizeFast, isSmallEnoughForSemanticCache } from "../utils/estimateSize.ts";
+import { finalizeMostRecentPendingRequest } from "@/lib/usage/usageHistory.ts";
 
 const MAX_LOG_BODY_CHARS = 8 * 1024; // 8KB cap for logged request/response bodies
 /**
@@ -891,6 +894,27 @@ function getExecutorTimeoutMs(executor: unknown): number {
   }
 }
 
+function normalizeExecutorResult(
+  result:
+    | Response
+    | {
+        response: Response;
+        url?: string;
+        headers?: Record<string, string>;
+        transformedBody?: unknown;
+      }
+): { response: Response; url: string; headers: Record<string, string>; transformedBody: unknown } {
+  if (result instanceof Response) {
+    return { response: result, url: "", headers: {}, transformedBody: null };
+  }
+  return {
+    response: result.response,
+    url: result.url || "",
+    headers: result.headers || {},
+    transformedBody: result.transformedBody ?? null,
+  };
+}
+
 async function executeWithUpstreamStartTimeout<T>({
   executor,
   provider,
@@ -1373,24 +1397,33 @@ const PROXY_CONFIG_CACHE_TTL = 10_000;
  */
 let _combosPromise: Promise<unknown[]> | null = null;
 let _combosCacheTs = 0;
+let _combosCacheVersionSnapshot = -1;
 const COMBOS_CACHE_TTL = 10_000;
 
 async function getCombosCached(): Promise<unknown[]> {
   const now = Date.now();
+  const { getCombos, getCombosCacheVersion } = await import("@/lib/localDb");
+  const version = getCombosCacheVersion();
+  // A combo write (create/update/delete/reorder) bumps the shared version via
+  // invalidateDbCache("combos"); when it no longer matches our snapshot we drop
+  // the cached promise so the nested-combo expansion stops serving removed
+  // targets/models within the 10s TTL window (#3147).
+  if (version !== _combosCacheVersionSnapshot) {
+    clearCombosCache();
+  }
   if (_combosPromise && now - _combosCacheTs < COMBOS_CACHE_TTL) {
     return _combosPromise;
   }
   _combosCacheTs = now;
-  _combosPromise = (async () => {
-    const { getCombos } = await import("@/lib/localDb");
-    return getCombos();
-  })();
+  _combosCacheVersionSnapshot = version;
+  _combosPromise = getCombos();
   return _combosPromise;
 }
 
 export function clearCombosCache() {
   _combosPromise = null;
   _combosCacheTs = 0;
+  _combosCacheVersionSnapshot = -1;
 }
 
 export function clearUpstreamProxyConfigCache(providerId?: string) {
@@ -1549,7 +1582,9 @@ export async function handleChatCore({
         ),
       };
     }
-  } catch { /* memoryUsage() never throws */ }
+  } catch {
+    /* memoryUsage() never throws */
+  }
 
   // apiFormat is an optional custom-model marker injected by getModelInfo for
   // providers whose models can route to /chat/completions or /responses
@@ -1588,8 +1623,7 @@ export async function handleChatCore({
       comboName: comboName || undefined,
     });
   });
-  const traceEnabled =
-    process.env.OMNIRROUTE_TRACE === "true" || process.env.DEBUG === "true";
+  const traceEnabled = process.env.OMNIROUTE_TRACE === "true" || process.env.DEBUG === "true";
   const trace = (label: string, extra?: Record<string, unknown>) => {
     if (!traceEnabled) return;
     const elapsed = Date.now() - startTime;
@@ -1765,10 +1799,7 @@ export async function handleChatCore({
     }
   };
 
-  const persistCodexQuotaState = async (
-    headers: Record<string, string> | null,
-    status = 0
-  ) => {
+  const persistCodexQuotaState = async (headers: Record<string, string> | null, status = 0) => {
     if (provider !== "codex" || !connectionId || !headers) return;
 
     try {
@@ -1970,14 +2001,17 @@ export async function handleChatCore({
       : body;
 
   // Track pending requests before slower optional enrichment (settings, logging,
-  // compression) so active-request callers can observe the provider payload even
-  // when upstream never returns response headers.
-  trackPendingRequest(model, provider, connectionId, true, {
+  // compression) so internal usage/runtime counters stay accurate even when
+  // upstream never returns response headers.
+  // Use credentials.connectionId as a fallback so that requests without an
+  // explicit session-level connectionId still register in the pendingRequests map.
+  const pendingConnId = connectionId || credentials?.connectionId || null;
+  const pendingRequestId = trackPendingRequest(model, provider, pendingConnId, true, {
     clientEndpoint: clientRawRequest?.endpoint || "/v1/chat/completions",
     clientRequest: clientRawRequest?.body ?? body,
     providerRequest: initialProviderRequest,
     stage: "registered",
-  });
+  }) || generateRequestId();
 
   // Initialize rate limit settings from persisted DB (once, lazy)
   await initializeRateLimits();
@@ -2077,10 +2111,12 @@ export async function handleChatCore({
       });
     }
 
-    const callLogId = generateRequestId();
     const pipelinePayloads = detailedLoggingEnabled ? reqLogger?.getPipelinePayloads?.() : null;
 
     if (pipelinePayloads) {
+      if (providerRequest !== undefined && !pipelinePayloads.providerRequest) {
+        pipelinePayloads.providerRequest = providerRequest as Record<string, unknown>;
+      }
       if (providerResponse !== undefined && !pipelinePayloads.providerResponse) {
         pipelinePayloads.providerResponse = providerResponse as Record<string, unknown>;
       }
@@ -2098,14 +2134,14 @@ export async function handleChatCore({
     }
 
     saveCallLog({
-      id: callLogId,
+      id: pendingRequestId,
       method: "POST",
       path: clientRawRequest?.endpoint || "/v1/chat/completions",
       status,
       model,
       requestedModel,
       provider,
-      connectionId,
+      connectionId: connectionId || credentials?.connectionId || undefined,
       duration: Date.now() - startTime,
       tokens: tokens || {},
       requestBody: cloneBoundedChatLogPayload(
@@ -2231,6 +2267,7 @@ export async function handleChatCore({
           userAgent: streamUserAgent,
           streamDefaultMode: apiKeyInfo?.streamDefaultMode,
         });
+
   // `settings` is already consolidated once near the top of handleChatCore
   // (the "fetch once, reuse" const). A second `const settings` here was a
   // duplicate same-scope declaration that broke the esbuild/tsx transform
@@ -2247,6 +2284,11 @@ export async function handleChatCore({
   const reqLogger = await createRequestLogger(sourceFormat, targetFormat, model, {
     enabled: detailedLoggingEnabled,
     captureStreamChunks: capturePipelineStreamChunks,
+    // Provide model/provider/connectionId so streamChunks can be attached to the
+    // in-memory pending request record before final call-log persistence.
+    model,
+    provider: provider || undefined,
+    connectionId: connectionId || credentials?.connectionId || undefined,
   });
 
   // 0. Log client raw request (before format conversion)
@@ -2754,7 +2796,7 @@ export async function handleChatCore({
           );
         }
       }
-      if (config.cavemanOutputMode?.enabled) {
+      if (config.enabled && config.cavemanOutputMode?.enabled) {
         try {
           const { applyCavemanOutputMode } = await import("../services/compression/outputMode.ts");
           const outputModeLanguage =
@@ -3512,6 +3554,22 @@ export async function handleChatCore({
   }
   translatedBody.model = finalModelToUpstream;
 
+  // #3554: a combo/route may substitute the upstream model AFTER the client chose its
+  // `thinking` value. Claude Code sends `thinking:{type:"disabled"}` for internal calls,
+  // which claude-fable-5 (adaptive-only) rejects with a 400. Drop the now-invalid value
+  // when the resolved target model rejects it; models that accept `disabled` are untouched.
+  if (typeof finalModelToUpstream === "string") {
+    translatedBody = normalizeThinkingForModel(translatedBody, finalModelToUpstream);
+  }
+
+  const previousResponseIdPolicy = applyResponsesPreviousResponseIdPolicy(translatedBody, {
+    mode: settings.responsesPreviousResponseIdMode,
+    sourceFormat,
+    targetFormat,
+    credentials,
+  });
+  translatedBody = previousResponseIdPolicy.body as typeof translatedBody;
+
   // #1789: Prevent output_config.effort from overriding effort encoded in model name (Codex)
   if (provider === "codex" || provider?.startsWith("codex")) {
     const hasEffortSuffix = finalModelToUpstream.match(/-(low|medium|high|xhigh)$/i);
@@ -3609,14 +3667,19 @@ export async function handleChatCore({
     let fallbackCodes: number[] = [429, 500, 502, 503, 504];
     try {
       const allSettings = await getCachedSettings();
-      if (typeof allSettings.cliproxyapi_fallback_codes === "string" && allSettings.cliproxyapi_fallback_codes.trim()) {
+      if (
+        typeof allSettings.cliproxyapi_fallback_codes === "string" &&
+        allSettings.cliproxyapi_fallback_codes.trim()
+      ) {
         const parsed = allSettings.cliproxyapi_fallback_codes
           .split(",")
-          .map((s: string) => parseInt(s.trim(), 10))
-          .filter((n: number) => !isNaN(n));
+          .map((s: string) => Number.parseInt(s.trim(), 10))
+          .filter((n: number) => !Number.isNaN(n));
         if (parsed.length > 0) fallbackCodes = parsed;
       }
-    } catch { /* use defaults */ }
+    } catch {
+      /* use defaults */
+    }
     const isRetryableStatus = (s: number) => fallbackCodes.includes(s) || s === 0;
 
     const wrapper = Object.create(nativeExec);
@@ -3692,10 +3755,10 @@ export async function handleChatCore({
         if (decision.retryAfterSeconds) {
           headers["Retry-After"] = String(decision.retryAfterSeconds);
         }
-        return new Response(
-          JSON.stringify(buildErrorBody(429, decision.reason)),
-          { status: 429, headers }
-        );
+        return new Response(JSON.stringify(buildErrorBody(429, decision.reason)), {
+          status: 429,
+          headers,
+        });
       }
 
       if (decision.kind === "allow" && decision.deprioritize) {
@@ -3943,13 +4006,7 @@ export async function handleChatCore({
                 stage: "sending_to_provider",
               });
               const execCreds = getExecutionCredentials();
-              const res = await executeWithUpstreamStartTimeout<{
-                response: Response;
-                url: string;
-                headers: Record<string, string>;
-                transformedBody: unknown;
-                _executionCredentials?: unknown;
-              }>({
+              const rawExecutorResult = await executeWithUpstreamStartTimeout({
                 executor,
                 provider,
                 model: modelToCall,
@@ -3970,6 +4027,7 @@ export async function handleChatCore({
                     skipUpstreamRetry,
                   }),
               });
+              const res = normalizeExecutorResult(rawExecutorResult);
               trace("post_executor", { status: res?.response?.status });
               updatePendingRequest(model, provider, connectionId, {
                 stage: "provider_response_started",
@@ -4225,7 +4283,11 @@ export async function handleChatCore({
   // ── Tier 2: Authoritative per-model/provider token-limit check (provider now resolved) ──
   if (apiKeyInfo?.id) {
     try {
-      const tokenBreach = checkTokenLimits(apiKeyInfo.id, provider || undefined, model || undefined);
+      const tokenBreach = checkTokenLimits(
+        apiKeyInfo.id,
+        provider || undefined,
+        model || undefined
+      );
       if (tokenBreach) {
         const scopeLabel =
           tokenBreach.scopeType === "global"
@@ -4289,6 +4351,18 @@ export async function handleChatCore({
       providerResponse.status,
       model
     );
+
+    // Store rate-limit headers for quota saturation signals
+    try {
+      const { storeRateLimitHeaders } = await import("@/lib/quota/saturationSignals");
+      storeRateLimitHeaders(
+        connectionId,
+        provider,
+        providerResponse.headers as Record<string, string>
+      );
+    } catch {
+      // fail-open: saturation signal is best-effort
+    }
   } catch (error) {
     trackPendingRequest(model, provider, connectionId, false);
     if (isSemaphoreCapacityError(error)) {
@@ -5009,7 +5083,6 @@ export async function handleChatCore({
 
   // Non-streaming response
   if (!stream) {
-    trackPendingRequest(model, provider, connectionId, false);
     const contentType = (providerResponse.headers.get("content-type") || "").toLowerCase();
     let responseBody;
     let responsePayloadFormat = targetFormat;
@@ -5058,6 +5131,7 @@ export async function handleChatCore({
           cacheSource: "upstream",
         });
         persistFailureUsage(HTTP_STATUS.BAD_GATEWAY, "invalid_sse_payload");
+        trackPendingRequest(model, provider, pendingConnId, false);
         return createErrorResult(HTTP_STATUS.BAD_GATEWAY, invalidSseMessage);
       }
 
@@ -5084,6 +5158,7 @@ export async function handleChatCore({
           cacheSource: "upstream",
         });
         persistFailureUsage(HTTP_STATUS.BAD_GATEWAY, "invalid_json_payload");
+        trackPendingRequest(model, provider, connectionId, false);
         return createErrorResult(HTTP_STATUS.BAD_GATEWAY, invalidJsonMessage);
       }
     }
@@ -5133,15 +5208,19 @@ export async function handleChatCore({
               );
               // Fall through — continue processing with the new responseBody
             } catch {
+              trackPendingRequest(model, provider, connectionId, false);
               return createErrorResult(HTTP_STATUS.BAD_GATEWAY, emptyContentMessage);
             }
           } else {
+            trackPendingRequest(model, provider, connectionId, false);
             return createErrorResult(HTTP_STATUS.BAD_GATEWAY, emptyContentMessage);
           }
         } catch {
+          trackPendingRequest(model, provider, connectionId, false);
           return createErrorResult(HTTP_STATUS.BAD_GATEWAY, emptyContentMessage);
         }
       } else {
+        trackPendingRequest(model, provider, connectionId, false);
         return createErrorResult(HTTP_STATUS.BAD_GATEWAY, emptyContentMessage);
       }
     }
@@ -5218,7 +5297,8 @@ export async function handleChatCore({
       if (apiKeyInfo?.id) {
         try {
           const billable = computeBillableTokens(usage);
-          if (billable > 0) recordTokenUsage(apiKeyInfo.id, provider || "unknown", model || "unknown", billable);
+          if (billable > 0)
+            recordTokenUsage(apiKeyInfo.id, provider || "unknown", model || "unknown", billable);
         } catch {
           // never block the response on counter recording
         }
@@ -5385,6 +5465,10 @@ export async function handleChatCore({
         "GUARDRAIL",
         `Response blocked by ${postCallGuardrails.guardrail || "guardrail"}: ${guardrailMessage}`
       );
+      finalizePendingRequest(model, provider, connectionId, {
+        providerResponse: responseBody,
+        clientResponse: translatedResponse,
+      });
       return createErrorResult(HTTP_STATUS.BAD_REQUEST, guardrailMessage);
     }
 
@@ -5441,8 +5525,8 @@ export async function handleChatCore({
             cost: {
               tokens:
                 usage && typeof usage === "object"
-                  ? ((usage as Record<string, unknown>).prompt_tokens as number ?? 0) +
-                    ((usage as Record<string, unknown>).completion_tokens as number ?? 0)
+                  ? (((usage as Record<string, unknown>).prompt_tokens as number) ?? 0) +
+                    (((usage as Record<string, unknown>).completion_tokens as number) ?? 0)
                   : 0,
               usd: estimatedCost > 0 ? estimatedCost : 0,
               requests: 1,
@@ -5470,6 +5554,10 @@ export async function handleChatCore({
       }
     }
 
+    finalizePendingRequest(model, provider, connectionId, {
+      providerResponse: responseBody,
+      clientResponse: translatedResponse,
+    });
     return {
       success: true,
       response: new Response(JSON.stringify(translatedResponse), {
@@ -5593,17 +5681,20 @@ export async function handleChatCore({
     await onRequestSuccess();
   }
 
-  const responseHeaders: Record<string, string> = buildStreamingResponseHeaders(
-    providerResponse.headers,
-    {
-      provider,
-      model,
-      cacheHit: false,
-      latencyMs: 0,
-      usage: null,
-      costUsd: 0,
-    }
-  );
+  const responseHeaders: Record<string, string> = {
+    ...buildStreamingResponseHeaders(
+      providerResponse.headers,
+      {
+        provider,
+        model,
+        cacheHit: false,
+        latencyMs: 0,
+        usage: null,
+        costUsd: 0,
+      }
+    ),
+    "x-omniroute-request-id": pendingRequestId,
+  };
 
   // Create transform stream with logger for streaming response
   let transformStream;
@@ -5675,7 +5766,8 @@ export async function handleChatCore({
       if (apiKeyInfo?.id && streamStatus === 200) {
         try {
           const billable = computeBillableTokens(streamUsage);
-          if (billable > 0) recordTokenUsage(apiKeyInfo.id, provider || "unknown", model || "unknown", billable);
+          if (billable > 0)
+            recordTokenUsage(apiKeyInfo.id, provider || "unknown", model || "unknown", billable);
         } catch {
           // never block the stream on counter recording
         }
@@ -5693,6 +5785,23 @@ export async function handleChatCore({
       claudeCacheUsageMeta: cacheUsageLogMeta,
       cacheSource: "upstream",
     });
+
+    // Ensure the completed details cache is populated so the UI's fast-poll
+    // can pick up provider/client response payloads immediately after the
+    // streaming request finishes.
+    try {
+      // Finalize the most recent pending request (streaming corresponds to the last entry)
+      // Use credentials.connectionId as a fallback so finalization matches the
+      // pending request registration (which may have used credentials.connectionId).
+      const finalizedConnId = connectionId || credentials?.connectionId || null;
+      finalizeMostRecentPendingRequest(model, provider, finalizedConnId, {
+        providerResponse: providerPayload ?? streamResponseBody ?? undefined,
+        clientResponse: clientPayload ?? streamResponseBody ?? undefined,
+      });
+    } catch (e) {
+      // Best-effort — don't break the stream completion path if this fails
+      try { console.warn("finalizeMostRecentPendingRequest failed:", e && (e.message || e)); } catch {}
+    }
 
     if (apiKeyInfo?.id && streamUsage) {
       calculateCost(provider, model, streamUsage, { serviceTier: effectiveServiceTier })
@@ -5717,8 +5826,7 @@ export async function handleChatCore({
               provider: provider ?? "unknown",
               cost: {
                 tokens: su
-                  ? (Number(su.prompt_tokens ?? 0) || 0) +
-                    (Number(su.completion_tokens ?? 0) || 0)
+                  ? (Number(su.prompt_tokens ?? 0) || 0) + (Number(su.completion_tokens ?? 0) || 0)
                   : 0,
                 usd: 0, // estimatedCost resolved async above; omit to avoid dependency
                 requests: 1,

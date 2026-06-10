@@ -5,7 +5,7 @@ import { BaseExecutor, mergeUpstreamExtraHeaders, type ExecuteInput } from "./ba
 
 type JsonRecord = Record<string, unknown>;
 
-const COMMAND_CODE_VERSION = "0.24.1";
+export const COMMAND_CODE_VERSION = process.env.COMMAND_CODE_VERSION?.trim() || "0.33.2";
 const MAX_COMMAND_CODE_TOKENS = 200_000;
 const encoder = new TextEncoder();
 
