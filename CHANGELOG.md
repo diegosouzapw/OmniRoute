@@ -4,7 +4,40 @@
 
 ---
 
-## [3.8.18] — Unreleased
+## [3.8.20] — Unreleased
+
+_Development cycle in progress._
+
+---
+
+## [3.8.19] — 2026-06-09
+
+> Focused quality-infrastructure release: the complete **quality-gate ratchet + anti-hallucination guardrail system** (Phases 0–6 + fast-tracked 6A.1/6A.2). No external PRs were taken this cycle by design — community PRs carry over to the next cycle.
+
+### ✨ New Features
+
+- **feat(quality):** quality-gate ratchet + anti-hallucination/rule-enforcement guardrails (Phases 0–6) — generic multi-metric ratchet engine (`quality-baseline.json` + collector + comparator, regression-only) and ~18 deterministic gates wired into CI: provider-consistency, dashboard `fetch()`→route and OpenAPI/docs→route resolution (anti-hallucination), dependency allowlist (anti-slopsquatting), file-size/duplication/complexity ratchets (frozen debt only shrinks), anti test-masking (assert-removal/tautology detection on PR diffs), error-helper (Hard Rule #12), public-creds (Rule #11), route-guard membership (Rules #15/#17), db-rules (Rules #2/#5), known-symbols (executors/strategies/translators), migration numbering. Re-enabled the cheap pre-commit hook, tiered `npm audit`, reconciled the CI coverage gate (40→60) and wired 3 orphaned contract gates. ([#3471](https://github.com/diegosouzapw/OmniRoute/pull/3471) — thanks @diegosouzapw)
+- **feat(quality):** test-discovery gate + 135 orphan tests re-wired + vitest in CI (fast-tracked Phase 6A.1/6A.2) — new `check:test-discovery` proves every `*.test.ts|tsx` is collected by a runner that actually executes (15 collectors with textual drift-check; orphans frozen in a shrink-only baseline). Found **195 orphan test files** (incl. `authz/routeGuard.test.ts` guarding Rules #15/#17 — already rotten); 135 re-wired into the node runner via explicit-braces recursive globs across all scripts + 4 CI call sites; the remaining 60 are categorized debt. New `test-vitest` CI job: `test:vitest` blocking (146/146), `test:vitest:ui` informational (14 pre-existing UI-drift fails, triage 2026-06-16). ([#3536](https://github.com/diegosouzapw/OmniRoute/pull/3536) — thanks @diegosouzapw)
+
+### 🔧 Bug Fixes
+
+- **fix(authz):** restored the missing `BYPASS_PREFIX_NOT_ALLOWED` schema guard (Hard Rules #15/#17) — the zod refine documented as layer-1 in `routeGuard.ts` was absent from the live `settingsSchemas.ts`, so `PATCH /api/settings` accepted spawn-capable prefixes (e.g. `/api/cli-tools/runtime/`) into the manage-scope bypass list (the layer-2 runtime predicate still refused to honour them). Surfaced by re-wired orphan tests AC-8/AC-10c, which now stand as the permanent regression guard. ([#3536](https://github.com/diegosouzapw/OmniRoute/pull/3536) — thanks @diegosouzapw)
+- **fix(db):** `closeDbInstance()`/`resetDbInstance()` now fire the `stateReset.ts` module-state resetters (previously only backup-restore did) — `apiKeys.ts` kept a process-level schema memo across a recreated DB, so the stale re-prepare exploded with `no such column: is_active` and clients received **503 instead of 403** for an invalid bearer; the same path hit production when restoring an older backup snapshot. Includes a dedicated regression test; a test that had accommodated the buggy 503 now asserts the deterministic 403. ([#3536](https://github.com/diegosouzapw/OmniRoute/pull/3536) — thanks @diegosouzapw)
+
+### 🔒 Security
+
+- **fix(security):** block the cloud-metadata SSRF pivot in the cli-tools catalog fetch (CodeQL `js/request-forgery`, **critical**) — `fetchOmniRouteCatalog()` built its `/v1/models` URL from a user-controlled `baseUrl` and fetched it. Since the legitimate target is the user's own OmniRoute (loopback), the public-only guard can't apply; `assertSafeCatalogUrl()` now blocks the cloud-metadata/link-local pivot (`169.254.169.254`, `metadata.google.internal`, …) unconditionally, plus non-http(s) protocols and embedded credentials, and the request fetches the re-parsed (taint-severed) URL. Loopback and public OmniRoute Cloud targets stay allowed. ([#3544](https://github.com/diegosouzapw/OmniRoute/pull/3544) — thanks @diegosouzapw)
+
+### 📝 Maintenance
+
+- **docs(quality):** Phase 6A critical-audit plan + Phase 7 community-tooling additions, both stored with an activation gate of **2026-06-16** — 6A: stale-allowlist enforcement, ratchet `--require-tighten`, gate scope expansions, remaining orphan/UI-suite triage; Phase 7 additions: gitleaks (Betterleaks noted), actionlint + zizmor, SPDX license compliance. ([#3530](https://github.com/diegosouzapw/OmniRoute/pull/3530) — thanks @diegosouzapw)
+- **chore(quality):** conscious, documented re-baselines so the quality-gate debuts holding the REAL published line — file-size frozen at current sizes for 9 files that grew in the v3.8.18 era (RequestLoggerV2 +281, stream +101, combo +73, chatCore +45, …) and `eslintWarnings` 3482→3501 (the published v3.8.18 tag already measured 3501; this cycle is neutral). Driving both down is Phase 6A work. ([#3538](https://github.com/diegosouzapw/OmniRoute/pull/3538) — thanks @diegosouzapw)
+- **chore(release):** open the v3.8.19 development cycle (version bump + electron lockfile sync) and ignore generated yt-downloader artifacts. (thanks @diegosouzapw)
+- **test:** release-gate stabilization — the re-wired suites + the debuting CI gates surfaced and fixed 6 latent test defects: 2 suites depended on the dev machine's configured password (now hermetic), the breaker reset-timeout test ran on a 5ms margin, the bypass-prefix schema test consecrated the pre-#3536 bug, the chatcore upstream-timeout test had a structurally-broken pending-detail predicate (tested `.providerRequest` on an array — never passed isolated, even at the published v3.8.18 tag), and internal planning docs were excluded from the docs-symbols gate. Coverage floors re-baselined to the honest post-re-wire denominator (78.4% measured: previously-never-imported modules now count). (thanks @diegosouzapw)
+
+---
+
+## [3.8.18] — 2026-06-09
 
 ### ✨ New Features
 
