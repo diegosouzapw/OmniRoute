@@ -842,6 +842,8 @@ OmniRoute exposes three independent temporary-failure mechanisms; the management
 | Connection cooldown | `rateLimitedUntil` on provider connections | `/api/rate-limits`, `/api/providers/[id]` | (re-enables lazily; clear via provider PUT) |
 | Model lockout       | In-memory model-availability registry      | `GET /api/resilience/model-cooldowns`     | `DELETE /api/resilience/model-cooldowns`    |
 
+`PATCH /api/resilience` accepts provider breaker overrides under `providerBreaker.oauth` and `providerBreaker.apikey`. Each profile supports `degradationThreshold`, `failureThreshold`, and `resetTimeoutMs`; the same fields are exposed in Dashboard → Settings → Resilience.
+
 ```bash
 # Clear a single model lockout
 curl -X DELETE http://localhost:20128/api/resilience/model-cooldowns \

@@ -928,17 +928,25 @@ async function getOpenCodeGoUsage(apiKey: string) {
   });
 
   if (!res.ok) {
-    if (res.status === 401 || res.status === 403) throw new Error("Invalid OpenCode Go API key");
-    throw new Error(`OpenCode Go quota API error (${res.status})`);
+    if (res.status === 401 || res.status === 403) {
+      return { message: "OpenCode Go quota endpoint rejected this API key. Chat requests still work." };
+    }
+    return { message: `OpenCode Go quota API error (${res.status})` };
   }
 
-  const json = await res.json();
-  const code = toNumber(json.code, 200);
-  if (code === 401 || code === 403 || json.success === false) {
-    throw new Error("Invalid OpenCode Go API key");
+  let json: unknown;
+  try {
+    json = await res.json();
+  } catch {
+    return { message: "OpenCode Go quota response parsing failed." };
   }
 
-  const data = toRecord(json.data);
+  const code = toNumber((json as Record<string, unknown>).code, 200);
+  if (code === 401 || code === 403 || (json as Record<string, unknown>).success === false) {
+    return { message: "OpenCode Go quota endpoint rejected this API key. Chat requests still work." };
+  }
+
+  const data = toRecord((json as Record<string, unknown>).data);
   const limits: unknown[] = Array.isArray(data.limits) ? data.limits : [];
   const quotas: Record<string, UsageQuota> = {};
 

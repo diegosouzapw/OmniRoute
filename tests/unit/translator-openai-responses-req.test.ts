@@ -848,6 +848,85 @@ test("Responses -> Chat: image_generation is stripped from output tools array (i
   assert.equal(tools[0].function.name, "foo");
 });
 
+// --- Codex CLI: local_shell built-in should be mapped to a function tool ---
+
+test("Responses -> Chat: local_shell does not throw", () => {
+  // Recent Codex CLI releases inject local_shell as a Responses API built-in.
+  // Non-OpenAI upstreams do not support this tool type directly, so OmniRoute
+  // must translate it instead of rejecting the request with 400.
+  assert.doesNotThrow(() =>
+    openaiResponsesToOpenAIRequest(
+      "gpt-4o",
+      {
+        input: [{ role: "user", content: [{ type: "input_text", text: "pwd" }] }],
+        tools: [{ type: "local_shell" }],
+      },
+      false,
+      null
+    )
+  );
+});
+
+test("Responses -> Chat: local_shell maps to a shell function tool", () => {
+  const result = openaiResponsesToOpenAIRequest(
+    "gpt-4o",
+    {
+      input: [{ role: "user", content: [{ type: "input_text", text: "pwd" }] }],
+      tools: [{ type: "local_shell" }],
+    },
+    false,
+    null
+  ) as Record<string, unknown>;
+
+  const tools = result.tools as any[];
+  assert.ok(Array.isArray(tools), "tools array must be present");
+  assert.equal(tools.length, 1, "local_shell must be represented as one function tool");
+  assert.equal(tools[0].type, "function");
+  assert.equal(tools[0].function.name, "shell");
+  assert.equal(tools[0].function.parameters.type, "object");
+  assert.deepEqual(tools[0].function.parameters.required, ["command"]);
+});
+
+test("Responses -> Chat: local_shell tool_choice maps to shell function choice", () => {
+  const result = openaiResponsesToOpenAIRequest(
+    "gpt-4o",
+    {
+      input: [{ role: "user", content: [{ type: "input_text", text: "pwd" }] }],
+      tools: [{ type: "local_shell" }],
+      tool_choice: { type: "local_shell" },
+    },
+    false,
+    null
+  ) as Record<string, unknown>;
+
+  assert.deepEqual(result.tool_choice, { type: "function", function: { name: "shell" } });
+});
+
+test("Chat -> Responses: shell function maps back to local_shell", () => {
+  const result = openaiToOpenAIResponsesRequest(
+    "gpt-4o",
+    {
+      messages: [{ role: "user", content: "pwd" }],
+      tools: [
+        {
+          type: "function",
+          function: {
+            name: "shell",
+            description: "Run a shell command",
+            parameters: { type: "object" },
+          },
+        },
+      ],
+      tool_choice: { type: "function", function: { name: "shell" } },
+    },
+    false,
+    null
+  ) as Record<string, unknown>;
+
+  assert.deepEqual(result.tools, [{ type: "local_shell" }]);
+  assert.deepEqual(result.tool_choice, { type: "local_shell" });
+});
+
 // --- Issue #2893: orphaned tool results from empty/missing call_id ---
 
 test("Responses -> Chat: function_call with empty call_id is dropped together with its output (issue #2893)", () => {

@@ -1144,10 +1144,25 @@ const connectionCooldownProfileSchema = z
 
 const providerBreakerProfileSchema = z
   .object({
-    failureThreshold: z.number().int().min(1).optional(),
+    failureThreshold: z.number().int().min(1).max(1000).optional(),
+    degradationThreshold: z.number().int().min(1).max(1000).optional(),
     resetTimeoutMs: z.number().int().min(1000).optional(),
   })
-  .strict();
+  .strict()
+  .superRefine((value, ctx) => {
+    if (
+      typeof value.failureThreshold === "number" &&
+      value.failureThreshold > 1 &&
+      typeof value.degradationThreshold === "number" &&
+      value.degradationThreshold >= value.failureThreshold
+    ) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "degradationThreshold must be lower than failureThreshold",
+        path: ["degradationThreshold"],
+      });
+    }
+  });
 
 const waitForCooldownSettingsSchema = z
   .object({

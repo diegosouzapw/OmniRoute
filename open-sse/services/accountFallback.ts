@@ -42,11 +42,12 @@ export type ProviderProfile = {
   maxBackoffLevel: number;
   circuitBreakerThreshold: number;
   circuitBreakerReset: number;
-  // Provider-level circuit breaker fields
+  // Adaptive circuit breaker fields
+  degradationThreshold?: number;
+  // Provider-level cooldown fields
   providerFailureThreshold: number;
   providerFailureWindowMs: number;
   providerCooldownMs: number;
-  degradationThreshold?: number;
   maxBackoffMultiplier?: number;
   backoffEscalationCount?: number;
 };
@@ -309,10 +310,10 @@ function buildProviderProfile(
     maxBackoffLevel: connectionCooldown.maxBackoffSteps,
     circuitBreakerThreshold: providerBreaker.failureThreshold,
     circuitBreakerReset: providerBreaker.resetTimeoutMs,
-    // Provider-level circuit breaker fields (not configurable via settings, use PROVIDER_PROFILES defaults)
+    degradationThreshold: providerBreaker.degradationThreshold,
+    // Provider-level cooldown fields are not exposed in resilience settings yet.
     providerFailureThreshold: PROVIDER_PROFILES[category].providerFailureThreshold,
     providerFailureWindowMs: PROVIDER_PROFILES[category].providerFailureWindowMs,
-    degradationThreshold: PROVIDER_PROFILES[category].degradationThreshold,
     maxBackoffMultiplier: PROVIDER_PROFILES[category].maxBackoffMultiplier,
     backoffEscalationCount: PROVIDER_PROFILES[category].backoffEscalationCount,
     providerCooldownMs: PROVIDER_PROFILES[category].providerCooldownMs,
@@ -674,12 +675,13 @@ export function getAllModelLockouts(): ModelLockoutInfo[] {
 // ─── Provider Breaker Compatibility Wrappers ────────────────────────────────
 // Legacy helpers now delegate to the shared provider circuit breaker.
 
-type ProviderBreakerProfile = Partial<
-  Pick<
-    ProviderProfile,
-    "failureThreshold" | "resetTimeoutMs" | "circuitBreakerThreshold" | "circuitBreakerReset"
-  >
->;
+type ProviderBreakerProfile = {
+  failureThreshold?: number;
+  degradationThreshold?: number;
+  resetTimeoutMs?: number;
+  circuitBreakerThreshold?: number;
+  circuitBreakerReset?: number;
+};
 
 function getProviderBreaker(provider: string | null | undefined) {
   return provider ? getCircuitBreaker(provider) : null;

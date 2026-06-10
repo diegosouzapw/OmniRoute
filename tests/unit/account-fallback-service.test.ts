@@ -41,6 +41,7 @@ function makeProfile(overrides: Record<string, unknown> = {}): any {
     useUpstreamRetryHints: false,
     maxBackoffSteps: 3,
     failureThreshold: 60,
+    degradationThreshold: 40,
     resetTimeoutMs: 5000,
     transientCooldown: 125,
     rateLimitCooldown: 125,
@@ -383,6 +384,7 @@ test("getProviderProfile differentiates oauth and api-key providers", () => {
   assert.equal(oauthProfile.circuitBreakerReset, PROVIDER_PROFILES.oauth.circuitBreakerReset);
   assert.equal(oauthProfile.baseCooldownMs, PROVIDER_PROFILES.oauth.transientCooldown);
   assert.equal(oauthProfile.failureThreshold, PROVIDER_PROFILES.oauth.circuitBreakerThreshold);
+  assert.equal(oauthProfile.degradationThreshold, PROVIDER_PROFILES.oauth.degradationThreshold);
   assert.equal(oauthProfile.resetTimeoutMs, PROVIDER_PROFILES.oauth.circuitBreakerReset);
 
   const apiKeyProfile = getProviderProfile("openai");
@@ -399,6 +401,7 @@ test("getProviderProfile differentiates oauth and api-key providers", () => {
   assert.equal(apiKeyProfile.circuitBreakerReset, PROVIDER_PROFILES.apikey.circuitBreakerReset);
   assert.equal(apiKeyProfile.baseCooldownMs, PROVIDER_PROFILES.apikey.transientCooldown);
   assert.equal(apiKeyProfile.failureThreshold, PROVIDER_PROFILES.apikey.circuitBreakerThreshold);
+  assert.equal(apiKeyProfile.degradationThreshold, PROVIDER_PROFILES.apikey.degradationThreshold);
   assert.equal(apiKeyProfile.resetTimeoutMs, PROVIDER_PROFILES.apikey.circuitBreakerReset);
 });
 
@@ -607,6 +610,7 @@ test("recordProviderFailure honors runtime provider breaker profile", () => {
   try {
     const runtimeProfile = {
       failureThreshold: PROVIDER_PROFILES.apikey.circuitBreakerThreshold + 7,
+      degradationThreshold: PROVIDER_PROFILES.apikey.degradationThreshold + 3,
       resetTimeoutMs: PROVIDER_PROFILES.apikey.circuitBreakerReset + 45_000,
     };
 
@@ -614,11 +618,13 @@ test("recordProviderFailure honors runtime provider breaker profile", () => {
 
     const breaker = getCircuitBreaker(provider);
     assert.equal(breaker.failureThreshold, runtimeProfile.failureThreshold);
+    assert.equal(breaker.degradationThreshold, runtimeProfile.degradationThreshold);
     assert.equal(breaker.resetTimeout, runtimeProfile.resetTimeoutMs);
     assert.equal(isProviderInCooldown(provider), false);
 
     const breakerAfterStatusCheck = getCircuitBreaker(provider);
     assert.equal(breakerAfterStatusCheck.failureThreshold, runtimeProfile.failureThreshold);
+    assert.equal(breakerAfterStatusCheck.degradationThreshold, runtimeProfile.degradationThreshold);
     assert.equal(breakerAfterStatusCheck.resetTimeout, runtimeProfile.resetTimeoutMs);
   } finally {
     clearProviderFailure(provider);

@@ -340,10 +340,12 @@ function buildResilienceConfig(overrides: Record<string, unknown> = {}) {
     providerBreaker: {
       oauth: {
         failureThreshold: 3,
+        degradationThreshold: 2,
         resetTimeoutMs: 2_000,
       },
       apikey: {
         failureThreshold: 2,
+        degradationThreshold: 1,
         resetTimeoutMs: 1_500,
       },
     },
@@ -705,6 +707,7 @@ test.skip("provider circuit breaker opens after repeated final failures and Heal
       providerBreaker: {
         apikey: {
           failureThreshold: 2,
+          degradationThreshold: 1,
           resetTimeoutMs: 1_500,
         },
       },

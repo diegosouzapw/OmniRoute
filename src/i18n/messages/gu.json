@@ -5280,6 +5280,7 @@
     "resilienceMaxBackoffSteps": "Max backoff steps",
     "resilienceProviderBreakerTitle": "Circuit Breaker per Provider",
     "resilienceFailureThreshold": "Failure threshold",
+    "resilienceDegradationThreshold": "Degradation threshold",
     "resilienceResetTimeout": "સમયસમાપ્તિ રીસેટ કરો",
     "resilienceFailureThresholdLabel": "નિષ્ફળતા થ્રેશોલ્ડ",
     "resilienceResetTimeoutLabel": "સમયસમાપ્તિ રીસેટ કરો",

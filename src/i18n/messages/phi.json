@@ -5280,6 +5280,7 @@
     "resilienceMaxBackoffSteps": "Max backoff steps",
     "resilienceProviderBreakerTitle": "Circuit Breaker per Provider",
     "resilienceFailureThreshold": "Failure threshold",
+    "resilienceDegradationThreshold": "Degradation threshold",
     "resilienceResetTimeout": "I-reset ang timeout",
     "resilienceFailureThresholdLabel": "Ang limitasyon ng pagkabigo",
     "resilienceResetTimeoutLabel": "I-reset ang timeout",

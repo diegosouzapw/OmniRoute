@@ -26,6 +26,7 @@ type ConnectionCooldownProfileSettings = {
 
 type ProviderBreakerProfileSettings = {
   failureThreshold: number;
+  degradationThreshold: number;
   resetTimeoutMs: number;
 };
 
@@ -547,6 +548,14 @@ function ProviderBreakerCard({
               }
             />
             <NumberField
+              label={t("resilienceDegradationThreshold")}
+              value={current.degradationThreshold}
+              min={1}
+              onChange={(degradationThreshold) =>
+                setDraft((prev) => ({ ...prev, [key]: { ...prev[key], degradationThreshold } }))
+              }
+            />
+            <NumberField
               label={t("resilienceResetTime")}
               value={current.resetTimeoutMs}
               min={1000}
@@ -561,6 +570,10 @@ function ProviderBreakerCard({
             <div className="flex items-center justify-between text-sm">
               <span className="text-text-muted">{t("resilienceFailureThreshold")}</span>
               <span className="font-mono text-text-main">{current.failureThreshold}</span>
+            </div>
+            <div className="flex items-center justify-between text-sm">
+              <span className="text-text-muted">{t("resilienceDegradationThreshold")}</span>
+              <span className="font-mono text-text-main">{current.degradationThreshold}</span>
             </div>
             <div className="flex items-center justify-between text-sm">
               <span className="text-text-muted">{t("resilienceResetTime")}</span>
