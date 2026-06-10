@@ -6,7 +6,7 @@
  * over the process environment variable of the same name.
  */
 
-import { FEATURE_FLAG_DEFINITIONS } from "@/shared/constants/featureFlagDefinitions";
+import { FEATURE_FLAG_DEFINITIONS } from "../../shared/constants/featureFlagDefinitions";
 import { getDbInstance } from "../core";
 
 const NAMESPACE = "feature_flags";

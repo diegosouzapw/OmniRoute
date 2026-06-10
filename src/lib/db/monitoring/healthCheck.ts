@@ -1,6 +1,6 @@
 import { normalizeComboStep } from "@/lib/combos/steps";
 
-import type { SqliteAdapter } from "./adapters/types";
+import type { SqliteAdapter } from "../adapters/types";
 type SqliteDatabase = SqliteAdapter;
 type JsonRecord = Record<string, unknown>;
 

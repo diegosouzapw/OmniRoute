@@ -1,5 +1,5 @@
 import { getDbInstance, rowToCamel } from "../core";
-import type { QuotaSnapshotRow, ProviderUtilizationPoint } from "@/shared/types/utilization";
+import type { QuotaSnapshotRow, ProviderUtilizationPoint } from "../../shared/types/utilization";
 
 type JsonRecord = Record<string, unknown>;
 

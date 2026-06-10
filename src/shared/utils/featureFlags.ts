@@ -1,4 +1,4 @@
-import { getFeatureFlagOverride } from "@/lib/db/featureFlags";
+import { getFeatureFlagOverride } from "@/lib/db/settings/featureFlags";
 import {
   FEATURE_FLAG_DEFINITIONS,
   type FeatureFlagDefinition,

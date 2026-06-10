@@ -8,7 +8,7 @@ import {
   setFeatureFlagOverride,
   removeFeatureFlagOverride,
   clearAllFeatureFlagOverrides,
-} from "@/lib/db/featureFlags";
+} from "@/lib/db/settings/featureFlags";
 import { resolveAllFeatureFlags } from "@/shared/utils/featureFlags";
 import { sanitizeErrorMessage } from "@omniroute/open-sse/utils/error";
 

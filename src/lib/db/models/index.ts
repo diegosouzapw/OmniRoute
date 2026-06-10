@@ -7,8 +7,8 @@ import { backupDbFile } from "../backup";
 import {
   MODEL_COMPAT_PROTOCOL_KEYS,
   type ModelCompatProtocolKey,
-} from "@/shared/constants/modelCompat";
-import { isForbiddenUpstreamHeaderName } from "@/shared/constants/upstreamHeaders";
+} from "../../shared/constants/modelCompat";
+import { isForbiddenUpstreamHeaderName } from "../../shared/constants/upstreamHeaders";
 
 type JsonRecord = Record<string, unknown>;
 

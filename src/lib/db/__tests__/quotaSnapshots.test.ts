@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeEach, afterEach } from "vitest";
 import Database from "better-sqlite3";
 import { rowToCamel } from "../core";
-import type { QuotaSnapshotRow } from "@/shared/types/utilization";
+import type { QuotaSnapshotRow } from "../../shared/types/utilization";
 
 const MIGRATION_SQL = `
   CREATE TABLE IF NOT EXISTS quota_snapshots (

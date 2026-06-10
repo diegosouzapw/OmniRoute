@@ -11,8 +11,8 @@
  * here, so this function never touches authentication configuration.
  */
 
-import type { SqliteAdapter } from "./adapters/types";
-import { normalizeRoutingStrategy } from "@/shared/constants/routingStrategies";
+import type { SqliteAdapter } from "../adapters/types";
+import { normalizeRoutingStrategy } from "../../shared/constants/routingStrategies";
 
 type SqliteDatabase = SqliteAdapter;
 
