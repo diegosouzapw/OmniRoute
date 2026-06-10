@@ -1161,6 +1161,14 @@ const waitForCooldownSettingsSchema = z
   })
   .strict();
 
+const providerCooldownSettingsSchema = z
+  .object({
+    enabled: z.boolean().optional(),
+    minRetryCooldownMs: z.number().int().min(0).max(300000).optional(),
+    maxRetryCooldownMs: z.number().int().min(0).max(3600000).optional(),
+  })
+  .strict();
+
 export const updateResilienceSchema = z
   .object({
     requestQueue: requestQueueSettingsSchema.optional(),
@@ -1179,6 +1187,7 @@ export const updateResilienceSchema = z
       .strict()
       .optional(),
     waitForCooldown: waitForCooldownSettingsSchema.optional(),
+    providerCooldown: providerCooldownSettingsSchema.optional(),
     profiles: z
       .object({
         oauth: legacyResilienceProfileSchema.optional(),
@@ -1195,6 +1204,7 @@ export const updateResilienceSchema = z
       !value.connectionCooldown &&
       !value.providerBreaker &&
       !value.waitForCooldown &&
+      !value.providerCooldown &&
       !value.profiles &&
       !value.defaults
     ) {
