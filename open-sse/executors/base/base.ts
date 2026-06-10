@@ -52,7 +52,7 @@ import {
   stainlessOS,
   stainlessRuntimeVersion,
   stripProxyToolPrefix,
-} from "./claudeIdentity.ts";
+} from "../oauth/claudeIdentity.ts";
 
 /**
  * Sanitizes a custom API path to prevent path traversal attacks.

@@ -1,5 +1,5 @@
 
-import { DefaultExecutor } from "./default.ts";
+import { DefaultExecutor } from "../base/default.ts";
 import {  ExecuteInput, type ProviderCredentials } from "../base/base.ts";
 import { applyProviderRequestDefaults } from "../../services/providerRequestDefaults.ts";
 import { NON_ANTHROPIC_THINKING_PLACEHOLDER } from "../../translator/helpers/claudeHelper.ts";

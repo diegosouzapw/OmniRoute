@@ -1,6 +1,6 @@
 import { randomUUID } from "node:crypto";
 
-import { DefaultExecutor } from "./default.ts";
+import { DefaultExecutor } from "../base/default.ts";
 import {
   applyConfiguredUserAgent,
   mergeAbortSignals,
