@@ -2870,3 +2870,69 @@ test("handleComboChat aborts combo when 503 response does NOT contain the unavai
       result.status === 503
   );
 });
+
+test("#3587 reasoning model gets max_tokens buffer applied", async () => {
+  saveModelsDevCapabilities({
+    openai: {
+      "gpt-4o-reasoning": capabilityEntry(4096, { reasoning: true }),
+    },
+  });
+
+  const bodies: Array<Record<string, unknown>> = [];
+  const result = await handleComboChat({
+    body: { max_tokens: 4096 },
+    combo: {
+      name: "reasoning-buffer",
+      models: ["openai/gpt-4o-reasoning"],
+    },
+    handleSingleModel: async (body: any) => {
+      bodies.push(body);
+      return okResponse();
+    },
+    isModelAvailable: async () => true,
+    log: createLog(),
+    settings: null,
+    relayOptions: null as any,
+    allCombos: null,
+  });
+
+  assert.equal(result.ok, true);
+  assert.equal(bodies.length, 1, "should have called handleSingleModel once");
+  // 4096 * 1.5 = 6144; max(4096+1000, 6144) = 6144
+  assert.equal(bodies[0].max_tokens, 6144, "max_tokens should be buffered for reasoning model");
+});
+
+test("#3587 non-reasoning model does not get max_tokens buffer", async () => {
+  saveModelsDevCapabilities({
+    openai: {
+      "gpt-4o-plain": capabilityEntry(4096, { reasoning: false }),
+    },
+  });
+
+  const bodies: Array<Record<string, unknown>> = [];
+  const result = await handleComboChat({
+    body: { max_tokens: 4096 },
+    combo: {
+      name: "no-reasoning-buffer",
+      models: ["openai/gpt-4o-plain"],
+    },
+    handleSingleModel: async (body: any) => {
+      bodies.push(body);
+      return okResponse();
+    },
+    isModelAvailable: async () => true,
+    log: createLog(),
+    settings: null,
+    relayOptions: null as any,
+    allCombos: null,
+  });
+
+  assert.equal(result.ok, true);
+  assert.equal(bodies.length, 1, "should have called handleSingleModel once");
+  // Non-reasoning model: max_tokens should NOT be buffered
+  assert.equal(
+    bodies[0].max_tokens,
+    4096,
+    "max_tokens should remain unchanged for non-reasoning model"
+  );
+});

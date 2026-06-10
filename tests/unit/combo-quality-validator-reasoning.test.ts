@@ -105,3 +105,115 @@ test("#2341 reasoning_content as non-string is ignored (defensive)", async () =>
   // Non-string reasoning_content shouldn't count as content; still rejected.
   assert.equal(out.valid, false);
 });
+
+test("#3587 reasoning consumed 90%+ of tokens → invalid (token exhaustion)", async () => {
+  const res = makeResponse({
+    choices: [
+      {
+        message: {
+          content: null,
+          reasoning_content: "Deep reasoning about the problem...",
+        },
+      },
+    ],
+    usage: {
+      completion_tokens: 4096,
+      reasoning_tokens: 3800,
+    },
+  });
+  const out = await validateResponseQuality(res, false, silentLog);
+  assert.equal(out.valid, false, "should be invalid: reasoning exhausted tokens");
+  assert.match(out.reason ?? "", /reasoning consumed/i);
+});
+
+test("#3587 reasoning consumed < 90% of tokens → valid (normal reasoning)", async () => {
+  const res = makeResponse({
+    choices: [
+      {
+        message: {
+          content: null,
+          reasoning_content: "Some reasoning",
+        },
+      },
+    ],
+    usage: {
+      completion_tokens: 4096,
+      reasoning_tokens: 500,
+    },
+  });
+  const out = await validateResponseQuality(res, false, silentLog);
+  assert.equal(out.valid, true, "should be valid: reasoning has room");
+});
+
+test("#3587 reasoning with no usage data → valid (can't determine)", async () => {
+  const res = makeResponse({
+    choices: [
+      {
+        message: {
+          content: null,
+          reasoning_content: "Some reasoning",
+        },
+      },
+    ],
+  });
+  const out = await validateResponseQuality(res, false, silentLog);
+  assert.equal(out.valid, true, "should be valid: no usage to check");
+});
+
+test("#3587 content present + reasoning + tokens exhausted → valid (has content)", async () => {
+  const res = makeResponse({
+    choices: [
+      {
+        message: {
+          content: "Final answer here",
+          reasoning_content: "Deep reasoning",
+        },
+      },
+    ],
+    usage: {
+      completion_tokens: 4096,
+      reasoning_tokens: 3800,
+    },
+  });
+  const out = await validateResponseQuality(res, false, silentLog);
+  assert.equal(out.valid, true, "should be valid: content is present");
+});
+
+test("#3587 reasoning via completion_tokens_details.reasoning_tokens → invalid", async () => {
+  const res = makeResponse({
+    choices: [
+      {
+        message: {
+          content: null,
+          reasoning_content: "Step-by-step analysis...",
+        },
+      },
+    ],
+    usage: {
+      completion_tokens: 10000,
+      completion_tokens_details: { reasoning_tokens: 9500 },
+    },
+  });
+  const out = await validateResponseQuality(res, false, silentLog);
+  assert.equal(out.valid, false, "should be invalid: reasoning exhausted via details");
+  assert.match(out.reason ?? "", /reasoning consumed/i);
+});
+
+test("#3587 edge: completion_tokens=0 → safe (no division by zero)", async () => {
+  const res = makeResponse({
+    choices: [
+      {
+        message: {
+          content: null,
+          reasoning_content: "Tiny reasoning",
+        },
+      },
+    ],
+    usage: {
+      completion_tokens: 0,
+      reasoning_tokens: 0,
+    },
+  });
+  const out = await validateResponseQuality(res, false, silentLog);
+  assert.equal(out.valid, true, "should be valid: can't divide by zero");
+});
