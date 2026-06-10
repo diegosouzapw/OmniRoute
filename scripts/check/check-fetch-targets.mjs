@@ -28,7 +28,6 @@ const KNOWN_MISSING = new Set([
   "/api/gamification/badges", // profile/page.tsx — idem
   "/api/gamification/badges/earned", // profile/page.tsx — idem
   "/api/settings/obsidian/webdav", // ObsidianSourceCard.tsx — só existe /api/settings/obsidian
-  "/api/tools/agent-bridge/upstream-ca/test", // UpstreamCaField.tsx — rota inexistente
 ]);
 
 function walk(dir, acc = []) {
