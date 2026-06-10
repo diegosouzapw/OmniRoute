@@ -185,7 +185,7 @@ export default function FeatureFlagsGrid() {
       // Server is going down — wait for it to come back, then reload.
       const stillUp = async () => {
         try {
-          const r = await fetch("/api/health", { cache: "no-store" });
+          const r = await fetch("/api/health/ping", { cache: "no-store" });
           return r.ok;
         } catch {
           return false;
