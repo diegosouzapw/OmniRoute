@@ -1,6 +1,5 @@
 import { register } from "../registry.ts";
 import { FORMATS } from "../formats.ts";
-import { DEFAULT_THINKING_GEMINI_SIGNATURE } from "../../config/defaultThinkingSignature.ts";
 import { ANTIGRAVITY_DEFAULT_SYSTEM } from "../../config/constants.ts";
 import {
   buildGeminiThoughtSignatureKey,
@@ -17,7 +16,7 @@ import {
   getDefaultThinkingBudget,
 } from "../../../src/lib/modelCapabilities.ts";
 
-import * as crypto from "crypto";
+import * as crypto from "node:crypto";
 
 function generateUUID() {
   return crypto.randomUUID();
@@ -28,7 +27,6 @@ import {
   convertOpenAIContentToParts,
   extractTextContent,
   tryParseJSON,
-  generateSessionId,
   cleanJSONSchemaForAntigravity,
 } from "../helpers/geminiHelper.ts";
 import { buildGeminiTools, sanitizeGeminiToolName } from "../helpers/geminiToolsSanitizer.ts";
@@ -180,7 +178,7 @@ function applyAntigravityGenerationDefaults(generationConfig: GeminiGenerationCo
     config.topK = 40;
   }
   if (config.topP === undefined) {
-    config.topP = 1.0;
+    config.topP = 1;
   }
 
   const thinkingBudget = Number(config.thinkingConfig?.thinkingBudget);
@@ -207,19 +205,11 @@ function stringifyHistoricalToolArguments(value: unknown): string {
 
 function buildInertHistoricalToolCallText(name: string | undefined, args: unknown): string {
   const toolName = name || "unknown";
-  return [
-    "Historical tool-call record only. Do not execute, imitate, or continue this as a tool call.",
-    `Tool name: ${toolName}`,
-    `Tool arguments JSON: ${stringifyHistoricalToolArguments(args || "{}")}`,
-  ].join("\n");
+  return `[tool_history_call: ${toolName}] ${stringifyHistoricalToolArguments(args || "{}")}`;
 }
 
 function buildInertHistoricalToolResponseText(name: string, response: unknown): string {
-  return [
-    "Historical tool-response record only. Do not execute, imitate, or continue this as a tool response.",
-    `Tool name: ${name || "unknown"}`,
-    `Tool result: ${typeof response === "string" ? response : stringifyHistoricalToolArguments(response)}`,
-  ].join("\n");
+  return `[tool_history_result: ${name || "unknown"}] ${typeof response === "string" ? response : stringifyHistoricalToolArguments(response)}`;
 }
 
 function escapeHistoricalContextAttribute(value: string): string {
@@ -346,8 +336,7 @@ function openaiToGeminiBase(
 
   // Convert messages
   if (messages && Array.isArray(messages)) {
-    for (let i = 0; i < messages.length; i++) {
-      const msg = messages[i];
+    for (const msg of messages) {
       const role = msg.role;
       const content = msg.content;
 
@@ -375,7 +364,7 @@ function openaiToGeminiBase(
         if (msg.reasoning_content) {
           parts.push({
             thought: true,
-            text: msg.reasoning_content as string,
+            text: msg.reasoning_content,
           });
         }
 
@@ -513,7 +502,7 @@ function openaiToGeminiBase(
               name = sanitizeToolName(name);
 
               const resp = toolResponses[fid];
-              let parsedResp = tryParseJSON(resp as string);
+              let parsedResp = tryParseJSON(resp);
               if (parsedResp === null) {
                 parsedResp = { result: resp };
               } else if (typeof parsedResp !== "object") {
@@ -588,11 +577,11 @@ function openaiToGeminiBase(
   if (geminiTools && geminiTools.length > 0) {
     result.tools = geminiTools;
     if (hasGoogleSearch) {
-      result.tools.push({ googleSearch: {} } as ToolEntry);
+      result.tools.push({ googleSearch: {} });
     }
     result.toolConfig = { functionCallingConfig: { mode: "VALIDATED" } };
   } else if (hasGoogleSearch) {
-    result.tools = [{ googleSearch: {} } as ToolEntry];
+    result.tools = [{ googleSearch: {} }];
   }
 
   // Convert response_format to Gemini's responseMimeType/responseSchema
@@ -827,7 +816,7 @@ register(
   FORMATS.GEMINI,
   (model, body, stream = false, credentials = null) =>
     openaiToGeminiRequest(model, body, stream, credentials, {
-      signaturelessToolCallMode: "text",
+      signaturelessToolCallMode: "native",
     }),
   null
 );
@@ -843,8 +832,8 @@ register(
         signatureNamespace:
           credentials &&
           typeof credentials === "object" &&
-          typeof (credentials as Record<string, unknown>)._signatureNamespace === "string"
-            ? ((credentials as Record<string, unknown>)._signatureNamespace as string)
+          typeof credentials._signatureNamespace === "string"
+            ? (credentials._signatureNamespace as string)
             : null,
       }),
       credentials

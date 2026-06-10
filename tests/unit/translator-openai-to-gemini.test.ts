@@ -14,9 +14,8 @@ const {
   tryParseJSON,
 } = await import("../../open-sse/translator/helpers/geminiHelper.ts");
 const { ANTIGRAVITY_DEFAULT_SYSTEM } = await import("../../open-sse/config/constants.ts");
-const { clearGeminiThoughtSignatures } = await import(
-  "../../open-sse/services/geminiThoughtSignatureStore.ts"
-);
+const { clearGeminiThoughtSignatures } =
+  await import("../../open-sse/services/geminiThoughtSignatureStore.ts");
 
 type UnknownRecord = Record<string, unknown>;
 
@@ -1227,5 +1226,197 @@ test("OpenAI -> Gemini request maps google_search tool", () => {
   assert.ok(
     (result as any).tools.some((t: any) => t.googleSearch),
     "expected googleSearch tool"
+  );
+});
+
+// Regression: historical tool-call text must use compact [tool_history_call:] format,
+// not the old multi-line "Historical tool-call record only..." that leaked into output.
+test("text-mode assistant tool_calls produce [tool_history_call:] format, not the old leaky text", () => {
+  const result = openaiToGeminiRequest(
+    "gemini-2.0-flash",
+    {
+      messages: [
+        { role: "user", content: "What is the weather?" },
+        {
+          role: "assistant",
+          content: null,
+          tool_calls: [
+            {
+              id: "call_tc001",
+              type: "function",
+              function: { name: "get_weather", arguments: '{"location":"Tokyo"}' },
+            },
+          ],
+        },
+        {
+          role: "tool",
+          tool_call_id: "call_tc001",
+          content: '{"temp":"22°C"}',
+        },
+        { role: "user", content: "Summarize" },
+      ],
+    },
+    false,
+    null,
+    { signaturelessToolCallMode: "text" }
+  );
+
+  const body = JSON.stringify(result);
+  assert.ok(
+    body.includes("[tool_history_call: get_weather]"),
+    "expected compact [tool_history_call:] format for text-mode tool calls"
+  );
+  assert.ok(
+    body.includes("[tool_history_result: get_weather]"),
+    "expected compact [tool_history_result:] format for text-mode tool responses"
+  );
+  assert.equal(
+    body.includes("Historical tool-call record only"),
+    false,
+    "old leaky 'Historical tool-call record only' text must NOT appear"
+  );
+  assert.equal(
+    body.includes("Historical tool-response record only"),
+    false,
+    "old leaky 'Historical tool-response record only' text must NOT appear"
+  );
+});
+
+test("text-mode tool calls without credentials produce compact format, no thoughtSignature derail", () => {
+  const result = openaiToGeminiRequest(
+    "gemini-2.0-flash",
+    {
+      messages: [
+        { role: "user", content: "Run a tool" },
+        {
+          role: "assistant",
+          content: null,
+          tool_calls: [
+            {
+              id: "call_tc002",
+              type: "function",
+              function: { name: "search_web", arguments: '{"q":"latest news"}' },
+            },
+          ],
+        },
+        {
+          role: "tool",
+          tool_call_id: "call_tc002",
+          content: "Some results",
+        },
+        { role: "user", content: "Tell me more" },
+      ],
+    },
+    false,
+    null, // no credentials — no thought signatures at all
+    { signaturelessToolCallMode: "text" }
+  );
+
+  const body = JSON.stringify(result);
+  assert.ok(body.includes("[tool_history_call: search_web]"), "compact format without credentials");
+  assert.ok(
+    body.includes("[tool_history_result: search_web]"),
+    "compact format for tool response without credentials"
+  );
+});
+
+test("native-mode assistant tool_calls produce functionCall parts, not text labels", () => {
+  const result = openaiToGeminiRequest(
+    "gemini-2.0-flash",
+    {
+      messages: [
+        { role: "user", content: "Get weather" },
+        {
+          role: "assistant",
+          content: null,
+          tool_calls: [
+            {
+              id: "call_nat001",
+              type: "function",
+              function: { name: "get_weather", arguments: '{"location":"Paris"}' },
+            },
+          ],
+        },
+        {
+          role: "tool",
+          tool_call_id: "call_nat001",
+          content: '{"temp":"18°C"}',
+        },
+        { role: "user", content: "Now what?" },
+      ],
+    },
+    false,
+    null,
+    { signaturelessToolCallMode: "native" }
+  );
+
+  const modelTurn = result.contents.find(
+    (c) => c.role === "model" && c.parts?.some((p) => p.functionCall)
+  );
+  assert.ok(modelTurn, "expected model turn with functionCall in native mode");
+  const body = JSON.stringify(result);
+  assert.equal(
+    body.includes("[tool_history_call:"),
+    false,
+    "native mode must NOT produce text labels"
+  );
+});
+
+// Integration: registered translator (OPENAI -> GEMINI) emits native functionCall/functionResponse
+test("registered OPENAI->GEMINI translator uses native functionCall/functionResponse, not text labels", () => {
+  const translate = getRequestTranslator(FORMATS.OPENAI, FORMATS.GEMINI);
+  assert.ok(typeof translate === "function", "registered translator must be a function");
+
+  const result = translate(
+    "gemini-2.0-flash",
+    {
+      messages: [
+        { role: "user", content: "Look up weather" },
+        {
+          role: "assistant",
+          content: null,
+          tool_calls: [
+            {
+              id: "call_reg001",
+              type: "function",
+              function: { name: "get_weather", arguments: '{"location":"Berlin"}' },
+            },
+          ],
+        },
+        {
+          role: "tool",
+          tool_call_id: "call_reg001",
+          content: '{"temp":"15°C","condition":"cloudy"}',
+        },
+        { role: "user", content: "Short summary" },
+      ],
+    },
+    false
+  ) as any;
+
+  const body = JSON.stringify(result);
+  // Native mode: functionCall/functionResponse parts, no text labels
+  assert.ok(
+    body.includes('"functionCall"'),
+    "registered translator must emit native functionCall parts"
+  );
+  assert.ok(
+    body.includes('"functionResponse"'),
+    "registered translator must emit native functionResponse parts"
+  );
+  assert.equal(
+    body.includes("Historical tool-call record only"),
+    false,
+    "old leaky format must NOT appear in registered translator output"
+  );
+  assert.equal(
+    body.includes("Historical tool-response record only"),
+    false,
+    "old leaky response format must NOT appear"
+  );
+  assert.equal(
+    body.includes("[tool_history_call:"),
+    false,
+    "native mode must NOT emit text labels"
   );
 });
