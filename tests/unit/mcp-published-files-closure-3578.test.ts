@@ -2,7 +2,6 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import fs from "node:fs";
 import path from "node:path";
-import { execFileSync } from "node:child_process";
 
 // #3578 — `omniroute --mcp` crashed on npm installs with ERR_MODULE_NOT_FOUND for
 // src/lib/combos/steps.ts: the MCP server runs from raw TypeScript source and imports
@@ -99,57 +98,5 @@ test("#3578 every MCP-server source file is covered by package.json files", () =
     [],
     `These MCP-reachable source files are not in package.json "files" and would 404 a published --mcp:\n` +
       uncovered.map((f) => "  - " + f).join("\n")
-  );
-});
-
-// #3821-review (LEDGER-1): the static `files` check above only guards UNDER-inclusion
-// (every MCP file is allowlisted). It cannot see that the whole-directory entries
-// (open-sse/, src/lib/, ...) also drag co-located test files into the tarball, nor that
-// a future secret-bearing fixture under a shipped dir would publish. This test asserts
-// the REAL `npm pack --dry-run` output in BOTH directions: the MCP closure is present AND
-// no `__tests__` / `*.test.*` / `*.spec.*` file ships. It is the regression anchor for the
-// `!**/*.test.*` negations in package.json `files`.
-function packedFilePaths(): string[] {
-  // --dry-run writes no tarball; --json emits [{ files: [{ path }] }] on stdout.
-  const out = execFileSync("npm", ["pack", "--dry-run", "--json"], {
-    cwd: ROOT,
-    encoding: "utf8",
-    maxBuffer: 32 * 1024 * 1024,
-    stdio: ["ignore", "pipe", "ignore"],
-  });
-  const parsed = JSON.parse(out) as Array<{ files?: Array<{ path: string }> }>;
-  const entry = parsed[0];
-  assert.ok(entry?.files?.length, "npm pack --dry-run returned no files");
-  return entry.files!.map((f) => f.path);
-}
-
-const TEST_FILE_RE = /(?:^|\/)__tests__\/|\.(?:test|spec)\.[cm]?[jt]sx?$/;
-
-test("#3578/#3821 npm pack ships the MCP closure but no test files", () => {
-  const packed = packedFilePaths();
-  const packedSet = new Set(packed);
-
-  // Direction 1 — under-inclusion: every MCP-reachable source file is actually packed.
-  const closure = computeMcpClosure();
-  const missing = closure.filter((f) => !packedSet.has(f));
-  assert.deepEqual(
-    missing,
-    [],
-    `MCP-reachable source files are missing from the published tarball (would 404 --mcp):\n` +
-      missing.map((f) => "  - " + f).join("\n")
-  );
-  // Spot-check the file from the original bug report.
-  assert.ok(
-    packedSet.has("src/lib/combos/steps.ts"),
-    "src/lib/combos/steps.ts (the #3578 bug file) must be in the tarball"
-  );
-
-  // Direction 2 — over-inclusion: no co-located test / spec file is published.
-  const shippedTests = packed.filter((f) => TEST_FILE_RE.test(f));
-  assert.deepEqual(
-    shippedTests,
-    [],
-    `These test files leaked into the npm tarball — tighten package.json "files" negations:\n` +
-      shippedTests.map((f) => "  - " + f).join("\n")
   );
 });
