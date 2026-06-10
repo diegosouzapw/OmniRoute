@@ -47,6 +47,25 @@ test("NVIDIA catalog includes the verified 2026 additions and GPT OSS 20B alias 
   });
 });
 
+test("Fable 5 catalog exposes claude-fable-5 in cc and kiro providers with matching pricing", () => {
+  const ccIds = new Set(getModelsByProviderId("cc").map((m) => m.id));
+  assert.ok(ccIds.has("claude-fable-5"), "cc must expose claude-fable-5");
+
+  const kiroModels = getModelsByProviderId("kiro");
+  const kiroIds = new Set(kiroModels.map((m) => m.id));
+  assert.ok(kiroIds.has("claude-fable-5"), "kiro must expose claude-fable-5");
+
+  const fable = kiroModels.find((m) => m.id === "claude-fable-5");
+  assert.equal(fable?.contextLength, 1000000);
+  assert.equal(fable?.maxOutputTokens, 128000);
+
+  const ccPricing = (DEFAULT_PRICING as Record<string, Record<string, unknown>>).cc;
+  assert.ok(ccPricing["claude-fable-5"], "cc pricing must include claude-fable-5");
+
+  const kiroPricing = (DEFAULT_PRICING as Record<string, Record<string, unknown>>).kiro;
+  assert.ok(kiroPricing["claude-fable-5"], "kiro pricing must include claude-fable-5");
+});
+
 test("Kiro catalog exposes Claude Opus 4.8 alongside 4.7 with matching pricing", () => {
   const models = getModelsByProviderId("kiro");
   const ids = new Set(models.map((model) => model.id));
