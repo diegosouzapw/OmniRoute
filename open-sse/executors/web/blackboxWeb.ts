@@ -3,7 +3,7 @@ import {
   mergeAbortSignals,
   mergeUpstreamExtraHeaders,
   type ExecuteInput,
-} from "./base.ts";
+} from "../base/base.ts";
 import { FETCH_TIMEOUT_MS } from "../../config/constants.ts";
 import { normalizeSessionCookieHeader } from "@/lib/providers/webCookieAuth";
 import { prepareToolMessages, buildToolAwareResult } from "../../translator/webTools.ts";

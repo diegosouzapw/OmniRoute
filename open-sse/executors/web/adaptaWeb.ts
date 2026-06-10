@@ -1,4 +1,4 @@
-import { BaseExecutor, type ExecuteInput } from "./base.ts";
+import { BaseExecutor, type ExecuteInput } from "../base/base.ts";
 import { prepareToolMessages, buildToolAwareResult } from "../../translator/webTools.ts";
 
 const ADAPTA_APP_URL = "https://agent.adapta.one";

@@ -28,7 +28,7 @@
  * Reference: https://github.com/yukkcat/gemini-business2api
  */
 import { createHash, randomUUID } from "node:crypto";
-import { BaseExecutor, mergeAbortSignals, type ExecuteInput } from "./base.ts";
+import { BaseExecutor, mergeAbortSignals, type ExecuteInput } from "../base/base.ts";
 import { makeExecutorErrorResult as makeErrorResult } from "../../utils/error.ts";
 
 const GEMINI_BUSINESS_FETCH_TIMEOUT_MS = 60_000;

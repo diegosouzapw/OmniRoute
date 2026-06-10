@@ -7,7 +7,7 @@ import {
   type ExecutorLog,
   type ExecuteInput,
   type ProviderCredentials,
-} from "./base.ts";
+} from "../base/base.ts";
 import {
   CODEX_CHAT_DEFAULT_INSTRUCTIONS,
   CODEX_DEFAULT_INSTRUCTIONS,

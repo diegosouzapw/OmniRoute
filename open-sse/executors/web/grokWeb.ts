@@ -17,7 +17,7 @@ import {
   mergeUpstreamExtraHeaders,
   mergeAbortSignals,
   type ExecuteInput,
-} from "./base.ts";
+} from "../base/base.ts";
 import { FETCH_TIMEOUT_MS } from "../../config/constants.ts";
 import { buildGrokCookieHeader } from "@/lib/providers/webCookieAuth";
 import {

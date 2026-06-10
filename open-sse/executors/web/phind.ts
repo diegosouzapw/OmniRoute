@@ -8,7 +8,7 @@
  * Auth: Session cookie from phind.com
  * SSE response with data: prefixed JSON chunks (OpenAI-compatible delta format)
  */
-import { BaseExecutor, type ExecuteInput } from "./base.ts";
+import { BaseExecutor, type ExecuteInput } from "../base/base.ts";
 import { makeExecutorErrorResult as makeErrorResult, normalizeCookie } from "../../utils/error.ts";
 
 const BASE_URL = "https://www.phind.com";

@@ -1,4 +1,4 @@
-import { BaseExecutor, type ExecuteInput } from "./base.ts";
+import { BaseExecutor, type ExecuteInput } from "../base/base.ts";
 import { solveDeepSeekPowAsync } from "../../lib/deepseek-pow.ts";
 import {
   serializeToolsToPrompt,

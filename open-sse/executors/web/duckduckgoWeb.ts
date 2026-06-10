@@ -1,7 +1,7 @@
 import { createHash, generateKeyPairSync, randomUUID } from "node:crypto";
 import vm from "node:vm";
 import { parseFragment, serialize } from "parse5";
-import { BaseExecutor, type ExecuteInput } from "./base.ts";
+import { BaseExecutor, type ExecuteInput } from "../base/base.ts";
 import { FETCH_TIMEOUT_MS } from "../../config/constants.ts";
 import { prepareToolMessages, buildToolAwareResult } from "../../translator/webTools.ts";
 import type { Session } from "../../services/sessionPool/session.ts";

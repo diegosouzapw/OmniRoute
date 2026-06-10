@@ -6,7 +6,7 @@ import {
   type ExecuteInput,
   type ExecutorLog,
   type ProviderCredentials,
-} from "./base.ts";
+} from "../base/base.ts";
 import { applyFingerprint, isCliCompatEnabled } from "../../config/cliFingerprints.ts";
 import { buildAntigravityUpstreamError } from "./antigravityUpstreamError.ts";
 import {

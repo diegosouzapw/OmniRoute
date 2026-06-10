@@ -30,7 +30,7 @@ import { spawn } from "node:child_process";
 import path from "node:path";
 import os from "node:os";
 import fs from "node:fs";
-import { BaseExecutor, type ExecuteInput, type ProviderCredentials } from "./base.ts";
+import { BaseExecutor, type ExecuteInput, type ProviderCredentials } from "../base/base.ts";
 
 // ─── Binary discovery ────────────────────────────────────────────────────────
 

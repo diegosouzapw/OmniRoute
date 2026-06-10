@@ -24,7 +24,7 @@
  *   ae: - Platform error
  *   ad: - Done marker
  */
-import { BaseExecutor, type ExecuteInput } from "./base.ts";
+import { BaseExecutor, type ExecuteInput } from "../base/base.ts";
 import { sanitizeErrorMessage } from "../../utils/error.ts";
 
 const LMARENA_API_BASE = "https://arena.ai";

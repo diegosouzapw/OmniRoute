@@ -1,4 +1,4 @@
-import type { ExecuteInput } from "./base.ts";
+import type { ExecuteInput } from "../base/base.ts";
 import {
   DeepSeekWebExecutor,
   acquireAccessToken,

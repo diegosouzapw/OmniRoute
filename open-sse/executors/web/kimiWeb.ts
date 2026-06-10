@@ -7,7 +7,7 @@
  * Endpoint: POST https://kimi.moonshot.cn/api/chat
  * Auth: Session cookie from kimi.moonshot.cn
  */
-import { BaseExecutor, type ExecuteInput } from "./base.ts";
+import { BaseExecutor, type ExecuteInput } from "../base/base.ts";
 import { makeExecutorErrorResult as makeErrorResult, normalizeCookie } from "../../utils/error.ts";
 
 const BASE_URL = "https://kimi.moonshot.cn";

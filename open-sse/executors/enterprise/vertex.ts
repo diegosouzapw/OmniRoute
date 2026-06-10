@@ -1,5 +1,5 @@
 import { SignJWT, importPKCS8 } from "jose";
-import { BaseExecutor, ExecuteInput } from "./base.ts";
+import { BaseExecutor, ExecuteInput } from "../base/base.ts";
 import { PROVIDERS } from "../../config/constants.ts";
 
 interface ServiceAccount {

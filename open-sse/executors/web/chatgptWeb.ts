@@ -15,7 +15,7 @@
  * Response is the standard ChatGPT SSE format (cumulative `parts[0]` strings, not deltas).
  */
 
-import { BaseExecutor, type ExecuteInput, type ProviderCredentials } from "./base.ts";
+import { BaseExecutor, type ExecuteInput, type ProviderCredentials } from "../base/base.ts";
 import { createHash, randomUUID, randomBytes } from "node:crypto";
 import {
   tlsFetchChatGpt,

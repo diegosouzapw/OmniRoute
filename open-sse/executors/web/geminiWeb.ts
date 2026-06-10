@@ -13,7 +13,7 @@
  * responses, not chunked streams.
  */
 
-import { BaseExecutor, type ExecuteInput } from "./base.ts";
+import { BaseExecutor, type ExecuteInput } from "../base/base.ts";
 import { sanitizeErrorMessage } from "../../utils/error.ts";
 
 // ─── Constants ──────────────────────────────────────────────────────────────

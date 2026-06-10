@@ -1,4 +1,4 @@
-import { BaseExecutor } from "./base.ts";
+import { BaseExecutor } from "../base/base.ts";
 import { sleep } from "../../utils/sleep.ts";
 import {
   isJsonObject,

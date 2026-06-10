@@ -10,7 +10,7 @@ declare const EdgeRuntime: string | undefined;
  * Wire format & schema details live in ../utils/cursorAgentProtobuf.ts.
  */
 
-import { BaseExecutor, mergeUpstreamExtraHeaders } from "./base.ts";
+import { BaseExecutor, mergeUpstreamExtraHeaders } from "../base/base.ts";
 import { PROVIDERS, HTTP_STATUS } from "../../config/constants.ts";
 import {
   buildAgentRequestBody,

@@ -20,7 +20,7 @@ import {
   mergeUpstreamExtraHeaders,
   mergeAbortSignals,
   type ProviderCredentials,
-} from "./base.ts";
+} from "../base/base.ts";
 import { HTTP_STATUS, FETCH_TIMEOUT_MS } from "../../config/constants.ts";
 import { cloakThirdPartyToolNames } from "../../services/claudeCodeToolRemapper.ts";
 import { sanitizeClaudeToolSchemas } from "../../translator/helpers/schemaCoercion.ts";

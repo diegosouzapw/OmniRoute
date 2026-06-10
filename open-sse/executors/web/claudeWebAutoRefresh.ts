@@ -5,7 +5,7 @@
  * Intercepts 403/401 responses and attempts Turnstile challenge solve.
  */
 
-import type { ExecuteInput } from "./base.ts";
+import type { ExecuteInput } from "../base/base.ts";
 import { ClaudeWebExecutor } from "./claude-web.ts";
 import { getCfClearanceToken, getCacheStatus } from "../../services/claudeTurnstileSolver.ts";
 

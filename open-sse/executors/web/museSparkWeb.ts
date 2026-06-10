@@ -5,7 +5,7 @@ import {
   mergeAbortSignals,
   mergeUpstreamExtraHeaders,
   type ExecuteInput,
-} from "./base.ts";
+} from "../base/base.ts";
 import { FETCH_TIMEOUT_MS } from "../../config/constants.ts";
 import { getRotatingApiKey } from "../../services/apiKeyRotator.ts";
 import { prepareToolMessages, buildToolAwareResult } from "../../translator/webTools.ts";

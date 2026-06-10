@@ -3,7 +3,7 @@ import {
   setUserAgentHeader,
   type ExecuteInput,
   type ProviderCredentials,
-} from "./base.ts";
+} from "../base/base.ts";
 import { PROVIDERS } from "../../config/constants.ts";
 import { getModelTargetFormat } from "../../config/providerModels.ts";
 

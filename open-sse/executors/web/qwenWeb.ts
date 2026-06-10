@@ -8,7 +8,7 @@
  * Endpoint: POST https://chat.qwen.ai/api/chat/completions
  * Format: OpenAI-compatible
  */
-import { BaseExecutor, type ExecuteInput } from "./base.ts";
+import { BaseExecutor, type ExecuteInput } from "../base/base.ts";
 import { makeExecutorErrorResult as makeErrorResult } from "../../utils/error.ts";
 import { prepareToolMessages, buildToolAwareResult } from "../../translator/webTools.ts";
 

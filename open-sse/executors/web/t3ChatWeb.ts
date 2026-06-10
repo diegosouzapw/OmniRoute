@@ -13,7 +13,7 @@
  * build. The executor discovers it dynamically from the page's JS runtime.
  */
 
-import { BaseExecutor, type ExecuteInput } from "./base.ts";
+import { BaseExecutor, type ExecuteInput } from "../base/base.ts";
 import { sanitizeErrorMessage } from "../../utils/error.ts";
 import { prepareToolMessages, buildToolAwareResult } from "../../translator/webTools.ts";
 

@@ -1,4 +1,4 @@
-import { BaseExecutor, mergeUpstreamExtraHeaders, mergeAbortSignals } from "./base.ts";
+import { BaseExecutor, mergeUpstreamExtraHeaders, mergeAbortSignals } from "../base/base.ts";
 import { randomUUID } from "crypto";
 import { PROVIDERS, OAUTH_ENDPOINTS, FETCH_TIMEOUT_MS } from "../../config/constants.ts";
 import { getGeminiCliHeaders } from "../../services/geminiCliHeaders.ts";

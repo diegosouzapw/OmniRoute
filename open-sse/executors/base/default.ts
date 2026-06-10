@@ -1,4 +1,4 @@
-import { BaseExecutor, setUserAgentHeader, type ExecuteInput } from "./base.ts";
+import { BaseExecutor, setUserAgentHeader, type ExecuteInput } from "../base/base.ts";
 import { PROVIDERS, OAUTH_ENDPOINTS } from "../../config/constants.ts";
 import { getAccessToken } from "../../services/tokenRefresh.ts";
 import {

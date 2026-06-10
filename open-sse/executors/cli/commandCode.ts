@@ -1,7 +1,7 @@
 import { randomUUID } from "node:crypto";
 
 import { REGISTRY } from "../../config/providerRegistry.ts";
-import { BaseExecutor, mergeUpstreamExtraHeaders, type ExecuteInput } from "./base.ts";
+import { BaseExecutor, mergeUpstreamExtraHeaders, type ExecuteInput } from "../base/base.ts";
 
 type JsonRecord = Record<string, unknown>;
 

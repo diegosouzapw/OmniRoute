@@ -16,7 +16,7 @@
  * `name` from GET {base}/models (e.g. gpt-5.2, gemini-3.1-pro, kimi-k2.5).
  */
 
-import { BaseExecutor, mergeUpstreamExtraHeaders } from "./base.ts";
+import { BaseExecutor, mergeUpstreamExtraHeaders } from "../base/base.ts";
 import { PROVIDERS } from "../../config/constants.ts";
 import { sanitizeErrorMessage } from "../../utils/error.ts";
 

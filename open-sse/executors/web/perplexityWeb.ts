@@ -6,7 +6,7 @@
  * completions format and Perplexity's internal protocol.
  */
 
-import { BaseExecutor, type ExecuteInput } from "./base.ts";
+import { BaseExecutor, type ExecuteInput } from "../base/base.ts";
 import {
   tlsFetchPerplexity,
   isCloudflareChallenge,

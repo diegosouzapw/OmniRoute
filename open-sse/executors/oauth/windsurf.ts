@@ -19,7 +19,7 @@
  * OmniRoute → Windsurf model-ID mapping lives in MODEL_ID_MAP below.
  */
 
-import { BaseExecutor, mergeUpstreamExtraHeaders, type ExecuteInput } from "./base.ts";
+import { BaseExecutor, mergeUpstreamExtraHeaders, type ExecuteInput } from "../base/base.ts";
 import { PROVIDERS } from "../../config/constants.ts";
 import { randomUUID } from "node:crypto";
 

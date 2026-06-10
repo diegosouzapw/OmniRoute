@@ -14,7 +14,7 @@
  *   3. Send: { event: "send", conversationId, content, mode }
  *   4. Receive: stream of JSON events (appendText, done, error, etc.)
  */
-import { BaseExecutor, type ExecuteInput } from "./base.ts";
+import { BaseExecutor, type ExecuteInput } from "../base/base.ts";
 import { FETCH_TIMEOUT_MS } from "../../config/constants.ts";
 import { createHash, randomBytes } from "node:crypto";
 import { sanitizeErrorMessage } from "../../utils/error.ts";

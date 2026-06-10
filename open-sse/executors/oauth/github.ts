@@ -1,4 +1,4 @@
-import { BaseExecutor, ExecuteInput, type ProviderCredentials } from "./base.ts";
+import { BaseExecutor, ExecuteInput, type ProviderCredentials } from "../base/base.ts";
 import { PROVIDERS, OAUTH_ENDPOINTS } from "../../config/constants.ts";
 import { getModelTargetFormat } from "../../config/providerModels.ts";
 import {

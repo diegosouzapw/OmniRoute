@@ -19,7 +19,7 @@
  *
  * Response is streamed as server-sent events (SSE format).
  */
-import { BaseExecutor, mergeAbortSignals, type ExecuteInput } from "./base.ts";
+import { BaseExecutor, mergeAbortSignals, type ExecuteInput } from "../base/base.ts";
 import { FETCH_TIMEOUT_MS } from "../../config/constants.ts";
 import { tlsFetchClaude } from "../../services/claudeTlsClient.ts";
 import { getCfClearanceToken } from "../../services/claudeTurnstileSolver.ts";

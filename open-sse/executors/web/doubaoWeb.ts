@@ -7,7 +7,7 @@
  * Endpoint: POST https://www.doubao.com/api/chat
  * Auth: Session cookie from doubao.com
  */
-import { BaseExecutor, type ExecuteInput } from "./base.ts";
+import { BaseExecutor, type ExecuteInput } from "../base/base.ts";
 import { makeExecutorErrorResult as makeErrorResult, normalizeCookie } from "../../utils/error.ts";
 
 const BASE_URL = "https://www.doubao.com";

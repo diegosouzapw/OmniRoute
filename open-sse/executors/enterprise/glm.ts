@@ -8,7 +8,7 @@ import {
   type CountTokensInput,
   type ExecuteInput,
   type ProviderCredentials,
-} from "./base.ts";
+} from "../base/base.ts";
 import {
   buildGlmBaseHeaders,
   buildGlmChatUrl,

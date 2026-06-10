@@ -7,7 +7,7 @@
  * Endpoint: POST https://v0.dev/api/chat
  * Auth: Session cookie from v0.dev
  */
-import { BaseExecutor, type ExecuteInput } from "./base.ts";
+import { BaseExecutor, type ExecuteInput } from "../base/base.ts";
 import { makeExecutorErrorResult as makeErrorResult, normalizeCookie } from "../../utils/error.ts";
 
 const BASE_URL = "https://v0.dev";

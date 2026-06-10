@@ -7,7 +7,7 @@ import {
   type ExecuteInput,
   type ExecutorLog,
   type ProviderCredentials,
-} from "./base.ts";
+} from "../base/base.ts";
 import { FETCH_TIMEOUT_MS } from "../../config/constants.ts";
 import { getAccessToken } from "../../services/tokenRefresh.ts";
 import {
