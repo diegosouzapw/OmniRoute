@@ -377,6 +377,7 @@ import { runTransformPhase } from "./chatCoreTransform.ts";
 import { resolveExecutorWithProxy } from "./chatCoreExecutor.ts";
 import { extractSystemMessagesToBody, normalizeClaudeUpstreamMessages, type ClaudeMessage } from "./chatCoreClaudeMessages.ts";
 import { persistCallLog, buildCallLogBody, buildCallLogResponseBody } from "./chatCoreLogs.ts";
+import { persistFailureUsage } from "./chatCoreFailureUsage.ts";
 export async function handleChatCore({
   body,
   modelInfo,
@@ -473,24 +474,23 @@ export async function handleChatCore({
       if (normalizedServiceTier) return normalizedServiceTier;
     }
     return resolveReportedServiceTier(record.response, maxDepth - 1);
+  // Closure-bound wrapper for persistFailureUsage to keep call sites unchanged
+  const persistFailureUsageLocal = (statusCode: number, errorCode?: string | null) => {
+    void persistFailureUsage(
+      {
+        provider,
+        model,
+        startTime,
+        connectionId,
+        apiKeyInfo,
+        effectiveServiceTier,
+        isCombo: !!isCombo,
+        comboStrategy: comboStrategy || undefined,
+      },
+      statusCode,
+      errorCode
+    );
   };
-  const persistFailureUsage = (statusCode: number, errorCode?: string | null) => {
-    saveRequestUsage({
-      provider: provider || "unknown",
-      model: model || "unknown",
-      tokens: { input: 0, output: 0, cacheRead: 0, cacheCreation: 0, reasoning: 0 },
-      status: String(statusCode),
-      success: false,
-      latencyMs: Date.now() - startTime,
-      timeToFirstTokenMs: 0,
-      errorCode: errorCode || String(statusCode),
-      timestamp: new Date().toISOString(),
-      connectionId: connectionId || undefined,
-      apiKeyId: apiKeyInfo?.id || undefined,
-      apiKeyName: apiKeyInfo?.name || undefined,
-      serviceTier: effectiveServiceTier,
-      comboStrategy: isCombo ? comboStrategy || undefined : undefined,
-    }).catch(() => {});
   };
 
   const recordKeyHealthStatus = (
@@ -2872,7 +2872,7 @@ export async function handleChatCore({
         claudeCacheMeta: claudePromptCacheLogMeta,
         cacheSource: "upstream",
       });
-      persistFailureUsage(HTTP_STATUS.RATE_LIMITED, error.code);
+      persistFailureUsageLocal(HTTP_STATUS.RATE_LIMITED, error.code);
       const result = stream
         ? createStreamingErrorResult(HTTP_STATUS.RATE_LIMITED, failureMessage, error.code)
         : createErrorResult(HTTP_STATUS.RATE_LIMITED, failureMessage);
@@ -2913,7 +2913,7 @@ export async function handleChatCore({
       streamController.handleError(error);
       return createErrorResult(499, "Request aborted");
     }
-    persistFailureUsage(
+    persistFailureUsageLocal(
       failureStatus,
       upstreamErrorCode || (error instanceof Error && error.name ? error.name : "upstream_error")
     );
@@ -3353,7 +3353,7 @@ export async function handleChatCore({
               clientResponse: buildErrorBody(statusCode, errMsg),
               cacheSource: "upstream",
             });
-            persistFailureUsage(statusCode, "model_unavailable");
+            persistFailureUsageLocal(statusCode, "model_unavailable");
             return createErrorResult(
               statusCode,
               errMsg,
@@ -3372,7 +3372,7 @@ export async function handleChatCore({
             clientResponse: buildErrorBody(statusCode, errMsg),
             cacheSource: "upstream",
           });
-          persistFailureUsage(statusCode, "model_unavailable");
+          persistFailureUsageLocal(statusCode, "model_unavailable");
           return createErrorResult(
             statusCode,
             errMsg,
@@ -3391,7 +3391,7 @@ export async function handleChatCore({
           clientResponse: buildErrorBody(statusCode, errMsg),
           cacheSource: "upstream",
         });
-        persistFailureUsage(statusCode, "model_unavailable");
+        persistFailureUsageLocal(statusCode, "model_unavailable");
         return createErrorResult(
           statusCode,
           errMsg,
@@ -3439,7 +3439,7 @@ export async function handleChatCore({
               clientResponse: buildErrorBody(statusCode, errMsg),
               cacheSource: "upstream",
             });
-            persistFailureUsage(statusCode, "context_overflow");
+            persistFailureUsageLocal(statusCode, "context_overflow");
             return createErrorResult(
               statusCode,
               errMsg,
@@ -3458,7 +3458,7 @@ export async function handleChatCore({
             clientResponse: buildErrorBody(statusCode, errMsg),
             cacheSource: "upstream",
           });
-          persistFailureUsage(statusCode, "context_overflow");
+          persistFailureUsageLocal(statusCode, "context_overflow");
           return createErrorResult(
             statusCode,
             errMsg,
@@ -3477,7 +3477,7 @@ export async function handleChatCore({
           clientResponse: buildErrorBody(statusCode, errMsg),
           cacheSource: "upstream",
         });
-        persistFailureUsage(statusCode, "context_overflow");
+        persistFailureUsageLocal(statusCode, "context_overflow");
         return createErrorResult(
           statusCode,
           errMsg,
@@ -3496,7 +3496,7 @@ export async function handleChatCore({
         clientResponse: buildErrorBody(statusCode, errMsg),
         cacheSource: "upstream",
       });
-      persistFailureUsage(statusCode, `upstream_${statusCode}`);
+      persistFailureUsageLocal(statusCode, `upstream_${statusCode}`);
 
       const requestHasTools =
         Array.isArray(translatedBody.tools) && translatedBody.tools.length > 0;
@@ -3630,7 +3630,7 @@ export async function handleChatCore({
           clientResponse: buildErrorBody(HTTP_STATUS.BAD_GATEWAY, invalidSseMessage),
           cacheSource: "upstream",
         });
-        persistFailureUsage(HTTP_STATUS.BAD_GATEWAY, "invalid_sse_payload");
+        persistFailureUsageLocal(HTTP_STATUS.BAD_GATEWAY, "invalid_sse_payload");
         trackPendingRequest(model, provider, pendingConnId, false);
         return createErrorResult(HTTP_STATUS.BAD_GATEWAY, invalidSseMessage);
       }
@@ -3657,7 +3657,7 @@ export async function handleChatCore({
           clientResponse: buildErrorBody(HTTP_STATUS.BAD_GATEWAY, invalidJsonMessage),
           cacheSource: "upstream",
         });
-        persistFailureUsage(HTTP_STATUS.BAD_GATEWAY, "invalid_json_payload");
+        persistFailureUsageLocal(HTTP_STATUS.BAD_GATEWAY, "invalid_json_payload");
         trackPendingRequest(model, provider, connectionId, false);
         return createErrorResult(HTTP_STATUS.BAD_GATEWAY, invalidJsonMessage);
       }
@@ -3680,7 +3680,7 @@ export async function handleChatCore({
         clientResponse: buildErrorBody(HTTP_STATUS.BAD_GATEWAY, emptyContentMessage),
         cacheSource: "upstream",
       });
-      persistFailureUsage(HTTP_STATUS.BAD_GATEWAY, "empty_content");
+      persistFailureUsageLocal(HTTP_STATUS.BAD_GATEWAY, "empty_content");
 
       // Trigger non-recursive fallback for empty content
       const nextModel = getNextFamilyFallback(currentModel, triedModels);
@@ -4161,7 +4161,7 @@ export async function handleChatCore({
       claudeCacheMeta: claudePromptCacheLogMeta,
       cacheSource: "upstream",
     });
-    persistFailureUsage(failureResponse.status, streamReadiness.code);
+    persistFailureUsageLocal(failureResponse.status, streamReadiness.code);
     // Do NOT call onStreamFailure — a stream stall is an upstream issue,
     // not an account/quota failure. Marking the account unavailable here
     // would lock out legitimate accounts when the upstream hangs.
@@ -4394,7 +4394,7 @@ export async function handleChatCore({
     code?: string;
     type?: string;
   }) => {
-    persistFailureUsage(failure.status || HTTP_STATUS.BAD_GATEWAY, failure.code || failure.type);
+    persistFailureUsageLocal(failure.status || HTTP_STATUS.BAD_GATEWAY, failure.code || failure.type);
     try {
       onStreamFailure?.(failure);
     } catch {
