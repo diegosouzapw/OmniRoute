@@ -5,12 +5,15 @@ import { getCompletedDetails, getPendingById } from "@/lib/usage/usageHistory";
 
 export const dynamic = "force-dynamic";
 
-export async function GET(req: Request, { params }: { params: { id: string } }) {
+export async function GET(
+  req: Request,
+  { params }: { params: Promise<{ id: string }> | { id: string } }
+) {
   const authError = await requireManagementAuth(req);
   if (authError) return authError;
 
   try {
-    const id = params?.id;
+    const { id } = await params;
     if (!id) return NextResponse.json({ error: "Missing id" }, { status: 400 });
 
     // Prefer in-flight active pending requests first to avoid races where
@@ -43,16 +46,19 @@ export async function GET(req: Request, { params }: { params: { id: string } }) 
         };
 
         return NextResponse.json(activeEntry);
-        }
+      }
     } catch (e) {
-        console.warn("/api/logs/[id] - failed to read active pending detail:", e);
+      console.warn("/api/logs/[id] - failed to read active pending detail:", e);
     }
 
     // Next, try persistent call log by id
     let persistedRequest = await getCallLogById(id);
 
     // If persistent call log doesn't have payloads, try the in-memory completedDetails cache
-    if (!persistedRequest?.pipelinePayloads || Object.keys(persistedRequest.pipelinePayloads).length === 0) {
+    if (
+      !persistedRequest?.pipelinePayloads ||
+      Object.keys(persistedRequest.pipelinePayloads).length === 0
+    ) {
       try {
         const completed = getCompletedDetails();
         const inMem = completed.get(id);
