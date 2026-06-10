@@ -539,7 +539,6 @@ These endpoints mirror Gemini's API format for clients that expect native Gemini
 | `/api/restart`           | POST   | Trigger graceful server restart                      |
 | `/api/shutdown`          | POST   | Trigger graceful server shutdown                     |
 | `/api/system/env/repair` | POST   | Repair OAuth provider environment variables          |
-| `/api/system-info`       | GET    | Generate system diagnostics report                   |
 
 > **Note:** These endpoints are used internally by the system or for Ollama client compatibility. They are not typically called by end users.
 
@@ -1003,9 +1002,8 @@ registration.
 | Method | Path                    | Description                                                                              |
 | ------ | ----------------------- | ---------------------------------------------------------------------------------------- |
 | GET    | `/api/acp/agents`       | List all known CLI agents (built-in + custom) with installation status, version, binary |
-| POST   | `/api/acp/agents`       | Register a custom ACP agent — body: `{id, name, binary, versionCommand, providerAlias, spawnArgs, protocol}` |
-| DELETE | `/api/acp/agents/[id]`  | Remove a custom ACP agent                                                                |
-| POST   | `/api/acp/agents/refresh` | Force refresh of the agent detection cache (60s TTL)                                  |
+| POST   | `/api/acp/agents`       | Register a custom ACP agent or refresh cache — body: `{id, name, binary, versionCommand, providerAlias, spawnArgs, protocol}` or `{action: "refresh"}` |
+| DELETE | `/api/acp/agents`       | Remove a custom ACP agent — query param: `?id=<agentId>`                                 |
 
 **Response example** (`GET /api/acp/agents`):
 
@@ -1148,10 +1146,6 @@ Admin-only endpoints for operational management.
 | ------ | ------------------------------- | ---------------------------------------------------------------------------------------------- |
 | GET    | `/api/admin/concurrency`         | Read current concurrency limits (global + per-provider)                                        |
 | POST   | `/api/admin/concurrency`         | Update concurrency limits — body: `{global?: number, perProvider?: Record<string, number>}`     |
-| GET    | `/api/admin/circuit-breaker`     | Read circuit breaker states for all providers                                                  |
-| POST   | `/api/admin/circuit-breaker/reset` | Manually reset a circuit breaker — body: `{providerId}`                                       |
-| GET    | `/api/admin/rate-limits`         | Read current rate limit configurations                                                         |
-| POST   | `/api/admin/rate-limits`         | Update rate limit configs — body: `{providerId, requestsPerMinute, tokensPerMinute}`          |
 
 **Auth:** Requires management session with admin scope.
 
@@ -1206,8 +1200,7 @@ Manage the semantic cache and reasoning cache.
 | DELETE | `/api/cache/entries`               | Delete cache entries (filter by query parameters)                                             |
 | GET    | `/api/cache/stats`                 | Detailed cache statistics (per-provider, per-model)                                           |
 | GET    | `/api/cache/reasoning`             | Reasoning cache status (for reasoning replay)                                                |
-| POST   | `/api/cache/reasoning/clear`       | Clear reasoning cache                                                                        |
-| POST   | `/api/cache/clear`                 | Clear all cache entries                                                                      |
+| DELETE | `/api/cache/reasoning`             | Clear reasoning cache — query params: `?toolCallId=<id>` (single) or `?provider=<p>` or no params (all) |
 
 **Auth:** Requires management session.
 
@@ -1262,10 +1255,9 @@ Manage Skills (the agentic extensions framework).
 | GET    | `/api/skills`                      | List all installed skills (built-in + custom)                                                 |
 | POST   | `/api/skills/install`              | Install a skill from a local path or URL                                                      |
 | DELETE | `/api/skills/[id]`                 | Uninstall a skill                                                                             |
-| POST   | `/api/skills/[id]/enable`          | Enable a disabled skill                                                                      |
-| POST   | `/api/skills/[id]/disable`         | Disable an enabled skill                                                                     |
-| POST   | `/api/skills/[id]/execute`         | Execute a skill with input                                                                   |
-| GET    | `/api/skills/[id]/executions`      | List execution history for a skill                                                            |
+| PUT    | `/api/skills/[id]`                 | Enable or disable a skill — body: `{enabled?: boolean, mode?: "on" \| "off" \| "auto"}`      |
+| POST   | `/api/skills/executions`           | Execute a skill — body: `{skillName, apiKeyId, input?, sessionId?}`                          |
+| GET    | `/api/skills/executions`           | List execution history for all skills (filter by `?apiKeyId=`)                               |
 
 **Auth:** Requires management session or management-scoped API key.
 
@@ -1281,11 +1273,11 @@ Manage OmniRoute plugins (third-party extensions).
 | ------ | --------------------------------- | -------------------------------------------------------------------------------------------- |
 | GET    | `/api/plugins`                     | List installed plugins                                                                        |
 | POST   | `/api/plugins/install`             | Install a plugin from a local path or URL                                                     |
-| DELETE | `/api/plugins/[id]`                | Uninstall a plugin                                                                            |
-| POST   | `/api/plugins/[id]/enable`         | Enable a disabled plugin                                                                     |
-| POST   | `/api/plugins/[id]/disable`        | Disable an enabled plugin                                                                    |
-| GET    | `/api/plugins/[id]/config`         | Get plugin configuration                                                                      |
-| PUT    | `/api/plugins/[id]/config`         | Update plugin configuration                                                                  |
+| DELETE | `/api/plugins/[name]`              | Uninstall a plugin                                                                            |
+| POST   | `/api/plugins/[name]/activate`     | Activate a plugin                                                                             |
+| POST   | `/api/plugins/[name]/deactivate`   | Deactivate a plugin                                                                           |
+| GET    | `/api/plugins/[name]/config`       | Get plugin configuration                                                                      |
+| PUT    | `/api/plugins/[name]/config`       | Update plugin configuration                                                                  |
 
 **Auth:** Requires management session.
 

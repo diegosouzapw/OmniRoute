@@ -50,31 +50,17 @@ function isFileRef(p) {
 // o path na doc, ou remover a menção. NÃO adicione novas aqui sem justificativa — esse
 // é o ponto do gate. Issues de tracking devem ser abertas para cada cluster.
 export const KNOWN_STALE_DOC_REFS = new Set([
-  // docs/reference/API_REFERENCE.md — tabela de endpoints com várias rotas obsoletas:
-  "/api/acp/agents/[id]", // só existe /api/acp/agents (sem [id])
-  "/api/acp/agents/refresh", // sem rota /refresh
-  "/api/admin/circuit-breaker", // admin só tem /concurrency
-  "/api/admin/circuit-breaker/reset", // idem
-  "/api/admin/rate-limits", // idem
-  "/api/cache/clear", // cache usa DELETE em /api/cache, não /clear
-  "/api/cache/reasoning/clear", // /api/cache/reasoning existe; /clear não
-  "/api/guardrails", // sem dir de API guardrails (feature server-side, sem rota REST)
+  // docs/reference/API_REFERENCE.md — guardrails/shadow entries fixed in separate issues:
+  "/api/guardrails", // sem dir de API guardrails (feature server-side, sem rota REST) — #3496
   "/api/guardrails/[id]/disable",
   "/api/guardrails/[id]/enable",
   "/api/guardrails/logs",
   "/api/guardrails/test",
-  "/api/plugins/[id]/disable", // rota real usa [name] + activate/deactivate
-  "/api/plugins/[id]/enable", // idem
-  "/api/shadow", // sem dir de API shadow (shadow routing não tem rota REST)
+  "/api/shadow", // sem dir de API shadow (shadow routing não tem rota REST) — #3498
   "/api/shadow/[id]",
   "/api/shadow/[id]/results",
   "/api/shadow/metrics",
-  "/api/skills/[id]/disable", // skills tem [id] e /executions (base), não estas sub-ações
-  "/api/skills/[id]/enable",
-  "/api/skills/[id]/execute",
-  "/api/skills/[id]/executions",
-  "/api/system-info", // sem rota /system-info
-  // docs/research/DISCOVERY_TOOL_DESIGN.md — design doc de feature NÃO implementada:
+  // docs/research/DISCOVERY_TOOL_DESIGN.md — design doc de feature NÃO implementada: — #3498
   "/api/discovery/results",
   "/api/discovery/results/:id",
   "/api/discovery/scan",
