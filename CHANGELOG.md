@@ -13,6 +13,7 @@
 ### 🔧 Bug Fixes
 
 - **fix(routing):** combo model substitution no longer forwards a client `thinking:{type:"disabled"}` to a target model that rejects it — when a combo/route swaps the upstream model (e.g. `claude-opus-4-8` → `claude-fable-5`), OmniRoute now strips the now-invalid `thinking.type:"disabled"` for models flagged `rejectsThinkingDisabled` (Fable 5 defaults to adaptive and rejects it), preventing the upstream 400 that silently broke Claude Code's internal title/name-generation calls. Models that accept `disabled` (opus/sonnet) are untouched. ([#3554](https://github.com/diegosouzapw/OmniRoute/issues/3554))
+- **fix(usage):** the budget dashboard can now save a budget with some limit fields left empty and clear all limits — `setBudgetSchema` used `.positive()` (rejecting the `0` the form sends for blank fields) plus a superRefine requiring at least one limit `> 0`, so saving with one field filled 400'd and clearing all limits was impossible. Limits now accept `0` (= "no limit for this period"; enforcement only kicks in above 0) and the cross-field minimum was removed; negatives are still rejected. ([#3537](https://github.com/diegosouzapw/OmniRoute/issues/3537))
 
 ---
 
