@@ -1,0 +1,5 @@
+extends: .github
+include-labels:
+  - breaking
+  - enhancement
+  - bug
