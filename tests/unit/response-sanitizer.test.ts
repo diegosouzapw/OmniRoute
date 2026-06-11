@@ -63,6 +63,23 @@ test("sanitizeOpenAIResponse extracts thinking, collapses newlines, preserves re
   assert.deepEqual((sanitized as any).choices[0].message.function_call, { name: "legacy" });
 });
 
+test("sanitizeOpenAIResponse extracts unclosed reasoning wrappers into reasoning_content", () => {
+  const sanitized = sanitizeOpenAIResponse({
+    model: "gpt-4.1",
+    choices: [
+      {
+        message: {
+          role: "assistant",
+          content: "§54§ <thought\ninternal planning\n",
+        },
+      },
+    ],
+  });
+
+  assert.equal((sanitized as any).choices[0].message.content, "");
+  assert.equal((sanitized as any).choices[0].message.reasoning_content, "internal planning");
+});
+
 test("sanitizeOpenAIResponse preserves native reasoning_content when no visible content remains", () => {
   const sanitized = sanitizeOpenAIResponse({
     model: "gpt-4.1",

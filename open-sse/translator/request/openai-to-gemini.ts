@@ -77,7 +77,7 @@ type GeminiRequest = {
 
 type CloudCodeEnvelope = {
   project: string;
-  model: string;
+  model?: string;
   user_prompt_id?: string;
   userAgent?: "antigravity" | "jetski" | string;
   requestId?: string;
