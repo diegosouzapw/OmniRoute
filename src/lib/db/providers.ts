@@ -102,7 +102,7 @@ function sanitizeRateLimitOverrides(value: unknown): Record<string, number> | nu
 }
 
 // Serialize an already-sanitized map for SQLite TEXT storage.
-function serializeRateLimitOverrides(value: unknown): string | null {
+function serializeJsonField(value: unknown): string | null {
   if (value === null || value === undefined) return null;
   if (typeof value !== "object" || Array.isArray(value)) return null;
   return JSON.stringify(value);
@@ -126,15 +126,6 @@ function sanitizeQuotaWindowThresholds(value: unknown): Record<string, number> |
     }
   }
   return Object.keys(map).length === 0 ? null : map;
-}
-
-// Serialize an already-sanitized map for SQLite TEXT storage. Pass `null` to
-// store a NULL column; anything else is expected to be the output of
-// sanitizeQuotaWindowThresholds above.
-function serializeQuotaWindowThresholds(value: unknown): string | null {
-  if (value === null || value === undefined) return null;
-  if (typeof value !== "object" || Array.isArray(value)) return null;
-  return JSON.stringify(value);
 }
 
 function toStringOrNull(value: unknown): string | null {
@@ -476,8 +467,8 @@ function _insertConnectionRow(db: DbLike, conn: JsonRecord) {
     maxConcurrent: conn.maxConcurrent ?? null,
     proxyEnabled: normalizeBooleanColumn(conn.proxyEnabled, true) ? 1 : 0,
     perKeyProxyEnabled: normalizeBooleanColumn(conn.perKeyProxyEnabled, false) ? 1 : 0,
-    quotaWindowThresholdsJson: serializeQuotaWindowThresholds(conn.quotaWindowThresholds),
-    rateLimitOverridesJson: serializeRateLimitOverrides(conn.rateLimitOverrides),
+    quotaWindowThresholdsJson: serializeJsonField(conn.quotaWindowThresholds),
+    rateLimitOverridesJson: serializeJsonField(conn.rateLimitOverrides),
     createdAt: conn.createdAt,
     updatedAt: conn.updatedAt,
   });
@@ -552,10 +543,10 @@ function _updateConnectionRow(db: DbLike, id: string, data: JsonRecord) {
     lastUsedAt: data.lastUsedAt || null,
     group: data.group || null,
     maxConcurrent: data.maxConcurrent ?? null,
-    quotaWindowThresholdsJson: serializeQuotaWindowThresholds(data.quotaWindowThresholds),
+    quotaWindowThresholdsJson: serializeJsonField(data.quotaWindowThresholds),
     proxyEnabled: normalizeBooleanColumn(data.proxyEnabled, true) ? 1 : 0,
     perKeyProxyEnabled: normalizeBooleanColumn(data.perKeyProxyEnabled, false) ? 1 : 0,
-    rateLimitOverridesJson: serializeRateLimitOverrides(data.rateLimitOverrides),
+    rateLimitOverridesJson: serializeJsonField(data.rateLimitOverrides),
     updatedAt: now,
   });
 }

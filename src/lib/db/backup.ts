@@ -435,3 +435,120 @@ export async function restoreDbBackup(backupId: string) {
     apiKeyCount: keyCount,
   };
 }
+
+// ──────────────── Export-All helpers (for /api/db-backups/exportAll) ────────────────
+
+export interface ExportAllRows {
+  settings: Record<string, string>;
+  combos: unknown[];
+  providers: unknown[];
+  apiKeys: unknown[];
+}
+
+/**
+ * Reads summary rows used by the exportAll backup route.
+ *
+ * - settings:  full key_value table (key → value map)
+ * - combos:    full combos table
+ * - providers: provider_connections rows, **excluding sensitive credentials**
+ *              (id, provider, name, auth_type, is_active, email, created_at only)
+ * - apiKeys:   api_keys rows with masked prefix
+ *              (id, name, first 8 chars of key, machine_id, created_at)
+ *
+ * Each category is wrapped in a try/catch so a missing table never aborts the
+ * entire export — consistent with the original inline behaviour.
+ */
+export function exportAllSummaryRows(): ExportAllRows {
+  const db = getDbInstance();
+
+  const settings: Record<string, string> = {};
+  try {
+    const rows = db.prepare("SELECT key, value FROM key_value").all() as {
+      key: string;
+      value: string;
+    }[];
+    for (const row of rows) {
+      settings[row.key] = row.value;
+    }
+  } catch {
+    // key_value table might not exist
+  }
+
+  const combos: unknown[] = [];
+  try {
+    combos.push(...db.prepare("SELECT * FROM combos").all());
+  } catch {
+    // combos table might not exist
+  }
+
+  const providers: unknown[] = [];
+  try {
+    providers.push(
+      ...db
+        .prepare(
+          "SELECT id, provider, name, auth_type, is_active, email, created_at FROM provider_connections"
+        )
+        .all()
+    );
+  } catch {
+    // provider_connections table might not exist
+  }
+
+  const apiKeys: unknown[] = [];
+  try {
+    apiKeys.push(
+      ...db
+        .prepare(
+          "SELECT id, name, substr(key, 1, 8) as prefix, machine_id, created_at FROM api_keys"
+        )
+        .all()
+    );
+  } catch {
+    // api_keys table might not exist
+  }
+
+  return { settings, combos, providers, apiKeys };
+}
+
+// ──────────────── Import validation helpers (for /api/db-backups/import) ────────────────
+
+/**
+ * Queries an **already-opened** SQLite adapter for the list of table names.
+ *
+ * Used by the import route to validate that a candidate database contains the
+ * required OmniRoute tables before replacing the live database.
+ *
+ * Accepting an adapter as a parameter (rather than calling getDbInstance()) is
+ * intentional: the import route opens a *temporary* database for validation,
+ * not the live one.
+ */
+export function getTableNamesFromAdapter(adapter: {
+  prepare: (sql: string) => { all: () => unknown[] };
+}): string[] {
+  const rows = adapter
+    .prepare("SELECT name FROM sqlite_master WHERE type='table'")
+    .all() as Array<{ name: string }>;
+  return rows.map((r) => r.name);
+}
+
+/**
+ * Counts rows in a set of tables from the **live** database (post-import).
+ * Returns an object keyed by table name with the row count as value.
+ */
+export function countImportedRows(): {
+  connCount: number;
+  nodeCount: number;
+  comboCount: number;
+  keyCount: number;
+} {
+  const db = getDbInstance();
+  const connCount =
+    (db.prepare("SELECT COUNT(*) as cnt FROM provider_connections").get() as any)?.cnt || 0;
+  const nodeCount =
+    (db.prepare("SELECT COUNT(*) as cnt FROM provider_nodes").get() as any)?.cnt || 0;
+  const comboCount =
+    (db.prepare("SELECT COUNT(*) as cnt FROM combos").get() as any)?.cnt || 0;
+  const keyCount =
+    (db.prepare("SELECT COUNT(*) as cnt FROM api_keys").get() as any)?.cnt || 0;
+  return { connCount, nodeCount, comboCount, keyCount };
+}
