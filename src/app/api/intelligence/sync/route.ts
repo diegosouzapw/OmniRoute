@@ -3,7 +3,7 @@
  *
  * POST — Trigger a manual Arena ELO intelligence sync.
  * GET — Get current intelligence sync status.
- * DELETE — Clear all synced intelligence data (arena_elo + models_dev_tier).
+ * DELETE — Clear all synced arena_elo intelligence data.
  */
 
 import { NextRequest, NextResponse } from "next/server";

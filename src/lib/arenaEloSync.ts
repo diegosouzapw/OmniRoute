@@ -178,9 +178,6 @@ let lastSyncModelCount = 0;
 let activeSyncIntervalMs = SYNC_INTERVAL_MS;
 let firstSyncDone = false;
 let syncInProgress = false;
-let syncInProgress = false;
-let syncInProgress = false;
-let syncInProgress = false;
 
 // ─── Model name normalization ────────────────────────────
 
@@ -298,11 +295,11 @@ export function transformToModelIntelligence(
     Date.now() + EXPIRY_DAYS * 24 * 60 * 60 * 1000
   ).toISOString();
 
-  for (const [category, leaderboard] of Object.entries(data)) {
+    for (const [category, leaderboard] of Object.entries(data)) {
     const taskCategories = CATEGORY_TASK_MAP[category];
     if (!taskCategories) continue;
 
-    const models = leaderboard.models;
+    const models = Array.isArray(leaderboard.models) ? leaderboard.models : [];
     if (models.length === 0) continue;
 
     // Compute ELO range for normalization

@@ -14,12 +14,12 @@
 
 // ─── Static fitness table (unchanged, fallback layer 4) ─────────────────
 
-import { getDbInstance } from "../../src/lib/db/core.ts";
+import { getDbInstance } from "../../../src/lib/db/core.ts";
 import {
   getModelIntelligenceBySource,
   setUserFitnessOverrideEntry,
   deleteUserFitnessOverrideEntry,
-} from "../../src/lib/db/modelIntelligence.ts";
+} from "../../../src/lib/db/modelIntelligence.ts";
 
 const FITNESS_TABLE: Record<string, Record<string, number>> = {
   coding: {
@@ -328,33 +328,7 @@ function lookupWildcardBoosts(
 }
 
 export function getTaskFitness(model: string, taskType: string): number {
-  const normalizedModel = model.toLowerCase();
-  const normalizedTask = taskType.toLowerCase();
-
-  const userOverride = queryModelIntelligence(
-    normalizedModel,
-    normalizedTask,
-    "user_override",
-  );
-  if (userOverride !== null) return userOverride;
-
-  const arenaElo = queryModelIntelligence(
-    normalizedModel,
-    normalizedTask,
-    "arena_elo",
-  );
-  if (arenaElo !== null) return arenaElo;
-
-  const tierScore = getModelsDevTierFitness(normalizedModel, normalizedTask);
-  if (tierScore !== null) return tierScore;
-
-  const staticScore = lookupStaticFitnessTable(
-    normalizedModel,
-    normalizedTask,
-  );
-  if (staticScore !== null) return staticScore;
-
-  return lookupWildcardBoosts(normalizedModel, normalizedTask);
+  return getTaskFitnessWithSource(model, taskType).score;
 }
 
 export function getTaskFitnessWithSource(
