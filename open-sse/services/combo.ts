@@ -4316,16 +4316,23 @@ async function handleRoundRobinCombo({
         );
 
         // Issue #3587: Reasoning models consume ALL max_tokens for reasoning_tokens.
-        // Add buffer to ensure reasoning + content both fit.
+        // Add buffer to ensure reasoning + content both fit. Apply the buffer to a
+        // per-attempt COPY — never mutate the shared `body` — so it does not compound
+        // across round-robin iterations/retries (otherwise 4096 -> 6144 -> 9216 -> ...
+        // as each reasoning model re-reads an already-buffered value and overshoots the
+        // model's real limit, triggering 400s).
+        let attemptBody = body;
         if (supportsReasoning(modelStr)) {
-          const bodyRecord = body as Record<string, unknown>;
-          const currentMaxTokens = Number(bodyRecord.max_tokens) || 0;
+          const currentMaxTokens = Number((body as Record<string, unknown>).max_tokens) || 0;
           if (currentMaxTokens > 0) {
             const bufferedMaxTokens = Math.max(
               currentMaxTokens + 1000,
               Math.ceil(currentMaxTokens * 1.5)
             );
-            bodyRecord.max_tokens = bufferedMaxTokens;
+            attemptBody = {
+              ...(body as Record<string, unknown>),
+              max_tokens: bufferedMaxTokens,
+            } as typeof body;
             log.info(
               "COMBO-RR",
               `Reasoning model ${modelStr}: buffered max_tokens ${currentMaxTokens} -> ${bufferedMaxTokens}`
@@ -4333,7 +4340,7 @@ async function handleRoundRobinCombo({
           }
         }
 
-        const result = await handleSingleModel(body, modelStr, {
+        const result = await handleSingleModel(attemptBody, modelStr, {
           ...targetForAttempt,
           failoverBeforeRetry: config.failoverBeforeRetry,
         });
