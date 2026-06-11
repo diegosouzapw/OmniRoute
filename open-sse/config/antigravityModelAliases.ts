@@ -152,6 +152,11 @@ export const ANTIGRAVITY_MODEL_ALIASES = Object.freeze({
   "gemini-3.5-flash-low": "gemini-3.5-flash-extra-low",
   "gemini-3.5-flash-medium": "gemini-3.5-flash-low",
   "gemini-3.5-flash-high": "gemini-3-flash-agent",
+  // Backward-compat: the retired flagship public id `gemini-3.5-flash-preview`
+  // (Antigravity 2.0's "Gemini 3.5 Flash") is kept as a HIDDEN alias so saved
+  // combos/configs keep routing — it maps to the reasoning-capable High tier
+  // (upstream `gemini-3-flash-agent`). It is NOT re-added to the public catalog.
+  "gemini-3.5-flash-preview": "gemini-3-flash-agent",
   "gemini-3-pro-preview": "gemini-3.1-pro",
   // agy catalog exposes -high/-low budget tiers, but the upstream rejects the suffix
   // for gemini-3.x (#3229) — map them to the plain proven id.

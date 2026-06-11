@@ -25,6 +25,8 @@ test("resolveAntigravityModelId maps the documented Antigravity aliases to upstr
   assert.equal(resolveAntigravityModelId("gemini-3.5-flash-low"), "gemini-3.5-flash-extra-low");
   assert.equal(resolveAntigravityModelId("gemini-3.5-flash-medium"), "gemini-3.5-flash-low");
   assert.equal(resolveAntigravityModelId("gemini-3.5-flash-high"), "gemini-3-flash-agent");
+  // Backward-compat: retired flagship public id routes to the High tier upstream.
+  assert.equal(resolveAntigravityModelId("gemini-3.5-flash-preview"), "gemini-3-flash-agent");
   assert.equal(resolveAntigravityModelId("gemini-claude-sonnet-4-5"), "claude-sonnet-4-6");
   assert.equal(resolveAntigravityModelId("gemini-claude-sonnet-4-5-thinking"), "claude-sonnet-4-6");
   assert.equal(
@@ -46,7 +48,9 @@ test("toClientAntigravityModelId exposes client-visible aliases for known upstre
 test("isUserCallableAntigravityModelId only allows public chat-capable model IDs", () => {
   assert.equal(isUserCallableAntigravityModelId("gemini-3-pro-preview"), true);
   assert.equal(isUserCallableAntigravityModelId("gemini-3.1-pro"), true);
-  assert.equal(isUserCallableAntigravityModelId("gemini-3.5-flash-preview"), false);
+  // Retired flagship id stays callable as a hidden backward-compat alias (routes to High),
+  // even though it is no longer exposed in the public catalog.
+  assert.equal(isUserCallableAntigravityModelId("gemini-3.5-flash-preview"), true);
   assert.equal(isUserCallableAntigravityModelId("gemini-3-flash-agent"), true);
   assert.equal(isUserCallableAntigravityModelId("gemini-3.1-flash-lite"), true);
   assert.equal(isUserCallableAntigravityModelId("gemini-2.5-pro"), true);
