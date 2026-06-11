@@ -6,6 +6,10 @@
 
 ## [3.8.22] — TBD
 
+### ♻️ Code Quality
+
+- **Provider-detail god-component decomposition — Phase 0** ([#3501]): introduced `ProviderDetailPageClient.tsx` and reduced `providers/[id]/page.tsx` to a thin 9-line route wrapper (was 12,882 LOC), following the repo's `*PageClient` convention. Added the first-ever smoke render test for the page (Hard Rule #8) as the safety net every later extraction phase is diffed against. Behavior unchanged; the `check-file-size` ratchet now tracks the extracted client. Foundation for Phases 1–6 (strangler-fig). Thanks @oyi77 for the parallel modularization effort in #3627.
+
 ---
 
 ## [3.8.21] — 2026-06-11
