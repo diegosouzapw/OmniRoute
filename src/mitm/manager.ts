@@ -16,6 +16,42 @@ import { createLogger } from "@/shared/utils/logger.ts";
 
 const log = createLogger("mitm-manager");
 
+/**
+ * Map the MITM child process (`server.cjs`) stderr to the actual startup-failure
+ * cause. `server.cjs` emits one of several "❌"-prefixed lines on `server.on("error")`
+ * or on a missing API key, then exits. The old code only matched EADDRINUSE and so
+ * always blamed "port 443", misleading users whose real problem was a permission
+ * error or a missing ROUTER_API_KEY (#3606). The returned string is a controlled,
+ * secret-free diagnostic (it carries no stack and no credentials). (#3606)
+ */
+export function interpretMitmStartupError(stderr: string, port: number): string {
+  const text = (stderr || "").trim();
+  const lower = text.toLowerCase();
+
+  if (lower.includes("already in use")) {
+    return `MITM server failed to start: port ${port} is already in use`;
+  }
+  if (lower.includes("permission denied")) {
+    return `MITM server failed to start: permission denied for port ${port} (run with elevated privileges, or use a port ≥ 1024)`;
+  }
+  if (lower.includes("router_api_key")) {
+    return "MITM server failed to start: no API key was provided (ROUTER_API_KEY is required). Set a router API key in OmniRoute and retry.";
+  }
+
+  // Surface the first "❌ <message>" diagnostic line verbatim (marker stripped),
+  // so any other server.cjs failure is reported with its real cause.
+  for (const line of text.split(/\r?\n/)) {
+    const trimmed = line.trim();
+    if (trimmed.startsWith("❌")) {
+      const detail = trimmed.replace(/^❌\s*/, "").trim();
+      if (detail) return `MITM server failed to start: ${detail}`;
+    }
+  }
+
+  // Nothing diagnostic was captured — stay generic instead of guessing port 443.
+  return "MITM server failed to start (no diagnostic output was captured from the MITM server)";
+}
+
 // Store server process
 let serverProcess: ChildProcess | null = null;
 let serverPid: number | null = null;
@@ -314,13 +350,19 @@ export async function startMitm(
     fs.writeFileSync(PID_FILE, String(serverPid));
   }
 
+  // Buffer recent stderr so a startup failure can be reported with its real
+  // cause (capped to avoid unbounded growth on a chatty/looping process). (#3606)
+  let stderrBuffer = "";
+
   // Log server output
   proc.stdout?.on("data", (data) => {
     log.info({ source: "mitm-server" }, data.toString().trim());
   });
 
   proc.stderr?.on("data", (data) => {
-    log.error({ source: "mitm-server" }, data.toString().trim());
+    const chunk = data.toString();
+    stderrBuffer = (stderrBuffer + chunk).slice(-4000);
+    log.error({ source: "mitm-server" }, chunk.trim());
   });
 
   proc.on("exit", (code) => {
@@ -354,10 +396,11 @@ export async function startMitm(
       }
     });
 
-    // Check stderr for error messages
+    // Fail fast on any "❌" diagnostic line from server.cjs (covers EADDRINUSE,
+    // EACCES, missing ROUTER_API_KEY, and any other server.on("error") cause).
     proc.stderr?.on("data", (data) => {
-      const msg = data.toString().trim();
-      if (msg.includes("Port") && msg.includes("already in use")) {
+      const msg = data.toString();
+      if (msg.includes("❌")) {
         clearTimeout(timeout);
         if (!resolved) {
           resolved = true;
@@ -368,7 +411,7 @@ export async function startMitm(
   });
 
   if (!started) {
-    throw new Error("MITM server failed to start (port 443 may be in use)");
+    throw new Error(interpretMitmStartupError(stderrBuffer, port));
   }
 
   return {
