@@ -34,6 +34,8 @@
 
 ### 🔧 Bug Fixes
 
+- **Resilience**: clear stale transient connection cooldowns on startup so a prior unclean crash no longer makes every request time out at 120s after restart (#3625)
+
 - **fix(home topology): restore live in-flight request pulse** ([#3507]): the animated "pulse" edges in the home Provider Topology panel went dead after PR #3401 unified request visibility, because `activeRequests` was hardcoded to `[]`. Re-wired to `useLiveRequests()` (the existing WebSocket hook on port 20129) so that every pending/running request drives the animation in real time. A pure `selectActiveRequests` mapping helper was extracted to `home/topologyUtils.ts` with 5 unit tests.
 - **Electron desktop**: launch the peer-stamping `server-ws.mjs` entrypoint so local-only routes (AgentBridge, MCP, services) no longer return 403 LOCAL_ONLY (#3386)
 - **Provider Topology**: stop flagging healthy providers as errored based on stale historical failures; use current request status (#3619)
@@ -46,6 +48,7 @@
 - **fix(combo): skip same-provider/connection targets on connection-level errors** ([#3637] — thanks @herjarsa): on connection-level upstream errors (408/500/502/503/504/524), remaining same-`provider:connection` targets in a combo request are now skipped to avoid hammering a known-bad connection, in both the priority and round-robin paths. Adjusted in review to **exclude OmniRoute circuit-breaker-open responses** (503 + `X-OmniRoute-Provider-Breaker` / `provider_circuit_open`) from this skip, preserving the invariant that a breaker-open is an ordinary target failure (the next same-provider target is still tried). Co-authored with @herjarsa.
 - **/v1/responses**: detect stream readiness for tool-call-only and `object`-less chunks so Codex-shaped (reasoning + tools) requests no longer fail with "Stream ended before producing useful content" (#3612)
 - **RTL locales (ar/fa/he/ur)**: use logical CSS direction utilities for the sidebar and key overlays so the layout mirrors correctly under `dir=rtl` (#3541, partial — core layout)
+- **Kiro/AWS auto-import**: set a descriptive account name and dedupe by `profileArn` so imports no longer create nameless duplicate "OAuth Account" rows (#3615)
 
 ---
 

@@ -30,6 +30,9 @@ export {
   isConnectionRateLimited,
   getRateLimitedConnections,
 
+  // T05 startup recovery: clear stale transient cooldowns left by a prior crash
+  clearStaleCrashCooldowns,
+
   // T13: Stale quota display fix (zero out usage after window resets)
   getEffectiveQuotaUsage,
   formatResetCountdown,
