@@ -179,3 +179,57 @@ export function getSearchProviderCounts(): SearchProviderCountRow[] {
     )
     .all() as SearchProviderCountRow[];
 }
+
+// ---------------------------------------------------------------------------
+// /api/usage/analytics — fallback-rate aggregates over call_logs
+// ---------------------------------------------------------------------------
+
+export interface FallbackStatsRow {
+  total: number;
+  with_requested: number;
+  fallback_eligible: number;
+  fallbacks: number;
+}
+
+/**
+ * Scalar fallback-rate stats over `call_logs` for the usage analytics endpoint.
+ *
+ * @param whereClause - SQL WHERE clause (may be empty string) using the same
+ *                      named params as the usage_history queries.
+ * @param params      - Named params object (string values).
+ */
+export function getFallbackStats(
+  whereClause: string,
+  params: Record<string, string>
+): FallbackStatsRow {
+  const db = getDbInstance();
+  const row = db
+    .prepare(
+      `
+      SELECT
+        SUM(CASE WHEN (combo_name IS NULL OR combo_name = '') THEN 1 ELSE 0 END) as total,
+        SUM(CASE WHEN requested_model IS NOT NULL AND requested_model != '' AND (combo_name IS NULL OR combo_name = '') THEN 1 ELSE 0 END) as with_requested,
+        SUM(CASE
+          WHEN (combo_name IS NULL OR combo_name = '')
+           AND requested_model IS NOT NULL
+           AND requested_model != ''
+           AND model IS NOT NULL
+           AND model != ''
+          THEN 1 ELSE 0 END
+        ) as fallback_eligible,
+        SUM(CASE
+          WHEN (combo_name IS NULL OR combo_name = '')
+           AND requested_model IS NOT NULL
+           AND requested_model != ''
+           AND model IS NOT NULL
+           AND model != ''
+           AND LOWER(CASE WHEN instr(requested_model, '/') > 0 THEN substr(requested_model, instr(requested_model, '/') + 1) ELSE requested_model END) != LOWER(model)
+          THEN 1 ELSE 0 END
+        ) as fallbacks
+      FROM call_logs
+      ${whereClause}
+    `
+    )
+    .get(params) as FallbackStatsRow | undefined;
+  return row ?? { total: 0, with_requested: 0, fallback_eligible: 0, fallbacks: 0 };
+}
