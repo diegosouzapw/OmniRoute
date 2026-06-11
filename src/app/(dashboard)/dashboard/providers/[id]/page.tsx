@@ -136,6 +136,10 @@ type LocalProviderMetadata = {
   [key: string]: unknown;
 };
 
+// Max connection ids accepted per bulk request — mirrors the API-side cap on
+// /api/providers (PATCH) and /api/providers/test-batch (mode=selected).
+const MAX_BULK_IDS = 100;
+
 function buildCompatMap(rows: CompatModelRow[]): CompatModelMap {
   const m = new Map<string, CompatModelRow>();
   for (const r of rows) if (r.id) m.set(r.id, r);
@@ -1586,7 +1590,7 @@ export default function ProviderDetailPage() {
         source: normalizeModelCatalogSource(cm.source) === "imported" ? "imported" : "custom",
       }));
     const allModels = [...builtInModels, ...syncedExtras, ...customExtras];
-    const deduped = new Map<string, typeof allModels[0]>();
+    const deduped = new Map<string, (typeof allModels)[0]>();
     for (const m of allModels) {
       if (m.id && !deduped.has(m.id)) deduped.set(m.id, m);
     }
@@ -1689,10 +1693,9 @@ export default function ProviderDetailPage() {
   const handleDeleteAlias = useCallback(
     async (alias: string) => {
       try {
-        const res = await fetch(
-          `/api/models/alias?alias=${encodeURIComponent(alias)}`,
-          { method: "DELETE" }
-        );
+        const res = await fetch(`/api/models/alias?alias=${encodeURIComponent(alias)}`, {
+          method: "DELETE",
+        });
         if (res.ok) {
           await fetchAliases();
           notify.success(t("deleteAliasSuccess", { alias }));
@@ -2045,20 +2048,14 @@ export default function ProviderDetailPage() {
           } catch (e) {
             error++;
           }
-          setTestProgress((prev) =>
-            prev ? { done: prev.done + 1, total: prev.total } : null
-          );
+          setTestProgress((prev) => (prev ? { done: prev.done + 1, total: prev.total } : null));
         })
       );
     }
 
-    notify.info(
-      providerText(t, "testAllResults", "{ok} ok, {error} error", { ok, error })
-    );
+    notify.info(providerText(t, "testAllResults", "{ok} ok, {error} error", { ok, error }));
     if (hiddenCount > 0) {
-      notify.info(
-        providerText(t, "testAllFailedHidden", "{count} hidden", { count: hiddenCount })
-      );
+      notify.info(providerText(t, "testAllFailedHidden", "{count} hidden", { count: hiddenCount }));
     }
     setTestingAll(false);
     setTestProgress(null);
@@ -2142,26 +2139,42 @@ export default function ProviderDetailPage() {
     if (selectedIds.size === 0 || batchUpdating) return;
     setBatchUpdating(isActive ? "activate" : "deactivate");
     try {
-      const res = await fetch("/api/providers", {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ids: Array.from(selectedIds), isActive }),
-      });
-
-      if (res.ok) {
+      // The API caps each request at MAX_BULK_IDS, so chunk the selection
+      // (e.g. select-all on a provider with >100 accounts) and aggregate.
+      const ids = Array.from(selectedIds);
+      let updated = 0;
+      let notFound = 0;
+      for (let i = 0; i < ids.length; i += MAX_BULK_IDS) {
+        const chunk = ids.slice(i, i + MAX_BULK_IDS);
+        const res = await fetch("/api/providers", {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ ids: chunk, isActive }),
+        });
+        if (!res.ok) {
+          const data = await res.json().catch(() => ({}));
+          throw new Error(data.error?.message || data.error || "Batch update failed");
+        }
         const data = await res.json();
-        await fetchConnections();
+        updated += data.updated ?? 0;
+        notFound += Array.isArray(data.notFound) ? data.notFound.length : 0;
+      }
+
+      await fetchConnections();
+
+      if (updated === 0) {
+        notify.warning(t("batchUpdateNone"));
+      } else if (notFound > 0) {
+        notify.warning(t("batchUpdatePartial", { count: updated, skipped: notFound }));
+      } else {
         notify.success(
           isActive
-            ? t("batchActivateSuccess", { count: data.updated })
-            : t("batchDeactivateSuccess", { count: data.updated })
+            ? t("batchActivateSuccess", { count: updated })
+            : t("batchDeactivateSuccess", { count: updated })
         );
-      } else {
-        const data = await res.json().catch(() => ({}));
-        notify.error(data.error?.message || data.error || "Batch update failed");
       }
-    } catch {
-      notify.error("Network error during batch update");
+    } catch (error: any) {
+      notify.error(error?.message || "Network error during batch update");
     } finally {
       setBatchUpdating(null);
     }
@@ -2693,8 +2706,7 @@ export default function ProviderDetailPage() {
   const handleDistributeProxies = async (tagFilter?: string) => {
     const targetConnections = tagFilter
       ? connections.filter(
-          (c: any) =>
-            (c.providerSpecificData?.tag as string | undefined)?.trim() === tagFilter
+          (c: any) => (c.providerSpecificData?.tag as string | undefined)?.trim() === tagFilter
         )
       : connections;
     if (targetConnections.length === 0) return;
@@ -2703,9 +2715,7 @@ export default function ProviderDetailPage() {
       const proxiesRes = await fetch("/api/settings/proxies");
       if (!proxiesRes.ok) throw new Error("Failed to fetch proxies");
       const proxiesData = await proxiesRes.json();
-      const savedProxies = (proxiesData?.items || []).filter(
-        (p: any) => p.status === "active"
-      );
+      const savedProxies = (proxiesData?.items || []).filter((p: any) => p.status === "active");
       if (savedProxies.length === 0) {
         notify.error("No saved proxies found. Add proxies in Settings → Proxy first.");
         return;
@@ -3051,7 +3061,8 @@ export default function ProviderDetailPage() {
       });
       if (data?.summary) {
         const { passed, failed, total } = data.summary;
-        if (failed === 0) notify.success(t("allTestsPassed", { total }));
+        if (total === 0) notify.warning(t("noConnectionsToTest"));
+        else if (failed === 0) notify.success(t("allTestsPassed", { total }));
         else notify.warning(t("testSummary", { passed, failed, total }));
       }
       // Refresh connections to update statuses
@@ -3080,6 +3091,12 @@ export default function ProviderDetailPage() {
   // Batch retest only the selected connections
   const handleBatchRetest = async () => {
     if (batchRetesting || selectedIds.size === 0) return;
+    // Live-testing a huge selection risks the 120s client abort; bound it to the
+    // same cap the API enforces and tell the user to narrow the selection.
+    if (selectedIds.size > MAX_BULK_IDS) {
+      notify.warning(t("batchRetestLimit", { max: MAX_BULK_IDS }));
+      return;
+    }
     setBatchRetesting(true);
     try {
       await runBatchTest({ mode: "selected", connectionIds: Array.from(selectedIds) });
@@ -3697,8 +3714,7 @@ export default function ProviderDetailPage() {
   const providerAliasEntries = useMemo(
     () =>
       Object.entries(modelAliases).filter(
-        ([, model]) =>
-          typeof model === "string" && model.startsWith(`${providerStorageAlias}/`)
+        ([, model]) => typeof model === "string" && model.startsWith(`${providerStorageAlias}/`)
       ),
     [modelAliases, providerStorageAlias]
   );
@@ -4525,7 +4541,7 @@ export default function ProviderDetailPage() {
               {connections.length > 1 && (
                 <button
                   onClick={handleBatchTestAll}
-                  disabled={batchTesting || !!retestingId}
+                  disabled={batchTesting || batchRetesting || !!retestingId}
                   className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium border transition-colors ${
                     batchTesting
                       ? "bg-primary/20 border-primary/40 text-primary animate-pulse"
@@ -4747,7 +4763,10 @@ export default function ProviderDetailPage() {
               );
               const allSelected = selectedIds.size === connections.length && connections.length > 0;
               const someSelected = selectedIds.size > 0 && selectedIds.size < connections.length;
-              const bulkBusy = batchUpdating !== null || batchRetesting || batchDeleting;
+              // Includes batchTesting (the "Test All" action) so the bulk buttons
+              // and Test All never run concurrently against the shared results state.
+              const bulkBusy =
+                batchUpdating !== null || batchRetesting || batchDeleting || batchTesting;
               const bulkActions = selectedIds.size > 0 && (
                 <div className="flex flex-wrap items-center justify-end gap-2">
                   <Button
@@ -4802,15 +4821,24 @@ export default function ProviderDetailPage() {
                 { value: "active", label: t("filterActive", "Active") },
                 { value: "error", label: t("filterError", "Error") },
                 { value: "banned", label: t("filterBanned", "Banned") },
-                { value: "credits_exhausted", label: t("filterCreditsExhausted", "Credits Exhausted") },
+                {
+                  value: "credits_exhausted",
+                  label: t("filterCreditsExhausted", "Credits Exhausted"),
+                },
               ];
-              const filtered = healthFilter === "all"
-                ? sorted
-                : sorted.filter((c) => {
-                    if (healthFilter === "active") return isHealthy(c);
-                    if (healthFilter === "error") return !isHealthy(c) && c.testStatus !== "banned" && c.testStatus !== "credits_exhausted";
-                    return c.testStatus === healthFilter;
-                  });
+              const filtered =
+                healthFilter === "all"
+                  ? sorted
+                  : sorted.filter((c) => {
+                      if (healthFilter === "active") return isHealthy(c);
+                      if (healthFilter === "error")
+                        return (
+                          !isHealthy(c) &&
+                          c.testStatus !== "banned" &&
+                          c.testStatus !== "credits_exhausted"
+                        );
+                      return c.testStatus === healthFilter;
+                    });
 
               const totalFilteredPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
               const clampedPage = Math.min(page, totalFilteredPages - 1);
@@ -4839,36 +4867,38 @@ export default function ProviderDetailPage() {
                 </div>
               );
 
-              const paginationBar = totalFilteredPages > 1 ? (
-                <div className="flex items-center justify-between px-3 py-2 border-t border-border">
-                  <span className="text-xs text-text-muted">
-                    {pageStart + 1}–{Math.min(pageEnd, filtered.length)} / {filtered.length}
-                  </span>
-                  <div className="flex items-center gap-1">
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      icon="chevron_left"
-                      disabled={clampedPage === 0}
-                      onClick={() => setPage((p) => Math.max(0, p - 1))}
-                    />
-                    <span className="text-xs text-text-muted min-w-[4rem] text-center">
-                      {clampedPage + 1} / {totalFilteredPages}
+              const paginationBar =
+                totalFilteredPages > 1 ? (
+                  <div className="flex items-center justify-between px-3 py-2 border-t border-border">
+                    <span className="text-xs text-text-muted">
+                      {pageStart + 1}–{Math.min(pageEnd, filtered.length)} / {filtered.length}
                     </span>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      icon="chevron_right"
-                      disabled={clampedPage >= totalFilteredPages - 1}
-                      onClick={() => setPage((p) => Math.min(totalFilteredPages - 1, p + 1))}
-                    />
+                    <div className="flex items-center gap-1">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        icon="chevron_left"
+                        disabled={clampedPage === 0}
+                        onClick={() => setPage((p) => Math.max(0, p - 1))}
+                      />
+                      <span className="text-xs text-text-muted min-w-[4rem] text-center">
+                        {clampedPage + 1} / {totalFilteredPages}
+                      </span>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        icon="chevron_right"
+                        disabled={clampedPage >= totalFilteredPages - 1}
+                        onClick={() => setPage((p) => Math.min(totalFilteredPages - 1, p + 1))}
+                      />
+                    </div>
                   </div>
-                </div>
-              ) : null;
+                ) : null;
 
               if (!hasAnyTag) {
                 const pageConnections = filtered.slice(pageStart, pageEnd);
-                const allSelected = pageConnections.length > 0 && pageConnections.every((c) => selectedIds.has(c.id));
+                const allSelected =
+                  pageConnections.length > 0 && pageConnections.every((c) => selectedIds.has(c.id));
                 const someSelected = pageConnections.some((c) => selectedIds.has(c.id));
                 return (
                   <>
@@ -4929,113 +4959,117 @@ export default function ProviderDetailPage() {
                         </div>
                       ) : (
                         pageConnections.map((conn, index) => (
-                        <ConnectionRow
-                          key={conn.id}
-                          connection={conn}
-                          isOAuth={conn.authType === "oauth"}
-                          isClaude={providerId === "claude"}
-                          codexGlobalServiceMode={codexGlobalServiceMode}
-                          isFirst={index === 0}
-                          isLast={index === pageConnections.length - 1}
-                          isSelected={selectedIds.has(conn.id)}
-                          onToggleSelect={() => handleToggleSelectOne(conn.id)}
-                          onMoveUp={() => handleSwapPriority(conn, sorted[index - 1])}
-                          onMoveDown={() => handleSwapPriority(conn, sorted[index + 1])}
-                          onToggleActive={(isActive) =>
-                            handleUpdateConnectionStatus(conn.id, isActive)
-                          }
-                          onToggleRateLimit={(enabled) => handleToggleRateLimit(conn.id, enabled)}
-                          onToggleClaudeExtraUsage={(enabled) =>
-                            handleToggleClaudeExtraUsage(conn.id, enabled)
-                          }
-                          isCodex={providerId === "codex"}
-                          isGeminiCli={providerId === "gemini-cli"}
-                          isCcCompatible={isCcCompatible}
-                          cliproxyapiEnabled={cpaProviderEnabled}
-                          onToggleCliproxyapiMode={(enabled) =>
-                            handleToggleCliproxyapiMode(conn.id, enabled)
-                          }
-                          onToggleCodex5h={(enabled) =>
-                            handleToggleCodexLimit(conn.id, "use5h", enabled)
-                          }
-                          onToggleCodexWeekly={(enabled) =>
-                            handleToggleCodexLimit(conn.id, "useWeekly", enabled)
-                          }
-                          onRetest={() => handleRetestConnection(conn.id)}
-                          isRetesting={retestingId === conn.id}
-                          onEdit={() => {
-                            setSelectedConnection(conn);
-                            setShowEditModal(true);
-                          }}
-                          onDelete={() => handleDelete(conn.id)}
-                          onReauth={
-                            conn.authType === "oauth"
-                              ? () => gateConnectionFlow(() => setShowOAuthModal(true, conn))
-                              : undefined
-                          }
-                          onRefreshToken={
-                            conn.authType === "oauth"
-                              ? () => handleRefreshToken(conn.id)
-                              : undefined
-                          }
-                          isRefreshing={refreshingId === conn.id}
-                          onApplyCodexAuthLocal={
-                            providerId === "codex"
-                              ? () => setApplyCodexModalConnectionId(conn.id)
-                              : undefined
-                          }
-                          isApplyingCodexAuthLocal={applyingCodexAuthId === conn.id}
-                          onExportCodexAuthFile={
-                            providerId === "codex"
-                              ? () => handleExportCodexAuthFile(conn.id)
-                              : undefined
-                          }
-                          isExportingCodexAuthFile={exportingCodexAuthId === conn.id}
-                          onApplyClaudeAuthLocal={
-                            providerId === "claude"
-                              ? () => setApplyClaudeModalConnectionId(conn.id)
-                              : undefined
-                          }
-                          isApplyingClaudeAuthLocal={applyingClaudeAuthId === conn.id}
-                          onExportClaudeAuthFile={
-                            providerId === "claude"
-                              ? () => handleExportClaudeAuthFile(conn.id)
-                              : undefined
-                          }
-                          isExportingClaudeAuthFile={exportingClaudeAuthId === conn.id}
-                          onApplyGeminiAuthLocal={
-                            providerId === "gemini-cli"
-                              ? () => setApplyGeminiModalConnectionId(conn.id)
-                              : undefined
-                          }
-                          isApplyingGeminiAuthLocal={applyingGeminiAuthId === conn.id}
-                          onExportGeminiAuthFile={
-                            providerId === "gemini-cli"
-                              ? () => handleExportGeminiAuthFile(conn.id)
-                              : undefined
-                          }
-                          isExportingGeminiAuthFile={exportingGeminiAuthId === conn.id}
-                          onProxy={() =>
-                            setProxyTarget({
-                              level: "key",
-                              id: conn.id,
-                              label: pickDisplayValue(
-                                [conn.name, conn.email],
-                                emailsVisible,
-                                conn.id
-                              ),
-                            })
-                          }
-                          hasProxy={!!connProxyMap[conn.id]?.proxy}
-                          proxySource={connProxyMap[conn.id]?.level || null}
-                          proxyHost={connProxyMap[conn.id]?.proxy?.host || null}
-                          proxyEnabled={readBooleanToggle(conn.proxyEnabled, true)}
-                          onToggleProxyEnabled={(enabled) => handleToggleProxyEnabled(conn.id, enabled)}
-                          perKeyProxyEnabled={readBooleanToggle(conn.perKeyProxyEnabled, false)}
-                          onTogglePerKeyProxyEnabled={(enabled) => handleTogglePerKeyProxyEnabled(conn.id, enabled)}
-                        />
-                      )))
-                      }
+                          <ConnectionRow
+                            key={conn.id}
+                            connection={conn}
+                            isOAuth={conn.authType === "oauth"}
+                            isClaude={providerId === "claude"}
+                            codexGlobalServiceMode={codexGlobalServiceMode}
+                            isFirst={index === 0}
+                            isLast={index === pageConnections.length - 1}
+                            isSelected={selectedIds.has(conn.id)}
+                            onToggleSelect={() => handleToggleSelectOne(conn.id)}
+                            onMoveUp={() => handleSwapPriority(conn, sorted[index - 1])}
+                            onMoveDown={() => handleSwapPriority(conn, sorted[index + 1])}
+                            onToggleActive={(isActive) =>
+                              handleUpdateConnectionStatus(conn.id, isActive)
+                            }
+                            onToggleRateLimit={(enabled) => handleToggleRateLimit(conn.id, enabled)}
+                            onToggleClaudeExtraUsage={(enabled) =>
+                              handleToggleClaudeExtraUsage(conn.id, enabled)
+                            }
+                            isCodex={providerId === "codex"}
+                            isGeminiCli={providerId === "gemini-cli"}
+                            isCcCompatible={isCcCompatible}
+                            cliproxyapiEnabled={cpaProviderEnabled}
+                            onToggleCliproxyapiMode={(enabled) =>
+                              handleToggleCliproxyapiMode(conn.id, enabled)
+                            }
+                            onToggleCodex5h={(enabled) =>
+                              handleToggleCodexLimit(conn.id, "use5h", enabled)
+                            }
+                            onToggleCodexWeekly={(enabled) =>
+                              handleToggleCodexLimit(conn.id, "useWeekly", enabled)
+                            }
+                            onRetest={() => handleRetestConnection(conn.id)}
+                            isRetesting={retestingId === conn.id}
+                            onEdit={() => {
+                              setSelectedConnection(conn);
+                              setShowEditModal(true);
+                            }}
+                            onDelete={() => handleDelete(conn.id)}
+                            onReauth={
+                              conn.authType === "oauth"
+                                ? () => gateConnectionFlow(() => setShowOAuthModal(true, conn))
+                                : undefined
+                            }
+                            onRefreshToken={
+                              conn.authType === "oauth"
+                                ? () => handleRefreshToken(conn.id)
+                                : undefined
+                            }
+                            isRefreshing={refreshingId === conn.id}
+                            onApplyCodexAuthLocal={
+                              providerId === "codex"
+                                ? () => setApplyCodexModalConnectionId(conn.id)
+                                : undefined
+                            }
+                            isApplyingCodexAuthLocal={applyingCodexAuthId === conn.id}
+                            onExportCodexAuthFile={
+                              providerId === "codex"
+                                ? () => handleExportCodexAuthFile(conn.id)
+                                : undefined
+                            }
+                            isExportingCodexAuthFile={exportingCodexAuthId === conn.id}
+                            onApplyClaudeAuthLocal={
+                              providerId === "claude"
+                                ? () => setApplyClaudeModalConnectionId(conn.id)
+                                : undefined
+                            }
+                            isApplyingClaudeAuthLocal={applyingClaudeAuthId === conn.id}
+                            onExportClaudeAuthFile={
+                              providerId === "claude"
+                                ? () => handleExportClaudeAuthFile(conn.id)
+                                : undefined
+                            }
+                            isExportingClaudeAuthFile={exportingClaudeAuthId === conn.id}
+                            onApplyGeminiAuthLocal={
+                              providerId === "gemini-cli"
+                                ? () => setApplyGeminiModalConnectionId(conn.id)
+                                : undefined
+                            }
+                            isApplyingGeminiAuthLocal={applyingGeminiAuthId === conn.id}
+                            onExportGeminiAuthFile={
+                              providerId === "gemini-cli"
+                                ? () => handleExportGeminiAuthFile(conn.id)
+                                : undefined
+                            }
+                            isExportingGeminiAuthFile={exportingGeminiAuthId === conn.id}
+                            onProxy={() =>
+                              setProxyTarget({
+                                level: "key",
+                                id: conn.id,
+                                label: pickDisplayValue(
+                                  [conn.name, conn.email],
+                                  emailsVisible,
+                                  conn.id
+                                ),
+                              })
+                            }
+                            hasProxy={!!connProxyMap[conn.id]?.proxy}
+                            proxySource={connProxyMap[conn.id]?.level || null}
+                            proxyHost={connProxyMap[conn.id]?.proxy?.host || null}
+                            proxyEnabled={readBooleanToggle(conn.proxyEnabled, true)}
+                            onToggleProxyEnabled={(enabled) =>
+                              handleToggleProxyEnabled(conn.id, enabled)
+                            }
+                            perKeyProxyEnabled={readBooleanToggle(conn.perKeyProxyEnabled, false)}
+                            onTogglePerKeyProxyEnabled={(enabled) =>
+                              handleTogglePerKeyProxyEnabled(conn.id, enabled)
+                            }
+                          />
+                        ))
+                      )}
                     </div>
                     {paginationBar}
                   </>
@@ -5242,9 +5276,16 @@ export default function ProviderDetailPage() {
                                 proxySource={connProxyMap[conn.id]?.level || null}
                                 proxyHost={connProxyMap[conn.id]?.proxy?.host || null}
                                 proxyEnabled={readBooleanToggle(conn.proxyEnabled, true)}
-                                onToggleProxyEnabled={(enabled) => handleToggleProxyEnabled(conn.id, enabled)}
-                                perKeyProxyEnabled={readBooleanToggle(conn.perKeyProxyEnabled, false)}
-                                onTogglePerKeyProxyEnabled={(enabled) => handleTogglePerKeyProxyEnabled(conn.id, enabled)}
+                                onToggleProxyEnabled={(enabled) =>
+                                  handleToggleProxyEnabled(conn.id, enabled)
+                                }
+                                perKeyProxyEnabled={readBooleanToggle(
+                                  conn.perKeyProxyEnabled,
+                                  false
+                                )}
+                                onTogglePerKeyProxyEnabled={(enabled) =>
+                                  handleTogglePerKeyProxyEnabled(conn.id, enabled)
+                                }
                               />
                             ))}
                           </div>
@@ -5463,10 +5504,7 @@ export default function ProviderDetailPage() {
         />
       )}
       {/* Codex CLI Guide Modal */}
-      <CodexCliGuideModal
-        isOpen={codexCliGuideOpen}
-        onClose={() => setCodexCliGuideOpen(false)}
-      />
+      <CodexCliGuideModal isOpen={codexCliGuideOpen} onClose={() => setCodexCliGuideOpen(false)} />
       {/* Codex Import Auth Modal */}
       {providerId === "codex" && importCodexModalOpen && (
         <ImportCodexAuthModal
@@ -5487,8 +5525,8 @@ export default function ProviderDetailPage() {
           <div className="space-y-4">
             <p className="text-sm text-text-muted">
               Compartilhe este link com quem vai autenticar a conta do Codex. A pessoa abre a
-              página, faz o login da OpenAI no próprio navegador e a conexão é cadastrada aqui.
-              Uso único, expira em 15 minutos.
+              página, faz o login da OpenAI no próprio navegador e a conexão é cadastrada aqui. Uso
+              único, expira em 15 minutos.
             </p>
             {externalLinkLoading ? (
               <p className="text-sm text-text-muted">Gerando link…</p>
@@ -5759,7 +5797,7 @@ export default function ProviderDetailPage() {
           {importProgress.logs.length > 0 && (
             <div className="max-h-48 overflow-y-auto rounded-lg bg-black/5 dark:bg-white/5 p-3 border border-black/5 dark:border-white/5">
               <div className="flex flex-col gap-1">
-                  {importProgress.logs.map((log, i) => (
+                {importProgress.logs.map((log, i) => (
                   <p
                     key={i}
                     className={`text-xs font-mono ${
@@ -6521,80 +6559,80 @@ function PassthroughModelRow({
           )}
         </div>
         <div className="flex shrink-0 items-center gap-1">
-        <button
-          onClick={() => onCopy(fullModel, `model-${modelId}`)}
-          className="rounded p-0.5 text-text-muted hover:bg-sidebar hover:text-primary"
-          title={t("copyModel")}
-        >
-          <span className="material-symbols-outlined text-sm">
-            {copied === `model-${modelId}` ? "check" : "content_copy"}
-          </span>
-        </button>
-        {onTestModel && (
           <button
-            onClick={() => onTestModel(modelId, fullModel)}
-            disabled={testingModel}
-            className={`rounded p-0.5 hover:bg-sidebar transition-colors disabled:opacity-40 disabled:cursor-not-allowed ${testStatus === "ok" ? "text-green-500" : testStatus === "error" ? "text-red-500" : "text-text-muted hover:text-primary"}`}
-            title={
-              testingModel
-                ? t("testingModel")
-                : testStatus === "ok"
-                  ? "OK"
-                  : testStatus === "error"
-                    ? "Error"
-                    : t("testModel")
-            }
-          >
-            {testingModel ? (
-              <span className="material-symbols-outlined text-sm animate-spin">
-                progress_activity
-              </span>
-            ) : testStatus === "ok" ? (
-              <span className="material-symbols-outlined text-sm">check_circle</span>
-            ) : testStatus === "error" ? (
-              <span className="material-symbols-outlined text-sm">error</span>
-            ) : (
-              <span className="material-symbols-outlined text-sm">play_circle</span>
-            )}
-          </button>
-        )}
-        {onToggleHidden && (
-          <button
-            onClick={() => onToggleHidden(modelId, !isHidden)}
-            disabled={togglingHidden}
-            className="rounded p-0.5 text-text-muted hover:bg-sidebar hover:text-primary disabled:cursor-not-allowed disabled:opacity-40"
-            title={
-              isHidden
-                ? providerText(t, "showModel", "Show model")
-                : providerText(t, "hideModel", "Hide model")
-            }
+            onClick={() => onCopy(fullModel, `model-${modelId}`)}
+            className="rounded p-0.5 text-text-muted hover:bg-sidebar hover:text-primary"
+            title={t("copyModel")}
           >
             <span className="material-symbols-outlined text-sm">
-              {isHidden ? "visibility_off" : "visibility"}
+              {copied === `model-${modelId}` ? "check" : "content_copy"}
             </span>
           </button>
-        )}
-        <ModelCompatPopover
-          t={t}
-          effectiveModelNormalize={(p) => effectiveModelNormalize(modelId, p)}
-          effectiveModelPreserveDeveloper={(p) => effectiveModelPreserveDeveloper(modelId, p)}
-          getUpstreamHeadersRecord={getUpstreamHeadersRecord}
-          onCompatPatch={(protocol, payload) =>
-            saveModelCompatFlags(modelId, { compatByProtocol: { [protocol]: payload } })
-          }
-          showDeveloperToggle={showDeveloperToggle}
-          compact
-          disabled={compatDisabled}
-        />
-        {onDeleteAlias && (
-          <button
-            onClick={onDeleteAlias}
-            className="rounded p-1 text-red-500 hover:bg-red-50"
-            title={t("removeModel")}
-          >
-            <span className="material-symbols-outlined text-sm">delete</span>
-          </button>
-        )}
+          {onTestModel && (
+            <button
+              onClick={() => onTestModel(modelId, fullModel)}
+              disabled={testingModel}
+              className={`rounded p-0.5 hover:bg-sidebar transition-colors disabled:opacity-40 disabled:cursor-not-allowed ${testStatus === "ok" ? "text-green-500" : testStatus === "error" ? "text-red-500" : "text-text-muted hover:text-primary"}`}
+              title={
+                testingModel
+                  ? t("testingModel")
+                  : testStatus === "ok"
+                    ? "OK"
+                    : testStatus === "error"
+                      ? "Error"
+                      : t("testModel")
+              }
+            >
+              {testingModel ? (
+                <span className="material-symbols-outlined text-sm animate-spin">
+                  progress_activity
+                </span>
+              ) : testStatus === "ok" ? (
+                <span className="material-symbols-outlined text-sm">check_circle</span>
+              ) : testStatus === "error" ? (
+                <span className="material-symbols-outlined text-sm">error</span>
+              ) : (
+                <span className="material-symbols-outlined text-sm">play_circle</span>
+              )}
+            </button>
+          )}
+          {onToggleHidden && (
+            <button
+              onClick={() => onToggleHidden(modelId, !isHidden)}
+              disabled={togglingHidden}
+              className="rounded p-0.5 text-text-muted hover:bg-sidebar hover:text-primary disabled:cursor-not-allowed disabled:opacity-40"
+              title={
+                isHidden
+                  ? providerText(t, "showModel", "Show model")
+                  : providerText(t, "hideModel", "Hide model")
+              }
+            >
+              <span className="material-symbols-outlined text-sm">
+                {isHidden ? "visibility_off" : "visibility"}
+              </span>
+            </button>
+          )}
+          <ModelCompatPopover
+            t={t}
+            effectiveModelNormalize={(p) => effectiveModelNormalize(modelId, p)}
+            effectiveModelPreserveDeveloper={(p) => effectiveModelPreserveDeveloper(modelId, p)}
+            getUpstreamHeadersRecord={getUpstreamHeadersRecord}
+            onCompatPatch={(protocol, payload) =>
+              saveModelCompatFlags(modelId, { compatByProtocol: { [protocol]: payload } })
+            }
+            showDeveloperToggle={showDeveloperToggle}
+            compact
+            disabled={compatDisabled}
+          />
+          {onDeleteAlias && (
+            <button
+              onClick={onDeleteAlias}
+              className="rounded p-1 text-red-500 hover:bg-red-50"
+              title={t("removeModel")}
+            >
+              <span className="material-symbols-outlined text-sm">delete</span>
+            </button>
+          )}
         </div>
       </div>
     </div>
@@ -8113,13 +8151,21 @@ function ConnectionRow({
                 <span className="text-text-muted/30 select-none">|</span>
                 <button
                   onClick={() => onTogglePerKeyProxyEnabled(!perKeyProxyEnabled)}
-                  aria-label={perKeyProxyEnabled ? t("perKeyProxyEnabledTitle") : t("perKeyProxyDisabledTitle")}
+                  aria-label={
+                    perKeyProxyEnabled
+                      ? t("perKeyProxyEnabledTitle")
+                      : t("perKeyProxyDisabledTitle")
+                  }
                   className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-xs font-medium transition-all cursor-pointer ${
                     perKeyProxyEnabled
                       ? "bg-violet-500/15 text-violet-500 hover:bg-violet-500/25"
                       : "bg-black/[0.03] dark:bg-white/[0.03] text-text-muted/50 hover:text-text-muted hover:bg-black/[0.06] dark:hover:bg-white/[0.06]"
                   }`}
-                  title={perKeyProxyEnabled ? t("perKeyProxyEnabledTitle") : t("perKeyProxyDisabledTitle")}
+                  title={
+                    perKeyProxyEnabled
+                      ? t("perKeyProxyEnabledTitle")
+                      : t("perKeyProxyDisabledTitle")
+                  }
                 >
                   <span className="material-symbols-outlined text-[13px]">key</span>
                   {perKeyProxyEnabled ? (

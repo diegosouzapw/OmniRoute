@@ -1325,7 +1325,7 @@
       "settings.update_failed": "Settings Update Failed",
       "sync.token.created": "Sync Token Created",
       "sync.token.revoked": "Sync Token Revoked"
-  }
+    }
   },
   "themesPage": {
     "title": "Themes",
@@ -4000,6 +4000,10 @@
     "batchRetestSelected": "Retest",
     "batchActivateSuccess": "Activated {count} connection(s)",
     "batchDeactivateSuccess": "Deactivated {count} connection(s)",
+    "batchUpdatePartial": "{count} updated, {skipped} skipped (no longer exist)",
+    "batchUpdateNone": "No connections were updated (they may no longer exist)",
+    "batchRetestLimit": "Retest up to {max} connections at a time",
+    "noConnectionsToTest": "No matching connections to test",
     "batchDeleteConfirmTitle": "Delete connections",
     "batchDeleteConfirmButton": "Delete",
     "filterAll": "All",
@@ -8232,6 +8236,7 @@
       "providerCredentialsUpdated": "{actor} updated credentials for {target}",
       "providerCredentialsRevoked": "{actor} revoked credentials for {target}",
       "providerCredentialsBatchRevoked": "{actor} batch-revoked credentials",
+      "providerCredentialsBatchUpdated": "{actor} batch-updated credentials",
       "providerCredentialsBulkCreated": "{actor} bulk-created credentials",
       "providerCredentialsBulkImported": "{actor} bulk-imported credentials",
       "providerCredentialsImported": "{actor} imported credentials",
