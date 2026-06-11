@@ -448,7 +448,7 @@ export default function Sidebar({
                 className={cn(
                   "rounded-md p-1 text-text-muted/50 transition-colors hover:bg-black/5 hover:text-text-muted dark:hover:bg-white/5",
                   collapsed && !isMacElectron && "mt-2",
-                  isMacElectron && "ml-auto"
+                  isMacElectron && "ms-auto"
                 )}
               >
                 <span className="material-symbols-outlined text-[16px]" aria-hidden="true">
