@@ -33,6 +33,7 @@ import {
   Select,
   ProxyConfigModal,
   NoAuthProviderCard,
+  NoAuthAccountCard,
 } from "@/shared/components";
 import {
   LOCAL_PROVIDERS,
@@ -4428,7 +4429,23 @@ export default function ProviderDetailPage() {
       )}
 
       {/* Connections */}
-      {!isUpstreamProxyProvider && isFreeNoAuth && <NoAuthProviderCard />}
+      {!isUpstreamProxyProvider && isFreeNoAuth && providerId === "mimocode" && (
+        <NoAuthAccountCard
+          providerId={providerId}
+          providerName="MiMoCode"
+          generateAccountId={() => crypto.randomUUID().replace(/-/g, "")}
+        />
+      )}
+      {!isUpstreamProxyProvider && isFreeNoAuth && providerId === "opencode" && (
+        <NoAuthAccountCard
+          providerId={providerId}
+          providerName="OpenCode"
+          generateAccountId={() => crypto.randomUUID().replace(/-/g, "")}
+        />
+      )}
+      {!isUpstreamProxyProvider && isFreeNoAuth && providerId !== "mimocode" && providerId !== "opencode" && (
+        <NoAuthProviderCard />
+      )}
       {!isUpstreamProxyProvider && !isFreeNoAuth && (
         <Card>
           <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
