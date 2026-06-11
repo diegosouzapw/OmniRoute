@@ -9,7 +9,7 @@ import {
 } from "../config/antigravityUpstream.ts";
 import {
   isUserCallableAntigravityModelId,
-  toClientAntigravityQuotaModelId,
+  toClientAntigravityModelId,
 } from "../config/antigravityModelAliases.ts";
 import { isUserCallableAgyModelId } from "../config/agyModels.ts";
 import { getGlmQuotaUrl } from "../config/glmProvider.ts";
@@ -1477,8 +1477,6 @@ export const USAGE_FETCHER_PROVIDERS = [
   "opencode",
   "opencode-zen",
   "xiaomi-mimo",
-  "vertex",
-  "vertex-partner",
 ] as const;
 
 export type UsageFetcherProvider = (typeof USAGE_FETCHER_PROVIDERS)[number];
@@ -1518,9 +1516,6 @@ export async function getUsageForProvider(
     case "kiro":
     case "amazon-q":
       return await getKiroUsage(accessToken, providerSpecificData);
-    case "vertex":
-    case "vertex-partner":
-      return await getVertexUsage(id || "", provider);
     case "kimi-coding":
       return await getKimiUsage(accessToken);
     case "qwen":
@@ -1979,9 +1974,26 @@ interface AntigravityUsageOptions {
 const ANTIGRAVITY_LOCAL_USAGE_WINDOW_MS = 5 * 60 * 60 * 1000;
 const ANTIGRAVITY_LOCAL_USAGE_TOKENS_PER_UNIT = 1000;
 
-// `toClientAntigravityQuotaModelId` was an inline if-ladder here; it is now the single
-// source of truth in open-sse/config/antigravityModelAliases.ts (imported above), shared
-// with the provider-limits cache sanitizer. (#3821-review LEDGER-5)
+const ANTIGRAVITY_QUOTA_MODEL_ALIASES: Record<string, string | null> = {
+  "gemini-3.5-flash-preview": null,
+  "gemini-3-flash-preview": null,
+};
+
+function normalizeAntigravityQuotaModelId(modelId: string): string | null {
+  if (!modelId) return null;
+  return Object.prototype.hasOwnProperty.call(ANTIGRAVITY_QUOTA_MODEL_ALIASES, modelId)
+    ? ANTIGRAVITY_QUOTA_MODEL_ALIASES[modelId]
+    : modelId;
+}
+
+function toClientAntigravityQuotaModelId(modelId: string): string | null {
+  if (!modelId) return null;
+  if (normalizeAntigravityQuotaModelId(modelId) === null) return null;
+  if (modelId === "gemini-3.5-flash-extra-low") return "gemini-3.5-flash-low";
+  if (modelId === "gemini-3.5-flash-low") return "gemini-3.5-flash-medium";
+  if (modelId === "gemini-3-flash-agent") return "gemini-3.5-flash-high";
+  return toClientAntigravityModelId(modelId);
+}
 
 function getAntigravityLocalUsageUnits(
   provider: "antigravity" | "agy",
@@ -3001,79 +3013,11 @@ export function buildKiroUsageResult(
 }
 
 /**
- * Discover a Kiro/CodeWhisperer profile ARN for an account that didn't persist one (common for
- * AWS IAM Identity Center logins and kiro-cli imports). Calls ListAvailableProfiles on the
- * region-matched endpoint and prefers a profile whose ARN is in the same region. Returns
- * undefined when no profile is available (e.g. the org/token has no Kiro entitlement).
- * Exported for testing.
- */
-export async function discoverKiroProfileArn(
-  accessToken: string,
-  usageBaseUrl: string,
-  region: string
-): Promise<string | undefined> {
-  try {
-    const response = await fetch(usageBaseUrl, {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${accessToken}`,
-        "Content-Type": "application/x-amz-json-1.0",
-        "x-amz-target": "AmazonCodeWhispererService.ListAvailableProfiles",
-        Accept: "application/json",
-      },
-      body: JSON.stringify({ maxResults: 10 }),
-      // Don't let a hung profile lookup block the usage/quota refresh indefinitely.
-      signal: AbortSignal.timeout(10000),
-    });
-    if (!response.ok) return undefined;
-
-    const data = toRecord(await response.json());
-    const profiles = Array.isArray(data.profiles) ? data.profiles : [];
-    const normalizedRegion = region.toLowerCase();
-    const matched =
-      profiles.find((profile: unknown) => {
-        const arn = toRecord(profile).arn;
-        return typeof arn === "string" && arn.toLowerCase().includes(`:${normalizedRegion}:`);
-      }) || profiles[0];
-    const arn = toRecord(matched).arn;
-    return typeof arn === "string" && arn.length > 0 ? arn : undefined;
-  } catch {
-    return undefined;
-  }
-}
-
-/**
  * Kiro (AWS CodeWhisperer) Usage
  */
 async function getKiroUsage(accessToken?: string, providerSpecificData?: JsonRecord) {
   try {
-    let profileArn =
-      typeof providerSpecificData?.profileArn === "string"
-        ? providerSpecificData.profileArn
-        : undefined;
-
-    // Enterprise IAM Identity Center accounts are region-bound: the profileArn, token and
-    // endpoint must all match the region. Derive the region from the stored region (preferred)
-    // or the profileArn, then route to the regional Amazon Q endpoint (us-east-1 keeps the
-    // legacy codewhisperer host; codewhisperer.{region} does not resolve for other regions).
-    const regionFromArn = profileArn
-      ? profileArn.toLowerCase().match(/^arn:aws:codewhisperer:([a-z0-9-]+):/)?.[1]
-      : undefined;
-    const region =
-      (typeof providerSpecificData?.region === "string" &&
-        providerSpecificData.region.trim().toLowerCase()) ||
-      regionFromArn ||
-      "us-east-1";
-    const usageBaseUrl =
-      region === "us-east-1" ? CODEWHISPERER_BASE_URL : `https://q.${region}.amazonaws.com`;
-
-    // IAM Identity Center logins and kiro-cli imports frequently don't persist a profileArn, which
-    // previously caused the quota card to show nothing ("0 used"). Discover it on demand from
-    // ListAvailableProfiles (region-matched) so usage still resolves for those accounts.
-    if (!profileArn && accessToken) {
-      profileArn = await discoverKiroProfileArn(accessToken, usageBaseUrl, region);
-    }
-
+    const profileArn = providerSpecificData?.profileArn;
     if (!profileArn) {
       return { message: "Kiro connected. Profile ARN not available for quota tracking." };
     }
@@ -3085,7 +3029,7 @@ async function getKiroUsage(accessToken?: string, providerSpecificData?: JsonRec
       resourceType: "AGENTIC_REQUEST",
     };
 
-    const response = await fetch(usageBaseUrl, {
+    const response = await fetch(CODEWHISPERER_BASE_URL, {
       method: "POST",
       headers: {
         Authorization: `Bearer ${accessToken}`,
@@ -3105,53 +3049,6 @@ async function getKiroUsage(accessToken?: string, providerSpecificData?: JsonRec
     return buildKiroUsageResult(data);
   } catch (error) {
     throw new Error(`Failed to fetch Kiro usage: ${error.message}`);
-  }
-}
-
-/**
- * Vertex AI — SELF-TRACKED spend.
- *
- * Vertex AI exposes no usage/quota API for an API key or Service Account (billing/credit balance
- * lives behind the Cloud Billing API, which the proxy credential can't reach). Instead we report
- * the USD that OmniRoute has spent through this connection since the account was added — summed
- * from `usage_history` and priced via the backend pricing table. Returns a `message` (with the $
- * figure) plus a `spend` quota entry so the limits cache persists it (a message-only result is
- * treated as a transient error and not cached).
- */
-async function getVertexUsage(connectionId: string, provider: string) {
-  if (!connectionId) {
-    return { message: "Vertex connected. Connection id unavailable for usage tracking." };
-  }
-  try {
-    const { getConnectionSpendUsdSinceAdded } = await import("@/lib/usage/usageStats");
-    const { costUsd, requests } = await getConnectionSpendUsdSinceAdded(provider, connectionId);
-
-    const spend: JsonRecord = {
-      used: Number(costUsd.toFixed(6)),
-      displayName: "Spend (USD)",
-      quotaSource: "localUsageHistory",
-      resetAt: null,
-      unlimited: false,
-    };
-
-    if (requests === 0) {
-      return {
-        plan: "Vertex AI",
-        message: "Vertex connected. No usage recorded through OmniRoute yet for this account.",
-        quotas: { spend },
-      };
-    }
-
-    const costStr = costUsd >= 1 ? costUsd.toFixed(2) : costUsd.toFixed(4);
-    return {
-      plan: "Vertex AI",
-      message: `$${costStr} used since this account was added \u00b7 ${requests} request${
-        requests === 1 ? "" : "s"
-      }`,
-      quotas: { spend },
-    };
-  } catch (error) {
-    return { message: `Vertex usage tracking error: ${(error as Error).message}` };
   }
 }
 
@@ -3383,7 +3280,6 @@ export const __testing = {
   getMiniMaxRemainingPercent,
   getMiniMaxUsage,
   getXiaomiMimoUsage,
-  getVertexUsage,
   getMiniMaxAuthErrorMessage,
   getMiniMaxErrorSummary,
   mapCodeAssistSubscriptionToPlanLabel,
