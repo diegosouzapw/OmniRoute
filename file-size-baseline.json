@@ -48,7 +48,7 @@
     "src/app/(dashboard)/dashboard/endpoint/EndpointPageClient.tsx": 2570,
     "src/app/(dashboard)/dashboard/health/page.tsx": 1091,
     "src/app/(dashboard)/dashboard/playground/components/tabs/ApiTab.tsx": 847,
-    "src/app/(dashboard)/dashboard/providers/[id]/ProviderDetailPageClient.tsx": 10288,
+    "src/app/(dashboard)/dashboard/providers/[id]/ProviderDetailPageClient.tsx": 9981,
     "src/app/(dashboard)/dashboard/providers/components/onboarding/ProviderOnboardingWizard.tsx": 906,
     "src/app/(dashboard)/dashboard/providers/page.tsx": 1925,
     "src/app/(dashboard)/dashboard/runtime/RuntimePageClient.tsx": 1127,
