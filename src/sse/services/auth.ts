@@ -1977,7 +1977,7 @@ export async function markAccountUnavailable(
       | undefined;
 
     const isLocal404 = isLocalProvider(connBaseUrl) && status === 404 && provider && model;
-    if (isLocal404 && provider && model) {
+    if (isLocal404 && !(isConfiguredLockout && options.isCombo)) {
       const baseCooldownMs = isConfiguredLockout
         ? mlSettings.baseCooldownMs
         : (effectiveProviderProfile?.baseCooldownMs ?? COOLDOWN_MS.notFoundLocal);
