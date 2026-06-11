@@ -5,6 +5,7 @@
 ### ♻️ Code Quality
 
 - **refactor(chatCore):** extract the chatCore request phases — idempotency check, semantic cache check, common request sanitization, and memory/skills injection — into dedicated `open-sse/handlers/chatCore/` modules (`idempotency.ts`, `semanticCache.ts`, `sanitization.ts`, `memorySkillsInjection.ts`), slimming the monolithic handler with no behavior change. (Maintainer follow-up: re-derive `idempotencyKey` at the Phase 9.2 save site after the check moved into the module, fixing a `ReferenceError` on successful non-cached responses.) ([#3598](https://github.com/diegosouzapw/OmniRoute/pull/3598) — thanks @oyi77)
+- **docs(opencode-provider):** soft-deprecate `@omniroute/opencode-provider` in favour of `@omniroute/opencode-plugin`. The provider package writes a **static** model list to `opencode.json` that drifts behind the live OmniRoute catalog, whereas the plugin fetches `/v1/models` at OpenCode startup. The package keeps working (no code/behavior change), but its npm description and README now carry a deprecation banner with the one-line migration, and a guard test pins the notice. ([#3419](https://github.com/diegosouzapw/OmniRoute/issues/3419) — thanks @herjarsa)
 
 ### 🔧 Bug Fixes
 
