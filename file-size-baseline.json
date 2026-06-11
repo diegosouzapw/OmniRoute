@@ -91,7 +91,7 @@
     "src/shared/constants/providers.ts": 3121,
     "src/shared/constants/sidebarVisibility.ts": 990,
     "src/shared/services/cliRuntime.ts": 1073,
-    "src/shared/validation/schemas.ts": 2490,
+    "src/shared/validation/schemas.ts": 2513,
     "src/sse/handlers/chat.ts": 1381,
     "src/sse/services/auth.ts": 2198
   },

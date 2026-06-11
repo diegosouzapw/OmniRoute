@@ -215,7 +215,6 @@ function queryModelIntelligence(
     _intelligenceCache.set(cacheKey, score);
     return score;
   } catch {
-    _intelligenceCache.set(cacheKey, null);
     return null;
   }
 }

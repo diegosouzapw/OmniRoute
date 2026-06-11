@@ -177,6 +177,10 @@ let lastSyncTime: string | null = null;
 let lastSyncModelCount = 0;
 let activeSyncIntervalMs = SYNC_INTERVAL_MS;
 let firstSyncDone = false;
+let syncInProgress = false;
+let syncInProgress = false;
+let syncInProgress = false;
+let syncInProgress = false;
 
 // ─── Model name normalization ────────────────────────────
 
@@ -353,6 +357,15 @@ export function transformToModelIntelligence(
  * @returns Sync result with model count and success status.
  */
 export async function syncArenaElo(dryRun = false): Promise<SyncResult> {
+  if (syncInProgress) {
+    return {
+      success: false,
+      modelCount: 0,
+      source: "arena_elo",
+      error: "Sync already in progress",
+    };
+  }
+  syncInProgress = true;
   try {
     // Backup DB before first sync (same pattern as pricingSync)
     if (!firstSyncDone && !dryRun) {
@@ -416,6 +429,8 @@ export async function syncArenaElo(dryRun = false): Promise<SyncResult> {
       source: "arena_elo",
       error: message,
     };
+  } finally {
+    syncInProgress = false;
   }
 }
 

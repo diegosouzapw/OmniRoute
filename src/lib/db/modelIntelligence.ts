@@ -49,7 +49,7 @@ export function getModelIntelligence(model: string, category: string): ModelInte
       `SELECT * FROM model_intelligence
        WHERE model = ? AND category = ?
          AND source IN ('user_override', 'arena_elo', 'models_dev_tier')
-         AND (expires_at IS NULL OR expires_at > datetime('now'))
+         AND (expires_at IS NULL OR datetime(expires_at) > datetime('now'))
        ORDER BY CASE source
          WHEN 'user_override' THEN 1
          WHEN 'arena_elo' THEN 2
@@ -72,7 +72,7 @@ export function getModelIntelligenceBySource(
     .prepare(
       `SELECT * FROM model_intelligence
        WHERE model = ? AND source = ? AND category = ?
-         AND (expires_at IS NULL OR expires_at > datetime('now'))`
+         AND (expires_at IS NULL OR datetime(expires_at) > datetime('now'))`
     )
     .get(model, source, category) as Record<string, unknown> | undefined;
 
@@ -110,7 +110,7 @@ export function deleteModelIntelligence(model: string, source: string, category:
 
 export function deleteExpiredIntelligence(source?: string): number {
   const db = getDbInstance();
-  const conditions = ["expires_at IS NOT NULL", "expires_at < datetime('now')"];
+  const conditions = ["expires_at IS NOT NULL", "datetime(expires_at) < datetime('now')"];
   const params: unknown[] = [];
 
   if (source) {
