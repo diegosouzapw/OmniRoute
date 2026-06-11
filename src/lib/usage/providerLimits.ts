@@ -32,6 +32,7 @@ import {
   toClientAntigravityModelId,
 } from "@omniroute/open-sse/config/antigravityModelAliases.ts";
 import { isUserCallableAgyModelId } from "@omniroute/open-sse/config/agyModels.ts";
+import { onUsageRecorded } from "./usageEvents";
 
 type JsonRecord = Record<string, unknown>;
 
@@ -125,6 +126,11 @@ export function notifyProviderUsageRecorded(
   if ((provider !== "antigravity" && provider !== "agy") || !connectionId) return;
   scheduleProviderLimitsPostUsageRefresh(connectionId);
 }
+
+// Subscribe at module load so usageHistory can emit usage events without importing
+// this module (and its executors/translator import graph). This module is loaded by
+// the provider-limits route and the background auto-sync scheduler at server boot.
+onUsageRecorded(notifyProviderUsageRecorded);
 
 function isUsageQuotaKeyAllowed(provider: string, quotaKey: string): boolean {
   if (quotaKey === "credits" || quotaKey === "models") return true;

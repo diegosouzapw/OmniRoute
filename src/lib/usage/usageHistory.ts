@@ -10,6 +10,7 @@
 import { getDbInstance } from "../db/core";
 import { protectPayloadForLog } from "../logPayloads";
 import { shouldPersistToDisk } from "./migrations";
+import { emitUsageRecorded } from "./usageEvents";
 import {
   getLoggedInputTokens,
   getLoggedOutputTokens,
@@ -74,23 +75,6 @@ function toNumber(value: unknown): number {
   return 0;
 }
 
-function notifyProviderUsageRecordedAsync(provider: unknown, connectionId: unknown): void {
-  if (
-    (provider !== "antigravity" && provider !== "agy") ||
-    typeof connectionId !== "string" ||
-    !connectionId
-  ) {
-    return;
-  }
-  void import("./providerLimits")
-    .then(({ notifyProviderUsageRecorded }) => {
-      notifyProviderUsageRecorded(provider, connectionId);
-    })
-    .catch((error) => {
-      const message = error instanceof Error ? error.message : String(error);
-      console.warn(`[ProviderLimits] Failed to schedule post-usage refresh: ${message}`);
-    });
-}
 
 function percentile(sortedValues: number[], p: number): number {
   if (sortedValues.length === 0) return 0;
@@ -610,7 +594,9 @@ export async function saveRequestUsage(entry: any) {
       timestamp
     );
 
-    notifyProviderUsageRecordedAsync(entry.provider, entry.connectionId);
+    // Decoupled via the event bus so usageHistory never imports providerLimits
+    // (which would pull the executors/translator graph into the type-check surface).
+    emitUsageRecorded(entry.provider, entry.connectionId);
   } catch (error) {
     console.error("Failed to save usage stats:", error);
   }
