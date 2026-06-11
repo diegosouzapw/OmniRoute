@@ -1,8 +1,5 @@
-import { convertOpenAIToResponsesToolCall } from "../handlers/responseTranslator.ts";
-import { v4 as uuidv4 } from "uuid";
-
 import { asRecord } from "./utils.ts";
-import { JsonRecord, StreamFailurePayload } from "./types.ts";
+import type { JsonRecord, StreamFailurePayload } from "./types.ts";
 
 export function toStreamFailureStatus(value: unknown): number | null {
   if (typeof value === "number" && Number.isInteger(value) && value >= 400 && value <= 599) {
