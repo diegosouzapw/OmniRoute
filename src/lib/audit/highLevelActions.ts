@@ -16,6 +16,7 @@ export const HIGH_LEVEL_ACTIONS = [
   "provider.credentials.updated",
   "provider.credentials.revoked",
   "provider.credentials.batch_revoked",
+  "provider.credentials.batch_updated",
   "provider.credentials.bulk_created",
   "provider.credentials.bulk_imported",
   "provider.credentials.imported",

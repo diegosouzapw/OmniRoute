@@ -182,6 +182,8 @@ There is **no dedicated `POST /api/combos/auto` endpoint** — Auto-Combo is con
 
 2. **Persisted combo with `strategy: "auto"`:** Create a regular combo via `POST /api/combos` and set `strategy: "auto"` plus `config.auto.weights` / `config.auto.candidatePool`. The same scoring engine is used; the combo is stored in `combos` and reusable by ID.
 
+For discovery, `GET /api/combos/auto` lists every variant with its resolved candidate pool plus `context_length` / `max_output_tokens` — the MAX across the candidate pool's windows. Clients (e.g. the opencode plugin) must advertise these values instead of `0`: a zero context disables opencode's auto-compaction entirely, letting sessions grow until the gateway's history purge destroys context. MAX is safe to advertise because the auto-combo context pre-filter routes oversized requests to large-window candidates.
+
 ```bash
 # Zero-config usage (no combo creation)
 curl -X POST http://localhost:20128/v1/chat/completions \
