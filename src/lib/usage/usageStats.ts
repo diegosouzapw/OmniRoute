@@ -575,3 +575,32 @@ export async function getUsageStats() {
 
   return stats;
 }
+
+export function getProviderModelTokensForWindow(
+  provider: string,
+  connectionId: string,
+  model: string,
+  windowStart: string,
+  windowEnd: string
+): number {
+  try {
+    const db = getDbInstance();
+    const row = db
+      .prepare(
+        `SELECT COALESCE(SUM(
+           COALESCE(tokens_input, 0) + COALESCE(tokens_output, 0) + COALESCE(tokens_reasoning, 0)
+         ), 0) AS tokens
+         FROM usage_history
+         WHERE provider = ?
+           AND connection_id = ?
+           AND model = ?
+           AND timestamp >= ?
+           AND timestamp < ?`
+      )
+      .get(provider, connectionId, model, windowStart, windowEnd) as { tokens: number };
+    return row?.tokens || 0;
+  } catch (error) {
+    console.error("Failed to fetch provider model tokens:", error);
+    return 0;
+  }
+}

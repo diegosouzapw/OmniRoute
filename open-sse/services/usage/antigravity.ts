@@ -1,3 +1,4 @@
+import { getProviderModelTokensForWindow } from "@/lib/usage/usageStats";
 /**
  * Usage Fetcher - Get usage data from provider APIs
  */
@@ -171,27 +172,7 @@ function getAntigravityLocalUsageUnits(
   const windowEnd = new Date(resetMs).toISOString();
 
   try {
-    const db = getDbInstance() as unknown as {
-      prepare: (sql: string) => { get: (...params: unknown[]) => unknown };
-    };
-    const row = db
-      .prepare(
-        `SELECT COALESCE(SUM(
-           COALESCE(tokens_input, 0) + COALESCE(tokens_output, 0) + COALESCE(tokens_reasoning, 0)
-         ), 0) AS tokens
-         FROM usage_history
-         WHERE provider = ?
-           AND connection_id = ?
-           AND model = ?
-           AND success = 1
-           AND timestamp >= ?
-           AND timestamp < ?`
-      )
-      .get(provider, connectionId, modelId, windowStart, windowEnd) as
-      | { tokens?: unknown }
-      | undefined;
-
-    const tokens = Number(row?.tokens || 0);
+    const tokens = getProviderModelTokensForWindow(provider, connectionId, modelId, windowStart, windowEnd);
     if (!Number.isFinite(tokens) || tokens <= 0) return 0;
     return Math.max(1, Math.ceil(tokens / ANTIGRAVITY_LOCAL_USAGE_TOKENS_PER_UNIT));
   } catch {
