@@ -10,12 +10,12 @@ export async function checkIdempotencyCache({
   startTime,
   log,
 }: {
-  clientRawRequest: unknown;
+  clientRawRequest: any;
   provider: string;
   model: string;
-  effectiveServiceTier: unknown;
+  effectiveServiceTier: any;
   startTime: number;
-  log: unknown;
+  log: any;
 }) {
   const idempotencyKey = getIdempotencyKey(clientRawRequest?.headers);
   const cachedIdemp = checkIdempotency(idempotencyKey);

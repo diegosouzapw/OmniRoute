@@ -1232,7 +1232,9 @@ function extractEmailFromJwtLocal(idToken: string): string | null {
   try {
     const parts = idToken.split(".");
     if (parts.length !== 3) return null;
-    const payload = JSON.parse(Buffer.from(parts[1], "base64url").toString("utf8"));
+    const base64 = parts[1].replace(/-/g, "+").replace(/_/g, "/");
+    const padded = base64.padEnd(base64.length + ((4 - (base64.length % 4)) % 4), "=");
+    const payload = JSON.parse(atob(padded));
     return typeof payload.email === "string" ? payload.email : null;
   } catch {
     return null;
@@ -1324,7 +1326,9 @@ function extractEmailFromGeminiJwt(idToken: string): string | null {
   try {
     const parts = idToken.split(".");
     if (parts.length !== 3) return null;
-    const payload = JSON.parse(Buffer.from(parts[1], "base64url").toString("utf8"));
+    const base64 = parts[1].replace(/-/g, "+").replace(/_/g, "/");
+    const padded = base64.padEnd(base64.length + ((4 - (base64.length % 4)) % 4), "=");
+    const payload = JSON.parse(atob(padded));
     return typeof payload.email === "string" ? payload.email : null;
   } catch {
     return null;
@@ -1348,10 +1352,15 @@ function CooldownTimer({ until }: CooldownTimerProps) {
   const [remaining, setRemaining] = useState("");
 
   useEffect(() => {
+    let interval: any = null;
     const updateRemaining = () => {
       const diff = new Date(until).getTime() - Date.now();
       if (diff <= 0) {
         setRemaining("");
+        if (interval) {
+          clearInterval(interval);
+          interval = null;
+        }
         return;
       }
       const secs = Math.floor(diff / 1000);
@@ -1367,8 +1376,13 @@ function CooldownTimer({ until }: CooldownTimerProps) {
     };
 
     updateRemaining();
-    const interval = setInterval(updateRemaining, 1000);
-    return () => clearInterval(interval);
+    const isActive = new Date(until).getTime() > Date.now();
+    if (isActive) {
+      interval = setInterval(updateRemaining, 1000);
+    }
+    return () => {
+      if (interval) clearInterval(interval);
+    };
   }, [until]);
 
   if (!remaining) return null;

@@ -2,10 +2,10 @@ import { FORMATS } from "../../translator/formats.ts";
 import { sanitizeOpenAITool } from "../../services/toolSchemaSanitizer.ts";
 
 export function sanitizeChatRequestBody(
-  body: Record<string, unknown>,
+  body: any,
   sourceFormat: string,
   targetFormat: string
-): Record<string, unknown> {
+): any {
   const prefersResponsesTokenField =
     sourceFormat === FORMATS.OPENAI_RESPONSES || targetFormat === FORMATS.OPENAI_RESPONSES;
 
