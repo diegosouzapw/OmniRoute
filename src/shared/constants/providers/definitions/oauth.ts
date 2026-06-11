@@ -1,0 +1,208 @@
+
+
+// ── Zod validation at module load (Phase 7.2) ──
+import { validateProviders } from "../../../validation/providerSchema";
+
+
+
+
+// OAuth Providers
+export const OAUTH_PROVIDERS = {
+  qoder: {
+    id: "qoder",
+    alias: "if",
+    name: "Qoder AI",
+    icon: "water_drop",
+    color: "#6366F1",
+    subscriptionRisk: true,
+    riskNoticeVariant: "oauth",
+    hasFree: true,
+  },
+  qwen: {
+    id: "qwen",
+    alias: "qw",
+    name: "Qwen Code",
+    icon: "psychology",
+    color: "#10B981",
+    subscriptionRisk: true,
+    riskNoticeVariant: "deprecated",
+    deprecated: true,
+    deprecationReason:
+      "Qwen OAuth free tier was discontinued on 2026-04-15. Use 'bailian-coding-plan', 'alibaba', 'alibaba-cn', or 'openrouter' provider with API key instead.",
+  },
+  "gemini-cli": {
+    id: "gemini-cli",
+    alias: "gemini-cli",
+    name: "Gemini CLI",
+    icon: "terminal",
+    color: "#4285F4",
+    subscriptionRisk: true,
+    riskNoticeVariant: "deprecated",
+    hasFree: true,
+    authHint:
+      "Uses Gemini CLI OAuth / Cloud Code credentials. Pro models require an eligible Google account or paid plan.",
+  },
+  agy: {
+    id: "agy",
+    alias: "agy",
+    name: "Antigravity CLI",
+    icon: "terminal",
+    color: "#F59E0B",
+    textIcon: "AGY",
+    website: "https://antigravity.google",
+    subscriptionRisk: true,
+    riskNoticeVariant: "oauth",
+    hasFree: true,
+    authHint:
+      "Import your Antigravity CLI (`agy`) login (paste/upload its token file), auto-detect a local CLI login, or sign in with Google. Shares the Antigravity backend (incl. Claude models).",
+  },
+  kiro: {
+    id: "kiro",
+    alias: "kr",
+    name: "Kiro AI",
+    icon: "psychology_alt",
+    color: "#FF6B35",
+    subscriptionRisk: true,
+    riskNoticeVariant: "deprecated",
+    hasFree: true,
+    freeNote:
+      "Free tier: 50 credits/month (~25K–100K tokens). ⚠️ Kiro ToS prohibits third-party proxy/harness use.",
+  },
+  "amazon-q": {
+    id: "amazon-q",
+    alias: "aq",
+    name: "Amazon Q",
+    icon: "cloud",
+    color: "#FF9900",
+    textIcon: "AQ",
+    website: "https://aws.amazon.com/q/developer/",
+    hasFree: true,
+    authHint:
+      "Uses the same AWS Builder ID or imported refresh-token flow as Kiro, but keeps Amazon Q connections separate.",
+  },
+  claude: {
+    id: "claude",
+    alias: "cc",
+    name: "Claude Code",
+    icon: "smart_toy",
+    color: "#D97757",
+    subscriptionRisk: true,
+    riskNoticeVariant: "oauth",
+  },
+  antigravity: {
+    id: "antigravity",
+    alias: undefined,
+    name: "Antigravity",
+    icon: "rocket_launch",
+    color: "#F59E0B",
+    subscriptionRisk: true,
+    riskNoticeVariant: "oauth",
+  },
+  codex: {
+    id: "codex",
+    alias: "cx",
+    name: "OpenAI Codex",
+    icon: "code",
+    color: "#3B82F6",
+    subscriptionRisk: true,
+    riskNoticeVariant: "oauth",
+  },
+  github: { id: "github", alias: "gh", name: "GitHub Copilot", icon: "code", color: "#333333" },
+  "gitlab-duo": {
+    id: "gitlab-duo",
+    alias: "gitlab-duo",
+    name: "GitLab Duo",
+    icon: "hub",
+    color: "#FC6D26",
+    textIcon: "GL",
+    website: "https://docs.gitlab.com/user/duo_agent_platform/code_suggestions/",
+    authHint:
+      "OAuth application with ai_features + read_user scopes. Configure GITLAB_DUO_OAUTH_CLIENT_ID and optionally GITLAB_DUO_OAUTH_CLIENT_SECRET on this OmniRoute instance.",
+  },
+  cursor: {
+    id: "cursor",
+    alias: "cu",
+    name: "Cursor IDE",
+    icon: "edit_note",
+    color: "#00D4AA",
+    subscriptionRisk: true,
+    riskNoticeVariant: "oauth",
+  },
+  zed: {
+    id: "zed",
+    alias: "zd",
+    name: "Zed IDE",
+    icon: "code",
+    color: "#084CCF",
+    textIcon: "ZD",
+    website: "https://zed.dev",
+    authHint:
+      "Zed stores LLM provider credentials (OpenAI, Anthropic, Google, Mistral, xAI) in the OS keychain. Use the Import button below to discover and import them automatically.",
+  },
+  trae: {
+    id: "trae",
+    alias: "tr",
+    name: "Trae",
+    icon: "edit_square",
+    color: "#FF7849",
+    textIcon: "TR",
+    website: "https://trae.ai",
+    authHint:
+      "Trae is an AI-native IDE by ByteDance (SOLO remote agent). Authorize via trae.ai in the popup, or sign in at solo.trae.ai and paste the Cloud-IDE-JWT (sent as 'Authorization: Cloud-IDE-JWT <token>', ~14-day lifetime) as the access token; web_id/biz_user_id/user_unique_id/scope/tenant/region propagate via providerSpecificData. No headless refresh for pasted tokens — re-paste on expiry.",
+  },
+  "kimi-coding": {
+    id: "kimi-coding",
+    alias: "kmc",
+    name: "Kimi Coding",
+    icon: "psychology",
+    color: "#1E40AF",
+    textIcon: "KC",
+    subscriptionRisk: true,
+    riskNoticeVariant: "oauth",
+  },
+  kilocode: {
+    id: "kilocode",
+    alias: "kc",
+    name: "Kilo Code",
+    icon: "code",
+    color: "#FF6B35",
+    textIcon: "KC",
+    subscriptionRisk: true,
+    riskNoticeVariant: "oauth",
+  },
+  cline: {
+    id: "cline",
+    alias: "cl",
+    name: "Cline",
+    icon: "smart_toy",
+    color: "#5B9BD5",
+    textIcon: "CL",
+    subscriptionRisk: true,
+    riskNoticeVariant: "oauth",
+  },
+  windsurf: {
+    id: "windsurf",
+    alias: "ws",
+    name: "Windsurf (Devin CLI)",
+    icon: "air",
+    color: "#00C5A0",
+    textIcon: "WS",
+    subscriptionRisk: true,
+    riskNoticeVariant: "oauth",
+    authHint:
+      "Sign in at windsurf.com to get your token. Visit windsurf.com/show-auth-token after logging in and paste it here, or use the device-code login flow.",
+    website: "https://windsurf.com",
+  },
+  "devin-cli": {
+    id: "devin-cli",
+    alias: "dv",
+    name: "Devin CLI (Official)",
+    icon: "terminal",
+    color: "#6366F1",
+    textIcon: "DV",
+    authHint:
+      "Requires the Devin CLI binary. Run `devin auth login` to authenticate, or provide your WINDSURF_API_KEY. Install: https://cli.devin.ai",
+    website: "https://cli.devin.ai",
+  },
+};
+
