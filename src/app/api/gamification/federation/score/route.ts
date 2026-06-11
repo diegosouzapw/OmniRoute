@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { CORS_HEADERS, handleCorsOptions } from "@/shared/utils/cors";
 import { updateScore } from "@/lib/gamification/leaderboard";
+import { getConnectedServerByKeyHash } from "@/lib/db/gamification";
 import { z } from "zod";
 import crypto from "crypto";
 
@@ -24,11 +25,7 @@ export async function POST(request: NextRequest) {
   const tokenHash = crypto
     .pbkdf2Sync(token, "omniroute-federation-salt", 120000, 32, "sha256")
     .toString("hex");
-  const { getDbInstance } = await import("@/lib/db/core");
-  const db = getDbInstance();
-  const server = db
-    .prepare("SELECT id FROM community_servers WHERE api_key_hash = ? AND status = 'connected'")
-    .get(tokenHash) as { id: string } | undefined;
+  const server = getConnectedServerByKeyHash(tokenHash);
 
   if (!server) {
     return NextResponse.json(
