@@ -2870,3 +2870,125 @@ test("handleComboChat aborts combo when 503 response does NOT contain the unavai
       result.status === 503
   );
 });
+
+test("#3587 reasoning model gets max_tokens buffer applied", async () => {
+  saveModelsDevCapabilities({
+    openai: {
+      "gpt-4o-reasoning": capabilityEntry(4096, { reasoning: true }),
+    },
+  });
+
+  const bodies: Array<Record<string, unknown>> = [];
+  const result = await handleComboChat({
+    body: { max_tokens: 4096 },
+    combo: {
+      name: "reasoning-buffer",
+      models: ["openai/gpt-4o-reasoning"],
+    },
+    handleSingleModel: async (body: any) => {
+      bodies.push(body);
+      return okResponse();
+    },
+    isModelAvailable: async () => true,
+    log: createLog(),
+    settings: null,
+    relayOptions: null as any,
+    allCombos: null,
+  });
+
+  assert.equal(result.ok, true);
+  assert.equal(bodies.length, 1, "should have called handleSingleModel once");
+  // 4096 * 1.5 = 6144; max(4096+1000, 6144) = 6144
+  assert.equal(bodies[0].max_tokens, 6144, "max_tokens should be buffered for reasoning model");
+});
+
+test("#3587 non-reasoning model does not get max_tokens buffer", async () => {
+  saveModelsDevCapabilities({
+    openai: {
+      "gpt-4o-plain": capabilityEntry(4096, { reasoning: false }),
+    },
+  });
+
+  const bodies: Array<Record<string, unknown>> = [];
+  const result = await handleComboChat({
+    body: { max_tokens: 4096 },
+    combo: {
+      name: "no-reasoning-buffer",
+      models: ["openai/gpt-4o-plain"],
+    },
+    handleSingleModel: async (body: any) => {
+      bodies.push(body);
+      return okResponse();
+    },
+    isModelAvailable: async () => true,
+    log: createLog(),
+    settings: null,
+    relayOptions: null as any,
+    allCombos: null,
+  });
+
+  assert.equal(result.ok, true);
+  assert.equal(bodies.length, 1, "should have called handleSingleModel once");
+  // Non-reasoning model: max_tokens should NOT be buffered
+  assert.equal(
+    bodies[0].max_tokens,
+    4096,
+    "max_tokens should remain unchanged for non-reasoning model"
+  );
+});
+
+test("#3587 round-robin buffer does NOT compound across reasoning models", async () => {
+  // Two reasoning models in a round-robin combo. The first fails (400) so the
+  // loop falls through to the second. The buffer must be computed from the
+  // ORIGINAL max_tokens for each attempt — never from an already-buffered value —
+  // so both attempts see 6144 (4096 * 1.5), not [6144, 9216, ...]. Regression for
+  // the shared-`body` mutation that compounded the buffer on every RR iteration.
+  saveModelsDevCapabilities({
+    openai: {
+      "rr-reasoning-a": capabilityEntry(4096, { reasoning: true }),
+      "rr-reasoning-b": capabilityEntry(4096, { reasoning: true }),
+    },
+  });
+
+  const seen: Array<{ model: string; maxTokens: unknown }> = [];
+  const result = await handleComboChat({
+    body: { max_tokens: 4096 },
+    combo: {
+      name: "rr-reasoning-no-compound",
+      strategy: "round-robin",
+      models: ["openai/rr-reasoning-a", "openai/rr-reasoning-b"],
+    },
+    handleSingleModel: async (body: any, modelStr: any) => {
+      seen.push({ model: modelStr, maxTokens: body.max_tokens });
+      if (modelStr === "openai/rr-reasoning-a") {
+        return new Response(JSON.stringify({ error: { message: "transient" } }), {
+          status: 400,
+          headers: { "content-type": "application/json" },
+        });
+      }
+      return okResponse();
+    },
+    isModelAvailable: async () => true,
+    log: createLog(),
+    settings: {
+      comboDefaults: {
+        concurrencyPerModel: 1,
+        queueTimeoutMs: 5,
+        maxRetries: 0,
+        retryDelayMs: 1,
+      },
+    },
+    relayOptions: null as any,
+    allCombos: null,
+  });
+
+  assert.equal(result.status, 200);
+  assert.equal(seen.length, 2, "both reasoning models should have been attempted");
+  // Each attempt buffers from the original 4096 → 6144. No compounding.
+  assert.equal(seen[0].maxTokens, 6144, "first reasoning model buffered from original");
+  assert.equal(
+    seen[1].maxTokens,
+    6144,
+    "second reasoning model must ALSO buffer from original 4096, not 6144"
+  );
+});
