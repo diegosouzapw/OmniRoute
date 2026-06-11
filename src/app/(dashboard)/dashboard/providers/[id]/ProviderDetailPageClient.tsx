@@ -95,12 +95,40 @@ import {
   getWebSessionCredentialRequirement,
   type WebSessionCredentialRequirement,
 } from "./webSessionCredentials";
-import { ImportCodexAuthModal, ApplyCodexAuthModal } from "./components/modals/ImportCodexAuthModal";
-import { ImportClaudeAuthModal, ApplyClaudeAuthModal } from "./components/modals/ImportClaudeAuthModal";
-import { ImportGeminiAuthModal, ApplyGeminiAuthModal } from "./components/modals/ImportGeminiAuthModal";
+import {
+  ImportCodexAuthModal,
+  ApplyCodexAuthModal,
+} from "./components/modals/ImportCodexAuthModal";
+import {
+  ImportClaudeAuthModal,
+  ApplyClaudeAuthModal,
+} from "./components/modals/ImportClaudeAuthModal";
+import {
+  ImportGeminiAuthModal,
+  ApplyGeminiAuthModal,
+} from "./components/modals/ImportGeminiAuthModal";
 
 import EditCompatibleNodeModal from "./components/modals/EditCompatibleNodeModal";
 import { CC_COMPATIBLE_DEFAULT_CHAT_PATH } from "./providerDetailConstants";
+import {
+  CONFIGURABLE_BASE_URL_PROVIDERS,
+  DEFAULT_PROVIDER_BASE_URLS,
+  getLocalProviderMetadata,
+  isBaseUrlConfigurableProvider,
+  getProviderBaseUrlDefault,
+  getProviderBaseUrlHint,
+  getProviderBaseUrlPlaceholder,
+  isGlmProvider,
+  parseRoutingTagsInput,
+  parseExcludedModelsInput,
+  formatRoutingTagsInput,
+  formatExcludedModelsInput,
+  providerText,
+  providerCountText,
+  readBooleanToggle,
+  type ProviderMessageTranslator,
+  type LocalProviderMetadata,
+} from "./providerPageHelpers";
 type CompatByProtocolMap = Partial<
   Record<
     ModelCompatProtocolKey,
@@ -135,11 +163,6 @@ type CompatModelRow = {
 };
 
 type CompatModelMap = Map<string, CompatModelRow>;
-type LocalProviderMetadata = {
-  name?: string;
-  localDefault?: string;
-  [key: string]: unknown;
-};
 
 function buildCompatMap(rows: CompatModelRow[]): CompatModelMap {
   const m = new Map<string, CompatModelRow>();
@@ -169,49 +192,6 @@ function isModelHidden(
     return Boolean(o.isHidden);
   }
   return false;
-}
-
-type ProviderMessageTranslator = ((key: string, values?: Record<string, unknown>) => string) & {
-  has?: (key: string) => boolean;
-};
-
-function providerText(
-  t: ProviderMessageTranslator,
-  key: string,
-  fallback: string,
-  values?: Record<string, unknown>
-): string {
-  if (typeof t.has === "function" && t.has(key)) {
-    return t(key, values);
-  }
-  if (values) {
-    return Object.entries(values).reduce(
-      (acc, [name, value]) => acc.replaceAll(`{${name}}`, String(value)),
-      fallback
-    );
-  }
-  return fallback;
-}
-
-function providerCountText(
-  t: ProviderMessageTranslator,
-  key: string,
-  count: number,
-  singularFallback: string,
-  pluralFallback: string
-): string {
-  return providerText(t, key, count === 1 ? singularFallback : pluralFallback, { count });
-}
-
-function readBooleanToggle(value: unknown, fallback: boolean): boolean {
-  if (typeof value === "boolean") return value;
-  if (typeof value === "number") return value === 1;
-  if (typeof value === "string") {
-    const normalized = value.trim().toLowerCase();
-    if (normalized === "1" || normalized === "true") return true;
-    if (normalized === "0" || normalized === "false") return false;
-  }
-  return fallback;
 }
 
 function getWebSessionCredentialLabel(
@@ -1570,7 +1550,7 @@ export default function ProviderDetailPageClient() {
         source: normalizeModelCatalogSource(cm.source) === "imported" ? "imported" : "custom",
       }));
     const allModels = [...builtInModels, ...syncedExtras, ...customExtras];
-    const deduped = new Map<string, typeof allModels[0]>();
+    const deduped = new Map<string, (typeof allModels)[0]>();
     for (const m of allModels) {
       if (m.id && !deduped.has(m.id)) deduped.set(m.id, m);
     }
@@ -1673,10 +1653,9 @@ export default function ProviderDetailPageClient() {
   const handleDeleteAlias = useCallback(
     async (alias: string) => {
       try {
-        const res = await fetch(
-          `/api/models/alias?alias=${encodeURIComponent(alias)}`,
-          { method: "DELETE" }
-        );
+        const res = await fetch(`/api/models/alias?alias=${encodeURIComponent(alias)}`, {
+          method: "DELETE",
+        });
         if (res.ok) {
           await fetchAliases();
           notify.success(t("deleteAliasSuccess", { alias }));
@@ -2029,20 +2008,14 @@ export default function ProviderDetailPageClient() {
           } catch (e) {
             error++;
           }
-          setTestProgress((prev) =>
-            prev ? { done: prev.done + 1, total: prev.total } : null
-          );
+          setTestProgress((prev) => (prev ? { done: prev.done + 1, total: prev.total } : null));
         })
       );
     }
 
-    notify.info(
-      providerText(t, "testAllResults", "{ok} ok, {error} error", { ok, error })
-    );
+    notify.info(providerText(t, "testAllResults", "{ok} ok, {error} error", { ok, error }));
     if (hiddenCount > 0) {
-      notify.info(
-        providerText(t, "testAllFailedHidden", "{count} hidden", { count: hiddenCount })
-      );
+      notify.info(providerText(t, "testAllFailedHidden", "{count} hidden", { count: hiddenCount }));
     }
     setTestingAll(false);
     setTestProgress(null);
@@ -2677,8 +2650,7 @@ export default function ProviderDetailPageClient() {
   const handleDistributeProxies = async (tagFilter?: string) => {
     const targetConnections = tagFilter
       ? connections.filter(
-          (c: any) =>
-            (c.providerSpecificData?.tag as string | undefined)?.trim() === tagFilter
+          (c: any) => (c.providerSpecificData?.tag as string | undefined)?.trim() === tagFilter
         )
       : connections;
     if (targetConnections.length === 0) return;
@@ -2687,9 +2659,7 @@ export default function ProviderDetailPageClient() {
       const proxiesRes = await fetch("/api/settings/proxies");
       if (!proxiesRes.ok) throw new Error("Failed to fetch proxies");
       const proxiesData = await proxiesRes.json();
-      const savedProxies = (proxiesData?.items || []).filter(
-        (p: any) => p.status === "active"
-      );
+      const savedProxies = (proxiesData?.items || []).filter((p: any) => p.status === "active");
       if (savedProxies.length === 0) {
         notify.error("No saved proxies found. Add proxies in Settings → Proxy first.");
         return;
@@ -3681,8 +3651,7 @@ export default function ProviderDetailPageClient() {
   const providerAliasEntries = useMemo(
     () =>
       Object.entries(modelAliases).filter(
-        ([, model]) =>
-          typeof model === "string" && model.startsWith(`${providerStorageAlias}/`)
+        ([, model]) => typeof model === "string" && model.startsWith(`${providerStorageAlias}/`)
       ),
     [modelAliases, providerStorageAlias]
   );
@@ -4786,15 +4755,24 @@ export default function ProviderDetailPageClient() {
                 { value: "active", label: t("filterActive", "Active") },
                 { value: "error", label: t("filterError", "Error") },
                 { value: "banned", label: t("filterBanned", "Banned") },
-                { value: "credits_exhausted", label: t("filterCreditsExhausted", "Credits Exhausted") },
+                {
+                  value: "credits_exhausted",
+                  label: t("filterCreditsExhausted", "Credits Exhausted"),
+                },
               ];
-              const filtered = healthFilter === "all"
-                ? sorted
-                : sorted.filter((c) => {
-                    if (healthFilter === "active") return isHealthy(c);
-                    if (healthFilter === "error") return !isHealthy(c) && c.testStatus !== "banned" && c.testStatus !== "credits_exhausted";
-                    return c.testStatus === healthFilter;
-                  });
+              const filtered =
+                healthFilter === "all"
+                  ? sorted
+                  : sorted.filter((c) => {
+                      if (healthFilter === "active") return isHealthy(c);
+                      if (healthFilter === "error")
+                        return (
+                          !isHealthy(c) &&
+                          c.testStatus !== "banned" &&
+                          c.testStatus !== "credits_exhausted"
+                        );
+                      return c.testStatus === healthFilter;
+                    });
 
               const totalFilteredPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
               const clampedPage = Math.min(page, totalFilteredPages - 1);
@@ -4823,36 +4801,38 @@ export default function ProviderDetailPageClient() {
                 </div>
               );
 
-              const paginationBar = totalFilteredPages > 1 ? (
-                <div className="flex items-center justify-between px-3 py-2 border-t border-border">
-                  <span className="text-xs text-text-muted">
-                    {pageStart + 1}–{Math.min(pageEnd, filtered.length)} / {filtered.length}
-                  </span>
-                  <div className="flex items-center gap-1">
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      icon="chevron_left"
-                      disabled={clampedPage === 0}
-                      onClick={() => setPage((p) => Math.max(0, p - 1))}
-                    />
-                    <span className="text-xs text-text-muted min-w-[4rem] text-center">
-                      {clampedPage + 1} / {totalFilteredPages}
+              const paginationBar =
+                totalFilteredPages > 1 ? (
+                  <div className="flex items-center justify-between px-3 py-2 border-t border-border">
+                    <span className="text-xs text-text-muted">
+                      {pageStart + 1}–{Math.min(pageEnd, filtered.length)} / {filtered.length}
                     </span>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      icon="chevron_right"
-                      disabled={clampedPage >= totalFilteredPages - 1}
-                      onClick={() => setPage((p) => Math.min(totalFilteredPages - 1, p + 1))}
-                    />
+                    <div className="flex items-center gap-1">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        icon="chevron_left"
+                        disabled={clampedPage === 0}
+                        onClick={() => setPage((p) => Math.max(0, p - 1))}
+                      />
+                      <span className="text-xs text-text-muted min-w-[4rem] text-center">
+                        {clampedPage + 1} / {totalFilteredPages}
+                      </span>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        icon="chevron_right"
+                        disabled={clampedPage >= totalFilteredPages - 1}
+                        onClick={() => setPage((p) => Math.min(totalFilteredPages - 1, p + 1))}
+                      />
+                    </div>
                   </div>
-                </div>
-              ) : null;
+                ) : null;
 
               if (!hasAnyTag) {
                 const pageConnections = filtered.slice(pageStart, pageEnd);
-                const allSelected = pageConnections.length > 0 && pageConnections.every((c) => selectedIds.has(c.id));
+                const allSelected =
+                  pageConnections.length > 0 && pageConnections.every((c) => selectedIds.has(c.id));
                 const someSelected = pageConnections.some((c) => selectedIds.has(c.id));
                 return (
                   <>
@@ -4913,113 +4893,117 @@ export default function ProviderDetailPageClient() {
                         </div>
                       ) : (
                         pageConnections.map((conn, index) => (
-                        <ConnectionRow
-                          key={conn.id}
-                          connection={conn}
-                          isOAuth={conn.authType === "oauth"}
-                          isClaude={providerId === "claude"}
-                          codexGlobalServiceMode={codexGlobalServiceMode}
-                          isFirst={index === 0}
-                          isLast={index === pageConnections.length - 1}
-                          isSelected={selectedIds.has(conn.id)}
-                          onToggleSelect={() => handleToggleSelectOne(conn.id)}
-                          onMoveUp={() => handleSwapPriority(conn, sorted[index - 1])}
-                          onMoveDown={() => handleSwapPriority(conn, sorted[index + 1])}
-                          onToggleActive={(isActive) =>
-                            handleUpdateConnectionStatus(conn.id, isActive)
-                          }
-                          onToggleRateLimit={(enabled) => handleToggleRateLimit(conn.id, enabled)}
-                          onToggleClaudeExtraUsage={(enabled) =>
-                            handleToggleClaudeExtraUsage(conn.id, enabled)
-                          }
-                          isCodex={providerId === "codex"}
-                          isGeminiCli={providerId === "gemini-cli"}
-                          isCcCompatible={isCcCompatible}
-                          cliproxyapiEnabled={cpaProviderEnabled}
-                          onToggleCliproxyapiMode={(enabled) =>
-                            handleToggleCliproxyapiMode(conn.id, enabled)
-                          }
-                          onToggleCodex5h={(enabled) =>
-                            handleToggleCodexLimit(conn.id, "use5h", enabled)
-                          }
-                          onToggleCodexWeekly={(enabled) =>
-                            handleToggleCodexLimit(conn.id, "useWeekly", enabled)
-                          }
-                          onRetest={() => handleRetestConnection(conn.id)}
-                          isRetesting={retestingId === conn.id}
-                          onEdit={() => {
-                            setSelectedConnection(conn);
-                            setShowEditModal(true);
-                          }}
-                          onDelete={() => handleDelete(conn.id)}
-                          onReauth={
-                            conn.authType === "oauth"
-                              ? () => gateConnectionFlow(() => setShowOAuthModal(true, conn))
-                              : undefined
-                          }
-                          onRefreshToken={
-                            conn.authType === "oauth"
-                              ? () => handleRefreshToken(conn.id)
-                              : undefined
-                          }
-                          isRefreshing={refreshingId === conn.id}
-                          onApplyCodexAuthLocal={
-                            providerId === "codex"
-                              ? () => setApplyCodexModalConnectionId(conn.id)
-                              : undefined
-                          }
-                          isApplyingCodexAuthLocal={applyingCodexAuthId === conn.id}
-                          onExportCodexAuthFile={
-                            providerId === "codex"
-                              ? () => handleExportCodexAuthFile(conn.id)
-                              : undefined
-                          }
-                          isExportingCodexAuthFile={exportingCodexAuthId === conn.id}
-                          onApplyClaudeAuthLocal={
-                            providerId === "claude"
-                              ? () => setApplyClaudeModalConnectionId(conn.id)
-                              : undefined
-                          }
-                          isApplyingClaudeAuthLocal={applyingClaudeAuthId === conn.id}
-                          onExportClaudeAuthFile={
-                            providerId === "claude"
-                              ? () => handleExportClaudeAuthFile(conn.id)
-                              : undefined
-                          }
-                          isExportingClaudeAuthFile={exportingClaudeAuthId === conn.id}
-                          onApplyGeminiAuthLocal={
-                            providerId === "gemini-cli"
-                              ? () => setApplyGeminiModalConnectionId(conn.id)
-                              : undefined
-                          }
-                          isApplyingGeminiAuthLocal={applyingGeminiAuthId === conn.id}
-                          onExportGeminiAuthFile={
-                            providerId === "gemini-cli"
-                              ? () => handleExportGeminiAuthFile(conn.id)
-                              : undefined
-                          }
-                          isExportingGeminiAuthFile={exportingGeminiAuthId === conn.id}
-                          onProxy={() =>
-                            setProxyTarget({
-                              level: "key",
-                              id: conn.id,
-                              label: pickDisplayValue(
-                                [conn.name, conn.email],
-                                emailsVisible,
-                                conn.id
-                              ),
-                            })
-                          }
-                          hasProxy={!!connProxyMap[conn.id]?.proxy}
-                          proxySource={connProxyMap[conn.id]?.level || null}
-                          proxyHost={connProxyMap[conn.id]?.proxy?.host || null}
-                          proxyEnabled={readBooleanToggle(conn.proxyEnabled, true)}
-                          onToggleProxyEnabled={(enabled) => handleToggleProxyEnabled(conn.id, enabled)}
-                          perKeyProxyEnabled={readBooleanToggle(conn.perKeyProxyEnabled, false)}
-                          onTogglePerKeyProxyEnabled={(enabled) => handleTogglePerKeyProxyEnabled(conn.id, enabled)}
-                        />
-                      )))
-                      }
+                          <ConnectionRow
+                            key={conn.id}
+                            connection={conn}
+                            isOAuth={conn.authType === "oauth"}
+                            isClaude={providerId === "claude"}
+                            codexGlobalServiceMode={codexGlobalServiceMode}
+                            isFirst={index === 0}
+                            isLast={index === pageConnections.length - 1}
+                            isSelected={selectedIds.has(conn.id)}
+                            onToggleSelect={() => handleToggleSelectOne(conn.id)}
+                            onMoveUp={() => handleSwapPriority(conn, sorted[index - 1])}
+                            onMoveDown={() => handleSwapPriority(conn, sorted[index + 1])}
+                            onToggleActive={(isActive) =>
+                              handleUpdateConnectionStatus(conn.id, isActive)
+                            }
+                            onToggleRateLimit={(enabled) => handleToggleRateLimit(conn.id, enabled)}
+                            onToggleClaudeExtraUsage={(enabled) =>
+                              handleToggleClaudeExtraUsage(conn.id, enabled)
+                            }
+                            isCodex={providerId === "codex"}
+                            isGeminiCli={providerId === "gemini-cli"}
+                            isCcCompatible={isCcCompatible}
+                            cliproxyapiEnabled={cpaProviderEnabled}
+                            onToggleCliproxyapiMode={(enabled) =>
+                              handleToggleCliproxyapiMode(conn.id, enabled)
+                            }
+                            onToggleCodex5h={(enabled) =>
+                              handleToggleCodexLimit(conn.id, "use5h", enabled)
+                            }
+                            onToggleCodexWeekly={(enabled) =>
+                              handleToggleCodexLimit(conn.id, "useWeekly", enabled)
+                            }
+                            onRetest={() => handleRetestConnection(conn.id)}
+                            isRetesting={retestingId === conn.id}
+                            onEdit={() => {
+                              setSelectedConnection(conn);
+                              setShowEditModal(true);
+                            }}
+                            onDelete={() => handleDelete(conn.id)}
+                            onReauth={
+                              conn.authType === "oauth"
+                                ? () => gateConnectionFlow(() => setShowOAuthModal(true, conn))
+                                : undefined
+                            }
+                            onRefreshToken={
+                              conn.authType === "oauth"
+                                ? () => handleRefreshToken(conn.id)
+                                : undefined
+                            }
+                            isRefreshing={refreshingId === conn.id}
+                            onApplyCodexAuthLocal={
+                              providerId === "codex"
+                                ? () => setApplyCodexModalConnectionId(conn.id)
+                                : undefined
+                            }
+                            isApplyingCodexAuthLocal={applyingCodexAuthId === conn.id}
+                            onExportCodexAuthFile={
+                              providerId === "codex"
+                                ? () => handleExportCodexAuthFile(conn.id)
+                                : undefined
+                            }
+                            isExportingCodexAuthFile={exportingCodexAuthId === conn.id}
+                            onApplyClaudeAuthLocal={
+                              providerId === "claude"
+                                ? () => setApplyClaudeModalConnectionId(conn.id)
+                                : undefined
+                            }
+                            isApplyingClaudeAuthLocal={applyingClaudeAuthId === conn.id}
+                            onExportClaudeAuthFile={
+                              providerId === "claude"
+                                ? () => handleExportClaudeAuthFile(conn.id)
+                                : undefined
+                            }
+                            isExportingClaudeAuthFile={exportingClaudeAuthId === conn.id}
+                            onApplyGeminiAuthLocal={
+                              providerId === "gemini-cli"
+                                ? () => setApplyGeminiModalConnectionId(conn.id)
+                                : undefined
+                            }
+                            isApplyingGeminiAuthLocal={applyingGeminiAuthId === conn.id}
+                            onExportGeminiAuthFile={
+                              providerId === "gemini-cli"
+                                ? () => handleExportGeminiAuthFile(conn.id)
+                                : undefined
+                            }
+                            isExportingGeminiAuthFile={exportingGeminiAuthId === conn.id}
+                            onProxy={() =>
+                              setProxyTarget({
+                                level: "key",
+                                id: conn.id,
+                                label: pickDisplayValue(
+                                  [conn.name, conn.email],
+                                  emailsVisible,
+                                  conn.id
+                                ),
+                              })
+                            }
+                            hasProxy={!!connProxyMap[conn.id]?.proxy}
+                            proxySource={connProxyMap[conn.id]?.level || null}
+                            proxyHost={connProxyMap[conn.id]?.proxy?.host || null}
+                            proxyEnabled={readBooleanToggle(conn.proxyEnabled, true)}
+                            onToggleProxyEnabled={(enabled) =>
+                              handleToggleProxyEnabled(conn.id, enabled)
+                            }
+                            perKeyProxyEnabled={readBooleanToggle(conn.perKeyProxyEnabled, false)}
+                            onTogglePerKeyProxyEnabled={(enabled) =>
+                              handleTogglePerKeyProxyEnabled(conn.id, enabled)
+                            }
+                          />
+                        ))
+                      )}
                     </div>
                     {paginationBar}
                   </>
@@ -5226,9 +5210,16 @@ export default function ProviderDetailPageClient() {
                                 proxySource={connProxyMap[conn.id]?.level || null}
                                 proxyHost={connProxyMap[conn.id]?.proxy?.host || null}
                                 proxyEnabled={readBooleanToggle(conn.proxyEnabled, true)}
-                                onToggleProxyEnabled={(enabled) => handleToggleProxyEnabled(conn.id, enabled)}
-                                perKeyProxyEnabled={readBooleanToggle(conn.perKeyProxyEnabled, false)}
-                                onTogglePerKeyProxyEnabled={(enabled) => handleTogglePerKeyProxyEnabled(conn.id, enabled)}
+                                onToggleProxyEnabled={(enabled) =>
+                                  handleToggleProxyEnabled(conn.id, enabled)
+                                }
+                                perKeyProxyEnabled={readBooleanToggle(
+                                  conn.perKeyProxyEnabled,
+                                  false
+                                )}
+                                onTogglePerKeyProxyEnabled={(enabled) =>
+                                  handleTogglePerKeyProxyEnabled(conn.id, enabled)
+                                }
                               />
                             ))}
                           </div>
@@ -5447,10 +5438,7 @@ export default function ProviderDetailPageClient() {
         />
       )}
       {/* Codex CLI Guide Modal */}
-      <CodexCliGuideModal
-        isOpen={codexCliGuideOpen}
-        onClose={() => setCodexCliGuideOpen(false)}
-      />
+      <CodexCliGuideModal isOpen={codexCliGuideOpen} onClose={() => setCodexCliGuideOpen(false)} />
       {/* Codex Import Auth Modal */}
       {providerId === "codex" && importCodexModalOpen && (
         <ImportCodexAuthModal
@@ -5471,8 +5459,8 @@ export default function ProviderDetailPageClient() {
           <div className="space-y-4">
             <p className="text-sm text-text-muted">
               Compartilhe este link com quem vai autenticar a conta do Codex. A pessoa abre a
-              página, faz o login da OpenAI no próprio navegador e a conexão é cadastrada aqui.
-              Uso único, expira em 15 minutos.
+              página, faz o login da OpenAI no próprio navegador e a conexão é cadastrada aqui. Uso
+              único, expira em 15 minutos.
             </p>
             {externalLinkLoading ? (
               <p className="text-sm text-text-muted">Gerando link…</p>
@@ -5743,7 +5731,7 @@ export default function ProviderDetailPageClient() {
           {importProgress.logs.length > 0 && (
             <div className="max-h-48 overflow-y-auto rounded-lg bg-black/5 dark:bg-white/5 p-3 border border-black/5 dark:border-white/5">
               <div className="flex flex-col gap-1">
-                  {importProgress.logs.map((log, i) => (
+                {importProgress.logs.map((log, i) => (
                   <p
                     key={i}
                     className={`text-xs font-mono ${
@@ -6505,80 +6493,80 @@ function PassthroughModelRow({
           )}
         </div>
         <div className="flex shrink-0 items-center gap-1">
-        <button
-          onClick={() => onCopy(fullModel, `model-${modelId}`)}
-          className="rounded p-0.5 text-text-muted hover:bg-sidebar hover:text-primary"
-          title={t("copyModel")}
-        >
-          <span className="material-symbols-outlined text-sm">
-            {copied === `model-${modelId}` ? "check" : "content_copy"}
-          </span>
-        </button>
-        {onTestModel && (
           <button
-            onClick={() => onTestModel(modelId, fullModel)}
-            disabled={testingModel}
-            className={`rounded p-0.5 hover:bg-sidebar transition-colors disabled:opacity-40 disabled:cursor-not-allowed ${testStatus === "ok" ? "text-green-500" : testStatus === "error" ? "text-red-500" : "text-text-muted hover:text-primary"}`}
-            title={
-              testingModel
-                ? t("testingModel")
-                : testStatus === "ok"
-                  ? "OK"
-                  : testStatus === "error"
-                    ? "Error"
-                    : t("testModel")
-            }
-          >
-            {testingModel ? (
-              <span className="material-symbols-outlined text-sm animate-spin">
-                progress_activity
-              </span>
-            ) : testStatus === "ok" ? (
-              <span className="material-symbols-outlined text-sm">check_circle</span>
-            ) : testStatus === "error" ? (
-              <span className="material-symbols-outlined text-sm">error</span>
-            ) : (
-              <span className="material-symbols-outlined text-sm">play_circle</span>
-            )}
-          </button>
-        )}
-        {onToggleHidden && (
-          <button
-            onClick={() => onToggleHidden(modelId, !isHidden)}
-            disabled={togglingHidden}
-            className="rounded p-0.5 text-text-muted hover:bg-sidebar hover:text-primary disabled:cursor-not-allowed disabled:opacity-40"
-            title={
-              isHidden
-                ? providerText(t, "showModel", "Show model")
-                : providerText(t, "hideModel", "Hide model")
-            }
+            onClick={() => onCopy(fullModel, `model-${modelId}`)}
+            className="rounded p-0.5 text-text-muted hover:bg-sidebar hover:text-primary"
+            title={t("copyModel")}
           >
             <span className="material-symbols-outlined text-sm">
-              {isHidden ? "visibility_off" : "visibility"}
+              {copied === `model-${modelId}` ? "check" : "content_copy"}
             </span>
           </button>
-        )}
-        <ModelCompatPopover
-          t={t}
-          effectiveModelNormalize={(p) => effectiveModelNormalize(modelId, p)}
-          effectiveModelPreserveDeveloper={(p) => effectiveModelPreserveDeveloper(modelId, p)}
-          getUpstreamHeadersRecord={getUpstreamHeadersRecord}
-          onCompatPatch={(protocol, payload) =>
-            saveModelCompatFlags(modelId, { compatByProtocol: { [protocol]: payload } })
-          }
-          showDeveloperToggle={showDeveloperToggle}
-          compact
-          disabled={compatDisabled}
-        />
-        {onDeleteAlias && (
-          <button
-            onClick={onDeleteAlias}
-            className="rounded p-1 text-red-500 hover:bg-red-50"
-            title={t("removeModel")}
-          >
-            <span className="material-symbols-outlined text-sm">delete</span>
-          </button>
-        )}
+          {onTestModel && (
+            <button
+              onClick={() => onTestModel(modelId, fullModel)}
+              disabled={testingModel}
+              className={`rounded p-0.5 hover:bg-sidebar transition-colors disabled:opacity-40 disabled:cursor-not-allowed ${testStatus === "ok" ? "text-green-500" : testStatus === "error" ? "text-red-500" : "text-text-muted hover:text-primary"}`}
+              title={
+                testingModel
+                  ? t("testingModel")
+                  : testStatus === "ok"
+                    ? "OK"
+                    : testStatus === "error"
+                      ? "Error"
+                      : t("testModel")
+              }
+            >
+              {testingModel ? (
+                <span className="material-symbols-outlined text-sm animate-spin">
+                  progress_activity
+                </span>
+              ) : testStatus === "ok" ? (
+                <span className="material-symbols-outlined text-sm">check_circle</span>
+              ) : testStatus === "error" ? (
+                <span className="material-symbols-outlined text-sm">error</span>
+              ) : (
+                <span className="material-symbols-outlined text-sm">play_circle</span>
+              )}
+            </button>
+          )}
+          {onToggleHidden && (
+            <button
+              onClick={() => onToggleHidden(modelId, !isHidden)}
+              disabled={togglingHidden}
+              className="rounded p-0.5 text-text-muted hover:bg-sidebar hover:text-primary disabled:cursor-not-allowed disabled:opacity-40"
+              title={
+                isHidden
+                  ? providerText(t, "showModel", "Show model")
+                  : providerText(t, "hideModel", "Hide model")
+              }
+            >
+              <span className="material-symbols-outlined text-sm">
+                {isHidden ? "visibility_off" : "visibility"}
+              </span>
+            </button>
+          )}
+          <ModelCompatPopover
+            t={t}
+            effectiveModelNormalize={(p) => effectiveModelNormalize(modelId, p)}
+            effectiveModelPreserveDeveloper={(p) => effectiveModelPreserveDeveloper(modelId, p)}
+            getUpstreamHeadersRecord={getUpstreamHeadersRecord}
+            onCompatPatch={(protocol, payload) =>
+              saveModelCompatFlags(modelId, { compatByProtocol: { [protocol]: payload } })
+            }
+            showDeveloperToggle={showDeveloperToggle}
+            compact
+            disabled={compatDisabled}
+          />
+          {onDeleteAlias && (
+            <button
+              onClick={onDeleteAlias}
+              className="rounded p-1 text-red-500 hover:bg-red-50"
+              title={t("removeModel")}
+            >
+              <span className="material-symbols-outlined text-sm">delete</span>
+            </button>
+          )}
         </div>
       </div>
     </div>
@@ -8097,13 +8085,21 @@ function ConnectionRow({
                 <span className="text-text-muted/30 select-none">|</span>
                 <button
                   onClick={() => onTogglePerKeyProxyEnabled(!perKeyProxyEnabled)}
-                  aria-label={perKeyProxyEnabled ? t("perKeyProxyEnabledTitle") : t("perKeyProxyDisabledTitle")}
+                  aria-label={
+                    perKeyProxyEnabled
+                      ? t("perKeyProxyEnabledTitle")
+                      : t("perKeyProxyDisabledTitle")
+                  }
                   className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-xs font-medium transition-all cursor-pointer ${
                     perKeyProxyEnabled
                       ? "bg-violet-500/15 text-violet-500 hover:bg-violet-500/25"
                       : "bg-black/[0.03] dark:bg-white/[0.03] text-text-muted/50 hover:text-text-muted hover:bg-black/[0.06] dark:hover:bg-white/[0.06]"
                   }`}
-                  title={perKeyProxyEnabled ? t("perKeyProxyEnabledTitle") : t("perKeyProxyDisabledTitle")}
+                  title={
+                    perKeyProxyEnabled
+                      ? t("perKeyProxyEnabledTitle")
+                      : t("perKeyProxyDisabledTitle")
+                  }
                 >
                   <span className="material-symbols-outlined text-[13px]">key</span>
                   {perKeyProxyEnabled ? (
@@ -8300,149 +8296,6 @@ function ConnectionRow({
       </div>
     </div>
   );
-}
-
-const CONFIGURABLE_BASE_URL_PROVIDERS = new Set([
-  "azure-openai",
-  "azure-ai",
-  "bailian-coding-plan",
-  "xiaomi-mimo",
-  "siliconflow",
-  "heroku",
-  "databricks",
-  "snowflake",
-  "searxng-search",
-  "petals",
-]);
-
-const DEFAULT_PROVIDER_BASE_URLS: Record<string, string> = {
-  "azure-openai": "https://example-resource.openai.azure.com",
-  "azure-ai": "https://example-resource.services.ai.azure.com/openai/v1",
-  "bailian-coding-plan": "https://coding-intl.dashscope.aliyuncs.com/apps/anthropic/v1",
-  "xiaomi-mimo": "https://token-plan-sgp.xiaomimimo.com/v1",
-  siliconflow: "https://api.siliconflow.com/v1",
-  "searxng-search": "http://localhost:8888/search",
-  petals: "https://chat.petals.dev/api/v1/generate",
-};
-
-function getLocalProviderMetadata(providerId?: string | null) {
-  if (!providerId || !isSelfHostedChatProvider(providerId)) return null;
-  return (LOCAL_PROVIDERS as Record<string, LocalProviderMetadata>)[providerId] || null;
-}
-
-function isBaseUrlConfigurableProvider(providerId?: string | null) {
-  return Boolean(
-    providerId &&
-    (CONFIGURABLE_BASE_URL_PROVIDERS.has(providerId) || isSelfHostedChatProvider(providerId))
-  );
-}
-
-function getProviderBaseUrlDefault(providerId?: string | null) {
-  const localProvider = getLocalProviderMetadata(providerId);
-  if (typeof localProvider?.localDefault === "string" && localProvider.localDefault.trim()) {
-    return localProvider.localDefault;
-  }
-  return providerId ? DEFAULT_PROVIDER_BASE_URLS[providerId] || "" : "";
-}
-
-function getProviderBaseUrlHint(
-  providerId?: string | null,
-  t?: ((key: string, values?: Record<string, unknown>) => string) | null
-) {
-  const localProvider = getLocalProviderMetadata(providerId);
-  if (localProvider && t) {
-    return t("localProviderBaseUrlHint", {
-      provider: localProvider.name || providerId,
-      baseUrl: getProviderBaseUrlDefault(providerId),
-    });
-  }
-  switch (providerId) {
-    case "azure-openai":
-      return t ? t("azureOpenAiBaseUrlHint") : undefined;
-    case "bailian-coding-plan":
-      return t ? t("bailianBaseUrlHint") : undefined;
-    case "xiaomi-mimo":
-      return t ? t("xiaomiMimoBaseUrlHint") : undefined;
-    case "heroku":
-      return t ? t("herokuBaseUrlHint") : undefined;
-    case "databricks":
-      return t ? t("databricksBaseUrlHint") : undefined;
-    case "snowflake":
-      return t ? t("snowflakeBaseUrlHint") : undefined;
-    case "searxng-search":
-      return t ? t("searxngBaseUrlHint") : undefined;
-    default:
-      return undefined;
-  }
-}
-
-function getProviderBaseUrlPlaceholder(providerId?: string | null) {
-  if (isSelfHostedChatProvider(providerId || "")) {
-    return getProviderBaseUrlDefault(providerId);
-  }
-  switch (providerId) {
-    case "azure-openai":
-      return "https://my-resource.openai.azure.com";
-    case "bailian-coding-plan":
-    case "xiaomi-mimo":
-      return getProviderBaseUrlDefault(providerId);
-    case "siliconflow":
-      return "https://api.siliconflow.cn/v1";
-    case "heroku":
-      return "https://us.inference.heroku.com";
-    case "databricks":
-      return "https://adb-1234567890123456.7.azuredatabricks.net/serving-endpoints";
-    case "snowflake":
-      return "https://example-account.snowflakecomputing.com";
-    case "searxng-search":
-      return "http://localhost:8888/search";
-    default:
-      return "";
-  }
-}
-
-function isGlmProvider(providerId?: string | null) {
-  return providerId === "glm" || providerId === "glm-cn" || providerId === "glmt";
-}
-
-function parseRoutingTagsInput(value: string): string[] | undefined {
-  const tags = Array.from(
-    new Set(
-      value
-        .split(",")
-        .map((tag) => tag.trim().toLowerCase())
-        .filter(Boolean)
-    )
-  );
-  return tags.length > 0 ? tags : undefined;
-}
-
-function parseExcludedModelsInput(value: string): string[] | undefined {
-  const patterns = Array.from(
-    new Set(
-      value
-        .split(",")
-        .map((pattern) => pattern.trim())
-        .filter(Boolean)
-    )
-  );
-  return patterns.length > 0 ? patterns : undefined;
-}
-
-function formatRoutingTagsInput(value: unknown): string {
-  if (!Array.isArray(value)) return "";
-  return value
-    .filter((tag): tag is string => typeof tag === "string" && tag.trim().length > 0)
-    .join(", ");
-}
-
-function formatExcludedModelsInput(value: unknown): string {
-  if (!Array.isArray(value)) return "";
-  return value
-    .filter(
-      (pattern): pattern is string => typeof pattern === "string" && pattern.trim().length > 0
-    )
-    .join(", ");
 }
 
 function extractCommandCodeCredentialInput(value: string): string {
