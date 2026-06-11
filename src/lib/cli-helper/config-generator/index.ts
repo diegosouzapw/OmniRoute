@@ -1,6 +1,7 @@
 import path from "node:path";
 import os from "node:os";
 
+import { getHermesConfigPath } from "./hermesHome.ts";
 import { generateClaudeConfig } from "./claude";
 import { generateClineConfig } from "./cline";
 import { generateCodexConfig } from "./codex";
@@ -37,16 +38,28 @@ function expandHome(p: string): string {
   return p.replace(/^~\//, home + "/");
 }
 
-const TOOL_CONFIG_PATHS: Record<string, string> = {
+// Static paths that do not depend on runtime env vars can stay eagerly computed.
+const STATIC_TOOL_CONFIG_PATHS: Record<string, string> = {
   claude: path.join(os.homedir(), ".claude", "settings.json"),
   codex: path.join(os.homedir(), ".codex", "config.yaml"),
   opencode: path.join(os.homedir(), ".config", "opencode", "opencode.json"),
   cline: path.join(os.homedir(), ".cline", "data", "globalState.json"),
   kilocode: path.join(os.homedir(), ".config", "kilocode", "settings.json"),
   continue: path.join(os.homedir(), ".continue", "config.yaml"),
-  hermes: path.join(os.homedir(), ".hermes", "config.yaml"),
-  "hermes-agent": path.join(os.homedir(), ".hermes", "config.yaml"),
 };
+
+/**
+ * Returns the config path for a given tool.
+ *
+ * Hermes entries are resolved lazily at call-time so `HERMES_HOME` is always
+ * honoured (#3628).  All other tools use the eagerly-computed static map.
+ */
+function getToolConfigPath(toolId: string): string {
+  if (toolId === "hermes" || toolId === "hermes-agent") {
+    return getHermesConfigPath();
+  }
+  return STATIC_TOOL_CONFIG_PATHS[toolId] ?? "";
+}
 
 type ConfigGenerator = (options: GenerateOptions) => string | Promise<string>;
 
@@ -83,7 +96,7 @@ export async function generateConfig(
       return { success: false, configPath: "", error: `Unknown tool: ${toolId}` };
     }
     const content = await generate(options);
-    const configPath = TOOL_CONFIG_PATHS[toolId] || "";
+    const configPath = getToolConfigPath(toolId);
     return { success: true, configPath, content };
   } catch (err) {
     const msg = err instanceof Error ? err.message : String(err);

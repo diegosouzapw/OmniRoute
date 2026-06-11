@@ -35,6 +35,7 @@ const { autoUpdater } = require("electron-updater");
 const { hasEncryptedCredentials } = require("./sqlite-inspection");
 const { loginManager } = require("./loginManager");
 const { killProcessTree } = require("./processTree");
+const { resolveServerEntry } = require("./lib/resolveServerEntry");
 
 // ── Single Instance Lock ───────────────────────────────────
 const gotTheLock = app.requestSingleInstanceLock();
@@ -525,7 +526,11 @@ function startNextServer() {
     return;
   }
 
-  const serverScript = path.join(NEXT_SERVER_PATH, "server.js");
+  // Prefer server-ws.mjs (peer-stamp wrapper) when present; fall back to server.js.
+  // Without server-ws.mjs every LOCAL_ONLY route (AgentBridge, MCP, services, …) returns
+  // 403 because the authz middleware can't verify the trusted loopback peer-stamp. (#3386)
+  const serverEntryName = resolveServerEntry(NEXT_SERVER_PATH, fs.existsSync.bind(fs));
+  const serverScript = path.join(NEXT_SERVER_PATH, serverEntryName);
   if (!fs.existsSync(serverScript)) {
     console.error("[Electron] Server script not found:", serverScript);
     sendToRenderer("server-status", { status: "error", port: serverPort });
