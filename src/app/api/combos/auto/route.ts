@@ -34,6 +34,10 @@ export async function GET(request: Request) {
           isHidden: false,
           candidatePool: virtual.candidatePool ?? [],
           candidateCount: virtual.candidatePool?.length ?? 0,
+          // MAX of candidates' windows — consumers (opencode plugin) need a
+          // real value here: advertising 0 disables client auto-compaction.
+          context_length: virtual.advertisedContextLength ?? null,
+          max_output_tokens: virtual.advertisedMaxOutputTokens ?? null,
           config: virtual.config ?? {},
         });
       } catch {
