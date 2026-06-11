@@ -29,6 +29,8 @@ import {
 } from "./webSessionCredentials";
 
 import type {
+
+
   CompatByProtocolMap,
   ModelCompatSavePatch,
   CompatModelRow,
@@ -55,6 +57,71 @@ import type {
   GeminiImportTopTab,
   LocalProviderMetadata
 } from "./types";
+export const ERROR_TYPE_LABELS: Record<string, { labelKey: string; variant: "error" | "warning" | "default" | "success" }> = {
+  runtime_error: { labelKey: "errorTypeRuntime", variant: "warning" },
+  upstream_auth_error: { labelKey: "errorTypeUpstreamAuth", variant: "error" },
+  account_deactivated: { labelKey: "Account Deactivated", variant: "error" },
+  auth_missing: { labelKey: "errorTypeMissingCredential", variant: "warning" },
+  token_refresh_failed: { labelKey: "errorTypeRefreshFailed", variant: "warning" },
+  token_expired: { labelKey: "errorTypeTokenExpired", variant: "warning" },
+  upstream_rate_limited: { labelKey: "errorTypeRateLimited", variant: "warning" },
+  upstream_unavailable: { labelKey: "errorTypeUpstreamUnavailable", variant: "error" },
+  network_error: { labelKey: "errorTypeNetworkError", variant: "warning" },
+  unsupported: { labelKey: "errorTypeTestUnsupported", variant: "default" },
+  upstream_error: { labelKey: "errorTypeUpstreamError", variant: "error" },
+  banned: { labelKey: "errorTypeBanned", variant: "error" },
+  credits_exhausted: { labelKey: "errorTypeCreditsExhausted", variant: "warning" },
+};
+
+export const CODEX_ACCOUNT_SERVICE_TIER_VALUES: any[] = ["default", "priority", "flex"];
+
+export const CONFIGURABLE_BASE_URL_PROVIDERS = new Set([
+  "azure-openai",
+  "azure-ai",
+  "bailian-coding-plan",
+  "xiaomi-mimo",
+  "siliconflow",
+  "heroku",
+  "databricks",
+  "snowflake",
+  "searxng-search",
+  "petals",
+]);
+
+export const DEFAULT_PROVIDER_BASE_URLS: Record<string, string> = {
+  "azure-openai": "https://example-resource.openai.azure.com",
+  "azure-ai": "https://example-resource.services.ai.azure.com/openai/v1",
+  "bailian-coding-plan": "https://coding-intl.dashscope.aliyuncs.com/apps/anthropic/v1",
+  "xiaomi-mimo": "https://token-plan-sgp.xiaomimimo.com/v1",
+  siliconflow: "https://api.siliconflow.com/v1",
+  "searxng-search": "http://localhost:8888/search",
+  petals: "https://chat.petals.dev/api/v1/generate",
+};
+
+export const CC_COMPATIBLE_DEFAULT_CHAT_PATH = "/v1/messages?beta=true";
+
+export const formatTimeAgo = (dateStr: string): string => {
+  const now = Date.now();
+  const date = new Date(dateStr).getTime();
+  const diff = now - date;
+  if (diff < 0) return "just now";
+  const minutes = Math.floor(diff / 60000);
+  if (minutes < 1) return "just now";
+  if (minutes < 60) return `${minutes}m ago`;
+  const hours = Math.floor(minutes / 60);
+  if (hours < 24) return `${hours}h ago`;
+  const days = Math.floor(hours / 24);
+  if (days < 30) return `${days}d ago`;
+  return new Date(dateStr).toLocaleDateString();
+};
+
+export const CODEX_REASONING_STRENGTH_OPTIONS = [
+  { value: "none", label: "None" },
+  { value: "low", label: "Low" },
+  { value: "medium", label: "Medium" },
+  { value: "high", label: "High" },
+  { value: "xhigh", label: "XHigh" },
+];
 
 function buildCompatMap(rows: CompatModelRow[]): CompatModelMap {
   const m = new Map<string, CompatModelRow>();

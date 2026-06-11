@@ -62,8 +62,8 @@ import type {
   GeminiImportTopTab,
   LocalProviderMetadata
 } from "./types";
+import { CODEX_ACCOUNT_SERVICE_TIER_VALUES, ERROR_TYPE_LABELS, CC_COMPATIBLE_DEFAULT_CHAT_PATH, CODEX_REASONING_STRENGTH_OPTIONS, formatTimeAgo } from "./utils";
 import {
-  providerText,
   getWebSessionCredentialLabel,
   getWebSessionCredentialHint,
   getWebSessionCredentialCheckLabel,
@@ -181,7 +181,7 @@ function ConnectionRow({
     const expiresMs = new Date(effectiveExpiresAt).getTime();
     return Math.floor((expiresMs - Date.now()) / 60000);
   };
-  const [tokenMinsLeft, setTokenMinsLeft] = useState<number | null>(getTokenMinsLeft);
+  const [tokenMinsLeft, setTokenMinsLeft] = useState<number | null>(null);
 
   useEffect(() => {
     if (!isOAuth || !effectiveExpiresAt) return;

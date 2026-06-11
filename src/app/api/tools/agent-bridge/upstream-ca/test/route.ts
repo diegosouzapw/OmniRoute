@@ -1,3 +1,4 @@
+import { requireManagementAuth } from "@/lib/api/requireManagementAuth";
 /**
  * POST /api/tools/agent-bridge/upstream-ca/test
  *
@@ -16,6 +17,8 @@ import { sanitizeErrorMessage } from "@omniroute/open-sse/utils/error";
 import { createErrorResponse } from "@/lib/api/errorResponse";
 
 export async function POST(request: Request): Promise<Response> {
+  const authError = await requireManagementAuth(request);
+  if (authError) return authError;
   let body: unknown;
   try {
     body = await request.json();
