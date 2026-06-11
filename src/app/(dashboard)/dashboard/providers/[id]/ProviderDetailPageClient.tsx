@@ -151,6 +151,8 @@ import {
   type CompatByProtocolMap,
   type CompatModelRow,
   type CompatModelMap,
+  buildPassthroughTestBody,
+  shouldSwitchToVisibleFilter,
 } from "./providerPageHelpers";
 /** PATCH fields for provider model compat (matches API + `ModelCompatPerProtocol` shape). */
 type ModelCompatSavePatch = {
@@ -487,6 +489,9 @@ interface PassthroughModelsSectionProps {
   testingModelId?: string | null;
   providerId: string;
   connectionId: string;
+  /** Controlled from the outer component so both sections share one checkbox (#3610). */
+  autoHideFailed?: boolean;
+  onAutoHideFailedChange?: (v: boolean) => void;
 }
 
 interface CustomModelsSectionProps {
@@ -3848,6 +3853,8 @@ export default function ProviderDetailPageClient() {
             testingModelId={testingModelId}
             providerId={providerId}
             connectionId={selectedConnection?.id ?? ""}
+            autoHideFailed={autoHideFailed}
+            onAutoHideFailedChange={setAutoHideFailed}
           />
         </div>
       );
@@ -6055,13 +6062,20 @@ function PassthroughModelsSection({
   testingModelId,
   providerId,
   connectionId,
+  // Bug #3610: thread from outer component so the checkbox is shared
+  autoHideFailed: autoHideFailedProp,
+  onAutoHideFailedChange,
 }: PassthroughModelsSectionProps) {
   const [newModel, setNewModel] = useState("");
   const [adding, setAdding] = useState(false);
   const [modelFilter, setModelFilter] = useState("");
   const [testingAll, setTestingAll] = useState(false);
   const [testProgress, setTestProgress] = useState<{ done: number; total: number } | null>(null);
-  const [autoHideFailed, setAutoHideFailed] = useState(true);
+  // Bug #3610 fix 1: use the prop value when provided; fall back to local state only
+  // when the outer component does not pass the prop (backward-compat / standalone use).
+  const [localAutoHideFailed, setLocalAutoHideFailed] = useState(true);
+  const autoHideFailed = autoHideFailedProp !== undefined ? autoHideFailedProp : localAutoHideFailed;
+  const setAutoHideFailed = onAutoHideFailedChange ?? setLocalAutoHideFailed;
   const [visibilityFilter, setVisibilityFilter] = useState<"all" | "visible" | "hidden">("all");
   const notify = useNotificationStore();
   const customModelMap = useMemo(() => buildCompatMap(customModels), [customModels]);
@@ -6094,11 +6108,15 @@ function PassthroughModelsSection({
         } = await fetch("/api/models/test-all", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            providerId,
-            connectionId,
-            modelIds: [model.modelId],
-          }),
+          // Bug #3610 fix 2: pass autoHideFailed so the server persists the hide
+          body: JSON.stringify(
+            buildPassthroughTestBody({
+              providerId,
+              connectionId,
+              modelId: model.modelId,
+              autoHideFailed,
+            })
+          ),
         }).then((r) => r.json());
 
         const entry = result.results?.[model.modelId];
@@ -6120,6 +6138,10 @@ function PassthroughModelsSection({
     notify.info(providerText(t, "testAllResults", "{ok} ok, {error} error", { ok, error }));
     if (hiddenCount > 0) {
       notify.info(providerText(t, "testAllFailedHidden", "{count} hidden", { count: hiddenCount }));
+      // Bug #3610 fix 3: switch to "visible" filter so hidden models disappear on-screen
+      if (shouldSwitchToVisibleFilter({ autoHideFailed, hiddenCount })) {
+        setVisibilityFilter("visible");
+      }
     }
     setTestingAll(false);
     setTestProgress(null);

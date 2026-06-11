@@ -586,3 +586,46 @@ export function normalizeAndValidateHttpBaseUrl(
     return { value: null, error: "Base URL must be a valid URL" };
   }
 }
+
+// ---------------------------------------------------------------------------
+// PassthroughModelsSection test-all helpers (Issue #3610)
+// ---------------------------------------------------------------------------
+
+/**
+ * Builds the JSON body for a single-model batch-test request.
+ * When `autoHideFailed` is true the server will persist the hide,
+ * so this flag MUST be threaded through from the UI state.
+ */
+export function buildPassthroughTestBody(opts: {
+  providerId: string;
+  connectionId: string;
+  modelId: string;
+  autoHideFailed: boolean;
+}): {
+  providerId: string;
+  connectionId: string;
+  modelIds: string[];
+  autoHideFailed: boolean;
+} {
+  return {
+    providerId: opts.providerId,
+    connectionId: opts.connectionId,
+    modelIds: [opts.modelId],
+    autoHideFailed: opts.autoHideFailed,
+  };
+}
+
+/**
+ * Decides whether the visibility filter should be switched to "visible"
+ * after a test-all run completes.
+ *
+ * The rule: only switch when at least one model was hidden during the run
+ * AND the user had autoHideFailed enabled. This ensures that models that
+ * were just hidden don't remain on-screen, giving the user instant feedback.
+ */
+export function shouldSwitchToVisibleFilter(opts: {
+  autoHideFailed: boolean;
+  hiddenCount: number;
+}): boolean {
+  return opts.autoHideFailed && opts.hiddenCount > 0;
+}
