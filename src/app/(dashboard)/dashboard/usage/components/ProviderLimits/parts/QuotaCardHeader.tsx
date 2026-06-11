@@ -20,6 +20,10 @@ interface Props {
   onRefresh: () => void;
   onOpenCutoff: () => void;
   hasCutoffOverrides: boolean;
+  /** Toggle the connection's active state (routing on/off). */
+  onToggleActive: (nextActive: boolean) => void;
+  /** True while the active-state PUT is in flight. */
+  togglingActive: boolean;
 }
 
 export default function QuotaCardHeader({
@@ -34,8 +38,14 @@ export default function QuotaCardHeader({
   onRefresh,
   onOpenCutoff,
   hasCutoffOverrides,
+  onToggleActive,
+  togglingActive,
 }: Props) {
   const t = useTranslations("usage");
+  const isActive = connection.isActive ?? true;
+  const toggleActiveLabel = isActive
+    ? translateUsageOrFallback(t, "deactivateAccount", "Deactivate account (stop routing)")
+    : translateUsageOrFallback(t, "activateAccount", "Activate account (resume routing)");
   const accountName = pickDisplayValue(
     [connection.name, connection.displayName, connection.email],
     emailsVisible,
@@ -59,9 +69,7 @@ export default function QuotaCardHeader({
           time: tokenCountdown,
         })
       : translateUsageOrFallback(t, "tokenExpired", "Token expired");
-  const tokenExpiryTitle = hasTokenExpiry
-    ? new Date(tokenExpiryMs).toLocaleString()
-    : undefined;
+  const tokenExpiryTitle = hasTokenExpiry ? new Date(tokenExpiryMs).toLocaleString() : undefined;
 
   return (
     <div className="flex items-start justify-between gap-2 px-3 pt-2.5 pb-1.5">
@@ -118,6 +126,24 @@ export default function QuotaCardHeader({
         </div>
       </div>
       <div className="flex items-center gap-0.5 shrink-0">
+        <button
+          type="button"
+          disabled={togglingActive}
+          onClick={(e) => {
+            e.stopPropagation();
+            if (togglingActive) return;
+            onToggleActive(!isActive);
+          }}
+          title={toggleActiveLabel}
+          aria-label={toggleActiveLabel}
+          className={`p-1 rounded-md cursor-pointer transition-colors hover:bg-black/[0.04] dark:hover:bg-white/[0.04] disabled:opacity-40 disabled:cursor-not-allowed ${
+            isActive ? "text-text-muted" : "text-rose-500"
+          }`}
+        >
+          <span className="material-symbols-outlined text-[14px]">
+            {isActive ? "toggle_on" : "toggle_off"}
+          </span>
+        </button>
         <button
           type="button"
           onClick={(e) => {

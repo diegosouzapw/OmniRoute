@@ -1325,7 +1325,7 @@
       "settings.update_failed": "Settings Update Failed",
       "sync.token.created": "Sync Token Created",
       "sync.token.revoked": "Sync Token Revoked"
-  }
+    }
   },
   "themesPage": {
     "title": "Themes",
@@ -6585,6 +6585,11 @@
     "quotaCutoffsButtonDefault": "Default",
     "quotaCutoffsButtonHelp": "Edit minimum remaining quota cutoffs for this account.",
     "quotaCutoffsButtonDisabled": "No quota windows are available for this account yet.",
+    "deactivateAccount": "Deactivate account (stop routing)",
+    "activateAccount": "Activate account (resume routing)",
+    "accountActivated": "Account activated",
+    "accountDeactivated": "Account deactivated",
+    "toggleActiveFailed": "Failed to update account status",
     "quotaCutoffsTitle": "Quota cutoffs for {name} ({provider})",
     "quotaCutoffsExplainer": "Override the minimum remaining quota percentage where this account stops being selected for each quota window. Leave blank to inherit the provider default.",
     "quotaCutoffsDefaultHint": "Default min remaining: {default}%",
