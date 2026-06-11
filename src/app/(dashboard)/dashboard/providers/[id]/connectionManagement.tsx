@@ -195,15 +195,23 @@ function ConnectionRow({
   }, [isOAuth, effectiveExpiresAt]);
 
   useEffect(() => {
+    let interval: any = null;
     const checkCooldown = () => {
       const cooldown =
         connection.rateLimitedUntil && new Date(connection.rateLimitedUntil).getTime() > Date.now();
       setIsCooldown(cooldown);
+      if (!cooldown && interval) {
+        clearInterval(interval);
+        interval = null;
+      }
     };
 
     checkCooldown();
-    // Update every second while in cooldown
-    const interval = connection.rateLimitedUntil ? setInterval(checkCooldown, 1000) : null;
+    const cooldownActive =
+      connection.rateLimitedUntil && new Date(connection.rateLimitedUntil).getTime() > Date.now();
+    if (cooldownActive) {
+      interval = setInterval(checkCooldown, 1000);
+    }
     return () => {
       if (interval) clearInterval(interval);
     };
