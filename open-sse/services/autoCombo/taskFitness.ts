@@ -211,9 +211,11 @@ function queryModelIntelligence(
 
   try {
     const entry = getModelIntelligenceBySource(model, source, category);
-    const score = entry ? entry.score : null;
-    _intelligenceCache.set(cacheKey, score);
-    return score;
+    if (entry) {
+      _intelligenceCache.set(cacheKey, entry.score);
+      return entry.score;
+    }
+    return null;
   } catch {
     return null;
   }
