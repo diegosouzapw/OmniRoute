@@ -101,3 +101,52 @@ export function onActivate(ctx) {
 export function onDeactivate(ctx) {
   console.log(`[theme-manager] Deactivated`);
 }
+
+/**
+ * onPluginMessage — receive IPC messages from other plugins via broadcast/sendTo.
+ * Listens for "theme:update" events and applies new theme config on the fly.
+ */
+export function onPluginMessage(payload) {
+  if (payload.event === "theme:update") {
+    console.log(`[theme-manager] Received theme update from ${payload.source || "unknown"}:`, payload.data);
+  } else {
+    console.log(`[theme-manager] Received event "${payload.event}" from ${payload.source || "unknown"}`);
+  }
+}
+
+/**
+ * onRender — serve a dashboard page showing current theme configuration.
+ * Called when the user visits /dashboard/plugins/theme-manager/page/dashboard.
+ * Returns an HTML string rendered inside the OmniRoute dashboard.
+ */
+export function onRender(payload) {
+  const slug = payload?.slug || "index";
+  const params = payload?.params || {};
+
+  if (slug === "dashboard") {
+    const config = params.config || {};
+    return {
+      type: "html",
+      html: `<div style="font-family: sans-serif; padding: 1rem;">
+  <h2>Theme Manager Dashboard</h2>
+  <p>Manage your OmniRoute theme settings from here.</p>
+  <table style="width: 100%; border-collapse: collapse; margin-top: 1rem;">
+    <thead>
+      <tr style="background: #f5f5f5;">
+        <th style="border: 1px solid #ddd; padding: 8px; text-align: left;">Setting</th>
+        <th style="border: 1px solid #ddd; padding: 8px; text-align: left;">Current Value</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr><td style="border: 1px solid #ddd; padding: 8px;">Primary Color</td><td style="border: 1px solid #ddd; padding: 8px;"><span style="display: inline-block; width: 16px; height: 16px; background: ${config.primaryColor || "#6C5CE7"}; border-radius: 3px; vertical-align: middle; margin-right: 6px;"></span>${config.primaryColor || "#6C5CE7 (default)"}</td></tr>
+      <tr><td style="border: 1px solid #ddd; padding: 8px;">Dark Mode</td><td style="border: 1px solid #ddd; padding: 8px;">${config.darkMode || "auto (default)"}</td></tr>
+      <tr><td style="border: 1px solid #ddd; padding: 8px;">Border Radius</td><td style="border: 1px solid #ddd; padding: 8px;">${config.borderRadius || "8px (default)"}</td></tr>
+      <tr><td style="border: 1px solid #ddd; padding: 8px;">Font Family</td><td style="border: 1px solid #ddd; padding: 8px;">${config.fontFamily || "Inter, system-ui, sans-serif (default)"}</td></tr>
+    </tbody>
+  </table>
+</div>`,
+    };
+  }
+
+  return { type: "html", html: "<p>Theme Manager — page not found.</p>" };
+}

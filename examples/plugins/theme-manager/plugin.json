@@ -14,12 +14,30 @@
     "onInstall": true,
     "onActivate": true,
     "onDeactivate": true,
-    "onUninstall": false
+    "onUninstall": false,
+    "onPluginMessage": true,
+    "onRender": true
   },
   "requires": {
-    "permissions": []
+    "permissions": ["network", "ipc"]
   },
   "enabledByDefault": true,
+  "adminPages": [
+    {
+      "slug": "dashboard",
+      "title": "Theme Dashboard",
+      "icon": "palette",
+      "position": 10
+    }
+  ],
+  "dashboardWidgets": [
+    {
+      "id": "theme-status",
+      "title": "Theme Status",
+      "position": "top",
+      "width": "half"
+    }
+  ],
   "configSchema": {
     "primaryColor": {
       "type": "string",
