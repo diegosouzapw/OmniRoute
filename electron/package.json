@@ -54,6 +54,7 @@
       "loginManager.js",
       "processTree.js",
       "sqlite-inspection.js",
+      "lib/resolveServerEntry.js",
       "package.json",
       "node_modules/**/*"
     ],

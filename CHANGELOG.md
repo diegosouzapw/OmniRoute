@@ -34,6 +34,7 @@
 
 ### 🔧 Bug Fixes
 
+- **Electron desktop**: launch the peer-stamping `server-ws.mjs` entrypoint so local-only routes (AgentBridge, MCP, services) no longer return 403 LOCAL_ONLY (#3386)
 - **Provider Topology**: stop flagging healthy providers as errored based on stale historical failures; use current request status (#3619)
 - **OpenCode Free**: fetch the live model catalog from the provider's `modelsUrl` for the no-auth model picker instead of serving a stale hardcoded list (#3611)
 - **Hermes Agent**: honour the `HERMES_HOME` env var when writing/reading the agent config instead of always using `~/.hermes` (#3628). Introduced `getHermesHome()` / `getHermesConfigPath()` helpers (read at call-time) and routed all four hardcoded callsites through them so OmniRoute's config lands in the same directory that the Hermes PowerShell installer configures on Windows.
