@@ -13,6 +13,7 @@ import { writeFile, rm, readFile } from "fs/promises";
 import { join } from "path";
 import { tmpdir } from "os";
 import { randomUUID, createHash } from "crypto";
+import { getDbInstance } from "../db/core";
 import { logger } from "../../../open-sse/utils/logger.ts";
 import type { PluginManifestWithDefaults, Permission } from "./manifest";
 import type { Plugin, PluginContext, PluginResult } from "./index";
@@ -43,27 +44,75 @@ export interface LoadedPlugin {
 // Uses process.send()/process.on("message") — NOT worker_threads.
 // Written as .mjs to force ESM execution regardless of package.json.
 
-const PLUGIN_HOST_SCRIPT = `
-import { createRequire } from "node:module";
-const require = createRequire(import.meta.url);
-
+function buildHostScript(hasDb: boolean): string {
+  const ipcGlobals = `
 globalThis.__omniroute = {
   broadcast: (event, data) => {
     process.send({ type: "ipc", kind: "broadcast", event, data });
   },
   sendTo: (target, event, data) => {
     process.send({ type: "ipc", kind: "targeted", target, event, data });
-  },
+  },`;
+  const dbGlobals = hasDb ? `
+  db: {
+    get: (key) => new Promise((resolve, reject) => {
+      const id = String(Math.random());
+      const handler = (msg) => {
+        if (msg.type === "db_result" && msg.id === id) {
+          process.removeListener("message", handler);
+          if (msg.error) reject(new Error(msg.error));
+          else resolve(msg.value);
+        }
+      };
+      process.on("message", handler);
+      process.send({ type: "db", id, op: "get", key });
+    }),
+    set: (key, value) => new Promise((resolve, reject) => {
+      const id = String(Math.random());
+      const handler = (msg) => {
+        if (msg.type === "db_result" && msg.id === id) {
+          process.removeListener("message", handler);
+          if (msg.error) reject(new Error(msg.error));
+          else resolve(undefined);
+        }
+      };
+      process.on("message", handler);
+      process.send({ type: "db", id, op: "set", key, value });
+    }),
+    delete: (key) => new Promise((resolve, reject) => {
+      const id = String(Math.random());
+      const handler = (msg) => {
+        if (msg.type === "db_result" && msg.id === id) {
+          process.removeListener("message", handler);
+          if (msg.error) reject(new Error(msg.error));
+          else resolve(undefined);
+        }
+      };
+      process.on("message", handler);
+      process.send({ type: "db", id, op: "delete", key });
+    }),
+    list: () => new Promise((resolve, reject) => {
+      const id = String(Math.random());
+      const handler = (msg) => {
+        if (msg.type === "db_result" && msg.id === id) {
+          process.removeListener("message", handler);
+          if (msg.error) reject(new Error(msg.error));
+          else resolve(msg.value);
+        }
+      };
+      process.on("message", handler);
+      process.send({ type: "db", id, op: "list" });
+    }),
+  },` : "";
+  const scriptFooter = `
 };
 
 const pluginPath = process.argv[2];
 const plugin = await import(pluginPath);
 const exports = plugin.default || plugin;
 
-// Send ready signal
 process.send({ type: "ready", hooks: Object.keys(exports).filter(k => typeof exports[k] === "function") });
 
-// Handle messages from parent
 process.on("message", async (msg) => {
   if (msg.type === "call") {
     try {
@@ -89,6 +138,13 @@ process.on("message", async (msg) => {
   }
 });
 `;
+  return (
+    'import { createRequire } from "node:module";\nconst require = createRequire(import.meta.url);\n' +
+    ipcGlobals +
+    dbGlobals +
+    scriptFooter
+  );
+}
 
 export interface LoadPluginOptions {
   entryPoint: string;
@@ -136,10 +192,10 @@ export async function loadPlugin(
   // retry once with a fresh UUID.
   let hostScriptPath: string;
   {
-    // .mjs extension forces ESM execution regardless of package.json type field
     const tryWrite = async (id: string): Promise<string> => {
+      const script = buildHostScript(permissions.includes("db"));
       const p = join(tmpdir(), `omniroute-plugin-host-${id}.mjs`);
-      await writeFile(p, PLUGIN_HOST_SCRIPT, { encoding: "utf-8", mode: 0o600, flag: "wx" });
+      await writeFile(p, script, { encoding: "utf-8", mode: 0o600, flag: "wx" });
       return p;
     };
     try {
@@ -202,6 +258,28 @@ export async function loadPlugin(
       const level = msg.level || "info";
       const args = msg.args || [];
       log[level]("plugin." + manifest.name, ...args);
+    } else if (msg.type === "db") {
+      try {
+        const db = getDbInstance();
+        const namespace = `plugin:${manifest.name}`;
+        if (msg.op === "get") {
+          const row = db.prepare("SELECT value FROM key_value WHERE namespace = ? AND key = ?").get(namespace, msg.key) as any;
+          const value = row ? (() => { try { return JSON.parse(row.value); } catch { return row.value; } })() : undefined;
+          child.send({ type: "db_result", id: msg.id, value });
+        } else if (msg.op === "set") {
+          const str = typeof msg.value === "string" ? msg.value : JSON.stringify(msg.value);
+          db.prepare("INSERT INTO key_value (namespace, key, value) VALUES (?, ?, ?) ON CONFLICT(namespace, key) DO UPDATE SET value = excluded.value").run(namespace, msg.key, str);
+          child.send({ type: "db_result", id: msg.id });
+        } else if (msg.op === "delete") {
+          db.prepare("DELETE FROM key_value WHERE namespace = ? AND key = ?").run(namespace, msg.key);
+          child.send({ type: "db_result", id: msg.id });
+        } else if (msg.op === "list") {
+          const rows = db.prepare("SELECT key FROM key_value WHERE namespace = ?").all(namespace) as any[];
+          child.send({ type: "db_result", id: msg.id, value: rows.map((r: any) => r.key) });
+        }
+      } catch (err: any) {
+        child.send({ type: "db_result", id: msg.id, error: err.message });
+      }
     }
   });
 
