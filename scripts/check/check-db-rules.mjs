@@ -81,12 +81,9 @@ const KNOWN_RAW_SQL = new Set([
   "src/app/api/logs/export/route.ts", // SELECT de proxy_logs
   "src/app/api/oauth/cursor/auto-import/route.ts", // SELECT no itemTable do Cursor (DB externo)
   "src/app/api/oauth/kiro/auto-import/route.ts", // SELECT no SQLite do Kiro (DB externo)
-  "src/app/api/provider-metrics/route.ts", // SELECT … FROM call_logs (agregação)
-  "src/app/api/search/stats/route.ts", // SELECT … FROM call_logs
   "src/app/api/settings/export-json/route.ts", // SELECT * de usage_history/domain_*
   "src/app/api/skills/[id]/route.ts", // UPDATE skills SET dinâmico
   "src/app/api/usage/analytics/route.ts", // SELECT … FROM usage_history/daily_usage_summary
-  "src/app/api/v1/search/analytics/route.ts", // SELECT … FROM call_logs (request_type=search)
 ]);
 
 // Módulos sempre excluídos da checagem (a): não são domínio re-exportável.
