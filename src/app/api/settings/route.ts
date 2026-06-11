@@ -4,6 +4,7 @@ import { getRuntimePorts } from "@/lib/runtime/ports";
 import { updateSettingsSchema } from "@/shared/validation/settingsSchemas";
 import { isValidationFailure, validateBody } from "@/shared/validation/helpers";
 import { getConsistentMachineId } from "@/shared/utils/machineId";
+import { resolveModelLockoutSettings } from "@/lib/resilience/modelLockoutSettings";
 import {
   validateProxyUrl,
   upsertUpstreamProxyConfig,
@@ -219,6 +220,14 @@ export async function PATCH(request: Request) {
       return NextResponse.json({ error: validation.error }, { status: 400 });
     }
     const body: typeof validation.data & { password?: string } = { ...validation.data };
+
+    // Sanitize model lockout settings: clamp values to valid bounds so that
+    // stale DB values or hand-crafted requests don't bypass range validation.
+    if (body.modelLockout) {
+      body.modelLockout = resolveModelLockoutSettings({
+        modelLockout: body.modelLockout as Record<string, unknown>,
+      }) as typeof body.modelLockout;
+    }
 
     // Security-impacting gate (T-011, spec AC-4 / AC-5). Computed from the
     // VALIDATED body so we never trip on stray unknown keys. If any security
