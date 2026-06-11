@@ -101,10 +101,16 @@ export const PACK_ARTIFACT_ROOT_ALLOWED_PATH_PREFIXES: string[] = [
   "@omniroute/opencode-plugin/",
   "@omniroute/opencode-provider/",
   "bin/cli/",
-  "open-sse/mcp-server/schemas/",
-  "open-sse/mcp-server/tools/",
-  "src/lib/cli-helper/",
-  "src/shared/contracts/",
+  // Broad open-sse + src source dirs added to package.json "files" in v3.8.21
+  // to allow TypeScript-first imports from the published package.
+  "open-sse/",
+  "src/domain/",
+  "src/lib/",
+  "src/mitm/",
+  "src/server/",
+  "src/shared/",
+  "src/sse/",
+  "src/types/",
 ];
 
 export const PACK_ARTIFACT_REQUIRED_PATHS: string[] = [
