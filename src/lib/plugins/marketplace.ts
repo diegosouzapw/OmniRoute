@@ -95,10 +95,22 @@ export async function listMarketplacePlugins(): Promise<MarketplaceEntry[]> {
     const url = typeof settings.pluginMarketplaceUrl === "string" ? settings.pluginMarketplaceUrl : null;
     if (url) {
       const res = await fetch(url, { signal: AbortSignal.timeout(5000) });
-      if (res.ok) {
-        const data = await res.json();
-        return Array.isArray(data) ? data : (data.plugins || []);
+      if (!res.ok) {
+        console.warn("Custom marketplace returned non-OK status:", res.status);
+        return [...SEED_REGISTRY];
       }
+      const data = await res.json();
+      if (Array.isArray(data)) {
+        return data.filter((entry: unknown) =>
+          entry && typeof entry === "object" && typeof (entry as Record<string, unknown>).name === "string"
+        ) as MarketplaceEntry[];
+      }
+      if (data && typeof data === "object" && Array.isArray(data.plugins)) {
+        return data.plugins.filter((entry: unknown) =>
+          entry && typeof entry === "object" && typeof (entry as Record<string, unknown>).name === "string"
+        ) as MarketplaceEntry[];
+      }
+      console.warn("Custom marketplace returned unrecognized format");
     }
   } catch (err) {
     console.error("Failed to fetch from custom plugin marketplace:", err);
