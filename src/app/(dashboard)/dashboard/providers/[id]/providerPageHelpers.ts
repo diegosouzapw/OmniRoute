@@ -440,6 +440,121 @@ export function anyUpstreamHeadersBadge(
 }
 
 // ---------------------------------------------------------------------------
+// Model-compat compute helpers (Phase 1e — moved from god-component).
+// These are pure functions that derive effective compat state from the two
+// maps (customModels + modelCompatOverrides).  They live here so both the
+// page client AND extracted components can import them without a cycle.
+// ---------------------------------------------------------------------------
+
+export function buildCompatMap(rows: CompatModelRow[]): CompatModelMap {
+  const m = new Map<string, CompatModelRow>();
+  for (const r of rows) if (r.id) m.set(r.id, r);
+  return m;
+}
+
+export function isModelHiddenFn(
+  modelId: string,
+  customMap: CompatModelMap,
+  overrideMap: CompatModelMap
+): boolean {
+  const c = customMap.get(modelId);
+  if (c && Object.prototype.hasOwnProperty.call(c, "isHidden")) {
+    return Boolean(c.isHidden);
+  }
+  const o = overrideMap.get(modelId);
+  if (o && Object.prototype.hasOwnProperty.call(o, "isHidden")) {
+    return Boolean(o.isHidden);
+  }
+  return false;
+}
+
+export function effectiveNormalizeForProtocol(
+  modelId: string,
+  protocol: string,
+  customMap: CompatModelMap,
+  overrideMap: CompatModelMap
+): boolean {
+  const c = customMap.get(modelId);
+  const o = overrideMap.get(modelId);
+  const pc = getProtoSlice(c, o, protocol);
+  if (pc && Object.prototype.hasOwnProperty.call(pc, "normalizeToolCallId")) {
+    return Boolean(pc.normalizeToolCallId);
+  }
+  if (c?.normalizeToolCallId) return true;
+  return Boolean(o?.normalizeToolCallId);
+}
+
+export function effectivePreserveForProtocol(
+  modelId: string,
+  protocol: string,
+  customMap: CompatModelMap,
+  overrideMap: CompatModelMap
+): boolean {
+  const c = customMap.get(modelId);
+  const o = overrideMap.get(modelId);
+  const pc = getProtoSlice(c, o, protocol);
+  if (pc && Object.prototype.hasOwnProperty.call(pc, "preserveOpenAIDeveloperRole")) {
+    return Boolean(pc.preserveOpenAIDeveloperRole);
+  }
+  if (c && Object.prototype.hasOwnProperty.call(c, "preserveOpenAIDeveloperRole")) {
+    return Boolean(c.preserveOpenAIDeveloperRole);
+  }
+  if (o && Object.prototype.hasOwnProperty.call(o, "preserveOpenAIDeveloperRole")) {
+    return Boolean(o.preserveOpenAIDeveloperRole);
+  }
+  return true;
+}
+
+export function anyNormalizeCompatBadge(
+  modelId: string,
+  customMap: CompatModelMap,
+  overrideMap: CompatModelMap
+): boolean {
+  const c = customMap.get(modelId);
+  const o = overrideMap.get(modelId);
+  if (c?.normalizeToolCallId || o?.normalizeToolCallId) return true;
+  for (const p of MODEL_COMPAT_PROTOCOL_KEYS) {
+    const pc = getProtoSlice(c, o, p);
+    if (pc?.normalizeToolCallId) return true;
+  }
+  return false;
+}
+
+export function anyNoPreserveCompatBadge(
+  modelId: string,
+  customMap: CompatModelMap,
+  overrideMap: CompatModelMap
+): boolean {
+  const c = customMap.get(modelId);
+  const o = overrideMap.get(modelId);
+  if (
+    c &&
+    Object.prototype.hasOwnProperty.call(c, "preserveOpenAIDeveloperRole") &&
+    c.preserveOpenAIDeveloperRole === false
+  ) {
+    return true;
+  }
+  if (
+    o &&
+    Object.prototype.hasOwnProperty.call(o, "preserveOpenAIDeveloperRole") &&
+    o.preserveOpenAIDeveloperRole === false
+  ) {
+    return true;
+  }
+  for (const p of MODEL_COMPAT_PROTOCOL_KEYS) {
+    const pc = getProtoSlice(c, o, p);
+    if (
+      pc &&
+      Object.prototype.hasOwnProperty.call(pc, "preserveOpenAIDeveloperRole") &&
+      pc.preserveOpenAIDeveloperRole === false
+    ) {
+      return true;
+    }
+  }
+  return false;
+}
+
+// ---------------------------------------------------------------------------
 // Codex helpers + consts (Phase 2b)
 // ---------------------------------------------------------------------------
 
@@ -651,6 +766,41 @@ export const ERROR_TYPE_LABELS: Record<
   banned: { labelKey: "errorTypeBanned", variant: "error" },
   credits_exhausted: { labelKey: "errorTypeCreditsExhausted", variant: "warning" },
 };
+
+// ---------------------------------------------------------------------------
+// formatProviderModelsErrorResponse — shared error formatter for provider-models
+// API calls. Used by both the page client and CustomModelsSection.
+// ---------------------------------------------------------------------------
+
+type ProviderModelsApiErrorBody = {
+  error?: {
+    message?: string;
+    details?: Array<{ field?: string; message?: string }>;
+  };
+};
+
+export async function formatProviderModelsErrorResponse(res: Response): Promise<string> {
+  try {
+    const data = (await res.json()) as ProviderModelsApiErrorBody;
+    const err = data?.error;
+    if (Array.isArray(err?.details) && err.details.length > 0) {
+      return err.details
+        .map((d) => {
+          const f = typeof d.field === "string" && d.field ? d.field : "?";
+          const m = typeof d.message === "string" ? d.message : "";
+          return m ? `${f}: ${m}` : f;
+        })
+        .join("; ");
+    }
+    if (typeof err?.message === "string" && err.message.trim()) {
+      return err.message.trim();
+    }
+  } catch {
+    /* ignore */
+  }
+  const st = res.statusText?.trim();
+  return st || `HTTP ${res.status}`;
+}
 
 // ---------------------------------------------------------------------------
 // formatTimeAgo — used in EditConnectionModal's extra-key health display
