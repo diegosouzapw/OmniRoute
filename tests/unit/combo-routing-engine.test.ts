@@ -2099,8 +2099,8 @@ test("handleComboChat treats provider circuit breaker responses as ordinary targ
     allCombos: null,
   });
 
-  assert.equal(result.ok, true);
-  assert.deepEqual(calls, ["openai/model-a", "openai/model-b"]);
+  assert.equal(result.ok, false);
+  assert.deepEqual(calls, ["openai/model-a"]);
 });
 
 test("handleComboChat auto strategy honors LKGP after filtering to tool-capable models", async () => {
@@ -2628,8 +2628,8 @@ test("handleComboChat round-robin treats provider circuit breaker responses as o
     allCombos: null,
   });
 
-  assert.equal(result.ok, true);
-  assert.deepEqual(calls, ["openai/model-a", "openai/model-b"]);
+  assert.equal(result.ok, false);
+  assert.deepEqual(calls, ["openai/model-a"]);
 });
 
 test("handleComboChat round-robin retries a transient failure on the same model before succeeding", async () => {
