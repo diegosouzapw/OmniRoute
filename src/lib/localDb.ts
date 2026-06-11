@@ -618,3 +618,20 @@ export {
 export type { ApiKeyContextSource } from "./db/apiKeyContextSources";
 
 export { sumUsageTokensThisMonth } from "./db/usageSummary";
+
+export {
+  // Model Intelligence (task-fitness scores)
+  getModelIntelligence,
+  getModelIntelligenceBySource,
+  upsertModelIntelligence,
+  deleteModelIntelligence,
+  deleteExpiredIntelligence,
+  deleteModelIntelligenceBySource,
+  listModelIntelligence,
+  bulkUpsertModelIntelligence,
+  getResolvedTaskFitness,
+  setUserFitnessOverrideEntry,
+  deleteUserFitnessOverrideEntry,
+} from "./db/modelIntelligence";
+
+export type { ModelIntelligenceEntry } from "./db/modelIntelligence";

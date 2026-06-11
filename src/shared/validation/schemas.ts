@@ -1231,6 +1231,12 @@ export const pricingSyncRequestSchema = z
   })
   .strict();
 
+export const intelligenceSyncRequestSchema = z
+  .object({
+    dryRun: z.boolean().optional(),
+  })
+  .strict();
+
 const taskRoutingModelMapSchema = z
   .object({
     coding: z.string().max(200).optional(),
