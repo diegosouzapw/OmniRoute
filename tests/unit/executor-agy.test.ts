@@ -10,12 +10,15 @@ test("getExecutor('agy') returns AntigravityExecutor (not DefaultExecutor)", () 
 
 test("getExecutor('antigravity') returns AntigravityExecutor", () => {
   const executor = getExecutor("antigravity");
-  assert.ok(executor instanceof AntigravityExecutor, "antigravity provider should use AntigravityExecutor");
+  assert.ok(
+    executor instanceof AntigravityExecutor,
+    "antigravity provider should use AntigravityExecutor"
+  );
 });
 
 test("getExecutor('agy') builds valid streaming URL", () => {
   const executor = getExecutor("agy");
-  const url = executor.buildUrl("gemini-3-flash", true);
+  const url = executor.buildUrl("gemini-3.5-flash-high", true);
   assert.ok(
     url.includes("streamGenerateContent?alt=sse"),
     `expected streaming endpoint URL, got: ${url}`
@@ -24,7 +27,7 @@ test("getExecutor('agy') builds valid streaming URL", () => {
 
 test("getExecutor('agy') builds valid non-streaming URL", () => {
   const executor = getExecutor("agy");
-  const url = executor.buildUrl("gemini-3-flash", false);
+  const url = executor.buildUrl("gemini-3.5-flash-high", false);
   // Antigravity executor always uses streaming endpoint (buildUrl ignores stream flag)
   assert.ok(
     url.includes("streamGenerateContent?alt=sse"),
