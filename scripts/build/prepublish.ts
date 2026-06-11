@@ -117,22 +117,24 @@ if (existsSync(DIST_DIR)) {
 }
 
 // ── Step 2: Assert / trigger the Next.js standalone build ──
-// prepublish no longer runs its own `next build`.  It consumes the
-// .build/next/standalone artifact produced by `npm run build` (build-next-isolated.mjs).
-// If the artifact is absent we invoke it exactly once.
+// Always remove stale .build/ so changes to React source files are
+// picked up — otherwise prepublish skips the build and packs old code.
 const NEXT_DIST = process.env.NEXT_DIST_DIR || ".build/next";
-const standaloneServerJs = join(ROOT, NEXT_DIST, "standalone", "server.js");
+const standaloneDir = join(ROOT, NEXT_DIST, "standalone");
+const standaloneServerJs = join(standaloneDir, "server.js");
+if (existsSync(standaloneDir)) {
+  console.log("  🧹 Cleaning stale .build/next/standalone/...");
+  rmSync(standaloneDir, { recursive: true, force: true });
+}
+console.log("  🏗️  Running Next.js standalone build...");
+execFileSync(process.execPath, ["scripts/build/build-next-isolated.mjs"], {
+  cwd: ROOT,
+  stdio: "inherit",
+});
 if (!existsSync(standaloneServerJs)) {
-  console.log("  🏗️  .build/next/standalone not found — running `npm run build` once...");
-  execFileSync(process.execPath, ["scripts/build/build-next-isolated.mjs"], {
-    cwd: ROOT,
-    stdio: "inherit",
-  });
-  if (!existsSync(standaloneServerJs)) {
-    console.error("\n  ❌ Standalone build not found after `npm run build` at:", standaloneServerJs);
-    console.error("     Make sure next.config.mjs has: output: 'standalone'");
-    process.exit(1);
-  }
+  console.error("\n  ❌ Standalone build not found after `npm run build` at:", standaloneServerJs);
+  console.error("     Make sure next.config.mjs has: output: 'standalone'");
+  process.exit(1);
 }
 console.log("  ✅ Standalone artifact present:", standaloneServerJs);
 
