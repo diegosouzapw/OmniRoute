@@ -1,6 +1,10 @@
 "use client";
 
 import { useState, useEffect, useCallback, useRef, useMemo } from "react";
+// Phase 1f extractions — Issue #3501
+import { useProviderConnections } from "./hooks/useProviderConnections";
+import { useProviderSettings } from "./hooks/useProviderSettings";
+import { useProviderModels } from "./hooks/useProviderModels";
 import { LlmChatCard } from "@/app/(dashboard)/dashboard/media-providers/components/LlmChatCard";
 import { ServiceKindTabs } from "@/app/(dashboard)/dashboard/media-providers/components/ServiceKindTabs";
 import { EmbeddingExampleCard } from "@/app/(dashboard)/dashboard/media-providers/components/EmbeddingExampleCard";
@@ -61,12 +65,7 @@ import useEmailPrivacyStore from "@/store/emailPrivacyStore";
 import EmailPrivacyToggle from "@/shared/components/EmailPrivacyToggle";
 import ProviderIcon from "@/shared/components/ProviderIcon";
 import { type CodexServiceTier } from "@/lib/providers/requestDefaults";
-import {
-  CODEX_FAST_TIER_DEFAULT_SUPPORTED_MODELS,
-  getCodexGlobalServiceMode,
-  resolveCodexGlobalFastServiceTier,
-  type CodexGlobalServiceMode,
-} from "@/lib/providers/codexFastTier";
+import { type CodexGlobalServiceMode } from "@/lib/providers/codexFastTier";
 // parseExtraApiKeys used by extracted EditConnectionModal
 import { compareTr } from "@/shared/utils/turkishText";
 import RiskNoticeModal from "../components/RiskNoticeModal";
@@ -112,9 +111,6 @@ import {
   providerCountText,
   readBooleanToggle,
   formatProviderModelsErrorResponse,
-  CODEX_GLOBAL_SERVICE_MODE_VALUES,
-  getCodexServiceTierLabel,
-  normalizeCodexLimitPolicy,
   type ProviderMessageTranslator,
   type LocalProviderMetadata,
   type CommandCodeAuthFlowState,
@@ -122,6 +118,8 @@ import {
   type CompatModelRow,
   type CompatModelMap,
 } from "./providerPageHelpers";
+// CODEX_GLOBAL_SERVICE_MODE_VALUES, getCodexServiceTierLabel, normalizeCodexLimitPolicy
+// moved to hooks/useProviderSettings.ts + hooks/useProviderConnections.ts (Phase 1f)
 // Phase 1e extractions — Issue #3501
 import { useModelCompatState } from "./hooks/useModelCompatState";
 import ModelRow, { ModelVisibilityToolbar } from "./components/ModelRow";
@@ -142,10 +140,7 @@ type ModelCompatSavePatch = {
   isHidden?: boolean;
 };
 
-// Max connection ids accepted per bulk request — mirrors the API-side cap on
-// /api/providers (PATCH) and /api/providers/test-batch (mode=selected).
-const MAX_BULK_IDS = 100;
-
+// MAX_BULK_IDS moved to hooks/useProviderConnections.ts (Phase 1f)
 // ModelRowProps, PassthroughModelRowProps → components/ModelRow.tsx, PassthroughModelRow.tsx (Phase 1e)
 // PassthroughModelsSectionProps → components/PassthroughModelsSection.tsx (Phase 1e)
 // CustomModelsSectionProps → components/CustomModelsSection.tsx (Phase 1e)
@@ -251,9 +246,8 @@ export default function ProviderDetailPageClient() {
   const params = useParams();
   const router = useRouter();
   const providerId = params.id as string;
-  const [connections, setConnections] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [providerNode, setProviderNode] = useState(null);
+
+  // ── UI-only modal state (not owned by hooks) ─────────────────────────────
   const [showOAuthModal, _setShowOAuthModal] = useState(false);
   const [reauthConnection, setReauthConnection] = useState<ConnectionRowConnection | null>(null);
   const [showAddApiKeyModal, setShowAddApiKeyModal] = useState(false);
@@ -272,20 +266,7 @@ export default function ProviderDetailPageClient() {
   const [showEditNodeModal, setShowEditNodeModal] = useState(false);
   const [showTutorialModal, setShowTutorialModal] = useState(false);
   const [selectedConnection, setSelectedConnection] = useState(null);
-  const [retestingId, setRetestingId] = useState(null);
-  const [batchTesting, setBatchTesting] = useState(false);
-  const [batchTestResults, setBatchTestResults] = useState<any>(null);
-  const [modelAliases, setModelAliases] = useState({});
-  const { copied, copy } = useCopyToClipboard();
-  const t = useTranslations("providers");
-  const emailsVisible = useEmailPrivacyStore((s) => s.emailsVisible);
-  const notify = useNotificationStore();
   const [proxyTarget, setProxyTarget] = useState(null);
-  const [distributingProxies, setDistributingProxies] = useState(false);
-  const [proxyConfig, setProxyConfig] = useState(null);
-  const [connProxyMap, setConnProxyMap] = useState<
-    Record<string, { proxy: any; level: string } | null>
-  >({});
   const [importingModels, setImportingModels] = useState(false);
   const [importingZed, setImportingZed] = useState(false);
   const [showZedManual, setShowZedManual] = useState(false);
@@ -302,11 +283,6 @@ export default function ProviderDetailPageClient() {
     error: "",
     importedCount: 0,
   });
-  const [modelMeta, setModelMeta] = useState<{
-    customModels: CompatModelRow[];
-    modelCompatOverrides: Array<CompatModelRow & { id: string }>;
-  }>({ customModels: [], modelCompatOverrides: [] });
-  const [syncedAvailableModels, setSyncedAvailableModels] = useState<any[]>([]);
   const [compatSavingModelId, setCompatSavingModelId] = useState<string | null>(null);
   const [modelFilter, setModelFilter] = useState("");
   const [togglingModelId, setTogglingModelId] = useState<string | null>(null);
@@ -345,37 +321,11 @@ export default function ProviderDetailPageClient() {
   );
   const [exportingGeminiAuthId, setExportingGeminiAuthId] = useState<string | null>(null);
   const [importGeminiModalOpen, setImportGeminiModalOpen] = useState(false);
-  const [codexGlobalServiceMode, setCodexGlobalServiceMode] =
-    useState<CodexGlobalServiceMode>("none");
-  const [codexGlobalSupportedModels, setCodexGlobalSupportedModels] = useState<string[]>([
-    ...CODEX_FAST_TIER_DEFAULT_SUPPORTED_MODELS,
-  ]);
-  const [codexSettingsLoaded, setCodexSettingsLoaded] = useState(false);
-  const [codexSettingsLoadError, setCodexSettingsLoadError] = useState<string | null>(null);
-  const [savingCodexGlobalServiceMode, setSavingCodexGlobalServiceMode] = useState(false);
-  const [
-    preferClaudeCodeForUnprefixedClaudeModels,
-    setPreferClaudeCodeForUnprefixedClaudeModels,
-  ] = useState(false);
-  const [claudeRoutingSettingsLoaded, setClaudeRoutingSettingsLoaded] = useState(false);
-  const [claudeRoutingSettingsLoadError, setClaudeRoutingSettingsLoadError] = useState<
-    string | null
-  >(null);
-  const [savingClaudeRoutingPreference, setSavingClaudeRoutingPreference] = useState(false);
-  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
-  const [batchDeleting, setBatchDeleting] = useState(false);
-  const [batchUpdating, setBatchUpdating] = useState<"activate" | "deactivate" | null>(null);
-  const [batchRetesting, setBatchRetesting] = useState(false);
-  const [healthFilter, setHealthFilter] = useState<string>("all");
-  const [page, setPage] = useState(0);
-  const PAGE_SIZE = 50;
-  const [batchDeleteConfirmOpen, setBatchDeleteConfirmOpen] = useState(false);
   const commandCodeAuthWindowRef = useRef<Window | null>(null);
   const commandCodeAuthTimerRef = useRef<number | null>(null);
   const pendingRiskActionRef = useRef<(() => void) | null>(null);
   const { acknowledged: riskAcknowledged, acknowledge: acknowledgeRisk } =
     useRiskAcknowledged(providerId);
-  const codexSettingsRequestSeqRef = useRef(0);
   const isOpenAICompatible = isOpenAICompatibleProvider(providerId);
   const isCcCompatible = isClaudeCodeCompatibleProvider(providerId);
   const isCommandCode = providerId === "command-code";
@@ -383,20 +333,97 @@ export default function ProviderDetailPageClient() {
     isAnthropicCompatibleProvider(providerId) && !isClaudeCodeCompatibleProvider(providerId);
   const isCompatible = isOpenAICompatible || isAnthropicCompatible || isCcCompatible;
   const isAnthropicProtocolCompatible = isAnthropicCompatible || isCcCompatible;
+  const isSearchProvider = providerId.endsWith("-search");
+
+  // ── Phase 1f hooks ────────────────────────────────────────────────────────
+  const {
+    connections,
+    providerNode,
+    loading,
+    retestingId,
+    batchTesting,
+    batchTestResults,
+    selectedIds,
+    batchDeleting,
+    batchUpdating,
+    batchRetesting,
+    batchDeleteConfirmOpen,
+    healthFilter,
+    page,
+    distributingProxies,
+    proxyConfig,
+    connProxyMap,
+    cpaProviderEnabled,
+    refreshingId,
+    setPage,
+    setHealthFilter,
+    setSelectedIds,
+    setBatchDeleteConfirmOpen,
+    setBatchTestResults,
+    setConnections,
+    setProviderNode,
+    fetchConnections,
+    fetchProxyConfig,
+    handleDelete,
+    handleUpdateConnectionStatus,
+    handleToggleRateLimit,
+    handleToggleClaudeExtraUsage,
+    handleToggleCodexLimit,
+    handleToggleCliproxyapiMode,
+    handleToggleProxyEnabled,
+    handleTogglePerKeyProxyEnabled,
+    handleRetestConnection,
+    handleRefreshToken,
+    handleSwapPriority,
+    handleBatchSetActive,
+    handleBatchDeleteOpenModal,
+    handleBatchDeleteConfirm,
+    handleBatchRetest,
+    handleBatchTestAll,
+    handleToggleSelectOne,
+    handleToggleSelectAll,
+    handleDistributeProxies,
+    parseApiErrorMessage,
+    getAttachmentFilename,
+    PAGE_SIZE,
+  } = useProviderConnections(providerId, isCompatible, isSearchProvider);
+
+  const {
+    codexGlobalServiceMode,
+    codexSettingsLoaded,
+    codexSettingsLoadError,
+    savingCodexGlobalServiceMode,
+    codexGlobalServiceModeOptions,
+    loadCodexSettings,
+    handleChangeCodexGlobalServiceMode,
+    preferClaudeCodeForUnprefixedClaudeModels,
+    claudeRoutingSettingsLoaded,
+    claudeRoutingSettingsLoadError,
+    savingClaudeRoutingPreference,
+    loadClaudeRoutingSettings,
+    handleToggleClaudeRoutingPreference,
+  } = useProviderSettings(providerId);
+
+  const {
+    modelMeta,
+    syncedAvailableModels,
+    modelAliases,
+    fetchProviderModelMeta,
+    fetchAliases,
+    handleSetAlias,
+    handleDeleteAlias,
+  } = useProviderModels(providerId, isSearchProvider);
+
+  // ── shared hook/store ─────────────────────────────────────────────────────
+  const { copied, copy } = useCopyToClipboard();
+  const t = useTranslations("providers");
+  const emailsVisible = useEmailPrivacyStore((s) => s.emailsVisible);
+  const notify = useNotificationStore();
 
   const setShowOAuthModal = (show: boolean, connectionRow?: ConnectionRowConnection) => {
     _setShowOAuthModal(show);
     setReauthConnection(show && connectionRow ? connectionRow : null);
   };
-
-  const codexGlobalServiceModeOptions = useMemo(
-    () =>
-      CODEX_GLOBAL_SERVICE_MODE_VALUES.map((value) => ({
-        value,
-        label: getCodexServiceTierLabel(t, value),
-      })),
-    [t]
-  );
 
   const providerInfo = resolveDashboardProviderInfo(providerId, {
     providerNode,
@@ -451,7 +478,7 @@ export default function ProviderDetailPageClient() {
   }, [providerId, registryModels, syncedAvailableModels, modelMeta.customModels]);
   const providerAlias = getProviderAlias(providerId);
   const isManagedAvailableModelsProvider = isCompatible || providerId === "openrouter";
-  const isSearchProvider = providerId.endsWith("-search");
+  // isSearchProvider declared earlier (before hooks)
   const isUpstreamProxyProvider = providerInfo?.category === "upstream-proxy";
   const compatibleSupportsModelImport = compatibleProviderSupportsModelImport(providerId);
 
@@ -502,154 +529,25 @@ export default function ProviderDetailPageClient() {
     return (providerNode?.chatPath || defaultPath).replace(/^\//, "");
   };
 
-  // Define callbacks BEFORE the useEffect that uses them
-  const fetchAliases = useCallback(async () => {
-    try {
-      const res = await fetch("/api/models/alias");
-      const data = await res.json();
-      if (res.ok) {
-        setModelAliases(data.aliases || {});
-      }
-    } catch (error) {
-      console.log("Error fetching aliases:", error);
-    }
-  }, []);
+  // fetchAliases, handleSetAlias, handleDeleteAlias → hooks/useProviderModels.ts (Phase 1f)
+  // fetchProviderModelMeta, fetchProxyConfig, fetchConnections → hooks/useProviderConnections.ts + useProviderModels.ts (Phase 1f)
+  // loadCodexSettings, loadClaudeRoutingSettings → hooks/useProviderSettings.ts (Phase 1f)
+  // loadConnProxies, handleRetestConnection, handleBatchTestAll, handleBatchRetest → hooks/useProviderConnections.ts (Phase 1f)
+  // handleDelete, handleBatchDeleteConfirm, handleBatchSetActive → hooks/useProviderConnections.ts (Phase 1f)
+  // handleUpdateConnectionStatus, handleToggleProxyEnabled, handleTogglePerKeyProxyEnabled → hooks/useProviderConnections.ts (Phase 1f)
+  // handleDistributeProxies, handleToggleRateLimit, handleToggleClaudeExtraUsage → hooks/useProviderConnections.ts (Phase 1f)
+  // handleToggleCliproxyapiMode, handleToggleCodexLimit, handleSwapPriority → hooks/useProviderConnections.ts (Phase 1f)
+  // handleToggleClaudeRoutingPreference, handleChangeCodexGlobalServiceMode → hooks/useProviderSettings.ts (Phase 1f)
+  // handleRefreshToken → hooks/useProviderConnections.ts (Phase 1f)
 
-  const handleSetAlias = useCallback(
-    async (modelId: string, alias: string, providerAlias?: string) => {
-      const qualifiedModel = providerAlias
-        ? modelId.includes("/")
-          ? `${providerAlias}/${modelId.split("/").slice(1).join("/")}`
-          : `${providerAlias}/${modelId}`
-        : modelId;
-      try {
-        const res = await fetch("/api/models/alias", {
-          method: "PUT",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ model: qualifiedModel, alias }),
-        });
-        if (res.ok) {
-          await fetchAliases();
-          notify.success(t("setAliasSuccess", { alias }));
-        } else {
-          const data = await res.json().catch(() => ({}));
-          notify.error(data?.error?.message || "Failed to set alias");
-        }
-      } catch (error) {
-        console.log("Error setting alias:", error);
-        notify.error("Network error setting alias");
-      }
-    },
-    [fetchAliases, t]
-  );
+  // ── model-related effects (loading gate) ────────────────────────────────
+  useEffect(() => {
+    if (loading || isSearchProvider) return;
+    fetchProviderModelMeta();
+    fetchAliases();
+  }, [loading, isSearchProvider, fetchProviderModelMeta, fetchAliases]);
 
-  const handleDeleteAlias = useCallback(
-    async (alias: string) => {
-      try {
-        const res = await fetch(`/api/models/alias?alias=${encodeURIComponent(alias)}`, {
-          method: "DELETE",
-        });
-        if (res.ok) {
-          await fetchAliases();
-          notify.success(t("deleteAliasSuccess", { alias }));
-        } else {
-          const data = await res.json().catch(() => ({}));
-          notify.error(data?.error?.message || "Failed to delete alias");
-        }
-      } catch (error) {
-        console.log("Error deleting alias:", error);
-        notify.error("Network error deleting alias");
-      }
-    },
-    [fetchAliases, t]
-  );
-
-  const fetchProviderModelMeta = useCallback(async () => {
-    if (isSearchProvider) return;
-    try {
-      const res = await fetch(`/api/provider-models?provider=${encodeURIComponent(providerId)}`, {
-        cache: "no-store",
-      });
-      if (!res.ok) return;
-      const data = await res.json();
-      setModelMeta({
-        customModels: data.models || [],
-        modelCompatOverrides: data.modelCompatOverrides || [],
-      });
-      try {
-        const syncRes = await fetch(
-          `/api/synced-available-models?provider=${encodeURIComponent(providerId)}`,
-          {
-            cache: "no-store",
-          }
-        );
-        if (syncRes.ok) {
-          const syncData = await syncRes.json();
-          setSyncedAvailableModels(syncData.models || []);
-        } else {
-          setSyncedAvailableModels([]);
-        }
-      } catch {
-        setSyncedAvailableModels([]);
-      }
-    } catch (e) {
-      console.error("fetchProviderModelMeta", e);
-    }
-  }, [providerId, isSearchProvider]);
-
-  const fetchProxyConfig = useCallback(async () => {
-    try {
-      const res = await fetch("/api/settings/proxy", { cache: "no-store" });
-      if (res.ok) {
-        setProxyConfig(await res.json());
-      } else {
-        setProxyConfig(null);
-      }
-    } catch {
-      // Proxy indicators are best-effort.
-    }
-  }, []);
-
-  const fetchConnections = useCallback(async () => {
-    try {
-      const [connectionsRes, nodesRes] = await Promise.all([
-        fetch("/api/providers", { cache: "no-store" }),
-        fetch("/api/provider-nodes", { cache: "no-store" }),
-      ]);
-      const connectionsData = await connectionsRes.json();
-      const nodesData = await nodesRes.json();
-      if (connectionsRes.ok) {
-        const filtered = (connectionsData.connections || []).filter(
-          (c) => c.provider === providerId
-        );
-        setConnections(filtered);
-      }
-      if (nodesRes.ok) {
-        let node = (nodesData.nodes || []).find((entry) => entry.id === providerId) || null;
-
-        // Newly created compatible nodes can be briefly unavailable on one worker.
-        // Retry a few times before showing "Provider not found".
-        if (!node && isCompatible) {
-          for (let attempt = 0; attempt < 3; attempt += 1) {
-            await new Promise((resolve) => setTimeout(resolve, 150));
-            const retryRes = await fetch("/api/provider-nodes", { cache: "no-store" });
-            if (!retryRes.ok) continue;
-            const retryData = await retryRes.json();
-            node = (retryData.nodes || []).find((entry) => entry.id === providerId) || null;
-            if (node) break;
-          }
-        }
-
-        setProviderNode(node);
-      }
-    } catch (error) {
-      console.log("Error fetching connections:", error);
-    } finally {
-      setLoading(false);
-    }
-  }, [providerId, isCompatible]);
-
-  const handleUpdateNode = async (formData) => {
+  const handleUpdateNode = async (formData: any) => {
     try {
       const res = await fetch(`/api/provider-nodes/${providerId}`, {
         method: "PUT",
@@ -666,13 +564,6 @@ export default function ProviderDetailPageClient() {
       console.log("Error updating provider node:", error);
     }
   };
-
-  useEffect(() => {
-    fetchConnections();
-    fetchAliases();
-    // Load proxy config for visual indicators (provider-level button)
-    void fetchProxyConfig();
-  }, [fetchConnections, fetchAliases, fetchProxyConfig]);
 
   const handleZedImport = useCallback(async () => {
     if (importingZed) return;
@@ -731,114 +622,8 @@ export default function ProviderDetailPageClient() {
     }
   }, [importingZedManual, zedManualProvider, zedManualToken, notify, fetchConnections]);
 
-  const loadCodexSettings = useCallback(async () => {
-    const requestSeq = codexSettingsRequestSeqRef.current + 1;
-    codexSettingsRequestSeqRef.current = requestSeq;
-    const isCurrentRequest = () => codexSettingsRequestSeqRef.current === requestSeq;
-
-    if (providerId !== "codex") {
-      setCodexSettingsLoaded(false);
-      setCodexSettingsLoadError(null);
-      return;
-    }
-
-    setCodexSettingsLoaded(false);
-    setCodexSettingsLoadError(null);
-
-    try {
-      const response = await fetch("/api/settings", { cache: "no-store" });
-      if (!response.ok) {
-        throw new Error(`Settings request failed with HTTP ${response.status}`);
-      }
-      const data = await response.json();
-      if (!data || typeof data !== "object") {
-        throw new Error("Settings response was empty");
-      }
-      if (!isCurrentRequest()) return;
-      const resolvedCodexServiceTier = resolveCodexGlobalFastServiceTier(data);
-      setCodexGlobalServiceMode(getCodexGlobalServiceMode(data));
-      setCodexGlobalSupportedModels([...resolvedCodexServiceTier.supportedModels]);
-      setCodexSettingsLoaded(true);
-    } catch (error) {
-      if (!isCurrentRequest()) return;
-      setCodexSettingsLoaded(false);
-      setCodexSettingsLoadError(error instanceof Error ? error.message : "Failed to load settings");
-    }
-  }, [providerId]);
-
-  useEffect(() => {
-    void loadCodexSettings();
-  }, [loadCodexSettings]);
-
-  const loadClaudeRoutingSettings = useCallback(async () => {
-    if (providerId !== "claude") {
-      setClaudeRoutingSettingsLoaded(false);
-      setClaudeRoutingSettingsLoadError(null);
-      return;
-    }
-
-    setClaudeRoutingSettingsLoaded(false);
-    setClaudeRoutingSettingsLoadError(null);
-
-    try {
-      const response = await fetch("/api/settings", { cache: "no-store" });
-      if (!response.ok) {
-        throw new Error(`Settings request failed with HTTP ${response.status}`);
-      }
-      const data = await response.json();
-      if (!data || typeof data !== "object") {
-        throw new Error("Settings response was empty");
-      }
-      setPreferClaudeCodeForUnprefixedClaudeModels(
-        data.preferClaudeCodeForUnprefixedClaudeModels === true
-      );
-      setClaudeRoutingSettingsLoaded(true);
-    } catch (error) {
-      setClaudeRoutingSettingsLoaded(false);
-      setClaudeRoutingSettingsLoadError(
-        error instanceof Error ? error.message : "Failed to load settings"
-      );
-    }
-  }, [providerId]);
-
-  useEffect(() => {
-    void loadClaudeRoutingSettings();
-  }, [loadClaudeRoutingSettings]);
-
-  const loadConnProxies = useCallback(async (conns: { id?: string }[]) => {
-    if (!conns.length) return;
-    try {
-      const results = await Promise.all(
-        conns
-          .filter((c) => c.id)
-          .map((c) =>
-            fetch(`/api/settings/proxy?resolve=${encodeURIComponent(c.id!)}`, { cache: "no-store" })
-              .then((r) => (r.ok ? r.json() : null))
-              .then((data) => [c.id!, data] as [string, any])
-              .catch(() => [c.id!, null] as [string, any])
-          )
-      );
-      const map: Record<string, { proxy: any; level: string } | null> = {};
-      for (const [id, data] of results) {
-        map[id] = data?.proxy ? data : null;
-      }
-      setConnProxyMap(map);
-    } catch {
-      // ignore
-    }
-  }, []);
-
-  useEffect(() => {
-    if (loading || isSearchProvider) return;
-    fetchProviderModelMeta();
-  }, [loading, isSearchProvider, fetchProviderModelMeta]);
-
-  // Load per-connection effective proxy (handles registry assignments)
-  useEffect(() => {
-    if (!loading && connections.length > 0) {
-      void loadConnProxies(connections);
-    }
-  }, [loading, connections, loadConnProxies]);
+  // loadCodexSettings, loadClaudeRoutingSettings → hooks/useProviderSettings.ts (Phase 1f)
+  // loadConnProxies → hooks/useProviderConnections.ts (Phase 1f)
 
   const onTestModel = async (modelId: string, fullModel: string) => {
     setTestingModelId(modelId);
@@ -949,122 +734,8 @@ export default function ProviderDetailPageClient() {
     setTestProgress(null);
   };
 
-  const handleToggleSelectOne = useCallback((id: string) => {
-    setSelectedIds((prev) => {
-      const next = new Set(prev);
-      if (next.has(id)) next.delete(id);
-      else next.add(id);
-      return next;
-    });
-  }, []);
-
-  const handleToggleSelectAll = useCallback(() => {
-    setSelectedIds((prev) => {
-      if (prev.size === connections.length && connections.length > 0) {
-        return new Set();
-      }
-      return new Set(connections.map((c) => (c as { id: string }).id));
-    });
-  }, [connections]);
-
-  const handleBatchDeleteOpenModal = () => {
-    if (selectedIds.size === 0) return;
-    setBatchDeleteConfirmOpen(true);
-  };
-
-  const handleBatchDeleteConfirm = async () => {
-    setBatchDeleteConfirmOpen(false);
-    setBatchDeleting(true);
-    try {
-      const res = await fetch("/api/providers", {
-        method: "DELETE",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ids: Array.from(selectedIds) }),
-      });
-
-      if (res.ok) {
-        setSelectedIds(new Set());
-        await fetchConnections();
-        notify.success(t("batchDeleteSuccess", { count: selectedIds.size }));
-        await fetchProviderModelMeta();
-      } else {
-        const data = await res.json();
-        notify.error(data.error || "Batch delete failed");
-      }
-    } catch {
-      notify.error("Network error during batch delete");
-    } finally {
-      setBatchDeleting(false);
-    }
-  };
-
-  const handleDelete = useCallback(
-    async (connectionId: string) => {
-      if (!connectionId) return;
-      try {
-        const res = await fetch(`/api/providers/${connectionId}`, { method: "DELETE" });
-        if (res.ok) {
-          notify.success("Connection deleted");
-          await fetchConnections();
-          await fetchProviderModelMeta();
-        } else {
-          const data = await res.json().catch(() => ({}));
-          const message =
-            (typeof data?.error === "string" && data.error) ||
-            data?.error?.message ||
-            "Failed to delete connection";
-          notify.error(message);
-        }
-      } catch (error) {
-        console.error("Error deleting connection:", error);
-        notify.error("Failed to delete connection");
-      }
-    },
-    [fetchConnections, fetchProviderModelMeta, notify]
-  );
-
-  const handleBatchSetActive = async (isActive: boolean) => {
-    if (selectedIds.size === 0 || batchUpdating) return;
-    setBatchUpdating(isActive ? "activate" : "deactivate");
-    try {
-      const ids = Array.from(selectedIds);
-      let updated = 0;
-      let notFound = 0;
-      for (let i = 0; i < ids.length; i += MAX_BULK_IDS) {
-        const chunk = ids.slice(i, i + MAX_BULK_IDS);
-        const res = await fetch("/api/providers", {
-          method: "PATCH",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ ids: chunk, isActive }),
-        });
-        if (!res.ok) {
-          const data = await res.json().catch(() => ({}));
-          throw new Error(data.error?.message || data.error || "Batch update failed");
-        }
-        const data = await res.json();
-        updated += data.updated ?? 0;
-        notFound += Array.isArray(data.notFound) ? data.notFound.length : 0;
-      }
-
-      await fetchConnections();
-
-      if (updated === 0) {
-        notify.warning(t("batchUpdateNone"));
-      } else if (notFound > 0) {
-        notify.warning(t("batchUpdatePartial", { count: updated, skipped: notFound }));
-      } else {
-        notify.success(
-          isActive
-            ? t("batchActivateSuccess", { count: updated })
-            : t("batchDeactivateSuccess", { count: updated })
-        );
-      }
-    } catch (error: any) {
-      notify.error(error?.message || "Network error during batch update");
-    } finally {
-      setBatchUpdating(null);
-    }
-  };
+  // handleToggleSelectOne/All, handleBatchDeleteOpenModal/Confirm, handleDelete,
+  // handleBatchSetActive → hooks/useProviderConnections.ts (Phase 1f)
 
   const handleOAuthSuccess = useCallback(() => {
     fetchConnections();
@@ -1540,553 +1211,32 @@ export default function ProviderDetailPageClient() {
     }
   };
 
-  const handleUpdateConnectionStatus = async (id, isActive) => {
-    try {
-      const res = await fetch(`/api/providers/${id}`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ isActive }),
-      });
-      if (res.ok) {
-        setConnections((prev) => prev.map((c) => (c.id === id ? { ...c, isActive } : c)));
-      }
-    } catch (error) {
-      console.log("Error updating connection status:", error);
-    }
-  };
+  // handleUpdateConnectionStatus, handleToggleProxyEnabled, handleTogglePerKeyProxyEnabled,
+  // handleDistributeProxies, handleToggleRateLimit, handleToggleClaudeExtraUsage,
+  // handleToggleCliproxyapiMode, handleToggleCodexLimit, handleToggleClaudeRoutingPreference,
+  // handleChangeCodexGlobalServiceMode, handleRetestConnection, runBatchTest,
+  // handleBatchTestAll, handleBatchRetest, parseApiErrorMessage, getAttachmentFilename,
+  // handleRefreshToken → hooks/useProviderConnections.ts + useProviderSettings.ts (Phase 1f)
 
-  const handleToggleProxyEnabled = async (connectionId, proxyEnabled) => {
-    try {
-      const res = await fetch(`/api/providers/${connectionId}`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ proxyEnabled }),
-      });
-      if (res.ok) {
-        setConnections((prev) =>
-          prev.map((c) => (c.id === connectionId ? { ...c, proxyEnabled } : c))
-        );
-      }
-    } catch (error) {
-      console.error("Error toggling proxy enabled:", error);
-    }
-  };
+  // handleToggleProxyEnabled → useProviderConnections (Phase 1f)
 
-  const handleTogglePerKeyProxyEnabled = async (connectionId, perKeyProxyEnabled) => {
-    try {
-      const res = await fetch(`/api/providers/${connectionId}`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ perKeyProxyEnabled }),
-      });
-      if (res.ok) {
-        setConnections((prev) =>
-          prev.map((c) => (c.id === connectionId ? { ...c, perKeyProxyEnabled } : c))
-        );
-      }
-    } catch (error) {
-      console.error("Error toggling per-key proxy enabled:", error);
-    }
-  };
+  // handleTogglePerKeyProxyEnabled → useProviderConnections (Phase 1f)
 
-  const handleDistributeProxies = async (tagFilter?: string) => {
-    const targetConnections = tagFilter
-      ? connections.filter(
-          (c: any) => (c.providerSpecificData?.tag as string | undefined)?.trim() === tagFilter
-        )
-      : connections;
-    if (targetConnections.length === 0) return;
-    setDistributingProxies(true);
-    try {
-      const proxiesRes = await fetch("/api/settings/proxies");
-      if (!proxiesRes.ok) throw new Error("Failed to fetch proxies");
-      const proxiesData = await proxiesRes.json();
-      const savedProxies = (proxiesData?.items || []).filter((p: any) => p.status === "active");
-      if (savedProxies.length === 0) {
-        notify.error("No saved proxies found. Add proxies in Settings → Proxy first.");
-        return;
-      }
+  // handleDistributeProxies → useProviderConnections (Phase 1f)
 
-      let assigned = 0;
-      const sorted = [...targetConnections].sort(
-        (a: any, b: any) => (a.priority || 0) - (b.priority || 0)
-      );
+  // handleToggleRateLimit → useProviderConnections (Phase 1f)
 
-      for (let i = 0; i < sorted.length; i++) {
-        const conn = sorted[i] as any;
-        const proxy = savedProxies[i % savedProxies.length];
+  // handleToggleClaudeExtraUsage → useProviderConnections (Phase 1f)
 
-        try {
-          await fetch("/api/settings/proxies/assignments", {
-            method: "PUT",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              scope: "account",
-              scopeId: conn.id,
-              proxyId: null,
-            }),
-          });
-        } catch {
-          /* clear old assignment */
-        }
+  // [cpaProviderEnabled] state + useEffect + handleToggleCliproxyapiMode → useProviderConnections (Phase 1f)
 
-        const patchRes = await fetch(`/api/providers/${conn.id}`, {
-          method: "PUT",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ proxyEnabled: true, perKeyProxyEnabled: true }),
-        });
+  // handleToggleCodexLimit → useProviderConnections (Phase 1f)
 
-        if (!patchRes.ok) {
-          console.error(`Failed to update connection ${conn.id}`);
-          continue;
-        }
+  // handleToggleClaudeRoutingPreference + handleChangeCodexGlobalServiceMode → useProviderSettings (Phase 1f)
 
-        // Assign new proxy
-        const assignRes = await fetch("/api/settings/proxies/assignments", {
-          method: "PUT",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            scope: "account",
-            scopeId: conn.id,
-            proxyId: proxy.id,
-          }),
-        });
-
-        if (!assignRes.ok) {
-          console.error(`Failed to assign proxy to ${conn.id}`);
-          continue;
-        }
-
-        assigned++;
-      }
-
-      await fetchConnections();
-      const tagLabel = tagFilter ? `"${tagFilter}" ` : "";
-      notify.success(
-        `Distributed ${assigned} proxy assignment(s) across ${tagLabel}${sorted.length} connection(s).`
-      );
-    } catch (err) {
-      console.error("Error distributing proxies:", err);
-      notify.error("Failed to distribute proxies.");
-    } finally {
-      setDistributingProxies(false);
-    }
-  };
-
-  const handleToggleRateLimit = async (connectionId, enabled) => {
-    try {
-      const res = await fetch("/api/rate-limits", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ connectionId, enabled }),
-      });
-      if (res.ok) {
-        setConnections((prev) =>
-          prev.map((c) => (c.id === connectionId ? { ...c, rateLimitProtection: enabled } : c))
-        );
-      }
-    } catch (error) {
-      console.error("Error toggling rate limit:", error);
-    }
-  };
-
-  const handleToggleClaudeExtraUsage = async (connectionId, enabled) => {
-    try {
-      const target = connections.find((connection) => connection.id === connectionId);
-      if (!target) return;
-
-      const providerSpecificData =
-        target.providerSpecificData && typeof target.providerSpecificData === "object"
-          ? target.providerSpecificData
-          : {};
-
-      const res = await fetch(`/api/providers/${connectionId}`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          providerSpecificData: {
-            ...providerSpecificData,
-            blockExtraUsage: enabled,
-          },
-        }),
-      });
-
-      if (!res.ok) {
-        const data = await res.json().catch(() => ({}));
-        notify.error(data.error || "Failed to update Claude extra-usage policy");
-        return;
-      }
-
-      setConnections((prev) =>
-        prev.map((connection) =>
-          connection.id === connectionId
-            ? {
-                ...connection,
-                providerSpecificData: {
-                  ...(connection.providerSpecificData || {}),
-                  blockExtraUsage: enabled,
-                },
-                ...(!enabled && connection.lastErrorSource === "extra_usage"
-                  ? {
-                      testStatus: "active",
-                      lastError: null,
-                      lastErrorAt: null,
-                      lastErrorType: null,
-                      lastErrorSource: null,
-                      errorCode: null,
-                      rateLimitedUntil: null,
-                    }
-                  : {}),
-              }
-            : connection
-        )
-      );
-      notify.success(
-        enabled
-          ? "Claude extra-usage blocking enabled (extra usage will be blocked)"
-          : "Claude extra-usage blocking disabled (extra usage is allowed)"
-      );
-    } catch (error) {
-      console.error("Error toggling Claude extra-usage policy:", error);
-      notify.error("Failed to update Claude extra-usage policy");
-    }
-  };
-
-  const [cpaProviderEnabled, setCpaProviderEnabled] = useState(false);
-
-  // Load upstream proxy config for this provider on mount
-  useEffect(() => {
-    if (!isCcCompatible) return;
-    fetch(`/api/settings`)
-      .then((r) => r.json())
-      .then((data) => {
-        // Check if this provider has CLIProxyAPI routing enabled
-        // The upstream_proxy_config is synced via the settings API
-      })
-      .catch(() => {});
-
-    // Also check via direct upstream proxy config lookup
-    fetch(`/api/upstream-proxy/${providerId}`)
-      .then((r) => {
-        if (!r.ok) return null;
-        return r.json();
-      })
-      .then((data) => {
-        if (data?.enabled && (data.mode === "cliproxyapi" || data.mode === "fallback")) {
-          setCpaProviderEnabled(true);
-        }
-      })
-      .catch(() => {});
-  }, [isCcCompatible, providerId]);
-
-  const handleToggleCliproxyapiMode = async (_connectionId, enabled) => {
-    try {
-      // Write to upstream_proxy_config table which resolveExecutorWithProxy reads
-      const res = await fetch(`/api/upstream-proxy/${providerId}`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          mode: enabled ? "cliproxyapi" : "native",
-          enabled: enabled,
-        }),
-      });
-
-      if (!res.ok) {
-        const data = await res.json().catch(() => ({}));
-        notify.error(data.error || "Failed to update CLIProxyAPI routing");
-        return;
-      }
-
-      setCpaProviderEnabled(enabled);
-      notify.success(
-        enabled
-          ? "Requests now route through CLIProxyAPI (deeper emulation)"
-          : "Requests now use native OmniRoute (direct)"
-      );
-    } catch {
-      notify.error("Failed to update CLIProxyAPI routing");
-    }
-  };
-
-  const handleToggleCodexLimit = async (connectionId, field, enabled) => {
-    try {
-      const target = connections.find((connection) => connection.id === connectionId);
-      if (!target) return;
-
-      const providerSpecificData =
-        target.providerSpecificData && typeof target.providerSpecificData === "object"
-          ? target.providerSpecificData
-          : {};
-      const existingPolicy =
-        providerSpecificData.codexLimitPolicy &&
-        typeof providerSpecificData.codexLimitPolicy === "object"
-          ? providerSpecificData.codexLimitPolicy
-          : {};
-
-      const nextPolicy = {
-        ...normalizeCodexLimitPolicy(existingPolicy),
-        [field]: enabled,
-      };
-
-      const res = await fetch(`/api/providers/${connectionId}`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          providerSpecificData: {
-            ...providerSpecificData,
-            codexLimitPolicy: nextPolicy,
-          },
-        }),
-      });
-
-      if (!res.ok) {
-        const data = await res.json().catch(() => ({}));
-        notify.error(data.error || "Failed to update Codex limit policy");
-        return;
-      }
-
-      setConnections((prev) =>
-        prev.map((connection) =>
-          connection.id === connectionId
-            ? {
-                ...connection,
-                providerSpecificData: {
-                  ...(connection.providerSpecificData || {}),
-                  codexLimitPolicy: nextPolicy,
-                },
-              }
-            : connection
-        )
-      );
-      notify.success("Codex limit policy updated");
-    } catch (error) {
-      console.error("Error toggling Codex quota policy:", error);
-      notify.error("Failed to update Codex limit policy");
-    }
-  };
-
-  const handleToggleClaudeRoutingPreference = async (enabled: boolean) => {
-    if (savingClaudeRoutingPreference || !claudeRoutingSettingsLoaded) return;
-    setSavingClaudeRoutingPreference(true);
-    const previous = preferClaudeCodeForUnprefixedClaudeModels;
-    setPreferClaudeCodeForUnprefixedClaudeModels(enabled);
-
-    try {
-      const res = await fetch("/api/settings", {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          preferClaudeCodeForUnprefixedClaudeModels: enabled,
-        }),
-      });
-
-      if (!res.ok) {
-        const data = await res.json().catch(() => ({}));
-        setPreferClaudeCodeForUnprefixedClaudeModels(previous);
-        notify.error(data.error || "Failed to update Claude Code routing preference");
-        return;
-      }
-
-      const data = await res.json().catch(() => null);
-      if (data && typeof data === "object") {
-        setPreferClaudeCodeForUnprefixedClaudeModels(
-          data.preferClaudeCodeForUnprefixedClaudeModels === true
-        );
-      }
-      notify.success(
-        enabled
-          ? "Unprefixed Claude models now prefer Claude Code"
-          : "Unprefixed Claude models no longer prefer Claude Code"
-      );
-    } catch (error) {
-      setPreferClaudeCodeForUnprefixedClaudeModels(previous);
-      console.error("Error updating Claude Code routing preference:", error);
-      notify.error("Failed to update Claude Code routing preference");
-    } finally {
-      setSavingClaudeRoutingPreference(false);
-    }
-  };
-
-  const handleChangeCodexGlobalServiceMode = async (mode: CodexGlobalServiceMode) => {
-    if (savingCodexGlobalServiceMode || !codexSettingsLoaded) return;
-    setSavingCodexGlobalServiceMode(true);
-    const previousMode = codexGlobalServiceMode;
-    setCodexGlobalServiceMode(mode);
-    try {
-      const tier = mode === "none" ? (previousMode !== "none" ? previousMode : undefined) : mode;
-      const res = await fetch("/api/settings", {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          codexServiceTier: {
-            enabled: mode !== "none",
-            ...(tier ? { tier } : {}),
-            supportedModels: codexGlobalSupportedModels,
-          },
-        }),
-      });
-
-      if (!res.ok) {
-        const data = await res.json().catch(() => ({}));
-        setCodexGlobalServiceMode(previousMode);
-        notify.error(data.error || "Failed to update Codex service mode");
-        return;
-      }
-
-      notify.success("Codex service mode updated");
-    } catch (error) {
-      setCodexGlobalServiceMode(previousMode);
-      console.error("Error updating Codex service mode:", error);
-      notify.error("Failed to update Codex service mode");
-    } finally {
-      setSavingCodexGlobalServiceMode(false);
-    }
-  };
-
-  const handleRetestConnection = async (connectionId) => {
-    if (!connectionId || retestingId) return;
-    setRetestingId(connectionId);
-    try {
-      const res = await fetch(`/api/providers/${connectionId}/test`, { method: "POST" });
-      if (!res.ok) {
-        const data = await res.json().catch(() => ({}));
-        alert(data.error || t("failedRetestConnection"));
-        return;
-      }
-      await fetchConnections();
-    } catch (error) {
-      console.error("Error retesting connection:", error);
-    } finally {
-      setRetestingId(null);
-    }
-  };
-
-  // Shared runner for batch connection tests (all-for-provider or selected IDs)
-  const runBatchTest = async (payload: Record<string, unknown>) => {
-    setBatchTestResults(null);
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 120_000); // 2min max
-    try {
-      const res = await fetch("/api/providers/test-batch", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
-        signal: controller.signal,
-      });
-      let data: any;
-      try {
-        data = await res.json();
-      } catch {
-        data = { error: t("providerTestFailed"), results: [], summary: null };
-      }
-      setBatchTestResults({
-        ...data,
-        error: data.error
-          ? typeof data.error === "object"
-            ? data.error.message || data.error.error || JSON.stringify(data.error)
-            : String(data.error)
-          : null,
-      });
-      if (data?.summary) {
-        const { passed, failed, total } = data.summary;
-        if (total === 0) notify.warning(t("noConnectionsToTest"));
-        else if (failed === 0) notify.success(t("allTestsPassed", { total }));
-        else notify.warning(t("testSummary", { passed, failed, total }));
-      }
-      // Refresh connections to update statuses
-      await fetchConnections();
-    } catch (error: any) {
-      const isAbort = error?.name === "AbortError";
-      const msg = isAbort ? t("providerTestTimeout") : t("providerTestFailed");
-      setBatchTestResults({ error: msg, results: [], summary: null });
-      notify.error(msg);
-    } finally {
-      clearTimeout(timeoutId);
-    }
-  };
-
-  // Batch test all connections for this provider
-  const handleBatchTestAll = async () => {
-    if (batchTesting || connections.length === 0) return;
-    setBatchTesting(true);
-    try {
-      await runBatchTest({ mode: "provider", providerId });
-    } finally {
-      setBatchTesting(false);
-    }
-  };
-
-  // Batch retest only the selected connections
-  const handleBatchRetest = async () => {
-    if (batchRetesting || selectedIds.size === 0) return;
-    // Live-testing a huge selection risks the 120s client abort; bound it to the
-    // same cap the API enforces and tell the user to narrow the selection.
-    if (selectedIds.size > MAX_BULK_IDS) {
-      notify.warning(t("batchRetestLimit", { max: MAX_BULK_IDS }));
-      return;
-    }
-    setBatchRetesting(true);
-    try {
-      await runBatchTest({ mode: "selected", connectionIds: Array.from(selectedIds) });
-    } finally {
-      setBatchRetesting(false);
-    }
-  };
-
-  // T12: Manual token refresh
-  const [refreshingId, setRefreshingId] = useState<string | null>(null);
-
-  const parseApiErrorMessage = async (res: Response, fallback: string) => {
-    const contentType = res.headers.get("content-type") || "";
-
-    if (contentType.includes("application/json")) {
-      const data = await res.json().catch(() => ({}));
-      if (typeof data?.error === "string" && data.error.trim()) {
-        return data.error;
-      }
-      if (data?.error?.message) {
-        return data.error.message;
-      }
-    }
-
-    const text = await res.text().catch(() => "");
-    return text.trim() || fallback;
-  };
-
-  const getAttachmentFilename = (res: Response, fallback: string) => {
-    const disposition = res.headers.get("content-disposition") || "";
-    const utf8Match = disposition.match(/filename\*=UTF-8''([^;]+)/i);
-    if (utf8Match?.[1]) {
-      return decodeURIComponent(utf8Match[1]);
-    }
-
-    const plainMatch = disposition.match(/filename="([^"]+)"/i);
-    if (plainMatch?.[1]) {
-      return plainMatch[1];
-    }
-
-    return fallback;
-  };
-
-  const handleRefreshToken = async (connectionId: string) => {
-    if (refreshingId) return;
-    setRefreshingId(connectionId);
-    try {
-      const res = await fetch(`/api/providers/${connectionId}/refresh`, { method: "POST" });
-      const data = await res.json().catch(() => ({}));
-      if (res.ok && data.success) {
-        notify.success(t("tokenRefreshed"));
-        await fetchConnections();
-      } else {
-        notify.error(data.error || t("tokenRefreshFailed"));
-      }
-    } catch (error) {
-      console.error("Error refreshing token:", error);
-      notify.error(t("tokenRefreshFailed"));
-    } finally {
-      setRefreshingId(null);
-    }
-  };
+  // handleRetestConnection, runBatchTest, handleBatchTestAll, handleBatchRetest,
+  // [refreshingId], parseApiErrorMessage, getAttachmentFilename, handleRefreshToken
+  // → useProviderConnections (Phase 1f)
 
   const handleApplyCodexAuthLocal = async (connectionId: string) => {
     if (applyingCodexAuthId) return;
@@ -2319,42 +1469,7 @@ export default function ProviderDetailPageClient() {
     }
   };
 
-  const handleSwapPriority = async (conn1, conn2) => {
-    if (!conn1 || !conn2) return;
-    try {
-      // If they have the same priority, we need to ensure the one moving up
-      // gets a lower value than the one moving down.
-      // We use a small offset which the backend re-indexing will fix.
-      let p1 = conn2.priority;
-      let p2 = conn1.priority;
-
-      if (p1 === p2) {
-        // If moving conn1 "up" (index decreases)
-        const isConn1MovingUp = connections.indexOf(conn1) > connections.indexOf(conn2);
-        if (isConn1MovingUp) {
-          p1 = conn2.priority - 0.5;
-        } else {
-          p1 = conn2.priority + 0.5;
-        }
-      }
-
-      await Promise.all([
-        fetch(`/api/providers/${conn1.id}`, {
-          method: "PUT",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ priority: p1 }),
-        }),
-        fetch(`/api/providers/${conn2.id}`, {
-          method: "PUT",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ priority: p2 }),
-        }),
-      ]);
-      await fetchConnections();
-    } catch (error) {
-      console.log("Error swapping priority:", error);
-    }
-  };
+  // handleSwapPriority → useProviderConnections (Phase 1f)
 
   const handleImportModels = async () => {
     if (importingModels) return;
