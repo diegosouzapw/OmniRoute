@@ -143,7 +143,7 @@ export function mapAntigravityModelForClient(model: { id: string; name: string }
   };
 }
 
-async export function fetchAntigravityDiscoveryModelsCached(
+export async function fetchAntigravityDiscoveryModelsCached(
   accessToken: string,
   connectionId: string,
   proxy: unknown,
