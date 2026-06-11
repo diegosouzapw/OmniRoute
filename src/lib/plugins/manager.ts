@@ -383,7 +383,13 @@ class PluginManager {
     }
 
     try {
-      const loaded = await loadPlugin(entryPoint, manifest);
+      const loaded = await loadPlugin({
+        entryPoint,
+        manifest,
+        onIpcMessage: (msg) => {
+          this.routeIpcMessage(msg);
+        },
+      });
 
       const hookNames = [
         "onRequest",
@@ -444,6 +450,102 @@ class PluginManager {
     updatePluginStatus(name, "inactive");
 
     log.info("manager.deactivated", { name });
+  }
+
+  /**
+   * Route an IPC message between plugins.
+   */
+  private routeIpcMessage(msg: {
+    source: string;
+    kind: "broadcast" | "targeted";
+    target?: string;
+    event: string;
+    data: unknown;
+  }): void {
+    if (msg.kind === "broadcast") {
+      emitHook("onPluginMessage", {
+        source: msg.source,
+        event: msg.event,
+        data: msg.data,
+      }).catch((err) => {
+        log.error("manager.ipc_broadcast_error", { source: msg.source, event: msg.event, error: err.message });
+      });
+    } else if (msg.kind === "targeted" && msg.target) {
+      const target = this.loadedPlugins.get(msg.target);
+      if (target?.sendMessage) {
+        target.sendMessage({
+          source: msg.source,
+          event: msg.event,
+          data: msg.data,
+        });
+      }
+    }
+  }
+
+  /**
+   * Send a message to a specific active plugin.
+   */
+  sendToPlugin(name: string, payload: unknown): void {
+    const target = this.loadedPlugins.get(name);
+    if (target?.sendMessage) {
+      target.sendMessage(payload);
+    }
+  }
+
+  /**
+   * Broadcast a message to all active plugins listening for onPluginMessage.
+   */
+  broadcastToPlugins(event: string, data: unknown): void {
+    emitHook("onPluginMessage", {
+      source: "system",
+      event,
+      data,
+    }).catch(() => {});
+  }
+
+  /**
+   * Render a plugin page by calling its onRender hook.
+   */
+  async renderPluginPage(name: string, slug: string, params?: Record<string, unknown>): Promise<unknown> {
+    const loaded = this.loadedPlugins.get(name);
+    if (!loaded) throw new Error(`Plugin '${name}' is not loaded`);
+
+    const handler = loaded.plugin["onRender"] as ((payload: unknown) => Promise<unknown>) | undefined;
+    if (typeof handler !== "function") {
+      throw new Error(`Plugin '${name}' does not support rendering`);
+    }
+
+    return handler({ slug, params: params || {} });
+  }
+
+  /**
+   * Get all registered UI extensions from active plugins.
+   */
+  getUiExtensions(): {
+    adminPages: Array<{ name: string; slug: string; title: string; icon?: string; parent?: string; position?: number }>;
+    dashboardWidgets: Array<{ name: string; id: string; title: string; position?: string; width?: string }>;
+  } {
+    const adminPages: Array<any> = [];
+    const dashboardWidgets: Array<any> = [];
+
+    const rows = dbListPlugins("active");
+    for (const row of rows) {
+      try {
+        const manifest = JSON.parse(row.manifest) as PluginManifestWithDefaults;
+        if (manifest.adminPages) {
+          for (const page of manifest.adminPages) {
+            adminPages.push({ name: row.name, ...page });
+          }
+        }
+        if (manifest.dashboardWidgets) {
+          for (const widget of manifest.dashboardWidgets) {
+            dashboardWidgets.push({ name: row.name, ...widget });
+          }
+        }
+      } catch {}
+    }
+
+    return { adminPages, dashboardWidgets };
   }
 
   /**

@@ -85,6 +85,24 @@ export default function Sidebar({
   const [pinnedSections, setPinnedSections] = useState<Set<SidebarSectionId>>(new Set());
   const [hoveredItem, setHoveredItem] = useState<HoveredItem>(null);
 
+  const [pluginPages, setPluginPages] = useState<Array<{name: string; slug: string; title: string; icon?: string}>>([]);
+
+  // Fetch plugin UI extensions for sidebar
+  useEffect(() => {
+    fetch("/api/plugins/ui-extensions")
+      .then((res) => res.json())
+      .then((data) => {
+        if (data?.adminPages) {
+          setPluginPages(data.adminPages.map((p: any) => ({
+            name: p.name,
+            slug: p.slug,
+            title: p.title,
+            icon: p.icon,
+          })));
+        }
+      })
+      .catch(() => {});
+  }, []);
   // Load persisted state on mount; OmniProxy is pinned by default on first visit
   useEffect(() => {
     const storedExpanded = loadFromStorage<SidebarSectionId[]>(EXPANDED_SECTIONS_KEY, [
@@ -222,13 +240,28 @@ export default function Sidebar({
         title: getSidebarLabel(section.titleKey, section.titleFallback),
         children,
       };
-    })
     .filter((section) => {
       const allItems = section.children.flatMap((child: any) =>
         child.type === "group" ? child.items : [child]
       );
       return allItems.length > 0;
     });
+
+  // Add plugin pages section dynamically
+  if (pluginPages.length > 0) {
+    const pluginSectionItems = pluginPages.map((p) => ({
+      id: `plugin-${p.name}-${p.slug}`,
+      href: `/dashboard/plugins/${p.name}/page/${p.slug}`,
+      i18nKey: p.title,
+      icon: p.icon || "extension",
+    }));
+    visibleSections.push({
+      id: "plugins" as any,
+      title: "Plugins",
+      children: pluginSectionItems as any,
+      showTitle: true,
+    });
+  }
 
   const allVisibleItems = visibleSections.flatMap((section) =>
     section.children.flatMap((child: any) => (child.type === "group" ? child.items : [child]))

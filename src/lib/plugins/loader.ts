@@ -36,6 +36,7 @@ export interface LoadedPlugin {
   manifest: PluginManifestWithDefaults;
   plugin: Plugin;
   cleanup: () => void;
+  sendMessage?: (payload: unknown) => void;
 }
 
 // ── Plugin host script (runs in child process over IPC) ──
@@ -45,6 +46,15 @@ export interface LoadedPlugin {
 const PLUGIN_HOST_SCRIPT = `
 import { createRequire } from "node:module";
 const require = createRequire(import.meta.url);
+
+globalThis.__omniroute = {
+  broadcast: (event, data) => {
+    process.send({ type: "ipc", kind: "broadcast", event, data });
+  },
+  sendTo: (target, event, data) => {
+    process.send({ type: "ipc", kind: "targeted", target, event, data });
+  },
+};
 
 const pluginPath = process.argv[2];
 const plugin = await import(pluginPath);
@@ -67,18 +77,36 @@ process.on("message", async (msg) => {
     } catch (err) {
       process.send({ type: "result", id: msg.id, error: err.message });
     }
+  } else if (msg.type === "notify") {
+    try {
+      const handler = exports["onPluginMessage"];
+      if (typeof handler === "function") {
+        await handler(msg.payload);
+      }
+    } catch (err) {
+      process.send({ type: "log", level: "error", args: ["notify handler failed: " + err.message] });
+    }
   }
 });
 `;
+
+export interface LoadPluginOptions {
+  entryPoint: string;
+  manifest: PluginManifestWithDefaults;
+  onIpcMessage?: (msg: { source: string; kind: "broadcast" | "targeted"; target?: string; event: string; data: unknown }) => void;
+}
 
 /**
  * Load a plugin in an isolated child process.
  * Returns the plugin interface with hooks that communicate via IPC.
  */
 export async function loadPlugin(
-  entryPoint: string,
-  manifest: PluginManifestWithDefaults
+  entryPointOrOpts: string | LoadPluginOptions,
+  manifestArg?: PluginManifestWithDefaults
 ): Promise<LoadedPlugin> {
+  const entryPoint = typeof entryPointOrOpts === "string" ? entryPointOrOpts : entryPointOrOpts.entryPoint;
+  const manifest = typeof entryPointOrOpts === "string" ? manifestArg! : entryPointOrOpts.manifest;
+  const onIpcMessage = typeof entryPointOrOpts === "string" ? undefined : entryPointOrOpts.onIpcMessage;
   // Integrity check: if the manifest declares an integrity field, verify the entry point.
   // Missing integrity is OK for backward compatibility; mismatched integrity is a fatal error.
   const integrityField = (manifest as unknown as Record<string, unknown>).integrity;
@@ -148,25 +176,34 @@ export async function loadPlugin(
   > = new Map();
   let callCounter = 0;
 
-  child.on(
-    "message",
-    (msg: { type: string; id?: string; hooks?: string[]; result?: unknown; error?: string }) => {
-      if (msg.type === "ready") {
-        log.info("loader.process_ready", { name: manifest.name, hooks: msg.hooks });
-      } else if (msg.type === "result" && msg.id) {
-        const pending = pendingCalls.get(msg.id);
-        if (pending) {
-          clearTimeout(pending.timer);
-          pendingCalls.delete(msg.id);
-          if (msg.error) {
-            pending.reject(new Error(msg.error));
-          } else {
-            pending.resolve(msg.result);
-          }
+  child.on("message", (msg: any) => {
+    if (msg.type === "ready") {
+      log.info("loader.process_ready", { name: manifest.name, hooks: msg.hooks });
+    } else if (msg.type === "result" && msg.id) {
+      const pending = pendingCalls.get(msg.id);
+      if (pending) {
+        clearTimeout(pending.timer);
+        pendingCalls.delete(msg.id);
+        if (msg.error) {
+          pending.reject(new Error(msg.error));
+        } else {
+          pending.resolve(msg.result);
         }
       }
+    } else if (msg.type === "ipc" && onIpcMessage) {
+      onIpcMessage({
+        source: manifest.name,
+        kind: msg.kind,
+        target: msg.target,
+        event: msg.event,
+        data: msg.data,
+      });
+    } else if (msg.type === "log") {
+      const level = msg.level || "info";
+      const args = msg.args || [];
+      log[level]("plugin." + manifest.name, ...args);
     }
-  );
+  });
 
   child.on("error", (err) => {
     log.error("loader.process_error", { name: manifest.name, error: err.message });
@@ -286,32 +323,36 @@ export async function loadPlugin(
     }
   }
 
-  log.info("loader.loaded", {
-    name: manifest.name,
-    hooks: registeredHooks,
-    pid: child.pid,
-  });
+  if (manifest.hooks.onRender) {
+    plugin.onRender = async (payload: unknown) => {
+      try {
+        return await callHook("onRender", payload);
+      } catch (err: unknown) {
+        log.error("plugin.onRender_error", {
+          name: manifest.name,
+          error: err instanceof Error ? err.message : String(err),
+        });
+      }
+    };
+    registeredHooks.push("onRender");
+  }
 
   const cleanup = () => {
     child.kill("SIGTERM");
-    // Escalate to SIGKILL after grace period
     const killTimer = setTimeout(() => {
-      try {
-        child.kill("SIGKILL");
-      } catch {}
+      try { child.kill("SIGKILL"); } catch {}
     }, SIGKILL_GRACE_MS);
     child.once("exit", () => clearTimeout(killTimer));
     rm(hostScriptPath, { force: true }).catch(() => {});
     log.info("loader.cleanup", { name: manifest.name });
   };
 
-  return { name: manifest.name, manifest, plugin, cleanup };
-}
+  const sendMessage = (payload: unknown) => {
+    child.send({ type: "notify", payload });
+  };
 
-/**
- * Filter environment variables based on permissions.
- * Uses allowlist approach — only pass explicitly safe vars.
- */
+  return { name: manifest.name, manifest, plugin, cleanup, sendMessage };
+}
 function getFilteredEnv(permissions: Permission[]): Record<string, string> {
   const safeKeys = ["PATH", "HOME", "USER", "LANG", "LC_ALL", "NODE_ENV"];
   const extendedSafeKeys = [...safeKeys, "PORT", "HOSTNAME", "TZ", "TMPDIR"];
