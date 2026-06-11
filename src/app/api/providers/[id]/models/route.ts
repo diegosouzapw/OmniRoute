@@ -764,6 +764,63 @@ export async function GET(
       const isNoAuthProvider =
         (NOAUTH_PROVIDERS as Record<string, { noAuth?: boolean }>)[id]?.noAuth === true;
       if (isNoAuthProvider) {
+        // #3611 — if the registry entry has a modelsUrl, attempt a live fetch so
+        // the model picker shows the current catalog instead of the stale
+        // hardcoded list (opencode provider had 9 hardcoded models while the live
+        // endpoint exposes many more). No auth header is added because noAuth
+        // providers are genuinely public. Fall through to local_catalog on any error.
+        const noAuthRegistryEntry = getRegistryEntry(id);
+        const noAuthModelsUrl =
+          typeof noAuthRegistryEntry?.modelsUrl === "string" &&
+          noAuthRegistryEntry.modelsUrl.length > 0
+            ? noAuthRegistryEntry.modelsUrl
+            : null;
+
+        if (noAuthModelsUrl) {
+          try {
+            const liveResponse = await safeOutboundFetch(noAuthModelsUrl, {
+              ...SAFE_OUTBOUND_FETCH_PRESETS.modelsDiscovery,
+              guard: getProviderOutboundGuard(),
+              method: "GET",
+              headers: { "Content-Type": "application/json" },
+            });
+
+            if (liveResponse.ok) {
+              const data = await liveResponse.json();
+              const liveModels: Array<{ id: string; name: string }> = (
+                (data.data || data.models || []) as Array<Record<string, unknown>>
+              )
+                .map((item) => {
+                  const itemId =
+                    typeof item.id === "string" ? item.id.trim() : "";
+                  if (!itemId) return null;
+                  const itemName =
+                    typeof item.display_name === "string"
+                      ? item.display_name
+                      : typeof item.name === "string"
+                        ? item.name
+                        : itemId;
+                  return { id: itemId, name: itemName };
+                })
+                .filter((m): m is { id: string; name: string } => m !== null);
+
+              if (liveModels.length > 0) {
+                const visible = excludeHidden
+                  ? liveModels.filter((m) => !getModelIsHidden(id, m.id))
+                  : liveModels;
+                return NextResponse.json({
+                  provider: id,
+                  connectionId: id,
+                  models: visible,
+                  source: "upstream",
+                });
+              }
+            }
+          } catch {
+            // Live fetch failed — fall through to local_catalog below.
+          }
+        }
+
         const catalog = mergeLocalCatalogModels(
           getModelsByProviderId(id) || [],
           getStaticModelsForProvider(id) || []
