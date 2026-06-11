@@ -1,0 +1,14 @@
+changelog:
+  categories:
+    - title: Breaking changes
+      labels:
+        - breaking
+    - title: Enhancements
+      labels:
+        - enhancement
+    - title: Fixes
+      labels:
+        - bug
+    - title: Other changes
+      labels:
+        - "*"
