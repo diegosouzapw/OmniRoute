@@ -109,7 +109,7 @@ test("checkFallbackError locks Antigravity quota-reached 429 for the full reset 
     429,
     message,
     0,
-    "gemini-3-flash-agent",
+    "gemini-3.5-flash-high",
     "antigravity",
     null,
     makeProfile()
@@ -125,7 +125,7 @@ test("checkFallbackError locks Antigravity quota-reached 429 for the full reset 
 test("recordModelLockoutFailure honors a multi-day exactCooldownMs (under 30-day cap)", () => {
   const provider = "antigravity";
   const connectionId = "conn-quota-window";
-  const model = "gemini-3-flash-agent";
+  const model = "gemini-3.5-flash-high";
   const exactCooldownMs = (164 * 3600 + 27 * 60 + 24) * 1000;
 
   clearModelLock(provider, connectionId, model);

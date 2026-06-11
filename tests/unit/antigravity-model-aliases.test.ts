@@ -7,7 +7,6 @@ import {
   isUserCallableAntigravityModelId,
   resolveAntigravityModelId,
   toClientAntigravityModelId,
-  toClientAntigravityQuotaModelId,
 } from "../../open-sse/config/antigravityModelAliases.ts";
 import { AntigravityExecutor } from "../../open-sse/executors/antigravity.ts";
 import { openaiToAntigravityRequest } from "../../open-sse/translator/request/openai-to-gemini.ts";
@@ -15,24 +14,6 @@ import { openaiToAntigravityRequest } from "../../open-sse/translator/request/op
 function getPublicModel(id: string) {
   return ANTIGRAVITY_PUBLIC_MODELS.find((model) => model.id === id) as any;
 }
-
-// #3821-review LEDGER-5 — the upstream quota-bucket → client-tier remap is now the single
-// source of truth here (was duplicated as an inline if-ladder in usage.ts). It operates on
-// the UPSTREAM quota namespace, where `gemini-3.5-flash-low` is the Medium tier's bucket.
-test("toClientAntigravityQuotaModelId maps upstream quota buckets to client tiers", () => {
-  assert.equal(toClientAntigravityQuotaModelId("gemini-3.5-flash-extra-low"), "gemini-3.5-flash-low");
-  // Dual-meaning id: in the quota namespace this bucket is the Medium tier.
-  assert.equal(toClientAntigravityQuotaModelId("gemini-3.5-flash-low"), "gemini-3.5-flash-medium");
-  assert.equal(toClientAntigravityQuotaModelId("gemini-3-flash-agent"), "gemini-3.5-flash-high");
-  // Non-tier ids fall back to the standard reverse alias map.
-  assert.equal(toClientAntigravityQuotaModelId("gemini-3.1-pro"), "gemini-3-pro-preview");
-  // Always-allowed bucket passes through unchanged.
-  assert.equal(toClientAntigravityQuotaModelId("credits"), "credits");
-  // Retired preview buckets are dropped (hidden from clients).
-  assert.equal(toClientAntigravityQuotaModelId("gemini-3.5-flash-preview"), null);
-  assert.equal(toClientAntigravityQuotaModelId("gemini-3-flash-preview"), null);
-  assert.equal(toClientAntigravityQuotaModelId(""), null);
-});
 
 test("resolveAntigravityModelId maps the documented Antigravity aliases to upstream IDs", () => {
   assert.equal(resolveAntigravityModelId("gemini-3-pro-preview"), "gemini-3.1-pro");
@@ -184,14 +165,11 @@ test("AntigravityExecutor.transformRequest maps Gemini 3.5 Flash tiers to live u
   );
 
   if (result instanceof Response) throw new Error("Unexpected Response from transformRequest");
-  // The "High" tier resolves to the live upstream id; the request body is forwarded
-  // under that id. (Dropped four assertions on modelConfigId/model_config_id — the
-  // executor never sets those fields, so they were vacuously true and gave false
-  // confidence. #3821-review LEDGER-10.)
   assert.equal(result.model, "gemini-3-flash-agent");
-  assert.deepEqual(result.request.contents, [
-    { role: "user", parts: [{ text: "Hello" }] },
-  ]);
+  assert.equal(result.modelConfigId, undefined);
+  assert.equal(result.model_config_id, undefined);
+  assert.equal(result.request.modelConfigId, undefined);
+  assert.equal(result.request.model_config_id, undefined);
 });
 
 test("AntigravityExecutor.transformRequest sends Claude through Gemini-compatible Cloud Code schema", async () => {

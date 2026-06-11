@@ -65,10 +65,9 @@ export const ANTIGRAVITY_PUBLIC_MODELS = Object.freeze([
     supportsVision: true,
     toolCalling: true,
   },
-  // Gemini 3.1 Pro budget tiers — agy ships these and they route directly via the
-  // antigravity OAuth provider. The upstream ACCEPTS the suffixed ids verbatim (wire-
-  // confirmed via `agy --model gemini-3.1-pro-high`: 200 OK on /v1internal:streamGenerateContent).
-  // No alias needed; see #3696 (supersedes the #3229 premise).
+  // Gemini 3.1 Pro budget tiers — agy already ships these; #3184 confirmed they work via
+  // the antigravity OAuth provider. The -high/-low suffix is aliased to the plain
+  // gemini-3.1-pro upstream id (see ANTIGRAVITY_MODEL_ALIASES / #3229).
   {
     id: "gemini-3.1-pro-high",
     name: "Gemini 3.1 Pro (High)",
@@ -159,10 +158,10 @@ export const ANTIGRAVITY_MODEL_ALIASES = Object.freeze({
   // (upstream `gemini-3-flash-agent`). It is NOT re-added to the public catalog.
   "gemini-3.5-flash-preview": "gemini-3-flash-agent",
   "gemini-3-pro-preview": "gemini-3.1-pro",
-  // gemini-3.1-pro-high and gemini-3.1-pro-low are NOT aliased here: wire capture
-  // (#3696) confirmed the upstream accepts the suffixed ids verbatim → pass through.
-  // (The earlier #3229 assumption — "upstream rejects -high/-low for gemini-3.x" —
-  // was refuted by the agy --log-file 200 OK evidence.)
+  // agy catalog exposes -high/-low budget tiers, but the upstream rejects the suffix
+  // for gemini-3.x (#3229) — map them to the plain proven id.
+  "gemini-3.1-pro-high": "gemini-3.1-pro",
+  "gemini-3.1-pro-low": "gemini-3.1-pro",
   "gemini-3-pro-image-preview": "gemini-3-pro-image",
   "gemini-2.5-computer-use-preview-10-2025": "rev19-uic3-1p",
   // Legacy Claude display ids → current upstream ids. NOTE: an earlier comment here
@@ -205,43 +204,6 @@ export function resolveAntigravityModelId(modelId: string): string {
 export function toClientAntigravityModelId(modelId: string): string {
   if (!modelId) return modelId;
   return ANTIGRAVITY_REVERSE_MODEL_ALIASES[modelId] || modelId;
-}
-
-// Quota buckets reported by the Antigravity backend are keyed by UPSTREAM model ids — a
-// DIFFERENT namespace from the public/client catalog. In that upstream quota namespace
-// `gemini-3.5-flash-low` denotes the *Medium* tier's bucket (it is the upstream target of
-// the `gemini-3.5-flash-medium` forward alias), even though the same literal is also a
-// public "Low" client id. This remap therefore CANNOT be derived from
-// ANTIGRAVITY_REVERSE_MODEL_ALIASES (which has no `gemini-3.5-flash-low` entry precisely
-// because it is already a valid client id) — it encodes the upstream-bucket → client-tier
-// chain explicitly. Keep it the inverse of the `-low/-medium/-high` rows in
-// ANTIGRAVITY_MODEL_ALIASES above. (#3821-review LEDGER-5 — was duplicated as an inline
-// if-ladder in open-sse/services/usage.ts.)
-const ANTIGRAVITY_QUOTA_BUCKET_TO_CLIENT: AntigravityModelAliasMap = Object.freeze({
-  "gemini-3.5-flash-extra-low": "gemini-3.5-flash-low",
-  "gemini-3.5-flash-low": "gemini-3.5-flash-medium",
-  "gemini-3-flash-agent": "gemini-3.5-flash-high",
-});
-
-// Retired/hidden upstream preview buckets that must be dropped from client-facing usage.
-const ANTIGRAVITY_DROPPED_QUOTA_BUCKETS = new Set<string>([
-  "gemini-3.5-flash-preview",
-  "gemini-3-flash-preview",
-]);
-
-/**
- * Map an UPSTREAM Antigravity quota-bucket model id to the client-visible tier id used in
- * usage responses, or `null` if the bucket should be hidden from clients. Operates on the
- * upstream quota namespace (see ANTIGRAVITY_QUOTA_BUCKET_TO_CLIENT) — do NOT pass client
- * ids here. Single source of truth shared by the usage service and the provider-limits
- * cache sanitizer.
- */
-export function toClientAntigravityQuotaModelId(modelId: string): string | null {
-  if (!modelId) return null;
-  if (ANTIGRAVITY_DROPPED_QUOTA_BUCKETS.has(modelId)) return null;
-  const tierClientId = ANTIGRAVITY_QUOTA_BUCKET_TO_CLIENT[modelId];
-  if (tierClientId) return tierClientId;
-  return toClientAntigravityModelId(modelId);
 }
 
 export function getClientVisibleAntigravityModelName(
