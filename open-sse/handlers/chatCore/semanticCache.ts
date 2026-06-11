@@ -25,17 +25,17 @@ export async function checkSemanticCache({
   persistAttemptLogs,
 }: {
   semanticCacheEnabled: boolean;
-  body: Record<string, unknown>;
-  clientRawRequest: unknown;
+  body: any;
+  clientRawRequest: any;
   model: string;
   provider: string;
   stream: boolean;
-  reqLogger: unknown;
-  effectiveServiceTier: unknown;
+  reqLogger: any;
+  effectiveServiceTier: any;
   connectionId: string | null;
   startTime: number;
-  log: unknown;
-  persistAttemptLogs: (args: unknown) => void;
+  log: any;
+  persistAttemptLogs: (args: any) => void;
 }) {
   if (semanticCacheEnabled && isCacheableForRead(body, clientRawRequest?.headers)) {
     const signature = generateSignature(
