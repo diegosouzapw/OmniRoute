@@ -629,3 +629,43 @@ export function shouldSwitchToVisibleFilter(opts: {
 }): boolean {
   return opts.autoHideFailed && opts.hiddenCount > 0;
 }
+
+// ---------------------------------------------------------------------------
+// Error-type label map — shared by ConnectionRow and EditConnectionModal
+// ---------------------------------------------------------------------------
+export const ERROR_TYPE_LABELS: Record<
+  string,
+  { labelKey: string; variant: string }
+> = {
+  runtime_error: { labelKey: "errorTypeRuntime", variant: "warning" },
+  upstream_auth_error: { labelKey: "errorTypeUpstreamAuth", variant: "error" },
+  account_deactivated: { labelKey: "Account Deactivated", variant: "error" },
+  auth_missing: { labelKey: "errorTypeMissingCredential", variant: "warning" },
+  token_refresh_failed: { labelKey: "errorTypeRefreshFailed", variant: "warning" },
+  token_expired: { labelKey: "errorTypeTokenExpired", variant: "warning" },
+  upstream_rate_limited: { labelKey: "errorTypeRateLimited", variant: "warning" },
+  upstream_unavailable: { labelKey: "errorTypeUpstreamUnavailable", variant: "error" },
+  network_error: { labelKey: "errorTypeNetworkError", variant: "warning" },
+  unsupported: { labelKey: "errorTypeTestUnsupported", variant: "default" },
+  upstream_error: { labelKey: "errorTypeUpstreamError", variant: "error" },
+  banned: { labelKey: "errorTypeBanned", variant: "error" },
+  credits_exhausted: { labelKey: "errorTypeCreditsExhausted", variant: "warning" },
+};
+
+// ---------------------------------------------------------------------------
+// formatTimeAgo — used in EditConnectionModal's extra-key health display
+// ---------------------------------------------------------------------------
+export function formatTimeAgo(dateStr: string): string {
+  const now = Date.now();
+  const date = new Date(dateStr).getTime();
+  const diff = now - date;
+  if (diff < 0) return "just now";
+  const minutes = Math.floor(diff / 60000);
+  if (minutes < 1) return "just now";
+  if (minutes < 60) return `${minutes}m ago`;
+  const hours = Math.floor(minutes / 60);
+  if (hours < 24) return `${hours}h ago`;
+  const days = Math.floor(hours / 24);
+  if (days < 30) return `${days}d ago`;
+  return new Date(dateStr).toLocaleDateString();
+}
