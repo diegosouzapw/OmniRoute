@@ -11,6 +11,9 @@ import {
 
 type GeminiToOpenAIState = {
   functionIndex: number;
+  finishReason?: string;
+  groundingProcessed?: boolean;
+  hasEmittedContent?: boolean;
   messageId: string;
   model: string;
   pendingThoughtSignature?: string | null;
@@ -21,7 +24,17 @@ type GeminiToOpenAIState = {
   textualReasoningTagBuffer?: string;
   activeTextualReasoningTag?: string;
   textualReasoningContentBuffer?: string;
-  hasEmittedContent?: boolean;
+  usage?: {
+    prompt_tokens: number;
+    completion_tokens: number;
+    total_tokens: number;
+    prompt_tokens_details?: {
+      cached_tokens: number;
+    };
+    completion_tokens_details?: {
+      reasoning_tokens: number;
+    };
+  };
 };
 
 type GeminiFunctionCallPart = {
@@ -38,30 +51,6 @@ const REASONING_TAG_OPEN_PREFIXES = ["<think", "<thinking", "<thought", "<intern
 
 function isIgnorableReasoningTagPrefix(value: string): boolean {
   return /^(?:\s|§\d+§)*$/.test(value);
-}
-
-function splitReasoningTagText(
-  text: string
-): { before: string; reasoning: string; after: string } | null {
-  const match = REASONING_TAG_OPEN_REGEX.exec(text);
-  if (!match || match.index < 0) return null;
-
-  const tagName = match[1];
-  const before = text.slice(0, match.index);
-  const bodyStart = match.index + match[0].length;
-  const closeRegex = new RegExp(`</${tagName}>`, "i");
-  const closeMatch = closeRegex.exec(text.slice(bodyStart));
-  if (!closeMatch || closeMatch.index < 0) {
-    return { before, reasoning: text.slice(bodyStart).trim(), after: "" };
-  }
-
-  const closeStart = bodyStart + closeMatch.index;
-  const closeEnd = closeStart + closeMatch[0].length;
-  return {
-    before,
-    reasoning: text.slice(bodyStart, closeStart).trim(),
-    after: text.slice(closeEnd),
-  };
 }
 
 function getTrailingReasoningTagPrefixStart(text: string): number {
