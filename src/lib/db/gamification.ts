@@ -485,6 +485,17 @@ export function revokeInvite(id: string): void {
 
 // ──────────────── Community Servers ────────────────
 
+/**
+ * Look up a connected community server by its API key hash.
+ * Returns the server id if the key hash matches a 'connected' server, or undefined.
+ * Used by federation routes to authenticate bearer tokens.
+ */
+export function getConnectedServerByKeyHash(apiKeyHash: string): { id: string } | undefined {
+  return db()
+    .prepare("SELECT id FROM community_servers WHERE api_key_hash = ? AND status = 'connected'")
+    .get(apiKeyHash) as { id: string } | undefined;
+}
+
 export function connectServer(id: string, name: string, url: string, apiKeyHash: string): void {
   db()
     .prepare(

@@ -419,6 +419,7 @@ export {
   connectServer,
   disconnectServer,
   listServers,
+  getConnectedServerByKeyHash,
 } from "./db/gamification";
 
 export type {
