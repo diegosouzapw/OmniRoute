@@ -1014,7 +1014,7 @@ export async function handleComboChat({
           // ALL max_tokens for reasoning_tokens, leaving content empty. Add a buffer
           // to max_tokens so the model has enough tokens for both reasoning and content.
           if (supportsReasoning(modelStr)) {
-            const currentMaxTokens = Number((attemptBody as Record<string, unknown>).max_tokens) || 0;
+            const currentMaxTokens = Number((attemptBody as Record<string, unknown>)?.max_tokens) || 0;
             if (currentMaxTokens > 0) {
               const bufferedMaxTokens = Math.max(
                 currentMaxTokens + 1000,

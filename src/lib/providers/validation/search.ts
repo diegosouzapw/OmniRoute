@@ -90,7 +90,7 @@ async function validateGenericProvider(
   provider: string,
   isLocal: boolean = false
 ) {
-  const config = SEARCH_VALIDATOR_CONFIGS[provider];
+  const config = Object.prototype.hasOwnProperty.call(SEARCH_VALIDATOR_CONFIGS, provider) ? SEARCH_VALIDATOR_CONFIGS[provider] : null;
   if (!config) {
     return { valid: false, error: "Validator not found", unsupported: true };
   }

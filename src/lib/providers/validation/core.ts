@@ -457,7 +457,7 @@ export async function validateProviderApiKey({ provider, apiKey, providerSpecifi
     ),
   };
 
-  if (SPECIALTY_VALIDATORS[provider]) {
+  if (Object.prototype.hasOwnProperty.call(SPECIALTY_VALIDATORS, provider)) {
     try {
       return await SPECIALTY_VALIDATORS[provider]({ apiKey, providerSpecificData });
     } catch (error: any) {

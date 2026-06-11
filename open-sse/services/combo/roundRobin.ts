@@ -290,7 +290,7 @@ export async function handleRoundRobinCombo({
         // model's real limit, triggering 400s).
         let attemptBody = body;
         if (supportsReasoning(modelStr)) {
-          const currentMaxTokens = Number((body as Record<string, unknown>).max_tokens) || 0;
+          const currentMaxTokens = Number((body as Record<string, unknown>)?.max_tokens) || 0;
           if (currentMaxTokens > 0) {
             const bufferedMaxTokens = Math.max(
               currentMaxTokens + 1000,
