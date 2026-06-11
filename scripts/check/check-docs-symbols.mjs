@@ -50,16 +50,11 @@ function isFileRef(p) {
 // o path na doc, ou remover a menção. NÃO adicione novas aqui sem justificativa — esse
 // é o ponto do gate. Issues de tracking devem ser abertas para cada cluster.
 export const KNOWN_STALE_DOC_REFS = new Set([
-  // docs/reference/API_REFERENCE.md — guardrails/shadow entries fixed in separate issues:
-  "/api/guardrails", // sem dir de API guardrails (feature server-side, sem rota REST) — #3496
-  "/api/guardrails/[id]/disable",
-  "/api/guardrails/[id]/enable",
-  "/api/guardrails/logs",
-  "/api/guardrails/test",
-  "/api/shadow", // sem dir de API shadow (shadow routing não tem rota REST) — #3498
-  "/api/shadow/[id]",
-  "/api/shadow/[id]/results",
-  "/api/shadow/metrics",
+  // docs/reference/API_REFERENCE.md — guardrails/shadow doc-fiction RESOLVED in #3496:
+  // GET /api/guardrails + POST /api/guardrails/test are now REAL routes (wrapping the
+  // existing guardrailRegistry); the fictional enable/disable/logs rows and the entire
+  // shadow table were removed from the doc (shadow A-B comparison is combo-config +
+  // /api/combos/metrics). No allowlist entries needed for these anymore.
   // docs/research/DISCOVERY_TOOL_DESIGN.md — design doc de feature NÃO implementada
   // (Phase 2). Refs INTENCIONAIS: o doc agora traz um banner "⚠️ Not yet implemented
   // — Phase 2" acima da tabela de endpoints. Mantidos aqui até a feature existir. — #3498
