@@ -3,6 +3,7 @@ import { checkIdempotencyCache } from "./chatCore/idempotency.ts";
 import { checkSemanticCache } from "./chatCore/semanticCache.ts";
 import { sanitizeChatRequestBody } from "./chatCore/sanitization.ts";
 import { CORS_HEADERS } from "../utils/cors.ts";
+import { emitHook } from "@/lib/plugins/hooks";
 import { HEAP_PRESSURE_THRESHOLD_MB } from "../utils/heapPressure.ts";
 import { normalizeHeaders } from "../utils/headers.ts";
 import { detectFormatFromEndpoint, getTargetFormat } from "../services/provider.ts";
@@ -1638,7 +1639,7 @@ export async function handleChatCore({
   // ── Plugin onRequest hook ──
   // Dynamic import cached by Node.js after first call — minimal overhead
   try {
-    const { runOnRequest } = await import("@/lib/plugins/hooks");
+    const { runOnRequest, emitHook } = await import("@/lib/plugins/hooks");
     const pluginCtx = {
       requestId: traceId,
       body,
@@ -1952,6 +1953,7 @@ export async function handleChatCore({
   if (resolvedModel !== model) {
     log?.info?.("ALIAS", `Model alias applied: ${model} → ${resolvedModel}`);
   }
+  emitHook("onModelSelect", { provider, model, originalModel: body?.model || model, connectionId: "" }).catch(() => {});
 
   const alias = PROVIDER_ID_TO_ALIAS[provider] || provider;
   const modelTargetFormat = getModelTargetFormat(alias, resolvedModel);

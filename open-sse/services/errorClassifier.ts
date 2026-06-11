@@ -4,6 +4,7 @@ import {
   isDailyQuotaExhausted,
   isOAuthInvalidToken,
 } from "./accountFallback.ts";
+import { emitHook } from "../../src/lib/plugins/hooks";
 import { getProviderCategory } from "../config/providerRegistry.ts";
 
 // Terminal stop signals where an empty content payload is still a legitimate,
@@ -114,7 +115,6 @@ function shouldPreserveQuotaSignalsFor429(provider?: string | null): boolean {
   if (!provider) return true;
   return getProviderCategory(provider) === "oauth";
 }
-
 export function classifyProviderError(
   statusCode: number,
   responseBody: unknown,
@@ -127,20 +127,21 @@ export function classifyProviderError(
   const preserveQuota429 = shouldPreserveQuotaSignalsFor429(provider);
 
   if (creditsExhausted && [400, 402, 403].includes(statusCode)) {
+    emitHook("onQuotaExhaust", { provider, model: "", connectionId: "" }).catch(() => {});
     return PROVIDER_ERROR_TYPES.QUOTA_EXHAUSTED;
   }
 
   if (creditsExhausted && statusCode === 429 && preserveQuota429) {
+    emitHook("onQuotaExhaust", { provider, model: "", connectionId: "" }).catch(() => {});
     return PROVIDER_ERROR_TYPES.QUOTA_EXHAUSTED;
   }
 
-  // API-key providers route 429 cooldowns through the resilience-aware fallback layer.
-  // OAuth providers keep their existing quota semantics because some of them encode
-  // longer quota windows as 429 responses.
   if (statusCode === 429) {
     if (preserveQuota429 && isDailyQuotaExhausted(bodyStr)) {
+      emitHook("onQuotaExhaust", { provider, model: "", connectionId: "" }).catch(() => {});
       return PROVIDER_ERROR_TYPES.QUOTA_EXHAUSTED;
     }
+    emitHook("onRateLimit", { provider, model: "", retryAfter: "", connectionId: "" }).catch(() => {});
     return PROVIDER_ERROR_TYPES.RATE_LIMITED;
   }
 
@@ -153,7 +154,10 @@ export function classifyProviderError(
       : PROVIDER_ERROR_TYPES.UNAUTHORIZED;
   }
 
-  if (statusCode === 402) return PROVIDER_ERROR_TYPES.QUOTA_EXHAUSTED;
+  if (statusCode === 402) {
+    emitHook("onQuotaExhaust", { provider, model: "", connectionId: "" }).catch(() => {});
+    return PROVIDER_ERROR_TYPES.QUOTA_EXHAUSTED;
+  }
   if (statusCode === 403 && accountDeactivated) {
     return PROVIDER_ERROR_TYPES.ACCOUNT_DEACTIVATED;
   }
@@ -166,7 +170,10 @@ export function classifyProviderError(
     }
     return PROVIDER_ERROR_TYPES.FORBIDDEN;
   }
-  if (statusCode >= 500) return PROVIDER_ERROR_TYPES.SERVER_ERROR;
+  if (statusCode >= 500) {
+    emitHook("onProviderError", { provider, model: "", statusCode, error: bodyStr.slice(0, 200), connectionId: "" }).catch(() => {});
+    return PROVIDER_ERROR_TYPES.SERVER_ERROR;
+  }
 
   if (statusCode === 400 && isContextOverflow(bodyStr)) {
     return PROVIDER_ERROR_TYPES.CONTEXT_OVERFLOW;

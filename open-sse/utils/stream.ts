@@ -1,4 +1,5 @@
 import { translateResponse, initState } from "../translator/index.ts";
+import { emitHook } from "../../src/lib/plugins/hooks";
 import { FORMATS } from "../translator/formats.ts";
 import { trackPendingRequest, appendRequestLog } from "@/lib/usageDb";
 import {
@@ -792,6 +793,8 @@ export function createSSEStream(options: StreamOptions = {}) {
     onComplete = null,
     onFailure = null,
   } = options;
+  const streamStartTime = Date.now();
+  emitHook("onStreamStart", { requestId: "", model, provider, connectionId }).catch(() => {});
   const signatureNamespace = connectionId;
 
   const clientExpectsResponsesStream =
@@ -2316,6 +2319,7 @@ export function createSSEStream(options: StreamOptions = {}) {
                 controller.enqueue(encoder.encode(doneOutput));
               }
             }
+            emitHook("onStreamEnd", { requestId: "", model, provider, connectionId, duration: Date.now() - streamStartTime }).catch(() => {});
             // Notify caller for call log persistence (include full response body with accumulated content)
             if (onComplete) {
               try {
@@ -2483,6 +2487,7 @@ export function createSSEStream(options: StreamOptions = {}) {
                 });
               } catch {}
             }
+            emitHook("onStreamEnd", { requestId: "", model, provider, connectionId, duration: Date.now() - streamStartTime }).catch(() => {});
 
             clearIdleTimer();
             controller.error(
@@ -2632,6 +2637,7 @@ export function createSSEStream(options: StreamOptions = {}) {
                   includeEvents: false,
                 }),
               });
+              emitHook("onStreamEnd", { requestId: "", model, provider, connectionId, duration: Date.now() - streamStartTime }).catch(() => {});
             } catch {}
           }
         } catch (error) {
