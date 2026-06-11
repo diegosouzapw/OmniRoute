@@ -125,6 +125,21 @@ function isAllAccountsRateLimitedResponse(
   return ALL_ACCOUNTS_RATE_LIMITED_PATTERNS.some((p) => p.test(errorText));
 }
 
+// #1731v2 guard: a provider circuit-breaker-open response (503 + `X-OmniRoute-Provider-Breaker`
+// header / `provider_circuit_open` error code, see providerCircuitOpenResponse) is an OmniRoute
+// resilience signal, NOT a per-connection upstream failure. It must keep being treated as an
+// ordinary target failure (try the next target, including same-provider ones) — so it must NOT
+// poison exhaustedConnections/exhaustedProviders, otherwise remaining same-provider targets get
+// wrongly skipped while the breaker is open.
+function isProviderCircuitOpenResult(
+  result: { headers?: Headers | null; status?: number },
+  errorText: string
+): boolean {
+  const breakerHeader = result.headers?.get?.("x-omniroute-provider-breaker");
+  if (typeof breakerHeader === "string" && breakerHeader.toLowerCase() === "open") return true;
+  return /provider_circuit_open/i.test(errorText);
+}
+
 const MAX_COMBO_DEPTH = 3;
 const MAX_FALLBACK_WAIT_MS = 5000;
 const MAX_GLOBAL_ATTEMPTS = 30;
@@ -3937,7 +3952,8 @@ export async function handleComboChat({
             !providerExhausted &&
             provider &&
             provider !== "unknown" &&
-            [408, 500, 502, 503, 504, 524].includes(result.status)
+            [408, 500, 502, 503, 504, 524].includes(result.status) &&
+            !isProviderCircuitOpenResult(result, errorText)
           ) {
             const connId = target.connectionId as string | undefined;
             if (connId) {
@@ -4593,7 +4609,8 @@ async function handleRoundRobinCombo({
           !providerExhausted &&
           provider &&
           provider !== "unknown" &&
-          [408, 500, 502, 503, 504, 524].includes(result.status)
+          [408, 500, 502, 503, 504, 524].includes(result.status) &&
+          !isProviderCircuitOpenResult(result, errorText)
         ) {
           const connId = target.connectionId as string | undefined;
           if (connId) {

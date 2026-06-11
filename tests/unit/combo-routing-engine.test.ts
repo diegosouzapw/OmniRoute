@@ -2082,7 +2082,7 @@ test("handleComboChat treats provider circuit breaker responses as ordinary targ
     combo: {
       name: "provider-breaker-open",
       strategy: "priority",
-      models: ["openai/model-a", "anthropic/model-b"],
+      models: ["openai/model-a", "openai/model-b"],
       config: { maxRetries: 0 },
     },
     handleSingleModel: async (_body, modelStr) => {
@@ -2100,7 +2100,7 @@ test("handleComboChat treats provider circuit breaker responses as ordinary targ
   });
 
   assert.equal(result.ok, true);
-  assert.deepEqual(calls, ["openai/model-a", "anthropic/model-b"]);
+  assert.deepEqual(calls, ["openai/model-a", "openai/model-b"]);
 });
 
 test("handleComboChat auto strategy honors LKGP after filtering to tool-capable models", async () => {
@@ -2611,7 +2611,7 @@ test("handleComboChat round-robin treats provider circuit breaker responses as o
     combo: {
       name: "rr-provider-breaker-open",
       strategy: "round-robin",
-      models: ["openai/model-a", "anthropic/model-b"],
+      models: ["openai/model-a", "openai/model-b"],
       config: { maxRetries: 0 },
     },
     handleSingleModel: async (_body, modelStr) => {
@@ -2629,7 +2629,7 @@ test("handleComboChat round-robin treats provider circuit breaker responses as o
   });
 
   assert.equal(result.ok, true);
-  assert.deepEqual(calls, ["openai/model-a", "anthropic/model-b"]);
+  assert.deepEqual(calls, ["openai/model-a", "openai/model-b"]);
 });
 
 test("handleComboChat round-robin retries a transient failure on the same model before succeeding", async () => {
