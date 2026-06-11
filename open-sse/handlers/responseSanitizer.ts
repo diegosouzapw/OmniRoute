@@ -200,8 +200,20 @@ function hasVisibleMessageContent(content: unknown): boolean {
   });
 }
 
-// Matches <think>...</think> blocks and <thinking>...</thinking> (greedy, dotAll)
-const THINK_TAG_REGEX = /<(?:think|thinking)>([\s\S]*?)<\/(?:think|thinking)>/gi;
+const REASONING_TAG_NAMES = ["think", "thinking", "thought", "internal_thought"];
+const REASONING_TAG_PATTERN = REASONING_TAG_NAMES.join("|");
+// Matches complete <think>/<thinking>/<thought>/<internal_thought> blocks.
+const THINK_TAG_REGEX = new RegExp(
+  `<(${REASONING_TAG_PATTERN})\\b[^>]*>([\\s\\S]*?)<\\/\\1>`,
+  "gi"
+);
+// Matches an unclosed reasoning tag at the end of a message. Some providers can
+// emit malformed/open reasoning wrappers (for example "<thought\n...") before a
+// tool call. Treat that tail as reasoning instead of visible assistant text.
+const UNCLOSED_REASONING_TAG_REGEX = new RegExp(
+  `<(${REASONING_TAG_PATTERN})(?:\\s[^>]*)?(?:>|\\r?\\n)([\\s\\S]*)$`,
+  "i"
+);
 
 // #638, #727: Collapse runs of 2+ consecutive newlines into \n\n
 // Tool call responses from thinking models often accumulate excessive newlines
@@ -225,7 +237,7 @@ export function extractThinkingFromContent(text: string): {
   const thinkingParts: string[] = [];
   let hasThinkTags = false;
 
-  const cleaned = text.replace(THINK_TAG_REGEX, (_, thinkContent) => {
+  let cleaned = text.replace(THINK_TAG_REGEX, (_match, _tagName, thinkContent) => {
     hasThinkTags = true;
     const trimmed = thinkContent.trim();
     if (trimmed) {
@@ -233,6 +245,15 @@ export function extractThinkingFromContent(text: string): {
     }
     return "";
   });
+
+  const unclosedMatch = cleaned.match(UNCLOSED_REASONING_TAG_REGEX);
+  if (unclosedMatch?.index !== undefined) {
+    hasThinkTags = true;
+    const reasoning = String(unclosedMatch[2] || "").trim();
+    if (reasoning) thinkingParts.push(reasoning);
+    const prefix = cleaned.slice(0, unclosedMatch.index);
+    cleaned = /^(?:\s|§\d+§)*$/.test(prefix) ? "" : prefix;
+  }
 
   if (!hasThinkTags) {
     return { content: text, thinking: null };
@@ -987,7 +1008,9 @@ export function sanitizeStreamingChunk(parsed: unknown): unknown {
 
   // Keep only standard fields — normalize id to string to avoid AI_InvalidResponseDataError
   if (parsedRecord.id !== undefined && parsedRecord.id !== null) {
-    sanitized.id = normalizeResponseId(typeof parsedRecord.id === "string" ? parsedRecord.id : String(parsedRecord.id));
+    sanitized.id = normalizeResponseId(
+      typeof parsedRecord.id === "string" ? parsedRecord.id : String(parsedRecord.id)
+    );
   }
   sanitized.object = toString(parsedRecord.object) || "chat.completion.chunk";
   if (parsedRecord.created !== undefined) sanitized.created = parsedRecord.created;
