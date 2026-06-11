@@ -36,6 +36,8 @@
 
 ### 🔧 Bug Fixes
 
+- **Obsidian/WebDAV**: add the `/api/settings/obsidian/webdav` config route (enable/disable vault sync), encrypt WebDAV credentials at rest, and remove the duplicate UI block (#3485, part 1).
+
 - **OpenCode Free / passthrough**: "Test all models" now respects "Auto-hide failed models" and switches the list to the visible filter so hidden models actually disappear (#3610). Three related bugs fixed: `autoHideFailed` is now threaded from the outer component into `PassthroughModelsSection` via a prop (single shared checkbox); the `/api/models/test-all` request body now includes `autoHideFailed: true` so the server persists the hide; and after the loop, `visibilityFilter` is switched to `"visible"` when ≥1 model was hidden. Two pure-function helpers (`buildPassthroughTestBody`, `shouldSwitchToVisibleFilter`) extracted to `providerPageHelpers.ts` with 7 unit tests.
 - **Resilience**: clear stale transient connection cooldowns on startup so a prior unclean crash no longer makes every request time out at 120s after restart (#3625)
 
