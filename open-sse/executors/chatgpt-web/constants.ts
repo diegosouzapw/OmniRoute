@@ -12,7 +12,7 @@ import { storeChatGptImage, getChatGptImageConversationContext, __resetChatGptIm
 import { thinkingEffortCache } from "./thinking.ts";
 import { tokenCache, cookieKey } from "./session.ts";
 import { warmupCache } from "./warmup.ts";
-import { dplCache } from "./sentinel.ts";
+import { resetDplCache } from "./sentinel.ts";
 
 // ─── Constants ──────────────────────────────────────────────────────────────
 
@@ -135,5 +135,5 @@ export function __resetChatGptWebCachesForTesting(): void {
   thinkingEffortCache.clear();
   deviceIdCache.clear();
   __resetChatGptImageCacheForTesting();
-  dplCache = null;
+  resetDplCache();
 }
