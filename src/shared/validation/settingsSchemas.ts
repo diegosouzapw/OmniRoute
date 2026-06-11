@@ -288,7 +288,7 @@ export const updateSettingsSchema = z.object({
       baseCooldownMs: z
         .number()
         .int()
-        .min(100, "Must be at least 100ms")
+        .min(5000, "Must be at least 5,000ms")
         .max(600000, "Must be at most 600,000ms (10 min)")
         .optional(),
       maxCooldownMs: z
