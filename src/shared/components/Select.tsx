@@ -62,7 +62,7 @@ export default function Select({
           aria-invalid={error ? true : undefined}
           aria-describedby={describedBy}
           className={cn(
-            "w-full py-2 px-3 pr-10 text-sm text-text-main",
+            "w-full py-2 px-3 pe-10 text-sm text-text-main",
             "bg-surface border border-black/10 dark:border-white/10 rounded-md appearance-none",
             "focus:ring-1 focus:ring-primary/30 focus:border-primary/50 focus:outline-none",
             "transition-all disabled:opacity-50 disabled:cursor-not-allowed",
@@ -86,7 +86,7 @@ export default function Select({
           {children}
         </select>
         <div
-          className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none text-text-muted"
+          className="absolute inset-y-0 end-0 flex items-center pe-3 pointer-events-none text-text-muted"
           aria-hidden="true"
         >
           <span className="material-symbols-outlined text-[20px]">expand_more</span>

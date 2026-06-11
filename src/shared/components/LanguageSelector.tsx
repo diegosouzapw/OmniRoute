@@ -65,7 +65,7 @@ export default function LanguageSelector() {
 
       {/* Dropdown */}
       {open && (
-        <div className="absolute right-0 top-full mt-1 w-56 max-h-80 rounded-xl border border-border bg-bg shadow-xl z-50 overflow-y-auto animate-in fade-in slide-in-from-top-1 duration-150">
+        <div className="absolute end-0 top-full mt-1 w-56 max-h-80 rounded-xl border border-border bg-bg shadow-xl z-50 overflow-y-auto animate-in fade-in slide-in-from-top-1 duration-150">
           {LANGUAGES.map((lang) => (
             <button
               key={lang.code}
@@ -77,7 +77,7 @@ export default function LanguageSelector() {
               }`}
             >
               <span className="text-base leading-none">{lang.flag}</span>
-              <span className="flex-1 text-left">{lang.name}</span>
+              <span className="flex-1 text-start">{lang.name}</span>
               {lang.code === locale && (
                 <span className="material-symbols-outlined text-[16px] text-primary">check</span>
               )}
