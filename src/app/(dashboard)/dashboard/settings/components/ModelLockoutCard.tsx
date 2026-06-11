@@ -147,9 +147,19 @@ export default function ModelLockoutCard() {
     draft.useExponentialBackoff !== data.useExponentialBackoff ||
     draft.maxBackoffSteps !== data.maxBackoffSteps;
 
+  const clampBeforeSave = (d: ModelLockoutSettings): ModelLockoutSettings => ({
+    ...d,
+    baseCooldownMs: Math.max(5000, Math.min(600000, d.baseCooldownMs)),
+    maxCooldownMs: Math.max(5000, Math.min(3600000, d.maxCooldownMs)),
+    maxBackoffSteps: Math.max(0, Math.min(20, d.maxBackoffSteps)),
+  });
+
   const handleSave = async () => {
     setSaving(true);
-    const saveDraft = { ...draft, errorCodes: draft.errorCodes };
+    const saveDraft = clampBeforeSave({ ...draft, errorCodes: draft.errorCodes });
+    if (saveDraft.baseCooldownMs !== draft.baseCooldownMs) {
+      setDraft((prev) => ({ ...prev, baseCooldownMs: saveDraft.baseCooldownMs }));
+    }
     try {
       const res = await fetch("/api/settings", {
         method: "PATCH",
@@ -158,21 +168,22 @@ export default function ModelLockoutCard() {
       });
       if (!res.ok) {
         const err = await res.json().catch(() => null);
-        const details = err?.error?.details;
-        if (Array.isArray(details) && details.length > 0) {
+        const issues = err?.error?.issues ?? err?.error?.details;
+        if (Array.isArray(issues) && issues.length > 0) {
           const fieldLabels: Record<string, string> = {
             "modelLockout.baseCooldownMs": "Base Cooldown",
             "modelLockout.maxCooldownMs": "Max Cooldown",
             "modelLockout.maxBackoffSteps": "Max Backoff Steps",
             "modelLockout.errorCodes": "Error Codes",
           };
-          const msg = details
+          const msg = issues
             .map(
-              (d: { field: string; message: string }) =>
-                `${fieldLabels[d.field] || d.field}: ${d.message}`
+              (d: { path?: (string | number)[]; message?: string }) =>
+                `${fieldLabels[String(d.path?.[0])] || String(d.path?.[0] || "")}: ${d.message}`
             )
+            .filter(Boolean)
             .join("\n");
-          throw new Error(msg);
+          if (msg) throw new Error(msg);
         }
         throw new Error(
           err?.error?.message || `HTTP ${res.status}`
