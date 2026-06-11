@@ -70,8 +70,6 @@ const PROVIDER_LIMITS_APIKEY_PROVIDERS = new Set([
   "nanogpt",
   "deepseek",
   "xiaomi-mimo",
-  "vertex",
-  "vertex-partner",
 ]);
 const DEFAULT_PROVIDER_LIMITS_SYNC_INTERVAL_MINUTES = 70;
 const PROVIDER_LIMITS_AUTO_SYNC_SETTING_KEY = "provider_limits_auto_sync_last_run";
@@ -606,34 +604,10 @@ export async function getSanitizedCachedProviderLimitsMap(): Promise<
   Record<string, ProviderLimitsCacheEntry>
 > {
   const caches = getAllProviderLimitsCache();
-  // Sanitization only rewrites Antigravity/agy quota keys; every other provider's cache
-  // entry is returned untouched (see sanitizeProviderLimitsCacheForConnection). The
-  // dashboard polls this on an auto-refresh interval, so avoid the unconditional
-  // `SELECT * FROM provider_connections` + per-row credential decryption that the
-  // previous implementation paid on every poll: skip the scan entirely when nothing is
-  // cached, and otherwise fetch ONLY the Antigravity/agy connections. For any other
-  // provider, byId.get(id) is undefined and the entry is returned verbatim — identical
-  // output to scanning every active connection, but without decrypting unrelated keys.
-  // (LEDGER-2 / #3821-review)
-  const connectionIds = Object.keys(caches);
-  if (connectionIds.length === 0) return {};
-
-  const sanitizableConnections = [
-    ...((await getProviderConnections({
-      isActive: true,
-      provider: "antigravity",
-    })) as unknown as ProviderConnectionLike[]),
-    ...((await getProviderConnections({
-      isActive: true,
-      provider: "agy",
-    })) as unknown as ProviderConnectionLike[]),
-  ];
-  if (sanitizableConnections.length === 0) {
-    // No connection can change the cache → return the raw entries unchanged.
-    return { ...caches };
-  }
-
-  const byId = new Map(sanitizableConnections.map((conn) => [conn.id, conn]));
+  const connections = (await getProviderConnections({
+    isActive: true,
+  })) as unknown as ProviderConnectionLike[];
+  const byId = new Map(connections.map((conn) => [conn.id, conn]));
   const sanitized: Record<string, ProviderLimitsCacheEntry> = {};
   for (const [connectionId, entry] of Object.entries(caches)) {
     sanitized[connectionId] =
