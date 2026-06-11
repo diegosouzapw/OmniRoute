@@ -66,15 +66,23 @@ export const INTENTIONALLY_INTERNAL = new Set([
 // O comportamento do gate é idêntico — só o nome e os comentários mudaram (#3499).
 export const KNOWN_UNEXPORTED = INTENTIONALLY_INTERNAL;
 
-// (c) Ofensores de SQL cru PRÉ-EXISTENTES em rotas/handlers. Congelados para a
-// catraca ficar verde e bloquear QUALQUER nova rota/handler com SQL inline.
-// CADA UM é dívida da Hard Rule #5: mover para um módulo src/lib/db/. NÃO
-// adicione novos aqui sem justificativa — crie/estenda um módulo db/ em vez disso.
-// (Chaves = caminho relativo POSIX a partir da raiz do repo.)
-const KNOWN_RAW_SQL = new Set([
-  "src/app/api/oauth/cursor/auto-import/route.ts", // SELECT no itemTable do Cursor (DB externo)
-  "src/app/api/oauth/kiro/auto-import/route.ts", // SELECT no SQLite do Kiro (DB externo)
+// (c) Leituras de SQL contra bancos EXTERNOS, permitidas por design (#3500).
+// Estas rotas NÃO consultam o DB do OmniRoute (getDbInstance) — elas abrem o
+// SQLite de OUTRO aplicativo (Cursor / Kiro) para auto-importar credenciais.
+// Por isso NÃO podem viver em src/lib/db/ (que é o domínio do DB do OmniRoute):
+// são leituras read-only de um arquivo externo, com caminho/escopo próprios.
+// Continuam no allowlist como exceção DOCUMENTADA — o gate ainda bloqueia
+// QUALQUER novo SQL cru contra o DB do OmniRoute em rotas/handlers.
+// Toda a dívida real da Hard Rule #5 (15 rotas internas) foi migrada para
+// módulos src/lib/db/ nas slices do #3500; este set ficou só com as exceções.
+const EXTERNAL_DB_ALLOWED = new Set([
+  "src/app/api/oauth/cursor/auto-import/route.ts", // read-only no itemTable do SQLite do Cursor (DB externo)
+  "src/app/api/oauth/kiro/auto-import/route.ts", // read-only no SQLite do Kiro (DB externo)
 ]);
+
+// Alias de retrocompatibilidade (testes/consumidores que importam KNOWN_RAW_SQL).
+// Comportamento do gate idêntico — só o nome e o enquadramento mudaram (#3500).
+const KNOWN_RAW_SQL = EXTERNAL_DB_ALLOWED;
 
 // Módulos sempre excluídos da checagem (a): não são domínio re-exportável.
 const DB_MODULE_EXCLUDE = new Set(["core", "localDb", "index"]);
@@ -246,7 +254,7 @@ function main() {
   }
   console.log(
     `[check-db-rules] OK (${dbModules.length} módulos db/, ${reexported.size} re-exportados, ` +
-      `${INTENTIONALLY_INTERNAL.size} intencionalmente-internos (Rule #2); ${KNOWN_RAW_SQL.size} ofensores de SQL congelados)`
+      `${INTENTIONALLY_INTERNAL.size} intencionalmente-internos (Rule #2); ${EXTERNAL_DB_ALLOWED.size} leituras de DB externo permitidas (#3500))`
   );
 }
 
