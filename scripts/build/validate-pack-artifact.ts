@@ -25,6 +25,7 @@ function runNpm(args: string[], stdio: "inherit" | "pipe" = "pipe"): string {
     cwd: ROOT,
     encoding: "utf8",
     stdio: stdio === "inherit" ? "inherit" : ["ignore", "pipe", "pipe"],
+    maxBuffer: 64 * 1024 * 1024,
   });
 }
 
