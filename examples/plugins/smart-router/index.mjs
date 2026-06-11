@@ -1,33 +1,34 @@
 /**
- * Smart Router Plugin — advanced example intercepting Model Selection.
+ * Smart Router Plugin — demonstrates dynamic model routing via onRequest.
+ *
+ * onModelSelect is NOT a supported hook in the plugin system. Instead, this
+ * plugin uses onRequest to intercept the request body.model field and
+ * rewrite it when the prompt exceeds the configured token threshold.
+ *
+ * To test: activate the plugin and send a long prompt to an expensive model.
+ * The plugin will rewrite body.model to your configured fallback model
+ * before the request reaches the executor.
  *
  * @module smart-router
  */
 
 export function onRequest(ctx) {
   const config = ctx?.config || {};
-  // Count approx tokens (1 token ~ 4 chars)
-  const prompt = ctx?.body?.messages?.map(m => m.content).join(" ") || "";
-  if (ctx?.metadata) {
-    ctx.metadata.__promptLength = prompt.length;
-  }
-}
-
-/**
- * onModelSelect hook — override the model before it reaches the executor.
- */
-export function onModelSelect(ctx, selectedModel) {
-  const config = ctx?.config || {};
+  const fallback = config.fallbackModel || "gpt-3.5-turbo";
   const maxChars = (config.maxTokensForExpensiveModel || 1000) * 4;
-  const promptLength = ctx?.metadata?.__promptLength || 0;
+  const body = ctx?.body || {};
+  const messages = body.messages || [];
+  const promptText = messages.map((m) => m.content || "").join(" ");
+  const originalModel = body.model || "unknown";
 
-  // If the prompt is too long, we forcefully route to the cheaper fallback model
-  if (promptLength > maxChars) {
-    const fallback = config.fallbackModel || "gpt-3.5-turbo";
-    console.log(\`[smart-router] Prompt length \${promptLength} > \${maxChars}. Rerouting \${selectedModel} -> \${fallback}\`);
-    return fallback;
+  // Skip if body already targets the fallback model
+  if (body.model === fallback) return;
+
+  // If the prompt exceeds the threshold, rewrite the model
+  if (promptText.length > maxChars) {
+    console.log(`[smart-router] Prompt length ${promptText.length} > ${maxChars}. Rewriting model: ${originalModel} -> ${fallback}`);
+    return { body: { ...body, model: fallback } };
   }
 
-  // Otherwise, return the originally selected model untouched
-  return selectedModel;
+  console.log(`[smart-router] Prompt length ${promptText.length} <= ${maxChars}. Keeping model: ${originalModel}`);
 }

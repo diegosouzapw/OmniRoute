@@ -22,7 +22,7 @@ If your company has private, in-house plugins, you can tell OmniRoute to downloa
 
 ## 👨‍💻 For Tech Users (Developers)
 
-The OmniRoute Plugin System runs plugins in a secure **Node.js `vm` Sandbox via Worker Threads**. Plugins intercept the lifecycle of LLM requests through asynchronous event hooks.
+The OmniRoute Plugin System runs plugins in isolated **child processes** via `child_process.spawn`. Each plugin is sandboxed in a `vm.createContext()` with strict capability gating — plugins only have access to what their manifest's `permissions` block declares. Plugins intercept the lifecycle of LLM requests through asynchronous event hooks.
 
 ### Plugin Architecture
 A plugin is a folder containing two files:
@@ -80,4 +80,4 @@ This plugin hooks into `onRequest` to count the approximate token length of the 
 2. Go to the dashboard Plugins page and click **Scan for Plugins**.
 3. Activate your plugin and view your console logs!
 
-*Security Note:* The `ctx` object passed to plugins is deeply cloned and secured via `vm` contexts. You cannot access `fs`, `process.env`, or `child_process` natively unless explicitly granted via the Plugin Manifest `permissions` block.
+*Security Note:* The `ctx` object passed to hooks is deeply cloned via IPC serialization. You cannot access `fs`, `process.env`, or `child_process` natively unless explicitly granted via the Plugin Manifest `permissions` block.
