@@ -206,6 +206,43 @@ export function toClientAntigravityModelId(modelId: string): string {
   return ANTIGRAVITY_REVERSE_MODEL_ALIASES[modelId] || modelId;
 }
 
+// Quota buckets reported by the Antigravity backend are keyed by UPSTREAM model ids — a
+// DIFFERENT namespace from the public/client catalog. In that upstream quota namespace
+// `gemini-3.5-flash-low` denotes the *Medium* tier's bucket (it is the upstream target of
+// the `gemini-3.5-flash-medium` forward alias), even though the same literal is also a
+// public "Low" client id. This remap therefore CANNOT be derived from
+// ANTIGRAVITY_REVERSE_MODEL_ALIASES (which has no `gemini-3.5-flash-low` entry precisely
+// because it is already a valid client id) — it encodes the upstream-bucket → client-tier
+// chain explicitly. Keep it the inverse of the `-low/-medium/-high` rows in
+// ANTIGRAVITY_MODEL_ALIASES above. (#3821-review LEDGER-5 — was duplicated as an inline
+// if-ladder in open-sse/services/usage.ts.)
+const ANTIGRAVITY_QUOTA_BUCKET_TO_CLIENT: AntigravityModelAliasMap = Object.freeze({
+  "gemini-3.5-flash-extra-low": "gemini-3.5-flash-low",
+  "gemini-3.5-flash-low": "gemini-3.5-flash-medium",
+  "gemini-3-flash-agent": "gemini-3.5-flash-high",
+});
+
+// Retired/hidden upstream preview buckets that must be dropped from client-facing usage.
+const ANTIGRAVITY_DROPPED_QUOTA_BUCKETS = new Set<string>([
+  "gemini-3.5-flash-preview",
+  "gemini-3-flash-preview",
+]);
+
+/**
+ * Map an UPSTREAM Antigravity quota-bucket model id to the client-visible tier id used in
+ * usage responses, or `null` if the bucket should be hidden from clients. Operates on the
+ * upstream quota namespace (see ANTIGRAVITY_QUOTA_BUCKET_TO_CLIENT) — do NOT pass client
+ * ids here. Single source of truth shared by the usage service and the provider-limits
+ * cache sanitizer.
+ */
+export function toClientAntigravityQuotaModelId(modelId: string): string | null {
+  if (!modelId) return null;
+  if (ANTIGRAVITY_DROPPED_QUOTA_BUCKETS.has(modelId)) return null;
+  const tierClientId = ANTIGRAVITY_QUOTA_BUCKET_TO_CLIENT[modelId];
+  if (tierClientId) return tierClientId;
+  return toClientAntigravityModelId(modelId);
+}
+
 export function getClientVisibleAntigravityModelName(
   modelId: string,
   fallbackName?: string

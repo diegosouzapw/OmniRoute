@@ -31,7 +31,14 @@
     "scripts/build/native-binary-compat.mjs",
     "scripts/build/build-next-isolated.mjs",
     "README.md",
-    "LICENSE"
+    "LICENSE",
+    "!**/__tests__/**",
+    "!**/*.test.ts",
+    "!**/*.test.tsx",
+    "!**/*.test.js",
+    "!**/*.test.mjs",
+    "!**/*.spec.ts",
+    "!**/*.spec.tsx"
   ],
   "workspaces": [
     "open-sse"

@@ -9,7 +9,7 @@ import {
 } from "../config/antigravityUpstream.ts";
 import {
   isUserCallableAntigravityModelId,
-  toClientAntigravityModelId,
+  toClientAntigravityQuotaModelId,
 } from "../config/antigravityModelAliases.ts";
 import { isUserCallableAgyModelId } from "../config/agyModels.ts";
 import { getGlmQuotaUrl } from "../config/glmProvider.ts";
@@ -1974,26 +1974,9 @@ interface AntigravityUsageOptions {
 const ANTIGRAVITY_LOCAL_USAGE_WINDOW_MS = 5 * 60 * 60 * 1000;
 const ANTIGRAVITY_LOCAL_USAGE_TOKENS_PER_UNIT = 1000;
 
-const ANTIGRAVITY_QUOTA_MODEL_ALIASES: Record<string, string | null> = {
-  "gemini-3.5-flash-preview": null,
-  "gemini-3-flash-preview": null,
-};
-
-function normalizeAntigravityQuotaModelId(modelId: string): string | null {
-  if (!modelId) return null;
-  return Object.prototype.hasOwnProperty.call(ANTIGRAVITY_QUOTA_MODEL_ALIASES, modelId)
-    ? ANTIGRAVITY_QUOTA_MODEL_ALIASES[modelId]
-    : modelId;
-}
-
-function toClientAntigravityQuotaModelId(modelId: string): string | null {
-  if (!modelId) return null;
-  if (normalizeAntigravityQuotaModelId(modelId) === null) return null;
-  if (modelId === "gemini-3.5-flash-extra-low") return "gemini-3.5-flash-low";
-  if (modelId === "gemini-3.5-flash-low") return "gemini-3.5-flash-medium";
-  if (modelId === "gemini-3-flash-agent") return "gemini-3.5-flash-high";
-  return toClientAntigravityModelId(modelId);
-}
+// `toClientAntigravityQuotaModelId` was an inline if-ladder here; it is now the single
+// source of truth in open-sse/config/antigravityModelAliases.ts (imported above), shared
+// with the provider-limits cache sanitizer. (#3821-review LEDGER-5)
 
 function getAntigravityLocalUsageUnits(
   provider: "antigravity" | "agy",

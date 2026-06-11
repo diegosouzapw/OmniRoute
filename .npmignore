@@ -9,6 +9,16 @@ app/vscode-extension/
 **/db.json
 
 # Source code (pre-built app/ is published instead)
+#
+# NOTE (#3578 / #3821-review): package.json "files" is the source of truth for what
+# ships. It now allowlists the backend source closure the MCP server needs at runtime
+# (open-sse/, src/lib, src/server, ...) and OVERRIDES the broad src/ + open-sse/ excludes
+# below — npm honors files[] over .npmignore for inclusion. These lines are kept only as
+# intent/back-stop: if files[] is ever trimmed back to specific paths, they must NOT be
+# allowed to re-hide the MCP closure (that would silently reintroduce the --mcp
+# ERR_MODULE_NOT_FOUND #3578 fixed). The closure gate in
+# tests/unit/mcp-published-files-closure-3578.test.ts asserts the real `npm pack` output
+# in both directions (closure present + zero test files), catching such a regression.
 src/
 open-sse/
 docs/
@@ -17,6 +27,17 @@ cloud/
 images/
 logs/
 scripts/
+
+# Co-located tests must never ship even when their parent dir is allowlisted by files[].
+# (Primary guard is the "!**/*.test.*" negations in package.json files[]; this is defense
+# in depth for any nested dir the allowlist pulls in.)
+**/__tests__/
+**/*.test.ts
+**/*.test.tsx
+**/*.test.js
+**/*.test.mjs
+**/*.spec.ts
+**/*.spec.tsx
 
 # Config/dev files
 *.md
