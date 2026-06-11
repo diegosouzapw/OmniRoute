@@ -3011,10 +3011,11 @@ async function getKiroUsage(accessToken?: string, providerSpecificData?: JsonRec
     // legacy codewhisperer host; codewhisperer.{region} does not resolve for other regions).
     const regionFromArn =
       typeof profileArn === "string"
-        ? profileArn.match(/^arn:aws:codewhisperer:([a-z0-9-]+):/)?.[1]
+        ? profileArn.toLowerCase().match(/^arn:aws:codewhisperer:([a-z0-9-]+):/)?.[1]
         : undefined;
     const region =
-      (typeof providerSpecificData?.region === "string" && providerSpecificData.region.trim()) ||
+      (typeof providerSpecificData?.region === "string" &&
+        providerSpecificData.region.trim().toLowerCase()) ||
       regionFromArn ||
       "us-east-1";
     const usageBaseUrl =
