@@ -29,6 +29,7 @@ export interface Settings {
   hideEndpointCloudflaredTunnel?: boolean;
   hideEndpointTailscaleFunnel?: boolean;
   hideEndpointNgrokTunnel?: boolean;
+  preferClaudeCodeForUnprefixedClaudeModels?: boolean;
   autoRefreshProviderQuota?: boolean;
   autoRefreshProviderQuotaInterval?: number;
   pinProviderQuotaToHome?: boolean;
