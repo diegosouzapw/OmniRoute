@@ -387,16 +387,9 @@ export function geminiToOpenAIResponse(chunk, state) {
         }
 
         if (hasFunctionCall) {
-          // Flush any still-open textual reasoning wrapper as reasoning_content BEFORE
-          // the tool call. A signed native functionCall arriving while a `<thinking>`
-          // (etc.) tag opened in an earlier chunk is still buffered must not silently
-          // drop that buffered reasoning — flushOpenTextualReasoning emits it and clears
-          // the active-tag/content buffers. (LEDGER-4 / #3821-review)
-          flushOpenTextualReasoning(state, results);
-          // Also drop any partial open-tag fragment buffered at a chunk boundary
-          // (flushOpenTextualReasoning early-returns when only this is set), matching the
-          // pre-fix branch which cleared all three buffers. (#3821-review convergence)
+          state.activeTextualReasoningTag = undefined;
           state.textualReasoningTagBuffer = undefined;
+          state.textualReasoningContentBuffer = undefined;
           emitFunctionCallPart(part, state, results);
         }
         continue;
