@@ -371,6 +371,119 @@ test("usage service covers Antigravity quota parsing, exclusions and forbidden a
   assert.match(forbidden.message, /forbidden/i);
 });
 
+test("usage service prefers Antigravity retrieveUserQuota over catalog quotaInfo", async () => {
+  globalThis.fetch = async (url) => {
+    const urlString = String(url);
+
+    if (urlString.includes("loadCodeAssist")) {
+      return new Response(
+        JSON.stringify({
+          allowedTiers: [{ id: "tier_pro", isDefault: true }],
+          cloudaicompanionProject: "ag-project",
+        }),
+        { status: 200 }
+      );
+    }
+
+    if (urlString.includes("fetchAvailableModels")) {
+      return new Response(
+        JSON.stringify({
+          models: {
+            "gemini-3.5-flash-high": {
+              quotaInfo: {
+                remainingFraction: 1,
+                resetTime: new Date(Date.now() + 60_000).toISOString(),
+              },
+            },
+          },
+        }),
+        { status: 200 }
+      );
+    }
+
+    if (urlString.includes("retrieveUserQuota")) {
+      return new Response(
+        JSON.stringify({
+          buckets: [
+            {
+              modelId: "gemini-3.5-flash-high",
+              remainingFraction: 0.25,
+              resetTime: new Date(Date.now() + 60_000).toISOString(),
+            },
+          ],
+        }),
+        { status: 200 }
+      );
+    }
+
+    throw new Error(`unexpected fetch: ${url}`);
+  };
+
+  const usage: any = await usageService.getUsageForProvider({
+    provider: "antigravity",
+    accessToken: `ag-token-live-quota-${Date.now()}`,
+  });
+
+  assert.equal(usage.quotas["gemini-3.5-flash-high"].remainingPercentage, 25);
+  assert.equal(usage.quotas["gemini-3.5-flash-high"].used, 750);
+  assert.equal(usage.quotas["gemini-3.5-flash-high"].quotaSource, "retrieveUserQuota");
+});
+
+test("usage service normalizes retired Antigravity quota bucket ids", async () => {
+  globalThis.fetch = async (url) => {
+    const urlString = String(url);
+
+    if (urlString.includes("loadCodeAssist")) {
+      return new Response(
+        JSON.stringify({
+          allowedTiers: [{ id: "tier_pro", isDefault: true }],
+          cloudaicompanionProject: "ag-project",
+        }),
+        { status: 200 }
+      );
+    }
+
+    if (urlString.includes("fetchAvailableModels")) {
+      return new Response(
+        JSON.stringify({
+          models: {
+            "gemini-3.5-flash-low": { quotaInfo: { remainingFraction: 1 } },
+            "gemini-3.5-flash-high": { quotaInfo: { remainingFraction: 1 } },
+            "gemini-3-flash-agent": { quotaInfo: { remainingFraction: 1 } },
+            "gemini-3.5-flash-extra-low": { quotaInfo: { remainingFraction: 1 } },
+          },
+        }),
+        { status: 200 }
+      );
+    }
+
+    if (urlString.includes("retrieveUserQuota")) {
+      return new Response(
+        JSON.stringify({
+          buckets: [
+            { modelId: "gemini-3-flash-agent", remainingFraction: 0.5 },
+            { modelId: "gemini-3.5-flash-extra-low", remainingFraction: 0.25 },
+          ],
+        }),
+        { status: 200 }
+      );
+    }
+
+    throw new Error(`unexpected fetch: ${url}`);
+  };
+
+  const usage: any = await usageService.getUsageForProvider({
+    provider: "antigravity",
+    accessToken: `ag-token-legacy-buckets-${Date.now()}`,
+  });
+
+  assert.equal(usage.quotas["gemini-3-flash-agent"], undefined);
+  assert.equal(usage.quotas["gemini-3.5-flash-extra-low"], undefined);
+  assert.equal(usage.quotas["gemini-3.5-flash-high"].remainingPercentage, 50);
+  assert.equal(usage.quotas["gemini-3.5-flash-medium"].remainingPercentage, 100);
+  assert.equal(usage.quotas["gemini-3.5-flash-low"].remainingPercentage, 25);
+});
+
 test("usage service retries Antigravity fetchAvailableModels across the shared fallback order", async () => {
   const calls: any[] = [];
   const expectedQuotaUrls = getAntigravityFetchAvailableModelsUrls();

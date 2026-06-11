@@ -74,6 +74,24 @@ function toNumber(value: unknown): number {
   return 0;
 }
 
+function notifyProviderUsageRecordedAsync(provider: unknown, connectionId: unknown): void {
+  if (
+    (provider !== "antigravity" && provider !== "agy") ||
+    typeof connectionId !== "string" ||
+    !connectionId
+  ) {
+    return;
+  }
+  void import("./providerLimits")
+    .then(({ notifyProviderUsageRecorded }) => {
+      notifyProviderUsageRecorded(provider, connectionId);
+    })
+    .catch((error) => {
+      const message = error instanceof Error ? error.message : String(error);
+      console.warn(`[ProviderLimits] Failed to schedule post-usage refresh: ${message}`);
+    });
+}
+
 function percentile(sortedValues: number[], p: number): number {
   if (sortedValues.length === 0) return 0;
   if (sortedValues.length === 1) return sortedValues[0];
@@ -340,7 +358,8 @@ export function finalizeMostRecentPendingRequest(
   // detail from persisted call_log artifacts (best-effort, non-blocking).
   (async () => {
     try {
-      const missingProvider = updated.providerResponse === undefined || updated.providerResponse === null;
+      const missingProvider =
+        updated.providerResponse === undefined || updated.providerResponse === null;
       const missingClient = updated.clientResponse === undefined || updated.clientResponse === null;
       if ((missingProvider || missingClient) && connectionId) {
         const db = getDbInstance();
@@ -363,7 +382,10 @@ export function finalizeMostRecentPendingRequest(
           if (missingClient && pipeline?.clientResponse) {
             updated.clientResponse = pipeline.clientResponse;
           }
-          if ((missingProvider && art.artifact.responseBody) || (missingClient && art.artifact.responseBody)) {
+          if (
+            (missingProvider && art.artifact.responseBody) ||
+            (missingClient && art.artifact.responseBody)
+          ) {
             // use responseBody as a fallback for both
             if (missingProvider) updated.providerResponse = art.artifact.responseBody;
             if (missingClient) updated.clientResponse = art.artifact.responseBody;
@@ -376,7 +398,12 @@ export function finalizeMostRecentPendingRequest(
         }
       }
     } catch (e) {
-      try { console.warn("[usageHistory] failed to enrich completed detail from artifacts:", (e && (e.message || e))); } catch {}
+      try {
+        console.warn(
+          "[usageHistory] failed to enrich completed detail from artifacts:",
+          e && (e.message || e)
+        );
+      } catch {}
     }
   })();
 
@@ -582,6 +609,8 @@ export async function saveRequestUsage(entry: any) {
       entry.comboStrategy || entry.combo_strategy || null,
       timestamp
     );
+
+    notifyProviderUsageRecordedAsync(entry.provider, entry.connectionId);
   } catch (error) {
     console.error("Failed to save usage stats:", error);
   }
