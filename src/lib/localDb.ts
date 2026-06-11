@@ -618,3 +618,18 @@ export {
 export type { ApiKeyContextSource } from "./db/apiKeyContextSources";
 
 export { sumUsageTokensThisMonth } from "./db/usageSummary";
+
+export {
+  getProviderMetrics,
+  getSearchProviderStats,
+  getRecentSearchLogs,
+  getSearchAggregateStats,
+  getSearchProviderCounts,
+} from "./db/callLogStats";
+export type {
+  ProviderMetricRow,
+  SearchProviderStatRow,
+  SearchRecentRow,
+  SearchAggregateStats,
+  SearchProviderCountRow,
+} from "./db/callLogStats";
