@@ -233,6 +233,7 @@ import {
   getModelScopeRetryDelayMs,
   isModelScopeProvider,
 } from "../services/modelscopePolicy.ts";
+import { incrementRequestCount } from "../services/geminiRateLimitTracker.ts";
 
 const MEMORY_EXTRACTION_TEXT_LIMIT = 64 * 1024;
 
@@ -1986,12 +1987,13 @@ export async function handleChatCore({
   // Use credentials.connectionId as a fallback so that requests without an
   // explicit session-level connectionId still register in the pendingRequests map.
   const pendingConnId = connectionId || credentials?.connectionId || null;
-  const pendingRequestId = trackPendingRequest(model, provider, pendingConnId, true, {
-    clientEndpoint: clientRawRequest?.endpoint || "/v1/chat/completions",
-    clientRequest: clientRawRequest?.body ?? body,
-    providerRequest: initialProviderRequest,
-    stage: "registered",
-  }) || generateRequestId();
+  const pendingRequestId =
+    trackPendingRequest(model, provider, pendingConnId, true, {
+      clientEndpoint: clientRawRequest?.endpoint || "/v1/chat/completions",
+      clientRequest: clientRawRequest?.body ?? body,
+      providerRequest: initialProviderRequest,
+      stage: "registered",
+    }) || generateRequestId();
 
   // Initialize rate limit settings from persisted DB (once, lazy)
   await initializeRateLimits();
@@ -2769,7 +2771,10 @@ export async function handleChatCore({
           comboTargetLimits,
         });
         contextLimit = resolved.limit;
-        log?.info?.("CONTEXT", `Combo context limit: ${resolved.limit} (source=${resolved.source})`);
+        log?.info?.(
+          "CONTEXT",
+          `Combo context limit: ${resolved.limit} (source=${resolved.source})`
+        );
       } catch (err) {
         log?.warn?.("CONTEXT", "Failed to resolve combo limits for compression: " + err);
       }
@@ -3787,6 +3792,12 @@ export async function handleChatCore({
               });
               const res = normalizeExecutorResult(rawExecutorResult);
               trace("post_executor", { status: res?.response?.status });
+
+              // Track Gemini RPM + RPD request counts for 429 classification
+              if (provider === "gemini") {
+                incrementRequestCount(modelToCall);
+              }
+
               updatePendingRequest(model, provider, connectionId, {
                 stage: "provider_response_started",
               });
@@ -5442,17 +5453,14 @@ export async function handleChatCore({
   }
 
   const responseHeaders: Record<string, string> = {
-    ...buildStreamingResponseHeaders(
-      providerResponse.headers,
-      {
-        provider,
-        model,
-        cacheHit: false,
-        latencyMs: 0,
-        usage: null,
-        costUsd: 0,
-      }
-    ),
+    ...buildStreamingResponseHeaders(providerResponse.headers, {
+      provider,
+      model,
+      cacheHit: false,
+      latencyMs: 0,
+      usage: null,
+      costUsd: 0,
+    }),
     "x-omniroute-request-id": pendingRequestId,
   };
 
@@ -5560,7 +5568,9 @@ export async function handleChatCore({
       });
     } catch (e) {
       // Best-effort — don't break the stream completion path if this fails
-      try { console.warn("finalizeMostRecentPendingRequest failed:", e && (e.message || e)); } catch {}
+      try {
+        console.warn("finalizeMostRecentPendingRequest failed:", e && (e.message || e));
+      } catch {}
     }
 
     if (apiKeyInfo?.id && streamUsage) {

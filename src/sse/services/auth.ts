@@ -31,7 +31,7 @@ import {
   recordModelLockoutFailure,
 } from "@omniroute/open-sse/services/accountFallback.ts";
 import { isLocalProvider } from "@omniroute/open-sse/config/providerRegistry.ts";
-import { COOLDOWN_MS } from "@omniroute/open-sse/config/constants.ts";
+import { COOLDOWN_MS, RateLimitReason } from "@omniroute/open-sse/config/constants.ts";
 import {
   preflightQuota,
   isQuotaPreflightEnabled,
@@ -42,7 +42,7 @@ import {
   classifyProviderError,
   PROVIDER_ERROR_TYPES,
 } from "@omniroute/open-sse/services/errorClassifier.ts";
-import { looksLikeQuotaExhausted } from "@/shared/utils/classify429";
+
 import { getCodexModelScope } from "@omniroute/open-sse/executors/codex.ts";
 import {
   getProviderById,
@@ -1799,7 +1799,7 @@ export async function markAccountUnavailable(
       const reason =
         status === 404
           ? "not_found"
-          : status === 429 && looksLikeQuotaExhausted(errorText)
+          : status === 429 && fallbackResult.reason === RateLimitReason.QUOTA_EXHAUSTED
             ? "quota_exhausted"
             : status === 429
               ? "rate_limited"
