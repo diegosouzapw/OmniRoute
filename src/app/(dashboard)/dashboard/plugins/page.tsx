@@ -78,10 +78,10 @@ export default function PluginsPage() {
         addNotification({ type: "error", message: errData?.error || "Failed to save" });
         return;
       }
-      addNotification({ type: "success", message: "Marketplace URL updated" });
+      addNotification({ type: "success", message: t("marketplaceUrlSaved") });
       await fetchMarketplace();
     } catch {
-      addNotification({ type: "error", message: "Failed to update URL" });
+      addNotification({ type: "error", message: t("saveConfigurationFailed") });
     } finally {
       setSavingUrl(false);
     }
@@ -138,10 +138,10 @@ export default function PluginsPage() {
         <h1 className="text-2xl font-bold">{t("title")}</h1>
         <div className="flex gap-2">
           <Button variant={activeTab === "installed" ? "primary" : "secondary"} onClick={() => setActiveTab("installed")}>
-            Installed
+            {t("installedTab")}
           </Button>
           <Button variant={activeTab === "marketplace" ? "primary" : "secondary"} onClick={() => setActiveTab("marketplace")}>
-            Marketplace
+            {t("marketplaceTab")}
           </Button>
         </div>
       </div>
@@ -149,17 +149,17 @@ export default function PluginsPage() {
       {activeTab === "marketplace" && (
         <Card className="p-4 flex gap-4 items-end bg-gray-50">
           <div className="flex-1">
-            <label className="block text-sm font-medium text-gray-700 mb-1">Custom Marketplace URL</label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">{t("marketplaceUrlLabel")}</label>
             <input
               type="text"
               className="w-full rounded border-gray-300 p-2"
-              placeholder="Leave empty for official Omniroute registry"
+              placeholder={t("marketplaceUrlPlaceholder")}
               value={marketplaceUrl}
               onChange={(e) => setMarketplaceUrl(e.target.value)}
             />
           </div>
           <Button onClick={handleSaveUrl} disabled={savingUrl}>
-            Save & Reload
+            {t("saveMarketplaceUrl")}
           </Button>
         </Card>
       )}
@@ -222,7 +222,7 @@ export default function PluginsPage() {
       ) : (
         <div className="grid gap-4">
           {marketplacePlugins.length === 0 ? (
-             <div className="text-gray-500 py-4">No plugins found in marketplace.</div>
+             <div className="text-gray-500 py-4">{t("marketplaceEmpty")}</div>
           ) : (
             marketplacePlugins.map((plugin) => (
               <Card key={plugin.name} className="p-4">
