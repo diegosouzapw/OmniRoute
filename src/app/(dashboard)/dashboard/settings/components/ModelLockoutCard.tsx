@@ -147,19 +147,26 @@ export default function ModelLockoutCard() {
     draft.useExponentialBackoff !== data.useExponentialBackoff ||
     draft.maxBackoffSteps !== data.maxBackoffSteps;
 
-  const clampBeforeSave = (d: ModelLockoutSettings): ModelLockoutSettings => ({
-    ...d,
-    baseCooldownMs: Math.max(5000, Math.min(600000, d.baseCooldownMs)),
-    maxCooldownMs: Math.max(5000, Math.min(3600000, d.maxCooldownMs)),
-    maxBackoffSteps: Math.max(0, Math.min(20, d.maxBackoffSteps)),
-  });
+  function validateDraft(d: ModelLockoutSettings): string | null {
+    if (d.baseCooldownMs < 5000 || d.baseCooldownMs > 600000)
+      return `Base Cooldown must be between 5,000ms and 600,000ms`;
+    if (d.maxCooldownMs < 5000 || d.maxCooldownMs > 3600000)
+      return `Max Cooldown must be between 5,000ms and 3,600,000ms`;
+    if (d.maxCooldownMs < d.baseCooldownMs)
+      return `Max Cooldown must be ≥ Base Cooldown`;
+    if (d.maxBackoffSteps < 0 || d.maxBackoffSteps > 20)
+      return `Max Backoff Steps must be between 0 and 20`;
+    return null;
+  }
 
   const handleSave = async () => {
-    setSaving(true);
-    const saveDraft = clampBeforeSave({ ...draft, errorCodes: draft.errorCodes });
-    if (saveDraft.baseCooldownMs !== draft.baseCooldownMs) {
-      setDraft((prev) => ({ ...prev, baseCooldownMs: saveDraft.baseCooldownMs }));
+    const validationError = validateDraft(draft);
+    if (validationError) {
+      notify.error(validationError);
+      return;
     }
+    setSaving(true);
+    const saveDraft = { ...draft, errorCodes: draft.errorCodes };
     try {
       const res = await fetch("/api/settings", {
         method: "PATCH",
