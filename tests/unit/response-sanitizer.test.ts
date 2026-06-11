@@ -17,6 +17,28 @@ test("extractThinkingFromContent separates think blocks from visible content", (
   assert.equal(parsed.thinking, "reasoning 1\n\nreasoning 2");
 });
 
+// #3821-review LEDGER-7 — the unclosed-reasoning-tag heuristic (#3605) reclassifies a
+// dangling `<thought`-style tail as reasoning. Pin that a REAL visible prefix before such
+// a tail is preserved as content (only a whitespace/§marker§ prefix collapses to ""), and
+// that a non-reasoning tag like `<thoughtful>` is NOT captured.
+test("extractThinkingFromContent preserves a real prefix before a dangling reasoning tag", () => {
+  const parsed = extractThinkingFromContent("Here is the answer. <thought\nleftover reasoning");
+  assert.equal(parsed.content, "Here is the answer.");
+  assert.equal(parsed.thinking, "leftover reasoning");
+});
+
+test("extractThinkingFromContent: §marker§-only prefix collapses to empty content", () => {
+  const parsed = extractThinkingFromContent("§54§ <thought\ninternal planning");
+  assert.equal(parsed.content, "");
+  assert.equal(parsed.thinking, "internal planning");
+});
+
+test("extractThinkingFromContent does NOT treat <thoughtful> as a reasoning tag", () => {
+  const parsed = extractThinkingFromContent("See the <thoughtful> approach here");
+  assert.equal(parsed.content, "See the <thoughtful> approach here");
+  assert.equal(parsed.thinking, null);
+});
+
 test("sanitizeOpenAIResponse strips non-standard fields and preserves required top-level fields", () => {
   const sanitized = sanitizeOpenAIResponse({
     id: "chatcmpl_existing",

@@ -180,7 +180,7 @@ import {
   isCacheableForRead,
   isCacheableForWrite,
 } from "@/lib/semanticCache";
-import { getIdempotencyKey, saveIdempotency } from "@/lib/idempotencyLayer";
+import { saveIdempotency } from "@/lib/idempotencyLayer";
 import { createProgressTransform, wantsProgress } from "../utils/progressTracker.ts";
 import { createPiiSseTransform } from "@/lib/streamingPiiTransform";
 import { isFeatureFlagEnabled } from "@/shared/utils/featureFlags";
@@ -1867,7 +1867,9 @@ export async function handleChatCore({
   };
 
   // ── Phase 9.2: Idempotency check ──
-  const idempotencyHit = await checkIdempotencyCache({
+  // Resolve the idempotency key once here and reuse it at the Phase 9.2 save site below,
+  // rather than re-deriving it. (#3821-review LEDGER-6)
+  const { hit: idempotencyHit, idempotencyKey } = await checkIdempotencyCache({
     clientRawRequest,
     provider,
     model,
@@ -5232,10 +5234,8 @@ export async function handleChatCore({
     }
 
     // ── Phase 9.2: Save for idempotency ──
-    // The idempotency *check* moved into checkIdempotencyCache() during the
-    // chatCore modularization (#3598); re-derive the key here for the save path.
-    // getIdempotencyKey is pure (reads idempotency-key/x-request-id headers).
-    const idempotencyKey = getIdempotencyKey(clientRawRequest?.headers);
+    // Reuse the key resolved by checkIdempotencyCache() above (single derivation per
+    // request). (#3821-review LEDGER-6)
     saveIdempotency(idempotencyKey, translatedResponse, 200);
     reqLogger.logConvertedResponse(translatedResponse);
     persistAttemptLogs({

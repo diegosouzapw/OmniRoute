@@ -328,7 +328,11 @@ function markCreditsExhausted(accountId: string): void {
   creditsExhaustedUntil.set(accountId, Date.now() + CREDITS_EXHAUSTED_TTL_MS);
 }
 
-function processAntigravitySSEPayload(
+/**
+ * Accumulate one Antigravity SSE `data:` payload into `collected`. Exported for unit
+ * tests (the markdown / candidate-parts extraction branches). @internal
+ */
+export function processAntigravitySSEPayload(
   payload: string,
   collected: AntigravityCollectedStream,
   log?: { debug?: (scope: string, message: string) => void }
