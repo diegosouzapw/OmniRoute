@@ -1228,6 +1228,7 @@
     "description": "Manage OmniRoute autostart at boot (Linux: systemd user service)",
     "enable": "Enable autostart at boot",
     "disable": "Disable autostart at boot",
+    "toggle": "Toggle autostart at boot",
     "status": "Show autostart status"
   },
   "runtime": {

@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+### ✨ Added
+
+- **feat(cli):** `omniroute autostart` now accepts the shorthand the headless / `omniroute serve` path was missing — `omniroute autostart on` / `... true` (aliases of `enable`), `... off` / `... false` (aliases of `disable`), a new `... toggle`, and a default `... status` (bare `omniroute autostart` is a safe read-only). Previously autostart could only be toggled from the tray (`serve --tray`) or the Electron Appearance tab, so a plain `omniroute serve` user had no way to enable it. (The cross-platform launchd/systemd/registry logic is unchanged — this only wires the ergonomic CLI surface.) ([#3331](https://github.com/diegosouzapw/OmniRoute/issues/3331) — thanks @uniQta)
+
 ### ♻️ Code Quality
 
 - **refactor(chatCore):** extract the chatCore request phases — idempotency check, semantic cache check, common request sanitization, and memory/skills injection — into dedicated `open-sse/handlers/chatCore/` modules (`idempotency.ts`, `semanticCache.ts`, `sanitization.ts`, `memorySkillsInjection.ts`), slimming the monolithic handler with no behavior change. (Maintainer follow-up: re-derive `idempotencyKey` at the Phase 9.2 save site after the check moved into the module, fixing a `ReferenceError` on successful non-cached responses.) ([#3598](https://github.com/diegosouzapw/OmniRoute/pull/3598) — thanks @oyi77)

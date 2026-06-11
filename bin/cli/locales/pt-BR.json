@@ -1228,6 +1228,7 @@
     "description": "Gerenciar inicialização automática do OmniRoute no login",
     "enable": "Habilitar inicialização automática no login",
     "disable": "Desabilitar inicialização automática no login",
+    "toggle": "Alternar inicialização automática no login",
     "status": "Mostrar status de inicialização automática"
   },
   "runtime": {
