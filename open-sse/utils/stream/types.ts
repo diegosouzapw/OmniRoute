@@ -43,7 +43,7 @@ export type StreamOptions = {
   onFailure?: ((payload: StreamFailurePayload) => void | Promise<void>) | null;
 };
 
-export type TranslateState = ReturnType<typeof initState> & {
+export type TranslateState = {
   provider?: string | null;
   toolNameMap?: unknown;
   signatureNamespace?: string | null;

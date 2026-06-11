@@ -1502,7 +1502,7 @@ export function createSSEStream(options: StreamOptions = {}) {
                 flushOutput = `data: ${JSON.stringify(syntheticChunk)}\n\n`;
               } else {
                 const syntheticChunk = {
-                  id: passthroughResponsesId || `chatcmpl-${Date.now()}`,
+                  id: passthroughResponsesId || `chatcmpl-${uuidv4()}`,
                   object: "chat.completion.chunk",
                   created: Math.floor(Date.now() / 1000),
                   model: model || "unknown",
@@ -1822,7 +1822,7 @@ export function createSSEStream(options: StreamOptions = {}) {
               const textualToolCall = parseTextualToolCallFromContent(content);
               if (textualToolCall) {
                 normalizedToolCalls.push({
-                  id: `call_${Date.now()}_${normalizedToolCalls.length}`,
+                  id: `call_${uuidv4()}_${normalizedToolCalls.length}`,
                   index: normalizedToolCalls.length,
                   type: "function",
                   function: {
