@@ -14,7 +14,6 @@ import { CORS_HEADERS, handleCorsOptions } from "@/shared/utils/cors";
 import { createErrorResponse } from "@/lib/api/errorResponse";
 import { requireManagementAuth } from "@/lib/api/requireManagementAuth";
 import { registerDefaultGuardrails } from "@/lib/guardrails/registry";
-import { validateBody, isValidationFailure } from "@/shared/validation/helpers";
 
 const TestRequestSchema = z.object({
   input: z.union([z.string(), z.record(z.unknown()), z.array(z.unknown())]),
@@ -29,18 +28,16 @@ export async function POST(request: NextRequest) {
   const authError = await requireManagementAuth(request);
   if (authError) return authError;
 
-  let rawBody: unknown;
+  let parsed: z.infer<typeof TestRequestSchema>;
   try {
-    rawBody = await request.json();
+    parsed = TestRequestSchema.parse(await request.json());
   } catch {
-    return createErrorResponse({ status: 400, message: "Invalid JSON body", type: "invalid_request" });
+    return createErrorResponse({
+      status: 400,
+      message: "Invalid request body — expected { input: string | object | array, disabledGuardrails?: string[] }",
+      type: "invalid_request",
+    });
   }
-
-  const validation = validateBody(TestRequestSchema, rawBody);
-  if (isValidationFailure(validation)) {
-    return createErrorResponse({ status: 400, message: "Invalid request body — expected { input: string | object | array, disabledGuardrails?: string[] }", type: "invalid_request" });
-  }
-  const parsed = validation.data;
 
   const registry = registerDefaultGuardrails();
   const outcome = await registry.runPreCallHooks(parsed.input, {
