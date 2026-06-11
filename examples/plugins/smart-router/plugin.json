@@ -8,7 +8,7 @@
   "source": "local",
   "tags": ["routing", "optimization", "cost"],
   "hooks": {
-    "onModelSelect": true,
+    "onRequest": true,
     "onRequest": true
   },
   "requires": {
