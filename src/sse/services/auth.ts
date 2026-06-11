@@ -1789,8 +1789,7 @@ export async function markAccountUnavailable(
     // If disabled or the status code isn't in the configured list, skip all
     // model-only lockout branches and fall through to connection-level handling.
     const mlSettings = resolveModelLockoutSettings(await getCachedSettings());
-    const modelLockoutEnabled =
-      mlSettings.enabled && mlSettings.errorCodes.includes(status);
+    const modelLockoutEnabled = mlSettings.enabled && mlSettings.errorCodes.includes(status);
 
     // Read passthroughModels from connection config (user-configured per-model quota)
     const connProviderSpecificData = (conn?.providerSpecificData as Record<string, unknown>) || {};
@@ -1804,11 +1803,13 @@ export async function markAccountUnavailable(
     // When user-configured lockout settings are active AND this is a combo request,
     // skip model-level lockout here — combo.ts records it with 'combo_failure' reason.
     // For non-combo flows or legacy mode, auth.ts still handles the lockout.
+    // When user-configured lockout settings are active, model lock applies to ALL
+    // providers (bypasses isPerModelQuotaProvider gate) — user explicitly opted in.
     if (
-      isPerModelQuotaProvider &&
       provider &&
       model &&
-      (status === 404 || status === 429 || status >= 500) &&
+      (isConfiguredLockout ||
+        (isPerModelQuotaProvider && (status === 404 || status === 429 || status >= 500))) &&
       !(isConfiguredLockout && options.isCombo)
     ) {
       const reason =
@@ -1822,9 +1823,9 @@ export async function markAccountUnavailable(
 
       const baseCooldownMs = isConfiguredLockout
         ? mlSettings.baseCooldownMs
-        : (status === 404
-            ? (effectiveProviderProfile?.baseCooldownMs ?? COOLDOWN_MS.notFoundLocal)
-            : (fallbackResult.baseCooldownMs ?? effectiveProviderProfile?.baseCooldownMs ?? 0));
+        : status === 404
+          ? (effectiveProviderProfile?.baseCooldownMs ?? COOLDOWN_MS.notFoundLocal)
+          : (fallbackResult.baseCooldownMs ?? effectiveProviderProfile?.baseCooldownMs ?? 0);
 
       const useExponential = isConfiguredLockout ? mlSettings.useExponentialBackoff : true;
 
@@ -1840,7 +1841,11 @@ export async function markAccountUnavailable(
           exactCooldownMs:
             fallbackResult.usedUpstreamRetryHint === true && !isConfiguredLockout
               ? fallbackResult.cooldownMs
-              : (useExponential ? (isConfiguredLockout ? 0 : null) : baseCooldownMs),
+              : useExponential
+                ? isConfiguredLockout
+                  ? 0
+                  : null
+                : baseCooldownMs,
           maxCooldownMs: isConfiguredLockout ? mlSettings.maxCooldownMs : BACKOFF_CONFIG.max,
         }
       );
@@ -1862,8 +1867,9 @@ export async function markAccountUnavailable(
     if (!shouldFallback) return { shouldFallback: false, cooldownMs: 0 };
     const providerErrorType = classifyProviderError(status, errorText, provider);
 
-    const isGrokWeb403 = provider && resolveProviderId(provider) === "grok-web" && status === 403 && model;
-    if (isGrokWeb403 && provider && model) {
+    const isGrokWeb403 =
+      provider && resolveProviderId(provider) === "grok-web" && status === 403 && model;
+    if (isGrokWeb403 && provider && model && !(isConfiguredLockout && options.isCombo)) {
       const baseCooldownMs = isConfiguredLockout
         ? mlSettings.baseCooldownMs
         : (effectiveProviderProfile?.baseCooldownMs ?? COOLDOWN_MS.serviceUnavailable);
@@ -1914,7 +1920,13 @@ export async function markAccountUnavailable(
     // key, credits exhausted) are excluded here because
     // resolveTerminalConnectionStatus() returns a non-null status for them, so
     // they keep their existing connection-level cooldown/deactivation path.
-    if (isPerModelQuotaProvider && status === 403 && provider && model && !terminalStatus) {
+    if (
+      provider &&
+      model &&
+      !terminalStatus &&
+      (isConfiguredLockout || (isPerModelQuotaProvider && status === 403)) &&
+      !(isConfiguredLockout && options.isCombo)
+    ) {
       const baseCooldownMs = isConfiguredLockout
         ? mlSettings.baseCooldownMs
         : (fallbackResult.baseCooldownMs ??
@@ -1935,7 +1947,11 @@ export async function markAccountUnavailable(
           exactCooldownMs:
             fallbackResult.usedUpstreamRetryHint === true && !isConfiguredLockout
               ? fallbackResult.cooldownMs
-              : (useExponential ? (isConfiguredLockout ? 0 : null) : baseCooldownMs),
+              : useExponential
+                ? isConfiguredLockout
+                  ? 0
+                  : null
+                : baseCooldownMs,
           maxCooldownMs: isConfiguredLockout ? mlSettings.maxCooldownMs : BACKOFF_CONFIG.max,
         }
       );
