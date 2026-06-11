@@ -74,12 +74,9 @@ export const KNOWN_UNEXPORTED = INTENTIONALLY_INTERNAL;
 const KNOWN_RAW_SQL = new Set([
   "src/app/api/analytics/auto-routing/route.ts", // SELECT … FROM usage_logs
   "src/app/api/cache/entries/route.ts", // semantic_cache COUNT/DELETE inline
-  "src/app/api/db-backups/exportAll/route.ts", // SELECT key_value/combos/connections/keys
-  "src/app/api/db-backups/import/route.ts", // SELECT sqlite_master + COUNTs
-"src/app/api/logs/export/route.ts", // SELECT de proxy_logs
+  "src/app/api/logs/export/route.ts", // SELECT de proxy_logs
   "src/app/api/oauth/cursor/auto-import/route.ts", // SELECT no itemTable do Cursor (DB externo)
   "src/app/api/oauth/kiro/auto-import/route.ts", // SELECT no SQLite do Kiro (DB externo)
-  "src/app/api/skills/[id]/route.ts", // UPDATE skills SET dinâmico
 ]);
 
 // Módulos sempre excluídos da checagem (a): não são domínio re-exportável.
