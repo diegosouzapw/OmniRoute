@@ -9,6 +9,7 @@
 ### ♻️ Code Quality
 
 - **Provider-detail god-component decomposition — Phase 0** ([#3501]): introduced `ProviderDetailPageClient.tsx` and reduced `providers/[id]/page.tsx` to a thin 9-line route wrapper (was 12,882 LOC), following the repo's `*PageClient` convention. Added the first-ever smoke render test for the page (Hard Rule #8) as the safety net every later extraction phase is diffed against. Behavior unchanged; the `check-file-size` ratchet now tracks the extracted client. Foundation for Phases 1–6 (strangler-fig). Thanks @oyi77 for the parallel modularization effort in #3627.
+- **Provider-detail god-component decomposition — Phase 1a** ([#3501]): extracted the three self-contained auth-import modal clusters (Codex/Claude/Gemini `Import*AuthModal` + `Apply*AuthModal` + their co-located helpers, ~2,160 LOC) into `providers/[id]/components/modals/`. `ProviderDetailPageClient.tsx` drops 12,882 → 10,719 LOC. Behavior unchanged (smoke test green; clusters had clean `{ onClose, onSuccess }` / inline-prop interfaces). Co-authored with @oyi77.
 
 ---
 
