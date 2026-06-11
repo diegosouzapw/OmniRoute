@@ -50,6 +50,10 @@ function isText(value) {
   return typeof value === "string" && value.length > 0;
 }
 
+function isRecord(value) {
+  return value && typeof value === "object" && !Array.isArray(value);
+}
+
 function jsonStringifySafe(value) {
   try {
     return JSON.stringify(value);
@@ -65,6 +69,92 @@ function jsonStringifySafe(value) {
       },
     });
   }
+}
+
+function parseJsonRecord(value) {
+  try {
+    const parsed = typeof value === "string" ? JSON.parse(value) : value;
+    return isRecord(parsed) ? parsed : null;
+  } catch {
+    return null;
+  }
+}
+
+function toFiniteNumber(value) {
+  const parsed = Number(value);
+  return Number.isFinite(parsed) ? parsed : 0;
+}
+
+function toStringOrNull(value) {
+  return typeof value === "string" && value.trim().length > 0 ? value.trim() : null;
+}
+
+function buildFailurePayload(code, message) {
+  return {
+    type: "response.failed",
+    response: {
+      id: null,
+      status: "failed",
+      error: {
+        code,
+        message,
+      },
+    },
+  };
+}
+
+function getResponseErrorStatus(error) {
+  if (!isRecord(error)) return null;
+  const candidates = [
+    error.status,
+    error.status_code,
+    error.statusCode,
+    error.code === "usage_limit_reached" ? 429 : null,
+  ];
+  for (const candidate of candidates) {
+    const status = Number(candidate);
+    if (Number.isInteger(status) && status >= 400 && status <= 599) return status;
+  }
+  return null;
+}
+
+function getTerminalResponseEvent(rawData) {
+  const message = parseJsonRecord(rawData);
+  if (!message) return null;
+
+  const type = toStringOrNull(message.type) || "";
+  const response = isRecord(message.response) ? message.response : {};
+  const statusText = toStringOrNull(response.status) || "";
+
+  if (type === "response.completed" || type === "response.done" || statusText === "completed") {
+    return {
+      status: 200,
+      success: true,
+      terminalMessage: message,
+      responseBody: response,
+    };
+  }
+
+  if (type === "response.failed" || type === "response.error" || statusText === "failed") {
+    const error = isRecord(response.error)
+      ? response.error
+      : isRecord(message.error)
+        ? message.error
+        : null;
+    return {
+      status: getResponseErrorStatus(error) || 500,
+      success: false,
+      errorCode: toStringOrNull(error?.code) || "upstream_response_failed",
+      errorMessage:
+        toStringOrNull(error?.message) ||
+        toStringOrNull(response.error) ||
+        "Codex upstream response failed",
+      terminalMessage: message,
+      responseBody: response,
+    };
+  }
+
+  return null;
 }
 
 export function isResponsesWsPath(pathname) {
@@ -314,6 +404,7 @@ class ResponsesWsSession {
     this.maxBufferBytes = normalizePositiveInteger(maxBufferBytes, DEFAULT_MAX_WS_BUFFER_BYTES);
     this.maxMessageBytes = normalizePositiveInteger(maxMessageBytes, DEFAULT_MAX_WS_MESSAGE_BYTES);
     this.sessionId = randomUUID();
+    this.startedAt = Date.now();
     this.closed = false;
     this.buffer = Buffer.alloc(0);
     this.fragmentOpcode = null;
@@ -322,6 +413,9 @@ class ResponsesWsSession {
     this.processing = Promise.resolve();
     this.upstream = null;
     this.upstreamReady = null;
+    this.firstResponseBody = null;
+    this.preparedContext = null;
+    this.historyLogged = false;
     this.lastSeenAt = Date.now();
 
     this.pingTimer = setInterval(() => {
@@ -376,17 +470,9 @@ class ResponsesWsSession {
   }
 
   sendFailure(code, message) {
-    this.sendJson({
-      type: "response.failed",
-      response: {
-        id: null,
-        status: "failed",
-        error: {
-          code,
-          message,
-        },
-      },
-    });
+    const payload = buildFailurePayload(code, message);
+    this.sendJson(payload);
+    return payload;
   }
 
   async onData(chunk) {
@@ -490,6 +576,7 @@ class ResponsesWsSession {
       if (responseBody === null) {
         throw new Error("First Responses WebSocket message must be response.create");
       }
+      this.firstResponseBody ||= responseBody;
 
       const prepared = await callInternal(
         this.fetchImpl,
@@ -513,8 +600,20 @@ class ResponsesWsSession {
         const code = prepared.json?.error?.code || "codex_ws_prepare_failed";
         const error = new Error(message);
         error.code = code;
+        error.status = prepared.status;
         throw error;
       }
+
+      this.preparedContext = {
+        upstreamUrl: toStringOrNull(prepared.json?.upstreamUrl),
+        connectionId: toStringOrNull(prepared.json?.connectionId),
+        account: toStringOrNull(prepared.json?.account),
+        provider: toStringOrNull(prepared.json?.provider) || "codex",
+        model: toStringOrNull(prepared.json?.model) || toStringOrNull(responseBody.model),
+        requestedModel: toStringOrNull(responseBody.model),
+        serviceTier:
+          toStringOrNull(responseBody.service_tier) || toStringOrNull(responseBody.serviceTier),
+      };
 
       const upstream = await this.wsFactory(prepared.json.upstreamUrl, {
         browser: prepared.json.browser || "chrome_142",
@@ -526,17 +625,36 @@ class ResponsesWsSession {
         if (this.closed) return;
         const data =
           typeof event.data === "string" ? event.data : Buffer.from(event.data).toString("utf8");
+        const terminalEvent = getTerminalResponseEvent(data);
+        if (terminalEvent) {
+          void this.persistHistory(terminalEvent);
+        }
         this.sendFrame(0x1, Buffer.from(data, "utf8"));
       };
       upstream.onerror = (event) => {
         if (this.closed) return;
-        this.sendFailure(
-          "upstream_websocket_error",
-          event.message || "Codex upstream WebSocket error"
-        );
+        const errorMessage = event.message || "Codex upstream WebSocket error";
+        const failurePayload = this.sendFailure("upstream_websocket_error", errorMessage);
+        void this.persistHistory({
+          status: 502,
+          success: false,
+          errorCode: "upstream_websocket_error",
+          errorMessage,
+          terminalMessage: failurePayload,
+        });
       };
       upstream.onclose = (event) => {
         if (this.closed) return;
+        void this.persistHistory({
+          status: event.code === 1000 ? 499 : 502,
+          success: false,
+          errorCode: "upstream_websocket_closed",
+          errorMessage: event.reason || "Codex upstream WebSocket closed before completion",
+          terminalMessage: buildFailurePayload(
+            "upstream_websocket_closed",
+            event.reason || "Codex upstream WebSocket closed before completion"
+          ),
+        });
         this.close(event.code || 1000, event.reason || "upstream_closed");
       };
 
@@ -561,8 +679,53 @@ class ResponsesWsSession {
     } catch (error) {
       const code = error?.code || "upstream_websocket_connect_failed";
       const messageText = error instanceof Error ? error.message : String(error);
-      this.sendFailure(code, messageText);
+      const failurePayload = this.sendFailure(code, messageText);
+      void this.persistHistory({
+        status: Number.isInteger(error?.status) ? error.status : 502,
+        success: false,
+        errorCode: code,
+        errorMessage: messageText,
+        terminalMessage: failurePayload,
+      });
       this.close(1011, "upstream_connect_failed");
+    }
+  }
+
+  async persistHistory({
+    status = 200,
+    success = true,
+    errorCode = null,
+    errorMessage = null,
+    terminalMessage = null,
+    responseBody = null,
+  } = {}) {
+    if (this.historyLogged || !this.firstResponseBody) return;
+    this.historyLogged = true;
+
+    const finishedAt = Date.now();
+    try {
+      await callInternal(this.fetchImpl, this.baseUrl, this.bridgeSecret, "log", {
+        sessionId: this.sessionId,
+        transport: "responses_websocket",
+        requestUrl: this.requestUrl,
+        headers: getAuthHeaders(this.requestUrl, this.requestHeaders),
+        path: new URL(this.requestUrl || "/v1/responses", "http://omniroute.local").pathname,
+        startedAt: new Date(this.startedAt).toISOString(),
+        completedAt: new Date(finishedAt).toISOString(),
+        durationMs: Math.max(0, finishedAt - this.startedAt),
+        status: toFiniteNumber(status),
+        success,
+        errorCode,
+        errorMessage,
+        clientRequest: this.firstResponseBody,
+        terminalMessage,
+        responseBody,
+        sourceFormat: "openai-responses",
+        targetFormat: "openai-responses",
+        ...this.preparedContext,
+      });
+    } catch {
+      // History logging must never break an already-established WebSocket session.
     }
   }
 

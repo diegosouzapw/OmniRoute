@@ -26,9 +26,8 @@
  * }
  */
 
-import path from "node:path";
-import os from "node:os";
 import * as yaml from "js-yaml";
+import { getHermesConfigPath } from "./hermesHome.ts";
 
 export const HERMES_AGENT_ROLES = [
   { id: "default", label: "Default (main)", description: "Primary conversation model" },
@@ -58,7 +57,8 @@ export interface HermesAgentConfigPayload {
   selections: HermesAgentRoleSelection[];
 }
 
-const CONFIG_PATH = path.join(os.homedir(), ".hermes", "config.yaml");
+// Resolved lazily at call-time so HERMES_HOME is always honoured (#3628).
+const getConfigPath = () => getHermesConfigPath();
 
 // Build a normalized base URL for Hermes (no trailing slash, no /v1 suffix on the provider entry)
 function normalizeBaseUrl(base: string): string {
@@ -98,7 +98,7 @@ export async function generateHermesAgentConfig(
   let existing: any = {};
   try {
     const fs = await import("node:fs/promises");
-    const raw = await fs.readFile(CONFIG_PATH, "utf-8");
+    const raw = await fs.readFile(getConfigPath(), "utf-8");
     existing = yaml.load(raw) || {};
   } catch {
     // no existing file — start fresh
@@ -167,7 +167,7 @@ export async function getCurrentHermesAgentRoles(): Promise<
   let config: any = {};
 
   try {
-    const raw = await fs.readFile(CONFIG_PATH, "utf-8");
+    const raw = await fs.readFile(getConfigPath(), "utf-8");
     config = yaml.load(raw) || {};
   } catch {
     return {};

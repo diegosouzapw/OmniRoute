@@ -192,7 +192,12 @@ import {
   getModelFamily,
 } from "../services/modelFamilyFallback.ts";
 import { computeRequestHash, deduplicate, shouldDeduplicate } from "../services/requestDedup.ts";
-import { compressContext, estimateTokens, getTokenLimit } from "../services/contextManager.ts";
+import {
+  compressContext,
+  estimateTokens,
+  getTokenLimit,
+  resolveComboContextLimit,
+} from "../services/contextManager.ts";
 import {
   getBackgroundTaskReason,
   getDegradedModel,
@@ -2741,21 +2746,30 @@ export async function handleChatCore({
         if (!comboConfig && comboName.startsWith("combo/")) {
           comboConfig = await getComboByName(comboName.substring(6));
         }
+        let comboTargetLimits: number[] = [];
         if (comboConfig) {
           const allCombosData = await getCombosCached();
           const targets = resolveComboTargets(
             comboConfig as unknown as { name: string; models: unknown[] },
             allCombosData as unknown as { name: string; models: unknown[] }[]
           );
-          const limits = targets.map((t: { modelStr?: string }) => {
+          comboTargetLimits = targets.map((t: { modelStr?: string }) => {
             const parsed = parseModel(t.modelStr);
             return getTokenLimit(parsed.provider, parsed.model);
           });
-          if (limits.length > 0) {
-            contextLimit = Math.min(...limits);
-            log?.info?.("CONTEXT", `Combo min limit: ${contextLimit}`);
-          }
         }
+        // chatCore executes per concrete target (handleSingleModel resolves
+        // provider/effectiveModel before delegating). Compress against THIS
+        // target's window; min(...allTargets) is only a defensive fallback —
+        // the old unconditional min compressed a 1M-target request at the
+        // smallest sibling's window ("agent keeps forgetting things").
+        const resolved = resolveComboContextLimit({
+          provider,
+          model: effectiveModel,
+          comboTargetLimits,
+        });
+        contextLimit = resolved.limit;
+        log?.info?.("CONTEXT", `Combo context limit: ${resolved.limit} (source=${resolved.source})`);
       } catch (err) {
         log?.warn?.("CONTEXT", "Failed to resolve combo limits for compression: " + err);
       }

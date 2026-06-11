@@ -343,6 +343,9 @@ const CHAT_OPENAI_COMPAT_MODELS: Record<string, RegistryModel[]> = {
     { id: "mimo-v2-omni", name: "MiMo-V2-Omni", contextLength: 262144, maxOutputTokens: 131072 },
     { id: "mimo-v2-flash", name: "MiMo-V2-Flash", contextLength: 262144, maxOutputTokens: 65536 },
   ],
+  mimocode: [
+    { id: "mimo-auto", name: "MiMo Auto", contextLength: 1000000, maxOutputTokens: 128000 },
+  ],
   gitlawb: [
     { id: "mimo-v2.5-pro", name: "MiMo-V2.5-Pro", contextLength: 1048576, maxOutputTokens: 131072 },
     { id: "mimo-v2.5", name: "MiMo-V2.5", contextLength: 1048576, maxOutputTokens: 131072 },
@@ -4065,6 +4068,18 @@ const _REGISTRY_EAGER: Record<string, RegistryEntry> = {
     authType: "apikey",
     authHeader: "bearer",
     models: CHAT_OPENAI_COMPAT_MODELS["xiaomi-mimo"],
+  },
+
+  mimocode: {
+    id: "mimocode",
+    alias: "mcode",
+    format: "openai",
+    executor: "mimocode",
+    baseUrl: "https://api.xiaomimimo.com",
+    chatPath: "/api/free-ai/openai/chat",
+    authType: "none",
+    authHeader: "none",
+    models: CHAT_OPENAI_COMPAT_MODELS["mimocode"],
   },
 
   gitlawb: {
