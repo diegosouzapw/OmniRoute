@@ -690,3 +690,38 @@ export type {
   WeeklyPatternRow,
   PresetCostModelRow,
 } from "./db/usageAnalytics";
+
+// ---------------------------------------------------------------------------
+// usage_logs — auto-routing analytics (#3500 slice 4)
+// ---------------------------------------------------------------------------
+export {
+  getAutoRoutingTotalCount,
+  getAutoRoutingVariantBreakdown,
+  getAutoRoutingTopProviders,
+} from "./db/usageLogs";
+export type {
+  AutoRoutingTotalResult,
+  AutoRoutingVariantRow,
+  AutoRoutingTopProviderRow,
+} from "./db/usageLogs";
+
+// ---------------------------------------------------------------------------
+// semantic_cache — cache entries CRUD (#3500 slice 4)
+// ---------------------------------------------------------------------------
+export {
+  listSemanticCacheEntries,
+  deleteSemanticCacheBySignature,
+  deleteSemanticCacheByModel,
+} from "./db/semanticCache";
+export type {
+  SemanticCacheEntry,
+  SemanticCacheListOptions,
+  SemanticCacheListResult,
+  DeleteSemanticCacheBySignatureResult,
+  DeleteSemanticCacheByModelResult,
+} from "./db/semanticCache";
+
+// ---------------------------------------------------------------------------
+// proxy_logs — export query (#3500 slice 4)
+// ---------------------------------------------------------------------------
+export { exportProxyLogsSince } from "./db/proxyLogs";

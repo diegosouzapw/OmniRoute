@@ -72,9 +72,6 @@ export const KNOWN_UNEXPORTED = INTENTIONALLY_INTERNAL;
 // adicione novos aqui sem justificativa — crie/estenda um módulo db/ em vez disso.
 // (Chaves = caminho relativo POSIX a partir da raiz do repo.)
 const KNOWN_RAW_SQL = new Set([
-  "src/app/api/analytics/auto-routing/route.ts", // SELECT … FROM usage_logs
-  "src/app/api/cache/entries/route.ts", // semantic_cache COUNT/DELETE inline
-  "src/app/api/logs/export/route.ts", // SELECT de proxy_logs
   "src/app/api/oauth/cursor/auto-import/route.ts", // SELECT no itemTable do Cursor (DB externo)
   "src/app/api/oauth/kiro/auto-import/route.ts", // SELECT no SQLite do Kiro (DB externo)
 ]);
