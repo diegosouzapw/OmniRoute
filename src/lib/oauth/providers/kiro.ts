@@ -102,6 +102,41 @@ export const kiro = {
     }
 
     if (data.accessToken) {
+      // Enterprise IAM Identity Center accounts require a region-bound Q Developer profileArn on
+      // every CodeWhisperer call; without it AWS returns 403 "User is not authorized to make this
+      // call". The device-code flow does not return one, so discover it via ListAvailableProfiles
+      // against the same regional endpoint the token was issued for (best-effort; AWS Builder ID
+      // accounts legitimately have no profile and this simply yields none).
+      let profileArn: string | undefined;
+      try {
+        const runtimeHost =
+          tokenRegion === "us-east-1"
+            ? "https://codewhisperer.us-east-1.amazonaws.com"
+            : `https://q.${tokenRegion}.amazonaws.com`;
+        const profRes = await fetch(`${runtimeHost}/`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/x-amz-json-1.0",
+            Accept: "application/json",
+            "x-amz-target": "AmazonCodeWhispererService.ListAvailableProfiles",
+            Authorization: `Bearer ${data.accessToken}`,
+          },
+          body: JSON.stringify({ maxResults: 10 }),
+        });
+        if (profRes.ok) {
+          const profData = await profRes.json();
+          const profiles = Array.isArray(profData?.profiles) ? profData.profiles : [];
+          const matched =
+            profiles.find(
+              (p: { arn?: string }) =>
+                typeof p?.arn === "string" && p.arn.includes(`:${tokenRegion}:`)
+            ) || profiles[0];
+          if (matched && typeof matched.arn === "string") profileArn = matched.arn;
+        }
+      } catch {
+        // Best-effort profile discovery — never block login on it.
+      }
+
       return {
         ok: true,
         data: {
@@ -111,6 +146,7 @@ export const kiro = {
           _clientId: extraData?._clientId,
           _clientSecret: extraData?._clientSecret,
           _region: tokenRegion,
+          _profileArn: profileArn,
         },
       };
     }
@@ -131,6 +167,7 @@ export const kiro = {
       clientId: tokens._clientId,
       clientSecret: tokens._clientSecret,
       region: tokens._region,
+      ...(tokens._profileArn ? { profileArn: tokens._profileArn } : {}),
     },
   }),
 };
