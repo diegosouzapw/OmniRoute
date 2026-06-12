@@ -42,6 +42,7 @@ export const APP_STAGING_ALLOWED_EXACT_PATHS: string[] = [
   "scripts/dev/sync-env.mjs",
   "server.js",
   "server-ws.mjs",
+  "webdav-handler.mjs",
 ];
 
 export const APP_STAGING_ALLOWED_PATH_PREFIXES: string[] = [
@@ -120,6 +121,7 @@ export const PACK_ARTIFACT_REQUIRED_PATHS: string[] = [
   "dist/server-ws.mjs",
   "dist/responses-ws-proxy.mjs",
   "dist/peer-stamp.mjs",
+  "dist/webdav-handler.mjs",
   "bin/cli/program.mjs",
   "bin/mcp-server.mjs",
   "bin/nodeRuntimeSupport.mjs",
