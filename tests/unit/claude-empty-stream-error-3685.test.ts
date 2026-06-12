@@ -14,6 +14,8 @@ process.env.DATA_DIR = TEST_DATA_DIR;
 const core = await import("../../src/lib/db/core.ts");
 const { createSSEStream } = await import("../../open-sse/utils/stream.ts");
 const { FORMATS } = await import("../../open-sse/translator/formats.ts");
+const { getPendingRequests, clearPendingRequests } =
+  await import("../../src/lib/usage/usageHistory.ts");
 
 const enc = new TextEncoder();
 
@@ -186,6 +188,60 @@ test("#3685 regression: stream with content_block events is NOT turned into an e
   );
   assert.match(text, /Hi/, "content must pass through untouched");
   assert.doesNotMatch(text, /event: error/, "must NOT emit an error event");
+});
+
+test("#3685 pending request counter is decremented when empty-stream error fires", async () => {
+  // Regression guard for the bug caught by Cursor/Codex: emitClaudeEmptyStreamErrorAndAbort
+  // was marking the error with PENDING_REQUEST_CLEARED_MARKER but never calling
+  // trackPendingRequest(..., false). streamHandler.clearPendingRequest() trusts the marker
+  // and skips its own decrement, leaving the counter permanently inflated.
+  clearPendingRequests();
+  const { trackPendingRequest } = await import("../../src/lib/usage/usageHistory.ts");
+
+  // Simulate the stream engine incrementing the counter at request start.
+  trackPendingRequest("claude-sonnet-4-6", "anthropic", "conn-test", true);
+  assert.equal(
+    getPendingRequests().byModel["claude-sonnet-4-6 (anthropic)"],
+    1,
+    "pending count should start at 1 after request begins"
+  );
+
+  await assert.rejects(
+    readTransformed(
+      [
+        `event: message_start\ndata: ${JSON.stringify({
+          type: "message_start",
+          message: {
+            id: "msg_pending_test",
+            type: "message",
+            role: "assistant",
+            model: "claude-sonnet-4-6",
+            content: [],
+            stop_reason: null,
+            usage: { input_tokens: 3, output_tokens: 0 },
+          },
+        })}\n\n`,
+        `event: message_stop\ndata: ${JSON.stringify({ type: "message_stop" })}\n\n`,
+      ],
+      {
+        mode: "passthrough",
+        sourceFormat: FORMATS.CLAUDE,
+        provider: "anthropic",
+        model: "claude-sonnet-4-6",
+        connectionId: "conn-test",
+        body: { messages: [{ role: "user", content: "hello" }] },
+      }
+    ),
+    /empty response/i
+  );
+
+  // emitClaudeEmptyStreamErrorAndAbort must call trackPendingRequest(..., false) so the
+  // counter is back to 0 after the stream terminates.
+  assert.equal(
+    getPendingRequests().byModel["claude-sonnet-4-6 (anthropic)"],
+    0,
+    "pending count must be 0 after empty-stream error — not left inflated"
+  );
 });
 
 test("#3685 regression: upstream error event sets hasError=true and does NOT trigger empty-stream path", () => {

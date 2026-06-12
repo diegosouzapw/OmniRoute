@@ -1037,6 +1037,7 @@ export function createSSEStream(options: StreamOptions = {}) {
         void onFailure({ status: 502, message: msg, code: "empty_response" });
       } catch {}
     }
+    trackPendingRequest(model, provider, connectionId, false);
     controller.error(markPendingRequestCleared(new Error(msg)));
   };
 
