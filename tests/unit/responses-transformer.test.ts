@@ -234,3 +234,20 @@ test("createResponsesLogger returns null for invalid base paths and swallows flu
 
   assert.ok(capturedLogs.some((entry) => entry.includes("[RESPONSES] Failed to write logs:")));
 });
+
+test("createResponsesApiTransformStream deduplicates repeated tool argument snapshots", async () => {
+  const args = JSON.stringify({ command: "find /tmp -name test.txt" });
+  const output = await runTransformStream([
+    `data: {"choices":[{"index":0,"delta":{"tool_calls":[{"index":0,"id":"call_1","function":{"name":"shell","arguments":${JSON.stringify(args)}}}]}}]}\n\n`,
+    `data: {"choices":[{"index":0,"delta":{"tool_calls":[{"index":0,"function":{"arguments":${JSON.stringify(args)}}]},"finish_reason":"tool_calls"}]}\n\n`,
+  ]);
+
+  const events = parseSseOutput(output);
+  const completed = JSON.parse(
+    events.find((event) => event.event === "response.completed").data
+  ).response;
+  const toolCall = completed.output.find((item) => item.type === "function_call");
+
+  assert.equal(toolCall.arguments, args);
+  assert.equal(JSON.parse(toolCall.arguments).command, "find /tmp -name test.txt");
+});
