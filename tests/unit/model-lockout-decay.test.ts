@@ -1,38 +1,37 @@
 import { describe, it, before, after } from "node:test";
 import assert from "node:assert/strict";
 
-// Clear global maps in-place so module references stay valid
-function resetGlobalMaps() {
-  ((globalThis as any).__omnirouteModelLockouts as Map<string, unknown>)?.clear();
-  ((globalThis as any).__omnirouteModelFailureState as Map<string, unknown>)?.clear();
-}
-
 describe("decayModelFailureCount — /2 on success", () => {
   let accountFallback: typeof import("../../open-sse/services/accountFallback.ts");
 
   before(async () => {
-    resetGlobalMaps();
     accountFallback = await import("../../open-sse/services/accountFallback.ts");
   });
 
-  after(() => {
-    resetGlobalMaps();
-  });
-
   it("S1: halves failureCount when model is locked with failureCount=4", () => {
-    resetGlobalMaps();
+    accountFallback.clearAllModelLockouts();
     // Record a lockout with failureCount=4
     accountFallback.recordModelLockoutFailure(
-      "openai", "conn-1", "gpt-4",
-      "rate_limit_exceeded", 429, 120_000, null,
-      { exactCooldownMs: 60_000, maxCooldownMs: 3_600_000 }
+      "openai",
+      "conn-1",
+      "gpt-4",
+      "rate_limit_exceeded",
+      429,
+      120_000,
+      null,
+      { exactCooldownMs: 60_000 }
     );
     // Manually bump failureCount to 4 by calling it 3 more times
     for (let i = 0; i < 3; i++) {
       accountFallback.recordModelLockoutFailure(
-        "openai", "conn-1", "gpt-4",
-        "rate_limit_exceeded", 429, 120_000, null,
-        { exactCooldownMs: 60_000, maxCooldownMs: 3_600_000 }
+        "openai",
+        "conn-1",
+        "gpt-4",
+        "rate_limit_exceeded",
+        429,
+        120_000,
+        null,
+        { exactCooldownMs: 60_000 }
       );
     }
 
@@ -42,11 +41,16 @@ describe("decayModelFailureCount — /2 on success", () => {
   });
 
   it("S2: clears lockout when failureCount reaches 0 (failureCount=1 → /2 = 0)", () => {
-    resetGlobalMaps();
+    accountFallback.clearAllModelLockouts();
     accountFallback.recordModelLockoutFailure(
-      "openai", "conn-1", "gpt-4",
-      "rate_limit_exceeded", 429, 120_000, null,
-      { exactCooldownMs: 60_000, maxCooldownMs: 3_600_000 }
+      "openai",
+      "conn-1",
+      "gpt-4",
+      "rate_limit_exceeded",
+      429,
+      120_000,
+      null,
+      { exactCooldownMs: 60_000 }
     );
 
     const result = accountFallback.decayModelFailureCount("openai", "conn-1", "gpt-4");
@@ -55,14 +59,14 @@ describe("decayModelFailureCount — /2 on success", () => {
   });
 
   it("S3: no-op when model has no lockout or failure state", () => {
-    resetGlobalMaps();
+    accountFallback.clearAllModelLockouts();
     const result = accountFallback.decayModelFailureCount("openai", "conn-1", "gpt-4");
     assert.equal(result.newFailureCount, 0, "no state → 0");
     assert.equal(result.cleared, false, "no state → not cleared");
   });
 
   it("S4: no-op when model is null/undefined", () => {
-    resetGlobalMaps();
+    accountFallback.clearAllModelLockouts();
     const r1 = accountFallback.decayModelFailureCount("openai", "conn-1", null);
     assert.equal(r1.newFailureCount, 0, "null model → 0");
     assert.equal(r1.cleared, false, "null model → not cleared");
@@ -73,13 +77,18 @@ describe("decayModelFailureCount — /2 on success", () => {
   });
 
   it("S5: Math.floor(3/2) = 1, then Math.floor(1/2) = 0 → cleared", () => {
-    resetGlobalMaps();
+    accountFallback.clearAllModelLockouts();
     // Start with failureCount=3
     for (let i = 0; i < 2; i++) {
       accountFallback.recordModelLockoutFailure(
-        "openai", "conn-1", "gpt-4",
-        "rate_limit_exceeded", 429, 120_000, null,
-        { exactCooldownMs: 60_000, maxCooldownMs: 3_600_000 }
+        "openai",
+        "conn-1",
+        "gpt-4",
+        "rate_limit_exceeded",
+        429,
+        120_000,
+        null,
+        { exactCooldownMs: 60_000 }
       );
     }
     // Should be failureCount=3

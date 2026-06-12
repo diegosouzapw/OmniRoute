@@ -588,6 +588,36 @@ export function shouldMarkAccountExhaustedFrom429(
   );
 }
 
+export function classifyLockoutReason(status: number): string {
+  if (status === 429) return "rate_limit";
+  if (status === 403) return "quota_exhausted";
+  return "unknown";
+}
+
+export type DecayResult = { cleared: boolean; newFailureCount: number };
+
+export function decayModelFailureCount(
+  provider: string,
+  connectionId: string,
+  model: string
+): DecayResult {
+  const key = getModelLockKey(provider, connectionId, model);
+  const failure = modelFailureState.get(key);
+  if (!failure) return { cleared: false, newFailureCount: 0 };
+
+  const newFailureCount = Math.floor(failure.failureCount / 2);
+  if (newFailureCount === 0) {
+    modelFailureState.delete(key);
+    return { cleared: true, newFailureCount: 0 };
+  } else {
+    modelFailureState.set(key, {
+      ...failure,
+      failureCount: newFailureCount,
+    });
+    return { cleared: false, newFailureCount };
+  }
+}
+
 /**
  * Clear all in-memory model lockouts and failure state (for tests / full reset).
  */

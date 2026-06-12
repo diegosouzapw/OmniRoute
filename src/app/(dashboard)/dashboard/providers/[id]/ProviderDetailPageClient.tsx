@@ -5,17 +5,15 @@ import { useState, useEffect, useCallback, useRef, useMemo } from "react";
 import { useProviderConnections } from "./hooks/useProviderConnections";
 import { useProviderSettings } from "./hooks/useProviderSettings";
 import { useProviderModels } from "./hooks/useProviderModels";
-import { LlmChatCard } from "@/app/(dashboard)/dashboard/media-providers/components/LlmChatCard";
-import { ServiceKindTabs } from "@/app/(dashboard)/dashboard/media-providers/components/ServiceKindTabs";
-import { EmbeddingExampleCard } from "@/app/(dashboard)/dashboard/media-providers/components/EmbeddingExampleCard";
-import { ImageExampleCard } from "@/app/(dashboard)/dashboard/media-providers/components/ImageExampleCard";
-import { TtsExampleCard } from "@/app/(dashboard)/dashboard/media-providers/components/TtsExampleCard";
-import { SttExampleCard } from "@/app/(dashboard)/dashboard/media-providers/components/SttExampleCard";
-import { WebSearchExampleCard } from "@/app/(dashboard)/dashboard/media-providers/components/WebSearchExampleCard";
-import { WebFetchExampleCard } from "@/app/(dashboard)/dashboard/media-providers/components/WebFetchExampleCard";
-import { VideoExampleCard } from "@/app/(dashboard)/dashboard/media-providers/components/VideoExampleCard";
-import { MusicExampleCard } from "@/app/(dashboard)/dashboard/media-providers/components/MusicExampleCard";
-import type { ServiceKind } from "@/shared/constants/providers";
+// Phase 1h: commandCode auth flow extracted to hooks/useCommandCodeAuth.ts
+import { useCommandCodeAuth } from "./hooks/useCommandCodeAuth";
+// Phase 1i: external link flow extracted to hooks/useExternalLinkFlow.ts
+import { useExternalLinkFlow } from "./hooks/useExternalLinkFlow";
+import ExternalLinkModal from "./components/ExternalLinkModal";
+// Phase 1j: auth file handlers extracted to hooks/useAuthFileHandlers.ts
+import { useAuthFileHandlers } from "./hooks/useAuthFileHandlers";
+// Phase 1g: ProviderPlaygroundPanel + helpers extracted to components/ProviderPlaygroundPanel.tsx
+import ProviderPlaygroundPanel from "./components/ProviderPlaygroundPanel";
 import { useNotificationStore } from "@/store/notificationStore";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
@@ -40,7 +38,6 @@ import {
 import {
   LOCAL_PROVIDERS,
   NOAUTH_PROVIDERS,
-  AI_PROVIDERS,
   getProviderAlias,
   isOpenAICompatibleProvider,
   isAnthropicCompatibleProvider,
@@ -91,9 +88,7 @@ import AddApiKeyModal from "./components/modals/AddApiKeyModal";
 import EditConnectionModal from "./components/modals/EditConnectionModal";
 import WebSessionCredentialGuide from "./components/WebSessionCredentialGuide";
 // Phase 1d extractions — Issue #3501
-import ConnectionRow, {
-  type ConnectionRowConnection,
-} from "./components/ConnectionRow";
+import ConnectionRow, { type ConnectionRowConnection } from "./components/ConnectionRow";
 import ModelCompatPopover from "./components/ModelCompatPopover";
 import SiliconFlowEndpointModal from "./components/SiliconFlowEndpointModal";
 import { CC_COMPATIBLE_DEFAULT_CHAT_PATH } from "./providerDetailConstants";
@@ -113,7 +108,7 @@ import {
   formatProviderModelsErrorResponse,
   type ProviderMessageTranslator,
   type LocalProviderMetadata,
-  type CommandCodeAuthFlowState,
+  // CommandCodeAuthFlowState moved to hooks/useCommandCodeAuth.ts (Phase 1h)
   type CompatByProtocolMap,
   type CompatModelRow,
   type CompatModelMap,
@@ -152,95 +147,7 @@ type ModelCompatSavePatch = {
 
 // ModelCompatPopover extracted to components/ModelCompatPopover.tsx (Phase 1d)
 
-// ──── ProviderPlaygroundPanel ────────────────────────────────────────────────
-// Renders a playground section on the individual provider page.
-// Shows ServiceKindTabs if the provider declares multiple kinds; falls back to
-// a single-kind panel or the LlmChatCard for standard LLM providers.
-
-const MEDIA_SERVICE_KINDS: ServiceKind[] = [
-  "embedding",
-  "image",
-  "tts",
-  "stt",
-  "webSearch",
-  "webFetch",
-  "video",
-  "music",
-];
-
-function renderKindPanel(kind: ServiceKind, providerId: string): JSX.Element | null {
-  switch (kind) {
-    case "llm":
-      return <LlmChatCard providerId={providerId} />;
-    case "embedding":
-      return <EmbeddingExampleCard providerId={providerId} />;
-    case "image":
-      return <ImageExampleCard providerId={providerId} />;
-    case "tts":
-      return <TtsExampleCard providerId={providerId} />;
-    case "stt":
-      return <SttExampleCard providerId={providerId} />;
-    case "webSearch":
-      return <WebSearchExampleCard providerId={providerId} />;
-    case "webFetch":
-      return <WebFetchExampleCard providerId={providerId} />;
-    case "video":
-      return <VideoExampleCard providerId={providerId} />;
-    case "music":
-      return <MusicExampleCard providerId={providerId} />;
-    default:
-      return null;
-  }
-}
-
-function ProviderPlaygroundPanel({ providerId }: { providerId: string }) {
-  // Resolve serviceKinds from AI_PROVIDERS.
-  // For providers without explicit serviceKinds (most LLM providers), we infer
-  // "llm" as the default.
-  const providerEntry = AI_PROVIDERS[providerId as keyof typeof AI_PROVIDERS] as
-    | (Record<string, unknown> & { serviceKinds?: string[] })
-    | undefined;
-
-  const rawKinds: string[] = providerEntry?.serviceKinds ?? [];
-
-  const ALL_VALID_KINDS = [
-    "llm",
-    "embedding",
-    "image",
-    "imageToText",
-    "tts",
-    "stt",
-    "webSearch",
-    "webFetch",
-    "video",
-    "music",
-  ] as const;
-
-  const kinds: ServiceKind[] =
-    rawKinds.length > 0
-      ? rawKinds.filter((k): k is ServiceKind => (ALL_VALID_KINDS as readonly string[]).includes(k))
-      : ["llm"];
-
-  // Filter out kinds that have no playground implementation yet
-  const playgroundableKinds = kinds.filter((k) => k !== "imageToText");
-
-  // useState must be called unconditionally (Rules of Hooks)
-  const [activeKind, setActiveKind] = useState<ServiceKind>(playgroundableKinds[0] ?? "llm");
-
-  if (playgroundableKinds.length === 0) return null;
-
-  return (
-    <div className="flex flex-col gap-3">
-      <h2 className="text-lg font-semibold">Playground</h2>
-      <ServiceKindTabs
-        kinds={playgroundableKinds}
-        activeKind={activeKind}
-        onSelect={setActiveKind}
-      />
-      {renderKindPanel(activeKind, providerId)}
-    </div>
-  );
-}
+// ── ProviderPlaygroundPanel extracted to components/ProviderPlaygroundPanel.tsx (Phase 1g) ──
 
 export default function ProviderDetailPageClient() {
   const params = useParams();
@@ -254,14 +161,6 @@ export default function ProviderDetailPageClient() {
   const [showSiliconFlowEndpointModal, setShowSiliconFlowEndpointModal] = useState(false);
   const [siliconFlowInitialBaseUrl, setSiliconFlowInitialBaseUrl] = useState<string | undefined>();
   const [showRiskNoticeModal, setShowRiskNoticeModal] = useState(false);
-  const [commandCodeAuthState, setCommandCodeAuthState] = useState<CommandCodeAuthFlowState>({
-    phase: "idle",
-    state: "",
-    authUrl: "",
-    callbackUrl: "",
-    expiresAt: null,
-    message: "",
-  });
   const [showEditModal, setShowEditModal] = useState(false);
   const [showEditNodeModal, setShowEditNodeModal] = useState(false);
   const [showTutorialModal, setShowTutorialModal] = useState(false);
@@ -295,34 +194,10 @@ export default function ProviderDetailPageClient() {
   const [bulkVisibilityAction, setBulkVisibilityAction] = useState<"select" | "deselect" | null>(
     null
   );
-  const [applyingCodexAuthId, setApplyingCodexAuthId] = useState<string | null>(null);
-  const [applyCodexModalConnectionId, setApplyCodexModalConnectionId] = useState<string | null>(
-    null
-  );
-  const [exportingCodexAuthId, setExportingCodexAuthId] = useState<string | null>(null);
   const [importCodexModalOpen, setImportCodexModalOpen] = useState(false);
   const [codexCliGuideOpen, setCodexCliGuideOpen] = useState(false);
-  // "Adicionar Externo": public shareable device-flow link state.
-  const [externalLinkModalOpen, setExternalLinkModalOpen] = useState(false);
-  const [externalLinkUrl, setExternalLinkUrl] = useState("");
-  const [externalLinkToken, setExternalLinkToken] = useState<string | null>(null);
-  const [externalLinkLoading, setExternalLinkLoading] = useState(false);
-  const [externalLinkError, setExternalLinkError] = useState<string | null>(null);
-  const { copied: externalLinkCopied, copy: externalLinkCopy } = useCopyToClipboard();
-  const [applyingClaudeAuthId, setApplyingClaudeAuthId] = useState<string | null>(null);
-  const [applyClaudeModalConnectionId, setApplyClaudeModalConnectionId] = useState<string | null>(
-    null
-  );
-  const [exportingClaudeAuthId, setExportingClaudeAuthId] = useState<string | null>(null);
   const [importClaudeModalOpen, setImportClaudeModalOpen] = useState(false);
-  const [applyingGeminiAuthId, setApplyingGeminiAuthId] = useState<string | null>(null);
-  const [applyGeminiModalConnectionId, setApplyGeminiModalConnectionId] = useState<string | null>(
-    null
-  );
-  const [exportingGeminiAuthId, setExportingGeminiAuthId] = useState<string | null>(null);
   const [importGeminiModalOpen, setImportGeminiModalOpen] = useState(false);
-  const commandCodeAuthWindowRef = useRef<Window | null>(null);
-  const commandCodeAuthTimerRef = useRef<number | null>(null);
   const pendingRiskActionRef = useRef<(() => void) | null>(null);
   const { acknowledged: riskAcknowledged, acknowledge: acknowledgeRisk } =
     useRiskAcknowledged(providerId);
@@ -419,6 +294,19 @@ export default function ProviderDetailPageClient() {
   const t = useTranslations("providers");
   const emailsVisible = useEmailPrivacyStore((s) => s.emailsVisible);
   const notify = useNotificationStore();
+
+  // Phase 1i: external link flow — placed after notify/fetchConnections are defined
+  const {
+    externalLinkModalOpen,
+    setExternalLinkModalOpen,
+    externalLinkUrl,
+    externalLinkToken,
+    externalLinkLoading,
+    externalLinkError,
+    externalLinkCopied,
+    externalLinkCopy,
+    openExternalLinkFlow,
+  } = useExternalLinkFlow({ providerId, notify, fetchConnections });
 
   const setShowOAuthModal = (show: boolean, connectionRow?: ConnectionRowConnection) => {
     _setShowOAuthModal(show);
@@ -758,69 +646,6 @@ export default function ProviderDetailPageClient() {
     openApiKeyAddFlow();
   }, [isOAuth, openApiKeyAddFlow]);
 
-  // "Adicionar Externo": generate a single-use public link so a third party can
-  // complete the Codex device flow in their own browser.
-  const openExternalLinkFlow = useCallback(async () => {
-    setExternalLinkModalOpen(true);
-    setExternalLinkUrl("");
-    setExternalLinkToken(null);
-    setExternalLinkError(null);
-    setExternalLinkLoading(true);
-    try {
-      const res = await fetch(`/api/oauth/${providerId}/public-link`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({}),
-      });
-      const data = await res.json().catch(() => ({}));
-      if (res.ok && data?.url) {
-        setExternalLinkUrl(data.url);
-        setExternalLinkToken(data.token || null);
-      } else {
-        setExternalLinkError(data?.error || "Falha ao gerar o link.");
-      }
-    } catch {
-      setExternalLinkError("Não foi possível contatar o servidor.");
-    } finally {
-      setExternalLinkLoading(false);
-    }
-  }, [providerId]);
-
-  // While the share popup is open, poll the ticket status so the dashboard can
-  // notify + refresh the connections the moment the external visitor finishes.
-  useEffect(() => {
-    if (!externalLinkModalOpen || !externalLinkToken) return;
-    let active = true;
-    const interval = setInterval(async () => {
-      if (!active) return;
-      try {
-        const res = await fetch(
-          `/api/oauth/${providerId}/public-link-status?token=${encodeURIComponent(externalLinkToken)}`
-        );
-        const data = await res.json().catch(() => ({}));
-        if (!active) return;
-        if (data?.status === "completed") {
-          active = false;
-          clearInterval(interval);
-          notify.success("Conta Codex conectada pelo link externo.");
-          fetchConnections();
-          setExternalLinkModalOpen(false);
-          setExternalLinkToken(null);
-        } else if (data?.status === "expired") {
-          active = false;
-          clearInterval(interval);
-          setExternalLinkError("O link expirou sem ser concluído.");
-        }
-      } catch {
-        /* transient network error — keep polling */
-      }
-    }, 3000);
-    return () => {
-      active = false;
-      clearInterval(interval);
-    };
-  }, [externalLinkModalOpen, externalLinkToken, providerId, notify, fetchConnections]);
-
   const gateConnectionFlow = useCallback(
     (callback: () => void) => {
       if (subscriptionRisk && !riskAcknowledged && !isRiskAcknowledged(providerId)) {
@@ -846,257 +671,21 @@ export default function ProviderDetailPageClient() {
     setShowRiskNoticeModal(false);
   }, []);
 
-  const clearCommandCodeAuthTimer = useCallback(() => {
-    if (commandCodeAuthTimerRef.current !== null) {
-      window.clearTimeout(commandCodeAuthTimerRef.current);
-      commandCodeAuthTimerRef.current = null;
-    }
-  }, []);
-
-  useEffect(() => {
-    return () => {
-      clearCommandCodeAuthTimer();
-      commandCodeAuthWindowRef.current?.close?.();
-    };
-  }, [clearCommandCodeAuthTimer]);
-
-  const handleCloseAddApiKeyModal = useCallback(() => {
-    clearCommandCodeAuthTimer();
-    setSiliconFlowInitialBaseUrl(undefined);
-    commandCodeAuthWindowRef.current?.close?.();
-    commandCodeAuthWindowRef.current = null;
-    setCommandCodeAuthState({
-      phase: "idle",
-      state: "",
-      authUrl: "",
-      callbackUrl: "",
-      expiresAt: null,
-      message: "",
-    });
-    setShowAddApiKeyModal(false);
-  }, [clearCommandCodeAuthTimer]);
-
-  const handleCommandCodeAuthApply = useCallback(
-    async (state: string, connectionId?: string, name?: string, setDefault?: boolean) => {
-      setCommandCodeAuthState((current) => ({
-        ...current,
-        phase: "applying",
-        message: "Applying browser-approved key…",
-      }));
-
-      try {
-        const res = await fetch("/api/providers/command-code/auth/apply", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ state, connectionId, name, setDefault }),
-        });
-        const data = await res.json().catch(() => ({}));
-
-        if (!res.ok) {
-          const errorMessage = data.error || "Failed to apply Command Code auth";
-          setCommandCodeAuthState((current) => ({
-            ...current,
-            phase: "error",
-            message: errorMessage,
-          }));
-          notify.error(errorMessage);
-          return false;
-        }
-
-        setCommandCodeAuthState((current) => ({
-          ...current,
-          phase: "applied",
-          message: "Command Code connected",
-        }));
-        commandCodeAuthWindowRef.current?.close?.();
-        commandCodeAuthWindowRef.current = null;
-        await fetchConnections();
-        handleCloseAddApiKeyModal();
-        notify.success("Command Code connection added");
-        return true;
-      } catch (error) {
-        console.error("Error applying Command Code auth:", error);
-        setCommandCodeAuthState((current) => ({
-          ...current,
-          phase: "error",
-          message: "Failed to apply Command Code auth",
-        }));
-        notify.error("Failed to apply Command Code auth");
-        return false;
-      }
-    },
-    [fetchConnections, handleCloseAddApiKeyModal, notify]
-  );
-
-  const handleStartCommandCodeAuth = useCallback(async () => {
-    if (commandCodeAuthState.phase === "starting" || commandCodeAuthState.phase === "polling") {
-      return;
-    }
-
-    clearCommandCodeAuthTimer();
-    commandCodeAuthWindowRef.current?.close?.();
-
-    const popup = window.open("about:blank", "_blank");
-    setCommandCodeAuthState({
-      phase: "starting",
-      state: "",
-      authUrl: "",
-      callbackUrl: "",
-      expiresAt: null,
-      message: "Opening Command Code Studio…",
-    });
-
-    try {
-      const res = await fetch("/api/providers/command-code/auth/start", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-      });
-      const data = await res.json().catch(() => ({}));
-
-      if (!res.ok || !data.state || !data.authUrl) {
-        const errorMessage = data.error || "Failed to start Command Code auth";
-        setCommandCodeAuthState((current) => ({
-          ...current,
-          phase: "error",
-          message: errorMessage,
-        }));
-        notify.error(errorMessage);
-        popup?.close?.();
-        return;
-      }
-
-      setCommandCodeAuthState({
-        phase: "polling",
-        state: data.state,
-        authUrl: data.authUrl,
-        callbackUrl: data.callbackUrl || "",
-        expiresAt: data.expiresAt || null,
-        message: "Open the auth URL, approve access, then paste the returned key/JSON/URL below…",
-      });
-
-      if (popup) {
-        try {
-          popup.opener = null;
-        } catch {
-          // Ignore opener cleanup failures.
-        }
-        popup.location.href = data.authUrl;
-        commandCodeAuthWindowRef.current = popup;
-      } else {
-        const fallbackPopup = window.open(data.authUrl, "_blank", "noopener,noreferrer");
-        if (!fallbackPopup) {
-          setCommandCodeAuthState((current) => ({
-            ...current,
-            phase: "error",
-            message: "Popup blocked. Please allow popups and try Command Code Connect again.",
-          }));
-          notify.error("Popup blocked. Please allow popups and try Command Code Connect again.");
-          return;
-        }
-        commandCodeAuthWindowRef.current = fallbackPopup;
-      }
-
-      const deadline = data.expiresAt ? new Date(data.expiresAt).getTime() : Date.now() + 180000;
-      const poll = async () => {
-        if (Date.now() >= deadline) {
-          setCommandCodeAuthState((current) => ({
-            ...current,
-            phase: "expired",
-            message: "Command Code link expired",
-          }));
-          commandCodeAuthWindowRef.current?.close?.();
-          commandCodeAuthWindowRef.current = null;
-          notify.error("Command Code auth expired");
-          clearCommandCodeAuthTimer();
-          return;
-        }
-
-        try {
-          const statusRes = await fetch(
-            `/api/providers/command-code/auth/status?state=${encodeURIComponent(data.state)}`,
-            { method: "GET", cache: "no-store" }
-          );
-          const statusData = await statusRes.json().catch(() => ({}));
-          const status = String(statusData.status || statusData.state || statusData.phase || "")
-            .toLowerCase()
-            .trim();
-
-          if (status === "expired") {
-            setCommandCodeAuthState((current) => ({
-              ...current,
-              phase: "expired",
-              message: "Command Code link expired",
-            }));
-            commandCodeAuthWindowRef.current?.close?.();
-            commandCodeAuthWindowRef.current = null;
-            notify.error("Command Code auth expired");
-            clearCommandCodeAuthTimer();
-            return;
-          }
-
-          if (status === "applied") {
-            setCommandCodeAuthState((current) => ({
-              ...current,
-              phase: "applied",
-              message: "Command Code connected",
-            }));
-            commandCodeAuthWindowRef.current?.close?.();
-            commandCodeAuthWindowRef.current = null;
-            await fetchConnections();
-            handleCloseAddApiKeyModal();
-            notify.success("Command Code connection added");
-            clearCommandCodeAuthTimer();
-            return;
-          }
-
-          if (status === "received") {
-            setCommandCodeAuthState((current) => ({
-              ...current,
-              phase: "received",
-              message: "Browser approved, applying…",
-            }));
-            clearCommandCodeAuthTimer();
-            await handleCommandCodeAuthApply(
-              data.state,
-              statusData.connectionId,
-              statusData.name,
-              statusData.setDefault
-            );
-            return;
-          }
-        } catch {
-          // Keep polling until the contract reports a terminal state or timeout.
-        }
-
-        commandCodeAuthTimerRef.current = window.setTimeout(poll, 2000);
-      };
-
-      commandCodeAuthTimerRef.current = window.setTimeout(poll, 1000);
-    } catch (error) {
-      console.error("Error starting Command Code auth:", error);
-      setCommandCodeAuthState((current) => ({
-        ...current,
-        phase: "error",
-        message: "Failed to start Command Code auth",
-      }));
-      notify.error("Failed to start Command Code auth");
-      popup?.close?.();
-      commandCodeAuthWindowRef.current = null;
-      clearCommandCodeAuthTimer();
-    }
-  }, [
+  // ── Phase 1h: commandCode auth flow ─────────────────────────────────────
+  const {
+    commandCodeAuthState,
     clearCommandCodeAuthTimer,
     handleCloseAddApiKeyModal,
-    commandCodeAuthState.phase,
-    fetchConnections,
     handleCommandCodeAuthApply,
+    handleStartCommandCodeAuth,
+    handleOpenCommandCodeConnect,
+  } = useCommandCodeAuth({
+    providerId,
+    fetchConnections,
+    setSiliconFlowInitialBaseUrl,
+    setShowAddApiKeyModal,
     notify,
-  ]);
-
-  const handleOpenCommandCodeConnect = useCallback(() => {
-    setShowAddApiKeyModal(true);
-    void handleStartCommandCodeAuth();
-  }, [handleStartCommandCodeAuth]);
+  });
 
   const handleSaveApiKey = async (formData) => {
     try {
@@ -1238,236 +827,27 @@ export default function ProviderDetailPageClient() {
   // [refreshingId], parseApiErrorMessage, getAttachmentFilename, handleRefreshToken
   // → useProviderConnections (Phase 1f)
 
-  const handleApplyCodexAuthLocal = async (connectionId: string) => {
-    if (applyingCodexAuthId) return;
-    setApplyingCodexAuthId(connectionId);
-
-    const defaultSuccess =
-      typeof t.has === "function" && t.has("codexAuthAppliedLocal")
-        ? t("codexAuthAppliedLocal")
-        : "Codex auth.json applied locally";
-    const defaultError =
-      typeof t.has === "function" && t.has("codexAuthApplyFailed")
-        ? t("codexAuthApplyFailed")
-        : "Failed to apply Codex auth.json locally";
-
-    try {
-      const res = await fetch(`/api/providers/${connectionId}/codex-auth/apply-local`, {
-        method: "POST",
-      });
-
-      if (!res.ok) {
-        notify.error(await parseApiErrorMessage(res, defaultError));
-        return;
-      }
-
-      notify.success(defaultSuccess);
-      setApplyCodexModalConnectionId(null);
-    } catch (error) {
-      console.error("Error applying Codex auth locally:", error);
-      notify.error(defaultError);
-    } finally {
-      setApplyingCodexAuthId(null);
-    }
-  };
-
-  const handleExportCodexAuthFile = async (connectionId: string) => {
-    if (exportingCodexAuthId) return;
-    setExportingCodexAuthId(connectionId);
-
-    const defaultSuccess =
-      typeof t.has === "function" && t.has("codexAuthExported")
-        ? t("codexAuthExported")
-        : "Codex auth.json exported";
-    const defaultError =
-      typeof t.has === "function" && t.has("codexAuthExportFailed")
-        ? t("codexAuthExportFailed")
-        : "Failed to export Codex auth.json";
-
-    try {
-      const res = await fetch(`/api/providers/${connectionId}/codex-auth/export`, {
-        method: "POST",
-      });
-
-      if (!res.ok) {
-        notify.error(await parseApiErrorMessage(res, defaultError));
-        return;
-      }
-
-      const blob = await res.blob();
-      const filename = getAttachmentFilename(res, "codex-auth.json");
-      const objectUrl = window.URL.createObjectURL(blob);
-      const link = document.createElement("a");
-
-      link.href = objectUrl;
-      link.download = filename;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      window.setTimeout(() => window.URL.revokeObjectURL(objectUrl), 1000);
-
-      notify.success(defaultSuccess);
-    } catch (error) {
-      console.error("Error exporting Codex auth file:", error);
-      notify.error(defaultError);
-    } finally {
-      setExportingCodexAuthId(null);
-    }
-  };
-
-  const handleApplyClaudeAuthLocal = async (connectionId: string) => {
-    if (applyingClaudeAuthId) return;
-    setApplyingClaudeAuthId(connectionId);
-
-    const defaultSuccess =
-      typeof t.has === "function" && t.has("claudeAuthAppliedLocal")
-        ? t("claudeAuthAppliedLocal")
-        : "Claude auth applied locally";
-    const defaultError =
-      typeof t.has === "function" && t.has("claudeAuthApplyFailed")
-        ? t("claudeAuthApplyFailed")
-        : "Failed to apply Claude auth locally";
-
-    try {
-      const res = await fetch(`/api/providers/${connectionId}/claude-auth/apply-local`, {
-        method: "POST",
-      });
-
-      if (!res.ok) {
-        notify.error(await parseApiErrorMessage(res, defaultError));
-        return;
-      }
-
-      notify.success(defaultSuccess);
-      setApplyClaudeModalConnectionId(null);
-    } catch (error) {
-      console.error("Error applying Claude auth locally:", error);
-      notify.error(defaultError);
-    } finally {
-      setApplyingClaudeAuthId(null);
-    }
-  };
-
-  const handleExportClaudeAuthFile = async (connectionId: string) => {
-    if (exportingClaudeAuthId) return;
-    setExportingClaudeAuthId(connectionId);
-
-    const defaultSuccess =
-      typeof t.has === "function" && t.has("claudeAuthExported")
-        ? t("claudeAuthExported")
-        : "Claude auth file exported";
-    const defaultError =
-      typeof t.has === "function" && t.has("claudeAuthExportFailed")
-        ? t("claudeAuthExportFailed")
-        : "Failed to export Claude auth file";
-
-    try {
-      const res = await fetch(`/api/providers/${connectionId}/claude-auth/export`, {
-        method: "POST",
-      });
-
-      if (!res.ok) {
-        notify.error(await parseApiErrorMessage(res, defaultError));
-        return;
-      }
-
-      const blob = await res.blob();
-      const filename = getAttachmentFilename(res, "claude-auth.json");
-      const objectUrl = window.URL.createObjectURL(blob);
-      const link = document.createElement("a");
-
-      link.href = objectUrl;
-      link.download = filename;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      window.setTimeout(() => window.URL.revokeObjectURL(objectUrl), 1000);
-
-      notify.success(defaultSuccess);
-    } catch (error) {
-      console.error("Error exporting Claude auth file:", error);
-      notify.error(defaultError);
-    } finally {
-      setExportingClaudeAuthId(null);
-    }
-  };
-
-  const handleApplyGeminiAuthLocal = async (connectionId: string) => {
-    if (applyingGeminiAuthId) return;
-    setApplyingGeminiAuthId(connectionId);
-
-    const defaultSuccess =
-      typeof t.has === "function" && t.has("geminiAuthAppliedLocal")
-        ? t("geminiAuthAppliedLocal")
-        : "Gemini auth applied locally";
-    const defaultError =
-      typeof t.has === "function" && t.has("geminiAuthApplyFailed")
-        ? t("geminiAuthApplyFailed")
-        : "Failed to apply Gemini auth locally";
-
-    try {
-      const res = await fetch(`/api/providers/${connectionId}/gemini-cli-auth/apply-local`, {
-        method: "POST",
-      });
-
-      if (!res.ok) {
-        notify.error(await parseApiErrorMessage(res, defaultError));
-        return;
-      }
-
-      notify.success(defaultSuccess);
-      setApplyGeminiModalConnectionId(null);
-    } catch (error) {
-      console.error("Error applying Gemini auth locally:", error);
-      notify.error(defaultError);
-    } finally {
-      setApplyingGeminiAuthId(null);
-    }
-  };
-
-  const handleExportGeminiAuthFile = async (connectionId: string) => {
-    if (exportingGeminiAuthId) return;
-    setExportingGeminiAuthId(connectionId);
-
-    const defaultSuccess =
-      typeof t.has === "function" && t.has("geminiAuthExported")
-        ? t("geminiAuthExported")
-        : "Gemini auth file exported";
-    const defaultError =
-      typeof t.has === "function" && t.has("geminiAuthExportFailed")
-        ? t("geminiAuthExportFailed")
-        : "Failed to export Gemini auth file";
-
-    try {
-      const res = await fetch(`/api/providers/${connectionId}/gemini-cli-auth/export`, {
-        method: "POST",
-      });
-
-      if (!res.ok) {
-        notify.error(await parseApiErrorMessage(res, defaultError));
-        return;
-      }
-
-      const blob = await res.blob();
-      const filename = getAttachmentFilename(res, "gemini-auth.json");
-      const objectUrl = window.URL.createObjectURL(blob);
-      const link = document.createElement("a");
-
-      link.href = objectUrl;
-      link.download = filename;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      window.setTimeout(() => window.URL.revokeObjectURL(objectUrl), 1000);
-
-      notify.success(defaultSuccess);
-    } catch (error) {
-      console.error("Error exporting Gemini auth file:", error);
-      notify.error(defaultError);
-    } finally {
-      setExportingGeminiAuthId(null);
-    }
-  };
+  // Phase 1j: auth file handlers extracted to hooks/useAuthFileHandlers.ts
+  const {
+    applyingCodexAuthId,
+    applyCodexModalConnectionId,
+    setApplyCodexModalConnectionId,
+    exportingCodexAuthId,
+    handleApplyCodexAuthLocal,
+    handleExportCodexAuthFile,
+    applyingClaudeAuthId,
+    applyClaudeModalConnectionId,
+    setApplyClaudeModalConnectionId,
+    exportingClaudeAuthId,
+    handleApplyClaudeAuthLocal,
+    handleExportClaudeAuthFile,
+    applyingGeminiAuthId,
+    applyGeminiModalConnectionId,
+    setApplyGeminiModalConnectionId,
+    exportingGeminiAuthId,
+    handleApplyGeminiAuthLocal,
+    handleExportGeminiAuthFile,
+  } = useAuthFileHandlers({ parseApiErrorMessage, getAttachmentFilename, notify, t });
 
   // handleSwapPriority → useProviderConnections (Phase 1f)
 
@@ -1794,10 +1174,7 @@ export default function ProviderDetailPageClient() {
   };
 
   // Phase 1e: compat-state derivations moved to useModelCompatState hook.
-  const compat = useModelCompatState(
-    modelMeta.customModels,
-    modelMeta.modelCompatOverrides
-  );
+  const compat = useModelCompatState(modelMeta.customModels, modelMeta.modelCompatOverrides);
   const { customMap, overrideMap } = compat;
   const effectiveModelNormalize = compat.effectiveModelNormalize;
   const effectiveModelPreserveDeveloper = compat.effectiveModelPreserveDeveloper;
@@ -3624,50 +3001,15 @@ export default function ProviderDetailPageClient() {
         />
       )}
       {providerId === "codex" && externalLinkModalOpen && (
-        <Modal
+        <ExternalLinkModal
           isOpen={externalLinkModalOpen}
           onClose={() => setExternalLinkModalOpen(false)}
-          title="Adicionar Externo — link do Codex"
-        >
-          <div className="space-y-4">
-            <p className="text-sm text-text-muted">
-              Compartilhe este link com quem vai autenticar a conta do Codex. A pessoa abre a
-              página, faz o login da OpenAI no próprio navegador e a conexão é cadastrada aqui. Uso
-              único, expira em 15 minutos.
-            </p>
-            {externalLinkLoading ? (
-              <p className="text-sm text-text-muted">Gerando link…</p>
-            ) : externalLinkError ? (
-              <p className="text-sm text-red-500">{externalLinkError}</p>
-            ) : externalLinkUrl ? (
-              <>
-                <div className="rounded-lg border border-border bg-bg-base p-3 break-all text-sm text-text-main">
-                  {externalLinkUrl}
-                </div>
-                <div className="flex gap-2">
-                  <Button
-                    className="flex-1"
-                    icon="open_in_new"
-                    onClick={() => window.open(externalLinkUrl, "_blank", "noopener")}
-                  >
-                    Abrir
-                  </Button>
-                  <Button
-                    variant="secondary"
-                    icon="content_copy"
-                    onClick={() => externalLinkCopy(externalLinkUrl, "extlink")}
-                  >
-                    {externalLinkCopied === "extlink" ? "Copiado" : "Copiar"}
-                  </Button>
-                </div>
-                <p className="flex items-center gap-2 text-xs text-text-muted">
-                  <span className="material-symbols-outlined animate-spin text-[16px]">sync</span>
-                  Aguardando a autenticação no navegador da pessoa… esta janela atualiza sozinha.
-                </p>
-              </>
-            ) : null}
-          </div>
-        </Modal>
+          loading={externalLinkLoading}
+          error={externalLinkError}
+          url={externalLinkUrl}
+          copied={externalLinkCopied}
+          onCopy={externalLinkCopy}
+        />
       )}
       {/* Claude Apply Auth Modal */}
       {providerId === "claude" && applyClaudeModalConnectionId && (
@@ -3813,7 +3155,6 @@ export default function ProviderDetailPageClient() {
           levelLabel={proxyTarget.label}
           onSaved={() => {
             void fetchProxyConfig();
-            void loadConnProxies(connections);
           }}
         />
       )}
