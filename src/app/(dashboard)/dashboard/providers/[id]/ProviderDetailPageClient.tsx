@@ -94,6 +94,9 @@ import ConnectionRow, {
 import ModelCompatPopover from "./components/ModelCompatPopover";
 import SiliconFlowEndpointModal from "./components/SiliconFlowEndpointModal";
 import { CC_COMPATIBLE_DEFAULT_CHAT_PATH } from "./providerDetailConstants";
+// Phase 1k extractions — Issue #3501
+import { useModelImportHandlers } from "./hooks/useModelImportHandlers";
+import ImportProgressModal from "./components/ImportProgressModal";
 import {
   // CONFIGURABLE_BASE_URL_PROVIDERS, DEFAULT_PROVIDER_BASE_URLS, getLocalProviderMetadata,
   // isBaseUrlConfigurableProvider, getProviderBaseUrlDefault, getProviderBaseUrlHint,
@@ -168,22 +171,11 @@ export default function ProviderDetailPageClient() {
   const [showTutorialModal, setShowTutorialModal] = useState(false);
   const [selectedConnection, setSelectedConnection] = useState(null);
   const [proxyTarget, setProxyTarget] = useState(null);
-  const [importingModels, setImportingModels] = useState(false);
   const [importingZed, setImportingZed] = useState(false);
   const [showZedManual, setShowZedManual] = useState(false);
   const [zedManualProvider, setZedManualProvider] = useState("openai");
   const [zedManualToken, setZedManualToken] = useState("");
   const [importingZedManual, setImportingZedManual] = useState(false);
-  const [showImportModal, setShowImportModal] = useState(false);
-  const [importProgress, setImportProgress] = useState({
-    current: 0,
-    total: 0,
-    phase: "idle" as "idle" | "fetching" | "importing" | "done" | "error",
-    status: "",
-    logs: [] as string[],
-    error: "",
-    importedCount: 0,
-  });
   const [compatSavingModelId, setCompatSavingModelId] = useState<string | null>(null);
   const [modelFilter, setModelFilter] = useState("");
   const [togglingModelId, setTogglingModelId] = useState<string | null>(null);
@@ -374,6 +366,36 @@ export default function ProviderDetailPageClient() {
 
   const providerStorageAlias = isCompatible ? providerId : providerAlias;
   const providerDisplayAlias = isCompatible ? providerNode?.prefix || providerId : providerAlias;
+
+  // ── Phase 1k: model import handlers ─────────────────────────────────────
+  const {
+    importingModels,
+    showImportModal,
+    importProgress,
+    togglingAutoSync,
+    canImportModels,
+    isAutoSyncEnabled,
+    autoSyncConnection,
+    setShowImportModal,
+    setImportProgress,
+    handleImportModels,
+    handleCompatibleImportWithProgress,
+    handleToggleAutoSync,
+  } = useModelImportHandlers({
+    providerId,
+    models,
+    modelMeta,
+    modelAliases,
+    connections,
+    isFreeNoAuth,
+    handleSetAlias,
+    fetchAliases,
+    fetchProviderModelMeta,
+    fetchConnections,
+    notify,
+    t,
+    providerStorageAlias,
+  });
 
   const getApiLabel = () => {
     if (isAnthropicProtocolCompatible) return t("messagesApi");
@@ -852,288 +874,8 @@ export default function ProviderDetailPageClient() {
   } = useAuthFileHandlers({ parseApiErrorMessage, getAttachmentFilename, notify, t });
 
   // handleSwapPriority → useProviderConnections (Phase 1f)
-
-  const handleImportModels = async () => {
-    if (importingModels) return;
-    const activeConnection = connections.find((conn) => conn.isActive !== false);
-    // #3047 — no-auth providers (e.g. OpenCode Free) have no connection rows;
-    // fall back to the provider id so the models route can serve the public
-    // catalog instead of the button silently doing nothing.
-    if (!activeConnection && !isFreeNoAuth) return;
-    const importTargetId = activeConnection?.id ?? providerId;
-
-    setImportingModels(true);
-    setShowImportModal(true);
-    setImportProgress({
-      current: 0,
-      total: 0,
-      phase: "fetching",
-      status: t("fetchingModels"),
-      logs: [],
-      error: "",
-      importedCount: 0,
-    });
-
-    try {
-      const res = await fetch(`/api/providers/${importTargetId}/models?refresh=true`);
-      const data = await res.json();
-      if (!res.ok) {
-        setImportProgress((prev) => ({
-          ...prev,
-          phase: "error",
-          status: t("failedFetchModels"),
-          error: data.error || t("failedImportModels"),
-        }));
-        return;
-      }
-      const fetchedModels = data.models || [];
-      if (fetchedModels.length === 0) {
-        setImportProgress((prev) => ({
-          ...prev,
-          phase: "done",
-          status: t("noModelsFound"),
-          logs: [t("noModelsReturnedFromEndpoint")],
-        }));
-        return;
-      }
-
-      const existingIds = new Set([
-        ...(modelMeta.customModels || []).map((m: any) => m.id),
-        ...models.map((m: any) => m.id),
-      ]);
-      const newModels = fetchedModels.filter(
-        (model: any) => !existingIds.has(model.id || model.name || model.model)
-      );
-
-      if (newModels.length === 0) {
-        setImportProgress((prev) => ({
-          ...prev,
-          phase: "done",
-          status: t("allModelsAlreadyImported") || "All models already imported",
-          logs: [t("noNewModelsToImport") || "No new models to import"],
-          importedCount: 0,
-          total: 0,
-          current: 0,
-        }));
-        return;
-      }
-
-      setImportProgress((prev) => ({
-        ...prev,
-        phase: "importing",
-        total: newModels.length,
-        current: 0,
-        status: t("importingModelsProgress", { current: 0, total: newModels.length }),
-        logs: [
-          t("foundModelsStartingImport", { count: newModels.length }),
-          ...(newModels.length < fetchedModels.length
-            ? [
-                t("skippingExistingModels", { count: fetchedModels.length - newModels.length }) ||
-                  `Skipping ${fetchedModels.length - newModels.length} existing models`,
-              ]
-            : []),
-        ],
-      }));
-
-      let importedCount = 0;
-      for (let i = 0; i < newModels.length; i++) {
-        const model = newModels[i];
-        const modelId = model.id || model.name || model.model;
-        if (!modelId) continue;
-        const parts = modelId.split("/");
-        const baseAlias = parts[parts.length - 1];
-
-        setImportProgress((prev) => ({
-          ...prev,
-          current: i + 1,
-          status: t("importingModelsProgress", { current: i + 1, total: newModels.length }),
-          logs: [...prev.logs, t("importingModelById", { modelId })],
-        }));
-
-        // Save as imported (default) model in the DB
-        await fetch("/api/provider-models", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            provider: providerId,
-            modelId,
-            modelName: model.name || modelId,
-            source: "imported",
-            ...(typeof model.apiFormat === "string" ? { apiFormat: model.apiFormat } : {}),
-            ...(Array.isArray(model.supportedEndpoints)
-              ? { supportedEndpoints: model.supportedEndpoints }
-              : {}),
-          }),
-        });
-        // Also create an alias for routing
-        if (!modelAliases[baseAlias]) {
-          await handleSetAlias(modelId, baseAlias, providerStorageAlias);
-        }
-        importedCount += 1;
-      }
-
-      await fetchAliases();
-
-      setImportProgress((prev) => ({
-        ...prev,
-        phase: "done",
-        current: newModels.length,
-        status:
-          importedCount > 0
-            ? t("importSuccessCount", { count: importedCount })
-            : t("noNewModelsAddedExisting"),
-        logs: [
-          ...prev.logs,
-          importedCount > 0
-            ? t("importDoneCount", { count: importedCount })
-            : t("noNewModelsAdded"),
-        ],
-        importedCount,
-      }));
-
-      // Auto-reload after success
-      if (importedCount > 0) {
-        setTimeout(() => {
-          window.location.reload();
-        }, 2000);
-      }
-    } catch (error) {
-      console.log("Error importing models:", error);
-      setImportProgress((prev) => ({
-        ...prev,
-        phase: "error",
-        status: t("importFailed"),
-        error: error instanceof Error ? error.message : t("unexpectedErrorOccurred"),
-      }));
-    } finally {
-      setImportingModels(false);
-    }
-  };
-
-  // Shared import handler for CompatibleModelsSection
-  const handleCompatibleImportWithProgress = async (connectionId: string) => {
-    setShowImportModal(true);
-    setImportProgress({
-      current: 0,
-      total: 0,
-      phase: "fetching",
-      status: t("fetchingModels"),
-      logs: [],
-      error: "",
-      importedCount: 0,
-    });
-
-    try {
-      const response = await fetch(`/api/providers/${connectionId}/sync-models?mode=import`, {
-        method: "POST",
-        signal: AbortSignal.timeout(60_000),
-      });
-      const data = await response.json();
-      if (!response.ok) {
-        throw new Error(data.error || t("failedImportModels"));
-      }
-
-      const importedModels = Array.isArray(data.importedModels) ? data.importedModels : [];
-      const importedCount =
-        typeof data.importedCount === "number" ? data.importedCount : importedModels.length;
-      const changedCount =
-        typeof data.importedChanges?.total === "number"
-          ? data.importedChanges.total
-          : importedCount;
-      const totalChangedCount =
-        changedCount +
-        (typeof data.customModelChanges?.total === "number" ? data.customModelChanges.total : 0);
-
-      if (importedModels.length === 0) {
-        setImportProgress((prev) => ({
-          ...prev,
-          phase: "done",
-          status:
-            importedCount > 0
-              ? t("importSuccessCount", { count: importedCount })
-              : t("noNewModelsAdded"),
-          logs: [
-            importedCount > 0
-              ? t("importDoneCount", { count: importedCount })
-              : t("noNewModelsAdded"),
-          ],
-          importedCount,
-        }));
-        if (totalChangedCount > 0) {
-          setTimeout(() => {
-            window.location.reload();
-          }, 2000);
-        }
-        return;
-      }
-
-      setImportProgress((prev) => ({
-        ...prev,
-        phase: "done",
-        total: importedModels.length,
-        current: importedModels.length,
-        status:
-          importedCount > 0
-            ? t("importSuccessCount", { count: importedCount })
-            : t("noNewModelsAdded"),
-        logs: [
-          t("foundModelsStartingImport", { count: importedModels.length }),
-          ...importedModels.map((model: any) =>
-            t("importingModelById", { modelId: model.id || model.name || model.model })
-          ),
-          importedCount > 0
-            ? t("importDoneCount", { count: importedCount })
-            : t("noNewModelsAdded"),
-        ],
-        importedCount,
-      }));
-
-      if (totalChangedCount > 0) {
-        setTimeout(() => {
-          window.location.reload();
-        }, 2000);
-      }
-    } catch (error) {
-      console.log("Error importing models:", error);
-      setImportProgress((prev) => ({
-        ...prev,
-        phase: "error",
-        status: t("importFailed"),
-        error: error instanceof Error ? error.message : t("unexpectedErrorOccurred"),
-      }));
-    }
-  };
-
-  const canImportModels = isFreeNoAuth || connections.some((conn) => conn.isActive !== false);
-
-  // Auto-sync toggle state: read from first active connection's providerSpecificData
-  const autoSyncConnection = connections.find((conn: any) => conn.isActive !== false);
-  const isAutoSyncEnabled = !!(autoSyncConnection as any)?.providerSpecificData?.autoSync;
-  const [togglingAutoSync, setTogglingAutoSync] = useState(false);
-
-  const handleToggleAutoSync = async () => {
-    if (!autoSyncConnection || togglingAutoSync) return;
-    setTogglingAutoSync(true);
-    try {
-      const newValue = !isAutoSyncEnabled;
-      await fetch(`/api/providers/${(autoSyncConnection as any).id}`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          providerSpecificData: { autoSync: newValue },
-        }),
-      });
-      await fetchConnections();
-      notify[newValue ? "success" : "info"](
-        newValue ? t("autoSyncEnabled") : t("autoSyncDisabled")
-      );
-    } catch (error) {
-      console.log("Error toggling auto-sync:", error);
-      notify.error(t("autoSyncToggleFailed"));
-    } finally {
-      setTogglingAutoSync(false);
-    }
-  };
+  // handleImportModels, handleCompatibleImportWithProgress, handleToggleAutoSync,
+  // canImportModels, isAutoSyncEnabled, autoSyncConnection → hooks/useModelImportHandlers.ts (Phase 1k)
 
   const [clearingModels, setClearingModels] = useState(false);
   const providerAliasEntries = useMemo(
@@ -3163,122 +2905,17 @@ export default function ProviderDetailPageClient() {
           }}
         />
       )}
-      {/* Import Progress Modal */}
-      <Modal
+      {/* Import Progress Modal — Phase 1k: extracted to components/ImportProgressModal.tsx */}
+      <ImportProgressModal
+        importProgress={importProgress}
         isOpen={showImportModal}
         onClose={() => {
           if (importProgress.phase === "done" || importProgress.phase === "error") {
             setShowImportModal(false);
           }
         }}
-        title={t("importingModelsTitle")}
-        size="md"
-        closeOnOverlay={false}
-        showCloseButton={importProgress.phase === "done" || importProgress.phase === "error"}
-      >
-        <div className="flex flex-col gap-4">
-          {/* Status text */}
-          <div className="flex items-center gap-3">
-            {importProgress.phase === "fetching" && (
-              <span className="material-symbols-outlined text-primary animate-spin">
-                progress_activity
-              </span>
-            )}
-            {importProgress.phase === "importing" && (
-              <span className="material-symbols-outlined text-primary animate-spin">
-                progress_activity
-              </span>
-            )}
-            {importProgress.phase === "done" && (
-              <span className="material-symbols-outlined text-green-500">check_circle</span>
-            )}
-            {importProgress.phase === "error" && (
-              <span className="material-symbols-outlined text-red-500">error</span>
-            )}
-            <span className="text-sm font-medium text-text-main">{importProgress.status}</span>
-          </div>
-
-          {/* Progress bar */}
-          {(importProgress.phase === "importing" || importProgress.phase === "done") &&
-            importProgress.total > 0 && (
-              <div className="w-full">
-                <div className="flex items-center justify-between mb-1">
-                  <span className="text-xs text-text-muted">
-                    {importProgress.current} / {importProgress.total}
-                  </span>
-                  <span className="text-xs text-text-muted">
-                    {Math.round((importProgress.current / importProgress.total) * 100)}%
-                  </span>
-                </div>
-                <div className="w-full h-2.5 bg-black/10 dark:bg-white/10 rounded-full overflow-hidden">
-                  <div
-                    className="h-full rounded-full transition-all duration-300 ease-out"
-                    style={{
-                      width: `${(importProgress.current / importProgress.total) * 100}%`,
-                      background:
-                        importProgress.phase === "done"
-                          ? "linear-gradient(90deg, #22c55e, #16a34a)"
-                          : "linear-gradient(90deg, var(--color-primary), var(--color-primary-hover, var(--color-primary)))",
-                    }}
-                  />
-                </div>
-              </div>
-            )}
-
-          {/* Fetching indeterminate bar */}
-          {importProgress.phase === "fetching" && (
-            <div className="w-full h-2.5 bg-black/10 dark:bg-white/10 rounded-full overflow-hidden">
-              <div
-                className="h-full rounded-full animate-pulse"
-                style={{
-                  width: "60%",
-                  background:
-                    "linear-gradient(90deg, var(--color-primary), var(--color-primary-hover, var(--color-primary)))",
-                }}
-              />
-            </div>
-          )}
-
-          {/* Error message */}
-          {importProgress.phase === "error" && importProgress.error && (
-            <div className="p-3 rounded-lg bg-red-500/10 border border-red-500/20">
-              <p className="text-sm text-red-400">{importProgress.error}</p>
-            </div>
-          )}
-
-          {/* Log list */}
-          {importProgress.logs.length > 0 && (
-            <div className="max-h-48 overflow-y-auto rounded-lg bg-black/5 dark:bg-white/5 p-3 border border-black/5 dark:border-white/5">
-              <div className="flex flex-col gap-1">
-                {importProgress.logs.map((log, i) => (
-                  <p
-                    key={i}
-                    className={`text-xs font-mono ${
-                      typeof log === "string" && log.startsWith("✓")
-                        ? "text-green-500 font-semibold"
-                        : "text-text-muted"
-                    }`}
-                  >
-                    {log}
-                  </p>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {/* Close button */}
-          {importProgress.phase === "done" && (
-            <div className="flex justify-center">
-              <button
-                onClick={() => setShowImportModal(false)}
-                className="px-4 py-2 text-sm font-medium rounded-lg bg-primary text-white hover:opacity-90 transition-opacity"
-              >
-                {t("close")}
-              </button>
-            </div>
-          )}
-        </div>
-      </Modal>
+        t={t}
+      />
 
       {/* Adapta Web — Tutorial Modal */}
       {providerId === "adapta-web" && (
