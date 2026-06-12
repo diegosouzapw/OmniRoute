@@ -198,19 +198,6 @@ export default function ProviderDetailPageClient() {
   );
   const [importCodexModalOpen, setImportCodexModalOpen] = useState(false);
   const [codexCliGuideOpen, setCodexCliGuideOpen] = useState(false);
-  // "Adicionar Externo": public shareable device-flow link state.
-  // Phase 1i: extracted to hooks/useExternalLinkFlow.ts
-  const {
-    externalLinkModalOpen,
-    setExternalLinkModalOpen,
-    externalLinkUrl,
-    externalLinkToken,
-    externalLinkLoading,
-    externalLinkError,
-    externalLinkCopied,
-    externalLinkCopy,
-    openExternalLinkFlow,
-  } = useExternalLinkFlow({ providerId, notify, fetchConnections });
   const [importClaudeModalOpen, setImportClaudeModalOpen] = useState(false);
   const [importGeminiModalOpen, setImportGeminiModalOpen] = useState(false);
   const pendingRiskActionRef = useRef<(() => void) | null>(null);
@@ -309,6 +296,19 @@ export default function ProviderDetailPageClient() {
   const t = useTranslations("providers");
   const emailsVisible = useEmailPrivacyStore((s) => s.emailsVisible);
   const notify = useNotificationStore();
+
+  // Phase 1i: external link flow — placed after notify/fetchConnections are defined
+  const {
+    externalLinkModalOpen,
+    setExternalLinkModalOpen,
+    externalLinkUrl,
+    externalLinkToken,
+    externalLinkLoading,
+    externalLinkError,
+    externalLinkCopied,
+    externalLinkCopy,
+    openExternalLinkFlow,
+  } = useExternalLinkFlow({ providerId, notify, fetchConnections });
 
   const setShowOAuthModal = (show: boolean, connectionRow?: ConnectionRowConnection) => {
     _setShowOAuthModal(show);
