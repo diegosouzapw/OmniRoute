@@ -6,6 +6,10 @@
 
 ## [3.8.23] — TBD
 
+### 🐛 Fixed
+
+- fix(gemini): standard Gemini provider no longer sends tool calls without a thought_signature (falls back to context mode when the signature is unavailable), fixing HTTP 400 on multi-turn thinking-model tool calls (#3688)
+
 ---
 
 ## [3.8.22] — 2026-06-11
