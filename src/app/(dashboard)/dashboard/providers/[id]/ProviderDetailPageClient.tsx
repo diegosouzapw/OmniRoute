@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback, useRef, useMemo } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 // Phase 1f extractions — Issue #3501
 import { useProviderConnections } from "./hooks/useProviderConnections";
 import { useProviderSettings } from "./hooks/useProviderSettings";
@@ -65,7 +65,7 @@ import { type CodexGlobalServiceMode } from "@/lib/providers/codexFastTier";
 import { compareTr } from "@/shared/utils/turkishText";
 import RiskNoticeModal from "../components/RiskNoticeModal";
 import CodexCliGuideModal from "../components/CodexCliGuideModal";
-import { isRiskAcknowledged, useRiskAcknowledged } from "../hooks/useRiskAcknowledged";
+// isRiskAcknowledged, useRiskAcknowledged moved to hooks/useConnectionGate.ts (Phase 1t.3)
 import { resolveDashboardProviderInfo } from "../providerPageUtils";
 // webSessionCredentials used by extracted modals (AddApiKeyModal, EditConnectionModal)
 import {
@@ -141,6 +141,8 @@ import { AdaptaTutorialModal } from "./components/AdaptaTutorialModal";
 import ProviderPageHeader from "./components/ProviderPageHeader";
 // Phase 1t.2 extractions — Issue #3501
 import CompatibleNodeCard from "./components/CompatibleNodeCard";
+// Phase 1t.3 extractions — Issue #3501
+import { useConnectionGate } from "./hooks/useConnectionGate";
 // recordToHeaderRows moved to components/ModelCompatPopover.tsx (Phase 1d)
 // buildCompatMap, isModelHidden*, effectiveNormalize/Preserve*, anyNormalize/NoPreserveCompatBadge
 // moved to providerPageHelpers.ts + hook useModelCompatState (Phase 1e)
@@ -171,7 +173,6 @@ export default function ProviderDetailPageClient() {
   const [showAddApiKeyModal, setShowAddApiKeyModal] = useState(false);
   const [showSiliconFlowEndpointModal, setShowSiliconFlowEndpointModal] = useState(false);
   const [siliconFlowInitialBaseUrl, setSiliconFlowInitialBaseUrl] = useState<string | undefined>();
-  const [showRiskNoticeModal, setShowRiskNoticeModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [showEditNodeModal, setShowEditNodeModal] = useState(false);
   const [showTutorialModal, setShowTutorialModal] = useState(false);
@@ -181,9 +182,6 @@ export default function ProviderDetailPageClient() {
   const [codexCliGuideOpen, setCodexCliGuideOpen] = useState(false);
   const [importClaudeModalOpen, setImportClaudeModalOpen] = useState(false);
   const [importGeminiModalOpen, setImportGeminiModalOpen] = useState(false);
-  const pendingRiskActionRef = useRef<(() => void) | null>(null);
-  const { acknowledged: riskAcknowledged, acknowledge: acknowledgeRisk } =
-    useRiskAcknowledged(providerId);
   const isOpenAICompatible = isOpenAICompatibleProvider(providerId);
   const isCcCompatible = isClaudeCodeCompatibleProvider(providerId);
   const isCommandCode = providerId === "command-code";
@@ -307,6 +305,11 @@ export default function ProviderDetailPageClient() {
   const providerSupportsOAuth =
     providerInfo?.toggleAuthType === "oauth" || providerInfo?.toggleAuthType === "free";
   const subscriptionRisk = providerInfo?.subscriptionRisk === true;
+
+  // ── Phase 1t.3: connection gate + risk-notice modal state ───────────────
+  const { showRiskNoticeModal, gateConnectionFlow, handleConfirmRiskNotice, handleCancelRiskNotice } =
+    useConnectionGate({ providerId, subscriptionRisk });
+
   const providerSupportsPat = supportsApiKeyOnFreeProvider(providerId);
   const isOAuth = providerSupportsOAuth && !providerSupportsPat;
   const isFreeNoAuth = NOAUTH_PROVIDERS[providerId]?.noAuth === true;
@@ -451,31 +454,6 @@ export default function ProviderDetailPageClient() {
     }
     openApiKeyAddFlow();
   }, [isOAuth, openApiKeyAddFlow]);
-
-  const gateConnectionFlow = useCallback(
-    (callback: () => void) => {
-      if (subscriptionRisk && !riskAcknowledged && !isRiskAcknowledged(providerId)) {
-        pendingRiskActionRef.current = callback;
-        setShowRiskNoticeModal(true);
-        return;
-      }
-      callback();
-    },
-    [providerId, riskAcknowledged, subscriptionRisk]
-  );
-
-  const handleConfirmRiskNotice = useCallback(() => {
-    acknowledgeRisk();
-    setShowRiskNoticeModal(false);
-    const pendingAction = pendingRiskActionRef.current;
-    pendingRiskActionRef.current = null;
-    pendingAction?.();
-  }, [acknowledgeRisk]);
-
-  const handleCancelRiskNotice = useCallback(() => {
-    pendingRiskActionRef.current = null;
-    setShowRiskNoticeModal(false);
-  }, []);
 
   // ── Phase 1h: commandCode auth flow ─────────────────────────────────────
   const {
