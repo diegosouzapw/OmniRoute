@@ -8229,7 +8229,7 @@
       "providerCredentialsUpdated": "{actor} 更新了 {target} 的凭据",
       "providerCredentialsRevoked": "{actor} 撤销了 {target} 的凭据",
       "providerCredentialsBatchRevoked": "{actor} 批量撤销凭证",
-      "providerCredentialsBatchUpdated": "__MISSING__:{actor} batch-updated credentials",
+      "providerCredentialsBatchUpdated": "{actor} 批量更新了凭据",
       "providerCredentialsBulkCreated": "{actor} 批量创建了凭据",
       "providerCredentialsBulkImported": "{actor} 批量导入了凭据",
       "providerCredentialsImported": "{actor} 导入的凭据",

@@ -1228,7 +1228,8 @@
     "description": "管理 OmniRoute 开机自启（Linux：systemd 用户服务）",
     "enable": "启用开机自启",
     "disable": "禁用开机自启",
-    "status": "显示自启状态"
+    "status": "显示自启状态",
+    "toggle": "切换开机自启"
   },
   "runtime": {
     "description": "管理本地运行时依赖",
