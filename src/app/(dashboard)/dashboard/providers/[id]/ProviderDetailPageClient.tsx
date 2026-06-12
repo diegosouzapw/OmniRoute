@@ -59,8 +59,6 @@ import {
 import { useCopyToClipboard } from "@/shared/hooks/useCopyToClipboard";
 import { pickDisplayValue } from "@/shared/utils/maskEmail";
 import useEmailPrivacyStore from "@/store/emailPrivacyStore";
-import EmailPrivacyToggle from "@/shared/components/EmailPrivacyToggle";
-import ProviderIcon from "@/shared/components/ProviderIcon";
 import { type CodexServiceTier } from "@/lib/providers/requestDefaults";
 import { type CodexGlobalServiceMode } from "@/lib/providers/codexFastTier";
 // parseExtraApiKeys used by extracted EditConnectionModal
@@ -124,7 +122,6 @@ import {
   getApiLabel,
   getApiDefaultPath,
   getApiPath,
-  getHeaderIconProviderId,
 } from "./providerPageHelpers";
 // CODEX_GLOBAL_SERVICE_MODE_VALUES, getCodexServiceTierLabel, normalizeCodexLimitPolicy
 // moved to hooks/useProviderSettings.ts + hooks/useProviderConnections.ts (Phase 1f)
@@ -143,6 +140,8 @@ import ZedImportCard from "./components/ZedImportCard";
 import BatchTestResultsModal from "./components/BatchTestResultsModal";
 // Phase 1r extractions — Issue #3501
 import { AdaptaTutorialModal } from "./components/AdaptaTutorialModal";
+// Phase 1t.1 extractions — Issue #3501
+import ProviderPageHeader from "./components/ProviderPageHeader";
 // recordToHeaderRows moved to components/ModelCompatPopover.tsx (Phase 1d)
 // buildCompatMap, isModelHidden*, effectiveNormalize/Preserve*, anyNormalize/NoPreserveCompatBadge
 // moved to providerPageHelpers.ts + hook useModelCompatState (Phase 1e)
@@ -659,55 +658,16 @@ export default function ProviderDetailPageClient() {
 
   return (
     <div className="flex flex-col gap-8">
-      {/* Header */}
-      <div>
-        <Link
-          href="/dashboard/providers"
-          className="inline-flex items-center gap-1 text-sm text-text-muted hover:text-primary transition-colors mb-4"
-        >
-          <span className="material-symbols-outlined text-lg">arrow_back</span>
-          {t("backToProviders")}
-        </Link>
-        <div className="flex items-center gap-4">
-          <div
-            className="rounded-lg flex items-center justify-center"
-            style={{ backgroundColor: `${providerInfo.color}15` }}
-          >
-            <ProviderIcon providerId={getHeaderIconProviderId(isOpenAICompatible, isAnthropicProtocolCompatible, providerInfo.id, providerInfo.apiType)} size={48} type="color" />
-          </div>
-          <div>
-            {providerInfo.website ? (
-              <a
-                href={providerInfo.website}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-3xl font-semibold tracking-tight hover:underline inline-flex items-center gap-2"
-                style={{ color: providerInfo.color }}
-              >
-                {providerInfo.name}
-                <span className="material-symbols-outlined text-lg opacity-60">open_in_new</span>
-              </a>
-            ) : (
-              <h1 className="text-3xl font-semibold tracking-tight">{providerInfo.name}</h1>
-            )}
-            <div className="flex items-center gap-2">
-              <p className="text-text-muted">
-                {t("connectionCountLabel", { count: connections.length })}
-              </p>
-              <EmailPrivacyToggle size="md" />
-              {providerId === "adapta-web" && (
-                <button
-                  onClick={() => setShowTutorialModal(true)}
-                  className="text-sm font-medium underline underline-offset-2 opacity-70 hover:opacity-100 transition-opacity"
-                  style={{ color: providerInfo.color }}
-                >
-                  Tutorial
-                </button>
-              )}
-            </div>
-          </div>
-        </div>
-      </div>
+      {/* Header — Phase 1t.1: extracted to components/ProviderPageHeader.tsx */}
+      <ProviderPageHeader
+        providerId={providerId}
+        providerInfo={providerInfo}
+        connectionsCount={connections.length}
+        isOpenAICompatible={isOpenAICompatible}
+        isAnthropicProtocolCompatible={isAnthropicProtocolCompatible}
+        onOpenTutorial={() => setShowTutorialModal(true)}
+        t={t}
+      />
 
       {providerId === "zed" && <ZedImportCard fetchConnections={fetchConnections} notify={notify} />}
 
