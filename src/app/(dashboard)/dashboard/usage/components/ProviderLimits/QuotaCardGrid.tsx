@@ -12,6 +12,8 @@ interface Props {
   providerLabels: Record<string, string>;
   onRefresh: (id: string, provider: string) => void;
   onOpenCutoff: (connection: any) => void;
+  onToggleActive: (id: string, nextActive: boolean) => void;
+  togglingActiveId: string | null;
 }
 
 export default function QuotaCardGrid({
@@ -24,6 +26,8 @@ export default function QuotaCardGrid({
   providerLabels,
   onRefresh,
   onOpenCutoff,
+  onToggleActive,
+  togglingActiveId,
 }: Props) {
   if (connections.length === 0) return null;
 
@@ -58,6 +62,8 @@ export default function QuotaCardGrid({
                 providerLabel={providerLabels[conn.provider] || conn.provider}
                 onRefresh={() => onRefresh(conn.id, conn.provider)}
                 onOpenCutoff={() => onOpenCutoff(conn)}
+                onToggleActive={(nextActive) => onToggleActive(conn.id, nextActive)}
+                togglingActive={togglingActiveId === conn.id}
               />
             ))}
           </div>

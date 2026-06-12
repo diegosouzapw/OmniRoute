@@ -16,6 +16,7 @@ import { CardSkeleton } from "@/shared/components/Loading";
 import { USAGE_SUPPORTED_PROVIDERS } from "@/shared/constants/providers";
 import { pickDisplayValue } from "@/shared/utils/maskEmail";
 import useEmailPrivacyStore from "@/store/emailPrivacyStore";
+import { useNotificationStore } from "@/store/notificationStore";
 import EmailPrivacyToggle from "@/shared/components/EmailPrivacyToggle";
 import QuotaCutoffModal from "./QuotaCutoffModal";
 import QuotaCardGrid from "./QuotaCardGrid";
@@ -233,7 +234,9 @@ export default function ProviderLimits({
     [t]
   );
   const emailsVisible = useEmailPrivacyStore((s) => s.emailsVisible);
+  const notify = useNotificationStore();
   const [connections, setConnections] = useState<any[]>([]);
+  const [togglingActiveId, setTogglingActiveId] = useState<string | null>(null);
   const [quotaData, setQuotaData] = useState<Record<string, any>>({});
   const [loading, setLoading] = useState<Record<string, boolean>>({});
   const [errors, setErrors] = useState<Record<string, string | null>>({});
@@ -320,6 +323,36 @@ export default function ProviderLimits({
       return [];
     }
   }, []);
+
+  // Toggle a connection's active state straight from the quota overview, so an
+  // operator can park an account that is being routed to despite low quota.
+  // Mirrors saveQuotaWindowThresholds: PUT /api/providers/[id] + optimistic state.
+  const handleToggleActive = useCallback(
+    async (connectionId: string, nextActive: boolean) => {
+      setTogglingActiveId(connectionId);
+      try {
+        const res = await fetch(`/api/providers/${connectionId}`, {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ isActive: nextActive }),
+        });
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        setConnections((prev) =>
+          prev.map((c) => (c.id === connectionId ? { ...c, isActive: nextActive } : c))
+        );
+        notify.success(
+          nextActive
+            ? tr("accountActivated", "Account activated")
+            : tr("accountDeactivated", "Account deactivated")
+        );
+      } catch {
+        notify.error(tr("toggleActiveFailed", "Failed to update account status"));
+      } finally {
+        setTogglingActiveId(null);
+      }
+    },
+    [notify, tr]
+  );
 
   const applyCachedQuotaState = useCallback(
     (connectionList: any[], caches: Record<string, any>) => {
@@ -985,6 +1018,8 @@ export default function ProviderLimits({
             setCutoffModalWindows(windows);
             setCutoffModalConn(conn);
           }}
+          onToggleActive={handleToggleActive}
+          togglingActiveId={togglingActiveId}
         />
       </div>
 

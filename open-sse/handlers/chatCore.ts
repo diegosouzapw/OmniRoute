@@ -192,7 +192,12 @@ import {
   getModelFamily,
 } from "../services/modelFamilyFallback.ts";
 import { computeRequestHash, deduplicate, shouldDeduplicate } from "../services/requestDedup.ts";
-import { compressContext, estimateTokens, getTokenLimit } from "../services/contextManager.ts";
+import {
+  compressContext,
+  estimateTokens,
+  getTokenLimit,
+  resolveComboContextLimit,
+} from "../services/contextManager.ts";
 import {
   getBackgroundTaskReason,
   getDegradedModel,
@@ -228,6 +233,7 @@ import {
   getModelScopeRetryDelayMs,
   isModelScopeProvider,
 } from "../services/modelscopePolicy.ts";
+import { incrementRequestCount } from "../services/geminiRateLimitTracker.ts";
 
 const MEMORY_EXTRACTION_TEXT_LIMIT = 64 * 1024;
 
@@ -1981,12 +1987,13 @@ export async function handleChatCore({
   // Use credentials.connectionId as a fallback so that requests without an
   // explicit session-level connectionId still register in the pendingRequests map.
   const pendingConnId = connectionId || credentials?.connectionId || null;
-  const pendingRequestId = trackPendingRequest(model, provider, pendingConnId, true, {
-    clientEndpoint: clientRawRequest?.endpoint || "/v1/chat/completions",
-    clientRequest: clientRawRequest?.body ?? body,
-    providerRequest: initialProviderRequest,
-    stage: "registered",
-  }) || generateRequestId();
+  const pendingRequestId =
+    trackPendingRequest(model, provider, pendingConnId, true, {
+      clientEndpoint: clientRawRequest?.endpoint || "/v1/chat/completions",
+      clientRequest: clientRawRequest?.body ?? body,
+      providerRequest: initialProviderRequest,
+      stage: "registered",
+    }) || generateRequestId();
 
   // Initialize rate limit settings from persisted DB (once, lazy)
   await initializeRateLimits();
@@ -2741,21 +2748,33 @@ export async function handleChatCore({
         if (!comboConfig && comboName.startsWith("combo/")) {
           comboConfig = await getComboByName(comboName.substring(6));
         }
+        let comboTargetLimits: number[] = [];
         if (comboConfig) {
           const allCombosData = await getCombosCached();
           const targets = resolveComboTargets(
             comboConfig as unknown as { name: string; models: unknown[] },
             allCombosData as unknown as { name: string; models: unknown[] }[]
           );
-          const limits = targets.map((t: { modelStr?: string }) => {
+          comboTargetLimits = targets.map((t: { modelStr?: string }) => {
             const parsed = parseModel(t.modelStr);
             return getTokenLimit(parsed.provider, parsed.model);
           });
-          if (limits.length > 0) {
-            contextLimit = Math.min(...limits);
-            log?.info?.("CONTEXT", `Combo min limit: ${contextLimit}`);
-          }
         }
+        // chatCore executes per concrete target (handleSingleModel resolves
+        // provider/effectiveModel before delegating). Compress against THIS
+        // target's window; min(...allTargets) is only a defensive fallback —
+        // the old unconditional min compressed a 1M-target request at the
+        // smallest sibling's window ("agent keeps forgetting things").
+        const resolved = resolveComboContextLimit({
+          provider,
+          model: effectiveModel,
+          comboTargetLimits,
+        });
+        contextLimit = resolved.limit;
+        log?.info?.(
+          "CONTEXT",
+          `Combo context limit: ${resolved.limit} (source=${resolved.source})`
+        );
       } catch (err) {
         log?.warn?.("CONTEXT", "Failed to resolve combo limits for compression: " + err);
       }
@@ -3090,6 +3109,12 @@ export async function handleChatCore({
           translatedBody.messages,
           DEFAULT_THINKING_CLAUDE_SIGNATURE
         ) as typeof translatedBody.messages;
+
+        // Anthropic API rejects requests with both temperature and top_p.
+        // VS Code Claude extension and similar clients send both; strip top_p.
+        if (translatedBody.temperature !== undefined && translatedBody.top_p !== undefined) {
+          delete translatedBody.top_p;
+        }
       }
 
       // Fix #2468: always extract role:"system" → top-level system.
@@ -3773,6 +3798,12 @@ export async function handleChatCore({
               });
               const res = normalizeExecutorResult(rawExecutorResult);
               trace("post_executor", { status: res?.response?.status });
+
+              // Track Gemini RPM + RPD request counts for 429 classification
+              if (provider === "gemini") {
+                incrementRequestCount(modelToCall);
+              }
+
               updatePendingRequest(model, provider, connectionId, {
                 stage: "provider_response_started",
               });
@@ -5428,17 +5459,14 @@ export async function handleChatCore({
   }
 
   const responseHeaders: Record<string, string> = {
-    ...buildStreamingResponseHeaders(
-      providerResponse.headers,
-      {
-        provider,
-        model,
-        cacheHit: false,
-        latencyMs: 0,
-        usage: null,
-        costUsd: 0,
-      }
-    ),
+    ...buildStreamingResponseHeaders(providerResponse.headers, {
+      provider,
+      model,
+      cacheHit: false,
+      latencyMs: 0,
+      usage: null,
+      costUsd: 0,
+    }),
     "x-omniroute-request-id": pendingRequestId,
   };
 
@@ -5546,7 +5574,9 @@ export async function handleChatCore({
       });
     } catch (e) {
       // Best-effort — don't break the stream completion path if this fails
-      try { console.warn("finalizeMostRecentPendingRequest failed:", e && (e.message || e)); } catch {}
+      try {
+        console.warn("finalizeMostRecentPendingRequest failed:", e && (e.message || e));
+      } catch {}
     }
 
     if (apiKeyInfo?.id && streamUsage) {

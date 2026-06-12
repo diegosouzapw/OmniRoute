@@ -816,7 +816,7 @@ register(
   FORMATS.GEMINI,
   (model, body, stream = false, credentials = null) =>
     openaiToGeminiRequest(model, body, stream, credentials, {
-      signaturelessToolCallMode: "native",
+      signaturelessToolCallMode: "context",
     }),
   null
 );

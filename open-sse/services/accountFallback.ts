@@ -28,7 +28,7 @@ import {
   type FailureKind,
 } from "../../src/shared/utils/classify429";
 import { resolveUseUpstream429BreakerHints } from "../../src/shared/utils/providerHints";
-import { resolveProviderId } from "../../src/shared/constants/providers";
+import { isRpdExhausted, isRpmExhausted } from "./geminiRateLimitTracker.ts";
 
 export type ProviderProfile = {
   baseCooldownMs: number;
@@ -43,11 +43,12 @@ export type ProviderProfile = {
   maxBackoffLevel: number;
   circuitBreakerThreshold: number;
   circuitBreakerReset: number;
-  // Provider-level circuit breaker fields
+  // Adaptive circuit breaker fields
+  degradationThreshold?: number;
+  // Provider-level cooldown fields
   providerFailureThreshold: number;
   providerFailureWindowMs: number;
   providerCooldownMs: number;
-  degradationThreshold?: number;
   maxBackoffMultiplier?: number;
   backoffEscalationCount?: number;
 };
@@ -150,9 +151,6 @@ export const CREDITS_EXHAUSTED_SIGNALS = [
   "credits exhausted",
   "out of credits",
   "payment required",
-  "resource has been exhausted",
-  "resource_exhausted",
-  "check quota",
   "free tier of the model has been exhausted",
 ];
 
@@ -310,10 +308,10 @@ function buildProviderProfile(
     maxBackoffLevel: connectionCooldown.maxBackoffSteps,
     circuitBreakerThreshold: providerBreaker.failureThreshold,
     circuitBreakerReset: providerBreaker.resetTimeoutMs,
-    // Provider-level circuit breaker fields (not configurable via settings, use PROVIDER_PROFILES defaults)
+    degradationThreshold: providerBreaker.degradationThreshold,
+    // Provider-level cooldown fields are not exposed in resilience settings yet.
     providerFailureThreshold: PROVIDER_PROFILES[category].providerFailureThreshold,
     providerFailureWindowMs: PROVIDER_PROFILES[category].providerFailureWindowMs,
-    degradationThreshold: PROVIDER_PROFILES[category].degradationThreshold,
     maxBackoffMultiplier: PROVIDER_PROFILES[category].maxBackoffMultiplier,
     backoffEscalationCount: PROVIDER_PROFILES[category].backoffEscalationCount,
     providerCooldownMs: PROVIDER_PROFILES[category].providerCooldownMs,
@@ -347,23 +345,16 @@ export async function getRuntimeProviderProfile(provider: string | null | undefi
 
 // ─── Per-Model Lockout Tracking ─────────────────────────────────────────────
 // In-memory map: "provider:connectionId:model" → { reason, until, lockedAt }
-const modelLockouts = ((globalThis as any).__omnirouteModelLockouts || new Map()) as Map<string, ModelLockoutEntry>;
-(globalThis as any).__omnirouteModelLockouts = modelLockouts;
-
-const modelFailureState = ((globalThis as any).__omnirouteModelFailureState || new Map()) as Map<string, ModelFailureState>;
-(globalThis as any).__omnirouteModelFailureState = modelFailureState;
+const modelLockouts = new Map<string, ModelLockoutEntry>();
+const modelFailureState = new Map<string, ModelFailureState>();
 
 function getModelLockKey(provider: string, connectionId: string, model: string) {
-  const canonicalProvider = resolveProviderId(provider) || provider;
-  return `${canonicalProvider}:${connectionId}:${model}`;
+  return `${provider}:${connectionId}:${model}`;
 }
 
 function getFailureWindowMs(profile: ProviderProfile | null = null, fallbackMs = 30 * 60 * 1000) {
   const configured = profile?.resetTimeoutMs;
-  return Math.max(
-    fallbackMs,
-    typeof configured === "number" && configured > 0 ? configured : 0
-  );
+  return typeof configured === "number" && configured > 0 ? configured : fallbackMs;
 }
 
 function cleanupModelLockKey(key: string, now = Date.now()) {
@@ -401,34 +392,6 @@ function getScaledCooldown(
   const safeBase = Number.isFinite(baseCooldownMs) && baseCooldownMs > 0 ? baseCooldownMs : 1000;
   const exponent = Math.min(Math.max(0, failureCount - 1), Math.max(0, maxBackoffLevel));
   return safeBase * Math.pow(2, exponent);
-}
-
-/**
- * Map HTTP status code to a human-readable lockout reason for the resilience dashboard.
- * Replaced the generic "combo_failure" which hid the actual error type.
- */
-export function classifyLockoutReason(status: number): string {
-  if (status === 400) return "bad_request";
-  if (status === 401) return "unauthorized";
-  if (status === 403) return "forbidden";
-  if (status === 404) return "not_found";
-  if (status === 405) return "method_not_allowed";
-  if (status === 408) return "request_timeout";
-  if (status === 409) return "conflict";
-  if (status === 410) return "gone";
-  if (status === 415) return "unsupported_media";
-  if (status === 422) return "unprocessable_entity";
-  if (status === 429) return "rate_limit_exceeded";
-  if (status >= 400 && status < 500) return "client_error";
-  if (status === 500) return "internal_error";
-  if (status === 501) return "not_implemented";
-  if (status === 502) return "bad_gateway";
-  if (status === 503) return "service_unavailable";
-  if (status === 504) return "gateway_timeout";
-  if (status === 505) return "version_not_supported";
-  if (status === 529) return "model_overloaded";
-  if (status >= 500) return "server_error";
-  return "unknown";
 }
 
 // Auto-cleanup expired lockouts every 15 seconds (lazy init for Cloudflare Workers compatibility)
@@ -503,7 +466,7 @@ export function recordModelLockoutFailure(
   status: number,
   fallbackCooldownMs: number,
   profile: ProviderProfile | null = null,
-  options: { exactCooldownMs?: number | null; maxCooldownMs?: number | null } = {}
+  options: { exactCooldownMs?: number | null } = {}
 ) {
   ensureCleanupTimer();
   const key = getModelLockKey(provider, connectionId, model);
@@ -516,12 +479,7 @@ export function recordModelLockoutFailure(
     options = { ...options, exactCooldownMs: getMsUntilTomorrow() };
   }
 
-  const baseCooldownMs = getModelLockBaseCooldown(status, fallbackCooldownMs, profile);
-  const capMs =
-    typeof options.maxCooldownMs === "number" && options.maxCooldownMs > 0
-      ? options.maxCooldownMs
-      : BACKOFF_CONFIG.max;
-  const resetAfterMs = Math.max(getFailureWindowMs(profile), capMs);
+  const resetAfterMs = getFailureWindowMs(profile);
   const previous = modelFailureState.get(key);
   const withinWindow = previous && now - previous.lastFailureAt <= previous.resetAfterMs;
   const failureCount = withinWindow ? previous.failureCount + 1 : 1;
@@ -530,16 +488,15 @@ export function recordModelLockoutFailure(
     lastFailureAt: now,
     resetAfterMs,
   });
+
+  const baseCooldownMs = getModelLockBaseCooldown(status, fallbackCooldownMs, profile);
   const cooldownMs =
     typeof options.exactCooldownMs === "number" && options.exactCooldownMs > 0
       ? options.exactCooldownMs
-      : Math.min(
-          getScaledCooldown(
-            baseCooldownMs,
-            failureCount,
-            profile?.maxBackoffSteps ?? BACKOFF_CONFIG.maxLevel
-          ),
-          capMs
+      : getScaledCooldown(
+          baseCooldownMs,
+          failureCount,
+          profile?.maxBackoffSteps ?? BACKOFF_CONFIG.maxLevel
         );
 
   lockModel(provider, connectionId, model, reason, cooldownMs, {
@@ -565,56 +522,6 @@ export function clearModelLock(
   const hadLock = modelLockouts.delete(key);
   const hadFailureState = modelFailureState.delete(key);
   return hadLock || hadFailureState;
-}
-
-/**
- * Decay (halve) the failure count when a model succeeds after a lockout.
- * When the halved count reaches 0, the lockout is cleared entirely.
- * This implements the "/2 on success" recovery — each successful call
- * reduces the penalty for the NEXT failure.
- *
- * @returns `{ newFailureCount, cleared }` where `cleared` means the lock is gone.
- */
-export function decayModelFailureCount(
-  provider: string,
-  connectionId: string,
-  model: string | null | undefined
-): { newFailureCount: number; cleared: boolean } {
-  if (!model) return { newFailureCount: 0, cleared: false };
-  const key = getModelLockKey(provider, connectionId, model);
-  const lockEntry = modelLockouts.get(key);
-  const failureEntry = modelFailureState.get(key);
-
-  // Nothing to decay — model isn't locked and has no failure history
-  if (!lockEntry && !failureEntry) {
-    return { newFailureCount: 0, cleared: false };
-  }
-
-  const currentCount = Math.max(
-    lockEntry?.failureCount ?? 0,
-    failureEntry?.failureCount ?? 0,
-    1
-  );
-  const newCount = Math.floor(currentCount / 2);
-
-  // Count reached 0 → fully recover (clear everything)
-  if (newCount <= 0) {
-    modelLockouts.delete(key);
-    modelFailureState.delete(key);
-    return { newFailureCount: 0, cleared: true };
-  }
-
-  // Update both maps with the halved count
-  if (lockEntry) {
-    lockEntry.failureCount = newCount;
-    modelLockouts.set(key, lockEntry);
-  }
-  if (failureEntry) {
-    failureEntry.failureCount = newCount;
-    modelFailureState.set(key, failureEntry);
-  }
-
-  return { newFailureCount: newCount, cleared: false };
 }
 
 /**
@@ -766,12 +673,13 @@ export function getAllModelLockouts(): ModelLockoutInfo[] {
 // ─── Provider Breaker Compatibility Wrappers ────────────────────────────────
 // Legacy helpers now delegate to the shared provider circuit breaker.
 
-type ProviderBreakerProfile = Partial<
-  Pick<
-    ProviderProfile,
-    "failureThreshold" | "resetTimeoutMs" | "circuitBreakerThreshold" | "circuitBreakerReset"
-  >
->;
+type ProviderBreakerProfile = {
+  failureThreshold?: number;
+  degradationThreshold?: number;
+  resetTimeoutMs?: number;
+  circuitBreakerThreshold?: number;
+  circuitBreakerReset?: number;
+};
 
 function getProviderBreaker(provider: string | null | undefined) {
   return provider ? getCircuitBreaker(provider) : null;
@@ -968,7 +876,7 @@ export function parseRetryAfterFromBody(responseBody: unknown): {
 
   // OpenAI: "Please retry after 20s" in message
   const msg = String(error.message || body.message || "");
-  const retryMatch = RegExp(/retry\s+after\s+(\d+)\s*s/i).exec(msg);
+  const retryMatch = /retry\s+after\s+(\d+)\s*s/i.exec(msg);
   if (retryMatch) {
     return {
       retryAfterMs: Number.parseInt(retryMatch[1], 10) * 1000,
@@ -993,13 +901,13 @@ export function parseRetryAfterFromBody(responseBody: unknown): {
 function parseDelayString(value: unknown): number | null {
   if (!value) return null;
   const str = String(value).trim();
-  const msMatch = RegExp(/^(\d+)\s*ms$/i).exec(str);
+  const msMatch = /^(\d+)\s*ms$/i.exec(str);
   if (msMatch) return Number.parseInt(msMatch[1], 10);
-  const secMatch = RegExp(/^(\d+)\s*s$/i).exec(str);
+  const secMatch = /^(\d+)\s*s$/i.exec(str);
   if (secMatch) return Number.parseInt(secMatch[1], 10) * 1000;
-  const minMatch = RegExp(/^(\d+)\s*m$/i).exec(str);
+  const minMatch = /^(\d+)\s*m$/i.exec(str);
   if (minMatch) return Number.parseInt(minMatch[1], 10) * 60 * 1000;
-  const hrMatch = RegExp(/^(\d+)\s*h$/i).exec(str);
+  const hrMatch = /^(\d+)\s*h$/i.exec(str);
   if (hrMatch) return Number.parseInt(hrMatch[1], 10) * 3600 * 1000;
   // Bare number → seconds
   const num = Number.parseInt(str, 10);
@@ -1022,9 +930,10 @@ export function parseRetryFromErrorText(errorText: unknown): number | null {
   // timestamp instead of a relative duration (e.g. "Try again at
   // 2026-05-17T10:00:00Z" or "Please wait until 2026-05-17T10:00:00.000Z").
   // Convert to a future-duration in milliseconds if it parses.
-  const isoMatch = RegExp(
-    /\b(?:try again at|wait until|reset(?:s)? at|available at|retry after)\s+(\d{4}-\d{2}-\d{2}[Tt ]\d{2}:\d{2}(?::\d{2})?(?:\.\d+)?(?:Z|[+-]\d{2}:?\d{2})?)/i
-  ).exec(msg);
+  const isoMatch =
+    /\b(?:try again at|wait until|reset(?:s)? at|available at|retry after)\s+(\d{4}-\d{2}-\d{2}[Tt ]\d{2}:\d{2}(?::\d{2})?(?:\.\d+)?(?:Z|[+-]\d{2}:?\d{2})?)/i.exec(
+      msg
+    );
   if (isoMatch) {
     const parsedTs = Date.parse(isoMatch[1]);
     if (Number.isFinite(parsedTs)) {
@@ -1033,15 +942,15 @@ export function parseRetryFromErrorText(errorText: unknown): number | null {
     }
   }
 
-  const match = RegExp(/reset after (\d+h)?(\d+m)?(\d+s)?/i).exec(msg);
+  const match = /reset after (\d+h)?(\d+m)?(\d+s)?/i.exec(msg);
   if (match?.[1] || match?.[2] || match?.[3]) return computeDurationMs(match);
 
   // Variant without "reset after": "will reset after XhYmZs"
-  const altMatch = RegExp(/will reset after (\d+h)?(\d+m)?(\d+s)?/i).exec(msg);
+  const altMatch = /will reset after (\d+h)?(\d+m)?(\d+s)?/i.exec(msg);
   if (altMatch?.[1] || altMatch?.[2] || altMatch?.[3]) return computeDurationMs(altMatch);
 
   // Antigravity / Cloud Code phrasing: "Resets in 164h27m24s".
-  const resetsInMatch = RegExp(/resets? in (\d+h)?(\d+m)?(\d+s)?/i).exec(msg);
+  const resetsInMatch = /resets? in (\d+h)?(\d+m)?(\d+s)?/i.exec(msg);
   if (resetsInMatch?.[1] || resetsInMatch?.[2] || resetsInMatch?.[3]) {
     return computeDurationMs(resetsInMatch);
   }
@@ -1111,10 +1020,8 @@ export function classifyErrorText(errorText: unknown): RateLimitReasonValue {
   const configuredRule = matchErrorRuleByText(errorText);
   if (configuredRule?.reason) return configuredRule.reason;
   if (lower.includes("rate_limit")) return RateLimitReason.RATE_LIMIT_EXCEEDED;
-  if (
-    lower.includes("resource exhausted") ||
-    lower.includes("high demand")
-  ) return RateLimitReason.MODEL_CAPACITY;
+  if (lower.includes("resource exhausted") || lower.includes("high demand"))
+    return RateLimitReason.MODEL_CAPACITY;
   if (
     lower.includes("unauthorized") ||
     lower.includes("invalid api key") ||
@@ -1501,6 +1408,19 @@ export function checkFallbackError(
       !errorStr.toLowerCase().includes("quota has been exceeded")
     ) {
       return buildRetryableFallback(RateLimitReason.AUTH_ERROR);
+    }
+  }
+
+  // Gemini-specific: use known published RPM/RPD limits to distinguish 429 types.
+  // Gemini returns the same error body for both, so we use per-model request
+  // counters to decide: if daily count >= RPD → quota_exhausted (midnight lockout);
+  // if minute count >= RPM → rate_limit_exceeded (exponential backoff).
+  if (provider === "gemini" && status === HTTP_STATUS.RATE_LIMITED && _model) {
+    if (isRpdExhausted(_model)) {
+      return buildRetryableFallback(RateLimitReason.QUOTA_EXHAUSTED);
+    }
+    if (isRpmExhausted(_model)) {
+      return buildRetryableFallback(RateLimitReason.RATE_LIMIT_EXCEEDED);
     }
   }
 

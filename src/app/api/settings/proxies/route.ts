@@ -42,7 +42,10 @@ export async function GET(request: Request) {
     return Response.json({
       items: proxies,
       total: proxies.length,
-      socks5Enabled: process.env.ENABLE_SOCKS5_PROXY === "true",
+      // Default ON (opt-out): only an explicit falsey value disables SOCKS5.
+      socks5Enabled: !["false", "0", "no", "off"].includes(
+        (process.env.ENABLE_SOCKS5_PROXY ?? "").trim().toLowerCase()
+      ),
     });
   } catch (error) {
     return createErrorResponseFromUnknown(error, "Failed to load proxies");
