@@ -7,6 +7,9 @@
  *
  * Inspired by ClawRouter: "gpt-oss-120b costs nothing and serves as
  * automatic fallback when wallet is empty."
+ *
+ * Operators can disable the redirect entirely with
+ * `OMNIROUTE_EMERGENCY_FALLBACK=false` (or `0`). Default remains enabled.
  */
 
 export interface EmergencyFallbackConfig {
@@ -63,6 +66,11 @@ export interface NoFallbackDecision {
 
 export type FallbackResult = FallbackDecision | NoFallbackDecision;
 
+export function isEmergencyFallbackEnvEnabled(): boolean {
+  const raw = process.env.OMNIROUTE_EMERGENCY_FALLBACK;
+  return raw !== "false" && raw !== "0";
+}
+
 export function shouldUseFallback(
   status: number,
   errorBody: string,
@@ -70,6 +78,12 @@ export function shouldUseFallback(
   config: EmergencyFallbackConfig = EMERGENCY_FALLBACK_CONFIG
 ): FallbackResult {
   if (!config.enabled) return { shouldFallback: false, reason: "emergency fallback disabled" };
+  if (!isEmergencyFallbackEnvEnabled()) {
+    return {
+      shouldFallback: false,
+      reason: "emergency fallback disabled via OMNIROUTE_EMERGENCY_FALLBACK",
+    };
+  }
   if (config.skipForToolRequests && requestHasTools) {
     return { shouldFallback: false, reason: "skipped: request has tools" };
   }
