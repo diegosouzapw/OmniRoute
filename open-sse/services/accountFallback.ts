@@ -27,6 +27,7 @@ import {
   looksLikeQuotaExhausted,
   type FailureKind,
 } from "../../src/shared/utils/classify429";
+import { resolveProviderId } from "../../src/shared/constants/providers";
 import { resolveUseUpstream429BreakerHints } from "../../src/shared/utils/providerHints";
 import { isRpdExhausted, isRpmExhausted } from "./geminiRateLimitTracker.ts";
 
@@ -66,6 +67,9 @@ type ModelFailureState = {
   failureCount: number;
   lastFailureAt: number;
   resetAfterMs: number;
+  /** Cooldown applied on the last failure — extends the escalation window so a
+   *  model that fails again right after its lockout expires keeps escalating. */
+  lastCooldownMs?: number;
 };
 type AccountState = JsonRecord & {
   id?: string | null;
@@ -348,8 +352,20 @@ export async function getRuntimeProviderProfile(provider: string | null | undefi
 const modelLockouts = new Map<string, ModelLockoutEntry>();
 const modelFailureState = new Map<string, ModelFailureState>();
 
+// Aliases (e.g. "cx" → "codex") must share lockout state with their canonical
+// provider, otherwise a model locked via one spelling stays routable via the other.
+const canonicalProviderCache = new Map<string, string>();
+function getCanonicalLockProvider(provider: string): string {
+  let canonical = canonicalProviderCache.get(provider);
+  if (!canonical) {
+    canonical = resolveProviderId(provider);
+    canonicalProviderCache.set(provider, canonical);
+  }
+  return canonical;
+}
+
 function getModelLockKey(provider: string, connectionId: string, model: string) {
-  return `${provider}:${connectionId}:${model}`;
+  return `${getCanonicalLockProvider(provider)}:${connectionId}:${model}`;
 }
 
 function getFailureWindowMs(profile: ProviderProfile | null = null, fallbackMs = 30 * 60 * 1000) {
@@ -365,7 +381,9 @@ function cleanupModelLockKey(key: string, now = Date.now()) {
 
   const failure = modelFailureState.get(key);
   if (!failure) return;
-  if (now - failure.lastFailureAt <= failure.resetAfterMs) return;
+  // The escalation window extends past the applied cooldown: a model that fails
+  // again right after its lockout expires must keep escalating, not reset to 1.
+  if (now - failure.lastFailureAt <= failure.resetAfterMs + (failure.lastCooldownMs ?? 0)) return;
   if (modelLockouts.has(key)) return;
   modelFailureState.delete(key);
 }
@@ -466,7 +484,7 @@ export function recordModelLockoutFailure(
   status: number,
   fallbackCooldownMs: number,
   profile: ProviderProfile | null = null,
-  options: { exactCooldownMs?: number | null } = {}
+  options: { exactCooldownMs?: number | null; maxCooldownMs?: number } = {}
 ) {
   ensureCleanupTimer();
   const key = getModelLockKey(provider, connectionId, model);
@@ -481,23 +499,38 @@ export function recordModelLockoutFailure(
 
   const resetAfterMs = getFailureWindowMs(profile);
   const previous = modelFailureState.get(key);
-  const withinWindow = previous && now - previous.lastFailureAt <= previous.resetAfterMs;
+  // Escalation window extends past the previously applied cooldown so a model
+  // that fails again right after its lockout expires keeps escalating.
+  const withinWindow =
+    previous &&
+    now - previous.lastFailureAt <= previous.resetAfterMs + (previous.lastCooldownMs ?? 0);
   const failureCount = withinWindow ? previous.failureCount + 1 : 1;
+
+  const baseCooldownMs = getModelLockBaseCooldown(status, fallbackCooldownMs, profile);
+  // Cap exponential backoff so repeated failures cannot produce absurdly long
+  // lockouts; exact cooldowns (e.g. daily-quota until-midnight) are not capped.
+  const maxCooldownMs =
+    typeof options.maxCooldownMs === "number" && options.maxCooldownMs > 0
+      ? options.maxCooldownMs
+      : BACKOFF_CONFIG.max;
+  const cooldownMs =
+    typeof options.exactCooldownMs === "number" && options.exactCooldownMs > 0
+      ? options.exactCooldownMs
+      : Math.min(
+          getScaledCooldown(
+            baseCooldownMs,
+            failureCount,
+            profile?.maxBackoffSteps ?? BACKOFF_CONFIG.maxLevel
+          ),
+          maxCooldownMs
+        );
+
   modelFailureState.set(key, {
     failureCount,
     lastFailureAt: now,
     resetAfterMs,
+    lastCooldownMs: cooldownMs,
   });
-
-  const baseCooldownMs = getModelLockBaseCooldown(status, fallbackCooldownMs, profile);
-  const cooldownMs =
-    typeof options.exactCooldownMs === "number" && options.exactCooldownMs > 0
-      ? options.exactCooldownMs
-      : getScaledCooldown(
-          baseCooldownMs,
-          failureCount,
-          profile?.maxBackoffSteps ?? BACKOFF_CONFIG.maxLevel
-        );
 
   lockModel(provider, connectionId, model, reason, cooldownMs, {
     failureCount,

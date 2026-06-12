@@ -1707,6 +1707,8 @@ export async function markAccountUnavailable(
   providerProfile = null,
   options: {
     persistUnavailableState?: boolean;
+    /** Caller is the combo engine — it records its own model-level lockouts. */
+    isCombo?: boolean;
   } = {}
 ) {
   const currentMutex = markMutexes.get(connectionId) || Promise.resolve();
@@ -1986,6 +1988,13 @@ export async function markAccountUnavailable(
     const persistUnavailableState = options.persistUnavailableState !== false;
 
     if (!persistUnavailableState) {
+      // Combo-managed transient failure (e.g. 429): keep the connection clean in
+      // the DB, but record an in-memory model lockout so credential selection
+      // skips this exact provider+connection+model while it cools down — other
+      // models on the same connection stay usable.
+      if (provider && model && cooldownMs > 0) {
+        lockModel(provider, connectionId, model, reason || "unknown", cooldownMs);
+      }
       await updateProviderConnection(connectionId, {
         ...baseUpdate,
       });

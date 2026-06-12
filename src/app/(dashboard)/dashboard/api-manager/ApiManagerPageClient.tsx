@@ -1485,8 +1485,8 @@ const PermissionsModal = memo(function PermissionsModal({
   const [scheduleTz, setScheduleTz] = useState(
     apiKey?.accessSchedule?.tz ?? Intl.DateTimeFormat().resolvedOptions().timeZone
   );
-  const [rateLimits, setRateLimits] = useState<Array<{ limit: number; window: number; _key: string }>>(
-    (Array.isArray(apiKey?.rateLimits) ? apiKey.rateLimits : []).map((rl) => ({ ...rl, _key: crypto.randomUUID() }))
+  const [rateLimits, setRateLimits] = useState<Array<{ limit: number; window: number }>>(
+    Array.isArray(apiKey?.rateLimits) ? apiKey.rateLimits : []
   );
   const [streamDefaultMode, setStreamDefaultMode] = useState<StreamDefaultMode>(
     apiKey?.streamDefaultMode === "json" ? "json" : "legacy"
@@ -1652,7 +1652,7 @@ const PermissionsModal = memo(function PermissionsModal({
       expiresAt || null,
       maxSessions,
       schedule,
-      rateLimits.length > 0 ? rateLimits.map(({ _key, ...rest }) => rest) : null,
+      rateLimits.length > 0 ? rateLimits : null,
       mergeApiKeyPermissionScopes(apiKey?.scopes, {
         manageEnabled,
         selfUsageEnabled,
@@ -1866,7 +1866,7 @@ const PermissionsModal = memo(function PermissionsModal({
             </div>
             <button
               type="button"
-              onClick={() => setRateLimits((prev) => [...prev, { limit: 100, window: 60, _key: crypto.randomUUID() }])}
+              onClick={() => setRateLimits((prev) => [...prev, { limit: 100, window: 60 }])}
               className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-md text-xs font-semibold bg-primary/10 text-primary hover:bg-primary/20 transition-colors shrink-0"
             >
               <span className="material-symbols-outlined text-[14px]">add</span>
@@ -1876,7 +1876,7 @@ const PermissionsModal = memo(function PermissionsModal({
           {rateLimits.length > 0 && (
             <div className="flex flex-col gap-2 pt-2">
               {rateLimits.map((rl, index) => (
-                <div key={rl._key} className="flex gap-2 items-center">
+                <div key={index} className="flex gap-2 items-center">
                   <Input
                     type="number"
                     min={1}

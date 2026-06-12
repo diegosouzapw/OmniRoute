@@ -88,7 +88,9 @@ import AddApiKeyModal from "./components/modals/AddApiKeyModal";
 import EditConnectionModal from "./components/modals/EditConnectionModal";
 import WebSessionCredentialGuide from "./components/WebSessionCredentialGuide";
 // Phase 1d extractions — Issue #3501
-import ConnectionRow, { type ConnectionRowConnection } from "./components/ConnectionRow";
+import ConnectionRow, {
+  type ConnectionRowConnection,
+} from "./components/ConnectionRow";
 import ModelCompatPopover from "./components/ModelCompatPopover";
 import SiliconFlowEndpointModal from "./components/SiliconFlowEndpointModal";
 import { CC_COMPATIBLE_DEFAULT_CHAT_PATH } from "./providerDetailConstants";
@@ -752,7 +754,10 @@ export default function ProviderDetailPageClient() {
   // canImportModels, isAutoSyncEnabled, autoSyncConnection → hooks/useModelImportHandlers.ts (Phase 1k)
 
   // Phase 1e: compat-state derivations moved to useModelCompatState hook.
-  const compat = useModelCompatState(modelMeta.customModels, modelMeta.modelCompatOverrides);
+  const compat = useModelCompatState(
+    modelMeta.customModels,
+    modelMeta.modelCompatOverrides
+  );
   const { customMap, overrideMap } = compat;
   const effectiveModelNormalize = compat.effectiveModelNormalize;
   const effectiveModelPreserveDeveloper = compat.effectiveModelPreserveDeveloper;

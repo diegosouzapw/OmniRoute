@@ -77,10 +77,7 @@ import {
   isAutoFetchModelsEnabled,
   persistDiscoveredModels,
 } from "@/lib/providerModels/modelDiscovery";
-import {
-  parseGeminiModelsList,
-  type GeminiDiscoveryModel,
-} from "@/lib/providerModels/geminiModelsParser";
+import { parseGeminiModelsList, type GeminiDiscoveryModel } from "@/lib/providerModels/geminiModelsParser";
 import { getSyncedAvailableModels } from "@/lib/db/models";
 import { fetchCursorAgentModels } from "@/lib/providerModels/cursorAgent";
 
@@ -752,7 +749,8 @@ export async function GET(
                 (data.data || data.models || []) as Array<Record<string, unknown>>
               )
                 .map((item) => {
-                  const itemId = typeof item.id === "string" ? item.id.trim() : "";
+                  const itemId =
+                    typeof item.id === "string" ? item.id.trim() : "";
                   if (!itemId) return null;
                   const itemName =
                     typeof item.display_name === "string"
@@ -846,9 +844,7 @@ export async function GET(
     }
 
     const registryCatalogModels = providerSyncedModels ?? (getModelsByProviderId(provider) || []);
-    const specialtyCatalogModels = providerSyncedModels
-      ? []
-      : getStaticModelsForProvider(provider) || [];
+    const specialtyCatalogModels = providerSyncedModels ? [] : (getStaticModelsForProvider(provider) || []);
 
     const toLocalCatalogModels = () => {
       const localCatalog = mergeLocalCatalogModels(registryCatalogModels, specialtyCatalogModels);
@@ -2061,8 +2057,9 @@ export async function GET(
       let queryKey: string | null = null;
       let bearerToken: string | null = null;
       try {
-        const { parseSAFromApiKey, getAccessToken } =
-          await import("@omniroute/open-sse/executors/vertex.ts");
+        const { parseSAFromApiKey, getAccessToken } = await import(
+          "@omniroute/open-sse/executors/vertex.ts"
+        );
         if (accessToken) {
           bearerToken = accessToken;
         } else if (credential) {
@@ -2072,7 +2069,8 @@ export async function GET(
           let isServiceAccountJson = false;
           try {
             const parsed = JSON.parse(credential);
-            isServiceAccountJson = !!parsed && typeof parsed === "object" && !Array.isArray(parsed);
+            isServiceAccountJson =
+              !!parsed && typeof parsed === "object" && !Array.isArray(parsed);
           } catch {
             isServiceAccountJson = false;
           }

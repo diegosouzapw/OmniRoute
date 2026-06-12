@@ -25,9 +25,9 @@ export default function ExternalLinkModal({
     <Modal isOpen={isOpen} onClose={onClose} title="Adicionar Externo — link do Codex">
       <div className="space-y-4">
         <p className="text-sm text-text-muted">
-          Compartilhe este link com quem vai autenticar a conta do Codex. A pessoa abre a página,
-          faz o login da OpenAI no próprio navegador e a conexão é cadastrada aqui. Uso único,
-          expira em 15 minutos.
+          Compartilhe este link com quem vai autenticar a conta do Codex. A pessoa abre a
+          página, faz o login da OpenAI no próprio navegador e a conexão é cadastrada aqui. Uso
+          único, expira em 15 minutos.
         </p>
         {loading ? (
           <p className="text-sm text-text-muted">Gerando link…</p>
