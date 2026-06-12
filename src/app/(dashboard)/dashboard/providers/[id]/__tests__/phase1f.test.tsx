@@ -13,6 +13,7 @@
 import React, { act } from "react";
 import { createRoot } from "react-dom/client";
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
+import path from "node:path";
 
 // ---------------------------------------------------------------------------
 // Global mocks required by the extracted hooks
@@ -316,8 +317,13 @@ describe("useProviderModels — initial state", () => {
 // Cycle-safety: hooks must NOT import from ProviderDetailPageClient
 // ---------------------------------------------------------------------------
 
-const HOOKS_DIR =
-  "/home/diegosouzapw/dev/proxys/OmniRoute/.worktrees/fix-3501-phase1f/src/app/(dashboard)/dashboard/providers/[id]/hooks";
+// Resolve the hooks dir from the repo root (vitest runs from cwd). Was a
+// hardcoded absolute worktree path that broke the test outside that worktree
+// (#3501 Phase 1g-1j).
+const HOOKS_DIR = path.join(
+  process.cwd(),
+  "src/app/(dashboard)/dashboard/providers/[id]/hooks"
+);
 
 describe("Cycle-safety — hooks do not import ProviderDetailPageClient", () => {
   // We allow the name in JSDoc comments; what we forbid is an actual ES import statement.
