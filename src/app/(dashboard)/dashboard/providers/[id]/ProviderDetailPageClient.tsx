@@ -15,7 +15,7 @@ import { useAuthFileHandlers } from "./hooks/useAuthFileHandlers";
 // Phase 1g: ProviderPlaygroundPanel + helpers extracted to components/ProviderPlaygroundPanel.tsx
 import ProviderPlaygroundPanel from "./components/ProviderPlaygroundPanel";
 import { useNotificationStore } from "@/store/notificationStore";
-import { useParams, useRouter } from "next/navigation";
+import { useParams } from "next/navigation";
 import Link from "next/link";
 import { useTranslations } from "next-intl";
 import {
@@ -119,9 +119,6 @@ import {
   // CommandCodeAuthFlowState moved to hooks/useCommandCodeAuth.ts (Phase 1h)
   // CompatByProtocolMap, CompatModelRow, CompatModelMap → hooks/useModelVisibilityHandlers.ts (Phase 1l)
   // Phase 1s: pure helpers extracted from god-component closures
-  getApiLabel,
-  getApiDefaultPath,
-  getApiPath,
 } from "./providerPageHelpers";
 // CODEX_GLOBAL_SERVICE_MODE_VALUES, getCodexServiceTierLabel, normalizeCodexLimitPolicy
 // moved to hooks/useProviderSettings.ts + hooks/useProviderConnections.ts (Phase 1f)
@@ -142,6 +139,8 @@ import BatchTestResultsModal from "./components/BatchTestResultsModal";
 import { AdaptaTutorialModal } from "./components/AdaptaTutorialModal";
 // Phase 1t.1 extractions — Issue #3501
 import ProviderPageHeader from "./components/ProviderPageHeader";
+// Phase 1t.2 extractions — Issue #3501
+import CompatibleNodeCard from "./components/CompatibleNodeCard";
 // recordToHeaderRows moved to components/ModelCompatPopover.tsx (Phase 1d)
 // buildCompatMap, isModelHidden*, effectiveNormalize/Preserve*, anyNormalize/NoPreserveCompatBadge
 // moved to providerPageHelpers.ts + hook useModelCompatState (Phase 1e)
@@ -164,7 +163,6 @@ import ProviderPageHeader from "./components/ProviderPageHeader";
 
 export default function ProviderDetailPageClient() {
   const params = useParams();
-  const router = useRouter();
   const providerId = params.id as string;
 
   // ── UI-only modal state (not owned by hooks) ─────────────────────────────
@@ -671,77 +669,19 @@ export default function ProviderDetailPageClient() {
 
       {providerId === "zed" && <ZedImportCard fetchConnections={fetchConnections} notify={notify} />}
 
+      {/* CompatibleNodeCard — Phase 1t.2: extracted to components/CompatibleNodeCard.tsx */}
       {isCompatible && providerNode && (
-        <Card>
-          <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-            <div>
-              <h2 className="text-lg font-semibold">
-                {isCcCompatible
-                  ? t("ccCompatibleDetailsTitle")
-                  : isAnthropicCompatible
-                    ? t("anthropicCompatibleDetails")
-                    : t("openaiCompatibleDetails")}
-              </h2>
-              <p className="text-sm text-text-muted">
-                {getApiLabel(t, isAnthropicProtocolCompatible, providerNode?.apiType)} · {(providerNode.baseUrl || "").replace(/\/$/, "")}/{getApiPath(isCcCompatible, isAnthropicCompatible, providerNode?.apiType, providerNode?.chatPath)}
-              </p>
-            </div>
-            <div className="flex flex-wrap items-center gap-2">
-              <Button size="sm" icon="add" onClick={() => gateConnectionFlow(openApiKeyAddFlow)}>
-                {t("add")}
-              </Button>
-              <Button
-                size="sm"
-                variant="secondary"
-                icon="edit"
-                onClick={() => setShowEditNodeModal(true)}
-              >
-                {t("edit")}
-              </Button>
-              <Button
-                size="sm"
-                variant="secondary"
-                icon="delete"
-                onClick={async () => {
-                  if (
-                    !confirm(
-                      t("deleteCompatibleNodeConfirm", {
-                        type: isCcCompatible
-                          ? t("ccCompatibleLabel")
-                          : isAnthropicCompatible
-                            ? t("anthropic")
-                            : t("openai"),
-                      })
-                    )
-                  )
-                    return;
-                  try {
-                    const res = await fetch(`/api/provider-nodes/${providerId}`, {
-                      method: "DELETE",
-                    });
-                    if (res.ok) {
-                      router.push("/dashboard/providers");
-                    }
-                  } catch (error) {
-                    console.error("Error deleting provider node:", error);
-                  }
-                }}
-              >
-                {t("delete")}
-              </Button>
-            </div>
-          </div>
-          {isCcCompatible && (
-            <div className="mb-4 rounded-lg border border-amber-500/25 bg-amber-500/10 px-3 py-2 text-sm text-text-muted">
-              <div className="flex items-start gap-2">
-                <span className="material-symbols-outlined mt-0.5 text-[18px] text-amber-500">
-                  warning
-                </span>
-                <p>{t("ccCompatibleValidationHint")}</p>
-              </div>
-            </div>
-          )}
-        </Card>
+        <CompatibleNodeCard
+          providerId={providerId}
+          providerNode={providerNode}
+          isCcCompatible={isCcCompatible}
+          isAnthropicCompatible={isAnthropicCompatible}
+          isAnthropicProtocolCompatible={isAnthropicProtocolCompatible}
+          gateConnectionFlow={gateConnectionFlow}
+          openApiKeyAddFlow={openApiKeyAddFlow}
+          onOpenEditNodeModal={() => setShowEditNodeModal(true)}
+          t={t}
+        />
       )}
 
       {/* Connections */}
