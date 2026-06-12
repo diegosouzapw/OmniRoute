@@ -1,32 +1,11 @@
 "use client";
 
+// Issue #3501 strangler-fig decomposition — Phase 1t (final push)
 import { useState, useEffect, useCallback, useMemo } from "react";
-// Phase 1f extractions — Issue #3501
-import { useProviderConnections } from "./hooks/useProviderConnections";
-import { useProviderSettings } from "./hooks/useProviderSettings";
-import { useProviderModels } from "./hooks/useProviderModels";
-// Phase 1h: commandCode auth flow extracted to hooks/useCommandCodeAuth.ts
-import { useCommandCodeAuth } from "./hooks/useCommandCodeAuth";
-// Phase 1i: external link flow extracted to hooks/useExternalLinkFlow.ts
-import { useExternalLinkFlow } from "./hooks/useExternalLinkFlow";
-// ExternalLinkModal — used by components/ProviderModalsPanel.tsx (Phase 1t.5)
-// Phase 1j: auth file handlers extracted to hooks/useAuthFileHandlers.ts
-import { useAuthFileHandlers } from "./hooks/useAuthFileHandlers";
-// Phase 1g: ProviderPlaygroundPanel + helpers extracted to components/ProviderPlaygroundPanel.tsx
-import ProviderPlaygroundPanel from "./components/ProviderPlaygroundPanel";
-import { useNotificationStore } from "@/store/notificationStore";
 import { useParams } from "next/navigation";
 import Link from "next/link";
 import { useTranslations } from "next-intl";
-import {
-  Card,
-  Button,
-  CardSkeleton,
-  NoAuthProviderCard,
-  NoAuthAccountCard,
-} from "@/shared/components";
-// ConfirmModal, OAuthModal, KiroOAuthWrapper, CursorAuthModal, TraeAuthModal, ProxyConfigModal
-// — used by components/ProviderModalsPanel.tsx (Phase 1t.5)
+import { Card, Button, CardSkeleton, NoAuthProviderCard, NoAuthAccountCard } from "@/shared/components";
 import {
   NOAUTH_PROVIDERS,
   getProviderAlias,
@@ -34,85 +13,38 @@ import {
   isAnthropicCompatibleProvider,
   isClaudeCodeCompatibleProvider,
   supportsApiKeyOnFreeProvider,
-  // LOCAL_PROVIDERS, isSelfHostedChatProvider moved to extracted modals/helpers
-  // providerAllowsOptionalApiKey + supportsBulkApiKey used by extracted AddApiKeyModal
 } from "@/shared/constants/providers";
-// antigravityClientProfile + parseBulkApiKeys used by extracted modals (AddApiKeyModal, EditConnectionModal)
 import { getModelsByProviderId } from "@/shared/constants/models";
-import {
-  compatibleProviderSupportsModelImport,
-  getCompatibleFallbackModels,
-} from "@/lib/providers/managedAvailableModels";
+import { compatibleProviderSupportsModelImport, getCompatibleFallbackModels } from "@/lib/providers/managedAvailableModels";
 import { normalizeModelCatalogSource } from "@/shared/utils/modelCatalogSearch";
 import { useCopyToClipboard } from "@/shared/hooks/useCopyToClipboard";
 import useEmailPrivacyStore from "@/store/emailPrivacyStore";
-// pickDisplayValue, compareTr, CodexServiceTier, CodexGlobalServiceMode — used by extracted modals/hooks
-// RiskNoticeModal, CodexCliGuideModal — used by components/ProviderModalsPanel.tsx (Phase 1t.5)
-// isRiskAcknowledged, useRiskAcknowledged moved to hooks/useConnectionGate.ts (Phase 1t.3)
+import { useNotificationStore } from "@/store/notificationStore";
 import { resolveDashboardProviderInfo } from "../providerPageUtils";
-// webSessionCredentials used by extracted modals (AddApiKeyModal, EditConnectionModal)
-// ImportCodexAuthModal, ApplyCodexAuthModal, ImportClaudeAuthModal, ApplyClaudeAuthModal,
-// ImportGeminiAuthModal, ApplyGeminiAuthModal, EditCompatibleNodeModal, AddApiKeyModal,
-// EditConnectionModal — used by components/ProviderModalsPanel.tsx (Phase 1t.5)
-// WebSessionCredentialGuide used by extracted ConnectionRow/modals (Phase 1d/1e)
-// Phase 1d extractions — Issue #3501 (ConnectionRow, ModelCompatPopover, SiliconFlowEndpointModal
-// used by ConnectionsListPanel/ProviderModelsSection/ProviderModalsPanel)
 import { type ConnectionRowConnection } from "./components/ConnectionRow";
-// Phase 1k extractions — Issue #3501
+import { useProviderConnections } from "./hooks/useProviderConnections";
+import { useProviderSettings } from "./hooks/useProviderSettings";
+import { useProviderModels } from "./hooks/useProviderModels";
+import { useCommandCodeAuth } from "./hooks/useCommandCodeAuth";
+import { useExternalLinkFlow } from "./hooks/useExternalLinkFlow";
+import { useAuthFileHandlers } from "./hooks/useAuthFileHandlers";
 import { useModelImportHandlers } from "./hooks/useModelImportHandlers";
-// Phase 1s extractions — Issue #3501
 import { useApiKeySave } from "./hooks/useApiKeySave";
-// ImportProgressModal — used by components/ProviderModalsPanel.tsx (Phase 1t.5)
-// Phase 1l extractions — Issue #3501
 import { useModelVisibilityHandlers } from "./hooks/useModelVisibilityHandlers";
-// Phase 1m extractions — Issue #3501
-import ProviderModelsSection from "./components/ProviderModelsSection";
-import {
-  // All non-used helpers moved to extracted modals/hooks in prior phases
-  providerText,
-} from "./providerPageHelpers";
-// CODEX_GLOBAL_SERVICE_MODE_VALUES, getCodexServiceTierLabel, normalizeCodexLimitPolicy
-// moved to hooks/useProviderSettings.ts + hooks/useProviderConnections.ts (Phase 1f)
-// Phase 1e extractions — Issue #3501
 import { useModelCompatState } from "./hooks/useModelCompatState";
-import CustomModelsSection from "./components/CustomModelsSection";
-// ModelRow, ModelVisibilityToolbar, PassthroughModelsSection, CompatibleModelsSection → ProviderModelsSection (Phase 1m)
-import ConnectionsListPanel from "./components/ConnectionsListPanel";
-// Phase 1o extractions — Issue #3501
-import ConnectionsHeaderToolbar from "./components/ConnectionsHeaderToolbar";
-// Phase 1p extractions — Issue #3501
-import ZedImportCard from "./components/ZedImportCard";
-// Phase 1q extractions — Issue #3501
-// BatchTestResultsModal, AdaptaTutorialModal — used by components/ProviderModalsPanel.tsx (Phase 1t.5)
-// Phase 1t.1 extractions — Issue #3501
-import ProviderPageHeader from "./components/ProviderPageHeader";
-// Phase 1t.2 extractions — Issue #3501
-import CompatibleNodeCard from "./components/CompatibleNodeCard";
-// Phase 1t.5 extractions — Issue #3501
-import ProviderModalsPanel from "./components/ProviderModalsPanel";
-// Phase 1t.3 extractions — Issue #3501
 import { useConnectionGate } from "./hooks/useConnectionGate";
-// Phase 1t.4 extractions — Issue #3501
 import { useProviderNodeActions } from "./hooks/useProviderNodeActions";
-// recordToHeaderRows moved to components/ModelCompatPopover.tsx (Phase 1d)
-// buildCompatMap, isModelHidden*, effectiveNormalize/Preserve*, anyNormalize/NoPreserveCompatBadge
-// moved to providerPageHelpers.ts + hook useModelCompatState (Phase 1e)
-// formatProviderModelsErrorResponse moved to providerPageHelpers.ts (Phase 1e)
-
-// ModelCompatSavePatch → hooks/useModelVisibilityHandlers.ts (Phase 1l)
-// MAX_BULK_IDS moved to hooks/useProviderConnections.ts (Phase 1f)
-// ModelRowProps, PassthroughModelRowProps → components/ModelRow.tsx, PassthroughModelRow.tsx (Phase 1e)
-// PassthroughModelsSectionProps → components/PassthroughModelsSection.tsx (Phase 1e)
-// CustomModelsSectionProps → components/CustomModelsSection.tsx (Phase 1e)
-// CompatibleModelsSectionProps → components/CompatibleModelsSection.tsx (Phase 1e)
-// CooldownTimerProps moved to components/ConnectionRow.tsx (Phase 1d)
-
-// getModelSourceBadgeClass + ModelSourceBadge → components/ModelRow.tsx (Phase 1e)
-// ConnectionRowConnection, ConnectionRowProps moved to components/ConnectionRow.tsx (Phase 1d)
-
-// ModelCompatPopover extracted to components/ModelCompatPopover.tsx (Phase 1d)
-
-// ── ProviderPlaygroundPanel extracted to components/ProviderPlaygroundPanel.tsx (Phase 1g) ──
+import ProviderPlaygroundPanel from "./components/ProviderPlaygroundPanel";
+import ProviderModelsSection from "./components/ProviderModelsSection";
+import CustomModelsSection from "./components/CustomModelsSection";
+import ConnectionsListPanel from "./components/ConnectionsListPanel";
+import ConnectionsHeaderToolbar from "./components/ConnectionsHeaderToolbar";
+import ZedImportCard from "./components/ZedImportCard";
+import ProviderPageHeader from "./components/ProviderPageHeader";
+import CompatibleNodeCard from "./components/CompatibleNodeCard";
+import ProviderModalsPanel from "./components/ProviderModalsPanel";
+import EmptyConnectionsPlaceholder from "./components/EmptyConnectionsPlaceholder";
+import { providerText } from "./providerPageHelpers";
 
 export default function ProviderDetailPageClient() {
   const params = useParams();
@@ -167,7 +99,6 @@ export default function ProviderDetailPageClient() {
     setSelectedIds,
     setBatchDeleteConfirmOpen,
     setBatchTestResults,
-    setConnections,
     setProviderNode,
     fetchConnections,
     fetchProxyConfig,
@@ -232,7 +163,6 @@ export default function ProviderDetailPageClient() {
     externalLinkModalOpen,
     setExternalLinkModalOpen,
     externalLinkUrl,
-    externalLinkToken,
     externalLinkLoading,
     externalLinkError,
     externalLinkCopied,
@@ -318,7 +248,6 @@ export default function ProviderDetailPageClient() {
     togglingAutoSync,
     canImportModels,
     isAutoSyncEnabled,
-    autoSyncConnection,
     setShowImportModal,
     setImportProgress,
     handleImportModels,
@@ -340,32 +269,12 @@ export default function ProviderDetailPageClient() {
     providerStorageAlias,
   });
 
-  // fetchAliases, handleSetAlias, handleDeleteAlias → hooks/useProviderModels.ts (Phase 1f)
-  // fetchProviderModelMeta, fetchProxyConfig, fetchConnections → hooks/useProviderConnections.ts + useProviderModels.ts (Phase 1f)
-  // loadCodexSettings, loadClaudeRoutingSettings → hooks/useProviderSettings.ts (Phase 1f)
-  // loadConnProxies, handleRetestConnection, handleBatchTestAll, handleBatchRetest → hooks/useProviderConnections.ts (Phase 1f)
-  // handleDelete, handleBatchDeleteConfirm, handleBatchSetActive → hooks/useProviderConnections.ts (Phase 1f)
-  // handleUpdateConnectionStatus, handleToggleProxyEnabled, handleTogglePerKeyProxyEnabled → hooks/useProviderConnections.ts (Phase 1f)
-  // handleDistributeProxies, handleToggleRateLimit, handleToggleClaudeExtraUsage → hooks/useProviderConnections.ts (Phase 1f)
-  // handleToggleCliproxyapiMode, handleToggleCodexLimit, handleSwapPriority → hooks/useProviderConnections.ts (Phase 1f)
-  // handleToggleClaudeRoutingPreference, handleChangeCodexGlobalServiceMode → hooks/useProviderSettings.ts (Phase 1f)
-  // handleRefreshToken → hooks/useProviderConnections.ts (Phase 1f)
-
   // ── model-related effects (loading gate) ────────────────────────────────
   useEffect(() => {
     if (loading || isSearchProvider) return;
     fetchProviderModelMeta();
     fetchAliases();
   }, [loading, isSearchProvider, fetchProviderModelMeta, fetchAliases]);
-
-  // loadCodexSettings, loadClaudeRoutingSettings → hooks/useProviderSettings.ts (Phase 1f)
-  // loadConnProxies → hooks/useProviderConnections.ts (Phase 1f)
-  // onTestModel, handleTestAll, saveModelCompatFlags, handleToggleModelHidden,
-  // handleBulkToggleModelHidden, handleClearAllModels, providerAliasEntries
-  // → hooks/useModelVisibilityHandlers.ts (Phase 1l)
-
-  // handleToggleSelectOne/All, handleBatchDeleteOpenModal/Confirm, handleDelete,
-  // handleBatchSetActive → hooks/useProviderConnections.ts (Phase 1f)
 
   const handleOAuthSuccess = useCallback(() => {
     fetchConnections();
@@ -391,9 +300,7 @@ export default function ProviderDetailPageClient() {
   // ── Phase 1h: commandCode auth flow ─────────────────────────────────────
   const {
     commandCodeAuthState,
-    clearCommandCodeAuthTimer,
     handleCloseAddApiKeyModal,
-    handleCommandCodeAuthApply,
     handleStartCommandCodeAuth,
     handleOpenCommandCodeConnect,
   } = useCommandCodeAuth({
@@ -428,34 +335,7 @@ export default function ProviderDetailPageClient() {
     t,
   });
 
-  // handleUpdateConnectionStatus, handleToggleProxyEnabled, handleTogglePerKeyProxyEnabled,
-  // handleDistributeProxies, handleToggleRateLimit, handleToggleClaudeExtraUsage,
-  // handleToggleCliproxyapiMode, handleToggleCodexLimit, handleToggleClaudeRoutingPreference,
-  // handleChangeCodexGlobalServiceMode, handleRetestConnection, runBatchTest,
-  // handleBatchTestAll, handleBatchRetest, parseApiErrorMessage, getAttachmentFilename,
-  // handleRefreshToken → hooks/useProviderConnections.ts + useProviderSettings.ts (Phase 1f)
-
-  // handleToggleProxyEnabled → useProviderConnections (Phase 1f)
-
-  // handleTogglePerKeyProxyEnabled → useProviderConnections (Phase 1f)
-
-  // handleDistributeProxies → useProviderConnections (Phase 1f)
-
-  // handleToggleRateLimit → useProviderConnections (Phase 1f)
-
-  // handleToggleClaudeExtraUsage → useProviderConnections (Phase 1f)
-
-  // [cpaProviderEnabled] state + useEffect + handleToggleCliproxyapiMode → useProviderConnections (Phase 1f)
-
-  // handleToggleCodexLimit → useProviderConnections (Phase 1f)
-
-  // handleToggleClaudeRoutingPreference + handleChangeCodexGlobalServiceMode → useProviderSettings (Phase 1f)
-
-  // handleRetestConnection, runBatchTest, handleBatchTestAll, handleBatchRetest,
-  // [refreshingId], parseApiErrorMessage, getAttachmentFilename, handleRefreshToken
-  // → useProviderConnections (Phase 1f)
-
-  // Phase 1j: auth file handlers extracted to hooks/useAuthFileHandlers.ts
+  // Phase 1j: auth file handlers
   const {
     applyingCodexAuthId,
     applyCodexModalConnectionId,
@@ -477,16 +357,12 @@ export default function ProviderDetailPageClient() {
     handleExportGeminiAuthFile,
   } = useAuthFileHandlers({ parseApiErrorMessage, getAttachmentFilename, notify, t });
 
-  // handleSwapPriority → useProviderConnections (Phase 1f)
-  // handleImportModels, handleCompatibleImportWithProgress, handleToggleAutoSync,
-  // canImportModels, isAutoSyncEnabled, autoSyncConnection → hooks/useModelImportHandlers.ts (Phase 1k)
-
-  // Phase 1e: compat-state derivations moved to useModelCompatState hook.
+  // Phase 1e: compat-state derivations
   const compat = useModelCompatState(
     modelMeta.customModels,
     modelMeta.modelCompatOverrides
   );
-  const { customMap, overrideMap } = compat;
+  const { customMap } = compat;
   const effectiveModelNormalize = compat.effectiveModelNormalize;
   const effectiveModelPreserveDeveloper = compat.effectiveModelPreserveDeveloper;
   const effectiveModelHidden = compat.isModelHidden;
@@ -651,88 +527,23 @@ export default function ProviderDetailPageClient() {
           />
 
           {connections.length === 0 ? (
-            <div className="text-center py-12">
-              <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-primary/10 text-primary mb-4">
-                <span className="material-symbols-outlined text-[32px]">
-                  {isOAuth ? "lock" : "key"}
-                </span>
-              </div>
-              <p className="text-text-main font-medium mb-1">{t("noConnectionsYet")}</p>
-              <p className="text-sm text-text-muted mb-4">{t("addFirstConnectionHint")}</p>
-              {!isCompatible && (
-                <div className="flex items-center justify-center gap-2">
-                  {isCommandCode ? (
-                    <>
-                      <Button
-                        icon="open_in_new"
-                        loading={
-                          commandCodeAuthState.phase === "starting" ||
-                          commandCodeAuthState.phase === "polling" ||
-                          commandCodeAuthState.phase === "applying"
-                        }
-                        onClick={() => gateConnectionFlow(handleOpenCommandCodeConnect)}
-                      >
-                        Connect
-                      </Button>
-                      <Button
-                        variant="secondary"
-                        icon="add"
-                        onClick={() => gateConnectionFlow(openApiKeyAddFlow)}
-                      >
-                        Manual API key
-                      </Button>
-                    </>
-                  ) : (
-                    <>
-                      <Button icon="add" onClick={() => gateConnectionFlow(openPrimaryAddFlow)}>
-                        {providerSupportsPat ? "Add PAT" : t("addConnection")}
-                      </Button>
-                      {providerId === "qoder" && (
-                        <Button
-                          variant="secondary"
-                          onClick={() => gateConnectionFlow(() => setShowOAuthModal(true))}
-                        >
-                          Experimental OAuth
-                        </Button>
-                      )}
-                      {providerId === "codex" && (
-                        <Button
-                          variant="secondary"
-                          icon="upload_file"
-                          onClick={() => gateConnectionFlow(() => setImportCodexModalOpen(true))}
-                        >
-                          {typeof t.has === "function" && t.has("importCodexAuth")
-                            ? t("importCodexAuth")
-                            : "Import auth"}
-                        </Button>
-                      )}
-                      {providerId === "claude" && (
-                        <Button
-                          variant="secondary"
-                          icon="upload_file"
-                          onClick={() => gateConnectionFlow(() => setImportClaudeModalOpen(true))}
-                        >
-                          {typeof t.has === "function" && t.has("importClaudeAuth")
-                            ? t("importClaudeAuth")
-                            : "Import auth"}
-                        </Button>
-                      )}
-                      {providerId === "gemini-cli" && (
-                        <Button
-                          variant="secondary"
-                          icon="upload_file"
-                          onClick={() => gateConnectionFlow(() => setImportGeminiModalOpen(true))}
-                        >
-                          {typeof t.has === "function" && t.has("importGeminiAuth")
-                            ? t("importGeminiAuth")
-                            : "Import auth"}
-                        </Button>
-                      )}
-                    </>
-                  )}
-                </div>
-              )}
-            </div>
+            <EmptyConnectionsPlaceholder
+              isOAuth={isOAuth}
+              isCompatible={isCompatible}
+              isCommandCode={isCommandCode}
+              providerId={providerId}
+              providerSupportsPat={providerSupportsPat}
+              commandCodeAuthState={commandCodeAuthState}
+              gateConnectionFlow={gateConnectionFlow}
+              openApiKeyAddFlow={openApiKeyAddFlow}
+              openPrimaryAddFlow={openPrimaryAddFlow}
+              handleOpenCommandCodeConnect={handleOpenCommandCodeConnect}
+              onOpenOAuthModal={() => setShowOAuthModal(true)}
+              onOpenImportCodex={() => setImportCodexModalOpen(true)}
+              onOpenImportClaude={() => setImportClaudeModalOpen(true)}
+              onOpenImportGemini={() => setImportGeminiModalOpen(true)}
+              t={t}
+            />
           ) : (
             <ConnectionsListPanel
               connections={connections}
@@ -1026,9 +837,3 @@ export default function ProviderDetailPageClient() {
   );
 }
 
-// ModelRow, ModelVisibilityToolbar, PassthroughModelsSection, PassthroughModelRow,
-// CustomModelsSection, CompatibleModelsSection → components/ (Phase 1e — Issue #3501)
-
-// Phase 1d: CooldownTimer, inferErrorType, getStatusPresentation, ConnectionRow → components/ConnectionRow.tsx
-// Phase 1d: ModelCompatPopover, recordToHeaderRows → components/ModelCompatPopover.tsx
-// Phase 1d: SiliconFlowEndpointModal → components/SiliconFlowEndpointModal.tsx
