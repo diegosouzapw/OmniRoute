@@ -31,7 +31,9 @@ const PROXY_LEVEL_TO_REGISTRY_SCOPE = {
 } as const;
 
 function isSocks5Enabled() {
-  return process.env.ENABLE_SOCKS5_PROXY === "true";
+  // Default ON (opt-out): only an explicit falsey value disables SOCKS5.
+  const raw = (process.env.ENABLE_SOCKS5_PROXY ?? "").trim().toLowerCase();
+  return !["false", "0", "no", "off"].includes(raw);
 }
 
 function getSupportedProxyTypes() {
@@ -106,7 +108,7 @@ function normalizeAndValidateProxy(
   const type = String(proxy.type || "http").toLowerCase() as NonNullable<ProxyConfigInput["type"]>;
   if (type === "socks5" && !isSocks5Enabled()) {
     throw createInvalidProxyError(
-      "SOCKS5 proxy is disabled (set ENABLE_SOCKS5_PROXY=true to enable)"
+      "SOCKS5 proxy is disabled (remove ENABLE_SOCKS5_PROXY=false to enable — it is ON by default)"
     );
   }
   if (type.startsWith("socks") && type !== "socks5") {
