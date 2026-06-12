@@ -93,9 +93,10 @@ import ConnectionRow, {
 } from "./components/ConnectionRow";
 import ModelCompatPopover from "./components/ModelCompatPopover";
 import SiliconFlowEndpointModal from "./components/SiliconFlowEndpointModal";
-import { CC_COMPATIBLE_DEFAULT_CHAT_PATH } from "./providerDetailConstants";
 // Phase 1k extractions — Issue #3501
 import { useModelImportHandlers } from "./hooks/useModelImportHandlers";
+// Phase 1s extractions — Issue #3501
+import { useApiKeySave } from "./hooks/useApiKeySave";
 import ImportProgressModal from "./components/ImportProgressModal";
 // Phase 1l extractions — Issue #3501
 import { useModelVisibilityHandlers } from "./hooks/useModelVisibilityHandlers";
@@ -119,6 +120,11 @@ import {
   type LocalProviderMetadata,
   // CommandCodeAuthFlowState moved to hooks/useCommandCodeAuth.ts (Phase 1h)
   // CompatByProtocolMap, CompatModelRow, CompatModelMap → hooks/useModelVisibilityHandlers.ts (Phase 1l)
+  // Phase 1s: pure helpers extracted from god-component closures
+  getApiLabel,
+  getApiDefaultPath,
+  getApiPath,
+  getHeaderIconProviderId,
 } from "./providerPageHelpers";
 // CODEX_GLOBAL_SERVICE_MODE_VALUES, getCodexServiceTierLabel, normalizeCodexLimitPolicy
 // moved to hooks/useProviderSettings.ts + hooks/useProviderConnections.ts (Phase 1f)
@@ -383,50 +389,6 @@ export default function ProviderDetailPageClient() {
     providerStorageAlias,
   });
 
-  const getApiLabel = () => {
-    if (isAnthropicProtocolCompatible) return t("messagesApi");
-    const type = providerNode?.apiType;
-    switch (type) {
-      case "responses":
-        return t("responsesApi");
-      case "embeddings":
-        return t("embeddings");
-      case "audio-transcriptions":
-        return t("audioTranscriptions");
-      case "audio-speech":
-        return t("audioSpeech");
-      case "images-generations":
-        return t("imagesGenerations");
-      default:
-        return t("chatCompletions");
-    }
-  };
-
-  const getApiDefaultPath = () => {
-    if (isCcCompatible) return CC_COMPATIBLE_DEFAULT_CHAT_PATH;
-    if (isAnthropicCompatible) return "/messages";
-    const type = providerNode?.apiType;
-    switch (type) {
-      case "responses":
-        return "/responses";
-      case "embeddings":
-        return "/embeddings";
-      case "audio-transcriptions":
-        return "/audio/transcriptions";
-      case "audio-speech":
-        return "/audio/speech";
-      case "images-generations":
-        return "/images/generations";
-      default:
-        return "/chat/completions";
-    }
-  };
-
-  const getApiPath = () => {
-    const defaultPath = getApiDefaultPath();
-    return (providerNode?.chatPath || defaultPath).replace(/^\//, "");
-  };
-
   // fetchAliases, handleSetAlias, handleDeleteAlias → hooks/useProviderModels.ts (Phase 1f)
   // fetchProviderModelMeta, fetchProxyConfig, fetchConnections → hooks/useProviderConnections.ts + useProviderModels.ts (Phase 1f)
   // loadCodexSettings, loadClaudeRoutingSettings → hooks/useProviderSettings.ts (Phase 1f)
@@ -534,98 +496,18 @@ export default function ProviderDetailPageClient() {
     notify,
   });
 
-  const handleSaveApiKey = async (formData) => {
-    try {
-      const res = await fetch("/api/providers", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ provider: providerId, ...formData }),
-      });
-      if (res.ok) {
-        const connectionData = await res.json();
-        const newConnection = connectionData?.connection;
-        await fetchConnections();
-        setShowAddApiKeyModal(false);
-        setSiliconFlowInitialBaseUrl(undefined);
-
-        // Universal: sync models from the provider endpoint on every new connection
-        // (was previously Gemini-only). Do NOT re-introduce a providerId guard here.
-        if (newConnection?.id) {
-          setShowImportModal(true);
-          setImportProgress({
-            current: 0,
-            total: 0,
-            phase: "fetching",
-            status: t("fetchingModels"),
-            logs: [],
-            error: "",
-            importedCount: 0,
-          });
-
-          try {
-            const syncRes = await fetch(`/api/providers/${newConnection.id}/sync-models`, {
-              method: "POST",
-              signal: AbortSignal.timeout(30_000), // 30s timeout — model sync shouldn't hang
-            });
-            const syncData = await syncRes.json();
-
-            if (!syncRes.ok || syncData.error) {
-              setImportProgress((prev) => ({
-                ...prev,
-                phase: "error",
-                status: t("failedFetchModels"),
-                error: syncData.error?.message || syncData.error || t("failedImportModels"),
-              }));
-              return null;
-            }
-
-            const syncedCount = syncData.syncedModels || 0;
-            const availableCount =
-              typeof syncData.availableModelsCount === "number"
-                ? syncData.availableModelsCount
-                : Array.isArray(syncData.models)
-                  ? syncData.models.length
-                  : syncedCount;
-            const syncedModelList: Array<{ id: string; name?: string }> = syncData.models || [];
-            const logs: string[] = [];
-            if (syncedModelList.length > 0) {
-              logs.push(`✓ ${availableCount} models available`);
-              logs.push("");
-              for (const m of syncedModelList) {
-                logs.push(`  ${m.name || m.id}`);
-              }
-            }
-
-            setImportProgress((prev) => ({
-              ...prev,
-              phase: "done",
-              status: t("modelsImported", { count: availableCount }),
-              total: availableCount,
-              current: availableCount,
-              importedCount: availableCount,
-              logs,
-            }));
-
-            await fetchProviderModelMeta();
-          } catch (syncError) {
-            setImportProgress((prev) => ({
-              ...prev,
-              phase: "error",
-              status: t("failedFetchModels"),
-              error: String(syncError),
-            }));
-          }
-        }
-        return null;
-      }
-      const data = await res.json().catch(() => ({}));
-      const errorMsg = data.error?.message || data.error || t("failedSaveConnection");
-      return errorMsg;
-    } catch (error) {
-      console.log("Error saving connection:", error);
-      return t("failedSaveConnectionRetry");
-    }
-  };
+  // Phase 1s: handleSaveApiKey extracted to hooks/useApiKeySave.ts
+  const { handleSaveApiKey } = useApiKeySave({
+    providerId,
+    fetchConnections,
+    fetchProviderModelMeta,
+    setImportProgress,
+    setShowImportModal,
+    setShowAddApiKeyModal,
+    setSiliconFlowInitialBaseUrl,
+    notify,
+    t,
+  });
 
   const handleUpdateConnection = async (formData) => {
     try {
@@ -775,17 +657,6 @@ export default function ProviderDetailPageClient() {
     );
   }
 
-  // OpenAI/Anthropic compatible providers use their specialized pseudo-provider icons.
-  const getHeaderIconProviderId = () => {
-    if (isOpenAICompatible && providerInfo.apiType) {
-      return providerInfo.apiType === "responses" ? "oai-r" : "oai-cc";
-    }
-    if (isAnthropicProtocolCompatible) {
-      return "anthropic-m";
-    }
-    return providerInfo.id;
-  };
-
   return (
     <div className="flex flex-col gap-8">
       {/* Header */}
@@ -802,7 +673,7 @@ export default function ProviderDetailPageClient() {
             className="rounded-lg flex items-center justify-center"
             style={{ backgroundColor: `${providerInfo.color}15` }}
           >
-            <ProviderIcon providerId={getHeaderIconProviderId()} size={48} type="color" />
+            <ProviderIcon providerId={getHeaderIconProviderId(isOpenAICompatible, isAnthropicProtocolCompatible, providerInfo.id, providerInfo.apiType)} size={48} type="color" />
           </div>
           <div>
             {providerInfo.website ? (
@@ -852,7 +723,7 @@ export default function ProviderDetailPageClient() {
                     : t("openaiCompatibleDetails")}
               </h2>
               <p className="text-sm text-text-muted">
-                {getApiLabel()} · {(providerNode.baseUrl || "").replace(/\/$/, "")}/{getApiPath()}
+                {getApiLabel(t, isAnthropicProtocolCompatible, providerNode?.apiType)} · {(providerNode.baseUrl || "").replace(/\/$/, "")}/{getApiPath(isCcCompatible, isAnthropicCompatible, providerNode?.apiType, providerNode?.chatPath)}
               </p>
             </div>
             <div className="flex flex-wrap items-center gap-2">
