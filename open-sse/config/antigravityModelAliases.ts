@@ -65,9 +65,10 @@ export const ANTIGRAVITY_PUBLIC_MODELS = Object.freeze([
     supportsVision: true,
     toolCalling: true,
   },
-  // Gemini 3.1 Pro budget tiers — agy already ships these; #3184 confirmed they work via
-  // the antigravity OAuth provider. The -high/-low suffix is aliased to the plain
-  // gemini-3.1-pro upstream id (see ANTIGRAVITY_MODEL_ALIASES / #3229).
+  // Gemini 3.1 Pro budget tiers — agy ships these and they route directly via the
+  // antigravity OAuth provider. The upstream ACCEPTS the suffixed ids verbatim (wire-
+  // confirmed via `agy --model gemini-3.1-pro-high`: 200 OK on /v1internal:streamGenerateContent).
+  // No alias needed; see #3696 (supersedes the #3229 premise).
   {
     id: "gemini-3.1-pro-high",
     name: "Gemini 3.1 Pro (High)",
@@ -158,10 +159,10 @@ export const ANTIGRAVITY_MODEL_ALIASES = Object.freeze({
   // (upstream `gemini-3-flash-agent`). It is NOT re-added to the public catalog.
   "gemini-3.5-flash-preview": "gemini-3-flash-agent",
   "gemini-3-pro-preview": "gemini-3.1-pro",
-  // agy catalog exposes -high/-low budget tiers, but the upstream rejects the suffix
-  // for gemini-3.x (#3229) — map them to the plain proven id.
-  "gemini-3.1-pro-high": "gemini-3.1-pro",
-  "gemini-3.1-pro-low": "gemini-3.1-pro",
+  // gemini-3.1-pro-high and gemini-3.1-pro-low are NOT aliased here: wire capture
+  // (#3696) confirmed the upstream accepts the suffixed ids verbatim → pass through.
+  // (The earlier #3229 assumption — "upstream rejects -high/-low for gemini-3.x" —
+  // was refuted by the agy --log-file 200 OK evidence.)
   "gemini-3-pro-image-preview": "gemini-3-pro-image",
   "gemini-2.5-computer-use-preview-10-2025": "rev19-uic3-1p",
   // Legacy Claude display ids → current upstream ids. NOTE: an earlier comment here

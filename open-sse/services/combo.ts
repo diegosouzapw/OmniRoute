@@ -446,7 +446,211 @@ export async function validateResponseQuality(
   isStreaming: boolean,
   log: { warn?: (...args: unknown[]) => void }
 ): Promise<{ valid: boolean; reason?: string; clonedResponse?: Response }> {
-  if (isStreaming) return { valid: true };
+  // Issue #3685: For Claude SSE streaming responses, use a BOUNDED PEEK to
+  // detect the empty-content-block pattern (content_filter stop_reason with
+  // no content_block_* events) WITHOUT de-streaming non-empty responses.
+  //
+  // Strategy:
+  // - Read chunks from response.body one at a time, accumulating raw bytes.
+  // - Parse SSE events incrementally.
+  // - If a content_block_* event appears → stream HAS content. Stop buffering.
+  //   Return a clonedResponse whose body replays buffered bytes then pipes the
+  //   remainder of the original reader. Only the chunks up to the first content
+  //   block were held in memory — the rest stream normally.
+  // - If the stream ends with a complete Claude lifecycle but NO content_block
+  //   → return invalid (combo failover). The empty lifecycle is tiny so fully
+  //   reading it is acceptable.
+  // - If the stream ends without a recognisable complete Claude lifecycle →
+  //   return valid with a clonedResponse replaying all buffered bytes (don't
+  //   misclassify non-Claude or partial streams as empty).
+  //
+  // Non-text/event-stream streaming responses are not buffered at all.
+  if (isStreaming) {
+    const contentType = response.headers.get("content-type") || "";
+    if (!contentType.includes("text/event-stream")) {
+      return { valid: true };
+    }
+
+    if (!response.body) {
+      return { valid: true };
+    }
+
+    const reader = response.body.getReader();
+    const decoder = new TextDecoder("utf-8");
+
+    // Raw Uint8Array chunks accumulated so far — used to replay the prefix
+    // in the returned clonedResponse.
+    const bufferedChunks: Uint8Array[] = [];
+    // Decoded text accumulated across chunks for incremental SSE parsing.
+    // Only the tail of the most-recently-processed line window remains here
+    // between iterations (incomplete lines are deferred to the next chunk).
+    let decodedSoFar = "";
+
+    // SSE lifecycle state.
+    let hasMessageStart = false;
+    let hasContentBlock = false;
+    let hasLifecycleEnd = false;
+    // `event:` type line seen before the next `data:` line in the same event.
+    let pendingEventType = "";
+
+    /**
+     * Parse any complete SSE lines from `decodedSoFar`, updating lifecycle
+     * flags in the closure. The last (potentially incomplete) line is kept in
+     * `decodedSoFar` for the next iteration.
+     *
+     * Returns true when a content_block_* event is detected — the caller
+     * should stop peeking and treat the stream as non-empty.
+     */
+    function parseAccumulatedSse(): boolean {
+      const lines = decodedSoFar.split(/\r?\n/);
+      // Retain the potentially-incomplete trailing fragment.
+      decodedSoFar = lines[lines.length - 1];
+
+      for (let i = 0; i < lines.length - 1; i++) {
+        const trimmed = lines[i].trim();
+
+        if (trimmed.startsWith("event:")) {
+          pendingEventType = trimmed.slice(6).trim();
+          continue;
+        }
+
+        if (!trimmed.startsWith("data:")) {
+          if (!trimmed) pendingEventType = "";
+          continue;
+        }
+
+        const data = trimmed.slice(5).trim();
+        if (!data || data === "[DONE]") continue;
+
+        let parsed: Record<string, unknown>;
+        try {
+          parsed = JSON.parse(data);
+        } catch {
+          continue;
+        }
+
+        const eventType =
+          (typeof parsed.type === "string" ? parsed.type : null) || pendingEventType || "";
+        pendingEventType = "";
+
+        switch (eventType) {
+          case "message_start":
+            hasMessageStart = true;
+            break;
+          case "content_block_start":
+          case "content_block_delta":
+          case "content_block_stop":
+            hasContentBlock = true;
+            // Signal caller to stop buffering immediately.
+            return true;
+          case "message_stop":
+            hasLifecycleEnd = true;
+            break;
+          case "message_delta": {
+            const delta = parsed.delta;
+            if (
+              delta &&
+              typeof delta === "object" &&
+              (delta as Record<string, unknown>).stop_reason != null
+            ) {
+              hasLifecycleEnd = true;
+            }
+            break;
+          }
+          default:
+            break;
+        }
+      }
+      return false;
+    }
+
+    /**
+     * Build a Response whose body first replays all bytes in `bufferedChunks`,
+     * then forwards the remainder of `readerToForward` chunk-by-chunk.
+     * Preserves the original response's status, statusText, and headers.
+     */
+    function buildReplayResponse(
+      readerToForward: ReadableStreamDefaultReader<Uint8Array>
+    ): Response {
+      // Snapshot the prefix so mutations after this point don't affect it.
+      const prefix = bufferedChunks.slice();
+      let prefixIdx = 0;
+      const stream = new ReadableStream<Uint8Array>({
+        async pull(controller) {
+          // 1. Drain the buffered prefix one chunk at a time.
+          if (prefixIdx < prefix.length) {
+            controller.enqueue(prefix[prefixIdx++]);
+            return;
+          }
+          // 2. Forward the remainder from the original reader.
+          try {
+            const { done, value } = await readerToForward.read();
+            if (done) {
+              controller.close();
+            } else {
+              controller.enqueue(value);
+            }
+          } catch {
+            controller.close();
+          }
+        },
+      });
+      return new Response(stream, {
+        status: response.status,
+        statusText: response.statusText,
+        headers: response.headers,
+      });
+    }
+
+    // Main bounded-peek loop.
+    try {
+      while (true) {
+        const { done, value } = await reader.read();
+
+        if (done) {
+          // Stream finished — flush the TextDecoder and parse any remaining text.
+          const tail = decoder.decode(undefined, { stream: false });
+          if (tail) decodedSoFar += tail;
+          parseAccumulatedSse();
+
+          if (hasMessageStart && hasLifecycleEnd && !hasContentBlock) {
+            // Complete Claude lifecycle with zero content blocks → failover.
+            log.warn?.(
+              "COMBO",
+              "Streaming Claude response has complete lifecycle but zero content blocks (content_filter?) — marking as invalid for combo failover"
+            );
+            return { valid: false, reason: "streaming empty content block" };
+          }
+
+          // Incomplete lifecycle or non-Claude stream — replay all buffered
+          // bytes. The reader is exhausted so the forwarding reader will
+          // immediately signal done.
+          const clonedResponse = buildReplayResponse(reader);
+          return { valid: true, clonedResponse };
+        }
+
+        // Accumulate raw bytes for potential replay.
+        bufferedChunks.push(value);
+
+        // Decode incrementally (stream:true keeps multi-byte char state).
+        decodedSoFar += decoder.decode(value, { stream: true });
+        const foundContent = parseAccumulatedSse();
+
+        if (foundContent) {
+          // A content_block_* event was found — stop peeking. Return a
+          // clonedResponse that replays all buffered bytes (the current chunk
+          // is already in bufferedChunks) and then forwards the remainder of
+          // the original reader unchanged.
+          const clonedResponse = buildReplayResponse(reader);
+          return { valid: true, clonedResponse };
+        }
+      }
+    } catch {
+      // If reading the stream fails, pass through — other mechanisms
+      // (stream readiness timeout) will catch truly broken streams.
+      return { valid: true };
+    }
+  }
 
   const contentType = response.headers.get("content-type") || "";
   if (!contentType.includes("application/json") && !contentType.includes("text/")) {
