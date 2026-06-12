@@ -9,7 +9,7 @@ import { useProviderModels } from "./hooks/useProviderModels";
 import { useCommandCodeAuth } from "./hooks/useCommandCodeAuth";
 // Phase 1i: external link flow extracted to hooks/useExternalLinkFlow.ts
 import { useExternalLinkFlow } from "./hooks/useExternalLinkFlow";
-import ExternalLinkModal from "./components/ExternalLinkModal";
+// ExternalLinkModal — used by components/ProviderModalsPanel.tsx (Phase 1t.5)
 // Phase 1j: auth file handlers extracted to hooks/useAuthFileHandlers.ts
 import { useAuthFileHandlers } from "./hooks/useAuthFileHandlers";
 // Phase 1g: ProviderPlaygroundPanel + helpers extracted to components/ProviderPlaygroundPanel.tsx
@@ -21,29 +21,20 @@ import { useTranslations } from "next-intl";
 import {
   Card,
   Button,
-  Badge,
-  Modal,
-  ConfirmModal,
   CardSkeleton,
-  OAuthModal,
-  KiroOAuthWrapper,
-  CursorAuthModal,
-  TraeAuthModal,
-  Toggle,
-  Select,
-  ProxyConfigModal,
   NoAuthProviderCard,
   NoAuthAccountCard,
 } from "@/shared/components";
+// ConfirmModal, OAuthModal, KiroOAuthWrapper, CursorAuthModal, TraeAuthModal, ProxyConfigModal
+// — used by components/ProviderModalsPanel.tsx (Phase 1t.5)
 import {
-  LOCAL_PROVIDERS,
   NOAUTH_PROVIDERS,
   getProviderAlias,
   isOpenAICompatibleProvider,
   isAnthropicCompatibleProvider,
   isClaudeCodeCompatibleProvider,
-  isSelfHostedChatProvider,
   supportsApiKeyOnFreeProvider,
+  // LOCAL_PROVIDERS, isSelfHostedChatProvider moved to extracted modals/helpers
   // providerAllowsOptionalApiKey + supportsBulkApiKey used by extracted AddApiKeyModal
 } from "@/shared/constants/providers";
 // antigravityClientProfile + parseBulkApiKeys used by extracted modals (AddApiKeyModal, EditConnectionModal)
@@ -52,95 +43,53 @@ import {
   compatibleProviderSupportsModelImport,
   getCompatibleFallbackModels,
 } from "@/lib/providers/managedAvailableModels";
-import {
-  matchesModelCatalogQuery,
-  normalizeModelCatalogSource,
-} from "@/shared/utils/modelCatalogSearch";
+import { normalizeModelCatalogSource } from "@/shared/utils/modelCatalogSearch";
 import { useCopyToClipboard } from "@/shared/hooks/useCopyToClipboard";
-import { pickDisplayValue } from "@/shared/utils/maskEmail";
 import useEmailPrivacyStore from "@/store/emailPrivacyStore";
-import { type CodexServiceTier } from "@/lib/providers/requestDefaults";
-import { type CodexGlobalServiceMode } from "@/lib/providers/codexFastTier";
-// parseExtraApiKeys used by extracted EditConnectionModal
-import { compareTr } from "@/shared/utils/turkishText";
-import RiskNoticeModal from "../components/RiskNoticeModal";
-import CodexCliGuideModal from "../components/CodexCliGuideModal";
+// pickDisplayValue, compareTr, CodexServiceTier, CodexGlobalServiceMode — used by extracted modals/hooks
+// RiskNoticeModal, CodexCliGuideModal — used by components/ProviderModalsPanel.tsx (Phase 1t.5)
 // isRiskAcknowledged, useRiskAcknowledged moved to hooks/useConnectionGate.ts (Phase 1t.3)
 import { resolveDashboardProviderInfo } from "../providerPageUtils";
 // webSessionCredentials used by extracted modals (AddApiKeyModal, EditConnectionModal)
-import {
-  ImportCodexAuthModal,
-  ApplyCodexAuthModal,
-} from "./components/modals/ImportCodexAuthModal";
-import {
-  ImportClaudeAuthModal,
-  ApplyClaudeAuthModal,
-} from "./components/modals/ImportClaudeAuthModal";
-import {
-  ImportGeminiAuthModal,
-  ApplyGeminiAuthModal,
-} from "./components/modals/ImportGeminiAuthModal";
-
-import EditCompatibleNodeModal from "./components/modals/EditCompatibleNodeModal";
-import AddApiKeyModal from "./components/modals/AddApiKeyModal";
-import EditConnectionModal from "./components/modals/EditConnectionModal";
-import WebSessionCredentialGuide from "./components/WebSessionCredentialGuide";
-// Phase 1d extractions — Issue #3501
-import ConnectionRow, {
-  type ConnectionRowConnection,
-} from "./components/ConnectionRow";
-import ModelCompatPopover from "./components/ModelCompatPopover";
-import SiliconFlowEndpointModal from "./components/SiliconFlowEndpointModal";
+// ImportCodexAuthModal, ApplyCodexAuthModal, ImportClaudeAuthModal, ApplyClaudeAuthModal,
+// ImportGeminiAuthModal, ApplyGeminiAuthModal, EditCompatibleNodeModal, AddApiKeyModal,
+// EditConnectionModal — used by components/ProviderModalsPanel.tsx (Phase 1t.5)
+// WebSessionCredentialGuide used by extracted ConnectionRow/modals (Phase 1d/1e)
+// Phase 1d extractions — Issue #3501 (ConnectionRow, ModelCompatPopover, SiliconFlowEndpointModal
+// used by ConnectionsListPanel/ProviderModelsSection/ProviderModalsPanel)
+import { type ConnectionRowConnection } from "./components/ConnectionRow";
 // Phase 1k extractions — Issue #3501
 import { useModelImportHandlers } from "./hooks/useModelImportHandlers";
 // Phase 1s extractions — Issue #3501
 import { useApiKeySave } from "./hooks/useApiKeySave";
-import ImportProgressModal from "./components/ImportProgressModal";
+// ImportProgressModal — used by components/ProviderModalsPanel.tsx (Phase 1t.5)
 // Phase 1l extractions — Issue #3501
 import { useModelVisibilityHandlers } from "./hooks/useModelVisibilityHandlers";
 // Phase 1m extractions — Issue #3501
 import ProviderModelsSection from "./components/ProviderModelsSection";
 import {
-  // CONFIGURABLE_BASE_URL_PROVIDERS, DEFAULT_PROVIDER_BASE_URLS, getLocalProviderMetadata,
-  // isBaseUrlConfigurableProvider, getProviderBaseUrlDefault, getProviderBaseUrlHint,
-  // getProviderBaseUrlPlaceholder, isGlmProvider, parseRoutingTagsInput, parseExcludedModelsInput,
-  // formatRoutingTagsInput, formatExcludedModelsInput, getWebSessionCredentialLabel,
-  // getWebSessionCredentialHint, getWebSessionCredentialCheckLabel, getAddCredentialModalTitle,
-  // CODEX_REASONING_STRENGTH_OPTIONS, CODEX_ACCOUNT_SERVICE_TIER_VALUES, getCodexRequestDefaults,
-  // getClaudeCodeCompatibleRequestDefaults, extractCommandCodeCredentialInput,
-  // normalizeAndValidateHttpBaseUrl, formatTimeAgo
-  // — all moved to extracted modals (AddApiKeyModal, EditConnectionModal, WebSessionCredentialGuide)
+  // All non-used helpers moved to extracted modals/hooks in prior phases
   providerText,
-  providerCountText,
-  readBooleanToggle,
-  // formatProviderModelsErrorResponse → hooks/useModelVisibilityHandlers.ts (Phase 1l)
-  type ProviderMessageTranslator,
-  type LocalProviderMetadata,
-  // CommandCodeAuthFlowState moved to hooks/useCommandCodeAuth.ts (Phase 1h)
-  // CompatByProtocolMap, CompatModelRow, CompatModelMap → hooks/useModelVisibilityHandlers.ts (Phase 1l)
-  // Phase 1s: pure helpers extracted from god-component closures
 } from "./providerPageHelpers";
 // CODEX_GLOBAL_SERVICE_MODE_VALUES, getCodexServiceTierLabel, normalizeCodexLimitPolicy
 // moved to hooks/useProviderSettings.ts + hooks/useProviderConnections.ts (Phase 1f)
 // Phase 1e extractions — Issue #3501
 import { useModelCompatState } from "./hooks/useModelCompatState";
-import ModelRow, { ModelVisibilityToolbar } from "./components/ModelRow";
-import PassthroughModelsSection from "./components/PassthroughModelsSection";
 import CustomModelsSection from "./components/CustomModelsSection";
-import CompatibleModelsSection from "./components/CompatibleModelsSection";
+// ModelRow, ModelVisibilityToolbar, PassthroughModelsSection, CompatibleModelsSection → ProviderModelsSection (Phase 1m)
 import ConnectionsListPanel from "./components/ConnectionsListPanel";
 // Phase 1o extractions — Issue #3501
 import ConnectionsHeaderToolbar from "./components/ConnectionsHeaderToolbar";
 // Phase 1p extractions — Issue #3501
 import ZedImportCard from "./components/ZedImportCard";
 // Phase 1q extractions — Issue #3501
-import BatchTestResultsModal from "./components/BatchTestResultsModal";
-// Phase 1r extractions — Issue #3501
-import { AdaptaTutorialModal } from "./components/AdaptaTutorialModal";
+// BatchTestResultsModal, AdaptaTutorialModal — used by components/ProviderModalsPanel.tsx (Phase 1t.5)
 // Phase 1t.1 extractions — Issue #3501
 import ProviderPageHeader from "./components/ProviderPageHeader";
 // Phase 1t.2 extractions — Issue #3501
 import CompatibleNodeCard from "./components/CompatibleNodeCard";
+// Phase 1t.5 extractions — Issue #3501
+import ProviderModalsPanel from "./components/ProviderModalsPanel";
 // Phase 1t.3 extractions — Issue #3501
 import { useConnectionGate } from "./hooks/useConnectionGate";
 // Phase 1t.4 extractions — Issue #3501
@@ -992,231 +941,87 @@ export default function ProviderDetailPageClient() {
       {/* Playground panel — rendered for providers that declare serviceKinds */}
       <ProviderPlaygroundPanel providerId={providerId} />
 
-      {/* Modals */}
-      {showRiskNoticeModal && subscriptionRisk && (
-        <RiskNoticeModal
-          variant={providerInfo.riskNoticeVariant ?? "oauth"}
-          providerId={providerId}
-          providerName={providerInfo.name}
-          onConfirm={handleConfirmRiskNotice}
-          onCancel={handleCancelRiskNotice}
-        />
-      )}
-      {!isUpstreamProxyProvider &&
-        (providerId === "kiro" || providerId === "amazon-q" ? (
-          <KiroOAuthWrapper
-            isOpen={showOAuthModal}
-            reauthConnection={reauthConnection}
-            providerInfo={{ ...providerInfo, id: providerId }}
-            onSuccess={handleOAuthSuccess}
-            onClose={() => {
-              setShowOAuthModal(false);
-            }}
-          />
-        ) : providerId === "cursor" ? (
-          <CursorAuthModal
-            isOpen={showOAuthModal}
-            reauthConnection={reauthConnection}
-            onSuccess={handleOAuthSuccess}
-            onClose={() => {
-              setShowOAuthModal(false);
-            }}
-          />
-        ) : providerId === "trae" ? (
-          <TraeAuthModal
-            isOpen={showOAuthModal}
-            reauthConnection={reauthConnection}
-            onSuccess={handleOAuthSuccess}
-            onClose={() => {
-              setShowOAuthModal(false);
-            }}
-          />
-        ) : (
-          <OAuthModal
-            isOpen={showOAuthModal}
-            reauthConnection={reauthConnection}
-            provider={providerId}
-            providerInfo={providerInfo}
-            onSuccess={handleOAuthSuccess}
-            onClose={() => {
-              setShowOAuthModal(false);
-            }}
-          />
-        ))}
-      {providerId === "siliconflow" && (
-        <SiliconFlowEndpointModal
-          isOpen={showSiliconFlowEndpointModal}
-          onSelect={(baseUrl) => {
-            setSiliconFlowInitialBaseUrl(baseUrl);
-            setShowSiliconFlowEndpointModal(false);
-            setShowAddApiKeyModal(true);
-          }}
-          onClose={() => {
-            setShowSiliconFlowEndpointModal(false);
-            setSiliconFlowInitialBaseUrl(undefined);
-          }}
-        />
-      )}
-      {!isUpstreamProxyProvider && (
-        <AddApiKeyModal
-          isOpen={showAddApiKeyModal}
-          provider={providerId}
-          providerName={providerInfo.name}
-          initialBaseUrl={siliconFlowInitialBaseUrl}
-          isCompatible={isCompatible}
-          isAnthropic={isAnthropicProtocolCompatible}
-          isCcCompatible={isCcCompatible}
-          isCommandCode={isCommandCode}
-          commandCodeAuthState={commandCodeAuthState}
-          onStartCommandCodeAuth={handleStartCommandCodeAuth}
-          onSave={handleSaveApiKey}
-          onClose={handleCloseAddApiKeyModal}
-        />
-      )}
-      <ConfirmModal
-        isOpen={batchDeleteConfirmOpen}
-        onClose={() => setBatchDeleteConfirmOpen(false)}
-        onConfirm={handleBatchDeleteConfirm}
-        title={t("batchDeleteConfirmTitle", "Delete connections")}
-        message={t("batchDeleteConfirm", { count: selectedIds.size })}
-        confirmText={t("batchDeleteConfirmButton", "Delete")}
-        cancelText={t("cancel", "Cancel")}
-        loading={batchDeleting}
-      />
-      {providerId === "codex" && applyCodexModalConnectionId && (
-        <ApplyCodexAuthModal
-          key={applyCodexModalConnectionId}
-          connectionId={applyCodexModalConnectionId}
-          inProgress={!!applyingCodexAuthId}
-          onConfirm={handleApplyCodexAuthLocal}
-          onClose={() => setApplyCodexModalConnectionId(null)}
-        />
-      )}
-      {!isUpstreamProxyProvider && (
-        <EditConnectionModal
-          isOpen={showEditModal}
-          connection={selectedConnection}
-          onSave={handleUpdateConnection}
-          onClose={() => setShowEditModal(false)}
-        />
-      )}
-      {!isUpstreamProxyProvider && isCompatible && (
-        <EditCompatibleNodeModal
-          isOpen={showEditNodeModal}
-          node={providerNode}
-          onSave={handleUpdateNode}
-          onClose={() => setShowEditNodeModal(false)}
-          isAnthropic={isAnthropicProtocolCompatible}
-          isCcCompatible={isCcCompatible}
-        />
-      )}
-      {/* Codex CLI Guide Modal */}
-      <CodexCliGuideModal isOpen={codexCliGuideOpen} onClose={() => setCodexCliGuideOpen(false)} />
-      {/* Codex Import Auth Modal */}
-      {providerId === "codex" && importCodexModalOpen && (
-        <ImportCodexAuthModal
-          key="import-codex-modal"
-          onClose={() => setImportCodexModalOpen(false)}
-          onSuccess={() => {
-            setImportCodexModalOpen(false);
-            void fetchConnections();
-          }}
-        />
-      )}
-      {providerId === "codex" && externalLinkModalOpen && (
-        <ExternalLinkModal
-          isOpen={externalLinkModalOpen}
-          onClose={() => setExternalLinkModalOpen(false)}
-          loading={externalLinkLoading}
-          error={externalLinkError}
-          url={externalLinkUrl}
-          copied={externalLinkCopied}
-          onCopy={externalLinkCopy}
-        />
-      )}
-      {/* Claude Apply Auth Modal */}
-      {providerId === "claude" && applyClaudeModalConnectionId && (
-        <ApplyClaudeAuthModal
-          key={applyClaudeModalConnectionId}
-          connectionId={applyClaudeModalConnectionId}
-          inProgress={!!applyingClaudeAuthId}
-          onConfirm={handleApplyClaudeAuthLocal}
-          onClose={() => setApplyClaudeModalConnectionId(null)}
-        />
-      )}
-      {/* Claude Import Auth Modal */}
-      {providerId === "claude" && importClaudeModalOpen && (
-        <ImportClaudeAuthModal
-          key="import-claude-modal"
-          onClose={() => setImportClaudeModalOpen(false)}
-          onSuccess={() => {
-            setImportClaudeModalOpen(false);
-            void fetchConnections();
-          }}
-        />
-      )}
-      {/* Gemini Apply Auth Modal */}
-      {providerId === "gemini-cli" && applyGeminiModalConnectionId && (
-        <ApplyGeminiAuthModal
-          key={applyGeminiModalConnectionId}
-          connectionId={applyGeminiModalConnectionId}
-          inProgress={!!applyingGeminiAuthId}
-          onConfirm={handleApplyGeminiAuthLocal}
-          onClose={() => setApplyGeminiModalConnectionId(null)}
-        />
-      )}
-      {/* Gemini Import Auth Modal */}
-      {providerId === "gemini-cli" && importGeminiModalOpen && (
-        <ImportGeminiAuthModal
-          key="import-gemini-modal"
-          onClose={() => setImportGeminiModalOpen(false)}
-          onSuccess={() => {
-            setImportGeminiModalOpen(false);
-            void fetchConnections();
-          }}
-        />
-      )}
-      {/* Batch Test Results Modal */}
-      <BatchTestResultsModal
-        batchTestResults={batchTestResults}
-        providerInfo={providerInfo}
+      {/* Modals — Phase 1t.5: extracted to components/ProviderModalsPanel.tsx */}
+      <ProviderModalsPanel
         providerId={providerId}
+        providerInfo={providerInfo}
+        isCompatible={isCompatible}
+        isAnthropicProtocolCompatible={isAnthropicProtocolCompatible}
+        isCcCompatible={isCcCompatible}
+        isCommandCode={isCommandCode}
+        isUpstreamProxyProvider={isUpstreamProxyProvider}
+        subscriptionRisk={subscriptionRisk}
+        showRiskNoticeModal={showRiskNoticeModal}
+        handleConfirmRiskNotice={handleConfirmRiskNotice}
+        handleCancelRiskNotice={handleCancelRiskNotice}
+        showOAuthModal={showOAuthModal}
+        reauthConnection={reauthConnection}
+        handleOAuthSuccess={handleOAuthSuccess}
+        setShowOAuthModal={setShowOAuthModal}
+        showSiliconFlowEndpointModal={showSiliconFlowEndpointModal}
+        setSiliconFlowInitialBaseUrl={setSiliconFlowInitialBaseUrl}
+        setShowSiliconFlowEndpointModal={setShowSiliconFlowEndpointModal}
+        setShowAddApiKeyModal={setShowAddApiKeyModal}
+        showAddApiKeyModal={showAddApiKeyModal}
+        siliconFlowInitialBaseUrl={siliconFlowInitialBaseUrl}
+        commandCodeAuthState={commandCodeAuthState}
+        handleStartCommandCodeAuth={handleStartCommandCodeAuth}
+        handleSaveApiKey={handleSaveApiKey}
+        handleCloseAddApiKeyModal={handleCloseAddApiKeyModal}
+        batchDeleteConfirmOpen={batchDeleteConfirmOpen}
+        setBatchDeleteConfirmOpen={setBatchDeleteConfirmOpen}
+        handleBatchDeleteConfirm={handleBatchDeleteConfirm}
+        selectedIds={selectedIds}
+        batchDeleting={batchDeleting}
+        applyCodexModalConnectionId={applyCodexModalConnectionId}
+        setApplyCodexModalConnectionId={setApplyCodexModalConnectionId}
+        applyingCodexAuthId={applyingCodexAuthId}
+        handleApplyCodexAuthLocal={handleApplyCodexAuthLocal}
+        importCodexModalOpen={importCodexModalOpen}
+        setImportCodexModalOpen={setImportCodexModalOpen}
+        fetchConnections={fetchConnections}
+        externalLinkModalOpen={externalLinkModalOpen}
+        setExternalLinkModalOpen={setExternalLinkModalOpen}
+        externalLinkLoading={externalLinkLoading}
+        externalLinkError={externalLinkError}
+        externalLinkUrl={externalLinkUrl}
+        externalLinkCopied={externalLinkCopied}
+        externalLinkCopy={externalLinkCopy}
+        showEditModal={showEditModal}
+        setShowEditModal={setShowEditModal}
+        selectedConnection={selectedConnection}
+        handleUpdateConnection={handleUpdateConnection}
+        showEditNodeModal={showEditNodeModal}
+        setShowEditNodeModal={setShowEditNodeModal}
+        providerNode={providerNode}
+        handleUpdateNode={handleUpdateNode}
+        codexCliGuideOpen={codexCliGuideOpen}
+        setCodexCliGuideOpen={setCodexCliGuideOpen}
+        applyClaudeModalConnectionId={applyClaudeModalConnectionId}
+        setApplyClaudeModalConnectionId={setApplyClaudeModalConnectionId}
+        applyingClaudeAuthId={applyingClaudeAuthId}
+        handleApplyClaudeAuthLocal={handleApplyClaudeAuthLocal}
+        importClaudeModalOpen={importClaudeModalOpen}
+        setImportClaudeModalOpen={setImportClaudeModalOpen}
+        applyGeminiModalConnectionId={applyGeminiModalConnectionId}
+        setApplyGeminiModalConnectionId={setApplyGeminiModalConnectionId}
+        applyingGeminiAuthId={applyingGeminiAuthId}
+        handleApplyGeminiAuthLocal={handleApplyGeminiAuthLocal}
+        importGeminiModalOpen={importGeminiModalOpen}
+        setImportGeminiModalOpen={setImportGeminiModalOpen}
+        batchTestResults={batchTestResults}
+        setBatchTestResults={setBatchTestResults}
         emailsVisible={emailsVisible}
-        onClose={() => setBatchTestResults(null)}
-        t={t}
-      />
-      {/* Proxy Config Modal */}
-      {proxyTarget && (
-        <ProxyConfigModal
-          isOpen={!!proxyTarget}
-          onClose={() => setProxyTarget(null)}
-          level={proxyTarget.level}
-          levelId={proxyTarget.id}
-          levelLabel={proxyTarget.label}
-          onSaved={() => {
-            void fetchProxyConfig();
-          }}
-        />
-      )}
-      {/* Import Progress Modal — Phase 1k: extracted to components/ImportProgressModal.tsx */}
-      <ImportProgressModal
+        proxyTarget={proxyTarget}
+        setProxyTarget={setProxyTarget}
+        fetchProxyConfig={fetchProxyConfig}
         importProgress={importProgress}
-        isOpen={showImportModal}
-        onClose={() => {
-          if (importProgress.phase === "done" || importProgress.phase === "error") {
-            setShowImportModal(false);
-          }
-        }}
+        showImportModal={showImportModal}
+        setShowImportModal={setShowImportModal}
+        showTutorialModal={showTutorialModal}
+        setShowTutorialModal={setShowTutorialModal}
         t={t}
       />
-
-      {/* Adapta Web — Tutorial Modal */}
-      {providerId === "adapta-web" && (
-        <AdaptaTutorialModal
-          isOpen={showTutorialModal}
-          onClose={() => setShowTutorialModal(false)}
-        />
-      )}
     </div>
   );
 }
