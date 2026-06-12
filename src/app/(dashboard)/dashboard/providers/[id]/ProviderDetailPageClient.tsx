@@ -3813,7 +3813,6 @@ export default function ProviderDetailPageClient() {
           levelLabel={proxyTarget.label}
           onSaved={() => {
             void fetchProxyConfig();
-            void loadConnProxies(connections);
           }}
         />
       )}
