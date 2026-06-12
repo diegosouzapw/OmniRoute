@@ -249,8 +249,7 @@ test("#3685 regression: upstream error event sets hasError=true and does NOT tri
   // shouldInjectClaudeEmptyResponseBeforeCurrentEvent / shouldInjectClaudeEmptyResponseOnFlush
   // both check !lifecycle.hasError first — so neither our new error path nor the old synthetic
   // path is triggered. Verified by inspecting the guard functions directly.
-  const { type: _type, ...lifecycle } = {
-    type: "internal",
+  const lifecycle = {
     hasMessageStart: true,
     hasContentBlock: false,
     hasMessageDelta: false,
@@ -261,7 +260,7 @@ test("#3685 regression: upstream error event sets hasError=true and does NOT tri
   };
 
   // Simulate receiving an error event: sets hasError = true.
-  const lifecycleWithError = { ..._type, ...lifecycle, hasError: true };
+  const lifecycleWithError = { ...lifecycle, hasError: true };
 
   // shouldInjectClaudeEmptyResponseOnFlush equivalent: hasError blocks it
   const wouldInjectOnFlush =

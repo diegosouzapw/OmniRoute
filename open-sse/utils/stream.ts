@@ -1020,7 +1020,10 @@ export function createSSEStream(options: StreamOptions = {}) {
     }
   };
 
-  const emitClaudeEmptyStreamErrorAndAbort = (controller: TransformStreamDefaultController) => {
+  const emitClaudeEmptyStreamErrorAndAbort = (
+    controller: TransformStreamDefaultController,
+    decrementPendingRequest = true
+  ) => {
     clearIdleTimer();
     const msg = "Claude returned an empty response (no content block)";
     console.warn(
@@ -1037,7 +1040,9 @@ export function createSSEStream(options: StreamOptions = {}) {
         void onFailure({ status: 502, message: msg, code: "empty_response" });
       } catch {}
     }
-    trackPendingRequest(model, provider, connectionId, false);
+    if (decrementPendingRequest) {
+      trackPendingRequest(model, provider, connectionId, false);
+    }
     controller.error(markPendingRequestCleared(new Error(msg)));
   };
 
@@ -1084,7 +1089,6 @@ export function createSSEStream(options: StreamOptions = {}) {
       sourceFormat === FORMATS.CLAUDE &&
       shouldInjectClaudeEmptyResponseBeforeCurrentEvent(claudeEmptyResponseLifecycle, itemSanitized)
     ) {
-      const eventType = getClaudeEventType(itemSanitized);
       emitClaudeEmptyStreamErrorAndAbort(controller);
       return;
     }
@@ -2168,8 +2172,7 @@ export function createSSEStream(options: StreamOptions = {}) {
                     bufferedPayload
                   )
                 ) {
-                  const eventType = getClaudeEventType(bufferedPayload);
-                  emitClaudeEmptyStreamErrorAndAbort(controller);
+                  emitClaudeEmptyStreamErrorAndAbort(controller, false);
                   return;
                 }
                 if (isClaudeEventPayload(bufferedPayload)) {
@@ -2227,7 +2230,7 @@ export function createSSEStream(options: StreamOptions = {}) {
             }
 
             if (shouldInjectClaudeEmptyResponseOnFlush(claudeEmptyResponseLifecycle)) {
-              emitClaudeEmptyStreamErrorAndAbort(controller);
+              emitClaudeEmptyStreamErrorAndAbort(controller, false);
               return;
             } else if (shouldInjectClaudeMissingFinalizersOnFlush(claudeEmptyResponseLifecycle)) {
               emitSyntheticClaudeEmptyResponse(controller, {
@@ -2505,7 +2508,7 @@ export function createSSEStream(options: StreamOptions = {}) {
 
           if (sourceFormat === FORMATS.CLAUDE) {
             if (shouldInjectClaudeEmptyResponseOnFlush(claudeEmptyResponseLifecycle)) {
-              emitClaudeEmptyStreamErrorAndAbort(controller);
+              emitClaudeEmptyStreamErrorAndAbort(controller, false);
               return;
             } else if (shouldInjectClaudeMissingFinalizersOnFlush(claudeEmptyResponseLifecycle)) {
               emitSyntheticClaudeEmptyResponse(controller, {
