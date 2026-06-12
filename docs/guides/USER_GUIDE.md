@@ -989,6 +989,12 @@ history, or compressing fallback requests; enabling it allows configured hedging
 skips, and proactive fallback compression to trade routing/request fidelity for lower tail
 latency.
 
+Disable **Reasoning token buffer** when upstream providers require strict
+`max_tokens` / `maxOutputTokens` limits. When enabled, combo routing only adds reasoning-model
+headroom for models with a known output cap and leaves the client token limit unchanged when the
+safe buffered value would exceed that cap. If the client limit is already above a known cap,
+OmniRoute clamps it down to that cap before sending the upstream request.
+
 ---
 
 ### Health Dashboard

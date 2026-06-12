@@ -71,11 +71,7 @@ import {
   type ProviderCandidate,
   type ScoringWeights,
 } from "./autoCombo/scoring.ts";
-import {
-  getResolvedModelCapabilities,
-  supportsReasoning,
-  supportsToolCalling,
-} from "./modelCapabilities.ts";
+import { getResolvedModelCapabilities, supportsToolCalling } from "./modelCapabilities.ts";
 import { estimateTokens } from "./contextManager.ts";
 import { getReasoningTokens } from "../../src/lib/usage/tokenAccounting.ts";
 import { getSessionConnection } from "./sessionManager.ts";
@@ -108,6 +104,7 @@ import {
   resolveResilienceSettings,
   type ResilienceSettings,
 } from "../../src/lib/resilience/settings";
+import { resolveReasoningBufferedMaxTokens, toPositiveInteger } from "./reasoningTokenBuffer.ts";
 
 // Status codes that should mark round-robin target semaphores as cooling down.
 const TRANSIENT_FOR_SEMAPHORE = [429, 502, 503, 504];
@@ -3019,6 +3016,7 @@ export async function handleComboChat({
     ? resolveComboConfig(combo, settings)
     : { ...getDefaultComboConfig(), ...(combo.config || {}) };
   const comboTargetTimeoutMs = resolveComboTargetTimeoutMs(config, FETCH_TIMEOUT_MS);
+  const reasoningTokenBufferEnabled = config.reasoningTokenBufferEnabled !== false;
 
   // ── Per-model timeout wrapper ────────────────────────────────────────────
   // Combo target timeouts inherit FETCH_TIMEOUT_MS by default. Operators can
@@ -3807,23 +3805,25 @@ export async function handleComboChat({
             }
           }
 
-          // Issue #3587: Reasoning models (deepseek-v4-flash, nemotron, etc.) consume
-          // ALL max_tokens for reasoning_tokens, leaving content empty. Add a buffer
-          // to max_tokens so the model has enough tokens for both reasoning and content.
-          if (supportsReasoning(modelStr)) {
+          // Issue #3587: Reasoning models can spend the whole output budget on
+          // reasoning. Only add headroom when the complete buffer fits inside the
+          // model's known output cap; otherwise preserve the client's explicit limit.
+          {
             const bodyRecord = attemptBody as Record<string, unknown>;
-            const currentMaxTokens = Number(bodyRecord.max_tokens) || 0;
-            if (currentMaxTokens > 0) {
-              // Add 50% buffer + 1000 floor to ensure reasoning + content both fit
-              const bufferedMaxTokens = Math.max(
-                currentMaxTokens + 1000,
-                Math.ceil(currentMaxTokens * 1.5)
-              );
+            const currentMaxTokens = toPositiveInteger(bodyRecord.max_tokens);
+            const bufferedMaxTokens = resolveReasoningBufferedMaxTokens(
+              modelStr,
+              bodyRecord.max_tokens,
+              { enabled: reasoningTokenBufferEnabled }
+            );
+            if (currentMaxTokens !== null && bufferedMaxTokens !== null) {
               bodyRecord.max_tokens = bufferedMaxTokens;
-              log.info(
-                "COMBO",
-                `Reasoning model ${modelStr}: buffered max_tokens ${currentMaxTokens} -> ${bufferedMaxTokens}`
-              );
+              if (bufferedMaxTokens !== currentMaxTokens) {
+                log.info(
+                  "COMBO",
+                  `Reasoning model ${modelStr}: adjusted max_tokens ${currentMaxTokens} -> ${bufferedMaxTokens}`
+                );
+              }
             }
           }
           const result = await handleSingleModelWithTimeout(attemptBody, modelStr, {
@@ -4426,6 +4426,7 @@ async function handleRoundRobinCombo({
   const maxRetries = config.maxRetries ?? 1;
   const retryDelayMs = resolveDelayMs(config.retryDelayMs, 2000);
   const fallbackDelayMs = resolveDelayMs(config.fallbackDelayMs, 0);
+  const reasoningTokenBufferEnabled = config.reasoningTokenBufferEnabled !== false;
 
   const resilienceSettings: ResilienceSettings = settings
     ? resolveResilienceSettings(settings)
@@ -4585,27 +4586,30 @@ async function handleRoundRobinCombo({
           `[RR #${counter}] → ${modelStr}${offset > 0 ? ` (fallback +${offset})` : ""}${retry > 0 ? ` (retry ${retry})` : ""}`
         );
 
-        // Issue #3587: Reasoning models consume ALL max_tokens for reasoning_tokens.
-        // Add buffer to ensure reasoning + content both fit. Apply the buffer to a
-        // per-attempt COPY — never mutate the shared `body` — so it does not compound
-        // across round-robin iterations/retries (otherwise 4096 -> 6144 -> 9216 -> ...
-        // as each reasoning model re-reads an already-buffered value and overshoots the
-        // model's real limit, triggering 400s).
+        // Issue #3587: Reasoning models can spend the whole output budget on
+        // reasoning. Apply any safe buffer to a per-attempt copy so round-robin
+        // retries never compound across models.
         let attemptBody = body;
-        if (supportsReasoning(modelStr)) {
-          const currentMaxTokens = Number((body as Record<string, unknown>).max_tokens) || 0;
-          if (currentMaxTokens > 0) {
-            const bufferedMaxTokens = Math.max(
-              currentMaxTokens + 1000,
-              Math.ceil(currentMaxTokens * 1.5)
-            );
+        {
+          const bodyRecord = body as Record<string, unknown>;
+          const currentMaxTokens = toPositiveInteger(bodyRecord.max_tokens);
+          const bufferedMaxTokens = resolveReasoningBufferedMaxTokens(
+            modelStr,
+            bodyRecord.max_tokens,
+            { enabled: reasoningTokenBufferEnabled }
+          );
+          if (
+            currentMaxTokens !== null &&
+            bufferedMaxTokens !== null &&
+            bufferedMaxTokens !== currentMaxTokens
+          ) {
             attemptBody = {
-              ...(body as Record<string, unknown>),
+              ...bodyRecord,
               max_tokens: bufferedMaxTokens,
             } as typeof body;
             log.info(
               "COMBO-RR",
-              `Reasoning model ${modelStr}: buffered max_tokens ${currentMaxTokens} -> ${bufferedMaxTokens}`
+              `Reasoning model ${modelStr}: adjusted max_tokens ${currentMaxTokens} -> ${bufferedMaxTokens}`
             );
           }
         }
