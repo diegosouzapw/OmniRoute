@@ -7,6 +7,9 @@ import { useProviderSettings } from "./hooks/useProviderSettings";
 import { useProviderModels } from "./hooks/useProviderModels";
 // Phase 1h: commandCode auth flow extracted to hooks/useCommandCodeAuth.ts
 import { useCommandCodeAuth } from "./hooks/useCommandCodeAuth";
+// Phase 1i: external link flow extracted to hooks/useExternalLinkFlow.ts
+import { useExternalLinkFlow } from "./hooks/useExternalLinkFlow";
+import ExternalLinkModal from "./components/ExternalLinkModal";
 // Phase 1g: ProviderPlaygroundPanel + helpers extracted to components/ProviderPlaygroundPanel.tsx
 import ProviderPlaygroundPanel from "./components/ProviderPlaygroundPanel";
 import { useNotificationStore } from "@/store/notificationStore";
@@ -199,12 +202,18 @@ export default function ProviderDetailPageClient() {
   const [importCodexModalOpen, setImportCodexModalOpen] = useState(false);
   const [codexCliGuideOpen, setCodexCliGuideOpen] = useState(false);
   // "Adicionar Externo": public shareable device-flow link state.
-  const [externalLinkModalOpen, setExternalLinkModalOpen] = useState(false);
-  const [externalLinkUrl, setExternalLinkUrl] = useState("");
-  const [externalLinkToken, setExternalLinkToken] = useState<string | null>(null);
-  const [externalLinkLoading, setExternalLinkLoading] = useState(false);
-  const [externalLinkError, setExternalLinkError] = useState<string | null>(null);
-  const { copied: externalLinkCopied, copy: externalLinkCopy } = useCopyToClipboard();
+  // Phase 1i: extracted to hooks/useExternalLinkFlow.ts
+  const {
+    externalLinkModalOpen,
+    setExternalLinkModalOpen,
+    externalLinkUrl,
+    externalLinkToken,
+    externalLinkLoading,
+    externalLinkError,
+    externalLinkCopied,
+    externalLinkCopy,
+    openExternalLinkFlow,
+  } = useExternalLinkFlow({ providerId, notify, fetchConnections });
   const [applyingClaudeAuthId, setApplyingClaudeAuthId] = useState<string | null>(null);
   const [applyClaudeModalConnectionId, setApplyClaudeModalConnectionId] = useState<string | null>(
     null
@@ -651,69 +660,6 @@ export default function ProviderDetailPageClient() {
     }
     openApiKeyAddFlow();
   }, [isOAuth, openApiKeyAddFlow]);
-
-  // "Adicionar Externo": generate a single-use public link so a third party can
-  // complete the Codex device flow in their own browser.
-  const openExternalLinkFlow = useCallback(async () => {
-    setExternalLinkModalOpen(true);
-    setExternalLinkUrl("");
-    setExternalLinkToken(null);
-    setExternalLinkError(null);
-    setExternalLinkLoading(true);
-    try {
-      const res = await fetch(`/api/oauth/${providerId}/public-link`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({}),
-      });
-      const data = await res.json().catch(() => ({}));
-      if (res.ok && data?.url) {
-        setExternalLinkUrl(data.url);
-        setExternalLinkToken(data.token || null);
-      } else {
-        setExternalLinkError(data?.error || "Falha ao gerar o link.");
-      }
-    } catch {
-      setExternalLinkError("Não foi possível contatar o servidor.");
-    } finally {
-      setExternalLinkLoading(false);
-    }
-  }, [providerId]);
-
-  // While the share popup is open, poll the ticket status so the dashboard can
-  // notify + refresh the connections the moment the external visitor finishes.
-  useEffect(() => {
-    if (!externalLinkModalOpen || !externalLinkToken) return;
-    let active = true;
-    const interval = setInterval(async () => {
-      if (!active) return;
-      try {
-        const res = await fetch(
-          `/api/oauth/${providerId}/public-link-status?token=${encodeURIComponent(externalLinkToken)}`
-        );
-        const data = await res.json().catch(() => ({}));
-        if (!active) return;
-        if (data?.status === "completed") {
-          active = false;
-          clearInterval(interval);
-          notify.success("Conta Codex conectada pelo link externo.");
-          fetchConnections();
-          setExternalLinkModalOpen(false);
-          setExternalLinkToken(null);
-        } else if (data?.status === "expired") {
-          active = false;
-          clearInterval(interval);
-          setExternalLinkError("O link expirou sem ser concluído.");
-        }
-      } catch {
-        /* transient network error — keep polling */
-      }
-    }, 3000);
-    return () => {
-      active = false;
-      clearInterval(interval);
-    };
-  }, [externalLinkModalOpen, externalLinkToken, providerId, notify, fetchConnections]);
 
   const gateConnectionFlow = useCallback(
     (callback: () => void) => {
@@ -3282,50 +3228,15 @@ export default function ProviderDetailPageClient() {
         />
       )}
       {providerId === "codex" && externalLinkModalOpen && (
-        <Modal
+        <ExternalLinkModal
           isOpen={externalLinkModalOpen}
           onClose={() => setExternalLinkModalOpen(false)}
-          title="Adicionar Externo — link do Codex"
-        >
-          <div className="space-y-4">
-            <p className="text-sm text-text-muted">
-              Compartilhe este link com quem vai autenticar a conta do Codex. A pessoa abre a
-              página, faz o login da OpenAI no próprio navegador e a conexão é cadastrada aqui. Uso
-              único, expira em 15 minutos.
-            </p>
-            {externalLinkLoading ? (
-              <p className="text-sm text-text-muted">Gerando link…</p>
-            ) : externalLinkError ? (
-              <p className="text-sm text-red-500">{externalLinkError}</p>
-            ) : externalLinkUrl ? (
-              <>
-                <div className="rounded-lg border border-border bg-bg-base p-3 break-all text-sm text-text-main">
-                  {externalLinkUrl}
-                </div>
-                <div className="flex gap-2">
-                  <Button
-                    className="flex-1"
-                    icon="open_in_new"
-                    onClick={() => window.open(externalLinkUrl, "_blank", "noopener")}
-                  >
-                    Abrir
-                  </Button>
-                  <Button
-                    variant="secondary"
-                    icon="content_copy"
-                    onClick={() => externalLinkCopy(externalLinkUrl, "extlink")}
-                  >
-                    {externalLinkCopied === "extlink" ? "Copiado" : "Copiar"}
-                  </Button>
-                </div>
-                <p className="flex items-center gap-2 text-xs text-text-muted">
-                  <span className="material-symbols-outlined animate-spin text-[16px]">sync</span>
-                  Aguardando a autenticação no navegador da pessoa… esta janela atualiza sozinha.
-                </p>
-              </>
-            ) : null}
-          </div>
-        </Modal>
+          loading={externalLinkLoading}
+          error={externalLinkError}
+          url={externalLinkUrl}
+          copied={externalLinkCopied}
+          onCopy={externalLinkCopy}
+        />
       )}
       {/* Claude Apply Auth Modal */}
       {providerId === "claude" && applyClaudeModalConnectionId && (
