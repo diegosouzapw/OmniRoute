@@ -1077,6 +1077,14 @@ test("markAccountUnavailable uses configured cooldowns for local 404 model locko
         circuitBreakerReset: 5000,
       },
     },
+    modelLockout: {
+      enabled: true,
+      baseCooldownMs: 250,
+      maxCooldownMs: 1000,
+      maxBackoffSteps: 3,
+      useExponentialBackoff: true,
+      errorCodes: [404],
+    },
   });
 
   const connection = await seedConnection("openai", {
@@ -1101,6 +1109,8 @@ test("markAccountUnavailable uses configured cooldowns for local 404 model locko
   assert.equal(updated.rateLimitedUntil, undefined);
   assert.equal(updated.lastErrorType, "not_found");
   assert.equal(Number(updated.errorCode), 404);
+
+  await settingsDb.updateSettings({ modelLockout: null });
 });
 
 test("markAccountUnavailable applies a model-only lockout for Gemini 429 responses", async () => {
@@ -1480,4 +1490,37 @@ test("markAccountUnavailable swallows auto-disable persistence errors", async ()
   } finally {
     db.prepare = originalPrepare;
   }
+});
+
+test("markAccountUnavailable persists in-memory model lockout for combo transient 429 when persistUnavailableState=false", async () => {
+  const connection = await seedConnection("openai", {
+    name: "combo-transient-test",
+  });
+  const model = "gpt-4o";
+  const connId = connection.id as string;
+
+  assert.equal(fallback.isModelLocked("openai", connId, model), false);
+
+  await auth.markAccountUnavailable(
+    connId,
+    429,
+    "Rate limit exceeded",
+    "openai",
+    model,
+    null,
+    { persistUnavailableState: false }
+  );
+
+  assert.equal(fallback.isModelLocked("openai", connId, model), true);
+
+  assert.equal(fallback.isModelLocked("openai", connId, "gpt-4o-mini"), false);
+
+  const otherConn = await seedConnection("openai", {
+    name: "other-conn",
+  });
+  assert.equal(fallback.isModelLocked("openai", (otherConn.id as string), model), false);
+
+  const updated = await providersDb.getProviderConnectionById(connId);
+  assert.equal(updated.rateLimitedUntil == null, true);
+  assert.notEqual(updated.testStatus, "unavailable");
 });

@@ -40,6 +40,7 @@ import {
   getCombosCacheVersion,
   getSessionAccountAffinity,
 } from "@/lib/localDb";
+import { resolveModelLockoutSettings } from "@/lib/resilience/modelLockoutSettings";
 import {
   ensureOpenAIStoreSessionFallback,
   isOpenAIResponsesStoreEnabled,
@@ -1108,7 +1109,8 @@ async function handleSingleModelChat(
           result.error || result.errorCode || "Antigravity stream ended before useful content",
           provider,
           model,
-          providerProfile
+          providerProfile,
+          { isCombo }
         );
 
         if (shouldFallback && !hasForcedConnection) {
@@ -1157,7 +1159,8 @@ async function handleSingleModelChat(
           result.error || ANTIGRAVITY_PRE_RESPONSE_TIMEOUT_CODE,
           provider,
           model,
-          providerProfile
+          providerProfile,
+          { isCombo }
         );
 
         if (shouldFallback && !hasForcedConnection) {
@@ -1290,26 +1293,30 @@ async function handleSingleModelChat(
         const match = errorStr.match(/today's quota for model ([^,]+)/);
         const limitedModel = match ? match[1].trim() : model;
 
-        // Lock this model on this connection until tomorrow 00:00
-        const lockResult = recordModelLockoutFailure(
-          provider,
-          credentials.connectionId,
-          limitedModel,
-          "quota_exhausted",
-          result.status,
-          0,
-          providerProfile
-        );
+        const mlSettings = resolveModelLockoutSettings(runtimeOptions.cachedSettings);
+        if (mlSettings.enabled && mlSettings.errorCodes.includes(result.status)) {
+          // Lock this model on this connection until tomorrow 00:00
+          const lockResult = recordModelLockoutFailure(
+            provider,
+            credentials.connectionId,
+            limitedModel,
+            "quota_exhausted",
+            result.status,
+            0,
+            providerProfile,
+            { maxCooldownMs: mlSettings.maxCooldownMs }
+          );
 
-        log.info(
-          "MODEL_DAILY_QUOTA",
-          JSON.stringify({
-            connection: credentials.connectionId.slice(0, 8),
-            model: limitedModel,
-            cooldownMs: lockResult.cooldownMs,
-            failureCount: lockResult.failureCount,
-          })
-        );
+          log.info(
+            "MODEL_DAILY_QUOTA",
+            JSON.stringify({
+              connection: credentials.connectionId.slice(0, 8),
+              model: limitedModel,
+              cooldownMs: lockResult.cooldownMs,
+              failureCount: lockResult.failureCount,
+            })
+          );
+        }
 
         dailyQuotaExhausted = true;
       }
@@ -1349,6 +1356,7 @@ async function handleSingleModelChat(
             {
               persistUnavailableState:
                 !(isCombo && result.status === 429 && (failureKind === "rate_limit" || failureKind === "transient")),
+              isCombo,
             }
           );
 

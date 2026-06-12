@@ -56,6 +56,7 @@ export interface ComboDefaults {
   fallbackDelayMs?: number;
   maxComboDepth: number;
   trackMetrics: boolean;
+  reasoningTokenBufferEnabled?: boolean;
   concurrencyPerModel?: number;
   queueTimeoutMs?: number;
   handoffThreshold?: number;

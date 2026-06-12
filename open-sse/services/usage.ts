@@ -2996,23 +2996,64 @@ export function buildKiroUsageResult(
 }
 
 /**
+ * Discover a Kiro/CodeWhisperer profile ARN for an account that didn't persist one (common for
+ * AWS IAM Identity Center logins and kiro-cli imports). Calls ListAvailableProfiles on the
+ * region-matched endpoint and prefers a profile whose ARN is in the same region. Returns
+ * undefined when no profile is available (e.g. the org/token has no Kiro entitlement).
+ * Exported for testing.
+ */
+export async function discoverKiroProfileArn(
+  accessToken: string,
+  usageBaseUrl: string,
+  region: string
+): Promise<string | undefined> {
+  try {
+    const response = await fetch(usageBaseUrl, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+        "Content-Type": "application/x-amz-json-1.0",
+        "x-amz-target": "AmazonCodeWhispererService.ListAvailableProfiles",
+        Accept: "application/json",
+      },
+      body: JSON.stringify({ maxResults: 10 }),
+      // Don't let a hung profile lookup block the usage/quota refresh indefinitely.
+      signal: AbortSignal.timeout(10000),
+    });
+    if (!response.ok) return undefined;
+
+    const data = toRecord(await response.json());
+    const profiles = Array.isArray(data.profiles) ? data.profiles : [];
+    const normalizedRegion = region.toLowerCase();
+    const matched =
+      profiles.find((profile: unknown) => {
+        const arn = toRecord(profile).arn;
+        return typeof arn === "string" && arn.toLowerCase().includes(`:${normalizedRegion}:`);
+      }) || profiles[0];
+    const arn = toRecord(matched).arn;
+    return typeof arn === "string" && arn.length > 0 ? arn : undefined;
+  } catch {
+    return undefined;
+  }
+}
+
+/**
  * Kiro (AWS CodeWhisperer) Usage
  */
 async function getKiroUsage(accessToken?: string, providerSpecificData?: JsonRecord) {
   try {
-    const profileArn = providerSpecificData?.profileArn;
-    if (!profileArn) {
-      return { message: "Kiro connected. Profile ARN not available for quota tracking." };
-    }
+    let profileArn =
+      typeof providerSpecificData?.profileArn === "string"
+        ? providerSpecificData.profileArn
+        : undefined;
 
     // Enterprise IAM Identity Center accounts are region-bound: the profileArn, token and
     // endpoint must all match the region. Derive the region from the stored region (preferred)
     // or the profileArn, then route to the regional Amazon Q endpoint (us-east-1 keeps the
     // legacy codewhisperer host; codewhisperer.{region} does not resolve for other regions).
-    const regionFromArn =
-      typeof profileArn === "string"
-        ? profileArn.toLowerCase().match(/^arn:aws:codewhisperer:([a-z0-9-]+):/)?.[1]
-        : undefined;
+    const regionFromArn = profileArn
+      ? profileArn.toLowerCase().match(/^arn:aws:codewhisperer:([a-z0-9-]+):/)?.[1]
+      : undefined;
     const region =
       (typeof providerSpecificData?.region === "string" &&
         providerSpecificData.region.trim().toLowerCase()) ||
@@ -3020,6 +3061,17 @@ async function getKiroUsage(accessToken?: string, providerSpecificData?: JsonRec
       "us-east-1";
     const usageBaseUrl =
       region === "us-east-1" ? CODEWHISPERER_BASE_URL : `https://q.${region}.amazonaws.com`;
+
+    // IAM Identity Center logins and kiro-cli imports frequently don't persist a profileArn, which
+    // previously caused the quota card to show nothing ("0 used"). Discover it on demand from
+    // ListAvailableProfiles (region-matched) so usage still resolves for those accounts.
+    if (!profileArn && accessToken) {
+      profileArn = await discoverKiroProfileArn(accessToken, usageBaseUrl, region);
+    }
+
+    if (!profileArn) {
+      return { message: "Kiro connected. Profile ARN not available for quota tracking." };
+    }
 
     // Kiro uses AWS CodeWhisperer GetUsageLimits API
     const payload = {
