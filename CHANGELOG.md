@@ -2,6 +2,28 @@
 
 ## [Unreleased]
 
+### ✨ Added
+
+- **`@omniroute/opencode-plugin` bundled + `omniroute setup opencode`** ([#3726] — thanks @herjarsa):
+  The opencode-plugin now ships pre-built inside the `omniroute` npm package (`package.json`
+  `files` includes `@omniroute/`). A new `omniroute setup opencode` CLI command automates
+  installation:
+  1. Copies the bundled plugin into `~/.config/opencode/plugins/omniroute/`
+  2. Creates/updates `opencode.json` with the plugin entry (idempotent,
+     replaces legacy `opencode-omniroute-auth` entries automatically)
+  3. Optional `--auth` flag runs `opencode auth login --provider <id>`
+     The prepublish pipeline (Step 8.8) now builds the plugin's `dist/` via tsup so every
+     published tarball includes it. Users no longer need to extract the plugin manually.
+
+### 🐛 Fixed
+
+- **`@omniroute/opencode-plugin`: baseURL resolution for partner/tiered providers**
+  ([#3711] / [#3726] — thanks @herjarsa):
+  The `provider.models` hook now checks `_provider.options.baseURL` (set by the config
+  hook or opencode.json) as a third fallback after plugin opts and auth.json. Previously,
+  providers whose baseURL came from options returned zero models. A diagnostic `console.warn`
+  fires when no baseURL is resolvable from any source.
+
 ---
 
 ## [3.8.22] — 2026-06-11
