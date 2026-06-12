@@ -6,6 +6,8 @@
 
 ## [3.8.23] — TBD
 
+- fix: streaming combos now fail over to the next target when an upstream returns an empty/content-filtered response instead of surfacing a blank reply (#3685)
+
 ---
 
 ## [3.8.22] — 2026-06-11
