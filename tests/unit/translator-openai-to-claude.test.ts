@@ -84,7 +84,8 @@ test("OpenAI -> Claude maps system messages, parameters and assistant cache mark
   assert.equal(result.stream, true);
   assert.equal(result.max_tokens, 33);
   assert.equal(result.temperature, 0.25);
-  assert.equal(result.top_p, 0.8);
+  // top_p is stripped when temperature is also present (Anthropic rejects both).
+  assert.equal(result.top_p, undefined);
   assert.deepEqual(result.stop_sequences, ["DONE"]);
   assert.equal(result.system[0].text, "Rule A\nRule B\nRule C");
   assert.equal(result.messages[0].role, "user");
@@ -92,6 +93,21 @@ test("OpenAI -> Claude maps system messages, parameters and assistant cache mark
   assert.equal(result.messages[1].role, "assistant");
   assert.equal(result.messages[1].content[0].text, "Hi there");
   assert.deepEqual(result.messages[1].content[0].cache_control, { type: "ephemeral" });
+});
+
+test("OpenAI -> Claude strips top_p when temperature is also present", () => {
+  const result = openaiToClaudeRequest(
+    "claude-4-sonnet",
+    {
+      messages: [{ role: "user", content: "Hello" }],
+      temperature: 0.25,
+      top_p: 0.8,
+    },
+    false
+  );
+
+  assert.equal(result.temperature, 0.25);
+  assert.equal(result.top_p, undefined);
 });
 
 test("OpenAI -> Claude converts multimodal content, tool declarations, tool calls and tool results", () => {

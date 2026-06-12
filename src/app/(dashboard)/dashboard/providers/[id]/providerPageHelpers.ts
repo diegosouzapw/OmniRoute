@@ -16,6 +16,7 @@ import {
 } from "@/lib/providers/requestDefaults";
 import { type CodexGlobalServiceMode } from "@/lib/providers/codexFastTier";
 import { type WebSessionCredentialRequirement } from "./webSessionCredentials";
+import { CC_COMPATIBLE_DEFAULT_CHAT_PATH } from "./providerDetailConstants";
 
 // ---------------------------------------------------------------------------
 // Types shared between page + modals
@@ -860,4 +861,78 @@ export function formatTimeAgo(dateStr: string): string {
   const days = Math.floor(hours / 24);
   if (days < 30) return `${days}d ago`;
   return new Date(dateStr).toLocaleDateString();
+}
+
+// ---------------------------------------------------------------------------
+// Provider-detail page pure helpers (Phase 1s — extracted from god-component)
+// ---------------------------------------------------------------------------
+
+export function getApiLabel(
+  t: ProviderMessageTranslator,
+  isAnthropicProtocolCompatible: boolean,
+  apiType: string | undefined
+): string {
+  if (isAnthropicProtocolCompatible) return t("messagesApi");
+  switch (apiType) {
+    case "responses":
+      return t("responsesApi");
+    case "embeddings":
+      return t("embeddings");
+    case "audio-transcriptions":
+      return t("audioTranscriptions");
+    case "audio-speech":
+      return t("audioSpeech");
+    case "images-generations":
+      return t("imagesGenerations");
+    default:
+      return t("chatCompletions");
+  }
+}
+
+export function getApiDefaultPath(
+  isCcCompatible: boolean,
+  isAnthropicCompatible: boolean,
+  apiType: string | undefined
+): string {
+  if (isCcCompatible) return CC_COMPATIBLE_DEFAULT_CHAT_PATH;
+  if (isAnthropicCompatible) return "/messages";
+  switch (apiType) {
+    case "responses":
+      return "/responses";
+    case "embeddings":
+      return "/embeddings";
+    case "audio-transcriptions":
+      return "/audio/transcriptions";
+    case "audio-speech":
+      return "/audio/speech";
+    case "images-generations":
+      return "/images/generations";
+    default:
+      return "/chat/completions";
+  }
+}
+
+export function getApiPath(
+  isCcCompatible: boolean,
+  isAnthropicCompatible: boolean,
+  apiType: string | undefined,
+  chatPath: string | undefined
+): string {
+  const defaultPath = getApiDefaultPath(isCcCompatible, isAnthropicCompatible, apiType);
+  return (chatPath || defaultPath).replace(/^\//, "");
+}
+
+export function getHeaderIconProviderId(
+  isOpenAICompatible: boolean,
+  isAnthropicProtocolCompatible: boolean,
+  providerInfoId: string,
+  providerInfoApiType: string | undefined
+): string {
+  if (isOpenAICompatible && providerInfoApiType) {
+    return providerInfoApiType === "responses" ? "oai-r" : "oai-cc";
+  }
+  if (isAnthropicProtocolCompatible) {
+    return "anthropic-m";
+  }
+  return providerInfoId;
 }

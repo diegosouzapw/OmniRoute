@@ -158,11 +158,11 @@ export const WEB_SESSION_CREDENTIAL_REQUIREMENTS = {
     storageKeys: ["cookie", "session"],
   },
   "qwen-web": {
-    kind: "token",
-    credentialName: "token",
-    placeholder: "Paste your Qwen token from chat.qwen.ai (Local Storage → token)",
-    acceptsFullCookieHeader: false,
-    storageKeys: ["token", "tongyi_sso_ticket"],
+    kind: "cookie",
+    credentialName: "full Cookie header (must include cna, ssxmod_itna, token)",
+    placeholder: "cna=...; token=...; ssxmod_itna=...; ssxmod_itna2=... (full Cookie header from chat.qwen.ai)",
+    acceptsFullCookieHeader: true,
+    storageKeys: ["cookie", "token", "ssxmod_itna", "ssxmod_itna2", "cna", "tongyi_sso_ticket"],
   },
   "duckduckgo-web": {
     kind: "cookie",

@@ -4011,18 +4011,17 @@ const _REGISTRY_EAGER: Record<string, RegistryEntry> = {
     alias: "qwen-web",
     format: "openai",
     executor: "qwen-web",
-    baseUrl: "https://chat.qwen.ai/api/chat/completions",
+    // v2 API (the legacy /api/chat/completions endpoint was retired upstream).
+    baseUrl: "https://chat.qwen.ai/api/v2/chat/completions",
     authType: "apikey",
     authHeader: "bearer",
+    // Current upstream catalog (GET https://chat.qwen.ai/api/models). Legacy
+    // ids (qwen-plus, qwen3-max, ...) still resolve via the executor's
+    // MODEL_ALIASES map for backward compatibility.
     models: [
-      { id: "qwen-plus", name: "Qwen Plus" },
-      { id: "qwen-max", name: "Qwen Max" },
-      { id: "qwen-turbo", name: "Qwen Turbo" },
-      { id: "qwen3-plus", name: "Qwen3 Plus" },
-      { id: "qwen3-max", name: "Qwen3 Max" },
-      { id: "qwen3-flash", name: "Qwen3 Flash" },
-      { id: "qwen3-coder-plus", name: "Qwen3 Coder Plus" },
-      { id: "qwen3-coder-flash", name: "Qwen3 Coder Flash" },
+      { id: "qwen3.7-max", name: "Qwen3.7 Max" },
+      { id: "qwen3.7-plus", name: "Qwen3.7 Plus" },
+      { id: "qwen3.6-plus", name: "Qwen3.6 Plus" },
     ],
   },
 

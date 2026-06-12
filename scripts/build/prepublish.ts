@@ -129,7 +129,10 @@ if (!existsSync(standaloneServerJs)) {
     stdio: "inherit",
   });
   if (!existsSync(standaloneServerJs)) {
-    console.error("\n  ❌ Standalone build not found after `npm run build` at:", standaloneServerJs);
+    console.error(
+      "\n  ❌ Standalone build not found after `npm run build` at:",
+      standaloneServerJs
+    );
     console.error("     Make sure next.config.mjs has: output: 'standalone'");
     process.exit(1);
   }
@@ -263,6 +266,53 @@ if (existsSync(cliSrcFile)) {
   }
 }
 
+// ── Step 8.8: Build @omniroute/opencode-plugin ──────────────
+// The plugin ships bundled inside the omniroute npm package (see root
+// package.json "files": ["@omniroute/", ...]). Its built `dist/` MUST be
+// present in the publish tarball so `omniroute setup opencode` can copy it
+// into the user's OpenCode plugin dir. If the build fails we surface the
+// error — shipping without the plugin's dist breaks the documented install
+// flow for every downstream user.
+const opencodePluginSrc = join(ROOT, "@omniroute", "opencode-plugin");
+const opencodePluginDist = join(opencodePluginSrc, "dist", "index.js");
+const opencodePluginCjs = join(opencodePluginSrc, "dist", "index.cjs");
+if (existsSync(opencodePluginSrc) && existsSync(join(opencodePluginSrc, "package.json"))) {
+  const pluginAlreadyBuilt = existsSync(opencodePluginDist) && existsSync(opencodePluginCjs);
+  if (!pluginAlreadyBuilt) {
+    console.log("\n  🔨 Building @omniroute/opencode-plugin (tsup)...");
+    try {
+      // The plugin is a standalone package (not an npm workspace), so the root
+      // install never populates its node_modules — and tsup with `dts: true`
+      // needs the plugin's own devDependencies (typescript, @opencode-ai/plugin
+      // types). Without this install a fresh CI publish fails at this step.
+      if (!existsSync(join(opencodePluginSrc, "node_modules"))) {
+        const NPM_BIN = process.platform === "win32" ? "npm.cmd" : "npm";
+        execFileSync(NPM_BIN, ["install", "--no-audit", "--no-fund"], {
+          cwd: opencodePluginSrc,
+          stdio: "inherit",
+        });
+      }
+      execFileSync(NPX_BIN, ["tsup"], {
+        cwd: opencodePluginSrc,
+        stdio: "inherit",
+        env: { ...process.env, NODE_ENV: "production" },
+      });
+      console.log("  ✅ @omniroute/opencode-plugin bundled to @omniroute/opencode-plugin/dist/");
+    } catch (err: any) {
+      console.error("  ❌ Failed to build @omniroute/opencode-plugin:", err.message);
+      console.error("     The published package would be missing the plugin dist.");
+      console.error(
+        "     Run `cd @omniroute/opencode-plugin && npm install && npm run build` to debug."
+      );
+      process.exit(1);
+    }
+  } else {
+    console.log("  ✅ @omniroute/opencode-plugin dist/ already present (skipping rebuild)");
+  }
+} else {
+  console.log("  ⏭️  @omniroute/opencode-plugin not found in workspace (skipping build)");
+}
+
 // ── Step 9: Copy shared utilities needed at runtime ────────
 const sharedApiKey = join(ROOT, "src", "shared", "utils", "apiKey.js");
 const sharedApiKeyDest = join(DIST_DIR, "src", "shared", "utils");
@@ -379,7 +429,9 @@ const remainingUnexpectedFiles = findUnexpectedArtifactPaths(walkFiles(DIST_DIR)
 
 if (remainingUnexpectedFiles.length > 0) {
   console.error("\n  ❌ Staged dist/ still contains unexpected publish artifacts:");
-  remainingUnexpectedFiles.forEach((violation: string) => console.error(`     - dist/${violation}`));
+  remainingUnexpectedFiles.forEach((violation: string) =>
+    console.error(`     - dist/${violation}`)
+  );
   process.exit(1);
 }
 

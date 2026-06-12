@@ -1,7 +1,7 @@
 openapi: 3.1.0
 info:
   title: OmniRoute API
-  version: 3.8.22
+  version: 3.8.23
   description: |
     OmniRoute is a local-first AI API proxy router. It provides an OpenAI-compatible
     endpoint that routes requests to multiple AI providers with load balancing,
@@ -138,7 +138,7 @@ paths:
                     - detailed
                   default: concise
       responses:
-        '200':
+        "200":
           description: Improved prompt(s)
           content:
             application/json:
@@ -153,10 +153,10 @@ paths:
                     type: integer
                   tokensOut:
                     type: integer
-        '400':
-          $ref: '#/components/responses/BadRequest'
-        '401':
-          $ref: '#/components/responses/Unauthorized'
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
   /api/playground/presets:
     get:
       tags:
@@ -166,7 +166,7 @@ paths:
       security:
         - BearerAuth: []
       responses:
-        '200':
+        "200":
           description: Preset list
           content:
             application/json:
@@ -176,9 +176,9 @@ paths:
                   presets:
                     type: array
                     items:
-                      $ref: '#/components/schemas/PlaygroundPreset'
-        '401':
-          $ref: '#/components/responses/Unauthorized'
+                      $ref: "#/components/schemas/PlaygroundPreset"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
     post:
       tags:
         - Playground
@@ -191,18 +191,18 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/PlaygroundPresetCreate'
+              $ref: "#/components/schemas/PlaygroundPresetCreate"
       responses:
-        '201':
+        "201":
           description: Created preset
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/PlaygroundPreset'
-        '400':
-          $ref: '#/components/responses/BadRequest'
-        '401':
-          $ref: '#/components/responses/Unauthorized'
+                $ref: "#/components/schemas/PlaygroundPreset"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
   /api/playground/presets/{id}:
     parameters:
       - name: id
@@ -218,15 +218,15 @@ paths:
       security:
         - BearerAuth: []
       responses:
-        '200':
+        "200":
           description: Preset found
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/PlaygroundPreset'
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-        '404':
+                $ref: "#/components/schemas/PlaygroundPreset"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
           description: Preset not found
     put:
       tags:
@@ -239,19 +239,19 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/PlaygroundPresetCreate'
+              $ref: "#/components/schemas/PlaygroundPresetCreate"
       responses:
-        '200':
+        "200":
           description: Updated preset
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/PlaygroundPreset'
-        '400':
-          $ref: '#/components/responses/BadRequest'
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-        '404':
+                $ref: "#/components/schemas/PlaygroundPreset"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
           description: Preset not found
     delete:
       tags:
@@ -260,11 +260,11 @@ paths:
       security:
         - BearerAuth: []
       responses:
-        '204':
+        "204":
           description: Deleted
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-        '404':
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
           description: Preset not found
   # --- Memory Engine (plan 21) ---
   /api/memory:
@@ -315,7 +315,7 @@ paths:
             type: integer
             minimum: 0
       responses:
-        '200':
+        "200":
           description: Paginated list of memories with stats
           content:
             application/json:
@@ -325,7 +325,7 @@ paths:
                   data:
                     type: array
                     items:
-                      $ref: '#/components/schemas/MemoryEntry'
+                      $ref: "#/components/schemas/MemoryEntry"
                   total:
                     type: integer
                   totalPages:
@@ -346,8 +346,8 @@ paths:
                             type: integer
                           misses:
                             type: integer
-        '401':
-          $ref: '#/components/responses/Unauthorized'
+        "401":
+          $ref: "#/components/responses/Unauthorized"
     post:
       tags:
         - Memory
@@ -391,16 +391,16 @@ paths:
                   format: date-time
                   nullable: true
       responses:
-        '201':
+        "201":
           description: Created memory entry
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/MemoryEntry'
-        '400':
+                $ref: "#/components/schemas/MemoryEntry"
+        "400":
           description: Validation error
-        '401':
-          $ref: '#/components/responses/Unauthorized'
+        "401":
+          $ref: "#/components/responses/Unauthorized"
   /api/memory/{id}:
     parameters:
       - name: id
@@ -416,15 +416,15 @@ paths:
       security:
         - ManagementSessionAuth: []
       responses:
-        '200':
+        "200":
           description: Memory entry
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/MemoryEntry'
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-        '404':
+                $ref: "#/components/schemas/MemoryEntry"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
           description: Memory not found
     put:
       tags:
@@ -458,17 +458,17 @@ paths:
                   additionalProperties: true
               additionalProperties: false
       responses:
-        '200':
+        "200":
           description: Updated memory entry
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/MemoryEntry'
-        '400':
+                $ref: "#/components/schemas/MemoryEntry"
+        "400":
           description: Validation error
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-        '404':
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
           description: Memory not found
     delete:
       tags:
@@ -478,7 +478,7 @@ paths:
       security:
         - ManagementSessionAuth: []
       responses:
-        '200':
+        "200":
           description: Deleted
           content:
             application/json:
@@ -487,9 +487,9 @@ paths:
                 properties:
                   success:
                     type: boolean
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-        '404':
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
           description: Memory not found
   /api/memory/health:
     get:
@@ -500,7 +500,7 @@ paths:
       security:
         - ManagementSessionAuth: []
       responses:
-        '200':
+        "200":
           description: Health result
           content:
             application/json:
@@ -514,8 +514,8 @@ paths:
                   error:
                     type: string
                     nullable: true
-        '401':
-          $ref: '#/components/responses/Unauthorized'
+        "401":
+          $ref: "#/components/responses/Unauthorized"
   /api/memory/retrieve-preview:
     post:
       tags:
@@ -558,7 +558,7 @@ paths:
                   default: 20
               additionalProperties: false
       responses:
-        '200':
+        "200":
           description: Preview results
           content:
             application/json:
@@ -634,10 +634,10 @@ paths:
                     type: integer
                   budgetMaxTokens:
                     type: integer
-        '400':
+        "400":
           description: Validation error
-        '401':
-          $ref: '#/components/responses/Unauthorized'
+        "401":
+          $ref: "#/components/responses/Unauthorized"
   /api/memory/embedding-providers:
     get:
       tags:
@@ -647,7 +647,7 @@ paths:
       security:
         - ManagementSessionAuth: []
       responses:
-        '200':
+        "200":
           description: Provider list
           content:
             application/json:
@@ -670,14 +670,14 @@ paths:
                             properties:
                               id:
                                 type: string
-                                description: 'Format: provider/model'
+                                description: "Format: provider/model"
                               name:
                                 type: string
                               dimensions:
                                 type: integer
                                 nullable: true
-        '401':
-          $ref: '#/components/responses/Unauthorized'
+        "401":
+          $ref: "#/components/responses/Unauthorized"
   /api/memory/engine-status:
     get:
       tags:
@@ -687,7 +687,7 @@ paths:
       security:
         - ManagementSessionAuth: []
       responses:
-        '200':
+        "200":
           description: Engine status
           content:
             application/json:
@@ -778,14 +778,14 @@ paths:
                         type: boolean
                       reason:
                         type: string
-        '401':
-          $ref: '#/components/responses/Unauthorized'
+        "401":
+          $ref: "#/components/responses/Unauthorized"
   /api/memory/summarize:
     post:
       tags:
         - Memory
       summary: Compact old memories
-      description: 'Manually triggers memory compaction for memories older than `olderThanDays`. Use `dryRun: true` to preview candidates. Corresponds to `MemorySummarizeSchema`.'
+      description: "Manually triggers memory compaction for memories older than `olderThanDays`. Use `dryRun: true` to preview candidates. Corresponds to `MemorySummarizeSchema`."
       security:
         - ManagementSessionAuth: []
       requestBody:
@@ -808,7 +808,7 @@ paths:
                   default: false
               additionalProperties: false
       responses:
-        '200':
+        "200":
           description: Summarization result
           content:
             application/json:
@@ -821,16 +821,16 @@ paths:
                     type: integer
                   dryRun:
                     type: boolean
-        '400':
+        "400":
           description: Validation error
-        '401':
-          $ref: '#/components/responses/Unauthorized'
+        "401":
+          $ref: "#/components/responses/Unauthorized"
   /api/memory/reindex:
     post:
       tags:
         - Memory
       summary: Trigger vector reindex
-      description: 'Starts background reindexing of memories with `needs_reindex = 1`. Use `force: true` to regenerate ALL vectors regardless of index status. Corresponds to `MemoryReindexSchema`.'
+      description: "Starts background reindexing of memories with `needs_reindex = 1`. Use `force: true` to regenerate ALL vectors regardless of index status. Corresponds to `MemoryReindexSchema`."
       security:
         - ManagementSessionAuth: []
       requestBody:
@@ -846,7 +846,7 @@ paths:
                   description: When true, marks all memories needs_reindex=1 before running.
               additionalProperties: false
       responses:
-        '200':
+        "200":
           description: Reindex started
           content:
             application/json:
@@ -858,10 +858,10 @@ paths:
                   pending:
                     type: integer
                     description: Memories still pending after this batch
-        '400':
+        "400":
           description: Validation error
-        '401':
-          $ref: '#/components/responses/Unauthorized'
+        "401":
+          $ref: "#/components/responses/Unauthorized"
   /api/settings/memory:
     get:
       tags:
@@ -872,20 +872,20 @@ paths:
       security:
         - ManagementSessionAuth: []
       responses:
-        '200':
+        "200":
           description: Extended memory settings
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/MemorySettingsExtended'
-        '401':
-          $ref: '#/components/responses/Unauthorized'
+                $ref: "#/components/schemas/MemorySettingsExtended"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
     put:
       tags:
         - Memory
         - Settings
       summary: Update memory settings
-      description: 'Update any subset of the extended memory settings. All fields are optional; only provided fields are updated. Schema: `MemorySettingsExtendedSchema`.'
+      description: "Update any subset of the extended memory settings. All fields are optional; only provided fields are updated. Schema: `MemorySettingsExtendedSchema`."
       security:
         - ManagementSessionAuth: []
       requestBody:
@@ -893,18 +893,18 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/MemorySettingsExtended'
+              $ref: "#/components/schemas/MemorySettingsExtended"
       responses:
-        '200':
+        "200":
           description: Updated memory settings
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/MemorySettingsExtended'
-        '400':
+                $ref: "#/components/schemas/MemorySettingsExtended"
+        "400":
           description: Validation error
-        '401':
-          $ref: '#/components/responses/Unauthorized'
+        "401":
+          $ref: "#/components/responses/Unauthorized"
   /api/settings/qdrant:
     get:
       tags:
@@ -915,14 +915,14 @@ paths:
       security:
         - ManagementSessionAuth: []
       responses:
-        '200':
+        "200":
           description: Qdrant settings
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/QdrantSettings'
-        '401':
-          $ref: '#/components/responses/Unauthorized'
+                $ref: "#/components/schemas/QdrantSettings"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
     put:
       tags:
         - Memory
@@ -957,16 +957,16 @@ paths:
                   description: Empty string removes the key
               additionalProperties: false
       responses:
-        '200':
+        "200":
           description: Updated Qdrant settings
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/QdrantSettings'
-        '400':
+                $ref: "#/components/schemas/QdrantSettings"
+        "400":
           description: Validation error
-        '401':
-          $ref: '#/components/responses/Unauthorized'
+        "401":
+          $ref: "#/components/responses/Unauthorized"
   /api/settings/qdrant/health:
     get:
       tags:
@@ -976,20 +976,20 @@ paths:
       security:
         - ManagementSessionAuth: []
       responses:
-        '200':
+        "200":
           description: Health result
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/QdrantHealthResult'
-        '401':
-          $ref: '#/components/responses/Unauthorized'
+                $ref: "#/components/schemas/QdrantHealthResult"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
   /api/settings/qdrant/search:
     post:
       tags:
         - Memory
       summary: Qdrant semantic search test
-      description: 'Performs a test semantic search against the Qdrant collection. Useful for validating that the integration works end-to-end. Schema: `QdrantSearchSchema`.'
+      description: "Performs a test semantic search against the Qdrant collection. Useful for validating that the integration works end-to-end. Schema: `QdrantSearchSchema`."
       security:
         - ManagementSessionAuth: []
       requestBody:
@@ -1011,7 +1011,7 @@ paths:
                   default: 5
               additionalProperties: false
       responses:
-        '200':
+        "200":
           description: Search results
           content:
             application/json:
@@ -1022,11 +1022,11 @@ paths:
                     type: array
                     items:
                       type: object
-        '400':
+        "400":
           description: Validation error
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-        '503':
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "503":
           description: Qdrant unavailable (structured error, no stack trace)
   /api/settings/qdrant/cleanup:
     post:
@@ -1037,7 +1037,7 @@ paths:
       security:
         - ManagementSessionAuth: []
       responses:
-        '200':
+        "200":
           description: Cleanup result
           content:
             application/json:
@@ -1048,9 +1048,9 @@ paths:
                     type: integer
                   checked:
                     type: integer
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-        '503':
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "503":
           description: Qdrant unavailable (structured error, no stack trace)
   /api/settings/qdrant/embedding-models:
     get:
@@ -1061,7 +1061,7 @@ paths:
       security:
         - ManagementSessionAuth: []
       responses:
-        '200':
+        "200":
           description: Embedding models list
           content:
             application/json:
@@ -1072,8 +1072,8 @@ paths:
                     type: array
                     items:
                       type: string
-        '401':
-          $ref: '#/components/responses/Unauthorized'
+        "401":
+          $ref: "#/components/responses/Unauthorized"
   # ─── Proxy Endpoints ──────────────────────────────────────────
 
   /api/v1/chat/completions:
@@ -5422,7 +5422,20 @@ components:
     InterceptedRequest:
       type: object
       description: A single intercepted HTTP request captured by the Traffic Inspector
-      required: [id, source, timestamp, method, host, path, requestHeaders, requestSize, responseHeaders, responseSize, status]
+      required:
+        [
+          id,
+          source,
+          timestamp,
+          method,
+          host,
+          path,
+          requestHeaders,
+          requestSize,
+          responseHeaders,
+          responseSize,
+          status,
+        ]
       properties:
         id:
           type: string

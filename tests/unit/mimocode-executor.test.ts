@@ -1,6 +1,10 @@
 import { describe, it } from "node:test";
 import assert from "node:assert";
-import { MimocodeExecutor, generateFingerprint } from "../../open-sse/executors/mimocode.ts";
+import {
+  MimocodeExecutor,
+  generateFingerprint,
+  MIMO_SYSTEM_MARKER,
+} from "../../open-sse/executors/mimocode.ts";
 
 const executor = new MimocodeExecutor();
 
@@ -48,7 +52,7 @@ describe("MimocodeExecutor", () => {
     const result = (executor as any).transformRequest(
       "mcode/mimo-auto",
       { model: "mcode/mimo-auto", messages: [{ role: "user", content: "hi" }] },
-      false,
+      false
     );
     assert.strictEqual(result.model, "mimo-auto");
   });
@@ -57,9 +61,89 @@ describe("MimocodeExecutor", () => {
     const result = (executor as any).transformRequest(
       "mimo-auto",
       { model: "mimo-auto", messages: [{ role: "user", content: "hi" }] },
-      false,
+      false
     );
     assert.strictEqual(result.model, "mimo-auto");
+  });
+
+  // The Xiaomi free endpoint rejects requests with `403 "Illegal access"` unless the
+  // body contains a recognized MiMoCode prompt signature inside a `system`-role message.
+  // The executor must inject that marker so user requests pass the upstream anti-abuse gate.
+  it("transformRequest injects a MiMoCode system marker when none is present", () => {
+    const result = (executor as any).transformRequest(
+      "mcode/mimo-auto",
+      { model: "mcode/mimo-auto", messages: [{ role: "user", content: "write a haiku" }] },
+      true
+    );
+    assert.ok(Array.isArray(result.messages));
+    const first = result.messages[0];
+    assert.strictEqual(first.role, "system");
+    assert.ok(
+      typeof first.content === "string" && first.content.includes(MIMO_SYSTEM_MARKER),
+      "first message must be a system message containing the MiMoCode marker"
+    );
+  });
+
+  it("transformRequest preserves the original user message after injection", () => {
+    const result = (executor as any).transformRequest(
+      "mcode/mimo-auto",
+      { model: "mcode/mimo-auto", messages: [{ role: "user", content: "write a haiku" }] },
+      true
+    );
+    const userMsg = result.messages.find((m: any) => m.role === "user");
+    assert.ok(userMsg);
+    assert.strictEqual(userMsg.content, "write a haiku");
+  });
+
+  it("transformRequest preserves a caller-provided system prompt alongside the marker", () => {
+    const result = (executor as any).transformRequest(
+      "mcode/mimo-auto",
+      {
+        model: "mcode/mimo-auto",
+        messages: [
+          { role: "system", content: "You are a pirate." },
+          { role: "user", content: "hi" },
+        ],
+      },
+      true
+    );
+    const systemContents = result.messages
+      .filter((m: any) => m.role === "system")
+      .map((m: any) => m.content)
+      .join("\n");
+    assert.ok(systemContents.includes(MIMO_SYSTEM_MARKER), "marker present");
+    assert.ok(systemContents.includes("You are a pirate."), "caller system prompt preserved");
+  });
+
+  it("transformRequest does not duplicate the marker when already present", () => {
+    const result = (executor as any).transformRequest(
+      "mcode/mimo-auto",
+      {
+        model: "mcode/mimo-auto",
+        messages: [
+          { role: "system", content: `${MIMO_SYSTEM_MARKER}\nExtra context.` },
+          { role: "user", content: "hi" },
+        ],
+      },
+      true
+    );
+    const count = result.messages.filter(
+      (m: any) =>
+        m.role === "system" &&
+        typeof m.content === "string" &&
+        m.content.includes(MIMO_SYSTEM_MARKER)
+    ).length;
+    assert.strictEqual(count, 1, "marker should not be duplicated");
+  });
+
+  it("transformRequest leaves a body without a messages array untouched", () => {
+    const result = (executor as any).transformRequest(
+      "mcode/mimo-auto",
+      { model: "mcode/mimo-auto", prompt: "legacy" },
+      true
+    );
+    assert.strictEqual((result as any).messages, undefined);
+    assert.strictEqual((result as any).model, "mimo-auto");
   });
 
   it("returns 499 on pre-aborted signal", async () => {

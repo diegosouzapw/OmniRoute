@@ -76,9 +76,37 @@ function getEffectiveTokenExpiryMs(conn: any): number {
   return Number.isFinite(expiryMs) ? expiryMs : 0;
 }
 
+// ── Refresh circuit breaker ───────────────────────────────────────────────
+// A refresh that returns null (network blip, dead proxy, unclassified error)
+// leaves the connection active, so the next 60s sweep retries immediately —
+// the production refresh loop (claude/aa5dd5cf 1352×, kimi 270×). We track
+// consecutive failures and back off exponentially so a stuck connection stops
+// hammering the upstream (and stops flooding the logs) instead of looping.
+const REFRESH_CIRCUIT_BASE_MIN = 5;
+const REFRESH_CIRCUIT_MAX_MIN = 240; // cap at 4h
+
+export function getRefreshBackoffUntil(streak: number, now: string): string {
+  const steps = Math.max(0, streak - 1);
+  const backoffMin = Math.min(REFRESH_CIRCUIT_BASE_MIN * 2 ** steps, REFRESH_CIRCUIT_MAX_MIN);
+  return new Date(new Date(now).getTime() + backoffMin * 60 * 1000).toISOString();
+}
+
+export function isInRefreshBackoff(conn: any, nowMs: number): boolean {
+  const until = conn?.providerSpecificData?.refreshCircuit?.until;
+  if (typeof until !== "string") return false;
+  const untilMs = new Date(until).getTime();
+  return Number.isFinite(untilMs) && untilMs > nowMs;
+}
+
 export function buildRefreshFailureUpdate(conn: any, now: string) {
   const wasExpired = conn.testStatus === "expired";
   const retryCount = (conn.expiredRetryCount ?? 0) + (wasExpired ? 1 : 0);
+
+  // Circuit breaker: increment the consecutive-failure streak and set an
+  // exponential backoff window so the next sweep skips this connection instead
+  // of retrying every 60s. Cleared by a successful refresh (clearRefreshCircuit).
+  const prevStreak = conn.providerSpecificData?.refreshCircuit?.streak ?? 0;
+  const streak = prevStreak + 1;
 
   return {
     lastHealthCheckAt: now,
@@ -91,8 +119,26 @@ export function buildRefreshFailureUpdate(conn: any, now: string) {
     lastErrorType: "token_refresh_failed",
     lastErrorSource: "oauth",
     errorCode: "refresh_failed",
+    providerSpecificData: {
+      ...(conn.providerSpecificData || {}),
+      refreshCircuit: { streak, until: getRefreshBackoffUntil(streak, now), lastFailAt: now },
+    },
     ...(wasExpired ? { expiredRetryCount: retryCount, expiredRetryAt: now } : {}),
   };
+}
+
+/**
+ * Strip the refresh circuit breaker state from providerSpecificData after a
+ * successful refresh, so the streak/backoff resets cleanly.
+ */
+export function clearRefreshCircuit(
+  providerSpecificData: Record<string, unknown> | null | undefined
+): Record<string, unknown> | undefined {
+  if (!providerSpecificData || typeof providerSpecificData !== "object") return undefined;
+  if (!("refreshCircuit" in providerSpecificData)) return undefined;
+  const next = { ...providerSpecificData };
+  delete next.refreshCircuit;
+  return next;
 }
 
 function isEnvFlagEnabled(name: string): boolean {
@@ -355,6 +401,14 @@ export async function checkConnection(conn) {
 
   if (!isAboutToExpire && !shouldRefreshByInterval) return;
 
+  // Circuit breaker: if recent refreshes for this connection failed, wait out
+  // the exponential backoff window instead of retrying every 60s tick. This is
+  // what stops the refresh loop when getAccessToken keeps returning null
+  // (dead proxy / network blip / unclassified upstream error).
+  if (isInRefreshBackoff(conn, Date.now())) {
+    return;
+  }
+
   const reason = isAboutToExpire ? "token expiring soon" : `interval: ${intervalMin}min`;
   log(`${LOG_PREFIX} Refreshing ${conn.provider}/${getConnectionLogLabel(conn)} (${reason})`);
 
@@ -427,11 +481,17 @@ export async function checkConnection(conn) {
         updateData.expiresAt = expiresAt;
         updateData.tokenExpiresAt = expiresAt;
       }
-      if (refreshResult.providerSpecificData) {
-        updateData.providerSpecificData = {
-          ...(conn.providerSpecificData || {}),
-          ...refreshResult.providerSpecificData,
-        };
+      // Merge new providerSpecificData and ALWAYS clear the refresh circuit
+      // breaker streak on a successful refresh.
+      const mergedProviderData = {
+        ...(conn.providerSpecificData || {}),
+        ...(refreshResult.providerSpecificData || {}),
+      };
+      const clearedProviderData = clearRefreshCircuit(mergedProviderData);
+      if (clearedProviderData !== undefined) {
+        updateData.providerSpecificData = clearedProviderData;
+      } else if (refreshResult.providerSpecificData) {
+        updateData.providerSpecificData = mergedProviderData;
       }
       await updateProviderConnection(conn.id, updateData);
       persistedResult = refreshResult;

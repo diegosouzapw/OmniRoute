@@ -29,6 +29,10 @@ interface ProxyLogEntry {
   provider: string | null;
   targetUrl: string | null;
   clientIp: string | null;
+  /** Outbound/egress IP the upstream actually saw (null until probed). The
+   * historical clientIp is the INBOUND IP (x-forwarded-for); egressIp answers
+   * "by which IP is this account leaving" — critical for rotating providers. */
+  egressIp: string | null;
   latencyMs: number;
   error: string | null;
   connectionId: string | null;
@@ -77,6 +81,7 @@ function loadFromDb() {
         provider: row.provider || null,
         targetUrl: row.target_url || null,
         clientIp: row.public_ip || null,
+        egressIp: row.egress_ip || null,
         latencyMs: row.latency_ms || 0,
         error: row.error || null,
         connectionId: row.connection_id || null,
@@ -109,6 +114,7 @@ export function logProxyEvent(entry: ProxyLogInput) {
     provider: entry.provider || null,
     targetUrl: entry.targetUrl || null,
     clientIp: entry.clientIp ?? entry.publicIp ?? null,
+    egressIp: entry.egressIp ?? null,
     latencyMs: entry.latencyMs || 0,
     error: entry.error || null,
     connectionId: entry.connectionId || null,
@@ -116,6 +122,16 @@ export function logProxyEvent(entry: ProxyLogInput) {
     account: entry.account || null,
     tlsFingerprint: entry.tlsFingerprint || false,
   };
+
+  // Structured egress line so the operator can confirm, in the proxy logs, which
+  // IP each account is entering (clientIp) and leaving (egressIp) by.
+  if (log.proxy || log.egressIp) {
+    console.log(
+      `[ProxyEgress] ${log.provider || "-"}/${log.account || "-"} ` +
+        `in=${log.clientIp || "?"} out=${log.egressIp || "?"} ` +
+        `proxy=${log.level}${log.proxy ? `:${log.proxy.host}` : ""} status=${log.status}`
+    );
+  }
 
   // 1. In-memory ring buffer (newest first)
   proxyLogs.unshift(log);

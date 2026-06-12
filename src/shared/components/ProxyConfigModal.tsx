@@ -12,7 +12,10 @@ const ALL_PROXY_TYPES = [
 ];
 // Build-time fallback (static deploys). The live value comes from GET /api/settings/proxies
 // (server ENABLE_SOCKS5_PROXY) so a runtime Docker env is honoured — #3508.
-const BUILD_TIME_SOCKS5 = process.env.NEXT_PUBLIC_ENABLE_SOCKS5_PROXY === "true";
+// Default ON (opt-out) to match the server: only an explicit falsey value hides SOCKS5.
+const BUILD_TIME_SOCKS5 = !["false", "0", "no", "off"].includes(
+  (process.env.NEXT_PUBLIC_ENABLE_SOCKS5_PROXY ?? "").trim().toLowerCase()
+);
 export function buildProxyTypes(socks5Enabled: boolean) {
   return socks5Enabled ? ALL_PROXY_TYPES : ALL_PROXY_TYPES.filter((type) => type.value !== "socks5");
 }

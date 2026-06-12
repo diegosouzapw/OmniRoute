@@ -26,7 +26,8 @@
     "testFailed": "Provider test failed: {error}",
     "loginEnabled": "Login: enabled (password updated)",
     "loginDisabled": "Login: disabled",
-    "providerInfo": "Provider: {info}"
+    "providerInfo": "Provider: {info}",
+    "opencode": "Install and configure the bundled @omniroute/opencode-plugin for OpenCode"
   },
   "doctor": {
     "title": "OmniRoute Doctor",

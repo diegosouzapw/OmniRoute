@@ -2552,17 +2552,31 @@ export function createOmniRouteProviderHook(
       const apiKey = (auth as { key: string }).key;
 
       // baseURL resolution: plugin opts first, then credential-attached
-      // baseURL (auth backends sometimes stash it next to the key). No
-      // silent default to localhost: a misconfigured plugin should surface
-      // a clear error, not phantom /v1/models calls. Cast through unknown
-      // because the Auth union (OAuth | ApiAuth | WellKnownAuth) doesn't
-      // declare baseURL on any branch — we duck-type it as a defensive
-      // extension point.
+      // baseURL (auth backends sometimes stash it next to the key), then the
+      // provider config itself — a baseURL set via opencode.json provider
+      // options (or a config hook) lands on `provider.options` and is not
+      // visible through either of the first two links. No silent default to
+      // localhost: a misconfigured plugin should surface a clear warning,
+      // not phantom /v1/models calls. Cast through unknown because the Auth
+      // union (OAuth | ApiAuth | WellKnownAuth) doesn't declare baseURL on
+      // any branch — we duck-type it as a defensive extension point.
       const authBaseURL = (auth as unknown as { baseURL?: unknown }).baseURL;
+      const providerBaseURL = (
+        _provider as { options?: { baseURL?: unknown } } | undefined
+      )?.options?.baseURL;
       const baseURL =
         resolved.baseURL ??
-        (typeof authBaseURL === "string" ? authBaseURL : "");
+        (typeof authBaseURL === "string" && authBaseURL.length > 0 ? authBaseURL : undefined) ??
+        (typeof providerBaseURL === "string" && providerBaseURL.length > 0
+          ? providerBaseURL
+          : undefined) ??
+        "";
       if (!baseURL) {
+        console.warn(
+          `[omniroute-plugin] provider.models(${resolved.providerId}): ` +
+            `no baseURL resolvable — checked plugin opts, auth.json, and provider config. ` +
+            `Set baseURL in opencode.json plugin options or run \`opencode connect ${resolved.providerId}\` with a baseURL.`
+        );
         return {};
       }
 

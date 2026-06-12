@@ -13,6 +13,7 @@ const {
   seedConnection,
   settingsDb,
 } = harness;
+const providersDb = await import("../../src/lib/db/providers.ts");
 
 function toPlainHeaders(headers: any): Record<string, string> {
   if (!headers) return {};
@@ -34,7 +35,7 @@ test.after(async () => {
   await harness.cleanup();
 });
 
-test.skip("fast-skip on quota-exhausted 429: first same-provider target causes remaining same-provider targets to be skipped (#1731)", async () => {
+test("fast-skip on quota-exhausted 429: first same-provider target causes remaining same-provider targets to be skipped (#1731)", async () => {
   await seedConnection("openai", {
     apiKey: "sk-openai-quota-exhausted",
   });
@@ -116,7 +117,7 @@ test.skip("fast-skip on quota-exhausted 429: first same-provider target causes r
   assert.equal(anthropicCalls, 1, "anthropic should be called once");
 });
 
-test.skip("fast-skip on credits-exhausted 429: same-provider targets are skipped (#1731)", async () => {
+test("fast-skip on credits-exhausted 429: same-provider targets are skipped (#1731)", async () => {
   await seedConnection("openai", {
     apiKey: "sk-openai-credits-exhausted",
   });
@@ -252,7 +253,7 @@ test("no skip on transient 429: plain rate-limit does not skip same-provider tar
   assert.equal(anthropicCalls, 1);
 });
 
-test.skip("cross-provider not affected: different providers both return 429, both are still attempted (#1731)", async () => {
+test("cross-provider not affected: different providers both return 429, both are still attempted (#1731)", async () => {
   await seedConnection("openai", {
     apiKey: "sk-openai-cross-provider",
   });
@@ -337,10 +338,13 @@ test.skip("cross-provider not affected: different providers both return 429, bot
   assert.equal(claudeCalls, 1);
 });
 
-test.skip("exhaustion does not persist across requests: second request starts fresh (#1731)", async () => {
-  await seedConnection("openai", {
+test("exhaustion does not persist across requests: second request starts fresh (#1731)", async () => {
+  // The fast-skip exhaustion sets are request-scoped. The connection-level
+  // cooldown written by the first 429 is a separate, legitimate layer — clear
+  // it between requests so this test only observes the request-scoped state.
+  const openaiConn = (await seedConnection("openai", {
     apiKey: "sk-openai-persistence-test",
-  });
+  })) as any;
   await seedConnection("anthropic", {
     apiKey: "sk-anthropic-persistence-test",
   });
@@ -410,6 +414,17 @@ test.skip("exhaustion does not persist across requests: second request starts fr
   assert.equal(openaiCalls, 1, "first request: openai called once");
   assert.equal(anthropicCalls, 1, "first request: anthropic called once");
 
+  // Clear the connection-level cooldown left by the first 429 — we are testing
+  // the request-scoped exhaustion sets, not the (persistent-by-design) cooldown.
+  await providersDb.updateProviderConnection(openaiConn.id, {
+    rateLimitedUntil: null,
+    testStatus: "active",
+    lastError: null,
+    lastErrorType: null,
+    errorCode: null,
+    backoffLevel: 0,
+  });
+
   // Second request: exhaustedProviders should be reset, openai should be tried again
   requestCount = 1;
   const response2 = await handleChat(
@@ -429,7 +444,7 @@ test.skip("exhaustion does not persist across requests: second request starts fr
   assert.equal(anthropicCalls, 1, "second request: anthropic should not be called");
 });
 
-test.skip("round-robin path fast-skip: round-robin combo also skips exhausted provider targets (#1731)", async () => {
+test("round-robin path fast-skip: round-robin combo also skips exhausted provider targets (#1731)", async () => {
   await seedConnection("openai", {
     apiKey: "sk-openai-rr-exhaustion",
   });
@@ -569,5 +584,71 @@ test("allow rate-limited connections after transient 429 on subsequent targets i
   assert.equal(body.choices[0].message.content, "rate limited reuse success");
   assert.equal(openaiCalls, 2);
   assert.deepEqual(usedApiKeys, ["fresh", "rate-limited"]);
+});
+
+test("emergency fallback never sends the failing provider's credentials to another provider's endpoint", async () => {
+  // Single-model request (no combo). On a quota/billing 429 the emergency
+  // fallback redirects to nvidia/openai/gpt-oss-120b. The hop must go through
+  // credential selection for the EMERGENCY provider — it must never re-send
+  // the exhausted provider's API key to a different provider's URL (the old
+  // executor-level hop shipped the OpenAI key to integrate.api.nvidia.com).
+  await seedConnection("openai", {
+    apiKey: "sk-openai-emergency-leak-guard",
+  });
+  await settingsDb.updateSettings({
+    requestRetry: 0,
+    maxRetryIntervalSec: 0,
+  });
+
+  const originalRetryDelay = harness.BaseExecutor.RETRY_CONFIG.delayMs;
+  harness.BaseExecutor.RETRY_CONFIG.delayMs = 0;
+
+  const upstreamCalls: Array<{ host: string; usedOpenAIKey: boolean }> = [];
+
+  globalThis.fetch = async (url: any, init: any = {}) => {
+    const headers = toPlainHeaders(init.headers);
+    const authHeader = headers.authorization ?? headers.Authorization;
+    const host = new URL(typeof url === "string" ? url : String(url)).host;
+    const usedOpenAIKey = authHeader === "Bearer sk-openai-emergency-leak-guard";
+    upstreamCalls.push({ host, usedOpenAIKey });
+
+    if (usedOpenAIKey) {
+      return new Response(JSON.stringify({ error: { message: "Subscription quota exceeded" } }), {
+        status: 429,
+        headers: { "Content-Type": "application/json" },
+      });
+    }
+
+    throw new Error(`unexpected upstream headers: ${JSON.stringify(headers)}`);
+  };
+
+  try {
+    const response = await handleChat(
+      buildRequest({
+        body: {
+          model: "openai/gpt-4o-mini",
+          stream: false,
+          messages: [{ role: "user", content: "test emergency credential leak guard" }],
+        },
+      })
+    );
+
+    assert.notEqual(response.status, 200, "request should fail (no fallback available)");
+  } finally {
+    harness.BaseExecutor.RETRY_CONFIG.delayMs = originalRetryDelay;
+  }
+
+  const leaks = upstreamCalls.filter(
+    (call) => call.usedOpenAIKey && !call.host.includes("openai.com")
+  );
+  assert.deepEqual(
+    leaks,
+    [],
+    `the OpenAI key must never be sent to a non-OpenAI host: ${JSON.stringify(upstreamCalls)}`
+  );
+  assert.ok(
+    upstreamCalls.every((call) => call.usedOpenAIKey),
+    `no unauthenticated emergency call should reach upstream either: ${JSON.stringify(upstreamCalls)}`
+  );
 });
 

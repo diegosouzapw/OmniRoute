@@ -3,8 +3,10 @@ import { v1CountTokensSchema } from "@/shared/validation/schemas";
 import { isValidationFailure, validateBody } from "@/shared/validation/helpers";
 import { estimateTokens } from "@/shared/utils/costEstimator";
 import { getExecutor } from "@omniroute/open-sse/executors/index.ts";
+import { runWithProxyContext } from "@omniroute/open-sse/utils/proxyFetch.ts";
 import { getModelInfo } from "@/sse/services/model";
 import { extractApiKey, getProviderCredentials, isValidApiKey } from "@/sse/services/auth";
+import { safeResolveProxy } from "@/sse/handlers/chatHelpers";
 import * as log from "@/sse/utils/logger";
 
 /**
@@ -61,12 +63,17 @@ export async function POST(request) {
     }
 
     const executor = getExecutor(modelInfo.provider);
-    const counted = await executor?.countTokens?.({
-      model: modelInfo.model,
-      body,
-      credentials,
-      log,
-    });
+    // The provider-side count is a real upstream call — it must honor the
+    // connection's proxy assignment exactly like chat execution does.
+    const proxyInfo = await safeResolveProxy(credentials.connectionId);
+    const counted = await runWithProxyContext(proxyInfo?.proxy || null, () =>
+      executor?.countTokens?.({
+        model: modelInfo.model,
+        body,
+        credentials,
+        log,
+      })
+    );
 
     if (!counted || !Number.isFinite(counted.input_tokens)) {
       return estimated;

@@ -91,6 +91,7 @@ export default function ComboDefaultsTab() {
     retryDelayMs: 2000,
     maxComboDepth: 3,
     trackMetrics: true,
+    reasoningTokenBufferEnabled: true,
     handoffThreshold: 0.85,
     handoffModel: "",
     maxMessagesForSummary: 30,
@@ -553,6 +554,29 @@ export default function ComboDefaultsTab() {
               checked={comboDefaults.trackMetrics !== false}
               onChange={() =>
                 setComboDefaults((prev) => ({ ...prev, trackMetrics: !prev.trackMetrics }))
+              }
+            />
+          </div>
+          <div className="flex items-center justify-between gap-4">
+            <div>
+              <p className="font-medium text-sm">
+                {translateOrFallback(t, "reasoningTokenBuffer", "Reasoning token buffer")}
+              </p>
+              <p className="text-xs text-text-muted">
+                {translateOrFallback(
+                  t,
+                  "reasoningTokenBufferDesc",
+                  "Allow combo routing to add max_tokens headroom only for known reasoning models when the full buffer fits inside a known output cap."
+                )}
+              </p>
+            </div>
+            <Toggle
+              checked={comboDefaults.reasoningTokenBufferEnabled !== false}
+              onChange={() =>
+                setComboDefaults((prev) => ({
+                  ...prev,
+                  reasoningTokenBufferEnabled: prev.reasoningTokenBufferEnabled === false,
+                }))
               }
             />
           </div>

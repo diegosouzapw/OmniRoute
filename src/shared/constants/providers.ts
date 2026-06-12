@@ -3127,6 +3127,8 @@ export const USAGE_SUPPORTED_PROVIDERS = [
   "nanogpt",
   "deepseek",
   "xiaomi-mimo",
+  "vertex",
+  "vertex-partner",
 ];
 
 // ── Zod validation at module load (Phase 7.2) ──

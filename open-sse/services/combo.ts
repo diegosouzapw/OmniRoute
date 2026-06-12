@@ -8,8 +8,12 @@
 import {
   checkFallbackError,
   classifyErrorText,
+  classifyLockoutReason,
+  decayModelFailureCount,
   formatRetryAfter,
   getRuntimeProviderProfile,
+  isModelLocked,
+  recordModelLockoutFailure,
   recordProviderFailure,
   isProviderFailureCode,
   isProviderExhaustedReason,
@@ -44,6 +48,7 @@ import {
   getLastSessionModel,
   getHandoff,
 } from "../../src/lib/db/contextHandoffs.ts";
+import { resolveModelLockoutSettings } from "../../src/lib/resilience/modelLockoutSettings";
 import { fetchCodexQuota } from "./codexQuotaFetcher.ts";
 import { getQuotaFetcher } from "./quotaPreflight.ts";
 import * as semaphore from "./rateLimitSemaphore.ts";
@@ -71,11 +76,7 @@ import {
   type ProviderCandidate,
   type ScoringWeights,
 } from "./autoCombo/scoring.ts";
-import {
-  getResolvedModelCapabilities,
-  supportsReasoning,
-  supportsToolCalling,
-} from "./modelCapabilities.ts";
+import { getResolvedModelCapabilities, supportsToolCalling } from "./modelCapabilities.ts";
 import { estimateTokens } from "./contextManager.ts";
 import { getReasoningTokens } from "../../src/lib/usage/tokenAccounting.ts";
 import { getSessionConnection } from "./sessionManager.ts";
@@ -108,6 +109,7 @@ import {
   resolveResilienceSettings,
   type ResilienceSettings,
 } from "../../src/lib/resilience/settings";
+import { resolveReasoningBufferedMaxTokens, toPositiveInteger } from "./reasoningTokenBuffer.ts";
 
 // Status codes that should mark round-robin target semaphores as cooling down.
 const TRANSIENT_FOR_SEMAPHORE = [429, 502, 503, 504];
@@ -446,7 +448,211 @@ export async function validateResponseQuality(
   isStreaming: boolean,
   log: { warn?: (...args: unknown[]) => void }
 ): Promise<{ valid: boolean; reason?: string; clonedResponse?: Response }> {
-  if (isStreaming) return { valid: true };
+  // Issue #3685: For Claude SSE streaming responses, use a BOUNDED PEEK to
+  // detect the empty-content-block pattern (content_filter stop_reason with
+  // no content_block_* events) WITHOUT de-streaming non-empty responses.
+  //
+  // Strategy:
+  // - Read chunks from response.body one at a time, accumulating raw bytes.
+  // - Parse SSE events incrementally.
+  // - If a content_block_* event appears → stream HAS content. Stop buffering.
+  //   Return a clonedResponse whose body replays buffered bytes then pipes the
+  //   remainder of the original reader. Only the chunks up to the first content
+  //   block were held in memory — the rest stream normally.
+  // - If the stream ends with a complete Claude lifecycle but NO content_block
+  //   → return invalid (combo failover). The empty lifecycle is tiny so fully
+  //   reading it is acceptable.
+  // - If the stream ends without a recognisable complete Claude lifecycle →
+  //   return valid with a clonedResponse replaying all buffered bytes (don't
+  //   misclassify non-Claude or partial streams as empty).
+  //
+  // Non-text/event-stream streaming responses are not buffered at all.
+  if (isStreaming) {
+    const contentType = response.headers.get("content-type") || "";
+    if (!contentType.includes("text/event-stream")) {
+      return { valid: true };
+    }
+
+    if (!response.body) {
+      return { valid: true };
+    }
+
+    const reader = response.body.getReader();
+    const decoder = new TextDecoder("utf-8");
+
+    // Raw Uint8Array chunks accumulated so far — used to replay the prefix
+    // in the returned clonedResponse.
+    const bufferedChunks: Uint8Array[] = [];
+    // Decoded text accumulated across chunks for incremental SSE parsing.
+    // Only the tail of the most-recently-processed line window remains here
+    // between iterations (incomplete lines are deferred to the next chunk).
+    let decodedSoFar = "";
+
+    // SSE lifecycle state.
+    let hasMessageStart = false;
+    let hasContentBlock = false;
+    let hasLifecycleEnd = false;
+    // `event:` type line seen before the next `data:` line in the same event.
+    let pendingEventType = "";
+
+    /**
+     * Parse any complete SSE lines from `decodedSoFar`, updating lifecycle
+     * flags in the closure. The last (potentially incomplete) line is kept in
+     * `decodedSoFar` for the next iteration.
+     *
+     * Returns true when a content_block_* event is detected — the caller
+     * should stop peeking and treat the stream as non-empty.
+     */
+    function parseAccumulatedSse(): boolean {
+      const lines = decodedSoFar.split(/\r?\n/);
+      // Retain the potentially-incomplete trailing fragment.
+      decodedSoFar = lines[lines.length - 1];
+
+      for (let i = 0; i < lines.length - 1; i++) {
+        const trimmed = lines[i].trim();
+
+        if (trimmed.startsWith("event:")) {
+          pendingEventType = trimmed.slice(6).trim();
+          continue;
+        }
+
+        if (!trimmed.startsWith("data:")) {
+          if (!trimmed) pendingEventType = "";
+          continue;
+        }
+
+        const data = trimmed.slice(5).trim();
+        if (!data || data === "[DONE]") continue;
+
+        let parsed: Record<string, unknown>;
+        try {
+          parsed = JSON.parse(data);
+        } catch {
+          continue;
+        }
+
+        const eventType =
+          (typeof parsed.type === "string" ? parsed.type : null) || pendingEventType || "";
+        pendingEventType = "";
+
+        switch (eventType) {
+          case "message_start":
+            hasMessageStart = true;
+            break;
+          case "content_block_start":
+          case "content_block_delta":
+          case "content_block_stop":
+            hasContentBlock = true;
+            // Signal caller to stop buffering immediately.
+            return true;
+          case "message_stop":
+            hasLifecycleEnd = true;
+            break;
+          case "message_delta": {
+            const delta = parsed.delta;
+            if (
+              delta &&
+              typeof delta === "object" &&
+              (delta as Record<string, unknown>).stop_reason != null
+            ) {
+              hasLifecycleEnd = true;
+            }
+            break;
+          }
+          default:
+            break;
+        }
+      }
+      return false;
+    }
+
+    /**
+     * Build a Response whose body first replays all bytes in `bufferedChunks`,
+     * then forwards the remainder of `readerToForward` chunk-by-chunk.
+     * Preserves the original response's status, statusText, and headers.
+     */
+    function buildReplayResponse(
+      readerToForward: ReadableStreamDefaultReader<Uint8Array>
+    ): Response {
+      // Snapshot the prefix so mutations after this point don't affect it.
+      const prefix = bufferedChunks.slice();
+      let prefixIdx = 0;
+      const stream = new ReadableStream<Uint8Array>({
+        async pull(controller) {
+          // 1. Drain the buffered prefix one chunk at a time.
+          if (prefixIdx < prefix.length) {
+            controller.enqueue(prefix[prefixIdx++]);
+            return;
+          }
+          // 2. Forward the remainder from the original reader.
+          try {
+            const { done, value } = await readerToForward.read();
+            if (done) {
+              controller.close();
+            } else {
+              controller.enqueue(value);
+            }
+          } catch {
+            controller.close();
+          }
+        },
+      });
+      return new Response(stream, {
+        status: response.status,
+        statusText: response.statusText,
+        headers: response.headers,
+      });
+    }
+
+    // Main bounded-peek loop.
+    try {
+      while (true) {
+        const { done, value } = await reader.read();
+
+        if (done) {
+          // Stream finished — flush the TextDecoder and parse any remaining text.
+          const tail = decoder.decode(undefined, { stream: false });
+          if (tail) decodedSoFar += tail;
+          parseAccumulatedSse();
+
+          if (hasMessageStart && hasLifecycleEnd && !hasContentBlock) {
+            // Complete Claude lifecycle with zero content blocks → failover.
+            log.warn?.(
+              "COMBO",
+              "Streaming Claude response has complete lifecycle but zero content blocks (content_filter?) — marking as invalid for combo failover"
+            );
+            return { valid: false, reason: "streaming empty content block" };
+          }
+
+          // Incomplete lifecycle or non-Claude stream — replay all buffered
+          // bytes. The reader is exhausted so the forwarding reader will
+          // immediately signal done.
+          const clonedResponse = buildReplayResponse(reader);
+          return { valid: true, clonedResponse };
+        }
+
+        // Accumulate raw bytes for potential replay.
+        bufferedChunks.push(value);
+
+        // Decode incrementally (stream:true keeps multi-byte char state).
+        decodedSoFar += decoder.decode(value, { stream: true });
+        const foundContent = parseAccumulatedSse();
+
+        if (foundContent) {
+          // A content_block_* event was found — stop peeking. Return a
+          // clonedResponse that replays all buffered bytes (the current chunk
+          // is already in bufferedChunks) and then forwards the remainder of
+          // the original reader unchanged.
+          const clonedResponse = buildReplayResponse(reader);
+          return { valid: true, clonedResponse };
+        }
+      }
+    } catch {
+      // If reading the stream fails, pass through — other mechanisms
+      // (stream readiness timeout) will catch truly broken streams.
+      return { valid: true };
+    }
+  }
 
   const contentType = response.headers.get("content-type") || "";
   if (!contentType.includes("application/json") && !contentType.includes("text/")) {
@@ -2815,6 +3021,7 @@ export async function handleComboChat({
     ? resolveComboConfig(combo, settings)
     : { ...getDefaultComboConfig(), ...(combo.config || {}) };
   const comboTargetTimeoutMs = resolveComboTargetTimeoutMs(config, FETCH_TIMEOUT_MS);
+  const reasoningTokenBufferEnabled = config.reasoningTokenBufferEnabled !== false;
 
   // ── Per-model timeout wrapper ────────────────────────────────────────────
   // Combo target timeouts inherit FETCH_TIMEOUT_MS by default. Operators can
@@ -3391,6 +3598,7 @@ export async function handleComboChat({
       ): Promise<{ ok: boolean; response?: Response } | null> => {
         const target = orderedTargets[i];
         const modelStr = target.modelStr;
+        const rawModel = parseModel(modelStr).model || modelStr;
         const provider = target.provider;
 
         const cb = getCircuitBreaker(provider);
@@ -3443,6 +3651,13 @@ export async function handleComboChat({
             "COMBO",
             `Skipping ${modelStr} — provider ${provider} marked exhausted this request (#1731)`
           );
+          if (i > 0) fallbackCount++;
+          return null;
+        }
+
+        // Pre-check: skip models locked by the resilience system (model-level lockout)
+        if (provider && rawModel && isModelLocked(provider, target.connectionId || "", rawModel)) {
+          log.info("COMBO", `Skipping ${modelStr} — model locked by resilience (cooldown active)`);
           if (i > 0) fallbackCount++;
           return null;
         }
@@ -3603,23 +3818,25 @@ export async function handleComboChat({
             }
           }
 
-          // Issue #3587: Reasoning models (deepseek-v4-flash, nemotron, etc.) consume
-          // ALL max_tokens for reasoning_tokens, leaving content empty. Add a buffer
-          // to max_tokens so the model has enough tokens for both reasoning and content.
-          if (supportsReasoning(modelStr)) {
+          // Issue #3587: Reasoning models can spend the whole output budget on
+          // reasoning. Only add headroom when the complete buffer fits inside the
+          // model's known output cap; otherwise preserve the client's explicit limit.
+          {
             const bodyRecord = attemptBody as Record<string, unknown>;
-            const currentMaxTokens = Number(bodyRecord.max_tokens) || 0;
-            if (currentMaxTokens > 0) {
-              // Add 50% buffer + 1000 floor to ensure reasoning + content both fit
-              const bufferedMaxTokens = Math.max(
-                currentMaxTokens + 1000,
-                Math.ceil(currentMaxTokens * 1.5)
-              );
+            const currentMaxTokens = toPositiveInteger(bodyRecord.max_tokens);
+            const bufferedMaxTokens = resolveReasoningBufferedMaxTokens(
+              modelStr,
+              bodyRecord.max_tokens,
+              { enabled: reasoningTokenBufferEnabled }
+            );
+            if (currentMaxTokens !== null && bufferedMaxTokens !== null) {
               bodyRecord.max_tokens = bufferedMaxTokens;
-              log.info(
-                "COMBO",
-                `Reasoning model ${modelStr}: buffered max_tokens ${currentMaxTokens} -> ${bufferedMaxTokens}`
-              );
+              if (bufferedMaxTokens !== currentMaxTokens) {
+                log.info(
+                  "COMBO",
+                  `Reasoning model ${modelStr}: adjusted max_tokens ${currentMaxTokens} -> ${bufferedMaxTokens}`
+                );
+              }
             }
           }
           const result = await handleSingleModelWithTimeout(attemptBody, modelStr, {
@@ -3648,6 +3865,25 @@ export async function handleComboChat({
               lastError = `Upstream response failed quality validation: ${quality.reason}`;
               if (!lastStatus) lastStatus = 502;
               if (i > 0) fallbackCount++;
+              if (provider && rawModel) {
+                const mlSettings = resolveModelLockoutSettings(settings);
+                if (mlSettings.enabled && mlSettings.errorCodes.includes(502)) {
+                  recordModelLockoutFailure(
+                    provider,
+                    target.connectionId || "",
+                    rawModel,
+                    "quality_failure",
+                    502,
+                    mlSettings.baseCooldownMs,
+                    profile,
+                    {
+                      exactCooldownMs: mlSettings.useExponentialBackoff
+                        ? 0
+                        : mlSettings.baseCooldownMs,
+                    }
+                  );
+                }
+              }
               emit("combo.target.failed", {
                 comboName: combo.name,
                 targetIndex: i,
@@ -3658,6 +3894,25 @@ export async function handleComboChat({
               });
               return null;
             }
+
+            // Success decay: a healthy response walks the model's lockout failure
+            // count back down (and eventually clears an expired lockout entirely).
+            if (provider && rawModel) {
+              const dcResult = decayModelFailureCount(
+                provider,
+                target.connectionId || "",
+                rawModel
+              );
+              if (dcResult.cleared) {
+                log.info("COMBO", `Model ${modelStr} fully recovered — lockout cleared`);
+              } else if (dcResult.newFailureCount > 0) {
+                log.debug(
+                  "COMBO",
+                  `Model ${modelStr} decayed to failureCount=${dcResult.newFailureCount}`
+                );
+              }
+            }
+
             const latencyMs = Date.now() - startTime;
             emit("combo.target.succeeded", {
               comboName: combo.name,
@@ -4031,7 +4286,36 @@ export async function handleComboChat({
             !isTokenLimitBreach &&
             [408, 429, 500, 502, 503, 504].includes(result.status);
           if (retry < maxRetries && isTransient && !providerExhausted) {
-            continue; // Retry same model
+            // Record model lockout immediately on the first transient failure —
+            // once the model is cooling down, retrying it would waste an upstream
+            // call and extend the cooldown via exponential backoff.
+            let lockoutRecorded = false;
+            if (provider && rawModel && retry === 0) {
+              const mlSettings = resolveModelLockoutSettings(settings);
+              if (mlSettings.enabled && mlSettings.errorCodes.includes(result.status)) {
+                recordModelLockoutFailure(
+                  provider,
+                  target.connectionId || "",
+                  rawModel,
+                  classifyLockoutReason(result.status),
+                  result.status,
+                  mlSettings.baseCooldownMs,
+                  profile,
+                  {
+                    exactCooldownMs: mlSettings.useExponentialBackoff
+                      ? 0
+                      : mlSettings.baseCooldownMs,
+                  }
+                );
+                lockoutRecorded = true;
+              }
+            }
+            if (lockoutRecorded) {
+              log.info("COMBO", `Skipping retry for ${modelStr} — model lockout active`);
+              if (i > 0) fallbackCount++;
+              return null;
+            }
+            continue; // Retry same model (transient error, no lockout recorded)
           }
 
           // Done retrying this model
@@ -4046,6 +4330,25 @@ export async function handleComboChat({
           lastError = errorText || String(result.status);
           if (!lastStatus) lastStatus = result.status;
           if (i > 0) fallbackCount++;
+          // Wire combo failures into the resilience dashboard (model-level lockout)
+          // alongside the provider-level cooldown below — they govern different scopes.
+          if (provider && rawModel) {
+            const mlSettings = resolveModelLockoutSettings(settings);
+            if (mlSettings.enabled && mlSettings.errorCodes.includes(result.status)) {
+              recordModelLockoutFailure(
+                provider,
+                target.connectionId || "",
+                rawModel,
+                classifyLockoutReason(result.status),
+                result.status,
+                mlSettings.baseCooldownMs,
+                profile,
+                {
+                  exactCooldownMs: mlSettings.useExponentialBackoff ? 0 : mlSettings.baseCooldownMs,
+                }
+              );
+            }
+          }
           log.warn("COMBO", `Model ${modelStr} failed, trying next`, { status: result.status });
 
           if (resilienceSettings.providerCooldown.enabled && provider && provider !== "unknown") {
@@ -4222,6 +4525,7 @@ async function handleRoundRobinCombo({
   const maxRetries = config.maxRetries ?? 1;
   const retryDelayMs = resolveDelayMs(config.retryDelayMs, 2000);
   const fallbackDelayMs = resolveDelayMs(config.fallbackDelayMs, 0);
+  const reasoningTokenBufferEnabled = config.reasoningTokenBufferEnabled !== false;
 
   const resilienceSettings: ResilienceSettings = settings
     ? resolveResilienceSettings(settings)
@@ -4381,27 +4685,30 @@ async function handleRoundRobinCombo({
           `[RR #${counter}] → ${modelStr}${offset > 0 ? ` (fallback +${offset})` : ""}${retry > 0 ? ` (retry ${retry})` : ""}`
         );
 
-        // Issue #3587: Reasoning models consume ALL max_tokens for reasoning_tokens.
-        // Add buffer to ensure reasoning + content both fit. Apply the buffer to a
-        // per-attempt COPY — never mutate the shared `body` — so it does not compound
-        // across round-robin iterations/retries (otherwise 4096 -> 6144 -> 9216 -> ...
-        // as each reasoning model re-reads an already-buffered value and overshoots the
-        // model's real limit, triggering 400s).
+        // Issue #3587: Reasoning models can spend the whole output budget on
+        // reasoning. Apply any safe buffer to a per-attempt copy so round-robin
+        // retries never compound across models.
         let attemptBody = body;
-        if (supportsReasoning(modelStr)) {
-          const currentMaxTokens = Number((body as Record<string, unknown>).max_tokens) || 0;
-          if (currentMaxTokens > 0) {
-            const bufferedMaxTokens = Math.max(
-              currentMaxTokens + 1000,
-              Math.ceil(currentMaxTokens * 1.5)
-            );
+        {
+          const bodyRecord = body as Record<string, unknown>;
+          const currentMaxTokens = toPositiveInteger(bodyRecord.max_tokens);
+          const bufferedMaxTokens = resolveReasoningBufferedMaxTokens(
+            modelStr,
+            bodyRecord.max_tokens,
+            { enabled: reasoningTokenBufferEnabled }
+          );
+          if (
+            currentMaxTokens !== null &&
+            bufferedMaxTokens !== null &&
+            bufferedMaxTokens !== currentMaxTokens
+          ) {
             attemptBody = {
-              ...(body as Record<string, unknown>),
+              ...bodyRecord,
               max_tokens: bufferedMaxTokens,
             } as typeof body;
             log.info(
               "COMBO-RR",
-              `Reasoning model ${modelStr}: buffered max_tokens ${currentMaxTokens} -> ${bufferedMaxTokens}`
+              `Reasoning model ${modelStr}: adjusted max_tokens ${currentMaxTokens} -> ${bufferedMaxTokens}`
             );
           }
         }

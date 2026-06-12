@@ -7,6 +7,7 @@
     "checkJs": true,
     "noEmit": true,
     "allowImportingTsExtensions": true,
+    "resolveJsonModule": true,
     "skipLibCheck": true,
     "esModuleInterop": true,
     "strict": false,

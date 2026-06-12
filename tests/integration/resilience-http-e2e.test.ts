@@ -558,6 +558,7 @@ test("resilience API only exposes configuration, not runtime breaker state", asy
     "connectionCooldown",
     "legacy",
     "providerBreaker",
+    "providerCooldown",
     "requestQueue",
     "waitForCooldown",
   ]);
