@@ -10,7 +10,7 @@
 // Uses createRoot + act to mount each hook inside a minimal wrapper component
 // so we test real React hook semantics without a full Next.js server context.
 
-import React, { act } from "react";
+import React, { act, useEffect } from "react";
 import { createRoot } from "react-dom/client";
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 
@@ -27,10 +27,7 @@ vi.mock("next/navigation", () => ({
 vi.mock("next-intl", () => ({
   useTranslations: () => (key: string, values?: Record<string, unknown>) => {
     if (values) {
-      return Object.entries(values).reduce(
-        (acc, [k, v]) => acc.replace(`{${k}}`, String(v)),
-        key
-      );
+      return Object.entries(values).reduce((acc, [k, v]) => acc.replace(`{${k}}`, String(v)), key);
     }
     return key;
   },
@@ -83,10 +80,13 @@ describe("useProviderConnections — initial state", () => {
     let result: HookResult | null = null;
 
     function TestWrapper() {
-      result = useProviderConnections("openai", true, false);
+      const hookResult = useProviderConnections("openai", true, false);
+      useEffect(() => {
+        result = hookResult;
+      }, [hookResult]);
       return (
         <span data-testid="loaded">
-          {String(result.connections.length)}|{String(result.batchTesting)}
+          {String(hookResult.connections.length)}|{String(hookResult.batchTesting)}
         </span>
       );
     }
@@ -112,7 +112,10 @@ describe("useProviderConnections — initial state", () => {
     let result: HookResult | null = null;
 
     function TestWrapper() {
-      result = useProviderConnections("openai", true, false);
+      const hookResult = useProviderConnections("openai", true, false);
+      useEffect(() => {
+        result = hookResult;
+      }, [hookResult]);
       return <span />;
     }
 
@@ -181,7 +184,10 @@ describe("useProviderSettings — initial state", () => {
     let result: HookResult | null = null;
 
     function TestWrapper() {
-      result = useProviderSettings("openai");
+      const hookResult = useProviderSettings("openai");
+      useEffect(() => {
+        result = hookResult;
+      }, [hookResult]);
       return <span />;
     }
 
@@ -207,7 +213,10 @@ describe("useProviderSettings — initial state", () => {
     let result: HookResult | null = null;
 
     function TestWrapper() {
-      result = useProviderSettings("codex");
+      const hookResult = useProviderSettings("codex");
+      useEffect(() => {
+        result = hookResult;
+      }, [hookResult]);
       return <span />;
     }
 
@@ -253,7 +262,10 @@ describe("useProviderModels — initial state", () => {
     let result: HookResult | null = null;
 
     function TestWrapper() {
-      result = useProviderModels("openai", false);
+      const hookResult = useProviderModels("openai", false);
+      useEffect(() => {
+        result = hookResult;
+      }, [hookResult]);
       return <span />;
     }
 
@@ -275,7 +287,10 @@ describe("useProviderModels — initial state", () => {
     let result: HookResult | null = null;
 
     function TestWrapper() {
-      result = useProviderModels("openai", false);
+      const hookResult = useProviderModels("openai", false);
+      useEffect(() => {
+        result = hookResult;
+      }, [hookResult]);
       return <span />;
     }
 
@@ -316,8 +331,7 @@ describe("useProviderModels — initial state", () => {
 // Cycle-safety: hooks must NOT import from ProviderDetailPageClient
 // ---------------------------------------------------------------------------
 
-const HOOKS_DIR =
-  "/home/diegosouzapw/dev/proxys/OmniRoute/.worktrees/fix-3501-phase1f/src/app/(dashboard)/dashboard/providers/[id]/hooks";
+const HOOKS_DIR = `${process.cwd()}/src/app/(dashboard)/dashboard/providers/[id]/hooks`;
 
 describe("Cycle-safety — hooks do not import ProviderDetailPageClient", () => {
   // We allow the name in JSDoc comments; what we forbid is an actual ES import statement.

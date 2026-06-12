@@ -526,7 +526,7 @@ describe("Page Integration — combos page empty state", () => {
 describe("Page Integration — provider test results privacy", () => {
   const providersSrc = readProjectFile("src/app/(dashboard)/dashboard/providers/page.tsx");
   const providerDetailSrc = readProjectFile(
-    "src/app/(dashboard)/dashboard/providers/[id]/page.tsx"
+    "src/app/(dashboard)/dashboard/providers/[id]/ProviderDetailPageClient.tsx"
   );
 
   it("should mask provider test batch names with the global email privacy toggle", () => {
@@ -541,7 +541,7 @@ describe("Page Integration — provider test results privacy", () => {
   it("should mask provider detail test result names with the global email privacy toggle", () => {
     assert.ok(
       providerDetailSrc,
-      "src/app/(dashboard)/dashboard/providers/[id]/page.tsx should exist"
+      "src/app/(dashboard)/dashboard/providers/[id]/ProviderDetailPageClient.tsx should exist"
     );
     assert.match(providerDetailSrc, /const emailsVisible = useEmailPrivacyStore/);
     assert.match(
@@ -553,7 +553,7 @@ describe("Page Integration — provider test results privacy", () => {
   it("should resolve provider detail metadata through the shared dashboard catalog", () => {
     assert.ok(
       providerDetailSrc,
-      "src/app/(dashboard)/dashboard/providers/[id]/page.tsx should exist"
+      "src/app/(dashboard)/dashboard/providers/[id]/ProviderDetailPageClient.tsx should exist"
     );
     assert.match(providerDetailSrc, /resolveDashboardProviderInfo/);
   });
@@ -561,7 +561,7 @@ describe("Page Integration — provider test results privacy", () => {
   it("should treat upstream proxy entries as a dedicated management surface", () => {
     assert.ok(
       providerDetailSrc,
-      "src/app/(dashboard)/dashboard/providers/[id]/page.tsx should exist"
+      "src/app/(dashboard)/dashboard/providers/[id]/ProviderDetailPageClient.tsx should exist"
     );
     assert.match(providerDetailSrc, /isUpstreamProxyProvider/);
     assert.match(providerDetailSrc, /Managed via Upstream Proxy Settings/);

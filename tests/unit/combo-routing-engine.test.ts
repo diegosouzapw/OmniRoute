@@ -15,6 +15,8 @@ const {
   resolveNestedComboModels,
   handleComboChat,
 } = await import("../../open-sse/services/combo.ts");
+const { resolveReasoningBufferedMaxTokens } =
+  await import("../../open-sse/services/reasoningTokenBuffer.ts");
 const { normalizeComboStep } = await import("../../src/lib/combos/steps.ts");
 const { registerStrategy } = await import("../../open-sse/services/autoCombo/routerStrategy.ts");
 const { touchSession, clearSessions } = await import("../../open-sse/services/sessionManager.ts");
@@ -2874,7 +2876,7 @@ test("handleComboChat aborts combo when 503 response does NOT contain the unavai
 test("#3587 reasoning model gets max_tokens buffer applied", async () => {
   saveModelsDevCapabilities({
     openai: {
-      "gpt-4o-reasoning": capabilityEntry(4096, { reasoning: true }),
+      "gpt-4o-reasoning": capabilityEntry(12000, { reasoning: true, limit_output: 12000 }),
     },
   });
 
@@ -2885,14 +2887,14 @@ test("#3587 reasoning model gets max_tokens buffer applied", async () => {
       name: "reasoning-buffer",
       models: ["openai/gpt-4o-reasoning"],
     },
-    handleSingleModel: async (body: any) => {
+    handleSingleModel: async (body: Record<string, unknown>) => {
       bodies.push(body);
       return okResponse();
     },
     isModelAvailable: async () => true,
     log: createLog(),
     settings: null,
-    relayOptions: null as any,
+    relayOptions: null,
     allCombos: null,
   });
 
@@ -2900,6 +2902,129 @@ test("#3587 reasoning model gets max_tokens buffer applied", async () => {
   assert.equal(bodies.length, 1, "should have called handleSingleModel once");
   // 4096 * 1.5 = 6144; max(4096+1000, 6144) = 6144
   assert.equal(bodies[0].max_tokens, 6144, "max_tokens should be buffered for reasoning model");
+});
+
+test("#3587 reasoning buffer preserves max_tokens when the full buffer exceeds model cap", async () => {
+  saveModelsDevCapabilities({
+    openai: {
+      "gemini-high-cap": capabilityEntry(65536, { reasoning: true, limit_output: 65536 }),
+    },
+  });
+
+  assert.equal(
+    resolveReasoningBufferedMaxTokens("openai/gemini-high-cap", 64000),
+    64000,
+    "near-cap requests should not be inflated beyond the model's accepted range"
+  );
+  assert.equal(
+    resolveReasoningBufferedMaxTokens("openai/gemini-high-cap", "4096"),
+    6144,
+    "numeric string max_tokens should be normalized before applying a safe buffer"
+  );
+  assert.equal(
+    resolveReasoningBufferedMaxTokens("openai/gemini-high-cap", "not-a-number"),
+    null,
+    "non-numeric string max_tokens should not be changed"
+  );
+  assert.equal(
+    resolveReasoningBufferedMaxTokens("openai/gemini-high-cap", 70000),
+    65536,
+    "already over-cap max_tokens should be clamped to a known explicit cap"
+  );
+
+  const bodies: Array<Record<string, unknown>> = [];
+  const result = await handleComboChat({
+    body: { max_tokens: 64000 },
+    combo: {
+      name: "reasoning-buffer-near-cap",
+      models: ["openai/gemini-high-cap"],
+    },
+    handleSingleModel: async (body: Record<string, unknown>) => {
+      bodies.push(body);
+      return okResponse();
+    },
+    isModelAvailable: async () => true,
+    log: createLog(),
+    settings: null,
+    relayOptions: null,
+    allCombos: null,
+  });
+
+  assert.equal(result.ok, true);
+  assert.equal(bodies.length, 1, "should have called handleSingleModel once");
+  assert.equal(bodies[0].max_tokens, 64000, "max_tokens should remain within the cap");
+});
+
+test("#3587 reasoning buffer is disabled without explicit model capability data", async () => {
+  assert.equal(
+    resolveReasoningBufferedMaxTokens("missing-provider/unknown-reasoning-model", 100),
+    null,
+    "unknown models must not receive heuristic token inflation"
+  );
+
+  saveModelsDevCapabilities({
+    openai: {
+      "capless-reasoning": capabilityEntry(8192, {
+        reasoning: true,
+        limit_output: null,
+      }),
+      "default-cap-reasoning": capabilityEntry(8192, {
+        reasoning: true,
+        limit_output: 8192,
+      }),
+    },
+  });
+
+  assert.equal(
+    resolveReasoningBufferedMaxTokens("openai/capless-reasoning", 100),
+    null,
+    "reasoning metadata without an explicit output cap is not safe enough to inflate"
+  );
+  assert.equal(
+    resolveReasoningBufferedMaxTokens("openai/default-cap-reasoning", 100),
+    null,
+    "default-sized caps are treated as unknown because registry fallbacks use the same value"
+  );
+});
+
+test("#3588 reasoning token buffer feature flag preserves client max_tokens", async () => {
+  saveModelsDevCapabilities({
+    openai: {
+      "flagged-reasoning": capabilityEntry(12000, { reasoning: true, limit_output: 12000 }),
+    },
+  });
+
+  assert.equal(
+    resolveReasoningBufferedMaxTokens("openai/flagged-reasoning", 4096, { enabled: false }),
+    null,
+    "disabled feature flag should skip reasoning token inflation"
+  );
+
+  const bodies: Array<Record<string, unknown>> = [];
+  const result = await handleComboChat({
+    body: { max_tokens: 4096 },
+    combo: {
+      name: "reasoning-buffer-disabled",
+      models: ["openai/flagged-reasoning"],
+    },
+    handleSingleModel: async (body: Record<string, unknown>) => {
+      bodies.push(body);
+      return okResponse();
+    },
+    isModelAvailable: async () => true,
+    log: createLog(),
+    settings: {
+      comboDefaults: {
+        reasoningTokenBufferEnabled: false,
+      },
+    },
+    relayOptions: null,
+    allCombos: null,
+  });
+
+  assert.equal(result.ok, true);
+  assert.equal(bodies.length, 1, "should have called handleSingleModel once");
+  assert.equal(bodies[0].max_tokens, 4096, "feature flag should preserve client max_tokens");
 });
 
 test("#3587 non-reasoning model does not get max_tokens buffer", async () => {
@@ -2916,14 +3041,14 @@ test("#3587 non-reasoning model does not get max_tokens buffer", async () => {
       name: "no-reasoning-buffer",
       models: ["openai/gpt-4o-plain"],
     },
-    handleSingleModel: async (body: any) => {
+    handleSingleModel: async (body: Record<string, unknown>) => {
       bodies.push(body);
       return okResponse();
     },
     isModelAvailable: async () => true,
     log: createLog(),
     settings: null,
-    relayOptions: null as any,
+    relayOptions: null,
     allCombos: null,
   });
 
@@ -2945,8 +3070,8 @@ test("#3587 round-robin buffer does NOT compound across reasoning models", async
   // the shared-`body` mutation that compounded the buffer on every RR iteration.
   saveModelsDevCapabilities({
     openai: {
-      "rr-reasoning-a": capabilityEntry(4096, { reasoning: true }),
-      "rr-reasoning-b": capabilityEntry(4096, { reasoning: true }),
+      "rr-reasoning-a": capabilityEntry(12000, { reasoning: true, limit_output: 12000 }),
+      "rr-reasoning-b": capabilityEntry(12000, { reasoning: true, limit_output: 12000 }),
     },
   });
 
@@ -2958,7 +3083,7 @@ test("#3587 round-robin buffer does NOT compound across reasoning models", async
       strategy: "round-robin",
       models: ["openai/rr-reasoning-a", "openai/rr-reasoning-b"],
     },
-    handleSingleModel: async (body: any, modelStr: any) => {
+    handleSingleModel: async (body: Record<string, unknown>, modelStr: string) => {
       seen.push({ model: modelStr, maxTokens: body.max_tokens });
       if (modelStr === "openai/rr-reasoning-a") {
         return new Response(JSON.stringify({ error: { message: "transient" } }), {
@@ -2978,7 +3103,7 @@ test("#3587 round-robin buffer does NOT compound across reasoning models", async
         retryDelayMs: 1,
       },
     },
-    relayOptions: null as any,
+    relayOptions: null,
     allCombos: null,
   });
 
@@ -2991,4 +3116,97 @@ test("#3587 round-robin buffer does NOT compound across reasoning models", async
     6144,
     "second reasoning model must ALSO buffer from original 4096, not 6144"
   );
+});
+
+test("#3588 round-robin honors disabled reasoning token buffer feature flag", async () => {
+  saveModelsDevCapabilities({
+    openai: {
+      "rr-flagged-a": capabilityEntry(12000, { reasoning: true, limit_output: 12000 }),
+      "rr-flagged-b": capabilityEntry(12000, { reasoning: true, limit_output: 12000 }),
+    },
+  });
+
+  const seen: Array<{ model: string; maxTokens: unknown }> = [];
+  const result = await handleComboChat({
+    body: { max_tokens: 4096 },
+    combo: {
+      name: "rr-reasoning-buffer-disabled",
+      strategy: "round-robin",
+      models: ["openai/rr-flagged-a", "openai/rr-flagged-b"],
+    },
+    handleSingleModel: async (body: Record<string, unknown>, modelStr: string) => {
+      seen.push({ model: modelStr, maxTokens: body.max_tokens });
+      if (modelStr === "openai/rr-flagged-a") {
+        return new Response(JSON.stringify({ error: { message: "transient" } }), {
+          status: 400,
+          headers: { "content-type": "application/json" },
+        });
+      }
+      return okResponse();
+    },
+    isModelAvailable: async () => true,
+    log: createLog(),
+    settings: {
+      comboDefaults: {
+        concurrencyPerModel: 1,
+        queueTimeoutMs: 5,
+        maxRetries: 0,
+        retryDelayMs: 1,
+        reasoningTokenBufferEnabled: false,
+      },
+    },
+    relayOptions: null,
+    allCombos: null,
+  });
+
+  assert.equal(result.status, 200);
+  assert.equal(seen.length, 2, "both reasoning models should have been attempted");
+  assert.equal(seen[0].maxTokens, 4096, "first model should preserve client max_tokens");
+  assert.equal(seen[1].maxTokens, 4096, "second model should preserve client max_tokens");
+});
+
+test("#3587 round-robin keeps near-cap reasoning max_tokens unchanged", async () => {
+  saveModelsDevCapabilities({
+    openai: {
+      "rr-near-cap-a": capabilityEntry(65536, { reasoning: true, limit_output: 65536 }),
+      "rr-near-cap-b": capabilityEntry(65536, { reasoning: true, limit_output: 65536 }),
+    },
+  });
+
+  const seen: Array<{ model: string; maxTokens: unknown }> = [];
+  const result = await handleComboChat({
+    body: { max_tokens: 64000 },
+    combo: {
+      name: "rr-reasoning-near-cap",
+      strategy: "round-robin",
+      models: ["openai/rr-near-cap-a", "openai/rr-near-cap-b"],
+    },
+    handleSingleModel: async (body: Record<string, unknown>, modelStr: string) => {
+      seen.push({ model: modelStr, maxTokens: body.max_tokens });
+      if (modelStr === "openai/rr-near-cap-a") {
+        return new Response(JSON.stringify({ error: { message: "transient" } }), {
+          status: 400,
+          headers: { "content-type": "application/json" },
+        });
+      }
+      return okResponse();
+    },
+    isModelAvailable: async () => true,
+    log: createLog(),
+    settings: {
+      comboDefaults: {
+        concurrencyPerModel: 1,
+        queueTimeoutMs: 5,
+        maxRetries: 0,
+        retryDelayMs: 1,
+      },
+    },
+    relayOptions: null,
+    allCombos: null,
+  });
+
+  assert.equal(result.status, 200);
+  assert.equal(seen.length, 2, "both reasoning models should have been attempted");
+  assert.equal(seen[0].maxTokens, 64000, "first reasoning model should keep max_tokens");
+  assert.equal(seen[1].maxTokens, 64000, "second reasoning model should keep max_tokens");
 });
