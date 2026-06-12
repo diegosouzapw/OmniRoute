@@ -27,7 +27,7 @@ export interface ModelIntelligenceEntry {
 // ──────────────── Helpers ────────────────
 
 function rowToEntry(row: Record<string, unknown>): ModelIntelligenceEntry {
-  const camel = rowToCamel(row);
+  const camel = rowToCamel(row) ?? {};
   return {
     model: String(camel.model ?? ""),
     source: String(camel.source ?? ""),

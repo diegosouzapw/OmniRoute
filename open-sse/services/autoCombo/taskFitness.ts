@@ -244,7 +244,10 @@ function loadModelCapabilities(): Record<string, ModelCapRow> | null {
 
   try {
     const db = getDbInstance();
-    const rows = db.prepare("SELECT * FROM model_capabilities").all();
+    const rows = db.prepare("SELECT * FROM model_capabilities").all() as Record<
+      string,
+      unknown
+    >[];
     const cache: Record<string, ModelCapRow> = {};
 
     for (const row of rows) {
