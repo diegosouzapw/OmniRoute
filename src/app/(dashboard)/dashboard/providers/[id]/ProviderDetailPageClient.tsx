@@ -92,6 +92,13 @@ import ConnectionRow, { type ConnectionRowConnection } from "./components/Connec
 import ModelCompatPopover from "./components/ModelCompatPopover";
 import SiliconFlowEndpointModal from "./components/SiliconFlowEndpointModal";
 import { CC_COMPATIBLE_DEFAULT_CHAT_PATH } from "./providerDetailConstants";
+// Phase 1k extractions — Issue #3501
+import { useModelImportHandlers } from "./hooks/useModelImportHandlers";
+import ImportProgressModal from "./components/ImportProgressModal";
+// Phase 1l extractions — Issue #3501
+import { useModelVisibilityHandlers } from "./hooks/useModelVisibilityHandlers";
+// Phase 1m extractions — Issue #3501
+import ProviderModelsSection from "./components/ProviderModelsSection";
 import {
   // CONFIGURABLE_BASE_URL_PROVIDERS, DEFAULT_PROVIDER_BASE_URLS, getLocalProviderMetadata,
   // isBaseUrlConfigurableProvider, getProviderBaseUrlDefault, getProviderBaseUrlHint,
@@ -105,13 +112,11 @@ import {
   providerText,
   providerCountText,
   readBooleanToggle,
-  formatProviderModelsErrorResponse,
+  // formatProviderModelsErrorResponse → hooks/useModelVisibilityHandlers.ts (Phase 1l)
   type ProviderMessageTranslator,
   type LocalProviderMetadata,
   // CommandCodeAuthFlowState moved to hooks/useCommandCodeAuth.ts (Phase 1h)
-  type CompatByProtocolMap,
-  type CompatModelRow,
-  type CompatModelMap,
+  // CompatByProtocolMap, CompatModelRow, CompatModelMap → hooks/useModelVisibilityHandlers.ts (Phase 1l)
 } from "./providerPageHelpers";
 // CODEX_GLOBAL_SERVICE_MODE_VALUES, getCodexServiceTierLabel, normalizeCodexLimitPolicy
 // moved to hooks/useProviderSettings.ts + hooks/useProviderConnections.ts (Phase 1f)
@@ -126,15 +131,7 @@ import CompatibleModelsSection from "./components/CompatibleModelsSection";
 // moved to providerPageHelpers.ts + hook useModelCompatState (Phase 1e)
 // formatProviderModelsErrorResponse moved to providerPageHelpers.ts (Phase 1e)
 
-/** PATCH fields for provider model compat (matches API + `ModelCompatPerProtocol` shape). */
-type ModelCompatSavePatch = {
-  normalizeToolCallId?: boolean;
-  preserveOpenAIDeveloperRole?: boolean;
-  upstreamHeaders?: Record<string, string>;
-  compatByProtocol?: CompatByProtocolMap;
-  isHidden?: boolean;
-};
-
+// ModelCompatSavePatch → hooks/useModelVisibilityHandlers.ts (Phase 1l)
 // MAX_BULK_IDS moved to hooks/useProviderConnections.ts (Phase 1f)
 // ModelRowProps, PassthroughModelRowProps → components/ModelRow.tsx, PassthroughModelRow.tsx (Phase 1e)
 // PassthroughModelsSectionProps → components/PassthroughModelsSection.tsx (Phase 1e)
@@ -166,34 +163,11 @@ export default function ProviderDetailPageClient() {
   const [showTutorialModal, setShowTutorialModal] = useState(false);
   const [selectedConnection, setSelectedConnection] = useState(null);
   const [proxyTarget, setProxyTarget] = useState(null);
-  const [importingModels, setImportingModels] = useState(false);
   const [importingZed, setImportingZed] = useState(false);
   const [showZedManual, setShowZedManual] = useState(false);
   const [zedManualProvider, setZedManualProvider] = useState("openai");
   const [zedManualToken, setZedManualToken] = useState("");
   const [importingZedManual, setImportingZedManual] = useState(false);
-  const [showImportModal, setShowImportModal] = useState(false);
-  const [importProgress, setImportProgress] = useState({
-    current: 0,
-    total: 0,
-    phase: "idle" as "idle" | "fetching" | "importing" | "done" | "error",
-    status: "",
-    logs: [] as string[],
-    error: "",
-    importedCount: 0,
-  });
-  const [compatSavingModelId, setCompatSavingModelId] = useState<string | null>(null);
-  const [modelFilter, setModelFilter] = useState("");
-  const [togglingModelId, setTogglingModelId] = useState<string | null>(null);
-  const [testingModelId, setTestingModelId] = useState<string | null>(null);
-  const [modelTestStatus, setModelTestStatus] = useState<Record<string, "ok" | "error">>({});
-  const [testingAll, setTestingAll] = useState(false);
-  const [testProgress, setTestProgress] = useState<{ done: number; total: number } | null>(null);
-  const [autoHideFailed, setAutoHideFailed] = useState(true);
-  const [visibilityFilter, setVisibilityFilter] = useState<"all" | "visible" | "hidden">("all");
-  const [bulkVisibilityAction, setBulkVisibilityAction] = useState<"select" | "deselect" | null>(
-    null
-  );
   const [importCodexModalOpen, setImportCodexModalOpen] = useState(false);
   const [codexCliGuideOpen, setCodexCliGuideOpen] = useState(false);
   const [importClaudeModalOpen, setImportClaudeModalOpen] = useState(false);
@@ -373,6 +347,36 @@ export default function ProviderDetailPageClient() {
   const providerStorageAlias = isCompatible ? providerId : providerAlias;
   const providerDisplayAlias = isCompatible ? providerNode?.prefix || providerId : providerAlias;
 
+  // ── Phase 1k: model import handlers ─────────────────────────────────────
+  const {
+    importingModels,
+    showImportModal,
+    importProgress,
+    togglingAutoSync,
+    canImportModels,
+    isAutoSyncEnabled,
+    autoSyncConnection,
+    setShowImportModal,
+    setImportProgress,
+    handleImportModels,
+    handleCompatibleImportWithProgress,
+    handleToggleAutoSync,
+  } = useModelImportHandlers({
+    providerId,
+    models,
+    modelMeta,
+    modelAliases,
+    connections,
+    isFreeNoAuth,
+    handleSetAlias,
+    fetchAliases,
+    fetchProviderModelMeta,
+    fetchConnections,
+    notify,
+    t,
+    providerStorageAlias,
+  });
+
   const getApiLabel = () => {
     if (isAnthropicProtocolCompatible) return t("messagesApi");
     const type = providerNode?.apiType;
@@ -512,115 +516,9 @@ export default function ProviderDetailPageClient() {
 
   // loadCodexSettings, loadClaudeRoutingSettings → hooks/useProviderSettings.ts (Phase 1f)
   // loadConnProxies → hooks/useProviderConnections.ts (Phase 1f)
-
-  const onTestModel = async (modelId: string, fullModel: string) => {
-    setTestingModelId(modelId);
-    setModelTestStatus((prev) => ({ ...prev, [modelId]: undefined }));
-    try {
-      const res = await fetch("/api/models/test", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          providerId: selectedConnection?.provider || providerNode?.id || providerId,
-          modelId: fullModel,
-          connectionId: selectedConnection?.id,
-        }),
-      });
-      const data = await res.json();
-      if (res.ok && data.status === "ok") {
-        notify.success(
-          providerText(
-            t,
-            "testModelSuccess",
-            `Model ${modelId} is working. Latency: ${data.latencyMs}ms`,
-            { modelId, latencyMs: data.latencyMs }
-          )
-        );
-        setModelTestStatus((prev) => ({ ...prev, [modelId]: "ok" }));
-      } else {
-        notify.error(data.error || "Model test failed");
-        setModelTestStatus((prev) => ({ ...prev, [modelId]: "error" }));
-        if (handleToggleModelHidden) {
-          await handleToggleModelHidden(providerStorageAlias, modelId, true);
-        }
-      }
-    } catch (err) {
-      notify.error("Network error testing model");
-      setModelTestStatus((prev) => ({ ...prev, [modelId]: "error" }));
-      if (handleToggleModelHidden) {
-        await handleToggleModelHidden(providerStorageAlias, modelId, true);
-      }
-    } finally {
-      setTestingModelId(null);
-    }
-  };
-
-  const handleTestAll = async (
-    targets: Array<{ modelId: string; fullModel: string }>
-  ): Promise<void> => {
-    if (testingAll) return;
-    if (targets.length === 0) {
-      notify.error(providerText(t, "noModelsToTest", "No models to test"));
-      return;
-    }
-    setTestingAll(true);
-    setTestProgress({ done: 0, total: targets.length });
-
-    let ok = 0;
-    let error = 0;
-    let hiddenCount = 0;
-
-    const CHUNK_SIZE = 3;
-    for (let i = 0; i < targets.length; i += CHUNK_SIZE) {
-      const chunk = targets.slice(i, i + CHUNK_SIZE);
-      await Promise.all(
-        chunk.map(async ({ modelId, fullModel }) => {
-          try {
-            const result: {
-              results?: Record<
-                string,
-                {
-                  status?: "ok" | "error";
-                  rateLimited?: boolean;
-                  isTimeout?: boolean;
-                  error?: string;
-                }
-              >;
-            } = await fetch("/api/models/test-all", {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({
-                providerId: providerId,
-                connectionId: selectedConnection?.id,
-                modelIds: [fullModel],
-              }),
-            }).then((r) => r.json());
-
-            const entry = result.results?.[fullModel];
-            if (entry?.status === "ok") {
-              ok++;
-            } else {
-              error++;
-              if (autoHideFailed && !entry?.rateLimited && !entry?.isTimeout) {
-                await handleToggleModelHidden(providerStorageAlias, modelId, true);
-                hiddenCount++;
-              }
-            }
-          } catch (e) {
-            error++;
-          }
-          setTestProgress((prev) => (prev ? { done: prev.done + 1, total: prev.total } : null));
-        })
-      );
-    }
-
-    notify.info(providerText(t, "testAllResults", "{ok} ok, {error} error", { ok, error }));
-    if (hiddenCount > 0) {
-      notify.info(providerText(t, "testAllFailedHidden", "{count} hidden", { count: hiddenCount }));
-    }
-    setTestingAll(false);
-    setTestProgress(null);
-  };
+  // onTestModel, handleTestAll, saveModelCompatFlags, handleToggleModelHidden,
+  // handleBulkToggleModelHidden, handleClearAllModels, providerAliasEntries
+  // → hooks/useModelVisibilityHandlers.ts (Phase 1l)
 
   // handleToggleSelectOne/All, handleBatchDeleteOpenModal/Confirm, handleDelete,
   // handleBatchSetActive → hooks/useProviderConnections.ts (Phase 1f)
@@ -850,328 +748,8 @@ export default function ProviderDetailPageClient() {
   } = useAuthFileHandlers({ parseApiErrorMessage, getAttachmentFilename, notify, t });
 
   // handleSwapPriority → useProviderConnections (Phase 1f)
-
-  const handleImportModels = async () => {
-    if (importingModels) return;
-    const activeConnection = connections.find((conn) => conn.isActive !== false);
-    // #3047 — no-auth providers (e.g. OpenCode Free) have no connection rows;
-    // fall back to the provider id so the models route can serve the public
-    // catalog instead of the button silently doing nothing.
-    if (!activeConnection && !isFreeNoAuth) return;
-    const importTargetId = activeConnection?.id ?? providerId;
-
-    setImportingModels(true);
-    setShowImportModal(true);
-    setImportProgress({
-      current: 0,
-      total: 0,
-      phase: "fetching",
-      status: t("fetchingModels"),
-      logs: [],
-      error: "",
-      importedCount: 0,
-    });
-
-    try {
-      const res = await fetch(`/api/providers/${importTargetId}/models?refresh=true`);
-      const data = await res.json();
-      if (!res.ok) {
-        setImportProgress((prev) => ({
-          ...prev,
-          phase: "error",
-          status: t("failedFetchModels"),
-          error: data.error || t("failedImportModels"),
-        }));
-        return;
-      }
-      const fetchedModels = data.models || [];
-      if (fetchedModels.length === 0) {
-        setImportProgress((prev) => ({
-          ...prev,
-          phase: "done",
-          status: t("noModelsFound"),
-          logs: [t("noModelsReturnedFromEndpoint")],
-        }));
-        return;
-      }
-
-      const existingIds = new Set([
-        ...(modelMeta.customModels || []).map((m: any) => m.id),
-        ...models.map((m: any) => m.id),
-      ]);
-      const newModels = fetchedModels.filter(
-        (model: any) => !existingIds.has(model.id || model.name || model.model)
-      );
-
-      if (newModels.length === 0) {
-        setImportProgress((prev) => ({
-          ...prev,
-          phase: "done",
-          status: t("allModelsAlreadyImported") || "All models already imported",
-          logs: [t("noNewModelsToImport") || "No new models to import"],
-          importedCount: 0,
-          total: 0,
-          current: 0,
-        }));
-        return;
-      }
-
-      setImportProgress((prev) => ({
-        ...prev,
-        phase: "importing",
-        total: newModels.length,
-        current: 0,
-        status: t("importingModelsProgress", { current: 0, total: newModels.length }),
-        logs: [
-          t("foundModelsStartingImport", { count: newModels.length }),
-          ...(newModels.length < fetchedModels.length
-            ? [
-                t("skippingExistingModels", { count: fetchedModels.length - newModels.length }) ||
-                  `Skipping ${fetchedModels.length - newModels.length} existing models`,
-              ]
-            : []),
-        ],
-      }));
-
-      let importedCount = 0;
-      for (let i = 0; i < newModels.length; i++) {
-        const model = newModels[i];
-        const modelId = model.id || model.name || model.model;
-        if (!modelId) continue;
-        const parts = modelId.split("/");
-        const baseAlias = parts[parts.length - 1];
-
-        setImportProgress((prev) => ({
-          ...prev,
-          current: i + 1,
-          status: t("importingModelsProgress", { current: i + 1, total: newModels.length }),
-          logs: [...prev.logs, t("importingModelById", { modelId })],
-        }));
-
-        // Save as imported (default) model in the DB
-        await fetch("/api/provider-models", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            provider: providerId,
-            modelId,
-            modelName: model.name || modelId,
-            source: "imported",
-            ...(typeof model.apiFormat === "string" ? { apiFormat: model.apiFormat } : {}),
-            ...(Array.isArray(model.supportedEndpoints)
-              ? { supportedEndpoints: model.supportedEndpoints }
-              : {}),
-          }),
-        });
-        // Also create an alias for routing
-        if (!modelAliases[baseAlias]) {
-          await handleSetAlias(modelId, baseAlias, providerStorageAlias);
-        }
-        importedCount += 1;
-      }
-
-      await fetchAliases();
-
-      setImportProgress((prev) => ({
-        ...prev,
-        phase: "done",
-        current: newModels.length,
-        status:
-          importedCount > 0
-            ? t("importSuccessCount", { count: importedCount })
-            : t("noNewModelsAddedExisting"),
-        logs: [
-          ...prev.logs,
-          importedCount > 0
-            ? t("importDoneCount", { count: importedCount })
-            : t("noNewModelsAdded"),
-        ],
-        importedCount,
-      }));
-
-      // Auto-reload after success
-      if (importedCount > 0) {
-        setTimeout(() => {
-          window.location.reload();
-        }, 2000);
-      }
-    } catch (error) {
-      console.log("Error importing models:", error);
-      setImportProgress((prev) => ({
-        ...prev,
-        phase: "error",
-        status: t("importFailed"),
-        error: error instanceof Error ? error.message : t("unexpectedErrorOccurred"),
-      }));
-    } finally {
-      setImportingModels(false);
-    }
-  };
-
-  // Shared import handler for CompatibleModelsSection
-  const handleCompatibleImportWithProgress = async (connectionId: string) => {
-    setShowImportModal(true);
-    setImportProgress({
-      current: 0,
-      total: 0,
-      phase: "fetching",
-      status: t("fetchingModels"),
-      logs: [],
-      error: "",
-      importedCount: 0,
-    });
-
-    try {
-      const response = await fetch(`/api/providers/${connectionId}/sync-models?mode=import`, {
-        method: "POST",
-        signal: AbortSignal.timeout(60_000),
-      });
-      const data = await response.json();
-      if (!response.ok) {
-        throw new Error(data.error || t("failedImportModels"));
-      }
-
-      const importedModels = Array.isArray(data.importedModels) ? data.importedModels : [];
-      const importedCount =
-        typeof data.importedCount === "number" ? data.importedCount : importedModels.length;
-      const changedCount =
-        typeof data.importedChanges?.total === "number"
-          ? data.importedChanges.total
-          : importedCount;
-      const totalChangedCount =
-        changedCount +
-        (typeof data.customModelChanges?.total === "number" ? data.customModelChanges.total : 0);
-
-      if (importedModels.length === 0) {
-        setImportProgress((prev) => ({
-          ...prev,
-          phase: "done",
-          status:
-            importedCount > 0
-              ? t("importSuccessCount", { count: importedCount })
-              : t("noNewModelsAdded"),
-          logs: [
-            importedCount > 0
-              ? t("importDoneCount", { count: importedCount })
-              : t("noNewModelsAdded"),
-          ],
-          importedCount,
-        }));
-        if (totalChangedCount > 0) {
-          setTimeout(() => {
-            window.location.reload();
-          }, 2000);
-        }
-        return;
-      }
-
-      setImportProgress((prev) => ({
-        ...prev,
-        phase: "done",
-        total: importedModels.length,
-        current: importedModels.length,
-        status:
-          importedCount > 0
-            ? t("importSuccessCount", { count: importedCount })
-            : t("noNewModelsAdded"),
-        logs: [
-          t("foundModelsStartingImport", { count: importedModels.length }),
-          ...importedModels.map((model: any) =>
-            t("importingModelById", { modelId: model.id || model.name || model.model })
-          ),
-          importedCount > 0
-            ? t("importDoneCount", { count: importedCount })
-            : t("noNewModelsAdded"),
-        ],
-        importedCount,
-      }));
-
-      if (totalChangedCount > 0) {
-        setTimeout(() => {
-          window.location.reload();
-        }, 2000);
-      }
-    } catch (error) {
-      console.log("Error importing models:", error);
-      setImportProgress((prev) => ({
-        ...prev,
-        phase: "error",
-        status: t("importFailed"),
-        error: error instanceof Error ? error.message : t("unexpectedErrorOccurred"),
-      }));
-    }
-  };
-
-  const canImportModels = isFreeNoAuth || connections.some((conn) => conn.isActive !== false);
-
-  // Auto-sync toggle state: read from first active connection's providerSpecificData
-  const autoSyncConnection = connections.find((conn: any) => conn.isActive !== false);
-  const isAutoSyncEnabled = !!(autoSyncConnection as any)?.providerSpecificData?.autoSync;
-  const [togglingAutoSync, setTogglingAutoSync] = useState(false);
-
-  const handleToggleAutoSync = async () => {
-    if (!autoSyncConnection || togglingAutoSync) return;
-    setTogglingAutoSync(true);
-    try {
-      const newValue = !isAutoSyncEnabled;
-      await fetch(`/api/providers/${(autoSyncConnection as any).id}`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          providerSpecificData: { autoSync: newValue },
-        }),
-      });
-      await fetchConnections();
-      notify[newValue ? "success" : "info"](
-        newValue ? t("autoSyncEnabled") : t("autoSyncDisabled")
-      );
-    } catch (error) {
-      console.log("Error toggling auto-sync:", error);
-      notify.error(t("autoSyncToggleFailed"));
-    } finally {
-      setTogglingAutoSync(false);
-    }
-  };
-
-  const [clearingModels, setClearingModels] = useState(false);
-  const providerAliasEntries = useMemo(
-    () =>
-      Object.entries(modelAliases).filter(
-        ([, model]) => typeof model === "string" && model.startsWith(`${providerStorageAlias}/`)
-      ),
-    [modelAliases, providerStorageAlias]
-  );
-
-  const handleClearAllModels = async () => {
-    if (clearingModels) return;
-    if (!confirm(t("clearAllModelsConfirm"))) return;
-    setClearingModels(true);
-    try {
-      const res = await fetch(
-        `/api/provider-models?provider=${encodeURIComponent(providerStorageAlias)}&all=true`,
-        { method: "DELETE" }
-      );
-      if (res.ok) {
-        // Also delete all aliases that belong to this provider
-        await Promise.all(
-          providerAliasEntries.map(([alias]) =>
-            fetch(`/api/models/alias?alias=${encodeURIComponent(alias)}`, {
-              method: "DELETE",
-            }).catch(() => {})
-          )
-        );
-        await fetchProviderModelMeta();
-        await fetchAliases();
-        notify.success(t("clearAllModelsSuccess"));
-      } else {
-        notify.error(t("clearAllModelsFailed"));
-      }
-    } catch {
-      notify.error(t("clearAllModelsFailed"));
-    } finally {
-      setClearingModels(false);
-    }
-  };
+  // handleImportModels, handleCompatibleImportWithProgress, handleToggleAutoSync,
+  // canImportModels, isAutoSyncEnabled, autoSyncConnection → hooks/useModelImportHandlers.ts (Phase 1k)
 
   // Phase 1e: compat-state derivations moved to useModelCompatState hook.
   const compat = useModelCompatState(modelMeta.customModels, modelMeta.modelCompatOverrides);
@@ -1186,429 +764,44 @@ export default function ProviderDetailPageClient() {
     [providerId, modelMeta.customModels]
   );
 
-  const saveModelCompatFlags = async (modelId: string, patch: ModelCompatSavePatch) => {
-    setCompatSavingModelId(modelId);
-    try {
-      const c = customMap.get(modelId) as Record<string, unknown> | undefined;
-      let body: Record<string, unknown>;
-      const onlyCompatByProtocol =
-        patch.compatByProtocol &&
-        patch.normalizeToolCallId === undefined &&
-        patch.preserveOpenAIDeveloperRole === undefined &&
-        !("upstreamHeaders" in patch);
+  // ── Phase 1l: model visibility handlers ─────────────────────────────────
+  const {
+    compatSavingModelId,
+    togglingModelId,
+    bulkVisibilityAction,
+    clearingModels,
+    modelFilter,
+    testingModelId,
+    modelTestStatus,
+    testingAll,
+    testProgress,
+    autoHideFailed,
+    visibilityFilter,
+    providerAliasEntries,
+    setModelFilter,
+    setAutoHideFailed,
+    setVisibilityFilter,
+    saveModelCompatFlags,
+    handleToggleModelHidden,
+    handleBulkToggleModelHidden,
+    handleClearAllModels,
+    onTestModel,
+    handleTestAll,
+  } = useModelVisibilityHandlers({
+    providerId,
+    modelAliases,
+    customMap,
+    providerStorageAlias,
+    fetchProviderModelMeta,
+    fetchAliases,
+    notify,
+    t,
+    selectedConnection,
+    providerNode,
+  });
 
-      if (c) {
-        if (onlyCompatByProtocol) {
-          body = {
-            provider: providerId,
-            modelId,
-            compatByProtocol: patch.compatByProtocol,
-          };
-        } else {
-          body = {
-            provider: providerId,
-            modelId,
-            modelName: (c.name as string) || modelId,
-            source: (c.source as string) || "manual",
-            apiFormat: (c.apiFormat as string) || "chat-completions",
-            supportedEndpoints:
-              Array.isArray(c.supportedEndpoints) && (c.supportedEndpoints as unknown[]).length
-                ? c.supportedEndpoints
-                : ["chat"],
-            normalizeToolCallId:
-              patch.normalizeToolCallId !== undefined
-                ? patch.normalizeToolCallId
-                : Boolean(c.normalizeToolCallId),
-            preserveOpenAIDeveloperRole:
-              patch.preserveOpenAIDeveloperRole !== undefined
-                ? patch.preserveOpenAIDeveloperRole
-                : Object.prototype.hasOwnProperty.call(c, "preserveOpenAIDeveloperRole")
-                  ? Boolean(c.preserveOpenAIDeveloperRole)
-                  : true,
-          };
-          if (patch.compatByProtocol) body.compatByProtocol = patch.compatByProtocol;
-        }
-      } else {
-        body = { provider: providerId, modelId, ...patch };
-      }
-      const res = await fetch("/api/provider-models", {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(body),
-      });
-      if (!res.ok) {
-        const detail = await formatProviderModelsErrorResponse(res);
-        notify.error(
-          detail ? `${t("failedSaveCustomModel")} — ${detail}` : t("failedSaveCustomModel")
-        );
-        return;
-      }
-    } catch {
-      notify.error(t("failedSaveCustomModel"));
-      return;
-    } finally {
-      setCompatSavingModelId(null);
-    }
-    try {
-      await fetchProviderModelMeta();
-    } catch {
-      /* refresh failure is non-critical — data was already saved */
-    }
-  };
+  // renderModelsSection → components/ProviderModelsSection.tsx (Phase 1m)
 
-  const handleToggleModelHidden = async (
-    providerKey: string,
-    modelId: string,
-    hidden: boolean
-  ): Promise<void> => {
-    setTogglingModelId(modelId);
-    try {
-      const res = await fetch(
-        `/api/provider-models?provider=${encodeURIComponent(providerKey)}&modelId=${encodeURIComponent(modelId)}`,
-        {
-          method: "PATCH",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ isHidden: hidden }),
-        }
-      );
-      if (!res.ok) {
-        const detail = await res.text().catch(() => "");
-        notify.error(detail || t("failedSaveCustomModel"));
-        return;
-      }
-      await Promise.all([fetchProviderModelMeta().catch(() => {}), fetchAliases().catch(() => {})]);
-    } catch {
-      notify.error(t("failedSaveCustomModel"));
-    } finally {
-      setTogglingModelId(null);
-    }
-  };
-
-  const handleBulkToggleModelHidden = async (
-    providerKey: string,
-    modelIds: string[],
-    hidden: boolean
-  ): Promise<void> => {
-    if (modelIds.length === 0) return;
-    setBulkVisibilityAction(hidden ? "deselect" : "select");
-    try {
-      const res = await fetch(`/api/provider-models?provider=${encodeURIComponent(providerKey)}`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ isHidden: hidden, modelIds }),
-      });
-      if (!res.ok) {
-        const detail = await res.text().catch(() => "");
-        notify.error(detail || t("failedSaveCustomModel"));
-        return;
-      }
-      await Promise.all([fetchProviderModelMeta().catch(() => {}), fetchAliases().catch(() => {})]);
-    } catch {
-      notify.error(t("failedSaveCustomModel"));
-    } finally {
-      setBulkVisibilityAction(null);
-    }
-  };
-
-  const renderModelsSection = () => {
-    const autoSyncToggle = compatibleSupportsModelImport && canImportModels && (
-      <button
-        onClick={handleToggleAutoSync}
-        disabled={togglingAutoSync}
-        className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg border border-border bg-transparent cursor-pointer text-[12px] disabled:opacity-50 disabled:cursor-not-allowed"
-        title={t("autoSyncTooltip")}
-      >
-        <span
-          className="material-symbols-outlined text-[16px]"
-          style={{ color: isAutoSyncEnabled ? "#22c55e" : "var(--color-text-muted)" }}
-        >
-          {isAutoSyncEnabled ? "toggle_on" : "toggle_off"}
-        </span>
-        <span className="text-text-main">{t("autoSync")}</span>
-      </button>
-    );
-
-    const clearAllButton = (modelMeta.customModels.length > 0 ||
-      providerAliasEntries.length > 0) && (
-      <button
-        onClick={handleClearAllModels}
-        disabled={clearingModels}
-        className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg border border-red-300 dark:border-red-800 bg-transparent cursor-pointer text-[12px] text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 disabled:opacity-50 disabled:cursor-not-allowed"
-        title={t("clearAllModels")}
-      >
-        <span className="material-symbols-outlined text-[16px]">delete_sweep</span>
-        <span>{t("clearAllModels")}</span>
-      </button>
-    );
-
-    if (isManagedAvailableModelsProvider) {
-      const description =
-        providerId === "openrouter"
-          ? t("openRouterAnyModelHint")
-          : isCcCompatible
-            ? t("ccCompatibleModelsDescription")
-            : t("compatibleModelsDescription", {
-                type: isAnthropicCompatible ? t("anthropic") : t("openai"),
-              });
-      const inputLabel = providerId === "openrouter" ? t("modelIdFromOpenRouter") : t("modelId");
-      const inputPlaceholder =
-        providerId === "openrouter"
-          ? t("openRouterModelPlaceholder")
-          : isCcCompatible
-            ? "claude-sonnet-4-6"
-            : isAnthropicCompatible
-              ? t("anthropicCompatibleModelPlaceholder")
-              : t("openaiCompatibleModelPlaceholder");
-
-      return (
-        <div>
-          <div className="flex items-center gap-2 mb-4">
-            {autoSyncToggle}
-            {clearAllButton}
-          </div>
-          <CompatibleModelsSection
-            providerStorageAlias={providerStorageAlias}
-            providerDisplayAlias={providerDisplayAlias}
-            modelAliases={modelAliases}
-            availableModels={syncedAvailableModels}
-            customModels={modelMeta.customModels}
-            fallbackModels={compatibleFallbackModels}
-            description={description}
-            inputLabel={inputLabel}
-            inputPlaceholder={inputPlaceholder}
-            copied={copied}
-            onCopy={copy}
-            onSetAlias={handleSetAlias}
-            onDeleteAlias={handleDeleteAlias}
-            connections={connections}
-            isAnthropic={isAnthropicProtocolCompatible}
-            onImportWithProgress={handleCompatibleImportWithProgress}
-            t={t}
-            effectiveModelNormalize={effectiveModelNormalize}
-            effectiveModelPreserveDeveloper={effectiveModelPreserveDeveloper}
-            getUpstreamHeadersRecord={getUpstreamHeadersRecordForModel}
-            saveModelCompatFlags={saveModelCompatFlags}
-            compatSavingModelId={compatSavingModelId}
-            onModelsChanged={fetchProviderModelMeta}
-            allowImport={compatibleSupportsModelImport}
-            isModelHidden={effectiveModelHidden}
-            onToggleHidden={(modelId, hidden) =>
-              handleToggleModelHidden(providerStorageAlias, modelId, hidden)
-            }
-            onBulkToggleHidden={(modelIds, hidden) =>
-              handleBulkToggleModelHidden(providerStorageAlias, modelIds, hidden)
-            }
-            bulkTogglePending={bulkVisibilityAction !== null}
-            togglingModelId={togglingModelId}
-            onTestModel={onTestModel}
-            modelTestStatus={modelTestStatus}
-            testingModelId={testingModelId}
-            onTestAll={handleTestAll}
-            testingAll={testingAll}
-            testProgress={testProgress}
-            autoHideFailed={autoHideFailed}
-            onAutoHideFailedChange={setAutoHideFailed}
-          />
-        </div>
-      );
-    }
-
-    if (providerInfo.passthroughModels) {
-      const passthroughDescription =
-        providerId === "openrouter"
-          ? t("openRouterAnyModelHint")
-          : providerId === "bedrock"
-            ? t("bedrockModelsDescription")
-            : t("passthroughModelsDescription", { provider: providerInfo?.name || providerId });
-      const passthroughInputLabel =
-        providerId === "openrouter" ? t("modelIdFromOpenRouter") : t("modelId");
-      const passthroughInputPlaceholder =
-        providerId === "openrouter"
-          ? t("openRouterModelPlaceholder")
-          : providerId === "bedrock"
-            ? t("bedrockModelPlaceholder")
-            : t("openaiCompatibleModelPlaceholder");
-
-      return (
-        <div>
-          <div className="flex items-center gap-2 mb-4">
-            <Button
-              size="sm"
-              variant="secondary"
-              icon="download"
-              onClick={handleImportModels}
-              disabled={!canImportModels || importingModels}
-            >
-              {importingModels ? t("importingModels") : t("importFromModels")}
-            </Button>
-            {autoSyncToggle}
-            {clearAllButton}
-            {!canImportModels && (
-              <span className="text-xs text-text-muted">{t("addConnectionToImport")}</span>
-            )}
-          </div>
-          <PassthroughModelsSection
-            providerAlias={providerAlias}
-            modelAliases={modelAliases}
-            availableModels={syncedAvailableModels}
-            customModels={modelMeta.customModels}
-            description={passthroughDescription}
-            inputLabel={passthroughInputLabel}
-            inputPlaceholder={passthroughInputPlaceholder}
-            copied={copied}
-            onCopy={copy}
-            onSetAlias={handleSetAlias}
-            onDeleteAlias={handleDeleteAlias}
-            t={t}
-            effectiveModelNormalize={effectiveModelNormalize}
-            effectiveModelPreserveDeveloper={effectiveModelPreserveDeveloper}
-            getUpstreamHeadersRecord={getUpstreamHeadersRecordForModel}
-            saveModelCompatFlags={saveModelCompatFlags}
-            compatSavingModelId={compatSavingModelId}
-            isModelHidden={effectiveModelHidden}
-            onToggleHidden={(modelId, hidden) =>
-              handleToggleModelHidden(providerStorageAlias, modelId, hidden)
-            }
-            onBulkToggleHidden={(modelIds, hidden) =>
-              handleBulkToggleModelHidden(providerStorageAlias, modelIds, hidden)
-            }
-            bulkTogglePending={bulkVisibilityAction !== null}
-            togglingModelId={togglingModelId}
-            onTestModel={onTestModel}
-            modelTestStatus={modelTestStatus}
-            testingModelId={testingModelId}
-            providerId={providerId}
-            connectionId={selectedConnection?.id ?? ""}
-            autoHideFailed={autoHideFailed}
-            onAutoHideFailedChange={setAutoHideFailed}
-          />
-        </div>
-      );
-    }
-
-    const importButton = (
-      <div className="flex items-center gap-2 mb-4">
-        <Button
-          size="sm"
-          variant="secondary"
-          icon="download"
-          onClick={handleImportModels}
-          disabled={!canImportModels || importingModels}
-        >
-          {importingModels ? t("importingModels") : t("importFromModels")}
-        </Button>
-        {autoSyncToggle}
-        {!canImportModels && (
-          <span className="text-xs text-text-muted">{t("addConnectionToImport")}</span>
-        )}
-      </div>
-    );
-
-    if (models.length === 0) {
-      return (
-        <div>
-          {importButton}
-          <p className="text-sm text-text-muted">{t("noModelsConfigured")}</p>
-        </div>
-      );
-    }
-    const modelsWithVisibility = models.map((model) => ({
-      ...model,
-      isHidden: effectiveModelHidden(model.id),
-    }));
-    const filteredModels = modelsWithVisibility.filter((model) => {
-      const matchesQuery = matchesModelCatalogQuery(modelFilter, {
-        modelId: model.id,
-        modelName: model.name,
-        source: model.source,
-      });
-      const matchesVisibility =
-        visibilityFilter === "all"
-          ? true
-          : visibilityFilter === "visible"
-            ? !model.isHidden
-            : model.isHidden;
-      return matchesQuery && matchesVisibility;
-    });
-    const activeCount = modelsWithVisibility.filter((m) => !m.isHidden).length;
-    const hiddenFilteredCount = filteredModels.filter((m) => m.isHidden).length;
-    const visibleFilteredCount = filteredModels.length - hiddenFilteredCount;
-    const testAllTargets = filteredModels
-      .filter((m) => !m.isHidden)
-      .map((m) => ({ modelId: m.id, fullModel: `${providerDisplayAlias}/${m.id}` }));
-    return (
-      <div>
-        {importButton}
-        {modelsWithVisibility.length > 0 && (
-          <ModelVisibilityToolbar
-            t={t}
-            filterValue={modelFilter}
-            onFilterChange={setModelFilter}
-            activeCount={activeCount}
-            totalCount={modelsWithVisibility.length}
-            onSelectAll={() =>
-              handleBulkToggleModelHidden(
-                providerId,
-                filteredModels.map((model) => model.id),
-                false
-              )
-            }
-            onDeselectAll={() =>
-              handleBulkToggleModelHidden(
-                providerId,
-                filteredModels.map((model) => model.id),
-                true
-              )
-            }
-            selectAllDisabled={hiddenFilteredCount === 0 || bulkVisibilityAction !== null}
-            deselectAllDisabled={visibleFilteredCount === 0 || bulkVisibilityAction !== null}
-            onTestAll={() => handleTestAll(testAllTargets)}
-            testingAll={testingAll}
-            testProgress={testProgress}
-            visibilityFilter={visibilityFilter}
-            onVisibilityFilterChange={setVisibilityFilter}
-            autoHideFailed={autoHideFailed}
-            onAutoHideFailedChange={setAutoHideFailed}
-          />
-        )}
-        <div className="flex flex-wrap gap-3">
-          {filteredModels.map((model) => {
-            return (
-              <ModelRow
-                key={model.id}
-                model={model}
-                fullModel={`${providerDisplayAlias}/${model.id}`}
-                provider={providerId}
-                copied={copied}
-                onCopy={copy}
-                t={t}
-                showDeveloperToggle
-                effectiveModelNormalize={effectiveModelNormalize}
-                effectiveModelPreserveDeveloper={effectiveModelPreserveDeveloper}
-                getUpstreamHeadersRecord={(p) => getUpstreamHeadersRecordForModel(model.id, p)}
-                saveModelCompatFlags={saveModelCompatFlags}
-                compatDisabled={compatSavingModelId === model.id}
-                onToggleHidden={(modelId, hidden) =>
-                  handleToggleModelHidden(providerId, modelId, hidden)
-                }
-                togglingHidden={togglingModelId === model.id}
-                onTestModel={onTestModel}
-                testStatus={modelTestStatus[model.id] || null}
-                testingModel={testingModelId === model.id}
-              />
-            );
-          })}
-          {filteredModels.length === 0 && modelFilter && (
-            <p className="text-sm text-text-muted py-2">
-              {providerText(t, "noModelsMatch", `No models match "${modelFilter}"`, {
-                filter: modelFilter,
-              })}
-            </p>
-          )}
-        </div>
-      </div>
-    );
-  };
 
   if (loading) {
     return (
@@ -2827,7 +2020,64 @@ export default function ProviderDetailPageClient() {
       {!isSearchProvider && !isUpstreamProxyProvider && (
         <Card>
           <h2 className="text-lg font-semibold mb-4">{t("availableModels")}</h2>
-          {renderModelsSection()}
+          {/* Phase 1m: extracted to components/ProviderModelsSection.tsx */}
+          <ProviderModelsSection
+            providerId={providerId}
+            providerAlias={providerAlias}
+            providerStorageAlias={providerStorageAlias}
+            providerDisplayAlias={providerDisplayAlias}
+            providerInfo={providerInfo}
+            isCcCompatible={isCcCompatible}
+            isAnthropicCompatible={isAnthropicCompatible}
+            isAnthropicProtocolCompatible={isAnthropicProtocolCompatible}
+            isManagedAvailableModelsProvider={isManagedAvailableModelsProvider}
+            compatibleSupportsModelImport={compatibleSupportsModelImport}
+            models={models}
+            modelMeta={modelMeta}
+            modelAliases={modelAliases}
+            syncedAvailableModels={syncedAvailableModels}
+            compatibleFallbackModels={compatibleFallbackModels}
+            copied={copied}
+            onCopy={copy}
+            onSetAlias={handleSetAlias}
+            onDeleteAlias={handleDeleteAlias}
+            fetchProviderModelMeta={fetchProviderModelMeta}
+            connections={connections}
+            selectedConnection={selectedConnection}
+            canImportModels={canImportModels}
+            importingModels={importingModels}
+            handleImportModels={handleImportModels}
+            isAutoSyncEnabled={isAutoSyncEnabled}
+            togglingAutoSync={togglingAutoSync}
+            handleToggleAutoSync={handleToggleAutoSync}
+            handleCompatibleImportWithProgress={handleCompatibleImportWithProgress}
+            compatSavingModelId={compatSavingModelId}
+            togglingModelId={togglingModelId}
+            bulkVisibilityAction={bulkVisibilityAction}
+            clearingModels={clearingModels}
+            modelFilter={modelFilter}
+            testingModelId={testingModelId}
+            modelTestStatus={modelTestStatus}
+            testingAll={testingAll}
+            testProgress={testProgress}
+            autoHideFailed={autoHideFailed}
+            visibilityFilter={visibilityFilter}
+            providerAliasEntries={providerAliasEntries}
+            setModelFilter={setModelFilter}
+            setAutoHideFailed={setAutoHideFailed}
+            setVisibilityFilter={setVisibilityFilter}
+            saveModelCompatFlags={saveModelCompatFlags}
+            handleToggleModelHidden={handleToggleModelHidden}
+            handleBulkToggleModelHidden={handleBulkToggleModelHidden}
+            handleClearAllModels={handleClearAllModels}
+            onTestModel={onTestModel}
+            handleTestAll={handleTestAll}
+            effectiveModelNormalize={effectiveModelNormalize}
+            effectiveModelPreserveDeveloper={effectiveModelPreserveDeveloper}
+            effectiveModelHidden={effectiveModelHidden}
+            getUpstreamHeadersRecordForModel={getUpstreamHeadersRecordForModel}
+            t={t}
+          />
 
           {/* Custom Models — available for all providers */}
           <CustomModelsSection
@@ -3158,122 +2408,17 @@ export default function ProviderDetailPageClient() {
           }}
         />
       )}
-      {/* Import Progress Modal */}
-      <Modal
+      {/* Import Progress Modal — Phase 1k: extracted to components/ImportProgressModal.tsx */}
+      <ImportProgressModal
+        importProgress={importProgress}
         isOpen={showImportModal}
         onClose={() => {
           if (importProgress.phase === "done" || importProgress.phase === "error") {
             setShowImportModal(false);
           }
         }}
-        title={t("importingModelsTitle")}
-        size="md"
-        closeOnOverlay={false}
-        showCloseButton={importProgress.phase === "done" || importProgress.phase === "error"}
-      >
-        <div className="flex flex-col gap-4">
-          {/* Status text */}
-          <div className="flex items-center gap-3">
-            {importProgress.phase === "fetching" && (
-              <span className="material-symbols-outlined text-primary animate-spin">
-                progress_activity
-              </span>
-            )}
-            {importProgress.phase === "importing" && (
-              <span className="material-symbols-outlined text-primary animate-spin">
-                progress_activity
-              </span>
-            )}
-            {importProgress.phase === "done" && (
-              <span className="material-symbols-outlined text-green-500">check_circle</span>
-            )}
-            {importProgress.phase === "error" && (
-              <span className="material-symbols-outlined text-red-500">error</span>
-            )}
-            <span className="text-sm font-medium text-text-main">{importProgress.status}</span>
-          </div>
-
-          {/* Progress bar */}
-          {(importProgress.phase === "importing" || importProgress.phase === "done") &&
-            importProgress.total > 0 && (
-              <div className="w-full">
-                <div className="flex items-center justify-between mb-1">
-                  <span className="text-xs text-text-muted">
-                    {importProgress.current} / {importProgress.total}
-                  </span>
-                  <span className="text-xs text-text-muted">
-                    {Math.round((importProgress.current / importProgress.total) * 100)}%
-                  </span>
-                </div>
-                <div className="w-full h-2.5 bg-black/10 dark:bg-white/10 rounded-full overflow-hidden">
-                  <div
-                    className="h-full rounded-full transition-all duration-300 ease-out"
-                    style={{
-                      width: `${(importProgress.current / importProgress.total) * 100}%`,
-                      background:
-                        importProgress.phase === "done"
-                          ? "linear-gradient(90deg, #22c55e, #16a34a)"
-                          : "linear-gradient(90deg, var(--color-primary), var(--color-primary-hover, var(--color-primary)))",
-                    }}
-                  />
-                </div>
-              </div>
-            )}
-
-          {/* Fetching indeterminate bar */}
-          {importProgress.phase === "fetching" && (
-            <div className="w-full h-2.5 bg-black/10 dark:bg-white/10 rounded-full overflow-hidden">
-              <div
-                className="h-full rounded-full animate-pulse"
-                style={{
-                  width: "60%",
-                  background:
-                    "linear-gradient(90deg, var(--color-primary), var(--color-primary-hover, var(--color-primary)))",
-                }}
-              />
-            </div>
-          )}
-
-          {/* Error message */}
-          {importProgress.phase === "error" && importProgress.error && (
-            <div className="p-3 rounded-lg bg-red-500/10 border border-red-500/20">
-              <p className="text-sm text-red-400">{importProgress.error}</p>
-            </div>
-          )}
-
-          {/* Log list */}
-          {importProgress.logs.length > 0 && (
-            <div className="max-h-48 overflow-y-auto rounded-lg bg-black/5 dark:bg-white/5 p-3 border border-black/5 dark:border-white/5">
-              <div className="flex flex-col gap-1">
-                {importProgress.logs.map((log, i) => (
-                  <p
-                    key={i}
-                    className={`text-xs font-mono ${
-                      typeof log === "string" && log.startsWith("✓")
-                        ? "text-green-500 font-semibold"
-                        : "text-text-muted"
-                    }`}
-                  >
-                    {log}
-                  </p>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {/* Close button */}
-          {importProgress.phase === "done" && (
-            <div className="flex justify-center">
-              <button
-                onClick={() => setShowImportModal(false)}
-                className="px-4 py-2 text-sm font-medium rounded-lg bg-primary text-white hover:opacity-90 transition-opacity"
-              >
-                {t("close")}
-              </button>
-            </div>
-          )}
-        </div>
-      </Modal>
+        t={t}
+      />
 
       {/* Adapta Web — Tutorial Modal */}
       {providerId === "adapta-web" && (
