@@ -143,6 +143,8 @@ import ProviderPageHeader from "./components/ProviderPageHeader";
 import CompatibleNodeCard from "./components/CompatibleNodeCard";
 // Phase 1t.3 extractions — Issue #3501
 import { useConnectionGate } from "./hooks/useConnectionGate";
+// Phase 1t.4 extractions — Issue #3501
+import { useProviderNodeActions } from "./hooks/useProviderNodeActions";
 // recordToHeaderRows moved to components/ModelCompatPopover.tsx (Phase 1d)
 // buildCompatMap, isModelHidden*, effectiveNormalize/Preserve*, anyNormalize/NoPreserveCompatBadge
 // moved to providerPageHelpers.ts + hook useModelCompatState (Phase 1e)
@@ -407,24 +409,6 @@ export default function ProviderDetailPageClient() {
     fetchAliases();
   }, [loading, isSearchProvider, fetchProviderModelMeta, fetchAliases]);
 
-  const handleUpdateNode = async (formData: any) => {
-    try {
-      const res = await fetch(`/api/provider-nodes/${providerId}`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(formData),
-      });
-      const data = await res.json();
-      if (res.ok) {
-        setProviderNode(data.node);
-        await fetchConnections();
-        setShowEditNodeModal(false);
-      }
-    } catch (error) {
-      console.log("Error updating provider node:", error);
-    }
-  };
-
   // loadCodexSettings, loadClaudeRoutingSettings → hooks/useProviderSettings.ts (Phase 1f)
   // loadConnProxies → hooks/useProviderConnections.ts (Phase 1f)
   // onTestModel, handleTestAll, saveModelCompatFlags, handleToggleModelHidden,
@@ -484,25 +468,16 @@ export default function ProviderDetailPageClient() {
     t,
   });
 
-  const handleUpdateConnection = async (formData) => {
-    try {
-      const res = await fetch(`/api/providers/${selectedConnection.id}`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(formData),
-      });
-      if (res.ok) {
-        await fetchConnections();
-        setShowEditModal(false);
-        return null;
-      }
-      const data = await res.json().catch(() => ({}));
-      return data.error?.message || data.error || t("failedSaveConnection");
-    } catch (error) {
-      console.log("Error updating connection:", error);
-      return t("failedSaveConnectionRetry");
-    }
-  };
+  // ── Phase 1t.4: node/connection update handlers ──────────────────────────
+  const { handleUpdateNode, handleUpdateConnection } = useProviderNodeActions({
+    providerId,
+    fetchConnections,
+    selectedConnection,
+    setProviderNode,
+    setShowEditNodeModal,
+    setShowEditModal,
+    t,
+  });
 
   // handleUpdateConnectionStatus, handleToggleProxyEnabled, handleTogglePerKeyProxyEnabled,
   // handleDistributeProxies, handleToggleRateLimit, handleToggleClaudeExtraUsage,
