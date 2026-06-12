@@ -56,6 +56,14 @@ test("findUnexpectedArtifactPaths flags app pack files outside the allowlist", (
   assert.deepEqual(unexpectedPaths, ["dist/scripts/build/prepublish.mjs", "docs/extra.md"]);
 });
 
+test("webdav-handler.mjs is allowed in staging dist/ (server-ws.mjs dependency, missed in 3.8.22 build)", () => {
+  const unexpectedPaths = findUnexpectedArtifactPaths(["webdav-handler.mjs"], {
+    exactPaths: APP_STAGING_ALLOWED_EXACT_PATHS,
+    prefixPaths: APP_STAGING_ALLOWED_PATH_PREFIXES,
+  });
+  assert.deepEqual(unexpectedPaths, []);
+});
+
 test("setupPolyfill.ts is allowed in the tarball (bin/omniroute.mjs imports it at startup)", () => {
   const unexpectedPaths = findUnexpectedArtifactPaths(["open-sse/utils/setupPolyfill.ts"], {
     exactPaths: PACK_ARTIFACT_ALLOWED_EXACT_PATHS,
@@ -89,6 +97,7 @@ test("findMissingArtifactPaths flags missing root runtime files in the tarball",
     "dist/peer-stamp.mjs",
     "dist/responses-ws-proxy.mjs",
     "dist/server-ws.mjs",
+    "dist/webdav-handler.mjs",
     "scripts/build/native-binary-compat.mjs",
     "src/shared/utils/nodeRuntimeSupport.ts",
   ]);
