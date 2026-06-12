@@ -281,6 +281,17 @@ if (existsSync(opencodePluginSrc) && existsSync(join(opencodePluginSrc, "package
   if (!pluginAlreadyBuilt) {
     console.log("\n  🔨 Building @omniroute/opencode-plugin (tsup)...");
     try {
+      // The plugin is a standalone package (not an npm workspace), so the root
+      // install never populates its node_modules — and tsup with `dts: true`
+      // needs the plugin's own devDependencies (typescript, @opencode-ai/plugin
+      // types). Without this install a fresh CI publish fails at this step.
+      if (!existsSync(join(opencodePluginSrc, "node_modules"))) {
+        const NPM_BIN = process.platform === "win32" ? "npm.cmd" : "npm";
+        execFileSync(NPM_BIN, ["install", "--no-audit", "--no-fund"], {
+          cwd: opencodePluginSrc,
+          stdio: "inherit",
+        });
+      }
       execFileSync(NPX_BIN, ["tsup"], {
         cwd: opencodePluginSrc,
         stdio: "inherit",

@@ -27,7 +27,7 @@ import { fileURLToPath, pathToFileURL } from "node:url";
 import { spawnSync } from "node:child_process";
 import os from "node:os";
 
-import { createPrompt, printHeading, printInfo, printSuccess, printError } from "../io.mjs";
+import { printHeading, printInfo, printSuccess, printError } from "../io.mjs";
 import { t } from "../i18n.mjs";
 
 const __filename = fileURLToPath(import.meta.url);
@@ -41,8 +41,11 @@ const __dirname = dirname(__filename);
 const PACKAGE_ROOT = resolve(__dirname, "..", "..", "..");
 
 // The bundled plugin ships at PACKAGE_ROOT/@omniroute/opencode-plugin/
-// (see root package.json `files`: ["@omniroute/", ...]).
-const BUNDLED_PLUGIN_DIR = join(PACKAGE_ROOT, "@omniroute", "opencode-plugin");
+// (see root package.json `files`: ["@omniroute/", ...]). The env override
+// exists so tests can point at a fixture without building the real plugin.
+const BUNDLED_PLUGIN_DIR =
+  process.env.OMNIROUTE_OPENCODE_PLUGIN_DIR ||
+  join(PACKAGE_ROOT, "@omniroute", "opencode-plugin");
 
 /**
  * Resolve the OpenCode config directory. Honours XDG_CONFIG_HOME and the
@@ -242,7 +245,9 @@ function runOpenCodeAuth(providerId) {
  *
  * @param {object} opts
  * @param {string} [opts.providerId="omniroute"]
- * @param {string} [opts.baseURL="http://localhost:20128"]
+ * @param {string} [opts.baseURL="http://localhost:20128"]  (Commander camelCases
+ *   `--base-url` into `baseUrl`, so both spellings are accepted.)
+ * @param {string} [opts.configDir]  Override the OpenCode config dir (tests / non-standard installs).
  * @param {string} [opts.displayName]
  * @param {boolean} [opts.auth=false]   Run `opencode auth login` after wiring.
  * @param {boolean} [opts.nonInteractive=false]   Skip prompts.
@@ -250,14 +255,16 @@ function runOpenCodeAuth(providerId) {
  */
 export async function runSetupOpenCodeCommand(opts = {}) {
   const providerId = opts.providerId || "omniroute";
-  const baseURL = opts.baseURL || "http://localhost:20128";
+  const baseURL = opts.baseURL || opts.baseUrl || "http://localhost:20128";
   const displayName = opts.displayName || null;
   const wantsAuth = Boolean(opts.auth);
   const nonInteractive = Boolean(opts.nonInteractive);
 
   printHeading("OmniRoute → OpenCode Plugin Setup");
 
-  const { configDir: opencodeConfigDir, dataDir: opencodeDataDir } = resolveOpenCodeDirs();
+  const resolvedDirs = resolveOpenCodeDirs();
+  const opencodeConfigDir = opts.configDir || resolvedDirs.configDir;
+  const opencodeDataDir = resolvedDirs.dataDir;
   printInfo(`OpenCode config dir: ${opencodeConfigDir}`);
   printInfo(`OpenCode data dir:   ${opencodeDataDir}`);
 
