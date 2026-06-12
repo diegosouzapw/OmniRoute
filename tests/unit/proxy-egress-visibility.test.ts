@@ -24,7 +24,7 @@ const {
   _setEgressProbeForTests: (fn: any) => void;
   clearEgressCache: () => void;
 };
-const { validateProxyPool } = egress as any;
+const { validateProxyPool, planProxyDistribution, applyProxyDistribution } = egress as any;
 
 test("resolveEgressIp returns the probed IP and caches by proxy URL", async () => {
   clearEgressCache();
@@ -132,4 +132,59 @@ test("validateProxyPool marks live proxies active and dead proxies error", async
   assert.equal(dead!.previousStatus, "active", "was wrongly active before validation");
 
   _setEgressProbeForTests(null);
+});
+
+test("planProxyDistribution: strict 1:1, extras left unassigned (no shared IP)", () => {
+  const plan = planProxyDistribution(
+    [{ id: "c1", account: "a1" }, { id: "c2", account: "a2" }, { id: "c3", account: "a3" }],
+    ["p1", "p2"]
+  );
+  assert.equal(plan.assignments.length, 2);
+  assert.deepEqual(plan.assignments.map((a: any) => a.proxyId), ["p1", "p2"]);
+  assert.equal(plan.unassigned.length, 1, "c3 has no proxy → unassigned, not sharing");
+  assert.equal(plan.unassigned[0].connectionId, "c3");
+  assert.equal(plan.sharingRisk, false);
+});
+
+test("planProxyDistribution: enough proxies → 1 distinct per account", () => {
+  const plan = planProxyDistribution(
+    [{ id: "c1", account: "a1" }, { id: "c2", account: "a2" }],
+    ["p1", "p2", "p3"]
+  );
+  assert.equal(plan.assignments.length, 2);
+  assert.equal(plan.unassigned.length, 0);
+  assert.match(plan.note, /1 distinct proxy/);
+});
+
+test("planProxyDistribution: allowSharing round-robins and flags sharingRisk", () => {
+  const plan = planProxyDistribution(
+    [{ id: "c1", account: "a1" }, { id: "c2", account: "a2" }, { id: "c3", account: "a3" }],
+    ["p1", "p2"],
+    { allowSharing: true }
+  );
+  assert.equal(plan.assignments.length, 3);
+  assert.deepEqual(plan.assignments.map((a: any) => a.proxyId), ["p1", "p2", "p1"]);
+  assert.equal(plan.sharingRisk, true);
+});
+
+test("planProxyDistribution: no live proxies → all unassigned with guidance", () => {
+  const plan = planProxyDistribution([{ id: "c1", account: "a1" }], []);
+  assert.equal(plan.assignments.length, 0);
+  assert.equal(plan.unassigned.length, 1);
+  assert.match(plan.note, /No live proxies/);
+});
+
+test("applyProxyDistribution assigns each proxy to its connection", async () => {
+  const calls: Array<[string, string]> = [];
+  const plan = planProxyDistribution(
+    [{ id: "c1", account: "a1" }, { id: "c2", account: "a2" }],
+    ["p1", "p2"]
+  );
+  const res = await applyProxyDistribution(plan, {
+    assign: async (connectionId: string, proxyId: string) => {
+      calls.push([connectionId, proxyId]);
+    },
+  });
+  assert.equal(res.applied, 2);
+  assert.deepEqual(calls, [["c1", "p1"], ["c2", "p2"]]);
 });
