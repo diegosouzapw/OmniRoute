@@ -44,7 +44,9 @@ import ProviderPageHeader from "./components/ProviderPageHeader";
 import CompatibleNodeCard from "./components/CompatibleNodeCard";
 import ProviderModalsPanel from "./components/ProviderModalsPanel";
 import EmptyConnectionsPlaceholder from "./components/EmptyConnectionsPlaceholder";
-import { providerText } from "./providerPageHelpers";
+import UpstreamProxyCard from "./components/UpstreamProxyCard";
+import SearchProviderCard from "./components/SearchProviderCard";
+// providerText used by UpstreamProxyCard (Phase 1t.7)
 
 export default function ProviderDetailPageClient() {
   const params = useParams();
@@ -610,44 +612,7 @@ export default function ProviderDetailPageClient() {
           )}
         </Card>
       )}
-      {isUpstreamProxyProvider && (
-        <Card>
-          <div className="flex flex-col gap-3">
-            <div>
-              <h2 className="text-lg font-semibold">
-                {providerText(
-                  t,
-                  "upstreamProxyManagedTitle",
-                  "Managed via Upstream Proxy Settings"
-                )}
-              </h2>
-              <p className="text-sm text-text-muted mt-1">
-                {providerText(
-                  t,
-                  "upstreamProxyManagedDescription",
-                  "CLIProxyAPI is configured as an upstream proxy layer, not as a direct provider connection. Manage the binary/runtime in CLI Tools and enable proxy routing on each provider via the provider proxy controls."
-                )}
-              </p>
-            </div>
-            <div className="flex flex-wrap gap-2">
-              <Link
-                href="/dashboard/cli-code"
-                className="inline-flex items-center gap-2 rounded-lg border border-border px-3 py-2 text-sm text-text-main hover:border-primary/40 hover:text-text-primary transition-colors"
-              >
-                <span className="material-symbols-outlined text-base">terminal</span>
-                {t("openCliTools")}
-              </Link>
-              <Link
-                href="/dashboard/settings"
-                className="inline-flex items-center gap-2 rounded-lg border border-border px-3 py-2 text-sm text-text-main hover:border-primary/40 hover:text-text-primary transition-colors"
-              >
-                <span className="material-symbols-outlined text-base">settings</span>
-                {t("openSettings")}
-              </Link>
-            </div>
-          </div>
-        </Card>
-      )}
+      {isUpstreamProxyProvider && <UpstreamProxyCard t={t} />}
 
       {/* Models — hidden for search providers (they don't have models) */}
       {!isSearchProvider && !isUpstreamProxyProvider && (
@@ -724,30 +689,7 @@ export default function ProviderDetailPageClient() {
       )}
 
       {/* Search provider info */}
-      {isSearchProvider && (
-        <Card>
-          <h2 className="text-lg font-semibold mb-4">{t("searchProvider")}</h2>
-          <p className="text-sm text-text-muted">{t("searchProviderDesc")}</p>
-          {providerId === "perplexity-search" && (
-            <div className="mt-3 flex items-center gap-2 px-3 py-2 rounded-lg bg-blue-500/10 border border-blue-500/20">
-              <span className="material-symbols-outlined text-sm text-blue-400">link</span>
-              <p className="text-xs text-blue-300">{t("perplexitySearchSharedKeyInfo")}</p>
-            </div>
-          )}
-          {providerId === "google-pse-search" && (
-            <div className="mt-3 flex items-center gap-2 px-3 py-2 rounded-lg bg-amber-500/10 border border-amber-500/20">
-              <span className="material-symbols-outlined text-sm text-amber-300">tune</span>
-              <p className="text-xs text-amber-200">{t("googlePseInfo")}</p>
-            </div>
-          )}
-          {providerId === "searxng-search" && (
-            <div className="mt-3 flex items-center gap-2 px-3 py-2 rounded-lg bg-emerald-500/10 border border-emerald-500/20">
-              <span className="material-symbols-outlined text-sm text-emerald-300">dns</span>
-              <p className="text-xs text-emerald-200">{t("searxngInfo")}</p>
-            </div>
-          )}
-        </Card>
-      )}
+      {isSearchProvider && <SearchProviderCard providerId={providerId} t={t} />}
 
       {/* Playground panel — rendered for providers that declare serviceKinds */}
       <ProviderPlaygroundPanel providerId={providerId} />
