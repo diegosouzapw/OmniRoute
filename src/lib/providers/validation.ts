@@ -3954,8 +3954,13 @@ export async function validateProviderApiKey({ provider, apiKey, providerSpecifi
     },
     vertex: async ({ apiKey }: any) => {
       try {
-        const { parseSAFromApiKey, getAccessToken } =
+        const { parseSAFromApiKey, getAccessToken, isExpressApiKey } =
           await import("@omniroute/open-sse/executors/vertex.ts");
+        // Express-mode API keys are opaque strings sent directly as the ?key= query param — there is
+        // no JWT to mint, so accept any non-empty Express key (the live chat/media call validates it).
+        if (isExpressApiKey(apiKey)) {
+          return { valid: true, error: null };
+        }
         const sa = parseSAFromApiKey(apiKey);
         // Validates credentials by successfully successfully exchanging them for a JWT from Google Identity
         await getAccessToken(sa);
@@ -3966,8 +3971,11 @@ export async function validateProviderApiKey({ provider, apiKey, providerSpecifi
     },
     "vertex-partner": async ({ apiKey }: any) => {
       try {
-        const { parseSAFromApiKey, getAccessToken } =
+        const { parseSAFromApiKey, getAccessToken, isExpressApiKey } =
           await import("@omniroute/open-sse/executors/vertex.ts");
+        if (isExpressApiKey(apiKey)) {
+          return { valid: true, error: null };
+        }
         const sa = parseSAFromApiKey(apiKey);
         await getAccessToken(sa);
         return { valid: true, error: null };

@@ -212,7 +212,7 @@ export function openaiToClaudeRequest(model, body, stream) {
   if (body.temperature !== undefined) {
     result.temperature = body.temperature;
   }
-  if (body.top_p !== undefined) {
+  if (body.temperature === undefined && body.top_p !== undefined) {
     result.top_p = body.top_p;
   }
   if (body.stop !== undefined) {
