@@ -97,6 +97,8 @@ import { CC_COMPATIBLE_DEFAULT_CHAT_PATH } from "./providerDetailConstants";
 // Phase 1k extractions — Issue #3501
 import { useModelImportHandlers } from "./hooks/useModelImportHandlers";
 import ImportProgressModal from "./components/ImportProgressModal";
+// Phase 1l extractions — Issue #3501
+import { useModelVisibilityHandlers } from "./hooks/useModelVisibilityHandlers";
 import {
   // CONFIGURABLE_BASE_URL_PROVIDERS, DEFAULT_PROVIDER_BASE_URLS, getLocalProviderMetadata,
   // isBaseUrlConfigurableProvider, getProviderBaseUrlDefault, getProviderBaseUrlHint,
@@ -110,13 +112,11 @@ import {
   providerText,
   providerCountText,
   readBooleanToggle,
-  formatProviderModelsErrorResponse,
+  // formatProviderModelsErrorResponse → hooks/useModelVisibilityHandlers.ts (Phase 1l)
   type ProviderMessageTranslator,
   type LocalProviderMetadata,
   // CommandCodeAuthFlowState moved to hooks/useCommandCodeAuth.ts (Phase 1h)
-  type CompatByProtocolMap,
-  type CompatModelRow,
-  type CompatModelMap,
+  // CompatByProtocolMap, CompatModelRow, CompatModelMap → hooks/useModelVisibilityHandlers.ts (Phase 1l)
 } from "./providerPageHelpers";
 // CODEX_GLOBAL_SERVICE_MODE_VALUES, getCodexServiceTierLabel, normalizeCodexLimitPolicy
 // moved to hooks/useProviderSettings.ts + hooks/useProviderConnections.ts (Phase 1f)
@@ -131,15 +131,7 @@ import CompatibleModelsSection from "./components/CompatibleModelsSection";
 // moved to providerPageHelpers.ts + hook useModelCompatState (Phase 1e)
 // formatProviderModelsErrorResponse moved to providerPageHelpers.ts (Phase 1e)
 
-/** PATCH fields for provider model compat (matches API + `ModelCompatPerProtocol` shape). */
-type ModelCompatSavePatch = {
-  normalizeToolCallId?: boolean;
-  preserveOpenAIDeveloperRole?: boolean;
-  upstreamHeaders?: Record<string, string>;
-  compatByProtocol?: CompatByProtocolMap;
-  isHidden?: boolean;
-};
-
+// ModelCompatSavePatch → hooks/useModelVisibilityHandlers.ts (Phase 1l)
 // MAX_BULK_IDS moved to hooks/useProviderConnections.ts (Phase 1f)
 // ModelRowProps, PassthroughModelRowProps → components/ModelRow.tsx, PassthroughModelRow.tsx (Phase 1e)
 // PassthroughModelsSectionProps → components/PassthroughModelsSection.tsx (Phase 1e)
@@ -176,18 +168,6 @@ export default function ProviderDetailPageClient() {
   const [zedManualProvider, setZedManualProvider] = useState("openai");
   const [zedManualToken, setZedManualToken] = useState("");
   const [importingZedManual, setImportingZedManual] = useState(false);
-  const [compatSavingModelId, setCompatSavingModelId] = useState<string | null>(null);
-  const [modelFilter, setModelFilter] = useState("");
-  const [togglingModelId, setTogglingModelId] = useState<string | null>(null);
-  const [testingModelId, setTestingModelId] = useState<string | null>(null);
-  const [modelTestStatus, setModelTestStatus] = useState<Record<string, "ok" | "error">>({});
-  const [testingAll, setTestingAll] = useState(false);
-  const [testProgress, setTestProgress] = useState<{ done: number; total: number } | null>(null);
-  const [autoHideFailed, setAutoHideFailed] = useState(true);
-  const [visibilityFilter, setVisibilityFilter] = useState<"all" | "visible" | "hidden">("all");
-  const [bulkVisibilityAction, setBulkVisibilityAction] = useState<"select" | "deselect" | null>(
-    null
-  );
   const [importCodexModalOpen, setImportCodexModalOpen] = useState(false);
   const [codexCliGuideOpen, setCodexCliGuideOpen] = useState(false);
   const [importClaudeModalOpen, setImportClaudeModalOpen] = useState(false);
@@ -536,115 +516,9 @@ export default function ProviderDetailPageClient() {
 
   // loadCodexSettings, loadClaudeRoutingSettings → hooks/useProviderSettings.ts (Phase 1f)
   // loadConnProxies → hooks/useProviderConnections.ts (Phase 1f)
-
-  const onTestModel = async (modelId: string, fullModel: string) => {
-    setTestingModelId(modelId);
-    setModelTestStatus((prev) => ({ ...prev, [modelId]: undefined }));
-    try {
-      const res = await fetch("/api/models/test", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          providerId: selectedConnection?.provider || providerNode?.id || providerId,
-          modelId: fullModel,
-          connectionId: selectedConnection?.id,
-        }),
-      });
-      const data = await res.json();
-      if (res.ok && data.status === "ok") {
-        notify.success(
-          providerText(
-            t,
-            "testModelSuccess",
-            `Model ${modelId} is working. Latency: ${data.latencyMs}ms`,
-            { modelId, latencyMs: data.latencyMs }
-          )
-        );
-        setModelTestStatus((prev) => ({ ...prev, [modelId]: "ok" }));
-      } else {
-        notify.error(data.error || "Model test failed");
-        setModelTestStatus((prev) => ({ ...prev, [modelId]: "error" }));
-        if (handleToggleModelHidden) {
-          await handleToggleModelHidden(providerStorageAlias, modelId, true);
-        }
-      }
-    } catch (err) {
-      notify.error("Network error testing model");
-      setModelTestStatus((prev) => ({ ...prev, [modelId]: "error" }));
-      if (handleToggleModelHidden) {
-        await handleToggleModelHidden(providerStorageAlias, modelId, true);
-      }
-    } finally {
-      setTestingModelId(null);
-    }
-  };
-
-  const handleTestAll = async (
-    targets: Array<{ modelId: string; fullModel: string }>
-  ): Promise<void> => {
-    if (testingAll) return;
-    if (targets.length === 0) {
-      notify.error(providerText(t, "noModelsToTest", "No models to test"));
-      return;
-    }
-    setTestingAll(true);
-    setTestProgress({ done: 0, total: targets.length });
-
-    let ok = 0;
-    let error = 0;
-    let hiddenCount = 0;
-
-    const CHUNK_SIZE = 3;
-    for (let i = 0; i < targets.length; i += CHUNK_SIZE) {
-      const chunk = targets.slice(i, i + CHUNK_SIZE);
-      await Promise.all(
-        chunk.map(async ({ modelId, fullModel }) => {
-          try {
-            const result: {
-              results?: Record<
-                string,
-                {
-                  status?: "ok" | "error";
-                  rateLimited?: boolean;
-                  isTimeout?: boolean;
-                  error?: string;
-                }
-              >;
-            } = await fetch("/api/models/test-all", {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({
-                providerId: providerId,
-                connectionId: selectedConnection?.id,
-                modelIds: [fullModel],
-              }),
-            }).then((r) => r.json());
-
-            const entry = result.results?.[fullModel];
-            if (entry?.status === "ok") {
-              ok++;
-            } else {
-              error++;
-              if (autoHideFailed && !entry?.rateLimited && !entry?.isTimeout) {
-                await handleToggleModelHidden(providerStorageAlias, modelId, true);
-                hiddenCount++;
-              }
-            }
-          } catch (e) {
-            error++;
-          }
-          setTestProgress((prev) => (prev ? { done: prev.done + 1, total: prev.total } : null));
-        })
-      );
-    }
-
-    notify.info(providerText(t, "testAllResults", "{ok} ok, {error} error", { ok, error }));
-    if (hiddenCount > 0) {
-      notify.info(providerText(t, "testAllFailedHidden", "{count} hidden", { count: hiddenCount }));
-    }
-    setTestingAll(false);
-    setTestProgress(null);
-  };
+  // onTestModel, handleTestAll, saveModelCompatFlags, handleToggleModelHidden,
+  // handleBulkToggleModelHidden, handleClearAllModels, providerAliasEntries
+  // → hooks/useModelVisibilityHandlers.ts (Phase 1l)
 
   // handleToggleSelectOne/All, handleBatchDeleteOpenModal/Confirm, handleDelete,
   // handleBatchSetActive → hooks/useProviderConnections.ts (Phase 1f)
@@ -877,46 +751,6 @@ export default function ProviderDetailPageClient() {
   // handleImportModels, handleCompatibleImportWithProgress, handleToggleAutoSync,
   // canImportModels, isAutoSyncEnabled, autoSyncConnection → hooks/useModelImportHandlers.ts (Phase 1k)
 
-  const [clearingModels, setClearingModels] = useState(false);
-  const providerAliasEntries = useMemo(
-    () =>
-      Object.entries(modelAliases).filter(
-        ([, model]) => typeof model === "string" && model.startsWith(`${providerStorageAlias}/`)
-      ),
-    [modelAliases, providerStorageAlias]
-  );
-
-  const handleClearAllModels = async () => {
-    if (clearingModels) return;
-    if (!confirm(t("clearAllModelsConfirm"))) return;
-    setClearingModels(true);
-    try {
-      const res = await fetch(
-        `/api/provider-models?provider=${encodeURIComponent(providerStorageAlias)}&all=true`,
-        { method: "DELETE" }
-      );
-      if (res.ok) {
-        // Also delete all aliases that belong to this provider
-        await Promise.all(
-          providerAliasEntries.map(([alias]) =>
-            fetch(`/api/models/alias?alias=${encodeURIComponent(alias)}`, {
-              method: "DELETE",
-            }).catch(() => {})
-          )
-        );
-        await fetchProviderModelMeta();
-        await fetchAliases();
-        notify.success(t("clearAllModelsSuccess"));
-      } else {
-        notify.error(t("clearAllModelsFailed"));
-      }
-    } catch {
-      notify.error(t("clearAllModelsFailed"));
-    } finally {
-      setClearingModels(false);
-    }
-  };
-
   // Phase 1e: compat-state derivations moved to useModelCompatState hook.
   const compat = useModelCompatState(
     modelMeta.customModels,
@@ -933,129 +767,41 @@ export default function ProviderDetailPageClient() {
     [providerId, modelMeta.customModels]
   );
 
-  const saveModelCompatFlags = async (modelId: string, patch: ModelCompatSavePatch) => {
-    setCompatSavingModelId(modelId);
-    try {
-      const c = customMap.get(modelId) as Record<string, unknown> | undefined;
-      let body: Record<string, unknown>;
-      const onlyCompatByProtocol =
-        patch.compatByProtocol &&
-        patch.normalizeToolCallId === undefined &&
-        patch.preserveOpenAIDeveloperRole === undefined &&
-        !("upstreamHeaders" in patch);
-
-      if (c) {
-        if (onlyCompatByProtocol) {
-          body = {
-            provider: providerId,
-            modelId,
-            compatByProtocol: patch.compatByProtocol,
-          };
-        } else {
-          body = {
-            provider: providerId,
-            modelId,
-            modelName: (c.name as string) || modelId,
-            source: (c.source as string) || "manual",
-            apiFormat: (c.apiFormat as string) || "chat-completions",
-            supportedEndpoints:
-              Array.isArray(c.supportedEndpoints) && (c.supportedEndpoints as unknown[]).length
-                ? c.supportedEndpoints
-                : ["chat"],
-            normalizeToolCallId:
-              patch.normalizeToolCallId !== undefined
-                ? patch.normalizeToolCallId
-                : Boolean(c.normalizeToolCallId),
-            preserveOpenAIDeveloperRole:
-              patch.preserveOpenAIDeveloperRole !== undefined
-                ? patch.preserveOpenAIDeveloperRole
-                : Object.prototype.hasOwnProperty.call(c, "preserveOpenAIDeveloperRole")
-                  ? Boolean(c.preserveOpenAIDeveloperRole)
-                  : true,
-          };
-          if (patch.compatByProtocol) body.compatByProtocol = patch.compatByProtocol;
-        }
-      } else {
-        body = { provider: providerId, modelId, ...patch };
-      }
-      const res = await fetch("/api/provider-models", {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(body),
-      });
-      if (!res.ok) {
-        const detail = await formatProviderModelsErrorResponse(res);
-        notify.error(
-          detail ? `${t("failedSaveCustomModel")} — ${detail}` : t("failedSaveCustomModel")
-        );
-        return;
-      }
-    } catch {
-      notify.error(t("failedSaveCustomModel"));
-      return;
-    } finally {
-      setCompatSavingModelId(null);
-    }
-    try {
-      await fetchProviderModelMeta();
-    } catch {
-      /* refresh failure is non-critical — data was already saved */
-    }
-  };
-
-  const handleToggleModelHidden = async (
-    providerKey: string,
-    modelId: string,
-    hidden: boolean
-  ): Promise<void> => {
-    setTogglingModelId(modelId);
-    try {
-      const res = await fetch(
-        `/api/provider-models?provider=${encodeURIComponent(providerKey)}&modelId=${encodeURIComponent(modelId)}`,
-        {
-          method: "PATCH",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ isHidden: hidden }),
-        }
-      );
-      if (!res.ok) {
-        const detail = await res.text().catch(() => "");
-        notify.error(detail || t("failedSaveCustomModel"));
-        return;
-      }
-      await Promise.all([fetchProviderModelMeta().catch(() => {}), fetchAliases().catch(() => {})]);
-    } catch {
-      notify.error(t("failedSaveCustomModel"));
-    } finally {
-      setTogglingModelId(null);
-    }
-  };
-
-  const handleBulkToggleModelHidden = async (
-    providerKey: string,
-    modelIds: string[],
-    hidden: boolean
-  ): Promise<void> => {
-    if (modelIds.length === 0) return;
-    setBulkVisibilityAction(hidden ? "deselect" : "select");
-    try {
-      const res = await fetch(`/api/provider-models?provider=${encodeURIComponent(providerKey)}`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ isHidden: hidden, modelIds }),
-      });
-      if (!res.ok) {
-        const detail = await res.text().catch(() => "");
-        notify.error(detail || t("failedSaveCustomModel"));
-        return;
-      }
-      await Promise.all([fetchProviderModelMeta().catch(() => {}), fetchAliases().catch(() => {})]);
-    } catch {
-      notify.error(t("failedSaveCustomModel"));
-    } finally {
-      setBulkVisibilityAction(null);
-    }
-  };
+  // ── Phase 1l: model visibility handlers ─────────────────────────────────
+  const {
+    compatSavingModelId,
+    togglingModelId,
+    bulkVisibilityAction,
+    clearingModels,
+    modelFilter,
+    testingModelId,
+    modelTestStatus,
+    testingAll,
+    testProgress,
+    autoHideFailed,
+    visibilityFilter,
+    providerAliasEntries,
+    setModelFilter,
+    setAutoHideFailed,
+    setVisibilityFilter,
+    saveModelCompatFlags,
+    handleToggleModelHidden,
+    handleBulkToggleModelHidden,
+    handleClearAllModels,
+    onTestModel,
+    handleTestAll,
+  } = useModelVisibilityHandlers({
+    providerId,
+    modelAliases,
+    customMap,
+    providerStorageAlias,
+    fetchProviderModelMeta,
+    fetchAliases,
+    notify,
+    t,
+    selectedConnection,
+    providerNode,
+  });
 
   const renderModelsSection = () => {
     const autoSyncToggle = compatibleSupportsModelImport && canImportModels && (
