@@ -30,7 +30,7 @@
     "open-sse/services/combo.ts": 4955,
     "open-sse/services/rateLimitManager.ts": 1017,
     "open-sse/services/tokenRefresh.ts": 1997,
-    "open-sse/services/usage.ts": 3289,
+    "open-sse/services/usage.ts": 3341,
     "open-sse/translator/request/openai-to-gemini.ts": 844,
     "open-sse/translator/response/openai-responses.ts": 873,
     "open-sse/utils/cursorAgentProtobuf.ts": 1499,
