@@ -94,6 +94,21 @@ test("OpenAI -> Claude maps system messages, parameters and assistant cache mark
   assert.deepEqual(result.messages[1].content[0].cache_control, { type: "ephemeral" });
 });
 
+test("OpenAI -> Claude strips top_p when temperature is also present", () => {
+  const result = openaiToClaudeRequest(
+    "claude-4-sonnet",
+    {
+      messages: [{ role: "user", content: "Hello" }],
+      temperature: 0.25,
+      top_p: 0.8,
+    },
+    false
+  );
+
+  assert.equal(result.temperature, 0.25);
+  assert.equal(result.top_p, undefined);
+});
+
 test("OpenAI -> Claude converts multimodal content, tool declarations, tool calls and tool results", () => {
   const result = openaiToClaudeRequest(
     "claude-4-sonnet",
