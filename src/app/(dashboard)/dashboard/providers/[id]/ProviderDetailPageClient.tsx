@@ -99,6 +99,8 @@ import { useModelImportHandlers } from "./hooks/useModelImportHandlers";
 import ImportProgressModal from "./components/ImportProgressModal";
 // Phase 1l extractions — Issue #3501
 import { useModelVisibilityHandlers } from "./hooks/useModelVisibilityHandlers";
+// Phase 1m extractions — Issue #3501
+import ProviderModelsSection from "./components/ProviderModelsSection";
 import {
   // CONFIGURABLE_BASE_URL_PROVIDERS, DEFAULT_PROVIDER_BASE_URLS, getLocalProviderMetadata,
   // isBaseUrlConfigurableProvider, getProviderBaseUrlDefault, getProviderBaseUrlHint,
@@ -803,305 +805,8 @@ export default function ProviderDetailPageClient() {
     providerNode,
   });
 
-  const renderModelsSection = () => {
-    const autoSyncToggle = compatibleSupportsModelImport && canImportModels && (
-      <button
-        onClick={handleToggleAutoSync}
-        disabled={togglingAutoSync}
-        className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg border border-border bg-transparent cursor-pointer text-[12px] disabled:opacity-50 disabled:cursor-not-allowed"
-        title={t("autoSyncTooltip")}
-      >
-        <span
-          className="material-symbols-outlined text-[16px]"
-          style={{ color: isAutoSyncEnabled ? "#22c55e" : "var(--color-text-muted)" }}
-        >
-          {isAutoSyncEnabled ? "toggle_on" : "toggle_off"}
-        </span>
-        <span className="text-text-main">{t("autoSync")}</span>
-      </button>
-    );
+  // renderModelsSection → components/ProviderModelsSection.tsx (Phase 1m)
 
-    const clearAllButton = (modelMeta.customModels.length > 0 ||
-      providerAliasEntries.length > 0) && (
-      <button
-        onClick={handleClearAllModels}
-        disabled={clearingModels}
-        className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg border border-red-300 dark:border-red-800 bg-transparent cursor-pointer text-[12px] text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 disabled:opacity-50 disabled:cursor-not-allowed"
-        title={t("clearAllModels")}
-      >
-        <span className="material-symbols-outlined text-[16px]">delete_sweep</span>
-        <span>{t("clearAllModels")}</span>
-      </button>
-    );
-
-    if (isManagedAvailableModelsProvider) {
-      const description =
-        providerId === "openrouter"
-          ? t("openRouterAnyModelHint")
-          : isCcCompatible
-            ? t("ccCompatibleModelsDescription")
-            : t("compatibleModelsDescription", {
-                type: isAnthropicCompatible ? t("anthropic") : t("openai"),
-              });
-      const inputLabel = providerId === "openrouter" ? t("modelIdFromOpenRouter") : t("modelId");
-      const inputPlaceholder =
-        providerId === "openrouter"
-          ? t("openRouterModelPlaceholder")
-          : isCcCompatible
-            ? "claude-sonnet-4-6"
-            : isAnthropicCompatible
-              ? t("anthropicCompatibleModelPlaceholder")
-              : t("openaiCompatibleModelPlaceholder");
-
-      return (
-        <div>
-          <div className="flex items-center gap-2 mb-4">
-            {autoSyncToggle}
-            {clearAllButton}
-          </div>
-          <CompatibleModelsSection
-            providerStorageAlias={providerStorageAlias}
-            providerDisplayAlias={providerDisplayAlias}
-            modelAliases={modelAliases}
-            availableModels={syncedAvailableModels}
-            customModels={modelMeta.customModels}
-            fallbackModels={compatibleFallbackModels}
-            description={description}
-            inputLabel={inputLabel}
-            inputPlaceholder={inputPlaceholder}
-            copied={copied}
-            onCopy={copy}
-            onSetAlias={handleSetAlias}
-            onDeleteAlias={handleDeleteAlias}
-            connections={connections}
-            isAnthropic={isAnthropicProtocolCompatible}
-            onImportWithProgress={handleCompatibleImportWithProgress}
-            t={t}
-            effectiveModelNormalize={effectiveModelNormalize}
-            effectiveModelPreserveDeveloper={effectiveModelPreserveDeveloper}
-            getUpstreamHeadersRecord={getUpstreamHeadersRecordForModel}
-            saveModelCompatFlags={saveModelCompatFlags}
-            compatSavingModelId={compatSavingModelId}
-            onModelsChanged={fetchProviderModelMeta}
-            allowImport={compatibleSupportsModelImport}
-            isModelHidden={effectiveModelHidden}
-            onToggleHidden={(modelId, hidden) =>
-              handleToggleModelHidden(providerStorageAlias, modelId, hidden)
-            }
-            onBulkToggleHidden={(modelIds, hidden) =>
-              handleBulkToggleModelHidden(providerStorageAlias, modelIds, hidden)
-            }
-            bulkTogglePending={bulkVisibilityAction !== null}
-            togglingModelId={togglingModelId}
-            onTestModel={onTestModel}
-            modelTestStatus={modelTestStatus}
-            testingModelId={testingModelId}
-            onTestAll={handleTestAll}
-            testingAll={testingAll}
-            testProgress={testProgress}
-            autoHideFailed={autoHideFailed}
-            onAutoHideFailedChange={setAutoHideFailed}
-          />
-        </div>
-      );
-    }
-
-    if (providerInfo.passthroughModels) {
-      const passthroughDescription =
-        providerId === "openrouter"
-          ? t("openRouterAnyModelHint")
-          : providerId === "bedrock"
-            ? t("bedrockModelsDescription")
-            : t("passthroughModelsDescription", { provider: providerInfo?.name || providerId });
-      const passthroughInputLabel =
-        providerId === "openrouter" ? t("modelIdFromOpenRouter") : t("modelId");
-      const passthroughInputPlaceholder =
-        providerId === "openrouter"
-          ? t("openRouterModelPlaceholder")
-          : providerId === "bedrock"
-            ? t("bedrockModelPlaceholder")
-            : t("openaiCompatibleModelPlaceholder");
-
-      return (
-        <div>
-          <div className="flex items-center gap-2 mb-4">
-            <Button
-              size="sm"
-              variant="secondary"
-              icon="download"
-              onClick={handleImportModels}
-              disabled={!canImportModels || importingModels}
-            >
-              {importingModels ? t("importingModels") : t("importFromModels")}
-            </Button>
-            {autoSyncToggle}
-            {clearAllButton}
-            {!canImportModels && (
-              <span className="text-xs text-text-muted">{t("addConnectionToImport")}</span>
-            )}
-          </div>
-          <PassthroughModelsSection
-            providerAlias={providerAlias}
-            modelAliases={modelAliases}
-            availableModels={syncedAvailableModels}
-            customModels={modelMeta.customModels}
-            description={passthroughDescription}
-            inputLabel={passthroughInputLabel}
-            inputPlaceholder={passthroughInputPlaceholder}
-            copied={copied}
-            onCopy={copy}
-            onSetAlias={handleSetAlias}
-            onDeleteAlias={handleDeleteAlias}
-            t={t}
-            effectiveModelNormalize={effectiveModelNormalize}
-            effectiveModelPreserveDeveloper={effectiveModelPreserveDeveloper}
-            getUpstreamHeadersRecord={getUpstreamHeadersRecordForModel}
-            saveModelCompatFlags={saveModelCompatFlags}
-            compatSavingModelId={compatSavingModelId}
-            isModelHidden={effectiveModelHidden}
-            onToggleHidden={(modelId, hidden) =>
-              handleToggleModelHidden(providerStorageAlias, modelId, hidden)
-            }
-            onBulkToggleHidden={(modelIds, hidden) =>
-              handleBulkToggleModelHidden(providerStorageAlias, modelIds, hidden)
-            }
-            bulkTogglePending={bulkVisibilityAction !== null}
-            togglingModelId={togglingModelId}
-            onTestModel={onTestModel}
-            modelTestStatus={modelTestStatus}
-            testingModelId={testingModelId}
-            providerId={providerId}
-            connectionId={selectedConnection?.id ?? ""}
-            autoHideFailed={autoHideFailed}
-            onAutoHideFailedChange={setAutoHideFailed}
-          />
-        </div>
-      );
-    }
-
-    const importButton = (
-      <div className="flex items-center gap-2 mb-4">
-        <Button
-          size="sm"
-          variant="secondary"
-          icon="download"
-          onClick={handleImportModels}
-          disabled={!canImportModels || importingModels}
-        >
-          {importingModels ? t("importingModels") : t("importFromModels")}
-        </Button>
-        {autoSyncToggle}
-        {!canImportModels && (
-          <span className="text-xs text-text-muted">{t("addConnectionToImport")}</span>
-        )}
-      </div>
-    );
-
-    if (models.length === 0) {
-      return (
-        <div>
-          {importButton}
-          <p className="text-sm text-text-muted">{t("noModelsConfigured")}</p>
-        </div>
-      );
-    }
-    const modelsWithVisibility = models.map((model) => ({
-      ...model,
-      isHidden: effectiveModelHidden(model.id),
-    }));
-    const filteredModels = modelsWithVisibility.filter((model) => {
-      const matchesQuery = matchesModelCatalogQuery(modelFilter, {
-        modelId: model.id,
-        modelName: model.name,
-        source: model.source,
-      });
-      const matchesVisibility =
-        visibilityFilter === "all"
-          ? true
-          : visibilityFilter === "visible"
-            ? !model.isHidden
-            : model.isHidden;
-      return matchesQuery && matchesVisibility;
-    });
-    const activeCount = modelsWithVisibility.filter((m) => !m.isHidden).length;
-    const hiddenFilteredCount = filteredModels.filter((m) => m.isHidden).length;
-    const visibleFilteredCount = filteredModels.length - hiddenFilteredCount;
-    const testAllTargets = filteredModels
-      .filter((m) => !m.isHidden)
-      .map((m) => ({ modelId: m.id, fullModel: `${providerDisplayAlias}/${m.id}` }));
-    return (
-      <div>
-        {importButton}
-        {modelsWithVisibility.length > 0 && (
-          <ModelVisibilityToolbar
-            t={t}
-            filterValue={modelFilter}
-            onFilterChange={setModelFilter}
-            activeCount={activeCount}
-            totalCount={modelsWithVisibility.length}
-            onSelectAll={() =>
-              handleBulkToggleModelHidden(
-                providerId,
-                filteredModels.map((model) => model.id),
-                false
-              )
-            }
-            onDeselectAll={() =>
-              handleBulkToggleModelHidden(
-                providerId,
-                filteredModels.map((model) => model.id),
-                true
-              )
-            }
-            selectAllDisabled={hiddenFilteredCount === 0 || bulkVisibilityAction !== null}
-            deselectAllDisabled={visibleFilteredCount === 0 || bulkVisibilityAction !== null}
-            onTestAll={() => handleTestAll(testAllTargets)}
-            testingAll={testingAll}
-            testProgress={testProgress}
-            visibilityFilter={visibilityFilter}
-            onVisibilityFilterChange={setVisibilityFilter}
-            autoHideFailed={autoHideFailed}
-            onAutoHideFailedChange={setAutoHideFailed}
-          />
-        )}
-        <div className="flex flex-wrap gap-3">
-          {filteredModels.map((model) => {
-            return (
-              <ModelRow
-                key={model.id}
-                model={model}
-                fullModel={`${providerDisplayAlias}/${model.id}`}
-                provider={providerId}
-                copied={copied}
-                onCopy={copy}
-                t={t}
-                showDeveloperToggle
-                effectiveModelNormalize={effectiveModelNormalize}
-                effectiveModelPreserveDeveloper={effectiveModelPreserveDeveloper}
-                getUpstreamHeadersRecord={(p) => getUpstreamHeadersRecordForModel(model.id, p)}
-                saveModelCompatFlags={saveModelCompatFlags}
-                compatDisabled={compatSavingModelId === model.id}
-                onToggleHidden={(modelId, hidden) =>
-                  handleToggleModelHidden(providerId, modelId, hidden)
-                }
-                togglingHidden={togglingModelId === model.id}
-                onTestModel={onTestModel}
-                testStatus={modelTestStatus[model.id] || null}
-                testingModel={testingModelId === model.id}
-              />
-            );
-          })}
-          {filteredModels.length === 0 && modelFilter && (
-            <p className="text-sm text-text-muted py-2">
-              {providerText(t, "noModelsMatch", `No models match "${modelFilter}"`, {
-                filter: modelFilter,
-              })}
-            </p>
-          )}
-        </div>
-      </div>
-    );
-  };
 
   if (loading) {
     return (
@@ -2320,7 +2025,64 @@ export default function ProviderDetailPageClient() {
       {!isSearchProvider && !isUpstreamProxyProvider && (
         <Card>
           <h2 className="text-lg font-semibold mb-4">{t("availableModels")}</h2>
-          {renderModelsSection()}
+          {/* Phase 1m: extracted to components/ProviderModelsSection.tsx */}
+          <ProviderModelsSection
+            providerId={providerId}
+            providerAlias={providerAlias}
+            providerStorageAlias={providerStorageAlias}
+            providerDisplayAlias={providerDisplayAlias}
+            providerInfo={providerInfo}
+            isCcCompatible={isCcCompatible}
+            isAnthropicCompatible={isAnthropicCompatible}
+            isAnthropicProtocolCompatible={isAnthropicProtocolCompatible}
+            isManagedAvailableModelsProvider={isManagedAvailableModelsProvider}
+            compatibleSupportsModelImport={compatibleSupportsModelImport}
+            models={models}
+            modelMeta={modelMeta}
+            modelAliases={modelAliases}
+            syncedAvailableModels={syncedAvailableModels}
+            compatibleFallbackModels={compatibleFallbackModels}
+            copied={copied}
+            onCopy={copy}
+            onSetAlias={handleSetAlias}
+            onDeleteAlias={handleDeleteAlias}
+            fetchProviderModelMeta={fetchProviderModelMeta}
+            connections={connections}
+            selectedConnection={selectedConnection}
+            canImportModels={canImportModels}
+            importingModels={importingModels}
+            handleImportModels={handleImportModels}
+            isAutoSyncEnabled={isAutoSyncEnabled}
+            togglingAutoSync={togglingAutoSync}
+            handleToggleAutoSync={handleToggleAutoSync}
+            handleCompatibleImportWithProgress={handleCompatibleImportWithProgress}
+            compatSavingModelId={compatSavingModelId}
+            togglingModelId={togglingModelId}
+            bulkVisibilityAction={bulkVisibilityAction}
+            clearingModels={clearingModels}
+            modelFilter={modelFilter}
+            testingModelId={testingModelId}
+            modelTestStatus={modelTestStatus}
+            testingAll={testingAll}
+            testProgress={testProgress}
+            autoHideFailed={autoHideFailed}
+            visibilityFilter={visibilityFilter}
+            providerAliasEntries={providerAliasEntries}
+            setModelFilter={setModelFilter}
+            setAutoHideFailed={setAutoHideFailed}
+            setVisibilityFilter={setVisibilityFilter}
+            saveModelCompatFlags={saveModelCompatFlags}
+            handleToggleModelHidden={handleToggleModelHidden}
+            handleBulkToggleModelHidden={handleBulkToggleModelHidden}
+            handleClearAllModels={handleClearAllModels}
+            onTestModel={onTestModel}
+            handleTestAll={handleTestAll}
+            effectiveModelNormalize={effectiveModelNormalize}
+            effectiveModelPreserveDeveloper={effectiveModelPreserveDeveloper}
+            effectiveModelHidden={effectiveModelHidden}
+            getUpstreamHeadersRecordForModel={getUpstreamHeadersRecordForModel}
+            t={t}
+          />
 
           {/* Custom Models — available for all providers */}
           <CustomModelsSection
