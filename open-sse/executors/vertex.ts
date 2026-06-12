@@ -21,6 +21,28 @@ export function parseSAFromApiKey(apiKey: string): ServiceAccount {
   }
 }
 
+/**
+ * A Service Account credential is a JSON object (type/client_email/private_key). A Vertex AI
+ * Express-mode API key is an opaque non-JSON string. Distinguishing them lets the executor
+ * support BOTH: Service Account JSON (JWT → OAuth → project-scoped endpoint + Bearer auth) and
+ * Express keys (project-less publisher endpoint + x-goog-api-key auth), instead of failing every
+ * Express key with "requires a valid Service Account JSON".
+ */
+export function looksLikeServiceAccountJson(apiKey: string): boolean {
+  if (!apiKey || typeof apiKey !== "string") return false;
+  try {
+    const parsed = JSON.parse(apiKey);
+    return !!parsed && typeof parsed === "object" && !Array.isArray(parsed);
+  } catch {
+    return false;
+  }
+}
+
+/** True for a Vertex AI Express-mode API key (a non-empty, non-JSON, non-OAuth credential). */
+export function isExpressApiKey(apiKey?: string | null): boolean {
+  return typeof apiKey === "string" && apiKey.trim().length > 0 && !looksLikeServiceAccountJson(apiKey);
+}
+
 export async function getAccessToken(sa: ServiceAccount): Promise<string> {
   if (!sa.client_email || !sa.private_key) {
     throw new Error(
@@ -110,7 +132,13 @@ export class VertexExecutor extends BaseExecutor {
 
   async execute(input: ExecuteInput) {
     const { credentials, log } = input;
-    if (credentials.apiKey && !credentials.accessToken) {
+    // Defensive: trim stray surrounding whitespace from a pasted credential.
+    if (typeof credentials.apiKey === "string") {
+      credentials.apiKey = credentials.apiKey.trim();
+    }
+    // Service Account JSON → mint a short-lived OAuth token (Bearer). An Express-mode API key is
+    // sent as-is via x-goog-api-key (see buildHeaders), so no token exchange is needed for it.
+    if (credentials.apiKey && !credentials.accessToken && looksLikeServiceAccountJson(credentials.apiKey)) {
       try {
         const sa = parseSAFromApiKey(credentials.apiKey);
         credentials.accessToken = await getAccessToken(sa);
@@ -123,6 +151,19 @@ export class VertexExecutor extends BaseExecutor {
   }
 
   buildUrl(model: string, stream: boolean, urlIndex = 0, credentials: any = null) {
+    // Vertex AI Express mode: project-less v1 publisher endpoint with the API key passed as a
+    // ?key= query parameter (verified working contract — same as the CaptionAI GeminiClient). The
+    // Express key is NOT accepted as a Bearer/OAuth credential or via x-goog-api-key on this API.
+    if (isExpressApiKey(credentials?.apiKey) && !credentials?.accessToken) {
+      const expressKey = encodeURIComponent(String(credentials.apiKey).trim());
+      if (isPartnerModel(model)) {
+        // Partner (Anthropic/etc.) models are not available via Express keys; best-effort.
+        return `https://aiplatform.googleapis.com/v1/publishers/openapi/chat/completions?key=${expressKey}`;
+      }
+      const op = stream ? "streamGenerateContent?alt=sse&" : "generateContent?";
+      return `https://aiplatform.googleapis.com/v1/publishers/google/models/${model}:${op}key=${expressKey}`;
+    }
+
     const region = credentials?.providerSpecificData?.region || "us-central1";
     let project = "unknown-project";
 
@@ -146,6 +187,7 @@ export class VertexExecutor extends BaseExecutor {
     if (credentials.accessToken) {
       headers["Authorization"] = `Bearer ${credentials.accessToken}`;
     }
+    // Express-mode keys are carried in the ?key= query parameter (see buildUrl), not a header.
     if (stream) {
       headers["Accept"] = "text/event-stream";
     }

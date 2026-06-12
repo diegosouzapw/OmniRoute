@@ -109,7 +109,11 @@ function normalizeResponsesSseIds(payload: JsonRecord): boolean {
     }
   }
 
-  if (payload.response && typeof payload.response === "object" && !Array.isArray(payload.response)) {
+  if (
+    payload.response &&
+    typeof payload.response === "object" &&
+    !Array.isArray(payload.response)
+  ) {
     const response = payload.response as JsonRecord;
     let responseChanged = false;
     const normalizedResponse = { ...response };
@@ -1016,6 +1020,32 @@ export function createSSEStream(options: StreamOptions = {}) {
     }
   };
 
+  const emitClaudeEmptyStreamErrorAndAbort = (
+    controller: TransformStreamDefaultController,
+    decrementPendingRequest = true
+  ) => {
+    clearIdleTimer();
+    const msg = "Claude returned an empty response (no content block)";
+    console.warn(
+      `[STREAM] Empty Claude stream at flush - emitting error (${provider || "provider"}:${model || "unknown"})`
+    );
+    const errorBody = buildErrorBody(502, msg);
+    const errorEvent: Record<string, unknown> = { type: "error", error: errorBody.error };
+    const errOutput = formatSSE(errorEvent, FORMATS.CLAUDE);
+    reqLogger?.appendConvertedChunk?.(errOutput);
+    clientPayloadCollector.push(errorEvent);
+    controller.enqueue(encoder.encode(errOutput));
+    if (onFailure) {
+      try {
+        void onFailure({ status: 502, message: msg, code: "empty_response" });
+      } catch {}
+    }
+    if (decrementPendingRequest) {
+      trackPendingRequest(model, provider, connectionId, false);
+    }
+    controller.error(markPendingRequestCleared(new Error(msg)));
+  };
+
   const emitTranslatedClientItem = (
     controller: TransformStreamDefaultController,
     item: Record<string, unknown>
@@ -1059,13 +1089,8 @@ export function createSSEStream(options: StreamOptions = {}) {
       sourceFormat === FORMATS.CLAUDE &&
       shouldInjectClaudeEmptyResponseBeforeCurrentEvent(claudeEmptyResponseLifecycle, itemSanitized)
     ) {
-      const eventType = getClaudeEventType(itemSanitized);
-      emitSyntheticClaudeEmptyResponse(controller, {
-        includeContentBlock: true,
-        includeMessageDelta:
-          eventType === "message_stop" && !claudeEmptyResponseLifecycle.hasMessageDelta,
-        includeMessageStop: false,
-      });
+      emitClaudeEmptyStreamErrorAndAbort(controller);
+      return;
     }
 
     if (sourceFormat === FORMATS.CLAUDE && isClaudeEventPayload(itemSanitized)) {
@@ -1300,12 +1325,8 @@ export function createSSEStream(options: StreamOptions = {}) {
                   type: eventType,
                 })
               ) {
-                emitSyntheticClaudeEmptyResponse(controller, {
-                  includeContentBlock: true,
-                  includeMessageDelta:
-                    eventType === "message_stop" && !claudeEmptyResponseLifecycle.hasMessageDelta,
-                  includeMessageStop: false,
-                });
+                emitClaudeEmptyStreamErrorAndAbort(controller);
+                return;
               }
 
               pendingPassthroughEventLine = line;
@@ -1337,7 +1358,8 @@ export function createSSEStream(options: StreamOptions = {}) {
                 // clients like OpenCode, so drop it only for Responses-native consumers.
                 const hasActiveDeltaValue = (value: unknown): boolean => {
                   if (typeof value === "string") return value.length > 0;
-                  if (Array.isArray(value)) return value.some((entry) => hasActiveDeltaValue(entry));
+                  if (Array.isArray(value))
+                    return value.some((entry) => hasActiveDeltaValue(entry));
                   if (value && typeof value === "object") {
                     return Object.values(value).some((entry) => hasActiveDeltaValue(entry));
                   }
@@ -1605,7 +1627,12 @@ export function createSSEStream(options: StreamOptions = {}) {
                     parsed,
                     passthroughResponsesOutputItems
                   );
-                  if (stripped || backfilled || textualToolCallBackfilled || responsesIdsNormalized) {
+                  if (
+                    stripped ||
+                    backfilled ||
+                    textualToolCallBackfilled ||
+                    responsesIdsNormalized
+                  ) {
                     output = `data: ${JSON.stringify(parsed)}\n`;
                     injectedUsage = true;
                   }
@@ -1632,13 +1659,8 @@ export function createSSEStream(options: StreamOptions = {}) {
                       parsed
                     )
                   ) {
-                    emitSyntheticClaudeEmptyResponse(controller, {
-                      includeContentBlock: true,
-                      includeMessageDelta:
-                        parsed.type === "message_stop" &&
-                        !claudeEmptyResponseLifecycle.hasMessageDelta,
-                      includeMessageStop: false,
-                    });
+                    emitClaudeEmptyStreamErrorAndAbort(controller);
+                    return;
                   }
                   updateClaudeEmptyResponseLifecycle(claudeEmptyResponseLifecycle, parsed);
                   const restoredToolName = restoreClaudePassthroughToolUseName(parsed, toolNameMap);
@@ -1708,14 +1730,16 @@ export function createSSEStream(options: StreamOptions = {}) {
                     !parsed.choices[0].delta.reasoning_content
                   );
                   const hadNonStringToolCallId = Array.isArray(parsed.choices)
-                    ? parsed.choices.some((choice) =>
-                        Array.isArray(choice?.delta?.tool_calls) &&
-                        choice.delta.tool_calls.some(
-                          (tc) => tc?.id != null && typeof tc.id !== "string"
-                        )
+                    ? parsed.choices.some(
+                        (choice) =>
+                          Array.isArray(choice?.delta?.tool_calls) &&
+                          choice.delta.tool_calls.some(
+                            (tc) => tc?.id != null && typeof tc.id !== "string"
+                          )
                       )
                     : false;
-                  const hadNonStringTopLevelId = parsed?.id != null && typeof parsed.id !== "string";
+                  const hadNonStringTopLevelId =
+                    parsed?.id != null && typeof parsed.id !== "string";
 
                   parsed = sanitizeStreamingChunk(parsed);
                   if (
@@ -2148,13 +2172,8 @@ export function createSSEStream(options: StreamOptions = {}) {
                     bufferedPayload
                   )
                 ) {
-                  const eventType = getClaudeEventType(bufferedPayload);
-                  emitSyntheticClaudeEmptyResponse(controller, {
-                    includeContentBlock: true,
-                    includeMessageDelta:
-                      eventType === "message_stop" && !claudeEmptyResponseLifecycle.hasMessageDelta,
-                    includeMessageStop: false,
-                  });
+                  emitClaudeEmptyStreamErrorAndAbort(controller, false);
+                  return;
                 }
                 if (isClaudeEventPayload(bufferedPayload)) {
                   updateClaudeEmptyResponseLifecycle(claudeEmptyResponseLifecycle, bufferedPayload);
@@ -2164,7 +2183,8 @@ export function createSSEStream(options: StreamOptions = {}) {
                 // Normalize numeric IDs for final buffered data: chunk (same as transform path)
                 if (typeof bufferedPayload === "object" && !Array.isArray(bufferedPayload)) {
                   const flushedParsed = bufferedPayload as JsonRecord;
-                  const flushedType = typeof flushedParsed.type === "string" ? flushedParsed.type : "";
+                  const flushedType =
+                    typeof flushedParsed.type === "string" ? flushedParsed.type : "";
                   const isResponses = flushedType.startsWith("response.");
                   const isClaude = isClaudeEventPayload(flushedParsed);
                   if (isResponses) {
@@ -2181,7 +2201,9 @@ export function createSSEStream(options: StreamOptions = {}) {
                     }
                     if (Array.isArray(flushedParsed.choices)) {
                       for (const choice of flushedParsed.choices as JsonRecord[]) {
-                        const tcs = (choice as JsonRecord | undefined)?.delta as JsonRecord | undefined;
+                        const tcs = (choice as JsonRecord | undefined)?.delta as
+                          | JsonRecord
+                          | undefined;
                         if (Array.isArray(tcs?.tool_calls)) {
                           for (const tc of tcs.tool_calls as JsonRecord[]) {
                             if (tc?.id != null && typeof tc.id !== "string") {
@@ -2208,11 +2230,8 @@ export function createSSEStream(options: StreamOptions = {}) {
             }
 
             if (shouldInjectClaudeEmptyResponseOnFlush(claudeEmptyResponseLifecycle)) {
-              emitSyntheticClaudeEmptyResponse(controller, {
-                includeContentBlock: true,
-                includeMessageDelta: !claudeEmptyResponseLifecycle.hasMessageDelta,
-                includeMessageStop: !claudeEmptyResponseLifecycle.hasMessageStop,
-              });
+              emitClaudeEmptyStreamErrorAndAbort(controller, false);
+              return;
             } else if (shouldInjectClaudeMissingFinalizersOnFlush(claudeEmptyResponseLifecycle)) {
               emitSyntheticClaudeEmptyResponse(controller, {
                 includeContentBlock: false,
@@ -2489,11 +2508,8 @@ export function createSSEStream(options: StreamOptions = {}) {
 
           if (sourceFormat === FORMATS.CLAUDE) {
             if (shouldInjectClaudeEmptyResponseOnFlush(claudeEmptyResponseLifecycle)) {
-              emitSyntheticClaudeEmptyResponse(controller, {
-                includeContentBlock: true,
-                includeMessageDelta: !claudeEmptyResponseLifecycle.hasMessageDelta,
-                includeMessageStop: !claudeEmptyResponseLifecycle.hasMessageStop,
-              });
+              emitClaudeEmptyStreamErrorAndAbort(controller, false);
+              return;
             } else if (shouldInjectClaudeMissingFinalizersOnFlush(claudeEmptyResponseLifecycle)) {
               emitSyntheticClaudeEmptyResponse(controller, {
                 includeContentBlock: false,
@@ -2631,7 +2647,7 @@ export function createSSEStream(options: StreamOptions = {}) {
   );
 }
 
-export default createSSEStream
+export default createSSEStream;
 
 // Convenience functions for backward compatibility
 export function createSSETransformStreamWithLogger(
