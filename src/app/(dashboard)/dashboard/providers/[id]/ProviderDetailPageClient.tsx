@@ -10,6 +10,8 @@ import { useCommandCodeAuth } from "./hooks/useCommandCodeAuth";
 // Phase 1i: external link flow extracted to hooks/useExternalLinkFlow.ts
 import { useExternalLinkFlow } from "./hooks/useExternalLinkFlow";
 import ExternalLinkModal from "./components/ExternalLinkModal";
+// Phase 1j: auth file handlers extracted to hooks/useAuthFileHandlers.ts
+import { useAuthFileHandlers } from "./hooks/useAuthFileHandlers";
 // Phase 1g: ProviderPlaygroundPanel + helpers extracted to components/ProviderPlaygroundPanel.tsx
 import ProviderPlaygroundPanel from "./components/ProviderPlaygroundPanel";
 import { useNotificationStore } from "@/store/notificationStore";
@@ -194,11 +196,6 @@ export default function ProviderDetailPageClient() {
   const [bulkVisibilityAction, setBulkVisibilityAction] = useState<"select" | "deselect" | null>(
     null
   );
-  const [applyingCodexAuthId, setApplyingCodexAuthId] = useState<string | null>(null);
-  const [applyCodexModalConnectionId, setApplyCodexModalConnectionId] = useState<string | null>(
-    null
-  );
-  const [exportingCodexAuthId, setExportingCodexAuthId] = useState<string | null>(null);
   const [importCodexModalOpen, setImportCodexModalOpen] = useState(false);
   const [codexCliGuideOpen, setCodexCliGuideOpen] = useState(false);
   // "Adicionar Externo": public shareable device-flow link state.
@@ -214,17 +211,7 @@ export default function ProviderDetailPageClient() {
     externalLinkCopy,
     openExternalLinkFlow,
   } = useExternalLinkFlow({ providerId, notify, fetchConnections });
-  const [applyingClaudeAuthId, setApplyingClaudeAuthId] = useState<string | null>(null);
-  const [applyClaudeModalConnectionId, setApplyClaudeModalConnectionId] = useState<string | null>(
-    null
-  );
-  const [exportingClaudeAuthId, setExportingClaudeAuthId] = useState<string | null>(null);
   const [importClaudeModalOpen, setImportClaudeModalOpen] = useState(false);
-  const [applyingGeminiAuthId, setApplyingGeminiAuthId] = useState<string | null>(null);
-  const [applyGeminiModalConnectionId, setApplyGeminiModalConnectionId] = useState<string | null>(
-    null
-  );
-  const [exportingGeminiAuthId, setExportingGeminiAuthId] = useState<string | null>(null);
   const [importGeminiModalOpen, setImportGeminiModalOpen] = useState(false);
   const pendingRiskActionRef = useRef<(() => void) | null>(null);
   const { acknowledged: riskAcknowledged, acknowledge: acknowledgeRisk } =
@@ -842,236 +829,27 @@ export default function ProviderDetailPageClient() {
   // [refreshingId], parseApiErrorMessage, getAttachmentFilename, handleRefreshToken
   // → useProviderConnections (Phase 1f)
 
-  const handleApplyCodexAuthLocal = async (connectionId: string) => {
-    if (applyingCodexAuthId) return;
-    setApplyingCodexAuthId(connectionId);
-
-    const defaultSuccess =
-      typeof t.has === "function" && t.has("codexAuthAppliedLocal")
-        ? t("codexAuthAppliedLocal")
-        : "Codex auth.json applied locally";
-    const defaultError =
-      typeof t.has === "function" && t.has("codexAuthApplyFailed")
-        ? t("codexAuthApplyFailed")
-        : "Failed to apply Codex auth.json locally";
-
-    try {
-      const res = await fetch(`/api/providers/${connectionId}/codex-auth/apply-local`, {
-        method: "POST",
-      });
-
-      if (!res.ok) {
-        notify.error(await parseApiErrorMessage(res, defaultError));
-        return;
-      }
-
-      notify.success(defaultSuccess);
-      setApplyCodexModalConnectionId(null);
-    } catch (error) {
-      console.error("Error applying Codex auth locally:", error);
-      notify.error(defaultError);
-    } finally {
-      setApplyingCodexAuthId(null);
-    }
-  };
-
-  const handleExportCodexAuthFile = async (connectionId: string) => {
-    if (exportingCodexAuthId) return;
-    setExportingCodexAuthId(connectionId);
-
-    const defaultSuccess =
-      typeof t.has === "function" && t.has("codexAuthExported")
-        ? t("codexAuthExported")
-        : "Codex auth.json exported";
-    const defaultError =
-      typeof t.has === "function" && t.has("codexAuthExportFailed")
-        ? t("codexAuthExportFailed")
-        : "Failed to export Codex auth.json";
-
-    try {
-      const res = await fetch(`/api/providers/${connectionId}/codex-auth/export`, {
-        method: "POST",
-      });
-
-      if (!res.ok) {
-        notify.error(await parseApiErrorMessage(res, defaultError));
-        return;
-      }
-
-      const blob = await res.blob();
-      const filename = getAttachmentFilename(res, "codex-auth.json");
-      const objectUrl = window.URL.createObjectURL(blob);
-      const link = document.createElement("a");
-
-      link.href = objectUrl;
-      link.download = filename;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      window.setTimeout(() => window.URL.revokeObjectURL(objectUrl), 1000);
-
-      notify.success(defaultSuccess);
-    } catch (error) {
-      console.error("Error exporting Codex auth file:", error);
-      notify.error(defaultError);
-    } finally {
-      setExportingCodexAuthId(null);
-    }
-  };
-
-  const handleApplyClaudeAuthLocal = async (connectionId: string) => {
-    if (applyingClaudeAuthId) return;
-    setApplyingClaudeAuthId(connectionId);
-
-    const defaultSuccess =
-      typeof t.has === "function" && t.has("claudeAuthAppliedLocal")
-        ? t("claudeAuthAppliedLocal")
-        : "Claude auth applied locally";
-    const defaultError =
-      typeof t.has === "function" && t.has("claudeAuthApplyFailed")
-        ? t("claudeAuthApplyFailed")
-        : "Failed to apply Claude auth locally";
-
-    try {
-      const res = await fetch(`/api/providers/${connectionId}/claude-auth/apply-local`, {
-        method: "POST",
-      });
-
-      if (!res.ok) {
-        notify.error(await parseApiErrorMessage(res, defaultError));
-        return;
-      }
-
-      notify.success(defaultSuccess);
-      setApplyClaudeModalConnectionId(null);
-    } catch (error) {
-      console.error("Error applying Claude auth locally:", error);
-      notify.error(defaultError);
-    } finally {
-      setApplyingClaudeAuthId(null);
-    }
-  };
-
-  const handleExportClaudeAuthFile = async (connectionId: string) => {
-    if (exportingClaudeAuthId) return;
-    setExportingClaudeAuthId(connectionId);
-
-    const defaultSuccess =
-      typeof t.has === "function" && t.has("claudeAuthExported")
-        ? t("claudeAuthExported")
-        : "Claude auth file exported";
-    const defaultError =
-      typeof t.has === "function" && t.has("claudeAuthExportFailed")
-        ? t("claudeAuthExportFailed")
-        : "Failed to export Claude auth file";
-
-    try {
-      const res = await fetch(`/api/providers/${connectionId}/claude-auth/export`, {
-        method: "POST",
-      });
-
-      if (!res.ok) {
-        notify.error(await parseApiErrorMessage(res, defaultError));
-        return;
-      }
-
-      const blob = await res.blob();
-      const filename = getAttachmentFilename(res, "claude-auth.json");
-      const objectUrl = window.URL.createObjectURL(blob);
-      const link = document.createElement("a");
-
-      link.href = objectUrl;
-      link.download = filename;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      window.setTimeout(() => window.URL.revokeObjectURL(objectUrl), 1000);
-
-      notify.success(defaultSuccess);
-    } catch (error) {
-      console.error("Error exporting Claude auth file:", error);
-      notify.error(defaultError);
-    } finally {
-      setExportingClaudeAuthId(null);
-    }
-  };
-
-  const handleApplyGeminiAuthLocal = async (connectionId: string) => {
-    if (applyingGeminiAuthId) return;
-    setApplyingGeminiAuthId(connectionId);
-
-    const defaultSuccess =
-      typeof t.has === "function" && t.has("geminiAuthAppliedLocal")
-        ? t("geminiAuthAppliedLocal")
-        : "Gemini auth applied locally";
-    const defaultError =
-      typeof t.has === "function" && t.has("geminiAuthApplyFailed")
-        ? t("geminiAuthApplyFailed")
-        : "Failed to apply Gemini auth locally";
-
-    try {
-      const res = await fetch(`/api/providers/${connectionId}/gemini-cli-auth/apply-local`, {
-        method: "POST",
-      });
-
-      if (!res.ok) {
-        notify.error(await parseApiErrorMessage(res, defaultError));
-        return;
-      }
-
-      notify.success(defaultSuccess);
-      setApplyGeminiModalConnectionId(null);
-    } catch (error) {
-      console.error("Error applying Gemini auth locally:", error);
-      notify.error(defaultError);
-    } finally {
-      setApplyingGeminiAuthId(null);
-    }
-  };
-
-  const handleExportGeminiAuthFile = async (connectionId: string) => {
-    if (exportingGeminiAuthId) return;
-    setExportingGeminiAuthId(connectionId);
-
-    const defaultSuccess =
-      typeof t.has === "function" && t.has("geminiAuthExported")
-        ? t("geminiAuthExported")
-        : "Gemini auth file exported";
-    const defaultError =
-      typeof t.has === "function" && t.has("geminiAuthExportFailed")
-        ? t("geminiAuthExportFailed")
-        : "Failed to export Gemini auth file";
-
-    try {
-      const res = await fetch(`/api/providers/${connectionId}/gemini-cli-auth/export`, {
-        method: "POST",
-      });
-
-      if (!res.ok) {
-        notify.error(await parseApiErrorMessage(res, defaultError));
-        return;
-      }
-
-      const blob = await res.blob();
-      const filename = getAttachmentFilename(res, "gemini-auth.json");
-      const objectUrl = window.URL.createObjectURL(blob);
-      const link = document.createElement("a");
-
-      link.href = objectUrl;
-      link.download = filename;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      window.setTimeout(() => window.URL.revokeObjectURL(objectUrl), 1000);
-
-      notify.success(defaultSuccess);
-    } catch (error) {
-      console.error("Error exporting Gemini auth file:", error);
-      notify.error(defaultError);
-    } finally {
-      setExportingGeminiAuthId(null);
-    }
-  };
+  // Phase 1j: auth file handlers extracted to hooks/useAuthFileHandlers.ts
+  const {
+    applyingCodexAuthId,
+    applyCodexModalConnectionId,
+    setApplyCodexModalConnectionId,
+    exportingCodexAuthId,
+    handleApplyCodexAuthLocal,
+    handleExportCodexAuthFile,
+    applyingClaudeAuthId,
+    applyClaudeModalConnectionId,
+    setApplyClaudeModalConnectionId,
+    exportingClaudeAuthId,
+    handleApplyClaudeAuthLocal,
+    handleExportClaudeAuthFile,
+    applyingGeminiAuthId,
+    applyGeminiModalConnectionId,
+    setApplyGeminiModalConnectionId,
+    exportingGeminiAuthId,
+    handleApplyGeminiAuthLocal,
+    handleExportGeminiAuthFile,
+  } = useAuthFileHandlers({ parseApiErrorMessage, getAttachmentFilename, notify, t });
 
   // handleSwapPriority → useProviderConnections (Phase 1f)
 
