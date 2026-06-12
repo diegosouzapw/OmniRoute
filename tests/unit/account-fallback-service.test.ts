@@ -30,6 +30,8 @@ const {
   isProviderFailureCode,
   getProvidersInCooldown,
   getProviderBreakerState,
+  isCreditsExhausted,
+  CREDITS_EXHAUSTED_SIGNALS,
 } = accountFallback;
 
 const { selectAccount } = accountSelector;
@@ -1113,6 +1115,182 @@ test("checkFallbackError ignores structured error with unrelated code on 400", (
   // "invalid_api_key" is not in MODEL_ACCESS_DENIED_CODES,
   // no MODEL_ACCESS_DENIED_PATTERNS match either → shouldFallback: false
   assert.equal(result.shouldFallback, false);
+});
+
+// ─── Gemini RPM 429 Classification (CREDITS_EXHAUSTED_SIGNALS fix) ─────
+
+test("isCreditsExhausted returns false for Gemini RPM 429 body text", () => {
+  const geminiRpmText = "Resource has been exhausted (e.g. check quota).";
+  assert.equal(isCreditsExhausted(geminiRpmText), false);
+});
+
+test("isCreditsExhausted returns true for actual credits-exhausted signals", () => {
+  assert.equal(isCreditsExhausted("insufficient_quota"), true);
+  assert.equal(isCreditsExhausted("credits exhausted"), true);
+  assert.equal(isCreditsExhausted("payment required"), true);
+  assert.equal(isCreditsExhausted("free tier of the model has been exhausted"), true);
+  assert.equal(isCreditsExhausted("exceeded your current usage quota"), true);
+});
+
+test("CREDITS_EXHAUSTED_SIGNALS no longer contains generic gRPC resource-exhausted patterns", () => {
+  // These patterns were removed because they falsely matched Gemini RPM 429 errors
+  assert.equal(CREDITS_EXHAUSTED_SIGNALS.includes("resource has been exhausted"), false);
+  assert.equal(CREDITS_EXHAUSTED_SIGNALS.includes("resource_exhausted"), false);
+  assert.equal(CREDITS_EXHAUSTED_SIGNALS.includes("check quota"), false);
+});
+
+test("checkFallbackError classifies Gemini RPM 429 as RATE_LIMIT_EXCEEDED (not QUOTA_EXHAUSTED)", () => {
+  // provider=null → preserveQuota429=true → text quota checks run
+  // isCreditsExhausted must NOT match Gemini's "Resource has been exhausted"
+  const result = checkFallbackError(
+    429,
+    "Resource has been exhausted (e.g. check quota).",
+    0,
+    null,
+    null,
+    null,
+    makeProfile()
+  );
+  assert.equal(result.shouldFallback, true);
+  assert.equal(result.reason, RateLimitReason.RATE_LIMIT_EXCEEDED);
+  assert.equal(result.creditsExhausted, undefined);
+  assert.equal(result.dailyQuotaExhausted, undefined);
+  assert.ok(result.cooldownMs > 0, "cooldownMs should be positive");
+});
+
+test("checkFallbackError classifies Gemini RPM 429 as RATE_LIMIT_EXCEEDED for API-key provider", () => {
+  // provider="gemini" → preserveQuota429=false → status-based rule applies
+  const result = checkFallbackError(
+    429,
+    "Resource has been exhausted (e.g. check quota).",
+    0,
+    null,
+    "gemini",
+    null,
+    makeProfile()
+  );
+  assert.equal(result.shouldFallback, true);
+  assert.equal(result.reason, RateLimitReason.RATE_LIMIT_EXCEEDED);
+  assert.equal(result.cooldownMs, 125); // makeProfile().baseCooldownMs
+});
+
+test("checkFallbackError still classifies genuine OAuth quota-exhausted text as QUOTA_EXHAUSTED", () => {
+  // Regression: OAuth providers must still get QUOTA_EXHAUSTED for actual quota messages
+  const result = checkFallbackError(
+    429,
+    "Coding Plan hour quota has been exceeded",
+    0,
+    null,
+    "codex",
+    null,
+    makeProfile()
+  );
+  assert.equal(result.shouldFallback, true);
+  assert.equal(result.reason, RateLimitReason.QUOTA_EXHAUSTED);
+});
+
+test("checkFallbackError preserves daily-quota exhaustion for non-429 status codes", () => {
+  // Non-429 status codes with daily quota text must still be QUOTA_EXHAUSTED
+  const result = checkFallbackError(
+    402,
+    "You have exceeded today's quota, please try again tomorrow"
+  );
+  assert.equal(result.shouldFallback, true);
+  assert.equal(result.reason, RateLimitReason.QUOTA_EXHAUSTED);
+  assert.equal(result.dailyQuotaExhausted, true);
+});
+
+// ─── Gemini 429 → Model Lockout: rate_limited (not quota_exhausted) ────
+
+test("Gemini RPM 429: recordModelLockoutFailure uses exponential backoff for rate_limited reason", () => {
+  const originalNow = Date.now;
+  const now = 1_700_000_000_000;
+  Date.now = () => now;
+  const provider = "gemini";
+  const connectionId = "test-conn-gemini-rpm";
+  const model = "gemini/gemma-4-31b-it";
+
+  try {
+    clearModelLock(provider, connectionId, model);
+
+    const profile = makeProfile({
+      baseCooldownMs: 5000,
+      transientCooldown: 5000,
+      rateLimitCooldown: 5000,
+    });
+
+    // auth.ts flow: 429 + fallbackResult.reason=RATE_LIMIT_EXCEEDED
+    // → reason="rate_limited" → recordModelLockoutFailure
+    const first = recordModelLockoutFailure(
+      provider,
+      connectionId,
+      model,
+      "rate_limited",
+      429,
+      0,
+      profile
+    );
+    assert.equal(first.failureCount, 1);
+    assert.equal(first.cooldownMs, 5000, "first failure: 5s base cooldown");
+
+    const second = recordModelLockoutFailure(
+      provider,
+      connectionId,
+      model,
+      "rate_limited",
+      429,
+      0,
+      profile
+    );
+    assert.equal(second.failureCount, 2);
+    assert.equal(second.cooldownMs, 10000, "second failure: 10s exponential backoff");
+
+    assert.equal(isModelLocked(provider, connectionId, model), true);
+    clearModelLock(provider, connectionId, model);
+  } finally {
+    Date.now = originalNow;
+    clearModelLock("gemini", "test-conn-gemini-rpm", "gemini/gemma-4-31b-it");
+  }
+});
+
+test("Gemini RPD (quota_exhausted) still triggers midnight lockout in recordModelLockoutFailure", () => {
+  // Regression: real daily quota exhaustion must still produce midnight reset
+  const originalNow = Date.now;
+  const testDate = new Date();
+  testDate.setHours(12, 0, 0, 0);
+  const now = testDate.getTime();
+  Date.now = () => now;
+  const provider = "gemini";
+  const connectionId = "test-conn-gemini-rpd";
+  const model = "gemini/gemma-4-31b-it";
+
+  try {
+    clearModelLock(provider, connectionId, model);
+    const profile = makeProfile();
+    const result = recordModelLockoutFailure(
+      provider,
+      connectionId,
+      model,
+      "quota_exhausted",
+      429,
+      0,
+      profile
+    );
+
+    // Must lock until midnight, NOT exponential backoff
+    const tomorrow = new Date(now);
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    tomorrow.setHours(0, 0, 0, 0);
+    const expected = tomorrow.getTime() - now;
+    assert.ok(
+      Math.abs(result.cooldownMs - expected) <= 300_000,
+      `cooldown should be until tomorrow (expected ~${expected}, got ${result.cooldownMs})`
+    );
+    clearModelLock(provider, connectionId, model);
+  } finally {
+    Date.now = originalNow;
+    clearModelLock("gemini", "test-conn-gemini-rpd", "gemini/gemma-4-31b-it");
+  }
 });
 
 // ─── G-02: X-Omni-Fallback-Hint: connection_cooldown ─────────────────────────

@@ -1,8 +1,26 @@
 import { NextResponse } from "next/server";
 import { requireManagementAuth } from "@/lib/api/requireManagementAuth";
 import { getApiKeys } from "@/lib/db/apiKeys";
-import { getDbInstance } from "@/lib/db/core";
 import { getUserDatabaseSettings } from "@/lib/db/databaseSettings";
+import {
+  buildUnifiedSource,
+  buildPresetUnifiedSource,
+  getUsageSummary,
+  getDailyUsage,
+  getDailyCostRows,
+  getHeatmapRows,
+  getModelUsageRows,
+  getProviderCostRows,
+  getProviderUsageRows,
+  getAccountCostRows,
+  getAccountUsageRows,
+  getApiKeyUsageRows,
+  getServiceTierUsageRows,
+  getApiKeyMetadataRows,
+  getWeeklyPatternRows,
+  getPresetCostModelRows,
+} from "@/lib/db/usageAnalytics";
+import { getFallbackStats } from "@/lib/db/callLogStats";
 
 function getRangeStartIso(range: string): string | null {
   const end = new Date();
@@ -319,7 +337,6 @@ export async function GET(request: Request) {
     const untilIso = endDate || null;
     const presetsParam = searchParams.get("presets");
 
-    const db = getDbInstance();
     const apiKeys = await getApiKeys();
     const currentApiKeyNames = new Map<string, string>();
     for (const apiKey of apiKeys) {
@@ -360,118 +377,21 @@ export async function GET(request: Request) {
 
     const whereClause = conditions.length > 0 ? `WHERE ${conditions.join(" AND ")}` : "";
 
-    // Build a UNION data source that merges recent raw rows with aggregated history.
-    // daily_usage_summary rows are included only when the query window extends before
-    // rawCutoffIso. They are gated off entirely when an api_key filter is active:
-    // daily_usage_summary does not store api_key/connection, so including it under a
-    // key filter would leak other keys' aggregated usage. With a key filter we serve
-    // only raw rows (older key-scoped data beyond retention is intentionally unavailable).
+    // Build the UNION data source that merges recent raw rows with older aggregated history.
+    // SQL is encapsulated in usageAnalytics.ts — the route only supplies filter parameters.
     const rawCutoffDate = rawCutoffIso.split("T")[0];
-    const needsAggregated = (!sinceIso || sinceIso < rawCutoffDate) && apiKeyIds.length === 0;
+    const apiKeyParamEntries: Record<string, string> = {};
+    apiKeyIds.forEach((key, i) => {
+      apiKeyParamEntries[`apiKey${i}`] = key;
+    });
 
-    // Build a separate params object for the unified CTE source.
-    // better-sqlite3 rejects named params that don't appear in the SQL,
-    // so each query context must only receive the placeholders it references.
-    const unifiedParams: Record<string, string> = {};
-
-    // Raw leg: when aggregated rows are also included, lower-bound the raw leg at the
-    // raw cutoff so the two legs never overlap (prevents double-counting).
-    const rawConditions: string[] = [];
-    if (needsAggregated) {
-      rawConditions.push("timestamp >= @rawCutoff");
-      unifiedParams.rawCutoff = rawCutoffDate;
-    } else if (sinceIso) {
-      rawConditions.push("timestamp >= @since");
-      unifiedParams.since = sinceIso;
-    }
-    if (untilIso) {
-      rawConditions.push("timestamp <= @until");
-      unifiedParams.until = untilIso;
-    }
-    if (apiKeyWhere) {
-      rawConditions.push(apiKeyWhere);
-      apiKeyIds.forEach((key, i) => {
-        unifiedParams[`apiKey${i}`] = key;
-      });
-    }
-    const rawWhere = rawConditions.length > 0 ? `WHERE ${rawConditions.join(" AND ")}` : "";
-
-    // Aggregated rows span the requested window but strictly before the raw cutoff,
-    // so they never overlap the raw leg above (no api_key filter — see note above).
-    // Only build agg params when the agg branch is actually used in the CTE.
-    const aggConditions: string[] = [];
-    if (needsAggregated) {
-      if (sinceIso) {
-        // Use date comparison on the summary's date column (YYYY-MM-DD).
-        const sinceDate = sinceIso.split("T")[0];
-        aggConditions.push("date >= @sinceDate");
-        unifiedParams.sinceDate = sinceDate;
-      }
-      if (untilIso) {
-        const untilDate = untilIso.split("T")[0];
-        aggConditions.push("date <= @untilDate");
-        unifiedParams.untilDate = untilDate;
-      }
-      aggConditions.push("date < @rawCutoffDate");
-      unifiedParams.rawCutoffDate = rawCutoffDate;
-    }
-    const aggWhere = aggConditions.length > 0 ? `WHERE ${aggConditions.join(" AND ")}` : "";
-
-    // Unified source CTE: columns aligned to usage_history shape needed by analytics queries.
-    // Fields not available in daily_usage_summary default to 0/NULL.
-    const unifiedSource = needsAggregated
-      ? `(
-          SELECT
-            timestamp,
-            provider,
-            model,
-            tokens_input,
-            tokens_output,
-            tokens_cache_read,
-            tokens_cache_creation,
-            tokens_reasoning,
-            service_tier,
-            success,
-            latency_ms,
-            connection_id,
-            api_key_id,
-            api_key_name
-          FROM usage_history
-          ${rawWhere}
-          UNION ALL
-          SELECT
-            date || 'T12:00:00.000Z' as timestamp,
-            provider,
-            model,
-            total_input_tokens as tokens_input,
-            total_output_tokens as tokens_output,
-            0 as tokens_cache_read,
-            0 as tokens_cache_creation,
-            0 as tokens_reasoning,
-            'standard' as service_tier,
-            1 as success,
-            0 as latency_ms,
-            NULL as connection_id,
-            NULL as api_key_id,
-            NULL as api_key_name
-          FROM daily_usage_summary
-          ${aggWhere}
-         )`
-      : `(SELECT
-            timestamp, provider, model,
-            tokens_input, tokens_output,
-            tokens_cache_read, tokens_cache_creation, tokens_reasoning,
-            service_tier, success, latency_ms,
-            connection_id, api_key_id, api_key_name
-          FROM usage_history
-          ${whereClause}
-         )`;
-
-    // When using the unified source the WHERE filters are already embedded inside.
-    // For the original whereClause-based queries that still reference usage_history directly
-    // (e.g. fallbackRow, accountRows) we keep them as-is since they need joins or
-    // columns only present in usage_history.
-    const unifiedWhere = ""; // no additional WHERE needed — filters embedded in unifiedSource
+    const { unifiedSource, unifiedParams } = buildUnifiedSource({
+      sinceIso: sinceIso ?? null,
+      untilIso: untilIso ?? null,
+      rawCutoffDate,
+      apiKeyWhere,
+      apiKeyParams: apiKeyParamEntries,
+    });
 
     // Fetch pricing data for cost calculation (no rows loaded)
     const { getPricing } = await import("@/lib/db/settings");
@@ -490,64 +410,11 @@ export async function GET(request: Request) {
       await import("@/lib/usage/costCalculator");
     const { PROVIDER_ID_TO_ALIAS } = await import("@omniroute/open-sse/config/providerModels");
 
-    const summaryRow = db
-      .prepare(
-        `
-        SELECT
-          COUNT(*) as totalRequests,
-          COALESCE(SUM(tokens_input), 0) as promptTokens,
-          COALESCE(SUM(tokens_output), 0) as completionTokens,
-          COALESCE(SUM(tokens_input + tokens_output), 0) as totalTokens,
-          COUNT(DISTINCT model) as uniqueModels,
-          COUNT(DISTINCT connection_id) as uniqueAccounts,
-          COUNT(DISTINCT COALESCE(NULLIF(api_key_id, ''), NULLIF(api_key_name, ''))) as uniqueApiKeys,
-          COALESCE(SUM(CASE WHEN success = 1 THEN 1 ELSE 0 END), 0) as successfulRequests,
-          COALESCE(AVG(latency_ms), 0) as avgLatencyMs,
-          COALESCE(MIN(timestamp), '') as firstRequest,
-          COALESCE(MAX(timestamp), '') as lastRequest
-        FROM ${unifiedSource} AS _u
-        ${unifiedWhere}
-      `
-      )
-      .get(unifiedParams) as Record<string, unknown>;
+    const summaryRow = getUsageSummary(unifiedSource, unifiedParams) as Record<string, unknown>;
 
-    const dailyRows = db
-      .prepare(
-        `
-        SELECT
-          DATE(timestamp) as date,
-          COUNT(*) as requests,
-          COALESCE(SUM(tokens_input), 0) as promptTokens,
-          COALESCE(SUM(tokens_output), 0) as completionTokens,
-          COALESCE(SUM(tokens_input + tokens_output), 0) as totalTokens
-        FROM ${unifiedSource} AS _u
-        ${unifiedWhere}
-        GROUP BY DATE(timestamp)
-        ORDER BY date ASC
-      `
-      )
-      .all(unifiedParams) as Array<Record<string, unknown>>;
+    const dailyRows = getDailyUsage(unifiedSource, unifiedParams) as Array<Record<string, unknown>>;
 
-    const dailyCostRows = db
-      .prepare(
-        `
-        SELECT
-          DATE(timestamp) as date,
-          LOWER(provider) as provider,
-          LOWER(model) as model,
-          COALESCE(NULLIF(service_tier, ''), 'standard') as serviceTier,
-          COALESCE(SUM(tokens_input), 0) as promptTokens,
-          COALESCE(SUM(tokens_output), 0) as completionTokens,
-          COALESCE(SUM(tokens_cache_read), 0) as cacheReadTokens,
-          COALESCE(SUM(tokens_cache_creation), 0) as cacheCreationTokens,
-          COALESCE(SUM(tokens_reasoning), 0) as reasoningTokens
-        FROM ${unifiedSource} AS _u
-        ${unifiedWhere}
-        GROUP BY DATE(timestamp), LOWER(provider), LOWER(model), serviceTier
-        ORDER BY date ASC
-      `
-      )
-      .all(unifiedParams) as Array<Record<string, unknown>>;
+    const dailyCostRows = getDailyCostRows(unifiedSource, unifiedParams) as Array<Record<string, unknown>>;
 
     const heatmapStart = new Date();
     heatmapStart.setUTCDate(heatmapStart.getUTCDate() - 364);
@@ -569,189 +436,30 @@ export async function GET(request: Request) {
       });
     }
 
-    const heatmapRows = db
-      .prepare(
-        `
-        SELECT
-          DATE(timestamp) as date,
-          COALESCE(SUM(tokens_input + tokens_output), 0) as totalTokens
-        FROM usage_history
-        WHERE ${heatmapConditions.join(" AND ")}
-        GROUP BY DATE(timestamp)
-        ORDER BY date ASC
-      `
-      )
-      .all(heatmapParams) as Array<Record<string, unknown>>;
+    const heatmapRows = getHeatmapRows(heatmapConditions, heatmapParams) as Array<Record<string, unknown>>;
 
-    const modelRows = db
-      .prepare(
-        `
-        SELECT
-          LOWER(model) as model,
-          LOWER(provider) as provider,
-          COALESCE(NULLIF(service_tier, ''), 'standard') as serviceTier,
-          COUNT(*) as requests,
-          COALESCE(SUM(tokens_input), 0) as promptTokens,
-          COALESCE(SUM(tokens_output), 0) as completionTokens,
-          COALESCE(SUM(tokens_cache_read), 0) as cacheReadTokens,
-          COALESCE(SUM(tokens_cache_creation), 0) as cacheCreationTokens,
-          COALESCE(SUM(tokens_reasoning), 0) as reasoningTokens,
-          COALESCE(SUM(tokens_input + tokens_output), 0) as totalTokens,
-          COALESCE(AVG(latency_ms), 0) as avgLatencyMs,
-          COALESCE(SUM(CASE WHEN success = 1 THEN 1 ELSE 0 END), 0) as successfulRequests,
-          COALESCE(MAX(timestamp), '') as lastUsed
-        FROM ${unifiedSource} AS _u
-        ${unifiedWhere}
-        GROUP BY LOWER(model), LOWER(provider), serviceTier
-        ORDER BY requests DESC
-      `
-      )
-      .all(unifiedParams) as Array<Record<string, unknown>>;
+    const modelRows = getModelUsageRows(unifiedSource, unifiedParams) as Array<Record<string, unknown>>;
 
-    const providerCostRows = db
-      .prepare(
-        `
-        SELECT
-          LOWER(provider) as provider,
-          LOWER(model) as model,
-          COALESCE(NULLIF(service_tier, ''), 'standard') as serviceTier,
-          COALESCE(SUM(tokens_input), 0) as promptTokens,
-          COALESCE(SUM(tokens_output), 0) as completionTokens,
-          COALESCE(SUM(tokens_cache_read), 0) as cacheReadTokens,
-          COALESCE(SUM(tokens_cache_creation), 0) as cacheCreationTokens,
-          COALESCE(SUM(tokens_reasoning), 0) as reasoningTokens
-        FROM ${unifiedSource} AS _u
-        ${unifiedWhere}
-        GROUP BY LOWER(provider), LOWER(model), serviceTier
-      `
-      )
-      .all(unifiedParams) as Array<Record<string, unknown>>;
+    const providerCostRows = getProviderCostRows(unifiedSource, unifiedParams) as Array<Record<string, unknown>>;
 
-    const providerRows = db
-      .prepare(
-        `
-        SELECT
-          LOWER(provider) as provider,
-          COUNT(*) as requests,
-          COALESCE(SUM(tokens_input), 0) as promptTokens,
-          COALESCE(SUM(tokens_output), 0) as completionTokens,
-          COALESCE(SUM(tokens_input + tokens_output), 0) as totalTokens,
-          COALESCE(AVG(latency_ms), 0) as avgLatencyMs,
-          COALESCE(SUM(CASE WHEN success = 1 THEN 1 ELSE 0 END), 0) as successfulRequests
-        FROM ${unifiedSource} AS _u
-        ${unifiedWhere}
-        GROUP BY LOWER(provider)
-        ORDER BY requests DESC
-      `
-      )
-      .all(unifiedParams) as Array<Record<string, unknown>>;
+    const providerRows = getProviderUsageRows(unifiedSource, unifiedParams) as Array<Record<string, unknown>>;
 
-    const accountCostRows = db
-      .prepare(
-        `
-        SELECT
-          COALESCE(NULLIF(c.display_name, ''), NULLIF(c.email, ''), NULLIF(c.name, ''), usage_history.connection_id, 'unknown') as account,
-          LOWER(usage_history.provider) as provider,
-          LOWER(usage_history.model) as model,
-          COALESCE(NULLIF(usage_history.service_tier, ''), 'standard') as serviceTier,
-          COALESCE(SUM(usage_history.tokens_input), 0) as promptTokens,
-          COALESCE(SUM(usage_history.tokens_output), 0) as completionTokens,
-          COALESCE(SUM(usage_history.tokens_cache_read), 0) as cacheReadTokens,
-          COALESCE(SUM(usage_history.tokens_cache_creation), 0) as cacheCreationTokens,
-          COALESCE(SUM(usage_history.tokens_reasoning), 0) as reasoningTokens
-        FROM usage_history
-        LEFT JOIN provider_connections c ON c.id = usage_history.connection_id
-        ${whereClause.replace(/timestamp/g, "usage_history.timestamp").replace(/api_key_/g, "usage_history.api_key_")}
-        GROUP BY account, LOWER(usage_history.provider), LOWER(usage_history.model), serviceTier
-      `
-      )
-      .all(params) as Array<Record<string, unknown>>;
+    const accountCostWhereClause = whereClause
+      .replace(/timestamp/g, "usage_history.timestamp")
+      .replace(/api_key_/g, "usage_history.api_key_");
+    const accountCostRows = getAccountCostRows(accountCostWhereClause, params) as Array<Record<string, unknown>>;
 
-    const accountRows = db
-      .prepare(
-        `
-        SELECT
-          COALESCE(NULLIF(c.display_name, ''), NULLIF(c.email, ''), NULLIF(c.name, ''), usage_history.connection_id, 'unknown') as account,
-          COUNT(usage_history.id) as requests,
-          COALESCE(SUM(usage_history.tokens_input), 0) as promptTokens,
-          COALESCE(SUM(usage_history.tokens_output), 0) as completionTokens,
-          COALESCE(SUM(usage_history.tokens_input + usage_history.tokens_output), 0) as totalTokens,
-          COALESCE(AVG(usage_history.latency_ms), 0) as avgLatencyMs,
-          COALESCE(MAX(usage_history.timestamp), '') as lastUsed
-        FROM usage_history
-        LEFT JOIN provider_connections c ON c.id = usage_history.connection_id
-        ${whereClause.replace(/timestamp/g, "usage_history.timestamp").replace(/api_key_/g, "usage_history.api_key_")}
-        GROUP BY account
-        ORDER BY requests DESC
-        LIMIT 50
-      `
-      )
-      .all(params) as Array<Record<string, unknown>>;
+    const accountRows = getAccountUsageRows(accountCostWhereClause, params) as Array<Record<string, unknown>>;
 
     const apiKeyWhereClause = appendWhereCondition(
       whereClause,
       "(api_key_id IS NOT NULL AND api_key_id != '') OR (api_key_name IS NOT NULL AND api_key_name != '')"
     );
-    const apiKeyRows = db
-      .prepare(
-        `
-        SELECT
-          NULLIF(api_key_id, '') as apiKeyId,
-          COALESCE(NULLIF(api_key_id, ''), NULLIF(api_key_name, ''), 'unknown') as apiKeyGroupKey,
-          LOWER(provider) as provider,
-          LOWER(model) as model,
-          COALESCE(NULLIF(service_tier, ''), 'standard') as serviceTier,
-          COUNT(*) as requests,
-          COALESCE(SUM(tokens_input), 0) as promptTokens,
-          COALESCE(SUM(tokens_output), 0) as completionTokens,
-          COALESCE(SUM(tokens_cache_read), 0) as cacheReadTokens,
-          COALESCE(SUM(tokens_cache_creation), 0) as cacheCreationTokens,
-          COALESCE(SUM(tokens_reasoning), 0) as reasoningTokens,
-          COALESCE(SUM(tokens_input + tokens_output), 0) as totalTokens
-        FROM usage_history
-        ${apiKeyWhereClause}
-        GROUP BY COALESCE(NULLIF(api_key_id, ''), NULLIF(api_key_name, ''), 'unknown'), NULLIF(api_key_id, ''), LOWER(provider), LOWER(model), serviceTier
-      `
-      )
-      .all(params) as Array<Record<string, unknown>>;
+    const apiKeyRows = getApiKeyUsageRows(apiKeyWhereClause, params) as Array<Record<string, unknown>>;
 
-    const serviceTierRows = db
-      .prepare(
-        `
-        SELECT
-          COALESCE(NULLIF(service_tier, ''), 'standard') as serviceTier,
-          LOWER(provider) as provider,
-          LOWER(model) as model,
-          COALESCE(NULLIF(service_tier, ''), 'standard') as serviceTier,
-          COUNT(*) as requests,
-          COALESCE(SUM(tokens_input), 0) as promptTokens,
-          COALESCE(SUM(tokens_output), 0) as completionTokens,
-          COALESCE(SUM(tokens_cache_read), 0) as cacheReadTokens,
-          COALESCE(SUM(tokens_cache_creation), 0) as cacheCreationTokens,
-          COALESCE(SUM(tokens_reasoning), 0) as reasoningTokens,
-          COALESCE(SUM(tokens_input + tokens_output), 0) as totalTokens
-        FROM ${unifiedSource} AS _u
-        ${unifiedWhere}
-        GROUP BY serviceTier, LOWER(provider), LOWER(model)
-      `
-      )
-      .all(unifiedParams) as Array<Record<string, unknown>>;
+    const serviceTierRows = getServiceTierUsageRows(unifiedSource, unifiedParams) as Array<Record<string, unknown>>;
 
-    const apiKeyMetadataRows = db
-      .prepare(
-        `
-        SELECT
-          NULLIF(api_key_id, '') as apiKeyId,
-          NULLIF(api_key_name, '') as apiKeyName,
-          COALESCE(NULLIF(api_key_id, ''), NULLIF(api_key_name, ''), 'unknown') as apiKeyGroupKey,
-          MAX(timestamp) as lastUsed
-        FROM usage_history
-        ${apiKeyWhereClause}
-        GROUP BY NULLIF(api_key_id, ''), NULLIF(api_key_name, '')
-        ORDER BY lastUsed DESC
-      `
-      )
-      .all(params) as Array<Record<string, unknown>>;
+    const apiKeyMetadataRows = getApiKeyMetadataRows(apiKeyWhereClause, params) as Array<Record<string, unknown>>;
 
     const apiKeyMetadata = new Map<string, { latestName: string; aliases: Set<string> }>();
     for (const row of apiKeyMetadataRows) {
@@ -768,58 +476,9 @@ export async function GET(request: Request) {
       apiKeyMetadata.set(groupKey, existing);
     }
 
-    const weeklyRows = db
-      .prepare(
-        `
-        SELECT
-          dayOfWeek,
-          COUNT(*) as days,
-          COALESCE(SUM(requests), 0) as requests,
-          COALESCE(SUM(totalTokens), 0) as totalTokens
-        FROM (
-          SELECT
-            DATE(timestamp) as date,
-            strftime('%w', timestamp) as dayOfWeek,
-            COUNT(*) as requests,
-            COALESCE(SUM(tokens_input + tokens_output), 0) as totalTokens
-          FROM ${unifiedSource} AS _u
-          ${unifiedWhere}
-          GROUP BY DATE(timestamp), strftime('%w', timestamp)
-        )
-        GROUP BY dayOfWeek
-        ORDER BY dayOfWeek ASC
-      `
-      )
-      .all(unifiedParams) as Array<Record<string, unknown>>;
+    const weeklyRows = getWeeklyPatternRows(unifiedSource, unifiedParams) as Array<Record<string, unknown>>;
 
-    const fallbackRow = db
-      .prepare(
-        `
-        SELECT
-          SUM(CASE WHEN (combo_name IS NULL OR combo_name = '') THEN 1 ELSE 0 END) as total,
-          SUM(CASE WHEN requested_model IS NOT NULL AND requested_model != '' AND (combo_name IS NULL OR combo_name = '') THEN 1 ELSE 0 END) as with_requested,
-          SUM(CASE
-            WHEN (combo_name IS NULL OR combo_name = '')
-             AND requested_model IS NOT NULL
-             AND requested_model != ''
-             AND model IS NOT NULL
-             AND model != ''
-            THEN 1 ELSE 0 END
-          ) as fallback_eligible,
-          SUM(CASE
-            WHEN (combo_name IS NULL OR combo_name = '')
-             AND requested_model IS NOT NULL
-             AND requested_model != ''
-             AND model IS NOT NULL
-             AND model != ''
-             AND LOWER(CASE WHEN instr(requested_model, '/') > 0 THEN substr(requested_model, instr(requested_model, '/') + 1) ELSE requested_model END) != LOWER(model)
-            THEN 1 ELSE 0 END
-          ) as fallbacks
-        FROM call_logs
-        ${whereClause}
-      `
-      )
-      .get(params) as Record<string, unknown>;
+    const fallbackRow = getFallbackStats(whereClause, params) as Record<string, unknown>;
 
     const summary = {
       totalRequests: Number(summaryRow?.totalRequests || 0),
@@ -1237,89 +896,16 @@ export async function GET(request: Request) {
         }
 
         const presetSinceIso = getRangeStartIso(presetRange);
-        const presetParams: Record<string, string> = {};
-
-        // Build unified source for preset cost queries (same UNION logic as main query).
-        // Aggregated rows are gated off when an api_key filter is active (leakage) and
-        // bounded strictly before the raw cutoff (overlap / double-count) — see main query.
-        const presetNeedsAggregated =
-          (!presetSinceIso || presetSinceIso < rawCutoffDate) && apiKeyIds.length === 0;
-
-        const presetRawConds: string[] = [];
-        if (presetNeedsAggregated) {
-          presetRawConds.push("timestamp >= @presetRawCutoff");
-          presetParams.presetRawCutoff = rawCutoffDate;
-        } else if (presetSinceIso) {
-          presetRawConds.push("timestamp >= @presetSince");
-          presetParams.presetSince = presetSinceIso;
-        }
-        if (apiKeyWhere) {
-          presetRawConds.push(apiKeyWhere);
-          // Only copy apiKey params — better-sqlite3 rejects unknown named params.
-          apiKeyIds.forEach((key, i) => {
-            presetParams[`apiKey${i}`] = key;
+        const { unifiedSource: presetUnifiedSource, unifiedParams: presetParams } =
+          buildPresetUnifiedSource({
+            sinceIso: presetSinceIso ?? null,
+            untilIso: null,
+            rawCutoffDate,
+            apiKeyWhere,
+            apiKeyParams: apiKeyParamEntries,
           });
-        }
-        const presetRawWhere =
-          presetRawConds.length > 0 ? `WHERE ${presetRawConds.join(" AND ")}` : "";
 
-        const presetAggConds: string[] = [];
-        if (presetNeedsAggregated) {
-          if (presetSinceIso) {
-            const presetSinceDate = presetSinceIso.split("T")[0];
-            presetAggConds.push("date >= @presetSinceDate");
-            presetParams.presetSinceDate = presetSinceDate;
-          }
-          presetAggConds.push("date < @presetRawCutoffDate");
-          presetParams.presetRawCutoffDate = rawCutoffDate;
-        }
-        const presetAggWhere =
-          presetAggConds.length > 0 ? `WHERE ${presetAggConds.join(" AND ")}` : "";
-
-        const presetUnifiedSource = presetNeedsAggregated
-          ? `(
-              SELECT timestamp, provider, model, service_tier,
-                tokens_input, tokens_output,
-                tokens_cache_read, tokens_cache_creation, tokens_reasoning
-              FROM usage_history
-              ${presetRawWhere}
-              UNION ALL
-              SELECT
-                date || 'T12:00:00.000Z' as timestamp,
-                provider, model,
-                'standard' as service_tier,
-                total_input_tokens as tokens_input,
-                total_output_tokens as tokens_output,
-                0 as tokens_cache_read,
-                0 as tokens_cache_creation,
-                0 as tokens_reasoning
-              FROM daily_usage_summary
-              ${presetAggWhere}
-            )`
-          : `(SELECT timestamp, provider, model, service_tier,
-                tokens_input, tokens_output,
-                tokens_cache_read, tokens_cache_creation, tokens_reasoning
-              FROM usage_history
-              ${presetRawWhere}
-            )`;
-
-        const presetModelRows = db
-          .prepare(
-            `
-            SELECT
-              LOWER(model) as model,
-              LOWER(provider) as provider,
-              COALESCE(NULLIF(service_tier, ''), 'standard') as serviceTier,
-              COALESCE(SUM(tokens_input), 0) as promptTokens,
-              COALESCE(SUM(tokens_output), 0) as completionTokens,
-              COALESCE(SUM(tokens_cache_read), 0) as cacheReadTokens,
-              COALESCE(SUM(tokens_cache_creation), 0) as cacheCreationTokens,
-              COALESCE(SUM(tokens_reasoning), 0) as reasoningTokens
-            FROM ${presetUnifiedSource} AS _pu
-            GROUP BY LOWER(model), LOWER(provider), serviceTier
-          `
-          )
-          .all(presetParams) as Array<Record<string, unknown>>;
+        const presetModelRows = getPresetCostModelRows(presetUnifiedSource, presetParams) as Array<Record<string, unknown>>;
 
         let presetTotalCost = 0;
         for (const row of presetModelRows) {

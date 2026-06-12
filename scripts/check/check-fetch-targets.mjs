@@ -24,7 +24,7 @@ const IGNORE = [
 // inventada. CADA UM precisa de triagem: criar a rota, corrigir o path, ou remover a
 // chamada morta. NÃO adicione novos aqui sem justificativa — esse é o ponto do gate.
 const KNOWN_MISSING = new Set([
-  "/api/settings/obsidian/webdav", // ObsidianSourceCard.tsx — só existe /api/settings/obsidian
+  // All previously known-missing routes have been resolved.
 ]);
 
 function walk(dir, acc = []) {

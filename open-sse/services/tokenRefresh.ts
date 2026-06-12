@@ -182,6 +182,93 @@ function getRefreshCacheKey(provider, refreshToken) {
 }
 
 /**
+ * OAuth2 error codes that mean the refresh token is permanently dead and
+ * retrying will never succeed → callers must emit the unrecoverable sentinel
+ * so the HealthCheck deactivates the account instead of looping every 60s.
+ * Deliberately EXCLUDES transient codes (server_error, temporarily_unavailable,
+ * slow_down) so we never deactivate an account over a recoverable blip.
+ */
+const UNRECOVERABLE_OAUTH_ERROR_CODES = new Set([
+  "invalid_grant",
+  "invalid_request",
+  "refresh_token_reused",
+  "invalid_token",
+  "expired_token",
+  "unauthorized_client",
+  "access_denied",
+]);
+
+/**
+ * Extract a canonical OAuth error code from a refresh-endpoint error body of
+ * ANY shape. Production proxies/MITMs deliver the same `invalid_grant` 400 in
+ * several shapes — a plain object `{error:"invalid_grant"}`, a nested
+ * `{error:{code:"invalid_grant"}}`, a JSON **string** (double-encoded body),
+ * or the raw JSON text wrapped as `{error:"<json text>"}` by a catch branch.
+ * The old `errorBody.error === "invalid_grant"` only matched the first shape,
+ * so the others returned `null` → the HealthCheck refresh loop (root cause of
+ * the 1352× claude/aa5dd5cf invalidation storm).
+ *
+ * Returns the matched code (only if it is in UNRECOVERABLE_OAUTH_ERROR_CODES)
+ * or null. Never matches loosely — a known code is accepted only when it is a
+ * bare code string or the value of an `"error"`/`"error_code"` field, so a 502
+ * HTML page or a `server_error` body never becomes a false positive.
+ */
+export function extractOAuthErrorCode(raw: unknown, depth = 0): string | null {
+  if (raw == null || depth > 6) return null;
+
+  if (typeof raw === "string") {
+    const s = raw.trim();
+    if (!s) return null;
+    if (UNRECOVERABLE_OAUTH_ERROR_CODES.has(s)) return s;
+    // The string may itself be JSON (a double-encoded body, or the raw text).
+    if (s[0] === "{" || s[0] === "[" || s[0] === '"') {
+      try {
+        const nested = extractOAuthErrorCode(JSON.parse(s), depth + 1);
+        if (nested) return nested;
+      } catch {
+        // not valid JSON — fall through to the field scan
+      }
+    }
+    // Safety net: a known code appearing as the value of an "error"/"error_code"
+    // field inside otherwise-unparsed text. Scoped to avoid false positives.
+    const m = s.match(/"error(?:_code)?"\s*:\s*"([a-z_]+)"/i);
+    if (m && UNRECOVERABLE_OAUTH_ERROR_CODES.has(m[1])) return m[1];
+    return null;
+  }
+
+  if (typeof raw === "object") {
+    const o = raw as Record<string, unknown>;
+    return (
+      extractOAuthErrorCode(o.error, depth + 1) ??
+      extractOAuthErrorCode(o.code, depth + 1) ??
+      extractOAuthErrorCode(o.error_code, depth + 1)
+    );
+  }
+
+  return null;
+}
+
+/**
+ * Read an error response body ONCE and classify it. Returns the raw text (for
+ * logging) and the extracted unrecoverable OAuth code (or null). Reading once
+ * avoids the double-read bug where `response.json()` consumes the stream and a
+ * later `response.text()` returns empty.
+ */
+async function readRefreshErrorBody(
+  response: Response
+): Promise<{ rawText: string; code: string | null }> {
+  const rawText = await response.text().catch(() => "");
+  let parsed: unknown = rawText;
+  try {
+    parsed = JSON.parse(rawText);
+  } catch {
+    // keep rawText as-is
+  }
+  const code = extractOAuthErrorCode(parsed) ?? extractOAuthErrorCode(rawText);
+  return { rawText, code };
+}
+
+/**
  * Refresh OAuth access token using refresh token
  */
 export async function refreshAccessToken(
@@ -229,6 +316,10 @@ export async function refreshAccessToken(
         status: response.status,
         error: errorText,
       });
+      const code = extractOAuthErrorCode(errorText);
+      if (code === "invalid_grant" || code === "invalid_request") {
+        return { error: "unrecoverable_refresh_error", code };
+      }
       return null;
     }
 
@@ -401,6 +492,10 @@ export async function refreshClineToken(refreshToken, log, proxyConfig: unknown 
         status: response.status,
         error: errorText,
       });
+      const code = extractOAuthErrorCode(errorText);
+      if (code === "invalid_grant" || code === "invalid_request") {
+        return { error: "unrecoverable_refresh_error", code };
+      }
       return null;
     }
 
@@ -664,19 +759,17 @@ export async function refreshClaudeOAuthToken(refreshToken, log, proxyConfig: un
     );
 
     if (!response.ok) {
-      let errorBody: { error?: string; error_description?: string } = {};
-      try {
-        errorBody = await response.json();
-      } catch {
-        const text = await response.text().catch(() => "unknown");
-        errorBody = { error: text };
-      }
+      // Read + classify the body ONCE, shape-agnostic. A proxy/MITM can deliver
+      // the invalid_grant 400 as a JSON string, a double-encoded string, a
+      // nested {error:{code}}, or raw text — all must yield the sentinel so the
+      // HealthCheck deactivates instead of looping every 60s.
+      const { rawText, code } = await readRefreshErrorBody(response);
       log?.error?.("TOKEN_REFRESH", "Failed to refresh Claude OAuth token", {
         status: response.status,
-        error: errorBody,
+        error: rawText.slice(0, 300),
       });
-      if (errorBody.error === "invalid_grant" || errorBody.error === "invalid_request") {
-        return { error: "unrecoverable_refresh_error", code: errorBody.error };
+      if (code === "invalid_grant" || code === "invalid_request") {
+        return { error: "unrecoverable_refresh_error", code };
       }
       return null;
     }
@@ -1186,6 +1279,10 @@ export async function refreshQoderToken(refreshToken, log, proxyConfig: unknown 
       status: response.status,
       error: errorText,
     });
+    const code = extractOAuthErrorCode(errorText);
+    if (code === "invalid_grant" || code === "invalid_request") {
+      return { error: "unrecoverable_refresh_error", code };
+    }
     return null;
   }
 
@@ -1230,6 +1327,10 @@ export async function refreshGitHubToken(refreshToken, log, proxyConfig: unknown
       status: response.status,
       error: errorText,
     });
+    const code = extractOAuthErrorCode(errorText);
+    if (code === "invalid_grant" || code === "invalid_request") {
+      return { error: "unrecoverable_refresh_error", code };
+    }
     return null;
   }
 

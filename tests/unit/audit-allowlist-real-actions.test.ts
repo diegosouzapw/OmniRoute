@@ -15,7 +15,7 @@ import assert from "node:assert/strict";
 import { HIGH_LEVEL_ACTIONS, isHighLevelAction } from "../../src/lib/audit/highLevelActions";
 import { ACTIVITY_ICONS, getActivityIcon } from "../../src/lib/audit/activityIcons";
 
-/** All 26 real actions discovered via grep logAuditEvent in the repo (B/G3, 2026-05). */
+/** All 27 real actions discovered via grep logAuditEvent in the repo (B/G3, 2026-05). */
 const REAL_REPO_ACTIONS = [
   "auth.login.success",
   "auth.login.error",
@@ -26,6 +26,7 @@ const REAL_REPO_ACTIONS = [
   "auth.logout.success",
   "provider.credentials.applied",
   "provider.credentials.batch_revoked",
+  "provider.credentials.batch_updated",
   "provider.credentials.bulk_created",
   "provider.credentials.bulk_imported",
   "provider.credentials.created",
@@ -58,23 +59,33 @@ test("ACTIVITY_ICONS has no extra entries beyond HIGH_LEVEL_ACTIONS (strict 1:1)
   }
 });
 
-test("all 26 real repo actions are present in HIGH_LEVEL_ACTIONS", () => {
+test("all 27 real repo actions are present in HIGH_LEVEL_ACTIONS", () => {
   const allowlistSet = new Set<string>(HIGH_LEVEL_ACTIONS);
   for (const action of REAL_REPO_ACTIONS) {
     assert.ok(allowlistSet.has(action), `HIGH_LEVEL_ACTIONS missing real repo action: '${action}'`);
   }
 });
 
-test("HIGH_LEVEL_ACTIONS contains exactly the same 26 real repo actions (no extras, no missing)", () => {
+test("HIGH_LEVEL_ACTIONS contains exactly the same 27 real repo actions (no extras, no missing)", () => {
   assert.equal(
     (HIGH_LEVEL_ACTIONS as readonly string[]).length,
     REAL_REPO_ACTIONS.length,
-    `Expected ${REAL_REPO_ACTIONS.length} actions, got ${(HIGH_LEVEL_ACTIONS as readonly string[]).length}`,
+    `Expected ${REAL_REPO_ACTIONS.length} actions, got ${(HIGH_LEVEL_ACTIONS as readonly string[]).length}`
   );
 });
 
 test("isHighLevelAction('provider.credentials.created') === true", () => {
   assert.equal(isHighLevelAction("provider.credentials.created"), true);
+});
+
+// Regression for #3271 follow-up: the bulk activate/deactivate endpoint emits
+// provider.credentials.batch_updated, so it must appear in the Activity feed
+// allowlist and have a non-fallback icon (emitter + registries kept atomic).
+test("provider.credentials.batch_updated is a registered high-level action", () => {
+  assert.equal(isHighLevelAction("provider.credentials.batch_updated"), true);
+  const spec = getActivityIcon("provider.credentials.batch_updated");
+  assert.notDeepEqual(spec, { icon: "info", i18nKeyVerb: "genericEvent" });
+  assert.equal(spec.i18nKeyVerb, "providerCredentialsBatchUpdated");
 });
 
 test("isHighLevelAction('nonexistent.action') === false", () => {

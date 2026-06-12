@@ -9,6 +9,7 @@ import { getProviderCredentialsWithQuotaPreflight } from "@/sse/services/auth";
 import { checkAndRefreshToken } from "@/sse/services/tokenRefresh";
 import { resolveCodexWsModelInfo } from "./modelResolution";
 import { isFeatureFlagEnabled } from "@/shared/utils/featureFlags";
+import { sanitizeErrorMessage } from "@omniroute/open-sse/utils/error.ts";
 
 const CODEX_RESPONSES_WS_URL = "wss://chatgpt.com/backend-api/codex/responses";
 const executor = new CodexExecutor();
@@ -26,6 +27,74 @@ const bridgePayloadSchema = z
 
 function isRecord(value: unknown): value is JsonRecord {
   return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+
+function toStringOrNull(value: unknown): string | null {
+  return typeof value === "string" && value.trim().length > 0 ? value.trim() : null;
+}
+
+function toFiniteNumber(value: unknown, fallback = 0): number {
+  const parsed = Number(value);
+  return Number.isFinite(parsed) ? parsed : fallback;
+}
+
+function toHttpStatus(value: unknown, fallback: number): number {
+  const status = Number(value);
+  return Number.isInteger(status) && status >= 100 && status <= 599 ? status : fallback;
+}
+
+function getResponseCreateBody(body: JsonRecord): JsonRecord {
+  if (isRecord(body.clientRequest)) return body.clientRequest;
+  if (isRecord(body.response)) return body.response;
+  return {};
+}
+
+function getTerminalMessage(body: JsonRecord): JsonRecord | null {
+  return isRecord(body.terminalMessage) ? body.terminalMessage : null;
+}
+
+function getTerminalResponseBody(body: JsonRecord): JsonRecord | null {
+  if (isRecord(body.responseBody)) return body.responseBody;
+  const terminalMessage = getTerminalMessage(body);
+  if (isRecord(terminalMessage?.response)) return terminalMessage.response;
+  return terminalMessage;
+}
+
+function getErrorRecord(body: JsonRecord, responseBody: JsonRecord | null): JsonRecord | null {
+  if (isRecord(body.error)) return body.error;
+  if (isRecord(responseBody?.error)) return responseBody.error;
+  const terminalMessage = getTerminalMessage(body);
+  if (isRecord(terminalMessage?.error)) return terminalMessage.error;
+  return null;
+}
+
+function getTimestamp(value: unknown): string {
+  const raw = toStringOrNull(value);
+  if (!raw) return new Date().toISOString();
+  const parsed = new Date(raw);
+  return Number.isNaN(parsed.getTime()) ? new Date().toISOString() : parsed.toISOString();
+}
+
+function getRequestPath(body: JsonRecord): string {
+  const explicitPath = toStringOrNull(body.path);
+  if (explicitPath) return explicitPath;
+
+  try {
+    const requestUrl = toStringOrNull(body.requestUrl) || "/v1/responses";
+    return new URL(requestUrl, "http://omniroute.local").pathname;
+  } catch {
+    return "/v1/responses";
+  }
+}
+
+function getServiceTier(requestBody: JsonRecord): string | null {
+  return toStringOrNull(requestBody.service_tier) || toStringOrNull(requestBody.serviceTier);
+}
+
+async function getApiKeyMetadataFromBody(body: JsonRecord) {
+  const authRequest = getAuthRequest(body);
+  const apiKey = extractWsTokenFromRequest(authRequest);
+  return apiKey ? getApiKeyMetadata(apiKey).catch(() => null) : null;
 }
 
 function getBridgeSecret(): string {
@@ -184,10 +253,119 @@ async function prepare(body: JsonRecord) {
     browser: "chrome_142",
     os: "windows",
     connectionId: refreshedCredentials.connectionId,
+    provider,
+    account: refreshedCredentials.email || null,
     model,
     headers,
     response: transformed,
   });
+}
+
+async function persistResponsesWsCallHistory(body: JsonRecord) {
+  const [{ saveCallLog }, { saveRequestUsage }, { logProxyEvent }] = await Promise.all([
+    import("@/lib/usage/callLogs"),
+    import("@/lib/usage/usageHistory"),
+    import("@/lib/proxyLogger"),
+  ]);
+
+  const metadata = await getApiKeyMetadataFromBody(body);
+  const requestBody = getResponseCreateBody(body);
+  const terminalMessage = getTerminalMessage(body);
+  const responseBody = getTerminalResponseBody(body);
+  const usage = isRecord(responseBody?.usage) ? responseBody.usage : {};
+  const errorRecord = getErrorRecord(body, responseBody);
+  const status = toHttpStatus(
+    body.status ?? errorRecord?.status_code ?? errorRecord?.status,
+    body.success === false ? 500 : 200
+  );
+  const success = typeof body.success === "boolean" ? body.success : status < 400;
+  const errorCode =
+    toStringOrNull(body.errorCode) ||
+    toStringOrNull(errorRecord?.code) ||
+    (success ? null : "responses_websocket_failed");
+  const errorMessage = success
+    ? null
+    : sanitizeErrorMessage(
+        toStringOrNull(body.errorMessage) ||
+          toStringOrNull(errorRecord?.message) ||
+          "Responses WebSocket request failed"
+      );
+  const timestamp = getTimestamp(body.startedAt);
+  const durationMs = Math.max(0, Math.round(toFiniteNumber(body.durationMs, 0)));
+  const provider = toStringOrNull(body.provider) || "codex";
+  const model =
+    toStringOrNull(body.model) ||
+    toStringOrNull(responseBody?.model) ||
+    toStringOrNull(requestBody.model) ||
+    "-";
+  const requestedModel = toStringOrNull(body.requestedModel) || toStringOrNull(requestBody.model);
+  const connectionId = toStringOrNull(body.connectionId);
+  const apiKeyId = metadata?.id || null;
+  const apiKeyName = metadata?.name || null;
+  const noLog = metadata?.noLog === true;
+  const path = getRequestPath(body);
+  const sourceFormat = toStringOrNull(body.sourceFormat) || "openai-responses";
+  const targetFormat = toStringOrNull(body.targetFormat) || "openai-responses";
+  const targetUrl = toStringOrNull(body.upstreamUrl) || CODEX_RESPONSES_WS_URL;
+  const account = toStringOrNull(body.account);
+
+  await saveCallLog({
+    id: toStringOrNull(body.sessionId) || undefined,
+    timestamp,
+    method: "WEBSOCKET",
+    path,
+    status,
+    model,
+    requestedModel,
+    provider,
+    connectionId,
+    duration: durationMs,
+    tokens: usage,
+    requestType: "responses_websocket",
+    sourceFormat,
+    targetFormat,
+    apiKeyId,
+    apiKeyName,
+    noLog,
+    requestBody,
+    responseBody: responseBody ?? terminalMessage,
+    error: errorMessage ? { code: errorCode, message: errorMessage } : null,
+    pipelinePayloads: {
+      clientRequest: requestBody,
+      providerRequest: requestBody,
+      providerResponse: responseBody,
+      clientResponse: terminalMessage,
+    },
+  });
+
+  await saveRequestUsage({
+    timestamp,
+    provider,
+    model,
+    connectionId,
+    apiKeyId,
+    apiKeyName,
+    tokens: usage,
+    serviceTier: getServiceTier(requestBody),
+    status: String(status),
+    success,
+    latencyMs: durationMs,
+    timeToFirstTokenMs: durationMs,
+    errorCode,
+  });
+
+  logProxyEvent({
+    status: success ? "success" : "error",
+    level: "direct",
+    provider,
+    targetUrl,
+    latencyMs: durationMs,
+    error: errorMessage,
+    connectionId,
+    account,
+  });
+
+  return NextResponse.json({ ok: true, logged: true });
 }
 
 export async function POST(request: Request) {
@@ -214,6 +392,17 @@ export async function POST(request: Request) {
   }
   if (action === "prepare") {
     return prepare(body);
+  }
+  if (action === "log") {
+    try {
+      return await persistResponsesWsCallHistory(body);
+    } catch (error) {
+      return jsonError(
+        500,
+        "responses_ws_history_log_failed",
+        sanitizeErrorMessage(error instanceof Error ? error.message : String(error))
+      );
+    }
   }
 
   return jsonError(400, "invalid_action", "Unsupported bridge action");

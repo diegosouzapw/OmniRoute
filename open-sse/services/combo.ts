@@ -125,6 +125,21 @@ function isAllAccountsRateLimitedResponse(
   return ALL_ACCOUNTS_RATE_LIMITED_PATTERNS.some((p) => p.test(errorText));
 }
 
+// #1731v2 guard: a provider circuit-breaker-open response (503 + `X-OmniRoute-Provider-Breaker`
+// header / `provider_circuit_open` error code, see providerCircuitOpenResponse) is an OmniRoute
+// resilience signal, NOT a per-connection upstream failure. It must keep being treated as an
+// ordinary target failure (try the next target, including same-provider ones) — so it must NOT
+// poison exhaustedConnections/exhaustedProviders, otherwise remaining same-provider targets get
+// wrongly skipped while the breaker is open.
+function isProviderCircuitOpenResult(
+  result: { headers?: Headers | null; status?: number },
+  errorText: string
+): boolean {
+  const breakerHeader = result.headers?.get?.("x-omniroute-provider-breaker");
+  if (typeof breakerHeader === "string" && breakerHeader.toLowerCase() === "open") return true;
+  return /provider_circuit_open/i.test(errorText);
+}
+
 const MAX_COMBO_DEPTH = 3;
 const MAX_FALLBACK_WAIT_MS = 5000;
 const MAX_GLOBAL_ATTEMPTS = 30;
@@ -3334,6 +3349,7 @@ export async function handleComboChat({
       // #1731: Per-set-iteration set of providers whose quota is fully exhausted.
       // Reset each retry so providers excluded in a previous attempt get another chance.
       const exhaustedProviders = new Set<string>();
+      const exhaustedConnections = new Set<string>();
       const transientRateLimitedProviders = new Set<string>();
       if (setTry > 0) {
         log.info("COMBO", `All targets failed — retrying set (${setTry}/${maxSetRetries})`);
@@ -3409,6 +3425,18 @@ export async function handleComboChat({
             }
           : { ...target, modelAbortSignal: abortControllers.get(i)!.signal };
 
+        // #1731v2: Skip targets whose provider:connection pair had a connection-level error.
+        if (provider && target.connectionId) {
+          const connKey = `${provider}:${target.connectionId}`;
+          if (exhaustedConnections.has(connKey)) {
+            log.info(
+              "COMBO",
+              `Skipping ${modelStr} — connection ${target.connectionId} for provider ${provider} had connection error (#1731v2)`
+            );
+            if (i > 0) fallbackCount++;
+            return null;
+          }
+        }
         // #1731: Skip targets from a provider that already signaled full quota exhaustion this request.
         if (provider && exhaustedProviders.has(provider)) {
           log.info(
@@ -3917,6 +3945,31 @@ export async function handleComboChat({
           ) {
             transientRateLimitedProviders.add(provider);
           }
+          // #1731: Connection-level errors (502/503/504) suggest the provider itself is having
+          // issues (e.g. upstream unreachable, proxy error). Skip remaining same-provider
+          // targets in this request to avoid hammering a known-bad connection.
+          if (
+            !providerExhausted &&
+            provider &&
+            provider !== "unknown" &&
+            [408, 500, 502, 503, 504, 524].includes(result.status) &&
+            !isProviderCircuitOpenResult(result, errorText)
+          ) {
+            const connId = target.connectionId as string | undefined;
+            if (connId) {
+              exhaustedConnections.add(`${provider}:${connId}`);
+              log.info(
+                "COMBO",
+                `Provider ${provider} connection ${connId} error (${result.status}) — marking for skip on remaining targets (#1731v2)`
+              );
+            } else {
+              exhaustedProviders.add(provider);
+              log.info(
+                "COMBO",
+                `Provider ${provider} connection error (${result.status}) — marking for skip on remaining targets (#1731)`
+              );
+            }
+          }
 
           // #2101: Prevent infinite fallback loops with 400 Bad Request errors that indicate
           // request-body-specific issues (context overflow, malformed request, model access denied).
@@ -4221,6 +4274,7 @@ async function handleRoundRobinCombo({
   // When a target returns a quota-exhausted 429, remaining targets from the same
   // provider are skipped to avoid the cascade through N same-provider targets.
   const exhaustedProviders = new Set<string>();
+  const exhaustedConnections = new Set<string>();
   const transientRateLimitedProviders = new Set<string>();
 
   // Try each model starting from the round-robin target
@@ -4262,6 +4316,18 @@ async function handleRoundRobinCombo({
 
     // #1731: Skip targets from a provider that already signaled full quota exhaustion
     // this request.
+    // #1731v2: Skip targets whose provider:connection pair had a connection-level error.
+    if (provider && target.connectionId) {
+      const connKey = `${provider}:${target.connectionId}`;
+      if (exhaustedConnections.has(connKey)) {
+        log.info(
+          "COMBO-RR",
+          `Skipping ${modelStr} — connection ${target.connectionId} for provider ${provider} had connection error (#1731v2)`
+        );
+        if (offset > 0) fallbackCount++;
+        continue;
+      }
+    }
     if (provider && exhaustedProviders.has(provider)) {
       log.info(
         "COMBO-RR",
@@ -4536,6 +4602,30 @@ async function handleRoundRobinCombo({
           provider !== "unknown"
         ) {
           transientRateLimitedProviders.add(provider);
+        }
+
+        // #1731v2: Connection-level errors (502/503/504) — skip remaining same-connection targets
+        if (
+          !providerExhausted &&
+          provider &&
+          provider !== "unknown" &&
+          [408, 500, 502, 503, 504, 524].includes(result.status) &&
+          !isProviderCircuitOpenResult(result, errorText)
+        ) {
+          const connId = target.connectionId as string | undefined;
+          if (connId) {
+            exhaustedConnections.add(`${provider}:${connId}`);
+            log.info(
+              "COMBO-RR",
+              `Provider ${provider} connection ${connId} error (${result.status}) — marking for skip (#1731v2)`
+            );
+          } else {
+            exhaustedProviders.add(provider);
+            log.info(
+              "COMBO-RR",
+              `Provider ${provider} connection error (${result.status}) — marking for skip (#1731)`
+            );
+          }
         }
 
         // Transient errors → mark in semaphore so round-robin stops stampeding this target.

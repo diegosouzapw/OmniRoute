@@ -1325,7 +1325,7 @@
       "settings.update_failed": "Settings Update Failed",
       "sync.token.created": "Sync Token Created",
       "sync.token.revoked": "Sync Token Revoked"
-  }
+    }
   },
   "themesPage": {
     "title": "Themes",
@@ -4000,6 +4000,10 @@
     "batchRetestSelected": "Retest",
     "batchActivateSuccess": "Activated {count} connection(s)",
     "batchDeactivateSuccess": "Deactivated {count} connection(s)",
+    "batchUpdatePartial": "{count} updated, {skipped} skipped (no longer exist)",
+    "batchUpdateNone": "No connections were updated (they may no longer exist)",
+    "batchRetestLimit": "Retest up to {max} connections at a time",
+    "noConnectionsToTest": "No matching connections to test",
     "batchDeleteConfirmTitle": "Delete connections",
     "batchDeleteConfirmButton": "Delete",
     "filterAll": "All",
@@ -6585,6 +6589,11 @@
     "quotaCutoffsButtonDefault": "Default",
     "quotaCutoffsButtonHelp": "Edit minimum remaining quota cutoffs for this account.",
     "quotaCutoffsButtonDisabled": "No quota windows are available for this account yet.",
+    "deactivateAccount": "Deactivate account (stop routing)",
+    "activateAccount": "Activate account (resume routing)",
+    "accountActivated": "Account activated",
+    "accountDeactivated": "Account deactivated",
+    "toggleActiveFailed": "Failed to update account status",
     "quotaCutoffsTitle": "Quota cutoffs for {name} ({provider})",
     "quotaCutoffsExplainer": "Override the minimum remaining quota percentage where this account stops being selected for each quota window. Leave blank to inherit the provider default.",
     "quotaCutoffsDefaultHint": "Default min remaining: {default}%",
@@ -8232,6 +8241,7 @@
       "providerCredentialsUpdated": "{actor} updated credentials for {target}",
       "providerCredentialsRevoked": "{actor} revoked credentials for {target}",
       "providerCredentialsBatchRevoked": "{actor} batch-revoked credentials",
+      "providerCredentialsBatchUpdated": "{actor} batch-updated credentials",
       "providerCredentialsBulkCreated": "{actor} bulk-created credentials",
       "providerCredentialsBulkImported": "{actor} bulk-imported credentials",
       "providerCredentialsImported": "{actor} imported credentials",
