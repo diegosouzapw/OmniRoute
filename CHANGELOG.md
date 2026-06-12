@@ -9,6 +9,7 @@
 
 ### 🐛 Fixed
 
+- chore(quality-gate): reconcile check-file-size baseline — freeze 27 inherited/this-round grown files at current LOC + register providerLimits.ts (greens the file-size gate; shrink tracked via #3501)
 - fix(gemini): standard Gemini provider no longer sends tool calls without a thought_signature (falls back to context mode when the signature is unavailable), fixing HTTP 400 on multi-turn thinking-model tool calls (#3688)
 - fix(antigravity): preserve gemini-3.1-pro High/Low budget tiers (upstream accepts the suffixed ids; stop collapsing to bare gemini-3.1-pro) (#3696)
 - fix: streaming combos now fail over to the next target when an upstream returns an empty/content-filtered response instead of surfacing a blank reply (#3685)
