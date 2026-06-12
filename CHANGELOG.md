@@ -6,6 +6,10 @@
 
 ## [3.8.23] — TBD
 
+### 🐛 Fixed
+
+- fix(antigravity): preserve gemini-3.1-pro High/Low budget tiers (upstream accepts the suffixed ids; stop collapsing to bare gemini-3.1-pro) (#3696)
+
 ---
 
 ## [3.8.22] — 2026-06-11
