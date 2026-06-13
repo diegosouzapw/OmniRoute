@@ -64,6 +64,7 @@ export const HIDEABLE_SIDEBAR_ITEM_IDS = [
   "agent-skills",
   "mcp",
   "a2a",
+  "plugins",
   // Gamification
   "leaderboard",
   "profile",
@@ -586,6 +587,13 @@ const AGENTIC_FEATURES_ITEMS: readonly SidebarSectionChild[] = [
     i18nKey: "a2a",
     subtitleKey: "a2aSubtitle",
     icon: "device_hub",
+  },
+  {
+    id: "plugins",
+    href: "/dashboard/plugins",
+    i18nKey: "plugins",
+    subtitleKey: "pluginsSubtitle",
+    icon: "extension",
   },
 ];
 

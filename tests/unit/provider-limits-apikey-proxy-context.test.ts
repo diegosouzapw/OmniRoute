@@ -12,7 +12,12 @@ describe("API-key usage egresses through proxy context", () => {
     // Deterministic, no network dependency: this is the core mechanism the L3 fix uses
     // when wrapping getUsageForProvider in runWithProxyContext(apiKeyProxy?.proxy ?? null).
     const url = proxyConfigToUrl({ type: "http", host: "p.example.com", port: 8080 });
-    assert.ok(url && url.includes("p.example.com:8080"), `expected proxy url, got ${url}`);
+    assert.ok(url, `expected proxy url, got ${url}`);
+    // Parse and compare host/port exactly (substring matching on a URL is unsafe — CodeQL
+    // js/incomplete-url-substring-sanitization — and a weaker assertion than equality).
+    const parsed = new URL(url);
+    assert.equal(parsed.hostname, "p.example.com");
+    assert.equal(parsed.port, "8080");
   });
 
   it("a null proxy config (no connection proxy) resolves to no proxy", () => {
@@ -28,7 +33,8 @@ describe("API-key usage egresses through proxy context", () => {
       await runWithProxyContext({ type: "http", host: "p.example.com", port: 8080 }, async () => {
         const r = resolveProxyForRequest("https://api.example.com");
         assert.equal(r.source, "context");
-        assert.ok(r.proxyUrl && r.proxyUrl.includes("p.example.com"));
+        assert.ok(r.proxyUrl, "expected a proxy url from context");
+        assert.equal(new URL(r.proxyUrl).hostname, "p.example.com");
       });
     } catch (err) {
       // Expected when the proxy host is unreachable; the mechanism is still proven by the
