@@ -1,0 +1,133 @@
+[Migration] ⚠️  CRITICAL: 3 migration version(s) have been renumbered!
+  Version 056: applied as "provider_default" but disk has "mcp_accessibility_compression"
+  Version 073: applied as "discovery_results" but disk has "per_model_token_limits"
+  Version 077: applied as "plugin_metrics" but disk has "api_key_stream_default_mode"
+[Migration] This indicates migrations were renumbered between releases, which can cause the migration runner to skip or re-run migrations incorrectly.
+[Migration] The version-only tracking will skip these (version already applied), but please report this to the OmniRoute maintainers.
+[DB] SQLite database ready: /home/openclaw/.omniroute/storage.sqlite (DATA_DIR=/home/openclaw/.omniroute, SQLITE_FILE=/home/openclaw/.omniroute/storage.sqlite)
+[ReasoningCache] boot cleanup removed 5 expired entries
+[CREDENTIALS] Could not load dataPaths module, using fallback: /home/openclaw/projects/OmniRoute/data
+[CREDENTIALS] No external credentials file found, using defaults.
+═══════════════════════════════════════════════════════════
+  OmniRoute Comprehensive Provider Test Matrix
+═══════════════════════════════════════════════════════════
+
+📋 Verifying Test Infrastructure
+─────────────────────────────────────────────────────────
+
+✅ NOAUTH_PROVIDERS registry: 6 providers
+✅ WEB_COOKIE_PROVIDERS registry: 22 providers
+✅ AUTH_007 error code: defined
+✅ validateWebCookieProvider: exported
+
+
+📋 Testing No-Auth Providers (Real Completion Requests)
+─────────────────────────────────────────────────────────
+
+
+[opencode] Testing with model: deepseek-v4-flash-free
+  ✅ PASS: HTTP 200 OK
+
+[duckduckgo-web] Testing with model: gpt-4o-mini
+  ❌ FAIL: HTTP 429 - {"error":{"message":"DuckDuckGo AI Chat error: ERR_RATE_LIMIT"}}
+
+[theoldllm] Testing with model: gpt-3.5-turbo
+  ✅ PASS: HTTP 200 OK
+
+[chipotle] Testing with model: gpt-4o-mini
+  ❌ FAIL: HTTP 502 - {"error":{"message":"Response timeout","type":"upstream_error","code":"CHIPOTLE_ERROR"}}
+
+[veoaifree-web] Testing with model: gpt-4o-mini
+  ❌ FAIL: This operation was aborted
+
+[mimocode] Testing with model: mimo-auto
+  ✅ PASS: HTTP 200 OK
+
+
+📋 Testing Web-Cookie Session Expiry Detection
+─────────────────────────────────────────────────────────
+
+
+[chatgpt-web] Testing session expiry detection
+  ✅ PASS: AUTH_007 detected correctly
+
+[grok-web] Testing session expiry detection
+  ⚠️  SKIP: Provider doesn't validate cookies on /models endpoint
+
+[gemini-web] Testing session expiry detection
+  ⚠️  SKIP: Provider doesn't validate cookies on /models endpoint
+
+[perplexity-web] Testing session expiry detection
+  ✅ PASS: AUTH_007 detected correctly
+
+[blackbox-web] Testing session expiry detection
+  ⚠️  SKIP: Provider doesn't validate cookies on /models endpoint
+
+[muse-spark-web] Testing session expiry detection
+  ⚠️  SKIP: Provider doesn't validate cookies on /models endpoint
+
+[claude-web] Testing session expiry detection
+  ✅ PASS: AUTH_007 detected correctly
+
+[deepseek-web] Testing session expiry detection
+  ⚠️  SKIP: Provider doesn't validate cookies on /models endpoint
+
+[copilot-web] Testing session expiry detection
+  ⚠️  PARTIAL: Validation failed but no AUTH_007 (error: Invalid outbound URL protocol for wss://copilot.microsoft.com/c/api/chat?api-version=2/models)
+
+[t3-web] Testing session expiry detection
+  ⚠️  SKIP: Provider doesn't validate cookies on /models endpoint
+
+[inner-ai] Testing session expiry detection
+  ⚠️  SKIP: Provider doesn't validate cookies on /models endpoint
+
+[adapta-web] Testing session expiry detection
+  ✅ PASS: AUTH_007 detected correctly
+
+[lmarena] Testing session expiry detection
+  ⚠️  PARTIAL: Validation failed but no AUTH_007 (error: Provider not found in registry)
+
+[huggingchat] Testing session expiry detection
+  ⚠️  SKIP: Provider doesn't validate cookies on /models endpoint
+
+[phind] Testing session expiry detection
+  ✅ PASS: AUTH_007 detected correctly
+
+[poe-web] Testing session expiry detection
+  ⚠️  PARTIAL: Validation failed but no AUTH_007 (error: Provider not found in registry)
+
+[venice-web] Testing session expiry detection
+  ⚠️  PARTIAL: Validation failed but no AUTH_007 (error: Provider not found in registry)
+
+[v0-vercel-web] Testing session expiry detection
+  ⚠️  PARTIAL: Validation failed but no AUTH_007 (error: Provider not found in registry)
+
+[kimi-web] Testing session expiry detection
+  ✅ PASS: AUTH_007 detected correctly
+
+[doubao-web] Testing session expiry detection
+  ✅ PASS: AUTH_007 detected correctly
+
+[qwen-web] Testing session expiry detection
+  ⚠️  SKIP: Provider doesn't validate cookies on /models endpoint
+
+[gemini-business] Testing session expiry detection
+  ⚠️  PARTIAL: Validation failed but no AUTH_007 (error: Provider not found in registry)
+
+
+═══════════════════════════════════════════════════════════
+  SUMMARY
+═══════════════════════════════════════════════════════════
+
+No-Auth Provider Test Results:
+  ✅ Pass: 3/6
+  ❌ Fail: 3/6
+
+Web-Cookie Provider Test Results:
+  ✅ Pass (AUTH_007 detected): 7/22
+  ⚠️  Partial (validation failed, no AUTH_007): 6/22
+  ⚠️  Skip (no cookie validation): 9/22
+  ❌ Fail: 0/22
+
+═══════════════════════════════════════════════════════════
+
