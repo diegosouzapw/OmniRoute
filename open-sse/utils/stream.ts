@@ -12,6 +12,9 @@ import {
 } from "./usageTracking.ts";
 import {
   parseSSELine,
+  parseSSEDataPayload,
+  createSSEDataLineNormalizer,
+  createSSEEventPrefixBuffer,
   hasValuableContent,
   fixInvalidId,
   formatSSE,
@@ -27,7 +30,6 @@ import { STREAM_IDLE_TIMEOUT_MS, FETCH_BODY_TIMEOUT_MS, HTTP_STATUS } from "../c
 import {
   OMIT_STREAMING_CHUNK_MARKER,
   sanitizeStreamingChunk,
-  extractThinkingFromContent,
 } from "../handlers/responseSanitizer.ts";
 import { buildErrorBody } from "./error.ts";
 import { parseTextualToolCallCandidate, isValidToolCallHeaderPrefix } from "./textualToolCall.ts";
@@ -394,7 +396,7 @@ function buildResponsesFunctionCallEvents(toolCall: ToolCall) {
 }
 
 function formatSSEDataEvents(events: unknown[]) {
-  return events.map((event) => `data: ${JSON.stringify(event)}\n`).join("\n");
+  return events.map((event) => `data: ${JSON.stringify(event)}\n\n`).join("");
 }
 
 function toChatCompletionChunkWithToolCall(base: JsonRecord, toolCall: ToolCall) {
@@ -894,8 +896,8 @@ export function createSSEStream(options: StreamOptions = {}) {
   let idleTimer: ReturnType<typeof setInterval> | null = null;
   let streamTimedOut = false;
   const claudeEmptyResponseLifecycle = createClaudeEmptyResponseLifecycle();
-  let pendingPassthroughEventLine: string | null = null;
-  let pendingPassthroughEventEmitted = false;
+  const passthroughEventPrefix = createSSEEventPrefixBuffer();
+  const multilineSseDataLineNormalizer = createSSEDataLineNormalizer();
 
   const clearIdleTimer = () => {
     if (idleTimer) {
@@ -905,19 +907,7 @@ export function createSSEStream(options: StreamOptions = {}) {
   };
 
   const clearPendingPassthroughEvent = () => {
-    pendingPassthroughEventLine = null;
-    pendingPassthroughEventEmitted = false;
-  };
-
-  const maybePrefixPendingPassthroughEvent = (output: string, line: string) => {
-    if (!pendingPassthroughEventLine || !line.startsWith("data:")) {
-      return output;
-    }
-    if (!pendingPassthroughEventEmitted) {
-      pendingPassthroughEventEmitted = true;
-      return `${pendingPassthroughEventLine}\n${output}`;
-    }
-    return output;
+    passthroughEventPrefix.clear();
   };
 
   const applyTextualToolCallStreamingGuard = (parsed: Record<string, unknown>) => {
@@ -1054,15 +1044,6 @@ export function createSSEStream(options: StreamOptions = {}) {
     const isResponsesEvent = typeof item?.event === "string" && item.event.startsWith("response.");
     if (sourceFormat === FORMATS.OPENAI && !isResponsesEvent) {
       itemSanitized = sanitizeStreamingChunk(itemSanitized) as Record<string, unknown>;
-
-      const delta = itemSanitized?.choices?.[0]?.delta;
-      if (delta?.content && typeof delta.content === "string") {
-        const { content, thinking } = extractThinkingFromContent(delta.content);
-        delta.content = content;
-        if (thinking && !delta.reasoning_content) {
-          delta.reasoning_content = thinking;
-        }
-      }
     }
 
     if (!hasValuableContent(itemSanitized, sourceFormat)) {
@@ -1286,7 +1267,7 @@ export function createSSEStream(options: StreamOptions = {}) {
         const lines = buffer.split("\n");
         buffer = lines.pop() || "";
 
-        for (const line of lines) {
+        for (const line of multilineSseDataLineNormalizer.normalize(lines)) {
           const trimmed = line.trim();
 
           // Passthrough mode: normalize and forward
@@ -1313,12 +1294,6 @@ export function createSSEStream(options: StreamOptions = {}) {
             }
 
             if (/^event:/i.test(trimmed)) {
-              if (pendingPassthroughEventLine && !pendingPassthroughEventEmitted) {
-                const pendingOutput = `${pendingPassthroughEventLine}\n`;
-                reqLogger?.appendConvertedChunk?.(pendingOutput);
-                controller.enqueue(encoder.encode(pendingOutput));
-              }
-
               const eventType = trimmed.replace(/^event:\s*/i, "");
               if (
                 shouldInjectClaudeEmptyResponseBeforeCurrentEvent(claudeEmptyResponseLifecycle, {
@@ -1329,13 +1304,38 @@ export function createSSEStream(options: StreamOptions = {}) {
                 return;
               }
 
-              pendingPassthroughEventLine = line;
-              pendingPassthroughEventEmitted = false;
+              passthroughEventPrefix.remember(line);
               continue;
             }
 
+            if (/^(?::|id:|retry:)/i.test(trimmed)) {
+              passthroughEventPrefix.remember(line);
+              continue;
+            }
+
+            if (!trimmed) {
+              const pendingOutput = passthroughEventPrefix.flush();
+              if (pendingOutput) {
+                reqLogger?.appendConvertedChunk?.(pendingOutput);
+                controller.enqueue(encoder.encode(pendingOutput));
+              }
+              clearPendingPassthroughEvent();
+              continue;
+            }
+
+            if (!trimmed.startsWith("data:")) {
+              passthroughEventPrefix.remember(line);
+              continue;
+            }
+
+            const parsedPassthroughData = trimmed.startsWith("data:")
+              ? parseSSEDataPayload(trimmed.slice(5), {
+                  eventType: passthroughEventPrefix.eventType(),
+                })
+              : null;
+
             if (trimmed.startsWith("data:")) {
-              const providerPayload = parseSSELine(trimmed);
+              const providerPayload = parsedPassthroughData ?? parseSSELine(trimmed);
               if (providerPayload) {
                 providerPayloadCollector.push(providerPayload);
                 if ((providerPayload as { done?: unknown }).done === true) {
@@ -1350,7 +1350,7 @@ export function createSSEStream(options: StreamOptions = {}) {
 
             if (trimmed.startsWith("data:") && trimmed.slice(5).trim() !== "[DONE]") {
               try {
-                let parsed = JSON.parse(trimmed.slice(5).trim());
+                let parsed = parsedPassthroughData ?? JSON.parse(trimmed.slice(5).trim());
 
                 // Some upstream Responses-compatible providers leak an initial Chat Completions
                 // bootstrap chunk (assistant role + empty content) before emitting proper
@@ -1464,8 +1464,7 @@ export function createSSEStream(options: StreamOptions = {}) {
                           controller.enqueue(encoder.encode(output));
                           injectedUsage = true;
                         } else {
-                          output = `data: ${JSON.stringify(parsed)}
-`;
+                          output = `data: ${JSON.stringify(parsed)}\n\n`;
                           injectedUsage = true;
                         }
                         passthroughBufferedTextualToolCallContent = "";
@@ -1476,12 +1475,12 @@ export function createSSEStream(options: StreamOptions = {}) {
                           incomingDelta
                         );
                         parsed.delta = "";
-                        output = `data: ${JSON.stringify(parsed)}\n`;
+                        output = `data: ${JSON.stringify(parsed)}\n\n`;
                         injectedUsage = true;
                       } else {
                         if (passthroughBufferedTextualToolCallContent) {
                           parsed.delta = passthroughBufferedTextualToolCallContent + incomingDelta;
-                          output = `data: ${JSON.stringify(parsed)}\n`;
+                          output = `data: ${JSON.stringify(parsed)}\n\n`;
                           injectedUsage = true;
                         }
                         passthroughAccumulatedContent = appendBoundedText(
@@ -1569,7 +1568,7 @@ export function createSSEStream(options: StreamOptions = {}) {
                     emitSyntheticResponsesReasoningSummary(controller, parsed);
                     pushUniqueResponsesOutputItems(passthroughResponsesOutputItems, [parsed.item]);
                     if (reasoningSummaryInjected) {
-                      output = `data: ${JSON.stringify(parsed)}\n`;
+                      output = `data: ${JSON.stringify(parsed)}\n\n`;
                       injectedUsage = true;
                     }
                     if (parsed.item?.type === "function_call") {
@@ -1633,7 +1632,7 @@ export function createSSEStream(options: StreamOptions = {}) {
                     textualToolCallBackfilled ||
                     responsesIdsNormalized
                   ) {
-                    output = `data: ${JSON.stringify(parsed)}\n`;
+                    output = `data: ${JSON.stringify(parsed)}\n\n`;
                     injectedUsage = true;
                   }
                 } else if (isClaudeSSE) {
@@ -1680,7 +1679,7 @@ export function createSSEStream(options: StreamOptions = {}) {
                     );
                   }
                   if (restoredToolName) {
-                    output = `data: ${JSON.stringify(parsed)}\n`;
+                    output = `data: ${JSON.stringify(parsed)}\n\n`;
                     injectedUsage = true;
                   }
                 } else {
@@ -1708,7 +1707,7 @@ export function createSSEStream(options: StreamOptions = {}) {
                     const emptyChoicesUsage = extractUsage(parsed) ?? parsed.usage;
                     if (hasValidUsage(emptyChoicesUsage)) {
                       usage = emptyChoicesUsage;
-                      output = `data: ${JSON.stringify(parsed)}\n`;
+                      output = `data: ${JSON.stringify(parsed)}\n\n`;
                       injectedUsage = true;
                       clientPayload = parsed;
                       clientPayloadCollector.push(clientPayload);
@@ -1723,12 +1722,6 @@ export function createSSEStream(options: StreamOptions = {}) {
                     continue;
                   }
 
-                  // Detect reasoning alias before sanitization strips it
-                  const hadReasoningAlias = !!(
-                    parsed.choices?.[0]?.delta?.reasoning &&
-                    typeof parsed.choices[0].delta.reasoning === "string" &&
-                    !parsed.choices[0].delta.reasoning_content
-                  );
                   const hadNonStringToolCallId = Array.isArray(parsed.choices)
                     ? parsed.choices.some(
                         (choice) =>
@@ -1740,6 +1733,11 @@ export function createSSEStream(options: StreamOptions = {}) {
                     : false;
                   const hadNonStringTopLevelId =
                     parsed?.id != null && typeof parsed.id !== "string";
+                  const hadReasoningAlias = !!(
+                    parsed.choices?.[0]?.delta?.reasoning &&
+                    typeof parsed.choices[0].delta.reasoning === "string" &&
+                    !parsed.choices[0].delta.reasoning_content
+                  );
 
                   parsed = sanitizeStreamingChunk(parsed);
                   if (
@@ -1761,15 +1759,6 @@ export function createSSEStream(options: StreamOptions = {}) {
                   let textualToolCallConverted = false;
                   let toolCallIdCoerced = false;
 
-                  // Extract <think> tags from streaming content
-                  if (delta?.content && typeof delta.content === "string") {
-                    const { content, thinking } = extractThinkingFromContent(delta.content);
-                    delta.content = content;
-                    if (thinking && !delta.reasoning_content) {
-                      delta.reasoning_content = thinking;
-                    }
-                  }
-
                   // Split combined reasoning+content deltas into separate SSE events.
                   // Standard OpenAI streaming never mixes both fields in one delta;
                   // clients (e.g. LobeChat) may skip content when reasoning_content
@@ -1780,7 +1769,7 @@ export function createSSEStream(options: StreamOptions = {}) {
                     delete rDelta.content;
                     reasoningChunk.choices[0].finish_reason = null;
                     delete reasoningChunk.usage;
-                    const rOutput = `data: ${JSON.stringify(reasoningChunk)}\n`;
+                    const rOutput = `data: ${JSON.stringify(reasoningChunk)}\n\n`;
                     passthroughAccumulatedReasoning = appendBoundedText(
                       passthroughAccumulatedReasoning,
                       delta.reasoning_content
@@ -1789,7 +1778,6 @@ export function createSSEStream(options: StreamOptions = {}) {
                     clientPayloadCollector.push(reasoningChunk);
                     reqLogger?.appendConvertedChunk?.(rOutput);
                     controller.enqueue(encoder.encode(rOutput));
-                    controller.enqueue(encoder.encode("\n"));
                     delete delta.reasoning_content;
                   }
 
@@ -1898,7 +1886,7 @@ export function createSSEStream(options: StreamOptions = {}) {
                     parsed.choices[0].finish_reason = "tool_calls";
                     // If we modify it, we must output the modified object
                     if (!injectedUsage && hasValidUsage(parsed.usage)) {
-                      output = `data: ${JSON.stringify(parsed)}\n`;
+                      output = `data: ${JSON.stringify(parsed)}\n\n`;
                       injectedUsage = true;
                     }
                   }
@@ -1909,16 +1897,16 @@ export function createSSEStream(options: StreamOptions = {}) {
                   ) {
                     const estimated = estimateUsage(body, totalContentLength, FORMATS.OPENAI);
                     parsed.usage = filterUsageForFormat(estimated, FORMATS.OPENAI);
-                    output = `data: ${JSON.stringify(parsed)}\n`;
+                    output = `data: ${JSON.stringify(parsed)}\n\n`;
                     usage = estimated;
                     injectedUsage = true;
                   } else if (isFinishChunk && usage) {
                     const buffered = addBufferToUsage(usage);
                     parsed.usage = filterUsageForFormat(buffered, FORMATS.OPENAI);
-                    output = `data: ${JSON.stringify(parsed)}\n`;
+                    output = `data: ${JSON.stringify(parsed)}\n\n`;
                     injectedUsage = true;
                   } else if (textualToolCallConverted) {
-                    output = `data: ${JSON.stringify(parsed)}\n`;
+                    output = `data: ${JSON.stringify(parsed)}\n\n`;
                     injectedUsage = true;
                   } else if (
                     idFixed ||
@@ -1927,7 +1915,7 @@ export function createSSEStream(options: StreamOptions = {}) {
                     hadNonStringToolCallId ||
                     hadNonStringTopLevelId
                   ) {
-                    output = `data: ${JSON.stringify(parsed)}\n`;
+                    output = `data: ${JSON.stringify(parsed)}\n\n`;
                     injectedUsage = true;
                   }
                 }
@@ -1938,18 +1926,13 @@ export function createSSEStream(options: StreamOptions = {}) {
 
             if (!injectedUsage) {
               if (line.startsWith("data:") && !line.startsWith("data: ")) {
-                output = "data: " + line.slice(5) + "\n";
+                output = "data: " + line.slice(5) + "\n\n";
               } else {
-                output = line + "\n";
+                output = line + "\n\n";
               }
             }
 
-            if (!trimmed && pendingPassthroughEventLine && !pendingPassthroughEventEmitted) {
-              output = `${pendingPassthroughEventLine}\n${output}`;
-              pendingPassthroughEventEmitted = true;
-            }
-
-            output = maybePrefixPendingPassthroughEvent(output, line);
+            output = passthroughEventPrefix.prefixData(output, line);
 
             if (clientPayload) {
               clientPayloadCollector.push(clientPayload);
@@ -2152,6 +2135,10 @@ export function createSSEStream(options: StreamOptions = {}) {
         try {
           const remaining = decoder.decode();
           if (remaining) buffer += remaining;
+          if (multilineSseDataLineNormalizer.hasPending()) {
+            const tailLines = buffer ? [buffer, ""] : [""];
+            buffer = multilineSseDataLineNormalizer.normalize(tailLines).join("\n");
+          }
 
           if (mode === STREAM_MODE.PASSTHROUGH) {
             const bufferedLine = buffer.trim();
@@ -2189,7 +2176,7 @@ export function createSSEStream(options: StreamOptions = {}) {
                   const isClaude = isClaudeEventPayload(flushedParsed);
                   if (isResponses) {
                     if (normalizeResponsesSseIds(flushedParsed)) {
-                      output = `data: ${JSON.stringify(flushedParsed)}\n`;
+                      output = `data: ${JSON.stringify(flushedParsed)}\n\n`;
                     }
                   } else if (!isClaude) {
                     let flushChanged = false;
@@ -2215,16 +2202,16 @@ export function createSSEStream(options: StreamOptions = {}) {
                       }
                     }
                     if (flushChanged) {
-                      output = `data: ${JSON.stringify(flushedParsed)}\n`;
+                      output = `data: ${JSON.stringify(flushedParsed)}\n\n`;
                     }
                   }
                 }
               }
-              if (!bufferedLine && pendingPassthroughEventLine && !pendingPassthroughEventEmitted) {
-                output = `${pendingPassthroughEventLine}\n${output}`;
-                pendingPassthroughEventEmitted = true;
+              if (!bufferedLine) output = passthroughEventPrefix.flush() || output;
+              output = passthroughEventPrefix.prefixData(output, buffer);
+              if (output && !output.endsWith("\n\n")) {
+                output = output.endsWith("\n") ? `${output}\n` : `${output}\n\n`;
               }
-              output = maybePrefixPendingPassthroughEvent(output, buffer);
               reqLogger?.appendConvertedChunk?.(output);
               controller.enqueue(encoder.encode(output));
             }

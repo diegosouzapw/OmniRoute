@@ -23,6 +23,10 @@ import { FETCH_TIMEOUT_MS, RateLimitReason } from "../config/constants.ts";
 import { errorResponse, unavailableResponse } from "../utils/error.ts";
 import { clamp01 } from "../utils/number.ts";
 import {
+  createSSEDataLineNormalizer,
+  isKnownNonClaudeStreamPayload,
+} from "../utils/streamHelpers.ts";
+import {
   recordComboIntent,
   recordComboRequest,
   recordComboShadowRequest,
@@ -452,19 +456,10 @@ export async function validateResponseQuality(
   // detect the empty-content-block pattern (content_filter stop_reason with
   // no content_block_* events) WITHOUT de-streaming non-empty responses.
   //
-  // Strategy:
-  // - Read chunks from response.body one at a time, accumulating raw bytes.
-  // - Parse SSE events incrementally.
-  // - If a content_block_* event appears → stream HAS content. Stop buffering.
-  //   Return a clonedResponse whose body replays buffered bytes then pipes the
-  //   remainder of the original reader. Only the chunks up to the first content
-  //   block were held in memory — the rest stream normally.
-  // - If the stream ends with a complete Claude lifecycle but NO content_block
-  //   → return invalid (combo failover). The empty lifecycle is tiny so fully
-  //   reading it is acceptable.
-  // - If the stream ends without a recognisable complete Claude lifecycle →
-  //   return valid with a clonedResponse replaying all buffered bytes (don't
-  //   misclassify non-Claude or partial streams as empty).
+  // Parse SSE events incrementally. Stop buffering once a content_block_* event
+  // or a known non-Claude SSE payload appears, replay the buffered prefix, then
+  // pipe the original reader so the rest of the stream keeps flowing normally.
+  // Only fail over when a complete Claude lifecycle ends without content_block.
   //
   // Non-text/event-stream streaming responses are not buffered at all.
   if (isStreaming) {
@@ -492,7 +487,7 @@ export async function validateResponseQuality(
     let hasMessageStart = false;
     let hasContentBlock = false;
     let hasLifecycleEnd = false;
-    // `event:` type line seen before the next `data:` line in the same event.
+    const sseLineNormalizer = createSSEDataLineNormalizer();
     let pendingEventType = "";
 
     /**
@@ -508,8 +503,8 @@ export async function validateResponseQuality(
       // Retain the potentially-incomplete trailing fragment.
       decodedSoFar = lines[lines.length - 1];
 
-      for (let i = 0; i < lines.length - 1; i++) {
-        const trimmed = lines[i].trim();
+      for (const line of sseLineNormalizer.normalize(lines.slice(0, -1))) {
+        const trimmed = line.trim();
 
         if (trimmed.startsWith("event:")) {
           pendingEventType = trimmed.slice(6).trim();
@@ -534,6 +529,10 @@ export async function validateResponseQuality(
         const eventType =
           (typeof parsed.type === "string" ? parsed.type : null) || pendingEventType || "";
         pendingEventType = "";
+
+        if (isKnownNonClaudeStreamPayload(parsed, eventType)) {
+          return true;
+        }
 
         switch (eventType) {
           case "message_start":
@@ -613,6 +612,7 @@ export async function validateResponseQuality(
           // Stream finished — flush the TextDecoder and parse any remaining text.
           const tail = decoder.decode(undefined, { stream: false });
           if (tail) decodedSoFar += tail;
+          if (decodedSoFar.trim()) decodedSoFar += "\n\n";
           parseAccumulatedSse();
 
           if (hasMessageStart && hasLifecycleEnd && !hasContentBlock) {

@@ -38,6 +38,7 @@ function delayedClaudeStartStream(): ReadableStream<Uint8Array> {
               },
             })}`,
             "",
+            "",
           ].join("\n")
         )
       );
@@ -52,6 +53,7 @@ function delayedClaudeStartStream(): ReadableStream<Uint8Array> {
               index: 0,
               delta: { type: "text_delta", text: "slow hello" },
             })}`,
+            "",
             "",
           ].join("\n")
         )
@@ -78,6 +80,7 @@ function delayedOpenAIResponsesStartStream(): ReadableStream<Uint8Array> {
               },
             })}`,
             "",
+            "",
           ].join("\n")
         )
       );
@@ -88,6 +91,7 @@ function delayedOpenAIResponsesStartStream(): ReadableStream<Uint8Array> {
           [
             "event: response.output_text.delta",
             `data: ${JSON.stringify({ type: "response.output_text.delta", delta: "slow hello" })}`,
+            "",
             "",
           ].join("\n")
         )
@@ -119,6 +123,46 @@ function delayedChatCompletionStartStream(): ReadableStream<Uint8Array> {
             choices: [{ index: 0, delta: { content: "slow chat hello" } }],
           })}\n\n`
         )
+      );
+      controller.close();
+    },
+  });
+}
+
+function delayedGeminiStartStream(): ReadableStream<Uint8Array> {
+  return new ReadableStream<Uint8Array>({
+    async start(controller) {
+      controller.enqueue(
+        encoder.encode(
+          `data: ${JSON.stringify({
+            candidates: [{ content: { parts: [] } }],
+          })}\n\n`
+        )
+      );
+
+      await new Promise((resolve) => setTimeout(resolve, 30));
+      controller.enqueue(
+        encoder.encode(
+          `data: ${JSON.stringify({
+            candidates: [{ content: { parts: [{ text: "slow gemini hello" }] } }],
+          })}\n\n`
+        )
+      );
+      controller.close();
+    },
+  });
+}
+
+function delayedUnknownStructuredStartStream(): ReadableStream<Uint8Array> {
+  return new ReadableStream<Uint8Array>({
+    async start(controller) {
+      controller.enqueue(
+        encoder.encode('event: provider.lifecycle\ndata: {"phase":"started"}\n\n')
+      );
+
+      await new Promise((resolve) => setTimeout(resolve, 30));
+      controller.enqueue(
+        encoder.encode('event: provider.delta\ndata: {"text":"slow unknown hello"}\n\n')
       );
       controller.close();
     },
@@ -198,12 +242,12 @@ test("hasUsefulStreamContent detects text, reasoning, and tool deltas", () => {
   );
 });
 
-test("hasStreamReadinessSignal accepts Claude stream start events", () => {
+test("hasStreamReadinessSignal accepts any non-ping structured SSE event", () => {
   assert.equal(hasStreamReadinessSignal(": keepalive\n\n"), false);
   assert.equal(hasStreamReadinessSignal("event: ping\ndata: {}\n\n"), false);
   assert.equal(
     hasStreamReadinessSignal(`data: ${JSON.stringify({ type: "response.created" })}\n\n`),
-    false
+    true
   );
   assert.equal(
     hasStreamReadinessSignal(
@@ -241,13 +285,18 @@ test("hasStreamReadinessSignal accepts Claude stream start events", () => {
     ),
     true
   );
+  assert.equal(
+    hasStreamReadinessSignal('event: provider.lifecycle\ndata: {"phase":"started"}\n\n'),
+    true
+  );
+  assert.equal(hasStreamReadinessSignal('event: ping\ndata: {"phase":"started"}\n\n'), false);
 });
 
-test("hasStreamReadinessSignal accepts valid OpenAI Responses lifecycle events", () => {
+test("hasStreamReadinessSignal accepts Responses lifecycle events without schema gating", () => {
   assert.equal(hasStreamReadinessSignal(`data: ${JSON.stringify({})}\n\n`), false);
   assert.equal(
     hasStreamReadinessSignal(`data: ${JSON.stringify({ type: "response.created" })}\n\n`),
-    false
+    true
   );
   assert.equal(
     hasStreamReadinessSignal(
@@ -281,7 +330,7 @@ test("hasStreamReadinessSignal accepts valid OpenAI Responses lifecycle events",
   );
 });
 
-test("hasStreamReadinessSignal accepts structural chat completion chunk starts", () => {
+test("hasStreamReadinessSignal accepts chat completion structural chunks without content gating", () => {
   assert.equal(
     hasStreamReadinessSignal(
       `data: ${JSON.stringify({
@@ -316,7 +365,7 @@ test("hasStreamReadinessSignal accepts structural chat completion chunk starts",
     hasStreamReadinessSignal(
       `data: ${JSON.stringify({ object: "chat.completion.chunk", choices: [] })}\n\n`
     ),
-    false
+    true
   );
   assert.equal(
     hasStreamReadinessSignal(
@@ -325,7 +374,7 @@ test("hasStreamReadinessSignal accepts structural chat completion chunk starts",
         choices: [{ index: 0, delta: {} }],
       })}\n\n`
     ),
-    false
+    true
   );
   // #3612: index-only tool_call chunk (first chunk in OpenAI streaming — no id yet)
   // MUST be treated as a readiness signal (tool-call has started)
@@ -345,7 +394,7 @@ test("hasStreamReadinessSignal accepts structural chat completion chunk starts",
         choices: [{ index: 0, delta: { function_call: {} } }],
       })}\n\n`
     ),
-    false
+    true
   );
   // #3612: chunk with valid choices but NO object/type field (some OA-compatible backends
   // omit object) — must be accepted as a readiness signal when delta.role is present
@@ -358,7 +407,7 @@ test("hasStreamReadinessSignal accepts structural chat completion chunk starts",
     ),
     true
   );
-  // object present but a different (non-chat-chunk) type must still be rejected
+  // Stream readiness is a zombie filter now, not a provider-specific schema gate.
   assert.equal(
     hasStreamReadinessSignal(
       `data: ${JSON.stringify({
@@ -366,7 +415,7 @@ test("hasStreamReadinessSignal accepts structural chat completion chunk starts",
         choices: [{ index: 0, delta: { role: "assistant" } }],
       })}\n\n`
     ),
-    false
+    true
   );
 });
 
@@ -447,7 +496,41 @@ test("ensureStreamReadiness hands off chat completion streams after role-only st
   assert.match(text, /slow chat hello/);
 });
 
-test("ensureStreamReadiness returns 504 when no useful content arrives before timeout", async () => {
+test("ensureStreamReadiness hands off Gemini streams after structural candidate start", async () => {
+  const response = new Response(delayedGeminiStartStream(), {
+    status: 200,
+    headers: { "Content-Type": "text/event-stream" },
+  });
+
+  const result = await ensureStreamReadiness(response, {
+    timeoutMs: 10,
+    provider: "gemini",
+    model: "gemini-3.0-pro",
+  });
+  assert.equal(result.ok, true);
+  const text = await result.response.text();
+  assert.match(text, /candidates/);
+  assert.match(text, /slow gemini hello/);
+});
+
+test("ensureStreamReadiness hands off unknown structured provider events promptly", async () => {
+  const response = new Response(delayedUnknownStructuredStartStream(), {
+    status: 200,
+    headers: { "Content-Type": "text/event-stream" },
+  });
+
+  const result = await ensureStreamReadiness(response, {
+    timeoutMs: 10,
+    provider: "provider-specific",
+    model: "custom-stream-model",
+  });
+  assert.equal(result.ok, true);
+  const text = await result.response.text();
+  assert.match(text, /provider\.lifecycle/);
+  assert.match(text, /slow unknown hello/);
+});
+
+test("ensureStreamReadiness returns 504 when no non-ping SSE event arrives before timeout", async () => {
   const response = new Response(zombieReadinessStream(), {
     status: 200,
     headers: { "Content-Type": "text/event-stream" },
@@ -456,10 +539,12 @@ test("ensureStreamReadiness returns 504 when no useful content arrives before ti
   const result = await ensureStreamReadiness(response, { timeoutMs: 10 });
   assert.equal(result.ok, false);
   assert.equal(result.response.status, 504);
-  assert.match(await result.response.text(), /STREAM_READINESS_TIMEOUT/);
+  const body = await result.response.json();
+  assert.equal(body.error.code, "STREAM_READINESS_TIMEOUT");
+  assert.match(body.error.message, /non-ping SSE event/);
 });
 
-test("ensureStreamReadiness returns 502 when stream ends without useful content", async () => {
+test("ensureStreamReadiness returns 502 when stream ends without a non-ping SSE event", async () => {
   const response = new Response(streamFromChunks([": keepalive\n\n"]), {
     status: 200,
     headers: { "Content-Type": "text/event-stream" },
@@ -468,6 +553,20 @@ test("ensureStreamReadiness returns 502 when stream ends without useful content"
   const result = await ensureStreamReadiness(response, { timeoutMs: 100 });
   assert.equal(result.ok, false);
   assert.equal(result.response.status, 502);
+});
+
+test("ensureStreamReadiness accepts a final event without a trailing blank line", async () => {
+  const response = new Response(
+    streamFromChunks(['event: provider.lifecycle\ndata: {"ok":true}']),
+    {
+      status: 200,
+      headers: { "Content-Type": "text/event-stream" },
+    }
+  );
+
+  const result = await ensureStreamReadiness(response, { timeoutMs: 100 });
+  assert.equal(result.ok, true);
+  assert.match(await result.response.text(), /provider\.lifecycle/);
 });
 
 // Regression for #2520: a reasoning-only stream (Mistral `thinking` array / StepFun
