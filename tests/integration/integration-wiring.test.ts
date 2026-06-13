@@ -84,6 +84,14 @@ describe("Pipeline Wiring — instrumentation-node.ts", () => {
     assert.ok(src, "src/instrumentation-node.ts should exist");
     assert.match(src, /seedDefaultModelAliases/);
   });
+
+  it("should initialize Arena ELO sync on the live startup path (on by default, opt-out)", () => {
+    // The Next standalone runtime boots through instrumentation-node, NOT server-init.ts.
+    // The Arena ELO sync (which feeds the Free Provider Rankings page) must be wired here,
+    // or it never runs in production regardless of ARENA_ELO_SYNC_ENABLED.
+    assert.match(src, /initArenaEloSync/);
+    assert.match(src, /ARENA_ELO_SYNC_ENABLED !== "false"/);
+  });
 });
 
 describe("Pipeline Wiring — sse chat handler", () => {

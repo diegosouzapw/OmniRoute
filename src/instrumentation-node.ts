@@ -258,13 +258,25 @@ export async function registerNodejs(): Promise<void> {
     }
 
     try {
-      const { autoRefreshDaemon } = await import(
-        "@omniroute/open-sse/services/autoRefreshDaemon"
-      );
+      const { autoRefreshDaemon } = await import("@omniroute/open-sse/services/autoRefreshDaemon");
       autoRefreshDaemon.start();
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : String(err);
       console.warn("[STARTUP] Auto-refresh daemon failed to start (non-fatal):", msg);
+    }
+
+    // Arena ELO sync: model intelligence from the Arena AI leaderboard, powering the
+    // Free Provider Rankings page. On by default (opt out with ARENA_ELO_SYNC_ENABLED=false).
+    // Non-blocking — the initial sync is fire-and-forget and never fatal.
+    if (process.env.ARENA_ELO_SYNC_ENABLED !== "false") {
+      try {
+        const { initArenaEloSync } = await import("@/lib/arenaEloSync");
+        await initArenaEloSync();
+        console.log("[STARTUP] Arena ELO sync initialized");
+      } catch (err: unknown) {
+        const msg = err instanceof Error ? err.message : String(err);
+        console.warn("[STARTUP] Arena ELO sync failed to start (non-fatal):", msg);
+      }
     }
   }
 }
