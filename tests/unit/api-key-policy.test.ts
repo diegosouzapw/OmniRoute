@@ -34,6 +34,12 @@ const rateLimiter = await import("../../src/shared/utils/rateLimiter.ts");
 
 rateLimiter.setRateLimiterTestMode(true);
 
+function getFsErrorCode(error: unknown): string | undefined {
+  if (typeof error !== "object" || error === null || !("code" in error)) return undefined;
+  const { code } = error as { code?: unknown };
+  return typeof code === "string" ? code : undefined;
+}
+
 async function resetStorage() {
   apiKeysDb.resetApiKeyState();
   costRules.resetCostData();
@@ -45,8 +51,9 @@ async function resetStorage() {
         fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
       }
       break;
-    } catch (error: any) {
-      if ((error?.code === "EBUSY" || error?.code === "EPERM") && attempt < 9) {
+    } catch (error: unknown) {
+      const code = getFsErrorCode(error);
+      if ((code === "EBUSY" || code === "EPERM") && attempt < 9) {
         await new Promise((resolve) => setTimeout(resolve, 50 * (attempt + 1)));
       } else {
         throw error;
@@ -77,9 +84,21 @@ function makePolicyRequest(apiKey) {
   });
 }
 
+function makeAnthropicPolicyRequest(apiKey) {
+  return new Request("http://localhost/v1/messages", {
+    method: "POST",
+    headers: apiKey
+      ? {
+          "x-api-key": apiKey,
+          "anthropic-version": "2023-06-01",
+        }
+      : { "anthropic-version": "2023-06-01" },
+  });
+}
+
 async function readErrorMessage(response) {
-  const body = (await response.json()) as any;
-  return body.error.message;
+  const body = (await response.json()) as { error?: { message?: unknown } };
+  return typeof body.error?.message === "string" ? body.error.message : "";
 }
 
 function getCurrentUtcDay() {
@@ -462,6 +481,28 @@ test("enforceApiKeyPolicy rejects disallowed models and exhausted budgets", asyn
   );
   assert.equal(overBudget.rejection.status, 429);
   assert.match(await readErrorMessage(overBudget.rejection), /Daily budget exceeded/);
+});
+
+test("enforceApiKeyPolicy returns Anthropic error envelope for /v1/messages model denials", async () => {
+  const restrictedKey = await createKeyWithPolicy({
+    allowedModels: ["cc/*"],
+    blockedModels: ["claude-fable*", "fable"],
+  });
+  const policy = await loadPolicy("anthropic-model-denial");
+
+  const denied = await policy.enforceApiKeyPolicy(
+    makeAnthropicPolicyRequest(restrictedKey.key),
+    "claude-fable-5"
+  );
+
+  assert.equal(denied.rejection.status, 403);
+  const body = await denied.rejection.json();
+  assert.equal(body.type, "error");
+  assert.equal(body.error.type, "permission_error");
+  assert.match(body.error.message, /claude-fable-5/);
+  assert.match(body.error.message, /not enabled by this OmniRoute policy/);
+  assert.doesNotMatch(body.error.message, /login|authenticate|api key|credential/i);
+  assert.equal(body.error.code, undefined);
 });
 
 test("enforceApiKeyPolicy does not rate-limit unrestricted keys by default", async () => {
