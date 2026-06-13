@@ -271,12 +271,13 @@ Route upstream LLM provider calls through an HTTP or SOCKS5 proxy for egress con
 
 | Variable                                | Default   | Source File                                  | Description                                                                               |
 | --------------------------------------- | --------- | -------------------------------------------- | ----------------------------------------------------------------------------------------- |
-| `ENABLE_SOCKS5_PROXY`                   | `true`    | `open-sse/executors`                         | Enable SOCKS5 proxy agent for upstream calls.                                             |
+| `ENABLE_SOCKS5_PROXY`                   | `true`    | `open-sse/executors`                         | Enable SOCKS5 proxy agent for upstream calls. Opt-out with `false`.                       |
 | `NEXT_PUBLIC_ENABLE_SOCKS5_PROXY`       | `true`    | Client-side                                  | Client-side awareness of SOCKS5 availability.                                             |
 | `HTTP_PROXY`                            | _(unset)_ | Node.js standard                             | HTTP proxy for upstream calls.                                                            |
 | `HTTPS_PROXY`                           | _(unset)_ | Node.js standard                             | HTTPS proxy for upstream calls.                                                           |
 | `ALL_PROXY`                             | _(unset)_ | Node.js standard                             | Universal proxy (supports `socks5://`).                                                   |
 | `NO_PROXY`                              | _(unset)_ | Node.js standard                             | Comma-separated hostnames/IPs to bypass the proxy.                                        |
+| `PROXY_FAIL_OPEN`                       | `false`   | `src/sse/handlers/chatHelpers.ts`            | When `false` (default), a request whose assigned proxy fails to resolve is **refused (fail-closed)** rather than falling back to a direct connection — prevents real-IP leaks. Set `true` to restore the legacy DIRECT fallback. |
 | `ENABLE_TLS_FINGERPRINT`                | `false`   | `open-sse/executors`                         | Spoof TLS fingerprint using wreq-js (mimics Chrome 124). Counters JA3/JA4 blocking.       |
 | `OMNIROUTE_TURNSTILE_IGNORE_TLS_ERRORS` | `false`   | `open-sse/services/claudeTurnstileSolver.ts` | Allow the Claude Turnstile Playwright browser context to ignore HTTPS certificate errors. |
 
@@ -287,6 +288,15 @@ Route upstream LLM provider calls through an HTTP or SOCKS5 proxy for egress con
 | **SOCKS5 through SSH tunnel** | `ALL_PROXY=socks5://127.0.0.1:7890`, `ENABLE_SOCKS5_PROXY=true`                                                           |
 | **Corporate HTTP proxy**      | `HTTP_PROXY=http://proxy.corp.com:3128`, `HTTPS_PROXY=http://proxy.corp.com:3128`, `NO_PROXY=localhost,internal.corp.com` |
 | **Anti-fingerprint**          | `ENABLE_TLS_FINGERPRINT=true` — requires `wreq-js` (included)                                                             |
+| **Egress-controlled / no direct access** | Leave `PROXY_FAIL_OPEN=false` (default). Requests fail hard when the proxy is unavailable instead of leaking via direct. |
+| **Legacy / dev — allow direct fallback** | `PROXY_FAIL_OPEN=true`. Restores pre-hardening behaviour: direct connection used when proxy resolution fails.  |
+
+> **Note (NVIDIA validation bypass — #3226):** NVIDIA's API-key validation endpoint
+> stalls when routed through the global proxy/TLS-patched fetch (undici dispatcher → 504).
+> `src/lib/providers/validation.ts::directHttpsRequest()` intentionally bypasses the
+> proxy patch for that one validation call using `safeOutboundFetch({ bypassProxyPatch: true })`.
+> This is a documented, scoped exception — it does **not** affect chat/usage egress.
+> The bypass is scope-pinned by `tests/unit/proxy-bypass-scope-guard-3226.test.ts`.
 
 ---
 
