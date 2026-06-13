@@ -162,6 +162,27 @@ export function clampComboDepth(value: unknown): number {
   return Math.min(n, MAX_COMBO_DEPTH_HARD_CAP);
 }
 
+/** Minimum recorded requests before the predictive-TTFT breaker trusts the average. */
+const PREDICTIVE_TTFT_MIN_SAMPLES = 5;
+
+/**
+ * Predictive-TTFT circuit-breaker decision: skip a target whose recent average
+ * latency — measured over a statistically meaningful sample — exceeds the
+ * configured ceiling, so the combo fails over before paying a slow first byte.
+ * Returns false when disabled (ceiling <= 0), when there is no metric, or when
+ * the sample is too small to trust.
+ */
+export function shouldSkipForPredictedTtft(
+  metric: { requests?: number; avgLatencyMs?: number } | null | undefined,
+  predictiveTtftMs: number
+): boolean {
+  if (!metric || !(predictiveTtftMs > 0)) return false;
+  return (
+    (metric.requests ?? 0) >= PREDICTIVE_TTFT_MIN_SAMPLES &&
+    (metric.avgLatencyMs ?? 0) > predictiveTtftMs
+  );
+}
+
 function resolveDelayMs(value: unknown, fallback: number): number {
   const numericValue = Number(value);
   if (!Number.isFinite(numericValue) || numericValue < 0) return fallback;
@@ -3759,7 +3780,7 @@ export async function handleComboChat({
             if (cMetrics) {
               const targetKey = orderedTargets[i].executionKey || modelStr;
               const m = cMetrics.byTarget[targetKey] || cMetrics.byModel[modelStr];
-              if (m && m.requests >= 5 && m.avgLatencyMs > config.predictiveTtftMs) {
+              if (shouldSkipForPredictedTtft(m, config.predictiveTtftMs)) {
                 log.warn(
                   "COMBO",
                   `Predictive TTFT Circuit Breaker: skipping ${modelStr} (avg ${m.avgLatencyMs}ms > max ${config.predictiveTtftMs}ms)`
