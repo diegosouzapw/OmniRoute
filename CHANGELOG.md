@@ -8,6 +8,8 @@
 
 ### 🐛 Fixed
 
+- fix(antigravity): skip Google One AI credits retry on `full_quota_exhausted` verdict — antigravity executor now calls `decide429()` before attempting the credits retry so that a quota-exhausted account (24h cooldown) bypasses the extra upstream HTTP call instead of hanging for up to ~41s. Also persists the cooldown in the DB via `setConnectionRateLimitUntil` so post-restart routing skips exhausted connections without re-learning the hard way. Bonus: `antigravity429Engine` now recognises the real Antigravity "Individual quota reached. Contact your administrator to enable overages." error message as `quota_exhausted`. ([#3707](https://github.com/diegosouzapw/OmniRoute/issues/3707) — thanks @andrea-kingautomation)
+
 - fix(cli): `ServerSupervisor.handleExit` now coerces the exit code to a number before calling `process.exit()` — Node.js v24 throws `TypeError [ERR_INVALID_ARG_TYPE]` when `process.exit()` receives a string (e.g. `'ENOENT'` from a spawn `error` event's `err.code`). The `error` callback also now passes `-1` instead of the raw `err.code`, which is an OS error string rather than a meaningful exit code. ([#3748](https://github.com/diegosouzapw/OmniRoute/issues/3748))
 
 ---
