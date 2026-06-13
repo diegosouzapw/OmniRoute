@@ -81,6 +81,19 @@ function toProxyValue(value: unknown): ProxyValue {
   return null;
 }
 
+// Legacy proxyConfig store (key_value namespace 'proxyConfig') predates the
+// IPv6-only `family` directive, so its object configs have no family field.
+// Default to "auto" so the family marker rides along the cascade end-to-end
+// (consumed by proxyConfigToUrl). String configs are returned unchanged.
+function withFamilyDefault(value: ProxyValue): ProxyValue {
+  if (value && typeof value === "object" && !Array.isArray(value)) {
+    const record = value as JsonRecord;
+    if (typeof record.family === "string") return record;
+    return { ...record, family: "auto" };
+  }
+  return value;
+}
+
 // ──────────────── Settings ────────────────
 
 export async function getSettings() {
@@ -709,10 +722,17 @@ export async function resolveProxyForConnection(connectionId: string, apiKeyId?:
         if (apiKeyRow?.proxy_id) {
           const proxyRow = db
             .prepare(
-              "SELECT p.type, p.host, p.port, p.username, p.password FROM proxy_registry p WHERE p.id = ?"
+              "SELECT p.type, p.host, p.port, p.username, p.password, p.family FROM proxy_registry p WHERE p.id = ?"
             )
             .get(apiKeyRow.proxy_id) as
-            | { type: string; host: string; port: number; username: string; password: string }
+            | {
+                type: string;
+                host: string;
+                port: number;
+                username: string;
+                password: string;
+                family?: string;
+              }
             | undefined;
           if (proxyRow) {
             const result = {
@@ -722,6 +742,7 @@ export async function resolveProxyForConnection(connectionId: string, apiKeyId?:
                 port: proxyRow.port,
                 username: proxyRow.username,
                 password: proxyRow.password,
+                family: typeof proxyRow.family === "string" ? proxyRow.family : "auto",
               },
               level: "apiKey" as const,
               levelId: apiKeyId,
@@ -746,7 +767,11 @@ export async function resolveProxyForConnection(connectionId: string, apiKeyId?:
 
   // Step 4: Legacy key-level
   if (connectionId && config.keys?.[connectionId]) {
-    const result = { proxy: config.keys[connectionId], level: "key", levelId: connectionId };
+    const result = {
+      proxy: withFamilyDefault(config.keys[connectionId]),
+      level: "key",
+      levelId: connectionId,
+    };
     cacheProxyResolution(cacheKey, startGeneration, startRegistryGeneration, result);
     return result;
   }
@@ -781,7 +806,11 @@ export async function resolveProxyForConnection(connectionId: string, apiKeyId?:
               (entry) => getComboModelProvider(entry) === connectionProvider
             );
             if (usesProvider) {
-              const result = { proxy: config.combos[comboId], level: "combo", levelId: comboId };
+              const result = {
+                proxy: withFamilyDefault(config.combos[comboId]),
+                level: "combo",
+                levelId: comboId,
+              };
               cacheProxyResolution(cacheKey, startGeneration, startRegistryGeneration, result);
               return result;
             }
@@ -795,7 +824,7 @@ export async function resolveProxyForConnection(connectionId: string, apiKeyId?:
     // Step 8: Legacy provider-level (only if proxy_enabled)
     if (connectionProvider && connectionProxyEnabled && config.providers?.[connectionProvider]) {
       const result = {
-        proxy: config.providers[connectionProvider],
+        proxy: withFamilyDefault(config.providers[connectionProvider]),
         level: "provider",
         levelId: connectionProvider,
       };
@@ -813,7 +842,7 @@ export async function resolveProxyForConnection(connectionId: string, apiKeyId?:
 
   // Step 10: Legacy global
   if (config.global) {
-    const result = { proxy: config.global, level: "global", levelId: null };
+    const result = { proxy: withFamilyDefault(config.global), level: "global", levelId: null };
     cacheProxyResolution(cacheKey, startGeneration, startRegistryGeneration, result);
     return result;
   }
@@ -823,8 +852,20 @@ export async function resolveProxyForConnection(connectionId: string, apiKeyId?:
     const { selectWorkingProxyFallback } = await import("@omniroute/open-sse/utils/proxyFallback");
     const fallback = await selectWorkingProxyFallback(connectionId);
     if (fallback) {
-      cacheProxyResolution(cacheKey, startGeneration, startRegistryGeneration, fallback);
-      return fallback;
+      // Auto-selected proxies are probed via a URL roundtrip that drops any
+      // per-registry family policy, so default the family marker to "auto"
+      // (no IPv6-only enforcement) when the fallback object omits it.
+      const normalizedFallback =
+        fallback.proxy && typeof fallback.proxy === "object"
+          ? { ...fallback, proxy: withFamilyDefault(fallback.proxy as ProxyValue) }
+          : fallback;
+      cacheProxyResolution(
+        cacheKey,
+        startGeneration,
+        startRegistryGeneration,
+        normalizedFallback as ProxyResolutionResult
+      );
+      return normalizedFallback;
     }
   } catch (err) {
     console.warn({ err, connectionId }, "Proxy fallback auto-selection failed");
