@@ -7,7 +7,12 @@ import { createHash } from "node:crypto";
 import { saveCallLog } from "@/lib/usage/callLogArtifacts.ts";
 import { streamWithTimeout } from "../../utils/stream.ts";
 import { ANTIGRAVITY_CONFIG } from "../../config/errorConfig.ts";
-import { storeChatGptImage, getChatGptImageConversationContext, __resetChatGptImageCacheForTesting, type ChatGptImageConversationContext } from "../../services/chatgptImageCache.ts";
+import {
+  storeChatGptImage,
+  getChatGptImageConversationContext,
+  __resetChatGptImageCacheForTesting,
+  type ChatGptImageConversationContext,
+} from "../../services/chatgptImageCache.ts";
 
 import { SESSION_URL, browserHeaders } from "./constants.ts";
 import { warmupCache } from "./warmup.ts";
@@ -168,7 +173,7 @@ export function buildSessionCookieHeader(rawInput: string): string {
   return `__Secure-next-auth.session-token=${s}`;
 }
 
-async export function exchangeSession(
+export async function exchangeSession(
   cookie: string,
   signal: AbortSignal | null | undefined
 ): Promise<TokenEntry> {

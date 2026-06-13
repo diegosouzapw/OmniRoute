@@ -7,7 +7,12 @@ import { createHash } from "node:crypto";
 import { saveCallLog } from "@/lib/usage/callLogArtifacts.ts";
 import { streamWithTimeout } from "../../utils/stream.ts";
 import { ANTIGRAVITY_CONFIG } from "../../config/errorConfig.ts";
-import { storeChatGptImage, getChatGptImageConversationContext, __resetChatGptImageCacheForTesting, type ChatGptImageConversationContext } from "../../services/chatgptImageCache.ts";
+import {
+  storeChatGptImage,
+  getChatGptImageConversationContext,
+  __resetChatGptImageCacheForTesting,
+  type ChatGptImageConversationContext,
+} from "../../services/chatgptImageCache.ts";
 
 import { ChatGptStreamEvent, extractImagePointers } from "./sse.ts";
 import { CHATGPT_BASE, browserHeaders, oaiHeaders } from "./constants.ts";
@@ -37,7 +42,7 @@ export function imageMarkdown(urls: string[]): string {
   return "\n\n" + urls.map((u) => `![image](${u})`).join("\n\n");
 }
 
-async export function resolveImagePointers(
+export async function resolveImagePointers(
   pointers: ImagePointerRef[] | undefined,
   conversationId: string | null,
   resolver: ImageResolver | null,
@@ -97,7 +102,10 @@ export interface ResolverContext {
   publicBaseUrl: string;
 }
 
-async export function fetchDownloadUrl(endpoint: string, ctx: ResolverContext): Promise<string | null> {
+export async function fetchDownloadUrl(
+  endpoint: string,
+  ctx: ResolverContext
+): Promise<string | null> {
   const headers: Record<string, string> = {
     ...browserHeaders(),
     ...oaiHeaders(ctx.sessionId, ctx.deviceId),
@@ -141,7 +149,7 @@ async export function fetchDownloadUrl(endpoint: string, ctx: ResolverContext): 
  */
 export const IMAGE_DOWNLOAD_MAX_BYTES = 8 * 1024 * 1024;
 
-async export function imageUrlToCachedImageUrl(
+export async function imageUrlToCachedImageUrl(
   signedUrl: string,
   ctx: ResolverContext,
   imageContext?: ChatGptImageConversationContext
@@ -244,7 +252,7 @@ async export function imageUrlToCachedImageUrl(
  *      OR a `message_stream_complete` for the conversation. Resolve when
  *      either pointer arrives or the timeout fires.
  */
-async export function registerWebSocket(ctx: ResolverContext): Promise<string | null> {
+export async function registerWebSocket(ctx: ResolverContext): Promise<string | null> {
   // chatgpt.com migrated from POST /backend-api/register-websocket to a
   // GET-only endpoint under /backend-api/celsius/ws/user. The response shape
   // also changed from `{ wss_url }` → `{ websocket_url }`. Newer codebases
@@ -315,7 +323,7 @@ export interface WsWaitOutcome {
   gotAnyMessage: boolean;
 }
 
-async export function waitForImageViaWebSocket(
+export async function waitForImageViaWebSocket(
   wssUrl: string,
   conversationId: string,
   timeoutMs: number,
@@ -448,7 +456,7 @@ export function configuredAsyncImageTimeoutMs(): number {
   return Math.floor(raw);
 }
 
-async export function pollForAsyncImage(
+export async function pollForAsyncImage(
   conversationId: string,
   ctx: ResolverContext,
   opts: { timeoutMs?: number } = {}

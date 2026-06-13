@@ -7,7 +7,12 @@ import { createHash } from "node:crypto";
 import { saveCallLog } from "@/lib/usage/callLogArtifacts.ts";
 import { streamWithTimeout } from "../../utils/stream.ts";
 import { ANTIGRAVITY_CONFIG } from "../../config/errorConfig.ts";
-import { storeChatGptImage, getChatGptImageConversationContext, __resetChatGptImageCacheForTesting, type ChatGptImageConversationContext } from "../../services/chatgptImageCache.ts";
+import {
+  storeChatGptImage,
+  getChatGptImageConversationContext,
+  __resetChatGptImageCacheForTesting,
+  type ChatGptImageConversationContext,
+} from "../../services/chatgptImageCache.ts";
 
 import { ImagePointerRef, ImageResolver, imageMarkdown, resolveImagePointers } from "./images.ts";
 import { sseChunk } from "./sse.ts";
@@ -299,7 +304,9 @@ export function buildStreamingResponse(
           );
           controller.enqueue(encoder.encode("data: [DONE]\n\n"));
         } finally {
-          try { controller.close(); } catch {}
+          try {
+            controller.close();
+          } catch {}
         }
       },
     },
@@ -307,7 +314,7 @@ export function buildStreamingResponse(
   );
 }
 
-async export function buildNonStreamingResponse(
+export async function buildNonStreamingResponse(
   eventStream: ReadableStream<Uint8Array>,
   model: string,
   cid: string,

@@ -7,9 +7,20 @@ import { createHash } from "node:crypto";
 import { saveCallLog } from "@/lib/usage/callLogArtifacts.ts";
 import { streamWithTimeout } from "../../utils/stream.ts";
 import { ANTIGRAVITY_CONFIG } from "../../config/errorConfig.ts";
-import { storeChatGptImage, getChatGptImageConversationContext, __resetChatGptImageCacheForTesting, type ChatGptImageConversationContext } from "../../services/chatgptImageCache.ts";
+import {
+  storeChatGptImage,
+  getChatGptImageConversationContext,
+  __resetChatGptImageCacheForTesting,
+  type ChatGptImageConversationContext,
+} from "../../services/chatgptImageCache.ts";
 
-import { CHATGPT_BASE, CHATGPT_USER_AGENT, OAI_CLIENT_VERSION, browserHeaders, oaiHeaders } from "./constants.ts";
+import {
+  CHATGPT_BASE,
+  CHATGPT_USER_AGENT,
+  OAI_CLIENT_VERSION,
+  browserHeaders,
+  oaiHeaders,
+} from "./constants.ts";
 import { buildSessionCookieHeader } from "./session.ts";
 
 export const SENTINEL_PREPARE_URL = `${CHATGPT_BASE}/backend-api/sentinel/chat-requirements/prepare`;
@@ -35,7 +46,7 @@ export interface ChatRequirements {
   };
 }
 
-async export function prepareChatRequirements(
+export async function prepareChatRequirements(
   accessToken: string,
   accountId: string | null,
   sessionId: string,
@@ -141,7 +152,7 @@ export let dplCache: DplInfo | null = null;
 
 export const DPL_TTL_MS = 60 * 60 * 1000;
 
-async export function fetchDpl(
+export async function fetchDpl(
   cookie: string,
   signal: AbortSignal | null | undefined
 ): Promise<{ dpl: string; scriptSrc: string }> {
@@ -281,7 +292,7 @@ export interface PowOptions {
   log?: { warn?: (tag: string, msg: string) => void } | null;
 }
 
-async export function solvePow(opts: PowOptions): Promise<string> {
+export async function solvePow(opts: PowOptions): Promise<string> {
   const cfg = [...opts.config];
   for (let i = 0; i < opts.maxIter; i++) {
     if (i > 0 && i % POW_YIELD_EVERY === 0) await yieldToEventLoop();
@@ -303,7 +314,7 @@ async export function solvePow(opts: PowOptions): Promise<string> {
   return `${opts.prefix}${b64}`;
 }
 
-async export function buildPrepareToken(
+export async function buildPrepareToken(
   config: unknown[],
   log?: { warn?: (tag: string, msg: string) => void } | null
 ): Promise<string> {
@@ -318,7 +329,7 @@ async export function buildPrepareToken(
   });
 }
 
-async export function solveProofOfWork(
+export async function solveProofOfWork(
   seed: string,
   difficulty: string,
   config: unknown[],

@@ -7,9 +7,20 @@ import { createHash } from "node:crypto";
 import { saveCallLog } from "@/lib/usage/callLogArtifacts.ts";
 import { streamWithTimeout } from "../../utils/stream.ts";
 import { ANTIGRAVITY_CONFIG } from "../../config/errorConfig.ts";
-import { storeChatGptImage, getChatGptImageConversationContext, __resetChatGptImageCacheForTesting, type ChatGptImageConversationContext } from "../../services/chatgptImageCache.ts";
+import {
+  storeChatGptImage,
+  getChatGptImageConversationContext,
+  __resetChatGptImageCacheForTesting,
+  type ChatGptImageConversationContext,
+} from "../../services/chatgptImageCache.ts";
 
-import { CHATGPT_BASE, MODEL_MAP, THINKING_CAPABLE_SLUGS, browserHeaders, oaiHeaders } from "./constants.ts";
+import {
+  CHATGPT_BASE,
+  MODEL_MAP,
+  THINKING_CAPABLE_SLUGS,
+  browserHeaders,
+  oaiHeaders,
+} from "./constants.ts";
 import { cookieKey, buildSessionCookieHeader } from "./session.ts";
 
 export const USER_LAST_USED_MODEL_CONFIG_URL = `${CHATGPT_BASE}/backend-api/settings/user_last_used_model_config`;
@@ -101,7 +112,7 @@ export function resolveThinkingEffort(
   return normalizeThinkingEffort(nested);
 }
 
-async export function setUserThinkingEffort(
+export async function setUserThinkingEffort(
   modelSlug: string,
   effort: "standard" | "extended",
   accessToken: string,
