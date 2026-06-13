@@ -1803,6 +1803,19 @@ paths:
         "200":
           description: Updated settings
 
+  /api/settings/purge-request-history:
+    post:
+      tags: [Settings]
+      summary: Clear request log history
+      description: Deletes `call_logs`, legacy `request_detail_logs`, and local request artifact files under `DATA_DIR/call_logs`.
+      security:
+        - ManagementSessionAuth: []
+      responses:
+        "200":
+          description: Request history cleared
+        "401":
+          description: Unauthorized
+
   /api/settings/compression:
     get:
       tags: [Compression]

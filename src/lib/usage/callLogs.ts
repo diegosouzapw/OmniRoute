@@ -28,6 +28,7 @@ import {
   cleanupEmptyCallLogDirs,
   deleteCallArtifact,
   listCallLogArtifactFiles,
+  purgeCallLogArtifactDirectory,
   readCallArtifact,
   writeCallArtifact,
   type CallLogArtifact,
@@ -506,6 +507,17 @@ export function deleteCallLogsBefore(cutoff: string): DeleteResult {
   return deleteCallLogRowsByIds(ids);
 }
 
+export function deleteAllCallLogs(): DeleteResult {
+  const db = getDbInstance();
+  const result = db.prepare("DELETE FROM call_logs").run();
+  const deletedArtifacts = purgeCallLogArtifactDirectory();
+
+  return {
+    deletedRows: result.changes,
+    deletedArtifacts,
+  };
+}
+
 export function trimCallLogsToMaxRows(maxRows = getCallLogsTableMaxRows()) {
   if (!Number.isInteger(maxRows) || maxRows < 1) {
     return { deletedRows: 0, deletedArtifacts: 0 };
@@ -899,7 +911,7 @@ export async function getCallLogById(id: string) {
         error: artifactResult.artifact.error ?? entry.error,
         pipelinePayloads: artifactResult.artifact.pipeline ?? buildLegacyPipelinePayloads(id),
         hasPipelineDetails: Boolean(artifactResult.artifact.pipeline) || entry.hasPipelineDetails,
-        active: false
+        active: false,
       };
     }
 
@@ -923,7 +935,7 @@ export async function getCallLogById(id: string) {
         ...legacyInline,
         pipelinePayloads: legacyPipeline,
         hasPipelineDetails: Boolean(legacyPipeline) || entry.hasPipelineDetails,
-        active: false
+        active: false,
       };
     }
   }
@@ -940,7 +952,7 @@ export async function getCallLogById(id: string) {
       error: legacyDisk.error ?? entry.error,
       pipelinePayloads: legacyPipeline,
       hasPipelineDetails: Boolean(legacyPipeline) || entry.hasPipelineDetails,
-      active: false
+      active: false,
     };
   }
 
@@ -954,7 +966,7 @@ export async function getCallLogById(id: string) {
     error: entry.error,
     pipelinePayloads: legacyPipeline,
     hasPipelineDetails: Boolean(legacyPipeline) || entry.hasPipelineDetails,
-    active: false
+    active: false,
   };
 }
 

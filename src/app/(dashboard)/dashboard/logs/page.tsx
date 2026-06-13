@@ -34,7 +34,8 @@ export default function LogsPage() {
   }, []);
 
   // initial id from URL (synchronously on client) so child can open on mount
-  const initialId = typeof window !== "undefined" ? new URL(window.location.href).searchParams.get("id") : null;
+  const initialId =
+    typeof window !== "undefined" ? new URL(window.location.href).searchParams.get("id") : null;
 
   async function handleExport(hours: number) {
     setExporting(true);
@@ -64,7 +65,7 @@ export default function LogsPage() {
     setShowCleanHistory(false);
     setCleanHistoryStatus(null);
     try {
-      const res = await fetch("/api/settings/purge-logs", { method: "POST" });
+      const res = await fetch("/api/settings/purge-request-history", { method: "POST" });
       const data = await res.json().catch(() => null);
 
       if (!res.ok) {
@@ -72,14 +73,17 @@ export default function LogsPage() {
       }
 
       const deleted = typeof data?.deleted === "number" ? data.deleted : 0;
-      const deletedArtifacts = typeof data?.deletedArtifacts === "number" ? data.deletedArtifacts : 0;
+      const deletedArtifacts =
+        typeof data?.deletedArtifacts === "number" ? data.deletedArtifacts : 0;
+      const deletedDetailedLogs =
+        typeof data?.deletedDetailedLogs === "number" ? data.deletedDetailedLogs : 0;
       setRequestLogKey((key) => key + 1);
       setCleanHistoryStatus(
-        deleted || deletedArtifacts
-          ? `Cleaned ${deleted} log entr${deleted === 1 ? "y" : "ies"} and ${deletedArtifacts} artifact${
+        deleted || deletedArtifacts || deletedDetailedLogs
+          ? `Cleaned ${deleted} log entr${deleted === 1 ? "y" : "ies"}, ${deletedArtifacts} artifact${
               deletedArtifacts === 1 ? "" : "s"
-            }.`
-          : "No expired log history needed cleanup."
+            }, and ${deletedDetailedLogs} legacy detail row${deletedDetailedLogs === 1 ? "" : "s"}.`
+          : "No request log history was found."
       );
     } catch (err) {
       console.error("Failed to clean log history", err);
@@ -196,7 +200,7 @@ export default function LogsPage() {
         onClose={() => setShowCleanHistory(false)}
         onConfirm={handleCleanHistory}
         title="Clean log history?"
-        message="This clears expired log history and prunes related artifacts using the current retention policy. The live page will refresh after cleanup."
+        message="This permanently clears all request log rows, legacy detail rows, and local artifact files under DATA_DIR/call_logs. The live page will refresh after cleanup."
         confirmText="Clean history"
         cancelText="Cancel"
         loading={cleaningHistory}

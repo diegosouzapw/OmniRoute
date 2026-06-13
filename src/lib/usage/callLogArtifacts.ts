@@ -307,3 +307,17 @@ export function listCallLogArtifactFiles(baseDir = CALL_LOGS_DIR) {
     })
     .sort((a, b) => b.mtimeMs - a.mtimeMs);
 }
+
+export function purgeCallLogArtifactDirectory(baseDir = CALL_LOGS_DIR) {
+  if (!baseDir || !fs.existsSync(baseDir)) return 0;
+
+  let deletedArtifacts = 0;
+  try {
+    deletedArtifacts = listCallLogArtifactFiles(baseDir).length;
+  } catch {
+    deletedArtifacts = 0;
+  }
+
+  fs.rmSync(baseDir, { recursive: true, force: true });
+  return deletedArtifacts;
+}

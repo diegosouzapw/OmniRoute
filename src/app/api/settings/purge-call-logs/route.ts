@@ -10,6 +10,7 @@ export async function POST(request: Request) {
     const result = await purgeCallLogs();
     return NextResponse.json({
       deleted: result.deleted,
+      deletedArtifacts: result.deletedArtifacts ?? 0,
       errors: result.errors,
     });
   } catch (err: unknown) {
