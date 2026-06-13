@@ -4,6 +4,14 @@
 
 ---
 
+## [3.8.24] — TBD
+
+### 🐛 Fixed
+
+- fix(cli): `ServerSupervisor.handleExit` now coerces the exit code to a number before calling `process.exit()` — Node.js v24 throws `TypeError [ERR_INVALID_ARG_TYPE]` when `process.exit()` receives a string (e.g. `'ENOENT'` from a spawn `error` event's `err.code`). The `error` callback also now passes `-1` instead of the raw `err.code`, which is an OS error string rather than a meaningful exit code. ([#3748](https://github.com/diegosouzapw/OmniRoute/issues/3748))
+
+---
+
 ## [3.8.23] — TBD
 
 ### ✨ New Features
