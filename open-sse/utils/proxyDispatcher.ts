@@ -2,7 +2,8 @@ import "./setupPolyfill.ts";
 import { Agent, ProxyAgent, type Dispatcher } from "undici";
 import { socksDispatcher } from "fetch-socks";
 import { getUpstreamTimeoutConfig } from "@/shared/utils/runtimeTimeouts";
-import { stripIpv6Brackets } from "./proxyFamily.ts";
+import { stripIpv6Brackets, detectIpLiteralFamily, parseProxyFamily } from "./proxyFamily.ts";
+import { createSocksDispatcherWithFamily } from "./socksConnectorWithFamily.ts";
 
 const DISPATCHER_CACHE_KEY = Symbol.for("omniroute.proxyDispatcher.cache");
 const DEFAULT_DISPATCHER_KEY = Symbol.for("omniroute.proxyDispatcher.default");
@@ -26,6 +27,7 @@ type ProxyConfigObject = {
   port?: string | number | null;
   username?: string;
   password?: string;
+  family?: string;
 };
 
 function getDispatcherCache(): DispatcherCache {
@@ -193,7 +195,11 @@ export function normalizeProxyUrl(
 
   // Build the URL string manually instead of using parsed.toString(),
   // which would strip default ports (80/443) and break the proxy connection.
-  return buildProxyUrlString(parsed, port);
+  // Preserve a synthetic `?family=` directive (the only query param we emit)
+  // so the connect-family pin survives normalization and reaches the dispatcher.
+  const fam = parseProxyFamily(parsed.searchParams.get("family") ?? undefined);
+  const base = buildProxyUrlString(parsed, port);
+  return fam === "auto" ? base : `${base}?family=${fam}`;
 }
 
 export function buildVercelRelayHeaders(
@@ -254,7 +260,28 @@ export function proxyConfigToUrl(
 
   const proxyUrlStr = `${type}://${auth}${config.host}:${port}`;
 
-  return normalizeProxyUrl(proxyUrlStr, "context proxy", { allowSocks5 });
+  const fam = parseProxyFamily(config.family);
+  const normalized = normalizeProxyUrl(proxyUrlStr, "context proxy", { allowSocks5 });
+  return fam === "auto" ? normalized : `${normalized}?family=${fam}`;
+}
+
+/** Resolve the concrete connect family for a proxy URL, fail-closed on contradictions. */
+function resolveDispatcherFamily(parsed: URL): 4 | 6 | null {
+  const directive = parseProxyFamily(parsed.searchParams.get("family") ?? undefined);
+  const literal = detectIpLiteralFamily(parsed.hostname);
+  if (directive === "auto") return literal;
+  const want = directive === "ipv6" ? 6 : 4;
+  if (literal !== null && literal !== want) {
+    throw new Error(
+      `[ProxyDispatcher] Proxy family directive ${directive} contradicts ${literal === 6 ? "IPv6" : "IPv4"} literal host`
+    );
+  }
+  return want;
+}
+
+/** Test-only accessor for the resolved family. */
+export function __resolveDispatcherFamilyForTest(proxyUrl: string): 4 | 6 | null {
+  return resolveDispatcherFamily(new URL(proxyUrl));
 }
 
 export function createProxyDispatcher(proxyUrl: string): Dispatcher {
@@ -266,7 +293,10 @@ export function createProxyDispatcher(proxyUrl: string): Dispatcher {
   if (dispatcher) return dispatcher;
 
   const parsed = new URL(normalizedUrl);
-  const explicitPort = extractExplicitPort(normalizedUrl);
+  const family = resolveDispatcherFamily(parsed);
+  parsed.searchParams.delete("family");
+  const cleanUri = normalizedUrl.replace(/\?family=(ipv4|ipv6)$/, "");
+  const explicitPort = extractExplicitPort(cleanUri);
   const port = explicitPort || normalizePort(parsed.port, parsed.protocol);
 
   if (parsed.protocol === "socks5:") {
@@ -277,14 +307,27 @@ export function createProxyDispatcher(proxyUrl: string): Dispatcher {
     };
     if (parsed.username) socksOptions.userId = decodeURIComponent(parsed.username);
     if (parsed.password) socksOptions.password = decodeURIComponent(parsed.password);
-    dispatcher = socksDispatcher(
-      socksOptions as Parameters<typeof socksDispatcher>[0],
-      proxyDispatcherOptions
-    ) as Dispatcher;
+    dispatcher =
+      family === null
+        ? (socksDispatcher(
+            socksOptions as Parameters<typeof socksDispatcher>[0],
+            proxyDispatcherOptions
+          ) as Dispatcher)
+        : createSocksDispatcherWithFamily(
+            socksOptions as unknown as Parameters<typeof createSocksDispatcherWithFamily>[0],
+            family,
+            proxyDispatcherOptions
+          );
   } else {
+    // ProxyAgent omits `connect`; the client->proxy socket is built from `proxyTls`.
+    // undici types `proxyTls` as full TcpNetConnectOpts (requires `port`), but it
+    // merges these into net.connect at runtime, so a partial family pin is valid.
     dispatcher = new ProxyAgent({
-      uri: normalizedUrl,
+      uri: cleanUri,
       ...proxyDispatcherOptions,
+      ...(family !== null
+        ? { proxyTls: { family, autoSelectFamily: false } as ProxyAgent.Options["proxyTls"] }
+        : {}),
     });
   }
 
@@ -296,6 +339,7 @@ export function createProxyDispatcher(proxyUrl: string): Dispatcher {
 export function __getSocksOptionsForTest(proxyUrl: string): SocksDispatcherOptions {
   const normalizedUrl = normalizeProxyUrl(proxyUrl, "proxy dispatcher");
   const parsed = new URL(normalizedUrl);
+  parsed.searchParams.delete("family");
   const explicitPort = extractExplicitPort(normalizedUrl);
   const port = explicitPort || normalizePort(parsed.port, parsed.protocol);
   const socksOptions: SocksDispatcherOptions = {
