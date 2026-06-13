@@ -32,13 +32,13 @@ const {
 // Test group 1 — Flag definitions registry
 // ──────────────────────────────────────────────────────
 describe("featureFlagDefinitions", () => {
-  it("has exactly 30 flag definitions", () => {
-    assert.strictEqual(FEATURE_FLAG_DEFINITIONS.length, 30);
+  it("has exactly 31 flag definitions", () => {
+    assert.strictEqual(FEATURE_FLAG_DEFINITIONS.length, 31);
   });
 
   it("has unique keys for all flags", () => {
     const keys = FEATURE_FLAG_DEFINITIONS.map((d) => d.key);
-    assert.strictEqual(new Set(keys).size, 30);
+    assert.strictEqual(new Set(keys).size, 31);
   });
 
   it("has valid categories for all flags", () => {
@@ -90,6 +90,15 @@ describe("featureFlagDefinitions", () => {
   it("defines model catalog names as a runtime boolean flag enabled by default", () => {
     const def = FEATURE_FLAG_DEFINITIONS.find((d) => d.key === "MODEL_CATALOG_INCLUDE_NAMES");
     assert.ok(def, "MODEL_CATALOG_INCLUDE_NAMES should exist");
+    assert.strictEqual(def.category, "runtime");
+    assert.strictEqual(def.type, "boolean");
+    assert.strictEqual(def.defaultValue, "true");
+    assert.strictEqual(def.requiresRestart, false);
+  });
+
+  it("defines emergency fallback as a runtime boolean flag enabled by default", () => {
+    const def = FEATURE_FLAG_DEFINITIONS.find((d) => d.key === "OMNIROUTE_EMERGENCY_FALLBACK");
+    assert.ok(def, "OMNIROUTE_EMERGENCY_FALLBACK should exist");
     assert.strictEqual(def.category, "runtime");
     assert.strictEqual(def.type, "boolean");
     assert.strictEqual(def.defaultValue, "true");
@@ -232,9 +241,9 @@ describe("resolveFeatureFlag", () => {
   });
 
   describe("resolveAllFeatureFlags", () => {
-    it("returns all 30 flags", () => {
+    it("returns all 31 flags", () => {
       const all = resolveAllFeatureFlags();
-      assert.strictEqual(all.length, 30);
+      assert.strictEqual(all.length, 31);
     });
 
     it("marks DB-overridden flags with source 'db'", () => {

@@ -11,6 +11,8 @@ process.env.DISABLE_SQLITE_AUTO_BACKUP = "true";
 const core = await import("../../src/lib/db/core.ts");
 const databaseSettings = await import("../../src/lib/db/databaseSettings.ts");
 const databaseSettingsRoute = await import("../../src/app/api/settings/database/route.ts");
+const purgeRequestHistoryRoute =
+  await import("../../src/app/api/settings/purge-request-history/route.ts");
 const settingsDb = await import("../../src/lib/db/settings.ts");
 const cleanup = await import("../../src/lib/db/cleanup.ts");
 const aggregateHistory = await import("../../src/lib/usage/aggregateHistory.ts");
@@ -38,6 +40,31 @@ function makeJsonRequest(method: string, body?: unknown): Request {
     headers: { "Content-Type": "application/json" },
     body: body === undefined ? undefined : JSON.stringify(body),
   });
+}
+
+function insertCallLog(id: string, artifactRelPath: string | null = null) {
+  const db = core.getDbInstance();
+  db.prepare(
+    `
+      INSERT INTO call_logs (id, timestamp, method, path, status, detail_state, artifact_relpath)
+      VALUES (?, ?, ?, ?, ?, ?, ?)
+    `
+  ).run(
+    id,
+    "2026-06-01T12:00:00.000Z",
+    "POST",
+    "/v1/chat/completions",
+    200,
+    artifactRelPath ? "ready" : "none",
+    artifactRelPath
+  );
+}
+
+function writeCallLogArtifact(relativePath: string) {
+  const absolutePath = path.join(TEST_DATA_DIR, "call_logs", relativePath);
+  fs.mkdirSync(path.dirname(absolutePath), { recursive: true });
+  fs.writeFileSync(absolutePath, JSON.stringify({ relativePath }), "utf8");
+  return absolutePath;
 }
 
 test.beforeEach(() => {
@@ -140,6 +167,51 @@ test("purgeDetailedLogs deletes request_detail_logs", async () => {
     (db.prepare("SELECT COUNT(*) AS count FROM request_detail_logs").get() as CountRow).count,
     0
   );
+});
+
+test("purgeCallLogs deletes summary rows and local request artifacts", async () => {
+  const db = core.getDbInstance();
+  const artifactPath = writeCallLogArtifact("2026-06-01/request-1.json");
+  const orphanPath = writeCallLogArtifact("2026-06-02/orphan.json");
+  insertCallLog("call-1", "2026-06-01/request-1.json");
+
+  const result = await cleanup.purgeCallLogs();
+
+  assert.equal(result.errors, 0);
+  assert.equal(result.deleted, 1);
+  assert.equal(result.deletedArtifacts, 2);
+  assert.equal((db.prepare("SELECT COUNT(*) AS count FROM call_logs").get() as CountRow).count, 0);
+  assert.equal(fs.existsSync(artifactPath), false);
+  assert.equal(fs.existsSync(orphanPath), false);
+  assert.equal(fs.existsSync(path.join(TEST_DATA_DIR, "call_logs")), false);
+});
+
+test("purge request history route clears call logs, artifacts, and legacy detail rows", async () => {
+  const db = core.getDbInstance();
+  const artifactPath = writeCallLogArtifact("2026-06-01/request-route.json");
+  insertCallLog("call-route", "2026-06-01/request-route.json");
+  db.prepare("INSERT INTO request_detail_logs (id, timestamp, duration_ms) VALUES (?, ?, ?)").run(
+    "detail-route",
+    "2026-06-01T12:00:01.000Z",
+    25
+  );
+
+  const response = await purgeRequestHistoryRoute.POST(
+    new Request("http://localhost/api/settings/purge-request-history", { method: "POST" })
+  );
+  const body = await response.json();
+
+  assert.equal(response.status, 200);
+  assert.equal(body.deleted, 1);
+  assert.equal(body.deletedArtifacts, 1);
+  assert.equal(body.deletedDetailedLogs, 1);
+  assert.equal(body.errors, 0);
+  assert.equal((db.prepare("SELECT COUNT(*) AS count FROM call_logs").get() as CountRow).count, 0);
+  assert.equal(
+    (db.prepare("SELECT COUNT(*) AS count FROM request_detail_logs").get() as CountRow).count,
+    0
+  );
+  assert.equal(fs.existsSync(artifactPath), false);
 });
 
 test("usage aggregation upserts replace recomputed totals instead of adding them twice", async () => {
