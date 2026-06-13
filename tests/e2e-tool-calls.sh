@@ -113,7 +113,7 @@ JSON
 
 assembled_args=$(awk '/^data: / { sub(/^data: /, ""); if ($0 != "[DONE]") print }' \
   <<<"$stream_output" \
-  | jq -sr '[.[].choices[0].delta.tool_calls[0].function.arguments // empty] | join("")' \
+  | jq -sr '[.[].choices[0].delta.tool_calls?.[0]?.function?.arguments // empty] | join("")' \
   2>/dev/null || true)
 
 if [[ -z "$assembled_args" || "$assembled_args" == '""' ]]; then

@@ -7,9 +7,15 @@ export function appendToolCallArgumentDelta(current: unknown, incoming: unknown)
   if (next.startsWith(existing)) return next;
 
   const maxOverlap = Math.min(existing.length, next.length);
-  for (let size = maxOverlap; size > 0; size -= 1) {
-    if (existing.endsWith(next.slice(0, size))) {
-      return existing + next.slice(size);
+  const firstChar = next[0];
+  const startIdx = existing.length - maxOverlap;
+
+  for (let i = startIdx; i < existing.length; i++) {
+    if (existing[i] === firstChar) {
+      const overlapLength = existing.length - i;
+      if (existing.endsWith(next.slice(0, overlapLength))) {
+        return existing + next.slice(overlapLength);
+      }
     }
   }
 
