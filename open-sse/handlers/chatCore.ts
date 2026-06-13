@@ -2292,6 +2292,7 @@ export async function handleChatCore({
     startTime,
     log,
     persistAttemptLogs,
+    apiKeyId: apiKeyInfo?.id ?? undefined,
   });
   if (cacheHit) {
     return cacheHit;
@@ -5186,7 +5187,8 @@ export async function handleChatCore({
         model,
         body.messages ?? body.input,
         body.temperature,
-        body.top_p
+        body.top_p,
+        apiKeyInfo?.id ?? undefined
       );
       const tokensSaved = usage?.prompt_tokens + usage?.completion_tokens || 0;
       setCachedResponse(signature, model, translatedResponse, tokensSaved);
@@ -5580,7 +5582,8 @@ export async function handleChatCore({
           model,
           body.messages ?? body.input,
           body.temperature,
-          body.top_p
+          body.top_p,
+          apiKeyInfo?.id ?? undefined
         );
         const u = streamUsage as Record<string, unknown> | null;
         const tokensSaved =

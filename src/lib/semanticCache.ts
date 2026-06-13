@@ -113,14 +113,16 @@ function getMemoryCache() {
  * @param {Array} messages - Normalized messages array
  * @param {number} temperature
  * @param {number} topP
+ * @param {string} [apiKeyId] - API key ID for per-key isolation (prevents cross-user cache hits)
  * @returns {string} hex signature
  */
-export function generateSignature(model, conversation, temperature = 0, topP = 1) {
+export function generateSignature(model, conversation, temperature = 0, topP = 1, apiKeyId?: string) {
   const payload = JSON.stringify({
     model,
     messages: normalizeConversation(conversation),
     temperature,
     top_p: topP,
+    ...(apiKeyId ? { api_key_id: apiKeyId } : {}),
   });
   return crypto.createHash("sha256").update(payload).digest("hex");
 }

@@ -23,6 +23,7 @@ export async function checkSemanticCache({
   startTime,
   log,
   persistAttemptLogs,
+  apiKeyId,
 }: {
   semanticCacheEnabled: boolean;
   body: Record<string, unknown>;
@@ -36,13 +37,15 @@ export async function checkSemanticCache({
   startTime: number;
   log: unknown;
   persistAttemptLogs: (args: unknown) => void;
+  apiKeyId?: string | null;
 }) {
   if (semanticCacheEnabled && isCacheableForRead(body, clientRawRequest?.headers)) {
     const signature = generateSignature(
       model,
       body.messages ?? body.input,
       body.temperature,
-      body.top_p
+      body.top_p,
+      apiKeyId ?? undefined
     );
     const cached = getCachedResponse(signature);
     if (cached) {
