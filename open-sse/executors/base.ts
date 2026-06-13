@@ -22,10 +22,14 @@ import { signRequestBody } from "../services/claudeCodeCCH.ts";
 import {
   appendAnthropicBetaHeader,
   CONTEXT_1M_BETA_HEADER,
+  enforceThinkingTemperature,
   modelSupportsContext1mBeta,
 } from "../services/claudeCodeCompatible.ts";
 import { getClaudeCodeCompatibleRequestDefaults } from "@/lib/providers/requestDefaults";
-import { cloakThirdPartyToolNames, remapToolNamesInRequest } from "../services/claudeCodeToolRemapper.ts";
+import {
+  cloakThirdPartyToolNames,
+  remapToolNamesInRequest,
+} from "../services/claudeCodeToolRemapper.ts";
 import { obfuscateInBody } from "../services/claudeCodeObfuscation.ts";
 import { sanitizeClaudeToolSchemas } from "../translator/helpers/schemaCoercion.ts";
 import { sanitizeResponsesInputItems } from "../services/responsesInputSanitizer.ts";
@@ -1111,6 +1115,18 @@ export class BaseExecutor {
             tb.messages = stripTrailingAssistantForProvider(stripped, this.provider);
           }
         }
+
+        // Anthropic's extended-thinking contract forbids non-default sampling
+        // params: temperature must be 1 and top_p >= 0.95 (or unset) whenever
+        // thinking is enabled/adaptive. Thinking can be injected by per-model
+        // requestDefaults *after* the translator/constraint passes, so normalize
+        // at this final dispatch point — the single chokepoint every Claude
+        // routing mode (grouped/raw/combo) and the native passthrough share,
+        // before fingerprinting and CCH signing serialize the body.
+        if (this.provider === "claude" || isClaudeCodeCompatible(this.provider)) {
+          enforceThinkingTemperature(transformedBody as Record<string, unknown>);
+        }
+
         let bodyString = JSON.stringify(transformedBody);
 
         const shouldFingerprint =
