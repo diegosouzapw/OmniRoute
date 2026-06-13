@@ -52,7 +52,7 @@ import {
   WEB_COOKIE_PROVIDERS,
 } from "@/shared/constants/providers";
 import { isModelExcludedByConnection } from "@/domain/connectionModelRules";
-import * as log from "../utils/logger";
+import * as log from "../../utils/logger";
 import { fisherYatesShuffle, getNextFromDeckSync } from "@/shared/utils/shuffleDeck";
 import crypto from "node:crypto";
 
@@ -362,6 +362,9 @@ export async function markAccountUnavailable(
       await updateProviderConnection(connectionId, {
         ...baseUpdate,
       });
+      if (provider && model && cooldownMs > 0) {
+        lockModel(provider, connectionId, model, reason || "unknown", cooldownMs);
+      }
     } else if (cooldownMs > 0) {
       await updateProviderConnection(connectionId, {
         ...baseUpdate,

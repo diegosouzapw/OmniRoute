@@ -14,7 +14,7 @@ const settingsDb = await import("../../src/lib/db/settings.ts");
 const apiKeysDb = await import("../../src/lib/db/apiKeys.ts");
 const auth = await import("../../src/sse/services/auth.ts");
 const quotaCache = await import("../../src/domain/quotaCache.ts");
-const fallback = await import("../../open-sse/services/accountFallback.ts");
+const fallback = await import("@omniroute/open-sse/services/accountFallback.ts");
 
 async function resetStorage() {
   core.resetDbInstance();
@@ -1501,15 +1501,9 @@ test("markAccountUnavailable persists in-memory model lockout for combo transien
 
   assert.equal(fallback.isModelLocked("openai", connId, model), false);
 
-  await auth.markAccountUnavailable(
-    connId,
-    429,
-    "Rate limit exceeded",
-    "openai",
-    model,
-    null,
-    { persistUnavailableState: false }
-  );
+  await auth.markAccountUnavailable(connId, 429, "Rate limit exceeded", "openai", model, null, {
+    persistUnavailableState: false,
+  });
 
   assert.equal(fallback.isModelLocked("openai", connId, model), true);
 
@@ -1518,7 +1512,7 @@ test("markAccountUnavailable persists in-memory model lockout for combo transien
   const otherConn = await seedConnection("openai", {
     name: "other-conn",
   });
-  assert.equal(fallback.isModelLocked("openai", (otherConn.id as string), model), false);
+  assert.equal(fallback.isModelLocked("openai", otherConn.id as string, model), false);
 
   const updated = await providersDb.getProviderConnectionById(connId);
   assert.equal(updated.rateLimitedUntil == null, true);

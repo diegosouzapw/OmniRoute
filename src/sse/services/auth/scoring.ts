@@ -52,7 +52,7 @@ import {
   WEB_COOKIE_PROVIDERS,
 } from "@/shared/constants/providers";
 import { isModelExcludedByConnection } from "@/domain/connectionModelRules";
-import * as log from "../utils/logger";
+import * as log from "../../utils/logger";
 import { fisherYatesShuffle, getNextFromDeckSync } from "@/shared/utils/shuffleDeck";
 import crypto from "node:crypto";
 
@@ -60,7 +60,12 @@ import { normalizeStatus } from "./connectionStatus.ts";
 import { toStringOrNull, toNumber } from "./utils.ts";
 import { ProviderConnectionView } from "./types.ts";
 import { formatSessionKeyForLog } from "./sessionAffinity.ts";
-import { QuotaCacheView, normalizeWindowName, resolveQuotaLimitPolicy, evaluateQuotaLimitPolicy } from "./quotaLimits.ts";
+import {
+  QuotaCacheView,
+  normalizeWindowName,
+  resolveQuotaLimitPolicy,
+  evaluateQuotaLimitPolicy,
+} from "./quotaLimits.ts";
 
 export function getConnectionQuotaHeadroomPercent(
   provider: string,
@@ -196,7 +201,10 @@ export function compareP2CConnections(
   return a.id.localeCompare(b.id);
 }
 
-export function compareLruConnections(a: ProviderConnectionView, b: ProviderConnectionView): number {
+export function compareLruConnections(
+  a: ProviderConnectionView,
+  b: ProviderConnectionView
+): number {
   if (!a.lastUsedAt && !b.lastUsedAt) return (a.priority || 999) - (b.priority || 999);
   if (!a.lastUsedAt) return -1;
   if (!b.lastUsedAt) return 1;

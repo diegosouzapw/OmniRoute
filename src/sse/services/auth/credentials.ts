@@ -52,18 +52,38 @@ import {
   WEB_COOKIE_PROVIDERS,
 } from "@/shared/constants/providers";
 import { isModelExcludedByConnection } from "@/domain/connectionModelRules";
-import * as log from "../utils/logger";
+import * as log from "../../utils/logger";
 import { fisherYatesShuffle, getNextFromDeckSync } from "@/shared/utils/shuffleDeck";
 import crypto from "node:crypto";
 
 import { compareP2CConnections, selectSessionAffinityConnection } from "./scoring.ts";
-import { normalizeStatus, isTerminalConnectionStatus, parseFutureDateMs, getEarliestFutureDate, isRetryableModelLockoutReason } from "./connectionStatus.ts";
-import { asRecord, toNumber, toProviderConnection, normalizeExcludedConnectionIds, buildQuotaPreflightRateLimitedResult } from "./utils.ts";
-import { ProviderConnectionView, CredentialSelectionOptions, CooldownInspectionState } from "./types.ts";
+import {
+  normalizeStatus,
+  isTerminalConnectionStatus,
+  parseFutureDateMs,
+  getEarliestFutureDate,
+  isRetryableModelLockoutReason,
+} from "./connectionStatus.ts";
+import {
+  asRecord,
+  toNumber,
+  toProviderConnection,
+  normalizeExcludedConnectionIds,
+  buildQuotaPreflightRateLimitedResult,
+} from "./utils.ts";
+import {
+  ProviderConnectionView,
+  CredentialSelectionOptions,
+  CooldownInspectionState,
+} from "./types.ts";
 import { getSelectionMutexKey, createSelectionLock } from "./selectionLocks.ts";
 import { maybeSyntheticNoAuthFallback } from "./syntheticFallback.ts";
 import { formatSessionKeyForLog } from "./sessionAffinity.ts";
-import { getCodexScopeRateLimitedUntil, isCodexScopeUnavailable, evaluateQuotaLimitPolicy } from "./quotaLimits.ts";
+import {
+  getCodexScopeRateLimitedUntil,
+  isCodexScopeUnavailable,
+  evaluateQuotaLimitPolicy,
+} from "./quotaLimits.ts";
 
 /**
  * Resolve provider aliases (e.g., nvidia -> nvidia_nim) for DB lookup
