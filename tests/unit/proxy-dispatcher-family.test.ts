@@ -4,6 +4,7 @@ import {
   __getSocksOptionsForTest,
   __resolveDispatcherFamilyForTest,
   proxyConfigToUrl,
+  normalizeProxyUrl,
   clearDispatcherCache,
 } from "../../open-sse/utils/proxyDispatcher.ts";
 
@@ -36,5 +37,19 @@ describe("proxyDispatcher family directive", () => {
   });
   it("throws (fail-closed) when family=ipv6 contradicts a v4 literal", () => {
     assert.throws(() => __resolveDispatcherFamilyForTest("http://203.0.113.7:8080?family=ipv6"), /family/i);
+  });
+});
+
+describe("proxyDispatcher family marker does not corrupt port", () => {
+  it("preserves port 80 for an http proxy with a family directive", () => {
+    const url = proxyConfigToUrl({ type: "http", host: "203.0.113.7", port: 80, family: "ipv6" });
+    assert.ok(url!.includes("203.0.113.7:80"), `expected :80 to survive, got ${url}`);
+    assert.ok(!url!.includes(":8080"), `port must not be rewritten to 8080, got ${url}`);
+  });
+  it("normalizeProxyUrl keeps :80 when a family marker is present", () => {
+    const out = normalizeProxyUrl("http://203.0.113.7:80?family=ipv6", "test");
+    assert.ok(out.includes("203.0.113.7:80"), out);
+    assert.ok(!out.includes(":8080"), out);
+    assert.ok(out.endsWith("?family=ipv6"), out);
   });
 });

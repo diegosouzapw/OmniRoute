@@ -164,14 +164,24 @@ export function normalizeProxyUrl(
   source = "proxy",
   { allowSocks5 = isSocks5ProxyEnabled() } = {}
 ): string {
+  // Strip a trailing synthetic `?family=ipv4|ipv6` marker BEFORE anything else.
+  // `extractExplicitPort` slices the authority off the raw string, so a marker
+  // turns the port substring into e.g. `80?family=ipv6`, which fails the digit
+  // test and silently falls back to the default port (8080 for http) — rewriting
+  // an http:80 proxy to :8080. We work on the marker-free string for both port
+  // extraction and URL parsing, then re-append the marker exactly once below.
+  const familyMatch = proxyUrl.match(/\?family=(ipv4|ipv6)$/);
+  const familySuffix = familyMatch ? familyMatch[0] : "";
+  const baseUrl = familySuffix ? proxyUrl.slice(0, -familySuffix.length) : proxyUrl;
+
   // Extract the explicit port from the raw URL string BEFORE parsing,
   // because `new URL()` silently strips default ports (80 for http,
   // 443 for https), which are valid and common for proxy servers.
-  const explicitPort = extractExplicitPort(proxyUrl);
+  const explicitPort = extractExplicitPort(baseUrl);
 
   let parsed;
   try {
-    parsed = new URL(proxyUrl);
+    parsed = new URL(baseUrl);
   } catch {
     throw new Error(`[ProxyDispatcher] Invalid ${source} URL`);
   }
@@ -197,7 +207,11 @@ export function normalizeProxyUrl(
   // which would strip default ports (80/443) and break the proxy connection.
   // Preserve a synthetic `?family=` directive (the only query param we emit)
   // so the connect-family pin survives normalization and reaches the dispatcher.
-  const fam = parseProxyFamily(parsed.searchParams.get("family") ?? undefined);
+  // The directive may arrive either as the stripped trailing marker (familySuffix)
+  // or as an inline query on `baseUrl`; resolve both, append the marker once.
+  const fam = parseProxyFamily(
+    (familyMatch ? familyMatch[1] : parsed.searchParams.get("family")) ?? undefined
+  );
   const base = buildProxyUrlString(parsed, port);
   return fam === "auto" ? base : `${base}?family=${fam}`;
 }
@@ -320,8 +334,11 @@ export function createProxyDispatcher(proxyUrl: string): Dispatcher {
           );
   } else {
     // ProxyAgent omits `connect`; the client->proxy socket is built from `proxyTls`.
-    // undici types `proxyTls` as full TcpNetConnectOpts (requires `port`), but it
-    // merges these into net.connect at runtime, so a partial family pin is valid.
+    // undici 8.4.1 types `proxyTls?: buildConnector.BuildOptions`, a union whose
+    // `TcpNetConnectOpts` member nominally requires `port` — so TS rejects a bare
+    // `{ family, autoSelectFamily }` pin. At runtime undici merges these options into
+    // net.connect (the uri already carries the host:port), so the partial pin is
+    // valid; the cast suppresses the spurious missing-`port` error.
     dispatcher = new ProxyAgent({
       uri: cleanUri,
       ...proxyDispatcherOptions,
