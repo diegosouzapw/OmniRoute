@@ -41,7 +41,7 @@
     "open-sse/translator/request/openai-to-gemini.ts": 844,
     "open-sse/translator/response/openai-responses.ts": 878,
     "open-sse/utils/cursorAgentProtobuf.ts": 1521,
-    "open-sse/utils/stream.ts": 2710,
+
     "src/app/(dashboard)/dashboard/HomePageClient.tsx": 1385,
     "src/app/(dashboard)/dashboard/analytics/ComboHealthTab.tsx": 1020,
     "src/app/(dashboard)/dashboard/api-manager/ApiManagerPageClient.tsx": 2909,
@@ -109,7 +109,8 @@
     "src/shared/services/cliRuntime.ts": 1090,
     "src/shared/validation/schemas.ts": 2523,
     "src/sse/handlers/chat.ts": 1425,
-    "src/sse/services/auth.ts": 2216
+    "src/sse/services/auth.ts": 2216,
+    "open-sse/utils/stream/streamCore.ts": 1947
   },
   "_rebaseline_2026_06_09": "Re-baseline consciente pre-release v3.8.19: 9 arquivos cresceram durante o ciclo (features mergeadas: RequestLoggerV2 +281 request-logger rework, stream +101, combo +73, chatCore +45, catalog +32 fable-5/catalog-flag, callLogs +4, accountFallback +2, usageHistory novo 840) + core.ts +7 (fix resetAllDbModuleState, PR 3536). A catraca segue valendo destes valores — proximo crescimento falha. Decisao: encolher (esp. RequestLoggerV2/chatCore) e a issue #3501 ficam para o ciclo seguinte.",
   "_rebaseline_2026_06_11_phase1f": "Phase 1f (#3501): ProviderDetailPageClient.tsx 4948→4062 (-886 LOC); 3 novos hooks extraídos. useProviderConnections.ts=954 acima do cap=800 — justificado: extração direta do god-component (zero lógica nova), própria redução do cliente supera o custo. useProviderSettings.ts=263 e useProviderModels.ts=154 já abaixo do cap.",
