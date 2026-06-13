@@ -1,6 +1,7 @@
 import { getSettings } from "../db/settings";
 import dns from "node:dns/promises";
-import net from "node:net";
+import { isPrivateHost } from "@/shared/network/outboundUrlGuard";
+import { safeOutboundFetch } from "@/shared/network/safeOutboundFetch";
 /**
  * Plugin Marketplace — browse, search, install plugins from a registry.
  *
@@ -10,11 +11,26 @@ import net from "node:net";
  * @module plugins/marketplace
  */
 
+/** Resolve a hostname to every address it maps to (A + AAAA). Injectable for tests. */
+export type MarketplaceLookupFn = (hostname: string) => Promise<Array<{ address: string }>>;
+
+const defaultLookup: MarketplaceLookupFn = (hostname) =>
+  dns.lookup(hostname, { all: true, verbatim: true });
+
 /**
- * Validate a URL for SSRF safety: must be http/https and must not resolve
- * to a private or loopback IP address.
+ * SSRF guard for a custom marketplace registry URL. Must be http(s) and must not
+ * target a private/loopback/link-local/ULA address. Unlike a literal-only or
+ * IPv4-only check, this resolves BOTH IPv4 (A) and IPv6 (AAAA) records and rejects
+ * if ANY resolved address is private — closing the public-hostname → private-IP
+ * bypass (IPv6 included: `::1`, `fc00::/7`, `fe80::/10`, IPv4-mapped) via the
+ * canonical `isPrivateHost`. DNS failure rejects (fail-closed). The fetch itself
+ * additionally runs through `safeOutboundFetch({ guard: "public-only" })`, which
+ * re-applies the guard and blocks redirects (no public → private 30x pivot).
  */
-async function isSafeMarketplaceUrl(urlStr: string): Promise<boolean> {
+export async function isSafeMarketplaceUrl(
+  urlStr: string,
+  lookupFn: MarketplaceLookupFn = defaultLookup
+): Promise<boolean> {
   let parsed: URL;
   try {
     parsed = new URL(urlStr);
@@ -24,32 +40,19 @@ async function isSafeMarketplaceUrl(urlStr: string): Promise<boolean> {
   if (parsed.protocol !== "http:" && parsed.protocol !== "https:") {
     return false;
   }
-  // Resolve hostname to IPs and check none are private/loopback
+  // Literal IP hostnames (IPv4 + IPv6, incl. IPv4-mapped) are classified directly.
+  if (isPrivateHost(parsed.hostname)) {
+    return false;
+  }
+  // Resolve A + AAAA and reject if the hostname maps to any private address.
   try {
-    const addresses = await dns.resolve4(parsed.hostname);
-    for (const ip of addresses) {
-      if (net.isIPv4(ip)) {
-        const parts = ip.split(".").map(Number);
-        // 127.0.0.0/8 (loopback)
-        if (parts[0] === 127) return false;
-        // 10.0.0.0/8 (private)
-        if (parts[0] === 10) return false;
-        // 172.16.0.0/12 (private)
-        if (parts[0] === 172 && parts[1] >= 16 && parts[1] <= 31) return false;
-        // 192.168.0.0/16 (private)
-        if (parts[0] === 192 && parts[1] === 168) return false;
-        // 0.0.0.0/8 (current network)
-        if (parts[0] === 0) return false;
-        // 100.64.0.0/10 (CGNAT)
-        if (parts[0] === 100 && parts[1] >= 64 && parts[1] <= 127) return false;
-        // 169.254.0.0/16 (link-local)
-        if (parts[0] === 169 && parts[1] === 254) return false;
-        // 198.18.0.0/15 (benchmarking)
-        if (parts[0] === 198 && (parts[1] === 18 || parts[1] === 19)) return false;
-      }
+    const records = await lookupFn(parsed.hostname);
+    if (!records.length) return false;
+    for (const { address } of records) {
+      if (isPrivateHost(address)) return false;
     }
   } catch {
-    // DNS resolution failure — reject to be safe
+    // DNS resolution failure — reject to be safe.
     return false;
   }
   return true;
@@ -145,7 +148,7 @@ export async function listMarketplacePlugins(): Promise<MarketplaceEntry[]> {
         console.warn("Custom marketplace URL rejected (SSRF guard):", url);
         return [...SEED_REGISTRY];
       }
-      const res = await fetch(url, { signal: AbortSignal.timeout(5000) });
+      const res = await safeOutboundFetch(url, { guard: "public-only", timeoutMs: 5000 });
       if (!res.ok) {
         console.warn("Custom marketplace returned non-OK status:", res.status);
         return [...SEED_REGISTRY];
