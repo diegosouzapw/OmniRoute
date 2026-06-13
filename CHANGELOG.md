@@ -8,6 +8,8 @@
 
 ### 🐛 Fixed
 
+- fix(cursor): send a `ModelDetails` envelope (`model_id` + `display_model_id` + `display_name`) in the Cursor agent request, alongside the existing `RequestedModel`. Pinned Cursor Claude/GPT *thinking* variants (e.g. `cursor/claude-opus-4-7-thinking-xhigh`) were returning an empty turn → `502 Provider returned empty content`, because Cursor needs the `ModelDetails` envelope (which `cursor-agent`'s real wire format sends) to resolve them; `RequestedModel` alone only resolves server-routed ids (`auto`/`composer-*`). The `-fast` parameter path on `RequestedModel` is preserved. ([#3714](https://github.com/diegosouzapw/OmniRoute/issues/3714))
+
 - fix(docs): correct the OAuth redirect URI in the Fly.io deployment guide. It told users to register `<NEXT_PUBLIC_BASE_URL>/api/oauth/<provider>/callback`, but OmniRoute's browser OAuth flow uses a single `<NEXT_PUBLIC_BASE_URL>/callback` handler (there is no per-provider callback route). The mismatch caused GitLab Duo (and any OAuth provider) to reject the flow with "The redirect URI included is not valid". Added a regression guard test. ([#3732](https://github.com/diegosouzapw/OmniRoute/issues/3732))
 
 - fix(providers): give Ollama Cloud's `kimi-k2.7-code` its real capabilities (262K context, 262K max output, vision + thinking + tools) instead of the degraded `128000 / 8192` defaults. The model had no spec/registry entry, so importing it via "Import from /models" (whose `/v1/models` upstream returns no per-model metadata) left it as a bare custom model with fallback capabilities. Added a global `kimi-k2.7-code` model spec (parity with `kimi-k2.6`) plus a registry entry on `ollama-cloud`. ([#3761](https://github.com/diegosouzapw/OmniRoute/issues/3761) — thanks @SultanKs4)
