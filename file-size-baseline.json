@@ -33,7 +33,7 @@
     "open-sse/services/usage.ts": 3394,
     "open-sse/translator/request/openai-to-gemini.ts": 844,
     "open-sse/translator/response/openai-responses.ts": 878,
-    "open-sse/utils/cursorAgentProtobuf.ts": 1499,
+    "open-sse/utils/cursorAgentProtobuf.ts": 1521,
     "open-sse/utils/stream.ts": 2710,
     "src/app/(dashboard)/dashboard/HomePageClient.tsx": 1385,
     "src/app/(dashboard)/dashboard/analytics/ComboHealthTab.tsx": 1020,
@@ -99,7 +99,7 @@
     "src/shared/constants/pricing.ts": 1470,
     "src/shared/constants/providers.ts": 3146,
     "src/shared/constants/sidebarVisibility.ts": 990,
-    "src/shared/services/cliRuntime.ts": 1084,
+    "src/shared/services/cliRuntime.ts": 1090,
     "src/shared/validation/schemas.ts": 2515,
     "src/sse/handlers/chat.ts": 1392,
     "src/sse/services/auth.ts": 2207
