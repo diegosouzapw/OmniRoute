@@ -2,6 +2,7 @@ import "./setupPolyfill.ts";
 import { Agent, ProxyAgent, type Dispatcher } from "undici";
 import { socksDispatcher } from "fetch-socks";
 import { getUpstreamTimeoutConfig } from "@/shared/utils/runtimeTimeouts";
+import { stripIpv6Brackets } from "./proxyFamily.ts";
 
 const DISPATCHER_CACHE_KEY = Symbol.for("omniroute.proxyDispatcher.cache");
 const DEFAULT_DISPATCHER_KEY = Symbol.for("omniroute.proxyDispatcher.default");
@@ -271,7 +272,7 @@ export function createProxyDispatcher(proxyUrl: string): Dispatcher {
   if (parsed.protocol === "socks5:") {
     const socksOptions: SocksDispatcherOptions = {
       type: 5,
-      host: parsed.hostname,
+      host: stripIpv6Brackets(parsed.hostname),
       port: Number(port),
     };
     if (parsed.username) socksOptions.userId = decodeURIComponent(parsed.username);
@@ -289,4 +290,20 @@ export function createProxyDispatcher(proxyUrl: string): Dispatcher {
 
   dispatcherCache.set(normalizedUrl, dispatcher);
   return dispatcher;
+}
+
+/** Test-only: returns the SOCKS dispatcher options that would be built for a URL. */
+export function __getSocksOptionsForTest(proxyUrl: string): SocksDispatcherOptions {
+  const normalizedUrl = normalizeProxyUrl(proxyUrl, "proxy dispatcher");
+  const parsed = new URL(normalizedUrl);
+  const explicitPort = extractExplicitPort(normalizedUrl);
+  const port = explicitPort || normalizePort(parsed.port, parsed.protocol);
+  const socksOptions: SocksDispatcherOptions = {
+    type: 5,
+    host: stripIpv6Brackets(parsed.hostname),
+    port: Number(port),
+  };
+  if (parsed.username) socksOptions.userId = decodeURIComponent(parsed.username);
+  if (parsed.password) socksOptions.password = decodeURIComponent(parsed.password);
+  return socksOptions;
 }
