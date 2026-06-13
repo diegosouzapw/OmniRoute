@@ -97,6 +97,26 @@ function extractSseDataLine(line: string): string | null {
 export function createSSEDataLineNormalizer(): SSEDataLineNormalizer {
   let pendingEventLines: string[] = [];
 
+  const getPendingDataLines = () =>
+    pendingEventLines
+      .map((line) => extractSseDataLine(line))
+      .filter((line): line is string => line !== null);
+
+  const hasSelfDescribingPendingDataPayload = () => {
+    const dataLines = getPendingDataLines();
+    const parsed =
+      dataLines.length > 0 ? parseSSEDataLines(dataLines, { logWarning: false }) : null;
+    if (!parsed) return false;
+    return (
+      parsed.done === true ||
+      typeof parsed.type === "string" ||
+      typeof parsed.object === "string" ||
+      Array.isArray(parsed.choices) ||
+      Array.isArray(parsed.candidates) ||
+      isRecord(parsed.response)
+    );
+  };
+
   const flush = (output: string[]) => {
     if (pendingEventLines.length === 0) return;
 
@@ -136,9 +156,18 @@ export function createSSEDataLineNormalizer(): SSEDataLineNormalizer {
     normalize(lines: string[]) {
       const output: string[] = [];
       for (const line of lines) {
-        const trimmed = line.trim();
+        const normalizedLine = line.replace(/\r$/, "");
+        const trimmed = normalizedLine.trim();
 
-        pendingEventLines.push(line.replace(/\r$/, ""));
+        if (
+          trimmed &&
+          /^(?:event:|id:|retry:|:)/i.test(trimmed) &&
+          hasSelfDescribingPendingDataPayload()
+        ) {
+          flush(output);
+        }
+
+        pendingEventLines.push(normalizedLine);
         if (!trimmed) {
           flush(output);
         }
