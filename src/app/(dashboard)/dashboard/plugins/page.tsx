@@ -46,7 +46,8 @@ export default function PluginsPage() {
       .then((res) => res.ok ? res.json() : null)
       .then((data) => {
         if (data?.pluginMarketplaceUrl) setMarketplaceUrl(data.pluginMarketplaceUrl);
-      });
+      })
+      .catch(() => {});
   }, [fetchPlugins]);
   
   const fetchMarketplace = useCallback(async () => {
@@ -246,8 +247,8 @@ export default function PluginsPage() {
                   <div className="flex gap-2">
                     <Button
                       variant="primary"
-                      onClick={async () => {
-                        addNotification({ type: "success", message: t("installedFromMarketplace", { name: plugin.name }) });
+                      onClick={() => {
+                        addNotification({ type: "info", message: t("marketplaceInstallComingSoon") });
                       }}
                     >
                       {t("install")}
