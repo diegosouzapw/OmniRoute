@@ -80,12 +80,22 @@ export function supportsXHighEffort(aliasOrId: string, modelId: string): boolean
   if (!providerModels) return true;
   const model = getProviderModel(alias, modelId);
 
-  // Claude Code models default to supporting extra-high effort. Keep explicit
-  // false entries as the unsupported-model list so newly added Claude models do
-  // not need opt-in flags.
+  // Keep explicit false entries as the unsupported-model list. Unlisted models
+  // and models without an explicit flag pass through unchanged.
+  return model?.supportsXHighEffort !== false;
+}
+
+export function supportsXHighEffortForMaxNormalization(
+  aliasOrId: string,
+  modelId: string
+): boolean {
+  const alias = PROVIDER_ID_TO_ALIAS[aliasOrId] || aliasOrId;
+  const providerModels = PROVIDER_MODELS[alias] || PROVIDER_MODELS[aliasOrId];
+  if (!providerModels) return true;
+  const model = getProviderModel(alias, modelId);
+
   if (alias === "cc") {
     return model?.supportsXHighEffort !== false;
   }
-
   return model?.supportsXHighEffort === true;
 }
