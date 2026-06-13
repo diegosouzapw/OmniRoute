@@ -1,6 +1,10 @@
 import { HTTP_STATUS, FETCH_TIMEOUT_MS } from "../config/constants.ts";
 import { applyFingerprint, isCliCompatEnabled } from "../config/cliFingerprints.ts";
-import { supportsClaudeMaxEffort, supportsXHighEffort } from "../config/providerModels.ts";
+import {
+  supportsClaudeMaxEffort,
+  supportsXHighEffort,
+  supportsXHighEffortForMaxNormalization,
+} from "../config/providerModels.ts";
 import type { PoolConfig } from "../services/sessionPool/types.ts";
 import type { Session } from "../services/sessionPool/session.ts";
 import { SessionPool } from "../services/sessionPool/sessionPool.ts";
@@ -25,7 +29,10 @@ import {
   modelSupportsContext1mBeta,
 } from "../services/claudeCodeCompatible.ts";
 import { getClaudeCodeCompatibleRequestDefaults } from "@/lib/providers/requestDefaults";
-import { cloakThirdPartyToolNames, remapToolNamesInRequest } from "../services/claudeCodeToolRemapper.ts";
+import {
+  cloakThirdPartyToolNames,
+  remapToolNamesInRequest,
+} from "../services/claudeCodeToolRemapper.ts";
 import { obfuscateInBody } from "../services/claudeCodeObfuscation.ts";
 import { sanitizeClaudeToolSchemas } from "../translator/helpers/schemaCoercion.ts";
 import { sanitizeResponsesInputItems } from "../services/responsesInputSanitizer.ts";
@@ -223,12 +230,11 @@ function hasActiveClaudeThinking(body: Record<string, unknown>): boolean {
  * Each rejection burns a combo fallback attempt before reaching a working
  * provider. Apply provider-aware sanitation here (after transformRequest, so
  * reintroductions by per-provider transforms are also caught) before fetch.
- * xhigh support is registry-gated: models that genuinely support xhigh pass
- * through unchanged, and Claude models default to xhigh support unless marked
- * as legacy unsupported entries. max support is Claude/CC-compatible only and
+ * xhigh support is opt-out: pass through unchanged unless the registry marks
+ * a model as unsupported. max support is Claude/CC-compatible only and
  * intentionally separate: older Opus/Sonnet models may support max even when
- * they do not support xhigh. For OpenAI-shape providers, normalize max to
- * xhigh when that top tier is allowed; otherwise downgrade to high.
+ * they do not support xhigh. For OpenAI-shape providers, keep the existing
+ * max normalization behavior.
  */
 const MISTRAL_NO_REASONING_EFFORT_PATTERN = /devstral/i;
 const GITHUB_NO_REASONING_EFFORT_PATTERN = /(claude|haiku|oswe)/i;
@@ -260,10 +266,10 @@ export function sanitizeReasoningEffortForProvider(
 
   const supportsXHigh = supportsXHighEffort(provider, modelStr);
   const shouldDowngradeXHigh = effortStr === "xhigh" && !supportsXHigh;
-  const shouldNormalizeMaxToXHigh =
-    effortStr === "max" && !supportsMaxEffortForProvider(provider, modelStr) && supportsXHigh;
-  const shouldDowngradeMax =
-    effortStr === "max" && !supportsMaxEffortForProvider(provider, modelStr) && !supportsXHigh;
+  const supportsXHighForMax = supportsXHighEffortForMaxNormalization(provider, modelStr);
+  const supportsMax = supportsMaxEffortForProvider(provider, modelStr);
+  const shouldNormalizeMaxToXHigh = effortStr === "max" && !supportsMax && supportsXHighForMax;
+  const shouldDowngradeMax = effortStr === "max" && !supportsMax && !supportsXHighForMax;
 
   if (shouldNormalizeMaxToXHigh) {
     log?.info?.(

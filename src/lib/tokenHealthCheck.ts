@@ -543,13 +543,21 @@ export async function checkConnection(conn) {
     await updateProviderConnection(conn.id, {
       lastHealthCheckAt: now,
       testStatus: "expired",
-      lastError: `Refresh token consumed (${result.error}). Please re-authenticate this account.`,
+      lastError: isRotatingProvider
+        ? `Refresh token consumed (${result.error}). Please re-authenticate this account.`
+        : `Refresh token rejected (${result.error}). Please re-authenticate this account.`,
       lastErrorAt: now,
       lastErrorType: result.error,
       lastErrorSource: "oauth",
       errorCode: result.error,
       isActive: false,
-      refreshToken: null,
+      // Only rotating-token providers (Codex/OpenAI/etc.) have single-use refresh
+      // tokens that are genuinely consumed and worthless after a failed refresh, so
+      // clearing them is safe. For non-rotating providers (Google: gemini-cli /
+      // antigravity / gemini) the stored refresh_token is the user's only recovery
+      // artifact — nulling it caused #3679 (the connection reports "No valid refresh
+      // token available" and can never recover even after re-activation). Preserve it.
+      ...(isRotatingProvider ? { refreshToken: null } : {}),
     });
     logError(
       `${LOG_PREFIX} ✗ ${conn.provider}/${getConnectionLogLabel(conn)} — ` +

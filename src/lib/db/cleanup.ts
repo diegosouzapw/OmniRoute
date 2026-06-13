@@ -7,9 +7,11 @@
 import { getDbInstance } from "./core";
 import { getUserDatabaseSettings } from "./databaseSettings";
 import { rollupUsageHistoryBeforeDate } from "@/lib/usage/aggregateHistory";
+import { purgeCallLogArtifactDirectory } from "@/lib/usage/callLogArtifacts";
 
 interface CleanupResult {
   deleted: number;
+  deletedArtifacts?: number;
   errors: number;
 }
 
@@ -304,17 +306,24 @@ export async function purgeQuotaSnapshots(): Promise<CleanupResult> {
  */
 export async function purgeCallLogs(): Promise<CleanupResult> {
   const db = getDbInstance();
-  const result: CleanupResult = { deleted: 0, errors: 0 };
+  const result: CleanupResult = { deleted: 0, deletedArtifacts: 0, errors: 0 };
 
   try {
-    const stmt = db.prepare("DELETE FROM call_logs");
-    const runResult = stmt.run();
+    const runResult = db.prepare("DELETE FROM call_logs").run();
     result.deleted = runResult.changes;
 
     console.log(`[Cleanup] Purged ${result.deleted} call_logs`);
   } catch (err: unknown) {
     console.error("[Cleanup] Error purging call_logs:", err);
     result.errors++;
+  }
+
+  const artifactResult = purgeCallLogArtifactDirectory();
+  result.deletedArtifacts = artifactResult.deletedArtifacts;
+  result.errors += artifactResult.errors;
+
+  if (artifactResult.errors === 0) {
+    console.log(`[Cleanup] Purged ${result.deletedArtifacts} call log artifact(s)`);
   }
 
   return result;

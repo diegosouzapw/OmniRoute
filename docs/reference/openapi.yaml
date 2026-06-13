@@ -1803,6 +1803,49 @@ paths:
         "200":
           description: Updated settings
 
+  /api/settings/purge-request-history:
+    post:
+      tags: [Settings]
+      summary: Clear request log history
+      description: Deletes `call_logs`, legacy `request_detail_logs`, and local request artifact files under `DATA_DIR/call_logs`.
+      security:
+        - ManagementSessionAuth: []
+      responses:
+        "200":
+          description: Request history cleared
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  deleted:
+                    type: integer
+                  deletedArtifacts:
+                    type: integer
+                  deletedDetailedLogs:
+                    type: integer
+                  errors:
+                    type: integer
+        "401":
+          description: Unauthorized
+        "500":
+          description: Cleanup failed or reported errors
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  deleted:
+                    type: integer
+                  deletedArtifacts:
+                    type: integer
+                  deletedDetailedLogs:
+                    type: integer
+                  errors:
+                    type: integer
+                  error:
+                    type: object
+
   /api/settings/compression:
     get:
       tags: [Compression]

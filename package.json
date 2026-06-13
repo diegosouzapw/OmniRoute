@@ -216,6 +216,7 @@
     "lucide-react": "^1.16.0",
     "marked": "^18.0.4",
     "marked-terminal": "^7.3.0",
+    "material-symbols": "^0.45.1",
     "mermaid": "^11.15.0",
     "monaco-editor": "^0.55.1",
     "next": "^16.2.6",

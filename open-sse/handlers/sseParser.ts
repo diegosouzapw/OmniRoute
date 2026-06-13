@@ -1,3 +1,4 @@
+import { appendToolCallArgumentDelta } from "../utils/toolCallArguments.ts";
 /**
  * Convert OpenAI-style SSE chunks into a single non-streaming JSON response.
  * Used as a fallback when upstream returns text/event-stream for stream=false.
@@ -181,7 +182,10 @@ export function parseSSEToOpenAIResponse(rawSSE, fallbackModel) {
             existing.function.name = tc.function.name;
           }
           existing.function = existing.function || {};
-          existing.function.arguments = `${existing.function.arguments || ""}${deltaArgs}`;
+          existing.function.arguments = appendToolCallArgumentDelta(
+            existing.function.arguments,
+            deltaArgs
+          );
           accumulatedToolCalls.set(key, existing);
         }
       }
@@ -505,7 +509,10 @@ function ensureResponsesReasoningItem(outputItems, outputIndex, itemId) {
 
   const next = {
     ...(existing && typeof existing === "object" ? existing : {}),
-    id: itemId || (existing?.id != null ? String(existing.id) : null) || `rs_${Date.now()}_${outputIndex}`,
+    id:
+      itemId ||
+      (existing?.id != null ? String(existing.id) : null) ||
+      `rs_${Date.now()}_${outputIndex}`,
     type: "reasoning",
     summary: Array.isArray(existing?.summary)
       ? existing.summary.map((summaryPart) => ({ ...toRecord(summaryPart) }))
@@ -539,9 +546,7 @@ function ensureResponsesFunctionCallItem(outputItems, outputIndex, itemId, callI
   const next = {
     ...(existing && typeof existing === "object" ? existing : {}),
     id:
-      normalizedItemId ||
-      existingId ||
-      `fc_${normalizedCallId || `${Date.now()}_${outputIndex}`}`,
+      normalizedItemId || existingId || `fc_${normalizedCallId || `${Date.now()}_${outputIndex}`}`,
     type: "function_call",
     call_id: normalizedCallId || existingCallId || "",
     name: name || existing?.name || "",

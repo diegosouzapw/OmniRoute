@@ -12,6 +12,20 @@ const TIME_RANGES = [
   { label: "24h", hours: 24 },
 ];
 
+type LogsTranslator = ((key: string, values?: Record<string, unknown>) => string) & {
+  has?: (key: string) => boolean;
+};
+
+function logsText(
+  t: LogsTranslator,
+  key: string,
+  fallback: string,
+  values?: Record<string, unknown>
+) {
+  if (typeof t.has !== "function" || !t.has(key)) return fallback;
+  return values ? t(key, values) : t(key);
+}
+
 export default function LogsPage() {
   const [showExport, setShowExport] = useState(false);
   const [exporting, setExporting] = useState(false);
@@ -21,7 +35,7 @@ export default function LogsPage() {
   const [requestLogKey, setRequestLogKey] = useState(0);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const requestLoggerRef = useRef<any>(null);
-  const t = useTranslations("logs");
+  const t = useTranslations("logs") as LogsTranslator;
 
   useEffect(() => {
     function handleClickOutside(e: MouseEvent) {
@@ -34,7 +48,8 @@ export default function LogsPage() {
   }, []);
 
   // initial id from URL (synchronously on client) so child can open on mount
-  const initialId = typeof window !== "undefined" ? new URL(window.location.href).searchParams.get("id") : null;
+  const initialId =
+    typeof window !== "undefined" ? new URL(window.location.href).searchParams.get("id") : null;
 
   async function handleExport(hours: number) {
     setExporting(true);
@@ -64,26 +79,40 @@ export default function LogsPage() {
     setShowCleanHistory(false);
     setCleanHistoryStatus(null);
     try {
-      const res = await fetch("/api/settings/purge-logs", { method: "POST" });
+      const res = await fetch("/api/settings/purge-request-history", { method: "POST" });
       const data = await res.json().catch(() => null);
 
       if (!res.ok) {
-        throw new Error(data?.error || "Failed to clean log history.");
+        throw new Error(
+          data?.error || logsText(t, "cleanHistoryFailed", "Failed to clean log history.")
+        );
       }
 
       const deleted = typeof data?.deleted === "number" ? data.deleted : 0;
-      const deletedArtifacts = typeof data?.deletedArtifacts === "number" ? data.deletedArtifacts : 0;
+      const deletedArtifacts =
+        typeof data?.deletedArtifacts === "number" ? data.deletedArtifacts : 0;
+      const deletedDetailedLogs =
+        typeof data?.deletedDetailedLogs === "number" ? data.deletedDetailedLogs : 0;
+      const successFallback = `Cleaned ${deleted} log entr${deleted === 1 ? "y" : "ies"}, ${deletedArtifacts} artifact${
+        deletedArtifacts === 1 ? "" : "s"
+      }, and ${deletedDetailedLogs} legacy detail row${deletedDetailedLogs === 1 ? "" : "s"}.`;
       setRequestLogKey((key) => key + 1);
       setCleanHistoryStatus(
-        deleted || deletedArtifacts
-          ? `Cleaned ${deleted} log entr${deleted === 1 ? "y" : "ies"} and ${deletedArtifacts} artifact${
-              deletedArtifacts === 1 ? "" : "s"
-            }.`
-          : "No expired log history needed cleanup."
+        deleted || deletedArtifacts || deletedDetailedLogs
+          ? logsText(t, "cleanHistorySuccess", successFallback, {
+              deleted,
+              deletedArtifacts,
+              deletedDetailedLogs,
+            })
+          : logsText(t, "cleanHistoryEmpty", "No request log history was found.")
       );
     } catch (err) {
-      console.error("Failed to clean log history", err);
-      setCleanHistoryStatus(err instanceof Error ? err.message : "Failed to clean log history.");
+      console.error(logsText(t, "cleanHistoryFailed", "Failed to clean log history."), err);
+      setCleanHistoryStatus(
+        err instanceof Error
+          ? err.message
+          : logsText(t, "cleanHistoryFailed", "Failed to clean log history.")
+      );
     } finally {
       setCleaningHistory(false);
     }
@@ -102,8 +131,8 @@ export default function LogsPage() {
             onClick={() => setShowCleanHistory(true)}
             disabled={cleaningHistory}
             className="flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-lg
-              border border-red-500/30 bg-red-500/10 text-red-200 hover:bg-red-500/20
-              hover:border-red-400/50 transition-all duration-200
+              border border-red-500/30 bg-red-500/10 text-red-700 hover:bg-red-500/15
+              hover:border-red-500/50 dark:text-red-300 dark:hover:bg-red-500/20 transition-all duration-200
               disabled:opacity-50 disabled:cursor-not-allowed"
           >
             <svg
@@ -120,7 +149,7 @@ export default function LogsPage() {
                 strokeLinejoin="round"
               />
             </svg>
-            Clean history
+            {logsText(t, "cleanHistoryButton", "Clean history")}
           </button>
 
           <div className="relative" ref={dropdownRef}>
@@ -195,10 +224,14 @@ export default function LogsPage() {
         isOpen={showCleanHistory}
         onClose={() => setShowCleanHistory(false)}
         onConfirm={handleCleanHistory}
-        title="Clean log history?"
-        message="This clears expired log history and prunes related artifacts using the current retention policy. The live page will refresh after cleanup."
-        confirmText="Clean history"
-        cancelText="Cancel"
+        title={logsText(t, "cleanHistoryTitle", "Clean log history?")}
+        message={logsText(
+          t,
+          "cleanHistoryMessage",
+          "This permanently clears all request log rows, legacy detail rows, and local artifact files under DATA_DIR/call_logs. The live page will refresh after cleanup."
+        )}
+        confirmText={logsText(t, "cleanHistoryConfirm", "Clean history")}
+        cancelText={logsText(t, "cleanHistoryCancel", "Cancel")}
         loading={cleaningHistory}
       />
     </div>

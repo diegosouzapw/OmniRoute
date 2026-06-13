@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useMemo, useCallback } from "react";
+import { matchesSearch } from "@/shared/utils/turkishText";
 import FeatureFlagCard from "./FeatureFlagCard";
 
 // Type for flag data from API
@@ -24,6 +25,20 @@ interface Summary {
   inactive: number;
   overriddenByDb: number;
   overriddenByEnv: number;
+}
+
+interface FlagUpdateResult {
+  effectiveValue: string;
+  source: FlagData["source"];
+  previousValue: string;
+  previousSource: FlagData["source"];
+  requiresRestart: boolean;
+}
+
+const ACTIVE_VALUES = new Set(["true", "1", "yes"]);
+
+function isActiveFlagValue(value: string): boolean {
+  return ACTIVE_VALUES.has(value);
 }
 
 const CATEGORIES = [
@@ -81,6 +96,32 @@ export default function FeatureFlagsGrid() {
     return () => clearTimeout(timer);
   }, [search]);
 
+  const applyFlagResult = useCallback((key: string, result: FlagUpdateResult) => {
+    const wasActive = isActiveFlagValue(result.previousValue);
+    const isNowActive = isActiveFlagValue(result.effectiveValue);
+    const wasDb = result.previousSource === "db";
+    const isNowDb = result.source === "db";
+    const wasEnv = result.previousSource === "env";
+    const isNowEnv = result.source === "env";
+
+    setFlags((prev) =>
+      prev.map((f) =>
+        f.key === key ? { ...f, effectiveValue: result.effectiveValue, source: result.source } : f
+      )
+    );
+    setSummary((s) =>
+      s
+        ? {
+            ...s,
+            active: s.active + (isNowActive ? 1 : 0) - (wasActive ? 1 : 0),
+            inactive: s.inactive + (isNowActive ? 0 : 1) - (wasActive ? 0 : 1),
+            overriddenByDb: s.overriddenByDb + (isNowDb ? 1 : 0) - (wasDb ? 1 : 0),
+            overriddenByEnv: s.overriddenByEnv + (isNowEnv ? 1 : 0) - (wasEnv ? 1 : 0),
+          }
+        : s
+    );
+  }, []);
+
   const filteredFlags = useMemo(() => {
     return flags
       .filter((f) => {
@@ -91,86 +132,72 @@ export default function FeatureFlagsGrid() {
       .filter(
         (f) =>
           debouncedSearch === "" ||
-          f.key.toLowerCase().includes(debouncedSearch.toLowerCase()) ||
-          f.description.toLowerCase().includes(debouncedSearch.toLowerCase())
+          matchesSearch(f.key, debouncedSearch) ||
+          matchesSearch(f.description, debouncedSearch)
       );
   }, [flags, debouncedSearch, category]);
 
-  const handleToggle = useCallback(async (key: string, newValue: string) => {
-    setSavingKeys((prev) => new Set(prev).add(key));
-    try {
-      const res = await fetch("/api/settings/feature-flags", {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ key, value: newValue }),
-      });
-      if (!res.ok) {
-        setError(`Failed to update flag: HTTP ${res.status}`);
-        return;
+  const handleToggle = useCallback(
+    async (key: string, newValue: string) => {
+      setSavingKeys((prev) => new Set(prev).add(key));
+      try {
+        const res = await fetch("/api/settings/feature-flags", {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ key, value: newValue }),
+        });
+        if (!res.ok) {
+          setError(`Failed to update flag: HTTP ${res.status}`);
+          return;
+        }
+        const result = (await res.json()) as FlagUpdateResult;
+        applyFlagResult(key, result);
+        if (result.requiresRestart) {
+          setPendingRestartKeys((prev) => new Set(prev).add(key));
+        }
+      } catch (err) {
+        setError(err instanceof Error ? err.message : "Failed to update flag");
+      } finally {
+        setSavingKeys((prev) => {
+          const next = new Set(prev);
+          next.delete(key);
+          return next;
+        });
       }
-      const result = await res.json();
-      setFlags((prev) => {
-        const oldFlag = prev.find((f) => f.key === key);
-        const wasDb = oldFlag?.source === "db";
-        const isNowDb = result.source === "db";
-        setSummary((s) =>
-          s ? { ...s, overriddenByDb: s.overriddenByDb + (isNowDb ? 1 : 0) - (wasDb ? 1 : 0) } : s
-        );
-        return prev.map((f) =>
-          f.key === key ? { ...f, effectiveValue: result.effectiveValue, source: result.source } : f
-        );
-      });
-      if (result.requiresRestart) {
-        setPendingRestartKeys((prev) => new Set(prev).add(key));
-      }
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to update flag");
-    } finally {
-      setSavingKeys((prev) => {
-        const next = new Set(prev);
-        next.delete(key);
-        return next;
-      });
-    }
-  }, []);
+    },
+    [applyFlagResult]
+  );
 
-  const handleReset = useCallback(async (key: string) => {
-    setSavingKeys((prev) => new Set(prev).add(key));
-    try {
-      const res = await fetch("/api/settings/feature-flags", {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ key }), // no value = remove override
-      });
-      if (!res.ok) {
-        setError(`Failed to update flag: HTTP ${res.status}`);
-        return;
+  const handleReset = useCallback(
+    async (key: string) => {
+      setSavingKeys((prev) => new Set(prev).add(key));
+      try {
+        const res = await fetch("/api/settings/feature-flags", {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ key }), // no value = remove override
+        });
+        if (!res.ok) {
+          setError(`Failed to update flag: HTTP ${res.status}`);
+          return;
+        }
+        const result = (await res.json()) as FlagUpdateResult;
+        applyFlagResult(key, result);
+        if (result.requiresRestart) {
+          setPendingRestartKeys((prev) => new Set(prev).add(key));
+        }
+      } catch (err) {
+        setError(err instanceof Error ? err.message : "Failed to update flag");
+      } finally {
+        setSavingKeys((prev) => {
+          const next = new Set(prev);
+          next.delete(key);
+          return next;
+        });
       }
-      const result = await res.json();
-      setFlags((prev) => {
-        const oldFlag = prev.find((f) => f.key === key);
-        const wasDb = oldFlag?.source === "db";
-        const isNowDb = result.source === "db";
-        setSummary((s) =>
-          s ? { ...s, overriddenByDb: s.overriddenByDb + (isNowDb ? 1 : 0) - (wasDb ? 1 : 0) } : s
-        );
-        return prev.map((f) =>
-          f.key === key ? { ...f, effectiveValue: result.effectiveValue, source: result.source } : f
-        );
-      });
-      if (result.requiresRestart) {
-        setPendingRestartKeys((prev) => new Set(prev).add(key));
-      }
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to update flag");
-    } finally {
-      setSavingKeys((prev) => {
-        const next = new Set(prev);
-        next.delete(key);
-        return next;
-      });
-    }
-  }, []);
+    },
+    [applyFlagResult]
+  );
 
   const handleRestart = useCallback(async () => {
     setRestarting(true);
@@ -234,23 +261,27 @@ export default function FeatureFlagsGrid() {
       {/* Header */}
       <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
         <div>
-          <h1 className="text-2xl font-semibold text-white">Feature Flags</h1>
+          <h1 className="text-2xl font-semibold text-text-primary">Feature Flags</h1>
           {summary && (
-            <div className="mt-1 flex gap-3 text-sm">
-              <span className="text-green-400">{summary.active} active</span>
-              <span className="text-slate-500">·</span>
-              <span className="text-slate-400">{summary.inactive} inactive</span>
-              <span className="text-slate-500">·</span>
-              <span className="text-blue-400">{summary.overriddenByDb} DB overrides</span>
+            <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-sm">
+              <span className="font-medium text-emerald-700 dark:text-emerald-300">
+                {summary.active} active
+              </span>
+              <span className="text-text-muted/60">·</span>
+              <span className="text-text-muted">{summary.inactive} inactive</span>
+              <span className="text-text-muted/60">·</span>
+              <span className="font-medium text-sky-700 dark:text-sky-300">
+                {summary.overriddenByDb} DB overrides
+              </span>
             </div>
           )}
         </div>
 
         {/* Search + Filter */}
-        <div className="flex gap-2">
+        <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row">
           {/* Search input with search icon */}
           <div className="relative">
-            <span className="material-symbols-outlined absolute left-2.5 top-2 text-sm text-slate-400">
+            <span className="material-symbols-outlined absolute left-2.5 top-2 text-sm text-text-muted">
               search
             </span>
             <input
@@ -258,7 +289,7 @@ export default function FeatureFlagsGrid() {
               placeholder="Search flags..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="pl-8 pr-4 py-1.5 rounded-lg bg-white/5 border border-white/10 text-sm text-white placeholder:text-slate-500 focus:outline-none focus:border-white/20"
+              className="w-full rounded-lg border border-border bg-bg-subtle py-1.5 pl-8 pr-4 text-sm text-text-primary placeholder:text-text-muted focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/15 sm:w-64"
             />
           </div>
 
@@ -266,10 +297,10 @@ export default function FeatureFlagsGrid() {
           <select
             value={category}
             onChange={(e) => setCategory(e.target.value)}
-            className="px-3 py-1.5 rounded-lg bg-white/5 border border-white/10 text-sm text-white focus:outline-none focus:border-white/20"
+            className="w-full rounded-lg border border-border bg-bg-subtle px-3 py-1.5 text-sm text-text-primary focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/15 sm:w-auto"
           >
             {CATEGORIES.map((cat) => (
-              <option key={cat.value} value={cat.value} className="bg-slate-900">
+              <option key={cat.value} value={cat.value} className="bg-card text-text-primary">
                 {cat.label}
               </option>
             ))}
@@ -280,16 +311,18 @@ export default function FeatureFlagsGrid() {
       {/* Pending-restart banner — shown when at least one requiresRestart flag
           was toggled in this session. */}
       {pendingRestartKeys.size > 0 && (
-        <div className="rounded-xl border border-amber-500/40 bg-amber-500/10 p-4">
+        <div className="rounded-xl border border-amber-300 bg-amber-50 p-4 dark:border-amber-500/40 dark:bg-amber-500/10">
           <div className="flex items-center justify-between gap-4">
             <div className="flex items-start gap-3">
-              <span className="material-symbols-outlined text-amber-400">restart_alt</span>
+              <span className="material-symbols-outlined text-amber-600 dark:text-amber-300">
+                restart_alt
+              </span>
               <div>
-                <p className="text-sm font-medium text-amber-300">
+                <p className="text-sm font-medium text-amber-900 dark:text-amber-200">
                   {pendingRestartKeys.size} change{pendingRestartKeys.size === 1 ? "" : "s"} require
                   a server restart to take effect.
                 </p>
-                <p className="mt-0.5 text-xs text-amber-200/80">
+                <p className="mt-0.5 text-xs text-amber-800/80 dark:text-amber-200/80">
                   These flags only apply after the process reloads. Restart now or continue editing
                   — pending flags stay queued until you confirm.
                 </p>
@@ -298,7 +331,7 @@ export default function FeatureFlagsGrid() {
             {!showRestartConfirm ? (
               <button
                 onClick={() => setShowRestartConfirm(true)}
-                className="shrink-0 rounded-lg border border-amber-400/40 px-4 py-2 text-sm text-amber-300 hover:bg-amber-500/20 transition-colors"
+                className="shrink-0 rounded-lg border border-amber-300 bg-white/70 px-4 py-2 text-sm font-medium text-amber-800 transition-colors hover:bg-amber-100 dark:border-amber-400/40 dark:bg-transparent dark:text-amber-300 dark:hover:bg-amber-500/20"
               >
                 Restart Server
               </button>
@@ -306,7 +339,7 @@ export default function FeatureFlagsGrid() {
               <div className="flex items-center gap-3">
                 <button
                   onClick={() => setShowRestartConfirm(false)}
-                  className="text-sm text-amber-300/80 hover:text-amber-200"
+                  className="text-sm text-amber-800/80 hover:text-amber-950 dark:text-amber-300/80 dark:hover:text-amber-200"
                   disabled={restarting}
                 >
                   Cancel
@@ -314,7 +347,7 @@ export default function FeatureFlagsGrid() {
                 <button
                   onClick={handleRestart}
                   disabled={restarting}
-                  className="rounded-lg bg-amber-500/30 px-4 py-2 text-sm text-amber-200 hover:bg-amber-500/40 disabled:opacity-50 transition-colors"
+                  className="rounded-lg bg-amber-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-amber-700 disabled:opacity-50 dark:bg-amber-500/30 dark:text-amber-200 dark:hover:bg-amber-500/40"
                 >
                   {restarting ? "Restarting…" : "Confirm Restart"}
                 </button>
@@ -326,9 +359,9 @@ export default function FeatureFlagsGrid() {
 
       {/* Explanation banner for the synthetic "Requires Restart" view */}
       {category === "__restart" && (
-        <div className="rounded-xl border border-blue-500/30 bg-blue-500/10 p-3 text-sm text-blue-200">
+        <div className="rounded-xl border border-sky-200 bg-sky-50 p-3 text-sm text-sky-800 dark:border-blue-500/30 dark:bg-blue-500/10 dark:text-blue-200">
           <div className="flex items-start gap-2">
-            <span className="material-symbols-outlined text-blue-300">info</span>
+            <span className="material-symbols-outlined text-sky-600 dark:text-blue-300">info</span>
             <p>
               These flags only take effect after the server restarts. Toggle them like any other
               flag — the change is persisted immediately, but the new value is only read at process
@@ -342,19 +375,25 @@ export default function FeatureFlagsGrid() {
       {loading && (
         <div
           className="grid gap-4"
-          style={{ gridTemplateColumns: "repeat(auto-fill, minmax(320px, 1fr))" }}
+          style={{ gridTemplateColumns: "repeat(auto-fill, minmax(min(100%, 320px), 1fr))" }}
         >
           {Array.from({ length: 9 }).map((_, i) => (
-            <div key={i} className="h-36 rounded-xl bg-white/5 animate-pulse" />
+            <div
+              key={i}
+              className="h-36 animate-pulse rounded-xl bg-black/[0.04] dark:bg-white/5"
+            />
           ))}
         </div>
       )}
 
       {/* Error state */}
       {!loading && error && (
-        <div className="flex items-center justify-between rounded-xl border border-red-500/30 bg-red-500/10 p-4">
-          <p className="text-sm text-red-400">{error}</p>
-          <button onClick={loadFlags} className="text-sm text-red-400 underline hover:no-underline">
+        <div className="flex items-center justify-between rounded-xl border border-red-200 bg-red-50 p-4 dark:border-red-500/30 dark:bg-red-500/10">
+          <p className="text-sm text-red-700 dark:text-red-300">{error}</p>
+          <button
+            onClick={loadFlags}
+            className="text-sm font-medium text-red-700 underline hover:no-underline dark:text-red-300"
+          >
             Retry
           </button>
         </div>
@@ -364,14 +403,14 @@ export default function FeatureFlagsGrid() {
       {!loading && !error && (
         <>
           {filteredFlags.length === 0 ? (
-            <div className="py-16 text-center text-slate-400">
+            <div className="py-16 text-center text-text-muted">
               <span className="material-symbols-outlined text-4xl">search_off</span>
               <p className="mt-2 text-sm">No flags match your search</p>
             </div>
           ) : (
             <div
               className="grid gap-4"
-              style={{ gridTemplateColumns: "repeat(auto-fill, minmax(320px, 1fr))" }}
+              style={{ gridTemplateColumns: "repeat(auto-fill, minmax(min(100%, 320px), 1fr))" }}
             >
               {filteredFlags.map((flag) => (
                 <FeatureFlagCard
@@ -387,29 +426,29 @@ export default function FeatureFlagsGrid() {
 
           {/* Reset All button */}
           {summary && summary.overriddenByDb > 0 && (
-            <div className="flex justify-end pt-4 border-t border-white/10">
+            <div className="flex justify-end border-t border-border pt-4">
               {!showResetConfirm ? (
                 <button
                   onClick={() => setShowResetConfirm(true)}
-                  className="rounded-lg border border-red-500/40 px-4 py-2 text-sm text-red-400 hover:bg-red-500/10 transition-colors"
+                  className="rounded-lg border border-red-200 bg-red-50/60 px-4 py-2 text-sm font-medium text-red-700 transition-colors hover:bg-red-100 dark:border-red-500/40 dark:bg-transparent dark:text-red-300 dark:hover:bg-red-500/10"
                 >
                   Reset All Overrides
                 </button>
               ) : (
                 <div className="flex items-center gap-3">
-                  <p className="text-sm text-slate-400">
+                  <p className="text-sm text-text-muted">
                     Reset all {summary.overriddenByDb} DB override(s)?
                   </p>
                   <button
                     onClick={() => setShowResetConfirm(false)}
-                    className="text-sm text-slate-400 hover:text-white"
+                    className="text-sm text-text-muted hover:text-text-primary"
                   >
                     Cancel
                   </button>
                   <button
                     onClick={handleResetAll}
                     disabled={resettingAll}
-                    className="rounded-lg bg-red-500/20 px-4 py-2 text-sm text-red-400 hover:bg-red-500/30 disabled:opacity-50 transition-colors"
+                    className="rounded-lg bg-red-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-red-700 disabled:opacity-50 dark:bg-red-500/20 dark:text-red-300 dark:hover:bg-red-500/30"
                   >
                     {resettingAll ? "Resetting..." : "Confirm Reset"}
                   </button>

@@ -30,6 +30,7 @@ import {
   handleCreditsFailure,
 } from "../services/antigravityCredits.ts";
 import { persistCreditBalance, getAllPersistedCreditBalances } from "@/lib/db/creditBalance";
+import { setConnectionRateLimitUntil } from "@/lib/db/providers";
 import { getMitmAlias } from "@/lib/db/models";
 import { obfuscateSensitiveWords } from "../services/antigravityObfuscation.ts";
 import { resolveAntigravityVersion } from "../services/antigravityVersion.ts";
@@ -326,6 +327,19 @@ function markCreditsExhausted(accountId: string): void {
     }
   }
   creditsExhaustedUntil.set(accountId, Date.now() + CREDITS_EXHAUSTED_TTL_MS);
+}
+
+/**
+ * Persist a quota-exhausted cooldown to the DB for `connectionId` so that
+ * cross-request and post-restart routing skips this connection until the
+ * cooldown expires. Exported for unit testing. @internal
+ */
+export function markConnectionQuotaExhausted(connectionId: string, retryAfterMs: number): void {
+  try {
+    setConnectionRateLimitUntil(connectionId, Date.now() + retryAfterMs);
+  } catch {
+    // DB write failure must never crash the request path
+  }
 }
 
 /**
@@ -1183,10 +1197,21 @@ export class AntigravityExecutor extends BaseExecutor {
               const effectiveRetryHintMs = retryMs ?? parsedRetryMs ?? null;
               const category = classify429(errorMessage);
 
-              // 3. For quota_exhausted, attempt Google One AI credits retry FIRST!
-              //    Skip if credits were already injected on the first call
-              //    (creditsMode === "always") — no point re-running with the
-              //    same body. Record the failure so the 5h breaker kicks in.
+              // 3. Decide final retry time BEFORE the credits retry so that
+              //    full_quota_exhausted can skip the credits attempt entirely
+              //    (avoids ~41s hold on an already-exhausted account) and
+              //    persist the cooldown to DB for post-restart routing.
+              const decision: Decision = decide429(category, parsedRetryMs);
+              retryMs = decision.retryAfterMs;
+              log?.debug?.(
+                "AG_429",
+                `Category: ${category}, Decision: ${decision.kind} — ${decision.reason}`
+              );
+
+              if (decision.kind === "full_quota_exhausted" && retryMs) {
+                markConnectionQuotaExhausted(accountId, retryMs);
+              }
+
               const creditsAlreadyInjected =
                 (transformedBody as { enabledCreditTypes?: unknown }).enabledCreditTypes != null;
 
@@ -1198,6 +1223,7 @@ export class AntigravityExecutor extends BaseExecutor {
 
               if (
                 category === "quota_exhausted" &&
+                decision.kind !== "full_quota_exhausted" &&
                 !creditsAlreadyInjected &&
                 shouldRetryWithCredits(credentials?.accessToken || "", creditsMode !== "off")
               ) {
@@ -1269,13 +1295,6 @@ export class AntigravityExecutor extends BaseExecutor {
                 }
               }
 
-              // 4. Decide final retry time (apply 4-tier engine)
-              const decision: Decision = decide429(category, parsedRetryMs);
-              retryMs = decision.retryAfterMs;
-              log?.debug?.(
-                "AG_429",
-                `Category: ${category}, Decision: ${decision.kind} — ${decision.reason}`
-              );
             } catch (e) {
               // Ignore parse errors, will fall back to exponential backoff
             }
