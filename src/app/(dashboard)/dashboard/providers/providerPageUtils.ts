@@ -8,6 +8,7 @@ import {
   type StaticProviderCatalogCategory,
 } from "@/lib/providers/catalog";
 import { compareTr, matchesSearch } from "@/shared/utils/turkishText";
+import type { ProviderDisplayMode } from "./providerPageStorage";
 
 export interface ProviderStatsSnapshot {
   total?: number;
@@ -27,6 +28,15 @@ export function shouldApplyConfiguredOnlyFilter(
   connectionCount: number
 ): boolean {
   return showConfiguredOnly && connectionCount > 0;
+}
+
+export function shouldFilterProviderEntriesForDisplayMode(
+  displayMode: ProviderDisplayMode,
+  connectionCount: number
+): boolean {
+  if (displayMode === "compact") return true;
+
+  return shouldApplyConfiguredOnlyFilter(displayMode === "configured", connectionCount);
 }
 
 export function shouldShowFirstProviderHint(
@@ -133,6 +143,44 @@ export function filterConfiguredProviderEntries<TProvider>(
   }
 
   return sortProviderEntriesByName(filtered);
+}
+
+function pushUniqueProviderEntry<TProvider>(
+  entries: ProviderEntry<TProvider>[],
+  seenProviderIds: Set<string>,
+  entry: ProviderEntry<TProvider>
+) {
+  if (seenProviderIds.has(entry.providerId)) return;
+
+  seenProviderIds.add(entry.providerId);
+  entries.push(entry);
+}
+
+export function buildCompactProviderEntries<TProvider>(
+  groups: ProviderEntry<TProvider>[][],
+  options: { deferNoAuth?: boolean } = {}
+): ProviderEntry<TProvider>[] {
+  const seenProviderIds = new Set<string>();
+  const visibleEntries: ProviderEntry<TProvider>[] = [];
+  const deferredNoAuthEntries: ProviderEntry<TProvider>[] = [];
+  const seenDeferredNoAuthProviderIds = new Set<string>();
+
+  for (const group of groups) {
+    for (const entry of group) {
+      if (options.deferNoAuth && entry.displayAuthType === "no-auth") {
+        pushUniqueProviderEntry(deferredNoAuthEntries, seenDeferredNoAuthProviderIds, entry);
+        continue;
+      }
+
+      pushUniqueProviderEntry(visibleEntries, seenProviderIds, entry);
+    }
+  }
+
+  for (const entry of deferredNoAuthEntries) {
+    pushUniqueProviderEntry(visibleEntries, seenProviderIds, entry);
+  }
+
+  return visibleEntries;
 }
 
 export function resolveDashboardProviderInfo(
