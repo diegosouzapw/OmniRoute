@@ -91,3 +91,18 @@ test("calculateFactors — out-of-range contextAffinity is clamped", () => {
     `contextAffinity must be in [0,1], got ${f.contextAffinity}`
   );
 });
+
+test("calculateFactors — connectionDensity is clamped to [0,1] and NaN-safe", () => {
+  // A large pool ((1000-1)/10 = 99.9) must not exceed 1 and skew the weighted score.
+  const big = calculateFactors(candidate({ connectionPoolSize: 1000 }), [candidate()], "default", () => 0.5);
+  assert.ok(
+    big.connectionDensity >= 0 && big.connectionDensity <= 1,
+    `connectionDensity must be in [0,1], got ${big.connectionDensity}`
+  );
+  // A non-finite pool size must map to 0 (clamp01), not propagate NaN into the score.
+  const nan = calculateFactors(candidate({ connectionPoolSize: NaN }), [candidate()], "default", () => 0.5);
+  assert.ok(
+    Number.isFinite(nan.connectionDensity),
+    `connectionDensity must be finite (clamp01 maps NaN→0), got ${nan.connectionDensity}`
+  );
+});

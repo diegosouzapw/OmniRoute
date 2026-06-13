@@ -200,7 +200,7 @@ export function calculateFactors(
     specificityMatch: calculateSpecificityMatch(candidate, manifestHint),
     contextAffinity: clamp01(candidate.contextAffinity ?? 0.5),
     resetWindowAffinity: clamp01(candidate.resetWindowAffinity ?? 0.5),
-    connectionDensity: Math.min(1, Math.max(0, ((candidate.connectionPoolSize ?? 1) - 1) / 10)),
+    connectionDensity: clamp01(((candidate.connectionPoolSize ?? 1) - 1) / 10),
   };
 }
 
