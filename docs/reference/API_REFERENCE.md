@@ -404,15 +404,16 @@ Response example:
 
 ### Settings
 
-| Endpoint                        | Method        | Description               |
-| ------------------------------- | ------------- | ------------------------- |
-| `/api/settings`                 | GET/PUT/PATCH | General settings          |
-| `/api/settings/proxy`           | GET/PUT       | Network proxy config      |
-| `/api/settings/proxy/test`      | POST          | Test proxy connection     |
-| `/api/settings/ip-filter`       | GET/PUT       | IP allowlist/blocklist    |
-| `/api/settings/thinking-budget` | GET/PUT       | Reasoning token budget    |
-| `/api/settings/system-prompt`   | GET/PUT       | Global system prompt      |
-| `/api/settings/compression`     | GET/PUT       | Global compression config |
+| Endpoint                              | Method        | Description                                         |
+| ------------------------------------- | ------------- | --------------------------------------------------- |
+| `/api/settings`                       | GET/PUT/PATCH | General settings                                    |
+| `/api/settings/proxy`                 | GET/PUT       | Network proxy config                                |
+| `/api/settings/proxy/test`            | POST          | Test proxy connection                               |
+| `/api/settings/ip-filter`             | GET/PUT       | IP allowlist/blocklist                              |
+| `/api/settings/thinking-budget`       | GET/PUT       | Reasoning token budget                              |
+| `/api/settings/system-prompt`         | GET/PUT       | Global system prompt                                |
+| `/api/settings/compression`           | GET/PUT       | Global compression config                           |
+| `/api/settings/purge-request-history` | POST          | Clear request log rows and local call-log artifacts |
 
 ### Context & Compression
 
@@ -1287,31 +1288,18 @@ See [Plugins Framework](../plugins/PLUGIN_SDK.md) for full details.
 
 ## Shadow Routing
 
-Beta-test new providers without affecting production traffic.
-
-| Method | Path                              | Description                                                                                  |
-| ------ | --------------------------------- | -------------------------------------------------------------------------------------------- |
-| GET    | `/api/shadow`                      | List all shadow routing rules                                                                |
-| POST   | `/api/shadow`                      | Create a shadow routing rule — body: `{providerId, shadowProviderId, trafficPct, duration?}` |
-| DELETE | `/api/shadow/[id]`                 | Delete a shadow routing rule                                                                 |
-| GET    | `/api/shadow/[id]/results`         | Get shadow routing results (comparison metrics between real and shadow traffic)             |
-| GET    | `/api/shadow/metrics`              | Aggregate shadow routing metrics across all rules                                           |
-
-**Auth:** Requires management session.
+Shadow / A-B comparison of providers is **not a standalone REST surface** — it is configured through combo routing (see [Auto-Combo](../routing/AUTO-COMBO.md)). Per-combo comparison metrics are served by `GET /api/combos/metrics`.
 
 ---
 
 ## Guardrails
 
-Manage runtime guardrails (PII detection, prompt injection detection, vision bridging).
+Inspect the runtime guardrails (PII detection, prompt injection detection, vision bridging). Guardrails run on every request; per-call opt-out is via the `x-omniroute-disabled-guardrails` request header — there is no persisted enable/disable surface.
 
-| Method | Path                              | Description                                                                                  |
-| ------ | --------------------------------- | -------------------------------------------------------------------------------------------- |
-| GET    | `/api/guardrails`                  | List all guardrails and their status (enabled/disabled)                                      |
-| POST   | `/api/guardrails/[id]/enable`      | Enable a guardrail                                                                          |
-| POST   | `/api/guardrails/[id]/disable`     | Disable a guardrail                                                                         |
-| GET    | `/api/guardrails/logs`             | Get guardrail trigger logs (PII detections, injection attempts, etc.)                        |
-| POST   | `/api/guardrails/test`             | Test a guardrail against a sample input                                                     |
+| Method | Path                   | Description                                                                              |
+| ------ | ---------------------- | ---------------------------------------------------------------------------------------- |
+| GET    | `/api/guardrails`      | List the registered guardrails and their status (name / enabled / priority)              |
+| POST   | `/api/guardrails/test` | Dry-run the pre-call pipeline over a sample input — body: `{input, disabledGuardrails?}` |
 
 **Auth:** Requires management session.
 

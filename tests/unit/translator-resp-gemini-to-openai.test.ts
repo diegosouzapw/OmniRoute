@@ -381,6 +381,118 @@ test("Gemini stream: converts textual Tool call block to structured tool_calls",
   assert.equal(result.at(-1).choices[0].finish_reason, "tool_calls");
 });
 
+test("Gemini stream: routes textual reasoning tags to reasoning_content before tool calls", () => {
+  const state = createStreamingState();
+  const result = geminiToOpenAIResponse(
+    {
+      responseId: "resp-textual-thought-tool",
+      modelVersion: "gemini-3.5-flash-high",
+      candidates: [
+        {
+          content: {
+            parts: [
+              {
+                text: "§54§ <thought\nNeed to inspect first.",
+              },
+              {
+                functionCall: {
+                  id: "call_grep",
+                  name: "grep",
+                  args: { pattern: "Host", path: "/tmp/file" },
+                },
+              },
+            ],
+          },
+          finishReason: "STOP",
+        },
+      ],
+    },
+    state
+  );
+
+  assert.equal(
+    result.some((event: any) => event.choices?.[0]?.delta?.content?.includes("<thought")),
+    false
+  );
+  assert.equal(
+    result.find((event: any) => event.choices?.[0]?.delta?.reasoning_content)?.choices[0].delta
+      .reasoning_content,
+    "Need to inspect first."
+  );
+  const toolCall = result.find((event: any) => event.choices?.[0]?.delta?.tool_calls)?.choices[0]
+    .delta.tool_calls[0];
+  assert.equal(toolCall.id, "call_grep");
+  assert.equal(result.at(-1).choices[0].finish_reason, "tool_calls");
+});
+
+test("Gemini stream: keeps textual reasoning hidden across split chunks", () => {
+  const state = createStreamingState();
+
+  const first = geminiToOpenAIResponse(
+    {
+      responseId: "resp-split-thought",
+      modelVersion: "gemini-3.5-flash-high",
+      candidates: [{ content: { parts: [{ text: "§54§ <tho" }] } }],
+    },
+    state
+  );
+  assert.equal(
+    first.some((event: any) => event.choices?.[0]?.delta?.content),
+    false
+  );
+
+  const second = geminiToOpenAIResponse(
+    {
+      responseId: "resp-split-thought",
+      modelVersion: "gemini-3.5-flash-high",
+      candidates: [{ content: { parts: [{ text: "ught\nNeed to inspect" }] } }],
+    },
+    state
+  );
+  assert.equal(
+    (second ?? []).some((event: any) =>
+      event.choices?.[0]?.delta?.content?.includes("Need to inspect")
+    ),
+    false
+  );
+
+  const third = geminiToOpenAIResponse(
+    {
+      responseId: "resp-split-thought",
+      modelVersion: "gemini-3.5-flash-high",
+      candidates: [{ content: { parts: [{ text: " more</tho" }] } }],
+    },
+    state
+  );
+  assert.equal(
+    (third ?? []).some((event: any) => event.choices?.[0]?.delta?.content?.includes("more")),
+    false
+  );
+
+  const fourth = geminiToOpenAIResponse(
+    {
+      responseId: "resp-split-thought",
+      modelVersion: "gemini-3.5-flash-high",
+      candidates: [{ content: { parts: [{ text: "ught>Visible answer" }] } }],
+    },
+    state
+  );
+  assert.equal(
+    fourth.some(
+      (event: any) => event.choices?.[0]?.delta?.reasoning_content === "Need to inspect more"
+    ),
+    true
+  );
+  assert.equal(
+    fourth.some((event: any) => event.choices?.[0]?.delta?.content?.includes("ught>")),
+    false
+  );
+  assert.equal(
+    fourth.find((event: any) => event.choices?.[0]?.delta?.content)?.choices[0].delta.content,
+    "Visible answer"
+  );
+});
+
 test("Gemini stream: converts prefixed textual Tool call block with zero-width chars", () => {
   const state = createStreamingState();
   const result = geminiToOpenAIResponse(
@@ -826,7 +938,7 @@ test("Gemini stream: index mismatch regression test with zero-width characters i
           content: {
             parts: [
               {
-                text: "\u200BКак исправить: [Tool call: terminal]\nArguments: {\"command\":\"whoami\"}",
+                text: '\u200BКак исправить: [Tool call: terminal]\nArguments: {"command":"whoami"}',
               },
             ],
           },
@@ -837,7 +949,9 @@ test("Gemini stream: index mismatch regression test with zero-width characters i
     state
   );
 
-  const leakedContent = result.map((event: any) => event.choices?.[0]?.delta?.content || "").join("");
+  const leakedContent = result
+    .map((event: any) => event.choices?.[0]?.delta?.content || "")
+    .join("");
   assert.equal(leakedContent, "Как исправить: ");
 
   const toolCalls = result.flatMap((event: any) => event.choices?.[0]?.delta?.tool_calls || []);
@@ -870,7 +984,7 @@ test("Gemini stream: partial tool call with (empty) prefix check at chunk end do
         content: {
           parts: [
             {
-              text: "ll: terminal]\nArguments: {\"command\":\"whoami\"}",
+              text: 'll: terminal]\nArguments: {"command":"whoami"}',
             },
           ],
         },
@@ -942,7 +1056,7 @@ test("Gemini stream: parses textual tool call that starts in a subsequent chunk 
 
 test("Gemini stream: checks lastParen before lastBracket when identifying partial (empty) markers with distinct chuncks", () => {
   const state = createStreamingState() as any;
-  
+
   // Имитируем чанк, который кончается на частичный "(empty)[Tool call:" маркер, например "(em"
   const chunk1 = {
     responseId: "resp-test-empty-partial",
@@ -982,7 +1096,7 @@ test("Gemini stream: checks lastParen before lastBracket when identifying partia
         content: {
           parts: [
             {
-              text: ' call: my_tool]\nArguments: {}',
+              text: " call: my_tool]\nArguments: {}",
             },
           ],
         },
@@ -1009,5 +1123,111 @@ test("Gemini stream: checks lastParen before lastBracket when identifying partia
   assert.equal(toolCall.function.arguments, "{}");
 });
 
+// #3821-review LEDGER-4 — a signed native functionCall arriving while a textual
+// `<thinking>` wrapper opened in an earlier chunk is still buffered must flush that
+// buffered reasoning as reasoning_content, not silently discard it.
+test("Gemini stream: open textual reasoning is flushed before a signed native tool call", () => {
+  const state = createStreamingState();
 
+  // chunk 1: opens a <thinking> wrapper with no close tag → buffered, nothing emitted.
+  const r1 =
+    geminiToOpenAIResponse(
+      {
+        responseId: "resp-flush-reasoning",
+        modelVersion: "gemini-3-flash-agent",
+        candidates: [{ content: { parts: [{ text: "<thinking>deep reasoning here" }] } }],
+      },
+      state
+    ) || [];
+  assert.ok(
+    !r1.some((e: any) => e.choices?.[0]?.delta?.reasoning_content),
+    "reasoning is still buffered (awaiting close tag) — nothing emitted yet"
+  );
 
+  // chunk 2: signed native functionCall while the reasoning wrapper is still open.
+  const r2 =
+    geminiToOpenAIResponse(
+      {
+        responseId: "resp-flush-reasoning",
+        modelVersion: "gemini-3-flash-agent",
+        candidates: [
+          {
+            content: {
+              parts: [
+                {
+                  thoughtSignature: "sig-flush-1",
+                  functionCall: { id: "call-flush-1", name: "do_thing", args: {} },
+                },
+              ],
+            },
+          },
+        ],
+      },
+      state
+    ) || [];
+
+  const reasoningIdx = r2.findIndex((e: any) => e.choices?.[0]?.delta?.reasoning_content);
+  const toolIdx = r2.findIndex((e: any) => e.choices?.[0]?.delta?.tool_calls);
+  assert.equal(
+    r2[reasoningIdx]?.choices[0].delta.reasoning_content,
+    "deep reasoning here",
+    "buffered textual reasoning must be flushed, not dropped, when a tool call arrives"
+  );
+  assert.equal(r2[toolIdx]?.choices[0].delta.tool_calls[0].id, "call-flush-1");
+  assert.ok(reasoningIdx >= 0 && toolIdx > reasoningIdx, "reasoning is emitted before the tool call");
+});
+
+// #3821-review LEDGER-15 — a reasoning-only chunk interrupting a partially-buffered
+// textual "[Tool call: ...]" must not strand the buffer; it resolves once the rest of
+// the tool-call text arrives (or at finishReason).
+test("Gemini stream: partial textual tool call survives a reasoning-only chunk", () => {
+  const state = createStreamingState();
+
+  // chunk 1: partial textual tool call (incomplete JSON) → buffered.
+  geminiToOpenAIResponse(
+    {
+      responseId: "resp-interleave",
+      modelVersion: "gemini-3.5-flash-low",
+      candidates: [
+        { content: { parts: [{ text: '[Tool call: terminal]\nArguments: {"command":"ls' }] } },
+      ],
+    },
+    state
+  );
+
+  // chunk 2: a reasoning-only chunk fully consumed as reasoning_content.
+  const r2 =
+    geminiToOpenAIResponse(
+      {
+        responseId: "resp-interleave",
+        modelVersion: "gemini-3.5-flash-low",
+        candidates: [{ content: { parts: [{ text: "<thinking>pondering</thinking>" }] } }],
+      },
+      state
+    ) || [];
+  assert.equal(
+    r2.find((e: any) => e.choices?.[0]?.delta?.reasoning_content)?.choices[0].delta
+      .reasoning_content,
+    "pondering"
+  );
+  assert.ok(
+    typeof state.textualToolCallBuffer === "string" &&
+      state.textualToolCallBuffer.includes("[Tool call: terminal]"),
+    "the partial tool-call buffer must survive the reasoning-only chunk"
+  );
+
+  // chunk 3: completes the tool-call text + finishReason → resolves to a structured call.
+  const r3 =
+    geminiToOpenAIResponse(
+      {
+        responseId: "resp-interleave",
+        modelVersion: "gemini-3.5-flash-low",
+        candidates: [{ content: { parts: [{ text: '"}' }] }, finishReason: "STOP" }],
+      },
+      state
+    ) || [];
+  const toolCall = r3.find((e: any) => e.choices?.[0]?.delta?.tool_calls)?.choices[0].delta
+    .tool_calls[0];
+  assert.ok(toolCall, "the textual tool call resolves after the reasoning-only interruption");
+  assert.equal(toolCall.function.name, "terminal");
+});

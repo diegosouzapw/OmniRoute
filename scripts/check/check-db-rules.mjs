@@ -21,61 +21,68 @@ const LOCAL_DB = path.join(cwd, "src/lib/localDb.ts");
 const API_DIR = path.join(cwd, "src/app/api");
 const HANDLERS_DIR = path.join(cwd, "open-sse/handlers");
 
-// (a) Módulos db/ que NÃO são re-exportados por localDb.ts hoje. Congelados
-// para a catraca ficar verde e bloquear QUALQUER módulo novo não re-exportado.
-// CADA UM é dívida: ou é consumido por import direto de "@/lib/db/X" (legítimo,
-// não precisa de re-export) ou deveria ser re-exportado. NÃO adicione novos aqui
-// sem justificativa — esse é o ponto do gate (Hard Rule #2).
-const KNOWN_UNEXPORTED = new Set([
-  "_rowTypes", // só tipos de linha (sem runtime API), consumido localmente pelos CRUDs F2
-  "cleanup", // rotina de manutenção, chamada por jobs/rotas via import direto
-  "cliToolState", // estado de CLI tools, import direto pelos consumidores
-  "comboForecast", // previsão de combo, import direto
-  "commandCodeAuth", // auth de command-code, import direto
-  "compression", // núcleo de compressão, import direto
-  "compressionScheduler", // scheduler, import direto
-  "detailedLogs", // logs detalhados, import direto
-  "discovery", // discovery de modelos, import direto
-  "domainState", // estado de domínio/circuit breaker, import direto
-  "encryption", // util de cripto at-rest, import direto
-  "healthCheck", // health check de DB, import direto
-  "jsonMigration", // migração JSON→SQLite (one-shot), import direto
-  "migrationRunner", // runner de migrations, import direto
-  "notion", // integração Notion, import direto
-  "obsidian", // integração Obsidian, import direto
-  "pluginMetrics", // métricas de plugin, import direto
-  "prompts", // prompts salvos, import direto
-  "providerStats", // stats de provider, import direto
-  "recovery", // recuperação de DB, import direto
-  "secrets", // secrets store, import direto
-  "serviceModels", // modelos de serviços embutidos, import direto
-  "stateReset", // reset de estado de resiliência, import direto
-  "stats", // agregações de stats, import direto
-  "tierConfig", // config de tier, import direto
+// (a) Módulos db/ que NÃO são re-exportados por localDb.ts por DESIGN (Hard Rule #2:
+// "Never barrel-import from localDb.ts — import specific db/ modules instead").
+// Cada entrada aqui foi auditada e é consumida via import direto de "@/lib/db/X"
+// (estático ou dinâmico) pelos seus consumidores — exatamente o padrão correto.
+// Re-exportar esses módulos via localDb.ts INCENTIVARIA o anti-padrão proibido.
+// O gate ainda bloqueia QUALQUER módulo db/ NOVO que não seja re-exportado E não
+// esteja nessa lista — mantendo a decisão consciente obrigatória (Hard Rule #2).
+// Legenda de classificação:
+//   type-only          = exporta apenas tipos (sem runtime API), não há o que re-exportar
+//   db-internal        = importado apenas dentro de src/lib/db/ (coordenação interna)
+//   intentionally-internal = consumido por import direto fora de db/ (correto per Rule #2)
+//   DEAD?              = zero importers encontrados na auditoria de 2026-06-11; não deletar
+//                        sem investigação — pode ser reserva de schema ou F2 pendente
+export const INTENTIONALLY_INTERNAL = new Set([
+  "_rowTypes", // type-only: 5 importers internos em db/ (AgentBridge/Inspector row types)
+  "cleanup", // intentionally-internal: 3 API routes (purge-quota-snapshots, purge-call-logs, purge-detailed-logs)
+  "cliToolState", // intentionally-internal: 14+ API routes em /api/cli-tools/*-settings
+  "comboForecast", // intentionally-internal: src/lib/usage/comboForecast.ts
+  "commandCodeAuth", // intentionally-internal: 5 API routes em /api/providers/command-code/auth/*
+  "compression", // intentionally-internal: 2 API routes (settings/compression, context/rtk/config)
+  "compressionScheduler", // DEAD?: 0 importers na auditoria de 2026-06-11; mantido para schema reservation
+  "detailedLogs", // intentionally-internal: 3 callers (callLogs.ts, logs/detail route, embeddings handler)
+  "discovery", // DEAD?: 0 importers na auditoria de 2026-06-11; lib/discovery/index.ts não usa db/discovery
+  "domainState", // intentionally-internal: 5 callers (batchWriter, circuitBreaker, costRules, fallbackPolicy, lockoutPolicy)
+  "encryption", // intentionally-internal: 8+ callers (container, webhookDispatcher, cloudAgent/credentials, services/apiKey, 4+ routes, open-sse)
+  "healthCheck", // db-internal: importado por db/core.ts (runDbHealthCheck)
+  "jsonMigration", // intentionally-internal: src/app/api/settings/import-json/route.ts
+  "migrationRunner", // db-internal: importado por db/core.ts (runMigrations ao inicializar o DB)
+  "notion", // intentionally-internal: settings/notion API route + open-sse/mcp-server/tools/notionTools.ts
+  "obsidian", // intentionally-internal: src/lib/obsidianSync.ts + settings/obsidian route + MCP obsidianTools.ts
+  "pluginMetrics", // DEAD? (production): write path não foi conectado ainda (documentado no cabeçalho do módulo); testado por tests/unit/plugins-metrics.test.ts
+  "prompts", // DEAD? (production): zero callers de produção encontrados; domínio domain/prompts.ts é independente; testado por tests/integration/proxy-pipeline.test.ts
+  "providerStats", // intentionally-internal: src/app/api/provider-stats/route.ts
+  "recovery", // intentionally-internal: bin/cli/runtime.mjs (import() dinâmico) + tests
+  "secrets", // intentionally-internal: src/instrumentation-node.ts (import() dinâmico na inicialização)
+  "serviceModels", // intentionally-internal: 3 callers (services/modelSync, services/bootstrap, /api/services/9router/models)
+  "stateReset", // db-internal: 3 callers dentro de src/lib/db/ (core, backup, apiKeys) para coordenação de reset
+  "stats", // intentionally-internal: src/app/api/settings/database/refresh-stats/route.ts
+  "tierConfig", // intentionally-internal: open-sse/services/tierResolver.ts (require() dinâmico)
 ]);
 
-// (c) Ofensores de SQL cru PRÉ-EXISTENTES em rotas/handlers. Congelados para a
-// catraca ficar verde e bloquear QUALQUER nova rota/handler com SQL inline.
-// CADA UM é dívida da Hard Rule #5: mover para um módulo src/lib/db/. NÃO
-// adicione novos aqui sem justificativa — crie/estenda um módulo db/ em vez disso.
-// (Chaves = caminho relativo POSIX a partir da raiz do repo.)
-const KNOWN_RAW_SQL = new Set([
-  "src/app/api/analytics/auto-routing/route.ts", // SELECT … FROM usage_logs
-  "src/app/api/cache/entries/route.ts", // semantic_cache COUNT/DELETE inline
-  "src/app/api/db-backups/exportAll/route.ts", // SELECT key_value/combos/connections/keys
-  "src/app/api/db-backups/import/route.ts", // SELECT sqlite_master + COUNTs
-  "src/app/api/gamification/federation/leaderboard/route.ts", // SELECT community_servers
-  "src/app/api/gamification/federation/score/route.ts", // SELECT community_servers
-  "src/app/api/logs/export/route.ts", // SELECT de proxy_logs
-  "src/app/api/oauth/cursor/auto-import/route.ts", // SELECT no itemTable do Cursor (DB externo)
-  "src/app/api/oauth/kiro/auto-import/route.ts", // SELECT no SQLite do Kiro (DB externo)
-  "src/app/api/provider-metrics/route.ts", // SELECT … FROM call_logs (agregação)
-  "src/app/api/search/stats/route.ts", // SELECT … FROM call_logs
-  "src/app/api/settings/export-json/route.ts", // SELECT * de usage_history/domain_*
-  "src/app/api/skills/[id]/route.ts", // UPDATE skills SET dinâmico
-  "src/app/api/usage/analytics/route.ts", // SELECT … FROM usage_history/daily_usage_summary
-  "src/app/api/v1/search/analytics/route.ts", // SELECT … FROM call_logs (request_type=search)
+// Alias para retrocompatibilidade com os testes existentes que importam KNOWN_UNEXPORTED.
+// O comportamento do gate é idêntico — só o nome e os comentários mudaram (#3499).
+export const KNOWN_UNEXPORTED = INTENTIONALLY_INTERNAL;
+
+// (c) Leituras de SQL contra bancos EXTERNOS, permitidas por design (#3500).
+// Estas rotas NÃO consultam o DB do OmniRoute (getDbInstance) — elas abrem o
+// SQLite de OUTRO aplicativo (Cursor / Kiro) para auto-importar credenciais.
+// Por isso NÃO podem viver em src/lib/db/ (que é o domínio do DB do OmniRoute):
+// são leituras read-only de um arquivo externo, com caminho/escopo próprios.
+// Continuam no allowlist como exceção DOCUMENTADA — o gate ainda bloqueia
+// QUALQUER novo SQL cru contra o DB do OmniRoute em rotas/handlers.
+// Toda a dívida real da Hard Rule #5 (15 rotas internas) foi migrada para
+// módulos src/lib/db/ nas slices do #3500; este set ficou só com as exceções.
+const EXTERNAL_DB_ALLOWED = new Set([
+  "src/app/api/oauth/cursor/auto-import/route.ts", // read-only no itemTable do SQLite do Cursor (DB externo)
+  "src/app/api/oauth/kiro/auto-import/route.ts", // read-only no SQLite do Kiro (DB externo)
 ]);
+
+// Alias de retrocompatibilidade (testes/consumidores que importam KNOWN_RAW_SQL).
+// Comportamento do gate idêntico — só o nome e o enquadramento mudaram (#3500).
+const KNOWN_RAW_SQL = EXTERNAL_DB_ALLOWED;
 
 // Módulos sempre excluídos da checagem (a): não são domínio re-exportável.
 const DB_MODULE_EXCLUDE = new Set(["core", "localDb", "index"]);
@@ -112,8 +119,10 @@ export function extractReexportedModules(localDbSource) {
   return out;
 }
 
-// (a) Módulos db/ que não são re-exportados e não estão congelados.
-export function findMissingReexports(dbModules, reexported, allowlist = KNOWN_UNEXPORTED) {
+// (a) Módulos db/ que não são re-exportados e não estão na lista de
+// intencionalmente-internos (INTENTIONALLY_INTERNAL). O gate falha para
+// qualquer módulo NOVO que não seja re-exportado nem justificado.
+export function findMissingReexports(dbModules, reexported, allowlist = INTENTIONALLY_INTERNAL) {
   return dbModules.filter((mod) => !reexported.has(mod) && !allowlist.has(mod));
 }
 
@@ -216,7 +225,7 @@ function main() {
       `[#2 re-export] ${missing.length} módulo(s) db/ não re-exportado(s) por src/lib/localDb.ts:\n` +
         missing.map((m) => `  ✗ src/lib/db/${m}.ts`).join("\n") +
         `\n  → re-exporte de src/lib/localDb.ts (apenas a lista de re-export, nada de lógica)` +
-        ` ou adicione a KNOWN_UNEXPORTED com justificativa (import direto de "@/lib/db/${missing[0]}").`
+        ` ou adicione a INTENTIONALLY_INTERNAL com justificativa (import direto de "@/lib/db/${missing[0]}").`
     );
   }
 
@@ -245,7 +254,7 @@ function main() {
   }
   console.log(
     `[check-db-rules] OK (${dbModules.length} módulos db/, ${reexported.size} re-exportados, ` +
-      `${KNOWN_UNEXPORTED.size} congelados; ${KNOWN_RAW_SQL.size} ofensores de SQL congelados)`
+      `${INTENTIONALLY_INTERNAL.size} intencionalmente-internos (Rule #2); ${EXTERNAL_DB_ALLOWED.size} leituras de DB externo permitidas (#3500))`
   );
 }
 

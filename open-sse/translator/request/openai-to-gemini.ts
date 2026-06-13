@@ -77,7 +77,7 @@ type GeminiRequest = {
 
 type CloudCodeEnvelope = {
   project: string;
-  model: string;
+  model?: string;
   user_prompt_id?: string;
   userAgent?: "antigravity" | "jetski" | string;
   requestId?: string;
@@ -816,7 +816,7 @@ register(
   FORMATS.GEMINI,
   (model, body, stream = false, credentials = null) =>
     openaiToGeminiRequest(model, body, stream, credentials, {
-      signaturelessToolCallMode: "native",
+      signaturelessToolCallMode: "context",
     }),
   null
 );

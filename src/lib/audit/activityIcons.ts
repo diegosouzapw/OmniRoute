@@ -8,12 +8,31 @@ export interface ActivityIconSpec {
 export const ACTIVITY_ICONS: Record<string, ActivityIconSpec> = {
   // providers
   "provider.credentials.created": { icon: "extension", i18nKeyVerb: "providerCredentialsCreated" },
-  "provider.credentials.applied": { icon: "check_circle", i18nKeyVerb: "providerCredentialsApplied" },
+  "provider.credentials.applied": {
+    icon: "check_circle",
+    i18nKeyVerb: "providerCredentialsApplied",
+  },
   "provider.credentials.updated": { icon: "edit", i18nKeyVerb: "providerCredentialsUpdated" },
-  "provider.credentials.revoked": { icon: "extension_off", i18nKeyVerb: "providerCredentialsRevoked" },
-  "provider.credentials.batch_revoked": { icon: "extension_off", i18nKeyVerb: "providerCredentialsBatchRevoked" },
-  "provider.credentials.bulk_created": { icon: "extension", i18nKeyVerb: "providerCredentialsBulkCreated" },
-  "provider.credentials.bulk_imported": { icon: "upload", i18nKeyVerb: "providerCredentialsBulkImported" },
+  "provider.credentials.revoked": {
+    icon: "extension_off",
+    i18nKeyVerb: "providerCredentialsRevoked",
+  },
+  "provider.credentials.batch_revoked": {
+    icon: "extension_off",
+    i18nKeyVerb: "providerCredentialsBatchRevoked",
+  },
+  "provider.credentials.batch_updated": {
+    icon: "edit",
+    i18nKeyVerb: "providerCredentialsBatchUpdated",
+  },
+  "provider.credentials.bulk_created": {
+    icon: "extension",
+    i18nKeyVerb: "providerCredentialsBulkCreated",
+  },
+  "provider.credentials.bulk_imported": {
+    icon: "upload",
+    i18nKeyVerb: "providerCredentialsBulkImported",
+  },
   "provider.credentials.imported": { icon: "upload", i18nKeyVerb: "providerCredentialsImported" },
   "provider.validation.ssrf_blocked": { icon: "block", i18nKeyVerb: "providerSsrfBlocked" },
 

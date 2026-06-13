@@ -103,10 +103,6 @@ function hasNonEmptyReasoningContent(message: Record<string, unknown>): boolean 
   return typeof message.reasoning_content === "string" && message.reasoning_content.length > 0;
 }
 
-function hasReasoningContentField(message: Record<string, unknown>): boolean {
-  return Object.prototype.hasOwnProperty.call(message, "reasoning_content");
-}
-
 function isDeepSeekReplayTarget(provider: unknown, model: unknown): boolean {
   const normalizedProvider = String(provider ?? "")
     .trim()
@@ -179,7 +175,10 @@ export function translateRequest(
       // quirks (e.g. Vertex rejects function_call.id — #3440).
       const directCredentials =
         provider != null
-          ? { ...(credentials && typeof credentials === "object" ? credentials : {}), _provider: provider }
+          ? {
+              ...(credentials && typeof credentials === "object" ? credentials : {}),
+              _provider: provider,
+            }
           : credentials;
       result = directTranslator(model, result, stream, directCredentials);
     } else {
@@ -319,15 +318,23 @@ export function translateRequest(
         Array.isArray(msg.content) &&
         msg.content.some((b) => b?.type === "tool_use");
 
+      // For DeepSeek replay targets, a plain (non-tool-call) assistant turn must
+      // ALSO carry reasoning_content in thinking mode, or DeepSeek V4+ returns 400:
+      // "The reasoning_content in the thinking mode must be passed back to the API."
+      // Enter the replay path when the field is MISSING or empty (#1682) — not only
+      // when it is already present (the previous gate only matched messages that
+      // already had the field, so stripped-history turns from clients like Cursor
+      // were skipped and forwarded without reasoning_content).
       const shouldReplayReasoningOnly =
         !hasToolCalls &&
         !hasToolUseBlocks &&
         canReplayReasoningOnly &&
-        hasReasoningContentField(msg);
+        !hasNonEmptyReasoningContent(msg);
 
       if (!hasToolCalls && !hasToolUseBlocks && !shouldReplayReasoningOnly) {
-        // Strip empty reasoning_content on non-tool-call messages; an empty
-        // string has no meaningful value to send and may confuse some upstreams.
+        // Strip empty reasoning_content on non-tool-call messages we are NOT
+        // replaying (e.g. non-DeepSeek targets); an empty string has no meaningful
+        // value to send and may confuse some upstreams.
         if (msg.reasoning_content === "") {
           delete msg.reasoning_content;
         }
@@ -392,7 +399,12 @@ export function translateRequest(
       // Note: injectEmptyReasoningContentForToolCalls may have pre-set
       // reasoning_content="" before the cache lookup, so we check for
       // both undefined AND empty string here.
-      if (hasToolCalls && !msg.reasoning_content) {
+      //
+      // Applies to tool-call messages AND to plain (non-tool-call) assistant turns
+      // on DeepSeek replay targets (#1682). Without the placeholder on plain turns,
+      // a multi-turn text conversation whose reasoning_content the client stripped
+      // is forwarded to DeepSeek without the field and rejected with 400.
+      if ((hasToolCalls || shouldReplayReasoningOnly) && !msg.reasoning_content) {
         msg.reasoning_content = NON_ANTHROPIC_THINKING_PLACEHOLDER;
       }
     }

@@ -30,6 +30,8 @@ interface QuotaCardProps {
   providerLabel: string;
   onRefresh: () => void;
   onOpenCutoff: () => void;
+  onToggleActive: (nextActive: boolean) => void;
+  togglingActive: boolean;
 }
 
 export default function QuotaCard({
@@ -42,7 +44,10 @@ export default function QuotaCard({
   providerLabel,
   onRefresh,
   onOpenCutoff,
+  onToggleActive,
+  togglingActive,
 }: QuotaCardProps) {
+  const isActive = connection.isActive ?? true;
   const quotas = quota?.quotas ?? [];
   const cardStatus = useMemo<CardStatus>(() => worstStatus(quotas), [quotas]);
   const tierMeta = useMemo(
@@ -66,7 +71,7 @@ export default function QuotaCard({
   return (
     <Card
       padding="none"
-      className="flex flex-col overflow-hidden"
+      className={`flex flex-col overflow-hidden transition-opacity ${isActive ? "" : "opacity-60"}`}
       style={{ borderLeft: `3px solid ${STATUS_BORDER[cardStatus]}` }}
     >
       <QuotaCardHeader
@@ -81,6 +86,8 @@ export default function QuotaCard({
         onRefresh={onRefresh}
         onOpenCutoff={onOpenCutoff}
         hasCutoffOverrides={hasOverrides}
+        onToggleActive={onToggleActive}
+        togglingActive={togglingActive}
       />
       <QuotaCardExpanded
         quotas={quotas}

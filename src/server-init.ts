@@ -131,6 +131,16 @@ async function startServer() {
       startupLog.warn({ error: getErrorMessage(err) }, "Pricing sync could not initialize");
     }
   }
+
+  // Arena ELO sync: opt-in model intelligence from leaderboard data (non-blocking, never fatal)
+  if (process.env.ARENA_ELO_SYNC_ENABLED === "true") {
+    try {
+      const { initArenaEloSync } = await import("./lib/arenaEloSync");
+      await initArenaEloSync();
+    } catch (err) {
+      startupLog.warn({ error: getErrorMessage(err) }, "Arena ELO sync could not initialize");
+    }
+  }
 }
 
 // Start the server initialization

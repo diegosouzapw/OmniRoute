@@ -2,7 +2,13 @@ import { NextResponse } from "next/server";
 import { homedir } from "os";
 import { join } from "path";
 import { isAuthRequired, isAuthenticated } from "@/shared/utils/apiAuth";
-import { createProviderConnection, isCloudEnabled, resolveProxyForProvider } from "@/models";
+import {
+  createProviderConnection,
+  getProviderConnections,
+  updateProviderConnection,
+  isCloudEnabled,
+  resolveProxyForProvider,
+} from "@/models";
 import { syncToCloud } from "@/lib/cloudSync";
 import { getConsistentMachineId } from "@/shared/utils/machineId";
 import { KiroService } from "@/lib/oauth/services/kiro";
@@ -235,6 +241,59 @@ async function tryAwsSsoCache(targetProvider: string): Promise<{
   return { found: false, triedPath: cachePath };
 }
 
+// ── Helpers (exported for unit-testing) ──────────────────────────────────────
+
+/**
+ * Derives a human-readable display name for a Kiro/AWS connection when the
+ * OAuth token carries no email claim (social-auth / AWS SSO tokens). Falls
+ * back through: email → profileArn-based label → provider+region label.
+ *
+ * Exported for unit tests (#3615).
+ */
+export function deriveKiroConnectionName(opts: {
+  email: string | null | undefined;
+  profileArn: string | undefined;
+  region: string | undefined;
+  targetProvider: string;
+}): string {
+  const { email, profileArn, region, targetProvider } = opts;
+  if (email) return email;
+  const r = region || "us-east-1";
+  if (profileArn) return `AWS CodeWhisperer (${r})`;
+  if (targetProvider === "amazon-q") return `Amazon Q (${r})`;
+  return `Kiro (${r})`;
+}
+
+type ProviderConnectionLike = {
+  id?: unknown;
+  providerSpecificData?: unknown;
+  [key: string]: unknown;
+};
+
+/**
+ * Scans a list of existing provider connections and returns the first one
+ * whose stored `providerSpecificData.profileArn` matches the given ARN.
+ * Returns null when profileArn is undefined/null or no match is found.
+ *
+ * Exported for unit tests (#3615).
+ */
+export function findKiroConnectionByProfileArn(
+  connections: ProviderConnectionLike[],
+  profileArn: string | undefined
+): ProviderConnectionLike | null {
+  if (!profileArn) return null;
+  for (const conn of connections) {
+    const psd = conn.providerSpecificData;
+    if (psd && typeof psd === "object" && !Array.isArray(psd)) {
+      const stored = (psd as Record<string, unknown>).profileArn;
+      if (typeof stored === "string" && stored === profileArn) {
+        return conn;
+      }
+    }
+  }
+  return null;
+}
+
 // ── Save to OmniRoute DB ──────────────────────────────────────────────────────
 
 async function saveAndRespond(
@@ -299,16 +358,44 @@ async function saveAndRespond(
 
     const email = kiroService.extractEmailFromJWT(accessToken);
 
-    await createProviderConnection({
-      provider: targetProvider,
-      authType: "oauth",
-      accessToken,
-      refreshToken,
-      expiresAt,
-      email: email || null,
-      providerSpecificData,
-      testStatus: "active",
-    } as any);
+    // Derive a descriptive name so the UI never shows a blank "OAuth Account"
+    // when the token carries no email claim (Kiro social-auth / AWS SSO).
+    const connectionName = deriveKiroConnectionName({
+      email,
+      profileArn,
+      region: result.region,
+      targetProvider,
+    });
+
+    // Dedup by profileArn: if an existing connection already has the same ARN
+    // just refresh its tokens instead of inserting a new row. This prevents the
+    // duplicate-row accumulation reported in #3615 (4 rows after 6 days).
+    const existingConnections = await getProviderConnections({ provider: targetProvider });
+    const existingByArn = findKiroConnectionByProfileArn(existingConnections, profileArn);
+
+    if (existingByArn && typeof existingByArn.id === "string") {
+      await updateProviderConnection(existingByArn.id, {
+        accessToken,
+        refreshToken,
+        expiresAt,
+        email: email || null,
+        name: connectionName,
+        providerSpecificData,
+        testStatus: "active",
+      });
+    } else {
+      await createProviderConnection({
+        provider: targetProvider,
+        authType: "oauth",
+        accessToken,
+        refreshToken,
+        expiresAt,
+        email: email || null,
+        name: connectionName,
+        providerSpecificData,
+        testStatus: "active",
+      } as any);
+    }
 
     if (isCloudEnabled()) {
       const machineId = await getConsistentMachineId();

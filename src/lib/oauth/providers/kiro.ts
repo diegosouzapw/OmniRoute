@@ -76,7 +76,7 @@ export const kiro = {
     };
   },
   pollToken: async (config, deviceCode, codeVerifier, extraData) => {
-    const tokenRegion = extraData?._region || "us-east-1";
+    const tokenRegion = String(extraData?._region || "us-east-1").toLowerCase();
     const tokenUrl = `https://oidc.${tokenRegion}.amazonaws.com/token`;
 
     const response = await fetch(tokenUrl, {
@@ -123,7 +123,46 @@ export const kiro = {
       },
     };
   },
-  mapTokens: (tokens) => ({
+  // Enterprise IAM Identity Center accounts require a region-bound Q Developer profileArn on every
+  // CodeWhisperer call; without it AWS returns 403 "User is not authorized to make this call". The
+  // device-code flow does not return one, so discover it here via ListAvailableProfiles against the
+  // same regional endpoint the token was issued for. Best-effort: AWS Builder ID accounts have no
+  // profile and this simply yields none; failures never block login.
+  postExchange: async (tokenData) => {
+    const accessToken = tokenData?.access_token;
+    if (!accessToken) return null;
+    const region = String(tokenData?._region || "us-east-1").toLowerCase();
+    const runtimeHost =
+      region === "us-east-1"
+        ? "https://codewhisperer.us-east-1.amazonaws.com"
+        : `https://q.${region}.amazonaws.com`;
+    try {
+      const profRes = await fetch(`${runtimeHost}/`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/x-amz-json-1.0",
+          Accept: "application/json",
+          "x-amz-target": "AmazonCodeWhispererService.ListAvailableProfiles",
+          Authorization: `Bearer ${accessToken}`,
+        },
+        body: JSON.stringify({ maxResults: 10 }),
+        signal: AbortSignal.timeout(10000),
+      });
+      if (!profRes.ok) return null;
+      const profData = await profRes.json();
+      const profiles = Array.isArray(profData?.profiles) ? profData.profiles : [];
+      const matched =
+        profiles.find(
+          (p: { arn?: string }) => typeof p?.arn === "string" && p.arn.includes(`:${region}:`)
+        ) || profiles[0];
+      const arn = matched && typeof matched.arn === "string" ? matched.arn : undefined;
+      return arn ? { profileArn: arn } : null;
+    } catch {
+      // Best-effort profile discovery — never block login on it.
+      return null;
+    }
+  },
+  mapTokens: (tokens, extra) => ({
     accessToken: tokens.access_token,
     refreshToken: tokens.refresh_token,
     expiresIn: tokens.expires_in,
@@ -131,6 +170,7 @@ export const kiro = {
       clientId: tokens._clientId,
       clientSecret: tokens._clientSecret,
       region: tokens._region,
+      ...(extra?.profileArn ? { profileArn: extra.profileArn } : {}),
     },
   }),
 };

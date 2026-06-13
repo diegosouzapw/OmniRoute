@@ -24,11 +24,7 @@ const IGNORE = [
 // inventada. CADA UM precisa de triagem: criar a rota, corrigir o path, ou remover a
 // chamada morta. NÃO adicione novos aqui sem justificativa — esse é o ponto do gate.
 const KNOWN_MISSING = new Set([
-  "/api/gamification/level", // profile/page.tsx — rota inexistente (gamification tem transfer/leaderboard/… mas não level)
-  "/api/gamification/badges", // profile/page.tsx — idem
-  "/api/gamification/badges/earned", // profile/page.tsx — idem
-  "/api/settings/obsidian/webdav", // ObsidianSourceCard.tsx — só existe /api/settings/obsidian
-  "/api/tools/agent-bridge/upstream-ca/test", // UpstreamCaField.tsx — rota inexistente
+  // All previously known-missing routes have been resolved.
 ]);
 
 function walk(dir, acc = []) {

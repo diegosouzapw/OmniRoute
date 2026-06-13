@@ -18,23 +18,50 @@ This plugin solves that by:
 
 ## Install
 
-Once published to npm:
+The plugin ships **pre-built inside the `omniroute` npm package** since v3.8.23.
+If you have OmniRoute installed, the plugin is already on disk:
 
 ```sh
-npm install @omniroute/opencode-plugin
+# 1. One command — copy the plugin into OpenCode and update opencode.json
+omniroute setup opencode --auth
+
+# 2. Follow the interactive prompt to enter your OmniRoute API key
+# 3. Restart OpenCode — /models lists the full live catalog
 ```
 
-Until then (or for local development), reference the built artifact directly. Either extract the package into your OpenCode plugins dir and point at the extracted `dist/index.js`:
+The `--auth` flag runs `opencode auth login --provider omniroute` automatically.
+Use `--base-url` to point at a non-default OmniRoute address:
 
 ```sh
-# from inside the OmniRoute repo
+omniroute setup opencode --base-url https://or.example.com --auth
+```
+
+### What it does
+
+1. Locates the bundled plugin inside the omniroute installation
+2. Copies `dist/` + `package.json` to `~/.config/opencode/plugins/omniroute/`
+3. Writes/updates `opencode.json` with the plugin entry (idempotent, replaces legacy entries)
+4. (With `--auth`) runs `opencode auth login` so the API key is stored
+
+Re-run any time to update the plugin or change the base URL. Older entries for
+`@omniroute/opencode-provider` or the legacy `opencode-omniroute-auth` package are
+automatically cleaned up.
+
+### Manual install (without omniroute CLI)
+
+If you cannot run `omniroute setup opencode` (local dev, CI, air-gapped), reference
+the built artifact directly:
+
+```sh
 cd @omniroute/opencode-plugin && npm run build && npm pack
 # then extract into ~/.config/opencode/plugins/omniroute-opencode-plugin/
 ```
 
+And add the entry to `opencode.json` manually (see Quick Start below).
+
 Peer dep: `@opencode-ai/plugin` (managed by your OpenCode install).
 
-## Quick start (single instance)
+## Quick start (single instance, manual)
 
 ```jsonc
 // opencode.json
@@ -42,7 +69,7 @@ Peer dep: `@opencode-ai/plugin` (managed by your OpenCode install).
   "$schema": "https://opencode.ai/config.json",
   "plugin": [
     [
-      "@omniroute/opencode-plugin",
+      "./plugins/omniroute-opencode-plugin/dist/index.js",
       {
         "providerId": "omniroute",
         "baseURL": "https://or.example.com",

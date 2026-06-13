@@ -3,7 +3,7 @@
 import { useState, useEffect, useMemo, useCallback, memo, useRef, useId } from "react";
 import { Card, Button, Input, Modal, CardSkeleton } from "@/shared/components";
 import { useCopyToClipboard } from "@/shared/hooks/useCopyToClipboard";
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import { getProviderDisplayName } from "@/lib/display/names";
 import { compareTr, matchesSearch } from "@/shared/utils/turkishText";
 import { ENDPOINT_CATEGORIES } from "@/shared/constants/endpointCategories";
@@ -17,14 +17,8 @@ import {
 } from "./apiManagerPageUtils";
 import type { KeyStatus, KeyType } from "./apiManagerPageUtils";
 import { readActiveOnlyPreference, writeActiveOnlyPreference } from "./apiManagerPageStorage";
-import {
-  buildApiKeyCreateScopes,
-  mergeApiKeyPermissionScopes,
-} from "./apiManagerScopes";
-import {
-  SELF_ACCOUNT_QUOTA_SCOPE,
-  SELF_USAGE_SCOPE,
-} from "@/shared/constants/selfServiceScopes";
+import { buildApiKeyCreateScopes, mergeApiKeyPermissionScopes } from "./apiManagerScopes";
+import { SELF_ACCOUNT_QUOTA_SCOPE, SELF_USAGE_SCOPE } from "@/shared/constants/selfServiceScopes";
 
 // Constants for validation
 const MAX_KEY_NAME_LENGTH = 200;
@@ -126,7 +120,18 @@ interface ProviderConnection {
 
 interface KeyUsageStats {
   totalRequests: number;
+  totalCost: number;
   lastUsed: string | null;
+}
+
+function formatUsdCost(value: number, locale: string): string {
+  const amount = Number.isFinite(value) ? value : 0;
+  return new Intl.NumberFormat(locale, {
+    style: "currency",
+    currency: "USD",
+    minimumFractionDigits: amount > 0 && amount < 1 ? 4 : 2,
+    maximumFractionDigits: amount > 0 && amount < 1 ? 4 : 2,
+  }).format(amount);
 }
 
 interface Model {
@@ -146,6 +151,7 @@ type ProviderGroup = [provider: string, models: Model[]];
 export default function ApiManagerPageClient() {
   const t = useTranslations("apiManager");
   const tc = useTranslations("common");
+  const locale = useLocale();
   const newKeyNameInputId = useId();
   const createKeyFormRef = useRef<HTMLDivElement | null>(null);
   const [keys, setKeys] = useState<ApiKey[]>([]);
@@ -339,6 +345,10 @@ export default function ApiManagerPageClient() {
           (sum: number, entry: any) => sum + (Number(entry.requests) || 0),
           0
         );
+        const totalCost = matches.reduce((sum: number, entry: any) => {
+          const cost = Number(entry.cost);
+          return sum + (Number.isFinite(cost) ? cost : 0);
+        }, 0);
 
         // Match call logs by unique ID as well for the lastUsed timestamp
         // Prefer an exact apiKeyId match; fall back to name match for legacy
@@ -350,6 +360,7 @@ export default function ApiManagerPageClient() {
 
         stats[key.id] = {
           totalRequests,
+          totalCost,
           lastUsed,
         };
       }
@@ -422,8 +433,7 @@ export default function ApiManagerPageClient() {
   const isFiltered =
     activeOnly || statusFilter !== null || typeFilter !== null || searchQuery.trim() !== "";
 
-  const isQuotaKey = (k: ApiKey) =>
-    Array.isArray(k.allowedQuotas) && k.allowedQuotas.length > 0;
+  const isQuotaKey = (k: ApiKey) => Array.isArray(k.allowedQuotas) && k.allowedQuotas.length > 0;
 
   const quotaKeys = filteredKeys.filter(isQuotaKey);
   const normalKeys = filteredKeys.filter((k) => !isQuotaKey(k));
@@ -880,8 +890,7 @@ export default function ApiManagerPageClient() {
           (() => {
             const renderKeyRow = (key: ApiKey) => {
               const stats = usageStats[key.id];
-              const isRestricted =
-                Array.isArray(key.allowedModels) && key.allowedModels.length > 0;
+              const isRestricted = Array.isArray(key.allowedModels) && key.allowedModels.length > 0;
               const hasComboRestrictions =
                 Array.isArray(key.allowedCombos) && key.allowedCombos.length > 0;
               const hasConnectionRestrictions =
@@ -893,8 +902,7 @@ export default function ApiManagerPageClient() {
                   ? key.throttleDelayMs
                   : 0;
               const hasThrottle = throttleDelayMs > 0;
-              const hasManageScope =
-                Array.isArray(key.scopes) && key.scopes.includes("manage");
+              const hasManageScope = Array.isArray(key.scopes) && key.scopes.includes("manage");
               const hasJsonStreamDefault = key.streamDefaultMode === "json";
               const maxSessions = typeof key.maxSessions === "number" ? key.maxSessions : 0;
               const hasSessionLimit = maxSessions > 0;
@@ -1072,6 +1080,11 @@ export default function ApiManagerPageClient() {
                       {stats?.totalRequests ?? 0}{" "}
                       <span className="text-text-muted font-normal text-xs">{t("reqs")}</span>
                     </span>
+                    {(stats?.totalRequests ?? 0) > 0 && (
+                      <span className="text-[10px] text-emerald-600 dark:text-emerald-400 tabular-nums">
+                        {formatUsdCost(stats?.totalCost ?? 0, locale)}
+                      </span>
+                    )}
                     {stats?.lastUsed ? (
                       <span className="text-[10px] text-text-muted">
                         {t("lastUsedOn", { date: new Date(stats.lastUsed).toLocaleDateString() })}
@@ -1084,6 +1097,14 @@ export default function ApiManagerPageClient() {
                     {new Date(key.createdAt).toLocaleDateString()}
                   </div>
                   <div className="col-span-2 flex items-center justify-end gap-1">
+                    <a
+                      href={`/dashboard/costs?range=all&apiKeyIds=${encodeURIComponent(key.id)}&groupBy=model`}
+                      className="p-2 hover:bg-emerald-500/10 rounded text-text-muted hover:text-emerald-500 opacity-0 group-hover:opacity-100 transition-all"
+                      title={t("viewCostsFor", { name: key.name })}
+                      aria-label={t("viewCostsFor", { name: key.name })}
+                    >
+                      <span className="material-symbols-outlined text-[18px]">payments</span>
+                    </a>
                     <button
                       onClick={() => handleRegenerateKey(key.id)}
                       className="p-2 hover:bg-amber-500/10 rounded text-text-muted hover:text-amber-500 opacity-0 group-hover:opacity-100 transition-all"

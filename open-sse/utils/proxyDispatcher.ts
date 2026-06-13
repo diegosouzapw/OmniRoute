@@ -138,8 +138,15 @@ function buildProxyUrlString(parsed: URL, port: string): string {
   return `${parsed.protocol}//${auth}${parsed.hostname}:${port}`;
 }
 
+/**
+ * SOCKS5 proxy support defaults ON (opt-OUT). A fresh deploy with no env set
+ * should honour SOCKS5 proxies out of the box — they were silently rejected
+ * before (default OFF), making accounts fall back to the host IP. Only an
+ * explicit falsey value (false/0/no/off) disables it.
+ */
 export function isSocks5ProxyEnabled(): boolean {
-  return process.env.ENABLE_SOCKS5_PROXY === "true";
+  const raw = (process.env.ENABLE_SOCKS5_PROXY ?? "").trim().toLowerCase();
+  return !["false", "0", "no", "off"].includes(raw);
 }
 
 export function proxyUrlForLogs(proxyUrl: string): string {
@@ -173,7 +180,7 @@ export function normalizeProxyUrl(
   }
   if (parsed.protocol === "socks5:" && !allowSocks5) {
     throw new Error(
-      "[ProxyDispatcher] SOCKS5 proxy is disabled (set ENABLE_SOCKS5_PROXY=true to enable)"
+      "[ProxyDispatcher] SOCKS5 proxy is disabled (remove ENABLE_SOCKS5_PROXY=false to enable — it is ON by default)"
     );
   }
   if (!parsed.hostname) {
@@ -233,7 +240,7 @@ export function proxyConfigToUrl(
   }
   if (protocol === "socks5:" && !allowSocks5) {
     throw new Error(
-      "[ProxyDispatcher] SOCKS5 proxy is disabled (set ENABLE_SOCKS5_PROXY=true to enable)"
+      "[ProxyDispatcher] SOCKS5 proxy is disabled (remove ENABLE_SOCKS5_PROXY=false to enable — it is ON by default)"
     );
   }
 

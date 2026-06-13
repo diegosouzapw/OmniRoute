@@ -6,6 +6,7 @@ import { useNotificationStore } from "@/store/notificationStore";
 import { useTranslations } from "next-intl";
 import AutoDisableCard from "./AutoDisableCard";
 import ModelCooldownsCard from "./ModelCooldownsCard";
+import ModelLockoutCard from "./ModelLockoutCard";
 
 type RequestQueueSettings = {
   autoEnableApiKeyProviders: boolean;
@@ -975,6 +976,7 @@ export default function ResilienceTab() {
         saving={savingSection === "providerCooldown"}
         onSave={(providerCooldown) => savePatch("providerCooldown", { providerCooldown })}
       />
+      <ModelLockoutCard />
     </div>
   );
 }

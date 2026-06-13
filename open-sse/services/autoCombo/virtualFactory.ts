@@ -8,6 +8,8 @@ import type { ConnectionFields } from "@/lib/db/encryption";
 import { NOAUTH_PROVIDERS } from "@/shared/constants/providers";
 import { hasUsableWebSessionCredential } from "@/shared/providers/webSessionCredentials";
 import { defaultLogger as log } from "@omniroute/open-sse/utils/logger";
+import { getTokenLimit } from "../contextManager";
+import { getResolvedModelCapabilities } from "@/lib/modelCapabilities";
 
 /** Minimal connection shape needed for virtual auto-combo factory */
 interface VirtualFactoryConn extends ConnectionFields {
@@ -45,6 +47,11 @@ type VirtualAutoCombo = AutoComboConfig & {
     weight: number;
     label: string;
   }>;
+  /** MAX of candidates' context windows — safe to advertise because the
+   * auto-combo context pre-filter routes oversized requests to large-window
+   * candidates. null when the pool is empty. */
+  advertisedContextLength: number | null;
+  advertisedMaxOutputTokens: number | null;
   autoConfig: {
     candidatePool: string[];
     weights: ScoringWeights;
@@ -156,6 +163,46 @@ function getNoAuthCandidates(excludedProviders: Set<string>): VirtualAutoComboCa
  * Creates a virtual AutoCombo configuration dynamically based on connected providers and a specified variant.
  * This combo is not persisted in the DB.
  */
+/**
+ * Aggregate the context window / max output to ADVERTISE for an auto combo.
+ *
+ * MAX across candidates (not min): the auto-combo context pre-filter
+ * (combo.ts::filterTargetsByRequestCompatibility + the estimated-tokens
+ * pre-filter) already routes oversized requests away from small-window
+ * candidates, so advertising the largest window lets clients (e.g. opencode)
+ * keep their smart auto-compaction calibrated to the best candidate instead
+ * of compacting prematurely — or, worse, receiving 0 and disabling
+ * compaction entirely (the "agent keeps forgetting things" bug).
+ *
+ * Unknown candidates resolve through getTokenLimit()'s fallback chain, so a
+ * non-empty pool always yields a positive contextLength.
+ */
+export function computeAdvertisedLimits(candidates: Array<{ provider: string; model: string }>): {
+  contextLength: number | null;
+  maxOutputTokens: number | null;
+} {
+  if (!Array.isArray(candidates) || candidates.length === 0) {
+    return { contextLength: null, maxOutputTokens: null };
+  }
+
+  let contextLength: number | null = null;
+  let maxOutputTokens: number | null = null;
+  for (const candidate of candidates) {
+    const limit = getTokenLimit(candidate.provider, candidate.model);
+    if (Number.isFinite(limit) && limit > 0) {
+      contextLength = contextLength === null ? limit : Math.max(contextLength, limit);
+    }
+    const output = getResolvedModelCapabilities({
+      provider: candidate.provider,
+      model: candidate.model,
+    }).maxOutputTokens;
+    if (typeof output === "number" && Number.isFinite(output) && output > 0) {
+      maxOutputTokens = maxOutputTokens === null ? output : Math.max(maxOutputTokens, output);
+    }
+  }
+  return { contextLength, maxOutputTokens };
+}
+
 export async function createVirtualAutoCombo(
   variant: AutoVariant | undefined
 ): Promise<VirtualAutoCombo> {
@@ -209,6 +256,8 @@ export async function createVirtualAutoCombo(
       routerStrategy: autoConfig.routerStrategy,
       autoConfig,
       config: { auto: autoConfig },
+      advertisedContextLength: null,
+      advertisedMaxOutputTokens: null,
     };
   }
 
@@ -259,6 +308,8 @@ export async function createVirtualAutoCombo(
     routerStrategy,
   };
 
+  const advertisedLimits = computeAdvertisedLimits(candidatePool);
+
   return {
     id: `virtual-auto-${variant || "default"}`,
     name: `Auto ${variant || "Default"}`,
@@ -271,5 +322,7 @@ export async function createVirtualAutoCombo(
     routerStrategy,
     autoConfig,
     config: { auto: autoConfig },
+    advertisedContextLength: advertisedLimits.contextLength,
+    advertisedMaxOutputTokens: advertisedLimits.maxOutputTokens,
   };
 }

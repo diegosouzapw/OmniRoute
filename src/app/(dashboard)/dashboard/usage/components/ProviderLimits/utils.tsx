@@ -290,6 +290,10 @@ export function parseQuotaData(provider, data) {
             normalizedQuotas.push(
               normalizeQuotaEntry(modelKey, quota, {
                 modelKey: modelKey,
+                ...(quota?.quotaSource ? { quotaSource: quota.quotaSource } : {}),
+                ...(quota?.fractionReported !== undefined
+                  ? { fractionReported: quota.fractionReported }
+                  : {}),
               })
             );
           });

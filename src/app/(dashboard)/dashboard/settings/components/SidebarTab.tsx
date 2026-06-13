@@ -60,6 +60,7 @@ function SortableSection({
   onItemReorder,
   getLabel,
 }: SortableSectionProps) {
+  const tSidebar = useTranslations("sidebar");
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
     id: section.id,
   });
@@ -99,8 +100,8 @@ function SortableSection({
           {...listeners}
           {...attributes}
           className="text-text-muted/40 hover:text-text-muted/80 cursor-grab active:cursor-grabbing touch-none shrink-0"
-          title="Drag to reorder section"
-          aria-label="Drag to reorder section"
+          title={tSidebar("dragReorderSection")}
+          aria-label={tSidebar("dragReorderSection")}
         >
           <span className="material-symbols-outlined text-[18px]">drag_indicator</span>
         </button>
@@ -168,6 +169,7 @@ function SortableSection({
 // ─── Sortable child row wrapper ────────────────────────────────────────────────
 
 function SortableChildRow({ id, children }: { id: string; children: React.ReactNode }) {
+  const tSidebar = useTranslations("sidebar");
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
     id,
   });
@@ -182,8 +184,8 @@ function SortableChildRow({ id, children }: { id: string; children: React.ReactN
         {...listeners}
         {...attributes}
         className="mt-3.5 ml-4 text-text-muted/30 hover:text-text-muted/70 cursor-grab active:cursor-grabbing touch-none shrink-0"
-        title="Drag to reorder"
-        aria-label="Drag to reorder"
+        title={tSidebar("dragReorderItem")}
+        aria-label={tSidebar("dragReorderItem")}
       >
         <span className="material-symbols-outlined text-[14px]">drag_indicator</span>
       </button>
@@ -205,6 +207,7 @@ interface ItemRowProps {
 const PROTECTED_ITEM_IDS = new Set(["settings-sidebar"]);
 
 function ItemRow({ item, hiddenSet, onToggleItem, getLabel }: ItemRowProps) {
+  const tSidebar = useTranslations("sidebar");
   const isProtected = PROTECTED_ITEM_IDS.has(item.id);
   return (
     <div className="flex items-center justify-between gap-4 px-4 py-3">
@@ -217,8 +220,8 @@ function ItemRow({ item, hiddenSet, onToggleItem, getLabel }: ItemRowProps) {
       {isProtected ? (
         <span
           className="material-symbols-outlined text-[16px] text-text-muted/40"
-          title="This item cannot be hidden"
-          aria-label="Always visible"
+          title={tSidebar("cannotHide")}
+          aria-label={tSidebar("alwaysVisible")}
         >
           lock
         </span>

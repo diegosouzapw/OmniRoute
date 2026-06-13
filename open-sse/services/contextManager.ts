@@ -61,27 +61,40 @@ export function estimateTokens(text: string | object | null | undefined): number
  * Priority: Env override > models.dev DB > Registry defaultContextLength > DEFAULT_LIMITS
  */
 export function getTokenLimit(provider: string, model: string | null = null): number {
+  return resolveTokenLimit(provider, model).limit;
+}
+
+/**
+ * Same chain as getTokenLimit, but also reports whether the limit came from
+ * a provider/model-specific source (env override, synced DB, registry,
+ * name heuristic, curated per-provider default) or only from the generic
+ * catch-all default.
+ */
+function resolveTokenLimit(
+  provider: string,
+  model: string | null = null
+): { limit: number; specific: boolean } {
   // 1. Check environment variable override first
   const envOverride = getEnvOverride(provider);
-  if (envOverride) return envOverride;
+  if (envOverride) return { limit: envOverride, specific: true };
 
   // 2. Check models.dev synced DB for per-model context limit
   if (model) {
     const dbLimit = getModelContextLimit(provider, model);
-    if (dbLimit && dbLimit > 0) return dbLimit;
+    if (dbLimit && dbLimit > 0) return { limit: dbLimit, specific: true };
   }
 
   // 3. Check registry for provider default
   const registryEntry = REGISTRY[provider];
   if (registryEntry?.defaultContextLength) {
-    return registryEntry.defaultContextLength;
+    return { limit: registryEntry.defaultContextLength, specific: true };
   }
 
   // 4. Check if model name hints at a known limit
   if (model) {
     const lower = model.toLowerCase();
-    if (lower.includes("claude")) return DEFAULT_LIMITS.claude;
-    if (lower.includes("gemini")) return DEFAULT_LIMITS.gemini;
+    if (lower.includes("claude")) return { limit: DEFAULT_LIMITS.claude, specific: true };
+    if (lower.includes("gemini")) return { limit: DEFAULT_LIMITS.gemini, specific: true };
     if (
       lower.includes("gpt") ||
       lower.includes("o1") ||
@@ -89,11 +102,44 @@ export function getTokenLimit(provider: string, model: string | null = null): nu
       lower.includes("o4") ||
       lower.includes("codex")
     )
-      return DEFAULT_LIMITS.codex;
+      return { limit: DEFAULT_LIMITS.codex, specific: true };
   }
 
   // 5. Fallback to DEFAULT_LIMITS or default
-  return DEFAULT_LIMITS[provider] || DEFAULT_LIMITS.default;
+  if (DEFAULT_LIMITS[provider]) return { limit: DEFAULT_LIMITS[provider], specific: true };
+  return { limit: DEFAULT_LIMITS.default, specific: false };
+}
+
+/**
+ * Resolve the context limit to use for proactive compression of a COMBO
+ * request.
+ *
+ * chatCore always executes with the CONCRETE target's provider/model
+ * (handleSingleModel resolves the target before delegating), so the
+ * executing target's own limit is authoritative. Using min(...allTargets)
+ * here — the previous behavior — compressed at the smallest sibling's
+ * window even when running on the largest target, destructively purging
+ * history long before the real window filled ("agent keeps forgetting").
+ *
+ * min(...comboTargetLimits) is kept only as a defensive fallback for the
+ * case where the current provider/model resolves no specific limit at all.
+ */
+export function resolveComboContextLimit(options: {
+  provider: string;
+  model: string | null;
+  comboTargetLimits: number[];
+}): { limit: number; source: "target" | "combo-min" | "fallback" } {
+  const own = resolveTokenLimit(options.provider, options.model ?? null);
+  if (own.specific) {
+    return { limit: own.limit, source: "target" };
+  }
+  const knownTargets = (options.comboTargetLimits || []).filter(
+    (value) => Number.isFinite(value) && value > 0
+  );
+  if (knownTargets.length > 0) {
+    return { limit: Math.min(...knownTargets), source: "combo-min" };
+  }
+  return { limit: own.limit, source: "fallback" };
 }
 
 /**

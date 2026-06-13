@@ -102,7 +102,7 @@ function sanitizeRateLimitOverrides(value: unknown): Record<string, number> | nu
 }
 
 // Serialize an already-sanitized map for SQLite TEXT storage.
-function serializeRateLimitOverrides(value: unknown): string | null {
+function serializeJsonField(value: unknown): string | null {
   if (value === null || value === undefined) return null;
   if (typeof value !== "object" || Array.isArray(value)) return null;
   return JSON.stringify(value);
@@ -126,15 +126,6 @@ function sanitizeQuotaWindowThresholds(value: unknown): Record<string, number> |
     }
   }
   return Object.keys(map).length === 0 ? null : map;
-}
-
-// Serialize an already-sanitized map for SQLite TEXT storage. Pass `null` to
-// store a NULL column; anything else is expected to be the output of
-// sanitizeQuotaWindowThresholds above.
-function serializeQuotaWindowThresholds(value: unknown): string | null {
-  if (value === null || value === undefined) return null;
-  if (typeof value !== "object" || Array.isArray(value)) return null;
-  return JSON.stringify(value);
 }
 
 function toStringOrNull(value: unknown): string | null {
@@ -476,8 +467,8 @@ function _insertConnectionRow(db: DbLike, conn: JsonRecord) {
     maxConcurrent: conn.maxConcurrent ?? null,
     proxyEnabled: normalizeBooleanColumn(conn.proxyEnabled, true) ? 1 : 0,
     perKeyProxyEnabled: normalizeBooleanColumn(conn.perKeyProxyEnabled, false) ? 1 : 0,
-    quotaWindowThresholdsJson: serializeQuotaWindowThresholds(conn.quotaWindowThresholds),
-    rateLimitOverridesJson: serializeRateLimitOverrides(conn.rateLimitOverrides),
+    quotaWindowThresholdsJson: serializeJsonField(conn.quotaWindowThresholds),
+    rateLimitOverridesJson: serializeJsonField(conn.rateLimitOverrides),
     createdAt: conn.createdAt,
     updatedAt: conn.updatedAt,
   });
@@ -552,10 +543,10 @@ function _updateConnectionRow(db: DbLike, id: string, data: JsonRecord) {
     lastUsedAt: data.lastUsedAt || null,
     group: data.group || null,
     maxConcurrent: data.maxConcurrent ?? null,
-    quotaWindowThresholdsJson: serializeQuotaWindowThresholds(data.quotaWindowThresholds),
+    quotaWindowThresholdsJson: serializeJsonField(data.quotaWindowThresholds),
     proxyEnabled: normalizeBooleanColumn(data.proxyEnabled, true) ? 1 : 0,
     perKeyProxyEnabled: normalizeBooleanColumn(data.perKeyProxyEnabled, false) ? 1 : 0,
-    rateLimitOverridesJson: serializeRateLimitOverrides(data.rateLimitOverrides),
+    rateLimitOverridesJson: serializeJsonField(data.rateLimitOverrides),
     updatedAt: now,
   });
 }
@@ -970,6 +961,72 @@ export function getEffectiveQuotaUsage(
   // Window has passed — display should show 0 (pending next snapshot)
   if (Date.now() >= resetTime) return 0;
   return used;
+}
+
+/**
+ * T05: Startup crash-recovery — clear stale transient connection cooldowns.
+ *
+ * After an unclean crash (SIGKILL, OOM-kill, large-body burst) the normal
+ * error-handler paths that would clear/normalise cooldowns never run.
+ * A connection's `rate_limited_until` may have been pushed far into the
+ * future by exponential back-off.  On next startup that leaves all affected
+ * connections excluded by `getProviderCredentials()`, so every request sits
+ * in the Bottleneck queue and times out at `maxWaitMs` (120 s default).
+ *
+ * Safe invariants:
+ *  - Only connections with `rate_limited_until IS NOT NULL` are touched.
+ *  - Terminal states (`banned`, `expired`, `credits_exhausted`) are skipped —
+ *    those require a deliberate credential change or operator reset.
+ *  - Past timestamps are also cleared: they are already expired in the lazy
+ *    expiry sense, but clearing them resets `backoffLevel` / transient error
+ *    fields so the connection gets a clean slate on this fresh process.
+ *
+ * Must be called once, early in the startup sequence, before any request
+ * is handled.  Returns the number of connections that were cleared.
+ */
+export function clearStaleCrashCooldowns(): { cleared: number } {
+  const db = getDbInstance() as unknown as DbLike;
+  const now = new Date().toISOString();
+
+  // Fetch all connections that have a rate_limited_until set and are NOT in
+  // a terminal state.  We do the terminal-status filter in JS to reuse the
+  // canonical `TERMINAL_STATUSES` set rather than duplicating the list in SQL.
+  const TERMINAL_STATUSES = new Set(["banned", "expired", "credits_exhausted"]);
+
+  const rows = db
+    .prepare(
+      `SELECT id, test_status FROM provider_connections WHERE rate_limited_until IS NOT NULL`
+    )
+    .all() as Array<{ id: string; test_status: string | null }>;
+
+  const toReset = rows.filter((r) => {
+    const status = (r.test_status || "").trim().toLowerCase();
+    return !TERMINAL_STATUSES.has(status);
+  });
+
+  if (toReset.length === 0) return { cleared: 0 };
+
+  const stmt = db.prepare(
+    `UPDATE provider_connections SET
+       rate_limited_until = NULL,
+       test_status        = 'active',
+       backoff_level      = 0,
+       last_error         = NULL,
+       last_error_at      = NULL,
+       last_error_type    = NULL,
+       last_error_source  = NULL,
+       error_code         = NULL,
+       updated_at         = ?
+     WHERE id = ?`
+  );
+
+  for (const row of toReset) {
+    stmt.run(now, row.id);
+  }
+
+  invalidateDbCache("connections");
+
+  return { cleared: toReset.length };
 }
 
 /**

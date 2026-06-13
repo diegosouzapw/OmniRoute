@@ -327,6 +327,8 @@ test("hasStreamReadinessSignal accepts structural chat completion chunk starts",
     ),
     false
   );
+  // #3612: index-only tool_call chunk (first chunk in OpenAI streaming — no id yet)
+  // MUST be treated as a readiness signal (tool-call has started)
   assert.equal(
     hasStreamReadinessSignal(
       `data: ${JSON.stringify({
@@ -334,13 +336,34 @@ test("hasStreamReadinessSignal accepts structural chat completion chunk starts",
         choices: [{ index: 0, delta: { tool_calls: [{ index: 0 }] } }],
       })}\n\n`
     ),
-    false
+    true
   );
   assert.equal(
     hasStreamReadinessSignal(
       `data: ${JSON.stringify({
         object: "chat.completion.chunk",
         choices: [{ index: 0, delta: { function_call: {} } }],
+      })}\n\n`
+    ),
+    false
+  );
+  // #3612: chunk with valid choices but NO object/type field (some OA-compatible backends
+  // omit object) — must be accepted as a readiness signal when delta.role is present
+  assert.equal(
+    hasStreamReadinessSignal(
+      `data: ${JSON.stringify({
+        id: "chatcmpl-xyz",
+        choices: [{ index: 0, delta: { role: "assistant" } }],
+      })}\n\n`
+    ),
+    true
+  );
+  // object present but a different (non-chat-chunk) type must still be rejected
+  assert.equal(
+    hasStreamReadinessSignal(
+      `data: ${JSON.stringify({
+        object: "chat.completion",
+        choices: [{ index: 0, delta: { role: "assistant" } }],
       })}\n\n`
     ),
     false

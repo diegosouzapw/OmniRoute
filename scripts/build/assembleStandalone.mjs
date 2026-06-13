@@ -73,19 +73,43 @@ async function exists(targetPath) {
  * for either path/platform. @type {{label:string, src:string[], dest:string[]}[]}
  */
 const NATIVE_ASSET_ENTRIES = [
-  { label: "wreq-js native runtime", src: ["node_modules", "wreq-js", "rust"], dest: ["node_modules", "wreq-js", "rust"] },
-  { label: "better-sqlite3 native binary", src: ["node_modules", "better-sqlite3", "build"], dest: ["node_modules", "better-sqlite3", "build"] },
+  {
+    label: "wreq-js native runtime",
+    src: ["node_modules", "wreq-js", "rust"],
+    dest: ["node_modules", "wreq-js", "rust"],
+  },
+  {
+    label: "better-sqlite3 native binary",
+    src: ["node_modules", "better-sqlite3", "build"],
+    dest: ["node_modules", "better-sqlite3", "build"],
+  },
 ];
 
 /** @type {{label:string, src:string[], dest:string[]}[]} */
 const EXTRA_MODULE_ENTRIES = [
-  { label: "@swc/helpers", src: ["node_modules", "@swc", "helpers"], dest: ["node_modules", "@swc", "helpers"] },
-  { label: "pino-abstract-transport", src: ["node_modules", "pino-abstract-transport"], dest: ["node_modules", "pino-abstract-transport"] },
-  { label: "pino-pretty", src: ["node_modules", "pino-pretty"], dest: ["node_modules", "pino-pretty"] },
+  {
+    label: "@swc/helpers",
+    src: ["node_modules", "@swc", "helpers"],
+    dest: ["node_modules", "@swc", "helpers"],
+  },
+  {
+    label: "pino-abstract-transport",
+    src: ["node_modules", "pino-abstract-transport"],
+    dest: ["node_modules", "pino-abstract-transport"],
+  },
+  {
+    label: "pino-pretty",
+    src: ["node_modules", "pino-pretty"],
+    dest: ["node_modules", "pino-pretty"],
+  },
   { label: "split2", src: ["node_modules", "split2"], dest: ["node_modules", "split2"] },
   { label: "migrations", src: ["src", "lib", "db", "migrations"], dest: ["migrations"] },
   { label: "MITM server", src: ["src", "mitm", "server.cjs"], dest: ["src", "mitm", "server.cjs"] },
-  { label: "run-standalone script", src: ["scripts", "dev", "run-standalone.mjs"], dest: ["dev", "run-standalone.mjs"] },
+  {
+    label: "run-standalone script",
+    src: ["scripts", "dev", "run-standalone.mjs"],
+    dest: ["dev", "run-standalone.mjs"],
+  },
   {
     // WS-aware wrapper that run-standalone.mjs prefers over bare server.js.
     // It installs the trusted peer-IP stamp the authz middleware needs to allow
@@ -96,14 +120,47 @@ const EXTRA_MODULE_ENTRIES = [
     src: ["scripts", "dev", "standalone-server-ws.mjs"],
     dest: ["server-ws.mjs"],
   },
-  { label: "peer-stamp helper (server-ws.mjs dependency)", src: ["scripts", "dev", "peer-stamp.mjs"], dest: ["peer-stamp.mjs"] },
-  { label: "responses-ws-proxy (server-ws.mjs dependency)", src: ["scripts", "dev", "responses-ws-proxy.mjs"], dest: ["responses-ws-proxy.mjs"] },
-  { label: "runtime-env script", src: ["scripts", "build", "runtime-env.mjs"], dest: ["build", "runtime-env.mjs"] },
-  { label: "bootstrap-env script", src: ["scripts", "build", "bootstrap-env.mjs"], dest: ["build", "bootstrap-env.mjs"] },
-  { label: "healthcheck script", src: ["scripts", "dev", "healthcheck.mjs"], dest: ["healthcheck.mjs"] },
+  {
+    label: "peer-stamp helper (server-ws.mjs dependency)",
+    src: ["scripts", "dev", "peer-stamp.mjs"],
+    dest: ["peer-stamp.mjs"],
+  },
+  {
+    label: "responses-ws-proxy (server-ws.mjs dependency)",
+    src: ["scripts", "dev", "responses-ws-proxy.mjs"],
+    dest: ["responses-ws-proxy.mjs"],
+  },
+  {
+    label: "webdav-handler (server-ws.mjs dependency)",
+    src: ["scripts", "dev", "webdav-handler.mjs"],
+    dest: ["webdav-handler.mjs"],
+  },
+  {
+    label: "runtime-env script",
+    src: ["scripts", "build", "runtime-env.mjs"],
+    dest: ["build", "runtime-env.mjs"],
+  },
+  {
+    label: "bootstrap-env script",
+    src: ["scripts", "build", "bootstrap-env.mjs"],
+    dest: ["build", "bootstrap-env.mjs"],
+  },
+  {
+    label: "healthcheck script",
+    src: ["scripts", "dev", "healthcheck.mjs"],
+    dest: ["healthcheck.mjs"],
+  },
   { label: "public directory", src: ["public"], dest: ["public"] },
-  { label: "playwright-core (dynamic import by gemini-web executor)", src: ["node_modules", "playwright-core"], dest: ["node_modules", "playwright-core"] },
-  { label: "sqlite-vec wrapper (vector memory - loaded at runtime via createRequire)", src: ["node_modules", "sqlite-vec"], dest: ["node_modules", "sqlite-vec"] },
+  {
+    label: "playwright-core (dynamic import by gemini-web executor)",
+    src: ["node_modules", "playwright-core"],
+    dest: ["node_modules", "playwright-core"],
+  },
+  {
+    label: "sqlite-vec wrapper (vector memory - loaded at runtime via createRequire)",
+    src: ["node_modules", "sqlite-vec"],
+    dest: ["node_modules", "sqlite-vec"],
+  },
   // sqlite-vec's native vec0.so lives in a platform-specific package resolved at
   // runtime via require.resolve(). Next.js does NOT trace it into the standalone
   // (the externalized wrapper is copied, but its optional platform dep is missed -

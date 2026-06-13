@@ -24,8 +24,11 @@
  *
  * NOTE: this module must stay free of server-only imports (e.g. CODEX_CONFIG,
  * open-sse) so it can be bundled for the browser. The client_id below is the
- * public Codex CLI client identifier (same literal as CODEX_CONFIG.clientId);
- * it relies on PKCE, not secrecy (RFC 8252).
+ * public Codex CLI client identifier (same value as CODEX_CONFIG.clientId);
+ * it relies on PKCE, not secrecy (RFC 8252). The server-side copies were moved to
+ * resolvePublicCred() in #3493 (Rule #11); this browser-bundled copy stays a literal
+ * by necessity — it cannot import open-sse's publicCreds without pulling server code
+ * into the browser bundle.
  */
 
 const BASE_URL = "https://auth.openai.com";

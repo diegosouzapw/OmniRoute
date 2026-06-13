@@ -24,6 +24,7 @@ test("getDefaultComboConfig returns a fresh copy of the defaults", () => {
   assert.equal(first.failoverBeforeRetry, true);
   assert.equal(first.maxSetRetries, 0);
   assert.equal(first.setRetryDelayMs, 2000);
+  assert.equal(first.reasoningTokenBufferEnabled, true);
   assert.equal(first.zeroLatencyOptimizationsEnabled, false);
   assert.equal(first.hedging, false);
   assert.equal(first.fallbackCompressionMode, "lite");
@@ -68,6 +69,39 @@ test("resolveComboConfig applies the full cascade from defaults to combo overrid
   assert.equal(result.targetTimeoutMs, 45000);
   assert.ok(!("timeoutMs" in result));
   assert.ok(!("healthCheckEnabled" in result));
+});
+
+test("resolveComboConfig cascades reasoning token buffer feature flag", () => {
+  const providerDisabled = resolveComboConfig(
+    {},
+    {
+      comboDefaults: {
+        reasoningTokenBufferEnabled: true,
+      },
+      providerOverrides: {
+        openai: {
+          reasoningTokenBufferEnabled: false,
+        },
+      },
+    },
+    "openai"
+  );
+
+  const comboEnabled = resolveComboConfig(
+    {
+      config: {
+        reasoningTokenBufferEnabled: true,
+      },
+    },
+    {
+      comboDefaults: {
+        reasoningTokenBufferEnabled: false,
+      },
+    }
+  );
+
+  assert.equal(providerDisabled.reasoningTokenBufferEnabled, false);
+  assert.equal(comboEnabled.reasoningTokenBufferEnabled, true);
 });
 
 test("resolveComboConfig preserves nested routing defaults for partial overrides", () => {
@@ -132,19 +166,23 @@ test("updateComboDefaultsSchema accepts arbitrarily large timeout defaults and p
     comboDefaults: {
       timeoutMs: 3600000,
       targetTimeoutMs: 30000,
+      reasoningTokenBufferEnabled: false,
     },
     providerOverrides: {
       anthropic: {
         timeoutMs: 5400000,
         targetTimeoutMs: 45000,
+        reasoningTokenBufferEnabled: false,
       },
     },
   });
 
   assert.equal(parsed.comboDefaults.timeoutMs, 3600000);
   assert.equal(parsed.comboDefaults.targetTimeoutMs, 30000);
+  assert.equal(parsed.comboDefaults.reasoningTokenBufferEnabled, false);
   assert.equal(parsed.providerOverrides.anthropic.timeoutMs, 5400000);
   assert.equal(parsed.providerOverrides.anthropic.targetTimeoutMs, 45000);
+  assert.equal(parsed.providerOverrides.anthropic.reasoningTokenBufferEnabled, false);
 });
 
 test("combo config schema accepts explicit zero-latency opt-in controls", () => {

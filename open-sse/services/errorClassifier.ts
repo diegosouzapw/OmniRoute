@@ -6,6 +6,13 @@ import {
 } from "./accountFallback.ts";
 import { getProviderCategory } from "../config/providerRegistry.ts";
 
+// Terminal stop signals where an empty content payload is still a legitimate,
+// successful completion (truncated at the token limit, or a tool-call turn) —
+// NOT a silent "fake success" failure. Used to avoid rewriting a valid HTTP 200
+// (e.g. a Claude Code `max_tokens: 1` connectivity ping) into a synthetic 502.
+const LEGIT_EMPTY_CLAUDE_STOP = new Set(["max_tokens", "tool_use"]);
+const LEGIT_EMPTY_OPENAI_FINISH = new Set(["length", "tool_calls"]);
+
 export function isEmptyContentResponse(responseBody: unknown): boolean {
   if (!responseBody || typeof responseBody !== "object") return false;
 
@@ -28,11 +35,22 @@ export function isEmptyContentResponse(responseBody: unknown): boolean {
     const hasReasoning =
       reasoningContent !== null && reasoningContent !== undefined && reasoningContent !== "";
 
+    // A response truncated at the token limit (finish_reason "length") is a valid,
+    // successful completion even with empty text — do not flag it as a fake success.
+    const finishReason =
+      typeof firstChoice.finish_reason === "string" ? firstChoice.finish_reason : "";
+    if (LEGIT_EMPTY_OPENAI_FINISH.has(finishReason)) return false;
+
     return !hasContent && !hasReasoning && !hasToolCalls;
   }
 
   if (Array.isArray(body.content)) {
-    return body.content.length === 0;
+    if (body.content.length > 0) return false;
+    // Empty content array: a response truncated at max_tokens (or one that stopped
+    // to emit a tool_use block) is a legitimate terminal state, not a silent
+    // failure. Only flag empty content when no such terminal stop_reason is present.
+    const stopReason = typeof body.stop_reason === "string" ? body.stop_reason : "";
+    return !LEGIT_EMPTY_CLAUDE_STOP.has(stopReason);
   }
 
   if (typeof body.text === "string") {

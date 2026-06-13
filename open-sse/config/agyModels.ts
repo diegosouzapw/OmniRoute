@@ -1,10 +1,10 @@
 // Antigravity CLI (`agy`) model catalog.
 //
-// These IDs were pinned directly from the live `:fetchAvailableModels` endpoint
+// These models are pinned from the live `:fetchAvailableModels` endpoint
 // (https://daily-cloudcode-pa.googleapis.com/v1internal:fetchAvailableModels) using a
-// real `agy` consumer-OAuth token on 2026-05-29. They are the exact upstream model IDs
-// the Antigravity backend accepts — no alias remapping is required (unlike the
-// `antigravity` provider, whose catalog used display IDs that needed remapping).
+// real `agy` consumer-OAuth token. The public catalog exposes the same clean Gemini
+// 3.5 Flash tier names as the Antigravity IDE provider; the shared Antigravity executor
+// maps those names to the legacy upstream IDs immediately before dispatch.
 //
 // The `agy` provider reuses the `antigravity` executor/translator (identical backend),
 // but ships its OWN catalog so it can expose models the `antigravity` provider's static
@@ -63,24 +63,6 @@ export const AGY_PUBLIC_MODELS = Object.freeze([
     toolCalling: true,
   },
   {
-    id: "gemini-3-flash-agent",
-    name: "Gemini 3.5 Flash (Agent)",
-    contextLength: 1048576,
-    maxOutputTokens: 65536,
-    supportsReasoning: true,
-    supportsVision: true,
-    toolCalling: true,
-  },
-  {
-    id: "gemini-3-flash",
-    name: "Gemini 3 Flash",
-    contextLength: 1048576,
-    maxOutputTokens: 65536,
-    supportsReasoning: true,
-    supportsVision: true,
-    toolCalling: true,
-  },
-  {
     id: "gemini-3.5-flash-low",
     name: "Gemini 3.5 Flash (Low)",
     contextLength: 1048576,
@@ -89,10 +71,20 @@ export const AGY_PUBLIC_MODELS = Object.freeze([
     toolCalling: true,
   },
   {
-    id: "gemini-3.5-flash-extra-low",
-    name: "Gemini 3.5 Flash (Extra Low)",
+    id: "gemini-3.5-flash-medium",
+    name: "Gemini 3.5 Flash (Medium)",
     contextLength: 1048576,
     maxOutputTokens: 65536,
+    supportsReasoning: true,
+    supportsVision: true,
+    toolCalling: true,
+  },
+  {
+    id: "gemini-3.5-flash-high",
+    name: "Gemini 3.5 Flash (High)",
+    contextLength: 1048576,
+    maxOutputTokens: 65536,
+    supportsReasoning: true,
     supportsVision: true,
     toolCalling: true,
   },

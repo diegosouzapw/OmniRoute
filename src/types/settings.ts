@@ -29,6 +29,7 @@ export interface Settings {
   hideEndpointCloudflaredTunnel?: boolean;
   hideEndpointTailscaleFunnel?: boolean;
   hideEndpointNgrokTunnel?: boolean;
+  preferClaudeCodeForUnprefixedClaudeModels?: boolean;
   autoRefreshProviderQuota?: boolean;
   autoRefreshProviderQuotaInterval?: number;
   pinProviderQuotaToHome?: boolean;
@@ -55,6 +56,7 @@ export interface ComboDefaults {
   fallbackDelayMs?: number;
   maxComboDepth: number;
   trackMetrics: boolean;
+  reasoningTokenBufferEnabled?: boolean;
   concurrencyPerModel?: number;
   queueTimeoutMs?: number;
   handoffThreshold?: number;

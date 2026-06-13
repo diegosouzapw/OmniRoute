@@ -18,12 +18,21 @@ import { getMachineId } from "@/shared/utils/machine";
 import { USAGE_SUPPORTED_PROVIDERS } from "@/shared/constants/providers";
 import { getExecutor } from "@omniroute/open-sse/executors/index.ts";
 import { getUsageForProvider } from "@omniroute/open-sse/services/usage.ts";
-import { rotationGroupFor, serializeRefresh } from "@omniroute/open-sse/services/refreshSerializer.ts";
+import {
+  rotationGroupFor,
+  serializeRefresh,
+} from "@omniroute/open-sse/services/refreshSerializer.ts";
 import {
   extractCodeAssistOnboardTierId,
   extractCodeAssistSubscriptionTier,
 } from "@omniroute/open-sse/services/codeAssistSubscription.ts";
 import { runWithProxyContext } from "@omniroute/open-sse/utils/proxyFetch.ts";
+import {
+  isUserCallableAntigravityModelId,
+  toClientAntigravityModelId,
+} from "@omniroute/open-sse/config/antigravityModelAliases.ts";
+import { isUserCallableAgyModelId } from "@omniroute/open-sse/config/agyModels.ts";
+import { onUsageRecorded } from "./usageEvents";
 
 type JsonRecord = Record<string, unknown>;
 
@@ -61,9 +70,13 @@ const PROVIDER_LIMITS_APIKEY_PROVIDERS = new Set([
   "nanogpt",
   "deepseek",
   "xiaomi-mimo",
+  "vertex",
+  "vertex-partner",
 ]);
 const DEFAULT_PROVIDER_LIMITS_SYNC_INTERVAL_MINUTES = 70;
 const PROVIDER_LIMITS_AUTO_SYNC_SETTING_KEY = "provider_limits_auto_sync_last_run";
+const DEFAULT_PROVIDER_LIMITS_POST_USAGE_REFRESH_DELAY_MS = 5_000;
+const pendingPostUsageRefreshes = new Set<string>();
 
 function isRecord(value: unknown): value is JsonRecord {
   return value !== null && typeof value === "object" && !Array.isArray(value);
@@ -81,6 +94,143 @@ function toProviderLimitsCacheEntry(
     fetchedAt,
     source,
   };
+}
+
+function getProviderLimitsPostUsageRefreshDelayMs(): number {
+  const raw = Number(process.env.PROVIDER_LIMITS_POST_USAGE_REFRESH_DELAY_MS ?? "");
+  return Number.isFinite(raw) && raw >= 0
+    ? raw
+    : DEFAULT_PROVIDER_LIMITS_POST_USAGE_REFRESH_DELAY_MS;
+}
+
+function scheduleProviderLimitsPostUsageRefresh(connectionId: string): void {
+  if (!connectionId || pendingPostUsageRefreshes.has(connectionId)) return;
+
+  pendingPostUsageRefreshes.add(connectionId);
+  const timer = setTimeout(() => {
+    pendingPostUsageRefreshes.delete(connectionId);
+    void fetchAndPersistProviderLimits(connectionId, "scheduled", {
+      allowRotatingRefresh: true,
+    }).catch((error) => {
+      const message = error instanceof Error ? error.message : String(error);
+      console.warn(
+        `[ProviderLimits] Post-usage refresh failed for connection ${connectionId}: ${message}`
+      );
+    });
+  }, getProviderLimitsPostUsageRefreshDelayMs());
+  timer.unref?.();
+}
+
+export function notifyProviderUsageRecorded(
+  provider: string | null | undefined,
+  connectionId: string | null | undefined
+): void {
+  if ((provider !== "antigravity" && provider !== "agy") || !connectionId) return;
+  scheduleProviderLimitsPostUsageRefresh(connectionId);
+}
+
+// Subscribe at module load so usageHistory can emit usage events without importing
+// this module (and its executors/translator import graph). This module is loaded by
+// the provider-limits route and the background auto-sync scheduler at server boot.
+onUsageRecorded(notifyProviderUsageRecorded);
+
+function isUsageQuotaKeyAllowed(provider: string, quotaKey: string): boolean {
+  if (quotaKey === "credits" || quotaKey === "models") return true;
+  if (provider === "antigravity") return isUserCallableAntigravityModelId(quotaKey);
+  if (provider === "agy") return isUserCallableAgyModelId(quotaKey);
+  return true;
+}
+
+function normalizeUsageQuotaKey(provider: string, quotaKey: string): string | null {
+  if (quotaKey === "credits" || quotaKey === "models") return quotaKey;
+  if (provider === "antigravity" || provider === "agy") {
+    const clientKey = toClientAntigravityModelId(quotaKey);
+    return isUsageQuotaKeyAllowed(provider, clientKey) ? clientKey : null;
+  }
+  return isUsageQuotaKeyAllowed(provider, quotaKey) ? quotaKey : null;
+}
+
+function normalizeUsageQuotasForProvider(
+  provider: string,
+  quotas: JsonRecord | null | undefined
+): JsonRecord | null {
+  if (!isRecord(quotas)) return quotas ?? null;
+
+  const normalized: JsonRecord = {};
+  let changed = false;
+
+  for (const [quotaKey, quota] of Object.entries(quotas)) {
+    const normalizedKey = normalizeUsageQuotaKey(provider, quotaKey);
+    if (!normalizedKey) {
+      changed = true;
+      continue;
+    }
+
+    const existing = normalized[normalizedKey];
+    if (existing && isRecord(existing) && isRecord(quota)) {
+      const existingSource = String(existing.quotaSource ?? "");
+      const nextSource = String(quota.quotaSource ?? "");
+      const sourceRank: Record<string, number> = {
+        fetchAvailableModels: 0,
+        localUsageHistory: 1,
+        retrieveUserQuota: 2,
+      };
+      if ((sourceRank[existingSource] ?? 0) > (sourceRank[nextSource] ?? 0)) {
+        continue;
+      }
+    }
+
+    normalized[normalizedKey] = quota as JsonRecord;
+    if (normalizedKey !== quotaKey) changed = true;
+  }
+
+  return changed ? normalized : quotas;
+}
+
+function sanitizeUsageQuotasForProvider(provider: string, usage: JsonRecord): JsonRecord {
+  if (provider !== "antigravity" && provider !== "agy") return usage;
+  if (!isRecord(usage.quotas)) return usage;
+
+  const sanitizedQuotas = normalizeUsageQuotasForProvider(provider, usage.quotas);
+  return sanitizedQuotas === usage.quotas ? usage : { ...usage, quotas: sanitizedQuotas };
+}
+
+function hasRetrieveUserQuotaSource(
+  provider: string,
+  cache: ProviderLimitsCacheEntry | undefined
+): boolean {
+  if (provider !== "antigravity" && provider !== "agy") return true;
+  if (!cache?.quotas) return false;
+  return Object.values(cache.quotas).some((quota) => {
+    if (!isRecord(quota)) return false;
+    return quota.quotaSource === "retrieveUserQuota";
+  });
+}
+
+function sanitizeProviderLimitsCacheForConnection(
+  connection: ProviderConnectionLike | null | undefined,
+  entry: ProviderLimitsCacheEntry | null
+): ProviderLimitsCacheEntry | null {
+  if (!connection || !entry || !entry.quotas) return entry;
+  if (connection.provider !== "antigravity" && connection.provider !== "agy") return entry;
+
+  const sanitizedQuotas = normalizeUsageQuotasForProvider(connection.provider, entry.quotas);
+  return sanitizedQuotas === entry.quotas ? entry : { ...entry, quotas: sanitizedQuotas };
+}
+
+function shouldRefreshProviderLimitsCache(
+  connection: ProviderConnectionLike,
+  cache: ProviderLimitsCacheEntry | undefined
+): boolean {
+  if (!cache?.quotas) return true;
+  if (connection.provider !== "antigravity" && connection.provider !== "agy") return false;
+
+  return (
+    !hasRetrieveUserQuotaSource(connection.provider, cache) ||
+    Object.keys(cache.quotas).some(
+      (quotaKey) => !isUsageQuotaKeyAllowed(connection.provider, quotaKey)
+    )
+  );
 }
 
 function isSupportedUsageConnection(connection: ProviderConnectionLike | null): boolean {
@@ -162,9 +312,18 @@ export async function refreshAndUpdateCredentials(
 
   // Serialize the actual token mint per rotation group so two sibling accounts
   // never hit Auth0 concurrently (passthrough for non-rotating providers).
-  const refreshResult = await serializeRefresh(connection.provider, () =>
+  const refreshResult = (await serializeRefresh(connection.provider, () =>
     executor.refreshCredentials(credentials, console)
-  );
+  )) as
+    | (JsonRecord & {
+        accessToken?: string;
+        refreshToken?: string;
+        expiresIn?: number;
+        expiresAt?: string;
+        copilotToken?: string;
+        copilotTokenExpiresAt?: string;
+      })
+    | null;
 
   if (!refreshResult) {
     if (connection.provider === "github" && connection.accessToken) {
@@ -443,6 +602,46 @@ export function getCachedProviderLimitsMap(): Record<string, ProviderLimitsCache
   return getAllProviderLimitsCache();
 }
 
+export async function getSanitizedCachedProviderLimitsMap(): Promise<
+  Record<string, ProviderLimitsCacheEntry>
+> {
+  const caches = getAllProviderLimitsCache();
+  // Sanitization only rewrites Antigravity/agy quota keys; every other provider's cache
+  // entry is returned untouched (see sanitizeProviderLimitsCacheForConnection). The
+  // dashboard polls this on an auto-refresh interval, so avoid the unconditional
+  // `SELECT * FROM provider_connections` + per-row credential decryption that the
+  // previous implementation paid on every poll: skip the scan entirely when nothing is
+  // cached, and otherwise fetch ONLY the Antigravity/agy connections. For any other
+  // provider, byId.get(id) is undefined and the entry is returned verbatim — identical
+  // output to scanning every active connection, but without decrypting unrelated keys.
+  // (LEDGER-2 / #3821-review)
+  const connectionIds = Object.keys(caches);
+  if (connectionIds.length === 0) return {};
+
+  const sanitizableConnections = [
+    ...((await getProviderConnections({
+      isActive: true,
+      provider: "antigravity",
+    })) as unknown as ProviderConnectionLike[]),
+    ...((await getProviderConnections({
+      isActive: true,
+      provider: "agy",
+    })) as unknown as ProviderConnectionLike[]),
+  ];
+  if (sanitizableConnections.length === 0) {
+    // No connection can change the cache → return the raw entries unchanged.
+    return { ...caches };
+  }
+
+  const byId = new Map(sanitizableConnections.map((conn) => [conn.id, conn]));
+  const sanitized: Record<string, ProviderLimitsCacheEntry> = {};
+  for (const [connectionId, entry] of Object.entries(caches)) {
+    sanitized[connectionId] =
+      sanitizeProviderLimitsCacheForConnection(byId.get(connectionId), entry) || entry;
+  }
+  return sanitized;
+}
+
 export async function fetchLiveProviderLimits(connectionId: string): Promise<{
   connection: ProviderConnectionLike;
   usage: JsonRecord;
@@ -469,7 +668,10 @@ async function fetchLiveProviderLimitsWithOptions(
   }
 
   if (connection.authType !== "oauth") {
-    const usage = (await getUsageForProvider(connection, options)) as JsonRecord;
+    const usage = sanitizeUsageQuotasForProvider(
+      connection.provider,
+      (await getUsageForProvider(connection as unknown as JsonRecord, options)) as JsonRecord
+    );
     if (isRecord(usage.quotas)) {
       setQuotaCache(connectionId, connection.provider, usage.quotas);
     }
@@ -497,7 +699,10 @@ async function fetchLiveProviderLimitsWithOptions(
         await syncToCloudIfEnabled();
       }
 
-      let usageData = (await getUsageForProvider(conn, options)) as JsonRecord;
+      let usageData = sanitizeUsageQuotasForProvider(
+        conn.provider,
+        (await getUsageForProvider(conn as unknown as JsonRecord, options)) as JsonRecord
+      );
 
       // Reactive 401 recovery (on-demand/force path only): an unauthorized usage
       // response means the access token is actually dead. Force ONE serialized
@@ -512,7 +717,10 @@ async function fetchLiveProviderLimitsWithOptions(
         if (forced.refreshed) {
           conn = forced.connection;
           await syncToCloudIfEnabled();
-          usageData = (await getUsageForProvider(conn, options)) as JsonRecord;
+          usageData = sanitizeUsageQuotasForProvider(
+            conn.provider,
+            (await getUsageForProvider(conn as unknown as JsonRecord, options)) as JsonRecord
+          );
         }
       }
 
@@ -679,8 +887,12 @@ export async function syncAllProviderLimits(
   };
 
   const fetchOne = async (connection: ProviderConnectionLike) => {
+    const existingCache = getProviderLimitsCache(connection.id);
+    const forceRefresh =
+      source === "manual" ||
+      shouldRefreshProviderLimitsCache(connection, existingCache || undefined);
     const { usage } = await fetchLiveProviderLimitsWithOptions(connection.id, {
-      forceRefresh: source === "manual",
+      forceRefresh,
     });
     const cache = toProviderLimitsCacheEntry(usage, source);
     return { connectionId: connection.id, cache };

@@ -3,6 +3,7 @@ import fsSync from "fs";
 import os from "os";
 import path from "path";
 import { spawn, execFileSync } from "child_process";
+import { getHermesHome } from "@/lib/cli-helper/config-generator/hermesHome";
 
 const VALID_RUNTIME_MODES = new Set(["auto", "host", "container"]);
 const FALSE_VALUES = new Set(["0", "false", "no", "off"]);
@@ -147,7 +148,10 @@ const CLI_TOOLS: Record<string, any> = {
     requiresBinary: true,
     healthcheckTimeoutMs: 4000,
     paths: {
-      config: ".hermes/config.yaml",
+      // The relative path is kept for documentation purposes; getCliConfigPaths()
+      // has a special case for hermes-agent that calls getHermesHome() instead of
+      // getCliConfigHome(), so HERMES_HOME is always honoured (#3628).
+      config: "config.yaml",
     },
   },
   amp: {
@@ -960,6 +964,13 @@ export const getCliConfigPaths = (toolId: string) => {
   if (toolId === "opencode") {
     return {
       config: getOpenCodeConfigPath(),
+    };
+  }
+
+  // hermes-agent: honour HERMES_HOME env var instead of the generic CLI_CONFIG_HOME (#3628).
+  if (toolId === "hermes-agent") {
+    return {
+      config: path.join(getHermesHome(), "config.yaml"),
     };
   }
 

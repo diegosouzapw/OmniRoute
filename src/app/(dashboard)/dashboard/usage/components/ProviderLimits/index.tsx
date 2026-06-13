@@ -16,6 +16,7 @@ import { CardSkeleton } from "@/shared/components/Loading";
 import { USAGE_SUPPORTED_PROVIDERS } from "@/shared/constants/providers";
 import { pickDisplayValue } from "@/shared/utils/maskEmail";
 import useEmailPrivacyStore from "@/store/emailPrivacyStore";
+import { useNotificationStore } from "@/store/notificationStore";
 import EmailPrivacyToggle from "@/shared/components/EmailPrivacyToggle";
 import QuotaCutoffModal from "./QuotaCutoffModal";
 import QuotaCardGrid from "./QuotaCardGrid";
@@ -124,6 +125,21 @@ function getSoonestResetMs(quotas: any[] | undefined): number {
   return soonest;
 }
 
+function shouldAutoRefreshQuota(provider: string, cached: any): boolean {
+  const quotas = cached?.quotas;
+  if (!Array.isArray(quotas) || quotas.length === 0) return true;
+  if (provider !== "antigravity" && provider !== "agy") return false;
+
+  return quotas.some(
+    (q: any) =>
+      q &&
+      typeof q.modelKey === "string" &&
+      q.modelKey.startsWith("gemini-") &&
+      !q.isCredits &&
+      q.quotaSource !== "retrieveUserQuota"
+  );
+}
+
 const getQuotaBarWidthClass = (pct: number) => {
   if (pct <= 10) return "w-[10%]";
   if (pct <= 20) return "w-1/5";
@@ -218,7 +234,9 @@ export default function ProviderLimits({
     [t]
   );
   const emailsVisible = useEmailPrivacyStore((s) => s.emailsVisible);
+  const notify = useNotificationStore();
   const [connections, setConnections] = useState<any[]>([]);
+  const [togglingActiveId, setTogglingActiveId] = useState<string | null>(null);
   const [quotaData, setQuotaData] = useState<Record<string, any>>({});
   const [loading, setLoading] = useState<Record<string, boolean>>({});
   const [errors, setErrors] = useState<Record<string, string | null>>({});
@@ -305,6 +323,36 @@ export default function ProviderLimits({
       return [];
     }
   }, []);
+
+  // Toggle a connection's active state straight from the quota overview, so an
+  // operator can park an account that is being routed to despite low quota.
+  // Mirrors saveQuotaWindowThresholds: PUT /api/providers/[id] + optimistic state.
+  const handleToggleActive = useCallback(
+    async (connectionId: string, nextActive: boolean) => {
+      setTogglingActiveId(connectionId);
+      try {
+        const res = await fetch(`/api/providers/${connectionId}`, {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ isActive: nextActive }),
+        });
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        setConnections((prev) =>
+          prev.map((c) => (c.id === connectionId ? { ...c, isActive: nextActive } : c))
+        );
+        notify.success(
+          nextActive
+            ? tr("accountActivated", "Account activated")
+            : tr("accountDeactivated", "Account deactivated")
+        );
+      } catch {
+        notify.error(tr("toggleActiveFailed", "Failed to update account status"));
+      } finally {
+        setTogglingActiveId(null);
+      }
+    },
+    [notify, tr]
+  );
 
   const applyCachedQuotaState = useCallback(
     (connectionList: any[], caches: Record<string, any>) => {
@@ -670,8 +718,7 @@ export default function ProviderLimits({
     autoLiveFetchedRef.current = true;
     for (const conn of visibleConnections) {
       const cached = quotaData[conn.id];
-      const hasQuota = Array.isArray(cached?.quotas) && cached.quotas.length > 0;
-      if (!hasQuota) {
+      if (shouldAutoRefreshQuota(conn.provider, cached)) {
         void fetchQuota(conn.id, conn.provider, { force: true }).catch(() => {});
       }
     }
@@ -779,7 +826,9 @@ export default function ProviderLimits({
           onClick={refreshAll}
           disabled={refreshingAll}
           className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg bg-bg-subtle border border-border text-text-main text-[13px] disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
-          title={autoRefreshIntervalMs > 0 ? tr("autoRefreshing", "Auto-refreshing") : t("refreshAll")}
+          title={
+            autoRefreshIntervalMs > 0 ? tr("autoRefreshing", "Auto-refreshing") : t("refreshAll")
+          }
         >
           <span
             className={`material-symbols-outlined text-[16px] ${refreshingAll ? "animate-spin" : ""}`}
@@ -790,7 +839,10 @@ export default function ProviderLimits({
             ? tr("refreshing", "Refreshing")
             : autoRefreshIntervalMs > 0
               ? `${tr("autoRefreshing", "Auto-refreshing")} ${formatAutoRefreshCountdown(
-                  Math.max(0, autoRefreshIntervalMs - (autoRefreshClock - lastRefreshAllAtRef.current))
+                  Math.max(
+                    0,
+                    autoRefreshIntervalMs - (autoRefreshClock - lastRefreshAllAtRef.current)
+                  )
                 )}`
               : t("refreshAll")}
         </button>
@@ -966,6 +1018,8 @@ export default function ProviderLimits({
             setCutoffModalWindows(windows);
             setCutoffModalConn(conn);
           }}
+          onToggleActive={handleToggleActive}
+          togglingActiveId={togglingActiveId}
         />
       </div>
 

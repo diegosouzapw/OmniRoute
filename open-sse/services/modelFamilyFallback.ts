@@ -150,9 +150,11 @@ export function getNextFamilyFallback(
   const provider = parsed.provider || parsed.providerAlias || "";
   const prefix = provider ? `${provider}/` : "";
 
-  // Normalize dots to hyphens for the lookup so kiro/claude-opus-4.8 finds the right entry
+  // Normalize dots to hyphens so kiro/claude-opus-4.8 finds the right entry.
+  // Fall back to the bare model name to support keys like "gemini-3.1-pro-high"
+  // whose dots are part of the literal name, not a version separator.
   const lookupKey = bareModel.replace(/\./g, "-");
-  const family = MODEL_FAMILIES[lookupKey];
+  const family = MODEL_FAMILIES[lookupKey] ?? MODEL_FAMILIES[bareModel];
   if (!family) return null;
 
   // Resolve the provider's supported model IDs so we can match notation (dot vs hyphen)

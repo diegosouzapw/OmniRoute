@@ -5,9 +5,9 @@ import { HIGH_LEVEL_ACTIONS, isHighLevelAction } from "../../src/lib/audit/highL
 
 const ALL = HIGH_LEVEL_ACTIONS as readonly string[];
 
-// B/G3: allowlist now has 26 real actions aligned with logAuditEvent emitters.
-test("HIGH_LEVEL_ACTIONS has exactly 26 entries", () => {
-  assert.equal(ALL.length, 26);
+// B/G3: allowlist aligned with logAuditEvent emitters (27 after batch_updated).
+test("HIGH_LEVEL_ACTIONS has exactly 27 entries", () => {
+  assert.equal(ALL.length, 27);
 });
 
 test("HIGH_LEVEL_ACTIONS has no duplicates", () => {

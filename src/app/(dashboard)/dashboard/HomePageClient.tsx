@@ -13,6 +13,8 @@ import { useNotificationStore } from "@/store/notificationStore";
 import { copyToClipboard } from "@/shared/utils/clipboard";
 import { getProviderDisplayLabel } from "@/shared/utils/providerDisplayLabel";
 import { useIsElectron, useOpenExternal } from "@/shared/hooks/useElectron";
+import { useLiveRequests } from "@/hooks/useLiveDashboard";
+import { selectActiveRequests } from "../home/topologyUtils";
 
 const ProviderTopology = dynamic(() => import("../home/ProviderTopology"), { ssr: false });
 const ProviderQuotaWidget = dynamic(() => import("../home/ProviderQuotaWidget"), { ssr: false });
@@ -113,6 +115,9 @@ export default function HomePageClient({ machineId }: HomePageClientProps) {
   const [providerNodes, setProviderNodes] = useState<
     Array<{ id?: string; prefix?: string; name?: string }>
   >([]);
+
+  // Live in-flight requests for Provider Topology pulse animation (#3507)
+  const { activeRequests: liveActiveRequests } = useLiveRequests();
 
   const [versionInfo, setVersionInfo] = useState<VersionInfo | null>(null);
   const [updating, setUpdating] = useState(false);
@@ -1178,7 +1183,7 @@ export default function HomePageClient({ machineId }: HomePageClientProps) {
           </div>
           <ProviderTopology
             providers={topologyProviders}
-            activeRequests={[]}
+            activeRequests={selectActiveRequests(liveActiveRequests)}
             lastProvider={lastProvider}
             errorProvider={errorProvider}
           />

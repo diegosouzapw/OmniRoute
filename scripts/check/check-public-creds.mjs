@@ -52,25 +52,12 @@ const ENV_KEY_RE = /(clientId|clientSecret|apiKey)Env\s*:/;
 // arquivos, então congelar por valor cobre ambas as cópias). Para congelar um valor
 // só num arquivo:linha específico, use a chave "arquivo:linha:valor".
 //
-// Tracking: estes 5 valores (9 call-sites) devem virar uma issue de segurança e
-// migrar para resolvePublicCred() — Gemini/Antigravity já seguem o padrão correto.
-export const KNOWN_LITERAL_CREDS = new Set([
-  // Claude — CLAUDE_OAUTH_CLIENT_ID (public, PKCE auth-code flow)
-  //   providerRegistry.ts:659  +  oauth.ts:37
-  "9d1c250a-e61b-44d9-88ed-5944d1962f5e",
-  // Codex (OpenAI) — CODEX_OAUTH_CLIENT_ID (public, PKCE)
-  //   providerRegistry.ts:831  +  oauth.ts:54
-  "app_EMoamEEZ73f0CkXaXp7hrann",
-  // Qwen — QWEN_OAUTH_CLIENT_ID (public, device-code + PKCE)
-  //   providerRegistry.ts:925  +  oauth.ts:101
-  "f0304373b74a44d2b584a3fb70ca9e56",
-  // Kimi Coding — KIMI_CODING_OAUTH_CLIENT_ID (public, device-code)
-  //   providerRegistry.ts:1961 +  oauth.ts:136
-  "17e5f671-d194-4dfb-9706-5516cb48c098",
-  // GitHub Copilot — GITHUB_OAUTH_CLIENT_ID (public, device-code)
-  //   oauth.ts:238
-  "Iv1.b507a08c87ecfe98",
-]);
+// All five public client_ids (9 call-sites) were migrated to resolvePublicCred() in
+// #3493 (embedded as claude_id/codex_id/qwen_id/kimi_id/github_copilot_id in
+// open-sse/utils/publicCreds.ts), matching the Gemini/Antigravity pattern. The
+// allowlist is now empty — any new literal public client_id must be embedded via
+// resolvePublicCred(), not frozen here.
+export const KNOWN_LITERAL_CREDS = new Set([]);
 
 /**
  * Encontra atribuições de uma chave de credencial a uma string literal não-vazia.

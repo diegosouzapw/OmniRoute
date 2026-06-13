@@ -772,9 +772,8 @@ describe("Reasoning Replay Cache — Translator Replay", () => {
       },
     });
 
-    const { NON_ANTHROPIC_THINKING_PLACEHOLDER } = await import(
-      "../../open-sse/translator/helpers/claudeHelper.ts"
-    );
+    const { NON_ANTHROPIC_THINKING_PLACEHOLDER } =
+      await import("../../open-sse/translator/helpers/claudeHelper.ts");
 
     // No cache entry → cache miss
     const translated = translateRequest(
@@ -809,6 +808,99 @@ describe("Reasoning Replay Cache — Translator Replay", () => {
       NON_ANTHROPIC_THINKING_PLACEHOLDER,
       "empty reasoning_content should be replaced with placeholder on cache miss"
     );
+  });
+
+  it("should inject placeholder for a plain (non-tool-call) DeepSeek turn missing reasoning_content (#1682)", async () => {
+    // Regression (#1682): a multi-turn text conversation where the prior assistant
+    // turn has NO tool calls and the client (e.g. Cursor) stripped reasoning_content
+    // from history. DeepSeek V4+ still requires reasoning_content on every assistant
+    // message in thinking mode, so without a placeholder the upstream returns 400.
+    clearReasoningCacheAll();
+    clearModelsDevCapabilities();
+    saveModelsDevCapabilities({
+      deepseek: {
+        "deepseek-v4-pro": buildCapability({
+          interleaved_field: "reasoning_content",
+          reasoning: true,
+          tool_call: true,
+        }),
+      },
+    });
+
+    const { NON_ANTHROPIC_THINKING_PLACEHOLDER } =
+      await import("../../open-sse/translator/helpers/claudeHelper.ts");
+
+    const translated = translateRequest(
+      FORMATS.OPENAI,
+      FORMATS.OPENAI,
+      "deepseek-v4-pro",
+      {
+        messages: [
+          { role: "user", content: "hi" },
+          // Plain assistant turn, no tool_calls, reasoning_content stripped by client.
+          { role: "assistant", content: "Hello! How can I help?" },
+          { role: "user", content: "tell me more" },
+        ],
+      },
+      false,
+      null,
+      "deepseek"
+    );
+
+    assert.equal(
+      translated.messages[1].reasoning_content,
+      NON_ANTHROPIC_THINKING_PLACEHOLDER,
+      "plain DeepSeek assistant turn missing reasoning_content should get the placeholder"
+    );
+  });
+
+  it("should replay cached reasoning for a plain (non-tool-call) DeepSeek turn when available (#1682)", () => {
+    // When a request_id-keyed cache entry exists for the plain turn, the real
+    // reasoning is replayed instead of the placeholder.
+    clearReasoningCacheAll();
+    clearModelsDevCapabilities();
+    saveModelsDevCapabilities({
+      deepseek: {
+        "deepseek-v4-pro": buildCapability({
+          interleaved_field: "reasoning_content",
+          reasoning: true,
+          tool_call: true,
+        }),
+      },
+    });
+    // NOTE: the non-tool-call cache key is built as `getAssistantMessageCacheKey(result, 0)`
+    // — the message index is hardcoded to 0 in the translator, so the key is always
+    // `request:<id>:message:0` regardless of the assistant message's actual position.
+    cacheReasoning(
+      "request:req-plain-1:message:0",
+      "deepseek",
+      "deepseek-v4-pro",
+      "Real cached plain-turn reasoning"
+    );
+
+    const translated = translateRequest(
+      FORMATS.OPENAI,
+      FORMATS.OPENAI,
+      "deepseek-v4-pro",
+      {
+        request_id: "req-plain-1",
+        messages: [
+          { role: "user", content: "hi" },
+          { role: "assistant", content: "Hello! How can I help?" },
+          { role: "user", content: "tell me more" },
+        ],
+      },
+      false,
+      null,
+      "deepseek"
+    );
+
+    assert.equal(
+      translated.messages[1].reasoning_content,
+      "Real cached plain-turn reasoning",
+      "plain DeepSeek assistant turn should replay the real cached reasoning when present"
+    );
+    assert.equal(getReasoningCacheServiceStats().replays, 1);
   });
 });
 

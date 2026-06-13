@@ -31,6 +31,10 @@ type ProxyResolutionCacheEntry = {
 
 const PROXY_RESOLUTION_CACHE_MAX_ENTRIES = 100;
 
+function isTruthyEnvFlag(value: string | undefined): boolean {
+  return typeof value === "string" && /^(1|true|yes|on)$/i.test(value.trim());
+}
+
 let proxyConfigGeneration = 0;
 const proxyResolutionCache = new Map<string, ProxyResolutionCacheEntry>();
 
@@ -100,6 +104,9 @@ export async function getSettings() {
     hideEndpointCloudflaredTunnel: false,
     hideEndpointTailscaleFunnel: false,
     hideEndpointNgrokTunnel: false,
+    preferClaudeCodeForUnprefixedClaudeModels: isTruthyEnvFlag(
+      process.env.OMNIROUTE_PREFER_CLAUDE_CODE_FOR_UNPREFIXED_CLAUDE_MODELS
+    ),
     autoRefreshProviderQuota: false,
     autoRefreshProviderQuotaInterval: 180,
     comboConfigMode: "guided",

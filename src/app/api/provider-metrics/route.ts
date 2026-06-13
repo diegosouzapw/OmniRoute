@@ -3,11 +3,9 @@ import pino from "pino";
 
 import { buildErrorBody } from "@omniroute/open-sse/utils/error.ts";
 
-import { getDbInstance } from "@/lib/db/core";
+import { getProviderMetrics } from "@/lib/db/callLogStats";
 
 const logger = pino({ name: "provider-metrics-api" });
-
-type JsonRecord = Record<string, unknown>;
 
 function toNumber(value: unknown): number {
   if (typeof value === "number" && Number.isFinite(value)) return value;
@@ -24,46 +22,7 @@ function toNumber(value: unknown): number {
  */
 export async function GET() {
   try {
-    const db = getDbInstance();
-    const rows = db
-      .prepare(
-        `SELECT
-          c.provider,
-          COUNT(*) as totalRequests,
-          SUM(CASE WHEN status >= 200 AND status < 400 THEN 1 ELSE 0 END) as totalSuccesses,
-          ROUND(AVG(duration)) as avgLatencyMs,
-          MAX(timestamp) as lastRequestAt,
-          MAX(
-            CASE
-              WHEN (status IS NOT NULL AND (status < 200 OR status >= 400))
-                OR error_summary IS NOT NULL
-              THEN timestamp
-              ELSE NULL
-            END
-          ) as lastErrorAt,
-          (
-            SELECT c2.status
-            FROM call_logs c2
-            WHERE c2.provider = c.provider
-            ORDER BY c2.timestamp DESC, c2.id DESC
-            LIMIT 1
-          ) as lastStatus,
-          (
-            SELECT c3.status
-            FROM call_logs c3
-            WHERE c3.provider = c.provider
-              AND (
-                (c3.status IS NOT NULL AND (c3.status < 200 OR c3.status >= 400))
-                OR c3.error_summary IS NOT NULL
-              )
-            ORDER BY c3.timestamp DESC, c3.id DESC
-            LIMIT 1
-          ) as lastErrorStatus
-        FROM call_logs c
-        WHERE c.provider IS NOT NULL AND c.provider != '-'
-        GROUP BY c.provider`
-      )
-      .all() as JsonRecord[];
+    const rows = getProviderMetrics();
 
     const metrics: Record<
       string,
@@ -112,7 +71,12 @@ export async function GET() {
         lastProviderTs = requestTs;
       }
 
-      const errorTs = lastErrorAt ? Date.parse(lastErrorAt) : 0;
+      // Only flag as errorProvider if the provider's MOST RECENT request was itself
+      // a failure. A provider with a historical lastErrorAt but a recent success
+      // (lastStatus 2xx/3xx) must not be shown as currently errored (#3619).
+      const isCurrentlyInError =
+        lastStatus !== null && (lastStatus < 200 || lastStatus >= 400);
+      const errorTs = isCurrentlyInError && lastErrorAt ? Date.parse(lastErrorAt) : 0;
       if (Number.isFinite(errorTs) && errorTs > errorProviderTs) {
         errorProvider = provider;
         errorProviderTs = errorTs;

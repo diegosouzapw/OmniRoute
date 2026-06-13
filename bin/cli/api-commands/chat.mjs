@@ -5,8 +5,7 @@ import { readFileSync } from "node:fs";
 
 export function register_chat(parent) {
   const tag = parent.command("chat").description("Chat endpoints");
-  tag
-    .command("post-api-v1-chat-completions")
+  tag.command("post-api-v1-chat-completions")
     .description("Create chat completion")
     .option("--body <jsonOrPath>", "JSON body or @path/to/file.json")
     .action(async (opts, cmd) => {
@@ -18,17 +17,11 @@ export function register_chat(parent) {
           ? JSON.parse(readFileSync(opts.body.slice(1), "utf8"))
           : JSON.parse(opts.body);
       }
-      const res = await apiFetch(url, {
-        method: "POST",
-        body,
-        baseUrl: gOpts.baseUrl,
-        apiKey: gOpts.apiKey,
-      });
+      const res = await apiFetch(url, { method: "POST", body, baseUrl: gOpts.baseUrl, apiKey: gOpts.apiKey });
       const data = res.ok ? await res.json() : await res.text();
       emit(data, gOpts);
     });
-  tag
-    .command("post-api-v1-providers-provider-chat-completions")
+  tag.command("post-api-v1-providers-provider-chat-completions")
     .description("Create chat completion (provider-specific)")
     .requiredOption("--provider <provider>", "")
     .option("--body <jsonOrPath>", "JSON body or @path/to/file.json")
@@ -42,17 +35,11 @@ export function register_chat(parent) {
           ? JSON.parse(readFileSync(opts.body.slice(1), "utf8"))
           : JSON.parse(opts.body);
       }
-      const res = await apiFetch(url, {
-        method: "POST",
-        body,
-        baseUrl: gOpts.baseUrl,
-        apiKey: gOpts.apiKey,
-      });
+      const res = await apiFetch(url, { method: "POST", body, baseUrl: gOpts.baseUrl, apiKey: gOpts.apiKey });
       const data = res.ok ? await res.json() : await res.text();
       emit(data, gOpts);
     });
-  tag
-    .command("post-api-v1-api-chat")
+  tag.command("post-api-v1-api-chat")
     .description("Ollama-compatible chat endpoint")
     .option("--body <jsonOrPath>", "JSON body or @path/to/file.json")
     .action(async (opts, cmd) => {
@@ -64,12 +51,7 @@ export function register_chat(parent) {
           ? JSON.parse(readFileSync(opts.body.slice(1), "utf8"))
           : JSON.parse(opts.body);
       }
-      const res = await apiFetch(url, {
-        method: "POST",
-        body,
-        baseUrl: gOpts.baseUrl,
-        apiKey: gOpts.apiKey,
-      });
+      const res = await apiFetch(url, { method: "POST", body, baseUrl: gOpts.baseUrl, apiKey: gOpts.apiKey });
       const data = res.ok ? await res.json() : await res.text();
       emit(data, gOpts);
     });

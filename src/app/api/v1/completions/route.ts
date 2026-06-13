@@ -2,6 +2,7 @@ import { CORS_HEADERS } from "@/shared/utils/cors";
 import { buildClientRawRequest, handleChat } from "@/sse/handlers/chat";
 import { initTranslators } from "@omniroute/open-sse/translator/index.ts";
 import { createInjectionGuard } from "@/middleware/promptInjectionGuard";
+import { asTextCompletionResponse } from "./textCompletionTransform.ts";
 
 let initPromise = null;
 const injectionGuard = createInjectionGuard();
@@ -74,13 +75,18 @@ export async function POST(request: Request) {
           headers: request.headers,
           body: JSON.stringify(normalized),
         });
-        return await handleChat(newRequest, buildClientRawRequest(request, body));
+        // #3571 — translate the chat-pipeline response back to the legacy
+        // text-completion shape so OpenAI Completion clients (e.g. TabbyML) work.
+        return await asTextCompletionResponse(
+          await handleChat(newRequest, buildClientRawRequest(request, body))
+        );
       }
     }
   } catch (error) {
     console.error("[SECURITY] Prompt injection guard failed:", error);
   }
 
-  // Standard path: body already has messages[] (chat format)
-  return await handleChat(request);
+  // Standard path: body already has messages[] (chat format). Still emit the legacy
+  // text-completion shape — this is the /v1/completions contract (#3571).
+  return await asTextCompletionResponse(await handleChat(request));
 }

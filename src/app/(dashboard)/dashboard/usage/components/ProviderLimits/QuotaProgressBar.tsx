@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import { cn } from "@/shared/utils/cn";
 import { formatResetTime } from "./utils";
 
@@ -73,12 +74,14 @@ export default function QuotaProgressBar({
   resetTime = null,
   staleAfterReset = false,
 }) {
+  const t = useTranslations("usage");
   const colors = getColorClasses(percentage);
   const countdown = formatResetTime(resetTime);
   const resetDisplay = formatResetTimeDisplay(resetTime);
 
   // percentage is already remaining percentage (from ProviderLimitCard)
   const remaining = percentage;
+  const usedPercentage = Math.max(0, Math.min(100, 100 - remaining));
 
   return (
     <div className="space-y-2">
@@ -87,7 +90,9 @@ export default function QuotaProgressBar({
         <span className="font-semibold text-text-primary">{label}</span>
         <div className="flex items-center gap-1.5">
           <span className="text-xs">{colors.emoji}</span>
-          <span className={cn("font-medium", colors.text)}>{remaining}%</span>
+          <span className={cn("font-medium", colors.text)}>
+            {t("percentUsed", { pct: usedPercentage })}
+          </span>
         </div>
       </div>
 

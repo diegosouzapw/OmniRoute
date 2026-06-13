@@ -51,18 +51,24 @@ test("VertexExecutor.buildUrl defaults to us-central1 and unknown-project when p
     apiKey: createServiceAccountJson({ includeProjectId: false }),
     providerSpecificData: {},
   });
-  const invalidJson = executor.buildUrl("gemini-2.5-flash", false, 0, {
-    apiKey: "not-json",
-  });
 
   assert.equal(
     missingProject,
     "https://aiplatform.googleapis.com/v1/projects/unknown-project/locations/us-central1/publishers/google/models/gemini-2.5-flash:generateContent"
   );
+});
+
+test("VertexExecutor.buildUrl routes a non-JSON Express API key to the project-less publisher endpoint", () => {
+  const executor = new VertexExecutor();
+  const expressUrl = executor.buildUrl("gemini-2.5-flash", false, 0, {
+    apiKey: "express-key-abc",
+  });
+
   assert.equal(
-    invalidJson,
-    "https://aiplatform.googleapis.com/v1/projects/unknown-project/locations/us-central1/publishers/google/models/gemini-2.5-flash:generateContent"
+    expressUrl,
+    "https://aiplatform.googleapis.com/v1/publishers/google/models/gemini-2.5-flash:generateContent?key=express-key-abc"
   );
+  assert.ok(!expressUrl.includes("/projects/"), "Express key URL must not route through a project path");
 });
 
 test("VertexExecutor.buildUrl routes partner and org-prefixed models to the global partner endpoint", () => {
@@ -191,20 +197,12 @@ test("VertexExecutor.execute skips Service Account parsing when accessToken is a
   }
 });
 
-test("VertexExecutor.execute rejects invalid or incomplete Service Account JSON clearly", async () => {
+test("VertexExecutor.execute rejects incomplete Service Account JSON clearly", async () => {
   const executor = new VertexExecutor();
 
-  await assert.rejects(
-    () =>
-      executor.execute({
-        model: "gemini-2.5-flash",
-        body: { contents: [] },
-        stream: false,
-        credentials: { apiKey: "not-json" },
-      }),
-    /Service Account JSON/
-  );
-
+  // A JSON object missing client_email/private_key is treated as a Service Account (not an Express
+  // key) and must fail clearly when minting a JWT. A non-JSON string is an Express key (covered
+  // elsewhere) and is intentionally NOT rejected here.
   await assert.rejects(
     () =>
       executor.execute({

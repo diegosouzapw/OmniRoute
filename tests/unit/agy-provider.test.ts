@@ -4,7 +4,10 @@ import assert from "node:assert/strict";
 import { AI_PROVIDERS, USAGE_SUPPORTED_PROVIDERS } from "../../src/shared/constants/providers.ts";
 import { REGISTRY } from "../../open-sse/config/providerRegistry.ts";
 import { PROVIDERS as LEGACY_PROVIDERS } from "../../open-sse/config/constants.ts";
-import { PROVIDERS as OAUTH_PROVIDER_IDS, AGY_CONFIG } from "../../src/lib/oauth/constants/oauth.ts";
+import {
+  PROVIDERS as OAUTH_PROVIDER_IDS,
+  AGY_CONFIG,
+} from "../../src/lib/oauth/constants/oauth.ts";
 import { supportsTokenRefresh, REFRESH_LEAD_MS } from "../../open-sse/services/tokenRefresh.ts";
 import {
   AGY_PUBLIC_MODELS,
@@ -47,6 +50,12 @@ test("agy ships its own catalog including the Claude models antigravity omits", 
   const ids = REGISTRY.agy.models.map((m) => m.id);
   assert.ok(ids.includes("claude-opus-4-6-thinking"), "must expose Claude Opus 4.6 Thinking");
   assert.ok(ids.includes("claude-sonnet-4-6"), "must expose Claude Sonnet 4.6");
+  assert.ok(ids.includes("gemini-3.5-flash-low"), "must expose clean Flash Low tier");
+  assert.ok(ids.includes("gemini-3.5-flash-medium"), "must expose clean Flash Medium tier");
+  assert.ok(ids.includes("gemini-3.5-flash-high"), "must expose clean Flash High tier");
+  assert.ok(!ids.includes("gemini-3-flash-agent"));
+  assert.ok(!ids.includes("gemini-3-flash"));
+  assert.ok(!ids.includes("gemini-3.5-flash-extra-low"));
   // Tab-completion models are not chat-callable and must be excluded.
   assert.ok(!ids.includes("tab_flash_lite_preview"));
   assert.ok(!ids.includes("tab_jump_flash_lite_preview"));

@@ -36,6 +36,7 @@ export const updateSettingsSchema = z.object({
   hideEndpointCloudflaredTunnel: z.boolean().optional(),
   hideEndpointTailscaleFunnel: z.boolean().optional(),
   hideEndpointNgrokTunnel: z.boolean().optional(),
+  preferClaudeCodeForUnprefixedClaudeModels: z.boolean().optional(),
   autoRefreshProviderQuota: z.boolean().optional(),
   autoRefreshProviderQuotaInterval: z.number().int().min(10).max(3600).optional(),
   pinProviderQuotaToHome: z.boolean().optional(),
@@ -303,6 +304,32 @@ export const updateSettingsSchema = z.object({
   cliproxyapi_fallback_codes: z.string().max(200).optional(),
   // CLIProxyAPI model mapping (Record<string, string>)
   cliproxyapi_model_mapping: z.record(z.string(), z.string()).optional(),
+  // Model lockout settings
+  modelLockout: z
+    .object({
+      enabled: z.boolean().optional(),
+      errorCodes: z.array(z.number().int().min(100).max(599)).min(0).max(20).optional(),
+      baseCooldownMs: z
+        .number()
+        .int()
+        .min(5000, "Must be at least 5,000ms")
+        .max(600000, "Must be at most 600,000ms (10 min)")
+        .optional(),
+      maxCooldownMs: z
+        .number()
+        .int()
+        .min(5000, "Must be at least 5,000ms")
+        .max(3600000, "Must be at most 3,600,000ms (1 h)")
+        .optional(),
+      maxBackoffSteps: z
+        .number()
+        .int()
+        .min(0, "Must be at least 0")
+        .max(20, "Must be at most 20")
+        .optional(),
+      useExponentialBackoff: z.boolean().optional(),
+    })
+    .optional(),
 });
 
 export const databaseSettingsSchema = z.object(

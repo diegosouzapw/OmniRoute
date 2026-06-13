@@ -106,9 +106,28 @@ export const NOAUTH_PROVIDERS = {
     freeNote: "Free video generation — VEO 3.1, Seedance. 6 requests/hour.",
     authHint: "No auth required. Rate limited to 6 requests/hour per IP.",
   },
+  mimocode: {
+    id: "mimocode",
+    alias: "mcode",
+    name: "MiMoCode (Free)",
+    icon: "devices",
+    color: "#FF6B35",
+    textIcon: "MC",
+    website: "https://mimo.mi.com",
+    noAuth: true,
+    hasFree: true,
+    serviceKinds: ["llm"],
+    freeNote:
+      "Free — Xiaomi MiMo models via bootstrap JWT auth. No API key required. Supports streaming.",
+    authHint:
+      "No API key required. The executor auto-generates JWT tokens via device fingerprint bootstrap.",
+    notice: {
+      text: "MiMoCode uses Xiaomi's public free AI endpoint with bootstrap-based JWT authentication. No signup needed. Rate limits apply.",
+    },
+  },
 };
 
-export const FREE_APIKEY_PROVIDER_IDS = new Set(["qoder"]);
+export const FREE_APIKEY_PROVIDER_IDS = new Set(["qoder", "mimocode", "opencode"]);
 
 export function supportsApiKeyOnFreeProvider(providerId: unknown): boolean {
   return typeof providerId === "string" && FREE_APIKEY_PROVIDER_IDS.has(providerId);
@@ -2853,6 +2872,8 @@ export function providerAllowsOptionalApiKey(providerId: unknown): boolean {
     providerId === "huggingchat" ||
     providerId === "gitlawb" ||
     providerId === "gitlawb-gmi" ||
+    providerId === "mimocode" ||
+    providerId === "opencode" ||
     isLocalProvider(providerId) ||
     isSelfHostedChatProvider(providerId) ||
     isOpenAICompatibleProvider(providerId) ||
@@ -3106,6 +3127,8 @@ export const USAGE_SUPPORTED_PROVIDERS = [
   "nanogpt",
   "deepseek",
   "xiaomi-mimo",
+  "vertex",
+  "vertex-partner",
 ];
 
 // ── Zod validation at module load (Phase 7.2) ──

@@ -104,9 +104,13 @@ function hasOpenAIResponseLifecyclePayload(
 }
 
 function hasChatCompletionToolCallStart(value: unknown): boolean {
-  const hasToolCallId = (item: unknown) => isRecord(item) && hasNonEmptyString(item.id);
-  if (Array.isArray(value)) return value.some(hasToolCallId);
-  return hasToolCallId(value);
+  // Accept a tool_call item if it has a non-empty id (fully-formed chunk) OR if it
+  // carries a numeric index (first OpenAI streaming chunk — id/name arrive in later
+  // chunks). Either form signals that a tool call has started. (#3612)
+  const hasToolCallStart = (item: unknown) =>
+    isRecord(item) && (hasNonEmptyString(item.id) || typeof item.index === "number");
+  if (Array.isArray(value)) return value.some(hasToolCallStart);
+  return hasToolCallStart(value);
 }
 
 function hasChatCompletionFunctionCallStart(value: unknown): boolean {
@@ -114,9 +118,15 @@ function hasChatCompletionFunctionCallStart(value: unknown): boolean {
 }
 
 function hasChatCompletionChunkStartPayload(payload: Record<string, unknown>): boolean {
-  if (payload.object !== "chat.completion.chunk" && payload.type !== "chat.completion.chunk") {
-    return false;
-  }
+  // If object or type is PRESENT and is clearly a non-chat-chunk type, reject early.
+  // If both are absent (many OA-compatible backends omit object), we fall through and
+  // let the choices structure decide. (#3612)
+  const obj = payload.object;
+  const typ = payload.type;
+  const hasForeignObject =
+    (typeof obj === "string" && obj !== "chat.completion.chunk") ||
+    (typeof typ === "string" && typ !== "chat.completion.chunk");
+  if (hasForeignObject) return false;
 
   const choices = payload.choices;
   if (!Array.isArray(choices) || choices.length === 0) return false;

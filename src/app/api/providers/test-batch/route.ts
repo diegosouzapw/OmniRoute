@@ -136,11 +136,14 @@ export async function POST(request) {
     }
 
     if (connectionsToTest.length === 0) {
+      // Include a summary so consumers gated on `summary` still get feedback
+      // (e.g. mode=selected where the chosen ids were deleted before testing).
       return NextResponse.json({
         mode,
         providerId: providerId || null,
         results: [],
         testedAt: new Date().toISOString(),
+        summary: { total: 0, passed: 0, failed: 0 },
       });
     }
 

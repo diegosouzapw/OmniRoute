@@ -169,6 +169,37 @@ function ensureKiroUsage(state: KiroStreamState) {
 }
 
 /**
+ * Resolve the AWS region for a Kiro/CodeWhisperer connection. Enterprise AWS IAM Identity
+ * Center accounts are region-bound: the access token, the Q Developer profile ARN and the
+ * runtime endpoint must all match the region the IdC instance lives in (e.g. eu-central-1).
+ * A request signed for one region is rejected by another ("bearer token is invalid"), and a
+ * regional profileArn sent to us-east-1 fails with "Improperly formed request". Falls back to
+ * the region embedded in the profileArn, then us-east-1 (the AWS Builder ID default).
+ */
+export function resolveKiroRegion(
+  credentials: { providerSpecificData?: unknown } | null | undefined
+): string {
+  const psd = (credentials?.providerSpecificData || {}) as Record<string, unknown>;
+  const region = typeof psd.region === "string" ? psd.region.trim().toLowerCase() : "";
+  if (region) return region;
+  const arn = typeof psd.profileArn === "string" ? psd.profileArn.toLowerCase() : "";
+  const match = arn.match(/^arn:aws:codewhisperer:([a-z0-9-]+):/);
+  return match ? match[1] : "us-east-1";
+}
+
+/**
+ * CodeWhisperer/Amazon Q runtime host for a region. us-east-1 keeps the legacy
+ * codewhisperer.us-east-1 host (AWS Builder ID); other regions use the regional Amazon Q
+ * endpoint q.{region}.amazonaws.com — codewhisperer.{region}.amazonaws.com does not resolve
+ * for non-us-east-1 regions.
+ */
+export function kiroRuntimeHost(region: string): string {
+  return region === "us-east-1"
+    ? "https://codewhisperer.us-east-1.amazonaws.com"
+    : `https://q.${region}.amazonaws.com`;
+}
+
+/**
  * KiroExecutor - Executor for Kiro AI (AWS CodeWhisperer)
  * Uses AWS CodeWhisperer streaming API with AWS EventStream binary format
  */
@@ -228,7 +259,11 @@ export class KiroExecutor extends BaseExecutor {
     log,
     upstreamExtraHeaders,
   }: ExecuteInput) {
-    const url = this.buildUrl(model, stream, 0);
+    // Route to the region-specific CodeWhisperer/Amazon Q endpoint. Enterprise IAM Identity
+    // Center accounts (e.g. eu-central-1) are rejected by the default us-east-1 host; only the
+    // regional endpoint accepts the region-bound token + profileArn.
+    const region = resolveKiroRegion(credentials);
+    const url = `${kiroRuntimeHost(region)}/generateAssistantResponse`;
     const headers = this.buildHeaders(credentials, stream);
     mergeUpstreamExtraHeaders(headers, upstreamExtraHeaders);
     const transformedBody = await this.transformRequest(model, body, stream, credentials);

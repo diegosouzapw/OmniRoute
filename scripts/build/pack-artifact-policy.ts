@@ -42,6 +42,7 @@ export const APP_STAGING_ALLOWED_EXACT_PATHS: string[] = [
   "scripts/dev/sync-env.mjs",
   "server.js",
   "server-ws.mjs",
+  "webdav-handler.mjs",
 ];
 
 export const APP_STAGING_ALLOWED_PATH_PREFIXES: string[] = [
@@ -101,10 +102,16 @@ export const PACK_ARTIFACT_ROOT_ALLOWED_PATH_PREFIXES: string[] = [
   "@omniroute/opencode-plugin/",
   "@omniroute/opencode-provider/",
   "bin/cli/",
-  "open-sse/mcp-server/schemas/",
-  "open-sse/mcp-server/tools/",
-  "src/lib/cli-helper/",
-  "src/shared/contracts/",
+  // Broad open-sse + src source dirs added to package.json "files" in v3.8.21
+  // to allow TypeScript-first imports from the published package.
+  "open-sse/",
+  "src/domain/",
+  "src/lib/",
+  "src/mitm/",
+  "src/server/",
+  "src/shared/",
+  "src/sse/",
+  "src/types/",
 ];
 
 export const PACK_ARTIFACT_REQUIRED_PATHS: string[] = [
@@ -114,6 +121,7 @@ export const PACK_ARTIFACT_REQUIRED_PATHS: string[] = [
   "dist/server-ws.mjs",
   "dist/responses-ws-proxy.mjs",
   "dist/peer-stamp.mjs",
+  "dist/webdav-handler.mjs",
   "bin/cli/program.mjs",
   "bin/mcp-server.mjs",
   "bin/nodeRuntimeSupport.mjs",

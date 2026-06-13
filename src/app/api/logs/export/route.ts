@@ -1,6 +1,6 @@
-import { getDbInstance } from "@/lib/db/core";
 import { exportCallLogsSince } from "@/lib/usage/callLogs";
 import { requireManagementAuth } from "@/lib/api/requireManagementAuth";
+import { exportProxyLogsSince } from "@/lib/db/proxyLogs";
 
 /**
  * GET /api/logs/export — export logs as JSON
@@ -17,7 +17,6 @@ export async function GET(request: Request) {
     const logType = searchParams.get("type") || "call-logs";
 
     const since = new Date(Date.now() - hours * 3600 * 1000).toISOString();
-    const db = getDbInstance();
 
     let rows: unknown[] = [];
     let tableName = "";
@@ -27,14 +26,11 @@ export async function GET(request: Request) {
       rows = await exportCallLogsSince(since);
     } else if (logType === "proxy-logs") {
       tableName = "proxy_logs";
-      // NOTE: raw SELECT * returns the historical `public_ip` column, NOT `clientIp`.
+      // NOTE: exportProxyLogsSince returns the historical `public_ip` column, NOT `clientIp`.
       // This intentionally differs from GET /api/usage/proxy-logs which exposes the
       // value as `clientIp`. Callers of this export endpoint should read `public_ip`.
       // This inconsistency will be resolved in a future DB migration (#2880).
-      const stmt = db.prepare(
-        "SELECT * FROM proxy_logs WHERE timestamp >= @since ORDER BY timestamp DESC"
-      );
-      rows = stmt.all({ since });
+      rows = exportProxyLogsSince(since);
     }
 
     const filename = `omniroute-${tableName}-${hours}h-${new Date().toISOString().slice(0, 10)}.json`;

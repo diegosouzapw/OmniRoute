@@ -1121,6 +1121,11 @@ export interface OmniRouteRawAutoCombo {
   candidatePool?: string[];
   /** Number of candidates resolved at fetch time. */
   candidateCount?: number;
+  /** MAX of candidates' context windows, served by newer OmniRoute builds.
+   * Absent on older servers — mapper falls back to a safe positive default. */
+  context_length?: number;
+  /** MAX of candidates' max output tokens (same provenance as context_length). */
+  max_output_tokens?: number;
   /** Whether this auto combo should be hidden from the picker. */
   isHidden?: boolean;
   /** Auto-combo configuration. */
@@ -1211,24 +1216,42 @@ export const defaultOmniRouteAutoCombosFetcher: OmniRouteAutoCombosFetcher =
     }
   };
 
+/** Fallbacks when the server does not advertise auto-combo limits (older
+ * OmniRoute builds). MUST be positive: OpenCode's overflow guard treats
+ * `limit.context === 0` as "never overflow" and silently DISABLES smart
+ * auto-compaction, letting the session grow until the gateway's destructive
+ * history purge kicks in (the "agent keeps forgetting things" bug). */
+const AUTO_COMBO_FALLBACK_CONTEXT = 128_000;
+const AUTO_COMBO_FALLBACK_OUTPUT = 8_192;
+
 /**
  * Convert a raw auto combo into a static model entry for the OpenCode picker.
  * Auto combos have tool_call=true, reasoning=true by default (they route
- * to capable models). Context/output limits are set to 0 since the actual
- * limits depend on which provider is selected at runtime.
+ * to capable models). Context/output limits come from the server (MAX of
+ * the candidate pool's windows — the gateway's context pre-filter routes
+ * oversized requests to large-window candidates); a safe positive fallback
+ * applies when the server omits them. Never 0.
  */
 export function mapAutoComboToStaticEntry(
   autoCombo: OmniRouteRawAutoCombo,
 ): OmniRouteStaticModelEntry {
   const variant = autoCombo.variant;
   const name = formatAutoComboName(variant, autoCombo.candidateCount);
+  const context =
+    typeof autoCombo.context_length === "number" && autoCombo.context_length > 0
+      ? autoCombo.context_length
+      : AUTO_COMBO_FALLBACK_CONTEXT;
+  const output =
+    typeof autoCombo.max_output_tokens === "number" && autoCombo.max_output_tokens > 0
+      ? autoCombo.max_output_tokens
+      : AUTO_COMBO_FALLBACK_OUTPUT;
   return {
     name,
     attachment: false,
     reasoning: true,
     temperature: true,
     tool_call: true,
-    limit: { context: 0, output: 0 },
+    limit: { context, output },
     modalities: {
       input: ["text"],
       output: ["text"],
@@ -2529,17 +2552,31 @@ export function createOmniRouteProviderHook(
       const apiKey = (auth as { key: string }).key;
 
       // baseURL resolution: plugin opts first, then credential-attached
-      // baseURL (auth backends sometimes stash it next to the key). No
-      // silent default to localhost: a misconfigured plugin should surface
-      // a clear error, not phantom /v1/models calls. Cast through unknown
-      // because the Auth union (OAuth | ApiAuth | WellKnownAuth) doesn't
-      // declare baseURL on any branch — we duck-type it as a defensive
-      // extension point.
+      // baseURL (auth backends sometimes stash it next to the key), then the
+      // provider config itself — a baseURL set via opencode.json provider
+      // options (or a config hook) lands on `provider.options` and is not
+      // visible through either of the first two links. No silent default to
+      // localhost: a misconfigured plugin should surface a clear warning,
+      // not phantom /v1/models calls. Cast through unknown because the Auth
+      // union (OAuth | ApiAuth | WellKnownAuth) doesn't declare baseURL on
+      // any branch — we duck-type it as a defensive extension point.
       const authBaseURL = (auth as unknown as { baseURL?: unknown }).baseURL;
+      const providerBaseURL = (
+        _provider as { options?: { baseURL?: unknown } } | undefined
+      )?.options?.baseURL;
       const baseURL =
         resolved.baseURL ??
-        (typeof authBaseURL === "string" ? authBaseURL : "");
+        (typeof authBaseURL === "string" && authBaseURL.length > 0 ? authBaseURL : undefined) ??
+        (typeof providerBaseURL === "string" && providerBaseURL.length > 0
+          ? providerBaseURL
+          : undefined) ??
+        "";
       if (!baseURL) {
+        console.warn(
+          `[omniroute-plugin] provider.models(${resolved.providerId}): ` +
+            `no baseURL resolvable — checked plugin opts, auth.json, and provider config. ` +
+            `Set baseURL in opencode.json plugin options or run \`opencode connect ${resolved.providerId}\` with a baseURL.`
+        );
         return {};
       }
 

@@ -10,6 +10,7 @@
 import { getDbInstance } from "../db/core";
 import { protectPayloadForLog } from "../logPayloads";
 import { shouldPersistToDisk } from "./migrations";
+import { emitUsageRecorded } from "./usageEvents";
 import {
   getLoggedInputTokens,
   getLoggedOutputTokens,
@@ -340,7 +341,8 @@ export function finalizeMostRecentPendingRequest(
   // detail from persisted call_log artifacts (best-effort, non-blocking).
   (async () => {
     try {
-      const missingProvider = updated.providerResponse === undefined || updated.providerResponse === null;
+      const missingProvider =
+        updated.providerResponse === undefined || updated.providerResponse === null;
       const missingClient = updated.clientResponse === undefined || updated.clientResponse === null;
       if ((missingProvider || missingClient) && connectionId) {
         const db = getDbInstance();
@@ -363,7 +365,10 @@ export function finalizeMostRecentPendingRequest(
           if (missingClient && pipeline?.clientResponse) {
             updated.clientResponse = pipeline.clientResponse;
           }
-          if ((missingProvider && art.artifact.responseBody) || (missingClient && art.artifact.responseBody)) {
+          if (
+            (missingProvider && art.artifact.responseBody) ||
+            (missingClient && art.artifact.responseBody)
+          ) {
             // use responseBody as a fallback for both
             if (missingProvider) updated.providerResponse = art.artifact.responseBody;
             if (missingClient) updated.clientResponse = art.artifact.responseBody;
@@ -376,7 +381,12 @@ export function finalizeMostRecentPendingRequest(
         }
       }
     } catch (e) {
-      try { console.warn("[usageHistory] failed to enrich completed detail from artifacts:", (e && (e.message || e))); } catch {}
+      try {
+        console.warn(
+          "[usageHistory] failed to enrich completed detail from artifacts:",
+          e && (e.message || e)
+        );
+      } catch {}
     }
   })();
 
@@ -582,6 +592,10 @@ export async function saveRequestUsage(entry: any) {
       entry.comboStrategy || entry.combo_strategy || null,
       timestamp
     );
+
+    // Decoupled via the event bus so usageHistory never imports providerLimits
+    // (which would pull the executors/translator graph into the type-check surface).
+    emitUsageRecorded(entry.provider, entry.connectionId);
   } catch (error) {
     console.error("Failed to save usage stats:", error);
   }

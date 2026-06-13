@@ -4,6 +4,18 @@
 
 ---
 
+## [3.8.22] — TBD
+
+_See English CHANGELOG for v3.8.22 details._
+
+---
+
+## [3.8.21] — 2026-06-11
+
+_See [English CHANGELOG](/CHANGELOG.md) for v3.8.21 details._
+
+---
+
 ## [3.8.20] — Unreleased
 
 _Development cycle in progress._
@@ -159,7 +171,7 @@ _Development cycle in progress._
   `[403] <!DOCTYPE html>`. The quota path now skips proactive refresh for
   rotating providers (`rotationGroupFor`) and reuses the current access_token,
   deferring genuine expiry to the reactive, serialized 401 path. Defense in
-  depth: `serializeRefresh` now leaves a settle gap between two *queued* sibling
+  depth: `serializeRefresh` now leaves a settle gap between two _queued_ sibling
   refreshes (default 2000 ms, tunable via `CODEX_REFRESH_SPACING_MS`, `"0"` to
   opt out) while releasing a lone refresh immediately, so the reactive path adds
   no latency.
@@ -222,7 +234,7 @@ _Development cycle in progress._
   via a new `RegistryModel.interleavedField` field, so follow-up/tool-use turns
   replay reasoning_content. Previously `big-pickle` matched no replay pattern and
   failed with `[400] The reasoning_content in the thinking mode must be passed
-  back to the API` (its DeepSeek-thinking upstream is not detectable from the
+back to the API` (its DeepSeek-thinking upstream is not detectable from the
   model id, and `requiresReasoningReplay` does not consume `supportsReasoning`).
   `getResolvedModelCapabilities` now surfaces the registry `interleavedField`. (#2900)
 - **providers/github-copilot:** built-in GitHub Copilot Claude Opus and Gemini
@@ -255,7 +267,7 @@ _Development cycle in progress._
   instead of failing with "No credentials for provider: opencode-zen". A
   configured, active key is still used when present. (#2962)
 - **translator/responses:** fixed an upstream `[400] Messages with role 'tool'
-  must be a response to a preceding message with 'tool_calls'` when a Codex
+must be a response to a preceding message with 'tool_calls'` when a Codex
   client sent a `function_call` with an empty/missing `call_id`. The orphaned
   `function_call_output` previously slipped past the orphan filter. Now
   empty-`call_id` function calls are skipped (no dangling assistant tool_call)
@@ -373,6 +385,12 @@ _Development cycle in progress._
 ---
 
 ## [Unreleased]
+
+---
+
+## [3.8.23] — TBD
+
+---
 
 ### ✨ New Features
 

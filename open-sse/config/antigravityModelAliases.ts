@@ -22,10 +22,16 @@ export const ANTIGRAVITY_PUBLIC_MODELS = Object.freeze([
     supportsVision: true,
     toolCalling: true,
   },
-  // Gemini 3.5 Flash — flagship model in Antigravity 2.0 (May 2026)
+  // Gemini 3.5 Flash tiers exposed by Antigravity 2.0.4's model selector.
+  // The user-facing names are Low / Medium / High, but fetchAvailableModels reports
+  // legacy upstream IDs for two of them:
+  //   Low    -> gemini-3.5-flash-extra-low (displayName: Gemini 3.5 Flash (Low))
+  //   Medium -> gemini-3.5-flash-low       (displayName: Gemini 3.5 Flash (Medium))
+  //   High   -> gemini-3-flash-agent       (displayName: Gemini 3.5 Flash (High))
+  // Keep the clean public IDs here and map them below for routing/quota.
   {
-    id: "gemini-3.5-flash-preview",
-    name: "Gemini 3.5 Flash",
+    id: "gemini-3.5-flash-low",
+    name: "Gemini 3.5 Flash (Low)",
     contextLength: 1048576,
     maxOutputTokens: 65536,
     supportsReasoning: true,
@@ -33,8 +39,17 @@ export const ANTIGRAVITY_PUBLIC_MODELS = Object.freeze([
     toolCalling: true,
   },
   {
-    id: "gemini-3-flash-agent",
-    name: "Gemini 3.5 Flash Agent",
+    id: "gemini-3.5-flash-medium",
+    name: "Gemini 3.5 Flash (Medium)",
+    contextLength: 1048576,
+    maxOutputTokens: 65536,
+    supportsReasoning: true,
+    supportsVision: true,
+    toolCalling: true,
+  },
+  {
+    id: "gemini-3.5-flash-high",
+    name: "Gemini 3.5 Flash (High)",
     contextLength: 1048576,
     maxOutputTokens: 65536,
     supportsReasoning: true,
@@ -50,9 +65,10 @@ export const ANTIGRAVITY_PUBLIC_MODELS = Object.freeze([
     supportsVision: true,
     toolCalling: true,
   },
-  // Gemini 3.1 Pro budget tiers — agy already ships these; #3184 confirmed they work via
-  // the antigravity OAuth provider. The -high/-low suffix is aliased to the plain
-  // gemini-3.1-pro upstream id (see ANTIGRAVITY_MODEL_ALIASES / #3229).
+  // Gemini 3.1 Pro budget tiers — agy ships these and they route directly via the
+  // antigravity OAuth provider. The upstream ACCEPTS the suffixed ids verbatim (wire-
+  // confirmed via `agy --model gemini-3.1-pro-high`: 200 OK on /v1internal:streamGenerateContent).
+  // No alias needed; see #3696 (supersedes the #3229 premise).
   {
     id: "gemini-3.1-pro-high",
     name: "Gemini 3.1 Pro (High)",
@@ -68,33 +84,6 @@ export const ANTIGRAVITY_PUBLIC_MODELS = Object.freeze([
     contextLength: 1048576,
     maxOutputTokens: 65535,
     supportsReasoning: true,
-    supportsVision: true,
-    toolCalling: true,
-  },
-  {
-    id: "gemini-3-flash-preview",
-    name: "Gemini 3 Flash",
-    contextLength: 1048576,
-    maxOutputTokens: 65536,
-    supportsReasoning: true,
-    supportsVision: true,
-    toolCalling: true,
-  },
-  // Gemini 3.5 Flash budget tiers — agy ships these as exact upstream ids; #3184 verified
-  // they work via the antigravity OAuth provider (no alias remapping required).
-  {
-    id: "gemini-3.5-flash-low",
-    name: "Gemini 3.5 Flash (Low)",
-    contextLength: 1048576,
-    maxOutputTokens: 65536,
-    supportsVision: true,
-    toolCalling: true,
-  },
-  {
-    id: "gemini-3.5-flash-extra-low",
-    name: "Gemini 3.5 Flash (Extra Low)",
-    contextLength: 1048576,
-    maxOutputTokens: 65536,
     supportsVision: true,
     toolCalling: true,
   },
@@ -160,17 +149,20 @@ export const ANTIGRAVITY_PUBLIC_MODELS = Object.freeze([
   },
 ]);
 
-// The Antigravity upstream API uses plain model IDs (no -high/-low suffix).
-// The -high/-low suffix convention was speculative and caused 404 for all
-// gemini-3.x models. Only plain IDs like "gemini-2.5-flash" are proven working.
 export const ANTIGRAVITY_MODEL_ALIASES = Object.freeze({
+  "gemini-3.5-flash-low": "gemini-3.5-flash-extra-low",
+  "gemini-3.5-flash-medium": "gemini-3.5-flash-low",
+  "gemini-3.5-flash-high": "gemini-3-flash-agent",
+  // Backward-compat: the retired flagship public id `gemini-3.5-flash-preview`
+  // (Antigravity 2.0's "Gemini 3.5 Flash") is kept as a HIDDEN alias so saved
+  // combos/configs keep routing — it maps to the reasoning-capable High tier
+  // (upstream `gemini-3-flash-agent`). It is NOT re-added to the public catalog.
+  "gemini-3.5-flash-preview": "gemini-3-flash-agent",
   "gemini-3-pro-preview": "gemini-3.1-pro",
-  // agy catalog exposes -high/-low budget tiers, but the upstream rejects the suffix
-  // for gemini-3.x (#3229) — map them to the plain proven id.
-  "gemini-3.1-pro-high": "gemini-3.1-pro",
-  "gemini-3.1-pro-low": "gemini-3.1-pro",
-  "gemini-3.5-flash-preview": "gemini-3.5-flash",
-  "gemini-3-flash-preview": "gemini-3-flash",
+  // gemini-3.1-pro-high and gemini-3.1-pro-low are NOT aliased here: wire capture
+  // (#3696) confirmed the upstream accepts the suffixed ids verbatim → pass through.
+  // (The earlier #3229 assumption — "upstream rejects -high/-low for gemini-3.x" —
+  // was refuted by the agy --log-file 200 OK evidence.)
   "gemini-3-pro-image-preview": "gemini-3-pro-image",
   "gemini-2.5-computer-use-preview-10-2025": "rev19-uic3-1p",
   // Legacy Claude display ids → current upstream ids. NOTE: an earlier comment here
@@ -186,10 +178,9 @@ export const ANTIGRAVITY_MODEL_ALIASES = Object.freeze({
 type AntigravityModelAliasMap = Record<string, string>;
 
 export const ANTIGRAVITY_REVERSE_MODEL_ALIASES: AntigravityModelAliasMap = Object.freeze({
+  "gemini-3.5-flash-extra-low": "gemini-3.5-flash-low",
+  "gemini-3-flash-agent": "gemini-3.5-flash-high",
   "gemini-3.1-pro": "gemini-3-pro-preview",
-  "gemini-3.5-flash": "gemini-3.5-flash-preview",
-  "gemini-3-flash-agent": "gemini-3.5-flash-preview",
-  "gemini-3-flash": "gemini-3-flash-preview",
   "gemini-3-pro-image": "gemini-3-pro-image-preview",
   "rev19-uic3-1p": "gemini-2.5-computer-use-preview-10-2025",
 });
@@ -214,6 +205,43 @@ export function resolveAntigravityModelId(modelId: string): string {
 export function toClientAntigravityModelId(modelId: string): string {
   if (!modelId) return modelId;
   return ANTIGRAVITY_REVERSE_MODEL_ALIASES[modelId] || modelId;
+}
+
+// Quota buckets reported by the Antigravity backend are keyed by UPSTREAM model ids — a
+// DIFFERENT namespace from the public/client catalog. In that upstream quota namespace
+// `gemini-3.5-flash-low` denotes the *Medium* tier's bucket (it is the upstream target of
+// the `gemini-3.5-flash-medium` forward alias), even though the same literal is also a
+// public "Low" client id. This remap therefore CANNOT be derived from
+// ANTIGRAVITY_REVERSE_MODEL_ALIASES (which has no `gemini-3.5-flash-low` entry precisely
+// because it is already a valid client id) — it encodes the upstream-bucket → client-tier
+// chain explicitly. Keep it the inverse of the `-low/-medium/-high` rows in
+// ANTIGRAVITY_MODEL_ALIASES above. (#3821-review LEDGER-5 — was duplicated as an inline
+// if-ladder in open-sse/services/usage.ts.)
+const ANTIGRAVITY_QUOTA_BUCKET_TO_CLIENT: AntigravityModelAliasMap = Object.freeze({
+  "gemini-3.5-flash-extra-low": "gemini-3.5-flash-low",
+  "gemini-3.5-flash-low": "gemini-3.5-flash-medium",
+  "gemini-3-flash-agent": "gemini-3.5-flash-high",
+});
+
+// Retired/hidden upstream preview buckets that must be dropped from client-facing usage.
+const ANTIGRAVITY_DROPPED_QUOTA_BUCKETS = new Set<string>([
+  "gemini-3.5-flash-preview",
+  "gemini-3-flash-preview",
+]);
+
+/**
+ * Map an UPSTREAM Antigravity quota-bucket model id to the client-visible tier id used in
+ * usage responses, or `null` if the bucket should be hidden from clients. Operates on the
+ * upstream quota namespace (see ANTIGRAVITY_QUOTA_BUCKET_TO_CLIENT) — do NOT pass client
+ * ids here. Single source of truth shared by the usage service and the provider-limits
+ * cache sanitizer.
+ */
+export function toClientAntigravityQuotaModelId(modelId: string): string | null {
+  if (!modelId) return null;
+  if (ANTIGRAVITY_DROPPED_QUOTA_BUCKETS.has(modelId)) return null;
+  const tierClientId = ANTIGRAVITY_QUOTA_BUCKET_TO_CLIENT[modelId];
+  if (tierClientId) return tierClientId;
+  return toClientAntigravityModelId(modelId);
 }
 
 export function getClientVisibleAntigravityModelName(

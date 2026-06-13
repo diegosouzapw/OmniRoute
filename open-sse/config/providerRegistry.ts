@@ -343,6 +343,9 @@ const CHAT_OPENAI_COMPAT_MODELS: Record<string, RegistryModel[]> = {
     { id: "mimo-v2-omni", name: "MiMo-V2-Omni", contextLength: 262144, maxOutputTokens: 131072 },
     { id: "mimo-v2-flash", name: "MiMo-V2-Flash", contextLength: 262144, maxOutputTokens: 65536 },
   ],
+  mimocode: [
+    { id: "mimo-auto", name: "MiMo Auto", contextLength: 1000000, maxOutputTokens: 128000 },
+  ],
   gitlawb: [
     { id: "mimo-v2.5-pro", name: "MiMo-V2.5-Pro", contextLength: 1048576, maxOutputTokens: 131072 },
     { id: "mimo-v2.5", name: "MiMo-V2.5", contextLength: 1048576, maxOutputTokens: 131072 },
@@ -656,7 +659,7 @@ const _REGISTRY_EAGER: Record<string, RegistryEntry> = {
     },
     oauth: {
       clientIdEnv: "CLAUDE_OAUTH_CLIENT_ID",
-      clientIdDefault: "9d1c250a-e61b-44d9-88ed-5944d1962f5e",
+      clientIdDefault: resolvePublicCred("claude_id"),
       tokenUrl: "https://api.anthropic.com/v1/oauth/token",
     },
     models: [
@@ -834,7 +837,7 @@ const _REGISTRY_EAGER: Record<string, RegistryEntry> = {
     headers: getCodexDefaultHeaders(),
     oauth: {
       clientIdEnv: "CODEX_OAUTH_CLIENT_ID",
-      clientIdDefault: "app_EMoamEEZ73f0CkXaXp7hrann",
+      clientIdDefault: resolvePublicCred("codex_id"),
       clientSecretEnv: "CODEX_OAUTH_CLIENT_SECRET",
       clientSecretDefault: "",
       tokenUrl: "https://auth.openai.com/oauth/token",
@@ -928,7 +931,7 @@ const _REGISTRY_EAGER: Record<string, RegistryEntry> = {
     headers: getQwenOauthHeaders(),
     oauth: {
       clientIdEnv: "QWEN_OAUTH_CLIENT_ID",
-      clientIdDefault: "f0304373b74a44d2b584a3fb70ca9e56",
+      clientIdDefault: resolvePublicCred("qwen_id"),
       tokenUrl: "https://chat.qwen.ai/api/v1/oauth2/token",
       authUrl: "https://chat.qwen.ai/api/v1/oauth2/device/code",
     },
@@ -1970,7 +1973,7 @@ const _REGISTRY_EAGER: Record<string, RegistryEntry> = {
     authType: "oauth",
     oauth: {
       clientIdEnv: "KIMI_CODING_OAUTH_CLIENT_ID",
-      clientIdDefault: "17e5f671-d194-4dfb-9706-5516cb48c098",
+      clientIdDefault: resolvePublicCred("kimi_id"),
       tokenUrl: "https://auth.kimi.com/api/oauth/token",
       refreshUrl: "https://auth.kimi.com/api/oauth/token",
       authUrl: "https://auth.kimi.com/api/oauth/device_authorization",
@@ -4008,18 +4011,17 @@ const _REGISTRY_EAGER: Record<string, RegistryEntry> = {
     alias: "qwen-web",
     format: "openai",
     executor: "qwen-web",
-    baseUrl: "https://chat.qwen.ai/api/chat/completions",
+    // v2 API (the legacy /api/chat/completions endpoint was retired upstream).
+    baseUrl: "https://chat.qwen.ai/api/v2/chat/completions",
     authType: "apikey",
     authHeader: "bearer",
+    // Current upstream catalog (GET https://chat.qwen.ai/api/models). Legacy
+    // ids (qwen-plus, qwen3-max, ...) still resolve via the executor's
+    // MODEL_ALIASES map for backward compatibility.
     models: [
-      { id: "qwen-plus", name: "Qwen Plus" },
-      { id: "qwen-max", name: "Qwen Max" },
-      { id: "qwen-turbo", name: "Qwen Turbo" },
-      { id: "qwen3-plus", name: "Qwen3 Plus" },
-      { id: "qwen3-max", name: "Qwen3 Max" },
-      { id: "qwen3-flash", name: "Qwen3 Flash" },
-      { id: "qwen3-coder-plus", name: "Qwen3 Coder Plus" },
-      { id: "qwen3-coder-flash", name: "Qwen3 Coder Flash" },
+      { id: "qwen3.7-max", name: "Qwen3.7 Max" },
+      { id: "qwen3.7-plus", name: "Qwen3.7 Plus" },
+      { id: "qwen3.6-plus", name: "Qwen3.6 Plus" },
     ],
   },
 
@@ -4065,6 +4067,18 @@ const _REGISTRY_EAGER: Record<string, RegistryEntry> = {
     authType: "apikey",
     authHeader: "bearer",
     models: CHAT_OPENAI_COMPAT_MODELS["xiaomi-mimo"],
+  },
+
+  mimocode: {
+    id: "mimocode",
+    alias: "mcode",
+    format: "openai",
+    executor: "mimocode",
+    baseUrl: "https://api.xiaomimimo.com",
+    chatPath: "/api/free-ai/openai/chat",
+    authType: "none",
+    authHeader: "none",
+    models: CHAT_OPENAI_COMPAT_MODELS["mimocode"],
   },
 
   gitlawb: {

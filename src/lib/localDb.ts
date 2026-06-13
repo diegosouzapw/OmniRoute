@@ -30,6 +30,9 @@ export {
   isConnectionRateLimited,
   getRateLimitedConnections,
 
+  // T05 startup recovery: clear stale transient cooldowns left by a prior crash
+  clearStaleCrashCooldowns,
+
   // T13: Stale quota display fix (zero out usage after window resets)
   getEffectiveQuotaUsage,
   formatResetCountdown,
@@ -200,7 +203,20 @@ export {
   getDbBackupRetentionDays,
   listDbBackups,
   restoreDbBackup,
+  // Export-All / Import helpers (#3500 slice 5)
+  exportAllSummaryRows,
+  getTableNamesFromAdapter,
+  countImportedRows,
 } from "./db/backup";
+
+export type { ExportAllRows } from "./db/backup";
+
+export {
+  // Skills DB operations (#3500 slice 5)
+  updateSkill,
+} from "./db/skills";
+
+export type { SkillPatch } from "./db/skills";
 
 export {
   // Read Cache (cached wrappers for hot-read paths)
@@ -419,6 +435,7 @@ export {
   connectServer,
   disconnectServer,
   listServers,
+  getConnectedServerByKeyHash,
 } from "./db/gamification";
 
 export type {
@@ -618,3 +635,113 @@ export {
 export type { ApiKeyContextSource } from "./db/apiKeyContextSources";
 
 export { sumUsageTokensThisMonth } from "./db/usageSummary";
+
+export {
+  // Model Intelligence (task-fitness scores)
+  getModelIntelligence,
+  getModelIntelligenceBySource,
+  upsertModelIntelligence,
+  deleteModelIntelligence,
+  deleteExpiredIntelligence,
+  deleteModelIntelligenceBySource,
+  listModelIntelligence,
+  bulkUpsertModelIntelligence,
+  getResolvedTaskFitness,
+  setUserFitnessOverrideEntry,
+  deleteUserFitnessOverrideEntry,
+} from "./db/modelIntelligence";
+
+export type { ModelIntelligenceEntry } from "./db/modelIntelligence";
+
+export {
+  getProviderMetrics,
+  getSearchProviderStats,
+  getRecentSearchLogs,
+  getSearchAggregateStats,
+  getSearchProviderCounts,
+  getFallbackStats,
+} from "./db/callLogStats";
+export type {
+  ProviderMetricRow,
+  SearchProviderStatRow,
+  SearchRecentRow,
+  SearchAggregateStats,
+  SearchProviderCountRow,
+  FallbackStatsRow,
+} from "./db/callLogStats";
+
+export {
+  buildUnifiedSource,
+  buildPresetUnifiedSource,
+  getUsageSummary,
+  getDailyUsage,
+  getDailyCostRows,
+  getHeatmapRows,
+  getModelUsageRows,
+  getProviderCostRows,
+  getProviderUsageRows,
+  getAccountCostRows,
+  getAccountUsageRows,
+  getApiKeyUsageRows,
+  getServiceTierUsageRows,
+  getApiKeyMetadataRows,
+  getWeeklyPatternRows,
+  getPresetCostModelRows,
+  getAllUsageHistory,
+  getAllDomainCostHistory,
+  getAllDomainBudgets,
+} from "./db/usageAnalytics";
+export type {
+  AnalyticsParams,
+  BuildUnifiedSourceOptions,
+  UnifiedSourceResult,
+  UsageSummaryRow,
+  DailyUsageRow,
+  DailyCostRow,
+  HeatmapRow,
+  ModelUsageRow,
+  ProviderCostRow,
+  ProviderUsageRow,
+  AccountCostRow,
+  AccountUsageRow,
+  ApiKeyUsageRow,
+  ServiceTierUsageRow,
+  ApiKeyMetadataRow,
+  WeeklyPatternRow,
+  PresetCostModelRow,
+} from "./db/usageAnalytics";
+
+// ---------------------------------------------------------------------------
+// usage_logs — auto-routing analytics (#3500 slice 4)
+// ---------------------------------------------------------------------------
+export {
+  getAutoRoutingTotalCount,
+  getAutoRoutingVariantBreakdown,
+  getAutoRoutingTopProviders,
+} from "./db/usageLogs";
+export type {
+  AutoRoutingTotalResult,
+  AutoRoutingVariantRow,
+  AutoRoutingTopProviderRow,
+} from "./db/usageLogs";
+
+// ---------------------------------------------------------------------------
+// semantic_cache — cache entries CRUD (#3500 slice 4)
+// ---------------------------------------------------------------------------
+export {
+  listSemanticCacheEntries,
+  deleteSemanticCacheBySignature,
+  deleteSemanticCacheByModel,
+} from "./db/semanticCache";
+export type {
+  SemanticCacheEntry,
+  SemanticCacheListOptions,
+  SemanticCacheListResult,
+  DeleteSemanticCacheBySignatureResult,
+  DeleteSemanticCacheByModelResult,
+} from "./db/semanticCache";
+
+// ---------------------------------------------------------------------------
+// proxy_logs — export query (#3500 slice 4)
+// ---------------------------------------------------------------------------
+export { exportProxyLogsSince } from "./db/proxyLogs";
