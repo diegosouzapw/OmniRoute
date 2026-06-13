@@ -969,6 +969,9 @@
     "analyticsCompression": "Compression",
     "costsBudget": "Budget",
     "costsFreeTiers": "Free-Tier Budget",
+    "costsFreeTiersSubtitle": "Track aggregated free tier quotas across 50+ providers",
+    "freeProviderRankings": "Free Provider Rankings",
+    "freeProviderRankingsSubtitle": "Best free providers ranked by model ELO scores",
     "costsQuotaShare": "Quota Sharing",
     "costsPricing": "Pricing",
     "logsProxy": "Proxy Logs",
@@ -8704,5 +8707,26 @@
     "regenerateRunning": "Regenerating skills…",
     "regenerateSuccess": "Skills regenerated successfully.",
     "regenerateError": "Failed to regenerate skills."
+  },
+  "freeProviderRankingsPage": {
+    "title": "Free Provider Rankings",
+    "subtitle": "Best free providers ranked by model ELO scores from Arena AI leaderboards",
+    "loading": "Loading rankings...",
+    "errorLoading": "Failed to load rankings",
+    "emptyState": "No rankings available. Ensure Arena ELO sync is enabled (ARENA_ELO_SYNC_ENABLED=true).",
+    "bestModel": "Best",
+    "allCategories": "All Categories",
+    "categoryDefault": "Default",
+    "categoryCoding": "Coding",
+    "categoryReview": "Review",
+    "categoryDocumentation": "Documentation",
+    "categoryDebugging": "Debugging",
+    "colRank": "Rank",
+    "colProvider": "Provider",
+    "colTopModel": "Top Model",
+    "colScore": "Score",
+    "colAvgScore": "Avg Score",
+    "colModels": "Models",
+    "colType": "Type"
   }
 }
