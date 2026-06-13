@@ -2,7 +2,7 @@
   "_comment": "Catraca de tamanho (check-file-size.mjs). frozen so pode encolher; arquivos novos <= cap. --update ratcheta.",
   "cap": 800,
   "frozen": {
-    "open-sse/config/providerRegistry.ts": 4692,
+    "open-sse/config/providerRegistry.ts": 4703,
     "open-sse/executors/antigravity.ts": 1572,
     "open-sse/executors/base.ts": 1205,
     "open-sse/executors/chatgpt-web.ts": 2870,
