@@ -1,6 +1,13 @@
 {
   "_comment": "Allowlist anti-slopsquatting (check-deps.mjs). Toda dep nova exige adicao EXPLICITA aqui apos verificar que e legitima.",
   "allowed": [
+    "dpdm",
+    "eslint-plugin-sonarjs",
+    "knip",
+    "license-checker-rseidelsohn",
+    "lockfile-lint",
+    "size-limit",
+    "type-coverage",
     "@aws-sdk/client-bedrock-runtime",
     "@dnd-kit/core",
     "@opencode-ai/plugin",

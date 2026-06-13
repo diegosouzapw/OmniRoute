@@ -1,3 +1,7 @@
+---
+title: Quality Gates Reference
+---
+
 # Quality Gates Reference
 
 This document is the authoritative reference for all CI quality gates in OmniRoute.
