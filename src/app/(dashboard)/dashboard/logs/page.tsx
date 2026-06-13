@@ -12,6 +12,20 @@ const TIME_RANGES = [
   { label: "24h", hours: 24 },
 ];
 
+type LogsTranslator = ((key: string, values?: Record<string, unknown>) => string) & {
+  has?: (key: string) => boolean;
+};
+
+function logsText(
+  t: LogsTranslator,
+  key: string,
+  fallback: string,
+  values?: Record<string, unknown>
+) {
+  if (typeof t.has !== "function" || !t.has(key)) return fallback;
+  return values ? t(key, values) : t(key);
+}
+
 export default function LogsPage() {
   const [showExport, setShowExport] = useState(false);
   const [exporting, setExporting] = useState(false);
@@ -21,7 +35,7 @@ export default function LogsPage() {
   const [requestLogKey, setRequestLogKey] = useState(0);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const requestLoggerRef = useRef<any>(null);
-  const t = useTranslations("logs");
+  const t = useTranslations("logs") as LogsTranslator;
 
   useEffect(() => {
     function handleClickOutside(e: MouseEvent) {
@@ -69,7 +83,9 @@ export default function LogsPage() {
       const data = await res.json().catch(() => null);
 
       if (!res.ok) {
-        throw new Error(data?.error || "Failed to clean log history.");
+        throw new Error(
+          data?.error || logsText(t, "cleanHistoryFailed", "Failed to clean log history.")
+        );
       }
 
       const deleted = typeof data?.deleted === "number" ? data.deleted : 0;
@@ -77,17 +93,26 @@ export default function LogsPage() {
         typeof data?.deletedArtifacts === "number" ? data.deletedArtifacts : 0;
       const deletedDetailedLogs =
         typeof data?.deletedDetailedLogs === "number" ? data.deletedDetailedLogs : 0;
+      const successFallback = `Cleaned ${deleted} log entr${deleted === 1 ? "y" : "ies"}, ${deletedArtifacts} artifact${
+        deletedArtifacts === 1 ? "" : "s"
+      }, and ${deletedDetailedLogs} legacy detail row${deletedDetailedLogs === 1 ? "" : "s"}.`;
       setRequestLogKey((key) => key + 1);
       setCleanHistoryStatus(
         deleted || deletedArtifacts || deletedDetailedLogs
-          ? `Cleaned ${deleted} log entr${deleted === 1 ? "y" : "ies"}, ${deletedArtifacts} artifact${
-              deletedArtifacts === 1 ? "" : "s"
-            }, and ${deletedDetailedLogs} legacy detail row${deletedDetailedLogs === 1 ? "" : "s"}.`
-          : "No request log history was found."
+          ? logsText(t, "cleanHistorySuccess", successFallback, {
+              deleted,
+              deletedArtifacts,
+              deletedDetailedLogs,
+            })
+          : logsText(t, "cleanHistoryEmpty", "No request log history was found.")
       );
     } catch (err) {
-      console.error("Failed to clean log history", err);
-      setCleanHistoryStatus(err instanceof Error ? err.message : "Failed to clean log history.");
+      console.error(logsText(t, "cleanHistoryFailed", "Failed to clean log history."), err);
+      setCleanHistoryStatus(
+        err instanceof Error
+          ? err.message
+          : logsText(t, "cleanHistoryFailed", "Failed to clean log history.")
+      );
     } finally {
       setCleaningHistory(false);
     }
@@ -124,7 +149,7 @@ export default function LogsPage() {
                 strokeLinejoin="round"
               />
             </svg>
-            Clean history
+            {logsText(t, "cleanHistoryButton", "Clean history")}
           </button>
 
           <div className="relative" ref={dropdownRef}>
@@ -199,10 +224,14 @@ export default function LogsPage() {
         isOpen={showCleanHistory}
         onClose={() => setShowCleanHistory(false)}
         onConfirm={handleCleanHistory}
-        title="Clean log history?"
-        message="This permanently clears all request log rows, legacy detail rows, and local artifact files under DATA_DIR/call_logs. The live page will refresh after cleanup."
-        confirmText="Clean history"
-        cancelText="Cancel"
+        title={logsText(t, "cleanHistoryTitle", "Clean log history?")}
+        message={logsText(
+          t,
+          "cleanHistoryMessage",
+          "This permanently clears all request log rows, legacy detail rows, and local artifact files under DATA_DIR/call_logs. The live page will refresh after cleanup."
+        )}
+        confirmText={logsText(t, "cleanHistoryConfirm", "Clean history")}
+        cancelText={logsText(t, "cleanHistoryCancel", "Cancel")}
         loading={cleaningHistory}
       />
     </div>

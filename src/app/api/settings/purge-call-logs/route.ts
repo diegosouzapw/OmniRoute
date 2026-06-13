@@ -1,6 +1,9 @@
 import { NextResponse } from "next/server";
+import { buildErrorBody } from "@omniroute/open-sse/utils/error";
 import { purgeCallLogs } from "@/lib/db/cleanup";
 import { isAuthenticated } from "@/shared/utils/apiAuth";
+
+export const runtime = "nodejs";
 
 export async function POST(request: Request) {
   if (!(await isAuthenticated(request))) {
@@ -13,8 +16,9 @@ export async function POST(request: Request) {
       deletedArtifacts: result.deletedArtifacts ?? 0,
       errors: result.errors,
     });
-  } catch (err: unknown) {
-    const error = err instanceof Error ? err.message : String(err);
-    return NextResponse.json({ error }, { status: 500 });
+  } catch {
+    return NextResponse.json(buildErrorBody(500, "Failed to purge call logs"), {
+      status: 500,
+    });
   }
 }

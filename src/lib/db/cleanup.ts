@@ -7,7 +7,7 @@
 import { getDbInstance } from "./core";
 import { getUserDatabaseSettings } from "./databaseSettings";
 import { rollupUsageHistoryBeforeDate } from "@/lib/usage/aggregateHistory";
-import { deleteAllCallLogs } from "@/lib/usage/callLogs";
+import { purgeCallLogArtifactDirectory } from "@/lib/usage/callLogArtifacts";
 
 interface CleanupResult {
   deleted: number;
@@ -305,19 +305,25 @@ export async function purgeQuotaSnapshots(): Promise<CleanupResult> {
  * Purge ALL call_logs immediately (no retention check).
  */
 export async function purgeCallLogs(): Promise<CleanupResult> {
+  const db = getDbInstance();
   const result: CleanupResult = { deleted: 0, deletedArtifacts: 0, errors: 0 };
 
   try {
-    const runResult = deleteAllCallLogs();
-    result.deleted = runResult.deletedRows;
-    result.deletedArtifacts = runResult.deletedArtifacts;
+    const runResult = db.prepare("DELETE FROM call_logs").run();
+    result.deleted = runResult.changes;
 
-    console.log(
-      `[Cleanup] Purged ${result.deleted} call_logs and ${result.deletedArtifacts} artifact(s)`
-    );
+    console.log(`[Cleanup] Purged ${result.deleted} call_logs`);
   } catch (err: unknown) {
     console.error("[Cleanup] Error purging call_logs:", err);
     result.errors++;
+  }
+
+  const artifactResult = purgeCallLogArtifactDirectory();
+  result.deletedArtifacts = artifactResult.deletedArtifacts;
+  result.errors += artifactResult.errors;
+
+  if (artifactResult.errors === 0) {
+    console.log(`[Cleanup] Purged ${result.deletedArtifacts} call log artifact(s)`);
   }
 
   return result;

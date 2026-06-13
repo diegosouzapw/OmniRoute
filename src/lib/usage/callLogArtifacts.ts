@@ -61,6 +61,11 @@ export type CallLogArtifactWriteResult = {
   sha256: string;
 };
 
+export type PurgeCallLogArtifactDirectoryResult = {
+  deletedArtifacts: number;
+  errors: number;
+};
+
 export function buildArtifactRelativePath(timestamp: string, id: string) {
   const parsed = new Date(timestamp);
   const safeTimestamp = (
@@ -308,16 +313,25 @@ export function listCallLogArtifactFiles(baseDir = CALL_LOGS_DIR) {
     .sort((a, b) => b.mtimeMs - a.mtimeMs);
 }
 
-export function purgeCallLogArtifactDirectory(baseDir = CALL_LOGS_DIR) {
-  if (!baseDir || !fs.existsSync(baseDir)) return 0;
+export function purgeCallLogArtifactDirectory(
+  baseDir = CALL_LOGS_DIR
+): PurgeCallLogArtifactDirectoryResult {
+  const result = { deletedArtifacts: 0, errors: 0 };
+  if (!baseDir || !fs.existsSync(baseDir)) return result;
 
-  let deletedArtifacts = 0;
   try {
-    deletedArtifacts = listCallLogArtifactFiles(baseDir).length;
+    result.deletedArtifacts = listCallLogArtifactFiles(baseDir).length;
   } catch {
-    deletedArtifacts = 0;
+    result.deletedArtifacts = 0;
   }
 
-  fs.rmSync(baseDir, { recursive: true, force: true });
-  return deletedArtifacts;
+  try {
+    fs.rmSync(baseDir, { recursive: true, force: true });
+  } catch (error) {
+    console.error("[callLogArtifacts] Failed to purge call log artifacts:", error);
+    result.deletedArtifacts = 0;
+    result.errors++;
+  }
+
+  return result;
 }

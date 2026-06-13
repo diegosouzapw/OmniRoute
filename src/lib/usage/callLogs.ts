@@ -28,7 +28,6 @@ import {
   cleanupEmptyCallLogDirs,
   deleteCallArtifact,
   listCallLogArtifactFiles,
-  purgeCallLogArtifactDirectory,
   readCallArtifact,
   writeCallArtifact,
   type CallLogArtifact,
@@ -505,17 +504,6 @@ export function deleteCallLogsBefore(cutoff: string): DeleteResult {
     .map((row) => String((row as { id: string }).id));
 
   return deleteCallLogRowsByIds(ids);
-}
-
-export function deleteAllCallLogs(): DeleteResult {
-  const db = getDbInstance();
-  const result = db.prepare("DELETE FROM call_logs").run();
-  const deletedArtifacts = purgeCallLogArtifactDirectory();
-
-  return {
-    deletedRows: result.changes,
-    deletedArtifacts,
-  };
 }
 
 export function trimCallLogsToMaxRows(maxRows = getCallLogsTableMaxRows()) {
