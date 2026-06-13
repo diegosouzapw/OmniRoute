@@ -638,9 +638,13 @@ test("emergency fallback never sends the failing provider's credentials to anoth
     harness.BaseExecutor.RETRY_CONFIG.delayMs = originalRetryDelay;
   }
 
-  const leaks = upstreamCalls.filter(
-    (call) => call.usedOpenAIKey && !call.host.includes("openai.com")
-  );
+  // Precise host match (not substring) — `includes("openai.com")` would wrongly
+  // accept a leak host like `openai.com.evil.com` (CodeQL js/incomplete-url-substring-sanitization).
+  const isOpenAIHost = (h: string) => {
+    const host = h.split(":")[0].toLowerCase();
+    return host === "openai.com" || host.endsWith(".openai.com");
+  };
+  const leaks = upstreamCalls.filter((call) => call.usedOpenAIKey && !isOpenAIHost(call.host));
   assert.deepEqual(
     leaks,
     [],

@@ -488,33 +488,36 @@ export function shouldUseNativeCodexPassthrough({
 }
 
 /**
- * Convert all historical `thinking` / `redacted_thinking` blocks in assistant
- * messages to `redacted_thinking` carrying a synthetic default signature.
+ * Pass `thinking` / `redacted_thinking` blocks through UNCHANGED.
  *
- * A thinking block's `signature` is cryptographically bound to the auth token
- * that generated it. In Anthropic-native Claude OAuth passthrough, when a session
- * starts on one model (token A) and then switches model or falls over (token B),
- * Anthropic rejects every historical signature with 400 "Invalid signature in
- * thinking block" (issue #2454). `redacted_thinking` bypasses signature validation.
+ * This used to rewrite every assistant thinking block to `redacted_thinking`
+ * carrying a synthetic signature, on the assumption that a thinking signature is
+ * bound to the auth token that produced it and would be rejected after a token /
+ * model switch with 400 "Invalid signature in thinking block" (issue #2454).
  *
- * ALL assistant turns are converted, including the last — under a different token
- * every signature is invalid, so there is no "preserve latest" exception. Returns a
- * new messages array (original is not mutated) only touching messages that changed.
+ * That rewrite is the actual cause of a different, far more common failure on the
+ * Anthropic-native Claude OAuth passthrough:
+ *
+ *   400 messages.N.content.M: `thinking` or `redacted_thinking` blocks in the
+ *   latest assistant message cannot be modified. These blocks must remain as
+ *   they were in the original response.
+ *
+ * The Messages API validates submitted thinking blocks against the original
+ * response and rejects ANY modification — so converting them to
+ * `redacted_thinking` makes every multi-turn request with thinking fail (most
+ * visible on long Claude Code tool-loops). The thinking-block signature is
+ * validated server-side by Anthropic and stays valid when the blocks are replayed,
+ * including under a different OAuth token — verified by preserving the blocks
+ * across a mid-conversation account switch with zero "Invalid signature"
+ * responses. The redaction is therefore both unnecessary and the cause of the
+ * regression, so the blocks are now returned verbatim. The `signature` parameter
+ * is kept for call-site compatibility.
  */
-export function redactPassthroughThinkingSignatures(messages: unknown, signature: string): unknown {
-  if (!Array.isArray(messages)) return messages;
-  return (messages as Record<string, unknown>[]).map((msg) => {
-    if (!msg || msg.role !== "assistant" || !Array.isArray(msg.content)) return msg;
-    let modified = false;
-    const newContent = (msg.content as Record<string, unknown>[]).map((block) => {
-      if (block && (block.type === "thinking" || block.type === "redacted_thinking")) {
-        modified = true;
-        return { type: "redacted_thinking", data: signature };
-      }
-      return block;
-    });
-    return modified ? { ...msg, content: newContent } : msg;
-  });
+export function redactPassthroughThinkingSignatures(
+  messages: unknown,
+  _signature: string
+): unknown {
+  return messages;
 }
 
 export function isClaudeCodeSemanticPassthroughRequest({

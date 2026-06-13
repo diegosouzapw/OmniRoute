@@ -582,17 +582,32 @@ export function handleNoCredentials(
   );
 }
 
+/**
+ * Proxy-resolution failure policy. Default: fail-closed (rethrow) so a request
+ * with an assigned-but-unresolvable proxy never silently egresses on the real IP.
+ * Opt back into the legacy DIRECT fallback with PROXY_FAIL_OPEN=true.
+ */
+export function decideProxyResolutionFailure(
+  err: unknown,
+  env: { PROXY_FAIL_OPEN?: string } = process.env
+): null {
+  if ((env.PROXY_FAIL_OPEN ?? "").trim().toLowerCase() === "true") {
+    log.warn(
+      "PROXY",
+      `Proxy resolution failed — PROXY_FAIL_OPEN=true, falling back to DIRECT: ${
+        err instanceof Error ? err.message : String(err)
+      }`
+    );
+    return null;
+  }
+  throw err instanceof Error ? err : new Error(String(err));
+}
+
 export async function safeResolveProxy(connectionId: string, apiKeyId?: string) {
   try {
     return await resolveProxyForConnection(connectionId, apiKeyId);
-  } catch (proxyErr: any) {
-    // Falling back to a DIRECT connection silently defeats proxy-based traffic
-    // isolation — keep the request alive, but make the bypass visible.
-    log.warn(
-      "PROXY",
-      `Proxy resolution failed for connection ${String(connectionId).slice(0, 8)} — falling back to DIRECT connection: ${proxyErr.message}`
-    );
-    return null;
+  } catch (proxyErr) {
+    return decideProxyResolutionFailure(proxyErr);
   }
 }
 
