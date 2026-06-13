@@ -166,3 +166,23 @@ test("Kimi K2.6 supports vision capability", () => {
   const kimiThinking = modelCapabilities.getResolvedModelCapabilities("kimi-k2.6-thinking");
   assert.equal(kimiThinking.supportsVision, true);
 });
+
+test("Kimi K2.7 Code resolves full capabilities instead of the degraded import defaults (#3761)", () => {
+  // Spec-driven, so it works for any provider serving the model.
+  const kimi = modelCapabilities.getResolvedModelCapabilities("kimi-k2.7-code");
+  assert.equal(kimi.contextWindow, 262144);
+  assert.equal(kimi.maxOutputTokens, 262144);
+  assert.equal(kimi.supportsVision, true);
+  assert.equal(kimi.supportsThinking, true);
+  assert.equal(kimi.supportsTools, true);
+
+  // The reported case: imported via Ollama Cloud's "import from /models". Before the
+  // fix this had no spec/registry entry, so context fell back to the 128000 default
+  // and max output to 8192, with vision dropped.
+  const ollama = modelCapabilities.getResolvedModelCapabilities("ollama-cloud/kimi-k2.7-code");
+  assert.equal(ollama.contextWindow, 262144);
+  assert.equal(ollama.maxOutputTokens, 262144);
+  assert.equal(ollama.supportsVision, true);
+  assert.notEqual(ollama.contextWindow, 128000);
+  assert.notEqual(ollama.maxOutputTokens, 8192);
+});

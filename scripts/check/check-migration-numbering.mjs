@@ -11,9 +11,12 @@
 // As anomalias conhecidas são derivadas das listas de migrationRunner.ts
 // (LEGACY_VERSION_SLOT_MIGRATIONS / SUPERSEDED_DUPLICATE_MIGRATIONS) + a auditoria
 // de gaps de sequência. NÃO adicione novos itens sem justificativa — esse é o ponto.
+// Stale-enforcement (6A.3): entrada em KNOWN_GAPS / KNOWN_DUPLICATE_VERSIONS que não
+// suprime nenhuma anomalia real → gate falha com instrução de remoção.
 import fs from "node:fs";
 import path from "node:path";
 import { pathToFileURL } from "node:url";
+import { assertNoStale } from "./lib/allowlist.mjs";
 
 const cwd = process.cwd();
 const MIGRATIONS_DIR = path.join(cwd, "src/lib/db/migrations");
@@ -26,12 +29,15 @@ const MIGRATION_NAME_RE = /^(\d{3,})_(.+)\.sql$/;
 // ALLOWLIST 1 — duplicatas de versão CONHECIDAS.
 // Fonte: src/lib/db/migrationRunner.ts → SUPERSEDED_DUPLICATE_MIGRATIONS (~L188).
 // O runner já aceita estes slots de versão reutilizados (a migration "renomeada"
-// foi promovida para um número novo, e o slot antigo é tolerado). No disco atual
-// NÃO há arquivos físicos colidindo, mas congelamos os números reconhecidos para
-// que, se um arquivo legado reaparecer com esse prefixo, o gate não exploda.
+// foi promovida para um número novo, e o slot antigo é tolerado). Adicionar aqui
+// SOMENTE se houver um arquivo físico duplicado no disco (stale-enforcement 6A.3
+// detecta entradas sem duplicata física viva e força remoção).
 // ---------------------------------------------------------------------------
 export const KNOWN_DUPLICATE_VERSIONS = new Set([
-  "041", // session_account_affinity → promovida para 050 (SUPERSEDED_DUPLICATE_MIGRATIONS)
+  // "041" was removed: 041_session_account_affinity.sql no longer exists on disk
+  // (only 041_compression_receipts.sql remains), so no physical duplicate is present.
+  // The SUPERSEDED_DUPLICATE_MIGRATIONS entry in migrationRunner.ts handles the runner
+  // compatibility at runtime without needing an allowlist here. (#6A.3 stale cleanup)
 ]);
 
 // ---------------------------------------------------------------------------
@@ -108,6 +114,14 @@ function listMigrationFilenames() {
 
 function main() {
   const filenames = listMigrationFilenames();
+
+  // Compute raw anomalies WITHOUT allowlists — needed for stale-enforcement (6A.3).
+  const raw = findMigrationAnomalies(filenames, new Set(), new Set());
+  const liveGaps = raw.gaps;
+  const liveDupVersions = raw.duplicates.map((d) => d.version);
+  assertNoStale(KNOWN_GAPS, liveGaps, "check-migration-numbering:gaps");
+  assertNoStale(KNOWN_DUPLICATE_VERSIONS, liveDupVersions, "check-migration-numbering:duplicates");
+
   const { duplicates, gaps, badNames } = findMigrationAnomalies(
     filenames,
     KNOWN_DUPLICATE_VERSIONS,
@@ -133,13 +147,15 @@ function main() {
         `adicione o número às allowlists KNOWN_DUPLICATE_VERSIONS / KNOWN_GAPS com ` +
         `justificativa rastreável a src/lib/db/migrationRunner.ts.`
     );
-    process.exit(1);
+    process.exitCode = 1;
   }
 
-  console.log(
-    `[check-migration-numbering] OK (${filenames.length} migrations, ` +
-      `${KNOWN_GAPS.size} gap(s) conhecido(s), ${KNOWN_DUPLICATE_VERSIONS.size} duplicata(s) conhecida(s))`
-  );
+  if (!process.exitCode) {
+    console.log(
+      `[check-migration-numbering] OK (${filenames.length} migrations, ` +
+        `${KNOWN_GAPS.size} gap(s) conhecido(s), ${KNOWN_DUPLICATE_VERSIONS.size} duplicata(s) conhecida(s))`
+    );
+  }
 }
 
 if (import.meta.url === pathToFileURL(process.argv[1] || "").href) main();

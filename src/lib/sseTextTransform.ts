@@ -5,7 +5,7 @@ const CATEGORY_MAP: Record<string, FieldCategory> = {
   thinking: "reasoning",
   reasoning_content: "reasoning",
   arguments: "toolArgs",
-  partial_json: "partialJson"
+  partial_json: "partialJson",
 };
 
 export function getFieldCategory(key: string): FieldCategory {
@@ -13,13 +13,22 @@ export function getFieldCategory(key: string): FieldCategory {
 }
 
 const STOP_EVENT_TYPES = new Set([
-  "response.done", "response.completed", "response.cancelled", "response.failed"
+  "response.done",
+  "response.completed",
+  "response.cancelled",
+  "response.failed",
 ]);
 
 export function checkIfStopSignal(json: any): boolean {
   if (!json || typeof json !== "object") return false;
-  if (json.choices && Array.isArray(json.choices) && json.choices.some((c: any) => c.finish_reason)) return true;
-  if (json.candidates && Array.isArray(json.candidates) && json.candidates.some((c: any) => c.finishReason)) return true;
+  if (json.choices && Array.isArray(json.choices) && json.choices.some((c: any) => c.finish_reason))
+    return true;
+  if (
+    json.candidates &&
+    Array.isArray(json.candidates) &&
+    json.candidates.some((c: any) => c.finishReason)
+  )
+    return true;
   if (json.type === "content_block_stop") return true;
   if (json.type === "message_stop") return true;
   if (json.type === "message_delta" && json.delta?.stop_reason) return true;
@@ -39,9 +48,15 @@ export function checkIfSnapshot(json: any): boolean {
 const fallbackDecoder = new TextDecoder();
 
 export function createSseTextTransform(
-  processor: (text: string, field: FieldCategory, isStopSignal?: boolean, index?: string | number, isSnapshot?: boolean) => string,
+  processor: (
+    text: string,
+    field: FieldCategory,
+    isStopSignal?: boolean,
+    index?: string | number,
+    isSnapshot?: boolean
+  ) => string,
   onFlush?: (lastJson: any, isJsonStream?: boolean, lastContentJson?: any) => any,
-  onCancel?: () => void,
+  onCancel?: () => void
 ): TransformStream {
   const encoder = new TextEncoder();
   const decoder = new TextDecoder("utf-8");
@@ -80,7 +95,8 @@ export function createSseTextTransform(
           const flushedValue = onFlush(lastJson, isJsonStream, lastContentJson);
           if (flushedValue) {
             const prefix = lastPrefix || "data: ";
-            const payload = typeof flushedValue === "string" ? flushedValue : JSON.stringify(flushedValue);
+            const payload =
+              typeof flushedValue === "string" ? flushedValue : JSON.stringify(flushedValue);
             if (lastEventLine) {
               controller.enqueue(encoder.encode(lastEventLine + "\n"));
             }
@@ -101,18 +117,36 @@ export function createSseTextTransform(
         try {
           const json = JSON.parse(trimmedSegment);
           isJsonStream = true;
-          
+
           let matched = false;
-          
+
           const isStopSignal = checkIfStopSignal(json);
           const isSnapshot = checkIfSnapshot(json);
 
           const METADATA_KEYS = [
-            "id", "model", "object", "created", "finish_reason", "finishReason",
-            "role", "type", "index", "stop_reason", "stop_sequence",
-            "system_fingerprint", "service_tier", "usage", "prompt_tokens",
-            "completion_tokens", "total_tokens", "input_tokens", "output_tokens",
-            "logprobs", "refusal", "name", "event"
+            "id",
+            "model",
+            "object",
+            "created",
+            "finish_reason",
+            "finishReason",
+            "role",
+            "type",
+            "index",
+            "stop_reason",
+            "stop_sequence",
+            "system_fingerprint",
+            "service_tier",
+            "usage",
+            "prompt_tokens",
+            "completion_tokens",
+            "total_tokens",
+            "input_tokens",
+            "output_tokens",
+            "logprobs",
+            "refusal",
+            "name",
+            "event",
           ];
 
           // Recursively sanitize all string properties (except system metadata)
@@ -141,6 +175,11 @@ export function createSseTextTransform(
               if (typeof obj[key] === "string") {
                 const val = obj[key];
                 const field: FieldCategory = getFieldCategory(key);
+                if (field === "toolArgs" || field === "partialJson") {
+                  obj[key] = val;
+                  matched = true;
+                  continue;
+                }
                 obj[key] = processor(val, field, isStopSignal, compositeKey, isSnapshot);
                 matched = true;
               } else if (typeof obj[key] === "object") {
@@ -152,16 +191,24 @@ export function createSseTextTransform(
           sanitizeObject(json, 0, 0);
 
           if (!matched) {
-            console.warn("[SSE-TRANSFORM] No string fields sanitized in SSE JSON chunk. Keys:", Object.keys(json).slice(0, 5).join(", "));
+            console.warn(
+              "[SSE-TRANSFORM] No string fields sanitized in SSE JSON chunk. Keys:",
+              Object.keys(json).slice(0, 5).join(", ")
+            );
           } else {
             lastContentJson = json;
           }
 
           if (isStopSignal && onFlush && !flushed) {
-            const flushedValue = onFlush(lastJson || json, isJsonStream, lastContentJson || lastJson || json); // Use json as fallback just in case
+            const flushedValue = onFlush(
+              lastJson || json,
+              isJsonStream,
+              lastContentJson || lastJson || json
+            ); // Use json as fallback just in case
             if (flushedValue) {
               const prefix = lastPrefix || "data: ";
-              const payload = typeof flushedValue === "string" ? flushedValue : JSON.stringify(flushedValue);
+              const payload =
+                typeof flushedValue === "string" ? flushedValue : JSON.stringify(flushedValue);
               // Only enqueue if the flushed value actually has content (onFlush usually returns null if buffer is empty now)
               if (lastEventLine) {
                 controller.enqueue(encoder.encode(lastEventLine + "\n"));
@@ -188,7 +235,10 @@ export function createSseTextTransform(
           if (err instanceof SyntaxError) {
             // JSON parsing failed. Check if it looks like JSON that failed to parse.
             if (trimmedSegment.startsWith("{") || trimmedSegment.startsWith("[")) {
-              console.warn("[SSE-TRANSFORM] Dropping malformed JSON chunk to prevent syntax injection:", trimmedSegment.slice(0, 100));
+              console.warn(
+                "[SSE-TRANSFORM] Dropping malformed JSON chunk to prevent syntax injection:",
+                trimmedSegment.slice(0, 100)
+              );
               pendingEventLine = "";
             } else {
               if (pendingEventLine) {
@@ -274,7 +324,8 @@ export function createSseTextTransform(
           const flushedValue = onFlush(lastJson, isJsonStream, lastContentJson);
           if (flushedValue) {
             const prefix = lastPrefix || "data: ";
-            const payload = typeof flushedValue === "string" ? flushedValue : JSON.stringify(flushedValue);
+            const payload =
+              typeof flushedValue === "string" ? flushedValue : JSON.stringify(flushedValue);
             if (lastEventLine) {
               controller.enqueue(encoder.encode(lastEventLine + "\n"));
             }
@@ -290,6 +341,6 @@ export function createSseTextTransform(
       if (onCancel) {
         onCancel();
       }
-    }
+    },
   } as any);
 }

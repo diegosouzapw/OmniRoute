@@ -4,6 +4,7 @@
  */
 import { register } from "../registry.ts";
 import { FORMATS } from "../formats.ts";
+import { appendToolCallArgumentDelta } from "../../utils/toolCallArguments.ts";
 
 function normalizeToolName(value) {
   return typeof value === "string" ? value.trim() : "";
@@ -348,15 +349,19 @@ function emitToolCall(state, emit, tc) {
 
   if (tc.function?.arguments) {
     const refCallId = state.funcCallIds[tcIdx] || newCallId;
-    if (refCallId) {
+    const existingArgs = state.funcArgsBuf[tcIdx] || "";
+    const nextArgs = appendToolCallArgumentDelta(existingArgs, tc.function.arguments);
+    const emittedDelta = nextArgs.slice(existingArgs.length);
+    state.funcArgsBuf[tcIdx] = nextArgs;
+
+    if (refCallId && emittedDelta) {
       emit("response.function_call_arguments.delta", {
         type: "response.function_call_arguments.delta",
         item_id: `fc_${refCallId}`,
         output_index: tcIdx,
-        delta: tc.function.arguments,
+        delta: emittedDelta,
       });
     }
-    state.funcArgsBuf[tcIdx] += tc.function.arguments;
   }
 }
 

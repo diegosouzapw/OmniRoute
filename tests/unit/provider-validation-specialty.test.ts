@@ -5,7 +5,10 @@ const {
   validateProviderApiKey,
   validateClaudeCodeCompatibleProvider,
   validateCommandCodeProvider,
+  isSecurityBlockError,
 } = await import("../../src/lib/providers/validation.ts");
+
+const { SafeOutboundFetchError } = await import("../../src/shared/network/safeOutboundFetch.ts");
 
 const { __setTlsFetchOverrideForTesting: __setPplxTlsFetchOverride } =
   await import("../../open-sse/services/perplexityTlsClient.ts");
@@ -2500,4 +2503,106 @@ test("gitlawb-gmi validator: accepts custom baseUrl override", async () => {
     },
   });
   assert.equal(result.valid, true);
+});
+
+// #3288 / #3758: qwen-web validation used to fall through to the generic
+// OpenAI-compatible validator, which probed a non-existent `/api/v2/models` URL that
+// answered with a 307 redirect — blocked by the outbound guard and mislabeled as an
+// SSRF block. A specialty validator now probes the real session endpoint instead.
+test("qwen-web validator probes /api/v2/user (not /api/v2/models) and returns valid on 200", async () => {
+  let probedUrl = "";
+  let sentHeaders: Record<string, string> = {};
+  globalThis.fetch = async (url, init = {}) => {
+    probedUrl = String(url);
+    sentHeaders = toPlainHeaders(init.headers);
+    return new Response(JSON.stringify({ data: { id: "u-1", name: "Tester" } }), {
+      status: 200,
+      headers: { "content-type": "application/json" },
+    });
+  };
+
+  const result = await validateProviderApiKey({
+    provider: "qwen-web",
+    apiKey: "token=eyJqwen; cna=abc; ssxmod_itna=def",
+  });
+
+  assert.equal(probedUrl, "https://chat.qwen.ai/api/v2/user");
+  assert.ok(!probedUrl.includes("/api/v2/models"), "must not probe the bogus /api/v2/models URL");
+  assert.equal(sentHeaders.Authorization, "Bearer eyJqwen");
+  assert.equal(sentHeaders.source, "web");
+  assert.match(sentHeaders.Cookie, /token=eyJqwen/);
+  assert.equal(result.valid, true);
+});
+
+test("qwen-web validator reports an invalid session (401) without flagging a security block", async () => {
+  globalThis.fetch = async () =>
+    new Response(JSON.stringify({ error: "unauthorized" }), {
+      status: 401,
+      headers: { "content-type": "application/json" },
+    });
+
+  const result = await validateProviderApiKey({
+    provider: "qwen-web",
+    apiKey: "token=stale; cna=abc; ssxmod_itna=def",
+  });
+
+  assert.equal(result.valid, false);
+  assert.equal((result as { securityBlocked?: boolean }).securityBlocked ?? false, false);
+  assert.match(result.error ?? "", /invalid or expired/i);
+});
+
+test("qwen-web validator surfaces the WAF/anti-bot HTML challenge as a re-login hint", async () => {
+  globalThis.fetch = async () =>
+    new Response("<html>aliyun_waf</html>", {
+      status: 200,
+      headers: { "content-type": "text/html" },
+    });
+
+  const result = await validateProviderApiKey({
+    provider: "qwen-web",
+    apiKey: "token=eyJqwen; cna=abc; ssxmod_itna=def",
+  });
+
+  assert.equal(result.valid, false);
+  assert.match(result.error ?? "", /WAF|Cookie header/i);
+});
+
+// #3288 / #3758: a blocked redirect (REDIRECT_BLOCKED) to a PUBLIC host is benign — the
+// redirect was never followed, so it must NOT be mislabeled as an SSRF security block.
+// Only a redirect whose target is a private/internal host is a genuine security event.
+test("isSecurityBlockError: public-host redirect block is NOT a security block", () => {
+  const publicRedirect = new SafeOutboundFetchError("Redirect blocked", {
+    code: "REDIRECT_BLOCKED",
+    url: "https://chat.qwen.ai/api/v2/models",
+    method: "GET",
+    attempts: 1,
+    status: 307,
+    location: "https://chat.qwen.ai/login",
+    isRetryable: false,
+  });
+  assert.equal(isSecurityBlockError(publicRedirect), false);
+});
+
+test("isSecurityBlockError: private-host redirect block IS a security block", () => {
+  const privateRedirect = new SafeOutboundFetchError("Redirect blocked", {
+    code: "REDIRECT_BLOCKED",
+    url: "https://api.example.com/probe",
+    method: "GET",
+    attempts: 1,
+    status: 302,
+    location: "http://169.254.169.254/latest/meta-data/",
+    isRetryable: false,
+  });
+  assert.equal(isSecurityBlockError(privateRedirect), true);
+});
+
+test("isSecurityBlockError: a URL-guard block remains a security block", () => {
+  const guardBlock = new SafeOutboundFetchError("Blocked private host", {
+    code: "URL_GUARD_BLOCKED",
+    url: "http://10.0.0.5/internal",
+    method: "GET",
+    attempts: 1,
+    isRetryable: false,
+  });
+  assert.equal(isSecurityBlockError(guardBlock), true);
 });

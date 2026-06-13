@@ -42,17 +42,20 @@ export class ServerSupervisor {
       });
     }
 
-    this.child.on("error", (err) => this.handleExit(err.code ?? -1, err));
+    this.child.on("error", (err) => this.handleExit(-1, err));
     this.child.on("exit", (code) => this.handleExit(code));
 
     return this.child;
   }
 
   handleExit(code) {
+    // Node.js v24+ requires process.exit() to receive a number. Spawn-error events
+    // deliver err.code (a string like 'ENOENT') via the 'error' listener; normalise here.
+    const exitCode = typeof code === "number" ? code : null;
     cleanupPidFile("server");
 
-    if (this.isShuttingDown || code === 0) {
-      process.exit(code || 0);
+    if (this.isShuttingDown || exitCode === 0) {
+      process.exit(exitCode ?? 0);
       return;
     }
 
@@ -71,7 +74,7 @@ export class ServerSupervisor {
         }
       }
       this.dumpCrashLog();
-      process.exit(code ?? 1);
+      process.exit(exitCode ?? 1);
       return;
     }
 

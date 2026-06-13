@@ -25,6 +25,7 @@ const ACM_RUN_REQUEST = 1; // AgentClientMessage.run_request
 
 const ARR_CONVERSATION_STATE = 1; // AgentRunRequest.conversation_state
 const ARR_ACTION = 2; // AgentRunRequest.action
+const ARR_MODEL_DETAILS = 3; // AgentRunRequest.model_details (ModelDetails, msg 88)
 const ARR_CONVERSATION_ID = 5; // AgentRunRequest.conversation_id
 const ARR_MCP_TOOLS = 4; // AgentRunRequest.mcp_tools (empty placeholder required)
 const ARR_REQUESTED_MODEL = 9; // AgentRunRequest.requested_model
@@ -64,6 +65,15 @@ const DIM_HEIGHT = 2; // SelectedImage.Dimension.height (int32)
 
 const RM_MODEL_ID = 1; // RequestedModel.model_id
 const RM_PARAMETERS = 3; // RequestedModel.parameters [repeated]
+
+// ModelDetails (msg 88) — the model envelope cursor-agent actually uses to resolve
+// pinned model variants. Field numbers pinned from the cursor-agent descriptor (and
+// CLIProxyAPIPlus's cursor proto). #3714: pinned Claude/GPT *thinking* variants returned
+// an empty turn when sent only via RequestedModel (field 9) with a bare model_id; the
+// working reference sends them as ModelDetails with all three string fields set.
+const MD_MODEL_ID = 1; // ModelDetails.model_id
+const MD_DISPLAY_MODEL_ID = 3; // ModelDetails.display_model_id
+const MD_DISPLAY_NAME = 4; // ModelDetails.display_name
 
 const RMP_ID = 1; // RequestedModel.ModelParameter.id
 const RMP_VALUE = 2; // RequestedModel.ModelParameter.value
@@ -581,6 +591,17 @@ export function encodeAgentRunRequest(input: AgentRunInput): Buffer {
   }
   const requestedModel = encodeMessage(ARR_REQUESTED_MODEL, rmParts);
 
+  // ModelDetails { model_id, display_model_id, display_name } — all set to the resolved
+  // model id. #3714: RequestedModel (field 9) alone resolves server-routed ids
+  // (auto → default, composer-*) but pinned Claude/GPT *thinking* variants returned an
+  // empty turn without this envelope. cursor-agent's working wire format sends both, so
+  // we keep RequestedModel (preserves the -fast `parameters` it carries) and add this.
+  const modelDetails = encodeMessage(ARR_MODEL_DETAILS, [
+    encodeString(MD_MODEL_ID, modelId),
+    encodeString(MD_DISPLAY_MODEL_ID, modelId),
+    encodeString(MD_DISPLAY_NAME, modelId),
+  ]);
+
   // mcp_tools: McpTools envelope at field 4 of AgentRunRequest. Each tool
   // is packed inside the envelope at field 1 (repeated McpToolDefinition).
   // Empty placeholder for non-tool calls (the field is observably required
@@ -596,6 +617,7 @@ export function encodeAgentRunRequest(input: AgentRunInput): Buffer {
   const agentRunRequest = [
     conversationState,
     action,
+    modelDetails,
     mcpToolsBlock,
     encodeString(ARR_CONVERSATION_ID, conversationId),
     requestedModel,

@@ -19,7 +19,9 @@ const BASELINE_PATH = path.resolve(
 );
 const UPDATE = process.argv.includes("--update");
 const EPS = 0.05; // tolerância de ruído de float (jscpd é determinístico; isto é margem)
-const JSCPD_ARGS = ["jscpd@4", "src", "open-sse", "--reporters", "json", "--silent", "--min-tokens", "50", "--ignore", "**/*.test.ts,**/*.test.tsx,**/__tests__/**"];
+// Use local binary (pinned in package.json devDependencies — no registry download at CI time)
+const JSCPD_BIN = path.join(ROOT, "node_modules", ".bin", "jscpd");
+const JSCPD_FIXED_ARGS = ["src", "open-sse", "--reporters", "json", "--silent", "--min-tokens", "50", "--ignore", "**/*.test.ts,**/*.test.tsx,**/__tests__/**"];
 
 /** Avalia a % atual contra o baseline. */
 export function evaluateDuplication(current, baseline, eps = EPS) {
@@ -31,7 +33,7 @@ export function evaluateDuplication(current, baseline, eps = EPS) {
 
 function measureDuplicationPct() {
   const out = fs.mkdtempSync(path.join(os.tmpdir(), "jscpd-"));
-  execFileSync("npx", ["--yes", ...JSCPD_ARGS, "--output", out], { stdio: "ignore" });
+  execFileSync(JSCPD_BIN, [...JSCPD_FIXED_ARGS, "--output", out], { stdio: "ignore" });
   const report = JSON.parse(fs.readFileSync(path.join(out, "jscpd-report.json"), "utf8"));
   return report.statistics.total.percentage;
 }

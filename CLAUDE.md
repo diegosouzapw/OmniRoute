@@ -353,6 +353,7 @@ For any non-trivial change, read the matching deep-dive first:
 | Provider catalog (auto-generated)            | `docs/reference/PROVIDER_REFERENCE.md`                            |
 | Release flow                                 | `docs/ops/RELEASE_CHECKLIST.md`                                   |
 | Embedded services                            | `docs/frameworks/EMBEDDED-SERVICES.md`                            |
+| Quality gates (35 gates, allowlist policy)   | `docs/architecture/QUALITY_GATES.md`                              |
 
 ---
 
@@ -373,7 +374,7 @@ For any non-trivial change, read the matching deep-dive first:
 
 **Test layer preference**: unit first → integration (multi-module or DB state) → e2e (UI/workflow only). Encode bug reproductions as automated tests before or alongside the fix.
 
-**Both test runners must pass**: `npm run test:unit` (Node native — most tests) AND `npm run test:vitest` (MCP server, autoCombo, cache) cover **non-overlapping files**. Both must be green before merging. A PR where only one suite passes may silently ship broken MCP tools or routing regressions.
+**Both test runners must pass**: `npm run test:unit` (Node native — most tests) AND `npm run test:vitest` (MCP server, autoCombo, cache) cover **non-overlapping files**. Both are wired in CI (jobs `test-unit` and `test-vitest`) and must be green before merging. A PR where only one suite passes may silently ship broken MCP tools or routing regressions.
 
 **Bug fix / issue triage protocol (Hard Rule #18)**: Every fix for a reported issue must be validated by one of the following — no exceptions:
 1. **TDD (preferred)** — write a failing test reproducing the bug → fix it → confirm the test passes. The test becomes the permanent regression guard. Touch only the files the test proves need changing; nothing more.
@@ -402,7 +403,7 @@ git push -u origin feat/your-feature
 **Husky hooks**:
 
 - **pre-commit**: lint-staged + `check-docs-sync` + `check:any-budget:t11`
-- **pre-push**: `npm run test:unit`
+- **pre-push**: currently disabled (hook is commented out — CI covers test:unit via the `test-unit` job)
 
 ---
 
@@ -418,6 +419,29 @@ git push -u origin feat/your-feature
 
 ---
 
+## Quality Gates & Ratchets
+
+OmniRoute has **35 CI quality gates** wired across 6 jobs in `.github/workflows/ci.yml`.
+Full inventory, per-job breakdown, and operational procedures are in
+[`docs/architecture/QUALITY_GATES.md`](docs/architecture/QUALITY_GATES.md).
+
+**Quick reference:**
+
+- Gates in job `lint` (18 checks) + `docs-sync-strict` (12 checks): pass/fail policy gates —
+  fix the violation or add an allowlist entry with a justification comment + tracking issue.
+- Gates in job `quality-gate`: ratchet — metrics (ESLint warnings, code coverage, duplication,
+  complexity) must not regress vs `quality-baseline.json`. Update via
+  `npm run quality:ratchet -- --update` when a metric genuinely improves.
+- Job `test-vitest` runs `npm run test:vitest` (MCP tools, autoCombo, cache) — blocking.
+  `test:vitest:ui` is advisory until UI component tests are triaged.
+
+**Allowlist policy (short form):** Fix the cause; use the allowlist only for pre-existing
+violations you cannot fix in the same PR. Add a comment with justification + issue number.
+Stale allowlist entries (suppressing a violation that no longer exists) will be caught by
+the stale-enforcement added in Fase 6A.3.
+
+---
+
 ## Hard Rules
 
 1. Never commit secrets or credentials
@@ -428,7 +452,7 @@ git push -u origin feat/your-feature
 6. Never silently swallow errors in SSE streams
 7. Always validate inputs with Zod schemas
 8. Always include tests when changing production code
-9. Coverage must stay ≥60% (statements, lines, functions, branches).
+9. Coverage must not regress below the baseline frozen in `quality-baseline.json` (ratchet); absolute floor is 60% (statements/lines/functions/branches). Update the baseline via `npm run quality:ratchet -- --update` only when coverage genuinely improves. See `docs/architecture/QUALITY_GATES.md`.
 10. Never bypass Husky hooks (`--no-verify`, `--no-gpg-sign`) without explicit operator approval.
 11. Never embed public upstream OAuth client_id/secret or Firebase Web keys as string literals — always go through `resolvePublicCred()` (`open-sse/utils/publicCreds.ts`). See `docs/security/PUBLIC_CREDS.md`.
 12. Never return raw `err.stack` / `err.message` in HTTP / SSE / executor responses — always route through `buildErrorBody()` or `sanitizeErrorMessage()` (`open-sse/utils/error.ts`). See `docs/security/ERROR_SANITIZATION.md`.

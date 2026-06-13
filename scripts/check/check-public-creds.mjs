@@ -19,16 +19,42 @@
 import fs from "node:fs";
 import path from "node:path";
 import { pathToFileURL } from "node:url";
+import { assertNoStale } from "./lib/allowlist.mjs";
 
 const cwd = process.cwd();
 
-// Arquivos que carregam configuração de credencial de upstream. O escopo é restrito
-// de propósito: estes são os únicos pontos onde client_id/secret públicos vivem.
-// Adicionar um novo arquivo de config de credencial? Inclua-o aqui.
-const SCANNED_FILES = [
-  "open-sse/config/providerRegistry.ts",
-  "src/lib/oauth/constants/oauth.ts",
+// 6A.8: Instead of a static hardcoded list, scan the two credential-bearing subtrees
+// dynamically so new files (new executor, new OAuth provider) are caught automatically.
+// Anchor files (providerRegistry.ts, oauth.ts) are the canonical credential config;
+// the broader scan covers new additions in open-sse/ and src/lib/oauth/.
+// Exclusions: test files, node_modules, .next.
+const SCAN_ROOTS = [
+  path.join(cwd, "open-sse"),
+  path.join(cwd, "src", "lib", "oauth"),
 ];
+
+function walkTs(dir, acc = []) {
+  if (!fs.existsSync(dir)) return acc;
+  for (const e of fs.readdirSync(dir, { withFileTypes: true })) {
+    const p = path.join(dir, e.name);
+    if (e.isDirectory()) {
+      if (e.name !== "node_modules" && e.name !== ".next") walkTs(p, acc);
+    } else if (/\.tsx?$/.test(e.name) && !/\.test\.tsx?$/.test(e.name)) {
+      acc.push(p);
+    }
+  }
+  return acc;
+}
+
+function collectScannedFiles() {
+  const files = [];
+  for (const root of SCAN_ROOTS) {
+    for (const abs of walkTs(root)) {
+      files.push(path.relative(cwd, abs).replace(/\\/g, "/"));
+    }
+  }
+  return files;
+}
 
 // Chaves de objeto cujo valor é uma credencial. Atribuir qualquer uma destas a uma
 // string literal não-vazia viola a Hard Rule #11.
@@ -54,10 +80,20 @@ const ENV_KEY_RE = /(clientId|clientSecret|apiKey)Env\s*:/;
 //
 // All five public client_ids (9 call-sites) were migrated to resolvePublicCred() in
 // #3493 (embedded as claude_id/codex_id/qwen_id/kimi_id/github_copilot_id in
-// open-sse/utils/publicCreds.ts), matching the Gemini/Antigravity pattern. The
-// allowlist is now empty — any new literal public client_id must be embedded via
-// resolvePublicCred(), not frozen here.
-export const KNOWN_LITERAL_CREDS = new Set([]);
+// open-sse/utils/publicCreds.ts), matching the Gemini/Antigravity pattern.
+//
+// 6A.8: Expanded scope to open-sse/** + src/lib/oauth/**. Newly discovered FPs:
+//
+//   open-sse/services/usage.ts L543: `getMiniMaxUsage(apiKey: string, provider: "minimax" | "minimax-cn")`
+//   The CRED_KEY_RE matches `apiKey:` in the TypeScript function-parameter type annotation.
+//   "minimax" and "minimax-cn" are provider-name strings in the type annotation, NOT credentials.
+//   This is a false positive (the gate was designed for object-literal assignments, not fn params).
+//   TODO(6A.8): Consider tightening CRED_KEY_RE to exclude function-signature contexts — but
+//   that adds complexity; the FP rate is low (1 file). Frozen by file:line:value key.
+export const KNOWN_LITERAL_CREDS = new Set([
+  "open-sse/services/usage.ts:543:minimax", // TODO(6A.8): pre-existing FP — TS fn-param type, not a credential
+  "open-sse/services/usage.ts:543:minimax-cn", // TODO(6A.8): pre-existing FP — TS fn-param type, not a credential
+]);
 
 /**
  * Encontra atribuições de uma chave de credencial a uma string literal não-vazia.
@@ -115,14 +151,29 @@ export function findLiteralCreds(source, allowlist, relFile = "") {
 }
 
 function main() {
-  const allMisses = [];
-  for (const rel of SCANNED_FILES) {
-    const abs = path.join(cwd, rel);
-    if (!fs.existsSync(abs)) {
-      console.error(`[check-public-creds] arquivo de escopo não encontrado: ${rel}`);
-      process.exit(1);
+  const scannedFiles = collectScannedFiles();
+
+  // 6A.8: stale-allowlist enforcement.
+  // Compute all live violations WITHOUT the allowlist, then check for stale entries.
+  const liveViolationKeys = new Set();
+  for (const rel of scannedFiles) {
+    const src = fs.readFileSync(path.join(cwd, rel), "utf8");
+    for (const v of findLiteralCreds(src, new Set(), rel)) {
+      // v is like "L543: apiKey = \"minimax\"" — generate the same file:line:value key
+      // that the allowlist uses so stale detection matches by canonical key form.
+      const lineMatch = v.match(/^L(\d+):/);
+      const lineNo = lineMatch ? lineMatch[1] : "?";
+      const valMatch = v.match(/"([^"]+)"$/);
+      const val = valMatch ? valMatch[1] : v;
+      liveViolationKeys.add(`${rel}:${lineNo}:${val}`);
+      liveViolationKeys.add(val); // also track plain value for backward compat
     }
-    const src = fs.readFileSync(abs, "utf8");
+  }
+  assertNoStale(KNOWN_LITERAL_CREDS, liveViolationKeys, "check-public-creds");
+
+  const allMisses = [];
+  for (const rel of scannedFiles) {
+    const src = fs.readFileSync(path.join(cwd, rel), "utf8");
     for (const v of findLiteralCreds(src, KNOWN_LITERAL_CREDS, rel)) {
       allMisses.push(`${rel} ${v}`);
     }
@@ -139,8 +190,9 @@ function main() {
     );
     process.exit(1);
   }
+  if (process.exitCode === 1) return; // stale entries already logged
   console.log(
-    `[check-public-creds] OK (${SCANNED_FILES.length} arquivo(s), ` +
+    `[check-public-creds] OK (${scannedFiles.length} arquivo(s) em ${SCAN_ROOTS.length} raiz(es), ` +
       `${KNOWN_LITERAL_CREDS.size} literal(is) congelado(s))`
   );
 }

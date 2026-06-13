@@ -234,3 +234,53 @@ test("createResponsesLogger returns null for invalid base paths and swallows flu
 
   assert.ok(capturedLogs.some((entry) => entry.includes("[RESPONSES] Failed to write logs:")));
 });
+
+test("createResponsesApiTransformStream deduplicates repeated tool argument snapshots", async () => {
+  const args = JSON.stringify({ command: "find /tmp -name test.txt" });
+  const output = await runTransformStream([
+    `data: {"choices":[{"index":0,"delta":{"tool_calls":[{"index":0,"id":"call_1","function":{"name":"shell","arguments":${JSON.stringify(args)}}}]}}]}\n\n`,
+    `data: {"choices":[{"index":0,"delta":{"tool_calls":[{"index":0,"function":{"arguments":${JSON.stringify(args)}}]},"finish_reason":"tool_calls"}]}\n\n`,
+  ]);
+
+  const events = parseSseOutput(output);
+  const completed = JSON.parse(
+    events.find((event) => event.event === "response.completed").data
+  ).response;
+  const toolCall = completed.output.find((item) => item.type === "function_call");
+
+  assert.equal(toolCall.arguments, args);
+  assert.equal(JSON.parse(toolCall.arguments).command, "find /tmp -name test.txt");
+
+  // The streamed deltas must also reconstruct the arguments exactly once — a
+  // duplicated snapshot must not be re-emitted to the client.
+  const streamedArgs = events
+    .filter((event) => event.event === "response.function_call_arguments.delta")
+    .map((event) => JSON.parse(event.data).delta)
+    .join("");
+  assert.equal(streamedArgs, args);
+});
+
+test("createResponsesApiTransformStream concatenates incremental tool argument fragments without dropping repeated chars", async () => {
+  // Real providers stream `function.arguments` as small incremental fragments.
+  // A doubled char straddling a fragment boundary ("l" + "l -l") must survive
+  // — the previous fuzzy-dedup heuristic silently turned `ll -l` into `l -l`.
+  const output = await runTransformStream([
+    `data: {"choices":[{"index":0,"delta":{"tool_calls":[{"index":0,"id":"call_1","function":{"name":"shell","arguments":"{\\"cmd\\":\\"l"}}]}}]}\n\n`,
+    `data: {"choices":[{"index":0,"delta":{"tool_calls":[{"index":0,"function":{"arguments":"l -l\\"}"}}]},"finish_reason":"tool_calls"}]}\n\n`,
+  ]);
+
+  const events = parseSseOutput(output);
+  const completed = JSON.parse(
+    events.find((event) => event.event === "response.completed").data
+  ).response;
+  const toolCall = completed.output.find((item) => item.type === "function_call");
+
+  assert.equal(toolCall.arguments, '{"cmd":"ll -l"}');
+  assert.equal(JSON.parse(toolCall.arguments).cmd, "ll -l");
+
+  const streamedArgs = events
+    .filter((event) => event.event === "response.function_call_arguments.delta")
+    .map((event) => JSON.parse(event.data).delta)
+    .join("");
+  assert.equal(streamedArgs, '{"cmd":"ll -l"}');
+});

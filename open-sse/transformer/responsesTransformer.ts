@@ -1,3 +1,4 @@
+import { appendToolCallArgumentDelta } from "../utils/toolCallArguments.ts";
 import * as fs from "fs";
 import * as path from "path";
 /**
@@ -527,15 +528,19 @@ export function createResponsesApiTransformStream(logger = null, keepaliveInterv
                     .replace(/"[a-zA-Z0-9_]+":\s*\[\s*\],?/g, "");
                 }
 
-                if (refCallId) {
+                const existingArgs = state.funcArgsBuf[tcIdx] || "";
+                const nextArgs = appendToolCallArgumentDelta(existingArgs, deltaStr);
+                const emittedDelta = nextArgs.slice(existingArgs.length);
+                state.funcArgsBuf[tcIdx] = nextArgs;
+
+                if (refCallId && emittedDelta) {
                   emit(controller, "response.function_call_arguments.delta", {
                     type: "response.function_call_arguments.delta",
                     item_id: `fc_${refCallId}`,
                     output_index: tcIdx,
-                    delta: deltaStr,
+                    delta: emittedDelta,
                   });
                 }
-                state.funcArgsBuf[tcIdx] += deltaStr;
               }
             }
           }
