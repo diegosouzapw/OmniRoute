@@ -30,7 +30,9 @@ import {
 import { getProviderOutboundGuard, isPrivateHost } from "@/shared/network/outboundUrlGuard";
 import {
   buildGrokCookieHeader,
+  buildQwenCookieHeader,
   extractCookieValue,
+  extractQwenToken,
   normalizeSessionCookieHeader,
 } from "@/lib/providers/webCookieAuth";
 import { buildJulesApiUrl } from "@/lib/cloudAgent/julesApi.ts";
@@ -359,6 +361,28 @@ async function validationWrite(url: string, init: RequestInit, isLocal: boolean 
   return fetchWithProxyFallback(url, init, SAFE_OUTBOUND_FETCH_PRESETS.validationWrite, isLocal);
 }
 
+// A validation failure should only be flagged `securityBlocked` (which the route
+// surfaces as a `provider.validation.ssrf_blocked` audit event + a security warning in
+// the UI) when it is a GENUINE SSRF/guard block — not for every outbound-guard 503.
+// A blocked redirect (REDIRECT_BLOCKED) to a PUBLIC host is benign: the redirect was
+// never followed, so no SSRF occurred. Web-cookie providers like qwen-web answer their
+// probe with a 307 to a public host, which used to be mislabeled as an SSRF block
+// (#3288 / #3758). Only treat a blocked redirect as a security event when its target is
+// a private/internal host.
+export function isSecurityBlockError(error: unknown): boolean {
+  if (!(error instanceof SafeOutboundFetchError)) return false;
+  if (error.code === "URL_GUARD_BLOCKED" || error.code === "INVALID_URL") return true;
+  if (error.code === "REDIRECT_BLOCKED") {
+    if (!error.location) return false;
+    try {
+      return isPrivateHost(new URL(error.location, error.url).hostname);
+    } catch {
+      return false;
+    }
+  }
+  return false;
+}
+
 function toValidationErrorResult(error: unknown) {
   const message = error instanceof Error ? error.message : String(error || "Validation failed");
   const statusCode = getSafeOutboundFetchErrorStatus(error);
@@ -371,7 +395,7 @@ function toValidationErrorResult(error: unknown) {
     ...(error instanceof SafeOutboundFetchError && error.code === "TIMEOUT"
       ? { timeout: true }
       : {}),
-    ...(statusCode === 503 ? { securityBlocked: true } : {}),
+    ...(isSecurityBlockError(error) ? { securityBlocked: true } : {}),
   };
 }
 
@@ -2813,6 +2837,74 @@ async function validateDeepSeekWebProvider({ apiKey }: any) {
   }
 }
 
+// qwen-web has no `modelsUrl` in its registry entry, so the generic OpenAI-compatible
+// validator derived a probe URL of `https://chat.qwen.ai/api/v2/models` (via
+// addModelsSuffix) — a non-existent path that answers with a 307 redirect, which the
+// outbound guard blocked and the route then mislabeled as an SSRF block (#3288/#3758).
+// This specialty validator probes the real session-validity endpoint instead
+// (`GET /api/v2/user`, the same one Chat2API uses), mirroring the executor's anti-bot
+// headers + cookie-jar replay. It uses plain fetch (like the other web-cookie
+// validators) so it never hits the addModelsSuffix/redirect path.
+async function validateQwenWebProvider({ apiKey }: any) {
+  const rawCred = String(apiKey ?? "").trim();
+  if (!rawCred) {
+    return {
+      valid: false,
+      error:
+        "Missing Qwen session — paste the full chat.qwen.ai Cookie header (must include token, cna and ssxmod_itna)",
+    };
+  }
+
+  const token = extractQwenToken(rawCred);
+  const cookieHeader = buildQwenCookieHeader(rawCred);
+  if (!token && !cookieHeader) {
+    return {
+      valid: false,
+      error: "Could not find a Qwen token/cookie in the pasted value",
+    };
+  }
+
+  try {
+    const headers: Record<string, string> = {
+      Accept: "*/*",
+      "User-Agent":
+        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36",
+      Origin: "https://chat.qwen.ai",
+      Referer: "https://chat.qwen.ai/",
+      source: "web",
+      "bx-v": "2.5.36",
+    };
+    if (token) headers["Authorization"] = `Bearer ${token}`;
+    if (cookieHeader) headers["Cookie"] = cookieHeader;
+
+    const resp = await fetch("https://chat.qwen.ai/api/v2/user", { headers });
+    const contentType = resp.headers.get("content-type") || "";
+
+    if (resp.status === 401 || resp.status === 403) {
+      return {
+        valid: false,
+        error:
+          "Qwen session is invalid or expired — re-login at https://chat.qwen.ai and paste a fresh full Cookie header",
+      };
+    }
+    // Alibaba's WAF / retired-v1 gateway answers with an HTML challenge page (or 504)
+    // instead of JSON. A bearer token alone is no longer enough for the v2 endpoint.
+    if (contentType.includes("text/html") || resp.status === 504) {
+      return {
+        valid: false,
+        error:
+          "Qwen blocked the request with its anti-bot WAF. Re-login at https://chat.qwen.ai and paste a fresh full Cookie header (must include cna, ssxmod_itna and token) — a bearer token alone is not accepted.",
+      };
+    }
+    if (!resp.ok) {
+      return { valid: false, error: `Qwen returned HTTP ${resp.status}` };
+    }
+    return { valid: true, error: null };
+  } catch (error) {
+    return toValidationErrorResult(error);
+  }
+}
+
 async function validateGrokWebProvider({ apiKey, providerSpecificData = {} }: any) {
   try {
     const token = extractCookieValue(apiKey, "sso");
@@ -3898,6 +3990,7 @@ export async function validateProviderApiKey({ provider, apiKey, providerSpecifi
     gigachat: validateGigachatProvider,
     "deepseek-web": validateDeepSeekWebProvider,
     "grok-web": validateGrokWebProvider,
+    "qwen-web": validateQwenWebProvider,
     "chatgpt-web": validateChatGptWebProvider,
     "perplexity-web": validatePerplexityWebProvider,
     "blackbox-web": validateBlackboxWebProvider,
