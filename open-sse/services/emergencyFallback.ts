@@ -14,6 +14,14 @@
 
 import { isFeatureFlagEnabled } from "@/shared/utils/featureFlags";
 
+const EMERGENCY_FALLBACK_FLAG_KEY = "OMNIROUTE_EMERGENCY_FALLBACK";
+const EMERGENCY_FALLBACK_FLAG_CACHE_MS = 500;
+
+type FeatureFlagResolver = (key: string) => boolean;
+
+let emergencyFallbackFlagCache: { value: boolean; expiresAt: number } | null = null;
+let emergencyFallbackFeatureFlagResolver: FeatureFlagResolver = isFeatureFlagEnabled;
+
 export interface EmergencyFallbackConfig {
   enabled: boolean;
   provider: string;
@@ -73,12 +81,39 @@ function isEmergencyFallbackRawEnvEnabled(): boolean {
   return raw !== "false" && raw !== "0";
 }
 
+export function resetEmergencyFallbackEnvCache(): void {
+  emergencyFallbackFlagCache = null;
+}
+
+export function setEmergencyFallbackFeatureFlagResolverForTest(
+  resolver: FeatureFlagResolver | null
+): void {
+  emergencyFallbackFeatureFlagResolver = resolver ?? isFeatureFlagEnabled;
+  resetEmergencyFallbackEnvCache();
+}
+
 export function isEmergencyFallbackEnvEnabled(): boolean {
-  try {
-    return isFeatureFlagEnabled("OMNIROUTE_EMERGENCY_FALLBACK");
-  } catch {
-    return isEmergencyFallbackRawEnvEnabled();
+  const now = Date.now();
+  if (emergencyFallbackFlagCache && emergencyFallbackFlagCache.expiresAt > now) {
+    return emergencyFallbackFlagCache.value;
   }
+
+  let value: boolean;
+  try {
+    value = emergencyFallbackFeatureFlagResolver(EMERGENCY_FALLBACK_FLAG_KEY);
+  } catch (error) {
+    console.warn(
+      "[emergencyFallback] Feature flag resolution failed; falling back to raw env:",
+      error instanceof Error ? error.message : error
+    );
+    value = isEmergencyFallbackRawEnvEnabled();
+  }
+
+  emergencyFallbackFlagCache = {
+    value,
+    expiresAt: now + EMERGENCY_FALLBACK_FLAG_CACHE_MS,
+  };
+  return value;
 }
 
 export function shouldUseFallback(
