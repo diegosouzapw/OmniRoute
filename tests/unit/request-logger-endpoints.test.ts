@@ -77,14 +77,14 @@ test("updatePendingRequestStreamChunks stores stream chunks in the detail", () =
   usageHistory.clearPendingRequests();
   usageHistory.trackPendingRequest("gpt-4", "openai", "conn-1", true);
 
-  const chunks = { provider: ["data: {\"a\":1}"], openai: [], client: [] };
+  const chunks = { provider: ['data: {"a":1}'], openai: [], client: [] };
   usageHistory.updatePendingRequestStreamChunks("gpt-4", "openai", "conn-1", chunks);
 
   const pending = usageHistory.getPendingRequests();
   const detail = pending.details["conn-1"]?.["gpt-4 (openai)"]?.[0];
   assert.ok(detail.streamChunks, "streamChunks should be set");
   assert.equal(detail.streamChunks.provider.length, 1);
-  assert.equal(detail.streamChunks.provider[0], "data: {\"a\":1}");
+  assert.equal(detail.streamChunks.provider[0], 'data: {"a":1}');
 });
 
 test("updatePendingRequestStreamChunks stores empty streamChunks object (not null)", () => {
@@ -403,7 +403,9 @@ test("createRequestLogger without connectionId does not populate streamChunks", 
   const detail = pending.details["test-conn-2"]?.["gpt-4 (openai)"]?.[0];
 
   assert.ok(detail, "pending request detail should exist");
-  assert.equal(detail.streamChunks, undefined,
+  assert.equal(
+    detail.streamChunks,
+    undefined,
     "streamChunks should be undefined when connectionId not provided to createRequestLogger"
   );
 });
@@ -462,7 +464,11 @@ test("createRequestLogger captures stream chunks even when enabled: false", asyn
   assert.equal(detail.streamChunks.provider[0], 'data: {"content":"hello"}');
 
   // But getPipelinePayloads should return null when disabled
-  assert.equal(logger.getPipelinePayloads(), null, "pipeline payloads should be null when disabled");
+  assert.equal(
+    logger.getPipelinePayloads(),
+    null,
+    "pipeline payloads should be null when disabled"
+  );
 });
 
 test("createRequestLogger disabled logger other methods are no-ops", async () => {

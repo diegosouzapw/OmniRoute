@@ -33,6 +33,12 @@ import {
   resolveInitialVisibility,
   shouldAutoRefresh,
 } from "./requestLoggerSignature";
+import {
+  DEFAULT_REFRESH_INTERVAL_SEC,
+  clampRefreshIntervalSec,
+  readSavedRefreshIntervalSec,
+  writeSavedRefreshIntervalSec,
+} from "./requestLoggerPreferences";
 
 // Number of call-log rows fetched per page. The viewer grows its window by this
 // amount on "Load more" / infinite scroll so users can browse past the first
@@ -131,8 +137,9 @@ const RequestLoggerV2 = forwardRef<RequestLoggerV2Handle, { initialSelectedId?: 
     const [detailLoggingLoading, setDetailLoggingLoading] = useState(false);
     const [limit, setLimit] = useState(PAGE_SIZE);
     const [hasMore, setHasMore] = useState(false);
-    const [refreshIntervalSec, setRefreshIntervalSec] = useState(10);
+    const [refreshIntervalSec, setRefreshIntervalSec] = useState(DEFAULT_REFRESH_INTERVAL_SEC);
     const intervalRef = useRef(null);
+    const refreshIntervalSecRef = useRef(DEFAULT_REFRESH_INTERVAL_SEC);
     const hasLoadedRef = useRef(false);
     const logsSignatureRef = useRef("");
     const scrollContainerRef = useRef(null);
@@ -161,6 +168,29 @@ const RequestLoggerV2 = forwardRef<RequestLoggerV2Handle, { initialSelectedId?: 
         return next;
       });
     }, []);
+
+    useEffect(() => {
+      const saved = readSavedRefreshIntervalSec();
+      refreshIntervalSecRef.current = saved;
+      setRefreshIntervalSec(saved);
+    }, []);
+
+    useEffect(() => {
+      refreshIntervalSecRef.current = refreshIntervalSec;
+    }, [refreshIntervalSec]);
+
+    const updateRefreshIntervalSec = useCallback(
+      (valueOrUpdater: number | ((current: number) => number)) => {
+        const current = refreshIntervalSecRef.current;
+        const rawValue =
+          typeof valueOrUpdater === "function" ? valueOrUpdater(current) : valueOrUpdater;
+        const next = clampRefreshIntervalSec(rawValue);
+        refreshIntervalSecRef.current = next;
+        writeSavedRefreshIntervalSec(next);
+        setRefreshIntervalSec(next);
+      },
+      []
+    );
 
     const fetchLogs = useCallback(
       async (showLoading = false) => {
@@ -364,23 +394,23 @@ const RequestLoggerV2 = forwardRef<RequestLoggerV2Handle, { initialSelectedId?: 
       setDetailData(null);
       try {
         const res = await fetch(`/api/logs/${logEntry.id}`, { cache: "no-store" });
-          if (res.ok) {
-            const data = await res.json();
-            const dataHasPipeline =
-              data?.pipelinePayloads && Object.keys(data.pipelinePayloads || {}).length > 0;
-            setDetailData((prev: { pipelinePayloads: any }) => ({
+        if (res.ok) {
+          const data = await res.json();
+          const dataHasPipeline =
+            data?.pipelinePayloads && Object.keys(data.pipelinePayloads || {}).length > 0;
+          setDetailData((prev: { pipelinePayloads: any }) => ({
+            ...prev,
+            ...data,
+            pipelinePayloads: dataHasPipeline ? data.pipelinePayloads : prev?.pipelinePayloads,
+          }));
+          // ensure the modal summary reflects the fetched call log summary
+          if (data && typeof data === "object") {
+            setSelectedLog((prev: any) => ({
               ...prev,
               ...data,
-              pipelinePayloads: dataHasPipeline ? data.pipelinePayloads : prev?.pipelinePayloads,
+              active: data.active === true,
             }));
-            // ensure the modal summary reflects the fetched call log summary
-            if (data && typeof data === "object") {
-              setSelectedLog((prev: any) => ({
-                ...prev,
-                ...data,
-                active: data.active === true,
-              }));
-            }
+          }
         } else {
           // A deep-linked id can legitimately 404 while the request is still
           // finalizing. Keep the modal open and poll /api/logs/[id] instead of
@@ -448,9 +478,11 @@ const RequestLoggerV2 = forwardRef<RequestLoggerV2Handle, { initialSelectedId?: 
     useEffect(() => {
       if (initialSelectedId && !initialOpenedRef.current) {
         initialOpenedRef.current = true;
-          openDetail({ id: initialSelectedId, pendingLookup: true }).then(r => r).catch((error_) => {
-          console.error("Failed to open initial log id:", error_);
-        });
+        openDetail({ id: initialSelectedId, pendingLookup: true })
+          .then((r) => r)
+          .catch((error_) => {
+            console.error("Failed to open initial log id:", error_);
+          });
       }
     }, [initialSelectedId]);
 
@@ -506,9 +538,11 @@ const RequestLoggerV2 = forwardRef<RequestLoggerV2Handle, { initialSelectedId?: 
       const idx = currentLogIndex;
       const target = idx > 0 ? sortedLogsForNav[idx - 1] : null;
       if (target?.id) {
-        openDetail(target).then(r => r).catch((error_) => {
-          console.error("Failed to open previous log id:", error_);
-        });
+        openDetail(target)
+          .then((r) => r)
+          .catch((error_) => {
+            console.error("Failed to open previous log id:", error_);
+          });
       } else {
         closeDetail();
       }
@@ -760,7 +794,7 @@ const RequestLoggerV2 = forwardRef<RequestLoggerV2Handle, { initialSelectedId?: 
           {/* Refresh interval */}
           <div className="flex items-center gap-1">
             <button
-              onClick={() => setRefreshIntervalSec((v) => Math.max(1, v - 1))}
+              onClick={() => updateRefreshIntervalSec((v) => v - 1)}
               className="w-6 h-6 flex items-center justify-center rounded hover:bg-bg-subtle text-text-muted hover:text-text-primary transition-colors text-sm font-bold"
               title="Decrease interval"
             >
@@ -773,13 +807,13 @@ const RequestLoggerV2 = forwardRef<RequestLoggerV2Handle, { initialSelectedId?: 
               value={refreshIntervalSec}
               onChange={(e) => {
                 const v = Number.parseInt(e.target.value, 10);
-                if (!Number.isNaN(v) && v >= 1 && v <= 300) setRefreshIntervalSec(v);
+                if (!Number.isNaN(v)) updateRefreshIntervalSec(v);
               }}
               className="w-12 text-center text-[11px] bg-transparent border border-border rounded px-1 py-0.5 text-text-primary [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
               title="Auto-refresh interval in seconds"
             />
             <button
-              onClick={() => setRefreshIntervalSec((v) => Math.min(300, v + 1))}
+              onClick={() => updateRefreshIntervalSec((v) => v + 1)}
               className="w-6 h-6 flex items-center justify-center rounded hover:bg-bg-subtle text-text-muted hover:text-text-primary transition-colors text-sm font-bold"
               title="Increase interval"
             >
@@ -970,8 +1004,10 @@ const RequestLoggerV2 = forwardRef<RequestLoggerV2Handle, { initialSelectedId?: 
                   {sortedLogs.map((log) => {
                     const isActive = log.active === true;
                     const statusStyle = isActive ? null : getStatusStyle(log.status);
-                    const protocolKey = isActive ? null : (log.sourceFormat || log.provider);
-                    const protocol = protocolKey ? getProtocolColor(protocolKey, log.provider) : null;
+                    const protocolKey = isActive ? null : log.sourceFormat || log.provider;
+                    const protocol = protocolKey
+                      ? getProtocolColor(protocolKey, log.provider)
+                      : null;
                     const compatLabel = getProviderDisplayLabel(log.provider, providerNodes);
                     const providerColor = PROVIDER_COLORS[log.provider] || {
                       bg: "#374151",
@@ -988,7 +1024,7 @@ const RequestLoggerV2 = forwardRef<RequestLoggerV2Handle, { initialSelectedId?: 
                       <tr
                         key={log.id}
                         onClick={() => openDetail(log)}
-                        className={`cursor-pointer hover:bg-primary/5 transition-colors ${isError ? "bg-red-500/5" : ""}`}
+                        className={`cursor-pointer hover:bg-sky-500/10 dark:hover:bg-sky-400/10 transition-colors ${isError ? "bg-red-500/5" : ""}`}
                       >
                         {visibleColumns.status && (
                           <td className="px-3 py-2">
@@ -1016,7 +1052,9 @@ const RequestLoggerV2 = forwardRef<RequestLoggerV2Handle, { initialSelectedId?: 
                             ) : (
                               <span
                                 className={`inline-block px-2 py-0.5 rounded text-[9px] font-bold uppercase ${cacheSourceMeta?.className || ""}`}
-                                title={isSemanticCache ? t("semanticCacheHit") : t("upstreamResponse")}
+                                title={
+                                  isSemanticCache ? t("semanticCacheHit") : t("upstreamResponse")
+                                }
                               >
                                 {isSemanticCache ? t("semantic") : t("upstream")}
                               </span>
@@ -1073,7 +1111,11 @@ const RequestLoggerV2 = forwardRef<RequestLoggerV2Handle, { initialSelectedId?: 
                             ) : (
                               <span
                                 className="inline-block px-2 py-0.5 rounded text-[9px] font-bold uppercase"
-                                style={protocol ? { backgroundColor: protocol.bg, color: protocol.text } : {}}
+                                style={
+                                  protocol
+                                    ? { backgroundColor: protocol.bg, color: protocol.text }
+                                    : {}
+                                }
                               >
                                 {protocol?.label || "—"}
                               </span>
@@ -1118,28 +1160,28 @@ const RequestLoggerV2 = forwardRef<RequestLoggerV2Handle, { initialSelectedId?: 
                             {isActive ? (
                               <span className="text-text-muted text-[10px]">—</span>
                             ) : (
-                            <>
-                              <span className="text-text-muted">TI:</span>{" "}
-                              <span className="text-primary">
-                                {log.tokens?.in?.toLocaleString() || 0}
-                              </span>
-                              <span className="mx-1 text-border">|</span>
-                              <span className="text-text-muted">TO:</span>{" "}
-                              <span className="text-emerald-700 dark:text-emerald-400">
-                                {log.tokens?.out?.toLocaleString() || 0}
-                              </span>
-                              {log.tokens?.compressed != null && log.tokens.compressed > 0 && (
-                                <>
-                                  <span className="mx-1 text-border">|</span>
-                                  <span
-                                    className="text-purple-500 dark:text-purple-400 font-semibold"
-                                    title={`${log.tokens.compressed.toLocaleString()} tokens compressed`}
-                                  >
-                                    ↓{log.tokens.compressed.toLocaleString()}
-                                  </span>
-                                </>
-                              )}
-                            </>
+                              <>
+                                <span className="text-text-muted">TI:</span>{" "}
+                                <span className="text-primary">
+                                  {log.tokens?.in?.toLocaleString() || 0}
+                                </span>
+                                <span className="mx-1 text-border">|</span>
+                                <span className="text-text-muted">TO:</span>{" "}
+                                <span className="text-emerald-700 dark:text-emerald-400">
+                                  {log.tokens?.out?.toLocaleString() || 0}
+                                </span>
+                                {log.tokens?.compressed != null && log.tokens.compressed > 0 && (
+                                  <>
+                                    <span className="mx-1 text-border">|</span>
+                                    <span
+                                      className="text-purple-500 dark:text-purple-400 font-semibold"
+                                      title={`${log.tokens.compressed.toLocaleString()} tokens compressed`}
+                                    >
+                                      ↓{log.tokens.compressed.toLocaleString()}
+                                    </span>
+                                  </>
+                                )}
+                              </>
                             )}
                           </td>
                         )}
@@ -1147,22 +1189,24 @@ const RequestLoggerV2 = forwardRef<RequestLoggerV2Handle, { initialSelectedId?: 
                           <td className="px-3 py-2 text-right whitespace-nowrap font-mono">
                             {isActive ? (
                               <span className="text-text-muted text-[10px]">—</span>
-                            ) : (() => {
-                              const tps = getLogTps(log);
-                              const color =
-                                tps <= 0
-                                  ? "text-text-muted"
-                                  : tps >= 80
-                                    ? "text-emerald-600 dark:text-emerald-400"
-                                    : tps >= 30
-                                      ? "text-sky-600 dark:text-sky-400"
-                                      : "text-amber-600 dark:text-amber-400";
-                              return (
-                                <span className={color} title={`${tps.toFixed(2)} tokens/sec`}>
-                                  {formatTps(tps)}
-                                </span>
-                              );
-                            })()}
+                            ) : (
+                              (() => {
+                                const tps = getLogTps(log);
+                                const color =
+                                  tps <= 0
+                                    ? "text-text-muted"
+                                    : tps >= 80
+                                      ? "text-emerald-600 dark:text-emerald-400"
+                                      : tps >= 30
+                                        ? "text-sky-600 dark:text-sky-400"
+                                        : "text-amber-600 dark:text-amber-400";
+                                return (
+                                  <span className={color} title={`${tps.toFixed(2)} tokens/sec`}>
+                                    {formatTps(tps)}
+                                  </span>
+                                );
+                              })()
+                            )}
                           </td>
                         )}
                         {visibleColumns.duration && (
