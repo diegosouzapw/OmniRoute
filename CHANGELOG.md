@@ -53,6 +53,7 @@
 
 ### 📝 Maintenance
 
+- **feat(intelligence): enable Arena ELO sync by default** — the Arena AI leaderboard ELO sync (`ARENA_ELO_SYNC_ENABLED`) that powers the new Free Provider Rankings page ([#3799](https://github.com/diegosouzapw/OmniRoute/pull/3799)) is now **on by default** (was opt-in). It fetches from `api.wulong.dev` on startup (non-blocking, never fatal) and refreshes daily; set `ARENA_ELO_SYNC_ENABLED=false` to opt out of the outbound sync. Without it the rankings page renders empty. (thanks @diegosouzapw)
 - **chore(quality): Quality Gates → 100%** — completes Fase 6A (systemic hardening: a `stale-allowlist` helper applied across ~10 gates, `docs/architecture/QUALITY_GATES.md`, and ratchet engine v2 with `--require-tighten` + per-metric `eps`) and the entire Fase 7 (20 security/dead-code/mutation/tooling gates), with the Fase 8 plan documented. ([#3757](https://github.com/diegosouzapw/OmniRoute/pull/3757))
 - **docs: close the remaining documentation gaps** for proxy operations, skills internals, the memory engine, RTK customization, and compression extensibility (post-#3438 audit, 5 areas in one PR). ([#3453](https://github.com/diegosouzapw/OmniRoute/pull/3453) — thanks @oyi77)
 - **chore(quality): re-baseline `providerRegistry.ts` file-size** (4692→4703) after #3768's Ollama Cloud `kimi-k2.7-code` capability fix grew the file past the frozen baseline, turning the release's own Fast Quality Gates red. No source file is touched. ([#3770](https://github.com/diegosouzapw/OmniRoute/pull/3770))

@@ -8720,7 +8720,7 @@
     "subtitle": "Best free providers ranked by model ELO scores from Arena AI leaderboards",
     "loading": "Loading rankings...",
     "errorLoading": "Failed to load rankings",
-    "emptyState": "No rankings available. Ensure Arena ELO sync is enabled (ARENA_ELO_SYNC_ENABLED=true).",
+    "emptyState": "No rankings available yet. Arena ELO data syncs on startup (daily) — check back shortly, or trigger a manual sync. Set ARENA_ELO_SYNC_ENABLED=false to opt out.",
     "bestModel": "Best",
     "allCategories": "All Categories",
     "categoryDefault": "Default",

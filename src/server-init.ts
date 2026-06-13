@@ -132,8 +132,9 @@ async function startServer() {
     }
   }
 
-  // Arena ELO sync: opt-in model intelligence from leaderboard data (non-blocking, never fatal)
-  if (process.env.ARENA_ELO_SYNC_ENABLED === "true") {
+  // Arena ELO sync: model intelligence from leaderboard data (non-blocking, never fatal).
+  // On by default; opt out with ARENA_ELO_SYNC_ENABLED=false.
+  if (process.env.ARENA_ELO_SYNC_ENABLED !== "false") {
     try {
       const { initArenaEloSync } = await import("./lib/arenaEloSync");
       await initArenaEloSync();

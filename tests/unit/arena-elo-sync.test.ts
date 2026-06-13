@@ -13,17 +13,15 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 
-const TEST_DATA_DIR = fs.mkdtempSync(
-  path.join(os.tmpdir(), "omniroute-arena-elo-test-"),
-);
+const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-arena-elo-test-"));
 process.env.DATA_DIR = TEST_DATA_DIR;
 
 const MIGRATION_SQL = fs.readFileSync(
   path.resolve(
     import.meta.dirname ?? __dirname,
-    "../../src/lib/db/migrations/097_model_intelligence.sql",
+    "../../src/lib/db/migrations/097_model_intelligence.sql"
   ),
-  "utf8",
+  "utf8"
 );
 
 import { tryOpenSync } from "../../src/lib/db/adapters/driverFactory";
@@ -48,9 +46,7 @@ import type {
 
 const originalFetch = globalThis.fetch;
 
-function mockFetch(
-  impl: (url: string, opts?: RequestInit) => Promise<Response>,
-): void {
+function mockFetch(impl: (url: string, opts?: RequestInit) => Promise<Response>): void {
   globalThis.fetch = impl as typeof fetch;
 }
 
@@ -80,7 +76,7 @@ function makeModelEntry(overrides: Partial<ArenaModelEntry> = {}): ArenaModelEnt
 
 function makeLeaderboardData(
   models: ArenaModelEntry[] = [],
-  category = "text",
+  category = "text"
 ): ArenaLeaderboardData {
   return {
     meta: { leaderboard: category, model_count: models.length },
@@ -89,7 +85,7 @@ function makeLeaderboardData(
 }
 
 function makeLeaderboardMap(
-  categories: Partial<Record<string, ArenaModelEntry[]>>,
+  categories: Partial<Record<string, ArenaModelEntry[]>>
 ): ArenaLeaderboardMap {
   const map: ArenaLeaderboardMap = {};
   for (const [cat, models] of Object.entries(categories)) {
@@ -103,7 +99,7 @@ let testAdapter: SqliteAdapter;
 function createTestAdapter(): SqliteAdapter {
   const patchedSql = MIGRATION_SQL.replace(
     /\n\s*synced_at TEXT NOT NULL DEFAULT \(datetime\('now'\)\)/,
-    "\n  synced_at TEXT NOT NULL",
+    "\n  synced_at TEXT NOT NULL"
   );
   const adapter = tryOpenSync(":memory:")!;
   adapter.exec(patchedSql);
@@ -144,7 +140,7 @@ describe("normalizeModelName()", () => {
   it("strips 'anthropic/' vendor prefix", () => {
     assert.strictEqual(
       normalizeModelName("anthropic/claude-opus-4-6-thinking"),
-      "claude-opus-4-6-thinking",
+      "claude-opus-4-6-thinking"
     );
   });
 
@@ -195,9 +191,7 @@ describe("transformToModelIntelligence()", () => {
     });
 
     const entries = transformToModelIntelligence(data);
-    const topEntry = entries.find(
-      (e) => e.model === "top-model" && e.category === "default",
-    );
+    const topEntry = entries.find((e) => e.model === "top-model" && e.category === "default");
 
     assert.ok(topEntry);
     // taskFit = 0.4 + 0.58 * ((1500-1000) / 500) = 0.98
@@ -213,9 +207,7 @@ describe("transformToModelIntelligence()", () => {
     });
 
     const entries = transformToModelIntelligence(data);
-    const lowEntry = entries.find(
-      (e) => e.model === "low-model" && e.category === "default",
-    );
+    const lowEntry = entries.find((e) => e.model === "low-model" && e.category === "default");
 
     assert.ok(lowEntry);
     // taskFit = 0.4 + 0.58 * ((1000-1000) / 500) = 0.4
@@ -231,9 +223,7 @@ describe("transformToModelIntelligence()", () => {
     });
 
     const entries = transformToModelIntelligence(data);
-    const entry = entries.find(
-      (e) => e.model === "sparse-model" && e.category === "default",
-    );
+    const entry = entries.find((e) => e.model === "sparse-model" && e.category === "default");
 
     assert.ok(entry);
     assert.strictEqual(entry.confidence, "low");
@@ -248,9 +238,7 @@ describe("transformToModelIntelligence()", () => {
     });
 
     const entries = transformToModelIntelligence(data);
-    const entry = entries.find(
-      (e) => e.model === "mid-model" && e.category === "default",
-    );
+    const entry = entries.find((e) => e.model === "mid-model" && e.category === "default");
 
     assert.ok(entry);
     assert.strictEqual(entry.confidence, "medium");
@@ -265,9 +253,7 @@ describe("transformToModelIntelligence()", () => {
     });
 
     const entries = transformToModelIntelligence(data);
-    const entry = entries.find(
-      (e) => e.model === "popular-model" && e.category === "default",
-    );
+    const entry = entries.find((e) => e.model === "popular-model" && e.category === "default");
 
     assert.ok(entry);
     assert.strictEqual(entry.confidence, "high");
@@ -275,9 +261,7 @@ describe("transformToModelIntelligence()", () => {
 
   it("category mapping: 'text' → [default, review, documentation, debugging]", () => {
     const data = makeLeaderboardMap({
-      text: [
-        makeModelEntry({ model: "text-model", score: 1200, votes: 5000, rank: 1 }),
-      ],
+      text: [makeModelEntry({ model: "text-model", score: 1200, votes: 5000, rank: 1 })],
     });
 
     const entries = transformToModelIntelligence(data);
@@ -286,25 +270,16 @@ describe("transformToModelIntelligence()", () => {
       .map((e) => e.category)
       .sort();
 
-    assert.deepStrictEqual(categories, [
-      "debugging",
-      "default",
-      "documentation",
-      "review",
-    ]);
+    assert.deepStrictEqual(categories, ["debugging", "default", "documentation", "review"]);
   });
 
   it("category mapping: 'code' → [coding]", () => {
     const data = makeLeaderboardMap({
-      code: [
-        makeModelEntry({ model: "code-model", score: 1300, votes: 5000, rank: 1 }),
-      ],
+      code: [makeModelEntry({ model: "code-model", score: 1300, votes: 5000, rank: 1 })],
     });
 
     const entries = transformToModelIntelligence(data);
-    const categories = entries
-      .filter((e) => e.model === "code-model")
-      .map((e) => e.category);
+    const categories = entries.filter((e) => e.model === "code-model").map((e) => e.category);
 
     assert.deepStrictEqual(categories, ["coding"]);
   });
@@ -312,38 +287,26 @@ describe("transformToModelIntelligence()", () => {
   it("expires_at is set to ~7 days in the future", () => {
     const before = Date.now();
     const data = makeLeaderboardMap({
-      text: [
-        makeModelEntry({ model: "test-model", score: 1200, votes: 5000, rank: 1 }),
-      ],
+      text: [makeModelEntry({ model: "test-model", score: 1200, votes: 5000, rank: 1 })],
     });
 
     const entries = transformToModelIntelligence(data);
     const after = Date.now();
 
-    const entry = entries.find(
-      (e) => e.model === "test-model" && e.category === "default",
-    );
+    const entry = entries.find((e) => e.model === "test-model" && e.category === "default");
     assert.ok(entry);
     assert.ok(entry.expiresAt);
 
     const expiresMs = new Date(entry.expiresAt).getTime();
     const sevenDaysMs = 7 * 24 * 60 * 60 * 1000;
 
-    assert.ok(
-      expiresMs >= before + sevenDaysMs - 2000,
-      `expiresAt too early: ${entry.expiresAt}`,
-    );
-    assert.ok(
-      expiresMs <= after + sevenDaysMs + 2000,
-      `expiresAt too late: ${entry.expiresAt}`,
-    );
+    assert.ok(expiresMs >= before + sevenDaysMs - 2000, `expiresAt too early: ${entry.expiresAt}`);
+    assert.ok(expiresMs <= after + sevenDaysMs + 2000, `expiresAt too late: ${entry.expiresAt}`);
   });
 
   it("source is 'arena_elo' for all entries", () => {
     const data = makeLeaderboardMap({
-      text: [
-        makeModelEntry({ model: "test-model", score: 1200, votes: 5000, rank: 1 }),
-      ],
+      text: [makeModelEntry({ model: "test-model", score: 1200, votes: 5000, rank: 1 })],
     });
 
     const entries = transformToModelIntelligence(data);
@@ -380,9 +343,7 @@ describe("transformToModelIntelligence()", () => {
 
   it("skips unknown leaderboard categories (e.g. vision)", () => {
     const data = makeLeaderboardMap({
-      vision: [
-        makeModelEntry({ model: "vision-model", score: 1300, votes: 5000, rank: 1 }),
-      ],
+      vision: [makeModelEntry({ model: "vision-model", score: 1300, votes: 5000, rank: 1 })],
     });
 
     const entries = transformToModelIntelligence(data);
@@ -398,26 +359,20 @@ describe("transformToModelIntelligence()", () => {
     });
 
     const entries = transformToModelIntelligence(data);
-    const entry = entries.find(
-      (e) => e.model === "test-model" && e.category === "default",
-    );
+    const entry = entries.find((e) => e.model === "test-model" && e.category === "default");
     assert.ok(entry);
     assert.strictEqual(entry.eloRaw, 1337);
   });
 
   it("handles single-model leaderboard (eloRange = 1, avoids division by zero)", () => {
     const data = makeLeaderboardMap({
-      text: [
-        makeModelEntry({ model: "only-model", score: 1200, votes: 5000, rank: 1 }),
-      ],
+      text: [makeModelEntry({ model: "only-model", score: 1200, votes: 5000, rank: 1 })],
     });
 
     const entries = transformToModelIntelligence(data);
     assert.ok(entries.length > 0);
 
-    const entry = entries.find(
-      (e) => e.model === "only-model" && e.category === "default",
-    );
+    const entry = entries.find((e) => e.model === "only-model" && e.category === "default");
     assert.ok(entry);
     assert.ok(Math.abs(entry.score - 0.4) < 0.001);
   });
@@ -449,11 +404,11 @@ describe("fetchArenaLeaderboards()", () => {
   it("successful fetch with valid JSON returns both leaderboards", async () => {
     const textData = makeLeaderboardData(
       [makeModelEntry({ model: "text-model", score: 1200, votes: 5000, rank: 1 })],
-      "text",
+      "text"
     );
     const codeData = makeLeaderboardData(
       [makeModelEntry({ model: "code-model", score: 1300, votes: 5000, rank: 1 })],
-      "code",
+      "code"
     );
 
     mockFetch(async (url: string) => {
@@ -481,7 +436,7 @@ describe("fetchArenaLeaderboards()", () => {
         assert.ok(err instanceof Error);
         assert.ok(err.message.includes("All Arena leaderboard fetches failed"));
         return true;
-      },
+      }
     );
   });
 
@@ -496,20 +451,19 @@ describe("fetchArenaLeaderboards()", () => {
         assert.ok(err instanceof Error);
         assert.ok(err.message.includes("All Arena leaderboard fetches failed"));
         return true;
-      },
+      }
     );
   });
 
   it("succeeds when one category fails but another succeeds", async () => {
     const textData = makeLeaderboardData(
       [makeModelEntry({ model: "text-model", score: 1200, votes: 5000, rank: 1 })],
-      "text",
+      "text"
     );
 
     mockFetch(async (url: string) => {
       if (url.includes("name=text")) return jsonResponse(textData);
-      if (url.includes("name=code"))
-        return new Response("Error", { status: 500 });
+      if (url.includes("name=code")) return new Response("Error", { status: 500 });
       return new Response("Not found", { status: 404 });
     });
 
@@ -532,7 +486,7 @@ describe("fetchArenaLeaderboards()", () => {
         assert.ok(err instanceof Error);
         assert.ok(err.message.includes("All Arena leaderboard fetches failed"));
         return true;
-      },
+      }
     );
   });
 });
@@ -545,11 +499,11 @@ describe("syncArenaElo()", () => {
   it("happy path: returns success=true with correct modelCount", async () => {
     const textData = makeLeaderboardData(
       [makeModelEntry({ model: "gpt-5.5", score: 1200, votes: 5000, rank: 1 })],
-      "text",
+      "text"
     );
     const codeData = makeLeaderboardData(
       [makeModelEntry({ model: "deepseek-r1", score: 1300, votes: 5000, rank: 1 })],
-      "code",
+      "code"
     );
 
     mockFetch(async (url: string) => {
@@ -572,13 +526,12 @@ describe("syncArenaElo()", () => {
   it("happy path: entries in DB have correct source and categories", async () => {
     const textData = makeLeaderboardData(
       [makeModelEntry({ model: "unique-test-model", score: 1200, votes: 5000, rank: 1 })],
-      "text",
+      "text"
     );
 
     mockFetch(async (url: string) => {
       if (url.includes("name=text")) return jsonResponse(textData);
-      if (url.includes("name=code"))
-        return jsonResponse(makeLeaderboardData([], "code"));
+      if (url.includes("name=code")) return jsonResponse(makeLeaderboardData([], "code"));
       return new Response("Not found", { status: 404 });
     });
 
@@ -586,12 +539,7 @@ describe("syncArenaElo()", () => {
 
     const entries = getAllEntries().filter((e) => String(e.model) === "unique-test-model");
     const categories = entries.map((e) => String(e.category)).sort();
-    assert.deepStrictEqual(categories, [
-      "debugging",
-      "default",
-      "documentation",
-      "review",
-    ]);
+    assert.deepStrictEqual(categories, ["debugging", "default", "documentation", "review"]);
 
     for (const entry of entries) {
       assert.strictEqual(entry.source, "arena_elo");
@@ -601,13 +549,12 @@ describe("syncArenaElo()", () => {
   it("dryRun=true → does not call bulkUpsertModelIntelligence", async () => {
     const textData = makeLeaderboardData(
       [makeModelEntry({ model: "test-model", score: 1200, votes: 5000, rank: 1 })],
-      "text",
+      "text"
     );
 
     mockFetch(async (url: string) => {
       if (url.includes("name=text")) return jsonResponse(textData);
-      if (url.includes("name=code"))
-        return jsonResponse(makeLeaderboardData([], "code"));
+      if (url.includes("name=code")) return jsonResponse(makeLeaderboardData([], "code"));
       return new Response("Not found", { status: 404 });
     });
 
@@ -629,13 +576,12 @@ describe("syncArenaElo()", () => {
 
     const textData = makeLeaderboardData(
       [makeModelEntry({ model: "test-model", score: 1200, votes: 5000, rank: 1 })],
-      "text",
+      "text"
     );
 
     mockFetch(async (url: string) => {
       if (url.includes("name=text")) return jsonResponse(textData);
-      if (url.includes("name=code"))
-        return jsonResponse(makeLeaderboardData([], "code"));
+      if (url.includes("name=code")) return jsonResponse(makeLeaderboardData([], "code"));
       return new Response("Not found", { status: 404 });
     });
 
@@ -659,26 +605,36 @@ describe("syncArenaElo()", () => {
     assert.ok(result.error);
     assert.ok(
       result.error!.includes("All Arena leaderboard fetches failed"),
-      `unexpected: ${result.error}`,
+      `unexpected: ${result.error}`
     );
   });
 
   it("calls deleteExpiredIntelligence before writing new entries", async () => {
-    testAdapter.prepare(
-      "INSERT INTO model_intelligence (model, source, category, score, elo_raw, confidence, synced_at, expires_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
-    ).run("old-model", "arena_elo", "default", 0.5, 1000, "low", "2025-01-01T00:00:00Z", "2020-01-01T00:00:00Z");
+    testAdapter
+      .prepare(
+        "INSERT INTO model_intelligence (model, source, category, score, elo_raw, confidence, synced_at, expires_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?)"
+      )
+      .run(
+        "old-model",
+        "arena_elo",
+        "default",
+        0.5,
+        1000,
+        "low",
+        "2025-01-01T00:00:00Z",
+        "2020-01-01T00:00:00Z"
+      );
 
     assert.strictEqual(countArenaEloEntries(), 1);
 
     const textData = makeLeaderboardData(
       [makeModelEntry({ model: "new-model", score: 1200, votes: 5000, rank: 1 })],
-      "text",
+      "text"
     );
 
     mockFetch(async (url: string) => {
       if (url.includes("name=text")) return jsonResponse(textData);
-      if (url.includes("name=code"))
-        return jsonResponse(makeLeaderboardData([], "code"));
+      if (url.includes("name=code")) return jsonResponse(makeLeaderboardData([], "code"));
       return new Response("Not found", { status: 404 });
     });
 
@@ -693,10 +649,8 @@ describe("syncArenaElo()", () => {
 
   it("handles empty leaderboard gracefully (0 entries, no DB write)", async () => {
     mockFetch(async (url: string) => {
-      if (url.includes("name=text"))
-        return jsonResponse(makeLeaderboardData([], "text"));
-      if (url.includes("name=code"))
-        return jsonResponse(makeLeaderboardData([], "code"));
+      if (url.includes("name=text")) return jsonResponse(makeLeaderboardData([], "text"));
+      if (url.includes("name=code")) return jsonResponse(makeLeaderboardData([], "code"));
       return new Response("Not found", { status: 404 });
     });
 
@@ -710,13 +664,12 @@ describe("syncArenaElo()", () => {
   it("updates lastSyncTime after successful sync", async () => {
     const textData = makeLeaderboardData(
       [makeModelEntry({ model: "test-model", score: 1200, votes: 5000, rank: 1 })],
-      "text",
+      "text"
     );
 
     mockFetch(async (url: string) => {
       if (url.includes("name=text")) return jsonResponse(textData);
-      if (url.includes("name=code"))
-        return jsonResponse(makeLeaderboardData([], "code"));
+      if (url.includes("name=code")) return jsonResponse(makeLeaderboardData([], "code"));
       return new Response("Not found", { status: 404 });
     });
 
@@ -729,19 +682,20 @@ describe("syncArenaElo()", () => {
 
   it("model aliases are stored in DB alongside canonical names", async () => {
     const textData = makeLeaderboardData(
-      [makeModelEntry({
-        model: "anthropic/claude-opus-4-6-thinking",
-        score: 1400,
-        votes: 5000,
-        rank: 1,
-      })],
-      "text",
+      [
+        makeModelEntry({
+          model: "anthropic/claude-opus-4-6-thinking",
+          score: 1400,
+          votes: 5000,
+          rank: 1,
+        }),
+      ],
+      "text"
     );
 
     mockFetch(async (url: string) => {
       if (url.includes("name=text")) return jsonResponse(textData);
-      if (url.includes("name=code"))
-        return jsonResponse(makeLeaderboardData([], "code"));
+      if (url.includes("name=code")) return jsonResponse(makeLeaderboardData([], "code"));
       return new Response("Not found", { status: 404 });
     });
 
@@ -791,7 +745,7 @@ describe("getArenaEloSyncStatus()", () => {
     assert.ok(typeof status.nextSync === "string" || status.nextSync === null);
   });
 
-  it("reflects ARENA_ELO_SYNC_ENABLED env var", () => {
+  it("reflects ARENA_ELO_SYNC_ENABLED env var (on by default, opt-out)", () => {
     const original = process.env.ARENA_ELO_SYNC_ENABLED;
 
     process.env.ARENA_ELO_SYNC_ENABLED = "true";
@@ -801,6 +755,11 @@ describe("getArenaEloSyncStatus()", () => {
     process.env.ARENA_ELO_SYNC_ENABLED = "false";
     const disabledStatus = getArenaEloSyncStatus();
     assert.strictEqual(disabledStatus.enabled, false);
+
+    // Default (unset) is now enabled — only an explicit "false" opts out.
+    delete process.env.ARENA_ELO_SYNC_ENABLED;
+    const defaultStatus = getArenaEloSyncStatus();
+    assert.strictEqual(defaultStatus.enabled, true);
 
     if (original !== undefined) {
       process.env.ARENA_ELO_SYNC_ENABLED = original;
