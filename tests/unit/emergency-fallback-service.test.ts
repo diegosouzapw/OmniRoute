@@ -1,8 +1,30 @@
 import test from "node:test";
 import assert from "node:assert/strict";
+import fs from "node:fs";
+import os from "node:os";
+import path from "node:path";
+
+const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-emergency-fallback-service-"));
+process.env.DATA_DIR = tmpDir;
+process.env.DISABLE_SQLITE_AUTO_BACKUP = "true";
+
+const core = await import("../../src/lib/db/core.ts");
 
 const { EMERGENCY_FALLBACK_CONFIG, shouldUseFallback, isFallbackDecision } =
   await import("../../open-sse/services/emergencyFallback.ts");
+
+test.beforeEach(() => {
+  core.resetDbInstance();
+  fs.rmSync(tmpDir, { recursive: true, force: true });
+  fs.mkdirSync(tmpDir, { recursive: true });
+  delete process.env.OMNIROUTE_EMERGENCY_FALLBACK;
+});
+
+test.after(() => {
+  core.resetDbInstance();
+  fs.rmSync(tmpDir, { recursive: true, force: true });
+  delete process.env.OMNIROUTE_EMERGENCY_FALLBACK;
+});
 
 test("shouldUseFallback returns disabled when the feature flag is off", () => {
   const result = shouldUseFallback(402, "payment required", false, {

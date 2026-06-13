@@ -12,6 +12,8 @@
  * `OMNIROUTE_EMERGENCY_FALLBACK=false` (or `0`). Default remains enabled.
  */
 
+import { isFeatureFlagEnabled } from "@/shared/utils/featureFlags";
+
 export interface EmergencyFallbackConfig {
   enabled: boolean;
   provider: string;
@@ -66,9 +68,17 @@ export interface NoFallbackDecision {
 
 export type FallbackResult = FallbackDecision | NoFallbackDecision;
 
-export function isEmergencyFallbackEnvEnabled(): boolean {
+function isEmergencyFallbackRawEnvEnabled(): boolean {
   const raw = process.env.OMNIROUTE_EMERGENCY_FALLBACK;
   return raw !== "false" && raw !== "0";
+}
+
+export function isEmergencyFallbackEnvEnabled(): boolean {
+  try {
+    return isFeatureFlagEnabled("OMNIROUTE_EMERGENCY_FALLBACK");
+  } catch {
+    return isEmergencyFallbackRawEnvEnabled();
+  }
 }
 
 export function shouldUseFallback(

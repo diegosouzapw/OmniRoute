@@ -1,10 +1,31 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import {
-  shouldUseFallback,
-  isEmergencyFallbackEnvEnabled,
-  EMERGENCY_FALLBACK_CONFIG,
-} from "../../../open-sse/services/emergencyFallback.ts";
+import fs from "node:fs";
+import os from "node:os";
+import path from "node:path";
+
+const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-emergency-fallback-"));
+process.env.DATA_DIR = tmpDir;
+process.env.DISABLE_SQLITE_AUTO_BACKUP = "true";
+
+const core = await import("../../../src/lib/db/core.ts");
+const { setFeatureFlagOverride, removeFeatureFlagOverride } =
+  await import("../../../src/lib/db/featureFlags.ts");
+const { shouldUseFallback, isEmergencyFallbackEnvEnabled, EMERGENCY_FALLBACK_CONFIG } =
+  await import("../../../open-sse/services/emergencyFallback.ts");
+
+test.beforeEach(() => {
+  core.resetDbInstance();
+  fs.rmSync(tmpDir, { recursive: true, force: true });
+  fs.mkdirSync(tmpDir, { recursive: true });
+  delete process.env.OMNIROUTE_EMERGENCY_FALLBACK;
+});
+
+test.after(() => {
+  core.resetDbInstance();
+  fs.rmSync(tmpDir, { recursive: true, force: true });
+  delete process.env.OMNIROUTE_EMERGENCY_FALLBACK;
+});
 
 function withEnv(value: string | undefined, fn: () => void) {
   const previous = process.env.OMNIROUTE_EMERGENCY_FALLBACK;
@@ -57,6 +78,26 @@ test("OMNIROUTE_EMERGENCY_FALLBACK=0 disables the budget-keyword redirect", () =
     const decision = shouldUseFallback(429, "quota exceeded for account", false);
     assert.equal(decision.shouldFallback, false);
     assert.match(decision.reason, /OMNIROUTE_EMERGENCY_FALLBACK/);
+  });
+});
+
+test("DB feature flag override can disable an env-enabled fallback", () => {
+  withEnv("true", () => {
+    setFeatureFlagOverride("OMNIROUTE_EMERGENCY_FALLBACK", "false");
+    const decision = shouldUseFallback(402, "", false);
+    assert.equal(isEmergencyFallbackEnvEnabled(), false);
+    assert.equal(decision.shouldFallback, false);
+    assert.match(decision.reason, /OMNIROUTE_EMERGENCY_FALLBACK/);
+  });
+});
+
+test("DB feature flag override can enable an env-disabled fallback", () => {
+  withEnv("false", () => {
+    setFeatureFlagOverride("OMNIROUTE_EMERGENCY_FALLBACK", "true");
+    const decision = shouldUseFallback(402, "", false);
+    assert.equal(isEmergencyFallbackEnvEnabled(), true);
+    assert.equal(decision.shouldFallback, true);
+    removeFeatureFlagOverride("OMNIROUTE_EMERGENCY_FALLBACK");
   });
 });
 
