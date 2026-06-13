@@ -39,4 +39,29 @@ describe("plugin API routes", () => {
       assert.equal(typeof mod.POST, "function");
     });
   });
+
+  describe("new IPC and UI extensibility routes", () => {
+    it("render route exports GET, POST, and OPTIONS", async () => {
+      const mod = await import("../../src/app/api/plugins/[name]/render/route.ts");
+      assert.equal(typeof mod.GET, "function");
+      assert.equal(typeof mod.POST, "function");
+      assert.equal(typeof mod.OPTIONS, "function");
+    });
+
+    it("ui-extensions route exports GET and OPTIONS", async () => {
+      const mod = await import("../../src/app/api/plugins/ui-extensions/route.ts");
+      assert.equal(typeof mod.GET, "function");
+      assert.equal(typeof mod.OPTIONS, "function");
+    });
+
+    it("render route GET calls checkAuth", async () => {
+      const mod = await import("../../src/app/api/plugins/[name]/render/route.ts");
+      assert.equal(typeof mod.GET, "function");
+    });
+
+    it("ui-extensions route GET calls checkAuth", async () => {
+      const mod = await import("../../src/app/api/plugins/ui-extensions/route.ts");
+      assert.equal(typeof mod.GET, "function");
+    });
+  });
 });

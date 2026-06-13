@@ -1,7 +1,7 @@
 import { describe, it } from "node:test";
 import assert from "node:assert/strict";
 
-import { loadPlugin } from "../../src/lib/plugins/loader.ts";
+import { loadPlugin, buildHostScript } from "../../src/lib/plugins/loader.ts";
 import type { PluginManifestWithDefaults } from "../../src/lib/plugins/manifest.ts";
 
 function makeManifest(overrides?: Partial<PluginManifestWithDefaults>): PluginManifestWithDefaults {
@@ -58,5 +58,47 @@ describe("Plugin loader IPC", () => {
       requires: { permissions: ["network", "file-read", "file-write", "env", "exec"] },
     });
     assert.equal(manifest.requires.permissions.length, 5);
+  });
+});
+
+describe("buildHostScript IPC permission gating", () => {
+  it("includes __omniroute.broadcast/sendTo when ipc permission is granted", () => {
+    const script = buildHostScript(false, ["ipc"]);
+    assert.ok(script.includes("__omniroute"));
+    assert.ok(script.includes("broadcast"));
+    assert.ok(script.includes("sendTo"));
+  });
+
+  it("omits broadcast/sendTo when ipc permission is not granted", () => {
+    const script = buildHostScript(false, []);
+    assert.ok(script.includes("__omniroute"));
+    assert.ok(!script.includes("broadcast"));
+    assert.ok(!script.includes("sendTo"));
+  });
+
+  it("omits broadcast/sendTo when other permissions are granted but not ipc", () => {
+    const script = buildHostScript(false, ["network", "env"]);
+    assert.ok(script.includes("__omniroute"));
+    assert.ok(!script.includes("broadcast"));
+    assert.ok(!script.includes("sendTo"));
+  });
+
+  it("includes broadcast/sendTo alongside other permissions when ipc is granted", () => {
+    const script = buildHostScript(false, ["network", "ipc", "env"]);
+    assert.ok(script.includes("__omniroute"));
+    assert.ok(script.includes("broadcast"));
+    assert.ok(script.includes("sendTo"));
+  });
+
+  it("includes db methods when db permission is granted", () => {
+    const script = buildHostScript(true, []);
+    assert.ok(script.includes("db:"));
+    assert.ok(script.includes(".get("));
+    assert.ok(script.includes(".set("));
+  });
+
+  it("omits db methods when db permission is not granted", () => {
+    const script = buildHostScript(false, []);
+    assert.ok(!script.includes("db:"));
   });
 });

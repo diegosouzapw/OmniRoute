@@ -44,11 +44,12 @@ export interface LoadedPlugin {
 // Uses process.send()/process.on("message") — NOT worker_threads.
 // Written as .mjs to force ESM execution regardless of package.json.
 
-function buildHostScript(hasDb: boolean, permissions: string[]): string {
+export function buildHostScript(hasDb: boolean, permissions: string[]): string {
   const hasNetwork = permissions.includes("network");
   const hasFileRead = permissions.includes("file-read");
   const hasFileWrite = permissions.includes("file-write");
   const hasEnv = permissions.includes("env");
+  const hasIpc = permissions.includes("ipc");
 
   const sandboxGlobals = [
     'const vm = require("vm");',
@@ -69,9 +70,17 @@ function buildHostScript(hasDb: boolean, permissions: string[]): string {
     "  Map: globalThis.Map, Set: globalThis.Set, WeakMap: globalThis.WeakMap, WeakSet: globalThis.WeakSet, Symbol: globalThis.Symbol,",
     "  parseInt: globalThis.parseInt, parseFloat: globalThis.parseFloat, isNaN: globalThis.isNaN, isFinite: globalThis.isFinite,",
     "  URL: globalThis.URL, URLSearchParams: globalThis.URLSearchParams, Buffer: globalThis.Buffer,",
-    "  __omniroute: {",
-    '    broadcast: (e,d) => ipcSend({type:"ipc",kind:"broadcast",event:e,data:d}),',
-    '    sendTo: (t,e,d) => ipcSend({type:"ipc",kind:"targeted",target:t,event:e,data:d}),',
+  if (hasIpc) {
+    sandboxGlobals.push(
+      "  __omniroute: {",
+      '    broadcast: (e,d) => ipcSend({type:"ipc",kind:"broadcast",event:e,data:d}),',
+      '    sendTo: (t,e,d) => ipcSend({type:"ipc",kind:"targeted",target:t,event:e,data:d}),',
+    );
+  } else {
+    sandboxGlobals.push(
+      "  __omniroute: {},",
+    );
+  }
   ];
 
   if (hasDb) {

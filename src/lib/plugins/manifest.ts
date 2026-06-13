@@ -8,7 +8,7 @@ import { z } from "zod";
 
 // ── Permission enum ──
 
-export const PermissionSchema = z.enum(["network", "file-read", "file-write", "env", "exec"]);
+export const PermissionSchema = z.enum(["network", "file-read", "file-write", "env", "exec", "ipc"]);
 export type Permission = z.infer<typeof PermissionSchema>;
 
 // ── Skill definition in manifest ──

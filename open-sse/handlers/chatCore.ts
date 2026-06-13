@@ -1639,7 +1639,7 @@ export async function handleChatCore({
   // ── Plugin onRequest hook ──
   // Dynamic import cached by Node.js after first call — minimal overhead
   try {
-    const { runOnRequest, emitHook } = await import("@/lib/plugins/hooks");
+    const { runOnRequest } = await import("@/lib/plugins/hooks");
     const pluginCtx = {
       requestId: traceId,
       body,
