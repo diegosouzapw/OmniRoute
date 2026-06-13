@@ -83,11 +83,7 @@ import { getSessionConnection } from "./sessionManager.ts";
 import { orderTargetsByEvalScores } from "./evalRouting.ts";
 import { generateRoutingHints } from "./manifestAdapter";
 import type { RoutingHint } from "./manifestAdapter";
-import {
-  classifyRequestComplexity,
-  escalateTier,
-  type ComplexityTier,
-} from "./autoCombo/complexityRouter";
+import { buildComplexityRoutingHint } from "./autoCombo/complexityRouter";
 import type { CompressionMode } from "./compression/types.ts";
 import { getModelContextLimit } from "../../src/lib/modelCapabilities";
 import { getProviderConnections } from "../../src/lib/db/providers";
@@ -3411,39 +3407,14 @@ export async function handleComboChat({
       // Complexity-aware routing (2026, opt-in): classify the request's
       // difficulty and feed a tier hint into scoring so tierAffinity /
       // specificityMatch favor candidates whose tier matches the request.
-      let autoManifestHint: RoutingHint | null = null;
-      if (config.complexityAwareRouting === true) {
-        try {
-          const ruleInput = {
-            messages: Array.isArray(body?.messages)
-              ? (body.messages as Array<{ role?: string; content?: string | unknown }>)
-              : [],
-            tools: Array.isArray(body?.tools)
-              ? (body.tools as Array<{
-                  function?: { name: string; description?: string; parameters?: unknown };
-                }>)
-              : undefined,
-            model: typeof body?.model === "string" ? body.model : undefined,
-          };
-          autoManifestHint = generateRoutingHints(
-            eligibleTargets.filter((t) => t.kind === "model"),
-            ruleInput
-          );
-          // Tool-use escalation: floor the recommended tier at "cheap" so the
-          // scoring favors function-calling-reliable models for agentic requests.
-          const classification = classifyRequestComplexity(ruleInput);
-          autoManifestHint.recommendedMinTier = escalateTier(
-            autoManifestHint.recommendedMinTier as ComplexityTier,
-            classification.recommendedTier
-          ) as typeof autoManifestHint.recommendedMinTier;
-          log.info(
-            "COMBO",
-            `Complexity-aware routing: level=${classification.level} score=${classification.score} minTier=${autoManifestHint.recommendedMinTier} tools=${classification.hasToolUse}`
-          );
-        } catch {
-          autoManifestHint = null; // fail-open: scoring stays tier-neutral
-        }
-      }
+      const autoManifestHint: RoutingHint | null =
+        config.complexityAwareRouting === true
+          ? buildComplexityRoutingHint(
+              eligibleTargets.filter((t) => t.kind === "model"),
+              body,
+              log
+            )
+          : null;
 
       const scoredTargets = scoreAutoTargets(
         eligibleTargets,

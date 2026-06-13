@@ -10,7 +10,23 @@ import assert from "node:assert/strict";
 import {
   classifyRequestComplexity,
   escalateTier,
+  buildComplexityRoutingHint,
 } from "../../open-sse/services/autoCombo/complexityRouter.ts";
+
+const NOOP_LOG = { info: () => {} };
+
+function modelTargets(): Parameters<typeof buildComplexityRoutingHint>[0] {
+  return [
+    {
+      kind: "model",
+      provider: "openai",
+      model: "gpt-4o-mini",
+      modelStr: "openai/gpt-4o-mini",
+      executionKey: "k1",
+      stepId: "s1",
+    },
+  ] as unknown as Parameters<typeof buildComplexityRoutingHint>[0];
+}
 
 test("escalateTier — raises to the floor, never lowers", () => {
   assert.equal(escalateTier("free", "cheap"), "cheap");
@@ -60,4 +76,32 @@ test("classifyRequestComplexity — tool schemas escalate the tier above free", 
   });
   assert.equal(c.hasToolUse, true);
   assert.notEqual(c.recommendedTier, "free", "tool-using requests must not route to the free tier");
+});
+
+test("buildComplexityRoutingHint — a tool-using request floors the hint tier above free", () => {
+  const hint = buildComplexityRoutingHint(
+    modelTargets(),
+    {
+      messages: [{ role: "user", content: "weather?" }],
+      tools: [{ function: { name: "get_weather", description: "Get the weather", parameters: {} } }],
+    },
+    NOOP_LOG
+  );
+  assert.ok(hint, "expected a non-null hint when complexity routing builds successfully");
+  if (!hint) return;
+  assert.notEqual(
+    hint.recommendedMinTier,
+    "free",
+    "tool-use must floor the recommended tier at cheap (escalation applied)"
+  );
+});
+
+test("buildComplexityRoutingHint — a null body is safe and still builds a tier-neutral hint", () => {
+  const hint = buildComplexityRoutingHint(modelTargets(), null, NOOP_LOG);
+  assert.ok(hint, "a null body must not throw — messages default to [] and a hint is built");
+  if (!hint) return;
+  assert.ok(
+    ["free", "cheap", "premium"].includes(hint.recommendedMinTier),
+    `unexpected tier ${hint.recommendedMinTier}`
+  );
 });
