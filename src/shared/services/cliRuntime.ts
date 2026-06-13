@@ -4,6 +4,7 @@ import os from "os";
 import path from "path";
 import { spawn, execFileSync } from "child_process";
 import { getHermesHome } from "@/lib/cli-helper/config-generator/hermesHome";
+import { getCachedLoginShellPath, mergeShellPath } from "./loginShellPath";
 
 const VALID_RUNTIME_MODES = new Set(["auto", "host", "container"]);
 const FALSE_VALUES = new Set(["0", "false", "no", "off"]);
@@ -650,19 +651,24 @@ const getNvmNodePath = (): string | null => {
 const getLookupEnv = () => {
   const env = { ...process.env };
   const extraPaths = getExtraPaths();
-  const currentPath = env.PATH || env.Path || "";
+  const basePath = env.PATH || env.Path || "";
+
+  // #3321: on macOS GUI/Electron the inherited PATH is truncated (no Homebrew/nvm/volta),
+  // so CLI detection and CLI spawns can't find tools the user actually has installed.
+  // Enrich with the login-shell PATH (cached, darwin-only, fail-safe → null elsewhere).
+  const loginShellPath = getCachedLoginShellPath();
+  const enrichedPath = loginShellPath ? mergeShellPath(basePath, loginShellPath) : basePath;
 
   // Only add user-specified extra paths, NOT generic user directories
   // This is more secure - user explicitly opts in via CLI_EXTRA_PATHS
-  if (extraPaths.length > 0) {
-    const mergedPath = [...extraPaths, currentPath].filter(Boolean).join(path.delimiter);
-    env.PATH = mergedPath;
-    if (isWindows()) {
-      env.Path = mergedPath;
+  if (extraPaths.length > 0 || enrichedPath !== basePath || isWindows()) {
+    const mergedPath = [...extraPaths, enrichedPath].filter(Boolean).join(path.delimiter);
+    if (mergedPath) {
+      env.PATH = mergedPath;
+      if (isWindows()) {
+        env.Path = mergedPath;
+      }
     }
-  } else if (isWindows() && currentPath) {
-    env.PATH = currentPath;
-    env.Path = currentPath;
   }
   return env;
 };

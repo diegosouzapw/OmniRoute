@@ -8,6 +8,8 @@
 
 ### 🐛 Fixed
 
+- fix(cli): detect CLI tools installed outside the GUI PATH on macOS. macOS GUI/Electron apps don't inherit the user's login-shell PATH, so Homebrew (`/opt/homebrew/bin`), nvm and volta-installed CLIs (Cline, Codex, OpenCode, Continue, Hermes, …) were reported "not installed" and the Cline runtime couldn't be spawned. CLI detection (`omniroute doctor`) and the provider-runtime lookup now enrich the lookup PATH with the login shell's PATH (`$SHELL -ilc`, darwin-only, cached, fail-safe). ([#3321](https://github.com/diegosouzapw/OmniRoute/issues/3321) — thanks @mikmaneggahommie)
+
 - fix(cursor): send a `ModelDetails` envelope (`model_id` + `display_model_id` + `display_name`) in the Cursor agent request, alongside the existing `RequestedModel`. Pinned Cursor Claude/GPT *thinking* variants (e.g. `cursor/claude-opus-4-7-thinking-xhigh`) were returning an empty turn → `502 Provider returned empty content`, because Cursor needs the `ModelDetails` envelope (which `cursor-agent`'s real wire format sends) to resolve them; `RequestedModel` alone only resolves server-routed ids (`auto`/`composer-*`). The `-fast` parameter path on `RequestedModel` is preserved. ([#3714](https://github.com/diegosouzapw/OmniRoute/issues/3714))
 
 - fix(docs): correct the OAuth redirect URI in the Fly.io deployment guide. It told users to register `<NEXT_PUBLIC_BASE_URL>/api/oauth/<provider>/callback`, but OmniRoute's browser OAuth flow uses a single `<NEXT_PUBLIC_BASE_URL>/callback` handler (there is no per-provider callback route). The mismatch caused GitLab Duo (and any OAuth provider) to reject the flow with "The redirect URI included is not valid". Added a regression guard test. ([#3732](https://github.com/diegosouzapw/OmniRoute/issues/3732))
