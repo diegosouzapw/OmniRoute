@@ -116,6 +116,10 @@ test("xhigh effort support defaults to pass-through and opts out explicit false 
   assert.equal(supportsXHighEffort("claude", "claude-opus-4-6"), false);
   assert.equal(supportsXHighEffort("claude", "claude-sonnet-4-6"), false);
   assert.equal(supportsXHighEffort("claude", "claude-future-5-0"), true);
+  assert.equal(supportsXHighEffort("anthropic-compatible-test", "claude-opus-4-6"), false);
+  assert.equal(supportsXHighEffort("anthropic-compatible-test", "claude-opus-4-7"), true);
+  assert.equal(supportsXHighEffort("anthropic-compatible-cc-test", "claude-opus-4-6"), false);
+  assert.equal(supportsXHighEffort("anthropic-compatible-cc-test", "claude-opus-4-7"), true);
   assert.equal(supportsXHighEffort("openrouter", "deepseek/deepseek-v4-pro"), true);
   assert.equal(supportsXHighEffort("deepseek", "deepseek-v4-pro"), true);
 });
@@ -126,6 +130,22 @@ test("max normalization keeps existing xhigh opt-in behavior", () => {
     true
   );
   assert.equal(supportsXHighEffortForMaxNormalization("xiaomi-mimo", "mimo-v2.5-pro"), false);
+  assert.equal(
+    supportsXHighEffortForMaxNormalization("anthropic-compatible-cc-test", "claude-opus-4-6"),
+    false
+  );
+  assert.equal(
+    supportsXHighEffortForMaxNormalization("anthropic-compatible-cc-test", "claude-opus-4-7"),
+    true
+  );
+  assert.equal(
+    supportsXHighEffortForMaxNormalization("anthropic-compatible-test", "claude-opus-4-6"),
+    false
+  );
+  assert.equal(
+    supportsXHighEffortForMaxNormalization("anthropic-compatible-test", "claude-opus-4-7"),
+    true
+  );
   assert.equal(
     supportsXHighEffortForMaxNormalization("openrouter", "deepseek/deepseek-v4-pro"),
     false

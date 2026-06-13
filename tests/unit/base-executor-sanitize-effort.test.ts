@@ -57,6 +57,22 @@ test("sanitizeReasoningEffortForProvider: explicit xhigh opt-out downgrades to h
   );
 });
 
+test("sanitizeReasoningEffortForProvider: Anthropic-compatible dynamic provider honors xhigh opt-out", () => {
+  const body = {
+    model: "claude-opus-4-6",
+    reasoning_effort: "xhigh",
+    messages: [{ role: "user", content: "hi" }],
+  };
+  const result = sanitizeReasoningEffortForProvider(
+    body,
+    "anthropic-compatible-test",
+    "claude-opus-4-6",
+    null
+  );
+  assert.notEqual(result, body, "must return a new object when mutating");
+  assert.equal((result as any).reasoning_effort, "high");
+});
+
 test("sanitizeReasoningEffortForProvider: xiaomi-mimo downgrades max → high", () => {
   const log = makeLog();
   const body = {

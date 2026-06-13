@@ -61,6 +61,7 @@ export function getModelsByProviderId(providerId: string): RegistryModel[] {
 
 const CLAUDE_MODEL_PATTERN = /(?:^|[\/._-])claude(?:[._-]|$)/;
 const CLAUDE_MAX_EFFORT_UNSUPPORTED_FAMILY_PATTERNS = [/(?:^|[\/._-])haiku(?:[._-]|$)/] as const;
+const ANTHROPIC_COMPATIBLE_PREFIX = "anthropic-compatible-";
 
 export function supportsClaudeMaxEffort(modelId: string | null | undefined): boolean {
   if (typeof modelId !== "string" || modelId.length === 0) return false;
@@ -73,12 +74,21 @@ export function supportsClaudeMaxEffort(modelId: string | null | undefined): boo
   );
 }
 
+function resolveProviderModelList(aliasOrId: string): {
+  alias: string;
+  models: RegistryModel[] | null;
+} {
+  const resolvedId = aliasOrId.startsWith(ANTHROPIC_COMPATIBLE_PREFIX) ? "claude" : aliasOrId;
+  const alias = PROVIDER_ID_TO_ALIAS[resolvedId] || resolvedId;
+  const models = PROVIDER_MODELS[alias] || PROVIDER_MODELS[resolvedId] || null;
+  return { alias, models };
+}
+
 export function supportsXHighEffort(aliasOrId: string, modelId: string): boolean {
-  const alias = PROVIDER_ID_TO_ALIAS[aliasOrId] || aliasOrId;
-  const providerModels = PROVIDER_MODELS[alias] || PROVIDER_MODELS[aliasOrId];
+  const { models: providerModels } = resolveProviderModelList(aliasOrId);
   // Unknown provider (not in registry) — pass through unchanged.
   if (!providerModels) return true;
-  const model = getProviderModel(alias, modelId);
+  const model = providerModels.find((entry) => entry.id === modelId);
 
   // Keep explicit false entries as the unsupported-model list. Unlisted models
   // and models without an explicit flag pass through unchanged.
@@ -89,10 +99,9 @@ export function supportsXHighEffortForMaxNormalization(
   aliasOrId: string,
   modelId: string
 ): boolean {
-  const alias = PROVIDER_ID_TO_ALIAS[aliasOrId] || aliasOrId;
-  const providerModels = PROVIDER_MODELS[alias] || PROVIDER_MODELS[aliasOrId];
+  const { alias, models: providerModels } = resolveProviderModelList(aliasOrId);
   if (!providerModels) return true;
-  const model = getProviderModel(alias, modelId);
+  const model = providerModels.find((entry) => entry.id === modelId);
 
   if (alias === "cc") {
     return model?.supportsXHighEffort !== false;

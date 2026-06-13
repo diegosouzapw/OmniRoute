@@ -267,12 +267,9 @@ export function sanitizeReasoningEffortForProvider(
   const supportsXHigh = supportsXHighEffort(provider, modelStr);
   const shouldDowngradeXHigh = effortStr === "xhigh" && !supportsXHigh;
   const supportsXHighForMax = supportsXHighEffortForMaxNormalization(provider, modelStr);
-  const shouldNormalizeMaxToXHigh =
-    effortStr === "max" && !supportsMaxEffortForProvider(provider, modelStr) && supportsXHighForMax;
-  const shouldDowngradeMax =
-    effortStr === "max" &&
-    !supportsMaxEffortForProvider(provider, modelStr) &&
-    !supportsXHighForMax;
+  const supportsMax = supportsMaxEffortForProvider(provider, modelStr);
+  const shouldNormalizeMaxToXHigh = effortStr === "max" && !supportsMax && supportsXHighForMax;
+  const shouldDowngradeMax = effortStr === "max" && !supportsMax && !supportsXHighForMax;
 
   if (shouldNormalizeMaxToXHigh) {
     log?.info?.(
