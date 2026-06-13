@@ -85,7 +85,7 @@ function getPayloadType(payload: unknown, eventType = ""): string {
 
 function hasNonPingStructuredPayload(payload: unknown, eventType = ""): boolean {
   const type = getPayloadType(payload, eventType);
-  if (isPingEventType(type)) return false;
+  if (isPingEventType(eventType) || isPingEventType(type)) return false;
   if (Array.isArray(payload)) return payload.length > 0;
   if (isRecord(payload)) return Object.keys(payload).length > 0;
   return payload !== null && payload !== undefined;

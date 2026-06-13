@@ -290,6 +290,10 @@ test("hasStreamReadinessSignal accepts any non-ping structured SSE event", () =>
     true
   );
   assert.equal(hasStreamReadinessSignal('event: ping\ndata: {"phase":"started"}\n\n'), false);
+  assert.equal(
+    hasStreamReadinessSignal('event: ping\ndata: {"type":"response.created"}\n\n'),
+    false
+  );
 });
 
 test("hasStreamReadinessSignal accepts Responses lifecycle events without schema gating", () => {
