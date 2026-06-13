@@ -449,6 +449,26 @@ test("ensureStreamReadiness preserves buffered chunks when stream starts", async
   assert.match(text, / world/);
 });
 
+test("ensureStreamReadiness honors configured timeouts above 2000ms", async () => {
+  const response = new Response(
+    streamFromChunks(
+      [
+        `data: ${JSON.stringify({
+          type: "provider.started",
+          text: "slow first byte",
+        })}\n\n`,
+      ],
+      2_100
+    ),
+    { status: 200, headers: { "Content-Type": "text/event-stream" } }
+  );
+
+  const result = await ensureStreamReadiness(response, { timeoutMs: 3_000 });
+  assert.equal(result.ok, true);
+  const text = await result.response.text();
+  assert.match(text, /slow first byte/);
+});
+
 test("ensureStreamReadiness hands off long Claude streams after message_start", async () => {
   const response = new Response(delayedClaudeStartStream(), {
     status: 200,

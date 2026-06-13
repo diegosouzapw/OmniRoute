@@ -71,8 +71,6 @@ function hasUsefulJsonPayload(payload: unknown): boolean {
   return hasUsefulValue(payload);
 }
 
-const STREAM_READINESS_PING_PREFIX_TIMEOUT_MS = 2_000;
-
 function isPingEventType(type: string): boolean {
   return /^(?:ping|keepalive|heartbeat)$/i.test(type);
 }
@@ -271,7 +269,7 @@ export async function ensureStreamReadiness(
     pendingLine: "",
   };
   const startedAt = Date.now();
-  const effectiveTimeoutMs = Math.min(options.timeoutMs, STREAM_READINESS_PING_PREFIX_TIMEOUT_MS);
+  const effectiveTimeoutMs = Math.max(0, Math.floor(options.timeoutMs));
   const deadline = startedAt + effectiveTimeoutMs;
   let handedOffReader = false;
 

@@ -533,6 +533,7 @@ REQUEST_TIMEOUT_MS (global override)
 │   ├── FETCH_CONNECT_TIMEOUT_MS (independent, default: 30000)
 │   └── FETCH_KEEPALIVE_TIMEOUT_MS (independent, default: 4000)
 ├─→ STREAM_IDLE_TIMEOUT_MS (inherits from REQUEST_TIMEOUT_MS, default: 600000)
+├─→ STREAM_READINESS_TIMEOUT_MS (inherits from REQUEST_TIMEOUT_MS, default: 80000)
 └─→ API_BRIDGE_PROXY_TIMEOUT_MS (inherits from REQUEST_TIMEOUT_MS, default: 30000)
     ├─→ API_BRIDGE_SERVER_REQUEST_TIMEOUT_MS (derived, default: 300000)
     ├── API_BRIDGE_SERVER_HEADERS_TIMEOUT_MS (default: 60000)
@@ -545,6 +546,7 @@ REQUEST_TIMEOUT_MS (global override)
 | `REQUEST_TIMEOUT_MS`                     | _(unset)_            | Global shortcut — overrides both `FETCH_TIMEOUT_MS` and `STREAM_IDLE_TIMEOUT_MS` defaults.                  |
 | `FETCH_TIMEOUT_MS`                       | `600000`             | Total HTTP request timeout for upstream provider calls.                                                     |
 | `STREAM_IDLE_TIMEOUT_MS`                 | `600000`             | Max silence between SSE chunks before aborting. Extended-thinking models rarely pause >90s.                 |
+| `STREAM_READINESS_TIMEOUT_MS`            | `80000`              | Time to receive the first non-ping SSE event. Inherits `REQUEST_TIMEOUT_MS` when set.                       |
 | `FETCH_HEADERS_TIMEOUT_MS`               | = `FETCH_TIMEOUT_MS` | Time to receive response headers.                                                                           |
 | `FETCH_BODY_TIMEOUT_MS`                  | = `FETCH_TIMEOUT_MS` | Time to receive the full response body.                                                                     |
 | `FETCH_CONNECT_TIMEOUT_MS`               | `30000`              | TCP connection establishment timeout.                                                                       |
