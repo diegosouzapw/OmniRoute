@@ -122,9 +122,16 @@ export function generateSignature(model, conversation, temperature = 0, topP = 1
     messages: normalizeConversation(conversation),
     temperature,
     top_p: topP,
-    ...(apiKeyId ? { api_key_id: apiKeyId } : {}),
   });
-  return crypto.createHash("sha256").update(payload).digest("hex");
+  const digest = crypto.createHash("sha256").update(payload).digest("hex");
+  // Per-key cache isolation (#3740) namespaces the signature with the apiKeyId as a
+  // PLAINTEXT prefix instead of folding it into the digest. The apiKeyId is an internal
+  // identifier used purely to namespace a deterministic cache key — not a stored
+  // credential — so it must never flow into a hash (a salted/slow password hash would
+  // also break the determinism the cache relies on). Keeping it out of the digest
+  // preserves isolation + determinism and avoids the false-positive
+  // CodeQL js/insufficient-password-hash on a cache signature.
+  return apiKeyId ? `${apiKeyId}.${digest}` : digest;
 }
 
 function stringifyForSignature(value: unknown): string {

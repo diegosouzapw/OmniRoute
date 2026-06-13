@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+### 🐛 Bug Fixes
+
+- **Claude passthrough: stop rewriting `thinking` blocks (fixes 400 "blocks in the latest assistant message cannot be modified")**: the Anthropic-native Claude OAuth passthrough rewrote every assistant `thinking` block to `redacted_thinking`, which the Messages API rejects because submitted thinking blocks are validated against the original response. This made every multi-turn request with extended thinking fail (very visible on long Claude Code tool-loops). The blocks are now passed through unchanged; the thinking signature is validated server-side and stays valid on replay (including across an OAuth token switch), so the redaction was unnecessary.
+
 ---
 
 ## [3.8.24] — TBD
