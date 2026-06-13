@@ -162,6 +162,11 @@ import { veoaifree_webProvider } from "./registry/veoaifree-web/index.ts";
 import { codexProvider } from "./registry/codex/index.ts";
 import { veniceProvider } from "./registry/venice/index.ts";
 import { kiroProvider } from "./registry/kiro/index.ts";
+import { gemini_businessProvider } from "./registry/gemini-business/index.ts";
+import { lmarenaProvider } from "./registry/lmarena/index.ts";
+import { poe_webProvider } from "./registry/poe-web/index.ts";
+import { venice_webProvider } from "./registry/venice-web/index.ts";
+import { v0_vercel_webProvider } from "./registry/v0-vercel-web/index.ts";
 
 export const REGISTRY: Record<string, RegistryEntry> = {
   aimlapi: aimlapiProvider,
@@ -326,4 +331,9 @@ export const REGISTRY: Record<string, RegistryEntry> = {
   kiro: kiroProvider,
   byteplus: byteplusProvider,
   mimocode: mimocodeProvider,
+  "gemini-business": gemini_businessProvider,
+  lmarena: lmarenaProvider,
+  "poe-web": poe_webProvider,
+  "venice-web": venice_webProvider,
+  "v0-vercel-web": v0_vercel_webProvider,
 };
