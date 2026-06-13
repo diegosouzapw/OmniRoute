@@ -169,6 +169,28 @@ jobs:
       - name: i18n translation drift (warn)
         run: node scripts/i18n/check-translation-drift.mjs --warn
 
+  docs-lint:
+    name: Docs Lint (prose — advisory)
+    runs-on: ubuntu-latest
+    # Advisory (warning-first): prose/markdown style must not block merges while the
+    # existing doc corpus is brought up to style. Promote to blocking once it converges.
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
+        with:
+          node-version: ${{ env.CI_NODE_VERSION }}
+          cache: npm
+      - name: markdownlint (docs + root, advisory)
+        run: npx --yes markdownlint-cli2 "docs/**/*.md" "*.md" "!docs/i18n" "!docs/research" || true
+      - name: Vale prose lint (Microsoft style, advisory)
+        uses: errata-ai/vale-action@reviewdog
+        with:
+          files: docs
+          fail_on_error: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
   i18n-ui-coverage:
     name: i18n UI Coverage
     runs-on: ubuntu-latest

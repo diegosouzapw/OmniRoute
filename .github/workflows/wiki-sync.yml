@@ -1,0 +1,64 @@
+name: Wiki Sync
+
+# Keeps the GitHub wiki landing page (Home.md) counts in sync with the real code state.
+# The wiki has no generator and historically drifts (e.g. it sat at "212+ providers /
+# 14 strategies / 37 MCP tools" while the code was at 226 / 15 / 87). This workflow runs
+# whenever a count source changes and pushes a corrected Home.md to the wiki.
+#
+# Scope note: it ONLY touches the four cover-page counts on Home.md. The wiki's curated
+# Title-Case pages and 40+ translated mirrors are left untouched (a full wiki regenerator
+# is tracked separately — see DOCUMENTATION_AUDIT_REPORT.md).
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "docs/reference/PROVIDER_REFERENCE.md"
+      - "src/shared/constants/routingStrategies.ts"
+      - "config/i18n.json"
+      - "open-sse/mcp-server/server.ts"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: wiki-sync
+  cancel-in-progress: false
+
+jobs:
+  sync-wiki-counts:
+    name: Sync wiki cover counts
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+
+      - name: Clone wiki
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REPO: ${{ github.repository }}
+        run: |
+          git clone "https://x-access-token:${GH_TOKEN}@github.com/${REPO}.wiki.git" wiki
+
+      - name: Sync Home.md counts
+        run: node scripts/docs/sync-wiki-home.mjs --wiki-dir wiki
+
+      - name: Commit & push if changed
+        run: |
+          cd wiki
+          if [ -n "$(git status --porcelain)" ]; then
+            git config user.name "github-actions[bot]"
+            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+            git add -A
+            git commit -m "docs(wiki): auto-sync cover counts with code"
+            git push
+            echo "Wiki Home.md updated."
+          else
+            echo "Wiki already in sync — nothing to push."
+          fi

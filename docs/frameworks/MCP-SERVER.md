@@ -1,16 +1,18 @@
 ---
 title: "OmniRoute MCP Server Documentation"
-version: 3.8.8
-lastUpdated: 2026-05-30
+version: 3.8.24
+lastUpdated: 2026-06-13
 ---
 
 # OmniRoute MCP Server Documentation
 
-> Model Context Protocol server with 43 tools across routing, cache, compression, memory, skills, proxy, and context source operations.
+> Model Context Protocol server with 87 tools across routing, cache, compression, memory, skills, gamification, plugins, proxy, and context source (Notion / Obsidian) operations.
 >
-> Source of truth: `open-sse/mcp-server/schemas/tools.ts` (30 tools) + `open-sse/mcp-server/tools/memoryTools.ts` (3 tools) + `open-sse/mcp-server/tools/skillTools.ts` (4 tools) + `open-sse/mcp-server/tools/notionTools.ts` (6 tools). Tool registration and scope wiring lives in `open-sse/mcp-server/server.ts`.
+> Source of truth: the runtime constant `TOTAL_MCP_TOOL_COUNT` in `open-sse/mcp-server/server.ts` (= 87), composed of the 33-entry base registry `MCP_TOOLS` (`open-sse/mcp-server/schemas/tools.ts`) plus the standalone module sets — memory (`tools/memoryTools.ts`, 3), skill (`tools/skillTools.ts`, 4), agentSkill (`tools/agentSkillTools.ts`, 3), gamification (`tools/gamificationTools.ts`, 8), plugin (`tools/pluginTools.ts`, 8), notion (`tools/notionTools.ts`, 6), and obsidian (`tools/obsidianTools.ts`, 22). Tool registration and scope wiring lives in `open-sse/mcp-server/server.ts`.
+>
+> **Note on counting:** `TOTAL_MCP_TOOL_COUNT` reports **87**. The 33-entry `MCP_TOOLS` base registry already includes the 3 `omniroute_agent_skills_*` tools, which are also exported separately from `tools/agentSkillTools.ts` and registered once via that module loop. The number of **distinct tool names actually registered** with the server is therefore **84** (87 minus the 3 agent_skills entries counted in both `MCP_TOOLS` and the agentSkill module). Throughout this doc, "87 tools" refers to the canonical `TOTAL_MCP_TOOL_COUNT`.
 
-![MCP tool inventory (43 tools by category)](../diagrams/exported/mcp-tools-43.svg)
+![MCP tool inventory by category](../diagrams/exported/mcp-tools-43.svg)
 
 > Source: [diagrams/mcp-tools-43.mmd](../diagrams/mcp-tools-43.mmd) (regenerate via `npm run docs:render-diagrams`).
 
@@ -158,22 +160,22 @@ the runtime compression model behind these tools.
 
 Defined in `open-sse/mcp-server/tools/memoryTools.ts`. Auth/scope is enforced through the standard MCP scope pipeline.
 
-| Tool                      | Scopes           | Description                                                                         |
-| :------------------------ | :--------------- | :---------------------------------------------------------------------------------- |
-| `omniroute_memory_search` | `read:memory`    | Search memories by query / type / API key with token-budget enforcement             |
-| `omniroute_memory_add`    | `write:memory`   | Add a new memory entry (`factual` / `episodic` / `procedural` / `semantic`)         |
-| `omniroute_memory_clear`  | `write:memory`   | Clear memories for an API key, optionally filtered by type or `olderThan` timestamp |
+| Tool                      | Scopes         | Description                                                                         |
+| :------------------------ | :------------- | :---------------------------------------------------------------------------------- |
+| `omniroute_memory_search` | `read:memory`  | Search memories by query / type / API key with token-budget enforcement             |
+| `omniroute_memory_add`    | `write:memory` | Add a new memory entry (`factual` / `episodic` / `procedural` / `semantic`)         |
+| `omniroute_memory_clear`  | `write:memory` | Clear memories for an API key, optionally filtered by type or `olderThan` timestamp |
 
 ## Skill Tools (4)
 
 Defined in `open-sse/mcp-server/tools/skillTools.ts`. Backed by `src/lib/skills/registry` + `src/lib/skills/executor`.
 
-| Tool                          | Scopes          | Description                                                                       |
-| :---------------------------- | :-------------- | :-------------------------------------------------------------------------------- |
-| `omniroute_skills_list`       | `read:skills`   | List registered skills with optional filtering by API key, name, or enabled state |
-| `omniroute_skills_enable`     | `write:skills`  | Enable or disable a specific skill by ID                                          |
-| `omniroute_skills_execute`    | `execute:skills`| Execute a skill with provided input and return the execution record               |
-| `omniroute_skills_executions` | `read:skills`   | List recent skill execution history                                               |
+| Tool                          | Scopes           | Description                                                                       |
+| :---------------------------- | :--------------- | :-------------------------------------------------------------------------------- |
+| `omniroute_skills_list`       | `read:skills`    | List registered skills with optional filtering by API key, name, or enabled state |
+| `omniroute_skills_enable`     | `write:skills`   | Enable or disable a specific skill by ID                                          |
+| `omniroute_skills_execute`    | `execute:skills` | Execute a skill with provided input and return the execution record               |
+| `omniroute_skills_executions` | `read:skills`    | List recent skill execution history                                               |
 
 ## Notion Context Source (6)
 
@@ -194,32 +196,98 @@ curl http://localhost:20128/api/settings/notion
 curl -X DELETE http://localhost:20128/api/settings/notion
 ```
 
-| Tool                         | Scopes           | Description                                                                           |
-| :--------------------------- | :--------------- | :------------------------------------------------------------------------------------ |
-| `omniroute_notion_search`    | `read:notion`    | Full-text search across all pages and databases                                       |
-| `omniroute_notion_list_databases` | `read:notion` | List all accessible databases with schema metadata                                    |
-| `omniroute_notion_get_database`   | `read:notion` | Get database schema by ID                                                             |
-| `omniroute_notion_query_database` | `read:notion` | Query a database with filters, sorts, and pagination                                  |
-| `omniroute_notion_read`           | `read:notion` | Read a page or block by ID with its content                                           |
-| `omniroute_notion_append_blocks`  | `write:notion`| Append children blocks to a parent block (max 100 per request)                        |
+| Tool                         | Scopes         | Description                                                                  |
+| :--------------------------- | :------------- | :--------------------------------------------------------------------------- |
+| `notion_search`              | `read:notion`  | Search pages and databases by text query; returns page titles, IDs, and URLs |
+| `notion_get_page`            | `read:notion`  | Get the content and metadata of a page by its ID                             |
+| `notion_list_block_children` | `read:notion`  | List all block children of a block or page (returns the block tree)          |
+| `notion_query_database`      | `read:notion`  | Query a database with optional filters and sorts (paginated)                 |
+| `notion_get_database`        | `read:notion`  | Get metadata and schema of a database by its ID                              |
+| `notion_append_blocks`       | `write:notion` | Append block children to an existing block or page (max 100 per request)     |
 
 ## Agent Skill Catalog Tools (3)
 
 Defined in `open-sse/mcp-server/tools/agentSkillTools.ts`. Backed by `src/lib/agentSkills/catalog`. These tools expose the 42-entry Agent Skills documentation catalog to MCP clients and external agents. Scope: `read:catalog`.
 
-| Tool                               | Scopes         | Description                                                                                                      |
-| :--------------------------------- | :------------- | :--------------------------------------------------------------------------------------------------------------- |
-| `omniroute_agent_skills_list`      | `read:catalog` | List all 42 agent skills with optional `category` (api\|cli) and `area` filters; returns metadata + coverage     |
-| `omniroute_agent_skills_get`       | `read:catalog` | Get full metadata + SKILL.md content for a single skill by canonical `id`                                        |
-| `omniroute_agent_skills_coverage`  | `read:catalog` | Coverage stats: how many of the 22 API and 20 CLI skills have SKILL.md files on the filesystem vs catalog totals |
+| Tool                              | Scopes         | Description                                                                                                      |
+| :-------------------------------- | :------------- | :--------------------------------------------------------------------------------------------------------------- |
+| `omniroute_agent_skills_list`     | `read:catalog` | List all 42 agent skills with optional `category` (api\|cli) and `area` filters; returns metadata + coverage     |
+| `omniroute_agent_skills_get`      | `read:catalog` | Get full metadata + SKILL.md content for a single skill by canonical `id`                                        |
+| `omniroute_agent_skills_coverage` | `read:catalog` | Coverage stats: how many of the 22 API and 20 CLI skills have SKILL.md files on the filesystem vs catalog totals |
 
 See [AGENT-SKILLS.md](./AGENT-SKILLS.md) for the full catalog and how external agents consume it.
 
+> The 3 `omniroute_agent_skills_*` tools are defined in **both** `schemas/tools.ts` (inside the
+> 33-entry `MCP_TOOLS` registry) **and** `tools/agentSkillTools.ts`. The server registers them once
+> (via the `agentSkillTools` module loop), so they appear a single time in the live tool list even
+> though `TOTAL_MCP_TOOL_COUNT` counts both definitions.
+
+## Gamification Tools (8)
+
+Defined in `open-sse/mcp-server/tools/gamificationTools.ts`. Backed by `src/lib/gamification/*` and `src/lib/db/gamification.ts` (leaderboard, XP/levels, badges, streaks, token sharing, community servers, anti-cheat).
+
+| Tool                       | Scopes               | Description                                                                    |
+| :------------------------- | :------------------- | :----------------------------------------------------------------------------- |
+| `gamification_leaderboard` | `read:gamification`  | Leaderboard rankings for a scope (`global`/`weekly`/`monthly`/`tokens_shared`) |
+| `gamification_rank`        | `read:gamification`  | Rank for an API key within a leaderboard scope                                 |
+| `gamification_profile`     | `read:gamification`  | XP, level, title/tier, streak, and earned badges for an API key                |
+| `gamification_badges`      | `read:gamification`  | List badge definitions, or earned badges for a specific API key                |
+| `gamification_transfer`    | `write:gamification` | Transfer tokens between API keys                                               |
+| `gamification_invite`      | `write:gamification` | Create an invite token for community server connection                         |
+| `gamification_servers`     | `read:gamification`  | List connected community servers                                               |
+| `gamification_anomalies`   | `read:gamification`  | Flagged anomalous XP activity (anti-cheat; admin)                              |
+
+## Plugin Tools (8)
+
+Defined in `open-sse/mcp-server/tools/pluginTools.ts`. Backed by `src/lib/db/plugins.ts`, `src/lib/plugins/manager.ts`, and `src/lib/plugins/manifest.ts`. Install paths are validated (absolute, no null bytes, no traversal).
+
+| Tool                | Scopes          | Description                                                          |
+| :------------------ | :-------------- | :------------------------------------------------------------------- |
+| `plugin_list`       | `read:plugins`  | List installed plugins with status, hooks, permissions, and metadata |
+| `plugin_install`    | `write:plugins` | Install a plugin from a local directory path (with `plugin.json`)    |
+| `plugin_activate`   | `write:plugins` | Activate an installed plugin (loads hooks into the request pipeline) |
+| `plugin_deactivate` | `write:plugins` | Deactivate an active plugin (unloads its hooks)                      |
+| `plugin_uninstall`  | `write:plugins` | Uninstall a plugin (deactivate, remove files, remove from DB)        |
+| `plugin_configure`  | `write:plugins` | Get or update (validated) a plugin's configuration                   |
+| `plugin_executions` | `read:plugins`  | View plugin execution metrics from `plugin_analytics`                |
+| `plugin_scan`       | `write:plugins` | Scan the plugin directory for new plugins and sync with the DB       |
+
+## Obsidian Context Source (22)
+
+Defined in `open-sse/mcp-server/tools/obsidianTools.ts`. REST client in `src/lib/obsidian/api.ts`; token/base-URL persistence in `src/lib/db/obsidian.ts`. Per-API-key config is resolved via `getObsidianConfigForApiKey`. Read tools require `read:obsidian`; write tools require `write:obsidian`. The four `obsidian_sync_*` tools talk to the OmniRoute sync plugin and use the sync auth token. See [OBSIDIAN_CONTEXT.md](./OBSIDIAN_CONTEXT.md).
+
+| Tool                             | Scopes           | Description                                                                        |
+| :------------------------------- | :--------------- | :--------------------------------------------------------------------------------- |
+| `obsidian_check_status`          | `read:obsidian`  | Check whether the Local REST API is reachable and authenticated                    |
+| `obsidian_search_simple`         | `read:obsidian`  | Text search across note content; returns snippets with file paths                  |
+| `obsidian_search_structured`     | `read:obsidian`  | Search the vault using a JSON Logic expression (and/or/regex/path filters)         |
+| `obsidian_read_note`             | `read:obsidian`  | Read a note by vault-relative path (optionally scope to heading/block/frontmatter) |
+| `obsidian_list_vault`            | `read:obsidian`  | List files and directories in the vault (tree of entries)                          |
+| `obsidian_get_document_map`      | `read:obsidian`  | Get a note's structure as a map of headings and line numbers                       |
+| `obsidian_get_note_metadata`     | `read:obsidian`  | Get note metadata (frontmatter, tags, links, char/word count) without full content |
+| `obsidian_get_active_file`       | `read:obsidian`  | Get the path and content of the currently active file                              |
+| `obsidian_get_periodic_note`     | `read:obsidian`  | Get the daily/weekly/monthly periodic note for a date (or today)                   |
+| `obsidian_get_tags`              | `read:obsidian`  | List all tags used across the vault with their frequencies                         |
+| `obsidian_list_commands`         | `read:obsidian`  | List available Obsidian commands with IDs and names                                |
+| `obsidian_write_note`            | `write:obsidian` | Create or overwrite a note with markdown content                                   |
+| `obsidian_append_note`           | `write:obsidian` | Append content to a note (optionally to a heading/block)                           |
+| `obsidian_patch_note`            | `write:obsidian` | Surgically append/prepend/replace at a heading, block, or frontmatter field        |
+| `obsidian_delete_note`           | `write:obsidian` | Permanently delete a note from the vault                                           |
+| `obsidian_move_note`             | `write:obsidian` | Move or rename a note within the vault                                             |
+| `obsidian_execute_command`       | `write:obsidian` | Execute an Obsidian command by its command ID                                      |
+| `obsidian_open_file`             | `write:obsidian` | Open a file in Obsidian (creates it if it does not exist)                          |
+| `obsidian_sync_status`           | `read:obsidian`  | OmniRoute sync plugin status (running, vault, port, uptime, last sync)             |
+| `obsidian_sync_trigger`          | `write:obsidian` | Trigger an immediate bidirectional desktop/mobile vault sync                       |
+| `obsidian_sync_conflicts`        | `read:obsidian`  | List unresolved sync conflicts                                                     |
+| `obsidian_sync_resolve_conflict` | `write:obsidian` | Resolve a sync conflict (`local` / `remote` / `keep-both`)                         |
+
 ## Related Frameworks (v3.8.0)
 
-The MCP tool inventory above (43 tools = 30 core + 3 memory + 4 skills + 6 notion) is intentionally
-scoped to runtime routing/cache/compression/memory/skills/proxy/context-source operations. Two adjacent
-frameworks ship alongside the MCP server in v3.8.0 and are documented separately:
+The MCP tool inventory above (`TOTAL_MCP_TOOL_COUNT` = 87 = 33 base + 3 memory + 4 skills + 3 agentSkill
+
+- 8 gamification + 8 plugin + 6 notion + 22 obsidian) is intentionally scoped to runtime
+  routing/cache/compression/memory/skills/gamification/plugin/proxy/context-source operations. Two adjacent
+  frameworks ship alongside the MCP server and are documented separately:
 
 ### Cloud Agents
 
@@ -269,34 +337,41 @@ Both SSE and Streamable HTTP transports are blocked until the MCP server is enab
 MCP tools are authenticated through API key scopes. Scope enforcement is centralized in
 `open-sse/mcp-server/scopeEnforcement.ts`. Each tool requires specific scopes:
 
-| Scope                 | Tools                                                                                                             |
-| :-------------------- | :---------------------------------------------------------------------------------------------------------------- |
-| `read:health`         | `get_health`, `get_provider_metrics`, `simulate_route`, `explain_route`, `best_combo_for_task`, `db_health_check` |
-| `read:combos`         | `list_combos`, `get_combo_metrics`, `simulate_route`, `best_combo_for_task`, `test_combo`                         |
-| `write:combos`        | `switch_combo`, `set_routing_strategy`                                                                            |
-| `read:quota`          | `check_quota`                                                                                                     |
-| `read:usage`          | `cost_report`, `get_session_snapshot`, `explain_route`                                                            |
-| `read:models`         | `list_models_catalog`                                                                                             |
-| `execute:completions` | `route_request`, `test_combo`                                                                                     |
-| `execute:search`      | `web_search`                                                                                                      |
-| `write:budget`        | `set_budget_guard`                                                                                                |
-| `write:resilience`    | `set_resilience_profile`, `db_health_check`                                                                       |
-| `pricing:write`       | `sync_pricing`                                                                                                    |
-| `read:cache`          | `cache_stats`                                                                                                     |
-| `write:cache`         | `cache_flush`                                                                                                     |
-| `read:compression`    | `compression_status`, `list_compression_combos`, `compression_combo_stats`                                        |
-| `write:compression`   | `compression_configure`, `set_compression_engine`                                                                 |
-| `read:proxies`        | `oneproxy_fetch`, `oneproxy_rotate`, `oneproxy_stats`                                                             |
-| `read:notion`         | `notion_search`, `notion_list_databases`, `notion_get_database`, `notion_query_database`, `notion_read`           |
-| `write:notion`        | `notion_append_blocks`                                                                                            |
-| `read:memory`         | `memory_search`                                                                                                   |
-| `write:memory`        | `memory_add`, `memory_clear`                                                                                      |
-| `read:skills`         | `skills_list`, `skills_executions`                                                                                |
-| `write:skills`        | `skills_enable`                                                                                                   |
-| `execute:skills`      | `skills_execute`                                                                                                  |
-| `read:catalog`        | `agent_skills_list`, `agent_skills_get`, `agent_skills_coverage`                                                  |
+| Scope                 | Tools                                                                                                                                                                                                                                                                                                                                               |
+| :-------------------- | :-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `read:health`         | `get_health`, `get_provider_metrics`, `simulate_route`, `explain_route`, `best_combo_for_task`, `db_health_check`                                                                                                                                                                                                                                   |
+| `read:combos`         | `list_combos`, `get_combo_metrics`, `simulate_route`, `best_combo_for_task`, `test_combo`                                                                                                                                                                                                                                                           |
+| `write:combos`        | `switch_combo`, `set_routing_strategy`                                                                                                                                                                                                                                                                                                              |
+| `read:quota`          | `check_quota`                                                                                                                                                                                                                                                                                                                                       |
+| `read:usage`          | `cost_report`, `get_session_snapshot`, `explain_route`                                                                                                                                                                                                                                                                                              |
+| `read:models`         | `list_models_catalog`                                                                                                                                                                                                                                                                                                                               |
+| `execute:completions` | `route_request`, `test_combo`                                                                                                                                                                                                                                                                                                                       |
+| `execute:search`      | `web_search`                                                                                                                                                                                                                                                                                                                                        |
+| `write:budget`        | `set_budget_guard`                                                                                                                                                                                                                                                                                                                                  |
+| `write:resilience`    | `set_resilience_profile`, `db_health_check`                                                                                                                                                                                                                                                                                                         |
+| `pricing:write`       | `sync_pricing`                                                                                                                                                                                                                                                                                                                                      |
+| `read:cache`          | `cache_stats`                                                                                                                                                                                                                                                                                                                                       |
+| `write:cache`         | `cache_flush`                                                                                                                                                                                                                                                                                                                                       |
+| `read:compression`    | `compression_status`, `list_compression_combos`, `compression_combo_stats`                                                                                                                                                                                                                                                                          |
+| `write:compression`   | `compression_configure`, `set_compression_engine`                                                                                                                                                                                                                                                                                                   |
+| `read:proxies`        | `oneproxy_fetch`, `oneproxy_rotate`, `oneproxy_stats`                                                                                                                                                                                                                                                                                               |
+| `read:notion`         | `notion_search`, `notion_get_page`, `notion_list_block_children`, `notion_query_database`, `notion_get_database`                                                                                                                                                                                                                                    |
+| `write:notion`        | `notion_append_blocks`                                                                                                                                                                                                                                                                                                                              |
+| `read:obsidian`       | `obsidian_check_status`, `obsidian_search_simple`, `obsidian_search_structured`, `obsidian_read_note`, `obsidian_list_vault`, `obsidian_get_document_map`, `obsidian_get_note_metadata`, `obsidian_get_active_file`, `obsidian_get_periodic_note`, `obsidian_get_tags`, `obsidian_list_commands`, `obsidian_sync_status`, `obsidian_sync_conflicts` |
+| `write:obsidian`      | `obsidian_write_note`, `obsidian_append_note`, `obsidian_patch_note`, `obsidian_delete_note`, `obsidian_move_note`, `obsidian_execute_command`, `obsidian_open_file`, `obsidian_sync_trigger`, `obsidian_sync_resolve_conflict`                                                                                                                     |
+| `read:memory`         | `omniroute_memory_search`                                                                                                                                                                                                                                                                                                                           |
+| `write:memory`        | `omniroute_memory_add`, `omniroute_memory_clear`                                                                                                                                                                                                                                                                                                    |
+| `read:skills`         | `omniroute_skills_list`, `omniroute_skills_executions`                                                                                                                                                                                                                                                                                              |
+| `write:skills`        | `omniroute_skills_enable`                                                                                                                                                                                                                                                                                                                           |
+| `execute:skills`      | `omniroute_skills_execute`                                                                                                                                                                                                                                                                                                                          |
+| `read:catalog`        | `omniroute_agent_skills_list`, `omniroute_agent_skills_get`, `omniroute_agent_skills_coverage`                                                                                                                                                                                                                                                      |
+| `read:gamification`   | `gamification_leaderboard`, `gamification_rank`, `gamification_profile`, `gamification_badges`, `gamification_servers`, `gamification_anomalies`                                                                                                                                                                                                    |
+| `write:gamification`  | `gamification_transfer`, `gamification_invite`                                                                                                                                                                                                                                                                                                      |
+| `read:plugins`        | `plugin_list`, `plugin_executions`                                                                                                                                                                                                                                                                                                                  |
+| `write:plugins`       | `plugin_install`, `plugin_activate`, `plugin_deactivate`, `plugin_uninstall`, `plugin_configure`, `plugin_scan`                                                                                                                                                                                                                                     |
 
-Wildcard scopes are supported: `read:*` grants all read-scopes, `*` grants full access.
+Wildcard scopes are supported: `read:*` grants all read-scopes, `*` grants full access. The full MCP
+scope vocabulary spans **30 scopes** across these groups.
 
 ---
 
@@ -340,7 +415,7 @@ The heartbeat snapshot contains:
   "transport": "stdio",
   "scopesEnforced": false,
   "allowedScopes": [],
-  "toolCount": 43
+  "toolCount": 87
 }
 ```
 
@@ -361,32 +436,34 @@ Use the dashboard or the `/api/mcp/audit` and `/api/mcp/audit/stats` REST endpoi
 
 ## Files
 
-| File                                            | Purpose                                                          |
-| :---------------------------------------------- | :--------------------------------------------------------------- |
-| `open-sse/mcp-server/server.ts`                 | MCP server factory, stdio entry point, scoped tool registrations |
-| `open-sse/mcp-server/httpTransport.ts`          | SSE + Streamable HTTP transport (session management)             |
-| `open-sse/mcp-server/scopeEnforcement.ts`       | Tool scope evaluation and caller resolution                      |
-| `open-sse/mcp-server/audit.ts`                  | Tool call audit logging (`mcp_tool_audit`)                       |
-| `open-sse/mcp-server/runtimeHeartbeat.ts`       | stdio heartbeat writer (`mcp-heartbeat.json`)                    |
-| `open-sse/mcp-server/descriptionCompressor.ts`  | Description compression for tool / prompt / resource registries  |
-| `open-sse/mcp-server/schemas/tools.ts`          | Zod schemas + tool registry (`MCP_TOOLS`, 30 entries)            |
-| `open-sse/mcp-server/tools/advancedTools.ts`    | Phase 2 + cache + 1proxy tool handlers                           |
-| `open-sse/mcp-server/tools/compressionTools.ts` | Compression tool handlers                                        |
-| `open-sse/mcp-server/tools/memoryTools.ts`      | Memory tool definitions (3 tools)                                |
-| `open-sse/mcp-server/tools/skillTools.ts`       | Skill tool definitions (4 tools)                                 |
-| `open-sse/mcp-server/tools/notionTools.ts`      | Notion context source tool definitions (6 tools)                 |
-| `open-sse/mcp-server/tools/gamificationTools.ts`| Gamification tool definitions (8 tools)                          |
-| `open-sse/mcp-server/tools/pluginTools.ts`      | Plugin registration and management tools (8 tools)               |
-| `src/app/api/mcp/status/route.ts`               | `/api/mcp/status` endpoint                                       |
-| `src/app/api/mcp/tools/route.ts`                | `/api/mcp/tools` endpoint                                        |
-| `src/app/api/mcp/sse/route.ts`                  | `/api/mcp/sse` SSE transport route                               |
-| `src/app/api/mcp/stream/route.ts`               | `/api/mcp/stream` Streamable HTTP transport route                |
-| `src/app/api/mcp/audit/route.ts`                | `/api/mcp/audit` audit log query                                 |
-| `src/app/api/mcp/audit/stats/route.ts`          | `/api/mcp/audit/stats` aggregated audit metrics                  |
-| `src/lib/notion/api.ts`                         | Notion REST API client (retry, timeout, error classification)    |
-| `src/lib/db/notion.ts`                          | Notion token persistence (`key_value` table)                     |
-| `src/app/api/settings/notion/route.ts`          | Notion settings API (GET/POST/DELETE)                            |
-| `src/app/(dashboard)/dashboard/endpoint/components/NotionSourceCard.tsx` | Notion token management UI                     |
-| `tests/unit/notion-api.test.ts`                 | Notion API client tests (7)                                      |
-| `tests/unit/notion-tools.test.ts`               | Notion tools scope enforcement tests (10)                        |
-| `tests/unit/db/notion.test.mjs`                 | Notion DB module tests (3)                                       |
+| File                                                                     | Purpose                                                          |
+| :----------------------------------------------------------------------- | :--------------------------------------------------------------- |
+| `open-sse/mcp-server/server.ts`                                          | MCP server factory, stdio entry point, scoped tool registrations |
+| `open-sse/mcp-server/httpTransport.ts`                                   | SSE + Streamable HTTP transport (session management)             |
+| `open-sse/mcp-server/scopeEnforcement.ts`                                | Tool scope evaluation and caller resolution                      |
+| `open-sse/mcp-server/audit.ts`                                           | Tool call audit logging (`mcp_tool_audit`)                       |
+| `open-sse/mcp-server/runtimeHeartbeat.ts`                                | stdio heartbeat writer (`mcp-heartbeat.json`)                    |
+| `open-sse/mcp-server/descriptionCompressor.ts`                           | Description compression for tool / prompt / resource registries  |
+| `open-sse/mcp-server/schemas/tools.ts`                                   | Zod schemas + base tool registry (`MCP_TOOLS`, 33 entries)       |
+| `open-sse/mcp-server/tools/advancedTools.ts`                             | Phase 2 + cache + 1proxy tool handlers                           |
+| `open-sse/mcp-server/tools/compressionTools.ts`                          | Compression tool handlers (5 tools)                              |
+| `open-sse/mcp-server/tools/memoryTools.ts`                               | Memory tool definitions (3 tools)                                |
+| `open-sse/mcp-server/tools/skillTools.ts`                                | Skill tool definitions (4 tools)                                 |
+| `open-sse/mcp-server/tools/agentSkillTools.ts`                           | Agent skill catalog tool definitions (3 tools)                   |
+| `open-sse/mcp-server/tools/notionTools.ts`                               | Notion context source tool definitions (6 tools)                 |
+| `open-sse/mcp-server/tools/obsidianTools.ts`                             | Obsidian context source tool definitions (22 tools)              |
+| `open-sse/mcp-server/tools/gamificationTools.ts`                         | Gamification tool definitions (8 tools)                          |
+| `open-sse/mcp-server/tools/pluginTools.ts`                               | Plugin registration and management tools (8 tools)               |
+| `src/app/api/mcp/status/route.ts`                                        | `/api/mcp/status` endpoint                                       |
+| `src/app/api/mcp/tools/route.ts`                                         | `/api/mcp/tools` endpoint                                        |
+| `src/app/api/mcp/sse/route.ts`                                           | `/api/mcp/sse` SSE transport route                               |
+| `src/app/api/mcp/stream/route.ts`                                        | `/api/mcp/stream` Streamable HTTP transport route                |
+| `src/app/api/mcp/audit/route.ts`                                         | `/api/mcp/audit` audit log query                                 |
+| `src/app/api/mcp/audit/stats/route.ts`                                   | `/api/mcp/audit/stats` aggregated audit metrics                  |
+| `src/lib/notion/api.ts`                                                  | Notion REST API client (retry, timeout, error classification)    |
+| `src/lib/db/notion.ts`                                                   | Notion token persistence (`key_value` table)                     |
+| `src/app/api/settings/notion/route.ts`                                   | Notion settings API (GET/POST/DELETE)                            |
+| `src/app/(dashboard)/dashboard/endpoint/components/NotionSourceCard.tsx` | Notion token management UI                                       |
+| `tests/unit/notion-api.test.ts`                                          | Notion API client tests (7)                                      |
+| `tests/unit/notion-tools.test.ts`                                        | Notion tools scope enforcement tests (10)                        |
+| `tests/unit/db/notion.test.mjs`                                          | Notion DB module tests (3)                                       |

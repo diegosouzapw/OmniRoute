@@ -78,6 +78,8 @@
     "build:release": "rm -rf .build dist && OMNIROUTE_BUILD_SHA=$(git rev-parse --short HEAD) npm run build && npm run build:cli && node scripts/build/write-build-sha.mjs",
     "start": "node scripts/dev/run-next.mjs start",
     "lint": "eslint .",
+    "lint:md": "npx --yes markdownlint-cli2 \"docs/**/*.md\" \"*.md\" \"!docs/i18n\" \"!docs/research\"",
+    "lint:prose": "vale docs",
     "electron:dev": "concurrently \"npm run dev\" \"wait-on http://localhost:20128 && cd electron && npm run dev\"",
     "electron:build": "npm run build && cd electron && npm run build",
     "electron:build:win": "npm run build && cd electron && npm run build:win",
