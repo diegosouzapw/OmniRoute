@@ -10,6 +10,7 @@
  */
 
 import { createConnection } from "node:net";
+import { stripIpv6Brackets } from "@omniroute/open-sse/utils/proxyFamily";
 
 // Configurable via env vars
 const FAST_FAIL_TIMEOUT_MS = parseInt(process.env.PROXY_FAST_FAIL_TIMEOUT_MS ?? "2000", 10);
@@ -56,7 +57,7 @@ export async function isProxyReachable(
     return false;
   }
 
-  const host = url.hostname;
+  const host = stripIpv6Brackets(url.hostname);
   const port = parseInt(url.port || defaultPortForScheme(url.protocol), 10);
 
   if (!host || isNaN(port)) {
