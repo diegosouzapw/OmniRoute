@@ -3,6 +3,12 @@ import { callCloudWithMachineId } from "@/shared/utils/cloud";
 import { handleChat } from "@/sse/handlers/chat";
 import { initTranslators } from "@omniroute/open-sse/translator/index.ts";
 import { createInjectionGuard } from "@/middleware/promptInjectionGuard";
+import { withEarlyStreamKeepalive } from "@omniroute/open-sse/utils/earlyStreamKeepalive";
+import { resolveKeepaliveThreshold } from "@omniroute/open-sse/utils/keepaliveThreshold";
+import {
+  getChatCompletionsEarlyKeepaliveModel,
+  shouldUseEarlyKeepaliveForChatCompletions,
+} from "./earlyKeepalive";
 
 let initPromise = null;
 
@@ -42,12 +48,14 @@ export async function POST(request) {
     }
   }
 
+  let parsedBody: unknown = null;
+
   // Prompt injection guard — inspect body before forwarding
   try {
     const cloned = request.clone();
-    const body = await cloned.json().catch(() => null);
-    if (body) {
-      const { blocked, result } = injectionGuard(body);
+    parsedBody = await cloned.json().catch(() => null);
+    if (parsedBody) {
+      const { blocked, result } = injectionGuard(parsedBody);
       if (blocked) {
         return new Response(
           JSON.stringify({
@@ -64,6 +72,18 @@ export async function POST(request) {
     }
   } catch (error) {
     console.error("[SECURITY] Prompt injection guard failed:", error);
+  }
+
+  if (
+    shouldUseEarlyKeepaliveForChatCompletions(parsedBody, request.headers.get("accept"))
+  ) {
+    const thresholdMs = resolveKeepaliveThreshold(
+      getChatCompletionsEarlyKeepaliveModel(parsedBody)
+    );
+    return await withEarlyStreamKeepalive(handleChat(request), {
+      signal: request.signal,
+      thresholdMs,
+    });
   }
 
   return await handleChat(request);
