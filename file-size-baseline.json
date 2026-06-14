@@ -72,7 +72,7 @@
     "src/app/(dashboard)/dashboard/usage/components/EvalsTab.tsx": 2148,
     "src/app/(dashboard)/dashboard/usage/components/ProviderLimits/index.tsx": 1069,
     "src/app/api/oauth/[provider]/[action]/route.ts": 903,
-    "src/app/api/providers/[id]/models/route.ts": 2426,
+    "src/app/api/providers/[id]/models/route.ts": 2487,
     "src/app/api/providers/[id]/test/route.ts": 842,
     "src/app/api/usage/analytics/route.ts": 941,
     "src/app/api/v1/models/catalog.ts": 1435,
@@ -101,7 +101,7 @@
     "src/shared/constants/providers.ts": 3147,
     "src/shared/constants/sidebarVisibility.ts": 1006,
     "src/shared/services/cliRuntime.ts": 1090,
-    "src/shared/validation/schemas.ts": 2522,
+    "src/shared/validation/schemas.ts": 2523,
     "src/sse/handlers/chat.ts": 1425,
     "src/sse/services/auth.ts": 2216
   },
@@ -127,5 +127,7 @@
   "_rebaseline_2026_06_14_r3_3835_kiro_pricing": "PR #3835 own growth: pricing.ts 1470→1508 (+38 = missing Kiro pricing rows, claude-sonnet-4.6 etc., pure data). Also carries inherited release/v3.8.25 drift not yet frozen by prior r2 merges: RequestLoggerV2.tsx 1276→1282 (#3820 resizable log table) and combo.ts 5198→5203 (#3811 round-robin replay-response fix). This PR does not touch RequestLoggerV2/combo.ts source; updating the frozen values restores Fast Quality Gates on the current release branch.",
   "_rebaseline_2026_06_14_r3_3849_transient_hide": "PR #3849 own growth: providerPageHelpers.ts 939→955 (+16 = expanded JSDoc on the auto-hide policy + transient-failure guard in evaluateTestAllEntry). Cohesive helper logic; not extractable.",
   "_rebaseline_2026_06_14_r3_3838_opencode_quota": "PR #3838 own growth: usage.ts 3394→3408 (+14 = clearer OpenCode Go missing-quota-API messages with OMNIROUTE_OPENCODE_GO_QUOTA_URL override hint + upstream issue links). Message text only; no logic extractable.",
+  "_rebaseline_2026_06_14_r3_3839_veo_video": "PR #3839 own growth: schemas.ts 2522→2523 (+1 = Veo video model (predictLongRunning) validation for Gemini/Vertex dynamic discovery).",
+  "_rebaseline_2026_06_14_r3_3836_kiro_discovery": "PR #3836 own growth: models/route.ts 2426→2487 (+61 = kiro live per-account discovery branch wiring fetchKiroAvailableModels into the existing cache/auto-fetch/fallback discovery flow). Structural shrink of this route tracked in #3789.",
   "_rebaseline_2026_06_14_2997_disable_cooling": "Re-baseline #2997 (per-connection disable-cooling): EditConnectionModal.tsx 1171→1174 (+toggle UI) + auth.ts 2207→2216 (honor de disableCooling no markAccountUnavailable, pós-prettier). Lógica coesa; não-extraível. (combo.ts/RequestLoggerV2 drift já documentado em _r3_3835.)"
 }
