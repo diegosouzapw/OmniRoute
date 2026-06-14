@@ -133,14 +133,12 @@ async function startServer() {
   }
 
   // Arena ELO sync: model intelligence from leaderboard data (non-blocking, never fatal).
-  // On by default; opt out with ARENA_ELO_SYNC_ENABLED=false.
-  if (process.env.ARENA_ELO_SYNC_ENABLED !== "false") {
-    try {
-      const { initArenaEloSync } = await import("./lib/arenaEloSync");
-      await initArenaEloSync();
-    } catch (err) {
-      startupLog.warn({ error: getErrorMessage(err) }, "Arena ELO sync could not initialize");
-    }
+  // On by default; opt out with Dashboard Feature Flags or ARENA_ELO_SYNC_ENABLED=false.
+  try {
+    const { initArenaEloSync } = await import("./lib/arenaEloSync");
+    await initArenaEloSync();
+  } catch (err) {
+    startupLog.warn({ error: getErrorMessage(err) }, "Arena ELO sync could not initialize");
   }
 }
 

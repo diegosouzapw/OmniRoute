@@ -17,7 +17,6 @@ import { USAGE_SUPPORTED_PROVIDERS } from "@/shared/constants/providers";
 import { pickDisplayValue } from "@/shared/utils/maskEmail";
 import useEmailPrivacyStore from "@/store/emailPrivacyStore";
 import { useNotificationStore } from "@/store/notificationStore";
-import EmailPrivacyToggle from "@/shared/components/EmailPrivacyToggle";
 import QuotaCutoffModal from "./QuotaCutoffModal";
 import QuotaCardGrid from "./QuotaCardGrid";
 import { translateUsageOrFallback, type UsageTranslationValues } from "./i18nFallback";
@@ -819,7 +818,6 @@ export default function ProviderLimits({
             {visibleConnections.length !== sortedConnections.length &&
               ` ${t("filteredFromCount", { count: sortedConnections.length })}`}
           </span>
-          <EmailPrivacyToggle />
         </div>
 
         <button

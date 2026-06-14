@@ -199,7 +199,7 @@ export const FEATURE_FLAG_DEFINITIONS: FeatureFlagDefinition[] = [
     warningLevel: "info",
   },
 
-  // ──────────────── Runtime (9) ────────────────
+  // ──────────────── Runtime (10) ────────────────
   {
     key: "OMNIROUTE_MCP_ENFORCE_SCOPES",
     label: "MCP Enforce Scopes",
@@ -296,6 +296,17 @@ export const FEATURE_FLAG_DEFINITIONS: FeatureFlagDefinition[] = [
     description:
       "Include display-friendly name fields in /v1/models responses. Disable for clients that expect model IDs only.",
     descriptionI18nKey: "settings.featureFlags.modelCatalogIncludeNames",
+    category: "runtime",
+    defaultValue: "true",
+    type: "boolean",
+    requiresRestart: false,
+    warningLevel: "info",
+  },
+  {
+    key: "ARENA_ELO_SYNC_ENABLED",
+    label: "Arena ELO Sync",
+    description: "Enable periodic Arena AI leaderboard ELO sync for model intelligence rankings.",
+    descriptionI18nKey: "featureFlagArenaEloSyncEnabledDescription",
     category: "runtime",
     defaultValue: "true",
     type: "boolean",
