@@ -181,7 +181,10 @@ test("fetchOpencodeQuota parses reset_at timestamps in windows", async () => {
   // window_5h reset_at should be an ISO string
   const resetAt5h = quota!.windows?.["window_5h"]?.resetAt;
   assert.ok(typeof resetAt5h === "string", "window_5h resetAt should be an ISO string");
-  assert.ok(new Date(resetAt5h as string).getTime() > Date.now(), "resetAt should be in the future");
+  assert.ok(
+    new Date(resetAt5h as string).getTime() > Date.now(),
+    "resetAt should be in the future"
+  );
 
   invalidateOpencodeQuotaCache(connectionId);
 });
@@ -330,4 +333,35 @@ test("registerOpencodeQuotaFetcher registers opencode-go in quotaMonitor system"
   assert.equal(getActiveMonitorCount(), 0);
 
   invalidateOpencodeQuotaCache(connectionId);
+});
+
+// ─── 404 warning: log once, cache 5 min ────────────────────────────────────
+
+test("404 response is cached for 5 minutes to avoid hammering", async () => {
+  let callCount = 0;
+  globalThis.fetch = (async () => {
+    callCount += 1;
+    return new Response("Not Found", { status: 404 });
+  }) as typeof fetch;
+
+  const connectionId = `conn-cache-${Date.now()}`;
+
+  // First call: 1 fetch, no cache
+  await fetchOpencodeQuota(connectionId, { apiKey: "sk-test-key" });
+  const callsAfterFirst = callCount;
+  assert.equal(callsAfterFirst, 1);
+
+  // Second call within 5 min: should hit cache, no fetch
+  await fetchOpencodeQuota(connectionId, { apiKey: "sk-test-key" });
+  const callsAfterSecond = callCount;
+  assert.equal(
+    callsAfterSecond,
+    1,
+    `expected cache hit on second 404 call, but fetch ran ${callsAfterSecond - callsAfterFirst} extra times`
+  );
+
+  // After invalidation: 1 fresh fetch
+  invalidateOpencodeQuotaCache(connectionId);
+  await fetchOpencodeQuota(connectionId, { apiKey: "sk-test-key" });
+  assert.equal(callCount, callsAfterSecond + 1);
 });

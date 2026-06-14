@@ -4871,6 +4871,8 @@
     "homeProviderTopologyDesc": "在首页上显示提供商拓扑。",
     "endpointTokenSaver": "Token Saver",
     "endpointTokenSaverDesc": "在 Endpoint 页面显示 Token Saver 面板。",
+    "accountEmailVisibility": "账号邮箱可见性",
+    "accountEmailVisibilityDesc": "在提供商、组合、日志、配额和 Playground 页面显示完整账号邮箱。关闭后默认打码显示。",
     "sidebarVisibilityToggle": "显示侧边栏项目",
     "enableCache": "启用缓存",
     "cacheTTL": "缓存生存时间",

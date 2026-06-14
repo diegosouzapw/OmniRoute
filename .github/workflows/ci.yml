@@ -54,6 +54,9 @@ jobs:
       - run: npm run check:known-symbols
       - run: npm run check:route-guard-membership
       - run: npm run check:test-discovery
+      - run: npm run check:tracked-artifacts
+      - run: npm run check:lockfile
+      - run: npm run check:licenses
       - run: npm run check:docs-sync
       - run: npm run typecheck:core
       # typecheck:noimplicit:core is a forward-looking gate (noImplicitAny).
@@ -101,6 +104,43 @@ jobs:
           name: quality-ratchet
           path: .artifacts/quality-ratchet.md
           if-no-files-found: warn
+
+  # Phase 7 extended quality gates — ADVISORY (continue-on-error). The 5 npm-based
+  # ratchets (dead-code/cognitive-complexity/type-coverage/circular-deps/bundle-size)
+  # run for real. The external scans (vuln/secrets/workflows) skip gracefully until the
+  # owner adds install steps for osv-scanner/gitleaks/actionlint/zizmor; CodeQL ratchet
+  # works via the runner's gh token. SonarQube needs SONAR_TOKEN/SONAR_HOST_URL secrets.
+  quality-extended:
+    name: Quality Gates (Extended, advisory)
+    runs-on: ubuntu-latest
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
+        with:
+          node-version: ${{ env.CI_NODE_VERSION }}
+          cache: npm
+      - run: npm ci
+      - name: Dead-code (knip)
+        run: npm run check:dead-code
+      - name: Cognitive complexity (sonarjs)
+        run: npm run check:cognitive-complexity
+      - name: Type coverage
+        run: npm run check:type-coverage
+      - name: Circular deps (dpdm)
+        run: npm run check:circular-deps
+      - name: Bundle size
+        run: npm run check:bundle-size
+      - name: CodeQL alerts ratchet
+        run: npm run check:codeql-ratchet
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Secret scan (gitleaks; skips if absent)
+        run: npm run check:secrets
+      - name: Vulnerability ratchet (osv-scanner; skips if absent)
+        run: npm run check:vuln-ratchet
+      - name: Workflow lint (actionlint+zizmor; skips if absent)
+        run: npm run check:workflows
 
   docs-sync-strict:
     name: Docs Sync (Strict)
@@ -198,6 +238,11 @@ jobs:
       # Anti test-masking: flag net assert removal / new assert.ok(true) in changed tests.
       - name: Detect test-masking (weakened assertions)
         run: npm run check:test-masking
+      # Evidence-in-PR-body (Hard Rule #18 mechanized): claims of "tests pass" must carry output.
+      - name: Require evidence in PR body
+        run: npm run check:pr-evidence
+        env:
+          PR_BODY: ${{ github.event.pull_request.body }}
       - name: Publish PR test policy summary
         if: always()
         run: |

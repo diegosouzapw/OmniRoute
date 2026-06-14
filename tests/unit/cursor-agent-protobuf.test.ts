@@ -144,6 +144,39 @@ test("encodeAgentRunRequest emits composer parameters", () => {
   assert.ok(text.includes("true"), "parameter value 'true' present");
 });
 
+test("encodeAgentRunRequest sends ModelDetails for pinned thinking models (#3714)", () => {
+  // #3714: pinned Claude/GPT thinking variants returned an empty turn when sent only via
+  // RequestedModel (field 9, bare model_id). cursor-agent's working wire format also
+  // carries a ModelDetails envelope with model_id + display_model_id + display_name.
+  const modelId = "claude-opus-4-7-thinking-xhigh";
+  const buf = encodeAgentRunRequest({ modelId, userText: "hi" });
+  const occurrences = buf.toString("latin1").split(modelId).length - 1;
+  // RequestedModel.model_id (1) + ModelDetails {model_id, display_model_id, display_name}
+  // (3) → the id must now appear at least 4 times (it appeared once before the fix).
+  assert.ok(
+    occurrences >= 4,
+    `pinned model id must be encoded in both RequestedModel and ModelDetails (got ${occurrences})`
+  );
+});
+
+test("encodeAgentRunRequest keeps RequestedModel + parameters alongside ModelDetails (#3714)", () => {
+  // The ModelDetails addition is additive: server-routed ids and the -fast parameter
+  // path (carried only by RequestedModel) must be unaffected.
+  const composer = encodeAgentRunRequest({ modelId: "composer-2-fast", userText: "hi" });
+  const composerText = composer.toString("latin1");
+  assert.ok(composerText.includes("composer-2"), "split model id still present");
+  assert.ok(composerText.includes("fast"), "'-fast' parameter id still present (RequestedModel)");
+  assert.ok(composerText.includes("true"), "'-fast' parameter value still present (RequestedModel)");
+
+  // auto → default, now appearing in both RequestedModel and ModelDetails.
+  const auto = encodeAgentRunRequest({ modelId: "auto", userText: "hi" });
+  const autoOccurrences = auto.toString("latin1").split("default").length - 1;
+  assert.ok(
+    autoOccurrences >= 4,
+    `'default' must appear in RequestedModel + ModelDetails (got ${autoOccurrences})`
+  );
+});
+
 test("buildAgentRequestBody wraps the message in a Connect-RPC frame", () => {
   const buf = buildAgentRequestBody({ modelId: "claude-4.6-sonnet-medium", userText: "hi" });
   // First byte is flags (0x00 = uncompressed); next 4 bytes are big-endian length.

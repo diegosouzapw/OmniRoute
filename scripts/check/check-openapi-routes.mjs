@@ -4,17 +4,20 @@
 // deve resolver para um route.ts real em src/app/api/. Pega endpoint INVENTADO/obsoleto
 // na spec (a IA escreve docs descrevendo rota que não existe). Complementa
 // check-openapi-coverage.mjs (que mede a direção inversa: % de rotas documentadas).
+// Stale-enforcement (6A.3): entrada em KNOWN_STALE_SPEC que não suprime nenhum path
+// órfão real → gate falha com instrução de remoção (evita furo de regressão silencioso).
 import fs from "node:fs";
 import path from "node:path";
 import { pathToFileURL } from "node:url";
 import yaml from "js-yaml";
+import { assertNoStale } from "./lib/allowlist.mjs";
 
 const ROOT = process.cwd();
 const API_ROOT = path.join(ROOT, "src", "app", "api");
 const OPENAPI_PATH = path.join(ROOT, "docs", "reference", "openapi.yaml");
 
 // Entradas da spec sem rota real, congeladas para triagem (catraca: bloqueia NOVAS).
-const KNOWN_STALE_SPEC = new Set([
+export const KNOWN_STALE_SPEC = new Set([
   // openapi.yaml documenta um state por-agente, mas a rota real é o state GLOBAL
   // (/api/tools/agent-bridge/state); por-agente só há /{id}, /{id}/detect, /mappings, /dns.
 ]);
@@ -56,20 +59,25 @@ function main() {
   const raw = yaml.load(fs.readFileSync(OPENAPI_PATH, "utf-8"));
   const specPaths = Object.keys(raw.paths || {}).filter((p) => p.startsWith("/api"));
   const implPaths = collectRoutePaths(API_ROOT);
-  const orphans = findSpecPathsWithoutRoute(specPaths, implPaths).filter(
-    (p) => !KNOWN_STALE_SPEC.has(p)
-  );
+
+  // Live orphans BEFORE allowlist filtering (needed for stale-enforcement).
+  const liveOrphans = findSpecPathsWithoutRoute(specPaths, implPaths);
+  assertNoStale(KNOWN_STALE_SPEC, liveOrphans, "openapi-routes");
+
+  const orphans = liveOrphans.filter((p) => !KNOWN_STALE_SPEC.has(p));
   if (orphans.length) {
     console.error(
       `[openapi-routes] ${orphans.length} path(s) documentado(s) sem rota real:\n` +
         orphans.map((p) => "  ✗ " + p).join("\n") +
         `\n  → crie a rota, corrija/remova a entrada na spec, ou adicione a KNOWN_STALE_SPEC com justificativa.`
     );
-    process.exit(1);
+    process.exitCode = 1;
   }
-  console.log(
-    `[openapi-routes] OK — ${specPaths.length} paths na spec, todos com rota real (${implPaths.length} rotas)`
-  );
+  if (!process.exitCode) {
+    console.log(
+      `[openapi-routes] OK — ${specPaths.length} paths na spec, todos com rota real (${implPaths.length} rotas)`
+    );
+  }
 }
 
 if (import.meta.url === pathToFileURL(process.argv[1] || "").href) main();

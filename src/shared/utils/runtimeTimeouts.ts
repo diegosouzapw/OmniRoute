@@ -97,7 +97,7 @@ export function getUpstreamTimeoutConfig(
   const streamReadinessTimeoutMs = readTimeoutMs(
     env,
     "STREAM_READINESS_TIMEOUT_MS",
-    DEFAULT_STREAM_READINESS_TIMEOUT_MS,
+    sharedRequestTimeoutMs ?? DEFAULT_STREAM_READINESS_TIMEOUT_MS,
     {
       allowZero: true,
       logger,

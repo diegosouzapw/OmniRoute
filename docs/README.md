@@ -1,7 +1,7 @@
 ---
 title: "OmniRoute Documentation"
-version: 3.8.2
-lastUpdated: 2026-05-13
+version: 3.8.24
+lastUpdated: 2026-06-13
 ---
 
 # OmniRoute Documentation
@@ -50,7 +50,7 @@ Simple guides for using OmniRoute — no technical background needed.
 
 Technical documentation for developers and contributors.
 
-## architecture/
+## reference/
 
 Lookup material — API surface, environment variables, CLI flags, provider catalog.
 

@@ -156,16 +156,21 @@ test("an allowlisted path is suppressed even when it would otherwise flag", () =
   assert.deepEqual(find([{ path, source: src } as FileEntry], new Set([path])), []);
 });
 
-test("the shipped allowlist freezes exactly the known current violators", () => {
+test("the shipped allowlist freezes exactly the known current violators (all scopes)", () => {
   const frozen = [...allowlist].sort();
+  // 6A.8: expanded scope includes src/app/api/**/route.ts.
+  // The original open-sse/executors+handlers violations were resolved before 6A.8 landed,
+  // so only the newly-discovered API route violations remain frozen.
   assert.deepEqual(frozen, [
-    "open-sse/executors/adapta-web.ts",
-    "open-sse/executors/deepseek-web.ts",
-    "open-sse/executors/perplexity-web.ts",
-    "open-sse/executors/qoder.ts",
-    "open-sse/executors/veoaifree-web.ts",
-    "open-sse/handlers/embeddings.ts",
-    "open-sse/handlers/search.ts",
+    // 6A.8 expanded scope: src/app/api/**/route.ts pre-existing violations
+    // TODO(6A.8): pre-existing, triage — route through buildErrorBody()/sanitizeErrorMessage()
+    "src/app/api/cli-tools/backups/route.ts",
+    "src/app/api/cli-tools/guide-settings/[toolId]/route.ts",
+    "src/app/api/logs/export/route.ts",
+    "src/app/api/models/catalog/route.ts",
+    "src/app/api/providers/test-batch/route.ts",
+    "src/app/api/settings/import-json/route.ts",
+    "src/app/api/usage/proxy-logs/route.ts",
   ]);
 });
 
@@ -176,4 +181,69 @@ test("returns multiple violating paths and preserves input order", () => {
     { path: "open-sse/executors/c.ts", source: `return { error: e.stack };` },
   ];
   assert.deepEqual(find(files, EMPTY), ["open-sse/executors/a.ts", "open-sse/executors/c.ts"]);
+});
+
+// --- 6A.8: expanded scope (MCP server + API route.ts) ---
+
+test("6A.8: flags a file under open-sse/mcp-server/ that forwards raw err.message", () => {
+  const src = `function handleTool(err: Error) { return { error: { message: err.message } }; }`;
+  const result = find([{ path: "open-sse/mcp-server/tools/fakeTool.ts", source: src }], EMPTY);
+  assert.deepEqual(result, ["open-sse/mcp-server/tools/fakeTool.ts"]);
+});
+
+test("6A.8: flags a src/app/api route.ts that forwards raw err.message", () => {
+  const src = `function handler(err: Error) { return new Response(JSON.stringify({ error: { message: err.message } })); }`;
+  const result = find([{ path: "src/app/api/widgets/route.ts", source: src }], EMPTY);
+  assert.deepEqual(result, ["src/app/api/widgets/route.ts"]);
+});
+
+test("6A.8: does NOT flag mcp-server file that imports utils/error", () => {
+  const src = `import { buildErrorBody } from "@omniroute/open-sse/utils/error";
+  function handleTool(err: Error) { return buildErrorBody(err); }`;
+  const result = find([{ path: "open-sse/mcp-server/tools/safeTool.ts", source: src }], EMPTY);
+  assert.deepEqual(result, []);
+});
+
+test("6A.8: does NOT flag api route.ts that imports utils/error", () => {
+  const src = `import { sanitizeErrorMessage } from "../../../../open-sse/utils/error.ts";
+  export async function POST(req: Request) { try { } catch (err) { return new Response(sanitizeErrorMessage(err)); } }`;
+  const result = find([{ path: "src/app/api/safe-route/route.ts", source: src }], EMPTY);
+  assert.deepEqual(result, []);
+});
+
+// --- 6A.8: stale-allowlist enforcement ---
+
+// @ts-expect-error — reportStaleEntries exported from the gate module
+import { reportStaleEntries } from "../../scripts/check/lib/allowlist.mjs";
+type ReportStaleFn = (allowlist: Set<string> | string[], live: string[], gate: string) => string[];
+const reportStale = reportStaleEntries as ReportStaleFn;
+
+test("6A.8 stale: reportStaleEntries identifies entries that no longer match any live violation", () => {
+  const allow = new Set(["open-sse/executors/fixed.ts", "open-sse/executors/live.ts"]);
+  const live = ["open-sse/executors/live.ts"];
+  const stale = reportStale(allow, live, "check-error-helper");
+  assert.deepEqual(stale, ["open-sse/executors/fixed.ts"]);
+});
+
+test("6A.8 stale: no stale entries when all allowlist items are still live violations", () => {
+  const allow = new Set(["open-sse/executors/a.ts", "open-sse/executors/b.ts"]);
+  const live = ["open-sse/executors/a.ts", "open-sse/executors/b.ts"];
+  assert.deepEqual(reportStale(allow, live, "check-error-helper"), []);
+});
+
+test("6A.8: the shipped allowlist freezes the new expanded-scope known violators (api routes)", () => {
+  // These are the real violations found when expanding scope to src/app/api/**/route.ts.
+  // They are frozen as pre-existing; fixing one requires removing it from the allowlist.
+  const expectedApiViolators = [
+    "src/app/api/cli-tools/backups/route.ts",
+    "src/app/api/cli-tools/guide-settings/[toolId]/route.ts",
+    "src/app/api/logs/export/route.ts",
+    "src/app/api/models/catalog/route.ts",
+    "src/app/api/providers/test-batch/route.ts",
+    "src/app/api/settings/import-json/route.ts",
+    "src/app/api/usage/proxy-logs/route.ts",
+  ];
+  for (const p of expectedApiViolators) {
+    assert.ok(allowlist.has(p), `expected allowlist to contain pre-existing API violation: ${p}`);
+  }
 });

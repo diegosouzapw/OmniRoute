@@ -270,6 +270,11 @@ const ENV_VAR_DENYLIST = new Set([
   "PROVIDER_HEALTH_AUTOPILOT_RECOVERY_RETRY_BACKOFF_FLOOR",
   "PROVIDER_HEALTH_AUTOPILOT_RECOVERY_RETRY_BACKOFF_CEILING",
   "PROVIDER_HEALTH_AUTOPILOT_RECOVERY_RETRY_BACKOFF_CAP",
+  // Gate allowlist constant names (JS identifiers, not env vars) — documented in
+  // docs/architecture/QUALITY_GATES.md and docs/research/DISCOVERY_TOOL_DESIGN.md
+  "KNOWN_STALE_DOC_REFS", // export const in check-docs-symbols.mjs
+  "KNOWN_MISSING",        // export const in check-fetch-targets.mjs
+  "KNOWN_RAW_SQL",        // export const in check-db-rules.mjs
 ]);
 
 /** Endpoints that don't follow the standard route.ts pattern. */

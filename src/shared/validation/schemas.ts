@@ -363,7 +363,10 @@ export const bulkWebSessionImportSchema = z.object({
     .array(
       z.object({
         name: z.string().min(1).max(200),
-        credential: z.string().min(1).max(64 * 1024, "Credential must be under 64 KB"),
+        credential: z
+          .string()
+          .min(1)
+          .max(64 * 1024, "Credential must be under 64 KB"),
       })
     )
     .min(1, "entries must contain at least 1 item")
@@ -912,24 +915,23 @@ export const v1CountTokensSchema = z
   })
   .catchall(z.unknown());
 
-export const setBudgetSchema = z
-  .object({
-    apiKeyId: z.string().trim().min(1, "apiKeyId is required"),
-    // #3537: a limit of 0 means "no limit for this period" (checkBudget only enforces when
-    // activeLimitUsd > 0). The dashboard sends 0 for unfilled fields, so 0 must be accepted —
-    // `.positive()` (rejects 0) used to 400 any save that left a field blank. Negatives are
-    // still rejected by `.min(0)`.
-    dailyLimitUsd: z.coerce.number().min(0, "dailyLimitUsd must be zero or greater").optional(),
-    weeklyLimitUsd: z.coerce.number().min(0, "weeklyLimitUsd must be zero or greater").optional(),
-    monthlyLimitUsd: z.coerce.number().min(0, "monthlyLimitUsd must be zero or greater").optional(),
-    warningThreshold: z.coerce.number().min(0).max(1).optional(),
-    resetInterval: z.enum(["daily", "weekly", "monthly"]).optional(),
-    resetTime: z
-      .string()
-      .trim()
-      .regex(/^\d{2}:\d{2}$/, "resetTime must be in HH:MM format")
-      .optional(),
-  });
+export const setBudgetSchema = z.object({
+  apiKeyId: z.string().trim().min(1, "apiKeyId is required"),
+  // #3537: a limit of 0 means "no limit for this period" (checkBudget only enforces when
+  // activeLimitUsd > 0). The dashboard sends 0 for unfilled fields, so 0 must be accepted —
+  // `.positive()` (rejects 0) used to 400 any save that left a field blank. Negatives are
+  // still rejected by `.min(0)`.
+  dailyLimitUsd: z.coerce.number().min(0, "dailyLimitUsd must be zero or greater").optional(),
+  weeklyLimitUsd: z.coerce.number().min(0, "weeklyLimitUsd must be zero or greater").optional(),
+  monthlyLimitUsd: z.coerce.number().min(0, "monthlyLimitUsd must be zero or greater").optional(),
+  warningThreshold: z.coerce.number().min(0).max(1).optional(),
+  resetInterval: z.enum(["daily", "weekly", "monthly"]).optional(),
+  resetTime: z
+    .string()
+    .trim()
+    .regex(/^\d{2}:\d{2}$/, "resetTime must be in HH:MM format")
+    .optional(),
+});
 // #3537: the previous superRefine required at least one limit > 0, which made it impossible to
 // clear all limits (save 0/0/0). Setting all limits to 0 is a valid "disable enforcement"
 // operation, so no cross-field minimum is imposed.
@@ -1054,6 +1056,7 @@ export const providerModelMutationSchema = z.object({
         "rerank",
         "images",
         "audio",
+        "video",
         "audio-transcriptions",
         "audio-speech",
         "images-generations",
@@ -1574,6 +1577,9 @@ const proxyRegistryFieldsSchema = z
     notes: z.string().trim().max(1000).nullable().optional(),
     status: z.enum(["active", "inactive"]).optional().default("active"),
     source: z.enum(["manual", "oneproxy", "dashboard-custom", "vercel-relay"]).optional(),
+    // Address-family egress policy (#3777): "auto" keeps the prior dual-stack behavior;
+    // "ipv4"/"ipv6" pin the connection to that family (no v4 leak under an IPv6-only proxy).
+    family: z.enum(["auto", "ipv4", "ipv6"]).optional().default("auto"),
   })
   .strict();
 
@@ -1908,6 +1914,7 @@ export const updateKeyPermissionsSchema = z
   .object({
     name: z.string().trim().min(1).max(200).optional(),
     allowedModels: z.array(z.string().trim().min(1)).max(1000).optional(),
+    blockedModels: z.array(z.string().trim().min(1)).max(1000).optional(),
     allowedCombos: z.array(z.string().trim().min(1).max(200)).max(500).optional(),
     allowedConnections: z.array(z.string().uuid()).max(100).optional(),
     noLog: z.boolean().optional(),
@@ -1937,6 +1944,7 @@ export const updateKeyPermissionsSchema = z
     if (
       value.name === undefined &&
       value.allowedModels === undefined &&
+      value.blockedModels === undefined &&
       value.allowedCombos === undefined &&
       value.allowedConnections === undefined &&
       value.noLog === undefined &&

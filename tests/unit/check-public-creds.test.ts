@@ -103,7 +103,9 @@ test("every frozen literal is actually present in a scanned file (no dead allowl
   }
 });
 
-test("with an empty allowlist the real files surface the known live violations", () => {
+test("with an empty allowlist the real scanned files surface zero violations (all migrated to resolvePublicCred)", () => {
+  // All five public client_ids (9 call-sites) were migrated to resolvePublicCred() in
+  // #3493, so neither anchor file has literal credentials anymore.
   const reg = fs.readFileSync(
     path.join(repoRoot, "open-sse/config/providerRegistry.ts"),
     "utf8"
@@ -114,8 +116,58 @@ test("with an empty allowlist the real files surface the known live violations",
   ) as string;
   const regViolations = findLiteralCreds(reg, new Set(), "providerRegistry.ts");
   const oauthViolations = findLiteralCreds(oauth, new Set(), "oauth.ts");
-  // 4 in providerRegistry (Claude/Codex/Qwen/Kimi clientIdDefault),
-  // 5 in oauth.ts (the same four + GitHub).
-  assert.equal(regViolations.length, 4);
-  assert.equal(oauthViolations.length, 5);
+  assert.equal(regViolations.length, 0, `providerRegistry.ts should be clean, got: ${regViolations.join(", ")}`);
+  assert.equal(oauthViolations.length, 0, `oauth.ts should be clean, got: ${oauthViolations.join(", ")}`);
+});
+
+// --- 6A.8: expanded scope (open-sse/** and src/lib/oauth/**) ---
+
+test("6A.8: flags a literal clientIdDefault in any new open-sse file", () => {
+  const src = `export const CONFIG = { clientIdDefault: "brand-new-client-id-in-new-executor" };`;
+  const v = findLiteralCreds(src, new Set(), "open-sse/executors/new-provider.ts");
+  assert.equal(v.length, 1);
+  assert.match(v[0], /brand-new-client-id-in-new-executor/);
+});
+
+test("6A.8: flags a literal clientSecret in any new src/lib/oauth file", () => {
+  const src = `export const CFG = { clientSecret: "GOCSPX-new-leaked-secret" };`;
+  const v = findLiteralCreds(src, new Set(), "src/lib/oauth/providers/newprovider.ts");
+  assert.equal(v.length, 1);
+  assert.match(v[0], /GOCSPX-new-leaked-secret/);
+});
+
+test("6A.8: does NOT flag resolvePublicCred() in a new open-sse executor", () => {
+  const src = `export const CONFIG = { clientIdDefault: resolvePublicCred("new_provider_id") };`;
+  const v = findLiteralCreds(src, new Set(), "open-sse/executors/new-provider.ts");
+  assert.deepEqual(v, []);
+});
+
+// --- 6A.8: stale-allowlist enforcement ---
+
+// @ts-expect-error — assertNoStale exported from lib module
+import { reportStaleEntries as reportStale } from "../../scripts/check/lib/allowlist.mjs";
+
+test("6A.8 stale: known literal that was removed from the codebase is detected as stale", () => {
+  // Simulate: allowlist has "old-literal", but codebase no longer has it.
+  const src = `export const CONFIG = { clientIdDefault: resolvePublicCred("x") };`; // no literal
+  const liveViolations = findLiteralCreds(src, new Set(), "file.ts");
+  // The allowlist has an entry "old-literal" but it's not in live violations.
+  const stale = (reportStale as (a: Set<string>, b: string[], c: string) => string[])(
+    new Set(["old-literal"]), liveViolations, "check-public-creds"
+  );
+  assert.deepEqual(stale, ["old-literal"]);
+});
+
+test("6A.8: open-sse/services/usage.ts FP — function-signature apiKey is suppressed by allowlist", () => {
+  // open-sse/services/usage.ts L543: `getMiniMaxUsage(apiKey: string, provider: "minimax" | "minimax-cn")`
+  // The CRED_KEY_RE matches `apiKey:` in the TypeScript function-parameter type annotation.
+  // "minimax" and "minimax-cn" are provider-name strings in the type, NOT credentials.
+  // Frozen in KNOWN_LITERAL_CREDS as FPs by file:line:value key.
+  const realSrc = fs.readFileSync(path.join(repoRoot, "open-sse/services/usage.ts"), "utf8") as string;
+  // With empty allowlist the FP shows up (it IS flagged by the regex).
+  const vWithEmpty = findLiteralCreds(realSrc, new Set(), "open-sse/services/usage.ts");
+  assert.ok(vWithEmpty.some((v) => v.includes("minimax")), `expected FP 'minimax' violations with empty allowlist, got: ${vWithEmpty.join(", ")}`);
+  // With KNOWN_LITERAL_CREDS the FPs are suppressed.
+  const vWithAllowlist = findLiteralCreds(realSrc, KNOWN_LITERAL_CREDS, "open-sse/services/usage.ts");
+  assert.deepEqual(vWithAllowlist, [], `FP violations should be suppressed, got: ${vWithAllowlist.join(", ")}`);
 });

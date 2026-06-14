@@ -66,6 +66,7 @@ export async function PATCH(request, { params }) {
     const {
       name,
       allowedModels,
+      blockedModels,
       allowedCombos,
       allowedConnections,
       noLog,
@@ -86,6 +87,7 @@ export async function PATCH(request, { params }) {
     const payload: Parameters<typeof updateApiKeyPermissions>[1] = {};
     if (name !== undefined) payload.name = name;
     if (allowedModels !== undefined) payload.allowedModels = allowedModels;
+    if (blockedModels !== undefined) payload.blockedModels = blockedModels;
     if (allowedCombos !== undefined) payload.allowedCombos = allowedCombos;
     if (allowedConnections !== undefined) payload.allowedConnections = allowedConnections;
     if (noLog !== undefined) payload.noLog = noLog;
@@ -100,7 +102,8 @@ export async function PATCH(request, { params }) {
     if (scopes !== undefined) payload.scopes = scopes;
     if (allowedEndpoints !== undefined) payload.allowedEndpoints = allowedEndpoints;
     if (streamDefaultMode !== undefined) payload.streamDefaultMode = streamDefaultMode;
-    if (disableNonPublicModels !== undefined) payload.disableNonPublicModels = disableNonPublicModels;
+    if (disableNonPublicModels !== undefined)
+      payload.disableNonPublicModels = disableNonPublicModels;
 
     const updated = await updateApiKeyPermissions(id, payload);
     if (!updated) {
@@ -114,6 +117,7 @@ export async function PATCH(request, { params }) {
       message: "API key settings updated successfully",
       ...(name !== undefined && { name }),
       ...(allowedModels !== undefined && { allowedModels }),
+      ...(blockedModels !== undefined && { blockedModels }),
       ...(allowedCombos !== undefined && { allowedCombos }),
       ...(allowedConnections !== undefined && { allowedConnections }),
       ...(noLog !== undefined && { noLog }),

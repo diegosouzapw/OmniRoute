@@ -19,19 +19,38 @@
 import fs from "node:fs";
 import path from "node:path";
 import { pathToFileURL } from "node:url";
+import { assertNoStale } from "./lib/allowlist.mjs";
 
 const cwd = process.cwd();
+
+// Directories to scan (Hard Rule #12 applies to ALL error-response-building surfaces).
+// 6A.8: expanded from executors+handlers to include MCP server tools and API route files.
 const SCAN_DIRS = [
   path.join(cwd, "open-sse/executors"),
   path.join(cwd, "open-sse/handlers"),
+  path.join(cwd, "open-sse/mcp-server"),
 ];
+
+// Glob-style pattern for API route files under src/app/api/ (matched by path test below).
+const IS_API_ROUTE = /^src\/app\/api\/.+\/route\.tsx?$/;
 
 // Pre-existing violators frozen so the gate is green NOW and blocks only NEW leaks.
 // Each entry is a real Rule #12 gap (raw err.message forwarded into a response body
 // with no utils/error import) and should become a tracked cleanup issue: route the
 // message through sanitizeErrorMessage()/buildErrorBody()/makeExecutorErrorResult().
 // Do NOT add new entries without a justification — that defeats the gate.
-export const KNOWN_MISSING_ERROR_HELPER = new Set([]);
+export const KNOWN_MISSING_ERROR_HELPER = new Set([
+  // --- original open-sse/executors + handlers scope (pre-6A.8) ---
+  // --- 6A.8 expanded scope: src/app/api/**/route.ts pre-existing violations ---
+  // TODO(6A.8): pre-existing, triage — route through buildErrorBody()/sanitizeErrorMessage()
+  "src/app/api/cli-tools/backups/route.ts",
+  "src/app/api/cli-tools/guide-settings/[toolId]/route.ts",
+  "src/app/api/logs/export/route.ts",
+  "src/app/api/models/catalog/route.ts",
+  "src/app/api/providers/test-batch/route.ts",
+  "src/app/api/settings/import-json/route.ts",
+  "src/app/api/usage/proxy-logs/route.ts",
+]);
 
 // Import specifiers that count as "uses the error helper" (path ends in utils/error).
 const ERROR_HELPER_IMPORT =
@@ -213,6 +232,7 @@ export function findErrorHelperViolations(files, allowlist) {
 
 function collectFiles() {
   const files = [];
+  // Standard scan dirs (open-sse/executors, handlers, mcp-server).
   for (const dir of SCAN_DIRS) {
     for (const p of walk(dir)) {
       files.push({
@@ -221,26 +241,28 @@ function collectFiles() {
       });
     }
   }
+  // 6A.8: also scan all src/app/api/**/route.ts files.
+  const apiRoot = path.join(cwd, "src/app/api");
+  for (const p of walk(apiRoot)) {
+    const rel = path.relative(cwd, p).replace(/\\/g, "/");
+    if (IS_API_ROUTE.test(rel)) {
+      files.push({ path: rel, source: fs.readFileSync(p, "utf8") });
+    }
+  }
   return files;
 }
 
 function main() {
   const files = collectFiles();
+
+  // 6A.8: stale-allowlist enforcement.
+  // Compute live violations WITHOUT the allowlist so we can detect entries that are
+  // now stale (the violation was fixed, but the freeze entry was not removed).
+  const liveViolations = findErrorHelperViolations(files, new Set());
+  assertNoStale(KNOWN_MISSING_ERROR_HELPER, liveViolations, "check-error-helper");
+
+  // Suppress known pre-existing violations so only NEW leaks fail the gate.
   const violations = findErrorHelperViolations(files, KNOWN_MISSING_ERROR_HELPER);
-
-  // Surface allowlist drift: entries that no longer match a real file (cleaned up or
-  // renamed) so the allowlist does not rot. This is a warning, not a failure.
-  const present = new Set(files.map((f) => f.path));
-  const stale = [...KNOWN_MISSING_ERROR_HELPER].filter((p) => !present.has(p));
-  if (stale.length) {
-    console.warn(
-      `[check-error-helper] WARN: ${stale.length} allowlist entr${
-        stale.length === 1 ? "y" : "ies"
-      } no longer match a file (remove from KNOWN_MISSING_ERROR_HELPER):\n` +
-        stale.map((p) => "  - " + p).join("\n")
-    );
-  }
-
   if (violations.length) {
     console.error(
       `[check-error-helper] ${violations.length} file(s) build an error response/result with a ` +
@@ -252,6 +274,7 @@ function main() {
     );
     process.exit(1);
   }
+  if (process.exitCode === 1) return; // stale entries already logged
   console.log(
     `[check-error-helper] OK (${files.length} files scanned, ${KNOWN_MISSING_ERROR_HELPER.size} known-missing frozen)`
   );

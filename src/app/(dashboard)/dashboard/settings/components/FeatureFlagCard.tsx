@@ -20,23 +20,68 @@ interface FeatureFlagCardProps {
 
 const CATEGORY_STYLES: Record<
   FeatureFlagCardProps["flag"]["category"],
-  { bg: string; text: string; label: string }
+  { bg: string; border: string; text: string; label: string }
 > = {
-  security: { bg: "bg-red-500/15", text: "text-red-400", label: "Security" },
-  network: { bg: "bg-blue-500/15", text: "text-blue-400", label: "Network" },
-  policies: { bg: "bg-amber-500/15", text: "text-amber-400", label: "Policies" },
-  runtime: { bg: "bg-purple-500/15", text: "text-purple-400", label: "Runtime" },
-  cli: { bg: "bg-green-500/15", text: "text-green-400", label: "CLI" },
-  health: { bg: "bg-cyan-500/15", text: "text-cyan-400", label: "Health" },
+  security: {
+    bg: "bg-red-50 dark:bg-red-500/15",
+    border: "border-red-200 dark:border-red-500/20",
+    text: "text-red-700 dark:text-red-300",
+    label: "Security",
+  },
+  network: {
+    bg: "bg-sky-50 dark:bg-blue-500/15",
+    border: "border-sky-200 dark:border-blue-500/20",
+    text: "text-sky-700 dark:text-blue-300",
+    label: "Network",
+  },
+  policies: {
+    bg: "bg-amber-50 dark:bg-amber-500/15",
+    border: "border-amber-200 dark:border-amber-500/20",
+    text: "text-amber-700 dark:text-amber-300",
+    label: "Policies",
+  },
+  runtime: {
+    bg: "bg-violet-50 dark:bg-purple-500/15",
+    border: "border-violet-200 dark:border-purple-500/20",
+    text: "text-violet-700 dark:text-purple-300",
+    label: "Runtime",
+  },
+  cli: {
+    bg: "bg-emerald-50 dark:bg-green-500/15",
+    border: "border-emerald-200 dark:border-green-500/20",
+    text: "text-emerald-700 dark:text-green-300",
+    label: "CLI",
+  },
+  health: {
+    bg: "bg-cyan-50 dark:bg-cyan-500/15",
+    border: "border-cyan-200 dark:border-cyan-500/20",
+    text: "text-cyan-700 dark:text-cyan-300",
+    label: "Health",
+  },
 };
 
 const SOURCE_STYLES: Record<
   FeatureFlagCardProps["flag"]["source"],
-  { bg: string; text: string; label: string }
+  { bg: string; border: string; text: string; label: string }
 > = {
-  db: { bg: "bg-blue-500/20", text: "text-blue-300", label: "DB" },
-  env: { bg: "bg-amber-500/20", text: "text-amber-300", label: "ENV" },
-  default: { bg: "bg-slate-500/20", text: "text-slate-400", label: "DEF" },
+  db: {
+    bg: "bg-sky-50 dark:bg-blue-500/20",
+    border: "border-sky-200 dark:border-blue-500/30",
+    text: "text-sky-700 dark:text-blue-300",
+    label: "DB",
+  },
+  env: {
+    bg: "bg-amber-50 dark:bg-amber-500/20",
+    border: "border-amber-200 dark:border-amber-500/30",
+    text: "text-amber-700 dark:text-amber-300",
+    label: "ENV",
+  },
+  default: {
+    bg: "bg-slate-100 dark:bg-slate-500/20",
+    border: "border-slate-200 dark:border-slate-500/30",
+    text: "text-slate-600 dark:text-slate-300",
+    label: "DEF",
+  },
 };
 
 function isEnabled(value: string): boolean {
@@ -46,7 +91,7 @@ function isEnabled(value: string): boolean {
 function Spinner() {
   return (
     <span
-      className="inline-block w-4 h-4 border-2 border-white/20 border-t-white/80 rounded-full animate-spin"
+      className="inline-block h-4 w-4 animate-spin rounded-full border-2 border-border border-t-text-primary"
       aria-hidden="true"
     />
   );
@@ -64,22 +109,20 @@ export default function FeatureFlagCard({
 
   const cardBorder =
     flag.type === "boolean" && enabled
-      ? "border-green-500/30 shadow-green-500/10"
-      : "border-white/10";
-
-  const cardOpacity = flag.type === "boolean" && !enabled ? "opacity-80" : "";
+      ? "border-emerald-300 shadow-emerald-500/10 dark:border-green-500/30"
+      : "border-border";
 
   return (
     <div
       role="group"
       aria-label={flag.label}
-      className={`backdrop-blur-xl bg-black/60 border rounded-xl p-4 transition-all duration-200 hover:-translate-y-px hover:shadow-xl hover:border-white/15 ${cardBorder} ${cardOpacity}`}
+      className={`rounded-xl border bg-card p-4 shadow-soft transition-all duration-200 hover:-translate-y-px hover:border-black/15 hover:bg-bg-subtle/60 hover:shadow-elevated dark:hover:border-white/15 dark:hover:bg-surface ${cardBorder}`}
     >
       {/* Top row: category badge + toggle/select */}
       <div className="flex items-center justify-between mb-3">
         <span
           aria-label={`Category: ${flag.category}`}
-          className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${category.bg} ${category.text}`}
+          className={`inline-flex items-center rounded-full border px-2 py-0.5 text-xs font-medium ${category.bg} ${category.border} ${category.text}`}
         >
           {category.label}
         </span>
@@ -94,8 +137,8 @@ export default function FeatureFlagCard({
               aria-label={flag.label}
               disabled={saving}
               onClick={() => onToggle(flag.key, enabled ? "false" : "true")}
-              className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white/50 disabled:cursor-not-allowed disabled:opacity-50 ${
-                enabled ? "bg-green-500" : "bg-white/20"
+              className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary disabled:cursor-not-allowed disabled:opacity-50 ${
+                enabled ? "bg-emerald-500" : "bg-slate-300 dark:bg-white/20"
               }`}
             >
               <span
@@ -111,10 +154,10 @@ export default function FeatureFlagCard({
               disabled={saving}
               value={flag.effectiveValue}
               onChange={(e) => onToggle(flag.key, e.target.value)}
-              className="text-xs bg-white/10 border border-white/20 rounded-md px-2 py-0.5 text-white focus:outline-none focus:ring-1 focus:ring-white/30 disabled:cursor-not-allowed disabled:opacity-50"
+              className="rounded-md border border-border bg-bg-subtle px-2 py-0.5 text-xs text-text-primary focus:outline-none focus:ring-1 focus:ring-primary disabled:cursor-not-allowed disabled:opacity-50"
             >
               {(flag.enumValues ?? []).map((val) => (
-                <option key={val} value={val} className="bg-neutral-900">
+                <option key={val} value={val} className="bg-card text-text-primary">
                   {val}
                 </option>
               ))}
@@ -125,12 +168,12 @@ export default function FeatureFlagCard({
 
       {/* Flag key + warning icon */}
       <div className="flex items-center gap-2 mb-1.5">
-        <span className="font-mono text-xs font-semibold text-white/90 truncate flex-1">
+        <span className="flex-1 truncate font-mono text-xs font-semibold text-text-primary">
           {flag.key}
         </span>
 
         {flag.warningLevel === "caution" && (
-          <span className="text-amber-400 text-sm" aria-label="Caution">
+          <span className="text-sm text-amber-500 dark:text-amber-300" aria-label="Caution">
             ⚠️
           </span>
         )}
@@ -141,7 +184,7 @@ export default function FeatureFlagCard({
         )}
         {flag.requiresRestart && (
           <span
-            className="text-[10px] text-slate-400 border border-slate-400/30 rounded px-1"
+            className="rounded border border-slate-300 bg-slate-50 px-1 text-[10px] text-slate-600 dark:border-slate-400/30 dark:bg-transparent dark:text-slate-300"
             title="Requires restart"
             aria-label="Requires restart"
           >
@@ -151,14 +194,14 @@ export default function FeatureFlagCard({
       </div>
 
       {/* Description */}
-      <p className="text-xs text-white/50 line-clamp-2 mb-3">{flag.description}</p>
+      <p className="mb-3 line-clamp-2 text-xs text-text-muted">{flag.description}</p>
 
       {/* Bottom row: source badge + reset button */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-1.5">
-          <span className="text-xs text-white/30">Source:</span>
+          <span className="text-xs text-text-muted">Source:</span>
           <span
-            className={`inline-flex items-center px-1.5 py-0.5 rounded text-xs font-mono font-medium ${source.bg} ${source.text}`}
+            className={`inline-flex items-center rounded border px-1.5 py-0.5 font-mono text-xs font-medium ${source.bg} ${source.border} ${source.text}`}
           >
             {source.label}
           </span>
@@ -169,7 +212,7 @@ export default function FeatureFlagCard({
             aria-label={`Reset ${flag.label} to default`}
             disabled={saving}
             onClick={() => onReset(flag.key)}
-            className="inline-flex items-center gap-1 text-xs text-white/40 hover:text-white/70 transition-colors disabled:cursor-not-allowed disabled:opacity-40 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white/50 rounded"
+            className="inline-flex items-center gap-1 rounded text-xs text-text-muted transition-colors hover:text-text-primary disabled:cursor-not-allowed disabled:opacity-40 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
           >
             <span className="material-symbols-outlined text-[14px]" aria-hidden="true">
               refresh

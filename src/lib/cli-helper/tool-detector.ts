@@ -3,9 +3,19 @@ import path from "node:path";
 import { execFile } from "node:child_process";
 import { promisify } from "node:util";
 import { getCurrentHermesAgentRoles } from "./config-generator/hermes-agent";
+import { getCachedLoginShellPath, mergeShellPath } from "@/shared/services/loginShellPath";
 
 const execFileAsync = promisify(execFile);
 let execFileImpl = execFileAsync;
+
+// #3321: macOS GUI/Electron truncates PATH, so `which`/`--version` probes miss Homebrew/
+// nvm/volta CLIs and the doctor reports them "not installed". Build a lookup env enriched
+// with the login-shell PATH (darwin-only, cached, fail-safe → returns process.env elsewhere).
+function detectorEnv(): NodeJS.ProcessEnv {
+  const loginShellPath = getCachedLoginShellPath();
+  if (!loginShellPath) return process.env;
+  return { ...process.env, PATH: mergeShellPath(process.env.PATH || "", loginShellPath) };
+}
 
 export function __setExecFileImpl(fn: typeof execFileAsync): void {
   execFileImpl = fn;
@@ -71,14 +81,15 @@ function isConfigured(content: string, baseUrl: string): boolean {
 
 async function detectBinary(name: string): Promise<{ installed: boolean; version?: string }> {
   const binary = BINARY_NAMES[name] || name;
+  const env = detectorEnv();
   try {
-    const { stdout } = await execFileImpl(binary, ["--version"], { timeout: 5000 });
+    const { stdout } = await execFileImpl(binary, ["--version"], { timeout: 5000, env });
     const version = stdout.trim().replace(/^v/, "");
     return { installed: true, version };
   } catch {
     try {
       // Try `which` as fallback
-      const { stdout } = await execFileAsync("which", [binary], { timeout: 5000 });
+      const { stdout } = await execFileAsync("which", [binary], { timeout: 5000, env });
       if (stdout.trim()) {
         return { installed: true };
       }

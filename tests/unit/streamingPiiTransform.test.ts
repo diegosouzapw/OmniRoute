@@ -49,11 +49,12 @@ test("createPiiSseTransform redacts email in delta.content", async () => {
   const output = await testTransform(transform, [input]);
 
   // Should NOT contain the raw email
-  assert.ok(!output.includes("john@example.com"),
-    "raw email should be redacted from output");
+  assert.ok(!output.includes("john@example.com"), "raw email should be redacted from output");
   // Should contain some form of redaction marker
-  assert.ok(output.includes("REDACTED") || output.includes("[EMAIL"),
-    "output should contain redaction marker");
+  assert.ok(
+    output.includes("REDACTED") || output.includes("[EMAIL"),
+    "output should contain redaction marker"
+  );
 });
 
 test("createPiiSseTransform passes non-PII content through unchanged", async () => {
@@ -62,8 +63,10 @@ test("createPiiSseTransform passes non-PII content through unchanged", async () 
   const input = `data: {"choices":[{"delta":{"content":"hello world no secrets here"}}]}\n\n`;
   const output = await testTransform(transform, [input]);
 
-  assert.ok(output.includes("hello world no secrets here"),
-    "non-PII content should pass through unchanged");
+  assert.ok(
+    output.includes("hello world no secrets here"),
+    "non-PII content should pass through unchanged"
+  );
 });
 
 test("createPiiSseTransform redacts PII split across chunk boundaries", async () => {
@@ -74,10 +77,11 @@ test("createPiiSseTransform redacts PII split across chunk boundaries", async ()
 
   const output = await testTransform(transform, [chunk1, chunk2]);
 
-  assert.ok(!output.includes("john@example.com"),
-    "email split across chunks should be redacted");
-  assert.ok(output.includes("REDACTED") || output.includes("[EMAIL"),
-    "redaction marker should be present in final stream");
+  assert.ok(!output.includes("john@example.com"), "email split across chunks should be redacted");
+  assert.ok(
+    output.includes("REDACTED") || output.includes("[EMAIL"),
+    "redaction marker should be present in final stream"
+  );
 });
 
 test("createPiiSseTransform flushes final redacted content before [DONE] sentinel", async () => {
@@ -106,14 +110,19 @@ test("createPiiSseTransform flushes final redacted content before [DONE] sentine
   await writePromise;
 
   const fullOutput = outputChunks.join("");
-  const lines = fullOutput.split("\n").map(l => l.trim()).filter(Boolean);
+  const lines = fullOutput
+    .split("\n")
+    .map((l) => l.trim())
+    .filter(Boolean);
 
-  const doneIndex = lines.findIndex(l => l === "data: [DONE]");
+  const doneIndex = lines.findIndex((l) => l === "data: [DONE]");
   assert.ok(doneIndex !== -1, "[DONE] sentinel should be in the stream");
-  
+
   assert.equal(doneIndex, lines.length - 1, "nothing should be enqueued after the [DONE] sentinel");
 
-  const redactedLine = lines.find((l, idx) => idx < doneIndex && (l.includes("REDACTED") || l.includes("[EMAIL")));
+  const redactedLine = lines.find(
+    (l, idx) => idx < doneIndex && (l.includes("REDACTED") || l.includes("[EMAIL"))
+  );
   assert.ok(redactedLine, "redacted content chunk should be enqueued before the [DONE] sentinel");
 });
 
@@ -126,8 +135,10 @@ test("content flushed when last chunk is metadata-only (no delta.content)", asyn
 
   const output = await testTransform(transform, [chunk1, chunk2, chunk3]);
 
-  assert.ok(output.includes("hello world"),
-    "buffered content must be flushed even when last chunk has no delta.content");
+  assert.ok(
+    output.includes("hello world"),
+    "buffered content must be flushed even when last chunk has no delta.content"
+  );
 });
 
 test("no duplicate content when stream has [DONE] and normal close", async () => {
@@ -179,8 +190,10 @@ test("PII split across sliding window boundary is still redacted", async () => {
   const done = `data: [DONE]\n\n`;
   const output = await testTransform(transform, [chunk1, chunk2, done]);
 
-  assert.ok(!output.includes("user@example.com"),
-    "email spanning window boundary should be redacted");
+  assert.ok(
+    !output.includes("user@example.com"),
+    "email spanning window boundary should be redacted"
+  );
 });
 
 test("preserve event names when flushing buffered SSE text", async () => {
@@ -207,7 +220,11 @@ test("do not leak custom event name to subsequent default message events on flus
   const output = await testTransform(transform, [eventLine + inputLine1 + inputLine2 + doneLine]);
 
   const occurrences = (output.match(/event: response.output_text.delta/g) || []).length;
-  assert.strictEqual(occurrences, 1, "custom event name should only appear once and not leak to the flushed chunk of the default message");
+  assert.strictEqual(
+    occurrences,
+    1,
+    "custom event name should only appear once and not leak to the flushed chunk of the default message"
+  );
 });
 
 test("insert an SSE event separator before flushed chunks", async () => {
@@ -235,29 +252,41 @@ test("reset event line on empty line message boundary", async () => {
   // The defaultLine is preceded by a blank line (\n\n), so it is a separate event.
   // The event name "response.output_text.delta" must NOT leak into the second event.
   const parts = output.split("\n\n");
-  
+
   // parts[0] should have the custom event name
-  assert.ok(parts[0].includes("event: response.output_text.delta"), "first block should have custom event name");
-  
+  assert.ok(
+    parts[0].includes("event: response.output_text.delta"),
+    "first block should have custom event name"
+  );
+
   // parts[1] should NOT have the custom event name
-  assert.ok(!parts[1].includes("event: response.output_text.delta"), "second block should reset event name and not leak it");
+  assert.ok(
+    !parts[1].includes("event: response.output_text.delta"),
+    "second block should reset event name and not leak it"
+  );
 });
 
 test("sanitize compressed IPv6 addresses", async () => {
   const transform = createPiiSseTransform();
-  
+
   const inputLoopback = `data: {"choices":[{"delta":{"content":"server address is ::1"}}]}\n\n`;
   const inputCompressed = `data: {"choices":[{"delta":{"content":"server address is 2001:db8::1"}}]}\n\n`;
   const doneLine = `data: [DONE]\n\n`;
 
   const outputLoopback = await testTransform(transform, [inputLoopback + doneLine]);
   assert.ok(!outputLoopback.includes("::1"), "compressed loopback IPv6 should be redacted");
-  assert.ok(outputLoopback.includes("[IP_REDACTED]"), "redaction marker should be present for loopback IPv6");
+  assert.ok(
+    outputLoopback.includes("[IP_REDACTED]"),
+    "redaction marker should be present for loopback IPv6"
+  );
 
   const transform2 = createPiiSseTransform();
   const outputCompressed = await testTransform(transform2, [inputCompressed + doneLine]);
   assert.ok(!outputCompressed.includes("2001:db8::1"), "compressed IPv6 should be redacted");
-  assert.ok(outputCompressed.includes("[IP_REDACTED]"), "redaction marker should be present for compressed IPv6");
+  assert.ok(
+    outputCompressed.includes("[IP_REDACTED]"),
+    "redaction marker should be present for compressed IPv6"
+  );
 });
 
 test("no event: prefix in flushed chunk when no event line was seen", async () => {
@@ -271,7 +300,10 @@ test("no event: prefix in flushed chunk when no event line was seen", async () =
   const output = await testTransform(transform, [inputLine + doneLine]);
 
   // The flushed chunk (last 10 chars "klmnopqrst") must NOT be preceded by any "event:" line.
-  assert.ok(!output.includes("event:"), "no event: prefix should appear when no event line was seen");
+  assert.ok(
+    !output.includes("event:"),
+    "no event: prefix should appear when no event line was seen"
+  );
 });
 
 test("event name preserved when stream closes without [DONE] sentinel", async () => {
@@ -303,7 +335,10 @@ test("event: line without trailing space is tracked as currentEventLine", async 
 
   const output = await testTransform(transform, [eventLine + inputLine + doneLine]);
 
-  assert.ok(output.includes("event:custom.event"), "no-space event: form should be tracked and prepended on flush");
+  assert.ok(
+    output.includes("event:custom.event"),
+    "no-space event: form should be tracked and prepended on flush"
+  );
 });
 
 test("lastEventLine is not updated when processing a stop-signal chunk", async () => {
@@ -402,7 +437,10 @@ test("verify event line flushed before other non-data lines (e.g. id, retry)", a
   const inputLines = "event: foo\nid: 123\ndata: bar\n\n";
   const output = await testTransform(transform, [inputLines]);
 
-  assert.ok(output.includes("event: foo\nid: 123\ndata: bar"), "event line must be flushed before non-data lines like id");
+  assert.ok(
+    output.includes("event: foo\nid: 123\ndata: bar"),
+    "event line must be flushed before non-data lines like id"
+  );
 });
 
 test("verify trailing event line is flushed on stream close", async () => {
@@ -411,7 +449,10 @@ test("verify trailing event line is flushed on stream close", async () => {
   const inputLines = "event: some-trailing-event\n";
   const output = await testTransform(transform, [inputLines]);
 
-  assert.ok(output.includes("event: some-trailing-event"), "trailing event line should be flushed on stream close");
+  assert.ok(
+    output.includes("event: some-trailing-event"),
+    "trailing event line should be flushed on stream close"
+  );
 });
 
 test("verify consecutive event lines without intervening data are both preserved", async () => {
@@ -434,4 +475,49 @@ test.after(async () => {
   const coreDb = await import("../../src/lib/db/core.ts");
   coreDb.resetDbInstance();
   fs.rmSync(tmpDir, { recursive: true, force: true });
+});
+
+test("createPiiSseTransform preserves tool call arguments without buffering", async () => {
+  const transform = (createPiiSseTransform as any)({ windowSize: 10 });
+  const payload = {
+    choices: [
+      {
+        delta: {
+          tool_calls: [
+            {
+              index: 0,
+              function: {
+                arguments: JSON.stringify({ command: "find /tmp -name test.txt" }),
+              },
+            },
+          ],
+        },
+      },
+    ],
+  };
+
+  const input = `data: ${JSON.stringify(payload)}\n\n`;
+  const done = `data: [DONE]\n\n`;
+  const output = await testTransform(transform, [input, done]);
+
+  assert.ok(output.includes("find /tmp -name test.txt"));
+  assert.ok(!output.includes("REDACTED"));
+});
+test("createPiiSseTransform preserves Claude partial_json without buffering", async () => {
+  const transform = (createPiiSseTransform as any)({ windowSize: 10 });
+  const payload = {
+    type: "content_block_delta",
+    index: 1,
+    delta: {
+      type: "input_json_delta",
+      partial_json: JSON.stringify({ command: "grep -r pattern /var" }),
+    },
+  };
+
+  const input = `event: content_block_delta\ndata: ${JSON.stringify(payload)}\n\n`;
+  const done = `data: [DONE]\n\n`;
+  const output = await testTransform(transform, [input, done]);
+
+  assert.ok(output.includes("grep -r pattern /var"));
+  assert.ok(!output.includes("REDACTED"));
 });

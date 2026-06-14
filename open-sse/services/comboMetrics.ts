@@ -4,6 +4,8 @@
  * Provides API for reading metrics from the dashboard.
  */
 
+import { recordProviderUsage } from "./autoCombo/providerDiversity";
+
 interface ModelMetrics {
   requests: number;
   successes: number;
@@ -270,6 +272,12 @@ export function recordComboRequest(
 
   if (success) {
     combo.totalSuccesses++;
+    // Feed the provider-diversity report (/api/analytics/diversity): record the
+    // provider that actually served this request. recordComboRequest is the
+    // single chokepoint every combo strategy funnels through, so one call here
+    // covers priority / round-robin / weighted / auto / etc.
+    const usedProvider = toNonEmptyString(target?.provider);
+    if (usedProvider) recordProviderUsage(usedProvider);
   } else {
     combo.totalFailures++;
   }

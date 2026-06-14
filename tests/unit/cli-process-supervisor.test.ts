@@ -195,6 +195,36 @@ test("ServerSupervisor reseta restartCount após processo viver >=30s", async ()
   assert.equal(supervisor.restartCount, 1); // reset p/ 0, depois incrementado p/ 1
 });
 
+// --- Node.js v24 compat: process.exit() must receive a number (#3748) ---
+
+test("ServerSupervisor.handleExit com string code não passa string para process.exit (#3748)", async () => {
+  const { ServerSupervisor } = await import("../../bin/cli/runtime/processSupervisor.mjs");
+
+  const exits: Array<number | string | undefined> = [];
+  const origExit = process.exit.bind(process);
+  // @ts-ignore
+  process.exit = (code?: number | string) => exits.push(code);
+
+  const supervisor = new ServerSupervisor({
+    serverPath: "/fake/server.js",
+    env: {},
+    maxRestarts: 0,
+  });
+  // Simulates the 'error' event on child spawn failure: err.code = 'ENOENT' (string, not number).
+  // maxRestarts=0 → restartCount(0) >= maxRestarts(0) → process.exit() is called immediately.
+  supervisor.startedAt = Date.now() - 100;
+  supervisor.handleExit("ENOENT" as any);
+
+  // @ts-ignore
+  process.exit = origExit;
+  assert.equal(exits.length, 1, "process.exit deve ser chamado exatamente 1 vez");
+  assert.equal(
+    typeof exits[0],
+    "number",
+    `process.exit deve receber number, recebeu: ${typeof exits[0]} (${exits[0]})`
+  );
+});
+
 // --- pid.mjs multi-service ---
 
 test("writePidFile/readPidFile/cleanupPidFile operam por service", async () => {
