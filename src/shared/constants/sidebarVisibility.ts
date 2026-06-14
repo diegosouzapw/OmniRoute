@@ -10,6 +10,7 @@ export const HIDEABLE_SIDEBAR_ITEM_IDS = [
   "combos-live",
   "quota",
   // OmniProxy > Compression Context
+  "context-settings",
   "context-caveman",
   "context-rtk",
   "context-headroom",
@@ -232,6 +233,14 @@ export const COMPRESSION_CONTEXT_GROUP: SidebarItemGroup = {
   titleKey: "compressionContextGroup",
   titleFallback: "Compression Context",
   items: [
+    {
+      id: "context-settings",
+      href: "/dashboard/context/settings",
+      i18nKey: "contextSettings",
+      labelFallback: "Compression Settings",
+      subtitleFallback: "Global defaults",
+      icon: "settings",
+    },
     {
       id: "context-caveman",
       href: "/dashboard/context/caveman",
