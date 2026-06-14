@@ -212,11 +212,25 @@ function normalizePipelineStep(step: CompressionPipelineStep | string): Compress
   return { engine: "caveman" };
 }
 
+/**
+ * TV1 — Opt-in bail-out configuration for the stacked pipeline.
+ * When enabled: a step that throws is silently skipped (verbatim kept);
+ * a step whose gain is below minGainPercent is also skipped.
+ * DEFAULT = disabled — behaviour is byte-identical to pre-TV1 when absent.
+ */
+interface BailoutConfig {
+  enabled: boolean;
+  /** Minimum savings percent required to advance currentBody. Default: 10. */
+  minGainPercent?: number;
+}
+
 interface StackOptions {
   model?: string;
   supportsVision?: boolean | null;
   config?: CompressionConfig;
   compressionComboId?: string | null;
+  /** TV1 bail-out discipline (opt-in, default disabled). */
+  bailout?: BailoutConfig;
 }
 
 /** Accumulates per-step telemetry across a stacked run (shared sync/async). */
@@ -267,12 +281,24 @@ function buildStepOptions(
   };
 }
 
+/**
+ * TV1 — Pure helper that decides whether a completed step should advance
+ * `currentBody`. Called only when bailout is ENABLED; the sync/async loops
+ * bypass this entirely on the default-off path (zero cost, zero behaviour change).
+ *
+ * Returns `{ advance: true }` when the step should be accepted, or
+ * `{ advance: false }` when it should be skipped (verbatim kept).
+ */
+function decideStep(result: CompressionResult, bailout: BailoutConfig): { advance: boolean } {
+  if (!result.compressed) return { advance: false };
+  const minGain = bailout.minGainPercent ?? 10;
+  const gain = result.stats?.savingsPercent ?? 0;
+  if (gain < minGain) return { advance: false };
+  return { advance: true };
+}
+
 /** Folds one engine result into the accumulator (telemetry + breakdown entry). */
-function mergeStackStep(
-  acc: StackAccumulator,
-  engineId: string,
-  result: CompressionResult
-): void {
+function mergeStackStep(acc: StackAccumulator, engineId: string, result: CompressionResult): void {
   if (!result.stats) return;
   result.stats.techniquesUsed.forEach((technique) => acc.techniques.add(technique));
   result.stats.rulesApplied?.forEach((rule) => acc.rules.add(rule));
@@ -343,14 +369,34 @@ export function applyStackedCompression(
   const acc = createStackAccumulator();
   const start = performance.now();
 
+  const bailout = options?.bailout;
+
   for (const step of steps) {
     const engine = getCompressionEngine(step.engine);
     if (!engine) continue;
-    const result = engine.apply(currentBody, buildStepOptions(step, options));
-    mergeStackStep(acc, step.engine, result);
-    if (result.compressed) {
-      currentBody = result.body;
-      compressed = true;
+
+    // TV1: when bail-out is ENABLED, wrap apply() and apply skip rules.
+    // When DISABLED (default), the code path below is identical to pre-TV1.
+    if (bailout?.enabled) {
+      let result: CompressionResult;
+      try {
+        result = engine.apply(currentBody, buildStepOptions(step, options));
+      } catch {
+        // Failure bail-out: treat as no-op (verbatim kept for this step).
+        continue;
+      }
+      mergeStackStep(acc, step.engine, result);
+      if (decideStep(result, bailout).advance) {
+        currentBody = result.body;
+        compressed = true;
+      }
+    } else {
+      const result = engine.apply(currentBody, buildStepOptions(step, options));
+      mergeStackStep(acc, step.engine, result);
+      if (result.compressed) {
+        currentBody = result.body;
+        compressed = true;
+      }
     }
   }
 
@@ -383,17 +429,38 @@ export async function applyStackedCompressionAsync(
   const acc = createStackAccumulator();
   const start = performance.now();
 
+  const bailout = options?.bailout;
+
   for (const step of steps) {
     const engine = getCompressionEngine(step.engine);
     if (!engine) continue;
     const stepOptions = buildStepOptions(step, options);
-    const result = engine.applyAsync
-      ? await engine.applyAsync(currentBody, stepOptions)
-      : engine.apply(currentBody, stepOptions);
-    mergeStackStep(acc, step.engine, result);
-    if (result.compressed) {
-      currentBody = result.body;
-      compressed = true;
+
+    // TV1: same bail-out discipline as the sync loop (opt-in, default off).
+    if (bailout?.enabled) {
+      let result: CompressionResult;
+      try {
+        result = engine.applyAsync
+          ? await engine.applyAsync(currentBody, stepOptions)
+          : engine.apply(currentBody, stepOptions);
+      } catch {
+        // Failure bail-out: verbatim kept, continue to next engine.
+        continue;
+      }
+      mergeStackStep(acc, step.engine, result);
+      if (decideStep(result, bailout).advance) {
+        currentBody = result.body;
+        compressed = true;
+      }
+    } else {
+      const result = engine.applyAsync
+        ? await engine.applyAsync(currentBody, stepOptions)
+        : engine.apply(currentBody, stepOptions);
+      mergeStackStep(acc, step.engine, result);
+      if (result.compressed) {
+        currentBody = result.body;
+        compressed = true;
+      }
     }
   }
 
