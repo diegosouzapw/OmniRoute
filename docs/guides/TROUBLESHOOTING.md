@@ -263,6 +263,9 @@ curl http://localhost:20128/api/monitoring/health
 - Application logs: `<repo>/logs/...` (when `APP_LOG_TO_FILE=true`)
 - Call log artifacts: `${DATA_DIR}/call_logs/YYYY-MM-DD/...` when the call log pipeline is enabled
 
+The Request Logs page's **Clean history** action clears `call_logs`, legacy
+`request_detail_logs`, and the local `${DATA_DIR}/call_logs/` artifact directory.
+
 ---
 
 ## Circuit Breaker Issues

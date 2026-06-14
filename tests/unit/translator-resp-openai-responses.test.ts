@@ -446,3 +446,45 @@ test("Responses -> OpenAI: response.failed records upstream error", () => {
   assert.equal(state.upstreamError.code, "rate_limit_exceeded");
   assert.match(state.upstreamError.message, /Rate limit reached/);
 });
+
+test("OpenAI -> Responses: deduplicates repeated tool argument snapshots", () => {
+  const args = JSON.stringify({ command: "grep -r pattern /var" });
+  const events = collectEvents([
+    {
+      id: "chatcmpl-tool-snapshot",
+      model: "gpt-4.1",
+      choices: [
+        {
+          index: 0,
+          delta: {
+            tool_calls: [
+              {
+                index: 0,
+                id: "call_1",
+                type: "function",
+                function: { name: "shell", arguments: args },
+              },
+            ],
+          },
+          finish_reason: null,
+        },
+      ],
+    },
+    {
+      id: "chatcmpl-tool-snapshot",
+      model: "gpt-4.1",
+      choices: [
+        {
+          index: 0,
+          delta: { tool_calls: [{ index: 0, function: { arguments: args } }] },
+          finish_reason: "tool_calls",
+        },
+      ],
+    },
+  ]);
+
+  const done = events.find((event) => event.event === "response.function_call_arguments.done");
+
+  assert.equal(done.data.arguments, args);
+  assert.equal(JSON.parse(done.data.arguments).command, "grep -r pattern /var");
+});

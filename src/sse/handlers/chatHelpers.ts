@@ -582,17 +582,61 @@ export function handleNoCredentials(
   );
 }
 
+/**
+ * Bug #3758 (Problem A): NVIDIA NIM (and other flaky OpenAI-compatible upstreams)
+ * intermittently send HTTP 200, then close the SSE early with zero useful frames.
+ * The readiness gate surfaces this as `STREAM_EARLY_EOF` / HTTP 502. On the
+ * single-model (non-combo) path that 502 used to be returned immediately for every
+ * provider except `antigravity`, so a transient upstream hang-up looked like a hard
+ * failure to the caller (e.g. the test-chat scenario).
+ *
+ * This decides whether a single-model request should re-attempt after an early
+ * close. It deliberately:
+ *  - retries ONLY on `STREAM_EARLY_EOF` (the strong "upstream hung up after 200"
+ *    signal) — NOT on `STREAM_READINESS_TIMEOUT` / `stream_timeout`, which is a
+ *    slow-but-alive upstream where retrying would only double latency; and
+ *  - is bounded to exactly ONE retry via the per-request `attempt` counter, so it
+ *    can never loop (the second consecutive early close surfaces the 502).
+ *
+ * Pure function (no side effects): the caller performs a plain same-connection
+ * re-attempt and must NOT mark the account unavailable for an early close — it is a
+ * transient upstream glitch, not a bad key.
+ */
+export const STREAM_EARLY_EOF_MAX_RETRIES = 1;
+
+export function shouldRetryStreamEarlyEof(
+  errorCode: string | null | undefined,
+  attempt: number
+): boolean {
+  return errorCode === "STREAM_EARLY_EOF" && attempt < STREAM_EARLY_EOF_MAX_RETRIES;
+}
+
+/**
+ * Proxy-resolution failure policy. Default: fail-closed (rethrow) so a request
+ * with an assigned-but-unresolvable proxy never silently egresses on the real IP.
+ * Opt back into the legacy DIRECT fallback with PROXY_FAIL_OPEN=true.
+ */
+export function decideProxyResolutionFailure(
+  err: unknown,
+  env: { PROXY_FAIL_OPEN?: string } = process.env
+): null {
+  if ((env.PROXY_FAIL_OPEN ?? "").trim().toLowerCase() === "true") {
+    log.warn(
+      "PROXY",
+      `Proxy resolution failed — PROXY_FAIL_OPEN=true, falling back to DIRECT: ${
+        err instanceof Error ? err.message : String(err)
+      }`
+    );
+    return null;
+  }
+  throw err instanceof Error ? err : new Error(String(err));
+}
+
 export async function safeResolveProxy(connectionId: string, apiKeyId?: string) {
   try {
     return await resolveProxyForConnection(connectionId, apiKeyId);
-  } catch (proxyErr: any) {
-    // Falling back to a DIRECT connection silently defeats proxy-based traffic
-    // isolation — keep the request alive, but make the bypass visible.
-    log.warn(
-      "PROXY",
-      `Proxy resolution failed for connection ${String(connectionId).slice(0, 8)} — falling back to DIRECT connection: ${proxyErr.message}`
-    );
-    return null;
+  } catch (proxyErr) {
+    return decideProxyResolutionFailure(proxyErr);
   }
 }
 

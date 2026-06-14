@@ -11,7 +11,7 @@ import { getConsistentMachineId } from "@/shared/utils/machineId";
 import { syncToCloud } from "@/lib/cloudSync";
 import { validateCompositeTiersConfig } from "@/lib/combos/compositeTiers";
 import { normalizeComboModels } from "@/lib/combos/steps";
-import { validateComboDAG } from "@omniroute/open-sse/services/combo.ts";
+import { validateComboDAG, clampComboDepth } from "@omniroute/open-sse/services/combo.ts";
 import { updateComboSchema } from "@/shared/validation/schemas";
 import { isValidationFailure, validateBody } from "@/shared/validation/helpers";
 import { requireManagementAuth } from "@/lib/api/requireManagementAuth";
@@ -130,8 +130,11 @@ export async function PUT(request, { params }) {
       // Update the combo in the list temporarily for validation
       const updatedCombos = allCombos.map((c) => (c.id === id ? { ...c, ...body } : c));
       if (comboName) {
+        const configuredDepth = clampComboDepth(
+          (nextComboState as { config?: { maxComboDepth?: unknown } }).config?.maxComboDepth
+        );
         try {
-          validateComboDAG(comboName, updatedCombos);
+          validateComboDAG(comboName, updatedCombos, new Set(), 0, configuredDepth);
         } catch (dagError) {
           return NextResponse.json({ error: dagError.message }, { status: 400 });
         }

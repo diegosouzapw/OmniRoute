@@ -469,3 +469,60 @@ test("checkConnection skips providers listed in OMNIROUTE_HEALTHCHECK_SKIP_PROVI
   if (prevSkip === undefined) delete process.env.OMNIROUTE_HEALTHCHECK_SKIP_PROVIDERS;
   else process.env.OMNIROUTE_HEALTHCHECK_SKIP_PROVIDERS = prevSkip;
 });
+
+// Regression for #3679: a non-rotating (Google-family) provider whose proactive
+// refresh fails with invalid_grant used to have its refresh_token NULLED, leaving
+// the connection unrecoverable ("No valid refresh token available"). The null was
+// only meant for rotating one-time-use tokens (Codex/OpenAI). Non-rotating providers
+// must keep the stored refresh_token as the recovery artifact.
+test("checkConnection preserves refresh_token for non-rotating providers on unrecoverable error (#3679)", async () => {
+  await resetStorage();
+
+  const providerId = "custom-nonrotating-3679"; // NOT in ROTATING_REFRESH_PROVIDERS
+  let refreshCount = 0;
+
+  await withHttpServer(
+    (_req, res) => {
+      refreshCount += 1;
+      // Google returns invalid_grant → isUnrecoverableRefreshError() is true.
+      res.writeHead(400, { "Content-Type": "application/json" });
+      res.end(JSON.stringify({ error: "invalid_grant", error_description: "Bad Request" }));
+    },
+    async (tokenServer) => {
+      await withPatchedProvider(
+        providerId,
+        {
+          tokenUrl: `${tokenServer.url}/token`,
+          clientId: "nonrotating-client-id",
+          clientSecret: "nonrotating-client-secret",
+        },
+        async () => {
+          const connection = await providersDb.createProviderConnection({
+            provider: providerId,
+            authType: "oauth",
+            name: "Non-rotating Account",
+            email: "nonrotating@example.com",
+            accessToken: "expired-access-token",
+            refreshToken: "rt-preserve-3679",
+            // Already expired → proactive refresh runs AND the still-valid guard fails,
+            // so execution reaches the deactivation branch that used to null the token.
+            expiresAt: new Date(Date.now() - 60 * 60 * 1000).toISOString(),
+            isActive: true,
+          });
+
+          await tokenHealthCheck.checkConnection(connection);
+
+          const updated = await providersDb.getProviderConnectionById((connection as any).id);
+          assert.equal(refreshCount, 1, "the expired token must trigger a refresh attempt");
+          assert.equal(updated?.testStatus, "expired", "should reach the unrecoverable branch");
+          // The fix: the refresh_token is PRESERVED (was nulled before the fix).
+          assert.equal(
+            updated?.refreshToken,
+            "rt-preserve-3679",
+            "non-rotating provider must keep its refresh_token for recovery"
+          );
+        }
+      );
+    }
+  );
+});

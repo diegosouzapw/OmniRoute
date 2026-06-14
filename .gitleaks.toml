@@ -1,0 +1,68 @@
+# .gitleaks.toml — Configuração do gitleaks para OmniRoute
+# Task 7.18 — PLANO-QUALITY-GATES-FASE7.md
+#
+# Estende as regras padrão do gitleaks com allowlists específicas do projeto.
+#
+# INSTRUÇÕES para allowlists:
+#   Findings legítimos (fixtures de teste, creds OAuth públicas já cobertas pelo
+#   check-public-creds.mjs, valores de exemplo em docs) devem ser registrados abaixo
+#   em [[allowlist]] com um comentário explicativo obrigatório.
+#
+#   NÃO adicione uma entrada de allowlist sem justificativa. Cada entrada é revisada
+#   a cada release (stale-enforcement). Regra: se o finding é um valor real que o
+#   sistema usa em produção, é um verdadeiro positivo — não allowliste, corrija.
+#
+# Referência: docs/security/PUBLIC_CREDS.md (credenciais OAuth públicas conhecidas)
+#             CLAUDE.md Hard Rule #11 (resolvePublicCred obrigatório)
+
+# Usar as regras padrão do gitleaks (não declaramos [rules] aqui para herdar tudo)
+# Para desabilitar uma regra específica, usar:
+# [[rules]]
+#   id = "rule-id"
+#   [rules.allowlist]
+#     description = "..."
+
+# ---------------------------------------------------------------------------
+# Allowlist global do projeto
+# Entradas aqui são ignoradas em TODAS as varreduras.
+# ---------------------------------------------------------------------------
+[allowlist]
+  description = "OmniRoute project-level allowlist — fixtures, test vectors, public OAuth creds"
+
+  # Paths a ignorar completamente (node_modules, builds, etc.)
+  paths = [
+    '''node_modules''',
+    '''\.next''',
+    '''dist''',
+    '''\.git''',
+    '''coverage''',
+    '''\.nyc_output''',
+  ]
+
+  # Commits específicos a ignorar (ex: commit que introduziu fixtures de teste)
+  # commits = []
+
+  # Regexes de stopwords — linhas que contêm estes padrões são ignoradas.
+  # Usar apenas para falsos positivos comprovados com justificativa abaixo.
+  # stopwords = []
+
+  # Regexes de targets (paths de arquivos) que podem ser allowlistados por regra.
+  # Ver [[allowlist]] por-regra abaixo para granularidade.
+
+# ---------------------------------------------------------------------------
+# Allowlist por-regra (adicionar conforme necessário durante o stale review)
+# ---------------------------------------------------------------------------
+#
+# Exemplo (REMOVER / SUBSTITUIR por entradas reais quando necessário):
+#
+# [[rules]]
+#   # Allowlistar fixtures de teste que contêm tokens OAuth de exemplo/inválidos
+#   # Adicionado: 2026-06-13 | Revisar em: v3.9.0 | Justificativa: valores não-reais de teste
+#   id = "github-fine-grained-pat"
+#   [rules.allowlist]
+#     description = "Test fixture PATs — valores sintéticos, não funcionais"
+#     paths = [
+#       '''tests/fixtures/''',
+#       '''tests/unit/''',
+#     ]
+#

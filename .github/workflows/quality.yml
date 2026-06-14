@@ -1,0 +1,49 @@
+name: Quality Gates
+
+on:
+  pull_request:
+    branches: ["release/**"]
+    types: [opened, synchronize, reopened, ready_for_review]
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+env:
+  CI_NODE_VERSION: "24"
+
+jobs:
+  fast-gates:
+    name: Fast Quality Gates
+    runs-on: ubuntu-latest
+    # tsx gates (known-symbols, route-guard-membership) import modules that open
+    # SQLite on load; provide DB env so a fresh CI DB initializes cleanly.
+    env:
+      JWT_SECRET: ci-lint-secret-with-sufficient-length-for-validation
+      API_KEY_SECRET: ci-lint-api-key-secret-long
+      DISABLE_SQLITE_AUTO_BACKUP: "true"
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
+        with:
+          node-version: ${{ env.CI_NODE_VERSION }}
+          cache: npm
+      - run: npm ci
+      - run: npm run check:provider-consistency
+      - run: npm run check:fetch-targets
+      - run: npm run check:openapi-routes
+      - run: npm run check:docs-symbols
+      - run: npm run check:deps
+      - run: npm run check:file-size
+      - run: npm run check:error-helper
+      - run: npm run check:migration-numbering
+      - run: npm run check:public-creds
+      - run: npm run check:db-rules
+      - run: npm run check:known-symbols
+      - run: npm run check:route-guard-membership
+      - run: npm run check:test-discovery
+      - run: npm run check:any-budget:t11

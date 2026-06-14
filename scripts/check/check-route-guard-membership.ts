@@ -16,10 +16,30 @@
 // with a justification so the gate exits 0 today; only NEW spawn-capable routes
 // that slip past the guard fail. KNOWN_UNCLASSIFIED is empty today (clean
 // baseline) — keep it that way; an entry here is a documented security debt.
-import { readdirSync, statSync } from "node:fs";
-import { join } from "node:path";
+import { readFileSync, readdirSync, statSync } from "node:fs";
+import { join, relative } from "node:path";
 import { pathToFileURL } from "node:url";
 import { isLocalOnlyPath } from "@/server/authz/routeGuard.ts";
+
+// Inline stale-allowlist helper (mirrors scripts/check/lib/allowlist.mjs).
+// The TypeScript gate cannot import the .mjs helper directly; keep this in sync.
+function assertNoStaleEntries(
+  allowlist: string[] | Record<string, string>,
+  liveItems: string[],
+  gateName: string
+): void {
+  const liveSet = new Set(liveItems);
+  const keys = Array.isArray(allowlist) ? allowlist : Object.keys(allowlist);
+  const stale = keys.filter((k) => !liveSet.has(k));
+  if (stale.length > 0) {
+    console.error(
+      `[${gateName}] ${stale.length} entrada(s) obsoleta(s) na allowlist ` +
+        `— a violação foi corrigida; REMOVA a entrada para travar a correção:\n` +
+        stale.map((e) => `  ✗ ${e}`).join("\n")
+    );
+    process.exitCode = 1;
+  }
+}
 
 // Spawn-capable route roots (relative to repo root). Mirrors the spawn-capable
 // prefixes documented in routeGuard.ts (SPAWN_CAPABLE_PREFIXES) and CLAUDE.md
@@ -65,6 +85,84 @@ export function findUnclassifiedSpawnRoutes(
   return apiPaths.filter((p) => !isLocalOnly(p) && !(p in allowlist));
 }
 
+// --- 6A.8: source-based spawn detection ---
+
+// Patterns that indicate a route.ts spawns child processes.
+// Matches: import from "child_process" / "node:child_process" / "worker_threads" /
+//          "node:worker_threads" or a spawn( / execFile( / exec( call.
+const SPAWN_SOURCE_RE =
+  /\b(?:from\s+["'](?:node:)?(?:child_process|worker_threads)["']|require\s*\(\s*["'](?:node:)?(?:child_process|worker_threads)["']\s*\)|spawn\s*\(|execFile\s*\(|execFileSync\s*\(|exec\s*\()/;
+
+/**
+ * Returns true if the given source text of a route.ts file directly imports
+ * from child_process / worker_threads or calls spawn()/execFile()/exec().
+ * Used by the 6A.8 source-scan subcheck to find spawn-capable routes outside
+ * the static SPAWN_CAPABLE_ROUTE_ROOTS list.
+ */
+export function isSpawnCapableSource(source: string): boolean {
+  return SPAWN_SOURCE_RE.test(source);
+}
+
+/**
+ * Walk all route.ts files under src/app/api/ from repoRoot and return those whose
+ * source matches isSpawnCapableSource. Returns relative paths (forward slashes).
+ */
+export function findSpawnCapableRoutes(repoRoot: string): string[] {
+  const apiDir = join(repoRoot, "src", "app", "api");
+  const out: string[] = [];
+
+  function walk(dir: string): void {
+    let entries: string[];
+    try {
+      entries = readdirSync(dir);
+    } catch {
+      return;
+    }
+    for (const entry of entries) {
+      const full = join(dir, entry);
+      try {
+        if (statSync(full).isDirectory()) {
+          walk(full);
+        } else if (entry === "route.ts") {
+          const src = readFileSync(full, "utf8");
+          if (isSpawnCapableSource(src)) {
+            out.push(relative(repoRoot, full).replace(/\\/g, "/"));
+          }
+        }
+      } catch {
+        // skip unreadable
+      }
+    }
+  }
+
+  walk(apiDir);
+  return out.sort();
+}
+
+/**
+ * 6A.8: pre-existing spawn-capable route.ts files that live OUTSIDE
+ * SPAWN_CAPABLE_ROUTE_ROOTS but are NOT yet classified local-only.
+ * Each entry is documented security debt (Hard Rules #15/#17):
+ * the route can spawn child processes and is reachable past the loopback gate.
+ *
+ * TODO(6A.8): classify these in LOCAL_ONLY_API_PREFIXES / LOCAL_ONLY_API_PATTERNS
+ * or add specific auth-only enforcement (no loopback, but require-auth before spawn).
+ * Adding an entry here requires a justification + follow-up issue.
+ */
+export const KNOWN_UNCLASSIFIED_SOURCE_SPAWN: Record<string, string> = {
+  // RESOLVED (6A.8 P1, 2026-06-13): /api/system/version and /api/db-backups/exportAll
+  // are now classified in LOCAL_ONLY_API_PREFIXES (loopback-enforced before auth).
+  // The stale-enforcement guard requires this set to stay empty until a NEW
+  // unclassified spawn-capable route appears.
+  // NOTE: cli-tools/antigravity-mitm/route.ts triggers child_process INDIRECTLY via
+  // dynamic import to @/mitm/manager.runtime, but does NOT directly import child_process.
+  // The source-scan gate covers DIRECT imports/calls only; this route is NOT in the
+  // spawn-capable set by source analysis. Kept as a comment for documentation but
+  // NOT in the allowlist (stale-enforcement would flag it). The route has requireCliToolsAuth()
+  // for auth gating; the underlying spawn happens in mitm/manager.runtime.
+  // If /api/cli-tools/ is ever added to LOCAL_ONLY_API_PREFIXES, revisit this note.
+};
+
 /** Recursively collect every `route.ts` under `dir` (returns [] if dir absent). */
 function collectRouteFiles(dir: string): string[] {
   let entries: string[];
@@ -86,23 +184,71 @@ function collectRouteFiles(dir: string): string[] {
 }
 
 function main(): void {
+  const cwd = process.cwd();
+
+  // --- Subcheck 1 (original): SPAWN_CAPABLE_ROUTE_ROOTS ---
   const apiPaths = SPAWN_CAPABLE_ROUTE_ROOTS.flatMap(collectRouteFiles)
     .map(routeFileToApiPath)
     .sort();
 
   const unclassified = findUnclassifiedSpawnRoutes(apiPaths, isLocalOnlyPath, KNOWN_UNCLASSIFIED);
 
+  // --- Subcheck 2 (6A.8): source-based scan — ALL route.ts files ---
+  // Find every route.ts that imports child_process / worker_threads and verify it is
+  // either classified local-only or frozen in KNOWN_UNCLASSIFIED_SOURCE_SPAWN.
+  const spawnCapableFiles = findSpawnCapableRoutes(cwd);
+
+  // Stale-enforcement: if a route was fixed (no longer spawn-capable, or was classified),
+  // the KNOWN_UNCLASSIFIED_SOURCE_SPAWN entry must be removed.
+  assertNoStaleEntries(
+    KNOWN_UNCLASSIFIED_SOURCE_SPAWN,
+    spawnCapableFiles,
+    "route-guard-membership/source-spawn"
+  );
+
+  // Find spawn-capable routes outside SPAWN_CAPABLE_ROUTE_ROOTS that are not classified
+  // local-only and not in the source-spawn allowlist.
+  const unclassifiedSourceSpawn = spawnCapableFiles.filter((rel) => {
+    const apiPath = routeFileToApiPath(rel);
+    // Already covered by subcheck 1 (in a SPAWN_CAPABLE_ROUTE_ROOT)? Skip.
+    if (SPAWN_CAPABLE_ROUTE_ROOTS.some((root) => rel.startsWith(root + "/"))) return false;
+    // In the source-spawn allowlist? Skip.
+    if (rel in KNOWN_UNCLASSIFIED_SOURCE_SPAWN) return false;
+    // Classified local-only? Skip.
+    if (isLocalOnlyPath(apiPath)) return false;
+    return true;
+  });
+
+  // Report
+  let failed = false;
+
   if (unclassified.length) {
     console.error(
-      `[route-guard-membership] CRITICAL — ${unclassified.length} spawn-capable route(s) NOT classified local-only by isLocalOnlyPath() (RCE-via-tunnel risk, Hard Rules #15/#17):\n` +
+      `[route-guard-membership] CRITICAL — ${unclassified.length} spawn-capable route(s) in SPAWN_CAPABLE_ROUTE_ROOTS NOT classified local-only (RCE-via-tunnel risk, Hard Rules #15/#17):\n` +
         unclassified.map((p) => `  ✗ ${p}`).join("\n") +
-        `\n  → add a matching prefix to LOCAL_ONLY_API_PREFIXES or a pattern to LOCAL_ONLY_API_PATTERNS in src/server/authz/routeGuard.ts (loopback enforcement must run before auth), or — only with written justification — freeze it in KNOWN_UNCLASSIFIED (scripts/check/check-route-guard-membership.ts).`
+        `\n  → add a matching prefix to LOCAL_ONLY_API_PREFIXES or a pattern to LOCAL_ONLY_API_PATTERNS in src/server/authz/routeGuard.ts, or freeze in KNOWN_UNCLASSIFIED with justification.`
     );
-    process.exit(1);
+    failed = true;
   }
 
+  if (unclassifiedSourceSpawn.length) {
+    console.error(
+      `[route-guard-membership] CRITICAL — ${unclassifiedSourceSpawn.length} route.ts file(s) contain child_process/worker_threads but are NOT classified local-only (Hard Rules #15/#17):\n` +
+        unclassifiedSourceSpawn.map((p) => `  ✗ ${p} (${routeFileToApiPath(p)})`).join("\n") +
+        `\n  → classify in LOCAL_ONLY_API_PREFIXES / LOCAL_ONLY_API_PATTERNS, or freeze in KNOWN_UNCLASSIFIED_SOURCE_SPAWN with justification.`
+    );
+    failed = true;
+  }
+
+  if (failed) process.exit(1);
+  if (process.exitCode === 1) return; // stale entries already logged
+
   console.log(
-    `[route-guard-membership] OK — ${apiPaths.length} spawn-capable route(s) across ${SPAWN_CAPABLE_ROUTE_ROOTS.length} root(s) all classified local-only, ${Object.keys(KNOWN_UNCLASSIFIED).length} frozen exception(s)`
+    `[route-guard-membership] OK — ` +
+      `${apiPaths.length} route(s) in ${SPAWN_CAPABLE_ROUTE_ROOTS.length} root(s) all local-only; ` +
+      `${spawnCapableFiles.length} source-spawn route(s) scanned, ` +
+      `${Object.keys(KNOWN_UNCLASSIFIED_SOURCE_SPAWN).length} frozen as security debt, ` +
+      `0 new gaps`
   );
   // Explicit exit: importing routeGuard.ts pulls in runtime settings, which opens
   // the SQLite DB and starts a background health-check timer that would otherwise

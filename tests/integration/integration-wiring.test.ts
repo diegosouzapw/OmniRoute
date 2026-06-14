@@ -84,6 +84,23 @@ describe("Pipeline Wiring — instrumentation-node.ts", () => {
     assert.ok(src, "src/instrumentation-node.ts should exist");
     assert.match(src, /seedDefaultModelAliases/);
   });
+
+  it("should initialize Arena ELO sync on the live startup path (on by default, opt-out)", () => {
+    // The Next standalone runtime boots through instrumentation-node, NOT server-init.ts.
+    // The Arena ELO sync (which feeds the Free Provider Rankings page) must be wired here,
+    // or it never runs in production. initArenaEloSync self-gates through the feature flag
+    // resolver so ARENA_ELO_SYNC_ENABLED and dashboard overrides still apply.
+    assert.match(src, /initArenaEloSync/);
+    assert.match(src, /const started = await initArenaEloSync\(\)/);
+  });
+
+  it("should initialize pricing + models.dev sync on the live startup path (self-gated, opt-in)", () => {
+    // Same dead-path bug as Arena: these were only wired into the never-executed server-init.ts
+    // (models.dev had no caller at all), so their toggles were inert. They self-gate internally
+    // (PRICING_SYNC_ENABLED / settings.modelsDevSyncEnabled), so calling them here preserves opt-in.
+    assert.match(src, /initPricingSync/);
+    assert.match(src, /initModelsDevSync/);
+  });
 });
 
 describe("Pipeline Wiring — sse chat handler", () => {

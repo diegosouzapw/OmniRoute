@@ -668,9 +668,15 @@ async function fetchLiveProviderLimitsWithOptions(
   }
 
   if (connection.authType !== "oauth") {
+    // L3: route the API-key usage/quota fetch through the connection's proxy context,
+    // mirroring the OAuth branch below (proxyInfo?.proxy ?? null). Without this, API-key
+    // usage egresses on the host IP, ignoring the connection's assigned proxy.
+    const apiKeyProxy = await resolveProxyForConnection(connectionId);
     const usage = sanitizeUsageQuotasForProvider(
       connection.provider,
-      (await getUsageForProvider(connection as unknown as JsonRecord, options)) as JsonRecord
+      (await runWithProxyContext(apiKeyProxy?.proxy ?? null, () =>
+        getUsageForProvider(connection as unknown as JsonRecord, options)
+      )) as JsonRecord
     );
     if (isRecord(usage.quotas)) {
       setQuotaCache(connectionId, connection.provider, usage.quotas);

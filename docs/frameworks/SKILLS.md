@@ -300,6 +300,182 @@ See [MCP-SERVER.md](./MCP-SERVER.md) for transport setup and scope assignments.
 
 ---
 
+## Execution Lifecycle (v3.8.16+)
+
+The `SkillExecutor` (`src/lib/skills/executor.ts`) is a **singleton** that manages every skill invocation. Understanding its lifecycle is critical for debugging timeouts, retries, and execution state.
+
+### The 5-Stage Lifecycle
+
+```
+   execute() called
+        │
+        ▼
+  ┌─────────────┐
+  │  PENDING    │  ← queued, not yet started (DB row created)
+  └──────┬──────┘
+         │ start handler
+         ▼
+  ┌─────────────┐
+  │  RUNNING    │  ← handler invoked with timeout
+  └──────┬──────┘
+         │
+    ┌────┴────┬──────────┬──────────┐
+    │         │          │          │
+    ▼         ▼          ▼          ▼
+  SUCCESS   ERROR     TIMEOUT   (no other path — killed by parent)
+    │         │          │
+    └────┬────┴──────────┘
+         │
+         ▼
+   DB row updated with status, output, durationMs
+```
+
+### Default Configuration
+
+| Setting | Default | Configurable via |
+|---------|---------|------------------|
+| `timeout` | `30000` (30s) | `skillExecutor.setTimeout(ms)` |
+| `maxRetries` | `3` | `skillExecutor.setMaxRetries(count)` |
+
+> **Important**: The executor is a singleton — calling `setTimeout()` affects all subsequent invocations globally. Per-skill timeouts are not currently supported; if you need different timeouts per skill, submit separate processes or fork the executor.
+
+### Status Values
+
+From `src/lib/skills/types.ts`:
+
+```ts
+enum SkillStatus {
+  PENDING = "pending",   // Queued, not yet started
+  RUNNING = "running",   // Handler invoked
+  SUCCESS = "success",   // Handler returned valid output
+  ERROR = "error",       // Handler threw an exception
+  TIMEOUT = "timeout",   // Exceeded the executor's timeout
+}
+```
+
+> **Note**: The `TIMEOUT` status is defined in the enum but is **not actually written to the DB** by the current executor implementation — timeouts surface as `ERROR` with the message `"Skill execution timed out"`. The status enum is reserved for future use.
+
+### Inspecting Executions
+
+```ts
+import { skillExecutor } from "omniroute/skills/executor";
+
+// Get a specific execution by ID
+const exec = skillExecutor.getExecution("exec-uuid-123");
+if (exec) {
+  console.log(`${exec.skillName}: ${exec.status} in ${exec.durationMs}ms`);
+}
+
+// List recent executions for an API key
+const recent = skillExecutor.listExecutions("api-key-id", 50, 0);
+for (const e of recent) {
+  console.log(`${e.skillName} → ${e.status} (${e.durationMs}ms)`);
+}
+
+// Count total executions
+const total = skillExecutor.countExecutions("api-key-id");
+```
+
+### Retry Behavior
+
+The `maxRetries` setting is stored but **not currently used** by the executor's `execute()` method — it only performs a single attempt. The `maxRetries` value is exposed for future implementation and for hooks that want to read it.
+
+For now, retries must be implemented inside the skill handler itself. Built-in
+skills are registered against the executor (e.g. `registerBuiltinSkills(executor)`
+/ `registerBrowserSkill(executor)` in `src/lib/skills/builtin/`); whichever handler
+you register can wrap its own retry loop:
+
+```ts
+// inside a skill handler
+async function handler(input, ctx) {
+  const maxRetries = 3;
+  let lastError: Error | null = null;
+
+  for (let attempt = 1; attempt <= maxRetries; attempt++) {
+    try {
+      return await fetchSomething(input);
+    } catch (err) {
+      lastError = err as Error;
+      if (attempt < maxRetries) {
+        await new Promise((r) => setTimeout(r, 1000 * attempt));
+      }
+    }
+  }
+  throw lastError;
+}
+```
+
+---
+
+## SkillMode in Detail
+
+The `SkillMode` enum (`src/lib/skills/types.ts`) controls **when and how** skills are invoked:
+
+```ts
+enum SkillMode {
+  AUTO = "auto",       // LLM decides when to call the skill
+  MANUAL = "manual",   // Only invoked by explicit user request
+  HYBRID = "hybrid",   // AUTO scoring + manual override
+}
+```
+
+> **Note**: The codebase defines `SkillMode` (AUTO/MANUAL/HYBRID), while the `Skill.mode` field uses a different shape (`"on" | "off" | "auto"`). They are related but not identical — `SkillMode` is for executor policy, `Skill.mode` is for per-skill enablement.
+
+### When to Use Each Mode
+
+| Mode | LLM behavior | Use case |
+|------|--------------|----------|
+| `AUTO` | LLM can call the skill when it deems necessary | General-purpose skills (file reads, HTTP requests) |
+| `MANUAL` | LLM cannot call the skill; only an explicit `executeSkill` API call invokes it | Sensitive operations (database writes, payments) |
+| `HYBRID` | LLM can suggest the skill; user must confirm | Skills that have side effects but aren't dangerous |
+
+### AUTO Scoring
+
+When `AUTO` mode is active, each candidate skill is scored against the request
+context by `scoreAutoSkill()` in `src/lib/skills/injection.ts` — an additive,
+integer point system (skill-name match, name/tag/description token overlap,
+background-reason hints, provider-hint bonus/penalty). The top
+`AUTO_MAX_SKILLS = 5` skills with `score >= AUTO_MIN_SCORE = 3` are injected as
+callable tools, ties broken by `installCount` then name. See the full point table
+in [**Tool Schema Generation → AUTO Scoring**](#auto-scoring) earlier in this
+document; there is no float `0.6`-style threshold and no `registry.ts` scoring.
+
+---
+
+## Built-in Skills Catalog
+
+OmniRoute ships with a curated set of built-in skills in `src/lib/skills/builtin/`. The most common ones:
+
+### Browser Automation Skill
+
+The browser skill (`src/lib/skills/builtin/browser.ts`) provides headless browser automation via Playwright/Puppeteer. **It is implemented but not in the default skills catalog** — to use it, install the browser extension plugin separately.
+
+```ts
+// Enable in your config
+const config: SkillConfig = {
+  enabled: true,
+  mode: SkillMode.MANUAL,  // Always require explicit invocation
+  allowedSkills: ["browser"],
+  timeout: 60000,          // 60s for page loads
+  maxRetries: 1,
+};
+```
+
+### Other Built-in Categories
+
+| Category | Skills | Mode |
+|----------|--------|------|
+| File I/O | `file_read`, `file_write` | AUTO |
+| HTTP | `http_request` | AUTO |
+| Search | `web_search` | AUTO |
+| Code Exec | `eval_code` (sandboxed JavaScript/Python) | HYBRID |
+| System | `execute_command` (sandboxed CLI execution) | MANUAL |
+### Adding a Custom Skill
+
+See the [Plugin SDK & Skills Integration](../plugins/PLUGIN_SDK.md) for how to add a custom skill via the plugin system.
+
+---
+
 ## See Also
 
 - [MCP-SERVER.md](./MCP-SERVER.md) — MCP tool registration and transports

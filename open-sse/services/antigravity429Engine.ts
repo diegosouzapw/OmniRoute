@@ -32,7 +32,14 @@ export interface Decision {
   reason: string;
 }
 
-const QUOTA_EXHAUSTED_KEYWORDS = ["quota_exhausted", "quota exhausted"];
+const QUOTA_EXHAUSTED_KEYWORDS = [
+  "quota_exhausted",
+  "quota exhausted",
+  // Antigravity native message: "Individual quota reached. Contact your administrator to enable overages."
+  "quota reached",
+  "enable overages",
+  "individual quota",
+];
 
 const CREDITS_EXHAUSTED_KEYWORDS = [
   "google_one_ai",

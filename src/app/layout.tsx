@@ -59,13 +59,9 @@ export default async function RootLayout({ children }) {
   return (
     <html lang={locale} dir={isRtl ? "rtl" : "ltr"} suppressHydrationWarning>
       <head>
-        <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
-        {/* eslint-disable-next-line @next/next/no-page-custom-font */}
-        <link
-          href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&display=swap"
-          rel="stylesheet"
-        />
+        {/* Material Symbols icon font is self-hosted via globals.css
+            (@import "material-symbols/outlined.css") so icons render even when
+            the Google Fonts CDN is unreachable (#3695). */}
         <script
           dangerouslySetInnerHTML={{
             __html: `

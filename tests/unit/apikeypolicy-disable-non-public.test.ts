@@ -22,9 +22,7 @@ import os from "node:os";
 import path from "node:path";
 import { pathToFileURL } from "node:url";
 
-const TEST_DATA_DIR = fs.mkdtempSync(
-  path.join(os.tmpdir(), "omniroute-apikeypolicy-dnp-")
-);
+const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-apikeypolicy-dnp-"));
 process.env.DATA_DIR = TEST_DATA_DIR;
 process.env.API_KEY_SECRET = process.env.API_KEY_SECRET || "disable-non-public-policy-secret";
 
@@ -32,6 +30,7 @@ process.env.API_KEY_SECRET = process.env.API_KEY_SECRET || "disable-non-public-p
 const coreDb = await import("../../src/lib/db/core.ts");
 const apiKeysDb = await import("../../src/lib/db/apiKeys.ts");
 const rateLimiter = await import("../../src/shared/utils/rateLimiter.ts");
+const settingsDb = await import("../../src/lib/db/settings.ts");
 
 rateLimiter.setRateLimiterTestMode(true);
 
@@ -168,6 +167,56 @@ test("disableNonPublicModels=true + qtSd/ virtual model → not rejected by publ
   }
 });
 
+test("disableNonPublicModels=true + cc wildcard allows unprefixed Claude Code models", async () => {
+  await settingsDb.updateSettings({ preferClaudeCodeForUnprefixedClaudeModels: true });
+  const created = await apiKeysDb.createApiKey(
+    "DNP Claude Code Wildcard",
+    "machine-dnp-cc-wildcard"
+  );
+  await apiKeysDb.updateApiKeyPermissions(created.id, {
+    allowedModels: ["cc/*"],
+    disableNonPublicModels: true,
+  });
+  apiKeysDb.clearApiKeyCaches();
+
+  const policy = await loadPolicy("dnp-cc-wildcard");
+  for (const modelId of ["claude-sonnet-4-99", "claude-opus-4-8", "sonnet", "opus"]) {
+    const result = await policy.enforceApiKeyPolicy(makeRequest(created.key), modelId);
+
+    assert.equal(
+      result.rejection,
+      null,
+      `cc/* should act as Claude Code default for dynamically routed unprefixed Claude model ${modelId}`
+    );
+  }
+});
+
+test("cc wildcard can deny the Fable family while allowing other Claude Code default models", async () => {
+  await settingsDb.updateSettings({ preferClaudeCodeForUnprefixedClaudeModels: true });
+  const created = await apiKeysDb.createApiKey(
+    "Claude Code Default No Fable",
+    "machine-cc-no-fable"
+  );
+  await apiKeysDb.updateApiKeyPermissions(created.id, {
+    allowedModels: ["cc/*"],
+    blockedModels: ["claude-fable*", "fable"],
+  });
+  apiKeysDb.clearApiKeyCaches();
+
+  const policy = await loadPolicy("cc-wildcard-block-fable");
+
+  for (const modelId of ["sonnet", "claude-sonnet-4-6[1m]", "claude-opus-4-8[1m]"]) {
+    const result = await policy.enforceApiKeyPolicy(makeRequest(created.key), modelId);
+    assert.equal(result.rejection, null, `${modelId} should remain allowed by cc/*`);
+  }
+
+  for (const modelId of ["fable", "claude-fable-5", "claude-fable-5[1m]"]) {
+    const result = await policy.enforceApiKeyPolicy(makeRequest(created.key), modelId);
+    assert.ok(result.rejection, `${modelId} should be denied by the Fable blocklist`);
+    assert.equal(result.rejection.status, 403);
+  }
+});
+
 test("disableNonPublicModels=true + hidden model → REJECTED 403 (not in discovered+public set)", async () => {
   const created = await apiKeysDb.createApiKey("DNP Hidden Key", "machine-dnp-hidden");
   await apiKeysDb.updateApiKeyPermissions(created.id, { disableNonPublicModels: true });
@@ -180,7 +229,10 @@ test("disableNonPublicModels=true + hidden model → REJECTED 403 (not in discov
     makeRequest(created.key),
     "openai/gpt-totally-undiscovered-xyz"
   );
-  assert.ok(result.rejection, "non-discovered model should be rejected for disableNonPublicModels key");
+  assert.ok(
+    result.rejection,
+    "non-discovered model should be rejected for disableNonPublicModels key"
+  );
   assert.equal(result.rejection.status, 403);
   const body = (await result.rejection.json()) as { error: { message: string } };
   assert.match(body.error.message, /not allowed for this API key/);
@@ -204,7 +256,7 @@ test("disableNonPublicModels=true + existing combo name → not rejected by publ
   // Create a combo via the DB helper if available:
   let comboDb: { createCombo?: (input: Record<string, unknown>) => { name: string } } | null = null;
   try {
-    comboDb = await import("../../src/lib/db/combos.ts") as typeof comboDb;
+    comboDb = (await import("../../src/lib/db/combos.ts")) as typeof comboDb;
   } catch {
     comboDb = null;
   }
@@ -213,10 +265,7 @@ test("disableNonPublicModels=true + existing combo name → not rejected by publ
     comboDb.createCombo({ name: "test-combo-dnp", targets: [] });
     apiKeysDb.clearApiKeyCaches();
 
-    const result2 = await policy.enforceApiKeyPolicy(
-      makeRequest(created.key),
-      "test-combo-dnp"
-    );
+    const result2 = await policy.enforceApiKeyPolicy(makeRequest(created.key), "test-combo-dnp");
     if (result2.rejection) {
       const body = (await result2.rejection.clone().json()) as { error: { message: string } };
       assert.ok(

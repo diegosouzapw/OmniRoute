@@ -5,6 +5,8 @@
  */
 
 import type { RoutingHint } from "../manifestAdapter";
+import { clamp01 } from "../../utils/number";
+import { classifyTier } from "../tierResolver";
 
 export interface ScoringFactors {
   quota: number;
@@ -86,19 +88,22 @@ export interface ScoredProvider {
  * Supports tierAffinity + specificityMatch weights when manifest routing is enabled.
  */
 export function calculateScore(factors: ScoringFactors, weights: ScoringWeights): number {
-  return (
+  // clamp01 bounds the result to [0,1] and maps a non-finite sum (a NaN factor)
+  // to 0, so a single bad input can't yield NaN (which sorts nondeterministically)
+  // or a score >1 from float drift in weights that nominally sum to 1.
+  return clamp01(
     weights.quota * factors.quota +
-    weights.health * factors.health +
-    weights.costInv * factors.costInv +
-    weights.latencyInv * factors.latencyInv +
-    weights.taskFit * factors.taskFit +
-    weights.stability * factors.stability +
-    weights.tierPriority * factors.tierPriority +
-    (weights.tierAffinity ?? 0) * factors.tierAffinity +
-    (weights.specificityMatch ?? 0) * factors.specificityMatch +
-    (weights.contextAffinity ?? 0) * factors.contextAffinity +
-    (weights.resetWindowAffinity ?? 0) * factors.resetWindowAffinity +
-    (weights.connectionDensity ?? 0) * factors.connectionDensity
+      weights.health * factors.health +
+      weights.costInv * factors.costInv +
+      weights.latencyInv * factors.latencyInv +
+      weights.taskFit * factors.taskFit +
+      weights.stability * factors.stability +
+      weights.tierPriority * factors.tierPriority +
+      (weights.tierAffinity ?? 0) * factors.tierAffinity +
+      (weights.specificityMatch ?? 0) * factors.specificityMatch +
+      (weights.contextAffinity ?? 0) * factors.contextAffinity +
+      (weights.resetWindowAffinity ?? 0) * factors.resetWindowAffinity +
+      (weights.connectionDensity ?? 0) * factors.connectionDensity
   );
 }
 
@@ -131,7 +136,6 @@ function calculateTierAffinity(
 ): number {
   if (!hint) return 0.5;
   try {
-    const { classifyTier } = require("../tierResolver");
     const assignment = classifyTier(candidate.provider, candidate.model);
     const tierOrder = ["free", "cheap", "premium"];
     const providerTierIdx = tierOrder.indexOf(assignment.tier);
@@ -151,7 +155,6 @@ function calculateSpecificityMatch(
 ): number {
   if (!hint) return 0.5;
   try {
-    const { classifyTier } = require("../tierResolver");
     const assignment = classifyTier(candidate.provider, candidate.model);
     const specificityScore = hint.specificity.score;
 
@@ -176,24 +179,28 @@ export function calculateFactors(
   const maxLatency = Math.max(...pool.map((p) => p.p95LatencyMs), 1);
   const maxStdDev = Math.max(...pool.map((p) => p.latencyStdDev), 0.001);
 
+  // Every factor is contractually [0,1]. clamp01 guards against bad telemetry
+  // (negative quota / cost / latency, NaN, out-of-range candidate-supplied
+  // affinities) so a single bad input can't produce a negative or >1 factor
+  // that distorts the weighted score.
   return {
-    quota: Math.min(1, candidate.quotaRemaining / 100),
+    quota: clamp01(candidate.quotaRemaining / 100),
     health:
       candidate.circuitBreakerState === "CLOSED"
         ? 1.0
         : candidate.circuitBreakerState === "HALF_OPEN"
           ? 0.5
           : 0.0,
-    costInv: 1 - candidate.costPer1MTokens / maxCost,
-    latencyInv: 1 - candidate.p95LatencyMs / maxLatency,
-    taskFit: getTaskFitness(candidate.model, taskType),
-    stability: 1 - candidate.latencyStdDev / maxStdDev,
+    costInv: clamp01(1 - candidate.costPer1MTokens / maxCost),
+    latencyInv: clamp01(1 - candidate.p95LatencyMs / maxLatency),
+    taskFit: clamp01(getTaskFitness(candidate.model, taskType)),
+    stability: clamp01(1 - candidate.latencyStdDev / maxStdDev),
     tierPriority: calculateTierScore(candidate.accountTier, candidate.quotaResetIntervalSecs),
     tierAffinity: calculateTierAffinity(candidate, manifestHint),
     specificityMatch: calculateSpecificityMatch(candidate, manifestHint),
-    contextAffinity: candidate.contextAffinity ?? 0.5,
-    resetWindowAffinity: candidate.resetWindowAffinity ?? 0.5,
-    connectionDensity: Math.min(1, Math.max(0, ((candidate.connectionPoolSize ?? 1) - 1) / 10)),
+    contextAffinity: clamp01(candidate.contextAffinity ?? 0.5),
+    resetWindowAffinity: clamp01(candidate.resetWindowAffinity ?? 0.5),
+    connectionDensity: clamp01(((candidate.connectionPoolSize ?? 1) - 1) / 10),
   };
 }
 

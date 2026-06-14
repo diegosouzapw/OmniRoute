@@ -16,6 +16,7 @@ import { requireManagementAuth } from "@/lib/api/requireManagementAuth";
 import { getPool } from "@/lib/localDb";
 import { getQuotaStore } from "@/lib/quota/QuotaStore";
 import { resolvePlan } from "@/lib/quota/planResolver";
+import { resolveConnectionProvider } from "@/lib/quota/connectionProvider";
 import type { PoolUsageSnapshot } from "@/lib/quota/types";
 
 export const dynamic = "force-dynamic";
@@ -35,9 +36,12 @@ export async function GET(request: Request, { params }: RouteParams): Promise<Re
       return NextResponse.json(buildErrorBody(404, "Pool not found"), { status: 404 });
     }
 
-    // 2. Resolve the provider plan for this pool's connection
-    //    Provider name is not stored on pool — use empty string to trigger catalog/empty fallback
-    const plan = resolvePlan(pool.connectionId, "");
+    // 2. Resolve the provider plan for this pool's connection.
+    //    The provider name is not stored on the pool — resolve it from the
+    //    connection so catalog-only pools surface their plan dimensions
+    //    (passing "" here previously degraded every catalog pool to empty).
+    const provider = await resolveConnectionProvider(pool.connectionId);
+    const plan = resolvePlan(pool.connectionId, provider);
 
     // 3. Get the quota store and call poolUsageWithDimensions (on the interface since v3.8.12)
     const store = await getQuotaStore();

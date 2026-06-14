@@ -5,7 +5,10 @@ const {
   validateProviderApiKey,
   validateClaudeCodeCompatibleProvider,
   validateCommandCodeProvider,
+  isSecurityBlockError,
 } = await import("../../src/lib/providers/validation.ts");
+
+const { SafeOutboundFetchError } = await import("../../src/shared/network/safeOutboundFetch.ts");
 
 const { __setTlsFetchOverrideForTesting: __setPplxTlsFetchOverride } =
   await import("../../open-sse/services/perplexityTlsClient.ts");
@@ -475,14 +478,99 @@ test("grok-web validator: non-auth 403 is reported as failure with upstream body
   assert.match(result.error || "", /Model is not found/);
 });
 
-test("grok-web validator: generic 403 forbidden is rejected, not silently passed", async () => {
+test("grok-web validator: generic non-auth 403 maps to IP-reputation guidance, not 'invalid cookie' (#3474)", async () => {
   __setGrokTlsFetchOverride(async () => {
     return { status: 403, headers: new Headers(), text: "Forbidden", body: null };
   });
 
   const result = await validateProviderApiKey({ provider: "grok-web", apiKey: "any-cookie" });
   assert.equal(result.valid, false);
+  // A bare/non-auth 403 from grok.com is almost always an anti-bot/IP-reputation
+  // block — the cookie itself is likely fine. The message must point the user to a
+  // residential IP or proxy, NOT tell them the cookie is invalid.
+  assert.match(result.error || "", /residential IP|proxy/i);
+  assert.doesNotMatch(result.error || "", /invalid SSO cookie/i);
+});
+
+test("grok-web validator: anti-bot 'Request rejected' 403 maps to IP-reputation guidance (#3474)", async () => {
+  __setGrokTlsFetchOverride(async () => {
+    return {
+      status: 403,
+      headers: new Headers(),
+      text: "Request rejected by anti-bot rules.",
+      body: null,
+    };
+  });
+
+  const result = await validateProviderApiKey({ provider: "grok-web", apiKey: "good-cookie" });
+  assert.equal(result.valid, false);
+  assert.match(result.error || "", /residential IP|proxy/i);
+  // Cookie may be fine — must not claim it is invalid/expired.
+  assert.doesNotMatch(result.error || "", /invalid SSO cookie|expired/i);
+});
+
+test("grok-web validator: Cloudflare challenge returned with a 403 status maps to IP guidance (#3474)", async () => {
+  __setGrokTlsFetchOverride(async () => {
+    return {
+      status: 403,
+      headers: new Headers(),
+      text: "<html><title>Just a moment...</title><script>window._cf_chl_opt</script></html>",
+      body: null,
+    };
+  });
+
+  const result = await validateProviderApiKey({ provider: "grok-web", apiKey: "sso=abc" });
+  assert.equal(result.valid, false);
+  assert.match(result.error || "", /residential IP|proxy/i);
+});
+
+test("grok-web validator: IP-reputation 403 message does not leak a stack/raw error (Hard Rule #12) (#3474)", async () => {
+  __setGrokTlsFetchOverride(async () => {
+    return {
+      status: 403,
+      headers: new Headers(),
+      text: "Request rejected by anti-bot rules.\n    at GrokWeb.validate (/app/secret/path.ts:42:13)",
+      body: null,
+    };
+  });
+
+  const result = await validateProviderApiKey({ provider: "grok-web", apiKey: "good-cookie" });
+  assert.equal(result.valid, false);
+  assert.match(result.error || "", /residential IP|proxy/i);
+  assert.ok(!(result.error || "").includes("at GrokWeb.validate"));
+  assert.ok(!(result.error || "").includes("/app/secret/path.ts"));
+  assert.ok(!(result.error || "").includes("    at "));
+});
+
+test("grok-web validator: structured non-auth 403 (resource error) still surfaces upstream body for maintainers (#3474)", async () => {
+  // Distinct from an anti-bot block: a genuine upstream API error (e.g. the probe
+  // model was renamed) carries a structured error.message and must NOT be masked
+  // by the IP-reputation guidance — the maintainer needs to see the real cause.
+  __setGrokTlsFetchOverride(async () => {
+    return {
+      status: 403,
+      headers: new Headers(),
+      text: JSON.stringify({ error: { code: 7, message: "Model is not found", details: [] } }),
+      body: null,
+    };
+  });
+
+  const result = await validateProviderApiKey({ provider: "grok-web", apiKey: "good-cookie" });
+  assert.equal(result.valid, false);
   assert.match(result.error || "", /Grok rejected validation \(403\)/);
+  assert.match(result.error || "", /Model is not found/);
+  assert.doesNotMatch(result.error || "", /residential IP|proxy/i);
+});
+
+test("grok-web validator: auth-shaped 401 keeps the re-paste/re-authenticate guidance (no regression) (#3474)", async () => {
+  __setGrokTlsFetchOverride(async () => {
+    return { status: 401, headers: new Headers(), text: "Unauthorized", body: null };
+  });
+
+  const result = await validateProviderApiKey({ provider: "grok-web", apiKey: "expired-cookie" });
+  assert.equal(result.valid, false);
+  assert.match(result.error || "", /Invalid SSO cookie|re-paste/i);
+  assert.doesNotMatch(result.error || "", /residential IP|proxy/i);
 });
 
 test("grok-web validator: 403 with credential-rejection body is treated as auth-failed", async () => {
@@ -2500,4 +2588,106 @@ test("gitlawb-gmi validator: accepts custom baseUrl override", async () => {
     },
   });
   assert.equal(result.valid, true);
+});
+
+// #3288 / #3758: qwen-web validation used to fall through to the generic
+// OpenAI-compatible validator, which probed a non-existent `/api/v2/models` URL that
+// answered with a 307 redirect — blocked by the outbound guard and mislabeled as an
+// SSRF block. A specialty validator now probes the real session endpoint instead.
+test("qwen-web validator probes /api/v2/user (not /api/v2/models) and returns valid on 200", async () => {
+  let probedUrl = "";
+  let sentHeaders: Record<string, string> = {};
+  globalThis.fetch = async (url, init = {}) => {
+    probedUrl = String(url);
+    sentHeaders = toPlainHeaders(init.headers);
+    return new Response(JSON.stringify({ data: { id: "u-1", name: "Tester" } }), {
+      status: 200,
+      headers: { "content-type": "application/json" },
+    });
+  };
+
+  const result = await validateProviderApiKey({
+    provider: "qwen-web",
+    apiKey: "token=eyJqwen; cna=abc; ssxmod_itna=def",
+  });
+
+  assert.equal(probedUrl, "https://chat.qwen.ai/api/v2/user");
+  assert.ok(!probedUrl.includes("/api/v2/models"), "must not probe the bogus /api/v2/models URL");
+  assert.equal(sentHeaders.Authorization, "Bearer eyJqwen");
+  assert.equal(sentHeaders.source, "web");
+  assert.match(sentHeaders.Cookie, /token=eyJqwen/);
+  assert.equal(result.valid, true);
+});
+
+test("qwen-web validator reports an invalid session (401) without flagging a security block", async () => {
+  globalThis.fetch = async () =>
+    new Response(JSON.stringify({ error: "unauthorized" }), {
+      status: 401,
+      headers: { "content-type": "application/json" },
+    });
+
+  const result = await validateProviderApiKey({
+    provider: "qwen-web",
+    apiKey: "token=stale; cna=abc; ssxmod_itna=def",
+  });
+
+  assert.equal(result.valid, false);
+  assert.equal((result as { securityBlocked?: boolean }).securityBlocked ?? false, false);
+  assert.match(result.error ?? "", /invalid or expired/i);
+});
+
+test("qwen-web validator surfaces the WAF/anti-bot HTML challenge as a re-login hint", async () => {
+  globalThis.fetch = async () =>
+    new Response("<html>aliyun_waf</html>", {
+      status: 200,
+      headers: { "content-type": "text/html" },
+    });
+
+  const result = await validateProviderApiKey({
+    provider: "qwen-web",
+    apiKey: "token=eyJqwen; cna=abc; ssxmod_itna=def",
+  });
+
+  assert.equal(result.valid, false);
+  assert.match(result.error ?? "", /WAF|Cookie header/i);
+});
+
+// #3288 / #3758: a blocked redirect (REDIRECT_BLOCKED) to a PUBLIC host is benign — the
+// redirect was never followed, so it must NOT be mislabeled as an SSRF security block.
+// Only a redirect whose target is a private/internal host is a genuine security event.
+test("isSecurityBlockError: public-host redirect block is NOT a security block", () => {
+  const publicRedirect = new SafeOutboundFetchError("Redirect blocked", {
+    code: "REDIRECT_BLOCKED",
+    url: "https://chat.qwen.ai/api/v2/models",
+    method: "GET",
+    attempts: 1,
+    status: 307,
+    location: "https://chat.qwen.ai/login",
+    isRetryable: false,
+  });
+  assert.equal(isSecurityBlockError(publicRedirect), false);
+});
+
+test("isSecurityBlockError: private-host redirect block IS a security block", () => {
+  const privateRedirect = new SafeOutboundFetchError("Redirect blocked", {
+    code: "REDIRECT_BLOCKED",
+    url: "https://api.example.com/probe",
+    method: "GET",
+    attempts: 1,
+    status: 302,
+    location: "http://169.254.169.254/latest/meta-data/",
+    isRetryable: false,
+  });
+  assert.equal(isSecurityBlockError(privateRedirect), true);
+});
+
+test("isSecurityBlockError: a URL-guard block remains a security block", () => {
+  const guardBlock = new SafeOutboundFetchError("Blocked private host", {
+    code: "URL_GUARD_BLOCKED",
+    url: "http://10.0.0.5/internal",
+    method: "GET",
+    attempts: 1,
+    isRetryable: false,
+  });
+  assert.equal(isSecurityBlockError(guardBlock), true);
 });

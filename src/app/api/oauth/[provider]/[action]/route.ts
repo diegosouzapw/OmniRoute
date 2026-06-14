@@ -126,7 +126,9 @@ export async function GET(
           error:
             `Browser OAuth disabled for ${earlyParams.provider} — use import-token via ` +
             `/api/oauth/${earlyParams.provider}/import-token. ` +
-            `Visit https://windsurf.com/show-auth-token to obtain a token.`,
+            `In the Windsurf/VS Code IDE, run the "Windsurf: Provide Auth Token" command ` +
+            `(or click the Jupyter "Get Windsurf Authentication Token" button), then copy+paste the shown token. ` +
+            `Opening https://windsurf.com/show-auth-token directly only shows a "Redirecting" page — the IDE must initiate the ?state=... flow.`,
         },
         { status: 410 }
       );
@@ -328,7 +330,9 @@ export async function POST(
           error:
             `Browser OAuth disabled for ${earlyParams.provider} — use import-token via ` +
             `/api/oauth/${earlyParams.provider}/import-token. ` +
-            `Visit https://windsurf.com/show-auth-token to obtain a token.`,
+            `In the Windsurf/VS Code IDE, run the "Windsurf: Provide Auth Token" command ` +
+            `(or click the Jupyter "Get Windsurf Authentication Token" button), then copy+paste the shown token. ` +
+            `Opening https://windsurf.com/show-auth-token directly only shows a "Redirecting" page — the IDE must initiate the ?state=... flow.`,
         },
         { status: 410 }
       );
@@ -353,7 +357,9 @@ export async function POST(
           error:
             `Browser OAuth disabled for ${provider} — use import-token via ` +
             `/api/oauth/${provider}/import-token. ` +
-            `Visit https://windsurf.com/show-auth-token to obtain a token.`,
+            `In the Windsurf/VS Code IDE, run the "Windsurf: Provide Auth Token" command ` +
+            `(or click the Jupyter "Get Windsurf Authentication Token" button), then copy+paste the shown token. ` +
+            `Opening https://windsurf.com/show-auth-token directly only shows a "Redirecting" page — the IDE must initiate the ?state=... flow.`,
         },
         { status: 410 }
       );

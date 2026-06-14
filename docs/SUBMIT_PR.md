@@ -22,18 +22,18 @@ npm install
 
 ## 2 — Sync with the current release branch
 
-PRs go to **`release/v3.8.3`**, not `main`.
+PRs go to the **current release branch** — `release/v3.8.24` at the time of writing. Always target the latest `release/v*` branch (the repository's active development branch), never `main`. Check the repo's branch list or `CONTRIBUTING.md` if a newer release cycle has opened.
 
 ```bash
 git fetch upstream
-git checkout -b fix/your-description upstream/release/v3.8.3
+git checkout -b fix/your-description upstream/release/v3.8.24
 ```
 
 If you already made your changes on another branch, rebase on top of it:
 
 ```bash
 git fetch upstream
-git rebase upstream/release/v3.8.3
+git rebase upstream/release/v3.8.24
 ```
 
 ---
@@ -59,7 +59,7 @@ Examples: `fix/codex-token-refresh`, `feat/provider-xyz`, `docs/update-readme`
 npm run lint          # must pass (0 errors)
 npm run typecheck:core  # must pass
 npm run test:unit     # must pass
-npm run test:coverage # coverage gate: 75/75/75/70
+npm run test:coverage # coverage gate: 60/60/60/60 (statements/lines/functions/branches)
 ```
 
 If you changed production code in `src/`, `open-sse/`, `electron/`, or `bin/`, include or update tests in the same PR.
@@ -87,7 +87,7 @@ Common scopes: `api`, `dashboard`, `db`, `sse`, `oauth`, `providers`, `combo`, `
 git push -u origin fix/your-description
 ```
 
-Then open a PR on GitHub targeting **`diegosouzapw/OmniRoute`** → **`release/v3.8.3`**.
+Then open a PR on GitHub targeting **`diegosouzapw/OmniRoute`** → **`release/v3.8.24`**.
 
 PR description checklist:
 
@@ -105,7 +105,7 @@ PR description checklist:
 
 ```bash
 git fetch upstream
-git rebase upstream/release/v3.8.3
+git rebase upstream/release/v3.8.24
 git push --force-with-lease
 ```
 

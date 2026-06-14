@@ -63,6 +63,49 @@ test("gives Codex GPT-5.5 large Responses requests extra readiness budget", () =
   assert.ok(result.reasons.includes("codex_gpt_5_5_large_responses"));
 });
 
+test("gives high-reasoning Codex GPT-5.x extra readiness budget even for SMALL requests (#3825)", () => {
+  // Regression for #3825: a small-prompt high-reasoning codex target has ~78s TTFB
+  // (cold high-reasoning start). Before the fix it only received the 80s base and 504'd
+  // at the readiness window. The reasoning-aware bump must fire UNCONDITIONALLY for
+  // high-effort codex, regardless of request size.
+  const result = resolveStreamReadinessTimeout({
+    baseTimeoutMs: 80_000,
+    provider: "codex",
+    model: "gpt-5.5-high",
+    body: { messages: items(3), tools: tools(2) },
+  });
+
+  assert.ok(
+    result.timeoutMs >= 110_000,
+    `expected >= 110000ms for small high-reasoning codex, got ${result.timeoutMs}`
+  );
+  assert.ok(result.reasons.includes("codex_gpt_5_5_high_reasoning"));
+});
+
+test("does NOT bump small NON-high codex requests (#3825 scope guard)", () => {
+  const result = resolveStreamReadinessTimeout({
+    baseTimeoutMs: 80_000,
+    provider: "codex",
+    model: "gpt-5.5",
+    body: { messages: items(3), tools: tools(2) },
+  });
+
+  assert.equal(result.timeoutMs, 80_000);
+  assert.deepEqual(result.reasons, ["base"]);
+});
+
+test("does NOT bump small high-reasoning NON-codex requests (#3825 scope guard)", () => {
+  const result = resolveStreamReadinessTimeout({
+    baseTimeoutMs: 80_000,
+    provider: "openai",
+    model: "gpt-5.5-high",
+    body: { messages: items(3), tools: tools(2) },
+  });
+
+  assert.equal(result.timeoutMs, 80_000);
+  assert.deepEqual(result.reasons, ["base"]);
+});
+
 test("caps adaptive timeout at maxTimeoutMs", () => {
   const result = resolveStreamReadinessTimeout({
     baseTimeoutMs: 30_000,
