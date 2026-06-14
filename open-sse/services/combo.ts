@@ -188,6 +188,35 @@ export function shouldSkipForPredictedTtft(
   );
 }
 
+/**
+ * Decide whether a failed combo target should record a whole-provider circuit-breaker
+ * failure (#1731 / #2743 gap-d). This is the consumer side of `skipProviderBreaker`:
+ *
+ * - Stream-readiness failures (pre-flight zombie/ping probes) never count as provider
+ *   failures — they are a connection-readiness signal, not an upstream outage.
+ * - Only provider-level failure codes (408/429/5xx — see `isProviderFailureCode`) count.
+ * - When the next combo target is on the SAME provider, don't trip the provider breaker:
+ *   a different model on that provider may still succeed.
+ * - G-02 / #2743: when the fallback result carries `skipProviderBreaker` (an embedded
+ *   service supervisor outage signalled via `X-Omni-Fallback-Hint: connection_cooldown`)
+ *   apply connection cooldown ONLY — never trip the whole-provider breaker.
+ *
+ * Pure predicate so the breaker decision is unit-testable without the full combo harness.
+ */
+export function shouldRecordProviderBreakerFailure(args: {
+  isStreamReadinessFailure: boolean;
+  status: number;
+  sameProviderNext: boolean;
+  skipProviderBreaker?: boolean;
+}): boolean {
+  return (
+    !args.isStreamReadinessFailure &&
+    isProviderFailureCode(args.status) &&
+    !args.sameProviderNext &&
+    !args.skipProviderBreaker
+  );
+}
+
 function resolveDelayMs(value: unknown, fallback: number): number {
   const numericValue = Number(value);
   if (!Number.isFinite(numericValue) || numericValue < 0) return fallback;
@@ -1207,9 +1236,7 @@ export function resolveNestedComboTargets(
 
   for (const step of runtimeSteps) {
     if (step.kind === "combo-ref") {
-      resolved.push(
-        ...expandRuntimeStep(step, allCombos, new Set(visited), depth, path, maxDepth)
-      );
+      resolved.push(...expandRuntimeStep(step, allCombos, new Set(visited), depth, path, maxDepth));
       continue;
     }
     resolved.push(step);
@@ -4348,10 +4375,12 @@ export async function handleComboChat({
           const sameProviderNext =
             typeof nextTarget?.provider === "string" && nextTarget.provider === provider;
           if (
-            !isStreamReadinessFailure &&
-            isProviderFailureCode(result.status) &&
-            !sameProviderNext &&
-            !fallbackResult.skipProviderBreaker
+            shouldRecordProviderBreakerFailure({
+              isStreamReadinessFailure,
+              status: result.status,
+              sameProviderNext,
+              skipProviderBreaker: fallbackResult.skipProviderBreaker,
+            })
           ) {
             recordProviderFailure(provider, log, target.connectionId, profile);
           }
@@ -4608,7 +4637,11 @@ async function handleRoundRobinCombo({
     ? resolveResilienceSettings(settings)
     : resolveResilienceSettings(null);
 
-  const orderedTargets = resolveComboTargets(combo, allCombos, clampComboDepth(config.maxComboDepth));
+  const orderedTargets = resolveComboTargets(
+    combo,
+    allCombos,
+    clampComboDepth(config.maxComboDepth)
+  );
   const tagFilteredTargets = await applyRequestTagRouting(orderedTargets, body, log);
   const evalRankedTargets = orderTargetsByEvalScores(tagFilteredTargets, config.evalRouting, log);
   const filteredTargets = filterTargetsByRequestCompatibility(
