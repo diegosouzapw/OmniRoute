@@ -1207,9 +1207,7 @@ export function resolveNestedComboTargets(
 
   for (const step of runtimeSteps) {
     if (step.kind === "combo-ref") {
-      resolved.push(
-        ...expandRuntimeStep(step, allCombos, new Set(visited), depth, path, maxDepth)
-      );
+      resolved.push(...expandRuntimeStep(step, allCombos, new Set(visited), depth, path, maxDepth));
       continue;
     }
     resolved.push(step);
@@ -4608,7 +4606,11 @@ async function handleRoundRobinCombo({
     ? resolveResilienceSettings(settings)
     : resolveResilienceSettings(null);
 
-  const orderedTargets = resolveComboTargets(combo, allCombos, clampComboDepth(config.maxComboDepth));
+  const orderedTargets = resolveComboTargets(
+    combo,
+    allCombos,
+    clampComboDepth(config.maxComboDepth)
+  );
   const tagFilteredTargets = await applyRequestTagRouting(orderedTargets, body, log);
   const evalRankedTargets = orderTargetsByEvalScores(tagFilteredTargets, config.evalRouting, log);
   const filteredTargets = filterTargetsByRequestCompatibility(
@@ -4856,7 +4858,12 @@ async function handleRoundRobinCombo({
               }
             })();
           }
-          return result;
+          // validateResponseQuality peeks streaming bodies via getReader(),
+          // which locks `result.body`. It returns a clonedResponse that replays
+          // the buffered prefix and forwards the rest. Returning the original
+          // (now-locked) `result` makes Next.js throw "ReadableStream is locked"
+          // → 500. Mirror the priority strategy and return the replay response.
+          return quality.clonedResponse ?? result;
         }
 
         // Extract error info
