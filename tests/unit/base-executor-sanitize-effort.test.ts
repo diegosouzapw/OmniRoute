@@ -73,7 +73,7 @@ test("sanitizeReasoningEffortForProvider: Anthropic-compatible dynamic provider 
   assert.equal((result as any).reasoning_effort, "high");
 });
 
-test("sanitizeReasoningEffortForProvider: xiaomi-mimo downgrades max → high", () => {
+test("sanitizeReasoningEffortForProvider: xiaomi-mimo normalizes max → xhigh by default", () => {
   const log = makeLog();
   const body = {
     model: "mimo-v2.5-pro",
@@ -81,6 +81,48 @@ test("sanitizeReasoningEffortForProvider: xiaomi-mimo downgrades max → high", 
     messages: [{ role: "user", content: "hi" }],
   };
   const result = sanitizeReasoningEffortForProvider(body, "xiaomi-mimo", "mimo-v2.5-pro", log);
+  assert.equal((result as any).reasoning_effort, "xhigh");
+  assert.ok(
+    log.messages.some(([tag, m]) => tag === "REASONING_SANITIZE" && /max → xhigh/.test(m)),
+    "logs the normalization"
+  );
+});
+
+test("sanitizeReasoningEffortForProvider: OpenRouter DeepSeek normalizes max → xhigh", () => {
+  const log = makeLog();
+  const body = {
+    model: "deepseek/deepseek-v4-pro",
+    reasoning_effort: "max",
+    messages: [{ role: "user", content: "hi" }],
+  };
+  const result = sanitizeReasoningEffortForProvider(
+    body,
+    "openrouter",
+    "deepseek/deepseek-v4-pro",
+    log
+  );
+  assert.notEqual(result, body, "must return a new object when mutating");
+  assert.equal((result as any).reasoning_effort, "xhigh");
+  assert.ok(
+    log.messages.some(([tag, m]) => tag === "REASONING_SANITIZE" && /max → xhigh/.test(m)),
+    "logs the normalization"
+  );
+});
+
+test("sanitizeReasoningEffortForProvider: OpenRouter Claude opt-out aliases downgrade max → high", () => {
+  const log = makeLog();
+  const body = {
+    model: "anthropic/claude-opus-4.6",
+    reasoning_effort: "max",
+    messages: [{ role: "user", content: "hi" }],
+  };
+  const result = sanitizeReasoningEffortForProvider(
+    body,
+    "openrouter",
+    "anthropic/claude-opus-4.6",
+    log
+  );
+  assert.notEqual(result, body, "must return a new object when mutating");
   assert.equal((result as any).reasoning_effort, "high");
   assert.ok(
     log.messages.some(([tag, m]) => tag === "REASONING_SANITIZE" && /max → high/.test(m)),
@@ -216,6 +258,34 @@ test("sanitizeReasoningEffortForProvider: github/claude-opus strips reasoning_ef
   };
   const result = sanitizeReasoningEffortForProvider(body, "github", "claude-opus-4-6", null);
   assert.equal((result as any).reasoning_effort, undefined);
+});
+
+test("sanitizeReasoningEffortForProvider: rejecting providers strip max before normalization", () => {
+  const mistralBody = {
+    model: "devstral-2512",
+    reasoning_effort: "max",
+    messages: [],
+  };
+  const mistralResult = sanitizeReasoningEffortForProvider(
+    mistralBody,
+    "mistral",
+    "devstral-2512",
+    null
+  );
+  assert.equal((mistralResult as any).reasoning_effort, undefined);
+
+  const githubBody = {
+    model: "claude-opus-4-6",
+    reasoning_effort: "max",
+    messages: [],
+  };
+  const githubResult = sanitizeReasoningEffortForProvider(
+    githubBody,
+    "github",
+    "claude-opus-4-6",
+    null
+  );
+  assert.equal((githubResult as any).reasoning_effort, undefined);
 });
 
 test("sanitizeReasoningEffortForProvider: mistral/devstral strips reasoning object when only effort present", () => {

@@ -699,10 +699,10 @@ Automatic model pricing data synchronization from external sources.
 
 ## Arena ELO Sync
 
-| Variable                  | Default       | Source File               | Description                                                                 |
-| ------------------------- | ------------- | ------------------------- | --------------------------------------------------------------------------- |
-| `ARENA_ELO_SYNC_ENABLED`  | `true`        | `src/lib/arenaEloSync.ts` | Periodic Arena AI leaderboard ELO sync (on by default; `false` to opt out). |
-| `ARENA_ELO_SYNC_INTERVAL` | `86400` (24h) | `src/lib/arenaEloSync.ts` | Sync interval in seconds.                                                   |
+| Variable                  | Default       | Source File                                      | Description                                                                                                   |
+| ------------------------- | ------------- | ------------------------------------------------ | ------------------------------------------------------------------------------------------------------------- |
+| `ARENA_ELO_SYNC_ENABLED`  | `true`        | `src/shared/constants/featureFlagDefinitions.ts` | Periodic Arena AI leaderboard ELO sync, configurable from Dashboard Feature Flags or with `false` to opt out. |
+| `ARENA_ELO_SYNC_INTERVAL` | `86400` (24h) | `src/lib/arenaEloSync.ts`                        | Sync interval in seconds.                                                                                     |
 
 ---
 
