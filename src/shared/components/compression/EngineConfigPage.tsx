@@ -85,46 +85,39 @@ export function EngineConfigPage({ engineId }: { engineId: string }) {
       setLoading(true);
       setLoadError(null);
 
-      // Fetch engine list
+      // Fire the three independent reads in parallel — load time is the slowest
+      // single request, not their sum. Each resolves to null on failure (fail-soft).
+      const asJson = (r: Response) => (r.ok ? r.json() : null);
+      const [enginesData, comboData, analyticsData] = await Promise.all([
+        fetch("/api/compression/engines")
+          .then(asJson)
+          .catch(() => null) as Promise<{ engines: EngineEntry[] } | null>,
+        fetch("/api/context/combos/default")
+          .then(asJson)
+          .catch(() => null) as Promise<{ pipeline?: ComboStep[] } | null>,
+        fetch(`/api/context/analytics/engine?engineId=${engineId}&days=7`)
+          .then(asJson)
+          .catch(() => null) as Promise<Analytics | null>,
+      ]);
+
       let foundEngine: EngineEntry | null = null;
-      try {
-        const res = await fetch("/api/compression/engines");
-        if (res.ok) {
-          const data = (await res.json()) as { engines: EngineEntry[] };
-          foundEngine = data.engines?.find((e) => e.id === engineId) ?? null;
-        }
-      } catch {
+      if (enginesData) {
+        foundEngine = enginesData.engines?.find((e) => e.id === engineId) ?? null;
+      } else {
         setLoadError("Failed to load engine information.");
       }
 
-      // Fetch current combo to derive enabled + currentConfig
+      // Derive enabled + currentConfig from the default combo (404/null = defaults)
       let currentEnabled = false;
       let currentConfig: Record<string, unknown> = {};
-      try {
-        const res = await fetch("/api/context/combos/default");
-        if (res.ok) {
-          const combo = (await res.json()) as { pipeline?: ComboStep[] };
-          const step = combo.pipeline?.find((s) => s.engine === engineId);
-          currentEnabled = !!step;
-          currentConfig = step?.config ?? {};
-        }
-        // 404 = no default combo yet — stay at defaults
-      } catch {
-        // fail-soft: keep defaults
-      }
-
-      // Fetch analytics
-      try {
-        const res = await fetch(`/api/context/analytics/engine?engineId=${engineId}&days=7`);
-        if (res.ok) {
-          const data = (await res.json()) as Analytics;
-          if (!cancelled) setAnalytics(data);
-        }
-      } catch {
-        // fail-soft: analytics stays null
+      const step = comboData?.pipeline?.find((s) => s.engine === engineId);
+      if (step) {
+        currentEnabled = true;
+        currentConfig = step.config ?? {};
       }
 
       if (!cancelled) {
+        if (analyticsData) setAnalytics(analyticsData);
         setEngine(foundEngine);
         setEnabled(currentEnabled);
         // Seed configState from defaultValues then override with currentConfig
