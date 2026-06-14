@@ -53,6 +53,7 @@ import {
   handleNoCredentials,
   safeResolveProxy,
   safeLogEvents,
+  shouldRetryStreamEarlyEof,
   withSessionHeader,
 } from "./chatHelpers";
 import { connectionHasExtraKeys } from "@omniroute/open-sse/services/apiKeyRotator.ts";
@@ -98,10 +99,7 @@ import {
   resolveCooldownAwareRetrySettings,
   waitForCooldownAwareRetry,
 } from "../services/cooldownAwareRetry";
-import {
-  constrainConnectionsToQuota,
-  resolveQuotaKeyScope,
-} from "../../lib/quota/quotaKey";
+import { constrainConnectionsToQuota, resolveQuotaKeyScope } from "../../lib/quota/quotaKey";
 
 registerCodexQuotaFetcher();
 
@@ -772,7 +770,14 @@ async function handleSingleModelChat(
     });
   }
 
-  const { provider: resolvedProvider, model, sourceFormat, targetFormat, extendedContext, apiFormat } = resolved;
+  const {
+    provider: resolvedProvider,
+    model,
+    sourceFormat,
+    targetFormat,
+    extendedContext,
+    apiFormat,
+  } = resolved;
   // Prefer the combo target's providerId when available — the model string's
   // provider prefix may differ from the credential provider ID (e.g. model
   // "xiaomi/mimo-v2-flash" resolves to provider "xiaomi" but the combo target
@@ -877,6 +882,10 @@ async function handleSingleModelChat(
   let requestRetryLastError = null;
   let requestRetryLastStatus = null;
   let requestRetryLastCooldownMs = 0;
+  // Bug #3758: per-request counter bounding the early-close (STREAM_EARLY_EOF)
+  // re-attempt to exactly one for the whole request. Declared outside both retry
+  // loops so it can never reset and loop.
+  let streamEarlyEofRetries = 0;
 
   requestAttemptLoop: while (true) {
     const excludedConnectionIds = new Set<string>();
@@ -1097,6 +1106,27 @@ async function handleSingleModelChat(
         (result.errorType === "stream_timeout" || result.errorType === "stream_early_eof") &&
         !isAntigravityStreamReadinessFailure
       ) {
+        // Bug #3758: flaky OpenAI-compatible upstreams (e.g. NVIDIA NIM) sometimes
+        // send HTTP 200 then close the SSE early with zero useful frames
+        // (STREAM_EARLY_EOF). That is a transient upstream glitch, not a bad key — so
+        // allow exactly ONE bounded same-connection re-attempt before surfacing the
+        // 502. Do NOT retry STREAM_READINESS_TIMEOUT (a slow-but-alive upstream;
+        // retrying would only double latency) and do NOT mark the account unavailable
+        // for the early close.
+        if (
+          shouldRetryStreamEarlyEof(result.errorCode, streamEarlyEofRetries) &&
+          !hasForcedConnection
+        ) {
+          streamEarlyEofRetries += 1;
+          log.warn(
+            "STREAM",
+            `${provider}/${model} closed the stream early before useful content — retrying once (attempt ${streamEarlyEofRetries})`
+          );
+          // Plain re-attempt of the same request: no markAccountUnavailable, no
+          // excludedConnectionIds mutation (an early close is not a bad connection).
+          continue;
+        }
+
         // Stream readiness timeout is an upstream stall after an HTTP response was received,
         // not an account/quota failure. Do NOT mark the account unavailable here.
         return result.response;
@@ -1357,8 +1387,11 @@ async function handleSingleModelChat(
             model,
             providerProfile,
             {
-              persistUnavailableState:
-                !(isCombo && result.status === 429 && (failureKind === "rate_limit" || failureKind === "transient")),
+              persistUnavailableState: !(
+                isCombo &&
+                result.status === 429 &&
+                (failureKind === "rate_limit" || failureKind === "transient")
+              ),
               isCombo,
             }
           );

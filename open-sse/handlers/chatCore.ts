@@ -29,7 +29,11 @@ import {
 } from "../services/tokenRefresh.ts";
 import { createRequestLogger } from "../utils/requestLogger.ts";
 import { applyResponsesPreviousResponseIdPolicy } from "../utils/responsesStatePolicy.ts";
-import { getModelTargetFormat, PROVIDER_ID_TO_ALIAS } from "../config/providerModels.ts";
+import {
+  getModelTargetFormat,
+  PROVIDER_ID_TO_ALIAS,
+  splitClaudeEffortSuffix,
+} from "../config/providerModels.ts";
 import { DEFAULT_THINKING_CLAUDE_SIGNATURE } from "../config/defaultThinkingSignature.ts";
 import {
   getStripTypesForProviderModel,
@@ -79,6 +83,7 @@ import {
 
 import {
   getCallLogPipelineCaptureStreamChunks,
+  getCallLogPipelineMaxSizeBytes,
   getChatLogTextLimit,
   getChatLogArrayTailItems,
   getChatLogMaxDepth,
@@ -156,6 +161,7 @@ import { invalidateCodexQuotaCache } from "../services/codexQuotaFetcher.ts";
 import { translateNonStreamingResponse } from "./responseTranslator.ts";
 import { extractUsageFromResponse } from "./usageExtractor.ts";
 import {
+  extractSSEErrorMessage,
   parseSSEToClaudeResponse,
   parseSSEToOpenAIResponse,
   parseSSEToResponsesOutput,
@@ -1953,9 +1959,44 @@ export async function handleChatCore({
   // the correct, aliased model ID. Without this, aliases only affect format detection.
   const resolvedModel = resolveModelAlias(model);
   // Use resolvedModel for all downstream operations (routing, provider requests, logging)
-  const effectiveModel = resolvedModel === model ? model : resolvedModel;
+  let effectiveModel = resolvedModel === model ? model : resolvedModel;
   if (resolvedModel !== model) {
     log?.info?.("ALIAS", `Model alias applied: ${model} → ${resolvedModel}`);
+  }
+
+  // Effort-variant model ids: the Claude / Claude-Code model picker (e.g. VS Code's
+  // "Effort" slider) advertises claude-...-{low,medium,high,xhigh,max}. Anthropic has
+  // no such model, so the suffixed id 404s upstream. Strip it back to the real base id
+  // (forwarded as the upstream model via finalModelToUpstream below) and surface the
+  // level as reasoning_effort so the OpenAI→Claude translator / Claude-Code bridge turn
+  // it into Claude thinking/effort config. An explicit client-supplied effort always
+  // wins; native Claude passthrough is left untouched (it carries its own `thinking`),
+  // and non-thinking base models are cleaned up later by normalizeThinkingForModel().
+  if (
+    (provider === "claude" || isClaudeCodeCompatibleProvider(provider)) &&
+    typeof effectiveModel === "string"
+  ) {
+    const { baseModel, effort } = splitClaudeEffortSuffix(effectiveModel);
+    if (effort) {
+      effectiveModel = baseModel;
+      if (body && typeof body === "object" && !Array.isArray(body)) {
+        const claudeBody = body as Record<string, unknown>;
+        claudeBody.model = baseModel;
+        if (sourceFormat !== FORMATS.CLAUDE) {
+          const explicitEffort =
+            claudeBody.reasoning_effort ??
+            (claudeBody.reasoning as Record<string, unknown> | undefined)?.effort ??
+            (claudeBody.output_config as Record<string, unknown> | undefined)?.effort;
+          if (explicitEffort === undefined || explicitEffort === null || explicitEffort === "") {
+            claudeBody.reasoning_effort = effort;
+          }
+        }
+      }
+      log?.info?.(
+        "PARAMS",
+        `Claude effort variant: stripped "-${effort}" → ${baseModel} (reasoning_effort=${effort})`
+      );
+    }
   }
 
   const alias = PROVIDER_ID_TO_ALIAS[provider] || provider;
@@ -2263,6 +2304,7 @@ export async function handleChatCore({
   const reqLogger = await createRequestLogger(sourceFormat, targetFormat, model, {
     enabled: detailedLoggingEnabled,
     captureStreamChunks: capturePipelineStreamChunks,
+    maxStreamChunkBytes: getCallLogPipelineMaxSizeBytes(),
     // Provide model/provider/connectionId so streamChunks can be attached to the
     // in-memory pending request record before final call-log persistence.
     model,
@@ -4829,7 +4871,14 @@ export async function handleChatCore({
           connectionId,
           status: `FAILED ${HTTP_STATUS.BAD_GATEWAY}`,
         }).catch(() => {});
-        const invalidSseMessage = "Invalid SSE response for non-streaming request";
+        // Some executors (e.g. the Devin/Windsurf CLI) always emit
+        // text/event-stream, signalling failure with an error-only chunk
+        // (`data: {"error":{"message":"Devin CLI not found..."}}`) that carries
+        // no `choices`. Surface that real, sanitized message instead of the
+        // generic 502 so the actionable error is not swallowed (#3324).
+        const surfacedSseError = extractSSEErrorMessage(streamPayload);
+        const invalidSseMessage =
+          surfacedSseError || "Invalid SSE response for non-streaming request";
         persistAttemptLogs({
           status: HTTP_STATUS.BAD_GATEWAY,
           error: invalidSseMessage,
@@ -5227,9 +5276,8 @@ export async function handleChatCore({
     // === Quota Share POST-hook (B/F7) — fire-and-forget, fail-open ===
     if (apiKeyInfo?.id && credentials?.connectionId) {
       try {
-        const { scheduleRecordConsumption, buildConsumptionCost } = await import(
-          "@/lib/quota/spendRecorder"
-        );
+        const { scheduleRecordConsumption, buildConsumptionCost } =
+          await import("@/lib/quota/spendRecorder");
         scheduleRecordConsumption(
           {
             apiKeyId: apiKeyInfo.id,

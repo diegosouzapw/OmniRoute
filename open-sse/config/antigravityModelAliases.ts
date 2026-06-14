@@ -177,6 +177,47 @@ export const ANTIGRAVITY_MODEL_ALIASES = Object.freeze({
 
 type AntigravityModelAliasMap = Record<string, string>;
 
+/**
+ * #3786 — Per-request upstream-id FALLBACK CHAINS for the Gemini 3.1 Pro family.
+ *
+ * On recent Antigravity versions `gemini-3.1-pro-high` started returning HTTP 400
+ * ("Antigravity upstream error (400)") while `gemini-3.1-pro-low` still works. The upstream
+ * changed the accepted id format for the Pro-high tier and the live id cannot be determined
+ * from static analysis — the two actively-maintained competitor proxies DISAGREE:
+ *   - AntigravityManager → `gemini-3.1-pro-high`
+ *   - CLIProxyAPI        → `gemini-pro-agent` (display: "Gemini 3.1 Pro (High)")
+ *   - older form         → `gemini-3-pro-high`
+ *
+ * Mirroring AntigravityManager's robust approach, the executor retries the next candidate id
+ * on a 400 until one succeeds (2xx) or the chain is exhausted. This is a REQUEST-TIME retry,
+ * NOT a change to the static `resolveAntigravityModelId` map — the #3696 pass-through
+ * invariant (suffixed ids reach the upstream verbatim on the FIRST attempt) is preserved.
+ *
+ * Each chain starts with its own key so the happy path (first id 200) incurs zero extra
+ * calls, and every candidate is listed at most once so the retry loop is bounded.
+ */
+export const ANTIGRAVITY_PRO_FALLBACK_CHAINS: Readonly<Record<string, readonly string[]>> =
+  Object.freeze({
+    "gemini-3.1-pro-high": Object.freeze([
+      "gemini-3.1-pro-high",
+      "gemini-pro-agent",
+      "gemini-3-pro-high",
+    ]),
+    // pro-low currently works but is given a trivially-symmetric chain for resilience if the
+    // upstream renames it the same way it renamed pro-high.
+    "gemini-3.1-pro-low": Object.freeze(["gemini-3.1-pro-low", "gemini-3-pro-low"]),
+  });
+
+/**
+ * Return the ordered upstream-id fallback chain for `modelId` (the requested id first), or
+ * `[]` when the model has no chain (flash, claude, plain pro, etc.). Pure — safe to unit test
+ * and to call on every request (returns `[]` cheaply off the happy path's hot models).
+ */
+export function getAntigravityModelFallbacks(modelId: string): readonly string[] {
+  if (!modelId) return [];
+  return ANTIGRAVITY_PRO_FALLBACK_CHAINS[modelId] ?? [];
+}
+
 export const ANTIGRAVITY_REVERSE_MODEL_ALIASES: AntigravityModelAliasMap = Object.freeze({
   "gemini-3.5-flash-extra-low": "gemini-3.5-flash-low",
   "gemini-3-flash-agent": "gemini-3.5-flash-high",
