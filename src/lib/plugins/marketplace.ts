@@ -1,3 +1,7 @@
+import { getSettings } from "../db/settings";
+import dns from "node:dns/promises";
+import { isPrivateHost } from "@/shared/network/outboundUrlGuard";
+import { safeOutboundFetch } from "@/shared/network/safeOutboundFetch";
 /**
  * Plugin Marketplace — browse, search, install plugins from a registry.
  *
@@ -6,6 +10,53 @@
  *
  * @module plugins/marketplace
  */
+
+/** Resolve a hostname to every address it maps to (A + AAAA). Injectable for tests. */
+export type MarketplaceLookupFn = (hostname: string) => Promise<Array<{ address: string }>>;
+
+const defaultLookup: MarketplaceLookupFn = (hostname) =>
+  dns.lookup(hostname, { all: true, verbatim: true });
+
+/**
+ * SSRF guard for a custom marketplace registry URL. Must be http(s) and must not
+ * target a private/loopback/link-local/ULA address. Unlike a literal-only or
+ * IPv4-only check, this resolves BOTH IPv4 (A) and IPv6 (AAAA) records and rejects
+ * if ANY resolved address is private — closing the public-hostname → private-IP
+ * bypass (IPv6 included: `::1`, `fc00::/7`, `fe80::/10`, IPv4-mapped) via the
+ * canonical `isPrivateHost`. DNS failure rejects (fail-closed). The fetch itself
+ * additionally runs through `safeOutboundFetch({ guard: "public-only" })`, which
+ * re-applies the guard and blocks redirects (no public → private 30x pivot).
+ */
+export async function isSafeMarketplaceUrl(
+  urlStr: string,
+  lookupFn: MarketplaceLookupFn = defaultLookup
+): Promise<boolean> {
+  let parsed: URL;
+  try {
+    parsed = new URL(urlStr);
+  } catch {
+    return false;
+  }
+  if (parsed.protocol !== "http:" && parsed.protocol !== "https:") {
+    return false;
+  }
+  // Literal IP hostnames (IPv4 + IPv6, incl. IPv4-mapped) are classified directly.
+  if (isPrivateHost(parsed.hostname)) {
+    return false;
+  }
+  // Resolve A + AAAA and reject if the hostname maps to any private address.
+  try {
+    const records = await lookupFn(parsed.hostname);
+    if (!records.length) return false;
+    for (const { address } of records) {
+      if (isPrivateHost(address)) return false;
+    }
+  } catch {
+    // DNS resolution failure — reject to be safe.
+    return false;
+  }
+  return true;
+}
 
 // Marketplace — local seed registry. Remote registry in Phase 2.
 
@@ -88,16 +139,46 @@ const SEED_REGISTRY: MarketplaceEntry[] = [
 /**
  * List all available plugins in the marketplace.
  */
-export function listMarketplacePlugins(): MarketplaceEntry[] {
+export async function listMarketplacePlugins(): Promise<MarketplaceEntry[]> {
+  try {
+    const settings = await getSettings();
+    const url = typeof settings.pluginMarketplaceUrl === "string" ? settings.pluginMarketplaceUrl : null;
+    if (url) {
+      if (!(await isSafeMarketplaceUrl(url))) {
+        console.warn("Custom marketplace URL rejected (SSRF guard):", url);
+        return [...SEED_REGISTRY];
+      }
+      const res = await safeOutboundFetch(url, { guard: "public-only", timeoutMs: 5000 });
+      if (!res.ok) {
+        console.warn("Custom marketplace returned non-OK status:", res.status);
+        return [...SEED_REGISTRY];
+      }
+      const data = await res.json();
+      if (Array.isArray(data)) {
+        return data.filter((entry: unknown) =>
+          entry && typeof entry === "object" && typeof (entry as Record<string, unknown>).name === "string"
+        ) as MarketplaceEntry[];
+      }
+      if (data && typeof data === "object" && Array.isArray((data as Record<string, unknown>).plugins)) {
+        return ((data as Record<string, unknown>).plugins as unknown[]).filter((entry: unknown) =>
+          entry && typeof entry === "object" && typeof (entry as Record<string, unknown>).name === "string"
+        ) as MarketplaceEntry[];
+      }
+      console.warn("Custom marketplace returned unrecognized format");
+    }
+  } catch (err) {
+    console.error("Failed to fetch from custom plugin marketplace:", err);
+  }
   return [...SEED_REGISTRY];
 }
 
 /**
  * Search marketplace plugins by query.
  */
-export function searchMarketplace(query: string): MarketplaceEntry[] {
+export async function searchMarketplace(query: string): Promise<MarketplaceEntry[]> {
+  const plugins = await listMarketplacePlugins();
   const q = query.toLowerCase();
-  return SEED_REGISTRY.filter(
+  return plugins.filter(
     (p) =>
       p.name.includes(q) ||
       p.description.toLowerCase().includes(q) ||
@@ -108,13 +189,14 @@ export function searchMarketplace(query: string): MarketplaceEntry[] {
 /**
  * Get a specific marketplace entry.
  */
-export function getMarketplaceEntry(name: string): MarketplaceEntry | undefined {
-  return SEED_REGISTRY.find((p) => p.name === name);
+export async function getMarketplaceEntry(name: string): Promise<MarketplaceEntry | undefined> {
+  const plugins = await listMarketplacePlugins();
+  return plugins.find((p) => p.name === name);
 }
 
 /**
  * Check if marketplace is available.
  */
 export function isMarketplaceAvailable(): boolean {
-  return true; // Local seed always available
+  return true; // Always available (falls back to seed)
 }

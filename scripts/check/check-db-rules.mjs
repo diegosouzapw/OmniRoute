@@ -11,9 +11,12 @@
 //  (c) Nenhum SQL cru em src/app/api/**/route.ts ou open-sse/handlers/*.ts.
 //      SQL deve viver em src/lib/db/ (Hard Rule #5). Ofensores pré-existentes
 //      são congelados; QUALQUER novo SQL cru em rota/handler falha.
+// Stale-enforcement (6A.3): entradas em INTENTIONALLY_INTERNAL / EXTERNAL_DB_ALLOWED
+// que não suprimem nenhuma violação real → gate falha com instrução de remoção.
 import fs from "node:fs";
 import path from "node:path";
 import { pathToFileURL } from "node:url";
+import { assertNoStale } from "./lib/allowlist.mjs";
 
 const cwd = process.cwd();
 const DB_DIR = path.join(cwd, "src/lib/db");
@@ -215,10 +218,16 @@ export function collectSqlScanFiles(apiDir = API_DIR, handlersDir = HANDLERS_DIR
 
 function main() {
   const failures = [];
+  const localDbSource = fs.readFileSync(LOCAL_DB, "utf8");
 
   // (a) re-export completeness
   const dbModules = collectDbModules();
-  const reexported = extractReexportedModules(fs.readFileSync(LOCAL_DB, "utf8"));
+  const reexported = extractReexportedModules(localDbSource);
+
+  // Live unexported modules BEFORE allowlist filtering (needed for stale-enforcement).
+  const liveUnexported = dbModules.filter((mod) => !reexported.has(mod));
+  assertNoStale(INTENTIONALLY_INTERNAL, liveUnexported, "check-db-rules:unexported");
+
   const missing = findMissingReexports(dbModules, reexported);
   if (missing.length) {
     failures.push(
@@ -230,7 +239,7 @@ function main() {
   }
 
   // (b) localDb sem lógica
-  if (hasLogic(fs.readFileSync(LOCAL_DB, "utf8"))) {
+  if (hasLogic(localDbSource)) {
     failures.push(
       `[#2 sem-lógica] src/lib/localDb.ts contém lógica (function/class/arrow). É camada de` +
         ` re-export apenas — mova a lógica para um módulo src/lib/db/.`
@@ -238,7 +247,12 @@ function main() {
   }
 
   // (c) SQL cru fora de db/
-  const rawSql = findRawSql(collectSqlScanFiles());
+  // Live raw-SQL offenders BEFORE allowlist filtering (needed for stale-enforcement).
+  const scanFiles = collectSqlScanFiles();
+  const liveRawSql = findRawSql(scanFiles, new Set());
+  assertNoStale(EXTERNAL_DB_ALLOWED, liveRawSql, "check-db-rules:raw-sql");
+
+  const rawSql = findRawSql(scanFiles);
   if (rawSql.length) {
     failures.push(
       `[#5 sql-cru] ${rawSql.length} arquivo(s) com SQL cru fora de src/lib/db/:\n` +
@@ -250,12 +264,14 @@ function main() {
 
   if (failures.length) {
     console.error(`[check-db-rules] FALHOU:\n\n` + failures.join("\n\n"));
-    process.exit(1);
+    process.exitCode = 1;
   }
-  console.log(
-    `[check-db-rules] OK (${dbModules.length} módulos db/, ${reexported.size} re-exportados, ` +
-      `${INTENTIONALLY_INTERNAL.size} intencionalmente-internos (Rule #2); ${EXTERNAL_DB_ALLOWED.size} leituras de DB externo permitidas (#3500))`
-  );
+  if (!process.exitCode) {
+    console.log(
+      `[check-db-rules] OK (${dbModules.length} módulos db/, ${reexported.size} re-exportados, ` +
+        `${INTENTIONALLY_INTERNAL.size} intencionalmente-internos (Rule #2); ${EXTERNAL_DB_ALLOWED.size} leituras de DB externo permitidas (#3500))`
+    );
+  }
 }
 
 if (import.meta.url === pathToFileURL(process.argv[1] || "").href) main();

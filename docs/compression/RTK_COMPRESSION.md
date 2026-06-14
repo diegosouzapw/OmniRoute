@@ -238,3 +238,367 @@ node --import tsx/esm --test \
 4. Add command detection coverage when introducing a new output class.
 5. Run the verify and broad RTK gates.
 6. If the filter is project-local, commit `.rtk/filters.json` and refresh `.rtk/trust.json` only after review.
+
+---
+
+## Intensity Levels (v3.8.16+)
+
+RTK supports **3 intensity levels** that trade off between **compression aggressiveness** and **safety**. The level is set via `config.intensity` in the engine config.
+
+### The 3 Levels
+
+| Level | Truncation threshold | Token savings | Risk | Best for |
+|-------|---------------------|---------------|------|----------|
+| `minimal` | 24 lines per section | ~20-40% | Very low | Production with critical context |
+| `standard` (default) | 24 lines per section | ~50-70% | Low | Daily coding sessions |
+| `aggressive` | 16 lines per section | ~70-90% | Medium | Long sessions, max savings |
+
+### Where the Truncation Happens
+
+The truncation threshold affects `lineFilter.ts`:
+
+```ts
+// From open-sse/services/compression/engines/rtk/index.ts:329-330
+config.intensity === "aggressive" ? 16 : 24,
+config.intensity === "aggressive" ? 16 : 24,
+```
+
+Both the **head** and **tail** of each section are preserved; middle content is dropped when truncation kicks in.
+
+### What Stays vs. What Gets Cut
+
+| Content | minimal | standard | aggressive |
+|---------|---------|----------|------------|
+| Errors / stack traces | ✅ preserved | ✅ preserved | ✅ preserved |
+| Test failures | ✅ preserved | ✅ preserved | ✅ preserved |
+| Build errors | ✅ preserved | ✅ preserved | ✅ preserved |
+| Test passes (verbose) | ✅ preserved | 🟡 collapsed | 🟡 collapsed |
+| Routine output (info logs) | 🟡 collapsed | 🟡 collapsed | ❌ dropped |
+| Progress bars | 🟡 collapsed | ❌ dropped | ❌ dropped |
+| Banner / ASCII art | 🟡 collapsed | ❌ dropped | ❌ dropped |
+
+### Choosing the Right Intensity
+
+```
+                  Is losing context catastrophic?
+                  │
+      ┌───────────┼───────────┐
+      │           │           │
+    YES          NO          NOT SURE
+      │           │           │
+      ▼           │           │
+   minimal        │           │
+      │           │           │
+      │           ▼           ▼
+      │      How critical    Try `standard` first
+      │      is throughput?  (works for 80% of
+      │           │          cases)
+      │      ┌────┴────┐
+      │      │         │
+      │     LOW       HIGH
+      │      │         │
+      │      ▼         ▼
+      │   standard   aggressive
+      │      │         │
+      └──────┴─────────┘
+```
+
+### Configuring Intensity
+
+**Per-combo** (in combo config):
+
+```json
+{
+  "combo": "my-coding-combo",
+  "routing": { /* ... */ },
+  "compression": {
+    "engine": "rtk",
+    "intensity": "aggressive"
+  }
+}
+```
+
+**Programmatically**:
+
+`rtkEngine` (`@omniroute/open-sse/services/compression/engines/rtk`) is a
+`CompressionEngine` and has no `updateConfig` method. Update an engine's config
+through the registry helper instead:
+
+```ts
+import { updateEngineConfig } from "@omniroute/open-sse/services/compression/engines/registry";
+
+updateEngineConfig("rtk", { intensity: "aggressive" });
+```
+
+### Verifying the Effect
+Use the **Verify Gate** (see below) to confirm your filter is safe at your chosen intensity:
+```ts
+import { runRtkFilterTests } from "omniroute/compression/engines/rtk/verify";
+
+const result = runRtkFilterTests({ intensity: "aggressive" });
+if (!result.passed) {
+  console.error("Filters failed at aggressive intensity");
+}
+```
+
+---
+
+## Custom Filter Development (v3.8.16+)
+
+The `engines/rtk/filters/` directory contains **49+ built-in filter JSON files**. You can add your own to compress output from custom tools not covered by the defaults.
+
+### Filter Schema (Zod)
+
+```ts
+{
+  "id": "string",                      // Required. Filter identifier (kebab-case, e.g., "python-traceback")
+  "label": "string",                   // Required. Human-readable filter name
+  "description": "string",             // Optional (default: ""). Short description of what filter does
+  "category": "git|test|build|shell|docker|package|infra|cloud|generic",
+  "priority": number,                  // Optional (0-100, default: 50). Execution order (higher = first)
+  "match": {
+    "commands": ["string"],            // Command names to match (e.g., "python", "pytest")
+    "patterns": ["string"],            // Regex patterns to match output
+    "outputTypes": ["string"]          // Detected output classes (e.g., "test-failure")
+  },
+  "rules": {
+    "stripAnsi": boolean,              // Optional (default: false). Strip ANSI color codes
+    "replace": [                       // Find-and-replace rules (default: [])
+      { "pattern": "regex", "replacement": "..." }
+    ],
+    "matchOutput": [                   // Short-circuit on pattern match (default: [])
+      {
+        "pattern": "regex",
+        "message": "short summary",
+        "unless": "regex"              // Skip if this pattern matches
+      }
+    ],
+    "includePatterns": ["string"],     // Lines to keep (regex patterns, default: [])
+    "dropPatterns": ["string"],        // Lines to drop (regex patterns, default: [])
+    "collapsePatterns": ["string"],    // Lines to collapse to single occurrence (default: [])
+    "deduplicate": boolean,            // Optional (default: false). Remove duplicate lines
+    "truncateLineAt": number,          // Optional (default: 0). Truncate lines to max chars
+    "maxLines": number,                // Optional (default: 0). Hard cap on total lines
+    "headLines": number,               // Optional (default: 20). Keep first N lines of matched output
+    "tailLines": number,               // Optional (default: 20). Keep last N lines of matched output
+    "onEmpty": "string",               // Optional (default: ""). Fallback message if all lines filtered
+    "filterStderr": boolean            // Optional (default: false). Also filter stderr output
+  },
+  "preserve": {
+    "errorPatterns": ["string"],       // Patterns that must always be preserved (default: [])
+    "summaryPatterns": ["string"]      // Patterns for final summary line (default: [])
+  },
+  "tests": [                           // Inline tests for verification (default: [])
+    {
+      "name": "string",               // Required. Test name
+      "input": "sample output",        // Required. Sample input text
+      "expected": "expected output",   // Required. Expected compressed output
+      "command": "optional command"    // Optional. Command context
+    }
+  ]
+}
+```
+
+### Example: Python Traceback Filter
+
+```json
+{
+  "id": "python-traceback",
+  "label": "Python Traceback Filter",
+  "description": "Compresses Python tracebacks to essential file/line locations and error type",
+  "category": "test",
+  "priority": 60,
+  "match": {
+    "commands": ["python", "python3", "pytest", "uv", "poetry"],
+    "patterns": ["Traceback \\(most recent call last\\)", "Error", "Exception"],
+    "outputTypes": ["error-traceback"]
+  },
+  "rules": {
+    "stripAnsi": true,
+    "includePatterns": [
+      "Traceback \\(most recent call last\\)",
+      "^\\s*File \".+\", line \\d+",
+      "^\\s*[A-Z][a-zA-Z]+Error:",
+      "^\\s*[A-Z][a-zA-Z]+Exception"
+    ],
+    "dropPatterns": [
+      "site-packages/",
+      "^\\s+[a-z_]+\\([^)]*\\)$"
+    ],
+    "headLines": 5,
+    "tailLines": 3,
+    "maxLines": 25,
+    "filterStderr": true
+  },
+  "preserve": {
+    "errorPatterns": [
+      "Error:",
+      "Exception:",
+      "Traceback"
+    ],
+    "summaryPatterns": [
+      "^[A-Z][a-zA-Z]+(?:Error|Exception):"
+    ]
+  },
+  "tests": [
+    {
+      "name": "preserves-error-type-and-location",
+      "input": "Traceback (most recent call last):\n  File \"app.py\", line 42, in main\n    do_thing()\n  File \"lib/utils.py\", line 17, in helper\n    return 1 / 0\nZeroDivisionError: division by zero",
+      "expected": "Traceback (most recent call last):\n  File \"app.py\", line 42, in main\n  File \"lib/utils.py\", line 17, in helper\nZeroDivisionError: division by zero",
+      "command": "python app.py"
+    }
+  ]
+}
+```
+
+### Loading Custom Filters
+
+Place the file in a recognized location:
+
+```
+~/.omniroute/rtk/filters/my-filter.json     # User-level
+<project>/.rtk/filters/my-filter.json      # Project-level
+```
+
+Filters are loaded automatically on startup via `loadRtkFilters()` in `open-sse/services/compression/engines/rtk/filterLoader.ts`. The loader discovers filters from:
+
+- Built-in catalog: `open-sse/services/compression/engines/rtk/filters/`
+- User directory: `~/.omniroute/rtk/filters/`
+- Project directory: `<project>/.rtk/filters/`
+
+To load filters programmatically:
+
+```ts
+import { loadRtkFilters } from "@omniroute/open-sse/services/compression/engines/rtk/filterLoader";
+
+// Options: customFiltersEnabled (load user/project filters, default on),
+// trustProjectFilters, refresh.
+const filters = loadRtkFilters({ customFiltersEnabled: true });
+```
+
+### Validation
+
+Filters are validated against the Zod schema on load. A filter with bad structure will fail to load and log an error:
+
+```
+RTK_FILTER_LOADER: filter "my-filter" failed validation:
+  - rules.replace.0.pattern: Invalid regex
+  - match.commands: must not be empty
+```
+
+To validate all installed filters, call `runRtkFilterTests()` which is exported from `open-sse/services/compression/engines/rtk/verify.ts`.
+
+### Best Practices
+
+1. **Always include `tests[]`** — they prove your filter works and prevent regressions
+2. **Use `matchOutput` for short-circuits** — if a single line tells the story, replace the whole block
+3. **Prefer `keep` over `strip`** — explicit "always preserve" rules are safer than "always remove"
+4. **Test at all 3 intensity levels** — `minimal` should be a no-op, `aggressive` should still preserve errors
+5. **Use the `unless` field** — guard short-circuits with "don't trigger if X is present"
+
+---
+
+## Raw Output Recovery & Verify Gate
+
+When RTK compresses output aggressively, you can **recover the original text** for debugging, audit, or replay.
+
+### How Raw Output Recovery Works
+
+```
+Original output (10K tokens)
+        │
+        ▼
+RTK compress (with rawOutput.enabled=true)
+        │
+        ├─▶ Compressed output (2K tokens)  ──▶ to LLM
+        │
+        └─▶ Original output (10K tokens)   ──▶ stored in DB
+                                                  (linked by request_id)
+```
+
+### Enabling Raw Output Storage
+
+**Per-request** (in combo config):
+
+```json
+{
+  "compression": {
+    "engine": "rtk",
+    "intensity": "aggressive",
+    "rawOutput": {
+      "enabled": true,
+      "maxBytes": 1048576  // 1MB cap
+    }
+  }
+}
+```
+
+**Default**: `rawOutput.enabled: false` (saves storage).
+
+### Storage Cost
+
+| Per-request | 1MB cap | 10MB cap |
+|-------------|---------|----------|
+| Average compressed output | ~5KB | ~5KB |
+| Raw output stored | ~50-500KB | ~500KB-5MB |
+| With 1000 requests/day | 50-500MB/day | 500MB-5GB/day |
+
+> **Recommendation**: Only enable raw output for **debugging sessions** or **sampled auditing**, not always-on.
+
+### Recovering the Original
+
+```ts
+import { readRtkRawOutput } from "omniroute/compression/engines/rtk/rawOutput";
+
+const raw = readRtkRawOutput(pointerId);  // pointerId from compression stats
+if (raw) {
+  console.log("Original output:", raw);
+}
+```
+
+The `pointerId` is returned in `CompressionStats.rtkRawOutputPointers[]` after compression.
+See `open-sse/services/compression/engines/rtk/rawOutput.ts:102` for the function signature.
+
+### The Verify Gate
+
+The **RTK Filter Verification** (`open-sse/services/compression/engines/rtk/verify.ts`) validates all filters against their `tests[]` and ensures behavior is correct at all 3 intensity levels.
+
+**Call `runRtkFilterTests()`** to run verification:
+
+```ts
+import { runRtkFilterTests } from "open-sse/services/compression/engines/rtk/verify";
+
+const result = runRtkFilterTests();
+console.log(`Passed: ${result.outcomes.filter(o => o.passed).length}`);
+console.log(`Failed: ${result.outcomes.filter(o => !o.passed).length}`);
+if (!result.passed) {
+  console.error("Filters failed verification");
+  result.outcomes.filter(o => !o.passed).forEach(o => {
+    console.error(`  - ${o.filterId} / ${o.testName}: expected "${o.expected}", got "${o.actual}"`);
+  });
+}
+```
+
+**What it validates**:
+
+1. Every filter loads and passes schema validation
+2. Every `tests[]` entry produces expected output
+3. `minimal` intensity is a no-op (preserves original, only applies structural filters)
+4. `aggressive` intensity preserves errors, test failures, and stack traces
+5. Compressed output is never larger than original input
+
+- Source: `open-sse/services/compression/engines/rtk/` (63 files, ~70KB)
+
+- **Before merging a filter change** — always ensure tests pass
+- **After upgrading RTK engine** — schema may have changed
+- **Periodically in monitoring** — protects against drift in test fixtures
+- **When adding a new tool/command family** — proves the new filter works
+
+---
+
+## See Also
+
+- [COMPRESSION_GUIDE.md](./COMPRESSION_GUIDE.md) — Full compression pipeline overview
+- [COMPRESSION_ENGINES.md](./COMPRESSION_ENGINES.md) — Engine registry and built-in engines
+- [EXTENDING_COMPRESSION.md](./EXTENDING_COMPRESSION.md) — Custom engines, language packs, stacked pipelines
+- Source: `open-sse/services/compression/engines/rtk/` (63 files, ~70KB)

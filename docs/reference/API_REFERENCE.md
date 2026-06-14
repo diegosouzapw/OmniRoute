@@ -404,15 +404,16 @@ Response example:
 
 ### Settings
 
-| Endpoint                        | Method        | Description               |
-| ------------------------------- | ------------- | ------------------------- |
-| `/api/settings`                 | GET/PUT/PATCH | General settings          |
-| `/api/settings/proxy`           | GET/PUT       | Network proxy config      |
-| `/api/settings/proxy/test`      | POST          | Test proxy connection     |
-| `/api/settings/ip-filter`       | GET/PUT       | IP allowlist/blocklist    |
-| `/api/settings/thinking-budget` | GET/PUT       | Reasoning token budget    |
-| `/api/settings/system-prompt`   | GET/PUT       | Global system prompt      |
-| `/api/settings/compression`     | GET/PUT       | Global compression config |
+| Endpoint                              | Method        | Description                                         |
+| ------------------------------------- | ------------- | --------------------------------------------------- |
+| `/api/settings`                       | GET/PUT/PATCH | General settings                                    |
+| `/api/settings/proxy`                 | GET/PUT       | Network proxy config                                |
+| `/api/settings/proxy/test`            | POST          | Test proxy connection                               |
+| `/api/settings/ip-filter`             | GET/PUT       | IP allowlist/blocklist                              |
+| `/api/settings/thinking-budget`       | GET/PUT       | Reasoning token budget                              |
+| `/api/settings/system-prompt`         | GET/PUT       | Global system prompt                                |
+| `/api/settings/compression`           | GET/PUT       | Global compression config                           |
+| `/api/settings/purge-request-history` | POST          | Clear request log rows and local call-log artifacts |
 
 ### Context & Compression
 

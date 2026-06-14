@@ -1,0 +1,66 @@
+{
+  "$schema": "https://stryker-mutator.io/schemas/stryker-schema.json",
+  "_comment": [
+    "Mutation testing for the ~8 critical modules (Task 11 — Fase 7).",
+    "NIGHTLY ONLY — DO NOT run on every PR. Mutation testing is expensive:",
+    "  - Each mutant requires a full test suite execution.",
+    "  - The 8 modules produce ~200–500 mutants; est. 30–90 min per run.",
+    "  - Wired to the 'nightly' CI job (not 'lint' or 'quality-gate').",
+    "",
+    "Install before running (not bundled to avoid E2E / CI bloat):",
+    "  npm install --save-dev @stryker-mutator/core @stryker-mutator/vitest-runner",
+    "  (or @stryker-mutator/tap-runner if using node:test natively)",
+    "",
+    "Run manually:",
+    "  npx stryker run",
+    "  npx stryker run --filePattern 'open-sse/handlers/chatCore.ts'",
+    "",
+    "Mutation score per module → quality-baseline.json key 'mutationScore.<module>'",
+    "Direction: up (score can only improve; ratchet blocks drops — wired in INT phase)."
+  ],
+  "packageManager": "npm",
+  "testRunner": "vitest",
+  "vitest": {
+    "configFile": "vitest.config.ts"
+  },
+  "mutate": [
+    "open-sse/handlers/chatCore.ts",
+    "open-sse/services/combo.ts",
+    "open-sse/services/accountFallback.ts",
+    "src/sse/services/auth.ts",
+    "src/server/authz/routeGuard.ts",
+    "open-sse/utils/error.ts",
+    "open-sse/utils/publicCreds.ts",
+    "src/shared/utils/circuitBreaker.ts"
+  ],
+  "ignorePatterns": [
+    "node_modules",
+    ".next",
+    "dist",
+    "coverage",
+    "tests",
+    "**/*.test.ts",
+    "**/*.spec.ts",
+    "**/__tests__/**"
+  ],
+  "reporters": ["progress", "html", "json"],
+  "htmlReporter": {
+    "fileName": "reports/mutation/mutation.html"
+  },
+  "jsonReporter": {
+    "fileName": "reports/mutation/mutation.json"
+  },
+  "coverageAnalysis": "perTest",
+  "timeoutMS": 60000,
+  "timeoutFactor": 2.5,
+  "concurrency": 2,
+  "disableTypeChecks": true,
+  "checkers": [],
+  "thresholds": {
+    "high": 70,
+    "low": 50,
+    "break": null
+  },
+  "tempDirName": ".stryker-tmp",
+  "cleanTempDir": true
+}

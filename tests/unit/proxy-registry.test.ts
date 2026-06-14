@@ -14,6 +14,7 @@ const proxiesDb = await import("../../src/lib/db/proxies.ts");
 const settingsDb = await import("../../src/lib/db/settings.ts");
 const apiKeysDb = await import("../../src/lib/db/apiKeys.ts");
 const proxiesRoute = await import("../../src/app/api/settings/proxies/route.ts");
+const { createProxyRegistrySchema } = await import("../../src/shared/validation/schemas.ts");
 
 async function resetStorage() {
   delete process.env.INITIAL_PASSWORD;
@@ -478,4 +479,60 @@ test("createProxy persists type:vercel and source:vercel-relay to DB (schema gap
   assert.ok(created?.id, "created proxy should have an id");
   assert.equal(created?.type, "vercel");
   assert.equal(created?.source, "vercel-relay");
+});
+
+test("proxy registry schema accepts the IP family policy and defaults it to auto (#3777)", () => {
+  // The dashboard proxy form (ProxyRegistryManager) now sends `family`. The schema is
+  // .strict(), so an undeclared field would 400 the whole request — this guards the wiring.
+  const explicit = createProxyRegistrySchema.parse({
+    name: "v6-only proxy",
+    type: "socks5",
+    host: "proxy.example.com",
+    port: 1080,
+    family: "ipv6",
+  });
+  assert.equal(explicit.family, "ipv6");
+
+  const defaulted = createProxyRegistrySchema.parse({
+    name: "default family proxy",
+    type: "http",
+    host: "proxy.example.com",
+    port: 8080,
+  });
+  assert.equal(defaulted.family, "auto");
+
+  assert.throws(() =>
+    createProxyRegistrySchema.parse({
+      name: "bad family",
+      type: "http",
+      host: "proxy.example.com",
+      port: 8080,
+      family: "ipv7",
+    })
+  );
+});
+
+test("createProxy persists the IP family and reads it back (#3777)", async () => {
+  await resetStorage();
+
+  const created = await proxiesDb.createProxy({
+    name: "Family RoundTrip",
+    type: "socks5",
+    host: "v6.example.com",
+    port: 1080,
+    family: "ipv6",
+  });
+  assert.equal(created?.family, "ipv6");
+
+  const fetched = await proxiesDb.getProxyById(created.id, { includeSecrets: false });
+  assert.equal(fetched?.family, "ipv6");
+
+  // Omitting family defaults to "auto" (prior dual-stack behavior, no regression).
+  const legacy = await proxiesDb.createProxy({
+    name: "Family Default",
+    type: "http",
+    host: "dual.example.com",
+    port: 8080,
+  });
+  assert.equal(legacy?.family, "auto");
 });

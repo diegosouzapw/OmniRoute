@@ -23,6 +23,26 @@ import { SELF_ACCOUNT_QUOTA_SCOPE, SELF_USAGE_SCOPE } from "@/shared/constants/s
 // Constants for validation
 const MAX_KEY_NAME_LENGTH = 200;
 const MAX_SELECTED_MODELS = 500;
+const CLAUDE_CODE_DEFAULT_MODEL_ID = "cc/*";
+const CLAUDE_CODE_DEFAULT_MODEL_NAME = "Claude Code default";
+const CLAUDE_CODE_DEFAULT_FAMILIES = [
+  { id: "other", label: "other" },
+  { id: "fable", label: "fable" },
+  { id: "opus", label: "opus" },
+  { id: "sonnet", label: "sonnet" },
+  { id: "haiku", label: "haiku" },
+] as const;
+type ClaudeCodeFamilyId = (typeof CLAUDE_CODE_DEFAULT_FAMILIES)[number]["id"];
+type ClaudeCodeBlockableFamilyId = Exclude<ClaudeCodeFamilyId, "other">;
+const CLAUDE_CODE_FAMILY_BLOCK_PATTERNS: Record<ClaudeCodeBlockableFamilyId, string[]> = {
+  fable: ["claude-fable*", "fable"],
+  opus: ["claude-opus*", "opus"],
+  sonnet: ["claude-sonnet*", "sonnet"],
+  haiku: ["claude-haiku*", "haiku"],
+};
+const CLAUDE_CODE_BLOCK_PATTERN_SET = new Set(
+  Object.values(CLAUDE_CODE_FAMILY_BLOCK_PATTERNS).flat()
+);
 
 function toLocalDateTimeInputValue(value: string | null | undefined): string {
   if (!value) return "";
@@ -92,6 +112,7 @@ interface ApiKey {
   name: string;
   key: string;
   allowedModels: string[] | null;
+  blockedModels?: string[] | null;
   allowedCombos: string[] | null;
   allowedConnections: string[] | null;
   noLog?: boolean;
@@ -137,6 +158,7 @@ function formatUsdCost(value: number, locale: string): string {
 interface Model {
   id: string;
   owned_by: string;
+  name?: string;
 }
 
 interface ComboOption {
@@ -147,6 +169,41 @@ interface ComboOption {
 
 /** Tuple type for models grouped by provider: [providerName, models[]] */
 type ProviderGroup = [provider: string, models: Model[]];
+
+function isClaudeCodeModel(model: Model): boolean {
+  return (
+    model.owned_by === "claude" || model.id.startsWith("cc/") || model.id.startsWith("claude/")
+  );
+}
+
+function withClaudeCodeDefaultModel(models: Model[]): Model[] {
+  if (!models.some(isClaudeCodeModel)) return models;
+  if (models.some((model) => model.id === CLAUDE_CODE_DEFAULT_MODEL_ID)) return models;
+  return [
+    {
+      id: CLAUDE_CODE_DEFAULT_MODEL_ID,
+      name: CLAUDE_CODE_DEFAULT_MODEL_NAME,
+      owned_by: "claude",
+    },
+    ...models,
+  ];
+}
+
+function getBlockedClaudeCodeFamilies(blockedModels: string[]): ClaudeCodeBlockableFamilyId[] {
+  return (Object.keys(CLAUDE_CODE_FAMILY_BLOCK_PATTERNS) as ClaudeCodeBlockableFamilyId[]).filter(
+    (familyId) =>
+      CLAUDE_CODE_FAMILY_BLOCK_PATTERNS[familyId].some((pattern) => blockedModels.includes(pattern))
+  );
+}
+
+function isClaudeCodeFamilyModel(modelId: string, familyId: ClaudeCodeBlockableFamilyId): boolean {
+  const normalized = modelId.toLowerCase();
+  return (
+    normalized === familyId ||
+    normalized.includes(`/${familyId}`) ||
+    normalized.includes(`-${familyId}`)
+  );
+}
 
 export default function ApiManagerPageClient() {
   const t = useTranslations("apiManager");
@@ -437,6 +494,7 @@ export default function ApiManagerPageClient() {
 
   const quotaKeys = filteredKeys.filter(isQuotaKey);
   const normalKeys = filteredKeys.filter((k) => !isQuotaKey(k));
+  const permissionModels = useMemo(() => withClaudeCodeDefaultModel(allModels), [allModels]);
 
   const quotaGroupsForKey = (k: ApiKey): string[] => {
     if (!Array.isArray(k.allowedQuotas)) return [];
@@ -600,7 +658,8 @@ export default function ApiManagerPageClient() {
     scopes: string[],
     allowedEndpoints: string[],
     streamDefaultMode: StreamDefaultMode,
-    disableNonPublicModels: boolean
+    disableNonPublicModels: boolean,
+    blockedModels: string[]
   ) => {
     if (!editingKey || !editingKey.id) return;
 
@@ -618,6 +677,9 @@ export default function ApiManagerPageClient() {
 
     // Validate each model ID
     const validModels = allowedModels.filter(
+      (id) => typeof id === "string" && id.length > 0 && id.length < 200
+    );
+    const validBlockedModels = blockedModels.filter(
       (id) => typeof id === "string" && id.length > 0 && id.length < 200
     );
 
@@ -648,6 +710,7 @@ export default function ApiManagerPageClient() {
         body: JSON.stringify({
           name: sanitizedName,
           allowedModels: validModels,
+          blockedModels: validBlockedModels,
           allowedCombos: validCombos,
           allowedConnections: validConnections,
           noLog,
@@ -690,14 +753,14 @@ export default function ApiManagerPageClient() {
   // ids like "openai-compatible-chat-<uuid>" into the grouping label)
   const modelsByProvider = useMemo((): ProviderGroup[] => {
     const grouped: Record<string, Model[]> = {};
-    for (const model of allModels) {
+    for (const model of permissionModels) {
       const provider =
         getProviderDisplayName(model.owned_by) || model.owned_by || t("unknownProvider");
       if (!grouped[provider]) grouped[provider] = [];
       grouped[provider].push(model);
     }
     return Object.entries(grouped).sort((a, b) => compareTr(a[0], b[0]));
-  }, [allModels, t]);
+  }, [permissionModels, t]);
 
   // Filter models based on debounced search
   const filteredModelsByProvider = useMemo((): ProviderGroup[] => {
@@ -710,6 +773,7 @@ export default function ApiManagerPageClient() {
           models.filter(
             (m) =>
               matchesSearch(m.id, debouncedSearchModel) ||
+              matchesSearch(m.name || "", debouncedSearchModel) ||
               matchesSearch(provider, debouncedSearchModel)
           ),
         ]
@@ -1100,8 +1164,8 @@ export default function ApiManagerPageClient() {
                     <a
                       href={`/dashboard/costs?range=all&apiKeyIds=${encodeURIComponent(key.id)}&groupBy=model`}
                       className="p-2 hover:bg-emerald-500/10 rounded text-text-muted hover:text-emerald-500 opacity-0 group-hover:opacity-100 transition-all"
-                      title={t("viewCostsFor", { name: key.name })}
-                      aria-label={t("viewCostsFor", { name: key.name })}
+                      title={`View costs for ${key.name}`}
+                      aria-label={`View costs for ${key.name}`}
                     >
                       <span className="material-symbols-outlined text-[18px]">payments</span>
                     </a>
@@ -1406,7 +1470,7 @@ export default function ApiManagerPageClient() {
           }}
           apiKey={editingKey}
           modelsByProvider={filteredModelsByProvider}
-          allModels={allModels}
+          allModels={permissionModels}
           allCombos={allCombos}
           allConnections={allConnections}
           searchModel={searchModel}
@@ -1458,7 +1522,8 @@ const PermissionsModal = memo(function PermissionsModal({
     scopes: string[],
     allowedEndpoints: string[],
     streamDefaultMode: StreamDefaultMode,
-    disableNonPublicModels: boolean
+    disableNonPublicModels: boolean,
+    blockedModels: string[]
   ) => void;
 }) {
   const t = useTranslations("apiManager");
@@ -1466,12 +1531,20 @@ const PermissionsModal = memo(function PermissionsModal({
 
   // Initialize state from props - component remounts when key prop changes
   const initialModels = Array.isArray(apiKey?.allowedModels) ? apiKey.allowedModels : [];
+  const initialBlockedModels = useMemo(
+    () => (Array.isArray(apiKey?.blockedModels) ? apiKey.blockedModels : []),
+    [apiKey?.blockedModels]
+  );
   const initialCombos = Array.isArray(apiKey?.allowedCombos) ? apiKey.allowedCombos : [];
   const initialConnections = Array.isArray(apiKey?.allowedConnections)
     ? apiKey.allowedConnections
     : [];
   const [keyName, setKeyName] = useState(apiKey?.name ?? "");
   const [selectedModels, setSelectedModels] = useState<string[]>(initialModels);
+  const [blockedClaudeCodeFamilies, setBlockedClaudeCodeFamilies] = useState<
+    ClaudeCodeBlockableFamilyId[]
+  >(() => getBlockedClaudeCodeFamilies(initialBlockedModels));
+  const [claudeCodeFamiliesExpanded, setClaudeCodeFamiliesExpanded] = useState(false);
   const [selectedCombos, setSelectedCombos] = useState<string[]>(initialCombos);
   const [allowAll, setAllowAll] = useState(initialModels.length === 0);
   const [allowAllCombos, setAllowAllCombos] = useState(initialCombos.length === 0);
@@ -1530,6 +1603,11 @@ const PermissionsModal = memo(function PermissionsModal({
   const [disableNonPublicModels, setDisableNonPublicModels] = useState(
     apiKey?.disableNonPublicModels === true
   );
+  const getModelDisplayName = useCallback(
+    (modelId: string) =>
+      modelId === CLAUDE_CODE_DEFAULT_MODEL_ID ? CLAUDE_CODE_DEFAULT_MODEL_NAME : modelId,
+    []
+  );
 
   // Memoize callbacks to prevent child re-renders
   const handleToggleModel = useCallback(
@@ -1538,6 +1616,9 @@ const PermissionsModal = memo(function PermissionsModal({
 
       setSelectedModels((prev) => {
         if (prev.includes(modelId)) {
+          if (modelId === CLAUDE_CODE_DEFAULT_MODEL_ID) {
+            setClaudeCodeFamiliesExpanded(false);
+          }
           return prev.filter((m) => m !== modelId);
         }
         return [...prev, modelId];
@@ -1565,6 +1646,8 @@ const PermissionsModal = memo(function PermissionsModal({
   const handleSelectAll = useCallback(() => {
     setAllowAll(true);
     setSelectedModels([]);
+    setBlockedClaudeCodeFamilies([]);
+    setClaudeCodeFamiliesExpanded(false);
   }, []);
 
   const handleRestrictMode = useCallback(() => {
@@ -1589,10 +1672,21 @@ const PermissionsModal = memo(function PermissionsModal({
   const handleSelectAllModels = useCallback(() => {
     const allModelIds = allModels.map((m) => m.id);
     setSelectedModels(allModelIds);
+    setBlockedClaudeCodeFamilies([]);
+    setClaudeCodeFamiliesExpanded(false);
   }, [allModels]);
 
   const handleDeselectAllModels = useCallback(() => {
     setSelectedModels([]);
+    setBlockedClaudeCodeFamilies([]);
+    setClaudeCodeFamiliesExpanded(false);
+  }, []);
+
+  const handleBlockClaudeCodeFamily = useCallback((familyId: ClaudeCodeBlockableFamilyId) => {
+    setBlockedClaudeCodeFamilies((prev) => (prev.includes(familyId) ? prev : [...prev, familyId]));
+    setSelectedModels((prev) =>
+      prev.filter((modelId) => !isClaudeCodeFamilyModel(modelId, familyId))
+    );
   }, []);
 
   const handleToggleCombo = useCallback(
@@ -1660,6 +1754,16 @@ const PermissionsModal = memo(function PermissionsModal({
           tz: scheduleTz,
         }
       : null;
+    const hasClaudeCodeDefaultSelected =
+      !allowAll && selectedModels.includes(CLAUDE_CODE_DEFAULT_MODEL_ID);
+    const blockedModels = initialBlockedModels.filter(
+      (pattern) => !CLAUDE_CODE_BLOCK_PATTERN_SET.has(pattern)
+    );
+    if (hasClaudeCodeDefaultSelected) {
+      for (const familyId of blockedClaudeCodeFamilies) {
+        blockedModels.push(...CLAUDE_CODE_FAMILY_BLOCK_PATTERNS[familyId]);
+      }
+    }
     onSave(
       keyName,
       allowAll ? [] : selectedModels,
@@ -1681,7 +1785,8 @@ const PermissionsModal = memo(function PermissionsModal({
       }),
       allowAllEndpoints ? [] : selectedEndpoints,
       streamDefaultMode,
-      disableNonPublicModels
+      disableNonPublicModels,
+      blockedModels
     );
   }, [
     onSave,
@@ -1712,12 +1817,32 @@ const PermissionsModal = memo(function PermissionsModal({
     selectedEndpoints,
     streamDefaultMode,
     disableNonPublicModels,
+    blockedClaudeCodeFamilies,
+    initialBlockedModels,
     apiKey?.scopes,
     t,
   ]);
 
   const selectedCount = selectedModels.length;
   const totalModels = allModels.length;
+  const hasClaudeCodeDefaultSelected =
+    !allowAll && selectedModels.includes(CLAUDE_CODE_DEFAULT_MODEL_ID);
+  const orderedSelectedModels = useMemo(() => {
+    if (!hasClaudeCodeDefaultSelected) return selectedModels;
+    return [
+      CLAUDE_CODE_DEFAULT_MODEL_ID,
+      ...selectedModels.filter((modelId) => modelId !== CLAUDE_CODE_DEFAULT_MODEL_ID),
+    ];
+  }, [hasClaudeCodeDefaultSelected, selectedModels]);
+  const visibleClaudeCodeFamilies = useMemo(
+    () =>
+      CLAUDE_CODE_DEFAULT_FAMILIES.filter(
+        (family) =>
+          family.id === "other" ||
+          !blockedClaudeCodeFamilies.includes(family.id as ClaudeCodeBlockableFamilyId)
+      ),
+    [blockedClaudeCodeFamilies]
+  );
 
   return (
     <Modal
@@ -2298,23 +2423,106 @@ const PermissionsModal = memo(function PermissionsModal({
                 </button>
               </div>
             </div>
-            <div className="flex flex-wrap gap-1 max-h-16 overflow-y-auto content-start">
-              {selectedModels.map((modelId) => (
-                <span
-                  key={modelId}
-                  className="inline-flex items-center gap-0.5 px-1.5 py-0.5 bg-white dark:bg-surface text-text-main text-[10px] rounded border border-border"
-                >
-                  <span className="font-mono truncate max-w-[120px]" title={modelId}>
-                    {modelId}
-                  </span>
-                  <button
-                    onClick={() => handleToggleModel(modelId)}
-                    className="text-text-muted hover:text-red-500 transition-colors"
+            <div className="flex flex-wrap gap-1 max-h-28 overflow-y-auto content-start">
+              {orderedSelectedModels.map((modelId) => {
+                if (modelId === CLAUDE_CODE_DEFAULT_MODEL_ID) {
+                  return (
+                    <div key={modelId} className="flex flex-col gap-1 basis-full">
+                      <span className="inline-flex w-fit items-center gap-0.5 px-1.5 py-0.5 bg-primary/10 text-text-main text-[10px] rounded border border-primary/35">
+                        <button
+                          type="button"
+                          onClick={() => setClaudeCodeFamiliesExpanded((prev) => !prev)}
+                          className="inline-flex items-center gap-1 font-mono text-text-main"
+                          title="Expand Claude Code families"
+                          aria-expanded={claudeCodeFamiliesExpanded}
+                        >
+                          <span className="truncate max-w-[140px]" title={modelId}>
+                            {getModelDisplayName(modelId)}
+                          </span>
+                          <span className="material-symbols-outlined text-[12px] text-primary">
+                            {claudeCodeFamiliesExpanded ? "expand_less" : "expand_more"}
+                          </span>
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => handleToggleModel(modelId)}
+                          className="text-text-muted hover:text-red-500 transition-colors"
+                          title="Remove Claude Code default"
+                        >
+                          <span className="material-symbols-outlined text-[12px]">close</span>
+                        </button>
+                      </span>
+
+                      {claudeCodeFamiliesExpanded && (
+                        <div className="relative ml-2 flex flex-wrap gap-1 pl-5 animate-in fade-in slide-in-from-top-1 duration-150">
+                          <span
+                            aria-hidden="true"
+                            className="pointer-events-none absolute left-1.5 top-0 bottom-1 w-px bg-primary/25"
+                          />
+                          <span
+                            aria-hidden="true"
+                            className="pointer-events-none absolute left-1.5 top-3 h-px w-3 bg-primary/25"
+                          />
+                          {visibleClaudeCodeFamilies.map((family) => {
+                            const canBlock = family.id !== "other";
+                            return (
+                              <span
+                                key={family.id}
+                                className={`inline-flex items-center gap-0.5 px-1.5 py-0.5 text-[10px] rounded border ${
+                                  canBlock
+                                    ? "bg-white dark:bg-surface text-text-main border-border"
+                                    : "bg-black/5 dark:bg-white/5 text-text-muted border-border"
+                                }`}
+                                title={
+                                  canBlock
+                                    ? `Allow ${family.label} family through Claude Code default`
+                                    : "Catch-all for other Claude Code models"
+                                }
+                              >
+                                <span className="font-mono">{family.label}</span>
+                                {canBlock && (
+                                  <button
+                                    type="button"
+                                    onClick={() =>
+                                      handleBlockClaudeCodeFamily(
+                                        family.id as ClaudeCodeBlockableFamilyId
+                                      )
+                                    }
+                                    className="text-text-muted hover:text-red-500 transition-colors"
+                                    title={`Block ${family.label} family`}
+                                  >
+                                    <span className="material-symbols-outlined text-[12px]">
+                                      close
+                                    </span>
+                                  </button>
+                                )}
+                              </span>
+                            );
+                          })}
+                        </div>
+                      )}
+                    </div>
+                  );
+                }
+
+                return (
+                  <span
+                    key={modelId}
+                    className="inline-flex items-center gap-0.5 px-1.5 py-0.5 bg-white dark:bg-surface text-text-main text-[10px] rounded border border-border"
                   >
-                    <span className="material-symbols-outlined text-[12px]">close</span>
-                  </button>
-                </span>
-              ))}
+                    <span className="font-mono truncate max-w-[120px]" title={modelId}>
+                      {getModelDisplayName(modelId)}
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => handleToggleModel(modelId)}
+                      className="text-text-muted hover:text-red-500 transition-colors"
+                    >
+                      <span className="material-symbols-outlined text-[12px]">close</span>
+                    </button>
+                  </span>
+                );
+              })}
             </div>
           </div>
         )}
@@ -2426,7 +2634,7 @@ const PermissionsModal = memo(function PermissionsModal({
                                   }`}
                                   title={model.id}
                                 >
-                                  {model.id}
+                                  {getModelDisplayName(model.id)}
                                 </button>
                               );
                             })}

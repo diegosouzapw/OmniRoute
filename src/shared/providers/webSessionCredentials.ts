@@ -160,7 +160,8 @@ export const WEB_SESSION_CREDENTIAL_REQUIREMENTS = {
   "qwen-web": {
     kind: "cookie",
     credentialName: "full Cookie header (must include cna, ssxmod_itna, token)",
-    placeholder: "cna=...; token=...; ssxmod_itna=...; ssxmod_itna2=... (full Cookie header from chat.qwen.ai)",
+    placeholder:
+      "cna=...; token=...; ssxmod_itna=...; ssxmod_itna2=... (full Cookie header from chat.qwen.ai)",
     acceptsFullCookieHeader: true,
     storageKeys: ["cookie", "token", "ssxmod_itna", "ssxmod_itna2", "cna", "tongyi_sso_ticket"],
   },
@@ -201,10 +202,12 @@ export const WEB_SESSION_CREDENTIAL_REQUIREMENTS = {
   },
   lmarena: {
     kind: "cookie",
-    credentialName: "session",
-    placeholder: "session=... or full Cookie header from lmarena.ai",
+    // lmarena.ai's auth cookie is `arena-auth-prod-v1` (the legacy hint said `session`,
+    // which never matched the real cookie name and confused users). #3810
+    credentialName: "arena-auth-prod-v1",
+    placeholder: "arena-auth-prod-v1=... or full Cookie header from lmarena.ai",
     acceptsFullCookieHeader: true,
-    storageKeys: ["cookie", "session"],
+    storageKeys: ["cookie", "arena-auth-prod-v1", "session"],
   },
 } satisfies Record<keyof typeof WEB_COOKIE_PROVIDERS, WebSessionCredentialRequirement>;
 

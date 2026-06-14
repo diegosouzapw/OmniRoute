@@ -795,7 +795,7 @@ test("CodexExecutor.transformRequest keeps GPT 5.3 Codex reasoning in Responses 
   assert.equal(sanitized.reasoning_effort, undefined);
 });
 
-test("CodexExecutor.transformRequest keeps GPT 5.4 Mini reasoning downgrade in Responses shape", () => {
+test("CodexExecutor.transformRequest passes GPT 5.4 Mini xhigh reasoning through unchanged in Responses shape (#3756)", () => {
   const executor = new CodexExecutor();
   const transformed = executor.transformRequest(
     "gpt-5.4-mini",
@@ -818,7 +818,10 @@ test("CodexExecutor.transformRequest keeps GPT 5.4 Mini reasoning downgrade in R
   const reasoning = getRecord(sanitized.reasoning);
 
   assert.equal(sanitized.model, "gpt-5.4-mini");
-  assert.equal(reasoning.effort, "high");
+  // #3756: xhigh now passes through by default. gpt-5.4-mini has no
+  // supportsXHighEffort:false flag (and ships a gpt-5.4-mini-xhigh catalog
+  // variant), so the effort is preserved instead of downgraded to "high".
+  assert.equal(reasoning.effort, "xhigh");
   assert.equal(reasoning.summary, "auto");
   assert.equal(sanitized.reasoning_effort, undefined);
 });

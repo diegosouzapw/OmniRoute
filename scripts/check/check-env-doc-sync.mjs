@@ -76,6 +76,9 @@ const IGNORE_FROM_CODE = new Set([
   // CI providers (set by the runner).
   "GITHUB_BASE_REF",
   "GITHUB_BASE_SHA",
+  // PR body injected by GitHub Actions into the pr-evidence gate (github.event.pull_request.body);
+  // a CI-only signal, never an OmniRoute runtime config (Phase 7.10).
+  "PR_BODY",
   // CLI machine-id token opt-out (server-side flag; not user-configurable via .env).
   "OMNIROUTE_DISABLE_CLI_TOKEN",
   // update-notifier opt-out for the CLI binary.

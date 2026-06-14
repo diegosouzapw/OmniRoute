@@ -274,6 +274,18 @@ export const MODEL_SPECS: Record<string, ModelSpec> = {
     aliases: ["kimi-k2.6-thinking", "kimi-for-coding"],
   },
 
+  // ── Kimi K2.7 Code (Moonshot — 262K native, parity with K2.6) ───
+  // #3761: importing this via Ollama Cloud's sparse /v1/models gave it no caps, so it
+  // fell back to the 128K/8K defaults and lost vision/thinking. Pin the real values.
+  "kimi-k2.7-code": {
+    maxOutputTokens: 262144,
+    contextWindow: 262144,
+    supportsThinking: true,
+    supportsTools: true,
+    supportsVision: true,
+    aliases: ["kimi-k2.7", "kimi-k2.7-code-thinking"],
+  },
+
   // ── Kimi K2.5 (Moonshot — 262K native, parity with K2.6) ────────
   "kimi-k2.5": {
     maxOutputTokens: 262144,

@@ -9,12 +9,22 @@ import { getProviderCredentialsWithQuotaPreflight } from "@/sse/services/auth";
 import { checkAndRefreshToken } from "@/sse/services/tokenRefresh";
 import { resolveCodexWsModelInfo } from "./modelResolution";
 import { isFeatureFlagEnabled } from "@/shared/utils/featureFlags";
+import { formatMemoryContext } from "@/lib/memory/injection";
+import { retrieveMemories } from "@/lib/memory/retrieval";
+import {
+  DEFAULT_MEMORY_SETTINGS,
+  getMemorySettings,
+  toMemoryRetrievalConfig,
+} from "@/lib/memory/settings";
 import { sanitizeErrorMessage } from "@omniroute/open-sse/utils/error.ts";
+import { logger } from "@omniroute/open-sse/utils/logger.ts";
 
 const CODEX_RESPONSES_WS_URL = "wss://chatgpt.com/backend-api/codex/responses";
 const executor = new CodexExecutor();
+const log = logger("RESPONSES_WS");
 
 type JsonRecord = Record<string, unknown>;
+type ApiKeyMetadata = Awaited<ReturnType<typeof getApiKeyMetadata>>;
 
 const bridgePayloadSchema = z
   .object({
@@ -31,6 +41,156 @@ function isRecord(value: unknown): value is JsonRecord {
 
 function toStringOrNull(value: unknown): string | null {
   return typeof value === "string" && value.trim().length > 0 ? value.trim() : null;
+}
+
+const RESPONSES_WS_MEMORY_CONTEXT_PREFIX = "Memory context:";
+const RESPONSES_WS_MEMORY_TEXT_PART_TYPES = new Set(["text", "input_text", "output_text"]);
+const RESPONSES_WS_MEMORY_SKIP_ITEM_TYPES = new Set([
+  "function_call",
+  "function_call_output",
+  "tool_call",
+  "tool_call_output",
+  "reasoning",
+  "computer_call",
+  "computer_call_output",
+  "web_search_call",
+  "file_search_call",
+]);
+
+function compactText(parts: Array<string | null>): string | null {
+  const text = parts
+    .map((part) => (typeof part === "string" ? part.trim() : ""))
+    .filter(Boolean)
+    .join("\n");
+  return text.length > 0 ? text : null;
+}
+
+function extractResponsesWsContentText(value: unknown): string | null {
+  if (typeof value === "string") return toStringOrNull(value);
+
+  if (Array.isArray(value)) {
+    return compactText(
+      value.map((part) => {
+        if (typeof part === "string") return toStringOrNull(part);
+        if (!isRecord(part)) return null;
+
+        const type = typeof part.type === "string" ? part.type : "";
+        if (type && !RESPONSES_WS_MEMORY_TEXT_PART_TYPES.has(type)) return null;
+
+        return toStringOrNull(part.text) || toStringOrNull(part.input_text);
+      })
+    );
+  }
+
+  if (isRecord(value)) {
+    const type = typeof value.type === "string" ? value.type : "";
+    if (type && !RESPONSES_WS_MEMORY_TEXT_PART_TYPES.has(type)) return null;
+    return toStringOrNull(value.text) || toStringOrNull(value.input_text);
+  }
+
+  return null;
+}
+
+function extractResponsesWsItemText(value: unknown): string | null {
+  if (typeof value === "string") return toStringOrNull(value);
+  if (!isRecord(value)) return null;
+
+  return (
+    extractResponsesWsContentText(value.content) ||
+    extractResponsesWsContentText(value.text) ||
+    extractResponsesWsContentText(value.input_text) ||
+    extractResponsesWsContentText(value.output_text) ||
+    extractResponsesWsContentText(value.output)
+  );
+}
+
+function isResponsesWsMemoryCandidate(value: unknown): boolean {
+  if (!isRecord(value)) return typeof value === "string";
+  const type = typeof value.type === "string" ? value.type : "";
+  return !RESPONSES_WS_MEMORY_SKIP_ITEM_TYPES.has(type);
+}
+
+function extractLatestResponsesWsInputText(input: unknown): string | null {
+  if (typeof input === "string") return toStringOrNull(input);
+  if (!Array.isArray(input)) return null;
+
+  for (let index = input.length - 1; index >= 0; index -= 1) {
+    const item = input[index];
+    if (!isResponsesWsMemoryCandidate(item) || !isRecord(item) || item.role !== "user") continue;
+    const text = extractResponsesWsItemText(item);
+    if (text) return text;
+  }
+
+  for (let index = input.length - 1; index >= 0; index -= 1) {
+    const item = input[index];
+    if (!isResponsesWsMemoryCandidate(item)) continue;
+    const text = extractResponsesWsItemText(item);
+    if (text) return text;
+  }
+
+  return null;
+}
+
+export function extractResponsesWsMemoryQuery(body: JsonRecord): string {
+  return (
+    extractLatestResponsesWsInputText(body.input) ||
+    extractLatestResponsesWsInputText(body.messages) ||
+    toStringOrNull(body.prompt) ||
+    toStringOrNull(body.instructions) ||
+    ""
+  );
+}
+
+export function injectResponsesWsMemoryInstructions(
+  body: JsonRecord,
+  memoryText: string
+): JsonRecord {
+  const memoryContext = toStringOrNull(memoryText);
+  if (!memoryContext) return body;
+
+  const existingInstructions = toStringOrNull(body.instructions);
+  if (existingInstructions?.includes(RESPONSES_WS_MEMORY_CONTEXT_PREFIX)) return body;
+
+  return {
+    ...body,
+    instructions: [memoryContext, existingInstructions].filter(Boolean).join("\n\n"),
+  };
+}
+
+async function getMemorySettingsForResponsesWs() {
+  try {
+    return await getMemorySettings();
+  } catch (error) {
+    log.warn("memory.settings.defaulted", {
+      error: sanitizeErrorMessage(error instanceof Error ? error.message : String(error)),
+    });
+    return DEFAULT_MEMORY_SETTINGS;
+  }
+}
+
+async function maybeInjectResponsesWsMemory(
+  responseBody: JsonRecord,
+  metadata: ApiKeyMetadata | null
+): Promise<JsonRecord> {
+  if (!metadata?.id) return responseBody;
+
+  const query = extractResponsesWsMemoryQuery(responseBody);
+  if (!query) return responseBody;
+
+  try {
+    const memorySettings = await getMemorySettingsForResponsesWs();
+    const memories = await retrieveMemories(
+      metadata.id,
+      toMemoryRetrievalConfig(memorySettings, { query })
+    );
+    const memoryText = formatMemoryContext(memories);
+    return injectResponsesWsMemoryInstructions(responseBody, memoryText);
+  } catch (error) {
+    log.warn("memory.injection.skipped", {
+      error: sanitizeErrorMessage(error instanceof Error ? error.message : String(error)),
+    });
+    return responseBody;
+  }
 }
 
 function toFiniteNumber(value: unknown, fallback = 0): number {
@@ -235,9 +395,10 @@ async function prepare(body: JsonRecord) {
     return jsonError(401, "codex_oauth_token_missing", "Codex OAuth access token is missing");
   }
 
+  const responseBodyWithMemory = await maybeInjectResponsesWsMemory(responseBody, metadata);
   const transformed = (await executor.transformRequest(
     model,
-    responseBody,
+    responseBodyWithMemory,
     true,
     refreshedCredentials
   )) as JsonRecord;

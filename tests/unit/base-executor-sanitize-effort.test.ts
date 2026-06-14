@@ -11,7 +11,7 @@ function makeLog() {
   };
 }
 
-test("sanitizeReasoningEffortForProvider: xiaomi-mimo downgrades xhigh → high", () => {
+test("sanitizeReasoningEffortForProvider: xiaomi-mimo preserves xhigh by default", () => {
   const log = makeLog();
   const body = {
     model: "mimo-v2.5-pro",
@@ -19,16 +19,61 @@ test("sanitizeReasoningEffortForProvider: xiaomi-mimo downgrades xhigh → high"
     messages: [{ role: "user", content: "hi" }],
   };
   const result = sanitizeReasoningEffortForProvider(body, "xiaomi-mimo", "mimo-v2.5-pro", log);
+  assert.equal(result, body, "xhigh passes through unless the model explicitly opts out");
+  assert.equal((result as any).reasoning_effort, "xhigh");
+  assert.equal((result as any).model, "mimo-v2.5-pro", "other fields preserved");
+  assert.equal(log.messages.length, 0);
+});
+
+test("sanitizeReasoningEffortForProvider: OpenRouter DeepSeek preserves xhigh", () => {
+  const body = {
+    model: "deepseek/deepseek-v4-pro",
+    reasoning_effort: "xhigh",
+    messages: [{ role: "user", content: "hi" }],
+  };
+  const result = sanitizeReasoningEffortForProvider(
+    body,
+    "openrouter",
+    "deepseek/deepseek-v4-pro",
+    null
+  );
+  assert.equal(result, body);
+  assert.equal((result as any).reasoning_effort, "xhigh");
+});
+
+test("sanitizeReasoningEffortForProvider: explicit xhigh opt-out downgrades to high", () => {
+  const log = makeLog();
+  const body = {
+    model: "claude-opus-4-6",
+    reasoning_effort: "xhigh",
+    messages: [{ role: "user", content: "hi" }],
+  };
+  const result = sanitizeReasoningEffortForProvider(body, "claude", "claude-opus-4-6", log);
   assert.notEqual(result, body, "must return a new object when mutating");
   assert.equal((result as any).reasoning_effort, "high");
-  assert.equal((result as any).model, "mimo-v2.5-pro", "other fields preserved");
   assert.ok(
     log.messages.some(([tag, m]) => tag === "REASONING_SANITIZE" && /xhigh → high/.test(m)),
     "logs the downgrade"
   );
 });
 
-test("sanitizeReasoningEffortForProvider: xiaomi-mimo downgrades max → high", () => {
+test("sanitizeReasoningEffortForProvider: Anthropic-compatible dynamic provider honors xhigh opt-out", () => {
+  const body = {
+    model: "claude-opus-4-6",
+    reasoning_effort: "xhigh",
+    messages: [{ role: "user", content: "hi" }],
+  };
+  const result = sanitizeReasoningEffortForProvider(
+    body,
+    "anthropic-compatible-test",
+    "claude-opus-4-6",
+    null
+  );
+  assert.notEqual(result, body, "must return a new object when mutating");
+  assert.equal((result as any).reasoning_effort, "high");
+});
+
+test("sanitizeReasoningEffortForProvider: xiaomi-mimo normalizes max → xhigh by default", () => {
   const log = makeLog();
   const body = {
     model: "mimo-v2.5-pro",
@@ -36,6 +81,48 @@ test("sanitizeReasoningEffortForProvider: xiaomi-mimo downgrades max → high", 
     messages: [{ role: "user", content: "hi" }],
   };
   const result = sanitizeReasoningEffortForProvider(body, "xiaomi-mimo", "mimo-v2.5-pro", log);
+  assert.equal((result as any).reasoning_effort, "xhigh");
+  assert.ok(
+    log.messages.some(([tag, m]) => tag === "REASONING_SANITIZE" && /max → xhigh/.test(m)),
+    "logs the normalization"
+  );
+});
+
+test("sanitizeReasoningEffortForProvider: OpenRouter DeepSeek normalizes max → xhigh", () => {
+  const log = makeLog();
+  const body = {
+    model: "deepseek/deepseek-v4-pro",
+    reasoning_effort: "max",
+    messages: [{ role: "user", content: "hi" }],
+  };
+  const result = sanitizeReasoningEffortForProvider(
+    body,
+    "openrouter",
+    "deepseek/deepseek-v4-pro",
+    log
+  );
+  assert.notEqual(result, body, "must return a new object when mutating");
+  assert.equal((result as any).reasoning_effort, "xhigh");
+  assert.ok(
+    log.messages.some(([tag, m]) => tag === "REASONING_SANITIZE" && /max → xhigh/.test(m)),
+    "logs the normalization"
+  );
+});
+
+test("sanitizeReasoningEffortForProvider: OpenRouter Claude opt-out aliases downgrade max → high", () => {
+  const log = makeLog();
+  const body = {
+    model: "anthropic/claude-opus-4.6",
+    reasoning_effort: "max",
+    messages: [{ role: "user", content: "hi" }],
+  };
+  const result = sanitizeReasoningEffortForProvider(
+    body,
+    "openrouter",
+    "anthropic/claude-opus-4.6",
+    log
+  );
+  assert.notEqual(result, body, "must return a new object when mutating");
   assert.equal((result as any).reasoning_effort, "high");
   assert.ok(
     log.messages.some(([tag, m]) => tag === "REASONING_SANITIZE" && /max → high/.test(m)),
@@ -125,29 +212,25 @@ test("sanitizeReasoningEffortForProvider: claude preserves max for Opus/Sonnet a
   assert.equal((haikuResult as any).reasoning_effort, "high");
 });
 
-test("sanitizeReasoningEffortForProvider: xiaomi-mimo downgrades xhigh in nested reasoning.effort", () => {
+test("sanitizeReasoningEffortForProvider: xiaomi-mimo preserves nested xhigh by default", () => {
   const body = {
     model: "mimo-v2.5-pro",
     reasoning: { effort: "xhigh", summary: "auto" },
     messages: [],
   };
   const result = sanitizeReasoningEffortForProvider(body, "xiaomi-mimo", "mimo-v2.5-pro", null);
-  assert.equal((result as any).reasoning.effort, "high");
+  assert.equal(result, body);
+  assert.equal((result as any).reasoning.effort, "xhigh");
   assert.equal((result as any).reasoning.summary, "auto", "other reasoning fields preserved");
 });
 
-test("sanitizeReasoningEffortForProvider: nested reasoning downgrade preserves Responses shape", () => {
+test("sanitizeReasoningEffortForProvider: explicit xhigh opt-out preserves Responses shape", () => {
   const body = {
-    model: "responses-only-model",
+    model: "claude-opus-4-6",
     reasoning: { effort: "xhigh", summary: "auto" },
     input: [],
   };
-  const result = sanitizeReasoningEffortForProvider(
-    body,
-    "xiaomi-mimo",
-    "responses-only-model",
-    null
-  );
+  const result = sanitizeReasoningEffortForProvider(body, "claude", "claude-opus-4-6", null);
   assert.equal((result as any).reasoning.effort, "high");
   assert.equal((result as any).reasoning_effort, undefined);
 });
@@ -177,6 +260,34 @@ test("sanitizeReasoningEffortForProvider: github/claude-opus strips reasoning_ef
   assert.equal((result as any).reasoning_effort, undefined);
 });
 
+test("sanitizeReasoningEffortForProvider: rejecting providers strip max before normalization", () => {
+  const mistralBody = {
+    model: "devstral-2512",
+    reasoning_effort: "max",
+    messages: [],
+  };
+  const mistralResult = sanitizeReasoningEffortForProvider(
+    mistralBody,
+    "mistral",
+    "devstral-2512",
+    null
+  );
+  assert.equal((mistralResult as any).reasoning_effort, undefined);
+
+  const githubBody = {
+    model: "claude-opus-4-6",
+    reasoning_effort: "max",
+    messages: [],
+  };
+  const githubResult = sanitizeReasoningEffortForProvider(
+    githubBody,
+    "github",
+    "claude-opus-4-6",
+    null
+  );
+  assert.equal((githubResult as any).reasoning_effort, undefined);
+});
+
 test("sanitizeReasoningEffortForProvider: mistral/devstral strips reasoning object when only effort present", () => {
   const body = {
     model: "devstral-2512",
@@ -197,22 +308,14 @@ test("sanitizeReasoningEffortForProvider: mistral/devstral preserves reasoning w
   assert.deepEqual((result as any).reasoning, { summary: "auto" });
 });
 
-test("sanitizeReasoningEffortForProvider: codex with xhigh passes through unchanged when model supports it", () => {
-  // codex/gpt-5.5-xhigh is flagged supportsXHighEffort:true in providerRegistry.
-  // Claude Opus 4.7+ models default to xhigh support unless explicitly opted out.
+test("sanitizeReasoningEffortForProvider: codex with xhigh passes through unchanged", () => {
   const body = {
     model: "gpt-5.5-xhigh",
     reasoning_effort: "xhigh",
     messages: [],
   };
   const result = sanitizeReasoningEffortForProvider(body, "codex", "gpt-5.5-xhigh", null);
-  // Either passes through unchanged (supportsXHighEffort=true)
-  // or the registry doesn't flag it — in which case downgrade is acceptable.
-  // We assert no error and that some reasoning_effort is present.
-  assert.ok(
-    (result as any).reasoning_effort === "xhigh" || (result as any).reasoning_effort === "high",
-    "either preserved (xhigh) or downgraded (high)"
-  );
+  assert.equal((result as any).reasoning_effort, "xhigh");
 });
 
 test("sanitizeReasoningEffortForProvider: no-op when reasoning_effort absent", () => {
@@ -224,10 +327,8 @@ test("sanitizeReasoningEffortForProvider: no-op when reasoning_effort absent", (
 test("sanitizeReasoningEffortForProvider: handles unknown providers as pass-through", () => {
   const body = { model: "some-model", reasoning_effort: "xhigh", messages: [] };
   const result = sanitizeReasoningEffortForProvider(body, "unknown-provider", "some-model", null);
-  // unknown provider + xhigh + model not in registry → supportsXHighEffort returns false → downgrade
-  // OR unknown provider isn't in the strip list → returns xhigh
-  // Both are acceptable behavior; we just assert no exception thrown.
-  assert.ok(result !== undefined);
+  assert.equal(result, body);
+  assert.equal((result as any).reasoning_effort, "xhigh");
 });
 
 test("sanitizeReasoningEffortForProvider: non-object body returns unchanged", () => {

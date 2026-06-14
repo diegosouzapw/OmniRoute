@@ -4,6 +4,18 @@
 
 ---
 
+## [3.8.25] — TBD
+
+_See English CHANGELOG for v3.8.25 details._
+
+---
+
+## [3.8.24] — TBD
+
+_See English CHANGELOG for v3.8.24 details._
+
+---
+
 ## [3.8.22] — TBD
 
 _See English CHANGELOG for v3.8.22 details._
@@ -169,9 +181,9 @@ _Development cycle in progress._
   refreshed siblings concurrently, so Auth0 revoked the whole token family
   (`openai/codex#9648`) and every account but the last died with
   `[403] <!DOCTYPE html>`. The quota path now skips proactive refresh for
-  rotating providers (`rotationGroupFor`) and reuses the current access_token,
+  rotating providers (`rotationGroupFor`) and reuses the current access*token,
   deferring genuine expiry to the reactive, serialized 401 path. Defense in
-  depth: `serializeRefresh` now leaves a settle gap between two _queued_ sibling
+  depth: `serializeRefresh` now leaves a settle gap between two \_queued* sibling
   refreshes (default 2000 ms, tunable via `CODEX_REFRESH_SPACING_MS`, `"0"` to
   opt out) while releasing a lone refresh immediately, so the reactive path adds
   no latency.

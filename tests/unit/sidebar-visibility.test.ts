@@ -113,6 +113,22 @@ test("help sidebar exposes changelog after docs and issues", () => {
   assert.equal(sidebarVisibility.HIDEABLE_SIDEBAR_ITEM_IDS.includes("changelog"), true);
 });
 
+test("plugins (marketplace) has a discoverable sidebar entry (#3656 follow-up)", async () => {
+  const items = sectionItems("agentic-features");
+  const plugins = items.find((item) => item.id === "plugins");
+  assert.ok(plugins, "expected a plugins item in the agentic-features section");
+  assert.equal(plugins.href, "/dashboard/plugins");
+  assert.equal(sidebarVisibility.HIDEABLE_SIDEBAR_ITEM_IDS.includes("plugins"), true);
+
+  // It must be a real page (plugin manager + marketplace tab), not a legacy redirect stub.
+  const pluginsPage = await readFile(
+    join(repoRoot, "src/app/(dashboard)/dashboard/plugins/page.tsx"),
+    "utf8"
+  );
+  assert.doesNotMatch(pluginsPage, /^\s*redirect\(/m);
+  assert.match(pluginsPage, /marketplace/i);
+});
+
 test("legacy dashboard routes redirect to their consolidated surfaces", async () => {
   const autoComboPage = await readFile(
     join(repoRoot, "src/app/(dashboard)/dashboard/auto-combo/page.tsx"),

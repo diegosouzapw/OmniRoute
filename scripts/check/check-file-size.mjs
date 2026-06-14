@@ -17,7 +17,9 @@ function getArg(name, fallback) {
 }
 const BASELINE_PATH = path.resolve(getArg("--baseline", path.join(ROOT, "file-size-baseline.json")));
 const UPDATE = process.argv.includes("--update");
-const SCAN_DIRS = ["src", "open-sse"];
+const SCAN_DIRS = ["src", "open-sse", "electron", "bin"];
+// Directories to skip when walking — build artifacts and installed packages.
+const SKIP_DIRS = new Set(["node_modules", "dist-electron", ".next", ".build", "dist", "coverage"]);
 
 /**
  * Avalia LOC atuais contra o baseline congelado.
@@ -45,8 +47,11 @@ function walk(dir, acc = []) {
   if (!fs.existsSync(dir)) return acc;
   for (const e of fs.readdirSync(dir, { withFileTypes: true })) {
     const p = path.join(dir, e.name);
-    if (e.isDirectory()) walk(p, acc);
-    else if (/\.(ts|tsx)$/.test(e.name) && !/\.test\.tsx?$/.test(e.name) && !/\.d\.ts$/.test(e.name)) acc.push(p);
+    if (e.isDirectory()) {
+      if (!SKIP_DIRS.has(e.name)) walk(p, acc);
+    } else if (/\.(ts|tsx)$/.test(e.name) && !/\.test\.tsx?$/.test(e.name) && !/\.d\.ts$/.test(e.name)) {
+      acc.push(p);
+    }
   }
   return acc;
 }

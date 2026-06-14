@@ -1,0 +1,51 @@
+# .zizmor.yml — zizmor security audit configuration
+# https://github.com/woodruffw/zizmor
+#
+# zizmor audits GitHub Actions workflows for security anti-patterns:
+#   • Unpinned third-party actions (supply-chain risk)
+#   • Script injection via ${{ github.* }} in run: steps
+#   • pull_request_target misuse (allows untrusted code to reach secrets)
+#   • Excessive permissions / overly broad GITHUB_TOKEN scopes
+#   • Cache poisoning via actions/cache with unguarded keys
+#   • … 20+ additional audits
+#
+# MOTIVATION (2026-03 incident): the trivy-action/LiteLLM supply-chain attack
+# exploited exactly the kind of pull_request_target misconfiguration that zizmor
+# detects statically. OmniRoute's npm/Docker/Electron publish workflows are high-
+# value targets that warrant proactive audit.
+#
+# BASELINE STRATEGY: this file starts with an EMPTY ignores list. As zizmor is
+# first run against the existing workflows, findings will be reviewed:
+#   • True positives → fix the workflow (preferred)
+#   • Accepted risk  → add an entry below with a justification comment
+# This enforces the same stale-enforcement discipline as other allowlists in
+# this project: every ignore requires human sign-off and is subject to review
+# at each release cycle.
+#
+# RATCHET: zizmorFindings metric in quality-baseline.json (direction: down)
+# starts advisory; current baseline is frozen at first green run; new findings
+# must be remediated or explicitly ignored here.
+
+# ── Global settings ──────────────────────────────────────────────────────────
+# Uncomment to pin to a specific minimum severity level.
+# min-severity: low       # low | medium | high | critical (default: low = all)
+
+# ── Per-finding ignores ──────────────────────────────────────────────────────
+# Format:
+#   ignores:
+#     - id: <zizmor-audit-id>   # e.g. "unpinned-uses", "script-injection"
+#       reason: "<justification>"
+#       # Optional: scope to a specific workflow or step
+#       # workflow: .github/workflows/ci.yml
+#
+# Example (do not uncomment without real justification):
+#
+#   ignores:
+#     - id: unpinned-uses
+#       reason: >
+#         actions/checkout@v6 is pinned at the major-version tag intentionally:
+#         GitHub-managed first-party action; SHA pinning buys little against a
+#         GitHub-side compromise and adds significant maintenance burden.
+#       workflow: .github/workflows/ci.yml
+
+ignores: []

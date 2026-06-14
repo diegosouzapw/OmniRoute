@@ -248,3 +248,46 @@ test("parseSSEToResponsesOutput treats response.canceled as terminal and reconst
   assert.equal(parsed.output[0].type, "message");
   assert.equal(parsed.output[0].content[0].text, "Bye");
 });
+
+test("parseSSEToOpenAIResponse deduplicates repeated tool call snapshots", () => {
+  const args = JSON.stringify({ command: "find /tmp -name test.txt" });
+  const first = {
+    id: "chatcmpl_tool",
+    choices: [
+      {
+        index: 0,
+        delta: {
+          tool_calls: [
+            {
+              index: 0,
+              id: "call_1",
+              type: "function",
+              function: { name: "shell", arguments: args },
+            },
+          ],
+        },
+      },
+    ],
+  };
+  const second = {
+    id: "chatcmpl_tool",
+    choices: [
+      {
+        index: 0,
+        delta: { tool_calls: [{ index: 0, function: { arguments: args } }] },
+        finish_reason: "tool_calls",
+      },
+    ],
+  };
+  const rawSSE = [
+    `data: ${JSON.stringify(first)}`,
+    `data: ${JSON.stringify(second)}`,
+    "data: [DONE]",
+  ].join("\n");
+
+  const parsed = parseSSEToOpenAIResponse(rawSSE, "fallback-model");
+  const toolCall = parsed.choices[0].message.tool_calls[0];
+
+  assert.equal(toolCall.function.arguments, args);
+  assert.equal(JSON.parse(toolCall.function.arguments).command, "find /tmp -name test.txt");
+});

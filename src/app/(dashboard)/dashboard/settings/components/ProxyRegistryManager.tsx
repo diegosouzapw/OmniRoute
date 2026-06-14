@@ -15,6 +15,7 @@ type ProxyItem = {
   region?: string | null;
   notes?: string | null;
   status?: string;
+  family?: string;
 };
 
 type UsageInfo = {
@@ -66,6 +67,7 @@ const EMPTY_FORM = {
   region: "",
   notes: "",
   status: "active",
+  family: "auto",
 };
 
 const BULK_IMPORT_TEMPLATE = `# Proxy Bulk Import
@@ -280,6 +282,7 @@ export default function ProxyRegistryManager() {
       region: item.region || "",
       notes: item.notes || "",
       status: item.status || "active",
+      family: item.family || "auto",
     });
     setModalOpen(true);
   };
@@ -366,6 +369,7 @@ export default function ProxyRegistryManager() {
       region: (form.region || "").trim() || null,
       notes: (form.notes || "").trim() || null,
       status: form.status,
+      family: form.family || "auto",
     };
     if (!editingId || normalizedUsername.length > 0) {
       payload.username = normalizedUsername;
@@ -765,6 +769,19 @@ export default function ProxyRegistryManager() {
                 <option value="https">HTTPS</option>
                 <option value="socks5">SOCKS5</option>
               </select>
+            </div>
+            <div>
+              <label className="text-xs text-text-muted mb-1 block">{t("labelFamily")}</label>
+              <select
+                className="w-full px-3 py-2 rounded bg-bg-subtle border border-border"
+                value={form.family}
+                onChange={(e) => setForm((prev) => ({ ...prev, family: e.target.value }))}
+              >
+                <option value="auto">{t("familyAuto")}</option>
+                <option value="ipv4">{t("familyIpv4")}</option>
+                <option value="ipv6">{t("familyIpv6")}</option>
+              </select>
+              <p className="text-[11px] text-text-muted mt-1">{t("familyHint")}</p>
             </div>
             <div>
               <label className="text-xs text-text-muted mb-1 block">{t("labelHost")}</label>

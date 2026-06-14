@@ -7,6 +7,7 @@ import {
   KNOWN_DUPLICATE_VERSIONS,
   KNOWN_GAPS,
 } from "../../scripts/check/check-migration-numbering.mjs";
+import { reportStaleEntries } from "../../scripts/check/lib/allowlist.mjs";
 
 type Anomalies = {
   duplicates: Array<{ version: string; names: string[] }>;
@@ -98,8 +99,67 @@ test("the real migrations dir produces ZERO anomalies under the frozen allowlist
   assert.deepEqual(r.gaps, [], `unexpected sequence gaps: ${r.gaps.join(", ")}`);
 });
 
-test("frozen allowlists match the documented audit (026 & 055 gaps, 041 dup)", () => {
-  assert.ok(KNOWN_GAPS.has("026"));
-  assert.ok(KNOWN_GAPS.has("055"));
-  assert.ok(KNOWN_DUPLICATE_VERSIONS.has("041"));
+test("frozen allowlists match the documented audit (026 & 055 gaps)", () => {
+  assert.ok((KNOWN_GAPS as Set<string>).has("026"));
+  assert.ok((KNOWN_GAPS as Set<string>).has("055"));
+  // "041" was removed from KNOWN_DUPLICATE_VERSIONS in 6A.3 (stale: no physical
+  // duplicate for that prefix on disk anymore — only 041_compression_receipts.sql exists).
+  assert.equal((KNOWN_DUPLICATE_VERSIONS as Set<string>).has("041"), false);
+});
+
+// --- stale-allowlist enforcement (6A.3) ---
+
+test("stale-enforcement: a gap allowlist entry no longer needed is reported as stale", () => {
+  // Simulate a gap that was filled (e.g. a missing migration file was added back).
+  const liveGaps: string[] = []; // gap was filled
+  const stale = (reportStaleEntries as (a: Set<string>, l: string[], g: string) => string[])(
+    new Set(["042"]),
+    liveGaps,
+    "check-migration-numbering:gaps"
+  );
+  assert.deepEqual(stale, ["042"]);
+});
+
+test("stale-enforcement: a duplicate allowlist entry no longer needed is reported as stale", () => {
+  // Simulate a formerly-duplicated version where one file was removed (no duplicate left).
+  const liveDups: string[] = []; // duplicate resolved
+  const stale = (reportStaleEntries as (a: Set<string>, l: string[], g: string) => string[])(
+    new Set(["099"]),
+    liveDups,
+    "check-migration-numbering:duplicates"
+  );
+  assert.deepEqual(stale, ["099"]);
+});
+
+test("stale-enforcement: live repo KNOWN_GAPS are all still real (no stale gap entries)", () => {
+  const dir = path.resolve(import.meta.dirname, "../../src/lib/db/migrations");
+  const filenames = fs.readdirSync(dir).filter((f) => f.endsWith(".sql"));
+  const raw = findMigrationAnomalies(filenames, new Set(), new Set()) as {
+    duplicates: Array<{ version: string; names: string[] }>;
+    gaps: string[];
+    badNames: string[];
+  };
+  const stale = (reportStaleEntries as (a: Set<string>, l: string[], g: string) => string[])(
+    KNOWN_GAPS as Set<string>,
+    raw.gaps,
+    "check-migration-numbering:gaps"
+  );
+  assert.deepEqual(stale, [], `KNOWN_GAPS has stale entries: ${stale.join(", ")}`);
+});
+
+test("stale-enforcement: live repo KNOWN_DUPLICATE_VERSIONS are all still real (no stale dup entries)", () => {
+  const dir = path.resolve(import.meta.dirname, "../../src/lib/db/migrations");
+  const filenames = fs.readdirSync(dir).filter((f) => f.endsWith(".sql"));
+  const raw = findMigrationAnomalies(filenames, new Set(), new Set()) as {
+    duplicates: Array<{ version: string; names: string[] }>;
+    gaps: string[];
+    badNames: string[];
+  };
+  const liveDupVersions = raw.duplicates.map((d) => d.version);
+  const stale = (reportStaleEntries as (a: Set<string>, l: string[], g: string) => string[])(
+    KNOWN_DUPLICATE_VERSIONS as Set<string>,
+    liveDupVersions,
+    "check-migration-numbering:duplicates"
+  );
+  assert.deepEqual(stale, [], `KNOWN_DUPLICATE_VERSIONS has stale entries: ${stale.join(", ")}`);
 });

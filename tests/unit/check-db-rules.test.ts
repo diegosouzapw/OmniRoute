@@ -11,7 +11,10 @@ import {
   extractStringLiterals,
   findRawSql,
   collectSqlScanFiles,
+  INTENTIONALLY_INTERNAL,
+  KNOWN_UNEXPORTED,
 } from "../../scripts/check/check-db-rules.mjs";
+import { reportStaleEntries } from "../../scripts/check/lib/allowlist.mjs";
 
 const REPO_ROOT = path.resolve(fileURLToPath(import.meta.url), "../../..");
 const LOCAL_DB = path.join(REPO_ROOT, "src/lib/localDb.ts");
@@ -195,4 +198,48 @@ test("live repo: no NEW raw-SQL offenders beyond the frozen allowlist", () => {
   const files = collectSqlScanFiles() as string[];
   const offenders = findRawSql(files) as string[];
   assert.deepEqual(offenders, [], `New raw-SQL offender(s): ${offenders.join(", ")}`);
+});
+
+// --- stale-allowlist enforcement (6A.3) ---
+
+test("stale-enforcement: INTENTIONALLY_INTERNAL entry no longer unexported is reported as stale", () => {
+  // Simulate a module that has now been re-exported (no longer unexported).
+  const liveUnexported: string[] = []; // module was re-exported
+  const stale = (reportStaleEntries as (a: Set<string>, l: string[], g: string) => string[])(
+    new Set(["oldModule"]),
+    liveUnexported,
+    "check-db-rules:unexported"
+  );
+  assert.deepEqual(stale, ["oldModule"]);
+});
+
+test("stale-enforcement: EXTERNAL_DB_ALLOWED entry no longer has raw SQL is reported as stale", () => {
+  // Simulate a file that no longer contains raw SQL (route was refactored).
+  const liveRawSql: string[] = [];
+  const stale = (reportStaleEntries as (a: Set<string>, l: string[], g: string) => string[])(
+    new Set(["src/app/api/oauth/cursor/auto-import/route.ts"]),
+    liveRawSql,
+    "check-db-rules:raw-sql"
+  );
+  assert.deepEqual(stale, ["src/app/api/oauth/cursor/auto-import/route.ts"]);
+});
+
+test("stale-enforcement: live repo INTENTIONALLY_INTERNAL entries are all still unexported", () => {
+  // Every entry in INTENTIONALLY_INTERNAL must still be an unexported module.
+  // If it was re-exported (moved to localDb.ts), it must be removed from the allowlist.
+  const dbModules = collectDbModules() as string[];
+  const reexported = extractReexportedModules(
+    fs.readFileSync(path.resolve(fileURLToPath(import.meta.url), "../../../src/lib/localDb.ts"), "utf8")
+  ) as Set<string>;
+  const liveUnexported = dbModules.filter((mod) => !reexported.has(mod));
+  const stale = (reportStaleEntries as (a: Set<string>, l: string[], g: string) => string[])(
+    INTENTIONALLY_INTERNAL as Set<string>,
+    liveUnexported,
+    "check-db-rules:unexported"
+  );
+  assert.deepEqual(stale, [], `INTENTIONALLY_INTERNAL has stale entries: ${stale.join(", ")}`);
+});
+
+test("KNOWN_UNEXPORTED is an alias for INTENTIONALLY_INTERNAL (retrocompat)", () => {
+  assert.equal(INTENTIONALLY_INTERNAL, KNOWN_UNEXPORTED);
 });

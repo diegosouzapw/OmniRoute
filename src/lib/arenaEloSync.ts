@@ -7,8 +7,10 @@
  *
  * Resolution order: user overrides > synced arena ELO > defaults
  *
- * Opt-in via ARENA_ELO_SYNC_ENABLED=true (default: false).
+ * On by default; opt out via Dashboard Feature Flags or ARENA_ELO_SYNC_ENABLED=false.
  */
+
+import { isArenaEloSyncEnabled } from "@/shared/utils/featureFlags";
 
 import { backupDbFile } from "./db/backup";
 import {
@@ -96,8 +98,7 @@ export interface SyncStatus {
 
 // ─── Configuration ───────────────────────────────────────
 
-const ARENA_ELO_API_BASE =
-  "https://api.wulong.dev/arena-ai-leaderboards/v1/leaderboard";
+const ARENA_ELO_API_BASE = "https://api.wulong.dev/arena-ai-leaderboards/v1/leaderboard";
 
 /** Leaderboard categories to fetch from the Arena API. */
 const FETCH_CATEGORIES = ["text", "code"] as const;
@@ -166,9 +167,7 @@ const EXPIRY_DAYS = 7;
 
 const parsedInterval = parseInt(process.env.ARENA_ELO_SYNC_INTERVAL || "86400", 10);
 const SYNC_INTERVAL_MS =
-  Number.isFinite(parsedInterval) && parsedInterval > 0
-    ? parsedInterval * 1000
-    : 86400 * 1000;
+  Number.isFinite(parsedInterval) && parsedInterval > 0 ? parsedInterval * 1000 : 86400 * 1000;
 
 // ─── Periodic sync state ─────────────────────────────────
 
@@ -178,6 +177,23 @@ let lastSyncModelCount = 0;
 let activeSyncIntervalMs = SYNC_INTERVAL_MS;
 let firstSyncDone = false;
 let syncInProgress = false;
+
+function getErrorMessage(error: unknown): string {
+  return error instanceof Error ? error.message : String(error);
+}
+
+function getEffectiveArenaEloSyncEnabled(): boolean {
+  try {
+    return isArenaEloSyncEnabled();
+  } catch (error) {
+    console.warn(
+      `[ARENA_ELO_SYNC] Failed to resolve ARENA_ELO_SYNC_ENABLED feature flag: ${getErrorMessage(
+        error
+      )}`
+    );
+    return process.env.ARENA_ELO_SYNC_ENABLED !== "false";
+  }
+}
 
 // ─── Model name normalization ────────────────────────────
 
@@ -245,9 +261,7 @@ export async function fetchArenaLeaderboards(): Promise<ArenaLeaderboardMap> {
   await Promise.all(fetches);
 
   if (Object.keys(result).length === 0) {
-    throw new Error(
-      `All Arena leaderboard fetches failed: ${errors.join("; ")}`
-    );
+    throw new Error(`All Arena leaderboard fetches failed: ${errors.join("; ")}`);
   }
 
   return result;
@@ -291,11 +305,9 @@ export function transformToModelIntelligence(
   data: ArenaLeaderboardMap
 ): Array<Omit<ModelIntelligenceEntry, "syncedAt">> {
   const entries: Array<Omit<ModelIntelligenceEntry, "syncedAt">> = [];
-  const expiresAt = new Date(
-    Date.now() + EXPIRY_DAYS * 24 * 60 * 60 * 1000
-  ).toISOString();
+  const expiresAt = new Date(Date.now() + EXPIRY_DAYS * 24 * 60 * 60 * 1000).toISOString();
 
-    for (const [category, leaderboard] of Object.entries(data)) {
+  for (const [category, leaderboard] of Object.entries(data)) {
     const taskCategories = CATEGORY_TASK_MAP[category];
     if (!taskCategories) continue;
 
@@ -376,9 +388,7 @@ export async function syncArenaElo(dryRun = false): Promise<SyncResult> {
         deleteExpiredIntelligence();
       } catch (err) {
         const message = err instanceof Error ? err.message : String(err);
-        console.warn(
-          `[ARENA_ELO_SYNC] Failed to delete expired intelligence: ${message}`
-        );
+        console.warn(`[ARENA_ELO_SYNC] Failed to delete expired intelligence: ${message}`);
       }
     }
 
@@ -390,9 +400,7 @@ export async function syncArenaElo(dryRun = false): Promise<SyncResult> {
         bulkUpsertModelIntelligence(entries);
       } catch (err) {
         const message = err instanceof Error ? err.message : String(err);
-        console.warn(
-          `[ARENA_ELO_SYNC] Failed to bulk upsert intelligence: ${message}`
-        );
+        console.warn(`[ARENA_ELO_SYNC] Failed to bulk upsert intelligence: ${message}`);
         return {
           success: false,
           modelCount: 0,
@@ -461,9 +469,7 @@ function startPeriodicSync(intervalMs?: number): void {
 
   const interval = intervalMs ?? SYNC_INTERVAL_MS;
   activeSyncIntervalMs = interval;
-  console.log(
-    `[ARENA_ELO_SYNC] Starting periodic sync every ${interval / 1000}s`
-  );
+  console.log(`[ARENA_ELO_SYNC] Starting periodic sync every ${interval / 1000}s`);
 
   // Initial sync (non-blocking)
   syncArenaElo()
@@ -485,9 +491,7 @@ function startPeriodicSync(intervalMs?: number): void {
     syncArenaElo()
       .then((result) => {
         if (result.success) {
-          console.log(
-            `[ARENA_ELO_SYNC] Periodic sync complete: ${result.modelCount} entries`
-          );
+          console.log(`[ARENA_ELO_SYNC] Periodic sync complete: ${result.modelCount} entries`);
         }
       })
       .catch((err) => {
@@ -522,16 +526,14 @@ export function stopArenaEloSync(): void {
  *   next scheduled sync time, interval, and active sources.
  */
 export function getArenaEloSyncStatus(): SyncStatus {
-  const enabled = process.env.ARENA_ELO_SYNC_ENABLED === "true";
+  const enabled = getEffectiveArenaEloSyncEnabled();
   return {
     enabled,
     lastSync: lastSyncTime,
     lastSyncModelCount,
     nextSync:
       syncTimer && lastSyncTime
-        ? new Date(
-            new Date(lastSyncTime).getTime() + activeSyncIntervalMs
-          ).toISOString()
+        ? new Date(new Date(lastSyncTime).getTime() + activeSyncIntervalMs).toISOString()
         : null,
     intervalMs: activeSyncIntervalMs,
     sources: ["arena_elo"],
@@ -541,21 +543,23 @@ export function getArenaEloSyncStatus(): SyncStatus {
 // ─── Init (called from server-init.ts) ───────────────────
 
 /**
- * Initialize Arena ELO sync if enabled via environment variable.
+ * Initialize Arena ELO sync if enabled via feature flag configuration.
  *
- * Reads `ARENA_ELO_SYNC_ENABLED` (default: false). When enabled,
- * starts periodic sync with the interval from `ARENA_ELO_SYNC_INTERVAL`
+ * Reads `ARENA_ELO_SYNC_ENABLED` (default: true; set to `false` to opt out)
+ * through the feature flag resolver, so DB overrides from the dashboard apply.
+ * When enabled, starts periodic sync with the interval from `ARENA_ELO_SYNC_INTERVAL`
  * (default: 86400 seconds / daily).
  *
  * All errors during initialization or the initial sync are caught and logged
  * — initialization is never fatal.
  */
-export async function initArenaEloSync(): Promise<void> {
-  if (process.env.ARENA_ELO_SYNC_ENABLED !== "true") {
+export async function initArenaEloSync(): Promise<boolean> {
+  if (!getEffectiveArenaEloSyncEnabled()) {
     console.log(
-      "[ARENA_ELO_SYNC] Disabled (set ARENA_ELO_SYNC_ENABLED=true to enable)"
+      "[ARENA_ELO_SYNC] Disabled by the effective ARENA_ELO_SYNC_ENABLED feature flag. Enable it from Dashboard Feature Flags, unset the env var, or set it to true to enable."
     );
-    return;
+    return false;
   }
   startPeriodicSync();
+  return true;
 }

@@ -231,6 +231,26 @@ export async function runWithProxyContext(proxyConfig, fn) {
     }
   }
 
+  // Fail-closed family check: when the proxy URL carries a ?family=ipv6|ipv4 marker
+  // (set for HOSTNAME proxies by proxyConfigToUrl), verify the hostname actually has a
+  // record in that family before egressing. Refuse early rather than silently fall back
+  // to the other family. No-op for IP literals (their family is intrinsic).
+  if (resolvedProxyUrl && !isVercelRelay) {
+    try {
+      const u = new URL(resolvedProxyUrl);
+      const fam = u.searchParams.get("family");
+      if (fam === "ipv6" || fam === "ipv4") {
+        const { assertHostnameSupportsFamily } = await import("./proxyFamilyResolve.ts");
+        await assertHostnameSupportsFamily(u.hostname, fam === "ipv6" ? 6 : 4);
+      }
+    } catch (familyErr) {
+      const e = familyErr as Error & { code?: string; statusCode?: number };
+      e.code = e.code || "PROXY_FAMILY_UNAVAILABLE";
+      e.statusCode = e.statusCode || 503;
+      throw e;
+    }
+  }
+
   return proxyContext.run(effectiveProxyConfig, async () => {
     if (resolvedProxyUrl && effectiveProxyConfig !== currentContext) {
       console.log(

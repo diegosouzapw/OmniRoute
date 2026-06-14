@@ -91,6 +91,9 @@ const NANOGPT_CONFIG = {
 };
 
 const OPENCODE_GO_QUOTA_URL =
+  // Note: api.z.ai rejects opencode-go keys with {"code":401}. This default is a
+  // known broken placeholder (see issues #10448, #16017). The env-var override lets
+  // operators point at a working endpoint once OpenCode ships one.
   process.env.OMNIROUTE_OPENCODE_GO_QUOTA_URL ?? "https://api.z.ai/api/monitor/usage/quota/limit";
 const OPENCODE_GO_QUOTA_TOTALS = {
   session: 12,
@@ -946,10 +949,18 @@ async function getOpenCodeGoUsage(apiKey: string) {
   if (!res.ok) {
     if (res.status === 401 || res.status === 403) {
       return {
-        message: "OpenCode Go quota endpoint rejected this API key. Chat requests still work.",
+        message:
+          "OpenCode Go does not expose a public quota API. Chat requests still work. " +
+          "Set OMNIROUTE_OPENCODE_GO_QUOTA_URL to a working endpoint, or follow " +
+          "https://github.com/anomalyco/opencode/issues/16017 for upstream status.",
       };
     }
-    return { message: `OpenCode Go quota API error (${res.status})` };
+    return {
+      message:
+        `OpenCode Go quota API error (${res.status}). ` +
+        "Set OMNIROUTE_OPENCODE_GO_QUOTA_URL to a working endpoint, or follow " +
+        "https://github.com/anomalyco/opencode/issues/16017 for upstream status.",
+    };
   }
 
   let json: unknown;
@@ -962,7 +973,10 @@ async function getOpenCodeGoUsage(apiKey: string) {
   const code = toNumber((json as Record<string, unknown>).code, 200);
   if (code === 401 || code === 403 || (json as Record<string, unknown>).success === false) {
     return {
-      message: "OpenCode Go quota endpoint rejected this API key. Chat requests still work.",
+      message:
+        "OpenCode Go does not expose a public quota API. Chat requests still work. " +
+        "Set OMNIROUTE_OPENCODE_GO_QUOTA_URL to a working endpoint, or follow " +
+        "https://github.com/anomalyco/opencode/issues/16017 for upstream status.",
     };
   }
 
