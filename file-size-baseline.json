@@ -79,7 +79,7 @@
     "src/lib/cloudflaredTunnel.ts": 934,
     "src/lib/db/apiKeys.ts": 1633,
     "src/lib/db/core.ts": 1820,
-    "src/lib/db/migrationRunner.ts": 1100,
+    "src/lib/db/migrationRunner.ts": 1125,
     "src/lib/db/models.ts": 1180,
     "src/lib/db/providers.ts": 1050,
     "src/lib/db/proxies.ts": 1048,
@@ -88,7 +88,7 @@
     "src/lib/evals/evalRunner.ts": 961,
     "src/lib/memory/retrieval.ts": 1171,
     "src/lib/modelsDevSync.ts": 934,
-    "src/lib/providers/validation.ts": 4302,
+    "src/lib/providers/validation.ts": 4348,
     "src/lib/tailscaleTunnel.ts": 1189,
     "src/lib/usage/callLogs.ts": 975,
     "src/lib/usage/providerLimits.ts": 949,
@@ -117,5 +117,7 @@
   "_rebaseline_2026_06_13_3786_agy_fallback": "Re-baseline #3786 (agy Pro-family upstream-id fallback chain): antigravity.ts 1572→1649 (+77). Crescimento = split de execute() em driver + executeOnce(modelIdOverride) para retentar ids alternativos no 400 (gemini-3.1-pro-high→gemini-pro-agent→gemini-3-pro-high), threading do override em transformRequest/cleanModelName. Lógica coesa de retry no executor — não é bloco movível (chama this.executeOnce). A parte pura (ANTIGRAVITY_PRO_FALLBACK_CHAINS + getAntigravityModelFallbacks) ficou em antigravityModelAliases.ts. Os 3 drifts release-wide (ProxyRegistryManager/sidebarVisibility/schemas) são do #3809 do owner, não deste PR.",
   "_rebaseline_2026_06_13_3782_hide_persist": "Re-baseline #3782 (preservar modelos eye-hidden no auto-sync): models.ts 1132→1180 (+48). Crescimento = flag distinto isDeleted em ModelCompatOverride/ModelCompatPatch + handling em mergeModelCompatOverride + helper getModelIsDeleted, para separar 'deletado' (trash, dropado no re-sync #3199) de 'oculto' (eye toggle, preservado). Lógica coesa de visibilidade no módulo db; não-extraível. Os 3 drifts release-wide (ProxyRegistryManager/sidebarVisibility/schemas) são do #3809 do owner, não deste PR.",
   "_rebaseline_2026_06_13_3758_chat_early_eof": "Re-baseline #3758 (#3817 mergeado): chat.ts 1392→1425 (+33). Crescimento = retry bounded de STREAM_EARLY_EOF no handleSingleModelChat (contador streamEarlyEofRetries + bloco de retry guardado por shouldRetryStreamEarlyEof). Lógica coesa no handler de chat; não-extraível. Reconciliação tardia — o bump foi esquecido no PR do fix (o de antigravity/models foi feito).",
+  "_rebaseline_2026_06_13_3416_migration_threshold": "Re-baseline #3416 (threshold de migrações pendentes via env): migrationRunner.ts 1100→1125 (+25). Crescimento = helper resolveMaxPendingMigrations() que lê OMNIROUTE_MAX_PENDING_MIGRATIONS em call-time (valida finito+>=0, fallback 50) + JSDoc. Lógica coesa de config no runner; não-extraível.",
+  "_rebaseline_2026_06_13_3474_grok_403": "Re-baseline #3474 (mensagem clara no 403 anti-bot do Grok): validation.ts 4302→4348 (+46). Crescimento = helper isGrokAntiBotBlock() + branch 403 de 3 tiers (auth-shaped / anti-bot-IP-reputation / upstream-error). Lógica coesa de classificação no validator; não-extraível.",
   "_rebaseline_2026_06_13_3324_windsurf_devin": "Re-baseline #3324 (windsurf auth text + devin error propagation): route.ts 897→903 (+6, texto da instrução windsurf→fluxo command-palette) + sseParser.ts ADICIONADO como frozen 812 (era 746, +66 = helper extractSSEErrorMessage que faz surface do erro real SSE em vez do 502 genérico). 812 fica 12 acima do cap 800 — helper coeso no parser de SSE, congelado com justificativa (precedente providerLimits/useProviderConnections)."
 }
