@@ -84,3 +84,72 @@ test("provider-level synced model deletion removes only that provider", async ()
     { id: "shared/model-c", name: "Model C", source: "imported" },
   ]);
 });
+
+test("pruning stale connection available models during import", async () => {
+  const db = core.getDbInstance();
+  // Insert connections
+  db.prepare(
+    "INSERT INTO provider_connections (id, provider, auth_type, name, is_active, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?)"
+  ).run("conn-active", "openrouter", "apikey", "Active Connection", 1, "2026-05-29", "2026-05-29");
+
+  db.prepare(
+    "INSERT INTO provider_connections (id, provider, auth_type, name, is_active, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?)"
+  ).run("conn-stale", "openrouter", "apikey", "Stale Connection", 0, "2026-05-29", "2026-05-29");
+
+  // Create synced available models for both
+  await modelsDb.replaceSyncedAvailableModelsForConnection("openrouter", "conn-active", [
+    { id: "shared/model-active", name: "Model Active", source: "imported" },
+  ]);
+  await modelsDb.replaceSyncedAvailableModelsForConnection("openrouter", "conn-stale", [
+    { id: "shared/model-stale", name: "Model Stale", source: "imported" },
+  ]);
+
+  // Import on conn-new
+  await importManagedModels({
+    providerId: "openrouter",
+    connectionId: "conn-new",
+    mode: "sync",
+    fetchedModels: [{ id: "shared/model-new", name: "Model New" }],
+  });
+
+  // Check models for "openrouter"
+  const allSyncedModels = await modelsDb.getSyncedAvailableModels("openrouter");
+
+  // Stale connection should be pruned. Active connection and the new syncing connection should be kept.
+  const ids = allSyncedModels.map((m) => m.id);
+  assert.ok(ids.includes("shared/model-active"));
+  assert.ok(ids.includes("shared/model-new"));
+  assert.ok(!ids.includes("shared/model-stale"));
+});
+
+test("antigravity sync dynamically builds and saves mitmAlias mappings", async () => {
+  const db = core.getDbInstance();
+  // Create an antigravity connection
+  db.prepare(
+    "INSERT INTO provider_connections (id, provider, auth_type, name, is_active, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?)"
+  ).run("antigravity-conn", "antigravity", "oauth", "Antigravity", 1, "2026-05-29", "2026-05-29");
+
+  await importManagedModels({
+    providerId: "antigravity",
+    connectionId: "antigravity-conn",
+    mode: "sync",
+    fetchedModels: [
+      { id: "gemini-3.5-flash", name: "Gemini 3.5 Flash" },
+      { id: "custom-antigravity-model", name: "Custom Antigravity Model" },
+    ],
+  });
+
+  const models = await modelsDb.getSyncedAvailableModels("antigravity");
+  console.log("SYNCED MODELS IN TEST:", models);
+
+  const mitmMappings = await modelsDb.getMitmAlias("antigravity");
+  console.log("MITM MAPPINGS IN TEST:", mitmMappings);
+
+  // Should contain standard mapping
+  assert.equal(mitmMappings["gemini-3.5-flash"], "antigravity/gemini-3.5-flash");
+  assert.equal(mitmMappings["custom-antigravity-model"], "antigravity/custom-antigravity-model");
+
+  // Removed Antigravity 2.0 preview/agent aliases must not be reintroduced.
+  assert.equal(mitmMappings["gemini-3.5-flash-preview"], undefined);
+  assert.equal(mitmMappings["gemini-3-flash-agent"], undefined);
+});

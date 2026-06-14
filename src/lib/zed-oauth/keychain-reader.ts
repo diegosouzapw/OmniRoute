@@ -100,7 +100,19 @@ function extractProviderFromService(service: string): string {
 }
 
 /**
- * Discovers all Zed OAuth credentials stored in the system keychain
+ * Discovers all Zed OAuth credentials stored in the system keychain.
+ *
+ * SECURITY-AUDITOR-NOTE: This function appears in Socket.dev finding for
+ * `app/.next/server/app/api/providers/zed/import/route.js`. Behaviour:
+ *   - Called from `POST /api/providers/zed/discover` and `POST /api/providers/zed/import`,
+ *     which are gated by `requireManagementAuth`.
+ *   - From v3.8.6 onward, `/import` requires `confirmedAccounts` (per-account
+ *     user consent) before persisting any credential. See the matching note in
+ *     `src/app/api/providers/zed/import/route.ts`.
+ *   - Reads only Zed editor patterns (`zed-openai`, `ai.zed.anthropic`, …).
+ *     The raw token never leaves the host — the `/discover` response carries
+ *     only a 16-char fingerprint.
+ *   - See docs/security/SOCKET_DEV_FINDINGS.md §2 for the full attestation.
  *
  * @returns Array of discovered credentials with provider, service, and token
  */

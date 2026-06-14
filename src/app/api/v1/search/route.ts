@@ -26,6 +26,7 @@ import {
   rateLimitedProviderResponse,
   type RateLimitedCredentials,
 } from "@/app/api/v1/_shared/rateLimit";
+import { withInjectionGuard } from "@/middleware/promptInjectionGuard";
 
 const CORS_HEADERS = {
   "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
@@ -101,7 +102,7 @@ function buildDomainFilter(filters?: {
 /**
  * POST /v1/search — execute a web search
  */
-export async function POST(request: Request) {
+async function postHandler(request: Request, context: unknown) {
   let rawBody: unknown;
   try {
     rawBody = await request.json();
@@ -319,3 +320,5 @@ class SearchError extends Error {
     this.statusCode = statusCode;
   }
 }
+
+export const POST = withInjectionGuard(postHandler);

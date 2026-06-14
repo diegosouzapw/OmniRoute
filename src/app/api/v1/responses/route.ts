@@ -1,5 +1,10 @@
 import { handleChat } from "@/sse/handlers/chat";
 import { withEarlyStreamKeepalive } from "@omniroute/open-sse/utils/earlyStreamKeepalive";
+import { withInjectionGuard } from "@/middleware/promptInjectionGuard";
+import { resolveResponsesApiModel } from "@/app/api/internal/codex-responses-ws/modelResolution";
+import { getModelInfo } from "@/sse/services/model";
+import { getComboByName } from "@/lib/db/combos";
+import { resolveKeepaliveThreshold } from "@omniroute/open-sse/utils/keepaliveThreshold";
 
 // NOTE: We do NOT call initTranslators() here — the translator registry is
 // bootstrapped at module level inside open-sse/translator/index.ts when it
@@ -20,17 +25,66 @@ export async function OPTIONS() {
 }
 
 /**
+ * Rewrite a bare ChatGPT-style model id to the codex/ prefix when the model
+ * resolves to a codex provider. This fixes the Codex CLI WS→HTTP fallback path:
+ * the CLI sends bare "gpt-5.5" over HTTP after WS closes (1008 Policy), and
+ * without this rewrite OmniRoute routes it to openrouter instead of codex.
+ *
+ * Safe: only rewrites when codex/model is genuinely registered; all other models
+ * pass through unchanged. Errors are caught and the original request is returned.
+ */
+export async function withCodexPreferredModel(request: Request): Promise<Request> {
+  try {
+    const clone = request.clone();
+    const body = await clone.json().catch(() => null);
+    if (!body || typeof body !== "object" || typeof body.model !== "string") {
+      return request;
+    }
+    const { model, changed } = await resolveResponsesApiModel(
+      body.model,
+      getModelInfo,
+      async (name) => !!(await getComboByName(name))
+    );
+    if (!changed) return request;
+
+    return new Request(request.url, {
+      method: request.method,
+      headers: request.headers,
+      body: JSON.stringify({ ...body, model }),
+      signal: request.signal,
+    });
+  } catch {
+    return request;
+  }
+}
+
+/**
  * POST /v1/responses - OpenAI Responses API format
  * Handled by the unified chat handler (openai-responses format auto-detected).
  */
-export async function POST(request) {
+async function postHandler(request, context) {
   // Codex CLI (wire_api="responses") consumes this endpoint over SSE and its reqwest
   // client drops the connection if no bytes arrive within ~5s. Keep the connection
   // warm with early keepalives while the upstream produces its first token (#2544).
   // Non-streaming callers (JSON) keep the original verbatim path untouched.
+  const resolved = await withCodexPreferredModel(request);
   const accept = String(request.headers?.get?.("accept") || "").toLowerCase();
   if (accept.includes("text/event-stream")) {
-    return await withEarlyStreamKeepalive(handleChat(request), { signal: request.signal });
+    // Adaptive threshold: web-session and anonymous-fallback providers are slower
+    // to produce the first byte, so use a longer keepalive threshold (15s vs 2s).
+    let model;
+    try {
+      const body = await resolved.clone().json().catch(() => null);
+      model = body?.model;
+    } catch {
+    }
+    const thresholdMs = resolveKeepaliveThreshold(model);
+    return await withEarlyStreamKeepalive(handleChat(resolved), {
+      signal: request.signal,
+      thresholdMs,
+    });
   }
-  return await handleChat(request);
+  return await handleChat(resolved);
 }
+
+export const POST = withInjectionGuard(postHandler);

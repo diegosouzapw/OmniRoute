@@ -77,14 +77,22 @@ export async function POST(request) {
     if (isValidationFailure(validation)) {
       return NextResponse.json({ error: validation.error }, { status: 400 });
     }
-    const { mode, providerId } = validation.data;
+    const { mode, providerId, connectionIds } = validation.data;
 
-    // Fetch all active connections
-    const allConnections = await getProviderConnections({ isActive: true });
+    // Fetch connections to test. mode=selected targets explicit IDs and must
+    // also reach inactive connections (matching single-connection retest);
+    // every other mode tests active connections only.
+    const allConnections =
+      mode === "selected"
+        ? await getProviderConnections()
+        : await getProviderConnections({ isActive: true });
 
     // Filter based on mode
     let connectionsToTest = [];
-    if (mode === "provider" && providerId) {
+    if (mode === "selected") {
+      const idSet = new Set(connectionIds || []);
+      connectionsToTest = allConnections.filter((c) => idSet.has(c.id));
+    } else if (mode === "provider" && providerId) {
       connectionsToTest = allConnections.filter((c) => c.provider === providerId);
     } else if (mode === "oauth") {
       connectionsToTest = allConnections.filter((c) => {
@@ -121,18 +129,21 @@ export async function POST(request) {
       return NextResponse.json(
         {
           error:
-            "Invalid mode. Use: provider, oauth, free, no-auth, apikey, compatible, all, web-cookie, search, audio, local, upstream-proxy, cloud-agent, ide",
+            "Invalid mode. Use: provider, oauth, free, no-auth, apikey, compatible, all, web-cookie, search, audio, local, upstream-proxy, cloud-agent, ide, selected",
         },
         { status: 400 }
       );
     }
 
     if (connectionsToTest.length === 0) {
+      // Include a summary so consumers gated on `summary` still get feedback
+      // (e.g. mode=selected where the chosen ids were deleted before testing).
       return NextResponse.json({
         mode,
         providerId: providerId || null,
         results: [],
         testedAt: new Date().toISOString(),
+        summary: { total: 0, passed: 0, failed: 0 },
       });
     }
 

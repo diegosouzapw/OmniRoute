@@ -459,7 +459,11 @@ test("handleChat returns the primary budget error when emergency fallback also f
   const json = (await response.json()) as any;
 
   assert.equal(response.status, 402);
-  assert.deepEqual(seenModels, ["gpt-4.1", "openai/gpt-oss-120b", "openai/gpt-oss-120b"]);
+  // Exactly ONE emergency hop: the routing layer resolves nvidia credentials and
+  // tries the free model once. (The second hop used to come from the executor-level
+  // fallback inside chatCore, which re-sent the OpenAI credentials to the nvidia
+  // endpoint — removed as a cross-provider credential leak.)
+  assert.deepEqual(seenModels, ["gpt-4.1", "openai/gpt-oss-120b"]);
   assert.match(json.error.message, /quota exceeded/i);
 });
 

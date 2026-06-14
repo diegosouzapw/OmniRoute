@@ -111,13 +111,6 @@ test("providers route accepts managed local, audio, web-cookie and search provid
       },
     },
     {
-      provider: "petals",
-      body: {
-        provider: "petals",
-        name: "Petals Public Endpoint",
-      },
-    },
-    {
       provider: "poe",
       body: {
         provider: "poe",

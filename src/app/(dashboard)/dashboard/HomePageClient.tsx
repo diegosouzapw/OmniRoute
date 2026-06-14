@@ -11,10 +11,13 @@ import ProviderIcon from "@/shared/components/ProviderIcon";
 import { AI_PROVIDERS, NOAUTH_PROVIDERS, OAUTH_PROVIDERS } from "@/shared/constants/providers";
 import { useNotificationStore } from "@/store/notificationStore";
 import { copyToClipboard } from "@/shared/utils/clipboard";
+import { getProviderDisplayLabel } from "@/shared/utils/providerDisplayLabel";
 import { useIsElectron, useOpenExternal } from "@/shared/hooks/useElectron";
+import { useLiveRequests } from "@/hooks/useLiveDashboard";
+import { selectActiveRequests } from "../home/topologyUtils";
 
 const ProviderTopology = dynamic(() => import("../home/ProviderTopology"), { ssr: false });
-const ProviderLimits = dynamic(() => import("./usage/components/ProviderLimits"), { ssr: false });
+const ProviderQuotaWidget = dynamic(() => import("../home/ProviderQuotaWidget"), { ssr: false });
 import type { NewsAnnouncement } from "@/shared/utils/releaseNotes";
 
 type UpdateStep = {
@@ -64,11 +67,6 @@ type ProviderMetricSummary = {
   lastErrorStatus?: number | null;
 };
 
-type ActiveRequestSummary = {
-  provider?: string;
-  model?: string;
-};
-
 type ProviderModelSummary = {
   fullModel: string;
   alias?: string;
@@ -107,8 +105,6 @@ export default function HomePageClient({ machineId }: HomePageClientProps) {
   const isElectron = useIsElectron();
   const { openExternal } = useOpenExternal();
   const t = useTranslations("home");
-  const tc = useTranslations("common");
-  const ts = useTranslations("sidebar");
   const tp = useTranslations("providers");
   const [providerConnections, setProviderConnections] = useState([]);
   const [models, setModels] = useState([]);
@@ -116,13 +112,18 @@ export default function HomePageClient({ machineId }: HomePageClientProps) {
   const [baseUrl, setBaseUrl] = useState("/v1");
   const [selectedProvider, setSelectedProvider] = useState(null);
   const [providerMetrics, setProviderMetrics] = useState<Record<string, ProviderMetricSummary>>({});
-  const [activeRequests, setActiveRequests] = useState<ActiveRequestSummary[]>([]);
+  const [providerNodes, setProviderNodes] = useState<
+    Array<{ id?: string; prefix?: string; name?: string }>
+  >([]);
+
+  // Live in-flight requests for Provider Topology pulse animation (#3507)
+  const { activeRequests: liveActiveRequests } = useLiveRequests();
 
   const [versionInfo, setVersionInfo] = useState<VersionInfo | null>(null);
   const [updating, setUpdating] = useState(false);
 
   // Platform detection and download links for Electron
-  const platform = typeof window !== "undefined" ? window.electronAPI?.platform : undefined;
+  const platform = typeof globalThis.window === "undefined" ? undefined : globalThis.window.electronAPI?.platform;
   const electronDownload = useMemo(() => {
     const latest = versionInfo?.latest || "";
     const cleanLatest = latest.replace(/^v/, "");
@@ -170,14 +171,14 @@ export default function HomePageClient({ machineId }: HomePageClientProps) {
   }>({ status: "idle" });
 
   useEffect(() => {
-    if (!isElectron || typeof window === "undefined" || !window.electronAPI) return;
+    if (!isElectron || typeof globalThis.window === "undefined" || !globalThis.window.electronAPI) return;
 
     // Trigger initial check silently on mount
-    window.electronAPI.checkForUpdates().catch((err: any) => {
+    globalThis.window.electronAPI.checkForUpdates().catch((err: any) => {
       console.error("[Electron] Check for updates failed:", err);
     });
 
-    const dispose = window.electronAPI.onUpdateStatus((data: any) => {
+    const dispose = globalThis.window.electronAPI.onUpdateStatus((data: any) => {
       setElectronUpdateStatus({
         status: data.status,
         version: data.version,
@@ -196,6 +197,8 @@ export default function HomePageClient({ machineId }: HomePageClientProps) {
   const [pinProviderQuotaToHome, setPinProviderQuotaToHome] = useState(false);
   const [showQuickStartOnHome, setShowQuickStartOnHome] = useState(true); // default on
   const [showProviderTopologyOnHome, setShowProviderTopologyOnHome] = useState(true); // default on
+  const [autoRefreshProviderQuota, setAutoRefreshProviderQuota] = useState(false);
+  const [autoRefreshProviderQuotaInterval, setAutoRefreshProviderQuotaInterval] = useState(180);
 
   useEffect(() => {
     // Fetch the pin settings (lightweight)
@@ -212,6 +215,12 @@ export default function HomePageClient({ machineId }: HomePageClientProps) {
           if (typeof data.showProviderTopologyOnHome === "boolean") {
             setShowProviderTopologyOnHome(data.showProviderTopologyOnHome);
           }
+          if (typeof data.autoRefreshProviderQuota === "boolean") {
+            setAutoRefreshProviderQuota(data.autoRefreshProviderQuota);
+          }
+          if (typeof data.autoRefreshProviderQuotaInterval === "number") {
+            setAutoRefreshProviderQuotaInterval(data.autoRefreshProviderQuotaInterval);
+          }
         }
       })
       .catch(() => {
@@ -220,8 +229,8 @@ export default function HomePageClient({ machineId }: HomePageClientProps) {
   }, []);
 
   useEffect(() => {
-    if (typeof window !== "undefined") {
-      setBaseUrl(`${window.location.origin}/v1`);
+    if (typeof globalThis.window !== "undefined") {
+      setBaseUrl(`${globalThis.location.origin}/v1`);
     }
   }, []);
 
@@ -260,6 +269,14 @@ export default function HomePageClient({ machineId }: HomePageClientProps) {
     fetchData();
   }, [fetchData]);
 
+  // Fetch provider nodes for display labels (compat providers)
+  useEffect(() => {
+    fetch("/api/provider-nodes")
+      .then((r) => (r.ok ? r.json() : { nodes: [] }))
+      .then((d) => setProviderNodes(d.nodes || []))
+      .catch(() => {});
+  }, []);
+
   useEffect(() => {
     let cancelled = false;
     let timeoutId: ReturnType<typeof setTimeout> | null = null;
@@ -269,18 +286,10 @@ export default function HomePageClient({ machineId }: HomePageClientProps) {
       const currentController = new AbortController();
       controller = currentController;
       try {
-        const [activeRes, metricsRes] = await Promise.all([
-          fetch("/api/logs/active", { cache: "no-store", signal: currentController.signal }),
-          fetch("/api/provider-metrics", { cache: "no-store", signal: currentController.signal }),
-        ]);
-
-        if (activeRes.ok) {
-          const data = await activeRes.json();
-          if (!cancelled) {
-            setActiveRequests(Array.isArray(data.activeRequests) ? data.activeRequests : []);
-          }
-        }
-
+        const metricsRes = await fetch("/api/provider-metrics", {
+          cache: "no-store",
+          signal: currentController.signal,
+        });
         if (metricsRes.ok) {
           const data = await metricsRes.json();
           if (!cancelled) {
@@ -344,8 +353,8 @@ export default function HomePageClient({ machineId }: HomePageClientProps) {
           if (h.status !== "invalid" && h.status !== "warning") return false;
           // extra_N entries: only flag if the index is still within bounds
           if (keyId.startsWith("extra_")) {
-            const idx = parseInt(keyId.slice(6), 10);
-            if (isNaN(idx) || idx >= extraKeyCount) return false;
+            const idx = Number.parseInt(keyId.slice(6), 10);
+            if (Number.isNaN(idx) || idx >= extraKeyCount) return false;
           }
           return true;
         });
@@ -358,9 +367,7 @@ export default function HomePageClient({ machineId }: HomePageClientProps) {
           for (const [keyId] of unhealthyKeys) {
             newUnhealthyKeys.add(`${conn.id}:${keyId}`);
           }
-          if (firstUnhealthyProviderId === null) {
-            firstUnhealthyProviderId = conn.provider;
-          }
+          firstUnhealthyProviderId ??= conn.provider;
           unhealthyConnections.push(conn.name || conn.id);
           unhealthyProviderIds.add(conn.provider);
         }
@@ -456,10 +463,16 @@ export default function HomePageClient({ machineId }: HomePageClientProps) {
       const canonicalProviderId = normalizeProviderId(rawProviderId);
       if (!canonicalProviderId || byProvider.has(canonicalProviderId)) return;
 
+      const resolvedName =
+        getProviderDisplayLabel(rawProviderId, providerNodes) ||
+        name ||
+        providerConfig[canonicalProviderId]?.name ||
+        rawProviderId;
+
       byProvider.set(canonicalProviderId, {
         id: canonicalProviderId,
         provider: canonicalProviderId,
-        name: name || providerConfig[canonicalProviderId]?.name || rawProviderId,
+        name: resolvedName,
       });
     };
 
@@ -467,19 +480,9 @@ export default function HomePageClient({ machineId }: HomePageClientProps) {
       .filter((provider) => provider.total > 0)
       .forEach((provider) => addProvider(provider.id, provider.provider.name));
     Object.keys(providerMetrics).forEach((provider) => addProvider(provider));
-    activeRequests.forEach((request) => addProvider(request.provider));
 
     return Array.from(byProvider.values());
-  }, [providerStats, providerMetrics, activeRequests]);
-
-  const topologyActiveRequests = useMemo(
-    () =>
-      activeRequests.map((request) => ({
-        ...request,
-        provider: normalizeProviderId(request.provider),
-      })),
-    [activeRequests]
-  );
+  }, [providerStats, providerMetrics, providerNodes]);
 
   const { lastProvider, errorProvider } = useMemo(() => {
     let recentProvider = "";
@@ -742,19 +745,10 @@ export default function HomePageClient({ machineId }: HomePageClientProps) {
   useEffect(() => {
     if (updatePhase !== "done") return;
     const timer = setTimeout(() => {
-      window.location.reload();
+      globalThis.window.location.reload();
     }, 8000);
     return () => clearTimeout(timer);
   }, [updatePhase]);
-
-  const stepIcons: Record<string, string> = {
-    install: "download",
-    rebuild: "build",
-    restart: "restart_alt",
-    complete: "check_circle",
-    error: "error",
-  };
-
   const stepLabels: Record<string, string> = {
     install: "Install Package",
     rebuild: "Rebuild Native Modules",
@@ -875,7 +869,7 @@ export default function HomePageClient({ machineId }: HomePageClientProps) {
                     setUpdating(false);
                     setUpdatePhase("idle");
                     setUpdateSteps([]);
-                    if (updatePhase === "done") window.location.reload();
+                    if (updatePhase === "done") globalThis.window.location.reload();
                   }}
                 >
                   {updatePhase === "done" ? "Reload Now" : "Close"}
@@ -938,7 +932,7 @@ export default function HomePageClient({ machineId }: HomePageClientProps) {
                   {electronUpdateStatus.status === "available" && (
                     <Button
                       size="sm"
-                      onClick={() => window.electronAPI?.downloadUpdate()}
+                      onClick={() => globalThis.window.electronAPI?.downloadUpdate()}
                       className="font-semibold"
                     >
                       Download Update
@@ -957,7 +951,7 @@ export default function HomePageClient({ machineId }: HomePageClientProps) {
                   {electronUpdateStatus.status === "downloaded" && (
                     <Button
                       size="sm"
-                      onClick={() => window.electronAPI?.installUpdate()}
+                      onClick={() => globalThis.window.electronAPI?.installUpdate()}
                       className="font-semibold animate-pulse"
                     >
                       Restart & Install
@@ -970,7 +964,7 @@ export default function HomePageClient({ machineId }: HomePageClientProps) {
                       size="sm"
                       onClick={() => {
                         setElectronUpdateStatus({ status: "checking" });
-                        window.electronAPI?.checkForUpdates().catch((err: any) => {
+                        globalThis.window.electronAPI?.checkForUpdates().catch((err: any) => {
                           setElectronUpdateStatus({ status: "error", message: err.message });
                         });
                       }}
@@ -1066,7 +1060,11 @@ export default function HomePageClient({ machineId }: HomePageClientProps) {
       {/* Pinned Provider Quota Limits (compact, no filters) */}
       {pinProviderQuotaToHome && (
         <Suspense fallback={<CardSkeleton />}>
-          <ProviderLimits showFilters={false} />
+          <ProviderQuotaWidget
+            autoRefreshInterval={
+              autoRefreshProviderQuota ? autoRefreshProviderQuotaInterval : 0
+            }
+          />
         </Suspense>
       )}
 
@@ -1185,7 +1183,7 @@ export default function HomePageClient({ machineId }: HomePageClientProps) {
           </div>
           <ProviderTopology
             providers={topologyProviders}
-            activeRequests={topologyActiveRequests}
+            activeRequests={selectActiveRequests(liveActiveRequests)}
             lastProvider={lastProvider}
             errorProvider={errorProvider}
           />

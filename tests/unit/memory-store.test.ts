@@ -52,11 +52,29 @@ function insertMemoryRow({
   ).run(id, apiKeyId, sessionId, type, key, content, metadata, createdAt, updatedAt, expiresAt);
 }
 
+/**
+ * Drain pending setImmediate callbacks scheduled by store.createMemory/updateMemory
+ * (which fire-and-forget the vector upsert). Without this, the test runner may end
+ * before the async tasks resolve, causing "asynchronous activity after test ended"
+ * errors when the upsert later tries to touch the DB we already tore down.
+ */
+async function drainSetImmediate(rounds = 3): Promise<void> {
+  for (let i = 0; i < rounds; i++) {
+    await new Promise((resolve) => setImmediate(resolve));
+  }
+}
+
 test.beforeEach(async () => {
   await resetStorage();
 });
 
+test.afterEach(async () => {
+  // Allow vector upsert fire-and-forget to settle before the next test resets DATA_DIR.
+  await drainSetImmediate();
+});
+
 test.after(async () => {
+  await drainSetImmediate();
   core.resetDbInstance();
   fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
 });

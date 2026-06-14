@@ -13,6 +13,7 @@ import { validateProviderApiKey } from "@/lib/providers/validation";
 import { getCliRuntimeStatus } from "@/shared/services/cliRuntime";
 // Use the shared open-sse token refresh with built-in dedup/race-condition cache
 import { getAccessToken } from "@omniroute/open-sse/services/tokenRefresh.ts";
+import { rotationGroupFor } from "@omniroute/open-sse/services/refreshSerializer.ts";
 import { saveCallLog } from "@/lib/usageDb";
 import { logProxyEvent } from "@/lib/proxyLogger";
 import { runWithProxyContext } from "@omniroute/open-sse/utils/proxyFetch.ts";
@@ -420,9 +421,14 @@ async function testOAuthConnection(connection: any) {
   let refreshed = false;
   let newTokens = null;
 
-  // Auto-refresh if token is expired and provider supports refresh
+  // Auto-refresh if token is expired and provider supports refresh.
+  // Front 2: NEVER burn a rotating provider's single-use refresh_token from a
+  // connection test. Under a shared Auth0 client (Codex/OpenAI) a test-time
+  // refresh can cascade-invalidate sibling accounts' refresh_token families
+  // (openai/codex#9648). Leave rotation to the reactive, mutex-guarded 401 path.
   const tokenExpired = isTokenExpired(connection);
-  if (config.refreshable && tokenExpired && connection.refreshToken) {
+  const isRotatingProvider = rotationGroupFor(connection.provider) !== null;
+  if (config.refreshable && tokenExpired && connection.refreshToken && !isRotatingProvider) {
     const tokens = await refreshOAuthToken(connection);
     if (tokens) {
       accessToken = tokens.accessToken;
@@ -454,6 +460,19 @@ async function testOAuthConnection(connection: any) {
     }
     // Check if token is expired (no refresh available)
     if (tokenExpired) {
+      // Front 2: for rotating providers we intentionally did NOT refresh above.
+      // An expired access_token here is recoverable on next real use via the
+      // reactive 401 path, so don't report the account as broken (which would
+      // tempt the operator to re-test and never resolve). Keep it active.
+      if (isRotatingProvider && connection.refreshToken) {
+        return {
+          valid: true,
+          error: null,
+          refreshed: false,
+          newTokens: null,
+          diagnosis: makeDiagnosis("ok", "oauth", null, null),
+        };
+      }
       const error = "Token expired";
       return {
         valid: false,

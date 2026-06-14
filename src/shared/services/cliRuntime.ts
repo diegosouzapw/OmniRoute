@@ -3,6 +3,8 @@ import fsSync from "fs";
 import os from "os";
 import path from "path";
 import { spawn, execFileSync } from "child_process";
+import { getHermesHome } from "@/lib/cli-helper/config-generator/hermesHome";
+import { getCachedLoginShellPath, mergeShellPath } from "./loginShellPath";
 
 const VALID_RUNTIME_MODES = new Set(["auto", "host", "container"]);
 const FALSE_VALUES = new Set(["0", "false", "no", "off"]);
@@ -147,7 +149,10 @@ const CLI_TOOLS: Record<string, any> = {
     requiresBinary: true,
     healthcheckTimeoutMs: 4000,
     paths: {
-      config: ".hermes/config.yaml",
+      // The relative path is kept for documentation purposes; getCliConfigPaths()
+      // has a special case for hermes-agent that calls getHermesHome() instead of
+      // getCliConfigHome(), so HERMES_HOME is always honoured (#3628).
+      config: "config.yaml",
     },
   },
   amp: {
@@ -188,6 +193,52 @@ const CLI_TOOLS: Record<string, any> = {
       settings: ".gemini/settings.json",
     },
   },
+  // ── Plan 14 — new "custom" configType tools ───────────────────────────────
+  forge: {
+    defaultCommand: "forge",
+    envBinKey: "CLI_FORGE_BIN",
+    requiresBinary: true,
+    healthcheckTimeoutMs: 8000,
+    paths: {
+      config: ".forge/config.toml",
+    },
+  },
+  jcode: {
+    defaultCommand: "jcode",
+    envBinKey: "CLI_JCODE_BIN",
+    requiresBinary: true,
+    healthcheckTimeoutMs: 8000,
+    paths: {
+      config: ".jcode/config.json",
+    },
+  },
+  "deepseek-tui": {
+    defaultCommand: "deepseek-tui",
+    envBinKey: "CLI_DEEPSEEK_TUI_BIN",
+    requiresBinary: true,
+    healthcheckTimeoutMs: 8000,
+    paths: {
+      config: ".config/deepseek-tui/config.toml",
+    },
+  },
+  smelt: {
+    defaultCommand: "smelt",
+    envBinKey: "CLI_SMELT_BIN",
+    requiresBinary: true,
+    healthcheckTimeoutMs: 8000,
+    paths: {
+      config: ".smelt/config.json",
+    },
+  },
+  pi: {
+    defaultCommand: "pi",
+    envBinKey: "CLI_PI_BIN",
+    requiresBinary: true,
+    healthcheckTimeoutMs: 8000,
+    paths: {
+      config: ".pi/config.json",
+    },
+  },
 };
 
 const isWindows = () => process.platform === "win32";
@@ -215,13 +266,22 @@ const parseBoolean = (value: unknown, defaultValue = true) => {
   return !FALSE_VALUES.has(String(value).trim().toLowerCase());
 };
 
+export const shouldUseShellForCommand = (command: string): boolean => {
+  if (!isWindows()) return false;
+
+  // Windows npm CLI wrappers are usually .cmd/.bat files and require cmd.exe.
+  // Direct executables should not go through the shell: absolute paths with spaces
+  // (for example C:\Users\Name With Spaces\...\claude.exe) are split by cmd.exe.
+  return /\.(?:cmd|bat)$/i.test(command);
+};
+
 const runProcess = (
   command: string,
   args: string[],
   {
     env,
     timeoutMs = 3000,
-    useShell = isWindows(),
+    useShell = shouldUseShellForCommand(command),
   }: {
     env?: Record<string, string | undefined>;
     timeoutMs?: number;
@@ -241,12 +301,16 @@ const runProcess = (
     let timedOut = false;
     let settled = false;
 
+    // Do NOT string-interpolate the path into a quoted shell command (hard rule
+    // #13). When useShell is false (.exe and all non-Windows), spawn passes
+    // `command` as a raw argv[0] and the OS loader handles spaces. When useShell
+    // is true (.cmd/.bat on Windows), Node quotes the command for cmd.exe itself.
     const child = spawn(command, args, {
       env,
       stdio: ["ignore", "pipe", "pipe"],
-      // On Windows, npm installs CLI wrappers as .cmd scripts (e.g. claude.cmd).
-      // Without shell:true, spawn cannot resolve them via PATHEXT and the
-      // healthcheck fails even when the CLI is correctly installed (#447).
+      // On Windows, npm installs CLI wrappers as .cmd/.bat scripts. Those still
+      // need cmd.exe, but direct .exe paths must avoid the shell so paths with
+      // spaces are not split before execution.
       ...(useShell ? { shell: true } : {}),
     });
     const timer = setTimeout(() => {
@@ -587,19 +651,24 @@ const getNvmNodePath = (): string | null => {
 const getLookupEnv = () => {
   const env = { ...process.env };
   const extraPaths = getExtraPaths();
-  const currentPath = env.PATH || env.Path || "";
+  const basePath = env.PATH || env.Path || "";
+
+  // #3321: on macOS GUI/Electron the inherited PATH is truncated (no Homebrew/nvm/volta),
+  // so CLI detection and CLI spawns can't find tools the user actually has installed.
+  // Enrich with the login-shell PATH (cached, darwin-only, fail-safe → null elsewhere).
+  const loginShellPath = getCachedLoginShellPath();
+  const enrichedPath = loginShellPath ? mergeShellPath(basePath, loginShellPath) : basePath;
 
   // Only add user-specified extra paths, NOT generic user directories
   // This is more secure - user explicitly opts in via CLI_EXTRA_PATHS
-  if (extraPaths.length > 0) {
-    const mergedPath = [...extraPaths, currentPath].filter(Boolean).join(path.delimiter);
-    env.PATH = mergedPath;
-    if (isWindows()) {
-      env.Path = mergedPath;
+  if (extraPaths.length > 0 || enrichedPath !== basePath || isWindows()) {
+    const mergedPath = [...extraPaths, enrichedPath].filter(Boolean).join(path.delimiter);
+    if (mergedPath) {
+      env.PATH = mergedPath;
+      if (isWindows()) {
+        env.Path = mergedPath;
+      }
     }
-  } else if (isWindows() && currentPath) {
-    env.PATH = currentPath;
-    env.Path = currentPath;
   }
   return env;
 };
@@ -873,16 +942,15 @@ export const getCliConfigHome = () => {
 };
 
 export const resolveOpencodeConfigDir = (
-  platform = process.platform,
+  _platform = process.platform,
   env: NodeJS.ProcessEnv = process.env,
   homeDir = os.homedir()
 ) => {
-  const isWin = platform === "win32";
-  if (isWin) {
-    const appData = String(env.APPDATA || "").trim();
-    return appData || path.join(homeDir, "AppData", "Roaming");
-  }
-
+  // #3330: OpenCode reads its config from XDG `~/.config/opencode/` on ALL
+  // platforms — including Windows, where it uses `%USERPROFILE%\.config`, NOT
+  // `%APPDATA%`. Writing to %APPDATA% on Windows put the file where OpenCode
+  // never looks, so dashboard-saved config silently had no effect. `_platform`
+  // is kept in the signature for call-site/test compatibility.
   const xdgConfigHome = String(env.XDG_CONFIG_HOME || "").trim();
   return xdgConfigHome || path.join(homeDir, ".config");
 };
@@ -902,6 +970,13 @@ export const getCliConfigPaths = (toolId: string) => {
   if (toolId === "opencode") {
     return {
       config: getOpenCodeConfigPath(),
+    };
+  }
+
+  // hermes-agent: honour HERMES_HOME env var instead of the generic CLI_CONFIG_HOME (#3628).
+  if (toolId === "hermes-agent") {
+    return {
+      config: path.join(getHermesHome(), "config.yaml"),
     };
   }
 

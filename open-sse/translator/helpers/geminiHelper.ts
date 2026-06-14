@@ -149,13 +149,17 @@ export function convertOpenAIContentToParts(content: unknown): JsonRecord[] {
 
         // 4. Standard OpenAI Data URIs
         const imageUrl = toRecord(rec.image_url);
+        const imageObj = toRecord(rec.image);
         const fileUrl = toRecord(rec.file_url);
         const fileObj = toRecord(rec.file);
         const docObj = toRecord(rec.document);
         // `file_url` is a top-level string on the Responses-API input_file shape (#2515).
+        // `rec.image` (with nested {url}) is emitted by some MCP tool wrappers and
+        // translation layers as an alternative to `rec.image_url` (#2807).
         const fileData =
           (typeof rec.file_url === "string" ? rec.file_url : undefined) ||
           imageUrl?.url ||
+          imageObj?.url ||
           fileUrl?.url ||
           fileObj?.url ||
           docObj?.url;
@@ -170,6 +174,25 @@ export function convertOpenAIContentToParts(content: unknown): JsonRecord[] {
               inlineData: { mimeType, data },
             });
           }
+        } else if (typeof fileData === "string" && /^https?:\/\//i.test(fileData)) {
+          // Remote URLs cannot be passed directly to Gemini's inlineData (which
+          // requires base64). Fetching + encoding would require making this
+          // function async, which is a breaking change for sync callers (#2807).
+          // Until that refactor lands, warn loudly instead of silently dropping
+          // so users can see WHY their vision request failed.
+          // Strip query string before logging to avoid leaking auth tokens
+          // (signed URLs, SAS tokens, etc.) embedded in query parameters.
+          let safeUrl: string;
+          try {
+            const parsed = new URL(fileData);
+            safeUrl = parsed.origin + parsed.pathname;
+          } catch {
+            safeUrl = fileData.split("?")[0];
+          }
+          console.warn(
+            `[geminiHelper] Dropped remote image URL (Gemini inlineData requires base64): ${safeUrl}` +
+              ` - encode the image as a data: URI client-side until #2807 async fetch lands.`
+          );
         }
       }
     }

@@ -15,7 +15,8 @@ export type DashboardEventName =
   | "combo.target.attempt"
   | "combo.target.failed"
   | "combo.target.succeeded"
-  | "credential.health.changed";
+  | "credential.health.changed"
+  | "compression.completed";
 
 // ── Event Payloads ────────────────────────────────────────────────────────
 
@@ -88,6 +89,27 @@ export interface CredentialHealthChangedPayload {
   timestamp: number;
 }
 
+export interface CompressionCompletedPayload {
+  requestId: string;
+  comboId: string | null;
+  mode: string;
+  originalTokens: number;
+  compressedTokens: number;
+  savingsPercent: number;
+  engineBreakdown: Array<{
+    engine: string;
+    originalTokens: number;
+    compressedTokens: number;
+    savingsPercent: number;
+    techniquesUsed: string[];
+    rulesApplied?: string[];
+    durationMs?: number;
+  }>;
+  validationWarnings?: string[];
+  fallbackApplied?: boolean;
+  timestamp: number;
+}
+
 // ── Event Map ─────────────────────────────────────────────────────────────
 
 export interface DashboardEventMap {
@@ -99,6 +121,7 @@ export interface DashboardEventMap {
   "combo.target.failed": ComboTargetFailedPayload;
   "combo.target.succeeded": ComboTargetSucceededPayload;
   "credential.health.changed": CredentialHealthChangedPayload;
+  "compression.completed": CompressionCompletedPayload;
 }
 
 // ── Event Bus Listener ────────────────────────────────────────────────────
@@ -110,13 +133,14 @@ export type DashboardEventListener<E extends DashboardEventName> = (
 // ── Channel Definitions ───────────────────────────────────────────────────
 
 /** Available subscription channels */
-export type DashboardChannel = "requests" | "combo" | "credentials";
+export type DashboardChannel = "requests" | "combo" | "credentials" | "compression";
 
 /** Map channels to their events */
 export const CHANNEL_EVENTS: Record<DashboardChannel, DashboardEventName[]> = {
   requests: ["request.started", "request.streaming", "request.completed", "request.failed"],
   combo: ["combo.target.attempt", "combo.target.failed", "combo.target.succeeded"],
   credentials: ["credential.health.changed"],
+  compression: ["compression.completed"],
 };
 
 /** Get channel for an event */

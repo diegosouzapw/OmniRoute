@@ -26,6 +26,17 @@ test("isLocalOnlyPath: regular management routes are not local-only", () => {
   assert.equal(isLocalOnlyPath("/api/providers"), false);
 });
 
+test("isLocalOnlyPath: spawn-capable system/db-backups routes are local-only (6A.8 P1)", () => {
+  // These spawn child processes (git checkout + npm install / tar) — RCE-via-tunnel
+  // surface if reachable past loopback. Classified after the route-guard gate found them.
+  assert.equal(isLocalOnlyPath("/api/system/version"), true);
+  assert.equal(isLocalOnlyPath("/api/db-backups/exportAll"), true);
+  // Sibling routes that do NOT spawn remain reachable (scope kept minimal).
+  assert.equal(isLocalOnlyPath("/api/system/env/repair"), false);
+  assert.equal(isLocalOnlyPath("/api/db-backups/export"), false);
+  assert.equal(isLocalOnlyPath("/api/db-backups/import"), false);
+});
+
 test("isLocalOnlyBypassableByManageScope: /api/mcp/ prefix is bypassable", () => {
   assert.equal(isLocalOnlyBypassableByManageScope("/api/mcp/"), true);
   assert.equal(isLocalOnlyBypassableByManageScope("/api/mcp/stream"), true);
@@ -187,10 +198,16 @@ test("management policy rejects /api/services/ from non-localhost (status 403)",
 
 test("management policy allows /api/services/ from localhost with valid CLI token", async () => {
   const token = getMachineTokenSync();
-  const ctx = makeCtx("/api/services/9router/status", {
-    host: "localhost",
-    [CLI_TOKEN_HEADER]: token,
-  });
+  // Locality comes from the real peer (socket), never from the spoofable Host
+  // header — same setup as the /api/mcp/ sibling test above (peer-stamp model).
+  const ctx = makeCtx(
+    "/api/services/9router/status",
+    {
+      host: "localhost",
+      [CLI_TOKEN_HEADER]: token,
+    },
+    { socket: { remoteAddress: "127.0.0.1" } }
+  );
   const outcome = await managementPolicy.evaluate(ctx);
   assert.equal(outcome.allow, true);
 });
@@ -255,10 +272,15 @@ test("management policy rejects /api/copilot/chat from non-localhost without aut
 
 test("management policy allows /api/copilot/chat from localhost with valid CLI token", async () => {
   const token = getMachineTokenSync();
-  const ctx = makeCtx("/api/copilot/chat", {
-    host: "localhost",
-    [CLI_TOKEN_HEADER]: token,
-  });
+  // Same peer-stamp setup as above: locality requires a loopback peer, not Host.
+  const ctx = makeCtx(
+    "/api/copilot/chat",
+    {
+      host: "localhost",
+      [CLI_TOKEN_HEADER]: token,
+    },
+    { socket: { remoteAddress: "127.0.0.1" } }
+  );
   const outcome = await managementPolicy.evaluate(ctx);
   assert.equal(outcome.allow, true);
 });

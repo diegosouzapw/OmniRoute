@@ -1,18 +1,30 @@
 import { isDashboardSessionAuthenticated } from "@/shared/utils/apiAuth.ts";
+import { isRequireApiKeyEnabled } from "@/shared/utils/featureFlags";
+import { extractApiKey } from "@/sse/services/auth.ts";
 import type { AuthOutcome, PolicyContext, RoutePolicy } from "../context";
 import { allow, reject } from "../context";
 
-function extractBearer(headers: Headers): string | null {
-  const raw = headers.get("authorization") ?? headers.get("Authorization");
-  const xApiKey = headers.get("x-api-key") ?? headers.get("X-Api-Key");
+function extractBearer(request: Request): string | null {
+  const raw = request.headers.get("authorization") ?? request.headers.get("Authorization");
+  const xApiKey = request.headers.get("x-api-key") ?? request.headers.get("X-Api-Key");
   if (raw) {
     const trimmed = raw.trim();
-    if (!trimmed.toLowerCase().startsWith("bearer ")) return null;
-    return trimmed.slice(7).trim() || null;
-  } else if (xApiKey) {
-    return xApiKey?.trim() || null;
+    if (trimmed.toLowerCase().startsWith("bearer ")) {
+      const token = trimmed.slice(7).trim();
+      if (token) return token;
+    }
+    // A non-"Bearer <token>" Authorization header (an empty "Bearer ", or a
+    // client's own non-OmniRoute token — VS Code Copilot sends one even when the
+    // OmniRoute key lives in the URL path of a /vscode tokenized endpoint) must
+    // NOT short-circuit auth. Fall through to x-api-key and the path-scoped URL
+    // token below instead of rejecting the request with "Authentication required".
   }
-  return null;
+
+  if (xApiKey) {
+    return xApiKey.trim() || null;
+  }
+
+  return extractApiKey(request);
 }
 
 function maskKeyId(apiKey: string): string {
@@ -23,13 +35,13 @@ function maskKeyId(apiKey: string): string {
 export const clientApiPolicy: RoutePolicy = {
   routeClass: "CLIENT_API",
   async evaluate(ctx: PolicyContext): Promise<AuthOutcome> {
-    const bearer = extractBearer(ctx.request.headers);
+    const bearer = extractBearer(ctx.request as Request);
     if (!bearer) {
       if (await isDashboardSessionAuthenticated(ctx.request)) {
         return allow({ kind: "dashboard_session", id: "dashboard" });
       }
 
-      if (process.env.REQUIRE_API_KEY !== "true") {
+      if (!isRequireApiKeyEnabled()) {
         return allow({ kind: "anonymous", id: "local" });
       }
 
@@ -45,7 +57,7 @@ export const clientApiPolicy: RoutePolicy = {
       // "anonymous traffic is allowed", so an invalid key should degrade to
       // anonymous instead of rejecting. We log a warning so the bad key is
       // still observable in the request log.
-      if (process.env.REQUIRE_API_KEY !== "true") {
+      if (!isRequireApiKeyEnabled()) {
         console.warn(
           `[clientApiPolicy] invalid bearer presented to ${ctx.classification.normalizedPath} ` +
             `but REQUIRE_API_KEY=false — falling through to anonymous (key_id=${maskKeyId(bearer)})`

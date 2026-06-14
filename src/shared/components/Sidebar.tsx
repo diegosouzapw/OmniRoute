@@ -419,7 +419,7 @@ export default function Sidebar({
           href="#main-content"
           className="sr-only focus:not-sr-only focus:absolute focus:z-50 focus:p-3 focus:bg-primary focus:text-white focus:rounded-md focus:m-2"
         >
-          Skip to content
+          {t("skipToContent")}
         </a>
 
         {(onToggleCollapse || !isMacElectron) && (
@@ -442,13 +442,13 @@ export default function Sidebar({
             {onToggleCollapse && (
               <button
                 onClick={onToggleCollapse}
-                title={collapsed ? "Expand sidebar" : "Collapse sidebar"}
+                title={collapsed ? t("expandSidebar") : t("collapseSidebar")}
                 aria-expanded={!collapsed}
-                aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
+                aria-label={collapsed ? t("expandSidebar") : t("collapseSidebar")}
                 className={cn(
                   "rounded-md p-1 text-text-muted/50 transition-colors hover:bg-black/5 hover:text-text-muted dark:hover:bg-white/5",
                   collapsed && !isMacElectron && "mt-2",
-                  isMacElectron && "ml-auto"
+                  isMacElectron && "ms-auto"
                 )}
               >
                 <span className="material-symbols-outlined text-[16px]" aria-hidden="true">
@@ -542,7 +542,7 @@ export default function Sidebar({
                       e.stopPropagation();
                       togglePin(sectionId);
                     }}
-                    title={isPinned ? "Unpin section" : "Pin section open"}
+                    title={isPinned ? t("unpinSection") : t("pinSectionOpen")}
                     className={cn(
                       "p-0.5 rounded transition-all shrink-0",
                       isPinned
@@ -679,12 +679,10 @@ export default function Sidebar({
             <div className="flex items-center justify-center size-16 rounded-full bg-red-500/20 text-red-500 mx-auto mb-4">
               <span className="material-symbols-outlined text-[32px]">power_off</span>
             </div>
-            <h2 className="text-xl font-semibold text-white mb-2">Server Disconnected</h2>
-            <p className="text-text-muted mb-6">
-              The proxy server has been stopped or is restarting.
-            </p>
+            <h2 className="text-xl font-semibold text-white mb-2">{t("serverDisconnected")}</h2>
+            <p className="text-text-muted mb-6">{t("serverDisconnectedMsg")}</p>
             <Button variant="secondary" onClick={() => globalThis.location.reload()}>
-              Reload Page
+              {t("reloadPage")}
             </Button>
           </div>
         </div>

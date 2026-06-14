@@ -13,7 +13,7 @@
 
 import { describe, it } from "node:test";
 import assert from "node:assert/strict";
-import { mkdtempSync, rmSync } from "node:fs";
+import { mkdtempSync, rmSync, readFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { createRequire } from "node:module";
@@ -37,6 +37,74 @@ function raceDelays(firstMs, secondMs) {
     }, secondMs);
   });
 }
+
+// ─── Packaging manifest completeness (#3292 regression) ──────
+//
+// The packaged Electron app (electron-builder asar) only ships the files
+// listed in `build.files`. When #3292 added `electron/loginManager.js` and a
+// `require("./loginManager")` in main.js without adding it to `build.files`,
+// the packaged app crashed at startup with "Cannot find module './loginManager'"
+// — caught only by the CI smoke test on Linux/macOS. This guard asserts that
+// every local `require("./x")` in the Electron entry points is shipped.
+
+describe("Electron packaging manifest completeness (#3292)", () => {
+  const electronDir = join(import.meta.dirname, "../../electron");
+  const pkg = JSON.parse(readFileSync(join(electronDir, "package.json"), "utf8"));
+  const files: string[] = pkg.build?.files ?? [];
+
+  function localRequires(entry: string): string[] {
+    const src = readFileSync(join(electronDir, entry), "utf8");
+    const out = new Set<string>();
+    for (const m of src.matchAll(/require\(["'](\.\/[A-Za-z0-9_./-]+)["']\)/g)) {
+      // normalize "./loginManager" -> "loginManager.js" (entry points require sibling .js)
+      let rel = m[1].replace(/^\.\//, "");
+      if (!/\.[a-z]+$/.test(rel)) rel += ".js";
+      out.add(rel);
+    }
+    return [...out];
+  }
+
+  for (const entry of ["main.js", "preload.js"]) {
+    it(`ships every local require() of ${entry} in build.files`, () => {
+      for (const dep of localRequires(entry)) {
+        assert.ok(
+          files.includes(dep),
+          `electron/${dep} is require()d by ${entry} but missing from package.json build.files — the packaged app will crash with "Cannot find module"`
+        );
+      }
+    });
+  }
+});
+
+// ─── Auto-updater unhandled-rejection guard (v3.8.13) ────────
+//
+// checkForUpdates() is fired unawaited from a setTimeout at startup. The
+// underlying autoUpdater.checkForUpdates() rejects on a 404 (no published
+// update manifest yet), offline, or rate-limit — and an uncaught rejection
+// there surfaces as an "Unhandled Rejection" that the packaged-app smoke test
+// treats as fatal (it failed the macOS-intel build for v3.8.13). The call must
+// be wrapped so the rejection never escapes.
+
+describe("Electron auto-updater rejection handling (v3.8.13)", () => {
+  const mainSrc = readFileSync(join(import.meta.dirname, "../../electron/main.js"), "utf8");
+
+  it("wraps autoUpdater.checkForUpdates() so a 404/offline check can't become an unhandled rejection", () => {
+    const fn = mainSrc.match(/async function checkForUpdates\([\s\S]*?\n}/);
+    assert.ok(fn, "checkForUpdates function should exist in electron/main.js");
+    const body = fn![0];
+    assert.match(body, /try\s*\{/, "checkForUpdates must wrap the update check in try/catch");
+    assert.match(
+      body,
+      /catch\s*\([\s\S]*?\)\s*\{/,
+      "checkForUpdates must catch the rejecting autoUpdater.checkForUpdates() call"
+    );
+    assert.match(
+      body,
+      /try[\s\S]*await autoUpdater\.checkForUpdates\(\)[\s\S]*catch/,
+      "autoUpdater.checkForUpdates() must sit inside the try block"
+    );
+  });
+});
 
 // ─── URL Validation Tests ────────────────────────────────────
 
@@ -251,7 +319,7 @@ describe("Server Readiness Logic", () => {
       let reloaded = false;
       const mainWindow = {
         isDestroyed: () => false,
-        loadURL: () => {
+        loadURL: (_url?: string) => {
           reloaded = true;
         },
       };
@@ -364,12 +432,52 @@ describe("Platform-Conditional Window Options", () => {
 
 // ─── SQLite Credential Inspection Tests ─────────────────────
 
+// Mock node:sqlite for older Node.js versions where it's not built-in
+let DatabaseSync;
+try {
+  DatabaseSync = require("node:sqlite").DatabaseSync;
+} catch {
+  const Database = require("better-sqlite3");
+  class MockDatabaseSync {
+    db: any;
+    constructor(dbPath, options) {
+      const dbOpts: any = {};
+      if (options && typeof options.readOnly === "boolean") {
+        dbOpts.readonly = options.readOnly;
+      }
+      this.db = new Database(dbPath, dbOpts);
+    }
+    exec(sql) {
+      return this.db.exec(sql);
+    }
+    prepare(sql) {
+      const stmt = this.db.prepare(sql);
+      return {
+        run: (...args) => stmt.run(...args),
+        get: (...args) => stmt.get(...args),
+      };
+    }
+    close() {
+      return this.db.close();
+    }
+  }
+  DatabaseSync = MockDatabaseSync;
+
+  const Module = require("node:module");
+  const originalRequire = Module.prototype.require;
+  Module.prototype.require = function (id) {
+    if (id === "node:sqlite") {
+      return { DatabaseSync: MockDatabaseSync };
+    }
+    return originalRequire.apply(this, arguments);
+  };
+}
+
 describe("Electron SQLite credential inspection", () => {
   const {
     hasEncryptedCredentials,
     openNodeSqliteReadOnly,
   } = require("../../electron/sqlite-inspection.js");
-  const { DatabaseSync } = require("node:sqlite");
 
   function withTempDb(fn) {
     const dir = mkdtempSync(join(tmpdir(), "omniroute-electron-db-"));

@@ -2,6 +2,9 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import { createServer } from "node:http";
 import type { Server } from "node:http";
+import { readFileSync } from "node:fs";
+import { fileURLToPath } from "node:url";
+import { dirname, join } from "node:path";
 
 import {
   buildOmniRouteOpenCodeConfig,
@@ -388,6 +391,7 @@ test("createOmniRouteComboConfig includes optional fields when supplied", () => 
 
 test("OMNIROUTE_DEFAULT_OPENCODE_MODELS includes cc/ prefixed models", () => {
   const defaults = [...OMNIROUTE_DEFAULT_OPENCODE_MODELS];
+  assert.ok(defaults.includes("cc/claude-opus-4-8"));
   assert.ok(
     defaults.some((m) => m.startsWith("cc/")),
     "should have cc/ prefixed models"
@@ -413,9 +417,10 @@ test("createOmniRouteProvider emits limit.context on default model entries", () 
     baseURL: "http://localhost:20128",
     apiKey: "sk_omniroute",
   });
-  const entry = provider.models["cc/claude-opus-4-7"];
+  const entry = provider.models["cc/claude-opus-4-8"];
   assert.ok(entry.limit, "model entry should have a limit field");
-  assert.equal(entry.limit!.context, 200_000);
+  assert.equal(entry.limit!.context, 1_000_000);
+  assert.equal(provider.models["cc/claude-opus-4-7"].limit!.context, 1_000_000);
 });
 
 test("createOmniRouteProvider omits limit.context for unknown model ids", () => {
@@ -426,6 +431,34 @@ test("createOmniRouteProvider omits limit.context for unknown model ids", () => 
   });
   const entry = provider.models["completely-unknown-model"];
   assert.equal(entry.limit, undefined);
+});
+
+test("createOmniRouteProvider reads contextLength from a live model entry for ids absent from the static map", () => {
+  // #3298 regression guard: the static OMNIROUTE_DEFAULT_MODEL_CONTEXT_LENGTHS
+  // map only covers the legacy 8 Claude/Gemini ids. Before this change, any
+  // other model got `undefined` context (see the test above, string form) and
+  // OpenCode silently fell back to its 128K internal default. A live model
+  // entry carrying `contextLength` must now surface as `limit.context`.
+  const provider = createOmniRouteProvider({
+    baseURL: "http://localhost:20128",
+    apiKey: "sk_omniroute",
+    models: [{ id: "completely-unknown-model", contextLength: 262_144 }],
+  });
+  const entry = provider.models["completely-unknown-model"];
+  assert.ok(entry.limit, "a live contextLength should produce a limit field even for ids absent from the static map");
+  assert.equal(entry.limit!.context, 262_144);
+});
+
+test("createOmniRouteProvider: a live model contextLength wins over the static default map", () => {
+  // `cc/claude-opus-4-8` has a static default (1_000_000). A live entry carrying
+  // a different contextLength must take precedence (live > modelContextLengths >
+  // static defaults).
+  const provider = createOmniRouteProvider({
+    baseURL: "http://localhost:20128",
+    apiKey: "sk_omniroute",
+    models: [{ id: "cc/claude-opus-4-8", contextLength: 524_288 }],
+  });
+  assert.equal(provider.models["cc/claude-opus-4-8"].limit!.context, 524_288);
 });
 
 test("createOmniRouteProvider serialises limit.context to JSON", () => {
@@ -480,8 +513,8 @@ test("createOmniRouteProvider emits default capability flags inline with the mod
     baseURL: "http://localhost:20128",
     apiKey: "sk_omniroute",
   });
-  const entry = provider.models["cc/claude-opus-4-7"];
-  assert.equal(entry.name, "cc/claude-opus-4-7");
+  const entry = provider.models["cc/claude-opus-4-8"];
+  assert.equal(entry.name, "cc/claude-opus-4-8");
   assert.equal(entry.attachment, true);
   assert.equal(entry.reasoning, true);
   assert.equal(entry.temperature, true);
@@ -636,4 +669,18 @@ test("createOmniRouteModesBlock honours numeric overrides limited to OC schema",
   });
   assert.equal(block.build.temperature, 0.7);
   assert.equal(block.build.top_p, 0.9);
+});
+
+// #3419 — soft-deprecation in favour of @omniroute/opencode-plugin. Guard the
+// deprecation notice so it can't be silently dropped while the package is kept
+// publishing (it still works; it is just no longer the recommended path).
+test("package is marked deprecated in favour of @omniroute/opencode-plugin (#3419)", () => {
+  const here = dirname(fileURLToPath(import.meta.url));
+  const pkg = JSON.parse(readFileSync(join(here, "..", "package.json"), "utf8"));
+  assert.match(pkg.description, /DEPRECATED/);
+  assert.match(pkg.description, /@omniroute\/opencode-plugin/);
+
+  const readme = readFileSync(join(here, "..", "README.md"), "utf8");
+  assert.match(readme, /Deprecated/i);
+  assert.match(readme, /@omniroute\/opencode-plugin/);
 });

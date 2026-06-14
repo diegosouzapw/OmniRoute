@@ -48,20 +48,25 @@ export async function resolveModelAlias(alias) {
 }
 
 /**
- * Look up the apiFormat for a custom model from the DB.
- * Returns "responses" if the model is configured for the Responses API, otherwise undefined.
+ * Look up custom-model metadata from the DB in a single read:
+ *  - apiFormat: "responses" when the model is configured for the Responses API.
+ *  - targetFormat: the optional per-model wire format override (#2905).
  */
-async function lookupCustomModelApiFormat(
+async function lookupCustomModelMeta(
   providerId: string,
   modelId: string
-): Promise<string | undefined> {
+): Promise<{ apiFormat?: string; targetFormat?: string }> {
   try {
     const models = await getCustomModels(providerId);
-    if (!Array.isArray(models)) return undefined;
+    if (!Array.isArray(models)) return {};
     const match = models.find((m: any) => m.id === modelId);
-    return match?.apiFormat === "responses" ? "responses" : undefined;
+    if (!match) return {};
+    return {
+      apiFormat: match.apiFormat === "responses" ? "responses" : undefined,
+      targetFormat: typeof match.targetFormat === "string" ? match.targetFormat : undefined,
+    };
   } catch {
-    return undefined;
+    return {};
   }
 }
 
@@ -74,11 +79,15 @@ export async function getModelInfo(modelStr) {
 
   const attachCustomApiFormat = async (info: any) => {
     if (!info?.provider || !info?.model) return info;
-    const apiFormat = await lookupCustomModelApiFormat(String(info.provider), String(info.model));
-    if (apiFormat) {
+    const { apiFormat, targetFormat } = await lookupCustomModelMeta(
+      String(info.provider),
+      String(info.model)
+    );
+    if (apiFormat || targetFormat) {
       return {
         ...info,
-        apiFormat,
+        ...(apiFormat && { apiFormat }),
+        ...(targetFormat && { targetFormat }),
       };
     }
     return info;
@@ -90,10 +99,15 @@ export async function getModelInfo(modelStr) {
     const prefixToCheck = parsed.providerAlias || parsed.provider;
 
     // Check OpenAI Compatible nodes
+    // Match by node.prefix (user-defined alias) OR node.id (internal UUID id stored by
+    // combo steps), so that combo targets using the internal node id still resolve
+    // correctly (#2778).
     const openaiNodes = await getProviderNodes({ type: "openai-compatible" });
-    const matchedOpenAI = openaiNodes.find((node) => node.prefix === prefixToCheck);
+    const matchedOpenAI = openaiNodes.find(
+      (node) => node.prefix === prefixToCheck || node.id === prefixToCheck
+    );
     if (matchedOpenAI) {
-      const apiFormat = await lookupCustomModelApiFormat(
+      const { apiFormat, targetFormat } = await lookupCustomModelMeta(
         matchedOpenAI.id as string,
         parsed.model as string
       );
@@ -102,14 +116,17 @@ export async function getModelInfo(modelStr) {
         model: parsed.model,
         extendedContext,
         ...(apiFormat && { apiFormat }),
+        ...(targetFormat && { targetFormat }),
       };
     }
 
     // Check Anthropic Compatible nodes
     const anthropicNodes = await getProviderNodes({ type: "anthropic-compatible" });
-    const matchedAnthropic = anthropicNodes.find((node) => node.prefix === prefixToCheck);
+    const matchedAnthropic = anthropicNodes.find(
+      (node) => node.prefix === prefixToCheck || node.id === prefixToCheck
+    );
     if (matchedAnthropic) {
-      const apiFormat = await lookupCustomModelApiFormat(
+      const { apiFormat, targetFormat } = await lookupCustomModelMeta(
         matchedAnthropic.id as string,
         parsed.model as string
       );
@@ -118,6 +135,7 @@ export async function getModelInfo(modelStr) {
         model: parsed.model,
         extendedContext,
         ...(apiFormat && { apiFormat }),
+        ...(targetFormat && { targetFormat }),
       };
     }
 

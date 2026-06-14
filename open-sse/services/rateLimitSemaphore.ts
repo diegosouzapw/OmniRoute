@@ -87,6 +87,10 @@ function drainQueue(modelStr: string): void {
     gate.running++;
     next.resolve(createReleaseFn(modelStr));
   }
+
+  if (gate.running === 0 && gate.queue.length === 0) {
+    gates.delete(modelStr);
+  }
 }
 
 /**
@@ -102,6 +106,10 @@ function createReleaseFn(modelStr: string): () => void {
     const gate = gates.get(modelStr);
     if (gate && gate.running > 0) {
       gate.running--;
+      if (gate.running === 0 && gate.queue.length === 0) {
+        gates.delete(modelStr);
+        return;
+      }
       drainQueue(modelStr);
     }
   };

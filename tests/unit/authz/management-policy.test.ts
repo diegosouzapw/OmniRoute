@@ -64,9 +64,20 @@ async function dashboardCookieHeader(expiresIn = "1h"): Promise<string> {
   return `auth_token=${token}`;
 }
 
-function ctx(headers: Headers, method = "GET", path = "/api/keys") {
+function ctx(
+  headers: Headers,
+  method = "GET",
+  path = "/api/keys",
+  requestExtras: Record<string, unknown> = {}
+) {
   return {
-    request: { method, headers, url: `http://localhost${path}`, nextUrl: { pathname: path } },
+    request: {
+      method,
+      headers,
+      url: `http://localhost${path}`,
+      nextUrl: { pathname: path },
+      ...requestExtras,
+    },
     classification: {
       routeClass: "MANAGEMENT" as const,
       reason: path.startsWith("/dashboard")
@@ -303,12 +314,16 @@ test("LOCAL_ONLY manage-scope bypass: loopback + no Bearer → allow (local CLI 
   // Match the fresh-bootstrap pattern used by the "allows when auth not
   // required" test above: no password configured + loopback request →
   // `isAuthRequired` returns false → anonymous-allow fires once the LOCAL_ONLY
-  // gate is satisfied via the loopback `host` header.
+  // gate is satisfied. Locality comes from the real peer (socket.remoteAddress)
+  // under the peer-stamp model (2026-05-31) — the spoofable `host` header alone
+  // is deliberately NOT enough.
   await settingsDb.updateSettings({ requireLogin: true, password: null });
 
   const policy = await loadPolicy();
   const out = await policy.evaluate(
-    ctx(new Headers({ host: "localhost:20128" }), "GET", "/api/mcp/stream")
+    ctx(new Headers({ host: "localhost:20128" }), "GET", "/api/mcp/stream", {
+      socket: { remoteAddress: "127.0.0.1" },
+    })
   );
 
   assert.equal(out.allow, true);

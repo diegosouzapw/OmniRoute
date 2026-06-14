@@ -13,7 +13,7 @@ import { validateBody, isValidationFailure } from "@/shared/validation/helpers";
 import { requireManagementAuth } from "@/lib/api/requireManagementAuth";
 import { encryptMetadata } from "@/lib/webhookDispatcher";
 import { isEncryptionEnabled } from "@/lib/db/encryption";
-import { parseAndValidatePublicUrl } from "@/shared/network/outboundUrlGuard";
+import { parseAndValidateWebhookUrl } from "@/shared/network/outboundUrlGuard";
 
 const WEBHOOK_KINDS = ["slack", "telegram", "discord", "custom"] as const;
 const WEBHOOK_EVENT_VALUES = [
@@ -89,7 +89,7 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
 
     if (rest.url !== undefined && effectiveKind !== "telegram") {
       try {
-        parseAndValidatePublicUrl(rest.url);
+        parseAndValidateWebhookUrl(rest.url);
       } catch (err: any) {
         return NextResponse.json(
           { error: err?.message || "Blocked private or invalid webhook URL" },

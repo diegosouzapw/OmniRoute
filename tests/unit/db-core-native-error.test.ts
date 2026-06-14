@@ -1,7 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 
-import { isNativeSqliteLoadError } from "../../src/lib/db/core";
+import { isNativeSqliteLoadError, isSqliteDriverUnavailableError } from "../../src/lib/db/core";
 
 test("isNativeSqliteLoadError detects Module did not self-register", () => {
   const err = new Error("Module did not self-register: better_sqlite3.node");
@@ -51,4 +51,17 @@ test("isNativeSqliteLoadError returns false for unrelated errors", () => {
   assert.equal(isNativeSqliteLoadError(null), false);
   assert.equal(isNativeSqliteLoadError(undefined), false);
   assert.equal(isNativeSqliteLoadError("some string"), false);
+});
+
+test("isSqliteDriverUnavailableError detects pre-init sql.js fallback errors", () => {
+  const err = new Error(
+    "[DB] Nenhum driver SQLite disponível para '/tmp/storage.sqlite'. Chame ensureDbInitialized() no startup. sql.js WASM ainda não foi pré-inicializado."
+  );
+
+  assert.equal(isSqliteDriverUnavailableError(err), true);
+});
+
+test("isSqliteDriverUnavailableError returns false for unrelated errors", () => {
+  assert.equal(isSqliteDriverUnavailableError(new Error("SQLITE_BUSY: database is locked")), false);
+  assert.equal(isSqliteDriverUnavailableError(undefined), false);
 });

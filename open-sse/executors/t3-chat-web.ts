@@ -15,6 +15,7 @@
 
 import { BaseExecutor, type ExecuteInput } from "./base.ts";
 import { sanitizeErrorMessage } from "../utils/error.ts";
+import { prepareToolMessages, buildToolAwareResult } from "../translator/webTools.ts";
 
 // ─── Constants ───────────────────────────────────────────────────────────────
 
@@ -32,6 +33,9 @@ const TSS_ACCEPT = "application/x-tss-framed, application/x-ndjson, application/
 // ─── Types ───────────────────────────────────────────────────────────────────
 
 export interface T3ChatCredentials {
+  /** Parsed Cookie header value, guaranteed to include convex-session-id when present. */
+  cookieHeader: string;
+  /** Raw cookies portion (without the synthesized convex-session-id suffix). */
   cookies: string;
   /** convex-session-id — stored as a cookie by t3.chat, sent in the Cookie header */
   convexSessionId: string;
@@ -39,13 +43,69 @@ export interface T3ChatCredentials {
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
-function validateCredentials(creds: unknown): creds is T3ChatCredentials {
-  const raw = typeof creds === "object" && creds !== null ? (creds as Record<string, unknown>) : {};
+/**
+ * Parse the single stored credential into a structured t3.chat cookie object.
+ *
+ * The credential pipeline (`src/sse/services/auth.ts`) stores the single pasted
+ * string as `credentials.apiKey` (fallback `accessToken`) — it never produces
+ * `cookies`/`convexSessionId` fields. So we parse the raw string here, mirroring
+ * the validator in `src/lib/providers/validation.ts` (#3007).
+ *
+ * Accepted forms:
+ *   (a) "convex-session-id=abc; sessionToken=xyz"      — plain Cookie header
+ *   (b) full Cookie header already containing convex-session-id=...
+ *   (c) "cookies=<Cookie header>\nconvexSessionId=<id>" — structured form
+ */
+export function parseT3Credentials(creds: unknown): T3ChatCredentials {
+  const rawCreds =
+    typeof creds === "object" && creds !== null ? (creds as Record<string, unknown>) : {};
+  const raw = String(rawCreds.apiKey ?? rawCreds.accessToken ?? "").trim();
+  if (!raw) {
+    return { cookieHeader: "", cookies: "", convexSessionId: "" };
+  }
+
+  let cookieHeader = raw;
+  let convexSessionId = "";
+
+  if (raw.includes("convexSessionId") || raw.includes("convex-session-id")) {
+    // Structured / multi-part format: split on separators and pull out the id.
+    const parts = raw.split(/[,;\n]/).map((s) => s.trim());
+    const cookieParts: string[] = [];
+    for (const part of parts) {
+      if (part.startsWith("convexSessionId=") || part.startsWith("convex-session-id=")) {
+        convexSessionId = part.split("=").slice(1).join("=");
+      } else if (part.startsWith("cookies=")) {
+        cookieParts.push(part.slice("cookies=".length));
+      } else if (part.includes("=")) {
+        cookieParts.push(part);
+      }
+    }
+    if (cookieParts.length) cookieHeader = cookieParts.join("; ");
+  }
+
+  // Synthesize the final Cookie header, appending convex-session-id only when it
+  // was provided separately and isn't already embedded in the header.
+  const finalCookie =
+    convexSessionId && !cookieHeader.includes("convex-session-id")
+      ? `${cookieHeader}; convex-session-id=${convexSessionId}`
+      : cookieHeader;
+
+  // Derive convexSessionId from an embedded header form (b) for validation.
+  if (!convexSessionId) {
+    const m = finalCookie.match(/convex-session-id=([^;]+)/);
+    if (m) convexSessionId = m[1].trim();
+  }
+
+  return { cookieHeader: finalCookie, cookies: cookieHeader, convexSessionId };
+}
+
+export function validateT3Credentials(creds: T3ChatCredentials | null | undefined): boolean {
+  if (!creds) return false;
   return (
-    typeof raw.cookies === "string" &&
-    raw.cookies.length > 0 &&
-    typeof raw.convexSessionId === "string" &&
-    raw.convexSessionId.length > 0
+    typeof creds.cookieHeader === "string" &&
+    creds.cookieHeader.length > 0 &&
+    typeof creds.convexSessionId === "string" &&
+    creds.convexSessionId.length > 0
   );
 }
 
@@ -60,17 +120,6 @@ function buildErrorResponse(status: number, message: string): Response {
     }),
     { status, headers: { "Content-Type": "application/json" } }
   );
-}
-
-/**
- * Build Cookie header value. Includes the convex-session-id as a cookie
- * (confirmed from live capture: t3.chat sets convex-session-id as a cookie,
- * not as a separate header).
- */
-function buildCookieHeader(cookies: string, convexSessionId: string): string {
-  const base = cookies.trim();
-  if (base.includes("convex-session-id")) return base;
-  return `${base}; convex-session-id=${convexSessionId}`;
 }
 
 /**
@@ -100,7 +149,8 @@ function transformTSSStream(upstreamStream: ReadableStream, model: string): Read
   const created = Math.floor(Date.now() / 1000);
   let emittedRole = false;
 
-  return new ReadableStream({
+  return new ReadableStream(
+    {
     async start(controller) {
       const reader = upstreamStream.getReader();
       let buffer = "";
@@ -185,7 +235,9 @@ function transformTSSStream(upstreamStream: ReadableStream, model: string): Read
 
       close();
     },
-  });
+    },
+    { highWaterMark: 16384 }
+  );
 }
 
 /**
@@ -272,7 +324,8 @@ export class T3ChatWebExecutor extends BaseExecutor {
     signal?: AbortSignal
   ): Promise<boolean> {
     try {
-      if (!validateCredentials(credentials)) return false;
+      const parsed = parseT3Credentials(credentials);
+      if (!validateT3Credentials(parsed)) return false;
 
       // Probe: HEAD to t3.chat base — confirms site reachable and cookies accepted.
       // 200/302/404 all indicate reachability; 5xx = down.
@@ -280,7 +333,7 @@ export class T3ChatWebExecutor extends BaseExecutor {
         method: "HEAD",
         headers: {
           "User-Agent": USER_AGENT,
-          Cookie: buildCookieHeader(credentials.cookies, credentials.convexSessionId),
+          Cookie: parsed.cookieHeader,
         },
         signal,
       });
@@ -292,23 +345,20 @@ export class T3ChatWebExecutor extends BaseExecutor {
 
   async execute({ model, body, stream, credentials, signal, log }: ExecuteInput) {
     const bodyObj = (body || {}) as Record<string, unknown>;
-    const messages = (Array.isArray(bodyObj.messages) ? bodyObj.messages : []) as Array<{
+    const rawMessages = (Array.isArray(bodyObj.messages) ? bodyObj.messages : []) as Array<{
       role: string;
       content: string | unknown;
     }>;
-    const rawCreds = credentials as unknown as Record<string, unknown>;
-
-    // 1. Validate credentials
-    if (!validateCredentials(rawCreds)) {
-      const missing = !rawCreds.cookies
-        ? "cookies"
-        : !rawCreds.convexSessionId
-          ? "convexSessionId"
-          : "both fields";
+    const { hasTools, requestedTools, effectiveMessages } = prepareToolMessages(bodyObj, rawMessages);
+    // 1. Parse + validate credentials. The credential pipeline stores the single
+    // pasted string as `apiKey` (fallback `accessToken`); parse out the Cookie
+    // header + convex-session-id (#3007) instead of expecting pre-structured fields.
+    const parsed = parseT3Credentials(credentials);
+    if (!validateT3Credentials(parsed)) {
       return {
         response: buildErrorResponse(
           400,
-          `t3.chat credentials invalid: missing or empty ${missing}. Both 'cookies' and 'convexSessionId' are required.`
+          "t3.chat credentials invalid: paste your full Cookie header (including convex-session-id) from t3.chat."
         ),
         url: `${SERVER_FN_PREFIX}...`,
         headers: {},
@@ -316,10 +366,7 @@ export class T3ChatWebExecutor extends BaseExecutor {
       };
     }
 
-    const cookieHeader = buildCookieHeader(
-      rawCreds.cookies as string,
-      rawCreds.convexSessionId as string
-    );
+    const cookieHeader = parsed.cookieHeader;
     const headers = buildServerFnHeaders(cookieHeader);
 
     try {
@@ -329,7 +376,7 @@ export class T3ChatWebExecutor extends BaseExecutor {
       // fields (model, messages, stream) in the request body.
       const requestPayload: Record<string, unknown> = {
         model,
-        messages,
+        messages: effectiveMessages,
         stream: stream !== false,
       };
 
@@ -442,7 +489,37 @@ export class T3ChatWebExecutor extends BaseExecutor {
       }
 
       // Non-streaming: collect all content and return OpenAI JSON
-      const content = await collectStreamContent(resp.body);
+      const rawContent = await collectStreamContent(resp.body);
+
+      if (hasTools) {
+        const { content, toolCalls, finishReason } = buildToolAwareResult(rawContent, requestedTools, "t3");
+        if (toolCalls) {
+          return {
+            response: new Response(
+              JSON.stringify({
+                id: `chatcmpl-t3-${Date.now()}`, object: "chat.completion",
+                created: Math.floor(Date.now() / 1000), model: model || "unknown",
+                choices: [{ index: 0, message: { role: "assistant", content: null, tool_calls: toolCalls }, finish_reason: finishReason }],
+              }),
+              { status: 200, headers: { "Content-Type": "application/json" } }
+            ),
+            url: completionUrl, headers, transformedBody: requestPayload,
+          };
+        }
+        const openaiResponse = {
+          id: `chatcmpl-t3-${Date.now()}`, object: "chat.completion",
+          created: Math.floor(Date.now() / 1000), model: model || "unknown",
+          choices: [{ index: 0, message: { role: "assistant", content }, finish_reason: "stop" }],
+          usage: { prompt_tokens: 0, completion_tokens: 0, total_tokens: 0 },
+        };
+        return {
+          response: new Response(JSON.stringify(openaiResponse), {
+            status: 200, headers: { "Content-Type": "application/json" },
+          }),
+          url: completionUrl, headers, transformedBody: requestPayload,
+        };
+      }
+
       const openaiResponse = {
         id: `chatcmpl-t3-${Date.now()}`,
         object: "chat.completion",
@@ -451,7 +528,7 @@ export class T3ChatWebExecutor extends BaseExecutor {
         choices: [
           {
             index: 0,
-            message: { role: "assistant", content },
+            message: { role: "assistant", content: rawContent },
             finish_reason: "stop",
           },
         ],

@@ -1,13 +1,13 @@
 ---
 title: "Memory System"
-version: 3.8.2
-lastUpdated: 2026-05-13
+version: 3.8.6
+lastUpdated: 2026-05-28
 ---
 
 # Memory System
 
 > **Source of truth:** `src/lib/memory/` and `src/app/api/memory/`
-> **Last updated:** 2026-05-13 — v3.8.0
+> **Last updated:** 2026-05-28 — v3.8.6 (plan 21 — Memory Engine Redesign)
 
 OmniRoute provides persistent conversational memory keyed by API key (and
 optionally session id). Memories are extracted automatically from LLM responses
@@ -27,16 +27,142 @@ Client → /v1/chat/completions (apiKeyInfo resolved upstream)
     → resolveMemoryOwnerId(apiKeyInfo)        # extracts id
     → getMemorySettings()                     # cached settings
     → shouldInjectMemory(body, {enabled})     # gate
-    → retrieveMemories(apiKeyId, config)      # SQL + optional FTS5
+    → retrieveMemories(apiKeyId, config)      # SQL + FTS5 + optional vector
     → injectMemory(body, memories, provider)  # system or user message
   → upstream provider call
   → on response: extractFacts(text, apiKeyId, sessionId)  # non-blocking
     → setImmediate → createMemory(fact) per match
+                   → embed(content) + upsertVector(id, vec)
 ```
 
 The injection and extraction call-sites are wired in
 `open-sse/handlers/chatCore.ts` (look for `retrieveMemories`, `injectMemory`,
 and `extractFacts`).
+
+## Engine architecture (3-tier resolution)
+
+The Memory Engine resolves the retrieval path at runtime based on available
+infrastructure and settings. Three tiers exist, applied in priority order:
+
+```
+  ┌─────────────────────────────────────────────────────────────┐
+  │  TIER 0 — Keyword (FTS5)                                     │
+  │  Always available. SQLite FTS5 full-text search over         │
+  │  content + key. Used when strategy = "exact" or as fallback. │
+  └──────────────────────────────────┬──────────────────────────┘
+                                     │ strategy = semantic|hybrid?
+                                     ▼
+  ┌─────────────────────────────────────────────────────────────┐
+  │  TIER 1 — Embedded Vector (sqlite-vec)                       │
+  │  sqlite-vec v0.1.9 loaded via db.loadExtension().            │
+  │  KNN brute-force over Float32 vectors. Active when:          │
+  │   • sqlite-vec loadExtension succeeds                        │
+  │   • An embedding source is available (remote | static |      │
+  │     transformers) that can produce a Float32Array            │
+  │   • vec_memories table exists (created on first ready())     │
+  └──────────────────────────────────┬──────────────────────────┘
+                                     │ qdrant.enabled?
+                                     ▼
+  ┌─────────────────────────────────────────────────────────────┐
+  │  TIER 2 — Qdrant (opt-in external vector database)           │
+  │  When enabled, replaces sqlite-vec for semantic/hybrid.      │
+  │  Requires running Qdrant instance + configured host/port.    │
+  └─────────────────────────────────────────────────────────────┘
+```
+
+Degradation is automatic and transparent:
+- If sqlite-vec fails to load, tier 1 is unavailable → falls back to tier 0.
+- If embedding source returns an error, tier 1 falls back to tier 0.
+- If Qdrant is unhealthy, tier 2 falls back to tier 1 (or tier 0 if tier 1
+  is also unavailable).
+
+## Embedding sources
+
+The embedding layer (`src/lib/memory/embedding/`) resolves which source to use
+based on `MemorySettingsExtended.embeddingSource`:
+
+| Source         | Description                                                                     | Key required | Cold start |
+| -------------- | ------------------------------------------------------------------------------- | ------------ | ---------- |
+| `remote`       | Uses a configured provider's embedding API (OpenAI, Cohere, etc.)               | Yes          | None       |
+| `static`       | Local lookup-table embedding via `potion-base-8M` (WordPiece + mean pooling)    | No           | ~200ms     |
+| `transformers` | Local ONNX inference via `@huggingface/transformers` v4, `all-MiniLM-L6-v2`     | No           | ~3s + ~400MB RAM |
+| `auto`         | Runtime resolution: remote (if key exists) → static → transformers → null       | Depends      | Depends    |
+
+**Resolution order for `auto`:**
+1. Find first provider in `listEmbeddingProviders()` with `hasKey === true` → `remote`.
+2. If `settings.staticEnabled === true` → `static`.
+3. If `settings.transformersEnabled === true` → `transformers`.
+4. Otherwise → `null` (degrades to FTS5 keyword search).
+
+The embedding cache (`src/lib/memory/embedding/cache.ts`) uses an in-memory
+LRU map keyed by `${source}:${model}:${dim}:${sha256(text)}`, capped at
+`MEMORY_EMBEDDING_CACHE_MAX` entries (default 1000) with a TTL of
+`MEMORY_EMBEDDING_CACHE_TTL_MS` (default 5 min). Shared across all callers
+per process lifecycle.
+
+## Hybrid RRF (k=60)
+
+When `strategy = "hybrid"` and the vector store is available, retrieval uses
+Reciprocal Rank Fusion to merge FTS5 and vector results:
+
+```
+RRF(d) = Σ  1 / (k + rank_i(d))      where k = 60 (configurable via MEMORY_RRF_K)
+          i
+```
+
+Concretely:
+1. Run FTS5 search → ranked list `R_fts` (position 1..N).
+2. Run KNN vector search → ranked list `R_vec` (position 1..M).
+3. For each unique `memoryId`:  
+   `rrf_score = 1/(60 + fts_rank)` + `1/(60 + vec_rank)` (0 if not in list).
+4. Sort by `rrf_score` DESC, apply token budget walk.
+
+RRF is well-known to be effective without needing score normalization across
+heterogeneous retrieval systems. The default `k=60` is from the original
+Cormack et al. paper and works well for small corpora (<10k memories).
+
+## Backfill (lazy + reindex)
+
+When the embedding model changes (detected via `embedding_signature`), the
+vector store is rebuilt and all existing memories are marked
+`needs_reindex = 1` in the `memories` table.
+
+**Lazy backfill**: On the next retrieval, any memory missing a vector entry is
+embedded and inserted into `vec_memories` before the search runs. This
+amortizes the backfill cost across real requests without blocking startup.
+
+**Explicit reindex**: The Engine tab in `/dashboard/memory` provides a
+"Reindex Now" button that calls `POST /api/memory/reindex`. The handler calls
+`runReindexBatch()` from `src/lib/memory/reindex.ts`, which processes up to
+`limit` pending entries per request. Progress can be polled via
+`GET /api/memory/engine-status` (`vectorStore.needsReindex`).
+
+The `memory_vec_meta` table (migration `073_memory_vec.sql`) stores:
+- `active_dim` — current vector dimension (null = not yet calibrated).
+- `embedding_signature` — `${source}:${model}:${dim}` used to detect changes.
+- `last_reset_at` — timestamp of last full reset.
+- `vec_loaded` — 0/1 flag whether sqlite-vec loaded successfully.
+
+## Settings extension
+
+Seven new fields were added to `MemorySettingsExtended` (plan 21, D9) in
+`src/shared/schemas/memory.ts`, persisted via `src/lib/db/settings.ts`:
+
+| Field                  | Type                                          | Default      | Description                                   |
+| ---------------------- | --------------------------------------------- | ------------ | --------------------------------------------- |
+| `embeddingSource`      | `"remote" \| "static" \| "transformers" \| "auto"` | `"auto"` | Which embedding source to use              |
+| `embeddingProviderModel` | `string \| null`                            | `null`       | Provider/model in `provider/model` format     |
+| `transformersEnabled`  | `boolean`                                     | `false`      | Opt-in for Transformers.js (MiniLM, ~400MB)   |
+| `staticEnabled`        | `boolean`                                     | `false`      | Opt-in for static potion-base-8M local model  |
+| `rerankEnabled`        | `boolean`                                     | `false`      | Enable reranking step (adds +200-500ms/req)   |
+| `rerankProviderModel`  | `string \| null`                              | `null`       | Rerank provider/model in `provider/model` format |
+| `vectorStore`          | `"sqlite-vec" \| "qdrant" \| "auto"`          | `"auto"`     | Which vector backend to use                   |
+
+These are exposed via `GET /PUT /api/settings/memory` (schema `MemorySettingsExtendedSchema`).
+
+> **TODO (D20):** Scope `global` (sharing memories across all API keys) is not
+> implemented in this release. It requires schema changes and a global retrieval
+> path. Track separately.
 
 ## Storage Layers
 
@@ -78,10 +204,10 @@ Used by `retrieval.ts` for the `semantic` and `hybrid` strategies (see below).
 The retrieval code guards with `hasTable("memory_fts")` and falls back to
 chronological order if the FTS table is missing or the FTS query throws.
 
-### Optional: Qdrant (vector store)
+### Optional: Qdrant (vector store tier 2)
 
-`src/lib/memory/qdrant.ts` implements an optional Qdrant integration for true
-semantic memory:
+`src/lib/memory/qdrant.ts` implements an optional Qdrant integration as tier 2
+vector store. Enabled via `qdrantEnabled` in settings / toggle in Engine tab.
 
 - `upsertSemanticMemoryPoint()` — embed `key + content` with the configured
   embedding model, ensure the collection exists (creates cosine-distance
@@ -90,24 +216,24 @@ apiKeyId, sessionId, key, content, metadata, createdAtUnix, expiresAtUnix}`.
 - `searchSemanticMemory(query, topK, scope)` — embed the query, search the
   collection filtered by `kind = "omniroute_memory"` and optionally by
   `apiKeyId` / `sessionId`. Caps `topK` to `[1, 20]`.
-- `deleteSemanticMemoryPoint(id)` — single point delete.
+- `deleteSemanticMemoryPoint(id)` — single point delete. Called by
+  `deleteMemory()` after the SQLite row is removed (D15).
 - `cleanupSemanticMemoryPoints({retentionDays})` — bulk delete points whose
   `expiresAtUnix` is in the past or whose `createdAtUnix` is older than the
   retention cutoff. Counts first so the dashboard can show actual numbers.
 - `checkQdrantHealth()` — `GET /readyz` health probe with latency.
 
-> **TODO**: The chat pipeline (`chatCore.ts`) and the in-tree `retrieveMemories()`
-> implementation do not currently call `upsertSemanticMemoryPoint` or
-> `searchSemanticMemory`. The Qdrant integration is feature-flagged via
-> `qdrantEnabled` in settings, but at the time of writing the
-> `searchSemanticMemory` results are not fused into retrieval — the
-> `semantic`/`hybrid` retrieval strategies use SQLite FTS5 only. The settings UI
-> in `dashboard/settings → MemorySkillsTab` exposes Qdrant config, health,
-> search test, and cleanup, but the corresponding `/api/settings/qdrant`,
-> `/api/settings/qdrant/health`, `/api/settings/qdrant/search`, and
-> `/api/settings/qdrant/cleanup` routes are referenced from the UI but **not
-> present** under `src/app/api/settings/qdrant/` (only `embedding-models/` is
-> wired). Treat Qdrant as preview/optional plumbing.
+The settings UI exposes Qdrant config, health check, semantic search test,
+and cleanup in the **Engine tab** of `/dashboard/memory`. The corresponding
+routes under `src/app/api/settings/qdrant/` are all wired as of v3.8.6:
+
+| Route | Method | Description |
+| ----- | ------ | ----------- |
+| `/api/settings/qdrant` | `GET` / `PUT` | Read / update Qdrant settings |
+| `/api/settings/qdrant/health` | `GET` | Liveness probe + latency |
+| `/api/settings/qdrant/search` | `POST` | Semantic search test |
+| `/api/settings/qdrant/cleanup` | `POST` | Remove expired / old points |
+| `/api/settings/qdrant/embedding-models` | `GET` | List available embedding models |
 
 ## Memory Types
 
@@ -202,6 +328,8 @@ Memory configuration is **stored in the DB settings table**, not in env vars.
 in-process; `invalidateMemorySettingsCache()` is called by the settings PUT
 route after writes.
 
+### Legacy fields (all versions)
+
 | DB key                | Type    | Default                                            | UI control                                      |
 | --------------------- | ------- | -------------------------------------------------- | ----------------------------------------------- |
 | `memoryEnabled`       | boolean | `true`                                             | Memory on/off                                   |
@@ -213,14 +341,38 @@ route after writes.
 Note: the UI strategy `"recent"` maps to the internal `"exact"` retrieval
 strategy via `toMemoryRetrievalConfig()` (chronological order).
 
+### New fields (v3.8.6, plan 21 D9)
+
+See also the "Settings extension" section above for field descriptions.
+
+| DB key                    | API field              | Default       |
+| ------------------------- | ---------------------- | ------------- |
+| `memoryEmbeddingSource`   | `embeddingSource`      | `"auto"`      |
+| `memoryEmbeddingModel`    | `embeddingProviderModel` | `null`      |
+| `memoryTransformersEnabled` | `transformersEnabled` | `false`      |
+| `memoryStaticEnabled`     | `staticEnabled`        | `false`       |
+| `memoryRerankEnabled`     | `rerankEnabled`        | `false`       |
+| `memoryRerankModel`       | `rerankProviderModel`  | `null`        |
+| `memoryVectorStore`       | `vectorStore`          | `"auto"`      |
+
 Qdrant-related DB keys (`qdrantEnabled`, `qdrantHost`, `qdrantPort`,
 `qdrantApiKey`, `qdrantCollection` default `"omniroute_memory"`,
 `qdrantEmbeddingModel` default `"openai/text-embedding-3-small"`) are read by
 `normalizeQdrantConfig()` in `qdrant.ts`.
 
-No `MEMORY_*` or `QDRANT_*` env vars exist today — everything is per-instance
-DB settings. `OMNIROUTE_MEMORY_MB` (commented out in `.env.example`) is
-unrelated and refers to Node heap sizing.
+### Environment variables (v3.8.6)
+
+Six optional env vars tune the engine's runtime behaviour (documented in `.env.example`):
+
+| Variable                        | Default | Description                                        |
+| ------------------------------- | ------- | -------------------------------------------------- |
+| `MEMORY_EMBEDDING_CACHE_TTL_MS` | `300000` | Embedding cache TTL (5 min)                       |
+| `MEMORY_EMBEDDING_CACHE_MAX`    | `1000`  | Max entries in embedding LRU cache                 |
+| `MEMORY_TRANSFORMERS_MODEL`     | `Xenova/all-MiniLM-L6-v2` | HF repo for Transformers.js model    |
+| `MEMORY_STATIC_MODEL`           | `minishlab/potion-base-8M` | HF repo for static potion model      |
+| `MEMORY_STATIC_CACHE_DIR`       | `<DATA_DIR>/embeddings` | Where to store downloaded models     |
+| `MEMORY_VEC_TOP_K`              | `20`    | Default top-K for vector search                    |
+| `MEMORY_RRF_K`                  | `60`    | RRF k constant for hybrid search                   |
 
 ## Summarisation (`summarization.ts`)
 
@@ -240,15 +392,39 @@ loss is one-way: original text is overwritten.
 
 All endpoints require management auth (`requireManagementAuth`).
 
-| Method   | Path                   | Description                                                                                                                                                                  |
-| -------- | ---------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `GET`    | `/api/memory`          | Paginated list with filters: `apiKeyId`, `type`, `sessionId`, `q`, `limit`, `page`, `offset`. Response includes `stats.total` and `stats.byType`                             |
-| `POST`   | `/api/memory`          | Create entry (Zod-validated: `content`, `key`, optional `type`, `sessionId`, `apiKeyId`, `metadata`, `expiresAt`). Calls `createMemory()` which upserts on `(apiKeyId, key)` |
-| `GET`    | `/api/memory/[id]`     | Fetch a single entry by UUID                                                                                                                                                 |
-| `DELETE` | `/api/memory/[id]`     | Delete an entry; returns 404 when missing                                                                                                                                    |
-| `GET`    | `/api/memory/health`   | Runs `verifyExtractionPipeline("health-check")` — round-trip create→list→delete to confirm the store is alive. Returns `{working, latencyMs, error?}`                        |
-| `GET`    | `/api/settings/memory` | Current normalised `MemorySettings`                                                                                                                                          |
-| `PUT`    | `/api/settings/memory` | Update one or more of `enabled`, `maxTokens`, `retentionDays`, `strategy`, `skillsEnabled`                                                                                   |
+### Core memory endpoints (existing + updated)
+
+| Method     | Path                              | Description                                                                                                                                                                  |
+| ---------- | --------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `GET`      | `/api/memory`                     | Paginated list with filters: `apiKeyId`, `type`, `sessionId`, `q`, `limit`, `page`, `offset`. Response includes `stats.total`, `stats.tokensUsed`, `stats.hitRate`, `cacheStats` |
+| `POST`     | `/api/memory`                     | Create entry (Zod-validated: `content`, `key`, optional `type`, `sessionId`, `apiKeyId`, `metadata`, `expiresAt`). Calls `createMemory()` which upserts on `(apiKeyId, key)` |
+| `GET`      | `/api/memory/[id]`                | Fetch a single entry by UUID                                                                                                                                                 |
+| `PUT`      | `/api/memory/[id]`                | Update entry fields (`type`, `key`, `content`, `metadata`). Body: `MemoryUpdatePutSchema`. Also syncs vector if embedding source available. |
+| `DELETE`   | `/api/memory/[id]`                | Delete an entry; also deletes from `vec_memories` (D15) and Qdrant best-effort. Returns 404 when missing. |
+| `GET`      | `/api/memory/health`              | Runs `verifyExtractionPipeline("health-check")` — round-trip create→list→delete. Returns `{working, latencyMs, error?}` |
+
+### New memory engine endpoints (plan 21)
+
+| Method   | Path                               | Description                                                                             |
+| -------- | ---------------------------------- | --------------------------------------------------------------------------------------- |
+| `POST`   | `/api/memory/retrieve-preview`     | Dry-run of `retrieveMemories` — returns ranked results with score, tier, tokens. Body: `RetrievePreviewSchema`. Does NOT inject or modify memories. |
+| `GET`    | `/api/memory/embedding-providers`  | Lists providers with embedding models, indicating which have a configured API key.       |
+| `GET`    | `/api/memory/engine-status`        | Returns full engine status: keyword tier, embedding resolution, vector store stats, Qdrant health, rerank config. Shape: `MemoryEngineStatusSchema`. |
+| `POST`   | `/api/memory/summarize`            | Manually trigger memory compaction. Body: `MemorySummarizeSchema` (`olderThanDays`, `apiKeyId?`, `dryRun`). Returns `{candidates, tokensSaved}`. |
+| `POST`   | `/api/memory/reindex`              | Trigger vector reindex for memories with `needs_reindex=1`. Body: `MemoryReindexSchema` (`force`). Returns `{started, pending}`. |
+
+### Settings endpoints
+
+| Method   | Path                               | Description                                                              |
+| -------- | ---------------------------------- | ------------------------------------------------------------------------ |
+| `GET`    | `/api/settings/memory`             | Current normalised `MemorySettingsExtended` (7 new fields + legacy)      |
+| `PUT`    | `/api/settings/memory`             | Update any field from `MemorySettingsExtendedSchema` (12 total fields)   |
+| `GET`    | `/api/settings/qdrant`             | Current Qdrant settings (`QdrantSettingsSchema`)                          |
+| `PUT`    | `/api/settings/qdrant`             | Update Qdrant settings. Body: `QdrantSettingsUpdateSchema`. `apiKey` = empty string removes key. |
+| `GET`    | `/api/settings/qdrant/health`      | Liveness probe against configured Qdrant instance. Returns `QdrantHealthResultSchema`. |
+| `POST`   | `/api/settings/qdrant/search`      | Semantic search test against Qdrant. Body: `QdrantSearchSchema` (`query`, `topK`). |
+| `POST`   | `/api/settings/qdrant/cleanup`     | Remove Qdrant points for expired / old memories.                          |
+| `GET`    | `/api/settings/qdrant/embedding-models` | List embedding models available for Qdrant.                          |
 
 The `/api/memory` list query supports either `page`-based pagination
 (`parsePaginationParams`) **or** raw `offset` — when `offset` is present it
@@ -259,31 +435,55 @@ takes precedence and a derived `page` is computed for the response shape.
 When the MCP server is enabled, three memory tools are registered:
 
 - `omniroute_memory_search` — `{apiKeyId, query?, type?, maxTokens?, limit?}`
-  → wraps `retrieveMemories()` with `retrievalStrategy: "exact"`, optionally
-  filters by `type`, and reports `totalTokens`.
+  → wraps `retrieveMemories()`. As of v3.8.6 (D16), the `strategy` is read
+  from `getMemorySettings()` instead of being hardcoded to `"exact"`. If
+  `query` is provided and `strategy` is `semantic` or `hybrid`, the vector
+  store is used when available.
 - `omniroute_memory_add` — `{apiKeyId, sessionId?, type, key, content,
-metadata?}` → wraps `createMemory()`.
+metadata?}` → wraps `createMemory()`. Accepts only the 4 canonical types:
+  `factual`, `episodic`, `procedural`, `semantic` (D17).
 - `omniroute_memory_clear` — `{apiKeyId, type?, olderThan?}` → lists matching
   entries, optionally filters by created-before timestamp, then deletes each
-  via `deleteMemory()`.
+  via `deleteMemory()` (which also removes vectors from sqlite-vec + Qdrant).
 
 See [MCP-SERVER.md](./MCP-SERVER.md) for transport and scope details.
 
-## Dashboard
+## Dashboard (Memory Studio)
 
-`src/app/(dashboard)/dashboard/memory/page.tsx` provides:
+`src/app/(dashboard)/dashboard/memory/page.tsx` is now a **3-tab Studio**:
 
+### Tab: Memórias / Memories
+- Concept card (collapsible "How it works" explainer).
 - Real-time list, search, and pagination (debounced 300 ms).
 - Type filter (`factual` / `episodic` / `procedural` / `semantic` / all).
 - Add-memory modal (key, content, type).
-- Delete per row.
+- Inline edit (pencil button → `PUT /api/memory/[id]`).
+- Delete per row (with confirmation dialog).
 - JSON export of the current page; JSON import via file picker.
+- Stat cards: `totalEntries`, `tokensUsed`, `hitRate`.
+- "Compact old" button → `POST /api/memory/summarize` (dry-run first shows
+  candidate count, then confirms).
 - A green/red health dot driven by `GET /api/memory/health`.
-- Stat cards: `totalEntries`, `tokensUsed`, `hitRate` (the latter two come
-  from the API stats payload).
 
-Memory and Qdrant settings live under
-`/dashboard/settings → Memory & Skills` (`MemorySkillsTab.tsx`).
+### Tab: Playground
+- Query input + strategy selector (Exact / Semantic / Hybrid) + token budget.
+- "Simulate" → `POST /api/memory/retrieve-preview` — shows ranked results with
+  `score`, `tier`, `tokens`, `vecScore`, `ftsScore`.
+- Resolution panel showing which embedding source / vector store was used and
+  whether a fallback occurred.
+
+### Tab: Engine
+- Engine status panel (keyword FTS5 chip, embedding chip, vector store chip,
+  Qdrant health chip, rerank chip).
+- "Reindex Now" button → `POST /api/memory/reindex`.
+- Embedding source selector (auto / remote / static / transformers + toggles).
+- Qdrant config card (enable toggle, host/port/collection/key, test connection,
+  semantic search test, cleanup).
+- Rerank config card (enable toggle, provider/model selector).
+
+Memory and Qdrant settings also live under
+`/dashboard/settings → Memory & Skills` (`MemorySkillsTab.tsx`) for
+the legacy/global settings surface.
 
 ## Caching
 
@@ -316,12 +516,289 @@ default TTL 5 min).
 - [API_REFERENCE.md](../reference/API_REFERENCE.md) — broader API surface.
 - Source modules:
   - `src/lib/memory/types.ts`, `schemas.ts`
-  - `src/lib/memory/store.ts`, `retrieval.ts`, `injection.ts`
+  - `src/lib/memory/store.ts`, `retrieval.ts`, `injection.ts`, `reindex.ts`
   - `src/lib/memory/extraction.ts`, `summarization.ts`, `verify.ts`
   - `src/lib/memory/settings.ts`, `qdrant.ts`, `cache.ts`
+  - `src/lib/memory/vectorStore.ts` — sqlite-vec + hybrid RRF
+  - `src/lib/memory/embedding/index.ts` — multi-source embedding layer
+  - `src/lib/memory/embedding/types.ts`, `remote.ts`, `staticPotion.ts`,
+    `transformersLocal.ts`, `cache.ts`
+  - `src/shared/schemas/memory.ts` — Zod schemas for all memory API bodies
+  - `src/shared/schemas/qdrant.ts` — Zod schemas for Qdrant settings/ops
+  - `src/lib/db/memoryVec.ts` — CRUD for `memory_vec_meta`
   - `src/lib/db/migrations/015_create_memories.sql`,
-    `022_add_memory_fts5.sql`, `023_fix_memory_fts_uuid.sql`
+    `022_add_memory_fts5.sql`, `023_fix_memory_fts_uuid.sql`,
+    `073_memory_vec.sql`
   - `src/app/api/memory/route.ts`, `[id]/route.ts`, `health/route.ts`
+  - `src/app/api/memory/retrieve-preview/route.ts`
+  - `src/app/api/memory/engine-status/route.ts`
+  - `src/app/api/memory/embedding-providers/route.ts`
+  - `src/app/api/memory/summarize/route.ts`
+  - `src/app/api/memory/reindex/route.ts`
   - `src/app/api/settings/memory/route.ts`
-  - `open-sse/handlers/chatCore.ts` (injection / extraction wiring)
-  - `open-sse/mcp-server/tools/memoryTools.ts`
+  - `src/app/api/settings/qdrant/route.ts` + sub-routes
+   - `src/app/(dashboard)/dashboard/memory/` — Studio UI (page + components +
+     tabs + hooks)
+   - `open-sse/handlers/chatCore.ts` (injection / extraction wiring)
+   - `open-sse/mcp-server/tools/memoryTools.ts`
+
+---
+
+## Choosing an Embedding Provider (v3.8.16+)
+
+OmniRoute's memory engine supports **four embedding sources** (`src/lib/memory/embedding/`). Each has different trade-offs in **latency, cost, model quality, and setup complexity**.
+
+### The Four Providers
+
+| Provider | Source | Latency | Cost | Quality | Setup |
+|----------|--------|---------|------|---------|-------|
+| `transformers` | Local ONNX model (Xenova/all-MiniLM-L6-v2) | ~50-150ms (CPU) | Free | Good | `npm install` only |
+| `static` | Pre-computed vectors (cached) | <1ms | Free | N/A (depends on cache hit) | None |
+| `remote` | OpenAI / Cohere / Voyage API | ~100-300ms | $0.02-0.10/1M tokens | Excellent | API key |
+| `cache` | In-memory LRU layer over any source | <1ms (hit), full latency (miss) | Free | Same as underlying | None |
+
+### Decision Tree
+
+```
+                  What's your deployment context?
+                  │
+      ┌───────────┼───────────┬──────────────┐
+      │           │           │              │
+  DEV/TEST    SMALL PROD   LARGE PROD    EDGE / OFFLINE
+      │           │           │              │
+      ▼           ▼           ▼              ▼
+  transformers transformers remote (Qdrant) transformers
+  (free, no API)            (best quality)   (no internet)
+      │           │           │              │
+      └────────┬──┴───────────┴──────────────┘
+               │
+               ▼
+            ALWAYS add `cache` layer on top
+            (LruCache wraps any provider)
+```
+
+### Database & API Configuration
+
+Memory embedding options are configured via the Settings API/UI, not environment variables. The relevant settings database keys under Settings (`normalizeMemorySettings` in `src/lib/memory/settings.ts`) are:
+
+- `memoryEmbeddingSource`: `"transformers"` (local), `"remote"` (API-based, e.g. OpenAI), `"static"` (external store), or `"auto"`
+- `memoryEmbeddingProviderModel`: Model identifier for remote/static sources (e.g., `"text-embedding-3-small"`)
+- `memoryTransformersEnabled`: `true` | `false`
+- `memoryStaticEnabled`: `true` | `false`
+- `memoryVectorStore`: `"sqlite-vec"`, `"qdrant"`, or `"auto"`
+
+#### Local Model (`transformers`)
+
+Uses transformers.js internally to run local models:
+
+```bash
+# Env vars read in code (src/lib/memory/embedding/index.ts):
+MEMORY_TRANSFORMERS_MODEL=Xenova/all-MiniLM-L6-v2  # HF model repo
+MEMORY_STATIC_MODEL=minishlab/potion-base-8M       # HF static potion model
+MEMORY_STATIC_CACHE_DIR=<DATA_DIR>/embeddings      # Cache directory
+```
+
+#### LRU Embedding Cache
+
+The cache is always on by default and configured via env vars:
+
+```bash
+MEMORY_EMBEDDING_CACHE_MAX=1000                    # Max cached items
+MEMORY_EMBEDDING_CACHE_TTL_MS=300000               # TTL (5 min)
+```
+### Performance Numbers
+
+Benchmark on a typical 4-core x86 server (texts ~100 tokens each):
+
+| Provider | p50 | p95 | p99 | Cost / 1M embeddings |
+|----------|-----|-----|-----|-----------------------|
+| `transformers` (CPU) | 80ms | 180ms | 350ms | Free |
+| `remote` (OpenAI) | 120ms | 220ms | 400ms | ~$0.02 (ada-002) / $0.13 (3-large) |
+| `static` (Qdrant) | 15ms | 30ms | 60ms | Depends on Qdrant hosting |
+| `cache` (hit) | <1ms | <1ms | 2ms | Free |
+
+---
+
+## Fact Extraction Patterns (v3.8.16+)
+
+The `extraction.ts` module (`src/lib/memory/extraction.ts`) uses **regex pattern matching** to extract structured facts from conversation messages. Understanding these patterns helps you tune extraction quality for your use case.
+
+### Default Pattern Categories
+
+| Category | Example pattern | Captures |
+|----------|-----------------|----------|
+| PREFERENCE_PATTERNS | `"I prefer <X>"`, `"I like <X>"`, `"I hate <X>"` | User preferences |
+| DECISION_PATTERNS | `"I'll use <X>"`, `"I decided to <X>"`, `"I went with <X>"` | User decisions (episodic) |
+| PATTERN_PATTERNS | `"I usually <X>"`, `"I always <X>"`, `"I never <X>"` | Persistent behavioral patterns |
+
+### Example Patterns (Simplified)
+```ts
+// From src/lib/memory/extraction.ts
+const PREFERENCE_PATTERNS = [
+  /\bI\s+(?:really\s+)?prefer\s+([^.,\n]+)/gi,
+  /\bI\s+(?:really\s+)?like\s+([^.,\n]+)/gi,
+  /\bI\s+(?:hate|dislike|avoid)\s+([^.,\n]+)/gi
+];
+const DECISION_PATTERNS = [
+  /\bI'?(?:ll|will)\s+use\s+([^.,\n]+)/gi,
+  /\bI\s+(?:have\s+)?decided\s+(?:to\s+)?([^.,\n]+)/gi
+];
+const PATTERN_PATTERNS = [
+  /\bI\s+usually\s+([^.,\n]+)/gi,
+  /\bI\s+always\s+([^.,\n]+)/gi
+];
+```
+
+### What Gets Extracted
+
+When a user says:
+> "I prefer TypeScript. I'll use Postgres for this project. I always commit before pushing. I don't like Python."
+Extraction produces 4 memories:
+| Key | Category | Type | Content |
+|-----|----------|------|---------|
+| `preference:typescript` | preference | factual | "TypeScript" |
+| `decision:postgres_for_this_project` | decision | episodic | "Postgres for this project" |
+| `pattern:commit_before_pushing` | pattern | factual | "commit before pushing" |
+| `preference:python` | preference | factual | "Python" |
+
+### Extraction Limits
+To prevent runaway extraction, the following limits apply:
+
+| Min content length | 3 chars |
+| Max content length | 500 chars |
+
+### When to Disable Extraction
+
+Extraction runs automatically whenever memory is enabled; there is no separate
+extraction-only toggle. To turn it off, disable memory entirely (`enabled: false`
+via `PUT /api/settings/memory`). Consider doing so when:
+- You have high message volume and the extraction cost is non-trivial
+- Your conversations are mostly transient (chat, debugging) with no long-term value
+- You're already capturing context via custom plugins
+
+---
+
+## Hybrid RRF Tuning (v3.8.16+)
+
+The **Reciprocal Rank Fusion (RRF)** algorithm combines FTS5 (keyword) and vector (semantic) results. The `k` parameter controls how much weight is given to lower-ranked results.
+
+### The Formula
+
+For each candidate memory, the RRF score is:
+
+```
+RRF(d) = Σ  1 / (k + rank_i(d))
+```
+
+Where:
+- `k` is the constant (default 60)
+- `rank_i(d)` is the rank of document `d` in the i-th retrieval system (FTS, vector)
+- The sum runs over all retrieval systems
+
+### How `k` Affects Results
+
+| `k` value | Effect | Best for |
+|-----------|--------|----------|
+| `k=0` | Pure rank fusion (no smoothing) | Theoretical baseline |
+| `k=10-30` | Heavily weights top results, low-rank barely contributes | When top-3 results are usually correct |
+| **`k=60`** (default) | Balanced — top-10 results all contribute meaningfully | General-purpose retrieval |
+| `k=100+` | Flatter — even low-rank results can dominate if they appear in multiple systems | When recall > precision is critical |
+
+### Tuning `k` in Practice
+
+```bash
+# Default
+MEMORY_RRF_K=60
+
+# Aggressive precision (small memory, few docs)
+MEMORY_RRF_K=20
+
+# Maximum recall (large memory, varied queries)
+MEMORY_RRF_K=120
+```
+
+**Example with `k=20`:**
+- FTS rank 1 → contribution `1/21 = 0.048`
+- FTS rank 10 → contribution `1/30 = 0.033`
+- Vector rank 1 → contribution `0.048`
+- Combined max: `0.096`
+
+**Example with `k=60`:**
+- FTS rank 1 → contribution `1/61 = 0.016`
+- FTS rank 10 → contribution `1/70 = 0.014`
+- Vector rank 1 → contribution `0.016`
+- Combined max: `0.033`
+
+With higher `k`, the **relative difference** between top-1 and rank-10 is smaller, so the algorithm relies more on **consensus across retrieval systems** than on top-rank confidence.
+
+### When to Change `k`
+
+| Symptom | Try |
+|---------|-----|
+| Top result always wins, but it's wrong | **Lower** k (e.g., 20) — top-rank confidence matters more |
+| Right answer is in top-5 but not top-1 | **Higher** k (e.g., 100) — flatter scoring rewards consensus |
+| Recall is high but precision is low | **Lower** k — sharpen the ranking |
+| Recall is low (missing relevant docs) | **Higher** k — give lower-ranked docs a chance |
+
+### RRF Weighting
+
+The reciprocal rank fusion uses equal weights for semantic vector rank and full-text search rank:
+
+```
+RRF(d) = 1/(k + rank_vector) + 1/(k + rank_fts)
+```
+
+There are no environment variables to adjust individual weights (`MEMORY_RRF_VECTOR_WEIGHT`/`MEMORY_RRF_FTS_WEIGHT` do not exist).
+
+---
+
+## Summarization Strategy (v3.8.16+)
+
+The `summarization.ts` module (`src/lib/memory/summarization.ts`) compresses older memories to keep the active set small while preserving recall.
+
+### When Summarization Triggers
+
+| Trigger | Threshold (default) |
+|---------|---------------------|
+| Manual trigger via API | n/a |
+
+### What Gets Summarized
+
+Two entry points are exported from `summarization.ts`:
+
+- **`summarizeMemories(apiKeyId, sessionId?, maxTokens = 4000)`** — condenses the
+  memories for a session into a single summary text bounded by a token budget.
+- **`summarizeMemoriesOlderThan(apiKeyId, days, dryRun)`** — the age-based
+  compaction used by the API: it selects every memory older than `days`, builds
+  one condensed summary memory from them, and (when `dryRun` is `false`) deletes
+  the originals. Pass `dryRun: true` to preview the candidate set and token total
+  without modifying anything.
+
+There is no tag/key clustering pass or per-memory "core vs summarizable" scoring —
+selection is purely the age cutoff, and the summary text is a condensed,
+type-prefixed line per candidate.
+
+### Triggering Summarization
+
+Summarization is **manual / opt-in** — the `autoSummarize` setting is `false` by
+default, so nothing is compacted automatically. Trigger it via the API:
+
+```bash
+curl -X POST http://localhost:20128/api/memory/summarize \
+  -H "Authorization: Bearer $OMNIROUTE_KEY"
+```
+
+To leave it off, simply keep `autoSummarize` at its default (`false`).
+
+### Summarization Quality Tips
+
+- **Preview first with `dryRun`** — `summarizeMemoriesOlderThan(..., true)` returns
+  the candidate list and total token count so you can confirm what would be merged
+  before deleting the originals.
+- **Run summarization during low-traffic hours** if you have a large memory corpus — the LLM call is the slow part
+
+```bash
+# Cron-style: summarize at 3am daily
+0 3 * * * curl -X POST http://localhost:20128/api/memory/summarize \
+  -H "Authorization: Bearer $OMNIROUTE_KEY"
+```

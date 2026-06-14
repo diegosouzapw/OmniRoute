@@ -226,6 +226,18 @@ function stripThinkingConfig(body: unknown) {
   delete result.reasoning_effort;
   delete result.reasoning;
 
+  // Claude Code output_config.effort — strip the effort hint too, otherwise the
+  // claude→openai translator re-injects reasoning_effort downstream (#3258).
+  if (result.output_config && typeof result.output_config === "object") {
+    const outputConfig = { ...toRecord(result.output_config) };
+    delete outputConfig.effort;
+    if (Object.keys(outputConfig).length === 0) {
+      delete result.output_config;
+    } else {
+      result.output_config = outputConfig;
+    }
+  }
+
   // Gemini format
   if (result.generationConfig) {
     const generationConfig = { ...toRecord(result.generationConfig) };

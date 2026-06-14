@@ -2,6 +2,7 @@ import { register } from "../registry.ts";
 import { FORMATS } from "../formats.ts";
 import { CLAUDE_OAUTH_TOOL_PREFIX } from "../request/openai-to-claude.ts";
 import { hasToolCallShim, applyToolCallShimToBuffer } from "../helpers/toolCallShim.ts";
+import { appendToolCallArgumentDelta } from "../../utils/toolCallArguments.ts";
 
 // Helper: stop thinking block if started
 function stopThinkingBlock(state, results) {
@@ -192,14 +193,15 @@ export function openaiToClaudeResponse(chunk, state) {
         if (toolInfo) {
           // Always buffer the raw stream so shimmed tools can re-emit a
           // corrected JSON at stop time.
-          toolInfo.argBuffer = (toolInfo.argBuffer || "") + tc.function.arguments;
+          const existingArgs = toolInfo.argBuffer || "";
+          const nextArgs = appendToolCallArgumentDelta(existingArgs, tc.function.arguments);
+          let deltaStr = nextArgs.slice(existingArgs.length);
+          toolInfo.argBuffer = nextArgs;
 
-          if (toolInfo.shimmed) {
-            // Suppress passthrough; we emit one corrective delta at finish.
+          if (toolInfo.shimmed || !deltaStr) {
+            // Suppress passthrough for shimmed tools; emit one corrective delta at finish.
             continue;
           }
-
-          let deltaStr = tc.function.arguments;
 
           // Fix #1852: Strip empty string and array placeholders from streaming tool arguments
           if (deltaStr.includes('""') || deltaStr.includes("[]") || deltaStr.includes("[ ]")) {

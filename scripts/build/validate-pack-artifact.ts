@@ -25,17 +25,18 @@ function runNpm(args: string[], stdio: "inherit" | "pipe" = "pipe"): string {
     cwd: ROOT,
     encoding: "utf8",
     stdio: stdio === "inherit" ? "inherit" : ["ignore", "pipe", "pipe"],
+    maxBuffer: 64 * 1024 * 1024,
   });
 }
 
 function ensureAppStagingReady(): void {
   const missingAppRequiredPaths = PACK_ARTIFACT_REQUIRED_PATHS.filter((requiredPath) =>
-    requiredPath.startsWith("app/")
+    requiredPath.startsWith("dist/")
   ).filter((requiredPath) => !existsSync(join(ROOT, requiredPath)));
 
   if (missingAppRequiredPaths.length === 0) return;
 
-  console.log("📦 app/ staging is missing required runtime files; running npm run build:cli...");
+  console.log("📦 dist/ staging is missing required runtime files; running npm run build:cli...");
   runNpm(["run", "build:cli"], "inherit");
 }
 

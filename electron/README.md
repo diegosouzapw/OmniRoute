@@ -229,7 +229,7 @@ Place your icons in `assets/`:
 
 1. Check if port 20128 is available: `lsof -i :20128`
 2. Check console logs for `[Electron]` prefix
-3. Verify the build output exists in `.next/standalone`
+3. Verify the build output exists in `.build/next/standalone`
 
 ### White Screen
 

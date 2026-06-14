@@ -1,5 +1,29 @@
 import test from "node:test";
 import assert from "node:assert/strict";
+import fs from "node:fs";
+import os from "node:os";
+import path from "node:path";
+
+const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-services-hardening-"));
+const ORIGINAL_DATA_DIR = process.env.DATA_DIR;
+process.env.DATA_DIR = TEST_DATA_DIR;
+
+if (!process.env.API_KEY_SECRET) {
+  process.env.API_KEY_SECRET = "test-services-hardening-secret-" + Date.now();
+}
+
+test.after(() => {
+  if (ORIGINAL_DATA_DIR === undefined) {
+    delete process.env.DATA_DIR;
+  } else {
+    process.env.DATA_DIR = ORIGINAL_DATA_DIR;
+  }
+  try {
+    fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+  } catch {
+    // Best effort cleanup
+  }
+});
 
 const signatureStore = await import("../../open-sse/services/geminiThoughtSignatureStore.ts");
 const modelCapabilities = await import("../../open-sse/services/modelCapabilities.ts");
@@ -144,8 +168,10 @@ test("combo agent middleware covers system override, tool filtering, tag strippi
     "openai/gpt-4o"
   );
 
-  assert.equal(result.pinnedModel, "anthropic/claude-sonnet-4-6");
-  assert.equal(result.body.model, "anthropic/claude-sonnet-4-6");
+  // PR #3399: server-side session pinning replaced <omniModel> tag extraction;
+  // pinnedModel is now always null from applyComboAgentMiddleware.
+  assert.equal(result.pinnedModel, null);
+  assert.equal(result.body.model, "combo/default");
   assert.deepEqual(result.body.messages, [
     { role: "system", content: "combo system" },
     { role: "user", content: "hello" },
@@ -169,7 +195,9 @@ test("rate limit semaphore covers immediate acquire, timeout, cooldown drain and
 
   release();
   release();
-  assert.equal(rateLimitSemaphore.getStats()["model-a"].running, 0);
+  // #2903 (perf-ram) prunes idle gates when they reach zero running/queued, so the
+  // entry may be absent here — assert "no running slots" without assuming it persists.
+  assert.equal(rateLimitSemaphore.getStats()["model-a"]?.running ?? 0, 0);
 
   const heldRelease = await rateLimitSemaphore.acquire("model-b", { maxConcurrency: 1 });
   const timeoutPromise = rateLimitSemaphore.acquire("model-b", {
@@ -190,7 +218,7 @@ test("rate limit semaphore covers immediate acquire, timeout, cooldown drain and
   assert.equal(rateLimitSemaphore.getStats()["model-c"].queued, 1);
   const secondRelease = await secondPromise;
   secondRelease();
-  assert.equal(rateLimitSemaphore.getStats()["model-c"].queued, 0);
+  assert.equal(rateLimitSemaphore.getStats()["model-c"]?.queued ?? 0, 0);
 
   const blockingRelease = await rateLimitSemaphore.acquire("model-d", { maxConcurrency: 1 });
   const queuedPromise = rateLimitSemaphore.acquire("model-d", {

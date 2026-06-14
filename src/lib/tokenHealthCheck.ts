@@ -76,9 +76,37 @@ function getEffectiveTokenExpiryMs(conn: any): number {
   return Number.isFinite(expiryMs) ? expiryMs : 0;
 }
 
+// ── Refresh circuit breaker ───────────────────────────────────────────────
+// A refresh that returns null (network blip, dead proxy, unclassified error)
+// leaves the connection active, so the next 60s sweep retries immediately —
+// the production refresh loop (claude/aa5dd5cf 1352×, kimi 270×). We track
+// consecutive failures and back off exponentially so a stuck connection stops
+// hammering the upstream (and stops flooding the logs) instead of looping.
+const REFRESH_CIRCUIT_BASE_MIN = 5;
+const REFRESH_CIRCUIT_MAX_MIN = 240; // cap at 4h
+
+export function getRefreshBackoffUntil(streak: number, now: string): string {
+  const steps = Math.max(0, streak - 1);
+  const backoffMin = Math.min(REFRESH_CIRCUIT_BASE_MIN * 2 ** steps, REFRESH_CIRCUIT_MAX_MIN);
+  return new Date(new Date(now).getTime() + backoffMin * 60 * 1000).toISOString();
+}
+
+export function isInRefreshBackoff(conn: any, nowMs: number): boolean {
+  const until = conn?.providerSpecificData?.refreshCircuit?.until;
+  if (typeof until !== "string") return false;
+  const untilMs = new Date(until).getTime();
+  return Number.isFinite(untilMs) && untilMs > nowMs;
+}
+
 export function buildRefreshFailureUpdate(conn: any, now: string) {
   const wasExpired = conn.testStatus === "expired";
   const retryCount = (conn.expiredRetryCount ?? 0) + (wasExpired ? 1 : 0);
+
+  // Circuit breaker: increment the consecutive-failure streak and set an
+  // exponential backoff window so the next sweep skips this connection instead
+  // of retrying every 60s. Cleared by a successful refresh (clearRefreshCircuit).
+  const prevStreak = conn.providerSpecificData?.refreshCircuit?.streak ?? 0;
+  const streak = prevStreak + 1;
 
   return {
     lastHealthCheckAt: now,
@@ -91,8 +119,26 @@ export function buildRefreshFailureUpdate(conn: any, now: string) {
     lastErrorType: "token_refresh_failed",
     lastErrorSource: "oauth",
     errorCode: "refresh_failed",
+    providerSpecificData: {
+      ...(conn.providerSpecificData || {}),
+      refreshCircuit: { streak, until: getRefreshBackoffUntil(streak, now), lastFailAt: now },
+    },
     ...(wasExpired ? { expiredRetryCount: retryCount, expiredRetryAt: now } : {}),
   };
+}
+
+/**
+ * Strip the refresh circuit breaker state from providerSpecificData after a
+ * successful refresh, so the streak/backoff resets cleanly.
+ */
+export function clearRefreshCircuit(
+  providerSpecificData: Record<string, unknown> | null | undefined
+): Record<string, unknown> | undefined {
+  if (!providerSpecificData || typeof providerSpecificData !== "object") return undefined;
+  if (!("refreshCircuit" in providerSpecificData)) return undefined;
+  const next = { ...providerSpecificData };
+  delete next.refreshCircuit;
+  return next;
 }
 
 function isEnvFlagEnabled(name: string): boolean {
@@ -106,6 +152,25 @@ function isHealthCheckDisabled(): boolean {
     isEnvFlagEnabled("OMNIROUTE_DISABLE_TOKEN_HEALTHCHECK") ||
     isBuildProcess() ||
     isAutomatedTestProcess()
+  );
+}
+
+/**
+ * Providers excluded from the PROACTIVE refresh sweep, comma-separated and
+ * case-insensitive (e.g. "codex,openai"). A targeted alternative to the blunt
+ * OMNIROUTE_DISABLE_TOKEN_HEALTHCHECK switch: it lets an operator keep the
+ * rotating-token cascade providers (Codex/OpenAI share one Auth0 family) off the
+ * proactive sweep — leaving their refresh to the reactive, serialized 401 path —
+ * WITHOUT also starving short-TTL providers like Kimi-coding, whose tokens expire
+ * while idle when the whole sweep is disabled.
+ */
+function getHealthCheckSkipProviders(): Set<string> {
+  const raw = process.env.OMNIROUTE_HEALTHCHECK_SKIP_PROVIDERS || "";
+  return new Set(
+    raw
+      .split(",")
+      .map((s) => s.trim().toLowerCase())
+      .filter(Boolean)
   );
 }
 
@@ -265,6 +330,13 @@ export async function checkConnection(conn) {
   const latestConnection = (await getProviderConnectionById(conn.id)) || conn;
   conn = latestConnection;
 
+  // Per-provider opt-out of proactive refresh (e.g. Codex/OpenAI cascade
+  // providers) — their token stays on the reactive, serialized 401 path while
+  // other providers keep being refreshed proactively.
+  if (getHealthCheckSkipProviders().has(String(conn.provider || "").toLowerCase())) {
+    return;
+  }
+
   // Determine interval (0 = disabled)
   const intervalMin = conn.healthCheckInterval ?? DEFAULT_HEALTH_CHECK_INTERVAL_MIN;
   if (intervalMin <= 0) return;
@@ -328,6 +400,14 @@ export async function checkConnection(conn) {
     !hasKnownExpiry && !isRotatingProvider && Date.now() - lastCheck >= intervalMs;
 
   if (!isAboutToExpire && !shouldRefreshByInterval) return;
+
+  // Circuit breaker: if recent refreshes for this connection failed, wait out
+  // the exponential backoff window instead of retrying every 60s tick. This is
+  // what stops the refresh loop when getAccessToken keeps returning null
+  // (dead proxy / network blip / unclassified upstream error).
+  if (isInRefreshBackoff(conn, Date.now())) {
+    return;
+  }
 
   const reason = isAboutToExpire ? "token expiring soon" : `interval: ${intervalMin}min`;
   log(`${LOG_PREFIX} Refreshing ${conn.provider}/${getConnectionLogLabel(conn)} (${reason})`);
@@ -401,11 +481,17 @@ export async function checkConnection(conn) {
         updateData.expiresAt = expiresAt;
         updateData.tokenExpiresAt = expiresAt;
       }
-      if (refreshResult.providerSpecificData) {
-        updateData.providerSpecificData = {
-          ...(conn.providerSpecificData || {}),
-          ...refreshResult.providerSpecificData,
-        };
+      // Merge new providerSpecificData and ALWAYS clear the refresh circuit
+      // breaker streak on a successful refresh.
+      const mergedProviderData = {
+        ...(conn.providerSpecificData || {}),
+        ...(refreshResult.providerSpecificData || {}),
+      };
+      const clearedProviderData = clearRefreshCircuit(mergedProviderData);
+      if (clearedProviderData !== undefined) {
+        updateData.providerSpecificData = clearedProviderData;
+      } else if (refreshResult.providerSpecificData) {
+        updateData.providerSpecificData = mergedProviderData;
       }
       await updateProviderConnection(conn.id, updateData);
       persistedResult = refreshResult;
@@ -457,13 +543,21 @@ export async function checkConnection(conn) {
     await updateProviderConnection(conn.id, {
       lastHealthCheckAt: now,
       testStatus: "expired",
-      lastError: `Refresh token consumed (${result.error}). Please re-authenticate this account.`,
+      lastError: isRotatingProvider
+        ? `Refresh token consumed (${result.error}). Please re-authenticate this account.`
+        : `Refresh token rejected (${result.error}). Please re-authenticate this account.`,
       lastErrorAt: now,
       lastErrorType: result.error,
       lastErrorSource: "oauth",
       errorCode: result.error,
       isActive: false,
-      refreshToken: null,
+      // Only rotating-token providers (Codex/OpenAI/etc.) have single-use refresh
+      // tokens that are genuinely consumed and worthless after a failed refresh, so
+      // clearing them is safe. For non-rotating providers (Google: gemini-cli /
+      // antigravity / gemini) the stored refresh_token is the user's only recovery
+      // artifact — nulling it caused #3679 (the connection reports "No valid refresh
+      // token available" and can never recover even after re-activation). Preserve it.
+      ...(isRotatingProvider ? { refreshToken: null } : {}),
     });
     logError(
       `${LOG_PREFIX} ✗ ${conn.provider}/${getConnectionLogLabel(conn)} — ` +

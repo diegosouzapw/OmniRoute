@@ -4,6 +4,8 @@ import { useState, useEffect, useMemo } from "react";
 import { useTranslations } from "next-intl";
 import { Card } from "@/shared/components";
 import { useDisplayBaseUrl } from "@/shared/hooks";
+import VscodeTokenAliasCard from "./VscodeTokenAliasCard";
+import { matchesSearch } from "@/shared/utils/turkishText";
 
 /* ─── Types ──────────────────────────────────────────── */
 interface Endpoint {
@@ -136,12 +138,16 @@ export default function ApiEndpointsTab() {
   const filteredEndpoints = useMemo(() => {
     if (!catalog) return [];
     return catalog.endpoints.filter((ep) => {
+      // Keep the internal-endpoint visibility toggle + security-tier filter
+      // (from release) while using the locale-aware matchesSearch helper. The
+      // local var is matchesEndpoint (not matchesSearch) to avoid shadowing the
+      // imported helper used in its own initializer.
       if (!showInternal && ep.internal) return false;
-      const matchesSearch =
+      const matchesEndpoint =
         !search ||
-        ep.path.toLowerCase().includes(search.toLowerCase()) ||
-        ep.summary.toLowerCase().includes(search.toLowerCase()) ||
-        ep.tags.some((t) => t.toLowerCase().includes(search.toLowerCase()));
+        matchesSearch(ep.path, search) ||
+        matchesSearch(ep.summary, search) ||
+        ep.tags.some((t) => matchesSearch(t, search));
       const matchesTag = !selectedTag || ep.tags.includes(selectedTag);
       const matchesTier =
         securityTier === "all" ||
@@ -149,7 +155,7 @@ export default function ApiEndpointsTab() {
         (securityTier === "always-protected" && ep.alwaysProtected) ||
         (securityTier === "auth" && ep.security && !ep.loopbackOnly && !ep.alwaysProtected) ||
         (securityTier === "public" && !ep.security && !ep.loopbackOnly && !ep.alwaysProtected);
-      return matchesSearch && matchesTag && matchesTier;
+      return matchesEndpoint && matchesTag && matchesTier;
     });
   }, [catalog, search, selectedTag, showInternal, securityTier]);
 
@@ -266,31 +272,35 @@ export default function ApiEndpointsTab() {
 
       {/* ═══ API CATALOG ═══ */}
       {!catalog && (
-        <Card className="p-6">
-          <div className="flex items-start gap-3">
-            <div className="flex size-10 items-center justify-center rounded-lg bg-red-500/10">
-              <span className="material-symbols-outlined text-[20px] text-red-500">error</span>
-            </div>
-            <div>
-              <h3 className="text-sm font-semibold text-text-main">
-                {t("apiEndpointsCatalogUnavailable")}
-              </h3>
-              <p className="text-xs text-text-muted mt-1">
-                {catalogError || "The OpenAPI specification could not be loaded."}
-              </p>
-              <a
-                href="/api/openapi/spec"
-                target="_blank"
-                rel="noopener"
-                className="inline-flex items-center gap-1 mt-3 px-2.5 py-1.5 text-xs font-medium rounded-lg
+        <>
+          <Card className="p-6">
+            <div className="flex items-start gap-3">
+              <div className="flex size-10 items-center justify-center rounded-lg bg-red-500/10">
+                <span className="material-symbols-outlined text-[20px] text-red-500">error</span>
+              </div>
+              <div>
+                <h3 className="text-sm font-semibold text-text-main">
+                  {t("apiEndpointsCatalogUnavailable")}
+                </h3>
+                <p className="text-xs text-text-muted mt-1">
+                  {catalogError || "The OpenAPI specification could not be loaded."}
+                </p>
+                <a
+                  href="/api/openapi/spec"
+                  target="_blank"
+                  rel="noopener"
+                  className="inline-flex items-center gap-1 mt-3 px-2.5 py-1.5 text-xs font-medium rounded-lg
                            bg-black/5 dark:bg-white/5 hover:bg-black/10 dark:hover:bg-white/10 transition-colors"
-              >
-                <span className="material-symbols-outlined text-[14px]">open_in_new</span>
-                Open JSON response
-              </a>
+                >
+                  <span className="material-symbols-outlined text-[14px]">open_in_new</span>
+                  Open JSON response
+                </a>
+              </div>
             </div>
-          </div>
-        </Card>
+          </Card>
+
+          <VscodeTokenAliasCard variant="catalog" />
+        </>
       )}
 
       {catalog && (
@@ -379,6 +389,8 @@ export default function ApiEndpointsTab() {
               </button>
             </div>
           </div>
+
+          <VscodeTokenAliasCard variant="catalog" />
 
           {/* Endpoint groups */}
           {Object.entries(groupedEndpoints).map(([tag, endpoints]) => (

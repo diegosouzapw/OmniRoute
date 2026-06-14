@@ -42,7 +42,7 @@ RUN --mount=type=cache,target=/root/.npm \
 ENV OMNIROUTE_USE_TURBOPACK=1
 
 COPY . ./
-RUN --mount=type=cache,target=/app/.next/cache \
+RUN --mount=type=cache,target=/app/.build/next/cache \
   mkdir -p /app/data && npm run build
 
 # ── Runner base ────────────────────────────────────────────────────────────
@@ -57,30 +57,33 @@ LABEL org.opencontainers.image.title="omniroute" \
 ENV NODE_ENV=production
 ENV PORT=20128
 ENV HOSTNAME=0.0.0.0
-ENV NODE_OPTIONS="--max-old-space-size=256"
+ENV OMNIROUTE_MEMORY_MB=1024
+ENV NODE_OPTIONS="--max-old-space-size=${OMNIROUTE_MEMORY_MB}"
 
 # Data directory inside Docker — must match the volume mount in docker-compose.yml
 ENV DATA_DIR=/app/data
 RUN mkdir -p /app/data
 
-# The standalone build + syncStandaloneExtraModules bundles all runtime files
-# (.next, node_modules, migrations, scripts, docs, etc.) into .next/standalone/.
-# Explicit overrides below cover modules that NFT tracing may miss.
-COPY --from=builder /app/.next/standalone ./
-# Explicitly copy @swc/helpers — not always traced by standalone output but needed at runtime
-COPY --from=builder /app/node_modules/@swc/helpers ./node_modules/@swc/helpers
-# Explicitly copy better-sqlite3 — native bindings are not reliably traced by
-# Next.js standalone output, but bootstrap-env requires SQLite before startup.
+# `npm run build` (build-next-isolated → assembleStandalone) bundles ALL runtime
+# files into .build/next/standalone/ — .next, node_modules, migrations, scripts,
+# docs, and the previously hand-COPY'd modules below (@swc/helpers, pino-*, split2,
+# migrations). assembleStandalone copies them straight from the builder's
+# node_modules, so they are present regardless of NFT/Turbopack trace behaviour.
+# The old per-module overrides were therefore pure duplication and were removed
+# (build-output-isolation cleanup). See scripts/build/assembleStandalone.mjs
+# (EXTRA_MODULE_ENTRIES) for the single source of truth.
+COPY --from=builder /app/.build/next/standalone ./
+# better-sqlite3 is the one exception still copied explicitly: assembleStandalone
+# only syncs its native build/ dir; the JS wrapper (lib/, package.json) is left to
+# Next.js tracing. bootstrap-env requires SQLite BEFORE the standalone server
+# starts, so guarantee the complete package independent of trace behaviour.
 COPY --from=builder /app/node_modules/better-sqlite3 ./node_modules/better-sqlite3
-# Explicitly copy pino transport dependencies — pino spawns a worker that requires
-# pino-abstract-transport at runtime; Next.js standalone trace does not capture it (#449)
-COPY --from=builder /app/node_modules/pino-abstract-transport ./node_modules/pino-abstract-transport
-COPY --from=builder /app/node_modules/pino-pretty ./node_modules/pino-pretty
-COPY --from=builder /app/node_modules/split2 ./node_modules/split2
-# Migration SQL files are read via fs.readFileSync at runtime and are NOT
-# traced by Next.js standalone output — copy them explicitly.
-COPY --from=builder /app/src/lib/db/migrations ./migrations
+# migrations land at <standalone>/migrations via assembleStandalone; point the runtime at them.
 ENV OMNIROUTE_MIGRATIONS_DIR=/app/migrations
+
+# Docker healthcheck script — not traced by Next.js standalone output, so copy
+# it explicitly. The HEALTHCHECK CMD references it as `node healthcheck.mjs`.
+COPY --from=builder /app/scripts/dev/healthcheck.mjs ./healthcheck.mjs
 
 # Hand /app over to the baked-in `node` non-root user (UID/GID 1000) so the
 # runtime process never holds root privileges. The chown happens after all
@@ -89,12 +92,60 @@ RUN chown -R node:node /app
 
 EXPOSE 20128
 
+# Drop to non-root before ENTRYPOINT/CMD so every derived stage (runner-cli,
+# runner-web) also runs as a non-root user unless they explicitly switch back.
 USER node
+
+# Warns if the mounted data volume has wrong ownership
+COPY --chmod=755 scripts/check-permissions.sh /tmp/check-permissions.sh
+ENTRYPOINT ["/tmp/check-permissions.sh"]
 
 HEALTHCHECK --interval=30s --timeout=5s --start-period=15s --retries=3 \
   CMD ["node", "healthcheck.mjs"]
 
 CMD ["node", "dev/run-standalone.mjs"]
+
+# ── Runner Web (web-cookie providers: Gemini Web, Claude Turnstile) ───────────
+#
+#  Two image flavors:
+#    runner-base  →  omniroute:VERSION        Lean base (~500 MB). No browsers.
+#    runner-web   →  omniroute:VERSION-web    +Chromium/Playwright (~800 MB).
+#
+#  Use runner-web when you need web-cookie providers (gemini-web, claude-web,
+#  claude-turnstile). For all other providers runner-base is sufficient.
+#
+#  Build:
+#    docker build --target runner-web -t omniroute:web .
+#  Compose:
+#    build:
+#      context: .
+#      target: runner-web
+FROM runner-base AS runner-web
+
+USER root
+
+# Copy playwright and playwright-core from the builder stage.
+# The slim runtime image does not have playwright in node_modules, so npx falls
+# back to a registry download — unreliable on CI runners (exits 127 on failure).
+# Copying from the builder avoids any network access at image-build time and also
+# ensures the same playwright version is available at runtime for web-session providers.
+COPY --from=builder /app/node_modules/playwright-core ./node_modules/playwright-core
+COPY --from=builder /app/node_modules/playwright ./node_modules/playwright
+
+# Install Playwright browser binaries + OS dependencies under root, then hand
+# ownership of the browsers cache to the node user.
+# PLAYWRIGHT_BROWSERS_PATH overrides the default ~/.cache/ms-playwright so the
+# browsers land under /home/node which persists across image layers and is
+# accessible to the non-root runtime user.
+ENV PLAYWRIGHT_BROWSERS_PATH=/home/node/.cache/ms-playwright
+RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
+  --mount=type=cache,target=/var/lib/apt/lists,sharing=locked \
+  apt-get update \
+  && node node_modules/playwright/cli.js install chromium --with-deps \
+  && chown -R node:node /home/node/.cache \
+  && rm -rf /var/lib/apt/lists/*
+
+USER node
 
 FROM runner-base AS runner-cli
 

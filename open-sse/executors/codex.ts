@@ -1,4 +1,5 @@
 import { getCodexRequestDefaults } from "@/lib/providers/requestDefaults";
+import { isFeatureFlagEnabled } from "@/shared/utils/featureFlags";
 import {
   BaseExecutor,
   mergeUpstreamExtraHeaders,
@@ -155,13 +156,13 @@ export interface CodexQuotaSnapshot {
  *   x-codex-5h-usage / x-codex-5h-limit / x-codex-5h-reset-at
  *   x-codex-7d-usage / x-codex-7d-limit / x-codex-7d-reset-at
  */
-export function parseCodexQuotaHeaders(headers: Headers): CodexQuotaSnapshot | null {
-  const usage5h = headers.get("x-codex-5h-usage");
-  const limit5h = headers.get("x-codex-5h-limit");
-  const resetAt5h = headers.get("x-codex-5h-reset-at");
-  const usage7d = headers.get("x-codex-7d-usage");
-  const limit7d = headers.get("x-codex-7d-limit");
-  const resetAt7d = headers.get("x-codex-7d-reset-at");
+export function parseCodexQuotaHeaders(headers: Record<string, string>): CodexQuotaSnapshot | null {
+  const usage5h = headers["x-codex-5h-usage"] ?? null;
+  const limit5h = headers["x-codex-5h-limit"] ?? null;
+  const resetAt5h = headers["x-codex-5h-reset-at"] ?? null;
+  const usage7d = headers["x-codex-7d-usage"] ?? null;
+  const limit7d = headers["x-codex-7d-limit"] ?? null;
+  const resetAt7d = headers["x-codex-7d-reset-at"] ?? null;
 
   // Return null if none of the quota headers are present (not a quota-aware response)
   if (!usage5h && !limit5h && !resetAt5h && !usage7d && !limit7d && !resetAt7d) {
@@ -377,12 +378,53 @@ function stripStoredItemReferences(body: Record<string, unknown>): void {
   }
 }
 
+function repairMissingCodexFunctionCallOutputs(body: Record<string, unknown>): void {
+  if (!Array.isArray(body.input)) return;
+
+  const existingOutputIds = new Set<string>();
+  for (const item of body.input) {
+    if (!item || typeof item !== "object" || Array.isArray(item)) continue;
+    const record = item as Record<string, unknown>;
+    if (record.type !== "function_call_output") continue;
+    if (typeof record.call_id === "string" && record.call_id.trim()) {
+      existingOutputIds.add(record.call_id.trim());
+    }
+  }
+
+  const repaired: unknown[] = [];
+  let insertedCount = 0;
+  for (const item of body.input) {
+    repaired.push(item);
+    if (!item || typeof item !== "object" || Array.isArray(item)) continue;
+    const record = item as Record<string, unknown>;
+    if (record.type !== "function_call") continue;
+    const callId = typeof record.call_id === "string" ? record.call_id.trim() : "";
+    if (!callId || existingOutputIds.has(callId)) continue;
+
+    repaired.push({
+      type: "function_call_output",
+      call_id: callId,
+      output: "",
+    });
+    existingOutputIds.add(callId);
+    insertedCount++;
+  }
+
+  if (insertedCount > 0) {
+    body.input = repaired;
+    console.debug(
+      `[Codex] repairMissingCodexFunctionCallOutputs: inserted ${insertedCount} empty function_call_output item(s)`
+    );
+  }
+}
+
 // Responses-API hosted tool types that OpenAI/Codex executes server-side.
 // These arrive shaped as `{ type, ...params }` with no `function` object and no `name` —
 // e.g. Codex CLI injects `{ type: "image_generation", output_format: "png" }` or
 // `{ type: "namespace", name: "mcp__atlassian__", tools: [...] }` for MCP tool groups.
 // Keep them through `normalizeCodexTools` so upstream can execute them.
 const CODEX_HOSTED_TOOL_TYPES: ReadonlySet<string> = new Set([
+  "tool_search",
   "image_generation",
   "web_search",
   "web_search_preview",
@@ -394,7 +436,20 @@ const CODEX_HOSTED_TOOL_TYPES: ReadonlySet<string> = new Set([
   "local_shell",
 ]);
 
-function normalizeCodexTools(body: Record<string, unknown>): void {
+// #2980: a free-plan Codex account (workspacePlanType === "free", from the OAuth
+// id_token) cannot run the server-side `image_generation` hosted tool. The Codex
+// CLI injects it into every Responses request regardless of plan, so it must be
+// dropped for free-plan accounts (mirrors CLIProxyAPI's isCodexFreePlanAuth).
+export function isCodexFreePlan(providerSpecificData: unknown): boolean {
+  if (!providerSpecificData || typeof providerSpecificData !== "object") return false;
+  const plan = (providerSpecificData as { workspacePlanType?: unknown }).workspacePlanType;
+  return typeof plan === "string" && plan.trim().toLowerCase() === "free";
+}
+
+export function normalizeCodexTools(
+  body: Record<string, unknown>,
+  options?: { dropImageGeneration?: boolean; preserveCustomTools?: boolean }
+): void {
   if (!Array.isArray(body.tools)) return;
 
   const validToolNames = new Set<string>();
@@ -421,6 +476,18 @@ function normalizeCodexTools(body: Record<string, unknown>): void {
       return true;
     }
 
+    // Native Codex clients send Responses API custom tools such as apply_patch as:
+    // { type: "custom", name, format }. Preserve those only on native passthrough;
+    // translated/non-native requests can still contain provider-specific "custom"
+    // shapes that the Codex backend would reject.
+    if (toolType === "custom" && options?.preserveCustomTools === true) {
+      const name = typeof tool.name === "string" ? tool.name.trim().slice(0, 128) : "";
+      if (!name) return false;
+      tool.name = name;
+      validToolNames.add(name);
+      return true;
+    }
+
     if (toolType !== "function") {
       const hasFunctionObject = tool.function && typeof tool.function === "object";
       const hasName = typeof tool.name === "string";
@@ -428,6 +495,11 @@ function normalizeCodexTools(body: Record<string, unknown>): void {
         return false;
       }
       if (CODEX_HOSTED_TOOL_TYPES.has(toolType)) {
+        // #2980: drop the CLI-injected image_generation tool for free-plan
+        // accounts, which can't run it server-side (upstream 400 otherwise).
+        if (toolType === "image_generation" && options?.dropImageGeneration === true) {
+          return false;
+        }
         return true;
       }
       console.debug(`[Codex] dropping unknown hosted tool type: ${toolType}`);
@@ -472,6 +544,12 @@ function normalizeCodexTools(body: Record<string, unknown>): void {
             !Array.isArray(functionObject.parameters)
           ? functionObject.parameters
           : { type: "object", properties: {} };
+    const strict =
+      typeof tool.strict === "boolean"
+        ? tool.strict
+        : typeof functionObject?.strict === "boolean"
+          ? functionObject.strict
+          : undefined;
 
     // Rewrite in-place to Responses format
     for (const key of Object.keys(tool)) {
@@ -481,6 +559,7 @@ function normalizeCodexTools(body: Record<string, unknown>): void {
     tool.name = name.slice(0, 128);
     if (description) tool.description = description;
     tool.parameters = parameters;
+    if (strict !== undefined) tool.strict = strict;
 
     validToolNames.add(name);
     return true;
@@ -579,7 +658,24 @@ function consumeResponsesStoreMarker(body: Record<string, unknown>): unknown {
   return marker;
 }
 
+/**
+ * Global Codex WebSocket kill-switch (feature flag OMNIROUTE_CODEX_WS_ENABLED,
+ * default ON). Fail-open: if the flag store is unreachable (e.g. DB not yet
+ * ready), treat as enabled so codex routing is never broken by the read itself.
+ */
+function isCodexWsGloballyEnabled(): boolean {
+  try {
+    return isFeatureFlagEnabled("OMNIROUTE_CODEX_WS_ENABLED");
+  } catch {
+    return true;
+  }
+}
+
 export function isCodexResponsesWebSocketRequired(_model: string, credentials: unknown): boolean {
+  // Global kill-switch (default ON). When disabled, Codex never uses the WS
+  // transport — even per-connection codexTransport=websocket falls back to the
+  // HTTP Responses SSE endpoint.
+  if (!isCodexWsGloballyEnabled()) return false;
   // OmniRoute is an HTTP→SSE gateway — WebSocket transport is unnecessary and
   // breaks when upstream requests go through an HTTP proxy (403 on WS upgrade).
   // Default to the standard HTTP Responses SSE endpoint for all Codex models.
@@ -686,9 +782,13 @@ export function encodeResponseSseEvent(raw: string): { sse: string; terminal: bo
 }
 
 function toWebSocketUrl(url: string): string {
-  if (url.startsWith("wss://") || url.startsWith("ws://")) return url;
-  if (url.startsWith("https://")) return `wss://${url.slice("https://".length)}`;
-  if (url.startsWith("http://")) return `ws://${url.slice("http://".length)}`;
+  // Symmetric scheme map that PRESERVES the caller's transport choice by
+  // rewriting only the leading scheme: https→secure WS (production, e.g.
+  // chatgpt.com), http→plain WS (local/dev only). Not a hardcoded cleartext
+  // endpoint — the production codex upstream is the secure CODEX_RESPONSES_WS_URL.
+  if (/^wss?:\/\//.test(url)) return url;
+  if (url.startsWith("https:")) return url.replace(/^https:/, "wss:");
+  if (url.startsWith("http:")) return url.replace(/^http:/, "ws:");
   return CODEX_RESPONSES_WS_URL;
 }
 
@@ -1134,8 +1234,11 @@ export class CodexExecutor extends BaseExecutor {
     }
 
     if (Array.isArray(body.input)) {
-      body.input = sanitizeResponsesInputItems(body.input, false);
+      body.input = sanitizeResponsesInputItems(body.input, false, {
+        dropInternalAssistantMessages: !nativeCodexPassthrough,
+      });
     }
+    repairMissingCodexFunctionCallOutputs(body);
 
     // ── Cache-aware system prompt handling (both paths) ──
     //
@@ -1199,7 +1302,10 @@ export class CodexExecutor extends BaseExecutor {
     // Codex Responses only supports function tools with non-empty names.
     // Cursor may include custom tools (e.g. ApplyPatch) that work locally but are
     // invalid upstream, and translation bugs can leave orphaned/empty tool_choice names.
-    normalizeCodexTools(body);
+    normalizeCodexTools(body, {
+      dropImageGeneration: isCodexFreePlan(credentials?.providerSpecificData),
+      preserveCustomTools: nativeCodexPassthrough,
+    });
 
     // Strip stored response item references (rs_, resp_, msg_ IDs) from input.
     // The /codex/responses endpoint does not persist responses even with store=true,
@@ -1254,6 +1360,17 @@ export class CodexExecutor extends BaseExecutor {
     // both native passthrough and translated requests.
     delete body.truncation;
     delete body.background; // Droid CLI sends this but Codex Responses API rejects it
+
+    // Issue #3317: strip client-only fields the Codex Responses API rejects with
+    // 400 "Unsupported parameter" — for BOTH the native passthrough (early return
+    // below) and the translated path. The chat-completions path already removes
+    // these (base.ts prompt_cache_retention #1884; openai-responses translator
+    // safety_identifier #2770), but the responses->responses passthrough skips
+    // translation. `user` is always rejected by Codex /responses, so it is removed
+    // unconditionally here (unlike base.ts, which only drops it when empty).
+    delete body.prompt_cache_retention;
+    delete body.safety_identifier;
+    delete body.user;
 
     // Inject prompt_cache_key for Codex prompt caching.
     // The official Codex client sets this to conversation_id (a stable UUID per session).

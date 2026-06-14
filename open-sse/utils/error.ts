@@ -227,7 +227,9 @@ export async function parseUpstreamError(response: Response, provider: string | 
 
     // Try parse as JSON
     try {
-      const json = JSON.parse(text);
+      const parsed = JSON.parse(text);
+      // Handle array responses (e.g., from some Gemini APIs)
+      const json = (Array.isArray(parsed) && parsed.length > 0 ? parsed[0] : parsed) || {};
       message = json.error?.message || json.message || json.error || text;
       errorCode = json.error?.code || json.code;
       errorType = json.error?.type || json.type;
@@ -440,6 +442,40 @@ export function modelCooldownResponse({
       },
     }
   );
+}
+
+/**
+ * Build an executor-style error result (response + url + headers + transformedBody).
+ * Shared by web-cookie executors that return the `{ response, url, headers, transformedBody }` shape.
+ */
+export function makeExecutorErrorResult(
+  status: number,
+  message: string,
+  body: unknown,
+  url: string
+) {
+  return {
+    response: new Response(
+      JSON.stringify({
+        error: {
+          message: sanitizeErrorMessage(message),
+          type: "upstream_error",
+          code: `HTTP_${status}`,
+        },
+      }),
+      { status, headers: { "Content-Type": "application/json" } }
+    ),
+    url,
+    headers: {} as Record<string, string>,
+    transformedBody: body,
+  };
+}
+
+/**
+ * Normalize a cookie string: strip a leading "Cookie:" prefix if present.
+ */
+export function normalizeCookie(raw: string): string {
+  return raw?.startsWith("Cookie:") ? raw.slice(7).trim() : raw || "";
 }
 
 /**

@@ -2,6 +2,7 @@
 
 import { useEffect } from "react";
 import { useTranslations } from "next-intl";
+import { useBatchActions } from "./components/useBatchActions";
 
 function relativeTime(ts: number): string {
   const diffMs = Date.now() - ts * 1000;
@@ -64,6 +65,8 @@ interface BatchDetailModalProps {
   batch: BatchRecord;
   files: FileRecord[];
   onClose: () => void;
+  /** Called after a successful cancel/retry action so the parent can refresh its list. */
+  onActionDone?: () => void;
 }
 
 const STATUS_STYLES: Record<string, string> = {
@@ -79,6 +82,7 @@ const STATUS_STYLES: Record<string, string> = {
   cancelled: "bg-gray-500/15 text-gray-400 border-gray-500/25",
   cancelled_with_failures: "bg-red-500/15 text-red-400 border-red-500/25",
   expired: "bg-gray-500/15 text-gray-400 border-gray-500/25",
+  expired_with_failures: "bg-orange-500/15 text-orange-400 border-orange-500/25",
 };
 
 const STATUS_LABELS: Record<string, string> = {
@@ -86,6 +90,7 @@ const STATUS_LABELS: Record<string, string> = {
   in_progress_with_failures: "in progress (with failures)",
   finalizing_with_failures: "finalizing (with failures)",
   cancelled_with_failures: "cancelled with failures",
+  expired_with_failures: "expired (partial)",
 };
 
 function effectiveStatus(batch: BatchRecord): string {
@@ -96,6 +101,7 @@ function effectiveStatus(batch: BatchRecord): string {
     in_progress: "in_progress_with_failures",
     finalizing: "finalizing_with_failures",
     cancelled: "cancelled_with_failures",
+    expired: "expired_with_failures",
   };
   return map[batch.status] ?? batch.status;
 }
@@ -135,8 +141,18 @@ function formatTs(ts: number | null | undefined): string {
   });
 }
 
-export default function BatchDetailModal({ batch, files, onClose }: BatchDetailModalProps) {
+export default function BatchDetailModal({ batch, files, onClose, onActionDone }: BatchDetailModalProps) {
   const t = useTranslations("common");
+
+  // ── Action hook (F7) ─────────────────────────────────────────────────────────
+  const { cancelling, retrying, error: actionError, cancel, retry, downloadHrefOutput, downloadHrefErrors } =
+    useBatchActions({ onRefresh: onActionDone, t });
+
+  // ── Status flags ──────────────────────────────────────────────────────────────
+  const isTerminal = ["completed", "failed", "cancelled", "expired"].includes(batch.status);
+  const canCancel = ["validating", "in_progress", "finalizing"].includes(batch.status);
+  const canRetry = isTerminal && !!batch.errorFileId && (batch.requestCountsFailed ?? 0) > 0;
+
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
       if (e.key === "Escape") onClose();
@@ -166,7 +182,12 @@ export default function BatchDetailModal({ batch, files, onClose }: BatchDetailM
       />
 
       {/* Panel */}
-      <div className="relative w-full sm:max-w-2xl bg-[var(--color-surface)] border border-[var(--color-border)] rounded-t-2xl sm:rounded-xl shadow-2xl animate-in fade-in slide-in-from-bottom-4 duration-200 max-h-[90vh] flex flex-col">
+      <div
+        className="relative w-full sm:max-w-2xl bg-[var(--color-surface)] border border-[var(--color-border)] rounded-t-2xl sm:rounded-xl shadow-2xl animate-in fade-in slide-in-from-bottom-4 duration-200 max-h-[90vh] flex flex-col"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="batch-detail-modal-title"
+      >
         {/* Header */}
         <div className="flex items-center justify-between px-6 py-4 border-b border-[var(--color-border)] flex-shrink-0">
           <div className="flex items-center gap-3">
@@ -174,7 +195,7 @@ export default function BatchDetailModal({ batch, files, onClose }: BatchDetailM
               pending_actions
             </span>
             <div>
-              <h2 className="text-base font-semibold text-[var(--color-text-main)]">
+              <h2 id="batch-detail-modal-title" className="text-base font-semibold text-[var(--color-text-main)]">
                 Batch Details
               </h2>
               <div className="flex items-center gap-2 mt-0.5">
@@ -382,6 +403,93 @@ export default function BatchDetailModal({ batch, files, onClose }: BatchDetailM
             </div>
           )}
         </div>
+
+        {/* ── Action footer (F7) ─────────────────────────────────────────── */}
+        {(canCancel || canRetry || batch.outputFileId || batch.errorFileId) && (
+          <div className="flex flex-wrap gap-2 px-6 py-4 border-t border-[var(--color-border)] flex-shrink-0">
+            {/* Download output */}
+            {batch.outputFileId && (
+              <a
+                href={downloadHrefOutput(batch.outputFileId) ?? "#"}
+                download={`batch-${batch.id}-output.jsonl`}
+                className="flex items-center gap-2 px-3 py-2 text-sm font-medium rounded-lg bg-[var(--color-bg-alt)] border border-[var(--color-border)] text-[var(--color-text-main)] hover:opacity-90 transition-opacity"
+              >
+                <span className="material-symbols-outlined text-[16px]">download</span>
+                {t("batchActionDownloadOutput")}
+              </a>
+            )}
+
+            {/* Download errors */}
+            {batch.errorFileId && (
+              <a
+                href={downloadHrefErrors(batch.errorFileId) ?? "#"}
+                download={`batch-${batch.id}-errors.jsonl`}
+                className="flex items-center gap-2 px-3 py-2 text-sm font-medium rounded-lg bg-red-500/10 border border-red-500/25 text-red-400 hover:text-red-300 transition-colors"
+              >
+                <span className="material-symbols-outlined text-[16px]">error_outline</span>
+                {t("batchActionDownloadErrors")}
+              </a>
+            )}
+
+            {/* Retry failed */}
+            {canRetry && (
+              <button
+                onClick={async () => {
+                  if (
+                    window.confirm(
+                      t("batchDetailActionRetry") +
+                        ` (${batch.requestCountsFailed} ${t("batchActionRetry")})?`,
+                    )
+                  ) {
+                    const result = await retry({
+                      id: batch.id,
+                      inputFileId: batch.inputFileId,
+                      errorFileId: batch.errorFileId,
+                      endpoint: batch.endpoint,
+                    });
+                    if (result?.newBatchId) onClose();
+                  }
+                }}
+                disabled={retrying}
+                className="flex items-center gap-2 px-3 py-2 text-sm font-medium rounded-lg bg-blue-500/10 border border-blue-500/25 text-blue-400 hover:text-blue-300 transition-colors disabled:opacity-50"
+              >
+                <span className="material-symbols-outlined text-[16px]">
+                  {retrying ? "hourglass_empty" : "refresh"}
+                </span>
+                {retrying ? t("batchDetailRetrying") : t("batchDetailActionRetry")}
+              </button>
+            )}
+
+            {/* Cancel */}
+            {canCancel && (
+              <button
+                onClick={async () => {
+                  if (window.confirm(t("batchDetailCancelConfirm"))) {
+                    await cancel(batch.id);
+                    onClose();
+                  }
+                }}
+                disabled={cancelling}
+                className="flex items-center gap-2 px-3 py-2 text-sm font-medium rounded-lg bg-orange-500/10 border border-orange-500/25 text-orange-400 hover:text-orange-300 transition-colors disabled:opacity-50 ml-auto"
+              >
+                <span className="material-symbols-outlined text-[16px]">
+                  {cancelling ? "hourglass_empty" : "close"}
+                </span>
+                {cancelling ? t("batchDetailCancelling") : t("batchDetailActionCancel")}
+              </button>
+            )}
+
+            {/* Action error — uses i18n key set by hook (D14: never raw err.message/stack) */}
+            {actionError && (
+              <div role="alert" className="basis-full mt-1 text-xs text-red-400">
+                {/* actionError is an i18n key from the hook (e.g. "batchActionCancel").
+                    Cast is needed because next-intl types its arg as a specific union;
+                    the hook guarantees this is always a valid message key. */}
+                {t(actionError as Parameters<typeof t>[0])}
+              </div>
+            )}
+          </div>
+        )}
       </div>
     </div>
   );

@@ -71,3 +71,39 @@ test("T44: Antigravity still strips standalone thoughtSignature without tool cal
 
   assert.deepEqual(transformed.request.contents[0].parts, [{ text: "plain text" }]);
 });
+
+test("T44: Antigravity preserves skip_thought_signature_validator bypass sentinel", async () => {
+  const executor = new AntigravityExecutor();
+  const transformed = await executor.transformRequest(
+    "gemini-3-flash",
+    {
+      request: {
+        contents: [
+          {
+            role: "model",
+            parts: [
+              { thoughtSignature: "skip_thought_signature_validator" },
+              {
+                functionCall: {
+                  id: "call_2",
+                  name: "default_api:bash",
+                  args: { command: "ls" },
+                },
+              },
+            ],
+          },
+        ],
+        tools: [{ functionDeclarations: [{ name: "default_api:bash" }] }],
+      },
+    },
+    true,
+    { projectId: "test-project" }
+  );
+
+  const parts = transformed.request.contents[0].parts;
+  assert.equal(
+    parts.some((part) => part.thoughtSignature === "skip_thought_signature_validator"),
+    true,
+    "executor MUST NOT scrub the skip_thought_signature_validator bypass sentinel"
+  );
+});

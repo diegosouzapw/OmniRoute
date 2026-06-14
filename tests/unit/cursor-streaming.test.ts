@@ -125,6 +125,20 @@ test("processFrame sets endReason on kv_server_message after text", () => {
   assert.equal(ctx.kvAfterTextSeen, true);
 });
 
+test("buildCursorUsage degrades to prompt-only counts for an empty response", () => {
+  // emitUsage now always emits on the success path (OpenAI streaming contract),
+  // relying on buildCursorUsage producing a valid usage object even when the
+  // model returned no text/thinking/token_delta.
+  const ctx = newStreamCtx("auto", () => {});
+  const usage = buildCursorUsage(ctx, {
+    messages: [{ role: "user", content: "hi" }],
+  });
+  assert.equal(typeof usage.prompt_tokens, "number");
+  assert.equal(usage.completion_tokens, 0);
+  assert.equal(usage.total_tokens, usage.prompt_tokens);
+  assert.equal(usage.estimated, true);
+});
+
 test("processFrame ignores kv_server_message before text (no end signal yet)", () => {
   const ctx = newStreamCtx("auto", () => {});
   processFrame(buildKvServerMessagePayload(), ctx, new Set());

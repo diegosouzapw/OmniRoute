@@ -5,36 +5,25 @@ import { readFileSync } from "node:fs";
 
 export function register_system(parent) {
   const tag = parent.command("system").description("System endpoints");
-  tag
-    .command("get-api-v1")
+  tag.command("get-api-v1")
     .description("API v1 root endpoint")
     .action(async (opts, cmd) => {
       const gOpts = cmd.optsWithGlobals();
       let url = "/api/v1";
-      const res = await apiFetch(url, {
-        method: "GET",
-        baseUrl: gOpts.baseUrl,
-        apiKey: gOpts.apiKey,
-      });
+      const res = await apiFetch(url, { method: "GET", baseUrl: gOpts.baseUrl, apiKey: gOpts.apiKey });
       const data = res.ok ? await res.json() : await res.text();
       emit(data, gOpts);
     });
-  tag
-    .command("get-api-tags")
+  tag.command("get-api-tags")
     .description("List Ollama-compatible model tags")
     .action(async (opts, cmd) => {
       const gOpts = cmd.optsWithGlobals();
       let url = "/api/tags";
-      const res = await apiFetch(url, {
-        method: "GET",
-        baseUrl: gOpts.baseUrl,
-        apiKey: gOpts.apiKey,
-      });
+      const res = await apiFetch(url, { method: "GET", baseUrl: gOpts.baseUrl, apiKey: gOpts.apiKey });
       const data = res.ok ? await res.json() : await res.text();
       emit(data, gOpts);
     });
-  tag
-    .command("post-api-auth-login")
+  tag.command("post-api-auth-login")
     .description("Authenticate user")
     .option("--body <jsonOrPath>", "JSON body or @path/to/file.json")
     .action(async (opts, cmd) => {
@@ -46,157 +35,101 @@ export function register_system(parent) {
           ? JSON.parse(readFileSync(opts.body.slice(1), "utf8"))
           : JSON.parse(opts.body);
       }
-      const res = await apiFetch(url, {
-        method: "POST",
-        body,
-        baseUrl: gOpts.baseUrl,
-        apiKey: gOpts.apiKey,
-      });
+      const res = await apiFetch(url, { method: "POST", body, baseUrl: gOpts.baseUrl, apiKey: gOpts.apiKey });
       const data = res.ok ? await res.json() : await res.text();
       emit(data, gOpts);
     });
-  tag
-    .command("post-api-auth-logout")
+  tag.command("post-api-auth-logout")
     .description("Log out")
     .action(async (opts, cmd) => {
       const gOpts = cmd.optsWithGlobals();
       let url = "/api/auth/logout";
-      const res = await apiFetch(url, {
-        method: "POST",
-        baseUrl: gOpts.baseUrl,
-        apiKey: gOpts.apiKey,
-      });
+      const res = await apiFetch(url, { method: "POST", baseUrl: gOpts.baseUrl, apiKey: gOpts.apiKey });
       const data = res.ok ? await res.json() : await res.text();
       emit(data, gOpts);
     });
-  tag
-    .command("get-api-init")
+  tag.command("get-api-init")
     .description("Initialize application")
     .action(async (opts, cmd) => {
       const gOpts = cmd.optsWithGlobals();
       let url = "/api/init";
-      const res = await apiFetch(url, {
-        method: "GET",
-        baseUrl: gOpts.baseUrl,
-        apiKey: gOpts.apiKey,
-      });
+      const res = await apiFetch(url, { method: "GET", baseUrl: gOpts.baseUrl, apiKey: gOpts.apiKey });
       const data = res.ok ? await res.json() : await res.text();
       emit(data, gOpts);
     });
-  tag
-    .command("post-api-restart")
+  tag.command("post-api-restart")
     .description("Restart the application")
     .action(async (opts, cmd) => {
       const gOpts = cmd.optsWithGlobals();
       let url = "/api/restart";
-      const res = await apiFetch(url, {
-        method: "POST",
-        baseUrl: gOpts.baseUrl,
-        apiKey: gOpts.apiKey,
-      });
+      const res = await apiFetch(url, { method: "POST", baseUrl: gOpts.baseUrl, apiKey: gOpts.apiKey });
       const data = res.ok ? await res.json() : await res.text();
       emit(data, gOpts);
     });
-  tag
-    .command("post-api-shutdown")
+  tag.command("post-api-shutdown")
     .description("Shutdown the application")
     .action(async (opts, cmd) => {
       const gOpts = cmd.optsWithGlobals();
       let url = "/api/shutdown";
-      const res = await apiFetch(url, {
-        method: "POST",
-        baseUrl: gOpts.baseUrl,
-        apiKey: gOpts.apiKey,
-      });
+      const res = await apiFetch(url, { method: "POST", baseUrl: gOpts.baseUrl, apiKey: gOpts.apiKey });
       const data = res.ok ? await res.json() : await res.text();
       emit(data, gOpts);
     });
-  tag
-    .command("get-api-db-backups")
+  tag.command("get-api-db-backups")
     .description("List database backups")
     .action(async (opts, cmd) => {
       const gOpts = cmd.optsWithGlobals();
       let url = "/api/db-backups";
-      const res = await apiFetch(url, {
-        method: "GET",
-        baseUrl: gOpts.baseUrl,
-        apiKey: gOpts.apiKey,
-      });
+      const res = await apiFetch(url, { method: "GET", baseUrl: gOpts.baseUrl, apiKey: gOpts.apiKey });
       const data = res.ok ? await res.json() : await res.text();
       emit(data, gOpts);
     });
-  tag
-    .command("post-api-db-backups")
+  tag.command("post-api-db-backups")
     .description("Create database backup")
     .action(async (opts, cmd) => {
       const gOpts = cmd.optsWithGlobals();
       let url = "/api/db-backups";
-      const res = await apiFetch(url, {
-        method: "POST",
-        baseUrl: gOpts.baseUrl,
-        apiKey: gOpts.apiKey,
-      });
+      const res = await apiFetch(url, { method: "POST", baseUrl: gOpts.baseUrl, apiKey: gOpts.apiKey });
       const data = res.ok ? await res.json() : await res.text();
       emit(data, gOpts);
     });
-  tag
-    .command("get-api-storage-health")
+  tag.command("get-api-storage-health")
     .description("Check storage health")
     .action(async (opts, cmd) => {
       const gOpts = cmd.optsWithGlobals();
       let url = "/api/storage/health";
-      const res = await apiFetch(url, {
-        method: "GET",
-        baseUrl: gOpts.baseUrl,
-        apiKey: gOpts.apiKey,
-      });
+      const res = await apiFetch(url, { method: "GET", baseUrl: gOpts.baseUrl, apiKey: gOpts.apiKey });
       const data = res.ok ? await res.json() : await res.text();
       emit(data, gOpts);
     });
-  tag
-    .command("post-api-sync-cloud")
+  tag.command("post-api-sync-cloud")
     .description("Sync with cloud")
     .action(async (opts, cmd) => {
       const gOpts = cmd.optsWithGlobals();
       let url = "/api/sync/cloud";
-      const res = await apiFetch(url, {
-        method: "POST",
-        baseUrl: gOpts.baseUrl,
-        apiKey: gOpts.apiKey,
-      });
+      const res = await apiFetch(url, { method: "POST", baseUrl: gOpts.baseUrl, apiKey: gOpts.apiKey });
       const data = res.ok ? await res.json() : await res.text();
       emit(data, gOpts);
     });
-  tag
-    .command("post-api-sync-initialize")
+  tag.command("post-api-sync-initialize")
     .description("Initialize cloud sync")
     .action(async (opts, cmd) => {
       const gOpts = cmd.optsWithGlobals();
       let url = "/api/sync/initialize";
-      const res = await apiFetch(url, {
-        method: "POST",
-        baseUrl: gOpts.baseUrl,
-        apiKey: gOpts.apiKey,
-      });
+      const res = await apiFetch(url, { method: "POST", baseUrl: gOpts.baseUrl, apiKey: gOpts.apiKey });
       const data = res.ok ? await res.json() : await res.text();
       emit(data, gOpts);
     });
-  tag
-    .command("get-api-resilience")
+  tag.command("get-api-resilience")
     .description("Get resilience configuration")
     .action(async (opts, cmd) => {
       const gOpts = cmd.optsWithGlobals();
       let url = "/api/resilience";
-      const res = await apiFetch(url, {
-        method: "GET",
-        baseUrl: gOpts.baseUrl,
-        apiKey: gOpts.apiKey,
-      });
+      const res = await apiFetch(url, { method: "GET", baseUrl: gOpts.baseUrl, apiKey: gOpts.apiKey });
       const data = res.ok ? await res.json() : await res.text();
       emit(data, gOpts);
     });
-  tag
-    .command("patch-api-resilience")
+  tag.command("patch-api-resilience")
     .description("Update resilience configuration")
     .option("--body <jsonOrPath>", "JSON body or @path/to/file.json")
     .action(async (opts, cmd) => {
@@ -208,143 +141,92 @@ export function register_system(parent) {
           ? JSON.parse(readFileSync(opts.body.slice(1), "utf8"))
           : JSON.parse(opts.body);
       }
-      const res = await apiFetch(url, {
-        method: "PATCH",
-        body,
-        baseUrl: gOpts.baseUrl,
-        apiKey: gOpts.apiKey,
-      });
+      const res = await apiFetch(url, { method: "PATCH", body, baseUrl: gOpts.baseUrl, apiKey: gOpts.apiKey });
       const data = res.ok ? await res.json() : await res.text();
       emit(data, gOpts);
     });
-  tag
-    .command("post-api-resilience-reset")
+  tag.command("post-api-resilience-reset")
     .description("Reset circuit breakers")
     .action(async (opts, cmd) => {
       const gOpts = cmd.optsWithGlobals();
       let url = "/api/resilience/reset";
-      const res = await apiFetch(url, {
-        method: "POST",
-        baseUrl: gOpts.baseUrl,
-        apiKey: gOpts.apiKey,
-      });
+      const res = await apiFetch(url, { method: "POST", baseUrl: gOpts.baseUrl, apiKey: gOpts.apiKey });
       const data = res.ok ? await res.json() : await res.text();
       emit(data, gOpts);
     });
-  tag
-    .command("get-api-monitoring-health")
+  tag.command("get-api-monitoring-health")
     .description("System health check")
     .action(async (opts, cmd) => {
       const gOpts = cmd.optsWithGlobals();
       let url = "/api/monitoring/health";
-      const res = await apiFetch(url, {
-        method: "GET",
-        baseUrl: gOpts.baseUrl,
-        apiKey: gOpts.apiKey,
-      });
+      const res = await apiFetch(url, { method: "GET", baseUrl: gOpts.baseUrl, apiKey: gOpts.apiKey });
       const data = res.ok ? await res.json() : await res.text();
       emit(data, gOpts);
     });
-  tag
-    .command("get-api-rate-limits")
+  tag.command("get-api-rate-limits")
     .description("Get per-account rate limit status")
     .action(async (opts, cmd) => {
       const gOpts = cmd.optsWithGlobals();
       let url = "/api/rate-limits";
-      const res = await apiFetch(url, {
-        method: "GET",
-        baseUrl: gOpts.baseUrl,
-        apiKey: gOpts.apiKey,
-      });
+      const res = await apiFetch(url, { method: "GET", baseUrl: gOpts.baseUrl, apiKey: gOpts.apiKey });
       const data = res.ok ? await res.json() : await res.text();
       emit(data, gOpts);
     });
-  tag
-    .command("get-api-sessions")
+  tag.command("get-api-sessions")
     .description("Get active sessions")
     .action(async (opts, cmd) => {
       const gOpts = cmd.optsWithGlobals();
       let url = "/api/sessions";
-      const res = await apiFetch(url, {
-        method: "GET",
-        baseUrl: gOpts.baseUrl,
-        apiKey: gOpts.apiKey,
-      });
+      const res = await apiFetch(url, { method: "GET", baseUrl: gOpts.baseUrl, apiKey: gOpts.apiKey });
       const data = res.ok ? await res.json() : await res.text();
       emit(data, gOpts);
     });
-  tag
-    .command("get-api-cache")
+  tag.command("get-api-cache")
     .description("Get cache statistics")
     .action(async (opts, cmd) => {
       const gOpts = cmd.optsWithGlobals();
       let url = "/api/cache";
-      const res = await apiFetch(url, {
-        method: "GET",
-        baseUrl: gOpts.baseUrl,
-        apiKey: gOpts.apiKey,
-      });
+      const res = await apiFetch(url, { method: "GET", baseUrl: gOpts.baseUrl, apiKey: gOpts.apiKey });
       const data = res.ok ? await res.json() : await res.text();
       emit(data, gOpts);
     });
-  tag
-    .command("delete-api-cache")
+  tag.command("delete-api-cache")
     .description("Clear all caches")
     .action(async (opts, cmd) => {
       const gOpts = cmd.optsWithGlobals();
       let url = "/api/cache";
-      const res = await apiFetch(url, {
-        method: "DELETE",
-        baseUrl: gOpts.baseUrl,
-        apiKey: gOpts.apiKey,
-      });
+      const res = await apiFetch(url, { method: "DELETE", baseUrl: gOpts.baseUrl, apiKey: gOpts.apiKey });
       const data = res.ok ? await res.json() : await res.text();
       emit(data, gOpts);
     });
-  tag
-    .command("get-api-cache-stats")
+  tag.command("get-api-cache-stats")
     .description("Get detailed cache statistics")
     .action(async (opts, cmd) => {
       const gOpts = cmd.optsWithGlobals();
       let url = "/api/cache/stats";
-      const res = await apiFetch(url, {
-        method: "GET",
-        baseUrl: gOpts.baseUrl,
-        apiKey: gOpts.apiKey,
-      });
+      const res = await apiFetch(url, { method: "GET", baseUrl: gOpts.baseUrl, apiKey: gOpts.apiKey });
       const data = res.ok ? await res.json() : await res.text();
       emit(data, gOpts);
     });
-  tag
-    .command("delete-api-cache-stats")
+  tag.command("delete-api-cache-stats")
     .description("Clear cache statistics")
     .action(async (opts, cmd) => {
       const gOpts = cmd.optsWithGlobals();
       let url = "/api/cache/stats";
-      const res = await apiFetch(url, {
-        method: "DELETE",
-        baseUrl: gOpts.baseUrl,
-        apiKey: gOpts.apiKey,
-      });
+      const res = await apiFetch(url, { method: "DELETE", baseUrl: gOpts.baseUrl, apiKey: gOpts.apiKey });
       const data = res.ok ? await res.json() : await res.text();
       emit(data, gOpts);
     });
-  tag
-    .command("get-api-evals")
+  tag.command("get-api-evals")
     .description("List eval suites")
     .action(async (opts, cmd) => {
       const gOpts = cmd.optsWithGlobals();
       let url = "/api/evals";
-      const res = await apiFetch(url, {
-        method: "GET",
-        baseUrl: gOpts.baseUrl,
-        apiKey: gOpts.apiKey,
-      });
+      const res = await apiFetch(url, { method: "GET", baseUrl: gOpts.baseUrl, apiKey: gOpts.apiKey });
       const data = res.ok ? await res.json() : await res.text();
       emit(data, gOpts);
     });
-  tag
-    .command("post-api-evals")
+  tag.command("post-api-evals")
     .description("Run evaluation")
     .option("--body <jsonOrPath>", "JSON body or @path/to/file.json")
     .action(async (opts, cmd) => {
@@ -356,47 +238,31 @@ export function register_system(parent) {
           ? JSON.parse(readFileSync(opts.body.slice(1), "utf8"))
           : JSON.parse(opts.body);
       }
-      const res = await apiFetch(url, {
-        method: "POST",
-        body,
-        baseUrl: gOpts.baseUrl,
-        apiKey: gOpts.apiKey,
-      });
+      const res = await apiFetch(url, { method: "POST", body, baseUrl: gOpts.baseUrl, apiKey: gOpts.apiKey });
       const data = res.ok ? await res.json() : await res.text();
       emit(data, gOpts);
     });
-  tag
-    .command("get-api-evals-suite-id-")
+  tag.command("get-api-evals-suite-id-")
     .description("Get eval suite details")
     .requiredOption("--suite-id <suiteId>", "")
     .action(async (opts, cmd) => {
       const gOpts = cmd.optsWithGlobals();
       let url = "/api/evals/{suiteId}";
       url = url.replace("{suiteId}", encodeURIComponent(opts.suiteId ?? ""));
-      const res = await apiFetch(url, {
-        method: "GET",
-        baseUrl: gOpts.baseUrl,
-        apiKey: gOpts.apiKey,
-      });
+      const res = await apiFetch(url, { method: "GET", baseUrl: gOpts.baseUrl, apiKey: gOpts.apiKey });
       const data = res.ok ? await res.json() : await res.text();
       emit(data, gOpts);
     });
-  tag
-    .command("get-api-policies")
+  tag.command("get-api-policies")
     .description("List routing policies")
     .action(async (opts, cmd) => {
       const gOpts = cmd.optsWithGlobals();
       let url = "/api/policies";
-      const res = await apiFetch(url, {
-        method: "GET",
-        baseUrl: gOpts.baseUrl,
-        apiKey: gOpts.apiKey,
-      });
+      const res = await apiFetch(url, { method: "GET", baseUrl: gOpts.baseUrl, apiKey: gOpts.apiKey });
       const data = res.ok ? await res.json() : await res.text();
       emit(data, gOpts);
     });
-  tag
-    .command("post-api-policies")
+  tag.command("post-api-policies")
     .description("Create routing policy")
     .option("--body <jsonOrPath>", "JSON body or @path/to/file.json")
     .action(async (opts, cmd) => {
@@ -408,58 +274,46 @@ export function register_system(parent) {
           ? JSON.parse(readFileSync(opts.body.slice(1), "utf8"))
           : JSON.parse(opts.body);
       }
-      const res = await apiFetch(url, {
-        method: "POST",
-        body,
-        baseUrl: gOpts.baseUrl,
-        apiKey: gOpts.apiKey,
-      });
+      const res = await apiFetch(url, { method: "POST", body, baseUrl: gOpts.baseUrl, apiKey: gOpts.apiKey });
       const data = res.ok ? await res.json() : await res.text();
       emit(data, gOpts);
     });
-  tag
-    .command("delete-api-policies")
+  tag.command("delete-api-policies")
     .description("Delete routing policy")
     .action(async (opts, cmd) => {
       const gOpts = cmd.optsWithGlobals();
       let url = "/api/policies";
-      const res = await apiFetch(url, {
-        method: "DELETE",
-        baseUrl: gOpts.baseUrl,
-        apiKey: gOpts.apiKey,
-      });
+      const res = await apiFetch(url, { method: "DELETE", baseUrl: gOpts.baseUrl, apiKey: gOpts.apiKey });
       const data = res.ok ? await res.json() : await res.text();
       emit(data, gOpts);
     });
-  tag
-    .command("get-api-compliance-audit-log")
+  tag.command("get-api-compliance-audit-log")
     .description("Get compliance audit log")
+    .option("--level <level>", "high = Activity feed events only; all = all audit events")
+    .option("--action <action>", "Filter by exact action string (e.g. \"provider.added\")")
+    .option("--actor <actor>", "Filter by actor identifier")
     .option("--limit <limit>", "")
+    .option("--offset <offset>", "")
     .action(async (opts, cmd) => {
       const gOpts = cmd.optsWithGlobals();
       let url = "/api/compliance/audit-log";
       const qs = new URLSearchParams();
+      if (opts.level != null) qs.set("level", String(opts.level));
+      if (opts.action != null) qs.set("action", String(opts.action));
+      if (opts.actor != null) qs.set("actor", String(opts.actor));
       if (opts.limit != null) qs.set("limit", String(opts.limit));
+      if (opts.offset != null) qs.set("offset", String(opts.offset));
       if (qs.toString()) url += "?" + qs.toString();
-      const res = await apiFetch(url, {
-        method: "GET",
-        baseUrl: gOpts.baseUrl,
-        apiKey: gOpts.apiKey,
-      });
+      const res = await apiFetch(url, { method: "GET", baseUrl: gOpts.baseUrl, apiKey: gOpts.apiKey });
       const data = res.ok ? await res.json() : await res.text();
       emit(data, gOpts);
     });
-  tag
-    .command("get-api-openapi-spec")
+  tag.command("get-api-openapi-spec")
     .description("Get OpenAPI specification catalog")
     .action(async (opts, cmd) => {
       const gOpts = cmd.optsWithGlobals();
       let url = "/api/openapi/spec";
-      const res = await apiFetch(url, {
-        method: "GET",
-        baseUrl: gOpts.baseUrl,
-        apiKey: gOpts.apiKey,
-      });
+      const res = await apiFetch(url, { method: "GET", baseUrl: gOpts.baseUrl, apiKey: gOpts.apiKey });
       const data = res.ok ? await res.json() : await res.text();
       emit(data, gOpts);
     });

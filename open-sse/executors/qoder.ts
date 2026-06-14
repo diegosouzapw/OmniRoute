@@ -12,6 +12,7 @@ import {
 } from "../config/providerHeaderProfiles.ts";
 import { sanitizeQwenThinkingToolChoice } from "../services/qwenThinking.ts";
 import { buildCosyHeadersForValidation } from "../services/qoderCli.ts";
+import { sanitizeErrorMessage } from "../utils/error.ts";
 
 function getAuthToken(credentials: ProviderCredentials): string {
   if (typeof credentials.apiKey === "string" && credentials.apiKey.trim()) {
@@ -230,7 +231,7 @@ export class QoderExecutor extends BaseExecutor {
         response: new Response(
           JSON.stringify({
             error: {
-              message: `Qoder fetch error: ${error.message}`,
+              message: `Qoder fetch error: ${sanitizeErrorMessage(error.message)}`,
               type: "provider_error",
             },
           }),

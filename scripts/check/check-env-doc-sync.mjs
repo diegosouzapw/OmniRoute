@@ -71,9 +71,14 @@ const IGNORE_FROM_CODE = new Set([
   "NEXT_RUNTIME",
   "NODE_TEST_CONTEXT",
   "VITEST",
+  // Instruction snippet shown to users (Traffic Inspector HttpProxySnippetCard) — not OmniRoute config.
+  "NODE_TLS_REJECT_UNAUTHORIZED",
   // CI providers (set by the runner).
   "GITHUB_BASE_REF",
   "GITHUB_BASE_SHA",
+  // PR body injected by GitHub Actions into the pr-evidence gate (github.event.pull_request.body);
+  // a CI-only signal, never an OmniRoute runtime config (Phase 7.10).
+  "PR_BODY",
   // CLI machine-id token opt-out (server-side flag; not user-configurable via .env).
   "OMNIROUTE_DISABLE_CLI_TOKEN",
   // update-notifier opt-out for the CLI binary.
@@ -115,6 +120,10 @@ const IGNORE_FROM_CODE = new Set([
   // Test-only opt-out: instructs bin/omniroute.mjs to skip auto-loading the
   // repository .env so isolation tests get a deterministic environment.
   "OMNIROUTE_CLI_SKIP_REPO_ENV",
+  // Build-time only: set by `build:release` (git short SHA) and read by
+  // write-build-sha.mjs to stamp dist/BUILD_SHA — injected by the build, never
+  // configured by users in .env.
+  "OMNIROUTE_BUILD_SHA",
   // Source typo / placeholder.
   "OMNIROUT",
   // Static config alias path (the canonical var is OMNIROUTE_PAYLOAD_RULES_PATH).
@@ -122,6 +131,15 @@ const IGNORE_FROM_CODE = new Set([
   // Node.js module resolution path — OS/Node internal, not an OmniRoute config var.
   // Referenced in resolveSpawnArgs (ninerouter) to pass bundled native modules to subprocess.
   "NODE_PATH",
+  // NVIDIA diagnostic/test helpers used only by ad-hoc scripts.
+  "NVIDIA_BASE_URL",
+  "NVIDIA_MODEL",
+  // XDG standard data directory — set by OS/desktop session, not OmniRoute config.
+  // Read by setup-open-code.mjs to locate platform-specific OpenCode data dir.
+  "XDG_DATA_HOME",
+  // Test-only override: points setup-open-code.mjs at a fixture plugin dir without
+  // requiring the real bundled plugin to be built.
+  "OMNIROUTE_OPENCODE_PLUGIN_DIR",
 ]);
 
 // Vars documented in ENVIRONMENT.md but intentionally absent from .env.example.
@@ -162,7 +180,17 @@ const DOC_ONLY_ALLOWLIST = new Set([
 
 // Vars present in .env.example but intentionally absent from ENVIRONMENT.md.
 // Empty today — kept for forward compatibility / explicit exemption.
-const ENV_ONLY_ALLOWLIST = new Set([]);
+const ENV_ONLY_ALLOWLIST = new Set([
+  // Documented in .env.example but not yet in docs/reference/ENVIRONMENT.md
+  "CODEX_REFRESH_SPACING_MS",
+  "DEBUG",
+  "HEAP_PRESSURE_THRESHOLD_MB",
+  "OMNIROUTE_TRACE",
+  "PII_TEST_BYPASS_MIN_WINDOW",
+  "PII_WINDOW_SIZE",
+  "TRAE_STREAM_TIMEOUT_MS",
+  "TRAE_TOKEN",
+]);
 
 // ─── Parsing helpers ───────────────────────────────────────────────────────
 

@@ -1,6 +1,10 @@
 // Re-export from open-sse with local logger
 import * as log from "../utils/logger";
-import { updateProviderConnection, resolveProxyForProvider } from "@/lib/localDb";
+import {
+  updateProviderConnection,
+  resolveProxyForConnection,
+  resolveProxyForProvider,
+} from "@/lib/localDb";
 import {
   TOKEN_EXPIRY_BUFFER_MS as BUFFER_MS,
   getRefreshLeadMs as _getRefreshLeadMs,
@@ -28,17 +32,28 @@ import {
 
 export const TOKEN_EXPIRY_BUFFER_MS = BUFFER_MS;
 
+async function resolveProxyForCredentials(provider: string, credentials?: any) {
+  if (credentials?.connectionId) {
+    const resolved = await resolveProxyForConnection(credentials.connectionId);
+    if (resolved?.proxy) {
+      return resolved.proxy;
+    }
+  }
+
+  return resolveProxyForProvider(provider);
+}
+
 export const refreshAccessToken = async (
   provider: string,
   refreshToken: string,
   credentials: any
 ) => {
-  const proxy = await resolveProxyForProvider(provider);
+  const proxy = await resolveProxyForCredentials(provider, credentials);
   return _refreshAccessToken(provider, refreshToken, credentials, log, proxy);
 };
 
-export const refreshClaudeOAuthToken = async (refreshToken: string) => {
-  const proxy = await resolveProxyForProvider("claude");
+export const refreshClaudeOAuthToken = async (refreshToken: string, credentials?: any) => {
+  const proxy = await resolveProxyForCredentials("claude", credentials);
   return _refreshClaudeOAuthToken(refreshToken, log, proxy);
 };
 
@@ -46,34 +61,35 @@ export const refreshGoogleToken = async (
   refreshToken: string,
   clientId: string,
   clientSecret: string,
-  provider: string = "gemini"
+  provider: string = "gemini",
+  credentials?: any
 ) => {
-  const proxy = await resolveProxyForProvider(provider);
+  const proxy = await resolveProxyForCredentials(provider, credentials);
   return _refreshGoogleToken(refreshToken, clientId, clientSecret, log, proxy);
 };
 
-export const refreshQwenToken = async (refreshToken: string) => {
-  const proxy = await resolveProxyForProvider("qwen");
+export const refreshQwenToken = async (refreshToken: string, credentials?: any) => {
+  const proxy = await resolveProxyForCredentials("qwen", credentials);
   return _refreshQwenToken(refreshToken, log, proxy);
 };
 
-export const refreshCodexToken = async (refreshToken: string) => {
-  const proxy = await resolveProxyForProvider("codex");
+export const refreshCodexToken = async (refreshToken: string, credentials?: any) => {
+  const proxy = await resolveProxyForCredentials("codex", credentials);
   return _refreshCodexToken(refreshToken, log, proxy);
 };
 
-export const refreshQoderToken = async (refreshToken: string) => {
-  const proxy = await resolveProxyForProvider("qoder");
+export const refreshQoderToken = async (refreshToken: string, credentials?: any) => {
+  const proxy = await resolveProxyForCredentials("qoder", credentials);
   return _refreshQoderToken(refreshToken, log, proxy);
 };
 
-export const refreshGitHubToken = async (refreshToken: string) => {
-  const proxy = await resolveProxyForProvider("github");
+export const refreshGitHubToken = async (refreshToken: string, credentials?: any) => {
+  const proxy = await resolveProxyForCredentials("github", credentials);
   return _refreshGitHubToken(refreshToken, log, proxy);
 };
 
-export const refreshCopilotToken = async (githubAccessToken: string) => {
-  const proxy = await resolveProxyForProvider("github");
+export const refreshCopilotToken = async (githubAccessToken: string, credentials?: any) => {
+  const proxy = await resolveProxyForCredentials("github", credentials);
   return _refreshCopilotToken(githubAccessToken, log, proxy);
 };
 
@@ -82,12 +98,12 @@ export const getAccessToken = async (
   credentials: any,
   onPersist?: (result: any) => Promise<void>
 ) => {
-  const proxy = await resolveProxyForProvider(provider);
+  const proxy = await resolveProxyForCredentials(provider, credentials);
   return _getAccessToken(provider, credentials, log, proxy, onPersist);
 };
 
 export const refreshTokenByProvider = async (provider: string, credentials: any) => {
-  const proxy = await resolveProxyForProvider(provider);
+  const proxy = await resolveProxyForCredentials(provider, credentials);
   return _refreshTokenByProvider(provider, credentials, log, proxy);
 };
 
@@ -213,7 +229,10 @@ export async function checkAndRefreshToken(provider: string, credentials: any) {
         expiresIn: Math.round((copilotExpiresAt - now) / 1000),
       });
 
-      const copilotToken = await refreshCopilotToken(updatedCredentials.accessToken);
+      const copilotToken = await refreshCopilotToken(
+        updatedCredentials.accessToken,
+        updatedCredentials
+      );
       if (copilotToken) {
         await updateProviderCredentials(updatedCredentials.connectionId, {
           providerSpecificData: {
@@ -239,9 +258,9 @@ export async function checkAndRefreshToken(provider: string, credentials: any) {
 
 // Local-specific: Refresh GitHub and Copilot tokens together
 export async function refreshGitHubAndCopilotTokens(credentials: any) {
-  const newGitHubCredentials = await refreshGitHubToken(credentials.refreshToken);
+  const newGitHubCredentials = await refreshGitHubToken(credentials.refreshToken, credentials);
   if (newGitHubCredentials?.accessToken) {
-    const copilotToken = await refreshCopilotToken(newGitHubCredentials.accessToken);
+    const copilotToken = await refreshCopilotToken(newGitHubCredentials.accessToken, credentials);
     if (copilotToken) {
       return {
         ...newGitHubCredentials,

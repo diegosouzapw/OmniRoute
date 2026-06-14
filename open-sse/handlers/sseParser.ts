@@ -1,3 +1,70 @@
+import { appendToolCallArgumentDelta } from "../utils/toolCallArguments.ts";
+import { sanitizeErrorMessage } from "../utils/error.ts";
+
+/**
+ * Extract a provider error message from a buffered SSE stream that carries an
+ * error-only chunk (`data: {"error":...}`) and no content chunks.
+ *
+ * Some executors always return `text/event-stream` even on failure (e.g. the
+ * Devin/Windsurf CLI executors emit `data: {"error":{"message":"Devin CLI not
+ * found..."}}`). Those chunks have no `choices`/Claude/Responses content, so the
+ * content parsers (parseSSEToOpenAIResponse etc.) correctly return `null`. Without
+ * this helper the caller would replace the real upstream error with a generic
+ * "Invalid SSE response" 502, swallowing the actionable message (#3324).
+ *
+ * Provider-agnostic: matches any `data:` chunk that has an `error` field but no
+ * `choices` array. The returned message is always run through sanitizeErrorMessage
+ * so stack traces / absolute source paths never leak (Hard Rule #12). Returns
+ * `null` when no error-only chunk is present (so valid-content streams are left
+ * to the normal parsers).
+ */
+export function extractSSEErrorMessage(rawSSE: unknown): string | null {
+  const lines = String(rawSSE || "").split("\n");
+
+  for (const line of lines) {
+    const trimmed = line.trim();
+    if (!trimmed.startsWith("data:")) continue;
+    const payload = trimmed.slice(5).trim();
+    if (!payload || payload === "[DONE]") continue;
+
+    let parsed: unknown;
+    try {
+      parsed = JSON.parse(payload);
+    } catch {
+      continue; // Ignore malformed lines and keep scanning.
+    }
+
+    if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) continue;
+    const record = parsed as Record<string, unknown>;
+
+    // A chunk with content (choices) is not an error-only chunk — defer to the
+    // normal content parsers so the valid-SSE path is never short-circuited.
+    if (Array.isArray(record.choices)) continue;
+
+    const err = record.error;
+    if (err == null) continue;
+
+    let message = "";
+    if (typeof err === "string") {
+      message = err;
+    } else if (typeof err === "object" && !Array.isArray(err)) {
+      const errRecord = err as Record<string, unknown>;
+      if (typeof errRecord.message === "string") {
+        message = errRecord.message;
+      } else {
+        message = JSON.stringify(err);
+      }
+    } else {
+      message = String(err);
+    }
+
+    const sanitized = sanitizeErrorMessage(message);
+    if (sanitized) return sanitized;
+  }
+
+  return null;
+}
+
 /**
  * Convert OpenAI-style SSE chunks into a single non-streaming JSON response.
  * Used as a fallback when upstream returns text/event-stream for stream=false.
@@ -130,7 +197,7 @@ export function parseSSEToOpenAIResponse(rawSSE, fallbackModel) {
 
   const getToolCallKey = (toolCall: Record<string, unknown>) => {
     if (Number.isInteger(toolCall?.index)) return `idx:${toolCall.index}`;
-    if (toolCall?.id) return `id:${toolCall.id}`;
+    if (toolCall?.id != null) return `id:${String(toolCall.id)}`;
     unknownToolCallSeq += 1;
     return `seq:${unknownToolCallSeq}`;
   };
@@ -163,7 +230,7 @@ export function parseSSEToOpenAIResponse(rawSSE, fallbackModel) {
 
         if (!existing) {
           accumulatedToolCalls.set(key, {
-            id: tc?.id ?? null,
+            id: tc?.id != null ? String(tc.id) : null,
             index: Number.isInteger(tc?.index) ? tc.index : accumulatedToolCalls.size,
             type: tc?.type || "function",
             function: {
@@ -172,7 +239,7 @@ export function parseSSEToOpenAIResponse(rawSSE, fallbackModel) {
             },
           });
         } else {
-          existing.id = existing.id || tc?.id || null;
+          existing.id = existing.id || (tc?.id != null ? String(tc.id) : null);
           if (!Number.isInteger(existing.index) && Number.isInteger(tc?.index)) {
             existing.index = tc.index;
           }
@@ -181,7 +248,10 @@ export function parseSSEToOpenAIResponse(rawSSE, fallbackModel) {
             existing.function.name = tc.function.name;
           }
           existing.function = existing.function || {};
-          existing.function.arguments = `${existing.function.arguments || ""}${deltaArgs}`;
+          existing.function.arguments = appendToolCallArgumentDelta(
+            existing.function.arguments,
+            deltaArgs
+          );
           accumulatedToolCalls.set(key, existing);
         }
       }
@@ -216,7 +286,7 @@ export function parseSSEToOpenAIResponse(rawSSE, fallbackModel) {
   }
 
   const result: Record<string, unknown> = {
-    id: first.id || `chatcmpl-${Date.now()}`,
+    id: first.id != null ? String(first.id) : `chatcmpl-${Date.now()}`,
     object: "chat.completion",
     created: first.created || Math.floor(Date.now() / 1000),
     model: first.model || fallbackModel || "unknown",
@@ -448,10 +518,16 @@ function toOutputIndex(value) {
   return null;
 }
 
+function toIdString(value) {
+  return value === null || value === undefined ? "" : String(value);
+}
+
 function cloneResponseItem(item) {
   const record = toRecord(item);
   return {
     ...record,
+    id: record.id != null ? String(record.id) : record.id,
+    call_id: record.call_id != null ? String(record.call_id) : record.call_id,
     ...(Array.isArray(record.content)
       ? {
           content: record.content.map((contentPart) => {
@@ -477,7 +553,7 @@ function ensureResponsesMessageItem(outputItems, outputIndex) {
 
   const next = {
     ...(existing && typeof existing === "object" ? existing : {}),
-    id: existing?.id || `msg_${Date.now()}_${outputIndex}`,
+    id: existing?.id != null ? String(existing.id) : `msg_${Date.now()}_${outputIndex}`,
     type: "message",
     role: "assistant",
     content: Array.isArray(existing?.content)
@@ -499,7 +575,10 @@ function ensureResponsesReasoningItem(outputItems, outputIndex, itemId) {
 
   const next = {
     ...(existing && typeof existing === "object" ? existing : {}),
-    id: itemId || existing?.id || `rs_${Date.now()}_${outputIndex}`,
+    id:
+      itemId ||
+      (existing?.id != null ? String(existing.id) : null) ||
+      `rs_${Date.now()}_${outputIndex}`,
     type: "reasoning",
     summary: Array.isArray(existing?.summary)
       ? existing.summary.map((summaryPart) => ({ ...toRecord(summaryPart) }))
@@ -516,18 +595,26 @@ function ensureResponsesReasoningItem(outputItems, outputIndex, itemId) {
 
 function ensureResponsesFunctionCallItem(outputItems, outputIndex, itemId, callId, name) {
   const existing = outputItems.get(outputIndex);
+  const normalizedItemId = toIdString(itemId);
+  const normalizedCallId = toIdString(callId);
+  const existingId = existing?.id != null ? String(existing.id) : "";
+  const existingCallId = existing?.call_id != null ? String(existing.call_id) : "";
+
   if (existing?.type === "function_call") {
-    if (callId && !existing.call_id) existing.call_id = callId;
+    if (existing.call_id != null) existing.call_id = String(existing.call_id);
+    if (existing.id != null) existing.id = String(existing.id);
+    if (normalizedCallId && !existing.call_id) existing.call_id = normalizedCallId;
     if (name && !existing.name) existing.name = name;
-    if (itemId && !existing.id) existing.id = itemId;
+    if (normalizedItemId && !existing.id) existing.id = normalizedItemId;
     return existing;
   }
 
   const next = {
     ...(existing && typeof existing === "object" ? existing : {}),
-    id: itemId || existing?.id || `fc_${callId || `${Date.now()}_${outputIndex}`}`,
+    id:
+      normalizedItemId || existingId || `fc_${normalizedCallId || `${Date.now()}_${outputIndex}`}`,
     type: "function_call",
-    call_id: callId || existing?.call_id || "",
+    call_id: normalizedCallId || existingCallId || "",
     name: name || existing?.name || "",
     arguments: typeof existing?.arguments === "string" ? existing.arguments : "",
   };
@@ -625,7 +712,7 @@ export function parseSSEToResponsesOutput(rawSSE, fallbackModel) {
       const reasoningItem = ensureResponsesReasoningItem(
         outputItems,
         outputIndex,
-        toString(evt.item_id)
+        toIdString(evt.item_id)
       );
       const summary = Array.isArray(reasoningItem.summary) ? reasoningItem.summary : [];
       const firstPart =
@@ -640,7 +727,7 @@ export function parseSSEToResponsesOutput(rawSSE, fallbackModel) {
       const reasoningItem = ensureResponsesReasoningItem(
         outputItems,
         outputIndex,
-        toString(evt.item_id)
+        toIdString(evt.item_id)
       );
       const summary = Array.isArray(reasoningItem.summary) ? reasoningItem.summary : [];
       const firstPart =
@@ -655,7 +742,7 @@ export function parseSSEToResponsesOutput(rawSSE, fallbackModel) {
       const functionCallItem = ensureResponsesFunctionCallItem(
         outputItems,
         outputIndex,
-        toString(evt.item_id),
+        toIdString(evt.item_id),
         "",
         ""
       );
@@ -666,7 +753,7 @@ export function parseSSEToResponsesOutput(rawSSE, fallbackModel) {
       const functionCallItem = ensureResponsesFunctionCallItem(
         outputItems,
         outputIndex,
-        toString(evt.item_id),
+        toIdString(evt.item_id),
         "",
         ""
       );
@@ -705,10 +792,17 @@ export function parseSSEToResponsesOutput(rawSSE, fallbackModel) {
               : "in_progress";
 
   return {
-    id: picked.id || `resp_${Date.now()}`,
+    id: picked.id != null ? String(picked.id) : `resp_${Date.now()}`,
     object: picked.object || "response",
     model: picked.model || fallbackModel || "unknown",
-    output: pickedOutput.length > 0 ? pickedOutput : reconstructedOutput,
+    output: (pickedOutput.length > 0 ? pickedOutput : reconstructedOutput).map((item) => {
+      const record = toRecord(item);
+      return {
+        ...record,
+        id: record.id != null ? String(record.id) : record.id,
+        call_id: record.call_id != null ? String(record.call_id) : record.call_id,
+      };
+    }),
     usage: picked.usage || null,
     status: picked.status || statusFallback,
     created_at: picked.created_at || Math.floor(Date.now() / 1000),

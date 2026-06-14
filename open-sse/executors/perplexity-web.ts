@@ -13,6 +13,8 @@ import {
   TlsClientUnavailableError,
   type TlsFetchResult,
 } from "../services/perplexityTlsClient.ts";
+import { prepareToolMessages, buildToolAwareResult } from "../translator/webTools.ts";
+import { sanitizeErrorMessage } from "../utils/error.ts";
 
 const PPLX_SSE_ENDPOINT = "https://www.perplexity.ai/rest/sse/perplexity_ask";
 const PPLX_API_VERSION = "client-1.11.0";
@@ -439,86 +441,33 @@ function buildStreamingResponse(
 ): ReadableStream<Uint8Array> {
   const encoder = new TextEncoder();
 
-  return new ReadableStream({
-    async start(controller) {
-      try {
-        // Initial role chunk
-        controller.enqueue(
-          encoder.encode(
-            sseChunk({
-              id: cid,
-              object: "chat.completion.chunk",
-              created,
-              model,
-              system_fingerprint: null,
-              choices: [
-                { index: 0, delta: { role: "assistant" }, finish_reason: null, logprobs: null },
-              ],
-            })
-          )
-        );
+  return new ReadableStream(
+    {
+      async start(controller) {
+        try {
+          // Initial role chunk
+          controller.enqueue(
+            encoder.encode(
+              sseChunk({
+                id: cid,
+                object: "chat.completion.chunk",
+                created,
+                model,
+                system_fingerprint: null,
+                choices: [
+                  { index: 0, delta: { role: "assistant" }, finish_reason: null, logprobs: null },
+                ],
+              })
+            )
+          );
 
-        let fullAnswer = "";
-        let respBackendUuid: string | null = null;
+          let fullAnswer = "";
+          let respBackendUuid: string | null = null;
 
-        for await (const chunk of extractContent(eventStream, signal)) {
-          if (chunk.backendUuid) respBackendUuid = chunk.backendUuid;
+          for await (const chunk of extractContent(eventStream, signal)) {
+            if (chunk.backendUuid) respBackendUuid = chunk.backendUuid;
 
-          if (chunk.error) {
-            controller.enqueue(
-              encoder.encode(
-                sseChunk({
-                  id: cid,
-                  object: "chat.completion.chunk",
-                  created,
-                  model,
-                  system_fingerprint: null,
-                  choices: [
-                    {
-                      index: 0,
-                      delta: { content: `[Error: ${chunk.error}]` },
-                      finish_reason: null,
-                      logprobs: null,
-                    },
-                  ],
-                })
-              )
-            );
-            break;
-          }
-
-          if (chunk.thinking) {
-            controller.enqueue(
-              encoder.encode(
-                sseChunk({
-                  id: cid,
-                  object: "chat.completion.chunk",
-                  created,
-                  model,
-                  system_fingerprint: null,
-                  choices: [
-                    {
-                      index: 0,
-                      delta: { reasoning_content: chunk.thinking + "\n" },
-                      finish_reason: null,
-                      logprobs: null,
-                    },
-                  ],
-                })
-              )
-            );
-            continue;
-          }
-
-          if (chunk.done) {
-            fullAnswer = chunk.answer || fullAnswer;
-            break;
-          }
-
-          let dt = chunk.delta || "";
-          if (dt) {
-            dt = cleanResponse(dt, false);
-            if (dt) {
+            if (chunk.error) {
               controller.enqueue(
                 encoder.encode(
                   sseChunk({
@@ -528,60 +477,116 @@ function buildStreamingResponse(
                     model,
                     system_fingerprint: null,
                     choices: [
-                      { index: 0, delta: { content: dt }, finish_reason: null, logprobs: null },
+                      {
+                        index: 0,
+                        delta: { content: `[Error: ${chunk.error}]` },
+                        finish_reason: null,
+                        logprobs: null,
+                      },
                     ],
                   })
                 )
               );
+              break;
             }
+
+            if (chunk.thinking) {
+              controller.enqueue(
+                encoder.encode(
+                  sseChunk({
+                    id: cid,
+                    object: "chat.completion.chunk",
+                    created,
+                    model,
+                    system_fingerprint: null,
+                    choices: [
+                      {
+                        index: 0,
+                        delta: { reasoning_content: chunk.thinking + "\n" },
+                        finish_reason: null,
+                        logprobs: null,
+                      },
+                    ],
+                  })
+                )
+              );
+              continue;
+            }
+
+            if (chunk.done) {
+              fullAnswer = chunk.answer || fullAnswer;
+              break;
+            }
+
+            let dt = chunk.delta || "";
+            if (dt) {
+              dt = cleanResponse(dt, false);
+              if (dt) {
+                controller.enqueue(
+                  encoder.encode(
+                    sseChunk({
+                      id: cid,
+                      object: "chat.completion.chunk",
+                      created,
+                      model,
+                      system_fingerprint: null,
+                      choices: [
+                        { index: 0, delta: { content: dt }, finish_reason: null, logprobs: null },
+                      ],
+                    })
+                  )
+                );
+              }
+            }
+            if (chunk.answer) fullAnswer = chunk.answer;
           }
-          if (chunk.answer) fullAnswer = chunk.answer;
-        }
 
-        // Stop chunk
-        controller.enqueue(
-          encoder.encode(
-            sseChunk({
-              id: cid,
-              object: "chat.completion.chunk",
-              created,
-              model,
-              system_fingerprint: null,
-              choices: [{ index: 0, delta: {}, finish_reason: "stop", logprobs: null }],
-            })
-          )
-        );
-        controller.enqueue(encoder.encode("data: [DONE]\n\n"));
+          // Stop chunk
+          controller.enqueue(
+            encoder.encode(
+              sseChunk({
+                id: cid,
+                object: "chat.completion.chunk",
+                created,
+                model,
+                system_fingerprint: null,
+                choices: [{ index: 0, delta: {}, finish_reason: "stop", logprobs: null }],
+              })
+            )
+          );
+          controller.enqueue(encoder.encode("data: [DONE]\n\n"));
 
-        sessionStore(history, currentMsg, cleanResponse(fullAnswer), respBackendUuid);
-      } catch (err) {
-        controller.enqueue(
-          encoder.encode(
-            sseChunk({
-              id: cid,
-              object: "chat.completion.chunk",
-              created,
-              model,
-              system_fingerprint: null,
-              choices: [
-                {
-                  index: 0,
-                  delta: {
-                    content: `[Stream error: ${err instanceof Error ? err.message : String(err)}]`,
+          sessionStore(history, currentMsg, cleanResponse(fullAnswer), respBackendUuid);
+        } catch (err) {
+          controller.enqueue(
+            encoder.encode(
+              sseChunk({
+                id: cid,
+                object: "chat.completion.chunk",
+                created,
+                model,
+                system_fingerprint: null,
+                choices: [
+                  {
+                    index: 0,
+                    delta: {
+                      content: `[Stream error: ${err instanceof Error ? err.message : String(err)}]`,
+                    },
+                    finish_reason: "stop",
+                    logprobs: null,
                   },
-                  finish_reason: "stop",
-                  logprobs: null,
-                },
-              ],
-            })
-          )
-        );
-        controller.enqueue(encoder.encode("data: [DONE]\n\n"));
-      } finally {
-        controller.close();
-      }
+                ],
+              })
+            )
+          );
+          controller.enqueue(encoder.encode("data: [DONE]\n\n"));
+        } finally {
+          try { controller.close(); } catch {}
+        }
+      },
     },
-  });
+    { highWaterMark: 16384 }
+  );
 }
 
 async function buildNonStreamingResponse(
@@ -654,10 +659,11 @@ export class PerplexityWebExecutor extends BaseExecutor {
   }
 
   async execute({ model, body, stream, credentials, signal, log }: ExecuteInput) {
-    const messages = (body as Record<string, unknown>).messages as
+    const bodyObj = (body || {}) as Record<string, unknown>;
+    const rawMessages = bodyObj.messages as
       | Array<Record<string, unknown>>
       | undefined;
-    if (!messages || !Array.isArray(messages) || messages.length === 0) {
+    if (!rawMessages || !Array.isArray(rawMessages) || rawMessages.length === 0) {
       const errResp = new Response(
         JSON.stringify({
           error: { message: "Missing or empty messages array", type: "invalid_request" },
@@ -667,8 +673,9 @@ export class PerplexityWebExecutor extends BaseExecutor {
       return { response: errResp, url: PPLX_SSE_ENDPOINT, headers: {}, transformedBody: body };
     }
 
+    const { hasTools, requestedTools, effectiveMessages } = prepareToolMessages(bodyObj, rawMessages as Array<{ role: string; content: unknown }>);
+
     // Resolve thinking mode
-    const bodyObj = body as Record<string, unknown>;
     const thinking =
       bodyObj.thinking === true ||
       (bodyObj.reasoning_effort != null && bodyObj.reasoning_effort !== "none");
@@ -688,7 +695,7 @@ export class PerplexityWebExecutor extends BaseExecutor {
     }
 
     // Parse messages and check session continuity
-    const parsed = parseOpenAIMessages(messages);
+    const parsed = parseOpenAIMessages(effectiveMessages);
     const followUpUuid = sessionLookup(parsed.history);
     if (followUpUuid) {
       log?.info?.("PPLX-WEB", `Session continue: ${followUpUuid.slice(0, 12)}...`);
@@ -750,8 +757,8 @@ export class PerplexityWebExecutor extends BaseExecutor {
         JSON.stringify({
           error: {
             message: isTlsUnavail
-              ? `Perplexity TLS client unavailable: ${(err as Error).message}`
-              : `Perplexity connection failed: ${err instanceof Error ? err.message : String(err)}`,
+              ? `Perplexity TLS client unavailable: ${sanitizeErrorMessage((err as Error).message)}`
+              : `Perplexity connection failed: ${sanitizeErrorMessage(err instanceof Error ? err.message : String(err))}`,
             type: "upstream_error",
           },
         }),
@@ -830,6 +837,24 @@ export class PerplexityWebExecutor extends BaseExecutor {
         parsed.currentMsg,
         signal
       );
+    }
+
+    if (hasTools && !stream) {
+      const bodyText = await (finalResponse as Response).text();
+      try {
+        const json = JSON.parse(bodyText);
+        const rawContent = json?.choices?.[0]?.message?.content || "";
+        const { content, toolCalls, finishReason } = buildToolAwareResult(rawContent, requestedTools, "pplx");
+        if (toolCalls) {
+          json.choices[0].message = { role: "assistant", content: null, tool_calls: toolCalls };
+          json.choices[0].finish_reason = finishReason;
+        } else {
+          json.choices[0].message.content = content;
+        }
+        finalResponse = new Response(JSON.stringify(json), {
+          status: 200, headers: { "Content-Type": "application/json" },
+        });
+      } catch { /* keep original response */ }
     }
 
     return {

@@ -9,7 +9,35 @@ const {
   injectEmptyReasoningContentForToolCalls,
 } = await import("../../open-sse/translator/helpers/schemaCoercion.ts");
 const { translateRequest } = await import("../../open-sse/translator/index.ts");
+const { NON_ANTHROPIC_THINKING_PLACEHOLDER } = await import(
+  "../../open-sse/translator/helpers/claudeHelper.ts"
+);
 const { FORMATS } = await import("../../open-sse/translator/formats.ts");
+const { clearModelsDevCapabilities, saveModelsDevCapabilities } =
+  await import("../../src/lib/modelsDevSync.ts");
+
+function buildCapability(overrides = {}) {
+  return {
+    tool_call: null,
+    reasoning: null,
+    attachment: null,
+    structured_output: null,
+    temperature: null,
+    modalities_input: "[]",
+    modalities_output: "[]",
+    knowledge_cutoff: null,
+    release_date: null,
+    last_updated: null,
+    status: null,
+    family: null,
+    open_weights: null,
+    limit_context: null,
+    limit_input: null,
+    limit_output: null,
+    interleaved_field: null,
+    ...overrides,
+  };
+}
 
 test("tool sanitization: coerces numeric JSON Schema fields recursively", () => {
   const schema = {
@@ -171,6 +199,17 @@ test("tool sanitization: injects empty reasoning_content only for DeepSeek tool-
 });
 
 test("translateRequest injects reasoning_content for DeepSeek assistant tool calls", () => {
+  clearModelsDevCapabilities();
+  saveModelsDevCapabilities({
+    deepseek: {
+      "deepseek-v4-flash": buildCapability({
+        interleaved_field: "reasoning_content",
+        reasoning: true,
+        tool_call: true,
+      }),
+    },
+  });
+
   const translated = translateRequest(
     FORMATS.OPENAI,
     FORMATS.OPENAI,
@@ -192,5 +231,6 @@ test("translateRequest injects reasoning_content for DeepSeek assistant tool cal
     "deepseek"
   );
 
-  assert.equal(translated.messages[1].reasoning_content, "");
+  assert.equal(translated.messages[1].reasoning_content, NON_ANTHROPIC_THINKING_PLACEHOLDER);
+  clearModelsDevCapabilities();
 });

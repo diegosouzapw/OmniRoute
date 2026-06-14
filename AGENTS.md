@@ -3,19 +3,53 @@
 ## Project
 
 Unified AI proxy/router — route any LLM through one endpoint. Multi-provider support
-with **212 providers** (OpenAI, Anthropic, Gemini, DeepSeek, Groq, xAI, Mistral, Fireworks,
+with **232 provider entries** (OpenAI, Anthropic, Gemini, DeepSeek, Groq, xAI, Mistral, Fireworks,
 Cohere, NVIDIA, Cerebras, Pollinations, Puter, Cloudflare AI, HuggingFace, DeepInfra,
 SambaNova, Meta Llama API, Moonshot AI, AI21 Labs, Databricks, Snowflake, and many more)
-with **MCP Server** (37 tools), **A2A v0.3 Protocol**, and **Electron desktop app**.
+with **MCP Server** (87 tools), **A2A v0.3 Protocol**, and **Electron desktop app**.
+
+> **Live counts (v3.8.24)**: providers 232 · MCP tools 87 · MCP scopes 30 · A2A skills 6 ·
+> open-sse services 115 · routing strategies 15 · auto-combo scoring factors 12 ·
+> DB modules 83 · DB migrations 97 · base tables 17 · search providers 11 ·
+> i18n locales 42. **Refresh with `npm run check:docs-all`.**
+
+## Doc Accuracy Discipline (read before writing any doc)
+
+> **If `grep -rn "name" src/ open-sse/ bin/` returns nothing, the name does not exist. Do not document it.**
+
+The recurring failure mode in AI-generated docs is _plausible-but-unverified specifics_.
+Every claim in a `.md` file under `docs/` should be verifiable against the source.
+
+**Rules (enforced by `npm run check:fabricated-docs`):**
+
+1. **Never state an API name, endpoint, path, CLI command, or env var without grepping for it first.**
+   ```bash
+   grep -rn "theName" src/ open-sse/ bin/
+   # 0 hits → do not document
+   ```
+2. **Never write a line count, file size, migration count, provider count, or strategy count from memory.**
+   ```bash
+   wc -l <file>           # exact line count
+   ls <dir>/*.ts | wc -l  # file count
+   ```
+3. **Every code example should be copy-pasted from real usage or actually run** — not synthesized.
+   Link to a real call site (`path:line`) instead of inventing a signature.
+4. **Prefer citing real source (`file.ts:line`) over paraphrasing behavior** — verifiable and self-correcting.
+5. **A shorter doc that is 100% accurate beats a comprehensive one with fabrications.**
+   Wrong docs cost more than missing docs, because people trust and act on them.
+
+The script `scripts/check/check-fabricated-docs.mjs` extracts every route path, env var, hook
+name, function name, and file reference from `docs/**/*.md` and verifies each one against the
+codebase. Run it locally before pushing docs; it runs in CI via `npm run check:docs-all`.
 
 ## Stack
 
-- **Runtime**: Next.js 16 (App Router), Node.js `>=20.20.2 <21`, `>=22.22.2 <23`, or `>=24.0.0 <25`, ES Modules (`"type": "module"`)
-- **Language**: TypeScript 5.9 (`src/`) + JavaScript (`open-sse/`, `electron/`)
+- **Runtime**: Next.js 16 (App Router), Node.js `>=22.0.0 <23 || >=24.0.0 <27`, ES Modules (`"type": "module"`)
+- **Language**: TypeScript 6.0 (`src/`) + JavaScript (`open-sse/`, `electron/`)
 - **Database**: better-sqlite3 (SQLite) — `DATA_DIR` configurable, default `~/.omniroute/`
 - **Streaming**: SSE via `open-sse` internal workspace package
 - **Styling**: Tailwind CSS v4
-- **i18n**: next-intl with 40+ languages
+- **i18n**: next-intl with 42 locales (`src/i18n/messages/`) — refresh with `ls src/i18n/messages/*.json | wc -l`
 - **Desktop**: Electron (cross-platform: Windows, macOS, Linux)
 - **Schemas**: Zod v4 for all API / MCP input validation
 
@@ -23,19 +57,32 @@ with **MCP Server** (37 tools), **A2A v0.3 Protocol**, and **Electron desktop ap
 
 ## Build, Lint, and Test Commands
 
-| Command                             | Description                       |
-| ----------------------------------- | --------------------------------- |
-| `npm run dev`                       | Start Next.js dev server          |
-| `npm run build`                     | Production build (isolated)       |
-| `npm run start`                     | Run production build              |
-| `npm run build:cli`                 | Build CLI package                 |
-| `npm run lint`                      | ESLint on all source files        |
-| `npm run typecheck:core`            | TypeScript core type checking     |
-| `npm run typecheck:noimplicit:core` | Strict checking (no implicit any) |
-| `npm run check`                     | Run lint + test                   |
-| `npm run check:cycles`              | Check for circular dependencies   |
-| `npm run electron:dev`              | Run Electron app in dev mode      |
-| `npm run electron:build`            | Build Electron app for current OS |
+| Command                             | Description                                                        |
+| ----------------------------------- | ------------------------------------------------------------------ |
+| `npm run dev`                       | Start Next.js dev server                                           |
+| `npm run build`                     | Production build: `next build` → `.build/next/` + assemble `dist/` |
+| `npm run build:release`             | Clean rebuild + HEAD sentinel (`dist/BUILD_SHA`) — use for deploy  |
+| `npm run start`                     | Run production build                                               |
+| `npm run build:cli`                 | Build CLI package                                                  |
+| `npm run lint`                      | ESLint on all source files                                         |
+| `npm run typecheck:core`            | TypeScript core type checking                                      |
+| `npm run typecheck:noimplicit:core` | Strict checking (no implicit any)                                  |
+| `npm run check`                     | Run lint + test                                                    |
+| `npm run check:cycles`              | Check for circular dependencies                                    |
+| `npm run electron:dev`              | Run Electron app in dev mode                                       |
+| `npm run electron:build`            | Build Electron app for current OS                                  |
+
+**Build output layout:**
+
+| Directory | Purpose                                            | Gitignored |
+| --------- | -------------------------------------------------- | ---------- |
+| `src/`    | Application source (TypeScript / TSX)              | No         |
+| `.build/` | Build intermediates (`distDir = .build/next`)      | Yes        |
+| `dist/`   | Shippable bundle assembled by `assembleStandalone` | Yes        |
+
+The pipeline is a single `next build` pass — intermediates land in `.build/next/`, the
+assembled bundle in `dist/`. VPS deploys rsync `dist/` into the remote
+`/usr/lib/node_modules/omniroute/app/` directory (VPS image path is unchanged).
 
 ### Running Tests
 
@@ -131,7 +178,7 @@ Always run `prettier --write` on changed files.
 
 ### Data Layer (`src/lib/db/`)
 
-All persistence uses SQLite through **45+ domain-specific modules** in `src/lib/db/`. Top modules:
+All persistence uses SQLite through **83 domain-specific modules** in `src/lib/db/`. Top modules:
 
 - Core: `core.ts`, `migrationRunner.ts`, `encryption.ts`, `stateReset.ts`
 - Providers / catalog: `providers.ts`, `models.ts`, `providerLimits.ts`, `compressionAnalytics.ts`
@@ -141,17 +188,17 @@ All persistence uses SQLite through **45+ domain-specific modules** in `src/lib/
 - Storage: `backup.ts`, `cleanup.ts`, `jsonMigration.ts`, `healthCheck.ts`, `databaseSettings.ts`
 - Extension modules: `evals.ts`, `webhooks.ts`, `reasoningCache.ts`, `readCache.ts`, `tierConfig.ts`, `compressionCombos.ts`, `compressionScheduler.ts`, `batches.ts`, `files.ts`, `syncTokens.ts`, `proxies.ts`, `oneproxy.ts`, `upstreamProxy.ts`, `versionManager.ts`, `cliToolState.ts`, `prompts.ts`, `detailedLogs.ts`, `contextHandoffs.ts`, `compression.ts`, `stats.ts`
 
-Live count: `ls src/lib/db/*.ts | wc -l` (currently 45).
-Schema migrations live in `db/migrations/` (55 files) and run via `migrationRunner.ts`.
+Live count: `ls src/lib/db/*.ts | wc -l` (currently 83). Drift detection: `npm run check:docs-counts`.
+Schema migrations live in `db/migrations/` (**97 files** as of v3.8.24) and run via `migrationRunner.ts`.
 `src/lib/localDb.ts` is a **re-export layer only** — never add logic there.
 
 #### DB Internals
 
 - **`core.ts`**: `getDbInstance()` returns a singleton `better-sqlite3` instance with WAL
-  journaling. `SCHEMA_SQL` defines 15 base tables. Helpers: `rowToCamel`, `encryptConnectionFields`.
+  journaling. `SCHEMA_SQL` defines **17 base tables** (verify with `grep -c "CREATE TABLE" src/lib/db/core.ts` minus 1 for the bookkeeping `_omniroute_migrations` table). Helpers: `rowToCamel`, `encryptConnectionFields`.
 - **`migrationRunner.ts`**: Applies versioned SQL files from `db/migrations/` inside transactions.
   Tracks applied migrations in `_omniroute_migrations` table.
-- **Migrations**: 55 files (`001_initial_schema.sql` → `055_command_code_auth_sessions.sql`).
+- **Migrations**: 97 files (`001_initial_schema.sql` → `099_*.sql`).
   Each migration is idempotent and runs in a transaction. Live count: `ls src/lib/db/migrations/*.sql | wc -l`.
 - **Domain modules** import `getDbInstance()` from `core.ts` for all CRUD operations.
   Each module owns a specific table/set of tables (e.g., `providers.ts` → `provider_connections`,
@@ -167,19 +214,19 @@ Route → CORS preflight → Body validation (Zod) → Optional auth (extractApi
   → API key policy enforcement (enforceApiKeyPolicy) → Handler delegation (open-sse)
 ```
 
-| Route                           | Handler                   | Notes                                     |
-| ------------------------------- | ------------------------- | ----------------------------------------- |
-| `chat/completions/route.ts`     | `handleChat()`            | + prompt injection guard (clones request) |
-| `responses/route.ts`            | `handleChat()` (unified)  | Responses API format                      |
-| `embeddings/route.ts`           | `handleEmbedding()`       | Model listing + creation                  |
-| `images/generations/route.ts`   | `handleImageGeneration()` | Model listing + creation                  |
-| `audio/transcriptions/route.ts` | audio handler             | Multipart form data                       |
-| `audio/speech/route.ts`         | TTS handler               | Binary audio response                     |
-| `videos/generations/route.ts`   | video handler             | ComfyUI/SD WebUI                          |
-| `music/generations/route.ts`    | music handler             | ComfyUI workflows                         |
-| `moderations/route.ts`          | moderation handler        | Content safety                            |
-| `rerank/route.ts`               | rerank handler            | Document relevance                        |
-| `search/route.ts`               | search handler            | Web search (5 providers)                  |
+| Route                           | Handler                   | Notes                                                         |
+| ------------------------------- | ------------------------- | ------------------------------------------------------------- |
+| `chat/completions/route.ts`     | `handleChat()`            | + prompt injection guard (clones request)                     |
+| `responses/route.ts`            | `handleChat()` (unified)  | Responses API format                                          |
+| `embeddings/route.ts`           | `handleEmbedding()`       | Model listing + creation                                      |
+| `images/generations/route.ts`   | `handleImageGeneration()` | Model listing + creation                                      |
+| `audio/transcriptions/route.ts` | audio handler             | Multipart form data                                           |
+| `audio/speech/route.ts`         | TTS handler               | Binary audio response                                         |
+| `videos/generations/route.ts`   | video handler             | ComfyUI/SD WebUI                                              |
+| `music/generations/route.ts`    | music handler             | ComfyUI workflows                                             |
+| `moderations/route.ts`          | moderation handler        | Content safety                                                |
+| `rerank/route.ts`               | rerank handler            | Document relevance                                            |
+| `search/route.ts`               | search handler            | Web search (12 providers per `open-sse/handlers/search.ts:6`) |
 
 **No global Next.js middleware file** — interception is route-specific. Auth is optional
 (controlled by `REQUIRE_API_KEY` env). Prompt injection guard is unique to chat completions.
@@ -289,7 +336,8 @@ Includes request/response translators with helpers for image handling.
 
 ### Services (`open-sse/services/`)
 
-36+ service modules including: `combo.ts` (routing engine), `usage.ts`, `tokenRefresh.ts`,
+115 service modules in `open-sse/services/` (top-level only; 184 including sub-dirs like `autoCombo/` and `compression/`). Refresh: `ls open-sse/services/*.ts | wc -l`. Key modules:
+`combo.ts` (routing engine), `usage.ts`, `tokenRefresh.ts`,
 `rateLimitManager.ts`, `accountFallback.ts`, `sessionManager.ts`, `wildcardRouter.ts`,
 `autoCombo/`, `intentClassifier.ts`, `taskAwareRouter.ts`, `thinkingBudget.ts`,
 `contextManager.ts`, `modelDeprecation.ts`, `modelFamilyFallback.ts`,
@@ -330,8 +378,8 @@ Modular prompt compression that runs proactively before the existing reactive co
   and iterates through targets in order until one succeeds or all fail.
 - **`resolveComboTargets()`**: Expands a combo configuration into an ordered array of
   `ResolvedComboTarget[]`, each specifying provider + model + account + credentials.
-- **Strategies** (14): priority, weighted, fill-first, round-robin, P2C, random, least-used, reset-aware (v3.8),
-  cost-optimized, strict-random, auto, lkgp, context-optimized, context-relay.
+- **Strategies** (15): priority, weighted, fill-first, round-robin, P2C, random, least-used, reset-aware (v3.8),
+  reset-window, cost-optimized, strict-random, auto, lkgp, context-optimized, context-relay. Source: `ROUTING_STRATEGY_VALUES` in `src/shared/constants/routingStrategies.ts`.
 - Each target calls **`handleSingleModel()`** which wraps `handleChatCore()` with
   per-target error handling and circuit breaker checks.
 
@@ -343,7 +391,7 @@ Policy engine modules: `policyEngine.ts`, `comboResolver.ts`, `costRules.ts`,
 
 ### MCP Server (`open-sse/mcp-server/`)
 
-37 tools (30 base + 3 memory + 4 skills), 3 transports (stdio / SSE / Streamable HTTP). Scoped auth (~13 scopes), Zod schemas. See [`docs/frameworks/MCP-SERVER.md`](docs/frameworks/MCP-SERVER.md).
+**87 tools** total (`TOTAL_MCP_TOOL_COUNT`, `open-sse/mcp-server/server.ts`): a 33-entry base registry (`MCP_TOOLS` in `schemas/tools.ts`, bundling the core / cache / compression / 1proxy / advanced tools) **plus** standalone module sets — memory (3), skill (4), agentSkill (3), gamification (8), plugin (8), notion (6), obsidian (22). 3 transports (stdio / SSE / Streamable HTTP). Scoped auth (30 scopes — see `OMNIROUTE_MCP_SCOPES`), Zod schemas. See [`docs/frameworks/MCP-SERVER.md`](docs/frameworks/MCP-SERVER.md).
 
 **Core tools** (20): get_health, list_combos, get_combo_metrics, switch_combo, check_quota,
 route_request, cost_report, list_models_catalog, web_search, simulate_route, set_budget_guard,
@@ -361,6 +409,14 @@ list_compression_combos, compression_combo_stats.
 
 **Skill tools** (4): skills_list, skills_enable, skills_execute, skills_executions.
 
+**Agent-skill tools** (3): A2A skill discovery / invocation bridges.
+
+**Gamification tools** (8): levels, badges, leaderboard, and community-federation queries.
+
+**Plugin tools** (8): plugin marketplace listing, install/enable/disable, and runtime inspection.
+
+**Notion tools** (6) + **Obsidian tools** (22): knowledge-base read/write integrations (the largest tool family — vault search, note CRUD, WebDAV-backed file ops).
+
 #### MCP Internals
 
 - **Tool registration**: Each tool is an object with `{ name, description, inputSchema: ZodSchema,
@@ -369,7 +425,7 @@ handler: async (args) => {...} }`. Zod validates inputs before the handler fires
   `createMcpServer()` wires all tool sets; `startMcpStdio()` launches the stdio transport.
 - **Transports**: stdio (CLI `omniroute --mcp`), SSE (`/api/mcp/sse`), Streamable HTTP
   (`/api/mcp/stream`). All share the same tool/scope engine.
-- **Scopes** (10): Control which tool categories an API key can access. Enforcement happens
+- **Scopes** (30): Control which tool categories an API key can access. Enforcement happens
   before handler dispatch.
 - **Audit**: Every tool invocation is logged to SQLite (`mcp_audit` table) with tool name,
   args, success/failure, API key attribution, and timestamp.
@@ -378,7 +434,7 @@ handler: async (args) => {...} }`. Zod validates inputs before the handler fires
 
 JSON-RPC 2.0, SSE streaming, Task Manager with TTL cleanup.
 Agent Card at `/.well-known/agent.json`.
-Skills (5): `smartRouting.ts`, `quotaManagement.ts`, `providerDiscovery.ts`, `costAnalysis.ts`, `healthReport.ts`.
+Skills (6): `smartRouting.ts`, `quotaManagement.ts`, `providerDiscovery.ts`, `costAnalysis.ts`, `healthReport.ts`, `listCapabilities.ts`.
 
 #### A2A Internals
 
@@ -471,7 +527,6 @@ Cloudflare Quick/Named, ngrok, Tailscale Funnel. See [`docs/ops/TUNNELS_GUIDE.md
 
 ## Subdirectory AGENTS.md Files
 
-- **[`open-sse/AGENTS.md`](open-sse/AGENTS.md)** — Streaming engine, request pipeline, handlers, and executors
 - **[`src/lib/db/AGENTS.md`](src/lib/db/AGENTS.md)** — SQLite persistence, domain modules, migrations
 - **[`open-sse/services/AGENTS.md`](open-sse/services/AGENTS.md)** — Routing engine, combo resolution, strategy selection
 
@@ -479,31 +534,32 @@ Cloudflare Quick/Named, ngrok, Tailscale Funnel. See [`docs/ops/TUNNELS_GUIDE.md
 
 For any non-trivial change, read the matching deep-dive first:
 
-| Area                                 | Doc                                                                                                                                 |
-| ------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------- |
-| Repo navigation                      | [`docs/architecture/REPOSITORY_MAP.md`](docs/architecture/REPOSITORY_MAP.md)                                                        |
-| Architecture                         | [`docs/architecture/ARCHITECTURE.md`](docs/architecture/ARCHITECTURE.md)                                                            |
-| Engineering reference                | [`docs/architecture/CODEBASE_DOCUMENTATION.md`](docs/architecture/CODEBASE_DOCUMENTATION.md)                                        |
-| Auto-Combo (9-factor, 14 strategies) | [`docs/routing/AUTO-COMBO.md`](docs/routing/AUTO-COMBO.md)                                                                          |
-| Resilience (3 layers)                | [`docs/architecture/RESILIENCE_GUIDE.md`](docs/architecture/RESILIENCE_GUIDE.md)                                                    |
-| Skills                               | [`docs/frameworks/SKILLS.md`](docs/frameworks/SKILLS.md)                                                                            |
-| Memory                               | [`docs/frameworks/MEMORY.md`](docs/frameworks/MEMORY.md)                                                                            |
-| Cloud agents                         | [`docs/frameworks/CLOUD_AGENT.md`](docs/frameworks/CLOUD_AGENT.md)                                                                  |
-| Guardrails                           | [`docs/security/GUARDRAILS.md`](docs/security/GUARDRAILS.md)                                                                        |
-| Evals                                | [`docs/frameworks/EVALS.md`](docs/frameworks/EVALS.md)                                                                              |
-| Compliance                           | [`docs/security/COMPLIANCE.md`](docs/security/COMPLIANCE.md)                                                                        |
-| Webhooks                             | [`docs/frameworks/WEBHOOKS.md`](docs/frameworks/WEBHOOKS.md)                                                                        |
-| Authz                                | [`docs/architecture/AUTHZ_GUIDE.md`](docs/architecture/AUTHZ_GUIDE.md)                                                              |
-| Stealth                              | [`docs/security/STEALTH_GUIDE.md`](docs/security/STEALTH_GUIDE.md)                                                                  |
-| Reasoning replay                     | [`docs/routing/REASONING_REPLAY.md`](docs/routing/REASONING_REPLAY.md)                                                              |
-| Agent protocols (A2A / ACP / Cloud)  | [`docs/frameworks/AGENT_PROTOCOLS_GUIDE.md`](docs/frameworks/AGENT_PROTOCOLS_GUIDE.md)                                              |
-| MCP server                           | [`docs/frameworks/MCP-SERVER.md`](docs/frameworks/MCP-SERVER.md)                                                                    |
-| A2A server                           | [`docs/frameworks/A2A-SERVER.md`](docs/frameworks/A2A-SERVER.md)                                                                    |
-| API reference                        | [`docs/reference/API_REFERENCE.md`](docs/reference/API_REFERENCE.md) + [`docs/reference/openapi.yaml`](docs/reference/openapi.yaml) |
-| Provider catalog (auto-generated)    | [`docs/reference/PROVIDER_REFERENCE.md`](docs/reference/PROVIDER_REFERENCE.md)                                                      |
-| Tunnels                              | [`docs/ops/TUNNELS_GUIDE.md`](docs/ops/TUNNELS_GUIDE.md)                                                                            |
-| Electron desktop                     | [`docs/guides/ELECTRON_GUIDE.md`](docs/guides/ELECTRON_GUIDE.md)                                                                    |
-| Release flow                         | [`docs/ops/RELEASE_CHECKLIST.md`](docs/ops/RELEASE_CHECKLIST.md)                                                                    |
+| Area                                       | Doc                                                                                                                                 |
+| ------------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------- |
+| Repo navigation                            | [`docs/architecture/REPOSITORY_MAP.md`](docs/architecture/REPOSITORY_MAP.md)                                                        |
+| Architecture                               | [`docs/architecture/ARCHITECTURE.md`](docs/architecture/ARCHITECTURE.md)                                                            |
+| Engineering reference                      | [`docs/architecture/CODEBASE_DOCUMENTATION.md`](docs/architecture/CODEBASE_DOCUMENTATION.md)                                        |
+| Auto-Combo (12-factor, 15 strategies)      | [`docs/routing/AUTO-COMBO.md`](docs/routing/AUTO-COMBO.md)                                                                          |
+| Resilience (3 layers)                      | [`docs/architecture/RESILIENCE_GUIDE.md`](docs/architecture/RESILIENCE_GUIDE.md)                                                    |
+| Skills                                     | [`docs/frameworks/SKILLS.md`](docs/frameworks/SKILLS.md)                                                                            |
+| Memory                                     | [`docs/frameworks/MEMORY.md`](docs/frameworks/MEMORY.md)                                                                            |
+| Cloud agents                               | [`docs/frameworks/CLOUD_AGENT.md`](docs/frameworks/CLOUD_AGENT.md)                                                                  |
+| Guardrails                                 | [`docs/security/GUARDRAILS.md`](docs/security/GUARDRAILS.md)                                                                        |
+| Evals                                      | [`docs/frameworks/EVALS.md`](docs/frameworks/EVALS.md)                                                                              |
+| Compliance                                 | [`docs/security/COMPLIANCE.md`](docs/security/COMPLIANCE.md)                                                                        |
+| Webhooks                                   | [`docs/frameworks/WEBHOOKS.md`](docs/frameworks/WEBHOOKS.md)                                                                        |
+| Authz                                      | [`docs/architecture/AUTHZ_GUIDE.md`](docs/architecture/AUTHZ_GUIDE.md)                                                              |
+| Stealth                                    | [`docs/security/STEALTH_GUIDE.md`](docs/security/STEALTH_GUIDE.md)                                                                  |
+| Reasoning replay                           | [`docs/routing/REASONING_REPLAY.md`](docs/routing/REASONING_REPLAY.md)                                                              |
+| Agent protocols (A2A / ACP / Cloud)        | [`docs/frameworks/AGENT_PROTOCOLS_GUIDE.md`](docs/frameworks/AGENT_PROTOCOLS_GUIDE.md)                                              |
+| MCP server                                 | [`docs/frameworks/MCP-SERVER.md`](docs/frameworks/MCP-SERVER.md)                                                                    |
+| A2A server                                 | [`docs/frameworks/A2A-SERVER.md`](docs/frameworks/A2A-SERVER.md)                                                                    |
+| API reference                              | [`docs/reference/API_REFERENCE.md`](docs/reference/API_REFERENCE.md) + [`docs/reference/openapi.yaml`](docs/reference/openapi.yaml) |
+| Provider catalog (auto-generated)          | [`docs/reference/PROVIDER_REFERENCE.md`](docs/reference/PROVIDER_REFERENCE.md)                                                      |
+| Tunnels                                    | [`docs/ops/TUNNELS_GUIDE.md`](docs/ops/TUNNELS_GUIDE.md)                                                                            |
+| Electron desktop                           | [`docs/guides/ELECTRON_GUIDE.md`](docs/guides/ELECTRON_GUIDE.md)                                                                    |
+| Release flow                               | [`docs/ops/RELEASE_CHECKLIST.md`](docs/ops/RELEASE_CHECKLIST.md)                                                                    |
+| Quality gates (35 gates, allowlist policy) | [`docs/architecture/QUALITY_GATES.md`](docs/architecture/QUALITY_GATES.md)                                                          |
 
 ---
 

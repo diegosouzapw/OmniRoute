@@ -167,6 +167,24 @@ describe("replaceImageUrls", () => {
     assert.equal(result.applied, false);
   });
 
+  // #3328: MiniMax M3 is multimodal (verified: it describes a base64 image via the
+  // opencode upstream). It must not be treated as a non-vision model, or compression
+  // strips the image and the model goes "blind".
+  it("keeps images for MiniMax M3 (incl. provider-prefixed / free ids)", () => {
+    const mkBody = () => ({
+      messages: [
+        {
+          role: "user",
+          content: [{ type: "image_url", image_url: { url: "data:image/png;base64,iVBOR" } }],
+        },
+      ],
+    });
+    for (const id of ["minimax-m3", "minimax-m3-free", "oc/minimax-m3-free"]) {
+      const result = replaceImageUrls(mkBody(), id);
+      assert.equal(result.applied, false, `expected images kept for ${id}`);
+    }
+  });
+
   it("skips non-image content", () => {
     const body = {
       messages: [{ role: "user", content: "just text" }],

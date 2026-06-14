@@ -12,7 +12,6 @@ import Input from "@/shared/components/Input";
 import Modal from "@/shared/components/Modal";
 import Toggle from "@/shared/components/Toggle";
 import Tooltip from "@/shared/components/Tooltip";
-import EmailPrivacyToggle from "@/shared/components/EmailPrivacyToggle";
 import { useCopyToClipboard } from "@/shared/hooks/useCopyToClipboard";
 import { pickDisplayValue } from "@/shared/utils/maskEmail";
 import useEmailPrivacyStore from "@/store/emailPrivacyStore";
@@ -726,7 +725,7 @@ export default function CombosPage() {
       const metricsData = await metricsRes.json();
       const nodesData = nodesRes.ok ? await nodesRes.json() : { nodes: [] };
 
-      if (combosRes.ok) setCombos(combosData.combos || []);
+      if (combosRes.ok) setCombos((combosData.combos || []).filter((c) => !c.isHidden));
       if (providersRes.ok) {
         const active = (providersData.connections || []).filter(
           (c) => c.testStatus === "active" || c.testStatus === "success"
@@ -976,32 +975,6 @@ export default function CombosPage() {
         </div>
 
         <div className="flex flex-wrap items-center gap-2">
-          <div className="inline-flex items-center gap-2 rounded-lg border border-black/8 dark:border-white/8 bg-black/[0.02] dark:bg-white/[0.02] px-2.5 py-1.5">
-            <span className="hidden lg:inline text-xs text-text-muted">
-              {getI18nOrFallback(
-                t,
-                "emailVisibilityHint",
-                "Account emails here follow the global privacy toggle."
-              )}
-            </span>
-            <Tooltip
-              position="bottom"
-              content={getI18nOrFallback(
-                t,
-                "emailVisibilityTooltip",
-                "Use the eye icon to reveal or hide account emails globally across combos, providers and quota screens."
-              )}
-            >
-              <span className="inline-flex">
-                <EmailPrivacyToggle size="md" />
-              </span>
-            </Tooltip>
-            <span className="text-[11px] text-text-muted">
-              {emailsVisible
-                ? getI18nOrFallback(t, "emailVisibilityStateOn", "Emails visible globally")
-                : getI18nOrFallback(t, "emailVisibilityStateOff", "Emails masked globally")}
-            </span>
-          </div>
           {!showUsageGuide && (
             <Button size="sm" variant="ghost" onClick={handleShowUsageGuide}>
               {getI18nOrFallback(t, "usageGuideShow", "Show guide")}
@@ -2512,7 +2485,19 @@ function ComboFormModal({ isOpen, combo, onClose, onSave, activeProviders, combo
   };
 
   const handleAddModel = (model) => {
-    const nextEntry = { model: model.value, weight: 0 };
+    const qualifiedModel = typeof model?.value === "string" ? model.value : "";
+    const parsedModel = parseQualifiedModel(qualifiedModel);
+    const resolvedProviderId =
+      resolveComboBuilderProviderId(model?.providerId, builderProviders) ||
+      resolveComboBuilderProviderId(parsedModel?.providerId, builderProviders) ||
+      (typeof model?.providerId === "string" && model.providerId.trim()) ||
+      parsedModel?.providerId ||
+      null;
+    const nextEntry = {
+      model: qualifiedModel,
+      ...(resolvedProviderId ? { providerId: resolvedProviderId } : {}),
+      weight: 0,
+    };
     if (hasExactModelStepDuplicate(models, nextEntry)) {
       setBuilderError(
         getI18nOrFallback(

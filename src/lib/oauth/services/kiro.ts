@@ -226,7 +226,7 @@ export class KiroService {
             return {
               accessToken: retryData.accessToken,
               refreshToken: retryData.refreshToken || refreshToken,
-              expiresIn: retryData.expiresIn,
+              expiresIn: retryData.expiresIn || 3600,
               _newClientId: newReg.clientId,
               _newClientSecret: newReg.clientSecret,
               _newClientSecretExpiresAt: newReg.clientSecretExpiresAt,
@@ -246,9 +246,13 @@ export class KiroService {
 
       const data = await response.json();
       return {
+        // Builder ID / IDC OIDC refresh: no profileArn (the social path supplies
+        // one; Builder ID connections legitimately have none). expiresIn falls
+        // back to 3600 so the import route never computes Date(NaN) if upstream
+        // omits it (the social path already guards the same way).
         accessToken: data.accessToken,
         refreshToken: data.refreshToken || refreshToken,
-        expiresIn: data.expiresIn,
+        expiresIn: data.expiresIn || 3600,
       };
     }
 
@@ -279,9 +283,9 @@ export class KiroService {
 
   /**
    * Validate and import refresh token.
-   * Registers a dedicated OIDC client so this connection has an isolated refresh session.
-   * If registerClient() fails (network issue, OIDC service down), the import still
-   * succeeds and the connection falls back to the shared social-auth refresh path.
+   * First attempts to validate using cached AWS SSO client credentials (Builder ID path).
+   * If that fails or no cached credentials exist, registers a dedicated OIDC client.
+   * If registerClient() also fails, the import falls back to the shared social-auth refresh path.
    */
   async validateImportToken(refreshToken: string, region: string = "us-east-1") {
     // Validate token format
@@ -289,7 +293,38 @@ export class KiroService {
       throw new Error("Invalid token format. Token should start with aorAAAAAG...");
     }
 
-    // Try to refresh to validate
+    // Try to read cached clientId/clientSecret from AWS SSO cache (Builder ID tokens)
+    const cachedClient = await this.readCachedClientCredentials(region);
+
+    // Attempt 1: Try Builder ID refresh using cached credentials
+    if (cachedClient) {
+      try {
+        const result = await this.refreshToken(refreshToken, {
+          clientId: cachedClient.clientId,
+          clientSecret: cachedClient.clientSecret,
+          authMethod: "builder-id",
+          // Forward the requested region so a non-us-east-1 Builder ID validates
+          // against the right OIDC endpoint instead of defaulting to us-east-1.
+          region,
+        });
+        return {
+          accessToken: result.accessToken,
+          refreshToken: result.refreshToken || refreshToken,
+          // profileArn is intentionally absent for Builder ID (OIDC) imports —
+          // only the social-auth path returns one, and Builder ID connections
+          // don't require it. The Kiro executor adds profileArn conditionally.
+          profileArn: result.profileArn,
+          expiresIn: result.expiresIn,
+          authMethod: "builder-id",
+          clientId: cachedClient.clientId,
+          clientSecret: cachedClient.clientSecret,
+        };
+      } catch {
+        // Cached credentials didn't work, fall through
+      }
+    }
+
+    // Attempt 2: Try social auth refresh
     let result: Awaited<ReturnType<typeof this.refreshToken>>;
     try {
       result = await this.refreshToken(refreshToken);
@@ -319,6 +354,63 @@ export class KiroService {
       authMethod: "imported",
       ...(clientId ? { clientId, clientSecret, clientSecretExpiresAt } : {}),
     };
+  }
+
+  /**
+   * Read clientId/clientSecret from AWS SSO cache (for Builder ID tokens).
+   * The cache is located at ~/.aws/sso/cache/ and contains JSON files from
+   * the OIDC client registration step of the device code flow.
+   */
+  private async readCachedClientCredentials(
+    region?: string
+  ): Promise<{ clientId: string; clientSecret: string } | null> {
+    try {
+      const { readdir, readFile } = await import("fs/promises");
+      const { homedir } = await import("os");
+      const { join } = await import("path");
+      const cachePath = join(homedir(), ".aws", "sso", "cache");
+      const files = await readdir(cachePath);
+
+      const candidates: {
+        clientId: string;
+        clientSecret: string;
+        region?: string;
+        expiresAt?: string;
+      }[] = [];
+      for (const file of files) {
+        if (!file.endsWith(".json")) continue;
+        try {
+          const content = await readFile(join(cachePath, file), "utf-8");
+          const data = JSON.parse(content);
+          if (data.clientId && data.clientSecret) {
+            candidates.push({
+              clientId: data.clientId,
+              clientSecret: data.clientSecret,
+              region: data.region,
+              expiresAt: data.clientSecretExpiresAt || data.expiresAt,
+            });
+          }
+        } catch {
+          continue;
+        }
+      }
+      if (candidates.length === 0) return null;
+
+      // A host can cache OIDC client registrations for several SSO sessions;
+      // adopting the wrong pair makes the Builder ID refresh fail. Prefer a
+      // registration whose region matches the requested import region, then —
+      // among the candidates — the one with the latest secret expiry, instead
+      // of blindly taking the first file readdir happens to return.
+      const byLatestExpiry = (a: { expiresAt?: string }, b: { expiresAt?: string }): number =>
+        String(b.expiresAt || "").localeCompare(String(a.expiresAt || ""));
+      const matching = region ? candidates.filter((c) => c.region === region) : [];
+      const ordered = (matching.length > 0 ? matching : candidates).slice().sort(byLatestExpiry);
+      const best = ordered[0];
+      return { clientId: best.clientId, clientSecret: best.clientSecret };
+    } catch {
+      // Cache not available
+    }
+    return null;
   }
 
   /**

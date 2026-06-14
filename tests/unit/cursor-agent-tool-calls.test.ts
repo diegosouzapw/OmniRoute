@@ -5,7 +5,7 @@ import {
   decodeProtobufValue,
   jsonSchemaToProtobufValue,
 } from "../../open-sse/utils/cursorAgentProtobuf";
-import { newStreamCtx, processFrame } from "../../open-sse/executors/cursor";
+import { newStreamCtx, processFrame, CursorExecutor } from "../../open-sse/executors/cursor";
 
 // ─── Wire-format helpers ───────────────────────────────────────────────────
 
@@ -233,4 +233,126 @@ test("processFrame doesn't emit tool_calls for the same exec_id twice", () => {
   processFrame(payload, ctx, acked);
   processFrame(payload, ctx, acked);
   assert.equal(ctx.toolCalls.length, 1);
+});
+
+// ─── Tool-commit directive (ported from composer-api) ──────────────────────
+//
+// transformRequest() returns the encoded Connect-RPC body; the UserMessage.text
+// is plain UTF-8 inside it, so we can assert the directive is present/absent.
+
+const weatherTool = {
+  type: "function",
+  function: {
+    name: "web_search",
+    description: "Search the web",
+    parameters: { type: "object", properties: { q: { type: "string" } } },
+  },
+};
+
+test("transformRequest prepends the tool-commit directive when tools are declared", () => {
+  const exec = new CursorExecutor();
+  const body = exec.transformRequest(
+    "composer-2.5",
+    { messages: [{ role: "user", content: "how's the weather?" }], tools: [weatherTool] },
+    false,
+    {}
+  ) as Uint8Array;
+  const text = Buffer.from(body).toString("utf8");
+  assert.ok(text.includes("you MUST issue the actual tool call"), "directive present with tools");
+  assert.ok(text.includes("how's the weather?"), "original user text preserved");
+});
+
+test("transformRequest omits the directive when no tools are declared", () => {
+  const exec = new CursorExecutor();
+  const body = exec.transformRequest(
+    "composer-2.5",
+    { messages: [{ role: "user", content: "hi there" }] },
+    false,
+    {}
+  ) as Uint8Array;
+  const text = Buffer.from(body).toString("utf8");
+  assert.ok(!text.includes("you MUST issue the actual tool call"), "no directive without tools");
+  assert.ok(text.includes("hi there"), "user text present");
+});
+
+test("transformRequest honors CURSOR_TOOL_DIRECTIVE=0 opt-out", () => {
+  const prev = process.env.CURSOR_TOOL_DIRECTIVE;
+  process.env.CURSOR_TOOL_DIRECTIVE = "0";
+  try {
+    const exec = new CursorExecutor();
+    const body = exec.transformRequest(
+      "composer-2.5",
+      { messages: [{ role: "user", content: "weather?" }], tools: [weatherTool] },
+      false,
+      {}
+    ) as Uint8Array;
+    const text = Buffer.from(body).toString("utf8");
+    assert.ok(!text.includes("you MUST issue the actual tool call"), "directive suppressed by opt-out");
+  } finally {
+    if (prev === undefined) delete process.env.CURSOR_TOOL_DIRECTIVE;
+    else process.env.CURSOR_TOOL_DIRECTIVE = prev;
+  }
+});
+
+// ─── tool_choice handling (ported from composer-api) ───────────────────────
+
+function encodedText(body: Record<string, unknown>): string {
+  const exec = new CursorExecutor();
+  const buf = exec.transformRequest("composer-2.5", body, false, {}) as Uint8Array;
+  return Buffer.from(buf).toString("utf8");
+}
+
+test("tool_choice:'none' drops tools and the directive", () => {
+  const text = encodedText({
+    messages: [{ role: "user", content: "weather?" }],
+    tools: [weatherTool],
+    tool_choice: "none",
+  });
+  assert.ok(!text.includes("you MUST issue the actual tool call"), "no directive when tool_choice none");
+  assert.ok(!text.includes("web_search"), "tool not advertised when tool_choice none");
+});
+
+test("tool_choice:'required' adds the forcing line", () => {
+  const text = encodedText({
+    messages: [{ role: "user", content: "weather?" }],
+    tools: [weatherTool],
+    tool_choice: "required",
+  });
+  assert.ok(text.includes("you MUST issue the actual tool call"), "base directive present");
+  assert.ok(text.includes("at least one of the available tools"), "required forcing line present");
+});
+
+test("tool_choice specific-function forces that tool by name", () => {
+  const text = encodedText({
+    messages: [{ role: "user", content: "weather?" }],
+    tools: [weatherTool],
+    tool_choice: { type: "function", function: { name: "web_search" } },
+  });
+  assert.ok(text.includes("You MUST call the `web_search` tool now"), "specific tool forced");
+});
+
+// ─── output constraints (ported from composer-api) ─────────────────────────
+
+test("response_format json_object adds a JSON output constraint", () => {
+  const text = encodedText({
+    messages: [{ role: "user", content: "give me a profile" }],
+    response_format: { type: "json_object" },
+  });
+  assert.ok(text.includes("OUTPUT CONSTRAINTS:"), "constraints block present");
+  assert.ok(text.includes("single valid JSON object"), "json_object constraint present");
+});
+
+test("max_tokens and stop are surfaced as output constraints", () => {
+  const text = encodedText({
+    messages: [{ role: "user", content: "hi" }],
+    max_tokens: 128,
+    stop: ["END"],
+  });
+  assert.ok(text.includes("within about 128 output tokens"), "max_tokens constraint present");
+  assert.ok(text.includes("Stop before any of these sequences: END"), "stop constraint present");
+});
+
+test("no output constraints block when no constraining params are set", () => {
+  const text = encodedText({ messages: [{ role: "user", content: "hi" }] });
+  assert.ok(!text.includes("OUTPUT CONSTRAINTS:"), "no constraints block by default");
 });

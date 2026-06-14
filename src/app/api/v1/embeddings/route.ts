@@ -6,12 +6,14 @@ import { errorResponse } from "@omniroute/open-sse/utils/error.ts";
 import { HTTP_STATUS } from "@omniroute/open-sse/config/constants.ts";
 import * as log from "@/sse/utils/logger";
 import { enforceApiKeyPolicy } from "@/shared/utils/apiKeyPolicy";
+import { isRequireApiKeyEnabled } from "@/shared/utils/featureFlags";
 import { v1EmbeddingsSchema } from "@/shared/validation/schemas";
 import { isValidationFailure, validateBody } from "@/shared/validation/helpers";
 
 import { getAllCustomModels, getApiKeyMetadata } from "@/lib/localDb";
 import { createEmbeddingResponse, type EmbeddingHandlerOptions } from "@/lib/embeddings/service";
 import { extractApiKey, isValidApiKey } from "@/sse/services/auth";
+import { withInjectionGuard } from "@/middleware/promptInjectionGuard";
 
 function toProviderScopedModelId(providerId: string, modelId: string): string {
   return modelId.startsWith(`${providerId}/`) ? modelId : `${providerId}/${modelId}`;
@@ -74,7 +76,7 @@ export async function handleValidatedEmbeddingRequestBody(
   return createEmbeddingResponse(body, options);
 }
 
-export async function POST(request) {
+async function postHandler(request, context) {
   let rawBody;
   try {
     rawBody = await request.json();
@@ -91,7 +93,7 @@ export async function POST(request) {
 
   // Auth check
   const apiKeyRaw = extractApiKey(request);
-  if (process.env.REQUIRE_API_KEY === "true" && !apiKeyRaw) {
+  if (isRequireApiKeyEnabled() && !apiKeyRaw) {
     return errorResponse(HTTP_STATUS.UNAUTHORIZED, "Authentication required");
   }
   if (apiKeyRaw && !(await isValidApiKey(apiKeyRaw))) {
@@ -119,3 +121,5 @@ export async function POST(request) {
     connectionId: null,
   });
 }
+
+export const POST = withInjectionGuard(postHandler);

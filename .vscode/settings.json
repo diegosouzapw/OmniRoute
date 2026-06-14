@@ -53,7 +53,18 @@
     "**/electron/**": true,
     "**/.next/**": true,
     "**/coverage/**": true,
-    "**/_tasks/**": true
+    "**/_tasks/**": true,
+    "**/.git/objects/**": true,
+    "**/dist/**": true,
+    "**/build/**": true,
+    "**/out/**": true,
+    "**/.cache/**": true,
+    "**/.turbo/**": true,
+    "**/OmniRoute-*/**": true,
+    "**/*-merge-*/**": true,
+    "**/*-worktree-*/**": true,
+    "**/*-issues-*/**": true,
+    "**/*-reorg*/**": true
   },
   // Search
   "search.exclude": {
@@ -65,6 +76,14 @@
     "**/electron": true,
     "**/.next": true,
     "**/coverage": true,
-    "**/_tasks": true
+    "**/_tasks": true,
+    "**/dist": true,
+    "**/build": true,
+    "**/out": true,
+    "**/OmniRoute-*": true,
+    "**/*-merge-*": true,
+    "**/*-worktree-*": true,
+    "**/*-issues-*": true,
+    "**/*-reorg*": true
   }
 }

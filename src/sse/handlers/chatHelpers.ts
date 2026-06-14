@@ -130,9 +130,14 @@ export async function resolveModelOrError(
     !isCodexNativeResponsesRequest(body, endpointPath, requestHeaders) &&
     (await hasOnlyActiveCodexAccount())
   ) {
-    log.info("ROUTING", `${modelStr} → codex/gpt-5.5-medium (Codex-only active account)`);
+    // #2877: keep the bare model id (do NOT bake a `-medium` suffix). The Codex
+    // executor reads a model-name suffix as an explicit `modelEffort` that (per
+    // #2331) overrides the client's `reasoning.effort`, so injecting `-medium`
+    // here silently demoted a genuine `reasoning.effort=xhigh`. The default
+    // effort still comes from the connection fallback when the client sends none.
+    log.info("ROUTING", `${modelStr} → codex/gpt-5.5 (Codex-only active account)`);
     modelInfo.provider = "codex";
-    modelInfo.model = "gpt-5.5-medium";
+    modelInfo.model = "gpt-5.5";
   }
 
   // Forced-rewrite: codex provider doesn't serve DeepSeek/Qwen/Kimi/etc. Reroute
@@ -193,7 +198,9 @@ export async function resolveModelOrError(
       const { getCombos } = await import("@/lib/localDb");
       const all = await getCombos();
       for (const c of all) {
-        if (c.name?.startsWith("auto/")) available.push(c.name);
+        const name =
+          typeof c === "object" && c !== null ? (c as Record<string, unknown>).name : undefined;
+        if (typeof name === "string" && name.startsWith("auto/")) available.push(name);
       }
     } catch {
       /* DB unavailable */
@@ -288,6 +295,7 @@ export async function checkPipelineGates(
       circuitBreakerThreshold?: number;
       circuitBreakerReset?: number;
       failureThreshold?: number;
+      degradationThreshold?: number;
       resetTimeoutMs?: number;
     } | null;
   } = {}
@@ -301,6 +309,7 @@ export async function checkPipelineGates(
   );
   const breaker = getCircuitBreaker(provider, {
     failureThreshold: providerProfile.failureThreshold ?? providerProfile.circuitBreakerThreshold,
+    degradationThreshold: providerProfile.degradationThreshold,
     resetTimeout: providerProfile.resetTimeoutMs ?? providerProfile.circuitBreakerReset,
     onStateChange: (name: string, from: string, to: string) =>
       log.info("CIRCUIT", `${name}: ${from} → ${to}`),
@@ -375,7 +384,6 @@ export async function executeChatWithBreaker({
           isCombo,
           comboStepId,
           comboExecutionKey,
-          disableEmergencyFallback: isCombo,
           cachedSettings,
           skipUpstreamRetry,
           trafficType: normalizedTrafficType,
@@ -422,7 +430,8 @@ export async function executeChatWithBreaker({
               String(failure?.message || failure?.code || "stream failure"),
               provider,
               model,
-              providerProfile
+              providerProfile,
+              { isCombo }
             );
           },
         })
@@ -573,16 +582,67 @@ export function handleNoCredentials(
   );
 }
 
-export async function safeResolveProxy(connectionId: string) {
-  try {
-    return await resolveProxyForConnection(connectionId);
-  } catch (proxyErr: any) {
-    log.debug("PROXY", `Failed to resolve proxy: ${proxyErr.message}`);
+/**
+ * Bug #3758 (Problem A): NVIDIA NIM (and other flaky OpenAI-compatible upstreams)
+ * intermittently send HTTP 200, then close the SSE early with zero useful frames.
+ * The readiness gate surfaces this as `STREAM_EARLY_EOF` / HTTP 502. On the
+ * single-model (non-combo) path that 502 used to be returned immediately for every
+ * provider except `antigravity`, so a transient upstream hang-up looked like a hard
+ * failure to the caller (e.g. the test-chat scenario).
+ *
+ * This decides whether a single-model request should re-attempt after an early
+ * close. It deliberately:
+ *  - retries ONLY on `STREAM_EARLY_EOF` (the strong "upstream hung up after 200"
+ *    signal) — NOT on `STREAM_READINESS_TIMEOUT` / `stream_timeout`, which is a
+ *    slow-but-alive upstream where retrying would only double latency; and
+ *  - is bounded to exactly ONE retry via the per-request `attempt` counter, so it
+ *    can never loop (the second consecutive early close surfaces the 502).
+ *
+ * Pure function (no side effects): the caller performs a plain same-connection
+ * re-attempt and must NOT mark the account unavailable for an early close — it is a
+ * transient upstream glitch, not a bad key.
+ */
+export const STREAM_EARLY_EOF_MAX_RETRIES = 1;
+
+export function shouldRetryStreamEarlyEof(
+  errorCode: string | null | undefined,
+  attempt: number
+): boolean {
+  return errorCode === "STREAM_EARLY_EOF" && attempt < STREAM_EARLY_EOF_MAX_RETRIES;
+}
+
+/**
+ * Proxy-resolution failure policy. Default: fail-closed (rethrow) so a request
+ * with an assigned-but-unresolvable proxy never silently egresses on the real IP.
+ * Opt back into the legacy DIRECT fallback with PROXY_FAIL_OPEN=true.
+ */
+export function decideProxyResolutionFailure(
+  err: unknown,
+  env: { PROXY_FAIL_OPEN?: string } = process.env
+): null {
+  if ((env.PROXY_FAIL_OPEN ?? "").trim().toLowerCase() === "true") {
+    log.warn(
+      "PROXY",
+      `Proxy resolution failed — PROXY_FAIL_OPEN=true, falling back to DIRECT: ${
+        err instanceof Error ? err.message : String(err)
+      }`
+    );
     return null;
+  }
+  throw err instanceof Error ? err : new Error(String(err));
+}
+
+export async function safeResolveProxy(connectionId: string, apiKeyId?: string) {
+  try {
+    return await resolveProxyForConnection(connectionId, apiKeyId);
+  } catch (proxyErr) {
+    return decideProxyResolutionFailure(proxyErr);
   }
 }
 
-export function safeLogEvents({
+// Async because the egress-IP lookup lazy-imports proxyEgress; callers treat
+// this as fire-and-forget logging (the internal try/catch swallows everything).
+export async function safeLogEvents({
   result,
   proxyInfo,
   proxyLatency,
@@ -601,7 +661,22 @@ export function safeLogEvents({
       clientRawRequest?.headers?.["x-real-ip"] ||
       clientRawRequest?.headers?.["cf-connecting-ip"] ||
       null;
-    const publicIp = rawIp ? rawIp.split(",")[0].trim() : null;
+    const rawIpValue = Array.isArray(rawIp) ? rawIp[0] : rawIp;
+    const clientIp = typeof rawIpValue === "string" ? rawIpValue.split(",")[0].trim() : null;
+
+    // Resolve the egress IP (the IP the upstream actually saw) from cache — never
+    // blocking the request. Warm it in the background for next time. null until
+    // the first warm completes; direct (no proxy) is also tracked.
+    let egressIp: string | null = null;
+    try {
+      const { getCachedEgressIp, warmEgressIp } = await import("../../lib/proxyEgress");
+      const { proxyConfigToUrl } = await import("@omniroute/open-sse/utils/proxyDispatcher.ts");
+      const proxyUrl = proxyInfo?.proxy ? proxyConfigToUrl(proxyInfo.proxy) : null;
+      egressIp = getCachedEgressIp(proxyUrl);
+      warmEgressIp(proxyUrl);
+    } catch {
+      // egress visibility is best-effort; never break the request path
+    }
 
     logProxyEvent({
       status: result.success
@@ -614,7 +689,8 @@ export function safeLogEvents({
       levelId: proxyInfo?.levelId || null,
       provider,
       targetUrl: `${provider}/${model}`,
-      publicIp,
+      clientIp,
+      egressIp,
       latencyMs: proxyLatency,
       error: result.success ? null : result.error || null,
       connectionId: credentials.connectionId,

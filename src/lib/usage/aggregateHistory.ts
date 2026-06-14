@@ -1,6 +1,6 @@
 /**
  * Aggregation utility functions for usage data summarization.
- * Rolls up quota_snapshots into hourly and daily summary tables.
+ * Rolls up usage_history (and quota_snapshots) into daily summary tables.
  *
  * @module lib/usage/aggregateHistory
  */
@@ -124,6 +124,65 @@ export async function rollupHourlyQuota(
     );
   } catch (err: any) {
     console.error("[Aggregation] Hourly rollup error:", err);
+    result.errors++;
+  }
+
+  return result;
+}
+
+/**
+ * Roll up usage_history into daily_usage_summary before raw rows are deleted.
+ * This is the authoritative rollup — sourced from actual per-request token data,
+ * not from quota_snapshots. Should be called before cleanupUsageHistory() deletes rows.
+ *
+ * The ON CONFLICT clause uses SUM so re-running is additive-safe: if a date already
+ * has a partial rollup (e.g. from a previous partial cleanup), new rows accumulate.
+ *
+ * @param beforeDate - ISO timestamp/date boundary. Rows strictly before this value are rolled up.
+ * @returns Aggregation result with counts
+ */
+export async function rollupUsageHistoryBeforeDate(beforeDate: string): Promise<AggregationResult> {
+  const db = getDbInstance();
+
+  const result: AggregationResult = {
+    processed: 0,
+    inserted: 0,
+    errors: 0,
+  };
+
+  try {
+    const aggregateQuery = `
+      INSERT INTO daily_usage_summary (provider, model, date, total_requests, total_input_tokens, total_output_tokens, total_cost)
+      SELECT
+        LOWER(provider) as provider,
+        LOWER(model) as model,
+        DATE(timestamp) as date,
+        COUNT(*) as total_requests,
+        COALESCE(SUM(tokens_input), 0) as total_input_tokens,
+        COALESCE(SUM(tokens_output), 0) as total_output_tokens,
+        0.0 as total_cost
+      FROM usage_history
+      WHERE timestamp < ?
+        AND provider IS NOT NULL AND provider != ''
+        AND model IS NOT NULL AND model != ''
+      GROUP BY LOWER(provider), LOWER(model), DATE(timestamp)
+      ON CONFLICT(provider, model, date) DO UPDATE SET
+        total_requests = daily_usage_summary.total_requests + excluded.total_requests,
+        total_input_tokens = daily_usage_summary.total_input_tokens + excluded.total_input_tokens,
+        total_output_tokens = daily_usage_summary.total_output_tokens + excluded.total_output_tokens
+    `;
+
+    const stmt = db.prepare(aggregateQuery);
+    const runResult = stmt.run(beforeDate);
+
+    result.processed = runResult.changes;
+    result.inserted = runResult.changes;
+
+    console.log(
+      `[Aggregation] usage_history rollup: ${result.inserted} rows for dates before ${beforeDate}`
+    );
+  } catch (err: any) {
+    console.error("[Aggregation] usage_history rollup error:", err);
     result.errors++;
   }
 

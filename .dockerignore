@@ -9,6 +9,7 @@
 # Dependencies and build output
 node_modules
 .next
+.build
 out
 build
 dist
@@ -38,10 +39,15 @@ playwright-report
 blob-report
 
 # Documentation
-# Translations (~51 MB) are excluded — the Docs viewer reads English sources.
-# Screenshots (~1.7 MB) and SVGs (~250 KB) are needed at build time for MDX
-# image resolution (fumadocs-mdx bundles them).
-# Raster sources under docs/diagrams/ only (exported SVGs are required).
+# Issue #2348: The Dashboard Docs viewer reads markdown from `/app/docs` at
+# runtime. The previous `docs/*` block hid every file except openapi.yaml,
+# so the in-product help screen failed with ENOENT for every page.
+# We now keep the English markdown tree plus the docs assets imported by MDX
+# during `next build`, while still dropping the bulky translated docs and
+# extra raster diagram sources that account for most of the docs footprint
+# of the ~50 MB docs directory. The Docs viewer reads the default-locale
+# (English) sources at runtime, so translations are not required in the
+# container image.
 docs/i18n/**
 docs/diagrams/**/*.png
 docs/diagrams/**/*.jpg

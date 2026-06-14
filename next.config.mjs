@@ -4,7 +4,7 @@ import { dirname } from "node:path";
 import { fileURLToPath } from "node:url";
 
 const withNextIntl = createNextIntlPlugin("./src/i18n/request.ts");
-const distDir = process.env.NEXT_DIST_DIR || ".next";
+const distDir = process.env.NEXT_DIST_DIR || ".build/next";
 const projectRoot = dirname(fileURLToPath(import.meta.url));
 const scriptSrc =
   process.env.NODE_ENV === "development"
@@ -62,6 +62,22 @@ function isNextIntlExtractorDynamicImportWarning(warning) {
   );
 }
 
+// OMNIROUTE_BUILD_PROFILE=minimal physically removes four optional privileged
+// modules (MITM cert install, Zed keychain import, Cloud Sync, 9router
+// installer) from the built bundle by aliasing them to feature-disabled stubs.
+// The resulting artifact is intended to be published as `omniroute-secure`
+// for security-sensitive environments. See docs/security/SOCKET_DEV_FINDINGS.md.
+const isMinimalBuild = process.env.OMNIROUTE_BUILD_PROFILE === "minimal";
+
+const minimalBuildAliases = isMinimalBuild
+  ? {
+      "@/mitm/cert/install": "./src/mitm/cert/install.stub.ts",
+      "@/lib/zed-oauth/keychain-reader": "./src/lib/zed-oauth/keychain-reader.stub.ts",
+      "@/lib/cloudSync": "./src/lib/cloudSync.stub.ts",
+      "@/lib/services/installers/ninerouter": "./src/lib/services/installers/ninerouter.stub.ts",
+    }
+  : {};
+
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   distDir,
@@ -71,6 +87,7 @@ const nextConfig = {
     resolveAlias: {
       // Point mitm/manager to a stub during build (native child_process/fs can't be bundled)
       "@/mitm/manager": "./src/mitm/manager.stub.ts",
+      ...minimalBuildAliases,
     },
   },
   output: "standalone",
@@ -87,6 +104,10 @@ const nextConfig = {
     serverActions: {
       bodySizeLimit: process.env.OMNIROUTE_SERVER_ACTIONS_BODY_LIMIT || "50mb",
     },
+    // Next.js proxy (middleware) has a default 10MB body clone limit. File
+    // uploads (OpenAI-compatible /v1/files) routinely exceed this. Match the
+    // 512 MB server-side cap; tune via env if needed.
+    proxyClientMaxBodySize: process.env.NEXT_PROXY_BODY_LIMIT || "512mb",
   },
   outputFileTracingRoot: projectRoot,
   outputFileTracingIncludes: {
@@ -124,7 +145,11 @@ const nextConfig = {
     "thread-stream",
     "pino-abstract-transport",
     "better-sqlite3",
-    "sql.js",
+    // sqlite-vec ships a native vec0.so loaded at runtime via createRequire().
+    // Turbopack otherwise tries to bundle the .so and fails with "Unknown module
+    // type"; externalizing it keeps the require at runtime (like better-sqlite3).
+    // See issue #3066.
+    "sqlite-vec",
     "node-machine-id",
     "keytar",
     "wreq-js",
@@ -133,6 +158,7 @@ const nextConfig = {
     "koffi",
     "tough-cookie",
     "@ngrok/ngrok",
+    "@huggingface/transformers",
     "child_process",
     "fs",
     "path",
@@ -153,11 +179,72 @@ const nextConfig = {
     // TODO: Re-enable after fixing all sub-component useTranslations scope issues
     ignoreBuildErrors: true,
   },
-  webpack(config) {
+  webpack(config, { webpack }) {
     config.ignoreWarnings = [
       ...(config.ignoreWarnings || []),
       isNextIntlExtractorDynamicImportWarning,
     ];
+    config.optimization = config.optimization || {};
+    config.optimization.splitChunks = {
+      ...config.optimization.splitChunks,
+      cacheGroups: {
+        ...(config.optimization.splitChunks?.cacheGroups || {}),
+        recharts: {
+          test: /[\\/]node_modules[\\/]recharts[\\/]/,
+          name: "vendor-recharts",
+          chunks: "all",
+          priority: 20,
+        },
+        lobeIcons: {
+          test: /[\\/]node_modules[\\/]@lobehub[\\/]icons[\\/]/,
+          name: "vendor-lobe-icons",
+          chunks: "all",
+          priority: 20,
+        },
+        monaco: {
+          test: /[\\/]node_modules[\\/]monaco-editor[\\/]/,
+          name: "vendor-monaco",
+          chunks: "all",
+          priority: 20,
+        },
+        xyflow: {
+          test: /[\\/]node_modules[\\/]@xyflow[\\/]/,
+          name: "vendor-xyflow",
+          chunks: "all",
+          priority: 20,
+        },
+        mermaid: {
+          test: /[\\/]node_modules[\\/]mermaid[\\/]/,
+          name: "vendor-mermaid",
+          chunks: "all",
+          priority: 20,
+        },
+      },
+    };
+
+    if (isMinimalBuild) {
+      // Mirror the turbopack.resolveAlias entries for webpack-built artifacts.
+      // NormalModuleReplacementPlugin swaps the real module for a stub before
+      // webpack resolves it, so the privileged source files are never compiled
+      // into the standalone output.
+      const replacements = [
+        [/^@\/mitm\/cert\/install$/, "./src/mitm/cert/install.stub.ts"],
+        [/^@\/lib\/zed-oauth\/keychain-reader$/, "./src/lib/zed-oauth/keychain-reader.stub.ts"],
+        [/^@\/lib\/cloudSync$/, "./src/lib/cloudSync.stub.ts"],
+        [
+          /^@\/lib\/services\/installers\/ninerouter$/,
+          "./src/lib/services/installers/ninerouter.stub.ts",
+        ],
+      ];
+      for (const [pattern, stubPath] of replacements) {
+        config.plugins.push(
+          new webpack.NormalModuleReplacementPlugin(pattern, (resource) => {
+            resource.request = stubPath;
+          })
+        );
+      }
+    }
+
     return config;
   },
   images: {
@@ -182,6 +269,12 @@ const nextConfig = {
 
   async redirects() {
     return [
+      // Dashboard routes
+      {
+        source: "/dashboard/skills",
+        destination: "/dashboard/omni-skills",
+        permanent: true,
+      },
       // Architecture
       {
         source: "/docs/architecture",
@@ -342,6 +435,19 @@ const nextConfig = {
       {
         source: "/docs/vm-deployment-guide",
         destination: "/docs/ops/vm-deployment-guide",
+        permanent: true,
+      },
+      // CLI Pages — Plano 14 (F9)
+      { source: "/dashboard/cli-tools", destination: "/dashboard/cli-code", permanent: true },
+      {
+        source: "/dashboard/cli-tools/:path*",
+        destination: "/dashboard/cli-code/:path*",
+        permanent: true,
+      },
+      { source: "/dashboard/agents", destination: "/dashboard/acp-agents", permanent: true },
+      {
+        source: "/dashboard/agents/:path*",
+        destination: "/dashboard/acp-agents/:path*",
         permanent: true,
       },
     ];

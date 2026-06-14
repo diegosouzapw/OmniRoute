@@ -12,6 +12,10 @@ function estimateTokens(text: string): number {
 
 type ChatMessage = ChatMessageLike;
 
+type CompressedResult = {
+  body?: { messages?: Array<{ content?: ChatMessageLike["content"] }> };
+};
+
 function setContent(msg: ChatMessage, newContent: string): ChatMessage {
   return replaceTextContent(msg, newContent) as ChatMessage;
 }
@@ -52,7 +56,7 @@ export function applyAging(
     if (distanceFromEnd <= t.verbatim) {
       result.push(msg);
     } else if (distanceFromEnd <= t.light) {
-      const compressed = applyLiteCompression({ messages: [msg] });
+      const compressed = applyLiteCompression({ messages: [msg] }) as CompressedResult;
       if (compressed?.body?.messages?.[0]?.content) {
         const newContent =
           typeof compressed.body.messages[0].content === "string"
@@ -65,7 +69,7 @@ export function applyAging(
         result.push(msg);
       }
     } else if (distanceFromEnd <= t.moderate) {
-      const compressed = cavemanCompress({ messages: [msg] });
+      const compressed = cavemanCompress({ messages: [msg] as unknown as Parameters<typeof cavemanCompress>[0]["messages"] }) as CompressedResult;
       if (compressed?.body?.messages?.[0]?.content) {
         const newContent =
           typeof compressed.body.messages[0].content === "string"

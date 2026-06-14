@@ -8,7 +8,10 @@ import { MAX_REQUEST_BODY_LIMIT_MB, MIN_REQUEST_BODY_LIMIT_MB } from "@/shared/c
 import { COMBO_CONFIG_MODES } from "@/shared/constants/comboConfigMode";
 import { providerAllowsOptionalApiKey } from "@/shared/constants/providers";
 import { HIDEABLE_SIDEBAR_ITEM_IDS } from "@/shared/constants/sidebarVisibility";
-import { isForbiddenUpstreamHeaderName } from "@/shared/constants/upstreamHeaders";
+import {
+  isForbiddenUpstreamHeaderName,
+  isForbiddenCustomHeaderName,
+} from "@/shared/constants/upstreamHeaders";
 import { MAX_TIMER_TIMEOUT_MS } from "@/shared/utils/runtimeTimeouts";
 
 function isHttpUrl(value: string): boolean {
@@ -352,6 +355,26 @@ export const bulkCreateProviderSchema = z
     }
   });
 
+// ──── Bulk Web-Session Import Schema ────
+
+export const bulkWebSessionImportSchema = z.object({
+  provider: z.string().min(1).max(100),
+  entries: z
+    .array(
+      z.object({
+        name: z.string().min(1).max(200),
+        credential: z
+          .string()
+          .min(1)
+          .max(64 * 1024, "Credential must be under 64 KB"),
+      })
+    )
+    .min(1, "entries must contain at least 1 item")
+    .max(50, "entries must contain at most 50 items"),
+  priority: z.number().int().min(1).max(100).optional(),
+  globalPriority: z.number().int().min(1).max(100).nullable().optional(),
+});
+
 // ──── Codex Import Schema ────
 
 export const importCodexAuthSchema = z.object({
@@ -429,9 +452,50 @@ export const importGeminiAuthSchema = z.object({
   overwriteExisting: z.boolean().optional(),
 });
 
+// ──── Antigravity CLI (`agy`) Auth Import Schema ────
+// Same source/options shape as gemini-cli; the parser handles the agy-specific token JSON.
+
+export const importAgyAuthSchema = z.object({
+  source: z.discriminatedUnion("kind", [
+    z.object({ kind: z.literal("json"), json: z.unknown() }),
+    z.object({
+      kind: z.literal("text"),
+      text: z.string().max(256 * 1024, "agy token file content exceeds 256KB"),
+    }),
+  ]),
+  name: z.string().min(1).max(200).optional(),
+  email: z.string().email("Must be a valid email").optional(),
+  overwriteExisting: z.boolean().optional(),
+});
+
+// ──── Antigravity CLI (`agy`) auto-detect local login Schema ────
+// No `source`: the route reads the token from the local agy CLI data dir on disk.
+
+export const applyLocalAgyAuthSchema = z.object({
+  name: z.string().min(1).max(200).optional(),
+  email: z.string().email("Must be a valid email").optional(),
+  overwriteExisting: z.boolean().optional(),
+});
+
 // ──── Gemini CLI Auth Import Bulk Schema ────
 
 export const importGeminiAuthBulkSchema = z.object({
+  entries: z
+    .array(
+      z.object({
+        json: z.unknown(),
+        name: z.string().min(1).max(200).optional(),
+        email: z.string().email("Must be a valid email").optional(),
+      })
+    )
+    .min(1, "At least one entry is required")
+    .max(50, "At most 50 entries per bulk import"),
+  overwriteExisting: z.boolean().optional(),
+});
+
+// ──── Antigravity CLI (`agy`) Auth Import Bulk Schema ────
+
+export const importAgyAuthBulkSchema = z.object({
   entries: z
     .array(
       z.object({
@@ -450,7 +514,7 @@ export const importGeminiAuthBulkSchema = z.object({
 export const createKeySchema = z.object({
   name: z.string().min(1, "Name is required").max(200),
   noLog: z.boolean().optional(),
-  scopes: z.array(z.string().trim().min(1).max(64)).max(16).optional(),
+  scopes: z.array(z.string().trim().min(1).max(64)).max(32).optional(),
 });
 
 export const createSyncTokenSchema = z.object({
@@ -582,10 +646,17 @@ const comboRuntimeConfigSchema = z
     maxMessagesForSummary: z.coerce.number().int().min(5).max(100).optional(),
     maxComboDepth: z.coerce.number().int().min(1).max(10).optional(),
     trackMetrics: z.boolean().optional(),
+    reasoningTokenBufferEnabled: z.boolean().optional(),
     compressionMode: compressionModeSchema.optional(),
     failoverBeforeRetry: z.boolean().optional(),
     maxSetRetries: z.coerce.number().int().min(0).max(10).optional(),
     setRetryDelayMs: z.coerce.number().int().min(0).max(60000).optional(),
+    zeroLatencyOptimizationsEnabled: z.boolean().optional(),
+    hedging: z.boolean().optional(),
+    hedgeDelayMs: z.coerce.number().int().min(0).max(60000).optional(),
+    fallbackCompressionMode: compressionModeSchema.optional(),
+    fallbackCompressionThreshold: z.coerce.number().int().min(0).max(2_000_000).optional(),
+    predictiveTtftMs: z.coerce.number().int().min(0).max(300000).optional(),
     // Auto-Combo / LKGP Extensions
     candidatePool: z.array(z.string().min(1)).optional(),
     weights: scoringWeightsSchema.optional(),
@@ -613,7 +684,29 @@ const comboRuntimeConfigSchema = z
     shadowRouting: shadowRoutingSchema.optional(),
     evalRouting: evalRoutingSchema.optional(),
   })
-  .strict();
+  .strict()
+  .superRefine((config, ctx) => {
+    if (config.zeroLatencyOptimizationsEnabled === true) return;
+
+    const addZeroLatencyIssue = (path: string[]) => {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message:
+          "zeroLatencyOptimizationsEnabled must be true to enable zero-latency combo features",
+        path,
+      });
+    };
+
+    if (config.hedging === true) {
+      addZeroLatencyIssue(["hedging"]);
+    }
+    if (typeof config.predictiveTtftMs === "number" && config.predictiveTtftMs > 0) {
+      addZeroLatencyIssue(["predictiveTtftMs"]);
+    }
+    if (config.fallbackCompressionMode && config.fallbackCompressionMode !== "off") {
+      addZeroLatencyIssue(["fallbackCompressionMode"]);
+    }
+  });
 
 const comboNameSchema = z
   .string()
@@ -659,9 +752,11 @@ export const updateSettingsSchema = z.object({
   hideEndpointCloudflaredTunnel: z.boolean().optional(),
   hideEndpointTailscaleFunnel: z.boolean().optional(),
   hideEndpointNgrokTunnel: z.boolean().optional(),
+  preferClaudeCodeForUnprefixedClaudeModels: z.boolean().optional(),
   pinProviderQuotaToHome: z.boolean().optional(),
   showQuickStartOnHome: z.boolean().optional(),
   showProviderTopologyOnHome: z.boolean().optional(),
+  showTokenSaverOnEndpoint: z.boolean().optional(),
   bruteForceProtection: z.boolean().optional(),
   hiddenSidebarItems: z.array(z.enum(HIDEABLE_SIDEBAR_ITEM_IDS)).optional(),
   comboConfigMode: z.enum(COMBO_CONFIG_MODES).optional(),
@@ -820,35 +915,51 @@ export const v1CountTokensSchema = z
   })
   .catchall(z.unknown());
 
-export const setBudgetSchema = z
+export const setBudgetSchema = z.object({
+  apiKeyId: z.string().trim().min(1, "apiKeyId is required"),
+  // #3537: a limit of 0 means "no limit for this period" (checkBudget only enforces when
+  // activeLimitUsd > 0). The dashboard sends 0 for unfilled fields, so 0 must be accepted —
+  // `.positive()` (rejects 0) used to 400 any save that left a field blank. Negatives are
+  // still rejected by `.min(0)`.
+  dailyLimitUsd: z.coerce.number().min(0, "dailyLimitUsd must be zero or greater").optional(),
+  weeklyLimitUsd: z.coerce.number().min(0, "weeklyLimitUsd must be zero or greater").optional(),
+  monthlyLimitUsd: z.coerce.number().min(0, "monthlyLimitUsd must be zero or greater").optional(),
+  warningThreshold: z.coerce.number().min(0).max(1).optional(),
+  resetInterval: z.enum(["daily", "weekly", "monthly"]).optional(),
+  resetTime: z
+    .string()
+    .trim()
+    .regex(/^\d{2}:\d{2}$/, "resetTime must be in HH:MM format")
+    .optional(),
+});
+// #3537: the previous superRefine required at least one limit > 0, which made it impossible to
+// clear all limits (save 0/0/0). Setting all limits to 0 is a valid "disable enforcement"
+// operation, so no cross-field minimum is imposed.
+
+export const setTokenLimitSchema = z
   .object({
+    id: z.string().trim().min(1).optional(),
     apiKeyId: z.string().trim().min(1, "apiKeyId is required"),
-    dailyLimitUsd: z.coerce.number().positive("dailyLimitUsd must be greater than zero").optional(),
-    weeklyLimitUsd: z.coerce
+    scopeType: z.enum(["model", "provider", "global"]),
+    scopeValue: z.string().trim().default(""),
+    tokenLimit: z.coerce
       .number()
-      .positive("weeklyLimitUsd must be greater than zero")
-      .optional(),
-    monthlyLimitUsd: z.coerce
-      .number()
-      .positive("monthlyLimitUsd must be greater than zero")
-      .optional(),
-    warningThreshold: z.coerce.number().min(0).max(1).optional(),
-    resetInterval: z.enum(["daily", "weekly", "monthly"]).optional(),
+      .int("tokenLimit must be an integer")
+      .positive("tokenLimit must be greater than zero"),
+    resetInterval: z.enum(["daily", "weekly", "monthly"]).default("monthly"),
     resetTime: z
       .string()
       .trim()
       .regex(/^\d{2}:\d{2}$/, "resetTime must be in HH:MM format")
       .optional(),
+    enabled: z.boolean().default(true),
   })
   .superRefine((value, ctx) => {
-    const hasAnyLimit = [value.dailyLimitUsd, value.weeklyLimitUsd, value.monthlyLimitUsd].some(
-      (entry) => typeof entry === "number" && Number.isFinite(entry) && entry > 0
-    );
-    if (!hasAnyLimit) {
+    if (value.scopeType !== "global" && (!value.scopeValue || value.scopeValue.length === 0)) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
-        message: "At least one budget limit must be provided",
-        path: ["dailyLimitUsd"],
+        message: "scopeValue is required unless scopeType is 'global'",
+        path: ["scopeValue"],
       });
     }
   });
@@ -945,12 +1056,18 @@ export const providerModelMutationSchema = z.object({
         "rerank",
         "images",
         "audio",
+        "video",
         "audio-transcriptions",
         "audio-speech",
         "images-generations",
       ])
     )
     .default(["chat"]),
+  // #2905: optional per-model wire format override for custom models (e.g. a
+  // custom opencode-go model that must use the Anthropic Messages shape).
+  targetFormat: z
+    .enum(["openai", "openai-responses", "claude", "gemini", "gemini-cli", "antigravity"])
+    .optional(),
   normalizeToolCallId: z.boolean().optional(),
   preserveOpenAIDeveloperRole: z.boolean().nullable().optional(),
   upstreamHeaders: upstreamHeadersRecordSchema.nullable().optional(),
@@ -1021,16 +1138,39 @@ const connectionCooldownProfileSchema = z
 
 const providerBreakerProfileSchema = z
   .object({
-    failureThreshold: z.number().int().min(1).optional(),
+    failureThreshold: z.number().int().min(1).max(1000).optional(),
+    degradationThreshold: z.number().int().min(1).max(1000).optional(),
     resetTimeoutMs: z.number().int().min(1000).optional(),
   })
-  .strict();
+  .strict()
+  .superRefine((value, ctx) => {
+    if (
+      typeof value.failureThreshold === "number" &&
+      value.failureThreshold > 1 &&
+      typeof value.degradationThreshold === "number" &&
+      value.degradationThreshold >= value.failureThreshold
+    ) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "degradationThreshold must be lower than failureThreshold",
+        path: ["degradationThreshold"],
+      });
+    }
+  });
 
 const waitForCooldownSettingsSchema = z
   .object({
     enabled: z.boolean().optional(),
     maxRetries: z.number().int().min(0).max(10).optional(),
     maxRetryWaitSec: z.number().int().min(0).max(300).optional(),
+  })
+  .strict();
+
+const providerCooldownSettingsSchema = z
+  .object({
+    enabled: z.boolean().optional(),
+    minRetryCooldownMs: z.number().int().min(0).max(300000).optional(),
+    maxRetryCooldownMs: z.number().int().min(0).max(3600000).optional(),
   })
   .strict();
 
@@ -1052,6 +1192,7 @@ export const updateResilienceSchema = z
       .strict()
       .optional(),
     waitForCooldown: waitForCooldownSettingsSchema.optional(),
+    providerCooldown: providerCooldownSettingsSchema.optional(),
     profiles: z
       .object({
         oauth: legacyResilienceProfileSchema.optional(),
@@ -1068,6 +1209,7 @@ export const updateResilienceSchema = z
       !value.connectionCooldown &&
       !value.providerBreaker &&
       !value.waitForCooldown &&
+      !value.providerCooldown &&
       !value.profiles &&
       !value.defaults
     ) {
@@ -1090,6 +1232,12 @@ const pricingSyncSourceSchema = z.enum(["litellm"]);
 export const pricingSyncRequestSchema = z
   .object({
     sources: z.array(pricingSyncSourceSchema).min(1).optional(),
+    dryRun: z.boolean().optional(),
+  })
+  .strict();
+
+export const intelligenceSyncRequestSchema = z
+  .object({
     dryRun: z.boolean().optional(),
   })
   .strict();
@@ -1429,6 +1577,9 @@ const proxyRegistryFieldsSchema = z
     notes: z.string().trim().max(1000).nullable().optional(),
     status: z.enum(["active", "inactive"]).optional().default("active"),
     source: z.enum(["manual", "oneproxy", "dashboard-custom", "vercel-relay"]).optional(),
+    // Address-family egress policy (#3777): "auto" keeps the prior dual-stack behavior;
+    // "ipv4"/"ipv6" pin the connection to that family (no v4 leak under an IPv6-only proxy).
+    family: z.enum(["auto", "ipv4", "ipv6"]).optional().default("auto"),
   })
   .strict();
 
@@ -1544,9 +1695,35 @@ export const oauthImportTokenSchema = z.object({
   connectionId: z.string().optional(),
 });
 
+/**
+ * Persist tokens obtained out-of-band by the browser-driven Codex device flow.
+ * The browser performs the full device authorization + token exchange against
+ * auth.openai.com (the server cannot — its datacenter IP is blocked by Cloudflare),
+ * then ships the final tokens here for mapping + persistence. Token fields use the
+ * snake_case shape returned by the OAuth token endpoint (consumed directly by
+ * each provider's mapTokens).
+ */
+export const oauthDeviceCompleteSchema = z.object({
+  access_token: z.string().trim().min(1, "access_token is required"),
+  refresh_token: z.string().trim().optional(),
+  id_token: z.string().trim().optional(),
+  expires_in: z.number().int().positive().optional(),
+  connectionId: z.string().optional(),
+});
+
 export const cursorImportSchema = z.object({
   accessToken: z.string().trim().min(1, "Access token is required"),
   machineId: z.string().trim().optional(),
+});
+
+export const traeImportSchema = z.object({
+  accessToken: z.string().trim().min(1, "Cloud-IDE-JWT access token is required"),
+  webId: z.string().trim().optional(),
+  bizUserId: z.string().trim().optional(),
+  userUniqueId: z.string().trim().optional(),
+  scope: z.string().trim().optional(),
+  tenant: z.string().trim().optional(),
+  region: z.string().trim().optional(),
 });
 
 export const kiroImportSchema = z.object({
@@ -1737,6 +1914,7 @@ export const updateKeyPermissionsSchema = z
   .object({
     name: z.string().trim().min(1).max(200).optional(),
     allowedModels: z.array(z.string().trim().min(1)).max(1000).optional(),
+    blockedModels: z.array(z.string().trim().min(1)).max(1000).optional(),
     allowedCombos: z.array(z.string().trim().min(1).max(200)).max(500).optional(),
     allowedConnections: z.array(z.string().uuid()).max(100).optional(),
     noLog: z.boolean().optional(),
@@ -1757,13 +1935,16 @@ export const updateKeyPermissionsSchema = z
         z.null(),
       ])
       .optional(),
-    scopes: z.array(z.string().trim().min(1).max(64)).max(16).optional(),
+    scopes: z.array(z.string().trim().min(1).max(64)).max(32).optional(),
     allowedEndpoints: z.array(z.string().trim().min(1).max(64)).max(20).optional(),
+    streamDefaultMode: z.enum(["legacy", "json"]).optional(),
+    disableNonPublicModels: z.boolean().optional(),
   })
   .superRefine((value, ctx) => {
     if (
       value.name === undefined &&
       value.allowedModels === undefined &&
+      value.blockedModels === undefined &&
       value.allowedCombos === undefined &&
       value.allowedConnections === undefined &&
       value.noLog === undefined &&
@@ -1776,7 +1957,8 @@ export const updateKeyPermissionsSchema = z
       value.accessSchedule === undefined &&
       value.rateLimits === undefined &&
       value.scopes === undefined &&
-      value.allowedEndpoints === undefined
+      value.allowedEndpoints === undefined &&
+      value.streamDefaultMode === undefined
     ) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
@@ -1785,6 +1967,21 @@ export const updateKeyPermissionsSchema = z
       });
     }
   });
+
+// Reuse the canonical upstream-headers record schema (control-char / whitespace
+// / ":" / 128-name / 4096-value / max-16 guards) so per-provider custom headers
+// inherit the same hardening as `modelCompat.upstreamHeaders` — then additionally
+// reject auth header names (the credential layer owns those; the executor drops
+// them at send time, so reject up front for an actionable error instead of a
+// silent no-op). Single denylist source: isForbiddenCustomHeaderName.
+const customHeadersSchema = upstreamHeadersRecordSchema
+  .refine((rec) => !Object.keys(rec).some((k) => isForbiddenCustomHeaderName(k)), {
+    message:
+      "Custom headers cannot include hop-by-hop, framing, or auth headers " +
+      "(authorization / x-api-key / x-goog-api-key / api-key)",
+  })
+  .nullable()
+  .optional();
 
 export const createProviderNodeSchema = z
   .object({
@@ -1805,6 +2002,7 @@ export const createProviderNodeSchema = z
     compatMode: z.enum(["cc"]).optional(),
     chatPath: z.string().trim().startsWith("/").max(500).optional().or(z.literal("")),
     modelsPath: z.string().trim().startsWith("/").max(500).optional().or(z.literal("")),
+    customHeaders: customHeadersSchema,
   })
   .superRefine((value, ctx) => {
     const nodeType = value.type || "openai-compatible";
@@ -1833,6 +2031,7 @@ export const updateProviderNodeSchema = z.object({
   baseUrl: z.string().trim().min(1, "Base URL is required"),
   chatPath: z.string().trim().startsWith("/").max(500).optional().or(z.literal("")),
   modelsPath: z.string().trim().startsWith("/").max(500).optional().or(z.literal("")),
+  customHeaders: customHeadersSchema,
 });
 
 export const providerNodeValidateSchema = z.object({
@@ -1881,6 +2080,22 @@ export const updateProviderConnectionSchema = z
       ])
       .optional(),
     projectId: z.union([z.string(), z.null()]).optional(),
+    // Per-connection rate limit overrides — overrides the global RequestQueueSettings
+    // for this connection. Set to null to clear all overrides.
+    rateLimitOverrides: z
+      .union([
+        z.null(),
+        z.object({
+          rpm: z.coerce.number().int().min(0).max(1_000_000).optional(),
+          tpm: z.coerce.number().int().min(0).max(100_000_000).optional(),
+          tpd: z.coerce.number().int().min(0).max(10_000_000_000).optional(),
+          minTime: z.coerce.number().int().min(0).max(60_000).optional(),
+          maxConcurrent: z.coerce.number().int().min(0).max(10_000).optional(),
+        }),
+      ])
+      .optional(),
+    proxyEnabled: z.boolean().optional(),
+    perKeyProxyEnabled: z.boolean().optional(),
     // Partial patch of per-connection provider-specific settings (e.g. quota toggles)
     providerSpecificData: z
       .record(z.string(), z.unknown())
@@ -1916,9 +2131,12 @@ export const providersBatchTestSchema = z
       "upstream-proxy",
       "cloud-agent",
       "ide",
+      "selected",
     ]),
     // Frontend may send null when mode != 'provider' — accept and treat as missing
     providerId: z.string().trim().min(1).nullable().optional(),
+    // Explicit connection IDs to test — required when mode=selected
+    connectionIds: z.array(z.string().trim().min(1)).max(100).nullable().optional(),
   })
   .superRefine((value, ctx) => {
     // Treat null same as undefined
@@ -1930,7 +2148,21 @@ export const providersBatchTestSchema = z
         path: ["providerId"],
       });
     }
+    const ids = value.connectionIds ?? null;
+    if (value.mode === "selected" && (!ids || ids.length === 0)) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "connectionIds is required when mode=selected",
+        path: ["connectionIds"],
+      });
+    }
   });
+
+// PATCH /api/providers — bulk activate/deactivate selected connections
+export const batchUpdateProviderConnectionsSchema = z.object({
+  ids: z.array(z.string().trim().min(1)).min(1).max(100),
+  isActive: z.boolean(),
+});
 
 export const validateProviderApiKeySchema = z
   .object({
@@ -1996,7 +2228,8 @@ export const v1betaGeminiGenerateSchema = z
   });
 
 export const cliMitmStartSchema = z.object({
-  apiKey: z.string().trim().min(1, "Missing apiKey"),
+  apiKey: z.string().trim().min(1).nullable().optional(),
+  keyId: z.string().trim().min(1).nullable().optional(),
   sudoPassword: z.string().optional(),
 });
 
@@ -2071,7 +2304,10 @@ export const codexProfileIdSchema = z.object({
 export const guideSettingsSaveSchema = z
   .object({
     baseUrl: z.string().trim().min(1).optional(),
-    apiKey: z.string().optional(),
+    // #3552: the CLI tool cards post `apiKey: null` in cloud mode (the real key is resolved
+    // server-side from keyId), and `z.string().optional()` rejected null → 400. Normalize
+    // null → undefined so validation passes and the keyId/default path is used.
+    apiKey: z.preprocess((v) => (v === null ? undefined : v), z.string().optional()),
     model: z.string().trim().min(1, "Model is required").optional(),
     models: z.array(z.string().trim().min(1, "Models must be non-empty")).min(1).optional(),
     modelLabels: z.record(z.string(), z.string().trim().min(1)).optional(),
@@ -2270,3 +2506,17 @@ export const v1WebFetchSchema = z.object({
   wait_for_selector: z.string().max(256).optional(),
   include_metadata: z.boolean().default(false),
 });
+
+// ── Zed Credential Import Flow ──────────────────────────────────────────────────
+
+export const confirmedAccountSchema = z.object({
+  service: z.string().min(1).max(500),
+  account: z.string().min(1).max(500),
+  fingerprint: z.string().min(1).max(100),
+});
+
+export const zedImportSchema = z.object({
+  confirmedAccounts: z.array(confirmedAccountSchema),
+});
+
+export type ConfirmedAccount = z.infer<typeof confirmedAccountSchema>;

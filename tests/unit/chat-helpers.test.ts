@@ -124,7 +124,7 @@ test("resolveModelOrError routes bare gpt-5.5 to Codex medium when Codex is the 
   );
 
   assert.equal(result.provider, "codex");
-  assert.equal(result.model, "gpt-5.5-medium");
+  assert.equal(result.model, "gpt-5.5");
   assert.equal(result.targetFormat, "openai-responses");
 });
 
@@ -176,6 +176,7 @@ test("checkPipelineGates reapplies runtime breaker settings to existing breakers
   const response = await checkPipelineGates("openai", "gpt-4o-mini", {
     providerProfile: {
       failureThreshold: 60,
+      degradationThreshold: 30,
       resetTimeoutMs: 5_000,
     },
   });
@@ -183,6 +184,7 @@ test("checkPipelineGates reapplies runtime breaker settings to existing breakers
   assert.equal(response, null);
   assert.equal(breaker.resetTimeout, 5_000);
   assert.equal(breaker.failureThreshold, 60);
+  assert.equal(breaker.degradationThreshold, 30);
 });
 
 test("handleNoCredentials reports missing provider credentials and exhausted accounts", async () => {

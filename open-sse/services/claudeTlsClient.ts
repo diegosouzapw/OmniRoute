@@ -20,7 +20,7 @@ import { randomUUID } from "node:crypto";
 let clientPromise: Promise<unknown> | null = null;
 let exitHookInstalled = false;
 
-const CLAUDE_PROFILE = "chrome_124"; // matches the Chrome 124 UA we send
+const CLAUDE_PROFILE = "chrome_146"; // matches the Vivaldi/Chrome 146 UA we send
 const DEFAULT_TIMEOUT_MS =
   Number.parseInt(process.env.OMNIROUTE_CLAUDE_TLS_TIMEOUT_MS || "", 10) || 60_000;
 // Grace period added to the binding's wire-level timeout before our JS-level
@@ -212,23 +212,19 @@ export interface TlsFetchOptions {
 }
 
 import { resolveProxyForRequest } from "../utils/proxyFetch.ts";
+import { resolveTlsClientProxyUrl } from "./tlsClientProxy.ts";
 
 /**
  * Resolve the proxy URL for a tls-client request. Per-call value wins;
  * otherwise we use the standard proxy fetch resolution which reads from
  * the dashboard AsyncLocalStorage context or falls back to env vars.
+ *
+ * Fail-closed: if resolution throws (e.g. a configured socks5 proxy with
+ * ENABLE_SOCKS5_PROXY=false), this rethrows rather than returning undefined —
+ * undefined would let the native binding connect directly and leak the real IP.
  */
 function resolveProxyUrl(perCall: string | undefined): string | undefined {
-  if (perCall && perCall.length > 0) return perCall;
-  try {
-    const proxyInfo = resolveProxyForRequest("https://claude.ai");
-    if (proxyInfo && proxyInfo.proxyUrl) {
-      return proxyInfo.proxyUrl;
-    }
-  } catch {
-    // Ignore resolution errors
-  }
-  return undefined;
+  return resolveTlsClientProxyUrl("https://claude.ai", perCall, resolveProxyForRequest);
 }
 
 export interface TlsFetchResult {

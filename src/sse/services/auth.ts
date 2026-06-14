@@ -1,6 +1,7 @@
 import { randomUUID, createHash } from "crypto";
 import {
   getProviderConnections,
+  getProviderNodes,
   validateApiKey,
   updateProviderConnection,
   getSettings,
@@ -30,7 +31,7 @@ import {
   recordModelLockoutFailure,
 } from "@omniroute/open-sse/services/accountFallback.ts";
 import { isLocalProvider } from "@omniroute/open-sse/config/providerRegistry.ts";
-import { COOLDOWN_MS } from "@omniroute/open-sse/config/constants.ts";
+import { COOLDOWN_MS, RateLimitReason } from "@omniroute/open-sse/config/constants.ts";
 import {
   preflightQuota,
   isQuotaPreflightEnabled,
@@ -41,11 +42,14 @@ import {
   classifyProviderError,
   PROVIDER_ERROR_TYPES,
 } from "@omniroute/open-sse/services/errorClassifier.ts";
+
 import { getCodexModelScope } from "@omniroute/open-sse/executors/codex.ts";
 import {
+  getProviderById,
   getProviderAlias,
   resolveProviderId,
   NOAUTH_PROVIDERS,
+  WEB_COOKIE_PROVIDERS,
 } from "@/shared/constants/providers";
 import { isModelExcludedByConnection } from "@/domain/connectionModelRules";
 import * as log from "../utils/logger";
@@ -179,11 +183,29 @@ function toBooleanOrDefault(value: unknown, fallback: boolean): boolean {
 }
 
 function readHeaderValue(
-  headers: Headers | { get?: (name: string) => string | null } | null | undefined,
+  headers:
+    | Headers
+    | { get?: (name: string) => string | null }
+    | Record<string, string | string[] | undefined>
+    | null
+    | undefined,
   name: string
 ): string | null {
-  if (!headers || typeof headers.get !== "function") return null;
-  const value = headers.get(name);
+  if (!headers) return null;
+
+  if (typeof (headers as Headers).get === "function") {
+    const value = (headers as Headers).get(name) || (headers as Headers).get(name.toLowerCase());
+    return typeof value === "string" && value.trim().length > 0 ? value.trim() : null;
+  }
+
+  const recordHeaders = headers as Record<string, string | string[] | undefined>;
+  const value =
+    recordHeaders[name] || recordHeaders[name.toLowerCase()] || recordHeaders[name.toUpperCase()];
+
+  if (Array.isArray(value)) {
+    return typeof value[0] === "string" && value[0].trim().length > 0 ? value[0].trim() : null;
+  }
+
   return typeof value === "string" && value.trim().length > 0 ? value.trim() : null;
 }
 
@@ -694,6 +716,84 @@ async function selectSessionAffinityConnection(
   return connection;
 }
 
+/**
+ * Sentinel connection id used for the synthetic credentials of no-auth /
+ * keyless providers. It is NOT a real DB row, so it
+ * cannot carry cooldown state — the account-fallback loop must be able to
+ * exclude it (#3061), otherwise it gets re-selected forever.
+ */
+const SYNTHETIC_NOAUTH_CONNECTION_ID = "noauth";
+
+type AnonymousFallbackProviderDefinition = {
+  anonymousFallback?: boolean;
+  noAuth?: boolean;
+};
+
+function buildSyntheticNoAuthCredentials(): {
+  apiKey: null;
+  accessToken: null;
+  refreshToken: null;
+  expiresAt: null;
+  projectId: null;
+  copilotToken: null;
+  providerSpecificData: Record<string, never>;
+  connectionId: typeof SYNTHETIC_NOAUTH_CONNECTION_ID;
+  testStatus: "active";
+  lastError: null;
+  lastErrorType: null;
+  lastErrorSource: null;
+  errorCode: null;
+  rateLimitedUntil: null;
+  maxConcurrent: null;
+  allRateLimited?: never;
+  allExpired?: never;
+  retryAfter?: never;
+  retryAfterHuman?: never;
+} {
+  return {
+    apiKey: null,
+    accessToken: null,
+    refreshToken: null,
+    expiresAt: null,
+    projectId: null,
+    copilotToken: null,
+    providerSpecificData: {},
+    connectionId: SYNTHETIC_NOAUTH_CONNECTION_ID,
+    testStatus: "active",
+    lastError: null,
+    lastErrorType: null,
+    lastErrorSource: null,
+    errorCode: null,
+    rateLimitedUntil: null,
+    maxConcurrent: null,
+  };
+}
+
+function providerCanUseSyntheticNoAuthFallback(providerId: string): boolean {
+  const providerDef = getProviderById(providerId) as
+    | AnonymousFallbackProviderDefinition
+    | undefined;
+  return (
+    providerDef?.anonymousFallback === true ||
+    Boolean(
+      (NOAUTH_PROVIDERS as Record<string, AnonymousFallbackProviderDefinition | undefined>)[
+        providerId
+      ]?.noAuth
+    ) ||
+    Boolean(
+      (WEB_COOKIE_PROVIDERS as Record<string, AnonymousFallbackProviderDefinition | undefined>)[
+        providerId
+      ]?.noAuth
+    )
+  );
+}
+
+function maybeSyntheticNoAuthFallback(providerId: string, excludedConnectionIds: Set<string>) {
+  if (!providerCanUseSyntheticNoAuthFallback(providerId)) return null;
+  if (excludedConnectionIds.has(SYNTHETIC_NOAUTH_CONNECTION_ID)) return null;
+  return buildSyntheticNoAuthCredentials();
+}
+
 function normalizeExcludedConnectionIds(
   excludeConnectionId: string | null,
   extraExcludedConnectionIds: string[] | null | undefined
@@ -758,7 +858,7 @@ function getSelectionMutexKey(provider: string, options: CredentialSelectionOpti
 }
 
 function createSelectionLock(key: string) {
-  const currentMutex = selectionMutexes.get(key) || Promise.resolve();
+  const currentMutex = selectionMutexes.get(key) ?? Promise.resolve();
   let resolveMutex: (() => void) | undefined;
   const nextMutex = new Promise<void>((resolve) => {
     resolveMutex = resolve;
@@ -789,7 +889,7 @@ export { fisherYatesShuffle, getNextFromDeckSync as getNextFromDeck };
 /**
  * Resolve provider aliases (e.g., nvidia -> nvidia_nim) for DB lookup
  */
-function getProviderSearchPool(provider: string): string[] {
+async function getProviderSearchPool(provider: string): Promise<string[]> {
   const canonicalProvider = resolveProviderId(provider);
   const canonicalAlias = getProviderAlias(canonicalProvider);
 
@@ -800,7 +900,38 @@ function getProviderSearchPool(provider: string): string[] {
     return ["nvidia_nim", "nvidia"];
   }
 
-  return Array.from(new Set([provider, canonicalProvider, canonicalAlias].filter(Boolean)));
+  const searchPool = new Set([provider, canonicalProvider, canonicalAlias].filter(Boolean));
+
+  // Built-in providers already resolve through static ids/aliases. Only
+  // compatible/custom providers need provider_nodes expansion back to the
+  // generated internal connection ids. (#3058)
+  if (getProviderById(canonicalProvider)) {
+    return Array.from(searchPool);
+  }
+
+  // Custom provider nodes are referenced by user-facing prefixes in combos
+  // (for example "78code/gpt-5.4"), but live credentials are stored under
+  // internal provider ids like openai-compatible-responses-<uuid>.
+  try {
+    const providerNodes = await getProviderNodes();
+    for (const node of Array.isArray(providerNodes) ? providerNodes : []) {
+      const nodeRecord = asRecord(node);
+      const nodePrefix = typeof nodeRecord.prefix === "string" ? nodeRecord.prefix.trim() : "";
+      const nodeId = typeof nodeRecord.id === "string" ? nodeRecord.id.trim() : "";
+      if (!nodePrefix || !nodeId) continue;
+      if (
+        nodePrefix === provider ||
+        nodePrefix === canonicalProvider ||
+        nodePrefix === canonicalAlias
+      ) {
+        searchPool.add(nodeId);
+      }
+    }
+  } catch {
+    // Best-effort alias expansion only.
+  }
+
+  return Array.from(searchPool);
 }
 
 /**
@@ -824,26 +955,22 @@ export async function getProviderCredentials(
     // No-auth providers (e.g. opencode) need no DB connection — return synthetic credentials
     // so the executor receives a valid credentials object without auth headers being added.
     const resolvedId = resolveProviderId(provider);
-    if (
-      (NOAUTH_PROVIDERS as Record<string, { noAuth?: boolean } | undefined>)[resolvedId]?.noAuth
-    ) {
-      return {
-        apiKey: null,
-        accessToken: null,
-        refreshToken: null,
-        expiresAt: null,
-        projectId: null,
-        copilotToken: null,
-        providerSpecificData: {},
-        connectionId: "noauth",
-        testStatus: "active",
-        lastError: null,
-        lastErrorType: null,
-        lastErrorSource: null,
-        errorCode: null,
-        rateLimitedUntil: null,
-        maxConcurrent: null,
-      };
+    const providerMaps: Record<string, { noAuth?: boolean } | undefined>[] = [
+      NOAUTH_PROVIDERS as Record<string, { noAuth?: boolean } | undefined>,
+      WEB_COOKIE_PROVIDERS as Record<string, { noAuth?: boolean } | undefined>,
+    ];
+    if (providerMaps.some((map) => map[resolvedId]?.noAuth)) {
+      // #3061: there is only one synthetic "noauth" connection for a no-auth
+      // provider. If the caller already tried and excluded it (account-fallback
+      // after a persistent upstream error), do NOT hand it back — that would let
+      // the chat fallback loop re-select "noauth" forever (no real DB row → no
+      // cooldown to brake it), writing logs every iteration until the disk fills.
+      // Returning null here lets the handler stop after a single attempt.
+      const excludedForNoAuth = normalizeExcludedConnectionIds(
+        excludeConnectionId,
+        options.excludeConnectionIds
+      );
+      return maybeSyntheticNoAuthFallback(resolvedId, excludedForNoAuth);
     }
 
     const allowSuppressedConnections = options.allowSuppressedConnections === true;
@@ -860,7 +987,7 @@ export async function getProviderCredentials(
     );
 
     // Fix #922: Check for aliases (nvidia/nvidia_nim) to ensure credentials are found
-    const providersToSearch = getProviderSearchPool(provider);
+    const providersToSearch = await getProviderSearchPool(provider);
     const connectionResults = await Promise.all(
       providersToSearch.map((p) => getProviderConnections({ provider: p, isActive: true }))
     );
@@ -928,6 +1055,9 @@ export async function getProviderCredentials(
         // the dashboard sees a misleading "bad_request" code.
         const terminalConnections = allConnections.filter(isTerminalConnectionStatus);
         if (terminalConnections.length === allConnections.length) {
+          const syntheticFallback = maybeSyntheticNoAuthFallback(resolvedId, excludedConnectionIds);
+          if (syntheticFallback) return syntheticFallback;
+
           const statusCounts = new Map<string, number>();
           for (const c of terminalConnections) {
             const key = normalizeStatus(c.testStatus) || "expired";
@@ -942,6 +1072,8 @@ export async function getProviderCredentials(
           };
         }
       }
+      const syntheticFallback = maybeSyntheticNoAuthFallback(resolvedId, excludedConnectionIds);
+      if (syntheticFallback) return syntheticFallback;
       log.warn("AUTH", `No credentials for ${provider}`);
       return null;
     }
@@ -1111,6 +1243,8 @@ export async function getProviderCredentials(
           cooldownModel: allBlockedByModelCooldown ? requestedModel : null,
         };
       }
+      const syntheticFallback = maybeSyntheticNoAuthFallback(resolvedId, excludedConnectionIds);
+      if (syntheticFallback) return syntheticFallback;
       log.warn("AUTH", `${provider} | all ${connections.length} accounts unavailable`);
       return null;
     }
@@ -1464,7 +1598,10 @@ export async function getProviderCredentialsWithQuotaPreflight(
       return null;
     }
 
-    if (credentials.allRateLimited || credentials.allExpired) {
+    if (
+      ("allRateLimited" in credentials && credentials.allRateLimited) ||
+      ("allExpired" in credentials && credentials.allExpired)
+    ) {
       return credentials;
     }
 
@@ -1494,6 +1631,15 @@ export async function getProviderCredentialsWithQuotaPreflight(
     // Otherwise the resolver would return the factory default for every
     // window, and a near-exhausted account would still be caught by the
     // normal 429 → cooldown path.
+    // Explicit per-connection opt-out always wins over global/provider defaults.
+    // isQuotaPreflightEnabled is strict-=== true (back-compat), so it returns
+    // false for both "not set" and "explicit false" — we need an explicit check
+    // here to distinguish them.
+    const legacyForceDisable =
+      (credentials as { providerSpecificData?: Record<string, unknown> }).providerSpecificData
+        ?.quotaPreflightEnabled === false;
+    if (legacyForceDisable) return credentials;
+
     const hasConnectionOverrides = Object.keys(perConnectionWindowOverrides).length > 0;
     const legacyForceEnable = isQuotaPreflightEnabled(credentials);
     if (
@@ -1558,7 +1704,12 @@ export async function markAccountUnavailable(
   errorText: string,
   provider: string | null = null,
   model: string | null = null,
-  providerProfile = null
+  providerProfile = null,
+  options: {
+    persistUnavailableState?: boolean;
+    /** Caller is the combo engine — it records its own model-level lockouts. */
+    isCombo?: boolean;
+  } = {}
 ) {
   const currentMutex = markMutexes.get(connectionId) || Promise.resolve();
   let resolveMutex: (() => void) | undefined;
@@ -1639,10 +1790,31 @@ export async function markAccountUnavailable(
     const connectionPassthroughModels = connProviderSpecificData.passthroughModels as
       | boolean
       | undefined;
+    // #2997: per-connection opt-out of the TRANSIENT connection cooldown. When set,
+    // a recoverable failure records lastError/backoff but does NOT cool the
+    // connection, so getProviderCredentials keeps selecting it. Terminal states
+    // (banned/expired/credits_exhausted) are unaffected — they are resolved below
+    // via resolveTerminalConnectionStatus() and still take the connection out.
+    // NOTE: this first cut scopes the opt-out to the CONNECTION-level cooldown only;
+    // per-model lockout branches (per-model quota 403/404, codex scope) are left
+    // as-is — extending disableCooling to model lockout is a follow-up.
+    const disableCooling = connProviderSpecificData.disableCooling === true;
 
     const isPerModelQuotaProvider = hasPerModelQuota(provider, model, connectionPassthroughModels);
-    if (isPerModelQuotaProvider && provider && model && (status === 404 || status === 429)) {
-      const reason = status === 404 ? "not_found" : "rate_limited";
+    if (
+      isPerModelQuotaProvider &&
+      provider &&
+      model &&
+      (status === 404 || status === 429 || status >= 500)
+    ) {
+      const reason =
+        status === 404
+          ? "not_found"
+          : status === 429 && fallbackResult.reason === RateLimitReason.QUOTA_EXHAUSTED
+            ? "quota_exhausted"
+            : status === 429
+              ? "rate_limited"
+              : "server_error";
       const lockout = recordModelLockoutFailure(
         provider,
         connectionId,
@@ -1705,6 +1877,46 @@ export async function markAccountUnavailable(
       providerErrorType
     );
     const cooldownMs = terminalStatus ? 0 : rawCooldownMs;
+
+    // ── #3027: per-model subscription/permission 403 → model-only lockout ──
+    // Passthrough / per-model-quota providers (e.g. ollama-cloud with
+    // passthroughModels:true) multiplex many upstream models behind one key.
+    // A scoped 403 like "this model requires a subscription, upgrade for access"
+    // is about the paid model, not the key — cooling the whole connection would
+    // knock out the free models on the same key too and escalate backoff
+    // (#3001/#3027). This generalizes the grok-web 403 precedent above to every
+    // hasPerModelQuota provider. Terminal/credential 403s (banned/deactivated
+    // key, credits exhausted) are excluded here because
+    // resolveTerminalConnectionStatus() returns a non-null status for them, so
+    // they keep their existing connection-level cooldown/deactivation path.
+    if (isPerModelQuotaProvider && status === 403 && provider && model && !terminalStatus) {
+      const lockout = recordModelLockoutFailure(
+        provider,
+        connectionId,
+        model,
+        "forbidden",
+        status,
+        fallbackResult.baseCooldownMs ??
+          effectiveProviderProfile?.baseCooldownMs ??
+          COOLDOWN_MS.serviceUnavailable,
+        effectiveProviderProfile,
+        {
+          exactCooldownMs:
+            fallbackResult.usedUpstreamRetryHint === true ? fallbackResult.cooldownMs : null,
+        }
+      );
+      updateProviderConnection(connectionId, {
+        lastErrorType: "forbidden",
+        lastError: `Model ${model} forbidden (per-model access/subscription)`,
+        lastErrorAt: new Date().toISOString(),
+        errorCode: status,
+      }).catch(() => {});
+      log.info(
+        "AUTH",
+        `Model-only lockout for ${provider}:${model} — 403 forbidden ${Math.ceil(lockout.cooldownMs / 1000)}s (per-model quota provider, connection stays active)`
+      );
+      return { shouldFallback: true, cooldownMs: lockout.cooldownMs };
+    }
 
     // ── 404 model-only lockout: connection stays active ──
     // For local providers (detected by URL), a 404 means the specific model
@@ -1782,8 +1994,20 @@ export async function markAccountUnavailable(
       lastErrorAt: new Date().toISOString(),
       backoffLevel: newBackoffLevel ?? backoffLevel,
     };
+    const persistUnavailableState = options.persistUnavailableState !== false;
 
-    if (cooldownMs > 0) {
+    if (!persistUnavailableState) {
+      // Combo-managed transient failure (e.g. 429): keep the connection clean in
+      // the DB, but record an in-memory model lockout so credential selection
+      // skips this exact provider+connection+model while it cools down — other
+      // models on the same connection stay usable.
+      if (provider && model && cooldownMs > 0) {
+        lockModel(provider, connectionId, model, reason || "unknown", cooldownMs);
+      }
+      await updateProviderConnection(connectionId, {
+        ...baseUpdate,
+      });
+    } else if (cooldownMs > 0 && !disableCooling) {
       await updateProviderConnection(connectionId, {
         ...baseUpdate,
         rateLimitedUntil: getUnavailableUntil(cooldownMs),
@@ -1870,16 +2094,65 @@ export async function clearRecoveredProviderState(
   await clearAccountError(credentials.connectionId, credentials);
 }
 
+type AuthRequestHeaders = Headers | Record<string, string | string[] | undefined>;
+
+type AuthRequestLike = {
+  headers?: AuthRequestHeaders | null;
+  url?: string | null;
+};
+
+function readNonEmptyUrlToken(request: AuthRequestLike): string | null {
+  if (typeof request?.url !== "string" || request.url.trim().length === 0) return null;
+
+  try {
+    const url = new URL(request.url, "http://localhost");
+
+    const segments = url.pathname
+      .split("/")
+      .map((segment) => segment.trim())
+      .filter(Boolean);
+
+    if (segments[0] === "vscode" && segments[1]) {
+      const decodedSegment = decodeURIComponent(segments[1]).trim();
+      if (decodedSegment.length > 0) return decodedSegment;
+    }
+
+    if (segments[0] === "api" && segments[1] === "v1" && segments[2] === "vscode") {
+      if (segments[3] && segments[3] !== "raw" && segments[3] !== "combos") {
+        const decodedSegment = decodeURIComponent(segments[3]).trim();
+        if (decodedSegment.length > 0) return decodedSegment;
+      }
+
+      if ((segments[3] === "raw" || segments[3] === "combos") && segments[4]) {
+        const decodedSegment = decodeURIComponent(segments[4]).trim();
+        if (decodedSegment.length > 0) return decodedSegment;
+      }
+    }
+
+    // NOTE: query-string token fallbacks (`?token=`/`?key=`/`?apiKey=`/`?api_key=`)
+    // were intentionally REMOVED. They are a broad credential-in-URL surface that
+    // leaks into access logs, Referer headers and proxy logs, and — because this
+    // extractor also feeds management auth — would let `?token=<mgmt-key>`
+    // authenticate management routes. The VS Code integration only needs the
+    // path-scoped `/vscode/<token>/…` form above. (security review, #3300 follow-up)
+  } catch {
+    return null;
+  }
+
+  return null;
+}
+
 /**
- * Extract API key from request headers.
+ * Extract API key from request auth inputs.
  *
- * Honors both:
+ * Honors explicit auth headers and (for client-facing routes only) a
+ * path-scoped URL token:
  * - `Authorization: Bearer <key>` (OpenAI / OmniRoute / Codex CLI / Bearer clients)
  * - `x-api-key: <key>` (Anthropic Messages API contract — Claude Code,
  *   `@anthropic-ai/sdk`, any SDK that sets `anthropic-version`)
+ * - `/vscode/<key>/...` (path-scoped tokenized aliases — only when `allowUrl`)
  *
- * When both are present, `Authorization: Bearer` wins for back-compat
- * (issue #2225).
+ * When multiple inputs are present, explicit auth headers win.
  *
  * The `x-api-key` fallback only triggers when the request also carries an
  * `anthropic-version` header — the documented signal that the caller is
@@ -1887,29 +2160,42 @@ export async function clearRecoveredProviderState(
  * non-Anthropic SDKs that happen to set `x-api-key` (or local-mode tools
  * with placeholder keys) would be treated as authenticated attempts and
  * rejected by per-route gates that compare against OmniRoute keys.
+ *
+ * `opts.allowUrl` (default `true`) gates the path-scoped URL token. Management
+ * auth MUST pass `allowUrl: false` — a credential in the URL must never
+ * authenticate a management route (it leaks into logs/Referer and would widen
+ * the management surface). See the #3300 security follow-up.
  */
-export function extractApiKey(request: Request) {
-  const authHeader = request.headers.get("Authorization") || request.headers.get("authorization");
+export function extractApiKey(request: AuthRequestLike, opts?: { allowUrl?: boolean }) {
+  const authHeader =
+    readHeaderValue(request?.headers, "Authorization") ||
+    readHeaderValue(request?.headers, "authorization");
   if (typeof authHeader === "string") {
     const trimmedHeader = authHeader.trim();
     if (trimmedHeader.toLowerCase().startsWith("bearer ")) {
-      return trimmedHeader.slice(7).trim();
+      return trimmedHeader.slice(7).trim() || null;
     }
   }
+
   // Issue #2225: Anthropic Messages API clients authenticate via x-api-key.
   // Gate the fallback on the anthropic-version header so we don't trip up
   // local-mode requests from non-Anthropic clients that send placeholder
   // x-api-key values (which would otherwise be rejected as Invalid API key).
   const anthropicVersion =
-    request.headers.get("anthropic-version") || request.headers.get("Anthropic-Version");
+    readHeaderValue(request?.headers, "anthropic-version") ||
+    readHeaderValue(request?.headers, "Anthropic-Version");
   if (anthropicVersion) {
-    const xApiKey = request.headers.get("x-api-key") || request.headers.get("X-Api-Key");
+    const xApiKey =
+      readHeaderValue(request?.headers, "x-api-key") ||
+      readHeaderValue(request?.headers, "X-Api-Key");
     if (typeof xApiKey === "string") {
       const trimmed = xApiKey.trim();
       if (trimmed.length > 0) return trimmed;
     }
   }
-  return null;
+
+  if (opts?.allowUrl === false) return null;
+  return readNonEmptyUrlToken(request);
 }
 
 /**

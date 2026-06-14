@@ -242,6 +242,99 @@ test("Responses -> OpenAI: empty-name tool call is deferred until output_item.do
   );
 });
 
+test("Responses -> OpenAI: preserves non-Read JSON-string tool arguments", () => {
+  const state = {};
+  openaiResponsesToOpenAIResponse(
+    {
+      type: "response.output_item.added",
+      item: { type: "function_call", call_id: "call_note", name: "save_note" },
+    },
+    state
+  );
+  const done = openaiResponsesToOpenAIResponse(
+    {
+      type: "response.output_item.done",
+      item: {
+        type: "function_call",
+        call_id: "call_note",
+        name: "save_note",
+        arguments: '{"text":"","tags":[]}',
+      },
+    },
+    state
+  );
+
+  assert.equal(done.choices[0].delta.tool_calls[0].function.arguments, '{"text":"","tags":[]}');
+});
+
+test("Responses -> OpenAI: preserves falsy JSON-string tool arguments while cleaning", () => {
+  const state = {};
+  openaiResponsesToOpenAIResponse(
+    {
+      type: "response.output_item.added",
+      item: { type: "function_call", call_id: "call_flag", name: "set_flag" },
+    },
+    state
+  );
+  const done = openaiResponsesToOpenAIResponse(
+    {
+      type: "response.output_item.done",
+      item: { type: "function_call", call_id: "call_flag", name: "set_flag", arguments: "false" },
+    },
+    state
+  );
+
+  assert.equal(done.choices[0].delta.tool_calls[0].function.arguments, "false");
+});
+
+test("Responses -> OpenAI: preserves non-object Read JSON-string arguments", () => {
+  const state = {};
+  openaiResponsesToOpenAIResponse(
+    {
+      type: "response.output_item.added",
+      item: { type: "function_call", call_id: "call_read", name: "Read" },
+    },
+    state
+  );
+  const done = openaiResponsesToOpenAIResponse(
+    {
+      type: "response.output_item.done",
+      item: { type: "function_call", call_id: "call_read", name: "Read", arguments: "null" },
+    },
+    state
+  );
+
+  assert.equal(done.choices[0].delta.tool_calls[0].function.arguments, "null");
+});
+
+test("Responses -> OpenAI: strips empty optional args from JSON-string output_item.done arguments", () => {
+  const state = {};
+  openaiResponsesToOpenAIResponse(
+    {
+      type: "response.output_item.added",
+      item: { type: "function_call", call_id: "call_read", name: "Read" },
+    },
+    state
+  );
+  const done = openaiResponsesToOpenAIResponse(
+    {
+      type: "response.output_item.done",
+      item: {
+        type: "function_call",
+        call_id: "call_read",
+        name: "Read",
+        arguments: '{"file_path":"/etc/hosts","offset":1,"limit":5,"pages":"","empty":[]}',
+      },
+    },
+    state
+  );
+
+  assert.equal(
+    done.choices[0].delta.tool_calls[0].function.arguments,
+    JSON.stringify({ file_path: "/etc/hosts", offset: 1, limit: 5 })
+  );
+});
+
 test("Responses -> OpenAI: tool-call delta, reasoning delta and completed usage are normalized", () => {
   const state = {};
   const added = openaiResponsesToOpenAIResponse(
@@ -352,4 +445,46 @@ test("Responses -> OpenAI: response.failed records upstream error", () => {
   assert.equal(state.upstreamError.type, "rate_limit_error");
   assert.equal(state.upstreamError.code, "rate_limit_exceeded");
   assert.match(state.upstreamError.message, /Rate limit reached/);
+});
+
+test("OpenAI -> Responses: deduplicates repeated tool argument snapshots", () => {
+  const args = JSON.stringify({ command: "grep -r pattern /var" });
+  const events = collectEvents([
+    {
+      id: "chatcmpl-tool-snapshot",
+      model: "gpt-4.1",
+      choices: [
+        {
+          index: 0,
+          delta: {
+            tool_calls: [
+              {
+                index: 0,
+                id: "call_1",
+                type: "function",
+                function: { name: "shell", arguments: args },
+              },
+            ],
+          },
+          finish_reason: null,
+        },
+      ],
+    },
+    {
+      id: "chatcmpl-tool-snapshot",
+      model: "gpt-4.1",
+      choices: [
+        {
+          index: 0,
+          delta: { tool_calls: [{ index: 0, function: { arguments: args } }] },
+          finish_reason: "tool_calls",
+        },
+      ],
+    },
+  ]);
+
+  const done = events.find((event) => event.event === "response.function_call_arguments.done");
+
+  assert.equal(done.data.arguments, args);
+  assert.equal(JSON.parse(done.data.arguments).command, "grep -r pattern /var");
 });

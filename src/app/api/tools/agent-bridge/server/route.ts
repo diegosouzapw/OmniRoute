@@ -1,0 +1,81 @@
+/**
+ * POST /api/tools/agent-bridge/server
+ * Start / stop / restart MITM server; trust cert; regenerate cert.
+ * LOCAL_ONLY + SPAWN_CAPABLE: registered in routeGuard.ts
+ *
+ * Body: AgentBridgeServerActionSchema
+ */
+import { AgentBridgeServerActionSchema } from "@/shared/schemas/agentBridge";
+import { startMitm, stopMitm, getMitmStatus, setCachedPassword, getCachedPassword } from "@/mitm/manager";
+import { installCert, checkCertInstalled } from "@/mitm/cert/install";
+import { generateCert } from "@/mitm/cert/generate";
+import { resolveMitmDataDir } from "@/mitm/dataDir";
+import path from "path";
+import { sanitizeErrorMessage } from "@omniroute/open-sse/utils/error";
+import { createErrorResponse } from "@/lib/api/errorResponse";
+
+export async function POST(request: Request): Promise<Response> {
+  let body: unknown;
+  try {
+    body = await request.json();
+  } catch {
+    return createErrorResponse({ status: 400, message: "Invalid JSON body" });
+  }
+
+  const parsed = AgentBridgeServerActionSchema.safeParse(body);
+  if (!parsed.success) {
+    return createErrorResponse({
+      status: 400,
+      message: "Invalid request body",
+      details: parsed.error.flatten(),
+    });
+  }
+
+  const { action } = parsed.data;
+  const raw = body as Record<string, unknown>;
+  const sudoPassword = typeof raw.sudoPassword === "string" ? raw.sudoPassword : (getCachedPassword() ?? "");
+  const apiKey = typeof raw.apiKey === "string" ? raw.apiKey : (process.env.ROUTER_API_KEY ?? "");
+
+  try {
+    if (action === "start") {
+      if (sudoPassword) setCachedPassword(sudoPassword);
+      const result = await startMitm(apiKey, sudoPassword);
+      return Response.json({ ok: true, ...result });
+    }
+
+    if (action === "stop") {
+      const pwd = sudoPassword || getCachedPassword() || "";
+      const result = await stopMitm(pwd);
+      return Response.json({ ok: true, ...result });
+    }
+
+    if (action === "restart") {
+      const pwd = sudoPassword || getCachedPassword() || "";
+      const status = await getMitmStatus();
+      if (status.running) {
+        await stopMitm(pwd);
+      }
+      if (sudoPassword) setCachedPassword(sudoPassword);
+      const result = await startMitm(apiKey, sudoPassword || pwd);
+      return Response.json({ ok: true, ...result });
+    }
+
+    if (action === "trust-cert") {
+      const certPath = path.join(resolveMitmDataDir(), "mitm", "server.crt");
+      const pwd = sudoPassword || getCachedPassword() || "";
+      await installCert(pwd, certPath);
+      const trusted = await checkCertInstalled(certPath);
+      return Response.json({ ok: true, trusted });
+    }
+
+    if (action === "regenerate-cert") {
+      const result = await generateCert();
+      return Response.json({ ok: true, certPath: result.cert });
+    }
+
+    return createErrorResponse({ status: 400, message: "Unknown action" });
+  } catch (err) {
+    const msg = sanitizeErrorMessage(err instanceof Error ? err.message : String(err));
+    return createErrorResponse({ status: 500, message: msg });
+  }
+}

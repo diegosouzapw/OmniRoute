@@ -1,0 +1,81 @@
+{
+  "id": "composer",
+  "label": "Composer (PHP)",
+  "description": "Keep Composer install/update results, warnings, and dependency errors.",
+  "category": "package",
+  "priority": 65,
+  "match": {
+    "outputTypes": ["composer"],
+    "commands": [
+      "^composer\\s+(?:install|update|require|remove|dump-autoload|outdated)\\b",
+      "^php\\s+composer(?:\\.phar)?\\s+(?:install|update|require)\\b"
+    ],
+    "patterns": [
+      "Package operations: \\d+ install",
+      "Generating (?:optimized )?autoload files",
+      "Your requirements could not be resolved",
+      "Problem \\d+",
+      "vulnerabilities found"
+    ]
+  },
+  "rules": {
+    "stripAnsi": true,
+    "includePatterns": [
+      "Package operations: \\d+",
+      "Generating (?:optimized )?autoload files",
+      "Your requirements could not be resolved",
+      "Problem \\d+",
+      "vulnerabilities found",
+      "WARNING",
+      "ERROR",
+      "Could not (?:find|resolve|delete)",
+      "conflicts with",
+      "requires .+ but",
+      "- (?:Installing|Updating|Removing) \\S+",
+      "PHP Fatal error",
+      "Class .+ not found"
+    ],
+    "dropPatterns": [
+      "^\\s*$",
+      "^Loading composer repositories",
+      "^Updating dependencies",
+      "^Writing lock file",
+      "^Installing dependencies from lock file",
+      "^Downloading \\(\\d+%\\)",
+      "^\\s*-\\s+Downloading"
+    ],
+    "collapsePatterns": ["^\\s*-\\s+Installing"],
+    "deduplicate": true,
+    "maxLines": 100,
+    "headLines": 20,
+    "tailLines": 50
+  },
+  "preserve": {
+    "errorPatterns": [
+      "Your requirements could not be resolved",
+      "Problem \\d+",
+      "ERROR",
+      "PHP Fatal error",
+      "Class .+ not found"
+    ],
+    "summaryPatterns": [
+      "Package operations: \\d+",
+      "Generating (?:optimized )?autoload files",
+      "vulnerabilities found"
+    ]
+  },
+  "tests": [
+    {
+      "name": "successful install",
+      "command": "composer install",
+      "input": "Loading composer repositories with package information\nUpdating dependencies\nLock file operations: 5 installs, 0 updates, 0 removals\n  - Locking laravel/framework (v11.0.0)\nWriting lock file\nInstalling dependencies from lock file (including require-dev)\nPackage operations: 5 installs, 0 updates, 0 removals\n  - Downloading laravel/framework (v11.0.0)\n  - Installing laravel/framework (v11.0.0)\nGenerating optimized autoload files\n",
+      "expected": "Package operations: 5 installs, 0 updates, 0 removals\n  - Installing laravel/framework (v11.0.0)\nGenerating optimized autoload files"
+    },
+    {
+      "name": "dependency conflict",
+      "command": "composer require",
+      "input": "Your requirements could not be resolved to an installable set of packages.\n\n  Problem 1\n    - laravel/framework[v11.0.0] requires php ^8.2 but your php version (8.1.0) does not satisfy that requirement.\n",
+      "expected": "Your requirements could not be resolved to an installable set of packages.\n  Problem 1\n    - laravel/framework[v11.0.0] requires php ^8.2 but your php version (8.1.0) does not satisfy that requirement."
+    }
+  ]
+}

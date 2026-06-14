@@ -206,16 +206,14 @@ flyctl deploy
 
 2. **在 provider 控制台配置回调 URL (configure the callback URL on the provider console / configure a URL de callback no painel do provider)**
 
-   通常格式为 (typical format / formato típico)：
+   所有 OAuth provider 共用同一个回调路径 `/callback`，不带 provider 段 (all OAuth providers share the single callback path `/callback` — there is NO per-provider callback route / todos os providers OAuth usam o mesmo callback `/callback`, sem segmento por provider)：
 
    ```text
-   <NEXT_PUBLIC_BASE_URL>/api/oauth/<provider>/callback
+   <NEXT_PUBLIC_BASE_URL>/callback
    ```
 
-   例如 (e.g. / p.ex.)：
-   - `https://omniroute.fly.dev/api/oauth/gemini/callback`
-   - `https://omniroute.fly.dev/api/oauth/antigravity/callback`
-   - `https://omniroute.fly.dev/api/oauth/cursor/callback`
+   例如 (e.g. / p.ex.)，无论是 Gemini、Antigravity、Cursor 还是 GitLab Duo (regardless of Gemini / Antigravity / Cursor / GitLab Duo, etc.)：
+   - `https://omniroute.fly.dev/callback`
 
    如果 `NEXT_PUBLIC_BASE_URL` 与 provider 控制台中注册的回调 URL 不一致，OAuth 流程会在浏览器回跳阶段失败 (mismatch between `NEXT_PUBLIC_BASE_URL` and the registered callback URL will cause OAuth to fail at the browser redirect step / divergência entre `NEXT_PUBLIC_BASE_URL` e a URL de callback registrada quebra o OAuth no redirect do navegador)。
 

@@ -2,6 +2,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import {
   resolveRequestedModel,
+  normalizeCursorModelId,
   encodeAgentRunRequest,
   buildAgentRequestBody,
   iterateConnectFrames,
@@ -41,6 +42,83 @@ test("resolveRequestedModel maps cursor-agent's client-side aliases", () => {
   assert.deepEqual(resolveRequestedModel("composer-2"), { modelId: "composer-2", parameters: [] });
 });
 
+test("normalizeCursorModelId canonicalizes composer spelling variants", () => {
+  // Known-equivalent spellings cursor would otherwise reject.
+  assert.equal(normalizeCursorModelId("composer-2-5"), "composer-2.5");
+  assert.equal(normalizeCursorModelId("composer-2.5-sdk"), "composer-2.5");
+  assert.equal(normalizeCursorModelId("composer-latest"), "composer-2.5");
+  assert.equal(normalizeCursorModelId("COMPOSER-2-5"), "composer-2.5"); // case-insensitive
+  assert.equal(normalizeCursorModelId("  composer-latest  "), "composer-2.5"); // trimmed
+  assert.equal(normalizeCursorModelId(""), "composer-2.5"); // empty → default model
+  assert.equal(normalizeCursorModelId("composer-2-5-fast"), "composer-2.5-fast");
+  // Canonical and unrelated ids pass through verbatim (no behavior change).
+  assert.equal(normalizeCursorModelId("composer-2.5"), "composer-2.5");
+  assert.equal(normalizeCursorModelId("composer-2.5-fast"), "composer-2.5-fast");
+  assert.equal(normalizeCursorModelId("auto"), "auto");
+  assert.equal(normalizeCursorModelId("claude-4.6-sonnet-medium"), "claude-4.6-sonnet-medium");
+});
+
+test("resolveRequestedModel normalizes variants then applies auto/-fast rules", () => {
+  // Variant of composer-2.5 → canonical id, no parameters.
+  assert.deepEqual(resolveRequestedModel("composer-2-5"), {
+    modelId: "composer-2.5",
+    parameters: [],
+  });
+  // Variant of the fast model → split into base id + fast parameter.
+  assert.deepEqual(resolveRequestedModel("composer-2-5-fast"), {
+    modelId: "composer-2.5",
+    parameters: [{ id: "fast", value: "true" }],
+  });
+  // Empty model id resolves to the working default rather than a server reject.
+  assert.deepEqual(resolveRequestedModel(""), { modelId: "composer-2.5", parameters: [] });
+});
+
+// ─── decode bounds hardening (malformed/hostile wire data) ──────────────────
+
+test("decodeAgentServerMessage throws on a length-delimited field that overruns the buffer", () => {
+  function v(n: number): Buffer {
+    const out: number[] = [];
+    while (n > 0x7f) {
+      out.push((n & 0x7f) | 0x80);
+      n >>>= 7;
+    }
+    out.push(n);
+    return Buffer.from(out);
+  }
+  function tag(field: number, wt: number) {
+    return v((field << 3) | wt);
+  }
+  // field 1 (LEN) declaring length 200, but only 3 payload bytes follow.
+  // Before hardening Buffer.subarray silently clamped to EOF, decoding a
+  // truncated message as if it were complete; now checkedLen rejects it so
+  // processFrame skips the corrupt frame instead of acting on partial data.
+  const malformed = Buffer.concat([tag(1, 2), v(200), Buffer.from([1, 2, 3])]);
+  assert.throws(() => decodeAgentServerMessage(malformed), /overruns buffer/);
+});
+
+test("decode bounds hardening does not affect well-formed frames", () => {
+  // A correctly-sized frame still decodes (regression guard for the new check).
+  function v(n: number): Buffer {
+    const out: number[] = [];
+    while (n > 0x7f) {
+      out.push((n & 0x7f) | 0x80);
+      n >>>= 7;
+    }
+    out.push(n);
+    return Buffer.from(out);
+  }
+  function tag(field: number, wt: number) {
+    return v((field << 3) | wt);
+  }
+  function lp(field: number, payload: Buffer) {
+    return Buffer.concat([tag(field, 2), v(payload.length), payload]);
+  }
+  const tdu = lp(1, Buffer.from("ok", "utf8"));
+  const iu = lp(1, tdu);
+  const asm = lp(1, iu);
+  assert.deepEqual(decodeAgentServerMessage(asm), [{ kind: "text", text: "ok" }]);
+});
+
 test("encodeAgentRunRequest embeds user text and resolves the model id", () => {
   const buf = encodeAgentRunRequest({
     modelId: "auto",
@@ -64,6 +142,39 @@ test("encodeAgentRunRequest emits composer parameters", () => {
   assert.ok(text.includes("composer-2"), "split model id present");
   assert.ok(text.includes("fast"), "parameter id 'fast' present");
   assert.ok(text.includes("true"), "parameter value 'true' present");
+});
+
+test("encodeAgentRunRequest sends ModelDetails for pinned thinking models (#3714)", () => {
+  // #3714: pinned Claude/GPT thinking variants returned an empty turn when sent only via
+  // RequestedModel (field 9, bare model_id). cursor-agent's working wire format also
+  // carries a ModelDetails envelope with model_id + display_model_id + display_name.
+  const modelId = "claude-opus-4-7-thinking-xhigh";
+  const buf = encodeAgentRunRequest({ modelId, userText: "hi" });
+  const occurrences = buf.toString("latin1").split(modelId).length - 1;
+  // RequestedModel.model_id (1) + ModelDetails {model_id, display_model_id, display_name}
+  // (3) → the id must now appear at least 4 times (it appeared once before the fix).
+  assert.ok(
+    occurrences >= 4,
+    `pinned model id must be encoded in both RequestedModel and ModelDetails (got ${occurrences})`
+  );
+});
+
+test("encodeAgentRunRequest keeps RequestedModel + parameters alongside ModelDetails (#3714)", () => {
+  // The ModelDetails addition is additive: server-routed ids and the -fast parameter
+  // path (carried only by RequestedModel) must be unaffected.
+  const composer = encodeAgentRunRequest({ modelId: "composer-2-fast", userText: "hi" });
+  const composerText = composer.toString("latin1");
+  assert.ok(composerText.includes("composer-2"), "split model id still present");
+  assert.ok(composerText.includes("fast"), "'-fast' parameter id still present (RequestedModel)");
+  assert.ok(composerText.includes("true"), "'-fast' parameter value still present (RequestedModel)");
+
+  // auto → default, now appearing in both RequestedModel and ModelDetails.
+  const auto = encodeAgentRunRequest({ modelId: "auto", userText: "hi" });
+  const autoOccurrences = auto.toString("latin1").split("default").length - 1;
+  assert.ok(
+    autoOccurrences >= 4,
+    `'default' must appear in RequestedModel + ModelDetails (got ${autoOccurrences})`
+  );
 });
 
 test("buildAgentRequestBody wraps the message in a Connect-RPC frame", () => {

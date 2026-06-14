@@ -489,6 +489,9 @@ test("proxy helpers resolve key, provider, global, and direct paths while tolera
     name: "Proxy Resolution Target",
     apiKey: "sk-proxy-resolution",
   });
+  db.prepare("UPDATE provider_connections SET proxy_enabled = 1 WHERE id = ?").run(
+    (connection as any).id
+  );
 
   await settingsDb.setProxyConfig({
     level: "global",
@@ -560,6 +563,9 @@ test("proxy resolution skips combos without serialized data and falls back to pr
     name: "Proxy Null Combo",
     apiKey: "sk-claude-proxy",
   });
+  db.prepare("UPDATE provider_connections SET proxy_enabled = 1 WHERE id = ?").run(
+    (connection as any).id
+  );
 
   await settingsDb.setProxyForLevel("provider", "claude", {
     type: "https",
@@ -592,6 +598,10 @@ test("proxy resolution matches combo proxies through aliased model entries", asy
     name: "Proxy Alias Combo",
     apiKey: "sk-claude-alias",
   });
+  // Enable proxy on this connection so legacy combo/provider proxy checks work
+  core.getDbInstance()
+    .prepare("UPDATE provider_connections SET proxy_enabled = 1 WHERE id = ?")
+    .run((connection as any).id);
 
   const combo = await combosDb.createCombo({
     name: "combo-aliased-model",
@@ -632,6 +642,14 @@ test("proxy resolution prefers legacy key and provider proxies over registry glo
     port: 8080,
   });
   await proxiesDb.assignProxyToScope("global", null, registryGlobal.id);
+
+  // Enable proxy on both connections so legacy key/provider proxy checks work
+  core.getDbInstance()
+    .prepare("UPDATE provider_connections SET proxy_enabled = 1 WHERE id = ?")
+    .run((keyConnection as any).id);
+  core.getDbInstance()
+    .prepare("UPDATE provider_connections SET proxy_enabled = 1 WHERE id = ?")
+    .run((providerConnection as any).id);
 
   await settingsDb.setProxyForLevel("key", (keyConnection as any).id, {
     type: "http",

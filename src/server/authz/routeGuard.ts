@@ -31,6 +31,28 @@ export const LOCAL_ONLY_API_PREFIXES: ReadonlyArray<string> = [
   "/api/services/", // T-10: embedded service lifecycle (spawn child processes)
   "/dashboard/providers/services/", // T-07: reverse proxy to embedded service UIs
   "/api/copilot/", // unauthenticated LLM driver — CLI-only by default; admins can opt-in to remote access via manage-scope bypass
+  "/api/tools/agent-bridge/", // AgentBridge: spawns MITM server + DNS edits (Hard Rules #15 + #17)
+  "/api/tools/traffic-inspector/", // Traffic Inspector: http-proxy listener + system proxy (Hard Rules #15 + #17)
+  "/api/plugins/", // plugins: load/execute via worker_threads + child_process (Hard Rules #15 + #17)
+  "/api/plugins", // bare path: GET list + POST install also trigger plugin loading
+  "/api/system/version", // auto-update: spawns git checkout + npm install — RCE-via-tunnel surface (Hard Rules #15 + #17, found by 6A.8 route-guard gate)
+  "/api/db-backups/exportAll", // spawns tar for export archive (Hard Rules #15 + #17, found by 6A.8 route-guard gate)
+];
+
+/**
+ * LOCAL_ONLY routes whose spawn-capable segment sits AFTER a dynamic path
+ * parameter, so a flat prefix in `LOCAL_ONLY_API_PREFIXES` cannot target them
+ * without over-broadening (e.g. locking the entire `/api/providers/` subtree,
+ * which remote dashboards legitimately use for provider CRUD). These are matched
+ * by regex instead.
+ *
+ *   - `POST /api/providers/{id}/login` launches a headful Playwright Chromium
+ *     (a child process) to drive a web-cookie login. Loopback enforcement must
+ *     happen unconditionally before any auth check (Hard Rules #15 + #17), so a
+ *     leaked JWT via tunnel cannot trigger a browser spawn.
+ */
+export const LOCAL_ONLY_API_PATTERNS: ReadonlyArray<RegExp> = [
+  /^\/api\/providers\/[^/]+\/login\/?$/,
 ];
 
 /**
@@ -51,6 +73,9 @@ export const LOCAL_ONLY_API_PREFIXES: ReadonlyArray<string> = [
 export const SPAWN_CAPABLE_PREFIXES: ReadonlyArray<string> = [
   "/api/cli-tools/runtime/",
   "/api/services/", // T-10: can run npm install + spawn node processes
+  "/api/tools/agent-bridge/", // start/stop MITM server + DNS edits (Hard Rules #15 + #17)
+  "/api/tools/traffic-inspector/", // http-proxy listener + system proxy (Hard Rules #15 + #17)
+  "/api/plugins/", // plugins: load/execute via worker_threads + child_process (Hard Rules #15 + #17)
 ];
 
 /**
@@ -72,21 +97,72 @@ export const ALWAYS_PROTECTED_API_PATHS: ReadonlyArray<string> = [
 
 export function isLoopbackHost(hostHeader: string | null): boolean {
   if (!hostHeader) return false;
-  let host: string;
-  if (hostHeader.startsWith("[")) {
+  let host = hostHeader.trim();
+  if (host.startsWith("[")) {
     // IPv6 literal: [::1] or [::1]:port
-    const bracketEnd = hostHeader.indexOf("]");
-    host = bracketEnd >= 0 ? hostHeader.slice(1, bracketEnd) : hostHeader.slice(1);
-  } else {
-    // IPv4 / hostname: strip optional :port
-    host = hostHeader.split(":")[0];
+    const bracketEnd = host.indexOf("]");
+    host = bracketEnd >= 0 ? host.slice(1, bracketEnd) : host.slice(1);
+  } else if ((host.match(/:/g) || []).length === 1) {
+    // IPv4 / hostname with a single :port — strip it. A bare IPv6 address
+    // ("::1", "::ffff:127.0.0.1") has multiple colons and must stay intact
+    // (splitting on ":" would mangle it to "" and miss the loopback match).
+    host = host.split(":")[0];
   }
   host = host.replace(/^::ffff:/i, "");
   return LOOPBACK_HOSTS.has(host.toLowerCase());
 }
 
+/**
+ * Classify a resolved peer IP into the locality tiers the authz layer cares
+ * about. `null`/unknown → "remote" (fail closed). Used by the pipeline to stamp
+ * a trusted locality marker that route handlers read without re-deriving it
+ * from the spoofable Host header.
+ */
+export function classifyHostLocality(ip: string | null): "loopback" | "lan" | "remote" {
+  if (!ip) return "remote";
+  if (isLoopbackHost(ip)) return "loopback";
+  if (isPrivateLanHost(ip)) return "lan";
+  return "remote";
+}
+
+/**
+ * Private-LAN ranges (RFC 1918 IPv4 + IPv6 ULA/link-local). Matched against the
+ * real socket peer address (NOT the spoofable Host header), so a public-internet
+ * client — which presents a public source IP — never matches.
+ */
+const PRIVATE_LAN_PATTERNS: ReadonlyArray<RegExp> = [
+  /^10\.\d{1,3}\.\d{1,3}\.\d{1,3}$/,
+  /^192\.168\.\d{1,3}\.\d{1,3}$/,
+  /^172\.(1[6-9]|2\d|3[01])\.\d{1,3}\.\d{1,3}$/,
+  /^f[cd][0-9a-f]{2}:/i, // IPv6 ULA fc00::/7
+  /^fe80:/i, // IPv6 link-local
+];
+
+/**
+ * True when the peer address is a private-LAN address. Used to widen the
+ * LOCAL_ONLY tier to a trusted private network (owner-authorized 2026-05-30 for
+ * a LAN-deployed instance). Loopback-only surfaces that do NOT use this (e.g.
+ * the CLI-token path) remain strictly loopback.
+ */
+export function isPrivateLanHost(hostHeader: string | null): boolean {
+  if (!hostHeader) return false;
+  let host = hostHeader.trim();
+  if (host.startsWith("[")) {
+    const bracketEnd = host.indexOf("]");
+    host = bracketEnd >= 0 ? host.slice(1, bracketEnd) : host.slice(1);
+  }
+  host = host.replace(/^::ffff:/i, "");
+  // Strip :port only for IPv4 / hostname (a lone colon); leave IPv6 intact.
+  if ((host.match(/:/g) || []).length === 1) host = host.split(":")[0];
+  host = host.toLowerCase();
+  return PRIVATE_LAN_PATTERNS.some((re) => re.test(host));
+}
+
 export function isLocalOnlyPath(path: string): boolean {
-  return LOCAL_ONLY_API_PREFIXES.some((p) => path === p || path.startsWith(p));
+  return (
+    LOCAL_ONLY_API_PREFIXES.some((p) => path === p || path.startsWith(p)) ||
+    LOCAL_ONLY_API_PATTERNS.some((re) => re.test(path))
+  );
 }
 
 /**

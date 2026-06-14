@@ -4,10 +4,13 @@ import {
   getProvider,
   generateAuthData,
   exchangeTokens,
+  finalizeTokens,
   requestDeviceCode,
   pollForToken,
   resolveBrowserOAuthRedirectUri,
 } from "@/lib/oauth/providers";
+import { persistOAuthConnection } from "@/lib/oauth/connectionPersistence";
+import { createDeviceFlowTicket, getDeviceFlowTicketStatus } from "@/lib/oauth/deviceFlowTickets";
 import {
   createProviderConnection,
   updateProviderConnection,
@@ -21,6 +24,7 @@ import { startLocalServer } from "@/lib/oauth/utils/server";
 import { runWithProxyContext } from "@omniroute/open-sse/utils/proxyFetch.ts";
 import {
   jsonObjectSchema,
+  oauthDeviceCompleteSchema,
   oauthExchangeSchema,
   oauthImportTokenSchema,
   oauthPollSchema,
@@ -39,7 +43,24 @@ if (!globalThis.__windsurfCallbackState) {
 }
 
 /** Providers that use the PKCE browser callback flow (like Codex). */
-const PKCE_CALLBACK_PROVIDERS = new Set(["codex", "windsurf", "devin-cli"]);
+const PKCE_CALLBACK_PROVIDERS = new Set(["codex"]);
+
+/**
+ * Providers whose device flow runs in the user's browser (auth.openai.com blocks
+ * datacenter IPs but allows CORS), so the server never polls — it only persists
+ * the final tokens via the `device-complete` action. See src/lib/oauth/codexDeviceFlow.ts.
+ */
+const BROWSER_DEVICE_FLOW_PROVIDERS = new Set(["codex"]);
+
+/**
+ * Providers whose PKCE flow has been retired but whose import-token path is
+ * still active. Returning 410 Gone on `authorize` / `start-callback-server` /
+ * `poll-callback` (instead of 400) tells callers the action is permanently
+ * gone and points them at /import-token. windsurf/devin-cli were retired
+ * 2026-05-29 because app.devin.ai/editor/signin returned 404 post-rebrand.
+ * Phase 2 will reintroduce browser login via Firebase OAuth + RegisterUser.
+ */
+const RETIRED_PKCE_PROVIDERS = new Set(["windsurf", "devin-cli"]);
 
 /** Providers that allow direct import of a raw API token (no OAuth exchange). */
 const IMPORT_TOKEN_PROVIDERS = new Set(["windsurf", "devin-cli"]);
@@ -54,6 +75,20 @@ function safeEqual(a: string | null | undefined, b: string | null | undefined): 
   const bb = Buffer.from(String(b));
   if (ba.length !== bb.length) return false;
   return timingSafeEqual(ba, bb);
+}
+
+/**
+ * Resolve the externally reachable base URL for public share links. Prefers the
+ * configured public base URL; otherwise derives it from forwarded headers so the
+ * link points at the host the operator actually serves (not an internal origin).
+ */
+function resolvePublicBaseUrl(request: Request): string {
+  const env = process.env.NEXT_PUBLIC_BASE_URL || process.env.OMNIROUTE_PUBLIC_BASE_URL;
+  if (env && env.trim()) return env.trim().replace(/\/+$/, "");
+  const host = request.headers.get("x-forwarded-host") || request.headers.get("host");
+  const proto = request.headers.get("x-forwarded-proto") || "https";
+  if (host) return `${proto}://${host}`;
+  return new URL(request.url).origin;
 }
 
 async function requireOAuthRouteAuth(request: Request) {
@@ -73,6 +108,35 @@ export async function GET(
   request: Request,
   { params }: { params: Promise<{ provider: string; action: string }> }
 ) {
+  // Phase 1 hotfix (2026-05-29): retired PKCE flows return 410 Gone BEFORE auth.
+  // The action permanently does not exist for these providers regardless of who
+  // is asking — answering 401 first would mislead callers into thinking the
+  // route is gated rather than gone. See spec
+  // docs/superpowers/specs/2026-05-29-windsurf-login-fix-design.md.
+  try {
+    const earlyParams = await params;
+    if (
+      RETIRED_PKCE_PROVIDERS.has(earlyParams.provider) &&
+      (earlyParams.action === "authorize" ||
+        earlyParams.action === "start-callback-server" ||
+        earlyParams.action === "poll-callback")
+    ) {
+      return NextResponse.json(
+        {
+          error:
+            `Browser OAuth disabled for ${earlyParams.provider} — use import-token via ` +
+            `/api/oauth/${earlyParams.provider}/import-token. ` +
+            `In the Windsurf/VS Code IDE, run the "Windsurf: Provide Auth Token" command ` +
+            `(or click the Jupyter "Get Windsurf Authentication Token" button), then copy+paste the shown token. ` +
+            `Opening https://windsurf.com/show-auth-token directly only shows a "Redirecting" page — the IDE must initiate the ?state=... flow.`,
+        },
+        { status: 410 }
+      );
+    }
+  } catch {
+    /* fall through to normal handling */
+  }
+
   const authResponse = await requireOAuthRouteAuth(request);
   if (authResponse) return authResponse;
 
@@ -155,6 +219,17 @@ export async function GET(
 
     if (action === "start-callback-server") {
       return await handleStartCallbackServer(provider, searchParams);
+    }
+
+    if (action === "public-link-status") {
+      // Dashboard polls this (authenticated) to learn when the external visitor
+      // finished the device flow, so it can notify + refresh the connections.
+      const token = searchParams.get("token");
+      if (!token) {
+        return NextResponse.json({ error: "Missing token" }, { status: 400 });
+      }
+      const { status, result } = getDeviceFlowTicketStatus(token);
+      return NextResponse.json({ status, connection: result });
     }
 
     return NextResponse.json({ error: "Unknown action" }, { status: 400 });
@@ -242,11 +317,54 @@ export async function POST(
   request: Request,
   { params }: { params: Promise<{ provider: string; action: string }> }
 ) {
+  // Phase 1 hotfix (2026-05-29): retired PKCE flows return 410 Gone BEFORE auth.
+  // See GET handler comment.
+  try {
+    const earlyParams = await params;
+    if (
+      RETIRED_PKCE_PROVIDERS.has(earlyParams.provider) &&
+      earlyParams.action === "poll-callback"
+    ) {
+      return NextResponse.json(
+        {
+          error:
+            `Browser OAuth disabled for ${earlyParams.provider} — use import-token via ` +
+            `/api/oauth/${earlyParams.provider}/import-token. ` +
+            `In the Windsurf/VS Code IDE, run the "Windsurf: Provide Auth Token" command ` +
+            `(or click the Jupyter "Get Windsurf Authentication Token" button), then copy+paste the shown token. ` +
+            `Opening https://windsurf.com/show-auth-token directly only shows a "Redirecting" page — the IDE must initiate the ?state=... flow.`,
+        },
+        { status: 410 }
+      );
+    }
+  } catch {
+    /* fall through to normal handling */
+  }
+
   const authResponse = await requireOAuthRouteAuth(request);
   if (authResponse) return authResponse;
 
   try {
     const { provider, action } = await params;
+
+    // Phase 1 hotfix (2026-05-29): retired PKCE flows return 410 Gone before
+    // body parsing. windsurf/devin-cli `poll-callback` is permanently retired
+    // because the upstream PKCE endpoint returns 404. Use /import-token
+    // (handled later in this same handler) for those providers instead.
+    if (RETIRED_PKCE_PROVIDERS.has(provider) && action === "poll-callback") {
+      return NextResponse.json(
+        {
+          error:
+            `Browser OAuth disabled for ${provider} — use import-token via ` +
+            `/api/oauth/${provider}/import-token. ` +
+            `In the Windsurf/VS Code IDE, run the "Windsurf: Provide Auth Token" command ` +
+            `(or click the Jupyter "Get Windsurf Authentication Token" button), then copy+paste the shown token. ` +
+            `Opening https://windsurf.com/show-auth-token directly only shows a "Redirecting" page — the IDE must initiate the ?state=... flow.`,
+        },
+        { status: 410 }
+      );
+    }
+
     let rawBody: any = {};
     try {
       rawBody = await request.json();
@@ -285,6 +403,12 @@ export async function POST(
       body = validation.data;
     } else if (action === "import-token") {
       const validation = validateBody(oauthImportTokenSchema, rawBody);
+      if (isValidationFailure(validation)) {
+        return NextResponse.json({ error: validation.error }, { status: 400 });
+      }
+      body = validation.data;
+    } else if (action === "device-complete") {
+      const validation = validateBody(oauthDeviceCompleteSchema, rawBody);
       if (isValidationFailure(validation)) {
         return NextResponse.json({ error: validation.error }, { status: 400 });
       }
@@ -679,77 +803,80 @@ export async function POST(
       }
     }
 
-    if (action === "import-token") {
-      const { token, connectionId } = body;
-
-      if (!IMPORT_TOKEN_PROVIDERS.has(provider)) {
+    if (action === "public-link") {
+      // Generate a single-use, short-lived public link so a third party can
+      // complete the Codex device flow in their own browser (see Fase 6).
+      if (!BROWSER_DEVICE_FLOW_PROVIDERS.has(provider)) {
         return NextResponse.json(
           {
-            error: `import-token not supported for provider: ${provider}. Supported: ${[...IMPORT_TOKEN_PROVIDERS].join(", ")}`,
+            error: `public-link not supported for provider: ${provider}. Supported: ${[...BROWSER_DEVICE_FLOW_PROVIDERS].join(", ")}`,
           },
           { status: 400 }
         );
       }
 
-      try {
-        // Map the raw token via the provider's mapTokens() — skips the HTTP exchange entirely.
-        const providerData = getProvider(provider);
-        const tokenData = providerData.mapTokens({ accessToken: token });
+      const connectionId =
+        rawBody && typeof rawBody.connectionId === "string" ? rawBody.connectionId : undefined;
+      const { token, expiresAt } = createDeviceFlowTicket(provider, connectionId);
 
-        // Normalize: if name is missing, use email as fallback display label
-        if (!tokenData.name && (tokenData.email || tokenData.displayName)) {
-          tokenData.name = tokenData.email || tokenData.displayName;
-        }
+      return NextResponse.json({
+        url: `${resolvePublicBaseUrl(request)}/connect/codex/${token}`,
+        token,
+        expiresAt: new Date(expiresAt).toISOString(),
+      });
+    }
 
-        const expiresAt = tokenData.expiresIn
-          ? new Date(Date.now() + tokenData.expiresIn * 1000).toISOString()
-          : null;
-
-        let connection: any;
-        if (tokenData.email) {
-          const existing = await getProviderConnections({ provider });
-          const match = existing.find((c: any) => {
-            if (c.id && safeEqual(connectionId, c.id)) return true;
-            if (!safeEqual(c.email, tokenData.email) || c.authType !== "oauth") return false;
-            return true;
-          });
-          const matchId = typeof match?.id === "string" ? match.id : null;
-          if (matchId) {
-            connection = await updateProviderConnection(matchId, {
-              ...tokenData,
-              expiresAt,
-              testStatus: "active",
-              isActive: true,
-            });
-          }
-        }
-        if (!connection) {
-          connection = await createProviderConnection({
-            provider,
-            authType: "oauth",
-            ...tokenData,
-            expiresAt,
-            testStatus: "active",
-          });
-        }
-
-        await syncToCloudIfEnabled();
-
-        return NextResponse.json({
-          success: true,
-          connection: {
-            id: connection.id,
-            provider: connection.provider,
-            email: connection.email,
-            displayName: connection.displayName,
-          },
-        });
-      } catch (importErr: any) {
+    if (action === "device-complete") {
+      // The browser-driven Codex device flow already performed the device
+      // authorization + token exchange against auth.openai.com (the server's
+      // datacenter IP is blocked by Cloudflare, so it cannot). Here we only map
+      // the final tokens and persist the connection — no HTTP exchange/poll.
+      if (!BROWSER_DEVICE_FLOW_PROVIDERS.has(provider)) {
         return NextResponse.json(
-          { success: false, error: sanitizeErrorMessage(importErr.message) || "Import failed" },
+          {
+            error: `device-complete not supported for provider: ${provider}. Supported: ${[...BROWSER_DEVICE_FLOW_PROVIDERS].join(", ")}`,
+          },
+          { status: 400 }
+        );
+      }
+
+      const {
+        access_token: accessToken,
+        refresh_token: refreshToken,
+        id_token: idToken,
+        expires_in: expiresIn,
+        connectionId,
+      } = body;
+
+      let tokenData: any;
+      try {
+        tokenData = await finalizeTokens(provider, {
+          access_token: accessToken,
+          refresh_token: refreshToken,
+          id_token: idToken,
+          expires_in: expiresIn,
+        });
+      } catch (finalizeErr: any) {
+        return NextResponse.json(
+          {
+            success: false,
+            error: sanitizeErrorMessage(finalizeErr?.message) || "Failed to finalize tokens",
+          },
           { status: 500 }
         );
       }
+
+      const connection = await persistOAuthConnection(provider, tokenData, connectionId);
+
+      return NextResponse.json({
+        success: true,
+        connection: {
+          id: connection.id,
+          provider: connection.provider,
+          email: connection.email,
+          displayName: connection.displayName,
+        },
+      });
     }
 
     return NextResponse.json({ error: "Unknown action" }, { status: 400 });

@@ -170,9 +170,7 @@ test("injectEmptyReasoningContentForToolCalls supports all reasoning replay prov
   const reasoningProviders = [
     { provider: "deepseek", model: "deepseek-chat" },
     { provider: "opencode-go", model: "some-model" },
-    { provider: "siliconflow", model: "deepseek-r1" },
     { provider: "nebius", model: "qwq-32b" },
-    { provider: "deepinfra", model: "deepseek-reasoner" },
     { provider: "sambanova", model: "qwen3-thinking" },
     { provider: "fireworks", model: "glm-5-thinking" },
     { provider: "together", model: "mimo-v2.5" },
@@ -200,6 +198,8 @@ test("injectEmptyReasoningContentForToolCalls skips non-reasoning models", () =>
     { provider: "anthropic", model: "claude-sonnet-4" },
     { provider: "google", model: "gemini-pro" },
     { provider: "groq", model: "llama-3" },
+    { provider: "siliconflow", model: "deepseek-r1" },
+    { provider: "deepinfra", model: "deepseek-reasoner" },
   ];
 
   for (const { provider, model } of nonReasoningModels) {

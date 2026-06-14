@@ -146,6 +146,8 @@ import TencentColorIcon from "@lobehub/icons/es/Tencent/components/Color";
 import TencentMonoIcon from "@lobehub/icons/es/Tencent/components/Mono";
 import TogetherMonoIcon from "@lobehub/icons/es/Together/components/Mono";
 import TopazLabsMonoIcon from "@lobehub/icons/es/TopazLabs/components/Mono";
+import TraeColorIcon from "@lobehub/icons/es/Trae/components/Color";
+import TraeMonoIcon from "@lobehub/icons/es/Trae/components/Mono";
 import UpstageColorIcon from "@lobehub/icons/es/Upstage/components/Color";
 import UpstageMonoIcon from "@lobehub/icons/es/Upstage/components/Mono";
 import YiColorIcon from "@lobehub/icons/es/Yi/components/Color";
@@ -276,6 +278,7 @@ const LOBE_ICON_COMPONENTS = {
   Tencent: { mono: TencentMonoIcon, color: TencentColorIcon },
   Together: { mono: TogetherMonoIcon, color: TogetherColorIcon },
   TopazLabs: { mono: TopazLabsMonoIcon },
+  Trae: { mono: TraeMonoIcon, color: TraeColorIcon },
   Upstage: { mono: UpstageMonoIcon, color: UpstageColorIcon },
   V0: { mono: V0MonoIcon },
   Venice: { mono: VeniceMonoIcon, color: VeniceColorIcon },
@@ -301,6 +304,7 @@ const LOBE_PROVIDER_ALIASES = {
   "amazon-q": "Aws",
   anthropic: "Anthropic",
   antigravity: "Antigravity",
+  agy: "Antigravity", // Antigravity CLI — same brand icon as the antigravity provider
   assemblyai: "AssemblyAI",
   "aws-polly": "Aws",
   azure: "Azure",
@@ -420,6 +424,7 @@ const LOBE_PROVIDER_ALIASES = {
   tencent: "Tencent",
   together: "Together",
   topaz: "TopazLabs",
+  trae: "Trae",
   triton: "Nvidia",
   upstage: "Upstage",
   v0: "V0",

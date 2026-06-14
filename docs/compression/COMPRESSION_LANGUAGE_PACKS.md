@@ -24,12 +24,14 @@ Current shipped packs (verified against `rules/` directory contents):
 | ------------------- | -------------- | --------------------------------------------------- |
 | English             | `rules/en/`    | `context`, `dedup`, `filler`, `structural`, `ultra` |
 | Spanish             | `rules/es/`    | `context`, `dedup`, `filler`, `structural`, `ultra` |
-| Portuguese (Brazil) | `rules/pt-BR/` | `context`, `filler`, `structural`                   |
+| Portuguese (Brazil) | `rules/pt-BR/` | `context`, `dedup`, `filler`, `structural`, `ultra` |
 | German              | `rules/de/`    | `context`, `filler`, `structural`                   |
 | French              | `rules/fr/`    | `context`, `filler`, `structural`                   |
 | Japanese            | `rules/ja/`    | `context`, `filler`, `structural`                   |
 
-> **Parity note:** `en` and `es` packs have the full 5 categories; `pt-BR`, `de`, `fr`, `ja` ship 3 categories. The missing `dedup` and `ultra` categories silently fall back to the English built-ins. Contributions welcome to add `dedup.json` and `ultra.json` for the smaller packs.
+> **Parity note:** `en`, `es`, and `pt-BR` packs have the full 5 categories; `de`, `fr`, `ja` ship 3 categories. The missing `dedup` and `ultra` categories silently fall back to the English built-ins. Contributions welcome to add `dedup.json` and `ultra.json` for the smaller packs.
+>
+> The `pt-BR` pack is based on **[Troglodita](https://github.com/leninejunior/troglodita)** by Lenine Júnior — a compression system designed from scratch for Brazilian Portuguese grammar (pleonasm reduction, PT-BR filler removal, technical abbreviations for the dev BR community).
 >
 > The canonical category list and per-category schema live in [`open-sse/services/compression/rules/_schema.json`](../../open-sse/services/compression/rules/_schema.json) (JSON Schema draft 2020-12).
 

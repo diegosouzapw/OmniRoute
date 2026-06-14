@@ -15,10 +15,14 @@ const {
   resolveNestedComboModels,
   handleComboChat,
 } = await import("../../open-sse/services/combo.ts");
+const { resolveReasoningBufferedMaxTokens } =
+  await import("../../open-sse/services/reasoningTokenBuffer.ts");
 const { normalizeComboStep } = await import("../../src/lib/combos/steps.ts");
 const { registerStrategy } = await import("../../open-sse/services/autoCombo/routerStrategy.ts");
+const { touchSession, clearSessions } = await import("../../open-sse/services/sessionManager.ts");
 const core = await import("../../src/lib/db/core.ts");
 const settingsDb = await import("../../src/lib/db/settings.ts");
+const providersDb = await import("../../src/lib/db/providers.ts");
 const evalsDb = await import("../../src/lib/db/evals.ts");
 const { saveModelsDevCapabilities, clearModelsDevCapabilities } =
   await import("../../src/lib/modelsDevSync.ts");
@@ -145,6 +149,7 @@ test.beforeEach(async () => {
   resetAllCircuitBreakers();
   resetAllSemaphores();
   _resetAllDecks();
+  clearSessions();
   await resetStorage();
 });
 
@@ -327,6 +332,7 @@ test("handleComboChat runs shadow targets without changing the primary response 
   const metrics = getComboMetrics("shadow-routing-priority");
 
   assert.equal(result.ok, true);
+  calls.sort((a, b) => a.trafficType.localeCompare(b.trafficType));
   assert.deepEqual(calls, [
     { modelStr: "openai/gpt-4o-mini", trafficType: "production", stream: true },
     { modelStr: "anthropic/claude-3-haiku", trafficType: "shadow", stream: false },
@@ -1330,6 +1336,174 @@ test("handleComboChat falls through generic 400s when a later priority target su
   assert.deepEqual(calls, ["provider-a/model-a", "provider-b/model-b"]);
 });
 
+test("handleComboChat preserves fallback request bodies when zero-latency optimizations are disabled", async () => {
+  const longToolOutput = "x".repeat(2500);
+  let fallbackBody: any = null;
+
+  const result = await handleComboChat({
+    body: {
+      messages: [
+        { role: "user", content: "please inspect this output" },
+        { role: "tool", content: longToolOutput },
+      ],
+    },
+    combo: {
+      name: "zero-latency-disabled-preserves-body",
+      strategy: "priority",
+      models: ["provider-a/model-a", "provider-b/model-b"],
+      config: {
+        maxRetries: 0,
+        retryDelayMs: 1,
+        fallbackCompressionMode: "lite",
+        fallbackCompressionThreshold: 1,
+      },
+    },
+    handleSingleModel: async (requestBody: any, modelStr: any) => {
+      if (modelStr === "provider-a/model-a") {
+        return errorResponse(500, "first target failed");
+      }
+      fallbackBody = requestBody;
+      return okResponse();
+    },
+    isModelAvailable: async () => true,
+    log: createLog(),
+    settings: null,
+    relayOptions: null as any,
+    allCombos: null,
+  });
+
+  assert.equal(result.status, 200);
+  assert.equal(fallbackBody.messages[1].content, longToolOutput);
+});
+
+test("handleComboChat applies fallback compression only after explicit zero-latency opt-in", async () => {
+  const longToolOutput = "x".repeat(2500);
+  let fallbackBody: any = null;
+
+  const result = await handleComboChat({
+    body: {
+      messages: [
+        { role: "user", content: "please inspect this output" },
+        { role: "tool", content: longToolOutput },
+      ],
+    },
+    combo: {
+      name: "zero-latency-enabled-compresses-fallback",
+      strategy: "priority",
+      models: ["provider-a/model-a", "provider-b/model-b"],
+      config: {
+        maxRetries: 0,
+        retryDelayMs: 1,
+        zeroLatencyOptimizationsEnabled: true,
+        fallbackCompressionMode: "lite",
+        fallbackCompressionThreshold: 1,
+      },
+    },
+    handleSingleModel: async (requestBody: any, modelStr: any) => {
+      if (modelStr === "provider-a/model-a") {
+        return errorResponse(500, "first target failed");
+      }
+      fallbackBody = requestBody;
+      return okResponse();
+    },
+    isModelAvailable: async () => true,
+    log: createLog(),
+    settings: null,
+    relayOptions: null as any,
+    allCombos: null,
+  });
+
+  assert.equal(result.status, 200);
+  const fallbackToolContent = fallbackBody.messages[1].content;
+  assert.equal(typeof fallbackToolContent, "string");
+  assert.ok(fallbackToolContent.length < longToolOutput.length);
+  assert.match(fallbackToolContent, /truncated/i);
+});
+
+test("handleComboChat suppresses hedging unless zero-latency optimizations are enabled", async () => {
+  const calls: any[] = [];
+
+  const result = await handleComboChat({
+    body: {},
+    combo: {
+      name: "hedging-disabled-with-subfeature-set",
+      strategy: "priority",
+      models: ["model-a", "model-b"],
+      config: {
+        maxRetries: 0,
+        retryDelayMs: 1,
+        hedging: true,
+        hedgeDelayMs: 1,
+      },
+    },
+    handleSingleModel: async (_body: any, modelStr: any) => {
+      calls.push(modelStr);
+      await new Promise((resolve) => setTimeout(resolve, 20));
+      return okResponse({ choices: [{ message: { content: modelStr } }] });
+    },
+    isModelAvailable: async () => true,
+    log: createLog(),
+    settings: null,
+    relayOptions: null as any,
+    allCombos: null,
+  });
+
+  const payload = (await result.json()) as any;
+
+  assert.equal(result.status, 200);
+  assert.equal(payload.choices[0].message.content, "model-a");
+  assert.deepEqual(calls, ["model-a"]);
+});
+
+test("handleComboChat starts hedged fallback only after explicit zero-latency opt-in", async () => {
+  const calls: any[] = [];
+
+  const result = await handleComboChat({
+    body: {},
+    combo: {
+      name: "hedging-enabled-with-zero-latency",
+      strategy: "priority",
+      models: ["model-a", "model-b"],
+      config: {
+        maxRetries: 0,
+        retryDelayMs: 1,
+        zeroLatencyOptimizationsEnabled: true,
+        hedging: true,
+        hedgeDelayMs: 1,
+      },
+    },
+    handleSingleModel: async (_body: any, modelStr: any, target: any) => {
+      calls.push(modelStr);
+      if (modelStr === "model-a") {
+        await new Promise((resolve) => {
+          const timer = setTimeout(resolve, 100);
+          target?.modelAbortSignal?.addEventListener(
+            "abort",
+            () => {
+              clearTimeout(timer);
+              resolve(undefined);
+            },
+            { once: true }
+          );
+        });
+        return okResponse({ choices: [{ message: { content: "slow" } }] });
+      }
+      return okResponse({ choices: [{ message: { content: "fast" } }] });
+    },
+    isModelAvailable: async () => true,
+    log: createLog(),
+    settings: null,
+    relayOptions: null as any,
+    allCombos: null,
+  });
+
+  const payload = (await result.json()) as any;
+
+  assert.equal(result.status, 200);
+  assert.equal(payload.choices[0].message.content, "fast");
+  assert.deepEqual(calls, ["model-a", "model-b"]);
+});
+
 test("handleComboChat round-robin falls through generic 400s when a later model succeeds", async () => {
   const calls: any[] = [];
 
@@ -1962,6 +2136,86 @@ test("handleComboChat auto strategy honors LKGP after filtering to tool-capable 
   assert.equal(calls[0], "claude/claude-sonnet-4-6");
 });
 
+test("handleComboChat auto strategy preserves selected same-provider connection identity", async () => {
+  const connA = await providersDb.createProviderConnection({
+    provider: "openai",
+    authType: "apikey",
+    name: "OpenAI A",
+    apiKey: "sk-auto-conn-a",
+    defaultModel: "gpt-4o-mini",
+  });
+  const connB = await providersDb.createProviderConnection({
+    provider: "openai",
+    authType: "apikey",
+    name: "OpenAI B",
+    apiKey: "sk-auto-conn-b",
+    defaultModel: "gpt-4o-mini",
+  });
+  touchSession("sticky-auto-session", connB.id);
+
+  const calls: Array<{ modelStr: string; connectionId: string | null | undefined }> = [];
+  const result = await handleComboChat({
+    body: { messages: [{ role: "user", content: "Continue the existing conversation" }] },
+    combo: {
+      id: "auto-same-provider-connection",
+      name: "auto-same-provider-connection",
+      strategy: "auto",
+      models: [
+        {
+          kind: "model",
+          providerId: "openai",
+          model: "openai/gpt-4o-mini",
+          connectionId: connA.id,
+          label: "OpenAI A",
+        },
+        {
+          kind: "model",
+          providerId: "openai",
+          model: "openai/gpt-4o-mini",
+          connectionId: connB.id,
+          label: "OpenAI B",
+        },
+      ],
+      autoConfig: {
+        candidatePool: ["openai"],
+        explorationRate: 0,
+        weights: {
+          quota: 0,
+          health: 0,
+          costInv: 0,
+          latencyInv: 0,
+          taskFit: 0,
+          stability: 0,
+          tierPriority: 0,
+          tierAffinity: 0,
+          specificityMatch: 0,
+          contextAffinity: 1,
+          resetWindowAffinity: 0,
+          connectionDensity: 0,
+        },
+      },
+    },
+    handleSingleModel: async (_body: any, modelStr: any, target: any) => {
+      calls.push({ modelStr, connectionId: target?.connectionId });
+      return okResponse();
+    },
+    isModelAvailable: async () => true,
+    log: createLog(),
+    settings: null,
+    relayOptions: { sessionId: "sticky-auto-session" } as any,
+    allCombos: null,
+  });
+
+  assert.equal(result.ok, true);
+  assert.equal(calls.length, 1, "successful auto dispatch should call exactly one selected target");
+  assert.deepEqual(calls, [
+    {
+      modelStr: "openai/gpt-4o-mini",
+      connectionId: connB.id,
+    },
+  ]);
+});
+
 test("handleComboChat standalone lkgp strategy prioritizes the last known good provider", async () => {
   await settingsDb.setLKGP("standalone-lkgp", "standalone-lkgp", "anthropic");
 
@@ -2032,12 +2286,14 @@ test("handleComboChat standalone lkgp strategy updates LKGP after a successful c
   });
 
   // Give the async fire-and-forget LKGP update a chance to execute
-  await new Promise((resolve) => setTimeout(resolve, 10));
-
-  const persistedProvider = await settingsDb.getLKGP(
-    "standalone-lkgp-save",
-    "standalone-lkgp-save"
-  );
+  let persistedProvider: any = null;
+  for (let i = 0; i < 20; i++) {
+    persistedProvider = await settingsDb.getLKGP("standalone-lkgp-save", "standalone-lkgp-save");
+    if (persistedProvider?.provider === "openai") {
+      break;
+    }
+    await new Promise((resolve) => setTimeout(resolve, 10));
+  }
 
   assert.equal(result.ok, true);
   // getLKGP now returns LKGPRecord | null — source: src/lib/db/settings.ts getLKGP()
@@ -2188,6 +2444,9 @@ test("handleComboChat auto strategy can route by SLA targets", async () => {
 });
 
 test("handleComboChat context cache protection pins the model and tags tool-call responses", async () => {
+  // PR #3399: <omniModel> tag extraction replaced by server-side session pinning.
+  // combo uses priority order; the tag in the input message is stripped but no
+  // longer drives routing. No <omniModel> tag is injected in responses.
   const calls: any[] = [];
   const result = await handleComboChat({
     body: {
@@ -2233,14 +2492,14 @@ test("handleComboChat context cache protection pins the model and tags tool-call
 
   const payload = (await result.json()) as any;
   assert.equal(result.ok, true);
-  assert.deepEqual(calls, ["claude/claude-sonnet-4-6"]);
-  assert.match(
-    payload.choices[0].message.content,
-    /<omniModel>claude\/claude-sonnet-4-6<\/omniModel>/
-  );
+  // Server-side pinning: routes via priority order, not the <omniModel> tag.
+  assert.deepEqual(calls, ["openai/gpt-4o-mini"]);
+  // No <omniModel> tag injected into response content (replaced by session store).
+  assert.ok(!payload.choices[0].message.content);
 });
 
-test("handleComboChat context cache protection preserves omniModel tag in streamed output for round-trip pinning", async () => {
+test("handleComboChat context cache protection does not inject omniModel tag in streamed output", async () => {
+  // PR #3399: <omniModel> tag injection in stream output removed (server-side session pinning).
   const result = await handleComboChat({
     body: { stream: true, messages: [{ role: "user", content: "stream it" }] },
     combo: {
@@ -2264,12 +2523,12 @@ test("handleComboChat context cache protection preserves omniModel tag in stream
 
   const text = await result.text();
   assert.equal(result.ok, true);
-  assert.equal(result.headers.get("X-OmniRoute-Model"), "openai/gpt-4o-mini");
   assert.match(text, /hello world/);
-  assert.match(text, /<omniModel>openai\/gpt-4o-mini<\/omniModel>/);
+  assert.doesNotMatch(text, /<omniModel>/);
 });
 
-test("handleComboChat context cache protection injects a hidden tag for tool-call-only streams", async () => {
+test("handleComboChat context cache protection does not inject tag for tool-call-only streams", async () => {
+  // PR #3399: <omniModel> tag injection removed; tool-call streams pass through unmodified.
   const result = await handleComboChat({
     body: { stream: true, messages: [{ role: "user", content: "tool only" }] },
     combo: {
@@ -2294,10 +2553,11 @@ test("handleComboChat context cache protection injects a hidden tag for tool-cal
   const text = await result.text();
   assert.equal(result.ok, true);
   assert.match(text, /"finish_reason":"tool_calls"/);
-  assert.match(text, /<omniModel>openai\/gpt-4o-mini<\/omniModel>/);
+  assert.doesNotMatch(text, /<omniModel>/);
 });
 
 test("handleComboChat context cache protection flushes cleanly when a stream ends without content", async () => {
+  // PR #3399: no <omniModel> tag injected; empty stream passes through [DONE] unchanged.
   const result = await handleComboChat({
     body: { stream: true, messages: [{ role: "user", content: "empty stream" }] },
     combo: {
@@ -2316,9 +2576,8 @@ test("handleComboChat context cache protection flushes cleanly when a stream end
 
   const text = await result.text();
   assert.equal(result.ok, true);
-  assert.equal(result.headers.get("X-OmniRoute-Model"), "openai/gpt-4o-mini");
   assert.match(text, /data: \[DONE\]/);
-  assert.match(text, /"content":"<omniModel>openai\/gpt-4o-mini<\/omniModel>"/);
+  assert.doesNotMatch(text, /<omniModel>/);
 });
 
 test("handleComboChat round-robin resolves nested combos and returns inactive when every target is skipped", async () => {
@@ -2612,4 +2871,342 @@ test("handleComboChat aborts combo when 503 response does NOT contain the unavai
       payload.error?.message?.includes("unavailable") ||
       result.status === 503
   );
+});
+
+test("#3587 reasoning model gets max_tokens buffer applied", async () => {
+  saveModelsDevCapabilities({
+    openai: {
+      "gpt-4o-reasoning": capabilityEntry(12000, { reasoning: true, limit_output: 12000 }),
+    },
+  });
+
+  const bodies: Array<Record<string, unknown>> = [];
+  const result = await handleComboChat({
+    body: { max_tokens: 4096 },
+    combo: {
+      name: "reasoning-buffer",
+      models: ["openai/gpt-4o-reasoning"],
+    },
+    handleSingleModel: async (body: Record<string, unknown>) => {
+      bodies.push(body);
+      return okResponse();
+    },
+    isModelAvailable: async () => true,
+    log: createLog(),
+    settings: null,
+    relayOptions: null,
+    allCombos: null,
+  });
+
+  assert.equal(result.ok, true);
+  assert.equal(bodies.length, 1, "should have called handleSingleModel once");
+  // 4096 * 1.5 = 6144; max(4096+1000, 6144) = 6144
+  assert.equal(bodies[0].max_tokens, 6144, "max_tokens should be buffered for reasoning model");
+});
+
+test("#3587 reasoning buffer preserves max_tokens when the full buffer exceeds model cap", async () => {
+  saveModelsDevCapabilities({
+    openai: {
+      "gemini-high-cap": capabilityEntry(65536, { reasoning: true, limit_output: 65536 }),
+    },
+  });
+
+  assert.equal(
+    resolveReasoningBufferedMaxTokens("openai/gemini-high-cap", 64000),
+    64000,
+    "near-cap requests should not be inflated beyond the model's accepted range"
+  );
+  assert.equal(
+    resolveReasoningBufferedMaxTokens("openai/gemini-high-cap", "4096"),
+    6144,
+    "numeric string max_tokens should be normalized before applying a safe buffer"
+  );
+  assert.equal(
+    resolveReasoningBufferedMaxTokens("openai/gemini-high-cap", "not-a-number"),
+    null,
+    "non-numeric string max_tokens should not be changed"
+  );
+  assert.equal(
+    resolveReasoningBufferedMaxTokens("openai/gemini-high-cap", 70000),
+    65536,
+    "already over-cap max_tokens should be clamped to a known explicit cap"
+  );
+
+  const bodies: Array<Record<string, unknown>> = [];
+  const result = await handleComboChat({
+    body: { max_tokens: 64000 },
+    combo: {
+      name: "reasoning-buffer-near-cap",
+      models: ["openai/gemini-high-cap"],
+    },
+    handleSingleModel: async (body: Record<string, unknown>) => {
+      bodies.push(body);
+      return okResponse();
+    },
+    isModelAvailable: async () => true,
+    log: createLog(),
+    settings: null,
+    relayOptions: null,
+    allCombos: null,
+  });
+
+  assert.equal(result.ok, true);
+  assert.equal(bodies.length, 1, "should have called handleSingleModel once");
+  assert.equal(bodies[0].max_tokens, 64000, "max_tokens should remain within the cap");
+});
+
+test("#3587 reasoning buffer is disabled without explicit model capability data", async () => {
+  assert.equal(
+    resolveReasoningBufferedMaxTokens("missing-provider/unknown-reasoning-model", 100),
+    null,
+    "unknown models must not receive heuristic token inflation"
+  );
+
+  saveModelsDevCapabilities({
+    openai: {
+      "capless-reasoning": capabilityEntry(8192, {
+        reasoning: true,
+        limit_output: null,
+      }),
+      "default-cap-reasoning": capabilityEntry(8192, {
+        reasoning: true,
+        limit_output: 8192,
+      }),
+    },
+  });
+
+  assert.equal(
+    resolveReasoningBufferedMaxTokens("openai/capless-reasoning", 100),
+    null,
+    "reasoning metadata without an explicit output cap is not safe enough to inflate"
+  );
+  assert.equal(
+    resolveReasoningBufferedMaxTokens("openai/default-cap-reasoning", 100),
+    null,
+    "default-sized caps are treated as unknown because registry fallbacks use the same value"
+  );
+});
+
+test("#3588 reasoning token buffer feature flag preserves client max_tokens", async () => {
+  saveModelsDevCapabilities({
+    openai: {
+      "flagged-reasoning": capabilityEntry(12000, { reasoning: true, limit_output: 12000 }),
+    },
+  });
+
+  assert.equal(
+    resolveReasoningBufferedMaxTokens("openai/flagged-reasoning", 4096, { enabled: false }),
+    null,
+    "disabled feature flag should skip reasoning token inflation"
+  );
+
+  const bodies: Array<Record<string, unknown>> = [];
+  const result = await handleComboChat({
+    body: { max_tokens: 4096 },
+    combo: {
+      name: "reasoning-buffer-disabled",
+      models: ["openai/flagged-reasoning"],
+    },
+    handleSingleModel: async (body: Record<string, unknown>) => {
+      bodies.push(body);
+      return okResponse();
+    },
+    isModelAvailable: async () => true,
+    log: createLog(),
+    settings: {
+      comboDefaults: {
+        reasoningTokenBufferEnabled: false,
+      },
+    },
+    relayOptions: null,
+    allCombos: null,
+  });
+
+  assert.equal(result.ok, true);
+  assert.equal(bodies.length, 1, "should have called handleSingleModel once");
+  assert.equal(bodies[0].max_tokens, 4096, "feature flag should preserve client max_tokens");
+});
+
+test("#3587 non-reasoning model does not get max_tokens buffer", async () => {
+  saveModelsDevCapabilities({
+    openai: {
+      "gpt-4o-plain": capabilityEntry(4096, { reasoning: false }),
+    },
+  });
+
+  const bodies: Array<Record<string, unknown>> = [];
+  const result = await handleComboChat({
+    body: { max_tokens: 4096 },
+    combo: {
+      name: "no-reasoning-buffer",
+      models: ["openai/gpt-4o-plain"],
+    },
+    handleSingleModel: async (body: Record<string, unknown>) => {
+      bodies.push(body);
+      return okResponse();
+    },
+    isModelAvailable: async () => true,
+    log: createLog(),
+    settings: null,
+    relayOptions: null,
+    allCombos: null,
+  });
+
+  assert.equal(result.ok, true);
+  assert.equal(bodies.length, 1, "should have called handleSingleModel once");
+  // Non-reasoning model: max_tokens should NOT be buffered
+  assert.equal(
+    bodies[0].max_tokens,
+    4096,
+    "max_tokens should remain unchanged for non-reasoning model"
+  );
+});
+
+test("#3587 round-robin buffer does NOT compound across reasoning models", async () => {
+  // Two reasoning models in a round-robin combo. The first fails (400) so the
+  // loop falls through to the second. The buffer must be computed from the
+  // ORIGINAL max_tokens for each attempt — never from an already-buffered value —
+  // so both attempts see 6144 (4096 * 1.5), not [6144, 9216, ...]. Regression for
+  // the shared-`body` mutation that compounded the buffer on every RR iteration.
+  saveModelsDevCapabilities({
+    openai: {
+      "rr-reasoning-a": capabilityEntry(12000, { reasoning: true, limit_output: 12000 }),
+      "rr-reasoning-b": capabilityEntry(12000, { reasoning: true, limit_output: 12000 }),
+    },
+  });
+
+  const seen: Array<{ model: string; maxTokens: unknown }> = [];
+  const result = await handleComboChat({
+    body: { max_tokens: 4096 },
+    combo: {
+      name: "rr-reasoning-no-compound",
+      strategy: "round-robin",
+      models: ["openai/rr-reasoning-a", "openai/rr-reasoning-b"],
+    },
+    handleSingleModel: async (body: Record<string, unknown>, modelStr: string) => {
+      seen.push({ model: modelStr, maxTokens: body.max_tokens });
+      if (modelStr === "openai/rr-reasoning-a") {
+        return new Response(JSON.stringify({ error: { message: "transient" } }), {
+          status: 400,
+          headers: { "content-type": "application/json" },
+        });
+      }
+      return okResponse();
+    },
+    isModelAvailable: async () => true,
+    log: createLog(),
+    settings: {
+      comboDefaults: {
+        concurrencyPerModel: 1,
+        queueTimeoutMs: 5,
+        maxRetries: 0,
+        retryDelayMs: 1,
+      },
+    },
+    relayOptions: null,
+    allCombos: null,
+  });
+
+  assert.equal(result.status, 200);
+  assert.equal(seen.length, 2, "both reasoning models should have been attempted");
+  // Each attempt buffers from the original 4096 → 6144. No compounding.
+  assert.equal(seen[0].maxTokens, 6144, "first reasoning model buffered from original");
+  assert.equal(
+    seen[1].maxTokens,
+    6144,
+    "second reasoning model must ALSO buffer from original 4096, not 6144"
+  );
+});
+
+test("#3588 round-robin honors disabled reasoning token buffer feature flag", async () => {
+  saveModelsDevCapabilities({
+    openai: {
+      "rr-flagged-a": capabilityEntry(12000, { reasoning: true, limit_output: 12000 }),
+      "rr-flagged-b": capabilityEntry(12000, { reasoning: true, limit_output: 12000 }),
+    },
+  });
+
+  const seen: Array<{ model: string; maxTokens: unknown }> = [];
+  const result = await handleComboChat({
+    body: { max_tokens: 4096 },
+    combo: {
+      name: "rr-reasoning-buffer-disabled",
+      strategy: "round-robin",
+      models: ["openai/rr-flagged-a", "openai/rr-flagged-b"],
+    },
+    handleSingleModel: async (body: Record<string, unknown>, modelStr: string) => {
+      seen.push({ model: modelStr, maxTokens: body.max_tokens });
+      if (modelStr === "openai/rr-flagged-a") {
+        return new Response(JSON.stringify({ error: { message: "transient" } }), {
+          status: 400,
+          headers: { "content-type": "application/json" },
+        });
+      }
+      return okResponse();
+    },
+    isModelAvailable: async () => true,
+    log: createLog(),
+    settings: {
+      comboDefaults: {
+        concurrencyPerModel: 1,
+        queueTimeoutMs: 5,
+        maxRetries: 0,
+        retryDelayMs: 1,
+        reasoningTokenBufferEnabled: false,
+      },
+    },
+    relayOptions: null,
+    allCombos: null,
+  });
+
+  assert.equal(result.status, 200);
+  assert.equal(seen.length, 2, "both reasoning models should have been attempted");
+  assert.equal(seen[0].maxTokens, 4096, "first model should preserve client max_tokens");
+  assert.equal(seen[1].maxTokens, 4096, "second model should preserve client max_tokens");
+});
+
+test("#3587 round-robin keeps near-cap reasoning max_tokens unchanged", async () => {
+  saveModelsDevCapabilities({
+    openai: {
+      "rr-near-cap-a": capabilityEntry(65536, { reasoning: true, limit_output: 65536 }),
+      "rr-near-cap-b": capabilityEntry(65536, { reasoning: true, limit_output: 65536 }),
+    },
+  });
+
+  const seen: Array<{ model: string; maxTokens: unknown }> = [];
+  const result = await handleComboChat({
+    body: { max_tokens: 64000 },
+    combo: {
+      name: "rr-reasoning-near-cap",
+      strategy: "round-robin",
+      models: ["openai/rr-near-cap-a", "openai/rr-near-cap-b"],
+    },
+    handleSingleModel: async (body: Record<string, unknown>, modelStr: string) => {
+      seen.push({ model: modelStr, maxTokens: body.max_tokens });
+      if (modelStr === "openai/rr-near-cap-a") {
+        return new Response(JSON.stringify({ error: { message: "transient" } }), {
+          status: 400,
+          headers: { "content-type": "application/json" },
+        });
+      }
+      return okResponse();
+    },
+    isModelAvailable: async () => true,
+    log: createLog(),
+    settings: {
+      comboDefaults: {
+        concurrencyPerModel: 1,
+        queueTimeoutMs: 5,
+        maxRetries: 0,
+        retryDelayMs: 1,
+      },
+    },
+    relayOptions: null,
+    allCombos: null,
+  });
+
+  assert.equal(result.status, 200);
+  assert.equal(seen.length, 2, "both reasoning models should have been attempted");
+  assert.equal(seen[0].maxTokens, 64000, "first reasoning model should keep max_tokens");
+  assert.equal(seen[1].maxTokens, 64000, "second reasoning model should keep max_tokens");
 });

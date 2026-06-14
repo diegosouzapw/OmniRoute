@@ -5,6 +5,7 @@ import {
   removeCustomModel,
   replaceCustomModels,
   deleteSyncedAvailableModelsForProvider,
+  removeSyncedAvailableModel,
   updateCustomModel,
   getModelCompatOverrides,
   mergeModelCompatOverride,
@@ -96,7 +97,8 @@ export async function POST(request) {
     if (isValidationFailure(validation)) {
       return Response.json({ error: validation.error }, { status: 400 });
     }
-    const { provider, modelId, modelName, source, apiFormat, supportedEndpoints } = validation.data;
+    const { provider, modelId, modelName, source, apiFormat, supportedEndpoints, targetFormat } =
+      validation.data;
 
     const model = await addCustomModel(
       provider,
@@ -104,7 +106,8 @@ export async function POST(request) {
       modelName,
       source || "manual",
       apiFormat,
-      supportedEndpoints
+      supportedEndpoints,
+      targetFormat
     );
     return Response.json({ model });
   } catch (error) {
@@ -150,6 +153,7 @@ export async function PUT(request) {
       modelName,
       apiFormat,
       supportedEndpoints,
+      targetFormat,
       normalizeToolCallId,
       preserveOpenAIDeveloperRole,
       upstreamHeaders,
@@ -161,6 +165,7 @@ export async function PUT(request) {
     if ("modelName" in raw) updates.modelName = modelName;
     if ("apiFormat" in raw) updates.apiFormat = apiFormat;
     if ("supportedEndpoints" in raw) updates.supportedEndpoints = supportedEndpoints;
+    if ("targetFormat" in raw) updates.targetFormat = targetFormat;
     if ("normalizeToolCallId" in raw) updates.normalizeToolCallId = normalizeToolCallId;
     if ("preserveOpenAIDeveloperRole" in raw)
       updates.preserveOpenAIDeveloperRole = preserveOpenAIDeveloperRole;
@@ -392,7 +397,18 @@ export async function DELETE(request) {
       );
     }
 
-    const removed = await removeCustomModel(provider, modelId);
+    const removedCustom = await removeCustomModel(provider, modelId);
+    const removedSynced = await removeSyncedAvailableModel(provider, modelId);
+    if (removedSynced) {
+      // #3199 + #3782: mark the deleted synced model with the DISTINCT `isDeleted`
+      // marker so a later auto-fetch re-import does not re-add it. We also keep
+      // `isHidden:true` so existing UI/visibility behavior is unchanged. The sync
+      // filter keys on `isDeleted` (not `isHidden`), which is what lets an
+      // eye/visibility-hidden model (`isHidden` only) survive a re-sync while a
+      // deleted one stays dropped.
+      mergeModelCompatOverride(provider, modelId, { isDeleted: true, isHidden: true });
+    }
+    const removed = removedCustom || removedSynced;
     const removedAliases = await deleteManagedAvailableModelAliases(provider, [modelId]);
     return Response.json({ removed, aliasChanges: { removed: removedAliases, assigned: [] } });
   } catch (error) {

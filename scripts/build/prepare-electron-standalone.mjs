@@ -1,28 +1,20 @@
 #!/usr/bin/env node
 
-import {
-  cpSync,
-  existsSync,
-  lstatSync,
-  mkdirSync,
-  readFileSync,
-  rmSync,
-  writeFileSync,
-  readdirSync,
-} from "node:fs";
+import { existsSync, lstatSync, readdirSync, rmSync } from "node:fs";
 import { basename, dirname, join, relative } from "node:path";
 import { fileURLToPath } from "node:url";
+import { assembleStandalone } from "./assembleStandalone.mjs";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 const ROOT = join(__dirname, "..", "..");
 
-const STANDALONE_DIR = join(ROOT, ".next", "standalone");
-const ELECTRON_STANDALONE_DIR = join(ROOT, ".next", "electron-standalone");
-const STATIC_SRC = join(ROOT, ".next", "static");
-const STATIC_DEST = join(ELECTRON_STANDALONE_DIR, ".next", "static");
-const PUBLIC_SRC = join(ROOT, "public");
-const PUBLIC_DEST = join(ELECTRON_STANDALONE_DIR, "public");
+const NEXT_DIST_DIR = process.env.NEXT_DIST_DIR || ".build/next";
+const DIST_DIR = join(ROOT, NEXT_DIST_DIR);
+const STANDALONE_DIR = join(DIST_DIR, "standalone");
+const ELECTRON_STANDALONE_DIR = join(ROOT, ".build", "electron-standalone");
+
+// --- Electron-UNIQUE: resolve the nested server.js location ----------------
 
 function resolveStandaloneBundleDir() {
   const directServer = join(STANDALONE_DIR, "server.js");
@@ -46,51 +38,7 @@ function resolveStandaloneBundleDir() {
   );
 }
 
-function createPathPattern(filePath) {
-  return filePath
-    .replace(/\\/g, "/")
-    .replace(/[.*+?^${}()|[\]\\]/g, "\\$&")
-    .replace(/\//g, "[\\\\/]");
-}
-
-function sanitizeBuildPaths(bundleDir) {
-  const buildRoot = ROOT.replace(/\\/g, "/");
-  const bundleRoot = bundleDir.replace(/\\/g, "/");
-  const replacements = [buildRoot, bundleRoot];
-  const targets = [
-    join(ELECTRON_STANDALONE_DIR, "server.js"),
-    join(ELECTRON_STANDALONE_DIR, ".next", "required-server-files.json"),
-  ];
-
-  for (const filePath of targets) {
-    if (!existsSync(filePath)) continue;
-
-    let content = readFileSync(filePath, "utf8");
-    let updated = content;
-
-    for (const original of replacements) {
-      updated = updated.replace(new RegExp(createPathPattern(original), "g"), ".");
-    }
-
-    if (updated !== content) {
-      writeFileSync(filePath, updated, "utf8");
-    }
-  }
-}
-
-function ensurePackage(pkgPath, sourcePath) {
-  if (existsSync(pkgPath) || !existsSync(sourcePath)) return;
-  mkdirSync(dirname(pkgPath), { recursive: true });
-  cpSync(sourcePath, pkgPath, { recursive: true, dereference: true });
-}
-
-function removeGeneratedElectronArtifacts() {
-  const generatedDirs = [join(ELECTRON_STANDALONE_DIR, "electron", "dist-electron")];
-
-  for (const dir of generatedDirs) {
-    rmSync(dir, { recursive: true, force: true });
-  }
-}
+// --- Electron-UNIQUE: symlink guard (electron-builder fails on symlinked node_modules) ---
 
 function assertBundleIsPackagable(bundleDir) {
   const nodeModulesPath = join(bundleDir, "node_modules");
@@ -110,44 +58,18 @@ function assertBundleIsPackagable(bundleDir) {
   }
 }
 
-function logContextualError(error) {
-  const message = error instanceof Error ? error.message : String(error);
-  console.error(`[electron] failed to prepare standalone bundle: ${message}`);
-  process.exitCode = 1;
+// --- Electron-UNIQUE: strip generated electron artifacts from staged dir ---
+
+function removeGeneratedElectronArtifacts() {
+  const generatedDirs = [join(ELECTRON_STANDALONE_DIR, "electron", "dist-electron")];
+
+  for (const dir of generatedDirs) {
+    rmSync(dir, { recursive: true, force: true });
+  }
 }
 
-process.on("uncaughtException", logContextualError);
+// --- Electron-UNIQUE: remove native modules for electron-builder ABI rebuild ---
 
-const bundleDir = resolveStandaloneBundleDir();
-assertBundleIsPackagable(bundleDir);
-
-rmSync(ELECTRON_STANDALONE_DIR, { recursive: true, force: true });
-mkdirSync(ELECTRON_STANDALONE_DIR, { recursive: true });
-
-cpSync(bundleDir, ELECTRON_STANDALONE_DIR, {
-  recursive: true,
-  dereference: true,
-});
-
-sanitizeBuildPaths(bundleDir);
-
-if (existsSync(STATIC_SRC)) {
-  mkdirSync(dirname(STATIC_DEST), { recursive: true });
-  cpSync(STATIC_SRC, STATIC_DEST, { recursive: true, dereference: true });
-}
-
-if (existsSync(PUBLIC_SRC)) {
-  cpSync(PUBLIC_SRC, PUBLIC_DEST, { recursive: true, dereference: true });
-}
-
-removeGeneratedElectronArtifacts();
-
-ensurePackage(
-  join(ELECTRON_STANDALONE_DIR, "node_modules", "@swc", "helpers"),
-  join(ROOT, "node_modules", "@swc", "helpers")
-);
-
-// Remove native modules to ensure ABI compatibility via electron-builder
 function removeNativeModules(baseDir) {
   if (!existsSync(baseDir)) return;
   const dirs = readdirSync(baseDir);
@@ -159,6 +81,34 @@ function removeNativeModules(baseDir) {
   }
 }
 
+function logContextualError(error) {
+  const message = error instanceof Error ? error.message : String(error);
+  console.error(`[electron] failed to prepare standalone bundle: ${message}`);
+  process.exitCode = 1;
+}
+
+process.on("uncaughtException", logContextualError);
+
+// Resolve the bundle dir (handles nested project layout) and check for symlinks
+const bundleDir = resolveStandaloneBundleDir();
+assertBundleIsPackagable(bundleDir);
+
+// Clean the stage dir before assembly
+rmSync(ELECTRON_STANDALONE_DIR, { recursive: true, force: true });
+
+// Shared assembly: standalone copy + .next/static + public + abs-path sanitization + natives/@swc/helpers
+assembleStandalone({
+  distDir: DIST_DIR,
+  outDir: ELECTRON_STANDALONE_DIR,
+  projectRoot: ROOT,
+  sanitizePaths: true,
+  copyNatives: true,
+});
+
+// Electron-UNIQUE post-assembly steps
+removeGeneratedElectronArtifacts();
+
+// Strip better-sqlite3 and keytar so electron-builder rebuilds them against Electron ABI
 removeNativeModules(join(ELECTRON_STANDALONE_DIR, "node_modules"));
 removeNativeModules(join(ELECTRON_STANDALONE_DIR, ".next", "node_modules"));
 

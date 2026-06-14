@@ -14,7 +14,8 @@ import { requireManagementAuth } from "@/lib/api/requireManagementAuth";
 import { insertDelivery } from "@/lib/db/webhookDeliveries";
 import { recordWebhookDelivery } from "@/lib/localDb";
 import {
-  parseAndValidatePublicUrl,
+  parseAndValidateWebhookUrl,
+  isPrivateHost,
   OutboundUrlGuardError,
 } from "@/shared/network/outboundUrlGuard";
 import crypto from "crypto";
@@ -34,7 +35,11 @@ async function testFetch(
 }> {
   const start = Date.now();
   try {
-    parseAndValidatePublicUrl(url);
+    const parsed = parseAndValidateWebhookUrl(url);
+    // For private (opted-in) targets, return connectivity diagnostics only — never the
+    // upstream response body, so this endpoint can't be used to exfiltrate content from
+    // internal services reachable from the server. (#3269 hardening)
+    const redactBody = isPrivateHost(parsed.hostname);
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), 10_000);
     const res = await fetch(url, {
@@ -56,7 +61,12 @@ async function testFetch(
     } catch {
       rawBody = "";
     }
-    return { success: res.ok, status: res.status, latencyMs, responseBody: rawBody };
+    return {
+      success: res.ok,
+      status: res.status,
+      latencyMs,
+      responseBody: redactBody ? "<redacted: private target>" : rawBody,
+    };
   } catch (error: any) {
     return {
       success: false,

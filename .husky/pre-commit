@@ -1,31 +1,12 @@
-# #!/usr/bin/env sh
-# if ! command -v npx >/dev/null 2>&1; then
-#   echo "⚠️  npx not found in PATH — skipping pre-commit hooks"
-#   echo "   Run 'npm run lint && npm run check:any-budget:t11' manually before pushing."
-#   exit 0
-# fi
+#!/usr/bin/env sh
+if ! command -v npx >/dev/null 2>&1; then
+  echo "⚠️  npx not found in PATH — skipping pre-commit hooks"
+  echo "   Run 'npm run lint && npm run check:any-budget:t11' manually before pushing."
+  exit 0
+fi
 
-# npx lint-staged
-# node scripts/check/check-docs-sync.mjs
-# npm run check:any-budget:t11
-
-# # Strict env-doc sync (FASE 2)
-# node scripts/check/check-env-doc-sync.mjs
-
-# # CLI i18n consistency check — all t() keys must exist in en.json (FASE 8.3)
-# node scripts/check/check-cli-i18n.mjs
-
-# # i18n docs drift advisory (FASE 5) — warn-only on pre-commit; CI enforces strict.
-# node scripts/i18n/check-translation-drift.mjs --warn || \
-#   echo "⚠️  i18n drift detected. Run 'npm run i18n:run' to update locale mirrors."
-
-# # i18n UI coverage advisory (FASE 6) — pre-commit warns; CI enforces strict.
-# node scripts/i18n/check-ui-keys-coverage.mjs --threshold=80 || \
-#   echo "⚠️  UI i18n coverage below 80% for at least one locale."
-
-# # OpenAPI coverage check — fails if coverage < 99% (FASE 08 content audit)
-# node scripts/check/check-openapi-coverage.mjs
-
-# # OpenAPI security tier consistency check — fails if x-loopback-only / x-always-protected
-# # annotations diverge from routeGuard.ts compile-time constants (FASE 08 content audit)
-# node scripts/check/check-openapi-security-tiers.mjs
+# Cheap, deterministic local gates (re-enabled). Slower checks (i18n drift,
+# openapi coverage/security-tiers, env-doc sync) run in CI to keep commits fast.
+npx lint-staged
+node scripts/check/check-docs-sync.mjs
+npm run check:any-budget:t11

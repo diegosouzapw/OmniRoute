@@ -34,13 +34,11 @@ const COMPRESSION_MODES = new Set<CompressionMode>([
 ]);
 
 type JsonRecord = Record<string, unknown>;
-type DbInstance = ReturnType<typeof getDbInstance>;
-
 // TTL cache for compression settings (5s)
 let compressionSettingsCache: {
   value: CompressionConfig;
   expiresAt: number;
-  db: DbInstance;
+  dbRef: WeakRef<object>;
 } | null = null;
 
 function toRecord(value: unknown): JsonRecord {
@@ -344,11 +342,12 @@ export async function getCompressionSettings(): Promise<CompressionConfig> {
   const db = getDbInstance();
   if (
     compressionSettingsCache &&
-    compressionSettingsCache.db === db &&
-    Date.now() < compressionSettingsCache.expiresAt
+    Date.now() < compressionSettingsCache.expiresAt &&
+    compressionSettingsCache.dbRef.deref() === db
   ) {
     return compressionSettingsCache.value;
   }
+  compressionSettingsCache = null;
 
   const rows = db.prepare("SELECT key, value FROM key_value WHERE namespace = ?").all(NAMESPACE);
 
@@ -448,7 +447,7 @@ export async function getCompressionSettings(): Promise<CompressionConfig> {
   compressionSettingsCache = {
     value: config,
     expiresAt: Date.now() + 5000,
-    db,
+    dbRef: new WeakRef(db),
   };
 
   return config;

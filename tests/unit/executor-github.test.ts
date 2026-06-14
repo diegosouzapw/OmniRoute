@@ -25,6 +25,12 @@ test("GithubExecutor.buildUrl routes response-format models to /responses", () =
   }
 });
 
+test("GithubExecutor.buildUrl keeps GitHub Claude Opus 4.6 on /chat/completions", () => {
+  const executor = new GithubExecutor();
+  const url = executor.buildUrl("claude-opus-4.6", true);
+  assert.equal(url, "https://api.githubcopilot.com/chat/completions");
+});
+
 test("GithubExecutor.transformRequest injects JSON response instructions for Claude and strips reasoning fields", () => {
   const executor = new GithubExecutor();
   const body = {

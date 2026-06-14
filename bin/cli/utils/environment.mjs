@@ -5,16 +5,6 @@ export function detectRestrictedEnvironment() {
     return { type: "github-codespaces", canOpenBrowser: false, canUseTray: false };
   }
 
-  if (existsSync("/.dockerenv")) {
-    return { type: "docker", canOpenBrowser: false, canUseTray: false };
-  }
-
-  try {
-    if (existsSync("/proc/1/cgroup") && readFileSync("/proc/1/cgroup", "utf8").includes("docker")) {
-      return { type: "docker", canOpenBrowser: false, canUseTray: false };
-    }
-  } catch {}
-
   if (process.env.WSL_DISTRO_NAME || process.env.WSL_INTEROP) {
     return {
       type: "wsl",
@@ -35,6 +25,16 @@ export function detectRestrictedEnvironment() {
   if (process.env.CI) {
     return { type: "ci", canOpenBrowser: false, canUseTray: false };
   }
+
+  if (existsSync("/.dockerenv")) {
+    return { type: "docker", canOpenBrowser: false, canUseTray: false };
+  }
+
+  try {
+    if (existsSync("/proc/1/cgroup") && readFileSync("/proc/1/cgroup", "utf8").includes("docker")) {
+      return { type: "docker", canOpenBrowser: false, canUseTray: false };
+    }
+  } catch {}
 
   if (!process.stdin.isTTY) {
     return { type: "non-interactive", canOpenBrowser: false, canUseTray: false };

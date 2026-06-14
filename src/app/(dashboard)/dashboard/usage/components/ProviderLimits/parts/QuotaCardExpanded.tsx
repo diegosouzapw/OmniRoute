@@ -27,6 +27,7 @@ interface Props {
 }
 
 function QuotaDetailRow({ q }: { q: any }) {
+  const t = useTranslations("usage");
   if (q.isCredits) {
     const colors = getBarColor(q.remainingPercentage ?? 0);
     const sym = CURRENCY_SYMBOLS[q.currency] ?? q.currency ?? "";
@@ -54,6 +55,7 @@ function QuotaDetailRow({ q }: { q: any }) {
     ? 100
     : (q.remainingPercentage ?? calculatePercentage(q.used, q.total));
   const pct = Math.round(pctRaw);
+  const usedPct = Math.max(0, Math.min(100, 100 - pct));
   const colors = getBarColor(pct);
   const cd = formatCountdown(q.resetAt);
   const label = q.displayName || formatQuotaLabel(q.name);
@@ -69,7 +71,7 @@ function QuotaDetailRow({ q }: { q: any }) {
           className="text-[12px] font-bold tabular-nums shrink-0"
           style={{ color: colors.text }}
         >
-          {q.unlimited ? "∞" : `${pct}%`}
+          {q.unlimited ? "∞" : t("percentUsed", { pct: usedPct })}
         </span>
       </div>
       {!q.unlimited && <QuotaMiniBar percent={pct} size="sm" />}

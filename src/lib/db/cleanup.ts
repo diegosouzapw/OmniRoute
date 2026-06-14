@@ -6,9 +6,12 @@
 
 import { getDbInstance } from "./core";
 import { getUserDatabaseSettings } from "./databaseSettings";
+import { rollupUsageHistoryBeforeDate } from "@/lib/usage/aggregateHistory";
+import { purgeCallLogArtifactDirectory } from "@/lib/usage/callLogArtifacts";
 
 interface CleanupResult {
   deleted: number;
+  deletedArtifacts?: number;
   errors: number;
 }
 
@@ -85,12 +88,31 @@ export async function cleanupUsageHistory(): Promise<CleanupResult> {
   const cutoffDate = new Date();
   cutoffDate.setDate(cutoffDate.getDate() - retentionDays);
   const cutoffISO = cutoffDate.toISOString();
+  const cutoffDateStr = cutoffISO.split("T")[0];
 
   const result: CleanupResult = { deleted: 0, errors: 0 };
 
+  // Roll up rows that are about to be deleted into daily_usage_summary so that the
+  // analytics route can still surface historical data via the UNION query. The rollup
+  // uses the exact same day boundary as the DELETE below, so every deleted row
+  // is guaranteed to have been aggregated first.
+  //
+  // rollupUsageHistoryBeforeDate catches its own errors and reports them via the
+  // returned result, so we inspect that rather than relying on a thrown exception.
+  // If the rollup failed, abort the DELETE to avoid permanently losing raw usage data
+  // that was never aggregated.
+  const rollupResult = await rollupUsageHistoryBeforeDate(cutoffDateStr);
+  if (rollupResult.errors > 0) {
+    console.error(
+      "[Cleanup] Aborting usage_history deletion because the pre-delete rollup failed."
+    );
+    result.errors += rollupResult.errors;
+    return result;
+  }
+
   try {
     const stmt = db.prepare("DELETE FROM usage_history WHERE timestamp < ?");
-    const runResult = stmt.run(cutoffISO);
+    const runResult = stmt.run(cutoffDateStr);
     result.deleted = runResult.changes;
 
     console.log(
@@ -284,17 +306,24 @@ export async function purgeQuotaSnapshots(): Promise<CleanupResult> {
  */
 export async function purgeCallLogs(): Promise<CleanupResult> {
   const db = getDbInstance();
-  const result: CleanupResult = { deleted: 0, errors: 0 };
+  const result: CleanupResult = { deleted: 0, deletedArtifacts: 0, errors: 0 };
 
   try {
-    const stmt = db.prepare("DELETE FROM call_logs");
-    const runResult = stmt.run();
+    const runResult = db.prepare("DELETE FROM call_logs").run();
     result.deleted = runResult.changes;
 
     console.log(`[Cleanup] Purged ${result.deleted} call_logs`);
   } catch (err: unknown) {
     console.error("[Cleanup] Error purging call_logs:", err);
     result.errors++;
+  }
+
+  const artifactResult = purgeCallLogArtifactDirectory();
+  result.deletedArtifacts = artifactResult.deletedArtifacts;
+  result.errors += artifactResult.errors;
+
+  if (artifactResult.errors === 0) {
+    console.log(`[Cleanup] Purged ${result.deletedArtifacts} call log artifact(s)`);
   }
 
   return result;

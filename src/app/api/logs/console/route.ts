@@ -14,6 +14,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { readFileSync, existsSync } from "fs";
 import { getAppLogFilePath } from "@/lib/logEnv";
 import { requireManagementAuth } from "@/lib/api/requireManagementAuth";
+import { matchesSearch } from "@/shared/utils/turkishText";
 import { sanitizeErrorMessage } from "@omniroute/open-sse/utils/error.ts";
 
 const LEVEL_ORDER: Record<string, number> = {
@@ -69,7 +70,8 @@ export async function GET(req: NextRequest) {
   try {
     const { searchParams } = new URL(req.url);
     const levelFilter = searchParams.get("level") || "all";
-    const limit = Math.min(parseInt(searchParams.get("limit") || "500", 10), 2000);
+    const rawLimit = parseInt(searchParams.get("limit") || "500", 10);
+    const limit = Math.min(Number.isFinite(rawLimit) && rawLimit > 0 ? rawLimit : 500, 2000);
     const componentFilter = searchParams.get("component") || "";
 
     const logPath = getLogFilePath();
@@ -114,7 +116,7 @@ export async function GET(req: NextRequest) {
         // Filter by component
         if (componentFilter) {
           const comp = entry.component || entry.module || "";
-          if (!comp.toLowerCase().includes(componentFilter.toLowerCase())) continue;
+          if (!matchesSearch(comp, componentFilter)) continue;
         }
 
         // Normalize timestamp field

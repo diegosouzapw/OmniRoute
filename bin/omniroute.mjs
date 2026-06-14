@@ -17,15 +17,27 @@ import { homedir, platform } from "node:os";
 import updateNotifier from "update-notifier";
 import { isNativeBinaryCompatible } from "../scripts/build/native-binary-compat.mjs";
 import { getNodeRuntimeSupport, getNodeRuntimeWarning } from "./nodeRuntimeSupport.mjs";
+import { shouldProvisionStorageKey } from "./cli/utils/storageKeyProvision.mjs";
 
 // Register tsx so dynamic imports of .ts source files (referenced as .js per
 // TypeScript conventions) resolve correctly. The build never emits .js for
 // src/lib/cli-helper/, so tsx handles the .ts → .js resolution at runtime.
 await import("tsx/esm");
+await import("../open-sse/utils/setupPolyfill.ts");
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 const ROOT = join(__dirname, "..");
+
+// MCP stdio transport uses stdout exclusively for JSON-RPC messages.
+// Redirect console.log/warn to stderr early (before loadEnvFile and DB init)
+// so no startup output corrupts the protocol.
+if (process.argv.includes("--mcp")) {
+  const { Console } = await import("node:console");
+  const stderrConsole = new Console({ stdout: process.stderr, stderr: process.stderr });
+  console.log = stderrConsole.log.bind(stderrConsole);
+  console.warn = stderrConsole.warn.bind(stderrConsole);
+}
 
 function loadEnvFile() {
   const envPaths = [];
@@ -81,7 +93,12 @@ loadEnvFile();
 // Generate STORAGE_ENCRYPTION_KEY if not set (persisted to ~/.omniroute/.env)
 // This ensures the key survives across upgrades and is not regenerated on each install.
 // See: https://github.com/diegosouzapw/OmniRoute/issues/1622
-{
+//
+// Only provision for commands that actually touch encrypted storage. Purely
+// informational invocations (`--version`, `--help`, `help`) must not create a
+// key or write ~/.omniroute/.env — running a read-only command should never
+// mutate the data dir.
+if (shouldProvisionStorageKey(process.argv)) {
   const { randomBytes } = await import("node:crypto");
   const { existsSync, mkdirSync, readFileSync, writeFileSync } = await import("node:fs");
   const { join } = await import("node:path");

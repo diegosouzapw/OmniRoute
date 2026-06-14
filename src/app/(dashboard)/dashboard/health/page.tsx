@@ -16,6 +16,7 @@ import { useState, useEffect, useCallback } from "react";
 import { Card } from "@/shared/components";
 import { AI_PROVIDERS } from "@/shared/constants/providers";
 import { getProviderDisplayName } from "@/lib/display/names";
+import { compareTr } from "@/shared/utils/turkishText";
 import { useTranslations } from "next-intl";
 import TelemetryCard from "./TelemetryCard";
 import ProviderHealthAutopilotCard from "./ProviderHealthAutopilotCard";
@@ -891,7 +892,7 @@ export default function HealthPage() {
             const aActive = (a.status.queued || 0) + (a.status.running || 0);
             const bActive = (b.status.queued || 0) + (b.status.running || 0);
             if (aActive !== bActive) return bActive - aActive;
-            return a.displayName.localeCompare(b.displayName);
+            return compareTr(a.displayName, b.displayName);
           });
 
           return (

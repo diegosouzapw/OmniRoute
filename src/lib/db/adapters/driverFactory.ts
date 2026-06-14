@@ -30,15 +30,34 @@ function buildNodeAdapterSync(
   filePath: string
 ): SqliteAdapter {
   let _isOpen = true;
-  const stmtCache = new Map<string, ReturnType<typeof db.prepare>>();
+  const MAX_STMT_CACHE_SIZE = 200;
+  interface CachedStatement {
+    stmt: ReturnType<typeof db.prepare>;
+    sql: string;
+  }
+  const stmtCache = new Map<string, CachedStatement>();
 
   function getCached(sql: string) {
-    let stmt = stmtCache.get(sql);
-    if (!stmt) {
-      stmt = db.prepare(sql);
-      stmtCache.set(sql, stmt);
+    let entry = stmtCache.get(sql);
+    if (entry) {
+      stmtCache.delete(sql);
+      stmtCache.set(sql, entry);
+    } else {
+      const stmt = db.prepare(sql);
+      if (stmtCache.size >= MAX_STMT_CACHE_SIZE) {
+        const oldestKey = stmtCache.keys().next().value;
+        if (oldestKey !== undefined) {
+          const oldest = stmtCache.get(oldestKey);
+          if (oldest?.stmt && "finalize" in oldest.stmt) {
+            try { (oldest.stmt as any).finalize(); } catch {}
+          }
+          stmtCache.delete(oldestKey);
+        }
+      }
+      entry = { stmt, sql };
+      stmtCache.set(sql, entry);
     }
-    return stmt;
+    return entry.stmt;
   }
 
   function runSp<T>(fn: (...args: unknown[]) => T, ...args: unknown[]): T {
@@ -113,6 +132,11 @@ function buildNodeAdapterSync(
     },
     close(): void {
       try {
+        for (const entry of stmtCache.values()) {
+          if (entry.stmt && "finalize" in entry.stmt) {
+            try { (entry.stmt as any).finalize(); } catch {}
+          }
+        }
         stmtCache.clear();
         db.close();
       } finally {

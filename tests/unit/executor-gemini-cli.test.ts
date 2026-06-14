@@ -313,6 +313,69 @@ test("GeminiCLIExecutor.onboardManagedProject retries until completion", async (
   }
 });
 
+test("GeminiCLIExecutor.onboardManagedProject returns null when done=true has no project", async () => {
+  const executor = new GeminiCLIExecutor();
+  const originalFetch = globalThis.fetch;
+
+  globalThis.fetch = async (url) => {
+    assert.match(String(url), /onboardUser$/);
+    return new Response(JSON.stringify({ done: true, response: {} }), {
+      status: 200,
+      headers: { "Content-Type": "application/json" },
+    });
+  };
+
+  try {
+    assert.equal(
+      await executor.onboardManagedProject("access-token-no-project", "free-tier", {
+        attempts: 1,
+        delayMs: 0,
+      }),
+      null
+    );
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+});
+
+test("GeminiCLIExecutor.transformRequest prefers DB projectId over default-project body", async () => {
+  const executor = new GeminiCLIExecutor();
+
+  const transformed = await executor.transformRequest(
+    "gemini-2.5-flash",
+    {
+      project: "default-project",
+      request: { contents: [{ role: "user", parts: [{ text: "Hello" }] }] },
+    },
+    true,
+    {
+      projectId: "projects/custom-from-db",
+      providerSpecificData: { projectId: "projects/custom-from-psd" },
+    }
+  );
+
+  assert.equal(transformed.project, "projects/custom-from-psd");
+});
+
+test("GeminiCLIExecutor.transformRequest ignores projects/default-project placeholders", async () => {
+  const executor = new GeminiCLIExecutor();
+
+  const transformed = await executor.transformRequest(
+    "gemini-2.5-flash",
+    {
+      project: "projects/default-project",
+      request: { contents: [{ role: "user", parts: [{ text: "Hello" }] }] },
+    },
+    true,
+    {
+      projectId: "default-project",
+      providerSpecificData: { projectId: "projects/default-project" },
+    }
+  );
+
+  assert.equal(transformed.project, undefined);
+});
+
 test("GeminiCLIExecutor.refreshCredentials exchanges refresh tokens via Google OAuth", async () => {
   const executor = new GeminiCLIExecutor();
   const originalFetch = globalThis.fetch;

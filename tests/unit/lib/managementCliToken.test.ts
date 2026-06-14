@@ -1,8 +1,37 @@
 import { test, mock } from "node:test";
 import assert from "node:assert/strict";
-import { getLegacyCliTokenSync, getMachineTokenSync } from "../../../src/lib/machineToken.ts";
-import { managementPolicy } from "../../../src/server/authz/policies/management.ts";
-import { CLI_TOKEN_HEADER } from "../../../src/server/authz/headers.ts";
+import fs from "node:fs";
+import os from "node:os";
+import path from "node:path";
+
+// Hermetic auth context (6A re-wire fix): the "rejects ..." assertions assume
+// login protection is ON — on a fresh DB (CI) isAuthRequired() is false and the
+// policy anonymous-allows before any token check. Locally this only passed
+// because the dev DATA_DIR had a real password. Isolate + enable protection.
+const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-mgmt-cli-token-"));
+const originalDataDir = process.env.DATA_DIR;
+process.env.DATA_DIR = TEST_DATA_DIR;
+
+const core = await import("../../../src/lib/db/core.ts");
+const settingsDb = await import("../../../src/lib/db/settings.ts");
+await settingsDb.updateSettings({
+  requireLogin: true,
+  setupComplete: true,
+  password: "test-password-hash",
+});
+
+const { getLegacyCliTokenSync, getMachineTokenSync } = await import(
+  "../../../src/lib/machineToken.ts"
+);
+const { managementPolicy } = await import("../../../src/server/authz/policies/management.ts");
+const { CLI_TOKEN_HEADER } = await import("../../../src/server/authz/headers.ts");
+
+test.after(() => {
+  core.resetDbInstance();
+  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+  if (originalDataDir === undefined) delete process.env.DATA_DIR;
+  else process.env.DATA_DIR = originalDataDir;
+});
 
 function makeCtx(headers: Record<string, string>, requestExtras: Record<string, unknown> = {}) {
   return {

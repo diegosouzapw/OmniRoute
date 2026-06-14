@@ -14,6 +14,7 @@
 import { getModelContextLimit } from "../../src/lib/modelCapabilities";
 import { parseModel } from "./model.ts";
 import { CONTEXT_OVERFLOW_REGEX } from "./errorClassifier.ts";
+import { getRegistryEntry } from "../config/providerRegistry.ts";
 
 // ── Model Family Definitions ─────────────────────────────────────────────────
 
@@ -72,7 +73,12 @@ const MODEL_FAMILIES: Record<string, string[]> = {
   "gemini-2.5-pro": ["gemini-2.5-pro-preview-06-05", "gemini-2.5-pro-exp-03-25"],
   "gemini-2.5-pro-preview-06-05": ["gemini-2.5-pro", "gemini-2.5-pro-exp-03-25"],
 
+  // Claude Mythos family (Fable 5) — flagship falls to the next-best Opus
+  // tiers before the cheaper Sonnet, matching the Opus family ordering.
+  "claude-fable-5": ["claude-opus-4-8", "claude-opus-4-7", "claude-sonnet-4-6"],
+
   // Claude Opus family
+  "claude-opus-4-8": ["claude-opus-4-7", "claude-opus-4-6", "claude-sonnet-4-6"],
   "claude-opus-4-7": ["claude-opus-4-6", "claude-opus-4-5-20251101", "claude-sonnet-4-6"],
   "claude-opus-4-6": ["claude-opus-4-6-thinking", "claude-opus-4-5-20251101", "claude-sonnet-4-6"],
   "claude-opus-4-6-thinking": ["claude-opus-4-6", "claude-opus-4-5-20251101"],
@@ -141,14 +147,30 @@ export function getNextFamilyFallback(
 ): string | null {
   const parsed = parseModel(currentModel);
   const bareModel = parsed.model || currentModel;
-  const prefix =
-    parsed.provider || parsed.providerAlias ? `${parsed.provider || parsed.providerAlias}/` : "";
+  const provider = parsed.provider || parsed.providerAlias || "";
+  const prefix = provider ? `${provider}/` : "";
 
-  const family = MODEL_FAMILIES[bareModel];
+  // Normalize dots to hyphens so kiro/claude-opus-4.8 finds the right entry.
+  // Fall back to the bare model name to support keys like "gemini-3.1-pro-high"
+  // whose dots are part of the literal name, not a version separator.
+  const lookupKey = bareModel.replace(/\./g, "-");
+  const family = MODEL_FAMILIES[lookupKey] ?? MODEL_FAMILIES[bareModel];
   if (!family) return null;
 
+  // Resolve the provider's supported model IDs so we can match notation (dot vs hyphen)
+  const registryEntry = provider ? getRegistryEntry(provider) : null;
+  const supportedIds = registryEntry ? new Set(registryEntry.models.map((m) => m.id)) : null;
+
   for (const candidate of family) {
-    const fullCandidate = `${prefix}${candidate}`;
+    let resolvedCandidate = candidate;
+    if (supportedIds && !supportedIds.has(candidate)) {
+      // Try dot-notation variants: claude-opus-4-8 → claude-opus-4.8
+      const dotVariant = candidate.replace(/-(\d+)-(\d+)$/, "-$1.$2");
+      const dotVariant2 = candidate.replace(/-(\d+)-(\d+)-/, "-$1.$2-");
+      if (supportedIds.has(dotVariant)) resolvedCandidate = dotVariant;
+      else if (supportedIds.has(dotVariant2)) resolvedCandidate = dotVariant2;
+    }
+    const fullCandidate = `${prefix}${resolvedCandidate}`;
     if (!triedModels.has(fullCandidate)) {
       return fullCandidate;
     }

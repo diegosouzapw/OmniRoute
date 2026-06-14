@@ -176,6 +176,40 @@ function getStaticSpec(modelId: string | null, rawModel: string | null): ModelSp
   return undefined;
 }
 
+function getStaticSpecCanonicalModelId(modelId: string | null, rawModel: string | null) {
+  const candidates = [modelId, rawModel].filter(
+    (candidate): candidate is string => typeof candidate === "string" && candidate.length > 0
+  );
+  for (const candidate of candidates) {
+    const lower = candidate.toLowerCase();
+    for (const [canonical, spec] of Object.entries(MODEL_SPECS)) {
+      if (canonical === "__default__") continue;
+      if (canonical.toLowerCase() === lower) return canonical;
+      if (spec.aliases?.some((alias) => alias.toLowerCase() === lower)) return canonical;
+    }
+  }
+  return null;
+}
+
+function getSyncedCapabilityForResolved(
+  provider: string | null,
+  model: string | null,
+  rawModel: string | null
+): SyncedCapabilities {
+  if (!provider || !model) return null;
+
+  const direct = getSyncedCapability(provider, model);
+  if (direct) return direct;
+
+  if (rawModel && rawModel !== model) {
+    const raw = getSyncedCapability(provider, rawModel);
+    if (raw) return raw;
+  }
+
+  const canonical = getStaticSpecCanonicalModelId(model, rawModel);
+  return canonical && canonical !== model ? getSyncedCapability(provider, canonical) : null;
+}
+
 function resolveVisionCapability(
   spec: ModelSpec | undefined,
   registryModel: { supportsVision?: boolean } | null,
@@ -209,10 +243,11 @@ export function getResolvedModelCapabilities(input: CapabilityInput): ResolvedMo
   const resolved = resolveCapabilityInput(input);
   const spec = getStaticSpec(resolved.model, resolved.rawModel);
   const registryModel = getRegistryModel(resolved.provider, resolved.model);
-  const synced =
-    resolved.provider && resolved.model
-      ? getSyncedCapability(resolved.provider, resolved.model)
-      : null;
+  const synced = getSyncedCapabilityForResolved(
+    resolved.provider,
+    resolved.model,
+    resolved.rawModel
+  );
 
   const modalitiesInput = parseModalities(synced?.modalities_input);
   const modalitiesOutput = parseModalities(synced?.modalities_output);
@@ -281,7 +316,9 @@ export function getResolvedModelCapabilities(input: CapabilityInput): ResolvedMo
     lastUpdated: synced?.last_updated ?? null,
     modalitiesInput,
     modalitiesOutput,
-    interleavedField: synced?.interleaved_field ?? null,
+    interleavedField:
+      synced?.interleaved_field ??
+      (typeof registryModel?.interleavedField === "string" ? registryModel.interleavedField : null),
   };
 }
 

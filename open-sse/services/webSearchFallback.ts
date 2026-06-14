@@ -130,6 +130,7 @@ function buildFallbackTool(tool: JsonRecord, targetFormat?: string | null): Json
 }
 
 export function supportsNativeWebSearchFallbackBypass({
+  sourceFormat,
   targetFormat,
   nativeCodexPassthrough,
 }: {
@@ -138,8 +139,16 @@ export function supportsNativeWebSearchFallbackBypass({
   targetFormat: string | null | undefined;
   nativeCodexPassthrough: boolean;
 }): boolean {
+  // Native Codex (OpenAI Responses) passthrough: the upstream runs web search itself.
   if (nativeCodexPassthrough) return true;
-  return targetFormat === FORMATS.GEMINI;
+  // Gemini target: the Gemini translator maps built-in web search to googleSearch natively.
+  if (targetFormat === FORMATS.GEMINI) return true;
+  // Claude -> Claude passthrough: the Anthropic Messages upstream (e.g. a Claude
+  // subscription driven by Claude Code) natively runs web_search_20250305. Forward the
+  // native tool untouched instead of rewriting it to omniroute_web_search. Mirrors the
+  // Codex/Gemini bypasses so every native-web-search provider is treated symmetrically.
+  if (sourceFormat === FORMATS.CLAUDE && targetFormat === FORMATS.CLAUDE) return true;
+  return false;
 }
 
 export function prepareWebSearchFallbackBody<T extends JsonRecord>(

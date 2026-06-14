@@ -661,7 +661,11 @@ test("v1 proxy management companion routes require auth when login protection is
         }),
       })
     );
-    assert.ok([401, 503].includes(assignmentsPutRes.status));
+    // Invalid bearer → deterministic 403 "Invalid management token". The old
+    // [401, 503] accommodation existed because a stale schema memo in apiKeys.ts
+    // made isValidApiKey throw ("no such column") → 503; that bug is fixed
+    // (closeDbInstance now fires resetAllDbModuleState — 6A.1b, 2026-06-09).
+    assert.equal(assignmentsPutRes.status, 403);
 
     const healthRes = await proxyHealthV1Route.GET(
       new Request("http://localhost/api/v1/management/proxies/health", {
@@ -670,7 +674,9 @@ test("v1 proxy management companion routes require auth when login protection is
         },
       })
     );
-    assert.ok([401, 503].includes(healthRes.status));
+    // Same contract as above: invalid bearer → 403 (no longer 503 via the
+    // stale-schema throw).
+    assert.equal(healthRes.status, 403);
 
     const bulkRes = await proxyBulkAssignV1Route.PUT(
       new Request("http://localhost/api/v1/management/proxies/bulk-assign", {

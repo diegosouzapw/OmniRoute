@@ -1,4 +1,5 @@
-import { BatchRecord, FileRecord } from "@/lib/db/batches";
+import { BatchRecord } from "@/lib/db/batches";
+import { FileRecord } from "@/lib/db/files";
 
 export function mapBatchApiToRecord(b: any): BatchRecord {
   return {

@@ -274,7 +274,11 @@ async function resetStorage() {
   fs.mkdirSync(TEST_DATA_DIR, { recursive: true });
 }
 
-async function waitFor(fn, timeoutMs = 1500) {
+// 10s ceiling: on 2-core CI runners under shard contention the 1500ms budget
+// expired mid-flight (observed: 1580ms fail on the upstream-timeout test) —
+// green runs return as soon as the condition holds, so the ceiling only
+// bounds the failure case.
+async function waitFor(fn, timeoutMs = 10000) {
   const startedAt = Date.now();
   while (Date.now() - startedAt < timeoutMs) {
     const result = await fn();
@@ -388,6 +392,11 @@ test.after(async () => {
 });
 
 test("chatCore times out upstream execution before provider response headers", async () => {
+  // This test asserts pendingDetail.providerRequest — only attached when the
+  // call-log pipeline capture is enabled. Declare the dependency explicitly
+  // (fresh-DB default leaves it off → the waitFor below would never resolve;
+  // failed deterministically on CI and on an isolated run, incl. at v3.8.18).
+  await settingsDb.updateSettings({ call_log_pipeline_enabled: true });
   const executor = getExecutor("openai");
   const originalGetTimeoutMs = executor.getTimeoutMs?.bind(executor);
   executor.getTimeoutMs = () => 200;
@@ -399,8 +408,10 @@ test("chatCore times out upstream execution before provider response headers", a
     messages: [{ role: "user", content: "never returns" }],
   };
   const fetchSignals: AbortSignal[] = [];
+  const upstreamBodies: any[] = [];
   globalThis.fetch = async (_url, init = {}) => {
     if (init.signal instanceof AbortSignal) fetchSignals.push(init.signal);
+    if (init.body) upstreamBodies.push(JSON.parse(String(init.body)));
     return new Promise(() => {});
   };
 
@@ -424,17 +435,20 @@ test("chatCore times out upstream execution before provider response headers", a
 
     const pendingDetail = (await waitFor(
       () =>
-        Object.values(getPendingRequests().details[connectionId] || {}).find(
-          (detail: any) => detail?.providerRequest
-        ),
-      150
+        // details[connectionId] is Record<modelKey, PendingRequestDetail[]> —
+        // the original predicate tested each ARRAY's .providerRequest (always
+        // undefined), so the waitFor could never resolve. Flatten to the details.
+        Object.values(getPendingRequests().details[connectionId] || {})
+          .flat()
+          .find((detail: any) => detail?.providerRequest?.model === "gpt-4o-mini")
     )) as any;
     assert.equal(pendingDetail?.providerRequest?.model, "gpt-4o-mini");
     assert.deepEqual(pendingDetail?.providerRequest?.messages, body.messages);
-
     const result = await invocation;
     await waitForAsyncSideEffects();
 
+    assert.equal(upstreamBodies[0]?.model, "gpt-4o-mini");
+    assert.deepEqual(upstreamBodies[0]?.messages, body.messages);
     assert.equal(result.success, false);
     assert.equal(result.status, 504);
     assert.equal(fetchSignals[0]?.aborted, true);
@@ -2283,7 +2297,13 @@ test("chatCore records Claude prompt cache and cache usage metadata in call logs
   });
 });
 
-test("chatCore serves emergency fallback responses for budget errors on non-streaming requests", async () => {
+test("chatCore propagates budget errors without an executor-level emergency hop", async () => {
+  // The emergency budget fallback is orchestrated by the routing layer
+  // (src/sse/handlers/chat.ts), which resolves credentials FOR the emergency
+  // provider through account selection. The old executor-level hop here re-sent
+  // the FAILING provider's credentials to the emergency provider's endpoint
+  // (cross-provider credential leak) — the engine must now surface the budget
+  // error as-is, with no extra upstream call.
   const { calls, result } = await invokeChatCore({
     provider: "openai",
     model: "gpt-4o-mini",
@@ -2293,30 +2313,28 @@ test("chatCore serves emergency fallback responses for budget errors on non-stre
       max_tokens: 9000,
       messages: [{ role: "user", content: "keep the request alive after budget exhaustion" }],
     },
-    responseFactory(_captured, seenCalls) {
-      if (seenCalls.length === 1) {
-        return new Response(
-          JSON.stringify({
-            error: { message: "insufficient funds on this account" },
-          }),
-          {
-            status: 402,
-            headers: { "Content-Type": "application/json" },
-          }
-        );
-      }
-
-      return buildOpenAIResponse(false, "served by emergency fallback");
+    responseFactory() {
+      return new Response(
+        JSON.stringify({
+          error: { message: "insufficient funds on this account" },
+        }),
+        {
+          status: 402,
+          headers: { "Content-Type": "application/json" },
+        }
+      );
     },
   });
 
-  const payload = (await result.response.json()) as any;
-
-  assert.equal(result.success, true);
-  assert.equal(calls.length, 2);
-  assert.equal(calls[1].body.model, "openai/gpt-oss-120b");
-  assert.equal(calls[1].body.max_tokens, 4096);
-  assert.equal(payload.choices[0].message.content, "served by emergency fallback");
+  assert.equal(result.success, false);
+  assert.equal(result.status, 402);
+  assert.equal(calls.length, 1, "no executor-level emergency hop may fire");
+  const body = (await result.response.json()) as any;
+  assert.match(String(body?.error?.message ?? ""), /insufficient funds/);
+  assert.ok(
+    !calls.some((c: any) => String(c.body?.model ?? "").includes("gpt-oss-120b")),
+    "emergency fallback model must not be called at executor level"
+  );
 });
 
 test("chatCore injects progress events into streaming responses when requested", async () => {
@@ -2639,9 +2657,16 @@ test("chatCore caches streaming response and serves cache HIT on repeat", async 
   assert.equal(second.calls.length, 0, "second request should not reach upstream");
   assert.equal(second.result.response.headers.get("X-OmniRoute-Cache"), "HIT");
 
-  const payload = (await second.result.response.json()) as any;
-  assert.ok(payload.choices, "cached response should have choices");
-  assert.equal(payload.choices[0].message.content, "streamed-once");
+  // #2952 — a streaming client receives the cache HIT as an SSE stream (not a
+  // raw JSON body), so content + reasoning_content arrive in the streaming shape.
+  assert.equal(
+    second.result.response.headers.get("Content-Type"),
+    "text/event-stream",
+    "streaming cache HIT should be served as SSE"
+  );
+  const sse = await second.result.response.text();
+  assert.match(sse, /^data:/m, "cache HIT should be SSE-framed");
+  assert.match(sse, /streamed-once/, "SSE cache HIT should carry the cached content");
 });
 
 test("chatCore does not cache streaming response when temperature > 0", async () => {
@@ -2732,7 +2757,7 @@ test("chatCore skips streaming cache when X-OmniRoute-No-Cache header is set", a
   assert.equal(upstreamHits, 2, "both requests should hit upstream with no-cache");
 });
 
-test("chatCore returns cache HIT as JSON even when client requests SSE", async () => {
+test("chatCore returns cache HIT as SSE when the client requests streaming", async () => {
   const sharedBody = {
     model: "gpt-4o-mini",
     stream: false,
@@ -2765,12 +2790,15 @@ test("chatCore returns cache HIT as JSON even when client requests SSE", async (
 
   assert.equal(second.calls.length, 0, "cached response should prevent upstream call");
   assert.equal(second.result.response.headers.get("X-OmniRoute-Cache"), "HIT");
+  // #2952 — even though the cache was populated by a non-streaming request, a
+  // later streaming request gets the cached completion SSE-wrapped, so streaming
+  // clients keep their streaming shape (and reasoning_content) on cache hits.
   assert.equal(
     second.result.response.headers.get("Content-Type"),
-    "application/json",
-    "cache HIT should return JSON regardless of stream flag"
+    "text/event-stream",
+    "streaming cache HIT should be served as SSE"
   );
-
-  const payload = (await second.result.response.json()) as any;
-  assert.equal(payload.choices[0].message.content, "cached-json");
+  const sse = await second.result.response.text();
+  assert.match(sse, /^data:/m, "cache HIT should be SSE-framed");
+  assert.match(sse, /cached-json/, "SSE cache HIT should carry the cached content");
 });

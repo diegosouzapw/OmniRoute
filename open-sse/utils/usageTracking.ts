@@ -93,6 +93,16 @@ export function invalidateBufferTokensCache(): void {
   _cacheTimestamp = 0;
 }
 
+/**
+ * Directly set the cached buffer value — called by runtimeSettings after a
+ * settings save so the new value is available synchronously on the next request
+ * (no race window between invalidation and the async DB re-read).
+ */
+export function setBufferTokensCache(value: number): void {
+  _cachedBuffer = value;
+  _cacheTimestamp = Date.now();
+}
+
 // Get HH:MM:SS timestamp
 function getTimeString() {
   return new Date().toLocaleTimeString("en-US", {

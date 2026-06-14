@@ -13,10 +13,13 @@ const FETCH_TIMEOUT_MS = parseInt(process.env.FETCH_TIMEOUT_MS || "", 10) || DEF
 
 interface FetchTimeoutOptions extends RequestInit {
   timeoutMs?: number;
+  /** Alternative fetch function to use instead of globalThis.fetch.
+   *  Pass getOriginalFetch() to bypass the proxy/TLS patch layer. */
+  fetchFn?: typeof globalThis.fetch;
 }
 
 export async function fetchWithTimeout(url: string | URL, options: FetchTimeoutOptions = {}) {
-  const { timeoutMs = FETCH_TIMEOUT_MS, signal: externalSignal, ...fetchOptions } = options;
+  const { timeoutMs = FETCH_TIMEOUT_MS, signal: externalSignal, fetchFn, ...fetchOptions } = options;
 
   const controller = new AbortController();
   const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
@@ -31,7 +34,8 @@ export async function fetchWithTimeout(url: string | URL, options: FetchTimeoutO
   }
 
   try {
-    const response = await fetch(url, {
+    const doFetch = fetchFn || globalThis.fetch;
+    const response = await doFetch(url, {
       ...fetchOptions,
       signal: controller.signal,
     });

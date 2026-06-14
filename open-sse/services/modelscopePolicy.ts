@@ -48,18 +48,27 @@ export function isModelScopeProvider(
   return MODELSCOPE_HOST_MARKERS.some((marker) => baseUrl.includes(marker));
 }
 
-export function parseModelScopeRateLimitHeaders(headers: Headers): ModelScopeRateLimitSnapshot {
+export function parseModelScopeRateLimitHeaders(
+  headers: Record<string, string>
+): ModelScopeRateLimitSnapshot {
   return {
     modelRemaining: parseHeaderInteger(
-      headers.get("modelscope-ratelimit-model-requests-remaining")
+      headers["modelscope-ratelimit-model-requests-remaining"] ?? null
     ),
-    modelLimit: parseHeaderInteger(headers.get("modelscope-ratelimit-model-requests-limit")),
-    totalRemaining: parseHeaderInteger(headers.get("modelscope-ratelimit-requests-remaining")),
-    totalLimit: parseHeaderInteger(headers.get("modelscope-ratelimit-requests-limit")),
+    modelLimit: parseHeaderInteger(
+      headers["modelscope-ratelimit-model-requests-limit"] ?? null
+    ),
+    totalRemaining: parseHeaderInteger(
+      headers["modelscope-ratelimit-requests-remaining"] ?? null
+    ),
+    totalLimit: parseHeaderInteger(headers["modelscope-ratelimit-requests-limit"] ?? null),
   };
 }
 
-export function classifyModelScope429(errorText: string, headers: Headers): ModelScope429Decision {
+export function classifyModelScope429(
+  errorText: string,
+  headers: Record<string, string>
+): ModelScope429Decision {
   const snapshot = parseModelScopeRateLimitHeaders(headers);
   const lower = String(errorText || "").toLowerCase();
 
@@ -78,8 +87,8 @@ export function classifyModelScope429(errorText: string, headers: Headers): Mode
   return { kind: "rate_limited", retryable: true, snapshot };
 }
 
-export function getModelScopeRetryDelayMs(headers: Headers, attempt: number): number {
-  const retryAfter = headers.get("retry-after");
+export function getModelScopeRetryDelayMs(headers: Record<string, string>, attempt: number): number {
+  const retryAfter = headers["retry-after"] ?? null;
   if (retryAfter) {
     const parsed = Number.parseFloat(retryAfter);
     if (Number.isFinite(parsed) && parsed > 0) return parsed * 1000;

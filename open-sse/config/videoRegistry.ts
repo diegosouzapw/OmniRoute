@@ -16,6 +16,7 @@ interface VideoModel {
 
 interface VideoProvider {
   id: string;
+  alias?: string;
   baseUrl: string;
   statusUrl?: string;
   authType: string;
@@ -138,6 +139,19 @@ export const VIDEO_PROVIDERS: Record<string, VideoProvider> = {
     authHeader: "none",
     format: "sdwebui-video",
     models: [{ id: "animatediff-webui", name: "AnimateDiff (WebUI)" }],
+  },
+
+  "veoaifree-web": {
+    id: "veoaifree-web",
+    alias: "veo-free",
+    baseUrl: "https://veoaifree.com/wp-admin/admin-ajax.php",
+    authType: "none",
+    authHeader: "none",
+    format: "veoaifree-web",
+    models: [
+      { id: "veo", name: "VEO 3.1" },
+      { id: "seedance", name: "Seedance" },
+    ],
   },
 
   runwayml: {

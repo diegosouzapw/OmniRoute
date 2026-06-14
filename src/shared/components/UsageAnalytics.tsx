@@ -5,6 +5,7 @@ import { useTranslations } from "next-intl";
 import Card from "./Card";
 import { CardSkeleton } from "./Loading";
 import { fmtCompact as fmt, fmtFull, fmtCost } from "@/shared/utils/formatting";
+import { readFetchErrorMessage } from "@/shared/utils/fetchError";
 import {
   StatCard,
   CompactStatGrid,
@@ -59,7 +60,7 @@ export default function UsageAnalytics() {
         params.set("apiKeyIds", selectedApiKeys.join(","));
       }
       const res = await fetch(`/api/usage/analytics?${params.toString()}`);
-      if (!res.ok) throw new Error(tCommon("error"));
+      if (!res.ok) throw new Error(await readFetchErrorMessage(res, tCommon("error")));
       const data = await res.json();
       setAnalytics(data);
       setError(null);

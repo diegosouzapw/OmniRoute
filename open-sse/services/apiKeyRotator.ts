@@ -21,6 +21,9 @@ const _keyIndexes = new Map<string, number>();
 // Tracks which connections have extra API keys (for A3 guard in chatCore.ts)
 // Used to prevent disabling an entire connection when only one key fails.
 const _connectionExtraKeys = new Map<string, boolean>();
+// Eviction limits to prevent unbounded memory growth under heavy load
+const MAX_KEY_HEALTH_ENTRIES = 500;
+const MAX_CONNECTION_EXTRA_KEYS = 500;
 
 /**
  * Record whether a connection has extra API keys.
@@ -28,6 +31,10 @@ const _connectionExtraKeys = new Map<string, boolean>();
  */
 export function trackConnectionExtraKeys(connectionId: string, extraKeys: string[]): void {
   const validExtras = extraKeys.filter((k) => typeof k === "string" && k.trim().length > 0);
+  if (!_connectionExtraKeys.has(connectionId) && _connectionExtraKeys.size >= MAX_CONNECTION_EXTRA_KEYS) {
+    const oldest = _connectionExtraKeys.keys().next().value;
+    if (oldest !== undefined) _connectionExtraKeys.delete(oldest);
+  }
   _connectionExtraKeys.set(connectionId, validExtras.length > 0);
 }
 
@@ -64,6 +71,10 @@ const FAILURE_THRESHOLD = 2; // Mark as invalid after 2 consecutive failures
 function getOrCreateHealth(connectionId: string, keyId: string): KeyHealth {
   const scopedKey = `${connectionId}:${keyId}`;
   if (!_keyHealth.has(scopedKey)) {
+    if (_keyHealth.size >= MAX_KEY_HEALTH_ENTRIES) {
+      const oldest = _keyHealth.keys().next().value;
+      if (oldest !== undefined) _keyHealth.delete(oldest);
+    }
     _keyHealth.set(scopedKey, {
       status: "active",
       failures: 0,
@@ -265,7 +276,12 @@ export function syncHealthFromDB(connectionId: string, health?: Record<string, K
   if (!health) return;
 
   for (const [keyId, keyHealth] of Object.entries(health)) {
-    _keyHealth.set(`${connectionId}:${keyId}`, keyHealth);
+    const scopedKey = `${connectionId}:${keyId}`;
+    if (!_keyHealth.has(scopedKey) && _keyHealth.size >= MAX_KEY_HEALTH_ENTRIES) {
+      const oldest = _keyHealth.keys().next().value;
+      if (oldest !== undefined) _keyHealth.delete(oldest);
+    }
+    _keyHealth.set(scopedKey, keyHealth);
   }
 }
 
@@ -336,6 +352,11 @@ export function removeConnectionHealth(connectionId: string): void {
 export function removeConnectionIndex(connectionId: string): void {
   _keyIndexes.delete(connectionId);
   _connectionExtraKeys.delete(connectionId);
+  for (const key of _keyHealth.keys()) {
+    if (key.startsWith(`${connectionId}:`)) {
+      _keyHealth.delete(key);
+    }
+  }
 }
 
 export type { KeyHealth };

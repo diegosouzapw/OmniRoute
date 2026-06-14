@@ -20,18 +20,27 @@ export async function OPTIONS() {
 export async function GET(request: Request, { params }: { params: Promise<{ provider: string }> }) {
   const { provider: rawProvider } = await params;
   const providerEntry = getRegistryEntry(rawProvider);
+  let providerId = rawProvider;
+  let providerAlias = rawProvider;
 
-  if (!providerEntry) {
-    return Response.json(
-      {
-        error: {
-          message: `Unknown provider: ${rawProvider}`,
-          type: "invalid_request_error",
-          code: "invalid_provider",
+  if (providerEntry) {
+    providerId = providerEntry.id;
+    providerAlias = providerEntry.alias || providerId;
+  } else {
+    // Allow fetching models by connection ID for compatible providers
+    const isCompatibleConnectionId = /^(openai|anthropic)-compatible-chat-[a-f0-9-]+$/.test(rawProvider);
+    if (!isCompatibleConnectionId) {
+      return Response.json(
+        {
+          error: {
+            message: `Unknown provider: ${rawProvider}`,
+            type: "invalid_request_error",
+            code: "invalid_provider",
+          },
         },
-      },
-      { status: 400 }
-    );
+        { status: 400 }
+      );
+    }
   }
 
   const response = await getUnifiedModelsResponse(request);
@@ -43,9 +52,6 @@ export async function GET(request: Request, { params }: { params: Promise<{ prov
   if (!response.ok || !payload || !Array.isArray(payload.data)) {
     return response;
   }
-
-  const providerId = providerEntry.id;
-  const providerAlias = providerEntry.alias || providerId;
 
   const toUnprefixedModelId = (model: Record<string, any>) => {
     const root = typeof model.root === "string" && model.root.trim().length > 0 ? model.root : null;

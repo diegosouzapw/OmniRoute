@@ -7,6 +7,7 @@ const { DeepSeekWebExecutor, DEEPSEEK_WEB_BASE } =
 const { DeepSeekWebWithAutoRefreshExecutor } =
   await import("../../open-sse/executors/deepseek-web-with-auto-refresh.ts");
 const { getExecutor, hasSpecializedExecutor } = await import("../../open-sse/executors/index.ts");
+const { serializeToolsToPrompt } = await import("../../open-sse/translator/webTools.ts");
 
 const COMPLETION_URL = `${DEEPSEEK_WEB_BASE}/api/v0/chat/completion`;
 
@@ -56,6 +57,49 @@ test("execute returns 400 with empty apiKey", async () => {
     signal: AbortSignal.timeout(5000),
   });
   assert.equal(result.response.status, 400);
+});
+
+test("tools[] is translated into a <tool> prompt contract, not rejected - issue #2820 (supersedes #2848)", () => {
+  // #2848 made deepseek-web hard-fail tool requests with a 400. #2820 reverses that:
+  // tools[] is now serialized into a <tool> prompt contract and the model's text reply
+  // is parsed back into OpenAI tool_calls. Full execute() round-trip coverage lives in
+  // deepseek-web-tools-execute-2820.test.ts.
+  const prompt = serializeToolsToPrompt([
+    {
+      type: "function",
+      function: {
+        name: "my_tool",
+        description: "test tool",
+        parameters: { type: "object", properties: {} },
+      },
+    },
+  ]);
+  assert.ok(prompt.includes("my_tool"), "tool name serialized into the prompt");
+  assert.ok(prompt.includes("<tool>"), "invocation contract present");
+});
+
+test("execute does NOT 400 on tools[]=[] (empty array, equivalent to no tools)", async () => {
+  const executor = new DeepSeekWebExecutor();
+  const result = await executor.execute({
+    model: "default",
+    body: {
+      messages: [{ role: "user", content: "hi" }],
+      tools: [],
+    },
+    stream: false,
+    credentials: {},
+    signal: AbortSignal.timeout(5000),
+  });
+  assert.equal(
+    result.response.status,
+    400,
+    "still returns 400 but for missing userToken, NOT for tools[]"
+  );
+  const text = await result.response.text();
+  assert.ok(
+    text.includes("userToken"),
+    `expected userToken error (not tools error) for empty tools[], got: ${text}`
+  );
 });
 
 // ─── Test connection ─────────────────────────────────────────────────────

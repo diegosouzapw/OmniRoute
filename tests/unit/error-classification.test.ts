@@ -45,6 +45,7 @@ test("getProviderProfile: OAuth provider returns oauth profile", () => {
   assert.equal(profile.useUpstreamRetryHints, false);
   assert.equal(profile.maxBackoffSteps, PROVIDER_PROFILES.oauth.maxBackoffLevel);
   assert.equal(profile.failureThreshold, PROVIDER_PROFILES.oauth.circuitBreakerThreshold);
+  assert.equal(profile.degradationThreshold, PROVIDER_PROFILES.oauth.degradationThreshold);
   assert.equal(profile.resetTimeoutMs, PROVIDER_PROFILES.oauth.circuitBreakerReset);
   assert.equal(profile.transientCooldown, PROVIDER_PROFILES.oauth.transientCooldown);
   assert.equal(
@@ -62,6 +63,7 @@ test("getProviderProfile: API provider returns apikey profile", () => {
   assert.equal(profile.useUpstreamRetryHints, true);
   assert.equal(profile.maxBackoffSteps, PROVIDER_PROFILES.apikey.maxBackoffLevel);
   assert.equal(profile.failureThreshold, PROVIDER_PROFILES.apikey.circuitBreakerThreshold);
+  assert.equal(profile.degradationThreshold, PROVIDER_PROFILES.apikey.degradationThreshold);
   assert.equal(profile.resetTimeoutMs, PROVIDER_PROFILES.apikey.circuitBreakerReset);
   assert.equal(profile.transientCooldown, PROVIDER_PROFILES.apikey.transientCooldown);
   assert.equal(

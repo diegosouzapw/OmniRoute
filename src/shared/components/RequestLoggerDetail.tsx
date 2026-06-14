@@ -1,7 +1,6 @@
 "use client";
 
-import Link from "next/link";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import {
   PROVIDER_COLORS,
   getHttpStatusStyle as getStatusStyle,
@@ -11,8 +10,9 @@ import { formatDuration, formatApiKeyLabel, maskAccount } from "@/shared/utils/f
 
 // ─── Payload Code Block ─────────────────────────────────────────────────────
 
-function PayloadSection({ title, json, onCopy }) {
+function PayloadSection({ title, json, onCopy, collapsible = true, defaultOpen = true }) {
   const [copied, setCopied] = useState(false);
+  const [open, setOpen] = useState(defaultOpen);
 
   const handleCopy = async () => {
     const success = await onCopy();
@@ -25,7 +25,18 @@ function PayloadSection({ title, json, onCopy }) {
   return (
     <div>
       <div className="flex items-center justify-between mb-2">
-        <h3 className="text-[11px] text-text-muted uppercase tracking-wider font-bold">{title}</h3>
+        <div className="flex items-center gap-3">
+          <h3 className="text-[11px] text-text-muted uppercase tracking-wider font-bold">{title}</h3>
+          {collapsible && (
+            <button
+              onClick={() => setOpen((v) => !v)}
+              className="p-1 rounded hover:bg-bg-subtle text-text-muted hover:text-text-primary transition-colors"
+              aria-label={open ? `Collapse ${title}` : `Expand ${title}`}
+            >
+              <span className="material-symbols-outlined text-[16px]">{open ? "expand_less" : "expand_more"}</span>
+            </button>
+          )}
+        </div>
         <button
           onClick={handleCopy}
           className="flex items-center gap-1 px-2 py-1 text-xs text-text-muted hover:text-text-primary transition-colors"
@@ -37,9 +48,86 @@ function PayloadSection({ title, json, onCopy }) {
           {copied ? "Copied!" : "Copy"}
         </button>
       </div>
-      <pre className="p-4 rounded-xl bg-black/5 dark:bg-black/30 border border-border overflow-x-auto text-xs font-mono text-text-main max-h-150 overflow-y-auto leading-relaxed whitespace-pre-wrap break-words">
+      {open && (
+        <pre className="p-4 rounded-xl bg-black/5 dark:bg-black/30 border border-border overflow-x-auto text-xs font-mono text-text-main max-h-150 overflow-y-auto leading-relaxed whitespace-pre-wrap break-words">
+          {json}
+        </pre>
+      )}
+    </div>
+  );
+}
+
+// ─── Stream section + Detail Modal ───────────────────────────────────────────────────────────
+
+function StreamSection({ title, json, onCopy }) {
+  const [copied, setCopied] = useState(false);
+  const [autoscroll, setAutoscroll] = useState(() => {
+    try {
+      const v = localStorage.getItem("pref:stream:autoscroll");
+      return v == null ? true : v === "1";
+    } catch {
+      return true;
+    }
+  });
+  const ref = useRef(null);
+
+  const handleCopy = async () => {
+    const success = await onCopy();
+    if (success !== false) {
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    }
+  };
+
+  useEffect(() => {
+    if (!autoscroll) return;
+    const el = ref.current;
+    if (!el) return;
+    // scroll on next animation frame to avoid layout thrash
+    requestAnimationFrame(() => {
+      try {
+        el.scrollTop = el.scrollHeight;
+      } catch {}
+    });
+  }, [json, autoscroll]);
+
+  const toggleAutoscroll = () => {
+    const next = !autoscroll;
+    setAutoscroll(next);
+    try {
+      localStorage.setItem("pref:stream:autoscroll", next ? "1" : "0");
+    } catch {}
+  };
+
+  return (
+    <div>
+      <div className="flex items-center justify-between mb-2">
+        <h3 className="text-[11px] text-text-muted uppercase tracking-wider font-bold">{title}</h3>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={toggleAutoscroll}
+            title={autoscroll ? "Autoscroll: on" : "Autoscroll: off"}
+            className={`p-1 rounded hover:bg-bg-subtle text-text-muted hover:text-text-primary transition-colors ${autoscroll ? "text-primary" : ""}`}
+            aria-pressed={autoscroll}
+          >
+            <span className="material-symbols-outlined text-[18px]">vertical_align_bottom</span>
+          </button>
+          <button
+            onClick={handleCopy}
+            className="flex items-center gap-1 px-2 py-1 text-xs text-text-muted hover:text-text-primary transition-colors"
+            aria-label={`Copy ${title}`}
+          >
+            <span className="material-symbols-outlined text-[14px]">{copied ? "check" : "content_copy"}</span>
+            {copied ? "Copied!" : "Copy"}
+          </button>
+        </div>
+      </div>
+      <div
+        ref={ref}
+        className="p-4 rounded-xl bg-black/5 dark:bg-black/30 border border-border overflow-x-auto text-xs font-mono text-text-main max-h-150 overflow-y-auto leading-relaxed whitespace-pre-wrap break-words"
+      >
         {json}
-      </pre>
+      </div>
     </div>
   );
 }
@@ -56,6 +144,8 @@ export default function RequestLoggerDetail({
   emailsVisible = false,
   onClose,
   onCopy,
+  onPrevious,
+  onNext,
 }) {
   // Close on Escape key
   useEffect(() => {
@@ -79,6 +169,7 @@ export default function RequestLoggerDetail({
   const hasStatusDiscrepancy = providerStatus && providerStatus !== log.status;
 
   const formatDate = (iso) => {
+    if (iso == null) return "\u2014";
     try {
       const d = new Date(iso);
       return (
@@ -122,13 +213,11 @@ export default function RequestLoggerDetail({
     if (!debugEnabled || !detail?.pipelinePayloads?.streamChunks) return null;
     let chunks: StreamChunks = detail.pipelinePayloads.streamChunks;
 
-    // If stored as a JSON string, try to parse it so we can render joined raw chunks
     if (typeof chunks === "string") {
       try {
         const parsed = JSON.parse(chunks);
         chunks = parsed;
       } catch {
-        // Keep as string and return raw text (don't JSON-stringify)
         return chunks;
       }
     }
@@ -155,8 +244,8 @@ export default function RequestLoggerDetail({
         ? "Detailed payload artifact could not be parsed."
         : null;
   const tokenStats = {
-    totalIn: detail?.tokens?.in ?? log.tokens?.in ?? 0,
-    totalOut: detail?.tokens?.out ?? log.tokens?.out ?? 0,
+    totalIn: detail?.tokens?.in ?? log.tokens?.in ?? null,
+    totalOut: detail?.tokens?.out ?? log.tokens?.out ?? null,
     cacheRead: detail?.tokens?.cacheRead ?? log.tokens?.cacheRead,
     cacheWrite: detail?.tokens?.cacheWrite ?? log.tokens?.cacheWrite,
     reasoning: detail?.tokens?.reasoning ?? log.tokens?.reasoning,
@@ -173,7 +262,6 @@ export default function RequestLoggerDetail({
       ? "bg-emerald-500/20 text-emerald-700 dark:text-emerald-300 border-emerald-500/30"
       : "bg-sky-500/20 text-sky-700 dark:text-sky-300 border-sky-500/30";
   const accountLabel = maskAccount(detail?.account || log.account, emailsVisible);
-
   return (
     <div
       className="fixed inset-0 z-50 flex items-start justify-center pt-[5vh]"
@@ -192,18 +280,28 @@ export default function RequestLoggerDetail({
           <div className="flex items-center gap-3">
             <div className="flex flex-col">
               <div className="flex items-center gap-2">
-                <span
-                  className="inline-block px-2.5 py-1 rounded text-xs font-bold"
-                  style={{ backgroundColor: statusStyle.bg, color: statusStyle.text }}
-                >
-                  {log.status}
-                </span>
+                {log.active ? (
+                  <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded text-xs font-bold bg-amber-500/20 text-amber-600 dark:text-amber-400 border border-amber-500/30">
+                    <span className="inline-block h-3 w-3 rounded-full border-2 border-current border-t-transparent animate-spin" />
+                  </span>
+                ) : log.status === 0 ? (
+                  <span className="inline-block px-2.5 py-1 rounded text-xs font-bold bg-emerald-500/20 text-emerald-700 dark:text-emerald-300 border border-emerald-500/30">
+                    Completed
+                  </span>
+                ) : (
+                  <span
+                    className="inline-block px-2.5 py-1 rounded text-xs font-bold"
+                    style={{ backgroundColor: statusStyle.bg, color: statusStyle.text }}
+                  >
+                    {log.status}
+                  </span>
+                )}
                 {hasStatusDiscrepancy && (
                   <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-bg-subtle border border-border text-text-muted">
                     Upstream: {providerStatus}
                   </span>
                 )}
-                <span className="font-bold text-lg">{log.method}</span>
+                {log.method && <span className="font-bold text-lg">{log.method}</span>}
               </div>
               {hasStatusDiscrepancy && (
                 <span className="text-[10px] text-amber-600 dark:text-amber-400 font-medium mt-0.5">
@@ -212,15 +310,29 @@ export default function RequestLoggerDetail({
               )}
             </div>
             <span className="text-text-muted font-mono text-sm self-center ml-2">{log.path}</span>
+            {log.id && (
+              <span className="text-[10px] text-text-muted/50 font-mono self-center ml-2 px-1.5 py-0.5 rounded bg-bg-subtle border border-border/40 select-all">
+                {log.id}
+              </span>
+            )}
           </div>
-          <div className="flex items-center gap-2">
-            <Link
-              href={`/dashboard/analytics?tab=route-trace&id=${encodeURIComponent(log.id)}`}
-              className="inline-flex items-center gap-1.5 rounded-lg bg-primary/10 px-3 py-1.5 text-xs font-medium text-primary transition-colors hover:bg-primary/20"
+          <div className="flex items-center gap-1">
+            <button
+              onClick={onPrevious}
+              disabled={!onPrevious}
+              className="p-1.5 rounded-lg hover:bg-bg-subtle text-text-muted hover:text-text-primary transition-colors disabled:opacity-30 disabled:pointer-events-none"
+              aria-label="Previous request"
             >
-              <span className="material-symbols-outlined text-[16px]">alt_route</span>
-              Route Trace
-            </Link>
+              <span className="material-symbols-outlined text-[18px]">chevron_left</span>
+            </button>
+            <button
+              onClick={onNext}
+              disabled={!onNext}
+              className="p-1.5 rounded-lg hover:bg-bg-subtle text-text-muted hover:text-text-primary transition-colors disabled:opacity-30 disabled:pointer-events-none"
+              aria-label="Next request"
+            >
+              <span className="material-symbols-outlined text-[18px]">chevron_right</span>
+            </button>
             <button
               onClick={onClose}
               className="p-1.5 rounded-lg hover:bg-bg-subtle text-text-muted hover:text-text-primary transition-colors"
@@ -233,151 +345,176 @@ export default function RequestLoggerDetail({
 
         <div className="p-6 flex flex-col gap-6">
           {/* Metadata Grid */}
-          <div
-            className="grid grid-cols-2 md:grid-cols-4 gap-4 p-4 bg-bg-subtle rounded-xl border border-border"
-            data-testid="request-log-metadata-grid"
-          >
-            <div>
-              <div className="text-[10px] text-text-muted uppercase tracking-wider mb-1">
-                Completed Time
+          {log.active ? (
+            <div className="flex flex-wrap gap-4 p-4 bg-bg-subtle rounded-xl border border-border">
+              <div className="min-w-[140px] flex-1">
+                <div className="text-[10px] text-text-muted uppercase tracking-wider mb-1">Started At</div>
+                <div className="text-sm font-medium">{formatDate(log.timestamp)}</div>
               </div>
-              <div className="text-sm font-medium">{formatDate(log.timestamp)}</div>
-            </div>
-            <div>
-              <div className="text-[10px] text-text-muted uppercase tracking-wider mb-1">
-                Duration
+              <div className="min-w-[100px] flex-1">
+                <div className="text-[10px] text-text-muted uppercase tracking-wider mb-1">Duration</div>
+                <div className="text-sm font-medium">{formatDuration(log.duration)}</div>
               </div>
-              <div className="text-sm font-medium">{formatDuration(log.duration)}</div>
+              <div className="min-w-[140px] flex-1">
+                <div className="text-[10px] text-text-muted uppercase tracking-wider mb-1">Model</div>
+                <div className="text-sm font-medium text-primary font-mono">{log.model}</div>
+              </div>
+              <div className="min-w-[120px] flex-1">
+                <div className="text-[10px] text-text-muted uppercase tracking-wider mb-1">Provider</div>
+                <span
+                  className="inline-block px-2.5 py-1 rounded text-[10px] font-bold uppercase"
+                  style={{ backgroundColor: providerColor.bg, color: providerColor.text }}
+                >
+                  {providerColor.label}
+                </span>
+              </div>
+              <div className="min-w-[120px] flex-1">
+                <div className="text-[10px] text-text-muted uppercase tracking-wider mb-1">Account</div>
+                <div className="text-sm font-medium">{accountLabel}</div>
+              </div>
             </div>
-            <div>
-              <div className="text-[10px] text-text-muted uppercase tracking-wider mb-1">Input</div>
-              <div className="flex flex-wrap items-center gap-1.5" data-testid="token-group-input">
-                <span className="px-2 py-0.5 rounded bg-primary/20 text-primary text-xs font-bold">
-                  Total In: {tokenStats.totalIn.toLocaleString()}
-                </span>
-                <span className="px-2 py-0.5 rounded bg-sky-500/20 text-sky-700 dark:text-sky-400 text-xs font-bold">
-                  Cache Read: {formatTokenValue(tokenStats.cacheRead)}
-                </span>
-                <span className="px-2 py-0.5 rounded bg-amber-500/20 text-amber-700 dark:text-amber-400 text-xs font-bold">
-                  Cache Write: {formatTokenValue(tokenStats.cacheWrite)}
-                </span>
-                {tokenStats.compressed != null &&
-                  tokenStats.compressed > 0 &&
-                  (() => {
+          ) : (
+            <div
+              className="grid grid-cols-2 md:grid-cols-4 gap-4 p-4 bg-bg-subtle rounded-xl border border-border"
+              data-testid="request-log-metadata-grid"
+            >
+              <div>
+                <div className="text-[10px] text-text-muted uppercase tracking-wider mb-1">
+                  Completed Time
+                </div>
+                <div className="text-sm font-medium">{formatDate(log.timestamp)}</div>
+              </div>
+              <div>
+                <div className="text-[10px] text-text-muted uppercase tracking-wider mb-1">
+                  Duration
+                </div>
+                <div className="text-sm font-medium">{formatDuration(log.duration)}</div>
+              </div>
+              <div>
+                <div className="text-[10px] text-text-muted uppercase tracking-wider mb-1">Input</div>
+                <div className="flex flex-wrap items-center gap-1.5" data-testid="token-group-input">
+                  <span className="px-2 py-0.5 rounded bg-primary/20 text-primary text-xs font-bold">
+                    Total In: {formatTokenValue(tokenStats.totalIn)}
+                  </span>
+                  <span className="px-2 py-0.5 rounded bg-sky-500/20 text-sky-700 dark:text-sky-400 text-xs font-bold">
+                    Cache Read: {formatTokenValue(tokenStats.cacheRead)}
+                  </span>
+                  <span className="px-2 py-0.5 rounded bg-amber-500/20 text-amber-700 dark:text-amber-400 text-xs font-bold">
+                    Cache Write: {formatTokenValue(tokenStats.cacheWrite)}
+                  </span>
+                  {tokenStats.compressed != null && tokenStats.compressed > 0 && (() => {
                     const fromTokens = tokenStats.totalIn + tokenStats.compressed;
                     const pct = Math.round((tokenStats.compressed / fromTokens) * 100);
                     return (
                       <span className="px-2 py-0.5 rounded bg-purple-500/20 text-purple-700 dark:text-purple-300 text-xs font-bold">
-                        Compressed: {fromTokens.toLocaleString()} →{" "}
-                        {tokenStats.totalIn.toLocaleString()} (-{pct}%)
+                        Compressed: {fromTokens.toLocaleString()} \u2192 {tokenStats.totalIn.toLocaleString()} (-{pct}%)
                       </span>
                     );
                   })()}
+                </div>
               </div>
-            </div>
-            <div>
-              <div className="text-[10px] text-text-muted uppercase tracking-wider mb-1">
-                Output
+              <div>
+                <div className="text-[10px] text-text-muted uppercase tracking-wider mb-1">
+                  Output
+                </div>
+                <div className="flex flex-wrap items-center gap-1.5" data-testid="token-group-output">
+                  <span className="px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-700 dark:text-emerald-400 text-xs font-bold">
+                    Total Out: {formatTokenValue(tokenStats.totalOut)}
+                  </span>
+                  <span className="px-2 py-0.5 rounded bg-violet-500/20 text-violet-700 dark:text-violet-400 text-xs font-bold">
+                    Reasoning: {formatTokenValue(tokenStats.reasoning)}
+                  </span>
+                </div>
               </div>
-              <div className="flex flex-wrap items-center gap-1.5" data-testid="token-group-output">
-                <span className="px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-700 dark:text-emerald-400 text-xs font-bold">
-                  Total Out: {tokenStats.totalOut.toLocaleString()}
+              <div>
+                <div className="text-[10px] text-text-muted uppercase tracking-wider mb-1">Model</div>
+                <div className="text-sm font-medium text-primary font-mono">{log.model}</div>
+              </div>
+              <div>
+                <div className="text-[10px] text-text-muted uppercase tracking-wider mb-1">
+                  Requested Model
+                </div>
+                <div
+                  className={`text-sm font-medium font-mono ${
+                    (detail?.requestedModel || log.requestedModel) &&
+                    (detail?.requestedModel || log.requestedModel) !== log.model
+                      ? "text-amber-600 dark:text-amber-400"
+                      : "text-text-muted"
+                  }`}
+                >
+                  {detail?.requestedModel || log.requestedModel || "\u2014"}
+                </div>
+              </div>
+              <div>
+                <div className="text-[10px] text-text-muted uppercase tracking-wider mb-1">
+                  Provider
+                </div>
+                <span
+                  className="inline-block px-2.5 py-1 rounded text-[10px] font-bold uppercase"
+                  style={{ backgroundColor: providerColor.bg, color: providerColor.text }}
+                >
+                  {providerColor.label}
                 </span>
-                <span className="px-2 py-0.5 rounded bg-violet-500/20 text-violet-700 dark:text-violet-400 text-xs font-bold">
-                  Reasoning: {formatTokenValue(tokenStats.reasoning)}
+              </div>
+              <div>
+                <div className="text-[10px] text-text-muted uppercase tracking-wider mb-1">
+                  Req Protocol
+                </div>
+                <span
+                  className="inline-block px-2.5 py-1 rounded text-[10px] font-bold uppercase"
+                  style={{ backgroundColor: protocol.bg, color: protocol.text }}
+                >
+                  {protocol.label}
                 </span>
               </div>
-            </div>
-            <div>
-              <div className="text-[10px] text-text-muted uppercase tracking-wider mb-1">Model</div>
-              <div className="text-sm font-medium text-primary font-mono">{log.model}</div>
-            </div>
-            <div>
-              <div className="text-[10px] text-text-muted uppercase tracking-wider mb-1">
-                Requested Model
+              <div>
+                <div className="text-[10px] text-text-muted uppercase tracking-wider mb-1">
+                  Cache Source
+                </div>
+                <span
+                  className={`inline-block px-2.5 py-1 rounded text-[10px] font-bold border ${cacheSourceClassName}`}
+                >
+                  {cacheSourceLabel}
+                </span>
               </div>
-              <div
-                className={`text-sm font-medium font-mono ${
-                  (detail?.requestedModel || log.requestedModel) &&
-                  (detail?.requestedModel || log.requestedModel) !== log.model
-                    ? "text-amber-600 dark:text-amber-400"
-                    : "text-text-muted"
-                }`}
-              >
-                {detail?.requestedModel || log.requestedModel || "—"}
+              <div>
+                <div className="text-[10px] text-text-muted uppercase tracking-wider mb-1">
+                  Account
+                </div>
+                <div className="text-sm font-medium">{accountLabel}</div>
               </div>
-            </div>
-            <div>
-              <div className="text-[10px] text-text-muted uppercase tracking-wider mb-1">
-                Provider
+              <div>
+                <div className="text-[10px] text-text-muted uppercase tracking-wider mb-1">
+                  API Key
+                </div>
+                <div
+                  className="text-sm font-medium"
+                  title={
+                    detail?.apiKeyName ||
+                    detail?.apiKeyId ||
+                    log.apiKeyName ||
+                    log.apiKeyId ||
+                    "No API key"
+                  }
+                >
+                  {formatApiKeyLabel(
+                    detail?.apiKeyName || log.apiKeyName,
+                    detail?.apiKeyId || log.apiKeyId
+                  )}
+                </div>
               </div>
-              <span
-                className="inline-block px-2.5 py-1 rounded text-[10px] font-bold uppercase"
-                style={{ backgroundColor: providerColor.bg, color: providerColor.text }}
-              >
-                {providerColor.label}
-              </span>
-            </div>
-            <div>
-              <div className="text-[10px] text-text-muted uppercase tracking-wider mb-1">
-                Req Protocol
-              </div>
-              <span
-                className="inline-block px-2.5 py-1 rounded text-[10px] font-bold uppercase"
-                style={{ backgroundColor: protocol.bg, color: protocol.text }}
-              >
-                {protocol.label}
-              </span>
-            </div>
-            <div>
-              <div className="text-[10px] text-text-muted uppercase tracking-wider mb-1">
-                Cache Source
-              </div>
-              <span
-                className={`inline-block px-2.5 py-1 rounded text-[10px] font-bold border ${cacheSourceClassName}`}
-              >
-                {cacheSourceLabel}
-              </span>
-            </div>
-            <div>
-              <div className="text-[10px] text-text-muted uppercase tracking-wider mb-1">
-                Account
-              </div>
-              <div className="text-sm font-medium" title={accountLabel}>
-                {accountLabel}
-              </div>
-            </div>
-            <div>
-              <div className="text-[10px] text-text-muted uppercase tracking-wider mb-1">
-                API Key
-              </div>
-              <div
-                className="text-sm font-medium"
-                title={
-                  detail?.apiKeyName ||
-                  detail?.apiKeyId ||
-                  log.apiKeyName ||
-                  log.apiKeyId ||
-                  "No API key"
-                }
-              >
-                {formatApiKeyLabel(
-                  detail?.apiKeyName || log.apiKeyName,
-                  detail?.apiKeyId || log.apiKeyId
+              <div>
+                <div className="text-[10px] text-text-muted uppercase tracking-wider mb-1">Combo</div>
+                {detail?.comboName || log.comboName ? (
+                  <span className="inline-block px-2.5 py-1 rounded-full text-[10px] font-bold bg-violet-500/20 text-violet-700 dark:text-violet-300 border border-violet-500/30">
+                    {detail?.comboName || log.comboName}
+                  </span>
+                ) : (
+                  <div className="text-sm text-text-muted">\u2014</div>
                 )}
               </div>
             </div>
-            <div>
-              <div className="text-[10px] text-text-muted uppercase tracking-wider mb-1">Combo</div>
-              {detail?.comboName || log.comboName ? (
-                <span className="inline-block px-2.5 py-1 rounded-full text-[10px] font-bold bg-violet-500/20 text-violet-700 dark:text-violet-300 border border-violet-500/30">
-                  {detail?.comboName || log.comboName}
-                </span>
-              ) : (
-                <div className="text-sm text-text-muted">—</div>
-              )}
-            </div>
-          </div>
+          )}
 
           {/* Error Message */}
           {(detail?.error || log.error) && (
@@ -406,6 +543,14 @@ export default function RequestLoggerDetail({
             </div>
           ) : (
             <>
+              {streamChunksText && (
+                <StreamSection
+                  title="Event Stream (Debug)"
+                  json={streamChunksText}
+                  onCopy={() => onCopy(streamChunksText)}
+                />
+              )}
+
               {payloadSections.length > 0 &&
                 payloadSections.map((section) => (
                   <PayloadSection
@@ -415,14 +560,6 @@ export default function RequestLoggerDetail({
                     onCopy={() => onCopy(section.json)}
                   />
                 ))}
-
-              {streamChunksText && (
-                <PayloadSection
-                  title="Event Stream (Debug)"
-                  json={streamChunksText}
-                  onCopy={() => onCopy(streamChunksText)}
-                />
-              )}
 
               {payloadSections.length === 0 && responseJson && (
                 <PayloadSection

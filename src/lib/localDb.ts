@@ -30,6 +30,9 @@ export {
   isConnectionRateLimited,
   getRateLimitedConnections,
 
+  // T05 startup recovery: clear stale transient cooldowns left by a prior crash
+  clearStaleCrashCooldowns,
+
   // T13: Stale quota display fix (zero out usage after window resets)
   getEffectiveQuotaUsage,
   formatResetCountdown,
@@ -59,6 +62,7 @@ export {
   getModelPreserveOpenAIDeveloperRole,
   getModelUpstreamExtraHeaders,
   getModelIsHidden,
+  setModelIsHidden,
 
   // Synced Available Models
   getSyncedAvailableModels,
@@ -66,6 +70,7 @@ export {
   replaceSyncedAvailableModelsForConnection,
   deleteSyncedAvailableModelsForConnection,
   deleteSyncedAvailableModelsForProvider,
+  removeSyncedAvailableModel,
 } from "./db/models";
 
 export type { ModelCompatPerProtocol, ModelCompatPatch, SyncedAvailableModel } from "./db/models";
@@ -172,6 +177,7 @@ export {
   assignProxyToScope,
   resolveProxyForConnectionFromRegistry,
   resolveProxyForProvider,
+  resolveProxyForScopeFromRegistry,
   migrateLegacyProxyConfigToRegistry,
   getProxyHealthStats,
   bulkAssignProxyToScope,
@@ -197,7 +203,20 @@ export {
   getDbBackupRetentionDays,
   listDbBackups,
   restoreDbBackup,
+  // Export-All / Import helpers (#3500 slice 5)
+  exportAllSummaryRows,
+  getTableNamesFromAdapter,
+  countImportedRows,
 } from "./db/backup";
+
+export type { ExportAllRows } from "./db/backup";
+
+export {
+  // Skills DB operations (#3500 slice 5)
+  updateSkill,
+} from "./db/skills";
+
+export type { SkillPatch } from "./db/skills";
 
 export {
   // Read Cache (cached wrappers for hot-read paths)
@@ -207,6 +226,7 @@ export {
   getCachedLKGP,
   setCachedLKGP,
   invalidateDbCache,
+  getCombosCacheVersion,
 } from "./db/readCache";
 
 export {
@@ -402,6 +422,7 @@ export {
   getXp,
   updateLevel,
   unlockBadge,
+  hasBadge,
   getBadges,
   getBadgeDefinitions,
   transferTokens,
@@ -414,6 +435,7 @@ export {
   connectServer,
   disconnectServer,
   listServers,
+  getConnectedServerByKeyHash,
 } from "./db/gamification";
 
 export type {
@@ -508,3 +530,218 @@ export {
 } from "./db/freeProxies";
 
 export type { FreeProxyRecord, FreeProxyStats } from "./db/freeProxies";
+
+export {
+  listPlaygroundPresets,
+  getPlaygroundPreset,
+  createPlaygroundPreset,
+  updatePlaygroundPreset,
+  deletePlaygroundPreset,
+} from "./db/playgroundPresets";
+
+export type { PlaygroundPresetListItem } from "./db/playgroundPresets";
+// Plan 21 — Memory Engine Redesign
+export {
+  getMemoryVecMeta,
+  setMemoryVecMeta,
+  markMemoryNeedsReindex,
+  markAllMemoriesNeedReindex,
+  getMemoryReindexQueue,
+  countMemoryReindexPending,
+} from "./db/memoryVec";
+
+export type { MemoryVecMeta } from "./db/memoryVec";
+// T-A-F2: AgentBridge state/mappings/bypass + Inspector custom hosts/sessions
+export * from "./db/agentBridgeState";
+export * from "./db/agentBridgeMappings";
+export * from "./db/agentBridgeBypass";
+export * from "./db/inspectorCustomHosts";
+export * from "./db/inspectorSessions";
+// Quota Sharing — Group B (planos 16+22)
+export {
+  listPools,
+  getPool,
+  getPoolsByGroup,
+  createPool,
+  updatePool,
+  deletePool,
+  upsertAllocations,
+  listAllocationsForApiKey,
+} from "./db/quotaPools";
+
+export {
+  // Quota Groups (B2)
+  createGroup,
+  getGroup,
+  getGroupName,
+  listGroups,
+  renameGroup,
+  deleteGroup,
+} from "./db/quotaGroups";
+
+export type { QuotaGroup } from "./db/quotaGroups";
+export {
+  getBucket,
+  incrementBucket,
+  getPair,
+  sumPoolDimension,
+  gcOlderThan as gcQuotaConsumption,
+} from "./db/quotaConsumption";
+export {
+  getPlan as getProviderPlan,
+  listPlans as listProviderPlans,
+  upsertPlan as upsertProviderPlan,
+  deletePlan as deleteProviderPlan,
+} from "./db/providerPlans";
+
+export {
+  // Per-API-Key Token Limits (migration 073)
+  upsertTokenLimit,
+  listTokenLimits,
+  getTokenLimitsForRequest,
+  deleteTokenLimit,
+  getWindowUsage,
+  incrementWindowTokens,
+  resetWindowIfElapsed,
+  logTokenLimitReset,
+} from "./db/tokenLimits";
+
+export type {
+  TokenLimit,
+  TokenLimitScopeType,
+  UpsertTokenLimitInput,
+  TokenWindowState,
+} from "./db/tokenLimits";
+
+export {
+  insertPlugin,
+  getPluginById,
+  getPluginByName,
+  listPlugins,
+  updatePluginStatus,
+  updatePluginConfig,
+  deletePlugin,
+  pluginExists,
+} from "./db/plugins";
+
+export type { PluginRow, PluginCreateInput } from "./db/plugins";
+
+export {
+  getApiKeyContextSource,
+  setApiKeyContextSource,
+  deleteApiKeyContextSource,
+  listApiKeyContextSources,
+} from "./db/apiKeyContextSources";
+export type { ApiKeyContextSource } from "./db/apiKeyContextSources";
+
+export { sumUsageTokensThisMonth } from "./db/usageSummary";
+
+export {
+  // Model Intelligence (task-fitness scores)
+  getModelIntelligence,
+  getModelIntelligenceBySource,
+  upsertModelIntelligence,
+  deleteModelIntelligence,
+  deleteExpiredIntelligence,
+  deleteModelIntelligenceBySource,
+  listModelIntelligence,
+  bulkUpsertModelIntelligence,
+  getResolvedTaskFitness,
+  setUserFitnessOverrideEntry,
+  deleteUserFitnessOverrideEntry,
+} from "./db/modelIntelligence";
+
+export type { ModelIntelligenceEntry } from "./db/modelIntelligence";
+
+export {
+  getProviderMetrics,
+  getSearchProviderStats,
+  getRecentSearchLogs,
+  getSearchAggregateStats,
+  getSearchProviderCounts,
+  getFallbackStats,
+} from "./db/callLogStats";
+export type {
+  ProviderMetricRow,
+  SearchProviderStatRow,
+  SearchRecentRow,
+  SearchAggregateStats,
+  SearchProviderCountRow,
+  FallbackStatsRow,
+} from "./db/callLogStats";
+
+export {
+  buildUnifiedSource,
+  buildPresetUnifiedSource,
+  getUsageSummary,
+  getDailyUsage,
+  getDailyCostRows,
+  getHeatmapRows,
+  getModelUsageRows,
+  getProviderCostRows,
+  getProviderUsageRows,
+  getAccountCostRows,
+  getAccountUsageRows,
+  getApiKeyUsageRows,
+  getServiceTierUsageRows,
+  getApiKeyMetadataRows,
+  getWeeklyPatternRows,
+  getPresetCostModelRows,
+  getAllUsageHistory,
+  getAllDomainCostHistory,
+  getAllDomainBudgets,
+} from "./db/usageAnalytics";
+export type {
+  AnalyticsParams,
+  BuildUnifiedSourceOptions,
+  UnifiedSourceResult,
+  UsageSummaryRow,
+  DailyUsageRow,
+  DailyCostRow,
+  HeatmapRow,
+  ModelUsageRow,
+  ProviderCostRow,
+  ProviderUsageRow,
+  AccountCostRow,
+  AccountUsageRow,
+  ApiKeyUsageRow,
+  ServiceTierUsageRow,
+  ApiKeyMetadataRow,
+  WeeklyPatternRow,
+  PresetCostModelRow,
+} from "./db/usageAnalytics";
+
+// ---------------------------------------------------------------------------
+// usage_logs — auto-routing analytics (#3500 slice 4)
+// ---------------------------------------------------------------------------
+export {
+  getAutoRoutingTotalCount,
+  getAutoRoutingVariantBreakdown,
+  getAutoRoutingTopProviders,
+} from "./db/usageLogs";
+export type {
+  AutoRoutingTotalResult,
+  AutoRoutingVariantRow,
+  AutoRoutingTopProviderRow,
+} from "./db/usageLogs";
+
+// ---------------------------------------------------------------------------
+// semantic_cache — cache entries CRUD (#3500 slice 4)
+// ---------------------------------------------------------------------------
+export {
+  listSemanticCacheEntries,
+  deleteSemanticCacheBySignature,
+  deleteSemanticCacheByModel,
+} from "./db/semanticCache";
+export type {
+  SemanticCacheEntry,
+  SemanticCacheListOptions,
+  SemanticCacheListResult,
+  DeleteSemanticCacheBySignatureResult,
+  DeleteSemanticCacheByModelResult,
+} from "./db/semanticCache";
+
+// ---------------------------------------------------------------------------
+// proxy_logs — export query (#3500 slice 4)
+// ---------------------------------------------------------------------------
+export { exportProxyLogsSince } from "./db/proxyLogs";

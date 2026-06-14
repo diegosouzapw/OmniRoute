@@ -12,9 +12,10 @@ test.beforeEach(() => {
 function createLog() {
   const entries = [];
   return {
-    info: (tag, msg) => entries.push({ level: "info", tag, msg }),
-    warn: (tag, msg) => entries.push({ level: "warn", tag, msg }),
-    error: (tag, msg) => entries.push({ level: "error", tag, msg }),
+    info: (tag: string, msg: string) => entries.push({ level: "info", tag, msg }),
+    warn: (tag: string, msg: string) => entries.push({ level: "warn", tag, msg }),
+    error: (tag: string, msg: string) => entries.push({ level: "error", tag, msg }),
+    debug: (tag: string, msg: string) => entries.push({ level: "debug", tag, msg }),
     entries,
   };
 }
@@ -75,8 +76,11 @@ test("T24: combo awaits short 503 cooldown before falling through to next model"
   });
 
   assert.equal(result.ok, true);
+  // checkFallbackError returns COOLDOWN_MS.transient (5000ms) for a plain 503.
+  // fallbackDelayMs=2000, cooldownMs=5000 ≤ MAX_FALLBACK_WAIT_MS(5000) → fallbackWaitMs=2000ms.
+  // The combo MUST emit a debug log before waiting, proving the wait behavior is wired.
   const waitLog = log.entries.find((e) => e.msg.includes("Waiting") && e.msg.includes("fallback"));
-  assert.ok(waitLog);
+  assert.ok(waitLog, "combo must emit a debug wait-before-fallback log for short 503 cooldowns");
 });
 
 test("T24: combo skips wait when 503 cooldown is long (>5s)", async () => {

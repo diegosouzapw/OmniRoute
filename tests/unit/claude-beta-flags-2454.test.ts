@@ -20,7 +20,7 @@ function fullAgentBody(model: string) {
 test("#2454 Haiku full-agent omits heavy-agent beta flags", () => {
   const flags = selectBetaFlags(fullAgentBody("claude-haiku-4-5-20251001"));
   assert.ok(!flags.includes("context-1m-2025-08-07"), "Haiku must NOT receive context-1m");
-  assert.ok(!flags.includes("afk-mode-2026-01-31"), "Haiku must NOT receive afk-mode");
+  assert.ok(!flags.includes("afk-mode-2026-01-31"), "afk-mode removed — not in any CC capture");
   assert.ok(!flags.includes("effort-2025-11-24"), "Haiku must NOT receive effort");
   assert.ok(
     !flags.includes("advanced-tool-use-2025-11-20"),
@@ -39,13 +39,15 @@ test("#2454 Sonnet full-agent includes heavy-agent flags but omits context-1m", 
   assert.ok(flags.includes("effort-2025-11-24"));
   assert.ok(flags.includes("advanced-tool-use-2025-11-20"));
   assert.ok(flags.includes("thinking-token-count-2026-05-13"));
-  assert.ok(flags.includes("afk-mode-2026-01-31"));
-  assert.ok(!flags.includes("redact-thinking-2026-02-12"));
+  assert.ok(flags.includes("redact-thinking-2026-02-12"), "Sonnet sends redact-thinking");
+  assert.ok(!flags.includes("afk-mode-2026-01-31"), "afk-mode removed — not in any CC capture");
+  assert.ok(!flags.includes("mid-conversation-system-2026-04-07"), "Sonnet must NOT receive mid-conversation-system");
 });
 
-test("#2454 Opus full-agent includes heavy-agent beta flags", () => {
+test("#2454 Opus full-agent includes context-1m and mid-conversation-system", () => {
   const flags = selectBetaFlags(fullAgentBody("claude-opus-4-7"));
   assert.ok(flags.includes("context-1m-2025-08-07"), "Opus should receive context-1m");
+  assert.ok(flags.includes("mid-conversation-system-2026-04-07"), "Opus should receive mid-conversation-system");
 });
 
 test("#2454 explicit model arg overrides body.model for tiering", () => {

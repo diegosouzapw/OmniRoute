@@ -20,11 +20,16 @@ type PersistedEntry = Entry & {
 const signatures = new Map<string, Entry>();
 let signatureCacheMode: SignatureCacheMode = "enabled";
 let persistedPruneCounter = 0;
+const MAX_LOGGED_ERRORS = 50;
 const loggedPersistenceErrors = new Set<string>();
 
 function warnPersistenceError(operation: string, error: unknown) {
   if (process.env.NODE_ENV === "test") return;
   if (loggedPersistenceErrors.has(operation)) return;
+  if (loggedPersistenceErrors.size >= MAX_LOGGED_ERRORS) {
+    const first = loggedPersistenceErrors.values().next().value;
+    if (first !== undefined) loggedPersistenceErrors.delete(first);
+  }
   loggedPersistenceErrors.add(operation);
   const message = error instanceof Error ? error.message : String(error);
   console.warn(`[signature-cache] persisted ${operation} failed: ${message}`);

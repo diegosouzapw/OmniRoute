@@ -2,6 +2,7 @@ import crypto from "node:crypto";
 import { headers } from "next/headers";
 
 import { getLegacyCliTokenSync, getMachineTokenSync } from "@/lib/machineToken";
+import { AUTHZ_HEADER_PEER_LOCALITY } from "@/server/authz/headers";
 
 const HEADER_NAME = "x-omniroute-cli-token";
 
@@ -43,20 +44,27 @@ function requestPeerAddress(request: RequestWithPeer): string | null {
 }
 
 async function isLocalCliRequest(request: RequestWithPeer): Promise<boolean> {
+  // 1. Direct / non-middleware callers (raw Node, unit tests) may carry a real
+  //    socket peer.
   const peerAddress = requestPeerAddress(request);
   if (peerAddress) return isLoopback(peerAddress);
 
+  // 2. A forwarded request came through a proxy → it is not a local CLI call.
   const forwardedPeer =
     firstHeaderIp(await readHeader(request, "cf-connecting-ip")) ||
     firstHeaderIp(await readHeader(request, "x-forwarded-for")) ||
     firstHeaderIp(await readHeader(request, "x-real-ip"));
   if (forwardedPeer) return false;
 
-  try {
-    return isLoopback(new URL(request.url).hostname);
-  } catch {
-    return false;
-  }
+  // 3. Behind the authz pipeline, trust ONLY the locality verdict the middleware
+  //    stamped from the real TCP peer IP. NEVER derive locality from the Host
+  //    header (new URL(request.url).hostname) — it is client-controlled, so a
+  //    remote caller with a stolen CLI token could send Host: 127.0.0.1 to pass.
+  const locality = await readHeader(request, AUTHZ_HEADER_PEER_LOCALITY);
+  if (locality !== null) return locality === "loopback";
+
+  // 4. No trusted locality signal → fail closed.
+  return false;
 }
 
 /**

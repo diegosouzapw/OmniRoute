@@ -10,6 +10,7 @@
 import { getDbInstance } from "../db/core";
 import { protectPayloadForLog } from "../logPayloads";
 import { shouldPersistToDisk } from "./migrations";
+import { emitUsageRecorded } from "./usageEvents";
 import {
   getLoggedInputTokens,
   getLoggedOutputTokens,
@@ -24,10 +25,13 @@ type PendingRequestMetadata = {
   clientRequest?: unknown;
   providerRequest?: unknown;
   providerUrl?: string | null;
+  providerResponse?: unknown;
+  clientResponse?: unknown;
   stage?: string | null;
   stageUpdatedAt?: number | null;
 };
 type PendingRequestDetail = {
+  id: string;
   model: string;
   provider: string;
   connectionId: string | null;
@@ -36,8 +40,15 @@ type PendingRequestDetail = {
   clientRequest?: unknown;
   providerRequest?: unknown;
   providerUrl?: string | null;
+  providerResponse?: unknown;
+  clientResponse?: unknown;
   stage?: string | null;
   stageUpdatedAt?: number | null;
+  streamChunks?: {
+    provider?: string[];
+    openai?: string[];
+    client?: string[];
+  } | null;
 };
 
 function asRecord(value: unknown): JsonRecord {
@@ -148,6 +159,16 @@ function normalizePendingMetadata(metadata?: PendingRequestMetadata): PendingReq
       protectPayloadForLog(metadata.providerRequest)
     );
   }
+  if (metadata.providerResponse !== undefined) {
+    normalized.providerResponse = truncatePendingPreview(
+      protectPayloadForLog(metadata.providerResponse)
+    );
+  }
+  if (metadata.clientResponse !== undefined) {
+    normalized.clientResponse = truncatePendingPreview(
+      protectPayloadForLog(metadata.clientResponse)
+    );
+  }
 
   return normalized;
 }
@@ -157,12 +178,18 @@ function normalizePendingMetadata(metadata?: PendingRequestMetadata): PendingReq
 const pendingRequests: {
   byModel: Record<string, number>;
   byAccount: Record<string, Record<string, number>>;
-  details: Record<string, Record<string, PendingRequestDetail>>;
+  details: Record<string, Record<string, PendingRequestDetail[]>>;
 } = {
   byModel: Object.create(null) as Record<string, number>,
   byAccount: Object.create(null) as Record<string, Record<string, number>>,
-  details: Object.create(null) as Record<string, Record<string, PendingRequestDetail>>,
+  details: Object.create(null) as Record<string, Record<string, PendingRequestDetail[]>>,
 };
+
+/**
+ * O(1) ID → PendingRequestDetail lookup map.
+ * Populated when a detail is created and cleaned up when it is removed/finalized.
+ */
+const pendingById = new Map<string, PendingRequestDetail>();
 
 /** Prototype-pollution denylist — prevents crafted model/provider names from mutating Object.prototype. */
 const UNSAFE_KEYS = new Set(["__proto__", "constructor", "prototype"]);
@@ -185,7 +212,7 @@ export function trackPendingRequest(
   const normalizedMetadata = normalizePendingMetadata(metadata);
 
   // Use hasOwnProperty guard to prevent prototype pollution via crafted keys
-  if (!Object.prototype.hasOwnProperty.call(pendingRequests.byModel, modelKey)) {
+  if (!Object.hasOwn(pendingRequests.byModel, modelKey)) {
     pendingRequests.byModel[modelKey] = 0;
   }
   pendingRequests.byModel[modelKey] = Math.max(
@@ -194,16 +221,16 @@ export function trackPendingRequest(
   );
 
   if (connectionId) {
-    if (!Object.prototype.hasOwnProperty.call(pendingRequests.byAccount, connectionId)) {
+    if (!Object.hasOwn(pendingRequests.byAccount, connectionId)) {
       pendingRequests.byAccount[connectionId] = Object.create(null) as Record<string, number>;
     }
-    if (!Object.prototype.hasOwnProperty.call(pendingRequests.details, connectionId)) {
+    if (!Object.hasOwn(pendingRequests.details, connectionId)) {
       pendingRequests.details[connectionId] = Object.create(null) as Record<
         string,
-        PendingRequestDetail
+        PendingRequestDetail[]
       >;
     }
-    if (!Object.prototype.hasOwnProperty.call(pendingRequests.byAccount[connectionId], modelKey)) {
+    if (!Object.hasOwn(pendingRequests.byAccount[connectionId], modelKey)) {
       pendingRequests.byAccount[connectionId][modelKey] = 0;
     }
     pendingRequests.byAccount[connectionId][modelKey] = Math.max(
@@ -214,24 +241,29 @@ export function trackPendingRequest(
     const nextCount = pendingRequests.byAccount[connectionId][modelKey];
     if (started && nextCount > 0) {
       if (!pendingRequests.details[connectionId][modelKey]) {
-        pendingRequests.details[connectionId][modelKey] = {
-          model,
-          provider,
-          connectionId,
-          startedAt: Date.now(),
-          ...normalizedMetadata,
-        };
-      } else {
-        const merged = {
-          ...pendingRequests.details[connectionId][modelKey],
-          ...normalizedMetadata,
-        };
-        pendingRequests.details[connectionId][modelKey] = merged;
+        pendingRequests.details[connectionId][modelKey] = [];
       }
-    } else if (!started && nextCount === 0) {
-      delete pendingRequests.details[connectionId][modelKey];
-      if (Object.keys(pendingRequests.details[connectionId]).length === 0) {
-        delete pendingRequests.details[connectionId];
+      const newDetail = {
+        id: `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+        model,
+        provider,
+        connectionId,
+        startedAt: Date.now(),
+        ...normalizedMetadata,
+      };
+      pendingRequests.details[connectionId][modelKey].push(newDetail);
+      pendingById.set(newDetail.id, newDetail);
+      return newDetail.id;
+    } else if (!started && nextCount >= 0) {
+      if (pendingRequests.details[connectionId]?.[modelKey]?.length) {
+        const removed = pendingRequests.details[connectionId][modelKey].shift();
+        if (removed) pendingById.delete(removed.id);
+      }
+      if (!pendingRequests.details[connectionId]?.[modelKey]?.length) {
+        delete pendingRequests.details[connectionId]?.[modelKey];
+        if (Object.keys(pendingRequests.details[connectionId] || {}).length === 0) {
+          delete pendingRequests.details[connectionId];
+        }
       }
     }
   }
@@ -246,18 +278,190 @@ export function updatePendingRequest(
   if (!connectionId) return;
   const modelKey = provider ? `${model} (${provider})` : model;
   if (!isSafeKey(modelKey)) return;
-  const existing = pendingRequests.details[connectionId]?.[modelKey];
-  if (!existing) return;
-  const merged = { ...existing, ...normalizePendingMetadata(metadata) };
-  pendingRequests.details[connectionId][modelKey] = merged;
+  const details = pendingRequests.details[connectionId]?.[modelKey];
+  if (!details?.length) return;
+  const lastIdx = details.length - 1;
+  details[lastIdx] = { ...details[lastIdx], ...normalizePendingMetadata(metadata) };
+}
+
+/**
+ * Update the first (oldest) pending request detail and then remove it.
+ * Unlike updatePendingRequest which targets the last entry, this is designed
+ * for the non-streaming completion path where the oldest entry must be finalized
+ * before trackPendingRequest(false) removes it from the FIFO queue.
+ */
+/**
+ * Completed details cache — keeps finalized response data available for the
+ * active endpoint's fast-poll for a brief window after the pending detail is
+ * removed, so the frontend can show providerResponse/clientResponse before
+ * the persisted call log is fetched.
+ */
+const completedDetails = new Map<string, PendingRequestDetail>();
+
+export function finalizePendingRequest(
+  model: string,
+  provider: string,
+  connectionId: string | null,
+  metadata: PendingRequestMetadata
+) {
+  if (!connectionId) return;
+  const modelKey = provider ? `${model} (${provider})` : model;
+  if (!isSafeKey(modelKey)) return;
+  const details = pendingRequests.details[connectionId]?.[modelKey];
+  if (!details?.length) return;
+  const updated = { ...details[0], ...normalizePendingMetadata(metadata) };
+  completedDetails.set(updated.id, updated);
+  setTimeout(() => completedDetails.delete(updated.id), 5000);
+  trackPendingRequest(model, provider, connectionId, false);
+}
+
+/**
+ * Finalize the most recent (last) pending request for the given model/provider/connection.
+ * This is used for streaming requests where the active stream corresponds to the last
+ * entry in the FIFO for the connection/model key. It removes that specific entry and
+ * moves it to completedDetails so the UI fast-poll can pick it up.
+ */
+export function finalizeMostRecentPendingRequest(
+  model: string,
+  provider: string,
+  connectionId: string | null,
+  metadata: PendingRequestMetadata
+) {
+  if (!connectionId) return;
+  const modelKey = provider ? `${model} (${provider})` : model;
+  if (!isSafeKey(modelKey)) return;
+  const details = pendingRequests.details[connectionId]?.[modelKey];
+  if (!details?.length) return;
+  const lastIdx = details.length - 1;
+  const updated = { ...details[lastIdx], ...normalizePendingMetadata(metadata) };
+  // Move to completed cache
+  completedDetails.set(updated.id, updated);
+
+  // If provider/client responses are missing, attempt to enrich the completed
+  // detail from persisted call_log artifacts (best-effort, non-blocking).
+  (async () => {
+    try {
+      const missingProvider =
+        updated.providerResponse === undefined || updated.providerResponse === null;
+      const missingClient = updated.clientResponse === undefined || updated.clientResponse === null;
+      if ((missingProvider || missingClient) && connectionId) {
+        const db = getDbInstance();
+        const sinceIso = new Date(Date.now() - 30_000).toISOString();
+        const rows = db
+          .prepare(
+            `SELECT artifact_relpath FROM call_logs WHERE connection_id = ? AND model = ? AND timestamp >= ? ORDER BY timestamp DESC LIMIT 5`
+          )
+          .all(connectionId, model, sinceIso) as Array<{ artifact_relpath: string | null }>;
+        for (const row of rows) {
+          if (!row.artifact_relpath) continue;
+          const { readCallArtifact } = await import("./callLogArtifacts");
+          const art = readCallArtifact(row.artifact_relpath);
+          if (art.state !== "ready" || !art.artifact) continue;
+          const pipeline = art.artifact.pipeline as any | undefined;
+          // Prefer pipeline payloads over responseBody for structured data
+          if (missingProvider && pipeline?.providerResponse) {
+            updated.providerResponse = pipeline.providerResponse;
+          }
+          if (missingClient && pipeline?.clientResponse) {
+            updated.clientResponse = pipeline.clientResponse;
+          }
+          if (
+            (missingProvider && art.artifact.responseBody) ||
+            (missingClient && art.artifact.responseBody)
+          ) {
+            // use responseBody as a fallback for both
+            if (missingProvider) updated.providerResponse = art.artifact.responseBody;
+            if (missingClient) updated.clientResponse = art.artifact.responseBody;
+          }
+          if (updated.providerResponse || updated.clientResponse) {
+            // write-back to completed cache and stop searching
+            completedDetails.set(updated.id, updated);
+            break;
+          }
+        }
+      }
+    } catch (e) {
+      try {
+        console.warn(
+          "[usageHistory] failed to enrich completed detail from artifacts:",
+          e && (e.message || e)
+        );
+      } catch {}
+    }
+  })();
+
+  setTimeout(() => completedDetails.delete(updated.id), 5000);
+
+  // Remove the specific pending detail
+  details.splice(lastIdx, 1);
+  pendingById.delete(updated.id);
+
+  // Decrement counters (mirror trackPendingRequest(false) behaviour)
+  if (Object.hasOwn(pendingRequests.byModel, modelKey)) {
+    pendingRequests.byModel[modelKey] = Math.max(0, pendingRequests.byModel[modelKey] - 1);
+    if (pendingRequests.byModel[modelKey] === 0) delete pendingRequests.byModel[modelKey];
+  }
+  if (connectionId && Object.hasOwn(pendingRequests.byAccount, connectionId)) {
+    if (Object.hasOwn(pendingRequests.byAccount[connectionId], modelKey)) {
+      pendingRequests.byAccount[connectionId][modelKey] = Math.max(
+        0,
+        pendingRequests.byAccount[connectionId][modelKey] - 1
+      );
+      if (pendingRequests.byAccount[connectionId][modelKey] === 0) {
+        delete pendingRequests.byAccount[connectionId][modelKey];
+      }
+    }
+    // Clean up details map if empty
+    if (
+      !pendingRequests.details[connectionId] ||
+      Object.keys(pendingRequests.details[connectionId]).length === 0
+    ) {
+      delete pendingRequests.details[connectionId];
+    }
+    if (
+      !pendingRequests.byAccount[connectionId] ||
+      Object.keys(pendingRequests.byAccount[connectionId]).length === 0
+    ) {
+      delete pendingRequests.byAccount[connectionId];
+    }
+  }
+}
+
+export function getCompletedDetails(): Map<string, PendingRequestDetail> {
+  return completedDetails;
+}
+
+export function updatePendingRequestStreamChunks(
+  model: string,
+  provider: string,
+  connectionId: string | null,
+  streamChunks: {
+    provider?: string[];
+    openai?: string[];
+    client?: string[];
+  } | null
+) {
+  if (!connectionId) return;
+  const modelKey = provider ? `${model} (${provider})` : model;
+  if (!isSafeKey(modelKey)) return;
+  const details = pendingRequests.details[connectionId]?.[modelKey];
+  if (!details?.length) return;
+  details[0].streamChunks = streamChunks;
 }
 
 /**
  * Get the pending requests state (for usageStats).
- * @returns {{ byModel: Object, byAccount: Object }}
+ * @returns {{ byModel: Record<string, number>, byAccount: Record<string, Record<string, number>> }}
  */
-export function getPendingRequests() {
+export function getPendingRequests(): {
+  byModel: Record<string, number>;
+  byAccount: Record<string, Record<string, number>>;
+} {
   return pendingRequests;
+}
+
+export function getPendingById(): Map<string, PendingRequestDetail> {
+  return pendingById;
 }
 
 /**
@@ -269,8 +473,9 @@ export function clearPendingRequests() {
   pendingRequests.byAccount = Object.create(null) as Record<string, Record<string, number>>;
   pendingRequests.details = Object.create(null) as Record<
     string,
-    Record<string, PendingRequestDetail>
+    Record<string, PendingRequestDetail[]>
   >;
+  pendingById.clear();
 }
 
 // ──────────────── getUsageDb Shim (backward compat) ────────────────
@@ -387,6 +592,10 @@ export async function saveRequestUsage(entry: any) {
       entry.comboStrategy || entry.combo_strategy || null,
       timestamp
     );
+
+    // Decoupled via the event bus so usageHistory never imports providerLimits
+    // (which would pull the executors/translator graph into the type-check surface).
+    emitUsageRecorded(entry.provider, entry.connectionId);
   } catch (error) {
     console.error("Failed to save usage stats:", error);
   }

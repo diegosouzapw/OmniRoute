@@ -37,6 +37,7 @@ export async function getUsageForProvider(connection) {
     case "gemini-cli":
       return await getGeminiUsage(accessToken);
     case "antigravity":
+    case "agy":
       return await getAntigravityUsage(
         accessToken,
         providerSpecificData,

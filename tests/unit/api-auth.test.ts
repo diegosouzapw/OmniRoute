@@ -104,6 +104,56 @@ test("verifyAuth falls back to bearer API key validation after a bad JWT", async
   assert.equal(result, null);
 });
 
+test("verifyAuth no longer accepts API keys supplied via query string (#3300 follow-up)", async () => {
+  // Query-string token fallbacks were removed (credential-in-URL leaks into logs).
+  const key = await apiKeysDb.createApiKey("query-auth", "machine1234567890");
+
+  const result = await apiAuth.verifyAuth({
+    cookies: {
+      get() {
+        return undefined;
+      },
+    },
+    headers: new Headers(),
+    url: `https://example.com/api/v1/models?token=${encodeURIComponent(key.key)}`,
+  });
+
+  // No usable credential → authentication fails (was incorrectly accepted before).
+  assert.notEqual(result, null);
+});
+
+test("isAuthenticated accepts API keys embedded in vscode path aliases", async () => {
+  const key = await apiKeysDb.createApiKey("path-auth", "machine1234567890");
+  const request = new Request(
+    `https://example.com/api/v1/vscode/${encodeURIComponent(key.key)}/models`
+  );
+
+  const result = await apiAuth.isAuthenticated(request);
+
+  assert.equal(result, true);
+});
+
+test("verifyAuth never honours a URL-borne token on MANAGEMENT routes (#3300 follow-up)", async () => {
+  // The historical escalation: a credential in the query string on a management
+  // route (/api/* but not /api/v1/*). It must not be extracted at all, so the
+  // failure is "Authentication required" (no credential) — NOT "Invalid
+  // management token" (which the pre-fix code returned, proving the URL token
+  // had been picked up and tried against management validation).
+  const key = await apiKeysDb.createApiKey("mgmt-url", "machine1234567890");
+
+  const result = await apiAuth.verifyAuth({
+    cookies: {
+      get() {
+        return undefined;
+      },
+    },
+    headers: new Headers(),
+    url: `https://example.com/api/providers?token=${encodeURIComponent(key.key)}`,
+  });
+
+  assert.equal(result, "Authentication required");
+});
+
 test("verifyAuth rejects bearer API keys on management routes", async () => {
   const key = await apiKeysDb.createApiKey("integration", "machine1234567890");
   const result = await apiAuth.verifyAuth({

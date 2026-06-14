@@ -1,7 +1,7 @@
 ---
 title: "OmniRoute Documentation"
-version: 3.8.2
-lastUpdated: 2026-05-13
+version: 3.8.24
+lastUpdated: 2026-06-13
 ---
 
 # OmniRoute Documentation
@@ -22,9 +22,19 @@ How the system is put together — read these to understand the runtime, code la
 - [AUTHZ_GUIDE.md](architecture/AUTHZ_GUIDE.md) — authorization pipeline (route classifier + policy engine).
 - [RESILIENCE_GUIDE.md](architecture/RESILIENCE_GUIDE.md) — provider circuit breaker, connection cooldown, and model lockout.
 
-## guides/
+## For Non-Tech Users
 
-Task-focused walkthroughs for operators and end users.
+Simple guides for using OmniRoute — no technical background needed.
+
+### getting-started/
+
+- [QUICK-START.md](getting-started/QUICK-START.md) — install and run OmniRoute in 3 minutes.
+- [AUTO-COMBO-GUIDE.md](getting-started/AUTO-COMBO-GUIDE.md) — let OmniRoute pick the best AI for you.
+- [PROVIDERS-GUIDE.md](getting-started/PROVIDERS-GUIDE.md) — how to connect AI providers.
+- [FREE-TIERS-GUIDE.md](getting-started/FREE-TIERS-GUIDE.md) — get free AI with no credit card.
+- [TROUBLESHOOTING.md](getting-started/TROUBLESHOOTING.md) — fix common issues.
+
+### guides/
 
 - [SETUP_GUIDE.md](guides/SETUP_GUIDE.md) — first-time setup of OmniRoute.
 - [USER_GUIDE.md](guides/USER_GUIDE.md) — daily usage of the dashboard and API.
@@ -32,10 +42,13 @@ Task-focused walkthroughs for operators and end users.
 - [ELECTRON_GUIDE.md](guides/ELECTRON_GUIDE.md) — desktop (Electron) builds.
 - [TERMUX_GUIDE.md](guides/TERMUX_GUIDE.md) — running on Android via Termux.
 - [PWA_GUIDE.md](guides/PWA_GUIDE.md) — installing the dashboard as a PWA.
-- [TROUBLESHOOTING.md](guides/TROUBLESHOOTING.md) — common issues and fixes.
 - [UNINSTALL.md](guides/UNINSTALL.md) — clean removal steps.
 - [I18N.md](guides/I18N.md) — translation and locale workflow.
 - [FEATURES.md](guides/FEATURES.md) — dashboard feature gallery.
+
+## For Tech Users
+
+Technical documentation for developers and contributors.
 
 ## reference/
 

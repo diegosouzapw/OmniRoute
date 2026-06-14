@@ -144,6 +144,25 @@ jobs:
         if: steps.resolve.outputs.skip != 'true'
         run: npm run check:pack-artifact
 
+      - name: Generate CycloneDX SBOM (npm)
+        if: steps.resolve.outputs.skip != 'true'
+        run: npx @cyclonedx/cyclonedx-npm --ignore-npm-errors --output-format JSON --output-file sbom-npm.cdx.json
+
+      - name: Upload SBOM (npm) as workflow artifact
+        if: steps.resolve.outputs.skip != 'true'
+        uses: actions/upload-artifact@v7
+        with:
+          name: sbom-npm
+          path: sbom-npm.cdx.json
+          if-no-files-found: error
+
+      - name: Attach SBOM to GitHub Release
+        if: steps.resolve.outputs.skip != 'true' && github.event_name == 'release'
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAG: ${{ github.ref_name }}
+        run: gh release upload "$TAG" sbom-npm.cdx.json --clobber
+
       - name: Publish to npm
         if: steps.resolve.outputs.skip != 'true'
         env:
@@ -155,7 +174,7 @@ jobs:
           # Always pass --tag explicitly. Defense in depth: even if VERSION is
           # accidentally an older release, `npm publish --tag historic` will
           # NOT promote it to `@latest`.
-          npm publish --access public --tag "$TAG"
+          npm publish --provenance --access public --tag "$TAG"
           echo "✅ Published omniroute@$VERSION (dist-tag=$TAG)"
 
       - name: Publish to GitHub Packages
@@ -211,5 +230,5 @@ jobs:
             echo "⚠️ ${PKG_NAME}@${PKG_VERSION} is already published on npm — skipping."
             exit 0
           fi
-          npm publish --access public --ignore-scripts
+          npm publish --provenance --access public --ignore-scripts
           echo "✅ Published ${PKG_NAME}@${PKG_VERSION}"

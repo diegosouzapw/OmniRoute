@@ -7,6 +7,9 @@ const PUBLIC_API_ROUTE_PREFIXES = [
   "/api/cloud/",
   "/api/sync/bundle",
   "/api/oauth/",
+  // Public, ticket-gated Codex device-flow completion (validate + persist).
+  // The handler enforces its own single-use ticket check; no dashboard auth.
+  "/api/codex/connect/",
 ];
 
 const PUBLIC_READONLY_API_ROUTE_PREFIXES = [

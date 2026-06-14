@@ -4,6 +4,8 @@
  * Provides API for reading metrics from the dashboard.
  */
 
+import { recordProviderUsage } from "./autoCombo/providerDiversity";
+
 interface ModelMetrics {
   requests: number;
   successes: number;
@@ -188,6 +190,40 @@ function toMetricView<T extends ModelMetrics>(
 // In-memory store
 const metrics = new Map<string, ComboMetricsEntry>();
 const shadowMetrics = new Map<string, ComboShadowMetricsEntry>();
+const MAX_METRICS_ENTRIES = 500;
+const METRICS_TTL_MS = 60 * 60 * 1000; // 1 hour
+
+function evictOldestMetric(targetMap: Map<string, { lastUsedAt: string | null }>): void {
+  let oldest: string | null = null;
+  let oldestTime = Infinity;
+  for (const [name, entry] of targetMap) {
+    const t = entry.lastUsedAt ? new Date(entry.lastUsedAt).getTime() : Date.now();
+    if (t < oldestTime) { oldestTime = t; oldest = name; }
+  }
+  if (oldest) {
+    metrics.delete(oldest);
+    shadowMetrics.delete(oldest);
+  }
+}
+
+const _metricsCleanupTimer = setInterval(() => {
+  const now = Date.now();
+  for (const [name, entry] of metrics) {
+    const lastUsed = entry.lastUsedAt ? new Date(entry.lastUsedAt).getTime() : now;
+    if (now - lastUsed > METRICS_TTL_MS) {
+      metrics.delete(name);
+      shadowMetrics.delete(name);
+    }
+  }
+  for (const [name, entry] of shadowMetrics) {
+    const lastUsed = entry.lastUsedAt ? new Date(entry.lastUsedAt).getTime() : now;
+    if (now - lastUsed > METRICS_TTL_MS) {
+      metrics.delete(name);
+      shadowMetrics.delete(name);
+    }
+  }
+}, 5 * 60 * 1000); // every 5 minutes
+_metricsCleanupTimer.unref?.(); // Don't prevent process exit
 
 /**
  * Record a combo request result.
@@ -217,6 +253,9 @@ export function recordComboRequest(
     target?: ComboRequestTargetMeta | null;
   }
 ): void {
+  if (!metrics.has(comboName) && metrics.size >= MAX_METRICS_ENTRIES) {
+    evictOldestMetric(metrics);
+  }
   if (!metrics.has(comboName)) {
     metrics.set(comboName, createComboEntry(strategy));
   }
@@ -233,6 +272,12 @@ export function recordComboRequest(
 
   if (success) {
     combo.totalSuccesses++;
+    // Feed the provider-diversity report (/api/analytics/diversity): record the
+    // provider that actually served this request. recordComboRequest is the
+    // single chokepoint every combo strategy funnels through, so one call here
+    // covers priority / round-robin / weighted / auto / etc.
+    const usedProvider = toNonEmptyString(target?.provider);
+    if (usedProvider) recordProviderUsage(usedProvider);
   } else {
     combo.totalFailures++;
   }
@@ -283,6 +328,9 @@ export function recordComboShadowRequest(
     target?: ComboRequestTargetMeta | null;
   }
 ): void {
+  if (!shadowMetrics.has(comboName) && shadowMetrics.size >= MAX_METRICS_ENTRIES) {
+    evictOldestMetric(shadowMetrics);
+  }
   if (!shadowMetrics.has(comboName)) {
     shadowMetrics.set(comboName, createShadowEntry());
   }
@@ -396,6 +444,9 @@ export function getAllComboMetrics(): Record<string, ComboMetricsView | null> {
  * Record detected prompt intent for a combo (used by multilingual routing analytics).
  */
 export function recordComboIntent(comboName: string, intent: string): void {
+  if (!metrics.has(comboName) && metrics.size >= MAX_METRICS_ENTRIES) {
+    evictOldestMetric(metrics);
+  }
   if (!metrics.has(comboName)) {
     metrics.set(comboName, createComboEntry("priority"));
   }
@@ -418,6 +469,7 @@ export function resetComboMetrics(comboName: string): void {
  * Reset all combo metrics.
  */
 export function resetAllComboMetrics(): void {
+  clearInterval(_metricsCleanupTimer);
   metrics.clear();
   shadowMetrics.clear();
 }

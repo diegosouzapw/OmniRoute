@@ -242,6 +242,16 @@ import {
   listCompressionCombosInput,
   compressionComboStatsInput,
 } from "../schemas/tools.ts";
+import { handleCcrRetrieve } from "../../services/compression/engines/ccr/index.ts";
+import { resolveCallerScopeContext } from "../scopeEnforcement.ts";
+
+const ccrRetrieveInput = z.object({
+  hash: z
+    .string()
+    .length(24)
+    .regex(/^[0-9a-f]{24}$/)
+    .describe("24-hex content hash from a [CCR retrieve hash=<hash>] marker"),
+});
 
 export async function handleSetCompressionEngine(
   args: z.infer<typeof setCompressionEngineInput>
@@ -299,6 +309,7 @@ export const compressionTools = {
     name: "omniroute_compression_status",
     description:
       "Returns current compression configuration, strategy, analytics summary (requests compressed, tokens saved, avg ratio), and provider-aware cache statistics.",
+    scopes: ["read:compression"],
     inputSchema: compressionStatusInput,
     handler: (args: z.infer<typeof compressionStatusInput>) => handleCompressionStatus(args),
   },
@@ -306,26 +317,46 @@ export const compressionTools = {
     name: "omniroute_compression_configure",
     description:
       "Configure compression settings at runtime. Supports enabling/disabling compression, changing strategy (off/lite/standard/aggressive/ultra/rtk/stacked), adjusting maxTokens threshold, targetRatio, auto-trigger mode, system prompt preservation, and MCP description compression.",
+    scopes: ["write:compression"],
     inputSchema: compressionConfigureInput,
     handler: (args: z.infer<typeof compressionConfigureInput>) => handleCompressionConfigure(args),
   },
   omniroute_set_compression_engine: {
     name: "omniroute_set_compression_engine",
     description: "Set the active compression engine and Caveman/RTK runtime options.",
+    scopes: ["write:compression"],
     inputSchema: setCompressionEngineInput,
     handler: (args: z.infer<typeof setCompressionEngineInput>) => handleSetCompressionEngine(args),
   },
   omniroute_list_compression_combos: {
     name: "omniroute_list_compression_combos",
     description: "List compression combos and their engine pipelines.",
+    scopes: ["read:compression"],
     inputSchema: listCompressionCombosInput,
     handler: (_args: z.infer<typeof listCompressionCombosInput>) => handleListCompressionCombos(),
   },
   omniroute_compression_combo_stats: {
     name: "omniroute_compression_combo_stats",
     description: "Get compression analytics grouped by engine and compression combo.",
+    scopes: ["read:compression"],
     inputSchema: compressionComboStatsInput,
     handler: (args: z.infer<typeof compressionComboStatsInput>) =>
       handleCompressionComboStats(args),
+  },
+  omniroute_ccr_retrieve: {
+    name: "omniroute_ccr_retrieve",
+    description:
+      "Retrieve the verbatim content block stored by the CCR compression engine. " +
+      "When a large block is compressed, a marker `[CCR retrieve hash=<24hex> chars=N]` " +
+      "is inserted. Pass the hash from the marker to this tool to get the original text back. " +
+      "Scope: read:compression. Always available (sticky-on).",
+    scopes: ["read:compression"],
+    inputSchema: ccrRetrieveInput,
+    handler: (args: z.infer<typeof ccrRetrieveInput>, extra?: McpToolExtraLike) => {
+      // Derive caller identity from MCP auth context so the retrieve is scoped to the
+      // same principal that stored the block. This closes the cross-tenant IDOR (HIGH).
+      const { callerId } = resolveCallerScopeContext(extra, ["read:compression"]);
+      return handleCcrRetrieve(args, callerId === "anonymous" ? undefined : callerId);
+    },
   },
 };

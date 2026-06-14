@@ -35,6 +35,37 @@ test("classify429: 429 with quota keyword in string body returns 'quota_exhauste
   assert.equal(classify429({ status: 429, body: "plan limit reached" }), "quota_exhausted");
 });
 
+test("classify429: Antigravity 'Individual quota reached' body returns 'quota_exhausted'", () => {
+  const body =
+    "Individual quota reached. Contact your administrator to enable overages. " +
+    "Resets in 164h27m24s.";
+  assert.equal(looksLikeQuotaExhausted(body), true);
+  assert.equal(classify429({ status: 429, body }), "quota_exhausted");
+  assert.equal(
+    classify429({ status: 429, body: { error: { message: body } } }),
+    "quota_exhausted"
+  );
+});
+
+test("classify429: Antigravity quota patterns do not over-match plain rate limits", () => {
+  // The new 'quota reached' / 'enable overages' patterns must stay specific —
+  // a per-minute rate limit must still classify as a transient rate_limit.
+  assert.equal(
+    classify429({ status: 429, body: "Too many requests, please slow down." }),
+    "rate_limit"
+  );
+  assert.equal(
+    classify429({ status: 429, body: "Rate limit exceeded. Try again in 30s." }),
+    "rate_limit"
+  );
+  // A bare "quota reached" in a transient per-minute limit must NOT be locked as
+  // quota_exhausted — only the specific "individual quota reached" wording is.
+  assert.equal(
+    classify429({ status: 429, body: "Request quota reached, retry in 60s." }),
+    "rate_limit"
+  );
+});
+
 test("classify429: 429 with quota keyword in nested object body returns 'quota_exhausted'", () => {
   assert.equal(
     classify429({

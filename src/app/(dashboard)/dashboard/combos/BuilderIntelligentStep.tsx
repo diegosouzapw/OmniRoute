@@ -9,6 +9,7 @@ import {
   ROUTER_STRATEGY_OPTIONS,
   normalizeIntelligentRoutingConfig,
 } from "@/lib/combos/intelligentRouting";
+import { compareTr } from "@/shared/utils/turkishText";
 
 function getI18nOrFallback(t: any, key: string, fallback: string) {
   if (typeof t?.has === "function" && t.has(key)) return t(key);
@@ -51,7 +52,7 @@ function toProviderOptions(activeProviders: any[] = [], candidatePool: string[] 
     }
   });
 
-  return [...uniqueProviders.values()].sort((a, b) => a.label.localeCompare(b.label));
+  return [...uniqueProviders.values()].sort((a, b) => compareTr(a.label, b.label));
 }
 
 export default function BuilderIntelligentStep({

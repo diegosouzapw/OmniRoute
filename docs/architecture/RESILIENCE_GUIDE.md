@@ -1,7 +1,7 @@
 ---
 title: "Resilience Guide"
-version: 3.8.2
-lastUpdated: 2026-05-13
+version: 3.8.18
+lastUpdated: 2026-06-09
 ---
 
 # Resilience Guide
@@ -30,16 +30,19 @@ OmniRoute has three distinct but related resilience mechanisms. Each has a diffe
 **States:**
 
 - `CLOSED` — normal traffic allowed
+- `DEGRADED` — traffic still allowed, but elevated provider failures are being tracked
 - `OPEN` — provider temporarily blocked; combo routing skips it
 - `HALF_OPEN` — reset timeout elapsed; probe request allowed
 
-**Defaults (`open-sse/config/constants.ts`):**
+**Configurable defaults (`open-sse/config/constants.ts`, exposed in Dashboard → Settings → Resilience):**
 
-| Class   | Threshold  | Reset timeout |
-| ------- | ---------- | ------------- |
-| OAuth   | 3 failures | 60s           |
-| API-key | 5 failures | 30s           |
-| Local   | 2 failures | 15s           |
+| Class   | Degraded at | Opens at    | Reset timeout |
+| ------- | ----------- | ----------- | ------------- |
+| OAuth   | 5 failures  | 8 failures  | 60s           |
+| API-key | 7 failures  | 12 failures | 30s           |
+| Local   | derived     | 2 failures  | 15s           |
+
+`degradationThreshold` controls when a provider enters `DEGRADED`; `failureThreshold` controls when it opens and is skipped. Local provider profiles are not exposed on the Resilience settings page yet.
 
 **Trip codes:** only provider-level statuses `[408, 500, 502, 503, 504]`. Do NOT trip for account-level errors (most 401/403/429 — those belong to cooldown or lockout).
 
@@ -121,6 +124,7 @@ Lists active lockouts with: provider, connection, model, reason, expiresAt. Oper
 - **Reset-aware routing** (v3.8.0) — prioritizes connections by quota reset time.
 - **Background mode degradation** — Responses API `background: true` degraded to sync with warning.
 - **Dynamic tool limit detection** — backs off providers when tool count limits hit.
+- **Emergency fallback** — controlled by `OMNIROUTE_EMERGENCY_FALLBACK`; operators can override it from the Feature Flags page without a restart.
 
 ---
 
@@ -137,6 +141,22 @@ Lists active lockouts with: provider, connection, model, reason, expiresAt. Oper
 ## TLS Fingerprinting & Stealth
 
 Provider-specific stealth (JA3/JA4, CCH, obfuscation) is separately documented — see [STEALTH_GUIDE.md](../security/STEALTH_GUIDE.md).
+
+---
+
+## Resilience testing (Fase 8 · Bloco C)
+
+Além dos unit tests da lógica de resiliência, três testes exercitam o runtime sob
+estresse/falha real (todos integração/nightly — nenhum bloqueia PR):
+
+| Teste | O quê | Rodar |
+|---|---|---|
+| Chaos | Fake-upstream node injeta latência/reset/timeout/503 reais; valida que o circuit breaker abre/recupera e `checkFallbackError` classifica 503 como fallback recuperável. | `RUN_CHAOS_INT=1 npm run test:chaos` |
+| Heap-growth | ~500 streams por `createSSEStream` sob `--expose-gc`; falha se o heap crescer além do teto (guarda OOM #3069). | `npm run test:heap` |
+| k6 soak | Carga sustentada contra `/api/monitoring/health`; thresholds p95/erro. | `k6 run tests/load/k6-soak.js` (nightly) |
+
+Orquestrados por `.github/workflows/nightly-resilience.yml` (cron + dispatch). No
+`test:integration` default, chaos e heap se auto-skipam (sem `RUN_CHAOS_INT`/`--expose-gc`).
 
 ---
 

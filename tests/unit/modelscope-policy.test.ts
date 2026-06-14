@@ -7,6 +7,7 @@ const {
   isModelScopeProvider,
   parseModelScopeRateLimitHeaders,
 } = await import("../../open-sse/services/modelscopePolicy.ts");
+const { normalizeHeaders } = await import("../../open-sse/utils/headers.ts");
 
 test("ModelScope policy detects provider ids and ModelScope host markers", () => {
   assert.equal(isModelScopeProvider("modelscope"), true);
@@ -20,14 +21,12 @@ test("ModelScope policy detects provider ids and ModelScope host markers", () =>
 });
 
 test("ModelScope policy parses per-model and total rate-limit headers", () => {
-  const snapshot = parseModelScopeRateLimitHeaders(
-    new Headers({
-      "modelscope-ratelimit-model-requests-remaining": "0",
-      "modelscope-ratelimit-model-requests-limit": "10",
-      "modelscope-ratelimit-requests-remaining": "17",
-      "modelscope-ratelimit-requests-limit": "20",
-    })
-  );
+  const snapshot = parseModelScopeRateLimitHeaders({
+    "modelscope-ratelimit-model-requests-remaining": "0",
+    "modelscope-ratelimit-model-requests-limit": "10",
+    "modelscope-ratelimit-requests-remaining": "17",
+    "modelscope-ratelimit-requests-limit": "20",
+  });
 
   assert.deepEqual(snapshot, {
     modelRemaining: 0,
@@ -40,10 +39,10 @@ test("ModelScope policy parses per-model and total rate-limit headers", () => {
 test("ModelScope policy keeps temporary 429 headers retryable", () => {
   const decision = classifyModelScope429(
     "Throttling: current batch requests reached the limit",
-    new Headers({
+    {
       "modelscope-ratelimit-model-requests-remaining": "0",
       "modelscope-ratelimit-model-requests-limit": "10",
-    })
+    }
   );
 
   assert.equal(decision.kind, "rate_limited");
@@ -52,13 +51,26 @@ test("ModelScope policy keeps temporary 429 headers retryable", () => {
 });
 
 test("ModelScope policy treats explicit free quota exhaustion as terminal", () => {
-  const decision = classifyModelScope429("Free allocated quota exceeded", new Headers());
+  const decision = classifyModelScope429("Free allocated quota exceeded", {});
 
   assert.equal(decision.kind, "quota_exhausted");
   assert.equal(decision.retryable, false);
 });
 
 test("ModelScope retry delay respects Retry-After seconds before backoff fallback", () => {
-  assert.equal(getModelScopeRetryDelayMs(new Headers({ "retry-after": "2.5" }), 0), 2500);
-  assert.equal(getModelScopeRetryDelayMs(new Headers(), 1), 6000);
+  assert.equal(getModelScopeRetryDelayMs({ "retry-after": "2.5" }, 0), 2500);
+  assert.equal(getModelScopeRetryDelayMs({}, 1), 6000);
+});
+
+test("ModelScope policy accepts headers normalized via normalizeHeaders (Node 24 undici interop)", () => {
+  // Simulate a Headers object from a different undici instance via the helper.
+  const upstreamHeaders = new Headers({
+    "modelscope-ratelimit-model-requests-remaining": "3",
+    "retry-after": "1.5",
+  });
+  const normalized = normalizeHeaders(upstreamHeaders);
+
+  const snapshot = parseModelScopeRateLimitHeaders(normalized);
+  assert.equal(snapshot.modelRemaining, 3);
+  assert.equal(getModelScopeRetryDelayMs(normalized, 0), 1500);
 });

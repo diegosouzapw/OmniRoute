@@ -9,6 +9,7 @@ import { invalidateDbCache } from "./readCache";
 import { getProxyRegistryGeneration, resolveProxyForScopeFromRegistry } from "./proxies";
 import { getComboModelProvider as getComboEntryProvider } from "@/lib/combos/steps";
 import { requestBodyLimitMbFromEnv } from "@/shared/constants/bodySize";
+import { DEFAULT_RESPONSES_PREVIOUS_RESPONSE_ID_MODE } from "@/shared/constants/responsesPreviousResponseId";
 
 type JsonRecord = Record<string, unknown>;
 type PricingModels = Record<string, JsonRecord>;
@@ -29,6 +30,10 @@ type ProxyResolutionCacheEntry = {
 };
 
 const PROXY_RESOLUTION_CACHE_MAX_ENTRIES = 100;
+
+function isTruthyEnvFlag(value: string | undefined): boolean {
+  return typeof value === "string" && /^(1|true|yes|on)$/i.test(value.trim());
+}
 
 let proxyConfigGeneration = 0;
 const proxyResolutionCache = new Map<string, ProxyResolutionCacheEntry>();
@@ -76,6 +81,19 @@ function toProxyValue(value: unknown): ProxyValue {
   return null;
 }
 
+// Legacy proxyConfig store (key_value namespace 'proxyConfig') predates the
+// IPv6-only `family` directive, so its object configs have no family field.
+// Default to "auto" so the family marker rides along the cascade end-to-end
+// (consumed by proxyConfigToUrl). String configs are returned unchanged.
+function withFamilyDefault(value: ProxyValue): ProxyValue {
+  if (value && typeof value === "object" && !Array.isArray(value)) {
+    const record = value as JsonRecord;
+    if (typeof record.family === "string") return record;
+    return { ...record, family: "auto" };
+  }
+  return value;
+}
+
 // ──────────────── Settings ────────────────
 
 export async function getSettings() {
@@ -99,10 +117,19 @@ export async function getSettings() {
     hideEndpointCloudflaredTunnel: false,
     hideEndpointTailscaleFunnel: false,
     hideEndpointNgrokTunnel: false,
+    preferClaudeCodeForUnprefixedClaudeModels: isTruthyEnvFlag(
+      process.env.OMNIROUTE_PREFER_CLAUDE_CODE_FOR_UNPREFIXED_CLAUDE_MODELS
+    ),
+    autoRefreshProviderQuota: false,
+    autoRefreshProviderQuotaInterval: 180,
     comboConfigMode: "guided",
     codexServiceTier: { enabled: false },
-    claudeFastMode: { enabled: false, supportedModels: ["claude-opus-4-7", "claude-opus-4-6"] },
+    claudeFastMode: {
+      enabled: false,
+      supportedModels: ["claude-fable-5", "claude-opus-4-8", "claude-opus-4-7", "claude-opus-4-6"],
+    },
     codexSessionAffinityTtlMs: 0,
+    responsesPreviousResponseIdMode: DEFAULT_RESPONSES_PREVIOUS_RESPONSE_ID_MODE,
     alwaysPreserveClientCache: "auto",
     idempotencyWindowMs: 5000,
     wsAuth: false,
@@ -116,6 +143,9 @@ export async function getSettings() {
     // `applyAuthzBypassSection` → `getAuthzBypassSnapshot()`.
     localOnlyManageScopeBypassEnabled: true,
     localOnlyManageScopeBypassPrefixes: ["/api/mcp/"],
+    customBannedSignals: [],
+    proxyEnabled: true,
+    perKeyProxyEnabled: false,
   };
   for (const row of rows) {
     const record = toRecord(row);
@@ -154,6 +184,13 @@ export async function updateSettings(updates: Record<string, unknown>) {
   tx();
   backupDbFile("pre-write");
   invalidateDbCache("settings"); // Bust the read cache immediately
+
+  // Bust proxy resolution cache when proxy toggle settings change
+  const PROXY_TOGGLE_KEYS = ["proxyEnabled", "perKeyProxyEnabled"];
+  if (Object.keys(updates).some((k) => PROXY_TOGGLE_KEYS.includes(k))) {
+    bumpProxyConfigGeneration();
+  }
+
   const nextSettings = await getSettings();
 
   try {
@@ -592,10 +629,11 @@ export async function deleteProxyForLevel(level: string, id: string | null) {
   return setProxyForLevel(level, id, null);
 }
 
-export async function resolveProxyForConnection(connectionId: string) {
+export async function resolveProxyForConnection(connectionId: string, apiKeyId?: string) {
+  const cacheKey = apiKeyId ? `${connectionId}:${apiKeyId}` : connectionId;
   const startGeneration = proxyConfigGeneration;
   const startRegistryGeneration = getProxyRegistryGeneration();
-  const cached = proxyResolutionCache.get(connectionId);
+  const cached = proxyResolutionCache.get(cacheKey);
   if (
     cached &&
     cached.generation === startGeneration &&
@@ -604,40 +642,156 @@ export async function resolveProxyForConnection(connectionId: string) {
     return cached.result;
   }
 
-  const config = await getProxyConfig();
+  const db = getDbInstance();
 
-  // Resolve by specificity across both proxy storage backends. The dashboard
-  // Custom tab still writes account/provider proxies to the legacy config,
-  // while Saved Proxy writes registry assignments. Do not let a registry-global
-  // fallback shadow a more-specific legacy account/provider proxy (#2601).
-  const registryAccount = await resolveProxyForScopeFromRegistry("account", connectionId);
-  if (registryAccount?.proxy) {
-    cacheProxyResolution(connectionId, startGeneration, startRegistryGeneration, registryAccount);
-    return registryAccount;
+  // Step 1: Check global proxyEnabled setting
+  // Read only the proxyEnabled key for performance instead of loading all settings.
+  let globalProxyEnabled = true;
+  try {
+    const proxyEnabledRow = db
+      .prepare("SELECT value FROM key_value WHERE namespace = 'settings' AND key = 'proxyEnabled'")
+      .get() as { value?: string } | undefined;
+    if (proxyEnabledRow?.value) {
+      globalProxyEnabled = JSON.parse(proxyEnabledRow.value) !== false;
+    }
+  } catch {
+    // Default to true on read error
   }
 
-  if (connectionId && config.keys?.[connectionId]) {
-    const result = { proxy: config.keys[connectionId], level: "key", levelId: connectionId };
-    cacheProxyResolution(connectionId, startGeneration, startRegistryGeneration, result);
+  if (!globalProxyEnabled) {
+    const result: ProxyResolutionResult = { proxy: null, level: "direct", levelId: null };
+    // Do not cache the "direct" result when global toggle is off so that
+    // toggling it back on takes effect immediately without a generation bump.
     return result;
   }
 
-  const db = getDbInstance();
-  const connection = db
-    .prepare("SELECT provider FROM provider_connections WHERE id = ?")
+  let connectionRecord: JsonRecord | null = null;
+  let connectionProvider: string | null = null;
+  let connectionProxyEnabled = true;
+  let connectionPerKeyProxyEnabled = false;
+
+  const row = db
+    .prepare(
+      "SELECT provider, proxy_enabled, per_key_proxy_enabled FROM provider_connections WHERE id = ?"
+    )
     .get(connectionId);
-
-  if (connection) {
-    const connectionRecord = toRecord(connection);
-    const provider =
+  if (row) {
+    connectionRecord = toRecord(row);
+    connectionProvider =
       typeof connectionRecord.provider === "string" ? connectionRecord.provider : null;
+    connectionProxyEnabled = connectionRecord.proxy_enabled !== 0;
+    connectionPerKeyProxyEnabled = connectionRecord.per_key_proxy_enabled === 1;
+  }
 
-    if (provider) {
-      const registryProvider = await resolveProxyForScopeFromRegistry("provider", provider);
-      if (registryProvider?.proxy) return registryProvider;
+  // A connection-level Proxy Off is explicit: it must bypass every stored proxy
+  // source for this connection, including account, provider, global, and automatic
+  // fallback candidates from the proxy pool.
+  if (connectionRecord && !connectionProxyEnabled) {
+    const result: ProxyResolutionResult = { proxy: null, level: "direct", levelId: null };
+    cacheProxyResolution(cacheKey, startGeneration, startRegistryGeneration, result);
+    return result;
+  }
+
+  // Step 1.5: Check global perKeyProxyEnabled setting
+  let globalPerKeyProxyEnabled = false;
+  try {
+    const perKeyRow = db
+      .prepare(
+        "SELECT value FROM key_value WHERE namespace = 'settings' AND key = 'perKeyProxyEnabled'"
+      )
+      .get() as { value?: string } | undefined;
+    if (perKeyRow?.value) {
+      globalPerKeyProxyEnabled = JSON.parse(perKeyRow.value) !== false;
+    }
+  } catch {
+    // Default to false on read error
+  }
+
+  const config = await getProxyConfig();
+
+  // Step 2: API key-level proxy (only if per-key proxy is enabled globally or per-connection)
+  if (apiKeyId) {
+    // Check if per-key proxy is allowed: globally OR per-connection
+    const perKeyEnabled = globalPerKeyProxyEnabled || connectionPerKeyProxyEnabled;
+
+    if (perKeyEnabled) {
+      try {
+        const apiKeyRow = db.prepare("SELECT proxy_id FROM api_keys WHERE id = ?").get(apiKeyId) as
+          | { proxy_id?: string | null }
+          | undefined;
+        if (apiKeyRow?.proxy_id) {
+          const proxyRow = db
+            .prepare(
+              "SELECT p.type, p.host, p.port, p.username, p.password, p.family FROM proxy_registry p WHERE p.id = ?"
+            )
+            .get(apiKeyRow.proxy_id) as
+            | {
+                type: string;
+                host: string;
+                port: number;
+                username: string;
+                password: string;
+                family?: string;
+              }
+            | undefined;
+          if (proxyRow) {
+            const result = {
+              proxy: {
+                type: proxyRow.type,
+                host: proxyRow.host,
+                port: proxyRow.port,
+                username: proxyRow.username,
+                password: proxyRow.password,
+                family: typeof proxyRow.family === "string" ? proxyRow.family : "auto",
+              },
+              level: "apiKey" as const,
+              levelId: apiKeyId,
+              source: "api_key" as const,
+            };
+            cacheProxyResolution(cacheKey, startGeneration, startRegistryGeneration, result);
+            return result;
+          }
+        }
+      } catch {
+        // Fall through to existing resolution
+      }
+    }
+  }
+
+  // Step 3: Account-level registry
+  const registryAccount = await resolveProxyForScopeFromRegistry("account", connectionId);
+  if (registryAccount?.proxy) {
+    cacheProxyResolution(cacheKey, startGeneration, startRegistryGeneration, registryAccount);
+    return registryAccount;
+  }
+
+  // Step 4: Legacy key-level
+  if (connectionId && config.keys?.[connectionId]) {
+    const result = {
+      proxy: withFamilyDefault(config.keys[connectionId]),
+      level: "key",
+      levelId: connectionId,
+    };
+    cacheProxyResolution(cacheKey, startGeneration, startRegistryGeneration, result);
+    return result;
+  }
+
+  // Step 5: Use the connection's provider for provider/combo scoped proxies.
+  if (connectionRecord) {
+    // Step 6: Provider-level registry (only if proxy_enabled)
+    if (connectionProvider && connectionProxyEnabled) {
+      const registryProvider = await resolveProxyForScopeFromRegistry(
+        "provider",
+        connectionProvider
+      );
+      if (registryProvider?.proxy) {
+        cacheProxyResolution(cacheKey, startGeneration, startRegistryGeneration, registryProvider);
+        return registryProvider;
+      }
     }
 
-    if (config.combos && Object.keys(config.combos).length > 0) {
+    // Step 7: Legacy combo-level (only if proxy_enabled)
+    if (connectionProxyEnabled && config.combos && Object.keys(config.combos).length > 0) {
       const combos = db.prepare("SELECT id, data FROM combos").all();
       for (const comboRow of combos) {
         const comboRecord = toRecord(comboRow);
@@ -649,10 +803,16 @@ export async function resolveProxyForConnection(connectionId: string) {
             const combo = toRecord(JSON.parse(comboRaw));
             const comboModels = Array.isArray(combo.models) ? combo.models : [];
             const usesProvider = comboModels.some(
-              (entry) => getComboModelProvider(entry) === provider
+              (entry) => getComboModelProvider(entry) === connectionProvider
             );
             if (usesProvider) {
-              return { proxy: config.combos[comboId], level: "combo", levelId: comboId };
+              const result = {
+                proxy: withFamilyDefault(config.combos[comboId]),
+                level: "combo",
+                levelId: comboId,
+              };
+              cacheProxyResolution(cacheKey, startGeneration, startRegistryGeneration, result);
+              return result;
             }
           } catch {
             // Ignore malformed combo records during proxy resolution.
@@ -661,21 +821,57 @@ export async function resolveProxyForConnection(connectionId: string) {
       }
     }
 
-    if (provider && config.providers?.[provider]) {
-      return {
-        proxy: config.providers[provider],
+    // Step 8: Legacy provider-level (only if proxy_enabled)
+    if (connectionProvider && connectionProxyEnabled && config.providers?.[connectionProvider]) {
+      const result = {
+        proxy: withFamilyDefault(config.providers[connectionProvider]),
         level: "provider",
-        levelId: provider,
+        levelId: connectionProvider,
       };
+      cacheProxyResolution(cacheKey, startGeneration, startRegistryGeneration, result);
+      return result;
     }
   }
 
+  // Step 9: Global registry
   const registryGlobal = await resolveProxyForScopeFromRegistry("global");
-  if (registryGlobal?.proxy) return registryGlobal;
-
-  if (config.global) {
-    return { proxy: config.global, level: "global", levelId: null };
+  if (registryGlobal?.proxy) {
+    cacheProxyResolution(cacheKey, startGeneration, startRegistryGeneration, registryGlobal);
+    return registryGlobal;
   }
+
+  // Step 10: Legacy global
+  if (config.global) {
+    const result = { proxy: withFamilyDefault(config.global), level: "global", levelId: null };
+    cacheProxyResolution(cacheKey, startGeneration, startRegistryGeneration, result);
+    return result;
+  }
+
+  // Step 11: Auto-selection fallback (only when global proxy is enabled)
+  try {
+    const { selectWorkingProxyFallback } = await import("@omniroute/open-sse/utils/proxyFallback");
+    const fallback = await selectWorkingProxyFallback(connectionId);
+    if (fallback) {
+      // Auto-selected proxies are probed via a URL roundtrip that drops any
+      // per-registry family policy, so default the family marker to "auto"
+      // (no IPv6-only enforcement) when the fallback object omits it.
+      const normalizedFallback =
+        fallback.proxy && typeof fallback.proxy === "object"
+          ? { ...fallback, proxy: withFamilyDefault(fallback.proxy as ProxyValue) }
+          : fallback;
+      cacheProxyResolution(
+        cacheKey,
+        startGeneration,
+        startRegistryGeneration,
+        normalizedFallback as ProxyResolutionResult
+      );
+      return normalizedFallback;
+    }
+  } catch (err) {
+    console.warn({ err, connectionId }, "Proxy fallback auto-selection failed");
+  }
+
+  // Step 12: Return direct
   return { proxy: null, level: "direct", levelId: null };
 }
 

@@ -58,6 +58,18 @@ test("settings schemas accept wsAuth toggle", () => {
   assert.equal(sharedParsed.wsAuth, false);
 });
 
+test("settings schemas accept Claude Code unprefixed model routing toggle", () => {
+  const routeParsed = settingsRouteSchema.parse({
+    preferClaudeCodeForUnprefixedClaudeModels: true,
+  });
+  const sharedParsed = sharedSettingsSchema.parse({
+    preferClaudeCodeForUnprefixedClaudeModels: false,
+  });
+
+  assert.equal(routeParsed.preferClaudeCodeForUnprefixedClaudeModels, true);
+  assert.equal(sharedParsed.preferClaudeCodeForUnprefixedClaudeModels, false);
+});
+
 test("settings schemas accept combo configuration modes", () => {
   const routeParsed = settingsRouteSchema.parse({ comboConfigMode: "expert" });
   const sharedParsed = sharedSettingsSchema.parse({ comboConfigMode: "guided" });

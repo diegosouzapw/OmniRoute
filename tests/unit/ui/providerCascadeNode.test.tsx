@@ -1,0 +1,184 @@
+// @vitest-environment jsdom
+import React, { act } from "react";
+import { createRoot } from "react-dom/client";
+import { describe, it, expect, beforeAll, beforeEach, afterEach, vi } from "vitest";
+
+// ── Polyfill ResizeObserver (required by ReactFlow) ───────────────────────
+
+beforeAll(() => {
+  globalThis.ResizeObserver = class {
+    observe() {}
+    unobserve() {}
+    disconnect() {}
+  } as unknown as typeof ResizeObserver;
+});
+
+// ── Mocks ─────────────────────────────────────────────────────────────────
+
+// Stub @xyflow/react so ReactFlow renders without canvas/DOM measurement APIs
+vi.mock("@xyflow/react", async () => {
+  const actual = (await vi.importActual("@xyflow/react")) as Record<string, unknown>;
+  return {
+    ...actual,
+    Handle: (_props: Record<string, unknown>) => null,
+    Position: { Left: "left", Right: "right", Top: "top", Bottom: "bottom" },
+  };
+});
+
+// Stub next/image to avoid Next.js internals in jsdom
+vi.mock("next/image", () => ({
+  default: (props: Record<string, unknown>) =>
+    React.createElement("img", { src: props.src as string, alt: props.alt as string }),
+}));
+
+// ── Import after mocks ─────────────────────────────────────────────────────
+
+const { ProviderCascadeNode } =
+  await import("@/app/(dashboard)/dashboard/combos/live/nodes/ProviderCascadeNode");
+
+// ── Helpers ───────────────────────────────────────────────────────────────
+
+const containers: HTMLElement[] = [];
+
+function mount(ui: React.ReactElement): HTMLElement {
+  const container = document.createElement("div");
+  document.body.appendChild(container);
+  containers.push(container);
+  const root = createRoot(container);
+  act(() => {
+    root.render(ui);
+  });
+  return container;
+}
+
+beforeEach(() => {
+  (
+    globalThis as typeof globalThis & { IS_REACT_ACT_ENVIRONMENT?: boolean }
+  ).IS_REACT_ACT_ENVIRONMENT = true;
+});
+
+afterEach(() => {
+  while (containers.length > 0) {
+    containers.pop()?.remove();
+  }
+  document.body.innerHTML = "";
+});
+
+// ── Helper: build NodeProps-compatible data ───────────────────────────────
+
+function makeNodeProps(overrides: Record<string, unknown>) {
+  return {
+    id: "test-node",
+    type: "target",
+    selected: false,
+    selectable: true,
+    deletable: true,
+    draggable: true,
+    isConnectable: true,
+    zIndex: 0,
+    xPos: 0,
+    yPos: 0,
+    dragging: false,
+    data: {
+      label: "openai/gpt-4o",
+      provider: "openai",
+      model: "gpt-4o",
+      state: "idle",
+      targetIndex: 0,
+      ...overrides,
+    },
+  } as unknown as Parameters<typeof ProviderCascadeNode>[0];
+}
+
+// ── Tests ─────────────────────────────────────────────────────────────────
+
+describe("ProviderCascadeNode", () => {
+  it("renders the provider name in idle state", () => {
+    const container = mount(<ProviderCascadeNode {...makeNodeProps({ state: "idle" })} />);
+    expect(container.querySelector("[data-testid='provider-name']")?.textContent).toBe("openai");
+  });
+
+  it("renders the model name", () => {
+    const container = mount(<ProviderCascadeNode {...makeNodeProps({ state: "idle" })} />);
+    expect(container.querySelector("[data-testid='model-name']")?.textContent).toBe("gpt-4o");
+  });
+
+  it("renders the node wrapper in any state", () => {
+    const container = mount(<ProviderCascadeNode {...makeNodeProps({ state: "succeeded" })} />);
+    expect(container.querySelector("[data-testid='provider-cascade-node-0']")).toBeTruthy();
+  });
+
+  it("shows the failKind badge when state is failed and failKind is set", () => {
+    const container = mount(
+      <ProviderCascadeNode
+        {...makeNodeProps({ state: "failed", failKind: "rate-limit", error: "429 rate limit" })}
+      />
+    );
+    const badge = container.querySelector("[data-testid='fail-kind-badge']");
+    expect(badge).toBeTruthy();
+    expect(badge?.textContent).toContain("rate-limit");
+  });
+
+  it("shows circuit-open badge for circuit-open failKind", () => {
+    const container = mount(
+      <ProviderCascadeNode
+        {...makeNodeProps({
+          state: "failed",
+          failKind: "circuit-open",
+          error: "circuit open",
+        })}
+      />
+    );
+    const badge = container.querySelector("[data-testid='fail-kind-badge']");
+    expect(badge).toBeTruthy();
+    expect(badge?.textContent).toContain("circuit-open");
+  });
+
+  it("shows cooldown badge for cooldown failKind", () => {
+    const container = mount(
+      <ProviderCascadeNode
+        {...makeNodeProps({ state: "failed", failKind: "cooldown", error: "cooldown" })}
+      />
+    );
+    const badge = container.querySelector("[data-testid='fail-kind-badge']");
+    expect(badge?.textContent).toContain("cooldown");
+  });
+
+  it("does NOT show failKind badge in succeeded state", () => {
+    const container = mount(
+      <ProviderCascadeNode {...makeNodeProps({ state: "succeeded", failKind: "rate-limit" })} />
+    );
+    expect(container.querySelector("[data-testid='fail-kind-badge']")).toBeNull();
+  });
+
+  it("does NOT show failKind badge in attempting state", () => {
+    const container = mount(<ProviderCascadeNode {...makeNodeProps({ state: "attempting" })} />);
+    expect(container.querySelector("[data-testid='fail-kind-badge']")).toBeNull();
+  });
+
+  it("does NOT show failKind badge when state is failed but failKind is absent", () => {
+    const container = mount(
+      <ProviderCascadeNode {...makeNodeProps({ state: "failed", error: "some error" })} />
+    );
+    expect(container.querySelector("[data-testid='fail-kind-badge']")).toBeNull();
+  });
+
+  it("renders latency when provided", () => {
+    const container = mount(
+      <ProviderCascadeNode {...makeNodeProps({ state: "succeeded", latencyMs: 320 })} />
+    );
+    expect(container.textContent).toContain("320ms");
+  });
+
+  it("renders a different provider correctly", () => {
+    const container = mount(
+      <ProviderCascadeNode
+        {...makeNodeProps({ provider: "anthropic", model: "claude-3-opus", state: "idle" })}
+      />
+    );
+    expect(container.querySelector("[data-testid='provider-name']")?.textContent).toBe("anthropic");
+    expect(container.querySelector("[data-testid='model-name']")?.textContent).toBe(
+      "claude-3-opus"
+    );
+  });
+});

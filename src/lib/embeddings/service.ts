@@ -13,6 +13,7 @@ import { toJsonErrorPayload } from "@/shared/utils/upstreamError";
 import { getProviderCredentials, clearRecoveredProviderState } from "@/sse/services/auth";
 import { getProviderNodes, getComboByName, getCombos, getDatabaseSettings } from "@/lib/localDb";
 import { handleComboChat } from "@omniroute/open-sse/services/combo.ts";
+import { findEmbeddingComboDimensionConflict } from "./familyGuard";
 
 type ValidatedEmbeddingBody = Record<string, unknown> & { model: string };
 type ProviderCredentialsResult = Awaited<ReturnType<typeof getProviderCredentials>>;
@@ -42,6 +43,24 @@ export async function createEmbeddingResponse(
         try {
           allCombos = await getCombos();
         } catch {}
+
+        // Guard: an embedding combo whose targets span multiple vector
+        // dimensions would corrupt any vector store on failover (vectors from
+        // different models are not comparable). The generic combo engine has no
+        // notion of embedding families, so reject loudly here before dispatch.
+        // See _tasks/features-v3.8.12/01-embeddings-combo-family-guard.plan.md.
+        const dimConflict = findEmbeddingComboDimensionConflict(
+          combo as any,
+          allCombos as any
+        );
+        if (dimConflict.conflict) {
+          return errorResponse(
+            HTTP_STATUS.BAD_REQUEST,
+            `Embedding combo "${modelStr}" mixes models with incompatible vector ` +
+              `dimensions (${dimConflict.distinct.join(", ")}). Failover between them ` +
+              `would corrupt your vector store — use a single embedding dimension per combo.`
+          );
+        }
 
         let settings = {};
         try {

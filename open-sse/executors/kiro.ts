@@ -169,6 +169,37 @@ function ensureKiroUsage(state: KiroStreamState) {
 }
 
 /**
+ * Resolve the AWS region for a Kiro/CodeWhisperer connection. Enterprise AWS IAM Identity
+ * Center accounts are region-bound: the access token, the Q Developer profile ARN and the
+ * runtime endpoint must all match the region the IdC instance lives in (e.g. eu-central-1).
+ * A request signed for one region is rejected by another ("bearer token is invalid"), and a
+ * regional profileArn sent to us-east-1 fails with "Improperly formed request". Falls back to
+ * the region embedded in the profileArn, then us-east-1 (the AWS Builder ID default).
+ */
+export function resolveKiroRegion(
+  credentials: { providerSpecificData?: unknown } | null | undefined
+): string {
+  const psd = (credentials?.providerSpecificData || {}) as Record<string, unknown>;
+  const region = typeof psd.region === "string" ? psd.region.trim().toLowerCase() : "";
+  if (region) return region;
+  const arn = typeof psd.profileArn === "string" ? psd.profileArn.toLowerCase() : "";
+  const match = arn.match(/^arn:aws:codewhisperer:([a-z0-9-]+):/);
+  return match ? match[1] : "us-east-1";
+}
+
+/**
+ * CodeWhisperer/Amazon Q runtime host for a region. us-east-1 keeps the legacy
+ * codewhisperer.us-east-1 host (AWS Builder ID); other regions use the regional Amazon Q
+ * endpoint q.{region}.amazonaws.com — codewhisperer.{region}.amazonaws.com does not resolve
+ * for non-us-east-1 regions.
+ */
+export function kiroRuntimeHost(region: string): string {
+  return region === "us-east-1"
+    ? "https://codewhisperer.us-east-1.amazonaws.com"
+    : `https://q.${region}.amazonaws.com`;
+}
+
+/**
  * KiroExecutor - Executor for Kiro AI (AWS CodeWhisperer)
  * Uses AWS CodeWhisperer streaming API with AWS EventStream binary format
  */
@@ -228,7 +259,11 @@ export class KiroExecutor extends BaseExecutor {
     log,
     upstreamExtraHeaders,
   }: ExecuteInput) {
-    const url = this.buildUrl(model, stream, 0);
+    // Route to the region-specific CodeWhisperer/Amazon Q endpoint. Enterprise IAM Identity
+    // Center accounts (e.g. eu-central-1) are rejected by the default us-east-1 host; only the
+    // regional endpoint accepts the region-bound token + profileArn.
+    const region = resolveKiroRegion(credentials);
+    const url = `${kiroRuntimeHost(region)}/generateAssistantResponse`;
     const headers = this.buildHeaders(credentials, stream);
     mergeUpstreamExtraHeaders(headers, upstreamExtraHeaders);
     const transformedBody = await this.transformRequest(model, body, stream, credentials);
@@ -269,245 +304,252 @@ export class KiroExecutor extends BaseExecutor {
       seenToolIds: new Map(),
     };
 
-    const transformStream = new TransformStream({
-      async transform(chunk, controller) {
-        buffer.push(chunk);
+    const transformStream = new TransformStream(
+      {
+        async transform(chunk, controller) {
+          buffer.push(chunk);
 
-        // Parse events from buffer
-        let iterations = 0;
-        const maxIterations = 1000;
-        while (buffer.length >= 16 && iterations < maxIterations) {
-          iterations++;
-          const totalLength = buffer.peekUint32BE(0);
+          // Parse events from buffer
+          let iterations = 0;
+          const maxIterations = 1000;
+          while (buffer.length >= 16 && iterations < maxIterations) {
+            iterations++;
+            const totalLength = buffer.peekUint32BE(0);
 
-          if (!totalLength || totalLength < 16 || totalLength > buffer.length) break;
+            if (!totalLength || totalLength < 16 || totalLength > buffer.length) break;
 
-          const eventData = buffer.read(totalLength);
-          if (!eventData) break;
+            const eventData = buffer.read(totalLength);
+            if (!eventData) break;
 
-          const event = parseEventFrame(eventData);
-          if (!event) continue;
+            const event = parseEventFrame(eventData);
+            if (!event) continue;
 
-          const eventType = event.headers[":event-type"] || "";
+            const eventType = event.headers[":event-type"] || "";
 
-          // Track total content length for token estimation
-          if (!state.totalContentLength) state.totalContentLength = 0;
-          if (!state.contextUsagePercentage) state.contextUsagePercentage = 0;
+            // Track total content length for token estimation
+            if (!state.totalContentLength) state.totalContentLength = 0;
+            if (!state.contextUsagePercentage) state.contextUsagePercentage = 0;
 
-          // Handle assistantResponseEvent
-          if (eventType === "assistantResponseEvent") {
-            const content = typeof event.payload?.content === "string" ? event.payload.content : "";
-            if (!content) {
-              continue;
-            }
-            state.totalContentLength += content.length;
-
-            const chunk: JsonRecord = {
-              id: responseId,
-              object: "chat.completion.chunk",
-              created,
-              model,
-              choices: [
-                {
-                  index: 0,
-                  delta: chunkIndex === 0 ? { role: "assistant", content } : { content },
-                  finish_reason: null,
-                },
-              ],
-            };
-            chunkIndex++;
-            controller.enqueue(TEXT_ENCODER.encode(`data: ${JSON.stringify(chunk)}\n\n`));
-          }
-
-          // Handle codeEvent
-          if (eventType === "codeEvent" && event.payload?.content) {
-            const chunk: JsonRecord = {
-              id: responseId,
-              object: "chat.completion.chunk",
-              created,
-              model,
-              choices: [
-                {
-                  index: 0,
-                  delta: { content: event.payload.content },
-                  finish_reason: null,
-                },
-              ],
-            };
-            chunkIndex++;
-            controller.enqueue(TEXT_ENCODER.encode(`data: ${JSON.stringify(chunk)}\n\n`));
-          }
-
-          // Handle toolUseEvent
-          if (eventType === "toolUseEvent" && event.payload) {
-            state.hasToolCalls = true;
-            const toolUse = event.payload;
-            const toolUses = Array.isArray(toolUse) ? toolUse : [toolUse];
-
-            for (const singleToolUse of toolUses) {
-              const toolCallId = singleToolUse.toolUseId || `call_${Date.now()}`;
-              const toolName = singleToolUse.name || "";
-              const toolInput = singleToolUse.input;
-
-              let toolIndex;
-              const isNewTool = !state.seenToolIds.has(toolCallId);
-
-              if (isNewTool) {
-                toolIndex = state.toolCallIndex++;
-                state.seenToolIds.set(toolCallId, toolIndex);
-
-                const startChunk = {
-                  id: responseId,
-                  object: "chat.completion.chunk",
-                  created,
-                  model,
-                  choices: [
-                    {
-                      index: 0,
-                      delta: {
-                        ...(chunkIndex === 0 ? { role: "assistant" } : {}),
-                        tool_calls: [
-                          {
-                            index: toolIndex,
-                            id: toolCallId,
-                            type: "function",
-                            function: {
-                              name: toolName,
-                              arguments: "",
-                            },
-                          },
-                        ],
-                      },
-                      finish_reason: null,
-                    },
-                  ],
-                };
-                chunkIndex++;
-                controller.enqueue(TEXT_ENCODER.encode(`data: ${JSON.stringify(startChunk)}\n\n`));
-              } else {
-                toolIndex = state.seenToolIds.get(toolCallId);
+            // Handle assistantResponseEvent
+            if (eventType === "assistantResponseEvent") {
+              const content =
+                typeof event.payload?.content === "string" ? event.payload.content : "";
+              if (!content) {
+                continue;
               }
+              state.totalContentLength += content.length;
 
-              if (toolInput !== undefined) {
-                let argumentsStr;
+              const chunk: JsonRecord = {
+                id: responseId,
+                object: "chat.completion.chunk",
+                created,
+                model,
+                choices: [
+                  {
+                    index: 0,
+                    delta: chunkIndex === 0 ? { role: "assistant", content } : { content },
+                    finish_reason: null,
+                  },
+                ],
+              };
+              chunkIndex++;
+              controller.enqueue(TEXT_ENCODER.encode(`data: ${JSON.stringify(chunk)}\n\n`));
+            }
 
-                if (typeof toolInput === "string") {
-                  argumentsStr = toolInput;
-                } else if (typeof toolInput === "object") {
-                  argumentsStr = JSON.stringify(toolInput);
+            // Handle codeEvent
+            if (eventType === "codeEvent" && event.payload?.content) {
+              const chunk: JsonRecord = {
+                id: responseId,
+                object: "chat.completion.chunk",
+                created,
+                model,
+                choices: [
+                  {
+                    index: 0,
+                    delta: { content: event.payload.content },
+                    finish_reason: null,
+                  },
+                ],
+              };
+              chunkIndex++;
+              controller.enqueue(TEXT_ENCODER.encode(`data: ${JSON.stringify(chunk)}\n\n`));
+            }
+
+            // Handle toolUseEvent
+            if (eventType === "toolUseEvent" && event.payload) {
+              state.hasToolCalls = true;
+              const toolUse = event.payload;
+              const toolUses = Array.isArray(toolUse) ? toolUse : [toolUse];
+
+              for (const singleToolUse of toolUses) {
+                const toolCallId = singleToolUse.toolUseId || `call_${Date.now()}`;
+                const toolName = singleToolUse.name || "";
+                const toolInput = singleToolUse.input;
+
+                let toolIndex;
+                const isNewTool = !state.seenToolIds.has(toolCallId);
+
+                if (isNewTool) {
+                  toolIndex = state.toolCallIndex++;
+                  state.seenToolIds.set(toolCallId, toolIndex);
+
+                  const startChunk = {
+                    id: responseId,
+                    object: "chat.completion.chunk",
+                    created,
+                    model,
+                    choices: [
+                      {
+                        index: 0,
+                        delta: {
+                          ...(chunkIndex === 0 ? { role: "assistant" } : {}),
+                          tool_calls: [
+                            {
+                              index: toolIndex,
+                              id: toolCallId,
+                              type: "function",
+                              function: {
+                                name: toolName,
+                                arguments: "",
+                              },
+                            },
+                          ],
+                        },
+                        finish_reason: null,
+                      },
+                    ],
+                  };
+                  chunkIndex++;
+                  controller.enqueue(
+                    TEXT_ENCODER.encode(`data: ${JSON.stringify(startChunk)}\n\n`)
+                  );
                 } else {
-                  continue;
+                  toolIndex = state.seenToolIds.get(toolCallId);
                 }
 
-                const argsChunk = {
-                  id: responseId,
-                  object: "chat.completion.chunk",
-                  created,
-                  model,
-                  choices: [
-                    {
-                      index: 0,
-                      delta: {
-                        tool_calls: [
-                          {
-                            index: toolIndex,
-                            function: {
-                              arguments: argumentsStr,
+                if (toolInput !== undefined) {
+                  let argumentsStr;
+
+                  if (typeof toolInput === "string") {
+                    argumentsStr = toolInput;
+                  } else if (typeof toolInput === "object") {
+                    argumentsStr = JSON.stringify(toolInput);
+                  } else {
+                    continue;
+                  }
+
+                  const argsChunk = {
+                    id: responseId,
+                    object: "chat.completion.chunk",
+                    created,
+                    model,
+                    choices: [
+                      {
+                        index: 0,
+                        delta: {
+                          tool_calls: [
+                            {
+                              index: toolIndex,
+                              function: {
+                                arguments: argumentsStr,
+                              },
                             },
-                          },
-                        ],
+                          ],
+                        },
+                        finish_reason: null,
                       },
-                      finish_reason: null,
-                    },
-                  ],
-                };
-                chunkIndex++;
-                controller.enqueue(TEXT_ENCODER.encode(`data: ${JSON.stringify(argsChunk)}\n\n`));
+                    ],
+                  };
+                  chunkIndex++;
+                  controller.enqueue(TEXT_ENCODER.encode(`data: ${JSON.stringify(argsChunk)}\n\n`));
+                }
+              }
+            }
+
+            // Handle messageStopEvent
+            if (eventType === "messageStopEvent") {
+              state.stopSeen = true;
+            }
+
+            // Handle contextUsageEvent to extract contextUsagePercentage
+            if (eventType === "contextUsageEvent") {
+              const contextUsage =
+                typeof event.payload?.contextUsagePercentage === "number"
+                  ? event.payload.contextUsagePercentage
+                  : 0;
+              if (contextUsage <= 0) {
+                continue;
+              }
+              state.contextUsagePercentage = contextUsage;
+              // Mark that we received context usage event
+              state.hasContextUsage = true;
+            }
+
+            // Handle meteringEvent - mark that we received it
+            if (eventType === "meteringEvent") {
+              state.hasMeteringEvent = true;
+            }
+
+            // Handle metricsEvent for token usage
+            if (eventType === "metricsEvent") {
+              // Extract usage data from metricsEvent payload
+              const metrics = event.payload?.metricsEvent || event.payload;
+              if (metrics && typeof metrics === "object") {
+                const inputTokens =
+                  typeof (metrics as JsonRecord).inputTokens === "number"
+                    ? ((metrics as JsonRecord).inputTokens as number)
+                    : 0;
+                const outputTokens =
+                  typeof (metrics as JsonRecord).outputTokens === "number"
+                    ? ((metrics as JsonRecord).outputTokens as number)
+                    : 0;
+
+                const cacheReadTokens =
+                  typeof (metrics as JsonRecord).cacheReadTokens === "number"
+                    ? ((metrics as JsonRecord).cacheReadTokens as number)
+                    : 0;
+
+                const cacheCreationTokens =
+                  typeof (metrics as JsonRecord).cacheCreationTokens === "number"
+                    ? ((metrics as JsonRecord).cacheCreationTokens as number)
+                    : 0;
+
+                if (inputTokens > 0 || outputTokens > 0) {
+                  state.usage = {
+                    prompt_tokens: inputTokens,
+                    completion_tokens: outputTokens,
+                    total_tokens: inputTokens + outputTokens,
+                    ...(cacheReadTokens > 0 && { cache_read_input_tokens: cacheReadTokens }),
+                    ...(cacheCreationTokens > 0 && {
+                      cache_creation_input_tokens: cacheCreationTokens,
+                    }),
+                  };
+                }
               }
             }
           }
 
-          // Handle messageStopEvent
-          if (eventType === "messageStopEvent") {
-            state.stopSeen = true;
+          if (iterations >= maxIterations) {
+            console.warn("[Kiro] Max iterations reached in event parsing");
+          }
+        },
+
+        flush(controller) {
+          // Emit finish chunk if not already sent
+          if (!state.finishEmitted) {
+            state.finishEmitted = true;
+            ensureKiroUsage(state);
+            const finishChunk = buildKiroFinishChunk(state, responseId, created, model, true);
+            controller.enqueue(TEXT_ENCODER.encode(`data: ${JSON.stringify(finishChunk)}\n\n`));
           }
 
-          // Handle contextUsageEvent to extract contextUsagePercentage
-          if (eventType === "contextUsageEvent") {
-            const contextUsage =
-              typeof event.payload?.contextUsagePercentage === "number"
-                ? event.payload.contextUsagePercentage
-                : 0;
-            if (contextUsage <= 0) {
-              continue;
-            }
-            state.contextUsagePercentage = contextUsage;
-            // Mark that we received context usage event
-            state.hasContextUsage = true;
-          }
-
-          // Handle meteringEvent - mark that we received it
-          if (eventType === "meteringEvent") {
-            state.hasMeteringEvent = true;
-          }
-
-          // Handle metricsEvent for token usage
-          if (eventType === "metricsEvent") {
-            // Extract usage data from metricsEvent payload
-            const metrics = event.payload?.metricsEvent || event.payload;
-            if (metrics && typeof metrics === "object") {
-              const inputTokens =
-                typeof (metrics as JsonRecord).inputTokens === "number"
-                  ? ((metrics as JsonRecord).inputTokens as number)
-                  : 0;
-              const outputTokens =
-                typeof (metrics as JsonRecord).outputTokens === "number"
-                  ? ((metrics as JsonRecord).outputTokens as number)
-                  : 0;
-
-              const cacheReadTokens =
-                typeof (metrics as JsonRecord).cacheReadTokens === "number"
-                  ? ((metrics as JsonRecord).cacheReadTokens as number)
-                  : 0;
-
-              const cacheCreationTokens =
-                typeof (metrics as JsonRecord).cacheCreationTokens === "number"
-                  ? ((metrics as JsonRecord).cacheCreationTokens as number)
-                  : 0;
-
-              if (inputTokens > 0 || outputTokens > 0) {
-                state.usage = {
-                  prompt_tokens: inputTokens,
-                  completion_tokens: outputTokens,
-                  total_tokens: inputTokens + outputTokens,
-                  ...(cacheReadTokens > 0 && { cache_read_input_tokens: cacheReadTokens }),
-                  ...(cacheCreationTokens > 0 && {
-                    cache_creation_input_tokens: cacheCreationTokens,
-                  }),
-                };
-              }
-            }
-          }
-        }
-
-        if (iterations >= maxIterations) {
-          console.warn("[Kiro] Max iterations reached in event parsing");
-        }
+          // Send final done message
+          controller.enqueue(TEXT_ENCODER.encode("data: [DONE]\n\n"));
+        },
       },
-
-      flush(controller) {
-        // Emit finish chunk if not already sent
-        if (!state.finishEmitted) {
-          state.finishEmitted = true;
-          ensureKiroUsage(state);
-          const finishChunk = buildKiroFinishChunk(state, responseId, created, model, true);
-          controller.enqueue(TEXT_ENCODER.encode(`data: ${JSON.stringify(finishChunk)}\n\n`));
-        }
-
-        // Send final done message
-        controller.enqueue(TEXT_ENCODER.encode("data: [DONE]\n\n"));
-      },
-    });
+      { highWaterMark: 16384 },
+      { highWaterMark: 16384 }
+    );
 
     // Pipe response body through transform stream
     const transformedStream = response.body.pipeThrough(transformStream);

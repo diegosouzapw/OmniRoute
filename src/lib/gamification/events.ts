@@ -115,9 +115,11 @@ function getXpForAction(action: string): number {
  * Check and unlock a specific badge.
  */
 async function checkAndUnlockBadge(apiKeyId: string, badgeId: string): Promise<void> {
-  const { unlockBadge, getBadges } = await import("../db/gamification");
-  const earned = getBadges(apiKeyId);
-  if (!earned.some((b) => b.badgeId === badgeId)) {
+  const { unlockBadge, hasBadge } = await import("../db/gamification");
+  // #3472: dedup via user_badges directly. getBadges() INNER-JOINs badge_definitions, which is
+  // empty until seeded, so it falsely reported "not earned" and re-emitted the unlock event on
+  // every request.
+  if (!hasBadge(apiKeyId, badgeId)) {
     unlockBadge(apiKeyId, badgeId);
     log.info("events.badge_unlocked", { apiKeyId, badgeId });
 

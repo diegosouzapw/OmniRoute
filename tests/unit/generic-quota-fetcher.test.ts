@@ -76,12 +76,13 @@ test("convertUsageToQuotaInfo clamps remainingPercentage outside 0-100", () => {
   assert.equal(result!.windows!.b.percentUsed, 1);
 });
 
-test("registerGenericQuotaFetchers registers Claude and GLM via the generic adapter", () => {
+test("registerGenericQuotaFetchers registers Claude, GLM, and OpenCode Go via the generic adapter", () => {
   registerGenericQuotaFetchers();
   // Claude has no bespoke fetcher → should be registered.
   assert.ok(getQuotaFetcher("claude"), "claude should be registered");
   assert.ok(getQuotaFetcher("glm"), "glm should be registered");
   assert.ok(getQuotaFetcher("zai"), "zai should be registered");
+  assert.ok(getQuotaFetcher("opencode-go"), "opencode-go should be registered");
   // Codex has its own dedicated fetcher (registered by codexQuotaFetcher.ts,
   // not by the generic registrar) — the generic registrar skips it. We can't
   // assert "codex" here without first calling registerCodexQuotaFetcher,

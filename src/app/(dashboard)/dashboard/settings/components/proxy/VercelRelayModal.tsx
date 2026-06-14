@@ -20,7 +20,7 @@ export default function VercelRelayModal({ isOpen, onClose, onDeployed }: Vercel
 
   const handleDeploy = async () => {
     if (!token.trim()) {
-      setError("Token is required");
+      setError(t("vercelRelayTokenRequired"));
       return;
     }
     setDeploying(true);
@@ -33,14 +33,14 @@ export default function VercelRelayModal({ isOpen, onClose, onDeployed }: Vercel
       });
       const data = await res.json();
       if (!res.ok || !data.success) {
-        setError(data.error?.message || "Deploy failed");
+        setError(data.error?.message || t("vercelRelayDeployFailed"));
       } else {
         setToken("");
         onDeployed(data.poolProxyId as string, data.relayUrl as string);
         onClose();
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Unknown error");
+      setError(err instanceof Error ? err.message : t("unknownError"));
     } finally {
       setDeploying(false);
     }
@@ -63,7 +63,7 @@ export default function VercelRelayModal({ isOpen, onClose, onDeployed }: Vercel
             </span>
             {t("vercelRelayModalTitle")}
           </h2>
-          <button onClick={onClose} aria-label="Close" className="text-text-muted hover:text-text">
+          <button onClick={onClose} aria-label={t("close")} className="text-text-muted hover:text-text">
             <span className="material-symbols-outlined" aria-hidden="true">
               close
             </span>
@@ -89,7 +89,7 @@ export default function VercelRelayModal({ isOpen, onClose, onDeployed }: Vercel
               autoComplete="off"
             />
             <p className="text-xs text-text-muted mt-1">
-              Token is used only during deploy — never stored.
+              {t("vercelRelayTokenHint")}
             </p>
           </div>
           <div>
@@ -117,7 +117,7 @@ export default function VercelRelayModal({ isOpen, onClose, onDeployed }: Vercel
 
         <div className="flex justify-end gap-2 pt-2">
           <Button variant="secondary" size="sm" onClick={onClose} disabled={deploying}>
-            Cancel
+            {t("cancel")}
           </Button>
           <Button variant="primary" size="sm" onClick={handleDeploy} disabled={deploying}>
             {deploying ? t("vercelRelayDeploying") : t("vercelRelayDeploy")}

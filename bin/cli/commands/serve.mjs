@@ -10,7 +10,13 @@ import { isTermux } from "../../../scripts/build/postinstallSupport.mjs";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const ROOT = join(__dirname, "..", "..", "..");
-const APP_DIR = join(ROOT, "app");
+// The standalone bundle ships in `dist/` (since the build-output-isolation
+// refactor). Fall back to the legacy `app/` location so an upgrade over a
+// partially-replaced install — or a package built before the rename — still
+// boots. Backward-compatible by design: every deployed runtime keeps its path.
+const APP_DIR = existsSync(join(ROOT, "dist", "server.js"))
+  ? join(ROOT, "dist")
+  : join(ROOT, "app");
 
 function parsePort(value, fallback) {
   const parsed = parseInt(String(value), 10);
@@ -21,7 +27,7 @@ export function registerServe(program) {
   program
     .command("serve", { isDefault: true })
     .description(t("serve.description"))
-    .option("--port <port>", t("serve.port"), "20128")
+    .option("--port <port>", t("serve.port"))
     .option("--no-open", t("serve.no_open"))
     .option("--daemon", t("serve.daemon"))
     .option("--log", t("serve.log"))
@@ -62,7 +68,8 @@ export async function runServe(opts = {}) {
 
      Supported secure runtimes: ${nodeSupport.supportedDisplay}
      Recommended: use Node.js ${nodeSupport.recommendedVersion} or newer on the 22.x LTS line.
-     Workaround:  npm rebuild better-sqlite3\x1b[0m
+     Workaround:  npm rebuild better-sqlite3
+     Or run:      omniroute runtime repair  (rebuilds into a user-writable runtime; works without a C++ toolchain)\x1b[0m
 `);
   }
 
@@ -107,6 +114,10 @@ export async function runServe(opts = {}) {
       "\x1b[31m✖ better-sqlite3 native module is incompatible with this platform.\x1b[0m"
     );
     console.error(`  Run: cd ${APP_DIR} && npm rebuild better-sqlite3`);
+    console.error(
+      "  Or run: \x1b[36momniroute runtime repair\x1b[0m" +
+        "  (rebuilds into a user-writable runtime; works without a C++ toolchain)"
+    );
     if (platform() === "darwin") {
       console.error("  If build tools are missing: xcode-select --install");
     }

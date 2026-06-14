@@ -4,11 +4,14 @@ import { getRuntimePorts } from "@/lib/runtime/ports";
 import { updateSettingsSchema } from "@/shared/validation/settingsSchemas";
 import { isValidationFailure, validateBody } from "@/shared/validation/helpers";
 import { getConsistentMachineId } from "@/shared/utils/machineId";
+import { resolveModelLockoutSettings } from "@/lib/resilience/modelLockoutSettings";
 import {
   validateProxyUrl,
   upsertUpstreamProxyConfig,
   getUpstreamProxyConfig,
 } from "@/lib/db/upstreamProxy";
+import { getProviderConnections } from "@/lib/db/providers";
+import { clearCliproxyapiUrlCache } from "@omniroute/open-sse/executors/cliproxyapi.ts";
 import {
   ensurePersistentManagementPasswordHash,
   getStoredManagementPassword,
@@ -218,6 +221,14 @@ export async function PATCH(request: Request) {
     }
     const body: typeof validation.data & { password?: string } = { ...validation.data };
 
+    // Sanitize model lockout settings: clamp values to valid bounds so that
+    // stale DB values or hand-crafted requests don't bypass range validation.
+    if (body.modelLockout) {
+      body.modelLockout = resolveModelLockoutSettings({
+        modelLockout: body.modelLockout as Record<string, unknown>,
+      }) as typeof body.modelLockout;
+    }
+
     // Security-impacting gate (T-011, spec AC-4 / AC-5). Computed from the
     // VALIDATED body so we never trip on stray unknown keys. If any security
     // key is present, require currentPassword + verify against the stored
@@ -295,6 +306,8 @@ export async function PATCH(request: Request) {
           { status: 400 }
         );
       }
+      // Invalidate the executor's URL cache so it picks up the new URL immediately
+      clearCliproxyapiUrlCache();
     }
 
     const cpaModelMapping = rawBody.cliproxyapi_model_mapping as Record<string, string> | undefined;
@@ -303,6 +316,34 @@ export async function PATCH(request: Request) {
       const enabled =
         cpaFallback ?? (settings as Record<string, unknown>).cliproxyapi_fallback_enabled;
       const mode = enabled ? "fallback" : "native";
+
+      // Get all distinct active provider IDs so each one gets its own
+      // upstream_proxy_config row. chatCore reads per-provider config
+      // (e.g. getUpstreamProxyConfig("anthropic")), not a single global row.
+      // Embedded service IDs are not real routing targets and must be skipped.
+      const EMBEDDED_SERVICE_IDS = new Set(["cliproxyapi", "9router"]);
+      const activeConnections = await getProviderConnections({ isActive: true });
+      const activeProviderIds = [
+        ...new Set(
+          activeConnections
+            .map((c: Record<string, unknown>) => c.provider as string)
+            .filter((id: string) => !EMBEDDED_SERVICE_IDS.has(id))
+        ),
+      ];
+
+      for (const providerId of activeProviderIds) {
+        await upsertUpstreamProxyConfig({
+          providerId,
+          mode,
+          enabled: !!enabled,
+          ...(cpaModelMapping !== undefined ? { cliproxyapiModelMapping: cpaModelMapping } : {}),
+        });
+      }
+
+      // Update the "cliproxyapi" sentinel row used by GET /api/settings to
+      // retrieve cliproxyapi_model_mapping. This row is NOT used for routing
+      // (chatCore reads per-real-provider rows above); it exists solely as
+      // storage for the global model-mapping blob.
       await upsertUpstreamProxyConfig({
         providerId: "cliproxyapi",
         mode,

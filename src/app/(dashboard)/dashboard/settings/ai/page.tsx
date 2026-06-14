@@ -4,6 +4,7 @@ import { useTranslations } from "next-intl";
 import ThinkingBudgetTab from "../components/ThinkingBudgetTab";
 import VisionBridgeSettingsTab from "../components/VisionBridgeSettingsTab";
 import SystemPromptTab from "../components/SystemPromptTab";
+import ResponsesStatePolicyTab from "../components/ResponsesStatePolicyTab";
 import CodexFastTierTab from "../components/CodexFastTierTab";
 import ClaudeFastModeTab from "../components/ClaudeFastModeTab";
 import MemorySkillsTab from "../components/MemorySkillsTab";
@@ -17,6 +18,7 @@ export default function SettingsAiPage() {
       <ThinkingBudgetTab />
       <VisionBridgeSettingsTab />
       <SystemPromptTab />
+      <ResponsesStatePolicyTab />
       <CodexFastTierTab />
       <ClaudeFastModeTab />
       <MemorySkillsTab />

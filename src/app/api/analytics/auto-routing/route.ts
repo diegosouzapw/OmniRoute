@@ -1,6 +1,10 @@
 import { NextResponse } from "next/server";
-import { getDbInstance } from "@/lib/db/core";
 import { requireManagementAuth } from "@/lib/api/requireManagementAuth";
+import {
+  getAutoRoutingTotalCount,
+  getAutoRoutingVariantBreakdown,
+  getAutoRoutingTopProviders,
+} from "@/lib/db/usageLogs";
 
 export const dynamic = "force-dynamic";
 
@@ -12,37 +16,11 @@ export async function GET(request: Request) {
   const authError = await requireManagementAuth(request);
   if (authError) return authError;
   try {
-    const db = getDbInstance();
-
     // Query usage_logs for auto/ prefix requests
-    const totalRequests = db
-      .prepare(
-        `
-        SELECT COUNT(*) as count
-        FROM usage_logs
-        WHERE model = 'auto' OR model LIKE 'auto/%'
-      `
-      )
-      .get() as { count: number };
+    const totalRequests = getAutoRoutingTotalCount();
 
     // Variant breakdown
-    const variantRows = db
-      .prepare(
-        `
-        SELECT
-          CASE
-            WHEN model = 'auto' THEN 'default'
-            WHEN model LIKE 'auto/%' THEN SUBSTR(model, 6)
-            ELSE 'other'
-          END as variant,
-          COUNT(*) as count
-        FROM usage_logs
-        WHERE model = 'auto' OR model LIKE 'auto/%'
-        GROUP BY variant
-        ORDER BY count DESC
-      `
-      )
-      .all() as Array<{ variant: string; count: number }>;
+    const variantRows = getAutoRoutingVariantBreakdown();
 
     const variantBreakdown: Record<string, number> = {};
     variantRows.forEach((row) => {
@@ -50,18 +28,7 @@ export async function GET(request: Request) {
     });
 
     // Top providers (from LKGP cache or usage logs)
-    const topProviders = db
-      .prepare(
-        `
-        SELECT provider, COUNT(*) as count
-        FROM usage_logs
-        WHERE model = 'auto' OR model LIKE 'auto/%'
-        GROUP BY provider
-        ORDER BY count DESC
-        LIMIT 10
-        `
-      )
-      .all() as Array<{ provider: string; count: number }>;
+    const topProviders = getAutoRoutingTopProviders();
 
     return NextResponse.json({
       totalRequests: totalRequests.count,

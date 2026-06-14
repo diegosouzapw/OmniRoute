@@ -41,6 +41,7 @@ import {
   extractComfyOutputFiles,
 } from "../utils/comfyuiClient.ts";
 import { fetchRemoteImage } from "@/shared/network/remoteImageFetch";
+import { FetchTimeoutError, fetchWithTimeout, getConfiguredTimeout } from "@/shared/utils/fetchTimeout";
 import { sanitizeErrorMessage, sanitizeUpstreamDetails } from "../utils/error.ts";
 
 interface KieImageOptions {
@@ -85,6 +86,59 @@ const OPENAI_IMAGE_TO_IMAGE_MODELS = new Set([
 ]);
 
 const IMAGE_ASPECT_RATIO_PATTERN = /^\d+:\d+$/;
+
+/**
+ * Resolve the upstream images endpoint for a custom (OpenAI-compatible) image
+ * provider node (#3205).
+ *
+ * Custom provider nodes store their base URL the same way the chat path does:
+ * in `credentials.providerSpecificData.baseUrl` (e.g. `https://example.com/v1`),
+ * NOT as a top-level `credentials.baseUrl`. Older callers may still pass a
+ * top-level `baseUrl`, so we honor that as a secondary source. When neither is
+ * present we fall back to `fallback` (the built-in Gemini OpenAI endpoint).
+ *
+ * Resolution order: providerSpecificData.baseUrl → credentials.baseUrl → fallback.
+ *
+ * A node base URL like `https://example.com/v1` is normalized and the
+ * OpenAI-compatible `/images/generations` path appended (mirroring
+ * `buildOpenAICompatibleUrl` in services/provider.ts). A node URL that already
+ * ends in `/images/generations` is returned as-is (no double-append). The
+ * `fallback` value is assumed to already be a complete URL and is returned
+ * verbatim.
+ */
+export function resolveImageBaseUrl(
+  credentials:
+    | { baseUrl?: unknown; providerSpecificData?: { baseUrl?: unknown } | null }
+    | null
+    | undefined,
+  fallback: string,
+  endpoint: "generations" | "edits" = "generations"
+): string {
+  const psd = credentials?.providerSpecificData;
+  const psdBaseUrl =
+    psd && typeof psd === "object" && typeof psd.baseUrl === "string" && psd.baseUrl.trim()
+      ? psd.baseUrl.trim()
+      : null;
+  const topLevelBaseUrl =
+    typeof credentials?.baseUrl === "string" && credentials.baseUrl.trim()
+      ? credentials.baseUrl.trim()
+      : null;
+  const nodeBaseUrl = psdBaseUrl || topLevelBaseUrl;
+
+  if (!nodeBaseUrl) return fallback;
+
+  // A single configured node serves both image routes: honor a base URL that already
+  // points at the requested OpenAI image path, and rewrite one that points at the other
+  // image endpoint (e.g. `.../images/generations` requested for edits) (#3214/#3215).
+  const suffix = `/images/${endpoint}`;
+  // Trim trailing slashes without a backtracking-prone regex (`/\/+$/` is a
+  // polynomial-ReDoS pattern on long runs of "/" — CodeQL js/polynomial-redos).
+  let normalized = nodeBaseUrl;
+  while (normalized.endsWith("/")) normalized = normalized.slice(0, -1);
+  if (normalized.endsWith(suffix)) return normalized;
+  const stripped = normalized.replace(/\/images\/(?:generations|edits)$/, "");
+  return `${stripped}${suffix}`;
+}
 
 function normalizeImageAspectRatio(value: unknown, fallbackSize: unknown): string {
   if (typeof value === "string") {
@@ -256,9 +310,16 @@ export async function handleImageGeneration({
 
     const syntheticConfig = {
       id: provider,
-      baseUrl:
-        credentials?.baseUrl ||
-        `https://generativelanguage.googleapis.com/v1beta/openai/images/generations`,
+      // #3205: custom OpenAI-compatible nodes store their base URL in
+      // credentials.providerSpecificData.baseUrl (same as the chat path —
+      // see executors/default.ts:buildUrl / services/provider.ts:buildProviderUrl).
+      // Previously only the (always-absent) top-level credentials.baseUrl was
+      // read, so every custom image node fell back to the Gemini endpoint and
+      // returned "Please pass a valid API key".
+      baseUrl: resolveImageBaseUrl(
+        credentials,
+        `https://generativelanguage.googleapis.com/v1beta/openai/images/generations`
+      ),
       authType: "apikey",
       authHeader: "bearer",
       format: "openai",
@@ -913,6 +974,122 @@ async function handleOpenAIImageGeneration({
         ? result.error.slice(0, 500)
         : null,
     requestBody: logRequestBody,
+    responseBody: result.success ? { images_count: result.data?.data?.length || 0 } : null,
+  }).catch(() => {});
+
+  return result;
+}
+
+/**
+ * OpenAI-compatible image *edit* forwarder for custom providers (#3214 / #3215).
+ *
+ * Mirrors `handleOpenAIImageGeneration` but posts multipart/form-data to the node's
+ * `/images/edits` endpoint and returns the upstream OpenAI-compatible response. Kept
+ * separate from the chatgpt-web edit flow, which continues a saved conversation node
+ * rather than forwarding a stateless edit. The fetch helper leaves Content-Type unset so
+ * `fetch` derives the multipart boundary from the FormData body.
+ */
+export async function handleOpenAIImageEdit({
+  model,
+  provider,
+  credentials,
+  prompt,
+  imageBytes,
+  imageMime,
+  size,
+  responseFormat,
+  n = 1,
+  log,
+}: {
+  model: string;
+  provider: string;
+  credentials:
+    | {
+        apiKey?: string;
+        accessToken?: string;
+        baseUrl?: unknown;
+        providerSpecificData?: { baseUrl?: unknown } | null;
+      }
+    | null
+    | undefined;
+  prompt: string;
+  imageBytes: Buffer;
+  imageMime?: string | null;
+  size?: string | null;
+  responseFormat?: string | null;
+  n?: number;
+  log?: { info: (tag: string, message: string) => void } | null;
+}) {
+  const startTime = Date.now();
+  const url = resolveImageBaseUrl(
+    credentials,
+    `https://generativelanguage.googleapis.com/v1beta/openai/images/edits`,
+    "edits"
+  );
+
+  // Build the multipart body as a Buffer with an explicit boundary instead of a global
+  // `FormData`. In production `globalThis.fetch` is patched with node_modules/undici's fetch,
+  // whose `FormData` class differs from `globalThis.FormData` — passing a native FormData
+  // makes undici serialize it as the string "[object FormData]" (text/plain), dropping every
+  // field (including `model`, which reaches the upstream empty). A Buffer body is accepted
+  // verbatim by any fetch implementation. (#3273)
+  const boundary = `----OmniRouteImageEdit${randomUUID().replace(/-/g, "")}`;
+  const CRLF = "\r\n";
+  const partBuffers: Buffer[] = [];
+  const appendField = (name: string, value: string) => {
+    partBuffers.push(
+      Buffer.from(
+        `--${boundary}${CRLF}Content-Disposition: form-data; name="${name}"${CRLF}${CRLF}${value}${CRLF}`
+      )
+    );
+  };
+  appendField("model", model);
+  appendField("prompt", prompt);
+  if (size) appendField("size", size);
+  if (responseFormat) appendField("response_format", responseFormat);
+  appendField("n", String(n || 1));
+  partBuffers.push(
+    Buffer.from(
+      `--${boundary}${CRLF}Content-Disposition: form-data; name="image"; filename="image.png"${CRLF}` +
+        `Content-Type: ${imageMime || "image/png"}${CRLF}${CRLF}`
+    )
+  );
+  partBuffers.push(imageBytes);
+  partBuffers.push(Buffer.from(`${CRLF}--${boundary}--${CRLF}`));
+  const multipartBody = Buffer.concat(partBuffers);
+
+  const headers: Record<string, string> = {
+    "Content-Type": `multipart/form-data; boundary=${boundary}`,
+  };
+  const token = credentials?.apiKey || credentials?.accessToken;
+  if (token) headers["Authorization"] = `Bearer ${token}`;
+
+  if (log) {
+    log.info("IMAGE", `${provider}/${model} (edit) | prompt: "${prompt.slice(0, 60)}..." -> ${url}`);
+  }
+
+  const result = await fetchImageEndpoint(
+    url,
+    headers,
+    multipartBody as unknown as BodyInit,
+    provider,
+    log
+  );
+
+  saveCallLog({
+    method: "POST",
+    path: "/v1/images/edits",
+    status: result.status || (result.success ? 200 : 502),
+    model: `${provider}/${model}`,
+    provider,
+    duration: Date.now() - startTime,
+    tokens: { prompt_tokens: 0, completion_tokens: 0 },
+    error: result.success
+      ? null
+      : typeof result.error === "string"
+        ? result.error.slice(0, 500)
+        : null,
+    requestBody: { model, prompt: prompt.slice(0, 200), size: size || "default", n: n || 1 },
     responseBody: result.success ? { images_count: result.data?.data?.length || 0 } : null,
   }).catch(() => {});
 
@@ -2414,11 +2591,33 @@ function saveImageErrorResult({ provider, model, status, startTime, error, reque
  */
 async function fetchImageEndpoint(url, headers, body, provider, log) {
   try {
-    const response = await fetch(url, {
-      method: "POST",
-      headers,
-      body,
-    });
+    let response;
+    try {
+      response = await fetchWithTimeout(url, {
+        method: "POST",
+        headers,
+        body,
+        timeoutMs: getConfiguredTimeout(),
+      });
+    } catch (err: unknown) {
+      const isAbortError =
+        typeof err === "object" &&
+        err !== null &&
+        "name" in err &&
+        (err as { name?: unknown }).name === "AbortError";
+      if (err instanceof FetchTimeoutError || isAbortError) {
+        const message = err instanceof Error ? err.message : String(err);
+        if (log) {
+          log.error("IMAGE", `${provider} fetch error: ${message}`);
+        }
+        return {
+          success: false,
+          status: 504,
+          error: `Image provider error: ${sanitizeErrorMessage(message || err)}`,
+        };
+      }
+      throw err;
+    }
 
     if (!response.ok) {
       const errorText = await response.text();
@@ -2442,14 +2641,15 @@ async function fetchImageEndpoint(url, headers, body, provider, log) {
         data: data.data || [],
       },
     };
-  } catch (err) {
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : String(err);
     if (log) {
-      log.error("IMAGE", `${provider} fetch error: ${err.message}`);
+      log.error("IMAGE", `${provider} fetch error: ${message}`);
     }
     return {
       success: false,
       status: 502,
-      error: `Image provider error: ${sanitizeErrorMessage((err as Error).message || err)}`,
+      error: `Image provider error: ${sanitizeErrorMessage(message || err)}`,
     };
   }
 }

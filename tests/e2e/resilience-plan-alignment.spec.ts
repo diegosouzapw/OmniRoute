@@ -24,10 +24,12 @@ const resilienceSettings = {
   providerBreaker: {
     oauth: {
       failureThreshold: 3,
+      degradationThreshold: 2,
       resetTimeoutMs: 60000,
     },
     apikey: {
       failureThreshold: 5,
+      degradationThreshold: 3,
       resetTimeoutMs: 30000,
     },
   },

@@ -7,10 +7,18 @@ import Button from "./Button";
 import Input from "./Input";
 import { useCopyToClipboard } from "@/shared/hooks/useCopyToClipboard";
 
-const GOOGLE_OAUTH_PROVIDERS = new Set(["antigravity", "gemini-cli"]);
+const GOOGLE_OAUTH_PROVIDERS = new Set(["antigravity", "agy", "gemini-cli"]);
 
 /** Providers that use a local callback server on a random port (PKCE browser flow). */
-const PKCE_CALLBACK_SERVER_PROVIDERS = new Set(["codex", "windsurf", "devin-cli"]);
+const PKCE_CALLBACK_SERVER_PROVIDERS = new Set(["codex"]);
+
+/**
+ * Phase 1 hotfix (2026-05-29): windsurf & devin-cli only support import-token.
+ * Their PKCE flow targeting app.devin.ai/editor/signin returned 404 post-rebrand.
+ * Phase 2 will reintroduce browser login via Firebase OAuth + RegisterUser.
+ * Spec: docs/superpowers/specs/2026-05-29-windsurf-login-fix-design.md.
+ */
+const IMPORT_TOKEN_ONLY_PROVIDERS = new Set(["windsurf", "devin-cli"]);
 
 type OAuthModalProps = {
   isOpen: boolean;
@@ -45,11 +53,16 @@ export default function OAuthModal({
   const [deviceData, setDeviceData] = useState(null);
   const [polling, setPolling] = useState(false);
   // API-key paste mode: for providers that accept a token directly (windsurf, devin-cli)
-  const [showPasteToken, setShowPasteToken] = useState(false);
+  const [showPasteToken, setShowPasteToken] = useState(
+    provider === "windsurf" || provider === "devin-cli"
+  );
   const [pasteToken, setPasteToken] = useState("");
   const [savingToken, setSavingToken] = useState(false);
 
   const supportsTokenPaste = provider === "windsurf" || provider === "devin-cli";
+  // Phase 1 hotfix (2026-05-29): windsurf/devin-cli are import-token-only.
+  // Hide the "Browser Login" tab — Phase 2 will restore it via Firebase OAuth.
+  const importTokenOnly = IMPORT_TOKEN_ONLY_PROVIDERS.has(provider);
   const popupRef = useRef(null);
   const { copied, copy } = useCopyToClipboard();
   const deviceVerificationUrl =
@@ -381,9 +394,12 @@ export default function OAuthModal({
       // - Codex/OpenAI: always port 1455 (registered in OAuth app)
       // - Windsurf/Devin CLI (remote fallback): use localhost with OmniRoute port + /auth/callback
       //   (on true localhost the callback server handles it; this is only reached on remote)
-      // - Google OAuth providers (antigravity, gemini-cli): default to localhost so the
-      //   bundled credentials keep working. The authorize route upgrades this to the public
-      //   callback when custom Google credentials + NEXT_PUBLIC_BASE_URL are configured.
+      // - Google OAuth providers (antigravity, gemini-cli): default to loopback so the
+      //   bundled native/desktop credentials keep working. Prefer 127.0.0.1 over
+      //   localhost for the Google native-app handoff; Google documents that localhost
+      //   can run into local firewall/name-resolution edge cases. The authorize route
+      //   upgrades this to the public callback when custom Google web credentials plus
+      //   NEXT_PUBLIC_BASE_URL or OMNIROUTE_PUBLIC_BASE_URL are configured.
       // - Other providers on remote: use actual origin (supports PUBLIC_URL env var)
       // - Localhost: use localhost:port
       let redirectUri: string;
@@ -395,10 +411,10 @@ export default function OAuthModal({
         const port = window.location.port || "20128";
         redirectUri = `http://localhost:${port}/auth/callback`;
       } else if (GOOGLE_OAUTH_PROVIDERS.has(provider)) {
-        // Google OAuth built-in credentials only accept localhost redirect URIs.
-        // Even in remote deployments we use localhost — user copies the callback URL manually.
+        // Google OAuth built-in credentials only accept loopback redirect URIs.
+        // Even in remote deployments we use loopback — user copies the callback URL manually.
         const port = window.location.port || "20128";
-        redirectUri = `http://localhost:${port}/callback`;
+        redirectUri = `http://127.0.0.1:${port}/callback`;
       } else if (!isLocalhost) {
         // Behind reverse proxy: use actual origin (e.g., https://omniroute.example.com/callback)
         // Supports PUBLIC_URL env var override, or falls back to window.location.origin.
@@ -497,6 +513,13 @@ export default function OAuthModal({
 
       const { code, state, error: callbackError, errorDescription } = data;
 
+      if (authData?.state && state && state !== authData.state) {
+        callbackProcessedRef.current = true;
+        setError("OAuth state mismatch. Restart the connection and try again.");
+        setStep("error");
+        return;
+      }
+
       if (callbackError) {
         callbackProcessedRef.current = true;
         setError(errorDescription || callbackError);
@@ -515,12 +538,30 @@ export default function OAuthModal({
       // Accept same-origin OR localhost with same port (remote access scenario:
       // dashboard at 192.168.x:port, callback redirects to localhost:port)
       const currentPort = window.location.port;
-      const isLocalhostSamePort =
-        event.origin.match(/^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/) &&
-        new URL(event.origin).port === currentPort;
-      if (event.origin !== window.location.origin && !isLocalhostSamePort) return;
+      let isLoopbackOrigin = false;
+      let isLocalhostSamePort = false;
+      try {
+        const eventUrl = new URL(event.origin);
+        isLoopbackOrigin = /^(localhost|127\.0\.0\.1|\[::1\]|::1)$/i.test(eventUrl.hostname);
+        isLocalhostSamePort = isLoopbackOrigin && eventUrl.port === currentPort;
+      } catch {
+        // Ignore malformed origins.
+      }
+
+      const payload = event.data?.data;
+      const hasMatchingState = !!authData?.state && payload?.state === authData.state;
+      const isGoogleLoopbackRelay =
+        GOOGLE_OAUTH_PROVIDERS.has(provider) && isLoopbackOrigin && hasMatchingState;
+
+      if (
+        event.origin !== window.location.origin &&
+        !isLocalhostSamePort &&
+        !isGoogleLoopbackRelay
+      ) {
+        return;
+      }
       if (event.data?.type === "oauth_callback") {
-        handleCallback(event.data.data);
+        handleCallback(payload);
       }
     };
     window.addEventListener("message", handleMessage);
@@ -568,7 +609,7 @@ export default function OAuthModal({
       window.removeEventListener("storage", handleStorage);
       if (channel) channel.close();
     };
-  }, [authData, exchangeTokens]);
+  }, [authData, exchangeTokens, provider]);
 
   // Fix #344: Detect when OAuth popup is closed without completing authorization
   // Some providers (like Qoder) redirect to their own chat UI instead of sending a callback,
@@ -671,8 +712,10 @@ export default function OAuthModal({
       size="lg"
     >
       <div className="flex flex-col gap-4">
-        {/* Paste-token tab toggle (Windsurf / Devin CLI only) */}
-        {supportsTokenPaste && step !== "success" && (
+        {/* Paste-token tab toggle (Windsurf / Devin CLI only).
+            Phase 1 hotfix: when importTokenOnly is true, hide the entire toggle —
+            there is no "Browser Login" tab to switch to until Phase 2 ships. */}
+        {supportsTokenPaste && !importTokenOnly && step !== "success" && (
           <div className="flex gap-2 border-b border-border pb-3">
             <button
               className={`text-sm px-3 py-1 rounded-t ${!showPasteToken ? "font-semibold border-b-2 border-primary text-primary" : "text-text-muted"}`}
@@ -694,8 +737,8 @@ export default function OAuthModal({
           <div className="flex flex-col gap-3">
             <p className="text-sm text-text-muted">
               {provider === "windsurf"
-                ? "Visit windsurf.com/show-auth-token, copy your Windsurf API key, and paste it below."
-                : "Provide your WINDSURF_API_KEY (obtained via `devin auth login` or windsurf.com/show-auth-token)."}
+                ? 'In the Windsurf / VS Code IDE, run the "Windsurf: Provide Auth Token" command from the command palette (or click the Jupyter "Get Windsurf Authentication Token" button), then copy the shown token and paste it below. Opening windsurf.com/show-auth-token directly only shows a "Redirecting" page — the IDE must initiate the flow.'
+                : 'Provide your WINDSURF_API_KEY (obtained via `devin auth login`, or via the Windsurf IDE "Windsurf: Provide Auth Token" command).'}
             </p>
             <Input
               value={pasteToken}

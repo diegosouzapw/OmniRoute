@@ -154,8 +154,16 @@ Authorization: Bearer your-api-key
 | GET    | `/v1beta/models`            | Gemini                          |
 | POST   | `/v1beta/models/{...path}`  | Gemini generateContent          |
 | POST   | `/v1/api/chat`              | Ollama                          |
+| GET    | `/api/v1/vscode/{token}/`          | OpenAI catalog alias            |
+| GET    | `/api/v1/vscode/{token}/models`    | OpenAI models alias             |
+| POST   | `/api/v1/vscode/{token}/chat/completions` | OpenAI tokenized alias   |
+| POST   | `/api/v1/vscode/{token}/responses` | OpenAI Responses tokenized alias |
+| POST   | `/api/v1/vscode/{token}/api/chat`  | Ollama tokenized alias          |
+| GET    | `/api/v1/vscode/{token}/api/tags`  | Ollama tags tokenized alias     |
 
 All POST routes follow the same shape: `Bearer your-api-key` + Zod-validated JSON body (`v1RerankSchema`, `v1ModerationSchema`, `v1AudioSpeechSchema`, etc., see `src/shared/validation/schemas.ts`). 4xx is returned on schema failure.
+
+For clients that cannot attach `Authorization: Bearer ...`, OmniRoute also accepts API keys in the URL via either query-string compatibility (`?token=...`, `?apiKey=...`, `?api_key=...`, `?key=...`) or the dedicated `/api/v1/vscode/{token}/...` endpoints documented below.
 
 ```bash
 # Rerank
@@ -243,6 +251,67 @@ Validates a WebSocket upgrade handshake and returns the wire protocol example me
 
 **Auth:** Bearer API key during handshake.
 
+### Responses API over WebSocket (codex only)
+
+```bash
+# Same host:port as the HTTP API (default 20128); upgrade the connection:
+wscat -c "ws://localhost:20128/v1/responses?api_key=<OMNIROUTE_API_KEY>"
+# (or: -H "Authorization: Bearer <OMNIROUTE_API_KEY>")
+
+# First frame MUST be response.create:
+{ "type": "response.create", "model": "gpt-5.5", "input": [ { "role": "user", "content": "hi" } ] }
+```
+
+A Responses-API-over-WebSocket proxy is wired **exclusively to `codex`** (ChatGPT
+backend). It listens on the same port as the API/dashboard at paths `/v1/responses`,
+`/responses`, and `/api/v1/responses`. On the first `response.create` frame it
+authenticates + prepares via the internal `codex-responses-ws` bridge, selects a
+codex OAuth connection, and tunnels to `wss://chatgpt.com/backend-api/codex/responses`
+via the `wreq-js` transport. **Non-codex models are rejected** (`codex_ws_provider_required`).
+For quota-share routing use `model: "qtSd/<group>/codex/<model>"`. Implemented in
+`app/server-ws.mjs` + `scripts/dev/responses-ws-proxy.mjs` + `src/app/api/internal/codex-responses-ws/route.ts`.
+
+**Auth:** Bearer API key during handshake. The bundled HTTP server (`server-ws.mjs`)
+must be the active entrypoint (it is, by default, when `app/server-ws.mjs` exists).
+
+#### Model id: use the bare ChatGPT id (no `codex/` prefix)
+
+The OpenAI **Codex CLI** validates the model name client-side when
+`supports_websockets = true` and **rejects provider-prefixed ids** like
+`codex/gpt-5.5` (`The 'codex/gpt-5.5' model is not supported when using Codex with
+a ChatGPT account`). Send the **bare** id (e.g. `gpt-5.5`). OmniRoute's bridge is
+codex-only, so it re-resolves a bare id as a codex model
+(`resolveCodexWsModelInfo`) before tunneling upstream — even though a bare
+`gpt-5.5` would otherwise route to another provider over HTTP.
+
+#### Configuring the OpenAI Codex CLI
+
+Point the Codex CLI at OmniRoute by adding a custom provider with WebSocket
+support to `~/.codex/config.toml` (use a separate `CODEX_HOME` to avoid touching
+an existing config):
+
+```toml
+model = "gpt-5.5"                 # bare id — NOT "codex/gpt-5.5"
+model_provider = "omniroute"
+
+[model_providers.omniroute]
+name = "OmniRoute (WS)"
+base_url = "http://localhost:20128/v1"   # no trailing slash; the WS URL is derived (use https/wss in production)
+wire_api = "responses"                    # only supported value since Feb 2026
+supports_websockets = true                # enables the Responses-over-WS transport
+env_key = "OMNIROUTE_API_KEY"             # holds the OmniRoute API key (Bearer)
+```
+
+```bash
+export OMNIROUTE_API_KEY=sk-...           # an OmniRoute API key (any key if REQUIRE_API_KEY=false)
+codex exec "Responda apenas: PONG"
+```
+
+The CLI upgrades `base_url + /responses` to a WebSocket and OmniRoute tunnels it
+to the selected codex OAuth connection. Validated end-to-end against the local
+server: ChatGPT returns `codex.rate_limits` + `response.created` and streams the
+completion.
+
 ---
 
 ## Quotas & Issues Reporting
@@ -325,24 +394,26 @@ Response example:
 
 ### Usage & Analytics
 
-| Endpoint                    | Method | Description          |
-| --------------------------- | ------ | -------------------- |
-| `/api/usage/history`        | GET    | Usage history        |
-| `/api/usage/logs`           | GET    | Usage logs           |
-| `/api/usage/request-logs`   | GET    | Request-level logs   |
-| `/api/usage/[connectionId]` | GET    | Per-connection usage |
+| Endpoint                    | Method            | Description                       |
+| --------------------------- | ----------------- | --------------------------------- |
+| `/api/usage/history`        | GET               | Usage history                     |
+| `/api/usage/logs`           | GET               | Usage logs                        |
+| `/api/usage/request-logs`   | GET               | Request-level logs                |
+| `/api/usage/[connectionId]` | GET               | Per-connection usage              |
+| `/api/usage/token-limits`   | GET/POST/DELETE   | Per-API-key token-limit budgets   |
 
 ### Settings
 
-| Endpoint                        | Method        | Description               |
-| ------------------------------- | ------------- | ------------------------- |
-| `/api/settings`                 | GET/PUT/PATCH | General settings          |
-| `/api/settings/proxy`           | GET/PUT       | Network proxy config      |
-| `/api/settings/proxy/test`      | POST          | Test proxy connection     |
-| `/api/settings/ip-filter`       | GET/PUT       | IP allowlist/blocklist    |
-| `/api/settings/thinking-budget` | GET/PUT       | Reasoning token budget    |
-| `/api/settings/system-prompt`   | GET/PUT       | Global system prompt      |
-| `/api/settings/compression`     | GET/PUT       | Global compression config |
+| Endpoint                              | Method        | Description                                         |
+| ------------------------------------- | ------------- | --------------------------------------------------- |
+| `/api/settings`                       | GET/PUT/PATCH | General settings                                    |
+| `/api/settings/proxy`                 | GET/PUT       | Network proxy config                                |
+| `/api/settings/proxy/test`            | POST          | Test proxy connection                               |
+| `/api/settings/ip-filter`             | GET/PUT       | IP allowlist/blocklist                              |
+| `/api/settings/thinking-budget`       | GET/PUT       | Reasoning token budget                              |
+| `/api/settings/system-prompt`         | GET/PUT       | Global system prompt                                |
+| `/api/settings/compression`           | GET/PUT       | Global compression config                           |
+| `/api/settings/purge-request-history` | POST          | Clear request log rows and local call-log artifacts |
 
 ### Context & Compression
 
@@ -469,7 +540,6 @@ These endpoints mirror Gemini's API format for clients that expect native Gemini
 | `/api/restart`           | POST   | Trigger graceful server restart                      |
 | `/api/shutdown`          | POST   | Trigger graceful server shutdown                     |
 | `/api/system/env/repair` | POST   | Repair OAuth provider environment variables          |
-| `/api/system-info`       | GET    | Generate system diagnostics report                   |
 
 > **Note:** These endpoints are used internally by the system or for Ollama client compatibility. They are not typically called by end users.
 
@@ -546,6 +616,39 @@ GET /api/tags
 
 Requests are automatically translated between Ollama and internal formats.
 
+## Tokenized VS Code / Headerless Aliases
+
+Use these aliases when an integration cannot inject an `Authorization` header and needs the API key embedded in the base URL.
+
+```bash
+# OpenAI-style catalog alias
+GET /api/v1/vscode/{token}/
+GET /api/v1/vscode/{token}/models
+
+# OpenAI-style chat aliases
+POST /api/v1/vscode/{token}/chat/completions
+POST /api/v1/vscode/{token}/responses
+
+# Ollama-style aliases
+POST /api/v1/vscode/{token}/api/chat
+GET /api/v1/vscode/{token}/api/tags
+```
+
+Example:
+
+```bash
+curl https://your-host.example/api/v1/vscode/YOUR_API_KEY/models
+curl -X POST https://your-host.example/api/v1/vscode/YOUR_API_KEY/chat/completions \
+  -H "Content-Type: application/json" \
+  -d '{"model":"auto","messages":[{"role":"user","content":"hello"}]}'
+```
+
+Notes:
+
+- The tokenized aliases reuse the same handlers as `/v1/*` and `/api/tags`; response shapes stay identical.
+- Prefer `Authorization: Bearer ...` whenever the client supports custom headers.
+- URL-based tokens may appear in reverse-proxy logs, browser history, and telemetry outside OmniRoute. Treat them as a compatibility option, not the default authentication mode.
+
 ---
 
 ## Telemetry
@@ -589,6 +692,33 @@ Content-Type: application/json
 ```
 
 > **Schema notes** (`setBudgetSchema`): `apiKeyId` is required; at least one of `dailyLimitUsd`, `weeklyLimitUsd`, or `monthlyLimitUsd` must be greater than zero. Optional fields: `warningThreshold` (0–1), `resetInterval` (`daily` | `weekly` | `monthly`), `resetTime` (`HH:MM`). The legacy `{keyId, limit, period}` shape returns `400 Bad Request`.
+
+## Token Limits
+
+Per-API-key **token** budgets (distinct from the USD-based Budget above). Enforced inline on the request path: when a key's current window usage reaches its limit, requests are rejected with `429 Too Many Requests`. Limits can be scoped to a specific `model`, a `provider`, or applied `global`ly across the key; when several limits match a request, the most restrictive one wins.
+
+```bash
+# List a key's token limits (includes live window usage)
+GET /api/usage/token-limits?apiKeyId=key-123
+
+# Create or update a token limit
+POST /api/usage/token-limits
+Content-Type: application/json
+
+{
+  "apiKeyId": "key-123",
+  "scopeType": "model",
+  "scopeValue": "openai/gpt-4o",
+  "tokenLimit": 1000000,
+  "resetInterval": "monthly",
+  "enabled": true
+}
+
+# Delete a token limit by id
+DELETE /api/usage/token-limits?id=tl-abc
+```
+
+> **Schema notes** (`setTokenLimitSchema`): `apiKeyId` and `scopeType` (`model` | `provider` | `global`) are required. `scopeValue` is required unless `scopeType` is `global` (e.g. a model id for `model` scope, a provider id for `provider` scope). `tokenLimit` must be a positive integer (coerced from string). Optional: `id` (omit to create, supply to update), `resetInterval` (`daily` | `weekly` | `monthly`, default `monthly`), `resetTime` (`HH:MM`), `enabled` (default `true`). `GET` responses enrich each limit with `tokensUsed`, `remaining`, `windowStart`, `periodStartAt`, and `nextResetAt`. This is a management-class endpoint (auth enforced centrally by the authz pipeline).
 
 ## Request Processing
 
@@ -711,6 +841,8 @@ OmniRoute exposes three independent temporary-failure mechanisms; the management
 | Provider breaker    | `domain_circuit_breakers` + in-memory      | `/api/monitoring/health`                  | `POST /api/resilience/reset`                |
 | Connection cooldown | `rateLimitedUntil` on provider connections | `/api/rate-limits`, `/api/providers/[id]` | (re-enables lazily; clear via provider PUT) |
 | Model lockout       | In-memory model-availability registry      | `GET /api/resilience/model-cooldowns`     | `DELETE /api/resilience/model-cooldowns`    |
+
+`PATCH /api/resilience` accepts provider breaker overrides under `providerBreaker.oauth` and `providerBreaker.apikey`. Each profile supports `degradationThreshold`, `failureThreshold`, and `resetTimeoutMs`; the same fields are exposed in Dashboard → Settings → Resilience.
 
 ```bash
 # Clear a single model lockout
@@ -859,6 +991,321 @@ Returns the public A2A agent card (name, description, capabilities, skill catalo
 | GET    | `/api/evals/suites/[id]`        | Retrieve a custom eval suite                                                                      |
 
 **Auth:** `/api/cloud/auth` validates a Bearer key directly; the other `/api/cloud/*`, `/api/evals/*`, and `/api/assess` routes require management session/API key. `/api/assess` POST uses `validateBody` with a discriminated-union scope schema.
+
+---
+
+## ACP (Agent Client Protocol) Management
+
+The ACP framework lets you spawn CLI agents (Claude Code, Codex, Gemini CLI, etc.)
+as child processes. These endpoints manage ACP agent detection and custom agent
+registration.
+
+| Method | Path                    | Description                                                                              |
+| ------ | ----------------------- | ---------------------------------------------------------------------------------------- |
+| GET    | `/api/acp/agents`       | List all known CLI agents (built-in + custom) with installation status, version, binary |
+| POST   | `/api/acp/agents`       | Register a custom ACP agent or refresh cache — body: `{id, name, binary, versionCommand, providerAlias, spawnArgs, protocol}` or `{action: "refresh"}` |
+| DELETE | `/api/acp/agents`       | Remove a custom ACP agent — query param: `?id=<agentId>`                                 |
+
+**Response example** (`GET /api/acp/agents`):
+
+```json
+{
+  "agents": [
+    {
+      "id": "claude",
+      "name": "Claude Code CLI",
+      "binary": "claude",
+      "version": "1.0.45",
+      "installed": true,
+      "protocol": "stdio",
+      "providerAlias": "claude",
+      "isCustom": false
+    },
+    {
+      "id": "my-custom-cli",
+      "name": "My Custom CLI",
+      "installed": false,
+      "protocol": "stdio",
+      "providerAlias": "my-provider",
+      "isCustom": true
+    }
+  ],
+  "cacheTtlMs": 60000,
+  "cacheAge": 1234
+}
+```
+
+**Auth:** Requires management session (dashboard `auth_token` cookie) or a
+management-scoped API key.
+
+See [ACP Framework](../frameworks/ACP.md) for full details.
+
+---
+
+## Analytics & Observability
+
+Real-time analytics endpoints for monitoring routing, compression, and provider
+diversity. These power the `/dashboard/analytics/*` pages.
+
+### Auto-routing analytics
+
+| Method | Path                                | Description                                                                                  |
+| ------ | ----------------------------------- | -------------------------------------------------------------------------------------------- |
+| GET    | `/api/analytics/auto-routing`       | Aggregate auto-routing stats: total calls, strategy distribution, tier distribution, top providers |
+| GET    | `/api/analytics/auto-routing?days=7` | Time-windowed stats (default 24h)                                                           |
+
+**Response example**:
+
+```json
+{
+  "window": "24h",
+  "totalCalls": 1234,
+  "strategyBreakdown": {
+    "rules": 800,
+    "cost": 200,
+    "latency": 150,
+    "sla-aware": 50,
+    "lkgp": 34
+  },
+  "tierBreakdown": {
+    "ultra": 100,
+    "pro": 500,
+    "standard": 400,
+    "free": 234
+  },
+  "topProviders": [
+    { "provider": "openai", "calls": 500, "avgLatencyMs": 850 },
+    { "provider": "anthropic", "calls": 300, "avgLatencyMs": 1200 }
+  ]
+}
+```
+
+### Compression analytics
+
+| Method | Path                              | Description                                                                          |
+| ------ | --------------------------------- | ------------------------------------------------------------------------------------ |
+| GET    | `/api/analytics/compression`      | Aggregate compression stats: tokens saved, savings %, mode distribution, engine usage |
+
+**Response example**:
+
+```json
+{
+  "window": "24h",
+  "totalOriginalTokens": 5000000,
+  "totalCompressedTokens": 3500000,
+  "totalSavings": 1500000,
+  "savingsPct": 30.0,
+  "modeBreakdown": {
+    "lite": 400,
+    "standard": 600,
+    "aggressive": 100,
+    "ultra": 50,
+    "rtk": 84
+  },
+  "engineBreakdown": {
+    "caveman": 800,
+    "rtk": 434
+  }
+}
+```
+
+### Provider diversity tracking
+
+| Method | Path                              | Description                                                                                  |
+| ------ | --------------------------------- | -------------------------------------------------------------------------------------------- |
+| GET    | `/api/analytics/diversity`        | Shannon entropy-based diversity tracking: prevents single points of failure by measuring provider spread |
+
+**Response example**:
+
+```json
+{
+  "window": "24h",
+  "shannonEntropy": 2.45,
+  "maxEntropy": 3.17,
+  "diversityRatio": 0.77,
+  "providerUsage": {
+    "openai": 0.40,
+    "anthropic": 0.25,
+    "google": 0.20,
+    "kiro": 0.15
+  },
+  "warnings": [
+    "OpenAI accounts for 40% of traffic — consider diversifying"
+  ]
+}
+```
+
+**Auth:** Requires management session or management-scoped API key.
+
+---
+
+## Admin Operations
+
+Admin-only endpoints for operational management.
+
+| Method | Path                            | Description                                                                                    |
+| ------ | ------------------------------- | ---------------------------------------------------------------------------------------------- |
+| GET    | `/api/admin/concurrency`         | Read current concurrency limits (global + per-provider)                                        |
+| POST   | `/api/admin/concurrency`         | Update concurrency limits — body: `{global?: number, perProvider?: Record<string, number>}`     |
+
+**Auth:** Requires management session with admin scope.
+
+---
+
+## CLI Tools Management
+
+Manage CLI tools that integrate with OmniRoute (antigravity, chipotle, commandCode,
+devin-cli, etc.). See [Provider Reference](./PROVIDER_REFERENCE.md) for the full list.
+
+| Method | Path                              | Description                                                                                  |
+| ------ | --------------------------------- | -------------------------------------------------------------------------------------------- |
+| GET    | `/api/cli-tools/all-statuses`       | Status of all CLI tools (installed, version, last seen)                                       |
+| GET    | `/api/cli-tools/[id]/status`       | Status of a specific CLI tool (id can be: antigravity, chipotle, commandCode, devin-cli, etc.) |
+| POST   | `/api/cli-tools/apply`             | Apply a CLI tool configuration to a provider connection                                     |
+| GET    | `/api/cli-tools/backups`           | List CLI tool configuration backups                                                          |
+| POST   | `/api/cli-tools/backups`           | Create a backup of all CLI tool configurations                                                |
+| POST   | `/api/cli-tools/[id]/restore`      | Restore a CLI tool from a backup                                                             |
+| GET    | `/api/cli-tools/antigravity-mitm`   | Antigravity MITM proxy status (the "antigravity-mitm" CLI tool)                             |
+| POST   | `/api/cli-tools/antigravity-mitm/alias` | Configure antigravity-mitm aliases                                                          |
+
+**Auth:** Requires management session.
+
+---
+
+## Agent Skills
+
+Manage AI agent skills (similar to OpenAI's custom GPTs but for agents).
+
+| Method | Path                              | Description                                                                                  |
+| ------ | --------------------------------- | -------------------------------------------------------------------------------------------- |
+| GET    | `/api/agent-skills`                | List all agent skills (built-in + custom)                                                    |
+| GET    | `/api/agent-skills/[id]`           | Get a specific agent skill                                                                   |
+| POST   | `/api/agent-skills`                | Create a custom agent skill — body: `{name, description, prompt, model?, temperature?}`    |
+| PUT    | `/api/agent-skills/[id]`           | Update a custom agent skill                                                                  |
+| DELETE | `/api/agent-skills/[id]`           | Delete a custom agent skill                                                                  |
+| GET    | `/api/agent-skills/[id]/raw`       | Get raw prompt + metadata (no execution)                                                    |
+| POST   | `/api/agent-skills/generate`       | AI-generate a new skill from a natural language description                                   |
+
+**Auth:** Requires management session or management-scoped API key.
+
+---
+
+## Cache Management
+
+Manage the semantic cache and reasoning cache.
+
+| Method | Path                              | Description                                                                                  |
+| ------ | --------------------------------- | -------------------------------------------------------------------------------------------- |
+| GET    | `/api/cache`                       | Cache overview: total entries, hit rate, size on disk                                        |
+| GET    | `/api/cache/entries`               | List cached entries (with pagination)                                                        |
+| DELETE | `/api/cache/entries`               | Delete cache entries (filter by query parameters)                                             |
+| GET    | `/api/cache/stats`                 | Detailed cache statistics (per-provider, per-model)                                           |
+| GET    | `/api/cache/reasoning`             | Reasoning cache status (for reasoning replay)                                                |
+| DELETE | `/api/cache/reasoning`             | Clear reasoning cache — query params: `?toolCallId=<id>` (single) or `?provider=<p>` or no params (all) |
+
+**Auth:** Requires management session.
+
+---
+
+## Memory System
+
+Manage persistent memory (FTS5 + vector embeddings).
+
+| Method | Path                              | Description                                                                                  |
+| ------ | --------------------------------- | -------------------------------------------------------------------------------------------- |
+| GET    | `/api/memory`                      | List memory entries (filter by scope, type, search query)                                   |
+| POST   | `/api/memory`                      | Create a new memory entry — body: `{scope, type, content, metadata?}`                        |
+| GET    | `/api/memory/[id]`                 | Get a specific memory entry                                                                   |
+| PUT    | `/api/memory/[id]`                 | Update a memory entry                                                                         |
+| DELETE | `/api/memory/[id]`                 | Delete a memory entry                                                                         |
+| GET    | `/api/memory/search`               | Search memory (FTS5 + vector)                                                                |
+| POST   | `/api/memory/clear`                | Clear memory entries (with filters)                                                          |
+| GET    | `/api/memory/stats`                | Memory statistics (total entries, embedding coverage, etc.)                                    |
+
+**Auth:** Requires management session or management-scoped API key.
+
+---
+
+## Webhooks
+
+Manage webhook subscriptions for events.
+
+| Method | Path                              | Description                                                                                  |
+| ------ | --------------------------------- | -------------------------------------------------------------------------------------------- |
+| GET    | `/api/webhooks`                    | List all webhook subscriptions                                                               |
+| POST   | `/api/webhooks`                    | Create a webhook subscription — body: `{url, events[], secret?, active?}`                    |
+| GET    | `/api/webhooks/[id]`               | Get a specific webhook subscription                                                          |
+| PUT    | `/api/webhooks/[id]`               | Update a webhook subscription                                                                 |
+| DELETE | `/api/webhooks/[id]`               | Delete a webhook subscription                                                                 |
+| GET    | `/api/webhooks/events`             | List all available webhook event types                                                        |
+| GET    | `/api/webhooks/[id]/deliveries`    | List delivery history for a webhook (success/failure log)                                    |
+| POST   | `/api/webhooks/[id]/test`          | Send a test event to a webhook                                                               |
+
+**Auth:** Requires management session.
+
+See [Webhooks Framework](../frameworks/WEBHOOKS.md) for full event types.
+
+---
+
+## Skills Framework
+
+Manage Skills (the agentic extensions framework).
+
+| Method | Path                              | Description                                                                                  |
+| ------ | --------------------------------- | -------------------------------------------------------------------------------------------- |
+| GET    | `/api/skills`                      | List all installed skills (built-in + custom)                                                 |
+| POST   | `/api/skills/install`              | Install a skill from a local path or URL                                                      |
+| DELETE | `/api/skills/[id]`                 | Uninstall a skill                                                                             |
+| PUT    | `/api/skills/[id]`                 | Enable or disable a skill — body: `{enabled?: boolean, mode?: "on" \| "off" \| "auto"}`      |
+| POST   | `/api/skills/executions`           | Execute a skill — body: `{skillName, apiKeyId, input?, sessionId?}`                          |
+| GET    | `/api/skills/executions`           | List execution history for all skills (filter by `?apiKeyId=`)                               |
+
+**Auth:** Requires management session or management-scoped API key.
+
+See [Skills Framework](../frameworks/SKILLS.md) for full details.
+
+---
+
+## Plugins
+
+Manage OmniRoute plugins (third-party extensions).
+
+| Method | Path                              | Description                                                                                  |
+| ------ | --------------------------------- | -------------------------------------------------------------------------------------------- |
+| GET    | `/api/plugins`                     | List installed plugins                                                                        |
+| POST   | `/api/plugins/install`             | Install a plugin from a local path or URL                                                     |
+| DELETE | `/api/plugins/[name]`              | Uninstall a plugin                                                                            |
+| POST   | `/api/plugins/[name]/activate`     | Activate a plugin                                                                             |
+| POST   | `/api/plugins/[name]/deactivate`   | Deactivate a plugin                                                                           |
+| GET    | `/api/plugins/[name]/config`       | Get plugin configuration                                                                      |
+| PUT    | `/api/plugins/[name]/config`       | Update plugin configuration                                                                  |
+
+**Auth:** Requires management session.
+
+See [Plugins Framework](../plugins/PLUGIN_SDK.md) for full details.
+
+---
+
+## Shadow Routing
+
+Shadow / A-B comparison of providers is **not a standalone REST surface** — it is configured through combo routing (see [Auto-Combo](../routing/AUTO-COMBO.md)). Per-combo comparison metrics are served by `GET /api/combos/metrics`.
+
+---
+
+## Guardrails
+
+Inspect the runtime guardrails (PII detection, prompt injection detection, vision bridging). Guardrails run on every request; per-call opt-out is via the `x-omniroute-disabled-guardrails` request header — there is no persisted enable/disable surface.
+
+| Method | Path                   | Description                                                                              |
+| ------ | ---------------------- | ---------------------------------------------------------------------------------------- |
+| GET    | `/api/guardrails`      | List the registered guardrails and their status (name / enabled / priority)              |
+| POST   | `/api/guardrails/test` | Dry-run the pre-call pipeline over a sample input — body: `{input, disabledGuardrails?}` |
+
+**Auth:** Requires management session.
+
+See [Security > Guardrails](../security/GUARDRAILS.md) for full details.
+
+---
 
 ---
 

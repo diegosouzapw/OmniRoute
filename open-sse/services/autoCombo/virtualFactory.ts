@@ -5,7 +5,11 @@ import { AutoVariant } from "./autoPrefix";
 import { getProviderConnections } from "@/lib/db/providers";
 import { getProviderRegistry } from "./providerRegistryAccessor";
 import type { ConnectionFields } from "@/lib/db/encryption";
+import { NOAUTH_PROVIDERS } from "@/shared/constants/providers";
+import { hasUsableWebSessionCredential } from "@/shared/providers/webSessionCredentials";
 import { defaultLogger as log } from "@omniroute/open-sse/utils/logger";
+import { getTokenLimit } from "../contextManager";
+import { getResolvedModelCapabilities } from "@/lib/modelCapabilities";
 
 /** Minimal connection shape needed for virtual auto-combo factory */
 interface VirtualFactoryConn extends ConnectionFields {
@@ -14,7 +18,15 @@ interface VirtualFactoryConn extends ConnectionFields {
   defaultModel?: string;
   expiresAt?: number | string | null;
   tokenExpiresAt?: number | string | null;
+  providerSpecificData?: Record<string, unknown> | null;
 }
+
+type NoAuthProviderDefinition = {
+  id?: string;
+  alias?: string;
+  noAuth?: boolean;
+  serviceKinds?: string[];
+};
 
 export interface VirtualAutoComboCandidate {
   provider: string;
@@ -35,6 +47,11 @@ type VirtualAutoCombo = AutoComboConfig & {
     weight: number;
     label: string;
   }>;
+  /** MAX of candidates' context windows — safe to advertise because the
+   * auto-combo context pre-filter routes oversized requests to large-window
+   * candidates. null when the pool is empty. */
+  advertisedContextLength: number | null;
+  advertisedMaxOutputTokens: number | null;
   autoConfig: {
     candidatePool: string[];
     weights: ScoringWeights;
@@ -81,43 +98,117 @@ function hasUsableOAuthToken(conn: VirtualFactoryConn): boolean {
   return expiryMs === null || expiryMs > Date.now();
 }
 
+function hasProviderSpecificSessionData(conn: VirtualFactoryConn): boolean {
+  return hasUsableWebSessionCredential(conn.provider, conn.providerSpecificData);
+}
+
+function hasUsableConnectionCredential(conn: VirtualFactoryConn): boolean {
+  const hasApiKey = typeof conn.apiKey === "string" && conn.apiKey.trim().length > 0;
+  return hasApiKey || hasUsableOAuthToken(conn) || hasProviderSpecificSessionData(conn);
+}
+
+const SYNTHETIC_NOAUTH_CONNECTION_ID = "noauth";
+
+function isChatAutoComboNoAuthProvider(providerDef: NoAuthProviderDefinition): boolean {
+  if (providerDef.noAuth !== true) return false;
+  if (!Array.isArray(providerDef.serviceKinds) || providerDef.serviceKinds.length === 0)
+    return true;
+  return providerDef.serviceKinds.includes("llm");
+}
+
+function getFirstRegistryModelId(providerInfo: { models?: Array<{ id?: string }> } | undefined) {
+  const firstModel = Array.isArray(providerInfo?.models) ? providerInfo.models[0] : undefined;
+  return typeof firstModel?.id === "string" && firstModel.id.trim().length > 0
+    ? firstModel.id
+    : undefined;
+}
+
+function getNoAuthCandidates(excludedProviders: Set<string>): VirtualAutoComboCandidate[] {
+  const registry = getProviderRegistry();
+  const candidates: VirtualAutoComboCandidate[] = [];
+
+  for (const providerDef of Object.values(NOAUTH_PROVIDERS) as NoAuthProviderDefinition[]) {
+    if (!isChatAutoComboNoAuthProvider(providerDef)) continue;
+
+    const providerId = providerDef.id;
+    if (!providerId || excludedProviders.has(providerId)) continue;
+
+    const providerInfo = registry[providerId];
+    const modelId = getFirstRegistryModelId(providerInfo);
+    if (!modelId) continue;
+
+    // No-auth providers do not have provider_connections rows. Use the same
+    // synthetic connection id returned by getProviderCredentials() so the
+    // downstream combo path can still carry a stable target/account identity.
+    // Prefer provider aliases because some canonical provider IDs are reserved
+    // for credentialed tiers with different routing semantics.
+    const registryAlias =
+      typeof providerInfo?.alias === "string" && providerInfo.alias.trim().length > 0
+        ? providerInfo.alias
+        : null;
+    const routingPrefix = providerDef.alias || registryAlias || providerId;
+    candidates.push({
+      provider: providerId,
+      connectionId: SYNTHETIC_NOAUTH_CONNECTION_ID,
+      model: modelId,
+      modelStr: `${routingPrefix}/${modelId}`,
+      costPer1MTokens: 0,
+    });
+  }
+
+  return candidates;
+}
+
 /**
  * Creates a virtual AutoCombo configuration dynamically based on connected providers and a specified variant.
  * This combo is not persisted in the DB.
  */
+/**
+ * Aggregate the context window / max output to ADVERTISE for an auto combo.
+ *
+ * MAX across candidates (not min): the auto-combo context pre-filter
+ * (combo.ts::filterTargetsByRequestCompatibility + the estimated-tokens
+ * pre-filter) already routes oversized requests away from small-window
+ * candidates, so advertising the largest window lets clients (e.g. opencode)
+ * keep their smart auto-compaction calibrated to the best candidate instead
+ * of compacting prematurely — or, worse, receiving 0 and disabling
+ * compaction entirely (the "agent keeps forgetting things" bug).
+ *
+ * Unknown candidates resolve through getTokenLimit()'s fallback chain, so a
+ * non-empty pool always yields a positive contextLength.
+ */
+export function computeAdvertisedLimits(candidates: Array<{ provider: string; model: string }>): {
+  contextLength: number | null;
+  maxOutputTokens: number | null;
+} {
+  if (!Array.isArray(candidates) || candidates.length === 0) {
+    return { contextLength: null, maxOutputTokens: null };
+  }
+
+  let contextLength: number | null = null;
+  let maxOutputTokens: number | null = null;
+  for (const candidate of candidates) {
+    const limit = getTokenLimit(candidate.provider, candidate.model);
+    if (Number.isFinite(limit) && limit > 0) {
+      contextLength = contextLength === null ? limit : Math.max(contextLength, limit);
+    }
+    const output = getResolvedModelCapabilities({
+      provider: candidate.provider,
+      model: candidate.model,
+    }).maxOutputTokens;
+    if (typeof output === "number" && Number.isFinite(output) && output > 0) {
+      maxOutputTokens = maxOutputTokens === null ? output : Math.max(maxOutputTokens, output);
+    }
+  }
+  return { contextLength, maxOutputTokens };
+}
+
 export async function createVirtualAutoCombo(
   variant: AutoVariant | undefined
 ): Promise<VirtualAutoCombo> {
   const connections = (await getProviderConnections({ isActive: true })) as VirtualFactoryConn[];
 
-  const validConnections = connections.filter((conn) => {
-    const hasApiKey = typeof conn.apiKey === "string" && conn.apiKey.trim().length > 0;
-    return hasApiKey || hasUsableOAuthToken(conn);
-  });
-
-  if (validConnections.length === 0) {
-    log.warn("AUTO", "No connected providers with valid credentials for virtual auto-combo");
-    const emptyPool: string[] = [];
-    const autoConfig = {
-      candidatePool: emptyPool,
-      weights: { ...DEFAULT_WEIGHTS },
-      explorationRate: 0.05,
-      routerStrategy: "lkgp",
-    };
-    return {
-      id: `virtual-auto-${variant || "default"}`,
-      name: `Auto ${variant || "Default"}`,
-      type: "auto" as const,
-      strategy: "auto",
-      models: [],
-      candidatePool: emptyPool,
-      weights: autoConfig.weights,
-      explorationRate: autoConfig.explorationRate,
-      routerStrategy: autoConfig.routerStrategy,
-      autoConfig,
-      config: { auto: autoConfig },
-    };
-  }
+  const validConnections = connections.filter(hasUsableConnectionCredential);
 
   const candidatePool: VirtualAutoComboCandidate[] = [];
   for (const conn of validConnections) {
@@ -138,6 +229,36 @@ export async function createVirtualAutoCombo(
       modelStr: `${conn.provider}/${modelId}`,
       costPer1MTokens: 0, // Not used in virtual auto-combo (LKGP uses session stickiness)
     });
+  }
+
+  candidatePool.push(
+    ...getNoAuthCandidates(new Set(validConnections.map((conn) => conn.provider)))
+  );
+
+  if (candidatePool.length === 0) {
+    log.warn("AUTO", "No connected providers with valid credentials for virtual auto-combo");
+    const emptyPool: string[] = [];
+    const autoConfig = {
+      candidatePool: emptyPool,
+      weights: { ...DEFAULT_WEIGHTS },
+      explorationRate: 0.05,
+      routerStrategy: "lkgp",
+    };
+    return {
+      id: `virtual-auto-${variant || "default"}`,
+      name: `Auto ${variant || "Default"}`,
+      type: "auto" as const,
+      strategy: "auto",
+      models: [],
+      candidatePool: emptyPool,
+      weights: autoConfig.weights,
+      explorationRate: autoConfig.explorationRate,
+      routerStrategy: autoConfig.routerStrategy,
+      autoConfig,
+      config: { auto: autoConfig },
+      advertisedContextLength: null,
+      advertisedMaxOutputTokens: null,
+    };
   }
 
   let weights: ScoringWeights = { ...DEFAULT_WEIGHTS };
@@ -187,6 +308,8 @@ export async function createVirtualAutoCombo(
     routerStrategy,
   };
 
+  const advertisedLimits = computeAdvertisedLimits(candidatePool);
+
   return {
     id: `virtual-auto-${variant || "default"}`,
     name: `Auto ${variant || "Default"}`,
@@ -199,5 +322,7 @@ export async function createVirtualAutoCombo(
     routerStrategy,
     autoConfig,
     config: { auto: autoConfig },
+    advertisedContextLength: advertisedLimits.contextLength,
+    advertisedMaxOutputTokens: advertisedLimits.maxOutputTokens,
   };
 }

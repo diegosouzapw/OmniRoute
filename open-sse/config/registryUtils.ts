@@ -14,6 +14,7 @@ export interface BaseModel {
 
 export interface BaseProvider<M extends BaseModel = BaseModel> {
   id: string;
+  alias?: string;
   baseUrl: string;
   authType: string; // "apikey" | "oauth" | "none"
   authHeader: string; // "bearer" | "key" | "token" | "xi-api-key" | "x-api-key" | "none"
@@ -32,9 +33,12 @@ export function parseModelFromRegistry<P extends BaseProvider>(
   if (!modelStr) return { provider: null, model: null };
 
   // Try each provider prefix
-  for (const [providerId] of Object.entries(registry)) {
+  for (const [providerId, config] of Object.entries(registry)) {
     if (modelStr.startsWith(providerId + "/")) {
       return { provider: providerId, model: modelStr.slice(providerId.length + 1) };
+    }
+    if (config.alias && modelStr.startsWith(config.alias + "/")) {
+      return { provider: providerId, model: modelStr.slice(config.alias.length + 1) };
     }
   }
 
@@ -62,12 +66,17 @@ export function getAllModelsFromRegistry<P extends BaseProvider>(
   for (const [providerId, config] of Object.entries(registry)) {
     const extraFields = extra ? extra(providerId, config) : {};
     for (const model of config.models) {
-      models.push({
-        id: `${providerId}/${model.id}`,
-        name: model.name,
-        provider: providerId,
-        ...extraFields,
-      });
+      const entries = [providerId, config.alias].filter(
+        (prefix): prefix is string => typeof prefix === "string" && prefix.length > 0
+      );
+      for (const prefix of entries) {
+        models.push({
+          id: `${prefix}/${model.id}`,
+          name: model.name,
+          provider: providerId,
+          ...extraFields,
+        });
+      }
     }
   }
 

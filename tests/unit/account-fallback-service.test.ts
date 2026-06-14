@@ -29,6 +29,9 @@ const {
   clearProviderFailure,
   isProviderFailureCode,
   getProvidersInCooldown,
+  getProviderBreakerState,
+  isCreditsExhausted,
+  CREDITS_EXHAUSTED_SIGNALS,
 } = accountFallback;
 
 const { selectAccount } = accountSelector;
@@ -78,12 +81,83 @@ test("parseRetryFromErrorText parses both compact reset formats", () => {
   assert.equal(parseRetryFromErrorText("No reset metadata"), null);
 });
 
+test("parseRetryFromErrorText parses Antigravity 'Resets in XhYmZs' phrasing", () => {
+  assert.equal(
+    parseRetryFromErrorText(
+      "Individual quota reached. Contact your administrator to enable overages. " +
+        "Resets in 164h27m24s."
+    ),
+    (164 * 3600 + 27 * 60 + 24) * 1000
+  );
+  assert.equal(parseRetryFromErrorText("Resets in 2h7m23s"), 7_643_000);
+  assert.equal(parseRetryFromErrorText("Reset in 45m"), 2_700_000);
+});
+
+test("parseRetryFromErrorText caps extreme reset windows at 30 days", () => {
+  const thirtyDaysMs = 30 * 24 * 60 * 60 * 1000;
+  // 100 days → capped to 30
+  assert.equal(parseRetryFromErrorText("Resets in 2400h"), thirtyDaysMs);
+  // Absurd value → capped
+  assert.equal(parseRetryFromErrorText("Resets in 999999h"), thirtyDaysMs);
+});
+
+test("checkFallbackError locks Antigravity quota-reached 429 for the full reset window", () => {
+  const message =
+    "Individual quota reached. Contact your administrator to enable overages. " +
+    "Resets in 164h27m24s.";
+  const result = checkFallbackError(
+    429,
+    message,
+    0,
+    "gemini-3-flash-agent",
+    "antigravity",
+    null,
+    makeProfile()
+  );
+
+  assert.equal(result.shouldFallback, true);
+  assert.equal(result.reason, RateLimitReason.QUOTA_EXHAUSTED);
+  assert.equal(result.usedUpstreamRetryHint, true);
+  // Full parsed window (≈164.46h), under the 30-day cap — not the generic ~5s rate-limit backoff.
+  assert.equal(result.cooldownMs, (164 * 3600 + 27 * 60 + 24) * 1000);
+});
+
+test("recordModelLockoutFailure honors a multi-day exactCooldownMs (under 30-day cap)", () => {
+  const provider = "antigravity";
+  const connectionId = "conn-quota-window";
+  const model = "gemini-3-flash-agent";
+  const exactCooldownMs = (164 * 3600 + 27 * 60 + 24) * 1000;
+
+  clearModelLock(provider, connectionId, model);
+  const lockout = recordModelLockoutFailure(
+    provider,
+    connectionId,
+    model,
+    "quota_exhausted",
+    429,
+    0,
+    makeProfile(),
+    { exactCooldownMs }
+  );
+
+  assert.equal(lockout.cooldownMs, exactCooldownMs);
+  assert.equal(isModelLocked(provider, connectionId, model), true);
+  clearModelLock(provider, connectionId, model);
+});
+
 test("checkFallbackError marks deactivated accounts as permanent auth failures", () => {
   const result = checkFallbackError(401, "This account has been deactivated");
   assert.equal(result.shouldFallback, true);
   assert.equal(result.reason, RateLimitReason.AUTH_ERROR);
   assert.equal(result.permanent, true);
   assert.ok(result.cooldownMs >= 300 * 24 * 60 * 60 * 1000);
+});
+
+test("checkFallbackError classifies 'free tier of the model has been exhausted' as quota exhausted", () => {
+  const result = checkFallbackError(429, "free tier of the model has been exhausted");
+  assert.equal(result.shouldFallback, true);
+  assert.equal(result.reason, RateLimitReason.QUOTA_EXHAUSTED);
+  assert.equal(result.creditsExhausted, true);
 });
 
 test("checkFallbackError treats non-429 exhausted credits as long quota cooldowns", () => {
@@ -465,7 +539,7 @@ test("recordModelLockoutFailure uses provider profile cooldowns, backoff, and re
 
 // Provider-level failure circuit breaker tests
 test("isProviderFailureCode correctly identifies provider-wide transient error codes", () => {
-  assert.equal(isProviderFailureCode(429), false);
+  assert.equal(isProviderFailureCode(429), true);
   assert.equal(isProviderFailureCode(408), true);
   assert.equal(isProviderFailureCode(500), true);
   assert.equal(isProviderFailureCode(502), true);
@@ -550,6 +624,91 @@ test("recordProviderFailure honors runtime provider breaker profile", () => {
     assert.equal(breakerAfterStatusCheck.resetTimeout, runtimeProfile.resetTimeoutMs);
   } finally {
     clearProviderFailure(provider);
+  }
+});
+
+test("recordProviderFailure preserves provider breaker cooldown while open", () => {
+  const originalNow = Date.now;
+  let now = 1_700_000_000_000;
+  Date.now = () => now;
+
+  try {
+    const provider = "test-provider-open-cooldown-stability";
+    const profile = { failureThreshold: 1, resetTimeoutMs: 60_000 };
+    clearProviderFailure(provider);
+
+    recordProviderFailure(provider, undefined, "conn-open-cooldown", profile);
+    assert.equal(isProviderInCooldown(provider), true);
+
+    const openedAt = getProviderBreakerState(provider)?.lastFailureTime;
+    const initialRemaining = getProviderCooldownRemainingMs(provider);
+    assert.equal(openedAt, now);
+    assert.equal(initialRemaining, 60_000);
+
+    now += 10_000;
+    recordProviderFailure(provider, undefined, "conn-open-cooldown-later", profile);
+
+    assert.equal(getProviderBreakerState(provider)?.lastFailureTime, openedAt);
+    assert.equal(getProviderCooldownRemainingMs(provider), 50_000);
+  } finally {
+    Date.now = originalNow;
+    clearProviderFailure("test-provider-open-cooldown-stability");
+  }
+});
+
+test("recordProviderFailure keeps recent connection dedupe entries when pruning", () => {
+  const originalNow = Date.now;
+  const now = 1_700_000_000_000;
+  Date.now = () => now;
+
+  try {
+    const provider = "test-provider-dedupe-prune";
+    const profile = { failureThreshold: 20_000, resetTimeoutMs: 60_000 };
+    clearProviderFailure(provider);
+
+    for (let i = 0; i <= 10_000; i++) {
+      recordProviderFailure(provider, undefined, `conn-${i}`, profile);
+    }
+
+    const beforeDuplicate = getProviderBreakerState(provider)?.failureCount;
+    recordProviderFailure(provider, undefined, "conn-10000", profile);
+    const afterDuplicate = getProviderBreakerState(provider)?.failureCount;
+
+    assert.equal(afterDuplicate, beforeDuplicate);
+    assert.equal(isProviderInCooldown(provider), false);
+  } finally {
+    Date.now = originalNow;
+    clearProviderFailure("test-provider-dedupe-prune");
+  }
+});
+
+test("recordProviderFailure refreshes insertion order for existing dedupe keys", () => {
+  const originalNow = Date.now;
+  let now = 1_700_000_000_000;
+  Date.now = () => now;
+
+  try {
+    const provider = "test-provider-dedupe-lru";
+    const profile = { failureThreshold: 20_000, resetTimeoutMs: 60_000 };
+    clearProviderFailure(provider);
+
+    for (let i = 0; i < 9_999; i++) {
+      recordProviderFailure(provider, undefined, `conn-${i}`, profile);
+    }
+
+    now += 10_000;
+    recordProviderFailure(provider, undefined, "conn-0", profile);
+
+    for (let i = 10_000; i < 10_050; i++) {
+      recordProviderFailure(provider, undefined, `conn-${i}`, profile);
+    }
+
+    const breakerState = getProviderBreakerState(provider);
+    assert.equal(breakerState?.failureCount !== undefined, true);
+    assert.equal(isProviderInCooldown(provider), false);
+  } finally {
+    Date.now = originalNow;
+    clearProviderFailure("test-provider-dedupe-lru");
   }
 });
 
@@ -952,6 +1111,182 @@ test("checkFallbackError ignores structured error with unrelated code on 400", (
   assert.equal(result.shouldFallback, false);
 });
 
+// ─── Gemini RPM 429 Classification (CREDITS_EXHAUSTED_SIGNALS fix) ─────
+
+test("isCreditsExhausted returns false for Gemini RPM 429 body text", () => {
+  const geminiRpmText = "Resource has been exhausted (e.g. check quota).";
+  assert.equal(isCreditsExhausted(geminiRpmText), false);
+});
+
+test("isCreditsExhausted returns true for actual credits-exhausted signals", () => {
+  assert.equal(isCreditsExhausted("insufficient_quota"), true);
+  assert.equal(isCreditsExhausted("credits exhausted"), true);
+  assert.equal(isCreditsExhausted("payment required"), true);
+  assert.equal(isCreditsExhausted("free tier of the model has been exhausted"), true);
+  assert.equal(isCreditsExhausted("exceeded your current usage quota"), true);
+});
+
+test("CREDITS_EXHAUSTED_SIGNALS no longer contains generic gRPC resource-exhausted patterns", () => {
+  // These patterns were removed because they falsely matched Gemini RPM 429 errors
+  assert.equal(CREDITS_EXHAUSTED_SIGNALS.includes("resource has been exhausted"), false);
+  assert.equal(CREDITS_EXHAUSTED_SIGNALS.includes("resource_exhausted"), false);
+  assert.equal(CREDITS_EXHAUSTED_SIGNALS.includes("check quota"), false);
+});
+
+test("checkFallbackError classifies Gemini RPM 429 as RATE_LIMIT_EXCEEDED (not QUOTA_EXHAUSTED)", () => {
+  // provider=null → preserveQuota429=true → text quota checks run
+  // isCreditsExhausted must NOT match Gemini's "Resource has been exhausted"
+  const result = checkFallbackError(
+    429,
+    "Resource has been exhausted (e.g. check quota).",
+    0,
+    null,
+    null,
+    null,
+    makeProfile()
+  );
+  assert.equal(result.shouldFallback, true);
+  assert.equal(result.reason, RateLimitReason.RATE_LIMIT_EXCEEDED);
+  assert.equal(result.creditsExhausted, undefined);
+  assert.equal(result.dailyQuotaExhausted, undefined);
+  assert.ok(result.cooldownMs > 0, "cooldownMs should be positive");
+});
+
+test("checkFallbackError classifies Gemini RPM 429 as RATE_LIMIT_EXCEEDED for API-key provider", () => {
+  // provider="gemini" → preserveQuota429=false → status-based rule applies
+  const result = checkFallbackError(
+    429,
+    "Resource has been exhausted (e.g. check quota).",
+    0,
+    null,
+    "gemini",
+    null,
+    makeProfile()
+  );
+  assert.equal(result.shouldFallback, true);
+  assert.equal(result.reason, RateLimitReason.RATE_LIMIT_EXCEEDED);
+  assert.equal(result.cooldownMs, 125); // makeProfile().baseCooldownMs
+});
+
+test("checkFallbackError still classifies genuine OAuth quota-exhausted text as QUOTA_EXHAUSTED", () => {
+  // Regression: OAuth providers must still get QUOTA_EXHAUSTED for actual quota messages
+  const result = checkFallbackError(
+    429,
+    "Coding Plan hour quota has been exceeded",
+    0,
+    null,
+    "codex",
+    null,
+    makeProfile()
+  );
+  assert.equal(result.shouldFallback, true);
+  assert.equal(result.reason, RateLimitReason.QUOTA_EXHAUSTED);
+});
+
+test("checkFallbackError preserves daily-quota exhaustion for non-429 status codes", () => {
+  // Non-429 status codes with daily quota text must still be QUOTA_EXHAUSTED
+  const result = checkFallbackError(
+    402,
+    "You have exceeded today's quota, please try again tomorrow"
+  );
+  assert.equal(result.shouldFallback, true);
+  assert.equal(result.reason, RateLimitReason.QUOTA_EXHAUSTED);
+  assert.equal(result.dailyQuotaExhausted, true);
+});
+
+// ─── Gemini 429 → Model Lockout: rate_limited (not quota_exhausted) ────
+
+test("Gemini RPM 429: recordModelLockoutFailure uses exponential backoff for rate_limited reason", () => {
+  const originalNow = Date.now;
+  const now = 1_700_000_000_000;
+  Date.now = () => now;
+  const provider = "gemini";
+  const connectionId = "test-conn-gemini-rpm";
+  const model = "gemini/gemma-4-31b-it";
+
+  try {
+    clearModelLock(provider, connectionId, model);
+
+    const profile = makeProfile({
+      baseCooldownMs: 5000,
+      transientCooldown: 5000,
+      rateLimitCooldown: 5000,
+    });
+
+    // auth.ts flow: 429 + fallbackResult.reason=RATE_LIMIT_EXCEEDED
+    // → reason="rate_limited" → recordModelLockoutFailure
+    const first = recordModelLockoutFailure(
+      provider,
+      connectionId,
+      model,
+      "rate_limited",
+      429,
+      0,
+      profile
+    );
+    assert.equal(first.failureCount, 1);
+    assert.equal(first.cooldownMs, 5000, "first failure: 5s base cooldown");
+
+    const second = recordModelLockoutFailure(
+      provider,
+      connectionId,
+      model,
+      "rate_limited",
+      429,
+      0,
+      profile
+    );
+    assert.equal(second.failureCount, 2);
+    assert.equal(second.cooldownMs, 10000, "second failure: 10s exponential backoff");
+
+    assert.equal(isModelLocked(provider, connectionId, model), true);
+    clearModelLock(provider, connectionId, model);
+  } finally {
+    Date.now = originalNow;
+    clearModelLock("gemini", "test-conn-gemini-rpm", "gemini/gemma-4-31b-it");
+  }
+});
+
+test("Gemini RPD (quota_exhausted) still triggers midnight lockout in recordModelLockoutFailure", () => {
+  // Regression: real daily quota exhaustion must still produce midnight reset
+  const originalNow = Date.now;
+  const testDate = new Date();
+  testDate.setHours(12, 0, 0, 0);
+  const now = testDate.getTime();
+  Date.now = () => now;
+  const provider = "gemini";
+  const connectionId = "test-conn-gemini-rpd";
+  const model = "gemini/gemma-4-31b-it";
+
+  try {
+    clearModelLock(provider, connectionId, model);
+    const profile = makeProfile();
+    const result = recordModelLockoutFailure(
+      provider,
+      connectionId,
+      model,
+      "quota_exhausted",
+      429,
+      0,
+      profile
+    );
+
+    // Must lock until midnight, NOT exponential backoff
+    const tomorrow = new Date(now);
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    tomorrow.setHours(0, 0, 0, 0);
+    const expected = tomorrow.getTime() - now;
+    assert.ok(
+      Math.abs(result.cooldownMs - expected) <= 300_000,
+      `cooldown should be until tomorrow (expected ~${expected}, got ${result.cooldownMs})`
+    );
+    clearModelLock(provider, connectionId, model);
+  } finally {
+    Date.now = originalNow;
+    clearModelLock("gemini", "test-conn-gemini-rpd", "gemini/gemma-4-31b-it");
+  }
+});
+
 // ─── G-02: X-Omni-Fallback-Hint: connection_cooldown ─────────────────────────
 // When 9router executor signals a supervisor-not-running 503, checkFallbackError
 // must return 5s cooldown with skipProviderBreaker:true — not trip the circuit breaker.
@@ -1028,4 +1363,181 @@ test("G-02: five consecutive 503 service_not_running do NOT trip provider circui
     "9router circuit breaker must remain closed"
   );
   clearProviderFailure("9router"); // cleanup
+});
+
+test("recordModelLockoutFailure caps cooldown at BACKOFF_CONFIG.max to prevent absurdly long lockouts", () => {
+  const originalNow = Date.now;
+  let now = 1_700_000_000_000;
+  Date.now = () => now;
+
+  try {
+    const provider = "openai";
+    const connectionId = "conn-capped";
+    const model = "gpt-5-trillium";
+
+    clearModelLock(provider, connectionId, model);
+
+    // Fire 9 consecutive failures so the backoff exceeds the 120s cap
+    // baseCooldownMs=1000 (getQuotaCooldown(0)), failure 9: 1000*2^8=256000 > 120000
+    let lastResult;
+    for (let i = 0; i < 9; i++) {
+      lastResult = recordModelLockoutFailure(
+        provider,
+        connectionId,
+        model,
+        "rate_limited",
+        429,
+        0,
+        null
+      );
+      now += 50; // each failure within the reset window
+    }
+
+    assert.ok(
+      lastResult.cooldownMs <= 120_000,
+      `cooldown ${lastResult.cooldownMs}ms should not exceed BACKOFF_CONFIG.max (120000ms)`
+    );
+    assert.equal(lastResult.cooldownMs, 120_000);
+    assert.equal(lastResult.failureCount, 9);
+
+    clearModelLock(provider, connectionId, model);
+  } finally {
+    Date.now = originalNow;
+  }
+});
+
+test("recordModelLockoutFailure groups provider aliases under canonical provider", () => {
+  const providerAlias = "cx";
+  const providerCanonical = "codex";
+  const connectionId = "conn-alias-test";
+  const model = "gpt-5.5";
+
+  clearModelLock(providerCanonical, connectionId, model);
+  clearModelLock(providerAlias, connectionId, model);
+
+  const result1 = recordModelLockoutFailure(
+    providerAlias,
+    connectionId,
+    model,
+    "rate_limited",
+    429,
+    1000,
+    null
+  );
+
+  assert.equal(isModelLocked(providerAlias, connectionId, model), true);
+  assert.equal(isModelLocked(providerCanonical, connectionId, model), true);
+
+  clearModelLock(providerCanonical, connectionId, model);
+});
+
+test("recordModelLockoutFailure escalates backoff correctly after cooldown expiration (long interval)", () => {
+  const originalNow = Date.now;
+  let now = 1_700_000_000_000;
+  Date.now = () => now;
+
+  try {
+    const provider = "openai";
+    const connectionId = "conn-long-interval";
+    const model = "gpt-5-escalate";
+
+    clearModelLock(provider, connectionId, model);
+
+    const profile = makeProfile({
+      baseCooldownMs: 120000,
+      resetTimeoutMs: 30000,
+    });
+
+    const first = recordModelLockoutFailure(
+      provider,
+      connectionId,
+      model,
+      "rate_limited",
+      429,
+      120000,
+      profile,
+      { maxCooldownMs: 1800000 }
+    );
+    assert.equal(first.failureCount, 1);
+    assert.equal(first.cooldownMs, 120000);
+
+    now += 130000;
+
+    const second = recordModelLockoutFailure(
+      provider,
+      connectionId,
+      model,
+      "rate_limited",
+      429,
+      120000,
+      profile,
+      { maxCooldownMs: 1800000 }
+    );
+    assert.equal(second.failureCount, 2);
+    assert.equal(second.cooldownMs, 240000);
+
+    clearModelLock(provider, connectionId, model);
+  } finally {
+    Date.now = originalNow;
+  }
+});
+// ── Custom banned signals (PR #3454) ──────────────────────────────────────────
+// Operators can extend ACCOUNT_DEACTIVATED_SIGNALS with provider-specific
+// permanent-ban phrasing via Settings → Security. These persist in the
+// key_value settings store and are applied at boot + on hot-reload through
+// setCustomBannedSignals(). Regression guard for the merge/detection behavior.
+
+const {
+  setCustomBannedSignals,
+  getMergedBannedSignals,
+  isAccountDeactivated,
+  ACCOUNT_DEACTIVATED_SIGNALS,
+} = accountFallback;
+
+test("getMergedBannedSignals returns built-in list unchanged when no custom signals", () => {
+  setCustomBannedSignals([]);
+  const merged = getMergedBannedSignals();
+  assert.deepEqual(merged, ACCOUNT_DEACTIVATED_SIGNALS);
+});
+
+test("getMergedBannedSignals appends custom signals to the built-in list", () => {
+  setCustomBannedSignals(["api key revoked", "tenant suspended"]);
+  const merged = getMergedBannedSignals();
+  // Built-ins still present
+  for (const sig of ACCOUNT_DEACTIVATED_SIGNALS) {
+    assert.ok(merged.includes(sig), `built-in signal "${sig}" must survive merge`);
+  }
+  // Custom appended
+  assert.ok(merged.includes("api key revoked"));
+  assert.ok(merged.includes("tenant suspended"));
+  setCustomBannedSignals([]); // cleanup
+});
+
+test("isAccountDeactivated still matches built-in signals when custom list is empty", () => {
+  setCustomBannedSignals([]);
+  assert.equal(isAccountDeactivated("Your account has been suspended"), true);
+  assert.equal(isAccountDeactivated("rate limit exceeded, retry later"), false);
+});
+
+test("isAccountDeactivated matches a custom signal after setCustomBannedSignals", () => {
+  setCustomBannedSignals([]);
+  // Before registration the custom phrase is not a ban signal
+  assert.equal(
+    isAccountDeactivated("Error: API key revoked by administrator"),
+    false,
+    "custom phrase must not match before it is registered"
+  );
+
+  setCustomBannedSignals(["api key revoked"]);
+  // Case-insensitive substring match against the merged list
+  assert.equal(
+    isAccountDeactivated("Error: API key revoked by administrator"),
+    true,
+    "custom phrase must match once registered (case-insensitive substring)"
+  );
+
+  // Built-ins remain matchable alongside custom signals
+  assert.equal(isAccountDeactivated("account_deactivated"), true);
+
+  setCustomBannedSignals([]); // cleanup — restore module state for other tests
 });

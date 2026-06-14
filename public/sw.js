@@ -24,9 +24,29 @@ self.addEventListener("activate", (event) => {
       .then((keys) =>
         Promise.all(keys.filter((key) => key !== CACHE_NAME).map((key) => caches.delete(key)))
       )
+      .then(() => caches.open(CACHE_NAME))
+      .then((cache) =>
+        cache.keys().then((entries) => {
+          const currentBuildId = extractBuildId(self.location.href);
+          const deletions = entries
+            .map((req) => {
+              const entryBuildId = extractBuildId(req.url);
+              return entryBuildId && currentBuildId && entryBuildId !== currentBuildId
+                ? cache.delete(req)
+                : null;
+            })
+            .filter(Boolean);
+          return Promise.all(deletions);
+        })
+      )
       .then(() => self.clients.claim())
   );
 });
+
+function extractBuildId(url) {
+  const match = String(url).match(/\/_next\/static\/([^/]+)\//);
+  return match ? match[1] : null;
+}
 
 self.addEventListener("fetch", (event) => {
   if (event.request.method !== "GET") {

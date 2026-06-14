@@ -275,8 +275,8 @@ function buildStreamErrorChunks(
     ],
     error: {
       message: errorMsg,
-      type: "upstream_error",
-      code: statusCode,
+      type: statusMapping.responses.type,
+      code: statusMapping.responses.code,
     },
   };
 
@@ -291,52 +291,55 @@ export function createDisconnectAwareStream(transformStream, streamController) {
   const reader = transformStream.readable.getReader();
   const writer = transformStream.writable.getWriter();
 
-  return new ReadableStream({
-    async pull(controller) {
-      if (!streamController.isConnected()) {
-        controller.close();
-        return;
-      }
-
-      try {
-        const { done, value } = await reader.read();
-        if (done) {
-          streamController.handleComplete();
+  return new ReadableStream(
+    {
+      async pull(controller) {
+        if (!streamController.isConnected()) {
           controller.close();
           return;
         }
-        controller.enqueue(value);
-      } catch (error) {
-        streamController.handleError(error);
 
-        // T35: Encapsulate mid-stream errors as SSE events instead of abruptly aborting
-        // This prevents TransferEncodingError on the client side
-        const errorMsg = error instanceof Error ? error.message : "Upstream stream error";
-        const statusCode =
-          typeof error === "object" && error !== null && "statusCode" in error
-            ? Number((error as { statusCode?: unknown }).statusCode) || 500
-            : 500;
+        try {
+          const { done, value } = await reader.read();
+          if (done) {
+            streamController.handleComplete();
+            controller.close();
+            return;
+          }
+          controller.enqueue(value);
+        } catch (error) {
+          streamController.handleError(error);
 
-        for (const chunk of buildStreamErrorChunks(
-          errorMsg,
-          statusCode,
-          streamController.clientResponseFormat
-        )) {
-          controller.enqueue(chunk);
+          // T35: Encapsulate mid-stream errors as SSE events instead of abruptly aborting
+          // This prevents TransferEncodingError on the client side
+          const errorMsg = error instanceof Error ? error.message : "Upstream stream error";
+          const statusCode =
+            typeof error === "object" && error !== null && "statusCode" in error
+              ? Number((error as { statusCode?: unknown }).statusCode) || 500
+              : 500;
+
+          for (const chunk of buildStreamErrorChunks(
+            errorMsg,
+            statusCode,
+            streamController.clientResponseFormat
+          )) {
+            controller.enqueue(chunk);
+          }
+
+          controller.close();
         }
+      },
 
-        controller.close();
-      }
+      cancel(reason) {
+        streamController.handleDisconnect(reason || "cancelled");
+        reader.cancel();
+        setTimeout(() => {
+          writer.abort();
+        }, DISCONNECT_ABORT_DELAY_MS).unref?.();
+      },
     },
-
-    cancel(reason) {
-      streamController.handleDisconnect(reason || "cancelled");
-      reader.cancel();
-      setTimeout(() => {
-        writer.abort();
-      }, DISCONNECT_ABORT_DELAY_MS).unref?.();
-    },
-  });
+    { highWaterMark: 16384 }
+  );
 }
 
 /**

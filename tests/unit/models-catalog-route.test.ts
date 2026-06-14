@@ -14,6 +14,7 @@ const modelsDb = await import("../../src/lib/db/models.ts");
 const combosDb = await import("../../src/lib/db/combos.ts");
 const settingsDb = await import("../../src/lib/db/settings.ts");
 const apiKeysDb = await import("../../src/lib/db/apiKeys.ts");
+const featureFlagsDb = await import("../../src/lib/db/featureFlags.ts");
 const modelsDevSync = await import("../../src/lib/modelsDevSync.ts");
 const v1ModelsCatalog = await import("../../src/app/api/v1/models/catalog.ts");
 
@@ -120,6 +121,79 @@ test("v1 models catalog accepts bearer API keys and filters the list by allowed 
     ids.some((id) => id.startsWith("claude/") || id.startsWith("cc/")),
     false
   );
+});
+
+test("v1 models catalog does NOT accept API keys supplied via query string (#3300 security follow-up)", async () => {
+  // Query-string token fallbacks (`?token=`/`?key=`/`?apiKey=`/`?api_key=`) were
+  // intentionally removed — a credential in the query string leaks into access
+  // logs / Referer headers. The VS Code integration uses the path-scoped
+  // `/vscode/<token>/…` form instead (covered by the next test). So a `?token=`
+  // on the catalog route is no longer a usable credential → auth fails.
+  await settingsDb.updateSettings({
+    requireLogin: true,
+    password: "hashed-password",
+    requireAuthForModels: true,
+  });
+  await seedConnection("openai", { name: "openai-query-auth" });
+
+  const key = await apiKeysDb.createApiKey("catalog-query-auth", "machine-catalog-query");
+
+  const response = await v1ModelsCatalog.getUnifiedModelsResponse(
+    new Request(`http://localhost/api/v1/models?token=${encodeURIComponent(key.key)}`)
+  );
+
+  assert.equal(response.status, 401);
+});
+
+test("v1 models catalog accepts API keys embedded in vscode path aliases when auth is required", async () => {
+  await settingsDb.updateSettings({
+    requireLogin: true,
+    password: "hashed-password",
+    requireAuthForModels: true,
+  });
+  await seedConnection("openai", { name: "openai-path-auth" });
+
+  const key = await apiKeysDb.createApiKey("catalog-path-auth", "machine-catalog-path");
+
+  const response = await v1ModelsCatalog.getUnifiedModelsResponse(
+    new Request(`http://localhost/api/v1/vscode/${encodeURIComponent(key.key)}/models`)
+  );
+  const body = (await response.json()) as any;
+
+  assert.equal(response.status, 200);
+  assert.ok(Array.isArray(body.data));
+  assert.ok(body.data.length > 0);
+});
+
+test("v1 models catalog includes display names by default", async () => {
+  const response = await v1ModelsCatalog.getUnifiedModelsResponse(
+    new Request("http://localhost/api/v1/models")
+  );
+  const body = (await response.json()) as any;
+  const model = body.data.find((item) => item.id === "tllm/claude_sonnet_4");
+
+  assert.equal(response.status, 200);
+  assert.ok(model);
+  assert.equal(model.name, "Claude Sonnet 4 (The Old LLM 🆓)");
+});
+
+test("v1 models catalog omits display names when the feature flag is disabled", async () => {
+  featureFlagsDb.setFeatureFlagOverride("MODEL_CATALOG_INCLUDE_NAMES", "false");
+
+  try {
+    const response = await v1ModelsCatalog.getUnifiedModelsResponse(
+      new Request("http://localhost/api/v1/models")
+    );
+    const body = (await response.json()) as any;
+    const model = body.data.find((item) => item.id === "tllm/claude_sonnet_4");
+
+    assert.equal(response.status, 200);
+    assert.ok(model);
+    assert.equal("name" in model, false);
+    assert.equal(model.root, "claude_sonnet_4");
+  } finally {
+    featureFlagsDb.removeFeatureFlagOverride("MODEL_CATALOG_INCLUDE_NAMES");
+  }
 });
 
 test("v1 models catalog hides models excluded by every active connection while keeping models served by at least one account", async () => {
@@ -236,11 +310,13 @@ test("v1 models catalog keeps only visible combos when no providers are active",
   const body = (await response.json()) as any;
 
   assert.equal(response.status, 200);
-  assert.deepEqual(
-    body.data.map((item) => item.id),
-    [visible.name]
-  );
-  assert.equal(body.data[0].context_length, 32000);
+  // The visible combo must be present (noAuth provider models may also appear — that is correct
+  // behavior after the fix for Issue #2798, so we check membership rather than exact equality).
+  const ids = body.data.map((item) => item.id);
+  assert.ok(ids.includes(visible.name), "visible combo must appear");
+  const visibleCombo = body.data.find((item) => item.id === visible.name);
+  assert.ok(visibleCombo, "visible combo entry must exist");
+  assert.equal(visibleCombo.context_length, 32000);
   assert.equal(
     body.data.some((item) => item.id === hidden.name),
     false
@@ -614,8 +690,16 @@ test("v1 models catalog exposes Antigravity client-visible preview aliases inste
 
   assert.equal(response.status, 200);
   assert.ok(ids.has("antigravity/gemini-3-pro-preview"));
-  assert.ok(ids.has("antigravity/gemini-3-flash-preview"));
-  assert.equal(ids.has("antigravity/gemini-3.1-pro-high"), false);
+  assert.ok(ids.has("antigravity/gemini-3.5-flash-low"));
+  assert.ok(ids.has("antigravity/gemini-3.5-flash-medium"));
+  assert.ok(ids.has("antigravity/gemini-3.5-flash-high"));
+  assert.equal(ids.has("antigravity/gemini-3-flash-preview"), false);
+  assert.equal(ids.has("antigravity/gemini-3-flash-agent"), false);
+  // Gemini 3.1 Pro budget tiers remain client-visible aliases for the plain
+  // `gemini-3.1-pro` upstream id — see ANTIGRAVITY_MODEL_ALIASES.
+  assert.ok(ids.has("antigravity/gemini-3.1-pro-high"));
+  // The legacy `gemini-claude-*` ids are alias KEYS (remapped to live upstream
+  // ids), not public catalog entries, so they stay unexposed.
   assert.equal(ids.has("antigravity/gemini-claude-sonnet-4-5"), false);
   assert.equal(ids.has("antigravity/gemini-claude-sonnet-4-5-thinking"), false);
   assert.equal(ids.has("antigravity/gemini-claude-opus-4-5-thinking"), false);
@@ -1336,4 +1420,60 @@ test("v1 models catalog prefers manual combo context_length over auto-calculated
   assert.equal(response.status, 200);
   assert.ok(comboModel);
   assert.equal(comboModel.context_length, 64000, "manual context_length should override auto-calc");
+});
+
+test("v1 models catalog computes combo context_length from known targets when some targets have unknown context", async () => {
+  await seedConnection("openai", { name: "openai-mixed-context" });
+  await seedConnection("claude", {
+    authType: "oauth",
+    name: "claude-mixed-context",
+    apiKey: null,
+    accessToken: "claude-access",
+  });
+
+  // Create a combo with targets: one known (gpt-4o = 128K), one unknown (nonexistent-model).
+  // The combo should still compute context_length = 128K from the known target.
+  const combo = await combosDb.createCombo({
+    name: "mixed-context-combo",
+    strategy: "priority",
+    models: ["openai/gpt-4o", "openai/nonexistent-model-xyz"],
+  });
+
+  const response = await v1ModelsCatalog.getUnifiedModelsResponse(
+    new Request("http://localhost/api/v1/models")
+  );
+  const body = (await response.json()) as any;
+  const comboModel = body.data.find((item) => item.id === "mixed-context-combo");
+
+  assert.equal(response.status, 200);
+  assert.ok(comboModel);
+  assert.equal(
+    comboModel.context_length,
+    128000,
+    "combo context_length should be the MIN of known target model limits, ignoring targets with no registry/spec/synced source"
+  );
+});
+
+// Regression test for Issue #2798: noAuth providers (opencode/oc) have no DB connection rows
+// but their models must still appear in /v1/models.
+test("v1 models catalog includes noAuth provider models when no DB connections exist (#2798)", async () => {
+  // No connections seeded — empty DB, simulating a fresh install with no credentials added.
+  const response = await v1ModelsCatalog.getUnifiedModelsResponse(
+    new Request("http://localhost/api/v1/models")
+  );
+  const body = (await response.json()) as any;
+  const ids: string[] = body.data.map((item: any) => item.id);
+
+  assert.equal(response.status, 200);
+  // opencode (noAuth) models must surface even with zero connection rows.
+  // The registry defines models under alias "oc" (e.g. "oc/big-pickle").
+  assert.ok(
+    ids.some((id) => id.startsWith("oc/")),
+    `Expected at least one oc/* model in /v1/models but got none. IDs sample: ${ids.slice(0, 10).join(", ")}`
+  );
+  assert.equal(
+    ids.some((id) => id.startsWith("opencode/")),
+    false,
+    "catalog must not return opencode/* noAuth aliases because opencode/ routes to opencode-zen"
+  );
 });

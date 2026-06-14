@@ -59,75 +59,38 @@ export interface CompressionAnalyticsSummary {
 
 let columnsEnsuredForDb: unknown = null;
 
+const COMPRESSION_ANALYTICS_COLUMNS = [
+  ["actual_prompt_tokens", "INTEGER"],
+  ["actual_completion_tokens", "INTEGER"],
+  ["actual_total_tokens", "INTEGER"],
+  ["actual_cache_read_tokens", "INTEGER"],
+  ["actual_cache_write_tokens", "INTEGER"],
+  ["estimated_usd_saved", "REAL"],
+  ["mcp_description_tokens_saved", "INTEGER DEFAULT 0"],
+  ["multimodal_skip_count", "INTEGER DEFAULT 0"],
+  ["receipt_source", "TEXT"],
+  ["validation_fallback", "INTEGER DEFAULT 0"],
+  ["output_mode", "TEXT"],
+  ["compression_combo_id", "TEXT"],
+  ["engine", "TEXT"],
+  ["rtk_raw_output_pointer", "TEXT"],
+  ["rtk_raw_output_bytes", "INTEGER"],
+  ["rtk_raw_output_pointers", "TEXT"],
+  ["rtk_raw_output_total_bytes", "INTEGER"],
+] as const;
+
 function ensureCompressionAnalyticsColumns(): void {
   const db = getDbInstance();
   if (columnsEnsuredForDb === db) return;
   const rows = db.prepare("PRAGMA table_info(compression_analytics)").all() as Array<{
     name: string;
   }>;
-  const columns = new Set(rows.map((row) => row.name));
-  const addColumn = (name: string, sql: string) => {
-    if (!columns.has(name)) db.exec(sql);
-  };
-  addColumn(
-    "actual_prompt_tokens",
-    "ALTER TABLE compression_analytics ADD COLUMN actual_prompt_tokens INTEGER"
-  );
-  addColumn(
-    "actual_completion_tokens",
-    "ALTER TABLE compression_analytics ADD COLUMN actual_completion_tokens INTEGER"
-  );
-  addColumn(
-    "actual_total_tokens",
-    "ALTER TABLE compression_analytics ADD COLUMN actual_total_tokens INTEGER"
-  );
-  addColumn(
-    "actual_cache_read_tokens",
-    "ALTER TABLE compression_analytics ADD COLUMN actual_cache_read_tokens INTEGER"
-  );
-  addColumn(
-    "actual_cache_write_tokens",
-    "ALTER TABLE compression_analytics ADD COLUMN actual_cache_write_tokens INTEGER"
-  );
-  addColumn(
-    "estimated_usd_saved",
-    "ALTER TABLE compression_analytics ADD COLUMN estimated_usd_saved REAL"
-  );
-  addColumn(
-    "mcp_description_tokens_saved",
-    "ALTER TABLE compression_analytics ADD COLUMN mcp_description_tokens_saved INTEGER DEFAULT 0"
-  );
-  addColumn(
-    "multimodal_skip_count",
-    "ALTER TABLE compression_analytics ADD COLUMN multimodal_skip_count INTEGER DEFAULT 0"
-  );
-  addColumn("receipt_source", "ALTER TABLE compression_analytics ADD COLUMN receipt_source TEXT");
-  addColumn(
-    "validation_fallback",
-    "ALTER TABLE compression_analytics ADD COLUMN validation_fallback INTEGER DEFAULT 0"
-  );
-  addColumn("output_mode", "ALTER TABLE compression_analytics ADD COLUMN output_mode TEXT");
-  addColumn(
-    "compression_combo_id",
-    "ALTER TABLE compression_analytics ADD COLUMN compression_combo_id TEXT"
-  );
-  addColumn("engine", "ALTER TABLE compression_analytics ADD COLUMN engine TEXT");
-  addColumn(
-    "rtk_raw_output_pointer",
-    "ALTER TABLE compression_analytics ADD COLUMN rtk_raw_output_pointer TEXT"
-  );
-  addColumn(
-    "rtk_raw_output_bytes",
-    "ALTER TABLE compression_analytics ADD COLUMN rtk_raw_output_bytes INTEGER"
-  );
-  addColumn(
-    "rtk_raw_output_pointers",
-    "ALTER TABLE compression_analytics ADD COLUMN rtk_raw_output_pointers TEXT"
-  );
-  addColumn(
-    "rtk_raw_output_total_bytes",
-    "ALTER TABLE compression_analytics ADD COLUMN rtk_raw_output_total_bytes INTEGER"
-  );
+  const existing = new Set(rows.map((row) => row.name));
+  for (const [name, type] of COMPRESSION_ANALYTICS_COLUMNS) {
+    if (!existing.has(name)) {
+      db.exec(`ALTER TABLE compression_analytics ADD COLUMN ${name} ${type}`);
+    }
+  }
   columnsEnsuredForDb = db;
 }
 

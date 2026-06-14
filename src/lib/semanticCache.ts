@@ -96,8 +96,8 @@ let memoryCache: LRUCache | null = null;
 function getMemoryCache() {
   if (!memoryCache) {
     memoryCache = new LRUCache({
-      maxSize: parseInt(process.env.SEMANTIC_CACHE_MAX_SIZE || "100", 10),
-      maxBytes: parseInt(process.env.SEMANTIC_CACHE_MAX_BYTES || String(4 * 1024 * 1024), 10),
+      maxSize: parseInt(process.env.SEMANTIC_CACHE_MAX_SIZE || "50", 10),
+      maxBytes: parseInt(process.env.SEMANTIC_CACHE_MAX_BYTES || String(2 * 1024 * 1024), 10),
       defaultTTL: parseInt(process.env.SEMANTIC_CACHE_TTL_MS || "1800000", 10),
     });
     ensureCacheMetricsTable();
@@ -113,16 +113,25 @@ function getMemoryCache() {
  * @param {Array} messages - Normalized messages array
  * @param {number} temperature
  * @param {number} topP
+ * @param {string} [apiKeyId] - API key ID for per-key isolation (prevents cross-user cache hits)
  * @returns {string} hex signature
  */
-export function generateSignature(model, conversation, temperature = 0, topP = 1) {
+export function generateSignature(model, conversation, temperature = 0, topP = 1, apiKeyId?: string) {
   const payload = JSON.stringify({
     model,
     messages: normalizeConversation(conversation),
     temperature,
     top_p: topP,
   });
-  return crypto.createHash("sha256").update(payload).digest("hex");
+  const digest = crypto.createHash("sha256").update(payload).digest("hex");
+  // Per-key cache isolation (#3740) namespaces the signature with the apiKeyId as a
+  // PLAINTEXT prefix instead of folding it into the digest. The apiKeyId is an internal
+  // identifier used purely to namespace a deterministic cache key — not a stored
+  // credential — so it must never flow into a hash (a salted/slow password hash would
+  // also break the determinism the cache relies on). Keeping it out of the digest
+  // preserves isolation + determinism and avoids the false-positive
+  // CodeQL js/insufficient-password-hash on a cache signature.
+  return apiKeyId ? `${apiKeyId}.${digest}` : digest;
 }
 
 function stringifyForSignature(value: unknown): string {

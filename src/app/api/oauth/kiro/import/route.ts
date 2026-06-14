@@ -7,6 +7,23 @@ import { kiroImportSchema } from "@/shared/validation/schemas";
 import { isValidationFailure, validateBody } from "@/shared/validation/helpers";
 import { isAuthRequired, isAuthenticated } from "@/shared/utils/apiAuth";
 import { runWithProxyContext } from "@omniroute/open-sse/utils/proxyFetch.ts";
+import { sanitizeErrorMessage } from "@omniroute/open-sse/utils/error";
+
+/**
+ * Build the user-facing error message for a failed Kiro/Amazon-Q token import.
+ * The catch previously returned a bare `Internal server error`, which hid the
+ * real cause — the failure happens while validating/refreshing the imported
+ * refresh token against AWS (e.g. `invalid_grant`, an expired token, or a region
+ * mismatch) — so the dashboard only ever showed a generic 500 (#3589). The cause
+ * is now surfaced through `sanitizeErrorMessage()` (Rule #12 — no stack, no
+ * secrets), falling back to the generic message only when there is nothing to
+ * report. The `{ error: <string> }` shape is unchanged, so the import UI keeps
+ * rendering it the same way.
+ */
+export function buildKiroImportError(error: unknown): string {
+  const raw = error instanceof Error ? error.message : String(error ?? "");
+  return sanitizeErrorMessage(raw) || "Internal server error";
+}
 
 async function requireOAuthImportAuth(request: Request) {
   if (!(await isAuthRequired(request))) return null;
@@ -71,7 +88,7 @@ export async function POST(request: Request) {
       email: email || null,
       providerSpecificData: {
         profileArn: tokenData.profileArn,
-        authMethod: "imported",
+        authMethod: tokenData.authMethod || "imported",
         provider: "Imported",
         ...(tokenData.clientId
           ? {
@@ -100,7 +117,7 @@ export async function POST(request: Request) {
     });
   } catch (error: any) {
     console.error("Kiro-compatible import token error:", error);
-    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
+    return NextResponse.json({ error: buildKiroImportError(error) }, { status: 500 });
   }
 }
 

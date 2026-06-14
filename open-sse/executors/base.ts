@@ -1,6 +1,10 @@
 import { HTTP_STATUS, FETCH_TIMEOUT_MS } from "../config/constants.ts";
 import { applyFingerprint, isCliCompatEnabled } from "../config/cliFingerprints.ts";
-import { supportsXHighEffort } from "../config/providerModels.ts";
+import { supportsClaudeMaxEffort, supportsXHighEffort } from "../config/providerModels.ts";
+import type { PoolConfig } from "../services/sessionPool/types.ts";
+import type { Session } from "../services/sessionPool/session.ts";
+import { SessionPool } from "../services/sessionPool/sessionPool.ts";
+import { PoolRegistry } from "../services/sessionPool/poolRegistry.ts";
 import {
   getRotatingApiKey,
   getValidApiKey,
@@ -18,17 +22,23 @@ import { signRequestBody } from "../services/claudeCodeCCH.ts";
 import {
   appendAnthropicBetaHeader,
   CONTEXT_1M_BETA_HEADER,
+  enforceThinkingTemperature,
   modelSupportsContext1mBeta,
 } from "../services/claudeCodeCompatible.ts";
 import { getClaudeCodeCompatibleRequestDefaults } from "@/lib/providers/requestDefaults";
-import { remapToolNamesInRequest } from "../services/claudeCodeToolRemapper.ts";
+import {
+  cloakThirdPartyToolNames,
+  remapToolNamesInRequest,
+} from "../services/claudeCodeToolRemapper.ts";
 import { obfuscateInBody } from "../services/claudeCodeObfuscation.ts";
+import { sanitizeClaudeToolSchemas } from "../translator/helpers/schemaCoercion.ts";
 import { sanitizeResponsesInputItems } from "../services/responsesInputSanitizer.ts";
 import { applySystemTransformPipeline, PROVIDER_CLAUDE } from "../services/systemTransforms.ts";
 import {
   fixToolPairs,
   fixToolAdjacency,
   stripTrailingAssistantOrphanToolUse,
+  stripTrailingAssistantForProvider,
 } from "../services/contextManager.ts";
 import { randomUUID } from "node:crypto";
 import {
@@ -205,8 +215,8 @@ function hasActiveClaudeThinking(body: Record<string, unknown>): boolean {
 /**
  * Sanitize reasoning_effort for providers that don't accept all values.
  *
- * The claude→openai translator emits reasoning_effort=xhigh when the client
- * sends output_config.effort=max on a Claude-shape request. Combined with
+ * The claude→openai translator may emit reasoning_effort=max/xhigh when the
+ * client sends output_config.effort=max on a Claude-shape request. Combined with
  * runtime alias remapping (e.g. claude-opus-4-6 → mimo/mimo-v2.5-pro), this
  * routes xhigh to OpenAI-shape providers that don't accept the value:
  *
@@ -217,11 +227,22 @@ function hasActiveClaudeThinking(body: Record<string, unknown>): boolean {
  * Each rejection burns a combo fallback attempt before reaching a working
  * provider. Apply provider-aware sanitation here (after transformRequest, so
  * reintroductions by per-provider transforms are also caught) before fetch.
- * Models that genuinely support xhigh (registry flag supportsXHighEffort)
- * pass through unchanged.
+ * xhigh support is opt-out: pass through unchanged unless the registry marks
+ * a model as unsupported. Literal max support is Claude/CC-compatible only and
+ * intentionally separate: older Opus/Sonnet models may support max even when
+ * they do not support xhigh. For OpenAI-shape providers, max normalizes to
+ * xhigh by default and falls back to high only for explicit xhigh opt-outs.
  */
 const MISTRAL_NO_REASONING_EFFORT_PATTERN = /devstral/i;
 const GITHUB_NO_REASONING_EFFORT_PATTERN = /(claude|haiku|oswe)/i;
+
+function supportsMaxEffortForProvider(provider: string, model: string): boolean {
+  return (
+    (provider === PROVIDER_CLAUDE || isClaudeCodeCompatible(provider)) &&
+    supportsClaudeMaxEffort(model)
+  );
+}
+
 export function sanitizeReasoningEffortForProvider(
   body: unknown,
   provider: string,
@@ -239,21 +260,6 @@ export function sanitizeReasoningEffortForProvider(
   if (effort === undefined) return body;
   const effortStr = typeof effort === "string" ? effort.toLowerCase() : "";
   const modelStr = model || "";
-
-  if (effortStr === "xhigh" && !supportsXHighEffort(provider, modelStr)) {
-    log?.info?.(
-      "REASONING_SANITIZE",
-      `${provider}/${modelStr}: downgraded reasoning_effort xhigh → high`
-    );
-    const next: Record<string, unknown> = { ...b };
-    if (hasTopLevelReasoningEffort) {
-      next.reasoning_effort = "high";
-    }
-    if (reasoning) {
-      next.reasoning = { ...reasoning, effort: "high" };
-    }
-    return next;
-  }
 
   const rejecting =
     (provider === "mistral" && MISTRAL_NO_REASONING_EFFORT_PATTERN.test(modelStr)) ||
@@ -274,7 +280,65 @@ export function sanitizeReasoningEffortForProvider(
     return next;
   }
 
+  const supportsXHigh = supportsXHighEffort(provider, modelStr);
+  const shouldDowngradeXHigh = effortStr === "xhigh" && !supportsXHigh;
+  const supportsXHighForMax = supportsXHigh;
+  const supportsMax = supportsMaxEffortForProvider(provider, modelStr);
+  const shouldNormalizeMaxToXHigh = effortStr === "max" && !supportsMax && supportsXHighForMax;
+  const shouldDowngradeMax = effortStr === "max" && !supportsMax && !supportsXHighForMax;
+
+  if (shouldNormalizeMaxToXHigh) {
+    log?.info?.(
+      "REASONING_SANITIZE",
+      `${provider}/${modelStr}: normalized reasoning_effort max → xhigh`
+    );
+    const next: Record<string, unknown> = { ...b };
+    if (hasTopLevelReasoningEffort) {
+      next.reasoning_effort = "xhigh";
+    }
+    if (reasoning) {
+      next.reasoning = { ...reasoning, effort: "xhigh" };
+    }
+    return next;
+  }
+
+  if (shouldDowngradeXHigh || shouldDowngradeMax) {
+    log?.info?.(
+      "REASONING_SANITIZE",
+      `${provider}/${modelStr}: downgraded reasoning_effort ${effortStr} → high`
+    );
+    const next: Record<string, unknown> = { ...b };
+    if (hasTopLevelReasoningEffort) {
+      next.reasoning_effort = "high";
+    }
+    if (reasoning) {
+      next.reasoning = { ...reasoning, effort: "high" };
+    }
+    return next;
+  }
+
   return body;
+}
+
+/**
+ * Strip the OmniRoute provider prefix from versioned built-in tool model
+ * fields (e.g. `cc/claude-opus-4-8` → `claude-opus-4-8`). Versioned built-in
+ * tool types carry an 8-digit date suffix (`advisor_20260301`, `bash_20250124`);
+ * the real Claude CLI sends a bare model id there, never a prefixed one, so a
+ * leaked OmniRoute prefix makes Anthropic reject the request. Mutates in place.
+ */
+export function stripVersionedToolModelPrefix(tools: unknown): void {
+  if (!Array.isArray(tools)) return;
+  for (const t of tools as Array<Record<string, unknown>>) {
+    if (
+      typeof t.type === "string" &&
+      /^[a-z][a-z0-9_]*_\d{8}$/.test(t.type) &&
+      typeof t.model === "string" &&
+      t.model.includes("/")
+    ) {
+      t.model = t.model.split("/").pop();
+    }
+  }
 }
 
 /**
@@ -286,6 +350,10 @@ export class BaseExecutor {
   provider: string;
   config: ProviderConfig;
 
+  // Session pool support — subclasses can set poolConfig to opt in
+  protected poolConfig?: PoolConfig;
+  private _pool: import("../services/sessionPool/sessionPool.ts").SessionPool | null = null;
+
   constructor(provider: string, config: ProviderConfig) {
     this.provider = provider;
     this.config = config;
@@ -293,6 +361,22 @@ export class BaseExecutor {
 
   getProvider() {
     return this.provider;
+  }
+
+  protected getPool(): SessionPool | null {
+    if (!this.poolConfig) return null;
+    if (!this._pool) {
+      const pool = new SessionPool(this.provider, this.poolConfig);
+      pool.warmUp(this.poolConfig.minSessions).catch(() => {});
+      PoolRegistry.register(this.provider, pool);
+      this._pool = pool;
+    }
+    return this._pool;
+  }
+
+  protected buildPoolHeaders(session: Session | null): Record<string, string> {
+    if (!session) return {};
+    return session.buildHeaders();
   }
 
   getBaseUrls() {
@@ -741,6 +825,13 @@ export class BaseExecutor {
 
           stripProxyToolPrefix(tb);
           remapToolNamesInRequest(tb);
+          // Cloak third-party tool names + sanitize invalid tool schemas so
+          // Anthropic does not refuse native Claude OAuth traffic with a
+          // misleading "out of extra usage" placeholder. See Spec E.
+          cloakThirdPartyToolNames(tb);
+          if (Array.isArray(tb.tools)) {
+            tb.tools = sanitizeClaudeToolSchemas(tb.tools);
+          }
           obfuscateInBody(tb);
 
           // NOTE (issue #2260): This is the native `claude` provider OAuth path.
@@ -757,10 +848,13 @@ export class BaseExecutor {
             for (const t of tb.tools as Array<Record<string, unknown>>) {
               delete t.cache_control;
             }
+            // Also strip OmniRoute provider prefix from versioned built-in tool
+            // model fields (e.g. cc/claude-opus-4-8 → claude-opus-4-8).
+            stripVersionedToolModelPrefix(tb.tools);
           }
 
           // Per-request behavior overrides via custom client headers.
-          //   x-omniroute-effort:   low | medium | high | xhigh | off
+          //   x-omniroute-effort:   low | medium | high | xhigh | max | off
           //   x-omniroute-thinking: adaptive | off
           // A header value applies only when the corresponding body field is
           // not already set; "off" force-strips the field.
@@ -782,7 +876,10 @@ export class BaseExecutor {
               delete (tb.output_config as Record<string, unknown>).effort;
             }
             appliedEffort = "off";
-          } else if (headerEffort && ["low", "medium", "high", "xhigh"].includes(headerEffort)) {
+          } else if (
+            headerEffort &&
+            ["low", "medium", "high", "xhigh", "max"].includes(headerEffort)
+          ) {
             const oc =
               tb.output_config && typeof tb.output_config === "object"
                 ? (tb.output_config as Record<string, unknown>)
@@ -934,10 +1031,14 @@ export class BaseExecutor {
           // convention; SSE decoding is gated on body.stream). anthropic-beta
           // is selected per request shape; the full set on a quota probe is
           // itself a fingerprint.
+          // Respect the client's negotiated anthropic-beta (real Claude Code) instead
+          // of force-injecting thinking/effort betas it never requested (#3415).
+          const clientAnthropicBeta =
+            clientHeaders?.["anthropic-beta"] ?? clientHeaders?.["Anthropic-Beta"] ?? null;
           const ccHeaders: Record<string, string> = {
             Accept: "application/json",
             "anthropic-version": "2023-06-01",
-            "anthropic-beta": selectBetaFlags(tb),
+            "anthropic-beta": selectBetaFlags(tb, null, clientAnthropicBeta),
             "anthropic-dangerous-direct-browser-access": "true",
             "x-app": "cli",
             "User-Agent": `claude-cli/${CLAUDE_CODE_VERSION} (external, cli)`,
@@ -1007,9 +1108,24 @@ export class BaseExecutor {
             // tool_result isn't in the next message; re-run fixToolPairs to
             // drop any tool_result orphaned by that strip (discussion #2410).
             const adjacent = isClaude ? fixToolPairs(fixToolAdjacency(fixed)) : fixed;
-            tb.messages = stripTrailingAssistantOrphanToolUse(adjacent);
+            const stripped = stripTrailingAssistantOrphanToolUse(adjacent);
+            // Some providers (e.g. Mistral) require the last message to be user
+            // or tool and reject trailing assistant text messages with 400 (#3396).
+            tb.messages = stripTrailingAssistantForProvider(stripped, this.provider);
           }
         }
+
+        // Anthropic's extended-thinking contract forbids non-default sampling
+        // params: temperature must be 1 and top_p >= 0.95 (or unset) whenever
+        // thinking is enabled/adaptive. Thinking can be injected by per-model
+        // requestDefaults *after* the translator/constraint passes, so normalize
+        // at this final dispatch point — the single chokepoint every Claude
+        // routing mode (grouped/raw/combo) and the native passthrough share,
+        // before fingerprinting and CCH signing serialize the body.
+        if (this.provider === "claude" || isClaudeCodeCompatible(this.provider)) {
+          enforceThinkingTemperature(transformedBody as Record<string, unknown>);
+        }
+
         let bodyString = JSON.stringify(transformedBody);
 
         const shouldFingerprint =

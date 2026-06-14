@@ -38,6 +38,7 @@ export const NOAUTH_PROVIDERS = {
     website: "https://opencode.ai",
     noAuth: true,
     hasFree: true,
+    serviceKinds: ["llm"],
     authHint: "No API key required — uses OpenCode's public free endpoint.",
     freeNote:
       "No API key required — public OpenCode endpoint with Kimi, GLM, Qwen, MiMo, MiniMax models.",
@@ -45,9 +46,88 @@ export const NOAUTH_PROVIDERS = {
       text: "OpenCode Free uses the public OpenCode endpoint (https://opencode.ai/zen/v1). No signup or API key needed. Rate limits apply.",
     },
   },
+  "duckduckgo-web": {
+    id: "duckduckgo-web",
+    alias: "ddgw",
+    name: "DuckDuckGo AI Chat",
+    icon: "auto_awesome",
+    color: "#DE5833",
+    textIcon: "DDG",
+    website: "https://duckduckgo.com/duckchat",
+    noAuth: true,
+    hasFree: true,
+    serviceKinds: ["llm"],
+    freeNote: "Free — anonymous access to multiple AI models via DuckDuckGo.",
+    authHint: "No credentials required — DuckDuckGo AI Chat is anonymous and free.",
+  },
+  theoldllm: {
+    id: "theoldllm",
+    alias: "tllm",
+    name: "The Old LLM (Free)",
+    icon: "auto_awesome",
+    color: "#8B5CF6",
+    textIcon: "TL",
+    website: "https://theoldllm.vercel.app",
+    noAuth: true,
+    hasFree: true,
+    serviceKinds: ["llm"],
+    freeNote:
+      "Free — GPT-5.4, Claude 4.6 Opus/Sonnet/Haiku, + more. No API key — tokens auto-generated via browser.",
+    authHint:
+      "No credentials required. The executor auto-generates access tokens via an embedded Playwright browser instance.",
+  },
+  chipotle: {
+    id: "chipotle",
+    alias: "pepper",
+    name: "Chipotle Pepper AI (Free)",
+    icon: "restaurant",
+    color: "#C41230",
+    textIcon: "🌯",
+    website: "https://amelia.chipotle.com",
+    noAuth: true,
+    hasFree: true,
+    serviceKinds: ["llm"],
+    freeNote:
+      "Free — Chipotle's Pepper AI (IPsoft Amelia). Anonymous sessions, no API key. Rate-limited.",
+    authHint:
+      "No credentials required. Uses Chipotle's public support chatbot via reverse-engineered SockJS/STOMP protocol.",
+  },
+  "veoaifree-web": {
+    id: "veoaifree-web",
+    alias: "veo-free",
+    name: "Veo AI Free",
+    icon: "videocam",
+    color: "#8B5CF6",
+    textIcon: "VF",
+    website: "https://veoaifree.com",
+    noAuth: true,
+    hasFree: true,
+    serviceKinds: ["video"],
+    freeNote: "Free video generation — VEO 3.1, Seedance. 6 requests/hour.",
+    authHint: "No auth required. Rate limited to 6 requests/hour per IP.",
+  },
+  mimocode: {
+    id: "mimocode",
+    alias: "mcode",
+    name: "MiMoCode (Free)",
+    icon: "devices",
+    color: "#FF6B35",
+    textIcon: "MC",
+    website: "https://mimo.mi.com",
+    noAuth: true,
+    hasFree: true,
+    serviceKinds: ["llm"],
+    freeNote:
+      "Free — Xiaomi MiMo models via bootstrap JWT auth. No API key required. Supports streaming.",
+    authHint:
+      "No API key required. The executor auto-generates JWT tokens via device fingerprint bootstrap.",
+    notice: {
+      text: "MiMoCode uses Xiaomi's public free AI endpoint with bootstrap-based JWT authentication. No signup needed. Rate limits apply.",
+    },
+  },
 };
 
-export const FREE_APIKEY_PROVIDER_IDS = new Set(["qoder"]);
+export const FREE_APIKEY_PROVIDER_IDS = new Set(["qoder", "mimocode", "opencode"]);
 
 export function supportsApiKeyOnFreeProvider(providerId: unknown): boolean {
   return typeof providerId === "string" && FREE_APIKEY_PROVIDER_IDS.has(providerId);
@@ -89,6 +169,20 @@ export const OAUTH_PROVIDERS = {
     authHint:
       "Uses Gemini CLI OAuth / Cloud Code credentials. Pro models require an eligible Google account or paid plan.",
   },
+  agy: {
+    id: "agy",
+    alias: "agy",
+    name: "Antigravity CLI",
+    icon: "terminal",
+    color: "#F59E0B",
+    textIcon: "AGY",
+    website: "https://antigravity.google",
+    subscriptionRisk: true,
+    riskNoticeVariant: "oauth",
+    hasFree: true,
+    authHint:
+      "Import your Antigravity CLI (`agy`) login (paste/upload its token file), auto-detect a local CLI login, or sign in with Google. Shares the Antigravity backend (incl. Claude models).",
+  },
   kiro: {
     id: "kiro",
     alias: "kr",
@@ -98,6 +192,8 @@ export const OAUTH_PROVIDERS = {
     subscriptionRisk: true,
     riskNoticeVariant: "deprecated",
     hasFree: true,
+    freeNote:
+      "Free tier: 50 credits/month (~25K–100K tokens). ⚠️ Kiro ToS prohibits third-party proxy/harness use.",
   },
   "amazon-q": {
     id: "amazon-q",
@@ -179,7 +275,7 @@ export const OAUTH_PROVIDERS = {
     textIcon: "TR",
     website: "https://trae.ai",
     authHint:
-      "Trae is an AI-native IDE by ByteDance. Sign in inside Trae and paste your API token or use OAuth device flow here.",
+      "Trae is an AI-native IDE by ByteDance (SOLO remote agent). Authorize via trae.ai in the popup, or sign in at solo.trae.ai and paste the Cloud-IDE-JWT (sent as 'Authorization: Cloud-IDE-JWT <token>', ~14-day lifetime) as the access token; web_id/biz_user_id/user_unique_id/scope/tenant/region propagate via providerSpecificData. No headless refresh for pasted tokens — re-paste on expiry.",
   },
   "kimi-coding": {
     id: "kimi-coding",
@@ -221,7 +317,7 @@ export const OAUTH_PROVIDERS = {
     subscriptionRisk: true,
     riskNoticeVariant: "oauth",
     authHint:
-      "Sign in at windsurf.com to get your token. Visit windsurf.com/show-auth-token after logging in and paste it here, or use the device-code login flow.",
+      'In the Windsurf / VS Code IDE, open the command palette and run `Windsurf: Provide Auth Token` (or click the Jupyter "Get Windsurf Authentication Token" button), then copy the shown token and paste it here. Note: opening windsurf.com/show-auth-token directly only renders a "Redirecting" page — the IDE must initiate the flow (it adds a `?state=...` param) for the token to appear.',
     website: "https://windsurf.com",
   },
   "devin-cli": {
@@ -259,7 +355,8 @@ export const WEB_COOKIE_PROVIDERS = {
     color: "#1DA1F2",
     textIcon: "GW",
     website: "https://grok.com",
-    authHint: "Paste your sso= cookie value from grok.com",
+    authHint:
+      "Paste the full grok.com cookie line from DevTools → Application → Cookies. Include both `sso` and `sso-rw` (e.g. `sso=...; sso-rw=...`) — Grok's anti-bot rejects `sso` on its own.",
     subscriptionRisk: true,
     riskNoticeVariant: "webCookie",
   },
@@ -309,6 +406,8 @@ export const WEB_COOKIE_PROVIDERS = {
     color: "#0866FF",
     textIcon: "MS",
     website: "https://www.meta.ai",
+    hasFree: true,
+    freeNote: "Free with login — Meta AI platform with Llama models.",
     authHint: "Paste your abra_sess value or full cookie header from meta.ai",
   },
   "claude-web": {
@@ -349,18 +448,6 @@ export const WEB_COOKIE_PROVIDERS = {
     subscriptionRisk: true,
     riskNoticeVariant: "webCookie",
   },
-  "veoaifree-web": {
-    id: "veoaifree-web",
-    alias: "veo-free",
-    name: "Veo AI Free",
-    icon: "videocam",
-    color: "#8B5CF6",
-    textIcon: "VF",
-    website: "https://veoaifree.com",
-    hasFree: true,
-    freeNote: "Free video generation — VEO 3.1, Seedance. 6 requests/hour.",
-    authHint: "No auth required. Rate limited to 6 requests/hour per IP.",
-  },
   "t3-web": {
     id: "t3-web",
     alias: "t3chat",
@@ -384,6 +471,8 @@ export const WEB_COOKIE_PROVIDERS = {
     color: "#1A56DB",
     textIcon: "IA",
     website: "https://app.innerai.com",
+    subscriptionRisk: true,
+    riskNoticeVariant: "webCookie",
     authHint:
       "Paste your token cookie and email separated by a space: open DevTools → Application → Cookies → .innerai.com, copy the token value, then append a space and your Inner.ai login email. Example: eyJhbG... user@example.com",
   },
@@ -395,8 +484,142 @@ export const WEB_COOKIE_PROVIDERS = {
     color: "#6E3AD3",
     textIcon: "AW",
     website: "https://agent.adapta.one",
+    subscriptionRisk: true,
+    riskNoticeVariant: "webCookie",
     authHint:
       "Paste your __client cookie value from .clerk.agent.adapta.one (DevTools → Application → Cookies)",
+  },
+  lmarena: {
+    id: "lmarena",
+    alias: "lma",
+    name: "LMArena (Free)",
+    icon: "auto_awesome",
+    color: "#FF6B6B",
+    textIcon: "LMA",
+    website: "https://lmarena.ai",
+    hasFree: true,
+    freeNote:
+      "Free model comparison platform — 40+ models (GPT, Claude, Gemini, Llama). No subscription required.",
+    authHint:
+      "Paste your session cookie from lmarena.ai (DevTools → Application → Cookies). Optional — works with free tier for basic comparisons.",
+    riskNoticeVariant: "webCookie",
+  },
+  huggingchat: {
+    id: "huggingchat",
+    // "hc" belongs to the hackclub provider; huggingchat uses its own id as alias.
+    alias: "huggingchat",
+    name: "HuggingChat (Free)",
+    icon: "auto_awesome",
+    color: "#FFD21E",
+    textIcon: "HC",
+    website: "https://huggingface.co/chat",
+    hasFree: true,
+    freeNote: "Free LLM chat — no subscription required. Rate limits apply.",
+    authHint:
+      "Paste your hf-chat cookie value from huggingface.co/chat (DevTools → Application → Cookies → hf-chat). Optional — works without auth for basic use.",
+    riskNoticeVariant: "webCookie",
+  },
+  phind: {
+    id: "phind",
+    alias: "ph",
+    name: "Phind (Free)",
+    icon: "auto_awesome",
+    color: "#000000",
+    textIcon: "PH",
+    website: "https://www.phind.com",
+    hasFree: true,
+    freeNote: "Free dev-focused AI chat with code search. Rate limits apply.",
+    authHint:
+      "Paste your session cookie from phind.com (DevTools → Application → Cookies). Optional — works with free tier.",
+    riskNoticeVariant: "webCookie",
+  },
+  "poe-web": {
+    id: "poe-web",
+    alias: "poe",
+    name: "Poe Web (Subscription)",
+    icon: "auto_awesome",
+    color: "#6C3AED",
+    textIcon: "PW",
+    website: "https://poe.com",
+    authHint: "Paste your p-b cookie value from poe.com (DevTools → Application → Cookies → p-b)",
+    subscriptionRisk: true,
+    riskNoticeVariant: "webCookie",
+  },
+  "venice-web": {
+    id: "venice-web",
+    alias: "ven",
+    name: "Venice Web (Privacy)",
+    icon: "auto_awesome",
+    color: "#22C55E",
+    textIcon: "VW",
+    website: "https://venice.ai",
+    authHint: "Paste your session cookie from venice.ai (DevTools → Application → Cookies)",
+    riskNoticeVariant: "webCookie",
+  },
+  "v0-vercel-web": {
+    id: "v0-vercel-web",
+    alias: "v0",
+    name: "v0 Vercel Web (Code Gen)",
+    icon: "auto_awesome",
+    color: "#000000",
+    textIcon: "V0",
+    website: "https://v0.dev",
+    authHint: "Paste your session cookie from v0.dev (DevTools → Application → Cookies)",
+    riskNoticeVariant: "webCookie",
+  },
+  "kimi-web": {
+    id: "kimi-web",
+    // Primary "kimi" provider keeps the short alias; web variant uses its own id.
+    alias: "kimi-web",
+    name: "Kimi Web (Moonshot AI)",
+    icon: "auto_awesome",
+    color: "#2563EB",
+    textIcon: "KW",
+    website: "https://kimi.moonshot.cn",
+    authHint: "Paste your session cookie from kimi.moonshot.cn (DevTools → Application → Cookies)",
+    subscriptionRisk: true,
+    riskNoticeVariant: "webCookie",
+  },
+  "doubao-web": {
+    id: "doubao-web",
+    alias: "db",
+    name: "Doubao Web (ByteDance)",
+    icon: "auto_awesome",
+    color: "#3B82F6",
+    textIcon: "DW",
+    website: "https://www.doubao.com",
+    authHint: "Paste your session cookie from doubao.com (DevTools → Application → Cookies)",
+    subscriptionRisk: true,
+    riskNoticeVariant: "webCookie",
+  },
+  "qwen-web": {
+    id: "qwen-web",
+    // Primary "qwen" provider keeps the short alias; web variant uses its own id.
+    alias: "qwen-web",
+    name: "Qwen Web (Free)",
+    icon: "auto_awesome",
+    color: "#10B981",
+    textIcon: "QW",
+    website: "https://chat.qwen.ai",
+    hasFree: true,
+    freeNote: "Free — Qwen models via chat.qwen.ai with login token. No subscription required.",
+    authHint:
+      "Open chat.qwen.ai, log in, then open DevTools → Application → Local Storage → " +
+      'copy the "token" value (or use tongyi_sso_ticket cookie as Bearer token).',
+  },
+  "gemini-business": {
+    id: "gemini-business",
+    alias: "gembiz",
+    name: "Gemini Business (Enterprise)",
+    icon: "business_center",
+    color: "#4285F4",
+    textIcon: "GB",
+    website: "https://business.gemini.google",
+    hasFree: true,
+    freeNote:
+      "Free for Google Workspace enterprise accounts — enterprise Gemini models (Pro, Flash, image, video) via direct StreamGenerate HTTP API. No subscription required, just enterprise SSO.",
+    authHint:
+      "From your enterprise account: open business.gemini.google/home/cid/{your-cid}, then copy __Secure-1PSID and __Secure-1PSIDTS cookies from DevTools → Application → Cookies. Paste as a cookie header below.",
   },
 };
 
@@ -452,31 +675,6 @@ export const APIKEY_PROVIDERS = {
       "55 free tier models including Grok-3, Claude 3.7, Qwen3, Kimi-K2, Gemini 2.5 Flash, DeepSeek-V3",
     apiHint:
       "Get your API key from https://panel.api.airforce — OpenAI-compatible endpoint at https://api.airforce/v1",
-    capabilities: { embeddings: false },
-  },
-  astraflow: {
-    id: "astraflow",
-    alias: "astraflow",
-    name: "Astraflow (UCloud Global)",
-    icon: "cloud",
-    color: "#0052D9",
-    textIcon: "AF",
-    passthroughModels: true,
-    website: "https://astraflow.ucloud-global.com",
-    apiHint:
-      "Astraflow by UCloud — OpenAI-compatible platform supporting 200+ models (global endpoint). Get your API key at https://astraflow.ucloud-global.com",
-  },
-  "astraflow-cn": {
-    id: "astraflow-cn",
-    alias: "astraflow-cn",
-    name: "Astraflow (UCloud China)",
-    icon: "cloud",
-    color: "#0052D9",
-    textIcon: "AFC",
-    passthroughModels: true,
-    website: "https://astraflow.ucloud.cn",
-    apiHint:
-      "Astraflow by UCloud — OpenAI-compatible platform supporting 200+ models (China endpoint). Get your API key at https://astraflow.ucloud.cn",
   },
   qianfan: {
     id: "qianfan",
@@ -789,44 +987,6 @@ export const APIKEY_PROVIDERS = {
     apiHint:
       "Get free API key at https://bazaarlink.ai — use model 'auto:free' for zero-cost inference. OpenAI-compatible.",
   },
-  completions: {
-    id: "completions",
-    alias: "cpl",
-    name: "Completions.me",
-    icon: "bolt",
-    color: "#F59E0B",
-    textIcon: "CP",
-    website: "https://completions.me",
-    hasFree: true,
-    freeNote: "Free unlimited access to Claude, GPT, Gemini — no credit card, no rate limits",
-    apiHint: "Sign up at https://completions.me for free API key. OpenAI-compatible endpoint.",
-  },
-  enally: {
-    id: "enally",
-    alias: "enly",
-    name: "Enally AI",
-    icon: "school",
-    color: "#8B5CF6",
-    textIcon: "EN",
-    website: "https://ai.enally.in",
-    hasFree: true,
-    freeNote: "Free for students and developers — no credit card, OTP verification",
-    apiHint:
-      "Get free API key at https://ai.enally.in/api — requires email and domain whitelisting.",
-  },
-  freetheai: {
-    id: "freetheai",
-    alias: "fta",
-    name: "FreeTheAi",
-    icon: "lock_open",
-    color: "#10B981",
-    textIcon: "FT",
-    website: "https://freetheai.xyz",
-    hasFree: true,
-    freeNote: "Community-run — free forever, no paid tiers, no credit card",
-    apiHint:
-      "Get free API key via Discord: https://freetheai.xyz — 16,000+ models, OpenAI-compatible.",
-  },
   xai: {
     id: "xai",
     alias: "xai",
@@ -888,7 +1048,7 @@ export const APIKEY_PROVIDERS = {
     textIcon: "CB",
     website: "https://inference.cerebras.ai",
     hasFree: true,
-    freeNote: "Free: 1M tokens/day, 60K TPM — world's fastest inference",
+    freeNote: "Free Trial: 1M tokens/day, 30K TPM, 5 RPM — no credit card.",
   },
   cohere: {
     id: "cohere",
@@ -944,15 +1104,6 @@ export const APIKEY_PROVIDERS = {
     website: "https://hyperbolic.xyz",
     hasFree: true,
     freeNote: "$1-5 trial credits on signup for serverless inference",
-  },
-  nanobanana: {
-    id: "nanobanana",
-    alias: "nb",
-    name: "NanoBanana",
-    icon: "image",
-    color: "#FFD700",
-    textIcon: "NB",
-    website: "https://nanobananaapi.ai",
   },
   kie: {
     id: "kie",
@@ -1042,6 +1193,7 @@ export const APIKEY_PROVIDERS = {
     icon: "opencode",
     color: "#6366f1",
     website: "https://opencode.ai/zen",
+    anonymousFallback: true,
   },
   "opencode-go": {
     id: "opencode-go",
@@ -1050,6 +1202,7 @@ export const APIKEY_PROVIDERS = {
     icon: "opencode",
     color: "#6366f1",
     website: "https://opencode.ai/go",
+    anonymousFallback: true,
   },
   alibaba: {
     id: "alibaba",
@@ -1081,7 +1234,7 @@ export const APIKEY_PROVIDERS = {
     website: "https://longcat.chat/platform/docs",
     hasFree: true,
     freeNote:
-      "50M tokens/day (Flash-Lite) + 500K/day (Chat/Thinking) — 100% free while public beta",
+      "Free: 5M tokens/day on LongCat-2.0-Preview (Flash models retired 2026-05-29); up to 120M/day via feedback.",
   },
   pollinations: {
     id: "pollinations",
@@ -1092,6 +1245,7 @@ export const APIKEY_PROVIDERS = {
     textIcon: "PO",
     website: "https://pollinations.ai",
     hasFree: true,
+    anonymousFallback: true,
     freeNote:
       "No API key required for free public endpoint. Optional Spore tier: ~0.01 pollen/hour.",
   },
@@ -1121,20 +1275,6 @@ export const APIKEY_PROVIDERS = {
     freeNote: "Free forever — no signup, no credit card. OpenAI-compatible endpoints.",
     passthroughModels: true,
     authHint: "No auth required. API accepts any non-empty string as key for identification.",
-  },
-  replicate: {
-    id: "replicate",
-    alias: "rep",
-    name: "Replicate",
-    icon: "auto_awesome",
-    color: "#3B82F6",
-    textIcon: "RE",
-    website: "https://replicate.com",
-    hasFree: true,
-    freeNote:
-      "Free community models — Llama 3.1, Mixtral, DeepSeek R1. Passthrough for SDXL, Whisper, MusicGen.",
-    passthroughModels: true,
-    authHint: "Get API token at replicate.com/account/api-tokens",
   },
   hackclub: {
     id: "hackclub",
@@ -1314,8 +1454,10 @@ export const APIKEY_PROVIDERS = {
     color: "#059669",
     textIcon: "PA",
     website: "https://publicai.co",
-    hasFree: true,
-    freeNote: "Free community inference tier for testing",
+    // #3558: PublicAI requires an API key (registry authType:"apikey"); signup grants a
+    // one-time credit, then it bills per-model. It is NOT a keyless/free tier.
+    hasFree: false,
+    freeNote: "Requires an API key — one-time signup credit, then paid",
   },
   moonshot: {
     id: "moonshot",
@@ -1378,17 +1520,6 @@ export const APIKEY_PROVIDERS = {
     freeNote: "No signup required - 2 req/s, 20 RPM, 100 req/hr free tier",
     apiHint:
       "Works without API key (use 'unused' as key). Get free token at token.llm7.io for higher limits.",
-  },
-  lepton: {
-    id: "lepton",
-    alias: "lepton",
-    name: "Lepton AI",
-    icon: "bolt",
-    color: "#10B981",
-    textIcon: "LP",
-    website: "https://lepton.ai",
-    hasFree: true,
-    freeNote: "Free tier available - fast inference on custom hardware",
   },
   kluster: {
     id: "kluster",
@@ -1764,19 +1895,6 @@ export const APIKEY_PROVIDERS = {
     hasFree: true,
     freeNote: "Free tier: 50 RPM, 500,000 TPM — no credit card",
   },
-  petals: {
-    id: "petals",
-    alias: "petals",
-    name: "Petals",
-    icon: "hub",
-    color: "#10B981",
-    textIcon: "PT",
-    website: "https://chat.petals.dev",
-    authHint:
-      "No API key is required for the public research endpoint. Leave the field blank, or provide a bearer token if your self-hosted Petals gateway uses auth.",
-    apiHint:
-      "Petals exposes a public HTTP API at https://chat.petals.dev/api/v1/generate and a WebSocket API at /api/v2/generate. OmniRoute targets the HTTP generate endpoint and supports self-hosted base URLs.",
-  },
   poe: {
     id: "poe",
     alias: "poe",
@@ -2065,19 +2183,6 @@ export const APIKEY_PROVIDERS = {
     passthroughModels: true,
     authHint: "Get API key from your Dify instance.",
   },
-  poolside: {
-    id: "poolside",
-    alias: "poolside",
-    name: "Poolside",
-    icon: "code",
-    color: "#3B82F6",
-    textIcon: "PS",
-    website: "https://poolside.ai",
-    hasFree: true,
-    freeNote: "Free Laguna XS.2 and Laguna M.1 coding agent models. No credit card required.",
-    passthroughModels: true,
-    authHint: "Get API key at poolside.ai",
-  },
   "arcee-ai": {
     id: "arcee-ai",
     alias: "arcee",
@@ -2130,19 +2235,6 @@ export const APIKEY_PROVIDERS = {
     freeNote: "Free Nomic Embed API. Open-source embeddings, no credit card required.",
     passthroughModels: true,
     authHint: "Get API key at atlas.nomic.ai",
-  },
-  krutrim: {
-    id: "krutrim",
-    alias: "krutrim",
-    name: "Krutrim",
-    icon: "auto_awesome",
-    color: "#F59E0B",
-    textIcon: "KR",
-    website: "https://krutrim.ai",
-    hasFree: true,
-    freeNote: "India's first AI (by Ola). Free tier available. No credit card required.",
-    passthroughModels: true,
-    authHint: "Get API key at krutrim.ai",
   },
   monsterapi: {
     id: "monsterapi",
@@ -2241,6 +2333,22 @@ export const APIKEY_PROVIDERS = {
     website: "https://freeaiapikey.com",
     apiHint:
       "Discounted API proxy for 40+ models including GPT-5, Claude Opus 4.6, Claude Sonnet 4.6, Qwen 3.5. Get your API key at https://freeaiapikey.com/dashboard. Base URL: https://freeaiapikey.com/v1.",
+  },
+  zenmux: {
+    id: "zenmux",
+    alias: "zm",
+    name: "ZenMux",
+    icon: "neurology",
+    color: "#7C3AED",
+    textIcon: "ZM",
+    website: "https://zenmux.ai",
+    hasFree: true,
+    freeNote:
+      "Free tier includes access to Gemini 3 Flash, DeepSeek V3.2, Grok 4.1 Fast, Mistral Large, and more. Get your API key at https://zenmux.ai.",
+    authHint:
+      "Use your ZenMux API key in Authorization: Bearer <key>. ZenMux is fully OpenAI-compatible. Base URL: https://zenmux.ai/api/v1.",
+    apiHint:
+      "ZenMux exposes an OpenAI-compatible chat completions endpoint at /api/v1/chat/completions, plus Anthropic Messages (/api/anthropic/v1/messages) and Google Gemini (/api/vertex-ai) protocol surfaces. OmniRoute uses the OpenAI protocol.",
   },
 };
 
@@ -2757,14 +2865,16 @@ export function isSelfHostedChatProvider(providerId: unknown): boolean {
 export function providerAllowsOptionalApiKey(providerId: unknown): boolean {
   return (
     providerId === "searxng-search" ||
-    providerId === "petals" ||
     providerId === "pollinations" ||
     providerId === "copilot-web" ||
+    providerId === "duckduckgo-web" ||
     providerId === "veoaifree-web" ||
     providerId === "hackclub" ||
     providerId === "huggingchat" ||
     providerId === "gitlawb" ||
     providerId === "gitlawb-gmi" ||
+    providerId === "mimocode" ||
+    providerId === "opencode" ||
     isLocalProvider(providerId) ||
     isSelfHostedChatProvider(providerId) ||
     isOpenAICompatibleProvider(providerId) ||
@@ -2816,22 +2926,118 @@ export const SYSTEM_PROVIDERS = {
   },
 };
 
-// All providers (combined)
-export const AI_PROVIDERS = {
-  ...NOAUTH_PROVIDERS,
-  ...OAUTH_PROVIDERS,
-  ...APIKEY_PROVIDERS,
-  ...WEB_COOKIE_PROVIDERS,
-  ...LOCAL_PROVIDERS,
-  ...SEARCH_PROVIDERS,
-  ...AUDIO_ONLY_PROVIDERS,
-  ...UPSTREAM_PROXY_PROVIDERS,
-  ...CLOUD_AGENT_PROVIDERS,
-  ...SYSTEM_PROVIDERS, // <-- system providers included
-};
+const _PROVIDER_SECTIONS = [
+  NOAUTH_PROVIDERS,
+  OAUTH_PROVIDERS,
+  APIKEY_PROVIDERS,
+  WEB_COOKIE_PROVIDERS,
+  LOCAL_PROVIDERS,
+  SEARCH_PROVIDERS,
+  AUDIO_ONLY_PROVIDERS,
+  UPSTREAM_PROXY_PROVIDERS,
+  CLOUD_AGENT_PROVIDERS,
+  SYSTEM_PROVIDERS,
+] as const;
 
-export type AiProviderId = keyof typeof AI_PROVIDERS;
-export type AiProviderDefinition = (typeof AI_PROVIDERS)[AiProviderId];
+let _aiProviders: Record<string, any> | null = null;
+
+function getOrCreateAiProviders(): Record<string, any> {
+  if (!_aiProviders) {
+    _aiProviders = {};
+    for (const section of _PROVIDER_SECTIONS) {
+      Object.assign(_aiProviders, section);
+    }
+  }
+  return _aiProviders;
+}
+
+let _ALIAS_TO_ID: Record<string, string> | null = null;
+
+function getOrCreateAliasToId(): Record<string, string> {
+  if (!_ALIAS_TO_ID) {
+    _ALIAS_TO_ID = {};
+    for (const section of _PROVIDER_SECTIONS) {
+      for (const p of Object.values(section)) {
+        if ((p as any).alias) _ALIAS_TO_ID[(p as any).alias] = (p as any).id;
+      }
+    }
+  }
+  return _ALIAS_TO_ID;
+}
+
+let _ID_TO_ALIAS: Record<string, string> | null = null;
+
+function getOrCreateIdToAlias(): Record<string, string> {
+  if (!_ID_TO_ALIAS) {
+    _ID_TO_ALIAS = {};
+    for (const section of _PROVIDER_SECTIONS) {
+      for (const p of Object.values(section)) {
+        _ID_TO_ALIAS[(p as any).id] = (p as any).alias || (p as any).id;
+      }
+    }
+  }
+  return _ID_TO_ALIAS;
+}
+
+export function getProviderById(id: string) {
+  return (
+    (NOAUTH_PROVIDERS as Record<string, any>)[id] ??
+    (OAUTH_PROVIDERS as Record<string, any>)[id] ??
+    (APIKEY_PROVIDERS as Record<string, any>)[id] ??
+    (WEB_COOKIE_PROVIDERS as Record<string, any>)[id] ??
+    (LOCAL_PROVIDERS as Record<string, any>)[id] ??
+    (SEARCH_PROVIDERS as Record<string, any>)[id] ??
+    (AUDIO_ONLY_PROVIDERS as Record<string, any>)[id] ??
+    (UPSTREAM_PROXY_PROVIDERS as Record<string, any>)[id] ??
+    (CLOUD_AGENT_PROVIDERS as Record<string, any>)[id] ??
+    (SYSTEM_PROVIDERS as Record<string, any>)[id] ??
+    undefined
+  );
+}
+
+export const AI_PROVIDERS = new Proxy({} as Record<string, any>, {
+  get(_, key) {
+    if (key === "then") return undefined;
+    return typeof key === "string" ? getOrCreateAiProviders()[key] : undefined;
+  },
+  ownKeys() {
+    return Reflect.ownKeys(getOrCreateAiProviders());
+  },
+  has(_, key) {
+    return key in getOrCreateAiProviders();
+  },
+  getOwnPropertyDescriptor(_, key) {
+    const obj = getOrCreateAiProviders();
+    if (typeof key === "string" && key in obj) {
+      return { configurable: true, enumerable: true, value: obj[key] };
+    }
+    return undefined;
+  },
+});
+
+export type AiProviderId =
+  | keyof typeof NOAUTH_PROVIDERS
+  | keyof typeof OAUTH_PROVIDERS
+  | keyof typeof APIKEY_PROVIDERS
+  | keyof typeof WEB_COOKIE_PROVIDERS
+  | keyof typeof LOCAL_PROVIDERS
+  | keyof typeof SEARCH_PROVIDERS
+  | keyof typeof AUDIO_ONLY_PROVIDERS
+  | keyof typeof UPSTREAM_PROXY_PROVIDERS
+  | keyof typeof CLOUD_AGENT_PROVIDERS
+  | keyof typeof SYSTEM_PROVIDERS;
+
+export type AiProviderDefinition =
+  | (typeof NOAUTH_PROVIDERS)[keyof typeof NOAUTH_PROVIDERS]
+  | (typeof OAUTH_PROVIDERS)[keyof typeof OAUTH_PROVIDERS]
+  | (typeof APIKEY_PROVIDERS)[keyof typeof APIKEY_PROVIDERS]
+  | (typeof WEB_COOKIE_PROVIDERS)[keyof typeof WEB_COOKIE_PROVIDERS]
+  | (typeof LOCAL_PROVIDERS)[keyof typeof LOCAL_PROVIDERS]
+  | (typeof SEARCH_PROVIDERS)[keyof typeof SEARCH_PROVIDERS]
+  | (typeof AUDIO_ONLY_PROVIDERS)[keyof typeof AUDIO_ONLY_PROVIDERS]
+  | (typeof UPSTREAM_PROXY_PROVIDERS)[keyof typeof UPSTREAM_PROXY_PROVIDERS]
+  | (typeof CLOUD_AGENT_PROVIDERS)[keyof typeof CLOUD_AGENT_PROVIDERS]
+  | (typeof SYSTEM_PROVIDERS)[keyof typeof SYSTEM_PROVIDERS];
 
 // Auth methods
 export const AUTH_METHODS = {
@@ -2839,11 +3045,12 @@ export const AUTH_METHODS = {
   apikey: { id: "apikey", name: "API Key", icon: "key" },
 };
 
-// Helper: Get provider by alias
 export function getProviderByAlias(alias: string): AiProviderDefinition | null {
-  for (const provider of Object.values(AI_PROVIDERS)) {
-    if (provider.alias === alias || provider.id === alias) {
-      return provider;
+  for (const section of _PROVIDER_SECTIONS) {
+    for (const provider of Object.values(section)) {
+      if (provider.alias === alias || provider.id === alias) {
+        return provider as AiProviderDefinition;
+      }
     }
   }
   return null;
@@ -2855,29 +3062,53 @@ export function resolveProviderId(aliasOrId: string): string {
   return provider?.id || aliasOrId;
 }
 
-// Helper: Get alias from provider ID
 export function getProviderAlias(providerId: string): string {
-  const provider = Object.prototype.hasOwnProperty.call(AI_PROVIDERS, providerId)
-    ? AI_PROVIDERS[providerId as AiProviderId]
-    : undefined;
+  const provider = getProviderById(providerId);
   return provider?.alias || providerId;
 }
 
-// Alias to ID mapping (for quick lookup)
-export const ALIAS_TO_ID = Object.values(AI_PROVIDERS).reduce<Record<string, string>>((acc, p) => {
-  if (p.alias) acc[p.alias] = p.id;
-  return acc;
-}, {});
+export const ALIAS_TO_ID = new Proxy({} as Record<string, string>, {
+  get(_, key) {
+    return typeof key === "string" ? getOrCreateAliasToId()[key] : undefined;
+  },
+  ownKeys() {
+    return Reflect.ownKeys(getOrCreateAliasToId());
+  },
+  has(_, key) {
+    return key in getOrCreateAliasToId();
+  },
+  getOwnPropertyDescriptor(_, key) {
+    const obj = getOrCreateAliasToId();
+    if (typeof key === "string" && key in obj) {
+      return { configurable: true, enumerable: true, value: obj[key] };
+    }
+    return undefined;
+  },
+});
 
-// ID to Alias mapping
-export const ID_TO_ALIAS = Object.values(AI_PROVIDERS).reduce<Record<string, string>>((acc, p) => {
-  acc[p.id] = p.alias || p.id;
-  return acc;
-}, {});
+export const ID_TO_ALIAS = new Proxy({} as Record<string, string>, {
+  get(_, key) {
+    return typeof key === "string" ? getOrCreateIdToAlias()[key] : undefined;
+  },
+  ownKeys() {
+    return Reflect.ownKeys(getOrCreateIdToAlias());
+  },
+  has(_, key) {
+    return key in getOrCreateIdToAlias();
+  },
+  getOwnPropertyDescriptor(_, key) {
+    const obj = getOrCreateIdToAlias();
+    if (typeof key === "string" && key in obj) {
+      return { configurable: true, enumerable: true, value: obj[key] };
+    }
+    return undefined;
+  },
+});
 
 // Providers that support usage/quota API
 export const USAGE_SUPPORTED_PROVIDERS = [
   "antigravity",
+  "agy",
   "gemini-cli",
   "kiro",
   "amazon-q",
@@ -2890,11 +3121,15 @@ export const USAGE_SUPPORTED_PROVIDERS = [
   "glm-cn",
   "zai",
   "glmt",
+  "opencode-go",
   "minimax",
   "minimax-cn",
   "crof",
   "nanogpt",
   "deepseek",
+  "xiaomi-mimo",
+  "vertex",
+  "vertex-partner",
 ];
 
 // ── Zod validation at module load (Phase 7.2) ──

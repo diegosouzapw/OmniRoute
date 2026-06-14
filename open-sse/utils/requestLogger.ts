@@ -1,3 +1,6 @@
+import { getPendingById } from "@/lib/usage/usageHistory";
+import { sanitizeErrorMessage } from "./error.ts";
+
 type JsonRecord = Record<string, unknown>;
 
 type HeaderInput =
@@ -45,10 +48,13 @@ type RequestLoggerOptions = {
   captureStreamChunks?: boolean;
   maxStreamChunkBytes?: number;
   maxStreamChunkItems?: number;
+  model?: string;
+  provider?: string;
+  connectionId?: string | null;
 };
 
 const DEFAULT_MAX_STREAM_CHUNK_BYTES = 128 * 1024;
-const DEFAULT_MAX_STREAM_CHUNK_ITEMS = 512;
+const DEFAULT_MAX_STREAM_CHUNK_ITEMS = 10_240;
 const MAX_LOG_STRING_LENGTH = 64 * 1024;
 export const MAX_LOG_ARRAY_ITEMS = 24;
 const MAX_LOG_OBJECT_KEYS = 80;
@@ -203,31 +209,77 @@ function compactPipelinePayloads(
         )
       );
       if (Object.keys(compactedChunks).length > 0) {
-        result.streamChunks = compactedChunks as RequestPipelinePayloads["streamChunks"];
+        result.streamChunks = compactedChunks;
       }
       continue;
     }
 
-    result[key as keyof RequestPipelinePayloads] = value as never;
+    result[key as keyof RequestPipelinePayloads] = value;
   }
 
   return hasOwnValues(result) ? result : null;
 }
+function makeStreamChunkMethods(
+  options: RequestLoggerOptions,
+  captureChunks: boolean
+) {
+  const streamChunks = createEmptyStreamChunks();
+  const streamChunkBytes = {
+    provider: { value: 0, truncated: false },
+    openai: { value: 0, truncated: false },
+    client: { value: 0, truncated: false },
+  };
+  const maxBytes =
+    Number.isInteger(options.maxStreamChunkBytes) && Number(options.maxStreamChunkBytes) > 0
+      ? Number(options.maxStreamChunkBytes)
+      : DEFAULT_MAX_STREAM_CHUNK_BYTES;
+  const maxItems =
+    Number.isInteger(options.maxStreamChunkItems) && Number(options.maxStreamChunkItems) > 0
+      ? Number(options.maxStreamChunkItems)
+      : DEFAULT_MAX_STREAM_CHUNK_ITEMS;
+  let pendingPushed = false;
 
-function createNoOpLogger(): RequestLogger {
+  const push = () => {
+    if (pendingPushed) return;
+    if (!options.connectionId || !options.model) return;
+    pendingPushed = true;
+      try {
+        const pending = getPendingById();
+        for (const entry of pending.values()) {
+          if (entry?.model === options.model && entry.provider === (options.provider || "")) {
+            entry.streamChunks = { ...streamChunks };
+            return;
+          }
+        }
+      } catch (e) {
+        // Do not allow logging failures to disrupt request handling
+        try {
+          console.warn("[requestLogger] updatePendingRequestStreamChunks failed:", e);
+        } catch {}
+      }
+  };
+
+  const append = (
+    arr: string[],
+    bytes: { value: number; truncated: boolean },
+    chunk: string
+  ) => {
+    if (!captureChunks) return;
+    push();
+    appendBoundedChunk(arr, bytes, chunk, maxBytes, maxItems);
+  };
+
   return {
-    sessionPath: null,
-    logClientRawRequest() {},
-    logOpenAIRequest() {},
-    logTargetRequest() {},
-    logProviderResponse() {},
-    appendProviderChunk() {},
-    appendOpenAIChunk() {},
-    logConvertedResponse() {},
-    appendConvertedChunk() {},
-    logError() {},
-    getPipelinePayloads() {
-      return null;
+    streamChunks,
+    streamChunkBytes,
+    appendProviderChunk(chunk: string) {
+      append(streamChunks.provider, streamChunkBytes.provider, chunk);
+    },
+    appendOpenAIChunk(chunk: string) {
+      append(streamChunks.openai, streamChunkBytes.openai, chunk);
+    },
+    appendConvertedChunk(chunk: string) {
+      append(streamChunks.client, streamChunkBytes.client, chunk);
     },
   };
 }
@@ -238,27 +290,30 @@ export async function createRequestLogger(
   _model?: string,
   options: RequestLoggerOptions = {}
 ): Promise<RequestLogger> {
+  const captureStreamChunks = options.captureStreamChunks !== false;
+  // Stream chunk capture is always set up — even when the logger is disabled,
+  // so that active requests always have real-time stream data available via
+  // the /api/logs/active endpoint.
+  const chunkMethods = makeStreamChunkMethods(options, captureStreamChunks);
+
   if (options.enabled === false) {
-    return createNoOpLogger();
+    return {
+      sessionPath: null,
+      logClientRawRequest() {},
+      logOpenAIRequest() {},
+      logTargetRequest() {},
+      logProviderResponse() {},
+      appendProviderChunk: chunkMethods.appendProviderChunk,
+      appendOpenAIChunk: chunkMethods.appendOpenAIChunk,
+      logConvertedResponse() {},
+      appendConvertedChunk: chunkMethods.appendConvertedChunk,
+      logError() {},
+      getPipelinePayloads() { return null; },
+    };
   }
 
-  const captureStreamChunks = options.captureStreamChunks !== false;
-  const maxStreamChunkBytes =
-    Number.isInteger(options.maxStreamChunkBytes) && Number(options.maxStreamChunkBytes) > 0
-      ? Number(options.maxStreamChunkBytes)
-      : DEFAULT_MAX_STREAM_CHUNK_BYTES;
-  const maxStreamChunkItems =
-    Number.isInteger(options.maxStreamChunkItems) && Number(options.maxStreamChunkItems) > 0
-      ? Number(options.maxStreamChunkItems)
-      : DEFAULT_MAX_STREAM_CHUNK_ITEMS;
-  const streamChunks = createEmptyStreamChunks();
-  const streamChunkBytes = {
-    provider: { value: 0, truncated: false },
-    openai: { value: 0, truncated: false },
-    client: { value: 0, truncated: false },
-  };
   const payloads: RequestPipelinePayloads = {
-    ...(captureStreamChunks ? { streamChunks } : {}),
+    ...(captureStreamChunks ? { streamChunks: chunkMethods.streamChunks } : {}),
   };
 
   return {
@@ -299,51 +354,20 @@ export async function createRequestLogger(
       };
     },
 
-    appendProviderChunk(chunk) {
-      if (!captureStreamChunks) return;
-      appendBoundedChunk(
-        streamChunks.provider,
-        streamChunkBytes.provider,
-        chunk,
-        maxStreamChunkBytes,
-        maxStreamChunkItems
-      );
-    },
-
-    appendOpenAIChunk(chunk) {
-      if (!captureStreamChunks) return;
-      appendBoundedChunk(
-        streamChunks.openai,
-        streamChunkBytes.openai,
-        chunk,
-        maxStreamChunkBytes,
-        maxStreamChunkItems
-      );
-    },
-
+    appendProviderChunk: chunkMethods.appendProviderChunk,
+    appendOpenAIChunk: chunkMethods.appendOpenAIChunk,
     logConvertedResponse(body) {
       payloads.clientResponse = {
         timestamp: new Date().toISOString(),
         body: cloneBoundedForLog(body),
       };
     },
-
-    appendConvertedChunk(chunk) {
-      if (!captureStreamChunks) return;
-      appendBoundedChunk(
-        streamChunks.client,
-        streamChunkBytes.client,
-        chunk,
-        maxStreamChunkBytes,
-        maxStreamChunkItems
-      );
-    },
+    appendConvertedChunk: chunkMethods.appendConvertedChunk,
 
     logError(error, requestBody = null) {
       payloads.error = {
         timestamp: new Date().toISOString(),
-        error: error instanceof Error ? error.message : String(error),
-        stack: error instanceof Error ? error.stack : undefined,
+        error: sanitizeErrorMessage(error instanceof Error ? error.message : String(error)),
         requestBody: cloneBoundedForLog(requestBody),
       };
     },
@@ -353,5 +377,3 @@ export async function createRequestLogger(
     },
   };
 }
-
-export function logError(_provider: string, _entry: unknown) {}

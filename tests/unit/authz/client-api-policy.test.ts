@@ -10,6 +10,7 @@ process.env.DATA_DIR = TEST_DATA_DIR;
 process.env.API_KEY_SECRET = "test-secret";
 
 const apiKeysDb = await import("../../../src/lib/db/apiKeys.ts");
+const featureFlagsDb = await import("../../../src/lib/db/featureFlags.ts");
 const core = await import("../../../src/lib/db/core.ts");
 
 const ORIGINAL_OMNIROUTE_API_KEY = process.env.OMNIROUTE_API_KEY;
@@ -78,6 +79,32 @@ test("clientApiPolicy: missing bearer is rejected with 401", async () => {
   if (!out.allow) {
     assert.equal(out.status, 401);
     assert.equal(out.code, "AUTH_002");
+  }
+});
+
+test("clientApiPolicy: REQUIRE_API_KEY DB feature flag override rejects anonymous", async () => {
+  process.env.REQUIRE_API_KEY = "false";
+  featureFlagsDb.setFeatureFlagOverride("REQUIRE_API_KEY", "true");
+
+  const policy = await loadPolicy();
+  const out = await policy.evaluate(ctx(new Headers()));
+  assert.equal(out.allow, false);
+  if (!out.allow) {
+    assert.equal(out.status, 401);
+    assert.equal(out.code, "AUTH_002");
+  }
+});
+
+test("clientApiPolicy: REQUIRE_API_KEY DB feature flag override can disable env requirement", async () => {
+  process.env.REQUIRE_API_KEY = "true";
+  featureFlagsDb.setFeatureFlagOverride("REQUIRE_API_KEY", "false");
+
+  const policy = await loadPolicy();
+  const out = await policy.evaluate(ctx(new Headers()));
+  assert.equal(out.allow, true);
+  if (out.allow) {
+    assert.equal(out.subject.kind, "anonymous");
+    assert.equal(out.subject.id, "local");
   }
 });
 

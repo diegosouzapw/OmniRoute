@@ -20,6 +20,7 @@ export default function SecurityTab() {
   const [requireLoginPassword, setRequireLoginPassword] = useState("");
   const [requireLoginError, setRequireLoginError] = useState("");
   const [requireLoginLoading, setRequireLoginLoading] = useState(false);
+  const [newBannedKeyword, setNewBannedKeyword] = useState("");
 
   const t = useTranslations("settings");
   const tc = useTranslations("common");
@@ -110,6 +111,20 @@ export default function SecurityTab() {
       ? current.filter((p) => p !== providerId)
       : [...current, providerId];
     updateSetting("blockedProviders", updated);
+  };
+
+  const customBannedSignals: string[] = settings.customBannedSignals || [];
+
+  const addBannedKeyword = () => {
+    const keyword = newBannedKeyword.trim().toLowerCase();
+    if (!keyword || customBannedSignals.includes(keyword)) return;
+    updateSetting("customBannedSignals", [...customBannedSignals, keyword]);
+    setNewBannedKeyword("");
+  };
+
+  const removeBannedKeyword = (index: number) => {
+    const updated = customBannedSignals.filter((_, i) => i !== index);
+    updateSetting("customBannedSignals", updated);
   };
 
   const handlePasswordChange = async (e) => {
@@ -368,6 +383,59 @@ export default function SecurityTab() {
       <SessionInfoCard />
       <IPFilterSection />
       <AuthzSection />
+
+      {/* Custom Banned Keywords */}
+      <Card>
+        <div className="flex flex-col gap-4">
+          <div>
+            <p className="font-medium">{t("customBannedSignals", "Banned Keywords")}</p>
+            <p className="text-sm text-text-muted">
+              {t("customBannedSignalsDesc", "Additional keywords that trigger permanent account ban detection. Built-in keywords always apply.")}
+            </p>
+          </div>
+          <div className="flex gap-2">
+            <Input
+              placeholder={t("customBannedSignalsPlaceholder", "e.g. api key revoked")}
+              value={newBannedKeyword}
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) => setNewBannedKeyword(e.target.value)}
+              onKeyDown={(e: React.KeyboardEvent) => {
+                if (e.key === "Enter") addBannedKeyword();
+              }}
+            />
+            <Button
+              variant="secondary"
+              size="sm"
+              icon="add"
+              onClick={addBannedKeyword}
+              disabled={!newBannedKeyword.trim()}
+            >
+              {t("add", "Add")}
+            </Button>
+          </div>
+          {customBannedSignals.length > 0 ? (
+            <div className="flex flex-wrap gap-2">
+              {customBannedSignals.map((keyword, index) => (
+                <div
+                  key={index}
+                  className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-medium border bg-red-500/10 border-red-500/30 text-red-600 dark:text-red-400"
+                >
+                  {keyword}
+                  <button
+                    onClick={() => removeBannedKeyword(index)}
+                    className="material-symbols-outlined text-[12px] hover:opacity-70"
+                  >
+                    close
+                  </button>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <p className="text-xs text-text-muted">
+              {t("noCustomBannedSignals", "No custom keywords. Only built-in keywords are active.")}
+            </p>
+          )}
+        </div>
+      </Card>
     </div>
   );
 }

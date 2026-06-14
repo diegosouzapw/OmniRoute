@@ -8,15 +8,24 @@
 import {
   checkFallbackError,
   classifyErrorText,
+  classifyLockoutReason,
+  decayModelFailureCount,
   formatRetryAfter,
   getRuntimeProviderProfile,
+  isModelLocked,
+  recordModelLockoutFailure,
   recordProviderFailure,
   isProviderFailureCode,
   isProviderExhaustedReason,
+  type ProviderProfile,
 } from "./accountFallback.ts";
 import { FETCH_TIMEOUT_MS, RateLimitReason } from "../config/constants.ts";
 import { errorResponse, unavailableResponse } from "../utils/error.ts";
 import { clamp01 } from "../utils/number.ts";
+import {
+  createSSEDataLineNormalizer,
+  isKnownNonClaudeStreamPayload,
+} from "../utils/streamHelpers.ts";
 import {
   recordComboIntent,
   recordComboRequest,
@@ -27,6 +36,7 @@ import {
   resolveComboConfig,
   getDefaultComboConfig,
   resolveComboTargetTimeoutMs,
+  PRE_SCREEN_CONCURRENCY,
 } from "./comboConfig.ts";
 import {
   maybeGenerateHandoff,
@@ -42,13 +52,15 @@ import {
   getLastSessionModel,
   getHandoff,
 } from "../../src/lib/db/contextHandoffs.ts";
+import { extractSessionAffinityKey } from "@/sse/services/auth";
+import { resolveModelLockoutSettings } from "../../src/lib/resilience/modelLockoutSettings";
 import { fetchCodexQuota } from "./codexQuotaFetcher.ts";
 import { getQuotaFetcher } from "./quotaPreflight.ts";
 import * as semaphore from "./rateLimitSemaphore.ts";
 import { getCircuitBreaker } from "../../src/shared/utils/circuitBreaker";
 import { fisherYatesShuffle, getNextFromDeck } from "../../src/shared/utils/shuffleDeck";
 import { parseModel } from "./model.ts";
-import { applyComboAgentMiddleware, injectModelTag } from "./comboAgentMiddleware.ts";
+import { applyComboAgentMiddleware } from "./comboAgentMiddleware.ts";
 import { checkCredentialGate, logCredentialSkip } from "./credentialGate.ts";
 import { emit } from "../../src/lib/events/eventBus";
 import { notifyWebhookEvent } from "../../src/lib/webhookDispatcher";
@@ -71,12 +83,16 @@ import {
 } from "./autoCombo/scoring.ts";
 import { getResolvedModelCapabilities, supportsToolCalling } from "./modelCapabilities.ts";
 import { estimateTokens } from "./contextManager.ts";
+import { getReasoningTokens } from "../../src/lib/usage/tokenAccounting.ts";
 import { getSessionConnection } from "./sessionManager.ts";
 import { orderTargetsByEvalScores } from "./evalRouting.ts";
 import { generateRoutingHints } from "./manifestAdapter";
 import type { RoutingHint } from "./manifestAdapter";
+import { buildComplexityRoutingHint } from "./autoCombo/complexityRouter";
+import type { CompressionMode } from "./compression/types.ts";
 import { getModelContextLimit } from "../../src/lib/modelCapabilities";
 import { getProviderConnections } from "../../src/lib/db/providers";
+import { getProviderModels } from "../config/providerModels.ts";
 import {
   getComboModelString,
   getComboStepTarget,
@@ -90,6 +106,16 @@ import {
   type RoutingTagMatchMode,
 } from "../../src/domain/tagRouter.ts";
 import { normalizeRoutingStrategy } from "../../src/shared/constants/routingStrategies.ts";
+import {
+  isProviderInCooldown,
+  recordProviderCooldown,
+  recordProviderSuccess,
+} from "./providerCooldownTracker.ts";
+import {
+  resolveResilienceSettings,
+  type ResilienceSettings,
+} from "../../src/lib/resilience/settings";
+import { resolveReasoningBufferedMaxTokens, toPositiveInteger } from "./reasoningTokenBuffer.ts";
 
 // Status codes that should mark round-robin target semaphores as cooling down.
 const TRANSIENT_FOR_SEMAPHORE = [429, 502, 503, 504];
@@ -107,9 +133,90 @@ function isAllAccountsRateLimitedResponse(
   return ALL_ACCOUNTS_RATE_LIMITED_PATTERNS.some((p) => p.test(errorText));
 }
 
+// #1731v2 guard: a provider circuit-breaker-open response (503 + `X-OmniRoute-Provider-Breaker`
+// header / `provider_circuit_open` error code, see providerCircuitOpenResponse) is an OmniRoute
+// resilience signal, NOT a per-connection upstream failure. It must keep being treated as an
+// ordinary target failure (try the next target, including same-provider ones) — so it must NOT
+// poison exhaustedConnections/exhaustedProviders, otherwise remaining same-provider targets get
+// wrongly skipped while the breaker is open.
+function isProviderCircuitOpenResult(
+  result: { headers?: Headers | null; status?: number },
+  errorText: string
+): boolean {
+  const breakerHeader = result.headers?.get?.("x-omniroute-provider-breaker");
+  if (typeof breakerHeader === "string" && breakerHeader.toLowerCase() === "open") return true;
+  return /provider_circuit_open/i.test(errorText);
+}
+
 const MAX_COMBO_DEPTH = 3;
+// Absolute safety ceiling for operator-configured nesting depth. config.maxComboDepth
+// can raise the default (3) up to this cap, or lower it, but never above — runaway
+// nested-combo expansion is a real DoS/perf risk.
+const MAX_COMBO_DEPTH_HARD_CAP = 10;
 const MAX_FALLBACK_WAIT_MS = 5000;
 const MAX_GLOBAL_ATTEMPTS = 30;
+
+/**
+ * Clamp an operator-configured combo nesting depth (config.maxComboDepth) to a
+ * safe integer in [1, MAX_COMBO_DEPTH_HARD_CAP]. Anything non-numeric, < 1, or
+ * NaN falls back to the default MAX_COMBO_DEPTH so a bad config never disables
+ * nesting or blows past the safety ceiling.
+ */
+export function clampComboDepth(value: unknown): number {
+  const n = Math.floor(Number(value));
+  if (!Number.isFinite(n) || n < 1) return MAX_COMBO_DEPTH;
+  return Math.min(n, MAX_COMBO_DEPTH_HARD_CAP);
+}
+
+/** Minimum recorded requests before the predictive-TTFT breaker trusts the average. */
+const PREDICTIVE_TTFT_MIN_SAMPLES = 5;
+
+/**
+ * Predictive-TTFT circuit-breaker decision: skip a target whose recent average
+ * latency — measured over a statistically meaningful sample — exceeds the
+ * configured ceiling, so the combo fails over before paying a slow first byte.
+ * Returns false when disabled (ceiling <= 0), when there is no metric, or when
+ * the sample is too small to trust.
+ */
+export function shouldSkipForPredictedTtft(
+  metric: { requests?: number; avgLatencyMs?: number } | null | undefined,
+  predictiveTtftMs: number
+): boolean {
+  if (!metric || !(predictiveTtftMs > 0)) return false;
+  return (
+    (metric.requests ?? 0) >= PREDICTIVE_TTFT_MIN_SAMPLES &&
+    (metric.avgLatencyMs ?? 0) > predictiveTtftMs
+  );
+}
+
+/**
+ * Decide whether a failed combo target should record a whole-provider circuit-breaker
+ * failure (#1731 / #2743 gap-d). This is the consumer side of `skipProviderBreaker`:
+ *
+ * - Stream-readiness failures (pre-flight zombie/ping probes) never count as provider
+ *   failures — they are a connection-readiness signal, not an upstream outage.
+ * - Only provider-level failure codes (408/429/5xx — see `isProviderFailureCode`) count.
+ * - When the next combo target is on the SAME provider, don't trip the provider breaker:
+ *   a different model on that provider may still succeed.
+ * - G-02 / #2743: when the fallback result carries `skipProviderBreaker` (an embedded
+ *   service supervisor outage signalled via `X-Omni-Fallback-Hint: connection_cooldown`)
+ *   apply connection cooldown ONLY — never trip the whole-provider breaker.
+ *
+ * Pure predicate so the breaker decision is unit-testable without the full combo harness.
+ */
+export function shouldRecordProviderBreakerFailure(args: {
+  isStreamReadinessFailure: boolean;
+  status: number;
+  sameProviderNext: boolean;
+  skipProviderBreaker?: boolean;
+}): boolean {
+  return (
+    !args.isStreamReadinessFailure &&
+    isProviderFailureCode(args.status) &&
+    !args.sameProviderNext &&
+    !args.skipProviderBreaker
+  );
+}
 
 function resolveDelayMs(value: unknown, fallback: number): number {
   const numericValue = Number(value);
@@ -152,6 +259,80 @@ const RESET_AWARE_DEFAULTS = {
   exhaustionGuardPercent: 10,
 };
 const RESET_WINDOW_DEFAULT_TIE_BAND_MS = 60_000;
+
+// Quota Share soft-policy deprioritization factor (B17).
+// When a candidate has quotaSoftPenalty === true, its auto-combo score is
+// multiplied by this factor so over-quota-soft keys are de-prioritized
+// without being fully blocked (that is done by "hard" policy).
+// Override via QUOTA_SOFT_DEPRIORITIZE_FACTOR env var (range 0..1, default 0.7).
+export const QUOTA_SOFT_DEPRIORITIZE_FACTOR = Number(
+  process.env.QUOTA_SOFT_DEPRIORITIZE_FACTOR ?? "0.7"
+);
+
+// G2: Module-level registry of active combo execution candidates.
+// Maps executionKey → Map<stepId, candidate mutable ref>.
+// Populated by buildAutoCandidates registrations; cleaned up after each execution.
+// This allows chatCore.ts to mark a candidate's quotaSoftPenalty flag so that
+// subsequent scoring iterations (auto-combo fallback) deprioritize it.
+const _activeExecutionCandidates = new Map<string, Map<string, { quotaSoftPenalty?: boolean }>>();
+
+/**
+ * Mark a specific candidate (by comboExecutionKey + stepId) with soft quota penalty.
+ * Called from chatCore.ts when enforceQuotaShare returns a "soft deprioritize" decision.
+ * The flag is read on subsequent auto-combo scoring iterations (fallback chain)
+ * within the same combo execution via scoreAutoTargets → QUOTA_SOFT_DEPRIORITIZE_FACTOR.
+ *
+ * Guards:
+ * - null executionKey or stepId → no-op (non-combo or context not available).
+ * - unknown executionKey → no-op (candidate not yet registered or already cleaned up).
+ * - Idempotent: calling twice with the same (key, stepId, true) is safe.
+ */
+export function setCandidateQuotaSoftPenalty(
+  comboExecutionKey: string | null,
+  comboStepId: string | null,
+  penalty: boolean
+): void {
+  if (!comboExecutionKey || !comboStepId) return;
+  const byStep = _activeExecutionCandidates.get(comboExecutionKey);
+  if (!byStep) return;
+  const candidate = byStep.get(comboStepId);
+  if (candidate) {
+    candidate.quotaSoftPenalty = penalty;
+  }
+}
+
+/**
+ * Register candidates for a combo execution so setCandidateQuotaSoftPenalty can
+ * locate them by (executionKey, stepId).
+ * Each candidate object is stored by reference — mutations via setCandidateQuotaSoftPenalty
+ * propagate back to the original candidate array used by scoreAutoTargets.
+ * @internal — not exported; only called within combo.ts by buildAutoCandidates callers.
+ */
+function _registerExecutionCandidates(
+  candidates: Array<{ executionKey: string; stepId: string; quotaSoftPenalty?: boolean }>
+): void {
+  for (const candidate of candidates) {
+    if (!candidate.executionKey) continue;
+    let byStep = _activeExecutionCandidates.get(candidate.executionKey);
+    if (!byStep) {
+      byStep = new Map();
+      _activeExecutionCandidates.set(candidate.executionKey, byStep);
+    }
+    byStep.set(candidate.stepId, candidate);
+  }
+}
+
+/**
+ * Unregister all candidates for a given execution key once the execution completes.
+ * Prevents unbounded memory growth.
+ * @internal — not exported; called after each handleComboChat iteration.
+ */
+function _unregisterExecutionCandidates(executionKeys: string[]): void {
+  for (const key of executionKeys) {
+    _activeExecutionCandidates.delete(key);
+  }
+}
+
 const RESET_WINDOW_NAMES = ["weekly", "session", "monthly"] as const;
 type ResetWindowName = (typeof RESET_WINDOW_NAMES)[number];
 type QuotaFetchCacheConfig = {
@@ -242,6 +423,13 @@ type AutoProviderCandidate = ProviderCandidate & {
   stepId: string;
   executionKey: string;
   modelStr: string;
+  /**
+   * When true, this candidate's auto-combo score is multiplied by
+   * QUOTA_SOFT_DEPRIORITIZE_FACTOR (B17 soft-policy penalty).
+   * Set externally when enforceQuotaShare returns deprioritize=true
+   * for the key routed through this target's connectionId.
+   */
+  quotaSoftPenalty?: boolean;
 };
 
 function toRetryAfterDisplayValue(value: ComboRetryAfter): string | Date {
@@ -332,7 +520,207 @@ export async function validateResponseQuality(
   isStreaming: boolean,
   log: { warn?: (...args: unknown[]) => void }
 ): Promise<{ valid: boolean; reason?: string; clonedResponse?: Response }> {
-  if (isStreaming) return { valid: true };
+  // Issue #3685: For Claude SSE streaming responses, use a BOUNDED PEEK to
+  // detect the empty-content-block pattern (content_filter stop_reason with
+  // no content_block_* events) WITHOUT de-streaming non-empty responses.
+  //
+  // Parse SSE events incrementally. Stop buffering once a content_block_* event
+  // or a known non-Claude SSE payload appears, replay the buffered prefix, then
+  // pipe the original reader so the rest of the stream keeps flowing normally.
+  // Only fail over when a complete Claude lifecycle ends without content_block.
+  //
+  // Non-text/event-stream streaming responses are not buffered at all.
+  if (isStreaming) {
+    const contentType = response.headers.get("content-type") || "";
+    if (!contentType.includes("text/event-stream")) {
+      return { valid: true };
+    }
+
+    if (!response.body) {
+      return { valid: true };
+    }
+
+    const reader = response.body.getReader();
+    const decoder = new TextDecoder("utf-8");
+
+    // Raw Uint8Array chunks accumulated so far — used to replay the prefix
+    // in the returned clonedResponse.
+    const bufferedChunks: Uint8Array[] = [];
+    // Decoded text accumulated across chunks for incremental SSE parsing.
+    // Only the tail of the most-recently-processed line window remains here
+    // between iterations (incomplete lines are deferred to the next chunk).
+    let decodedSoFar = "";
+
+    // SSE lifecycle state.
+    let hasMessageStart = false;
+    let hasContentBlock = false;
+    let hasLifecycleEnd = false;
+    const sseLineNormalizer = createSSEDataLineNormalizer();
+    let pendingEventType = "";
+
+    /**
+     * Parse any complete SSE lines from `decodedSoFar`, updating lifecycle
+     * flags in the closure. The last (potentially incomplete) line is kept in
+     * `decodedSoFar` for the next iteration.
+     *
+     * Returns true when a content_block_* event is detected — the caller
+     * should stop peeking and treat the stream as non-empty.
+     */
+    function parseAccumulatedSse(): boolean {
+      const lines = decodedSoFar.split(/\r?\n/);
+      // Retain the potentially-incomplete trailing fragment.
+      decodedSoFar = lines[lines.length - 1];
+
+      for (const line of sseLineNormalizer.normalize(lines.slice(0, -1))) {
+        const trimmed = line.trim();
+
+        if (trimmed.startsWith("event:")) {
+          pendingEventType = trimmed.slice(6).trim();
+          continue;
+        }
+
+        if (!trimmed.startsWith("data:")) {
+          if (!trimmed) pendingEventType = "";
+          continue;
+        }
+
+        const data = trimmed.slice(5).trim();
+        if (!data || data === "[DONE]") continue;
+
+        let parsed: Record<string, unknown>;
+        try {
+          parsed = JSON.parse(data);
+        } catch {
+          continue;
+        }
+
+        const eventType =
+          (typeof parsed.type === "string" ? parsed.type : null) || pendingEventType || "";
+        pendingEventType = "";
+
+        if (isKnownNonClaudeStreamPayload(parsed, eventType)) {
+          return true;
+        }
+
+        switch (eventType) {
+          case "message_start":
+            hasMessageStart = true;
+            break;
+          case "content_block_start":
+          case "content_block_delta":
+          case "content_block_stop":
+            hasContentBlock = true;
+            // Signal caller to stop buffering immediately.
+            return true;
+          case "message_stop":
+            hasLifecycleEnd = true;
+            break;
+          case "message_delta": {
+            const delta = parsed.delta;
+            if (
+              delta &&
+              typeof delta === "object" &&
+              (delta as Record<string, unknown>).stop_reason != null
+            ) {
+              hasLifecycleEnd = true;
+            }
+            break;
+          }
+          default:
+            break;
+        }
+      }
+      return false;
+    }
+
+    /**
+     * Build a Response whose body first replays all bytes in `bufferedChunks`,
+     * then forwards the remainder of `readerToForward` chunk-by-chunk.
+     * Preserves the original response's status, statusText, and headers.
+     */
+    function buildReplayResponse(
+      readerToForward: ReadableStreamDefaultReader<Uint8Array>
+    ): Response {
+      // Snapshot the prefix so mutations after this point don't affect it.
+      const prefix = bufferedChunks.slice();
+      let prefixIdx = 0;
+      const stream = new ReadableStream<Uint8Array>({
+        async pull(controller) {
+          // 1. Drain the buffered prefix one chunk at a time.
+          if (prefixIdx < prefix.length) {
+            controller.enqueue(prefix[prefixIdx++]);
+            return;
+          }
+          // 2. Forward the remainder from the original reader.
+          try {
+            const { done, value } = await readerToForward.read();
+            if (done) {
+              controller.close();
+            } else {
+              controller.enqueue(value);
+            }
+          } catch {
+            controller.close();
+          }
+        },
+      });
+      return new Response(stream, {
+        status: response.status,
+        statusText: response.statusText,
+        headers: response.headers,
+      });
+    }
+
+    // Main bounded-peek loop.
+    try {
+      while (true) {
+        const { done, value } = await reader.read();
+
+        if (done) {
+          // Stream finished — flush the TextDecoder and parse any remaining text.
+          const tail = decoder.decode(undefined, { stream: false });
+          if (tail) decodedSoFar += tail;
+          if (decodedSoFar.trim()) decodedSoFar += "\n\n";
+          parseAccumulatedSse();
+
+          if (hasMessageStart && hasLifecycleEnd && !hasContentBlock) {
+            // Complete Claude lifecycle with zero content blocks → failover.
+            log.warn?.(
+              "COMBO",
+              "Streaming Claude response has complete lifecycle but zero content blocks (content_filter?) — marking as invalid for combo failover"
+            );
+            return { valid: false, reason: "streaming empty content block" };
+          }
+
+          // Incomplete lifecycle or non-Claude stream — replay all buffered
+          // bytes. The reader is exhausted so the forwarding reader will
+          // immediately signal done.
+          const clonedResponse = buildReplayResponse(reader);
+          return { valid: true, clonedResponse };
+        }
+
+        // Accumulate raw bytes for potential replay.
+        bufferedChunks.push(value);
+
+        // Decode incrementally (stream:true keeps multi-byte char state).
+        decodedSoFar += decoder.decode(value, { stream: true });
+        const foundContent = parseAccumulatedSse();
+
+        if (foundContent) {
+          // A content_block_* event was found — stop peeking. Return a
+          // clonedResponse that replays all buffered bytes (the current chunk
+          // is already in bufferedChunks) and then forwards the remainder of
+          // the original reader unchanged.
+          const clonedResponse = buildReplayResponse(reader);
+          return { valid: true, clonedResponse };
+        }
+      }
+    } catch {
+      // If reading the stream fails, pass through — other mechanisms
+      // (stream readiness timeout) will catch truly broken streams.
+      return { valid: true };
+    }
+  }
 
   const contentType = response.headers.get("content-type") || "";
   if (!contentType.includes("application/json") && !contentType.includes("text/")) {
@@ -401,6 +789,28 @@ export async function validateResponseQuality(
     return { valid: false, reason: "empty content and no tool_calls in response" };
   }
 
+  // Issue #3587: Reasoning models (deepseek-v4-flash, nemotron, etc.) may consume
+  // ALL max_tokens for reasoning_tokens, leaving content empty. When content is
+  // empty but reasoning_content exists, and usage shows reasoning consumed nearly
+  // all completion tokens, treat as invalid so the combo loop retries with more
+  // tokens or falls back to a non-reasoning model.
+  const contentIsEmpty = content === null || content === undefined || content === "";
+  if (contentIsEmpty && hasReasoningContent && !hasToolCalls) {
+    const usage = json?.usage as Record<string, unknown> | undefined;
+    if (usage) {
+      const completionTokens = Number(usage.completion_tokens) || 0;
+      const reasoningTokens = getReasoningTokens(usage);
+      // If reasoning consumed 90%+ of completion tokens, the model ran out of
+      // budget before producing any content output.
+      if (completionTokens > 0 && reasoningTokens >= completionTokens * 0.9) {
+        return {
+          valid: false,
+          reason: `reasoning consumed ${reasoningTokens}/${completionTokens} tokens — no content output`,
+        };
+      }
+    }
+  }
+
   return {
     valid: true,
     clonedResponse: new Response(text, {
@@ -413,6 +823,10 @@ export async function validateResponseQuality(
 
 // In-memory atomic counter per combo for round-robin distribution
 // Resets on server restart (by design — no stale state)
+// Eviction limits to prevent unbounded memory growth
+const MAX_RR_COUNTERS = 500;
+const MAX_RESET_AWARE_CACHE = 200;
+
 const rrCounters = new Map<string, number>();
 
 const resetAwareConnectionCache = new Map<
@@ -446,6 +860,20 @@ function isStreamReadinessFailureErrorBody(errorBody: unknown): boolean {
   if (!error || typeof error !== "object") return false;
   const code = (error as Record<string, unknown>).code;
   return code === "STREAM_READINESS_TIMEOUT" || code === "STREAM_EARLY_EOF";
+}
+
+/**
+ * A local per-API-key token-limit breach surfaces as a 429 tagged with
+ * errorCode "TOKEN_LIMIT_EXCEEDED" (see chatCore.ts Tier 2 early return). This
+ * is NOT an upstream rate limit, so the combo loop must not cool the shared
+ * account/provider, must not add it to transientRateLimitedProviders, and must
+ * not retry it transiently — it propagates to the client as a terminal 429.
+ */
+function isTokenLimitBreachErrorBody(errorBody: unknown): boolean {
+  if (!errorBody || typeof errorBody !== "object") return false;
+  const error = (errorBody as Record<string, unknown>).error;
+  if (!error || typeof error !== "object") return false;
+  return (error as Record<string, unknown>).code === "TOKEN_LIMIT_EXCEEDED";
 }
 
 function toRecordedTarget(target: ResolvedComboTarget) {
@@ -768,19 +1196,24 @@ function expandRuntimeStep(
   allCombos: ComboCollectionLike,
   visited = new Set<string>(),
   depth = 0,
-  path: string[] = []
+  path: string[] = [],
+  maxDepth: number = MAX_COMBO_DEPTH
 ): ResolvedComboTarget[] {
   if (step.kind === "model") return [step];
-  if (depth > MAX_COMBO_DEPTH) return [];
+  if (depth > maxDepth) return [];
 
   const combos = getCombosArray(allCombos);
   const nestedCombo = combos.find((combo) => combo.name === step.comboName);
   if (!nestedCombo || visited.has(step.comboName)) return [];
 
-  return resolveNestedComboTargets(nestedCombo, combos, new Set(visited), depth + 1, [
-    ...path,
-    step.stepId,
-  ]);
+  return resolveNestedComboTargets(
+    nestedCombo,
+    combos,
+    new Set(visited),
+    depth + 1,
+    [...path, step.stepId],
+    maxDepth
+  );
 }
 
 export function resolveNestedComboTargets(
@@ -788,13 +1221,14 @@ export function resolveNestedComboTargets(
   allCombos: ComboCollectionLike,
   visited = new Set<string>(),
   depth = 0,
-  path: string[] = []
+  path: string[] = [],
+  maxDepth: number = MAX_COMBO_DEPTH
 ): ResolvedComboTarget[] {
   const directTargets = (combo.models || [])
     .map((entry, index) => normalizeRuntimeStep(entry, combo.name, index, null, path))
     .filter((entry): entry is ResolvedComboTarget => entry?.kind === "model");
 
-  if (depth > MAX_COMBO_DEPTH) return directTargets;
+  if (depth > maxDepth) return directTargets;
   if (visited.has(combo.name)) return [];
   visited.add(combo.name);
 
@@ -803,7 +1237,7 @@ export function resolveNestedComboTargets(
 
   for (const step of runtimeSteps) {
     if (step.kind === "combo-ref") {
-      resolved.push(...expandRuntimeStep(step, allCombos, new Set(visited), depth, path));
+      resolved.push(...expandRuntimeStep(step, allCombos, new Set(visited), depth, path, maxDepth));
       continue;
     }
     resolved.push(step);
@@ -854,10 +1288,11 @@ export function validateComboDAG(
   comboName: string,
   allCombos: ComboCollectionLike,
   visited = new Set<string>(),
-  depth = 0
+  depth = 0,
+  maxDepth: number = MAX_COMBO_DEPTH
 ): void {
-  if (depth > MAX_COMBO_DEPTH) {
-    throw new Error(`Max combo nesting depth (${MAX_COMBO_DEPTH}) exceeded at "${comboName}"`);
+  if (depth > maxDepth) {
+    throw new Error(`Max combo nesting depth (${maxDepth}) exceeded at "${comboName}"`);
   }
   if (visited.has(comboName)) {
     throw new Error(`Circular combo reference detected: ${comboName}`);
@@ -873,7 +1308,7 @@ export function validateComboDAG(
     // Check if this model name is itself a combo (not a provider/model pattern)
     const nestedCombo = combos.find((c) => c.name === modelName);
     if (nestedCombo) {
-      validateComboDAG(modelName, combos, new Set(visited), depth + 1);
+      validateComboDAG(modelName, combos, new Set(visited), depth + 1, maxDepth);
     }
   }
 }
@@ -891,9 +1326,10 @@ export function resolveNestedComboModels(
   combo: ComboLike,
   allCombos: ComboCollectionLike,
   visited = new Set<string>(),
-  depth = 0
+  depth = 0,
+  maxDepth: number = MAX_COMBO_DEPTH
 ): string[] {
-  if (depth > MAX_COMBO_DEPTH) return combo.models.map((m) => normalizeModelEntry(m).model);
+  if (depth > maxDepth) return combo.models.map((m) => normalizeModelEntry(m).model);
   if (visited.has(combo.name)) return []; // cycle safety
   visited.add(combo.name);
 
@@ -906,7 +1342,13 @@ export function resolveNestedComboModels(
 
     if (nestedCombo) {
       // Recursively expand the nested combo
-      const nested = resolveNestedComboModels(nestedCombo, combos, new Set(visited), depth + 1);
+      const nested = resolveNestedComboModels(
+        nestedCombo,
+        combos,
+        new Set(visited),
+        depth + 1,
+        maxDepth
+      );
       resolved.push(...nested);
     } else {
       resolved.push(modelName);
@@ -1531,6 +1973,13 @@ async function getQuotaAwareConnectionsForTarget(
             const activeConnections = Array.isArray(connections)
               ? (connections as Array<Record<string, unknown>>)
               : [];
+            if (
+              !resetAwareConnectionCache.has(provider) &&
+              resetAwareConnectionCache.size >= MAX_RESET_AWARE_CACHE
+            ) {
+              const oldest = resetAwareConnectionCache.keys().next().value;
+              if (oldest !== undefined) resetAwareConnectionCache.delete(oldest);
+            }
             resetAwareConnectionCache.set(provider, {
               connections: activeConnections,
               fetchedAt: Date.now(),
@@ -1657,11 +2106,18 @@ async function fetchResetAwareQuotaWithCache({
 
   const refresh = () => {
     const existing = resetAwareQuotaCache.get(cacheKey);
-    if (existing?.refreshPromise) return existing.refreshPromise;
+    if (existing?.refreshPromise != null) return existing.refreshPromise;
 
     const refreshPromise = fetcher(connectionId, connection)
       .then((quota) => {
         if (quota) {
+          if (
+            !resetAwareQuotaCache.has(cacheKey) &&
+            resetAwareQuotaCache.size >= MAX_RESET_AWARE_CACHE
+          ) {
+            const oldest = resetAwareQuotaCache.keys().next().value;
+            if (oldest !== undefined) resetAwareQuotaCache.delete(oldest);
+          }
           resetAwareQuotaCache.set(cacheKey, {
             quota,
             fetchedAt: Date.now(),
@@ -1675,6 +2131,13 @@ async function fetchResetAwareQuotaWithCache({
       .catch((error) => {
         const previous = resetAwareQuotaCache.get(cacheKey);
         if (previous) {
+          if (
+            !resetAwareQuotaCache.has(cacheKey) &&
+            resetAwareQuotaCache.size >= MAX_RESET_AWARE_CACHE
+          ) {
+            const oldest = resetAwareQuotaCache.keys().next().value;
+            if (oldest !== undefined) resetAwareQuotaCache.delete(oldest);
+          }
           resetAwareQuotaCache.set(cacheKey, { ...previous, refreshPromise: null });
         }
         log.warn?.("COMBO", "Reset-aware quota fetch failed.", {
@@ -1687,6 +2150,10 @@ async function fetchResetAwareQuotaWithCache({
         return null;
       });
 
+    if (!resetAwareQuotaCache.has(cacheKey) && resetAwareQuotaCache.size >= MAX_RESET_AWARE_CACHE) {
+      const oldest = resetAwareQuotaCache.keys().next().value;
+      if (oldest !== undefined) resetAwareQuotaCache.delete(oldest);
+    }
     resetAwareQuotaCache.set(cacheKey, {
       quota: existing?.quota ?? cached?.quota ?? null,
       fetchedAt: existing?.fetchedAt ?? cached?.fetchedAt ?? 0,
@@ -1705,6 +2172,46 @@ async function fetchResetAwareQuotaWithCache({
   }
 
   return refresh();
+}
+
+type PreScreenResult = { profile: ProviderProfile | null; available: boolean };
+
+export async function preScreenTargets(
+  targets: ResolvedComboTarget[],
+  isModelAvailable?: IsModelAvailable | null
+): Promise<Map<string, PreScreenResult>> {
+  if (targets.length === 0) {
+    return new Map();
+  }
+
+  const results = await mapWithConcurrency(
+    targets,
+    PRE_SCREEN_CONCURRENCY,
+    async (target): Promise<{ key: string; result: PreScreenResult }> => {
+      const profile = await getRuntimeProviderProfile(target.provider).catch(() => null);
+
+      const breaker = getCircuitBreaker(target.provider);
+      if (breaker.getStatus().state === "OPEN") {
+        return { key: target.executionKey, result: { profile, available: false } };
+      }
+
+      let available = true;
+      if (isModelAvailable) {
+        // IsModelAvailable may return a sync boolean or a Promise; Promise.resolve
+        // normalizes both so the .catch() never runs against a bare boolean.
+        available = await Promise.resolve(isModelAvailable(target.modelStr, target)).catch(
+          () => true
+        );
+      }
+      return { key: target.executionKey, result: { profile, available } };
+    }
+  );
+
+  const map = new Map<string, PreScreenResult>();
+  for (const { key, result } of results) {
+    map.set(key, result);
+  }
+  return map;
 }
 
 async function orderTargetsByResetAwareQuota(
@@ -1810,6 +2317,10 @@ async function orderTargetsByResetAwareQuota(
   if (tiedTargets.length > 1) {
     const key = `reset-aware:${comboName}`;
     const counter = rrCounters.get(key) || 0;
+    if (!rrCounters.has(key) && rrCounters.size >= MAX_RR_COUNTERS) {
+      const oldest = rrCounters.keys().next().value;
+      if (oldest !== undefined) rrCounters.delete(oldest);
+    }
     rrCounters.set(key, counter + 1);
     const startIndex = counter % tiedTargets.length;
     orderedTiedTargets = [...tiedTargets.slice(startIndex), ...tiedTargets.slice(0, startIndex)];
@@ -1969,6 +2480,10 @@ async function orderTargetsByResetWindow(
 
   const key = `reset-window:${comboName}`;
   const counter = rrCounters.get(key) || 0;
+  if (!rrCounters.has(key) && rrCounters.size >= MAX_RR_COUNTERS) {
+    const oldest = rrCounters.keys().next().value;
+    if (oldest !== undefined) rrCounters.delete(oldest);
+  }
   rrCounters.set(key, counter + 1);
   const startIndex = counter % tiedTargets.length;
   const orderedTiedTargets = [
@@ -2119,8 +2634,53 @@ async function buildAutoCandidates(
     // keep empty stats — auto-combo will use runtime + bootstrap signals
   }
 
+  const uniqueProviders = Array.from(
+    new Set(
+      targets.map((target) => target.provider || parseModel(target.modelStr).provider || "unknown")
+    )
+  );
+  const connectionPoolCounts = new Map<string, number>();
+  const connectionsByProvider = new Map<string, Array<Record<string, unknown>>>();
+  await Promise.all(
+    uniqueProviders.map(async (provider) => {
+      try {
+        const connections = await getProviderConnections({ provider, isActive: true });
+        const active = Array.isArray(connections) ? connections : [];
+        connectionPoolCounts.set(provider, active.length);
+        connectionsByProvider.set(provider, active);
+      } catch {
+        connectionPoolCounts.set(provider, 0);
+        connectionsByProvider.set(provider, []);
+      }
+    })
+  );
+
+  const expandedTargets: ResolvedComboTarget[] = [];
+  for (const target of targets) {
+    const provider = target.provider || parseModel(target.modelStr).provider || "unknown";
+    const providerConnections = connectionsByProvider.get(provider) || [];
+    if (target.connectionId) {
+      expandedTargets.push(target);
+      continue;
+    }
+    const connectionIds = providerConnections
+      .map((c) => (c && typeof c === "object" && typeof c.id === "string" ? c.id : null))
+      .filter((id): id is string => id !== null);
+    if (connectionIds.length === 0) {
+      expandedTargets.push(target);
+      continue;
+    }
+    for (const connectionId of connectionIds) {
+      expandedTargets.push({
+        ...target,
+        connectionId,
+        executionKey: `${target.executionKey}@${connectionId}`,
+      });
+    }
+  }
+
   const candidates = await Promise.all(
-    targets.map(async (target) => {
+    expandedTargets.map(async (target) => {
       const modelStr = target.modelStr;
       const parsed = parseModel(modelStr);
       const provider = target.provider || parsed.provider || parsed.providerAlias || "unknown";
@@ -2219,6 +2779,8 @@ async function buildAutoCandidates(
         quotaResetIntervalSecs: 86400,
         contextAffinity,
         resetWindowAffinity,
+        connectionPoolSize: connectionPoolCounts.get(provider) ?? 1,
+        connectionId: target.connectionId ?? undefined,
       };
     })
   );
@@ -2329,9 +2891,12 @@ async function applyRequestTagRouting(
 
 export function resolveComboTargets(
   combo: ComboLike,
-  allCombos: ComboCollectionLike
+  allCombos: ComboCollectionLike,
+  maxDepth: number = MAX_COMBO_DEPTH
 ): ResolvedComboTarget[] {
-  return allCombos ? resolveNestedComboTargets(combo, allCombos) : getDirectComboTargets(combo);
+  return allCombos
+    ? resolveNestedComboTargets(combo, allCombos, new Set<string>(), 0, [], maxDepth)
+    : getDirectComboTargets(combo);
 }
 
 function resolveWeightedTargets(
@@ -2370,11 +2935,12 @@ function resolveWeightedTargets(
   };
 }
 
-function scoreAutoTargets(
+export function scoreAutoTargets(
   targets: ResolvedComboTarget[],
   candidates: AutoProviderCandidate[],
   taskType: string | null,
-  weights: ScoringWeights
+  weights: ScoringWeights,
+  manifestHint?: RoutingHint | null
 ) {
   const candidateByExecutionKey = new Map(
     candidates.map((candidate: ProviderCandidate & { executionKey: string }) => [
@@ -2390,15 +2956,104 @@ function scoreAutoTargets(
         candidate as ProviderCandidate,
         candidates,
         taskType ?? "general",
-        getTaskFitness
+        getTaskFitness,
+        manifestHint ?? undefined
       );
+      let score = calculateScore(factors, weights);
+      // B17: Quota Share soft-policy deprioritization
+      if ("quotaSoftPenalty" in candidate && candidate.quotaSoftPenalty === true) {
+        score *= QUOTA_SOFT_DEPRIORITIZE_FACTOR;
+      }
       return {
         target,
-        score: calculateScore(factors, weights),
+        score,
       };
     })
     .filter((entry): entry is { target: ResolvedComboTarget; score: number } => entry !== null)
     .sort((a, b) => b.score - a.score);
+}
+
+/**
+ * For an auto-combo WITHOUT an explicit `candidatePool`, broaden the eligible
+ * targets to every model of every active provider connection so the router has
+ * the full pool to score over. Already-present `modelStr`s are not duplicated.
+ *
+ * Best-effort: if loading active connections or provider models throws, the
+ * explicitly-resolved targets are returned unchanged (the combo still runs).
+ * Exported for unit testing. Mutates and returns `eligibleTargets`.
+ */
+export async function expandAutoComboCandidatePool(
+  eligibleTargets: ResolvedComboTarget[],
+  combo: { autoConfig?: unknown; config?: unknown } | null | undefined
+): Promise<ResolvedComboTarget[]> {
+  const localAutoConfig =
+    (combo?.autoConfig as Record<string, unknown> | undefined) ||
+    (isRecord((combo?.config as Record<string, unknown>)?.auto)
+      ? ((combo?.config as Record<string, unknown>).auto as Record<string, unknown>)
+      : null) ||
+    (combo?.config as Record<string, unknown> | undefined) ||
+    {};
+
+  if (Array.isArray(localAutoConfig?.candidatePool)) return eligibleTargets;
+
+  try {
+    const allConnections = await getProviderConnections({ isActive: true });
+    const providerIds = [
+      ...new Set(
+        (allConnections as Array<{ provider?: unknown }>)
+          .map((c) => c.provider)
+          .filter((p): p is string => typeof p === "string" && p.length > 0)
+      ),
+    ];
+    for (const providerId of providerIds) {
+      const providerModels = getProviderModels(providerId);
+      for (const model of providerModels) {
+        const modelStr = `${providerId}/${model.id}`;
+        if (!eligibleTargets.some((t) => t.modelStr === modelStr)) {
+          eligibleTargets.push({
+            kind: "model",
+            stepId: modelStr,
+            executionKey: modelStr,
+            provider: providerId,
+            providerId: providerId,
+            modelStr,
+            weight: 1,
+            connectionId: null,
+            label: null,
+          });
+        }
+      }
+    }
+  } catch {
+    // Best-effort candidate expansion only: if loading active connections or
+    // provider models fails, fall back to the explicitly-resolved targets
+    // rather than aborting the combo. The push above is the only mutation,
+    // so a throw leaves eligibleTargets exactly as explicit resolution built it.
+  }
+
+  return eligibleTargets;
+}
+
+/**
+ * Derive a STABLE per-conversation session key for combo context-cache pinning when
+ * the client did not provide an explicit session id (#3825).
+ *
+ * Most OpenAI-compatible clients send no session id, so the server-side pin added by
+ * #3399 (gated on `relayOptions?.sessionId`) never engaged → combos rotated every turn,
+ * causing upstream prompt-cache misses, cold high-reasoning starts and intermittent
+ * 504s. We reuse `extractSessionAffinityKey(body)` (the same conversation fingerprint
+ * used for codex failover affinity), which hashes the first user/system message — stable
+ * across turns of the same conversation and identical on turn 2 of a continued chat.
+ *
+ * Returns null when no stable fingerprint is available (e.g. empty body), in which case
+ * the caller falls back to NO pinning — preserving prior behavior rather than guessing.
+ */
+function deriveComboSessionKey(body: Record<string, unknown>): string | null {
+  try {
+    return extractSessionAffinityKey(body) ?? null;
+  } catch {
+    return null;
+  }
 }
 
 /**
@@ -2428,6 +3083,10 @@ export async function handleComboChat({
   const relayConfig =
     strategy === "context-relay" ? resolveContextRelayConfig(relayOptions?.config || null) : null;
 
+  const resilienceSettings: ResilienceSettings = settings
+    ? resolveResilienceSettings(settings)
+    : resolveResilienceSettings(null);
+
   const universalHandoffConfig = resolveUniversalHandoffConfig(
     (combo.universal_handoff || combo.universalHandoff) as
       | Record<string, unknown>
@@ -2435,157 +3094,43 @@ export async function handleComboChat({
       | undefined,
     relayOptions?.universalHandoffConfig as Record<string, unknown> | null | undefined
   );
+  // ── Server-side context cache pinning (replaces <omniModel> tag roundtrip) ─
+  // Uses session_model_history — no client-side tag injection, no visible output pollution.
+  //
+  // #3825: when the client sends no session id (most OpenAI-compatible clients), fall
+  // back to a stable conversation fingerprint derived from the body so the combo still
+  // re-pins to the same model across turns. ONLY engaged when context_cache_protection
+  // is truthy — when the toggle is off, behavior is unchanged (combos rotate as before,
+  // no pin read/write, no <omniModel> tag).
+  const effectiveSessionId: string | null = combo.context_cache_protection
+    ? (relayOptions?.sessionId ?? deriveComboSessionKey(body))
+    : null;
+  let pinnedModel: string | null = null;
+  if (
+    combo.context_cache_protection &&
+    effectiveSessionId &&
+    !(body as Record<string, unknown>)?.[SKIP_UNIVERSAL_HANDOFF_FLAG]
+  ) {
+    const pinned = getLastSessionModel(effectiveSessionId, combo.name);
+    if (pinned) {
+      body = { ...body, model: pinned };
+      pinnedModel = pinned;
+      log.info("COMBO", `[#401] Context cache: pinned model=${pinned} (server-side)`);
+    }
+  }
+
   // ── Combo Agent Middleware (#399 + #401) ────────────────────────────────
-  // Apply system_message override, tool_filter_regex, and extract pinned model
-  // from context caching tag. These are all opt-in per combo config.
-  const { body: agentBody, pinnedModel } = applyComboAgentMiddleware(
+  // Apply system_message override, tool_filter_regex.
+  // Context cache pinning is handled above via session_model_history.
+  const { body: agentBody } = applyComboAgentMiddleware(
     body,
     combo,
     "" // provider/model not yet known — resolved per-model in loop
   );
   body = agentBody;
-  if (pinnedModel) {
-    log.info("COMBO", `[#401] Context caching: pinned model=${pinnedModel}`);
-  }
   const clientRequestedStream = body?.stream === true;
-  // Wrap handleSingleModel to inject context caching tag on response (#401)
-  const handleSingleModelWrapped = combo.context_cache_protection
-    ? async (b: Record<string, unknown>, modelStr: string, target?: SingleModelTarget) => {
-        const res = await handleSingleModel(b, modelStr, target);
-        if (!res.ok) return res;
-
-        // Non-streaming: inject tag into JSON response
-        // Fix #721: Use OpenAI choices format (json.choices[0].message) not json.messages
-        if (!b.stream) {
-          try {
-            const json = await res.clone().json();
-            const choice = json?.choices?.[0];
-            if (choice?.message) {
-              // Wrap single message in array for injectModelTag, then unwrap
-              const tagged = injectModelTag([choice.message], modelStr);
-              // If the message had tool_calls but no string content, injectModelTag
-              // appends a synthetic assistant message — use the last one
-              const taggedMsg = tagged.at(-1);
-              const updatedJson = {
-                ...json,
-                choices: [{ ...choice, message: taggedMsg }, ...(json.choices?.slice(1) || [])],
-              };
-              return new Response(JSON.stringify(updatedJson), {
-                status: res.status,
-                headers: res.headers,
-              });
-            }
-          } catch {
-            /* non-JSON — skip tagging */
-          }
-          return res;
-        }
-
-        // Streaming (Fix #490 + #511): prepend omniModel tag into the first
-        // non-empty content chunk so it arrives BEFORE finish_reason:stop.
-        // SDKs close the connection on finish_reason, so anything sent after
-        // that marker is silently dropped.
-        if (!res.body) return res;
-        const tagContent = `<omniModel>${modelStr}</omniModel>`;
-        const encoder = new TextEncoder();
-        const decoder = new TextDecoder();
-        let tagInjected = false;
-
-        const transform = new TransformStream({
-          transform(chunk, controller) {
-            if (tagInjected) {
-              // Already injected — passthrough
-              controller.enqueue(chunk);
-              return;
-            }
-
-            const text = decoder.decode(chunk, { stream: true });
-
-            // Fix #721: Look for either non-empty content OR tool_calls in the
-            // SSE data. Tool-call-only responses have content:null, so we inject
-            // the tag when we see a finish_reason approaching, or on first content.
-            const contentMatch = RegExp(/"content":"([^"]+)/).exec(text);
-            if (contentMatch) {
-              // Inject tag at the beginning of the first content value
-              const injected = text.replace(
-                /"content":"([^"]+)/,
-                `"content":"${tagContent.replaceAll("\\", "\\\\").replaceAll('"', String.raw`\"`)}$1`
-              );
-              tagInjected = true;
-              controller.enqueue(encoder.encode(injected));
-              return;
-            }
-
-            // Fix #721: For tool-call-only streams, inject the tag when we see
-            // the finish_reason chunk (before it reaches the client SDK which
-            // would close the connection). This ensures the tag roundtrips
-            // through the conversation history even when there's no text content.
-            if (text.includes('"finish_reason"') && !text.includes('"finish_reason":null')) {
-              // Inject a content chunk with the tag just before this finish chunk
-              const tagChunk = `data: ${JSON.stringify({
-                choices: [
-                  {
-                    delta: { content: tagContent },
-                    index: 0,
-                    finish_reason: null,
-                  },
-                ],
-              })}\n\n`;
-              tagInjected = true;
-              controller.enqueue(encoder.encode(tagChunk));
-              controller.enqueue(chunk);
-              return;
-            }
-
-            // No content yet — passthrough
-            controller.enqueue(chunk);
-          },
-          flush(controller) {
-            // If stream ends without ever finding content (edge case),
-            // inject tag as a standalone chunk before the stream closes
-            if (!tagInjected) {
-              const tagChunk = `data: ${JSON.stringify({
-                choices: [
-                  {
-                    delta: { content: tagContent },
-                    index: 0,
-                    finish_reason: null,
-                  },
-                ],
-              })}\n\n`;
-              controller.enqueue(encoder.encode(tagChunk));
-            }
-          },
-        });
-
-        const transformedStream = res.body.pipeThrough(transform);
-        const headers = new Headers();
-        if (res.headers) {
-          try {
-            res.headers.forEach((v, k) => {
-              headers.set(k, v);
-            });
-          } catch {
-            try {
-              for (const [k, v] of res.headers as unknown as Iterable<[string, string]>) {
-                headers.set(k, v);
-              }
-            } catch {
-              try {
-                for (const [k, v] of Object.entries(res.headers)) {
-                  headers.set(k, v == null ? "" : String(v));
-                }
-              } catch {}
-            }
-          }
-        }
-        headers.set("X-OmniRoute-Model", modelStr);
-        return new Response(transformedStream, {
-          status: res.status,
-          headers,
-        });
-      }
-    : handleSingleModel;
+  // Context cache pinning is handled above via server-side session_model_history.
+  // No tag injection on response — use handleSingleModel directly.
   // ─────────────────────────────────────────────────────────────────────────
 
   // Use config cascade before dispatch so all strategies, pinned context routes,
@@ -2594,6 +3139,7 @@ export async function handleComboChat({
     ? resolveComboConfig(combo, settings)
     : { ...getDefaultComboConfig(), ...(combo.config || {}) };
   const comboTargetTimeoutMs = resolveComboTargetTimeoutMs(config, FETCH_TIMEOUT_MS);
+  const reasoningTokenBufferEnabled = config.reasoningTokenBufferEnabled !== false;
 
   // ── Per-model timeout wrapper ────────────────────────────────────────────
   // Combo target timeouts inherit FETCH_TIMEOUT_MS by default. Operators can
@@ -2611,7 +3157,7 @@ export async function handleComboChat({
     target?: SingleModelTarget
   ): Promise<Response> => {
     if (comboTargetTimeoutMs <= 0) {
-      return handleSingleModelWrapped(b, modelStr, target).catch((err) =>
+      return handleSingleModel(b, modelStr, target).catch((err) =>
         errorResponse(502, err?.message ?? "Upstream model error")
       );
     }
@@ -2642,9 +3188,18 @@ export async function handleComboChat({
       ...(target ?? {}),
       modelAbortSignal: timeoutController.signal,
     };
+    if (target?.modelAbortSignal) {
+      if (target.modelAbortSignal.aborted) {
+        timeoutController.abort(new Error("hedge-cancelled"));
+      } else {
+        target.modelAbortSignal.addEventListener("abort", () => {
+          timeoutController.abort(new Error("hedge-cancelled"));
+        });
+      }
+    }
     try {
       return await Promise.race([
-        handleSingleModelWrapped(b, modelStr, targetWithSignal).catch((err) => {
+        handleSingleModel(b, modelStr, targetWithSignal).catch((err) => {
           if (timedOut) {
             // Inner call rejected because we aborted it. The synthetic 524 from
             // timeoutPromise already wins the race; return an empty response so
@@ -2692,7 +3247,7 @@ export async function handleComboChat({
   let orderedTargets =
     strategy === "weighted"
       ? resolveWeightedTargets(combo, allCombos)?.orderedTargets || []
-      : resolveComboTargets(combo, allCombos);
+      : resolveComboTargets(combo, allCombos, clampComboDepth(config.maxComboDepth));
 
   orderedTargets = await applyRequestTagRouting(orderedTargets, body, log);
 
@@ -2794,6 +3349,8 @@ export async function handleComboChat({
         );
         // eligibleTargets intentionally unchanged — same fallback contract as tool-calling filter
       }
+
+      eligibleTargets = await expandAutoComboCandidatePool(eligibleTargets, combo);
     }
 
     const prompt = extractPromptForIntent(body);
@@ -2855,6 +3412,8 @@ export async function handleComboChat({
       relayOptions?.sessionId,
       resetWindowConfig
     );
+    // G2: Register candidates so chatCore can mark quotaSoftPenalty via setCandidateQuotaSoftPenalty.
+    _registerExecutionCandidates(candidates);
     if (candidates.length > 0) {
       let selectedProvider: string | null = null;
       let selectedModel: string | null = null;
@@ -2904,7 +3463,25 @@ export async function handleComboChat({
         selectionReason = `score=${selection.score.toFixed(3)}${selection.isExploration ? " (exploration)" : ""}`;
       }
 
-      const scoredTargets = scoreAutoTargets(eligibleTargets, candidates, taskType, weights);
+      // Complexity-aware routing (2026, opt-in): classify the request's
+      // difficulty and feed a tier hint into scoring so tierAffinity /
+      // specificityMatch favor candidates whose tier matches the request.
+      const autoManifestHint: RoutingHint | null =
+        config.complexityAwareRouting === true
+          ? buildComplexityRoutingHint(
+              eligibleTargets.filter((t) => t.kind === "model"),
+              body,
+              log
+            )
+          : null;
+
+      const scoredTargets = scoreAutoTargets(
+        eligibleTargets,
+        candidates,
+        taskType,
+        weights,
+        autoManifestHint
+      );
       const rankedTargets = scoredTargets.map((entry) => entry.target);
       const selectedTarget =
         scoredTargets.find((entry) => {
@@ -3080,6 +3657,15 @@ export async function handleComboChat({
   orderedTargets = orderTargetsByEvalScores(orderedTargets, config.evalRouting, log);
   orderedTargets = filterTargetsByRequestCompatibility(orderedTargets, body, log);
 
+  // Parallel pre-screen: check provider profiles and model availability for all targets
+  // Only runs for priority strategy where sequential checking causes latency
+  const preScreenMap =
+    strategy === "priority"
+      ? await preScreenTargets(orderedTargets, isModelAvailable).catch(
+          () => new Map<string, PreScreenResult>()
+        )
+      : new Map<string, PreScreenResult>();
+
   if (orderedTargets.length === 0) {
     return comboModelNotFoundResponse("Combo has no executable targets");
   }
@@ -3089,170 +3675,598 @@ export async function handleComboChat({
     config,
     body,
     resolveShadowTargets(combo, config, allCombos),
-    handleSingleModelWrapped,
+    handleSingleModel,
     isModelAvailable,
     strategy,
     log
   );
 
+  // G2: Collect execution keys registered by _registerExecutionCandidates above (auto strategy).
+  // We snapshot them now so cleanup can happen after the attempt loop finishes.
+  const _registeredExecutionKeys = orderedTargets.map((t) => t.executionKey).filter(Boolean);
+
   let globalAttempts = 0;
 
-  for (let setTry = 0; setTry <= maxSetRetries; setTry++) {
-    // #1731: Per-set-iteration set of providers whose quota is fully exhausted.
-    // Reset each retry so providers excluded in a previous attempt get another chance.
-    const exhaustedProviders = new Set<string>();
-    const transientRateLimitedProviders = new Set<string>();
-    if (setTry > 0) {
-      log.info("COMBO", `All targets failed — retrying set (${setTry}/${maxSetRetries})`);
-      await new Promise((resolve) => {
-        const timer = setTimeout(resolve, setRetryDelayMs);
-        signal?.addEventListener(
-          "abort",
-          () => {
-            clearTimeout(timer);
-            resolve(undefined);
-          },
-          { once: true }
-        );
-      });
-      if (signal?.aborted) {
-        log.info("COMBO", "Client disconnected during set retry delay — aborting");
-        return errorResponse(499, "Client disconnected");
-      }
-    }
-
-    let lastError: string | null = null;
-    let earliestRetryAfter: ComboRetryAfter | null = null;
-    let lastStatus: number | null = null;
-    const startTime = Date.now();
-    let fallbackCount = 0;
-    let recordedAttempts = 0;
-
-    for (let i = 0; i < orderedTargets.length; i++) {
-      const target = orderedTargets[i];
-      const modelStr = target.modelStr;
-      const provider = target.provider;
-      const profile = await getRuntimeProviderProfile(provider);
-      const allowRateLimitedConnection =
-        Boolean(provider && provider !== "unknown") && transientRateLimitedProviders.has(provider);
-      const targetForAttempt = allowRateLimitedConnection
-        ? { ...target, allowRateLimitedConnection: true }
-        : target;
-
-      // #1731: Skip targets from a provider that already signaled full quota exhaustion this request.
-      if (provider && exhaustedProviders.has(provider)) {
-        log.info(
-          "COMBO",
-          `Skipping ${modelStr} — provider ${provider} marked exhausted this request (#1731)`
-        );
-        if (i > 0) fallbackCount++;
-        continue;
-      }
-
-      // Pre-check: skip models where no credentials are available (excluded, rate-limited, or unavailable)
-      if (isModelAvailable) {
-        const available = await isModelAvailable(modelStr, targetForAttempt);
-        if (!available) {
-          log.info("COMBO", `Skipping ${modelStr} — no credentials available or model excluded`);
-          if (i > 0) fallbackCount++;
-          continue;
-        }
-      }
-
-      // Credential gate: skip targets with known-bad credentials (fail-fast)
-      const connectionId = target.connectionId as string | undefined;
-      if (connectionId) {
-        const gateResult = checkCredentialGate(connectionId, provider, modelStr);
-        if (gateResult.allowed === false) {
-          logCredentialSkip(log, modelStr, gateResult.reason || "Credential gate blocked");
-          if (i > 0) fallbackCount++;
-          continue;
-        }
-      }
-
-      // Retry loop for transient errors
-      for (let retry = 0; retry <= maxRetries; retry++) {
-        // Fix #1681: Bail out immediately if the client has disconnected
+  try {
+    for (let setTry = 0; setTry <= maxSetRetries; setTry++) {
+      // #1731: Per-set-iteration set of providers whose quota is fully exhausted.
+      // Reset each retry so providers excluded in a previous attempt get another chance.
+      const exhaustedProviders = new Set<string>();
+      const exhaustedConnections = new Set<string>();
+      const transientRateLimitedProviders = new Set<string>();
+      if (setTry > 0) {
+        log.info("COMBO", `All targets failed — retrying set (${setTry}/${maxSetRetries})`);
+        await new Promise((resolve) => {
+          const timer = setTimeout(resolve, setRetryDelayMs);
+          signal?.addEventListener(
+            "abort",
+            () => {
+              clearTimeout(timer);
+              resolve(undefined);
+            },
+            { once: true }
+          );
+        });
         if (signal?.aborted) {
-          log.info("COMBO", `Client disconnected — aborting combo loop before model ${modelStr}`);
+          log.info("COMBO", "Client disconnected during set retry delay — aborting");
           return errorResponse(499, "Client disconnected");
         }
-        globalAttempts++;
-        if (globalAttempts > MAX_GLOBAL_ATTEMPTS) {
-          log.warn(
-            "COMBO",
-            `Maximum combo attempts (${MAX_GLOBAL_ATTEMPTS}) exceeded across all targets and fallbacks. Terminating loop to prevent runaway background requests.`
-          );
-          return errorResponse(503, "Maximum combo retry limit reached");
+      }
+
+      let lastError: string | null = null;
+      let earliestRetryAfter: ComboRetryAfter | null = null;
+      let lastStatus: number | null = null;
+      const startTime = Date.now();
+      let fallbackCount = 0;
+      let recordedAttempts = 0;
+
+      let globalResolve: ((res: Response) => void) | null = null;
+      const globalPromise = new Promise<Response>((res) => {
+        globalResolve = res;
+      });
+      const runningTasks = new Set<Promise<void>>();
+      let anySuccess = false;
+      const abortControllers = new Map<number, AbortController>();
+      const zeroLatencyOptimizationsEnabled = config.zeroLatencyOptimizationsEnabled === true;
+
+      const executeTarget = async (
+        i: number
+      ): Promise<{ ok: boolean; response?: Response } | null> => {
+        const target = orderedTargets[i];
+        const modelStr = target.modelStr;
+        const rawModel = parseModel(modelStr).model || modelStr;
+        const provider = target.provider;
+
+        const cb = getCircuitBreaker(provider);
+        if (cb.getStatus().state === "OPEN") {
+          log.info("COMBO", `Skipping ${modelStr} — circuit breaker OPEN for ${provider}`);
+          if (i > 0) fallbackCount++;
+          return null;
         }
-        if (retry > 0) {
+
+        if (
+          resilienceSettings.providerCooldown.enabled &&
+          Boolean(provider && provider !== "unknown") &&
+          isProviderInCooldown(provider, target.connectionId ?? undefined, resilienceSettings)
+        ) {
+          log.info("COMBO", `Skipping ${modelStr} — provider ${provider} in global cooldown`);
+          if (i > 0) fallbackCount++;
+          return null;
+        }
+
+        // Use pre-screened profile if available, otherwise fetch on demand
+        const preScreenEntry = preScreenMap.get(target.executionKey);
+        const profile = preScreenEntry?.profile ?? (await getRuntimeProviderProfile(provider));
+
+        const allowRateLimitedConnection =
+          Boolean(provider && provider !== "unknown") &&
+          transientRateLimitedProviders.has(provider);
+        const targetForAttempt = allowRateLimitedConnection
+          ? {
+              ...target,
+              allowRateLimitedConnection: true,
+              modelAbortSignal: abortControllers.get(i)!.signal,
+            }
+          : { ...target, modelAbortSignal: abortControllers.get(i)!.signal };
+
+        // #1731v2: Skip targets whose provider:connection pair had a connection-level error.
+        if (provider && target.connectionId) {
+          const connKey = `${provider}:${target.connectionId}`;
+          if (exhaustedConnections.has(connKey)) {
+            log.info(
+              "COMBO",
+              `Skipping ${modelStr} — connection ${target.connectionId} for provider ${provider} had connection error (#1731v2)`
+            );
+            if (i > 0) fallbackCount++;
+            return null;
+          }
+        }
+        // #1731: Skip targets from a provider that already signaled full quota exhaustion this request.
+        if (provider && exhaustedProviders.has(provider)) {
           log.info(
             "COMBO",
-            `Retrying ${modelStr} in ${retryDelayMs}ms (attempt ${retry + 1}/${maxRetries + 1})`
+            `Skipping ${modelStr} — provider ${provider} marked exhausted this request (#1731)`
           );
-          await new Promise((resolve) => {
-            const timer = setTimeout(resolve, retryDelayMs);
-            signal?.addEventListener(
-              "abort",
-              () => {
-                clearTimeout(timer);
-                resolve(undefined);
-              },
-              { once: true }
+          if (i > 0) fallbackCount++;
+          return null;
+        }
+
+        // Pre-check: skip models locked by the resilience system (model-level lockout)
+        if (provider && rawModel && isModelLocked(provider, target.connectionId || "", rawModel)) {
+          log.info("COMBO", `Skipping ${modelStr} — model locked by resilience (cooldown active)`);
+          if (i > 0) fallbackCount++;
+          return null;
+        }
+
+        // Pre-screen may have already determined this target unavailable (e.g.
+        // circuit-breaker OPEN at resolve time).  Skip immediately in that case.
+        // For targets pre-screened as "available" we still call isModelAvailable
+        // below because connection cooldowns (rateLimitedUntil) can change
+        // mid-request after a same-provider failure — the pre-screen snapshot is
+        // stale by the time we reach the 2nd/3rd same-provider target.
+        const preCheckedAvailable = preScreenEntry?.available ?? null;
+        if (preCheckedAvailable === false) {
+          log.info("COMBO", `Skipping ${modelStr} — pre-screen marked unavailable`);
+          if (i > 0) fallbackCount++;
+          return null;
+        }
+        if (isModelAvailable) {
+          const available = await isModelAvailable(modelStr, targetForAttempt);
+          if (!available) {
+            log.debug?.(
+              "COMBO",
+              `Skipping ${modelStr} — no credentials available or model excluded`
             );
-          });
+            if (i > 0) fallbackCount++;
+            return null;
+          }
+        }
+
+        // Credential gate: skip targets with known-bad credentials (fail-fast)
+        const connectionId = target.connectionId as string | undefined;
+        if (connectionId) {
+          const gateResult = checkCredentialGate(connectionId, provider, modelStr);
+          if (gateResult.allowed === false) {
+            logCredentialSkip(log, modelStr, gateResult.reason || "Credential gate blocked");
+            if (i > 0) fallbackCount++;
+            return null;
+          }
+        }
+
+        // Retry loop for transient errors
+        for (let retry = 0; retry <= maxRetries; retry++) {
+          // Fix #1681: Bail out immediately if the client has disconnected
           if (signal?.aborted) {
-            log.info("COMBO", `Client disconnected during retry delay — aborting`);
-            return errorResponse(499, "Client disconnected");
+            log.info("COMBO", `Client disconnected — aborting combo loop before model ${modelStr}`);
+            return { ok: false, response: errorResponse(499, "Client disconnected") };
           }
-        }
-
-        log.info(
-          "COMBO",
-          `Trying model ${i + 1}/${orderedTargets.length}: ${modelStr}${retry > 0 ? ` (retry ${retry})` : ""}`
-        );
-        emit("combo.target.attempt", {
-          comboName: combo.name,
-          targetIndex: i,
-          provider,
-          model: modelStr,
-          timestamp: Date.now(),
-          strategy,
-        });
-
-        let attemptBody = body;
-
-        // Universal handoff: inject existing handoff if model changed
-        if (
-          universalHandoffConfig.enabled &&
-          relayOptions?.sessionId &&
-          !(body as Record<string, unknown>)?.[SKIP_UNIVERSAL_HANDOFF_FLAG]
-        ) {
-          const lastModel = getLastSessionModel(relayOptions.sessionId, combo.name);
-          if (lastModel && lastModel !== modelStr) {
-            const existingHandoff = getHandoff(relayOptions.sessionId, combo.name);
-            attemptBody = injectUniversalHandoffBody(
-              body,
-              lastModel,
-              modelStr,
-              `Model routing: ${lastModel} → ${modelStr}`,
-              existingHandoff
-            );
-          }
-        }
-        const result = await handleSingleModelWithTimeout(attemptBody, modelStr, {
-          ...targetForAttempt,
-          failoverBeforeRetry: config.failoverBeforeRetry,
-        });
-
-        // Success — validate response quality before returning
-        if (result.ok) {
-          const quality = await validateResponseQuality(result, clientRequestedStream, log);
-          if (!quality.valid) {
+          globalAttempts++;
+          if (globalAttempts > MAX_GLOBAL_ATTEMPTS) {
             log.warn(
               "COMBO",
-              `Model ${modelStr} returned 200 but failed quality check: ${quality.reason}`
+              `Maximum combo attempts (${MAX_GLOBAL_ATTEMPTS}) exceeded across all targets and fallbacks. Terminating loop to prevent runaway background requests.`
             );
+            return { ok: false, response: errorResponse(503, "Maximum combo retry limit reached") };
+          }
+
+          // Predictive TTFT Circuit Breaker (skip slow models)
+          if (
+            zeroLatencyOptimizationsEnabled &&
+            config.predictiveTtftMs &&
+            config.predictiveTtftMs > 0 &&
+            retry === 0
+          ) {
+            const cMetrics = getComboMetrics(combo.name);
+            if (cMetrics) {
+              const targetKey = orderedTargets[i].executionKey || modelStr;
+              const m = cMetrics.byTarget[targetKey] || cMetrics.byModel[modelStr];
+              if (shouldSkipForPredictedTtft(m, config.predictiveTtftMs)) {
+                log.warn(
+                  "COMBO",
+                  `Predictive TTFT Circuit Breaker: skipping ${modelStr} (avg ${m.avgLatencyMs}ms > max ${config.predictiveTtftMs}ms)`
+                );
+                return null;
+              }
+            }
+          }
+
+          if (retry > 0) {
+            log.info(
+              "COMBO",
+              `Retrying ${modelStr} in ${retryDelayMs}ms (attempt ${retry + 1}/${maxRetries + 1})`
+            );
+            await new Promise((resolve) => {
+              const timer = setTimeout(resolve, retryDelayMs);
+              signal?.addEventListener(
+                "abort",
+                () => {
+                  clearTimeout(timer);
+                  resolve(undefined);
+                },
+                { once: true }
+              );
+            });
+            if (signal?.aborted) {
+              log.info("COMBO", `Client disconnected during retry delay — aborting`);
+              return { ok: false, response: errorResponse(499, "Client disconnected") };
+            }
+          }
+
+          log.info(
+            "COMBO",
+            `Trying model ${i + 1}/${orderedTargets.length}: ${modelStr}${retry > 0 ? ` (retry ${retry})` : ""}`
+          );
+          emit("combo.target.attempt", {
+            comboName: combo.name,
+            targetIndex: i,
+            provider,
+            model: modelStr,
+            timestamp: Date.now(),
+            strategy,
+          });
+
+          // Deep clone the body to ensure context preservation and prevent mutations
+          // from affecting other targets in the combo
+          let attemptBody = JSON.parse(JSON.stringify(body));
+
+          // Proactive Context Compression for fallbacks (Zero-Latency optimization)
+          if (
+            zeroLatencyOptimizationsEnabled &&
+            i > 0 &&
+            config.fallbackCompressionMode &&
+            config.fallbackCompressionMode !== "off"
+          ) {
+            const { estimateTokens } = await import("./contextManager.ts");
+            const estimatedTokens = estimateTokens(JSON.stringify(attemptBody));
+            if (estimatedTokens > (config.fallbackCompressionThreshold ?? 1000)) {
+              const { applyCompression } = await import("./compression/strategySelector.ts");
+              const compressionResult = applyCompression(
+                attemptBody,
+                config.fallbackCompressionMode as CompressionMode,
+                { model: modelStr }
+              );
+              if (compressionResult.compressed) {
+                log.info(
+                  "COMBO",
+                  `Proactive fallback compression applied (${config.fallbackCompressionMode}): ${estimatedTokens} -> ${compressionResult.stats?.compressedTokens} tokens`
+                );
+                attemptBody = compressionResult.body;
+              }
+            }
+          }
+
+          // Universal handoff: inject existing handoff if model changed
+          if (
+            universalHandoffConfig.enabled &&
+            relayOptions?.sessionId &&
+            !(body as Record<string, unknown>)?.[SKIP_UNIVERSAL_HANDOFF_FLAG]
+          ) {
+            const lastModel = getLastSessionModel(relayOptions.sessionId, combo.name);
+            if (lastModel && lastModel !== modelStr) {
+              const existingHandoff = getHandoff(relayOptions.sessionId, combo.name);
+              attemptBody = injectUniversalHandoffBody(
+                attemptBody, // Use the cloned body to maintain isolation
+                lastModel,
+                modelStr,
+                `Model routing: ${lastModel} → ${modelStr}`,
+                existingHandoff
+              );
+            }
+          }
+
+          // Issue #3587: Reasoning models can spend the whole output budget on
+          // reasoning. Only add headroom when the complete buffer fits inside the
+          // model's known output cap; otherwise preserve the client's explicit limit.
+          {
+            const bodyRecord = attemptBody as Record<string, unknown>;
+            const currentMaxTokens = toPositiveInteger(bodyRecord.max_tokens);
+            const bufferedMaxTokens = resolveReasoningBufferedMaxTokens(
+              modelStr,
+              bodyRecord.max_tokens,
+              { enabled: reasoningTokenBufferEnabled }
+            );
+            if (currentMaxTokens !== null && bufferedMaxTokens !== null) {
+              bodyRecord.max_tokens = bufferedMaxTokens;
+              if (bufferedMaxTokens !== currentMaxTokens) {
+                log.info(
+                  "COMBO",
+                  `Reasoning model ${modelStr}: adjusted max_tokens ${currentMaxTokens} -> ${bufferedMaxTokens}`
+                );
+              }
+            }
+          }
+          const result = await handleSingleModelWithTimeout(attemptBody, modelStr, {
+            ...targetForAttempt,
+            failoverBeforeRetry: config.failoverBeforeRetry,
+          });
+
+          // Success — validate response quality before returning
+          if (result.ok) {
+            const quality = await validateResponseQuality(result, clientRequestedStream, log);
+            if (!quality.valid) {
+              log.warn(
+                "COMBO",
+                `Model ${modelStr} returned 200 but failed quality check: ${quality.reason}`
+              );
+              recordComboRequest(combo.name, modelStr, {
+                success: false,
+                latencyMs: Date.now() - startTime,
+                fallbackCount,
+                strategy,
+                target: toRecordedTarget(target),
+              });
+              recordedAttempts++;
+              // Fix #1707: Set terminal state so the fallback doesn't emit
+              // misleading ALL_ACCOUNTS_INACTIVE when the real issue is quality.
+              lastError = `Upstream response failed quality validation: ${quality.reason}`;
+              if (!lastStatus) lastStatus = 502;
+              if (i > 0) fallbackCount++;
+              if (provider && rawModel) {
+                const mlSettings = resolveModelLockoutSettings(settings);
+                if (mlSettings.enabled && mlSettings.errorCodes.includes(502)) {
+                  recordModelLockoutFailure(
+                    provider,
+                    target.connectionId || "",
+                    rawModel,
+                    "quality_failure",
+                    502,
+                    mlSettings.baseCooldownMs,
+                    profile,
+                    {
+                      exactCooldownMs: mlSettings.useExponentialBackoff
+                        ? 0
+                        : mlSettings.baseCooldownMs,
+                    }
+                  );
+                }
+              }
+              emit("combo.target.failed", {
+                comboName: combo.name,
+                targetIndex: i,
+                provider,
+                model: modelStr,
+                error: `Quality: ${quality.reason}`,
+                latencyMs: Date.now() - startTime,
+              });
+              return null;
+            }
+
+            // Success decay: a healthy response walks the model's lockout failure
+            // count back down (and eventually clears an expired lockout entirely).
+            if (provider && rawModel) {
+              const dcResult = decayModelFailureCount(
+                provider,
+                target.connectionId || "",
+                rawModel
+              );
+              if (dcResult.cleared) {
+                log.info("COMBO", `Model ${modelStr} fully recovered — lockout cleared`);
+              } else if (dcResult.newFailureCount > 0) {
+                log.debug(
+                  "COMBO",
+                  `Model ${modelStr} decayed to failureCount=${dcResult.newFailureCount}`
+                );
+              }
+            }
+
+            const latencyMs = Date.now() - startTime;
+            emit("combo.target.succeeded", {
+              comboName: combo.name,
+              targetIndex: i,
+              provider,
+              model: modelStr,
+              latencyMs,
+            });
+            log.info(
+              "COMBO",
+              `Model ${modelStr} succeeded (${latencyMs}ms, ${fallbackCount} fallbacks)`
+            );
+            recordComboRequest(combo.name, modelStr, {
+              success: true,
+              latencyMs,
+              fallbackCount,
+              strategy,
+              target: toRecordedTarget(target),
+            });
+            recordedAttempts++;
+
+            // Reset cooldown on success
+            if (provider && provider !== "unknown") {
+              recordProviderSuccess(provider, target.connectionId ?? undefined);
+            }
+            // Webhook fan-out: best-effort, never blocks the response stream.
+            notifyWebhookEvent("request.completed", {
+              combo: combo.name,
+              provider,
+              model: modelStr,
+              latencyMs,
+              fallbackCount,
+            });
+
+            // Context cache pinning: record model usage for session-based pinning
+            // (independent of universal handoff — always fires when context_cache_protection is on)
+            // #3825: write under the SAME effectiveSessionId used by the read site so a
+            // sessionless conversation re-pins to this model on its next turn.
+            if (
+              combo.context_cache_protection &&
+              effectiveSessionId &&
+              !(body as Record<string, unknown>)?.[SKIP_UNIVERSAL_HANDOFF_FLAG]
+            ) {
+              recordSessionModelUsage(
+                effectiveSessionId,
+                combo.name,
+                modelStr,
+                provider,
+                target.connectionId ?? undefined
+              );
+            }
+
+            // Universal handoff: record model usage for session
+            if (
+              universalHandoffConfig.enabled &&
+              relayOptions?.sessionId &&
+              !(body as Record<string, unknown>)?.[SKIP_UNIVERSAL_HANDOFF_FLAG]
+            ) {
+              const prevModel = getLastSessionModel(relayOptions.sessionId, combo.name);
+              recordSessionModelUsage(
+                relayOptions.sessionId,
+                combo.name,
+                modelStr,
+                provider,
+                target.connectionId ?? undefined
+              );
+              if (prevModel && prevModel !== modelStr) {
+                const handoffSourceMessages =
+                  Array.isArray(body?.messages) && body.messages.length > 0
+                    ? body.messages
+                    : Array.isArray(body?.input)
+                      ? body.input
+                      : [];
+
+                maybeGenerateUniversalHandoff({
+                  sessionId: relayOptions.sessionId,
+                  comboName: combo.name,
+                  messages: handoffSourceMessages as MessageLike[],
+                  prevModel,
+                  currModel: modelStr,
+                  universalConfig: universalHandoffConfig,
+                  handleSingleModel: handleSingleModelWithTimeout,
+                });
+              }
+
+              recordSessionModelUsage(
+                relayOptions.sessionId,
+                combo.name,
+                modelStr,
+                provider,
+                target.connectionId ?? undefined
+              );
+            }
+            // Context-relay intentionally splits responsibilities:
+            // combo.ts decides whether a successful turn should generate a handoff,
+            // while chat.ts injects the handoff after the real connectionId is resolved.
+            if (
+              strategy === "context-relay" &&
+              relayOptions?.sessionId &&
+              relayConfig &&
+              relayConfig.handoffProviders.includes(provider) &&
+              provider === "codex"
+            ) {
+              const connectionId = getSessionConnection(relayOptions.sessionId);
+              if (connectionId) {
+                const quotaInfo = await fetchCodexQuota(connectionId).catch(() => null);
+                if (quotaInfo) {
+                  const resetCandidates = [
+                    quotaInfo.windows?.session?.resetAt,
+                    quotaInfo.windows?.weekly?.resetAt,
+                    quotaInfo.resetAt,
+                  ]
+                    .filter(
+                      (value): value is string => typeof value === "string" && value.length > 0
+                    )
+                    .sort((a, b) => a.localeCompare(b));
+                  const handoffSourceMessages =
+                    Array.isArray(body?.messages) && body.messages.length > 0
+                      ? body.messages
+                      : Array.isArray(body?.input)
+                        ? body.input
+                        : [];
+
+                  maybeGenerateHandoff({
+                    sessionId: relayOptions.sessionId,
+                    comboName: combo.name,
+                    connectionId,
+                    percentUsed: quotaInfo.percentUsed,
+                    messages: handoffSourceMessages,
+                    model: modelStr,
+                    expiresAt: resetCandidates[0] || null,
+                    config: relayConfig,
+                    handleSingleModel: handleSingleModelWithTimeout,
+                  });
+                }
+              }
+            }
+
+            // Record last known good provider (LKGP) for this combo/model (#919)
+            if (provider) {
+              const connId = target.connectionId || undefined;
+              void (async () => {
+                try {
+                  const { setLKGP } = await import("../../src/lib/localDb");
+                  await Promise.all([
+                    setLKGP(combo.name, target.executionKey, provider, connId),
+                    setLKGP(combo.name, combo.id || combo.name, provider, connId),
+                  ]);
+                } catch (err) {
+                  log.warn(
+                    "COMBO",
+                    "Failed to record Last Known Good Provider. This is non-fatal.",
+                    {
+                      err,
+                    }
+                  );
+                }
+              })();
+            }
+
+            return { ok: true, response: quality.clonedResponse ?? result };
+          }
+
+          // Extract error info from response
+          let errorText = result.statusText || "";
+          let errorBody: ComboErrorBody = null;
+          let retryAfter: ComboRetryAfter | null = null;
+          try {
+            const cloned = result.clone();
+            try {
+              const text = await cloned.text();
+              if (text) {
+                errorText = text.substring(0, 500);
+                errorBody = JSON.parse(text);
+                const parsedError = errorBody?.error;
+                errorText =
+                  (typeof parsedError === "object" && parsedError?.message) ||
+                  (typeof parsedError === "string" ? parsedError : null) ||
+                  errorBody?.message ||
+                  errorText;
+                retryAfter = errorBody?.retryAfter || null;
+              }
+            } catch {
+              /* Clone parse failed */
+            }
+          } catch {
+            /* Clone failed */
+          }
+
+          // Track earliest retryAfter
+          if (
+            retryAfter &&
+            (!earliestRetryAfter || new Date(retryAfter) < new Date(earliestRetryAfter))
+          ) {
+            earliestRetryAfter = retryAfter;
+          }
+
+          // Normalize error text
+          if (typeof errorText !== "string") {
+            try {
+              errorText = JSON.stringify(errorText);
+            } catch {
+              errorText = String(errorText);
+            }
+          }
+
+          const isStreamReadinessFailure =
+            (result.status === 502 || result.status === 504) &&
+            isStreamReadinessFailureErrorBody(errorBody);
+
+          // FIX 5: a local per-API-key token-limit 429 must not cool shared accounts.
+          const isTokenLimitBreach =
+            result.status === 429 && isTokenLimitBreachErrorBody(errorBody);
+
+          // Fix #1681: Status 499 means client disconnected — stop combo loop immediately.
+          // There is no point trying fallback models when nobody is listening.
+          if (result.status === 499) {
+            log.info("COMBO", `Client disconnected (499) during ${modelStr} — stopping combo loop`);
             recordComboRequest(combo.name, modelStr, {
               success: false,
               latencyMs: Date.now() - startTime,
@@ -3261,206 +4275,190 @@ export async function handleComboChat({
               target: toRecordedTarget(target),
             });
             recordedAttempts++;
-            // Fix #1707: Set terminal state so the fallback doesn't emit
-            // misleading ALL_ACCOUNTS_INACTIVE when the real issue is quality.
-            lastError = `Upstream response failed quality validation: ${quality.reason}`;
-            if (!lastStatus) lastStatus = 502;
-            if (i > 0) fallbackCount++;
-            emit("combo.target.failed", {
-              comboName: combo.name,
-              targetIndex: i,
-              provider,
-              model: modelStr,
-              error: `Quality: ${quality.reason}`,
-              latencyMs: Date.now() - startTime,
-            });
-            break; // move to next model
+            // executeTarget must return the {ok,response} contract — a raw Response
+            // here makes the speculative loop's res.ok/res.response checks both miss,
+            // so the combo would wrongly fall through to the next model after a 499.
+            return { ok: false, response: result };
           }
-          const latencyMs = Date.now() - startTime;
-          emit("combo.target.succeeded", {
-            comboName: combo.name,
-            targetIndex: i,
+
+          // Combo fallback is target-level orchestration: a non-ok target response is
+          // treated as local to that target and the combo continues to the next target.
+          // Error classification is retained only for retry/cooldown pacing; it must
+          // not decide whether fallback happens, including for generic 400 responses.
+          const rawError = errorBody?.error;
+          const structuredError =
+            rawError && typeof rawError === "object"
+              ? {
+                  // Upstream JSON may carry a numeric `code`/`type` (e.g. {"code":40001}).
+                  // Coerce to string if present instead of discarding, so downstream string
+                  // ops (.toLowerCase, .startsWith) can run safely without type crashes.
+                  code:
+                    (rawError as Record<string, unknown>).code !== undefined &&
+                    (rawError as Record<string, unknown>).code !== null
+                      ? String((rawError as Record<string, unknown>).code)
+                      : undefined,
+                  type:
+                    (rawError as Record<string, unknown>).type !== undefined &&
+                    (rawError as Record<string, unknown>).type !== null
+                      ? String((rawError as Record<string, unknown>).type)
+                      : undefined,
+                }
+              : undefined;
+          const fallbackResult = checkFallbackError(
+            result.status,
+            errorText,
+            0,
+            null,
             provider,
-            model: modelStr,
-            latencyMs,
-          });
-          log.info(
-            "COMBO",
-            `Model ${modelStr} succeeded (${latencyMs}ms, ${fallbackCount} fallbacks)`
+            result.headers,
+            profile,
+            structuredError
           );
-          recordComboRequest(combo.name, modelStr, {
-            success: true,
-            latencyMs,
-            fallbackCount,
-            strategy,
-            target: toRecordedTarget(target),
-          });
-          recordedAttempts++;
-          // Webhook fan-out: best-effort, never blocks the response stream.
-          notifyWebhookEvent("request.completed", {
-            combo: combo.name,
-            provider,
-            model: modelStr,
-            latencyMs,
-            fallbackCount,
-          });
+          const { cooldownMs } = fallbackResult;
 
-          // Universal handoff: record model usage for session
-          if (
-            universalHandoffConfig.enabled &&
-            relayOptions?.sessionId &&
-            !(body as Record<string, unknown>)?.[SKIP_UNIVERSAL_HANDOFF_FLAG]
+          // #1731: If the entire provider quota is exhausted, mark it so subsequent
+          // same-provider targets are skipped immediately. API-key 429s still use
+          // the short resilience cooldown, but explicit quota text should stop the
+          // combo from trying another target for the same provider in this request.
+          const providerExhausted =
+            Boolean(provider && provider !== "unknown") &&
+            (isProviderExhaustedReason(fallbackResult) ||
+              classifyErrorText(errorText) === RateLimitReason.QUOTA_EXHAUSTED);
+          if (providerExhausted) {
+            exhaustedProviders.add(provider);
+            log.info(
+              "COMBO",
+              `Provider ${provider} quota exhausted — marking for skip on remaining targets (#1731)`
+            );
+          } else if (
+            result.status === 429 &&
+            !isTokenLimitBreach &&
+            provider &&
+            provider !== "unknown"
           ) {
-            const prevModel = getLastSessionModel(relayOptions.sessionId, combo.name);
-            recordSessionModelUsage(
-              relayOptions.sessionId,
-              combo.name,
-              modelStr,
-              provider,
-              target.connectionId ?? undefined
-            );
-            if (prevModel && prevModel !== modelStr) {
-              const handoffSourceMessages =
-                Array.isArray(body?.messages) && body.messages.length > 0
-                  ? body.messages
-                  : Array.isArray(body?.input)
-                    ? body.input
-                    : [];
-
-              maybeGenerateUniversalHandoff({
-                sessionId: relayOptions.sessionId,
-                comboName: combo.name,
-                messages: handoffSourceMessages as MessageLike[],
-                prevModel,
-                currModel: modelStr,
-                universalConfig: universalHandoffConfig,
-                handleSingleModel: handleSingleModelWithTimeout,
-              });
-            }
-
-            recordSessionModelUsage(
-              relayOptions.sessionId,
-              combo.name,
-              modelStr,
-              provider,
-              target.connectionId ?? undefined
-            );
+            transientRateLimitedProviders.add(provider);
           }
-          // Context-relay intentionally splits responsibilities:
-          // combo.ts decides whether a successful turn should generate a handoff,
-          // while chat.ts injects the handoff after the real connectionId is resolved.
+          // #1731: Connection-level errors (502/503/504) suggest the provider itself is having
+          // issues (e.g. upstream unreachable, proxy error). Skip remaining same-provider
+          // targets in this request to avoid hammering a known-bad connection.
           if (
-            strategy === "context-relay" &&
-            relayOptions?.sessionId &&
-            relayConfig &&
-            relayConfig.handoffProviders.includes(provider) &&
-            provider === "codex"
+            !providerExhausted &&
+            provider &&
+            provider !== "unknown" &&
+            [408, 500, 502, 503, 504, 524].includes(result.status) &&
+            !isProviderCircuitOpenResult(result, errorText)
           ) {
-            const connectionId = getSessionConnection(relayOptions.sessionId);
-            if (connectionId) {
-              const quotaInfo = await fetchCodexQuota(connectionId).catch(() => null);
-              if (quotaInfo) {
-                const resetCandidates = [
-                  quotaInfo.windows?.session?.resetAt,
-                  quotaInfo.windows?.weekly?.resetAt,
-                  quotaInfo.resetAt,
-                ]
-                  .filter((value): value is string => typeof value === "string" && value.length > 0)
-                  .sort((a, b) => a.localeCompare(b));
-                const handoffSourceMessages =
-                  Array.isArray(body?.messages) && body.messages.length > 0
-                    ? body.messages
-                    : Array.isArray(body?.input)
-                      ? body.input
-                      : [];
+            const connId = target.connectionId as string | undefined;
+            if (connId) {
+              exhaustedConnections.add(`${provider}:${connId}`);
+              log.info(
+                "COMBO",
+                `Provider ${provider} connection ${connId} error (${result.status}) — marking for skip on remaining targets (#1731v2)`
+              );
+            } else {
+              exhaustedProviders.add(provider);
+              log.info(
+                "COMBO",
+                `Provider ${provider} connection error (${result.status}) — marking for skip on remaining targets (#1731)`
+              );
+            }
+          }
 
-                maybeGenerateHandoff({
-                  sessionId: relayOptions.sessionId,
-                  comboName: combo.name,
-                  connectionId,
-                  percentUsed: quotaInfo.percentUsed,
-                  messages: handoffSourceMessages,
-                  model: modelStr,
-                  expiresAt: resetCandidates[0] || null,
-                  config: relayConfig,
-                  handleSingleModel: handleSingleModelWithTimeout,
-                });
+          // #2101: Prevent infinite fallback loops with 400 Bad Request errors that indicate
+          // request-body-specific issues (context overflow, malformed request, model access denied).
+          // These errors are unlikely to be resolved by trying different target models since
+          // the same problematic request body would be sent to all targets.
+          if (
+            result.status === 400 &&
+            fallbackResult.shouldFallback &&
+            (fallbackResult.reason === RateLimitReason.MODEL_CAPACITY ||
+              errorText.toLowerCase().includes("context") ||
+              errorText.toLowerCase().includes("prompt") ||
+              errorText.toLowerCase().includes("token") ||
+              errorText.toLowerCase().includes("malformed") ||
+              errorText.toLowerCase().includes("invalid") ||
+              errorText.toLowerCase().includes("bad request"))
+          ) {
+            log.warn(
+              "COMBO",
+              `400 Bad Request with body-specific error detected on ${modelStr} — skipping fallback to other targets to prevent infinite loop`
+            );
+            // Record the failure and break to avoid trying other targets with the same bad request
+            recordComboRequest(combo.name, modelStr, {
+              success: false,
+              latencyMs: Date.now() - startTime,
+              fallbackCount,
+              strategy,
+              target: toRecordedTarget(target),
+            });
+            recordedAttempts++;
+            lastError = errorText || String(result.status);
+            if (!lastStatus) lastStatus = result.status;
+            if (i > 0) fallbackCount++;
+            log.warn("COMBO", `Model ${modelStr} failed with body-specific error, stopping combo`);
+            break; // Break out of the target loop to avoid trying other models
+          }
+
+          // Trigger shared provider circuit breaker for 5xx errors and connection failures.
+          // If the next target in the combo is on the same provider, don't mark the provider
+          // as failed — different models on the same provider may still succeed.
+          // G-02: when fallbackResult.skipProviderBreaker is set (embedded service supervisor
+          // outage signalled via X-Omni-Fallback-Hint: connection_cooldown) apply connection
+          // cooldown only — do NOT trip the whole-provider breaker.
+          const nextTarget = orderedTargets[i + 1];
+          const sameProviderNext =
+            typeof nextTarget?.provider === "string" && nextTarget.provider === provider;
+          if (
+            shouldRecordProviderBreakerFailure({
+              isStreamReadinessFailure,
+              status: result.status,
+              sameProviderNext,
+              skipProviderBreaker: fallbackResult.skipProviderBreaker,
+            })
+          ) {
+            recordProviderFailure(provider, log, target.connectionId, profile);
+          }
+
+          // Check if this is a transient error worth retrying on same model.
+          // A token-limit 429 is terminal for the client — never retry it.
+          const isTransient =
+            !isStreamReadinessFailure &&
+            !isTokenLimitBreach &&
+            [408, 429, 500, 502, 503, 504].includes(result.status);
+          if (retry < maxRetries && isTransient && !providerExhausted) {
+            // Record model lockout immediately on the first transient failure —
+            // once the model is cooling down, retrying it would waste an upstream
+            // call and extend the cooldown via exponential backoff.
+            let lockoutRecorded = false;
+            if (provider && rawModel && retry === 0) {
+              const mlSettings = resolveModelLockoutSettings(settings);
+              if (mlSettings.enabled && mlSettings.errorCodes.includes(result.status)) {
+                recordModelLockoutFailure(
+                  provider,
+                  target.connectionId || "",
+                  rawModel,
+                  classifyLockoutReason(result.status),
+                  result.status,
+                  mlSettings.baseCooldownMs,
+                  profile,
+                  {
+                    exactCooldownMs: mlSettings.useExponentialBackoff
+                      ? 0
+                      : mlSettings.baseCooldownMs,
+                  }
+                );
+                lockoutRecorded = true;
               }
             }
-          }
-
-          // Record last known good provider (LKGP) for this combo/model (#919)
-          if (provider) {
-            const connId = target.connectionId || undefined;
-            void (async () => {
-              try {
-                const { setLKGP } = await import("../../src/lib/localDb");
-                await Promise.all([
-                  setLKGP(combo.name, target.executionKey, provider, connId),
-                  setLKGP(combo.name, combo.id || combo.name, provider, connId),
-                ]);
-              } catch (err) {
-                log.warn("COMBO", "Failed to record Last Known Good Provider. This is non-fatal.", {
-                  err,
-                });
-              }
-            })();
-          }
-
-          return quality.clonedResponse ?? result;
-        }
-
-        // Extract error info from response
-        let errorText = result.statusText || "";
-        let errorBody: ComboErrorBody = null;
-        let retryAfter: ComboRetryAfter | null = null;
-        try {
-          const cloned = result.clone();
-          try {
-            const text = await cloned.text();
-            if (text) {
-              errorText = text.substring(0, 500);
-              errorBody = JSON.parse(text);
-              const parsedError = errorBody?.error;
-              errorText =
-                (typeof parsedError === "object" && parsedError?.message) ||
-                (typeof parsedError === "string" ? parsedError : null) ||
-                errorBody?.message ||
-                errorText;
-              retryAfter = errorBody?.retryAfter || null;
+            if (lockoutRecorded) {
+              log.info("COMBO", `Skipping retry for ${modelStr} — model lockout active`);
+              if (i > 0) fallbackCount++;
+              return null;
             }
-          } catch {
-            /* Clone parse failed */
+            continue; // Retry same model (transient error, no lockout recorded)
           }
-        } catch {
-          /* Clone failed */
-        }
 
-        // Track earliest retryAfter
-        if (
-          retryAfter &&
-          (!earliestRetryAfter || new Date(retryAfter) < new Date(earliestRetryAfter))
-        ) {
-          earliestRetryAfter = retryAfter;
-        }
-
-        // Normalize error text
-        if (typeof errorText !== "string") {
-          try {
-            errorText = JSON.stringify(errorText);
-          } catch {
-            errorText = String(errorText);
-          }
-        }
-
-        const isStreamReadinessFailure =
-          (result.status === 502 || result.status === 504) &&
-          isStreamReadinessFailureErrorBody(errorBody);
-
-        // Fix #1681: Status 499 means client disconnected — stop combo loop immediately.
-        // There is no point trying fallback models when nobody is listening.
-        if (result.status === 499) {
-          log.info("COMBO", `Client disconnected (499) during ${modelStr} — stopping combo loop`);
+          // Done retrying this model
           recordComboRequest(combo.name, modelStr, {
             success: false,
             latencyMs: Date.now() - startTime,
@@ -3469,163 +4467,173 @@ export async function handleComboChat({
             target: toRecordedTarget(target),
           });
           recordedAttempts++;
-          return result;
-        }
+          lastError = errorText || String(result.status);
+          if (!lastStatus) lastStatus = result.status;
+          if (i > 0) fallbackCount++;
+          // Wire combo failures into the resilience dashboard (model-level lockout)
+          // alongside the provider-level cooldown below — they govern different scopes.
+          if (provider && rawModel) {
+            const mlSettings = resolveModelLockoutSettings(settings);
+            if (mlSettings.enabled && mlSettings.errorCodes.includes(result.status)) {
+              recordModelLockoutFailure(
+                provider,
+                target.connectionId || "",
+                rawModel,
+                classifyLockoutReason(result.status),
+                result.status,
+                mlSettings.baseCooldownMs,
+                profile,
+                {
+                  exactCooldownMs: mlSettings.useExponentialBackoff ? 0 : mlSettings.baseCooldownMs,
+                }
+              );
+            }
+          }
+          log.warn("COMBO", `Model ${modelStr} failed, trying next`, { status: result.status });
 
-        // Combo fallback is target-level orchestration: a non-ok target response is
-        // treated as local to that target and the combo continues to the next target.
-        // Error classification is retained only for retry/cooldown pacing; it must
-        // not decide whether fallback happens, including for generic 400 responses.
-        const rawError = errorBody?.error;
-        const structuredError =
-          rawError && typeof rawError === "object"
-            ? {
-                code: (rawError as Record<string, unknown>).code as string,
-                type: (rawError as Record<string, unknown>).type as string,
+          if (resilienceSettings.providerCooldown.enabled && provider && provider !== "unknown") {
+            recordProviderCooldown(provider, target.connectionId ?? undefined, resilienceSettings);
+          }
+
+          const fallbackWaitMs =
+            fallbackDelayMs > 0 && cooldownMs > 0 && cooldownMs <= MAX_FALLBACK_WAIT_MS
+              ? Math.min(cooldownMs, fallbackDelayMs)
+              : 0;
+          if ([502, 503, 504].includes(result.status) && fallbackWaitMs > 0) {
+            log.debug?.("COMBO", `Waiting ${fallbackWaitMs}ms before fallback to next model`);
+            await new Promise((resolve) => {
+              const timer = setTimeout(resolve, fallbackWaitMs);
+              signal?.addEventListener(
+                "abort",
+                () => {
+                  clearTimeout(timer);
+                  resolve(undefined);
+                },
+                { once: true }
+              );
+            });
+            if (signal?.aborted) {
+              log.info("COMBO", `Client disconnected during fallback wait — aborting`);
+              return { ok: false, response: errorResponse(499, "Client disconnected") };
+            }
+          }
+
+          return null;
+        }
+        return null;
+      };
+
+      for (let i = 0; i < orderedTargets.length; i++) {
+        if (anySuccess) break;
+
+        const abortController = new AbortController();
+        abortControllers.set(i, abortController);
+        const onClientAbort = () => abortController.abort();
+        signal?.addEventListener("abort", onClientAbort);
+
+        const task = (async () => {
+          try {
+            const res = await executeTarget(i);
+            if (res && !anySuccess) {
+              if (res.ok) {
+                anySuccess = true;
+                globalResolve!(res.response!);
+                for (const [idx, ac] of abortControllers.entries()) {
+                  if (idx !== i) ac.abort();
+                }
+              } else if (res.response) {
+                // Fatal error, abort combo
+                anySuccess = true;
+                globalResolve!(res.response);
               }
-            : undefined;
-        const fallbackResult = checkFallbackError(
-          result.status,
-          errorText,
-          0,
-          null,
-          provider,
-          result.headers,
-          profile,
-          structuredError
-        );
-        const { cooldownMs } = fallbackResult;
+            }
+          } finally {
+            signal?.removeEventListener("abort", onClientAbort);
+          }
+        })().catch((err) => {
+          const logError = log.error ?? log.warn;
+          logError("COMBO", `Speculative task error for target ${i}`, err);
+        });
 
-        // #1731: If the entire provider quota is exhausted, mark it so subsequent
-        // same-provider targets are skipped immediately. API-key 429s still use
-        // the short resilience cooldown, but explicit quota text should stop the
-        // combo from trying another target for the same provider in this request.
-        const providerExhausted =
-          Boolean(provider && provider !== "unknown") &&
-          (isProviderExhaustedReason(fallbackResult) ||
-            classifyErrorText(errorText) === RateLimitReason.QUOTA_EXHAUSTED);
-        if (providerExhausted) {
-          exhaustedProviders.add(provider);
-          log.info(
-            "COMBO",
-            `Provider ${provider} quota exhausted — marking for skip on remaining targets (#1731)`
-          );
-        } else if (result.status === 429 && provider && provider !== "unknown") {
-          transientRateLimitedProviders.add(provider);
+        runningTasks.add(task);
+        task.finally(() => runningTasks.delete(task));
+
+        if (zeroLatencyOptimizationsEnabled && config.hedging && i + 1 < orderedTargets.length) {
+          const hedgeDelay = resolveDelayMs(config.hedgeDelayMs, 500);
+          let timeoutResolve: () => void;
+          const timeoutPromise = new Promise<void>((r) => {
+            timeoutResolve = r;
+            setTimeout(r, hedgeDelay);
+          });
+          await Promise.race([task, globalPromise, timeoutPromise]);
+        } else {
+          await Promise.race([task, globalPromise]);
         }
+      }
 
-        // Trigger shared provider circuit breaker for 5xx errors and connection failures.
-        // If the next target in the combo is on the same provider, don't mark the provider
-        // as failed — different models on the same provider may still succeed.
-        // G-02: when fallbackResult.skipProviderBreaker is set (embedded service supervisor
-        // outage signalled via X-Omni-Fallback-Hint: connection_cooldown) apply connection
-        // cooldown only — do NOT trip the whole-provider breaker.
-        const nextTarget = orderedTargets[i + 1];
-        const sameProviderNext =
-          typeof nextTarget?.provider === "string" && nextTarget.provider === provider;
-        if (
-          !isStreamReadinessFailure &&
-          isProviderFailureCode(result.status) &&
-          !sameProviderNext &&
-          !fallbackResult.skipProviderBreaker
-        ) {
-          recordProviderFailure(provider, log, target.connectionId, profile);
-        }
+      if (!anySuccess && runningTasks.size > 0) {
+        await Promise.race([globalPromise, Promise.all([...runningTasks])]);
+      }
 
-        // Check if this is a transient error worth retrying on same model
-        const isTransient =
-          !isStreamReadinessFailure && [408, 429, 500, 502, 503, 504].includes(result.status);
-        if (retry < maxRetries && isTransient && !providerExhausted) {
-          continue; // Retry same model
-        }
+      if (anySuccess) {
+        return await globalPromise;
+      }
 
-        // Done retrying this model
-        recordComboRequest(combo.name, modelStr, {
+      // All models failed in this set try
+      const latencyMs = Date.now() - startTime;
+      if (recordedAttempts === 0) {
+        recordComboRequest(combo.name, null, {
           success: false,
-          latencyMs: Date.now() - startTime,
+          latencyMs,
           fallbackCount,
           strategy,
-          target: toRecordedTarget(target),
         });
-        recordedAttempts++;
-        lastError = errorText || String(result.status);
-        if (!lastStatus) lastStatus = result.status;
-        if (i > 0) fallbackCount++;
-        log.warn("COMBO", `Model ${modelStr} failed, trying next`, { status: result.status });
-
-        const fallbackWaitMs =
-          fallbackDelayMs > 0 && cooldownMs > 0 && cooldownMs <= MAX_FALLBACK_WAIT_MS
-            ? Math.min(cooldownMs, fallbackDelayMs)
-            : 0;
-        if ([502, 503, 504].includes(result.status) && fallbackWaitMs > 0) {
-          log.info("COMBO", `Waiting ${fallbackWaitMs}ms before fallback to next model`);
-          await new Promise((resolve) => {
-            const timer = setTimeout(resolve, fallbackWaitMs);
-            signal?.addEventListener(
-              "abort",
-              () => {
-                clearTimeout(timer);
-                resolve(undefined);
-              },
-              { once: true }
-            );
-          });
-          if (signal?.aborted) {
-            log.info("COMBO", `Client disconnected during fallback wait — aborting`);
-            return errorResponse(499, "Client disconnected");
-          }
-        }
-
-        break; // Move to next model
       }
-    }
 
-    // All models failed in this set try
-    const latencyMs = Date.now() - startTime;
-    if (recordedAttempts === 0) {
-      recordComboRequest(combo.name, null, { success: false, latencyMs, fallbackCount, strategy });
-    }
+      // Retry the entire set if more attempts remain
+      if (setTry < maxSetRetries) continue;
 
-    // Retry the entire set if more attempts remain
-    if (setTry < maxSetRetries) continue;
+      // All set retries exhausted — return the final error
+      if (!lastStatus) {
+        notifyWebhookEvent("request.failed", {
+          combo: combo.name,
+          reason: "ALL_ACCOUNTS_INACTIVE",
+          latencyMs,
+          fallbackCount,
+        });
+        return new Response(
+          JSON.stringify({
+            error: {
+              message: "Service temporarily unavailable: all upstream accounts are inactive",
+              type: "service_unavailable",
+              code: "ALL_ACCOUNTS_INACTIVE",
+            },
+          }),
+          { status: 503, headers: { "Content-Type": "application/json" } }
+        );
+      }
 
-    // All set retries exhausted — return the final error
-    if (!lastStatus) {
-      notifyWebhookEvent("request.failed", {
-        combo: combo.name,
-        reason: "ALL_ACCOUNTS_INACTIVE",
-        latencyMs,
-        fallbackCount,
+      const status = lastStatus;
+      const msg = lastError || "All combo models unavailable";
+
+      if (earliestRetryAfter) {
+        const retryHuman = formatRetryAfter(toRetryAfterDisplayValue(earliestRetryAfter));
+        log.warn("COMBO", `All models failed | ${msg} (${retryHuman})`);
+        return unavailableResponse(status, msg, earliestRetryAfter, retryHuman);
+      }
+
+      log.warn("COMBO", `All models failed | ${msg}`);
+      return new Response(JSON.stringify({ error: { message: msg } }), {
+        status,
+        headers: { "Content-Type": "application/json" },
       });
-      return new Response(
-        JSON.stringify({
-          error: {
-            message: "Service temporarily unavailable: all upstream accounts are inactive",
-            type: "service_unavailable",
-            code: "ALL_ACCOUNTS_INACTIVE",
-          },
-        }),
-        { status: 503, headers: { "Content-Type": "application/json" } }
-      );
     }
 
-    const status = lastStatus;
-    const msg = lastError || "All combo models unavailable";
-
-    if (earliestRetryAfter) {
-      const retryHuman = formatRetryAfter(toRetryAfterDisplayValue(earliestRetryAfter));
-      log.warn("COMBO", `All models failed | ${msg} (${retryHuman})`);
-      return unavailableResponse(status, msg, earliestRetryAfter, retryHuman);
-    }
-
-    log.warn("COMBO", `All models failed | ${msg}`);
-    return new Response(JSON.stringify({ error: { message: msg } }), {
-      status,
-      headers: { "Content-Type": "application/json" },
-    });
+    return errorResponse(503, "Combo routing completed without an upstream response");
+  } finally {
+    // G2: Clean up candidate registry to prevent unbounded memory growth.
+    _unregisterExecutionCandidates(_registeredExecutionKeys);
   }
-
-  return errorResponse(503, "Combo routing completed without an upstream response");
 }
 
 /**
@@ -3657,8 +4665,17 @@ async function handleRoundRobinCombo({
   const maxRetries = config.maxRetries ?? 1;
   const retryDelayMs = resolveDelayMs(config.retryDelayMs, 2000);
   const fallbackDelayMs = resolveDelayMs(config.fallbackDelayMs, 0);
+  const reasoningTokenBufferEnabled = config.reasoningTokenBufferEnabled !== false;
 
-  const orderedTargets = resolveComboTargets(combo, allCombos);
+  const resilienceSettings: ResilienceSettings = settings
+    ? resolveResilienceSettings(settings)
+    : resolveResilienceSettings(null);
+
+  const orderedTargets = resolveComboTargets(
+    combo,
+    allCombos,
+    clampComboDepth(config.maxComboDepth)
+  );
   const tagFilteredTargets = await applyRequestTagRouting(orderedTargets, body, log);
   const evalRankedTargets = orderTargetsByEvalScores(tagFilteredTargets, config.evalRouting, log);
   const filteredTargets = filterTargetsByRequestCompatibility(
@@ -3685,6 +4702,10 @@ async function handleRoundRobinCombo({
 
   // Get and increment atomic counter
   const counter = rrCounters.get(combo.name) || 0;
+  if (!rrCounters.has(combo.name) && rrCounters.size >= MAX_RR_COUNTERS) {
+    const oldest = rrCounters.keys().next().value;
+    if (oldest !== undefined) rrCounters.delete(oldest);
+  }
   rrCounters.set(combo.name, counter + 1);
   const startIndex = counter % modelCount;
 
@@ -3701,6 +4722,7 @@ async function handleRoundRobinCombo({
   // When a target returns a quota-exhausted 429, remaining targets from the same
   // provider are skipped to avoid the cascade through N same-provider targets.
   const exhaustedProviders = new Set<string>();
+  const exhaustedConnections = new Set<string>();
   const transientRateLimitedProviders = new Set<string>();
 
   // Try each model starting from the round-robin target
@@ -3721,14 +4743,39 @@ async function handleRoundRobinCombo({
     if (isModelAvailable) {
       const available = await isModelAvailable(modelStr, targetForAttempt);
       if (!available) {
-        log.info("COMBO-RR", `Skipping ${modelStr} — no credentials available or model excluded`);
+        log.debug?.(
+          "COMBO-RR",
+          `Skipping ${modelStr} — no credentials available or model excluded`
+        );
         if (offset > 0) fallbackCount++;
         continue;
       }
     }
 
+    if (
+      resilienceSettings.providerCooldown.enabled &&
+      Boolean(provider && provider !== "unknown") &&
+      isProviderInCooldown(provider, target.connectionId as string | undefined, resilienceSettings)
+    ) {
+      log.info("COMBO-RR", `Skipping ${modelStr} — provider ${provider} in global cooldown`);
+      if (offset > 0) fallbackCount++;
+      continue;
+    }
+
     // #1731: Skip targets from a provider that already signaled full quota exhaustion
     // this request.
+    // #1731v2: Skip targets whose provider:connection pair had a connection-level error.
+    if (provider && target.connectionId) {
+      const connKey = `${provider}:${target.connectionId}`;
+      if (exhaustedConnections.has(connKey)) {
+        log.info(
+          "COMBO-RR",
+          `Skipping ${modelStr} — connection ${target.connectionId} for provider ${provider} had connection error (#1731v2)`
+        );
+        if (offset > 0) fallbackCount++;
+        continue;
+      }
+    }
     if (provider && exhaustedProviders.has(provider)) {
       log.info(
         "COMBO-RR",
@@ -3782,7 +4829,35 @@ async function handleRoundRobinCombo({
           `[RR #${counter}] → ${modelStr}${offset > 0 ? ` (fallback +${offset})` : ""}${retry > 0 ? ` (retry ${retry})` : ""}`
         );
 
-        const result = await handleSingleModel(body, modelStr, {
+        // Issue #3587: Reasoning models can spend the whole output budget on
+        // reasoning. Apply any safe buffer to a per-attempt copy so round-robin
+        // retries never compound across models.
+        let attemptBody = body;
+        {
+          const bodyRecord = body as Record<string, unknown>;
+          const currentMaxTokens = toPositiveInteger(bodyRecord.max_tokens);
+          const bufferedMaxTokens = resolveReasoningBufferedMaxTokens(
+            modelStr,
+            bodyRecord.max_tokens,
+            { enabled: reasoningTokenBufferEnabled }
+          );
+          if (
+            currentMaxTokens !== null &&
+            bufferedMaxTokens !== null &&
+            bufferedMaxTokens !== currentMaxTokens
+          ) {
+            attemptBody = {
+              ...bodyRecord,
+              max_tokens: bufferedMaxTokens,
+            } as typeof body;
+            log.info(
+              "COMBO-RR",
+              `Reasoning model ${modelStr}: adjusted max_tokens ${currentMaxTokens} -> ${bufferedMaxTokens}`
+            );
+          }
+        }
+
+        const result = await handleSingleModel(attemptBody, modelStr, {
           ...targetForAttempt,
           failoverBeforeRetry: config.failoverBeforeRetry,
         });
@@ -3823,6 +4898,11 @@ async function handleRoundRobinCombo({
             target: toRecordedTarget(target),
           });
           recordedAttempts++;
+
+          if (provider && provider !== "unknown") {
+            recordProviderSuccess(provider, target.connectionId ?? undefined);
+          }
+
           if (provider) {
             const connId = target.connectionId || undefined;
             void (async () => {
@@ -3843,7 +4923,12 @@ async function handleRoundRobinCombo({
               }
             })();
           }
-          return result;
+          // validateResponseQuality peeks streaming bodies via getReader(),
+          // which locks `result.body`. It returns a clonedResponse that replays
+          // the buffered prefix and forwards the rest. Returning the original
+          // (now-locked) `result` makes Next.js throw "ReadableStream is locked"
+          // → 500. Mirror the priority strategy and return the replay response.
+          return quality.clonedResponse ?? result;
         }
 
         // Extract error info
@@ -3907,6 +4992,9 @@ async function handleRoundRobinCombo({
           (result.status === 502 || result.status === 504) &&
           isStreamReadinessFailureErrorBody(errorBody);
 
+        // FIX 5: a local per-API-key token-limit 429 must not cool shared accounts.
+        const isTokenLimitBreach = result.status === 429 && isTokenLimitBreachErrorBody(errorBody);
+
         // Round-robin uses the same target-level fallback rule as other combo
         // strategies: non-ok target responses fall through to the next target.
         // Classification stays here only to support cooldown/semaphore pacing,
@@ -3915,8 +5003,19 @@ async function handleRoundRobinCombo({
         const structuredError =
           rawError && typeof rawError === "object"
             ? {
-                code: (rawError as Record<string, unknown>).code as string,
-                type: (rawError as Record<string, unknown>).type as string,
+                // Upstream JSON may carry a numeric `code`/`type` (e.g. {"code":40001}).
+                // Coerce to string if present instead of discarding, so downstream string
+                // ops (.toLowerCase, .startsWith) can run safely without type crashes.
+                code:
+                  (rawError as Record<string, unknown>).code !== undefined &&
+                  (rawError as Record<string, unknown>).code !== null
+                    ? String((rawError as Record<string, unknown>).code)
+                    : undefined,
+                type:
+                  (rawError as Record<string, unknown>).type !== undefined &&
+                  (rawError as Record<string, unknown>).type !== null
+                    ? String((rawError as Record<string, unknown>).type)
+                    : undefined,
               }
             : undefined;
         const fallbackResult = checkFallbackError(
@@ -3948,14 +5047,47 @@ async function handleRoundRobinCombo({
             isAllAccountsRateLimited);
         if (providerExhausted) {
           exhaustedProviders.add(provider);
-          log.info("COMBO-RR", `Provider ${provider} quota exhausted — marking for skip (#1731)`);
-        } else if (result.status === 429 && provider && provider !== "unknown") {
+          log.debug?.(
+            "COMBO-RR",
+            `Provider ${provider} quota exhausted — marking for skip (#1731)`
+          );
+        } else if (
+          result.status === 429 &&
+          !isTokenLimitBreach &&
+          provider &&
+          provider !== "unknown"
+        ) {
           transientRateLimitedProviders.add(provider);
+        }
+
+        // #1731v2: Connection-level errors (502/503/504) — skip remaining same-connection targets
+        if (
+          !providerExhausted &&
+          provider &&
+          provider !== "unknown" &&
+          [408, 500, 502, 503, 504, 524].includes(result.status) &&
+          !isProviderCircuitOpenResult(result, errorText)
+        ) {
+          const connId = target.connectionId as string | undefined;
+          if (connId) {
+            exhaustedConnections.add(`${provider}:${connId}`);
+            log.info(
+              "COMBO-RR",
+              `Provider ${provider} connection ${connId} error (${result.status}) — marking for skip (#1731v2)`
+            );
+          } else {
+            exhaustedProviders.add(provider);
+            log.info(
+              "COMBO-RR",
+              `Provider ${provider} connection error (${result.status}) — marking for skip (#1731)`
+            );
+          }
         }
 
         // Transient errors → mark in semaphore so round-robin stops stampeding this target.
         if (
           !isStreamReadinessFailure &&
+          !isTokenLimitBreach &&
           TRANSIENT_FOR_SEMAPHORE.includes(result.status) &&
           cooldownMs > 0
         ) {
@@ -3970,9 +5102,12 @@ async function handleRoundRobinCombo({
           );
         }
 
-        // Transient error → retry same model
+        // Transient error → retry same model.
+        // A token-limit 429 is terminal for the client — never retry it.
         const isTransient =
-          !isStreamReadinessFailure && [408, 429, 500, 502, 503, 504].includes(result.status);
+          !isStreamReadinessFailure &&
+          !isTokenLimitBreach &&
+          [408, 429, 500, 502, 503, 504].includes(result.status);
         if (retry < maxRetries && isTransient && !providerExhausted) {
           continue;
         }
@@ -3991,12 +5126,16 @@ async function handleRoundRobinCombo({
         if (offset > 0) fallbackCount++;
         log.warn("COMBO-RR", `${modelStr} failed, trying next model`, { status: result.status });
 
+        if (resilienceSettings.providerCooldown.enabled && provider && provider !== "unknown") {
+          recordProviderCooldown(provider, target.connectionId ?? undefined, resilienceSettings);
+        }
+
         const fallbackWaitMs =
           fallbackDelayMs > 0 && cooldownMs > 0 && cooldownMs <= MAX_FALLBACK_WAIT_MS
             ? Math.min(cooldownMs, fallbackDelayMs)
             : 0;
         if ([502, 503, 504].includes(result.status) && fallbackWaitMs > 0) {
-          log.info("COMBO-RR", `Waiting ${fallbackWaitMs}ms before fallback to next model`);
+          log.debug?.("COMBO-RR", `Waiting ${fallbackWaitMs}ms before fallback to next model`);
           await new Promise((resolve) => {
             const timer = setTimeout(resolve, fallbackWaitMs);
             signal?.addEventListener(

@@ -19,6 +19,14 @@ const GPT_5_5_PRICING = {
   cache_creation: 5.0,
 };
 
+const CLAUDE_FABLE_5_PRICING = {
+  input: 15.0,
+  output: 75.0,
+  cached: 7.5,
+  reasoning: 112.5,
+  cache_creation: 15.0,
+};
+
 const CLAUDE_OPUS_4_PRICING = {
   input: 15.0,
   output: 75.0,
@@ -129,6 +137,20 @@ export const DEFAULT_PRICING = {
 
   // Claude Code (cc)
   cc: {
+    "claude-fable-5": {
+      input: 5.0,
+      output: 25.0,
+      cached: 2.5,
+      reasoning: 37.5,
+      cache_creation: 5.0,
+    },
+    "claude-opus-4-8": {
+      input: 5.0,
+      output: 25.0,
+      cached: 2.5,
+      reasoning: 25.0,
+      cache_creation: 5.0,
+    },
     "claude-opus-4-7": {
       input: 5.0,
       output: 25.0,
@@ -710,6 +732,10 @@ export const DEFAULT_PRICING = {
     // Common model IDs (without dates) used across providers
     // Intentional duplicates of dot-notation variants (e.g. claude-opus-4.6)
     // to cover hyphen-notation IDs (claude-opus-4-6) used by some clients
+    "claude-fable-5": CLAUDE_FABLE_5_PRICING,
+    "claude-opus-4.8": CLAUDE_OPUS_4_PRICING,
+    "claude-opus-4-8": CLAUDE_OPUS_4_PRICING,
+    "claude-opus-4-7": CLAUDE_OPUS_4_PRICING,
     "claude-opus-4-6": CLAUDE_OPUS_46_PRICING,
     "claude-sonnet-4-6": CLAUDE_SONNET_46_PRICING,
     "claude-opus-4-5-20251101": CLAUDE_OPUS_4_PRICING,
@@ -1272,6 +1298,13 @@ export const DEFAULT_PRICING = {
   },
 
   kiro: {
+    "claude-fable-5": {
+      input: 15.0,
+      output: 75.0,
+      cached: 7.5,
+      reasoning: 112.5,
+      cache_creation: 15.0,
+    },
     "claude-sonnet-4.5": {
       input: 3.0,
       output: 15.0,
@@ -1294,6 +1327,20 @@ export const DEFAULT_PRICING = {
       reasoning: 15.0,
       cache_creation: 3.0,
     },
+    "claude-opus-4.8": {
+      input: 15.0,
+      output: 75.0,
+      cached: 7.5,
+      reasoning: 75.0,
+      cache_creation: 15.0,
+    },
+    "claude-opus-4.7": {
+      input: 15.0,
+      output: 75.0,
+      cached: 7.5,
+      reasoning: 75.0,
+      cache_creation: 15.0,
+    },
     "claude-opus-4.6": {
       input: 15.0,
       output: 75.0,
@@ -1301,7 +1348,22 @@ export const DEFAULT_PRICING = {
       reasoning: 75.0,
       cache_creation: 15.0,
     },
+    "claude-sonnet-4.6": {
+      input: 3.0,
+      output: 15.0,
+      cached: 1.5,
+      reasoning: 15.0,
+      cache_creation: 3.0,
+    },
     "deepseek-v3.2": {
+      input: 0.27,
+      output: 1.1,
+      cached: 0.07,
+      reasoning: 1.1,
+      cache_creation: 0.27,
+    },
+    // Registry exposes this model as "deepseek-3.2" (no "v") — keep both keys priced.
+    "deepseek-3.2": {
       input: 0.27,
       output: 1.1,
       cached: 0.07,
@@ -1315,6 +1377,21 @@ export const DEFAULT_PRICING = {
       reasoning: 1.6,
       cache_creation: 0.4,
     },
+    // MiniMax M2.5 — cheaper than M2.1, reasoning + tools
+    "minimax-m2.5": {
+      input: 0.27,
+      output: 0.95,
+      cached: 0.135,
+      reasoning: 1.425,
+      cache_creation: 0.27,
+    },
+    "glm-5": {
+      input: 1.0,
+      output: 3.2,
+      cached: 0.2,
+      reasoning: 4.8,
+      cache_creation: 1.0,
+    },
     "qwen3-coder-next": {
       input: 2.0,
       output: 8.0,
@@ -1324,6 +1401,14 @@ export const DEFAULT_PRICING = {
     },
     // Kiro "Auto" model — routes to best available
     auto: {
+      input: 3.0,
+      output: 15.0,
+      cached: 1.5,
+      reasoning: 15.0,
+      cache_creation: 3.0,
+    },
+    // Registry exposes the Auto model as id "auto-kiro" — keep both keys priced.
+    "auto-kiro": {
       input: 3.0,
       output: 15.0,
       cached: 1.5,

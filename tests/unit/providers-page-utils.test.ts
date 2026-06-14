@@ -80,6 +80,108 @@ test("configured-only filter keeps only providers with saved connections", () =>
   assert.equal(providerPageUtils.filterConfiguredProviderEntries(entries, false).length, 3);
 });
 
+test("configured-only filter keeps no-auth providers even without a saved connection (#3290)", () => {
+  const entries = [
+    {
+      providerId: "claude",
+      provider: { id: "claude" },
+      stats: { total: 0 },
+      displayAuthType: "oauth",
+      toggleAuthType: "oauth",
+    },
+    {
+      providerId: "opencode",
+      provider: { id: "opencode" },
+      stats: { total: 0 },
+      displayAuthType: "no-auth",
+      toggleAuthType: "no-auth",
+    },
+    {
+      providerId: "duckduckgo-web",
+      provider: { id: "duckduckgo-web" },
+      stats: { total: 0 },
+      displayAuthType: "no-auth",
+      toggleAuthType: "no-auth",
+    },
+  ];
+
+  // no-auth providers never create a DB connection row (total === 0) but are
+  // always usable and appear in /v1/models — they must survive the filter.
+  const visible = providerPageUtils.filterConfiguredProviderEntries(entries, true);
+  assert.deepEqual(
+    visible.map((entry) => entry.providerId),
+    ["duckduckgo-web", "opencode"]
+  );
+});
+
+test("compact provider entries dedupe providers and move no-auth entries to the end", () => {
+  const openRouterFromFree = {
+    providerId: "openrouter",
+    provider: { id: "openrouter", name: "OpenRouter" },
+    stats: { total: 1 },
+    displayAuthType: "apikey",
+    toggleAuthType: "apikey",
+  };
+  const openRouterFromAggregator = {
+    providerId: "openrouter",
+    provider: { id: "openrouter", name: "OpenRouter" },
+    stats: { total: 1 },
+    displayAuthType: "apikey",
+    toggleAuthType: "apikey",
+  };
+  const claude = {
+    providerId: "claude",
+    provider: { id: "claude", name: "Claude" },
+    stats: { total: 1 },
+    displayAuthType: "oauth",
+    toggleAuthType: "oauth",
+  };
+  const opencode = {
+    providerId: "opencode",
+    provider: { id: "opencode", name: "OpenCode" },
+    stats: { total: 0 },
+    displayAuthType: "no-auth",
+    toggleAuthType: "no-auth",
+  };
+
+  const visible = providerPageUtils.buildCompactProviderEntries(
+    [[opencode, openRouterFromFree], [claude, openRouterFromAggregator], [opencode]],
+    { deferNoAuth: true }
+  );
+
+  assert.deepEqual(
+    visible.map((entry) => entry.providerId),
+    ["openrouter", "claude", "opencode"]
+  );
+  assert.equal(visible.filter((entry) => entry.providerId === "openrouter").length, 1);
+});
+
+test("compact provider entries prefer non-no-auth duplicates over deferred no-auth entries", () => {
+  const noAuthEntry = {
+    providerId: "opencode",
+    provider: { id: "opencode", name: "OpenCode" },
+    stats: { total: 0 },
+    displayAuthType: "no-auth",
+    toggleAuthType: "no-auth",
+  };
+  const configuredEntry = {
+    providerId: "opencode",
+    provider: { id: "opencode", name: "OpenCode" },
+    stats: { total: 1 },
+    displayAuthType: "apikey",
+    toggleAuthType: "apikey",
+  };
+
+  const visible = providerPageUtils.buildCompactProviderEntries(
+    [[noAuthEntry], [configuredEntry]],
+    { deferNoAuth: true }
+  );
+
+  assert.equal(visible.length, 1);
+  assert.equal(visible[0].providerId, "opencode");
+  assert.equal(visible[0].displayAuthType, "apikey");
+});
+
 test("search filter matches provider name and id case-insensitively", () => {
   const entries = [
     {
@@ -193,10 +295,27 @@ test("configured-only preference parser only enables explicit true values", () =
   assert.equal(providerPageStorage.parseConfiguredOnlyPreference(undefined), false);
 });
 
+test("provider display mode preference parser accepts only known modes", () => {
+  assert.equal(providerPageStorage.parseProviderDisplayModePreference("all"), "all");
+  assert.equal(providerPageStorage.parseProviderDisplayModePreference("configured"), "configured");
+  assert.equal(providerPageStorage.parseProviderDisplayModePreference("compact"), "compact");
+  assert.equal(providerPageStorage.parseProviderDisplayModePreference("true"), null);
+  assert.equal(providerPageStorage.parseProviderDisplayModePreference(null), null);
+});
+
 test("configured-only filter is ignored before the first provider is connected", () => {
   assert.equal(providerPageUtils.shouldApplyConfiguredOnlyFilter(true, 0), false);
   assert.equal(providerPageUtils.shouldApplyConfiguredOnlyFilter(false, 0), false);
   assert.equal(providerPageUtils.shouldApplyConfiguredOnlyFilter(true, 1), true);
+});
+
+test("compact display mode always uses the configured provider set", () => {
+  assert.equal(providerPageUtils.shouldFilterProviderEntriesForDisplayMode("all", 0), false);
+  assert.equal(providerPageUtils.shouldFilterProviderEntriesForDisplayMode("all", 2), false);
+  assert.equal(providerPageUtils.shouldFilterProviderEntriesForDisplayMode("configured", 0), false);
+  assert.equal(providerPageUtils.shouldFilterProviderEntriesForDisplayMode("configured", 2), true);
+  assert.equal(providerPageUtils.shouldFilterProviderEntriesForDisplayMode("compact", 0), true);
+  assert.equal(providerPageUtils.shouldFilterProviderEntriesForDisplayMode("compact", 2), true);
 });
 
 test("first-provider hint is shown only when no providers are connected and search is empty", () => {
@@ -231,6 +350,37 @@ test("configured-only preference storage round-trips correctly", () => {
   assert.equal(providerPageStorage.readConfiguredOnlyPreference(mockStorage), false);
 });
 
+test("provider display mode storage round-trips and migrates the old configured-only key", () => {
+  const storage = new Map();
+  const mockStorage = {
+    getItem(key) {
+      return storage.has(key) ? storage.get(key) : null;
+    },
+    setItem(key, value) {
+      storage.set(key, value);
+    },
+    removeItem(key) {
+      storage.delete(key);
+    },
+  };
+
+  assert.equal(providerPageStorage.readProviderDisplayModePreference(mockStorage), "all");
+
+  storage.set(providerPageStorage.SHOW_CONFIGURED_ONLY_STORAGE_KEY, "true");
+  assert.equal(providerPageStorage.readProviderDisplayModePreference(mockStorage), "configured");
+  assert.equal(storage.get(providerPageStorage.PROVIDER_DISPLAY_MODE_STORAGE_KEY), "configured");
+  assert.equal(storage.has(providerPageStorage.SHOW_CONFIGURED_ONLY_STORAGE_KEY), false);
+
+  providerPageStorage.writeProviderDisplayModePreference("compact", mockStorage);
+  assert.equal(storage.get(providerPageStorage.PROVIDER_DISPLAY_MODE_STORAGE_KEY), "compact");
+  assert.equal(storage.has(providerPageStorage.SHOW_CONFIGURED_ONLY_STORAGE_KEY), false);
+  assert.equal(providerPageStorage.readProviderDisplayModePreference(mockStorage), "compact");
+
+  providerPageStorage.writeProviderDisplayModePreference("all", mockStorage);
+  assert.equal(storage.has(providerPageStorage.PROVIDER_DISPLAY_MODE_STORAGE_KEY), false);
+  assert.equal(providerPageStorage.readProviderDisplayModePreference(mockStorage), "all");
+});
+
 test("static catalog entries resolve local, search, audio, web-cookie and upstream providers", () => {
   const freeProvider = providerPageUtils.resolveDashboardProviderInfo("amazon-q");
   const localProvider = providerPageUtils.resolveDashboardProviderInfo("sdwebui");
@@ -249,7 +399,6 @@ test("static catalog entries resolve local, search, audio, web-cookie and upstre
   const clarifaiProvider = providerPageUtils.resolveDashboardProviderInfo("clarifai");
   const empowerProvider = providerPageUtils.resolveDashboardProviderInfo("empower");
   const nousProvider = providerPageUtils.resolveDashboardProviderInfo("nous-research");
-  const petalsProvider = providerPageUtils.resolveDashboardProviderInfo("petals");
   const poeProvider = providerPageUtils.resolveDashboardProviderInfo("poe");
   const azureOpenAiProvider = providerPageUtils.resolveDashboardProviderInfo("azure-openai");
   const azureAiProvider = providerPageUtils.resolveDashboardProviderInfo("azure-ai");
@@ -303,8 +452,6 @@ test("static catalog entries resolve local, search, audio, web-cookie and upstre
   assert.equal(empowerProvider?.name, providers.APIKEY_PROVIDERS.empower.name);
   assert.equal(nousProvider?.category, "apikey");
   assert.equal(nousProvider?.name, providers.APIKEY_PROVIDERS["nous-research"].name);
-  assert.equal(petalsProvider?.category, "apikey");
-  assert.equal(petalsProvider?.name, providers.APIKEY_PROVIDERS.petals.name);
   assert.equal(poeProvider?.category, "apikey");
   assert.equal(poeProvider?.name, providers.APIKEY_PROVIDERS.poe.name);
   assert.equal(azureOpenAiProvider?.category, "apikey");
@@ -363,7 +510,6 @@ test("managed provider connection ids include supported static categories and ex
   assert.equal(providerCatalog.isManagedProviderConnectionId("clarifai"), true);
   assert.equal(providerCatalog.isManagedProviderConnectionId("empower"), true);
   assert.equal(providerCatalog.isManagedProviderConnectionId("nous-research"), true);
-  assert.equal(providerCatalog.isManagedProviderConnectionId("petals"), true);
   assert.equal(providerCatalog.isManagedProviderConnectionId("poe"), true);
   assert.equal(providerCatalog.isManagedProviderConnectionId("azure-openai"), true);
   assert.equal(providerCatalog.isManagedProviderConnectionId("azure-ai"), true);
@@ -424,7 +570,6 @@ test("grok-web taxonomy stays web-cookie only and does not leak into api-key ent
   assert.equal("clarifai" in providers.APIKEY_PROVIDERS, true);
   assert.equal("empower" in providers.APIKEY_PROVIDERS, true);
   assert.equal("nous-research" in providers.APIKEY_PROVIDERS, true);
-  assert.equal("petals" in providers.APIKEY_PROVIDERS, true);
   assert.equal("poe" in providers.APIKEY_PROVIDERS, true);
   assert.equal("azure-ai" in providers.APIKEY_PROVIDERS, true);
   assert.equal("bedrock" in providers.APIKEY_PROVIDERS, true);
@@ -510,10 +655,6 @@ test("grok-web taxonomy stays web-cookie only and does not leak into api-key ent
   );
   assert.equal(
     apiKeyEntries.some((entry) => entry.providerId === "nous-research"),
-    true
-  );
-  assert.equal(
-    apiKeyEntries.some((entry) => entry.providerId === "petals"),
     true
   );
   assert.equal(

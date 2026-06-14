@@ -55,6 +55,8 @@ export async function GET(request: Request) {
               maxMessagesForSummary: 30,
               maxComboDepth: 3,
               trackMetrics: true,
+              reasoningTokenBufferEnabled: true,
+              zeroLatencyOptimizationsEnabled: false,
             },
       providerOverrides,
     });

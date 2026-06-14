@@ -78,6 +78,47 @@ test("retry-succeeds: undici fails once then succeeds, native fallback is NOT in
   assert.equal(await res.text(), "undici-retry-success");
 });
 
+test("#2463 — undici error with a NON-STRING code must not crash on errCode.startsWith (NVIDIA NIM)", async () => {
+  // Real-world: the undici v8 dispatcher can throw an error whose `.code` is a
+  // number (system errno) rather than a string. The fallback guard checked only
+  // `errCode !== undefined` before calling `errCode.startsWith("UND_ERR")`, so a
+  // numeric code crashed with `errCode.startsWith is not a function` — surfaced to
+  // the user as `s.startsWith is not a function` and, crucially, the crash fired
+  // BEFORE the native fallback could run, so NVIDIA NIM failed "all the time".
+  //
+  // The message here contains "UND_ERR" (a retryable dispatcher error) but the
+  // `||` short-circuit only reaches the `msg.includes("UND_ERR")` clause if the
+  // earlier `errCode.startsWith(...)` clause does not throw first.
+  let undiciCalls = 0;
+  let nativeCalls = 0;
+
+  const mockUndici = async (_input: RequestInfo | URL, _init?: RequestInit): Promise<Response> => {
+    undiciCalls++;
+    const err = new Error("UND_ERR_SOCKET: other side closed") as Error & { code?: unknown };
+    (err as { code?: unknown }).code = -111; // numeric code (e.g. ECONNREFUSED errno)
+    throw err;
+  };
+
+  const mockNative = async (_input: RequestInfo | URL, _init?: RequestInit): Promise<Response> => {
+    nativeCalls++;
+    return new Response("native-fallback-body", { status: 200 });
+  };
+
+  const res = await proxyFetch(
+    "https://integrate.api.nvidia.com/v1/chat/completions",
+    { method: "POST" },
+    { undiciFetch: mockUndici, nativeFetch: mockNative }
+  );
+
+  assert.equal(undiciCalls, 2, "undici must retry once before falling back (UND_ERR is retryable)");
+  assert.equal(
+    nativeCalls,
+    1,
+    "native fallback must fire — a numeric error code must not crash on errCode.startsWith"
+  );
+  assert.equal(await res.text(), "native-fallback-body");
+});
+
 test("does not retry when body is a ReadableStream (non-replayable body)", async () => {
   let undiciCalls = 0;
   let nativeCalls = 0;

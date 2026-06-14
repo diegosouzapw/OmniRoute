@@ -10,6 +10,7 @@ export const gamificationTools = [
   {
     name: "gamification_leaderboard",
     description: "Get leaderboard rankings for a scope (global, weekly, monthly, tokens_shared).",
+    scopes: ["read:gamification"],
     inputSchema: z.object({
       scope: z.enum(["global", "weekly", "monthly", "tokens_shared"]).default("global"),
       limit: z.number().min(1).max(100).default(50),
@@ -23,6 +24,7 @@ export const gamificationTools = [
   {
     name: "gamification_rank",
     description: "Get rank for an API key in a leaderboard scope.",
+    scopes: ["read:gamification"],
     inputSchema: z.object({
       apiKeyId: z.string(),
       scope: z.enum(["global", "weekly", "monthly", "tokens_shared"]).default("global"),
@@ -36,6 +38,7 @@ export const gamificationTools = [
   {
     name: "gamification_profile",
     description: "Get XP, level, and badges for an API key.",
+    scopes: ["read:gamification"],
     inputSchema: z.object({
       apiKeyId: z.string(),
     }),
@@ -64,6 +67,7 @@ export const gamificationTools = [
   {
     name: "gamification_badges",
     description: "List all badge definitions or earned badges for an API key.",
+    scopes: ["read:gamification"],
     inputSchema: z.object({
       apiKeyId: z.string().optional(),
       category: z.string().optional(),
@@ -83,6 +87,7 @@ export const gamificationTools = [
   {
     name: "gamification_transfer",
     description: "Transfer tokens between API keys.",
+    scopes: ["write:gamification"],
     inputSchema: z.object({
       fromApiKeyId: z.string(),
       toApiKeyId: z.string(),
@@ -108,6 +113,7 @@ export const gamificationTools = [
   {
     name: "gamification_invite",
     description: "Create an invite token for server connection.",
+    scopes: ["write:gamification"],
     inputSchema: z.object({
       apiKeyId: z.string(),
       serverUrl: z.string().optional(),
@@ -122,6 +128,7 @@ export const gamificationTools = [
   {
     name: "gamification_servers",
     description: "List connected community servers.",
+    scopes: ["read:gamification"],
     inputSchema: z.object({}),
     handler: async () => {
       const { listServers } = await import("../../../src/lib/gamification/servers");
@@ -131,6 +138,7 @@ export const gamificationTools = [
   {
     name: "gamification_anomalies",
     description: "Get flagged anomalous XP activity (admin only).",
+    scopes: ["read:gamification"],
     inputSchema: z.object({}),
     handler: async () => {
       const { getAnomalies } = await import("../../../src/lib/gamification/antiCheat");

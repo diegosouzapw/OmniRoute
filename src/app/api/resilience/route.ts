@@ -133,6 +133,7 @@ export async function GET() {
         maxRetries: resilience.waitForCooldown.maxRetries,
         maxRetryWaitSec: resilience.waitForCooldown.maxRetryWaitSec,
       },
+      providerCooldown: resilience.providerCooldown,
       legacy: buildLegacyResilienceCompat(resilience),
     });
   } catch (err: unknown) {
@@ -188,6 +189,12 @@ export async function PATCH(request) {
       ...(body.waitForCooldown
         ? { waitForCooldown: body.waitForCooldown as ResilienceSettingsPatch["waitForCooldown"] }
         : {}),
+      ...(body.providerCooldown
+        ? {
+            providerCooldown:
+              body.providerCooldown as ResilienceSettingsPatch["providerCooldown"],
+          }
+        : {}),
       ...normalizeLegacyPatch(body),
     });
 
@@ -222,6 +229,7 @@ export async function PATCH(request) {
         maxRetries: nextResilience.waitForCooldown.maxRetries,
         maxRetryWaitSec: nextResilience.waitForCooldown.maxRetryWaitSec,
       },
+      providerCooldown: nextResilience.providerCooldown,
       legacy: buildLegacyResilienceCompat(nextResilience),
     });
   } catch (err: unknown) {

@@ -25,7 +25,7 @@ export interface OpenApiEndpoint {
   hasRequestBody: boolean;
 }
 
-export const OPENAPI_VERSION = "3.8.0";
+export const OPENAPI_VERSION = "3.8.7";
 export const OPENAPI_TITLE = "OmniRoute API";
 
 export const OPENAPI_ENDPOINTS: OpenApiEndpoint[] = [
@@ -173,8 +173,7 @@ export const OPENAPI_ENDPOINTS: OpenApiEndpoint[] = [
     path: "/api/v1/providers/{provider}/models",
     method: "GET",
     summary: "List models for a specific provider",
-    description:
-      "Returns only models for the selected provider with provider prefix removed from each model id.",
+    description: "Returns only models for the selected provider with provider prefix removed from each model id.",
     tag: "Models",
     tags: ["Models"],
     requiresAuth: true,

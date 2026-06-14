@@ -503,8 +503,30 @@ export async function validateQoderCliPat({
       return { valid: true, error: null, unsupported: false };
     }
 
-    // Treat 5xx as valid bypass to prevent false negatives from legacy Qoder APIs (issue #1391)
+    // Treat 5xx as a valid bypass to prevent false negatives from legacy Qoder APIs (#1391).
+    // A Cosy `{"success":false}` 500 is ambiguous: it can be a genuine auth rejection OR a
+    // transient/generic upstream "Internal Server Error". Only mark the PAT invalid when the
+    // body carries an EXPLICIT auth signal — a generic 500 is a server fault, not an auth
+    // verdict, so a working PAT must not be reported as expired (#3247, narrowing #2860).
     if (res.status >= 500) {
+      const isCosyResponse = /"success"\s*:\s*false/.test(errorDetail);
+      const hasAuthSignal =
+        /(unauthorized|forbidden|expired|revoked|not\s*authorized|permission\s*denied|access\s*denied|invalid\s*(?:token|credential|api[\s_-]*key)|token\s*(?:invalid|expired|revoked))/i.test(
+          errorDetail
+        );
+
+      if (isCosyResponse && hasAuthSignal) {
+        return {
+          valid: false,
+          error:
+            `Authentication failed (HTTP ${res.status}). The Qoder Cosy server rejected the token ` +
+            "as invalid, expired, or not authorized. " +
+            "Please check your token at https://qoder.com/account/integrations." +
+            (errorDetail ? ` Server response: ${errorDetail}` : ""),
+          unsupported: false,
+        };
+      }
+
       return {
         valid: true,
         error: `Validation endpoint returned HTTP ${res.status}${errorDetail ? `: ${errorDetail}` : ""}, treating PAT as valid`,

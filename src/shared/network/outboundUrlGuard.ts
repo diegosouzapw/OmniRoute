@@ -81,6 +81,27 @@ export function isPrivateHost(hostname: string) {
   return false;
 }
 
+const CLOUD_METADATA_HOSTNAMES = new Set([
+  "169.254.169.254", // AWS / GCP / Azure / Oracle IMDS
+  "metadata.google.internal", // GCP
+  "metadata.goog", // GCP
+  "100.100.100.200", // Alibaba Cloud
+  "fd00:ec2::254", // AWS IPv6 IMDS
+]);
+
+/**
+ * Cloud-metadata and IPv4 link-local (169.254.0.0/16) endpoints are the classic
+ * SSRF→IAM-credential pivot and have no legitimate webhook/automation use case. They are
+ * blocked UNCONDITIONALLY — even when private targets are explicitly opted in. (#3269)
+ */
+export function isCloudMetadataHost(hostname: string): boolean {
+  const host = normalizeHost(hostname);
+  if (!host) return false;
+  if (CLOUD_METADATA_HOSTNAMES.has(host)) return true;
+  if (host.startsWith("169.254.")) return true; // IPv4 link-local /16
+  return false;
+}
+
 export function parseOutboundUrl(input: string | URL) {
   let url: URL;
   try {
@@ -115,6 +136,37 @@ export function parseAndValidatePublicUrl(input: string | URL) {
   const url = parseOutboundUrl(input);
 
   if (isPrivateHost(url.hostname)) {
+    throw new OutboundUrlGuardError(PROVIDER_URL_BLOCKED_MESSAGE, {
+      code: "OUTBOUND_URL_GUARD_BLOCKED",
+      url: url.toString(),
+      hostname: url.hostname || null,
+    });
+  }
+
+  return url;
+}
+
+/**
+ * Webhook variant of {@link parseAndValidatePublicUrl}. Webhooks legitimately point at
+ * internal services (n8n, Home Assistant, a LAN box) in Docker/self-hosted deployments,
+ * so the private-host block is gated behind the same explicit opt-in used for private
+ * provider URLs (`OMNIROUTE_ALLOW_PRIVATE_PROVIDER_URLS`, default OFF). Protocol and
+ * embedded-credential checks in {@link parseOutboundUrl} remain unconditional. (#3269)
+ */
+export function parseAndValidateWebhookUrl(input: string | URL) {
+  const url = parseOutboundUrl(input);
+
+  // Cloud-metadata / link-local endpoints are NEVER a valid webhook target — block them
+  // even when the private opt-in is enabled (SSRF→IAM-credential pivot). (#3269)
+  if (isCloudMetadataHost(url.hostname)) {
+    throw new OutboundUrlGuardError(PROVIDER_URL_BLOCKED_MESSAGE, {
+      code: "OUTBOUND_URL_GUARD_BLOCKED",
+      url: url.toString(),
+      hostname: url.hostname || null,
+    });
+  }
+
+  if (!arePrivateProviderUrlsAllowed() && isPrivateHost(url.hostname)) {
     throw new OutboundUrlGuardError(PROVIDER_URL_BLOCKED_MESSAGE, {
       code: "OUTBOUND_URL_GUARD_BLOCKED",
       url: url.toString(),

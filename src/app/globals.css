@@ -1,6 +1,13 @@
 @import "tailwindcss";
 @import "fumadocs-ui/css/neutral.css";
 @import "fumadocs-ui/css/preset.css";
+/* Self-hosted Material Symbols icon font (#3695): the Google Fonts CDN
+   (fonts.googleapis.com) is blocked in some networks (e.g. mainland China),
+   which made every icon ligature fall back to its literal text name and broke
+   the layout. Bundling the font locally removes that runtime CDN dependency.
+   The bundled @font-face uses family "Material Symbols Outlined", matching the
+   .material-symbols-outlined rule defined later in this file. */
+@import "material-symbols/outlined.css";
 @source "../../node_modules/fumadocs-ui/css/generated/*.css";
 
 /* Tailwind v4 auto-detection cannot scan directories with parentheses
@@ -411,4 +418,19 @@ button .material-symbols-outlined,
 select option {
   background-color: var(--color-surface);
   color: var(--color-text-main);
+}
+
+/* ReactFlow Controls (zoom +/- buttons) dark mode theming */
+.react-flow__controls-button {
+  background-color: var(--color-surface);
+  border-bottom-color: var(--color-border);
+  fill: var(--color-text-main);
+}
+
+.react-flow__controls-button:hover {
+  background-color: var(--color-bg-subtle);
+}
+
+.react-flow__controls-button svg {
+  fill: var(--color-text-main);
 }

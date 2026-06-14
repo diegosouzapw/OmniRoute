@@ -394,3 +394,26 @@ test("launchAutoUpdate returns validation failures and starts detached update sc
     fs.rmSync(tempRoot, { recursive: true, force: true });
   }
 });
+
+test("resolveProjectRoot walks up from start dir to nearest package.json or .git", () => {
+  const tempRoot = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-root-"));
+  const subDir = path.join(tempRoot, "sub", "deep");
+  fs.mkdirSync(subDir, { recursive: true });
+  fs.writeFileSync(path.join(tempRoot, "package.json"), "{}");
+
+  try {
+    // Walking up from a deep subdir that does not have markers must find the real root.
+    assert.equal(autoUpdate.resolveProjectRoot("/fallback", subDir), tempRoot);
+
+    // Walking up from a directory that DOES have package.json returns that directory.
+    assert.equal(autoUpdate.resolveProjectRoot("/fallback", tempRoot), tempRoot);
+
+    // Walking up from /proc/1 — a directory with no parent markers — must return
+    // a real path (either found via walking or the fallback).
+    const lonely = "/proc/1";
+    const lonelyResult = autoUpdate.resolveProjectRoot("/my-fallback", lonely);
+    assert.equal(lonelyResult, "/my-fallback");
+  } finally {
+    fs.rmSync(tempRoot, { recursive: true, force: true });
+  }
+});

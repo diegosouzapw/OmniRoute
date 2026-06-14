@@ -16,7 +16,9 @@ import { useEffect, useState } from "react";
  */
 export default function CallbackPage() {
   const [status, setStatus] = useState<"processing" | "success" | "done" | "manual">("processing");
-  const [currentUrl, setCurrentUrl] = useState("");
+  const [currentUrl] = useState(() =>
+    typeof window === "undefined" ? "" : window.location.href
+  );
   const t = useTranslations("auth");
 
   useEffect(() => {
@@ -35,9 +37,25 @@ export default function CallbackPage() {
     };
 
     let sent = false;
+    let openerSameOrigin = false;
+    const queueStatusUpdate = (nextStatus: "processing" | "success" | "done" | "manual") => {
+      queueMicrotask(() => setStatus(nextStatus));
+    };
+
+    if (window.opener) {
+      try {
+        openerSameOrigin = window.opener.location.origin === window.location.origin;
+      } catch {
+        openerSameOrigin = false;
+      }
+    }
 
     // Method 1: postMessage to opener (popup mode).
     // May be null when Google OAuth's COOP header severs the opener reference.
+    // For remote OmniRoute + local loopback callbacks, the callback page origin
+    // is http://127.0.0.1:<port> while the opener is the public OmniRoute origin.
+    // Use a wildcard fallback only for the opener that initiated this popup; the
+    // parent validates the OAuth state before accepting the callback.
     if (window.opener) {
       try {
         // Target this origin specifically — popup mode is only used when isTrueLocalhost,
@@ -49,6 +67,15 @@ export default function CallbackPage() {
         sent = true;
       } catch (e) {
         console.log("postMessage failed:", e);
+      }
+
+      if (!openerSameOrigin) {
+        try {
+          window.opener.postMessage({ type: "oauth_callback", data: callbackData }, "*");
+          sent = true;
+        } catch (e) {
+          console.log("cross-origin postMessage failed:", e);
+        }
       }
     }
 
@@ -75,23 +102,23 @@ export default function CallbackPage() {
     }
 
     if (sent && (code || error)) {
-      if (window.opener) {
-        // eslint-disable-next-line react-hooks/set-state-in-effect -- initialization effect, window-only
-        setStatus("success");
+      if (window.opener && openerSameOrigin) {
+        queueStatusUpdate("success");
         setTimeout(() => {
           window.close();
           // If close is prevented (browser policy), fall through to manual close prompt.
           setTimeout(() => setStatus("done"), 500);
         }, 1500);
       } else {
-        // Opened as new tab or opener severed by COOP — show close prompt.
-        setStatus("done");
+        // Opened as a tab, opener severed by COOP, or remote dashboard using a
+        // loopback/tunnel callback. Keep the full URL visible as a manual fallback
+        // in case the opener cannot receive the cross-origin postMessage.
+        queueStatusUpdate("manual");
       }
     } else {
       // No code/error in URL or all send methods failed — show URL for manual copy.
       // Batch the URL and status update so they render together (React 18 auto-batching).
-      setCurrentUrl(window.location.href);
-      setStatus("manual");
+      queueStatusUpdate("manual");
     }
   }, []);
 

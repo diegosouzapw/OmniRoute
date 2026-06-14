@@ -98,6 +98,41 @@ test("provider validation routes require management authentication before readin
   }
 });
 
+test("Antigravity CLI (agy) credential import routes require management authentication before reading the body", () => {
+  // Routes that parse a JSON body — auth MUST run before request.json().
+  const jsonBodyRoutes = [
+    "src/app/api/providers/agy-auth/import/route.ts",
+    "src/app/api/providers/agy-auth/import-bulk/route.ts",
+  ];
+  for (const routePath of jsonBodyRoutes) {
+    const content = fs.readFileSync(routePath, "utf8");
+    assert.ok(content.includes('from "@/lib/api/requireManagementAuth"'), routePath);
+    assert.ok(
+      content.includes("const authError = await requireManagementAuth(request);"),
+      routePath
+    );
+    assert.ok(content.includes("if (authError) return authError;"), routePath);
+    assert.ok(
+      content.indexOf("requireManagementAuth(request)") < content.indexOf("request.json()"),
+      `${routePath} should authenticate before parsing the submitted token`
+    );
+  }
+  // Routes that read non-JSON bodies (local file / uploaded ZIP) — auth still comes first.
+  const otherBodyRoutes = [
+    "src/app/api/providers/agy-auth/apply-local/route.ts",
+    "src/app/api/providers/agy-auth/zip-extract/route.ts",
+  ];
+  for (const routePath of otherBodyRoutes) {
+    const content = fs.readFileSync(routePath, "utf8");
+    assert.ok(content.includes('from "@/lib/api/requireManagementAuth"'), routePath);
+    assert.ok(
+      content.includes("const authError = await requireManagementAuth(request);"),
+      routePath
+    );
+    assert.ok(content.includes("if (authError) return authError;"), routePath);
+  }
+});
+
 test("usage analytics and request log routes require management authentication", () => {
   const routePaths = [
     "src/app/api/usage/analytics/route.ts",

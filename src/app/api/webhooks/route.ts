@@ -12,7 +12,7 @@ import { validateBody, isValidationFailure } from "@/shared/validation/helpers";
 import { requireManagementAuth } from "@/lib/api/requireManagementAuth";
 import { encryptMetadata } from "@/lib/webhookDispatcher";
 import { isEncryptionEnabled } from "@/lib/db/encryption";
-import { parseAndValidatePublicUrl } from "@/shared/network/outboundUrlGuard";
+import { parseAndValidateWebhookUrl } from "@/shared/network/outboundUrlGuard";
 
 const WEBHOOK_KINDS = ["slack", "telegram", "discord", "custom"] as const;
 
@@ -28,7 +28,7 @@ const createWebhookSchema = z
   .superRefine((data, ctx) => {
     if (data.kind === "telegram") return;
     try {
-      parseAndValidatePublicUrl(data.url);
+      parseAndValidateWebhookUrl(data.url);
     } catch (err: any) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,

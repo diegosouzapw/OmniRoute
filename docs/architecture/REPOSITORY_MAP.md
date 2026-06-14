@@ -101,7 +101,9 @@ src/
 ├── shared/              # Shared between server and client where safe (constants, types, validation, contracts, utils)
 ├── i18n/                # next-intl config + per-locale message JSON (30+ locales)
 ├── middleware/          # Next.js middleware (request enrichment, locale detection)
-├── mitm/                # MITM proxy helpers (Linux cert install, antigravity stealth)
+├── mitm/                # MITM proxy core: cert gen/install, handlers, targets, inspector, masks, passthrough
+│   ├── handlers/        # 9 IDE-agent handler classes extending MitmHandlerBase (antigravity, kiro, copilot, codex, cursor, zed, claudeCode, openCode, trae)
+│   └── inspector/       # Traffic capture layer: buffer (in-memory ring), sseMerger, conversationNormalizer, kindDetector, contextKey, httpProxyServer, systemProxyConfig
 ├── models/              # Model adapter glue (legacy shim)
 ├── scripts/             # In-tree maintenance scripts (e.g., backfillAggregation)
 ├── sse/                 # Legacy SSE handlers/services (chat.ts, chatHelpers.ts, services/auth.ts)
@@ -119,10 +121,21 @@ src/
 | ---------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | `app/api/v1/`                                                                | Public OpenAI-compat API (~25 sub-routes: chat, completions, embeddings, files, batches, audio, images, videos, music, rerank, moderations, search, ws, agents, accounts, providers, etc.) |
 | `app/api/v1beta/`                                                            | Gemini-style API endpoints                                                                                                                                                                 |
+| `app/api/playground/`                                                        | Playground Studio routes: `improve-prompt/` (POST — LLM prompt rewriter), `presets/` (GET list / POST create), `presets/[id]/` (GET / PUT / DELETE) — see `docs/frameworks/PLAYGROUND_STUDIO.md` |
 | `app/api/` (non-v1)                                                          | Management/admin routes (~60 directories: providers, combos, settings, mcp, a2a, evals, memory, skills, webhooks, compliance, resilience, monitoring, tunnels, cli-tools, etc.)            |
+| `app/api/tools/agent-bridge/`                                                | AgentBridge REST API — 12 routes (server control, agent state/DNS/mappings, bypass, cert, upstream-CA). LOCAL_ONLY + SPAWN_CAPABLE. See `docs/frameworks/AGENTBRIDGE.md §7`.              |
+| `app/api/tools/traffic-inspector/`                                           | Traffic Inspector REST + WS API — 16+ routes (requests, sessions, hosts, capture-modes, export, ws). LOCAL_ONLY + SPAWN_CAPABLE. See `docs/frameworks/TRAFFIC_INSPECTOR.md §8`.           |
 | `app/a2a/`                                                                   | A2A JSON-RPC 2.0 entry point (`POST /a2a`)                                                                                                                                                 |
 | `app/.well-known/agent.json/`                                                | A2A Agent Card (discovery)                                                                                                                                                                 |
+| `app/(dashboard)/dashboard/`                                                 | Dashboard UI pages (~35 pages: providers, combos, settings, memory, skills, webhooks, evals, audit, batch, cache, costs, health, system, activity, etc.)                                   |
+| `app/(dashboard)/dashboard/search-tools/`                                    | Search Tools Studio UI (3 tabs: Search/Scrape/Compare + SearchConceptCard + ProviderCatalog) — see `docs/frameworks/SEARCH_TOOLS_STUDIO.md` |
 | `app/(dashboard)/dashboard/`                                                 | Dashboard UI pages (~30 pages: providers, combos, settings, memory, skills, webhooks, evals, audit, batch, cache, costs, health, system, etc.)                                             |
+| `app/(dashboard)/dashboard/memory/`                                          | Memory Studio (plan 21): `page.tsx` (3-tab shell), `components/` (MemoryConceptCard, MemoryEngineStatus, EmbeddingSourceSelector, EditMemoryModal, RetrievePreview, QdrantConfigCard, RerankConfigCard), `components/tabs/` (MemoriesTab, PlaygroundTab, EngineTab), `hooks/` (useEngineStatus, useMemorySettings) |
+| `app/(dashboard)/dashboard/tools/agent-bridge/`                              | AgentBridge dashboard page — server card, 9 agent cards, setup wizard, model mapping, bypass list. i18n PT-BR + EN. See `docs/frameworks/AGENTBRIDGE.md`.                                 |
+| `app/(dashboard)/dashboard/tools/traffic-inspector/`                         | Traffic Inspector dashboard page — DevTools split, 7 detail tabs, 4 capture mode toggles, session recorder, context colorization. i18n PT-BR + EN. See `docs/frameworks/TRAFFIC_INSPECTOR.md`. |
+| `app/(dashboard)/dashboard/activity/`                                        | Activity feed page (Group B): `page.tsx` (server) + `ActivityFeedClient.tsx` + `components/{ActivityFeed,ActivityItem,DayHeader,EventTypeFilter}.tsx` — see `docs/architecture/MONITORING_SECTIONS.md` |
+| `app/(dashboard)/dashboard/costs/quota-share/`                               | Quota Sharing page (Group B): `QuotaSharePageClient.tsx` + `components/{PoolCard,DimensionBar,AllocationTable,BurnRateChart,QuotaConceptCard,CreatePoolModal,EditAllocationsModal}.tsx` + `hooks/{usePools,usePoolUsage,useLocalStoragePoolMigration}.ts` |
+| `app/(dashboard)/dashboard/costs/quota-share/plans/`                         | Provider plan config page (Group B): `page.tsx` + `ProviderPlanConfigClient.tsx` — quota dimensions per connection override |
 | `app/docs/`                                                                  | Embedded documentation viewer (renders `docs/*.md`)                                                                                                                                        |
 | `app/landing/`                                                               | Marketing landing page                                                                                                                                                                     |
 | `app/login/`, `forgot-password/`, `forbidden/`                               | Auth-related pages                                                                                                                                                                         |
@@ -143,22 +156,28 @@ src/
 | `catalog/`                               | Provider catalog Zod validation + capability resolution                                                                                                  |
 | `cloudAgent/`                            | Cloud Agents (Codex Cloud, Devin, Jules) — see `docs/frameworks/CLOUD_AGENT.md`                                                                          |
 | `combos/`                                | Combo resolution + reorder helpers                                                                                                                       |
+| `audit/`                                 | Activity feed helpers: `highLevelActions.ts` (allowlist + `isHighLevelAction()`), `activityIcons.ts` (action → icon/verb map), `timeline.ts` (groupByDay/relativeTime) — see `docs/architecture/MONITORING_SECTIONS.md` |
 | `compliance/`                            | Audit log + provider audit — see `docs/security/COMPLIANCE.md`                                                                                           |
 | `compression/`                           | Compression engine glue (engines live in `open-sse/services/compression/`)                                                                               |
 | `config/`                                | Runtime config helpers                                                                                                                                   |
 | `db/`                                    | 45+ domain DB modules + 55 migrations (always go through here for SQLite)                                                                                |
+| `quota/`                                 | Quota Sharing Engine: `dimensions.ts` (types/Zod), `types.ts` (QuotaStore interface), `sqliteQuotaStore.ts`, `redisQuotaStore.ts`, `storeFactory.ts`, `fairShare.ts`, `burnRate.ts`, `planResolver.ts`, `planRegistry.ts`, `saturationSignals.ts`, `enforce.ts`, `spendRecorder.ts` — see `docs/routing/QUOTA_SHARE.md` |
 | `display/`                               | UI formatting helpers (cost, latency, etc.)                                                                                                              |
 | `embeddings/`                            | Embeddings service helpers                                                                                                                               |
 | `env/`                                   | Env variable parsing + validation                                                                                                                        |
 | `evals/`                                 | Eval framework (suites, runner, runtime) — see `docs/frameworks/EVALS.md`                                                                                |
 | `guardrails/`                            | PII masker, prompt injection, vision bridge — see `docs/security/GUARDRAILS.md`                                                                          |
 | `jobs/`                                  | Background jobs (cron-like)                                                                                                                              |
-| `memory/`                                | Conversational memory (SQLite FTS5 + Qdrant) — see `docs/frameworks/MEMORY.md`                                                                           |
+| `memory/`                                | Conversational memory (SQLite FTS5 + sqlite-vec hybrid RRF + Qdrant tier 2) — see `docs/frameworks/MEMORY.md`                                            |
+| `memory/embedding/`                      | Multi-source embedding layer: `index.ts` (resolver), `remote.ts`, `staticPotion.ts`, `transformersLocal.ts`, `cache.ts`, `types.ts` (plan 21)             |
+| `memory/vectorStore.ts`                  | sqlite-vec v0.1.9 wrapper — KNN brute-force + hybrid RRF (FTS5 + vector, k=60). Lazy-init, degrades gracefully when sqlite-vec unavailable. (plan 21)    |
+| `memory/reindex.ts`                      | `runReindexBatch()` — processes memories with `needs_reindex=1` in background; called by `POST /api/memory/reindex` and lazy-backfill path. (plan 21)     |
 | `monitoring/`                            | Health checks, metrics emission                                                                                                                          |
 | `oauth/`                                 | OAuth flows for 14 providers (claude, codex, antigravity, cursor, github, gemini, kimi-coding, kilocode, cline, qwen, kiro, qoder, gitlab-duo, windsurf) |
 | `plugins/`                               | Plugin registry                                                                                                                                          |
 | `promptCache/`                           | Anthropic-style prompt cache breakpoints                                                                                                                 |
 | `skills/`                                | Skills framework (built-in + marketplace + SkillsSH) — see `docs/frameworks/SKILLS.md`                                                                   |
+| `playground/`                            | Playground Studio shared helpers: `codeExport.ts` (curl/Python/TS generator), `promptImprover.ts` (meta-prompt builder), `streamMetrics.ts` (pure TTFT/TPS), `types.ts` (pricing table) — see `docs/frameworks/PLAYGROUND_STUDIO.md` |
 | `webhookDispatcher.ts`                   | HMAC webhook delivery — see `docs/frameworks/WEBHOOKS.md`                                                                                                |
 | `cloudflaredTunnel.ts`, `ngrokTunnel.ts` | Tunnel managers — see `docs/ops/TUNNELS_GUIDE.md`                                                                                                        |
 | `oneproxySync.ts`, `oneproxyRotator.ts`  | 1proxy free proxy marketplace — see `docs/ops/PROXY_GUIDE.md`                                                                                            |
@@ -172,7 +191,9 @@ src/
 | Subdir           | Purpose                                                                                                                                                                    |
 | ---------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `db/core.ts`     | `getDbInstance()` singleton with WAL journaling                                                                                                                            |
-| `db/migrations/` | 55 versioned SQL files (idempotent, transactional, numbered `001`..`055`)                                                                                                  |
+| `db/migrations/` | Versioned SQL files (idempotent, transactional). `073_memory_vec.sql` adds `memory_vec_meta` + `needs_reindex` column (plan 21). |
+| `db/playgroundPresets.ts` | CRUD module for Playground Studio presets (`listPlaygroundPresets`, `getPlaygroundPreset`, `createPlaygroundPreset`, `updatePlaygroundPreset`, `deletePlaygroundPreset`) |
+| `db/memoryVec.ts`| CRUD for `memory_vec_meta` (active_dim, embedding_signature, last_reset_at, vec_loaded) + `markMemoryNeedsReindex`, `getMemoryReindexQueue`, etc. (plan 21)               |
 | `db/<domain>.ts` | One module per domain: providers, combos, apiKeys, users, sessions, usage, audit*log, webhooks, skills, memory_entries, cloud_agent_tasks, evals*\*, reasoning_cache, etc. |
 
 ### `src/domain/`
@@ -470,7 +491,7 @@ Shipped configuration templates and sample files (referenced by setup wizard).
 | `commands/deploy-vps-{local,akamai,both}-cc.md`                   | Deploy to VPS                                      |
 | `commands/capture-release-evidences-cc.md`                        | Browser-record new features as WebP                |
 | `commands/review-{prs,discussions}-cc.md`                         | Triage GitHub PRs/discussions                      |
-| `commands/{issue-triage,resolve-issues,implement-features}-cc.md` | Issue workflows                                    |
+| `commands/{review-issues,implement-features}-cc.md`               | Issue workflows                                    |
 | `settings.local.json`                                             | Per-project Claude Code settings                   |
 
 ---

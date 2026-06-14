@@ -194,6 +194,7 @@ test("parseVideoModel: works via video registry", async () => {
   const { parseVideoModel } = await import("../../open-sse/config/videoRegistry.ts");
   const result = parseVideoModel("comfyui/animatediff");
   assert.deepEqual(result, { provider: "comfyui", model: "animatediff" });
+  assert.deepEqual(parseVideoModel("veo-free/veo"), { provider: "veoaifree-web", model: "veo" });
 });
 
 test("parseMusicModel: works via music registry", async () => {
@@ -210,6 +211,8 @@ test("getAllVideoModels: returns video models with provider prefix", async () =>
   assert.ok(models.some((m) => m.id === "kie/sora-2-pro-image-to-video"));
   assert.ok(models.some((m) => m.id === "comfyui/animatediff"));
   assert.ok(models.some((m) => m.id === "runwayml/gen4.5"));
+  assert.ok(models.some((m) => m.id === "veoaifree-web/veo"));
+  assert.ok(models.some((m) => m.id === "veo-free/veo"));
 });
 
 test("getAllMusicModels: returns music models with provider prefix", async () => {

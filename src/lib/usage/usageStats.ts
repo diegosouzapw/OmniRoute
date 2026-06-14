@@ -189,6 +189,96 @@ function getApiKeyStatsKey(apiKeyId: string | null, apiKeyName: string | null): 
 }
 
 /**
+ * Sum of all token columns recorded for one provider connection in the current
+ * UTC calendar month. Powers SELF-TRACKED provider quotas (e.g. Xiaomi MiMo
+ * Token Plan), where the upstream exposes no API-key usage endpoint — OmniRoute
+ * counts the tokens it routed and compares against the known monthly limit.
+ * Only reflects traffic that went THROUGH OmniRoute (not the provider's panel).
+ */
+export function getMonthlyProviderTokensForConnection(
+  provider: string,
+  connectionId: string
+): number {
+  if (!provider || !connectionId) return 0;
+  const db = getDbInstance();
+  const now = new Date();
+  const monthStartIso = new Date(
+    Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1)
+  ).toISOString();
+  const row = db
+    .prepare(
+      `SELECT COALESCE(SUM(tokens_input), 0)
+            + COALESCE(SUM(tokens_output), 0)
+            + COALESCE(SUM(tokens_cache_read), 0)
+            + COALESCE(SUM(tokens_cache_creation), 0)
+            + COALESCE(SUM(tokens_reasoning), 0) AS total
+       FROM usage_history
+       WHERE provider = ? AND connection_id = ? AND timestamp >= ?`
+    )
+    .get(provider, connectionId, monthStartIso) as { total?: number } | undefined;
+  return Math.max(0, Number(row?.total ?? 0));
+}
+
+/**
+ * Total USD spend OmniRoute has recorded for a single provider connection, across all time
+ * (i.e. "since the account was added" — usage_history rows only exist from first use onward).
+ *
+ * Sums per-model token usage from `usage_history` for the connection and prices each model via the
+ * backend pricing table (`calculateCost`). Scoped to the given `provider` and to **successful**
+ * requests (`success = 1`) so failed/errored calls and any cross-provider rows can't inflate the
+ * total. Only reflects traffic that went THROUGH OmniRoute, not the provider's own dashboard. Used
+ * to surface a "$X used since added" figure for providers that expose no native usage/quota API
+ * (e.g. Vertex AI).
+ */
+export async function getConnectionSpendUsdSinceAdded(
+  provider: string,
+  connectionId: string
+): Promise<{ costUsd: number; requests: number }> {
+  if (!provider || !connectionId) return { costUsd: 0, requests: 0 };
+
+  const db = getDbInstance();
+  const rows = db
+    .prepare(
+      `SELECT model,
+          COALESCE(SUM(tokens_input), 0) AS input,
+          COALESCE(SUM(tokens_output), 0) AS output,
+          COALESCE(SUM(tokens_cache_read), 0) AS cacheRead,
+          COALESCE(SUM(tokens_cache_creation), 0) AS cacheCreation,
+          COALESCE(SUM(tokens_reasoning), 0) AS reasoning,
+          COUNT(*) AS requests
+       FROM usage_history
+       WHERE connection_id = ? AND provider = ? AND success = 1
+       GROUP BY model`
+    )
+    .all(connectionId, provider) as Array<{
+    model?: string;
+    input?: number;
+    output?: number;
+    cacheRead?: number;
+    cacheCreation?: number;
+    reasoning?: number;
+    requests?: number;
+  }>;
+
+  let costUsd = 0;
+  let requests = 0;
+  for (const row of rows) {
+    requests += Math.max(0, Number(row.requests ?? 0));
+    const model = typeof row.model === "string" ? row.model : "";
+    const tokens = {
+      input: Number(row.input ?? 0),
+      output: Number(row.output ?? 0),
+      cacheRead: Number(row.cacheRead ?? 0),
+      cacheCreation: Number(row.cacheCreation ?? 0),
+      reasoning: Number(row.reasoning ?? 0),
+    };
+    costUsd += await calculateCost(provider, model, tokens, { provider, model });
+  }
+
+  return { costUsd: Math.max(0, costUsd), requests };
+}
+
+/**
  * Get aggregated usage stats.
  * Uses UNION of recent raw data and older aggregated data when aggregation is enabled.
  */

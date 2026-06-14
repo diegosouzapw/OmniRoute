@@ -1,19 +1,14 @@
 "use client";
 
-import { useMemo, useState, useEffect, useCallback, useRef } from "react";
+import { useMemo, useState, useEffect, useRef } from "react";
 import { useTranslations } from "next-intl";
-import {
-  ReactFlow,
-  Handle,
-  Position,
-  Controls,
-  type Node,
-  type Edge,
-  type NodeTypes,
-} from "@xyflow/react";
-import "@xyflow/react/dist/style.css";
+import { Handle, Position, type Node, type Edge, type NodeTypes } from "@xyflow/react";
 import { AI_PROVIDERS } from "@/shared/constants/providers";
 import ProviderIcon from "@/shared/components/ProviderIcon";
+import { FlowCanvas } from "@/shared/components/flow/FlowCanvas";
+import { StatusDot } from "@/shared/components/flow/StatusDot";
+import { edgeStyle } from "@/shared/components/flow/edgeStyles";
+import { resolveTopologyNodeLabel } from "./topologyLabel";
 
 const FE_ACTIVE_TIMEOUT_MS = 60_000;
 const FE_ACTIVE_TICK_MS = 1_000;
@@ -98,18 +93,7 @@ function ProviderNode({ data }: { data: ProviderNodeData }) {
         {label}
       </span>
 
-      {(active || error) && (
-        <span className="relative flex size-1.5 shrink-0">
-          <span
-            className="animate-ping absolute inline-flex h-full w-full rounded-full opacity-70"
-            style={{ backgroundColor: error ? "#ef4444" : color }}
-          />
-          <span
-            className="relative inline-flex rounded-full size-1.5"
-            style={{ backgroundColor: error ? "#ef4444" : color }}
-          />
-        </span>
-      )}
+      {(active || error) && <StatusDot color={color} error={error} />}
     </div>
   );
 }
@@ -164,13 +148,6 @@ const nodeTypes: NodeTypes = {
 
 type ProviderEntry = { id?: string; provider: string; name?: string };
 
-function edgeStyle(active: boolean, last: boolean, error: boolean) {
-  if (error) return { stroke: "#ef4444", strokeWidth: 2, opacity: 0.85 };
-  if (active) return { stroke: "#22c55e", strokeWidth: 2.5, opacity: 1 };
-  if (last) return { stroke: "#f59e0b", strokeWidth: 1.5, opacity: 0.6 };
-  return { stroke: "var(--color-border)", strokeWidth: 1, opacity: 0.2 };
-}
-
 function getHandles(angle: number, cx: number): { sourceHandle: string; targetHandle: string } {
   const rel = (((angle + Math.PI / 2) % (2 * Math.PI)) + 2 * Math.PI) % (2 * Math.PI);
   if (rel < Math.PI / 4 || rel > (7 * Math.PI) / 4)
@@ -217,7 +194,7 @@ function buildLayout(
       return 3;
     };
     const d = rank(aId) - rank(bId);
-    return d !== 0 ? d : aId.localeCompare(bId);
+    return d !== 0 ? d : aId.localeCompare(bId); // teknik sıralama: ASCII kasıtlı
   });
 
   let provIdx = 0;
@@ -244,7 +221,7 @@ function buildLayout(
         type: "provider",
         position: { x: cx - nodeW / 2, y: cy - nodeH / 2 },
         data: {
-          label: config.name || p.name || p.provider,
+          label: resolveTopologyNodeLabel(p.name, config.name, p.provider),
           color: config.color || "#6b7280",
           providerId: p.provider,
           active,
@@ -347,64 +324,27 @@ export default function ProviderTopology({
     [providers]
   );
 
-  const rfInstance = useRef<any>(null);
-  const containerRef = useRef<HTMLDivElement>(null);
-  const fitOpts = { padding: 0.22, duration: 250 };
+  const containerClass =
+    "h-[300px] w-full min-w-0 rounded-xl border border-border bg-bg-subtle/20 overflow-hidden sm:h-[420px]";
 
-  const onInit = useCallback((instance: any) => {
-    rfInstance.current = instance;
-    setTimeout(() => instance.fitView(fitOpts), 60);
-  }, []);
-
-  useEffect(() => {
-    const el = containerRef.current;
-    if (!el) return;
-    const ro = new ResizeObserver(() => {
-      rfInstance.current?.fitView(fitOpts);
-    });
-    ro.observe(el);
-    return () => ro.disconnect();
-  }, []);
-
-  useEffect(() => {
-    const id = setTimeout(() => rfInstance.current?.fitView(fitOpts), 60);
-    return () => clearTimeout(id);
-  }, [nodes.length]);
+  if (providers.length === 0) {
+    return (
+      <div
+        className={`${containerClass} flex flex-col items-center justify-center gap-2 text-text-muted`}
+      >
+        <span className="material-symbols-outlined text-[32px]">device_hub</span>
+        <p className="text-sm">{t("providerTopologyEmpty")}</p>
+      </div>
+    );
+  }
 
   return (
-    <div
-      ref={containerRef}
-      className="h-[300px] w-full min-w-0 rounded-xl border border-border bg-bg-subtle/20 overflow-hidden sm:h-[420px]"
-    >
-      {providers.length === 0 ? (
-        <div className="h-full flex flex-col items-center justify-center gap-2 text-text-muted">
-          <span className="material-symbols-outlined text-[32px]">device_hub</span>
-          <p className="text-sm">{t("providerTopologyEmpty")}</p>
-        </div>
-      ) : (
-        <ReactFlow
-          key={providersKey}
-          nodes={nodes}
-          edges={edges}
-          nodeTypes={nodeTypes}
-          fitView
-          fitViewOptions={fitOpts}
-          minZoom={0.08}
-          maxZoom={2}
-          onInit={onInit}
-          proOptions={{ hideAttribution: true }}
-          panOnDrag
-          zoomOnScroll
-          zoomOnPinch
-          zoomOnDoubleClick
-          preventScrolling={false}
-          nodesDraggable={false}
-          nodesConnectable={false}
-          elementsSelectable={false}
-        >
-          <Controls showInteractive={false} />
-        </ReactFlow>
-      )}
-    </div>
+    <FlowCanvas
+      nodes={nodes}
+      edges={edges}
+      nodeTypes={nodeTypes}
+      fitKey={providersKey}
+      className={containerClass}
+    />
   );
 }

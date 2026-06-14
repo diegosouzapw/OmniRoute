@@ -97,15 +97,15 @@ test("DefaultExecutor.buildUrl handles Gemini, Claude and Qwen variants", () => 
 
 test("DefaultExecutor.buildUrl uses full chat endpoints for hosted OpenAI-compatible providers", () => {
   const bazaarlink = new DefaultExecutor("bazaarlink");
-  const completions = new DefaultExecutor("completions");
+  const crof = new DefaultExecutor("crof");
 
   assert.equal(
     bazaarlink.buildUrl("auto:free", true),
     "https://bazaarlink.ai/api/v1/chat/completions"
   );
   assert.equal(
-    completions.buildUrl("gpt-4.1", true),
-    "https://completions.me/api/v1/chat/completions"
+    crof.buildUrl("gpt-4.1", true),
+    "https://crof.ai/v1/chat/completions"
   );
 });
 
@@ -184,6 +184,7 @@ test("DefaultExecutor.buildUrl normalizes configurable chat-openai-compat base U
   const maritalk = new DefaultExecutor("maritalk");
   const snowflake = new DefaultExecutor("snowflake");
   const gigachat = new DefaultExecutor("gigachat");
+  const siliconflow = new DefaultExecutor("siliconflow");
 
   assert.equal(
     bailian.buildUrl("qwen3-coder-plus", true, 0, {
@@ -272,6 +273,16 @@ test("DefaultExecutor.buildUrl normalizes configurable chat-openai-compat base U
       providerSpecificData: { baseUrl: "https://gigachat.devices.sberbank.ru/api/v1" },
     }),
     "https://gigachat.devices.sberbank.ru/api/v1/chat/completions"
+  );
+  assert.equal(
+    siliconflow.buildUrl("deepseek-ai/DeepSeek-V3.2", true),
+    "https://api.siliconflow.com/v1/chat/completions"
+  );
+  assert.equal(
+    siliconflow.buildUrl("deepseek-ai/DeepSeek-V3.2", true, 0, {
+      providerSpecificData: { baseUrl: "https://api.siliconflow.cn/v1" },
+    }),
+    "https://api.siliconflow.cn/v1/chat/completions"
   );
 });
 
@@ -403,6 +414,26 @@ test("DefaultExecutor local OpenAI-style providers honor custom base URLs and sk
   assert.equal(lmStudioUrl, "http://127.0.0.1:4321/v1/chat/completions");
   assert.equal(vllmHeaders.Authorization, undefined);
   assert.equal(vllmHeaders.Accept, "application/json");
+});
+
+test("DefaultExecutor local providers append /v1/chat/completions for bare hostname base URLs", () => {
+  const llamaCpp = new DefaultExecutor("llama-cpp");
+  const lmStudio = new DefaultExecutor("lm-studio");
+  const vllm = new DefaultExecutor("vllm");
+
+  const bareHost = llamaCpp.buildUrl("gemma-4", true, 0, {
+    providerSpecificData: { baseUrl: "https://foo.llama.example.com" },
+  });
+  const customPath = lmStudio.buildUrl("gemma-4", true, 0, {
+    providerSpecificData: { baseUrl: "https://bar.llama.ai/foo" },
+  });
+  const alreadyComplete = vllm.buildUrl("gemma-4", true, 0, {
+    providerSpecificData: { baseUrl: "https://baz.llama.ai/v1/chat/completions" },
+  });
+
+  assert.equal(bareHost, "https://foo.llama.example.com/v1/chat/completions");
+  assert.equal(customPath, "https://bar.llama.ai/foo/v1/chat/completions");
+  assert.equal(alreadyComplete, "https://baz.llama.ai/v1/chat/completions");
 });
 
 test("DefaultExecutor.buildHeaders handles Snowflake PATs and GigaChat access tokens", () => {

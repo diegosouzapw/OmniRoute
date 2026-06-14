@@ -142,11 +142,37 @@ export async function setCachedLKGP(
   lkgpCache.invalidate(`lkgp:${comboName}:${modelId}`);
 }
 
+// ──────────────── Combo Cache Invalidation Signal ────────────────
+//
+// The nested-combo expansion caches live in request handlers
+// (`src/sse/handlers/chat.ts` getCombosCachedForChat and
+// `open-sse/handlers/chatCore.ts` getCombosCached), each with a 10s TTL. A db
+// module must NOT import a request handler (that would create an import cycle),
+// so instead those caches consult this monotonically-incrementing version.
+// Combo writes call `invalidateDbCache("combos")`, which bumps the version;
+// the handlers compare the version they were populated at against the current
+// one and treat a mismatch as a cache miss — so combo edits take effect
+// immediately instead of after the 10s window (#3147).
+let combosCacheVersion = 0;
+
 /**
- * Invalidate all caches (call after writes to any of: settings, pricing, connections).
+ * Current combo-cache version. Cache layers snapshot this when they populate
+ * and re-read it on every access; a change means the underlying combos were
+ * written and the cached expansion must be refreshed.
  */
-export function invalidateDbCache(scope?: "settings" | "pricing" | "connections"): void {
+export function getCombosCacheVersion(): number {
+  return combosCacheVersion;
+}
+
+/**
+ * Invalidate all caches (call after writes to any of: settings, pricing,
+ * connections, combos).
+ */
+export function invalidateDbCache(
+  scope?: "settings" | "pricing" | "connections" | "combos"
+): void {
   if (!scope || scope === "settings") settingsCache.invalidate();
   if (!scope || scope === "pricing") pricingCache.invalidate();
   if (!scope || scope === "connections") connectionsCache.invalidate();
+  if (!scope || scope === "combos") combosCacheVersion++;
 }
