@@ -4889,6 +4889,8 @@
     "homeProviderTopologyDesc": "Show the Provider Topology on the Home page.",
     "endpointTokenSaver": "Token Saver",
     "endpointTokenSaverDesc": "Show the Token Saver panel on the Endpoint page.",
+    "accountEmailVisibility": "Account email visibility",
+    "accountEmailVisibilityDesc": "Show full account emails across providers, combos, logs, quota, and playground screens. Turn this off to mask them by default.",
     "sidebarVisibilityToggle": "Show Sidebar Items",
     "enableCache": "Enable Cache",
     "cacheTTL": "Cache TTL",

@@ -64,7 +64,7 @@
     "src/app/(dashboard)/dashboard/settings/components/CompressionSettingsTab.tsx": 932,
     "src/app/(dashboard)/dashboard/settings/components/MemorySkillsTab.tsx": 880,
     "src/app/(dashboard)/dashboard/settings/components/PricingTab.tsx": 1012,
-    "src/app/(dashboard)/dashboard/settings/components/ProxyRegistryManager.tsx": 1072,
+    "src/app/(dashboard)/dashboard/settings/components/ProxyRegistryManager.tsx": 1089,
     "src/app/(dashboard)/dashboard/settings/components/ResilienceTab.tsx": 983,
     "src/app/(dashboard)/dashboard/settings/components/RoutingTab.tsx": 1580,
     "src/app/(dashboard)/dashboard/settings/components/SystemStorageTab.tsx": 1924,
@@ -99,9 +99,9 @@
     "src/shared/constants/cliTools.ts": 875,
     "src/shared/constants/pricing.ts": 1470,
     "src/shared/constants/providers.ts": 3147,
-    "src/shared/constants/sidebarVisibility.ts": 990,
+    "src/shared/constants/sidebarVisibility.ts": 1006,
     "src/shared/services/cliRuntime.ts": 1090,
-    "src/shared/validation/schemas.ts": 2519,
+    "src/shared/validation/schemas.ts": 2522,
     "src/sse/handlers/chat.ts": 1425,
     "src/sse/services/auth.ts": 2207
   },
@@ -121,5 +121,6 @@
   "_rebaseline_2026_06_13_3474_grok_403": "Re-baseline #3474 (mensagem clara no 403 anti-bot do Grok): validation.ts 4302→4348 (+46). Crescimento = helper isGrokAntiBotBlock() + branch 403 de 3 tiers (auth-shaped / anti-bot-IP-reputation / upstream-error). Lógica coesa de classificação no validator; não-extraível.",
   "_rebaseline_2026_06_13_3324_windsurf_devin": "Re-baseline #3324 (windsurf auth text + devin error propagation): route.ts 897→903 (+6, texto da instrução windsurf→fluxo command-palette) + sseParser.ts ADICIONADO como frozen 812 (era 746, +66 = helper extractSSEErrorMessage que faz surface do erro real SSE em vez do 502 genérico). 812 fica 12 acima do cap 800 — helper coeso no parser de SSE, congelado com justificativa (precedente providerLimits/useProviderConnections).",
   "_rebaseline_2026_06_13_2743d_skipbreaker": "Re-baseline #2743 gap-d (testar consumer do skipProviderBreaker): combo.ts 5131→5162 (+31). Crescimento = extração do boolean inline da decisão de circuit-breaker para o predicado puro EXPORTADO shouldRecordProviderBreakerFailure() (byte-idêntico) + JSDoc, para torná-lo unit-testável sem o harness completo de combo. Shrink estrutural segue com #3501.",
-  "_rebaseline_2026_06_13_v3825_prettier_reconcile": "Reconciliação tardia: o prettier do pre-commit reformatou 3 arquivos DEPOIS da medição de file-size dos PRs, inflando linhas além do baseline setado — OAuthModal.tsx 956→960 e providers.ts 3146→3147 (#3324), combo.ts 5162→5164 (#2743d). Bumps de reformatação automática (sem lógica nova). LIÇÃO: medir file-size pós-commit (pós-prettier), não antes."
+  "_rebaseline_2026_06_13_v3825_prettier_reconcile": "Reconciliação tardia: o prettier do pre-commit reformatou 3 arquivos DEPOIS da medição de file-size dos PRs, inflando linhas além do baseline setado — OAuthModal.tsx 956→960 e providers.ts 3146→3147 (#3324), combo.ts 5162→5164 (#2743d). Bumps de reformatação automática (sem lógica nova). LIÇÃO: medir file-size pós-commit (pós-prettier), não antes.",
+  "_rebaseline_2026_06_14_3822_release_drift": "Carry-over release-wide drift already present on the moving release/v3.8.25 base but not frozen: ProxyRegistryManager.tsx 1072→1089, sidebarVisibility.ts 990→1006, schemas.ts 2519→2522. No logic changes here; this keeps the quality gate aligned with the current base while the email visibility setting is extracted out of AppearanceTab instead of growing that frozen file."
 }

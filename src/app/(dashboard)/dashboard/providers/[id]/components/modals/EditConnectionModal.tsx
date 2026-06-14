@@ -135,8 +135,7 @@ export default function EditConnectionModal({
     >
   >({});
   const [showAdvanced, setShowAdvanced] = useState(false);
-  const { emailsVisible: showEmail, toggleEmailVisibility: toggleShowEmail } =
-    useEmailPrivacyStore();
+  const showEmail = useEmailPrivacyStore((state) => state.emailsVisible);
 
   const usesBaseUrl = isBaseUrlConfigurableProvider(connection?.provider);
   const defaultBaseUrl = getProviderBaseUrlDefault(connection?.provider);
@@ -681,21 +680,9 @@ export default function EditConnectionModal({
         {isOAuth && connection.email && (
           <div className="bg-sidebar/50 p-3 rounded-lg">
             <p className="text-sm text-text-muted mb-1">{t("email")}</p>
-            <div className="flex items-center gap-2">
-              <p className="font-medium" title={showEmail ? connection.email : undefined}>
-                {showEmail ? connection.email : maskEmail(connection.email)}
-              </p>
-              <button
-                type="button"
-                onClick={toggleShowEmail}
-                className="rounded p-1 text-text-muted hover:bg-sidebar hover:text-primary"
-                title={showEmail ? t("hideEmail") : t("showEmail")}
-              >
-                <span className="material-symbols-outlined text-sm">
-                  {showEmail ? "visibility_off" : "visibility"}
-                </span>
-              </button>
-            </div>
+            <p className="font-medium" title={showEmail ? connection.email : undefined}>
+              {showEmail ? connection.email : maskEmail(connection.email)}
+            </p>
           </div>
         )}
         {isOAuth && (
