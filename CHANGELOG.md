@@ -9,6 +9,7 @@
 ### 🐛 Fixed
 
 - **fix(intelligence): run pricing + models.dev sync from the live startup path** — like the Arena ELO sync (v3.8.24), the external **pricing sync** (`PRICING_SYNC_ENABLED`) and the **models.dev capability sync** (Settings → AI toggle) were only initialized from `server-init.ts`, which the Next standalone runtime never executes — and models.dev had no caller at all. Their toggles were inert in production. Both are now initialized from `instrumentation-node.ts` (self-gated, opt-in preserved, non-blocking, never fatal). (thanks @diegosouzapw)
+- **fix(sse): retry once on an early stream close (`STREAM_EARLY_EOF`) for single-model requests** — flaky OpenAI-compatible upstreams (e.g. NVIDIA NIM with minimax-m3 / qwen3.5 / glm-5.1) intermittently send HTTP 200 then close the SSE with zero useful frames, surfacing as a 502 "Stream ended before producing useful content". Only Antigravity got an early-close retry; every other provider returned the 502 immediately on the non-combo single-model path. A bounded one-retry (early-close only — not readiness-timeout — and without marking the account unavailable) now generalizes it. (The separate qwen-web validation SSRF part of the same report was already fixed in v3.8.24, [#3767](https://github.com/diegosouzapw/OmniRoute/pull/3767).) ([#3758](https://github.com/diegosouzapw/OmniRoute/issues/3758) — thanks @Svatosalav)
 
 ---
 
