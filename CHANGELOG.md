@@ -9,6 +9,7 @@
 ### 🐛 Fixed
 
 - **fix(intelligence): run pricing + models.dev sync from the live startup path** — like the Arena ELO sync (v3.8.24), the external **pricing sync** (`PRICING_SYNC_ENABLED`) and the **models.dev capability sync** (Settings → AI toggle) were only initialized from `server-init.ts`, which the Next standalone runtime never executes — and models.dev had no caller at all. Their toggles were inert in production. Both are now initialized from `instrumentation-node.ts` (self-gated, opt-in preserved, non-blocking, never fatal). (thanks @diegosouzapw)
+- **fix(models): preserve eye-hidden models across auto-sync / import** — hiding models via the visibility (eye) toggle to keep only a combo's models was undone on every model import or auto-sync, which re-showed all of them. The sync re-import treated "hidden" identically to "deleted" and dropped both; a distinct `isDeleted` marker now separates the trash/delete path (still dropped on re-import, #3199) from the eye toggle (preserved as listed-but-hidden), and eye-hidden models are no longer re-aliased into the routable catalog on sync. ([#3782](https://github.com/diegosouzapw/OmniRoute/issues/3782) — thanks @xenstar)
 
 ---
 
