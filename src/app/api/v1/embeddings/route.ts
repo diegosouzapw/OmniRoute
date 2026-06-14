@@ -13,6 +13,7 @@ import { isValidationFailure, validateBody } from "@/shared/validation/helpers";
 import { getAllCustomModels, getApiKeyMetadata } from "@/lib/localDb";
 import { createEmbeddingResponse, type EmbeddingHandlerOptions } from "@/lib/embeddings/service";
 import { extractApiKey, isValidApiKey } from "@/sse/services/auth";
+import { withInjectionGuard } from "@/middleware/promptInjectionGuard";
 
 function toProviderScopedModelId(providerId: string, modelId: string): string {
   return modelId.startsWith(`${providerId}/`) ? modelId : `${providerId}/${modelId}`;
@@ -75,7 +76,7 @@ export async function handleValidatedEmbeddingRequestBody(
   return createEmbeddingResponse(body, options);
 }
 
-export async function POST(request) {
+async function postHandler(request, context) {
   let rawBody;
   try {
     rawBody = await request.json();
@@ -120,3 +121,5 @@ export async function POST(request) {
     connectionId: null,
   });
 }
+
+export const POST = withInjectionGuard(postHandler);
