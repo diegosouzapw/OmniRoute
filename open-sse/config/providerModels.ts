@@ -74,6 +74,38 @@ export function supportsClaudeMaxEffort(modelId: string | null | undefined): boo
   );
 }
 
+// Reasoning-effort suffixes the Claude/Claude-Code model picker appends to a base
+// model id (an "Effort" slider: Low/Medium/High/Extra-High/Max). Longest/most
+// specific token first so the `-${level}` match below picks "xhigh" before "high".
+export const CLAUDE_EFFORT_SUFFIXES = ["xhigh", "max", "high", "medium", "low"] as const;
+export type ClaudeEffortSuffix = (typeof CLAUDE_EFFORT_SUFFIXES)[number];
+
+/**
+ * Split a trailing reasoning-effort suffix off a Claude model id, e.g.
+ * "claude-opus-4-8-high" -> { baseModel: "claude-opus-4-8", effort: "high" }.
+ *
+ * VS Code (and other clients) advertise claude-...-{low,medium,high,xhigh,max} via
+ * the model catalog; Anthropic has no such model id, so the suffixed string must be
+ * stripped before it is sent upstream (otherwise the relay returns HTTP 404) and
+ * surfaced as reasoning_effort so the translator / Claude-Code bridge convert it into
+ * Claude thinking/effort config. Mirrors codex's splitCodexReasoningSuffix but also
+ * covers "max" (codex's EFFORT_ORDER intentionally omits it). The `-${level}` anchor
+ * keeps "xhigh" from colliding with "high".
+ */
+export function splitClaudeEffortSuffix(model: unknown): {
+  baseModel: string;
+  effort: ClaudeEffortSuffix | null;
+} {
+  const id = typeof model === "string" ? model : "";
+  const lower = id.toLowerCase();
+  for (const level of CLAUDE_EFFORT_SUFFIXES) {
+    if (lower.endsWith(`-${level}`)) {
+      return { baseModel: id.slice(0, -(level.length + 1)), effort: level };
+    }
+  }
+  return { baseModel: id, effort: null };
+}
+
 function resolveProviderModelList(aliasOrId: string): {
   alias: string;
   models: RegistryModel[] | null;
