@@ -1054,6 +1054,7 @@ export const providerModelMutationSchema = z.object({
         "rerank",
         "images",
         "audio",
+        "video",
         "audio-transcriptions",
         "audio-speech",
         "images-generations",
