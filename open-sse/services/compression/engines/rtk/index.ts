@@ -278,6 +278,7 @@ export function processRtkText(
   let result = text;
 
   const detection = detectCommandType(text, options.command);
+  let matchedFilterPatterns: string[] = [];
   if (!options.skipFilters) {
     const filter = matchRtkFilter(text, detection.command, {
       customFiltersEnabled: config.customFiltersEnabled,
@@ -294,6 +295,7 @@ export function processRtkText(
           techniquesUsed.push("rtk-filter");
           rulesApplied.push(...filtered.appliedRules);
         }
+        matchedFilterPatterns = filter.priorityPatterns;
       }
     }
   }
@@ -323,12 +325,20 @@ export function processRtkText(
     rulesApplied.push("rtk:dedup");
   }
 
+  const defaultPriorityPatterns: RegExp[] = [/error|failed|exception|traceback|TS\d{4}|FAIL|✖/i];
+  const filterPriorityPatterns: RegExp[] = matchedFilterPatterns.flatMap((pattern) => {
+    try {
+      return [new RegExp(pattern, "i")];
+    } catch {
+      return [];
+    }
+  });
   const truncated = smartTruncate(result, {
     maxLines: config.maxLinesPerResult,
     maxChars: config.maxCharsPerResult,
     preserveHead: config.intensity === "aggressive" ? 16 : 24,
     preserveTail: config.intensity === "aggressive" ? 16 : 24,
-    priorityPatterns: [/error|failed|exception|traceback|TS\d{4}|FAIL|✖/i],
+    priorityPatterns: [...defaultPriorityPatterns, ...filterPriorityPatterns],
   });
   if (truncated.truncated) {
     result = truncated.text;
@@ -440,8 +450,7 @@ export function applyRtkCompression(
       ? { enabled: true, ...options.stepConfig }
       : options.stepConfig;
   const explicitConfig = options.config && Object.keys(options.config).length > 0;
-  const baseConfig =
-    !explicitConfig && !stepConfig ? { enabled: true } : (options.config ?? {});
+  const baseConfig = !explicitConfig && !stepConfig ? { enabled: true } : (options.config ?? {});
   const config = mergeRtkConfig(baseConfig, stepConfig);
   if (!config.enabled) return { body, compressed: false, stats: null };
 
