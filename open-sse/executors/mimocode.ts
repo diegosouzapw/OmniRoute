@@ -18,6 +18,7 @@
 import * as crypto from "node:crypto";
 import * as os from "node:os";
 import { BaseExecutor, type ExecuteInput, type ProviderCredentials } from "./base.ts";
+import { runWithProxyContext } from "../utils/proxyFetch.ts";
 
 const BOOTSTRAP_PATH = "/api/free-ai/bootstrap";
 const CHAT_PATH = "/api/free-ai/openai/chat";
@@ -72,12 +73,26 @@ const USER_AGENTS = [
 
 // ── Account State ──────────────────────────────────────────────────────────
 
+/** Per-account proxy configuration, passed through providerSpecificData.accountProxies. */
+export interface AccountProxyConfig {
+  fingerprint: string;
+  proxy: {
+    type: string;
+    host: string;
+    port: number;
+    username?: string;
+    password?: string;
+  } | null;
+}
+
 interface AccountState {
   fingerprint: string;
   jwt: string;
   expiresAt: number;
   cooldownUntil: number;
   consecutiveFails: number;
+  /** Resolved proxy config for this account (null = direct). */
+  proxy: AccountProxyConfig["proxy"];
 }
 
 function parseJwtExp(jwt: string): number {
@@ -195,23 +210,40 @@ export class MimocodeExecutor extends BaseExecutor {
       expiresAt: 0,
       cooldownUntil: 0,
       consecutiveFails: 0,
+      proxy: null,
     });
   }
 
   private syncAccountsFromCredentials(credentials: ProviderCredentials): void {
     const fingerprints = credentials?.providerSpecificData?.fingerprints;
-    if (!Array.isArray(fingerprints)) return;
-    const existing = new Set(this.accounts.map((a) => a.fingerprint));
-    for (const fp of fingerprints) {
-      if (typeof fp === "string" && !existing.has(fp)) {
-        this.accounts.push({
-          fingerprint: fp,
-          jwt: "",
-          expiresAt: 0,
-          cooldownUntil: 0,
-          consecutiveFails: 0,
-        });
-        existing.add(fp);
+    if (Array.isArray(fingerprints)) {
+      const existing = new Set(this.accounts.map((a) => a.fingerprint));
+      for (const fp of fingerprints) {
+        if (typeof fp === "string" && !existing.has(fp)) {
+          this.accounts.push({
+            fingerprint: fp,
+            jwt: "",
+            expiresAt: 0,
+            cooldownUntil: 0,
+            consecutiveFails: 0,
+            proxy: null,
+          });
+          existing.add(fp);
+        }
+      }
+    }
+
+    const accountProxies = credentials?.providerSpecificData
+      ?.accountProxies as AccountProxyConfig[] | undefined;
+    if (Array.isArray(accountProxies)) {
+      const proxyMap = new Map(
+        accountProxies.map((ap) => [ap.fingerprint, ap.proxy] as const)
+      );
+      for (const acct of this.accounts) {
+        const entry = proxyMap.get(acct.fingerprint);
+        if (entry !== undefined) {
+          acct.proxy = entry ?? null;
+        }
       }
     }
   }
@@ -221,7 +253,10 @@ export class MimocodeExecutor extends BaseExecutor {
     signal?: AbortSignal | null
   ): Promise<string> {
     if (isAccountReady(account)) return account.jwt;
-    const result = await bootstrapJwt(this.baseUrl, account.fingerprint, signal);
+    const proxy = account.proxy;
+    const result = await runWithProxyContext(proxy, () =>
+      bootstrapJwt(this.baseUrl, account.fingerprint, signal)
+    );
     account.jwt = result.jwt;
     account.expiresAt = result.expiresAt;
     return account.jwt;
@@ -298,23 +333,27 @@ export class MimocodeExecutor extends BaseExecutor {
   ): Promise<boolean> {
     try {
       const account = this.accounts[0];
+      this.syncAccountsFromCredentials(_credentials);
       const jwt = await this.getJwtForAccount(account, _signal);
-      const resp = await fetch(this.buildUrl("mimo-auto", false), {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${jwt}`,
-          "X-Mimo-Source": MIMO_SOURCE,
-        },
-        body: JSON.stringify(
-          injectSystemMarker({
-            model: "mimo-auto",
-            messages: [{ role: "user", content: "ping" }],
-            stream: false,
-          })
-        ),
-        signal: _signal ?? undefined,
-      });
+      const proxy = account.proxy;
+      const resp = await runWithProxyContext(proxy, () =>
+        fetch(this.buildUrl("mimo-auto", false), {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${jwt}`,
+            "X-Mimo-Source": MIMO_SOURCE,
+          },
+          body: JSON.stringify(
+            injectSystemMarker({
+              model: "mimo-auto",
+              messages: [{ role: "user", content: "ping" }],
+              stream: false,
+            })
+          ),
+          signal: _signal ?? undefined,
+        })
+      );
       return resp.status === 200;
     } catch {
       log?.warn?.("MIMOCODE", "testConnection network error");
@@ -359,13 +398,16 @@ export class MimocodeExecutor extends BaseExecutor {
         const jwt = await this.getJwtForAccount(account, signal);
         const headers = this.buildHeaders(input.credentials, stream);
         headers["Authorization"] = `Bearer ${jwt}`;
+        const proxy = account.proxy;
 
-        let resp = await fetch(url, {
-          method: "POST",
-          headers,
-          body: JSON.stringify(reqBody),
-          signal: signal ?? undefined,
-        });
+        let resp = await runWithProxyContext(proxy, () =>
+          fetch(url, {
+            method: "POST",
+            headers,
+            body: JSON.stringify(reqBody),
+            signal: signal ?? undefined,
+          })
+        );
 
         // On auth failure, re-bootstrap this account and retry once
         if (resp.status === 401 || resp.status === 403) {
@@ -378,12 +420,14 @@ export class MimocodeExecutor extends BaseExecutor {
           account.consecutiveFails = 0;
           const freshJwt = await this.getJwtForAccount(account, signal);
           headers["Authorization"] = `Bearer ${freshJwt}`;
-          resp = await fetch(url, {
-            method: "POST",
-            headers,
-            body: JSON.stringify(reqBody),
-            signal: signal ?? undefined,
-          });
+          resp = await runWithProxyContext(proxy, () =>
+            fetch(url, {
+              method: "POST",
+              headers,
+              body: JSON.stringify(reqBody),
+              signal: signal ?? undefined,
+            })
+          );
         }
 
         if (resp.status === 429) {

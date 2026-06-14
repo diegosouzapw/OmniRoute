@@ -4,6 +4,7 @@ import {
   MimocodeExecutor,
   generateFingerprint,
   MIMO_SYSTEM_MARKER,
+  type AccountProxyConfig,
 } from "../../open-sse/executors/mimocode.ts";
 
 const executor = new MimocodeExecutor();
@@ -249,5 +250,138 @@ describe("mimocode providerRegistry entry", () => {
     const models = entry.models as Array<{ id: string }>;
     const mimoAuto = models.find((m) => m.id === "mimo-auto");
     assert.ok(mimoAuto);
+  });
+});
+
+describe("mimocode per-account proxy", () => {
+  const exec = new MimocodeExecutor();
+
+  it("AccountProxyConfig type has required fields", () => {
+    const config: AccountProxyConfig = {
+      fingerprint: "abc123",
+      proxy: { type: "http", host: "proxy.example.com", port: 8080 },
+    };
+    assert.strictEqual(config.fingerprint, "abc123");
+    assert.strictEqual(config.proxy?.host, "proxy.example.com");
+  });
+
+  it("default account has null proxy", () => {
+    const accounts = (exec as any).accounts;
+    assert.ok(Array.isArray(accounts));
+    assert.ok(accounts.length >= 1);
+    assert.strictEqual(accounts[0].proxy, null);
+  });
+
+  it("syncAccountsFromCredentials reads accountProxies", () => {
+    const testExec = new MimocodeExecutor();
+    const fp1 = "fingerprint-1";
+    const fp2 = "fingerprint-2";
+    (testExec as any).accounts = [
+      { fingerprint: fp1, jwt: "", expiresAt: 0, cooldownUntil: 0, consecutiveFails: 0, proxy: null },
+      { fingerprint: fp2, jwt: "", expiresAt: 0, cooldownUntil: 0, consecutiveFails: 0, proxy: null },
+    ];
+    (testExec as any).nextAccountIdx = 0;
+
+    const credentials = {
+      providerSpecificData: {
+        accountProxies: [
+          { fingerprint: fp1, proxy: { type: "http", host: "p1.example.com", port: 1080 } },
+          { fingerprint: fp2, proxy: null },
+        ],
+      },
+    };
+    (testExec as any).syncAccountsFromCredentials(credentials);
+
+    const accounts = (testExec as any).accounts;
+    const acct1 = accounts.find((a: any) => a.fingerprint === fp1);
+    const acct2 = accounts.find((a: any) => a.fingerprint === fp2);
+    assert.deepStrictEqual(acct1.proxy, { type: "http", host: "p1.example.com", port: 1080 });
+    assert.strictEqual(acct2.proxy, null);
+  });
+
+  it("syncAccountsFromCredentials skips when accountProxies absent", () => {
+    const testExec = new MimocodeExecutor();
+    const before = JSON.parse(JSON.stringify((testExec as any).accounts));
+    (testExec as any).syncAccountsFromCredentials({ providerSpecificData: {} });
+    const after = (testExec as any).accounts;
+    assert.strictEqual(after.length, before.length);
+    assert.strictEqual(after[0].proxy, null);
+  });
+
+  it("syncAccountsFromCredentials skips unknown fingerprints", () => {
+    const testExec = new MimocodeExecutor();
+    const existingFp = (testExec as any).accounts[0].fingerprint;
+    (testExec as any).syncAccountsFromCredentials({
+      providerSpecificData: {
+        accountProxies: [
+          { fingerprint: "nonexistent-fingerprint", proxy: { type: "socks5", host: "s5.example.com", port: 1080 } },
+        ],
+      },
+    });
+    assert.strictEqual((testExec as any).accounts[0].proxy, null);
+  });
+
+  it("accounts with different proxies are tracked independently", () => {
+    const testExec = new MimocodeExecutor();
+    const fp1 = "fp-a";
+    const fp2 = "fp-b";
+    (testExec as any).accounts = [
+      { fingerprint: fp1, jwt: "", expiresAt: 0, cooldownUntil: 0, consecutiveFails: 0, proxy: null },
+      { fingerprint: fp2, jwt: "", expiresAt: 0, cooldownUntil: 0, consecutiveFails: 0, proxy: null },
+    ];
+    (testExec as any).syncAccountsFromCredentials({
+      providerSpecificData: {
+        accountProxies: [
+          { fingerprint: fp1, proxy: { type: "http", host: "a.com", port: 8080 } },
+          { fingerprint: fp2, proxy: { type: "socks5", host: "b.com", port: 1080 } },
+        ],
+      },
+    });
+
+    const accounts = (testExec as any).accounts;
+    const a1 = accounts.find((a: any) => a.fingerprint === fp1);
+    const a2 = accounts.find((a: any) => a.fingerprint === fp2);
+    assert.notDeepStrictEqual(a1.proxy, a2.proxy);
+    assert.strictEqual(a1.proxy?.host, "a.com");
+    assert.strictEqual(a2.proxy?.host, "b.com");
+  });
+
+  it("getJwtForAccount reads proxy from account", async () => {
+    const testExec = new MimocodeExecutor();
+    const fp = "test-fp-proxy";
+    const proxyConfig = { type: "http", host: "proxy.test", port: 3128 };
+    (testExec as any).accounts = [
+      { fingerprint: fp, jwt: "", expiresAt: 0, cooldownUntil: 0, consecutiveFails: 0, proxy: proxyConfig },
+    ];
+    (testExec as any).nextAccountIdx = 0;
+
+    const acct = (testExec as any).accounts[0];
+    assert.deepStrictEqual(acct.proxy, proxyConfig);
+    assert.strictEqual(acct.jwt, "");
+  });
+
+  it("proxy field persists on account after sync", () => {
+    const testExec = new MimocodeExecutor();
+    const fp = "test-fp-persist";
+    (testExec as any).accounts = [
+      { fingerprint: fp, jwt: "", expiresAt: 0, cooldownUntil: 0, consecutiveFails: 0, proxy: null },
+    ];
+    (testExec as any).nextAccountIdx = 0;
+
+    const proxy1 = { type: "http", host: "first.proxy", port: 8080 };
+    (testExec as any).syncAccountsFromCredentials({
+      providerSpecificData: {
+        accountProxies: [{ fingerprint: fp, proxy: proxy1 }],
+      },
+    });
+    assert.deepStrictEqual((testExec as any).accounts[0].proxy, proxy1);
+
+    const proxy2 = { type: "socks5", host: "second.proxy", port: 1080 };
+    (testExec as any).syncAccountsFromCredentials({
+      providerSpecificData: {
+        accountProxies: [{ fingerprint: fp, proxy: proxy2 }],
+      },
+    });
+    assert.deepStrictEqual((testExec as any).accounts[0].proxy, proxy2);
   });
 });
