@@ -28,7 +28,7 @@
     "open-sse/services/batchProcessor.ts": 828,
     "open-sse/services/browserBackedChat.ts": 850,
     "open-sse/services/claudeCodeCompatible.ts": 1202,
-    "open-sse/services/combo.ts": 5198,
+    "open-sse/services/combo.ts": 5203,
     "open-sse/services/rateLimitManager.ts": 1017,
     "open-sse/services/tokenRefresh.ts": 1997,
     "open-sse/services/usage.ts": 3394,
@@ -94,10 +94,10 @@
     "src/lib/usage/providerLimits.ts": 949,
     "src/lib/usage/usageHistory.ts": 854,
     "src/shared/components/OAuthModal.tsx": 960,
-    "src/shared/components/RequestLoggerV2.tsx": 1276,
+    "src/shared/components/RequestLoggerV2.tsx": 1282,
     "src/shared/components/analytics/charts.tsx": 1558,
     "src/shared/constants/cliTools.ts": 875,
-    "src/shared/constants/pricing.ts": 1470,
+    "src/shared/constants/pricing.ts": 1508,
     "src/shared/constants/providers.ts": 3147,
     "src/shared/constants/sidebarVisibility.ts": 1006,
     "src/shared/services/cliRuntime.ts": 1090,
@@ -123,5 +123,6 @@
   "_rebaseline_2026_06_13_2743d_skipbreaker": "Re-baseline #2743 gap-d (testar consumer do skipProviderBreaker): combo.ts 5131→5162 (+31). Crescimento = extração do boolean inline da decisão de circuit-breaker para o predicado puro EXPORTADO shouldRecordProviderBreakerFailure() (byte-idêntico) + JSDoc, para torná-lo unit-testável sem o harness completo de combo. Shrink estrutural segue com #3501.",
   "_rebaseline_2026_06_13_v3825_prettier_reconcile": "Reconciliação tardia: o prettier do pre-commit reformatou 3 arquivos DEPOIS da medição de file-size dos PRs, inflando linhas além do baseline setado — OAuthModal.tsx 956→960 e providers.ts 3146→3147 (#3324), combo.ts 5162→5164 (#2743d). Bumps de reformatação automática (sem lógica nova). LIÇÃO: medir file-size pós-commit (pós-prettier), não antes.",
   "_rebaseline_2026_06_14_3826_release_drift": "Re-baseline release/v3.8.25 drift already documented from #3809 owner changes: ProxyRegistryManager.tsx 1072→1089, sidebarVisibility.ts 990→1006, schemas.ts 2519→2522. This PR does not touch those source files; updating the frozen values restores Fast Quality Gates on the current release branch.",
-  "_rebaseline_2026_06_14_3825_combo_stickiness": "Re-baseline #3825 (sessionless combo stickiness + reasoning-aware readiness): combo.ts 5164→5198 (+34, pós-prettier). Crescimento = deriveComboSessionKey() + effectiveSessionId threading nos sites de read/write do pin server-side. streamReadinessPolicy.ts não-frozen (sob cap). Lógica coesa no handler de combo; não-extraível."
+  "_rebaseline_2026_06_14_3825_combo_stickiness": "Re-baseline #3825 (sessionless combo stickiness + reasoning-aware readiness): combo.ts 5164→5198 (+34, pós-prettier). Crescimento = deriveComboSessionKey() + effectiveSessionId threading nos sites de read/write do pin server-side. streamReadinessPolicy.ts não-frozen (sob cap). Lógica coesa no handler de combo; não-extraível.",
+  "_rebaseline_2026_06_14_r3_3835_kiro_pricing": "PR #3835 own growth: pricing.ts 1470→1508 (+38 = missing Kiro pricing rows, claude-sonnet-4.6 etc., pure data). Also carries inherited release/v3.8.25 drift not yet frozen by prior r2 merges: RequestLoggerV2.tsx 1276→1282 (#3820 resizable log table) and combo.ts 5198→5203 (#3811 round-robin replay-response fix). This PR does not touch RequestLoggerV2/combo.ts source; updating the frozen values restores Fast Quality Gates on the current release branch."
 }
