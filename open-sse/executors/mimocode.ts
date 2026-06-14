@@ -235,15 +235,16 @@ export class MimocodeExecutor extends BaseExecutor {
 
     const accountProxies = credentials?.providerSpecificData
       ?.accountProxies as AccountProxyConfig[] | undefined;
-    if (Array.isArray(accountProxies)) {
-      const proxyMap = new Map(
-        accountProxies.map((ap) => [ap.fingerprint, ap.proxy] as const)
-      );
-      for (const acct of this.accounts) {
+    const proxyMap = Array.isArray(accountProxies)
+      ? new Map(accountProxies.map((ap) => [ap.fingerprint, ap.proxy] as const))
+      : null;
+
+    for (const acct of this.accounts) {
+      if (proxyMap) {
         const entry = proxyMap.get(acct.fingerprint);
-        if (entry !== undefined) {
-          acct.proxy = entry ?? null;
-        }
+        acct.proxy = entry !== undefined ? (entry ?? null) : null;
+      } else {
+        acct.proxy = null;
       }
     }
   }
@@ -332,8 +333,8 @@ export class MimocodeExecutor extends BaseExecutor {
     log?: ExecuteInput["log"]
   ): Promise<boolean> {
     try {
-      const account = this.accounts[0];
       this.syncAccountsFromCredentials(_credentials);
+      const account = this.accounts[0];
       const jwt = await this.getJwtForAccount(account, _signal);
       const proxy = account.proxy;
       const resp = await runWithProxyContext(proxy, () =>
