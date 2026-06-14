@@ -56,7 +56,7 @@
     "src/app/(dashboard)/dashboard/providers/[id]/hooks/useProviderConnections.ts": 954,
     "src/app/(dashboard)/dashboard/providers/[id]/hooks/useProviderModels.ts": 155,
     "src/app/(dashboard)/dashboard/providers/[id]/hooks/useProviderSettings.ts": 264,
-    "src/app/(dashboard)/dashboard/providers/[id]/providerPageHelpers.ts": 939,
+    "src/app/(dashboard)/dashboard/providers/[id]/providerPageHelpers.ts": 955,
     "src/app/(dashboard)/dashboard/providers/components/onboarding/ProviderOnboardingWizard.tsx": 906,
     "src/app/(dashboard)/dashboard/providers/page.tsx": 1925,
     "src/app/(dashboard)/dashboard/runtime/RuntimePageClient.tsx": 1198,
@@ -97,7 +97,7 @@
     "src/shared/components/RequestLoggerV2.tsx": 1282,
     "src/shared/components/analytics/charts.tsx": 1558,
     "src/shared/constants/cliTools.ts": 875,
-    "src/shared/constants/pricing.ts": 1470,
+    "src/shared/constants/pricing.ts": 1508,
     "src/shared/constants/providers.ts": 3147,
     "src/shared/constants/sidebarVisibility.ts": 1006,
     "src/shared/services/cliRuntime.ts": 1090,
@@ -124,6 +124,7 @@
   "_rebaseline_2026_06_13_v3825_prettier_reconcile": "Reconciliação tardia: o prettier do pre-commit reformatou 3 arquivos DEPOIS da medição de file-size dos PRs, inflando linhas além do baseline setado — OAuthModal.tsx 956→960 e providers.ts 3146→3147 (#3324), combo.ts 5162→5164 (#2743d). Bumps de reformatação automática (sem lógica nova). LIÇÃO: medir file-size pós-commit (pós-prettier), não antes.",
   "_rebaseline_2026_06_14_3826_release_drift": "Re-baseline release/v3.8.25 drift already documented from #3809 owner changes: ProxyRegistryManager.tsx 1072→1089, sidebarVisibility.ts 990→1006, schemas.ts 2519→2522. This PR does not touch those source files; updating the frozen values restores Fast Quality Gates on the current release branch.",
   "_rebaseline_2026_06_14_3825_combo_stickiness": "Re-baseline #3825 (sessionless combo stickiness + reasoning-aware readiness): combo.ts 5164→5198 (+34, pós-prettier). Crescimento = deriveComboSessionKey() + effectiveSessionId threading nos sites de read/write do pin server-side. streamReadinessPolicy.ts não-frozen (sob cap). Lógica coesa no handler de combo; não-extraível.",
-  "_rebaseline_2026_06_14_2997_disable_cooling": "Re-baseline #2997 (per-connection disable-cooling): EditConnectionModal.tsx 1171→1174 (+toggle UI) + auth.ts 2207→2216 (honor de disableCooling no markAccountUnavailable, pós-prettier). Lógica coesa; não-extraível.",
-  "_rebaseline_2026_06_14_v3825_release_drift_2": "RECONCILIAÇÃO de drift release-wide (NÃO deste PR): combo.ts 5198→5203 e RequestLoggerV2.tsx 1276→1282 cresceram via merges de outras sessões entre 70319eb83 e a base deste worktree, sem bump. Reconciliado aqui só p/ manter Fast-QG verde; os arquivos não são tocados por #2997/#2996."
+  "_rebaseline_2026_06_14_r3_3835_kiro_pricing": "PR #3835 own growth: pricing.ts 1470→1508 (+38 = missing Kiro pricing rows, claude-sonnet-4.6 etc., pure data). Also carries inherited release/v3.8.25 drift not yet frozen by prior r2 merges: RequestLoggerV2.tsx 1276→1282 (#3820 resizable log table) and combo.ts 5198→5203 (#3811 round-robin replay-response fix). This PR does not touch RequestLoggerV2/combo.ts source; updating the frozen values restores Fast Quality Gates on the current release branch.",
+  "_rebaseline_2026_06_14_r3_3849_transient_hide": "PR #3849 own growth: providerPageHelpers.ts 939→955 (+16 = expanded JSDoc on the auto-hide policy + transient-failure guard in evaluateTestAllEntry). Cohesive helper logic; not extractable.",
+  "_rebaseline_2026_06_14_2997_disable_cooling": "Re-baseline #2997 (per-connection disable-cooling): EditConnectionModal.tsx 1171→1174 (+toggle UI) + auth.ts 2207→2216 (honor de disableCooling no markAccountUnavailable, pós-prettier). Lógica coesa; não-extraível. (combo.ts/RequestLoggerV2 drift já documentado em _r3_3835.)"
 }
