@@ -2626,6 +2626,7 @@ export async function handleChatCore({
         const result = await applyCompressionAsync(compressionInputBody, mode, {
           model: effectiveModel,
           config,
+          principalId: apiKeyInfo?.id ? String(apiKeyInfo.id) : undefined,
         });
         if (result.stats) {
           if (result.compressed) {
