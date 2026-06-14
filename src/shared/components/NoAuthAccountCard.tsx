@@ -245,30 +245,33 @@ export default function NoAuthAccountCard({
               const proxy = getProxyForFingerprint(accountProxies, id);
               return (
                 <div key={id} className="relative">
-                  <div className="flex items-center justify-between rounded-md bg-bg-secondary px-3 py-1.5 text-xs">
-                    <span className="font-mono text-text-muted">
-                      Account {i + 1}: {id.slice(0, 12)}...
-                    </span>
+                  <div className="group flex items-center justify-between p-3 rounded-lg hover:bg-black/[0.02] dark:hover:bg-white/[0.02] transition-colors">
+                    <div className="flex items-center gap-2 flex-1 min-w-0">
+                      <span className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-bg text-text-muted text-xs font-medium">
+                        {i + 1}
+                      </span>
+                      <span className="font-mono text-xs text-text-muted truncate">
+                        {id.slice(0, 12)}...
+                      </span>
+                    </div>
                     <div className="flex items-center gap-2">
                       <button
                         onClick={() => openProxyConfig(id)}
-                        className="flex items-center gap-1 text-xs"
+                        className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-xs font-medium transition-colors"
                         title={proxy ? `${proxy.type}://${proxy.host}:${proxy.port}` : "Configure proxy"}
                       >
-                        <span
-                          className={`inline-block w-2 h-2 rounded-full ${
-                            proxy ? "bg-blue-400" : "bg-text-muted/30"
-                          }`}
-                        />
+                        <span className={`material-symbols-outlined text-[14px] ${proxy ? "text-blue-400" : "text-text-muted"}`}>
+                          {proxy ? "shield" : "shield"}
+                        </span>
                         <span className={proxy ? "text-blue-400" : "text-text-muted"}>
                           {proxy ? `${proxy.type}://${proxy.host}` : "Proxy"}
                         </span>
                       </button>
                       <button
                         onClick={() => handleRemoveAccount(id)}
-                        className="text-red-500 hover:text-red-400 text-xs"
+                        className="p-1 hover:bg-red-500/10 rounded text-text-muted hover:text-red-500 transition-colors opacity-0 group-hover:opacity-100"
                       >
-                        Remove
+                        <span className="material-symbols-outlined text-[16px]">delete</span>
                       </button>
                     </div>
                   </div>
@@ -276,17 +279,17 @@ export default function NoAuthAccountCard({
                   {proxyAccountId === id && (
                     <div
                       ref={popoverRef}
-                      className="absolute right-0 top-full z-50 mt-1 w-72 rounded-lg border border-border bg-bg-primary shadow-lg p-3"
+                      className="absolute right-0 top-full z-50 mt-1 w-80 rounded-lg border border-black/10 dark:border-white/10 bg-surface shadow-lg p-4"
                     >
-                      <p className="text-xs font-medium mb-2">
+                      <p className="text-sm font-medium mb-3">
                         Proxy for Account {i + 1}
                       </p>
-                      <div className="space-y-2">
+                      <div className="space-y-3">
                         <div className="flex gap-2">
                           <select
                             value={proxyType}
                             onChange={(e) => setProxyType(e.target.value)}
-                            className="rounded border border-border bg-bg-secondary px-2 py-1 text-xs flex-shrink-0"
+                            className="rounded-md border border-black/10 dark:border-white/10 bg-bg px-2.5 py-1.5 text-xs flex-shrink-0"
                           >
                             {PROXY_TYPES.map((t) => (
                               <option key={t.value} value={t.value}>{t.label}</option>
@@ -297,14 +300,14 @@ export default function NoAuthAccountCard({
                             value={proxyHost}
                             onChange={(e) => setProxyHost(e.target.value)}
                             placeholder="Host"
-                            className="flex-1 rounded border border-border bg-bg-secondary px-2 py-1 text-xs"
+                            className="flex-1 rounded-md border border-black/10 dark:border-white/10 bg-bg px-2.5 py-1.5 text-xs"
                           />
                           <input
                             type="text"
                             value={proxyPort}
                             onChange={(e) => setProxyPort(e.target.value)}
                             placeholder="Port"
-                            className="w-16 rounded border border-border bg-bg-secondary px-2 py-1 text-xs"
+                            className="w-16 rounded-md border border-black/10 dark:border-white/10 bg-bg px-2.5 py-1.5 text-xs"
                           />
                         </div>
                         <input
@@ -312,26 +315,26 @@ export default function NoAuthAccountCard({
                           value={proxyUsername}
                           onChange={(e) => setProxyUsername(e.target.value)}
                           placeholder="Username (optional)"
-                          className="w-full rounded border border-border bg-bg-secondary px-2 py-1 text-xs"
+                          className="w-full rounded-md border border-black/10 dark:border-white/10 bg-bg px-2.5 py-1.5 text-xs"
                         />
                         <input
                           type="password"
                           value={proxyPassword}
                           onChange={(e) => setProxyPassword(e.target.value)}
                           placeholder="Password (optional)"
-                          className="w-full rounded border border-border bg-bg-secondary px-2 py-1 text-xs"
+                          className="w-full rounded-md border border-black/10 dark:border-white/10 bg-bg px-2.5 py-1.5 text-xs"
                         />
                         <div className="flex justify-end gap-2 pt-1">
                           <button
                             onClick={() => setProxyAccountId(null)}
-                            className="rounded px-2 py-1 text-xs text-text-muted hover:text-text-primary"
+                            className="rounded-md px-3 py-1.5 text-xs text-text-muted hover:text-text-main hover:bg-black/5 dark:hover:bg-white/5 transition-colors"
                           >
                             Cancel
                           </button>
                           <button
                             onClick={handleSaveProxy}
                             disabled={savingProxy}
-                            className="rounded bg-blue-500/10 px-2 py-1 text-xs text-blue-400 hover:bg-blue-500/20 disabled:opacity-50"
+                            className="rounded-md bg-primary/10 px-3 py-1.5 text-xs text-primary hover:bg-primary/20 disabled:opacity-50 transition-colors"
                           >
                             {savingProxy ? "Saving..." : "Save"}
                           </button>
