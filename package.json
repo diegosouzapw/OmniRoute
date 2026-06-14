@@ -156,6 +156,7 @@
     "backfill-aggregation": "node --import tsx src/scripts/backfillAggregation.ts",
     "env:sync": "node scripts/dev/sync-env.mjs",
     "test:integration": "cross-env DISABLE_SQLITE_AUTO_BACKUP=true node --import tsx --import ./open-sse/utils/setupPolyfill.ts --test --test-force-exit --test-concurrency=1 tests/integration/*.test.ts",
+    "test:heap": "node --expose-gc --import tsx --import ./open-sse/utils/setupPolyfill.ts --test --test-force-exit tests/integration/heap-growth.test.ts",
     "test:e2e": "node scripts/dev/run-playwright-tests.mjs test tests/e2e/*.spec.ts",
     "test:protocols:e2e": "node scripts/dev/run-protocol-clients-tests.mjs",
     "test:vitest": "vitest run --config vitest.mcp.config.ts",
