@@ -28,7 +28,8 @@ export type CompressionEngineId =
   | "rtk"
   | "session-dedup"
   | "headroom"
-  | "ccr";
+  | "ccr"
+  | "llmlingua";
 
 export interface CavemanRule {
   name: string;
