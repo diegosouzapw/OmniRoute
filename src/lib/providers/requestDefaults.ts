@@ -123,6 +123,11 @@ export function normalizeProviderSpecificData(
     delete normalized.blockExtraUsage;
   }
 
+  // #2997: per-connection transient-cooldown opt-out — only persist a real boolean.
+  if ("disableCooling" in normalized && typeof normalized.disableCooling !== "boolean") {
+    delete normalized.disableCooling;
+  }
+
   if ("autoFetchModels" in normalized && typeof normalized.autoFetchModels !== "boolean") {
     delete normalized.autoFetchModels;
   }

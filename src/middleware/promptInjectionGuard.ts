@@ -11,6 +11,7 @@ import {
   type PromptInjectionGuardrailOptions,
 } from "@/lib/guardrails/promptInjection";
 import { resolveDisabledGuardrails } from "@/lib/guardrails/registry";
+import { CORS_HEADERS } from "@/shared/utils/cors";
 
 /**
  * Create a prompt injection guard middleware.
@@ -71,10 +72,11 @@ export function withInjectionGuard(handler: any, options: any = {}) {
               error: {
                 message: "Request blocked: potential prompt injection detected",
                 type: "injection_detected",
+                code: "SECURITY_001",
                 detections: result.detections.length,
               },
             }),
-            { status: 400, headers: { "Content-Type": "application/json" } }
+            { status: 400, headers: { ...CORS_HEADERS, "Content-Type": "application/json" } }
           );
         }
 

@@ -5,6 +5,7 @@ import type {
   CompressionResult,
   CompressionStats,
 } from "./types.ts";
+import type { CompressionEngineApplyOptions } from "./engines/types.ts";
 import { applyLiteCompression } from "./lite.ts";
 import { cavemanCompress } from "./caveman.ts";
 import { compressAggressive } from "./aggressive.ts";
@@ -69,7 +70,12 @@ export function selectCompressionStrategy(
 export function applyCompression(
   body: Record<string, unknown>,
   mode: CompressionMode,
-  options?: { model?: string; supportsVision?: boolean | null; config?: CompressionConfig }
+  options?: {
+    model?: string;
+    supportsVision?: boolean | null;
+    config?: CompressionConfig;
+    principalId?: string;
+  }
 ): CompressionResult {
   if (mode === "off") {
     return { body, compressed: false, stats: null };
@@ -179,6 +185,35 @@ export function applyCompression(
   return { body, compressed: false, stats: null };
 }
 
+/**
+ * Async entry point mirroring {@link applyCompression}. Only the stacked mode
+ * can host async engines, so it routes through {@link applyStackedCompressionAsync};
+ * every other mode delegates to the synchronous path unchanged. Call sites that
+ * already run in an async context (e.g. chatCore) await this so a future
+ * worker-thread engine can await without changing the surrounding code.
+ */
+export async function applyCompressionAsync(
+  body: Record<string, unknown>,
+  mode: CompressionMode,
+  options?: {
+    model?: string;
+    supportsVision?: boolean | null;
+    config?: CompressionConfig;
+    principalId?: string;
+  }
+): Promise<CompressionResult> {
+  if (mode === "stacked") {
+    const adapter = adaptBodyForCompression(body);
+    const result = await applyStackedCompressionAsync(
+      adapter.body,
+      options?.config?.stackedPipeline,
+      options
+    );
+    return adapter.adapted ? { ...result, body: adapter.restore(result.body) } : result;
+  }
+  return applyCompression(body, mode, options);
+}
+
 function normalizePipelineStep(step: CompressionPipelineStep | string): CompressionPipelineStep {
   if (typeof step !== "string") return step;
   if (step === "standard") return { engine: "caveman" };
@@ -187,105 +222,278 @@ function normalizePipelineStep(step: CompressionPipelineStep | string): Compress
   return { engine: "caveman" };
 }
 
-export function applyStackedCompression(
-  body: Record<string, unknown>,
-  pipeline?: Array<CompressionPipelineStep | string>,
-  options?: {
-    model?: string;
-    supportsVision?: boolean | null;
-    config?: CompressionConfig;
-    compressionComboId?: string | null;
-  }
+/**
+ * TV1 — Opt-in bail-out configuration for the stacked pipeline.
+ * When enabled: a step that throws is silently skipped (verbatim kept);
+ * a step whose gain is below minGainPercent is also skipped.
+ * DEFAULT = disabled — behaviour is byte-identical to pre-TV1 when absent.
+ */
+interface BailoutConfig {
+  enabled: boolean;
+  /** Minimum savings percent required to advance currentBody. Default: 10. */
+  minGainPercent?: number;
+}
+
+interface StackOptions {
+  model?: string;
+  supportsVision?: boolean | null;
+  config?: CompressionConfig;
+  compressionComboId?: string | null;
+  /** TV1 bail-out discipline (opt-in, default disabled). */
+  bailout?: BailoutConfig;
+  /** Authenticated principal id — threaded through to CCR engine for store scoping. */
+  principalId?: string;
+}
+
+/** Accumulates per-step telemetry across a stacked run (shared sync/async). */
+interface StackAccumulator {
+  techniques: Set<string>;
+  rules: Set<string>;
+  breakdown: NonNullable<CompressionStats["engineBreakdown"]>;
+  rtkRawOutputPointers: NonNullable<CompressionStats["rtkRawOutputPointers"]>;
+  validationWarnings: Set<string>;
+  validationErrors: Set<string>;
+  fallbackApplied: boolean;
+}
+
+function createStackAccumulator(): StackAccumulator {
+  return {
+    techniques: new Set<string>(),
+    rules: new Set<string>(),
+    breakdown: [],
+    rtkRawOutputPointers: [],
+    validationWarnings: new Set<string>(),
+    validationErrors: new Set<string>(),
+    fallbackApplied: false,
+  };
+}
+
+function resolveStackSteps(
+  pipeline?: Array<CompressionPipelineStep | string>
+): CompressionPipelineStep[] {
+  return pipeline && pipeline.length > 0
+    ? pipeline.map(normalizePipelineStep)
+    : [
+        { engine: "rtk", intensity: "standard" },
+        { engine: "caveman", intensity: "full" },
+      ];
+}
+
+function buildStepOptions(
+  step: CompressionPipelineStep,
+  options?: StackOptions
+): CompressionEngineApplyOptions {
+  return {
+    ...options,
+    compressionComboId: options?.compressionComboId ?? options?.config?.compressionComboId,
+    principalId: options?.principalId,
+    stepConfig: {
+      ...(step.config ?? {}),
+      ...(step.intensity ? { intensity: step.intensity } : {}),
+    },
+  };
+}
+
+/**
+ * TV1 — Pure helper that decides whether a completed step should advance
+ * `currentBody`. Called only when bailout is ENABLED; the sync/async loops
+ * bypass this entirely on the default-off path (zero cost, zero behaviour change).
+ *
+ * Returns `{ advance: true }` when the step should be accepted, or
+ * `{ advance: false }` when it should be skipped (verbatim kept).
+ */
+function decideStep(result: CompressionResult, bailout: BailoutConfig): { advance: boolean } {
+  if (!result.compressed) return { advance: false };
+  // Clamp: a negative minGainPercent would mean "always advance" (invalid state).
+  const minGain = Math.max(0, bailout.minGainPercent ?? 10);
+  const gain = result.stats?.savingsPercent ?? 0;
+  if (gain < minGain) return { advance: false };
+  return { advance: true };
+}
+
+/** Folds one engine result into the accumulator (telemetry + breakdown entry). */
+function mergeStackStep(acc: StackAccumulator, engineId: string, result: CompressionResult): void {
+  if (!result.stats) return;
+  result.stats.techniquesUsed.forEach((technique) => acc.techniques.add(technique));
+  result.stats.rulesApplied?.forEach((rule) => acc.rules.add(rule));
+  result.stats.rtkRawOutputPointers?.forEach((pointer) => acc.rtkRawOutputPointers.push(pointer));
+  result.stats.validationWarnings?.forEach((warning) => acc.validationWarnings.add(warning));
+  result.stats.validationErrors?.forEach((error) => acc.validationErrors.add(error));
+  acc.fallbackApplied = acc.fallbackApplied || result.stats.fallbackApplied === true;
+  acc.breakdown.push({
+    engine: engineId,
+    originalTokens: result.stats.originalTokens,
+    compressedTokens: result.stats.compressedTokens,
+    savingsPercent: result.stats.savingsPercent,
+    techniquesUsed: result.stats.techniquesUsed,
+    ...(result.stats.rulesApplied ? { rulesApplied: result.stats.rulesApplied } : {}),
+    ...(result.stats.durationMs !== undefined ? { durationMs: result.stats.durationMs } : {}),
+  });
+}
+
+function finalizeStackedResult(
+  originalBody: Record<string, unknown>,
+  currentBody: Record<string, unknown>,
+  compressed: boolean,
+  acc: StackAccumulator,
+  start: number,
+  compressionComboId: string | null | undefined
 ): CompressionResult {
-  const steps =
-    pipeline && pipeline.length > 0
-      ? pipeline.map(normalizePipelineStep)
-      : [
-          { engine: "rtk" as const, intensity: "standard" as const },
-          { engine: "caveman" as const, intensity: "full" as const },
-        ];
-  registerBuiltinCompressionEngines();
-
-  let currentBody = body;
-  let compressed = false;
-  const techniques = new Set<string>();
-  const rules = new Set<string>();
-  const breakdown: NonNullable<CompressionStats["engineBreakdown"]> = [];
-  const rtkRawOutputPointers: NonNullable<CompressionStats["rtkRawOutputPointers"]> = [];
-  const validationWarnings = new Set<string>();
-  const validationErrors = new Set<string>();
-  let fallbackApplied = false;
-  const start = performance.now();
-
-  for (const step of steps) {
-    const engine = getCompressionEngine(step.engine);
-    if (!engine) continue;
-    const result = engine.apply(currentBody, {
-      ...options,
-      compressionComboId: options?.compressionComboId ?? options?.config?.compressionComboId,
-      stepConfig: {
-        ...(step.config ?? {}),
-        ...(step.intensity ? { intensity: step.intensity } : {}),
-      },
-    });
-    if (result.stats) {
-      result.stats.techniquesUsed.forEach((technique) => techniques.add(technique));
-      result.stats.rulesApplied?.forEach((rule) => rules.add(rule));
-      result.stats.rtkRawOutputPointers?.forEach((pointer) => {
-        rtkRawOutputPointers.push(pointer);
-      });
-      result.stats.validationWarnings?.forEach((warning) => validationWarnings.add(warning));
-      result.stats.validationErrors?.forEach((error) => validationErrors.add(error));
-      fallbackApplied = fallbackApplied || result.stats.fallbackApplied === true;
-      breakdown.push({
-        engine: step.engine,
-        originalTokens: result.stats.originalTokens,
-        compressedTokens: result.stats.compressedTokens,
-        savingsPercent: result.stats.savingsPercent,
-        techniquesUsed: result.stats.techniquesUsed,
-        ...(result.stats.rulesApplied ? { rulesApplied: result.stats.rulesApplied } : {}),
-        ...(result.stats.durationMs !== undefined ? { durationMs: result.stats.durationMs } : {}),
-      });
-    }
-    if (result.compressed) {
-      currentBody = result.body;
-      compressed = true;
-    }
-  }
-
   const stats = createCompressionStats(
-    body,
+    originalBody,
     currentBody,
     "stacked",
-    Array.from(techniques),
-    rules.size > 0 ? Array.from(rules) : undefined,
+    Array.from(acc.techniques),
+    acc.rules.size > 0 ? Array.from(acc.rules) : undefined,
     Math.round((performance.now() - start) * 100) / 100
   );
   stats.engine = "stacked";
-  stats.compressionComboId =
-    options?.compressionComboId ?? options?.config?.compressionComboId ?? null;
-  stats.engineBreakdown = breakdown;
-  if (validationWarnings.size > 0) {
-    stats.validationWarnings = Array.from(validationWarnings);
+  stats.compressionComboId = compressionComboId ?? null;
+  stats.engineBreakdown = acc.breakdown;
+  if (acc.validationWarnings.size > 0) {
+    stats.validationWarnings = Array.from(acc.validationWarnings);
   }
-  if (validationErrors.size > 0) {
-    stats.validationErrors = Array.from(validationErrors);
+  if (acc.validationErrors.size > 0) {
+    stats.validationErrors = Array.from(acc.validationErrors);
   }
-  if (fallbackApplied) {
+  if (acc.fallbackApplied) {
     stats.fallbackApplied = true;
   }
-  if (rtkRawOutputPointers.length > 0) {
+  if (acc.rtkRawOutputPointers.length > 0) {
     const seenPointers = new Set<string>();
-    stats.rtkRawOutputPointers = rtkRawOutputPointers.filter((pointer) => {
+    stats.rtkRawOutputPointers = acc.rtkRawOutputPointers.filter((pointer) => {
       if (seenPointers.has(pointer.id)) return false;
       seenPointers.add(pointer.id);
       return true;
     });
   }
+  return { body: currentBody, compressed, stats };
+}
 
-  return {
-    body: currentBody,
+export function applyStackedCompression(
+  body: Record<string, unknown>,
+  pipeline?: Array<CompressionPipelineStep | string>,
+  options?: StackOptions
+): CompressionResult {
+  const steps = resolveStackSteps(pipeline);
+  registerBuiltinCompressionEngines();
+
+  let currentBody = body;
+  let compressed = false;
+  const acc = createStackAccumulator();
+  const start = performance.now();
+
+  const bailout = options?.bailout;
+
+  for (const step of steps) {
+    const engine = getCompressionEngine(step.engine);
+    if (!engine) continue;
+
+    // TV1: when bail-out is ENABLED, wrap apply() and apply skip rules.
+    // When DISABLED (default), the code path below is identical to pre-TV1.
+    if (bailout?.enabled) {
+      let result: CompressionResult;
+      try {
+        result = engine.apply(currentBody, buildStepOptions(step, options));
+      } catch (err) {
+        // Failure bail-out: keep the verbatim body for this step, but RECORD the
+        // failure so a crashing engine is visible in telemetry (not silently gone).
+        acc.validationErrors.add(
+          `${step.engine}: bailed out — ${err instanceof Error ? err.message : String(err)}`
+        );
+        acc.fallbackApplied = true;
+        continue;
+      }
+      mergeStackStep(acc, step.engine, result);
+      if (decideStep(result, bailout).advance) {
+        currentBody = result.body;
+        compressed = true;
+      }
+    } else {
+      const result = engine.apply(currentBody, buildStepOptions(step, options));
+      mergeStackStep(acc, step.engine, result);
+      if (result.compressed) {
+        currentBody = result.body;
+        compressed = true;
+      }
+    }
+  }
+
+  return finalizeStackedResult(
+    body,
+    currentBody,
     compressed,
-    stats,
-  };
+    acc,
+    start,
+    options?.compressionComboId ?? options?.config?.compressionComboId
+  );
+}
+
+/**
+ * Async sibling of {@link applyStackedCompression} (H10). Awaits engines that
+ * expose `applyAsync` (e.g. worker-thread models) and runs synchronous engines
+ * inline. Behaviour is otherwise identical: same step order, same accumulated
+ * telemetry, same final stats — so sync-only pipelines yield the same result.
+ */
+export async function applyStackedCompressionAsync(
+  body: Record<string, unknown>,
+  pipeline?: Array<CompressionPipelineStep | string>,
+  options?: StackOptions
+): Promise<CompressionResult> {
+  const steps = resolveStackSteps(pipeline);
+  registerBuiltinCompressionEngines();
+
+  let currentBody = body;
+  let compressed = false;
+  const acc = createStackAccumulator();
+  const start = performance.now();
+
+  const bailout = options?.bailout;
+
+  for (const step of steps) {
+    const engine = getCompressionEngine(step.engine);
+    if (!engine) continue;
+    const stepOptions = buildStepOptions(step, options);
+
+    // TV1: same bail-out discipline as the sync loop (opt-in, default off).
+    if (bailout?.enabled) {
+      let result: CompressionResult;
+      try {
+        result = engine.applyAsync
+          ? await engine.applyAsync(currentBody, stepOptions)
+          : engine.apply(currentBody, stepOptions);
+      } catch (err) {
+        // Failure bail-out: keep the verbatim body, but RECORD the failure so a
+        // crashing engine is visible in telemetry (not silently gone).
+        acc.validationErrors.add(
+          `${step.engine}: bailed out — ${err instanceof Error ? err.message : String(err)}`
+        );
+        acc.fallbackApplied = true;
+        continue;
+      }
+      mergeStackStep(acc, step.engine, result);
+      if (decideStep(result, bailout).advance) {
+        currentBody = result.body;
+        compressed = true;
+      }
+    } else {
+      const result = engine.applyAsync
+        ? await engine.applyAsync(currentBody, stepOptions)
+        : engine.apply(currentBody, stepOptions);
+      mergeStackStep(acc, step.engine, result);
+      if (result.compressed) {
+        currentBody = result.body;
+        compressed = true;
+      }
+    }
+  }
+
+  return finalizeStackedResult(
+    body,
+    currentBody,
+    compressed,
+    acc,
+    start,
+    options?.compressionComboId ?? options?.config?.compressionComboId
+  );
 }

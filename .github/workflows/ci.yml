@@ -140,6 +140,20 @@ jobs:
         run: npm run check:codeql-ratchet
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      # Fase 7 INT: install the advisory security scanners so the gates below
+      # actually run (they self-skip when the binaries are absent). go install
+      # uses documented module paths (no fragile version-pinned URLs); zizmor is
+      # a PyPI package. Whole job is continue-on-error, so an install hiccup never
+      # blocks the build. Exercised at the next release→main run.
+      - name: Install advisory security scanners (gitleaks/osv/actionlint/zizmor)
+        continue-on-error: true
+        run: |
+          go install github.com/rhysd/actionlint/cmd/actionlint@latest
+          go install github.com/gitleaks/gitleaks/v8@latest
+          go install github.com/google/osv-scanner/v2/cmd/osv-scanner@latest
+          echo "$HOME/go/bin" >> "$GITHUB_PATH"
+          pipx install zizmor || pip install --user zizmor
+          echo "$HOME/.local/bin" >> "$GITHUB_PATH"
       - name: Secret scan (gitleaks; skips if absent)
         run: npm run check:secrets
       - name: Vulnerability ratchet (osv-scanner; skips if absent)
@@ -353,7 +367,7 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npm run check:node-runtime
-      - run: node --max-old-space-size=4096 --import tsx --test --test-force-exit --test-concurrency=4 --test-shard=${{ matrix.shard }}/8 tests/unit/*.test.ts "tests/unit/{api,auth,authz,build,cli,cli-helper,compression,cors,dashboard,db,db-adapters,docs,gamification,guardrails,lib,mcp,runtime,security,services,settings,shared,ui}/**/*.test.ts"
+      - run: node --max-old-space-size=4096 --import tsx --test --test-force-exit --test-concurrency=4 --test-shard=${{ matrix.shard }}/8 tests/unit/*.test.ts "tests/unit/{api,auth,authz,build,cli,cli-helper,compression,correctness,cors,dashboard,db,db-adapters,docs,gamification,guardrails,lib,mcp,runtime,security,services,settings,shared,ui}/**/*.test.ts"
 
   test-vitest:
     name: Vitest (MCP / autoCombo / UI components)
@@ -402,7 +416,7 @@ jobs:
       - run: npm ci
       - run: npm run check:node-runtime
       - run: npm run build
-      - run: node --import tsx --test --test-force-exit --test-concurrency=4 --test-shard=${{ matrix.shard }}/2 tests/unit/*.test.ts "tests/unit/{api,auth,authz,build,cli,cli-helper,compression,cors,dashboard,db,db-adapters,docs,gamification,guardrails,lib,mcp,runtime,security,services,settings,shared,ui}/**/*.test.ts"
+      - run: node --import tsx --test --test-force-exit --test-concurrency=4 --test-shard=${{ matrix.shard }}/2 tests/unit/*.test.ts "tests/unit/{api,auth,authz,build,cli,cli-helper,compression,correctness,cors,dashboard,db,db-adapters,docs,gamification,guardrails,lib,mcp,runtime,security,services,settings,shared,ui}/**/*.test.ts"
 
   node-26-compat:
     name: Node 26 Compatibility (${{ matrix.shard }}/2)
@@ -426,7 +440,7 @@ jobs:
       - run: npm ci
       - run: npm run check:node-runtime
       - run: npm run build
-      - run: node --import tsx --test --test-force-exit --test-concurrency=4 --test-shard=${{ matrix.shard }}/2 tests/unit/*.test.ts "tests/unit/{api,auth,authz,build,cli,cli-helper,compression,cors,dashboard,db,db-adapters,docs,gamification,guardrails,lib,mcp,runtime,security,services,settings,shared,ui}/**/*.test.ts"
+      - run: node --import tsx --test --test-force-exit --test-concurrency=4 --test-shard=${{ matrix.shard }}/2 tests/unit/*.test.ts "tests/unit/{api,auth,authz,build,cli,cli-helper,compression,correctness,cors,dashboard,db,db-adapters,docs,gamification,guardrails,lib,mcp,runtime,security,services,settings,shared,ui}/**/*.test.ts"
 
   test-coverage-shard:
     name: Coverage Shard (${{ matrix.shard }}/8)
@@ -465,7 +479,7 @@ jobs:
             --exclude=tests/** \
             --exclude=**/*.test.* \
             node --max-old-space-size=4096 --import tsx --test --test-force-exit --test-concurrency=4 \
-              --test-shard=${{ matrix.shard }}/8 tests/unit/*.test.ts "tests/unit/{api,auth,authz,build,cli,cli-helper,compression,cors,dashboard,db,db-adapters,docs,gamification,guardrails,lib,mcp,runtime,security,services,settings,shared,ui}/**/*.test.ts"
+              --test-shard=${{ matrix.shard }}/8 tests/unit/*.test.ts "tests/unit/{api,auth,authz,build,cli,cli-helper,compression,correctness,cors,dashboard,db,db-adapters,docs,gamification,guardrails,lib,mcp,runtime,security,services,settings,shared,ui}/**/*.test.ts"
       - name: Upload raw shard coverage
         if: always()
         uses: actions/upload-artifact@v7

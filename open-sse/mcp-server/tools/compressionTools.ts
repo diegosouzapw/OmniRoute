@@ -242,6 +242,16 @@ import {
   listCompressionCombosInput,
   compressionComboStatsInput,
 } from "../schemas/tools.ts";
+import { handleCcrRetrieve } from "../../services/compression/engines/ccr/index.ts";
+import { resolveCallerScopeContext } from "../scopeEnforcement.ts";
+
+const ccrRetrieveInput = z.object({
+  hash: z
+    .string()
+    .length(24)
+    .regex(/^[0-9a-f]{24}$/)
+    .describe("24-hex content hash from a [CCR retrieve hash=<hash>] marker"),
+});
 
 export async function handleSetCompressionEngine(
   args: z.infer<typeof setCompressionEngineInput>
@@ -332,5 +342,21 @@ export const compressionTools = {
     inputSchema: compressionComboStatsInput,
     handler: (args: z.infer<typeof compressionComboStatsInput>) =>
       handleCompressionComboStats(args),
+  },
+  omniroute_ccr_retrieve: {
+    name: "omniroute_ccr_retrieve",
+    description:
+      "Retrieve the verbatim content block stored by the CCR compression engine. " +
+      "When a large block is compressed, a marker `[CCR retrieve hash=<24hex> chars=N]` " +
+      "is inserted. Pass the hash from the marker to this tool to get the original text back. " +
+      "Scope: read:compression. Always available (sticky-on).",
+    scopes: ["read:compression"],
+    inputSchema: ccrRetrieveInput,
+    handler: (args: z.infer<typeof ccrRetrieveInput>, extra?: McpToolExtraLike) => {
+      // Derive caller identity from MCP auth context so the retrieve is scoped to the
+      // same principal that stored the block. This closes the cross-tenant IDOR (HIGH).
+      const { callerId } = resolveCallerScopeContext(extra, ["read:compression"]);
+      return handleCcrRetrieve(args, callerId === "anonymous" ? undefined : callerId);
+    },
   },
 };

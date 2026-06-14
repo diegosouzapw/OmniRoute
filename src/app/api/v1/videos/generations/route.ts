@@ -1,4 +1,5 @@
 import { handleVideoGeneration } from "@omniroute/open-sse/handlers/videoGeneration.ts";
+import { withInjectionGuard } from "@/middleware/promptInjectionGuard";
 import {
   getProviderCredentials,
   clearRecoveredProviderState,
@@ -59,7 +60,7 @@ export async function GET() {
 /**
  * POST /v1/videos/generations — generate videos
  */
-export async function POST(request) {
+async function postHandler(request, context) {
   let rawBody;
   try {
     rawBody = await request.json();
@@ -125,3 +126,5 @@ export async function POST(request) {
     headers: { "Content-Type": "application/json" },
   });
 }
+
+export const POST = withInjectionGuard(postHandler);

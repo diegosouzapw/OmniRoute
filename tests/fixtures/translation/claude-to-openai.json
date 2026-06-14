@@ -1,0 +1,23 @@
+[
+  {
+    "name": "claude-to-openai/basic-message",
+    "sourceFormat": "claude",
+    "targetFormat": "openai",
+    "input": {
+      "model": "gpt-4o",
+      "messages": [{ "role": "user", "content": [{ "type": "text", "text": "Hello" }] }],
+      "max_tokens": 512
+    }
+  },
+  {
+    "name": "claude-to-openai/with-system",
+    "sourceFormat": "claude",
+    "targetFormat": "openai",
+    "input": {
+      "model": "gpt-4o-mini",
+      "system": [{ "type": "text", "text": "Be helpful." }],
+      "messages": [{ "role": "user", "content": [{ "type": "text", "text": "What is 1+1?" }] }],
+      "max_tokens": 256
+    }
+  }
+]

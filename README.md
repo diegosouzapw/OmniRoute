@@ -1014,6 +1014,22 @@ Special thanks to **[RTK - Rust Token Killer](https://github.com/rtk-ai/rtk)** b
 
 Special thanks to **[Troglodita](https://github.com/leninejunior/troglodita)** by **[Lenine Júnior](https://github.com/leninejunior)** — the PT-BR token compression project ("por que gastar muitos tokens quando poucos resolve?") whose Portuguese-native rules power OmniRoute's pt-BR language pack: pleonasm reduction, filler removal tuned for Brazilian Portuguese grammar, and technical abbreviations for the dev BR community.
 
+Special thanks to **[headroom](https://github.com/chopratejas/headroom)** by **[chopratejas](https://github.com/chopratejas)** — the reversible context-compression project whose SmartCrusher (per-type routing, reversible block compaction, internal hash cache) directly inspired OmniRoute's `headroom` engine and the `ccr` retrieve-marker pattern.
+
+Special thanks to **[TOON](https://github.com/toon-format/toon)** by **[toon-format](https://github.com/toon-format)** and **[GCF — Graph Compact Format](https://github.com/blackwell-systems/gcf)** by **[Dayna Blackwell / Blackwell Systems](https://github.com/blackwell-systems)** — the compact, schema-aware "JSON for LLMs" notations whose columnar, header-plus-rows model shaped OmniRoute's `headroom`/SmartCrusher tabular stage: a dependency-free, lossless compaction of homogeneous JSON arrays with an explicit `[N rows]` marker.
+
+Special thanks to **[token-optimizer-mcp](https://github.com/ooples/token-optimizer-mcp)** by **[ooples](https://github.com/ooples)** — the Brotli/SQLite cache + per-session context-delta project whose content-addressed delta model inspired OmniRoute's `session-dedup` engine (cross-turn block deduplication with reversible references).
+
+Special thanks to **[token-savior](https://github.com/Mibayy/token-savior)** by **[Mibayy](https://github.com/Mibayy)** — the Bash-output compaction + MCP-profiles project whose failure-aware bail-out and tool-profile model inspired OmniRoute's compression bail-out discipline and MCP tool-manifest cardinality reduction.
+
+Special thanks to **[LLMLingua](https://github.com/microsoft/LLMLingua)** by **[Microsoft](https://github.com/microsoft)** — the prompt-compression research (LLMLingua / LLMLingua-2) whose token-level semantic pruning inspired OmniRoute's async `llmlingua` engine (prose-only, code-safe, fail-open), together with the JS/ONNX port **[llmlingua-2-js](https://github.com/atjsh/llmlingua-2-js)** by **[atjsh](https://github.com/atjsh)** (MobileBERT / XLM-RoBERTa ONNX models) as its intended worker-thread backend.
+
+Special thanks to **[ts-morph](https://github.com/dsherret/ts-morph)** by **[David Sherret](https://github.com/dsherret)** — the TypeScript Compiler API toolkit whose AST approach inspired OmniRoute's parser-based code-comment removal, which correctly preserves string, template, and regex literals where naïve regex stripping corrupts them.
+
+Special thanks to **[React Flow / xyflow](https://github.com/xyflow/xyflow)** by **[xyflow](https://github.com/xyflow)** — the node-based graph library that powers OmniRoute's real-time **Compression Studio** and **Combo/Routing Studio** dashboards.
+
+Special thanks to **[LangGraph](https://github.com/langchain-ai/langgraph)** by **[LangChain](https://github.com/langchain-ai)** — the agent-graph framework whose LangGraph Studio live workflow-graph visualization inspired OmniRoute's Compression and Combo Studios: watching compression engines and combo fallbacks cascade in real time.
+
 ## ❤️ Support
 
 OmniRoute is free and open source, built and maintained in the open. If it saves you time or money, consider supporting development:

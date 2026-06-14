@@ -33,16 +33,21 @@ test("failed entry maps to status 'error' and hides only when autoHide is on", (
   });
 });
 
-test("rate-limited / timeout failures show 'error' and ARE auto-hidden (hide every failure)", () => {
+test("rate-limited / timeout failures show 'error' but are NOT auto-hidden", () => {
+  // Rate-limited and timeout are TRANSIENT — the model itself is fine, the
+  // provider was just throttled during a parallel Test All. Hiding it would
+  // silently remove a working model from /v1/models with no recovery path
+  // short of manual DB edit or per-row eye-toggle. We surface the failure on
+  // the row icon (status: 'error') but keep the model visible.
   assert.deepEqual(evaluateTestAllEntry({ status: "error", rateLimited: true }, true), {
     status: "error",
-    shouldHide: true,
+    shouldHide: false,
   });
   assert.deepEqual(evaluateTestAllEntry({ status: "error", isTimeout: true }, true), {
     status: "error",
-    shouldHide: true,
+    shouldHide: false,
   });
-  // ...but only when the toggle is on
+  // Toggle off → still not hidden, of course.
   assert.deepEqual(evaluateTestAllEntry({ status: "error", rateLimited: true }, false), {
     status: "error",
     shouldHide: false,
