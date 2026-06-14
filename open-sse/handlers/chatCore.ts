@@ -161,6 +161,7 @@ import { invalidateCodexQuotaCache } from "../services/codexQuotaFetcher.ts";
 import { translateNonStreamingResponse } from "./responseTranslator.ts";
 import { extractUsageFromResponse } from "./usageExtractor.ts";
 import {
+  extractSSEErrorMessage,
   parseSSEToClaudeResponse,
   parseSSEToOpenAIResponse,
   parseSSEToResponsesOutput,
@@ -4870,7 +4871,14 @@ export async function handleChatCore({
           connectionId,
           status: `FAILED ${HTTP_STATUS.BAD_GATEWAY}`,
         }).catch(() => {});
-        const invalidSseMessage = "Invalid SSE response for non-streaming request";
+        // Some executors (e.g. the Devin/Windsurf CLI) always emit
+        // text/event-stream, signalling failure with an error-only chunk
+        // (`data: {"error":{"message":"Devin CLI not found..."}}`) that carries
+        // no `choices`. Surface that real, sanitized message instead of the
+        // generic 502 so the actionable error is not swallowed (#3324).
+        const surfacedSseError = extractSSEErrorMessage(streamPayload);
+        const invalidSseMessage =
+          surfacedSseError || "Invalid SSE response for non-streaming request";
         persistAttemptLogs({
           status: HTTP_STATUS.BAD_GATEWAY,
           error: invalidSseMessage,
@@ -5268,9 +5276,8 @@ export async function handleChatCore({
     // === Quota Share POST-hook (B/F7) — fire-and-forget, fail-open ===
     if (apiKeyInfo?.id && credentials?.connectionId) {
       try {
-        const { scheduleRecordConsumption, buildConsumptionCost } = await import(
-          "@/lib/quota/spendRecorder"
-        );
+        const { scheduleRecordConsumption, buildConsumptionCost } =
+          await import("@/lib/quota/spendRecorder");
         scheduleRecordConsumption(
           {
             apiKeyId: apiKeyInfo.id,
