@@ -52,6 +52,7 @@ import {
   getLastSessionModel,
   getHandoff,
 } from "../../src/lib/db/contextHandoffs.ts";
+import { extractSessionAffinityKey } from "@/sse/services/auth";
 import { resolveModelLockoutSettings } from "../../src/lib/resilience/modelLockoutSettings";
 import { fetchCodexQuota } from "./codexQuotaFetcher.ts";
 import { getQuotaFetcher } from "./quotaPreflight.ts";
@@ -3034,6 +3035,28 @@ export async function expandAutoComboCandidatePool(
 }
 
 /**
+ * Derive a STABLE per-conversation session key for combo context-cache pinning when
+ * the client did not provide an explicit session id (#3825).
+ *
+ * Most OpenAI-compatible clients send no session id, so the server-side pin added by
+ * #3399 (gated on `relayOptions?.sessionId`) never engaged → combos rotated every turn,
+ * causing upstream prompt-cache misses, cold high-reasoning starts and intermittent
+ * 504s. We reuse `extractSessionAffinityKey(body)` (the same conversation fingerprint
+ * used for codex failover affinity), which hashes the first user/system message — stable
+ * across turns of the same conversation and identical on turn 2 of a continued chat.
+ *
+ * Returns null when no stable fingerprint is available (e.g. empty body), in which case
+ * the caller falls back to NO pinning — preserving prior behavior rather than guessing.
+ */
+function deriveComboSessionKey(body: Record<string, unknown>): string | null {
+  try {
+    return extractSessionAffinityKey(body) ?? null;
+  } catch {
+    return null;
+  }
+}
+
+/**
  * Handle combo chat with fallback.
  * @param {Object} options
  * @param {Object} options.body - Request body
@@ -3073,13 +3096,22 @@ export async function handleComboChat({
   );
   // ── Server-side context cache pinning (replaces <omniModel> tag roundtrip) ─
   // Uses session_model_history — no client-side tag injection, no visible output pollution.
+  //
+  // #3825: when the client sends no session id (most OpenAI-compatible clients), fall
+  // back to a stable conversation fingerprint derived from the body so the combo still
+  // re-pins to the same model across turns. ONLY engaged when context_cache_protection
+  // is truthy — when the toggle is off, behavior is unchanged (combos rotate as before,
+  // no pin read/write, no <omniModel> tag).
+  const effectiveSessionId: string | null = combo.context_cache_protection
+    ? (relayOptions?.sessionId ?? deriveComboSessionKey(body))
+    : null;
   let pinnedModel: string | null = null;
   if (
     combo.context_cache_protection &&
-    relayOptions?.sessionId &&
+    effectiveSessionId &&
     !(body as Record<string, unknown>)?.[SKIP_UNIVERSAL_HANDOFF_FLAG]
   ) {
-    const pinned = getLastSessionModel(relayOptions.sessionId, combo.name);
+    const pinned = getLastSessionModel(effectiveSessionId, combo.name);
     if (pinned) {
       body = { ...body, model: pinned };
       pinnedModel = pinned;
@@ -4053,13 +4085,15 @@ export async function handleComboChat({
 
             // Context cache pinning: record model usage for session-based pinning
             // (independent of universal handoff — always fires when context_cache_protection is on)
+            // #3825: write under the SAME effectiveSessionId used by the read site so a
+            // sessionless conversation re-pins to this model on its next turn.
             if (
               combo.context_cache_protection &&
-              relayOptions?.sessionId &&
+              effectiveSessionId &&
               !(body as Record<string, unknown>)?.[SKIP_UNIVERSAL_HANDOFF_FLAG]
             ) {
               recordSessionModelUsage(
-                relayOptions.sessionId,
+                effectiveSessionId,
                 combo.name,
                 modelStr,
                 provider,
