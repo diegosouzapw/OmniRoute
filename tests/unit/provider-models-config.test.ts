@@ -121,15 +121,27 @@ test("xhigh effort support defaults to pass-through and opts out explicit false 
   assert.equal(supportsXHighEffort("anthropic-compatible-cc-test", "claude-opus-4-6"), false);
   assert.equal(supportsXHighEffort("anthropic-compatible-cc-test", "claude-opus-4-7"), true);
   assert.equal(supportsXHighEffort("openrouter", "deepseek/deepseek-v4-pro"), true);
+  assert.equal(supportsXHighEffort("openrouter", "anthropic/claude-opus-4.6"), false);
+  assert.equal(supportsXHighEffort("openrouter", "anthropic/claude-opus-4.7"), true);
+  assert.equal(supportsXHighEffort("openrouter", "anthropic/claude-opus-4.5"), false);
+  assert.equal(supportsXHighEffort("bedrock", "anthropic.claude-opus-4-6"), false);
+  assert.equal(supportsXHighEffort("bedrock", "anthropic.claude-opus-4-7"), true);
+  assert.equal(supportsXHighEffort("github", "claude-opus-4.6"), false);
+  assert.equal(supportsXHighEffort("github", "claude-opus-4.7"), true);
+  assert.equal(supportsXHighEffort("unknown-provider", "vendor/claude-opus-4.6"), false);
+  assert.equal(
+    supportsXHighEffort("openrouter", "anthropic/claude-opus-4.6-thinking-xhigh"),
+    false
+  );
   assert.equal(supportsXHighEffort("deepseek", "deepseek-v4-pro"), true);
 });
 
-test("max normalization keeps existing xhigh opt-in behavior", () => {
+test("max normalization follows xhigh opt-out behavior", () => {
   assert.equal(
     supportsXHighEffortForMaxNormalization("openai-compatible-free1", "gemini-3.1-pro-preview"),
     true
   );
-  assert.equal(supportsXHighEffortForMaxNormalization("xiaomi-mimo", "mimo-v2.5-pro"), false);
+  assert.equal(supportsXHighEffortForMaxNormalization("xiaomi-mimo", "mimo-v2.5-pro"), true);
   assert.equal(
     supportsXHighEffortForMaxNormalization("anthropic-compatible-cc-test", "claude-opus-4-6"),
     false
@@ -148,6 +160,18 @@ test("max normalization keeps existing xhigh opt-in behavior", () => {
   );
   assert.equal(
     supportsXHighEffortForMaxNormalization("openrouter", "deepseek/deepseek-v4-pro"),
+    true
+  );
+  assert.equal(
+    supportsXHighEffortForMaxNormalization("openrouter", "anthropic/claude-opus-4.6"),
+    false
+  );
+  assert.equal(
+    supportsXHighEffortForMaxNormalization("openrouter", "anthropic/claude-opus-4.7"),
+    true
+  );
+  assert.equal(
+    supportsXHighEffortForMaxNormalization("bedrock", "anthropic.claude-opus-4-6"),
     false
   );
 });

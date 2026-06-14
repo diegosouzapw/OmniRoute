@@ -1,5 +1,6 @@
 import {
   getCustomModels,
+  getModelIsHidden,
   getSyncedAvailableModelsForConnection,
   mergeModelCompatOverride,
   replaceCustomModels,
@@ -271,7 +272,10 @@ export async function importManagedModels({
           current = (ANTIGRAVITY_MODEL_ALIASES as any)[current];
           continue;
         }
-        if (ANTIGRAVITY_REVERSE_MODEL_ALIASES && (ANTIGRAVITY_REVERSE_MODEL_ALIASES as any)[current]) {
+        if (
+          ANTIGRAVITY_REVERSE_MODEL_ALIASES &&
+          (ANTIGRAVITY_REVERSE_MODEL_ALIASES as any)[current]
+        ) {
           current = (ANTIGRAVITY_REVERSE_MODEL_ALIASES as any)[current];
           continue;
         }
@@ -306,13 +310,17 @@ export async function importManagedModels({
     await setMitmAliasAll("antigravity", mappings);
   }
 
-
   let syncedAliases = 0;
   if (usesManagedAvailableModels(providerId) && (mode === "merge" || discoveredModels.length > 0)) {
     const aliasModelIds = mode === "sync" ? syncedAvailableModels : discoveredModels;
+    // #3782: eye-hidden models now survive in `syncedAvailableModels` (so they stay
+    // listed-but-hidden), but they must NOT be re-assigned a routable managed alias
+    // — otherwise auto-sync silently re-enables routing for a model the operator hid.
+    // Exclude `isHidden` ids from the alias assignment. `pruneMissing` (sync mode)
+    // then drops any stale alias an eye-hidden model previously held.
     const aliasSync = await syncManagedAvailableModelAliases(
       providerId,
-      aliasModelIds.map((model) => model.id),
+      aliasModelIds.map((model) => model.id).filter((id) => !getModelIsHidden(providerId, id)),
       { pruneMissing: mode === "sync" }
     );
     syncedAliases = aliasSync.assignedAliases.length;

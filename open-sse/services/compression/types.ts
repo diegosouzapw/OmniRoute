@@ -20,7 +20,16 @@ export type CompressionMode =
 export type CavemanIntensity = "lite" | "full" | "ultra";
 export type RtkIntensity = "minimal" | "standard" | "aggressive";
 export type RtkRawOutputRetention = "never" | "failures" | "always";
-export type CompressionEngineId = "lite" | "caveman" | "aggressive" | "ultra" | "rtk";
+export type CompressionEngineId =
+  | "lite"
+  | "caveman"
+  | "aggressive"
+  | "ultra"
+  | "rtk"
+  | "session-dedup"
+  | "headroom"
+  | "ccr"
+  | "llmlingua";
 
 export interface CavemanRule {
   name: string;
@@ -66,6 +75,10 @@ export interface RtkConfig {
   trustProjectFilters: boolean;
   rawOutputRetention: RtkRawOutputRetention;
   rawOutputMaxBytes: number;
+  /** R5: enable grouping of near-equivalent consecutive lines. Default: false. */
+  enableGrouping?: boolean;
+  /** R5: minimum consecutive similar-line run to trigger grouping. Default: 3. */
+  groupingThreshold?: number;
 }
 
 export interface CompressionLanguageConfig {

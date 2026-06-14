@@ -628,7 +628,7 @@ const RequestLoggerV2 = forwardRef<RequestLoggerV2Handle, { initialSelectedId?: 
     );
 
     return (
-      <div className="flex flex-col gap-4 h-full">
+      <div className="flex flex-col gap-4">
         {/* Header Bar */}
         <div className="flex flex-wrap items-center gap-3">
           {/* Recording Toggle */}
@@ -910,8 +910,14 @@ const RequestLoggerV2 = forwardRef<RequestLoggerV2Handle, { initialSelectedId?: 
         </div>
 
         {/* Table */}
-        <Card className="flex-1 min-h-0 overflow-hidden bg-black/5 dark:bg-black/20">
-          <div ref={scrollContainerRef} className="p-0 overflow-x-auto overflow-y-auto h-full">
+        <Card
+          padding="none"
+          className="min-h-[460px] resize-y overflow-auto bg-black/5 dark:bg-black/20"
+        >
+          <div
+            ref={scrollContainerRef}
+            className="p-0 overflow-x-auto overflow-y-auto h-full min-h-[460px]"
+          >
             {loading && logs.length === 0 ? (
               <div className="p-8 text-center text-text-muted">{t("loadingLogs")}</div>
             ) : logs.length === 0 ? (

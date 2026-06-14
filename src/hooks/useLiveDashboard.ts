@@ -349,6 +349,8 @@ export interface LiveComboEvent {
   provider: string;
   model: string;
   type: "attempt" | "succeeded" | "failed";
+  /** Routing strategy, carried on the attempt payload (used by the Combo Studio). */
+  strategy?: string;
   latencyMs?: number;
   error?: string;
   timestamp: number;
@@ -374,6 +376,7 @@ export function useLiveComboStatus(options?: UseLiveDashboardOptions) {
         provider: data.provider,
         model: data.model,
         type: "attempt",
+        strategy: data.strategy,
         timestamp: event.timestamp,
       };
     } else if (event.event === "combo.target.succeeded") {

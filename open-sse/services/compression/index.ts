@@ -81,9 +81,11 @@ export {
   selectCompressionStrategy,
   getEffectiveMode,
   applyCompression,
+  applyCompressionAsync,
   checkComboOverride,
   shouldAutoTrigger,
   applyStackedCompression,
+  applyStackedCompressionAsync,
 } from "./strategySelector.ts";
 
 export type {

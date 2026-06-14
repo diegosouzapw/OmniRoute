@@ -111,6 +111,16 @@ export type ModelCompatOverride = {
   compatByProtocol?: CompatByProtocolMap;
   upstreamHeaders?: Record<string, string>;
   isHidden?: boolean;
+  /**
+   * #3782 — distinct "deleted" marker, separate from {@link isHidden}.
+   *
+   * `isHidden` is set by the EYE/visibility toggle and must be PRESERVED across a
+   * re-sync (the model stays listed-but-hidden). `isDeleted` is set by the trash/
+   * DELETE route and means "drop this id on every re-import" (#3199). Keeping the
+   * two flags distinct is what lets {@link replaceSyncedAvailableModelsForConnection}
+   * preserve eye-hidden models while still dropping deleted ones.
+   */
+  isDeleted?: boolean;
 };
 
 function readCompatList(providerId: string): ModelCompatOverride[] {
@@ -156,6 +166,8 @@ export type ModelCompatPatch = {
   /** Replace top-level extra headers for override-only rows; omit to leave unchanged. */
   upstreamHeaders?: Record<string, string> | null;
   isHidden?: boolean | null;
+  /** #3782 — distinct delete marker; set by the DELETE route, never by the eye toggle. */
+  isDeleted?: boolean | null;
 };
 
 function compatByProtocolHasEntries(map: CompatByProtocolMap | undefined): boolean {
@@ -210,11 +222,20 @@ export function mergeModelCompatOverride(
       next.isHidden = Boolean(patch.isHidden);
     }
   }
+  if ("isDeleted" in patch) {
+    if (patch.isDeleted === null || patch.isDeleted === false) {
+      delete next.isDeleted;
+    } else {
+      next.isDeleted = Boolean(patch.isDeleted);
+    }
+  }
   const hasHiddenFlag = Object.prototype.hasOwnProperty.call(next, "isHidden");
+  const hasDeletedFlag = Object.prototype.hasOwnProperty.call(next, "isDeleted");
   if (
     next.normalizeToolCallId ||
     hasPreserveFlag ||
     hasHiddenFlag ||
+    hasDeletedFlag ||
     compatByProtocolHasEntries(next.compatByProtocol) ||
     hasTopUpstream
   ) {
@@ -714,10 +735,15 @@ export async function replaceSyncedAvailableModelsForConnection(
 ): Promise<SyncedAvailableModel[]> {
   const db = getDbInstance();
   const key = `${providerId}:${connectionId}`;
-  // #3199: drop ids the operator has deleted/hidden so a re-fetch does not
-  // re-import a model that was explicitly removed.
+  // #3199: drop ids the operator DELETED (trash) so a re-fetch does not re-import
+  // a model that was explicitly removed.
+  // #3782: key ONLY on the distinct `isDeleted` marker — NOT on `isHidden`.
+  // Eye/visibility-hidden models (`isHidden:true`, no `isDeleted`) must stay in
+  // the synced store so they remain listed-but-hidden across re-syncs instead of
+  // churning back on through the managed-alias path ("Auto Sync Enabling all
+  // Models"). See getModelIsDeleted for the legacy-row caveat.
   const normalizedModels = normalizeSyncedAvailableModels(models).filter(
-    (m) => !getModelIsHidden(providerId, m.id)
+    (m) => !getModelIsDeleted(providerId, m.id)
   );
   if (normalizedModels.length === 0) {
     db.prepare("DELETE FROM key_value WHERE namespace = 'syncedAvailableModels' AND key = ?").run(
@@ -1032,6 +1058,28 @@ export function getModelIsHidden(providerId: string, modelId: string): boolean {
   }
   const co = readCompatList(providerId).find((e) => e.id === modelId);
   return Boolean(co?.isHidden);
+}
+
+/**
+ * #3782 — Check if a model was DELETED (trash) rather than merely eye-hidden.
+ *
+ * Only the DELETE route sets `isDeleted`. The sync re-import filter keys on this
+ * (not on `isHidden`) so eye-hidden models survive a re-sync while deleted ones
+ * stay dropped.
+ *
+ * Legacy caveat: rows written by the DELETE route BEFORE this change carry only
+ * `isHidden:true` (no `isDeleted`). Treating bare legacy `isHidden:true` as
+ * deleted here would resurrect the #3782 bug for eye-hidden models; treating it
+ * as "kept" would resurrect previously-deleted models. Resurrecting a deleted
+ * model is the less-surprising, recoverable outcome (the operator can re-hide or
+ * re-delete it), whereas silently dropping an eye-hidden model is the reported
+ * regression — so we deliberately key ONLY on the explicit `isDeleted` flag and
+ * accept that a handful of pre-existing deleted rows may reappear once after the
+ * upgrade. Going forward both paths write the correct distinct markers.
+ */
+export function getModelIsDeleted(providerId: string, modelId: string): boolean {
+  const co = readCompatList(providerId).find((e) => e.id === modelId);
+  return Boolean(co?.isDeleted);
 }
 
 /**

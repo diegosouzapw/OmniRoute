@@ -23,6 +23,10 @@ import { FETCH_TIMEOUT_MS, RateLimitReason } from "../config/constants.ts";
 import { errorResponse, unavailableResponse } from "../utils/error.ts";
 import { clamp01 } from "../utils/number.ts";
 import {
+  createSSEDataLineNormalizer,
+  isKnownNonClaudeStreamPayload,
+} from "../utils/streamHelpers.ts";
+import {
   recordComboIntent,
   recordComboRequest,
   recordComboShadowRequest,
@@ -48,6 +52,7 @@ import {
   getLastSessionModel,
   getHandoff,
 } from "../../src/lib/db/contextHandoffs.ts";
+import { extractSessionAffinityKey } from "@/sse/services/auth";
 import { resolveModelLockoutSettings } from "../../src/lib/resilience/modelLockoutSettings";
 import { fetchCodexQuota } from "./codexQuotaFetcher.ts";
 import { getQuotaFetcher } from "./quotaPreflight.ts";
@@ -181,6 +186,35 @@ export function shouldSkipForPredictedTtft(
   return (
     (metric.requests ?? 0) >= PREDICTIVE_TTFT_MIN_SAMPLES &&
     (metric.avgLatencyMs ?? 0) > predictiveTtftMs
+  );
+}
+
+/**
+ * Decide whether a failed combo target should record a whole-provider circuit-breaker
+ * failure (#1731 / #2743 gap-d). This is the consumer side of `skipProviderBreaker`:
+ *
+ * - Stream-readiness failures (pre-flight zombie/ping probes) never count as provider
+ *   failures — they are a connection-readiness signal, not an upstream outage.
+ * - Only provider-level failure codes (408/429/5xx — see `isProviderFailureCode`) count.
+ * - When the next combo target is on the SAME provider, don't trip the provider breaker:
+ *   a different model on that provider may still succeed.
+ * - G-02 / #2743: when the fallback result carries `skipProviderBreaker` (an embedded
+ *   service supervisor outage signalled via `X-Omni-Fallback-Hint: connection_cooldown`)
+ *   apply connection cooldown ONLY — never trip the whole-provider breaker.
+ *
+ * Pure predicate so the breaker decision is unit-testable without the full combo harness.
+ */
+export function shouldRecordProviderBreakerFailure(args: {
+  isStreamReadinessFailure: boolean;
+  status: number;
+  sameProviderNext: boolean;
+  skipProviderBreaker?: boolean;
+}): boolean {
+  return (
+    !args.isStreamReadinessFailure &&
+    isProviderFailureCode(args.status) &&
+    !args.sameProviderNext &&
+    !args.skipProviderBreaker
   );
 }
 
@@ -490,19 +524,10 @@ export async function validateResponseQuality(
   // detect the empty-content-block pattern (content_filter stop_reason with
   // no content_block_* events) WITHOUT de-streaming non-empty responses.
   //
-  // Strategy:
-  // - Read chunks from response.body one at a time, accumulating raw bytes.
-  // - Parse SSE events incrementally.
-  // - If a content_block_* event appears → stream HAS content. Stop buffering.
-  //   Return a clonedResponse whose body replays buffered bytes then pipes the
-  //   remainder of the original reader. Only the chunks up to the first content
-  //   block were held in memory — the rest stream normally.
-  // - If the stream ends with a complete Claude lifecycle but NO content_block
-  //   → return invalid (combo failover). The empty lifecycle is tiny so fully
-  //   reading it is acceptable.
-  // - If the stream ends without a recognisable complete Claude lifecycle →
-  //   return valid with a clonedResponse replaying all buffered bytes (don't
-  //   misclassify non-Claude or partial streams as empty).
+  // Parse SSE events incrementally. Stop buffering once a content_block_* event
+  // or a known non-Claude SSE payload appears, replay the buffered prefix, then
+  // pipe the original reader so the rest of the stream keeps flowing normally.
+  // Only fail over when a complete Claude lifecycle ends without content_block.
   //
   // Non-text/event-stream streaming responses are not buffered at all.
   if (isStreaming) {
@@ -530,7 +555,7 @@ export async function validateResponseQuality(
     let hasMessageStart = false;
     let hasContentBlock = false;
     let hasLifecycleEnd = false;
-    // `event:` type line seen before the next `data:` line in the same event.
+    const sseLineNormalizer = createSSEDataLineNormalizer();
     let pendingEventType = "";
 
     /**
@@ -546,8 +571,8 @@ export async function validateResponseQuality(
       // Retain the potentially-incomplete trailing fragment.
       decodedSoFar = lines[lines.length - 1];
 
-      for (let i = 0; i < lines.length - 1; i++) {
-        const trimmed = lines[i].trim();
+      for (const line of sseLineNormalizer.normalize(lines.slice(0, -1))) {
+        const trimmed = line.trim();
 
         if (trimmed.startsWith("event:")) {
           pendingEventType = trimmed.slice(6).trim();
@@ -572,6 +597,10 @@ export async function validateResponseQuality(
         const eventType =
           (typeof parsed.type === "string" ? parsed.type : null) || pendingEventType || "";
         pendingEventType = "";
+
+        if (isKnownNonClaudeStreamPayload(parsed, eventType)) {
+          return true;
+        }
 
         switch (eventType) {
           case "message_start":
@@ -651,6 +680,7 @@ export async function validateResponseQuality(
           // Stream finished — flush the TextDecoder and parse any remaining text.
           const tail = decoder.decode(undefined, { stream: false });
           if (tail) decodedSoFar += tail;
+          if (decodedSoFar.trim()) decodedSoFar += "\n\n";
           parseAccumulatedSse();
 
           if (hasMessageStart && hasLifecycleEnd && !hasContentBlock) {
@@ -1207,9 +1237,7 @@ export function resolveNestedComboTargets(
 
   for (const step of runtimeSteps) {
     if (step.kind === "combo-ref") {
-      resolved.push(
-        ...expandRuntimeStep(step, allCombos, new Set(visited), depth, path, maxDepth)
-      );
+      resolved.push(...expandRuntimeStep(step, allCombos, new Set(visited), depth, path, maxDepth));
       continue;
     }
     resolved.push(step);
@@ -3007,6 +3035,28 @@ export async function expandAutoComboCandidatePool(
 }
 
 /**
+ * Derive a STABLE per-conversation session key for combo context-cache pinning when
+ * the client did not provide an explicit session id (#3825).
+ *
+ * Most OpenAI-compatible clients send no session id, so the server-side pin added by
+ * #3399 (gated on `relayOptions?.sessionId`) never engaged → combos rotated every turn,
+ * causing upstream prompt-cache misses, cold high-reasoning starts and intermittent
+ * 504s. We reuse `extractSessionAffinityKey(body)` (the same conversation fingerprint
+ * used for codex failover affinity), which hashes the first user/system message — stable
+ * across turns of the same conversation and identical on turn 2 of a continued chat.
+ *
+ * Returns null when no stable fingerprint is available (e.g. empty body), in which case
+ * the caller falls back to NO pinning — preserving prior behavior rather than guessing.
+ */
+function deriveComboSessionKey(body: Record<string, unknown>): string | null {
+  try {
+    return extractSessionAffinityKey(body) ?? null;
+  } catch {
+    return null;
+  }
+}
+
+/**
  * Handle combo chat with fallback.
  * @param {Object} options
  * @param {Object} options.body - Request body
@@ -3046,13 +3096,22 @@ export async function handleComboChat({
   );
   // ── Server-side context cache pinning (replaces <omniModel> tag roundtrip) ─
   // Uses session_model_history — no client-side tag injection, no visible output pollution.
+  //
+  // #3825: when the client sends no session id (most OpenAI-compatible clients), fall
+  // back to a stable conversation fingerprint derived from the body so the combo still
+  // re-pins to the same model across turns. ONLY engaged when context_cache_protection
+  // is truthy — when the toggle is off, behavior is unchanged (combos rotate as before,
+  // no pin read/write, no <omniModel> tag).
+  const effectiveSessionId: string | null = combo.context_cache_protection
+    ? (relayOptions?.sessionId ?? deriveComboSessionKey(body))
+    : null;
   let pinnedModel: string | null = null;
   if (
     combo.context_cache_protection &&
-    relayOptions?.sessionId &&
+    effectiveSessionId &&
     !(body as Record<string, unknown>)?.[SKIP_UNIVERSAL_HANDOFF_FLAG]
   ) {
-    const pinned = getLastSessionModel(relayOptions.sessionId, combo.name);
+    const pinned = getLastSessionModel(effectiveSessionId, combo.name);
     if (pinned) {
       body = { ...body, model: pinned };
       pinnedModel = pinned;
@@ -4026,13 +4085,15 @@ export async function handleComboChat({
 
             // Context cache pinning: record model usage for session-based pinning
             // (independent of universal handoff — always fires when context_cache_protection is on)
+            // #3825: write under the SAME effectiveSessionId used by the read site so a
+            // sessionless conversation re-pins to this model on its next turn.
             if (
               combo.context_cache_protection &&
-              relayOptions?.sessionId &&
+              effectiveSessionId &&
               !(body as Record<string, unknown>)?.[SKIP_UNIVERSAL_HANDOFF_FLAG]
             ) {
               recordSessionModelUsage(
-                relayOptions.sessionId,
+                effectiveSessionId,
                 combo.name,
                 modelStr,
                 provider,
@@ -4348,10 +4409,12 @@ export async function handleComboChat({
           const sameProviderNext =
             typeof nextTarget?.provider === "string" && nextTarget.provider === provider;
           if (
-            !isStreamReadinessFailure &&
-            isProviderFailureCode(result.status) &&
-            !sameProviderNext &&
-            !fallbackResult.skipProviderBreaker
+            shouldRecordProviderBreakerFailure({
+              isStreamReadinessFailure,
+              status: result.status,
+              sameProviderNext,
+              skipProviderBreaker: fallbackResult.skipProviderBreaker,
+            })
           ) {
             recordProviderFailure(provider, log, target.connectionId, profile);
           }
@@ -4608,7 +4671,11 @@ async function handleRoundRobinCombo({
     ? resolveResilienceSettings(settings)
     : resolveResilienceSettings(null);
 
-  const orderedTargets = resolveComboTargets(combo, allCombos, clampComboDepth(config.maxComboDepth));
+  const orderedTargets = resolveComboTargets(
+    combo,
+    allCombos,
+    clampComboDepth(config.maxComboDepth)
+  );
   const tagFilteredTargets = await applyRequestTagRouting(orderedTargets, body, log);
   const evalRankedTargets = orderTargetsByEvalScores(tagFilteredTargets, config.evalRouting, log);
   const filteredTargets = filterTargetsByRequestCompatibility(
@@ -4856,7 +4923,12 @@ async function handleRoundRobinCombo({
               }
             })();
           }
-          return result;
+          // validateResponseQuality peeks streaming bodies via getReader(),
+          // which locks `result.body`. It returns a clonedResponse that replays
+          // the buffered prefix and forwards the rest. Returning the original
+          // (now-locked) `result` makes Next.js throw "ReadableStream is locked"
+          // → 500. Mirror the priority strategy and return the replay response.
+          return quality.clonedResponse ?? result;
         }
 
         // Extract error info

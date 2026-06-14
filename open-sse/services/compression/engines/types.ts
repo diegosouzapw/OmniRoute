@@ -47,6 +47,17 @@ export interface CompressionEngine {
   stackPriority: number;
   metadata: CompressionEngineMetadata;
   apply(body: Record<string, unknown>, options?: CompressionEngineApplyOptions): CompressionResult;
+  /**
+   * Optional async variant (H10). Engines whose real work is asynchronous
+   * (e.g. a worker-thread model like LLMLingua-2) implement this. The stacked
+   * pipeline awaits `applyAsync` when present and falls back to the synchronous
+   * `apply` otherwise, so async-only engines MUST keep `apply` as a safe
+   * synchronous pass-through. Sync engines never need to implement this.
+   */
+  applyAsync?(
+    body: Record<string, unknown>,
+    options?: CompressionEngineApplyOptions
+  ): Promise<CompressionResult>;
   compress(body: Record<string, unknown>, config?: Record<string, unknown>): CompressionResult;
   getConfigSchema(): EngineConfigField[];
   validateConfig(config: Record<string, unknown>): EngineValidationResult;

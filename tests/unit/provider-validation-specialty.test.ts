@@ -478,14 +478,99 @@ test("grok-web validator: non-auth 403 is reported as failure with upstream body
   assert.match(result.error || "", /Model is not found/);
 });
 
-test("grok-web validator: generic 403 forbidden is rejected, not silently passed", async () => {
+test("grok-web validator: generic non-auth 403 maps to IP-reputation guidance, not 'invalid cookie' (#3474)", async () => {
   __setGrokTlsFetchOverride(async () => {
     return { status: 403, headers: new Headers(), text: "Forbidden", body: null };
   });
 
   const result = await validateProviderApiKey({ provider: "grok-web", apiKey: "any-cookie" });
   assert.equal(result.valid, false);
+  // A bare/non-auth 403 from grok.com is almost always an anti-bot/IP-reputation
+  // block — the cookie itself is likely fine. The message must point the user to a
+  // residential IP or proxy, NOT tell them the cookie is invalid.
+  assert.match(result.error || "", /residential IP|proxy/i);
+  assert.doesNotMatch(result.error || "", /invalid SSO cookie/i);
+});
+
+test("grok-web validator: anti-bot 'Request rejected' 403 maps to IP-reputation guidance (#3474)", async () => {
+  __setGrokTlsFetchOverride(async () => {
+    return {
+      status: 403,
+      headers: new Headers(),
+      text: "Request rejected by anti-bot rules.",
+      body: null,
+    };
+  });
+
+  const result = await validateProviderApiKey({ provider: "grok-web", apiKey: "good-cookie" });
+  assert.equal(result.valid, false);
+  assert.match(result.error || "", /residential IP|proxy/i);
+  // Cookie may be fine — must not claim it is invalid/expired.
+  assert.doesNotMatch(result.error || "", /invalid SSO cookie|expired/i);
+});
+
+test("grok-web validator: Cloudflare challenge returned with a 403 status maps to IP guidance (#3474)", async () => {
+  __setGrokTlsFetchOverride(async () => {
+    return {
+      status: 403,
+      headers: new Headers(),
+      text: "<html><title>Just a moment...</title><script>window._cf_chl_opt</script></html>",
+      body: null,
+    };
+  });
+
+  const result = await validateProviderApiKey({ provider: "grok-web", apiKey: "sso=abc" });
+  assert.equal(result.valid, false);
+  assert.match(result.error || "", /residential IP|proxy/i);
+});
+
+test("grok-web validator: IP-reputation 403 message does not leak a stack/raw error (Hard Rule #12) (#3474)", async () => {
+  __setGrokTlsFetchOverride(async () => {
+    return {
+      status: 403,
+      headers: new Headers(),
+      text: "Request rejected by anti-bot rules.\n    at GrokWeb.validate (/app/secret/path.ts:42:13)",
+      body: null,
+    };
+  });
+
+  const result = await validateProviderApiKey({ provider: "grok-web", apiKey: "good-cookie" });
+  assert.equal(result.valid, false);
+  assert.match(result.error || "", /residential IP|proxy/i);
+  assert.ok(!(result.error || "").includes("at GrokWeb.validate"));
+  assert.ok(!(result.error || "").includes("/app/secret/path.ts"));
+  assert.ok(!(result.error || "").includes("    at "));
+});
+
+test("grok-web validator: structured non-auth 403 (resource error) still surfaces upstream body for maintainers (#3474)", async () => {
+  // Distinct from an anti-bot block: a genuine upstream API error (e.g. the probe
+  // model was renamed) carries a structured error.message and must NOT be masked
+  // by the IP-reputation guidance — the maintainer needs to see the real cause.
+  __setGrokTlsFetchOverride(async () => {
+    return {
+      status: 403,
+      headers: new Headers(),
+      text: JSON.stringify({ error: { code: 7, message: "Model is not found", details: [] } }),
+      body: null,
+    };
+  });
+
+  const result = await validateProviderApiKey({ provider: "grok-web", apiKey: "good-cookie" });
+  assert.equal(result.valid, false);
   assert.match(result.error || "", /Grok rejected validation \(403\)/);
+  assert.match(result.error || "", /Model is not found/);
+  assert.doesNotMatch(result.error || "", /residential IP|proxy/i);
+});
+
+test("grok-web validator: auth-shaped 401 keeps the re-paste/re-authenticate guidance (no regression) (#3474)", async () => {
+  __setGrokTlsFetchOverride(async () => {
+    return { status: 401, headers: new Headers(), text: "Unauthorized", body: null };
+  });
+
+  const result = await validateProviderApiKey({ provider: "grok-web", apiKey: "expired-cookie" });
+  assert.equal(result.valid, false);
+  assert.match(result.error || "", /Invalid SSO cookie|re-paste/i);
+  assert.doesNotMatch(result.error || "", /residential IP|proxy/i);
 });
 
 test("grok-web validator: 403 with credential-rejection body is treated as auth-failed", async () => {

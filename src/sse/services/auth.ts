@@ -1790,6 +1790,15 @@ export async function markAccountUnavailable(
     const connectionPassthroughModels = connProviderSpecificData.passthroughModels as
       | boolean
       | undefined;
+    // #2997: per-connection opt-out of the TRANSIENT connection cooldown. When set,
+    // a recoverable failure records lastError/backoff but does NOT cool the
+    // connection, so getProviderCredentials keeps selecting it. Terminal states
+    // (banned/expired/credits_exhausted) are unaffected — they are resolved below
+    // via resolveTerminalConnectionStatus() and still take the connection out.
+    // NOTE: this first cut scopes the opt-out to the CONNECTION-level cooldown only;
+    // per-model lockout branches (per-model quota 403/404, codex scope) are left
+    // as-is — extending disableCooling to model lockout is a follow-up.
+    const disableCooling = connProviderSpecificData.disableCooling === true;
 
     const isPerModelQuotaProvider = hasPerModelQuota(provider, model, connectionPassthroughModels);
     if (
@@ -1998,7 +2007,7 @@ export async function markAccountUnavailable(
       await updateProviderConnection(connectionId, {
         ...baseUpdate,
       });
-    } else if (cooldownMs > 0) {
+    } else if (cooldownMs > 0 && !disableCooling) {
       await updateProviderConnection(connectionId, {
         ...baseUpdate,
         rateLimitedUntil: getUnavailableUntil(cooldownMs),
