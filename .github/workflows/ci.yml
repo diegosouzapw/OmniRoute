@@ -94,6 +94,15 @@ jobs:
         run: npm run check:duplication
       - name: Complexity ratchet
         run: npm run check:complexity
+      # Fase 7 INT: dead-code, cognitive-complexity, type-coverage promovidos de
+      # advisory (quality-extended) para BLOQUEANTES aqui. Os 3 leem seus baseline
+      # de quality-baseline.json e saem 1 em regressão.
+      - name: Dead-code ratchet (knip)
+        run: npm run check:dead-code
+      - name: Cognitive complexity ratchet (sonarjs)
+        run: npm run check:cognitive-complexity
+      - name: Type coverage ratchet
+        run: npm run check:type-coverage
       - name: Append summary
         if: always()
         run: cat .artifacts/quality-ratchet.md >> "$GITHUB_STEP_SUMMARY"
@@ -121,12 +130,8 @@ jobs:
           node-version: ${{ env.CI_NODE_VERSION }}
           cache: npm
       - run: npm ci
-      - name: Dead-code (knip)
-        run: npm run check:dead-code
-      - name: Cognitive complexity (sonarjs)
-        run: npm run check:cognitive-complexity
-      - name: Type coverage
-        run: npm run check:type-coverage
+      # Dead-code, cognitive-complexity, type-coverage foram promovidos ao job
+      # quality-gate (bloqueante) na Fase 7 INT — não rodam aqui para evitar duplo custo.
       - name: Circular deps (dpdm)
         run: npm run check:circular-deps
       - name: Bundle size
