@@ -7,8 +7,10 @@
  *
  * Resolution order: user overrides > synced arena ELO > defaults
  *
- * On by default; opt out via ARENA_ELO_SYNC_ENABLED=false.
+ * On by default; opt out via Dashboard Feature Flags or ARENA_ELO_SYNC_ENABLED=false.
  */
+
+import { isArenaEloSyncEnabled } from "@/shared/utils/featureFlags";
 
 import { backupDbFile } from "./db/backup";
 import {
@@ -175,6 +177,23 @@ let lastSyncModelCount = 0;
 let activeSyncIntervalMs = SYNC_INTERVAL_MS;
 let firstSyncDone = false;
 let syncInProgress = false;
+
+function getErrorMessage(error: unknown): string {
+  return error instanceof Error ? error.message : String(error);
+}
+
+function getEffectiveArenaEloSyncEnabled(): boolean {
+  try {
+    return isArenaEloSyncEnabled();
+  } catch (error) {
+    console.warn(
+      `[ARENA_ELO_SYNC] Failed to resolve ARENA_ELO_SYNC_ENABLED feature flag: ${getErrorMessage(
+        error
+      )}`
+    );
+    return process.env.ARENA_ELO_SYNC_ENABLED !== "false";
+  }
+}
 
 // ─── Model name normalization ────────────────────────────
 
@@ -507,7 +526,7 @@ export function stopArenaEloSync(): void {
  *   next scheduled sync time, interval, and active sources.
  */
 export function getArenaEloSyncStatus(): SyncStatus {
-  const enabled = process.env.ARENA_ELO_SYNC_ENABLED !== "false";
+  const enabled = getEffectiveArenaEloSyncEnabled();
   return {
     enabled,
     lastSync: lastSyncTime,
@@ -524,21 +543,23 @@ export function getArenaEloSyncStatus(): SyncStatus {
 // ─── Init (called from server-init.ts) ───────────────────
 
 /**
- * Initialize Arena ELO sync if enabled via environment variable.
+ * Initialize Arena ELO sync if enabled via feature flag configuration.
  *
- * Reads `ARENA_ELO_SYNC_ENABLED` (default: true; set to `false` to opt out).
+ * Reads `ARENA_ELO_SYNC_ENABLED` (default: true; set to `false` to opt out)
+ * through the feature flag resolver, so DB overrides from the dashboard apply.
  * When enabled, starts periodic sync with the interval from `ARENA_ELO_SYNC_INTERVAL`
  * (default: 86400 seconds / daily).
  *
  * All errors during initialization or the initial sync are caught and logged
  * — initialization is never fatal.
  */
-export async function initArenaEloSync(): Promise<void> {
-  if (process.env.ARENA_ELO_SYNC_ENABLED === "false") {
+export async function initArenaEloSync(): Promise<boolean> {
+  if (!getEffectiveArenaEloSyncEnabled()) {
     console.log(
-      "[ARENA_ELO_SYNC] Disabled (ARENA_ELO_SYNC_ENABLED=false). Unset or =true to enable."
+      "[ARENA_ELO_SYNC] Disabled by the effective ARENA_ELO_SYNC_ENABLED feature flag. Enable it from Dashboard Feature Flags, unset the env var, or set it to true to enable."
     );
-    return;
+    return false;
   }
   startPeriodicSync();
+  return true;
 }

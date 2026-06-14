@@ -44,30 +44,22 @@ describe("LMArena Credential Requirements", () => {
     const req = getWebSessionCredentialRequirement("lmarena");
     assert.ok(req, "Should have credential requirement");
     assert.equal(req.kind, "cookie");
-    assert.equal(req.credentialName, "session");
+    // #3810: lmarena.ai's real auth cookie is `arena-auth-prod-v1`, not `session`
+    assert.equal(req.credentialName, "arena-auth-prod-v1");
+    assert.ok(req.placeholder.includes("arena-auth-prod-v1"));
     assert.ok(req.placeholder.includes("lmarena.ai"));
     assert.equal(req.acceptsFullCookieHeader, true);
     assert.ok(req.storageKeys.includes("cookie"));
+    assert.ok(req.storageKeys.includes("arena-auth-prod-v1"));
+    // legacy `session` key retained for back-compat with already-saved credentials
     assert.ok(req.storageKeys.includes("session"));
   });
 
   it("validates usable credentials correctly", () => {
-    assert.equal(
-      hasUsableWebSessionCredential("lmarena", { cookie: "session=abc123" }),
-      true
-    );
-    assert.equal(
-      hasUsableWebSessionCredential("lmarena", { session: "abc123" }),
-      true
-    );
-    assert.equal(
-      hasUsableWebSessionCredential("lmarena", { cookie: "" }),
-      false
-    );
-    assert.equal(
-      hasUsableWebSessionCredential("lmarena", {}),
-      false
-    );
+    assert.equal(hasUsableWebSessionCredential("lmarena", { cookie: "session=abc123" }), true);
+    assert.equal(hasUsableWebSessionCredential("lmarena", { session: "abc123" }), true);
+    assert.equal(hasUsableWebSessionCredential("lmarena", { cookie: "" }), false);
+    assert.equal(hasUsableWebSessionCredential("lmarena", {}), false);
   });
 });
 
@@ -135,7 +127,7 @@ describe("LMArena Executor", () => {
   it("parses LMArena SSE text events (a0: prefix)", () => {
     const textEvent = 'a0:{"text":"Hello, world!"}';
     const result = parseArenaSSE(textEvent);
-    
+
     assert.ok(result, "Should parse text event");
     assert.equal(result.type, "text");
     assert.equal(result.content, "Hello, world!");
@@ -144,7 +136,7 @@ describe("LMArena Executor", () => {
   it("parses LMArena SSE thinking events (ag: prefix)", () => {
     const thinkingEvent = 'ag:{"thinking":"Let me analyze this..."}';
     const result = parseArenaSSE(thinkingEvent);
-    
+
     assert.ok(result, "Should parse thinking event");
     assert.equal(result.type, "thinking");
     assert.equal(result.content, "Let me analyze this...");
@@ -165,37 +157,37 @@ describe("LMArena Executor", () => {
   });
 
   it("parses LMArena SSE done event (ad: prefix)", () => {
-    const doneEvent = 'ad:{}';
+    const doneEvent = "ad:{}";
     const result = parseArenaSSE(doneEvent);
-    
+
     assert.ok(result, "Should parse done event");
     assert.equal(result.type, "done");
   });
 
   it("handles malformed SSE events gracefully", () => {
-    const malformedEvent = 'invalid:data';
+    const malformedEvent = "invalid:data";
     const result = parseArenaSSE(malformedEvent);
-    
+
     assert.equal(result, null, "Should return null for malformed events");
   });
 
   it("transforms OpenAI messages to LMArena format", () => {
     const executor = new LMArenaExecutor();
     const transformRequest = (executor as any).transformRequest.bind(executor);
-    
+
     const openaiBody = {
       messages: [
         { role: "system", content: "You are a helpful assistant." },
         { role: "user", content: "Hello!" },
         { role: "assistant", content: "Hi there!" },
-        { role: "user", content: "How are you?" }
+        { role: "user", content: "How are you?" },
       ],
       model: "gpt-4",
-      stream: true
+      stream: true,
     };
-    
+
     const arenaBody = transformRequest(openaiBody, "gpt-4");
-    
+
     assert.ok(arenaBody, "Should transform request body");
     assert.ok(arenaBody.messages, "Should have messages array");
     assert.equal(arenaBody.model, "gpt-4", "Should preserve model");
@@ -210,7 +202,7 @@ describe("LMArena Executor", () => {
       body: { messages: [{ role: "user", content: "Hello" }] },
       credentials: {},
       signal: new AbortController().signal,
-      log: console
+      log: console,
     });
 
     assert.equal(result.response.status, 401, "Should return 401 for missing cookie");
@@ -225,14 +217,15 @@ describe("LMArena Executor", () => {
     const mockSSE = [
       'data: a0:{"text":"Hello"}\n\n',
       'data: a0:{"text":", world!"}\n\n',
-      'data: ad:{}\n\n'
-    ].join('');
+      "data: ad:{}\n\n",
+    ].join("");
 
     const originalFetch = global.fetch;
-    global.fetch = async () => new Response(mockSSE, {
-      status: 200,
-      headers: { "Content-Type": "text/event-stream" }
-    });
+    global.fetch = async () =>
+      new Response(mockSSE, {
+        status: 200,
+        headers: { "Content-Type": "text/event-stream" },
+      });
 
     try {
       const result = await executor.execute({
@@ -240,7 +233,7 @@ describe("LMArena Executor", () => {
         body: { messages: [{ role: "user", content: "Hello" }], stream: true },
         credentials: { cookie: "session=test" },
         signal: new AbortController().signal,
-        log: console
+        log: console,
       });
 
       assert.equal(result.response.status, 200, "Should return 200 for successful streaming");
@@ -254,12 +247,16 @@ describe("LMArena Executor", () => {
     const executor = new LMArenaExecutor();
 
     const originalFetch = global.fetch;
-    global.fetch = async () => new Response(JSON.stringify({
-      error: { message: "Rate limit exceeded" }
-    }), {
-      status: 429,
-      headers: { "Content-Type": "application/json" }
-    });
+    global.fetch = async () =>
+      new Response(
+        JSON.stringify({
+          error: { message: "Rate limit exceeded" },
+        }),
+        {
+          status: 429,
+          headers: { "Content-Type": "application/json" },
+        }
+      );
 
     try {
       const result = await executor.execute({
@@ -267,7 +264,7 @@ describe("LMArena Executor", () => {
         body: { messages: [{ role: "user", content: "Hello" }] },
         credentials: { cookie: "session=test" },
         signal: new AbortController().signal,
-        log: console
+        log: console,
       });
 
       assert.equal(result.response.status, 429, "Should return 429 for rate limit");

@@ -843,6 +843,7 @@
     "batchConceptRetentionNote": "Results and error files are retained for 30 days (Anthropic: 29 days)"
   },
   "featureFlagOmnirouteEmergencyFallbackDescription": "Route budget-exhausted requests to the emergency free fallback provider/model.",
+  "featureFlagArenaEloSyncEnabledDescription": "Enable periodic Arena AI leaderboard ELO sync for model intelligence rankings.",
   "sidebar": {
     "home": "Home",
     "dashboard": "Dashboard",
@@ -4889,6 +4890,8 @@
     "homeProviderTopologyDesc": "Show the Provider Topology on the Home page.",
     "endpointTokenSaver": "Token Saver",
     "endpointTokenSaverDesc": "Show the Token Saver panel on the Endpoint page.",
+    "accountEmailVisibility": "Account email visibility",
+    "accountEmailVisibilityDesc": "Show full account emails across providers, combos, logs, quota, and playground screens. Turn this off to mask them by default.",
     "sidebarVisibilityToggle": "Show Sidebar Items",
     "enableCache": "Enable Cache",
     "cacheTTL": "Cache TTL",
@@ -8720,7 +8723,7 @@
     "subtitle": "Best free providers ranked by model ELO scores from Arena AI leaderboards",
     "loading": "Loading rankings...",
     "errorLoading": "Failed to load rankings",
-    "emptyState": "No rankings available yet. Arena ELO data syncs on startup (daily) — check back shortly, or trigger a manual sync. Set ARENA_ELO_SYNC_ENABLED=false to opt out.",
+    "emptyState": "No rankings available yet. Arena ELO data syncs on startup (daily) — check back shortly, or trigger a manual sync. Disable Arena ELO Sync in Feature Flags or set ARENA_ELO_SYNC_ENABLED=false to opt out.",
     "bestModel": "Best",
     "allCategories": "All Categories",
     "categoryDefault": "Default",

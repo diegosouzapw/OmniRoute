@@ -1,10 +1,6 @@
 import { HTTP_STATUS, FETCH_TIMEOUT_MS } from "../config/constants.ts";
 import { applyFingerprint, isCliCompatEnabled } from "../config/cliFingerprints.ts";
-import {
-  supportsClaudeMaxEffort,
-  supportsXHighEffort,
-  supportsXHighEffortForMaxNormalization,
-} from "../config/providerModels.ts";
+import { supportsClaudeMaxEffort, supportsXHighEffort } from "../config/providerModels.ts";
 import type { PoolConfig } from "../services/sessionPool/types.ts";
 import type { Session } from "../services/sessionPool/session.ts";
 import { SessionPool } from "../services/sessionPool/sessionPool.ts";
@@ -232,10 +228,10 @@ function hasActiveClaudeThinking(body: Record<string, unknown>): boolean {
  * provider. Apply provider-aware sanitation here (after transformRequest, so
  * reintroductions by per-provider transforms are also caught) before fetch.
  * xhigh support is opt-out: pass through unchanged unless the registry marks
- * a model as unsupported. max support is Claude/CC-compatible only and
+ * a model as unsupported. Literal max support is Claude/CC-compatible only and
  * intentionally separate: older Opus/Sonnet models may support max even when
- * they do not support xhigh. For OpenAI-shape providers, keep the existing
- * max normalization behavior.
+ * they do not support xhigh. For OpenAI-shape providers, max normalizes to
+ * xhigh by default and falls back to high only for explicit xhigh opt-outs.
  */
 const MISTRAL_NO_REASONING_EFFORT_PATTERN = /devstral/i;
 const GITHUB_NO_REASONING_EFFORT_PATTERN = /(claude|haiku|oswe)/i;
@@ -265,9 +261,28 @@ export function sanitizeReasoningEffortForProvider(
   const effortStr = typeof effort === "string" ? effort.toLowerCase() : "";
   const modelStr = model || "";
 
+  const rejecting =
+    (provider === "mistral" && MISTRAL_NO_REASONING_EFFORT_PATTERN.test(modelStr)) ||
+    (provider === "github" && GITHUB_NO_REASONING_EFFORT_PATTERN.test(modelStr));
+  if (rejecting) {
+    log?.info?.(
+      "REASONING_SANITIZE",
+      `${provider}/${modelStr}: removed unsupported reasoning_effort`
+    );
+    const next: Record<string, unknown> = { ...b };
+    delete next.reasoning_effort;
+    if (reasoning) {
+      const r = { ...reasoning };
+      delete r.effort;
+      if (Object.keys(r).length === 0) delete next.reasoning;
+      else next.reasoning = r;
+    }
+    return next;
+  }
+
   const supportsXHigh = supportsXHighEffort(provider, modelStr);
   const shouldDowngradeXHigh = effortStr === "xhigh" && !supportsXHigh;
-  const supportsXHighForMax = supportsXHighEffortForMaxNormalization(provider, modelStr);
+  const supportsXHighForMax = supportsXHigh;
   const supportsMax = supportsMaxEffortForProvider(provider, modelStr);
   const shouldNormalizeMaxToXHigh = effortStr === "max" && !supportsMax && supportsXHighForMax;
   const shouldDowngradeMax = effortStr === "max" && !supportsMax && !supportsXHighForMax;
@@ -298,25 +313,6 @@ export function sanitizeReasoningEffortForProvider(
     }
     if (reasoning) {
       next.reasoning = { ...reasoning, effort: "high" };
-    }
-    return next;
-  }
-
-  const rejecting =
-    (provider === "mistral" && MISTRAL_NO_REASONING_EFFORT_PATTERN.test(modelStr)) ||
-    (provider === "github" && GITHUB_NO_REASONING_EFFORT_PATTERN.test(modelStr));
-  if (rejecting) {
-    log?.info?.(
-      "REASONING_SANITIZE",
-      `${provider}/${modelStr}: removed unsupported reasoning_effort`
-    );
-    const next: Record<string, unknown> = { ...b };
-    delete next.reasoning_effort;
-    if (reasoning) {
-      const r = { ...reasoning };
-      delete r.effort;
-      if (Object.keys(r).length === 0) delete next.reasoning;
-      else next.reasoning = r;
     }
     return next;
   }

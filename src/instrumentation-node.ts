@@ -265,18 +265,40 @@ export async function registerNodejs(): Promise<void> {
       console.warn("[STARTUP] Auto-refresh daemon failed to start (non-fatal):", msg);
     }
 
-    // Arena ELO sync: model intelligence from the Arena AI leaderboard, powering the
-    // Free Provider Rankings page. On by default (opt out with ARENA_ELO_SYNC_ENABLED=false).
-    // Non-blocking — the initial sync is fire-and-forget and never fatal.
-    if (process.env.ARENA_ELO_SYNC_ENABLED !== "false") {
-      try {
-        const { initArenaEloSync } = await import("@/lib/arenaEloSync");
-        await initArenaEloSync();
+    try {
+      // Arena ELO sync: model intelligence from the Arena AI leaderboard, powering the
+      // Free Provider Rankings page. On by default; configurable from Dashboard Feature Flags.
+      // Non-blocking — the initial sync is fire-and-forget and never fatal.
+      const { initArenaEloSync } = await import("@/lib/arenaEloSync");
+      const started = await initArenaEloSync();
+      if (started) {
         console.log("[STARTUP] Arena ELO sync initialized");
-      } catch (err: unknown) {
-        const msg = err instanceof Error ? err.message : String(err);
-        console.warn("[STARTUP] Arena ELO sync failed to start (non-fatal):", msg);
       }
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : String(err);
+      console.warn("[STARTUP] Arena ELO sync failed to start (non-fatal):", msg);
+    }
+
+    // Pricing sync: opt-in external pricing data (self-gated by PRICING_SYNC_ENABLED inside
+    // initPricingSync). Was only wired into the unused server-init.ts, so it never ran in the
+    // standalone runtime even when enabled. Non-blocking, never fatal.
+    try {
+      const { initPricingSync } = await import("@/lib/pricingSync");
+      await initPricingSync();
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : String(err);
+      console.warn("[STARTUP] Pricing sync failed to start (non-fatal):", msg);
+    }
+
+    // models.dev capability sync: opt-in via Settings > AI (self-gated by
+    // settings.modelsDevSyncEnabled inside initModelsDevSync). Previously had no caller at all,
+    // so the toggle was inert. Non-blocking, never fatal.
+    try {
+      const { initModelsDevSync } = await import("@/lib/modelsDevSync");
+      await initModelsDevSync();
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : String(err);
+      console.warn("[STARTUP] models.dev sync failed to start (non-fatal):", msg);
     }
   }
 }
