@@ -1,5 +1,6 @@
 import { randomUUID } from "crypto";
 import { resolveChatRequestBody } from "./requestBody";
+import { resolveRoutingModel } from "./resolveRoutingModel";
 import {
   getProviderCredentialsWithQuotaPreflight,
   markAccountUnavailable,
@@ -254,7 +255,10 @@ export async function handleChat(
     log.debug("NO_THINKING", `Resolved no-thinking alias → ${noThinking.realModel}`);
   }
 
-  let modelStr = body.model;
+  // X-Route-Model header overrides body.model for routing purposes (see
+  // resolveRoutingModel). The resolved model still passes through
+  // enforceApiKeyPolicy below, so it cannot bypass per-key allowlists.
+  let modelStr = resolveRoutingModel(request, body);
 
   // Count messages (support both messages[] and input[] formats)
   const msgCount = body.messages?.length || body.input?.length || 0;

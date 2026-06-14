@@ -217,7 +217,7 @@
     "src/shared/constants/sidebarVisibility.ts": 1100,
     "src/shared/services/cliRuntime.ts": 1090,
     "src/shared/validation/schemas.ts": 2523,
-    "src/sse/handlers/chat.ts": 1521,
+    "src/sse/handlers/chat.ts": 1525,
     "src/sse/services/auth.ts": 2289
   },
   "testCap": 800,
