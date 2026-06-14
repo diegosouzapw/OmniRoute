@@ -378,7 +378,9 @@ export const TRAE_CONFIG = {
 //
 // Active fields:
 //   - inferenceUrl       → used by WindsurfExecutor (open-sse/executors/windsurf.ts)
-//   - showAuthTokenUrl   → linked from OAuthModal "Get token" button
+//   - showAuthTokenUrl   → reference URL; the real token only renders when the
+//                          IDE "Windsurf: Provide Auth Token" command opens it
+//                          with an IDE-supplied ?state= param (see field below)
 //   - firebaseApiKey     → reserved for Phase 2
 //   - ideName            → sent in extension headers
 export const WINDSURF_CONFIG = {
@@ -397,7 +399,11 @@ export const WINDSURF_CONFIG = {
   // ── Active fields (still consumed by runtime) ─────────────────────────────
   // Inference server URL (gRPC-web requests go here)
   inferenceUrl: "https://server.self-serve.windsurf.com",
-  // Primary login path: user visits this page, copies token, pastes it
+  // Primary login path: the user runs the "Windsurf: Provide Auth Token" command
+  // inside the Windsurf/VS Code IDE (or clicks the Jupyter "Get Windsurf
+  // Authentication Token" button), which opens this URL WITH an IDE-supplied
+  // `?state=<xyz>` param and renders the token. Opening this bare URL directly
+  // only shows a "Redirecting" page with no token (#3324).
   showAuthTokenUrl: "https://windsurf.com/show-auth-token",
   // Token refresh via Firebase Secure Token Service (reserved for Phase 2).
   // Default is the public Firebase Web client identifier embedded in the
