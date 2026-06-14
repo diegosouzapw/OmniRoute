@@ -101,7 +101,7 @@
     "src/shared/constants/providers.ts": 3147,
     "src/shared/constants/sidebarVisibility.ts": 1006,
     "src/shared/services/cliRuntime.ts": 1090,
-    "src/shared/validation/schemas.ts": 2522,
+    "src/shared/validation/schemas.ts": 2523,
     "src/sse/handlers/chat.ts": 1425,
     "src/sse/services/auth.ts": 2207
   },
@@ -126,5 +126,6 @@
   "_rebaseline_2026_06_14_3825_combo_stickiness": "Re-baseline #3825 (sessionless combo stickiness + reasoning-aware readiness): combo.ts 5164→5198 (+34, pós-prettier). Crescimento = deriveComboSessionKey() + effectiveSessionId threading nos sites de read/write do pin server-side. streamReadinessPolicy.ts não-frozen (sob cap). Lógica coesa no handler de combo; não-extraível.",
   "_rebaseline_2026_06_14_r3_3835_kiro_pricing": "PR #3835 own growth: pricing.ts 1470→1508 (+38 = missing Kiro pricing rows, claude-sonnet-4.6 etc., pure data). Also carries inherited release/v3.8.25 drift not yet frozen by prior r2 merges: RequestLoggerV2.tsx 1276→1282 (#3820 resizable log table) and combo.ts 5198→5203 (#3811 round-robin replay-response fix). This PR does not touch RequestLoggerV2/combo.ts source; updating the frozen values restores Fast Quality Gates on the current release branch.",
   "_rebaseline_2026_06_14_r3_3849_transient_hide": "PR #3849 own growth: providerPageHelpers.ts 939→955 (+16 = expanded JSDoc on the auto-hide policy + transient-failure guard in evaluateTestAllEntry). Cohesive helper logic; not extractable.",
-  "_rebaseline_2026_06_14_r3_3838_opencode_quota": "PR #3838 own growth: usage.ts 3394→3408 (+14 = clearer OpenCode Go missing-quota-API messages with OMNIROUTE_OPENCODE_GO_QUOTA_URL override hint + upstream issue links). Message text only; no logic extractable."
+  "_rebaseline_2026_06_14_r3_3838_opencode_quota": "PR #3838 own growth: usage.ts 3394→3408 (+14 = clearer OpenCode Go missing-quota-API messages with OMNIROUTE_OPENCODE_GO_QUOTA_URL override hint + upstream issue links). Message text only; no logic extractable.",
+  "_rebaseline_2026_06_14_r3_3839_veo_video": "PR #3839 own growth: schemas.ts 2522→2523 (+1 = Veo video model (predictLongRunning) validation for Gemini/Vertex dynamic discovery)."
 }
