@@ -5,6 +5,7 @@ import type {
   CompressionResult,
   CompressionStats,
 } from "./types.ts";
+import type { CompressionEngineApplyOptions } from "./engines/types.ts";
 import { applyLiteCompression } from "./lite.ts";
 import { cavemanCompress } from "./caveman.ts";
 import { compressAggressive } from "./aggressive.ts";
@@ -179,6 +180,30 @@ export function applyCompression(
   return { body, compressed: false, stats: null };
 }
 
+/**
+ * Async entry point mirroring {@link applyCompression}. Only the stacked mode
+ * can host async engines, so it routes through {@link applyStackedCompressionAsync};
+ * every other mode delegates to the synchronous path unchanged. Call sites that
+ * already run in an async context (e.g. chatCore) await this so a future
+ * worker-thread engine can await without changing the surrounding code.
+ */
+export async function applyCompressionAsync(
+  body: Record<string, unknown>,
+  mode: CompressionMode,
+  options?: { model?: string; supportsVision?: boolean | null; config?: CompressionConfig }
+): Promise<CompressionResult> {
+  if (mode === "stacked") {
+    const adapter = adaptBodyForCompression(body);
+    const result = await applyStackedCompressionAsync(
+      adapter.body,
+      options?.config?.stackedPipeline,
+      options
+    );
+    return adapter.adapted ? { ...result, body: adapter.restore(result.body) } : result;
+  }
+  return applyCompression(body, mode, options);
+}
+
 function normalizePipelineStep(step: CompressionPipelineStep | string): CompressionPipelineStep {
   if (typeof step !== "string") return step;
   if (step === "standard") return { engine: "caveman" };
@@ -187,105 +212,197 @@ function normalizePipelineStep(step: CompressionPipelineStep | string): Compress
   return { engine: "caveman" };
 }
 
+interface StackOptions {
+  model?: string;
+  supportsVision?: boolean | null;
+  config?: CompressionConfig;
+  compressionComboId?: string | null;
+}
+
+/** Accumulates per-step telemetry across a stacked run (shared sync/async). */
+interface StackAccumulator {
+  techniques: Set<string>;
+  rules: Set<string>;
+  breakdown: NonNullable<CompressionStats["engineBreakdown"]>;
+  rtkRawOutputPointers: NonNullable<CompressionStats["rtkRawOutputPointers"]>;
+  validationWarnings: Set<string>;
+  validationErrors: Set<string>;
+  fallbackApplied: boolean;
+}
+
+function createStackAccumulator(): StackAccumulator {
+  return {
+    techniques: new Set<string>(),
+    rules: new Set<string>(),
+    breakdown: [],
+    rtkRawOutputPointers: [],
+    validationWarnings: new Set<string>(),
+    validationErrors: new Set<string>(),
+    fallbackApplied: false,
+  };
+}
+
+function resolveStackSteps(
+  pipeline?: Array<CompressionPipelineStep | string>
+): CompressionPipelineStep[] {
+  return pipeline && pipeline.length > 0
+    ? pipeline.map(normalizePipelineStep)
+    : [
+        { engine: "rtk", intensity: "standard" },
+        { engine: "caveman", intensity: "full" },
+      ];
+}
+
+function buildStepOptions(
+  step: CompressionPipelineStep,
+  options?: StackOptions
+): CompressionEngineApplyOptions {
+  return {
+    ...options,
+    compressionComboId: options?.compressionComboId ?? options?.config?.compressionComboId,
+    stepConfig: {
+      ...(step.config ?? {}),
+      ...(step.intensity ? { intensity: step.intensity } : {}),
+    },
+  };
+}
+
+/** Folds one engine result into the accumulator (telemetry + breakdown entry). */
+function mergeStackStep(
+  acc: StackAccumulator,
+  engineId: string,
+  result: CompressionResult
+): void {
+  if (!result.stats) return;
+  result.stats.techniquesUsed.forEach((technique) => acc.techniques.add(technique));
+  result.stats.rulesApplied?.forEach((rule) => acc.rules.add(rule));
+  result.stats.rtkRawOutputPointers?.forEach((pointer) => acc.rtkRawOutputPointers.push(pointer));
+  result.stats.validationWarnings?.forEach((warning) => acc.validationWarnings.add(warning));
+  result.stats.validationErrors?.forEach((error) => acc.validationErrors.add(error));
+  acc.fallbackApplied = acc.fallbackApplied || result.stats.fallbackApplied === true;
+  acc.breakdown.push({
+    engine: engineId,
+    originalTokens: result.stats.originalTokens,
+    compressedTokens: result.stats.compressedTokens,
+    savingsPercent: result.stats.savingsPercent,
+    techniquesUsed: result.stats.techniquesUsed,
+    ...(result.stats.rulesApplied ? { rulesApplied: result.stats.rulesApplied } : {}),
+    ...(result.stats.durationMs !== undefined ? { durationMs: result.stats.durationMs } : {}),
+  });
+}
+
+function finalizeStackedResult(
+  originalBody: Record<string, unknown>,
+  currentBody: Record<string, unknown>,
+  compressed: boolean,
+  acc: StackAccumulator,
+  start: number,
+  compressionComboId: string | null | undefined
+): CompressionResult {
+  const stats = createCompressionStats(
+    originalBody,
+    currentBody,
+    "stacked",
+    Array.from(acc.techniques),
+    acc.rules.size > 0 ? Array.from(acc.rules) : undefined,
+    Math.round((performance.now() - start) * 100) / 100
+  );
+  stats.engine = "stacked";
+  stats.compressionComboId = compressionComboId ?? null;
+  stats.engineBreakdown = acc.breakdown;
+  if (acc.validationWarnings.size > 0) {
+    stats.validationWarnings = Array.from(acc.validationWarnings);
+  }
+  if (acc.validationErrors.size > 0) {
+    stats.validationErrors = Array.from(acc.validationErrors);
+  }
+  if (acc.fallbackApplied) {
+    stats.fallbackApplied = true;
+  }
+  if (acc.rtkRawOutputPointers.length > 0) {
+    const seenPointers = new Set<string>();
+    stats.rtkRawOutputPointers = acc.rtkRawOutputPointers.filter((pointer) => {
+      if (seenPointers.has(pointer.id)) return false;
+      seenPointers.add(pointer.id);
+      return true;
+    });
+  }
+  return { body: currentBody, compressed, stats };
+}
+
 export function applyStackedCompression(
   body: Record<string, unknown>,
   pipeline?: Array<CompressionPipelineStep | string>,
-  options?: {
-    model?: string;
-    supportsVision?: boolean | null;
-    config?: CompressionConfig;
-    compressionComboId?: string | null;
-  }
+  options?: StackOptions
 ): CompressionResult {
-  const steps =
-    pipeline && pipeline.length > 0
-      ? pipeline.map(normalizePipelineStep)
-      : [
-          { engine: "rtk" as const, intensity: "standard" as const },
-          { engine: "caveman" as const, intensity: "full" as const },
-        ];
+  const steps = resolveStackSteps(pipeline);
   registerBuiltinCompressionEngines();
 
   let currentBody = body;
   let compressed = false;
-  const techniques = new Set<string>();
-  const rules = new Set<string>();
-  const breakdown: NonNullable<CompressionStats["engineBreakdown"]> = [];
-  const rtkRawOutputPointers: NonNullable<CompressionStats["rtkRawOutputPointers"]> = [];
-  const validationWarnings = new Set<string>();
-  const validationErrors = new Set<string>();
-  let fallbackApplied = false;
+  const acc = createStackAccumulator();
   const start = performance.now();
 
   for (const step of steps) {
     const engine = getCompressionEngine(step.engine);
     if (!engine) continue;
-    const result = engine.apply(currentBody, {
-      ...options,
-      compressionComboId: options?.compressionComboId ?? options?.config?.compressionComboId,
-      stepConfig: {
-        ...(step.config ?? {}),
-        ...(step.intensity ? { intensity: step.intensity } : {}),
-      },
-    });
-    if (result.stats) {
-      result.stats.techniquesUsed.forEach((technique) => techniques.add(technique));
-      result.stats.rulesApplied?.forEach((rule) => rules.add(rule));
-      result.stats.rtkRawOutputPointers?.forEach((pointer) => {
-        rtkRawOutputPointers.push(pointer);
-      });
-      result.stats.validationWarnings?.forEach((warning) => validationWarnings.add(warning));
-      result.stats.validationErrors?.forEach((error) => validationErrors.add(error));
-      fallbackApplied = fallbackApplied || result.stats.fallbackApplied === true;
-      breakdown.push({
-        engine: step.engine,
-        originalTokens: result.stats.originalTokens,
-        compressedTokens: result.stats.compressedTokens,
-        savingsPercent: result.stats.savingsPercent,
-        techniquesUsed: result.stats.techniquesUsed,
-        ...(result.stats.rulesApplied ? { rulesApplied: result.stats.rulesApplied } : {}),
-        ...(result.stats.durationMs !== undefined ? { durationMs: result.stats.durationMs } : {}),
-      });
-    }
+    const result = engine.apply(currentBody, buildStepOptions(step, options));
+    mergeStackStep(acc, step.engine, result);
     if (result.compressed) {
       currentBody = result.body;
       compressed = true;
     }
   }
 
-  const stats = createCompressionStats(
+  return finalizeStackedResult(
     body,
     currentBody,
-    "stacked",
-    Array.from(techniques),
-    rules.size > 0 ? Array.from(rules) : undefined,
-    Math.round((performance.now() - start) * 100) / 100
+    compressed,
+    acc,
+    start,
+    options?.compressionComboId ?? options?.config?.compressionComboId
   );
-  stats.engine = "stacked";
-  stats.compressionComboId =
-    options?.compressionComboId ?? options?.config?.compressionComboId ?? null;
-  stats.engineBreakdown = breakdown;
-  if (validationWarnings.size > 0) {
-    stats.validationWarnings = Array.from(validationWarnings);
-  }
-  if (validationErrors.size > 0) {
-    stats.validationErrors = Array.from(validationErrors);
-  }
-  if (fallbackApplied) {
-    stats.fallbackApplied = true;
-  }
-  if (rtkRawOutputPointers.length > 0) {
-    const seenPointers = new Set<string>();
-    stats.rtkRawOutputPointers = rtkRawOutputPointers.filter((pointer) => {
-      if (seenPointers.has(pointer.id)) return false;
-      seenPointers.add(pointer.id);
-      return true;
-    });
+}
+
+/**
+ * Async sibling of {@link applyStackedCompression} (H10). Awaits engines that
+ * expose `applyAsync` (e.g. worker-thread models) and runs synchronous engines
+ * inline. Behaviour is otherwise identical: same step order, same accumulated
+ * telemetry, same final stats — so sync-only pipelines yield the same result.
+ */
+export async function applyStackedCompressionAsync(
+  body: Record<string, unknown>,
+  pipeline?: Array<CompressionPipelineStep | string>,
+  options?: StackOptions
+): Promise<CompressionResult> {
+  const steps = resolveStackSteps(pipeline);
+  registerBuiltinCompressionEngines();
+
+  let currentBody = body;
+  let compressed = false;
+  const acc = createStackAccumulator();
+  const start = performance.now();
+
+  for (const step of steps) {
+    const engine = getCompressionEngine(step.engine);
+    if (!engine) continue;
+    const stepOptions = buildStepOptions(step, options);
+    const result = engine.applyAsync
+      ? await engine.applyAsync(currentBody, stepOptions)
+      : engine.apply(currentBody, stepOptions);
+    mergeStackStep(acc, step.engine, result);
+    if (result.compressed) {
+      currentBody = result.body;
+      compressed = true;
+    }
   }
 
-  return {
-    body: currentBody,
+  return finalizeStackedResult(
+    body,
+    currentBody,
     compressed,
-    stats,
-  };
+    acc,
+    start,
+    options?.compressionComboId ?? options?.config?.compressionComboId
+  );
 }

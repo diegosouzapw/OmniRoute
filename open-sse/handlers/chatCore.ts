@@ -2346,7 +2346,7 @@ export async function handleChatCore({
     // --- Modular Compression Pipeline (Phase 1 Lite + Phase 2 Standard/Caveman + Phase 3 Aggressive) ---
     // Runs BEFORE the existing reactive compressContext() to proactively reduce tokens.
     try {
-      const { selectCompressionStrategy, applyCompression } =
+      const { selectCompressionStrategy, applyCompressionAsync } =
         await import("../services/compression/strategySelector.ts");
       const { trackCompressionStats } = await import("../services/compression/stats.ts");
       let config: CompressionConfig = compressionSettings ?? {
@@ -2581,7 +2581,7 @@ export async function handleChatCore({
       );
       let compressionAnalyticsRecorded = false;
       if (mode !== "off") {
-        const result = applyCompression(compressionInputBody, mode, {
+        const result = await applyCompressionAsync(compressionInputBody, mode, {
           model: effectiveModel,
           config,
         });
