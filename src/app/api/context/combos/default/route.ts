@@ -6,7 +6,7 @@ import { isValidationFailure, validateBody } from "@/shared/validation/helpers";
 
 const engineToggleSchema = z
   .object({
-    engineId: z.string().trim().min(1),
+    engineId: z.string().trim().min(1).max(64),
     enabled: z.boolean(),
     config: z.record(z.string(), z.unknown()).optional(),
   })

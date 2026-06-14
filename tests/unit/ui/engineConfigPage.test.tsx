@@ -183,6 +183,93 @@ describe("EngineConfigPage", () => {
     expect(hasEmptyState).toBe(true);
   });
 
+  it("renders the stacked-mode prerequisite notice", async () => {
+    setupFetchMock();
+    const { EngineConfigPage } =
+      await import("../../../src/shared/components/compression/EngineConfigPage");
+
+    let container!: HTMLElement;
+    await act(async () => {
+      container = mountInContainer(<EngineConfigPage engineId="headroom" />);
+    });
+
+    await act(async () => {
+      await Promise.resolve();
+    });
+
+    expect(container.textContent).toContain("stacked");
+    expect(container.textContent).toContain("Compression Settings");
+  });
+
+  it("Fix #4: handleSave sends enabled=false when engine is disabled", async () => {
+    // COMBO_PAYLOAD has empty pipeline → engine is disabled (enabled=false)
+    const putCalls: { body: unknown }[] = [];
+    vi.spyOn(globalThis, "fetch").mockImplementation(
+      async (input: RequestInfo | URL, init?: RequestInit) => {
+        const url = input.toString();
+        if (url.includes("/api/compression/engines")) {
+          return new Response(JSON.stringify(ENGINE_PAYLOAD), {
+            status: 200,
+            headers: { "Content-Type": "application/json" },
+          });
+        }
+        if (url.includes("/api/context/combos/default")) {
+          if (init?.method === "PUT") {
+            putCalls.push({ body: JSON.parse(init.body as string) });
+            return new Response(JSON.stringify(COMBO_PAYLOAD), {
+              status: 200,
+              headers: { "Content-Type": "application/json" },
+            });
+          }
+          return new Response(JSON.stringify(COMBO_PAYLOAD), {
+            status: 200,
+            headers: { "Content-Type": "application/json" },
+          });
+        }
+        if (url.includes("/api/context/analytics/engine")) {
+          return new Response(JSON.stringify(ANALYTICS_PAYLOAD), {
+            status: 200,
+            headers: { "Content-Type": "application/json" },
+          });
+        }
+        return new Response(JSON.stringify({}), { status: 404 });
+      }
+    );
+
+    const { EngineConfigPage } =
+      await import("../../../src/shared/components/compression/EngineConfigPage");
+
+    let container!: HTMLElement;
+    await act(async () => {
+      container = mountInContainer(<EngineConfigPage engineId="headroom" />);
+    });
+
+    // Let initial load complete
+    await act(async () => {
+      await Promise.resolve();
+    });
+
+    // Click "Salvar" — engine is disabled (COMBO_PAYLOAD pipeline is empty)
+    const saveBtn = container.querySelector("button") as HTMLButtonElement | null;
+    const allButtons = Array.from(container.querySelectorAll("button"));
+    const salvarBtn = allButtons.find((b) => b.textContent?.includes("Salvar"));
+    if (salvarBtn) {
+      await act(async () => {
+        salvarBtn.click();
+      });
+      await act(async () => {
+        await Promise.resolve();
+      });
+    }
+
+    // There should be at least one PUT call with enabled=false
+    const putWithFalse = putCalls.find(
+      (c) => (c.body as { enabled: boolean; engineId: string }).enabled === false
+    );
+    expect(putCalls.length).toBeGreaterThan(0);
+    expect(putWithFalse).toBeDefined();
+  });
+
   it("does not crash when all fetch calls fail (fail-soft)", async () => {
     vi.spyOn(globalThis, "fetch").mockRejectedValue(new Error("Network error"));
 

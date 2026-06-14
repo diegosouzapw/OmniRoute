@@ -172,7 +172,7 @@ export function EngineConfigPage({ engineId }: { engineId: string }) {
       const res = await fetch("/api/context/combos/default", {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ engineId, enabled: true, config: configState }),
+        body: JSON.stringify({ engineId, enabled, config: configState }),
       });
       if (!res.ok) {
         setSaveError("Failed to save configuration.");
@@ -264,6 +264,14 @@ export function EngineConfigPage({ engineId }: { engineId: string }) {
           />
         </div>
         {toggleError && <p className="text-xs text-destructive">{toggleError}</p>}
+        <p className="text-xs text-text-muted" data-testid="stacked-mode-notice">
+          As camadas ativadas rodam quando a compressão está no modo &quot;stacked&quot;. Configure
+          em{" "}
+          <a href="/dashboard/context/settings" className="underline hover:text-text">
+            Compression Settings
+          </a>
+          .
+        </p>
       </div>
 
       {/* ── Config form ── */}

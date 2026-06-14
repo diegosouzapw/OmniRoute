@@ -419,6 +419,7 @@ export function setEngineInDefaultCombo(
   enabled: boolean,
   config?: Record<string, unknown>
 ): CompressionCombo | null {
+  if (!KNOWN_ENGINE_IDS.includes(engineId)) return null;
   ensureCompressionComboTables();
   const existing = getDefaultCompressionCombo();
   if (!existing) return null;

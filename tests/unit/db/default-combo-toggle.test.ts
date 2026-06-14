@@ -151,6 +151,24 @@ test("disabling an engine removes it from the pipeline", () => {
   );
 });
 
+test("Fix #8: setEngineInDefaultCombo with unknown engineId returns null and does not modify the pipeline", () => {
+  const before = getDefaultCompressionCombo();
+  assert.ok(before, "default combo must exist");
+  const originalPipeline = JSON.stringify(before.pipeline);
+
+  const result = setEngineInDefaultCombo("not-a-real-engine", true);
+  assert.equal(result, null, "should return null for unknown engine id");
+
+  // The combo must be unchanged
+  const after = getDefaultCompressionCombo();
+  assert.ok(after, "default combo should still exist");
+  assert.equal(
+    JSON.stringify(after.pipeline),
+    originalPipeline,
+    "pipeline should be unmodified when unknown engineId is rejected"
+  );
+});
+
 test("Fix #2: disabling last engine produces an empty pipeline (not silently reverted to default)", () => {
   // Start with a pipeline that only has one engine by disabling everything except headroom.
   // First set a pipeline with only one known engine via a raw DB update.

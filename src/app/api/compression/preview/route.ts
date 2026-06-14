@@ -11,6 +11,7 @@ import type {
   CompressionMode,
 } from "@omniroute/open-sse/services/compression/types";
 import { buildCompressionPreviewDiff } from "@omniroute/open-sse/services/compression/diffHelper";
+import { sanitizeErrorMessage } from "@omniroute/open-sse/utils/error";
 
 export const PreviewCompressionConfigSchema = compressionPreviewConfigSchema;
 
@@ -125,6 +126,9 @@ export async function POST(req: Request) {
   } catch (err: unknown) {
     const msg = err instanceof Error ? err.message : String(err);
     console.error("[/api/compression/preview]", msg);
-    return NextResponse.json({ error: "Compression failed", details: msg }, { status: 500 });
+    return NextResponse.json(
+      { error: "Compression failed", details: sanitizeErrorMessage(msg) },
+      { status: 500 }
+    );
   }
 }
