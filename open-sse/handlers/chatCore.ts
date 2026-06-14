@@ -161,6 +161,7 @@ import { invalidateCodexQuotaCache } from "../services/codexQuotaFetcher.ts";
 import { translateNonStreamingResponse } from "./responseTranslator.ts";
 import { extractUsageFromResponse } from "./usageExtractor.ts";
 import {
+  extractSSEErrorMessage,
   parseSSEToClaudeResponse,
   parseSSEToOpenAIResponse,
   parseSSEToResponsesOutput,
@@ -2387,7 +2388,7 @@ export async function handleChatCore({
     // --- Modular Compression Pipeline (Phase 1 Lite + Phase 2 Standard/Caveman + Phase 3 Aggressive) ---
     // Runs BEFORE the existing reactive compressContext() to proactively reduce tokens.
     try {
-      const { selectCompressionStrategy, applyCompression } =
+      const { selectCompressionStrategy, applyCompressionAsync } =
         await import("../services/compression/strategySelector.ts");
       const { trackCompressionStats } = await import("../services/compression/stats.ts");
       let config: CompressionConfig = compressionSettings ?? {
@@ -2622,7 +2623,7 @@ export async function handleChatCore({
       );
       let compressionAnalyticsRecorded = false;
       if (mode !== "off") {
-        const result = applyCompression(compressionInputBody, mode, {
+        const result = await applyCompressionAsync(compressionInputBody, mode, {
           model: effectiveModel,
           config,
         });
@@ -2634,6 +2635,33 @@ export async function handleChatCore({
               0,
               result.stats.originalTokens - result.stats.compressedTokens
             );
+          }
+
+          // Fire-and-forget: emit live compression event for dashboard (U5).
+          // Guard: only emit when compression actually ran and produced stats.
+          if (result.compressed && result.stats) {
+            try {
+              emit("compression.completed", {
+                requestId: traceId,
+                comboId: result.stats.compressionComboId ?? null,
+                mode,
+                originalTokens: result.stats.originalTokens,
+                compressedTokens: result.stats.compressedTokens,
+                savingsPercent: result.stats.savingsPercent,
+                engineBreakdown: result.stats.engineBreakdown ?? [],
+                validationWarnings: result.stats.validationWarnings,
+                fallbackApplied: result.stats.fallbackApplied,
+                timestamp: Date.now(),
+              });
+            } catch (_emitErr) {
+              // never propagate into the hot path — but log like the sibling
+              // fire-and-forget blocks so a throwing event bus isn't fully silent.
+              log?.debug?.(
+                "COMPRESSION",
+                "compression.completed emit skipped: " +
+                  (_emitErr instanceof Error ? _emitErr.message : String(_emitErr))
+              );
+            }
           }
 
           if (result.compressed || result.stats.fallbackApplied || cavemanOutputModeApplied) {
@@ -4870,7 +4898,14 @@ export async function handleChatCore({
           connectionId,
           status: `FAILED ${HTTP_STATUS.BAD_GATEWAY}`,
         }).catch(() => {});
-        const invalidSseMessage = "Invalid SSE response for non-streaming request";
+        // Some executors (e.g. the Devin/Windsurf CLI) always emit
+        // text/event-stream, signalling failure with an error-only chunk
+        // (`data: {"error":{"message":"Devin CLI not found..."}}`) that carries
+        // no `choices`. Surface that real, sanitized message instead of the
+        // generic 502 so the actionable error is not swallowed (#3324).
+        const surfacedSseError = extractSSEErrorMessage(streamPayload);
+        const invalidSseMessage =
+          surfacedSseError || "Invalid SSE response for non-streaming request";
         persistAttemptLogs({
           status: HTTP_STATUS.BAD_GATEWAY,
           error: invalidSseMessage,
@@ -5268,9 +5303,8 @@ export async function handleChatCore({
     // === Quota Share POST-hook (B/F7) — fire-and-forget, fail-open ===
     if (apiKeyInfo?.id && credentials?.connectionId) {
       try {
-        const { scheduleRecordConsumption, buildConsumptionCost } = await import(
-          "@/lib/quota/spendRecorder"
-        );
+        const { scheduleRecordConsumption, buildConsumptionCost } =
+          await import("@/lib/quota/spendRecorder");
         scheduleRecordConsumption(
           {
             apiKeyId: apiKeyInfo.id,

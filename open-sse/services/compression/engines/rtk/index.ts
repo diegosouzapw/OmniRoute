@@ -3,6 +3,7 @@ import { DEFAULT_RTK_CONFIG, type CompressionResult, type RtkConfig } from "../.
 import type { CompressionEngine, EngineConfigField, EngineValidationResult } from "../types.ts";
 import { detectCommandType } from "./commandDetector.ts";
 import { deduplicateRepeatedLines } from "./deduplicator.ts";
+import { groupSimilarLines } from "./grouper.ts";
 import { matchRtkFilter } from "./filterLoader.ts";
 import { applyLineFilter } from "./lineFilter.ts";
 import { smartTruncate } from "./smartTruncate.ts";
@@ -278,6 +279,7 @@ export function processRtkText(
   let result = text;
 
   const detection = detectCommandType(text, options.command);
+  let matchedFilterPatterns: string[] = [];
   if (!options.skipFilters) {
     const filter = matchRtkFilter(text, detection.command, {
       customFiltersEnabled: config.customFiltersEnabled,
@@ -294,6 +296,7 @@ export function processRtkText(
           techniquesUsed.push("rtk-filter");
           rulesApplied.push(...filtered.appliedRules);
         }
+        matchedFilterPatterns = filter.priorityPatterns;
       }
     }
   }
@@ -323,12 +326,32 @@ export function processRtkText(
     rulesApplied.push("rtk:dedup");
   }
 
+  // R5: grouping — opt-in via enableGrouping flag (default OFF)
+  if (config.enableGrouping) {
+    const grouped = groupSimilarLines(result, {
+      threshold: config.groupingThreshold,
+    });
+    if (grouped.grouped > 0) {
+      result = grouped.text;
+      techniquesUsed.push("rtk-grouping");
+      rulesApplied.push("rtk:grouping");
+    }
+  }
+
+  const defaultPriorityPatterns: RegExp[] = [/error|failed|exception|traceback|TS\d{4}|FAIL|✖/i];
+  const filterPriorityPatterns: RegExp[] = matchedFilterPatterns.flatMap((pattern) => {
+    try {
+      return [new RegExp(pattern, "i")];
+    } catch {
+      return [];
+    }
+  });
   const truncated = smartTruncate(result, {
     maxLines: config.maxLinesPerResult,
     maxChars: config.maxCharsPerResult,
     preserveHead: config.intensity === "aggressive" ? 16 : 24,
     preserveTail: config.intensity === "aggressive" ? 16 : 24,
-    priorityPatterns: [/error|failed|exception|traceback|TS\d{4}|FAIL|✖/i],
+    priorityPatterns: [...defaultPriorityPatterns, ...filterPriorityPatterns],
   });
   if (truncated.truncated) {
     result = truncated.text;
@@ -440,8 +463,7 @@ export function applyRtkCompression(
       ? { enabled: true, ...options.stepConfig }
       : options.stepConfig;
   const explicitConfig = options.config && Object.keys(options.config).length > 0;
-  const baseConfig =
-    !explicitConfig && !stepConfig ? { enabled: true } : (options.config ?? {});
+  const baseConfig = !explicitConfig && !stepConfig ? { enabled: true } : (options.config ?? {});
   const config = mergeRtkConfig(baseConfig, stepConfig);
   if (!config.enabled) return { body, compressed: false, stats: null };
 

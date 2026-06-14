@@ -106,6 +106,48 @@ export function splitClaudeEffortSuffix(model: unknown): {
   return { baseModel: id, effort: null };
 }
 
+function getDatedClaudeAliasDate(candidate: string, modelId: string): number | null {
+  if (!modelId.startsWith(`${candidate}-`)) return null;
+  const suffix = modelId.slice(candidate.length + 1);
+  if (!/^\d{8}$/.test(suffix)) return null;
+  return Number(suffix);
+}
+
+function findCanonicalClaudeEffortModel(modelId: string): RegistryModel | undefined {
+  const id = splitClaudeEffortSuffix(modelId).baseModel.toLowerCase();
+  const claudeMatch = id.match(CLAUDE_MODEL_PATTERN);
+  if (!claudeMatch) return undefined;
+
+  const claudeOffset = claudeMatch[0]?.indexOf("claude") ?? 0;
+  const claudeStart = (claudeMatch.index ?? 0) + Math.max(claudeOffset, 0);
+  const claudeScopedId = id.slice(claudeStart).replace(/\.(?=\d)/g, "-");
+  const candidates = [claudeScopedId];
+  if (claudeScopedId.endsWith("-thinking")) {
+    candidates.push(claudeScopedId.slice(0, -"-thinking".length));
+  }
+
+  const claudeModels = getModelsByProviderId("claude");
+  for (const candidate of candidates) {
+    const exact = claudeModels.find((entry) => entry.id.toLowerCase() === candidate);
+    if (exact) return exact;
+
+    if (!/-\d+-\d+$/.test(candidate)) continue;
+    const datedAliases = claudeModels
+      .map((entry) => ({
+        entry,
+        date: getDatedClaudeAliasDate(candidate, entry.id.toLowerCase()),
+      }))
+      .filter(
+        (item): item is { entry: RegistryModel; date: number } =>
+          item.date !== null && item.entry.supportsXHighEffort !== undefined
+      )
+      .sort((a, b) => b.date - a.date || a.entry.id.localeCompare(b.entry.id));
+    if (datedAliases[0]) return datedAliases[0].entry;
+  }
+
+  return undefined;
+}
+
 function resolveProviderModelList(aliasOrId: string): {
   alias: string;
   models: RegistryModel[] | null;
@@ -118,25 +160,26 @@ function resolveProviderModelList(aliasOrId: string): {
 
 export function supportsXHighEffort(aliasOrId: string, modelId: string): boolean {
   const { models: providerModels } = resolveProviderModelList(aliasOrId);
-  // Unknown provider (not in registry) — pass through unchanged.
-  if (!providerModels) return true;
-  const model = providerModels.find((entry) => entry.id === modelId);
+  const model = providerModels?.find((entry) => entry.id === modelId);
+  if (model?.supportsXHighEffort !== undefined) {
+    return model.supportsXHighEffort !== false;
+  }
+
+  const canonicalClaudeModel = findCanonicalClaudeEffortModel(modelId);
+  if (canonicalClaudeModel?.supportsXHighEffort !== undefined) {
+    return canonicalClaudeModel.supportsXHighEffort !== false;
+  }
 
   // Keep explicit false entries as the unsupported-model list. Unlisted models
-  // and models without an explicit flag pass through unchanged.
-  return model?.supportsXHighEffort !== false;
+  // and models without an explicit flag pass through unchanged. Unknown
+  // providers follow the same rule except for canonical Claude aliases above.
+  return true;
 }
 
+/** @deprecated Use supportsXHighEffort(); max normalization now follows the same opt-out policy. */
 export function supportsXHighEffortForMaxNormalization(
   aliasOrId: string,
   modelId: string
 ): boolean {
-  const { alias, models: providerModels } = resolveProviderModelList(aliasOrId);
-  if (!providerModels) return true;
-  const model = providerModels.find((entry) => entry.id === modelId);
-
-  if (alias === "cc") {
-    return model?.supportsXHighEffort !== false;
-  }
-  return model?.supportsXHighEffort === true;
+  return supportsXHighEffort(aliasOrId, modelId);
 }

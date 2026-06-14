@@ -2905,6 +2905,35 @@ async function validateQwenWebProvider({ apiKey }: any) {
   }
 }
 
+/**
+ * Heuristic for a Grok 403 that is an anti-bot / IP-reputation block rather than
+ * a genuine upstream API error (issue #3474).
+ *
+ * Returns true when the body reads like an anti-bot rejection — Grok's literal
+ * "Request rejected by anti-bot rules." text, or a bare/non-structured forbidden
+ * body that carries no parseable upstream `error.message`. Returns false for a
+ * structured upstream API error (e.g. `{"error":{"message":"Model is not found"}}`),
+ * which must keep surfacing its body to the user/maintainer.
+ *
+ * Callers should run `isCloudflareChallenge()` first; this covers the non-HTML
+ * anti-bot cases that Cloudflare-challenge detection does not.
+ */
+function isGrokAntiBotBlock(body: string | null | undefined): boolean {
+  const text = (body || "").trim();
+  if (!text) return true; // empty 403 body — pre-auth block, treat as anti-bot
+  if (/anti-bot|forbidden|access denied|blocked|rate.?limit/i.test(text)) return true;
+  // A structured upstream API error has a parseable JSON `error.message`; if one
+  // is present this is a real upstream error, not an anti-bot block.
+  try {
+    const parsed = JSON.parse(text);
+    if (parsed && typeof parsed?.error?.message === "string") return false;
+  } catch {
+    // Non-JSON 403 body with no recognizable structure → treat as anti-bot block.
+    return true;
+  }
+  return false;
+}
+
 async function validateGrokWebProvider({ apiKey, providerSpecificData = {} }: any) {
   try {
     const token = extractCookieValue(apiKey, "sso");
@@ -3022,17 +3051,34 @@ async function validateGrokWebProvider({ apiKey, providerSpecificData = {} }: an
     }
 
     if (response.status === 403) {
-      // Grok uses 403 for auth failures, entitlement issues, geo blocks, and
-      // resource errors. Default-deny: only the auth-shaped 403 gets the
-      // re-paste hint; anything else surfaces the upstream body so the user
-      // (or maintainer, if upstream renames the probe model) sees the real
-      // cause instead of a misleading "valid" verdict.
+      // Grok uses 403 for auth failures, entitlement issues, geo blocks,
+      // anti-bot/IP-reputation rejections, and resource errors. Classify before
+      // messaging — a misleading "invalid cookie" verdict on an IP-reputation
+      // block (issue #3474) sends users chasing a cookie that is actually fine.
+      //
+      // 1. Auth-shaped → the cookie/session is the problem; re-paste it.
       if (/invalid-credentials|unauthenticated|unauthorized/i.test(errorDetail)) {
         return {
           valid: false,
           error: "Invalid SSO cookie — re-paste from grok.com DevTools → Cookies → sso",
         };
       }
+      // 2. Anti-bot / Cloudflare / IP-reputation block → the cookie is likely
+      //    fine; the request was rejected before auth was even evaluated. This is
+      //    not code-fixable: the datacenter/VPS IP is flagged. A Cloudflare
+      //    challenge body, Grok's "anti-bot rules" rejection, or a bare/non-JSON
+      //    forbidden body (no structured upstream `error.message`) all map here.
+      if (isCloudflareChallenge(errorDetail) || isGrokAntiBotBlock(errorDetail)) {
+        return {
+          valid: false,
+          error:
+            "Grok returned 403 (anti-bot/Cloudflare block). Your sso cookie is likely fine — " +
+            "this is an IP-reputation block on the request, not an auth failure. Retry from a " +
+            "residential IP or configure a proxy for grok-web.",
+        };
+      }
+      // 3. Structured upstream error (e.g. probe model renamed) → surface the body
+      //    so the user/maintainer sees the real cause instead of a wrong verdict.
       return {
         valid: false,
         error: `Grok rejected validation (403)${errorDetail ? `: ${errorDetail.slice(0, 160)}` : ""}`,

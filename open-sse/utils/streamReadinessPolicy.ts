@@ -35,10 +35,37 @@ function estimateBodyChars(body: StreamReadinessBody): number {
   }
 }
 
-function isCodexGpt55(provider?: string | null, model?: string | null): boolean {
+function isCodexGpt5x(provider?: string | null, model?: string | null): boolean {
   const normalizedProvider = (provider || "").toLowerCase();
   const normalizedModel = (model || "").toLowerCase();
-  return normalizedProvider === "codex" && normalizedModel.includes("gpt-5.5");
+  // Match the gpt-5.x family (gpt-5, gpt-5.1, gpt-5.5, ...) on the codex provider.
+  return normalizedProvider === "codex" && /gpt-5(\.\d+)?/.test(normalizedModel);
+}
+
+/**
+ * High-reasoning Codex GPT-5.x targets do a cold, expensive reasoning warm-up
+ * (~78s TTFB) even for small prompts. Detect "high" reasoning effort either from
+ * the model alias suffix (`...-high`) or from the request body's reasoning effort
+ * field (OpenAI `reasoning_effort` or Responses API `reasoning.effort`).
+ */
+function isHighReasoningEffort(
+  model: string | null | undefined,
+  body: StreamReadinessBody
+): boolean {
+  const normalizedModel = (model || "").toLowerCase();
+  if (/-high\b/.test(normalizedModel) || normalizedModel.endsWith("-high")) return true;
+
+  const effort = (() => {
+    const direct = body?.["reasoning_effort"];
+    if (typeof direct === "string") return direct;
+    const reasoning = body?.["reasoning"];
+    if (reasoning && typeof reasoning === "object") {
+      const nested = (reasoning as Record<string, unknown>)["effort"];
+      if (typeof nested === "string") return nested;
+    }
+    return "";
+  })();
+  return effort.toLowerCase() === "high";
 }
 
 export function resolveStreamReadinessTimeout(
@@ -58,7 +85,8 @@ export function resolveStreamReadinessTimeout(
   const itemCount = Math.max(inputCount, messageCount);
   const toolCount = countArrayField(input.body, "tools");
   const estimatedChars = estimateBodyChars(input.body);
-  const codexGpt55 = isCodexGpt55(input.provider, input.model);
+  const codexGpt5x = isCodexGpt5x(input.provider, input.model);
+  const codexHighReasoning = codexGpt5x && isHighReasoningEffort(input.model, input.body);
 
   if (itemCount > VERY_LARGE_ITEM_THRESHOLD) {
     timeoutMs += 45_000;
@@ -81,7 +109,18 @@ export function resolveStreamReadinessTimeout(
     reasons.push("large_payload");
   }
 
-  if (codexGpt55 && (itemCount > LARGE_ITEM_THRESHOLD || toolCount >= TOOL_HEAVY_THRESHOLD)) {
+  // #3825: high-reasoning Codex GPT-5.x cold-starts at ~78s TTFB even for tiny
+  // prompts, so the +30s readiness budget must fire UNCONDITIONALLY for the
+  // high-effort case — the 80s base alone produced intermittent 504s at the
+  // readiness window. The legacy large-request bump still applies to non-high
+  // codex GPT-5.x requests (large history / tool-heavy).
+  if (codexHighReasoning) {
+    timeoutMs += 30_000;
+    reasons.push("codex_gpt_5_5_high_reasoning");
+  } else if (
+    codexGpt5x &&
+    (itemCount > LARGE_ITEM_THRESHOLD || toolCount >= TOOL_HEAVY_THRESHOLD)
+  ) {
     timeoutMs += 30_000;
     reasons.push("codex_gpt_5_5_large_responses");
   }

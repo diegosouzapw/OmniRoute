@@ -417,6 +417,61 @@ test("connection proxy toggle gates account assignments and invalidates cached r
   assert.equal((enabledResolved.proxy as any).host, "pool-proxy.local");
 });
 
+// #2996: Per-connection proxy 'direct' bypass. A connection with proxyEnabled:false
+// must go DIRECT even when a GLOBAL proxy is configured. The existing toggle test
+// (above) only proves the bypass beats an ACCOUNT-scoped assignment; this guards the
+// exact scenario the issue requests — the per-connection bypass overriding a configured
+// GLOBAL proxy (resolveProxyForConnection step 9, "global" registry level), and that it
+// is a clean two-way toggle (re-enabling returns to the global proxy).
+test("per-connection proxy 'direct' bypass overrides a configured GLOBAL proxy (#2996)", async () => {
+  await resetStorage();
+
+  const globalProxy = await proxiesDb.createProxy({
+    name: "Global Bypass Proxy",
+    type: "http",
+    host: "global-bypass.local",
+    port: 8080,
+  });
+  await proxiesDb.assignProxyToScope("global", null, globalProxy.id);
+
+  // Use a provider name unique to this test so a registry/legacy provider-scoped
+  // assignment left over from another test in the shared process cannot resolve at
+  // step 6/8 and mask the GLOBAL precondition we are asserting (mirrors the hermetic
+  // unique-provider pattern used by the "connection proxy toggle gates" test above).
+  const connection = await providersDb.createProviderConnection({
+    provider: "proxy-global-bypass-2996-provider",
+    authType: "apikey",
+    name: "Global Bypass Account",
+    apiKey: "sk-global-bypass",
+  });
+
+  // No per-connection assignment: the connection should inherit the GLOBAL proxy.
+  const globalResolved = await settingsDb.resolveProxyForConnection((connection as any).id);
+  assert.equal(globalResolved.level, "global");
+  assert.ok(globalResolved.proxy, "expected the global proxy to be resolved before bypass");
+  assert.equal((globalResolved.proxy as any).host, "global-bypass.local");
+
+  // Per-connection Proxy Off must override the configured GLOBAL proxy → direct.
+  const disabled = await providersDb.updateProviderConnection((connection as any).id, {
+    proxyEnabled: false,
+  });
+  assert.equal((disabled as any).proxyEnabled, false);
+
+  const disabledResolved = await settingsDb.resolveProxyForConnection((connection as any).id);
+  assert.equal(disabledResolved.level, "direct");
+  assert.equal(disabledResolved.proxy, null);
+
+  // Re-enabling restores the GLOBAL proxy — proves it is a clean toggle, not one-way.
+  const enabled = await providersDb.updateProviderConnection((connection as any).id, {
+    proxyEnabled: true,
+  });
+  assert.equal((enabled as any).proxyEnabled, true);
+
+  const enabledResolved = await settingsDb.resolveProxyForConnection((connection as any).id);
+  assert.equal(enabledResolved.level, "global");
+  assert.equal((enabledResolved.proxy as any).host, "global-bypass.local");
+});
+
 test("provider connection proxy toggle fields round-trip as booleans", async () => {
   await resetStorage();
 

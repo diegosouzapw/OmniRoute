@@ -24,6 +24,7 @@ import { getProviderOutboundGuard } from "@/shared/network/outboundUrlGuard";
 import { sanitizeErrorMessage } from "@omniroute/open-sse/utils/error";
 import { getStaticQoderModels } from "@omniroute/open-sse/services/qoderCli.ts";
 import { fetchGitHubCopilotModels } from "@omniroute/open-sse/services/githubCopilotModels.ts";
+import { fetchKiroAvailableModels } from "@omniroute/open-sse/services/kiroModels.ts";
 import { getAntigravityHeaders } from "@omniroute/open-sse/services/antigravityHeaders.ts";
 import { ensureAntigravityProjectAssigned } from "@omniroute/open-sse/services/antigravityProjectBootstrap.ts";
 import {
@@ -77,7 +78,10 @@ import {
   isAutoFetchModelsEnabled,
   persistDiscoveredModels,
 } from "@/lib/providerModels/modelDiscovery";
-import { parseGeminiModelsList, type GeminiDiscoveryModel } from "@/lib/providerModels/geminiModelsParser";
+import {
+  parseGeminiModelsList,
+  type GeminiDiscoveryModel,
+} from "@/lib/providerModels/geminiModelsParser";
 import { getSyncedAvailableModels } from "@/lib/db/models";
 import { fetchCursorAgentModels } from "@/lib/providerModels/cursorAgent";
 
@@ -749,8 +753,7 @@ export async function GET(
                 (data.data || data.models || []) as Array<Record<string, unknown>>
               )
                 .map((item) => {
-                  const itemId =
-                    typeof item.id === "string" ? item.id.trim() : "";
+                  const itemId = typeof item.id === "string" ? item.id.trim() : "";
                   if (!itemId) return null;
                   const itemName =
                     typeof item.display_name === "string"
@@ -844,7 +847,9 @@ export async function GET(
     }
 
     const registryCatalogModels = providerSyncedModels ?? (getModelsByProviderId(provider) || []);
-    const specialtyCatalogModels = providerSyncedModels ? [] : (getStaticModelsForProvider(provider) || []);
+    const specialtyCatalogModels = providerSyncedModels
+      ? []
+      : getStaticModelsForProvider(provider) || [];
 
     const toLocalCatalogModels = () => {
       const localCatalog = mergeLocalCatalogModels(registryCatalogModels, specialtyCatalogModels);
@@ -2042,6 +2047,66 @@ export async function GET(
       });
     }
 
+    if (provider === "kiro") {
+      // Kiro's catalog is per-account / per-tier (free vs Pro vs Power) and, for
+      // IAM Identity Center orgs, an admin-curated approved list. The static
+      // registry catalog can't reflect that. Discover the live list from the
+      // CodeWhisperer ListAvailableModels API with the stored OAuth token
+      // (works for Builder ID / social AND IAM Identity Center accounts); fall
+      // back to the static registry catalog when the token is missing/expired or
+      // the upstream is unavailable so import never breaks.
+      const cachedResponse = maybeReturnCachedDiscovery();
+      if (cachedResponse) return cachedResponse;
+
+      const autoFetchDisabledResponse = maybeReturnAutoFetchDisabled();
+      if (autoFetchDisabledResponse) return autoFetchDisabledResponse;
+
+      if (!accessToken) {
+        const fallback = buildDiscoveryFallbackResponse({
+          cacheWarning: "OAuth token unavailable — using cached catalog",
+          localWarning: "OAuth token unavailable — using local catalog",
+        });
+        if (fallback) return fallback;
+        return buildResponse({
+          provider,
+          connectionId,
+          models: toLocalCatalogModels(),
+          source: "local_catalog",
+          warning: "OAuth token unavailable — using local catalog",
+        });
+      }
+
+      const discovery = await fetchKiroAvailableModels({
+        accessToken,
+        providerSpecificData: connection.providerSpecificData,
+        fetchImpl: (url, init) =>
+          safeOutboundFetch(url as string, {
+            ...SAFE_OUTBOUND_FETCH_PRESETS.modelsDiscovery,
+            guard: getProviderOutboundGuard(),
+            proxyConfig: proxy,
+            ...(init as Record<string, unknown>),
+          }),
+        fallbackModels: toLocalCatalogModels(),
+      });
+
+      if (discovery.source === "api" && discovery.models.length > 0) {
+        return buildApiDiscoveryResponse(discovery.models);
+      }
+
+      const fallback = buildDiscoveryFallbackResponse({
+        cacheWarning: "Kiro models API unavailable — using cached catalog",
+        localWarning: "Kiro models API unavailable — using local catalog",
+      });
+      if (fallback) return fallback;
+      return buildResponse({
+        provider,
+        connectionId,
+        models: discovery.models,
+        source: "local_catalog",
+        warning: "Kiro models API unavailable — using local catalog",
+      });
+    }
+
     if (provider === "vertex" || provider === "vertex-partner") {
       const cachedResponse = maybeReturnCachedDiscovery();
       if (cachedResponse) return cachedResponse;
@@ -2057,9 +2122,8 @@ export async function GET(
       let queryKey: string | null = null;
       let bearerToken: string | null = null;
       try {
-        const { parseSAFromApiKey, getAccessToken } = await import(
-          "@omniroute/open-sse/executors/vertex.ts"
-        );
+        const { parseSAFromApiKey, getAccessToken } =
+          await import("@omniroute/open-sse/executors/vertex.ts");
         if (accessToken) {
           bearerToken = accessToken;
         } else if (credential) {
@@ -2069,8 +2133,7 @@ export async function GET(
           let isServiceAccountJson = false;
           try {
             const parsed = JSON.parse(credential);
-            isServiceAccountJson =
-              !!parsed && typeof parsed === "object" && !Array.isArray(parsed);
+            isServiceAccountJson = !!parsed && typeof parsed === "object" && !Array.isArray(parsed);
           } catch {
             isServiceAccountJson = false;
           }
