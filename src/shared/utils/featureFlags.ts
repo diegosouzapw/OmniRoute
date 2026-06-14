@@ -75,3 +75,7 @@ export function isCcCompatibleProviderEnabled(): boolean {
 export function isModelCatalogNamesEnabled(): boolean {
   return isFeatureFlagEnabled("MODEL_CATALOG_INCLUDE_NAMES");
 }
+
+export function isArenaEloSyncEnabled(): boolean {
+  return isFeatureFlagEnabled("ARENA_ELO_SYNC_ENABLED");
+}

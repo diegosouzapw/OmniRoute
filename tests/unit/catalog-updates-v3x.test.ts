@@ -81,3 +81,32 @@ test("Kiro catalog exposes Claude Opus 4.8 alongside 4.7 with matching pricing",
   const kiroPricing = (DEFAULT_PRICING as Record<string, Record<string, unknown>>).kiro;
   assert.ok(kiroPricing["claude-opus-4.8"], "kiro pricing must include claude-opus-4.8");
 });
+
+test("Every Kiro registry model resolves a non-zero pricing row (no $0.00 usage)", async () => {
+  const { getPricingForModel } = await import("../../src/shared/constants/pricing.ts");
+  const models = getModelsByProviderId("kiro");
+
+  assert.ok(models.length > 0, "kiro must expose models");
+
+  for (const model of models) {
+    const pricing = getPricingForModel("kiro", model.id) as {
+      input?: number;
+      output?: number;
+    } | null;
+    assert.ok(pricing, `kiro pricing must include "${model.id}"`);
+    assert.equal(
+      typeof pricing?.input === "number" && typeof pricing?.output === "number",
+      true,
+      `kiro pricing for "${model.id}" must have numeric input/output`
+    );
+  }
+
+  // Regression guard for the reported issue: Sonnet 4.6 must be priced like Sonnet 4.5.
+  const sonnet46 = getPricingForModel("kiro", "claude-sonnet-4.6") as {
+    input: number;
+    output: number;
+  } | null;
+  assert.ok(sonnet46, "kiro pricing must include claude-sonnet-4.6");
+  assert.equal(sonnet46?.input, 3.0);
+  assert.equal(sonnet46?.output, 15.0);
+});

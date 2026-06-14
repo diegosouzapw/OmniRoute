@@ -101,14 +101,34 @@ function resolveMigrationsDir(): string {
 const MIGRATIONS_DIR = resolveMigrationsDir();
 
 /**
- * Maximum number of migrations allowed to run in a single startup on an
+ * Default maximum number of migrations allowed to run in a single startup on an
  * existing database. If more migrations are pending than this threshold,
  * it likely means the migration tracking table was accidentally wiped,
  * and running all migrations from scratch could cause data loss.
  *
- * Set to 0 to disable this safety check.
+ * Set the threshold to 0 (via `OMNIROUTE_MAX_PENDING_MIGRATIONS`) to disable
+ * this safety check.
  */
-const MAX_PENDING_MIGRATIONS_ON_EXISTING_DB = 50;
+const DEFAULT_MAX_PENDING_MIGRATIONS_ON_EXISTING_DB = 50;
+
+/**
+ * Resolve the mass-migration safety threshold, allowing an operator to override
+ * the default via the `OMNIROUTE_MAX_PENDING_MIGRATIONS` env var (#3416). This
+ * is read at CALL TIME inside runMigrations() so a backup restore can raise the
+ * limit (or `0` to disable the check) without a code change. Mirrors the
+ * `OMNIROUTE_MIGRATIONS_DIR` convention used in resolveMigrationsDir(). Falls
+ * back to the default on missing or invalid (non-numeric / negative) input.
+ */
+function resolveMaxPendingMigrations(): number {
+  const raw = process.env.OMNIROUTE_MAX_PENDING_MIGRATIONS;
+  if (typeof raw === "string" && raw.trim().length > 0) {
+    const parsed = Number.parseInt(raw.trim(), 10);
+    if (Number.isFinite(parsed) && parsed >= 0) {
+      return parsed;
+    }
+  }
+  return DEFAULT_MAX_PENDING_MIGRATIONS_ON_EXISTING_DB;
+}
 
 const RENAMED_MIGRATION_COMPATIBILITY = [
   {
@@ -940,13 +960,18 @@ export function runMigrations(db: SqliteAdapter, options?: { isNewDb?: boolean }
     process.env.VITEST !== undefined ||
     (typeof process.argv !== "undefined" && process.argv.some((arg) => arg.includes("test")));
 
+  // #3416: resolve the threshold at call time so OMNIROUTE_MAX_PENDING_MIGRATIONS
+  // can override the default (0 disables the check). The abort message below
+  // interpolates this resolved value, so it auto-reflects any override.
+  const maxPendingMigrations = resolveMaxPendingMigrations();
+
   if (
     !isTestEnvironment &&
     !isNewDb &&
     process.env.DISABLE_SQLITE_AUTO_BACKUP !== "true" &&
-    MAX_PENDING_MIGRATIONS_ON_EXISTING_DB > 0 &&
+    maxPendingMigrations > 0 &&
     applied.size > 0 &&
-    actionablePending.length > MAX_PENDING_MIGRATIONS_ON_EXISTING_DB
+    actionablePending.length > maxPendingMigrations
   ) {
     const physicalBaseline = inferPhysicalSchemaBaseline(db);
     const plausiblePendingCount = physicalBaseline
@@ -968,7 +993,7 @@ export function runMigrations(db: SqliteAdapter, options?: { isNewDb?: boolean }
           : "";
       const msg =
         `[Migration] 🛑 ABORT: Detected ${actionablePending.length} pending migrations on an existing database ` +
-        `(threshold is ${MAX_PENDING_MIGRATIONS_ON_EXISTING_DB}). ` +
+        `(threshold is ${maxPendingMigrations}). ` +
         `This usually means the migration tracking table was accidentally wiped. ` +
         `Running all migrations from scratch will cause data loss or schema errors.` +
         schemaHint;
