@@ -71,8 +71,8 @@ function EmptyState() {
 
 export interface CompressionCockpitProps {
   /**
-   * If provided, renders this run directly (static / drill-down mode).
-   * If omitted, the cockpit uses `useLiveCompression` to pick the latest run.
+   * The run to render. If omitted, an empty state is shown — the parent owns the
+   * live data (via `useLiveCompression`) and passes its latest run here.
    */
   run?: CompressionRunModel | null;
 }
