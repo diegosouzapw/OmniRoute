@@ -173,10 +173,12 @@ export default function Sidebar({
 
   const resolveItem = (item: SidebarItemDefinition, hidden: Set<string>) => {
     if (hidden.has(item.id)) return null;
-    const subtitle = item.subtitleKey ? getSidebarLabel(item.subtitleKey, "") : undefined;
+    const subtitle = item.subtitleKey
+      ? getSidebarLabel(item.subtitleKey, item.subtitleFallback ?? "")
+      : item.subtitleFallback;
     return {
       ...item,
-      label: getSidebarLabel(item.i18nKey, item.id),
+      label: getSidebarLabel(item.i18nKey, item.labelFallback ?? item.id),
       subtitle: subtitle || undefined,
     };
   };
