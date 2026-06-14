@@ -92,6 +92,14 @@ describe("Pipeline Wiring — instrumentation-node.ts", () => {
     assert.match(src, /initArenaEloSync/);
     assert.match(src, /ARENA_ELO_SYNC_ENABLED !== "false"/);
   });
+
+  it("should initialize pricing + models.dev sync on the live startup path (self-gated, opt-in)", () => {
+    // Same dead-path bug as Arena: these were only wired into the never-executed server-init.ts
+    // (models.dev had no caller at all), so their toggles were inert. They self-gate internally
+    // (PRICING_SYNC_ENABLED / settings.modelsDevSyncEnabled), so calling them here preserves opt-in.
+    assert.match(src, /initPricingSync/);
+    assert.match(src, /initModelsDevSync/);
+  });
 });
 
 describe("Pipeline Wiring — sse chat handler", () => {
