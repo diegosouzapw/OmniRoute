@@ -249,14 +249,14 @@ export default function ComboDefaultsTab() {
           {translateOrFallback(
             t,
             "routingAdvancedGuideHint1",
-            "Use Fill First for predictable priority, Round Robin for fairness, and P2C for latency resilience."
+            "This strategy is synced to both new combo defaults and global account fallback routing."
           )}
         </p>
         <p className="text-xs text-text-muted">
           {translateOrFallback(
             t,
             "routingAdvancedGuideHint2",
-            "If providers vary in quality or cost, start with Cost Opt for background work and Least Used for balanced wear."
+            "Use Fill First for predictable account priority, Round Robin plus Sticky Limit for account batches, and P2C for latency resilience."
           )}
         </p>
       </div>
