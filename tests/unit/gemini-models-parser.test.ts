@@ -36,6 +36,18 @@ const SAMPLE = {
       displayName: "Gemini Live",
       supportedGenerationMethods: ["bidiGenerateContent"],
     },
+    {
+      name: "models/veo-3.0-generate-001",
+      displayName: "Veo 3.0",
+      supportedGenerationMethods: ["predictLongRunning"],
+    },
+    {
+      // Defensive: an Imagen model exposed via a long-running method must stay
+      // "images", never "video".
+      name: "models/imagen-future-preview",
+      displayName: "Imagen Future",
+      supportedGenerationMethods: ["predictLongRunning"],
+    },
   ],
 };
 
@@ -67,14 +79,26 @@ test("parseGeminiModelsList maps Imagen predict models to the images endpoint", 
 
 test("parseGeminiModelsList maps embedContent and bidiGenerateContent", () => {
   const models = parseGeminiModelsList(SAMPLE);
-  assert.deepEqual(
-    models.find((m) => m.id === "text-embedding-004")!.supportedEndpoints,
-    ["embeddings"]
-  );
-  assert.deepEqual(
-    models.find((m) => m.id === "gemini-live-2.5-flash")!.supportedEndpoints,
-    ["audio"]
-  );
+  assert.deepEqual(models.find((m) => m.id === "text-embedding-004")!.supportedEndpoints, [
+    "embeddings",
+  ]);
+  assert.deepEqual(models.find((m) => m.id === "gemini-live-2.5-flash")!.supportedEndpoints, [
+    "audio",
+  ]);
+});
+
+test("parseGeminiModelsList maps Veo predictLongRunning models to the video endpoint", () => {
+  const models = parseGeminiModelsList(SAMPLE);
+  const veo = models.find((m) => m.id === "veo-3.0-generate-001");
+  assert.ok(veo, "veo-3.0-generate-001 should be present");
+  assert.deepEqual(veo!.supportedEndpoints, ["video"]);
+});
+
+test("parseGeminiModelsList keeps Imagen as images even via a long-running method", () => {
+  const models = parseGeminiModelsList(SAMPLE);
+  const imagen = models.find((m) => m.id === "imagen-future-preview");
+  assert.ok(imagen, "imagen-future-preview should be present");
+  assert.deepEqual(imagen!.supportedEndpoints, ["images"]);
 });
 
 test("parseGeminiModelsList defaults to chat and tolerates empty/missing input", () => {

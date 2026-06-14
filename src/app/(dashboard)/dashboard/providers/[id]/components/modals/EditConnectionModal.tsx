@@ -113,6 +113,7 @@ export default function EditConnectionModal({
         ? isClaudeExtraUsageBlockEnabled(connection?.provider, connection?.providerSpecificData)
         : false,
     passthroughModels: connection?.providerSpecificData?.passthroughModels === true,
+    disableCooling: connection?.providerSpecificData?.disableCooling === true,
   });
   const [testing, setTesting] = useState(false);
   const [testResult, setTestResult] = useState(null);
@@ -267,6 +268,7 @@ export default function EditConnectionModal({
           connection.providerSpecificData
         ),
         passthroughModels: connection?.providerSpecificData?.passthroughModels === true,
+        disableCooling: connection?.providerSpecificData?.disableCooling === true,
       });
       // Load existing extra keys from providerSpecificData
       const existing = connection.providerSpecificData?.extraApiKeys;
@@ -544,6 +546,11 @@ export default function EditConnectionModal({
           ),
         };
       }
+      // #2997: persist the transient-cooldown opt-out; write only when enabled,
+      // clear it otherwise so a disabled toggle does not linger as `false`.
+      if (updates.providerSpecificData) {
+        updates.providerSpecificData.disableCooling = formData.disableCooling ? true : undefined;
+      }
       const error = (await onSave(updates)) as void | unknown;
       if (error) {
         setSaveError(typeof error === "string" ? error : t("failedSaveConnection"));
@@ -647,6 +654,15 @@ export default function EditConnectionModal({
             />
           </div>
         )}
+        {/* #2997: per-connection transient-cooldown opt-out (provider-agnostic) */}
+        <div className="flex flex-col gap-4 rounded-lg border border-border/50 bg-surface/20 p-4">
+          <Toggle
+            checked={formData.disableCooling}
+            onChange={(checked) => setFormData({ ...formData, disableCooling: checked })}
+            label={t("disableCoolingLabel")}
+            description={t("disableCoolingDescription")}
+          />
+        </div>
         {supportsGoogleProjectId && (
           <div className="flex flex-col gap-4 rounded-lg border border-border/50 bg-surface/20 p-4">
             {isAntigravity && (
