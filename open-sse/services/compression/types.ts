@@ -20,7 +20,13 @@ export type CompressionMode =
 export type CavemanIntensity = "lite" | "full" | "ultra";
 export type RtkIntensity = "minimal" | "standard" | "aggressive";
 export type RtkRawOutputRetention = "never" | "failures" | "always";
-export type CompressionEngineId = "lite" | "caveman" | "aggressive" | "ultra" | "rtk";
+export type CompressionEngineId =
+  | "lite"
+  | "caveman"
+  | "aggressive"
+  | "ultra"
+  | "rtk"
+  | "session-dedup";
 
 export interface CavemanRule {
   name: string;
