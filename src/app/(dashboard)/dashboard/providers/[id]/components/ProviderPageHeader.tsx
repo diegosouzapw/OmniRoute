@@ -3,7 +3,6 @@
 // Phase 1t.1 extraction — Issue #3501
 import Link from "next/link";
 import ProviderIcon from "@/shared/components/ProviderIcon";
-import EmailPrivacyToggle from "@/shared/components/EmailPrivacyToggle";
 import { getHeaderIconProviderId } from "../providerPageHelpers";
 import type { ProviderMessageTranslator } from "../providerPageHelpers";
 
@@ -78,7 +77,6 @@ export default function ProviderPageHeader({
             <p className="text-text-muted">
               {t("connectionCountLabel", { count: connectionsCount })}
             </p>
-            <EmailPrivacyToggle size="md" />
             {providerId === "adapta-web" && (
               <button
                 onClick={onOpenTutorial}

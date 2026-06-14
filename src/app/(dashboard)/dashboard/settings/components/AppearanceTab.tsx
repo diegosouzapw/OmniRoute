@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import Link from "next/link";
 import { Button, Card, Toggle } from "@/shared/components";
 import { useTheme } from "@/shared/hooks/useTheme";
 import useThemeStore, { COLOR_THEMES } from "@/store/themeStore";
@@ -17,6 +16,8 @@ import {
   PIN_PROVIDER_QUOTA_TO_HOME_KEY,
   SHOW_TOKEN_SAVER_ON_ENDPOINT_KEY,
 } from "@/shared/constants/homeWidgets";
+import AccountEmailVisibilitySetting from "./AccountEmailVisibilitySetting";
+import SidebarVisibilitySetting from "./SidebarVisibilitySetting";
 
 export default function AppearanceTab() {
   const { theme, setTheme, isDark } = useTheme();
@@ -533,26 +534,9 @@ export default function AppearanceTab() {
           </div>
         </div>
 
-        <div className="pt-4 border-t border-border">
-          <div className="flex items-center justify-between gap-4">
-            <div>
-              <p className="font-medium">{t("sidebarVisibilityToggle")}</p>
-              <p className="text-sm text-text-muted">
-                {getSettingsLabel(
-                  "sidebarCustomizeLink",
-                  "Customize which items appear in the sidebar, their order, and apply role presets."
-                )}
-              </p>
-            </div>
-            <Link
-              href="/dashboard/settings/sidebar"
-              className="shrink-0 flex items-center gap-1.5 px-3 py-1.5 text-sm rounded-md border border-border hover:bg-surface/80 hover:border-primary/40 transition-colors text-text-main"
-            >
-              <span className="material-symbols-outlined text-[16px]">view_sidebar</span>
-              {getSettingsLabel("sidebarCustomizeLinkBtn", "Customize")}
-            </Link>
-          </div>
-        </div>
+        <AccountEmailVisibilitySetting />
+
+        <SidebarVisibilitySetting />
 
         <div className="pt-4 border-t border-border">
           <div className="flex items-center justify-between">

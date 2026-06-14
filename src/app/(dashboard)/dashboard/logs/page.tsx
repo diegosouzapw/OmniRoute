@@ -2,7 +2,6 @@
 
 import { useState, useRef, useEffect } from "react";
 import { ConfirmModal, RequestLoggerV2 } from "@/shared/components";
-import EmailPrivacyToggle from "@/shared/components/EmailPrivacyToggle";
 import { useTranslations } from "next-intl";
 
 const TIME_RANGES = [
@@ -124,8 +123,6 @@ export default function LogsPage() {
         <h2 className="text-lg font-semibold text-text-main">{t("requestLogs")}</h2>
 
         <div className="flex items-center gap-2">
-          <EmailPrivacyToggle size="md" />
-
           <button
             id="clean-log-history-btn"
             onClick={() => setShowCleanHistory(true)}

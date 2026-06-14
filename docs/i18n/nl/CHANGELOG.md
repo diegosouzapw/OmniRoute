@@ -4,6 +4,12 @@
 
 ---
 
+## [3.8.25] — TBD
+
+_See English CHANGELOG for v3.8.25 details._
+
+---
+
 ## [3.8.24] — TBD
 
 _See English CHANGELOG for v3.8.24 details._

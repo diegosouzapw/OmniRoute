@@ -35,7 +35,10 @@ import { getMitmAlias } from "@/lib/db/models";
 import { obfuscateSensitiveWords } from "../services/antigravityObfuscation.ts";
 import { resolveAntigravityVersion } from "../services/antigravityVersion.ts";
 import { ensureAntigravityProjectAssigned } from "../services/antigravityProjectBootstrap.ts";
-import { resolveAntigravityModelId } from "../config/antigravityModelAliases.ts";
+import {
+  resolveAntigravityModelId,
+  getAntigravityModelFallbacks,
+} from "../config/antigravityModelAliases.ts";
 import { cloakAntigravityToolPayload } from "../config/toolCloaking.ts";
 import {
   shouldStripCloudCodeThinking,
@@ -429,8 +432,15 @@ function flushAntigravitySSEText(
 /**
  * Strip provider prefixes (e.g. "antigravity/model" → "model").
  * Ensures the model name sent to the upstream API never contains a routing prefix.
+ *
+ * `modelIdOverride` (#3786): when the per-request Pro-family fallback chain forces a
+ * specific upstream id, pass it here. It is an ALREADY-RESOLVED upstream id, so it bypasses
+ * the MITM/static alias resolution and is used verbatim (after prefix stripping).
  */
-async function cleanModelName(model: string): Promise<string> {
+async function cleanModelName(model: string, modelIdOverride?: string): Promise<string> {
+  if (modelIdOverride) {
+    return modelIdOverride.includes("/") ? modelIdOverride.split("/").pop()! : modelIdOverride;
+  }
   if (!model) return model;
   const stripped = model.includes("/") ? model.split("/").pop()! : model;
   let clean = stripped;
@@ -584,7 +594,8 @@ export class AntigravityExecutor extends BaseExecutor {
     model: string,
     body: unknown,
     _stream: boolean,
-    credentials: AntigravityCredentials
+    credentials: AntigravityCredentials,
+    modelIdOverride?: string
   ): Promise<AntigravityRequestEnvelope | Response> {
     // Project ID resolution: prefer OAuth-stored projectId over incoming body.project
     // to avoid stale/wrong client-side values causing 404/403 from Cloud Code endpoints.
@@ -660,7 +671,7 @@ export class AntigravityExecutor extends BaseExecutor {
       return resp as unknown as never;
     }
 
-    const upstreamModel = await cleanModelName(model);
+    const upstreamModel = await cleanModelName(model, modelIdOverride);
     const isClaude = upstreamModel.toLowerCase().includes("claude");
     const baseBody = bodyRecord;
     const normalizedBody = shouldStripCloudCodeThinking(this.provider, upstreamModel)
@@ -996,15 +1007,76 @@ export class AntigravityExecutor extends BaseExecutor {
     return collect();
   }
 
-  async execute({
-    model,
-    body,
-    stream,
-    credentials,
-    signal,
-    log,
-    upstreamExtraHeaders,
-  }: ExecuteInput) {
+  /**
+   * #3786 — Drive the per-request Pro-family upstream-id FALLBACK CHAIN.
+   *
+   * The upstream silently renamed the Gemini 3.1 Pro-high id (HTTP 400 on the old id) and the
+   * live id cannot be known from static analysis (competitor proxies disagree). When the
+   * resolved upstream id has a fallback chain (see ANTIGRAVITY_PRO_FALLBACK_CHAINS) we try the
+   * requested id first and, ONLY on a 400, retry the next candidate until one succeeds (2xx)
+   * or the chain is exhausted — then the original 400 surfaces (sanitized, hard rule #12).
+   *
+   * Off the happy path entirely: a model with no chain, or whose first id is not a 400, makes
+   * exactly the same single call as before (zero extra upstream requests).
+   */
+  async execute(input: ExecuteInput) {
+    await resolveAntigravityVersion();
+
+    // Look up the chain by the NORMALLY-resolved upstream id (honours MITM/static aliases).
+    // If a MITM alias remapped the id away from a known Pro tier, no chain applies → fast path.
+    const resolvedUpstreamId = await cleanModelName(input.model);
+    const chain = getAntigravityModelFallbacks(resolvedUpstreamId);
+
+    if (chain.length <= 1) {
+      // No fallback chain (flash, claude, plain pro, unknown) → single attempt, unchanged.
+      return this.executeOnce(input);
+    }
+
+    let firstResult: Awaited<ReturnType<AntigravityExecutor["executeOnce"]>> | null = null;
+    for (let i = 0; i < chain.length; i++) {
+      const candidate = chain[i];
+      const result = await this.executeOnce(input, candidate);
+
+      // Success (or any non-400) on a candidate → return immediately.
+      if (result.response.status !== HTTP_STATUS.BAD_REQUEST) {
+        return result;
+      }
+
+      // Remember the FIRST 400 so the exhausted-chain case surfaces the original error.
+      if (i === 0) firstResult = result;
+
+      const isLast = i === chain.length - 1;
+      if (!isLast) {
+        input.log?.debug?.(
+          "AG_PRO_FALLBACK",
+          `400 on "${candidate}" — retrying with next Pro candidate "${chain[i + 1]}"`
+        );
+        continue;
+      }
+
+      // Chain exhausted: surface the FIRST candidate's sanitized 400.
+      input.log?.warn?.(
+        "AG_PRO_FALLBACK",
+        `Pro fallback chain exhausted (all ${chain.length} candidates 400'd) for "${resolvedUpstreamId}"`
+      );
+      return firstResult ?? result;
+    }
+
+    // Unreachable (loop always returns), but keeps the type checker happy.
+    return firstResult ?? this.executeOnce(input);
+  }
+
+  /**
+   * #3786 — Run the request once for a SINGLE resolved upstream model id. The Pro-family
+   * fallback chain in `execute()` calls this per candidate (`modelIdOverride`), retrying the
+   * next id on a 400. `modelIdOverride === undefined` is the normal (non-chain) path and
+   * preserves the prior behavior exactly. Returns the executor result plus the upstream
+   * status of the first response so `execute()` can decide whether to fall through. @internal
+   */
+  private async executeOnce(
+    { model, body, stream, credentials, signal, log, upstreamExtraHeaders }: ExecuteInput,
+    modelIdOverride?: string
+  ) {
     await resolveAntigravityVersion();
     const fallbackCount = this.getFallbackCount();
     let lastError = null;
@@ -1071,7 +1143,13 @@ export class AntigravityExecutor extends BaseExecutor {
       const url = this.buildUrl(model, upstreamStream, urlIndex);
       const headers = this.buildHeaders(credentials, upstreamStream);
       mergeUpstreamExtraHeaders(headers, upstreamExtraHeaders);
-      const transformed = await this.transformRequest(model, body, upstreamStream, credentials);
+      const transformed = await this.transformRequest(
+        model,
+        body,
+        upstreamStream,
+        credentials,
+        modelIdOverride
+      );
       let requestToolNameMap: Map<string, string> | null = null;
 
       if (transformed instanceof Response) {
@@ -1294,7 +1372,6 @@ export class AntigravityExecutor extends BaseExecutor {
                   log?.warn?.("AG_CREDITS", `Credits retry failed: ${creditsErr}`);
                 }
               }
-
             } catch (e) {
               // Ignore parse errors, will fall back to exponential backoff
             }
