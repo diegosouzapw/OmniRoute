@@ -15,7 +15,7 @@
     "open-sse/executors/muse-spark-web.ts": 1284,
     "open-sse/executors/perplexity-web.ts": 868,
     "open-sse/handlers/audioSpeech.ts": 952,
-    "open-sse/handlers/chatCore.ts": 5811,
+    "open-sse/handlers/chatCore.ts": 5812,
     "open-sse/handlers/imageGeneration.ts": 3777,
     "open-sse/handlers/responseSanitizer.ts": 1103,
     "open-sse/handlers/search.ts": 1442,
