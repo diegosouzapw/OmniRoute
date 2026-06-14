@@ -2,6 +2,7 @@ import { registerCompressionEngine, getCompressionEngine } from "./registry.ts";
 import { aggressiveEngine, cavemanEngine, liteEngine, ultraEngine } from "./cavemanAdapter.ts";
 import { rtkEngine } from "./rtk/index.ts";
 import { sessionDedupEngine } from "./session-dedup/index.ts";
+import { headroomEngine } from "./headroom/index.ts";
 
 let registered = false;
 
@@ -17,6 +18,7 @@ export function registerBuiltinCompressionEngines(): void {
     { id: "ultra", engine: ultraEngine },
     { id: "rtk", engine: rtkEngine },
     { id: "session-dedup", engine: sessionDedupEngine },
+    { id: "headroom", engine: headroomEngine },
   ];
 
   for (const { id, engine } of engines) {
