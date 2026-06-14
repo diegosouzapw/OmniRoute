@@ -119,7 +119,7 @@ export default function LogsPage() {
   }
 
   return (
-    <div className="h-full flex flex-col gap-6 overflow-hidden">
+    <div className="flex flex-col gap-6">
       <div className="flex-shrink-0 flex items-center justify-between gap-4 flex-wrap">
         <h2 className="text-lg font-semibold text-text-main">{t("requestLogs")}</h2>
 
@@ -216,7 +216,7 @@ export default function LogsPage() {
         </div>
       )}
 
-      <div className="flex-1 min-h-0 overflow-hidden">
+      <div className="min-h-0">
         <RequestLoggerV2 key={requestLogKey} ref={requestLoggerRef} initialSelectedId={initialId} />
       </div>
 
