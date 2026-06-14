@@ -1,0 +1,34 @@
+{
+  "max_tokens": 8192,
+  "messages": [
+    {
+      "content": [
+        {
+          "text": "What is 2+2?",
+          "type": "text"
+        }
+      ],
+      "role": "user"
+    },
+    {
+      "content": [
+        {
+          "text": "4",
+          "type": "text"
+        }
+      ],
+      "role": "assistant"
+    },
+    {
+      "content": [
+        {
+          "text": "And 3+3?",
+          "type": "text"
+        }
+      ],
+      "role": "user"
+    }
+  ],
+  "model": "claude-haiku-4-5",
+  "stream": true
+}

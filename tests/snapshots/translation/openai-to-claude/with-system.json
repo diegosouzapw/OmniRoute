@@ -1,0 +1,22 @@
+{
+  "max_tokens": 1024,
+  "messages": [
+    {
+      "content": [
+        {
+          "text": "Hello!",
+          "type": "text"
+        }
+      ],
+      "role": "user"
+    }
+  ],
+  "model": "claude-sonnet-4-6",
+  "stream": true,
+  "system": [
+    {
+      "text": "You are a helpful assistant.",
+      "type": "text"
+    }
+  ]
+}
