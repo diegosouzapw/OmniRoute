@@ -9,6 +9,7 @@
 ### 🐛 Fixed
 
 - **fix(intelligence): run pricing + models.dev sync from the live startup path** — like the Arena ELO sync (v3.8.24), the external **pricing sync** (`PRICING_SYNC_ENABLED`) and the **models.dev capability sync** (Settings → AI toggle) were only initialized from `server-init.ts`, which the Next standalone runtime never executes — and models.dev had no caller at all. Their toggles were inert in production. Both are now initialized from `instrumentation-node.ts` (self-gated, opt-in preserved, non-blocking, never fatal). (thanks @diegosouzapw)
+- **fix(antigravity): per-request Pro-family upstream-id fallback chain (`gemini-3.1-pro-high` 400)** — Antigravity silently renamed the Gemini 3.1 Pro-high upstream id, so `gemini-3.1-pro-high` started returning HTTP 400 (while `-low` still worked) and the live id can't be determined statically (competitor proxies disagree). The executor now retries alternative ids on a 400 (`gemini-3.1-pro-high` → `gemini-pro-agent` → `gemini-3-pro-high`, analogous for pro-low), bounded and only on a 400, with zero extra cost on the happy path; the 1:1 tier-passthrough invariant is preserved (the chain is request-time, not a static alias remap). ([#3786](https://github.com/diegosouzapw/OmniRoute/issues/3786) — thanks @aliaksandrsen)
 
 ---
 
