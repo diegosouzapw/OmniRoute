@@ -4438,6 +4438,8 @@
     "t3ChatWebCookiePlaceholder": "convex-session-id=abc123...",
     "blockClaudeExtraUsageDescription": "Hide extra Claude usage rows reported by some providers when they duplicate primary token accounting.",
     "blockClaudeExtraUsageLabel": "Block duplicate Claude usage rows",
+    "disableCoolingDescription": "Skip the transient cooldown so this connection stays eligible even after recoverable errors (terminal states like banned/expired still apply).",
+    "disableCoolingLabel": "Disable cooldown for this connection",
     "bulkPasteAdded": "{count, plural, one {1 key added} other {# keys added}}",
     "bulkPasteDuplicatesIgnored": "{count, plural, one {1 duplicate skipped} other {# duplicates skipped}}",
     "bulkPasteHint": "Paste one API key per line. Empty lines are ignored and duplicate keys are skipped.",
