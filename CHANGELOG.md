@@ -9,6 +9,7 @@
 ### 🐛 Fixed
 
 - **fix(intelligence): run pricing + models.dev sync from the live startup path** — like the Arena ELO sync (v3.8.24), the external **pricing sync** (`PRICING_SYNC_ENABLED`) and the **models.dev capability sync** (Settings → AI toggle) were only initialized from `server-init.ts`, which the Next standalone runtime never executes — and models.dev had no caller at all. Their toggles were inert in production. Both are now initialized from `instrumentation-node.ts` (self-gated, opt-in preserved, non-blocking, never fatal). (thanks @diegosouzapw)
+- **fix(providers): correct the lmarena cookie hint (`session` → `arena-auth-prod-v1`)** — the lmarena credential hint asked for a cookie named `session`, but lmarena.ai's real auth cookie is `arena-auth-prod-v1`, so users who pasted only `session=…` hit validation failures. The credential name, placeholder and storage keys now use the correct name (the legacy `session` key is retained for back-compat with already-saved credentials). ([#3810](https://github.com/diegosouzapw/OmniRoute/issues/3810) — thanks @xspylol)
 
 ---
 
