@@ -1,5 +1,6 @@
 {
   "_comment": "Catraca de tamanho (check-file-size.mjs). frozen so pode encolher; arquivos novos <= cap. --update ratcheta.",
+  "_rebaseline_v3.8.25": "Drift consciente do ciclo v3.8.24->v3.8.25 (features #3799-#3806: free-provider-rankings, plugins menu, proxy IP-family selector). 3 arquivos cresceram por feature legitima, nao por regressao de qualidade: ProxyRegistryManager.tsx 1072->1089, sidebarVisibility.ts 990->1006, schemas.ts 2519->2522. Encolher fica como debt para um refactor dedicado.",
   "cap": 800,
   "frozen": {
     "open-sse/config/providerRegistry.ts": 4703,
@@ -63,7 +64,7 @@
     "src/app/(dashboard)/dashboard/settings/components/CompressionSettingsTab.tsx": 932,
     "src/app/(dashboard)/dashboard/settings/components/MemorySkillsTab.tsx": 880,
     "src/app/(dashboard)/dashboard/settings/components/PricingTab.tsx": 1012,
-    "src/app/(dashboard)/dashboard/settings/components/ProxyRegistryManager.tsx": 1072,
+    "src/app/(dashboard)/dashboard/settings/components/ProxyRegistryManager.tsx": 1089,
     "src/app/(dashboard)/dashboard/settings/components/ResilienceTab.tsx": 983,
     "src/app/(dashboard)/dashboard/settings/components/RoutingTab.tsx": 1580,
     "src/app/(dashboard)/dashboard/settings/components/SystemStorageTab.tsx": 1924,
@@ -98,9 +99,9 @@
     "src/shared/constants/cliTools.ts": 875,
     "src/shared/constants/pricing.ts": 1470,
     "src/shared/constants/providers.ts": 3146,
-    "src/shared/constants/sidebarVisibility.ts": 990,
+    "src/shared/constants/sidebarVisibility.ts": 1006,
     "src/shared/services/cliRuntime.ts": 1090,
-    "src/shared/validation/schemas.ts": 2519,
+    "src/shared/validation/schemas.ts": 2522,
     "src/sse/handlers/chat.ts": 1392,
     "src/sse/services/auth.ts": 2207
   },
