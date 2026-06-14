@@ -2,7 +2,7 @@
 import React from "react";
 import { type ConnectionRowConnection } from "./ConnectionRow";
 import ConnectionRow from "./ConnectionRow";
-import { Button } from "@/shared/components";
+import { Button, DistributeProxiesButton } from "@/shared/components";
 import { pickDisplayValue } from "@/shared/utils/maskEmail";
 import { readBooleanToggle, providerCountText } from "../providerPageHelpers";
 import { compareTr } from "@/shared/utils/turkishText";
@@ -499,15 +499,11 @@ export default function ConnectionsListPanel({
                     {tag}
                   </span>
                   <div className="flex-1 h-px bg-black/[0.04] dark:bg-white/[0.04]" />
-                  <Button
-                    variant="ghost"
+                  <DistributeProxiesButton
+                    onDistribute={async () => { await handleDistributeProxies(tag); }}
+                    disabled={batchTesting || !!retestingId}
                     size="sm"
-                    icon="shield"
-                    loading={distributingProxies}
-                    onClick={() => handleDistributeProxies(tag)}
-                  >
-                    Distribute Proxies
-                  </Button>
+                  />
                   <span className="text-[10px] text-text-muted/40">{groupConns.length}</span>
                 </div>
               )}

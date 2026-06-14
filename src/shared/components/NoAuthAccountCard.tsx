@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import Card from "./Card";
 import Button from "./Button";
+import DistributeProxiesButton from "./DistributeProxiesButton";
 
 interface NoAuthAccountCardProps {
   providerId: string;
@@ -211,6 +212,43 @@ export default function NoAuthAccountCard({
     }
   };
 
+  const handleDistributeProxies = async () => {
+    if (!conn || allAccountIds.length === 0) return;
+
+    const proxiesRes = await fetch("/api/settings/proxies");
+    if (!proxiesRes.ok) throw new Error("Failed to fetch proxies");
+    const proxiesData = await proxiesRes.json();
+    const savedProxies = (proxiesData?.items || []).filter((p: any) => p.status === "active");
+    if (savedProxies.length === 0) {
+      throw new Error("No saved proxies found. Add proxies in Settings → Proxy first.");
+    }
+
+    const updatedProxies: AccountProxyConfig[] = allAccountIds.map((fp, i) => {
+      const proxy = savedProxies[i % savedProxies.length];
+      return {
+        fingerprint: fp,
+        proxy: {
+          type: proxy.type || "socks5",
+          host: proxy.host,
+          port: proxy.port,
+          ...(proxy.username ? { username: proxy.username } : {}),
+          ...(proxy.password ? { password: proxy.password } : {}),
+        },
+      };
+    });
+
+    const res = await fetch(`/api/providers/${conn.id}`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        providerSpecificData: { accountProxies: updatedProxies },
+      }),
+    });
+    if (!res.ok) throw new Error("Failed to update connection");
+
+    await fetchConnections();
+  };
+
   return (
     <Card>
       <div className="flex items-center gap-3 mb-3">
@@ -228,9 +266,18 @@ export default function NoAuthAccountCard({
           <span className="text-sm font-medium">
             Accounts ({loading ? "..." : allAccountIds.length})
           </span>
-          <Button size="sm" icon="add" onClick={handleAddAccount} disabled={adding}>
-            {adding ? "Adding..." : addLabel}
-          </Button>
+          <div className="flex items-center gap-2">
+            {!loading && allAccountIds.length > 0 && (
+              <DistributeProxiesButton
+                onDistribute={handleDistributeProxies}
+                disabled={adding}
+                size="sm"
+              />
+            )}
+            <Button size="sm" icon="add" onClick={handleAddAccount} disabled={adding}>
+              {adding ? "Adding..." : addLabel}
+            </Button>
+          </div>
         </div>
 
         {!loading && allAccountIds.length === 0 && (
