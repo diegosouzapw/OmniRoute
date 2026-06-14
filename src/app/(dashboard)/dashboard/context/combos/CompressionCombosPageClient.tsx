@@ -2,8 +2,24 @@
 
 import { useEffect, useState } from "react";
 import { useTranslations } from "next-intl";
+import {
+  togglePipelineStep,
+  movePipelineStep,
+  setStepIntensity,
+  setStepConfig,
+  availableEngines,
+} from "@/shared/components/compression/compressionPipelineModel";
+import { EngineConfigForm } from "@/shared/components/compression/EngineConfigForm";
+import type { EngineConfigField } from "@omniroute/open-sse/services/compression/engines/types";
 
-type PipelineStep = { engine: string; intensity?: string };
+type PipelineStep = { engine: string; intensity?: string; config?: Record<string, unknown> };
+type EngineEntry = {
+  id: string;
+  name: string;
+  icon: string;
+  stackPriority: number;
+  configSchema: EngineConfigField[];
+};
 type CompressionCombo = {
   id: string;
   name: string;
@@ -35,6 +51,7 @@ export default function CompressionCombosPageClient() {
   const [combos, setCombos] = useState<CompressionCombo[]>([]);
   const [routingCombos, setRoutingCombos] = useState<RoutingCombo[]>([]);
   const [languagePacks, setLanguagePacks] = useState<LanguagePack[]>([]);
+  const [engineCatalog, setEngineCatalog] = useState<EngineEntry[]>([]);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
@@ -44,6 +61,7 @@ export default function CompressionCombosPageClient() {
   const [outputModeIntensity, setOutputModeIntensity] = useState("full");
   const [assignmentIds, setAssignmentIds] = useState<string[]>([]);
   const [saving, setSaving] = useState(false);
+  const [expandedEngine, setExpandedEngine] = useState<string | null>(null);
 
   const refresh = () => {
     fetch("/api/context/combos")
@@ -61,6 +79,10 @@ export default function CompressionCombosPageClient() {
     fetch("/api/compression/language-packs")
       .then((res) => (res.ok ? res.json() : null))
       .then((data) => setLanguagePacks(Array.isArray(data?.packs) ? data.packs : []))
+      .catch(() => {});
+    fetch("/api/compression/engines")
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data) => setEngineCatalog(Array.isArray(data?.engines) ? data.engines : []))
       .catch(() => {});
   }, []);
 
@@ -145,20 +167,6 @@ export default function CompressionCombosPageClient() {
     if (res.ok) refresh();
   };
 
-  const updateStep = (index: number, patch: Partial<PipelineStep>) => {
-    setPipeline((current) =>
-      current.map((step, stepIndex) => {
-        if (stepIndex !== index) return step;
-        const next = { ...step, ...patch };
-        const allowed = ENGINE_INTENSITIES[next.engine] ?? ["standard"];
-        return {
-          ...next,
-          intensity: allowed.includes(next.intensity ?? "") ? next.intensity : allowed[0],
-        };
-      })
-    );
-  };
-
   const togglePack = (language: string, enabled: boolean) => {
     setSelectedPacks((current) =>
       enabled
@@ -192,50 +200,147 @@ export default function CompressionCombosPageClient() {
         </div>
 
         <div className="mt-4 space-y-3">
-          <div className="flex items-center justify-between">
-            <h2 className="text-sm font-semibold text-text-main">{t("pipeline")}</h2>
-            <button
-              onClick={() =>
-                setPipeline((current) => [...current, { engine: "caveman", intensity: "full" }])
-              }
-              className="rounded-lg border border-border px-3 py-1.5 text-xs text-text-main"
-            >
-              {t("addStep")}
-            </button>
+          <h2 className="text-sm font-semibold text-text-main">{t("pipeline")}</h2>
+
+          {/* Active layers */}
+          <div className="space-y-2">
+            {pipeline.map((step, index) => {
+              const entry = engineCatalog.find((e) => e.id === step.engine);
+              const displayName = entry?.name ?? step.engine;
+              const intensities = ENGINE_INTENSITIES[step.engine];
+              const hasConfig = (entry?.configSchema?.length ?? 0) > 0;
+              const isExpanded = expandedEngine === step.engine;
+              return (
+                <div key={step.engine} className="rounded-lg border border-border bg-bg p-2">
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={() =>
+                        setPipeline((p) =>
+                          movePipelineStep(
+                            p as Parameters<typeof movePipelineStep>[0],
+                            step.engine,
+                            "up"
+                          )
+                        )
+                      }
+                      disabled={index === 0}
+                      className="rounded border border-border px-2 py-1 text-xs text-text-main disabled:opacity-40"
+                      aria-label="Move up"
+                    >
+                      ↑
+                    </button>
+                    <button
+                      onClick={() =>
+                        setPipeline((p) =>
+                          movePipelineStep(
+                            p as Parameters<typeof movePipelineStep>[0],
+                            step.engine,
+                            "down"
+                          )
+                        )
+                      }
+                      disabled={index === pipeline.length - 1}
+                      className="rounded border border-border px-2 py-1 text-xs text-text-main disabled:opacity-40"
+                      aria-label="Move down"
+                    >
+                      ↓
+                    </button>
+                    <span className="flex-1 text-sm font-medium text-text-main">{displayName}</span>
+                    {intensities && (
+                      <select
+                        value={step.intensity ?? intensities[0]}
+                        onChange={(event) =>
+                          setPipeline((p) =>
+                            setStepIntensity(
+                              p as Parameters<typeof setStepIntensity>[0],
+                              step.engine,
+                              event.target.value
+                            )
+                          )
+                        }
+                        className="rounded border border-border bg-bg px-2 py-1 text-xs text-text-main"
+                      >
+                        {intensities.map((intensity) => (
+                          <option key={intensity} value={intensity}>
+                            {intensity}
+                          </option>
+                        ))}
+                      </select>
+                    )}
+                    {hasConfig && (
+                      <button
+                        onClick={() =>
+                          setExpandedEngine((prev) => (prev === step.engine ? null : step.engine))
+                        }
+                        className="rounded border border-border px-2 py-1 text-xs text-text-main"
+                        aria-label="Toggle config"
+                      >
+                        ⚙
+                      </button>
+                    )}
+                    <button
+                      onClick={() =>
+                        setPipeline((p) =>
+                          togglePipelineStep(
+                            p as Parameters<typeof togglePipelineStep>[0],
+                            step.engine,
+                            engineCatalog
+                          )
+                        )
+                      }
+                      className="rounded border border-border px-2 py-1 text-xs text-text-main"
+                    >
+                      {t("removeStep")}
+                    </button>
+                  </div>
+                  {isExpanded && entry && entry.configSchema.length > 0 && (
+                    <div className="mt-2 border-t border-border pt-2">
+                      <EngineConfigForm
+                        schema={entry.configSchema}
+                        value={step.config ?? {}}
+                        onChange={(cfg) =>
+                          setPipeline((p) =>
+                            setStepConfig(
+                              p as Parameters<typeof setStepConfig>[0],
+                              step.engine,
+                              cfg
+                            )
+                          )
+                        }
+                      />
+                    </div>
+                  )}
+                </div>
+              );
+            })}
           </div>
-          {pipeline.map((step, index) => (
-            <div key={index} className="grid grid-cols-[1fr_1fr_auto] gap-2">
-              <select
-                value={step.engine}
-                onChange={(event) => updateStep(index, { engine: event.target.value })}
-                className="rounded-lg border border-border bg-bg px-3 py-2 text-sm text-text-main"
-              >
-                {Object.keys(ENGINE_INTENSITIES).map((engine) => (
-                  <option key={engine} value={engine}>
-                    {engine}
-                  </option>
-                ))}
-              </select>
-              <select
-                value={step.intensity ?? ""}
-                onChange={(event) => updateStep(index, { intensity: event.target.value })}
-                className="rounded-lg border border-border bg-bg px-3 py-2 text-sm text-text-main"
-              >
-                {(ENGINE_INTENSITIES[step.engine] ?? ["standard"]).map((intensity) => (
-                  <option key={intensity} value={intensity}>
-                    {intensity}
-                  </option>
-                ))}
-              </select>
-              <button
-                onClick={() => setPipeline((current) => current.filter((_, i) => i !== index))}
-                className="rounded-lg border border-border px-3 py-2 text-sm text-text-main"
-                disabled={pipeline.length <= 1}
-              >
-                {t("removeStep")}
-              </button>
+
+          {/* Available engines to add */}
+          {availableEngines(engineCatalog, pipeline as Parameters<typeof availableEngines>[1])
+            .length > 0 && (
+            <div className="flex flex-wrap gap-2 pt-1">
+              {availableEngines(
+                engineCatalog,
+                pipeline as Parameters<typeof availableEngines>[1]
+              ).map((e) => (
+                <button
+                  key={e.id}
+                  onClick={() =>
+                    setPipeline((p) =>
+                      togglePipelineStep(
+                        p as Parameters<typeof togglePipelineStep>[0],
+                        e.id,
+                        engineCatalog
+                      )
+                    )
+                  }
+                  className="rounded-lg border border-border px-3 py-1.5 text-xs text-text-main"
+                >
+                  + {(e as EngineEntry).name ?? e.id}
+                </button>
+              ))}
             </div>
-          ))}
+          )}
         </div>
 
         <div className="mt-4 grid grid-cols-1 gap-4 lg:grid-cols-3">
