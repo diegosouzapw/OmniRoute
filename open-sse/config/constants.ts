@@ -17,9 +17,9 @@ export const FETCH_TIMEOUT_MS = upstreamTimeouts.fetchTimeoutMs;
 // idle for this duration. Override with STREAM_IDLE_TIMEOUT_MS env var.
 export const STREAM_IDLE_TIMEOUT_MS = upstreamTimeouts.streamIdleTimeoutMs;
 
-// Timeout for the first useful SSE event. Keep this much shorter than the
-// post-start idle timeout so slow-thinking models can keep streaming after the
-// first token, while dead 200 OK streams fail fast enough for combo fallback.
+// Timeout for the first non-ping SSE event. Inherits REQUEST_TIMEOUT_MS when
+// set, unless STREAM_READINESS_TIMEOUT_MS is specified directly. This must stay
+// conservative for large prompts and slow first-byte reasoning providers.
 export const STREAM_READINESS_TIMEOUT_MS = upstreamTimeouts.streamReadinessTimeoutMs;
 
 // Error code used when an upstream Antigravity request stalls before response

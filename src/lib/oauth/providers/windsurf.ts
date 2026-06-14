@@ -8,7 +8,12 @@ import { WINDSURF_CONFIG } from "../constants/oauth";
  * Firebase OAuth + RegisterUser flow (see docs/superpowers/specs/2026-05-29-windsurf-login-fix-design.md),
  * the only supported login path is import-token:
  *
- *   1. User opens https://windsurf.com/show-auth-token in a browser
+ *   1. In the Windsurf / VS Code IDE, the user runs the
+ *      "Windsurf: Provide Auth Token" command from the command palette
+ *      (or clicks the Jupyter "Get Windsurf Authentication Token" button).
+ *      NOTE: opening https://windsurf.com/show-auth-token directly only renders
+ *      a "Redirecting" page with no token — the IDE must initiate the flow
+ *      (it adds a `?state=<xyz>` param) for the token to be displayed.
  *   2. Copies the displayed Windsurf API key (`sk-ws-...` style)
  *   3. Pastes it into OmniRoute via /api/oauth/windsurf/import-token
  *
@@ -22,7 +27,8 @@ export const windsurf = {
 
   /**
    * Validate a pasted Windsurf API key. Accepts the `sk-ws-...` format issued by
-   * windsurf.com/show-auth-token and the legacy raw-token format. Empty or
+   * the IDE "Windsurf: Provide Auth Token" command (via windsurf.com/show-auth-token
+   * with the IDE-supplied `?state=...`) and the legacy raw-token format. Empty or
    * whitespace-only tokens are rejected.
    */
   validateImportToken(token: string): { valid: boolean; reason?: string } {

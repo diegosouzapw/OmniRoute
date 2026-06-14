@@ -37,6 +37,14 @@ test("web session credential metadata identifies cookie, token, and no-auth prov
     acceptsFullCookieHeader: false,
     storageKeys: ["token", "userToken"],
   });
+  // lmarena.ai's real auth cookie is `arena-auth-prod-v1`, not `session` (#3810)
+  assert.deepEqual(webSessionCredentials.getWebSessionCredentialRequirement("lmarena"), {
+    kind: "cookie",
+    credentialName: "arena-auth-prod-v1",
+    placeholder: "arena-auth-prod-v1=... or full Cookie header from lmarena.ai",
+    acceptsFullCookieHeader: true,
+    storageKeys: ["cookie", "arena-auth-prod-v1", "session"],
+  });
   // veoaifree-web is now a NOAUTH provider — not in WEB_SESSION_CREDENTIAL_REQUIREMENTS
   assert.equal(webSessionCredentials.getWebSessionCredentialRequirement("veoaifree-web"), null);
   assert.deepEqual(webSessionCredentials.getWebSessionCredentialRequirement("t3-web"), {

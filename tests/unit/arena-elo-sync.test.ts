@@ -35,8 +35,11 @@ const {
   fetchArenaLeaderboards,
   syncArenaElo,
   getArenaEloSyncStatus,
+  initArenaEloSync,
   stopArenaEloSync,
 } = await import("../../src/lib/arenaEloSync.ts");
+const { setFeatureFlagOverride, removeFeatureFlagOverride } =
+  await import("../../src/lib/db/featureFlags.ts");
 
 import type {
   ArenaLeaderboardData,
@@ -102,6 +105,14 @@ function createTestAdapter(): SqliteAdapter {
     "\n  synced_at TEXT NOT NULL"
   );
   const adapter = tryOpenSync(":memory:")!;
+  adapter.exec(`
+    CREATE TABLE IF NOT EXISTS key_value (
+      namespace TEXT NOT NULL,
+      key TEXT NOT NULL,
+      value TEXT NOT NULL,
+      PRIMARY KEY (namespace, key)
+    );
+  `);
   adapter.exec(patchedSql);
   return adapter;
 }
@@ -124,12 +135,14 @@ beforeEach(() => {
   testAdapter = createTestAdapter();
   globalThis.__omnirouteDb = testAdapter as never;
   stopArenaEloSync();
+  delete process.env.ARENA_ELO_SYNC_ENABLED;
 });
 
 afterEach(() => {
   restoreFetch();
   stopArenaEloSync();
   delete globalThis.__omnirouteDb;
+  delete process.env.ARENA_ELO_SYNC_ENABLED;
 });
 
 // ═══════════════════════════════════════════════════════════
@@ -767,6 +780,26 @@ describe("getArenaEloSyncStatus()", () => {
       delete process.env.ARENA_ELO_SYNC_ENABLED;
     }
   });
+
+  it("reflects dashboard feature flag DB overrides before env values", () => {
+    process.env.ARENA_ELO_SYNC_ENABLED = "true";
+    try {
+      setFeatureFlagOverride("ARENA_ELO_SYNC_ENABLED", "false");
+
+      const status = getArenaEloSyncStatus();
+      assert.strictEqual(status.enabled, false);
+    } finally {
+      removeFeatureFlagOverride("ARENA_ELO_SYNC_ENABLED");
+    }
+  });
+
+  it("falls back to the env value if the feature flag store is unavailable", () => {
+    testAdapter.exec("DROP TABLE key_value");
+    process.env.ARENA_ELO_SYNC_ENABLED = "false";
+
+    const status = getArenaEloSyncStatus();
+    assert.strictEqual(status.enabled, false);
+  });
 });
 
 // ═══════════════════════════════════════════════════════════
@@ -774,6 +807,16 @@ describe("getArenaEloSyncStatus()", () => {
 // ═══════════════════════════════════════════════════════════
 
 describe("stopArenaEloSync()", () => {
+  it("initArenaEloSync returns false when disabled by feature flag", async () => {
+    try {
+      setFeatureFlagOverride("ARENA_ELO_SYNC_ENABLED", "false");
+      const started = await initArenaEloSync();
+      assert.strictEqual(started, false);
+    } finally {
+      removeFeatureFlagOverride("ARENA_ELO_SYNC_ENABLED");
+    }
+  });
+
   it("does not throw when no timer is running", () => {
     assert.doesNotThrow(() => stopArenaEloSync());
   });
