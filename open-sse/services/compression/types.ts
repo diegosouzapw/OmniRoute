@@ -66,6 +66,10 @@ export interface RtkConfig {
   trustProjectFilters: boolean;
   rawOutputRetention: RtkRawOutputRetention;
   rawOutputMaxBytes: number;
+  /** R5: enable grouping of near-equivalent consecutive lines. Default: false. */
+  enableGrouping?: boolean;
+  /** R5: minimum consecutive similar-line run to trigger grouping. Default: 3. */
+  groupingThreshold?: number;
 }
 
 export interface CompressionLanguageConfig {

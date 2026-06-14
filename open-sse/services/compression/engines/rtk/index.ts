@@ -3,6 +3,7 @@ import { DEFAULT_RTK_CONFIG, type CompressionResult, type RtkConfig } from "../.
 import type { CompressionEngine, EngineConfigField, EngineValidationResult } from "../types.ts";
 import { detectCommandType } from "./commandDetector.ts";
 import { deduplicateRepeatedLines } from "./deduplicator.ts";
+import { groupSimilarLines } from "./grouper.ts";
 import { matchRtkFilter } from "./filterLoader.ts";
 import { applyLineFilter } from "./lineFilter.ts";
 import { smartTruncate } from "./smartTruncate.ts";
@@ -323,6 +324,18 @@ export function processRtkText(
     result = deduped.text;
     techniquesUsed.push("rtk-dedup");
     rulesApplied.push("rtk:dedup");
+  }
+
+  // R5: grouping — opt-in via enableGrouping flag (default OFF)
+  if (config.enableGrouping) {
+    const grouped = groupSimilarLines(result, {
+      threshold: config.groupingThreshold,
+    });
+    if (grouped.grouped > 0) {
+      result = grouped.text;
+      techniquesUsed.push("rtk-grouping");
+      rulesApplied.push("rtk:grouping");
+    }
   }
 
   const defaultPriorityPatterns: RegExp[] = [/error|failed|exception|traceback|TS\d{4}|FAIL|✖/i];
