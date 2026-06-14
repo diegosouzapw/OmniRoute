@@ -87,10 +87,10 @@ export interface CompressionCockpitProps {
  * - Replay controls (play/pause/reset + speed selector).
  * - Graceful empty state when no run is available.
  *
- * When a `run` prop is supplied it is used directly. Otherwise the
- * component falls back to `useLiveCompression` for the latest run.
- * (The live hook is imported lazily to keep this component testable
- * with a static `run` prop — no WS dependency in tests.)
+ * Controlled component: it renders the `run` prop when supplied and the empty
+ * state otherwise. The parent owns the live data — it subscribes via the
+ * `useLiveCompression` hook and passes `lastRun` as `run` — which keeps this
+ * component WS-free and unit-testable with a static run.
  */
 export function CompressionCockpit({ run: runProp }: CompressionCockpitProps) {
   // Replay drives frame-by-frame animation (cosmetic — sub-ms compression is sync)

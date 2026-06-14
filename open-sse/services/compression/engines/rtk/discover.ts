@@ -32,7 +32,10 @@ export function discoverNormalizeLine(line: string): string {
   let s = normalizeLine(line);
   // npm/pip package identifiers with version: word@version → <PKG>@<N>
   // Handles both original (left-pad@1.2.3) and already-normalised (left-pad@<N>)
-  s = s.replace(/[\w][\w.-]*@(?:<N>|\d[\w.-]*)/g, "<PKG>@<N>");
+  // Bounded quantifiers ({0,N}) are mandatory: `[\w]` ⊂ `[\w.-]` followed by a
+  // required `@` is the classic catastrophic-backtracking shape on a long
+  // word-char run with no `@` (CLAUDE.md ReDoS rule). Real package names are short.
+  s = s.replace(/[\w][\w.-]{0,128}@(?:<N>|\d[\w.-]{0,64})/g, "<PKG>@<N>");
   // Error/exit codes like E404, ENOENT, E2BIG, EACCES
   s = s.replace(/\bE[A-Z0-9]{2,}\b/g, "<CODE>");
   // Numeric values with attached units: 5s, 120ms, 4kb, 12MB, 0.5s, etc.

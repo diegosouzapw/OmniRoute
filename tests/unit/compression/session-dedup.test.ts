@@ -73,8 +73,8 @@ describe("session-dedup engine", () => {
     // Turn 2: must contain a reference marker
     assert.match(
       messages[2].content,
-      /\[dedup:ref sha=[0-9a-f]{8}\]/,
-      "turn 2 must contain a [dedup:ref sha=XXXXXXXX] marker"
+      /\[dedup:ref sha=[0-9a-f]{24}\]/,
+      "turn 2 must contain a [dedup:ref sha=<24hex>] marker"
     );
 
     // Output must be shorter than input

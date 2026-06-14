@@ -199,6 +199,15 @@ describe("reduceToolManifest — maxTools cap", () => {
     ).length;
     assert.equal(result.length, readXCount);
   });
+
+  test("negative maxTools is treated as no cap (not a silent tail-drop)", () => {
+    const profile: ToolProfile = { name: "neg", allowScopes: ["read:x"], maxTools: -1 };
+    const result = reduceToolManifest(SYNTHETIC_TOOLS, profile) as ToolManifestEntry[];
+    const readXCount = SYNTHETIC_TOOLS.filter(
+      (t) => t.scopes && t.scopes.includes("read:x")
+    ).length;
+    assert.equal(result.length, readXCount, "negative maxTools must not drop tail entries");
+  });
 });
 
 describe("reduceToolManifest — allow-everything profile", () => {

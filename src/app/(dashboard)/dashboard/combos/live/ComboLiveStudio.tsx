@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import type { NodeTypes } from "@xyflow/react";
 import { FlowCanvas } from "@/shared/components/flow/FlowCanvas";
 import {
@@ -39,10 +39,13 @@ interface FleetOverviewProps {
 }
 
 function FleetOverview({ comboEvents }: FleetOverviewProps) {
-  // Capture `now` as state so the snapshot is stable per render cycle.
-  // We do not need live-clock precision here — the fleet window recomputes
-  // whenever `comboEvents` changes (new WS events arrive).
-  const [now] = useState(() => Date.now());
+  // `now` must advance, or the 60s rolling window freezes at mount and aging
+  // events are never re-classified out of "active". A low-frequency tick rolls it.
+  const [now, setNow] = useState(() => Date.now());
+  useEffect(() => {
+    const id = setInterval(() => setNow(Date.now()), 5_000);
+    return () => clearInterval(id);
+  }, []);
   const sets = useMemo(
     () => aggregateComboEventsToSets(comboEvents, FLEET_WINDOW_MS, now),
     [comboEvents, now]

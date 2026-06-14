@@ -153,9 +153,10 @@ function filterEntries(entries: ToolManifestEntry[], profile: ToolProfile): Tool
     return false;
   });
 
-  // Step 2: cap by maxTools.
+  // Step 2: cap by maxTools. A negative max would silently drop tail entries via
+  // slice(0, -n) — treat max < 0 as "no cap" (invalid-state guard).
   const max = profile.maxTools;
-  if (max === undefined || filtered.length <= max) {
+  if (max === undefined || max < 0 || filtered.length <= max) {
     return filtered;
   }
 

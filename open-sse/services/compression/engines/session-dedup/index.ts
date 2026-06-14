@@ -28,6 +28,7 @@
  *   from the reverse map attached as `__sessionDedupMap__` on the body object.
  */
 
+import crypto from "node:crypto";
 import { createCompressionStats } from "../../stats.ts";
 import type {
   CompressionEngine,
@@ -45,18 +46,17 @@ const DEFAULT_MIN_BLOCK_CHARS = 80;
 /** Minimum number of lines a block must span to be a dedup candidate. */
 const MIN_BLOCK_LINES = 3;
 /** Marker pattern for reconstruction. */
-const MARKER_RE = /\[dedup:ref sha=([0-9a-f]{8})\]/g;
+const MARKER_RE = /\[dedup:ref sha=([0-9a-f]{24})\]/g;
 /** Key used to store the reverse map in the body object. */
 const DEDUP_MAP_KEY = "__sessionDedupMap__";
 
-// ─── hash helper (djb2, zero deps) ───────────────────────────────────────────
+// ─── hash helper (SHA-256 prefix, collision-resistant) ───────────────────────
 
 function hashBlock(text: string): string {
-  let h = 5381;
-  for (let i = 0; i < text.length; i++) {
-    h = ((h << 5) + h + text.charCodeAt(i)) >>> 0;
-  }
-  return h.toString(16).padStart(8, "0").slice(0, 8);
+  // 24 hex / 96 bits — collision-resistant (a 32-bit djb2 could collide and make
+  // reconstruction restore the WRONG block). Pass 2 additionally verifies block
+  // equality before substituting, so a collision can never cause corruption.
+  return crypto.createHash("sha256").update(text).digest("hex").slice(0, 24);
 }
 
 // ─── suffix-block extraction ──────────────────────────────────────────────────
@@ -137,7 +137,9 @@ function dedupMessageTexts(
     for (const { block } of blocks) {
       const sha = hashBlock(block);
       const owner = firstSeen.get(sha);
-      if (owner && owner.ownerMsgIdx < msgIdx) {
+      // owner.block === block guards against a (now astronomically unlikely) hash
+      // collision substituting a marker that would reconstruct to the wrong text.
+      if (owner && owner.ownerMsgIdx < msgIdx && owner.block === block) {
         dupBlocks.push({ block, sha });
       }
     }

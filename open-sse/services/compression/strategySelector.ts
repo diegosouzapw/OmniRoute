@@ -291,7 +291,8 @@ function buildStepOptions(
  */
 function decideStep(result: CompressionResult, bailout: BailoutConfig): { advance: boolean } {
   if (!result.compressed) return { advance: false };
-  const minGain = bailout.minGainPercent ?? 10;
+  // Clamp: a negative minGainPercent would mean "always advance" (invalid state).
+  const minGain = Math.max(0, bailout.minGainPercent ?? 10);
   const gain = result.stats?.savingsPercent ?? 0;
   if (gain < minGain) return { advance: false };
   return { advance: true };
@@ -381,8 +382,13 @@ export function applyStackedCompression(
       let result: CompressionResult;
       try {
         result = engine.apply(currentBody, buildStepOptions(step, options));
-      } catch {
-        // Failure bail-out: treat as no-op (verbatim kept for this step).
+      } catch (err) {
+        // Failure bail-out: keep the verbatim body for this step, but RECORD the
+        // failure so a crashing engine is visible in telemetry (not silently gone).
+        acc.validationErrors.add(
+          `${step.engine}: bailed out — ${err instanceof Error ? err.message : String(err)}`
+        );
+        acc.fallbackApplied = true;
         continue;
       }
       mergeStackStep(acc, step.engine, result);
@@ -443,8 +449,13 @@ export async function applyStackedCompressionAsync(
         result = engine.applyAsync
           ? await engine.applyAsync(currentBody, stepOptions)
           : engine.apply(currentBody, stepOptions);
-      } catch {
-        // Failure bail-out: verbatim kept, continue to next engine.
+      } catch (err) {
+        // Failure bail-out: keep the verbatim body, but RECORD the failure so a
+        // crashing engine is visible in telemetry (not silently gone).
+        acc.validationErrors.add(
+          `${step.engine}: bailed out — ${err instanceof Error ? err.message : String(err)}`
+        );
+        acc.fallbackApplied = true;
         continue;
       }
       mergeStackStep(acc, step.engine, result);

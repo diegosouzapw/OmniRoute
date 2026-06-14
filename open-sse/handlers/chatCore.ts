@@ -2612,7 +2612,13 @@ export async function handleChatCore({
                 timestamp: Date.now(),
               });
             } catch (_emitErr) {
-              // never propagate into the hot path
+              // never propagate into the hot path — but log like the sibling
+              // fire-and-forget blocks so a throwing event bus isn't fully silent.
+              log?.debug?.(
+                "COMPRESSION",
+                "compression.completed emit skipped: " +
+                  (_emitErr instanceof Error ? _emitErr.message : String(_emitErr))
+              );
             }
           }
 

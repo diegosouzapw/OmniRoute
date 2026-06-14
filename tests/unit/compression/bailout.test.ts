@@ -176,6 +176,13 @@ describe("TV1 — stacked pipeline bail-out discipline (OPT-IN)", () => {
 
       assert.equal(result.compressed, false);
       assert.equal(userContent(result), "hello"); // body unchanged
+
+      // TV1 fix: a crashing engine must be RECORDED in telemetry, not silently gone.
+      assert.equal(result.stats?.fallbackApplied, true, "throw must set fallbackApplied");
+      assert.ok(
+        result.stats?.validationErrors?.some((e) => e.includes(THROW_ENGINE_ID)),
+        "throwing engine must be recorded in validationErrors"
+      );
     });
 
     it("bail-out ON: throwing engine before a good engine → good engine still runs", () => {
