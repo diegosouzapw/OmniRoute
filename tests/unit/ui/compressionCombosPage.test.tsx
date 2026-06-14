@@ -11,12 +11,14 @@ vi.mock("next-intl", () => ({
 // ── Helpers ────────────────────────────────────────────────────────────────
 
 const containers: HTMLElement[] = [];
+const roots: Array<{ unmount: () => void }> = [];
 
 function mountInContainer(ui: React.ReactElement): HTMLElement {
   const container = document.createElement("div");
   document.body.appendChild(container);
   containers.push(container);
   const root = createRoot(container);
+  roots.push(root);
   act(() => {
     root.render(ui);
   });
@@ -29,12 +31,20 @@ beforeEach(() => {
   ).IS_REACT_ACT_ENVIRONMENT = true;
 });
 
-afterEach(() => {
+afterEach(async () => {
+  vi.restoreAllMocks();
+  await act(async () => {
+    while (roots.length > 0) {
+      roots.pop()?.unmount();
+    }
+  });
+  for (let i = 0; i < 10; i++) {
+    await Promise.resolve();
+  }
   while (containers.length > 0) {
     containers.pop()?.remove();
   }
   document.body.innerHTML = "";
-  vi.restoreAllMocks();
 });
 
 // ── Mock fetch ─────────────────────────────────────────────────────────────

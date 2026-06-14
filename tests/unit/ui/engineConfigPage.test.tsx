@@ -6,12 +6,14 @@ import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 // ── Helpers ───────────────────────────────────────────────────────────────
 
 const containers: HTMLElement[] = [];
+const roots: Array<{ unmount: () => void }> = [];
 
 function mountInContainer(ui: React.ReactElement): HTMLElement {
   const container = document.createElement("div");
   document.body.appendChild(container);
   containers.push(container);
   const root = createRoot(container);
+  roots.push(root);
   act(() => {
     root.render(ui);
   });
@@ -24,12 +26,22 @@ beforeEach(() => {
   ).IS_REACT_ACT_ENVIRONMENT = true;
 });
 
-afterEach(() => {
+afterEach(async () => {
+  // Restore mocks first so any in-flight fetch promises settle without blocking
+  vi.restoreAllMocks();
+  await act(async () => {
+    while (roots.length > 0) {
+      roots.pop()?.unmount();
+    }
+  });
+  // Drain all remaining microtasks from effects that fired during unmount
+  for (let i = 0; i < 10; i++) {
+    await Promise.resolve();
+  }
   while (containers.length > 0) {
     containers.pop()?.remove();
   }
   document.body.innerHTML = "";
-  vi.restoreAllMocks();
 });
 
 // ── Mock fetch ────────────────────────────────────────────────────────────
