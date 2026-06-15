@@ -34,7 +34,7 @@ const ROOT = process.cwd();
 const BASELINE_PATH = path.resolve(
   process.argv.includes("--baseline")
     ? process.argv[process.argv.indexOf("--baseline") + 1]
-    : path.join(ROOT, "test-discovery-baseline.json")
+    : path.join(ROOT, "config/quality/test-discovery-baseline.json")
 );
 const UPDATE = process.argv.includes("--update");
 

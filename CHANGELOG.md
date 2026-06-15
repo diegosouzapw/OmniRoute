@@ -4,6 +4,15 @@
 
 ---
 
+## [3.8.26] — TBD
+
+### 🧹 Internal / Quality / Docs
+
+- **fix(ci): grant `contents: write` to the npm publish job for SBOM attach** — the v3.8.25 TokenPermissions hardening set the npm-publish `publish` job to `contents: read`, but its "Attach SBOM to GitHub Release" step (`gh release upload`) needs `contents: write` and failed with HTTP 403 on the v3.8.25 release (npm / GitHub Packages / opencode-plugin / Docker / Electron all published fine; only the SBOM attach broke — the v3.8.25 SBOM was attached manually). ([#3874](https://github.com/diegosouzapw/OmniRoute/pull/3874) — thanks @diegosouzapw)
+- **docs: refresh the provider count to 226 + regenerate `PROVIDER_REFERENCE.md`** — the README advertised a stale `177 providers`; the canonical generator (`scripts/docs/gen-provider-reference.ts`) now reports **226 unique provider IDs**, so the README badges/anchors and the generated provider reference were brought in sync. Also adds a documentation audit/sync report. (thanks @diegosouzapw)
+
+---
+
 ## [3.8.25] — 2026-06-14
 
 ### ✨ New Features

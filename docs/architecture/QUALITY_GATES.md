@@ -103,7 +103,7 @@ Runs after `build`. Blocks merge on failure.
 
 | Suite            | Validates                                               | Blocking                                                                   |
 | ---------------- | ------------------------------------------------------- | -------------------------------------------------------------------------- |
-| `test:vitest`    | MCP server (43 tools), autoCombo, cache — vitest runner | Yes                                                                        |
+| `test:vitest`    | MCP server (87 tools), autoCombo, cache — vitest runner | Yes                                                                        |
 | `test:vitest:ui` | UI component tests — vitest runner                      | **Advisory** (`continue-on-error: true`) — failing until Fase 6A UI triage |
 
 ---
