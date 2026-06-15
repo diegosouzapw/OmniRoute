@@ -2,12 +2,16 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import { requireManagementAuth } from "@/lib/api/requireManagementAuth";
 import { compressionPreviewConfigSchema } from "@/shared/validation/compressionConfigSchemas";
-import { applyCompression } from "@omniroute/open-sse/services/compression/strategySelector";
+import {
+  applyCompression,
+  applyCompressionAsync,
+} from "@omniroute/open-sse/services/compression/strategySelector";
 import type {
   CompressionConfig,
   CompressionMode,
 } from "@omniroute/open-sse/services/compression/types";
 import { buildCompressionPreviewDiff } from "@omniroute/open-sse/services/compression/diffHelper";
+import { sanitizeErrorMessage } from "@omniroute/open-sse/utils/error";
 
 export const PreviewCompressionConfigSchema = compressionPreviewConfigSchema;
 
@@ -20,7 +24,11 @@ export const PreviewRequestSchema = z.object({
       })
     )
     .min(1),
-  mode: z.enum(["off", "lite", "standard", "aggressive", "ultra", "rtk", "stacked"]),
+  mode: z
+    .enum(["off", "lite", "standard", "aggressive", "ultra", "rtk", "stacked"])
+    .optional()
+    .default("stacked"),
+  engineId: z.string().optional(),
   config: PreviewCompressionConfigSchema.optional(),
 });
 
@@ -56,16 +64,25 @@ export async function POST(req: Request) {
     );
   }
 
-  const { messages, mode, config } = parsed.data;
+  const { messages, mode, engineId, config } = parsed.data;
+  const effectiveMode: CompressionMode = engineId ? "stacked" : (mode as CompressionMode);
   const originalText = messagesToText(messages);
   const originalTokens = countTokens(originalText);
 
   try {
     const start = Date.now();
     const requestBody = { messages };
-    const result = await applyCompression(requestBody as Record<string, unknown>, mode, {
-      config: config as CompressionConfig | undefined,
-    });
+    let result;
+    if (engineId) {
+      const engineConfig = { stackedPipeline: [{ engine: engineId }] } as CompressionConfig;
+      result = await applyCompressionAsync(requestBody as Record<string, unknown>, "stacked", {
+        config: engineConfig,
+      });
+    } else {
+      result = await applyCompression(requestBody as Record<string, unknown>, effectiveMode, {
+        config: config as CompressionConfig | undefined,
+      });
+    }
     const durationMs = Date.now() - start;
 
     const compressedMessages = (result.body.messages ?? messages) as Array<{
@@ -88,7 +105,7 @@ export async function POST(req: Request) {
       savingsPct,
       techniquesUsed,
       durationMs,
-      mode,
+      mode: effectiveMode,
       intensity: null,
       outputMode: null,
       skippedReasons: [],
@@ -109,6 +126,9 @@ export async function POST(req: Request) {
   } catch (err: unknown) {
     const msg = err instanceof Error ? err.message : String(err);
     console.error("[/api/compression/preview]", msg);
-    return NextResponse.json({ error: "Compression failed", details: msg }, { status: 500 });
+    return NextResponse.json(
+      { error: "Compression failed", details: sanitizeErrorMessage(msg) },
+      { status: 500 }
+    );
   }
 }

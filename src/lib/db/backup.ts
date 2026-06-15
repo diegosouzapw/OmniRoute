@@ -37,8 +37,44 @@ function parseNonNegativeInt(value: string | undefined, fallback: number) {
   return Number.isInteger(parsed) && parsed >= 0 ? parsed : fallback;
 }
 
+// #3834: the "Keep latest backups" UI value is persisted here so it survives a page
+// refresh / the loadStorageHealth() refetch. A dedicated namespace avoids any
+// cross-talk with the databaseSettings key_value store (which rewrites all of its own
+// keys on every update). It is intentionally separate from the orphan
+// `databaseSettings.backup.keepLastNBackups` (default 5) so existing installs keep the
+// historical default of 20 until an operator explicitly changes it here.
+const DB_BACKUP_SETTINGS_NAMESPACE = "dbBackup";
+const DB_BACKUP_MAX_FILES_KEY = "maxFiles";
+
+function getStoredDbBackupMaxFiles(): number | undefined {
+  try {
+    const db = getDbInstance();
+    const row = db
+      .prepare("SELECT value FROM key_value WHERE namespace = ? AND key = ?")
+      .get(DB_BACKUP_SETTINGS_NAMESPACE, DB_BACKUP_MAX_FILES_KEY) as { value?: string } | undefined;
+    if (!row?.value) return undefined;
+    const parsed = Number.parseInt(JSON.parse(row.value), 10);
+    return Number.isInteger(parsed) && parsed > 0 ? parsed : undefined;
+  } catch {
+    return undefined;
+  }
+}
+
+/** Persist the operator-chosen "keep latest backups" retention count (#3834). */
+export function setDbBackupMaxFiles(value: number): void {
+  if (!Number.isInteger(value) || value <= 0) return;
+  const db = getDbInstance();
+  db.prepare(
+    "INSERT OR REPLACE INTO key_value (namespace, key, value) VALUES (?, ?, ?)"
+  ).run(DB_BACKUP_SETTINGS_NAMESPACE, DB_BACKUP_MAX_FILES_KEY, JSON.stringify(value));
+}
+
 export function getDbBackupMaxFiles() {
-  return parsePositiveInt(process.env.DB_BACKUP_MAX_FILES, MAX_DB_BACKUPS);
+  // Precedence: DB_BACKUP_MAX_FILES env override (ops) → persisted UI value → default.
+  if (process.env.DB_BACKUP_MAX_FILES) {
+    return parsePositiveInt(process.env.DB_BACKUP_MAX_FILES, MAX_DB_BACKUPS);
+  }
+  return getStoredDbBackupMaxFiles() ?? MAX_DB_BACKUPS;
 }
 
 export function getDbBackupRetentionDays() {

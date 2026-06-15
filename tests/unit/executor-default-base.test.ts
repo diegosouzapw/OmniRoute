@@ -103,10 +103,7 @@ test("DefaultExecutor.buildUrl uses full chat endpoints for hosted OpenAI-compat
     bazaarlink.buildUrl("auto:free", true),
     "https://bazaarlink.ai/api/v1/chat/completions"
   );
-  assert.equal(
-    crof.buildUrl("gpt-4.1", true),
-    "https://crof.ai/v1/chat/completions"
-  );
+  assert.equal(crof.buildUrl("gpt-4.1", true), "https://crof.ai/v1/chat/completions");
 });
 
 test("DefaultExecutor.buildUrl handles openai-compatible and anthropic-compatible providers", () => {
@@ -740,6 +737,44 @@ test("DefaultExecutor.transformRequest respects disableStreamOptions for OpenAI 
 
   assert.equal((chatResultDisabled as any).stream_options, undefined);
   assert.deepEqual((chatResultEnabled as any).stream_options, { include_usage: true });
+});
+
+test("DefaultExecutor.transformRequest injects OpenRouter connection preset", () => {
+  const executor = new DefaultExecutor("openrouter");
+  const body = { model: "openai/gpt-4", messages: [{ role: "user", content: "hi" }] };
+
+  const result = executor.transformRequest("openai/gpt-4", body, true, {
+    providerSpecificData: { preset: "  email-copywriter  " },
+  });
+
+  assert.equal((result as any).preset, "email-copywriter");
+  assert.deepEqual((result as any).stream_options, { include_usage: true });
+  assert.equal((body as any).preset, undefined);
+
+  const explicit = executor.transformRequest(
+    "openai/gpt-4",
+    { ...body, preset: "client-preset" },
+    true,
+    { providerSpecificData: { preset: "connection-preset" } }
+  );
+
+  assert.equal((explicit as any).preset, "client-preset");
+
+  const explicitNull = executor.transformRequest("openai/gpt-4", { ...body, preset: null }, true, {
+    providerSpecificData: { preset: "connection-preset" },
+  });
+  assert.equal((explicitNull as any).preset, null);
+
+  const explicitEmpty = executor.transformRequest("openai/gpt-4", { ...body, preset: "" }, true, {
+    providerSpecificData: { preset: "connection-preset" },
+  });
+  assert.equal((explicitEmpty as any).preset, "");
+
+  const blank = executor.transformRequest("openai/gpt-4", body, true, {
+    providerSpecificData: { preset: "   " },
+  });
+
+  assert.equal((blank as any).preset, undefined);
 });
 
 test("DefaultExecutor.transformRequest strips stream_options from Anthropic-compatible targets", () => {

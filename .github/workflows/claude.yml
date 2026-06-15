@@ -10,6 +10,10 @@ on:
   pull_request_review:
     types: [submitted]
 
+# Least-privilege default: no token permissions at the top level; the `claude` job
+# grants exactly what it needs below (Scorecard TokenPermissions).
+permissions: {}
+
 jobs:
   claude:
     if: |

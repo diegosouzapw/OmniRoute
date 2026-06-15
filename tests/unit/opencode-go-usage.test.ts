@@ -146,7 +146,12 @@ test("getUsageForProvider returns message for invalid OpenCode Go API keys", asy
       provider: "opencode-go",
       apiKey: "bad-key",
     })) as { message: string };
-    assert.equal(result.message, "OpenCode Go quota endpoint rejected this API key. Chat requests still work.");
+    assert.equal(
+      result.message,
+      "OpenCode Go does not expose a public quota API. Chat requests still work. " +
+        "Set OMNIROUTE_OPENCODE_GO_QUOTA_URL to a working endpoint, or follow " +
+        "https://github.com/anomalyco/opencode/issues/16017 for upstream status."
+    );
   } finally {
     globalThis.fetch = originalFetch;
   }
@@ -155,10 +160,10 @@ test("getUsageForProvider returns message for invalid OpenCode Go API keys", asy
 test("getUsageForProvider returns message when OpenCode Go quota API returns 200 with auth error in body", async () => {
   const originalFetch = globalThis.fetch;
   globalThis.fetch = async () =>
-    new Response(
-      JSON.stringify({ code: 401, msg: "token expired or incorrect", success: false }),
-      { status: 200, headers: { "content-type": "application/json" } }
-    );
+    new Response(JSON.stringify({ code: 401, msg: "token expired or incorrect", success: false }), {
+      status: 200,
+      headers: { "content-type": "application/json" },
+    });
 
   try {
     const result = (await usage.getUsageForProvider({
@@ -166,7 +171,12 @@ test("getUsageForProvider returns message when OpenCode Go quota API returns 200
       provider: "opencode-go",
       apiKey: "sk-test-key",
     })) as { message: string };
-    assert.equal(result.message, "OpenCode Go quota endpoint rejected this API key. Chat requests still work.");
+    assert.equal(
+      result.message,
+      "OpenCode Go does not expose a public quota API. Chat requests still work. " +
+        "Set OMNIROUTE_OPENCODE_GO_QUOTA_URL to a working endpoint, or follow " +
+        "https://github.com/anomalyco/opencode/issues/16017 for upstream status."
+    );
   } finally {
     globalThis.fetch = originalFetch;
   }
@@ -175,7 +185,10 @@ test("getUsageForProvider returns message when OpenCode Go quota API returns 200
 test("getUsageForProvider returns message when OpenCode Go quota response is invalid JSON", async () => {
   const originalFetch = globalThis.fetch;
   globalThis.fetch = async () =>
-    new Response("<html>not json</html>", { status: 200, headers: { "content-type": "text/html" } });
+    new Response("<html>not json</html>", {
+      status: 200,
+      headers: { "content-type": "text/html" },
+    });
 
   try {
     const result = (await usage.getUsageForProvider({

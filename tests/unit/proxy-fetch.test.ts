@@ -4,6 +4,7 @@ import http from "node:http";
 
 import proxyFetch, {
   runWithProxyContext,
+  runWithProxyContextOrDirect,
   runWithTlsTracking,
   isTlsFingerprintActive,
 } from "../../open-sse/utils/proxyFetch.ts";
@@ -164,4 +165,41 @@ test("runWithProxyContext accepts reachable HTTP proxy endpoints and returns cal
       assert.equal(result, "ok");
     }
   );
+});
+
+test("runWithProxyContext throws PROXY_UNREACHABLE for an unreachable proxy by default", async () => {
+  // 127.0.0.1:9 (discard) refuses connections — the proxy is unreachable.
+  await assert.rejects(
+    runWithProxyContext({ type: "http", host: "127.0.0.1", port: "9" }, async () => "unreachable"),
+    /Proxy unreachable/
+  );
+});
+
+test("runWithProxyContext degrades to a direct connection when directFallbackOnUnreachable is set", async () => {
+  let ran = false;
+  const result = await runWithProxyContext(
+    { type: "http", host: "127.0.0.1", port: "9" },
+    async () => {
+      ran = true;
+      return "direct-ok";
+    },
+    { directFallbackOnUnreachable: true }
+  );
+
+  assert.equal(ran, true, "callback must still run via a direct connection");
+  assert.equal(result, "direct-ok");
+});
+
+test("runWithProxyContextOrDirect runs the callback directly when the proxy is unreachable", async () => {
+  let ran = false;
+  const result = await runWithProxyContextOrDirect(
+    { type: "http", host: "127.0.0.1", port: "9" },
+    async () => {
+      ran = true;
+      return "ok";
+    }
+  );
+
+  assert.equal(ran, true);
+  assert.equal(result, "ok");
 });

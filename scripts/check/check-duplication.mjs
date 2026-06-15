@@ -15,13 +15,23 @@ const ROOT = process.cwd();
 const BASELINE_PATH = path.resolve(
   process.argv.includes("--baseline")
     ? process.argv[process.argv.indexOf("--baseline") + 1]
-    : path.join(ROOT, "duplication-baseline.json")
+    : path.join(ROOT, "config/quality/duplication-baseline.json")
 );
 const UPDATE = process.argv.includes("--update");
 const EPS = 0.05; // tolerância de ruído de float (jscpd é determinístico; isto é margem)
 // Use local binary (pinned in package.json devDependencies — no registry download at CI time)
 const JSCPD_BIN = path.join(ROOT, "node_modules", ".bin", "jscpd");
-const JSCPD_FIXED_ARGS = ["src", "open-sse", "--reporters", "json", "--silent", "--min-tokens", "50", "--ignore", "**/*.test.ts,**/*.test.tsx,**/__tests__/**"];
+const JSCPD_FIXED_ARGS = [
+  "src",
+  "open-sse",
+  "--reporters",
+  "json",
+  "--silent",
+  "--min-tokens",
+  "50",
+  "--ignore",
+  "**/*.test.ts,**/*.test.tsx,**/__tests__/**",
+];
 
 /** Avalia a % atual contra o baseline. */
 export function evaluateDuplication(current, baseline, eps = EPS) {

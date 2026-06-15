@@ -13,7 +13,10 @@ jobs:
     name: Scorecard analysis
     runs-on: ubuntu-latest
     permissions:
-      security-events: write
+      # security-events: write removed — Scorecard findings are advisory and no longer
+      # uploaded to the code-scanning Security tab (they are supply-chain/posture scores,
+      # not code vulnerabilities, and drowned out real CodeQL alerts). The run still
+      # produces the OpenSSF badge (publish_results) and a downloadable SARIF artifact.
       id-token: write
       contents: read
     steps:
@@ -35,9 +38,3 @@ jobs:
           name: SARIF file
           path: results.sarif
           retention-days: 5
-
-      - name: Upload to code-scanning
-        uses: github/codeql-action/upload-sarif@v3
-        with:
-          sarif_file: results.sarif
-          category: scorecard

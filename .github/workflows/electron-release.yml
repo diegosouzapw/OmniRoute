@@ -11,15 +11,18 @@ on:
         required: true
         type: string
 
+# Least-privilege default: read-only at the top level; each job grants the writes it
+# needs (build/release upload assets, publish-npm forwards npm provenance / packages
+# to the reusable workflow) — Scorecard TokenPermissions.
 permissions:
-  contents: write
-  id-token: write
-  packages: write
+  contents: read
 
 jobs:
   validate:
     name: Validate version
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     outputs:
       version: ${{ steps.validate.outputs.version }}
     steps:
@@ -48,6 +51,8 @@ jobs:
     name: Build Electron (${{ matrix.platform }})
     needs: validate
     runs-on: ${{ matrix.runner }}
+    permissions:
+      contents: write # electron-builder may publish artifacts with GH_TOKEN
     strategy:
       fail-fast: false
       matrix:
@@ -192,6 +197,8 @@ jobs:
     name: Create Release
     needs: [validate, build]
     runs-on: ubuntu-latest
+    permissions:
+      contents: write # softprops/action-gh-release creates the GitHub Release
     steps:
       - name: Checkout
         uses: actions/checkout@v6
@@ -242,6 +249,10 @@ jobs:
   publish-npm:
     name: Publish to npm
     needs: [validate, release]
+    permissions:
+      contents: read
+      id-token: write # npm provenance (forwarded to the reusable workflow)
+      packages: write # publish to npm.pkg.github.com
     uses: ./.github/workflows/npm-publish.yml
     with:
       version: ${{ needs.validate.outputs.version }}

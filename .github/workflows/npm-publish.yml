@@ -37,10 +37,11 @@ on:
       NPM_TOKEN:
         required: true
 
+# Least-privilege default: read-only at the top level; each publish job grants the
+# id-token (npm provenance) / packages (GitHub Packages) writes it needs (Scorecard
+# TokenPermissions).
 permissions:
   contents: read
-  id-token: write
-  packages: write
 
 env:
   NPM_PUBLISH_NODE_VERSION: "24"
@@ -48,6 +49,10 @@ env:
 jobs:
   publish:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write # gh release upload (attach SBOM to the GitHub Release)
+      id-token: write # npm provenance
+      packages: write # publish to npm.pkg.github.com
     steps:
       - name: Checkout
         uses: actions/checkout@v6
@@ -191,6 +196,9 @@ jobs:
 
   publish-opencode-plugin:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write # npm provenance
     steps:
       - name: Checkout
         uses: actions/checkout@v6

@@ -13,7 +13,7 @@ in `CLAUDE.md`.
 
 ---
 
-## Gate Inventory (35 scripts)
+## Gate Inventory (~48 scripts)
 
 Scripts live under `scripts/check/` (policy gates) and `scripts/quality/` (ratchet engine).
 The CI source of truth is `.github/workflows/ci.yml`.
@@ -103,7 +103,7 @@ Runs after `build`. Blocks merge on failure.
 
 | Suite            | Validates                                               | Blocking                                                                   |
 | ---------------- | ------------------------------------------------------- | -------------------------------------------------------------------------- |
-| `test:vitest`    | MCP server (43 tools), autoCombo, cache — vitest runner | Yes                                                                        |
+| `test:vitest`    | MCP server (87 tools), autoCombo, cache — vitest runner | Yes                                                                        |
 | `test:vitest:ui` | UI component tests — vitest runner                      | **Advisory** (`continue-on-error: true`) — failing until Fase 6A UI triage |
 
 ---
@@ -185,6 +185,18 @@ allowlist is a false sense of quality.
    `scripts/check/lib/allowlist.mjs` so stale entries are detected automatically.
 5. Write a test in `tests/unit/build/` covering the gate's detection logic.
 6. Update this document (add a row to the relevant job table).
+
+---
+
+## Agent tooling: LSP-in-the-loop (opt-in)
+
+Beyond the CI gates, OmniRoute ships an **opt-in** `agent-lsp` scaffold
+([`.mcp.json.example`](../../.mcp.json.example), Fase 7 Task 15). Copy it to `.mcp.json`
+to expose a TypeScript language server to coding agents, so they resolve symbols /
+diagnostics **before** writing code — a compile-before-claim companion to
+`typecheck:core` that cuts "invented symbol" errors at the source. It is intentionally
+not auto-loaded (you pick and verify the MCP↔LSP bridge); a broken entry only logs a
+connection error and never breaks sessions.
 
 ---
 

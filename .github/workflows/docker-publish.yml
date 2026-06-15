@@ -25,9 +25,10 @@ on:
         type: boolean
         default: false
 
+# Least-privilege default: read-only at the top level; the build and merge jobs that
+# push to GHCR grant packages: write themselves (Scorecard TokenPermissions).
 permissions:
   contents: read
-  packages: write
 
 jobs:
   prepare:
@@ -123,6 +124,9 @@ jobs:
     needs: prepare
     if: needs.prepare.outputs.skip != 'true'
     runs-on: ${{ matrix.runner }}
+    permissions:
+      contents: read
+      packages: write
     strategy:
       fail-fast: false
       matrix:
@@ -344,7 +348,7 @@ jobs:
           format: sarif
           output: trivy-results.sarif
           severity: HIGH,CRITICAL
-          exit-code: '0'
+          exit-code: "0"
 
       - name: Upload Trivy SARIF to Security tab
         if: needs.prepare.outputs.version != 'main'
