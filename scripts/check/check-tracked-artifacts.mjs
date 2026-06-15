@@ -15,7 +15,10 @@ import { execFileSync } from "node:child_process";
 import { pathToFileURL } from "node:url";
 
 const FORBIDDEN_PREFIXES = ["node_modules/", ".next/", "coverage/"];
-const FORBIDDEN_EXACT = new Set(["quality-metrics.json"]);
+const FORBIDDEN_EXACT = new Set([
+  "quality-metrics.json", // legacy root location (still forbidden if a stale run writes it)
+  "config/quality/quality-metrics.json", // current generated location (collect-metrics.mjs)
+]);
 
 /**
  * Verifica se algum caminho na lista de arquivos rastreados corresponde a um
@@ -80,7 +83,9 @@ function main() {
     process.exit(0);
   }
 
-  console.error(`[tracked-artifacts] FAIL — ${violations.length} forbidden artifact(s) tracked by git:`);
+  console.error(
+    `[tracked-artifacts] FAIL — ${violations.length} forbidden artifact(s) tracked by git:`
+  );
   for (const v of violations) {
     console.error(`  ✗ ${v}`);
   }
