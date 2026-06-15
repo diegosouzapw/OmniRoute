@@ -172,3 +172,63 @@ describe("LlmlinguaPage", () => {
     expect(container.textContent).toContain("LLMLingua");
   });
 });
+
+describe("LitePage", () => {
+  it("mounts without throwing and renders the engine name", async () => {
+    setupFetchMock([{ id: "lite", name: "Lite" }]);
+    const { default: LitePage } =
+      await import("../../../src/app/(dashboard)/dashboard/context/lite/page");
+
+    let container!: HTMLElement;
+    await act(async () => {
+      container = mountInContainer(<LitePage />);
+    });
+
+    await act(async () => {
+      await Promise.resolve();
+    });
+
+    expect(container).toBeTruthy();
+    expect(container.textContent).toContain("Lite");
+  });
+});
+
+describe("AggressivePage", () => {
+  it("mounts without throwing and renders the engine name", async () => {
+    setupFetchMock([{ id: "aggressive", name: "Aggressive" }]);
+    const { default: AggressivePage } =
+      await import("../../../src/app/(dashboard)/dashboard/context/aggressive/page");
+
+    let container!: HTMLElement;
+    await act(async () => {
+      container = mountInContainer(<AggressivePage />);
+    });
+
+    await act(async () => {
+      await Promise.resolve();
+    });
+
+    expect(container).toBeTruthy();
+    expect(container.textContent).toContain("Aggressive");
+  });
+});
+
+describe("UltraPage", () => {
+  it("mounts without throwing and renders the engine name", async () => {
+    setupFetchMock([{ id: "ultra", name: "Ultra" }]);
+    const { default: UltraPage } =
+      await import("../../../src/app/(dashboard)/dashboard/context/ultra/page");
+
+    let container!: HTMLElement;
+    await act(async () => {
+      container = mountInContainer(<UltraPage />);
+    });
+
+    await act(async () => {
+      await Promise.resolve();
+    });
+
+    expect(container).toBeTruthy();
+    expect(container.textContent).toContain("Ultra");
+  });
+});
