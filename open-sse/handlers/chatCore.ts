@@ -2486,7 +2486,10 @@ export async function handleChatCore({
       const isStackedCompressionCombo = (
         compressionCombo: RuntimeCompressionCombo | null
       ): compressionCombo is RuntimeCompressionCombo => {
-        return Boolean(compressionCombo && compressionCombo.pipeline.length > 1);
+        // >= 1: a single-engine default combo (user enabled exactly one layer via the
+        // per-engine config page) must still apply. applyCompressionComboConfig already
+        // guards length === 0.
+        return Boolean(compressionCombo && compressionCombo.pipeline.length >= 1);
       };
       if (isCombo && comboName) {
         try {
@@ -2626,6 +2629,7 @@ export async function handleChatCore({
         const result = await applyCompressionAsync(compressionInputBody, mode, {
           model: effectiveModel,
           config,
+          principalId: apiKeyInfo?.id ? String(apiKeyInfo.id) : undefined,
         });
         if (result.stats) {
           if (result.compressed) {

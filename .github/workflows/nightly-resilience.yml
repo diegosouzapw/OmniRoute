@@ -1,0 +1,70 @@
+name: Nightly Resilience
+on:
+  schedule:
+    - cron: "41 4 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  heap:
+    name: Heap-growth gate
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
+        with:
+          node-version: "24"
+          cache: npm
+      - run: npm ci
+      - run: npm run test:heap
+
+  chaos:
+    name: Resilience chaos (fault injection)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
+        with:
+          node-version: "24"
+          cache: npm
+      - run: npm ci
+      - run: npm run test:chaos
+
+  k6-soak:
+    name: k6 load/soak
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
+        with:
+          node-version: "24"
+          cache: npm
+      - run: npm ci
+      - name: Build CLI bundle
+        env:
+          JWT_SECRET: ci-build-secret-with-sufficient-length-for-validation
+        run: npm run build:cli
+      - name: Start OmniRoute (background)
+        env:
+          JWT_SECRET: ci-build-secret-with-sufficient-length-for-validation
+          PORT: "20128"
+        run: |
+          node dist/server.js > server.log 2>&1 &
+          echo $! > server.pid
+          for i in $(seq 1 30); do
+            if curl -sf http://localhost:20128/api/monitoring/health >/dev/null; then echo "server up"; break; fi
+            sleep 2
+          done
+      - name: Install k6
+        uses: grafana/setup-k6-action@v1
+      - name: Run k6 soak
+        run: k6 run tests/load/k6-soak.js
+        env:
+          BASE_URL: http://localhost:20128
+          SOAK_DURATION: "3m"
+          SOAK_VUS: "10"
+      - name: Stop server
+        if: always()
+        run: kill "$(cat server.pid)" || true

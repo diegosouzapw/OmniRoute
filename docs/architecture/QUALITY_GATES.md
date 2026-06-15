@@ -185,3 +185,9 @@ allowlist is a false sense of quality.
    `scripts/check/lib/allowlist.mjs` so stale entries are detected automatically.
 5. Write a test in `tests/unit/build/` covering the gate's detection logic.
 6. Update this document (add a row to the relevant job table).
+
+---
+
+## Related Documentation
+
+- Supply-chain (provenance, SBOM, Trivy, Scorecard): [`docs/security/SUPPLY_CHAIN.md`](../security/SUPPLY_CHAIN.md)

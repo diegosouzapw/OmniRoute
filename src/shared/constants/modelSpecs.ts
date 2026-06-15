@@ -77,6 +77,9 @@ export const MODEL_SPECS: Record<string, ModelSpec> = {
   "gemini-2.5-flash": {
     maxOutputTokens: 65536,
     contextWindow: 1048576,
+    // #3842: real Google max thinking budget for 2.5-flash is 24576; declaring the
+    // cap makes capThinkingBudget() actually clamp instead of passing values through.
+    thinkingBudgetCap: 24576,
     supportsThinking: false,
     supportsTools: true,
     supportsVision: true,
@@ -348,6 +351,26 @@ export const MODEL_SPECS: Record<string, ModelSpec> = {
   "mimo-v2-flash": {
     maxOutputTokens: 65536,
     contextWindow: 262144,
+    supportsTools: true,
+  },
+
+  // ── Z.AI GLM-5.2 (1M context, 128K max output, effort tiers) ────
+  "glm-5.2": {
+    maxOutputTokens: 131072,
+    contextWindow: 1000000,
+    supportsThinking: true,
+    supportsTools: true,
+  },
+  "glm-5.2-high": {
+    maxOutputTokens: 131072,
+    contextWindow: 1000000,
+    supportsThinking: true,
+    supportsTools: true,
+  },
+  "glm-5.2-max": {
+    maxOutputTokens: 131072,
+    contextWindow: 1000000,
+    supportsThinking: true,
     supportsTools: true,
   },
 

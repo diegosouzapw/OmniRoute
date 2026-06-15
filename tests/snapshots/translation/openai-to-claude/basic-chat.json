@@ -1,0 +1,16 @@
+{
+  "max_tokens": 32768,
+  "messages": [
+    {
+      "content": [
+        {
+          "text": "hi",
+          "type": "text"
+        }
+      ],
+      "role": "user"
+    }
+  ],
+  "model": "claude-opus-4-5",
+  "stream": true
+}

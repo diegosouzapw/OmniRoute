@@ -528,10 +528,11 @@ describe("Page Integration — combos page empty state", () => {
   });
 
   it("should wire combo account labels to the global email privacy toggle", () => {
-    assert.match(src, /EmailPrivacyToggle/);
+    // #3822: the per-page EmailPrivacyToggle (and its emailVisibilityTooltip) was removed in
+    // favor of the single global switch in Settings → Appearance. The combos page still
+    // consumes the store and masks account labels via pickDisplayValue.
     assert.match(src, /useEmailPrivacyStore/);
     assert.match(src, /pickDisplayValue/);
-    assert.match(src, /emailVisibilityTooltip/);
   });
 
   it("should mask combo test result labels with the global email privacy toggle", () => {
@@ -544,6 +545,14 @@ describe("Page Integration — provider test results privacy", () => {
   const providersSrc = readProjectFile("src/app/(dashboard)/dashboard/providers/page.tsx");
   const providerDetailSrc = readProjectFile(
     "src/app/(dashboard)/dashboard/providers/[id]/ProviderDetailPageClient.tsx"
+  );
+  // #3501 strangler-fig decomposition moved the test-results masking and the upstream-proxy
+  // surface out of the page client into dedicated components.
+  const batchTestResultsSrc = readProjectFile(
+    "src/app/(dashboard)/dashboard/providers/[id]/components/BatchTestResultsModal.tsx"
+  );
+  const upstreamProxyCardSrc = readProjectFile(
+    "src/app/(dashboard)/dashboard/providers/[id]/components/UpstreamProxyCard.tsx"
   );
 
   it("should mask provider test batch names with the global email privacy toggle", () => {
@@ -561,8 +570,10 @@ describe("Page Integration — provider test results privacy", () => {
       "src/app/(dashboard)/dashboard/providers/[id]/ProviderDetailPageClient.tsx should exist"
     );
     assert.match(providerDetailSrc, /const emailsVisible = useEmailPrivacyStore/);
+    // The per-connection test-result masking now lives in the decomposed BatchTestResultsModal.
+    assert.ok(batchTestResultsSrc, "BatchTestResultsModal.tsx should exist");
     assert.match(
-      providerDetailSrc,
+      batchTestResultsSrc,
       /pickDisplayValue\(\s*\[r\.connectionName\],\s*emailsVisible,\s*r\.connectionName\s*\)/
     );
   });
@@ -581,7 +592,9 @@ describe("Page Integration — provider test results privacy", () => {
       "src/app/(dashboard)/dashboard/providers/[id]/ProviderDetailPageClient.tsx should exist"
     );
     assert.match(providerDetailSrc, /isUpstreamProxyProvider/);
-    assert.match(providerDetailSrc, /Managed via Upstream Proxy Settings/);
+    // The "managed elsewhere" copy now lives in the decomposed UpstreamProxyCard component.
+    assert.ok(upstreamProxyCardSrc, "UpstreamProxyCard.tsx should exist");
+    assert.match(upstreamProxyCardSrc, /Managed via Upstream Proxy Settings/);
   });
 });
 

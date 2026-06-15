@@ -148,10 +148,11 @@ describe("benchmark — runBenchmarkGate (N4)", () => {
 describe("benchmark — reproducibility", () => {
   it("two runs on the same corpus yield identical meanSavingsPercent", async () => {
     const engines = ["rtk", "caveman"];
-    const [r1, r2] = await Promise.all([
-      benchmarkEngines(BENCHMARK_CORPUS, engines),
-      benchmarkEngines(BENCHMARK_CORPUS, engines),
-    ]);
+    // Run the two passes SEQUENTIALLY: this asserts determinism (same input → same
+    // output), not concurrency-safety. Running them in parallel (Promise.all) shares the
+    // engine singletons across both passes and races their internal state under load.
+    const r1 = await benchmarkEngines(BENCHMARK_CORPUS, engines);
+    const r2 = await benchmarkEngines(BENCHMARK_CORPUS, engines);
     for (const id of engines) {
       assert.equal(
         r1[id].meanSavingsPercent,

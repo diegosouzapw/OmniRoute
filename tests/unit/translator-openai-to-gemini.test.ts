@@ -1209,7 +1209,27 @@ test("OpenAI -> Gemini request maps reasoning_effort to thinkingConfig", () => {
 
   assert.ok((result as any).generationConfig.thinkingConfig, "expected thinkingConfig");
   assert.equal((result as any).generationConfig.thinkingConfig.includeThoughts, true);
+  // gemini-2.0-flash-thinking carries no registry cap, so the raw 32768 base is
+  // passed through unchanged (capThinkingBudget no-ops without a thinkingBudgetCap).
   assert.equal((result as any).generationConfig.thinkingConfig.thinkingBudget, 32768);
+});
+
+// Regression for #3842: reasoning_effort=high must not exceed a Gemini model's real
+// thinking-budget cap. gemini-2.5-flash's true upstream max is 24576; sending 32768
+// makes the upstream return HTTP 400. The modelSpecs thinkingBudgetCap now clamps it
+// at the capThinkingBudget chokepoint, matching the thinkingLevel=high path (24576).
+test("OpenAI -> Gemini reasoning_effort=high stays within gemini-2.5-flash cap (#3842)", () => {
+  const result = openaiToGeminiRequest(
+    "gemini-2.5-flash",
+    {
+      messages: [{ role: "user", content: "Solve this complex puzzle" }],
+      reasoning_effort: "high",
+    },
+    false
+  ) as any;
+  const budget = result.generationConfig.thinkingConfig.thinkingBudget;
+  assert.ok(budget <= 24576, `expected <= 24576 (real cap), got ${budget}`);
+  assert.equal(budget, 24576);
 });
 
 test("OpenAI -> Gemini request maps google_search tool", () => {

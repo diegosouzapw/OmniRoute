@@ -205,6 +205,26 @@ function appendCondition(whereClause: string, condition: string): string {
   return whereClause ? `${whereClause} AND ${condition}` : `WHERE ${condition}`;
 }
 
+export function getPerEngineAnalytics(engineId: string, days = 7) {
+  const db = getDbInstance();
+  ensureCompressionAnalyticsColumns();
+  const since = new Date(Date.now() - days * 86400_000).toISOString();
+  const row = db
+    .prepare(
+      `SELECT COUNT(*) AS runs,
+              COALESCE(SUM(original_tokens), 0) AS original,
+              COALESCE(SUM(compressed_tokens), 0) AS compressed,
+              COALESCE(SUM(tokens_saved), 0) AS saved
+       FROM compression_analytics
+       WHERE COALESCE(engine, mode) = ? AND timestamp >= ?`
+    )
+    .get(engineId, since) as { runs: number; original: number; compressed: number; saved: number };
+  const tokensSaved = Math.max(0, row.saved);
+  const avgSavingsPercent =
+    row.original > 0 ? Math.round(((row.original - row.compressed) / row.original) * 1000) / 10 : 0;
+  return { engineId, runs: row.runs, tokensSaved, avgSavingsPercent, days };
+}
+
 export function getCompressionAnalyticsSummary(since?: string): CompressionAnalyticsSummary {
   const db = getDbInstance();
   ensureCompressionAnalyticsColumns();

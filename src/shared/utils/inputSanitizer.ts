@@ -144,6 +144,20 @@ function extractMessageContents(body) {
     }
   }
 
+  if (typeof body.input === "string") contents.push(body.input);
+  if (typeof body.prompt === "string") contents.push(body.prompt);
+  else if (Array.isArray(body.prompt))
+    for (const p of body.prompt) {
+      if (typeof p === "string") contents.push(p);
+    }
+  if (typeof body.instructions === "string") contents.push(body.instructions);
+  if (typeof body.query === "string") contents.push(body.query);
+  if (Array.isArray(body.documents))
+    for (const d of body.documents) {
+      if (typeof d === "string") contents.push(d);
+      else if (d && typeof d.text === "string") contents.push(d.text);
+    }
+
   return contents;
 }
 

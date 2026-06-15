@@ -243,6 +243,7 @@ import {
   compressionComboStatsInput,
 } from "../schemas/tools.ts";
 import { handleCcrRetrieve } from "../../services/compression/engines/ccr/index.ts";
+import { resolveCallerScopeContext } from "../scopeEnforcement.ts";
 
 const ccrRetrieveInput = z.object({
   hash: z
@@ -351,6 +352,11 @@ export const compressionTools = {
       "Scope: read:compression. Always available (sticky-on).",
     scopes: ["read:compression"],
     inputSchema: ccrRetrieveInput,
-    handler: (args: z.infer<typeof ccrRetrieveInput>) => handleCcrRetrieve(args),
+    handler: (args: z.infer<typeof ccrRetrieveInput>, extra?: McpToolExtraLike) => {
+      // Derive caller identity from MCP auth context so the retrieve is scoped to the
+      // same principal that stored the block. This closes the cross-tenant IDOR (HIGH).
+      const { callerId } = resolveCallerScopeContext(extra, ["read:compression"]);
+      return handleCcrRetrieve(args, callerId === "anonymous" ? undefined : callerId);
+    },
   },
 };

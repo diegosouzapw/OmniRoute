@@ -14,7 +14,7 @@ process.env.DATA_DIR = TEST_DATA_DIR;
 const core = await import("../../src/lib/db/core.ts");
 const providersDb = await import("../../src/lib/db/providers.ts");
 const settingsDb = await import("../../src/lib/db/settings.ts");
-const { PROVIDERS } = await import("../../open-sse/config/constants.ts");
+const { PROVIDERS, OAUTH_ENDPOINTS } = await import("../../open-sse/config/constants.ts");
 const tokenHealthCheck = await import("../../src/lib/tokenHealthCheck.ts");
 
 async function resetStorage() {
@@ -526,3 +526,61 @@ test("checkConnection preserves refresh_token for non-rotating providers on unre
     }
   );
 });
+
+// Regression for #3850 (continuation of #3679): the #3679 test above uses a SYNTHETIC
+// provider that routes through the generic refreshAccessToken/tokenUrl path. The real
+// Google-family providers (gemini-cli / antigravity) instead dispatch through
+// refreshGoogleToken() against the HARDCODED OAUTH_ENDPOINTS.google.token — a path the
+// synthetic test never exercised, which left #3766's correctness unproven for the
+// actual reported providers. This drives checkConnection through the REAL gemini-cli /
+// antigravity dispatch and asserts the refresh_token is preserved (NOT nulled) when
+// Google rejects the refresh with invalid_grant.
+for (const providerId of ["gemini-cli", "antigravity"]) {
+  test(`checkConnection preserves refresh_token for ${providerId} on invalid_grant (#3850)`, async () => {
+    await resetStorage();
+
+    let refreshCount = 0;
+    const originalGoogleTokenUrl = OAUTH_ENDPOINTS.google.token;
+
+    await withHttpServer(
+      (_req, res) => {
+        refreshCount += 1;
+        // Google returns invalid_grant → isUnrecoverableRefreshError() is true.
+        res.writeHead(400, { "Content-Type": "application/json" });
+        res.end(JSON.stringify({ error: "invalid_grant", error_description: "Bad Request" }));
+      },
+      async (tokenServer) => {
+        // gemini-cli / antigravity refresh hits OAUTH_ENDPOINTS.google.token directly
+        // (not a per-provider tokenUrl), so redirect that hardcoded endpoint.
+        OAUTH_ENDPOINTS.google.token = `${tokenServer.url}/token`;
+        try {
+          const connection = await providersDb.createProviderConnection({
+            provider: providerId,
+            authType: "oauth",
+            name: `${providerId} Account`,
+            email: `${providerId}@example.com`,
+            accessToken: "expired-access-token",
+            refreshToken: "rt-keep-3850",
+            // Already expired → proactive refresh runs AND the still-valid guard fails,
+            // so execution reaches the deactivation branch.
+            expiresAt: new Date(Date.now() - 60 * 60 * 1000).toISOString(),
+            isActive: true,
+          });
+
+          await tokenHealthCheck.checkConnection(connection);
+
+          const updated = await providersDb.getProviderConnectionById((connection as any).id);
+          assert.equal(refreshCount, 1, "the expired token must trigger one refresh attempt");
+          assert.equal(updated?.testStatus, "expired", "should reach the unrecoverable branch");
+          assert.equal(
+            updated?.refreshToken,
+            "rt-keep-3850",
+            `${providerId} (non-rotating) must keep its refresh_token for recovery`
+          );
+        } finally {
+          OAUTH_ENDPOINTS.google.token = originalGoogleTokenUrl;
+        }
+      }
+    );
+  });
+}

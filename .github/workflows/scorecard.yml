@@ -1,0 +1,40 @@
+name: OpenSSF Scorecard
+on:
+  branch_protection_rule:
+  schedule:
+    - cron: "27 7 * * 1"
+  push:
+    branches: ["main"]
+
+permissions: read-all
+
+jobs:
+  analysis:
+    name: Scorecard analysis
+    runs-on: ubuntu-latest
+    permissions:
+      # security-events: write removed — Scorecard findings are advisory and no longer
+      # uploaded to the code-scanning Security tab (they are supply-chain/posture scores,
+      # not code vulnerabilities, and drowned out real CodeQL alerts). The run still
+      # produces the OpenSSF badge (publish_results) and a downloadable SARIF artifact.
+      id-token: write
+      contents: read
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+
+      - name: Run analysis
+        uses: ossf/scorecard-action@v2.4.0
+        with:
+          results_file: results.sarif
+          results_format: sarif
+          publish_results: true
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v7
+        with:
+          name: SARIF file
+          path: results.sarif
+          retention-days: 5
