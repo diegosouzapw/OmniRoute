@@ -285,9 +285,10 @@ export class GlmExecutor extends DefaultExecutor {
         // "enabled"/"disabled" — not "adaptive". Clients like Claude Code
         // default to "adaptive" for reasoning models, so force "enabled"
         // here while preserving any other fields (e.g. budget_tokens).
-        if (!translatedRecord.thinking || asRecord(translatedRecord.thinking)?.type !== "enabled") {
+        const existingThinking = asRecord(translatedRecord.thinking);
+        if (!existingThinking || existingThinking.type !== "enabled") {
           translatedRecord.thinking = {
-            ...(asRecord(translatedRecord.thinking) ?? {}),
+            ...existingThinking,
             type: "enabled",
           };
         }
