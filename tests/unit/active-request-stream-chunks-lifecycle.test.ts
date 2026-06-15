@@ -4,9 +4,7 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 
-const TEST_DATA_DIR = fs.mkdtempSync(
-  path.join(os.tmpdir(), "omniroute-active-stream-lifecycle-")
-);
+const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-active-stream-lifecycle-"));
 process.env.DATA_DIR = TEST_DATA_DIR;
 
 const core = await import("../../src/lib/db/core.ts");
@@ -123,14 +121,11 @@ function mergeDetailData(
   data: Record<string, unknown>
 ): Record<string, unknown> {
   const dataHasPipeline =
-    data?.pipelinePayloads &&
-    Object.keys(data.pipelinePayloads || {}).length > 0;
+    data?.pipelinePayloads && Object.keys(data.pipelinePayloads || {}).length > 0;
   return {
     ...prev,
     ...data,
-    pipelinePayloads: dataHasPipeline
-      ? data.pipelinePayloads
-      : prev?.pipelinePayloads,
+    pipelinePayloads: dataHasPipeline ? data.pipelinePayloads : prev?.pipelinePayloads,
   };
 }
 
@@ -144,17 +139,11 @@ test("streamChunks survive the full lifecycle: in-flight → completed → persi
   const connectionId = "conn-lifecycle-1";
 
   // ── Phase 1: Track a pending request ──
-  const requestId = usageHistory.trackPendingRequest(
-    model,
-    provider,
-    connectionId,
-    true,
-    {
-      clientRequest: { messages: [{ role: "user", content: "hello" }] },
-      providerRequest: { model: "gpt-4" },
-      clientEndpoint: "/v1/chat/completions",
-    }
-  );
+  const requestId = usageHistory.trackPendingRequest(model, provider, connectionId, true, {
+    clientRequest: { messages: [{ role: "user", content: "hello" }] },
+    providerRequest: { model: "gpt-4" },
+    clientEndpoint: "/v1/chat/completions",
+  });
 
   assert.ok(requestId, "trackPendingRequest should return a request ID");
   assert.ok(
@@ -185,10 +174,7 @@ test("streamChunks survive the full lifecycle: in-flight → completed → persi
     apiResponse1!.pipelinePayloads as Record<string, unknown>
   );
   assert.ok(text1, "streamChunksText should be non-null with debugEnabled");
-  assert.ok(
-    text1!.includes("message_start"),
-    "streamChunksText should contain the chunk content"
-  );
+  assert.ok(text1!.includes("message_start"), "streamChunksText should contain the chunk content");
 
   // Verify frontend state merge
   const initialDetail = mergeDetailData(null, apiResponse1 as unknown as Record<string, unknown>);
@@ -308,10 +294,7 @@ test("streamChunks survive the full lifecycle: in-flight → completed → persi
   // Verify DB has the entry
   const dbEntry = await callLogs.getCallLogById(requestId);
   assert.ok(dbEntry, "should find persisted call log by the same ID");
-  assert.ok(
-    dbEntry.pipelinePayloads,
-    "persisted entry should have pipelinePayloads"
-  );
+  assert.ok(dbEntry.pipelinePayloads, "persisted entry should have pipelinePayloads");
 
   // The pipelinePayloads in the DB may have been compacted/truncated.
   // streamChunks may or may not be there depending on captureStreamChunks,
@@ -390,11 +373,7 @@ test("pooling effect state merge preserves streamChunks across updates", () => {
   const mergedChunks = (detailData!.pipelinePayloads as Record<string, unknown>)
     .streamChunks as Record<string, string[]>;
   assert.equal(mergedChunks.provider.length, 2, "merged should have 2 chunks");
-  assert.equal(
-    mergedChunks.provider[1],
-    'data: {"b":2}\n\n',
-    "merged should include new chunk"
-  );
+  assert.equal(mergedChunks.provider[1], 'data: {"b":2}\n\n', "merged should include new chunk");
 
   // Simulate: polling response loses pipelinePayloads (null)
   // This should NOT overwrite the existing streamChunks
@@ -476,15 +455,15 @@ test("pendingById references are live: push mutates the shared arrays visible to
 
   // Verify via simulated API response
   const apiResp = buildApiResponseFromPending(requestId);
-  const apiChunks = (apiResp!.pipelinePayloads as Record<string, unknown>)
-    .streamChunks as Record<string, string[]>;
+  const apiChunks = (apiResp!.pipelinePayloads as Record<string, unknown>).streamChunks as Record<
+    string,
+    string[]
+  >;
   assert.equal(apiChunks.provider.length, 1, "API should see the live mutation");
 });
 
 test("no connectionId in request logger does not break anything", async () => {
-  const { createRequestLogger } = await import(
-    "../../open-sse/utils/requestLogger.ts"
-  );
+  const { createRequestLogger } = await import("../../open-sse/utils/requestLogger.ts");
 
   usageHistory.clearPendingRequests();
   usageHistory.trackPendingRequest("gpt-4", "openai", "conn-noop-1", true);
@@ -527,9 +506,7 @@ test("createRequestLogger and trackPendingRequest with matching model propagate 
   // The fix: chatCore.ts now passes `model` (not `effectiveModel`) to
   // createRequestLogger, so the modelKey matches what trackPendingRequest uses.
 
-  const { createRequestLogger } = await import(
-    "../../open-sse/utils/requestLogger.ts"
-  );
+  const { createRequestLogger } = await import("../../open-sse/utils/requestLogger.ts");
 
   usageHistory.clearPendingRequests();
 
@@ -537,10 +514,9 @@ test("createRequestLogger and trackPendingRequest with matching model propagate 
   const provider = "openai";
   const connectionId = "conn-match-1";
 
-  const requestId = usageHistory.trackPendingRequest(
-    model, provider, connectionId, true,
-    { clientRequest: { messages: [] } }
-  );
+  const requestId = usageHistory.trackPendingRequest(model, provider, connectionId, true, {
+    clientRequest: { messages: [] },
+  });
 
   // Use matching model (the fix)
   const logger = await createRequestLogger("openai", "openai", model, {
@@ -564,11 +540,47 @@ test("createRequestLogger and trackPendingRequest with matching model propagate 
 
   const apiResp = buildApiResponseFromPending(requestId!);
   assert.ok(apiResp);
-  const apiChunks = (apiResp!.pipelinePayloads as Record<string, unknown>).streamChunks as Record<string, string[]>;
+  const apiChunks = (apiResp!.pipelinePayloads as Record<string, unknown>).streamChunks as Record<
+    string,
+    string[]
+  >;
   assert.equal(apiChunks?.provider[0], 'data: {"chunk":"hello"}');
 });
 
-test("streamChunks in completedDetails survives 5-second TTL window", async () => {
+test("finalizePendingRequestById completes the exact stream when same model requests overlap", () => {
+  usageHistory.clearPendingRequests();
+
+  const model = "gpt-4";
+  const provider = "openai";
+  const connectionId = "conn-overlap-1";
+
+  const firstId = usageHistory.trackPendingRequest(model, provider, connectionId, true, {
+    clientRequest: { messages: [{ role: "user", content: "first" }] },
+  });
+  const secondId = usageHistory.trackPendingRequest(model, provider, connectionId, true, {
+    clientRequest: { messages: [{ role: "user", content: "second" }] },
+  });
+
+  const completed = usageHistory.finalizePendingRequestById(firstId, {
+    providerResponse: { id: "first-response" },
+    clientResponse: { id: "first-response" },
+  });
+
+  assert.equal(completed, true);
+  assert.ok(usageHistory.getCompletedDetails().has(firstId));
+  assert.equal(usageHistory.getCompletedDetails().has(secondId), false);
+  assert.equal(usageHistory.getPendingById().has(firstId), false);
+  assert.equal(usageHistory.getPendingById().has(secondId), true);
+
+  const pending = usageHistory.getPendingRequests();
+  const details = pending.details[connectionId]?.[`${model} (${provider})`] ?? [];
+  assert.equal(details.length, 1);
+  assert.equal(details[0].id, secondId);
+  assert.equal(pending.byModel[`${model} (${provider})`], 1);
+  assert.equal(pending.byAccount[connectionId]?.[`${model} (${provider})`], 1);
+});
+
+test("streamChunks in completedDetails survives beyond the logs polling window", async () => {
   usageHistory.clearPendingRequests();
 
   const model = "gpt-4";
@@ -605,10 +617,9 @@ test("streamChunks in completedDetails survives 5-second TTL window", async () =
     "streamChunks should be in completedDetails"
   );
 
-  // The completedDetails TTL is 5000ms. We verify by saving to DB first, then
-  // waiting for the TTL to expire, then verifying the data is gone from
-  // completedDetails but still accessible from the DB (via getCallLogById).
-  // Save to DB
+  // Save to DB as the normal durable path, but keep the completedDetails cache
+  // long enough that a slow Logs-page poll does not see the row disappear
+  // between pending removal and DB/detail refresh.
   await callLogs.saveCallLog({
     id: requestId,
     method: "POST",
@@ -640,18 +651,17 @@ test("streamChunks in completedDetails survives 5-second TTL window", async () =
   const dbEntry1 = await callLogs.getCallLogById(requestId);
   assert.ok(dbEntry1, "DB should have the entry after saveCallLog");
 
-  // Wait for TTL to expire
+  // This used to expire after 5 seconds. Keep it visible beyond that window so
+  // a slow client poll can still resolve the completed row/details.
   await new Promise((r) => setTimeout(r, 5100));
 
-  // completedDetails should be cleared
   assert.ok(
-    !usageHistory.getCompletedDetails().has(requestId),
-    "completedDetails should have been cleared after TTL"
+    usageHistory.getCompletedDetails().has(requestId),
+    "completedDetails should still be available after a 5-second polling gap"
   );
 
-  // But DB should still have it
   const dbEntry2 = await callLogs.getCallLogById(requestId);
-  assert.ok(dbEntry2, "DB should still have the entry after TTL expiry");
+  assert.ok(dbEntry2, "DB should still have the entry after the polling gap");
   assert.equal(
     (dbEntry2 as Record<string, unknown>).id,
     requestId,

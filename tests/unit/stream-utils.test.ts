@@ -65,6 +65,28 @@ function parseJsonDataPayloads(text) {
     .map((data) => JSON.parse(data));
 }
 
+function parseSillyTavernCustomOpenAIStream(text) {
+  const events = [];
+  let reasoning = "";
+  let content = "";
+
+  for (const payload of parseJsonDataPayloads(text)) {
+    const choices = Array.isArray(payload.choices) ? payload.choices : [];
+    const reasoningDelta =
+      choices.filter((choice) => choice?.delta?.reasoning_content)[0]?.delta?.reasoning_content ??
+      choices.filter((choice) => choice?.delta?.reasoning)[0]?.delta?.reasoning ??
+      "";
+    const contentDelta =
+      choices[0]?.delta?.content ?? choices[0]?.message?.content ?? choices[0]?.text ?? "";
+
+    reasoning += reasoningDelta;
+    content += contentDelta;
+    events.push({ reasoningDelta, contentDelta, reasoning, content });
+  }
+
+  return { reasoning, content, events };
+}
+
 test.after(() => {
   core.resetDbInstance();
   if (fs.existsSync(TEST_DATA_DIR)) {
@@ -1376,6 +1398,53 @@ test("createSSEStream passthrough splits mixed reasoning and content deltas and 
   assert.equal(onCompletePayload.responseBody.choices[0].message.reasoning_content, "First think");
   assert.equal(onCompletePayload.responseBody.choices[0].message.content, "Then answer");
   assert.ok(onCompletePayload.responseBody.usage.total_tokens > 0);
+});
+
+test("createSSEStream passthrough output is consumable by SillyTavern-style reasoning parser", async () => {
+  const text = await readTransformed(
+    [
+      `data: ${JSON.stringify({
+        id: "chatcmpl_reasoning_st",
+        object: "chat.completion.chunk",
+        created: 1,
+        model: "gpt-4.1-mini",
+        choices: [
+          {
+            index: 0,
+            delta: {
+              reasoning_content: "First think",
+              content: "Then answer",
+            },
+          },
+        ],
+      })}\n\n`,
+      `data: ${JSON.stringify({
+        id: "chatcmpl_reasoning_st",
+        object: "chat.completion.chunk",
+        created: 1,
+        model: "gpt-4.1-mini",
+        choices: [{ index: 0, delta: {}, finish_reason: "stop" }],
+      })}\n\n`,
+    ],
+    {
+      mode: "passthrough",
+      sourceFormat: FORMATS.OPENAI,
+      provider: "openai-compatible",
+      model: "gpt-4.1-mini",
+      body: {
+        messages: [{ role: "user", content: "hello world" }],
+      },
+    }
+  );
+
+  const parsed = parseSillyTavernCustomOpenAIStream(text);
+  const reasoningEventIndex = parsed.events.findIndex((event) => event.reasoningDelta);
+  const contentEventIndex = parsed.events.findIndex((event) => event.contentDelta);
+
+  assert.equal(parsed.reasoning, "First think");
+  assert.equal(parsed.content, "Then answer");
+  assert.ok(reasoningEventIndex >= 0);
+  assert.ok(contentEventIndex > reasoningEventIndex);
 });
 
 test("createSSEStream passthrough writes complete SSE events per converted chunk", async () => {

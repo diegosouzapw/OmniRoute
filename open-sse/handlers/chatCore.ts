@@ -295,7 +295,10 @@ function cloneBoundedChatLogPayload(value: unknown, depth = 0): unknown {
 }
 
 import { estimateSizeFast, isSmallEnoughForSemanticCache } from "../utils/estimateSize.ts";
-import { finalizeMostRecentPendingRequest } from "@/lib/usage/usageHistory.ts";
+import {
+  finalizeMostRecentPendingRequest,
+  finalizePendingRequestById,
+} from "@/lib/usage/usageHistory.ts";
 
 const MAX_LOG_BODY_CHARS = 8 * 1024; // 8KB cap for logged request/response bodies
 /**
@@ -2307,6 +2310,7 @@ export async function handleChatCore({
     maxStreamChunkBytes: getCallLogPipelineMaxSizeBytes(),
     // Provide model/provider/connectionId so streamChunks can be attached to the
     // in-memory pending request record before final call-log persistence.
+    requestId: pendingRequestId,
     model,
     provider: provider || undefined,
     connectionId: connectionId || credentials?.connectionId || undefined,
@@ -5571,14 +5575,19 @@ export async function handleChatCore({
     // can pick up provider/client response payloads immediately after the
     // streaming request finishes.
     try {
-      // Finalize the most recent pending request (streaming corresponds to the last entry)
-      // Use credentials.connectionId as a fallback so finalization matches the
-      // pending request registration (which may have used credentials.connectionId).
+      // Finalize the exact pending request first. Fall back to the legacy
+      // connection/model lookup only if an older caller did not register an id.
       const finalizedConnId = connectionId || credentials?.connectionId || null;
-      finalizeMostRecentPendingRequest(model, provider, finalizedConnId, {
+      const completedById = finalizePendingRequestById(pendingRequestId, {
         providerResponse: providerPayload ?? streamResponseBody ?? undefined,
         clientResponse: clientPayload ?? streamResponseBody ?? undefined,
       });
+      if (!completedById) {
+        finalizeMostRecentPendingRequest(model, provider, finalizedConnId, {
+          providerResponse: providerPayload ?? streamResponseBody ?? undefined,
+          clientResponse: clientPayload ?? streamResponseBody ?? undefined,
+        });
+      }
     } catch (e) {
       // Best-effort — don't break the stream completion path if this fails
       try {

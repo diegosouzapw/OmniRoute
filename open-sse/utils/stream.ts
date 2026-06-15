@@ -1572,6 +1572,7 @@ export function createSSEStream(options: StreamOptions = {}) {
                   const delta = parsed.choices?.[0]?.delta;
                   let textualToolCallConverted = false;
                   let toolCallIdCoerced = false;
+                  let splitMixedReasoningContent = false;
 
                   // Split combined reasoning+content deltas into separate SSE events.
                   // Standard OpenAI streaming never mixes both fields in one delta;
@@ -1593,12 +1594,15 @@ export function createSSEStream(options: StreamOptions = {}) {
                     reqLogger?.appendConvertedChunk?.(rOutput);
                     controller.enqueue(encoder.encode(rOutput));
                     delete delta.reasoning_content;
+                    splitMixedReasoningContent = true;
                   }
 
                   // Track whether we need to re-serialize (separate from injectedUsage
                   // to avoid blocking subsequent finish_reason / usage mutations)
                   const needsReserialization =
-                    hadReasoningAlias || (delta?.content === "" && delta?.reasoning_content);
+                    splitMixedReasoningContent ||
+                    hadReasoningAlias ||
+                    (delta?.content === "" && delta?.reasoning_content);
 
                   // T18: Track if we saw tool calls & accumulate for call log
                   if (delta?.tool_calls && delta.tool_calls.length > 0) {

@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { requireManagementAuth } from "@/lib/api/requireManagementAuth";
 import { getCallLogs } from "@/lib/usageDb";
-import { getPendingById } from "@/lib/usage/usageHistory";
+import { getCompletedDetails, getPendingById } from "@/lib/usage/usageHistory";
 import { getProviderConnections } from "@/lib/localDb";
 
 export async function GET(request: Request) {
@@ -22,10 +22,7 @@ export async function GET(request: Request) {
     if (searchParams.get("limit")) filter.limit = parseInt(searchParams.get("limit"));
     if (searchParams.get("offset")) filter.offset = parseInt(searchParams.get("offset"));
 
-    const [logs, connections] = await Promise.all([
-      getCallLogs(filter),
-      getProviderConnections(),
-    ]);
+    const [logs, connections] = await Promise.all([getCallLogs(filter), getProviderConnections()]);
 
     const connectionNames = new Map(
       connections.map((connection: any) => [
@@ -38,6 +35,7 @@ export async function GET(request: Request) {
     // so they appear in the logs grid alongside persisted entries.
     const now = Date.now();
     const activeEntries: any[] = [];
+    const persistedIds = new Set(logs.map((log: any) => log.id).filter(Boolean));
 
     for (const detail of getPendingById().values()) {
       activeEntries.push({
@@ -49,10 +47,7 @@ export async function GET(request: Request) {
         model: detail.model,
         requestedModel: null,
         provider: detail.provider,
-        account:
-          connectionNames.get(detail.connectionId || "") ||
-          detail.connectionId ||
-          "unknown",
+        account: connectionNames.get(detail.connectionId || "") || detail.connectionId || "unknown",
         connectionId: detail.connectionId,
         duration: Math.max(0, now - detail.startedAt),
         tokens: { in: 0, out: 0 },
@@ -67,10 +62,43 @@ export async function GET(request: Request) {
       });
     }
 
-    // Prepend active entries (newest first) ahead of persisted logs
-    activeEntries.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
+    const pendingIds = new Set(activeEntries.map((entry) => entry.id));
+    const completedEntries: any[] = [];
+    for (const detail of getCompletedDetails().values()) {
+      if (persistedIds.has(detail.id) || pendingIds.has(detail.id)) continue;
+      completedEntries.push({
+        id: detail.id,
+        timestamp: new Date(detail.startedAt).toISOString(),
+        method: "",
+        path: detail.clientEndpoint || "",
+        status: 200,
+        model: detail.model,
+        requestedModel: null,
+        provider: detail.provider,
+        account: connectionNames.get(detail.connectionId || "") || detail.connectionId || "unknown",
+        connectionId: detail.connectionId,
+        duration: Math.max(0, now - detail.startedAt),
+        tokens: { in: 0, out: 0 },
+        cacheSource: null,
+        sourceFormat: null,
+        targetFormat: null,
+        apiKeyId: null,
+        apiKeyName: null,
+        comboName: null,
+        error: null,
+        active: false,
+        completed: true,
+        detailState: "in-memory",
+      });
+    }
 
-    return NextResponse.json([...activeEntries, ...logs]);
+    // Prepend active/completed in-memory entries (newest first) ahead of persisted logs
+    activeEntries.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
+    completedEntries.sort(
+      (a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
+    );
+
+    return NextResponse.json([...activeEntries, ...completedEntries, ...logs]);
   } catch (error) {
     console.error("[API ERROR] /api/usage/call-logs failed:", error);
     return NextResponse.json({ error: "Failed to fetch call logs" }, { status: 500 });
