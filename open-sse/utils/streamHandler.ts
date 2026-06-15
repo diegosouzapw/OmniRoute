@@ -11,8 +11,16 @@ type StreamDisconnectEvent = {
   duration: number;
 };
 
+type StreamErrorEvent = {
+  error: unknown;
+  message: string;
+  statusCode: number;
+  duration: number;
+};
+
 type StreamControllerOptions = {
   onDisconnect?: (event: StreamDisconnectEvent) => void;
+  onError?: (event: StreamErrorEvent) => boolean | void;
   provider?: string;
   model?: string;
   connectionId?: string | null;
@@ -116,6 +124,30 @@ function getTimeString() {
   });
 }
 
+function isPendingRequestClearedError(error: unknown): boolean {
+  return (
+    !!error &&
+    typeof error === "object" &&
+    (error as Record<string, unknown>)[PENDING_REQUEST_CLEARED_MARKER] === true
+  );
+}
+
+function getErrorMessage(error: unknown): string {
+  if (error instanceof Error && error.message) return error.message;
+  if (typeof error === "string" && error.trim().length > 0) return error;
+  return "Upstream stream error";
+}
+
+function getErrorStatusCode(error: unknown): number {
+  if (error && typeof error === "object" && "statusCode" in error) {
+    const statusCode = Number((error as { statusCode?: unknown }).statusCode);
+    if (Number.isFinite(statusCode) && statusCode >= 400 && statusCode <= 599) {
+      return statusCode;
+    }
+  }
+  return 502;
+}
+
 /**
  * Create stream controller with abort and disconnect detection
  * @param {object} options
@@ -127,6 +159,7 @@ function getTimeString() {
 /** @param {StreamControllerOptions} options */
 export function createStreamController({
   onDisconnect,
+  onError,
   provider,
   model,
   connectionId,
@@ -209,7 +242,25 @@ export function createStreamController({
         abortTimeout = null;
       }
 
-      clearPendingRequest(error);
+      const alreadyCleared = isPendingRequestClearedError(error);
+      let handled = false;
+      if (!alreadyCleared) {
+        try {
+          handled =
+            onError?.({
+              error,
+              message: getErrorMessage(error),
+              statusCode: getErrorStatusCode(error),
+              duration: Date.now() - startTime,
+            }) === true;
+        } catch {}
+      }
+
+      if (!handled) {
+        clearPendingRequest(error);
+      } else {
+        pendingRequestCleared = true;
+      }
 
       if (error instanceof Error && error.name === "AbortError") {
         logStream("aborted");
@@ -312,11 +363,8 @@ export function createDisconnectAwareStream(transformStream, streamController) {
 
           // T35: Encapsulate mid-stream errors as SSE events instead of abruptly aborting
           // This prevents TransferEncodingError on the client side
-          const errorMsg = error instanceof Error ? error.message : "Upstream stream error";
-          const statusCode =
-            typeof error === "object" && error !== null && "statusCode" in error
-              ? Number((error as { statusCode?: unknown }).statusCode) || 500
-              : 500;
+          const errorMsg = getErrorMessage(error);
+          const statusCode = getErrorStatusCode(error);
 
           for (const chunk of buildStreamErrorChunks(
             errorMsg,

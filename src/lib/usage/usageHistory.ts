@@ -33,6 +33,9 @@ type PendingRequestMetadata = {
   providerUrl?: string | null;
   providerResponse?: unknown;
   clientResponse?: unknown;
+  status?: number | null;
+  error?: string | null;
+  errorCode?: string | null;
   stage?: string | null;
   stageUpdatedAt?: number | null;
 };
@@ -48,6 +51,9 @@ export type PendingRequestDetail = {
   providerUrl?: string | null;
   providerResponse?: unknown;
   clientResponse?: unknown;
+  status?: number | null;
+  error?: string | null;
+  errorCode?: string | null;
   completedAt?: number | null;
   durationMs?: number | null;
   stage?: string | null;
@@ -176,6 +182,16 @@ function normalizePendingMetadata(metadata?: PendingRequestMetadata): PendingReq
     normalized.clientResponse = truncatePendingPreview(
       protectPayloadForLog(metadata.clientResponse)
     );
+  }
+  if (metadata.status !== undefined) {
+    const status = Number(metadata.status);
+    normalized.status = Number.isFinite(status) ? status : null;
+  }
+  if (metadata.error !== undefined) {
+    normalized.error = toStringOrNull(metadata.error) || null;
+  }
+  if (metadata.errorCode !== undefined) {
+    normalized.errorCode = toStringOrNull(metadata.errorCode) || null;
   }
 
   return normalized;

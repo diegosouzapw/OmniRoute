@@ -93,6 +93,9 @@ type StreamCompletePayload = {
   responseBody?: unknown;
   providerPayload?: unknown;
   clientPayload?: unknown;
+  error?: string | null;
+  errorCode?: string | null;
+  ttft?: number | null;
 };
 
 type StreamFailurePayload = {
@@ -116,7 +119,7 @@ type StreamOptions = {
   apiKeyInfo?: unknown;
   body?: unknown;
   onComplete?: ((payload: StreamCompletePayload) => void) | null;
-  onFailure?: ((payload: StreamFailurePayload) => void | Promise<void>) | null;
+  onFailure?: ((payload: StreamFailurePayload) => boolean | void | Promise<void>) | null;
 };
 
 type TranslateState = ReturnType<typeof initState> & {
@@ -846,12 +849,13 @@ export function createSSEStream(options: StreamOptions = {}) {
     reqLogger?.appendConvertedChunk?.(errOutput);
     clientPayloadCollector.push(errorEvent);
     controller.enqueue(encoder.encode(errOutput));
+    let failureHandled = false;
     if (onFailure) {
       try {
-        void onFailure({ status: 502, message: msg, code: "empty_response" });
+        failureHandled = onFailure({ status: 502, message: msg, code: "empty_response" }) === true;
       } catch {}
     }
-    if (decrementPendingRequest) {
+    if (decrementPendingRequest && !failureHandled) {
       clearPendingRequestFromStream();
     }
     controller.error(markPendingRequestCleared(new Error(msg)));
@@ -1063,7 +1067,21 @@ export function createSSEStream(options: StreamOptions = {}) {
               clearIdleTimer();
               const timeoutMsg = `[STREAM] Idle timeout: no data from ${provider || "provider"} for ${STREAM_IDLE_TIMEOUT_MS}ms (model: ${model || "unknown"})`;
               console.warn(timeoutMsg);
-              clearPendingRequestFromStream();
+              let failureHandled = false;
+              if (onFailure) {
+                try {
+                  failureHandled =
+                    onFailure({
+                      status: HTTP_STATUS.GATEWAY_TIMEOUT,
+                      message: timeoutMsg,
+                      code: "stream_idle_timeout",
+                      type: "timeout_error",
+                    }) === true;
+                } catch {}
+              }
+              if (!failureHandled) {
+                clearPendingRequestFromStream();
+              }
               appendRequestLog({
                 model,
                 provider,
@@ -1766,13 +1784,16 @@ export function createSSEStream(options: StreamOptions = {}) {
             reqLogger?.appendConvertedChunk?.(output);
             controller.enqueue(encoder.encode(output));
             if (failurePayload) {
+              let failureHandled = false;
               if (onFailure) {
                 try {
-                  void onFailure(failurePayload);
+                  failureHandled = onFailure(failurePayload) === true;
                 } catch {}
               }
               clearIdleTimer();
-              clearPendingRequestFromStream();
+              if (!failureHandled) {
+                clearPendingRequestFromStream();
+              }
               controller.error(
                 markPendingRequestCleared(new Error(failurePayload.message || "Upstream failure"))
               );
@@ -1929,7 +1950,25 @@ export function createSSEStream(options: StreamOptions = {}) {
 
           // Extract usage
           const extracted = extractUsage(parsed);
-          if (extracted) state.usage = extracted; // Keep original usage for logging
+          if (extracted) {
+            if (!state.usage) {
+              state.usage = extracted;
+            } else {
+              const su = state.usage as Record<string, number>;
+              const eu = extracted as Record<string, number>;
+              if (eu.prompt_tokens > 0) su.prompt_tokens = eu.prompt_tokens;
+              if (eu.completion_tokens > 0) su.completion_tokens = eu.completion_tokens;
+              if (eu.total_tokens > 0) su.total_tokens = eu.total_tokens;
+              if (eu.input_tokens > 0) su.input_tokens = eu.input_tokens;
+              if (eu.output_tokens > 0) su.output_tokens = eu.output_tokens;
+              if (eu.cache_read_input_tokens > 0)
+                su.cache_read_input_tokens = eu.cache_read_input_tokens;
+              if (eu.cache_creation_input_tokens > 0)
+                su.cache_creation_input_tokens = eu.cache_creation_input_tokens;
+              if (eu.cached_tokens > 0) su.cached_tokens = eu.cached_tokens;
+              if (eu.reasoning_tokens > 0) su.reasoning_tokens = eu.reasoning_tokens;
+            }
+          }
 
           // Translate: targetFormat -> openai -> sourceFormat
           const translated = translateResponse(targetFormat, sourceFormat, parsed, state);
@@ -2309,6 +2348,8 @@ export function createSSEStream(options: StreamOptions = {}) {
                   if (eu.prompt_tokens > 0) su.prompt_tokens = eu.prompt_tokens;
                   if (eu.completion_tokens > 0) su.completion_tokens = eu.completion_tokens;
                   if (eu.total_tokens > 0) su.total_tokens = eu.total_tokens;
+                  if (eu.input_tokens > 0) su.input_tokens = eu.input_tokens;
+                  if (eu.output_tokens > 0) su.output_tokens = eu.output_tokens;
                   if (eu.cache_read_input_tokens > 0)
                     su.cache_read_input_tokens = eu.cache_read_input_tokens;
                   if (eu.cache_creation_input_tokens > 0)
@@ -2336,15 +2377,16 @@ export function createSSEStream(options: StreamOptions = {}) {
 
           if (state?.upstreamError) {
             const err = state.upstreamError;
-            clearPendingRequestFromStream();
+            let failureHandled = false;
             if (onFailure) {
               try {
-                void onFailure({
-                  status: err.status,
-                  message: err.message,
-                  code: err.code,
-                  type: err.type,
-                });
+                failureHandled =
+                  onFailure({
+                    status: err.status,
+                    message: err.message,
+                    code: err.code,
+                    type: err.type,
+                  }) === true;
               } catch {}
             }
 
@@ -2355,6 +2397,8 @@ export function createSSEStream(options: StreamOptions = {}) {
                   status: err.status,
                   usage: state?.usage,
                   responseBody: errorBody,
+                  error: err.message,
+                  errorCode: err.code,
                   providerPayload: providerPayloadCollector.build(
                     buildStreamSummaryFromEvents(
                       providerPayloadCollector.getEvents(),
@@ -2367,10 +2411,14 @@ export function createSSEStream(options: StreamOptions = {}) {
                     includeEvents: false,
                   }),
                 });
+                failureHandled = true;
               } catch {}
             }
 
             clearIdleTimer();
+            if (!failureHandled) {
+              clearPendingRequestFromStream();
+            }
             controller.error(
               markPendingRequestCleared(new Error(err.message || "Upstream failure"))
             );
