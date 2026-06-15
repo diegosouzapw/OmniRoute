@@ -9,6 +9,12 @@
 
 import { getDbInstance } from "../db/core";
 import { protectPayloadForLog } from "../logPayloads";
+import {
+  clearCompletedDetails,
+  maybeEnrichCompletedDetail,
+  scheduleCompletedDetailCleanup,
+  storeCompletedDetail,
+} from "./completedRequestDetails";
 import { shouldPersistToDisk } from "./migrations";
 import { emitUsageRecorded } from "./usageEvents";
 import {
@@ -30,7 +36,7 @@ type PendingRequestMetadata = {
   stage?: string | null;
   stageUpdatedAt?: number | null;
 };
-type PendingRequestDetail = {
+export type PendingRequestDetail = {
   id: string;
   model: string;
   provider: string;
@@ -192,9 +198,6 @@ const pendingRequests: {
  * Populated when a detail is created and cleaned up when it is removed/finalized.
  */
 const pendingById = new Map<string, PendingRequestDetail>();
-const COMPLETED_DETAIL_TTL_MS = 120_000;
-const MAX_COMPLETED_DETAILS = 256;
-const completedDetailTimers = new Map<string, ReturnType<typeof setTimeout>>();
 
 /** Prototype-pollution denylist — prevents crafted model/provider names from mutating Object.prototype. */
 const UNSAFE_KEYS = new Set(["__proto__", "constructor", "prototype"]);
@@ -295,104 +298,6 @@ export function updatePendingRequest(
  * for the non-streaming completion path where the oldest entry must be finalized
  * before trackPendingRequest(false) removes it from the FIFO queue.
  */
-/**
- * Completed details cache — keeps finalized response data available for the
- * active endpoint's fast-poll for a brief window after the pending detail is
- * removed, so the frontend can show providerResponse/clientResponse before
- * the persisted call log is fetched.
- */
-const completedDetails = new Map<string, PendingRequestDetail>();
-
-function deleteCompletedDetail(id: string) {
-  completedDetails.delete(id);
-  const existingTimer = completedDetailTimers.get(id);
-  if (existingTimer) {
-    clearTimeout(existingTimer);
-    completedDetailTimers.delete(id);
-  }
-}
-
-function trimCompletedDetails() {
-  while (completedDetails.size > MAX_COMPLETED_DETAILS) {
-    const oldestId = completedDetails.keys().next().value;
-    if (!oldestId) break;
-    deleteCompletedDetail(oldestId);
-  }
-}
-
-function storeCompletedDetail(detail: PendingRequestDetail) {
-  completedDetails.set(detail.id, detail);
-  trimCompletedDetails();
-}
-
-function scheduleCompletedDetailCleanup(id: string) {
-  const existingTimer = completedDetailTimers.get(id);
-  if (existingTimer) clearTimeout(existingTimer);
-  const timer = setTimeout(() => {
-    completedDetails.delete(id);
-    completedDetailTimers.delete(id);
-  }, COMPLETED_DETAIL_TTL_MS);
-  timer.unref?.();
-  completedDetailTimers.set(id, timer);
-}
-
-function maybeEnrichCompletedDetail(updated: PendingRequestDetail, connectionId: string) {
-  // If provider/client responses are missing, attempt to enrich the completed
-  // detail from persisted call_log artifacts (best-effort, non-blocking).
-  void (async () => {
-    try {
-      const missingProvider =
-        updated.providerResponse === undefined || updated.providerResponse === null;
-      const missingClient = updated.clientResponse === undefined || updated.clientResponse === null;
-      if (missingProvider || missingClient) {
-        const db = getDbInstance();
-        const sinceIso = new Date(Date.now() - 30_000).toISOString();
-        const rows = db
-          .prepare(
-            `SELECT artifact_relpath FROM call_logs WHERE connection_id = ? AND model = ? AND timestamp >= ? ORDER BY timestamp DESC LIMIT 5`
-          )
-          .all(connectionId, updated.model, sinceIso) as Array<{ artifact_relpath: string | null }>;
-        for (const row of rows) {
-          if (!row.artifact_relpath) continue;
-          const { readCallArtifact } = await import("./callLogArtifacts");
-          const art = readCallArtifact(row.artifact_relpath);
-          if (art.state !== "ready" || !art.artifact) continue;
-          const pipeline = art.artifact.pipeline as any | undefined;
-          // Prefer pipeline payloads over responseBody for structured data
-          if (missingProvider && pipeline?.providerResponse) {
-            updated.providerResponse = pipeline.providerResponse;
-          }
-          if (missingClient && pipeline?.clientResponse) {
-            updated.clientResponse = pipeline.clientResponse;
-          }
-          if (
-            (missingProvider && art.artifact.responseBody) ||
-            (missingClient && art.artifact.responseBody)
-          ) {
-            // use responseBody as a fallback for both
-            if (missingProvider) updated.providerResponse = art.artifact.responseBody;
-            if (missingClient) updated.clientResponse = art.artifact.responseBody;
-          }
-          if (updated.providerResponse || updated.clientResponse) {
-            // write-back to completed cache and stop searching
-            if (completedDetails.has(updated.id)) {
-              storeCompletedDetail(updated);
-            }
-            break;
-          }
-        }
-      }
-    } catch (e) {
-      try {
-        console.warn(
-          "[usageHistory] failed to enrich completed detail from artifacts:",
-          e && (e.message || e)
-        );
-      } catch {}
-    }
-  })();
-}
-
 function decrementPendingCounters(modelKey: string, connectionId: string) {
   if (Object.hasOwn(pendingRequests.byModel, modelKey)) {
     pendingRequests.byModel[modelKey] = Math.max(0, pendingRequests.byModel[modelKey] - 1);
@@ -500,9 +405,7 @@ export function finalizeMostRecentPendingRequest(
   finalizePendingDetailAt(connectionId, modelKey, details.length - 1, metadata);
 }
 
-export function getCompletedDetails(): Map<string, PendingRequestDetail> {
-  return completedDetails;
-}
+export { getCompletedDetails } from "./completedRequestDetails";
 
 export function updatePendingRequestStreamChunks(
   model: string,
@@ -549,11 +452,7 @@ export function clearPendingRequests() {
     Record<string, PendingRequestDetail[]>
   >;
   pendingById.clear();
-  for (const timer of completedDetailTimers.values()) {
-    clearTimeout(timer);
-  }
-  completedDetailTimers.clear();
-  completedDetails.clear();
+  clearCompletedDetails();
 }
 
 // ──────────────── getUsageDb Shim (backward compat) ────────────────

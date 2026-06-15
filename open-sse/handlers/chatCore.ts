@@ -2134,7 +2134,9 @@ export async function handleChatCore({
       });
     }
 
-    const pipelinePayloads = detailedLoggingEnabled ? reqLogger?.getPipelinePayloads?.() : null;
+    const pipelinePayloads = detailedLoggingEnabled
+      ? (reqLogger?.getPipelinePayloads?.() ?? {})
+      : null;
 
     if (pipelinePayloads) {
       if (providerRequest !== undefined && !pipelinePayloads.providerRequest) {
@@ -2303,13 +2305,10 @@ export async function handleChatCore({
   setGeminiThoughtSignatureMode(settings.antigravitySignatureCacheMode);
   const semanticCacheEnabled = settings.semanticCacheEnabled !== false;
 
-  // Create request logger for this session: sourceFormat_targetFormat_model
   const reqLogger = await createRequestLogger(sourceFormat, targetFormat, model, {
     enabled: detailedLoggingEnabled,
     captureStreamChunks: capturePipelineStreamChunks,
     maxStreamChunkBytes: getCallLogPipelineMaxSizeBytes(),
-    // Provide model/provider/connectionId so streamChunks can be attached to the
-    // in-memory pending request record before final call-log persistence.
     requestId: pendingRequestId,
     model,
     provider: provider || undefined,
@@ -5571,12 +5570,7 @@ export async function handleChatCore({
       cacheSource: "upstream",
     });
 
-    // Ensure the completed details cache is populated so the UI's fast-poll
-    // can pick up provider/client response payloads immediately after the
-    // streaming request finishes.
     try {
-      // Finalize the exact pending request first. Fall back to the legacy
-      // connection/model lookup only if an older caller did not register an id.
       const finalizedConnId = connectionId || credentials?.connectionId || null;
       const completedById = finalizePendingRequestById(pendingRequestId, {
         providerResponse: providerPayload ?? streamResponseBody ?? undefined,
@@ -5589,7 +5583,6 @@ export async function handleChatCore({
         });
       }
     } catch (e) {
-      // Best-effort — don't break the stream completion path if this fails
       try {
         console.warn("finalizeMostRecentPendingRequest failed:", e && (e.message || e));
       } catch {}
@@ -5813,9 +5806,6 @@ export async function handleChatCore({
   };
 }
 
-/**
- * Check if token is expired or about to expire
- */
 export function isTokenExpiringSoon(expiresAt, bufferMs = 5 * 60 * 1000) {
   if (!expiresAt) return false;
   const expiresAtMs = new Date(expiresAt).getTime();
