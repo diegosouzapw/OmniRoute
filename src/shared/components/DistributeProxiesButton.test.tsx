@@ -33,10 +33,10 @@ describe("DistributeProxiesButton", () => {
   });
 
   async function renderButton(
-    props: Partial<React.ComponentProps<typeof import("../../src/shared/components/DistributeProxiesButton").default>> = {}
+    props: Partial<React.ComponentProps<typeof import("./DistributeProxiesButton").default>> = {}
   ) {
     const { default: DistributeProxiesButton } = await import(
-      "../../src/shared/components/DistributeProxiesButton.tsx"
+      "./DistributeProxiesButton.tsx"
     );
     const container = makeContainer();
     const root = createRoot(container);
