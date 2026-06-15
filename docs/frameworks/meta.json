@@ -9,7 +9,10 @@
     "EVALS",
     "GAMIFICATION",
     "MEMORY",
+    "NOTION_CONTEXT",
+    "OBSIDIAN_CONTEXT",
     "OPENCODE",
+    "PLUGIN_MARKETPLACE",
     "SKILLS",
     "WEBHOOKS"
   ]

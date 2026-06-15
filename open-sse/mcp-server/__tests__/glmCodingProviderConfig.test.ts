@@ -88,6 +88,9 @@ describe("GLM Coding provider registry surfaces", () => {
     expect(PROVIDER_ID_TO_ALIAS.glm).toBe("glm");
     expect(byProviderId).toEqual(byAlias);
     expect(byProviderId.map((model) => model.id)).toEqual([
+      "glm-5.2",
+      "glm-5.2-high",
+      "glm-5.2-max",
       "glm-5.1",
       "glm-5",
       "glm-5-turbo",
@@ -99,6 +102,30 @@ describe("GLM Coding provider registry surfaces", () => {
       "glm-4.5",
       "glm-4.5-air",
     ]);
+  });
+
+  it("registers GLM-5.2 with correct specs and effort tier aliases", () => {
+    const models = getModelsByProviderId("glm");
+    const get = (id: string) => models.find((m) => m.id === id);
+
+    // Base model
+    const base = get("glm-5.2");
+    expect(base).toBeDefined();
+    expect(base?.contextLength).toBe(1000000);
+    expect(base?.maxOutputTokens).toBe(131072);
+    expect(base?.supportsReasoning).toBe(true);
+    expect(base?.toolCalling).toBe(true);
+
+    // Effort tier aliases share the same specs
+    const high = get("glm-5.2-high");
+    expect(high).toBeDefined();
+    expect(high?.contextLength).toBe(1000000);
+    expect(high?.maxOutputTokens).toBe(131072);
+
+    const max = get("glm-5.2-max");
+    expect(max).toBeDefined();
+    expect(max?.contextLength).toBe(1000000);
+    expect(max?.maxOutputTokens).toBe(131072);
   });
 
   it("applies doc-backed context window overrides for GLM models", () => {
@@ -126,6 +153,9 @@ describe("GLM Coding provider registry surfaces", () => {
     expect(supportsToolCalling("glm/glm-5")).toBe(true);
     expect(supportsToolCalling("glm/glm-4.7-flash")).toBe(true);
     expect(supportsToolCalling("glm/glm-4.5-air")).toBe(true);
+    expect(supportsToolCalling("glm/glm-5.2")).toBe(true);
+    expect(supportsToolCalling("glm/glm-5.2-high")).toBe(true);
+    expect(supportsToolCalling("glm/glm-5.2-max")).toBe(true);
 
     expect(getPricingForModel("glm", "glm-5")).toEqual({
       input: 1.0,
@@ -147,6 +177,20 @@ describe("GLM Coding provider registry surfaces", () => {
       cached: 0.03,
       reasoning: 1.1,
       cache_creation: 0.2,
+    });
+    expect(getPricingForModel("glm", "glm-5.2")).toEqual({
+      input: 1.2,
+      output: 5,
+      cached: 0.3,
+      reasoning: 5,
+      cache_creation: 1.2,
+    });
+    expect(getPricingForModel("glm", "glm-5.2-max")).toEqual({
+      input: 1.2,
+      output: 5,
+      cached: 0.3,
+      reasoning: 5,
+      cache_creation: 1.2,
     });
   });
 

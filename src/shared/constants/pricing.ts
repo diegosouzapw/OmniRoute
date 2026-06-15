@@ -60,6 +60,27 @@ const CLAUDE_SONNET_46_PRICING = {
 };
 
 const GLM_PRICING = {
+  "glm-5.2": {
+    input: 1.2,
+    output: 5,
+    cached: 0.3,
+    reasoning: 5,
+    cache_creation: 1.2,
+  },
+  "glm-5.2-high": {
+    input: 1.2,
+    output: 5,
+    cached: 0.3,
+    reasoning: 5,
+    cache_creation: 1.2,
+  },
+  "glm-5.2-max": {
+    input: 1.2,
+    output: 5,
+    cached: 0.3,
+    reasoning: 5,
+    cache_creation: 1.2,
+  },
   "glm-5.1": {
     input: 1.2,
     output: 5,

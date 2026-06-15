@@ -6,6 +6,14 @@
 
 ## [3.8.25] — 2026-06-14
 
+## [3.8.26] — TBD
+
+_See English CHANGELOG for v3.8.26 details._
+
+---
+
+## [3.8.25] — 2026-06-14
+
 ### ✨ New Features
 
 - **feat(compression): pluggable compression engines + async pipeline + Compression Studios** — a new prompt-compression subsystem with selectable engines (Lite / Aggressive / Ultra), an asynchronous compression pipeline wired into the chat core, and "Compression Studios" tooling for inspecting and tuning compression. ([#3848](https://github.com/diegosouzapw/OmniRoute/pull/3848))
