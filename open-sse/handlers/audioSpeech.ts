@@ -21,6 +21,7 @@ import { stripTrailingSlashes } from "../utils/urlSanitize.ts";
 import { getSpeechProvider, parseSpeechModel } from "../config/audioRegistry.ts";
 import { buildAuthHeaders } from "../config/registryUtils.ts";
 import { kieExecutor } from "../executors/kie.ts";
+import { vertexGenerateSpeech } from "../executors/vertexMedia.ts";
 import { errorResponse } from "../utils/error.ts";
 import {
   getKieCallbackUrl,
@@ -872,6 +873,18 @@ export async function handleAudioSpeech({
 
   try {
     // Route to provider-specific handler
+    if (providerConfig.format === "vertex-gemini-tts") {
+      const { audio, contentType } = await vertexGenerateSpeech(credentials, {
+        model: modelId,
+        input: body.input,
+        voice: body.voice,
+      });
+      return new Response(audio, {
+        status: 200,
+        headers: { ...CORS_HEADERS, "Content-Type": contentType },
+      });
+    }
+
     if (providerConfig.format === "hyperbolic") {
       return handleHyperbolicSpeech(providerConfig, body, token);
     }
