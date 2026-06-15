@@ -206,7 +206,6 @@ export default function AddApiKeyModal({
       setValidating(false);
     }
   };
-
   const copyCommandCodeValue = async (value: string | undefined, key: string) => {
     if (!value) return;
     try {
