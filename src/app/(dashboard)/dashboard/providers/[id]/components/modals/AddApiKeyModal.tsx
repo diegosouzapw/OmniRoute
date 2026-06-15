@@ -94,7 +94,6 @@ export default function AddApiKeyModal({
         error: "Connection failed",
       }[commandCodeAuthState.phase]
     : null;
-
   const [formData, setFormData] = useState({
     name: "",
     apiKey: "",
@@ -119,7 +118,6 @@ export default function AddApiKeyModal({
   const [showAdvanced, setShowAdvanced] = useState(false);
   const [copiedCommandCodeField, setCopiedCommandCodeField] = useState<string | null>(null);
   const wasOpenRef = useRef(false);
-
   useEffect(() => {
     const wasOpen = wasOpenRef.current;
     wasOpenRef.current = isOpen;
@@ -674,16 +672,19 @@ export default function AddApiKeyModal({
                 {saveError}
               </div>
             )}
-            {isCcCompatible && (
+            {(isCcCompatible || openRouterPreset.input) && (
               <div className="flex flex-col gap-4 rounded-lg border border-border/50 bg-surface/20 p-4">
-                <Toggle
-                  checked={formData.ccCompatibleContext1m}
-                  onChange={(checked) =>
-                    setFormData({ ...formData, ccCompatibleContext1m: checked })
-                  }
-                  label={t("ccCompatibleContext1mLabel")}
-                  description={t("ccCompatibleContext1mDescription")}
-                />
+                {isCcCompatible && (
+                  <Toggle
+                    checked={formData.ccCompatibleContext1m}
+                    onChange={(checked) =>
+                      setFormData({ ...formData, ccCompatibleContext1m: checked })
+                    }
+                    label={t("ccCompatibleContext1mLabel")}
+                    description={t("ccCompatibleContext1mDescription")}
+                  />
+                )}
+                {openRouterPreset.input}
               </div>
             )}
             {isCompatible && !isCcCompatible && (
@@ -724,7 +725,6 @@ export default function AddApiKeyModal({
                   placeholder="my-app/1.0"
                   hint={t("customUserAgentHint")}
                 />
-                {openRouterPreset.input}
                 <Input
                   label={t("routingTagsLabel")}
                   value={formData.routingTags}

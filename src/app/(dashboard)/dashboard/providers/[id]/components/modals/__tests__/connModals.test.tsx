@@ -87,11 +87,28 @@ describe("conn-modals (Phase 1c extraction)", () => {
     expect(c.querySelector("*")).not.toBeNull();
   });
 
-  it("AddApiKeyModal returns null when provider is falsy", () => {
+  it("AddApiKeyModal renders OpenRouter preset outside advanced settings", () => {
     const onSave = vi.fn().mockResolvedValue(undefined);
     const c = renderModal(
-      <AddApiKeyModal isOpen={true} onSave={onSave} onClose={vi.fn()} />
+      <AddApiKeyModal
+        isOpen={true}
+        provider="openrouter"
+        providerName="OpenRouter"
+        isCompatible={true}
+        onSave={onSave}
+        onClose={vi.fn()}
+      />
     );
+    const presetInput = c.querySelector<HTMLInputElement>(
+      '[data-testid="openrouter-preset-input"]'
+    );
+    expect(presetInput?.placeholder).toBe("@preset/slug");
+    expect(presetInput?.closest("#add-api-key-advanced-settings")).toBeNull();
+  });
+
+  it("AddApiKeyModal returns null when provider is falsy", () => {
+    const onSave = vi.fn().mockResolvedValue(undefined);
+    const c = renderModal(<AddApiKeyModal isOpen={true} onSave={onSave} onClose={vi.fn()} />);
     // No provider → renders null
     expect(c.textContent).toBe("");
   });
@@ -102,6 +119,7 @@ describe("conn-modals (Phase 1c extraction)", () => {
       <EditConnectionModal
         isOpen={false}
         connection={null}
+        providerId="openai"
         onSave={onSave}
         onClose={vi.fn()}
       />
@@ -123,11 +141,38 @@ describe("conn-modals (Phase 1c extraction)", () => {
       <EditConnectionModal
         isOpen={true}
         connection={connection}
+        providerId="openai"
         onSave={onSave}
         onClose={vi.fn()}
       />
     );
     expect(c.querySelector("*")).not.toBeNull();
+  });
+
+  it("EditConnectionModal renders OpenRouter preset when provider comes from the page", () => {
+    const onSave = vi.fn().mockResolvedValue(undefined);
+    const connection = {
+      id: "conn-openrouter",
+      name: "OpenRouter",
+      authType: "apikey",
+      priority: 1,
+      providerSpecificData: { preset: "prefer" },
+    };
+    const c = renderModal(
+      <EditConnectionModal
+        isOpen={true}
+        connection={connection}
+        providerId="openrouter"
+        onSave={onSave}
+        onClose={vi.fn()}
+      />
+    );
+    const presetInput = c.querySelector<HTMLInputElement>(
+      '[data-testid="openrouter-preset-input"]'
+    );
+    expect(presetInput?.value).toBe("prefer");
+    expect(presetInput?.placeholder).toBe("@preset/slug");
+    expect(presetInput?.closest("#edit-connection-advanced-settings")).toBeNull();
   });
 
   it("EditConnectionModal renders without ReferenceError for oauth connection", () => {
@@ -146,6 +191,7 @@ describe("conn-modals (Phase 1c extraction)", () => {
         <EditConnectionModal
           isOpen={true}
           connection={connection}
+          providerId="claude"
           onSave={onSave}
           onClose={vi.fn()}
         />
