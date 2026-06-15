@@ -1,6 +1,7 @@
 {
   "_comment": "Catraca de tamanho (check-file-size.mjs). frozen so pode encolher; arquivos novos <= cap. --update ratcheta.",
   "_rebaseline_v3.8.25": "Drift consciente do ciclo v3.8.24->v3.8.25 (features #3799-#3806: free-provider-rankings, plugins menu, proxy IP-family selector). 3 arquivos cresceram por feature legitima, nao por regressao de qualidade: ProxyRegistryManager.tsx 1072->1089, sidebarVisibility.ts 990->1006, schemas.ts 2519->2522. Encolher fica como debt para um refactor dedicado.",
+  "_rebaseline_2026_06_15_3860_compression_ui": "PR #3860 own growth: sidebarVisibility.ts 1006->1100 (+94 = Compression Hub menu entries: Hub + per-engine Lite/Aggressive/Ultra pages + combos editor) and chatCore.ts 5812->5815 (+3 = compression UI config wiring). Cohesive feature growth, not a quality regression.",
   "cap": 800,
   "frozen": {
     "open-sse/config/providerRegistry.ts": 4703,
@@ -16,7 +17,7 @@
     "open-sse/executors/muse-spark-web.ts": 1284,
     "open-sse/executors/perplexity-web.ts": 868,
     "open-sse/handlers/audioSpeech.ts": 952,
-    "open-sse/handlers/chatCore.ts": 5812,
+    "open-sse/handlers/chatCore.ts": 5815,
     "open-sse/handlers/imageGeneration.ts": 3777,
     "open-sse/handlers/responseSanitizer.ts": 1103,
     "open-sse/handlers/search.ts": 1442,
@@ -100,7 +101,7 @@
     "src/shared/constants/cliTools.ts": 875,
     "src/shared/constants/pricing.ts": 1508,
     "src/shared/constants/providers.ts": 3147,
-    "src/shared/constants/sidebarVisibility.ts": 1006,
+    "src/shared/constants/sidebarVisibility.ts": 1100,
     "src/shared/services/cliRuntime.ts": 1090,
     "src/shared/validation/schemas.ts": 2523,
     "src/sse/handlers/chat.ts": 1425,
