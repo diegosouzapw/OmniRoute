@@ -8,6 +8,7 @@
   "_rebaseline_2026_06_15_3907_zai_validator": "PR #3907 own growth: validation.ts 4348->4394 (+46 = a zai (z.ai/glm) validator using directHttpsRequest to bypass the undici pool — same anti-zombie-socket pattern as nvidia #3226 — since z.ai drops idle keep-alive sockets without TCP RST after 502s. Anthropic wire format, x-api-key, 401/403->invalid else->valid). Cohesive validator branch; not extractable. (The global keepAlive 4000->1000 change from the original PR was reverted on review — scoped to the zai validator only.)",
   "_rebaseline_2026_06_15_3906_proxy_direct_fallback": "PR #3906 own growth: oauth/[provider]/[action]/route.ts 916->918 (+2 = swap runWithProxyContext -> runWithProxyContextOrDirect at the control-plane callsites so a dead pinned proxy degrades to a direct connection instead of a 500; the longer call name + a prettier reflow add the lines). Cohesive control-plane change; not extractable.",
   "_rebaseline_2026_06_15_3871_empty_pool": "PR #3871 own growth: combo.ts 5203->5204 (+1 = guard expandAutoComboCandidatePool against an empty candidatePool array — Array.isArray(pool) && pool.length > 0 so [] falls through to active-connection expansion instead of early-returning). One-line correctness fix; not extractable.",
+  "_rebaseline_2026_06_15_3911_sse_role": "PR #3911 own growth: openai-responses.ts 878->903 (+25 = withAssistantRoleOnFirstDelta wrapper that synthesizes role=assistant on the first Responses->Chat delta so strict streaming clients (langchain/n8n) do not drop tool_call deltas). Cohesive translator fix; not extractable.",
   "cap": 800,
   "frozen": {
     "open-sse/config/providerRegistry.ts": 4708,
@@ -41,7 +42,7 @@
     "open-sse/services/tokenRefresh.ts": 1997,
     "open-sse/services/usage.ts": 3408,
     "open-sse/translator/request/openai-to-gemini.ts": 844,
-    "open-sse/translator/response/openai-responses.ts": 878,
+    "open-sse/translator/response/openai-responses.ts": 903,
     "open-sse/utils/cursorAgentProtobuf.ts": 1521,
     "open-sse/utils/stream.ts": 2710,
     "src/app/(dashboard)/dashboard/HomePageClient.tsx": 1385,
