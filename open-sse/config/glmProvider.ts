@@ -17,6 +17,30 @@ export const GLM_ANTHROPIC_DEFAULT_BASE_URLS = Object.freeze({
 
 export const GLM_SHARED_MODELS = Object.freeze([
   {
+    id: "glm-5.2",
+    name: "GLM 5.2",
+    contextLength: 1000000,
+    maxOutputTokens: 131072,
+    toolCalling: true,
+    supportsReasoning: true,
+  },
+  {
+    id: "glm-5.2-high",
+    name: "GLM 5.2 High",
+    contextLength: 1000000,
+    maxOutputTokens: 131072,
+    toolCalling: true,
+    supportsReasoning: true,
+  },
+  {
+    id: "glm-5.2-max",
+    name: "GLM 5.2 Max",
+    contextLength: 1000000,
+    maxOutputTokens: 131072,
+    toolCalling: true,
+    supportsReasoning: true,
+  },
+  {
     id: "glm-5.1",
     name: "GLM 5.1",
     contextLength: 204800,

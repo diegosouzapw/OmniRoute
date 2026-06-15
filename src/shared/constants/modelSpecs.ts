@@ -354,6 +354,26 @@ export const MODEL_SPECS: Record<string, ModelSpec> = {
     supportsTools: true,
   },
 
+  // ── Z.AI GLM-5.2 (1M context, 128K max output, effort tiers) ────
+  "glm-5.2": {
+    maxOutputTokens: 131072,
+    contextWindow: 1000000,
+    supportsThinking: true,
+    supportsTools: true,
+  },
+  "glm-5.2-high": {
+    maxOutputTokens: 131072,
+    contextWindow: 1000000,
+    supportsThinking: true,
+    supportsTools: true,
+  },
+  "glm-5.2-max": {
+    maxOutputTokens: 131072,
+    contextWindow: 1000000,
+    supportsThinking: true,
+    supportsTools: true,
+  },
+
   // ── Z.AI GLM-5.x (200K context, 128K max output) ─────────────────
   "glm-5.1": {
     maxOutputTokens: 128000,
