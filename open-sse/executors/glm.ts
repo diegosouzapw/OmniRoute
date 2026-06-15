@@ -281,8 +281,15 @@ export class GlmExecutor extends DefaultExecutor {
       const translatedRecord = asRecord(translated);
       if (translatedRecord) {
         translatedRecord.effort = effortTier.effort;
-        if (!translatedRecord.thinking) {
-          translatedRecord.thinking = { type: "enabled" };
+        // Zhipu's Anthropic endpoint only supports thinking.type
+        // "enabled"/"disabled" — not "adaptive". Clients like Claude Code
+        // default to "adaptive" for reasoning models, so force "enabled"
+        // here while preserving any other fields (e.g. budget_tokens).
+        if (!translatedRecord.thinking || asRecord(translatedRecord.thinking)?.type !== "enabled") {
+          translatedRecord.thinking = {
+            ...(asRecord(translatedRecord.thinking) ?? {}),
+            type: "enabled",
+          };
         }
       }
     }
