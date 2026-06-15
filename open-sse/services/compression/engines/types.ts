@@ -35,6 +35,8 @@ export interface CompressionEngineApplyOptions {
   config?: CompressionConfig;
   compressionComboId?: string | null;
   stepConfig?: Record<string, unknown>;
+  /** Authenticated principal (API key id) making the request. Used by CCR to scope its store. */
+  principalId?: string;
 }
 
 export interface CompressionEngine {

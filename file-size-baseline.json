@@ -1,5 +1,6 @@
 {
   "_comment": "Catraca de tamanho (check-file-size.mjs). frozen so pode encolher; arquivos novos <= cap. --update ratcheta.",
+  "_rebaseline_v3.8.25": "Drift consciente do ciclo v3.8.24->v3.8.25 (features #3799-#3806: free-provider-rankings, plugins menu, proxy IP-family selector). 3 arquivos cresceram por feature legitima, nao por regressao de qualidade: ProxyRegistryManager.tsx 1072->1089, sidebarVisibility.ts 990->1006, schemas.ts 2519->2522. Encolher fica como debt para um refactor dedicado.",
   "cap": 800,
   "frozen": {
     "open-sse/config/providerRegistry.ts": 4703,
@@ -15,7 +16,7 @@
     "open-sse/executors/muse-spark-web.ts": 1284,
     "open-sse/executors/perplexity-web.ts": 868,
     "open-sse/handlers/audioSpeech.ts": 952,
-    "open-sse/handlers/chatCore.ts": 5811,
+    "open-sse/handlers/chatCore.ts": 5812,
     "open-sse/handlers/imageGeneration.ts": 3777,
     "open-sse/handlers/responseSanitizer.ts": 1103,
     "open-sse/handlers/search.ts": 1442,
@@ -71,7 +72,7 @@
     "src/app/(dashboard)/dashboard/usage/components/BudgetTab.tsx": 1016,
     "src/app/(dashboard)/dashboard/usage/components/EvalsTab.tsx": 2148,
     "src/app/(dashboard)/dashboard/usage/components/ProviderLimits/index.tsx": 1069,
-    "src/app/api/oauth/[provider]/[action]/route.ts": 903,
+    "src/app/api/oauth/[provider]/[action]/route.ts": 916,
     "src/app/api/providers/[id]/models/route.ts": 2489,
     "src/app/api/providers/[id]/test/route.ts": 842,
     "src/app/api/usage/analytics/route.ts": 941,
@@ -130,5 +131,6 @@
   "_rebaseline_2026_06_14_r3_3839_veo_video": "PR #3839 own growth: schemas.ts 2522→2523 (+1 = Veo video model (predictLongRunning) validation for Gemini/Vertex dynamic discovery).",
   "_rebaseline_2026_06_14_r3_3836_kiro_discovery": "PR #3836 own growth: models/route.ts 2426→2487 (+61 = kiro live per-account discovery branch wiring fetchKiroAvailableModels into the existing cache/auto-fetch/fallback discovery flow). Structural shrink of this route tracked in #3789.",
   "_rebaseline_2026_06_14_2997_disable_cooling": "Re-baseline #2997 (per-connection disable-cooling): EditConnectionModal.tsx 1171→1174 (+toggle UI) + auth.ts 2207→2216 (honor de disableCooling no markAccountUnavailable, pós-prettier). Lógica coesa; não-extraível. (combo.ts/RequestLoggerV2 drift já documentado em _r3_3835.)",
-  "_rebaseline_2026_06_14_r3_3848_compression": "PR #3848 own growth: chatCore.ts 5808→5811 (+3 = compression engine pipeline hooks). Also carries inherited release/v3.8.25 drift not touched by this PR: models/route.ts 2487→2489 (+2, post-#3836/prettier). Updating the frozen values restores Fast Quality Gates on the current base."
+  "_rebaseline_2026_06_14_r3_3848_compression": "PR #3848 own growth: chatCore.ts 5808→5811 (+3 = compression engine pipeline hooks). Also carries inherited release/v3.8.25 drift not touched by this PR: models/route.ts 2487→2489 (+2, post-#3836/prettier). Updating the frozen values restores Fast Quality Gates on the current base.",
+  "_rebaseline_2026_06_14_3861_gitlab_duo": "PR #3861 own growth: oauth/[provider]/[action]/route.ts 903→916 (+13 = gitlab-duo authorize guard mirroring the existing qoder guard — returns a clear 'register an OAuth app + set GITLAB_DUO_OAUTH_CLIENT_ID' message instead of letting buildAuthUrl's throw become an opaque 500). Cohesive with the qoder branch right above it; not separately extractable."
 }

@@ -226,6 +226,10 @@ jobs:
       - build
     if: needs.prepare.outputs.skip != 'true'
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+      security-events: write
     env:
       IMAGE_NAME: diegosouzapw/omniroute
       GHCR_IMAGE_NAME: ghcr.io/diegosouzapw/omniroute
@@ -320,6 +324,35 @@ jobs:
         if: needs.prepare.outputs.version != 'main'
         run: |
           docker buildx imagetools inspect "${IMAGE_NAME}:${VERSION}"
+
+      - name: Generate CycloneDX SBOM (image, advisory)
+        if: needs.prepare.outputs.version != 'main'
+        continue-on-error: true
+        uses: anchore/sbom-action@v0
+        with:
+          image: ${{ env.GHCR_IMAGE_NAME }}:${{ env.VERSION }}
+          format: cyclonedx-json
+          output-file: sbom-image.cdx.json
+          artifact-name: sbom-image.cdx.json
+
+      - name: Trivy image scan (advisory)
+        if: needs.prepare.outputs.version != 'main'
+        continue-on-error: true
+        uses: aquasecurity/trivy-action@v0.36.0
+        with:
+          image-ref: ${{ env.GHCR_IMAGE_NAME }}:${{ env.VERSION }}
+          format: sarif
+          output: trivy-results.sarif
+          severity: HIGH,CRITICAL
+          exit-code: '0'
+
+      - name: Upload Trivy SARIF to Security tab
+        if: needs.prepare.outputs.version != 'main'
+        continue-on-error: true
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: trivy-results.sarif
+          category: trivy-image
 
       - name: Update Docker Hub description
         # Only refresh README/description when we actually promote :latest

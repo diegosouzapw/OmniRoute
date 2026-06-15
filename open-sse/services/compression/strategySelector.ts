@@ -70,7 +70,12 @@ export function selectCompressionStrategy(
 export function applyCompression(
   body: Record<string, unknown>,
   mode: CompressionMode,
-  options?: { model?: string; supportsVision?: boolean | null; config?: CompressionConfig }
+  options?: {
+    model?: string;
+    supportsVision?: boolean | null;
+    config?: CompressionConfig;
+    principalId?: string;
+  }
 ): CompressionResult {
   if (mode === "off") {
     return { body, compressed: false, stats: null };
@@ -190,7 +195,12 @@ export function applyCompression(
 export async function applyCompressionAsync(
   body: Record<string, unknown>,
   mode: CompressionMode,
-  options?: { model?: string; supportsVision?: boolean | null; config?: CompressionConfig }
+  options?: {
+    model?: string;
+    supportsVision?: boolean | null;
+    config?: CompressionConfig;
+    principalId?: string;
+  }
 ): Promise<CompressionResult> {
   if (mode === "stacked") {
     const adapter = adaptBodyForCompression(body);
@@ -231,6 +241,8 @@ interface StackOptions {
   compressionComboId?: string | null;
   /** TV1 bail-out discipline (opt-in, default disabled). */
   bailout?: BailoutConfig;
+  /** Authenticated principal id — threaded through to CCR engine for store scoping. */
+  principalId?: string;
 }
 
 /** Accumulates per-step telemetry across a stacked run (shared sync/async). */
@@ -274,6 +286,7 @@ function buildStepOptions(
   return {
     ...options,
     compressionComboId: options?.compressionComboId ?? options?.config?.compressionComboId,
+    principalId: options?.principalId,
     stepConfig: {
       ...(step.config ?? {}),
       ...(step.intensity ? { intensity: step.intensity } : {}),

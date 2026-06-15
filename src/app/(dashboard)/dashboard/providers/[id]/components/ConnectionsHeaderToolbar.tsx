@@ -1,6 +1,6 @@
 "use client";
 
-import { Button, Toggle } from "@/shared/components";
+import { Button, DistributeProxiesButton, Toggle } from "@/shared/components";
 import { providerText, type ProviderMessageTranslator } from "../providerPageHelpers";
 import type { CodexGlobalServiceMode } from "@/lib/providers/codexFastTier";
 
@@ -15,7 +15,6 @@ type ConnectionsHeaderToolbarProps = {
   batchTesting: boolean;
   batchRetesting: boolean;
   retestingId: string | null;
-  distributingProxies: boolean;
   proxyConfig: any;
   // from useProviderSettings
   preferClaudeCodeForUnprefixedClaudeModels: boolean;
@@ -60,7 +59,6 @@ export default function ConnectionsHeaderToolbar({
   batchTesting,
   batchRetesting,
   retestingId,
-  distributingProxies,
   proxyConfig,
   preferClaudeCodeForUnprefixedClaudeModels,
   claudeRoutingSettingsLoaded,
@@ -224,22 +222,10 @@ export default function ConnectionsHeaderToolbar({
       </div>
       <div className="flex shrink-0 flex-wrap items-center justify-end gap-2">
         {connections.length > 0 && (
-          <button
-            onClick={() => handleDistributeProxies()}
-            disabled={distributingProxies || batchTesting || !!retestingId}
-            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium border transition-colors ${
-              distributingProxies
-                ? "bg-primary/20 border-primary/40 text-primary animate-pulse"
-                : "bg-bg-subtle border-border text-text-muted hover:text-text-primary hover:border-primary/40"
-            }`}
-            title={t("distributeProxies")}
-            aria-label={t("distributeProxies")}
-          >
-            <span className="material-symbols-outlined text-[14px]">
-              {distributingProxies ? "sync" : "swap_horiz"}
-            </span>
-            {distributingProxies ? t("distributing") : t("distributeProxies")}
-          </button>
+          <DistributeProxiesButton
+            onDistribute={async () => { await handleDistributeProxies(); }}
+            disabled={batchTesting || !!retestingId}
+          />
         )}
         {connections.length > 1 && (
           <button

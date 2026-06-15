@@ -77,6 +77,9 @@ export const MODEL_SPECS: Record<string, ModelSpec> = {
   "gemini-2.5-flash": {
     maxOutputTokens: 65536,
     contextWindow: 1048576,
+    // #3842: real Google max thinking budget for 2.5-flash is 24576; declaring the
+    // cap makes capThinkingBudget() actually clamp instead of passing values through.
+    thinkingBudgetCap: 24576,
     supportsThinking: false,
     supportsTools: true,
     supportsVision: true,

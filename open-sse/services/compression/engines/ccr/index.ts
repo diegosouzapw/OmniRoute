@@ -4,21 +4,30 @@
  * Replaces large contiguous blocks of text with a content-addressed
  * retrieve marker: `[CCR retrieve hash=<24hex> chars=<N>]`
  *
- * The verbatim block is stored in an in-module content-addressed store
- * (keyed by 24-hex content hash). The `retrieve` MCP tool (or the
- * `handleCcrRetrieve` helper exported here) returns the block on demand.
+ * The verbatim block is stored in a principal-scoped, bounded in-module store.
+ * The store key is `${principalId ?? "__anon__"} ${contentHash}` so that one
+ * principal cannot read another's stored blocks (IDOR protection).
+ *
+ * The `retrieve` MCP tool (or the `handleCcrRetrieve` helper exported here)
+ * returns the block on demand when called with the matching callerId.
  *
  * Algorithm:
  *   - Scan non-system messages; for each `type:"text"` part or string content,
  *     find contiguous text blocks ≥ minChars characters.
  *   - Replace the block with `[CCR retrieve hash=<24hex> chars=<N>]` only if
  *     the marker is shorter than the original block.
- *   - Store the original block keyed by hash in the CCR store.
+ *   - Store the original block keyed by (principalId, hash) in the CCR store.
  *
- * Feedback:
- *   - `recordRetrieval(hash)` increments a retrieval counter for that hash.
- *   - `shouldSkipCompression(hash)` returns true once the counter reaches
- *     RETRIEVAL_THRESHOLD, signalling "do not compress this block again".
+ * Feedback (scoped by principal):
+ *   - `recordRetrieval(hash, principalId)` increments a retrieval counter for
+ *     that (principalId, hash) pair.
+ *   - `shouldSkipCompression(hash, principalId)` returns true once the counter
+ *     reaches RETRIEVAL_THRESHOLD for that principal — one principal's behaviour
+ *     does not affect another's (cross-tenant state drift protection).
+ *
+ * Memory bound:
+ *   - Both `ccrStore` and `retrievalCounts` are capped at MAX_CCR_ENTRIES
+ *     entries using FIFO eviction (Map insertion-order guarantees).
  *
  * Conservative guards:
  *   - Never touch `role: "system"`.
@@ -42,57 +51,95 @@ import type { CompressionResult } from "../../types.ts";
 const ENGINE_ID = "ccr";
 /** Default minimum character count for a block to be a CCR candidate. */
 const DEFAULT_MIN_CHARS = 600;
-/** Number of retrievals before a block is flagged "do-not-compress". */
+/** Number of retrievals before a block is flagged "do-not-compress" for that principal. */
 const RETRIEVAL_THRESHOLD = 3;
 /** Regex to match CCR markers for reconstruction. */
 const MARKER_RE = /\[CCR retrieve hash=([0-9a-f]{24}) chars=\d+\]/g;
+/**
+ * Maximum number of entries in each bounded store.
+ * When inserting beyond this cap, the oldest entry (Map insertion order) is evicted.
+ * 5 000 entries × ~2 KB average ≈ 10 MB upper bound for each map.
+ */
+export const MAX_CCR_ENTRIES = 5_000;
 
-// ─── content-addressed store ──────────────────────────────────────────────────
+// ─── principal-scoped, bounded content store ──────────────────────────────────
 
-/** Map from 24-hex hash → verbatim block text. */
+/**
+ * Store key = `${principalId ?? "__anon__"} ${contentHash}`.
+ * Using a compound key scopes data to the principal that stored it.
+ */
 const ccrStore = new Map<string, string>();
-/** Map from 24-hex hash → retrieval count (feedback signal). */
+/** Retrieval counter store — same scoping as ccrStore. */
 const retrievalCounts = new Map<string, number>();
+
+/** Sentinel used when no principalId is provided. */
+const ANON = "__anon__";
+
+function buildStoreKey(hash: string, principalId?: string): string {
+  return `${principalId ?? ANON} ${hash}`;
+}
+
+/**
+ * Insert a value into a bounded Map, evicting the oldest entry when over the cap.
+ */
+function boundedSet<V>(map: Map<string, V>, key: string, value: V): void {
+  if (!map.has(key) && map.size >= MAX_CCR_ENTRIES) {
+    // Map preserves insertion order — the first iterator result is the oldest entry.
+    const firstKey = map.keys().next().value;
+    if (firstKey !== undefined) {
+      map.delete(firstKey);
+    }
+  }
+  map.set(key, value);
+}
 
 /**
  * Compute a 24-hex content hash for a text block (SHA-256 prefix).
+ * This is the hash embedded in the marker; principal scoping is internal to
+ * the store key and is NOT part of the marker itself.
  */
 function hashContent(text: string): string {
   return crypto.createHash("sha256").update(text).digest("hex").slice(0, 24);
 }
 
 /**
- * Store a block in the CCR store, returning its hash.
+ * Store a block in the CCR store under the given principal.
+ * Returns the 24-hex content hash (for embedding in the marker).
  */
-function storeBlock(text: string): string {
+export function storeBlock(text: string, principalId?: string): string {
   const hash = hashContent(text);
-  if (!ccrStore.has(hash)) {
-    ccrStore.set(hash, text);
+  const key = buildStoreKey(hash, principalId);
+  if (!ccrStore.has(key)) {
+    boundedSet(ccrStore, key, text);
   }
   return hash;
 }
 
 /**
- * Retrieve the verbatim block for a given hash.
- * Returns null if not found.
+ * Retrieve the verbatim block for a given hash and principal.
+ * Returns null if not found or if the principal does not match the stored key.
  */
-export function retrieveBlock(hash: string): string | null {
-  return ccrStore.get(hash) ?? null;
+export function retrieveBlock(hash: string, principalId?: string): string | null {
+  const key = buildStoreKey(hash, principalId);
+  return ccrStore.get(key) ?? null;
 }
 
 /**
- * Record a retrieval event for a given hash (feedback signal).
+ * Record a retrieval event for a given (hash, principal) pair (feedback signal).
  */
-export function recordRetrieval(hash: string): void {
-  retrievalCounts.set(hash, (retrievalCounts.get(hash) ?? 0) + 1);
+export function recordRetrieval(hash: string, principalId?: string): void {
+  const key = buildStoreKey(hash, principalId);
+  boundedSet(retrievalCounts, key, (retrievalCounts.get(key) ?? 0) + 1);
 }
 
 /**
- * Returns true if the block has been retrieved often enough that it
- * should be excluded from compression in future requests.
+ * Returns true if the block has been retrieved often enough by this principal
+ * that it should be excluded from compression in future requests.
+ * Each principal's feedback is isolated from other principals.
  */
-export function shouldSkipCompression(hash: string): boolean {
-  return (retrievalCounts.get(hash) ?? 0) >= RETRIEVAL_THRESHOLD;
+export function shouldSkipCompression(hash: string, principalId?: string): boolean {
+  const key = buildStoreKey(hash, principalId);
+  return (retrievalCounts.get(key) ?? 0) >= RETRIEVAL_THRESHOLD;
 }
 
 /**
@@ -107,21 +154,29 @@ export function resetCcrStore(): void {
 
 /**
  * Handler for the `omniroute_ccr_retrieve` MCP tool.
+ *
+ * The `callerId` parameter must be the authenticated principal id derived from
+ * the MCP `extra` context (see compressionTools.ts). Only the principal that
+ * stored the block can retrieve it.
+ *
  * Returns the verbatim block for the given hash, or an error object.
  */
-export function handleCcrRetrieve(args: { hash: string }): { content: string } | { error: string } {
+export function handleCcrRetrieve(
+  args: { hash: string },
+  callerId?: string
+): { content: string } | { error: string } {
   if (!args.hash || typeof args.hash !== "string") {
     return { error: "hash parameter is required and must be a string" };
   }
 
-  const block = retrieveBlock(args.hash);
+  const block = retrieveBlock(args.hash, callerId);
   if (block === null) {
     return {
       error: `CCR block not found for hash=${args.hash}. The block may have expired or the hash is invalid.`,
     };
   }
 
-  recordRetrieval(args.hash);
+  recordRetrieval(args.hash, callerId);
   return { content: block };
 }
 
@@ -146,7 +201,8 @@ function buildMarker(hash: string, charCount: number): string {
  */
 function maybeCcrReplace(
   text: string,
-  minChars: number
+  minChars: number,
+  principalId?: string
 ): { text: string; replaced: boolean; hash: string | null } {
   if (text.length < minChars) {
     return { text, replaced: false, hash: null };
@@ -154,8 +210,8 @@ function maybeCcrReplace(
 
   const hash = hashContent(text);
 
-  // Skip if this hash is flagged as do-not-compress
-  if (shouldSkipCompression(hash)) {
+  // Skip if this (principal, hash) pair is flagged as do-not-compress
+  if (shouldSkipCompression(hash, principalId)) {
     return { text, replaced: false, hash: null };
   }
 
@@ -166,7 +222,7 @@ function maybeCcrReplace(
     return { text, replaced: false, hash: null };
   }
 
-  storeBlock(text);
+  storeBlock(text, principalId);
   return { text: marker, replaced: true, hash };
 }
 
@@ -175,7 +231,8 @@ function maybeCcrReplace(
  */
 function processMessages(
   messages: MessageLike[],
-  minChars: number
+  minChars: number,
+  principalId?: string
 ): { messages: MessageLike[]; replacedCount: number } {
   let replacedCount = 0;
 
@@ -183,7 +240,7 @@ function processMessages(
     if (msg.role === "system") return { ...msg };
 
     if (typeof msg.content === "string") {
-      const { text, replaced } = maybeCcrReplace(msg.content, minChars);
+      const { text, replaced } = maybeCcrReplace(msg.content, minChars, principalId);
       if (replaced) {
         replacedCount++;
         return { ...msg, content: text };
@@ -195,7 +252,7 @@ function processMessages(
       let changed = false;
       const newContent = msg.content.map((part) => {
         if (part["type"] !== "text" || typeof part["text"] !== "string") return part;
-        const { text, replaced } = maybeCcrReplace(part["text"] as string, minChars);
+        const { text, replaced } = maybeCcrReplace(part["text"] as string, minChars, principalId);
         if (replaced) {
           changed = true;
           replacedCount++;
@@ -253,11 +310,15 @@ function validateCcrConfig(config: Record<string, unknown>): EngineValidationRes
 
 /**
  * Reconstruct a body by replacing all `[CCR retrieve hash=<24hex> chars=N]`
- * markers with the stored verbatim blocks.
+ * markers with the stored verbatim blocks for the given principal.
  *
  * Returns a new body object with markers restored to their original text.
+ * Markers that do not belong to the given principal remain unchanged.
  */
-export function reconstructCcr(body: Record<string, unknown>): Record<string, unknown> {
+export function reconstructCcr(
+  body: Record<string, unknown>,
+  principalId?: string
+): Record<string, unknown> {
   const messages = body["messages"];
   if (!Array.isArray(messages)) return body;
 
@@ -272,7 +333,7 @@ export function reconstructCcr(body: Record<string, unknown>): Record<string, un
 
     if (typeof content === "string") {
       const reconstructed = content.replace(MARKER_RE, (_m, hash: string) => {
-        return ccrStore.get(hash) ?? _m;
+        return retrieveBlock(hash, principalId) ?? _m;
       });
       return reconstructed !== content ? { ...msg, content: reconstructed } : { ...msg };
     }
@@ -282,7 +343,7 @@ export function reconstructCcr(body: Record<string, unknown>): Record<string, un
       const newContent = content.map((part) => {
         if (part["type"] !== "text" || typeof part["text"] !== "string") return part;
         const reconstructed = (part["text"] as string).replace(MARKER_RE, (_m, hash: string) => {
-          return ccrStore.get(hash) ?? _m;
+          return retrieveBlock(hash, principalId) ?? _m;
         });
         if (reconstructed !== part["text"]) {
           changed = true;
@@ -307,7 +368,8 @@ export const ccrEngine: CompressionEngine = {
   description:
     "Replaces large blocks of text with content-addressed retrieve markers " +
     "`[CCR retrieve hash=<24hex> chars=N]`. The original block is stored and " +
-    "retrievable via the `omniroute_ccr_retrieve` MCP tool (H4).",
+    "retrievable via the `omniroute_ccr_retrieve` MCP tool (H4). " +
+    "Store is principal-scoped: only the storing principal can retrieve their blocks.",
   icon: "archive",
   targets: ["messages"],
   stackable: true,
@@ -319,7 +381,7 @@ export const ccrEngine: CompressionEngine = {
     name: "CCR (Content-Compression-Retrieve)",
     description:
       "Reversible compression: large blocks → retrieve marker. " +
-      "Original retrievable via MCP tool (H4).",
+      "Original retrievable via MCP tool (H4). Principal-scoped for tenant isolation.",
     inputScope: "messages",
     targetLatencyMs: 1,
     supportsPreview: true,
@@ -346,7 +408,8 @@ export const ccrEngine: CompressionEngine = {
     const start = performance.now();
     const { messages: newMessages, replacedCount } = processMessages(
       messages as MessageLike[],
-      minChars
+      minChars,
+      options?.principalId
     );
 
     if (replacedCount === 0) {
