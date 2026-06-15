@@ -26,6 +26,8 @@ import {
 import { getWebSessionCredentialRequirement } from "../../webSessionCredentials";
 import { useOpenRouterPresetControl } from "../OpenRouterPresetInput";
 import WebSessionCredentialGuide from "../WebSessionCredentialGuide";
+import CcCompatibleRequestDefaultsFields from "./CcCompatibleRequestDefaultsFields";
+import { assignCcCompatibleRequestDefaults } from "./ccCompatibleRequestDefaults";
 
 export interface AddApiKeyModalProps {
   isOpen: boolean;
@@ -310,18 +312,7 @@ export default function AddApiKeyModal({
       } else if (isCloudflare && formData.accountId.trim()) {
         providerSpecificData.accountId = formData.accountId.trim();
       }
-      if (isCcCompatible) {
-        const requestDefaults: Record<string, unknown> = {};
-        if (formData.ccCompatibleContext1m) {
-          requestDefaults.context1m = true;
-        }
-        if (formData.ccCompatibleRedactThinking) {
-          requestDefaults.redactThinking = true;
-        }
-        if (Object.keys(requestDefaults).length > 0) {
-          providerSpecificData.requestDefaults = requestDefaults;
-        }
-      }
+      if (isCcCompatible) assignCcCompatibleRequestDefaults(providerSpecificData, formData);
 
       const payload = {
         name: formData.name,
@@ -685,24 +676,16 @@ export default function AddApiKeyModal({
               </div>
             )}
             {isCcCompatible && (
-              <div className="flex flex-col gap-4 rounded-lg border border-border/50 bg-surface/20 p-4">
-                <Toggle
-                  checked={formData.ccCompatibleContext1m}
-                  onChange={(checked) =>
-                    setFormData({ ...formData, ccCompatibleContext1m: checked })
-                  }
-                  label={t("ccCompatibleContext1mLabel")}
-                  description={t("ccCompatibleContext1mDescription")}
-                />
-                <Toggle
-                  checked={formData.ccCompatibleRedactThinking}
-                  onChange={(checked) =>
-                    setFormData({ ...formData, ccCompatibleRedactThinking: checked })
-                  }
-                  label={t("ccCompatibleRedactThinkingLabel")}
-                  description={t("ccCompatibleRedactThinkingDescription")}
-                />
-              </div>
+              <CcCompatibleRequestDefaultsFields
+                context1m={formData.ccCompatibleContext1m}
+                redactThinking={formData.ccCompatibleRedactThinking}
+                onContext1mChange={(checked) =>
+                  setFormData({ ...formData, ccCompatibleContext1m: checked })
+                }
+                onRedactThinkingChange={(checked) =>
+                  setFormData({ ...formData, ccCompatibleRedactThinking: checked })
+                }
+              />
             )}
             {isCompatible && !isCcCompatible && (
               <p className="text-xs text-text-muted">

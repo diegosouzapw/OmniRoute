@@ -88,10 +88,6 @@ type BuildRequestOptions = {
   redactThinking?: boolean;
 };
 
-type BuildHeaderOptions = {
-  redactThinking?: boolean;
-};
-
 function supportsClaudeXHighEffort(model: string | null | undefined): boolean {
   return typeof model === "string" && supportsXHighEffort("claude", model);
 }
@@ -176,7 +172,7 @@ export function buildClaudeCodeCompatibleHeaders(
   apiKey: string,
   stream = false,
   sessionId?: string | null,
-  options: BuildHeaderOptions = {}
+  options: { redactThinking?: boolean } = {}
 ): Record<string, string> {
   void stream;
   // These headers intentionally mirror Claude Code's wire image closely.

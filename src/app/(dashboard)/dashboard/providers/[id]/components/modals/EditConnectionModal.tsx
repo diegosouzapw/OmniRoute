@@ -47,6 +47,8 @@ import {
 import { getWebSessionCredentialRequirement } from "../../webSessionCredentials";
 import { useOpenRouterPresetControl } from "../OpenRouterPresetInput";
 import WebSessionCredentialGuide from "../WebSessionCredentialGuide";
+import CcCompatibleRequestDefaultsFields from "./CcCompatibleRequestDefaultsFields";
+import { mergeCcCompatibleRequestDefaults } from "./ccCompatibleRequestDefaults";
 
 export interface EditConnectionModalConnection {
   id?: string;
@@ -502,24 +504,10 @@ export default function EditConnectionModal({
           updates.providerSpecificData.projectId = trimmedCloudCodeProjectId || null;
         }
         if (isCcCompatible) {
-          const currentRequestDefaults =
-            updates.providerSpecificData.requestDefaults &&
-            typeof updates.providerSpecificData.requestDefaults === "object" &&
-            !Array.isArray(updates.providerSpecificData.requestDefaults)
-              ? { ...(updates.providerSpecificData.requestDefaults as Record<string, unknown>) }
-              : {};
-          if (formData.ccCompatibleContext1m) {
-            currentRequestDefaults.context1m = true;
-          } else {
-            delete currentRequestDefaults.context1m;
-          }
-          if (formData.ccCompatibleRedactThinking) {
-            currentRequestDefaults.redactThinking = true;
-          } else {
-            delete currentRequestDefaults.redactThinking;
-          }
-          updates.providerSpecificData.requestDefaults =
-            Object.keys(currentRequestDefaults).length > 0 ? currentRequestDefaults : undefined;
+          updates.providerSpecificData.requestDefaults = mergeCcCompatibleRequestDefaults(
+            updates.providerSpecificData.requestDefaults,
+            formData
+          );
         }
       } else {
         updates.providerSpecificData = {
@@ -651,22 +639,16 @@ export default function EditConnectionModal({
           </div>
         )}
         {isCcCompatible && (
-          <div className="flex flex-col gap-4 rounded-lg border border-border/50 bg-surface/20 p-4">
-            <Toggle
-              checked={formData.ccCompatibleContext1m}
-              onChange={(checked) => setFormData({ ...formData, ccCompatibleContext1m: checked })}
-              label={t("ccCompatibleContext1mLabel")}
-              description={t("ccCompatibleContext1mDescription")}
-            />
-            <Toggle
-              checked={formData.ccCompatibleRedactThinking}
-              onChange={(checked) =>
-                setFormData({ ...formData, ccCompatibleRedactThinking: checked })
-              }
-              label={t("ccCompatibleRedactThinkingLabel")}
-              description={t("ccCompatibleRedactThinkingDescription")}
-            />
-          </div>
+          <CcCompatibleRequestDefaultsFields
+            context1m={formData.ccCompatibleContext1m}
+            redactThinking={formData.ccCompatibleRedactThinking}
+            onContext1mChange={(checked) =>
+              setFormData({ ...formData, ccCompatibleContext1m: checked })
+            }
+            onRedactThinkingChange={(checked) =>
+              setFormData({ ...formData, ccCompatibleRedactThinking: checked })
+            }
+          />
         )}
         {/* #2997: per-connection transient-cooldown opt-out (provider-agnostic) */}
         <div className="flex flex-col gap-4 rounded-lg border border-border/50 bg-surface/20 p-4">

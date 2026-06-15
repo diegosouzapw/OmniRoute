@@ -151,25 +151,13 @@ export function validateProviderSpecificData(
         });
       }
 
-      const context1m = requestDefaultsRecord.context1m;
-      if (context1m !== undefined && context1m !== null && typeof context1m !== "boolean") {
+      for (const booleanKey of ["context1m", "redactThinking"] as const) {
+        const value = requestDefaultsRecord[booleanKey];
+        if (value === undefined || value === null || typeof value === "boolean") continue;
         ctx.addIssue({
           code: z.ZodIssueCode.custom,
-          message: "providerSpecificData.requestDefaults.context1m must be a boolean",
-          path: ["requestDefaults", "context1m"],
-        });
-      }
-
-      const redactThinking = requestDefaultsRecord.redactThinking;
-      if (
-        redactThinking !== undefined &&
-        redactThinking !== null &&
-        typeof redactThinking !== "boolean"
-      ) {
-        ctx.addIssue({
-          code: z.ZodIssueCode.custom,
-          message: "providerSpecificData.requestDefaults.redactThinking must be a boolean",
-          path: ["requestDefaults", "redactThinking"],
+          message: `providerSpecificData.requestDefaults.${booleanKey} must be a boolean`,
+          path: ["requestDefaults", booleanKey],
         });
       }
     }
