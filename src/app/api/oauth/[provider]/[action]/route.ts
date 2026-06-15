@@ -157,6 +157,19 @@ export async function GET(
             "Qoder browser OAuth is experimental and disabled by default. Configure QODER_OAUTH_* environment variables or use a Personal Access Token.",
         });
       }
+      // #3861: GitLab Duo needs a self-registered OAuth app. Without a client_id,
+      // buildAuthUrl returns null — surface a clear setup message instead of a 500.
+      if (provider === "gitlab-duo" && !authData.authUrl) {
+        return NextResponse.json({
+          ...authData,
+          supported: false,
+          error:
+            "GitLab Duo OAuth is not configured. Register an OAuth application at " +
+            "https://gitlab.com/-/profile/applications with redirect URI " +
+            "http://localhost:20128/callback and scopes \"ai_features read_user\", then set " +
+            "GITLAB_DUO_OAUTH_CLIENT_ID (and optionally GITLAB_DUO_OAUTH_CLIENT_SECRET) and restart.",
+        });
+      }
       return NextResponse.json(authData);
     }
 
