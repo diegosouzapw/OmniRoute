@@ -548,7 +548,7 @@ const agents = detectInstalledAgents();
 ## What's Next?
 
 - **[API Reference](../reference/API_REFERENCE.md)** — REST API endpoints
-- **[Provider Reference](../reference/PROVIDER_REFERENCE.md)** — All 223 providers
+- **[Provider Reference](../reference/PROVIDER_REFERENCE.md)** — All 226 providers
 - **[MCP Server](./MCP-SERVER.md)** — Model Context Protocol integration
 - **[A2A Server](./A2A-SERVER.md)** — Agent-to-Agent protocol
 - **[Cloud Agent](./CLOUD_AGENT.md)** — Cloud-based agents
