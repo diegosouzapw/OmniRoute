@@ -67,7 +67,14 @@ export async function getAccessToken(sa: ServiceAccount): Promise<string> {
     aud: "https://oauth2.googleapis.com/token",
     iat: now,
     exp: now + 3600,
-    scope: "https://www.googleapis.com/auth/cloud-platform",
+    // cloud-platform authorizes Vertex AI (aiplatform.googleapis.com) for chat/image execution.
+    // generative-language.retriever is ADDITIONALLY required so model discovery can list the live
+    // catalog from generativelanguage.googleapis.com/v1beta/models — without it that listing returns
+    // 403 ACCESS_TOKEN_SCOPE_INSUFFICIENT and discovery silently falls back to the static ~10-model
+    // registry list. Requesting the extra scope is harmless for execution (cloud-platform still
+    // present) and for projects where it isn't needed (the mint never validates scope availability).
+    scope:
+      "https://www.googleapis.com/auth/cloud-platform https://www.googleapis.com/auth/generative-language.retriever",
   })
     .setProtectedHeader({ alg: "RS256", kid: sa.private_key_id })
     .sign(privateKey);
