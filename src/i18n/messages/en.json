@@ -3921,6 +3921,7 @@
     "showHiddenOnly": "Hidden only",
     "filterByVisibility": "Filter by visibility",
     "autoHideFailed": "Auto-hide failed models",
+    "autoHideFailedHint": "When enabled, Test all hides non-transient failures from public catalogs such as /v1/models. Single-model tests never auto-hide.",
     "connected": "{count} Connected",
     "errorCount": "{count} Error ({code})",
     "errorCountNoCode": "{count} Error",
