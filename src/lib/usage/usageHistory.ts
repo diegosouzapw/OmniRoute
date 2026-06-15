@@ -289,7 +289,7 @@ export function updatePendingRequest(
   const details = pendingRequests.details[connectionId]?.[modelKey];
   if (!details?.length) return;
   const lastIdx = details.length - 1;
-  details[lastIdx] = { ...details[lastIdx], ...normalizePendingMetadata(metadata) };
+  Object.assign(details[lastIdx], normalizePendingMetadata(metadata));
 }
 
 /**

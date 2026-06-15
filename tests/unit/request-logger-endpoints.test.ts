@@ -87,6 +87,40 @@ test("updatePendingRequestStreamChunks stores stream chunks in the detail", () =
   assert.equal(detail.streamChunks.provider[0], 'data: {"a":1}');
 });
 
+test("updatePendingRequest keeps pending detail API view in sync", () => {
+  usageHistory.clearPendingRequests();
+  const requestId = usageHistory.trackPendingRequest(
+    "claude-sonnet-4-6",
+    "cc-test",
+    "conn-1",
+    true,
+    {
+      clientRequest: { model: "cc-test/claude-sonnet-4-6", reasoning_effort: "xhigh" },
+      providerRequest: { model: "claude-sonnet-4-6", reasoning_effort: "xhigh" },
+    }
+  );
+  assert.ok(requestId, "trackPendingRequest should return an id");
+
+  usageHistory.updatePendingRequest("claude-sonnet-4-6", "cc-test", "conn-1", {
+    providerRequest: { model: "claude-sonnet-4-6", reasoning_effort: "high" },
+    stage: "provider_response_started",
+  });
+
+  const modelKey = "claude-sonnet-4-6 (cc-test)";
+  const detailFromQueue = usageHistory.getPendingRequests().details["conn-1"]?.[modelKey]?.[0];
+  const detailFromId = usageHistory.getPendingById().get(requestId);
+
+  assert.equal(detailFromId, detailFromQueue);
+  assert.deepEqual(detailFromId?.providerRequest, {
+    model: "claude-sonnet-4-6",
+    reasoning_effort: "high",
+  });
+  assert.deepEqual(detailFromId?.clientRequest, {
+    model: "cc-test/claude-sonnet-4-6",
+    reasoning_effort: "xhigh",
+  });
+});
+
 test("updatePendingRequestStreamChunks stores empty streamChunks object (not null)", () => {
   usageHistory.clearPendingRequests();
   usageHistory.trackPendingRequest("gpt-4", "openai", "conn-1", true);
