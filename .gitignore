@@ -203,8 +203,11 @@ pr_reviews*.json
 
 # internal setup prompts with personal credentials — never commit
 CODEX-SETUP-PROMPT.md
-# Quality ratchet — métricas efêmeras (baseline é commitado, métricas não)
-quality-metrics.json
+# Quality ratchet — métricas efêmeras (baseline commitado em config/quality/; métricas não)
+config/quality/quality-metrics.json
+
+# Runtime logs (diretório local, nunca versionado)
+/logs/
 -home-diegosouzapw-dev-automações-bots-yt-downloader-20260504 .txt
 -home-diegosouzapw-dev-automações-bots-yt-downloader-20260410 .txt
 docs/prompts/AGENT-OWNERSHIP-PROTOCOL.omniroute.md

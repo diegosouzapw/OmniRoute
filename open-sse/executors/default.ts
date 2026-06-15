@@ -151,6 +151,14 @@ function normalizeOpenAIChatUrl(baseUrl) {
   return `${normalized}/v1/chat/completions`;
 }
 
+function getOpenRouterConnectionPreset(
+  providerSpecificData?: Record<string, unknown> | null
+): string | null {
+  const preset =
+    typeof providerSpecificData?.preset === "string" ? providerSpecificData.preset.trim() : "";
+  return preset || null;
+}
+
 export class DefaultExecutor extends BaseExecutor {
   constructor(provider) {
     super(provider, PROVIDERS[provider] || PROVIDERS.openai);
@@ -562,6 +570,16 @@ export class DefaultExecutor extends BaseExecutor {
             defaultsRecord.max_completion_tokens = defaultsRecord.max_tokens;
             delete defaultsRecord.max_tokens;
           }
+        }
+      }
+
+      if (this.provider === "openrouter") {
+        const connectionPreset = getOpenRouterConnectionPreset(credentials?.providerSpecificData);
+        if (connectionPreset && (withDefaults as Record<string, unknown>).preset === undefined) {
+          withDefaults = {
+            ...(withDefaults as Record<string, unknown>),
+            preset: connectionPreset,
+          };
         }
       }
     }

@@ -92,6 +92,29 @@ test("expandAutoComboCandidatePool is a no-op when an explicit candidatePool exi
   assert.equal(result[0].modelStr, "openai/gpt-4o");
 });
 
+test("expandAutoComboCandidatePool falls through to active connections when candidatePool is an empty array", async () => {
+  await providersDb.createProviderConnection({
+    provider: "openai",
+    authType: "apikey",
+    name: "OpenAI",
+    apiKey: "sk-test-openai",
+    defaultModel: "gpt-4o-mini",
+  });
+
+  const expanded = await combo.expandAutoComboCandidatePool([], {
+    config: { auto: { candidatePool: [] } },
+  });
+
+  // An empty candidatePool should NOT trigger early return — the function
+  // should fall through and expand from active connections instead.
+  assert.ok(
+    expanded.length > 0,
+    "expected expansion from active connections despite empty candidatePool"
+  );
+  const openaiTargets = expanded.filter((t) => t.provider === "openai");
+  assert.ok(openaiTargets.length > 0, "expected openai targets to be expanded");
+});
+
 test("expandAutoComboCandidatePool does not duplicate an already-present modelStr", async () => {
   await providersDb.createProviderConnection({
     provider: "openai",

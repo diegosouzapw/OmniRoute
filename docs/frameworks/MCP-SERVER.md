@@ -6,7 +6,7 @@ lastUpdated: 2026-05-30
 
 # OmniRoute MCP Server Documentation
 
-> Model Context Protocol server with 43 tools across routing, cache, compression, memory, skills, proxy, and context source operations.
+> Model Context Protocol server with 87 tools across routing, cache, compression, memory, skills, proxy, and context source operations.
 >
 > Source of truth: `open-sse/mcp-server/schemas/tools.ts` (30 tools) + `open-sse/mcp-server/tools/memoryTools.ts` (3 tools) + `open-sse/mcp-server/tools/skillTools.ts` (4 tools) + `open-sse/mcp-server/tools/notionTools.ts` (6 tools). Tool registration and scope wiring lives in `open-sse/mcp-server/server.ts`.
 

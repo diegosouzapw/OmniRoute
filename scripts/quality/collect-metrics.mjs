@@ -250,6 +250,9 @@ if (import.meta.url === pathToFileURL(process.argv[1] || "").href) {
   coverageByModule();
   openapiCoverage();
   await i18nUiCoverage();
-  fs.writeFileSync(path.join(cwd, "quality-metrics.json"), JSON.stringify(out, null, 2) + "\n");
+  fs.writeFileSync(
+    path.join(cwd, "config/quality/quality-metrics.json"),
+    JSON.stringify(out, null, 2) + "\n"
+  );
   console.log("[collect-metrics]", JSON.stringify(out));
 }
