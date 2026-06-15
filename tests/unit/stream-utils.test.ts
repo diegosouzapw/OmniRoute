@@ -87,6 +87,56 @@ function parseSillyTavernCustomOpenAIStream(text) {
   return { reasoning, content, events };
 }
 
+test("createSSEStream leaves successful pending requests for onComplete finalization", async () => {
+  const usageHistory = await import("../../src/lib/usage/usageHistory.ts");
+  usageHistory.clearPendingRequests();
+
+  const model = "gpt-4";
+  const provider = "openai";
+  const connectionId = "stream-on-complete-finalize";
+  const requestId = usageHistory.trackPendingRequest(model, provider, connectionId, true);
+
+  let finalizedInOnComplete = false;
+  await readTransformed(
+    [
+      `data: ${JSON.stringify({
+        id: "chatcmpl_pending_finalize",
+        object: "chat.completion.chunk",
+        created: 1,
+        model,
+        choices: [{ index: 0, delta: { content: "hello" }, finish_reason: null }],
+      })}\n\n`,
+      `data: ${JSON.stringify({
+        id: "chatcmpl_pending_finalize",
+        object: "chat.completion.chunk",
+        created: 1,
+        model,
+        choices: [{ index: 0, delta: {}, finish_reason: "stop" }],
+        usage: { prompt_tokens: 1, completion_tokens: 1, total_tokens: 2 },
+      })}\n\n`,
+    ],
+    {
+      mode: "passthrough",
+      sourceFormat: FORMATS.OPENAI,
+      provider,
+      model,
+      connectionId,
+      body: { messages: [{ role: "user", content: "hello" }] },
+      onComplete(payload) {
+        finalizedInOnComplete = usageHistory.finalizePendingRequestById(requestId, {
+          providerResponse: payload.providerPayload,
+          clientResponse: payload.clientPayload,
+        });
+      },
+    }
+  );
+
+  assert.equal(finalizedInOnComplete, true);
+  assert.ok(usageHistory.getCompletedDetails().has(requestId));
+  assert.equal(usageHistory.getPendingById().has(requestId), false);
+  usageHistory.clearPendingRequests();
+});
+
 test.after(() => {
   core.resetDbInstance();
   if (fs.existsSync(TEST_DATA_DIR)) {

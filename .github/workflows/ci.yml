@@ -544,10 +544,11 @@ jobs:
           path: coverage-shards/
           merge-multiple: true
       - name: Merge + report + gate
-        # Merging 8 shards of raw v8 coverage is memory-heavy; the default Node
-        # heap OOMs (exit 134). Raise it for the c8 merge/report step.
+        # Merging 8 shards of raw v8 coverage is memory-heavy; the 6 GB heap can
+        # still OOM on large PR runs. Keep this job focused on the gate and
+        # JSON summary that downstream ratchets consume.
         env:
-          NODE_OPTIONS: --max-old-space-size=6144
+          NODE_OPTIONS: --max-old-space-size=8192
         run: |
           mkdir -p coverage
           if [ ! -d coverage-shards ] || ! find coverage-shards -maxdepth 1 -type f -name '*.json' | grep -q .; then
@@ -566,7 +567,6 @@ jobs:
             --reports-dir coverage \
             --reporter=text-summary \
             --reporter=json-summary \
-            --reporter=lcov \
             --exclude=tests/** \
             --exclude=**/*.test.* \
             --check-coverage \
@@ -595,7 +595,6 @@ jobs:
           name: coverage-report
           path: |
             coverage/coverage-summary.json
-            coverage/lcov.info
             coverage/coverage-report.md
           if-no-files-found: warn
 

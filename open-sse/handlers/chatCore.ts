@@ -5524,6 +5524,24 @@ export async function handleChatCore({
     }
     effectiveServiceTier = resolveReportedServiceTier(streamResponseBody) ?? effectiveServiceTier;
 
+    try {
+      const finalizedConnId = connectionId || credentials?.connectionId || null;
+      const completedById = finalizePendingRequestById(pendingRequestId, {
+        providerResponse: providerPayload ?? streamResponseBody ?? undefined,
+        clientResponse: clientPayload ?? streamResponseBody ?? undefined,
+      });
+      if (!completedById) {
+        finalizeMostRecentPendingRequest(model, provider, finalizedConnId, {
+          providerResponse: providerPayload ?? streamResponseBody ?? undefined,
+          clientResponse: clientPayload ?? streamResponseBody ?? undefined,
+        });
+      }
+    } catch (e) {
+      try {
+        console.warn("finalizeMostRecentPendingRequest failed:", e && (e.message || e));
+      } catch {}
+    }
+
     // Track cache token metrics for streaming responses
     if (streamUsage && typeof streamUsage === "object") {
       attachCompressionUsageReceiptAfterAnalytics(streamUsage as Record<string, unknown>, "stream");
@@ -5569,24 +5587,6 @@ export async function handleChatCore({
       claudeCacheUsageMeta: cacheUsageLogMeta,
       cacheSource: "upstream",
     });
-
-    try {
-      const finalizedConnId = connectionId || credentials?.connectionId || null;
-      const completedById = finalizePendingRequestById(pendingRequestId, {
-        providerResponse: providerPayload ?? streamResponseBody ?? undefined,
-        clientResponse: clientPayload ?? streamResponseBody ?? undefined,
-      });
-      if (!completedById) {
-        finalizeMostRecentPendingRequest(model, provider, finalizedConnId, {
-          providerResponse: providerPayload ?? streamResponseBody ?? undefined,
-          clientResponse: clientPayload ?? streamResponseBody ?? undefined,
-        });
-      }
-    } catch (e) {
-      try {
-        console.warn("finalizeMostRecentPendingRequest failed:", e && (e.message || e));
-      } catch {}
-    }
 
     if (apiKeyInfo?.id && streamUsage) {
       calculateCost(provider, model, streamUsage, { serviceTier: effectiveServiceTier })
