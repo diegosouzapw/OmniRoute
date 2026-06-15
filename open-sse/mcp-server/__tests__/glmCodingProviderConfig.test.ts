@@ -7,7 +7,6 @@ import {
   getProviderModels,
 } from "../../config/providerModels.ts";
 import { buildGlmAnthropicMessagesUrl, buildGlmOpenAIChatUrl } from "../../config/glmProvider.ts";
-import { supportsToolCalling } from "../../services/modelCapabilities.ts";
 import { getPricingForModel } from "../../../src/shared/constants/pricing.ts";
 
 describe("GLM Coding provider registry surfaces", () => {
@@ -150,12 +149,15 @@ describe("GLM Coding provider registry surfaces", () => {
   });
 
   it("keeps representative GLM Coding models tool-call capable and priced", () => {
-    expect(supportsToolCalling("glm/glm-5")).toBe(true);
-    expect(supportsToolCalling("glm/glm-4.7-flash")).toBe(true);
-    expect(supportsToolCalling("glm/glm-4.5-air")).toBe(true);
-    expect(supportsToolCalling("glm/glm-5.2")).toBe(true);
-    expect(supportsToolCalling("glm/glm-5.2-high")).toBe(true);
-    expect(supportsToolCalling("glm/glm-5.2-max")).toBe(true);
+    const models = getModelsByProviderId("glm");
+    const get = (id: string) => models.find((m) => m.id === id);
+
+    expect(get("glm-5")?.toolCalling).toBe(true);
+    expect(get("glm-4.7-flash")?.toolCalling).toBe(true);
+    expect(get("glm-4.5-air")?.toolCalling).toBe(true);
+    expect(get("glm-5.2")?.toolCalling).toBe(true);
+    expect(get("glm-5.2-high")?.toolCalling).toBe(true);
+    expect(get("glm-5.2-max")?.toolCalling).toBe(true);
 
     expect(getPricingForModel("glm", "glm-5")).toEqual({
       input: 1.0,
