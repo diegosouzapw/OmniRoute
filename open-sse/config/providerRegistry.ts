@@ -4251,6 +4251,28 @@ const _REGISTRY_EAGER: Record<string, RegistryEntry> = {
     ],
   },
 
+  // #3877: byteplus was in the APIKEY_PROVIDERS catalog but never registered here, so key
+  // validation fell through to {unsupported:true} → the UI reported every key "invalid".
+  // BytePlus ModelArk is an OpenAI-compatible surface (region ap-southeast-1) authed with a
+  // Bearer ark-... key — same shape as the volcengine (Volcengine Ark) entry, different host.
+  byteplus: {
+    id: "byteplus",
+    alias: "bpm",
+    format: "openai",
+    executor: "default",
+    baseUrl: "https://ark.ap-southeast.bytepluses.com/api/v3/chat/completions",
+    modelsUrl: "https://ark.ap-southeast.bytepluses.com/api/v3/models",
+    authType: "apikey",
+    authHeader: "bearer",
+    defaultContextLength: 128000,
+    models: [
+      { id: "seed-2.0", name: "Seed 2.0" },
+      { id: "kimi-k2-thinking", name: "Kimi K2 Thinking", supportsReasoning: true },
+      { id: "glm-4.7", name: "GLM 4.7" },
+      { id: "gpt-oss-120b", name: "GPT-OSS-120B" },
+    ],
+  },
+
   bluesminds: {
     id: "bluesminds",
     alias: "bm",
@@ -4440,15 +4462,16 @@ const _REGISTRY_EAGER: Record<string, RegistryEntry> = {
     baseUrls: ["https://theoldllm.vercel.app/api/chatgpt"],
     authType: "none",
     authHeader: "none",
+    defaultContextLength: 200000,
     models: [
-      { id: "GPT_5_4", name: "GPT-5.4 (The Old LLM 🆓)" },
+      { id: "GPT_5_4", name: "GPT-5.4 (The Old LLM 🆓)", contextLength: 400000 },
       { id: "GPT_4o", name: "GPT-4o (The Old LLM 🆓)" },
-      { id: "claude_opus_4", name: "Claude Opus 4 (The Old LLM 🆓)" },
-      { id: "claude_sonnet_4", name: "Claude Sonnet 4 (The Old LLM 🆓)" },
-      { id: "claude_haiku_3_5", name: "Claude Haiku 3.5 (The Old LLM 🆓)" },
-      { id: "deepseek_v4", name: "DeepSeek V4 (The Old LLM 🆓)" },
-      { id: "gemini_3_flash", name: "Gemini 3 Flash (The Old LLM 🆓)" },
-      { id: "gemini_3_pro", name: "Gemini 3 Pro (The Old LLM 🆓)" },
+      { id: "claude_opus_4", name: "Claude Opus 4 (The Old LLM 🆓)", contextLength: 200000 },
+      { id: "claude_sonnet_4", name: "Claude Sonnet 4 (The Old LLM 🆓)", contextLength: 200000 },
+      { id: "claude_haiku_3_5", name: "Claude Haiku 3.5 (The Old LLM 🆓)", contextLength: 200000 },
+      { id: "deepseek_v4", name: "DeepSeek V4 (The Old LLM 🆓)", contextLength: 200000 },
+      { id: "gemini_3_flash", name: "Gemini 3 Flash (The Old LLM 🆓)", contextLength: 1000000 },
+      { id: "gemini_3_pro", name: "Gemini 3 Pro (The Old LLM 🆓)", contextLength: 1000000 },
     ],
     passthroughModels: true,
   },

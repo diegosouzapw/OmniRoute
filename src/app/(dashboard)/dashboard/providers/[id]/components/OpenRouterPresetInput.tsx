@@ -17,7 +17,8 @@ export default function OpenRouterPresetInput({ value, onChange, t }: OpenRouter
       label={providerText(t, "openRouterPresetLabel", "OpenRouter preset")}
       value={value}
       onChange={(e) => onChange(e.target.value)}
-      placeholder="email-copywriter"
+      placeholder="@preset/slug"
+      data-testid="openrouter-preset-input"
       maxLength={OPENROUTER_PRESET_MAX_LENGTH}
       hint={providerText(
         t,

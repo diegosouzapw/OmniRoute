@@ -4694,6 +4694,7 @@
     "showHiddenOnly": "仅隐藏",
     "filterByVisibility": "按可见性筛选",
     "autoHideFailed": "自动隐藏失败模型",
+    "autoHideFailedHint": "启用后，测试全部会把非临时失败的模型从 /v1/models 等公共目录中隐藏。单模型测试永远不会自动隐藏。",
     "testAllCompleted": "已测试 {total} 个模型：{ok} 个通过，{failed} 个失败",
     "modelAutoHidden": "模型 {model} 已自动隐藏（测试失败）",
     "filterVisible": "仅可见",
