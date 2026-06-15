@@ -6,6 +6,7 @@ const {
   CLAUDE_CODE_COMPATIBLE_DEFAULT_MODELS_PATH,
   CLAUDE_CODE_COMPATIBLE_DEFAULT_MAX_TOKENS,
   CLAUDE_CODE_COMPATIBLE_ANTHROPIC_BETA,
+  CLAUDE_CODE_COMPATIBLE_REDACT_THINKING_BETA,
   CLAUDE_CODE_COMPATIBLE_STAINLESS_TIMEOUT_SECONDS,
   isClaudeCodeCompatibleProvider,
   stripAnthropicMessagesSuffix,
@@ -14,6 +15,7 @@ const {
   joinClaudeCodeCompatibleUrl,
   buildClaudeCodeCompatibleHeaders,
   buildClaudeCodeCompatibleValidationPayload,
+  resolveClaudeCodeCompatibleAnthropicBeta,
   resolveClaudeCodeCompatibleSessionId,
 } = await import("../../open-sse/services/claudeCodeCompatible.ts");
 
@@ -61,6 +63,10 @@ test("Claude Code compatible beta set matches the stable API-key Claude CLI prof
   assert.ok(CLAUDE_CODE_COMPATIBLE_ANTHROPIC_BETA.includes("claude-code-20250219"));
   assert.ok(CLAUDE_CODE_COMPATIBLE_ANTHROPIC_BETA.includes("interleaved-thinking-2025-05-14"));
   assert.ok(CLAUDE_CODE_COMPATIBLE_ANTHROPIC_BETA.includes("effort-2025-11-24"));
+  assert.equal(
+    CLAUDE_CODE_COMPATIBLE_ANTHROPIC_BETA.includes(CLAUDE_CODE_COMPATIBLE_REDACT_THINKING_BETA),
+    false
+  );
   assert.equal(CLAUDE_CODE_COMPATIBLE_ANTHROPIC_BETA.includes("oauth-2025-04-20"), false);
   assert.equal(
     CLAUDE_CODE_COMPATIBLE_ANTHROPIC_BETA.includes("context-management-2025-06-27"),
@@ -69,6 +75,33 @@ test("Claude Code compatible beta set matches the stable API-key Claude CLI prof
   assert.equal(
     CLAUDE_CODE_COMPATIBLE_ANTHROPIC_BETA.includes("prompt-caching-scope-2026-01-05"),
     false
+  );
+});
+
+test("Claude Code compatible redacted thinking beta is explicit opt-in", () => {
+  assert.equal(
+    resolveClaudeCodeCompatibleAnthropicBeta({}).includes(
+      CLAUDE_CODE_COMPATIBLE_REDACT_THINKING_BETA
+    ),
+    false
+  );
+  assert.equal(
+    resolveClaudeCodeCompatibleAnthropicBeta({ redactThinking: true }).includes(
+      CLAUDE_CODE_COMPATIBLE_REDACT_THINKING_BETA
+    ),
+    true
+  );
+  assert.equal(
+    buildClaudeCodeCompatibleHeaders("sk-demo", true)["anthropic-beta"].includes(
+      CLAUDE_CODE_COMPATIBLE_REDACT_THINKING_BETA
+    ),
+    false
+  );
+  assert.equal(
+    buildClaudeCodeCompatibleHeaders("sk-demo", true, undefined, {
+      redactThinking: true,
+    })["anthropic-beta"].includes(CLAUDE_CODE_COMPATIBLE_REDACT_THINKING_BETA),
+    true
   );
 });
 

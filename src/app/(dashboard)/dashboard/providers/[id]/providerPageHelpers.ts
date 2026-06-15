@@ -677,12 +677,11 @@ export function getCodexRequestDefaults(providerSpecificData: unknown): {
   };
 }
 
-export function getClaudeCodeCompatibleRequestDefaults(providerSpecificData: unknown): {
-  context1m: boolean;
-} {
+export function getClaudeCodeCompatibleRequestDefaults(providerSpecificData: unknown) {
   const defaults = _getClaudeCodeCompatibleRequestDefaults(providerSpecificData);
   return {
     context1m: defaults.context1m === true,
+    redactThinking: defaults.redactThinking === true,
   };
 }
 

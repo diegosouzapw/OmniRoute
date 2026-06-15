@@ -30,6 +30,7 @@ import { buildSapChatUrl, getSapResourceGroup } from "../config/sap.ts";
 import { buildMaritalkChatUrl } from "../config/maritalk.ts";
 import { LOCAL_PROVIDERS } from "@/shared/constants/providers";
 import { isForbiddenCustomHeaderName } from "@/shared/constants/upstreamHeaders";
+import { getClaudeCodeCompatibleRequestDefaults } from "@/lib/providers/requestDefaults";
 
 import type { PoolConfig } from "../services/sessionPool/types.ts";
 
@@ -149,6 +150,14 @@ function normalizeOpenAIChatUrl(baseUrl) {
   // Assume OpenAI-compatible /v1/chat/completions path structure
   // when the base URL is a bare hostname or custom path (e.g. llama.cpp, vLLM, LM Studio).
   return `${normalized}/v1/chat/completions`;
+}
+
+function getOpenRouterConnectionPreset(
+  providerSpecificData?: Record<string, unknown> | null
+): string | null {
+  const preset =
+    typeof providerSpecificData?.preset === "string" ? providerSpecificData.preset.trim() : "";
+  return preset || null;
 }
 
 export class DefaultExecutor extends BaseExecutor {
@@ -423,10 +432,14 @@ export class DefaultExecutor extends BaseExecutor {
         break;
       default:
         if (isClaudeCodeCompatible(this.provider)) {
+          const ccRequestDefaults = getClaudeCodeCompatibleRequestDefaults(
+            credentials?.providerSpecificData
+          );
           const ccHeaders = buildClaudeCodeCompatibleHeaders(
             effectiveKey || credentials.accessToken || "",
             stream,
-            credentials?.providerSpecificData?.ccSessionId
+            credentials?.providerSpecificData?.ccSessionId,
+            { redactThinking: ccRequestDefaults.redactThinking === true }
           );
           // CC nodes are also anthropic-compatible-*, so honor operator custom
           // headers here (the early return skips the shared block below).
@@ -562,6 +575,16 @@ export class DefaultExecutor extends BaseExecutor {
             defaultsRecord.max_completion_tokens = defaultsRecord.max_tokens;
             delete defaultsRecord.max_tokens;
           }
+        }
+      }
+
+      if (this.provider === "openrouter") {
+        const connectionPreset = getOpenRouterConnectionPreset(credentials?.providerSpecificData);
+        if (connectionPreset && (withDefaults as Record<string, unknown>).preset === undefined) {
+          withDefaults = {
+            ...(withDefaults as Record<string, unknown>),
+            preset: connectionPreset,
+          };
         }
       }
     }

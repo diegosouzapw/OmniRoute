@@ -3,6 +3,7 @@ const CLAUDE_CODE_COMPATIBLE_PROVIDER_PREFIX = "anthropic-compatible-cc-";
 
 import { normalizeExcludedModelPatterns } from "@/domain/connectionModelRules";
 import { normalizeRoutingTags } from "@/domain/tagRouter";
+import { normalizeOpenRouterPreset } from "@/shared/constants/openRouterPreset";
 
 export const CODEX_REASONING_EFFORT_VALUES = ["none", "low", "medium", "high", "xhigh"] as const;
 
@@ -60,6 +61,10 @@ export function normalizeClaudeCodeCompatibleContext1m(value: unknown): true | u
   return value === true ? true : undefined;
 }
 
+export function normalizeClaudeCodeCompatibleRedactThinking(value: unknown): true | undefined {
+  return value === true ? true : undefined;
+}
+
 export function normalizeRequestDefaults(
   provider: string | null | undefined,
   value: unknown
@@ -91,6 +96,13 @@ export function normalizeRequestDefaults(
       normalized.context1m = true;
     } else {
       delete normalized.context1m;
+    }
+
+    const redactThinking = normalizeClaudeCodeCompatibleRedactThinking(record.redactThinking);
+    if (redactThinking) {
+      normalized.redactThinking = true;
+    } else {
+      delete normalized.redactThinking;
     }
   }
 
@@ -130,6 +142,15 @@ export function normalizeProviderSpecificData(
 
   if ("autoFetchModels" in normalized && typeof normalized.autoFetchModels !== "boolean") {
     delete normalized.autoFetchModels;
+  }
+
+  if ("preset" in normalized) {
+    const preset = provider === "openrouter" ? normalizeOpenRouterPreset(normalized.preset) : null;
+    if (preset) {
+      normalized.preset = preset;
+    } else {
+      delete normalized.preset;
+    }
   }
 
   if (provider === "bedrock" && "region" in normalized) {
@@ -257,13 +278,16 @@ export function getCodexRequestDefaults(providerSpecificData: unknown): {
 
 export function getClaudeCodeCompatibleRequestDefaults(providerSpecificData: unknown): {
   context1m?: true;
+  redactThinking?: true;
 } {
   const defaults = getProviderRequestDefaults(
     "anthropic-compatible-cc-default",
     providerSpecificData
   );
   const context1m = normalizeClaudeCodeCompatibleContext1m(defaults.context1m);
+  const redactThinking = normalizeClaudeCodeCompatibleRedactThinking(defaults.redactThinking);
   return {
     ...(context1m ? { context1m } : {}),
+    ...(redactThinking ? { redactThinking } : {}),
   };
 }

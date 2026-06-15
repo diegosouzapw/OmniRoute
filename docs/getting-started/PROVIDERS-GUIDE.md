@@ -10,12 +10,12 @@ Think of a provider like a **phone carrier**. Just as you need a phone carrier t
 
 ### Types of Providers
 
-| Type | What It Is | Examples | Cost |
-|------|-----------|----------|------|
-| **Free** | No payment required | Kiro, OpenCode Free, Pollinations | $0 |
-| **API Key** | You need an API key | OpenAI, Anthropic, Google | Pay per use |
-| **OAuth** | Login with your account | Claude Code, GitHub Copilot | Subscription |
-| **Web Cookie** | Uses your browser session | ChatGPT Web, Gemini Web | $0 (uses your account) |
+| Type           | What It Is                | Examples                          | Cost                   |
+| -------------- | ------------------------- | --------------------------------- | ---------------------- |
+| **Free**       | No payment required       | Kiro, OpenCode Free, Pollinations | $0                     |
+| **API Key**    | You need an API key       | OpenAI, Anthropic, Google         | Pay per use            |
+| **OAuth**      | Login with your account   | Claude Code, GitHub Copilot       | Subscription           |
+| **Web Cookie** | Uses your browser session | ChatGPT Web, Gemini Web           | $0 (uses your account) |
 
 ---
 
@@ -64,17 +64,17 @@ Think of a provider like a **phone carrier**. Just as you need a phone carrier t
 
 These providers offer **free access** with no credit card:
 
-| Provider | Free Quota | Models | How to Connect |
-|----------|-----------|--------|----------------|
-| **Kiro AI** | 50 credits/month | Claude Sonnet 4.5, Haiku 4.5, Opus 4.6 | No auth needed |
-| **OpenCode Free** | Unlimited | GPT-4o, Claude, Gemini | No auth needed |
-| **Pollinations** | No key needed | GPT-5, Claude, Gemini, DeepSeek, Llama 4 | No auth needed |
-| **LongCat** | 50M tokens/day | LongCat-Flash-Lite | No auth needed |
-| **Cloudflare AI** | 10K neurons/day | 50+ models | No auth needed |
-| **NVIDIA NIM** | ~40 RPM | 129 models | API key needed |
-| **Cerebras** | 1M tokens/day | Qwen3 235B, GPT-OSS 120B | API key needed |
-| **Qwen** | Unlimited | Qwen3-coder-plus/flash/next | No auth needed |
-| **Qoder** | Unlimited | Kimi-K2, DeepSeek-R1, Qwen3-coder | No auth needed |
+| Provider          | Free Quota       | Models                                   | How to Connect |
+| ----------------- | ---------------- | ---------------------------------------- | -------------- |
+| **Kiro AI**       | 50 credits/month | Claude Sonnet 4.5, Haiku 4.5, Opus 4.6   | No auth needed |
+| **OpenCode Free** | Unlimited        | GPT-4o, Claude, Gemini                   | No auth needed |
+| **Pollinations**  | No key needed    | GPT-5, Claude, Gemini, DeepSeek, Llama 4 | No auth needed |
+| **LongCat**       | 50M tokens/day   | LongCat-Flash-Lite                       | No auth needed |
+| **Cloudflare AI** | 10K neurons/day  | 50+ models                               | No auth needed |
+| **NVIDIA NIM**    | ~40 RPM          | 129 models                               | API key needed |
+| **Cerebras**      | 1M tokens/day    | Qwen3 235B, GPT-OSS 120B                 | API key needed |
+| **Qwen**          | Unlimited        | Qwen3-coder-plus/flash/next              | No auth needed |
+| **Qoder**         | Unlimited        | Kimi-K2, DeepSeek-R1, Qwen3-coder        | No auth needed |
 
 **Tip**: Connect multiple free providers for **unlimited free AI** with automatic fallback!
 
@@ -84,14 +84,14 @@ These providers offer **free access** with no credit card:
 
 These providers offer **high-quality models** with API keys:
 
-| Provider | Best Models | Cost | Free Tier |
-|----------|------------|------|-----------|
-| **OpenAI** | GPT-5, GPT-4o | $2.50-$10/1M tokens | $5 free credits |
-| **Anthropic** | Claude Opus 4.6, Sonnet 4.6 | $3-$15/1M tokens | $5 free credits |
-| **Google** | Gemini 2.5 Pro, Flash | $0.075-$1.25/1M tokens | 1,500 req/day free |
-| **DeepSeek** | DeepSeek V4 | $0.14-$0.28/1M tokens | 5M free tokens |
-| **Groq** | Llama 4, Mixtral | $0.05-$0.27/1M tokens | 30 RPM free |
-| **xAI** | Grok 3 | $0.30-$0.60/1M tokens | — |
+| Provider      | Best Models                 | Cost                   | Free Tier          |
+| ------------- | --------------------------- | ---------------------- | ------------------ |
+| **OpenAI**    | GPT-5, GPT-4o               | $2.50-$10/1M tokens    | $5 free credits    |
+| **Anthropic** | Claude Opus 4.6, Sonnet 4.6 | $3-$15/1M tokens       | $5 free credits    |
+| **Google**    | Gemini 2.5 Pro, Flash       | $0.075-$1.25/1M tokens | 1,500 req/day free |
+| **DeepSeek**  | DeepSeek V4                 | $0.14-$0.28/1M tokens  | 5M free tokens     |
+| **Groq**      | Llama 4, Mixtral            | $0.05-$0.27/1M tokens  | 30 RPM free        |
+| **xAI**       | Grok 3                      | $0.30-$0.60/1M tokens  | —                  |
 
 ---
 
@@ -217,4 +217,4 @@ Go to Providers → click on the provider → click **Disconnect**.
 - **[Auto-Combo Guide](./AUTO-COMBO-GUIDE.md)** — Let OmniRoute pick the best AI for you
 - **[Free Tiers Guide](./FREE-TIERS-GUIDE.md)** — Get free AI with no credit card
 - **[Troubleshooting](./TROUBLESHOOTING.md)** — Fix common issues
-- **[Provider Reference](../reference/PROVIDER_REFERENCE.md)** — Full list of 177 providers
+- **[Provider Reference](../reference/PROVIDER_REFERENCE.md)** — Full list of 226 providers

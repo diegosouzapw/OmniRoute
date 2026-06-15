@@ -10,6 +10,7 @@ process.env.DATA_DIR = TEST_DATA_DIR;
 
 const core = await import("../../src/lib/db/core.ts");
 const settingsDb = await import("../../src/lib/db/settings.ts");
+const { invalidateDbCache } = await import("../../src/lib/db/readCache.ts");
 const { invalidateCacheControlSettingsCache } =
   await import("../../src/lib/cacheControlSettings.ts");
 const { clearCache } = await import("../../src/lib/semanticCache.ts");
@@ -17,14 +18,12 @@ const { clearIdempotency } = await import("../../src/lib/idempotencyLayer.ts");
 const { getPendingRequests, clearPendingRequests } =
   await import("../../src/lib/usage/usageHistory.ts");
 const { clearInflight } = await import("../../open-sse/services/requestDedup.ts");
-const {
-  resetAll: resetAccountSemaphores,
-} = await import("../../open-sse/services/accountSemaphore.ts");
+const { resetAll: resetAccountSemaphores } =
+  await import("../../open-sse/services/accountSemaphore.ts");
 const { clearModelLock } = await import("../../open-sse/services/accountFallback.ts");
 const { getCallLogs, getCallLogById } = await import("../../src/lib/usage/callLogs.ts");
 const { handleChatCore } = await import("../../open-sse/handlers/chatCore.ts");
-const { resetPayloadRulesConfigForTests } =
-  await import("../../open-sse/services/payloadRules.ts");
+const { resetPayloadRulesConfigForTests } = await import("../../open-sse/services/payloadRules.ts");
 
 const originalFetch = globalThis.fetch;
 
@@ -61,11 +60,22 @@ async function resetStorage() {
   clearInflight();
   clearModelLock();
   core.resetDbInstance();
+  // A full reset must also drop the settings read-cache. Otherwise the cached
+  // value (e.g. call_log_pipeline_enabled=true seeded earlier) survives the DB
+  // wipe and silently masks the fact that the fresh DB has the default. In CI
+  // under load this cache is evicted at unpredictable times, so tests that rely
+  // on the stale cache flake. Make the reset honest and deterministic here.
+  invalidateDbCache("settings");
   fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
   fs.mkdirSync(TEST_DATA_DIR, { recursive: true });
 }
 
-test.before(async () => {
+// Re-seed per test, NOT once: every `afterEach` runs resetStorage(), which wipes
+// the DB and drops the settings cache. A run-once `before` only guaranteed the
+// flag for the first test; later tests depended on a stale cache surviving the
+// wipe, which flakes under CI load. beforeEach re-establishes it deterministically.
+test.beforeEach(async () => {
+  await resetStorage();
   await settingsDb.updateSettings({ call_log_pipeline_enabled: true });
 });
 
@@ -117,22 +127,23 @@ test("network failure persisted call log includes providerRequest in pipeline pa
   const detail = await waitFor(getLatestCallLog);
   assert.ok(detail, "expected a call log to be persisted");
 
-  assert.ok(detail.pipelinePayloads, "expected pipeline payloads when call_log_pipeline_enabled is true");
+  assert.ok(
+    detail.pipelinePayloads,
+    "expected pipeline payloads when call_log_pipeline_enabled is true"
+  );
   assert.ok(
     detail.pipelinePayloads.providerRequest,
     "providerRequest must be present in pipeline payloads even on network failure"
   );
   const providerReqBody =
-    detail.pipelinePayloads.providerRequest.body ??
-    detail.pipelinePayloads.providerRequest;
+    detail.pipelinePayloads.providerRequest.body ?? detail.pipelinePayloads.providerRequest;
   assert.equal(
     providerReqBody.model,
     "gpt-4o-mini",
     "providerRequest should contain the translated model"
   );
   const messages =
-    providerReqBody.messages ??
-    (Array.isArray(providerReqBody) ? providerReqBody : null);
+    providerReqBody.messages ?? (Array.isArray(providerReqBody) ? providerReqBody : null);
   if (messages) {
     assert.equal(messages[0]?.content, "hello");
   }
@@ -141,10 +152,7 @@ test("network failure persisted call log includes providerRequest in pipeline pa
     null,
     "providerResponse should be null/absent on network failure (no response received)"
   );
-  assert.ok(
-    detail.pipelinePayloads.error,
-    "pipeline payloads should include the error details"
-  );
+  assert.ok(detail.pipelinePayloads.error, "pipeline payloads should include the error details");
 });
 
 test("network timeout persisted call log includes providerRequest in pipeline payloads", async () => {
@@ -181,10 +189,7 @@ test("network timeout persisted call log includes providerRequest in pipeline pa
     await waitForAsyncSideEffects();
 
     assert.equal(result.success, false);
-    assert.ok(
-      result.status === 504,
-      `expected 504 timeout, got ${result.status}`
-    );
+    assert.ok(result.status === 504, `expected 504 timeout, got ${result.status}`);
 
     const detail = await waitFor(getLatestCallLog);
     assert.ok(detail, "expected a call log to be persisted");
@@ -195,12 +200,8 @@ test("network timeout persisted call log includes providerRequest in pipeline pa
       "providerRequest must be present in pipeline payloads on timeout"
     );
     const providerReqBody =
-      detail.pipelinePayloads?.providerRequest?.body ??
-      detail.pipelinePayloads?.providerRequest;
-    assert.equal(
-      providerReqBody?.model,
-      "gpt-4o-mini"
-    );
+      detail.pipelinePayloads?.providerRequest?.body ?? detail.pipelinePayloads?.providerRequest;
+    assert.equal(providerReqBody?.model, "gpt-4o-mini");
   } finally {
     if (originalGetTimeoutMs) executor.getTimeoutMs = originalGetTimeoutMs;
   }
@@ -311,10 +312,7 @@ test("successful response includes both providerRequest and providerResponse in 
   assert.ok(detail, "expected a call log to be persisted");
 
   assert.ok(detail.pipelinePayloads, "expected pipeline payloads");
-  assert.ok(
-    detail.pipelinePayloads.providerRequest,
-    "providerRequest must be present on success"
-  );
+  assert.ok(detail.pipelinePayloads.providerRequest, "providerRequest must be present on success");
   assert.ok(
     detail.pipelinePayloads.providerResponse,
     "providerResponse must be present on success"

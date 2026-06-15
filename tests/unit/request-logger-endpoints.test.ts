@@ -168,6 +168,75 @@ test("GET /api/usage/call-logs/[id] route exists and uses auth", () => {
   assert.ok(content.includes("getCallLogById"), "should import getCallLogById");
 });
 
+test("GET /api/usage/call-logs includes completed in-memory fallback rows", async () => {
+  const { buildCallLogListRows } = await import("../../src/app/api/usage/call-logs/route.ts");
+  usageHistory.clearPendingRequests();
+
+  const requestId = usageHistory.trackPendingRequest("gpt-4", "openai", "completed-conn-1", true, {
+    clientEndpoint: "/v1/chat/completions",
+  });
+  assert.ok(requestId);
+
+  const completed = usageHistory.finalizePendingRequestById(requestId, {
+    clientResponse: { choices: [{ message: { content: "done" } }] },
+  });
+  assert.equal(completed, true);
+
+  const completedDetail = usageHistory.getCompletedDetails().get(requestId);
+  assert.ok(completedDetail);
+  const rows = buildCallLogListRows({
+    logs: [],
+    connections: [{ id: "completed-conn-1", displayName: "Completed Account" }],
+    pendingDetails: usageHistory.getPendingById().values(),
+    completedDetails: usageHistory.getCompletedDetails().values(),
+    now: completedDetail!.startedAt + 60_000,
+  });
+
+  assert.equal(rows.length, 1);
+  assert.equal(rows[0].id, requestId);
+  assert.equal(rows[0].detailState, "in-memory");
+  assert.equal(rows[0].completed, true);
+  assert.equal(rows[0].account, "Completed Account");
+  assert.equal(rows[0].duration, completedDetail!.durationMs);
+});
+
+test("GET /api/usage/call-logs rows are globally timestamp ordered", async () => {
+  const { buildCallLogListRows } = await import("../../src/app/api/usage/call-logs/route.ts");
+  const rows = buildCallLogListRows({
+    logs: [
+      {
+        id: "persisted-newest",
+        timestamp: new Date(3000).toISOString(),
+        active: false,
+      },
+      {
+        id: "persisted-oldest",
+        timestamp: new Date(1000).toISOString(),
+        active: false,
+      },
+    ],
+    connections: [],
+    pendingDetails: [],
+    completedDetails: [
+      {
+        id: "completed-middle",
+        model: "gpt-4",
+        provider: "openai",
+        connectionId: "conn",
+        startedAt: 2000,
+        completedAt: 2500,
+        durationMs: 500,
+      },
+    ],
+    now: 4000,
+  });
+
+  assert.deepEqual(
+    rows.map((row) => row.id),
+    ["persisted-newest", "completed-middle", "persisted-oldest"]
+  );
+});
+
 test("getCallLogById returns null for unknown id", async () => {
   const log = await callLogs.getCallLogById("nonexistent-id-12345");
   assert.equal(log, null);
@@ -380,6 +449,49 @@ test("createRequestLogger with connectionId/model/provider populates streamChunk
   assert.equal(detail.streamChunks.provider[1], 'data: {"content":" world"}');
   assert.deepEqual(detail.streamChunks.openai, []);
   assert.deepEqual(detail.streamChunks.client, []);
+});
+
+test("createRequestLogger requestId binds streamChunks to the exact pending request", async () => {
+  const { createRequestLogger } = await import("../../open-sse/utils/requestLogger.ts");
+  usageHistory.clearPendingRequests();
+
+  const firstId = usageHistory.trackPendingRequest("gpt-4", "openai", "test-conn-a", true);
+  const secondId = usageHistory.trackPendingRequest("gpt-4", "openai", "test-conn-b", true);
+
+  const logger = await createRequestLogger("openai", "openai", "gpt-4", {
+    enabled: true,
+    captureStreamChunks: true,
+    requestId: secondId,
+  });
+
+  logger.appendProviderChunk('data: {"content":"second"}');
+
+  const first = usageHistory.getPendingById().get(firstId);
+  const second = usageHistory.getPendingById().get(secondId);
+
+  assert.equal(first?.streamChunks, undefined);
+  assert.equal(second?.streamChunks?.provider[0], 'data: {"content":"second"}');
+});
+
+test("createRequestLogger fallback match does not cross connectionId boundaries", async () => {
+  const { createRequestLogger } = await import("../../open-sse/utils/requestLogger.ts");
+  usageHistory.clearPendingRequests();
+
+  usageHistory.trackPendingRequest("gpt-4", "openai", "test-conn-a", true);
+  const secondId = usageHistory.trackPendingRequest("gpt-4", "openai", "test-conn-b", true);
+
+  const logger = await createRequestLogger("openai", "openai", "gpt-4", {
+    enabled: true,
+    captureStreamChunks: true,
+    connectionId: "test-conn-b",
+    model: "gpt-4",
+    provider: "openai",
+  });
+
+  logger.appendProviderChunk('data: {"content":"conn-b"}');
+
+  const second = usageHistory.getPendingById().get(secondId);
+  assert.equal(second?.streamChunks?.provider[0], 'data: {"content":"conn-b"}');
 });
 
 test("createRequestLogger without connectionId does not populate streamChunks", async () => {

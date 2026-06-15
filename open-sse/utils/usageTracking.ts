@@ -264,6 +264,8 @@ export function normalizeUsage(usage) {
   assignNumber("prompt_tokens", usage?.prompt_tokens);
   assignNumber("completion_tokens", usage?.completion_tokens);
   assignNumber("total_tokens", usage?.total_tokens);
+  assignNumber("input_tokens", usage?.input_tokens);
+  assignNumber("output_tokens", usage?.output_tokens);
   assignNumber("cache_read_input_tokens", usage?.cache_read_input_tokens);
   assignNumber("cache_creation_input_tokens", usage?.cache_creation_input_tokens);
   assignNumber("cached_tokens", usage?.cached_tokens);
@@ -323,6 +325,8 @@ export function extractUsage(chunk) {
       return normalizeUsage({
         prompt_tokens: inputTokens + cacheRead + cacheCreation,
         completion_tokens: u.output_tokens || u.completion_tokens || 0,
+        input_tokens: inputTokens + cacheRead + cacheCreation,
+        output_tokens: u.output_tokens || u.completion_tokens || 0,
         cache_read_input_tokens: u.cache_read_input_tokens,
         cache_creation_input_tokens: u.cache_creation_input_tokens,
       });
@@ -337,6 +341,8 @@ export function extractUsage(chunk) {
     return normalizeUsage({
       prompt_tokens: deltaInput + deltaCacheRead + deltaCacheCreation,
       completion_tokens: chunk.usage.output_tokens || 0,
+      input_tokens: deltaInput + deltaCacheRead + deltaCacheCreation,
+      output_tokens: chunk.usage.output_tokens || 0,
       cache_read_input_tokens: chunk.usage.cache_read_input_tokens,
       cache_creation_input_tokens: chunk.usage.cache_creation_input_tokens,
     });

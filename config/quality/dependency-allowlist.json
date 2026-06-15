@@ -13,6 +13,8 @@
     "@ngrok/ngrok",
     "@opencode-ai/plugin",
     "@playwright/test",
+    "@stryker-mutator/core",
+    "@stryker-mutator/tap-runner",
     "@swc/helpers",
     "@tailwindcss/postcss",
     "@testing-library/jest-dom",

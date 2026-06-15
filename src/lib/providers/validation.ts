@@ -2120,7 +2120,7 @@ async function validateNousResearchProvider({ apiKey, providerSpecificData = {} 
     typeof providerSpecificData.validationModelId === "string" &&
     providerSpecificData.validationModelId.trim()
       ? providerSpecificData.validationModelId.trim()
-      : "nousresearch/hermes-4-70b";
+      : "Hermes-4-70B";
 
   try {
     const response = await validationWrite(chatUrl, {
@@ -2156,6 +2156,19 @@ async function validateNousResearchProvider({ apiKey, providerSpecificData = {} 
 
     if (response.status >= 500) {
       return { valid: false, error: `Provider unavailable (${response.status})` };
+    }
+
+    // #3881: any other non-auth 4xx (e.g. 400 model-not-found, 404, 422) means the
+    // credentials were accepted — only the probe model/request shape was rejected.
+    // Treat as valid (mirrors the longcat/nvidia validators) so a model rename upstream
+    // can't make a working key read as "invalid".
+    if (response.status >= 400 && response.status < 500) {
+      return {
+        valid: true,
+        error: null,
+        method: "nous_chat_completions",
+        warning: `Credentials valid (probe returned ${response.status})`,
+      };
     }
   } catch (error: any) {
     return toValidationErrorResult(error);
@@ -4184,6 +4197,52 @@ export async function validateProviderApiKey({ provider, apiKey, providerSpecifi
           return { valid: false, error: "Invalid API key" };
         }
         // Any non-auth response (200, 400, 422, 429) means auth passed
+        return { valid: true, error: null };
+      } catch (error: any) {
+        return toValidationErrorResult(error);
+      }
+    },
+    // Z.AI (glm) — bypass the proxy/TLS-patched fetch for the same reason as nvidia
+    // above (#3905): the undici dispatcher stalls against api.z.ai after the provider
+    // returns 502 "job timed out" responses, because z.ai silently drops idle
+    // keep-alive sockets without sending TCP RST. Using directHttpsRequest (native
+    // Node.js HTTPS, no undici pool) avoids the zombie-socket hang on validation.
+    // Z.AI uses the Anthropic wire format with x-api-key auth, not Bearer.
+    zai: async ({ apiKey, providerSpecificData }: any) => {
+      try {
+        // providerSpecificData.baseUrl allows test overrides to point at a local
+        // HTTP server; production always uses the fixed api.z.ai endpoint.
+        const messagesUrl = providerSpecificData?.baseUrl
+          ? `${normalizeBaseUrl(providerSpecificData.baseUrl).split("?")[0]}?beta=true`
+          : "https://api.z.ai/api/anthropic/v1/messages?beta=true";
+        const res = await directHttpsRequest(
+          messagesUrl,
+          {
+            method: "POST",
+            headers: {
+              "x-api-key": apiKey,
+              "anthropic-version": "2023-06-01",
+              "content-type": "application/json",
+            },
+            body: JSON.stringify({
+              model: "glm-5.1",
+              messages: [{ role: "user", content: "test" }],
+              max_tokens: 1,
+            }),
+          },
+          20000
+        );
+        if (res.status === 401 || res.status === 403) {
+          return { valid: false, error: "Invalid API key" };
+        }
+        if (res.status === 404 || res.status === 405) {
+          return { valid: false, error: "Provider validation endpoint not supported" };
+        }
+        if (res.status >= 500 && res.status !== 502) {
+          return { valid: false, error: `Provider unavailable (${res.status})` };
+        }
+        // Any non-auth response (200, 400, 422, 429, 502) means auth passed;
+        // 502 "job timed out" is z.ai's own server-side queue limit, not an auth error.
         return { valid: true, error: null };
       } catch (error: any) {
         return toValidationErrorResult(error);
