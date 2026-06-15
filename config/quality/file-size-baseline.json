@@ -5,6 +5,7 @@
   "_rebaseline_2026_06_15_3885_glm_5_2": "PR #3885 own growth: pricing.ts 1508->1529 (+21 = GLM-5.2 pricing rows for glm-5.2 + effort aliases glm-5.2-high/-max, same $1.2/$5 schedule as glm-5.1; pure data). Also adds glm-5.2 specs to glmProvider.ts/modelSpecs.ts (modelSpecs.ts stays under cap). Cohesive model registration; not extractable.",
   "_rebaseline_2026_06_15_3870_alias_lookup": "PR #3870 own growth: providerRegistry.ts 4703->4708 (+5 = generateModels() also stores each provider's models under its raw id, not only its alias, so getProviderModels(rawId) works when alias != id e.g. github->gh; preserves the existing first-wins guard). Cohesive registry fix; not extractable.",
   "_rebaseline_2026_06_15_3846_sticky_combo_rr": "PR #3846 own growth: combo.ts 5204->5277 (+73 = combo-level sticky round-robin reusing the existing global stickyRoundRobinLimit knob #3847 added for account fallback: rrStickyTargets map + clampStickyRoundRobinTargetLimit + getStickyRoundRobinStartIndex/recordStickyRoundRobinSuccess helpers wired into handleRoundRobinCombo, with sticky-eviction tied to rrCounters eviction). Cohesive routing logic in the combo handler; not a movable block. Structural shrink of combo.ts tracked in #3501.",
+  "_rebaseline_2026_06_15_3906_proxy_direct_fallback": "PR #3906 own growth: oauth/[provider]/[action]/route.ts 916->918 (+2 = swap runWithProxyContext -> runWithProxyContextOrDirect at the control-plane callsites so a dead pinned proxy degrades to a direct connection instead of a 500; the longer call name + a prettier reflow add the lines). Cohesive control-plane change; not extractable.",
   "_rebaseline_2026_06_15_3871_empty_pool": "PR #3871 own growth: combo.ts 5203->5204 (+1 = guard expandAutoComboCandidatePool against an empty candidatePool array — Array.isArray(pool) && pool.length > 0 so [] falls through to active-connection expansion instead of early-returning). One-line correctness fix; not extractable.",
   "cap": 800,
   "frozen": {
@@ -77,7 +78,7 @@
     "src/app/(dashboard)/dashboard/usage/components/BudgetTab.tsx": 1016,
     "src/app/(dashboard)/dashboard/usage/components/EvalsTab.tsx": 2148,
     "src/app/(dashboard)/dashboard/usage/components/ProviderLimits/index.tsx": 1069,
-    "src/app/api/oauth/[provider]/[action]/route.ts": 916,
+    "src/app/api/oauth/[provider]/[action]/route.ts": 918,
     "src/app/api/providers/[id]/models/route.ts": 2489,
     "src/app/api/providers/[id]/test/route.ts": 842,
     "src/app/api/usage/analytics/route.ts": 941,
