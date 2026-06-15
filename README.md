@@ -439,7 +439,25 @@ claude mcp add-server omniroute --type http --url http://localhost:20128/api/mcp
 
 </div>
 
-> **Why use many token when few token do trick?** Every request passes through OmniRoute's compression pipeline **transparently** — no client changes. It stacks ideas from [RTK](https://github.com/rtk-ai/rtk), [Caveman](https://github.com/JuliusBrussee/caveman) (⭐ 51K+), and [Troglodita](https://github.com/leninejunior/troglodita) (PT-BR).
+> **Why use many token when few token do trick?** Every request passes through OmniRoute's compression pipeline **transparently** — no client changes. It's now a **stack of 9 composable engines** that run in order and mix & match per routing combo — building on ideas from [RTK](https://github.com/rtk-ai/rtk), [Caveman](https://github.com/JuliusBrussee/caveman) (⭐ 51K+), [LLMLingua-2](https://github.com/microsoft/LLMLingua), and [Troglodita](https://github.com/leninejunior/troglodita) (PT-BR).
+
+### 🧱 The 9-engine stack
+
+Engines run in pipeline order; each is independently toggleable and configurable per combo:
+
+| #   | Engine            | What it does                                                              |
+| --- | ----------------- | ------------------------------------------------------------------------ |
+| 1   | **Session-Dedup** | Drops content repeated across turns (content-addressed, cross-turn)      |
+| 2   | **CCR**           | Archives large blocks behind retrieve markers, fetched on demand         |
+| 3   | **RTK**           | Smart tool-result filtering, dedup & truncation (command-aware)          |
+| 4   | **Headroom**      | Lossless tabular compaction of homogeneous JSON arrays (~30%+)           |
+| 5   | **Caveman**       | Rule-based prose compression (~65–75% on output)                         |
+| 6   | **LLMLingua-2**   | ML semantic pruning via MobileBERT ONNX — code-safe, async               |
+| 7   | **Lite**          | Whitespace + image-URL trimming (latency-light baseline)                 |
+| 8   | **Aggressive**    | Summarization + progressive aging of old turns                          |
+| 9   | **Ultra**         | Heuristic token pruning with an optional small-model (SLM) tier          |
+
+Code blocks, URLs and structured data are **always preserved** byte-perfect. **One-click presets** combine the engines:
 
 | Mode                           | Savings    | Best for                    |
 | ------------------------------ | ---------- | --------------------------- |
@@ -471,7 +489,7 @@ claude mcp add-server omniroute --type http --url http://localhost:20128/api/mcp
 ### 📖 How it works — pipeline, architecture & savings math
 
 ```
-Client (10,000 tok) ──▶ OmniRoute Compression (7 options) ──▶ Provider (~1,080 tok, up to 95% saved)
+Client (10,000 tok) ──▶ OmniRoute Compression (9 engines) ──▶ Provider (~1,080 tok, up to 95% saved)
 ```
 
 Default stacked combo runs `RTK → Caveman`. When both act on the same tool/context payload, savings compound:
