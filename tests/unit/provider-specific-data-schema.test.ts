@@ -42,7 +42,7 @@ test("provider schemas reject non-boolean openaiStoreEnabled values", () => {
   assert.equal(updated.success, false);
 });
 
-test("provider schemas accept boolean requestDefaults.context1m for CC-compatible providers", () => {
+test("provider schemas accept boolean CC-compatible request defaults", () => {
   const created = createProviderSchema.safeParse({
     provider: "anthropic-compatible-cc-demo",
     apiKey: "token",
@@ -50,6 +50,7 @@ test("provider schemas accept boolean requestDefaults.context1m for CC-compatibl
     providerSpecificData: {
       requestDefaults: {
         context1m: true,
+        redactThinking: true,
       },
     },
   });
@@ -57,6 +58,7 @@ test("provider schemas accept boolean requestDefaults.context1m for CC-compatibl
     providerSpecificData: {
       requestDefaults: {
         context1m: false,
+        redactThinking: false,
       },
     },
   });
@@ -65,7 +67,7 @@ test("provider schemas accept boolean requestDefaults.context1m for CC-compatibl
   assert.equal(updated.success, true);
 });
 
-test("provider schemas reject non-boolean requestDefaults.context1m values", () => {
+test("provider schemas reject non-boolean CC-compatible request defaults", () => {
   const created = createProviderSchema.safeParse({
     provider: "anthropic-compatible-cc-demo",
     apiKey: "token",
@@ -73,6 +75,7 @@ test("provider schemas reject non-boolean requestDefaults.context1m values", () 
     providerSpecificData: {
       requestDefaults: {
         context1m: "yes",
+        redactThinking: "yes",
       },
     },
   });
@@ -80,6 +83,7 @@ test("provider schemas reject non-boolean requestDefaults.context1m values", () 
     providerSpecificData: {
       requestDefaults: {
         context1m: 1,
+        redactThinking: 1,
       },
     },
   });

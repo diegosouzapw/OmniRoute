@@ -43,26 +43,30 @@ test("ensureOpenAIStoreSessionFallback injects session_id only when no stable ca
   assert.equal(withExplicitSession.session_id, "existing-session");
 });
 
-test("normalizeProviderSpecificData keeps only boolean CC-compatible 1M request defaults", () => {
+test("normalizeProviderSpecificData keeps only boolean CC-compatible request defaults", () => {
   const normalized = normalizeProviderSpecificData("anthropic-compatible-cc-demo", {
     baseUrl: "https://proxy.example.com/v1/messages?beta=true",
     requestDefaults: {
       context1m: true,
+      redactThinking: true,
       customFlag: "keep-me",
     },
   });
 
   assert.deepEqual(getClaudeCodeCompatibleRequestDefaults(normalized), {
     context1m: true,
+    redactThinking: true,
   });
   assert.deepEqual(normalized?.requestDefaults, {
     context1m: true,
+    redactThinking: true,
     customFlag: "keep-me",
   });
 
   const stripped = normalizeProviderSpecificData("anthropic-compatible-cc-demo", {
     requestDefaults: {
       context1m: "yes",
+      redactThinking: "yes",
       customFlag: "keep-me",
     },
   });

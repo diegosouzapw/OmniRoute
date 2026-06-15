@@ -104,6 +104,7 @@ export default function EditConnectionModal({
     codexOpenaiStoreEnabled: false,
     consoleApiKey: "",
     ccCompatibleContext1m: false,
+    ccCompatibleRedactThinking: false,
     cloudCodeProjectId: "",
     antigravityClientProfile: "ide",
     blockExtraUsage:
@@ -261,6 +262,7 @@ export default function EditConnectionModal({
         codexOpenaiStoreEnabled: connection.providerSpecificData?.openaiStoreEnabled === true,
         consoleApiKey: existingConsoleApiKey,
         ccCompatibleContext1m: ccRequestDefaults.context1m,
+        ccCompatibleRedactThinking: ccRequestDefaults.redactThinking,
         cloudCodeProjectId:
           (connection.providerSpecificData?.projectId as string) || connection.projectId || "",
         antigravityClientProfile: normalizeAntigravityClientProfileSetting(
@@ -511,6 +513,11 @@ export default function EditConnectionModal({
           } else {
             delete currentRequestDefaults.context1m;
           }
+          if (formData.ccCompatibleRedactThinking) {
+            currentRequestDefaults.redactThinking = true;
+          } else {
+            delete currentRequestDefaults.redactThinking;
+          }
           updates.providerSpecificData.requestDefaults =
             Object.keys(currentRequestDefaults).length > 0 ? currentRequestDefaults : undefined;
         }
@@ -650,6 +657,14 @@ export default function EditConnectionModal({
               onChange={(checked) => setFormData({ ...formData, ccCompatibleContext1m: checked })}
               label={t("ccCompatibleContext1mLabel")}
               description={t("ccCompatibleContext1mDescription")}
+            />
+            <Toggle
+              checked={formData.ccCompatibleRedactThinking}
+              onChange={(checked) =>
+                setFormData({ ...formData, ccCompatibleRedactThinking: checked })
+              }
+              label={t("ccCompatibleRedactThinkingLabel")}
+              description={t("ccCompatibleRedactThinkingDescription")}
             />
           </div>
         )}

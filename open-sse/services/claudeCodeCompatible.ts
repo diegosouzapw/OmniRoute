@@ -38,7 +38,6 @@ export const CLAUDE_CODE_COMPATIBLE_ANTHROPIC_VERSION = ANTHROPIC_VERSION_HEADER
 export {
   CLAUDE_CODE_COMPATIBLE_ANTHROPIC_BETA,
   CLAUDE_CODE_COMPATIBLE_REDACT_THINKING_BETA,
-  CLAUDE_CODE_COMPATIBLE_REDACT_THINKING_ENV,
   resolveClaudeCodeCompatibleAnthropicBeta,
 } from "./claudeCodeCompatibleBeta.ts";
 export const CLAUDE_CODE_COMPATIBLE_VERSION = "2.1.158";
@@ -86,6 +85,11 @@ type BuildRequestOptions = {
   sessionId?: string | null;
   preserveCacheControl?: boolean;
   preserveClaudeMessages?: boolean;
+  redactThinking?: boolean;
+};
+
+type BuildHeaderOptions = {
+  redactThinking?: boolean;
 };
 
 function supportsClaudeXHighEffort(model: string | null | undefined): boolean {
@@ -171,7 +175,8 @@ export function modelSupportsContext1mBeta(model: string | null | undefined): bo
 export function buildClaudeCodeCompatibleHeaders(
   apiKey: string,
   stream = false,
-  sessionId?: string | null
+  sessionId?: string | null,
+  options: BuildHeaderOptions = {}
 ): Record<string, string> {
   void stream;
   // These headers intentionally mirror Claude Code's wire image closely.
@@ -182,7 +187,9 @@ export function buildClaudeCodeCompatibleHeaders(
     Accept: "application/json",
     Authorization: `Bearer ${apiKey}`,
     "anthropic-version": CLAUDE_CODE_COMPATIBLE_ANTHROPIC_VERSION,
-    "anthropic-beta": resolveClaudeCodeCompatibleAnthropicBeta(),
+    "anthropic-beta": resolveClaudeCodeCompatibleAnthropicBeta({
+      redactThinking: options.redactThinking === true,
+    }),
     "anthropic-dangerous-direct-browser-access": "true",
     "x-app": "cli",
     "User-Agent": CLAUDE_CODE_COMPATIBLE_USER_AGENT,
@@ -236,6 +243,7 @@ export function buildClaudeCodeCompatibleRequest({
   sessionId,
   preserveCacheControl = false,
   preserveClaudeMessages = false,
+  redactThinking = false,
 }: BuildRequestOptions) {
   const normalized = normalizedBody || {};
   const preparedClaudeBody = claudeBody
@@ -387,7 +395,9 @@ export async function buildAndSignClaudeCodeRequest(
 
   // Build headers
   const sessionId = options.sessionId || resolveClaudeCodeCompatibleSessionId();
-  const headers = buildClaudeCodeCompatibleHeaders(apiKey, options.stream ?? false, sessionId);
+  const headers = buildClaudeCodeCompatibleHeaders(apiKey, options.stream ?? false, sessionId, {
+    redactThinking: buildOptions.redactThinking === true,
+  });
 
   return { bodyString, headers };
 }

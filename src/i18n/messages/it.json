@@ -4154,6 +4154,8 @@
     "ccCompatibleChatPathHint": "Cc Compatible Chat Path Hint",
     "ccCompatibleContext1mDescription": "Cc Compatible Context1M Description",
     "ccCompatibleContext1mLabel": "Cc Compatible Context1M Label",
+    "ccCompatibleRedactThinkingDescription": "Adds the redact-thinking beta header for CC Compatible upstreams that require hidden Claude thinking streams.",
+    "ccCompatibleRedactThinkingLabel": "Enable redact-thinking beta",
     "ccCompatibleDetailsTitle": "Cc Compatible Details Title",
     "ccCompatibleLabel": "Cc Compatible Label",
     "ccCompatibleModelsDescription": "Cc Compatible Models Description",

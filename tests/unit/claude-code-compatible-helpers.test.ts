@@ -7,7 +7,6 @@ const {
   CLAUDE_CODE_COMPATIBLE_DEFAULT_MAX_TOKENS,
   CLAUDE_CODE_COMPATIBLE_ANTHROPIC_BETA,
   CLAUDE_CODE_COMPATIBLE_REDACT_THINKING_BETA,
-  CLAUDE_CODE_COMPATIBLE_REDACT_THINKING_ENV,
   CLAUDE_CODE_COMPATIBLE_STAINLESS_TIMEOUT_SECONDS,
   isClaudeCodeCompatibleProvider,
   stripAnthropicMessagesSuffix,
@@ -87,35 +86,23 @@ test("Claude Code compatible redacted thinking beta is explicit opt-in", () => {
     false
   );
   assert.equal(
-    resolveClaudeCodeCompatibleAnthropicBeta({
-      [CLAUDE_CODE_COMPATIBLE_REDACT_THINKING_ENV]: "true",
-    }).includes(CLAUDE_CODE_COMPATIBLE_REDACT_THINKING_BETA),
+    resolveClaudeCodeCompatibleAnthropicBeta({ redactThinking: true }).includes(
+      CLAUDE_CODE_COMPATIBLE_REDACT_THINKING_BETA
+    ),
     true
   );
-
-  const original = process.env[CLAUDE_CODE_COMPATIBLE_REDACT_THINKING_ENV];
-  try {
-    delete process.env[CLAUDE_CODE_COMPATIBLE_REDACT_THINKING_ENV];
-    assert.equal(
-      buildClaudeCodeCompatibleHeaders("sk-demo", true)["anthropic-beta"].includes(
-        CLAUDE_CODE_COMPATIBLE_REDACT_THINKING_BETA
-      ),
-      false
-    );
-    process.env[CLAUDE_CODE_COMPATIBLE_REDACT_THINKING_ENV] = "1";
-    assert.equal(
-      buildClaudeCodeCompatibleHeaders("sk-demo", true)["anthropic-beta"].includes(
-        CLAUDE_CODE_COMPATIBLE_REDACT_THINKING_BETA
-      ),
-      true
-    );
-  } finally {
-    if (original === undefined) {
-      delete process.env[CLAUDE_CODE_COMPATIBLE_REDACT_THINKING_ENV];
-    } else {
-      process.env[CLAUDE_CODE_COMPATIBLE_REDACT_THINKING_ENV] = original;
-    }
-  }
+  assert.equal(
+    buildClaudeCodeCompatibleHeaders("sk-demo", true)["anthropic-beta"].includes(
+      CLAUDE_CODE_COMPATIBLE_REDACT_THINKING_BETA
+    ),
+    false
+  );
+  assert.equal(
+    buildClaudeCodeCompatibleHeaders("sk-demo", true, undefined, {
+      redactThinking: true,
+    })["anthropic-beta"].includes(CLAUDE_CODE_COMPATIBLE_REDACT_THINKING_BETA),
+    true
+  );
 });
 
 test("resolveClaudeCodeCompatibleSessionId prefers explicit session headers and generates a fallback id", () => {

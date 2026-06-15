@@ -4396,6 +4396,8 @@
     "ccCompatibleChatPathHint": "默认使用 Claude Code 严格的 Messages API 路径。仅在中转站文档要求时修改。",
     "ccCompatibleContext1mDescription": "当所选 Claude 模型支持时，添加 context-1m beta header。",
     "ccCompatibleContext1mLabel": "启用 1M context beta",
+    "ccCompatibleRedactThinkingDescription": "为要求隐藏 Claude 思考流的 CC Compatible 上游添加 redact-thinking beta header。",
+    "ccCompatibleRedactThinkingLabel": "启用 redact-thinking beta",
     "ccCompatibleDetailsTitle": "CC 兼容中转站详情",
     "ccCompatibleLabel": "CC 兼容",
     "ccCompatibleModelsDescription": "CC 兼容中转站不提供模型列表。请添加该中转站接受的 Claude 模型 ID。",

@@ -61,6 +61,10 @@ export function normalizeClaudeCodeCompatibleContext1m(value: unknown): true | u
   return value === true ? true : undefined;
 }
 
+export function normalizeClaudeCodeCompatibleRedactThinking(value: unknown): true | undefined {
+  return value === true ? true : undefined;
+}
+
 export function normalizeRequestDefaults(
   provider: string | null | undefined,
   value: unknown
@@ -92,6 +96,13 @@ export function normalizeRequestDefaults(
       normalized.context1m = true;
     } else {
       delete normalized.context1m;
+    }
+
+    const redactThinking = normalizeClaudeCodeCompatibleRedactThinking(record.redactThinking);
+    if (redactThinking) {
+      normalized.redactThinking = true;
+    } else {
+      delete normalized.redactThinking;
     }
   }
 
@@ -267,13 +278,16 @@ export function getCodexRequestDefaults(providerSpecificData: unknown): {
 
 export function getClaudeCodeCompatibleRequestDefaults(providerSpecificData: unknown): {
   context1m?: true;
+  redactThinking?: true;
 } {
   const defaults = getProviderRequestDefaults(
     "anthropic-compatible-cc-default",
     providerSpecificData
   );
   const context1m = normalizeClaudeCodeCompatibleContext1m(defaults.context1m);
+  const redactThinking = normalizeClaudeCodeCompatibleRedactThinking(defaults.redactThinking);
   return {
     ...(context1m ? { context1m } : {}),
+    ...(redactThinking ? { redactThinking } : {}),
   };
 }

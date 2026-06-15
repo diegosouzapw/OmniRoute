@@ -110,6 +110,7 @@ export default function AddApiKeyModal({
     accountId: "",
     consoleApiKey: "",
     ccCompatibleContext1m: false,
+    ccCompatibleRedactThinking: false,
     passthroughModels: false,
   });
   const [validating, setValidating] = useState(false);
@@ -309,8 +310,17 @@ export default function AddApiKeyModal({
       } else if (isCloudflare && formData.accountId.trim()) {
         providerSpecificData.accountId = formData.accountId.trim();
       }
-      if (isCcCompatible && formData.ccCompatibleContext1m) {
-        providerSpecificData.requestDefaults = { context1m: true };
+      if (isCcCompatible) {
+        const requestDefaults: Record<string, unknown> = {};
+        if (formData.ccCompatibleContext1m) {
+          requestDefaults.context1m = true;
+        }
+        if (formData.ccCompatibleRedactThinking) {
+          requestDefaults.redactThinking = true;
+        }
+        if (Object.keys(requestDefaults).length > 0) {
+          providerSpecificData.requestDefaults = requestDefaults;
+        }
       }
 
       const payload = {
@@ -683,6 +693,14 @@ export default function AddApiKeyModal({
                   }
                   label={t("ccCompatibleContext1mLabel")}
                   description={t("ccCompatibleContext1mDescription")}
+                />
+                <Toggle
+                  checked={formData.ccCompatibleRedactThinking}
+                  onChange={(checked) =>
+                    setFormData({ ...formData, ccCompatibleRedactThinking: checked })
+                  }
+                  label={t("ccCompatibleRedactThinkingLabel")}
+                  description={t("ccCompatibleRedactThinkingDescription")}
                 />
               </div>
             )}

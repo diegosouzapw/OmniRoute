@@ -14,6 +14,7 @@ import { PROVIDERS } from "../../open-sse/config/constants.ts";
 import {
   CLAUDE_CODE_COMPATIBLE_ANTHROPIC_VERSION,
   CLAUDE_CODE_COMPATIBLE_DEFAULT_CHAT_PATH,
+  CLAUDE_CODE_COMPATIBLE_REDACT_THINKING_BETA,
   CONTEXT_1M_BETA_HEADER,
 } from "../../open-sse/services/claudeCodeCompatible.ts";
 
@@ -567,7 +568,7 @@ test("DefaultExecutor.execute uses CC-compatible connection defaults to append 1
         apiKey: "cc-key",
         providerSpecificData: {
           ccSessionId: "session-1",
-          requestDefaults: { context1m: true },
+          requestDefaults: { context1m: true, redactThinking: true },
         },
       },
       extendedContext: false,
@@ -595,7 +596,15 @@ test("DefaultExecutor.execute uses CC-compatible connection defaults to append 1
   }
 
   assert.equal(calls[0].headers["anthropic-beta"].includes(CONTEXT_1M_BETA_HEADER), false);
+  assert.equal(
+    calls[0].headers["anthropic-beta"].includes(CLAUDE_CODE_COMPATIBLE_REDACT_THINKING_BETA),
+    false
+  );
   assert.equal(calls[1].headers["anthropic-beta"].includes(CONTEXT_1M_BETA_HEADER), true);
+  assert.equal(
+    calls[1].headers["anthropic-beta"].includes(CLAUDE_CODE_COMPATIBLE_REDACT_THINKING_BETA),
+    true
+  );
   assert.equal(calls[2].headers["anthropic-beta"], undefined);
 });
 

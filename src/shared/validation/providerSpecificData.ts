@@ -159,6 +159,19 @@ export function validateProviderSpecificData(
           path: ["requestDefaults", "context1m"],
         });
       }
+
+      const redactThinking = requestDefaultsRecord.redactThinking;
+      if (
+        redactThinking !== undefined &&
+        redactThinking !== null &&
+        typeof redactThinking !== "boolean"
+      ) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: "providerSpecificData.requestDefaults.redactThinking must be a boolean",
+          path: ["requestDefaults", "redactThinking"],
+        });
+      }
     }
   }
 

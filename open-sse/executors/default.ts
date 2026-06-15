@@ -30,6 +30,7 @@ import { buildSapChatUrl, getSapResourceGroup } from "../config/sap.ts";
 import { buildMaritalkChatUrl } from "../config/maritalk.ts";
 import { LOCAL_PROVIDERS } from "@/shared/constants/providers";
 import { isForbiddenCustomHeaderName } from "@/shared/constants/upstreamHeaders";
+import { getClaudeCodeCompatibleRequestDefaults } from "@/lib/providers/requestDefaults";
 
 import type { PoolConfig } from "../services/sessionPool/types.ts";
 
@@ -431,10 +432,14 @@ export class DefaultExecutor extends BaseExecutor {
         break;
       default:
         if (isClaudeCodeCompatible(this.provider)) {
+          const ccRequestDefaults = getClaudeCodeCompatibleRequestDefaults(
+            credentials?.providerSpecificData
+          );
           const ccHeaders = buildClaudeCodeCompatibleHeaders(
             effectiveKey || credentials.accessToken || "",
             stream,
-            credentials?.providerSpecificData?.ccSessionId
+            credentials?.providerSpecificData?.ccSessionId,
+            { redactThinking: ccRequestDefaults.redactThinking === true }
           );
           // CC nodes are also anthropic-compatible-*, so honor operator custom
           // headers here (the early return skips the shared block below).
