@@ -565,7 +565,6 @@ jobs:
             --temp-directory coverage-shards \
             --reports-dir coverage \
             --reporter=text-summary \
-            --reporter=html \
             --reporter=json-summary \
             --reporter=lcov \
             --exclude=tests/** \
