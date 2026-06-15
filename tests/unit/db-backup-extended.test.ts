@@ -192,3 +192,33 @@ test("cleanupDbBackups honors retentionDays for older backups", async () => {
   assert.equal(fs.existsSync(oldBackup), false);
   assert.equal(fs.existsSync(freshBackup), true);
 });
+
+// Regression for #3834: the "Keep latest backups" value did not persist — it always
+// snapped back to 20 because getDbBackupMaxFiles() only read the env var (no setter,
+// no stored value). It now round-trips through a dedicated key_value store.
+test("getDbBackupMaxFiles defaults to 20 when nothing is stored (#3834)", () => {
+  delete process.env.DB_BACKUP_MAX_FILES;
+  core.getDbInstance(); // ensure the DB + key_value table exist
+  assert.equal(backupDb.getDbBackupMaxFiles(), 20);
+});
+
+test("setDbBackupMaxFiles persists and getDbBackupMaxFiles reflects it (#3834)", () => {
+  delete process.env.DB_BACKUP_MAX_FILES;
+  core.getDbInstance();
+  backupDb.setDbBackupMaxFiles(5);
+  assert.equal(backupDb.getDbBackupMaxFiles(), 5);
+  // A second value overwrites the first (operator changes the setting again).
+  backupDb.setDbBackupMaxFiles(12);
+  assert.equal(backupDb.getDbBackupMaxFiles(), 12);
+});
+
+test("DB_BACKUP_MAX_FILES env override wins over the persisted value (#3834)", () => {
+  core.getDbInstance();
+  backupDb.setDbBackupMaxFiles(5);
+  process.env.DB_BACKUP_MAX_FILES = "7";
+  try {
+    assert.equal(backupDb.getDbBackupMaxFiles(), 7);
+  } finally {
+    delete process.env.DB_BACKUP_MAX_FILES;
+  }
+});

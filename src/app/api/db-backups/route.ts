@@ -5,6 +5,7 @@ import {
   backupDbFile,
   cleanupDbBackups,
   getDbBackupMaxFiles,
+  setDbBackupMaxFiles,
   getDbBackupRetentionDays,
 } from "@/lib/localDb";
 import { dbBackupCleanupSchema, dbBackupRestoreSchema } from "@/shared/validation/schemas";
@@ -124,6 +125,11 @@ export async function DELETE(request) {
 
     const keepLatest = validation.data.keepLatest ?? getDbBackupMaxFiles();
     const retentionDays = validation.data.retentionDays ?? getDbBackupRetentionDays();
+    // #3834: persist the operator's chosen retention so it survives the page refresh
+    // and the subsequent loadStorageHealth() refetch (it previously snapped back to 20).
+    if (validation.data.keepLatest !== undefined) {
+      setDbBackupMaxFiles(validation.data.keepLatest);
+    }
     const result = cleanupDbBackups({ maxFiles: keepLatest, retentionDays });
     return NextResponse.json({
       cleaned: true,
