@@ -35,7 +35,7 @@ For full test matrix, see `CONTRIBUTING.md` → "Running Tests". For deep archit
 
 ## Project at a Glance
 
-**OmniRoute** — unified AI proxy/router. One endpoint, 160+ LLM providers, auto-fallback.
+**OmniRoute** — unified AI proxy/router. One endpoint, 226 LLM providers, auto-fallback.
 
 | Layer         | Location                | Purpose                                                                                                                                |
 | ------------- | ----------------------- | -------------------------------------------------------------------------------------------------------------------------------------- |
@@ -327,33 +327,33 @@ connection continue serving other models.
 
 For any non-trivial change, read the matching deep-dive first:
 
-| Area                                         | Doc                                                               |
-| -------------------------------------------- | ----------------------------------------------------------------- |
-| Repo navigation                              | `docs/architecture/REPOSITORY_MAP.md`                             |
-| Architecture                                 | `docs/architecture/ARCHITECTURE.md`                               |
-| Engineering reference                        | `docs/architecture/CODEBASE_DOCUMENTATION.md`                     |
-| Auto-Combo (9-factor scoring, 15 strategies) | `docs/routing/AUTO-COMBO.md`                                      |
-| Resilience (3 mechanisms)                    | `docs/architecture/RESILIENCE_GUIDE.md`                           |
-| Reasoning replay                             | `docs/routing/REASONING_REPLAY.md`                                |
-| Skills framework                             | `docs/frameworks/SKILLS.md`                                       |
-| Memory system (FTS5 + Qdrant)                | `docs/frameworks/MEMORY.md`                                       |
-| Cloud agents                                 | `docs/frameworks/CLOUD_AGENT.md`                                  |
-| Guardrails (PII / injection / vision)        | `docs/security/GUARDRAILS.md`                                     |
-| Public upstream credentials (Gemini/etc.)    | `docs/security/PUBLIC_CREDS.md`                                   |
-| Error message sanitization                   | `docs/security/ERROR_SANITIZATION.md`                             |
-| Evals                                        | `docs/frameworks/EVALS.md`                                        |
-| Compliance / audit                           | `docs/security/COMPLIANCE.md`                                     |
-| Webhooks                                     | `docs/frameworks/WEBHOOKS.md`                                     |
-| Authorization pipeline                       | `docs/architecture/AUTHZ_GUIDE.md`                                |
-| Stealth (TLS / fingerprint)                  | `docs/security/STEALTH_GUIDE.md`                                  |
-| Agent protocols (A2A / ACP / Cloud)          | `docs/frameworks/AGENT_PROTOCOLS_GUIDE.md`                        |
-| MCP server                                   | `docs/frameworks/MCP-SERVER.md`                                   |
-| A2A server                                   | `docs/frameworks/A2A-SERVER.md`                                   |
-| API reference + OpenAPI                      | `docs/reference/API_REFERENCE.md` + `docs/reference/openapi.yaml` |
-| Provider catalog (auto-generated)            | `docs/reference/PROVIDER_REFERENCE.md`                            |
-| Release flow                                 | `docs/ops/RELEASE_CHECKLIST.md`                                   |
-| Embedded services                            | `docs/frameworks/EMBEDDED-SERVICES.md`                            |
-| Quality gates (35 gates, allowlist policy)   | `docs/architecture/QUALITY_GATES.md`                              |
+| Area                                          | Doc                                                               |
+| --------------------------------------------- | ----------------------------------------------------------------- |
+| Repo navigation                               | `docs/architecture/REPOSITORY_MAP.md`                             |
+| Architecture                                  | `docs/architecture/ARCHITECTURE.md`                               |
+| Engineering reference                         | `docs/architecture/CODEBASE_DOCUMENTATION.md`                     |
+| Auto-Combo (9-factor scoring, 15 strategies)  | `docs/routing/AUTO-COMBO.md`                                      |
+| Resilience (3 mechanisms)                     | `docs/architecture/RESILIENCE_GUIDE.md`                           |
+| Reasoning replay                              | `docs/routing/REASONING_REPLAY.md`                                |
+| Skills framework                              | `docs/frameworks/SKILLS.md`                                       |
+| Memory system (FTS5 + Qdrant)                 | `docs/frameworks/MEMORY.md`                                       |
+| Cloud agents                                  | `docs/frameworks/CLOUD_AGENT.md`                                  |
+| Guardrails (PII / injection / vision)         | `docs/security/GUARDRAILS.md`                                     |
+| Public upstream credentials (Gemini/etc.)     | `docs/security/PUBLIC_CREDS.md`                                   |
+| Error message sanitization                    | `docs/security/ERROR_SANITIZATION.md`                             |
+| Evals                                         | `docs/frameworks/EVALS.md`                                        |
+| Compliance / audit                            | `docs/security/COMPLIANCE.md`                                     |
+| Webhooks                                      | `docs/frameworks/WEBHOOKS.md`                                     |
+| Authorization pipeline                        | `docs/architecture/AUTHZ_GUIDE.md`                                |
+| Stealth (TLS / fingerprint)                   | `docs/security/STEALTH_GUIDE.md`                                  |
+| Agent protocols (A2A / ACP / Cloud)           | `docs/frameworks/AGENT_PROTOCOLS_GUIDE.md`                        |
+| MCP server                                    | `docs/frameworks/MCP-SERVER.md`                                   |
+| A2A server                                    | `docs/frameworks/A2A-SERVER.md`                                   |
+| API reference + OpenAPI                       | `docs/reference/API_REFERENCE.md` + `docs/reference/openapi.yaml` |
+| Provider catalog (auto-generated)             | `docs/reference/PROVIDER_REFERENCE.md`                            |
+| Release flow                                  | `docs/ops/RELEASE_CHECKLIST.md`                                   |
+| Embedded services                             | `docs/frameworks/EMBEDDED-SERVICES.md`                            |
+| Quality gates (~48 scripts, allowlist policy) | `docs/architecture/QUALITY_GATES.md`                              |
 
 ---
 
@@ -422,13 +422,17 @@ git push -u origin feat/your-feature
 
 ## Quality Gates & Ratchets
 
-OmniRoute has **35 CI quality gates** wired across 6 jobs in `.github/workflows/ci.yml`.
-Full inventory, per-job breakdown, and operational procedures are in
-[`docs/architecture/QUALITY_GATES.md`](docs/architecture/QUALITY_GATES.md).
+OmniRoute has **~48 quality-gate scripts** (`scripts/check/` + `scripts/quality/`) wired
+across **9 gate-running jobs** in `.github/workflows/ci.yml` (`lint`, `quality-gate`,
+`quality-extended`, `docs-sync-strict`, `i18n-ui-coverage`, `i18n`, `pr-test-policy`,
+`test-vitest`, `sonarqube`), plus the `quality.yml` fast-gates job (PR→`release/**`) and
+3 nightly workflows (`nightly-property`, `nightly-resilience`, `nightly-llm-security`;
+`nightly-mutation` once merged). Full inventory, per-job breakdown, and operational
+procedures are in [`docs/architecture/QUALITY_GATES.md`](docs/architecture/QUALITY_GATES.md).
 
 **Quick reference:**
 
-- Gates in job `lint` (18 checks) + `docs-sync-strict` (12 checks): pass/fail policy gates —
+- Gates in jobs `lint` + `docs-sync-strict`: pass/fail policy gates —
   fix the violation or add an allowlist entry with a justification comment + tracking issue.
 - Gates in job `quality-gate`: ratchet — metrics (ESLint warnings, code coverage, duplication,
   complexity) must not regress vs `quality-baseline.json`. Update via

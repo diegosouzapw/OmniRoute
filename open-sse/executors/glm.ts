@@ -50,6 +50,19 @@ function getEffectiveKey(credentials: ProviderCredentials): string {
   return credentials.apiKey || credentials.accessToken || "";
 }
 
+/**
+ * GLM-5.2 effort tiers route exclusively through the Anthropic transport,
+ * where Zhipu maps Claude Code effort selectors (high/max) to reasoning
+ * intensity. The base model ID sent upstream is always "glm-5.2".
+ *
+ * https://docs.z.ai/devpack/latest-model
+ */
+function parseGlm52Effort(model: string): { baseModel: string; effort: "high" | "max" } | null {
+  if (model === "glm-5.2-high") return { baseModel: "glm-5.2", effort: "high" };
+  if (model === "glm-5.2-max") return { baseModel: "glm-5.2", effort: "max" };
+  return null;
+}
+
 function applyGlmRequestDefaults(body: unknown, defaults?: JsonRecord | null): unknown {
   const record = asRecord(body);
   if (!record || !defaults) return body;
@@ -228,27 +241,61 @@ export class GlmExecutor extends DefaultExecutor {
     credentials: ProviderCredentials,
     transport: GlmTransport
   ) {
-    const transformed = this.transformRequest(model, body, stream, credentials);
+    const effortTier = parseGlm52Effort(model);
+    const effectiveModel = effortTier ? effortTier.baseModel : model;
+
+    const transformed = this.transformRequest(effectiveModel, body, stream, credentials);
+    const record = asRecord(transformed);
+
+    // Ensure upstream receives the base model ID, not the effort-suffixed alias
+    if (record && effortTier) {
+      record.model = effectiveModel;
+    }
 
     if (transport === "openai") {
-      const record = asRecord(transformed);
       if (record && stream && hasTools(record) && record.tool_stream === undefined) {
         return { ...record, tool_stream: true };
       }
       return transformed;
     }
 
-    return translateRequest(
+    const translated = translateRequest(
       FORMATS.OPENAI,
       FORMATS.CLAUDE,
-      model,
-      { ...(transformed as JsonRecord), _disableToolPrefix: true },
+      effectiveModel,
+      { ...(record ?? {}), _disableToolPrefix: true },
       stream,
       credentials,
       this.provider,
       null,
       { preserveCacheControl: false }
     );
+
+    // Inject effort and thinking for the Anthropic transport.
+    // Zhipu's Anthropic endpoint requires thinking.type=enabled to emit
+    // thinking_delta blocks in the SSE response. Without it, reasoning is
+    // not surfaced and clients see no thinking content.
+    // The effort-2025-11-24 beta header (in GLM_ANTHROPIC_BETA) carries
+    // the high/max intensity selector.
+    if (effortTier) {
+      const translatedRecord = asRecord(translated);
+      if (translatedRecord) {
+        translatedRecord.effort = effortTier.effort;
+        // Zhipu's Anthropic endpoint only supports thinking.type
+        // "enabled"/"disabled" — not "adaptive". Clients like Claude Code
+        // default to "adaptive" for reasoning models, so force "enabled"
+        // here while preserving any other fields (e.g. budget_tokens).
+        const existingThinking = asRecord(translatedRecord.thinking);
+        if (!existingThinking || existingThinking.type !== "enabled") {
+          translatedRecord.thinking = {
+            ...existingThinking,
+            type: "enabled",
+          };
+        }
+      }
+    }
+
+    return translated;
   }
 
   private async executeTransport(
@@ -343,6 +390,15 @@ export class GlmExecutor extends DefaultExecutor {
   }
 
   async execute(input: ExecuteInput): Promise<GlmExecuteResult> {
+    const effortTier = parseGlm52Effort(input.model);
+
+    // GLM-5.2 effort tiers route directly through Anthropic transport (no fallback).
+    // Zhipu only graduates effort on the Anthropic endpoint via the
+    // effort-2025-11-24 beta header included in GLM_ANTHROPIC_BETA.
+    if (effortTier) {
+      return this.executeTransport(input, "anthropic");
+    }
+
     const primaryTransport = getGlmTransport(
       input.credentials.providerSpecificData,
       this.config.baseUrl

@@ -29,7 +29,7 @@ import { execFileSync } from "node:child_process";
 import { assertNoStale } from "./lib/allowlist.mjs";
 
 const ROOT = process.cwd();
-const ALLOWLIST_PATH = path.join(ROOT, "dependency-allowlist.json");
+const ALLOWLIST_PATH = path.join(ROOT, "config/quality/dependency-allowlist.json");
 
 // Directories to exclude when discovering package.json files.
 // Using a set of path segment prefixes (relative to ROOT, forward slashes).
@@ -141,16 +141,12 @@ export function queryNpmRegistry(pkgName, timeoutMs = 8000) {
   // Scope packages need URL-encoding for the `npm view` command.
   // `npm view` accepts scoped packages natively — no encoding needed.
   try {
-    const raw = execFileSync(
-      "npm",
-      ["view", pkgName, "time.created", "--json"],
-      {
-        encoding: "utf8",
-        timeout: timeoutMs,
-        // Suppress npm progress/warn output on stderr
-        stdio: ["ignore", "pipe", "pipe"],
-      }
-    );
+    const raw = execFileSync("npm", ["view", pkgName, "time.created", "--json"], {
+      encoding: "utf8",
+      timeout: timeoutMs,
+      // Suppress npm progress/warn output on stderr
+      stdio: ["ignore", "pipe", "pipe"],
+    });
     // npm view --json emits a quoted string or null/empty for missing fields
     const trimmed = raw.trim();
     if (!trimmed) {
@@ -165,7 +161,11 @@ export function queryNpmRegistry(pkgName, timeoutMs = 8000) {
     // npm exits with code 1 when the package is NOT found ("E404")
     const stderr = err.stderr?.toString() || "";
     const stdout = err.stdout?.toString() || "";
-    if (stderr.includes("E404") || stdout.includes("E404") || stderr.includes("npm ERR! code E404")) {
+    if (
+      stderr.includes("E404") ||
+      stdout.includes("E404") ||
+      stderr.includes("npm ERR! code E404")
+    ) {
       return { exists: false, createdMs: null };
     }
     // Any other error (ETIMEDOUT, ENOTFOUND, etc.) = network/offline — return null

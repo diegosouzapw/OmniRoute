@@ -31,7 +31,7 @@ const ESLINT_BIN = path.join(ROOT, "node_modules", ".bin", "eslint");
 const BASELINE_PATH = path.resolve(
   process.argv.includes("--baseline")
     ? process.argv[process.argv.indexOf("--baseline") + 1]
-    : path.join(ROOT, "quality-baseline.json")
+    : path.join(ROOT, "config/quality/quality-baseline.json")
 );
 
 const ESLINT_ARGS = [

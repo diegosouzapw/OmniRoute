@@ -13,6 +13,18 @@ interface ServiceAccount {
 
 const TOKEN_CACHE = new Map<string, { token: string; expiresAt: number }>();
 
+// OAuth scopes minted into the Vertex SA access token.
+//   - cloud-platform authorizes Vertex AI (aiplatform.googleapis.com) for chat/image execution.
+//   - generative-language.retriever is ADDITIONALLY required so model discovery can list the live
+//     catalog from generativelanguage.googleapis.com/v1beta/models — without it that listing returns
+//     403 ACCESS_TOKEN_SCOPE_INSUFFICIENT and discovery silently falls back to the static ~10-model
+//     registry list. The extra scope is harmless for execution (cloud-platform still present) and for
+//     projects where it isn't needed (the mint never validates scope availability).
+export const VERTEX_OAUTH_SCOPES = [
+  "https://www.googleapis.com/auth/cloud-platform",
+  "https://www.googleapis.com/auth/generative-language.retriever",
+] as const;
+
 export function parseSAFromApiKey(apiKey: string): ServiceAccount {
   try {
     return JSON.parse(apiKey);
@@ -67,7 +79,7 @@ export async function getAccessToken(sa: ServiceAccount): Promise<string> {
     aud: "https://oauth2.googleapis.com/token",
     iat: now,
     exp: now + 3600,
-    scope: "https://www.googleapis.com/auth/cloud-platform",
+    scope: VERTEX_OAUTH_SCOPES.join(" "),
   })
     .setProtectedHeader({ alg: "RS256", kid: sa.private_key_id })
     .sign(privateKey);
