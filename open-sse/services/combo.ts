@@ -2994,7 +2994,8 @@ export async function expandAutoComboCandidatePool(
     (combo?.config as Record<string, unknown> | undefined) ||
     {};
 
-  if (Array.isArray(localAutoConfig?.candidatePool)) return eligibleTargets;
+  if (Array.isArray(localAutoConfig?.candidatePool) && localAutoConfig.candidatePool.length > 0)
+    return eligibleTargets;
 
   try {
     const allConnections = await getProviderConnections({ isActive: true });

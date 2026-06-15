@@ -273,8 +273,8 @@ const ENV_VAR_DENYLIST = new Set([
   // Gate allowlist constant names (JS identifiers, not env vars) — documented in
   // docs/architecture/QUALITY_GATES.md and docs/research/DISCOVERY_TOOL_DESIGN.md
   "KNOWN_STALE_DOC_REFS", // export const in check-docs-symbols.mjs
-  "KNOWN_MISSING",        // export const in check-fetch-targets.mjs
-  "KNOWN_RAW_SQL",        // export const in check-db-rules.mjs
+  "KNOWN_MISSING", // export const in check-fetch-targets.mjs
+  "KNOWN_RAW_SQL", // export const in check-db-rules.mjs
 ]);
 
 /** Endpoints that don't follow the standard route.ts pattern. */
@@ -313,6 +313,9 @@ const SKIP_DOC_FILES = new Set([
   "docs/reference/PROVIDER_REFERENCE.md", // auto-generated from providers.ts
   "docs/reference/openapi.yaml",
   "docs/i18n", // translations — separate workflow
+  // Point-in-time documentation audit (v3.8.24): intentionally references drift,
+  // counts, and not-yet-existing files as part of documenting them — not living docs.
+  "docs/ops/DOCUMENTATION_AUDIT_REPORT.md",
 ]);
 
 // ── File discovery ─────────────────────────────────────────────────────────

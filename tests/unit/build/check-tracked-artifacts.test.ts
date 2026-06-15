@@ -30,6 +30,11 @@ test("checkTrackedArtifacts: quality-metrics.json is flagged", () => {
   assert.equal(result.length, 1);
 });
 
+test("checkTrackedArtifacts: config/quality/quality-metrics.json is flagged", () => {
+  const result = checkTrackedArtifacts(["config/quality/quality-metrics.json"]);
+  assert.equal(result.length, 1);
+});
+
 test("checkTrackedArtifacts: symlink mode (120000) is flagged", () => {
   const result = checkTrackedArtifacts([], ["node_modules"]);
   assert.equal(result.length, 1);

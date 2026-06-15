@@ -70,3 +70,37 @@ test("normalizeProviderSpecificData keeps only boolean CC-compatible 1M request 
     customFlag: "keep-me",
   });
 });
+
+test("normalizeProviderSpecificData trims OpenRouter preset and clears empty values", () => {
+  const normalized = normalizeProviderSpecificData("openrouter", {
+    preset: "  email-copywriter  ",
+    tag: "primary",
+  });
+
+  assert.equal(normalized?.preset, "email-copywriter");
+  assert.equal(normalized?.tag, "primary");
+
+  const stripped = normalizeProviderSpecificData("openrouter", {
+    preset: "   ",
+    tag: "primary",
+  });
+
+  assert.equal(stripped?.preset, undefined);
+  assert.equal(stripped?.tag, "primary");
+
+  const oversized = normalizeProviderSpecificData("openrouter", {
+    preset: "x".repeat(201),
+    tag: "primary",
+  });
+
+  assert.equal(oversized?.preset, undefined);
+  assert.equal(oversized?.tag, "primary");
+
+  const ignored = normalizeProviderSpecificData("openai", {
+    preset: "email-copywriter",
+    tag: "primary",
+  });
+
+  assert.equal(ignored?.preset, undefined);
+  assert.equal(ignored?.tag, "primary");
+});

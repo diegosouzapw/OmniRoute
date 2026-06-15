@@ -28,7 +28,7 @@ const UPDATE = process.argv.includes("--update");
 const BASELINE_PATH = path.resolve(
   process.argv.includes("--baseline")
     ? process.argv[process.argv.indexOf("--baseline") + 1]
-    : path.join(ROOT, "quality-baseline.json")
+    : path.join(ROOT, "config/quality/quality-baseline.json")
 );
 
 /**
