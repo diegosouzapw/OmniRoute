@@ -17,7 +17,7 @@ test("upstream timeout config derives hidden fetch timeouts from FETCH_TIMEOUT_M
     fetchHeadersTimeoutMs: 600000,
     fetchBodyTimeoutMs: 600000,
     fetchConnectTimeoutMs: 30000,
-    fetchKeepAliveTimeoutMs: 1000,
+    fetchKeepAliveTimeoutMs: 4000,
   });
 });
 
@@ -54,7 +54,7 @@ test("upstream timeout config honors explicit overrides and falls back on invali
   assert.equal(config.fetchHeadersTimeoutMs, 610000);
   assert.equal(config.fetchBodyTimeoutMs, 0);
   assert.equal(config.fetchConnectTimeoutMs, 45000);
-  assert.equal(config.fetchKeepAliveTimeoutMs, 1000);
+  assert.equal(config.fetchKeepAliveTimeoutMs, 4000);
 });
 
 test("TLS client timeout defaults to FETCH_TIMEOUT_MS and can be overridden", () => {
