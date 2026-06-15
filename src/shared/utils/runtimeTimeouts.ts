@@ -12,14 +12,7 @@ export const MAX_TIMER_TIMEOUT_MS = 2_147_483_647;
 export const DEFAULT_SSE_HEARTBEAT_INTERVAL_MS = 15_000;
 export const DEFAULT_STREAM_READINESS_TIMEOUT_MS = 80_000;
 export const DEFAULT_FETCH_CONNECT_TIMEOUT_MS = 30_000;
-// Reduced from 4_000 to 1_000: some upstream gateways (e.g. Z.AI/glm) silently
-// drop idle keep-alive sockets without sending TCP RST after serving 5xx responses.
-// The undici pool reuses the dead socket on the next request and hangs until
-// headersTimeout fires (up to 600 s). A 1-second keepalive window limits zombie
-// exposure while still allowing connection reuse on rapid back-to-back requests.
-// Proxy connections already use keepAliveTimeout: 1 (see proxyDispatcher.ts).
-// Operators can override this via FETCH_KEEPALIVE_TIMEOUT_MS env var.
-export const DEFAULT_FETCH_KEEPALIVE_TIMEOUT_MS = 1_000;
+export const DEFAULT_FETCH_KEEPALIVE_TIMEOUT_MS = 4_000;
 export const DEFAULT_API_BRIDGE_PROXY_TIMEOUT_MS = 600_000;
 export const DEFAULT_API_BRIDGE_SERVER_REQUEST_TIMEOUT_MS = 300_000;
 export const DEFAULT_API_BRIDGE_SERVER_HEADERS_TIMEOUT_MS = 60_000;
