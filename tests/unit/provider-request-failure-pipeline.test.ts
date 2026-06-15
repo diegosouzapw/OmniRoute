@@ -75,6 +75,7 @@ async function resetStorage() {
 // flag for the first test; later tests depended on a stale cache surviving the
 // wipe, which flakes under CI load. beforeEach re-establishes it deterministically.
 test.beforeEach(async () => {
+  await resetStorage();
   await settingsDb.updateSettings({ call_log_pipeline_enabled: true });
 });
 
