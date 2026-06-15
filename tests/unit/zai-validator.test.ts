@@ -104,6 +104,42 @@ test("zai validator treats 502 as valid (z.ai queue timeout is not an auth error
   );
 });
 
+test("zai validator returns error on 404 (wrong endpoint)", async () => {
+  await withMockServer(
+    (_req, res) => {
+      res.writeHead(404, { "content-type": "application/json" });
+      res.end(JSON.stringify({ error: "not found" }));
+    },
+    async (baseUrl) => {
+      const result = await validateProviderApiKey({
+        provider: "zai",
+        apiKey: "any-key",
+        providerSpecificData: { baseUrl },
+      });
+      assert.equal(result.valid, false);
+      assert.equal(result.error, "Provider validation endpoint not supported");
+    }
+  );
+});
+
+test("zai validator returns error on 5xx other than 502 (provider down)", async () => {
+  await withMockServer(
+    (_req, res) => {
+      res.writeHead(503, { "content-type": "application/json" });
+      res.end(JSON.stringify({ error: "service unavailable" }));
+    },
+    async (baseUrl) => {
+      const result = await validateProviderApiKey({
+        provider: "zai",
+        apiKey: "any-key",
+        providerSpecificData: { baseUrl },
+      });
+      assert.equal(result.valid, false);
+      assert.equal(result.error, "Provider unavailable (503)");
+    }
+  );
+});
+
 test("zai validator sends x-api-key header (Anthropic wire format, not Bearer)", async () => {
   let capturedHeaders: http.IncomingHttpHeaders = {};
   let capturedMethod = "";

@@ -4200,7 +4200,7 @@ export async function validateProviderApiKey({ provider, apiKey, providerSpecifi
         // providerSpecificData.baseUrl allows test overrides to point at a local
         // HTTP server; production always uses the fixed api.z.ai endpoint.
         const messagesUrl = providerSpecificData?.baseUrl
-          ? `${String(providerSpecificData.baseUrl).replace(/\/$/, "")}?beta=true`
+          ? `${normalizeBaseUrl(providerSpecificData.baseUrl).split("?")[0]}?beta=true`
           : "https://api.z.ai/api/anthropic/v1/messages?beta=true";
         const res = await directHttpsRequest(
           messagesUrl,
@@ -4221,6 +4221,12 @@ export async function validateProviderApiKey({ provider, apiKey, providerSpecifi
         );
         if (res.status === 401 || res.status === 403) {
           return { valid: false, error: "Invalid API key" };
+        }
+        if (res.status === 404 || res.status === 405) {
+          return { valid: false, error: "Provider validation endpoint not supported" };
+        }
+        if (res.status >= 500 && res.status !== 502) {
+          return { valid: false, error: `Provider unavailable (${res.status})` };
         }
         // Any non-auth response (200, 400, 422, 429, 502) means auth passed;
         // 502 "job timed out" is z.ai's own server-side queue limit, not an auth error.
