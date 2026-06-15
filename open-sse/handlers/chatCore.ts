@@ -2391,7 +2391,7 @@ export async function handleChatCore({
     // --- Modular Compression Pipeline (Phase 1 Lite + Phase 2 Standard/Caveman + Phase 3 Aggressive) ---
     // Runs BEFORE the existing reactive compressContext() to proactively reduce tokens.
     try {
-      const { selectCompressionStrategy, applyCompressionAsync } =
+      const { selectCompressionStrategy, applyCompressionAsync, resolveCacheAwareConfig } =
         await import("../services/compression/strategySelector.ts");
       const { trackCompressionStats } = await import("../services/compression/stats.ts");
       let config: CompressionConfig = compressionSettings ?? {
@@ -2629,9 +2629,17 @@ export async function handleChatCore({
       );
       let compressionAnalyticsRecorded = false;
       if (mode !== "off") {
+        // #3890: in a caching context, never compress the system prompt (cacheable prefix)
+        // even if the operator disabled preserveSystemPrompt — honors the cache-aware flag
+        // that selectCompressionStrategy can only partially apply via the mode string.
+        const compressionConfig = resolveCacheAwareConfig(config, compressionInputBody, {
+          provider,
+          targetFormat,
+          model: effectiveModel,
+        });
         const result = await applyCompressionAsync(compressionInputBody, mode, {
           model: effectiveModel,
-          config,
+          config: compressionConfig,
           principalId: apiKeyInfo?.id ? String(apiKeyInfo.id) : undefined,
         });
         if (result.stats) {

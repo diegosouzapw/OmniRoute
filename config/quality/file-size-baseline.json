@@ -14,6 +14,7 @@
   "_rebaseline_2026_06_15_3910_nested_combo_ctx": "PR #3910 net +1: providerRegistry.ts 4730->4731 (test-registry contextLength metadata for the nested combo-ref LCD regression test). opencode-plugin-only behavioral change; no core routing/virtualFactory touched.",
   "_rebaseline_2026_06_15_3929_vertex_media": "PR #3929 own growth: audioSpeech.ts 952->965 (+13) and videoGeneration.ts 1026->1078 (+52) = vertex/* media branches (Gemini TTS, Veo predictLongRunning poll) wired into the speech/video handlers; new logic lives in open-sse/executors/vertexMedia.ts (341, under cap). Cohesive media-provider feature.",
   "_rebaseline_2026_06_15_3879_redact_thinking": "PR #3879 + #3921 reconcile: AddApiKeyModal.tsx 843->845 (+2 = merging #3879's CcCompatibleRequestDefaultsFields (context1m + opt-in redact-thinking toggle) into #3921's preset-input block in the cc-compatible settings group). Cohesive UI; not extractable.",
+  "_rebaseline_2026_06_15_3890_cache_preserve": "Issue #3890 own growth: chatCore.ts 5815->5823 (+8 = wire resolveCacheAwareConfig() into the compression apply step so the system prompt is never compressed in a caching context — honors the cache-aware skipSystemPrompt flag that selectCompressionStrategy could not carry). Cohesive cache-preservation guard at the existing compression chokepoint; not extractable.",
   "cap": 800,
   "frozen": {
     "open-sse/config/providerRegistry.ts": 4731,
@@ -29,7 +30,7 @@
     "open-sse/executors/muse-spark-web.ts": 1284,
     "open-sse/executors/perplexity-web.ts": 868,
     "open-sse/handlers/audioSpeech.ts": 965,
-    "open-sse/handlers/chatCore.ts": 5815,
+    "open-sse/handlers/chatCore.ts": 5823,
     "open-sse/handlers/imageGeneration.ts": 3777,
     "open-sse/handlers/responseSanitizer.ts": 1103,
     "open-sse/handlers/search.ts": 1442,
