@@ -10,9 +10,10 @@
   "_rebaseline_2026_06_15_3871_empty_pool": "PR #3871 own growth: combo.ts 5203->5204 (+1 = guard expandAutoComboCandidatePool against an empty candidatePool array — Array.isArray(pool) && pool.length > 0 so [] falls through to active-connection expansion instead of early-returning). One-line correctness fix; not extractable.",
   "_rebaseline_2026_06_15_3911_sse_role": "PR #3911 own growth: openai-responses.ts 878->903 (+25 = withAssistantRoleOnFirstDelta wrapper that synthesizes role=assistant on the first Responses->Chat delta so strict streaming clients (langchain/n8n) do not drop tool_call deltas). Cohesive translator fix; not extractable.",
   "_rebaseline_2026_06_15_3881_nous_validator": "Issue #3881 own growth: validation.ts 4394->4407 (+13 = treat any non-auth 4xx (400/404/422) from the Nous Research probe as a valid key — the request shape/model was wrong, not the credentials — mirroring the longcat/nvidia validators, plus the corrected Hermes-4-70B probe model). Cohesive validator branch; not extractable.",
+  "_rebaseline_2026_06_15_3877_byteplus": "Issue #3877 own growth: providerRegistry.ts 4708->4730 (+22 = a byteplus (BytePlus ModelArk) registry entry — OpenAI-compatible, Ark base ap-southeast-1, Bearer, 4 seed models — modeled on the volcengine entry; byteplus was in APIKEY_PROVIDERS but unregistered here so validation returned {unsupported:true}). Cohesive provider registration; not extractable.",
   "cap": 800,
   "frozen": {
-    "open-sse/config/providerRegistry.ts": 4708,
+    "open-sse/config/providerRegistry.ts": 4730,
     "open-sse/executors/antigravity.ts": 1649,
     "open-sse/executors/base.ts": 1218,
     "open-sse/executors/chatgpt-web.ts": 2870,
