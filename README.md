@@ -2439,3 +2439,12 @@ MIT License - see [LICENSE](LICENSE) for details.
 <!-- RICH-MEDIA-STUB type="annotated-screenshot" subject="OmniRoute architecture — proxy gateway + provider adapters diagram" journey="" status="TODO" -->
 > **[RICH MEDIA PLACEHOLDER]** *Annotated architecture diagram of the OmniRoute gateway and provider adapter layer.*
 <!-- END-RICH-MEDIA-STUB -->
+
+## Documentation
+
+This repository includes the following cross-cutting documents:
+
+- [`AGENTS.md`](AGENTS.md) — operating instructions for AI agents and human contributors
+- [`SPEC.md`](SPEC.md) — formal specification of behavior and contracts
+- [`docs/`](docs/) — design notes, ADRs, and supporting documentation (see [`docs/index.md`](docs/index.md))
+
