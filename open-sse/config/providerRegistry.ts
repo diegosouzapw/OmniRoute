@@ -4523,6 +4523,11 @@ export function generateModels(): Record<string, RegistryModel[]> {
       if (!models[key]) {
         models[key] = entry.models;
       }
+      // Also store under the raw provider id so getProviderModels(id) works
+      // even when the provider has a different alias (e.g. "github" → alias "gh").
+      if (entry.alias && entry.alias !== entry.id && !models[entry.id]) {
+        models[entry.id] = entry.models;
+      }
     }
   }
   return models;
