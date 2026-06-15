@@ -1,9 +1,5 @@
 name: Release
 
-concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: true
-
 on:
   push:
     tags:
@@ -20,6 +16,10 @@ permissions:
   id-token: write
   packages: write
 
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 jobs:
   validate:
     name: Validate version

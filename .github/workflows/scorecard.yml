@@ -6,12 +6,12 @@ on:
   schedule:
     - cron: '0 9 * * 1'
 
+permissions: read-all
+
+
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
-
-permissions: read-all
-
 jobs:
   scorecard:
     name: Scorecard analysis
