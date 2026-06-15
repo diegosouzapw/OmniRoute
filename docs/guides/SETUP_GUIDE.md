@@ -255,7 +255,7 @@ Backward compatibility is preserved: existing `FETCH_TIMEOUT_MS`, `API_BRIDGE_PR
 
 For Claude Code-compatible upstreams (`anthropic-compatible-cc-*`), OmniRoute derives the outbound `X-Stainless-Timeout` header from the resolved fetch timeout so provider-side read timeouts stay aligned with your env configuration.
 
-For third-party Claude Code-compatible reverse proxies, OmniRoute keeps the default `anthropic-beta` set conservative and, when `Client Cache Control` is left on `Auto`, only forwards client-provided `cache_control` markers.
+For third-party Claude Code-compatible reverse proxies, OmniRoute keeps the default `anthropic-beta` set conservative and, when `Client Cache Control` is left on `Auto`, only forwards client-provided `cache_control` markers. Set `OMNIROUTE_CC_REDACT_THINKING=true` only when the upstream specifically requires redacted Claude thinking streams.
 
 ### Advanced Timeout Overrides
 

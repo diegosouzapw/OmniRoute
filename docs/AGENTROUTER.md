@@ -126,7 +126,8 @@ request (see `open-sse/services/claudeCodeCompatible.ts`):
 | `Authorization`                             | `Bearer <api-key>`                                                                                  |
 | `User-Agent`                                | `claude-cli/2.1.158 (external, sdk-cli)`                                                            |
 | `anthropic-version`                         | `2023-06-01`                                                                                        |
-| `anthropic-beta`                            | `claude-code-20250219,interleaved-thinking-2025-05-14,effort-2025-11-24,redact-thinking-2026-02-12` |
+| `anthropic-beta`                            | `claude-code-20250219,interleaved-thinking-2025-05-14,effort-2025-11-24`                            |
+| `OMNIROUTE_CC_REDACT_THINKING=true`         | Adds `redact-thinking-2026-02-12` for upstreams that specifically require redacted thinking streams |
 | `anthropic-dangerous-direct-browser-access` | `true`                                                                                              |
 | `x-app`                                     | `cli`                                                                                               |
 | `X-Stainless-*`                             | Various Stainless SDK headers (lang, package version, OS, arch, etc.)                               |
