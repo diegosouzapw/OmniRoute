@@ -13,6 +13,7 @@
   "_rebaseline_2026_06_15_3877_byteplus": "Issue #3877 own growth: providerRegistry.ts 4708->4730 (+22 = a byteplus (BytePlus ModelArk) registry entry — OpenAI-compatible, Ark base ap-southeast-1, Bearer, 4 seed models — modeled on the volcengine entry; byteplus was in APIKEY_PROVIDERS but unregistered here so validation returned {unsupported:true}). Cohesive provider registration; not extractable.",
   "_rebaseline_2026_06_15_3910_nested_combo_ctx": "PR #3910 net +1: providerRegistry.ts 4730->4731 (test-registry contextLength metadata for the nested combo-ref LCD regression test). opencode-plugin-only behavioral change; no core routing/virtualFactory touched.",
   "_rebaseline_2026_06_15_3929_vertex_media": "PR #3929 own growth: audioSpeech.ts 952->965 (+13) and videoGeneration.ts 1026->1078 (+52) = vertex/* media branches (Gemini TTS, Veo predictLongRunning poll) wired into the speech/video handlers; new logic lives in open-sse/executors/vertexMedia.ts (341, under cap). Cohesive media-provider feature.",
+  "_rebaseline_2026_06_15_3879_redact_thinking": "PR #3879 + #3921 reconcile: AddApiKeyModal.tsx 843->845 (+2 = merging #3879's CcCompatibleRequestDefaultsFields (context1m + opt-in redact-thinking toggle) into #3921's preset-input block in the cc-compatible settings group). Cohesive UI; not extractable.",
   "cap": 800,
   "frozen": {
     "open-sse/config/providerRegistry.ts": 4731,
@@ -64,7 +65,7 @@
     "src/app/(dashboard)/dashboard/playground/components/tabs/ApiTab.tsx": 847,
     "src/app/(dashboard)/dashboard/providers/[id]/ProviderDetailPageClient.tsx": 784,
     "src/app/(dashboard)/dashboard/providers/[id]/components/ConnectionRow.tsx": 941,
-    "src/app/(dashboard)/dashboard/providers/[id]/components/modals/AddApiKeyModal.tsx": 843,
+    "src/app/(dashboard)/dashboard/providers/[id]/components/modals/AddApiKeyModal.tsx": 845,
     "src/app/(dashboard)/dashboard/providers/[id]/components/modals/EditConnectionModal.tsx": 1174,
     "src/app/(dashboard)/dashboard/providers/[id]/hooks/useProviderConnections.ts": 954,
     "src/app/(dashboard)/dashboard/providers/[id]/hooks/useProviderModels.ts": 155,
