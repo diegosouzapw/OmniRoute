@@ -71,11 +71,11 @@ PORT=20128 NEXT_PUBLIC_BASE_URL=http://localhost:20128 npm run dev
 
 ### Build Output Layout
 
-| Directory  | Contents                                    | Tracked |
-| ---------- | ------------------------------------------- | ------- |
-| `src/`     | Application source (TypeScript / TSX)       | Yes     |
-| `.build/`  | Intermediates — `next build` output (gitignored, `distDir = .build/next`) | No |
-| `dist/`    | Shippable bundle — assembled by `assembleStandalone` (gitignored) | No |
+| Directory | Contents                                                                  | Tracked |
+| --------- | ------------------------------------------------------------------------- | ------- |
+| `src/`    | Application source (TypeScript / TSX)                                     | Yes     |
+| `.build/` | Intermediates — `next build` output (gitignored, `distDir = .build/next`) | No      |
+| `dist/`   | Shippable bundle — assembled by `assembleStandalone` (gitignored)         | No      |
 
 The build pipeline is a single pass:
 
@@ -252,7 +252,7 @@ open-sse/                   # @omniroute/open-sse workspace
 electron/                   # Electron desktop app (cross-platform)
 
 tests/
-├── unit/                   # Node.js test runner (122 test files)
+├── unit/                   # Node.js test runner (1,574 test files)
 ├── integration/            # Integration tests
 ├── e2e/                    # Playwright tests
 ├── security/               # Security tests

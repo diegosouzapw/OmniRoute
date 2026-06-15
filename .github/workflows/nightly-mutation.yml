@@ -1,0 +1,37 @@
+name: Nightly Mutation
+on:
+  schedule:
+    - cron: "17 3 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  stryker:
+    name: Stryker mutation testing (8 critical modules — advisory)
+    runs-on: ubuntu-latest
+    # Mutation testing is expensive (~200-500 mutants, 30-90 min). It runs only
+    # on the nightly schedule / manual dispatch, never on PRs. The score is NOT
+    # yet enforced as a ratchet (wired in a later INT phase) — for now the job
+    # just produces the HTML/JSON report and uploads it as an artifact.
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
+        with:
+          node-version: "24"
+          cache: npm
+      - run: npm ci
+      - name: Run Stryker (advisory)
+        id: stryker
+        continue-on-error: true
+        run: npx stryker run
+      - name: Upload mutation report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: mutation-report
+          path: reports/mutation/
+          if-no-files-found: warn
+          retention-days: 14

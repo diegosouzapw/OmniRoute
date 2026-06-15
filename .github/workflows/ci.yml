@@ -88,6 +88,15 @@ jobs:
       # coverage mergeado). Tamanho de arquivo e duplicação têm gates dedicados.
       - name: Ratchet check
         run: node scripts/quality/check-quality-ratchet.mjs --summary .artifacts/quality-ratchet.md
+      # Fase 6A.5: require-tighten — ADVISORY por enquanto (continue-on-error). Reporta
+      # quando uma métrica MELHOROU sem o baseline ter sido apertado no mesmo PR (força
+      # capturar ganhos permanentes). As métricas coverage.* carregam tightenSlack para
+      # o gap anti-flake (CI mergeado > baseline) não disparar falso-positivo. Promover a
+      # BLOQUEANTE no fim do ciclo removendo o `continue-on-error` (ver a nota
+      # _require_tighten_advisory em config/quality/quality-baseline.json).
+      - name: Require-tighten (advisory — flip to blocking at cycle-end)
+        continue-on-error: true
+        run: node scripts/quality/check-quality-ratchet.mjs --require-tighten
       # Catraca de duplicação (jscpd@4 sobre src+open-sse). Roda neste job (paralelo)
       # para não pesar no caminho crítico do lint.
       - name: Duplication ratchet
@@ -187,6 +196,30 @@ jobs:
         run: npm run check:docs-symbols
       - name: i18n translation drift (warn)
         run: node scripts/i18n/check-translation-drift.mjs --warn
+
+  docs-lint:
+    name: Docs Lint (prose — advisory)
+    runs-on: ubuntu-latest
+    # Advisory (warning-first): prose/markdown style must not block merges while the
+    # existing doc corpus is brought up to style. Promote to blocking once it converges.
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
+        with:
+          node-version: ${{ env.CI_NODE_VERSION }}
+          cache: npm
+      - name: markdownlint (docs + root, advisory)
+        run: npx --yes markdownlint-cli2 "docs/**/*.md" "*.md" "!docs/i18n" "!docs/research" || true
+      - name: Vale prose lint (Microsoft style, advisory)
+        # Non-fatal: a Vale/reviewdog setup error must not turn this advisory job red.
+        continue-on-error: true
+        uses: errata-ai/vale-action@reviewdog
+        with:
+          files: docs
+          fail_on_error: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
   i18n-ui-coverage:
     name: i18n UI Coverage

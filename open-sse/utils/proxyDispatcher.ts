@@ -60,6 +60,10 @@ function getDispatcherOptions() {
     bodyTimeout: timeouts.fetchBodyTimeoutMs,
     connectTimeout: timeouts.fetchConnectTimeoutMs,
     keepAliveTimeout: timeouts.fetchKeepAliveTimeoutMs,
+    // Without this, an upstream Keep-Alive: timeout=N header clamps
+    // keepAliveTimeout UP to undici's default keepAliveMaxTimeout (600 s),
+    // completely overriding the configured 1 s and restoring zombie-socket risk.
+    keepAliveMaxTimeout: timeouts.fetchKeepAliveTimeoutMs,
   };
 }
 

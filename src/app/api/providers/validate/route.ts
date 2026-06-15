@@ -11,7 +11,7 @@ import { validateProviderApiKey } from "@/lib/providers/validation";
 import { getProxyForLevel, resolveProxyForProvider } from "@/lib/localDb";
 import { validateProviderApiKeySchema } from "@/shared/validation/schemas";
 import { isValidationFailure, validateBody } from "@/shared/validation/helpers";
-import { runWithProxyContext } from "@omniroute/open-sse/utils/proxyFetch.ts";
+import { runWithProxyContextOrDirect } from "@omniroute/open-sse/utils/proxyFetch.ts";
 
 function sanitizeAuditUrl(url: string | null | undefined) {
   if (!url) return null;
@@ -104,7 +104,7 @@ export async function POST(request) {
       proxyToUse = providerProxy || globalProxy || null;
     }
 
-    const result = await runWithProxyContext(proxyToUse || null, () =>
+    const result = await runWithProxyContextOrDirect(proxyToUse || null, () =>
       validateProviderApiKey({
         provider,
         apiKey,
