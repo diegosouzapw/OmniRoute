@@ -580,6 +580,31 @@ test("finalizePendingRequestById completes the exact stream when same model requ
   assert.equal(pending.byAccount[connectionId]?.[`${model} (${provider})`], 1);
 });
 
+test("completedDetails cache evicts oldest entries when bounded", () => {
+  usageHistory.clearPendingRequests();
+
+  const model = "gpt-4";
+  const provider = "openai";
+  const connectionId = "conn-completed-bound";
+  const ids: string[] = [];
+
+  for (let i = 0; i < 260; i++) {
+    const id = usageHistory.trackPendingRequest(model, provider, connectionId, true);
+    ids.push(id!);
+    const completed = usageHistory.finalizePendingRequestById(id, {
+      clientResponse: { choices: [{ message: { content: `done ${i}` } }] },
+    });
+    assert.equal(completed, true);
+  }
+
+  assert.ok(
+    usageHistory.getCompletedDetails().size <= 256,
+    "completedDetails should remain bounded"
+  );
+  assert.equal(usageHistory.getCompletedDetails().has(ids[0]), false);
+  assert.equal(usageHistory.getCompletedDetails().has(ids[ids.length - 1]), true);
+});
+
 test("streamChunks in completedDetails survives beyond the logs polling window", async () => {
   usageHistory.clearPendingRequests();
 

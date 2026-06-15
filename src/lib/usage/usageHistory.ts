@@ -42,6 +42,8 @@ type PendingRequestDetail = {
   providerUrl?: string | null;
   providerResponse?: unknown;
   clientResponse?: unknown;
+  completedAt?: number | null;
+  durationMs?: number | null;
   stage?: string | null;
   stageUpdatedAt?: number | null;
   streamChunks?: {
@@ -191,6 +193,8 @@ const pendingRequests: {
  */
 const pendingById = new Map<string, PendingRequestDetail>();
 const COMPLETED_DETAIL_TTL_MS = 120_000;
+const MAX_COMPLETED_DETAILS = 256;
+const completedDetailTimers = new Map<string, ReturnType<typeof setTimeout>>();
 
 /** Prototype-pollution denylist — prevents crafted model/provider names from mutating Object.prototype. */
 const UNSAFE_KEYS = new Set(["__proto__", "constructor", "prototype"]);
@@ -299,9 +303,37 @@ export function updatePendingRequest(
  */
 const completedDetails = new Map<string, PendingRequestDetail>();
 
+function deleteCompletedDetail(id: string) {
+  completedDetails.delete(id);
+  const existingTimer = completedDetailTimers.get(id);
+  if (existingTimer) {
+    clearTimeout(existingTimer);
+    completedDetailTimers.delete(id);
+  }
+}
+
+function trimCompletedDetails() {
+  while (completedDetails.size > MAX_COMPLETED_DETAILS) {
+    const oldestId = completedDetails.keys().next().value;
+    if (!oldestId) break;
+    deleteCompletedDetail(oldestId);
+  }
+}
+
+function storeCompletedDetail(detail: PendingRequestDetail) {
+  completedDetails.set(detail.id, detail);
+  trimCompletedDetails();
+}
+
 function scheduleCompletedDetailCleanup(id: string) {
-  const timer = setTimeout(() => completedDetails.delete(id), COMPLETED_DETAIL_TTL_MS);
+  const existingTimer = completedDetailTimers.get(id);
+  if (existingTimer) clearTimeout(existingTimer);
+  const timer = setTimeout(() => {
+    completedDetails.delete(id);
+    completedDetailTimers.delete(id);
+  }, COMPLETED_DETAIL_TTL_MS);
   timer.unref?.();
+  completedDetailTimers.set(id, timer);
 }
 
 function maybeEnrichCompletedDetail(updated: PendingRequestDetail, connectionId: string) {
@@ -343,7 +375,9 @@ function maybeEnrichCompletedDetail(updated: PendingRequestDetail, connectionId:
           }
           if (updated.providerResponse || updated.clientResponse) {
             // write-back to completed cache and stop searching
-            completedDetails.set(updated.id, updated);
+            if (completedDetails.has(updated.id)) {
+              storeCompletedDetail(updated);
+            }
             break;
           }
         }
@@ -405,8 +439,14 @@ function finalizePendingDetailAt(
   const details = pendingRequests.details[connectionId]?.[modelKey];
   if (!details?.length || index < 0 || index >= details.length) return null;
 
-  const updated = { ...details[index], ...normalizePendingMetadata(metadata) };
-  completedDetails.set(updated.id, updated);
+  const completedAt = Date.now();
+  const updated = {
+    ...details[index],
+    ...normalizePendingMetadata(metadata),
+    completedAt,
+    durationMs: Math.max(0, completedAt - details[index].startedAt),
+  };
+  storeCompletedDetail(updated);
   maybeEnrichCompletedDetail(updated, connectionId);
   scheduleCompletedDetailCleanup(updated.id);
 
@@ -509,6 +549,10 @@ export function clearPendingRequests() {
     Record<string, PendingRequestDetail[]>
   >;
   pendingById.clear();
+  for (const timer of completedDetailTimers.values()) {
+    clearTimeout(timer);
+  }
+  completedDetailTimers.clear();
   completedDetails.clear();
 }
 

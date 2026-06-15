@@ -168,11 +168,73 @@ test("GET /api/usage/call-logs/[id] route exists and uses auth", () => {
   assert.ok(content.includes("getCallLogById"), "should import getCallLogById");
 });
 
-test("GET /api/usage/call-logs includes completed in-memory fallback rows", () => {
-  const content = fs.readFileSync("src/app/api/usage/call-logs/route.ts", "utf8");
-  assert.match(content, /getCompletedDetails/);
-  assert.match(content, /completedEntries/);
-  assert.match(content, /detailState:\s*"in-memory"/);
+test("GET /api/usage/call-logs includes completed in-memory fallback rows", async () => {
+  const { buildCallLogListRows } = await import("../../src/app/api/usage/call-logs/route.ts");
+  usageHistory.clearPendingRequests();
+
+  const requestId = usageHistory.trackPendingRequest("gpt-4", "openai", "completed-conn-1", true, {
+    clientEndpoint: "/v1/chat/completions",
+  });
+  assert.ok(requestId);
+
+  const completed = usageHistory.finalizePendingRequestById(requestId, {
+    clientResponse: { choices: [{ message: { content: "done" } }] },
+  });
+  assert.equal(completed, true);
+
+  const completedDetail = usageHistory.getCompletedDetails().get(requestId);
+  assert.ok(completedDetail);
+  const rows = buildCallLogListRows({
+    logs: [],
+    connections: [{ id: "completed-conn-1", displayName: "Completed Account" }],
+    pendingDetails: usageHistory.getPendingById().values(),
+    completedDetails: usageHistory.getCompletedDetails().values(),
+    now: completedDetail!.startedAt + 60_000,
+  });
+
+  assert.equal(rows.length, 1);
+  assert.equal(rows[0].id, requestId);
+  assert.equal(rows[0].detailState, "in-memory");
+  assert.equal(rows[0].completed, true);
+  assert.equal(rows[0].account, "Completed Account");
+  assert.equal(rows[0].duration, completedDetail!.durationMs);
+});
+
+test("GET /api/usage/call-logs rows are globally timestamp ordered", async () => {
+  const { buildCallLogListRows } = await import("../../src/app/api/usage/call-logs/route.ts");
+  const rows = buildCallLogListRows({
+    logs: [
+      {
+        id: "persisted-newest",
+        timestamp: new Date(3000).toISOString(),
+        active: false,
+      },
+      {
+        id: "persisted-oldest",
+        timestamp: new Date(1000).toISOString(),
+        active: false,
+      },
+    ],
+    connections: [],
+    pendingDetails: [],
+    completedDetails: [
+      {
+        id: "completed-middle",
+        model: "gpt-4",
+        provider: "openai",
+        connectionId: "conn",
+        startedAt: 2000,
+        completedAt: 2500,
+        durationMs: 500,
+      },
+    ],
+    now: 4000,
+  });
+
+  assert.deepEqual(
+    rows.map((row) => row.id),
+    ["persisted-newest", "completed-middle", "persisted-oldest"]
+  );
 });
 
 test("getCallLogById returns null for unknown id", async () => {

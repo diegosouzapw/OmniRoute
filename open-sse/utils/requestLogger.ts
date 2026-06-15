@@ -253,7 +253,7 @@ function makeStreamChunkMethods(options: RequestLoggerOptions, captureChunks: bo
         if (
           entry?.connectionId === options.connectionId &&
           entry?.model === options.model &&
-          entry.provider === (options.provider || "")
+          entry?.provider === (options.provider || "")
         ) {
           entry.streamChunks = { ...streamChunks };
           return;

@@ -73,8 +73,8 @@ function parseSillyTavernCustomOpenAIStream(text) {
   for (const payload of parseJsonDataPayloads(text)) {
     const choices = Array.isArray(payload.choices) ? payload.choices : [];
     const reasoningDelta =
-      choices.filter((choice) => choice?.delta?.reasoning_content)[0]?.delta?.reasoning_content ??
-      choices.filter((choice) => choice?.delta?.reasoning)[0]?.delta?.reasoning ??
+      choices.find((choice) => choice?.delta?.reasoning_content)?.delta?.reasoning_content ??
+      choices.find((choice) => choice?.delta?.reasoning)?.delta?.reasoning ??
       "";
     const contentDelta =
       choices[0]?.delta?.content ?? choices[0]?.message?.content ?? choices[0]?.text ?? "";
