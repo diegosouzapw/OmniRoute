@@ -1780,7 +1780,7 @@ test("specialty validator accepts Nous Research credentials on chat completions"
       const headers = init.headers as Record<string, string>;
       const body = JSON.parse(String(init.body));
       assert.equal(headers.Authorization, "Bearer nous-key");
-      assert.equal(body.model, "nousresearch/hermes-4-70b");
+      assert.equal(body.model, "Hermes-4-70B");
       return new Response(
         JSON.stringify({
           id: "chatcmpl-nous",
@@ -1821,6 +1821,34 @@ test("specialty validator rejects invalid Nous Research credentials", async () =
   });
 
   assert.equal(nous.error, "Invalid API key");
+});
+
+test("specialty validator accepts Nous Research key when probe model is rejected (400)", async () => {
+  // #3881: a valid key whose probe model is rejected (model-not-found / bad request)
+  // must still validate — the 4xx proves auth was accepted, only the request shape
+  // was wrong. Mirrors the longcat/nvidia validators.
+  globalThis.fetch = async (url, init = {}) => {
+    const target = String(url);
+
+    if (target === "https://inference-api.nousresearch.com/v1/chat/completions") {
+      const headers = init.headers as Record<string, string>;
+      assert.equal(headers.Authorization, "Bearer nous-key");
+      return new Response(
+        JSON.stringify({ error: { message: "model not found", type: "invalid_request_error" } }),
+        { status: 400 }
+      );
+    }
+
+    throw new Error(`unexpected fetch: ${target}`);
+  };
+
+  const nous = await validateProviderApiKey({
+    provider: "nous-research",
+    apiKey: "nous-key",
+  });
+
+  assert.equal(nous.valid, true);
+  assert.equal(nous.method, "nous_chat_completions");
 });
 
 test("specialty validator rejects invalid Poe credentials", async () => {

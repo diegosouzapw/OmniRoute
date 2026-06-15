@@ -9,6 +9,7 @@
   "_rebaseline_2026_06_15_3906_proxy_direct_fallback": "PR #3906 own growth: oauth/[provider]/[action]/route.ts 916->918 (+2 = swap runWithProxyContext -> runWithProxyContextOrDirect at the control-plane callsites so a dead pinned proxy degrades to a direct connection instead of a 500; the longer call name + a prettier reflow add the lines). Cohesive control-plane change; not extractable.",
   "_rebaseline_2026_06_15_3871_empty_pool": "PR #3871 own growth: combo.ts 5203->5204 (+1 = guard expandAutoComboCandidatePool against an empty candidatePool array — Array.isArray(pool) && pool.length > 0 so [] falls through to active-connection expansion instead of early-returning). One-line correctness fix; not extractable.",
   "_rebaseline_2026_06_15_3911_sse_role": "PR #3911 own growth: openai-responses.ts 878->903 (+25 = withAssistantRoleOnFirstDelta wrapper that synthesizes role=assistant on the first Responses->Chat delta so strict streaming clients (langchain/n8n) do not drop tool_call deltas). Cohesive translator fix; not extractable.",
+  "_rebaseline_2026_06_15_3881_nous_validator": "Issue #3881 own growth: validation.ts 4394->4407 (+13 = treat any non-auth 4xx (400/404/422) from the Nous Research probe as a valid key — the request shape/model was wrong, not the credentials — mirroring the longcat/nvidia validators, plus the corrected Hermes-4-70B probe model). Cohesive validator branch; not extractable.",
   "cap": 800,
   "frozen": {
     "open-sse/config/providerRegistry.ts": 4708,
@@ -97,7 +98,7 @@
     "src/lib/evals/evalRunner.ts": 961,
     "src/lib/memory/retrieval.ts": 1171,
     "src/lib/modelsDevSync.ts": 934,
-    "src/lib/providers/validation.ts": 4394,
+    "src/lib/providers/validation.ts": 4407,
     "src/lib/tailscaleTunnel.ts": 1189,
     "src/lib/usage/callLogs.ts": 975,
     "src/lib/usage/providerLimits.ts": 949,

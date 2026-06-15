@@ -2120,7 +2120,7 @@ async function validateNousResearchProvider({ apiKey, providerSpecificData = {} 
     typeof providerSpecificData.validationModelId === "string" &&
     providerSpecificData.validationModelId.trim()
       ? providerSpecificData.validationModelId.trim()
-      : "nousresearch/hermes-4-70b";
+      : "Hermes-4-70B";
 
   try {
     const response = await validationWrite(chatUrl, {
@@ -2156,6 +2156,19 @@ async function validateNousResearchProvider({ apiKey, providerSpecificData = {} 
 
     if (response.status >= 500) {
       return { valid: false, error: `Provider unavailable (${response.status})` };
+    }
+
+    // #3881: any other non-auth 4xx (e.g. 400 model-not-found, 404, 422) means the
+    // credentials were accepted — only the probe model/request shape was rejected.
+    // Treat as valid (mirrors the longcat/nvidia validators) so a model rename upstream
+    // can't make a working key read as "invalid".
+    if (response.status >= 400 && response.status < 500) {
+      return {
+        valid: true,
+        error: null,
+        method: "nous_chat_completions",
+        warning: `Credentials valid (probe returned ${response.status})`,
+      };
     }
   } catch (error: any) {
     return toValidationErrorResult(error);
