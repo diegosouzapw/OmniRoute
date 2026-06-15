@@ -60,6 +60,12 @@ const SHORT_COOLDOWN_MS = 5 * 60 * 1000; // 5 minutes
 const INSTANT_RETRY_THRESHOLD_MS = 3 * 1000; // 3 seconds
 const FULL_QUOTA_COOLDOWN_MS = 24 * 60 * 60 * 1000; // 24 hours
 
+const RATE_LIMIT_KEYWORDS = ["per minute", "rpm", "rate limit", "rate_limit", "too many requests"];
+
+const FREE_TIER_KEYWORDS = ["free tier", "daily limit", "exhausted your capacity"];
+
+const SOFT_RATE_LIMIT_KEYWORDS = ["try again", "temporarily"];
+
 export function classify429(errorMessage: string): Category {
   const lower = (errorMessage || "").toLowerCase();
 
@@ -74,28 +80,18 @@ export function classify429(errorMessage: string): Category {
   }
 
   // Check for RPM/rate limit indicators
-  if (
-    lower.includes("per minute") ||
-    lower.includes("rpm") ||
-    lower.includes("rate limit") ||
-    lower.includes("rate_limit") ||
-    lower.includes("too many requests")
-  ) {
-    return "rate_limited";
+  for (const kw of RATE_LIMIT_KEYWORDS) {
+    if (lower.includes(kw)) return "rate_limited";
   }
 
   // Check for free tier exhaustion
-  if (
-    lower.includes("free tier") ||
-    lower.includes("daily limit") ||
-    lower.includes("exhausted your capacity")
-  ) {
-    return "quota_exhausted";
+  for (const kw of FREE_TIER_KEYWORDS) {
+    if (lower.includes(kw)) return "quota_exhausted";
   }
 
   // Check for soft/burst limits
-  if (lower.includes("try again") || lower.includes("temporarily")) {
-    return "soft_rate_limit";
+  for (const kw of SOFT_RATE_LIMIT_KEYWORDS) {
+    if (lower.includes(kw)) return "soft_rate_limit";
   }
 
   return "unknown";

@@ -101,6 +101,16 @@ export function unregisterCodexConnection(connectionId: string): void {
   connectionRegistry.delete(connectionId);
 }
 
+function evictOldestIfNeeded(connectionId: string): void {
+  if (!connectionRegistry.has(connectionId) && connectionRegistry.size >= MAX_CONNECTIONS) {
+    const oldestKey = connectionRegistry.keys().next().value;
+    if (oldestKey !== undefined) {
+      quotaCache.delete(oldestKey);
+      connectionRegistry.delete(oldestKey);
+    }
+  }
+}
+
 function getCodexConnectionMeta(
   connectionId: string,
   connection?: Record<string, unknown>
@@ -123,14 +133,8 @@ function getCodexConnectionMeta(
         : undefined;
 
     if (accessToken) {
+      evictOldestIfNeeded(connectionId);
       const meta = { accessToken, ...(workspaceId ? { workspaceId } : {}) };
-      if (!connectionRegistry.has(connectionId) && connectionRegistry.size >= MAX_CONNECTIONS) {
-        const oldestKey = connectionRegistry.keys().next().value;
-        if (oldestKey !== undefined) {
-          quotaCache.delete(oldestKey);
-          connectionRegistry.delete(oldestKey);
-        }
-      }
       connectionRegistry.set(connectionId, meta);
       return meta;
     }

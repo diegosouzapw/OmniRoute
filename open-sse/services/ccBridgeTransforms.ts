@@ -480,6 +480,13 @@ export interface ApplyPipelineResult {
   appliedOpKinds: string[];
 }
 
+function shouldSkipPipeline(body: RequestBody, config: CcBridgeTransformsConfig): boolean {
+  if (!body || typeof body !== "object") return true;
+  if (!config.enabled || !Array.isArray(config.pipeline) || config.pipeline.length === 0)
+    return true;
+  return false;
+}
+
 /**
  * Run the configured transform pipeline against a request body.
  *
@@ -492,10 +499,7 @@ export function applyCcBridgeTransformPipeline(
   body: RequestBody,
   config: CcBridgeTransformsConfig = getCcBridgeTransformsConfig()
 ): ApplyPipelineResult {
-  if (!body || typeof body !== "object") {
-    return { body, appliedOpKinds: [] };
-  }
-  if (!config.enabled || !Array.isArray(config.pipeline) || config.pipeline.length === 0) {
+  if (shouldSkipPipeline(body, config)) {
     return { body, appliedOpKinds: [] };
   }
 

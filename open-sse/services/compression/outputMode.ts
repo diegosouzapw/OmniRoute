@@ -106,6 +106,41 @@ export function buildCavemanOutputInstruction(
   return `${CAVEMAN_OUTPUT_MARKER}\n${instructions[intensity]}`;
 }
 
+function applyCavemanToInstruction(
+  body: ChatRequestBody,
+  instruction: string
+): CavemanOutputModeResult | null {
+  if (typeof body.instructions === "string") {
+    if (body.instructions.includes(CAVEMAN_OUTPUT_MARKER)) {
+      return { body, applied: false, skippedReason: "already_applied" };
+    }
+    return {
+      body: { ...body, instructions: `${body.instructions.trim()}\n\n${instruction}` },
+      applied: true,
+    };
+  }
+  if (typeof body.input === "string" || Array.isArray(body.input)) {
+    return { body: { ...body, instructions: instruction }, applied: true };
+  }
+  return null;
+}
+
+function injectCavemanIntoMessages(
+  body: ChatRequestBody,
+  instruction: string
+): CavemanOutputModeResult {
+  const nextMessages = [...(body.messages as Array<Record<string, unknown>>)];
+  const first = nextMessages[0];
+
+  if (first?.role === "system" && typeof first.content === "string") {
+    nextMessages[0] = { ...first, content: `${first.content.trim()}\n\n${instruction}` };
+  } else {
+    nextMessages.unshift({ role: "system", content: instruction });
+  }
+
+  return { body: { ...body, messages: nextMessages }, applied: true };
+}
+
 export function applyCavemanOutputMode(
   body: ChatRequestBody,
   options?: Partial<CavemanOutputModeConfig>,
@@ -120,22 +155,8 @@ export function applyCavemanOutputMode(
   const messages = Array.isArray(body.messages) ? body.messages : null;
   if (!messages || messages.length === 0) {
     const instruction = buildCavemanOutputInstruction(config, language);
-    if (typeof body.instructions === "string") {
-      if (body.instructions.includes(CAVEMAN_OUTPUT_MARKER)) {
-        return { body, applied: false, skippedReason: "already_applied" };
-      }
-      return {
-        body: {
-          ...body,
-          instructions: `${body.instructions.trim()}\n\n${instruction}`,
-        },
-        applied: true,
-      };
-    }
-    if (typeof body.input === "string" || Array.isArray(body.input)) {
-      return { body: { ...body, instructions: instruction }, applied: true };
-    }
-    return { body, applied: false, skippedReason: "no_messages" };
+    const result = applyCavemanToInstruction(body, instruction);
+    return result ?? { body, applied: false, skippedReason: "no_messages" };
   }
 
   // Check idempotency before bypass so the marker in an already-injected system
@@ -154,17 +175,5 @@ export function applyCavemanOutputMode(
   }
 
   const instruction = buildCavemanOutputInstruction(config, language);
-  const nextMessages = [...messages];
-  const first = nextMessages[0];
-
-  if (first?.role === "system" && typeof first.content === "string") {
-    nextMessages[0] = {
-      ...first,
-      content: `${first.content.trim()}\n\n${instruction}`,
-    };
-  } else {
-    nextMessages.unshift({ role: "system", content: instruction });
-  }
-
-  return { body: { ...body, messages: nextMessages }, applied: true };
+  return injectCavemanIntoMessages(body, instruction);
 }

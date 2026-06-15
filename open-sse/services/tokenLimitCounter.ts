@@ -189,6 +189,14 @@ export interface TokenLimitBreach {
  * @param provider  resolved upstream provider id (optional; "" matches no provider scope)
  * @param model     resolved model id (optional; "" matches no model scope)
  */
+function isWorseBreach(candidate: TokenLimitBreach, current: TokenLimitBreach | null): boolean {
+  if (current === null) return true;
+  if (candidate.remaining < current.remaining) return true;
+  if (candidate.remaining === current.remaining && candidate.limitValue < current.limitValue)
+    return true;
+  return false;
+}
+
 export function checkTokenLimits(
   apiKeyId: string,
   provider = "",
@@ -224,12 +232,7 @@ export function checkTokenLimits(
       nextResetAt,
     };
 
-    // Most-restrictive wins: smallest remaining. Tie-break: smaller limitValue.
-    if (
-      worst === null ||
-      breach.remaining < worst.remaining ||
-      (breach.remaining === worst.remaining && breach.limitValue < worst.limitValue)
-    ) {
+    if (isWorseBreach(breach, worst)) {
       worst = breach;
     }
   }

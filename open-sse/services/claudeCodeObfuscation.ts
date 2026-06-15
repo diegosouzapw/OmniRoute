@@ -53,8 +53,7 @@ export function obfuscateSensitiveWords(text: string): string {
   return result;
 }
 
-export function obfuscateInBody(body: Record<string, unknown>): void {
-  // System prompt (Claude format: string or array of blocks)
+function obfuscateSystemField(body: Record<string, unknown>): void {
   if (typeof body.system === "string") {
     body.system = obfuscateSensitiveWords(body.system);
   } else if (Array.isArray(body.system)) {
@@ -64,37 +63,43 @@ export function obfuscateInBody(body: Record<string, unknown>): void {
       }
     }
   }
+}
 
-  // Messages (all roles, not just user — system/assistant may also contain sensitive words)
+function obfuscateMessagesField(body: Record<string, unknown>): void {
   const messages = body.messages as Array<Record<string, unknown>> | undefined;
-  if (Array.isArray(messages)) {
-    for (const msg of messages) {
-      const content = msg.content;
-      if (typeof content === "string") {
-        msg.content = obfuscateSensitiveWords(content);
-      } else if (Array.isArray(content)) {
-        for (const block of content as Array<Record<string, unknown>>) {
-          if (typeof block.text === "string") {
-            block.text = obfuscateSensitiveWords(block.text);
-          }
+  if (!Array.isArray(messages)) return;
+  for (const msg of messages) {
+    const content = msg.content;
+    if (typeof content === "string") {
+      msg.content = obfuscateSensitiveWords(content);
+    } else if (Array.isArray(content)) {
+      for (const block of content as Array<Record<string, unknown>>) {
+        if (typeof block.text === "string") {
+          block.text = obfuscateSensitiveWords(block.text);
         }
       }
     }
   }
+}
 
-  // Tool descriptions (may contain URLs or names like "opencode")
+function obfuscateToolsField(body: Record<string, unknown>): void {
   const tools = body.tools as Array<Record<string, unknown>> | undefined;
-  if (Array.isArray(tools)) {
-    for (const tool of tools) {
-      if (typeof tool.description === "string") {
-        tool.description = obfuscateSensitiveWords(tool.description);
-      }
-      const fn = tool.function as Record<string, unknown> | undefined;
-      if (fn && typeof fn.description === "string") {
-        fn.description = obfuscateSensitiveWords(fn.description);
-      }
+  if (!Array.isArray(tools)) return;
+  for (const tool of tools) {
+    if (typeof tool.description === "string") {
+      tool.description = obfuscateSensitiveWords(tool.description);
+    }
+    const fn = tool.function as Record<string, unknown> | undefined;
+    if (fn && typeof fn.description === "string") {
+      fn.description = obfuscateSensitiveWords(fn.description);
     }
   }
+}
+
+export function obfuscateInBody(body: Record<string, unknown>): void {
+  obfuscateSystemField(body);
+  obfuscateMessagesField(body);
+  obfuscateToolsField(body);
 }
 
 function escapeRegex(str: string): string {

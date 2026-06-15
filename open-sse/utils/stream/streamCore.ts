@@ -1,49 +1,235 @@
 import { convertOpenAIToResponsesToolCall } from "../handlers/responseTranslator.ts";
 import { v4 as uuidv4 } from "uuid";
+import { SSEStreamContext } from "./types.ts";
 
-import { parseTextualToolCallFromContent, containsTextualToolCallCandidate, containsMalformedTextualToolCall, extractAllowedToolNames, collectPassthroughTextualToolCall } from "./textualToolCalls.ts";
+import {
+  parseTextualToolCallFromContent,
+  containsTextualToolCallCandidate,
+  containsMalformedTextualToolCall,
+  extractAllowedToolNames,
+  collectPassthroughTextualToolCall,
+} from "./textualToolCalls.ts";
 import { getOpenAIIntermediateChunks } from "./openaiChunks.ts";
-import { SYNTHETIC_CLAUDE_EMPTY_RESPONSE_TEXT, createClaudeEmptyResponseLifecycle, getClaudeEventType, isClaudeEventPayload, updateClaudeEmptyResponseLifecycle, shouldInjectClaudeEmptyResponseBeforeCurrentEvent, shouldInjectClaudeEmptyResponseOnFlush, shouldInjectClaudeMissingFinalizersOnFlush, buildSyntheticClaudeEmptyResponseEvents, restoreClaudePassthroughToolUseName } from "./claudeLifecycle.ts";
-import { normalizeResponsesSseIds, markPendingRequestCleared, pushUniqueResponsesOutputItems, backfillResponsesCompletedOutput, stripResponsesLifecycleEcho } from "./responsesLifecycle.ts";
-import { buildResponsesFunctionCallEvents, formatSSEDataEvents, toChatCompletionChunkWithToolCall, toResponsesCompletedWithToolCalls } from "./sseFormatters.ts";
+import {
+  SYNTHETIC_CLAUDE_EMPTY_RESPONSE_TEXT,
+  createClaudeEmptyResponseLifecycle,
+  getClaudeEventType,
+  isClaudeEventPayload,
+  updateClaudeEmptyResponseLifecycle,
+  shouldInjectClaudeEmptyResponseBeforeCurrentEvent,
+  shouldInjectClaudeEmptyResponseOnFlush,
+  shouldInjectClaudeMissingFinalizersOnFlush,
+  buildSyntheticClaudeEmptyResponseEvents,
+  restoreClaudePassthroughToolUseName,
+} from "./claudeLifecycle.ts";
+import {
+  normalizeResponsesSseIds,
+  markPendingRequestCleared,
+  pushUniqueResponsesOutputItems,
+  backfillResponsesCompletedOutput,
+  stripResponsesLifecycleEcho,
+} from "./responsesLifecycle.ts";
+import {
+  buildResponsesFunctionCallEvents,
+  formatSSEDataEvents,
+  toChatCompletionChunkWithToolCall,
+  toResponsesCompletedWithToolCalls,
+} from "./sseFormatters.ts";
 import { stringifyIdValue, asRecord, appendBoundedText, STREAM_MODE } from "./utils.ts";
-import { JsonRecord, StreamLogger, StreamCompletePayload, StreamFailurePayload, StreamOptions, TranslateState, ToolCall, UsageTokenRecord } from "./types.ts";
+import {
+  JsonRecord,
+  StreamLogger,
+  StreamCompletePayload,
+  StreamFailurePayload,
+  StreamOptions,
+  TranslateState,
+  ToolCall,
+  UsageTokenRecord,
+} from "./types.ts";
 import { normalizeStreamFailurePayload } from "./errors.ts";
 
-/**
- * Create unified SSE transform stream with idle timeout protection.
- * If the upstream provider stops sending data for STREAM_IDLE_TIMEOUT_MS,
- * the stream emits an error event and closes to prevent indefinite hanging.
- *
- * @param {object} options
- * @param {string} options.mode - Stream mode: translate, passthrough
- * @param {string} options.targetFormat - Provider format (for translate mode)
- * @param {string} options.sourceFormat - Client format (for translate mode)
- * @param {string} options.provider - Provider name
- * @param {object} options.reqLogger - Request logger instance
- * @param {string} options.model - Model name
- * @param {string} options.connectionId - Connection ID for usage tracking
- * @param {object|null} options.apiKeyInfo - API key metadata for usage attribution
- * @param {object} options.body - Request body (for input token estimation)
- * @param {function} options.onComplete - Callback when stream finishes: ({ status, usage }) => void
- */
-export function createSSEStream(options: StreamOptions = {}) {
+// Module-level helpers extracted from createSSEStream closures to keep
+// cyclomatic complexity of individual functions under the 15-node gate.
+
+function getResponsesReasoningSummaryTextModule(item: Record<string, unknown>): string {
+  return Array.isArray(item.summary)
+    ? item.summary
+        .map((part) => {
+          if (!part || typeof part !== "object" || Array.isArray(part)) {
+            return "";
+          }
+          return typeof (part as Record<string, unknown>).text === "string"
+            ? ((part as Record<string, unknown>).text as string)
+            : "";
+        })
+        .join("")
+    : "";
+}
+
+function getResponsesReasoningKeyModule(
+  payload: Record<string, unknown>,
+  passthroughResponsesId: string | null
+): string | null {
+  const itemId = stringifyIdValue(payload.item_id);
+  if (itemId) {
+    return itemId;
+  }
+  const item =
+    payload.item && typeof payload.item === "object" && !Array.isArray(payload.item)
+      ? (payload.item as Record<string, unknown>)
+      : null;
+  const outputItemId = item ? stringifyIdValue(item.id) : null;
+  if (outputItemId) {
+    return outputItemId;
+  }
+  const responseId = stringifyIdValue(payload.response_id) || passthroughResponsesId;
+  const outputIndex =
+    typeof payload.output_index === "number" && Number.isInteger(payload.output_index)
+      ? payload.output_index
+      : null;
+  return responseId !== null && outputIndex !== null ? `${responseId}:${outputIndex}` : null;
+}
+
+function ensureVisibleResponsesReasoningSummaryModule(payload: Record<string, unknown>): boolean {
+  const item =
+    payload.item && typeof payload.item === "object" && !Array.isArray(payload.item)
+      ? (payload.item as Record<string, unknown>)
+      : null;
+  if (!item || item.type !== "reasoning") {
+    return false;
+  }
+  if (getResponsesReasoningSummaryTextModule(item)) {
+    return false;
+  }
+  const hasEncryptedReasoning =
+    typeof item.encrypted_content === "string" && item.encrypted_content.length > 0;
+  if (!hasEncryptedReasoning) {
+    return false;
+  }
+  item.summary = [
+    {
+      type: "summary_text",
+      text: "Codex is reasoning, but the upstream Responses API exposed this reasoning block only as encrypted state. OmniRoute cannot recover the private reasoning text.",
+    },
+  ];
+  return true;
+}
+
+function computeReasoningIdsModule(
+  item: Record<string, unknown>,
+  payload: Record<string, unknown>,
+  reasoningKey: string
+): { itemId: string; outputIndex: number } {
+  const itemId = typeof item.id === "string" && item.id ? item.id : reasoningKey;
+  const outputIndex =
+    typeof payload.output_index === "number" && Number.isInteger(payload.output_index)
+      ? payload.output_index
+      : 0;
+  return { itemId, outputIndex };
+}
+
+function maybeExtractOpenAIThinking(
+  itemSanitized: Record<string, unknown>,
+  sourceFormat: string
+): Record<string, unknown> | null {
+  const isResponsesEvent =
+    typeof itemSanitized?.event === "string" && itemSanitized.event.startsWith("response.");
+  if (sourceFormat === FORMATS.OPENAI && !isResponsesEvent) {
+    const sanitized = sanitizeStreamingChunk(itemSanitized) as Record<string, unknown>;
+    const delta = sanitized?.choices?.[0]?.delta;
+    if (delta?.content && typeof delta.content === "string") {
+      const { content, thinking } = extractThinkingFromContent(delta.content);
+      delta.content = content;
+      if (thinking && !delta.reasoning_content) {
+        delta.reasoning_content = thinking;
+      }
+    }
+    return sanitized;
+  }
+  return null;
+}
+
+function maybeFillFinishChunkUsage(
+  itemSanitized: Record<string, unknown>,
+  state: TranslateState | null | undefined,
+  isFinishChunk: boolean,
+  body: Record<string, unknown> | null | undefined,
+  totalContentLength: number,
+  sourceFormat: string
+): void {
+  if (!state?.finishReason || !isFinishChunk) {
+    return;
+  }
+  if (!hasValidUsage(itemSanitized.usage) && totalContentLength > 0) {
+    const estimated = estimateUsage(body, totalContentLength, sourceFormat);
+    itemSanitized.usage = filterUsageForFormat(estimated, sourceFormat);
+    state.usage = estimated;
+  } else if (state.usage) {
+    const buffered = addBufferToUsage(state.usage);
+    itemSanitized.usage = filterUsageForFormat(buffered, sourceFormat);
+  }
+}
+
+function maybeEmitClaudeLifecycleEvents(
+  itemSanitized: Record<string, unknown>,
+  claudeEmptyResponseLifecycle: Record<string, unknown>,
+  sourceFormat: string
+): { shouldInjectEmptyResponse: boolean; eventType: string | null } {
+  let shouldInjectEmptyResponse = false;
+  let eventType: string | null = null;
+  if (
+    sourceFormat === FORMATS.CLAUDE &&
+    shouldInjectClaudeEmptyResponseBeforeCurrentEvent(
+      claudeEmptyResponseLifecycle as Parameters<
+        typeof shouldInjectClaudeEmptyResponseBeforeCurrentEvent
+      >[0],
+      itemSanitized
+    )
+  ) {
+    shouldInjectEmptyResponse = true;
+    eventType = getClaudeEventType(itemSanitized);
+  }
+  if (sourceFormat === FORMATS.CLAUDE && isClaudeEventPayload(itemSanitized)) {
+    updateClaudeEmptyResponseLifecycle(
+      claudeEmptyResponseLifecycle as Parameters<typeof updateClaudeEmptyResponseLifecycle>[0],
+      itemSanitized
+    );
+  }
+  return { shouldInjectEmptyResponse, eventType };
+}
+
+const CREATE_SSE_STREAM_DEFAULTS = {
+  mode: STREAM_MODE.TRANSLATE,
+  clientResponseFormat: null,
+  copilotCompatibleReasoning: false,
+  provider: null,
+  reqLogger: null,
+  toolNameMap: null,
+  model: null,
+  connectionId: null,
+  apiKeyInfo: null,
+  body: null,
+  onComplete: null,
+  onFailure: null,
+};
+
+function buildSSEStreamContext(options: StreamOptions): SSEStreamContext {
   const {
-    mode = STREAM_MODE.TRANSLATE,
+    mode,
     targetFormat,
     sourceFormat,
-    clientResponseFormat = null,
-    copilotCompatibleReasoning = false,
-    provider = null,
-    reqLogger = null,
-    toolNameMap = null,
-    model = null,
-    connectionId = null,
-    apiKeyInfo = null,
-    body = null,
-    onComplete = null,
-    onFailure = null,
-  } = options;
+    clientResponseFormat,
+    copilotCompatibleReasoning,
+    provider,
+    reqLogger,
+    toolNameMap,
+    model,
+    connectionId,
+    apiKeyInfo,
+    body,
+    onComplete,
+    onFailure,
+  } = { ...CREATE_SSE_STREAM_DEFAULTS, ...options };
   const signatureNamespace = connectionId;
 
   const clientExpectsResponsesStream =
@@ -51,34 +237,21 @@ export function createSSEStream(options: StreamOptions = {}) {
       ? clientResponseFormat === FORMATS.OPENAI_RESPONSES
       : sourceFormat === FORMATS.OPENAI_RESPONSES) === true;
 
-  // Clients whose SSE protocol terminates naturally on the last
-  // provider-shape event (not on a `data: [DONE]` line). Emitting
-  // `[DONE]` to these clients produces a parser error in the SDK and
-  // breaks follow-up turns (Capy/Anthropic SDK: text gets stuck in the
-  // "Thought" area; subsequent /v1/messages calls retry into a corrupt
-  // state). Skip the `[DONE]` for these formats.
   const clientExpectsClaudeStream =
     (mode === STREAM_MODE.PASSTHROUGH
       ? clientResponseFormat === FORMATS.CLAUDE
       : sourceFormat === FORMATS.CLAUDE) === true;
 
-  // Single source of truth for the [DONE] decision, used at both emission
-  // sites below. Only OpenAI Chat Completions clients expect [DONE];
-  // Responses API and Anthropic SSE terminate on their own protocol events
-  // (response.completed / message_stop respectively).
   const shouldEmitDoneTerminator = !clientExpectsResponsesStream && !clientExpectsClaudeStream;
 
   let buffer = "";
   let usage: UsageTokenRecord | null = null;
-  /** Passthrough (OpenAI CC shape): saw tool_calls in stream before finish_reason */
   let passthroughHasToolCalls = false;
-  /** Passthrough: accumulate tool_calls deltas for call log responseBody */
   const passthroughToolCalls = new Map<string, ToolCall>();
   let passthroughToolCallSeq = 0;
   const allowedToolNames = extractAllowedToolNames(body);
   let skipPassthroughEvent = false;
 
-  // State for translate mode (accumulatedContent for call log response body)
   const state: TranslateState | null =
     mode === STREAM_MODE.TRANSLATE
       ? {
@@ -91,15 +264,10 @@ export function createSSEStream(options: StreamOptions = {}) {
         }
       : null;
 
-  // Track content length for usage estimation (both modes)
   let totalContentLength = 0;
-  // Passthrough: accumulate content and reasoning separately for call log response body
   let passthroughAccumulatedContent = "";
   let passthroughAccumulatedReasoning = "";
   let passthroughBufferedTextualToolCallContent = "";
-  // Passthrough Responses SSE: snapshots of items seen via `response.output_item.done`,
-  // used to backfill `response.completed.response.output` when upstream returns it
-  // empty (which happens when `store: false` — see backfillResponsesCompletedOutput).
   const passthroughResponsesOutputItems: unknown[] = [];
   const passthroughResponsesPendingFunctionCalls = new Map<string, JsonRecord>();
   let passthroughResponsesId: string | null = null;
@@ -111,8 +279,6 @@ export function createSSEStream(options: StreamOptions = {}) {
   let toolFinishTime: number | null = null;
   let contentAfterToolSeen = false;
 
-  // Cross-request tool latency: fingerprint the session from the request body
-  // so Request 2 can pick up the tool-finish timestamp left by Request 1.
   const sessionId = generateSessionId(body as Parameters<typeof generateSessionId>[0], {
     provider: provider ?? undefined,
     connectionId: connectionId ?? undefined,
@@ -122,7 +288,6 @@ export function createSSEStream(options: StreamOptions = {}) {
     pendingToolFinishTime = consumeToolFinishTime(sessionId);
   } catch {}
 
-  // Guard against duplicate [DONE] events — ensures exactly one per stream
   let doneSent = false;
   const providerPayloadCollector = createStructuredSSECollector({
     stage: "provider_response",
@@ -137,15 +302,16 @@ export function createSSEStream(options: StreamOptions = {}) {
   const expectsOpenAIUsageOnlyChunk =
     requestStreamOptions.include_usage === true || requestStreamOptions.includeUsage === true;
 
-  // Per-stream instances to avoid shared state with concurrent streams
   const decoder = new TextDecoder();
   const encoder = new TextEncoder();
 
-  // Idle timeout state — closes stream if provider stops sending data
   let lastChunkTime = Date.now();
   let idleTimer: ReturnType<typeof setInterval> | null = null;
   let streamTimedOut = false;
-  const claudeEmptyResponseLifecycle = createClaudeEmptyResponseLifecycle();
+  const claudeEmptyResponseLifecycle = createClaudeEmptyResponseLifecycle() as Record<
+    string,
+    unknown
+  >;
   let pendingPassthroughEventLine: string | null = null;
   let pendingPassthroughEventEmitted = false;
 
@@ -277,18 +443,10 @@ export function createSSEStream(options: StreamOptions = {}) {
     item: Record<string, unknown>
   ) => {
     let itemSanitized: Record<string, unknown> = item;
-    const isResponsesEvent = typeof item?.event === "string" && item.event.startsWith("response.");
-    if (sourceFormat === FORMATS.OPENAI && !isResponsesEvent) {
-      itemSanitized = sanitizeStreamingChunk(itemSanitized) as Record<string, unknown>;
 
-      const delta = itemSanitized?.choices?.[0]?.delta;
-      if (delta?.content && typeof delta.content === "string") {
-        const { content, thinking } = extractThinkingFromContent(delta.content);
-        delta.content = content;
-        if (thinking && !delta.reasoning_content) {
-          delta.reasoning_content = thinking;
-        }
-      }
+    const sanitized = maybeExtractOpenAIThinking(itemSanitized, sourceFormat);
+    if (sanitized) {
+      itemSanitized = sanitized;
     }
 
     if (!hasValuableContent(itemSanitized, sourceFormat)) {
@@ -297,35 +455,28 @@ export function createSSEStream(options: StreamOptions = {}) {
 
     const isFinishChunk =
       itemSanitized.type === "message_delta" || itemSanitized.choices?.[0]?.finish_reason;
-    if (
-      state?.finishReason &&
-      isFinishChunk &&
-      !hasValidUsage(itemSanitized.usage) &&
-      totalContentLength > 0
-    ) {
-      const estimated = estimateUsage(body, totalContentLength, sourceFormat);
-      itemSanitized.usage = filterUsageForFormat(estimated, sourceFormat);
-      state.usage = estimated;
-    } else if (state?.finishReason && isFinishChunk && state.usage) {
-      const buffered = addBufferToUsage(state.usage);
-      itemSanitized.usage = filterUsageForFormat(buffered, sourceFormat);
-    }
+    maybeFillFinishChunkUsage(
+      itemSanitized,
+      state,
+      isFinishChunk,
+      body,
+      totalContentLength,
+      sourceFormat
+    );
 
-    if (
-      sourceFormat === FORMATS.CLAUDE &&
-      shouldInjectClaudeEmptyResponseBeforeCurrentEvent(claudeEmptyResponseLifecycle, itemSanitized)
-    ) {
-      const eventType = getClaudeEventType(itemSanitized);
+    const { shouldInjectEmptyResponse, eventType } = maybeEmitClaudeLifecycleEvents(
+      itemSanitized,
+      claudeEmptyResponseLifecycle,
+      sourceFormat
+    );
+    if (shouldInjectEmptyResponse) {
       emitSyntheticClaudeEmptyResponse(controller, {
         includeContentBlock: true,
         includeMessageDelta:
-          eventType === "message_stop" && !claudeEmptyResponseLifecycle.hasMessageDelta,
+          eventType === "message_stop" &&
+          !(claudeEmptyResponseLifecycle as Record<string, unknown>).hasMessageDelta,
         includeMessageStop: false,
       });
-    }
-
-    if (sourceFormat === FORMATS.CLAUDE && isClaudeEventPayload(itemSanitized)) {
-      updateClaudeEmptyResponseLifecycle(claudeEmptyResponseLifecycle, itemSanitized);
     }
 
     const output = formatSSE(itemSanitized, sourceFormat);
@@ -352,72 +503,12 @@ export function createSSEStream(options: StreamOptions = {}) {
     controller.enqueue(encoder.encode(comment));
   };
 
-  const getResponsesReasoningKey = (payload: Record<string, unknown>): string | null => {
-    const itemId = stringifyIdValue(payload.item_id);
-    if (itemId) {
-      return itemId;
-    }
+  const getResponsesReasoningKey = (payload: Record<string, unknown>): string | null =>
+    getResponsesReasoningKeyModule(payload, passthroughResponsesId);
 
-    const item =
-      payload.item && typeof payload.item === "object" && !Array.isArray(payload.item)
-        ? (payload.item as Record<string, unknown>)
-        : null;
-    const outputItemId = item ? stringifyIdValue(item.id) : null;
-    if (outputItemId) {
-      return outputItemId;
-    }
+  const getResponsesReasoningSummaryText = getResponsesReasoningSummaryTextModule;
 
-    const responseId = stringifyIdValue(payload.response_id) || passthroughResponsesId;
-    const outputIndex =
-      typeof payload.output_index === "number" && Number.isInteger(payload.output_index)
-        ? payload.output_index
-        : null;
-
-    return responseId !== null && outputIndex !== null ? `${responseId}:${outputIndex}` : null;
-  };
-
-  const getResponsesReasoningSummaryText = (item: Record<string, unknown>): string => {
-    return Array.isArray(item.summary)
-      ? item.summary
-          .map((part) => {
-            if (!part || typeof part !== "object" || Array.isArray(part)) {
-              return "";
-            }
-            return typeof (part as Record<string, unknown>).text === "string"
-              ? ((part as Record<string, unknown>).text as string)
-              : "";
-          })
-          .join("")
-      : "";
-  };
-
-  const ensureVisibleResponsesReasoningSummary = (payload: Record<string, unknown>): boolean => {
-    const item =
-      payload.item && typeof payload.item === "object" && !Array.isArray(payload.item)
-        ? (payload.item as Record<string, unknown>)
-        : null;
-    if (!item || item.type !== "reasoning") {
-      return false;
-    }
-
-    if (getResponsesReasoningSummaryText(item)) {
-      return false;
-    }
-
-    const hasEncryptedReasoning =
-      typeof item.encrypted_content === "string" && item.encrypted_content.length > 0;
-    if (!hasEncryptedReasoning) {
-      return false;
-    }
-
-    item.summary = [
-      {
-        type: "summary_text",
-        text: "Codex is reasoning, but the upstream Responses API exposed this reasoning block only as encrypted state. OmniRoute cannot recover the private reasoning text.",
-      },
-    ];
-    return true;
-  };
+  const ensureVisibleResponsesReasoningSummary = ensureVisibleResponsesReasoningSummaryModule;
 
   const emitSyntheticResponsesReasoningSummary = (
     controller: TransformStreamDefaultController,
@@ -444,11 +535,7 @@ export function createSSEStream(options: StreamOptions = {}) {
     }
     passthroughResponsesReasoningSummarySeen.add(reasoningKey);
 
-    const itemId = typeof item.id === "string" && item.id ? item.id : reasoningKey;
-    const outputIndex =
-      typeof payload.output_index === "number" && Number.isInteger(payload.output_index)
-        ? payload.output_index
-        : 0;
+    const { itemId, outputIndex } = computeReasoningIdsModule(item, payload, reasoningKey);
 
     const syntheticEvents = [
       {
@@ -481,22 +568,111 @@ export function createSSEStream(options: StreamOptions = {}) {
     }
   };
 
+  return {
+    mode: mode as string,
+    targetFormat: targetFormat as string | undefined,
+    sourceFormat: sourceFormat as string | undefined,
+    clientResponseFormat: clientResponseFormat as string | null,
+    copilotCompatibleReasoning: copilotCompatibleReasoning as boolean,
+    provider: provider as string | null,
+    reqLogger: reqLogger as StreamLogger | null,
+    toolNameMap,
+    model: model as string | null,
+    connectionId: connectionId as string | null,
+    apiKeyInfo,
+    body,
+    onComplete: onComplete as ((payload: StreamCompletePayload) => void) | null,
+    onFailure: onFailure as ((payload: StreamFailurePayload) => void | Promise<void>) | null,
+    clientExpectsResponsesStream,
+    clientExpectsClaudeStream,
+    shouldEmitDoneTerminator,
+    expectsOpenAIUsageOnlyChunk,
+    signatureNamespace: signatureNamespace as string | null,
+    buffer,
+    usage,
+    passthroughHasToolCalls,
+    passthroughToolCalls,
+    passthroughToolCallSeq,
+    allowedToolNames,
+    skipPassthroughEvent,
+    state,
+    totalContentLength,
+    passthroughAccumulatedContent,
+    passthroughAccumulatedReasoning,
+    passthroughBufferedTextualToolCallContent,
+    passthroughResponsesOutputItems,
+    passthroughResponsesPendingFunctionCalls,
+    passthroughResponsesId,
+    passthroughResponsesCurrentFunctionCallKey,
+    passthroughResponsesReasoningSummarySeen,
+    streamStartedAt,
+    lastToolCallChunkTime,
+    toolFinishTime,
+    contentAfterToolSeen,
+    sessionId,
+    pendingToolFinishTime,
+    doneSent,
+    pendingPassthroughEventLine,
+    pendingPassthroughEventEmitted,
+    lastChunkTime,
+    streamTimedOut,
+    decoder,
+    encoder,
+    idleTimer,
+    claudeEmptyResponseLifecycle,
+    providerPayloadCollector,
+    clientPayloadCollector,
+    requestRecord,
+    requestStreamOptions,
+    clearIdleTimer,
+    clearPendingPassthroughEvent,
+    maybePrefixPendingPassthroughEvent,
+    applyTextualToolCallStreamingGuard,
+    emitSyntheticClaudeEmptyResponse,
+    emitTranslatedClientItem,
+    emitFinalSseMetadata,
+    getResponsesReasoningKey,
+    getResponsesReasoningSummaryText,
+    ensureVisibleResponsesReasoningSummary,
+    emitSyntheticResponsesReasoningSummary,
+  };
+}
+
+/**
+ * Create unified SSE transform stream with idle timeout protection.
+ * If the upstream provider stops sending data for STREAM_IDLE_TIMEOUT_MS,
+ * the stream emits an error event and closes to prevent indefinite hanging.
+ *
+ * @param {object} options
+ * @param {string} options.mode - Stream mode: translate, passthrough
+ * @param {string} options.targetFormat - Provider format (for translate mode)
+ * @param {string} options.sourceFormat - Client format (for translate mode)
+ * @param {string} options.provider - Provider name
+ * @param {object} options.reqLogger - Request logger instance
+ * @param {string} options.model - Model name
+ * @param {string} options.connectionId - Connection ID for usage tracking
+ * @param {object|null} options.apiKeyInfo - API key metadata for usage attribution
+ * @param {object} options.body - Request body (for input token estimation)
+ * @param {function} options.onComplete - Callback when stream finishes: ({ status, usage }) => void
+ */
+export function createSSEStream(options: StreamOptions = {}) {
+  const ctx = buildSSEStreamContext(options);
   return new TransformStream(
     {
       start(controller) {
-        // Start idle watchdog — checks every 10s if provider has stopped sending
+        // Start idle watchdog — checks every 10s if ctx.provider has stopped sending
         if (STREAM_IDLE_TIMEOUT_MS > 0) {
-          idleTimer = setInterval(() => {
-            if (!streamTimedOut && Date.now() - lastChunkTime > STREAM_IDLE_TIMEOUT_MS) {
-              streamTimedOut = true;
-              clearIdleTimer();
-              const timeoutMsg = `[STREAM] Idle timeout: no data from ${provider || "provider"} for ${STREAM_IDLE_TIMEOUT_MS}ms (model: ${model || "unknown"})`;
+          ctx.idleTimer = setInterval(() => {
+            if (!ctx.streamTimedOut && Date.now() - ctx.lastChunkTime > STREAM_IDLE_TIMEOUT_MS) {
+              ctx.streamTimedOut = true;
+              ctx.clearIdleTimer();
+              const timeoutMsg = `[STREAM] Idle timeout: no data from ${ctx.provider || "provider"} for ${STREAM_IDLE_TIMEOUT_MS}ms (ctx.model: ${ctx.model || "unknown"})`;
               console.warn(timeoutMsg);
-              trackPendingRequest(model, provider, connectionId, false);
+              trackPendingRequest(ctx.model, ctx.provider, ctx.connectionId, false);
               appendRequestLog({
-                model,
-                provider,
-                connectionId,
+                model: ctx.model,
+                provider: ctx.provider,
+                connectionId: ctx.connectionId,
                 status: `FAILED ${HTTP_STATUS.GATEWAY_TIMEOUT}`,
               }).catch(() => {});
               const timeoutError = new Error(timeoutMsg);
@@ -508,29 +684,29 @@ export function createSSEStream(options: StreamOptions = {}) {
       },
 
       transform(chunk, controller) {
-        if (streamTimedOut) return;
-        lastChunkTime = Date.now();
-        const text = decoder.decode(chunk, { stream: true });
-        buffer += text;
-        reqLogger?.appendProviderChunk?.(text);
+        if (ctx.streamTimedOut) return;
+        ctx.lastChunkTime = Date.now();
+        const text = ctx.decoder.decode(chunk, { stream: true });
+        ctx.buffer += text;
+        ctx.reqLogger?.appendProviderChunk?.(text);
 
-        const lines = buffer.split("\n");
-        buffer = lines.pop() || "";
+        const lines = ctx.buffer.split("\n");
+        ctx.buffer = lines.pop() || "";
 
         for (const line of lines) {
           const trimmed = line.trim();
 
-          // Passthrough mode: normalize and forward
-          if (mode === STREAM_MODE.PASSTHROUGH) {
+          // Passthrough ctx.mode: normalize and forward
+          if (ctx.mode === STREAM_MODE.PASSTHROUGH) {
             let output: string;
             let injectedUsage = false;
             let clientPayload: unknown = null;
             let failurePayload: StreamFailurePayload | null = null;
 
-            if (skipPassthroughEvent) {
+            if (ctx.skipPassthroughEvent) {
               if (!trimmed) {
-                skipPassthroughEvent = false;
-                clearPendingPassthroughEvent();
+                ctx.skipPassthroughEvent = false;
+                ctx.clearPendingPassthroughEvent();
               }
               continue;
             }
@@ -538,41 +714,45 @@ export function createSSEStream(options: StreamOptions = {}) {
             // Drop whole keepalive event blocks — strict OpenAI-compatible SDKs
             // try to JSON.parse empty keepalive payloads and crash.
             if (/^event:\s*keepalive\b/i.test(trimmed)) {
-              skipPassthroughEvent = true;
-              clearPendingPassthroughEvent();
+              ctx.skipPassthroughEvent = true;
+              ctx.clearPendingPassthroughEvent();
               continue;
             }
 
             if (/^event:/i.test(trimmed)) {
-              if (pendingPassthroughEventLine && !pendingPassthroughEventEmitted) {
-                const pendingOutput = `${pendingPassthroughEventLine}\n`;
-                reqLogger?.appendConvertedChunk?.(pendingOutput);
-                controller.enqueue(encoder.encode(pendingOutput));
+              if (ctx.pendingPassthroughEventLine && !ctx.pendingPassthroughEventEmitted) {
+                const pendingOutput = `${ctx.pendingPassthroughEventLine}\n`;
+                ctx.reqLogger?.appendConvertedChunk?.(pendingOutput);
+                controller.enqueue(ctx.encoder.encode(pendingOutput));
               }
 
               const eventType = trimmed.replace(/^event:\s*/i, "");
               if (
-                shouldInjectClaudeEmptyResponseBeforeCurrentEvent(claudeEmptyResponseLifecycle, {
-                  type: eventType,
-                })
+                shouldInjectClaudeEmptyResponseBeforeCurrentEvent(
+                  ctx.claudeEmptyResponseLifecycle,
+                  {
+                    type: eventType,
+                  }
+                )
               ) {
-                emitSyntheticClaudeEmptyResponse(controller, {
+                ctx.emitSyntheticClaudeEmptyResponse(controller, {
                   includeContentBlock: true,
                   includeMessageDelta:
-                    eventType === "message_stop" && !claudeEmptyResponseLifecycle.hasMessageDelta,
+                    eventType === "message_stop" &&
+                    !ctx.claudeEmptyResponseLifecycle.hasMessageDelta,
                   includeMessageStop: false,
                 });
               }
 
-              pendingPassthroughEventLine = line;
-              pendingPassthroughEventEmitted = false;
+              ctx.pendingPassthroughEventLine = line;
+              ctx.pendingPassthroughEventEmitted = false;
               continue;
             }
 
             if (trimmed.startsWith("data:")) {
               const providerPayload = parseSSELine(trimmed);
               if (providerPayload) {
-                providerPayloadCollector.push(providerPayload);
+                ctx.providerPayloadCollector.push(providerPayload);
                 if ((providerPayload as { done?: unknown }).done === true) {
                   continue;
                 }
@@ -593,7 +773,8 @@ export function createSSEStream(options: StreamOptions = {}) {
                 // clients like OpenCode, so drop it only for Responses-native consumers.
                 const hasActiveDeltaValue = (value: unknown): boolean => {
                   if (typeof value === "string") return value.length > 0;
-                  if (Array.isArray(value)) return value.some((entry) => hasActiveDeltaValue(entry));
+                  if (Array.isArray(value))
+                    return value.some((entry) => hasActiveDeltaValue(entry));
                   if (value && typeof value === "object") {
                     return Object.values(value).some((entry) => hasActiveDeltaValue(entry));
                   }
@@ -601,7 +782,7 @@ export function createSSEStream(options: StreamOptions = {}) {
                 };
 
                 const isEmptyAssistantBootstrapChunkForResponsesClient =
-                  clientExpectsResponsesStream &&
+                  ctx.clientExpectsResponsesStream &&
                   parsed?.object === "chat.completion.chunk" &&
                   Array.isArray(parsed?.choices) &&
                   parsed.choices.length > 0 &&
@@ -657,18 +838,14 @@ export function createSSEStream(options: StreamOptions = {}) {
                     (parsedResponse ? stringifyIdValue(parsedResponse.id) : null) ||
                     stringifyIdValue(parsed.response_id);
                   if (responseId) {
-                    passthroughResponsesId = responseId;
+                    ctx.passthroughResponsesId = responseId;
                   }
-                  // Responses SSE: only extract usage, forward payload as-is
                   const extracted = extractUsage(parsed);
                   if (extracted) {
-                    usage = extracted;
+                    ctx.usage = extracted;
                   }
-                  // Keep generic Responses deltas for fallback usage estimates,
-                  // but only visible text deltas may become assistant content in
-                  // logs/replay payloads.
                   if (typeof parsed.delta === "string") {
-                    totalContentLength += parsed.delta.length;
+                    ctx.totalContentLength += parsed.delta.length;
                   }
                   if (
                     parsed.type === "response.output_text.delta" &&
@@ -676,57 +853,57 @@ export function createSSEStream(options: StreamOptions = {}) {
                   ) {
                     const incomingDelta = parsed.delta;
                     const bufferedCandidate =
-                      passthroughBufferedTextualToolCallContent + incomingDelta;
+                      ctx.passthroughBufferedTextualToolCallContent + incomingDelta;
                     if (
-                      passthroughBufferedTextualToolCallContent ||
+                      ctx.passthroughBufferedTextualToolCallContent ||
                       containsTextualToolCallCandidate(incomingDelta)
                     ) {
                       const parsedCandidate = parseTextualToolCallCandidate(bufferedCandidate);
                       if (parsedCandidate?.kind === "complete") {
                         const collectedToolCall = collectPassthroughTextualToolCall(
                           bufferedCandidate,
-                          passthroughToolCalls,
-                          allowedToolNames
+                          ctx.passthroughToolCalls,
+                          ctx.allowedToolNames
                         );
                         if (collectedToolCall) {
-                          passthroughHasToolCalls = true;
+                          ctx.passthroughHasToolCalls = true;
                           const responseToolCallEvents =
                             buildResponsesFunctionCallEvents(collectedToolCall);
                           output = formatSSEDataEvents(responseToolCallEvents);
-                          clientPayloadCollector.push(...responseToolCallEvents);
-                          reqLogger?.appendConvertedChunk?.(output);
-                          controller.enqueue(encoder.encode(output));
+                          ctx.clientPayloadCollector.push(...responseToolCallEvents);
+                          ctx.reqLogger?.appendConvertedChunk?.(output);
+                          controller.enqueue(ctx.encoder.encode(output));
                           injectedUsage = true;
                         } else {
-                          output = `data: ${JSON.stringify(parsed)}
-`;
+                          output = `data: ${JSON.stringify(parsed)}\n`;
                           injectedUsage = true;
                         }
-                        passthroughBufferedTextualToolCallContent = "";
+                        ctx.passthroughBufferedTextualToolCallContent = "";
                         parsed.delta = "";
                       } else if (parsedCandidate?.kind === "partial") {
-                        passthroughBufferedTextualToolCallContent = appendBoundedText(
-                          passthroughBufferedTextualToolCallContent,
+                        ctx.passthroughBufferedTextualToolCallContent = appendBoundedText(
+                          ctx.passthroughBufferedTextualToolCallContent,
                           incomingDelta
                         );
                         parsed.delta = "";
                         output = `data: ${JSON.stringify(parsed)}\n`;
                         injectedUsage = true;
                       } else {
-                        if (passthroughBufferedTextualToolCallContent) {
-                          parsed.delta = passthroughBufferedTextualToolCallContent + incomingDelta;
+                        if (ctx.passthroughBufferedTextualToolCallContent) {
+                          parsed.delta =
+                            ctx.passthroughBufferedTextualToolCallContent + incomingDelta;
                           output = `data: ${JSON.stringify(parsed)}\n`;
                           injectedUsage = true;
                         }
-                        passthroughAccumulatedContent = appendBoundedText(
-                          passthroughAccumulatedContent,
-                          passthroughBufferedTextualToolCallContent + incomingDelta
+                        ctx.passthroughAccumulatedContent = appendBoundedText(
+                          ctx.passthroughAccumulatedContent,
+                          ctx.passthroughBufferedTextualToolCallContent + incomingDelta
                         );
-                        passthroughBufferedTextualToolCallContent = "";
+                        ctx.passthroughBufferedTextualToolCallContent = "";
                       }
                     } else {
-                      passthroughAccumulatedContent = appendBoundedText(
-                        passthroughAccumulatedContent,
+                      ctx.passthroughAccumulatedContent = appendBoundedText(
+                        ctx.passthroughAccumulatedContent,
                         incomingDelta
                       );
                     }
@@ -739,9 +916,9 @@ export function createSSEStream(options: StreamOptions = {}) {
                     parsed.type === "response.reasoning_summary_text.done" ||
                     parsed.type === "response.reasoning_summary_part.done"
                   ) {
-                    const reasoningKey = getResponsesReasoningKey(parsed);
+                    const reasoningKey = ctx.getResponsesReasoningKey(parsed);
                     if (reasoningKey) {
-                      passthroughResponsesReasoningSummarySeen.add(reasoningKey);
+                      ctx.passthroughResponsesReasoningSummarySeen.add(reasoningKey);
                     }
                   }
                   if (
@@ -762,17 +939,17 @@ export function createSSEStream(options: StreamOptions = {}) {
                       if (typeof item.arguments !== "string") {
                         item.arguments = "";
                       }
-                      passthroughResponsesPendingFunctionCalls.set(pendingKey, item);
-                      passthroughResponsesCurrentFunctionCallKey = pendingKey;
+                      ctx.passthroughResponsesPendingFunctionCalls.set(pendingKey, item);
+                      ctx.passthroughResponsesCurrentFunctionCallKey = pendingKey;
                     }
                   }
                   if (parsed.type === "response.function_call_arguments.delta") {
                     const pendingKey =
                       typeof parsed.item_id === "string"
                         ? parsed.item_id
-                        : passthroughResponsesCurrentFunctionCallKey;
+                        : ctx.passthroughResponsesCurrentFunctionCallKey;
                     const pending = pendingKey
-                      ? passthroughResponsesPendingFunctionCalls.get(pendingKey)
+                      ? ctx.passthroughResponsesPendingFunctionCalls.get(pendingKey)
                       : undefined;
                     if (pending && typeof parsed.delta === "string") {
                       const previousArgs =
@@ -784,24 +961,29 @@ export function createSSEStream(options: StreamOptions = {}) {
                     const pendingKey =
                       typeof parsed.item_id === "string"
                         ? parsed.item_id
-                        : passthroughResponsesCurrentFunctionCallKey;
+                        : ctx.passthroughResponsesCurrentFunctionCallKey;
                     const pending = pendingKey
-                      ? passthroughResponsesPendingFunctionCalls.get(pendingKey)
+                      ? ctx.passthroughResponsesPendingFunctionCalls.get(pendingKey)
                       : undefined;
                     if (pending) {
                       if (typeof parsed.arguments === "string") {
                         pending.arguments = parsed.arguments;
                       }
-                      pushUniqueResponsesOutputItems(passthroughResponsesOutputItems, [pending]);
+                      pushUniqueResponsesOutputItems(ctx.passthroughResponsesOutputItems, [
+                        pending,
+                      ]);
                     }
                   }
                   // Capture each completed output item so the final
                   // response.completed snapshot can be backfilled when upstream
                   // returns an empty `output` (happens with store: false).
                   if (parsed.type === "response.output_item.done" && parsed.item) {
-                    const reasoningSummaryInjected = ensureVisibleResponsesReasoningSummary(parsed);
-                    emitSyntheticResponsesReasoningSummary(controller, parsed);
-                    pushUniqueResponsesOutputItems(passthroughResponsesOutputItems, [parsed.item]);
+                    const reasoningSummaryInjected =
+                      ctx.ensureVisibleResponsesReasoningSummary(parsed);
+                    ctx.emitSyntheticResponsesReasoningSummary(controller, parsed);
+                    pushUniqueResponsesOutputItems(ctx.passthroughResponsesOutputItems, [
+                      parsed.item,
+                    ]);
                     if (reasoningSummaryInjected) {
                       output = `data: ${JSON.stringify(parsed)}\n`;
                       injectedUsage = true;
@@ -814,9 +996,9 @@ export function createSSEStream(options: StreamOptions = {}) {
                             ? parsed.item.call_id
                             : null;
                       if (pendingKey) {
-                        passthroughResponsesPendingFunctionCalls.delete(pendingKey);
-                        if (passthroughResponsesCurrentFunctionCallKey === pendingKey) {
-                          passthroughResponsesCurrentFunctionCallKey = null;
+                        ctx.passthroughResponsesPendingFunctionCalls.delete(pendingKey);
+                        if (ctx.passthroughResponsesCurrentFunctionCallKey === pendingKey) {
+                          ctx.passthroughResponsesCurrentFunctionCallKey = null;
                         }
                       }
                     }
@@ -827,19 +1009,19 @@ export function createSSEStream(options: StreamOptions = {}) {
                     parsed.response.output.length > 0
                   ) {
                     pushUniqueResponsesOutputItems(
-                      passthroughResponsesOutputItems,
+                      ctx.passthroughResponsesOutputItems,
                       parsed.response.output
                     );
                   }
                   if (
                     parsed.type === "response.completed" &&
-                    passthroughResponsesPendingFunctionCalls.size > 0
+                    ctx.passthroughResponsesPendingFunctionCalls.size > 0
                   ) {
-                    pushUniqueResponsesOutputItems(passthroughResponsesOutputItems, [
-                      ...passthroughResponsesPendingFunctionCalls.values(),
+                    pushUniqueResponsesOutputItems(ctx.passthroughResponsesOutputItems, [
+                      ...ctx.passthroughResponsesPendingFunctionCalls.values(),
                     ]);
-                    passthroughResponsesPendingFunctionCalls.clear();
-                    passthroughResponsesCurrentFunctionCallKey = null;
+                    ctx.passthroughResponsesPendingFunctionCalls.clear();
+                    ctx.passthroughResponsesCurrentFunctionCallKey = null;
                   }
                   // Two transport-level fixes for Responses passthrough:
                   //   1) Strip echoed `instructions` + `tools` from lifecycle
@@ -850,29 +1032,34 @@ export function createSSEStream(options: StreamOptions = {}) {
                   //      build their tool-call list from that snapshot rather
                   //      than from per-item events.
                   const textualToolCallBackfilled =
-                    parsed.type === "response.completed" && passthroughToolCalls.size > 0;
+                    parsed.type === "response.completed" && ctx.passthroughToolCalls.size > 0;
                   if (textualToolCallBackfilled) {
                     parsed = toResponsesCompletedWithToolCalls(parsed as JsonRecord, [
-                      ...passthroughToolCalls.values(),
+                      ...ctx.passthroughToolCalls.values(),
                     ]) as typeof parsed;
                   }
                   const stripped = stripResponsesLifecycleEcho(parsed);
                   const backfilled = backfillResponsesCompletedOutput(
                     parsed,
-                    passthroughResponsesOutputItems
+                    ctx.passthroughResponsesOutputItems
                   );
-                  if (stripped || backfilled || textualToolCallBackfilled || responsesIdsNormalized) {
+                  if (
+                    stripped ||
+                    backfilled ||
+                    textualToolCallBackfilled ||
+                    responsesIdsNormalized
+                  ) {
                     output = `data: ${JSON.stringify(parsed)}\n`;
                     injectedUsage = true;
                   }
                 } else if (isClaudeSSE) {
-                  // Claude SSE: extract usage, track content, forward as-is
+                  // Claude SSE: extract ctx.usage, track content, forward as-is
                   const extracted = extractUsage(parsed);
                   if (extracted) {
                     // Non-destructive merge: never overwrite a positive value with 0
                     // message_start carries input_tokens, message_delta carries output_tokens;
-                    if (!usage) usage = {};
-                    const u = usage;
+                    if (!ctx.usage) ctx.usage = {};
+                    const u = ctx.usage;
                     const eu = extracted as UsageTokenRecord;
                     if (eu.prompt_tokens > 0) u.prompt_tokens = eu.prompt_tokens;
                     if (eu.completion_tokens > 0) u.completion_tokens = eu.completion_tokens;
@@ -884,32 +1071,35 @@ export function createSSEStream(options: StreamOptions = {}) {
                   }
                   if (
                     shouldInjectClaudeEmptyResponseBeforeCurrentEvent(
-                      claudeEmptyResponseLifecycle,
+                      ctx.claudeEmptyResponseLifecycle,
                       parsed
                     )
                   ) {
-                    emitSyntheticClaudeEmptyResponse(controller, {
+                    ctx.emitSyntheticClaudeEmptyResponse(controller, {
                       includeContentBlock: true,
                       includeMessageDelta:
                         parsed.type === "message_stop" &&
-                        !claudeEmptyResponseLifecycle.hasMessageDelta,
+                        !ctx.claudeEmptyResponseLifecycle.hasMessageDelta,
                       includeMessageStop: false,
                     });
                   }
-                  updateClaudeEmptyResponseLifecycle(claudeEmptyResponseLifecycle, parsed);
-                  const restoredToolName = restoreClaudePassthroughToolUseName(parsed, toolNameMap);
+                  updateClaudeEmptyResponseLifecycle(ctx.claudeEmptyResponseLifecycle, parsed);
+                  const restoredToolName = restoreClaudePassthroughToolUseName(
+                    parsed,
+                    ctx.toolNameMap
+                  );
                   // Track content length and accumulate from Claude format
                   if (parsed.delta?.text) {
-                    totalContentLength += parsed.delta.text.length;
-                    passthroughAccumulatedContent = appendBoundedText(
-                      passthroughAccumulatedContent,
+                    ctx.totalContentLength += parsed.delta.text.length;
+                    ctx.passthroughAccumulatedContent = appendBoundedText(
+                      ctx.passthroughAccumulatedContent,
                       parsed.delta.text
                     );
                   }
                   if (parsed.delta?.thinking) {
-                    totalContentLength += parsed.delta.thinking.length;
-                    passthroughAccumulatedContent = appendBoundedText(
-                      passthroughAccumulatedContent,
+                    ctx.totalContentLength += parsed.delta.thinking.length;
+                    ctx.passthroughAccumulatedContent = appendBoundedText(
+                      ctx.passthroughAccumulatedContent,
                       parsed.delta.thinking
                     );
                   }
@@ -928,11 +1118,11 @@ export function createSSEStream(options: StreamOptions = {}) {
                   // Chat Completions: full sanitization pipeline
 
                   // OpenAI-compatible streaming with `stream_options.include_usage=true`
-                  // ends with a usage-only chunk where `choices` is deliberately `[]`.
+                  // ends with a ctx.usage-only chunk where `choices` is deliberately `[]`.
                   // Forward that standards-compliant chunk instead of turning it into an
                   // empty-response error.
                   //
-                  // For a malformed empty `choices: []` chunk WITHOUT valid usage we DROP
+                  // For a malformed empty `choices: []` chunk WITHOUT valid ctx.usage we DROP
                   // it (log server-side only). We must NOT inject an assistant-content
                   // chunk like "[OmniRoute] Upstream returned an empty response. Please
                   // retry." with finish_reason: "stop" — clients (Goose/opencode) feed that
@@ -941,18 +1131,18 @@ export function createSSEStream(options: StreamOptions = {}) {
                   if (Array.isArray(parsed.choices) && parsed.choices.length === 0) {
                     const emptyChoicesUsage = extractUsage(parsed) ?? parsed.usage;
                     if (hasValidUsage(emptyChoicesUsage)) {
-                      usage = emptyChoicesUsage;
+                      ctx.usage = emptyChoicesUsage;
                       output = `data: ${JSON.stringify(parsed)}\n`;
                       injectedUsage = true;
                       clientPayload = parsed;
-                      clientPayloadCollector.push(clientPayload);
-                      reqLogger?.appendConvertedChunk?.(output);
-                      controller.enqueue(encoder.encode(output));
+                      ctx.clientPayloadCollector.push(clientPayload);
+                      ctx.reqLogger?.appendConvertedChunk?.(output);
+                      controller.enqueue(ctx.encoder.encode(output));
                       continue;
                     }
 
                     console.warn(
-                      `[STREAM] Upstream returned empty choices array (${provider || "provider"}:${model || "unknown"}) — dropping chunk`
+                      `[STREAM] Upstream returned empty choices array (${ctx.provider || "provider"}:${ctx.model || "unknown"}) — dropping chunk`
                     );
                     continue;
                   }
@@ -964,14 +1154,16 @@ export function createSSEStream(options: StreamOptions = {}) {
                     !parsed.choices[0].delta.reasoning_content
                   );
                   const hadNonStringToolCallId = Array.isArray(parsed.choices)
-                    ? parsed.choices.some((choice) =>
-                        Array.isArray(choice?.delta?.tool_calls) &&
-                        choice.delta.tool_calls.some(
-                          (tc) => tc?.id != null && typeof tc.id !== "string"
-                        )
+                    ? parsed.choices.some(
+                        (choice) =>
+                          Array.isArray(choice?.delta?.tool_calls) &&
+                          choice.delta.tool_calls.some(
+                            (tc) => tc?.id != null && typeof tc.id !== "string"
+                          )
                       )
                     : false;
-                  const hadNonStringTopLevelId = parsed?.id != null && typeof parsed.id !== "string";
+                  const hadNonStringTopLevelId =
+                    parsed?.id != null && typeof parsed.id !== "string";
 
                   parsed = sanitizeStreamingChunk(parsed);
                   if (
@@ -1013,27 +1205,27 @@ export function createSSEStream(options: StreamOptions = {}) {
                     reasoningChunk.choices[0].finish_reason = null;
                     delete reasoningChunk.usage;
                     const rOutput = `data: ${JSON.stringify(reasoningChunk)}\n`;
-                    passthroughAccumulatedReasoning = appendBoundedText(
-                      passthroughAccumulatedReasoning,
+                    ctx.passthroughAccumulatedReasoning = appendBoundedText(
+                      ctx.passthroughAccumulatedReasoning,
                       delta.reasoning_content
                     );
-                    totalContentLength += delta.reasoning_content.length;
-                    clientPayloadCollector.push(reasoningChunk);
-                    reqLogger?.appendConvertedChunk?.(rOutput);
-                    controller.enqueue(encoder.encode(rOutput));
-                    controller.enqueue(encoder.encode("\n"));
+                    ctx.totalContentLength += delta.reasoning_content.length;
+                    ctx.clientPayloadCollector.push(reasoningChunk);
+                    ctx.reqLogger?.appendConvertedChunk?.(rOutput);
+                    controller.enqueue(ctx.encoder.encode(rOutput));
+                    controller.enqueue(ctx.encoder.encode("\n"));
                     delete delta.reasoning_content;
                   }
 
                   // Track whether we need to re-serialize (separate from injectedUsage
-                  // to avoid blocking subsequent finish_reason / usage mutations)
+                  // to avoid blocking subsequent finish_reason / ctx.usage mutations)
                   const needsReserialization =
                     hadReasoningAlias || (delta?.content === "" && delta?.reasoning_content);
 
                   // T18: Track if we saw tool calls & accumulate for call log
                   if (delta?.tool_calls && delta.tool_calls.length > 0) {
-                    passthroughHasToolCalls = true;
-                    lastToolCallChunkTime = Date.now();
+                    ctx.passthroughHasToolCalls = true;
+                    ctx.lastToolCallChunkTime = Date.now();
                     for (const tc of delta.tool_calls) {
                       // Note: sanitizeStreamingChunk above already coerces non-string
                       // tool_call IDs, but this defensive check catches edge cases
@@ -1049,15 +1241,17 @@ export function createSSEStream(options: StreamOptions = {}) {
                       } else if (tc?.id != null) {
                         key = `id:${tc.id}`;
                       } else {
-                        key = `seq:${++passthroughToolCallSeq}`;
+                        key = `seq:${++ctx.passthroughToolCallSeq}`;
                       }
-                      const existing = passthroughToolCalls.get(key);
+                      const existing = ctx.passthroughToolCalls.get(key);
                       const deltaArgs =
                         typeof tc?.function?.arguments === "string" ? tc.function.arguments : "";
                       if (!existing) {
-                        passthroughToolCalls.set(key, {
+                        ctx.passthroughToolCalls.set(key, {
                           id: tc?.id != null ? String(tc.id) : null,
-                          index: Number.isInteger(tc?.index) ? tc.index : passthroughToolCalls.size,
+                          index: Number.isInteger(tc?.index)
+                            ? tc.index
+                            : ctx.passthroughToolCalls.size,
                           type: tc?.type || "function",
                           function: {
                             name: tc?.function?.name || "",
@@ -1075,56 +1269,56 @@ export function createSSEStream(options: StreamOptions = {}) {
 
                   const content = delta?.content || delta?.reasoning_content;
                   if (typeof content === "string") {
-                    totalContentLength += content.length;
+                    ctx.totalContentLength += content.length;
 
-                    if (!contentAfterToolSeen) {
-                      const toolTs = toolFinishTime || pendingToolFinishTime;
-                      const lastChunkTs = lastToolCallChunkTime;
+                    if (!ctx.contentAfterToolSeen) {
+                      const toolTs = ctx.toolFinishTime || ctx.pendingToolFinishTime;
+                      const lastChunkTs = ctx.lastToolCallChunkTime;
                       if (toolTs || lastChunkTs) {
-                        contentAfterToolSeen = true;
+                        ctx.contentAfterToolSeen = true;
                         const now = Date.now();
                         try {
                           recordToolLatency(
-                            provider || "unknown",
+                            ctx.provider || "unknown",
                             toolTs ? now - toolTs : null,
                             lastChunkTs ? now - lastChunkTs : null
                           );
                         } catch {}
-                        pendingToolFinishTime = null;
+                        ctx.pendingToolFinishTime = null;
                       }
                     }
                   }
                   {
-                    const guarded = applyTextualToolCallStreamingGuard(
+                    const guarded = ctx.applyTextualToolCallStreamingGuard(
                       parsed as Record<string, unknown>
                     );
                     parsed = guarded.parsed as typeof parsed;
                     textualToolCallConverted = guarded.textualToolCallConverted;
                   }
                   if (typeof delta?.reasoning_content === "string")
-                    passthroughAccumulatedReasoning = appendBoundedText(
-                      passthroughAccumulatedReasoning,
+                    ctx.passthroughAccumulatedReasoning = appendBoundedText(
+                      ctx.passthroughAccumulatedReasoning,
                       delta.reasoning_content
                     );
 
                   const extracted = extractUsage(parsed);
                   if (extracted) {
-                    usage = extracted;
+                    ctx.usage = extracted;
                   }
 
                   const isFinishChunk = parsed.choices?.[0]?.finish_reason;
 
-                  if (isFinishChunk && passthroughHasToolCalls) {
-                    toolFinishTime = Date.now();
+                  if (isFinishChunk && ctx.passthroughHasToolCalls) {
+                    ctx.toolFinishTime = Date.now();
                     try {
-                      markToolFinish(sessionId);
+                      markToolFinish(ctx.sessionId);
                     } catch {}
                   }
 
                   // T18: Normalize finish_reason to 'tool_calls' if tool calls were used
                   if (
                     isFinishChunk &&
-                    passthroughHasToolCalls &&
+                    ctx.passthroughHasToolCalls &&
                     parsed.choices[0].finish_reason !== "tool_calls"
                   ) {
                     parsed.choices[0].finish_reason = "tool_calls";
@@ -1137,15 +1331,19 @@ export function createSSEStream(options: StreamOptions = {}) {
                   if (
                     isFinishChunk &&
                     !hasValidUsage(parsed.usage) &&
-                    !expectsOpenAIUsageOnlyChunk
+                    !ctx.expectsOpenAIUsageOnlyChunk
                   ) {
-                    const estimated = estimateUsage(body, totalContentLength, FORMATS.OPENAI);
+                    const estimated = estimateUsage(
+                      ctx.body,
+                      ctx.totalContentLength,
+                      FORMATS.OPENAI
+                    );
                     parsed.usage = filterUsageForFormat(estimated, FORMATS.OPENAI);
                     output = `data: ${JSON.stringify(parsed)}\n`;
-                    usage = estimated;
+                    ctx.usage = estimated;
                     injectedUsage = true;
-                  } else if (isFinishChunk && usage) {
-                    const buffered = addBufferToUsage(usage);
+                  } else if (isFinishChunk && ctx.usage) {
+                    const buffered = addBufferToUsage(ctx.usage);
                     parsed.usage = filterUsageForFormat(buffered, FORMATS.OPENAI);
                     output = `data: ${JSON.stringify(parsed)}\n`;
                     injectedUsage = true;
@@ -1176,94 +1374,98 @@ export function createSSEStream(options: StreamOptions = {}) {
               }
             }
 
-            if (!trimmed && pendingPassthroughEventLine && !pendingPassthroughEventEmitted) {
-              output = `${pendingPassthroughEventLine}\n${output}`;
-              pendingPassthroughEventEmitted = true;
+            if (
+              !trimmed &&
+              ctx.pendingPassthroughEventLine &&
+              !ctx.pendingPassthroughEventEmitted
+            ) {
+              output = `${ctx.pendingPassthroughEventLine}\n${output}`;
+              ctx.pendingPassthroughEventEmitted = true;
             }
 
-            output = maybePrefixPendingPassthroughEvent(output, line);
+            output = ctx.maybePrefixPendingPassthroughEvent(output, line);
 
             if (clientPayload) {
-              clientPayloadCollector.push(clientPayload);
+              ctx.clientPayloadCollector.push(clientPayload);
             }
 
-            reqLogger?.appendConvertedChunk?.(output);
-            controller.enqueue(encoder.encode(output));
+            ctx.reqLogger?.appendConvertedChunk?.(output);
+            controller.enqueue(ctx.encoder.encode(output));
             if (failurePayload) {
-              if (onFailure) {
+              if (ctx.onFailure) {
                 try {
-                  void onFailure(failurePayload);
+                  void ctx.onFailure(failurePayload);
                 } catch {}
               }
-              clearIdleTimer();
-              trackPendingRequest(model, provider, connectionId, false);
+              ctx.clearIdleTimer();
+              trackPendingRequest(ctx.model, ctx.provider, ctx.connectionId, false);
               controller.error(
                 markPendingRequestCleared(new Error(failurePayload.message || "Upstream failure"))
               );
               return;
             }
             if (!trimmed) {
-              clearPendingPassthroughEvent();
+              ctx.clearPendingPassthroughEvent();
             }
             continue;
           }
 
-          // Translate mode
+          // Translate ctx.mode
           if (!trimmed) continue;
 
-          if (state?.upstreamError) {
+          if (ctx.state?.upstreamError) {
             continue;
           }
 
           const parsed = parseSSELine(trimmed);
           if (!parsed) continue;
-          providerPayloadCollector.push(parsed);
+          ctx.providerPayloadCollector.push(parsed);
 
           if (parsed && parsed.done) {
             continue;
           }
 
           if (parsed.choices?.[0]?.delta?.tool_calls) {
-            lastToolCallChunkTime = Date.now();
+            ctx.lastToolCallChunkTime = Date.now();
           }
           if (parsed.choices?.[0]?.finish_reason === "tool_calls") {
-            toolFinishTime = Date.now();
+            ctx.toolFinishTime = Date.now();
             try {
-              markToolFinish(sessionId);
+              markToolFinish(ctx.sessionId);
             } catch {}
           }
 
-          // Track content length and accumulate for call log (from raw provider chunk, so content is never missed)
+          // Track content length and accumulate for call log (from raw ctx.provider chunk, so content is never missed)
           // Do this before translation so we capture content regardless of translator output shape
 
           // Claude format
           if (parsed.delta?.text) {
             const t = parsed.delta.text;
-            totalContentLength += t.length;
-            if (state?.accumulatedContent !== undefined && typeof t === "string")
-              state.accumulatedContent = appendBoundedText(state.accumulatedContent, t);
+            ctx.totalContentLength += t.length;
+            if (ctx.state?.accumulatedContent !== undefined && typeof t === "string")
+              ctx.state.accumulatedContent = appendBoundedText(ctx.state.accumulatedContent, t);
           }
           if (parsed.delta?.thinking) {
             const t = parsed.delta.thinking;
-            totalContentLength += t.length;
-            if (state?.accumulatedContent !== undefined && typeof t === "string")
-              state.accumulatedContent = appendBoundedText(state.accumulatedContent, t);
+            ctx.totalContentLength += t.length;
+            if (ctx.state?.accumulatedContent !== undefined && typeof t === "string")
+              ctx.state.accumulatedContent = appendBoundedText(ctx.state.accumulatedContent, t);
           }
 
           // OpenAI format
           if (parsed.choices?.[0]?.delta?.content) {
             const c = parsed.choices[0].delta.content;
             if (typeof c === "string") {
-              totalContentLength += c.length;
-              if (state?.accumulatedContent !== undefined)
-                state.accumulatedContent = appendBoundedText(state.accumulatedContent, c);
+              ctx.totalContentLength += c.length;
+              if (ctx.state?.accumulatedContent !== undefined)
+                ctx.state.accumulatedContent = appendBoundedText(ctx.state.accumulatedContent, c);
             } else if (Array.isArray(c)) {
               for (const part of c) {
                 if (part?.text && typeof part.text === "string") {
-                  totalContentLength += part.text.length;
-                  if (state?.accumulatedContent !== undefined)
-                    state.accumulatedContent = appendBoundedText(
-                      state.accumulatedContent,
+                  ctx.totalContentLength += part.text.length;
+                  if (ctx.state?.accumulatedContent !== undefined)
+                    ctx.state.accumulatedContent = appendBoundedText(
+                      ctx.state.accumulatedContent,
                       part.text
                     );
                 }
@@ -1273,9 +1475,9 @@ export function createSSEStream(options: StreamOptions = {}) {
           if (parsed.choices?.[0]?.delta?.reasoning_content) {
             const r = parsed.choices[0].delta.reasoning_content;
             if (typeof r === "string") {
-              totalContentLength += r.length;
-              if (state?.accumulatedContent !== undefined)
-                state.accumulatedContent = appendBoundedText(state.accumulatedContent, r);
+              ctx.totalContentLength += r.length;
+              if (ctx.state?.accumulatedContent !== undefined)
+                ctx.state.accumulatedContent = appendBoundedText(ctx.state.accumulatedContent, r);
             }
           }
           // Normalize `reasoning` alias → `reasoning_content` (NVIDIA kimi-k2.5 etc.)
@@ -1287,9 +1489,9 @@ export function createSSEStream(options: StreamOptions = {}) {
             if (typeof r === "string") {
               parsed.choices[0].delta.reasoning_content = r;
               delete parsed.choices[0].delta.reasoning;
-              totalContentLength += r.length;
-              if (state?.accumulatedContent !== undefined)
-                state.accumulatedContent = appendBoundedText(state.accumulatedContent, r);
+              ctx.totalContentLength += r.length;
+              if (ctx.state?.accumulatedContent !== undefined)
+                ctx.state.accumulatedContent = appendBoundedText(ctx.state.accumulatedContent, r);
             }
           }
 
@@ -1297,36 +1499,39 @@ export function createSSEStream(options: StreamOptions = {}) {
           // Cloud Code API wraps in { response: { candidates: [...] } }, so unwrap.
           // Only applies to Gemini-family formats — skip for OpenAI, Claude, etc.
           const isGeminiFormat =
-            targetFormat === FORMATS.GEMINI ||
-            targetFormat === FORMATS.GEMINI_CLI ||
-            targetFormat === FORMATS.ANTIGRAVITY;
+            ctx.targetFormat === FORMATS.GEMINI ||
+            ctx.targetFormat === FORMATS.GEMINI_CLI ||
+            ctx.targetFormat === FORMATS.ANTIGRAVITY;
           const geminiChunk = isGeminiFormat ? unwrapGeminiChunk(parsed) : parsed;
           if (geminiChunk.candidates?.[0]?.content?.parts) {
             for (const part of geminiChunk.candidates[0].content.parts) {
               if (part.text && typeof part.text === "string") {
-                totalContentLength += part.text.length;
-                if (state?.accumulatedContent !== undefined)
-                  state.accumulatedContent = appendBoundedText(state.accumulatedContent, part.text);
+                ctx.totalContentLength += part.text.length;
+                if (ctx.state?.accumulatedContent !== undefined)
+                  ctx.state.accumulatedContent = appendBoundedText(
+                    ctx.state.accumulatedContent,
+                    part.text
+                  );
               }
             }
           }
 
           // Generic fallback: delta string, top-level content/text (e.g. some SSE payloads)
-          if (state?.accumulatedContent !== undefined) {
+          if (ctx.state?.accumulatedContent !== undefined) {
             if (typeof (parsed as JsonRecord).delta === "string") {
               const d = (parsed as JsonRecord).delta as string;
-              state.accumulatedContent = appendBoundedText(state.accumulatedContent, d);
-              totalContentLength += d.length;
+              ctx.state.accumulatedContent = appendBoundedText(ctx.state.accumulatedContent, d);
+              ctx.totalContentLength += d.length;
             }
             if (typeof (parsed as JsonRecord).content === "string") {
               const c = (parsed as JsonRecord).content as string;
-              state.accumulatedContent = appendBoundedText(state.accumulatedContent, c);
-              totalContentLength += c.length;
+              ctx.state.accumulatedContent = appendBoundedText(ctx.state.accumulatedContent, c);
+              ctx.totalContentLength += c.length;
             }
             if (typeof (parsed as JsonRecord).text === "string") {
               const t = (parsed as JsonRecord).text as string;
-              state.accumulatedContent = appendBoundedText(state.accumulatedContent, t);
-              totalContentLength += t.length;
+              ctx.state.accumulatedContent = appendBoundedText(ctx.state.accumulatedContent, t);
+              ctx.totalContentLength += t.length;
             }
           }
 
@@ -1334,39 +1539,44 @@ export function createSSEStream(options: StreamOptions = {}) {
             typeof parsed.delta?.text === "string" ||
             typeof parsed.choices?.[0]?.delta?.content === "string" ||
             typeof parsed.choices?.[0]?.delta?.reasoning_content === "string";
-          if (translateHasContent && !contentAfterToolSeen) {
-            const toolTs = toolFinishTime || pendingToolFinishTime;
-            const lastChunkTs = lastToolCallChunkTime;
+          if (translateHasContent && !ctx.contentAfterToolSeen) {
+            const toolTs = ctx.toolFinishTime || ctx.pendingToolFinishTime;
+            const lastChunkTs = ctx.lastToolCallChunkTime;
             if (toolTs || lastChunkTs) {
-              contentAfterToolSeen = true;
+              ctx.contentAfterToolSeen = true;
               const now = Date.now();
               try {
                 recordToolLatency(
-                  provider || "unknown",
+                  ctx.provider || "unknown",
                   toolTs ? now - toolTs : null,
                   lastChunkTs ? now - lastChunkTs : null
                 );
               } catch {}
-              pendingToolFinishTime = null;
+              ctx.pendingToolFinishTime = null;
             }
           }
 
-          // Extract usage
+          // Extract ctx.usage
           const extracted = extractUsage(parsed);
-          if (extracted) state.usage = extracted; // Keep original usage for logging
+          if (extracted) ctx.state.usage = extracted; // Keep original ctx.usage for logging
 
-          // Translate: targetFormat -> openai -> sourceFormat
-          const translated = translateResponse(targetFormat, sourceFormat, parsed, state);
+          // Translate: ctx.targetFormat -> openai -> ctx.sourceFormat
+          const translated = translateResponse(
+            ctx.targetFormat,
+            ctx.sourceFormat,
+            parsed,
+            ctx.state
+          );
 
           // Log OpenAI intermediate chunks (if available)
           for (const item of getOpenAIIntermediateChunks(translated)) {
             const openaiOutput = formatSSE(item, FORMATS.OPENAI);
-            reqLogger?.appendOpenAIChunk?.(openaiOutput);
+            ctx.reqLogger?.appendOpenAIChunk?.(openaiOutput);
           }
 
           if (translated?.length > 0) {
             for (const item of translated) {
-              emitTranslatedClientItem(controller, item);
+              ctx.emitTranslatedClientItem(controller, item);
             }
           }
         }
@@ -1374,53 +1584,58 @@ export function createSSEStream(options: StreamOptions = {}) {
 
       async flush(controller) {
         // Clean up idle watchdog timer
-        if (idleTimer) {
-          clearIdleTimer();
+        if (ctx.idleTimer) {
+          ctx.clearIdleTimer();
         }
-        if (streamTimedOut) {
+        if (ctx.streamTimedOut) {
           return;
         }
-        trackPendingRequest(model, provider, connectionId, false);
+        trackPendingRequest(ctx.model, ctx.provider, ctx.connectionId, false);
         try {
-          const remaining = decoder.decode();
-          if (remaining) buffer += remaining;
+          const remaining = ctx.decoder.decode();
+          if (remaining) ctx.buffer += remaining;
 
-          if (mode === STREAM_MODE.PASSTHROUGH) {
-            const bufferedLine = buffer.trim();
-            if (skipPassthroughEvent || /^event:\s*keepalive\b/i.test(bufferedLine)) {
-              skipPassthroughEvent = false;
-              clearPendingPassthroughEvent();
-            } else if (buffer) {
-              let output = buffer;
-              if (buffer.startsWith("data:") && !buffer.startsWith("data: ")) {
-                output = "data: " + buffer.slice(5);
+          if (ctx.mode === STREAM_MODE.PASSTHROUGH) {
+            const bufferedLine = ctx.buffer.trim();
+            if (ctx.skipPassthroughEvent || /^event:\s*keepalive\b/i.test(bufferedLine)) {
+              ctx.skipPassthroughEvent = false;
+              ctx.clearPendingPassthroughEvent();
+            } else if (ctx.buffer) {
+              let output = ctx.buffer;
+              if (ctx.buffer.startsWith("data:") && !ctx.buffer.startsWith("data: ")) {
+                output = "data: " + ctx.buffer.slice(5);
               }
               const bufferedPayload = parseSSELine(bufferedLine);
               if (bufferedPayload) {
-                providerPayloadCollector.push(bufferedPayload);
+                ctx.providerPayloadCollector.push(bufferedPayload);
                 if (
                   shouldInjectClaudeEmptyResponseBeforeCurrentEvent(
-                    claudeEmptyResponseLifecycle,
+                    ctx.claudeEmptyResponseLifecycle,
                     bufferedPayload
                   )
                 ) {
                   const eventType = getClaudeEventType(bufferedPayload);
-                  emitSyntheticClaudeEmptyResponse(controller, {
+                  ctx.emitSyntheticClaudeEmptyResponse(controller, {
                     includeContentBlock: true,
                     includeMessageDelta:
-                      eventType === "message_stop" && !claudeEmptyResponseLifecycle.hasMessageDelta,
+                      eventType === "message_stop" &&
+                      !ctx.claudeEmptyResponseLifecycle.hasMessageDelta,
                     includeMessageStop: false,
                   });
                 }
                 if (isClaudeEventPayload(bufferedPayload)) {
-                  updateClaudeEmptyResponseLifecycle(claudeEmptyResponseLifecycle, bufferedPayload);
+                  updateClaudeEmptyResponseLifecycle(
+                    ctx.claudeEmptyResponseLifecycle,
+                    bufferedPayload
+                  );
                 }
-                clientPayloadCollector.push(bufferedPayload);
+                ctx.clientPayloadCollector.push(bufferedPayload);
 
                 // Normalize numeric IDs for final buffered data: chunk (same as transform path)
                 if (typeof bufferedPayload === "object" && !Array.isArray(bufferedPayload)) {
                   const flushedParsed = bufferedPayload as JsonRecord;
-                  const flushedType = typeof flushedParsed.type === "string" ? flushedParsed.type : "";
+                  const flushedType =
+                    typeof flushedParsed.type === "string" ? flushedParsed.type : "";
                   const isResponses = flushedType.startsWith("response.");
                   const isClaude = isClaudeEventPayload(flushedParsed);
                   if (isResponses) {
@@ -1437,7 +1652,9 @@ export function createSSEStream(options: StreamOptions = {}) {
                     }
                     if (Array.isArray(flushedParsed.choices)) {
                       for (const choice of flushedParsed.choices as JsonRecord[]) {
-                        const tcs = (choice as JsonRecord | undefined)?.delta as JsonRecord | undefined;
+                        const tcs = (choice as JsonRecord | undefined)?.delta as
+                          | JsonRecord
+                          | undefined;
                         if (Array.isArray(tcs?.tool_calls)) {
                           for (const tc of tcs.tool_calls as JsonRecord[]) {
                             if (tc?.id != null && typeof tc.id !== "string") {
@@ -1454,63 +1671,69 @@ export function createSSEStream(options: StreamOptions = {}) {
                   }
                 }
               }
-              if (!bufferedLine && pendingPassthroughEventLine && !pendingPassthroughEventEmitted) {
-                output = `${pendingPassthroughEventLine}\n${output}`;
-                pendingPassthroughEventEmitted = true;
+              if (
+                !bufferedLine &&
+                ctx.pendingPassthroughEventLine &&
+                !ctx.pendingPassthroughEventEmitted
+              ) {
+                output = `${ctx.pendingPassthroughEventLine}\n${output}`;
+                ctx.pendingPassthroughEventEmitted = true;
               }
-              output = maybePrefixPendingPassthroughEvent(output, buffer);
-              reqLogger?.appendConvertedChunk?.(output);
-              controller.enqueue(encoder.encode(output));
+              output = ctx.maybePrefixPendingPassthroughEvent(output, ctx.buffer);
+              ctx.reqLogger?.appendConvertedChunk?.(output);
+              controller.enqueue(ctx.encoder.encode(output));
             }
 
-            if (shouldInjectClaudeEmptyResponseOnFlush(claudeEmptyResponseLifecycle)) {
-              emitSyntheticClaudeEmptyResponse(controller, {
+            if (shouldInjectClaudeEmptyResponseOnFlush(ctx.claudeEmptyResponseLifecycle)) {
+              ctx.emitSyntheticClaudeEmptyResponse(controller, {
                 includeContentBlock: true,
-                includeMessageDelta: !claudeEmptyResponseLifecycle.hasMessageDelta,
-                includeMessageStop: !claudeEmptyResponseLifecycle.hasMessageStop,
+                includeMessageDelta: !ctx.claudeEmptyResponseLifecycle.hasMessageDelta,
+                includeMessageStop: !ctx.claudeEmptyResponseLifecycle.hasMessageStop,
               });
-            } else if (shouldInjectClaudeMissingFinalizersOnFlush(claudeEmptyResponseLifecycle)) {
-              emitSyntheticClaudeEmptyResponse(controller, {
+            } else if (
+              shouldInjectClaudeMissingFinalizersOnFlush(ctx.claudeEmptyResponseLifecycle)
+            ) {
+              ctx.emitSyntheticClaudeEmptyResponse(controller, {
                 includeContentBlock: false,
-                includeMessageDelta: !claudeEmptyResponseLifecycle.hasMessageDelta,
-                includeMessageStop: !claudeEmptyResponseLifecycle.hasMessageStop,
+                includeMessageDelta: !ctx.claudeEmptyResponseLifecycle.hasMessageDelta,
+                includeMessageStop: !ctx.claudeEmptyResponseLifecycle.hasMessageStop,
               });
             }
-            clearPendingPassthroughEvent();
+            ctx.clearPendingPassthroughEvent();
 
-            if (passthroughBufferedTextualToolCallContent) {
+            if (ctx.passthroughBufferedTextualToolCallContent) {
               // Flush any remaining buffered content as plain text.
               // Previously gated on !includes("Arguments:"), which silently dropped
-              // incomplete tool-call headers (buffer held "Arguments:" but JSON was
+              // incomplete tool-call headers (ctx.buffer held "Arguments:" but JSON was
               // never finished before stream ended) — fix #3355 bug 2.
               let flushOutput = "";
-              if (clientExpectsResponsesStream) {
+              if (ctx.clientExpectsResponsesStream) {
                 const syntheticChunk = {
                   type: "response.output_text.delta",
-                  delta: passthroughBufferedTextualToolCallContent,
+                  delta: ctx.passthroughBufferedTextualToolCallContent,
                 };
                 flushOutput = `data: ${JSON.stringify(syntheticChunk)}\n\n`;
-              } else if (clientExpectsClaudeStream) {
+              } else if (ctx.clientExpectsClaudeStream) {
                 const syntheticChunk = {
                   type: "content_block_delta",
                   index: 0,
                   delta: {
                     type: "text_delta",
-                    text: passthroughBufferedTextualToolCallContent,
+                    text: ctx.passthroughBufferedTextualToolCallContent,
                   },
                 };
                 flushOutput = `data: ${JSON.stringify(syntheticChunk)}\n\n`;
               } else {
                 const syntheticChunk = {
-                  id: passthroughResponsesId || `chatcmpl-${Date.now()}`,
+                  id: ctx.passthroughResponsesId || `chatcmpl-${Date.now()}`,
                   object: "chat.completion.chunk",
                   created: Math.floor(Date.now() / 1000),
-                  model: model || "unknown",
+                  model: ctx.model || "unknown",
                   choices: [
                     {
                       index: 0,
                       delta: {
-                        content: passthroughBufferedTextualToolCallContent,
+                        content: ctx.passthroughBufferedTextualToolCallContent,
                       },
                       finish_reason: null,
                     },
@@ -1518,89 +1741,97 @@ export function createSSEStream(options: StreamOptions = {}) {
                 };
                 flushOutput = `data: ${JSON.stringify(syntheticChunk)}\n\n`;
               }
-              reqLogger?.appendConvertedChunk?.(flushOutput);
-              controller.enqueue(encoder.encode(flushOutput));
-              passthroughAccumulatedContent = appendBoundedText(
-                passthroughAccumulatedContent,
-                passthroughBufferedTextualToolCallContent
+              ctx.reqLogger?.appendConvertedChunk?.(flushOutput);
+              controller.enqueue(ctx.encoder.encode(flushOutput));
+              ctx.passthroughAccumulatedContent = appendBoundedText(
+                ctx.passthroughAccumulatedContent,
+                ctx.passthroughBufferedTextualToolCallContent
               );
-              passthroughBufferedTextualToolCallContent = "";
+              ctx.passthroughBufferedTextualToolCallContent = "";
             }
 
-            // Estimate usage if provider didn't return valid usage
-            if (!hasValidUsage(usage) && totalContentLength > 0) {
-              usage = estimateUsage(body, totalContentLength, sourceFormat || FORMATS.OPENAI);
+            // Estimate ctx.usage if ctx.provider didn't return valid ctx.usage
+            if (!hasValidUsage(ctx.usage) && ctx.totalContentLength > 0) {
+              ctx.usage = estimateUsage(
+                ctx.body,
+                ctx.totalContentLength,
+                ctx.sourceFormat || FORMATS.OPENAI
+              );
             }
 
-            if (hasValidUsage(usage)) {
-              logUsage(provider, usage, model, connectionId, apiKeyInfo);
+            if (hasValidUsage(ctx.usage)) {
+              logUsage(ctx.provider, ctx.usage, ctx.model, ctx.connectionId, ctx.apiKeyInfo);
             } else {
               appendRequestLog({
-                model,
-                provider,
-                connectionId,
+                model: ctx.model,
+                provider: ctx.provider,
+                connectionId: ctx.connectionId,
                 tokens: null,
                 status: "200 OK",
               }).catch(() => {});
             }
-            if (!doneSent) {
-              await emitFinalSseMetadata(controller, usage);
-              doneSent = true;
-              if (shouldEmitDoneTerminator) {
-                clientPayloadCollector.push({ done: true });
+            if (!ctx.doneSent) {
+              await ctx.emitFinalSseMetadata(controller, ctx.usage);
+              ctx.doneSent = true;
+              if (ctx.shouldEmitDoneTerminator) {
+                ctx.clientPayloadCollector.push({ done: true });
                 const doneOutput = "data: [DONE]\n\n";
-                reqLogger?.appendConvertedChunk?.(doneOutput);
-                controller.enqueue(encoder.encode(doneOutput));
+                ctx.reqLogger?.appendConvertedChunk?.(doneOutput);
+                controller.enqueue(ctx.encoder.encode(doneOutput));
               }
             }
-            // Notify caller for call log persistence (include full response body with accumulated content)
-            if (onComplete) {
+            // Notify caller for call log persistence (include full response ctx.body with accumulated content)
+            if (ctx.onComplete) {
               try {
-                const u = usage as Record<string, unknown> | null;
+                const u = ctx.usage as Record<string, unknown> | null;
                 const prompt = Number(u?.prompt_tokens ?? u?.input_tokens ?? 0);
                 const completion = Number(u?.completion_tokens ?? u?.output_tokens ?? 0);
-                let content = passthroughAccumulatedContent.trim() || "";
+                let content = ctx.passthroughAccumulatedContent.trim() || "";
                 const finalBufferedTextualToolCall =
-                  passthroughBufferedTextualToolCallContent.trim();
+                  ctx.passthroughBufferedTextualToolCallContent.trim();
                 if (finalBufferedTextualToolCall) {
                   if (
                     collectPassthroughTextualToolCall(
                       finalBufferedTextualToolCall,
-                      passthroughToolCalls,
-                      allowedToolNames
+                      ctx.passthroughToolCalls,
+                      ctx.allowedToolNames
                     )
                   ) {
-                    passthroughHasToolCalls = true;
+                    ctx.passthroughHasToolCalls = true;
                   }
-                  passthroughBufferedTextualToolCallContent = "";
+                  ctx.passthroughBufferedTextualToolCallContent = "";
                 }
                 if (
                   content &&
-                  collectPassthroughTextualToolCall(content, passthroughToolCalls, allowedToolNames)
+                  collectPassthroughTextualToolCall(
+                    content,
+                    ctx.passthroughToolCalls,
+                    ctx.allowedToolNames
+                  )
                 ) {
-                  passthroughHasToolCalls = true;
+                  ctx.passthroughHasToolCalls = true;
                   content = "";
-                } else if (containsMalformedTextualToolCall(content, allowedToolNames)) {
+                } else if (containsMalformedTextualToolCall(content, ctx.allowedToolNames)) {
                   content = "";
                 }
                 const message: Record<string, unknown> = {
                   role: "assistant",
                   content: content || null,
                 };
-                const reasoning = passthroughAccumulatedReasoning.trim();
+                const reasoning = ctx.passthroughAccumulatedReasoning.trim();
                 if (reasoning) {
                   message.reasoning_content = reasoning;
                 }
-                if (passthroughToolCalls.size > 0) {
-                  message.tool_calls = [...passthroughToolCalls.values()].sort(
+                if (ctx.passthroughToolCalls.size > 0) {
+                  message.tool_calls = [...ctx.passthroughToolCalls.values()].sort(
                     (a, b) => a.index - b.index
                   );
                 }
                 // Hardening: log empty assistant response after tool completion
                 // for observability — helps diagnose Copilot "Sorry, no response was returned"
-                if (passthroughHasToolCalls && !content.trim() && !reasoning.trim()) {
+                if (ctx.passthroughHasToolCalls && !content.trim() && !reasoning.trim()) {
                   console.warn(
-                    `[STREAM] Empty assistant response after tool_calls completion (${provider || "provider"}:${model || "unknown"}) — sessionId=${sessionId}`
+                    `[STREAM] Empty assistant response after tool_calls completion (${ctx.provider || "provider"}:${ctx.model || "unknown"}) — ctx.sessionId=${ctx.sessionId}`
                   );
                 }
 
@@ -1608,7 +1839,7 @@ export function createSSEStream(options: StreamOptions = {}) {
                   choices: [
                     {
                       message,
-                      finish_reason: passthroughHasToolCalls ? "tool_calls" : "stop",
+                      finish_reason: ctx.passthroughHasToolCalls ? "tool_calls" : "stop",
                     },
                   ],
                   usage: {
@@ -1618,19 +1849,19 @@ export function createSSEStream(options: StreamOptions = {}) {
                   },
                   _streamed: true,
                 };
-                onComplete({
+                ctx.onComplete({
                   status: 200,
-                  usage,
+                  usage: ctx.usage,
                   responseBody,
-                  providerPayload: providerPayloadCollector.build(
+                  providerPayload: ctx.providerPayloadCollector.build(
                     buildStreamSummaryFromEvents(
-                      providerPayloadCollector.getEvents(),
-                      sourceFormat,
-                      model
+                      ctx.providerPayloadCollector.getEvents(),
+                      ctx.sourceFormat,
+                      ctx.model
                     ),
                     { includeEvents: false }
                   ),
-                  clientPayload: clientPayloadCollector.build(responseBody, {
+                  clientPayload: ctx.clientPayloadCollector.build(responseBody, {
                     includeEvents: false,
                   }),
                 });
@@ -1639,23 +1870,23 @@ export function createSSEStream(options: StreamOptions = {}) {
             return;
           }
 
-          // Translate mode: process remaining buffer
-          if (buffer.trim()) {
-            const parsed = parseSSELine(buffer.trim());
+          // Translate ctx.mode: process remaining ctx.buffer
+          if (ctx.buffer.trim()) {
+            const parsed = parseSSELine(ctx.buffer.trim());
             if (parsed && !parsed.done) {
-              providerPayloadCollector.push(parsed);
-              // Extract usage from remaining buffer — if the usage-bearing event
+              ctx.providerPayloadCollector.push(parsed);
+              // Extract ctx.usage from remaining ctx.buffer — if the ctx.usage-bearing event
               // (e.g. response.completed) is the last SSE line, it ends up here
               // in the flush handler where extractUsage was not called.
-              // Non-destructive merge: some providers send usage across multiple
+              // Non-destructive merge: some providers send ctx.usage across multiple
               // events (e.g. prompt_tokens in message_start, completion_tokens
               // in message_delta). Direct assignment would lose earlier data.
               const extracted = extractUsage(parsed);
               if (extracted) {
-                if (!state.usage) {
-                  state.usage = extracted;
+                if (!ctx.state.usage) {
+                  ctx.state.usage = extracted;
                 } else {
-                  const su = state.usage as Record<string, number>;
+                  const su = ctx.state.usage as Record<string, number>;
                   const eu = extracted as Record<string, number>;
                   if (eu.prompt_tokens > 0) su.prompt_tokens = eu.prompt_tokens;
                   if (eu.completion_tokens > 0) su.completion_tokens = eu.completion_tokens;
@@ -1669,28 +1900,33 @@ export function createSSEStream(options: StreamOptions = {}) {
                 }
               }
 
-              const translated = translateResponse(targetFormat, sourceFormat, parsed, state);
+              const translated = translateResponse(
+                ctx.targetFormat,
+                ctx.sourceFormat,
+                parsed,
+                ctx.state
+              );
 
               // Log OpenAI intermediate chunks
               for (const item of getOpenAIIntermediateChunks(translated)) {
                 const openaiOutput = formatSSE(item, FORMATS.OPENAI);
-                reqLogger?.appendOpenAIChunk?.(openaiOutput);
+                ctx.reqLogger?.appendOpenAIChunk?.(openaiOutput);
               }
 
               if (translated?.length > 0) {
                 for (const item of translated) {
-                  emitTranslatedClientItem(controller, item);
+                  ctx.emitTranslatedClientItem(controller, item);
                 }
               }
             }
           }
 
-          if (state?.upstreamError) {
-            const err = state.upstreamError;
-            trackPendingRequest(model, provider, connectionId, false);
-            if (onFailure) {
+          if (ctx.state?.upstreamError) {
+            const err = ctx.state.upstreamError;
+            trackPendingRequest(ctx.model, ctx.provider, ctx.connectionId, false);
+            if (ctx.onFailure) {
               try {
-                void onFailure({
+                void ctx.onFailure({
                   status: err.status,
                   message: err.message,
                   code: err.code,
@@ -1700,28 +1936,28 @@ export function createSSEStream(options: StreamOptions = {}) {
             }
 
             const errorBody = buildErrorBody(err.status, err.message);
-            if (onComplete) {
+            if (ctx.onComplete) {
               try {
-                onComplete({
+                ctx.onComplete({
                   status: err.status,
-                  usage: state?.usage,
+                  usage: ctx.state?.usage,
                   responseBody: errorBody,
-                  providerPayload: providerPayloadCollector.build(
+                  providerPayload: ctx.providerPayloadCollector.build(
                     buildStreamSummaryFromEvents(
-                      providerPayloadCollector.getEvents(),
-                      targetFormat,
-                      model
+                      ctx.providerPayloadCollector.getEvents(),
+                      ctx.targetFormat,
+                      ctx.model
                     ),
                     { includeEvents: false }
                   ),
-                  clientPayload: clientPayloadCollector.build(errorBody, {
+                  clientPayload: ctx.clientPayloadCollector.build(errorBody, {
                     includeEvents: false,
                   }),
                 });
               } catch {}
             }
 
-            clearIdleTimer();
+            ctx.clearIdleTimer();
             controller.error(
               markPendingRequestCleared(new Error(err.message || "Upstream failure"))
             );
@@ -1729,32 +1965,34 @@ export function createSSEStream(options: StreamOptions = {}) {
           }
 
           // Flush remaining events (only once at stream end)
-          const flushed = translateResponse(targetFormat, sourceFormat, null, state);
+          const flushed = translateResponse(ctx.targetFormat, ctx.sourceFormat, null, ctx.state);
 
           // Log OpenAI intermediate chunks for flushed events
           for (const item of getOpenAIIntermediateChunks(flushed)) {
             const openaiOutput = formatSSE(item, FORMATS.OPENAI);
-            reqLogger?.appendOpenAIChunk?.(openaiOutput);
+            ctx.reqLogger?.appendOpenAIChunk?.(openaiOutput);
           }
 
           if (flushed?.length > 0) {
             for (const item of flushed) {
-              emitTranslatedClientItem(controller, item);
+              ctx.emitTranslatedClientItem(controller, item);
             }
           }
 
-          if (sourceFormat === FORMATS.CLAUDE) {
-            if (shouldInjectClaudeEmptyResponseOnFlush(claudeEmptyResponseLifecycle)) {
-              emitSyntheticClaudeEmptyResponse(controller, {
+          if (ctx.sourceFormat === FORMATS.CLAUDE) {
+            if (shouldInjectClaudeEmptyResponseOnFlush(ctx.claudeEmptyResponseLifecycle)) {
+              ctx.emitSyntheticClaudeEmptyResponse(controller, {
                 includeContentBlock: true,
-                includeMessageDelta: !claudeEmptyResponseLifecycle.hasMessageDelta,
-                includeMessageStop: !claudeEmptyResponseLifecycle.hasMessageStop,
+                includeMessageDelta: !ctx.claudeEmptyResponseLifecycle.hasMessageDelta,
+                includeMessageStop: !ctx.claudeEmptyResponseLifecycle.hasMessageStop,
               });
-            } else if (shouldInjectClaudeMissingFinalizersOnFlush(claudeEmptyResponseLifecycle)) {
-              emitSyntheticClaudeEmptyResponse(controller, {
+            } else if (
+              shouldInjectClaudeMissingFinalizersOnFlush(ctx.claudeEmptyResponseLifecycle)
+            ) {
+              ctx.emitSyntheticClaudeEmptyResponse(controller, {
                 includeContentBlock: false,
-                includeMessageDelta: !claudeEmptyResponseLifecycle.hasMessageDelta,
-                includeMessageStop: !claudeEmptyResponseLifecycle.hasMessageStop,
+                includeMessageDelta: !ctx.claudeEmptyResponseLifecycle.hasMessageDelta,
+                includeMessageStop: !ctx.claudeEmptyResponseLifecycle.hasMessageStop,
               });
             }
           }
@@ -1764,48 +2002,57 @@ export function createSSEStream(options: StreamOptions = {}) {
            * Usage data (input/output tokens) is injected into the last content chunk
            * or the finish_reason chunk rather than sent as a separate SSE event.
            * This ensures all major clients (Claude CLI, Continue, Cursor) receive
-           * usage data even if they stop reading after the finish signal.
-           * The usage buffer (state.usage) accumulates across chunks and is only
+           * ctx.usage data even if they stop reading after the finish signal.
+           * The ctx.usage ctx.buffer (state.usage) accumulates across chunks and is only
            * emitted once at stream end when merged into the final translated chunk.
            */
 
           // Send [DONE] (only if not already sent during transform)
-          if (!doneSent) {
-            await emitFinalSseMetadata(controller, state?.usage as Record<string, unknown> | null);
-            doneSent = true;
-            if (shouldEmitDoneTerminator) {
-              clientPayloadCollector.push({ done: true });
+          if (!ctx.doneSent) {
+            await ctx.emitFinalSseMetadata(
+              controller,
+              ctx.state?.usage as Record<string, unknown> | null
+            );
+            ctx.doneSent = true;
+            if (ctx.shouldEmitDoneTerminator) {
+              ctx.clientPayloadCollector.push({ done: true });
               const doneOutput = "data: [DONE]\n\n";
-              reqLogger?.appendConvertedChunk?.(doneOutput);
-              controller.enqueue(encoder.encode(doneOutput));
+              ctx.reqLogger?.appendConvertedChunk?.(doneOutput);
+              controller.enqueue(ctx.encoder.encode(doneOutput));
             }
           }
 
-          // Estimate usage if provider didn't return valid usage (for translate mode)
-          if (!hasValidUsage(state?.usage) && totalContentLength > 0) {
-            state.usage = estimateUsage(body, totalContentLength, sourceFormat);
+          // Estimate ctx.usage if ctx.provider didn't return valid ctx.usage (for translate ctx.mode)
+          if (!hasValidUsage(ctx.state?.usage) && ctx.totalContentLength > 0) {
+            ctx.state.usage = estimateUsage(ctx.body, ctx.totalContentLength, ctx.sourceFormat);
           }
 
-          if (hasValidUsage(state?.usage)) {
-            logUsage(state.provider || targetFormat, state.usage, model, connectionId, apiKeyInfo);
+          if (hasValidUsage(ctx.state?.usage)) {
+            logUsage(
+              ctx.state?.provider || ctx.targetFormat,
+              ctx.state.usage,
+              ctx.model,
+              ctx.connectionId,
+              ctx.apiKeyInfo
+            );
           } else {
             appendRequestLog({
-              model,
-              provider,
-              connectionId,
+              model: ctx.model,
+              provider: ctx.provider,
+              connectionId: ctx.connectionId,
               tokens: null,
               status: "200 OK",
             }).catch(() => {});
           }
-          // Notify caller for call log persistence (include full response body with accumulated content)
-          if (onComplete) {
+          // Notify caller for call log persistence (include full response ctx.body with accumulated content)
+          if (ctx.onComplete) {
             try {
-              const u = state?.usage as Record<string, unknown> | null | undefined;
+              const u = ctx.state?.usage as Record<string, unknown> | null | undefined;
               const prompt = Number(u?.prompt_tokens ?? u?.input_tokens ?? 0);
               const completion = Number(u?.completion_tokens ?? u?.output_tokens ?? 0);
-              let content = (state?.accumulatedContent ?? "").trim() || "";
-              const normalizedToolCalls: ToolCall[] = state?.toolCalls?.size
-                ? [...state.toolCalls.values()]
+              let content = (ctx.state?.accumulatedContent ?? "").trim() || "";
+              const normalizedToolCalls: ToolCall[] = ctx.state?.toolCalls?.size
+                ? [...ctx.state.toolCalls.values()]
                     .map(
                       (tc: Record<string, unknown>): ToolCall => ({
                         id: tc.id != null ? String(tc.id) : null,
@@ -1831,7 +2078,7 @@ export function createSSEStream(options: StreamOptions = {}) {
                   },
                 });
                 content = "";
-              } else if (containsMalformedTextualToolCall(content, allowedToolNames)) {
+              } else if (containsMalformedTextualToolCall(content, ctx.allowedToolNames)) {
                 content = "";
               }
               const message: Record<string, unknown> = {
@@ -1856,30 +2103,33 @@ export function createSSEStream(options: StreamOptions = {}) {
                 },
                 _streamed: true,
               };
-              onComplete({
+              ctx.onComplete({
                 status: 200,
-                usage: state?.usage,
+                usage: ctx.state?.usage,
                 responseBody,
-                providerPayload: providerPayloadCollector.build(
+                providerPayload: ctx.providerPayloadCollector.build(
                   buildStreamSummaryFromEvents(
-                    providerPayloadCollector.getEvents(),
-                    targetFormat,
-                    model
+                    ctx.providerPayloadCollector.getEvents(),
+                    ctx.targetFormat,
+                    ctx.model
                   ),
                   { includeEvents: false }
                 ),
-                clientPayload: clientPayloadCollector.build(responseBody, {
+                clientPayload: ctx.clientPayloadCollector.build(responseBody, {
                   includeEvents: false,
                 }),
               });
             } catch {}
           }
         } catch (error) {
-          console.log(`[STREAM] Error in flush (${model || "unknown"}):`, error.message || error);
+          console.log(
+            `[STREAM] Error in flush (${ctx.model || "unknown"}):`,
+            error.message || error
+          );
         }
       },
       cancel(reason) {
-        clearIdleTimer();
+        ctx.clearIdleTimer();
       },
     },
     { highWaterMark: 16384 },

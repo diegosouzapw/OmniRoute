@@ -4,6 +4,10 @@ import { v4 as uuidv4 } from "uuid";
 import { stringifyIdValue } from "./utils.ts";
 import { JsonRecord } from "./types.ts";
 
+function isNonArrayRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+
 export function normalizeResponsesOutputItemIds(item: unknown): unknown {
   if (!item || typeof item !== "object" || Array.isArray(item)) {
     return item;
@@ -39,7 +43,7 @@ export function normalizeResponsesSseIds(payload: JsonRecord): boolean {
     }
   }
 
-  if (payload.item && typeof payload.item === "object" && !Array.isArray(payload.item)) {
+  if (isNonArrayRecord(payload.item)) {
     const normalizedItem = normalizeResponsesOutputItemIds(payload.item);
     if (normalizedItem !== payload.item) {
       payload.item = normalizedItem;
@@ -47,7 +51,7 @@ export function normalizeResponsesSseIds(payload: JsonRecord): boolean {
     }
   }
 
-  if (payload.response && typeof payload.response === "object" && !Array.isArray(payload.response)) {
+  if (isNonArrayRecord(payload.response)) {
     const response = payload.response as JsonRecord;
     let responseChanged = false;
     const normalizedResponse = { ...response };

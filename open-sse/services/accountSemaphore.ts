@@ -180,42 +180,15 @@ function makeAbortError(signal: AbortSignal): Error {
 }
 
 /**
- * Acquire a slot for a provider/model/account tuple.
- * Returns an idempotent release function that is safe to call in finally blocks.
+ * Internal helper: enqueue a wait-for-slot promise with optional timeout and abort.
+ * Shared logic extracted from `acquire` to keep its line count under 80.
  */
-export function acquire(
+function enqueueAcquire(
   semaphoreKey: string,
-  {
-    maxConcurrency = null,
-    timeoutMs = DEFAULT_TIMEOUT_MS,
-    signal = null,
-    maxQueueSize = DEFAULT_MAX_QUEUE_SIZE,
-  }: AcquireAccountSemaphoreOptions = {}
+  gate: AccountGate,
+  signal: AbortSignal | null,
+  timeoutMs: number
 ): Promise<() => void> {
-  if (isBypassed(maxConcurrency)) {
-    return Promise.resolve(createNoopReleaseFn());
-  }
-
-  if (signal?.aborted) {
-    return Promise.reject(makeAbortError(signal));
-  }
-
-  const gate = ensureGate(semaphoreKey, maxConcurrency);
-  clearCleanupTimer(gate);
-
-  if (gate.running < gate.maxConcurrency && !isBlocked(gate)) {
-    gate.running++;
-    return Promise.resolve(createReleaseFn(semaphoreKey));
-  }
-
-  if (gate.queue.length >= maxQueueSize) {
-    const err = new Error(`Semaphore queue full (${maxQueueSize}) for ${semaphoreKey}`) as Error & {
-      code: string;
-    };
-    err.code = "SEMAPHORE_QUEUE_FULL";
-    return Promise.reject(err);
-  }
-
   return new Promise((resolve, reject) => {
     let abortListener: (() => void) | null = null;
 
@@ -290,6 +263,46 @@ export function acquire(
       }
     }
   });
+}
+
+/**
+ * Acquire a slot for a provider/model/account tuple.
+ * Returns an idempotent release function that is safe to call in finally blocks.
+ */
+export function acquire(
+  semaphoreKey: string,
+  {
+    maxConcurrency = null,
+    timeoutMs = DEFAULT_TIMEOUT_MS,
+    signal = null,
+    maxQueueSize = DEFAULT_MAX_QUEUE_SIZE,
+  }: AcquireAccountSemaphoreOptions = {}
+): Promise<() => void> {
+  if (isBypassed(maxConcurrency)) {
+    return Promise.resolve(createNoopReleaseFn());
+  }
+
+  if (signal?.aborted) {
+    return Promise.reject(makeAbortError(signal));
+  }
+
+  const gate = ensureGate(semaphoreKey, maxConcurrency);
+  clearCleanupTimer(gate);
+
+  if (gate.running < gate.maxConcurrency && !isBlocked(gate)) {
+    gate.running++;
+    return Promise.resolve(createReleaseFn(semaphoreKey));
+  }
+
+  if (gate.queue.length >= maxQueueSize) {
+    const err = new Error(`Semaphore queue full (${maxQueueSize}) for ${semaphoreKey}`) as Error & {
+      code: string;
+    };
+    err.code = "SEMAPHORE_QUEUE_FULL";
+    return Promise.reject(err);
+  }
+
+  return enqueueAcquire(semaphoreKey, gate, signal, timeoutMs);
 }
 
 /**
