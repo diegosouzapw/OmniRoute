@@ -406,6 +406,42 @@ git push -u origin feat/your-feature
 - **pre-commit**: lint-staged + `check-docs-sync` + `check:any-budget:t11`
 - **pre-push**: fast deterministic gates (`check:any-budget:t11` + `check:tracked-artifacts`); intentionally excludes `test:unit` (slow — covered by the CI `test-unit` job). Activated 2026-06-13 (Quality Gates Fase 6A.12).
 
+### Worktree isolation (MANDATORY for every development task)
+
+Multiple sessions/agents work this repo in parallel. The main checkout is **shared**, so a
+`git checkout`/branch switch in it silently discards another session's uncommitted work and
+yanks the branch out from under whatever else is running (incidents: 2026-06-05, 2026-06-13).
+
+**Rule: never develop on the shared main checkout. Every task gets its own git worktree on its
+own dedicated branch, and you MUST confirm the base branch with the operator before creating it.**
+
+1. **Ask first — which base branch?** Before creating anything, ask the operator (via
+   `AskUserQuestion`, unless they already told you) from which branch the new worktree/branch
+   should be cut. Do NOT assume `main` or "whatever I'm on" — the answer is usually the active
+   `release/vX.Y.Z`, but it can be another feature/release branch. Get the base explicitly.
+2. **Create an isolated worktree + branch off that base** (never reuse the main checkout):
+
+   ```bash
+   BASE_BRANCH="release/vX.Y.Z"          # ← the branch the operator confirmed in step 1
+   TASK="feat/your-feature"               # feat/ fix/ refactor/ docs/ test/ chore/
+   git fetch origin "$BASE_BRANCH"
+   git worktree add ".worktrees/${TASK##*/}" -b "$TASK" "origin/$BASE_BRANCH"
+   cd ".worktrees/${TASK##*/}"
+   # symlink node_modules from the main checkout to skip a per-worktree npm install:
+   ln -s "$(git -C <main_checkout> rev-parse --show-toplevel)/node_modules" node_modules
+   ```
+
+   In Claude Code prefer the native `EnterWorktree` tool (create the worktree with the command
+   above, then call `EnterWorktree` with its `path`).
+3. **Work, commit, push, open the PR — all from inside the worktree.** Never `git checkout` a
+   different branch inside a worktree another session might share.
+4. **Tear down only your own** worktree + branch when done, from the main checkout:
+   `git worktree remove .worktrees/<dir>` then `git branch -D <task>`. Never blanket-delete
+   `fix/*`/`feat/*` — other sessions keep their own; delete only the branches you created, by name.
+5. **Never touch another session's worktree, branch, or uncommitted changes.** If `git worktree
+   list` shows worktrees you didn't create, leave them alone. End every session with the main
+   checkout back on the branch it started on (the active `release/vX.Y.Z`, never `main`).
+
 ---
 
 ## Environment
@@ -467,6 +503,7 @@ the stale-enforcement added in Fase 6A.3.
 16. Never include `Co-Authored-By` trailers that credit an AI assistant, LLM, or automation account (e.g. names containing "Claude", "GPT", "Copilot", "Bot"; emails at `anthropic.com` / `openai.com` / bot-owned `noreply.github.com` addresses). Such trailers route attribution to the bot account on GitHub, hiding the real author (`diegosouzapw`) in PR history. Human collaborators — including upstream PR authors and issue reporters being ported into OmniRoute — MAY and SHOULD be credited with standard `Co-authored-by: Name <email>` trailers; the upstream-port workflows (`/port-upstream-features`, `/port-upstream-issues`) depend on this.
 17. Never expose routes under `/api/services/` or `/dashboard/providers/services/*/embed/` without `isLocalOnlyPath()` classification in `src/server/authz/routeGuard.ts`. These routes can spawn child processes (`npm install`, `node`). Loopback enforcement happens unconditionally before any auth check — a leaked JWT via tunnel cannot trigger process spawning. See `docs/security/ROUTE_GUARD_TIERS.md`.
 18. Every bug fix must be validated before shipping: a failing-then-passing unit/integration test (TDD) OR a documented live test on the production VPS (192.168.0.15). A fix without either is not merged. See Testing → "Bug fix / issue triage protocol" for the full decision tree.
+19. Never develop on the shared main checkout. Every development task runs in its own git worktree on its own dedicated branch, and you MUST confirm the base branch with the operator (e.g. via `AskUserQuestion`) before creating the worktree/branch — never assume `main` or the currently checked-out branch. A `git checkout` in the shared checkout silently destroys other sessions' uncommitted work. Tear down only the worktrees/branches you created (by name, never `fix/*`/`feat/*` wildcards), leave other sessions' worktrees untouched, and end on the branch you started on (the active `release/vX.Y.Z`, never `main`). See Git Workflow → "Worktree isolation".
 
 ---
 
