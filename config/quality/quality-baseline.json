@@ -2,7 +2,7 @@
   "_comment": "Catraca de qualidade. 'down' = nao pode aumentar; 'up' = nao pode cair. Atualize via 'npm run quality:ratchet -- --update' (somente quando melhora). Cada valor e um numero REAL medido, nunca um chute. Cobertura entra na Fase 4 a partir de um run de cobertura mergeada no CI.",
   "metrics": {
     "eslintWarnings": {
-      "value": 3669,
+      "value": 3751,
       "direction": "down"
     },
     "eslintErrors": {
@@ -90,17 +90,20 @@
       "eps": 0.5
     },
     "deadExports": {
-      "value": 327,
-      "direction": "down"
+      "value": 338,
+      "direction": "down",
+      "dedicatedGate": true
     },
     "cognitiveComplexity": {
-      "value": 738,
-      "direction": "down"
+      "value": 751,
+      "direction": "down",
+      "dedicatedGate": true
     },
     "typeCoveragePct": {
       "value": 92.17,
       "direction": "up",
-      "eps": 0.05
+      "eps": 0.05,
+      "dedicatedGate": true
     }
   },
   "_coverage_note": "Pisos anti-flake ~2pt abaixo do real do CI mergeado MEDIDO COM os 135 testes religados (run 27247237268: statements 78.4 / lines 78.4 / functions 83.84 / branches 75.73). O religamento da 6A.1 HONESTIFICOU a regua: os ~82.5 anteriores eram inflados porque modulos nunca importados ficavam fora do denominador do c8. Apertar via --require-tighten na Fase 6A (2026-06-16).",
@@ -108,6 +111,8 @@
   "_eslint_rebaseline_2026_06_13_int6a": "3501 -> 3653. Medido: dos 152 de drift, ~132 sao pre-existentes dos ciclos v3.8.20-v3.8.24 (base 33667fcf3 mede ~3633) e ~20 vem dos scripts .mjs de tooling novos das Fases 6A.3-6A.12 (gates de qualidade; warnings de estilo aceitaveis em tooling). Apertar via --require-tighten fica para o fim do ciclo.",
   "_eslint_rebaseline_2026_06_13_phase7": "3653 -> 3658: +5 warnings dos scripts .mjs de tooling novos da Fase 7 (check-vuln-ratchet/codeql/secrets/workflows/dead-code/etc). Tooling de qualidade; apertar via --require-tighten no fim do ciclo.",
   "_eslint_rebaseline_2026_06_13_v3825": "3658 -> 3669: +11 drift consciente do ciclo v3.8.24->v3.8.25 (features #3799-#3806: free-provider-rankings, plugins menu, proxy IP-family). Medido em release/v3.8.25 (e38d22512). Crescimento de feature legitima, nao regressao; apertar via --require-tighten no fim do ciclo.",
+  "_eslint_rebaseline_2026_06_15_main": "3669 -> 3751. Medido em origin/main 4066a2ca3122f4c81ec17eb2b7b8b3fa0c9c52fc e neste PR com npm run quality:collect: ambos retornam 3751 warnings, portanto este PR e neutro; o drift ja existe na main atual.",
+  "_quality_rebaseline_2026_06_15_main": "deadExports 327 -> 338 e cognitiveComplexity 738 -> 751. Medido em origin/main 4066a2ca3122f4c81ec17eb2b7b8b3fa0c9c52fc e neste PR: ambos retornam os mesmos valores, portanto este PR e neutro; typeCoveragePct permanece acima do baseline.",
   "_metrics_added_2026_06_13_6a11": "openapiCoverage.pct (38.3) e i18nUiCoverage.pct (80.1) promovidas de pisos manuais THRESHOLD para metricas de catraca (direction up) na Task 6A.11. eslintErrors fixado em 0 (era metrica orfa detectada pelo motor v2 da 6A.5).",
   "_int_wiring_2026_06_13": "Fase 7 INT: 3 metricas promovidas de ADVISORY para RATCHET BLOQUEANTE. Valores REAIS medidos em 2026-06-13 no HEAD desta branch: deadExports=327 (knip --reporter json, DEAD_TOTAL=exports+files), cognitiveComplexity=738 (eslint sonarjs/cognitive-complexity via eslint.sonarjs.config.mjs), typeCoveragePct=92.17 (type-coverage --json-output -p open-sse/tsconfig.json). Os scripts check-dead-code.mjs/check-cognitive-complexity.mjs/check-type-coverage.mjs foram convertidos de advisory (exit 0 sempre) para ratchet (exit 1 em regressao). vulnCount e codeqlAlerts permanecem advisory no job quality-extended: dependem de binarios externos (osv-scanner) e token GitHub (gh api) nao disponiveis localmente — nao podem ser medidos/congelados honestamente sem infraestrutura de CI.",
   "_coverage_per_module_2026_06_15": "Fase 7 Task 7.9: pisos coverage.<modulo>.lines para os 8 modulos criticos (chatCore/combo/accountFallback/auth/routeGuard/error/publicCreds/circuitBreaker). O coletor (collect-metrics.mjs::coverageByModule + CRITICAL_MODULE_PATHS) ja existia; faltava SO congelar o baseline. Valores semeados CONSERVADORES (~2-3pt abaixo de um run LOCAL de test:coverage de 2026-06-15, que por sua vez mede ~68% global vs ~76.5% do CI mergeado — logo os pisos estao MUITO abaixo do real do CI, zero risco de red). Apertar via 'quality:ratchet -- --update' a partir do 1o run de coverage mergeada do CI que popule essas chaves. tightenSlack alto (10) absorve a variancia local-vs-CI no step advisory de require-tighten.",

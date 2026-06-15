@@ -59,8 +59,9 @@ for (const [key, spec] of Object.entries(baseline.metrics)) {
   const tightenSlack = spec.tightenSlack !== undefined ? spec.tightenSlack : eps;
 
   if (current === undefined) {
-    if (ALLOW_MISSING) {
-      rows.push([key, base, "—", "SKIP (ausente)"]);
+    if (ALLOW_MISSING || spec.dedicatedGate === true) {
+      const reason = spec.dedicatedGate === true ? "SKIP (dedicated gate)" : "SKIP (ausente)";
+      rows.push([key, base, "—", reason]);
     } else {
       failures.push(`métrica "${key}" ausente em ${path.basename(METRICS)}`);
       rows.push([key, base, "—", "MISSING"]);
