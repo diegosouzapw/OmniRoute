@@ -1,8 +1,5 @@
 "use client";
 
-// Issue #3501 Phase 1c — extracted from the god-component.
-// ~1091-LOC modal for editing an existing provider connection.
-
 import { useState, useEffect, useMemo } from "react";
 import { useTranslations } from "next-intl";
 import { Button, Badge, Input, Modal, Toggle, Select } from "@/shared/components";
@@ -48,6 +45,7 @@ import {
   formatTimeAgo,
 } from "../../providerPageHelpers";
 import { getWebSessionCredentialRequirement } from "../../webSessionCredentials";
+import { useOpenRouterPresetControl } from "../OpenRouterPresetInput";
 import WebSessionCredentialGuide from "../WebSessionCredentialGuide";
 
 export interface EditConnectionModalConnection {
@@ -145,6 +143,8 @@ export default function EditConnectionModal({
   const showsRegion = isVertex || isBedrock;
   const isGlm = isGlmProvider(connection?.provider);
   const isCloudflare = connection?.provider === "cloudflare-ai";
+  const openRouterPreset = useOpenRouterPresetControl(connection?.provider, t);
+  const setOpenRouterPreset = openRouterPreset.setValue;
   const isCodex = connection?.provider === "codex";
   const isClaude = connection?.provider === "claude";
   const isGeminiCli = connection?.provider === "gemini-cli";
@@ -201,6 +201,9 @@ export default function EditConnectionModal({
       const rawCustomUserAgent = connection.providerSpecificData?.customUserAgent;
       const existingCustomUserAgent =
         typeof rawCustomUserAgent === "string" ? rawCustomUserAgent : "";
+      const rawOpenRouterPreset = connection.providerSpecificData?.preset;
+      const existingOpenRouterPreset =
+        typeof rawOpenRouterPreset === "string" ? rawOpenRouterPreset : "";
       const rawCx = connection.providerSpecificData?.cx;
       const existingCx = typeof rawCx === "string" ? rawCx : "";
       const rawAccountId = connection.providerSpecificData?.accountId;
@@ -270,10 +273,8 @@ export default function EditConnectionModal({
         passthroughModels: connection?.providerSpecificData?.passthroughModels === true,
         disableCooling: connection?.providerSpecificData?.disableCooling === true,
       });
-      // Load existing extra keys from providerSpecificData
       const existing = connection.providerSpecificData?.extraApiKeys;
       setExtraApiKeys(Array.isArray(existing) ? existing : []);
-      // Load API key health status
       const health = connection.providerSpecificData?.apiKeyHealth as
         | Record<
             string,
@@ -288,13 +289,16 @@ export default function EditConnectionModal({
         | undefined;
       setApiKeyHealth(health || {});
       setNewExtraKey("");
-      setShowAdvanced(!!existingCustomUserAgent);
-      // email visibility controlled by global store
+      setOpenRouterPreset(existingOpenRouterPreset);
+      setShowAdvanced(
+        !!existingCustomUserAgent ||
+          (connection.provider === "openrouter" && !!existingOpenRouterPreset)
+      );
       setTestResult(null);
       setValidationResult(null);
       setSaveError(null);
     }
-  }, [isOpen, connection, defaultBaseUrl, showsRegion, defaultRegion]);
+  }, [isOpen, connection, defaultBaseUrl, showsRegion, defaultRegion, setOpenRouterPreset]);
 
   const handleTest = async () => {
     if (!connection?.provider) return;
@@ -392,7 +396,6 @@ export default function EditConnectionModal({
         healthCheckInterval: formData.healthCheckInterval,
       };
 
-      // Build rateLimitOverrides from non-empty fields
       const overrides: Record<string, number> = {};
       if (formData.rpm.trim()) overrides.rpm = Number(formData.rpm);
       if (formData.tpm.trim()) overrides.tpm = Number(formData.tpm);
@@ -460,7 +463,6 @@ export default function EditConnectionModal({
           updates.rateLimitedUntil = null;
         }
       }
-      // Persist extra API keys and baseUrl in providerSpecificData
       if (!isOAuth) {
         updates.providerSpecificData = {
           ...(connection.providerSpecificData || {}),
@@ -469,7 +471,7 @@ export default function EditConnectionModal({
           tags: parseRoutingTagsInput(formData.routingTags),
           excludedModels: parseExcludedModelsInput(formData.excludedModels),
           customUserAgent: formData.customUserAgent.trim(),
-          // Only write when explicitly enabled; omit to let registry default take effect
+          ...openRouterPreset.getPatch(),
           ...(formData.passthroughModels ? { passthroughModels: true } : {}),
         };
         if (connection.provider === "bailian-coding-plan") {
@@ -513,7 +515,6 @@ export default function EditConnectionModal({
             Object.keys(currentRequestDefaults).length > 0 ? currentRequestDefaults : undefined;
         }
       } else {
-        // Also persist tag for OAuth accounts
         updates.providerSpecificData = {
           ...(connection.providerSpecificData || {}),
           tag: formData.tag.trim() || undefined,
@@ -546,8 +547,6 @@ export default function EditConnectionModal({
           ),
         };
       }
-      // #2997: persist the transient-cooldown opt-out; write only when enabled,
-      // clear it otherwise so a disabled toggle does not linger as `false`.
       if (updates.providerSpecificData) {
         updates.providerSpecificData.disableCooling = formData.disableCooling ? true : undefined;
       }
@@ -831,6 +830,7 @@ export default function EditConnectionModal({
                   placeholder="my-app/1.0"
                   hint={t("customUserAgentHint")}
                 />
+                {openRouterPreset.input}
                 <Toggle
                   size="sm"
                   checked={formData.passthroughModels}
