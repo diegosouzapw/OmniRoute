@@ -127,16 +127,39 @@ export const connectionCooldownProfileSchema = z
 
 export const providerBreakerProfileSchema = z
   .object({
-    failureThreshold: z.number().int().min(1).optional(),
+    failureThreshold: z.number().int().min(1).max(1000).optional(),
+    degradationThreshold: z.number().int().min(1).max(1000).optional(),
     resetTimeoutMs: z.number().int().min(1000).optional(),
   })
-  .strict();
+  .strict()
+  .superRefine((value, ctx) => {
+    if (
+      typeof value.failureThreshold === "number" &&
+      value.failureThreshold > 1 &&
+      typeof value.degradationThreshold === "number" &&
+      value.degradationThreshold >= value.failureThreshold
+    ) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "degradationThreshold must be lower than failureThreshold",
+        path: ["degradationThreshold"],
+      });
+    }
+  });
 
 export const waitForCooldownSettingsSchema = z
   .object({
     enabled: z.boolean().optional(),
     maxRetries: z.number().int().min(0).max(10).optional(),
     maxRetryWaitSec: z.number().int().min(0).max(300).optional(),
+  })
+  .strict();
+
+export const providerCooldownSettingsSchema = z
+  .object({
+    enabled: z.boolean().optional(),
+    minRetryCooldownMs: z.number().int().min(0).max(300000).optional(),
+    maxRetryCooldownMs: z.number().int().min(0).max(3600000).optional(),
   })
   .strict();
 
@@ -158,6 +181,7 @@ export const updateResilienceSchema = z
       .strict()
       .optional(),
     waitForCooldown: waitForCooldownSettingsSchema.optional(),
+    providerCooldown: providerCooldownSettingsSchema.optional(),
     profiles: z
       .object({
         oauth: legacyResilienceProfileSchema.optional(),
@@ -174,6 +198,7 @@ export const updateResilienceSchema = z
       !value.connectionCooldown &&
       !value.providerBreaker &&
       !value.waitForCooldown &&
+      !value.providerCooldown &&
       !value.profiles &&
       !value.defaults
     ) {
@@ -251,7 +276,10 @@ export const updateThinkingBudgetSchema = z
 export const guideSettingsSaveSchema = z
   .object({
     baseUrl: z.string().trim().min(1).optional(),
-    apiKey: z.string().optional(),
+    // #3552: the CLI tool cards post `apiKey: null` in cloud mode (the real key is resolved
+    // server-side from keyId), and `z.string().optional()` rejected null → 400. Normalize
+    // null → undefined so validation passes and the keyId/default path is used.
+    apiKey: z.preprocess((v) => (v === null ? undefined : v), z.string().optional()),
     model: z.string().trim().min(1, "Model is required").optional(),
     models: z.array(z.string().trim().min(1, "Models must be non-empty")).min(1).optional(),
     modelLabels: z.record(z.string(), z.string().trim().min(1)).optional(),

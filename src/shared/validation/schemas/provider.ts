@@ -7,6 +7,10 @@ import { SUPPORTED_BATCH_ENDPOINTS } from "@/shared/constants/batchEndpoints";
 import { MAX_REQUEST_BODY_LIMIT_MB, MIN_REQUEST_BODY_LIMIT_MB } from "@/shared/constants/bodySize";
 import { COMBO_CONFIG_MODES } from "@/shared/constants/comboConfigMode";
 import { providerAllowsOptionalApiKey } from "@/shared/constants/providers";
+import {
+  OPENROUTER_PRESET_MAX_LENGTH,
+  isOpenRouterPresetValue,
+} from "@/shared/constants/openRouterPreset";
 import { HIDEABLE_SIDEBAR_ITEM_IDS } from "@/shared/constants/sidebarVisibility";
 import {
   isForbiddenUpstreamHeaderName,
@@ -99,6 +103,15 @@ export function validateProviderSpecificData(
       code: z.ZodIssueCode.custom,
       message: "providerSpecificData.disableStreamOptions must be a boolean",
       path: ["disableStreamOptions"],
+    });
+  }
+
+  const preset = data.preset;
+  if (preset !== undefined && preset !== null && !isOpenRouterPresetValue(preset)) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: `providerSpecificData.preset must be a string up to ${OPENROUTER_PRESET_MAX_LENGTH} chars`,
+      path: ["preset"],
     });
   }
 
