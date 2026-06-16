@@ -4,6 +4,7 @@ import { useTranslations } from "next-intl";
 import RoutingTab from "../components/RoutingTab";
 import ModelRoutingSection from "@/shared/components/ModelRoutingSection";
 import ComboDefaultsTab from "../components/ComboDefaultsTab";
+import FallbackChainsEditor from "../components/FallbackChainsEditor";
 import ModelAliasesUnified from "../components/ModelAliasesUnified";
 import BackgroundDegradationTab from "../components/BackgroundDegradationTab";
 
@@ -13,9 +14,10 @@ export default function SettingsRoutingPage() {
     <div className="space-y-6">
       <p className="text-sm text-text-muted">{t("routingSettingsIntro")}</p>
       <ComboDefaultsTab />
-      <RoutingTab />
-      <ModelRoutingSection />
       <ModelAliasesUnified />
+      <FallbackChainsEditor />
+      <ModelRoutingSection />
+      <RoutingTab />
       <BackgroundDegradationTab />
     </div>
   );
