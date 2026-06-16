@@ -16,7 +16,7 @@ Mermaid sources (`.mmd`) and exported SVGs for OmniRoute v3.8.0 architecture flo
 | [auto-combo-9factor.mmd](./auto-combo-9factor.mmd) | [SVG](./exported/auto-combo-9factor.svg) | docs/routing/AUTO-COMBO.md                                                     |
 | [resilience-3layers.mmd](./resilience-3layers.mmd) | [SVG](./exported/resilience-3layers.svg) | docs/architecture/RESILIENCE_GUIDE.md, CLAUDE.md                               |
 | [i18n-flow.mmd](./i18n-flow.mmd)                   | [SVG](./exported/i18n-flow.svg)          | docs/guides/I18N.md                                                            |
-| [mcp-tools-43.mmd](./mcp-tools-43.mmd)             | [SVG](./exported/mcp-tools-43.svg)       | docs/frameworks/MCP-SERVER.md                                                  |
+| [mcp-tools-87.mmd](./mcp-tools-87.mmd)             | [SVG](./exported/mcp-tools-87.svg)       | docs/frameworks/MCP-SERVER.md                                                  |
 | [cloud-agent-flow.mmd](./cloud-agent-flow.mmd)     | [SVG](./exported/cloud-agent-flow.svg)   | docs/frameworks/CLOUD_AGENT.md                                                 |
 | [authz-pipeline.mmd](./authz-pipeline.mmd)         | [SVG](./exported/authz-pipeline.svg)     | docs/architecture/AUTHZ_GUIDE.md                                               |
 | [db-schema-overview.mmd](./db-schema-overview.mmd) | [SVG](./exported/db-schema-overview.svg) | docs/architecture/CODEBASE_DOCUMENTATION.md                                    |

@@ -16,6 +16,7 @@
 
 import { getMusicProvider, parseMusicModel } from "../config/musicRegistry.ts";
 import { kieExecutor } from "../executors/kie.ts";
+import { vertexGenerateMusic } from "../executors/vertexMedia.ts";
 import {
   submitComfyWorkflow,
   pollComfyResult,
@@ -92,6 +93,29 @@ export async function handleMusicGeneration({ body, credentials, log }) {
       status: 400,
       error: `Unknown music provider: ${provider}`,
     };
+  }
+
+  if (providerConfig.format === "vertex-lyria") {
+    try {
+      const { base64, format } = await vertexGenerateMusic(credentials, {
+        model,
+        prompt: String(body.prompt ?? ""),
+        negativePrompt: typeof body.negative_prompt === "string" ? body.negative_prompt : undefined,
+        sampleCount: typeof body.sample_count === "number" ? body.sample_count : undefined,
+        seed: typeof body.seed === "number" ? body.seed : undefined,
+      });
+      return {
+        success: true,
+        data: { created: Math.floor(Date.now() / 1000), data: [{ b64_json: base64, format }] },
+      };
+    } catch (err: any) {
+      log?.error?.("MUSIC", `Vertex Lyria generation failed: ${err?.message}`);
+      return {
+        success: false,
+        status: typeof err?.status === "number" ? err.status : 502,
+        error: sanitizeErrorMessage(err?.message || "Vertex Lyria generation failed"),
+      };
+    }
   }
 
   if (providerConfig.format === "comfyui") {

@@ -1,4 +1,5 @@
 import { HTTP_STATUS, FETCH_TIMEOUT_MS } from "../config/constants.ts";
+import { mergeClientAnthropicBeta } from "../config/anthropicHeaders.ts";
 import { applyFingerprint, isCliCompatEnabled } from "../config/cliFingerprints.ts";
 import { supportsClaudeMaxEffort, supportsXHighEffort } from "../config/providerModels.ts";
 import type { PoolConfig } from "../services/sessionPool/types.ts";
@@ -34,6 +35,7 @@ import { obfuscateInBody } from "../services/claudeCodeObfuscation.ts";
 import { sanitizeClaudeToolSchemas } from "../translator/helpers/schemaCoercion.ts";
 import { sanitizeResponsesInputItems } from "../services/responsesInputSanitizer.ts";
 import { applySystemTransformPipeline, PROVIDER_CLAUDE } from "../services/systemTransforms.ts";
+import * as prl from "../utils/providerRequestLogging.ts";
 import {
   fixToolPairs,
   fixToolAdjacency,
@@ -1038,7 +1040,13 @@ export class BaseExecutor {
           const ccHeaders: Record<string, string> = {
             Accept: "application/json",
             "anthropic-version": "2023-06-01",
-            "anthropic-beta": selectBetaFlags(tb, null, clientAnthropicBeta),
+            // #3974: merge the client's allowlisted betas (e.g. tool-search-tool)
+            // on top of the shape-derived set so deferred-tool requests are not
+            // rejected; selectBetaFlags still gates thinking/effort per #3415.
+            "anthropic-beta": mergeClientAnthropicBeta(
+              selectBetaFlags(tb, null, clientAnthropicBeta),
+              clientAnthropicBeta
+            ),
             "anthropic-dangerous-direct-browser-access": "true",
             "x-app": "cli",
             "User-Agent": `claude-cli/${CLAUDE_CODE_VERSION} (external, cli)`,
@@ -1144,7 +1152,7 @@ export class BaseExecutor {
         }
 
         mergeUpstreamExtraHeaders(finalHeaders, upstreamExtraHeaders);
-
+        const serializedBody = prl.parseBody(bodyString);
         const fetchOptions: RequestInit = {
           method: "POST",
           headers: finalHeaders,
@@ -1190,7 +1198,7 @@ export class BaseExecutor {
           continue;
         }
 
-        return { response, url, headers: finalHeaders, transformedBody };
+        return { response, url, headers: finalHeaders, transformedBody: serializedBody };
       } catch (error) {
         // Distinguish timeout errors from other abort errors
         const err = error instanceof Error ? error : new Error(String(error));

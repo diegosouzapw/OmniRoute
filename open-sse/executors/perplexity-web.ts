@@ -17,7 +17,43 @@ import { prepareToolMessages, buildToolAwareResult } from "../translator/webTool
 import { sanitizeErrorMessage } from "../utils/error.ts";
 
 const PPLX_SSE_ENDPOINT = "https://www.perplexity.ai/rest/sse/perplexity_ask";
-const PPLX_API_VERSION = "client-1.11.0";
+// Perplexity's current request schema version (sent in params.version). Perplexity rejects
+// stale versions with HTTP 400 — keep this in lockstep with the website's payload.
+const PPLX_API_VERSION = "2.18";
+// Block use-cases the current web client advertises. The schematized API (use_schematized_api)
+// validates the request shape, so this must be present (mirrors the browser request body).
+const PPLX_SUPPORTED_BLOCK_USE_CASES = [
+  "answer_modes",
+  "media_items",
+  "knowledge_cards",
+  "inline_entity_cards",
+  "place_widgets",
+  "finance_widgets",
+  "sports_widgets",
+  "news_widgets",
+  "shopping_widgets",
+  "jobs_widgets",
+  "search_result_widgets",
+  "inline_images",
+  "inline_assets",
+  "placeholder_cards",
+  "diff_blocks",
+  "inline_knowledge_cards",
+  "entity_group_v2",
+  "refinement_filters",
+  "canvas_mode",
+  "maps_preview",
+  "answer_tabs",
+  "price_comparison_widgets",
+  "preserve_latex",
+  "generic_onboarding_widgets",
+  "in_context_suggestions",
+  "pending_followups",
+  "inline_claims",
+  "unified_assets",
+  "workflow_steps",
+  "background_agents",
+];
 // Firefox 148 — must match the `firefox_148` TLS profile used by perplexityTlsClient.
 // A mismatched UA vs TLS fingerprint is itself a Cloudflare bot signal (issue #2459).
 const PPLX_USER_AGENT =
@@ -268,31 +304,61 @@ function parseOpenAIMessages(messages: Array<Record<string, unknown>>): ParsedMe
 
 function buildPplxRequestBody(
   query: string,
+  dslQuery: string,
   mode: string,
   modelPref: string,
-  followUpUuid: string | null
+  followUpUuid: string | null,
+  requestId: string
 ): Record<string, unknown> {
   const tz = typeof Intl !== "undefined" ? Intl.DateTimeFormat().resolvedOptions().timeZone : "UTC";
 
+  // Mirrors the current www.perplexity.ai/rest/sse/perplexity_ask request body. Perplexity's
+  // schematized API validates this shape; an outdated version or missing required fields → HTTP 400.
+  const params: Record<string, unknown> = {
+    attachments: [],
+    language: "en-US",
+    timezone: tz,
+    search_focus: "internet",
+    sources: ["web"],
+    frontend_uuid: requestId,
+    mode,
+    model_preference: modelPref,
+    is_related_query: false,
+    is_sponsored: false,
+    frontend_context_uuid: crypto.randomUUID(),
+    prompt_source: "user",
+    query_source: "home",
+    is_incognito: true,
+    local_search_enabled: false,
+    use_schematized_api: true,
+    send_back_text_in_streaming_api: false,
+    supported_block_use_cases: PPLX_SUPPORTED_BLOCK_USE_CASES,
+    client_coordinates: null,
+    mentions: [],
+    dsl_query: dslQuery && dslQuery.trim() ? dslQuery : query,
+    skip_search_enabled: true,
+    is_nav_suggestions_disabled: false,
+    source: "default",
+    always_search_override: false,
+    override_no_search: false,
+    client_search_results_cache_key: requestId,
+    should_ask_for_mcp_tool_confirmation: true,
+    browser_agent_allow_once_from_toggle: false,
+    force_enable_browser_agent: false,
+    supported_features: ["browser_agent_permission_banner_v1.1"],
+    extended_context: false,
+    version: PPLX_API_VERSION,
+    rum_session_id: crypto.randomUUID(),
+  };
+
+  // Only present on follow-ups (matches the browser, which omits it for a fresh query).
+  if (followUpUuid) {
+    params.last_backend_uuid = followUpUuid;
+  }
+
   return {
     query_str: query,
-    params: {
-      query_str: query,
-      search_focus: "internet",
-      mode,
-      model_preference: modelPref,
-      sources: ["web"],
-      attachments: [],
-      frontend_uuid: crypto.randomUUID(),
-      frontend_context_uuid: crypto.randomUUID(),
-      version: PPLX_API_VERSION,
-      language: "en-US",
-      timezone: tz,
-      search_recency_filter: null,
-      is_incognito: true,
-      use_schematized_api: true,
-      last_backend_uuid: followUpUuid,
-    },
+    params,
   };
 }
 
@@ -713,7 +779,8 @@ export class PerplexityWebExecutor extends BaseExecutor {
     }
 
     // Build Perplexity request
-    const pplxBody = buildPplxRequestBody(query, pplxMode, modelPref, followUpUuid);
+    const requestId = crypto.randomUUID();
+    const pplxBody = buildPplxRequestBody(query, parsed.currentMsg, pplxMode, modelPref, followUpUuid, requestId);
 
     const headers: Record<string, string> = {
       "Content-Type": "application/json",
@@ -721,8 +788,12 @@ export class PerplexityWebExecutor extends BaseExecutor {
       Origin: "https://www.perplexity.ai",
       Referer: "https://www.perplexity.ai/",
       "User-Agent": PPLX_USER_AGENT,
-      "X-App-ApiClient": "default",
-      "X-App-ApiVersion": PPLX_API_VERSION,
+      // Current app request headers (replaced the stale X-App-ApiVersion/X-App-ApiClient pair,
+      // which the new endpoint no longer expects and which contributed to HTTP 400).
+      "x-perplexity-request-endpoint": PPLX_SSE_ENDPOINT,
+      "x-perplexity-request-reason": "ask-query-state-provider",
+      "x-perplexity-request-try-number": "1",
+      "x-request-id": requestId,
     };
 
     if (credentials.accessToken) {

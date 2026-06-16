@@ -639,3 +639,74 @@ test("models(): combos fetcher receives the resolved baseURL + apiKey", async ()
   await hook.models!({} as never, { auth: apiAuth("sk-spy") as never });
   assert.deepEqual(combosFetcher.callsBy()[0], ["https://or.example.com/v1", "sk-spy"]);
 });
+
+test("models(): nested combo-ref context is the min of nested + raw members", async () => {
+  // Top-level combo MASTER-LIGHT has 1 raw model (claude-primary, 200k)
+  // and 2 combo-refs: OldLLM (8k member) and KIRO (32k member). The OLD
+  // plugin would advertise 200k (only the raw model); the fix should
+  // make it advertise 8k (the bottleneck across the member graph).
+  const modelsFetcher = stubModelsFetcher([
+    MODEL_PRIMARY,
+    {
+      id: "oldllm-member-1",
+      context_length: 8_000,
+      max_output_tokens: 4_000,
+      capabilities: {
+        tool_calling: false,
+        reasoning: false,
+        vision: false,
+        thinking: false,
+        temperature: true,
+      },
+      input_modalities: ["text"],
+      output_modalities: ["text"],
+    },
+    {
+      id: "kiro-member-1",
+      context_length: 32_000,
+      max_output_tokens: 8_000,
+      capabilities: {
+        tool_calling: true,
+        reasoning: false,
+        vision: false,
+        thinking: false,
+        temperature: true,
+      },
+      input_modalities: ["text"],
+      output_modalities: ["text"],
+    },
+  ]);
+  const combosFetcher = stubCombosFetcher([
+    {
+      id: "oldllm",
+      name: "OldLLM",
+      models: [{ id: "s1", kind: "model", model: "oldllm-member-1", weight: 100 }],
+    },
+    {
+      id: "kiro",
+      name: "KIRO",
+      models: [{ id: "s1", kind: "model", model: "kiro-member-1", weight: 100 }],
+    },
+    {
+      id: "master-light",
+      name: "MASTER-LIGHT",
+      models: [
+        { id: "r1", kind: "model", model: "claude-primary", weight: 50 },
+        { id: "r2", kind: "combo-ref", comboName: "OldLLM", weight: 25 },
+        { id: "r3", kind: "combo-ref", comboName: "KIRO", weight: 25 },
+      ],
+    },
+  ]);
+  const hook = createOmniRouteProviderHook(
+    { baseURL: "https://or.example.com/v1" },
+    { fetcher: modelsFetcher, combosFetcher }
+  );
+  const out = await hook.models!({} as never, { auth: apiAuth("sk-z") as never });
+  const masterLight = out["combo/master-light"];
+  assert.ok(masterLight, "MASTER-LIGHT entry must exist");
+  assert.equal(
+    masterLight.limit.context,
+    8_000,
+    `expected 8_000 (OldLLM bottleneck), got ${masterLight.limit.context}`
+  );
+});

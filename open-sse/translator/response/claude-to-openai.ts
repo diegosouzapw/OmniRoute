@@ -115,6 +115,21 @@ export function claudeToOpenAIResponse(chunk, state) {
       // Extract usage from message_delta event (Claude native format)
       // Normalize to OpenAI format (prompt_tokens/completion_tokens) for consistent logging
       if (chunk.usage && typeof chunk.usage === "object") {
+        const previousUsage = state.usage && typeof state.usage === "object" ? state.usage : {};
+        const previousInputTokens =
+          typeof previousUsage.input_tokens === "number"
+            ? previousUsage.input_tokens
+            : typeof previousUsage.prompt_tokens === "number"
+              ? previousUsage.prompt_tokens
+              : 0;
+        const previousCacheReadTokens =
+          typeof previousUsage.cache_read_input_tokens === "number"
+            ? previousUsage.cache_read_input_tokens
+            : 0;
+        const previousCacheCreationTokens =
+          typeof previousUsage.cache_creation_input_tokens === "number"
+            ? previousUsage.cache_creation_input_tokens
+            : 0;
         const inputTokens =
           typeof chunk.usage.input_tokens === "number" ? chunk.usage.input_tokens : 0;
         const outputTokens =
@@ -136,7 +151,10 @@ export function claudeToOpenAIResponse(chunk, state) {
         // minimum, so a 2-token "hi" can be reported as ~2008 prompt_tokens and
         // inflate downstream billing ~250x. cache_creation is still exposed
         // separately via prompt_tokens_details.cache_creation_tokens below.
-        const billableInputTokens = inputTokens + cacheReadTokens;
+        const billableInputTokens =
+          inputTokens > 0 || cacheReadTokens > 0 || cacheCreationTokens > 0
+            ? inputTokens + cacheReadTokens
+            : previousInputTokens;
         state.usage = {
           prompt_tokens: billableInputTokens,
           completion_tokens: outputTokens,
@@ -145,11 +163,13 @@ export function claudeToOpenAIResponse(chunk, state) {
         };
 
         // Store cache tokens if present (needed for prompt_tokens_details in final chunk)
-        if (cacheReadTokens > 0) {
-          state.usage.cache_read_input_tokens = cacheReadTokens;
+        const effectiveCacheReadTokens = cacheReadTokens || previousCacheReadTokens;
+        const effectiveCacheCreationTokens = cacheCreationTokens || previousCacheCreationTokens;
+        if (effectiveCacheReadTokens > 0) {
+          state.usage.cache_read_input_tokens = effectiveCacheReadTokens;
         }
-        if (cacheCreationTokens > 0) {
-          state.usage.cache_creation_input_tokens = cacheCreationTokens;
+        if (effectiveCacheCreationTokens > 0) {
+          state.usage.cache_creation_input_tokens = effectiveCacheCreationTokens;
         }
       }
 

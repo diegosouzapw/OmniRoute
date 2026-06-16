@@ -21,7 +21,7 @@ import {
 import { getConsistentMachineId } from "@/shared/utils/machineId";
 import { syncToCloud } from "@/lib/cloudSync";
 import { startLocalServer } from "@/lib/oauth/utils/server";
-import { runWithProxyContext } from "@omniroute/open-sse/utils/proxyFetch.ts";
+import { runWithProxyContextOrDirect } from "@omniroute/open-sse/utils/proxyFetch.ts";
 import {
   jsonObjectSchema,
   oauthDeviceCompleteSchema,
@@ -166,7 +166,7 @@ export async function GET(
           error:
             "GitLab Duo OAuth is not configured. Register an OAuth application at " +
             "https://gitlab.com/-/profile/applications with redirect URI " +
-            "http://localhost:20128/callback and scopes \"ai_features read_user\", then set " +
+            'http://localhost:20128/callback and scopes "ai_features read_user", then set ' +
             "GITLAB_DUO_OAUTH_CLIENT_ID (and optionally GITLAB_DUO_OAUTH_CLIENT_SECRET) and restart.",
         });
       }
@@ -211,15 +211,17 @@ export async function GET(
             ssoOidcEndpoint: `https://oidc.${region}.amazonaws.com`,
           };
 
-          deviceData = await runWithProxyContext(proxy, () =>
+          deviceData = await runWithProxyContextOrDirect(proxy, () =>
             (requestDeviceCode as any)(provider, null, providerOverrideConfig)
           );
         } else {
-          deviceData = await runWithProxyContext(proxy, () => (requestDeviceCode as any)(provider));
+          deviceData = await runWithProxyContextOrDirect(proxy, () =>
+            (requestDeviceCode as any)(provider)
+          );
         }
       } else {
         // Qwen and other providers use PKCE
-        deviceData = await runWithProxyContext(proxy, () =>
+        deviceData = await runWithProxyContextOrDirect(proxy, () =>
           requestDeviceCode(provider, authData.codeChallenge)
         );
       }
@@ -454,7 +456,7 @@ export async function POST(
       const proxy = await resolveProxyForProvider(provider);
 
       // Exchange code for tokens (through proxy if configured)
-      const tokenData = await runWithProxyContext(proxy, () =>
+      const tokenData = await runWithProxyContextOrDirect(proxy, () =>
         exchangeTokens(provider, code, redirectUri, codeVerifier, normalizedState)
       );
 
@@ -527,12 +529,12 @@ export async function POST(
       let result;
       if (provider === "github" || provider === "kimi-coding" || provider === "kilocode") {
         // For providers that don't use PKCE (GitHub, Kimi Coding, KiloCode), don't pass codeVerifier
-        result = await runWithProxyContext(proxy, () =>
+        result = await runWithProxyContextOrDirect(proxy, () =>
           (pollForToken as any)(provider, deviceCode)
         );
       } else if (provider === "kiro" || provider === "amazon-q") {
         // Kiro needs extraData (clientId, clientSecret) from device code response
-        result = await runWithProxyContext(proxy, () =>
+        result = await runWithProxyContextOrDirect(proxy, () =>
           (pollForToken as any)(provider, deviceCode, null, extraData)
         );
       } else {
@@ -540,7 +542,7 @@ export async function POST(
         if (!codeVerifier) {
           return NextResponse.json({ error: "Missing code verifier" }, { status: 400 });
         }
-        result = await runWithProxyContext(proxy, () =>
+        result = await runWithProxyContextOrDirect(proxy, () =>
           (pollForToken as any)(provider, deviceCode, codeVerifier)
         );
       }
@@ -675,7 +677,7 @@ export async function POST(
         const proxy = await resolveProxyForProvider(provider);
 
         // Exchange code for tokens (through proxy if configured)
-        const tokenData = await runWithProxyContext(proxy, () =>
+        const tokenData = await runWithProxyContextOrDirect(proxy, () =>
           exchangeTokens(provider, params.code, redirectUri, codeVerifier, params.state)
         );
 

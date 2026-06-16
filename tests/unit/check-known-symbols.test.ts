@@ -20,6 +20,13 @@ import {
   diffCloudAgents,
   type ExecutorLike,
 } from "../../scripts/check/check-known-symbols.ts";
+import { reportStaleEntries } from "../../scripts/check/lib/allowlist.mjs";
+import { ROUTING_STRATEGY_VALUES } from "../../src/shared/constants/routingStrategies.ts";
+import fs from "node:fs";
+import path from "node:path";
+import { fileURLToPath } from "node:url";
+
+const REPO_ROOT = path.resolve(fileURLToPath(import.meta.url), "../../..");
 
 // ───────────────────────────────────────────────────────────────────────────
 // (2) COMBO STRATEGIES — extractHandledStrategies + diffComboStrategies
@@ -174,9 +181,57 @@ test("findNewTranslatorPairs returns [] when live is a subset of frozen", () => 
 // Allowlist / snapshot sanity (documented frozen sets stay well-formed)
 // ───────────────────────────────────────────────────────────────────────────
 
-test("IMPLICIT_DEFAULT_STRATEGIES documents `priority` with a justification", () => {
-  assert.ok(Object.prototype.hasOwnProperty.call(IMPLICIT_DEFAULT_STRATEGIES, "priority"));
-  assert.ok(IMPLICIT_DEFAULT_STRATEGIES.priority.length > 20);
+test("IMPLICIT_DEFAULT_STRATEGIES: every documented key carries a non-trivial justification", () => {
+  // The map may be empty (all canonical strategies are referenced in combo.ts), but any
+  // entry that DOES exist must explain why the strategy has no explicit dispatch branch.
+  for (const [key, justification] of Object.entries(IMPLICIT_DEFAULT_STRATEGIES)) {
+    assert.ok(typeof justification === "string" && justification.length > 20, `weak/missing justification for "${key}"`);
+  }
+});
+
+// --- stale-allowlist enforcement (6A.3) ---
+
+test("stale-enforcement: an IMPLICIT_DEFAULT_STRATEGIES key now referenced in dispatch is reported as stale", () => {
+  // "priority" gained a `strategy === "priority"` reference in combo.ts, so it is now in
+  // the handled set and no longer in canonicalNotHandled — an implicit-default for it would
+  // suppress nothing → stale.
+  const liveImplicitNeeded: string[] = []; // canonicalNotHandled WITHOUT the allowlist
+  const stale = (reportStaleEntries as (a: string[], l: string[], g: string) => string[])(
+    ["priority"],
+    liveImplicitNeeded,
+    "known-symbols:combo"
+  );
+  assert.deepEqual(stale, ["priority"]);
+});
+
+test("stale-enforcement: an IMPLICIT_DEFAULT_STRATEGIES key still uncovered by dispatch is NOT stale", () => {
+  // A canonical strategy with no `strategy === "..."` reference IS still suppressed by the
+  // implicit-default, so the entry is live (must stay).
+  const liveImplicitNeeded = ["priority"]; // priority would be canonicalNotHandled without it
+  const stale = (reportStaleEntries as (a: string[], l: string[], g: string) => string[])(
+    ["priority"],
+    liveImplicitNeeded,
+    "known-symbols:combo"
+  );
+  assert.deepEqual(stale, []);
+});
+
+test("stale-enforcement: live repo IMPLICIT_DEFAULT_STRATEGIES has no stale entries", () => {
+  // Every key must still be a canonical strategy that lacks a `strategy === "..."` reference
+  // in combo.ts; otherwise the suppression is dead and must be removed.
+  const comboSource = fs.readFileSync(path.join(REPO_ROOT, "open-sse/services/combo.ts"), "utf8");
+  const handled = extractHandledStrategies(comboSource);
+  const liveImplicitNeeded = diffComboStrategies(
+    ROUTING_STRATEGY_VALUES as readonly string[],
+    handled,
+    {}
+  ).canonicalNotHandled;
+  const stale = (reportStaleEntries as (a: string[], l: string[], g: string) => string[])(
+    Object.keys(IMPLICIT_DEFAULT_STRATEGIES),
+    liveImplicitNeeded,
+    "known-symbols:combo"
+  );
+  assert.deepEqual(stale, [], `IMPLICIT_DEFAULT_STRATEGIES has stale entries: ${stale.join(", ")}`);
 });
 
 test("KNOWN_TRANSLATOR_PAIRS is a non-empty, well-formed, deduped from:to snapshot", () => {

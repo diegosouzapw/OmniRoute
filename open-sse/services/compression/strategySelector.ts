@@ -67,6 +67,28 @@ export function selectCompressionStrategy(
   return selectedMode;
 }
 
+/**
+ * #3890: honor the cache-aware `skipSystemPrompt` decision that `getCacheAwareStrategy`
+ * already computes but that `selectCompressionStrategy` (which can only return a mode
+ * string) previously discarded. In a caching context the system prompt is part of the
+ * cacheable prefix, so compressing it breaks the upstream prompt cache. This forces
+ * `preserveSystemPrompt` on for caching requests even when the operator turned it off,
+ * and leaves non-caching requests untouched.
+ */
+export function resolveCacheAwareConfig(
+  config: CompressionConfig,
+  body?: Record<string, unknown>,
+  context?: CachingDetectionContext
+): CompressionConfig {
+  if (!body) return config;
+  const ctx = detectCachingContext(body, context);
+  const cacheAware = getCacheAwareStrategy(config.defaultMode, ctx);
+  if (cacheAware.skipSystemPrompt && config.preserveSystemPrompt === false) {
+    return { ...config, preserveSystemPrompt: true };
+  }
+  return config;
+}
+
 export function applyCompression(
   body: Record<string, unknown>,
   mode: CompressionMode,

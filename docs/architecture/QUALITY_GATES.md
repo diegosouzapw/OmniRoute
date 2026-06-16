@@ -13,7 +13,7 @@ in `CLAUDE.md`.
 
 ---
 
-## Gate Inventory (35 scripts)
+## Gate Inventory (~48 scripts)
 
 Scripts live under `scripts/check/` (policy gates) and `scripts/quality/` (ratchet engine).
 The CI source of truth is `.github/workflows/ci.yml`.
@@ -53,6 +53,21 @@ Runs after `test-coverage`. Blocks merge on failure.
 | `quality:ratchet`   | Each metric in `quality-baseline.json` has not regressed (ESLint warnings ≤ baseline; coverage ≥ baseline) | Yes                       |
 | `check:duplication` | Code duplication (jscpd@4) does not exceed baseline in `quality-baseline.json`                             | Yes                       |
 | `check:complexity`  | File-level cyclomatic complexity does not exceed the cap                                                   | Yes                       |
+
+### Job: `quality-extended`
+
+Entire job is advisory (`continue-on-error: true`). The npm-based ratchets run for
+real; the external scanners install via `gh release download` and self-skip (exit 0)
+when a binary is still absent.
+
+| Script                   | Validates                                                                                                                            | Blocking     |
+| ------------------------ | ------------------------------------------------------------------------------------------------------------------------------------ | ------------ |
+| `check:circular-deps`    | No circular dependencies (dpdm)                                                                                                       | **Advisory** |
+| `check:bundle-size`      | Bundle size does not exceed the cap                                                                                                   | **Advisory** |
+| `check:secrets`          | Secret scanning (gitleaks) — skips if binary absent                                                                                   | **Advisory** |
+| `check:vuln-ratchet`     | Dependency vulnerabilities (osv-scanner) do not regress — skips if binary absent                                                      | **Advisory** |
+| `check:workflows`        | Workflow lint (actionlint + zizmor) — skips if binaries absent                                                                        | **Advisory** |
+| `check:openapi-breaking` | Breaking changes to the public API contract (`openapi.yaml`) vs the base branch (oasdiff) — emits `openapiBreaking=N`; skips if oasdiff absent or base spec unresolvable | **Advisory** |
 
 ### Job: `docs-sync-strict`
 
@@ -103,8 +118,19 @@ Runs after `build`. Blocks merge on failure.
 
 | Suite            | Validates                                               | Blocking                                                                   |
 | ---------------- | ------------------------------------------------------- | -------------------------------------------------------------------------- |
-| `test:vitest`    | MCP server (43 tools), autoCombo, cache — vitest runner | Yes                                                                        |
+| `test:vitest`    | MCP server (87 tools), autoCombo, cache — vitest runner | Yes                                                                        |
 | `test:vitest:ui` | UI component tests — vitest runner                      | **Advisory** (`continue-on-error: true`) — failing until Fase 6A UI triage |
+
+### Nightly workflows (scheduled, advisory)
+
+These run on a cron schedule (and `workflow_dispatch`), never on PRs. All are advisory.
+
+| Workflow                       | Validates                                                                                                                                              | Blocking     |
+| ------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------ |
+| `nightly-property`             | fast-check property tests with a random seed + high run count                                                                                           | **Advisory** |
+| `nightly-resilience`           | heap-growth gate, chaos fault-injection, k6 load/soak                                                                                                   | **Advisory** |
+| `nightly-llm-security`         | promptfoo injection guard (block mode) + garak probes (skipped without a provider secret)                                                               | **Advisory** |
+| `nightly-schemathesis`         | OpenAPI contract fuzzing (schemathesis) against a live OmniRoute using `docs/reference/openapi.yaml` — surfaces spec violations / unhandled 500s (Fase 8 B.4) | **Advisory** |
 
 ---
 
@@ -185,6 +211,18 @@ allowlist is a false sense of quality.
    `scripts/check/lib/allowlist.mjs` so stale entries are detected automatically.
 5. Write a test in `tests/unit/build/` covering the gate's detection logic.
 6. Update this document (add a row to the relevant job table).
+
+---
+
+## Agent tooling: LSP-in-the-loop (opt-in)
+
+Beyond the CI gates, OmniRoute ships an **opt-in** `agent-lsp` scaffold
+([`.mcp.json.example`](../../.mcp.json.example), Fase 7 Task 15). Copy it to `.mcp.json`
+to expose a TypeScript language server to coding agents, so they resolve symbols /
+diagnostics **before** writing code — a compile-before-claim companion to
+`typecheck:core` that cuts "invented symbol" errors at the source. It is intentionally
+not auto-loaded (you pick and verify the MCP↔LSP bridge); a broken entry only logs a
+connection error and never breaks sessions.
 
 ---
 

@@ -23,6 +23,19 @@ export interface AudioProvider {
 }
 
 export const AUDIO_TRANSCRIPTION_PROVIDERS: Record<string, AudioProvider> = {
+  vertex: {
+    id: "vertex",
+    baseUrl: "https://us-central1-aiplatform.googleapis.com/v1",
+    authType: "apikey",
+    authHeader: "bearer",
+    format: "vertex-gemini",
+    models: [
+      { id: "gemini-2.5-flash", name: "Gemini 2.5 Flash (Vertex Transcribe)" },
+      { id: "gemini-2.5-pro", name: "Gemini 2.5 Pro (Vertex Transcribe)" },
+      { id: "gemini-2.0-flash", name: "Gemini 2.0 Flash (Vertex Transcribe)" },
+    ],
+  },
+
   openai: {
     id: "openai",
     baseUrl: "https://api.openai.com/v1/audio/transcriptions",
@@ -148,6 +161,18 @@ export const AUDIO_TRANSCRIPTION_PROVIDERS: Record<string, AudioProvider> = {
 };
 
 export const AUDIO_SPEECH_PROVIDERS: Record<string, AudioProvider> = {
+  vertex: {
+    id: "vertex",
+    baseUrl: "https://us-central1-aiplatform.googleapis.com/v1",
+    authType: "apikey",
+    authHeader: "bearer",
+    format: "vertex-gemini-tts",
+    models: [
+      { id: "gemini-2.5-flash-preview-tts", name: "Gemini 2.5 Flash TTS (Vertex)" },
+      { id: "gemini-2.5-pro-preview-tts", name: "Gemini 2.5 Pro TTS (Vertex)" },
+    ],
+  },
+
   openai: {
     id: "openai",
     baseUrl: "https://api.openai.com/v1/audio/speech",
