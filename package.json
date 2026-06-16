@@ -190,7 +190,7 @@
     "@dnd-kit/core": "^6.3.1",
     "@dnd-kit/sortable": "^10.0.0",
     "@dnd-kit/utilities": "^3.2.2",
-    "@huggingface/transformers": "^4.2.0",
+    "@huggingface/transformers": "3.5.2",
     "@lobehub/icons": "^5.8.0",
     "@modelcontextprotocol/sdk": "^1.29.0",
     "@monaco-editor/react": "^4.7.0",
@@ -257,7 +257,10 @@
     "zustand": "^5.0.13"
   },
   "optionalDependencies": {
+    "@atjsh/llmlingua-2": "2.0.3",
+    "@tensorflow/tfjs": "4.22.0",
     "better-sqlite3": "^12.10.0",
+    "js-tiktoken": "^1.0.20",
     "keytar": "^7.9.0",
     "tls-client-node": "^0.2.0",
     "wreq-js": "^2.3.1"
