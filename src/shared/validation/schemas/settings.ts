@@ -15,16 +15,76 @@ import {
 } from "@/shared/constants/upstreamHeaders";
 import { MAX_TIMER_TIMEOUT_MS } from "@/shared/utils/runtimeTimeouts";
 
+
 // ──── Settings Schemas ────
 // FASE-01: Removed .passthrough() — only explicitly listed fields are accepted
 
 export const settingsFallbackStrategySchema = z.enum(ACCOUNT_FALLBACK_STRATEGY_VALUES);
 
-// Single source of truth: ../settingsSchemas (the schema the runtime settings route validates
-// against). Re-exported here so this modular barrel stays in exact lockstep — a divergent local
-// copy (introduced by the #3988 lossy modularization) silently dropped 40 fields while gaining a
-// few others. The settings-schema parity test guards this; see QUALITY_GATE_PLAYBOOK Parte 6 (G2).
-export { updateSettingsSchema } from "../settingsSchemas";
+export const updateSettingsSchema = z.object({
+  newPassword: z.string().min(1).max(200).optional(),
+  currentPassword: z.string().max(200).optional(),
+  theme: z.string().max(50).optional(),
+  language: z.string().max(10).optional(),
+  requireLogin: z.boolean().optional(),
+  enableSocks5Proxy: z.boolean().optional(),
+  instanceName: z.string().max(100).optional(),
+  corsOrigins: z.string().max(500).optional(),
+  cloudUrl: z.string().max(500).optional(),
+  baseUrl: z.string().max(500).optional(),
+  setupComplete: z.boolean().optional(),
+  blockedProviders: z.array(z.string().max(100)).optional(),
+  hideHealthCheckLogs: z.boolean().optional(),
+  hideEndpointCloudflaredTunnel: z.boolean().optional(),
+  hideEndpointTailscaleFunnel: z.boolean().optional(),
+  hideEndpointNgrokTunnel: z.boolean().optional(),
+  pinProviderQuotaToHome: z.boolean().optional(),
+  showQuickStartOnHome: z.boolean().optional(),
+  showProviderTopologyOnHome: z.boolean().optional(),
+  showTokenSaverOnEndpoint: z.boolean().optional(),
+  bruteForceProtection: z.boolean().optional(),
+  hiddenSidebarItems: z.array(z.enum(HIDEABLE_SIDEBAR_ITEM_IDS)).optional(),
+  hiddenSidebarGroupLabels: z.array(z.enum(HIDEABLE_SIDEBAR_GROUP_IDS)).optional(),
+  comboConfigMode: z.enum(COMBO_CONFIG_MODES).optional(),
+  codexServiceTier: z
+    .object({
+      enabled: z.boolean().optional(),
+      tier: z.enum(["default", "priority", "flex"]).optional(),
+      supportedModels: z.array(z.string().max(200)).max(200).optional(),
+    })
+    .optional(),
+  codexSessionAffinityTtlMs: z.number().int().min(0).max(86_400_000).optional(),
+  // Routing settings (#134)
+  fallbackStrategy: settingsFallbackStrategySchema.optional(),
+  wildcardAliases: z.array(z.object({ pattern: z.string(), target: z.string() })).optional(),
+  stickyRoundRobinLimit: z.number().int().min(0).max(1000).optional(),
+  requestRetry: z.number().int().min(0).max(10).optional(),
+  maxRetryIntervalSec: z.number().int().min(0).max(300).optional(),
+  maxBodySizeMb: z
+    .number()
+    .int()
+    .min(MIN_REQUEST_BODY_LIMIT_MB)
+    .max(MAX_REQUEST_BODY_LIMIT_MB)
+    .optional(),
+  // Auto intent classifier settings (multilingual routing)
+  intentDetectionEnabled: z.boolean().optional(),
+  intentSimpleMaxWords: z.number().int().min(1).max(500).optional(),
+  intentExtraCodeKeywords: z.array(z.string().max(100)).optional(),
+  intentExtraReasoningKeywords: z.array(z.string().max(100)).optional(),
+  intentExtraSimpleKeywords: z.array(z.string().max(100)).optional(),
+  // Protocol toggles (default: disabled)
+  mcpEnabled: z.boolean().optional(),
+  a2aEnabled: z.boolean().optional(),
+  wsAuth: z.boolean().optional(),
+
+  // Qdrant integration
+  qdrantEnabled: z.boolean().optional(),
+  qdrantHost: z.string().max(500).optional(),
+  qdrantPort: z.number().int().min(1).max(65535).optional(),
+  qdrantApiKey: z.string().max(500).optional(),
+  qdrantCollection: z.string().max(200).optional(),
+  qdrantEmbeddingModel: z.string().max(200).optional(),
+});
 
 export const legacyResilienceProfileSchema = z.object({
   transientCooldown: z.number().min(0),
@@ -67,39 +127,16 @@ export const connectionCooldownProfileSchema = z
 
 export const providerBreakerProfileSchema = z
   .object({
-    failureThreshold: z.number().int().min(1).max(1000).optional(),
-    degradationThreshold: z.number().int().min(1).max(1000).optional(),
+    failureThreshold: z.number().int().min(1).optional(),
     resetTimeoutMs: z.number().int().min(1000).optional(),
   })
-  .strict()
-  .superRefine((value, ctx) => {
-    if (
-      typeof value.failureThreshold === "number" &&
-      value.failureThreshold > 1 &&
-      typeof value.degradationThreshold === "number" &&
-      value.degradationThreshold >= value.failureThreshold
-    ) {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        message: "degradationThreshold must be lower than failureThreshold",
-        path: ["degradationThreshold"],
-      });
-    }
-  });
+  .strict();
 
 export const waitForCooldownSettingsSchema = z
   .object({
     enabled: z.boolean().optional(),
     maxRetries: z.number().int().min(0).max(10).optional(),
     maxRetryWaitSec: z.number().int().min(0).max(300).optional(),
-  })
-  .strict();
-
-export const providerCooldownSettingsSchema = z
-  .object({
-    enabled: z.boolean().optional(),
-    minRetryCooldownMs: z.number().int().min(0).max(300000).optional(),
-    maxRetryCooldownMs: z.number().int().min(0).max(3600000).optional(),
   })
   .strict();
 
@@ -121,7 +158,6 @@ export const updateResilienceSchema = z
       .strict()
       .optional(),
     waitForCooldown: waitForCooldownSettingsSchema.optional(),
-    providerCooldown: providerCooldownSettingsSchema.optional(),
     profiles: z
       .object({
         oauth: legacyResilienceProfileSchema.optional(),
@@ -138,7 +174,6 @@ export const updateResilienceSchema = z
       !value.connectionCooldown &&
       !value.providerBreaker &&
       !value.waitForCooldown &&
-      !value.providerCooldown &&
       !value.profiles &&
       !value.defaults
     ) {
@@ -216,10 +251,7 @@ export const updateThinkingBudgetSchema = z
 export const guideSettingsSaveSchema = z
   .object({
     baseUrl: z.string().trim().min(1).optional(),
-    // #3552: the CLI tool cards post `apiKey: null` in cloud mode (the real key is resolved
-    // server-side from keyId), and `z.string().optional()` rejected null → 400. Normalize
-    // null → undefined so validation passes and the keyId/default path is used.
-    apiKey: z.preprocess((v) => (v === null ? undefined : v), z.string().optional()),
+    apiKey: z.string().optional(),
     model: z.string().trim().min(1, "Model is required").optional(),
     models: z.array(z.string().trim().min(1, "Models must be non-empty")).min(1).optional(),
     modelLabels: z.record(z.string(), z.string().trim().min(1)).optional(),
