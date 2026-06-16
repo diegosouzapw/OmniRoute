@@ -53,7 +53,21 @@
 #       ignore:
 #         - ci.yml
 
-# BASELINE: empty rules map = nothing ignored. Every future ignore requires an
-# explicit per-rule entry above with a justification comment (same stale-review
-# discipline as the other allowlists in this project).
-rules: {}
+# Every entry below is an explicit, justified ignore (same stale-review
+# discipline as the other allowlists in this project). New ignores require a
+# per-rule entry with a justification comment.
+rules:
+  dangerous-triggers:
+    # deploy-vps.yml uses `on: workflow_run` (after "Publish to Docker Hub").
+    # zizmor flags workflow_run as "almost always used insecurely", but this one
+    # is guarded and not exploitable:
+    #   • The deploy job is gated on `github.event.workflow_run.conclusion ==
+    #     'success'` (deploy-vps.yml job `if:`, L15), so it only runs after a
+    #     successful, trusted upstream run — never on a forked/PR-triggered
+    #     failure.
+    #   • It does NOT checkout or execute untrusted code: the deploy runs over SSH
+    #     using repository secrets; there is no `actions/checkout` of an attacker
+    #     ref in the privileged context.
+    # Accepted risk, re-review at the next release cycle (added 2026-06-15).
+    ignore:
+      - deploy-vps.yml

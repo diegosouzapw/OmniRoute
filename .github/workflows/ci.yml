@@ -302,8 +302,14 @@ jobs:
           python-version: "3.12"
 
       - name: Validate ${{ matrix.lang }}
+        env:
+          # Pass the matrix value via env (never interpolate ${{ ... }} straight
+          # into the run: script body) so the shell receives a variable, not
+          # inlined text — zizmor template-injection mitigation. Named MATRIX_LANG
+          # to avoid clobbering the POSIX `LANG` locale variable.
+          MATRIX_LANG: ${{ matrix.lang }}
         run: |
-          python3 scripts/i18n/validate_translation.py quick -l '${{ matrix.lang }}' > result.txt
+          python3 scripts/i18n/validate_translation.py quick -l "$MATRIX_LANG" > result.txt
 
       - name: Upload result
         if: always()

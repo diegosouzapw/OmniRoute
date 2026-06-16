@@ -33,11 +33,18 @@ jobs:
 
       - name: Validate version format
         id: validate
+        env:
+          # Pass workflow context via env (never interpolate ${{ ... }} straight
+          # into the run: script body) so the shell receives variables, not
+          # inlined text — zizmor template-injection mitigation. INPUT_VERSION is
+          # the operator-supplied value and is regex-validated below before use.
+          EVENT_NAME: ${{ github.event_name }}
+          INPUT_VERSION: ${{ inputs.version }}
         run: |
-          if [[ "${{ github.event_name }}" == "push" ]]; then
+          if [[ "$EVENT_NAME" == "push" ]]; then
             VERSION="${GITHUB_REF#refs/tags/}"
           else
-            VERSION="${{ inputs.version }}"
+            VERSION="$INPUT_VERSION"
           fi
 
           if [[ ! "$VERSION" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
@@ -114,8 +121,13 @@ jobs:
 
       - name: Sync version in electron/package.json
         shell: bash
+        env:
+          # Pass the validated version via env (never interpolate ${{ ... }}
+          # straight into the run: script body) — zizmor template-injection
+          # mitigation. Already regex-validated (^v[0-9]+\.[0-9]+\.[0-9]+$) in
+          # the `validate` job, so it cannot carry shell metacharacters.
+          VERSION: ${{ needs.validate.outputs.version }}
         run: |
-          VERSION="${{ needs.validate.outputs.version }}"
           VERSION_NO_V="${VERSION#v}"
           node -e "
             const fs = require('fs');
@@ -212,14 +224,20 @@ jobs:
           merge-multiple: true
 
       - name: Create source archives
+        env:
+          # Pass the validated version via env (never interpolate ${{ ... }}
+          # straight into the run: script body) — zizmor template-injection
+          # mitigation. Already regex-validated (^v[0-9]+\.[0-9]+\.[0-9]+$) in
+          # the `validate` job, so it cannot carry shell metacharacters.
+          VERSION: ${{ needs.validate.outputs.version }}
         run: |
           # Create source code archives (excluding dev dependencies and build artifacts)
-          export TARBALL="OmniRoute-${{ needs.validate.outputs.version }}.source.tar.gz"
-          export ZIPBALL="OmniRoute-${{ needs.validate.outputs.version }}.source.zip"
+          export TARBALL="OmniRoute-${VERSION}.source.tar.gz"
+          export ZIPBALL="OmniRoute-${VERSION}.source.zip"
 
           # Use git archive for clean source export
-          git archive --format=tar.gz --prefix=OmniRoute-${{ needs.validate.outputs.version }}/ HEAD -o "release-assets/$TARBALL"
-          git archive --format=zip --prefix=OmniRoute-${{ needs.validate.outputs.version }}/ HEAD -o "release-assets/$ZIPBALL"
+          git archive --format=tar.gz --prefix="OmniRoute-${VERSION}/" HEAD -o "release-assets/$TARBALL"
+          git archive --format=zip --prefix="OmniRoute-${VERSION}/" HEAD -o "release-assets/$ZIPBALL"
 
           echo "✓ Created source archives:"
           ls -lh "release-assets/$TARBALL" "release-assets/$ZIPBALL"
