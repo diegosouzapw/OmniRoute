@@ -88,6 +88,16 @@ export interface CompressionLanguageConfig {
   enabledPacks: string[];
 }
 
+/**
+ * Provider-delegated compression (Anthropic "Context Editing", beta
+ * `context-management-2025-06-27`). Claude/Anthropic only — the provider clears
+ * old tool-use blocks server-side. This config only carries the on/off flag; the
+ * request-time header/body injection is a separate slice.
+ */
+export interface ContextEditingConfig {
+  enabled: boolean;
+}
+
 export interface CompressionPipelineStep {
   engine: CompressionEngineId;
   intensity?: CavemanIntensity | RtkIntensity;
@@ -111,6 +121,8 @@ export interface CompressionConfig {
   languageConfig?: CompressionLanguageConfig;
   aggressive?: AggressiveConfig;
   ultra?: UltraConfig;
+  /** Provider-delegated context editing (Claude/Anthropic only). */
+  contextEditing?: ContextEditingConfig;
 }
 
 export interface CompressionStats {
@@ -225,6 +237,10 @@ export const DEFAULT_COMPRESSION_LANGUAGE_CONFIG: CompressionLanguageConfig = {
   defaultLanguage: "en",
   autoDetect: true,
   enabledPacks: ["en"],
+};
+
+export const DEFAULT_CONTEXT_EDITING_CONFIG: ContextEditingConfig = {
+  enabled: false,
 };
 
 /** Aging thresholds for progressive message degradation (Phase 3) */

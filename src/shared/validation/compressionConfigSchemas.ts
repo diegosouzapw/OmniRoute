@@ -61,6 +61,15 @@ export const languageConfigSchema = z
   })
   .strict();
 
+// Context Editing is a provider-delegated compression mode (Claude/Anthropic only):
+// the provider clears old tool-use blocks server-side. This config only carries the
+// on/off flag; the request-time header/body injection is a separate slice.
+export const contextEditingConfigSchema = z
+  .object({
+    enabled: z.boolean().optional(),
+  })
+  .strip();
+
 export const aggressiveConfigSchema = z
   .object({
     thresholds: z
@@ -159,6 +168,7 @@ export const compressionSettingsUpdateSchema = z
     languageConfig: languageConfigSchema.optional(),
     aggressive: aggressiveConfigSchema.optional(),
     ultra: ultraConfigSchema.optional(),
+    contextEditing: contextEditingConfigSchema.optional(),
   })
   .strict();
 

@@ -7,6 +7,7 @@ import {
   DEFAULT_CAVEMAN_OUTPUT_MODE_CONFIG,
   DEFAULT_COMPRESSION_LANGUAGE_CONFIG,
   DEFAULT_COMPRESSION_CONFIG,
+  DEFAULT_CONTEXT_EDITING_CONFIG,
   DEFAULT_MCP_ACCESSIBILITY_CONFIG,
   DEFAULT_RTK_CONFIG,
   DEFAULT_ULTRA_CONFIG,
@@ -17,6 +18,7 @@ import {
   type CompressionPipelineStep,
   type CompressionConfig,
   type CompressionMode,
+  type ContextEditingConfig,
   type McpAccessibilityConfig,
   type RtkConfig,
   type UltraConfig,
@@ -198,6 +200,17 @@ function normalizeLanguageConfig(value: unknown): CompressionLanguageConfig {
   };
 }
 
+function normalizeContextEditingConfig(value: unknown): ContextEditingConfig {
+  const record = toRecord(value);
+  return {
+    ...DEFAULT_CONTEXT_EDITING_CONFIG,
+    enabled:
+      typeof record.enabled === "boolean"
+        ? record.enabled
+        : DEFAULT_CONTEXT_EDITING_CONFIG.enabled,
+  };
+}
+
 function normalizeStackedPipeline(value: unknown): CompressionPipelineStep[] {
   const source = Array.isArray(value) ? value : (DEFAULT_COMPRESSION_CONFIG.stackedPipeline ?? []);
   const pipeline: CompressionPipelineStep[] = [];
@@ -360,6 +373,7 @@ export async function getCompressionSettings(): Promise<CompressionConfig> {
     stackedPipeline: normalizeStackedPipeline(undefined),
     aggressive: normalizeAggressiveConfig(undefined),
     ultra: normalizeUltraConfig(undefined),
+    contextEditing: { ...DEFAULT_CONTEXT_EDITING_CONFIG },
   };
 
   for (const row of rows) {
@@ -439,6 +453,9 @@ export async function getCompressionSettings(): Promise<CompressionConfig> {
       case "ultra":
       case "ultraConfig":
         config.ultra = normalizeUltraConfig(parsed);
+        break;
+      case "contextEditing":
+        config.contextEditing = normalizeContextEditingConfig(parsed);
         break;
     }
   }
