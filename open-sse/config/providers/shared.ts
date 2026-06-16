@@ -575,12 +575,6 @@ export const CHAT_OPENAI_COMPAT_MODELS: Record<string, RegistryModel[]> = {
     "mistralai/Mistral-7B-Instruct-v0.3",
     "Qwen/Qwen2.5-72B-Instruct",
   ]),
-  // Restored after the registry modularization (#3993) dropped the mimocode key
-  // referenced by the mimocode provider plugin. Source of truth: pre-#3993
-  // providerRegistry.ts (commit 1ed01dd90^).
-  mimocode: [
-    { id: "mimo-auto", name: "MiMo Auto", contextLength: 1000000, maxOutputTokens: 128000 },
-  ],
 };
 
 export function mapStainlessOs() {
