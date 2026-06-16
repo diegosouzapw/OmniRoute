@@ -2899,6 +2899,27 @@ async function validateQwenWebProvider({ apiKey }: any) {
     if (!resp.ok) {
       return { valid: false, error: `Qwen returned HTTP ${resp.status}` };
     }
+
+    // Parse JSON response and verify we have a real user object
+    // Qwen returns HTTP 200 even for invalid tokens, so we must check the body
+    try {
+      const data = await resp.json();
+      const user = data?.user || data?.data?.user;
+
+      if (!user) {
+        return {
+          valid: false,
+          error:
+            "Qwen session token is invalid or expired — re-login at https://chat.qwen.ai and paste a fresh full Cookie header",
+        };
+      }
+    } catch (parseError) {
+      return {
+        valid: false,
+        error: "Qwen returned invalid JSON response",
+      };
+    }
+
     return { valid: true, error: null };
   } catch (error) {
     return toValidationErrorResult(error);
