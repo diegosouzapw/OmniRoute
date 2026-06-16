@@ -4,7 +4,7 @@
 //
 // IMPORTANT (hydration): no `useTranslations` here. The earlier combos redesign
 // failed to hydrate on the production build and the only structural difference from
-// the engine pages was a page-level `useTranslations`. Strings are hardcoded (pt-BR),
+// the engine pages was a page-level `useTranslations`. Strings are literal English,
 // matching `EngineConfigPage` / `CompressionHub`, both of which hydrate cleanly.
 
 import { useEffect, useState } from "react";
@@ -141,7 +141,7 @@ function NamedCombosManager() {
   };
 
   const deleteCombo = async (combo: CompressionCombo) => {
-    if (!confirm(`Excluir o combo "${combo.name}"?`)) return;
+    if (!confirm(`Delete combo "${combo.name}"?`)) return;
     const res = await fetch(`/api/context/combos/${combo.id}`, { method: "DELETE" });
     if (res.ok) refresh();
   };
@@ -186,9 +186,9 @@ function NamedCombosManager() {
   return (
     <div className="flex flex-col gap-4">
       <div>
-        <h2 className="text-lg font-semibold text-text-main">Combos nomeados</h2>
+        <h2 className="text-lg font-semibold text-text-main">Named combos</h2>
         <p className="text-sm text-text-muted">
-          Salve pipelines diferentes e atribua a combos de roteamento específicos.
+          Save different pipelines and assign them to specific routing combos.
         </p>
       </div>
 
@@ -197,13 +197,13 @@ function NamedCombosManager() {
           <input
             value={name}
             onChange={(event) => setName(event.target.value)}
-            placeholder="Nome do combo"
+            placeholder="Combo name"
             className="rounded-lg border border-border bg-bg px-3 py-2 text-sm text-text-main"
           />
           <input
             value={description}
             onChange={(event) => setDescription(event.target.value)}
-            placeholder="Descrição"
+            placeholder="Description"
             className="rounded-lg border border-border bg-bg px-3 py-2 text-sm text-text-main"
           />
         </div>
@@ -217,7 +217,7 @@ function NamedCombosManager() {
               }
               className="rounded-lg border border-border px-3 py-1.5 text-xs text-text-main"
             >
-              Adicionar etapa
+              Add step
             </button>
           </div>
           {pipeline.map((step, index) => (
@@ -249,7 +249,7 @@ function NamedCombosManager() {
                 className="rounded-lg border border-border px-3 py-2 text-sm text-text-main"
                 disabled={pipeline.length <= 1}
               >
-                Remover
+                Remove
               </button>
             </div>
           ))}
@@ -257,7 +257,7 @@ function NamedCombosManager() {
 
         <div className="mt-4 grid grid-cols-1 gap-4 lg:grid-cols-3">
           <div>
-            <h3 className="mb-2 text-sm font-semibold text-text-main">Pacotes de idioma</h3>
+            <h3 className="mb-2 text-sm font-semibold text-text-main">Language packs</h3>
             <div className="space-y-2 text-sm text-text-main">
               {languagePacks.map((pack) => (
                 <label key={pack.language} className="flex items-center justify-between gap-2">
@@ -282,7 +282,7 @@ function NamedCombosManager() {
                 checked={outputMode}
                 onChange={(event) => setOutputMode(event.target.checked)}
               />
-              Ativado
+              Enabled
             </label>
             <select
               value={outputModeIntensity}
@@ -295,10 +295,10 @@ function NamedCombosManager() {
             </select>
           </div>
           <div>
-            <h3 className="mb-2 text-sm font-semibold text-text-main">Atribuir ao roteamento</h3>
+            <h3 className="mb-2 text-sm font-semibold text-text-main">Assign to routing</h3>
             <div className="max-h-44 space-y-2 overflow-auto text-sm text-text-main">
               {routingCombos.length === 0 ? (
-                <p className="text-xs text-text-muted">Nenhum combo de roteamento disponível.</p>
+                <p className="text-xs text-text-muted">No routing combos available.</p>
               ) : (
                 routingCombos.map((combo) => {
                   const id = combo.id ?? combo.name ?? "";
@@ -325,14 +325,14 @@ function NamedCombosManager() {
             disabled={saving}
             className="rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white"
           >
-            {editingId ? "Salvar" : "Criar combo"}
+            {editingId ? "Save" : "Create combo"}
           </button>
           {editingId && (
             <button
               onClick={resetForm}
               className="rounded-lg border border-border px-4 py-2 text-sm text-text-main"
             >
-              Cancelar
+              Cancel
             </button>
           )}
         </div>
@@ -348,7 +348,7 @@ function NamedCombosManager() {
               </div>
               {combo.isDefault && (
                 <span className="rounded-full bg-primary/10 px-2 py-1 text-xs font-medium text-primary">
-                  Padrão
+                  Default
                 </span>
               )}
             </div>
@@ -364,21 +364,21 @@ function NamedCombosManager() {
               ))}
             </div>
             <p className="mt-3 text-xs text-text-muted">
-              Pacotes de idioma: {combo.languagePacks.join(", ")}
+              Language packs: {combo.languagePacks.join(", ")}
             </p>
             <div className="mt-4 flex flex-wrap gap-2">
               <button
                 onClick={() => editCombo(combo)}
                 className="rounded-lg border border-border px-3 py-1.5 text-xs text-text-main"
               >
-                Editar
+                Edit
               </button>
               {!combo.isDefault && (
                 <button
                   onClick={() => setDefault(combo.id)}
                   className="rounded-lg border border-border px-3 py-1.5 text-xs text-text-main"
                 >
-                  Definir como padrão
+                  Set as default
                 </button>
               )}
               {!combo.isDefault && (
@@ -386,7 +386,7 @@ function NamedCombosManager() {
                   onClick={() => deleteCombo(combo)}
                   className="rounded-lg border border-danger/40 px-3 py-1.5 text-xs text-danger"
                 >
-                  Excluir
+                  Delete
                 </button>
               )}
             </div>

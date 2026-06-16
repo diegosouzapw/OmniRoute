@@ -1,5 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
+import { useTranslations } from "next-intl";
 import { useCopyToClipboard } from "@/shared/hooks/useCopyToClipboard";
+import { providerText } from "../providerPageHelpers";
 
 type UseExternalLinkFlowParams = {
   providerId: string;
@@ -12,6 +14,7 @@ export function useExternalLinkFlow({
   notify,
   fetchConnections,
 }: UseExternalLinkFlowParams) {
+  const t = useTranslations("providers") as any;
   const [externalLinkModalOpen, setExternalLinkModalOpen] = useState(false);
   const [externalLinkUrl, setExternalLinkUrl] = useState("");
   const [externalLinkToken, setExternalLinkToken] = useState<string | null>(null);
@@ -19,7 +22,7 @@ export function useExternalLinkFlow({
   const [externalLinkError, setExternalLinkError] = useState<string | null>(null);
   const { copied: externalLinkCopied, copy: externalLinkCopy } = useCopyToClipboard();
 
-  // "Adicionar Externo": generate a single-use public link so a third party can
+  // External Codex link: generate a single-use public link so a third party can
   // complete the Codex device flow in their own browser.
   const openExternalLinkFlow = useCallback(async () => {
     setExternalLinkModalOpen(true);
@@ -38,14 +41,19 @@ export function useExternalLinkFlow({
         setExternalLinkUrl(data.url);
         setExternalLinkToken(data.token || null);
       } else {
-        setExternalLinkError(data?.error || "Falha ao gerar o link.");
+        setExternalLinkError(
+          data?.error ||
+            providerText(t, "codexExternalLinkCreateFailed", "Failed to generate the link.")
+        );
       }
     } catch {
-      setExternalLinkError("Não foi possível contatar o servidor.");
+      setExternalLinkError(
+        providerText(t, "codexExternalLinkNetworkError", "Could not contact the server.")
+      );
     } finally {
       setExternalLinkLoading(false);
     }
-  }, [providerId]);
+  }, [providerId, t]);
 
   // While the share popup is open, poll the ticket status so the dashboard can
   // notify + refresh the connections the moment the external visitor finishes.
@@ -63,14 +71,22 @@ export function useExternalLinkFlow({
         if (data?.status === "completed") {
           active = false;
           clearInterval(interval);
-          notify.success("Conta Codex conectada pelo link externo.");
+          notify.success(
+            providerText(
+              t,
+              "codexExternalLinkConnected",
+              "Codex account connected through the external link."
+            )
+          );
           fetchConnections();
           setExternalLinkModalOpen(false);
           setExternalLinkToken(null);
         } else if (data?.status === "expired") {
           active = false;
           clearInterval(interval);
-          setExternalLinkError("O link expirou sem ser concluído.");
+          setExternalLinkError(
+            providerText(t, "codexExternalLinkExpired", "The link expired before completion.")
+          );
         }
       } catch {
         /* transient network error — keep polling */
@@ -80,7 +96,7 @@ export function useExternalLinkFlow({
       active = false;
       clearInterval(interval);
     };
-  }, [externalLinkModalOpen, externalLinkToken, providerId, notify, fetchConnections]);
+  }, [externalLinkModalOpen, externalLinkToken, providerId, notify, fetchConnections, t]);
 
   return {
     externalLinkModalOpen,

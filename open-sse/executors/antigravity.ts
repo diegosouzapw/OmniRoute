@@ -54,6 +54,7 @@ import {
   getAntigravityEnvelopeUserAgent,
   getAntigravitySessionId,
 } from "../services/antigravityIdentity.ts";
+import * as prl from "../utils/providerRequestLogging.ts";
 
 const MAX_RETRY_AFTER_MS = 60_000;
 const LONG_RETRY_THRESHOLD_MS = 60_000;
@@ -1184,6 +1185,8 @@ export class AntigravityExecutor extends BaseExecutor {
           transformedBody
         );
         let finalHeaders = serializedRequest.headers;
+        const capture = (h: Record<string, string>, s: string) =>
+          prl.captureCurrentProviderBody(url, h, s, log);
         const clientProfile = applyAntigravityClientProfileHeaders(
           finalHeaders,
           credentials,
@@ -1220,6 +1223,7 @@ export class AntigravityExecutor extends BaseExecutor {
           );
         }
 
+        await capture(finalHeaders, serializedRequest.bodyString);
         let response = await fetchWithReadinessTimeout(url, {
           method: "POST",
           headers: finalHeaders,
@@ -1232,6 +1236,7 @@ export class AntigravityExecutor extends BaseExecutor {
           const retryHeaders = { ...finalHeaders };
           removeHeaderCaseInsensitive(retryHeaders, "x-goog-user-project");
           log?.debug?.("RETRY", "403 with x-goog-user-project, retrying once without it");
+          await capture(retryHeaders, serializedRequest.bodyString);
           response = await fetchWithReadinessTimeout(url, {
             method: "POST",
             headers: retryHeaders,
@@ -1314,6 +1319,7 @@ export class AntigravityExecutor extends BaseExecutor {
                 );
                 const finalCreditsHeaders = serializedCreditsRequest.headers;
                 try {
+                  await capture(finalCreditsHeaders, serializedCreditsRequest.bodyString);
                   const creditsResp = await fetchWithReadinessTimeout(url, {
                     method: "POST",
                     headers: finalCreditsHeaders,
