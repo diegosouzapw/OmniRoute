@@ -74,6 +74,10 @@ _In development — bullets added per PR; finalized at release._
 - **docs(troubleshooting): note that the MITM proxy cannot intercept Windows-host apps under WSL** — documents that the MITM proxy running inside WSL cannot intercept traffic from apps on the Windows host. ([#4003](https://github.com/diegosouzapw/OmniRoute/pull/4003) — thanks @diegosouzapw)
 - **chore(quality): maintenance roll-up** — assorted quality-gate hygiene that does not change runtime behavior: re-baseline `validation.ts` for the #3958 qwen body-check, allowlist the `socks` dependency declared by #4004, ignore jscpd major bumps (the v5 Rust rewrite breaks the pinned duplication gate), untrack an accidentally-committed root `node_modules` symlink (and gitignore it), rehome the #3972 logs auto-refresh test so a runner collects it, and open the v3.8.27 development cycle. (thanks @diegosouzapw)
 
+### 🐛 Fixed
+
+- **fix(kiro): preserve `finish_reason: "tool_calls"` on the Kiro streaming path** — streaming tool-call requests through the Kiro (Responses API) provider had their terminal `finish_reason` reported as `"stop"` instead of `"tool_calls"`, so agent clients (Hermes) treated the tool-call turn as a finished turn, never ran the tool, and the next request failed with HTTP 400 on the incomplete tool state. `convertKiroToOpenAI`'s terminal `messageStopEvent`/`done` branch hardcoded `finish_reason: "stop"` regardless of whether the stream had emitted `toolUseEvent`s. The translator now records `state.sawToolUse` when a tool-use chunk is emitted and reports `finish_reason: "tool_calls"` on the terminal chunk (and in `state.finishReason`) whenever the stream produced tool calls. The non-streaming path was already correct. ([#3980](https://github.com/diegosouzapw/OmniRoute/issues/3980) — thanks @lordavadon2)
+
 ---
 
 ## [3.8.26] — 2026-06-15
