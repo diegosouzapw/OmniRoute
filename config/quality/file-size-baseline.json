@@ -19,11 +19,11 @@
   "cap": 800,
   "frozen": {
     "open-sse/config/providerRegistry.ts": 4731,
-    "open-sse/executors/antigravity.ts": 1649,
+    "open-sse/executors/antigravity.ts": 1664,
     "open-sse/executors/base.ts": 1218,
     "open-sse/executors/chatgpt-web.ts": 2870,
     "open-sse/executors/claude-web.ts": 1057,
-    "open-sse/executors/codex.ts": 1439,
+    "open-sse/executors/codex.ts": 1447,
     "open-sse/executors/cursor.ts": 1391,
     "open-sse/executors/deepseek-web.ts": 1117,
     "open-sse/executors/duckduckgo-web.ts": 917,
@@ -31,7 +31,7 @@
     "open-sse/executors/muse-spark-web.ts": 1284,
     "open-sse/executors/perplexity-web.ts": 939,
     "open-sse/handlers/audioSpeech.ts": 965,
-    "open-sse/handlers/chatCore.ts": 5823,
+    "open-sse/handlers/chatCore.ts": 5830,
     "open-sse/handlers/imageGeneration.ts": 3777,
     "open-sse/handlers/responseSanitizer.ts": 1103,
     "open-sse/handlers/search.ts": 1442,
@@ -147,5 +147,6 @@
   "_rebaseline_2026_06_14_r3_3836_kiro_discovery": "PR #3836 own growth: models/route.ts 2426→2487 (+61 = kiro live per-account discovery branch wiring fetchKiroAvailableModels into the existing cache/auto-fetch/fallback discovery flow). Structural shrink of this route tracked in #3789.",
   "_rebaseline_2026_06_14_2997_disable_cooling": "Re-baseline #2997 (per-connection disable-cooling): EditConnectionModal.tsx 1171→1174 (+toggle UI) + auth.ts 2207→2216 (honor de disableCooling no markAccountUnavailable, pós-prettier). Lógica coesa; não-extraível. (combo.ts/RequestLoggerV2 drift já documentado em _r3_3835.)",
   "_rebaseline_2026_06_14_r3_3848_compression": "PR #3848 own growth: chatCore.ts 5808→5811 (+3 = compression engine pipeline hooks). Also carries inherited release/v3.8.25 drift not touched by this PR: models/route.ts 2487→2489 (+2, post-#3836/prettier). Updating the frozen values restores Fast Quality Gates on the current base.",
-  "_rebaseline_2026_06_14_3861_gitlab_duo": "PR #3861 own growth: oauth/[provider]/[action]/route.ts 903→916 (+13 = gitlab-duo authorize guard mirroring the existing qoder guard — returns a clear 'register an OAuth app + set GITLAB_DUO_OAUTH_CLIENT_ID' message instead of letting buildAuthUrl's throw become an opaque 500). Cohesive with the qoder branch right above it; not separately extractable."
+  "_rebaseline_2026_06_14_3861_gitlab_duo": "PR #3861 own growth: oauth/[provider]/[action]/route.ts 903→916 (+13 = gitlab-duo authorize guard mirroring the existing qoder guard — returns a clear 'register an OAuth app + set GITLAB_DUO_OAUTH_CLIENT_ID' message instead of letting buildAuthUrl's throw become an opaque 500). Cohesive with the qoder branch right above it; not separately extractable.",
+  "_rebaseline_2026_06_15_3941_provider_request_capture": "PR #3941 own growth: chatCore.ts 5823->5830 (+7 by check-file-size counting = run executor attempts inside the unified provider request capture scope), antigravity.ts 1649->1664 (+15) and codex.ts 1439->1447 (+8) = bridge hand-written upstream transports that bypass normal fetch/BaseExecutor capture. Cohesive logging-fidelity refactor; not extractable without hiding the actual dispatch boundary."
 }

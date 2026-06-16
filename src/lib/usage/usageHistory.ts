@@ -26,7 +26,7 @@ import {
 } from "./tokenAccounting";
 
 type JsonRecord = Record<string, unknown>;
-type PendingRequestMetadata = {
+export type PendingRequestMetadata = {
   clientEndpoint?: string | null;
   clientRequest?: unknown;
   providerRequest?: unknown;
@@ -306,6 +306,13 @@ export function updatePendingRequest(
   if (!details?.length) return;
   const lastIdx = details.length - 1;
   Object.assign(details[lastIdx], normalizePendingMetadata(metadata));
+}
+
+export function updatePendingRequestById(id: string | null, metadata: PendingRequestMetadata) {
+  const detail = id ? pendingById.get(id) : null;
+  if (!detail) return false;
+  Object.assign(detail, normalizePendingMetadata(metadata));
+  return true;
 }
 
 /**
