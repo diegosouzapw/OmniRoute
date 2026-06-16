@@ -1702,6 +1702,8 @@ paths:
                     type: array
                     items:
                       $ref: "#/components/schemas/ApiKey"
+        "401":
+          description: Authentication required
     post:
       tags: [API Keys]
       summary: Create API key
@@ -1718,6 +1720,8 @@ paths:
       responses:
         "201":
           description: Created API key (includes full key value)
+        "401":
+          description: Authentication required
 
   /api/keys/{id}:
     delete:
@@ -1728,6 +1732,8 @@ paths:
       responses:
         "200":
           description: Key deleted
+        "401":
+          description: Authentication required
 
   /api/combos:
     get:
@@ -3444,9 +3450,12 @@ paths:
               properties:
                 password:
                   type: string
+                  minLength: 1
       responses:
         "200":
           description: JWT token returned
+        "400":
+          description: Invalid login request
         "401":
           description: Invalid password
 
