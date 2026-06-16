@@ -1,7 +1,7 @@
 openapi: 3.1.0
 info:
   title: OmniRoute API
-  version: 3.8.28
+  version: 3.8.27
   description: |
     OmniRoute is a local-first AI API proxy router. It provides an OpenAI-compatible
     endpoint that routes requests to multiple AI providers with load balancing,
@@ -1702,8 +1702,6 @@ paths:
                     type: array
                     items:
                       $ref: "#/components/schemas/ApiKey"
-        "401":
-          description: Authentication required
     post:
       tags: [API Keys]
       summary: Create API key
@@ -1720,43 +1718,8 @@ paths:
       responses:
         "201":
           description: Created API key (includes full key value)
-        "401":
-          description: Authentication required
 
   /api/keys/{id}:
-    get:
-      tags: [API Keys]
-      summary: Get API key
-      parameters:
-        - $ref: "#/components/parameters/ResourceId"
-      responses:
-        "200":
-          description: API key metadata
-        "401":
-          description: Authentication required
-        "404":
-          description: Key not found
-    patch:
-      tags: [API Keys]
-      summary: Update API key
-      parameters:
-        - $ref: "#/components/parameters/ResourceId"
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              additionalProperties: true
-      responses:
-        "200":
-          description: API key settings updated
-        "400":
-          description: Invalid update request
-        "401":
-          description: Authentication required
-        "404":
-          description: Key not found
     delete:
       tags: [API Keys]
       summary: Delete API key
@@ -1765,10 +1728,6 @@ paths:
       responses:
         "200":
           description: Key deleted
-        "401":
-          description: Authentication required
-        "404":
-          description: Key not found
 
   /api/combos:
     get:
@@ -3485,18 +3444,11 @@ paths:
               properties:
                 password:
                   type: string
-                  minLength: 1
       responses:
         "200":
           description: JWT token returned
-        "400":
-          description: Invalid login request
         "401":
           description: Invalid password
-        "403":
-          description: Password setup required
-        "429":
-          description: Too many failed attempts
 
   /api/auth/logout:
     post:
@@ -3544,27 +3496,6 @@ paths:
       responses:
         "200":
           description: Backup created
-    patch:
-      tags: [System]
-      summary: Save database backup retention settings
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                keepLatest:
-                  type: integer
-                  minimum: 1
-                  maximum: 200
-                retentionDays:
-                  type: integer
-                  minimum: 0
-                  maximum: 3650
-      responses:
-        "200":
-          description: Backup retention settings saved
 
   /api/storage/health:
     get:
