@@ -15,6 +15,7 @@
   "_rebaseline_2026_06_15_3929_vertex_media": "PR #3929 own growth: audioSpeech.ts 952->965 (+13) and videoGeneration.ts 1026->1078 (+52) = vertex/* media branches (Gemini TTS, Veo predictLongRunning poll) wired into the speech/video handlers; new logic lives in open-sse/executors/vertexMedia.ts (341, under cap). Cohesive media-provider feature.",
   "_rebaseline_2026_06_15_3879_redact_thinking": "PR #3879 + #3921 reconcile: AddApiKeyModal.tsx 843->845 (+2 = merging #3879's CcCompatibleRequestDefaultsFields (context1m + opt-in redact-thinking toggle) into #3921's preset-input block in the cc-compatible settings group). Cohesive UI; not extractable.",
   "_rebaseline_2026_06_15_3890_cache_preserve": "Issue #3890 own growth: chatCore.ts 5815->5823 (+8 = wire resolveCacheAwareConfig() into the compression apply step so the system prompt is never compressed in a caching context — honors the cache-aware skipSystemPrompt flag that selectCompressionStrategy could not carry). Cohesive cache-preservation guard at the existing compression chokepoint; not extractable.",
+  "_rebaseline_2026_06_16_3954_cooldown_epoch": "Issue #3954 own growth: accountFallback.ts 1708->1727 (+19 = a shared cooldownUntilMs() normalizer + its use in isAccountUnavailable/getEarliestRateLimitedUntil/filterAvailableAccounts so a rate_limited_until persisted as a numeric-epoch string is honored, not parsed to NaN) and auth.ts 2216->2219 (+3 = parseFutureDateMs reuses cooldownUntilMs). Cohesive cooldown read-path hardening at the existing chokepoints; one helper, not extractable.",
   "_rebaseline_2026_06_15_3938_perplexity_v218": "PR #3938 own growth: perplexity-web.ts 868->939 (+71 = rebuild buildPplxRequestBody to mirror the current www.perplexity.ai schematized request body — version 2.18, use_schematized_api + the full supported_block_use_cases list, dsl_query, shared requestId for frontend_uuid/client_search_results_cache_key, last_backend_uuid only on follow-ups — plus the x-perplexity-request-* / x-request-id headers replacing the stale X-App-ApiVersion pair that triggered HTTP 400). Cohesive upstream-schema sync in a single executor; not extractable.",
   "cap": 800,
   "frozen": {
@@ -40,7 +41,7 @@
     "open-sse/mcp-server/schemas/tools.ts": 1437,
     "open-sse/mcp-server/server.ts": 1457,
     "open-sse/mcp-server/tools/advancedTools.ts": 1118,
-    "open-sse/services/accountFallback.ts": 1708,
+    "open-sse/services/accountFallback.ts": 1727,
     "open-sse/services/batchProcessor.ts": 828,
     "open-sse/services/browserBackedChat.ts": 850,
     "open-sse/services/claudeCodeCompatible.ts": 1202,
@@ -119,7 +120,7 @@
     "src/shared/services/cliRuntime.ts": 1090,
     "src/shared/validation/schemas.ts": 2523,
     "src/sse/handlers/chat.ts": 1425,
-    "src/sse/services/auth.ts": 2216
+    "src/sse/services/auth.ts": 2219
   },
   "_rebaseline_2026_06_09": "Re-baseline consciente pre-release v3.8.19: 9 arquivos cresceram durante o ciclo (features mergeadas: RequestLoggerV2 +281 request-logger rework, stream +101, combo +73, chatCore +45, catalog +32 fable-5/catalog-flag, callLogs +4, accountFallback +2, usageHistory novo 840) + core.ts +7 (fix resetAllDbModuleState, PR 3536). A catraca segue valendo destes valores — proximo crescimento falha. Decisao: encolher (esp. RequestLoggerV2/chatCore) e a issue #3501 ficam para o ciclo seguinte.",
   "_rebaseline_2026_06_11_phase1f": "Phase 1f (#3501): ProviderDetailPageClient.tsx 4948→4062 (-886 LOC); 3 novos hooks extraídos. useProviderConnections.ts=954 acima do cap=800 — justificado: extração direta do god-component (zero lógica nova), própria redução do cliente supera o custo. useProviderSettings.ts=263 e useProviderModels.ts=154 já abaixo do cap.",
