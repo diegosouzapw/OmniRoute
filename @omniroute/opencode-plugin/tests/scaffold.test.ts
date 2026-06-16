@@ -1,6 +1,5 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { createRequire } from "node:module";
 import {
   OmniRoutePlugin,
   OMNIROUTE_PROVIDER_KEY,
@@ -63,11 +62,12 @@ test("OmniRoutePlugin: returns an empty hooks object (scaffold)", async () => {
   assert.notEqual(hooks, null);
 });
 
-test("scaffold: CJS default export resolves via require() with v1 shape", () => {
-  const require_ = createRequire(import.meta.url);
-  const cjs = require_("../dist/index.cjs");
-  // after cjsInterop:true, default export is on cjs.default
-  assert.strictEqual(typeof cjs.default, "object");
-  assert.strictEqual(cjs.default.id, "@omniroute/opencode-plugin");
-  assert.strictEqual(typeof cjs.default.server, "function");
+test("scaffold: built ESM default export resolves with the v1 plugin shape", async () => {
+  // The plugin is ESM-only now — the CJS bundle was dropped to fix the OpenCode
+  // loader (#3883), so there is no more ../dist/index.cjs. Validate that the built
+  // distributable's default export still carries the OpenCode v1 { id, server } shape.
+  const mod = await import("../dist/index.js");
+  assert.strictEqual(typeof mod.default, "object");
+  assert.strictEqual(mod.default.id, "@omniroute/opencode-plugin");
+  assert.strictEqual(typeof mod.default.server, "function");
 });
