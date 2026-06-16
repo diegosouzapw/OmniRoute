@@ -49,3 +49,5 @@ jobs:
       - run: npm run check:route-guard-membership
       - run: npm run check:test-discovery
       - run: npm run check:any-budget:t11
+      - name: Typecheck (core)
+        run: npm run typecheck:core
