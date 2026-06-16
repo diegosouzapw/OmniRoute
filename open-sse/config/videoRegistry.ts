@@ -26,6 +26,19 @@ interface VideoProvider {
 }
 
 export const VIDEO_PROVIDERS: Record<string, VideoProvider> = {
+  vertex: {
+    id: "vertex",
+    baseUrl: "https://us-central1-aiplatform.googleapis.com/v1",
+    authType: "apikey",
+    authHeader: "bearer",
+    format: "vertex-veo",
+    models: [
+      { id: "veo-3.0-generate-001", name: "Veo 3.0 (Vertex)" },
+      { id: "veo-3.0-fast-generate-001", name: "Veo 3.0 Fast (Vertex)" },
+      { id: "veo-2.0-generate-001", name: "Veo 2.0 (Vertex)" },
+    ],
+  },
+
   kie: {
     id: "kie",
     baseUrl: "https://api.kie.ai",

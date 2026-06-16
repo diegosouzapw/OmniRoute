@@ -1,0 +1,111 @@
+{
+  "language": "id",
+  "category": "structural",
+  "rules": [
+    {
+      "name": "id_redundant_phrasing",
+      "pattern": "\\b(?:pastikan\\s+untuk|harus\\s+dipastikan|perlu\\s+untuk|dianjurkan\\s+untuk|disarankan\\s+untuk|wajib\\s+untuk)\\b\\s*",
+      "context": "all",
+      "category": "structural",
+      "minIntensity": "full",
+      "replacementMap": {
+        "pastikan untuk": "pastikan ",
+        "harus dipastikan": "pastikan ",
+        "perlu untuk": "perlu ",
+        "dianjurkan untuk": "dianjurkan ",
+        "disarankan untuk": "disarankan ",
+        "wajib untuk": "wajib "
+      }
+    },
+    {
+      "name": "id_redundant_because",
+      "pattern": "\\b(?:dikarenakan\\s+adanya\\s+fakta\\s+bahwa|alasan\\s+utamanya\\s+adalah\\s+karena|oleh\\s+karena\\s+fakta\\s+bahwa|disebabkan\\s+oleh\\s+karena|karena\\s+alasan\\s+bahwa)\\b\\s*",
+      "replacement": "karena ",
+      "context": "all",
+      "category": "structural",
+      "minIntensity": "full"
+    },
+    {
+      "name": "id_redundant_directive",
+      "pattern": "\\b(?:penting\\s+untuk|anda\\s+seharusnya|ingat\\s+untuk)\\b\\s*",
+      "replacement": "",
+      "context": "all",
+      "category": "structural",
+      "minIntensity": "full"
+    },
+    {
+      "name": "id_list_conjunction",
+      "pattern": ",\\s*dan\\s+juga\\s+|,\\s*serta\\s+|,\\s*maupun\\s+juga\\s*",
+      "replacement": ", ",
+      "context": "all",
+      "category": "structural",
+      "minIntensity": "full"
+    },
+    {
+      "name": "id_purpose_phrases",
+      "pattern": "\\b(?:agar\\s+bisa\\s+untuk|supaya\\s+bisa\\s+untuk|bertujuan\\s+untuk)\\b\\s*",
+      "replacement": "untuk ",
+      "context": "all",
+      "category": "structural",
+      "minIntensity": "lite"
+    },
+    {
+      "name": "id_redundant_quantifiers",
+      "pattern": "\\b(?:masing-masing\\s+dan\\s+setiap|tiap-tiap\\s+dan\\s+setiap)\\b",
+      "replacement": "setiap",
+      "context": "all",
+      "category": "structural",
+      "minIntensity": "full"
+    },
+    {
+      "name": "id_all_quantifier",
+      "pattern": "\\bapapun\\s+dan\\s+semua\\b",
+      "replacement": "semua",
+      "context": "all",
+      "category": "structural",
+      "minIntensity": "full"
+    },
+    {
+      "name": "id_verbose_connectors",
+      "pattern": "\\b(?:selain\\s+itu|lebih\\s+lanjut\\s+lagi|tambahan\\s+lagi|dan\\s+juga)\\b\\s*",
+      "replacement": "juga ",
+      "context": "all",
+      "category": "structural",
+      "minIntensity": "lite"
+    },
+    {
+      "name": "id_transition_removal",
+      "pattern": "^(?:Di\\s+sisi\\s+lain,?\\s*|Sebaliknya,?\\s*|Namun,?\\s*|Akan\\s+tetapi,?\\s*)",
+      "replacement": "",
+      "context": "all",
+      "category": "structural",
+      "minIntensity": "lite"
+    },
+    {
+      "name": "id_emphasis_removal",
+      "pattern": "\\b(?:sangat|sekali|amat|luar\\s+biasa|sungguh)\\s+(?=[a-z])",
+      "replacement": "",
+      "context": "all",
+      "category": "structural",
+      "minIntensity": "lite"
+    },
+    {
+      "name": "id_passive_voice",
+      "pattern": "\\b(?:sedang\\s+digunakan|sedang\\s+dipanggil|sedang\\s+dibuat|telah\\s+dibuat|telah\\s+diterapkan|sedang\\s+dijalankan|sedang\\s+diuji|telah\\s+diimplementasikan)\\b",
+      "replacement": "pakai",
+      "replacementMap": {
+        "sedang digunakan": "pakai",
+        "sedang dipanggil": "panggil",
+        "sedang dibuat": "buat",
+        "telah dibuat": "buat",
+        "telah diterapkan": "terapkan",
+        "sedang dijalankan": "jalan",
+        "sedang diuji": "uji",
+        "telah diimplementasikan": "terapkan"
+      },
+      "context": "all",
+      "category": "structural",
+      "minIntensity": "full"
+    }
+  ]
+}

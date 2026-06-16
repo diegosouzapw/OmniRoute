@@ -8,7 +8,14 @@ export const PROVIDER_ID_TO_ALIAS = generateAliasMap();
 
 // Helper functions
 export function getProviderModels(aliasOrId: string): RegistryModel[] {
-  return PROVIDER_MODELS[aliasOrId] || [];
+  // Accept either the public alias (the /v1/models prefix, e.g. "gh") or the raw
+  // provider id (e.g. "github") and resolve id→alias before reading the namespace
+  // map — so callers don't need to know which form they hold. We resolve here rather
+  // than mirroring raw-id keys into PROVIDER_MODELS, whose keys ARE the public
+  // prefixes (a raw id like "opencode" would collide with the opencode-zen route —
+  // see #2798/#3870).
+  const alias = PROVIDER_ID_TO_ALIAS[aliasOrId] || aliasOrId;
+  return PROVIDER_MODELS[alias] || PROVIDER_MODELS[aliasOrId] || [];
 }
 
 export function getDefaultModel(aliasOrId: string): string | null {

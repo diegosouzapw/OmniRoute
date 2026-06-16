@@ -12,7 +12,10 @@ import {
 } from "./proxyDispatcher.ts";
 import tlsClient from "./tlsClient.ts";
 import { isProxyReachable } from "@/lib/proxyHealth";
-import { isFeatureFlagEnabled } from "@/shared/utils/featureFlags";
+import {
+  isControlPlaneProxyDirectFallbackEnabled,
+  isFeatureFlagEnabled,
+} from "@/shared/utils/featureFlags";
 import { findWorkingProxy } from "./proxyFallback.ts";
 
 function isTlsFingerprintEnabled() {
@@ -201,7 +204,11 @@ function getTargetUrl(input) {
   return String(input);
 }
 
-export async function runWithProxyContext(proxyConfig, fn) {
+export async function runWithProxyContext(
+  proxyConfig,
+  fn,
+  opts?: { directFallbackOnUnreachable?: boolean }
+) {
   if (typeof fn !== "function") {
     throw new TypeError("runWithProxyContext requires a callback function");
   }
@@ -212,6 +219,13 @@ export async function runWithProxyContext(proxyConfig, fn) {
 
   const resolvedProxyUrl = effectiveProxyConfig ? proxyConfigToUrl(effectiveProxyConfig) : null;
 
+  // The caller must opt in, and the runtime feature flag must also be enabled.
+  // This fallback changes egress IP, so upgrades must not silently turn it on.
+  const directFallbackOnUnreachable =
+    opts?.directFallbackOnUnreachable === true && isControlPlaneProxyDirectFallbackEnabled();
+  // Run fn with the proxy context cleared so the request egresses directly.
+  const runDirect = () => proxyContext.run(null, fn);
+
   // T14: Proxy Fast-Fail
   // Perform a short TCP reachability check before issuing upstream requests.
   // Skip for vercel-relay type: proxyConfigToUrl returns "https://<host>" which is the
@@ -221,6 +235,12 @@ export async function runWithProxyContext(proxyConfig, fn) {
     const reachable = await isProxyReachable(resolvedProxyUrl);
     if (!reachable) {
       const proxyLabel = proxyUrlForLogs(resolvedProxyUrl);
+      if (directFallbackOnUnreachable) {
+        console.warn(
+          `[ProxyFetch] Proxy unreachable (${proxyLabel}); using a direct connection for this request.`
+        );
+        return runDirect();
+      }
       const err = new Error(`[Proxy Fast-Fail] Proxy unreachable: ${proxyLabel}`) as Error & {
         code?: string;
         statusCode?: number;
@@ -244,6 +264,12 @@ export async function runWithProxyContext(proxyConfig, fn) {
         await assertHostnameSupportsFamily(u.hostname, fam === "ipv6" ? 6 : 4);
       }
     } catch (familyErr) {
+      if (directFallbackOnUnreachable) {
+        console.warn(
+          `[ProxyFetch] Proxy family pre-check failed (${proxyUrlForLogs(resolvedProxyUrl)}); using a direct connection for this request.`
+        );
+        return runDirect();
+      }
       const e = familyErr as Error & { code?: string; statusCode?: number };
       e.code = e.code || "PROXY_FAMILY_UNAVAILABLE";
       e.statusCode = e.statusCode || 503;
@@ -259,6 +285,22 @@ export async function runWithProxyContext(proxyConfig, fn) {
     }
     return fn();
   });
+}
+
+/**
+ * Like {@link runWithProxyContext}, but if the assigned proxy is unreachable or fails
+ * its pre-checks the request can degrade to a DIRECT connection instead of throwing.
+ *
+ * For control-plane flows — OAuth code/token exchange, connection tests, token refresh —
+ * where a dead pinned proxy must not block reaching the upstream (it otherwise surfaces
+ * as a generic "Internal server error"). Data-plane chat keeps strict pinning via
+ * runWithProxyContext so per-account egress-IP isolation is preserved.
+ *
+ * This remains disabled unless OMNIROUTE_CONTROL_PLANE_PROXY_DIRECT_FALLBACK is enabled
+ * from Feature Flags or the environment.
+ */
+export async function runWithProxyContextOrDirect(proxyConfig, fn) {
+  return runWithProxyContext(proxyConfig, fn, { directFallbackOnUnreachable: true });
 }
 
 async function patchedFetch(

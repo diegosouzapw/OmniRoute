@@ -86,4 +86,57 @@ describe("MCP audit shutdown", () => {
     expect(audit.closeAuditDb()).toBe(true);
     expect(mockDb.close).toHaveBeenCalledTimes(1);
   });
+
+  it("falls back to node:sqlite when better-sqlite3 binding is missing", async () => {
+    const [maj, min] = process.versions.node.split(".").map(Number);
+    if (maj < 22 || (maj === 22 && min < 5)) {
+      return; // node:sqlite not available on this Node, skip
+    }
+
+    // Simulate a global-install scenario where the bundled native binary
+    // never landed in dist/node_modules/better-sqlite3/build/Release/.
+    const bindingErr = new Error(
+      "Could not locate the bindings file. Tried: …/better_sqlite3.node"
+    ) as Error & { code?: string };
+    bindingErr.code = "MODULE_NOT_FOUND";
+    // Simulate the binding-missing failure as the better-sqlite3 default
+    // constructor throwing — this matches reality (`new Database()` throws
+    // "Could not locate the bindings file" when the prebuilt .node is absent)
+    // and reaches the adapter's `catch (nativeErr)`. A factory that itself
+    // throws is reported by vitest as a mock-setup error and never reaches
+    // the code under test.
+    const ThrowingDatabase = vi.fn(function ThrowingDatabase() {
+      throw bindingErr;
+    });
+    vi.doMock("better-sqlite3", () => ({
+      default: ThrowingDatabase,
+    }));
+
+    // node:sqlite's DatabaseSync does not expose a boolean `open` property,
+    // so the mock intentionally omits it — the adapter tracks open state in
+    // a local closure and exposes it via a getter.
+    const mockNodeDb = {
+      prepare: vi.fn(() => createStatementMock()),
+      exec: vi.fn(),
+      close: vi.fn(),
+    };
+    const DatabaseSync = vi.fn(function DatabaseSync() {
+      return mockNodeDb;
+    });
+    vi.doMock("node:sqlite", () => ({ DatabaseSync }));
+
+    const audit = await import("../audit.ts");
+
+    await audit.logToolCall("omniroute_get_health", { ok: true }, { ok: true }, 4, true);
+    expect(DatabaseSync).toHaveBeenCalledWith(dbFile);
+    expect(mockNodeDb.prepare).toHaveBeenCalled();
+
+    expect(audit.closeAuditDb()).toBe(true);
+    expect(mockNodeDb.exec).toHaveBeenCalledWith("PRAGMA wal_checkpoint(TRUNCATE)");
+    expect(mockNodeDb.close).toHaveBeenCalledTimes(1);
+
+    // Cache is cleared after close, so a second close is a no-op.
+    expect(audit.closeAuditDb()).toBe(false);
+    expect(mockNodeDb.close).toHaveBeenCalledTimes(1);
+  });
 });

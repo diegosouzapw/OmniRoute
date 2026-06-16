@@ -34,18 +34,25 @@ interface Message {
 
 // ── Context Caching Tag ─────────────────────────────────────────────────────
 
-// Handles both actual newlines (U+000A) and literal \n sequences injected
-// by combo.ts streaming around the <omniModel> tag (#531). Non-global so that
-// .exec() and .test() stay stateless (a global regex carries lastIndex between
+// Detection / extraction pattern. The newline runs combo.ts streaming wraps the
+// tag with (#531) are irrelevant to *finding* the tag or capturing the model id,
+// so they are intentionally NOT matched here: an unbounded `(?:\\n|\n|\r)*` prefix
+// on this unanchored regex made `.test()` / `.exec()` run in O(n²) on inputs with
+// many newlines (polynomial ReDoS — CodeQL js/polynomial-redos, #3870). Non-global
+// so `.exec()` / `.test()` stay stateless (a global regex carries lastIndex between
 // calls and would skip matches).
-const CACHE_TAG_PATTERN = /(?:\\n|\n|\r)*<omniModel>([^<]+)<\/omniModel>(?:\\n|\n|\r)*/;
+const CACHE_TAG_PATTERN = /<omniModel>([^<]+)<\/omniModel>/;
 
-// Global variant for .replace() callers that must strip EVERY tag. A non-global
-// regex only removes the first match, so a single message carrying more than one
-// <omniModel> tag (e.g. an Open WebUI follow-up/title request that inlines the
-// whole chat history) leaked the remaining tags to the provider — defeating the
-// cache-session protection stripModelTags exists to enforce (#454).
-const CACHE_TAG_PATTERN_GLOBAL = /(?:\\n|\n|\r)*<omniModel>([^<]+)<\/omniModel>(?:\\n|\n|\r)*/g;
+// Global variant for `.replace()` callers that must strip EVERY tag (a non-global
+// regex only removes the first match, so a message carrying more than one
+// <omniModel> tag — e.g. an Open WebUI follow-up/title request that inlines the
+// whole chat history — leaked the remaining tags to the provider, defeating the
+// cache-session protection stripModelTags enforces, #454). This variant still
+// consumes the newline run wrapping the tag (combo.ts streaming, #531) so removal
+// leaves no blank line, but the runs are BOUNDED ({0,16}) to keep the regex linear
+// (no polynomial backtracking, #3870); 16 is far beyond any real streaming wrap.
+const CACHE_TAG_PATTERN_GLOBAL =
+  /(?:\\n|\n|\r){0,16}<omniModel>([^<]+)<\/omniModel>(?:\\n|\n|\r){0,16}/g;
 
 /**
  * Inject the model tag into the last assistant message (or append a new one).

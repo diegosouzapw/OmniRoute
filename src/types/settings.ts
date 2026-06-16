@@ -1,3 +1,4 @@
+import type { HideableSidebarGroupId } from "@/shared/constants/sidebarGroupVisibility";
 import type {
   HideableSidebarItemId,
   SidebarItemOrder,
@@ -37,6 +38,7 @@ export interface Settings {
   showProviderTopologyOnHome?: boolean;
   showTokenSaverOnEndpoint?: boolean;
   hiddenSidebarItems?: HideableSidebarItemId[];
+  hiddenSidebarGroupLabels?: HideableSidebarGroupId[];
   sidebarSectionOrder?: SidebarSectionId[];
   sidebarItemOrder?: SidebarItemOrder;
   sidebarActivePreset?: SidebarPresetId;

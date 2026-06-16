@@ -18,7 +18,8 @@ const settingsDb = await import("../../src/lib/db/settings.ts");
 const { resetAllComboMetrics } = await import("../../open-sse/services/comboMetrics.ts");
 const { resetAllCircuitBreakers, getCircuitBreaker } =
   await import("../../src/shared/utils/circuitBreaker.ts");
-const { resetAll: resetAllSemaphores } = await import("../../open-sse/services/rateLimitSemaphore.ts");
+const { resetAll: resetAllSemaphores } =
+  await import("../../open-sse/services/rateLimitSemaphore.ts");
 const { _resetAllDecks } = await import("../../src/shared/utils/shuffleDeck.ts");
 const { clearSessions } = await import("../../open-sse/services/sessionManager.ts");
 
@@ -288,6 +289,74 @@ test("strict-random falls back to the remaining target when the deck pick fails"
   assert.equal(result.ok, true);
   assert.equal(calls.length, 2);
   assert.notEqual(calls[0], calls[1]);
+});
+
+test("round-robin uses existing stickyRoundRobinLimit for combo target batching", async () => {
+  const calls: string[] = [];
+  const combo = {
+    name: "rr-sticky-combo-batches",
+    strategy: "round-robin",
+    models: ["openai/a", "claude/b", "gemini/c"],
+    config: { maxRetries: 0, retryDelayMs: 0, fallbackDelayMs: 0 },
+  };
+
+  for (let i = 0; i < 10; i += 1) {
+    const result = await handleComboChat({
+      body: {},
+      combo,
+      handleSingleModel: async (_body: any, modelStr: string) => {
+        calls.push(modelStr);
+        return okResponse();
+      },
+      isModelAvailable: async () => true,
+      log: createLog(),
+      settings: { stickyRoundRobinLimit: 3 },
+      allCombos: null,
+    });
+    assert.equal(result.ok, true);
+  }
+
+  assert.deepEqual(calls, [
+    "openai/a",
+    "openai/a",
+    "openai/a",
+    "claude/b",
+    "claude/b",
+    "claude/b",
+    "gemini/c",
+    "gemini/c",
+    "gemini/c",
+    "openai/a",
+  ]);
+});
+
+test("round-robin sticky batching fallback success becomes sticky target", async () => {
+  const calls: string[] = [];
+  const combo = {
+    name: "rr-sticky-fallback-success",
+    strategy: "round-robin",
+    models: ["openai/a", "claude/b", "gemini/c"],
+    config: { maxRetries: 0, retryDelayMs: 0, fallbackDelayMs: 0 },
+  };
+
+  for (let i = 0; i < 4; i += 1) {
+    const result = await handleComboChat({
+      body: {},
+      combo,
+      handleSingleModel: async (_body: any, modelStr: string) => {
+        calls.push(modelStr);
+        if (modelStr === "openai/a") return errorResponse(503, "a is down");
+        return okResponse();
+      },
+      isModelAvailable: async () => true,
+      log: createLog(),
+      settings: { stickyRoundRobinLimit: 2 },
+      allCombos: null,
+    });
+    assert.equal(result.ok, true);
+  }
+
+  assert.deepEqual(calls, ["openai/a", "claude/b", "claude/b", "gemini/c", "gemini/c"]);
 });
 
 test("strict-random survives a stale deck entry after a target is removed", async () => {

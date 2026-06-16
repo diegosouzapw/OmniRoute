@@ -76,6 +76,9 @@ const IGNORE_FROM_CODE = new Set([
   // CI providers (set by the runner).
   "GITHUB_BASE_REF",
   "GITHUB_BASE_SHA",
+  // CI passes BASE_REF=${{ github.base_ref }} to the OpenAPI breaking-change gate
+  // (scripts/check/check-openapi-breaking.mjs) — a build/check signal, not OmniRoute runtime config.
+  "BASE_REF",
   // PR body injected by GitHub Actions into the pr-evidence gate (github.event.pull_request.body);
   // a CI-only signal, never an OmniRoute runtime config (Phase 7.10).
   "PR_BODY",

@@ -6,13 +6,13 @@ lastUpdated: 2026-05-30
 
 # OmniRoute MCP Server Documentation
 
-> Model Context Protocol server with 43 tools across routing, cache, compression, memory, skills, proxy, and context source operations.
+> Model Context Protocol server with 87 tools across routing, cache, compression, memory, skills, proxy, and context source operations.
 >
-> Source of truth: `open-sse/mcp-server/schemas/tools.ts` (30 tools) + `open-sse/mcp-server/tools/memoryTools.ts` (3 tools) + `open-sse/mcp-server/tools/skillTools.ts` (4 tools) + `open-sse/mcp-server/tools/notionTools.ts` (6 tools). Tool registration and scope wiring lives in `open-sse/mcp-server/server.ts`.
+> Source of truth: `open-sse/mcp-server/schemas/tools.ts` (33 base) + `memoryTools.ts` (3) + `skillTools.ts` (4) + `agentSkillTools.ts` (3) + `gamificationTools.ts` (8) + `pluginTools.ts` (8) + `notionTools.ts` (6) + `obsidianTools.ts` (22) = **87** (`TOTAL_MCP_TOOL_COUNT`). Tool registration and scope wiring lives in `open-sse/mcp-server/server.ts`.
 
-![MCP tool inventory (43 tools by category)](../diagrams/exported/mcp-tools-43.svg)
+![MCP tool inventory (87 tools by category)](../diagrams/exported/mcp-tools-87.svg)
 
-> Source: [diagrams/mcp-tools-43.mmd](../diagrams/mcp-tools-43.mmd) (regenerate via `npm run docs:render-diagrams`).
+> Source: [diagrams/mcp-tools-87.mmd](../diagrams/mcp-tools-87.mmd) (regenerate via `npm run docs:render-diagrams`).
 
 ## Installation
 
@@ -217,7 +217,7 @@ See [AGENT-SKILLS.md](./AGENT-SKILLS.md) for the full catalog and how external a
 
 ## Related Frameworks (v3.8.0)
 
-The MCP tool inventory above (43 tools = 30 core + 3 memory + 4 skills + 6 notion) is intentionally
+The MCP tool inventory above (87 tools = 33 core + 3 memory + 4 skills + 3 agent-skills + 8 gamification + 8 plugins + 6 notion + 22 obsidian) is intentionally
 scoped to runtime routing/cache/compression/memory/skills/proxy/context-source operations. Two adjacent
 frameworks ship alongside the MCP server in v3.8.0 and are documented separately:
 

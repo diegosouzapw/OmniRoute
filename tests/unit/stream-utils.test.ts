@@ -65,6 +65,78 @@ function parseJsonDataPayloads(text) {
     .map((data) => JSON.parse(data));
 }
 
+function parseSillyTavernCustomOpenAIStream(text) {
+  const events = [];
+  let reasoning = "";
+  let content = "";
+
+  for (const payload of parseJsonDataPayloads(text)) {
+    const choices = Array.isArray(payload.choices) ? payload.choices : [];
+    const reasoningDelta =
+      choices.find((choice) => choice?.delta?.reasoning_content)?.delta?.reasoning_content ??
+      choices.find((choice) => choice?.delta?.reasoning)?.delta?.reasoning ??
+      "";
+    const contentDelta =
+      choices[0]?.delta?.content ?? choices[0]?.message?.content ?? choices[0]?.text ?? "";
+
+    reasoning += reasoningDelta;
+    content += contentDelta;
+    events.push({ reasoningDelta, contentDelta, reasoning, content });
+  }
+
+  return { reasoning, content, events };
+}
+
+test("createSSEStream leaves successful pending requests for onComplete finalization", async () => {
+  const usageHistory = await import("../../src/lib/usage/usageHistory.ts");
+  usageHistory.clearPendingRequests();
+
+  const model = "gpt-4";
+  const provider = "openai";
+  const connectionId = "stream-on-complete-finalize";
+  const requestId = usageHistory.trackPendingRequest(model, provider, connectionId, true);
+
+  let finalizedInOnComplete = false;
+  await readTransformed(
+    [
+      `data: ${JSON.stringify({
+        id: "chatcmpl_pending_finalize",
+        object: "chat.completion.chunk",
+        created: 1,
+        model,
+        choices: [{ index: 0, delta: { content: "hello" }, finish_reason: null }],
+      })}\n\n`,
+      `data: ${JSON.stringify({
+        id: "chatcmpl_pending_finalize",
+        object: "chat.completion.chunk",
+        created: 1,
+        model,
+        choices: [{ index: 0, delta: {}, finish_reason: "stop" }],
+        usage: { prompt_tokens: 1, completion_tokens: 1, total_tokens: 2 },
+      })}\n\n`,
+    ],
+    {
+      mode: "passthrough",
+      sourceFormat: FORMATS.OPENAI,
+      provider,
+      model,
+      connectionId,
+      body: { messages: [{ role: "user", content: "hello" }] },
+      onComplete(payload) {
+        finalizedInOnComplete = usageHistory.finalizePendingRequestById(requestId, {
+          providerResponse: payload.providerPayload,
+          clientResponse: payload.clientPayload,
+        });
+      },
+    }
+  );
+
+  assert.equal(finalizedInOnComplete, true);
+  assert.ok(usageHistory.getCompletedDetails().has(requestId));
+  assert.equal(usageHistory.getPendingById().has(requestId), false);
+  usageHistory.clearPendingRequests();
+});
+
 test.after(() => {
   core.resetDbInstance();
   if (fs.existsSync(TEST_DATA_DIR)) {
@@ -726,8 +798,9 @@ test("createSSEStream translate mode converts Claude SSE into OpenAI chunks and 
   assert.match(text, /\[DONE\]/);
   assert.equal(onCompletePayload.status, 200);
   assert.equal(onCompletePayload.responseBody.choices[0].message.content, "Hello Claude");
+  assert.equal(onCompletePayload.responseBody.usage.prompt_tokens, 3);
   assert.equal(onCompletePayload.responseBody.usage.completion_tokens, 4);
-  assert.equal(onCompletePayload.responseBody.usage.total_tokens, 4);
+  assert.equal(onCompletePayload.responseBody.usage.total_tokens, 7);
 });
 
 test("createSSEStream translate mode preserves Claude text_delta thinking tags as content", async () => {
@@ -1378,6 +1451,53 @@ test("createSSEStream passthrough splits mixed reasoning and content deltas and 
   assert.ok(onCompletePayload.responseBody.usage.total_tokens > 0);
 });
 
+test("createSSEStream passthrough output is consumable by SillyTavern-style reasoning parser", async () => {
+  const text = await readTransformed(
+    [
+      `data: ${JSON.stringify({
+        id: "chatcmpl_reasoning_st",
+        object: "chat.completion.chunk",
+        created: 1,
+        model: "gpt-4.1-mini",
+        choices: [
+          {
+            index: 0,
+            delta: {
+              reasoning_content: "First think",
+              content: "Then answer",
+            },
+          },
+        ],
+      })}\n\n`,
+      `data: ${JSON.stringify({
+        id: "chatcmpl_reasoning_st",
+        object: "chat.completion.chunk",
+        created: 1,
+        model: "gpt-4.1-mini",
+        choices: [{ index: 0, delta: {}, finish_reason: "stop" }],
+      })}\n\n`,
+    ],
+    {
+      mode: "passthrough",
+      sourceFormat: FORMATS.OPENAI,
+      provider: "openai-compatible",
+      model: "gpt-4.1-mini",
+      body: {
+        messages: [{ role: "user", content: "hello world" }],
+      },
+    }
+  );
+
+  const parsed = parseSillyTavernCustomOpenAIStream(text);
+  const reasoningEventIndex = parsed.events.findIndex((event) => event.reasoningDelta);
+  const contentEventIndex = parsed.events.findIndex((event) => event.contentDelta);
+
+  assert.equal(parsed.reasoning, "First think");
+  assert.equal(parsed.content, "Then answer");
+  assert.ok(reasoningEventIndex >= 0);
+  assert.ok(contentEventIndex > reasoningEventIndex);
+});
+
 test("createSSEStream passthrough writes complete SSE events per converted chunk", async () => {
   const convertedChunks = [];
   await readTransformed(
@@ -1688,8 +1808,9 @@ test("createSSETransformStreamWithLogger flushes a trailing Claude usage event w
   assert.match(text, /Buffered tail/);
   assert.match(text, /\[DONE\]/);
   assert.equal(onCompletePayload.responseBody.choices[0].message.content, "Buffered tail");
+  assert.equal(onCompletePayload.responseBody.usage.prompt_tokens, 3);
   assert.equal(onCompletePayload.responseBody.usage.completion_tokens, 5);
-  assert.equal(onCompletePayload.responseBody.usage.total_tokens, 5);
+  assert.equal(onCompletePayload.responseBody.usage.total_tokens, 8);
 });
 
 test("buildStreamSummaryFromEvents compacts Responses API deltas into a synthetic response", () => {

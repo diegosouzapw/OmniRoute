@@ -9,6 +9,12 @@
 
 import { getDbInstance } from "../db/core";
 import { protectPayloadForLog } from "../logPayloads";
+import {
+  clearCompletedDetails,
+  maybeEnrichCompletedDetail,
+  scheduleCompletedDetailCleanup,
+  storeCompletedDetail,
+} from "./completedRequestDetails";
 import { shouldPersistToDisk } from "./migrations";
 import { emitUsageRecorded } from "./usageEvents";
 import {
@@ -20,17 +26,20 @@ import {
 } from "./tokenAccounting";
 
 type JsonRecord = Record<string, unknown>;
-type PendingRequestMetadata = {
+export type PendingRequestMetadata = {
   clientEndpoint?: string | null;
   clientRequest?: unknown;
   providerRequest?: unknown;
   providerUrl?: string | null;
   providerResponse?: unknown;
   clientResponse?: unknown;
+  status?: number | null;
+  error?: string | null;
+  errorCode?: string | null;
   stage?: string | null;
   stageUpdatedAt?: number | null;
 };
-type PendingRequestDetail = {
+export type PendingRequestDetail = {
   id: string;
   model: string;
   provider: string;
@@ -42,6 +51,11 @@ type PendingRequestDetail = {
   providerUrl?: string | null;
   providerResponse?: unknown;
   clientResponse?: unknown;
+  status?: number | null;
+  error?: string | null;
+  errorCode?: string | null;
+  completedAt?: number | null;
+  durationMs?: number | null;
   stage?: string | null;
   stageUpdatedAt?: number | null;
   streamChunks?: {
@@ -169,6 +183,16 @@ function normalizePendingMetadata(metadata?: PendingRequestMetadata): PendingReq
       protectPayloadForLog(metadata.clientResponse)
     );
   }
+  if (metadata.status !== undefined) {
+    const status = Number(metadata.status);
+    normalized.status = Number.isFinite(status) ? status : null;
+  }
+  if (metadata.error !== undefined) {
+    normalized.error = toStringOrNull(metadata.error) || null;
+  }
+  if (metadata.errorCode !== undefined) {
+    normalized.errorCode = toStringOrNull(metadata.errorCode) || null;
+  }
 
   return normalized;
 }
@@ -281,7 +305,14 @@ export function updatePendingRequest(
   const details = pendingRequests.details[connectionId]?.[modelKey];
   if (!details?.length) return;
   const lastIdx = details.length - 1;
-  details[lastIdx] = { ...details[lastIdx], ...normalizePendingMetadata(metadata) };
+  Object.assign(details[lastIdx], normalizePendingMetadata(metadata));
+}
+
+export function updatePendingRequestById(id: string | null, metadata: PendingRequestMetadata) {
+  const detail = id ? pendingById.get(id) : null;
+  if (!detail) return false;
+  Object.assign(detail, normalizePendingMetadata(metadata));
+  return true;
 }
 
 /**
@@ -290,13 +321,69 @@ export function updatePendingRequest(
  * for the non-streaming completion path where the oldest entry must be finalized
  * before trackPendingRequest(false) removes it from the FIFO queue.
  */
-/**
- * Completed details cache — keeps finalized response data available for the
- * active endpoint's fast-poll for a brief window after the pending detail is
- * removed, so the frontend can show providerResponse/clientResponse before
- * the persisted call log is fetched.
- */
-const completedDetails = new Map<string, PendingRequestDetail>();
+function decrementPendingCounters(modelKey: string, connectionId: string) {
+  if (Object.hasOwn(pendingRequests.byModel, modelKey)) {
+    pendingRequests.byModel[modelKey] = Math.max(0, pendingRequests.byModel[modelKey] - 1);
+    if (pendingRequests.byModel[modelKey] === 0) delete pendingRequests.byModel[modelKey];
+  }
+  if (Object.hasOwn(pendingRequests.byAccount, connectionId)) {
+    if (Object.hasOwn(pendingRequests.byAccount[connectionId], modelKey)) {
+      pendingRequests.byAccount[connectionId][modelKey] = Math.max(
+        0,
+        pendingRequests.byAccount[connectionId][modelKey] - 1
+      );
+      if (pendingRequests.byAccount[connectionId][modelKey] === 0) {
+        delete pendingRequests.byAccount[connectionId][modelKey];
+      }
+    }
+    if (
+      !pendingRequests.byAccount[connectionId] ||
+      Object.keys(pendingRequests.byAccount[connectionId]).length === 0
+    ) {
+      delete pendingRequests.byAccount[connectionId];
+    }
+  }
+}
+
+function cleanupPendingDetails(connectionId: string, modelKey: string) {
+  if (!pendingRequests.details[connectionId]?.[modelKey]?.length) {
+    delete pendingRequests.details[connectionId]?.[modelKey];
+  }
+  if (
+    !pendingRequests.details[connectionId] ||
+    Object.keys(pendingRequests.details[connectionId]).length === 0
+  ) {
+    delete pendingRequests.details[connectionId];
+  }
+}
+
+function finalizePendingDetailAt(
+  connectionId: string,
+  modelKey: string,
+  index: number,
+  metadata: PendingRequestMetadata
+): string | null {
+  if (!isSafeKey(modelKey)) return null;
+  const details = pendingRequests.details[connectionId]?.[modelKey];
+  if (!details?.length || index < 0 || index >= details.length) return null;
+
+  const completedAt = Date.now();
+  const updated = {
+    ...details[index],
+    ...normalizePendingMetadata(metadata),
+    completedAt,
+    durationMs: Math.max(0, completedAt - details[index].startedAt),
+  };
+  storeCompletedDetail(updated);
+  maybeEnrichCompletedDetail(updated, connectionId);
+  scheduleCompletedDetailCleanup(updated.id);
+
+  details.splice(index, 1);
+  pendingById.delete(updated.id);
+  cleanupPendingDetails(connectionId, modelKey);
+  decrementPendingCounters(modelKey, connectionId);
+  return updated.id;
+}
 
 export function finalizePendingRequest(
   model: string,
@@ -306,20 +393,26 @@ export function finalizePendingRequest(
 ) {
   if (!connectionId) return;
   const modelKey = provider ? `${model} (${provider})` : model;
-  if (!isSafeKey(modelKey)) return;
-  const details = pendingRequests.details[connectionId]?.[modelKey];
-  if (!details?.length) return;
-  const updated = { ...details[0], ...normalizePendingMetadata(metadata) };
-  completedDetails.set(updated.id, updated);
-  setTimeout(() => completedDetails.delete(updated.id), 5000);
-  trackPendingRequest(model, provider, connectionId, false);
+  finalizePendingDetailAt(connectionId, modelKey, 0, metadata);
+}
+
+export function finalizePendingRequestById(
+  id: string | null | undefined,
+  metadata: PendingRequestMetadata
+): boolean {
+  if (!id) return false;
+  const detail = pendingById.get(id);
+  if (!detail?.connectionId) return false;
+  const modelKey = detail.provider ? `${detail.model} (${detail.provider})` : detail.model;
+  if (!isSafeKey(modelKey)) return false;
+  const details = pendingRequests.details[detail.connectionId]?.[modelKey];
+  const index = details?.findIndex((entry) => entry.id === id) ?? -1;
+  return finalizePendingDetailAt(detail.connectionId, modelKey, index, metadata) !== null;
 }
 
 /**
  * Finalize the most recent (last) pending request for the given model/provider/connection.
- * This is used for streaming requests where the active stream corresponds to the last
- * entry in the FIFO for the connection/model key. It removes that specific entry and
- * moves it to completedDetails so the UI fast-poll can pick it up.
+ * This remains as a compatibility fallback for callers that do not have a request id.
  */
 export function finalizeMostRecentPendingRequest(
   model: string,
@@ -332,104 +425,10 @@ export function finalizeMostRecentPendingRequest(
   if (!isSafeKey(modelKey)) return;
   const details = pendingRequests.details[connectionId]?.[modelKey];
   if (!details?.length) return;
-  const lastIdx = details.length - 1;
-  const updated = { ...details[lastIdx], ...normalizePendingMetadata(metadata) };
-  // Move to completed cache
-  completedDetails.set(updated.id, updated);
-
-  // If provider/client responses are missing, attempt to enrich the completed
-  // detail from persisted call_log artifacts (best-effort, non-blocking).
-  (async () => {
-    try {
-      const missingProvider =
-        updated.providerResponse === undefined || updated.providerResponse === null;
-      const missingClient = updated.clientResponse === undefined || updated.clientResponse === null;
-      if ((missingProvider || missingClient) && connectionId) {
-        const db = getDbInstance();
-        const sinceIso = new Date(Date.now() - 30_000).toISOString();
-        const rows = db
-          .prepare(
-            `SELECT artifact_relpath FROM call_logs WHERE connection_id = ? AND model = ? AND timestamp >= ? ORDER BY timestamp DESC LIMIT 5`
-          )
-          .all(connectionId, model, sinceIso) as Array<{ artifact_relpath: string | null }>;
-        for (const row of rows) {
-          if (!row.artifact_relpath) continue;
-          const { readCallArtifact } = await import("./callLogArtifacts");
-          const art = readCallArtifact(row.artifact_relpath);
-          if (art.state !== "ready" || !art.artifact) continue;
-          const pipeline = art.artifact.pipeline as any | undefined;
-          // Prefer pipeline payloads over responseBody for structured data
-          if (missingProvider && pipeline?.providerResponse) {
-            updated.providerResponse = pipeline.providerResponse;
-          }
-          if (missingClient && pipeline?.clientResponse) {
-            updated.clientResponse = pipeline.clientResponse;
-          }
-          if (
-            (missingProvider && art.artifact.responseBody) ||
-            (missingClient && art.artifact.responseBody)
-          ) {
-            // use responseBody as a fallback for both
-            if (missingProvider) updated.providerResponse = art.artifact.responseBody;
-            if (missingClient) updated.clientResponse = art.artifact.responseBody;
-          }
-          if (updated.providerResponse || updated.clientResponse) {
-            // write-back to completed cache and stop searching
-            completedDetails.set(updated.id, updated);
-            break;
-          }
-        }
-      }
-    } catch (e) {
-      try {
-        console.warn(
-          "[usageHistory] failed to enrich completed detail from artifacts:",
-          e && (e.message || e)
-        );
-      } catch {}
-    }
-  })();
-
-  setTimeout(() => completedDetails.delete(updated.id), 5000);
-
-  // Remove the specific pending detail
-  details.splice(lastIdx, 1);
-  pendingById.delete(updated.id);
-
-  // Decrement counters (mirror trackPendingRequest(false) behaviour)
-  if (Object.hasOwn(pendingRequests.byModel, modelKey)) {
-    pendingRequests.byModel[modelKey] = Math.max(0, pendingRequests.byModel[modelKey] - 1);
-    if (pendingRequests.byModel[modelKey] === 0) delete pendingRequests.byModel[modelKey];
-  }
-  if (connectionId && Object.hasOwn(pendingRequests.byAccount, connectionId)) {
-    if (Object.hasOwn(pendingRequests.byAccount[connectionId], modelKey)) {
-      pendingRequests.byAccount[connectionId][modelKey] = Math.max(
-        0,
-        pendingRequests.byAccount[connectionId][modelKey] - 1
-      );
-      if (pendingRequests.byAccount[connectionId][modelKey] === 0) {
-        delete pendingRequests.byAccount[connectionId][modelKey];
-      }
-    }
-    // Clean up details map if empty
-    if (
-      !pendingRequests.details[connectionId] ||
-      Object.keys(pendingRequests.details[connectionId]).length === 0
-    ) {
-      delete pendingRequests.details[connectionId];
-    }
-    if (
-      !pendingRequests.byAccount[connectionId] ||
-      Object.keys(pendingRequests.byAccount[connectionId]).length === 0
-    ) {
-      delete pendingRequests.byAccount[connectionId];
-    }
-  }
+  finalizePendingDetailAt(connectionId, modelKey, details.length - 1, metadata);
 }
 
-export function getCompletedDetails(): Map<string, PendingRequestDetail> {
-  return completedDetails;
-}
+export { getCompletedDetails } from "./completedRequestDetails";
 
 export function updatePendingRequestStreamChunks(
   model: string,
@@ -476,6 +475,7 @@ export function clearPendingRequests() {
     Record<string, PendingRequestDetail[]>
   >;
   pendingById.clear();
+  clearCompletedDetails();
 }
 
 // ──────────────── getUsageDb Shim (backward compat) ────────────────

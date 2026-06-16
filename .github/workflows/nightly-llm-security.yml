@@ -13,6 +13,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
       - uses: actions/setup-node@v6
         with: { node-version: "24", cache: npm }
       - run: npm ci
@@ -43,16 +45,37 @@ jobs:
   garak:
     name: garak probes (skip without provider secret)
     runs-on: ubuntu-latest
-    if: ${{ secrets.PROMPTFOO_PROVIDER_KEY != '' }}
+    # NOTE: the `secrets` context is NOT available in a job-level `if:` — referencing
+    # it there makes GitHub reject the file on push (startup_failure on every push).
+    # Map the secret into a job-level env and gate each step on a presence check, so
+    # the job stays green and simply skips the probes when the secret is absent.
+    env:
+      PROMPTFOO_PROVIDER_KEY: ${{ secrets.PROMPTFOO_PROVIDER_KEY }}
     steps:
+      - name: Gate on provider secret
+        id: gate
+        run: |
+          if [ -n "$PROMPTFOO_PROVIDER_KEY" ]; then
+            echo "run=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "run=false" >> "$GITHUB_OUTPUT"
+            echo "::notice::PROMPTFOO_PROVIDER_KEY not set — skipping garak probes (advisory)."
+          fi
       - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+        if: steps.gate.outputs.run == 'true'
       - uses: actions/setup-node@v6
+        if: steps.gate.outputs.run == 'true'
         with: { node-version: "24", cache: npm }
       - run: npm ci
+        if: steps.gate.outputs.run == 'true'
       - name: Build CLI bundle
+        if: steps.gate.outputs.run == 'true'
         env: { JWT_SECRET: ci-build-secret-with-sufficient-length-for-validation }
         run: npm run build:cli
       - name: Start OmniRoute
+        if: steps.gate.outputs.run == 'true'
         env:
           JWT_SECRET: ci-build-secret-with-sufficient-length-for-validation
           PORT: "20128"
@@ -64,13 +87,16 @@ jobs:
             sleep 2
           done
       - uses: actions/setup-python@v5
+        if: steps.gate.outputs.run == 'true'
         with: { python-version: "3.12" }
       - run: pip install garak
+        if: steps.gate.outputs.run == 'true'
       - name: garak limited probes
+        if: steps.gate.outputs.run == 'true'
         env:
           OPENAI_API_KEY: ${{ secrets.PROMPTFOO_PROVIDER_KEY }}
           OPENAI_BASE_URL: http://localhost:20128/v1
         run: garak --model_type openai --model_name gpt-4o-mini --probes promptinject,dan,leakreplay --report_prefix garak-omniroute || true
       - name: Stop server
-        if: always()
+        if: always() && steps.gate.outputs.run == 'true'
         run: kill "$(cat server.pid)" || true

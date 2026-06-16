@@ -21,6 +21,7 @@ import {
 } from "../config/audioRegistry.ts";
 import { buildAuthHeaders } from "../config/registryUtils.ts";
 import { kieExecutor } from "../executors/kie.ts";
+import { vertexTranscribe } from "../executors/vertexMedia.ts";
 import { errorResponse } from "../utils/error.ts";
 
 type TranscriptionCredentials = {
@@ -462,6 +463,32 @@ export async function handleAudioTranscription({
   }
 
   // Route to provider-specific handler
+  if (providerConfig.format === "vertex-gemini") {
+    try {
+      const buffer = Buffer.from(await file.arrayBuffer());
+      const uploadedType =
+        typeof (file as { type?: unknown }).type === "string" && (file as { type?: string }).type
+          ? (file as { type: string }).type
+          : "audio/wav";
+      const languageValue = formData.get("language");
+      const promptValue = formData.get("prompt");
+      const text = await vertexTranscribe(credentials ?? {}, {
+        model: modelId as string,
+        audioBase64: buffer.toString("base64"),
+        mimeType: uploadedType,
+        prompt: typeof promptValue === "string" ? promptValue : undefined,
+        language: typeof languageValue === "string" ? languageValue : undefined,
+      });
+      return Response.json({ text }, { headers: { ...CORS_HEADERS } });
+    } catch (err) {
+      const error = err as { message?: string; status?: number };
+      return errorResponse(
+        typeof error?.status === "number" ? error.status : 500,
+        `Vertex transcription failed: ${error?.message || "unknown error"}`
+      );
+    }
+  }
+
   if (providerConfig.format === "deepgram") {
     return handleDeepgramTranscription(providerConfig, file, modelId, token, formData);
   }

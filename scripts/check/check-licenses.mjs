@@ -22,7 +22,7 @@ import path from "node:path";
 import { pathToFileURL } from "node:url";
 
 const ROOT = process.cwd();
-const ALLOWLIST_PATH = path.join(ROOT, ".license-allowlist.json");
+const ALLOWLIST_PATH = path.join(ROOT, "config/quality/.license-allowlist.json");
 const CHECKER_BIN = path.join(ROOT, "node_modules", ".bin", "license-checker-rseidelsohn");
 
 const VERBOSE = process.argv.includes("--verbose");
@@ -39,7 +39,9 @@ const PRINT_JSON = process.argv.includes("--json");
  */
 export function loadAllowlist() {
   if (!fs.existsSync(ALLOWLIST_PATH)) {
-    throw new Error(`Allowlist not found: ${ALLOWLIST_PATH}. Create .license-allowlist.json first.`);
+    throw new Error(
+      `Allowlist not found: ${ALLOWLIST_PATH}. Create .license-allowlist.json first.`
+    );
   }
   const raw = fs.readFileSync(ALLOWLIST_PATH, "utf-8");
   const parsed = JSON.parse(raw);
@@ -86,7 +88,10 @@ export function classifyLicense(packageName, license, allowlist) {
   }
 
   // 4. Denied
-  return { status: "denied", reason: `license '${license}' not in allowlist and no exception registered for '${baseName}'` };
+  return {
+    status: "denied",
+    reason: `license '${license}' not in allowlist and no exception registered for '${baseName}'`,
+  };
 }
 
 /**
@@ -195,7 +200,9 @@ function main() {
 
   // Print exceptions (informational)
   if (exceptions.length > 0) {
-    console.log("\n[check-licenses] Exceções registradas (não bloqueantes, revisar periodicamente):");
+    console.log(
+      "\n[check-licenses] Exceções registradas (não bloqueantes, revisar periodicamente):"
+    );
     for (const { pkgKey, license } of exceptions) {
       const baseName = stripVersion(pkgKey);
       const exc = allowlist.exceptions[baseName];
@@ -217,7 +224,9 @@ function main() {
 
   // Print violations and fail
   if (violations.length > 0) {
-    console.error("\n[check-licenses] ❌ VIOLAÇÕES DE POLÍTICA — deps de produção com licença não permitida:");
+    console.error(
+      "\n[check-licenses] ❌ VIOLAÇÕES DE POLÍTICA — deps de produção com licença não permitida:"
+    );
     for (const { pkgKey, license, reason } of violations) {
       console.error(`  ✗ ${pkgKey}: ${license}`);
       console.error(`    → ${reason}`);
@@ -231,11 +240,14 @@ function main() {
     return;
   }
 
-  console.log("\n[check-licenses] ✅ Todos os pacotes de produção estão em conformidade com a política de licenças.");
+  console.log(
+    "\n[check-licenses] ✅ Todos os pacotes de produção estão em conformidade com a política de licenças."
+  );
 }
 
 // Run only when invoked directly (not when imported by tests)
-const isMain = process.argv[1] === pathToFileURL(import.meta.url).pathname ||
+const isMain =
+  process.argv[1] === pathToFileURL(import.meta.url).pathname ||
   process.argv[1]?.endsWith("check-licenses.mjs");
 
 if (isMain) {
