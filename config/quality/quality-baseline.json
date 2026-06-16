@@ -129,6 +129,12 @@
       "value": 5601,
       "direction": "down",
       "dedicatedGate": true
+    },
+    "openapiBreaking": {
+      "value": 0,
+      "direction": "down",
+      "dedicatedGate": true,
+      "_note": "oasdiff breaking-change gate (Fase 9 Onda 0). Blocks any breaking change vs base spec."
     }
   },
   "_coverage_note": "Pisos anti-flake ~2pt abaixo do real do CI mergeado MEDIDO COM os 135 testes religados (run 27247237268: statements 78.4 / lines 78.4 / functions 83.84 / branches 75.73). O religamento da 6A.1 HONESTIFICOU a regua: os ~82.5 anteriores eram inflados porque modulos nunca importados ficavam fora do denominador do c8. Apertar via --require-tighten na Fase 6A (2026-06-16).",

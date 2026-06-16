@@ -248,14 +248,15 @@ jobs:
         run: npm run check:workflows -- --ratchet
       # OpenAPI breaking-change detection (oasdiff). Diffs the PR's public API
       # contract (docs/reference/openapi.yaml) against the base branch's spec.
-      # ADVISORY: reports `openapiBreaking=N` and self-skips when oasdiff is absent
-      # or the base spec can't be resolved. BASE_REF is read by the script from the
-      # env (never interpolated into a shell body) — workflow-injection-safe.
-      - name: OpenAPI breaking-change (oasdiff; advisory)
-        continue-on-error: true
+      # BLOCKING ratchet (Fase 9 Onda 0): reads metrics.openapiBreaking.value and
+      # exits 1 ONLY on a measured regression (count > baseline). It SKIPs (exit 0)
+      # when oasdiff is absent or the base spec can't be resolved — a missing
+      # measurement never blocks. BASE_REF is read by the script from the env
+      # (never interpolated into a shell body) — workflow-injection-safe.
+      - name: OpenAPI breaking-change (oasdiff, ratchet, blocking)
         env:
           BASE_REF: ${{ github.base_ref }}
-        run: npm run check:openapi-breaking
+        run: npm run check:openapi-breaking -- --ratchet
 
   docs-sync-strict:
     name: Docs Sync (Strict)
