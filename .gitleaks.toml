@@ -15,7 +15,15 @@
 # Referência: docs/security/PUBLIC_CREDS.md (credenciais OAuth públicas conhecidas)
 #             CLAUDE.md Hard Rule #11 (resolvePublicCred obrigatório)
 
-# Usar as regras padrão do gitleaks (não declaramos [rules] aqui para herdar tudo)
+# Herdar TODAS as regras padrão do gitleaks. ATENÇÃO: um config customizado
+# SEM [extend].useDefault = true (e sem [[rules]] próprias) resulta em ZERO
+# regras — o gitleaks SUBSTITUI o ruleset padrão pelo arquivo, não o estende
+# automaticamente. Sem esta seção, `gitleaks --config .gitleaks.toml` nunca
+# detecta nada (todo finding vira 0), tornando o gate inerte. Com useDefault,
+# a allowlist abaixo é aplicada POR CIMA das ~170 regras padrão.
+[extend]
+  useDefault = true
+
 # Para desabilitar uma regra específica, usar:
 # [[rules]]
 #   id = "rule-id"

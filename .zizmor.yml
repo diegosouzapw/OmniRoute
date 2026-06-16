@@ -30,22 +30,30 @@
 # Uncomment to pin to a specific minimum severity level.
 # min-severity: low       # low | medium | high | critical (default: low = all)
 
-# ── Per-finding ignores ──────────────────────────────────────────────────────
+# ── Per-rule ignores ─────────────────────────────────────────────────────────
+# zizmor ≥1.0 replaced the old top-level `ignores:` list with a `rules:` map
+# keyed by audit id. Per-rule config lives under `rules.<audit-id>.ignore`,
+# where each entry is `filename` or `filename:line` (line optional, column
+# further-optional). See: https://docs.zizmor.sh/configuration/
+#
 # Format:
-#   ignores:
-#     - id: <zizmor-audit-id>   # e.g. "unpinned-uses", "script-injection"
-#       reason: "<justification>"
-#       # Optional: scope to a specific workflow or step
-#       # workflow: .github/workflows/ci.yml
+#   rules:
+#     <zizmor-audit-id>:          # e.g. "unpinned-uses", "template-injection"
+#       ignore:
+#         - <workflow-filename>            # ignore this audit across the file
+#         - <workflow-filename>:<line>     # or scope to a specific line
 #
 # Example (do not uncomment without real justification):
 #
-#   ignores:
-#     - id: unpinned-uses
-#       reason: >
-#         actions/checkout@v6 is pinned at the major-version tag intentionally:
-#         GitHub-managed first-party action; SHA pinning buys little against a
-#         GitHub-side compromise and adds significant maintenance burden.
-#       workflow: .github/workflows/ci.yml
+#   rules:
+#     unpinned-uses:
+#       # actions/checkout@v6 is pinned at the major-version tag intentionally:
+#       # GitHub-managed first-party action; SHA pinning buys little against a
+#       # GitHub-side compromise and adds significant maintenance burden.
+#       ignore:
+#         - ci.yml
 
-ignores: []
+# BASELINE: empty rules map = nothing ignored. Every future ignore requires an
+# explicit per-rule entry above with a justification comment (same stale-review
+# discipline as the other allowlists in this project).
+rules: {}

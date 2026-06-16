@@ -109,6 +109,26 @@
       "value": 0,
       "direction": "down",
       "dedicatedGate": true
+    },
+    "secretFindings": {
+      "value": 3,
+      "direction": "down",
+      "dedicatedGate": true
+    },
+    "zizmorFindings": {
+      "value": 195,
+      "direction": "down",
+      "dedicatedGate": true
+    },
+    "vulnCount": {
+      "value": 13,
+      "direction": "down",
+      "dedicatedGate": true
+    },
+    "bundleSize": {
+      "value": 5601,
+      "direction": "down",
+      "dedicatedGate": true
     }
   },
   "_coverage_note": "Pisos anti-flake ~2pt abaixo do real do CI mergeado MEDIDO COM os 135 testes religados (run 27247237268: statements 78.4 / lines 78.4 / functions 83.84 / branches 75.73). O religamento da 6A.1 HONESTIFICOU a regua: os ~82.5 anteriores eram inflados porque modulos nunca importados ficavam fora do denominador do c8. Apertar via --require-tighten na Fase 6A (2026-06-16).",
@@ -118,6 +138,7 @@
   "_eslint_rebaseline_2026_06_13_v3825": "3658 -> 3669: +11 drift consciente do ciclo v3.8.24->v3.8.25 (features #3799-#3806: free-provider-rankings, plugins menu, proxy IP-family). Medido em release/v3.8.25 (e38d22512). Crescimento de feature legitima, nao regressao; apertar via --require-tighten no fim do ciclo.",
   "_eslint_rebaseline_2026_06_15_release_v3826": "3669 -> 3760. Medido em origin/release/v3.8.26 e neste PR com npm run quality:collect: ambos retornam 3760 warnings, portanto este PR e neutro; o drift ja existe na base release/v3.8.26.",
   "_quality_rebaseline_2026_06_15_release_v3826": "deadExports 327 -> 339 e cognitiveComplexity 738 -> 753. Medido em origin/release/v3.8.26 e neste PR com os dedicated gates: ambos retornam os mesmos valores, portanto este PR e neutro; typeCoveragePct permanece acima do baseline.",
+  "_scanner_baselines_seeded_2026_06_15": "secretFindings (3), zizmorFindings (195), vulnCount (13) e bundleSize (5601) congelados a partir de um run LOCAL em 2026-06-15 com os binarios reais no PATH (gitleaks 8.30.1, osv-scanner 2.3.8, zizmor 1.25.2, @size-limit/file 12.1.0). Medicoes: (a) secretFindings=3 via 'gitleaks dir <dir>' por diretorio de fonte (src/open-sse/bin/electron/scripts) APOS corrigir o .gitleaks.toml para [extend].useDefault=true (sem isso o config customizado zerava o ruleset e nunca detectava nada) e a invocacao para escopo por-dir (gitleaks dir aceita 1 path; multiplos caiam para escanear o CWD inteiro/node_modules->timeout). Os 3 sao falsos-positivos do heuristico generic-api-key (string de header beta Anthropic + nomes de coluna latencyP50Ms/latencyP95Ms), a serem allowlistados ao longo do tempo; (b) zizmorFindings=195 via 'npm run check:workflows' APOS migrar .zizmor.yml do schema antigo 'ignores: []' para 'rules: {}' (zizmor 1.25.2 rejeitava o campo 'ignores'); (c) vulnCount=13 (LOW=4/MOD=7/HIGH=2) via osv-scanner; (d) bundleSize=5601 (gzip dos 4 entrypoints bin/*.mjs) via size-limit+@size-limit/file. Todos os 4 sao dedicatedGate:true => SKIP no ratchet BLOQUEANTE (job quality-gate) e ADVISORY no job quality-extended (continue-on-error). Permanecem advisory ate um run VERDE de CI confirmar que a tooling corrigida (install via 'gh release download' em vez de api.github.com nao-autenticado) produz os valores; o flip para bloqueante (remover continue-on-error) fica para um PR de follow-up. Direction:down em todos.",
   "_codeql_promote_blocking_2026_06_15": "codeqlAlerts (value 0, direction down) PROMOVIDO de ADVISORY para RATCHET BLOQUEANTE como dedicated gate. CodeQL default-setup esta ON no repo e 'gh api repos/diegosouzapw/OmniRoute/code-scanning/alerts?state=open' retorna 0 alertas abertos (limpo). check-codeql-ratchet.mjs agora le metrics.codeqlAlerts.value, compara e sai 1 SOMENTE numa regressao real (medida > baseline); QUALQUER falha de medicao (gh ausente/sem auth/sem repo/erro de API) e SKIP gracioso com exit 0 — nunca bloqueia por falta de infraestrutura. O step bloqueante vive no job quality-gate (GH_TOKEN + permissions security-events:read); o step advisory duplicado foi removido do quality-extended. Substitui a nota _int_wiring_2026_06_13 que dizia 'codeqlAlerts permanece advisory'.",
   "_metrics_added_2026_06_13_6a11": "openapiCoverage.pct (38.3) e i18nUiCoverage.pct (80.1) promovidas de pisos manuais THRESHOLD para metricas de catraca (direction up) na Task 6A.11. eslintErrors fixado em 0 (era metrica orfa detectada pelo motor v2 da 6A.5).",
   "_int_wiring_2026_06_13": "Fase 7 INT: 3 metricas promovidas de ADVISORY para RATCHET BLOQUEANTE. Valores REAIS medidos em 2026-06-13 no HEAD desta branch: deadExports=327 (knip --reporter json, DEAD_TOTAL=exports+files), cognitiveComplexity=738 (eslint sonarjs/cognitive-complexity via eslint.sonarjs.config.mjs), typeCoveragePct=92.17 (type-coverage --json-output -p open-sse/tsconfig.json). Os scripts check-dead-code.mjs/check-cognitive-complexity.mjs/check-type-coverage.mjs foram convertidos de advisory (exit 0 sempre) para ratchet (exit 1 em regressao). vulnCount e codeqlAlerts permanecem advisory no job quality-extended: dependem de binarios externos (osv-scanner) e token GitHub (gh api) nao disponiveis localmente — nao podem ser medidos/congelados honestamente sem infraestrutura de CI.",

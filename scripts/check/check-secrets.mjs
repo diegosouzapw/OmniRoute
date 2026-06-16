@@ -28,6 +28,21 @@ const QUIET = process.argv.includes("--quiet");
 const PRINT_JSON = process.argv.includes("--json");
 const GITLEAKS_CONFIG = path.join(ROOT, ".gitleaks.toml");
 
+// Source directories to scan for secrets. We deliberately scope to the
+// production/source trees instead of scanning the whole working dir:
+//   • `gitleaks dir .` (and `detect --no-git --source .`) WALKS the entire tree
+//     and READS every file — including a real `node_modules/` (90k+ files) when
+//     present (CI runs `npm ci`). gitleaks has no traversal-exclude flag: the
+//     `.gitleaks.toml [allowlist].paths` list filters FINDINGS *after* each file
+//     is read, so it does NOT speed up the walk. The full walk blows past the
+//     timeout in CI (confirmed: ETIMEDOUT) → the gate silently never produces a
+//     value. Scoping the scan to the source dirs keeps it fast (~6s) while still
+//     covering every place an embedded secret would actually be a risk (the same
+//     dirs Hard Rule #8 governs: src/open-sse/electron/bin, plus scripts/).
+//   • We also drop git-history mode (scanning 4500+ commits is slow and grows
+//     unbounded); the current working tree is what ships.
+const SECRET_SCAN_DIRS = ["src", "open-sse", "bin", "electron", "scripts"];
+
 // ---------------------------------------------------------------------------
 // Pure parsing function (exported for tests)
 // ---------------------------------------------------------------------------
@@ -140,66 +155,94 @@ function main() {
     if (!QUIET) {
       process.stderr.write(
         "[check-secrets] SKIP — gitleaks não encontrado no PATH.\n" +
-        "[check-secrets] Instale via: https://github.com/gitleaks/gitleaks\n" +
-        "[check-secrets] ADVISORY — este gate sai 0 (ratchet entra no CI da Fase 7 INT).\n"
+          "[check-secrets] Instale via: https://github.com/gitleaks/gitleaks\n" +
+          "[check-secrets] ADVISORY — este gate sai 0 (ratchet entra no CI da Fase 7 INT).\n"
       );
     }
     process.exitCode = 0;
     return;
   }
 
-  // Construir args sem interpolação de variáveis no script (Hard Rule #13)
-  const args = [
-    "detect",
-    "--no-git",             // escanear diretório em vez de histórico git (mais rápido em CI)
-    "--report-format", "json",
-    "--report-path", "-",  // output para stdout
-    "--source", ROOT,
-    "--no-banner",
-  ];
+  // Resolver os diretórios de fonte que realmente existem (robusto se um sumir).
+  const scanDirs = SECRET_SCAN_DIRS.filter((d) => fs.existsSync(path.join(ROOT, d)));
 
-  // Adicionar config personalizada se existir
-  if (fs.existsSync(GITLEAKS_CONFIG)) {
-    args.push("--config", GITLEAKS_CONFIG);
+  if (scanDirs.length === 0) {
+    // Nenhum dir de fonte encontrado — nada a escanear (advisory, sai 0).
+    console.log("secretFindings=0");
+    if (!QUIET) {
+      process.stderr.write("[check-secrets] Nenhum diretório de fonte encontrado para escanear.\n");
+    }
+    process.exitCode = 0;
+    return;
   }
 
   if (!QUIET) {
-    process.stderr.write("[check-secrets] Rodando gitleaks detect --no-git --report-format json ...\n");
+    process.stderr.write(
+      `[check-secrets] Rodando gitleaks dir <dir> --report-format json para: ${scanDirs.join(", ")} ...\n`
+    );
   }
 
-  let stdout = "";
-  try {
-    stdout = execFileSync(gitleaksBin, args, {
-      cwd: ROOT,
-      encoding: "utf8",
-      maxBuffer: 32 * 1024 * 1024,
-      timeout: 120_000, // 2 min
-    });
-  } catch (err) {
-    // exit 1 com stdout = findings encontrados (comportamento esperado do gitleaks)
-    stdout = err.stdout ? String(err.stdout) : "";
-    const stderr = err.stderr ? String(err.stderr) : "";
+  // `gitleaks dir` aceita UM ÚNICO path posicional (uso: `gitleaks dir [flags]
+  // [path]`). Passar múltiplos paths faz o gitleaks ignorar os extras e cair para
+  // escanear o CWD inteiro (`.`) — o que re-traz node_modules/docs/tests e o
+  // timeout original. Por isso escaneamos CADA diretório de fonte em uma invocação
+  // separada e concatenamos os findings.
+  const gitleaksJson = [];
+  for (const dir of scanDirs) {
+    const args = [
+      "dir",
+      dir,
+      "--report-format",
+      "json",
+      "--report-path",
+      "-", // output para stdout
+      "--no-banner",
+    ];
+    if (fs.existsSync(GITLEAKS_CONFIG)) {
+      args.push("--config", GITLEAKS_CONFIG);
+    }
 
-    if (err.status === 1 && stdout.trim()) {
-      // Normal: gitleaks achou findings e saiu com exit 1
-    } else if (!stdout.trim()) {
-      process.stderr.write(`[check-secrets] ERRO ao executar gitleaks: ${err.message}\n`);
-      if (stderr) process.stderr.write(`[check-secrets] stderr: ${stderr.slice(0, 500)}\n`);
+    let stdout = "";
+    try {
+      stdout = execFileSync(gitleaksBin, args, {
+        cwd: ROOT,
+        encoding: "utf8",
+        maxBuffer: 32 * 1024 * 1024,
+        timeout: 90_000, // 90s por dir — o scan escopado completa em ~10s; folga ampla
+      });
+    } catch (err) {
+      // exit 1 com stdout = findings encontrados (comportamento esperado do gitleaks)
+      stdout = err.stdout ? String(err.stdout) : "";
+      const stderr = err.stderr ? String(err.stderr) : "";
+
+      if (err.status === 1 && stdout.trim()) {
+        // Normal: gitleaks achou findings neste dir e saiu com exit 1
+      } else if (!stdout.trim()) {
+        process.stderr.write(
+          `[check-secrets] ERRO ao executar gitleaks em '${dir}': ${err.message}\n`
+        );
+        if (stderr) process.stderr.write(`[check-secrets] stderr: ${stderr.slice(0, 500)}\n`);
+        process.exit(2);
+      }
+    }
+
+    if (!stdout.trim() || stdout.trim() === "null") {
+      continue; // sem findings neste dir
+    }
+    let parsed;
+    try {
+      parsed = JSON.parse(stdout.trim());
+    } catch (parseErr) {
+      process.stderr.write(
+        `[check-secrets] ERRO ao parsear JSON do gitleaks em '${dir}': ${parseErr.message}\n`
+      );
+      process.stderr.write(
+        `[check-secrets] stdout (primeiros 500 chars): ${stdout.slice(0, 500)}\n`
+      );
       process.exit(2);
     }
-  }
-
-  let gitleaksJson;
-  if (!stdout.trim() || stdout.trim() === "null") {
-    gitleaksJson = [];
-  } else {
-    try {
-      const parsed = JSON.parse(stdout.trim());
-      gitleaksJson = parsed === null ? [] : parsed;
-    } catch (parseErr) {
-      process.stderr.write(`[check-secrets] ERRO ao parsear JSON do gitleaks: ${parseErr.message}\n`);
-      process.stderr.write(`[check-secrets] stdout (primeiros 500 chars): ${stdout.slice(0, 500)}\n`);
-      process.exit(2);
+    if (Array.isArray(parsed)) {
+      gitleaksJson.push(...parsed);
     }
   }
 
@@ -223,7 +266,7 @@ function main() {
       process.stderr.write(`[check-secrets] Findings: ${findingCount} (top rules: ${topRules})\n`);
       process.stderr.write(
         "[check-secrets] Para allowlistar findings legítimos (fixtures de teste, creds públicas),\n" +
-        "[check-secrets] adicione entradas em .gitleaks.toml [[allowlist]] com comentário.\n"
+          "[check-secrets] adicione entradas em .gitleaks.toml [[allowlist]] com comentário.\n"
       );
     } else {
       process.stderr.write("[check-secrets] Nenhum finding detectado.\n");
