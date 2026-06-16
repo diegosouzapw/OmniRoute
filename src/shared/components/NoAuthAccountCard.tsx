@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback, useRef } from "react";
 import Card from "./Card";
 import Button from "./Button";
 import DistributeProxiesButton from "./DistributeProxiesButton";
+import NoAuthProviderToggle from "./NoAuthProviderToggle";
 
 interface NoAuthAccountCardProps {
   providerId: string;
@@ -12,6 +13,9 @@ interface NoAuthAccountCardProps {
   dataKey?: string;
   description?: string;
   addLabel?: string;
+  enabled?: boolean;
+  savingEnabled?: boolean;
+  onEnabledChange?: (enabled: boolean) => void;
 }
 
 interface Connection {
@@ -48,6 +52,9 @@ export default function NoAuthAccountCard({
   dataKey = "fingerprints",
   description = "Ready to use — no signup needed. Add accounts for rate-limit rotation.",
   addLabel = "Add Account",
+  enabled = true,
+  savingEnabled = false,
+  onEnabledChange,
 }: NoAuthAccountCardProps) {
   const [connections, setConnections] = useState<Connection[]>([]);
   const [loading, setLoading] = useState(true);
@@ -94,9 +101,7 @@ export default function NoAuthAccountCard({
     }
   }, [proxyAccountId]);
 
-  const allAccountIds = connections.flatMap(
-    (c) => c.providerSpecificData?.[dataKey] || []
-  );
+  const allAccountIds = connections.flatMap((c) => c.providerSpecificData?.[dataKey] || []);
 
   const conn = connections[0];
   const accountProxies = getAccountProxies(conn);
@@ -251,30 +256,38 @@ export default function NoAuthAccountCard({
 
   return (
     <Card>
-      <div className="flex items-center gap-3 mb-3">
-        <div className="inline-flex shrink-0 items-center justify-center w-10 h-10 rounded-full bg-green-500/10 text-green-500">
-          <span className="material-symbols-outlined text-[20px]">lock_open</span>
+      <div className="mb-3 flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+        <div className="flex min-w-0 items-center gap-3">
+          <div className="inline-flex shrink-0 items-center justify-center w-10 h-10 rounded-full bg-green-500/10 text-green-500">
+            <span className="material-symbols-outlined text-[20px]">lock_open</span>
+          </div>
+          <div className="flex-1 min-w-0">
+            <p className="text-sm font-medium">No authentication required</p>
+            <p className="text-xs text-text-muted">{description}</p>
+          </div>
         </div>
-        <div className="flex-1">
-          <p className="text-sm font-medium">No authentication required</p>
-          <p className="text-xs text-text-muted">{description}</p>
-        </div>
+        <NoAuthProviderToggle
+          className="w-full justify-end sm:w-auto"
+          enabled={enabled}
+          saving={savingEnabled}
+          onEnabledChange={onEnabledChange}
+        />
       </div>
 
       <div className="border-t border-border pt-3 mt-3">
-        <div className="flex items-center justify-between mb-2">
+        <div className="mb-2 flex items-center justify-between">
           <span className="text-sm font-medium">
             Accounts ({loading ? "..." : allAccountIds.length})
           </span>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center justify-end gap-2">
             {!loading && allAccountIds.length > 0 && (
               <DistributeProxiesButton
                 onDistribute={handleDistributeProxies}
-                disabled={adding}
+                disabled={adding || !enabled}
                 size="sm"
               />
             )}
-            <Button size="sm" icon="add" onClick={handleAddAccount} disabled={adding}>
+            <Button size="sm" icon="add" onClick={handleAddAccount} disabled={adding || !enabled}>
               {adding ? "Adding..." : addLabel}
             </Button>
           </div>
@@ -305,9 +318,13 @@ export default function NoAuthAccountCard({
                       <button
                         onClick={() => openProxyConfig(id)}
                         className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-xs font-medium transition-colors"
-                        title={proxy ? `${proxy.type}://${proxy.host}:${proxy.port}` : "Configure proxy"}
+                        title={
+                          proxy ? `${proxy.type}://${proxy.host}:${proxy.port}` : "Configure proxy"
+                        }
                       >
-                        <span className={`material-symbols-outlined text-[14px] ${proxy ? "text-blue-400" : "text-text-muted"}`}>
+                        <span
+                          className={`material-symbols-outlined text-[14px] ${proxy ? "text-blue-400" : "text-text-muted"}`}
+                        >
                           {proxy ? "shield" : "shield"}
                         </span>
                         <span className={proxy ? "text-blue-400" : "text-text-muted"}>
@@ -328,9 +345,7 @@ export default function NoAuthAccountCard({
                       ref={popoverRef}
                       className="absolute right-0 top-full z-50 mt-1 w-80 rounded-lg border border-black/10 dark:border-white/10 bg-surface shadow-lg p-4"
                     >
-                      <p className="text-sm font-medium mb-3">
-                        Proxy for Account {i + 1}
-                      </p>
+                      <p className="text-sm font-medium mb-3">Proxy for Account {i + 1}</p>
                       <div className="space-y-3">
                         <div className="flex gap-2">
                           <select
@@ -339,7 +354,9 @@ export default function NoAuthAccountCard({
                             className="rounded-md border border-black/10 dark:border-white/10 bg-bg px-2.5 py-1.5 text-xs flex-shrink-0"
                           >
                             {PROXY_TYPES.map((t) => (
-                              <option key={t.value} value={t.value}>{t.label}</option>
+                              <option key={t.value} value={t.value}>
+                                {t.label}
+                              </option>
                             ))}
                           </select>
                           <input

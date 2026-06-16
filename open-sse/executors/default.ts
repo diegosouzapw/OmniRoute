@@ -14,6 +14,7 @@ import {
 } from "../services/claudeCodeCompatible.ts";
 import { getGigachatAccessToken } from "../services/gigachatAuth.ts";
 import { getRegistryEntry } from "../config/providerRegistry.ts";
+import { mergeClientAnthropicBeta } from "../config/anthropicHeaders.ts";
 import { applyProviderRequestDefaults } from "../services/providerRequestDefaults.ts";
 import {
   detectFormat,
@@ -529,6 +530,17 @@ export class DefaultExecutor extends BaseExecutor {
           headers[headerName] = value;
         }
       }
+
+      // #3974: merge the client's negotiated anthropic-beta (allowlisted) into the
+      // outbound set. The registry's static ANTHROPIC_BETA_CLAUDE_OAUTH lacks
+      // tool-search-tool-2025-10-19, so deferred-tool requests were rejected with
+      // 400 "Tool reference not found". Allowlist-merge preserves it without
+      // forwarding betas the backend rejects.
+      const clientBeta = clientHeaders["anthropic-beta"] ?? clientHeaders["Anthropic-Beta"] ?? null;
+      const betaKey = Object.keys(headers).find((key) => key.toLowerCase() === "anthropic-beta");
+      if (betaKey && clientBeta) {
+        headers[betaKey] = mergeClientAnthropicBeta(headers[betaKey], clientBeta);
+      }
     }
 
     return headers;
@@ -572,6 +584,14 @@ export class DefaultExecutor extends BaseExecutor {
           delete withoutStreamOptions.stream_options;
           withDefaults = withoutStreamOptions;
         }
+      } else if (!stream && Object.prototype.hasOwnProperty.call(withDefaults, "stream_options")) {
+        // #3884: stream_options is only valid on streaming requests. NVIDIA NIM
+        // (and the OpenAI spec) reject "Stream options can only be defined when
+        // stream=True" on non-streaming calls. Strip any client-sent
+        // stream_options when the outbound request is not streaming.
+        const withoutStreamOptions = { ...withDefaults } as Record<string, unknown>;
+        delete withoutStreamOptions.stream_options;
+        withDefaults = withoutStreamOptions;
       } else if (
         (targetFormat === "openai-responses" || requestFormat === "openai-responses") &&
         Object.prototype.hasOwnProperty.call(withDefaults, "stream_options")

@@ -1102,7 +1102,8 @@
     "dragReorderSection": "拖拽以重新排序分区",
     "dragReorderItem": "拖拽以重新排序",
     "cannotHide": "此项无法隐藏",
-    "alwaysVisible": "始终可见"
+    "alwaysVisible": "始终可见",
+    "groupSeparatorLabel": "隔断"
   },
   "webhooks": {
     "title": "Webhook",

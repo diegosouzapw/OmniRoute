@@ -23,6 +23,7 @@ import {
   setThinkingBudgetConfig,
   ThinkingMode,
 } from "../../open-sse/services/thinkingBudget.ts";
+import { runWithCapture } from "../../open-sse/utils/providerRequestLogging.ts";
 import { CODEX_CHAT_DEFAULT_INSTRUCTIONS } from "../../open-sse/config/codexInstructions.ts";
 
 type MockCodexWebSocket = {
@@ -910,6 +911,62 @@ test("CodexExecutor.execute falls back to HTTP when websocket transport is unava
   } finally {
     globalThis.fetch = originalFetch;
   }
+});
+
+test("CodexExecutor.execute captures the exact websocket request body before send", async () => {
+  const executor = new CodexExecutor();
+  let sent: string | null = null;
+  let sendStarted = false;
+  let prepared: unknown = null;
+  let preparedBeforeSend = false;
+  const ws: MockCodexWebSocket = {
+    send(data) {
+      sendStarted = true;
+      sent = data;
+      queueMicrotask(() => {
+        ws.onmessage?.({
+          data: JSON.stringify({ type: "response.completed", response: { status: "completed" } }),
+        });
+      });
+    },
+    close() {},
+    onmessage: null,
+    onerror: null,
+    onclose: null,
+  };
+  __setCodexWebSocketTransportForTesting(async () => ws);
+
+  const requestCapture = {
+    capture(request) {
+      preparedBeforeSend = !sendStarted;
+      prepared = request.body;
+    },
+    body(fallback) {
+      return prepared ?? fallback;
+    },
+    latest() {
+      return null;
+    },
+  };
+  const result = await runWithCapture(requestCapture, () =>
+    executor.execute({
+      model: "gpt-5.5-xhigh",
+      body: { model: "gpt-5.5-xhigh", input: [{ role: "user", content: "hello" }] },
+      stream: true,
+      credentials: {
+        accessToken: "codex-token",
+        providerSpecificData: { codexTransport: "websocket" },
+      },
+    })
+  );
+  await result.response.text();
+
+  assert.ok(sent);
+  const sentBody = JSON.parse(sent);
+  assert.equal(preparedBeforeSend, true);
+  assert.deepEqual(prepared, sentBody);
+  assert.equal(sentBody.type, "response.create");
+  assert.equal(sentBody.model, "gpt-5.5");
 });
 
 test("CodexExecutor.execute adds CLI-like session identity headers without changing response flow", async () => {

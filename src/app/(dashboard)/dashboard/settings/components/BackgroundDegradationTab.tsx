@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Card } from "@/shared/components";
+import { Card, Toggle } from "@/shared/components";
 import { useTranslations } from "next-intl";
 
 export default function BackgroundDegradationTab() {
@@ -120,19 +120,12 @@ export default function BackgroundDegradationTab() {
               "Automatically use cheaper models for background utility tasks"}
           </p>
         </div>
-        <button
-          onClick={() => save({ enabled: !config.enabled })}
+        <Toggle
+          checked={config.enabled}
+          onChange={(enabled) => save({ enabled })}
           disabled={loading || saving}
-          className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
-            config.enabled ? "bg-sky-500" : "bg-white/10"
-          }`}
-        >
-          <span
-            className={`inline-block h-4 w-4 rounded-full bg-white transition-transform ${
-              config.enabled ? "translate-x-6" : "translate-x-1"
-            }`}
-          />
-        </button>
+          ariaLabel={t("enableDegradation") || "Enable Background Degradation"}
+        />
       </div>
 
       {/* Stats */}

@@ -1,0 +1,48 @@
+import type { RegistryEntry } from "../../shared.ts";
+
+export const pollinationsProvider: RegistryEntry = {
+  id: "pollinations",
+  alias: "pol",
+  format: "openai",
+  executor: "pollinations",
+  // #2987: Pollinations retired the legacy text.pollinations.ai host (it now
+  // returns 404 "This is our legacy API"). The current OpenAI-compatible gateway
+  // is gen.pollinations.ai/v1, so route there as the primary endpoint.
+  baseUrl: "https://gen.pollinations.ai/v1/chat/completions",
+  baseUrls: ["https://gen.pollinations.ai/v1/chat/completions"],
+  authType: "apikey",
+  authHeader: "bearer",
+  models: [
+    { id: "openai", name: "OpenAI (Pollinations)" },
+    { id: "openai-fast", name: "OpenAI Fast (Pollinations)" },
+    { id: "openai-large", name: "OpenAI Large (Pollinations)" },
+    { id: "qwen-coder", name: "Qwen Coder (Pollinations)" },
+    { id: "mistral", name: "Mistral (Pollinations)" },
+    { id: "gemini", name: "Gemini (Pollinations)" },
+    { id: "gemini-flash-lite-3.1", name: "Gemini Flash Lite 3.1 (Pollinations)" },
+    { id: "gemini-fast", name: "Gemini Fast (Pollinations)" },
+    { id: "deepseek", name: "DeepSeek (Pollinations)" },
+    { id: "grok", name: "Grok (Pollinations)" },
+    { id: "grok-large", name: "Grok Large (Pollinations)" },
+    { id: "gemini-search", name: "Gemini Search (Pollinations)" },
+    { id: "midijourney", name: "Midijourney (Pollinations)" },
+    { id: "midijourney-large", name: "Midijourney Large (Pollinations)" },
+    { id: "claude-fast", name: "Claude Fast (Pollinations)" },
+    { id: "claude", name: "Claude (Pollinations)" },
+    { id: "claude-large", name: "Claude Large (Pollinations)" },
+    { id: "perplexity-fast", name: "Perplexity Fast (Pollinations)" },
+    { id: "perplexity-reasoning", name: "Perplexity Reasoning (Pollinations)" },
+    { id: "kimi", name: "Kimi (Pollinations)" },
+    { id: "gemini-large", name: "Gemini Large (Pollinations)" },
+    { id: "nova-fast", name: "Nova Fast (Pollinations)" },
+    { id: "nova", name: "Nova (Pollinations)" },
+    { id: "glm", name: "GLM (Pollinations)" },
+    { id: "minimax", name: "MiniMax (Pollinations)" },
+    { id: "mistral-large", name: "Mistral Large (Pollinations)" },
+    { id: "polly", name: "Polly (Pollinations)" },
+    { id: "qwen-coder-large", name: "Qwen Coder Large (Pollinations)" },
+    { id: "qwen-large", name: "Qwen Large (Pollinations)" },
+    { id: "qwen-vision", name: "Qwen Vision (Pollinations)" },
+    { id: "qwen-safety", name: "Qwen Safety (Pollinations)" },
+  ],
+};

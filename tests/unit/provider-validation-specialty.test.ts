@@ -2655,7 +2655,10 @@ test("qwen-web validator probes /api/v2/user (not /api/v2/models) and returns va
   globalThis.fetch = async (url, init = {}) => {
     probedUrl = String(url);
     sentHeaders = toPlainHeaders(init.headers);
-    return new Response(JSON.stringify({ data: { id: "u-1", name: "Tester" } }), {
+    // Qwen's /api/v2/user returns a real user object for a valid session. Since
+    // #3958 the validator inspects the body for `user` (Qwen answers 200 even for
+    // invalid tokens), so a valid response must carry one.
+    return new Response(JSON.stringify({ user: { id: "u-1", name: "Tester" } }), {
       status: 200,
       headers: { "content-type": "application/json" },
     });
